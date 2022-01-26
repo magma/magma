@@ -637,7 +637,7 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
                 param_name='PLMN 1 cell reserved',
                 value=True, object_name='PLMN 1',
             ),
-            call.set_parameter(SASParameters.SAS_METHOD, True),
+            call.set_parameter(SASParameters.SAS_METHOD, value=True),
             call.set_parameter(FreedomFiOneMiscParameters.PRIM_SOURCE, 'GNSS'),
         ]
         self._check_postprocessing(expected=expected, service_cfg=service_cfg)
@@ -713,7 +713,7 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
                 param_name='PLMN 1 cell reserved',
                 value=True, object_name='PLMN 1',
             ),
-            call.set_parameter(SASParameters.SAS_METHOD, True),
+            call.set_parameter(SASParameters.SAS_METHOD, value=True),
             call.set_parameter(FreedomFiOneMiscParameters.PRIM_SOURCE, 'GNSS'),
         ]
 
@@ -753,7 +753,7 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
                 value=True, object_name='PLMN 1',
             ),
             call.set_parameter(FreedomFiOneMiscParameters.WEB_UI_ENABLE, value=True),
-            call.set_parameter(SASParameters.SAS_METHOD, True),
+            call.set_parameter(SASParameters.SAS_METHOD, value=True),
             call.set_parameter(FreedomFiOneMiscParameters.PRIM_SOURCE, 'GNSS'),
         ]
 
