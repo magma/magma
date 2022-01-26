@@ -22,6 +22,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 }
 
+using magma::lte::oai::EmmContext;
 using magma::lte::oai::MmeNasState;
 namespace magma5g {
 
@@ -265,4 +266,94 @@ void AmfNasStateConverter::proto_to_ue_m5gmm_context(
       ue_context_proto.paging_retx_count();
 }
 
+void AmfNasStateConverter::tai_to_proto(
+    const tai_t* state_tai, magma::lte::oai::Tai* tai_proto) {
+  OAILOG_DEBUG(
+      LOG_MME_APP, "State PLMN " PLMN_FMT "to proto",
+      PLMN_ARG(&state_tai->plmn));
+  char plmn_array[PLMN_BYTES];
+  plmn_array[0] = static_cast<char>(state_tai->plmn.mcc_digit1 + ASCII_ZERO);
+  plmn_array[1] = static_cast<char>(state_tai->plmn.mcc_digit2 + ASCII_ZERO);
+  plmn_array[2] = static_cast<char>(state_tai->plmn.mcc_digit3 + ASCII_ZERO);
+  plmn_array[3] = static_cast<char>(state_tai->plmn.mnc_digit1 + ASCII_ZERO);
+  plmn_array[4] = static_cast<char>(state_tai->plmn.mnc_digit2 + ASCII_ZERO);
+  plmn_array[5] = static_cast<char>(state_tai->plmn.mnc_digit3 + ASCII_ZERO);
+  tai_proto->set_mcc_mnc(plmn_array);
+  tai_proto->set_tac(state_tai->tac);
+}
+
+void AmfNasStateConverter::proto_to_tai(
+    const magma::lte::oai::Tai& tai_proto, tai_t* state_tai) {
+  state_tai->plmn.mcc_digit1 =
+      static_cast<int>(tai_proto.mcc_mnc()[0]) - ASCII_ZERO;
+  state_tai->plmn.mcc_digit2 =
+      static_cast<int>(tai_proto.mcc_mnc()[1]) - ASCII_ZERO;
+  state_tai->plmn.mcc_digit3 =
+      static_cast<int>(tai_proto.mcc_mnc()[2]) - ASCII_ZERO;
+  state_tai->plmn.mnc_digit1 =
+      static_cast<int>(tai_proto.mcc_mnc()[3]) - ASCII_ZERO;
+  state_tai->plmn.mnc_digit2 =
+      static_cast<int>(tai_proto.mcc_mnc()[4]) - ASCII_ZERO;
+  state_tai->plmn.mnc_digit3 =
+      static_cast<int>(tai_proto.mcc_mnc()[5]) - ASCII_ZERO;
+  state_tai->tac = tai_proto.tac();
+  OAILOG_DEBUG(
+      LOG_MME_APP, "State PLMN " PLMN_FMT "from proto",
+      PLMN_ARG(&state_tai->plmn));
+}
+
+void AmfNasStateConverter::amf_context_to_proto(
+    const amf_context_t* amf_ctx, EmmContext* emm_context_proto) {
+  emm_context_proto->set_imsi64(amf_ctx->imsi64);
+  identity_tuple_to_proto<imsi_t>(
+      &amf_ctx->imsi, emm_context_proto->mutable_imsi(), IMSI_BCD8_SIZE);
+  emm_context_proto->set_saved_imsi64(amf_ctx->saved_imsi64);
+  identity_tuple_to_proto<imei_t>(
+      &amf_ctx->imei, emm_context_proto->mutable_imei(), IMEI_BCD8_SIZE);
+  identity_tuple_to_proto<imeisv_t>(
+      &amf_ctx->imeisv, emm_context_proto->mutable_imeisv(), IMEISV_BCD8_SIZE);
+  emm_context_proto->set_emm_cause(amf_ctx->amf_cause);
+  emm_context_proto->set_emm_fsm_state(amf_ctx->amf_fsm_state);
+  emm_context_proto->set_attach_type(amf_ctx->m5gsregistrationtype);
+
+  emm_context_proto->set_member_present_mask(amf_ctx->member_present_mask);
+  emm_context_proto->set_member_valid_mask(amf_ctx->member_valid_mask);
+  emm_context_proto->set_is_dynamic(amf_ctx->is_dynamic);
+  emm_context_proto->set_is_attached(amf_ctx->is_registered);
+  emm_context_proto->set_is_initial_identity_imsi(
+      amf_ctx->is_initial_identity_imsi);
+  emm_context_proto->set_is_guti_based_attach(
+      amf_ctx->is_guti_based_registered);
+  emm_context_proto->set_is_imsi_only_detach(amf_ctx->is_imsi_only_detach);
+  tai_to_proto(
+      &amf_ctx->originating_tai, emm_context_proto->mutable_originating_tai());
+  emm_context_proto->set_ksi(amf_ctx->ksi);
+}
+
+void AmfNasStateConverter::proto_to_amf_context(
+    const EmmContext& emm_context_proto, amf_context_t* amf_ctx) {
+  amf_ctx->imsi64 = emm_context_proto.imsi64();
+  proto_to_identity_tuple<imsi_t>(
+      emm_context_proto.imsi(), &amf_ctx->imsi, IMSI_BCD8_SIZE);
+  amf_ctx->saved_imsi64 = emm_context_proto.saved_imsi64();
+
+  proto_to_identity_tuple<imei_t>(
+      emm_context_proto.imei(), &amf_ctx->imei, IMEI_BCD8_SIZE);
+  proto_to_identity_tuple<imeisv_t>(
+      emm_context_proto.imeisv(), &amf_ctx->imeisv, IMEISV_BCD8_SIZE);
+
+  amf_ctx->amf_cause     = emm_context_proto.emm_cause();
+  amf_ctx->amf_fsm_state = (amf_fsm_state_t) emm_context_proto.emm_fsm_state();
+  amf_ctx->m5gsregistrationtype = emm_context_proto.attach_type();
+  amf_ctx->member_present_mask  = emm_context_proto.member_present_mask();
+  amf_ctx->member_valid_mask    = emm_context_proto.member_valid_mask();
+  amf_ctx->is_dynamic           = emm_context_proto.is_dynamic();
+  amf_ctx->is_registered        = emm_context_proto.is_attached();
+  amf_ctx->is_initial_identity_imsi =
+      emm_context_proto.is_initial_identity_imsi();
+  amf_ctx->is_guti_based_registered = emm_context_proto.is_guti_based_attach();
+  amf_ctx->is_imsi_only_detach      = emm_context_proto.is_imsi_only_detach();
+  proto_to_tai(emm_context_proto.originating_tai(), &amf_ctx->originating_tai);
+  amf_ctx->ksi = emm_context_proto.ksi();
+}
 }  // namespace magma5g

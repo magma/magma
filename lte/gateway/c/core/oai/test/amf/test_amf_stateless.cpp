@@ -355,4 +355,122 @@ TEST(ue_m5gmm_context_to_proto, ue_m5gmm_context_to_proto) {
       ue_m5gmm_context1.paging_context.paging_retx_count,
       ue_m5gmm_context2.paging_context.paging_retx_count);
 }
+
+TEST(test_amf_context_to_proto, test_amf_context_state_to_proto) {
+#define AMF_CAUSE_SUCCESS 1
+  amf_context_t amf_ctx1 = {}, amf_ctx2 = {};
+  magma::lte::oai::EmmContext emm_context_proto = magma::lte::oai::EmmContext();
+
+  amf_ctx1.imsi64             = 222456000000101;
+  amf_ctx1.imsi.u.num.digit1  = 3;
+  amf_ctx1.imsi.u.num.digit2  = 1;
+  amf_ctx1.imsi.u.num.digit3  = 0;
+  amf_ctx1.imsi.u.num.digit4  = 1;
+  amf_ctx1.imsi.u.num.digit5  = 5;
+  amf_ctx1.imsi.u.num.digit6  = 0;
+  amf_ctx1.imsi.u.num.digit7  = 1;
+  amf_ctx1.imsi.u.num.digit8  = 2;
+  amf_ctx1.imsi.u.num.digit9  = 3;
+  amf_ctx1.imsi.u.num.digit10 = 4;
+  amf_ctx1.imsi.u.num.digit11 = 5;
+  amf_ctx1.imsi.u.num.digit12 = 6;
+  amf_ctx1.imsi.u.num.digit13 = 7;
+  amf_ctx1.imsi.u.num.digit14 = 8;
+  amf_ctx1.imsi.u.num.digit15 = 9;
+  amf_ctx1.saved_imsi64       = 310150123456789;
+
+  // imei
+  amf_ctx1.imei.length       = 10;
+  amf_ctx1.imei.u.num.tac2   = 2;
+  amf_ctx1.imei.u.num.tac1   = 1;
+  amf_ctx1.imei.u.num.tac3   = 3;
+  amf_ctx1.imei.u.num.tac4   = 4;
+  amf_ctx1.imei.u.num.tac5   = 5;
+  amf_ctx1.imei.u.num.tac6   = 6;
+  amf_ctx1.imei.u.num.tac7   = 7;
+  amf_ctx1.imei.u.num.tac8   = 8;
+  amf_ctx1.imei.u.num.snr1   = 1;
+  amf_ctx1.imei.u.num.snr2   = 2;
+  amf_ctx1.imei.u.num.snr3   = 3;
+  amf_ctx1.imei.u.num.snr4   = 4;
+  amf_ctx1.imei.u.num.snr5   = 5;
+  amf_ctx1.imei.u.num.snr6   = 6;
+  amf_ctx1.imei.u.num.parity = 1;
+  amf_ctx1.imei.u.num.cdsd   = 8;
+  for (int i = 0; i < IMEI_BCD8_SIZE; i++) {
+    amf_ctx1.imei.u.value[i] = i;
+  }
+
+  // imeisv
+  amf_ctx1.imeisv.length       = 10;
+  amf_ctx1.imeisv.u.num.tac2   = 2;
+  amf_ctx1.imeisv.u.num.tac1   = 1;
+  amf_ctx1.imeisv.u.num.tac3   = 3;
+  amf_ctx1.imeisv.u.num.tac4   = 4;
+  amf_ctx1.imeisv.u.num.tac5   = 5;
+  amf_ctx1.imeisv.u.num.tac6   = 6;
+  amf_ctx1.imeisv.u.num.tac7   = 7;
+  amf_ctx1.imeisv.u.num.tac8   = 8;
+  amf_ctx1.imeisv.u.num.snr1   = 1;
+  amf_ctx1.imeisv.u.num.snr2   = 2;
+  amf_ctx1.imeisv.u.num.snr3   = 3;
+  amf_ctx1.imeisv.u.num.snr4   = 4;
+  amf_ctx1.imeisv.u.num.snr5   = 5;
+  amf_ctx1.imeisv.u.num.snr6   = 6;
+  amf_ctx1.imeisv.u.num.parity = 1;
+  for (int i = 0; i < IMEISV_BCD8_SIZE; i++) {
+    amf_ctx1.imeisv.u.value[i] = i;
+  }
+  amf_ctx1.amf_cause     = AMF_CAUSE_SUCCESS;
+  amf_ctx1.amf_fsm_state = AMF_DEREGISTERED;
+
+  amf_ctx1.m5gsregistrationtype = AMF_REGISTRATION_TYPE_INITIAL;
+  amf_ctx1.member_present_mask |= AMF_CTXT_MEMBER_SECURITY;
+  amf_ctx1.member_valid_mask |= AMF_CTXT_MEMBER_SECURITY;
+  amf_ctx1.is_dynamic               = true;
+  amf_ctx1.is_registered            = true;
+  amf_ctx1.is_initial_identity_imsi = true;
+  amf_ctx1.is_guti_based_registered = true;
+  amf_ctx1.is_imsi_only_detach      = false;
+
+  // originating_tai
+  amf_ctx1.originating_tai.plmn.mcc_digit1 = 2;
+  amf_ctx1.originating_tai.plmn.mcc_digit2 = 2;
+  amf_ctx1.originating_tai.plmn.mcc_digit3 = 2;
+  amf_ctx1.originating_tai.plmn.mnc_digit3 = 6;
+  amf_ctx1.originating_tai.plmn.mnc_digit2 = 5;
+  amf_ctx1.originating_tai.plmn.mnc_digit1 = 4;
+  amf_ctx1.originating_tai.tac             = 1;
+
+  amf_ctx1.ksi = 0x06;
+
+  AmfNasStateConverter::amf_context_to_proto(&amf_ctx1, &emm_context_proto);
+  AmfNasStateConverter::proto_to_amf_context(emm_context_proto, &amf_ctx2);
+
+  EXPECT_EQ(amf_ctx1.imsi64, amf_ctx2.imsi64);
+  EXPECT_EQ(amf_ctx1.saved_imsi64, amf_ctx2.saved_imsi64);
+  EXPECT_EQ(amf_ctx1.amf_cause, amf_ctx2.amf_cause);
+  EXPECT_EQ(amf_ctx1.m5gsregistrationtype, amf_ctx2.m5gsregistrationtype);
+  EXPECT_EQ(amf_ctx1.member_present_mask, amf_ctx2.member_present_mask);
+  EXPECT_EQ(amf_ctx1.member_valid_mask, amf_ctx2.member_valid_mask);
+  EXPECT_EQ(amf_ctx1.is_dynamic, amf_ctx2.is_dynamic);
+  EXPECT_EQ(amf_ctx1.is_registered, amf_ctx2.is_registered);
+  EXPECT_EQ(
+      amf_ctx1.is_initial_identity_imsi, amf_ctx2.is_initial_identity_imsi);
+  EXPECT_EQ(
+      amf_ctx1.is_guti_based_registered, amf_ctx2.is_guti_based_registered);
+  EXPECT_EQ(amf_ctx1.is_imsi_only_detach, amf_ctx2.is_imsi_only_detach);
+  EXPECT_EQ(memcmp(&amf_ctx1.imsi, &amf_ctx2.imsi, sizeof(amf_ctx1.imsi)), 0);
+  EXPECT_EQ(amf_ctx1.imsi.u.num.digit1, amf_ctx2.imsi.u.num.digit1);
+  EXPECT_EQ(amf_ctx1.amf_fsm_state, amf_ctx2.amf_fsm_state);
+  EXPECT_EQ(memcmp(&amf_ctx1.imei, &amf_ctx2.imei, sizeof(amf_ctx1.imei)), 0);
+  EXPECT_EQ(
+      memcmp(&amf_ctx1.imeisv, &amf_ctx2.imeisv, sizeof(amf_ctx1.imeisv)), 0);
+  EXPECT_EQ(amf_ctx1.ksi, amf_ctx2.ksi);
+  EXPECT_EQ(
+      memcmp(
+          &amf_ctx1.originating_tai, &amf_ctx2.originating_tai,
+          sizeof(amf_ctx1.originating_tai)),
+      0);
+}
 }  // namespace magma5g
