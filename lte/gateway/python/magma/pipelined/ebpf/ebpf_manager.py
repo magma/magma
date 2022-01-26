@@ -217,8 +217,10 @@ class ebpf_manager:
         )
 
         key = self.dl_map.Key(ip_addr)
-        val = self.dl_map.Leaf(self._pack_ip(remote_ipv4),
-                               socket.htonl(tunnel_id))
+        val = self.dl_map.Leaf(
+            self._pack_ip(remote_ipv4),
+            socket.htonl(tunnel_id),
+        )
         self.dl_map[key] = val
 
     """Delete uplink session entry
@@ -330,6 +332,7 @@ class ebpf_manager:
     def _unpack_mac_addr(self, mac_addr: ctypes.c_ubyte):
         mac_bytes = bytearray(mac_addr)
         return mac_bytes.hex(":")
+
 
 # for debugging
 if __name__ == "__main__":

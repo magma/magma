@@ -74,6 +74,33 @@ class ConfigManager(StreamerClient.Callback):
         )
         return mconfig_digest_proto
 
+    def _warn_if_versions_are_incompatible(self, agw_version, unpacked_mconfig):
+        # version should be in X.X.X format with only non-negative numbers allowed for X
+        VERSION_REGEX = re.compile(r"[0-9]+\.(?P<minor_version>[0-9]+)\.[0-9]+")
+
+        # unpack the magmad structure to get orce_version field
+        if unpacked_mconfig.Is(mconfigs_pb2.MagmaD.DESCRIPTOR):
+            magmad_parsed = mconfigs_pb2.MagmaD()
+            unpacked_mconfig.Unpack(magmad_parsed)
+            orc8r_version = magmad_parsed.orc8r_version
+
+            agw_version_parsed = VERSION_REGEX.match(agw_version)
+            orc8r_version_parsed = VERSION_REGEX.match(orc8r_version)
+
+            # agw_version is not in expected format
+            if not agw_version_parsed:
+                logging.warning("Gateway version: %s not valid" % agw_version)
+
+            # orc8r_version is not in expected format
+            if not orc8r_version_parsed:
+                logging.warning("Orchestrator version: %s not valid" % orc8r_version)
+
+            return (agw_version_parsed, orc8r_version_parsed)
+        else:
+            logging.error("Expecting MagmaD Structure, but received a different structure: %s." %
+                unpacked_mconfig.type_url)
+            return (None, None)
+
     def process_update(self, stream_name, updates, resync):
         """
         Handle config updates. Resync is ignored since the entire config
@@ -146,24 +173,9 @@ class ConfigManager(StreamerClient.Callback):
             if srv in mconfig.configs_by_key:
                 configs_by_key[srv] = mconfig.configs_by_key.get(srv)
 
-        # version should be in 1.1.1 format with only positive numbers allowed
-        VERSION_REGEX = re.compile(r"[0-9]+\.(?P<minor_version>[0-9]+)\.[0-9]+")
-
-        agw_version = self._magmad_service.version
-        unpacked_mconfig = mconfig.configs_by_key.get(MAGMAD)
-        if unpacked_mconfig.Is(mconfigs_pb2.MagmaD.DESCRIPTOR):
-            magmad_parsed = mconfigs_pb2.MagmaD()
-            unpacked_mconfig.Unpack(magmad_parsed)
-            orc8r_version = magmad_parsed.orc8r_version
-
-            agw_version_parsed = VERSION_REGEX.match(agw_version)
-            orc8r_version_parsed = VERSION_REGEX.match(orc8r_version)
-
-            if not agw_version_parsed:
-                logging.warning("Gateway version: %s not valid" % agw_version)
-
-            if not orc8r_version_parsed:
-                logging.warning("orchestrator version: %s not valid" % orc8r_version)
+            agw_version = self._magmad_service.version
+            unpacked_mconfig = mconfig.configs_by_key.get(MAGMAD)
+            agw_version_parsed, orc8r_version_parsed = self._warn_if_versions_are_incompatible(agw_version, unpacked_mconfig)
 
             if agw_version_parsed and orc8r_version_parsed:
                 agw_minor = int(agw_version_parsed.group('minor_version'))
