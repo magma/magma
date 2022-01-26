@@ -17,6 +17,9 @@ import ApnEditDialog from './ApnEdit';
 import ApnOverview from './ApnOverview';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import Button from '@material-ui/core/Button';
+import CellWifiIcon from '@material-ui/icons/CellWifi';
+import DataPlanEditDialog from './DataPlanEdit';
+import DataPlanOverview from './DataPlanOverview';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -74,6 +77,9 @@ const StyledMenu = withStyles({
   />
 ));
 
+/**
+ * Button for creation of policies, rating groups, and profiles
+ */
 function PolicyMenu() {
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -127,6 +133,9 @@ function PolicyMenu() {
   );
 }
 
+/**
+ * Wrapper for "Create APN" button
+ */
 function ApnMenu() {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
@@ -144,6 +153,44 @@ function ApnMenu() {
   );
 }
 
+/**
+ * Wrapper for "Create Data Plan" button
+ */
+function DataPlanMenu() {
+  const classes = useStyles();
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <div>
+      <DataPlanEditDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        dataPlanId={''}
+      />
+      <Button
+        data-testid="newDataPlanButton"
+        onClick={() => setOpen(true)}
+        className={classes.appBarBtn}>
+        Create New Data Plan
+      </Button>
+    </div>
+  );
+}
+
+/**
+ * Dashboard for "Traffic" related features.
+ *
+ * Provides a management interface for:
+ *  - policies
+ *  - rating groups
+ *  - profiles
+ *  - APNs
+ *  - data plans
+ *
+ * "Read" and "Edit" functionality provided through tables
+ * "Create" functiona provided through a header with "Create New"
+ * button.
+ */
 export default function TrafficDashboard() {
   const {relativePath, relativeUrl} = useRouter();
 
@@ -164,6 +211,12 @@ export default function TrafficDashboard() {
             icon: RssFeedIcon,
             filters: <ApnMenu />,
           },
+          {
+            label: 'Data Plans',
+            to: '/data_plan',
+            icon: CellWifiIcon,
+            filters: <DataPlanMenu />,
+          },
         ]}
       />
 
@@ -179,6 +232,7 @@ export default function TrafficDashboard() {
         <Route path={relativePath('/apn/json')} component={ApnJsonConfig} />
         <Route path={relativePath('/policy')} component={PolicyOverview} />
         <Route path={relativePath('/apn')} component={ApnOverview} />
+        <Route path={relativePath('/data_plan')} component={DataPlanOverview} />
         <Redirect to={relativeUrl('/policy')} />
       </Switch>
     </>
