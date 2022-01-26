@@ -13,12 +13,7 @@ load("@python_deps//:requirements.bzl", "requirement")
 load("//bazel:python_test.bzl", "pytest_test")
 load("//bazel:test_constants.bzl", "TAG_SUDO_TEST")
 
-COMMON_TEST_DEPS = [
-    requirement("pytest"),
-    requirement("pytest-cov"),
-    requirement("coverage-lcov"),
-    "//lte/gateway/python/magma/mobilityd:mobilityd",
-]
+COMMON_TEST_DEPS = ["//lte/gateway/python/magma/mobilityd:mobilityd"]
 
 pytest_test(
     name = "ip_alloc_dhcp_test",

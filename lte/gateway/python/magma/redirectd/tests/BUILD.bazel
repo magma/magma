@@ -9,12 +9,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_python//python:defs.bzl", "py_library")
+load("//bazel:python_test.bzl", "pytest_test")
 
-package(default_visibility = ["//visibility:public"])
+COMMON_TEST_DEPS = ["//lte/gateway/python/magma/redirectd:redirectd"]
 
-py_library(
-    name = "eventd_client",
-    srcs = ["eventd_client.py"],
-    deps = ["//orc8r/protos:eventd_python_grpc"],
+pytest_test(
+    name = "test_redirect",
+    srcs = ["test_redirect.py"],
+    deps = COMMON_TEST_DEPS + ["//lte/protos:policydb_python_proto"],
 )
