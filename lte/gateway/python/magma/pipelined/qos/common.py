@@ -169,11 +169,17 @@ class SubscriberState(object):
         return 0
 
 
-class QosManager:
+class QosManager(object):
+    """
+    Qos Manager -> add/remove subscriber qos
+    """
     # protect QoS object create and delete across all QoSManager Objects.
     lock = threading.Lock()
 
     def init_impl(self, datapath):
+        """
+        Takese in datapath, and initializes appropriate QoS manager based on config
+        """
         try:
             impl_type = QosImplType(self._config["qos"]["impl"])
 
