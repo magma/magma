@@ -152,6 +152,7 @@ describe('<TrafficDashboard />', () => {
     const preemptionCapability = getByTestId('preemptionCapability').firstChild;
     const preemptionVulnerability = getByTestId('preemptionVulnerability')
       .firstChild;
+    const pdnType = getByTestId('pdnType').firstChild;
 
     // test adding an existing apn
     if (apnID instanceof HTMLInputElement) {
@@ -172,7 +173,8 @@ describe('<TrafficDashboard />', () => {
       classID instanceof HTMLInputElement &&
       apnPriority instanceof HTMLInputElement &&
       apnBandwidthUL instanceof HTMLInputElement &&
-      apnBandwidthDL instanceof HTMLInputElement
+      apnBandwidthDL instanceof HTMLInputElement &&
+      pdnType instanceof HTMLElement
     ) {
       fireEvent.change(apnID, {target: {value: 'apn_2'}});
       fireEvent.change(classID, {target: {value: 9}});
@@ -185,6 +187,9 @@ describe('<TrafficDashboard />', () => {
       if (preemptionVulnerability?.firstChild instanceof HTMLElement) {
         fireEvent.click(preemptionVulnerability.firstChild);
       }
+      fireEvent.mouseDown(pdnType);
+      await wait();
+      fireEvent.click(getByText('IPv6'));
     } else {
       throw 'invalid type';
     }
@@ -195,6 +200,7 @@ describe('<TrafficDashboard />', () => {
     const newApn = {
       apn_configuration: {
         ambr: {max_bandwidth_dl: 1000000, max_bandwidth_ul: 1000000},
+        pdn_type: 1,
         qos_profile: {
           class_id: 9,
           preemption_capability: true,
@@ -251,6 +257,7 @@ describe('<TrafficDashboard />', () => {
     const newApn = {
       apn_configuration: {
         ambr: {max_bandwidth_dl: 1000000, max_bandwidth_ul: 1000000},
+        pdn_type: 0,
         qos_profile: {
           class_id: 8,
           preemption_capability: true,
