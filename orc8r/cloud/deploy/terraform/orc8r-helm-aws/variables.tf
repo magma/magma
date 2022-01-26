@@ -364,6 +364,17 @@ variable "helm_pass" {
 # Managed Certificates from cert-manager
 ##############################################################################
 
+variable "cert_manager_route53_iam_role_arn" {
+  description = "IAM role ARN for cert-manager."
+  type        = string
+}
+
+variable "deploy_cert_manager_helm_chart" {
+  description = "Deploy cert-manager helm chart."
+  type        = bool
+  default     = false
+}
+
 variable "managed_certs_create" {
   description = "This will generate certificates that will be stored in kubernetes secrets."
   type        = bool
