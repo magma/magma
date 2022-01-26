@@ -69,6 +69,7 @@
 #define SGW_CONFIG_STRING_AGW_L3_TUNNEL "AGW_L3_TUNNEL"
 #define SGW_CONFIG_STRING_OVS_PIPELINED_CONFIG_ENABLED                         \
   "PIPELINED_CONFIG_ENABLED"
+#define SGW_CONFIG_STRING_EBPF_ENABLED "EBPF_ENABLED"
 
 #define SPGW_ABORT_ON_ERROR true
 #define SPGW_WARN_ON_ERROR false
@@ -127,6 +128,8 @@ typedef struct sgw_config_s {
   bstring config_file;
   ovs_config_t ovs_config;
   bool agw_l3_tunnel;
+
+  bool ebpf_enabled;
 } sgw_config_t;
 
 void sgw_config_init(sgw_config_t* config_pP);
