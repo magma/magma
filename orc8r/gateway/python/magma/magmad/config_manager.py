@@ -96,10 +96,11 @@ class ConfigManager(StreamerClient.Callback):
                 logging.warning("Orchestrator version: %s not valid" % orc8r_version)
 
             return (agw_version_parsed, orc8r_version_parsed)
-        else:
-            logging.error("Expecting MagmaD Structure, but received a different structure: %s." %
-                unpacked_mconfig.type_url)
-            return (None, None)
+        logging.error(
+            "Expecting MagmaD Structure, but received a different structure: %s." %
+            unpacked_mconfig.type_url,
+        )
+        return (None, None)
 
     def process_update(self, stream_name, updates, resync):
         """
