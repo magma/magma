@@ -236,6 +236,9 @@ class QosManager:
         return True
 
     def __init__(self, loop, config):
+        if 'qos' not in config.keys():
+            LOG.error("qos field not provided in config")
+            return
         self._qos_enabled = config["qos"]["enable"]
         if not self._qos_enabled:
             return
