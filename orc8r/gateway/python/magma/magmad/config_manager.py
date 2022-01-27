@@ -14,6 +14,7 @@ limitations under the License.
 import asyncio
 import logging
 import re
+from collections import namedtuple
 from typing import Any, List
 
 import magma.magmad.events as magmad_events
@@ -30,6 +31,7 @@ from orc8r.protos.mconfig_pb2 import GatewayConfigsDigest
 CONFIG_STREAM_NAME = 'configs'
 SHARED_MCONFIG = 'shared_mconfig'
 MAGMAD = 'magmad'
+VersionInfo = namedtuple('VersionInfo', 'agw_version orc8r_version')
 
 
 class ConfigManager(StreamerClient.Callback):
@@ -95,12 +97,12 @@ class ConfigManager(StreamerClient.Callback):
             if not orc8r_version_parsed:
                 logging.warning("Orchestrator version: %s not valid" % orc8r_version)
 
-            return (agw_version_parsed, orc8r_version_parsed)
+            return VersionInfo(agw_version_parsed, orc8r_version_parsed)
         logging.error(
-            "Expecting MagmaD Structure, but received a different structure: %s." %
+            "Expecting MagmaD mconfig structure, but received a different structure: %s." %
             unpacked_mconfig.type_url,
         )
-        return (None, None)
+        return VersionInfo(None, None)
 
     def process_update(self, stream_name, updates, resync):
         """
@@ -176,7 +178,9 @@ class ConfigManager(StreamerClient.Callback):
 
             agw_version = self._magmad_service.version
             unpacked_mconfig = mconfig.configs_by_key.get(MAGMAD)
-            agw_version_parsed, orc8r_version_parsed = self._warn_if_versions_are_incompatible(agw_version, unpacked_mconfig)
+            version_info = self._warn_if_versions_are_incompatible(agw_version, unpacked_mconfig)
+            agw_version_parsed = version_info.agw_version
+            orc8r_version_parsed = version_info.orc8r_version
 
             if agw_version_parsed and orc8r_version_parsed:
                 agw_minor = int(agw_version_parsed.group('minor_version'))
