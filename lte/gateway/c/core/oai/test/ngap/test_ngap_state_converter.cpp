@@ -428,15 +428,12 @@ TEST_F(NgapStateConverterTest, TestAfterSctpAssociation) {
     put_ngap_ue_state(imsi64);
   }
 
-  EXPECT_EQ(
-      NGAPClientServicer::getInstance().map_ngap_state_proto_str.isEmpty(),
-      false);
-  EXPECT_EQ(
-      NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.isEmpty(),
-      true);
-  EXPECT_EQ(
-      NGAPClientServicer::getInstance().map_imsi_table_proto_str.isEmpty(),
-      true);
+  EXPECT_FALSE(
+      NGAPClientServicer::getInstance().map_ngap_state_proto_str.isEmpty());
+  EXPECT_TRUE(
+      NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.isEmpty());
+  EXPECT_TRUE(
+      NGAPClientServicer::getInstance().map_imsi_table_proto_str.isEmpty());
 
   EXPECT_EQ(
       NGAPClientServicer::getInstance().map_ngap_state_proto_str.size(), 1);
@@ -486,7 +483,7 @@ TEST_F(NgapStateConverterTest, TestAfterSctpAssociation) {
 }
 
 // 2. Stateless feature Unit Test for NGAP
-TEST_F(NgapStateConverterTest, test_ngap_stateless) {
+TEST_F(NgapStateConverterTest, TestNgapServiceRestart) {
   bstring ran_cp_ipaddr;
   sctp_new_peer_t peerInfo;
   ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
@@ -613,15 +610,12 @@ TEST_F(NgapStateConverterTest, test_ngap_stateless) {
     put_ngap_ue_state(imsi64);
   }
 
-  EXPECT_EQ(
-      NGAPClientServicer::getInstance().map_ngap_state_proto_str.isEmpty(),
-      false);
-  EXPECT_EQ(
-      NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.isEmpty(),
-      false);
-  EXPECT_EQ(
-      NGAPClientServicer::getInstance().map_imsi_table_proto_str.isEmpty(),
-      false);
+  EXPECT_FALSE(
+      NGAPClientServicer::getInstance().map_ngap_state_proto_str.isEmpty());
+  EXPECT_FALSE(
+      NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.isEmpty());
+  EXPECT_FALSE(
+      NGAPClientServicer::getInstance().map_imsi_table_proto_str.isEmpty());
 
   EXPECT_EQ(
       NGAPClientServicer::getInstance().map_ngap_state_proto_str.size(), 1);
