@@ -162,6 +162,11 @@ class ebpf_manager:
 
         ipr = IPRoute()
         try:
+            ipr.tc("del", "clsact", self.sgi_if_index)
+        except NetlinkError as ex:
+            LOG.error("error detaching dl clasct %s", ex)
+            pass
+        try:
             ipr.tc("del", "ingress", s1_if_index, "ffff:")
         except NetlinkError as ex:
             pass
@@ -201,15 +206,20 @@ class ebpf_manager:
         )
 
         key = self.ul_map.Key(ip_addr)
-        val = self.ul_map.Leaf(mark, self.sgi_if_index, self.ul_src_mac, self.ul_gw_mac)
+        val = self.ul_map.Leaf(mark, self.sgi_if_index, self.ul_src_mac, self.ul_gw_mac, 0)
         self.ul_map[key] = val
 
-    def add_dl_entry(self, ue_ip: str, remote_ipv4: str, tunnel_id: int):
+    def add_dl_entry(self, ue_ip: str, remote_ipv4: str, tunnel_id: int, imsi: str):
         """
         Add downlink session entry
         """
         if not self.enabled:
             return
+        if len(imsi) != 15:
+            LOG.error("IMSI length must be 15 chars")
+            return
+        imsi_arr = self._pack_user_data(imsi)
+
         ip_addr = self._pack_ip(ue_ip)
         LOG.debug(
             "Add entry: ip: %x remote ipv4 %s tunnel id: %d" %
@@ -220,6 +230,8 @@ class ebpf_manager:
         val = self.dl_map.Leaf(
             self._pack_ip(remote_ipv4),
             socket.htonl(tunnel_id),
+            0,
+            imsi_arr,
         )
         self.dl_map[key] = val
 
@@ -268,16 +280,19 @@ class ebpf_manager:
             ue_ip = self._unpack_ip(k.ue_ip)
             remote_ipv4 = self._unpack_ip(v.remote_ipv4)
             tunnel_id = socket.ntohl(v.tunnel_id)
+            imsi = self._unpack_imsi(v.user_data)
+            bytes = v.bytes
 
             print(
-                "UE: %s -> {remote_ipv4: %s, tunnel_id: %d" %
-                (ue_ip, remote_ipv4, tunnel_id),
+                "UE: %s -> {imsi %s, remote_ipv4: %s, tunnel_id: %d, bytes: %d}" %
+                (ue_ip, imsi, remote_ipv4, tunnel_id, bytes),
             )
 
     def print_dl_cfg(self):
         """
         Dump entire cfg array session eBPF map
         """
+        print("DL Config:")
         for _, v in self.cfg_array.items():
             ifindex = v.if_idx
 
@@ -333,11 +348,20 @@ class ebpf_manager:
         mac_bytes = bytearray(mac_addr)
         return mac_bytes.hex(":")
 
+    def _pack_user_data(self, imsi: str):
+        user_data = bytearray(imsi, encoding='utf8')
+        return (ctypes.c_ubyte * 64)(*user_data)
+
+    def _unpack_imsi(self, user_data: ctypes.c_ubyte):
+        user_data = bytearray(user_data)
+        imsi_bytes = user_data[0:16]
+        return imsi_bytes.decode()
+
 
 # for debugging
 if __name__ == "__main__":
     gw_ip = IPAddress(version=IPAddress.IPV4, address=socket.inet_aton("10.0.2.2"))
-    bm = ebpf_manager("sgi0", "enb0", gw_ip, bpf_ul_file=BPF_UL_FILE, bpf_dl_file=BPF_DL_FILE, enabled=True)
+    bm = ebpf_manager("eth0", "eth0", gw_ip, bpf_ul_file=BPF_UL_FILE, bpf_dl_file=BPF_DL_FILE, enabled=True)
 
     bm.detach_ul_ebpf()
     bm.attach_ul_ebpf()
@@ -351,8 +375,8 @@ if __name__ == "__main__":
 
     bm.detach_dl_ebpf()
     bm.attach_dl_ebpf()
-    bm.add_dl_entry('192.168.128.11', '10.1.1.1', 123)
-    bm.add_dl_entry('192.168.128.12', '10.2.2.2', 555)
+    bm.add_dl_entry('192.168.128.11', '10.1.1.1', 123, '122321231222333')
+    bm.add_dl_entry('192.168.128.12', '10.2.2.2', 555, '211145631562999')
     bm.print_dl_map()
     bm.del_dl_entry('192.168.128.12')
     bm.print_dl_map()
