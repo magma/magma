@@ -21,7 +21,7 @@ import (
 
 	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/protos"
-	"magma/lte/cloud/go/services/subscriberdb/servicers"
+	lookup_servicers "magma/lte/cloud/go/services/subscriberdb/servicers/protected"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/sqorc"
@@ -34,7 +34,7 @@ func TestLookupServicer_MSISDNs(t *testing.T) {
 	fact := blobstore.NewSQLStoreFactory(subscriberdb.LookupTableBlobstore, db, sqorc.GetSqlBuilder())
 	err = fact.InitializeFactory()
 	assert.NoError(t, err)
-	l := servicers.NewLookupServicer(fact, nil)
+	l := lookup_servicers.NewLookupServicer(fact, nil)
 
 	t.Run("initially empty", func(t *testing.T) {
 		got, err := l.GetMSISDNs(ctx, &protos.GetMSISDNsRequest{
@@ -204,7 +204,7 @@ func TestLookupServicer_IPs(t *testing.T) {
 	assert.NoError(t, err)
 	err = store.Initialize()
 	assert.NoError(t, err)
-	l := servicers.NewLookupServicer(nil, store)
+	l := lookup_servicers.NewLookupServicer(nil, store)
 
 	t.Run("basic", func(t *testing.T) {
 		got, err := l.GetIPs(ctx, &protos.GetIPsRequest{
