@@ -46,3 +46,31 @@ resource "helm_release" "external_dns" {
   VALUES
   ]
 }
+
+resource "helm_release" "cert-manager" {
+  count = var.deploy_cert_manager_helm_chart ? 1 : 0
+
+  version          = "1.6.1"
+  name             = "cert-manager"
+  chart            = "cert-manager"
+  namespace        = "cert-manager"
+  repository       = "https://charts.jetstack.io"
+  create_namespace = true
+
+  set {
+    name  = "installCRDs"
+    value = true
+  }
+  set {
+    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = var.cert_manager_route53_iam_role_arn
+  }
+  set {
+    name  = "securityContext.fsGroup"
+    value = 1001
+  }
+  set {
+    name  = "extraArgs"
+    value = "{--issuer-ambient-credentials}"
+  }
+}

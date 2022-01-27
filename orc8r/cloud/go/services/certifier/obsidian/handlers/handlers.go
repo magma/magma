@@ -17,9 +17,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/certifier"
@@ -126,20 +128,23 @@ func getUserTokensHandler(c echo.Context) error {
 func addUserTokenHandler(c echo.Context) error {
 	username := c.Param("username")
 
-	resources := &models.Resources{}
-	if err := c.Bind(resources); err != nil {
+	policies := &models.Policies{}
+	if err := c.Bind(policies); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	if err := resources.Validate(strfmt.Default); err != nil {
+	if err := policies.Validate(strfmt.Default); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	resourceList := resourcesModelToProto(resources)
-	req := &protos.AddUserTokenRequest{
-		Username:  username,
-		Resources: resourceList,
+	policiesProto, err := policiesModelToProto(policies)
+	if err != nil {
+		return err
 	}
-	err := certifier.AddUserToken(c.Request().Context(), req)
+	req := &protos.AddUserTokenRequest{
+		Username: username,
+		Policies: policiesProto,
+	}
+	err = certifier.AddUserToken(c.Request().Context(), req)
 	return err
 }
 
@@ -172,32 +177,34 @@ func loginHandler(c echo.Context) error {
 	if err != nil {
 		return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusOK, res.Policies)
+	return c.JSON(http.StatusOK, res.PolicyLists)
 }
 
-func resourcesModelToProto(resources *models.Resources) *protos.ResourceList {
-	resourceList := make([]*protos.Resource, len(*resources))
-	for i, resource := range *resources {
-		resourceProto := &protos.Resource{
-			Effect:       matchEffect(resource.Effect),
-			Action:       matchAction(resource.Action),
-			ResourceType: matchResourceType(resource.ResourceType),
-			Resource:     resource.Resource,
+func policiesModelToProto(policies *models.Policies) ([]*protos.Policy, error) {
+	policyProtos := make([]*protos.Policy, len(*policies))
+	for i, policyModel := range *policies {
+		policyProto := &protos.Policy{
+			Effect: matchEffect(policyModel.Effect),
+			Action: matchAction(policyModel.Action),
 		}
-		resourceList[i] = resourceProto
+		if err := setResource(policyModel, policyProto); err != nil {
+			return nil, err
+		}
+		policyProtos[i] = policyProto
 	}
-	return &protos.ResourceList{Resources: resourceList}
+	return policyProtos, nil
 }
 
-func matchResourceType(rawType string) protos.ResourceType {
-	switch rawType {
-	case protos.ResourceType_NETWORK_ID.String():
-		return protos.ResourceType_NETWORK_ID
-	case protos.ResourceType_TENANT_ID.String():
-		return protos.ResourceType_TENANT_ID
-	default:
-		return protos.ResourceType_URI
+func convertTenantResourceIDs(ids []string) ([]int64, error) {
+	var intIDs []int64
+	for _, i := range ids {
+		j, err := strconv.ParseInt(i, 10, 64)
+		if err != nil {
+			return []int64{}, errors.Wrapf(err, "failed to convert tenant IDs to integers")
+		}
+		intIDs = append(intIDs, j)
 	}
+	return intIDs, nil
 }
 
 func matchEffect(rawEffect string) protos.Effect {
@@ -220,4 +227,22 @@ func matchAction(rawAction string) protos.Action {
 	default:
 		return protos.Action_NONE
 	}
+}
+
+// setResource uses the resource value in the policy model and sets the
+// resource based on its type in the policy proto
+func setResource(policyModel *models.Policy, policyProto *protos.Policy) error {
+	switch policyModel.ResourceType {
+	case models.PolicyResourceTypeNETWORKID:
+		policyProto.Resource = &protos.Policy_Network{Network: &protos.NetworkResource{Networks: policyModel.ResourceIDs}}
+	case models.PolicyResourceTypeTENANTID:
+		tenantIDs, err := convertTenantResourceIDs(policyModel.ResourceIDs)
+		if err != nil {
+			return err
+		}
+		policyProto.Resource = &protos.Policy_Tenant{Tenant: &protos.TenantResource{Tenants: tenantIDs}}
+	default:
+		policyProto.Resource = &protos.Policy_Path{Path: &protos.PathResource{Path: policyModel.Path}}
+	}
+	return nil
 }

@@ -31,8 +31,8 @@ func (u *User) UserToBlob(username string) (blobstore.Blob, error) {
 	return userBlob, nil
 }
 
-func PolicyFromBlob(blob blobstore.Blob) (Policy, error) {
-	policy := Policy{}
+func PolicyFromBlob(blob blobstore.Blob) (PolicyList, error) {
+	policy := PolicyList{}
 	err := proto.Unmarshal(blob.Value, &policy)
 	if err != nil {
 		return policy, err
@@ -40,7 +40,7 @@ func PolicyFromBlob(blob blobstore.Blob) (Policy, error) {
 	return policy, nil
 }
 
-func (p *Policy) PolicyToBlob(username string) (blobstore.Blob, error) {
+func (p *PolicyList) PolicyToBlob(username string) (blobstore.Blob, error) {
 	marshalledPolicy, err := proto.Marshal(p)
 	if err != nil {
 		return blobstore.Blob{}, err

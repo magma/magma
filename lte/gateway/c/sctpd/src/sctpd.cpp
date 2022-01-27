@@ -41,7 +41,6 @@ using magma::sctpd::SctpdUplinkClient;
 int signalMask(void) {
   sigset_t set;
   sigemptyset(&set);
-  sigaddset(&set, SIGSEGV);
   sigaddset(&set, SIGINT);
   sigaddset(&set, SIGTERM);
 
@@ -58,14 +57,8 @@ int signalHandler(int* end, std::unique_ptr<Server>& server,
   sigset_t set;
 
   sigemptyset(&set);
-  sigaddset(&set, SIGSEGV);
   sigaddset(&set, SIGINT);
   sigaddset(&set, SIGTERM);
-
-  if (sigprocmask(SIG_BLOCK, &set, NULL) < 0) {
-    perror("sigprocmask");
-    return -1;
-  }
 
   /*
    * Block till a signal is received.
@@ -154,5 +147,6 @@ int main() {
   while (end == 0) {
     signalHandler(&end, sctpd_dl_server, service);
   }
+  shutdown_sentry();
   return 0;
 }
