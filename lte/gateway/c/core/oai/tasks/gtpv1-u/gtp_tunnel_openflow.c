@@ -304,8 +304,10 @@ int openflow_add_tunnel(
   uint32_t gtp_portno = find_gtp_port_no(enb, enb_ipv6, false);
 
   if (spgw_config.sgw_config.ebpf_enabled) {
+    OAILOG_INFO(
+        LOG_GTPV1U, "Adding UE EBPF ENTRY %d, %d htonl %d \n", ue.s_addr, o_tei, htonl(o_tei));
     if (ue.s_addr != INADDR_ANY && enb.s_addr != INADDR_ANY) {
-      add_ebpf_dl_map_entry(ebpf_fd, ue, enb, o_tei);
+      add_ebpf_dl_map_entry(ebpf_fd, ue, enb, o_tei, imsi);
     }
     // TODO add IPv6 support
   }

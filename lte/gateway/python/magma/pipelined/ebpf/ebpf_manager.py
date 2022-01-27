@@ -201,7 +201,7 @@ class ebpf_manager:
         )
 
         key = self.ul_map.Key(ip_addr)
-        val = self.ul_map.Leaf(mark, self.sgi_if_index, self.ul_src_mac, self.ul_gw_mac)
+        val = self.ul_map.Leaf(mark, self.sgi_if_index, self.ul_src_mac, self.ul_gw_mac, 0)
         self.ul_map[key] = val
 
     def add_dl_entry(self, ue_ip: str, remote_ipv4: str, tunnel_id: int):
@@ -220,6 +220,8 @@ class ebpf_manager:
         val = self.dl_map.Leaf(
             self._pack_ip(remote_ipv4),
             socket.htonl(tunnel_id),
+            b'0',
+            0,
         )
         self.dl_map[key] = val
 

@@ -23,6 +23,8 @@
 struct bpf_map_val {
   uint32_t ip;
   uint32_t tei;
+  uint8_t imsi[16];
+  uint64_t bytes;
 };
 
 int get_map_fd() {
@@ -30,8 +32,8 @@ int get_map_fd() {
 }
 
 void add_ebpf_dl_map_entry(
-    int hash_fd, struct in_addr ue, struct in_addr enb, uint32_t o_tei) {
-  struct bpf_map_val val = {htonl(enb.s_addr), o_tei};
+    int hash_fd, struct in_addr ue, struct in_addr enb, uint32_t o_tei, Imsi_t imsi) {
+  struct bpf_map_val val = {htonl(enb.s_addr), o_tei, imsi.digit, 0};
   uint32_t nkey          = htonl(ue.s_addr);
   bpf_map_update_elem(hash_fd, &nkey, &val, 0);
 }

@@ -26,6 +26,8 @@ struct dl_map_key {
 struct dl_map_info {
   u32 remote_ipv4;
   u32 tunnel_id;
+  char imsi[16];
+  u64 bytes;
 };
 
 // The map is pinned so that it can be accessed by pipelined or debugging tool
@@ -90,6 +92,8 @@ int gtpu_egress_handler(struct __sk_buff* skb) {
     bpf_trace_printk("ERR: Config array lookup failed\n");
     return TC_ACT_OK;
   }
+
+  fwd->bytes += len;
 
   return bpf_redirect(cfg->if_idx, 0);
 }

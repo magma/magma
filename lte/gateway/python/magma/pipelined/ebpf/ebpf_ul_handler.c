@@ -38,6 +38,7 @@ struct ul_map_info {
   u32 e_if_index;
   u8 mac_src[ETH_ALEN];
   u8 mac_dst[ETH_ALEN];
+  u64 bytes;
 };
 
 // The map is pinned so that it can be accessed by pipelined or debugging tool
@@ -116,6 +117,10 @@ int gtpu_ingress_handler(struct __sk_buff* skb) {
 
   // 2.3 skb mark for qos
   skb->mark = fwd->mark;
+
+  // 2.4 increment bytes
+  fwd->bytes += len;
+
   bpf_trace_printk(
       "INFO: UL-fwd: tid %d egress: %d mark: %d\n", tid, fwd->e_if_index,
       fwd->mark);
