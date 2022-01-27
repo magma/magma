@@ -172,7 +172,7 @@ void sentry_log_error(const char* message) {
 
 #else
 
-sentry_config_t construct_sentry_config_from_mconfig() {}
+sentry_config_t construct_sentry_config_from_mconfig() { return {0}; }
 
 void initialize_sentry(__attribute__((unused)) const char* service_tag,
                        __attribute__((unused))
