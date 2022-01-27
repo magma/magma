@@ -21,7 +21,6 @@ from google.protobuf.json_format import MessageToDict
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.rpc_utils import grpc_async_wrapper, print_grpc
 from magma.common.sdwatchdog import SDWatchdogTask
-from magma.common.sentry import SEND_TO_ERROR_MONITORING
 from magma.common.service import MagmaService
 from magma.state.garbage_collector import GarbageCollector
 from magma.state.keys import make_mem_key, make_scoped_device_id
@@ -123,7 +122,6 @@ class StateReplicator(SDWatchdogTask):
                 logging.error(
                     "GRPC call failed for initial state re-sync: %s",
                     err,
-                    extra=SEND_TO_ERROR_MONITORING,
                 )
                 return
         request = await self._collect_states_to_replicate()
