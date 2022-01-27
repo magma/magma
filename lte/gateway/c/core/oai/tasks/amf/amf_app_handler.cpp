@@ -729,7 +729,7 @@ static int paa_to_address_info(
       if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
         memcpy(
             pdu_address_info, &paa->ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN],
-            paa->ipv6_prefix_length / 8);
+            IPV6_INTERFACE_ID_LEN);
         *pdu_address_length = IPV6_INTERFACE_ID_LEN;
       } else {
         OAILOG_ERROR(
@@ -742,7 +742,7 @@ static int paa_to_address_info(
       if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
         memcpy(
             pdu_address_info, &paa->ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN],
-            paa->ipv6_prefix_length / 8);
+            IPV6_INTERFACE_ID_LEN);
         ip_int = ntohl(paa->ipv4_address.s_addr);
         INT32_TO_BUFFER(ip_int, pdu_address_info + IPV6_INTERFACE_ID_LEN);
         *pdu_address_length = IPV6_INTERFACE_ID_LEN + sizeof(ip_int);
