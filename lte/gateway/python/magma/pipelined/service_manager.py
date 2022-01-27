@@ -46,6 +46,7 @@ from lte.protos.session_manager_pb2_grpc import (
     LocalSessionManagerStub,
     SetInterfaceForUserPlaneStub,
 )
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration import environment
@@ -85,6 +86,7 @@ from magma.pipelined.rule_mappers import (
     RuleIDToNumMapper,
     SessionRuleToVersionMapper,
 )
+from redis import ConnectionError
 from ryu.base.app_manager import AppManager
 
 # Type is either Physical or Logical, highest order_priority is at zero
@@ -609,7 +611,7 @@ class ServiceManager:
         # Some setups might not use REDIS
         if self._magma_service.config['redis_enabled']:
             # Wait for redis as multiple controllers rely on it
-            while not redisAvailable(self.rule_id_mapper.redis_cli):
+            while not redis_available(self.rule_id_mapper.redis_cli):
                 logging.warning("Pipelined waiting for redis...")
                 time.sleep(1)
             self.rule_id_mapper.setup_redis()
@@ -740,10 +742,13 @@ class ServiceManager:
         return self._table_manager.get_all_table_assignments()
 
 
-def redisAvailable(redis_cli):
+def redis_available(redis_cli):
     try:
         redis_cli.ping()
-    except Exception as e:
-        logging.error(e)
+    except ConnectionError:
+        logging.exception("Error connecting to Redis", extra=EXCLUDE_FROM_ERROR_MONITORING)
+        return False
+    except Exception:
+        logging.exception("Unexpected error when pinging Redis")
         return False
     return True
