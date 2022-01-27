@@ -31,7 +31,7 @@ constexpr char NGAP_IMSI_MAP_TABLE_NAME[]  = "ngap_imsi_map";
 }  // namespace
 
 using magma::lte::oai::Ngap_UeDescription;
-
+using magma::lte::oai::NgapImsiMap;
 namespace magma5g {
 
 NgapStateManager::NgapStateManager() : max_ues_(0), max_gnbs_(0) {}
@@ -179,7 +179,7 @@ void NgapStateManager::create_ngap_imsi_map() {
   if (!persist_state_enabled) {
     return;
   }
-  oai::NgapImsiMap imsi_proto = oai::NgapImsiMap();
+  NgapImsiMap imsi_proto = NgapImsiMap();
   redis_client->read_proto(NGAP_IMSI_MAP_TABLE_NAME, imsi_proto);
 
   NgapStateConverter::proto_to_ngap_imsi_map(imsi_proto, ngap_imsi_map_);
@@ -202,7 +202,7 @@ void NgapStateManager::put_ngap_imsi_map() {
   if (!persist_state_enabled) {
     return;
   }
-  oai::NgapImsiMap imsi_proto = oai::NgapImsiMap();
+  NgapImsiMap imsi_proto = NgapImsiMap();
   NgapStateConverter::ngap_imsi_map_to_proto(ngap_imsi_map_, &imsi_proto);
   std::string proto_msg;
   redis_client->serialize(imsi_proto, proto_msg);

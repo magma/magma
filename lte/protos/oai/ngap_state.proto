@@ -9,6 +9,18 @@ message NgapTimer {
   int32 msec = 3; // long
 }
 
+message Ngap_SupportedTaiItems {
+  uint32 tac = 1;
+  uint32 bplmnlist_count = 2;
+  repeated bytes bplmns = 3;
+}
+
+// supported_ta_list_t
+message Ngap_SupportedTaList {
+  uint32 list_count = 1;
+  repeated Ngap_SupportedTaiItems supported_tai_items = 2;
+}
+
 message GnbDescription {
   uint32 gnb_id = 1;
 
@@ -23,6 +35,7 @@ message GnbDescription {
   uint32 outstreams = 9;      // sctp_stream_id_t
 
   map<uint64, uint64> ue_ids = 10; // gnb_ue_ngap_id -> comp_ngap_id
+  Ngap_SupportedTaList supported_ta_list = 11; // TAs supported by gNB
 }
 
 message Ngap_UeDescription {

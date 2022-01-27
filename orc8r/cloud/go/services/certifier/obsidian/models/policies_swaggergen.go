@@ -14,12 +14,12 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// Resources resources
-// swagger:model resources
-type Resources []*Resource
+// Policies policies
+// swagger:model policies
+type Policies []*Policy
 
-// Validate validates this resources
-func (m Resources) Validate(formats strfmt.Registry) error {
+// Validate validates this policies
+func (m Policies) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	for i := 0; i < len(m); i++ {

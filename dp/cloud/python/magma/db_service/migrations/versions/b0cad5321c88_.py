@@ -38,7 +38,11 @@ def upgrade():
         sa.Column('network_id', sa.String(), nullable=True),
         sa.Column('fcc_id', sa.String(), nullable=True),
         sa.Column('response_code', sa.Integer(), nullable=True),
-        sa.Column('created_date', sa.DateTime(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
+        sa.Column(
+            'created_date', sa.DateTime(timezone=True), server_default=sa.text(
+                'statement_timestamp()',
+            ), nullable=False,
+        ),
         sa.PrimaryKeyConstraint('id'),
     )
     op.create_table(
@@ -76,9 +80,19 @@ def upgrade():
         sa.Column('antenna_gain', sa.Float(), nullable=True),
         sa.Column('number_of_ports', sa.Integer(), nullable=True),
         sa.Column('network_id', sa.String(), nullable=True),
-        sa.Column('created_date', sa.DateTime(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
-        sa.Column('updated_date', sa.DateTime(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=True),
-        sa.ForeignKeyConstraint(['state_id'], ['cbsd_states.id'], ondelete='CASCADE'),
+        sa.Column(
+            'created_date', sa.DateTime(timezone=True), server_default=sa.text(
+                'statement_timestamp()',
+            ), nullable=False,
+        ),
+        sa.Column(
+            'updated_date', sa.DateTime(timezone=True), server_default=sa.text(
+                'statement_timestamp()',
+            ), nullable=True,
+        ),
+        sa.ForeignKeyConstraint(
+            ['state_id'], ['cbsd_states.id'], ondelete='CASCADE',
+        ),
         sa.PrimaryKeyConstraint('id'),
     )
     op.create_table(
@@ -86,10 +100,21 @@ def upgrade():
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
         sa.Column('cbsd_id', sa.Integer(), nullable=False),
         sa.Column('desired_state_id', sa.Integer(), nullable=False),
-        sa.Column('created_date', sa.DateTime(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
-        sa.Column('updated_date', sa.DateTime(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=True),
+        sa.Column(
+            'created_date', sa.DateTime(timezone=True), server_default=sa.text(
+                'statement_timestamp()',
+            ), nullable=False,
+        ),
+        sa.Column(
+            'updated_date', sa.DateTime(timezone=True), server_default=sa.text(
+                'statement_timestamp()',
+            ), nullable=True,
+        ),
         sa.ForeignKeyConstraint(['cbsd_id'], ['cbsds.id'], ondelete='CASCADE'),
-        sa.ForeignKeyConstraint(['desired_state_id'], ['cbsd_states.id'], ondelete='CASCADE'),
+        sa.ForeignKeyConstraint(
+            ['desired_state_id'], ['cbsd_states.id'],
+            ondelete='CASCADE',
+        ),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('cbsd_id'),
     )
@@ -103,8 +128,16 @@ def upgrade():
         sa.Column('rule_applied', sa.String(), nullable=False),
         sa.Column('max_eirp', sa.Float(), nullable=True),
         sa.Column('last_used_max_eirp', sa.Float(), nullable=True),
-        sa.Column('created_date', sa.DateTime(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
-        sa.Column('updated_date', sa.DateTime(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=True),
+        sa.Column(
+            'created_date', sa.DateTime(timezone=True), server_default=sa.text(
+                'statement_timestamp()',
+            ), nullable=False,
+        ),
+        sa.Column(
+            'updated_date', sa.DateTime(timezone=True), server_default=sa.text(
+                'statement_timestamp()',
+            ), nullable=True,
+        ),
         sa.ForeignKeyConstraint(['cbsd_id'], ['cbsds.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id'),
     )
@@ -114,12 +147,24 @@ def upgrade():
         sa.Column('type_id', sa.Integer(), nullable=True),
         sa.Column('state_id', sa.Integer(), nullable=True),
         sa.Column('cbsd_id', sa.Integer(), nullable=True),
-        sa.Column('created_date', sa.DateTime(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
-        sa.Column('updated_date', sa.DateTime(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=True),
+        sa.Column(
+            'created_date', sa.DateTime(timezone=True), server_default=sa.text(
+                'statement_timestamp()',
+            ), nullable=False,
+        ),
+        sa.Column(
+            'updated_date', sa.DateTime(timezone=True), server_default=sa.text(
+                'statement_timestamp()',
+            ), nullable=True,
+        ),
         sa.Column('payload', sa.JSON(), nullable=True),
         sa.ForeignKeyConstraint(['cbsd_id'], ['cbsds.id'], ondelete='CASCADE'),
-        sa.ForeignKeyConstraint(['state_id'], ['request_states.id'], ondelete='CASCADE'),
-        sa.ForeignKeyConstraint(['type_id'], ['request_types.id'], ondelete='CASCADE'),
+        sa.ForeignKeyConstraint(
+            ['state_id'], ['request_states.id'], ondelete='CASCADE',
+        ),
+        sa.ForeignKeyConstraint(
+            ['type_id'], ['request_types.id'], ondelete='CASCADE',
+        ),
         sa.PrimaryKeyConstraint('id'),
     )
     op.create_table(
@@ -129,16 +174,39 @@ def upgrade():
         sa.Column('cbsd_id', sa.Integer(), nullable=True),
         sa.Column('channel_id', sa.Integer(), nullable=True),
         sa.Column('grant_id', sa.String(), nullable=False),
-        sa.Column('grant_expire_time', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('transmit_expire_time', sa.DateTime(timezone=True), nullable=True),
+        sa.Column(
+            'grant_expire_time', sa.DateTime(
+                timezone=True,
+            ), nullable=True,
+        ),
+        sa.Column(
+            'transmit_expire_time', sa.DateTime(
+                timezone=True,
+            ), nullable=True,
+        ),
         sa.Column('heartbeat_interval', sa.Integer(), nullable=True),
-        sa.Column('last_heartbeat_request_time', sa.DateTime(timezone=True), nullable=True),
+        sa.Column(
+            'last_heartbeat_request_time',
+            sa.DateTime(timezone=True), nullable=True,
+        ),
         sa.Column('channel_type', sa.String(), nullable=True),
-        sa.Column('created_date', sa.DateTime(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
-        sa.Column('updated_date', sa.DateTime(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=True),
+        sa.Column(
+            'created_date', sa.DateTime(timezone=True), server_default=sa.text(
+                'statement_timestamp()',
+            ), nullable=False,
+        ),
+        sa.Column(
+            'updated_date', sa.DateTime(timezone=True), server_default=sa.text(
+                'statement_timestamp()',
+            ), nullable=True,
+        ),
         sa.ForeignKeyConstraint(['cbsd_id'], ['cbsds.id'], ondelete='CASCADE'),
-        sa.ForeignKeyConstraint(['channel_id'], ['channels.id'], ondelete='CASCADE'),
-        sa.ForeignKeyConstraint(['state_id'], ['grant_states.id'], ondelete='CASCADE'),
+        sa.ForeignKeyConstraint(
+            ['channel_id'], ['channels.id'], ondelete='CASCADE',
+        ),
+        sa.ForeignKeyConstraint(
+            ['state_id'], ['grant_states.id'], ondelete='CASCADE',
+        ),
         sa.PrimaryKeyConstraint('id'),
     )
     op.create_table(
@@ -147,10 +215,18 @@ def upgrade():
         sa.Column('request_id', sa.Integer(), nullable=True),
         sa.Column('grant_id', sa.Integer(), nullable=True),
         sa.Column('response_code', sa.Integer(), nullable=False),
-        sa.Column('created_date', sa.DateTime(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
+        sa.Column(
+            'created_date', sa.DateTime(timezone=True), server_default=sa.text(
+                'statement_timestamp()',
+            ), nullable=False,
+        ),
         sa.Column('payload', sa.JSON(), nullable=True),
-        sa.ForeignKeyConstraint(['grant_id'], ['grants.id'], ondelete='CASCADE'),
-        sa.ForeignKeyConstraint(['request_id'], ['requests.id'], ondelete='CASCADE'),
+        sa.ForeignKeyConstraint(
+            ['grant_id'], ['grants.id'], ondelete='CASCADE',
+        ),
+        sa.ForeignKeyConstraint(
+            ['request_id'], ['requests.id'], ondelete='CASCADE',
+        ),
         sa.PrimaryKeyConstraint('id'),
     )
     # ### end Alembic commands ###

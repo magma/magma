@@ -137,7 +137,7 @@ const GatewayUpgradeStatusTable = (props: {
         {map(sortedTableData, row => (
           <TableRow key={row.id}>
             <TableCell>{row.name}</TableCell>
-            <TableCell>{row.device.hardware_id}</TableCell>
+            <TableCell>{row.device?.hardware_id}</TableCell>
             <TableCell>
               <UpgradeStatusTierID
                 onChange={onUpgradeTierChange}

@@ -30,8 +30,11 @@ import FormLabel from '@material-ui/core/FormLabel';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
+import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
 import Text from '../../theme/design-system/Text';
 
@@ -51,6 +54,7 @@ const DEFAULT_APN_CONFIG = {
       preemption_vulnerability: false,
       priority_level: 15,
     },
+    pdn_type: 0,
   },
   apn_name: '',
 };
@@ -106,8 +110,14 @@ type Props = {
   onSave: apn => void,
 };
 
+const PDNTypeEnum = Object.freeze({
+  IPv4: 0,
+  IPv6: 1,
+  IPv4v6: 2,
+  IPv4orv6: 3,
+});
+
 export function ApnEdit(props: Props) {
-  // Name and descritption
   const [error, setError] = useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(ApnContext);
@@ -120,6 +130,11 @@ export function ApnEdit(props: Props) {
     props.apn?.apn_configuration?.qos_profile ||
       DEFAULT_APN_CONFIG.apn_configuration.qos_profile,
   );
+
+  const [pdnType, setPdnType] = useState<$Values<typeof PDNTypeEnum>>(
+    props.apn?.apn_configuration?.pdn_type ||
+      DEFAULT_APN_CONFIG.apn_configuration.pdn_type,
+  );
   const onSave = async () => {
     if (apn.apn_name === '') {
       throw Error('Invalid Name');
@@ -129,11 +144,12 @@ export function ApnEdit(props: Props) {
       return;
     }
     try {
-      const newApn = {
+      const newApn: apn = {
         ...apn,
         apn_configuration: {
           ambr: maxBandwidth,
           qos_profile: qosProfile,
+          pdn_type: pdnType,
         },
       };
       await ctx.setState(newApn.apn_name, newApn);
@@ -266,6 +282,30 @@ export function ApnEdit(props: Props) {
                 }}
                 checked={qosProfile.preemption_vulnerability}
               />
+            </AltFormField>
+            <AltFormField label={'PDN Type'}>
+              <Select
+                fullWidth={true}
+                variant={'outlined'}
+                value={pdnType || 0}
+                onChange={({target}) => {
+                  // $FlowIgnore: value guaranteed to match the number literals
+                  setPdnType(parseInt(target.value));
+                }}
+                input={<OutlinedInput data-testId="pdnType" />}>
+                <MenuItem value={0}>
+                  <ListItemText primary={'IPv4'} />
+                </MenuItem>
+                <MenuItem value={1}>
+                  <ListItemText primary={'IPv6'} />
+                </MenuItem>
+                <MenuItem value={2}>
+                  <ListItemText primary={'IPv4v6'} />
+                </MenuItem>
+                <MenuItem value={3}>
+                  <ListItemText primary={'IPv4 or v6'} />
+                </MenuItem>
+              </Select>
             </AltFormField>
           </div>
         </List>
