@@ -25,7 +25,7 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
 	"magma/orc8r/cloud/go/services/metricsd/test_init"
-	"magma/orc8r/cloud/go/services/orchestrator/servicers"
+	servicers "magma/orc8r/cloud/go/services/orchestrator/servicers/protected"
 	"magma/orc8r/lib/go/metrics"
 )
 

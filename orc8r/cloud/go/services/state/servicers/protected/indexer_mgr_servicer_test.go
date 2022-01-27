@@ -27,7 +27,7 @@ import (
 	reindex_mocks "magma/orc8r/cloud/go/services/state/indexer/reindex/mocks"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
 	state_proto_mocks "magma/orc8r/cloud/go/services/state/protos/mocks"
-	"magma/orc8r/cloud/go/services/state/servicers"
+	servicers "magma/orc8r/cloud/go/services/state/servicers/protected"
 	"magma/orc8r/lib/go/protos"
 )
 

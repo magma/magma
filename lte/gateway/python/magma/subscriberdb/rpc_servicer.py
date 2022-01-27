@@ -17,18 +17,12 @@ from typing import NamedTuple
 import grpc
 from lte.protos import apn_pb2, subscriberdb_pb2, subscriberdb_pb2_grpc
 from magma.common.rpc_utils import print_grpc, return_void
-from magma.common.sentry import (
-    SentryStatus,
-    get_sentry_status,
-    send_uncaught_errors_to_monitoring,
-)
 from magma.subscriberdb.sid import SIDUtils
 from magma.subscriberdb.store.base import (
     DuplicateSubscriberError,
     SubscriberNotFoundError,
 )
 
-enable_sentry_wrapper = get_sentry_status("subscriberdb") == SentryStatus.SEND_SELECTED_ERRORS
 suci_profile_data = NamedTuple(
     'suci_profile_data', [
         ('protection_scheme', int),
@@ -58,7 +52,6 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         subscriberdb_pb2_grpc.add_SubscriberDBServicer_to_server(self, server)
 
     @return_void
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def AddSubscriber(self, request, context):
         """
         Add a subscriber to the store
@@ -76,7 +69,6 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
             context.set_code(grpc.StatusCode.ALREADY_EXISTS)
 
     @return_void
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def DeleteSubscriber(self, request, context):
         """
         Delete a subscriber from the store
@@ -90,7 +82,6 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         self._store.delete_subscriber(sid)
 
     @return_void
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def UpdateSubscriber(self, request, context):
         """
         Update the subscription data
@@ -112,7 +103,6 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
             context.set_details("Subscriber not found: %s" % sid)
             context.set_code(grpc.StatusCode.NOT_FOUND)
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetSubscriberData(self, request, context):
         """
         Return the subscription data for the subscriber
@@ -141,7 +131,6 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         )
         return response
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def ListSubscribers(self, request, context):  # pylint:disable=unused-argument
         """
         Return a list of subscribers from the store

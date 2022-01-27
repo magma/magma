@@ -80,6 +80,7 @@ from magma.pipelined.app.xwf_passthru import XWFPassthruController
 from magma.pipelined.ebpf.ebpf_manager import get_ebpf_manager
 from magma.pipelined.internal_ip_allocator import InternalIPAllocator
 from magma.pipelined.ipv6_prefix_store import InterfaceIDToPrefixMapper
+from magma.pipelined.qos.common import QosManager
 from magma.pipelined.rule_mappers import (
     RestartInfoStore,
     RuleIDToNumMapper,
@@ -632,6 +633,7 @@ class ServiceManager:
         contexts['mconfig'] = self._magma_service.mconfig
         contexts['loop'] = self._magma_service.loop
         contexts['service_manager'] = self
+        contexts['qos_manager'] = QosManager(self._magma_service.loop, self._magma_service.config)
 
         sessiond_chan = ServiceRegistry.get_rpc_channel(
             'sessiond', ServiceRegistry.LOCAL,

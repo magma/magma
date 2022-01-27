@@ -1012,6 +1012,5 @@ def get_service_config(sas_enabled: bool = True, prim_src: str = "GNSS"):
             "sas_location": "indoor",
             "sas_height_type": "AMSL",
         },
-        'sentry': 'disabled',
         'prim_src': prim_src,
     }
