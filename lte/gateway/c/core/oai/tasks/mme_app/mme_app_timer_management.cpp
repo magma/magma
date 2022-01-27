@@ -52,23 +52,23 @@ void mme_app_resume_timer(
     struct ue_mm_context_s* const ue_mm_context_pP, time_t start_time,
     nas_timer_t* timer, zloop_timer_fn timer_expiry_handler, char* timer_name) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  time_t current_time      = time(NULL);
-  time_t lapsed_time_in_ms = (current_time - start_time) * 1000;
+  time_t current_time       = time(NULL);
+  time_t elapsed_time_in_ms = (current_time - start_time) * 1000;
   OAILOG_DEBUG(LOG_MME_APP, "Handling :%s timer \n", timer_name);
 
   /* Below condition validates whether timer has expired before MME recovers
    * from restart, so MME shall handle as timer expiry
    */
-  if (timer->msec <= lapsed_time_in_ms) {
+  if (timer->msec <= elapsed_time_in_ms) {
     timer_expiry_handler(mme_app_task_zmq_ctx.event_loop, timer->id, NULL);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  uint32_t remaining_time_in_msecs = timer->msec - lapsed_time_in_ms;
+  uint32_t remaining_time_in_msecs = timer->msec - elapsed_time_in_ms;
   OAILOG_DEBUG(
       LOG_MME_APP,
       "Current_time :%ld %s timer start time :%ld "
-      "lapsed time:%ld (ms) remaining time:%d (ms) \n",
-      current_time, timer_name, start_time, lapsed_time_in_ms,
+      "elapsed time:%ld (ms) remaining time:%d (ms) \n",
+      current_time, timer_name, start_time, elapsed_time_in_ms,
       remaining_time_in_msecs);
 
   // Start timer only for remaining duration

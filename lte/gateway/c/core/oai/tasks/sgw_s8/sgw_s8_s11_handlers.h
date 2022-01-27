@@ -38,6 +38,7 @@ status_code_e sgw_s8_handle_delete_session_response(
     imsi64_t imsi64);
 
 void sgw_s8_handle_release_access_bearers_request(
+    sgw_state_t* sgw_state,
     const itti_s11_release_access_bearers_request_t* const
         release_access_bearers_req_pP,
     imsi64_t imsi64);

@@ -1125,9 +1125,15 @@ export type plmn_config = {
     mcc: string,
     mnc: string,
 };
+export type policies = Array < policy >
+;
 export type policy = {
-    resources: resources,
-    token: string,
+    action ? : "READ" | "WRITE",
+    effect ? : "DENY" | "ALLOW",
+    path ? : string,
+    resourceIDs ? : Array < string >
+        ,
+    resourceType ? : "NETWORK_ID" | "TENANT_ID" | "URI",
 };
 export type policy_id = string;
 export type policy_ids = Array < policy_id >
@@ -1174,6 +1180,10 @@ export type policy_rule_config = {
     redirect ? : redirect_information,
     service_identifier ? : number,
     tracking_type ? : "ONLY_OCS" | "ONLY_PCRF" | "OCS_AND_PCRF" | "NO_TRACKING",
+};
+export type policyList = {
+    policies: policies,
+    token: string,
 };
 export type prom_alert_config = {
     alert: string,
@@ -1279,14 +1289,6 @@ export type release_channel = {
     supported_versions: Array < string >
         ,
 };
-export type resource = {
-    action ? : "READ" | "WRITE",
-    effect ? : "DENY" | "ALLOW",
-    resource ? : string,
-    resourceType ? : "NETWORK_ID" | "TENANT_ID" | "URI",
-};
-export type resources = Array < resource >
-;
 export type route = {
     destination_ip ? : string,
     gateway_ip ? : string,
@@ -10562,7 +10564,7 @@ export default class MagmaAPIBindings {
             parameters: {
                 'username': string,
             }
-        ): Promise < Array < policy >
+        ): Promise < Array < policyList >
         >
         {
             let path = '/user/{username}/tokens';
@@ -10579,7 +10581,7 @@ export default class MagmaAPIBindings {
     static async postUserByUsernameTokens(
         parameters: {
             'username': string,
-            'resources': resources,
+            'policies': policies,
         }
     ): Promise < "Success" > {
         let path = '/user/{username}/tokens';
@@ -10591,12 +10593,12 @@ export default class MagmaAPIBindings {
 
         path = path.replace('{username}', `${parameters['username']}`);
 
-        if (parameters['resources'] === undefined) {
-            throw new Error('Missing required  parameter: resources');
+        if (parameters['policies'] === undefined) {
+            throw new Error('Missing required  parameter: policies');
         }
 
-        if (parameters['resources'] !== undefined) {
-            body = parameters['resources'];
+        if (parameters['policies'] !== undefined) {
+            body = parameters['policies'];
         }
 
         return await this.request(path, 'POST', query, body);

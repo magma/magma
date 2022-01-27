@@ -66,10 +66,10 @@ type UserStorage interface {
 // PolicyStorage provides storage functionality for storing and managing tokens and policies.
 type PolicyStorage interface {
 	// GetPolicy gets the policy based on the token
-	GetPolicy(token string) (*protos.Policy, error)
+	GetPolicy(token string) (*protos.PolicyList, error)
 
 	// PutPolicy updates the current policy
-	PutPolicy(token string, policy *protos.Policy) error
+	PutPolicy(token string, policy *protos.PolicyList) error
 
 	// DeletePolicy deletes the token's policy form the policy db
 	DeletePolicy(token string) error
