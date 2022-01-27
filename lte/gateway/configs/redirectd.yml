@@ -14,7 +14,3 @@
 # log_level is set in mconfig. it can be overridden here
 
 http_port: 8080
-
-# [Experimental] Enable Sentry for this service
-# Allowed values: send_all_errors, send_selected_errors, disabled
-sentry: disabled
