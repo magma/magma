@@ -19,8 +19,9 @@
 #include <grpc++/grpc++.h>
 #include <grpcpp/impl/codegen/status.h>
 
-#include "orc8r/protos/common.pb.h"
+#include "lte/gateway/c/core/oai/common/redis_utils/redis_client.h"
 
+#include "orc8r/protos/common.pb.h"
 #include "lte/protos/s1ap_service.grpc.pb.h"
 
 extern "C" {
@@ -28,11 +29,18 @@ extern "C" {
 }
 
 namespace magma {
-using namespace lte;
+namespace lte {
 
-class S1apServiceImpl final : public magma::S1apService::Service {
+class S1apServiceImpl final : public S1apService::Service {
  public:
   S1apServiceImpl();
+
+  /**
+   * Helper to initialize redis client connection as grpc::Service constructor
+   * does not allow init parameters
+   * @param client RedisClient ptr
+   */
+  void init(std::shared_ptr<RedisClient> client);
 
   /**
    * Returns map of S1 connected eNB id as key, with num of UEs connected
@@ -45,6 +53,10 @@ class S1apServiceImpl final : public magma::S1apService::Service {
   grpc::Status GetENBState(
       grpc::ServerContext* context, const magma::orc8r::Void* request,
       magma::lte::EnbStateResult* response) override;
+
+ private:
+  std::shared_ptr<RedisClient> client_;
 };
 
+}  // namespace lte
 }  // namespace magma

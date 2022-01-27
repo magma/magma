@@ -60,6 +60,11 @@ generate_cpp_protos("${S1APSRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
 generate_grpc_protos("${S1APSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
+set(S1AP_STATE_CPP_PROTOS s1ap_state)
+set(STATE_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/protos/oai")
+generate_cpp_protos("${S1AP_STATE_CPP_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}"
+    "${STATE_PROTO_DIR}" "${STATE_OUT_DIR}")
+
 # HA Service
 set(HASRV_LTE_CPP_PROTOS ha_service)
 set(HASRV_LTE_GRPC_PROTOS ha_service)

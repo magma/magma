@@ -94,6 +94,10 @@ void start_grpc_service(bstring server_address) {
   builder.RegisterService(&s8_service);
 #endif
   server = builder.BuildAndStart();
+
+  std::shared_ptr<magma::RedisClient> client =
+      std::make_shared<magma::RedisClient>(true);
+  s1ap_service.init(client);
 }
 
 void stop_grpc_service(void) {
