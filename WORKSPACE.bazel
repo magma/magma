@@ -133,6 +133,14 @@ new_local_repository(
     path = "/",
 )
 
+# TODO this is suboptimal - can this library be build by bazel directly?
+#      see provisioning of magma-test how this is done currently
+new_local_repository(
+    name = "s1ap-tester_libraries",
+    path = "/home/vagrant/s1ap-tester/bin",
+    build_file = "//bazel/external:s1ap-tester.BUILD",
+)
+
 load("//bazel:python_dependencies.bzl", "configure_python_dependencies")
 
 configure_python_dependencies()

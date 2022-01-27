@@ -43,6 +43,25 @@ proto_library(
     ],
 )
 
+proto_library(
+    name = "magmad_proto",
+    srcs = ["magmad.proto"],
+    deps = [
+        ":common_proto",
+        ":mconfig_orc8r_proto",
+        "@protobuf//:struct_proto"
+    ]
+)
+
+python_grpc_library(
+    name = "magmad_python_grpc",
+    protos = [":magmad_proto"],
+    deps = [
+        ":mconfig_python_proto",
+        ":mconfigs_python_proto",
+    ]
+)
+
 cpp_proto_library(
     name = "digest_cpp_proto",
     protos = [":digest_proto"],
@@ -87,6 +106,11 @@ proto_library(
     name = "directoryd_proto",
     srcs = ["directoryd.proto"],
     deps = [":common_proto"],
+)
+
+python_grpc_library(
+    name = "directoryd_python_grpc",
+    protos = [":directoryd_proto"],
 )
 
 cpp_proto_library(

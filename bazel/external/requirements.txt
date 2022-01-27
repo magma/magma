@@ -13,7 +13,12 @@ certifi==2021.10.8 \
     --hash=sha256:d62a0163eb4c2344ac042ab2bdf75399a71a2d8c7d47eac2e2ee91b9d6339569
     # via
     #   -r requirements.in
+    #   requests
     #   sentry-sdk
+charset-normalizer==2.0.10 \
+    --hash=sha256:876d180e9d7432c5d1dfd4c5d26b72f099d503e8fcc0feb7532c9289be60fcbd \
+    --hash=sha256:cb957888737fc0bbcd78e3df769addb41fd1ff8cf950dc9e7ad7793f1bf44455
+    # via requests
 click==7.1.2 \
     --hash=sha256:d2b5255c7c6349bc1bd1e59e08cd12acbbd63ce649f2588755783aa94dfb6b1a \
     --hash=sha256:dacca89f4bfadd5de3d7489b7c8a566eee0d3676333fbb50030263894c38c0dc
@@ -227,10 +232,17 @@ hiredis==2.0.0 \
     --hash=sha256:f52010e0a44e3d8530437e7da38d11fb822acfb0d5b12e9cd5ba655509937ca0 \
     --hash=sha256:f8196f739092a78e4f6b1b2172679ed3343c39c61a3e9d722ce6fcf1dac2824a
     # via -r requirements.in
+idna==3.3 \
+    --hash=sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff \
+    --hash=sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d
+    # via requests
 iniconfig==1.1.1 \
     --hash=sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3 \
     --hash=sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32
     # via pytest
+iperf3==0.1.11 \
+    --hash=sha256:d50eebbf2dcf445a173f98a82f9c433e0302d3dfb7987e1f21b86b35ef63ce26
+    # via -r requirements.in
 jsonpickle==2.0.0 \
     --hash=sha256:0be49cba80ea6f87a168aa8168d717d00c6ca07ba83df3cec32d3b30bfe6fb9a \
     --hash=sha256:c1010994c1fbda87a48f8a56698605b598cb0fc6bb7e7927559fc1100e69aeac
@@ -317,6 +329,37 @@ pyparsing==3.0.6 \
     --hash=sha256:04ff808a5b90911829c55c4e26f75fa5ca8a2f5f36aa3a51f68e27033341d3e4 \
     --hash=sha256:d9bdec0013ef1eb5a84ab39a3b3868911598afa494f5faa038647101504e2b81
     # via packaging
+pyroute2==0.6.5 \
+    --hash=sha256:d0995c8aeb96c0e4eed4d62e97c9d795000a1a33b747d6dc54326665857cf11c
+    # via -r requirements.in
+pyroute2.core==0.6.5 \
+    --hash=sha256:266d740eae40fa64dd04541f007d34db696cecf3154cba5be30fa75a67d43852
+    # via
+    #   pyroute2
+    #   pyroute2.ethtool
+    #   pyroute2.ipdb
+    #   pyroute2.ipset
+    #   pyroute2.ndb
+    #   pyroute2.nftables
+    #   pyroute2.nslink
+pyroute2.ethtool==0.6.5 \
+    --hash=sha256:caf8014b676521135c4760d72cf5aeef6abbc7fa275210f7e95333073cc7715a
+    # via pyroute2
+pyroute2.ipdb==0.6.5 \
+    --hash=sha256:f2028fd1013d8af888150d033eecf7537657a4be37e0cccea9800809961eb577
+    # via pyroute2
+pyroute2.ipset==0.6.5 \
+    --hash=sha256:ae527c0f999748230a1f688d9a2b7c257b2df6d74369f44eca530d007793b79d
+    # via pyroute2
+pyroute2.ndb==0.6.5 \
+    --hash=sha256:a4d309584e9ef6c7842af4f832b48fc5344ab225e70e384baed1b7fe2b94d9f8
+    # via pyroute2
+pyroute2.nftables==0.6.5 \
+    --hash=sha256:b1455a63a3efc050d108d550d1cafd011edded6e894d99e7bdfa02d592bf6f16
+    # via pyroute2
+pyroute2.nslink==0.6.5 \
+    --hash=sha256:292e6c2832a73544c1c6d5ba727f7117aa847e55f88d78e94b7d4607b299999e
+    # via pyroute2
 pytest==6.2.5 \
     --hash=sha256:131b36680866a76e6781d13f101efb86cf674ebb9762eb70d3082b6f29889e89 \
     --hash=sha256:7310f8d27bc79ced999e760ca304d69f6ba6c6649c0b60fb0e04a4a77cacc134
@@ -380,6 +423,10 @@ redis-collections==0.9.1 \
 redis-lock==0.2.0 \
     --hash=sha256:94f0bc9374cd78c33150ca49c5ce08ddbd2ddaae08166cbf381e9f8a39c096eb
     # via -r requirements.in
+requests==2.27.1 \
+    --hash=sha256:68d7c56fd5a8999887728ef304a6d12edc7be74f1cfa47714fc8b414525c9a61 \
+    --hash=sha256:f22fa1e554c9ddfd16e6e41ac79759e17be9e492b3587efa038054674760e72d
+    # via -r requirements.in
 scapy==2.4.5 \
     --hash=sha256:bc707e3604784496b6665a9e5b2a69c36cc9fb032af4864b29051531b24c8593
     # via -r requirements.in
@@ -413,6 +460,7 @@ urllib3==1.26.7 \
     --hash=sha256:c4fdf4019605b6e5423637e01bc9fe4daef873709a7973e195ceba0a62bbc844
     # via
     #   -r requirements.in
+    #   requests
     #   sentry-sdk
 wrapt==1.13.3 \
     --hash=sha256:086218a72ec7d986a3eddb7707c8c4526d677c7b35e355875a0fe2918b059179 \

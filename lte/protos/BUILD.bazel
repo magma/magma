@@ -48,6 +48,21 @@ proto_library(
     srcs = ["abort_session.proto"],
 )
 
+python_grpc_library(
+    name = "abort_session_python_grpc",
+    protos = [":abort_session_proto"],
+)
+
+proto_library(
+    name = "ha_service_proto",
+    srcs = ["ha_service.proto"]
+)
+
+python_grpc_library(
+    name = "ha_service_python_grpc",
+    protos = [":ha_service_proto"]
+)
+
 cpp_proto_library(
     name = "apn_cpp_proto",
     protos = [":apn_proto"],
@@ -180,6 +195,11 @@ proto_library(
     ],
 )
 
+python_proto_library(
+    name = "policydb_python_proto",
+    protos = [":policydb_proto"]
+)
+
 proto_library(
     name = "sctpd_proto",
     srcs = ["sctpd.proto"],
@@ -235,6 +255,11 @@ proto_library(
         "//orc8r/protos:common_proto",
         "@protobuf//:timestamp_proto",
     ],
+)
+
+python_grpc_library(
+    name = "session_manager_python_grpc",
+    protos = [":session_manager_proto"]
 )
 
 cpp_proto_library(
@@ -315,4 +340,9 @@ proto_library(
         ":policydb_proto",
         ":subscriberdb_proto",
     ],
+)
+
+python_grpc_library(
+    name = "spgw_service_python_grpc",
+    protos = [":spgw_service_proto"]
 )

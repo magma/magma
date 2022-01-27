@@ -28,3 +28,8 @@ freezegun
 pytest
 pytest-cov
 coverage-lcov
+
+# integration test requirements
+requests
+iperf3
+pyroute2
