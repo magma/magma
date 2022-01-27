@@ -54,6 +54,7 @@ message Grant {
 enum GrantState {
   Granted = 0;
   Authorized = 1;
+  Unsync = 2;
 }
 
 message Channel {

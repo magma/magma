@@ -207,6 +207,52 @@ func TestGenerateMessages(t *testing.T) {
 			}},
 		},
 		{
+			name: "Should send both heartbeat and relinquish message for 2 grants when one is in Granted state and the other in Unsync",
+			state: &active_mode.State{
+				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
+					DesiredState: active_mode.CbsdState_Registered,
+					Cbsd: &active_mode.Cbsd{
+						Id:    "some_cbsd_id",
+						State: active_mode.CbsdState_Registered,
+						Grants: []*active_mode.Grant{
+							{
+								Id:    "some_grant_id",
+								State: active_mode.GrantState_Granted,
+							},
+							{
+								Id:    "some_other_grant_id",
+								State: active_mode.GrantState_Unsync,
+							},
+						},
+						LastSeenTimestamp: now.Unix(),
+					},
+				}},
+			},
+			expected: []*requests.RequestPayload{
+				{
+					Payload: `{
+	"heartbeatRequest": [
+		{
+			"cbsdId": "some_cbsd_id",
+			"grantId": "some_grant_id",
+			"operationState": "GRANTED"
+		}
+	]
+}`,
+				},
+				{
+					Payload: `{
+	"relinquishmentRequest": [
+		{
+			"cbsdId": "some_cbsd_id",
+			"grantId": "some_other_grant_id"
+		}
+	]
+}`,
+				},
+			},
+		},
+		{
 			name: "Should send relinquish message when inactive for too long",
 			state: &active_mode.State{
 				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{

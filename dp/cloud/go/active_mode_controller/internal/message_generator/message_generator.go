@@ -50,7 +50,7 @@ func (m *messageGenerator) getPerCbsdMessageGenerator(config *active_mode.Active
 	}
 	if len(config.GetCbsd().GetGrants()) != 0 {
 		deadlineUnix := now.Add(m.heartbeatTimeout).Unix()
-		return &heartbeatMessageGenerator{deadlineUnix: deadlineUnix}
+		return &heartbeatOrRelinquishMessageGenerator{deadlineUnix: deadlineUnix}
 	}
 	return &firstNotNullMessageGenerator{
 		generators: []perCbsdMessageGenerator{
