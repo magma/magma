@@ -23,6 +23,7 @@ extern "C" {
 }
 
 using magma::lte::oai::EmmContext;
+using magma::lte::oai::EmmSecurityContext;
 using magma::lte::oai::MmeNasState;
 namespace magma5g {
 
@@ -356,4 +357,84 @@ void AmfNasStateConverter::proto_to_amf_context(
   proto_to_tai(emm_context_proto.originating_tai(), &amf_ctx->originating_tai);
   amf_ctx->ksi = emm_context_proto.ksi();
 }
+void AmfNasStateConverter::amf_security_context_to_proto(
+    const amf_security_context_t* state_amf_security_context,
+    EmmSecurityContext* emm_security_context_proto) {
+  emm_security_context_proto->set_sc_type(state_amf_security_context->sc_type);
+  emm_security_context_proto->set_eksi(state_amf_security_context->eksi);
+  emm_security_context_proto->set_vector_index(
+      state_amf_security_context->vector_index);
+  emm_security_context_proto->set_knas_enc(
+      state_amf_security_context->knas_enc, AUTH_KNAS_ENC_SIZE);
+  emm_security_context_proto->set_knas_int(
+      state_amf_security_context->knas_int, AUTH_KNAS_INT_SIZE);
+
+  // Count values
+  auto* dl_count_proto = emm_security_context_proto->mutable_dl_count();
+  dl_count_proto->set_overflow(state_amf_security_context->dl_count.overflow);
+  dl_count_proto->set_seq_num(state_amf_security_context->dl_count.seq_num);
+  auto* ul_count_proto = emm_security_context_proto->mutable_ul_count();
+  ul_count_proto->set_overflow(state_amf_security_context->ul_count.overflow);
+  ul_count_proto->set_seq_num(state_amf_security_context->ul_count.seq_num);
+  auto* kenb_ul_count_proto =
+      emm_security_context_proto->mutable_kenb_ul_count();
+  kenb_ul_count_proto->set_overflow(
+      state_amf_security_context->kenb_ul_count.overflow);
+  kenb_ul_count_proto->set_seq_num(
+      state_amf_security_context->kenb_ul_count.seq_num);
+
+  // Security algorithm
+  auto* selected_algorithms_proto =
+      emm_security_context_proto->mutable_selected_algos();
+  selected_algorithms_proto->set_encryption(
+      state_amf_security_context->selected_algorithms.encryption);
+  selected_algorithms_proto->set_integrity(
+      state_amf_security_context->selected_algorithms.integrity);
+  emm_security_context_proto->set_direction_encode(
+      state_amf_security_context->direction_encode);
+  emm_security_context_proto->set_direction_decode(
+      state_amf_security_context->direction_decode);
+}
+
+void AmfNasStateConverter::proto_to_amf_security_context(
+    const EmmSecurityContext& emm_security_context_proto,
+    amf_security_context_t* state_amf_security_context) {
+  state_amf_security_context->sc_type =
+      (amf_sc_type_t) emm_security_context_proto.sc_type();
+  state_amf_security_context->eksi = emm_security_context_proto.eksi();
+  state_amf_security_context->vector_index =
+      emm_security_context_proto.vector_index();
+  memcpy(
+      state_amf_security_context->knas_enc,
+      emm_security_context_proto.knas_enc().c_str(), AUTH_KNAS_ENC_SIZE);
+  memcpy(
+      state_amf_security_context->knas_int,
+      emm_security_context_proto.knas_int().c_str(), AUTH_KNAS_INT_SIZE);
+
+  // Count values
+  const auto& dl_count_proto = emm_security_context_proto.dl_count();
+  state_amf_security_context->dl_count.overflow = dl_count_proto.overflow();
+  state_amf_security_context->dl_count.seq_num  = dl_count_proto.seq_num();
+  const auto& ul_count_proto = emm_security_context_proto.ul_count();
+  state_amf_security_context->ul_count.overflow = ul_count_proto.overflow();
+  state_amf_security_context->ul_count.seq_num  = ul_count_proto.seq_num();
+  const auto& kenb_ul_count_proto = emm_security_context_proto.kenb_ul_count();
+  state_amf_security_context->kenb_ul_count.overflow =
+      kenb_ul_count_proto.overflow();
+  state_amf_security_context->kenb_ul_count.seq_num =
+      kenb_ul_count_proto.seq_num();
+
+  // Security algorithm
+  const auto& selected_algorithms_proto =
+      emm_security_context_proto.selected_algos();
+  state_amf_security_context->selected_algorithms.encryption =
+      selected_algorithms_proto.encryption();
+  state_amf_security_context->selected_algorithms.integrity =
+      selected_algorithms_proto.integrity();
+  state_amf_security_context->direction_encode =
+      emm_security_context_proto.direction_encode();
+  state_amf_security_context->direction_decode =
+      emm_security_context_proto.direction_decode();
+}
+
 }  // namespace magma5g

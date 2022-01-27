@@ -69,6 +69,7 @@ const char* sHealthyConfig =
       GTP_CHECKSUM                         = "False";
       AGW_L3_TUNNEL                        = "False";
       PIPELINED_CONFIG_ENABLED             = "False";
+      EBPF_ENABLED                         = "False";
     };
 };)libconfig";
 

@@ -361,6 +361,7 @@ status_code_e sgw_config_parse_string(
 
     char* uplink_mac             = NULL;
     char* pipelined_managed_tbl0 = NULL;
+    char* ebpf_enabled           = NULL;
     if (config_setting_lookup_string(
             ovs_settings, SGW_CONFIG_STRING_OVS_BRIDGE_NAME,
             (const char**) &ovs_bridge_name) &&
@@ -392,6 +393,9 @@ status_code_e sgw_config_parse_string(
         config_setting_lookup_string(
             ovs_settings, SGW_CONFIG_STRING_AGW_L3_TUNNEL,
             (const char**) &agw_l3_tunnel) &&
+        config_setting_lookup_string(
+            ovs_settings, SGW_CONFIG_STRING_EBPF_ENABLED,
+            (const char**) &ebpf_enabled) &&
         config_setting_lookup_string(
             ovs_settings, SGW_CONFIG_STRING_OVS_PIPELINED_CONFIG_ENABLED,
             (const char**) &pipelined_managed_tbl0)) {
@@ -439,6 +443,13 @@ status_code_e sgw_config_parse_string(
         config_pP->agw_l3_tunnel = false;
       }
       OAILOG_INFO(LOG_SPGW_APP, "AGW L3 tunneling enable: %s\n", agw_l3_tunnel);
+
+      if (strcasecmp(ebpf_enabled, "true") == 0) {
+        config_pP->ebpf_enabled = true;
+      } else {
+        config_pP->ebpf_enabled = false;
+      }
+      OAILOG_INFO(LOG_SPGW_APP, "eBPF enabled: %s\n", ebpf_enabled);
     } else {
       Fatal("Couldn't find all ovs settings in spgw config\n");
     }

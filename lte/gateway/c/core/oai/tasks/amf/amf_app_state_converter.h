@@ -29,6 +29,7 @@
  ******************************************************************************/
 
 using magma::lte::oai::EmmContext;
+using magma::lte::oai::EmmSecurityContext;
 using magma::lte::oai::MmeNasState;
 using magma::lte::oai::UeContext;
 namespace magma5g {
@@ -65,6 +66,15 @@ class AmfNasStateConverter : public magma::lte::StateConverter {
   static std::string amf_app_convert_guti_m5_to_string(const guti_m5_t& guti);
   static void amf_app_convert_string_to_guti_m5(
       const std::string& guti_str, guti_m5_t* guti_m5_p);
+
+  static void amf_security_context_to_proto(
+      const amf_security_context_t* state_amf_security_context,
+      EmmSecurityContext* emm_security_context_proto);
+
+  static void proto_to_amf_security_context(
+      const EmmSecurityContext& emm_security_context_proto,
+      amf_security_context_t* state_amf_security_context);
+
   /***********************************************************
    *                 Map <-> Proto
    * Functions to serialize/deserialize in-memory maps

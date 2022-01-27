@@ -19,23 +19,26 @@ import s1ap_wrapper
 from s1ap_utils import MagmadUtil
 
 
-class TestNoAuthResponseWithMmeRestartReattach(unittest.TestCase):
+class TestNoAuthRespWithMmeRestartReattach(unittest.TestCase):
+    """Integration Test: TestNoAuthRespWithMmeRestartReattach"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
             stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
-    def test_no_auth_response_with_mme_restart_reattach(self):
-        """ Send attach req + receive auth req + restart mme
-        + MME does implicit detach + re-attach """
+    def test_no_auth_resp_with_mme_restart_reattach(self):
+        """Send attach req + receive auth req + restart mme
+        + MME does implicit detach + re-attach"""
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
 
         print("************************* Running attach ")
-
         attach_req = s1ap_types.ueAttachRequest_t()
         attach_req.ue_Id = req.ue_id
         sec_ctxt = s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT
@@ -46,17 +49,22 @@ class TestNoAuthResponseWithMmeRestartReattach(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST,
+            attach_req,
         )
-        print("************ Sent Attach Request for ue", req.ue_id)
+        print(
+            "************************* Sent Attach Request for ue",
+            req.ue_id,
+        )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
-        print("************ Received Auth Req for ue", req.ue_id)
+        print("************************* Received Auth Req for ue", req.ue_id)
 
-        print("************************* Restarting MME service on", "gateway")
+        print("************************* Restarting MME service on gateway")
         self._s1ap_wrapper.magmad_util.restart_services(["mme"])
 
         for j in range(30):
@@ -65,12 +73,31 @@ class TestNoAuthResponseWithMmeRestartReattach(unittest.TestCase):
 
         # Wait for UE context release command
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
-        print("****** Received UE_CTX_REL_IND for ue", req.ue_id)
-        print("****** Triggering end-end attach after mme restart *********")
 
+        # It has been observed that despite getting the restart command on
+        # time, MME sometimes restarts after a delay of around 6 seconds. If
+        # MME restarts after T3460 timer expiry of 6 seconds, it will send
+        # re-transmitted Authentication Request message
+        if response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value:
+            print(
+                "******************** Ignoring re-transmitted "
+                "Authentication Request message",
+            )
+            response = self._s1ap_wrapper.s1_util.get_response()
+
+        self.assertEqual(
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+        )
+        print(
+            "************************* Received UE_CTX_REL_IND for ue",
+            req.ue_id,
+        )
+
+        print(
+            "************************* Triggering end-end attach after MME "
+            "restart",
+        )
         self._s1ap_wrapper.s1_util.attach(
             req.ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
@@ -84,7 +111,6 @@ class TestNoAuthResponseWithMmeRestartReattach(unittest.TestCase):
         self._s1ap_wrapper.s1_util.detach(
             req.ue_id,
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
-            False,
         )
 
 
