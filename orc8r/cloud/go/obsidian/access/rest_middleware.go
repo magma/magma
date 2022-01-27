@@ -16,6 +16,7 @@ package access
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/golang/glog"
@@ -25,6 +26,7 @@ import (
 	"magma/orc8r/cloud/go/services/accessd"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
 	"magma/orc8r/cloud/go/services/certifier"
+	"magma/orc8r/cloud/go/services/certifier/constants"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	merrors "magma/orc8r/lib/go/errors"
 )
@@ -125,15 +127,27 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusBadRequest, "failed to parse basic auth header")
 		}
 
-		getPDReq := &certprotos.GetPolicyDecisionRequest{
+		resourceType, resourceVal := getResource(c)
+		getPDReq := certprotos.GetPolicyDecisionRequest{
 			Username: username,
 			Token:    token,
-			Resource: &certprotos.Resource{
+			Request: &certprotos.Request{
 				Action:   getRequestAction(req, nil),
 				Resource: req.RequestURI,
 			},
 		}
-		pd, err := certifier.GetPolicyDecision(req.Context(), getPDReq)
+		switch resourceType {
+		case constants.NetworkID:
+			getPDReq.Request.ResourceId = &certprotos.Request_NetworkId{NetworkId: resourceVal}
+		case constants.TenantID:
+			id, err := strconv.ParseInt(resourceVal, 10, 64)
+			if err != nil {
+				obsidian.MakeHTTPError(err, http.StatusBadRequest)
+			}
+			getPDReq.Request.ResourceId = &certprotos.Request_TenantId{TenantId: id}
+		}
+
+		pd, err := certifier.GetPolicyDecision(req.Context(), &getPDReq)
 		if err != nil {
 			return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 		}
@@ -161,4 +175,18 @@ func getRequestAction(req *http.Request, decorate logDecorator) certprotos.Actio
 		glog.Info(decorate("Unclassified HTTP method '%s', defaulting to read+write requested permissions", req.Method))
 		return certprotos.Action_WRITE
 	}
+}
+
+func getResource(c echo.Context) (constants.ResourceType, string) {
+	networkParam := "network_id"
+	tenantParam := "tenant_id"
+	for _, p := range c.ParamNames() {
+		switch p {
+		case networkParam:
+			return constants.NetworkID, c.Param(networkParam)
+		case tenantParam:
+			return constants.TenantID, c.Param(tenantParam)
+		}
+	}
+	return constants.Path, ""
 }

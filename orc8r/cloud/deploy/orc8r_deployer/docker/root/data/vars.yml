@@ -804,6 +804,29 @@ service:
     Required: false
     ConfigApps:
       - tf
+  eks_enable_irsa:
+    Description: >-
+      Enable IAM Roles for Service Accounts (IRSA) on the EKS cluster.
+    Type: bool
+    Default: true
+    Required: false
+    ConfigApps:
+      - tf
+  cert_manager_route53_iam_role_arn:
+    Description: >-
+      IAM role ARN for cert-manager.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  deploy_cert_manager_helm_chart:
+    Description: >-
+      Deploy cert-manager helm chart.
+    Type: bool
+    Default: false
+    Required: false
+    ConfigApps:
+      - tf
   dp_enabled:
     Description: Whether Orchestrator domain proxy module should be enabled.
     Type: bool

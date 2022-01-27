@@ -240,7 +240,7 @@ func (c *certifierBlobstore) DeleteUser(username string) error {
 	return store.Commit()
 }
 
-func (c *certifierBlobstore) GetPolicy(token string) (*protos.Policy, error) {
+func (c *certifierBlobstore) GetPolicy(token string) (*protos.PolicyList, error) {
 	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		return nil, status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
@@ -259,7 +259,7 @@ func (c *certifierBlobstore) GetPolicy(token string) (*protos.Policy, error) {
 
 }
 
-func (c *certifierBlobstore) PutPolicy(token string, policy *protos.Policy) error {
+func (c *certifierBlobstore) PutPolicy(token string, policy *protos.PolicyList) error {
 	store, err := c.factory.StartTransaction(nil)
 	if err != nil {
 		return status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
