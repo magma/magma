@@ -21,7 +21,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/device/protos"
-	"magma/orc8r/cloud/go/services/device/servicers"
+	servicers "magma/orc8r/cloud/go/services/device/servicers/protected"
 	"magma/orc8r/cloud/go/test_utils"
 )
 
