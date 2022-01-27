@@ -136,7 +136,7 @@ func generateClientsConfsAndDiameterConnection() (
 			OCSConfsCopy[i] != PCRFConfsCopy[i] {
 			var clientCfg = *gxCliConfs[i]
 			clientCfg.AuthAppID = gyCLiConfs[i].AppID
-			diamClient := diameter.NewClient(&clientCfg)
+			diamClient := diameter.NewClient(&clientCfg, OCSConfs[i].LocalAddr)
 			diamClient.BeginConnection(OCSConfsCopy[i])
 			if gyGlobalConf.DisableGy {
 				glog.Info("Gy Disabled by configuration, not connecting to OCS")
