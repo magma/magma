@@ -408,6 +408,8 @@ typedef struct ue_m5gmm_context_s {
 
   // UEContextRequest in  INITIAL UE MESSAGE
   m5g_uecontextrequest_t ue_context_request;
+
+  bool pending_service_response;
 } ue_m5gmm_context_t;
 
 // Map- Key: uint64_t , Data: ue_m5gmm_context_s*
@@ -820,6 +822,9 @@ void amf_app_handle_cm_idle_on_ue_context_release(
 void ue_context_release_command(
     amf_ue_ngap_id_t amf_ue_ngap_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
     Ngcause ng_cause);
+void amf_app_handle_ngap_ue_context_release_req(
+    const itti_ngap_ue_context_release_req_t* const
+        ngap_ue_context_release_req);
 
 // NAS5G encode and decode routines with security header support
 int nas5g_message_decode(

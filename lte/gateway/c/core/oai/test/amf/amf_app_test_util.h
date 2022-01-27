@@ -38,6 +38,16 @@ imsi64_t send_initial_ue_message_no_tmsi(
     amf_ue_ngap_id_t amf_ue_ngap_id, const plmn_t& plmn, const uint8_t* nas_msg,
     uint8_t nas_msg_length);
 
+imsi64_t send_initial_ue_message_service_request_with_pdu(
+    amf_app_desc_t* amf_app_desc_p, sctp_assoc_id_t sctp_assoc_id,
+    uint32_t gnb_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
+    amf_ue_ngap_id_t amf_ue_ngap_id, const plmn_t& plmn, const uint8_t* nas_msg,
+    uint8_t nas_msg_length);
+
+int send_uplink_nas_message_service_request_with_pdu(
+    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t amf_ue_ngap_id,
+    const plmn_t& plmn, const uint8_t* nas_msg, uint8_t nas_msg_length);
+
 /* API for creating subscriberdb auth answer */
 int send_proc_authentication_info_answer(
     const std::string& imsi, amf_ue_ngap_id_t ue_id, bool success);
@@ -94,5 +104,10 @@ int send_uplink_nas_pdu_session_release_message(
 int send_uplink_nas_ue_deregistration_request(
     amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
     uint8_t* nas_msg, uint8_t nas_msg_length);
+
+/* Send ue context release message */
+void send_ue_context_release_request_message(
+    amf_app_desc_t* amf_app_desc_p, uint32_t gnb_id,
+    gnb_ue_ngap_id_t gnb_ue_ngap_id, amf_ue_ngap_id_t amf_ue_ngap_id);
 
 }  // namespace magma5g

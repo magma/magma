@@ -1217,7 +1217,7 @@ TEST_F(
   NGAP_INITIAL_UE_MESSAGE(message_p).nas =
       blk2bstr(nas5g_pkt_snap.service_req_signaling, len);
   NGAP_INITIAL_UE_MESSAGE(message_p).m5g_rrc_establishment_cause =
-      M5G_MO_SIGNALLING;
+      M5G_MO_SIGNALING;
   NGAP_INITIAL_UE_MESSAGE(message_p).is_s_tmsi_valid        = true;
   NGAP_INITIAL_UE_MESSAGE(message_p).opt_s_tmsi.amf_set_id  = 1;
   NGAP_INITIAL_UE_MESSAGE(message_p).opt_s_tmsi.amf_pointer = 0;
@@ -1307,7 +1307,7 @@ TEST_F(
   NGAP_INITIAL_UE_MESSAGE(message_p).nas =
       blk2bstr(nas5g_pkt_snap.service_req_signaling, len);
   NGAP_INITIAL_UE_MESSAGE(message_p).m5g_rrc_establishment_cause =
-      M5G_MO_SIGNALLING;
+      M5G_MO_SIGNALING;
   NGAP_INITIAL_UE_MESSAGE(message_p).is_s_tmsi_valid        = true;
   NGAP_INITIAL_UE_MESSAGE(message_p).opt_s_tmsi.amf_set_id  = 1;
   NGAP_INITIAL_UE_MESSAGE(message_p).opt_s_tmsi.amf_pointer = 0;

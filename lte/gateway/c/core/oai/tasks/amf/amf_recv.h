@@ -59,7 +59,7 @@ int amf_smf_process_pdu_session_packet(
     amf_ue_ngap_id_t ueid, ULNASTransportMsg* msg, int amf_cause);
 int amf_smf_notification_send(
     amf_ue_ngap_id_t ueid, ue_m5gmm_context_s* ue_context,
-    notify_ue_event notify_event_type);
+    notify_ue_event notify_event_type, uint16_t session_id);
 int amf_proc_registration_request(
     amf_ue_ngap_id_t ue_id, const bool is_mm_ctx_new,
     amf_registration_request_ies_t* ies);

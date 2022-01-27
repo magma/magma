@@ -35,7 +35,7 @@ imsi64_t send_initial_ue_message_no_tmsi(
   initial_ue_message.tai.tac                     = 1;
   initial_ue_message.ecgi.plmn                   = plmn;
   initial_ue_message.ecgi.cell_identity          = {0, 0, 0};
-  initial_ue_message.m5g_rrc_establishment_cause = M5G_MO_SIGNALLING;
+  initial_ue_message.m5g_rrc_establishment_cause = M5G_MO_SIGNALING;
   initial_ue_message.ue_context_request = M5G_UEContextRequest_requested;
   initial_ue_message.is_s_tmsi_valid    = false;
 
@@ -435,4 +435,86 @@ bool get_ue_id_from_imsi(
   return true;
 }
 
+/* Create context release request */
+void send_ue_context_release_request_message(
+    amf_app_desc_t* amf_app_desc_p, uint32_t gnb_id,
+    gnb_ue_ngap_id_t gnb_ue_ngap_id, amf_ue_ngap_id_t amf_ue_ngap_id) {
+  itti_ngap_ue_context_release_req_t ue_context_release_request = {};
+
+  ue_context_release_request.gnb_id         = gnb_id;
+  ue_context_release_request.gnb_ue_ngap_id = gnb_ue_ngap_id;
+  ue_context_release_request.amf_ue_ngap_id = amf_ue_ngap_id;
+  ue_context_release_request.relCause       = NGAP_RADIO_NR_GENERATED_REASON;
+
+  amf_app_handle_cm_idle_on_ue_context_release(ue_context_release_request);
+}
+
+imsi64_t send_initial_ue_message_service_request_with_pdu(
+    amf_app_desc_t* amf_app_desc_p, sctp_assoc_id_t sctp_assoc_id,
+    uint32_t gnb_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
+    amf_ue_ngap_id_t amf_ue_ngap_id, const plmn_t& plmn, const uint8_t* nas_msg,
+    uint8_t nas_msg_length) {
+  tai_t originating_tai = {};
+  int rc                = RETURNerror;
+  imsi64_t imsi64       = 0;
+  tai_t tai             = {.plmn = plmn, .tac = 1};
+
+  tmsi_t ue_tmsi = amf_lookup_guti_by_ueid(amf_ue_ngap_id);
+  if (ue_tmsi == 0) {
+    return (rc);
+  }
+
+  itti_ngap_initial_ue_message_t initial_ue_message = {};
+
+  initial_ue_message.nas = blk2bstr(nas_msg, nas_msg_length);
+
+  /* Replace TMSI value in nas message
+   * message has uplink data status(4 bytess)
+   * and PDU session status(4 bytes) after TMSI*/
+  ue_tmsi = htonl(ue_tmsi);
+  memcpy(
+      &(initial_ue_message.nas->data[nas_msg_length - sizeof(tmsi_t) - 8]),
+      &(ue_tmsi), sizeof(tmsi_t));
+  initial_ue_message.sctp_assoc_id               = sctp_assoc_id;
+  initial_ue_message.gnb_ue_ngap_id              = gnb_ue_ngap_id;
+  initial_ue_message.gnb_id                      = gnb_id;
+  initial_ue_message.m5g_rrc_establishment_cause = M5G_MO_SIGNALING;
+  initial_ue_message.is_s_tmsi_valid             = true;
+  initial_ue_message.opt_s_tmsi.amf_set_id       = 1;
+  initial_ue_message.opt_s_tmsi.amf_pointer      = 0;
+  initial_ue_message.opt_s_tmsi.m_tmsi           = ntohl(ue_tmsi);
+  initial_ue_message.tai                         = tai;
+  initial_ue_message.ue_context_request = M5G_UEContextRequest_requested;
+
+  imsi64 =
+      amf_app_handle_initial_ue_message(amf_app_desc_p, &initial_ue_message);
+
+  return imsi64;
+}
+
+int send_uplink_nas_message_service_request_with_pdu(
+    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t amf_ue_ngap_id,
+    const plmn_t& plmn, const uint8_t* nas_msg, uint8_t nas_msg_length) {
+  bstring uplink_nas_service_request;
+  tai_t originating_tai = {.plmn = plmn, .tac = 1};
+  int rc                = RETURNerror;
+  tmsi_t ue_tmsi        = amf_lookup_guti_by_ueid(amf_ue_ngap_id);
+  if (ue_tmsi == 0) {
+    return (rc);
+  }
+
+  uplink_nas_service_request = blk2bstr(nas_msg, nas_msg_length);
+  /* Replace TMSI value in nas message
+   * message has uplink data status(4 bytess)
+   * and PDU session status(4 bytes) after TMSI*/
+  ue_tmsi = htonl(ue_tmsi);
+  memcpy(
+      &(uplink_nas_service_request->data[nas_msg_length - sizeof(tmsi_t) - 8]),
+      &(ue_tmsi), sizeof(tmsi_t));
+
+  rc = amf_app_handle_uplink_nas_message(
+      amf_app_desc_p, uplink_nas_service_request, amf_ue_ngap_id,
+      originating_tai);
+  return (rc);
+}
 }  // namespace magma5g
