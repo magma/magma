@@ -14,6 +14,7 @@
 package servicers_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/go-openapi/swag"
@@ -76,7 +77,6 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				Images:                  nil,
 				DynamicServices:         nil,
 				FeatureFlags:            nil,
-				Orc8RVersion:            "0.0.-1",
 			},
 			"metricsd": &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO},
 			"td-agent-bit": &mconfig_protos.FluentBit{
@@ -141,7 +141,6 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				Images:                  nil,
 				DynamicServices:         nil,
 				FeatureFlags:            nil,
-				Orc8RVersion:            "0.0.-1",
 			},
 			"metricsd": &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO},
 			"td-agent-bit": &mconfig_protos.FluentBit{
@@ -221,7 +220,6 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				},
 				DynamicServices: nil,
 				FeatureFlags:    nil,
-				Orc8RVersion:    "0.0.-1",
 			},
 			"metricsd": &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO},
 			"td-agent-bit": &mconfig_protos.FluentBit{
@@ -316,7 +314,6 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				},
 				DynamicServices: nil,
 				FeatureFlags:    nil,
-				Orc8RVersion:    "0.0.-1",
 			},
 			"metricsd": &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO},
 			"td-agent-bit": &mconfig_protos.FluentBit{
@@ -404,7 +401,6 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				},
 				DynamicServices: nil,
 				FeatureFlags:    nil,
-				Orc8RVersion:    "0.0.-1",
 			},
 			"metricsd": &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO},
 			"td-agent-bit": &mconfig_protos.FluentBit{
@@ -442,6 +438,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				SyncInterval: syncInterval,
 			},
 		}}
+		os.Setenv("VERSION_TAG", "0.0.1")
 		gw := configurator.NetworkEntity{
 			Type: orc8r.MagmadGatewayType,
 			Key:  "gw2",
@@ -488,7 +485,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				},
 				DynamicServices: nil,
 				FeatureFlags:    nil,
-				Orc8RVersion:    "0.0.-1",
+				Orc8RVersion:    "0.0.1",
 			},
 			"metricsd": &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO},
 			"td-agent-bit": &mconfig_protos.FluentBit{
@@ -513,6 +510,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw2")
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual)
+		os.Unsetenv("VERSION_TAG")
 	})
 }
 
