@@ -156,6 +156,9 @@ message UeContext {
   uint32 amf_ue_ngap_id = 221;
   // UEContextRequest in  INITIAL UE MESSAGE
   uint32 ue_context_request = 222;
+  uint32 gnb_ue_ngap_id = 223;
+  uint64 gnb_ngap_id_key = 224;
+  uint32 amf_teid_n11 = 225; //teid_t
 }
 
 // mme_ue_context_t
