@@ -1,3 +1,4 @@
+---
 - name: Install Magma Orchestrator
   hosts: all
 
