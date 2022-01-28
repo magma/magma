@@ -7,6 +7,7 @@ Storage: 100 GB SSD
 Allow following ports in Inbound rules in Security Groups:
 ```
 22
+80
 443
 2379
 6443

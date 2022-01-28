@@ -3,20 +3,25 @@
   get_url:
     url: https://github.com/rancher/rke/releases/download/v{{ rke_version }}/rke_linux-amd64
     dest: /usr/local/bin/rke
-    mode: '0655'
+    mode: '0755'
 
 - name: Download kubectl binary for linux
   become: yes
   get_url:
     url: https://dl.k8s.io/release/v{{ kubectl_version }}/bin/linux/amd64/kubectl
     dest: /usr/local/bin/kubectl
-    mode: '0655'
+    mode: '0755'
 
 - name: Install pip package
   become: yes
   apt:
     update_cache: yes
     name: python3-pip
+
+- name: Install docker python package
+  become: yes
+  pip:
+    name: docker
 
 - name: Install kubernetes python package
   pip:
@@ -28,9 +33,15 @@
     dest: /tmp
     remote_src: yes
 
-- name: Move helm binary file to executable path
+- name: Copy helm binary file to executable path
   become: yes
-  command: mv /tmp/linux-amd64/helm /usr/local/bin/helm
+  copy:
+    src: /tmp/linux-amd64/helm
+    dest: /usr/local/bin/helm
+    mode: '0755'
+    remote_src: yes
 
 - name: Install Helm Diff Plugin
-  command: helm plugin install https://github.com/databus23/helm-diff
+  kubernetes.core.helm_plugin:
+    plugin_path: https://github.com/databus23/helm-diff
+    state: present

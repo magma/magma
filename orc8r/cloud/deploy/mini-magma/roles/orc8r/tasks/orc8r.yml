@@ -119,28 +119,28 @@
             enabled: true
             files:
               rootCA.pem: |
-                {{ rootCA_pem.stdout }}
+                {{ rootCA_pem['content'] | b64decode }}
               rootCA.key: |
-                {{ rootCA_key.stdout }}
+                {{ rootCA_key['content'] | b64decode }}
               controller.crt: |
-                {{ controller_crt.stdout }}
+                {{ controller_crt['content'] | b64decode }}
               controller.key: |
-                {{ controller_key.stdout }}
+                {{ controller_key['content'] | b64decode }}
               admin_operator.pem: |
-                {{ admin_operator_pem.stdout }}
+                {{ admin_operator_pem['content'] | b64decode }}
               admin_operator.key.pem: |
-                {{ admin_operator_key_pem.stdout }}
+                {{ admin_operator_key_pem['content'] | b64decode }}
               fluentd.pem: |
-                {{ fluentd_pem.stdout }}
+                {{ fluentd_pem['content'] | b64decode }}
               fluentd.key: |
-                {{ fluentd_key.stdout }}
+                {{ fluentd_key['content'] | b64decode }}
               bootstrapper.key: |
-                {{ bootstrapper_key.stdout }}
+                {{ bootstrapper_key['content'] | b64decode }}
               certifier.key: |
-                {{ certifier_key.stdout }}
+                {{ certifier_key['content'] | b64decode }}
               certifier.pem: |
-                {{ certifier_pem.stdout }}
+                {{ certifier_pem['content'] | b64decode }}
               nms_nginx.key.pem: |
-                {{ nms_nginx_key_pem.stdout }}
+                {{ nms_nginx_key_pem['content'] | b64decode }}
               nms_nginx.pem: |
-                {{ nms_nginx_pem.stdout }}
+                {{ nms_nginx_pem['content'] | b64decode }}

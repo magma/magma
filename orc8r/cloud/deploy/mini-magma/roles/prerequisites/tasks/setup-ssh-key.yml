@@ -4,12 +4,12 @@
     comment: "{{ ansible_user }}@{{ ansible_hostname }}"
 
 - name: Register SSH Public Key
-  changed_when: false
-  command: cat /home/{{ ansible_user }}/{{ magma_directory }}/.ssh/id_rsa.pub
+  slurp:
+    src: /home/{{ ansible_user }}/{{ magma_directory }}/.ssh/id_rsa.pub
   register: rke_ssh_key
 
 - name: Add rke public SSH key to authorized keys list
   authorized_key:
     user: "{{ ansible_user }}"
     state: present
-    key: "{{ rke_ssh_key.stdout }}"
+    key: "{{ rke_ssh_key['content'] | b64decode }}"

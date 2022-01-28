@@ -2,6 +2,7 @@
 
 Install Dependant Collections
 ```bash
+ansible-galaxy collection install community.docker
 ansible-galaxy collection install kubernetes.core
 ```
 
@@ -30,13 +31,18 @@ kubectl exec -it ${NMS_POD} -- yarn setAdminPassword master admin admin
 kubectl exec -it ${NMS_POD} -- yarn setAdminPassword magma-test admin admin
 ```
 
-### Ubuntu 20.04 LTS Setup
+### Ansible Setup
 
-Setup Ansible:
+Install Ansible - Ubuntu 20.04 LTS:
 ```bash
-sudo apt-get remove --purge ansible
+sudo apt remove ansible
 sudo apt update
 sudo apt install software-properties-common
 sudo add-apt-repository --yes --update ppa:ansible/ansible
-sudo apt install ansible
+sudo apt install ansible -y
+```
+
+Install Ansible - macOS:
+```bash
+brew install ansible
 ```

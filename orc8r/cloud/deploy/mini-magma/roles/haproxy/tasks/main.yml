@@ -18,9 +18,14 @@
           timeout connect 60s
           timeout server 60s
 
+        frontend redirect
+          mode http
+          bind :80
+          http-request redirect scheme https code 301 unless { ssl_fc }
+
         frontend orc8r
-          bind :443
           mode tcp
+          bind :443
           option tcplog
           acl tls req.ssl_hello_type 1
           tcp-request inspect-delay 5s

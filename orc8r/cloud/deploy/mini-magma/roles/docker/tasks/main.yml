@@ -8,3 +8,9 @@
   user:
     name: "{{ ansible_user }}"
     group: docker
+
+- name: Pull alpine docker image
+  become: yes
+  community.docker.docker_image:
+    name: alpine
+    source: pull
