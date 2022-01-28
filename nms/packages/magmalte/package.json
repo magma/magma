@@ -30,7 +30,7 @@
     "@fbcnms/auth": "^0.1.0",
     "@fbcnms/babel-register": "^0.1.2",
     "@fbcnms/express-middleware": "^0.1.5",
-    "@fbcnms/platform-server": "^0.2.2",
+    "@fbcnms/platform-server": "^0.2.1",
     "@fbcnms/projects": "^0.1.0",
     "@fbcnms/sequelize-models": "^0.1.10",
     "@fbcnms/strings": "^0.1.0",
