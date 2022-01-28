@@ -136,6 +136,11 @@ class ConfigManagerTest(TestCase):
                 'magmad': updated_mconfig.configs_by_key['magmad'],
                 'metricsd': updated_mconfig.configs_by_key['metricsd'],
             }
+            magmad_parsed = MagmaD()
+            updated_mconfig.configs_by_key['magmad'].Unpack(magmad_parsed)
+            orc8r_version = magmad_parsed.orc8r_version
+            self.assertEqual('0.0.1', orc8r_version)
+
             processed_updates.assert_called_once_with(configs_by_service)
 
             restarter.reset_mock()

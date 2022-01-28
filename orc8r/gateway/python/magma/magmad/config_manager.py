@@ -78,7 +78,7 @@ class ConfigManager(StreamerClient.Callback):
 
     def _warn_if_versions_are_incompatible(self, agw_version, unpacked_mconfig):
         # version should be in X.X.X format with only non-negative numbers allowed for X
-        VERSION_REGEX = re.compile(r"[0-9]+\.(?P<minor_version>[0-9]+)\.[0-9]+")
+        version_regex = re.compile(r"[0-9]+\.(?P<minor_version>[0-9]+)\.[0-9]+")
 
         # unpack the magmad structure to get orce_version field
         if unpacked_mconfig.Is(mconfigs_pb2.MagmaD.DESCRIPTOR):
@@ -86,8 +86,8 @@ class ConfigManager(StreamerClient.Callback):
             unpacked_mconfig.Unpack(magmad_parsed)
             orc8r_version = magmad_parsed.orc8r_version
 
-            agw_version_parsed = VERSION_REGEX.match(agw_version)
-            orc8r_version_parsed = VERSION_REGEX.match(orc8r_version)
+            agw_version_parsed = version_regex.match(agw_version)
+            orc8r_version_parsed = version_regex.match(orc8r_version)
 
             # agw_version is not in expected format
             if not agw_version_parsed:
