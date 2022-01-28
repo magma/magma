@@ -170,32 +170,33 @@ class SubscriberState(object):
 
 
 class QosManager(object):
-    # TODO: convert QosManager to singleton class.
-    qos_mgr = None
+    """
+    Qos Manager -> add/remove subscriber qos
+    """
     # protect QoS object create and delete across all QoSManager Objects.
     lock = threading.Lock()
 
-    @staticmethod
-    def get_qos_manager(datapath, loop, config):
-        if QosManager.qos_mgr:
-            LOG.debug("Got QosManager instance")
-            return QosManager.qos_mgr
-        QosManager.qos_mgr = QosManager(datapath, loop, config)
-        QosManager.qos_mgr.setup()
-        return QosManager.qos_mgr
-
-    @staticmethod
-    def get_impl(datapath, loop, config):
+    def init_impl(self, datapath):
+        """
+        Takese in datapath, and initializes appropriate QoS manager based on config
+        """
         try:
-            impl_type = QosImplType(config["qos"]["impl"])
+            impl_type = QosImplType(self._config["qos"]["impl"])
+
+            if impl_type == QosImplType.OVS_METER:
+                self.impl = MeterManager(datapath, self._loop, self._config)
+            else:
+                self.impl = TCManager(datapath, self._loop, self._config)
+                self.setup()
         except ValueError:
             LOG.error("%s is not a valid qos impl type", impl_type)
             raise
 
-        if impl_type == QosImplType.OVS_METER:
-            return MeterManager(datapath, loop, config)
-        else:
-            return TCManager(datapath, loop, config)
+    def _is_impl_initialized(self):
+        if not self.impl:
+            LOG.error("QoS Manager Implementation not initialized.")
+            return False
+        return True
 
     @classmethod
     def debug(cls, _, __, ___):
@@ -240,7 +241,10 @@ class QosManager(object):
             return False
         return True
 
-    def __init__(self, datapath, loop, config):
+    def __init__(self, loop, config):
+        if 'qos' not in config.keys():
+            LOG.error("qos field not provided in config")
+            return
         self._qos_enabled = config["qos"]["enable"]
         if not self._qos_enabled:
             return
@@ -249,10 +253,11 @@ class QosManager(object):
         self._clean_restart = config["clean_restart"]
         self._subscriber_state = {}
         self._loop = loop
-        self.impl = QosManager.get_impl(datapath, loop, config)
+        self.impl = None
         self._redis_store = QosStore(self.__class__.__name__)
         self._initialized = False
         self._redis_conn_retry_secs = 1
+        self._config = config
 
     def setup(self):
         with QosManager.lock:
@@ -260,7 +265,7 @@ class QosManager(object):
                 return
 
             if self._is_redis_available():
-                return self._setupInternal()
+                self._setupInternal()
             else:
                 LOG.info(
                     "failed to connect to redis..retrying in %d secs",
@@ -386,7 +391,7 @@ class QosManager(object):
             cleanup_rule=None,
     ):
         with QosManager.lock:
-            if not self._qos_enabled or not self._initialized:
+            if not self._qos_enabled or not self._initialized or self._is_impl_initialized():
                 LOG.debug("add_subscriber_qos: not enabled or initialized")
                 return None, None, None
 
@@ -489,7 +494,7 @@ class QosManager(object):
 
     def remove_subscriber_qos(self, imsi: str = "", del_rule_num: int = -1):
         with QosManager.lock:
-            if not self._qos_enabled or not self._initialized:
+            if not self._qos_enabled or not self._initialized or not self._is_impl_initialized():
                 LOG.debug("remove_subscriber_qos: not enabled or initialized")
                 return
 

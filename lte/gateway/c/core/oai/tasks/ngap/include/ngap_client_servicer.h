@@ -24,6 +24,7 @@ extern "C" {
 #endif
 #include <memory.h>
 #include <string.h>
+#include "lte/gateway/c/core/oai/include/map.h"
 
 namespace magma5g {
 
@@ -43,6 +44,10 @@ class NGAPClientServicer : public NGAPClientServicerBase {
 
   NGAPClientServicer(NGAPClientServicer const&) = delete;
   void operator=(NGAPClientServicer const&) = delete;
+
+  magma::map_string_string_t map_ngap_state_proto_str;
+  magma::map_string_string_t map_ngap_uestate_proto_str;
+  magma::map_string_string_t map_imsi_table_proto_str;
 
   status_code_e send_message_to_amf(
       task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,

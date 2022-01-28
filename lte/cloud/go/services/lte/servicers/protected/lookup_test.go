@@ -22,7 +22,7 @@ import (
 
 	"magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/lte/cloud/go/services/lte/protos"
-	"magma/lte/cloud/go/services/lte/servicers"
+	protected_servicers "magma/lte/cloud/go/services/lte/servicers/protected"
 	"magma/lte/cloud/go/services/lte/storage"
 	"magma/orc8r/cloud/go/sqorc"
 )
@@ -35,7 +35,7 @@ func TestLookupServicer_EnodebState(t *testing.T) {
 	assert.NoError(t, err)
 	err = store.Initialize()
 	assert.NoError(t, err)
-	l := servicers.NewLookupServicer(store)
+	l := protected_servicers.NewLookupServicer(store)
 
 	t.Run("basic", func(t *testing.T) {
 		_, err := l.GetEnodebState(ctx, &protos.GetEnodebStateRequest{
