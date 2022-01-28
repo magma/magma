@@ -110,7 +110,7 @@ status_code_e NgapStateManager::read_state_from_db() {
   // Reads from the map_ngap_state_proto_str Map
   if (NGAPClientServicer::getInstance().map_ngap_state_proto_str.get(
           table_key, &proto_str) != magma::MAP_OK) {
-    OAILOG_DEBUG(LOG_MME_APP, "Failed to read proto from db \n");
+    OAILOG_DEBUG(log_task, "Failed to read proto from db \n");
     return RETURNerror;
   }
   // Deserialization Step
@@ -238,7 +238,7 @@ status_code_e NgapStateManager::read_ue_state_from_db() {
     // Reads from the map_ngap_uestate_proto_str Map
     if (NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.get(
             kv.first, &ue_proto_str) != magma::MAP_OK) {
-      OAILOG_DEBUG(LOG_MME_APP, "Failed to read UE proto from db \n");
+      OAILOG_DEBUG(log_task, "Failed to read UE proto from db \n");
       free(ue_context);
       return RETURNerror;
     }
@@ -312,7 +312,7 @@ void NgapStateManager::create_ngap_imsi_map() {
   std::string proto_msg;
   if (NGAPClientServicer::getInstance().map_imsi_table_proto_str.get(
           NGAP_IMSI_MAP_TABLE_NAME, &proto_msg) != magma::MAP_OK) {
-    OAILOG_DEBUG(LOG_MME_APP, "Failed to read ngap_imsi_map proto from db \n");
+    OAILOG_DEBUG(log_task, "Failed to read ngap_imsi_map proto from db \n");
     return;
   }
   // Deserialization Step
