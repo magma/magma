@@ -739,9 +739,10 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
         service_cfg = service.config
         service_cfg_1 = get_service_config()
         service_cfg_1['web_ui_enable_list'] = []
-        service_cfg_1["prim_src"] = "GNSS"
-        service_cfg_1[SAS_KEY][SASParameters.SAS_UID] = "INVALID_ID"
-        service_cfg_1[SAS_KEY][SASParameters.SAS_CERT_SUBJECT] = "INVALID_CERT_SUBJECT"
+        service_cfg_1['prim_src'] = 'GNSS'
+        service_cfg_1[SAS_KEY][SASParameters.SAS_UID] = 'INVALID_ID'
+        service_cfg_1[SAS_KEY][SASParameters.SAS_CERT_SUBJECT] = 'INVALID_CERT_SUBJECT'
+        service_cfg_1['print_grpc_payload'] = False
         self.assertDictEqual(service_cfg, service_cfg_1)
 
     def test_status_nodes(self):

@@ -13,6 +13,9 @@
 #
 # log_level is set in mconfig. It can be overridden here
 
+# Append GRPC content to the log
+print_grpc_payload: false
+
 tr069:
   interface: eth1 # NOTE: this value must be consistent with dnsmasq.conf
   port: 48080
