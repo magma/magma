@@ -347,6 +347,9 @@ WORKDIR ${MAGMA_ROOT}/orc8r/gateway/python/
 RUN pip3 install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose --editable .[dev] && \
     rm -rf orc8r.egg-info
 
+# install formatter autopep8
+RUN pip install --no-cache-dir autopep8
+
 #### protos
 ARG PYTHON_LIB=/usr/local/lib/python3.8
 
