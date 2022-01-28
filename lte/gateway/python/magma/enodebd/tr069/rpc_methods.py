@@ -109,6 +109,7 @@ class AutoConfigServer(ServiceBase):
             ctx.descriptor.out_message.Attributes.sub_name = 'EmptyHttp'
             return models.AcsToCpeRequests()
         ctx.descriptor.out_message.Attributes.sub_name = req.__class__.__name__
+        logger.debug(cls._generate_acs_to_cpe_request_copy(req))
         return cls._generate_acs_to_cpe_request_copy(req)
 
     @classmethod

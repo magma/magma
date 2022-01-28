@@ -121,10 +121,10 @@ class WaitInformState(EnodebAcsState):
     """
 
     def __init__(
-        self,
-        acs: EnodebAcsStateMachine,
-        when_done: str,
-        when_boot: Optional[str] = None,
+            self,
+            acs: EnodebAcsStateMachine,
+            when_done: str,
+            when_boot: Optional[str] = None,
     ):
         super().__init__()
         self.acs = acs
@@ -183,7 +183,7 @@ class GetRPCMethodsState(EnodebAcsState):
         resp.MethodList = models.MethodList()
         RPC_METHODS = ['Inform', 'GetRPCMethods', 'TransferComplete']
         resp.MethodList.arrayType = 'xsd:string[%d]' \
-                                          % len(RPC_METHODS)
+                                    % len(RPC_METHODS)
         resp.MethodList.string = RPC_METHODS
         return AcsMsgAndTransition(resp, self.done_transition)
 
@@ -248,10 +248,10 @@ class BaicellsRemWaitState(EnodebAcsState):
 
 class WaitEmptyMessageState(EnodebAcsState):
     def __init__(
-        self,
-        acs: EnodebAcsStateMachine,
-        when_done: str,
-        when_missing: Optional[str] = None,
+            self,
+            acs: EnodebAcsStateMachine,
+            when_done: str,
+            when_missing: Optional[str] = None,
     ):
         super().__init__()
         self.acs = acs
@@ -462,17 +462,17 @@ class WaitGetTransientParametersState(EnodebAcsState):
         if should_get_obj_params:
             return self.get_obj_params_transition
         elif len(
-            get_all_objects_to_delete(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-            ),
+                get_all_objects_to_delete(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
         ) > 0:
             return self.rm_obj_transition
         elif len(
-            get_all_objects_to_add(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-            ),
+                get_all_objects_to_add(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
         ) > 0:
             return self.add_obj_transition
         return self.skip_transition
@@ -488,10 +488,10 @@ class GetParametersState(EnodebAcsState):
     """
 
     def __init__(
-        self,
-        acs: EnodebAcsStateMachine,
-        when_done: str,
-        request_all_params: bool = False,
+            self,
+            acs: EnodebAcsStateMachine,
+            when_done: str,
+            request_all_params: bool = False,
     ):
         super().__init__()
         self.acs = acs
@@ -602,12 +602,12 @@ class GetObjectParametersState(EnodebAcsState):
 
 class WaitGetObjectParametersState(EnodebAcsState):
     def __init__(
-        self,
-        acs: EnodebAcsStateMachine,
-        when_delete: str,
-        when_add: str,
-        when_set: str,
-        when_skip: str,
+            self,
+            acs: EnodebAcsStateMachine,
+            when_delete: str,
+            when_add: str,
+            when_set: str,
+            when_skip: str,
     ):
         super().__init__()
         self.acs = acs
@@ -657,7 +657,7 @@ class WaitGetObjectParametersState(EnodebAcsState):
                     obj_name,
                 )
         num_plmns_reported = \
-                int(self.acs.device_cfg.get_parameter(ParameterName.NUM_PLMNS))
+            int(self.acs.device_cfg.get_parameter(ParameterName.NUM_PLMNS))
         if num_plmns != num_plmns_reported:
             logger.warning(
                 "eNB reported %d PLMNs but found %d",
@@ -679,25 +679,25 @@ class WaitGetObjectParametersState(EnodebAcsState):
             )
 
         if len(
-            get_all_objects_to_delete(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-            ),
+                get_all_objects_to_delete(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
         ) > 0:
             return AcsReadMsgResult(True, self.rm_obj_transition)
         elif len(
-            get_all_objects_to_add(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-            ),
+                get_all_objects_to_add(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
         ) > 0:
             return AcsReadMsgResult(True, self.add_obj_transition)
         elif len(
-            get_all_param_values_to_set(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-                self.acs.data_model,
-            ),
+                get_all_param_values_to_set(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                    self.acs.data_model,
+                ),
         ) > 0:
             return AcsReadMsgResult(True, self.set_params_transition)
         return AcsReadMsgResult(True, self.skip_transition)
@@ -708,10 +708,10 @@ class WaitGetObjectParametersState(EnodebAcsState):
 
 class DeleteObjectsState(EnodebAcsState):
     def __init__(
-        self,
-        acs: EnodebAcsStateMachine,
-        when_add: str,
-        when_skip: str,
+            self,
+            acs: EnodebAcsStateMachine,
+            when_add: str,
+            when_skip: str,
     ):
         super().__init__()
         self.acs = acs
@@ -762,10 +762,10 @@ class DeleteObjectsState(EnodebAcsState):
         if len(obj_list_to_delete) > 0:
             return AcsReadMsgResult(True, None)
         if len(
-            get_all_objects_to_add(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-            ),
+                get_all_objects_to_add(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
         ) == 0:
             return AcsReadMsgResult(True, self.skip_transition)
         return AcsReadMsgResult(True, self.add_obj_transition)
@@ -842,7 +842,7 @@ class SetParameterValuesState(EnodebAcsState):
             self.acs.data_model,
         )
         request.ParameterList.arrayType = 'cwmp:ParameterValueStruct[%d]' \
-                                           % len(param_values)
+                                          % len(param_values)
         request.ParameterList.ParameterValueStruct = []
         logger.debug(
             'Sending TR069 request to set CPE parameter values: %s',
@@ -852,7 +852,7 @@ class SetParameterValuesState(EnodebAcsState):
         # calls.
         if self.acs.has_version_key:
             request.ParameterKey = models.ParameterKeyType()
-            request.ParameterKey.Data =\
+            request.ParameterKey.Data = \
                 "SetParameter-{:10.0f}".format(self.acs.parameter_version_key)
             request.ParameterKey.type = 'xsd:string'
 
@@ -944,11 +944,11 @@ class SetParameterValuesNotAdminState(EnodebAcsState):
 
 class WaitSetParameterValuesState(EnodebAcsState):
     def __init__(
-        self,
-        acs: EnodebAcsStateMachine,
-        when_done: str,
-        when_apply_invasive: str,
-        status_non_zero_allowed: bool = False,
+            self,
+            acs: EnodebAcsStateMachine,
+            when_done: str,
+            when_apply_invasive: str,
+            status_non_zero_allowed: bool = False,
     ):
         super().__init__()
         self.acs = acs
@@ -1053,6 +1053,58 @@ class EndSessionState(EnodebAcsState):
         return 'Completed provisioning eNB. Awaiting new Inform.'
 
 
+class EnbSendDownloadState(EnodebAcsState):
+    UPGRADE_FILE_TYPE = '1 Firmware Upgrade Image'
+
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+        self.prev_msg_was_inform = False
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        """
+        This state can be transitioned into through user command.
+        All messages received by enodebd will be ignored in this state.
+        """
+        if self.prev_msg_was_inform \
+                and not isinstance(message, models.DummyInput):
+            return AcsReadMsgResult(False, None)
+        elif isinstance(message, models.Inform):
+            self.prev_msg_was_inform = True
+            process_inform_message(
+                message, self.acs.data_model,
+                self.acs.device_cfg,
+            )
+            return AcsReadMsgResult(True, None)
+        self.prev_msg_was_inform = False
+        return AcsReadMsgResult(True, None)
+
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        if self.prev_msg_was_inform:
+            response = models.InformResponse()
+            # Set maxEnvelopes to 1, as per TR-069 spec
+            response.MaxEnvelopes = 1
+            return AcsMsgAndTransition(response, None)
+        logger.info('Sending download request to eNB')
+        request = models.Download()
+        request.CommandKey = ''
+        request.FileType = self.UPGRADE_FILE_TYPE
+        request.URL = self.acs.desired_cfg.get_parameter(ParameterName.DOWNLOAD_URL)
+        request.Username = self.acs.desired_cfg.get_parameter(ParameterName.DOWNLOAD_USER)
+        request.Password = self.acs.desired_cfg.get_parameter(ParameterName.DOWNLOAD_PASSWORD)
+        request.FileSize = self.acs.desired_cfg.get_parameter(ParameterName.DOWNLOAD_FILESIZE)
+        request.TargetFileName = self.acs.desired_cfg.get_parameter(ParameterName.DOWNLOAD_FILENAME)
+        request.Md5 = self.acs.desired_cfg.get_parameter(ParameterName.DOWNLOAD_MD5)
+        request.DelaySeconds = 0
+        request.SuccessURL = ''
+        request.FailureURL = ''
+        return AcsMsgAndTransition(request, self.done_transition)
+
+    def state_description(self) -> str:
+        return 'download file to eNB'
+
+
 class EnbSendRebootState(EnodebAcsState):
     def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
         super().__init__()
@@ -1153,6 +1205,73 @@ class WaitRebootResponseState(EnodebAcsState):
         return 'Rebooting eNB'
 
 
+class WaitInformMDownloadState(EnodebAcsState):
+    """
+    After sending a download request, we expect an Inform request with a
+    specific 'inform event code'
+    """
+
+    # Time to wait for eNodeB reboot. The measured time
+    # (on BaiCells indoor eNodeB)
+    # is ~300secs, so add healthy padding on top of this.
+    DOWNLOAD_TIMEOUT = 600  # In seconds
+    # We expect that the Inform we receive tells us the eNB has Download.
+    INFORM_EVENT_CODE = 'M DOWNLOAD'
+
+    def __init__(
+            self,
+            acs: EnodebAcsStateMachine,
+            when_done: str,
+            when_timeout: str,
+    ):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+        self.timeout_transition = when_timeout
+        self.timeout_timer = None
+        self.timer_handle = None
+
+    def enter(self):
+        self.timeout_timer = StateMachineTimer(self.DOWNLOAD_TIMEOUT)
+
+        def check_timer() -> None:
+            if self.timeout_timer.is_done():
+                self.acs.transition(self.timeout_transition)
+                raise Tr069Error(
+                    'Did not receive Inform response after '
+                    'Downloading',
+                )
+
+        self.timer_handle = \
+            self.acs.event_loop.call_later(
+                self.DOWNLOAD_TIMEOUT,
+                check_timer,
+            )
+
+    def exit(self):
+        self.timer_handle.cancel()
+        self.timeout_timer = None
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        if not isinstance(message, models.Inform):
+            return AcsReadMsgResult(False, None)
+        if does_inform_have_event(message, '2 PERIODIC'):
+            return AcsReadMsgResult(True, None)
+        if not does_inform_have_event(message, self.INFORM_EVENT_CODE):
+            raise Tr069Error(
+                'Did not receive M Download event code in '
+                'Inform',
+            )
+        process_inform_message(
+            message, self.acs.data_model,
+            self.acs.device_cfg,
+        )
+        return AcsReadMsgResult(True, self.done_transition)
+
+    def state_description(self) -> str:
+        return 'Waiting for M DOWNLOAD code from Inform'
+
+
 class WaitInformMRebootState(EnodebAcsState):
     """
     After sending a reboot request, we expect an Inform request with a
@@ -1167,10 +1286,10 @@ class WaitInformMRebootState(EnodebAcsState):
     INFORM_EVENT_CODE = 'M Reboot'
 
     def __init__(
-        self,
-        acs: EnodebAcsStateMachine,
-        when_done: str,
-        when_timeout: str,
+            self,
+            acs: EnodebAcsStateMachine,
+            when_done: str,
+            when_timeout: str,
     ):
         super().__init__()
         self.acs = acs
@@ -1216,6 +1335,25 @@ class WaitInformMRebootState(EnodebAcsState):
 
     def state_description(self) -> str:
         return 'Waiting for M Reboot code from Inform'
+
+
+class WaitDownloadResponseState(EnodebAcsState):
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        if not isinstance(message, models.DownloadResponse):
+            return AcsReadMsgResult(False, None)
+        return AcsReadMsgResult(True, None)
+
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        """ Reply with empty message """
+        return AcsMsgAndTransition(models.DummyInput(), self.done_transition)
+
+    def state_description(self) -> str:
+        return 'download the file to eNB'
 
 
 class WaitRebootDelayState(EnodebAcsState):
@@ -1272,8 +1410,8 @@ class ErrorState(EnodebAcsState):
     """
 
     def __init__(
-        self, acs: EnodebAcsStateMachine,
-        inform_transition_target: Optional[str] = None,
+            self, acs: EnodebAcsStateMachine,
+            inform_transition_target: Optional[str] = None,
     ):
         super().__init__()
         self.acs = acs

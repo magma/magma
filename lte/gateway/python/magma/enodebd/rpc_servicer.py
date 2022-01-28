@@ -16,6 +16,8 @@ from typing import Any
 import grpc
 from lte.protos.enodebd_pb2 import (
     AllEnodebStatus,
+    DownloadRequest,
+    DownloadResponse,
     EnodebIdentity,
     GetParameterRequest,
     GetParameterResponse,
@@ -57,9 +59,9 @@ class EnodebdRpcServicer(EnodebdServicer):
         return self.state_machine_manager.get_handler_by_serial(device_serial)
 
     def GetParameter(
-        self,
-        request: GetParameterRequest,
-        context: Any,
+            self,
+            request: GetParameterRequest,
+            context: Any,
     ) -> GetParameterResponse:
         """
         Sends a GetParameterValues message. Used for testing only.
@@ -151,6 +153,25 @@ class EnodebdRpcServicer(EnodebdServicer):
             handler = self._get_handler(enb_serial)
             handler.reboot_asap()
 
+    def Download(self, request: DownloadRequest, context: Any) -> DownloadResponse:
+        """ Download file and upgrade the eNodeB """
+        url = request.url
+        user_name = request.user_name
+        password = request.password
+        target_file_name = request.target_file_name
+        file_size = int(request.file_size)
+        md5 = request.md5
+        download_resp = DownloadResponse()
+        handler = self._get_handler(request.device_serial)
+        handler.download_asap(
+            url=url, user_name=user_name, password=password, target_file_name=target_file_name,
+            file_size=file_size, md5=md5,
+        )
+        download_resp.status = 0
+        download_resp.start_time = ''
+        download_resp.complete_time = ''
+        return download_resp
+
     def GetStatus(self, _=None, context=None) -> ServiceStatus:
         """
         Get eNodeB status
@@ -204,9 +225,9 @@ class EnodebdRpcServicer(EnodebdServicer):
         return all_enb_status
 
     def GetEnodebStatus(
-        self,
-        request: EnodebIdentity,
-        _context=None,
+            self,
+            request: EnodebIdentity,
+            _context=None,
     ) -> SingleEnodebStatus:
         print_grpc(
             request, self._print_grpc_payload,

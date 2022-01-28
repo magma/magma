@@ -34,6 +34,7 @@ import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
+import UpgradeEnodebButton from './UpgradeEnodebDialog';
 import {DateTimePicker} from '@material-ui/pickers';
 import {EnodebJsonConfig} from './EnodebDetailConfig';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
@@ -81,7 +82,20 @@ export function EnodebDetail() {
             label: 'Overview',
             to: '/overview',
             icon: DashboardIcon,
-            filters: <EnodebRebootButton />,
+            filters: (
+              <Grid
+                container
+                justify="flex-end"
+                alignItems="center"
+                spacing={2}>
+                <Grid item>
+                  <UpgradeEnodebButton />
+                </Grid>
+                <Grid item>
+                  <EnodebRebootButton />
+                </Grid>
+              </Grid>
+            ),
           },
           {
             label: 'Config',
