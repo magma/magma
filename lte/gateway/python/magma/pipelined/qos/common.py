@@ -190,7 +190,7 @@ class QosManager(object):
                 self.impl = MeterManager(datapath, self._loop, self._config)
             else:
                 self.impl = TCManager(datapath, self._loop, self._config)
-                self.setup()
+            self.setup()
         except ValueError:
             LOG.error("%s is not a valid qos impl type", impl_type)
             raise
