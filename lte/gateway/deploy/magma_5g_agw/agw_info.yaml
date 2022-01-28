@@ -1,0 +1,37 @@
+---
+- name: Install AGW 
+  hosts: all
+  become: yes
+  tasks:
+    - name: Pull AGW hardware info
+      shell: show_gateway_info.py | awk '/Hardware ID/{getline; getline; print}' | head -n 1
+      register: agw_hardware_key
+
+    - set_fact: 
+        agw_hardware_key={{ agw_hardware_key.stdout }}
+
+    - name: Pull AGW Challange Key
+      shell: show_gateway_info.py | awk '/Challenge key/{getline; getline; print}' | head -n 1
+      register: agw_challenge_key
+
+    - set_fact: 
+        agw_challenge_key={{ agw_challenge_key.stdout }}
+
+    - name: Create HW key file
+      copy:
+        dest: "./agw_hw_key.info"
+        content: |
+          {{ agw_hardware_key }}
+        mode: '0777'
+      delegate_to: localhost
+
+    - name: Create challenge key file
+      copy:
+        dest: "./agw_chl_key.info"
+        content: |
+          {{ agw_challenge_key }}
+        mode: '0777'
+      delegate_to: localhost
+
+    - debug: var=agw_hardware_key
+    - debug: var=agw_challenge_key

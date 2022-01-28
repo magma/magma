@@ -1,0 +1,27 @@
+---
+
+- import_tasks: base.yaml
+  become: yes
+  tags: baseInstall
+
+- import_tasks: interface.yaml
+  become: yes
+  tags: setupInterface
+
+- import_tasks: user.yaml
+  become: yes
+  tags: addUser
+
+- import_tasks: install-magma.yaml
+  become: yes
+  tags: installMagma
+  
+- import_tasks: configure-magma.yaml
+  become: yes
+  tags: configureMagma
+
+- import_tasks: config5g.yaml
+  become: yes
+  tags: upgrade5gVersion
+  when: magma_5g_upgrade
+

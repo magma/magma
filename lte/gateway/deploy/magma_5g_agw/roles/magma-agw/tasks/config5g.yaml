@@ -1,0 +1,62 @@
+---
+- name: Wait for MME PID 
+  ansible.builtin.shell: pidof mme
+  register: result
+  until: result.stdout | length > 0
+  retries: 50
+  delay: 10
+
+- name: Disable stateless
+  shell: magmad_cli.py config_stateless disable
+  when: magma_5g_upgrade
+
+- name: Copy mme yml file
+  copy:
+    src: roles/magma-agw/files/mme.yml
+    dest: "/var/opt/magma/configs/mme.yml"
+  register: mme_yml_file
+
+- name: Copy pipelined yml file
+  copy:
+    src: roles/magma-agw/files/pipelined.yml
+    dest: "/var/opt/magma/configs/pipelined.yml"
+  register: pipelined_yml_file
+
+- name: Copy subscriberdb yml file
+  copy:
+    src: roles/magma-agw/files/subscriberdb.yml
+    dest: "/var/opt/magma/configs/subscriberdb.yml"
+  register: subscriberdb_yml_file
+
+- name: Copy sessiond yml file
+  copy:
+    src: roles/magma-agw/files/sessiond.yml
+    dest: "/var/opt/magma/configs/sessiond.yml"
+  register: sessiond_yml_file
+
+- name: Copy pipelined yml file to etc directory
+  copy:
+    src: roles/magma-agw/files/sessiond.yml
+    dest: "/var/opt/magma/configs/sessiond.yml"
+  register: sessiond_yml_file
+  
+- name: Stop magma services
+  command: service magma@* stop
+  retries: 3
+  delay: 10
+  register: stopMagma
+  until: stopMagma.rc == 0
+  when: mme_yml_file.changed or pipelined_yml_file.changed or subscriberdb_yml_file.changed or sessiond_yml_file.changed
+
+- name: Start magma services
+  systemd:
+    name: magma@magmad
+    state: started
+  when: mme_yml_file.changed or pipelined_yml_file.changed or subscriberdb_yml_file.changed or sessiond_yml_file.changed
+
+- name: Wait for MME PID 
+  ansible.builtin.shell: pidof mme
+  register: result
+  until: result.stdout | length > 0
+  retries: 50
+  delay: 10

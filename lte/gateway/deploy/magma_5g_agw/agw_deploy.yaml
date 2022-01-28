@@ -1,0 +1,6 @@
+---
+- name: Install AGW 
+  hosts: all
+  become: yes
+  roles:
+    - role: magma-agw

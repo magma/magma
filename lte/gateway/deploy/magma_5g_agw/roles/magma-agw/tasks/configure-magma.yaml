@@ -1,0 +1,46 @@
+- name: Copy Login banner file for service status
+  copy:
+    src: roles/magma-agw/files/99-magma.sh
+    dest: "/etc/update-motd.d/99-magma"
+    mode: '0777'
+
+- name: Create cert directory
+  ansible.builtin.file:
+    path: '/var/opt/magma/tmp/certs'
+    state: directory
+    recurse: yes
+
+- name: Copy rootCA file
+  copy:
+    src: "{{ magma_rootCA_path }}"
+    dest: "/var/opt/magma/tmp/certs/rootCA.pem"
+    mode: '0777'
+  register: rootCA_file
+
+- name: Create Config directory
+  ansible.builtin.file:
+    path: '/var/opt/magma/configs'
+    state: directory
+    recurse: yes
+
+- name: Copy control_proxy file
+  copy:
+    src: "{{ magma_control_proxy_path }}"
+    dest: "/var/opt/magma/configs/control_proxy.yml"
+    mode: '0777'
+  register: control_proxy_file
+
+- name: Stop magma services
+  command: service magma@* stop
+  retries: 3
+  delay: 10
+  register: stopMagma
+  until: stopMagma.rc == 0
+  when: control_proxy_file.changed or rootCA_file.changed 
+
+- name: Start magma services
+  systemd:
+    name: magma@magmad
+    state: started
+  when: control_proxy_file.changed or rootCA_file.changed 
+  

@@ -1,0 +1,103 @@
+---
+- name: Modification to the Grub 
+  ansible.builtin.lineinfile:
+    path: /etc/default/grub
+    regexp: 'GRUB_CMDLINE_LINUX=""'
+    line: GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"
+  
+- name: Generate the Grub config file
+  shell: grub-mkconfig -o /boot/grub/grub.cfg
+
+- name: Register default network interface name
+  debug: 
+    msg: "{{ ansible_default_ipv4.interface }}"
+  register: default_nic
+
+- name: Get the netplan file name
+  find:  
+    paths: /etc/netplan/
+    patterns: "*.yaml"
+  register: netplanFile
+
+- name: Change the interface name
+  ansible.builtin.replace:
+    path: "{{ item.path }}"
+    regexp: "{{ default_nic.msg }}"
+    replace: eth0
+  with_items: "{{ netplanFile.files }}"
+
+- name: Create interface directory
+  ansible.builtin.file:
+    path: '{{ INTERFACE_DIR }}'
+
+- name: Add interface config directory
+  lineinfile:
+    path: /etc/network/interfaces
+    regexp: 'source-directory {{ INTERFACE_DIR }}'
+    line: "source-directory {{ INTERFACE_DIR }}"
+
+- name: Create eth0 file for Static
+  copy:
+    dest: "{{ INTERFACE_DIR }}/eth0"
+    content: |
+      auto eth0
+        iface eth0 inet static
+        address {{ eth0 }}
+        netmask {{ eth0_netmask }}
+        gateway {{ eth0_gateway }}
+  register: network_changes_eth0_st
+  when: not configure_dhcp
+
+- name: Create eth1 file for Static
+  copy:
+    dest: "{{ INTERFACE_DIR }}/eth1"
+    content: |
+      auto eth1
+        iface eth1 inet static
+        address {{ eth1 }}
+        netmask {{ eth1_netmask }}
+        gateway {{ eth1_gateway }}
+  register: network_changes_eth1_st
+  when: not configure_dhcp
+
+- name: Create eth0 file for Dynamic
+  copy:
+    dest: "{{ INTERFACE_DIR }}/eth0"
+    content: |
+      auto eth0
+        iface eth0 inet dhcp
+  register: network_changes_eth0
+  when: configure_dhcp
+
+- name: Create eth1 file for Dynamic
+  copy:
+    dest: "{{ INTERFACE_DIR }}/eth1"
+    content: |
+      auto eth1
+        iface eth1 inet dhcp
+  register: network_changes_eth1
+  when: configure_dhcp
+
+- name: Remove netplan packages
+  shell: apt-get --assume-yes purge nplan netplan.io
+
+- name: Add networking service to statrt during boot 
+  ansible.builtin.service:
+    name: networking
+    enabled: yes
+
+- name: Reboot immediately if there was a change.
+  shell: "sleep 5 && reboot"
+  async: 1
+  poll: 0
+  when: network_changes_eth0.changed or network_changes_eth1.changed or network_changes_eth0_st.changed or network_changes_eth1_st.changed
+
+- name: Wait 300 seconds for port 22 to become open and contain "OpenSSH"
+  wait_for:
+    port: 22
+    host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
+    search_regex: OpenSSH
+    delay: 10
+  vars:
+    ansible_connection: local
+  when: network_changes_eth0.changed or network_changes_eth1.changed or network_changes_eth0_st.changed or network_changes_eth1_st.changed

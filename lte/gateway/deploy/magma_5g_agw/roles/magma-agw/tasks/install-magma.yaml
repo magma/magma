@@ -1,0 +1,176 @@
+---
+- name: Update ca-certs
+  become: true
+  apt:
+    name: ca-certificates
+    update_cache: true
+
+- name: Forbid usage of expired Let's Encrypt CA cert
+  ignore_errors: true
+  become: true
+  lineinfile:
+    path: /etc/ca-certificates.conf
+    regexp: 'mozilla/DST_Root_CA_X3.crt'
+    line: '!mozilla/DST_Root_CA_X3.crt'
+
+- name: Trigger update of CA certs
+  ignore_errors: true
+  become: true
+  command: update-ca-certificates
+
+- name: Configuring private package manager.
+  copy:
+    content: >
+      deb {{ magma_pkgrepo_proto }}://{{ magma_pkgrepo_host }}{{ magma_pkgrepo_path }}
+      {{ magma_pkgrepo_dist }} {{ magma_pkgrepo_component }}
+    dest: /etc/apt/sources.list.d/{{ magma_pkgrepo_name }}.list
+  become: true
+
+- name: Configuring private package manager.
+  copy:
+    content: >
+      deb {{ magma_pkgrepo_proto }}://{{ magma_pkgrepo_host }}{{ magma_5gpkgrepo_path }}
+      {{ magma_5gpkgrepo_dist }} {{ magma_pkgrepo_component }}
+    dest: /etc/apt/sources.list.d/{{ magma_pkgrepo_name }}-5g.list
+  become: true
+  when: magma_5g_upgrade
+
+- name: Add unvalidated Apt signing key.
+  when: magma_pkgrepo_key_fingerprint == ""
+  become: true
+  block:
+    - name: Download key
+      apt_key:
+        url: "{{ magma_pkgrepo_key }}"
+        state: present
+        validate_certs: no
+    - name: Ignore server ssl cert
+      copy:
+        dest: /etc/apt/apt.conf.d/99insecurehttpsrepo
+        content: |
+          Acquire::https::{{ magma_pkgrepo_host }} {
+          Verify-Peer "false";
+          Verify-Host "false";
+          };
+
+- name: Add validated Apt signing key.
+  when: magma_pkgrepo_key_fingerprint != ""
+  become: true
+  apt_key:
+    url: "{{ magma_pkgrepo_key }}"
+    id: "{{ magma_pkgrepo_key_fingerprint }}"
+    state: present
+
+- name: Update and upgrade apt packages
+  become: true
+  apt:
+    update_cache: true
+
+- name: Install ifupdown dependency.
+  become: true
+  apt:
+    name: "{{ packages }}"
+    state: latest
+  vars:
+    packages:
+      - ifupdown
+
+- name: Install runtime dependencies.
+  become: true
+  apt:
+    name: "{{ packages }}"
+    only_upgrade: yes
+  vars:
+    packages:
+      - graphviz
+      - python-all
+      - module-assistant
+      - openssl
+      - dkms
+      - uuid-runtime
+      - ca-certificates
+
+- name: Preconfigure wireshark (tshark) SUID property
+  become: true
+  ignore_errors: true
+  shell: bash -c 'echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections'
+
+- name: Remove useless packages from the cache
+  apt:
+    autoclean: yes
+
+- name: Remove dependencies that are no longer required
+  apt:
+    autoremove: yes
+
+- name: Installing magma.
+  become: true
+  apt:
+    name: "{{ packages }}"
+    dpkg_options: 'force-confold,force-confdef,force-overwrite'
+    update_cache: yes
+  vars:
+    packages:
+      - magma
+  when: magma5gVersion is not defined
+  register: upgradeto5g
+
+- name: Installing magma.
+  become: true
+  apt:
+    name: "{{ packages }}"
+    dpkg_options: 'force-confold,force-confdef,force-overwrite'
+    update_cache: yes
+    allow_downgrade: yes
+  vars:
+    packages:
+      - magma={{ magma5gVersion}}
+  when: magma5gVersion is defined
+  register: upgradeto5g 
+
+- name: Create interfaces.d if it does not exist
+  file:
+    path: /etc/network/interfaces.d
+    state: directory
+
+- name: Start service openvswitch-switch.
+  become: true
+  service:
+    name: openvswitch-switch
+    state: started
+
+# Ansible's service module doesn't support wildcards so we have to use shell
+- name: Stop all magma services.
+  become: true
+  command: service magma@* stop
+  retries: 3
+  delay: 10
+  register: stopMagma
+  until: stopMagma.rc == 0
+  when: upgradeto5g.changed
+
+- name: Bring up gtp_br0
+  shell: ifup gtp_br0
+  become: true
+
+- name: Bring up mtr0
+  shell: ifup mtr0
+  become: true
+
+- name: Bring up uplink_br0
+  shell: ifup uplink_br0
+  become: true
+
+- name: Bring up ipfix0
+  shell: ifup ipfix0
+  become: true
+
+- name: Bring up dhcp0
+  shell: ifup dhcp0
+  become: true
+
+- name: Start service magma@magmad.
+  become: true
+  service:
+    name: magma@magmad
+    state: started

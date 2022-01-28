@@ -1,0 +1,21 @@
+---
+- name: Create magma group
+  group:
+    name: magma
+    state: present
+
+- name: Add magma group to passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%magma'
+    line: '%magma ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
+- name: Add magma user to wheel group
+  user:
+    name=magma
+    groups=magma
+    append=yes
+    state=present
+    createhome=yes

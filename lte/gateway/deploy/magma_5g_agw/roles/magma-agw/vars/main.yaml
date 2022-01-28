@@ -1,0 +1,45 @@
+---
+defaultPassword: magma
+INTERFACE_DIR: "/etc/network/interfaces.d"
+nameservers:
+  - "nameserver 8.8.8.8"
+  - "nameserver 8.8.4.4"
+  - "nameserver 172.16.4.4"
+configure_dhcp: false
+eth0: ""
+eth1: ""
+eth0_netmask: "255.255.255.0"
+eth1_netmask: "255.255.255.0"
+eth0_gateway: "192.48.0.1"
+eth1_gateway: "192.48.0.1"
+
+pkgGateway:
+  - sudo
+  - curl
+  - make
+  - zip
+  - rsync
+  - virtualenv
+  - git
+  - software-properties-common
+  - python3-pip
+  - python-dev
+  - dnsutils
+  - ifupdown
+  - resolvconf
+  - net-tools
+
+magma_pkgrepo_proto: https
+magma_pkgrepo_host: artifactory.magmacore.org/artifactory/debian
+magma_pkgrepo_path: ""
+magma_pkgrepo_dist: "focal-1.6.0"
+magma_pkgrepo_component: main
+magma_pkgrepo_name: "magma"
+magma_5g_upgrade: true
+magma_5gpkgrepo_path: "-test"
+magma_5gpkgrepo_dist: focal-ci
+magma_pkgrepo_key: "https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public"
+magma_pkgrepo_key_fingerprint: ""
+magma_use_pkgrepo: yes
+magma_control_proxy_path: "roles/magma-agw/files/control_proxy.yaml"
+magma_rootCA_path: "roles/magma-agw/files/rootCA.pem"
