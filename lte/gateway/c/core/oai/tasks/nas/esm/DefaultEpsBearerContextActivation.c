@@ -495,7 +495,7 @@ status_code_e default_eps_bearer_activate_t3485_handler(
   mme_ue_s1ap_id_t ue_id = timer_args.ue_id;
 
   ue_mm_context_t* ue_mm_context = mme_app_get_ue_context_for_timer(
-      ue_id, "EPS BEARER DEACTIVATE T3495 Timer");
+      ue_id, "EPS BEARER ACTIVATE T3485 Timer");
   if (ue_mm_context == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -631,8 +631,8 @@ static int default_eps_bearer_activate(
     if (rc != RETURNerror) {
       OAILOG_DEBUG_UE(
           LOG_NAS_ESM, emm_context->_imsi64,
-          "ESM-PROC  - Started t3485 for ue_id=" MME_UE_S1AP_ID_FMT "\n",
-          ue_id);
+          "ESM-PROC  - Started t3485 for ebi:%d ue_id=" MME_UE_S1AP_ID_FMT "\n",
+          ebi, ue_id);
     }
   }
 

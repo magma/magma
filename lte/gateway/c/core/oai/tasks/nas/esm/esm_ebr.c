@@ -324,8 +324,9 @@ status_code_e esm_ebr_start_timer(
     OAILOG_INFO_UE(
         LOG_NAS_ESM, emm_context->_imsi64,
         "ESM-FSM   - Retransmission timer %ld expires in "
-        "%d milliseconds for ue id " MME_UE_S1AP_ID_FMT "\n",
-        ebr_ctx->timer.id, ebr_ctx->timer.msec, esm_ebr_timer_data->ue_id);
+        "%d milliseconds for ebi:%d ue id " MME_UE_S1AP_ID_FMT "\n",
+        ebr_ctx->timer.id, ebr_ctx->timer.msec, esm_ebr_timer_data->ebi,
+        esm_ebr_timer_data->ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
   } else {
     OAILOG_ERROR(

@@ -95,6 +95,7 @@
 #include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 #include "lte/gateway/c/core/oai/include/s1ap_state.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
 
 struct S1ap_E_RABItem_s;
 struct S1ap_E_RABSetupItemBearerSURes_s;
@@ -105,6 +106,7 @@ status_code_e s1ap_generate_s1_setup_response(
     s1ap_state_t* state, enb_description_t* enb_association);
 
 bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container);
+static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int id, void* arg);
 
 /* Handlers matrix. Only mme related procedures present here.
  */
@@ -1363,6 +1365,16 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
   bstring b = blk2bstr(buffer, length);
   free(buffer);
   rc = s1ap_mme_itti_send_sctp_request(&b, assoc_id, stream, mme_ue_s1ap_id);
+
+  if (rc == RETURNok) {
+    // Start timer to track UE context release complete from eNB
+    ue_ref_p->s1ap_ue_context_rel_timer.id = s1ap_start_timer(
+        ue_ref_p->s1ap_ue_context_rel_timer.msec, TIMER_REPEAT_ONCE,
+        handle_ue_context_rel_timer_expiry, mme_ue_s1ap_id);
+  } else {
+    // Remove UE context and inform MME_APP.
+    s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
+  }
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
 
@@ -1614,7 +1626,7 @@ status_code_e s1ap_mme_handle_ue_context_release_complete(
           &imsi64);
 
       ue_ref_p->s1_ue_state = S1AP_UE_WAITING_CRR;
-      // We can safely remove UE context now, no need for timer
+      // We can safely remove UE context now and stop timer
       s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
 
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
@@ -3853,7 +3865,9 @@ void s1ap_mme_release_ue_context(
   if (ue_ref_p == NULL) {
     OAILOG_ERROR(LOG_S1AP, "ue_ref_p is NULL\n");
   }
-
+  // Stop the ue context release timer
+  s1ap_stop_timer(ue_ref_p->s1ap_ue_context_rel_timer.id);
+  ue_ref_p->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
   OAILOG_DEBUG_UE(
       LOG_S1AP, imsi64, "Releasing UE Context for UE id  %d \n",
       ue_ref_p->mme_ue_s1ap_id);
@@ -5409,4 +5423,41 @@ status_code_e s1ap_send_mme_ue_context_release(
 
   message_p->ittiMsgHeader.imsi = imsi64;
   return send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
+}
+//------------------------------------------------------------------------------
+static int handle_ue_context_rel_timer_expiry(
+    zloop_t* loop, int timer_id, void* arg) {
+  OAILOG_FUNC_IN(LOG_S1AP);
+  ue_description_t* ue_ref_p             = NULL;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id        = 0;
+  imsi64_t imsi64                        = INVALID_IMSI64;
+  s1ap_state_t* state                    = NULL;
+  if (!s1ap_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+    OAILOG_WARNING(
+        LOG_S1AP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
+    OAILOG_ERROR(
+        LOG_S1AP,
+        "Failed to find UE context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+        mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  state                                  = get_s1ap_state(false);
+  ue_ref_p->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
+  s1ap_imsi_map_t* imsi_map              = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(
+      imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
+      &imsi64);
+
+  OAILOG_DEBUG_UE(
+      LOG_S1AP, imsi64,
+      "Expired- UE Context Release Timer for "
+      "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+      ue_ref_p->mme_ue_s1ap_id);
+  // Remove UE context and inform MME_APP.
+  s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
+  OAILOG_FUNC_OUT(LOG_S1AP);
 }
