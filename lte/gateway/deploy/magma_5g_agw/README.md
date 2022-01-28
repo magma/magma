@@ -4,7 +4,30 @@
 
 To setup a Magma Access Gateway, you will need a machine that satisfies the following requirements:
 
-**AGW\_HOST**: 64bit-X86 machine, bare metal or virtual machine. You will need two ethernet ports. One port is for the SGi interface (default: enp1s0) and one for the S1 interface (default: enp2s0). Note that the Ansible scripts will rename the `enp1s0` interface to `eth0` and the enp2s0 to eth1
+**AGW\_HOST**: 64bit-X86 machine, bare metal or virtual machine installed Ubuntu Server 20.04 LTS. You will need two ethernet ports. One port is for the SGi interface (default: enp1s0) and one for the S1 interface (default: enp2s0). Note that the Ansible scripts will rename the `enp1s0` interface to `eth0` and the enp2s0 to eth1. Below specified hardware specification is the minimum for AGW installation. 
+
+Physical: 
+
+| Description |  Resources |
+| -------- | ----------- |
+| Platform | Bare Metal |
+|CPU | Intel(R) i3 7100u |
+| NIC | 2X 1G ethernet interfaces |
+| RAM | Minimum 4GB RAM preferably 8GB DDR3 1066Mhz |
+| Storage | Minimum 32GB SSD preferably 128GB-256GB SSD |
+| Operating System | Ubuntu Focal 20.04 (LTS) |
+
+Virtual:
+
+| Description |  Resources |
+| -------- | ----------- |
+| Platform | Private Cloud/DC |
+|CPU | 4X vCPU / AMD64 dual-core processor around 2GHz clock speed or faster  |
+| NIC | 2X 1G ethernet interfaces |
+| RAM | Minimum 4GB RAM preferably 8GB DDR3 1066Mhz |
+| Storage | Minimum 32GB SSD preferably 128GB-256GB SSD |
+| Operating System | Ubuntu Focal 20.04 (LTS) |
+
 
 To deploy AGW on the above machine you need a workstation. 
 
