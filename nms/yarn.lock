@@ -1335,7 +1335,7 @@
     core-js-pure "^3.0.0"
     regenerator-runtime "^0.13.4"
 
-"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.10.2", "@babel/runtime@^7.10.3", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.5", "@babel/runtime@^7.14.0", "@babel/runtime@^7.3.1", "@babel/runtime@^7.4.0", "@babel/runtime@^7.4.4", "@babel/runtime@^7.5.5", "@babel/runtime@^7.6.0", "@babel/runtime@^7.6.3", "@babel/runtime@^7.7.2", "@babel/runtime@^7.8.3", "@babel/runtime@^7.8.4", "@babel/runtime@^7.8.7", "@babel/runtime@^7.9.2":
+"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.10.2", "@babel/runtime@^7.10.3", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.5", "@babel/runtime@^7.14.0", "@babel/runtime@^7.3.1", "@babel/runtime@^7.3.4", "@babel/runtime@^7.4.0", "@babel/runtime@^7.4.4", "@babel/runtime@^7.5.5", "@babel/runtime@^7.6.0", "@babel/runtime@^7.6.3", "@babel/runtime@^7.7.2", "@babel/runtime@^7.8.3", "@babel/runtime@^7.8.4", "@babel/runtime@^7.8.7", "@babel/runtime@^7.9.2":
   version "7.14.0"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.14.0.tgz#46794bc20b612c5f75e62dd071e24dfd95f1cbe6"
   integrity sha512-JELkvo/DlpNdJ7dlyw/eY7E0suy5i5GQH+Vlxaq1nsNJ+H7f4Vtv3jMeCEgRhZZQFXTjldYfQgv2qmM6M1v5wA==
@@ -1613,21 +1613,6 @@
     passport-local "^1.0.0"
     passport-saml "^1.0.0"
 
-"@fbcnms/auth@^0.1.3":
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/@fbcnms/auth/-/auth-0.1.4.tgz#21d50e058bdf4a1af0d46a2398139478292b837f"
-  integrity sha512-zyNAwWzM+PWtzDgMaT4k6CI9NdhMs1Y8ouyrSB2XLj7q4huYuWhLrYFjdIrTxk7p2XxCXCpxGXuFexr3zebE5w==
-  dependencies:
-    "@fbcnms/sequelize-models" "^0.1.11"
-    "@fbcnms/webpack-config" "^0.1.0"
-    email-validator "^2.0.4"
-    openid-client "2.4.5"
-    passport "^0.4.0"
-    passport-http "^0.3.0"
-    passport-http-bearer "^1.0.1"
-    passport-local "^1.0.0"
-    passport-saml "^1.0.0"
-
 "@fbcnms/babel-register@^0.1.0", "@fbcnms/babel-register@^0.1.2":
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/@fbcnms/babel-register/-/babel-register-0.1.2.tgz#fcc88f563d188af91238981dba2440a146729393"
@@ -1658,20 +1643,20 @@
     morgan "^1.9.1"
     winston "^3.0.0"
 
-"@fbcnms/platform-server@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@fbcnms/platform-server/-/platform-server-0.2.1.tgz#0f8160aec55cb00003e5a636c6dcd78012b8dfb2"
-  integrity sha512-5inBQMy5dlN3fQKVdxc64QbMrzomYUoExZCrr91bu9qvwxIT/fuX9VXVA8KiS+aN/wkXN65Kq1vjVzr/r7vYJQ==
+"@fbcnms/platform-server@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@fbcnms/platform-server/-/platform-server-0.2.0.tgz#994b4e884af6578487255e0c14aaa607c73c2eeb"
+  integrity sha512-xHmHVWIhEAAl2/LcluAkXgDmV3NSkHNfIdTRdWH7WLaY4DPgkIc/KGb0O7ysBBPrlVEPMtrYiN5VREzfD2EI/A==
   dependencies:
-    "@fbcnms/auth" "^0.1.3"
+    "@fbcnms/auth" "^0.1.0"
     "@fbcnms/babel-register" "^0.1.0"
     "@fbcnms/express-middleware" "^0.1.5"
     "@fbcnms/logging" "^0.1.0"
-    "@fbcnms/sequelize-models" "^0.1.11"
+    "@fbcnms/sequelize-models" "^0.1.9"
     "@fbcnms/types" "^0.1.10"
     "@fbcnms/util" "^0.1.0"
     add "^2.0.6"
-    axios "^0.21.2"
+    axios "^0.21.1"
     bcryptjs "^2.4.3"
     connect-session-sequelize "^6.0.0"
     express "^4.16.3"
@@ -1701,18 +1686,6 @@
   version "0.1.10"
   resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.10.tgz#f2207602361aeb0edd1e61872a116d1e82e0fcc4"
   integrity sha512-msnqzWmcZ0FzmcxX+6MQiaO0XIMMHTRWZEJLHqPeT/A9LThrx3y4IcZSGfL+7Io250lfY/m00rmN/AaSAP6X6A==
-  dependencies:
-    "@fbcnms/babel-register" "^0.1.0"
-    inquirer "^8.0.0"
-    mariadb "^2.4.2"
-    minimist "^1.2.5"
-    pg "^8.6.0"
-    sequelize "^5.8.5"
-
-"@fbcnms/sequelize-models@^0.1.11":
-  version "0.1.11"
-  resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.11.tgz#cdaff770ae08075593d269d5e215c304a88d20e7"
-  integrity sha512-Hipcb1DhO+pIWMrfZwxpPHOlWRkfGpABKOINhnKbyAOzXMkfmSOm4iSD52GN+mKtqzFEhzUNoHdAyyrP/bBlIw==
   dependencies:
     "@fbcnms/babel-register" "^0.1.0"
     inquirer "^8.0.0"
