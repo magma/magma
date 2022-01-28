@@ -1,3 +1,4 @@
+---
 - name: Install Fluentd
   kubernetes.core.helm:
     name: fluentd

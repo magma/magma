@@ -1,3 +1,4 @@
+---
 - name: Get EC2 instance local IP
   when: deploy_on_aws
   uri:

@@ -1,3 +1,4 @@
+---
 - name: Generate an OpenSSH keypair
   openssh_keypair:
     path: /home/{{ ansible_user }}/{{ magma_directory }}/.ssh/id_rsa

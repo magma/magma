@@ -1,3 +1,4 @@
+---
 - name: Create SSH directory
   file:
     path: /home/{{ ansible_user }}/{{ magma_directory }}/.ssh

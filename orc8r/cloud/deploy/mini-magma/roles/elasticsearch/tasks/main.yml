@@ -1,3 +1,4 @@
+---
 - name: Install Elasticsearch
   kubernetes.core.helm:
     name: elasticsearch

@@ -1,3 +1,4 @@
+---
 - name: Copy generate secrets script to {{ ansible_user }} machine
   template:
     src: generate-certs.sh.j2

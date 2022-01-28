@@ -1,3 +1,4 @@
+---
 rke_docker_image: "rancher/hyperkube:v1.22.5-rancher1"
 magma_directory: "magma-galaxy"
 magma_namespace: "orc8r"

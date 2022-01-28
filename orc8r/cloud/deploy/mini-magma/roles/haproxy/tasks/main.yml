@@ -1,3 +1,4 @@
+---
 - name: Install HAProxy
   kubernetes.core.helm:
     name: haproxy

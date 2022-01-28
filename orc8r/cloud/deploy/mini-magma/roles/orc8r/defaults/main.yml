@@ -1,3 +1,4 @@
+---
 orc8r_domain: ""
 magma_namespace: "orc8r"
 magma_docker_registry: "magmacore"

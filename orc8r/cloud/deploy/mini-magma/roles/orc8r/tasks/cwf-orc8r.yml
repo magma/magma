@@ -1,3 +1,4 @@
+---
 - name: Install CWF Orc8r
   kubernetes.core.helm:
     name: cwf-orc8r

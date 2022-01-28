@@ -1,3 +1,4 @@
+---
 magma_namespace: "orc8r"
 postgresql_password: "postgres"
 postgresql_database: "magma"

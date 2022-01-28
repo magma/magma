@@ -1,3 +1,4 @@
+---
 - name: Add Stable Helm repository
   kubernetes.core.helm_repository:
     name: stable

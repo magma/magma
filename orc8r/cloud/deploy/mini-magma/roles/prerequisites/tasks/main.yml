@@ -1,3 +1,4 @@
+---
 - include_tasks: create-directories.yml
 - include_tasks: setup-ssh-key.yml
 - include_tasks: install-packages.yml

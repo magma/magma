@@ -1,3 +1,4 @@
+---
 - name: Install LTE Orc8r
   kubernetes.core.helm:
     name: lte-orc8r

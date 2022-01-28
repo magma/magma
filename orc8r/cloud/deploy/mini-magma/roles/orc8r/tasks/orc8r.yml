@@ -1,3 +1,4 @@
+---
 - name: Install Orc8r
   kubernetes.core.helm:
     name: orc8r

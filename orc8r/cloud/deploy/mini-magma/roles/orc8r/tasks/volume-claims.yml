@@ -1,3 +1,4 @@
+---
 - name: Create Volume Claim for Grafana Dashboard
   kubernetes.core.k8s:
     namespace: "{{ magma_namespace }}"

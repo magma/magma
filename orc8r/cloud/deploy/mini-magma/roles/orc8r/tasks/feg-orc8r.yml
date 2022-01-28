@@ -1,3 +1,4 @@
+---
 - name: Install FEG Orc8r
   kubernetes.core.helm:
     name: feg-orc8r

@@ -1,3 +1,4 @@
+---
 - name: Download rke binary for linux
   become: yes
   get_url:

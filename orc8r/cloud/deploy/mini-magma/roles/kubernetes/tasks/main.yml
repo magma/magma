@@ -1,3 +1,4 @@
+---
 - name: Copy rke config file to {{ ansible_user }} machine
   template:
     src: cluster.yml.j2

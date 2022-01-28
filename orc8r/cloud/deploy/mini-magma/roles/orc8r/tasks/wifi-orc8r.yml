@@ -1,3 +1,4 @@
+---
 - name: Install WIFI Orc8r
   when: deploy_wifi_orc8r
   kubernetes.core.helm:

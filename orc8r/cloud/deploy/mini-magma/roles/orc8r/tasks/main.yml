@@ -1,3 +1,4 @@
+---
 - include_tasks: generate-certs.yml
 - include_tasks: register-secrets.yml
 - include_tasks: volume-claims.yml
