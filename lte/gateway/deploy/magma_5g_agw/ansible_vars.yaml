@@ -10,8 +10,10 @@ configure_dhcp: true
 # eth0_gateway: ""
 # eth1_gateway: ""
 
-# If you want any specific version to be installed then uncomment the below and specify the version
-# magma5gVersion: ""
-
 magma_control_proxy_path: "/home/ubuntu/agw-deployment/ansible/roles/magma-agw/files/control_proxy.yaml"
 magma_rootCA_path: "/home/ubuntu/agw-deployment/ansible/roles/magma-agw/files/rootCA.pem"
+
+magma_5g_upgrade: true
+# If you want any specific version to be installed then uncomment the below and specify the version
+# magma5gVersion: ""
+magma_pkgrepo_dist: "focal-1.6.1"

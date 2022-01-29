@@ -1,4 +1,4 @@
-# 5G AGW installation
+# AGW installation
 
 ## Prerequisites
 
@@ -64,6 +64,23 @@ Change line # 8 to add the correct path to your private key
 If you want to overwrite any default attribute value then modify the file `ansible_vars.yaml`
 ```
 vi ansible_vars.yaml
+```
+#### To install 4G version of the AGW 
+If you want to install 1.6.0 or 1.6.1 version of AGW you need to modify the below attribute in the `ansible_vars.yaml`
+
+```
+magma_5g_upgrade = false
+# For 1.6.1 change the value below to focal-1.6.1 else for 1.6.0 it should be focal-1.6.0
+magma_pkgrepo_dist: "focal-1.6.0"
+```
+
+#### To install 5G version of the AGW
+If you want to install 1.7.0 version of AGW you need to  modify the below attribute in the `ansible_vars.yaml`
+
+```
+magma_5g_upgrade = true
+# Please specify the version number below to install any specific version of 1.7.0
+magma5gVersion = ""
 ```
 
 ### Now we are all set to do the deployment by executing the below command:
