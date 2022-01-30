@@ -180,6 +180,9 @@ class QosManager(object):
         """
         Takese in datapath, and initializes appropriate QoS manager based on config
         """
+        if self._initialized:
+            return
+
         try:
             impl_type = QosImplType(self._config["qos"]["impl"])
 
@@ -187,16 +190,10 @@ class QosManager(object):
                 self.impl = MeterManager(datapath, self._loop, self._config)
             else:
                 self.impl = TCManager(datapath, self._loop, self._config)
-                self.setup()
+            self.setup()
         except ValueError:
             LOG.error("%s is not a valid qos impl type", impl_type)
             raise
-
-    def _is_impl_initialized(self):
-        if not self.impl:
-            LOG.error("QoS Manager Implementation not initialized.")
-            return False
-        return True
 
     @classmethod
     def debug(cls, _, __, ___):
@@ -391,7 +388,7 @@ class QosManager(object):
             cleanup_rule=None,
     ):
         with QosManager.lock:
-            if not self._qos_enabled or not self._initialized or self._is_impl_initialized():
+            if not self._qos_enabled or not self._initialized:
                 LOG.debug("add_subscriber_qos: not enabled or initialized")
                 return None, None, None
 
@@ -494,7 +491,7 @@ class QosManager(object):
 
     def remove_subscriber_qos(self, imsi: str = "", del_rule_num: int = -1):
         with QosManager.lock:
-            if not self._qos_enabled or not self._initialized or not self._is_impl_initialized():
+            if not self._qos_enabled or not self._initialized:
                 LOG.debug("remove_subscriber_qos: not enabled or initialized")
                 return
 
