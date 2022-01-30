@@ -1279,7 +1279,9 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
         amf_ctx->m5_guti.guamfi.plmn.mnc_digit3;
     ngap_paging_notify->TAIListForPaging.no_of_items     = 1;
     ngap_paging_notify->TAIListForPaging.tai_list[0].tac = 2;
-
+    paging_ctx->m5_paging_response_timer.id              = amf_app_start_timer(
+        PAGING_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE, paging_t3513_handler,
+        ue_context->amf_ue_ngap_id);
     OAILOG_INFO(LOG_AMF_APP, "T3513: sending downlink message to NGAP");
     rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
     if (rc != RETURNok)
