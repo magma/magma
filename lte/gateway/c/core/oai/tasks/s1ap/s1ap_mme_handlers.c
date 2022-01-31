@@ -1368,6 +1368,7 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
 
   if (rc == RETURNok) {
     // Start timer to track UE context release complete from eNB
+    ue_ref_p->s1_ue_state                  = S1AP_UE_WAITING_CRR;
     ue_ref_p->s1ap_ue_context_rel_timer.id = s1ap_start_timer(
         ue_ref_p->s1ap_ue_context_rel_timer.msec, TIMER_REPEAT_ONCE,
         handle_ue_context_rel_timer_expiry, mme_ue_s1ap_id);
