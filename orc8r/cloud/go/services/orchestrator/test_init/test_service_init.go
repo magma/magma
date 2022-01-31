@@ -38,7 +38,14 @@ func (srv *testStreamerServer) GetUpdates(req *protos.StreamRequest, stream prot
 }
 
 func StartTestService(t *testing.T) {
-	StartTestServiceInternal(t, servicers.NewBuilderServicer(), indexer_servicers.NewIndexerServicer(), servicers.NewProviderServicer())
+	orc8rVersion := "0.0.1"
+	StartTestServiceInternal(t, servicers.NewBuilderServicerWithOrc8rVersion(&orc8rVersion),
+		indexer_servicers.NewIndexerServicer(), servicers.NewProviderServicer())
+}
+
+func StartTestServiceWithNoOcr8Version(t *testing.T) {
+	StartTestServiceInternal(t, servicers.NewBuilderServicer(), indexer_servicers.NewIndexerServicer(),
+		servicers.NewProviderServicer())
 }
 
 func StartTestServiceInternal(

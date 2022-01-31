@@ -36,37 +36,42 @@ import (
 	mconfig_protos "magma/orc8r/lib/go/protos/mconfig"
 )
 
-var localBuilders = []mconfig.Builder{
-	&baseOrchestratorBuilder{},
+type builderServicer struct {
+	orc8Version string
 }
 
-type builderServicer struct{}
-
-func NewBuilderServicer() builder_protos.MconfigBuilderServer {
-	return &builderServicer{}
+func NewBuilderServicer(orc8rVersion *string) builder_protos.MconfigBuilderServer {
+	if orc8rVersion == nil {
+		orc8rVersion, res := os.LookupEnv("VERSION_TAG")
+		if !res {
+			glog.Error("Couldn't get value for VERSION_TAG Env variable.")
+		}
+		return &builderServicer{orc8rVersion}
+	}
+	return &builderServicer{*orc8rVersion}
 }
 
 func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
 	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string][]byte{}}
 
-	for _, b := range localBuilders {
-		partialConfig, err := b.Build(request.Network, request.Graph, request.GatewayId)
-		if err != nil {
-			return nil, errors.Wrapf(err, "sub-builder %+v error", b)
+	config, err := (&baseOrchestratorBuilder{s.orc8Version}).Build(request.Network, request.Graph, request.GatewayId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "builder error")
+	}
+	for key, configToRet := range config {
+		_, ok := ret.ConfigsByKey[key]
+		if ok {
+			return nil, fmt.Errorf("builder received duplicate config for key: %v", key)
 		}
-		for key, config := range partialConfig {
-			_, ok := ret.ConfigsByKey[key]
-			if ok {
-				return nil, fmt.Errorf("builder received partial config for key %v from multiple sub-builders", key)
-			}
-			ret.ConfigsByKey[key] = config
-		}
+		ret.ConfigsByKey[key] = configToRet
 	}
 
 	return ret, nil
 }
 
-type baseOrchestratorBuilder struct{}
+type baseOrchestratorBuilder struct {
+	orc8Version string
+}
 
 func (b *baseOrchestratorBuilder) Build(network *storage.Network, graph *storage.EntityGraph, gatewayID string) (mconfig.ConfigsByKey, error) {
 	networkID := network.ID
@@ -92,7 +97,7 @@ func (b *baseOrchestratorBuilder) Build(network *storage.Network, graph *storage
 	vals := map[string]proto.Message{}
 	if gateway.Config != nil {
 		gatewayConfig := gateway.Config.(*models.MagmadGatewayConfigs)
-		vals["magmad"], err = getMagmadMconfig(&gateway, &nativeGraph, gatewayConfig)
+		vals["magmad"], err = getMagmadMconfig(&gateway, &nativeGraph, gatewayConfig, b.orc8Version)
 		if err != nil {
 			return nil, err
 		}
@@ -115,7 +120,7 @@ func (b *baseOrchestratorBuilder) Build(network *storage.Network, graph *storage
 
 func getMagmadMconfig(
 	gateway *configurator.NetworkEntity, graph *configurator.EntityGraph, gatewayConfig *models.MagmadGatewayConfigs,
-) (*mconfig_protos.MagmaD, error) {
+	orc8Version string) (*mconfig_protos.MagmaD, error) {
 	version, images, err := getPackageVersionAndImages(gateway, graph)
 	if err != nil {
 		return nil, err
@@ -131,13 +136,9 @@ func getMagmadMconfig(
 		Images:                  images,
 		DynamicServices:         gatewayConfig.DynamicServices,
 		FeatureFlags:            gatewayConfig.FeatureFlags,
+		Orc8RVersion:            orc8Version,
 	}
-	orc8rVersion, res := os.LookupEnv("VERSION_TAG")
-	if !res {
-		glog.Error("Couldn't get value for VERSION_TAG Env variable.")
-	} else {
-		ret.Orc8RVersion = orc8rVersion
-	}
+
 	return ret, nil
 }
 
