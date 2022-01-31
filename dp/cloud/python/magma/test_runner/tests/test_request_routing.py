@@ -13,6 +13,7 @@ limitations under the License.
 
 from concurrent.futures import ThreadPoolExecutor
 
+import pytest
 import requests
 from magma.db_service.db_initialize import DBInitializer
 from magma.db_service.session_manager import SessionManager
@@ -39,6 +40,7 @@ incorrect_request_payload = {"incorrect": ["payload"]}
 config = TestConfig()
 
 
+@pytest.mark.local
 class RequestRoutingTestCase(DBTestCase):
     def setUp(self):
         super().setUp()
