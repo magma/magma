@@ -29,11 +29,6 @@ from lte.protos.session_manager_pb2 import (
     SMSessionFSMState,
     SscMode,
     TeidSet,
-    QosInformationRequest,
-)
-from lte.protos.policydb_pb2 import (
-    FlowQos,
-    QosArp,
 )
 from lte.protos.session_manager_pb2_grpc import AmfPduSessionSmContextStub
 from lte.protos.subscriberdb_pb2 import SubscriberID
