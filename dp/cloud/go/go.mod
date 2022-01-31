@@ -27,8 +27,9 @@ require (
 	github.com/go-openapi/strfmt v0.21.1
 	github.com/go-openapi/swag v0.19.15
 	github.com/go-openapi/validate v0.20.3
-	github.com/golang/glog v1.0.0 // indirect
+	github.com/golang/glog v1.0.0
 	github.com/golang/protobuf v1.5.0
+	github.com/labstack/echo v3.3.10+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
 	google.golang.org/grpc v1.42.0
