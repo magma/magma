@@ -12,25 +12,12 @@ limitations under the License.
 */
 syntax = "proto3";
 
-option go_package = "magma/dp/cloud/go/active_mode_controller/protos/requests";
+import "google/protobuf/wrappers.proto";
 
-message RequestPayload {
-  string payload = 1;
-}
+package magma.dp;
+option go_package = "magma/dp/cloud/go/protos";
 
-message RequestDbIds {
-  repeated int64 ids = 1;
-}
-
-message RequestDbId {
-  int64 id = 1;
-}
-
-message ResponsePayload {
-  string payload = 1;
-}
-
-service RadioController {
-  rpc UploadRequests (RequestPayload) returns (RequestDbIds);
-  rpc GetResponse (RequestDbId) returns (ResponsePayload);
+message Pagination {
+  google.protobuf.Int64Value limit = 1;
+  google.protobuf.Int64Value offset = 2;
 }
