@@ -107,6 +107,8 @@ def main() -> None:
         _run(['build', 'test'])
         _run(['run', '--rm'] + _get_test_result_vol() + ['test', 'make test'])
         _down(args)
+    elif args.build_service:
+        _run(['build', args.build_service])
     else:
         d_args = _get_default_file_args(args) + _get_default_build_args(args)
         _run(d_args)
@@ -351,6 +353,10 @@ def _parse_args() -> argparse.Namespace:
         action='store',
         default='all',
         help='Build deployment type: %s' % ','.join(DEPLOYMENTS),
+    )
+    parser.add_argument(
+        '--build-service','-b',
+        help='Build particular service'
     )
 
     # How to do it

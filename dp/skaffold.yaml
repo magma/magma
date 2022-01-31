@@ -9,7 +9,7 @@ build:
   local:
     push: false
     useBuildkit: true
-    concurrency: 0
+    concurrency: 1
   artifacts:
     - image: active-mode-controller
       context: ..
@@ -35,6 +35,7 @@ build:
       context: tools/fake_sas
       docker:
         dockerfile: Dockerfile
+
 deploy:
   kubeContext: minikube
   helm:
@@ -44,6 +45,8 @@ deploy:
             command: ["kubectl", "apply", "-f", "./tools/deployment/vendor/postgresql.yml"]
         - host:
             command: ["kubectl", "rollout", "status", "--watch", "--timeout=600s", "statefulset/postgres-database"]
+        - host:
+            command: ["tools/skaffold_hooks/hooks.sh", "create_secrets"]
     releases:
       - name: domain-proxy
         createNamespace: true
@@ -70,7 +73,7 @@ deploy:
     manifests:
       - "./tools/deployment/vendor/fake_sas.yml"
 profiles:
-  - name: integration-tests
+  - name: integration-tests-no-orc8
     patches:
       - op: add
         path: /build/artifacts/-
@@ -103,10 +106,20 @@ profiles:
           apply:
             - "--force=true"
       - op: add
-        path: /deploy/kubectl/manifests/-
-        value: "./tools/deployment/tests/test_runner_*.yml"
+        path: /deploy/kubectl/manifests/1
+        value: "./tools/deployment/tests/test_runner_deployment.yml"
     activation:
       - env: CI=true
+  - name: integration-tests-orc8r-only
+    patches:
+      - op: replace
+        path: /deploy/kubectl/manifests/1
+        value: "./tools/deployment/tests/test_runner_deployment_orc8r.yml"
+  - name: integration-tests-all
+    patches:
+      - op: replace
+        path: /deploy/kubectl/manifests/1
+        value: "./tools/deployment/tests/test_runner_*.yml"
 
   - name: remote
     deploy:
@@ -132,3 +145,106 @@ profiles:
       - op: replace
         path: /deploy/helm/releases/0/valuesFiles/0
         value: ./cloud/helm/dp/charts/domain-proxy/examples/minikube_values_nginx.yaml
+
+  - name: orc8r-deployment
+    patches:
+      - op: add
+        path: /build/artifacts/-
+        value:
+          image: controller
+          custom:
+            buildCommand: "tools/skaffold_hooks/hooks.sh build_controller"
+            dependencies:
+              paths:
+                - "../dp/**"
+                - "../lte/*"
+                - "../orc8r/*"
+              ignore:
+                - "../dp/skaffold.yaml"
+                - "../dp/tools/**"
+                - "../dp/Makefile"
+                - "../dp/cloud/helm/**"
+                - "../lte/cloud/helm/lte-orc8r/charts/**"
+                - "../orc8r/cloud/helm/orc8r/charts/**"
+                - "../**/*.swp"
+      - op: add
+        path: /build/artifacts/-
+        value:
+          image: orcnginx
+          custom:
+            buildCommand: "tools/skaffold_hooks/hooks.sh build_nginx"
+            dependencies:
+              paths:
+                - "../dp/**"
+                - "../lte/*"
+                - "../orc8r/*"
+              ignore:
+                - "../dp/skaffold.yaml"
+                - "../dp/Makefile"
+                - "../dp/tools/**"
+                - "../dp/cloud/helm/**"
+                - "../lte/cloud/helm/lte-orc8r/charts/**"
+                - "../orc8r/cloud/helm/orc8r/charts/**"
+                - "../**/*.swp"
+      - op: add
+        path: /build/artifacts/-
+        value:
+          image: magmalte
+          custom:
+            buildCommand: "tools/skaffold_hooks/hooks.sh build_magmalte"
+            dependencies:
+              paths:
+                - "../lte/*"
+                - "../orc8r/*"
+              ignore:
+                - "../dp/skaffold.yaml"
+                - "../dp/Makefile"
+                - "../dp/tools/**"
+                - "../dp/cloud/helm/**"
+                - "../lte/cloud/helm/lte-orc8r/charts/**"
+                - "../orc8r/cloud/helm/orc8r/charts/**"
+                - "../**/*.swp"
+      - op: add
+        path: /deploy/helm/releases/-
+        value:
+          name: orc8r-lte
+          createNamespace: true
+          chartPath: ../lte/cloud/helm/lte-orc8r
+          valuesFiles:
+            - ./cloud/helm/dp/charts/domain-proxy/examples/orc8r_minikube_values.yaml
+          namespace: default
+          version: "0.2.5"
+          artifactOverrides:
+            magmalte:
+              image: magmalte
+          imageStrategy:
+            helm: {}
+      - op: add
+        path: /deploy/helm/releases/-
+        value:
+          name: orc8r
+          createNamespace: true
+          chartPath: ../orc8r/cloud/helm/orc8r
+          valuesFiles:
+            - ./cloud/helm/dp/charts/domain-proxy/examples/orc8r_minikube_values.yaml
+          namespace: default
+          version: "1.5.23"
+          artifactOverrides:
+            nginx:
+              image: orcnginx
+            controller:
+              image: controller
+            nms:
+              magmalte:
+                image: magmalte
+          imageStrategy:
+            helm: {}
+      - op: add
+        path: /deploy/helm/hooks/after
+        value:
+          - container:
+              podName: orc8r-accessd*
+              command:
+                - "sh"
+                - "-c"
+                - "/var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator || exit 0"

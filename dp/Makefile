@@ -21,11 +21,20 @@ endif
 .PHONY: local
 local: init dev
 
+.PHONY: orc8r_integration_tests
+orc8r_integration_tests: init_orc8r dev_orc8r_integration_test
+
+.PHONY: orc8r
+orc8r: init_orc8r dev_orc8r
+
 .PHONY: remote
 remote: _remote_init dev
 
 .PHONY: init
 init: start_minikube _ci_init _contour_install
+
+.PHONY: init_orc8r
+init_orc8r: start_minikube_orc8r _ci_init _contour_install
 
 .PHONY: _remote_init
 _remote_init: _ci_init
@@ -41,9 +50,26 @@ endif
 start_minikube:
 	minikube start --addons=metrics-server
 
+.PHONY: start_minikube_orc8r
+start_minikube_orc8r:
+	minikube start --addons=metrics-server --memory='8g'
+	minikube ssh sudo ip link set docker0 promisc on
+
 .PHONY: clean
 clean:
 	minikube delete
+
+.PHONY: dev_orc8r
+dev_orc8r:
+	skaffold dev -p orc8r-deployment --trigger=manual
+
+.PHONY: dev_orc8r_integration_test
+dev_orc8r_integration_test:
+	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only --trigger=manual
+
+.PHONY: dev_integration_test
+dev_integration_test:
+	skaffold dev -p integration-tests-no-orc8 --trigger=manual
 
 .PHONY: dev
 dev:
@@ -130,16 +156,28 @@ _generate_harness_config:
 	kubectl create configmap harness-config \
 	--from-file=tools/deployment/vendor/sas.cfg;
 
-.PHONY: _ci_integration_tests
-_ci_integration_tests: _install_skaffold_ci _contour_install
+.PHONY: _ci_integration_tests_no_orc8r
+_ci_integration_tests_no_orc8r: _install_skaffold_ci _contour_install
 	kubectl delete --ignore-not-found=true job test-runner-job
-	skaffold run
+	skaffold run -p integration-tests-no-orc8
 	kubectl wait --for=condition=complete --timeout=10m job/test-runner-job & \
 	kubectl wait --for=condition=failed --timeout=10m job/test-runner-job & \
 	wait -n 1 2
 	kubectl logs -l type=integration-tests
 	@set -e;\
 	SUCCESS=$$(kubectl get jobs test-runner-job -o jsonpath='{.status.succeeded}');\
+	if [[ -z $$SUCCESS ]]; then SUCCESS=0; fi; \
+	if [[ $$SUCCESS != '1' ]]; then exit 1; fi
+
+.PHONY: _ci_integration_tests_orc8r
+_ci_integration_tests_orc8r: _install_skaffold_ci _contour_install
+	kubectl delete --ignore-not-found=true job test-runner-job-orc8r
+	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only
+	kubectl wait --for=condition=complete --timeout=10m job/test-runner-job-orc8r & \
+	kubectl wait --for=condition=failed --timeout=10m job/test-runner-job-orc8r & \
+	wait -n 1 2
+	@set -e;\
+	SUCCESS=$$(kubectl get jobs test-runner-job-orc8r -o jsonpath='{.status.succeeded}');\
 	if [[ -z $$SUCCESS ]]; then SUCCESS=0; fi; \
 	if [[ $$SUCCESS != '1' ]]; then exit 1; fi
 
