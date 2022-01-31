@@ -48,7 +48,7 @@ SetSMSessionContext create_sm_pdu_session_v4(
     uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
     const ambr_t& state_ambr, const eps_subscribed_qos_profile_t& qos_proile) {
   magma::lte::SetSMSessionContext req;
-  QosInformationRequest qos_info;
+  M5GQosInformationRequest qos_info;
 
   auto* req_common = req.mutable_common_context();
 
@@ -98,17 +98,17 @@ SetSMSessionContext create_sm_pdu_session_v4(
   req_rat_specific->set_procedure_trans_identity((const char*) (&(pti)));
 
   // qos_info
-  qos_info.set_qos_class_id(qos_proile.qci);
-  qos_info.set_priority_level(
-      qos_proile.allocation_retention_priority.priority_level);
-  qos_info.set_preemption_capability(
-      qos_proile.allocation_retention_priority.pre_emp_capability);
-  qos_info.set_preemption_vulnerability(
-      qos_proile.allocation_retention_priority.pre_emp_vulnerability);
+  qos_info.set_qos_class_id(static_cast<magma::lte::QCI>(qos_proile.qci));
+  qos_info.set_priority_level(static_cast<magma::lte::prem_capab>(
+      qos_proile.allocation_retention_priority.priority_level));
+  qos_info.set_preemption_capability(static_cast<magma::lte::prem_capab>(
+      qos_proile.allocation_retention_priority.pre_emp_capability));
+  qos_info.set_preemption_vulnerability(static_cast<magma::lte::prem_vuner>(
+      qos_proile.allocation_retention_priority.pre_emp_vulnerability));
   qos_info.set_apn_ambr_ul(state_ambr.br_ul);
   qos_info.set_apn_ambr_dl(state_ambr.br_dl);
   qos_info.set_br_unit(
-      static_cast<magma::lte::QosInformationRequest::BitrateUnitsAMBR>(
+      static_cast<magma::lte::M5GQosInformationRequest::BitrateUnitsAMBR>(
           state_ambr.br_unit));
 
   req_rat_specific->mutable_subscribed_qos()->CopyFrom(qos_info);
