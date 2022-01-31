@@ -47,6 +47,7 @@ from lte.protos.pipelined_pb2 import (
     VersionedPolicyID,
 )
 from lte.protos.session_manager_pb2 import RuleRecordTable
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.app.classifier import Classifier
 from magma.pipelined.app.dpi import DPIController
@@ -224,7 +225,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         try:
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
-            logging.error("ActivateFlows request processing timed out")
+            logging.error(
+                "ActivateFlows request processing timed out",
+                extra=EXCLUDE_FROM_ERROR_MONITORING,
+            )
             context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
             context.set_details('ActivateFlows processing timed out')
             deactivate_req = get_deactivate_req(request)
