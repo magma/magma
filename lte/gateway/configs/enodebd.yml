@@ -28,7 +28,7 @@ tr069:
 # connect enodebd with the domain proxy which is responsible for talking to
 # SAS.
 sas:
-  sas_enabled: True
+  dp_mode: True
   sas_server_url: "https://spectrum-connect.federatedwireless.com/v1.2/"
   sas_uid: "INVALID_ID"
   sas_category: "A"
