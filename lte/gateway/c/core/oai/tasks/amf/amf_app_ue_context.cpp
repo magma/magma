@@ -31,10 +31,9 @@ extern "C" {
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
+extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
 // Creating ue_context_map based on key:ue_id and value:ue_context
 std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*> ue_context_map;
-// Creating smf_ctxt_map based on key:pdu_session_id and value:smf_context
-std::unordered_map<uint8_t, std::shared_ptr<smf_context_t>> smf_ctxt_map;
 
 std::shared_ptr<smf_context_t> amf_insert_smf_context(
     ue_m5gmm_context_s*, uint8_t);
@@ -424,7 +423,7 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   amf_app_desc_t* amf_app_desc_p     = get_amf_nas_state(false);
   amf_ue_context_t* amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
   OAILOG_DEBUG(LOG_NAS_AMF, "amf_free_ue_context \n");
-  map_uint64_ue_context_t amf_state_ue_id_ht = get_amf_ue_state();
+  map_uint64_ue_context_t* amf_state_ue_id_ht = get_amf_ue_state();
   if (!ue_context_p || !amf_ue_context_p) {
     return;
   }
@@ -444,7 +443,7 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   }
 
   if (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
-    m_rc = amf_state_ue_id_ht.remove(ue_context_p->amf_ue_ngap_id);
+    m_rc = amf_state_ue_id_ht->remove(ue_context_p->amf_ue_ngap_id);
     if (m_rc != magma::MAP_OK)
       OAILOG_TRACE(LOG_AMF_APP, "Error Could not remove this ue context \n");
     ue_context_p->amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
@@ -462,4 +461,20 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   ue_context_p = NULL;
 }
 
+// Sync State manager map with Amf Application maps
+void amf_sync_app_maps_from_db() {
+  map_uint64_ue_context_t* amf_state_ue_id_ht =
+      AmfNasStateManager::getInstance().get_ue_state_map();
+  if (!amf_state_ue_id_ht) {
+    return;
+  }
+  ue_context_map = amf_state_ue_id_ht->umap;
+  for (auto& it : amf_state_ue_id_ht->umap) {
+    guti_and_amf_id_t guti_and_amf_id = {0};
+    guti_and_amf_id.amf_guti.m_tmsi   = it.second->amf_context.m5_guti.m_tmsi;
+    guti_and_amf_id.amf_guti.guamfi   = it.second->amf_context.m5_guti.guamfi;
+    guti_and_amf_id.amf_ue_ngap_id    = it.second->amf_ue_ngap_id;
+    amf_supi_guti_map[it.second->amf_context.imsi64] = guti_and_amf_id;
+  }
+}
 }  // namespace magma5g

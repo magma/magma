@@ -68,7 +68,7 @@ void put_amf_nas_state();
 void clear_amf_nas_state();
 
 // Retrieving respective global hash table
-map_uint64_ue_context_t get_amf_ue_state();
+map_uint64_ue_context_t* get_amf_ue_state();
 
 // Persists UE AMF state for subscriber into db
 void put_amf_ue_state(
@@ -103,7 +103,16 @@ class AmfNasStateManager : public magma::lte::StateManager<
   amf_app_desc_t* get_state(bool read_from_redis) override;
 
   // Retriving respective hash table from global data
-  map_uint64_ue_context_t get_ue_state_map();
+  map_uint64_ue_context_t* get_ue_state_map();
+
+  // Persists UE AMF state for subscriber into db
+  void put_amf_ue_state(
+      amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64, bool force_ue_write);
+
+  bool get_amf_ue_id_from_imsi(
+      amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64, amf_ue_ngap_id_t* ue_id);
+
+  void clear_db_state();
 
   /**
    * Copy constructor and assignment operator are marked as deleted functions.
@@ -121,6 +130,11 @@ class AmfNasStateManager : public magma::lte::StateManager<
 
   void write_state_to_db() override;
   status_code_e read_state_from_db() override;
+
+  void write_ue_state_to_db(
+      const ue_m5gmm_context_t* ue_context,
+      const std::string& imsi_str) override;
+  status_code_e read_ue_state_from_db() override;
 
  private:
   AmfNasStateManager();

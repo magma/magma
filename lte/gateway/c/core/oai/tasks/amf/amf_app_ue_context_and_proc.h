@@ -908,5 +908,8 @@ void delete_wrapper(T** pObj) {
   }
 }
 
+// Sync State manager map with Amf Application maps
+void amf_sync_app_maps_from_db();
+
 void nas_amf_procedure_gc(amf_context_t* amf_ctx);
 }  // namespace magma5g

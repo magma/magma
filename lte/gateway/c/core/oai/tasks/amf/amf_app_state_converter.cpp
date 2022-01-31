@@ -30,6 +30,26 @@ namespace magma5g {
 AmfNasStateConverter::AmfNasStateConverter()  = default;
 AmfNasStateConverter::~AmfNasStateConverter() = default;
 
+void AmfNasStateConverter::plmn_to_chars(
+    const plmn_t& state_plmn, char* plmn_array) {
+  plmn_array[0] = static_cast<char>(state_plmn.mcc_digit1 + ASCII_ZERO);
+  plmn_array[1] = static_cast<char>(state_plmn.mcc_digit2 + ASCII_ZERO);
+  plmn_array[2] = static_cast<char>(state_plmn.mcc_digit3 + ASCII_ZERO);
+  plmn_array[3] = static_cast<char>(state_plmn.mnc_digit1 + ASCII_ZERO);
+  plmn_array[4] = static_cast<char>(state_plmn.mnc_digit2 + ASCII_ZERO);
+  plmn_array[5] = static_cast<char>(state_plmn.mnc_digit3 + ASCII_ZERO);
+}
+
+void AmfNasStateConverter::chars_to_plmn(
+    const char* plmn_array, plmn_t* state_plmn) {
+  state_plmn->mcc_digit1 = static_cast<int>(plmn_array[0]) - ASCII_ZERO;
+  state_plmn->mcc_digit2 = static_cast<int>(plmn_array[1]) - ASCII_ZERO;
+  state_plmn->mcc_digit3 = static_cast<int>(plmn_array[2]) - ASCII_ZERO;
+  state_plmn->mnc_digit1 = static_cast<int>(plmn_array[3]) - ASCII_ZERO;
+  state_plmn->mnc_digit2 = static_cast<int>(plmn_array[4]) - ASCII_ZERO;
+  state_plmn->mnc_digit3 = static_cast<int>(plmn_array[5]) - ASCII_ZERO;
+}
+
 // HelperFunction: Converts guti_m5_t to std::string
 std::string AmfNasStateConverter::amf_app_convert_guti_m5_to_string(
     const guti_m5_t& guti) {
@@ -201,11 +221,15 @@ void AmfNasStateConverter::proto_to_ue(
 void AmfNasStateConverter::ue_m5gmm_context_to_proto(
     const ue_m5gmm_context_t* state_ue_m5gmm_context,
     magma::lte::oai::UeContext* ue_context_proto) {
+  ue_context_proto->set_amf_ue_ngap_id(state_ue_m5gmm_context->amf_ue_ngap_id);
   ue_context_proto->set_rel_cause(
       state_ue_m5gmm_context->ue_context_rel_cause.present);
   ue_context_proto->set_mm_state(state_ue_m5gmm_context->mm_state);
   ue_context_proto->set_ecm_state(state_ue_m5gmm_context->ecm_state);
 
+  EmmContext* emm_ctx = ue_context_proto->mutable_emm_context();
+  AmfNasStateConverter::amf_context_to_proto(
+      &state_ue_m5gmm_context->amf_context, emm_ctx);
   ue_context_proto->set_sctp_assoc_id_key(
       state_ue_m5gmm_context->sctp_assoc_id_key);
   ue_context_proto->set_gnb_ue_ngap_id(state_ue_m5gmm_context->gnb_ue_ngap_id);
@@ -227,6 +251,7 @@ void AmfNasStateConverter::ue_m5gmm_context_to_proto(
 void AmfNasStateConverter::proto_to_ue_m5gmm_context(
     const magma::lte::oai::UeContext& ue_context_proto,
     ue_m5gmm_context_t* state_ue_m5gmm_context) {
+  state_ue_m5gmm_context->amf_ue_ngap_id = ue_context_proto.amf_ue_ngap_id();
   state_ue_m5gmm_context->ue_context_rel_cause.present =
       static_cast<ngap_Cause_PR>(ue_context_proto.rel_cause());
   state_ue_m5gmm_context->mm_state =
@@ -234,6 +259,8 @@ void AmfNasStateConverter::proto_to_ue_m5gmm_context(
   state_ue_m5gmm_context->ecm_state =
       static_cast<m5gcm_state_t>(ue_context_proto.ecm_state());
 
+  AmfNasStateConverter::proto_to_amf_context(
+      ue_context_proto.emm_context(), &state_ue_m5gmm_context->amf_context);
   state_ue_m5gmm_context->sctp_assoc_id_key =
       ue_context_proto.sctp_assoc_id_key();
   state_ue_m5gmm_context->gnb_ue_ngap_id  = ue_context_proto.gnb_ue_ngap_id();
@@ -303,6 +330,28 @@ void AmfNasStateConverter::proto_to_tai(
       PLMN_ARG(&state_tai->plmn));
 }
 
+void AmfNasStateConverter::guti_m5_to_proto(
+    const guti_m5_t& state_guti_m5, magma::lte::oai::Guti_m5* guti_m5_proto) {
+  guti_m5_proto->Clear();
+  char plmn_array[PLMN_BYTES];
+  AmfNasStateConverter::plmn_to_chars(state_guti_m5.guamfi.plmn, plmn_array);
+  guti_m5_proto->set_plmn(plmn_array);
+  guti_m5_proto->set_amf_regionid(state_guti_m5.guamfi.amf_regionid);
+  guti_m5_proto->set_amf_set_id(state_guti_m5.guamfi.amf_set_id);
+  guti_m5_proto->set_amf_pointer(state_guti_m5.guamfi.amf_pointer);
+  guti_m5_proto->set_m_tmsi(state_guti_m5.m_tmsi);
+}
+
+void AmfNasStateConverter::proto_to_guti_m5(
+    const magma::lte::oai::Guti_m5& guti_m5_proto, guti_m5_t* state_guti_m5) {
+  AmfNasStateConverter::chars_to_plmn(
+      guti_m5_proto.plmn().c_str(), &state_guti_m5->guamfi.plmn);
+  state_guti_m5->guamfi.amf_regionid = guti_m5_proto.amf_regionid();
+  state_guti_m5->guamfi.amf_set_id   = guti_m5_proto.amf_set_id();
+  state_guti_m5->guamfi.amf_pointer  = guti_m5_proto.amf_pointer();
+  state_guti_m5->m_tmsi              = (tmsi_t) guti_m5_proto.m_tmsi();
+}
+
 void AmfNasStateConverter::amf_context_to_proto(
     const amf_context_t* amf_ctx, EmmContext* emm_context_proto) {
   emm_context_proto->set_imsi64(amf_ctx->imsi64);
@@ -313,6 +362,9 @@ void AmfNasStateConverter::amf_context_to_proto(
       &amf_ctx->imei, emm_context_proto->mutable_imei(), IMEI_BCD8_SIZE);
   identity_tuple_to_proto<imeisv_t>(
       &amf_ctx->imeisv, emm_context_proto->mutable_imeisv(), IMEISV_BCD8_SIZE);
+
+  AmfNasStateConverter::amf_security_context_to_proto(
+      &amf_ctx->_security, emm_context_proto->mutable_security());
   emm_context_proto->set_emm_cause(amf_ctx->amf_cause);
   emm_context_proto->set_emm_fsm_state(amf_ctx->amf_fsm_state);
   emm_context_proto->set_attach_type(amf_ctx->m5gsregistrationtype);
@@ -329,6 +381,13 @@ void AmfNasStateConverter::amf_context_to_proto(
   tai_to_proto(
       &amf_ctx->originating_tai, emm_context_proto->mutable_originating_tai());
   emm_context_proto->set_ksi(amf_ctx->ksi);
+  AmfNasStateConverter::smf_context_map_to_proto(
+      amf_ctx->smf_ctxt_map,
+      emm_context_proto->mutable_pdu_session_id_smf_context_map());
+  AmfNasStateConverter::guti_m5_to_proto(
+      amf_ctx->m5_guti, emm_context_proto->mutable_m5_guti());
+  AmfNasStateConverter::guti_m5_to_proto(
+      amf_ctx->m5_old_guti, emm_context_proto->mutable_m5_old_guti());
 }
 
 void AmfNasStateConverter::proto_to_amf_context(
@@ -343,6 +402,8 @@ void AmfNasStateConverter::proto_to_amf_context(
   proto_to_identity_tuple<imeisv_t>(
       emm_context_proto.imeisv(), &amf_ctx->imeisv, IMEISV_BCD8_SIZE);
 
+  AmfNasStateConverter::proto_to_amf_security_context(
+      emm_context_proto.security(), &amf_ctx->_security);
   amf_ctx->amf_cause     = emm_context_proto.emm_cause();
   amf_ctx->amf_fsm_state = (amf_fsm_state_t) emm_context_proto.emm_fsm_state();
   amf_ctx->m5gsregistrationtype = emm_context_proto.attach_type();
@@ -356,6 +417,13 @@ void AmfNasStateConverter::proto_to_amf_context(
   amf_ctx->is_imsi_only_detach      = emm_context_proto.is_imsi_only_detach();
   proto_to_tai(emm_context_proto.originating_tai(), &amf_ctx->originating_tai);
   amf_ctx->ksi = emm_context_proto.ksi();
+  AmfNasStateConverter::proto_to_smf_context_map(
+      emm_context_proto.pdu_session_id_smf_context_map(),
+      &amf_ctx->smf_ctxt_map);
+  AmfNasStateConverter::proto_to_guti_m5(
+      emm_context_proto.m5_guti(), &amf_ctx->m5_guti);
+  AmfNasStateConverter::proto_to_guti_m5(
+      emm_context_proto.m5_old_guti(), &amf_ctx->m5_old_guti);
 }
 void AmfNasStateConverter::amf_security_context_to_proto(
     const amf_security_context_t* state_amf_security_context,
@@ -620,6 +688,30 @@ void AmfNasStateConverter::proto_to_qos_flow_setup_request_item(
   AmfNasStateConverter::proto_to_qos_flow_level_parameters(
       qos_flow_item_proto.qos_flow_param(),
       &state_qos_flow_request_item->qos_flow_level_qos_param);
+}
+
+void AmfNasStateConverter::smf_context_map_to_proto(
+    const std::unordered_map<uint8_t, std::shared_ptr<smf_context_t>>
+        smf_ctxt_map,
+    google::protobuf::Map<uint32_t, magma::lte::oai::SmfContext>* proto_map) {
+  for (const auto& it : smf_ctxt_map) {
+    magma::lte::oai::SmfContext smf_context_proto =
+        magma::lte::oai::SmfContext();
+    AmfNasStateConverter::smf_context_to_proto(
+        it.second.get(), &smf_context_proto);
+    (*proto_map)[it.first] = smf_context_proto;
+  }
+}
+
+void AmfNasStateConverter::proto_to_smf_context_map(
+    const google::protobuf::Map<uint32_t, magma::lte::oai::SmfContext>&
+        proto_map,
+    std::unordered_map<uint8_t, std::shared_ptr<smf_context_t>>* smf_ctxt_map) {
+  for (auto const& kv : proto_map) {
+    smf_context_t smf_ctx;
+    AmfNasStateConverter::proto_to_smf_context(kv.second, &smf_ctx);
+    (*smf_ctxt_map)[kv.first] = std::make_shared<smf_context_t>(smf_ctx);
+  }
 }
 // smf_context to proto and proto to smf_context
 void AmfNasStateConverter::smf_context_to_proto(

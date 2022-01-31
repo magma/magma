@@ -53,7 +53,7 @@ void amf_ue_context_update_coll_keys(
     const teid_t amf_teid_n11, const guti_m5_t* const guti_p) {
   magma::map_rc_t m_rc = magma::MAP_OK;
 
-  map_uint64_ue_context_t amf_state_ue_id_ht = get_amf_ue_state();
+  map_uint64_ue_context_t* amf_state_ue_id_ht = get_amf_ue_state();
   OAILOG_FUNC_IN(LOG_AMF_APP);
   OAILOG_TRACE(
       LOG_AMF_APP,
@@ -64,8 +64,7 @@ void amf_ue_context_update_coll_keys(
       ue_context_p->amf_context.imsi64,
       GUTI_ARG_M5G(&ue_context_p->amf_context._guti));
 
-  if ((gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY) &&
-      (ue_context_p->gnb_ngap_id_key != gnb_ngap_id_key)) {
+  if ((gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY)) {
     m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.remove(
         ue_context_p->gnb_ngap_id_key);
     m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.insert(
@@ -84,20 +83,18 @@ void amf_ue_context_update_coll_keys(
   }
 
   if (amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
-    if (ue_context_p->amf_ue_ngap_id != amf_ue_ngap_id) {
-      m_rc = amf_state_ue_id_ht.remove(ue_context_p->amf_ue_ngap_id);
-      m_rc = amf_state_ue_id_ht.insert(amf_ue_ngap_id, ue_context_p);
+    m_rc = amf_state_ue_id_ht->remove(ue_context_p->amf_ue_ngap_id);
+    m_rc = amf_state_ue_id_ht->insert(amf_ue_ngap_id, ue_context_p);
 
-      if (m_rc != magma::MAP_OK) {
-        OAILOG_ERROR(
-            LOG_AMF_APP,
-            "Insertion of Hash entry failed for  "
-            "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
-            amf_ue_ngap_id);
-      }
-
-      ue_context_p->amf_ue_ngap_id = amf_ue_ngap_id;
+    if (m_rc != magma::MAP_OK) {
+      OAILOG_ERROR(
+          LOG_AMF_APP,
+          "Insertion of Hash entry failed for  "
+          "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
+          amf_ue_ngap_id);
     }
+
+    ue_context_p->amf_ue_ngap_id = amf_ue_ngap_id;
   } else {
     OAILOG_ERROR(
         LOG_AMF_APP, "Invalid  amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
@@ -495,8 +492,8 @@ imsi64_t amf_app_handle_initial_ue_message(
    * exists or not
    */
   if (ue_id != INVALID_AMF_UE_NGAP_ID) {
-    map_uint64_ue_context_t amf_state_ue_id_ht = get_amf_ue_state();
-    if (amf_state_ue_id_ht.get(ue_id, &ue_context_p) == magma::MAP_OK) {
+    map_uint64_ue_context_t* amf_state_ue_id_ht = get_amf_ue_state();
+    if (amf_state_ue_id_ht->get(ue_id, &ue_context_p) == magma::MAP_OK) {
       imsi64 = ue_context_p->amf_context.imsi64;
     }
   }
