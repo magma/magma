@@ -23,6 +23,7 @@ executes a Python test. The wrapper is used for
   (see coverage_decorator.py)
 """
 
+load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "PyInfo", "py_test")
 
 CONTENT_PYTEST_RUNNER = """
@@ -35,6 +36,12 @@ if __name__ == "__main__":
     with coverage_decorator():
         args =  ["-ra", "-vv"]  + %s + sys.argv[1:] + %s
         sys.exit(pytest.main(args))"""
+
+PYTEST_DEPS = [
+    requirement("pytest"),
+    requirement("pytest-cov"),
+    requirement("coverage-lcov"),
+]
 
 def _stringify(paths):
     return repr(paths)
@@ -102,7 +109,7 @@ def pytest_test(name, srcs, deps = [], args = [], data = [], python_version = No
         name = name,
         python_version = python_version,
         srcs = srcs + [runner_target],
-        deps = deps + ["//bazel/python_utils:coverage_decorator"],
+        deps = deps + PYTEST_DEPS + ["//bazel/python_utils:coverage_decorator"],
         main = runner_target,
         legacy_create_init = False,
         imports = ["."],

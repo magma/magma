@@ -1,4 +1,4 @@
-# Copyright 2021 The Magma Authors.
+# Copyright 2022 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
@@ -17,45 +17,35 @@ LTE_ROOT = "../../"
 ORC8R_ROOT = LTE_ROOT + "../../../orc8r/gateway/python"
 
 DEPS = [
-    "//lte/protos:keyval_python_proto",
     "//lte/protos:mconfigs_python_proto",
-    "//lte/protos:mobilityd_python_grpc",
-    "//lte/protos:subscriberdb_python_grpc",
-    "//lte/gateway/python/magma/subscriberdb:sid",
-    "//orc8r/gateway/python/magma/common:rpc_utils",
+    "//lte/protos:policydb_python_proto",
     "//orc8r/gateway/python/magma/common:sentry",
+    "//orc8r/gateway/python/magma/configuration:service_configs",
+    "//orc8r/protos:mconfigs_python_proto",
     "//orc8r/gateway/python/magma/common:service",
+    "//orc8r/protos:metricsd_python_proto",
+    "//orc8r/protos:eventd_python_grpc",
+    "//orc8r/protos:mconfig_python_proto",
+    "//orc8r/protos:service303_python_grpc",
     "//orc8r/gateway/python/magma/common/redis:client",
-    requirement("netifaces"),
-    requirement("scapy"),
+    requirement("grpcio"),
+    requirement("wsgiserver"),
+    requirement("flask"),
 ]
 
 SRCS = [
-    "dhcp_client.py",
-    "ip_allocator_base.py",
-    "ip_allocator_pool.py",
-    "ip_descriptor_map.py",
     "main.py",
-    "serialize_utils.py",
-    "uplink_gw.py",
-    "dhcp_desc.py",
-    "ip_allocator_dhcp.py",
-    "ip_allocator_static.py",
-    "ipv6_allocator_pool.py",
-    "metrics.py",
-    "rpc_servicer.py",
-    "subscriberdb_client.py",
-    "ip_allocator_multi_apn.py",
-    "ip_descriptor.py",
-    "mac.py",
-    "ip_address_man.py",
-    "utils.py",
-    "mobility_store.py",
+    "redirect_server.py",
+    "redirect_store.py",
 ]
 
 py_binary(
-    name = "mobilityd",
+    name = "redirectd",
     srcs = SRCS,
+    data = [
+        "templates/404.html",
+        "templates/layout.html",
+    ],
     imports = [
         LTE_ROOT,
         ORC8R_ROOT,

@@ -16,6 +16,8 @@ redis-lock
 jsonpickle
 netifaces
 scapy
+wsgiserver
+flask
 
 # bazelbase container requirements
 hiredis
