@@ -14,8 +14,7 @@ limitations under the License.
 import asyncio
 import logging
 import re
-from collections import namedtuple
-from typing import Any, List
+from typing import Any, List, NamedTuple, Optional
 
 import magma.magmad.events as magmad_events
 from magma.common.service import MagmaService
@@ -31,7 +30,7 @@ from orc8r.protos.mconfig_pb2 import GatewayConfigsDigest
 CONFIG_STREAM_NAME = 'configs'
 SHARED_MCONFIG = 'shared_mconfig'
 MAGMAD = 'magmad'
-VersionInfo = namedtuple('VersionInfo', 'agw_version orc8r_version')
+VersionInfo = NamedTuple('VersionInfo', [('agw_version', Optional[re.Match]), ('orc8r_version', Optional[re.Match])])
 
 
 class ConfigManager(StreamerClient.Callback):
