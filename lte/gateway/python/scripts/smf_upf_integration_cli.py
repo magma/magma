@@ -67,6 +67,7 @@ class CreateAmfSession(object):
                         preemption_vulnerability=1,
                         qos_class_id=9,
                         br_unit=M5GQosInformationRequest.BitrateUnitsAMBR.Name(1),
+                    ),
                 ),
             ),
         )
