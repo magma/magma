@@ -205,6 +205,7 @@ export type ci_node = {
     tag ? : string,
     vpn_ip: string,
 };
+export type components = "SAS" | "DP" | "CBSD";
 export type config_info = {
     mconfig_created_at ? : number,
 };
@@ -816,6 +817,15 @@ export type matcher = {
     isRegex: boolean,
     name: string,
     value: string,
+};
+export type message = {
+    body ? : string,
+    fcc_id ? : string,
+    from ? : "SAS" | "DP" | "CBSD",
+    serial_number ? : string,
+    time ? : string,
+    to ? : "SAS" | "DP" | "CBSD",
+    type ? : string,
 };
 export type metric_datapoint = Array < string >
 ;
@@ -3112,6 +3122,74 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getDpByNetworkIdLogs(
+            parameters: {
+                'networkId': string,
+                'offset' ? : number,
+                'limit' ? : number,
+                'begin' ? : string,
+                'end' ? : string,
+                'serialNumber' ? : string,
+                'fccId' ? : string,
+                'type' ? : string,
+                'responseCode' ? : number,
+                'from' ? : "SAS" | "DP" | "CBSD",
+                'to' ? : "SAS" | "DP" | "CBSD",
+            }
+        ): Promise < Array < message >
+        >
+        {
+            let path = '/dp/{network_id}/logs';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['offset'] !== undefined) {
+                query['offset'] = parameters['offset'];
+            }
+
+            if (parameters['limit'] !== undefined) {
+                query['limit'] = parameters['limit'];
+            }
+
+            if (parameters['begin'] !== undefined) {
+                query['begin'] = parameters['begin'];
+            }
+
+            if (parameters['end'] !== undefined) {
+                query['end'] = parameters['end'];
+            }
+
+            if (parameters['serialNumber'] !== undefined) {
+                query['serial_number'] = parameters['serialNumber'];
+            }
+
+            if (parameters['fccId'] !== undefined) {
+                query['fcc_id'] = parameters['fccId'];
+            }
+
+            if (parameters['type'] !== undefined) {
+                query['type'] = parameters['type'];
+            }
+
+            if (parameters['responseCode'] !== undefined) {
+                query['response_code'] = parameters['responseCode'];
+            }
+
+            if (parameters['from'] !== undefined) {
+                query['from'] = parameters['from'];
+            }
+
+            if (parameters['to'] !== undefined) {
+                query['to'] = parameters['to'];
+            }
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getEventsByNetworkId(
             parameters: {
                 'networkId': string,
