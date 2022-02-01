@@ -21,54 +21,58 @@ import argparse
 import glob
 import os
 import shutil
-import subprocess
+import subprocess  # noqa: S404
 import sys
 from collections import namedtuple
+from types import MappingProxyType
 from typing import Iterable, List, Optional
 
-HOST_BUILD_CTX = '/tmp/magma_orc8r_build'
+HOST_BUILD_CTX = '/tmp/magma_orc8r_build'  # noqa: S108
 HOST_MAGMA_ROOT = '../../../.'
 IMAGE_MAGMA_ROOT = os.path.join('src', 'magma')
 
 GOLINT_FILE = '.golangci.yml'
 TEST_RESULT_DIR = 'orc8r/cloud/test-results'
 
-MODULES = [
+MODULES = (
     'orc8r',
     'lte',
     'feg',
     'cwf',
     'fbinternal',
     'dp',
-]
+)
 
-DEPLOYMENT_TO_MODULES = {
+DEPLOYMENT_TO_MODULES = MappingProxyType({
     'all': MODULES,
-    'orc8r': ['orc8r'],
-    'orc8r-f': ['orc8r', 'fbinternal'],
-    'fwa': ['orc8r', 'lte'],
-    'fwa-f': ['orc8r', 'lte', 'fbinternal'],
-    'ffwa': ['orc8r', 'lte', 'feg'],
-    'ffwa-f': ['orc8r', 'lte', 'feg', 'fbinternal'],
-    'cwf': ['orc8r', 'lte', 'feg', 'cwf'],
-    'cwf-f': ['orc8r', 'lte', 'feg', 'cwf', 'fbinternal'],
-}
+    'orc8r': ('orc8r'),
+    'orc8r-f': ('orc8r', 'fbinternal'),
+    'fwa': ('orc8r', 'lte'),
+    'fwa-f': ('orc8r', 'lte', 'fbinternal'),
+    'ffwa': ('orc8r', 'lte', 'feg'),
+    'ffwa-f': ('orc8r', 'lte', 'feg', 'fbinternal'),
+    'cwf': ('orc8r', 'lte', 'feg', 'cwf'),
+    'cwf-f': ('orc8r', 'lte', 'feg', 'cwf', 'fbinternal'),
+})
 
 DEPLOYMENTS = DEPLOYMENT_TO_MODULES.keys()
 
-EXTRA_COMPOSE_FILES = [
+EXTRA_COMPOSE_FILES = (
     'docker-compose.metrics.yml',
     # For now, logging is left out of the build because the fluentd daemonset
     # and forwarder pod shouldn't change very frequently - we can build and
     # push locally when they need to be updated.
     # We can integrate this into the CI pipeline if/when we see the need for it
     # 'docker-compose.logging.yml',
-]
+)
 
 MagmaModule = namedtuple('MagmaModule', ['name', 'host_path'])
 
 
 def main() -> None:
+    """
+    Run docker-compose script
+    """
     _check_assumptions()
 
     args = _parse_args()
@@ -115,7 +119,7 @@ def main() -> None:
 
 
 def _check_assumptions():
-    """Checks assumptions about environment."""
+    """Check assumptions about environment."""
     cwd = os.path.dirname(os.path.realpath(__file__))
     if cwd != os.getcwd():
         sys.exit("Must run from orc8r/cloud/docker directory")
@@ -161,7 +165,7 @@ def _run(cmd: List[str]) -> None:
     cmd = ['docker-compose'] + cmd
     print("Running '%s'..." % ' '.join(cmd))
     try:
-        subprocess.run(cmd, check=True)
+        subprocess.run(cmd, check=True)  # noqa: S603
     except subprocess.CalledProcessError as err:
         sys.exit(err.returncode)
 
@@ -196,10 +200,11 @@ def _get_test_result_vol() -> List[str]:
 
 
 def _get_default_file_args(args: argparse.Namespace) -> List[str]:
-    def make_file_args(fs: Optional[List[str]] = None) -> List[str]:
+    def make_file_args(fs: Optional[Iterable[str]] = None) -> List[str]:
         if fs is None:
             return []
-        fs = ['docker-compose.yml'] + fs + ['docker-compose.override.yml']
+        fs = ['docker-compose.yml'] + \
+            list(fs) + ['docker-compose.override.yml']
         ret = []
         for f in fs:
             ret.extend(['-f', f])
@@ -268,6 +273,12 @@ def _get_module_image_dst(module: MagmaModule) -> str:
     """
     Given a path to a module on the host, return the intended destination
     in the final image.
+
+    Parameters:
+        module: Magma module
+
+    Returns:
+        str: destination in the final image
     """
     return os.path.join(os.sep, IMAGE_MAGMA_ROOT, module.name)
 
@@ -276,6 +287,12 @@ def _get_module_host_dst(module: MagmaModule) -> str:
     """
     Given a path to a module on the host, return the intended destination
     in the build context.
+
+    Parameters:
+        module: Magma module
+
+    Returns:
+        str: destination in the build context
     """
     return os.path.join(HOST_BUILD_CTX, IMAGE_MAGMA_ROOT, module.name)
 
@@ -355,8 +372,8 @@ def _parse_args() -> argparse.Namespace:
         help='Build deployment type: %s' % ','.join(DEPLOYMENTS),
     )
     parser.add_argument(
-        '--build-service','-b',
-        help='Build particular service'
+        '--build-service', '-b',
+        help='Build particular service',
     )
 
     # How to do it
