@@ -48,7 +48,7 @@ class Tester:
                 db = pickle.load(dbfile)
         except (IOError, OSError, pickle.PickleError, pickle.UnpicklingError):
             print("Not a valid returning null")
-            return False, None
+            return "inconclusive", "Test Execution Failure"
         else:
             with open(db["report"], "r") as rfile:
                 report = rfile.read()
