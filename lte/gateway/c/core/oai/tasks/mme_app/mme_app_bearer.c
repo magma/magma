@@ -2000,14 +2000,23 @@ status_code_e mme_app_handle_mobile_reachability_timer_expiry(
     ue_context_p->time_implicit_detach_timer_started = time(NULL);
     OAILOG_DEBUG_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Started Implicit Detach timer for UE id: " MME_UE_S1AP_ID_FMT "\n",
-        ue_context_p->mme_ue_s1ap_id);
+        "Started Implicit Detach timer for UE id: " MME_UE_S1AP_ID_FMT
+        ", Timer Id: %ld, Timer Val: %u (ms), Start time: %lu\n",
+        ue_context_p->mme_ue_s1ap_id, ue_context_p->implicit_detach_timer.id,
+        ue_context_p->implicit_detach_timer.msec,
+        ue_context_p->time_implicit_detach_timer_started);
   }
-  /* PPF is set to false due to "Inactivity of UE including non reception of
+  /* PPF is set to false due to Inactivity of UE including non reception of
    * periodic TAU If CS paging is received for MT call, MME shall indicate to
    * VLR that UE is unreachable
    */
   ue_context_p->ppf = false;
+
+  // Write updated timer details to redis db directly as there is no UE state
+  // change for triggering the update
+  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  put_mme_ue_state(mme_app_desc_p, ue_context_p->emm_context._imsi64, true);
+
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 //------------------------------------------------------------------------------
