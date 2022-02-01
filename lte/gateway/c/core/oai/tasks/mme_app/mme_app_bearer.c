@@ -584,7 +584,7 @@ imsi64_t update_ue_context_and_indicate_to_nas(
     struct ue_mm_context_s* ue_context_p,
     itti_s1ap_initial_ue_message_t* const initial_pP, bool is_mm_ctx_new) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  imsi64_t imsi64 = INVALID_IMSI64;
+  imsi64_t imsi64                 = INVALID_IMSI64;
   ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
   ue_context_p->e_utran_cgi       = initial_pP->ecgi;
   // Notify S1AP about the mapping between mme_ue_s1ap_id and

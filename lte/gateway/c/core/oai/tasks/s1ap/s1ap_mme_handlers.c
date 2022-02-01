@@ -5425,14 +5425,15 @@ status_code_e s1ap_send_mme_ue_context_release(
   message_p->ittiMsgHeader.imsi = imsi64;
   return send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
 }
+
 //------------------------------------------------------------------------------
 static int handle_ue_context_rel_timer_expiry(
     zloop_t* loop, int timer_id, void* arg) {
   OAILOG_FUNC_IN(LOG_S1AP);
-  ue_description_t* ue_ref_p             = NULL;
-  mme_ue_s1ap_id_t mme_ue_s1ap_id        = 0;
-  imsi64_t imsi64                        = INVALID_IMSI64;
-  s1ap_state_t* state                    = NULL;
+  ue_description_t* ue_ref_p      = NULL;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  imsi64_t imsi64                 = INVALID_IMSI64;
+  s1ap_state_t* state             = NULL;
   if (!s1ap_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_S1AP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
