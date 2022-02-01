@@ -173,8 +173,6 @@ class QosManager(object):
     """
     Qos Manager -> add/remove subscriber qos
     """
-    # protect QoS object create and delete across all QoSManager Objects.
-    lock = threading.Lock()
 
     def init_impl(self, datapath):
         """
@@ -255,9 +253,11 @@ class QosManager(object):
         self._initialized = False
         self._redis_conn_retry_secs = 1
         self._config = config
+        # protect QoS object create and delete across a QoSManager Object.
+        self._lock = threading.Lock()
 
     def setup(self):
-        with QosManager.lock:
+        with self._lock:
             if not self._qos_enabled:
                 return
 
@@ -387,7 +387,7 @@ class QosManager(object):
             qos_info: QosInfo,
             cleanup_rule=None,
     ):
-        with QosManager.lock:
+        with self._lock:
             if not self._qos_enabled or not self._initialized:
                 LOG.debug("add_subscriber_qos: not enabled or initialized")
                 return None, None, None
@@ -490,7 +490,7 @@ class QosManager(object):
             return None, None, None
 
     def remove_subscriber_qos(self, imsi: str = "", del_rule_num: int = -1):
-        with QosManager.lock:
+        with self._lock:
             if not self._qos_enabled or not self._initialized:
                 LOG.debug("remove_subscriber_qos: not enabled or initialized")
                 return
