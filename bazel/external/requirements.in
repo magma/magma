@@ -16,6 +16,8 @@ redis-lock
 jsonpickle
 netifaces
 scapy
+wsgiserver
+flask
 
 # bazelbase container requirements
 hiredis
@@ -25,3 +27,6 @@ wrapt
 # unit test requirements
 fakeredis
 freezegun
+pytest
+pytest-cov
+coverage-lcov

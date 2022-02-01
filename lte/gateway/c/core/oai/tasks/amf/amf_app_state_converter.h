@@ -63,6 +63,73 @@ class AmfNasStateConverter : public magma::lte::StateConverter {
       const UeContext& ue_context_proto,
       ue_m5gmm_context_t* state_ue_m5gmm_context);
 
+  static void smf_context_to_proto(
+      const smf_context_t* state_smf_context,
+      magma::lte::oai::SmfContext* smf_context_proto);
+
+  static void proto_to_smf_context(
+      const magma::lte::oai::SmfContext& smf_context_proto,
+      smf_context_t* state_smf_context);
+
+  static void smf_proc_data_to_proto(
+      const smf_proc_data_t* state_smf_proc_data,
+      magma::lte::oai::Smf_Proc_Data* smf_proc_data_proto);
+
+  static void proto_to_smf_proc_data(
+      const magma::lte::oai::Smf_Proc_Data& smf_proc_data_proto,
+      smf_proc_data_t* state_smf_proc_data);
+
+  static void s_nssai_to_proto(
+      const s_nssai_t* state_s_nssai, magma::lte::oai::SNssai* snassi_proto);
+
+  static void proto_to_s_nssai(
+      const magma::lte::oai::SNssai& snassi_proto, s_nssai_t* state_s_nssai);
+
+  static void protocol_configuration_options_to_proto(
+      const protocol_configuration_options_t&
+          state_protocol_configuration_options,
+      magma::lte::oai::ProtocolConfigurationOptions*
+          protocol_configuration_options_proto);
+
+  static void proto_to_protocol_configuration_options(
+      const magma::lte::oai::ProtocolConfigurationOptions&
+          protocol_configuration_options_proto,
+      protocol_configuration_options_t* state_protocol_configuration_options);
+
+  static void pco_protocol_or_container_id_to_proto(
+      const protocol_configuration_options_t&
+          state_protocol_configuration_options,
+      magma::lte::oai::ProtocolConfigurationOptions*
+          protocol_configuration_options_proto);
+
+  static void proto_to_pco_protocol_or_container_id(
+      const magma::lte::oai::ProtocolConfigurationOptions&
+          protocol_configuration_options_proto,
+      protocol_configuration_options_t* state_protocol_configuration_options);
+
+  static void session_ambr_to_proto(
+      const session_ambr_t& state_session_ambr,
+      magma::lte::oai::Ambr* ambr_proto);
+
+  static void proto_to_session_ambr(
+      const magma::lte::oai::Ambr& ambr_proto, session_ambr_t* state_ambr);
+
+  static void qos_flow_setup_request_item_to_proto(
+      const qos_flow_setup_request_item& state_qos_flow_request_item,
+      magma::lte::oai::M5GQosFlowItem* qos_flow_item_proto);
+
+  static void proto_to_qos_flow_setup_request_item(
+      const magma::lte::oai::M5GQosFlowItem& qos_flow_item_proto,
+      qos_flow_setup_request_item* state_qos_flow_request_item);
+
+  static void qos_flow_level_parameters_to_proto(
+      const qos_flow_level_qos_parameters& state_qos_flow_parameters,
+      magma::lte::oai::QosFlowParameters* qos_flow_parameters_proto);
+
+  static void proto_to_qos_flow_level_parameters(
+      const magma::lte::oai::QosFlowParameters& qos_flow_parameters_proto,
+      qos_flow_level_qos_parameters* state_qos_flow_parameters);
+
   static std::string amf_app_convert_guti_m5_to_string(const guti_m5_t& guti);
   static void amf_app_convert_string_to_guti_m5(
       const std::string& guti_str, guti_m5_t* guti_m5_p);

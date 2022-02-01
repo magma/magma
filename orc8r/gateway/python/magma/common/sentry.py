@@ -14,8 +14,6 @@ import logging
 import os
 import re
 from dataclasses import dataclass
-from enum import Enum
-from functools import wraps
 from typing import Any, Callable, Dict, List, Optional
 
 import sentry_sdk
@@ -39,16 +37,9 @@ COMMIT_HASH = 'COMMIT_HASH'
 HWID = 'hwid'
 SERVICE_NAME = 'service_name'
 LOGGING_EXTRA = 'extra'
-SEND_TO_ERROR_MONITORING_KEY = "send_to_error_monitoring"
+EXCLUDE_FROM_ERROR_MONITORING_KEY = 'exclude_from_error_monitoring'
 # Dictionary constant for convenience, must not be mutated
-SEND_TO_ERROR_MONITORING = {SEND_TO_ERROR_MONITORING_KEY: True}  # noqa: WPS407
-
-
-class SentryStatus(Enum):
-    """Describes which kind of Sentry monitoring is configured"""
-    SEND_ALL_ERRORS = 'send_all_errors'
-    SEND_SELECTED_ERRORS = 'send_selected_errors'
-    DISABLED = 'disabled'
+EXCLUDE_FROM_ERROR_MONITORING = {EXCLUDE_FROM_ERROR_MONITORING_KEY: True}  # noqa: WPS407
 
 
 @dataclass
@@ -58,39 +49,6 @@ class SharedSentryConfig(object):
     dsn: str
     sample_rate: float
     exclusion_patterns: List[str]
-
-
-def send_uncaught_errors_to_monitoring(enabled: bool):
-    """Reusable decorator for logging unexpected exceptions."""
-    def error_logging_wrapper(func):
-
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except Exception as err:
-                logging.error("Uncaught error", exc_info=True, extra=SEND_TO_ERROR_MONITORING)
-                raise err
-
-        if enabled:
-            return wrapper
-        return func
-
-    return error_logging_wrapper
-
-
-def get_sentry_status(service_name: str) -> SentryStatus:
-    """Get Sentry status from service config value"""
-    try:
-        return SentryStatus(
-            get_service_config_value(
-                service_name,
-                SENTRY_CONFIG,
-                default=SentryStatus.DISABLED.value,
-            ),
-        )
-    except ValueError:
-        return SentryStatus.DISABLED
 
 
 # TODO when control_proxy.yml is outdated move to shared mconfig entirely
@@ -134,13 +92,10 @@ def _get_shared_sentry_config(sentry_mconfig: mconfigs_pb2.SharedSentryConfig) -
     return SharedSentryConfig(dsn, sample_rate, exclusion_patterns)
 
 
-def _ignore_if_not_marked(event: Event) -> Optional[Event]:
-    if event.get(LOGGING_EXTRA) and event.get(LOGGING_EXTRA).get(SEND_TO_ERROR_MONITORING_KEY):
-        logging.info("Sending because of present tag")
-        del event[LOGGING_EXTRA][SEND_TO_ERROR_MONITORING_KEY]
-        return event
-    logging.info("Ignoring because of missing tag")
-    return None
+def _ignore_if_marked(event: Event) -> Optional[Event]:
+    if event.get(LOGGING_EXTRA) and event.get(LOGGING_EXTRA).get(EXCLUDE_FROM_ERROR_MONITORING_KEY):
+        return None
+    return event
 
 
 def _filter_excluded_messages(event: Event, hint: Hint, patterns_to_exclude: List[str]) -> Optional[Event]:
@@ -164,37 +119,21 @@ def _filter_excluded_messages(event: Event, hint: Hint, patterns_to_exclude: Lis
     return event
 
 
-def _get_before_send_hook(
-        sentry_status: SentryStatus,
-        patterns_to_exclude: List[str],
-) -> Optional[SentryHook]:
+def _get_before_send_hook(patterns_to_exclude: List[str]) -> Optional[SentryHook]:
 
-    def filter_excluded_and_unmarked_messages(
+    def filter_excluded_and_marked_messages(
             event: Event, hint: Hint,
     ) -> Optional[Event]:
-        event = _ignore_if_not_marked(event)
+        event = _ignore_if_marked(event)
         if event and patterns_to_exclude:
             return _filter_excluded_messages(event, hint, patterns_to_exclude)
         return None
 
-    def filter_excluded_messages(
-            event: Event, hint: Hint,
-    ) -> Optional[Event]:
-        return _filter_excluded_messages(event, hint, patterns_to_exclude)
-
-    if sentry_status == SentryStatus.SEND_SELECTED_ERRORS:
-        return filter_excluded_and_unmarked_messages
-    if patterns_to_exclude:
-        return filter_excluded_messages
-    return None
+    return filter_excluded_and_marked_messages
 
 
 def sentry_init(service_name: str, sentry_mconfig: mconfigs_pb2.SharedSentryConfig) -> None:
     """Initialize connection and start piping errors to sentry.io."""
-
-    sentry_status = get_sentry_status(service_name)
-    if sentry_status == SentryStatus.DISABLED:
-        return
 
     sentry_config = _get_shared_sentry_config(sentry_mconfig)
 
@@ -210,7 +149,7 @@ def sentry_init(service_name: str, sentry_mconfig: mconfigs_pb2.SharedSentryConf
         dsn=sentry_config.dsn,
         release=os.getenv(COMMIT_HASH),
         traces_sample_rate=sentry_config.sample_rate,
-        before_send=_get_before_send_hook(sentry_status, sentry_config.exclusion_patterns),
+        before_send=_get_before_send_hook(sentry_config.exclusion_patterns),
     )
 
     cloud_address = get_service_config_value(

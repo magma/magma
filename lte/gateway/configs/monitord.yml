@@ -13,7 +13,3 @@
 
 # log_level is set in mconfig. it can be overridden here
 mtr_interface: mtr0
-
-# [Experimental] Enable Sentry for this service
-# Allowed values: send_all_errors, send_selected_errors, disabled
-sentry: disabled

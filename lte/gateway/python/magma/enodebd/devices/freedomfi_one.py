@@ -71,7 +71,7 @@ from magma.enodebd.tr069 import models
 
 SAS_KEY = 'sas'
 WEB_UI_ENABLE_LIST_KEY = 'web_ui_enable_list'
-SAS_ENABLE_KEY = 'sas_enabled'
+DP_MODE_KEY = 'dp_mode'
 
 RADIO_MIN_POWER = 0
 RADIO_MAX_POWER = 24
@@ -87,6 +87,7 @@ class SASParameters(object):
     # Sas management parameters
     # TODO move param definitions to ParameterNames class or think of something to make them more generic across devices
     SAS_ENABLE = "sas_enabled"
+    SAS_METHOD = "sas_method"  # 0 = SAS client, 1 = DP mode
     SAS_SERVER_URL = "sas_server_url"
     SAS_UID = "sas_uid"
     SAS_CATEGORY = "sas_category"
@@ -108,6 +109,12 @@ class SASParameters(object):
     SAS_PARAMETERS = {
         SAS_ENABLE: TrParam(
             FAP_CONTROL + 'LTE.X_000E8F_SAS.Enable',
+            is_invasive=False,
+            type=TrParameterType.BOOLEAN,
+            is_optional=False,
+        ),
+        SAS_METHOD: TrParam(
+            FAP_CONTROL + 'LTE.X_000E8F_SAS.Method',
             is_invasive=False,
             type=TrParameterType.BOOLEAN,
             is_optional=False,
@@ -173,6 +180,12 @@ class SASParameters(object):
             FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.X_000E8F_TxPowerConfig',
             is_invasive=True, type=TrParameterType.INT, is_optional=False,
         ),
+    }
+
+    # Hardcoded defaults
+    defaults = {
+        SAS_ENABLE: True,
+        SAS_METHOD: False,
     }
 
 
@@ -927,9 +940,13 @@ class FreedomFiOneConfigurationInitializer(EnodebConfigurationPostProcessor):
         self._set_misc_params_from_service_config(service_cfg, desired_cfg)
 
     def _set_default_params(self, desired_cfg):
-        """Set default parameters"""
-        for name, val in FreedomFiOneMiscParameters.defaults.items():
-            desired_cfg.set_parameter(name, value=val)
+        """Go through default params and set them in desired config"""
+        defaults = {
+            **FreedomFiOneMiscParameters.defaults,
+            **SASParameters.defaults,
+        }
+        for name, val in defaults.items():
+            desired_cfg.set_parameter(name, val)
 
     def _increment_param_version_key(self):
         """Bump up the parameter key version"""
@@ -971,8 +988,8 @@ class FreedomFiOneConfigurationInitializer(EnodebConfigurationPostProcessor):
 
     def _verify_sas_params(self, service_cfg, desired_cfg):
         sas_cfg = service_cfg.get(SAS_KEY)
-        if not sas_cfg or not sas_cfg[SAS_ENABLE_KEY]:
-            desired_cfg.set_parameter(SASParameters.SAS_ENABLE, False)  # noqa: WPS425
+        if not sas_cfg or sas_cfg[DP_MODE_KEY]:
+            desired_cfg.set_parameter(SASParameters.SAS_METHOD, value=True)
             return
 
         sas_param_names = self.acs.data_model.get_sas_param_names()
@@ -1353,7 +1370,7 @@ class FreedomFiOneEndSessionState(EndSessionState):
             AcsMsgAndTransition
         """
         request = models.DummyInput()
-        if not self.acs.desired_cfg.get_parameter(SAS_ENABLE_KEY):
+        if self.acs.desired_cfg.get_parameter(SASParameters.SAS_METHOD):
             return AcsMsgAndTransition(request, self.notify_dp)
         return AcsMsgAndTransition(request, None)
 
@@ -1365,7 +1382,7 @@ class FreedomFiOneEndSessionState(EndSessionState):
             str
         """
         description = 'Completed provisioning eNB. Awaiting new Inform'
-        if not self.acs.desired_cfg.get_parameter(SAS_ENABLE_KEY):
+        if self.acs.desired_cfg.get_parameter(SASParameters.SAS_METHOD):
             description = 'Completed initial provisioning of the eNB. Awaiting update from DProxy'
         return description
 
