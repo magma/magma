@@ -178,6 +178,8 @@ class QosManager(object):
         """
         Takese in datapath, and initializes appropriate QoS manager based on config
         """
+        if not self._qos_enabled:
+            return
         if self._initialized:
             return
 
@@ -237,6 +239,14 @@ class QosManager(object):
         return True
 
     def __init__(self, loop, config):
+        self._initialized = False
+        self._clean_restart = config["clean_restart"]
+        self._subscriber_state = {}
+        self._loop = loop
+        self._redis_conn_retry_secs = 1
+        self._config = config
+        # protect QoS object create and delete across a QoSManager Object.
+        self._lock = threading.Lock()
         if 'qos' not in config.keys():
             LOG.error("qos field not provided in config")
             return
@@ -245,16 +255,8 @@ class QosManager(object):
             return
         self._apn_ambr_enabled = config["qos"].get("apn_ambr_enabled", True)
         LOG.info("QoS: apn_ambr_enabled: %s", self._apn_ambr_enabled)
-        self._clean_restart = config["clean_restart"]
-        self._subscriber_state = {}
-        self._loop = loop
-        self.impl = None
         self._redis_store = QosStore(self.__class__.__name__)
-        self._initialized = False
-        self._redis_conn_retry_secs = 1
-        self._config = config
-        # protect QoS object create and delete across a QoSManager Object.
-        self._lock = threading.Lock()
+        self.impl = None
 
     def setup(self):
         with self._lock:
