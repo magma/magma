@@ -90,15 +90,15 @@ class ConfigManager(StreamerClient.Callback):
 
             # agw_version is not in expected format
             if not agw_version_parsed:
-                logging.warning("Gateway version: %s not valid" % agw_version)
+                logging.warning("Gateway version: %s not valid", agw_version)
 
             # orc8r_version is not in expected format
             if not orc8r_version_parsed:
-                logging.warning("Orchestrator version: %s not valid" % orc8r_version)
+                logging.warning("Orchestrator version: %s not valid", orc8r_version)
 
             return VersionInfo(agw_version_parsed, orc8r_version_parsed)
         logging.error(
-            "Expecting MagmaD mconfig structure, but received a different structure: %s." %
+            "Expecting MagmaD mconfig structure, but received a different structure: %s.",
             unpacked_mconfig.type_url,
         )
         return VersionInfo(None, None)
