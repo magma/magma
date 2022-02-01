@@ -15,6 +15,7 @@
     src: "{{ magma_rootCA_path }}"
     dest: "/var/opt/magma/tmp/certs/rootCA.pem"
     mode: '0777'
+  when: magma_rootCA_path
   register: rootCA_file
 
 - name: Create Config directory
@@ -28,6 +29,7 @@
     src: "{{ magma_control_proxy_path }}"
     dest: "/var/opt/magma/configs/control_proxy.yml"
     mode: '0777'
+  when: magma_control_proxy_path
   register: control_proxy_file
 
 - name: Stop magma services

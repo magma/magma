@@ -17,6 +17,7 @@
   ignore_errors: true
   become: true
   command: update-ca-certificates
+  changed_when: false
 
 - name: Configuring private package manager.
   copy:
@@ -65,6 +66,7 @@
   become: true
   apt:
     update_cache: true
+  changed_when: false
 
 - name: Install ifupdown dependency.
   become: true
@@ -94,6 +96,7 @@
   become: true
   ignore_errors: true
   shell: bash -c 'echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections'
+  changed_when: false
 
 - name: Remove useless packages from the cache
   apt:
@@ -128,11 +131,6 @@
   when: magma5gVersion is defined
   register: upgradeto5g 
 
-- name: Create interfaces.d if it does not exist
-  file:
-    path: /etc/network/interfaces.d
-    state: directory
-
 - name: Start service openvswitch-switch.
   become: true
   service:
@@ -149,6 +147,17 @@
   until: stopMagma.rc == 0
   when: upgradeto5g.changed
 
+- name: Install openvswitch 
+  apt: 
+    name: "{{ packages }}"
+  vars:
+    packages: 
+      - openvswitch-datapath-dkms
+      - libopenvswitch 
+      - openvswitch-common
+      - openvswitch-switch
+      - python3-openvswitch
+  
 - name: Bring up gtp_br0
   shell: ifup gtp_br0
   become: true
@@ -169,8 +178,36 @@
   shell: ifup dhcp0
   become: true
 
+- name: Rebuild all modules for the currently running kernel
+  become: true
+  command: dkms autoinstall
+
+- name: Copy magma-bridge-reset Script
+  copy:
+    src: magma-bridge-reset.sh
+    dest: "/tmp/magma-bridge-reset.sh"
+    mode: '0777'
+
+- name: Reset uplink_br0
+  command: magma-bridge-reset.sh -f uplink_br0
+
 - name: Start service magma@magmad.
   become: true
   service:
     name: magma@magmad
     state: started
+
+- name: Compare the srcversion
+  block:
+    - name: Get kernel_ver
+      command: cat /sys/module/openvswitch/srcversion
+      register: kernel_ver
+
+    - name: Get mod_ver
+      shell: modinfo /lib/modules/"$(uname -r)"/updates/dkms/openvswitch.ko |grep srcversion|awk '{print $2}'
+      register: mod_ver
+
+    - name: Fail if version mismatch 
+      fail:
+        msg: "{{ kernel_ver.stdout }} != {{ mod_ver.stdout }}"
+      when: kernel_ver.stdout != mod_ver.stdout

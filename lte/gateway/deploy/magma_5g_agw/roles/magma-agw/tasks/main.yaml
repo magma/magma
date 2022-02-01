@@ -1,27 +1,51 @@
 ---
 
-- import_tasks: base.yaml
+- name: Install all required dependencies for AGW. 
+  ansible.builtin.import_tasks: 
+    file: base.yaml
   become: yes
-  tags: baseInstall
+  tags:
+    - agw
+    - baseInstall
 
-- import_tasks: interface.yaml
+- name: Change the interface names if not already.
+  ansible.builtin.import_tasks: 
+    file: interface.yaml
   become: yes
-  tags: setupInterface
+  tags: 
+    - agw
+    - setupInterface
 
-- import_tasks: user.yaml
+- name: Add user for AGW
+  ansible.builtin.import_tasks: 
+    file: user.yaml
   become: yes
-  tags: addUser
+  tags: 
+    - agw
+    - addUser
 
-- import_tasks: install-magma.yaml
+- name: Install Magma AGW
+  ansible.builtin.import_tasks: 
+    file: install-magma.yaml
   become: yes
-  tags: installMagma
+  tags: 
+    - agw
+    - installMagma
   
-- import_tasks: configure-magma.yaml
+- name: Configure Magma for a given orc8r
+  ansible.builtin.import_tasks: 
+    file: configure-magma.yaml
   become: yes
-  tags: configureMagma
+  tags: 
+    - agw
+    - configureMagma
 
-- import_tasks: config5g.yaml
+- name: Enable 5G for Magma AGW
+  ansible.builtin.import_tasks: 
+    file: config5g.yaml
   become: yes
-  tags: upgrade5gVersion
+  tags: 
+    - agw
+    - upgrade5gVersion
   when: magma_5g_upgrade
 

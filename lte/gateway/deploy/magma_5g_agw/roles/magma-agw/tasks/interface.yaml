@@ -7,6 +7,7 @@
   
 - name: Generate the Grub config file
   shell: grub-mkconfig -o /boot/grub/grub.cfg
+  changed_when: false
 
 - name: Register default network interface name
   debug: 
@@ -17,6 +18,7 @@
   find:  
     paths: /etc/netplan/
     patterns: "*.yaml"
+  changed_when: false
   register: netplanFile
 
 - name: Change the interface name
@@ -79,7 +81,14 @@
   when: configure_dhcp
 
 - name: Remove netplan packages
-  shell: apt-get --assume-yes purge nplan netplan.io
+  become: true
+  apt:
+    pkg: "{{ packages }}"
+    state: absent
+  vars:
+    packages:
+      - nplan 
+      - netplan.io
 
 - name: Add networking service to statrt during boot 
   ansible.builtin.service:
