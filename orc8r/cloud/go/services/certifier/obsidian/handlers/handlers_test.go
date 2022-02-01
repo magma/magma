@@ -28,9 +28,6 @@ func TestUserEndpoints(t *testing.T) {
 	addUserTokens := tests.GetHandlerByPathAndMethod(t, handlers, testManageUserTokens, obsidian.POST).HandlerFunc
 	login := tests.GetHandlerByPathAndMethod(t, handlers, testLogin, obsidian.POST).HandlerFunc
 
-	// TODO(christinewang5): is it possible to get the response from RunUnitTest?
-	// deleteUserTokens := tests.GetHandlerByPathAndMethod(t, handlers, testManageUserTokens, obsidian.DELETE).HandlerFunc
-
 	e := echo.New()
 
 	// Create user endpoints
@@ -93,24 +90,12 @@ func TestUserEndpoints(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Test token endpoints
-	writeAllResource := []*models.Resource{
+	writeAllResource := []*models.Policy{
 		{
-			Effect:       models.ResourceEffectALLOW,
-			Action:       models.ResourceActionWRITE,
-			ResourceType: models.ResourceResourceTypeURI,
-			Resource:     "**",
-		},
-		{
-			Effect:       models.ResourceEffectALLOW,
-			Action:       models.ResourceActionWRITE,
-			ResourceType: models.ResourceResourceTypeURI,
-			Resource:     "**",
-		},
-		{
-			Effect:       models.ResourceEffectALLOW,
-			Action:       models.ResourceActionWRITE,
-			ResourceType: models.ResourceResourceTypeURI,
-			Resource:     "**",
+			Effect:       models.PolicyEffectALLOW,
+			Action:       models.PolicyActionWRITE,
+			ResourceType: models.PolicyResourceTypeURI,
+			Path:         "**",
 		},
 	}
 	tc = tests.Test{

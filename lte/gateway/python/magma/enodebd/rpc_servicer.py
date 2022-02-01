@@ -26,21 +26,26 @@ from lte.protos.enodebd_pb2_grpc import (
     EnodebdServicer,
     add_EnodebdServicer_to_server,
 )
-from magma.common.rpc_utils import return_void
+from magma.common.rpc_utils import print_grpc, return_void
 from magma.enodebd.enodeb_status import (
     get_service_status,
     get_single_enb_status,
 )
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
+from orc8r.protos.common_pb2 import Void
 from orc8r.protos.service303_pb2 import ServiceStatus
 
 
 class EnodebdRpcServicer(EnodebdServicer):
     """ gRPC based server for enodebd """
 
-    def __init__(self, state_machine_manager: StateMachineManager) -> None:
+    def __init__(
+        self, state_machine_manager: StateMachineManager,
+        print_grpc_payload: bool = False,
+    ) -> None:
         self.state_machine_manager = state_machine_manager
+        self._print_grpc_payload = print_grpc_payload
 
     def add_to_server(self, server) -> None:
         """
@@ -65,6 +70,10 @@ class EnodebdRpcServicer(EnodebdServicer):
         We denote 'ParameterName' to be a standard string name for
         equivalent parameters between different data models
         """
+        print_grpc(
+            request, self._print_grpc_payload,
+            "GetParameter Request:",
+        )
         # Get the parameter value information
         parameter_path = request.parameter_name
         handler = self._get_handler(request.device_serial)
@@ -76,6 +85,10 @@ class EnodebdRpcServicer(EnodebdServicer):
         get_parameter_values_response = GetParameterResponse()
         get_parameter_values_response.parameters.add(
             name=parameter_path, value=param_value,
+        )
+        print_grpc(
+            get_parameter_values_response, self._print_grpc_payload,
+            "GetParameter Response:",
         )
         return get_parameter_values_response
 
@@ -90,6 +103,10 @@ class EnodebdRpcServicer(EnodebdServicer):
         We denote 'ParameterName' to be a standard string name for
         equivalent parameters between different data models
         """
+        print_grpc(
+            request, self._print_grpc_payload,
+            "SetParameter Request:",
+        )
         # Parse the request
         if request.HasField('value_int'):
             value = (request.value_int, 'int')
@@ -115,12 +132,20 @@ class EnodebdRpcServicer(EnodebdServicer):
     @return_void
     def Reboot(self, request: EnodebIdentity, context=None) -> None:
         """ Reboot eNodeB """
+        print_grpc(
+            request, self._print_grpc_payload,
+            "Reboot Request:",
+        )
         handler = self._get_handler(request.device_serial)
         handler.reboot_asap()
 
     @return_void
     def RebootAll(self, _=None, context=None) -> None:
         """ Reboot all connected eNodeB devices """
+        print_grpc(
+            Void(), self._print_grpc_payload,
+            "RebootAll Request:",
+        )
         serial_list = self.state_machine_manager.get_connected_serial_id_list()
         for enb_serial in serial_list:
             handler = self._get_handler(enb_serial)
@@ -132,12 +157,24 @@ class EnodebdRpcServicer(EnodebdServicer):
         Note: input variable defaults used so this can be either called locally
         or as an RPC.
         """
+        print_grpc(
+            Void(), self._print_grpc_payload,
+            "GetStatus Request:",
+        )
         status = dict(get_service_status(self.state_machine_manager))
         status_message = ServiceStatus()
         status_message.meta.update(status)
+        print_grpc(
+            status_message, self._print_grpc_payload,
+            "GetStatus Response:",
+        )
         return status_message
 
     def GetAllEnodebStatus(self, _=None, context=None) -> AllEnodebStatus:
+        print_grpc(
+            Void(), self._print_grpc_payload,
+            "GetAllEnodebStatus Request:",
+        )
         all_enb_status = AllEnodebStatus()
         serial_list = self.state_machine_manager.get_connected_serial_id_list()
         for enb_serial in serial_list:
@@ -160,7 +197,10 @@ class EnodebdRpcServicer(EnodebdServicer):
                 gps_latitude=enb_status.gps_latitude,
                 fsm_state=enb_status.fsm_state,
             )
-
+        print_grpc(
+            all_enb_status, self._print_grpc_payload,
+            "GetAllEnodebStatus Response:",
+        )
         return all_enb_status
 
     def GetEnodebStatus(
@@ -168,7 +208,16 @@ class EnodebdRpcServicer(EnodebdServicer):
         request: EnodebIdentity,
         _context=None,
     ) -> SingleEnodebStatus:
-        return get_single_enb_status(
+        print_grpc(
+            request, self._print_grpc_payload,
+            "GetEnodebStatus Request:",
+        )
+        response = get_single_enb_status(
             request.device_serial,
             self.state_machine_manager,
         )
+        print_grpc(
+            response, self._print_grpc_payload,
+            "GetEnodebStatus Response:",
+        )
+        return response

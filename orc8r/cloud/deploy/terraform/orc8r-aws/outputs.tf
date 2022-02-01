@@ -102,3 +102,13 @@ output "external_dns_role_arn" {
   description = "IAM role ARN for external-dns"
   value       = aws_iam_role.external_dns.arn
 }
+
+output "setup_cert_manager" {
+  description = "Create IAM role and policy for cert-manager."
+  value       = var.setup_cert_manager
+}
+
+output "cert_manager_route53_iam_role_arn" {
+  description = "IAM role ARN for cert-manager."
+  value       = var.setup_cert_manager ? aws_iam_role.cert_manager_route53_iam_role.0.arn : null
+}

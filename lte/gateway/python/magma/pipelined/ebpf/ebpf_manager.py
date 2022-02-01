@@ -24,8 +24,10 @@ from threading import Thread
 
 import netifaces
 from bcc import BPF
+from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.mobilityd_client import get_mobilityd_gw_info
 from pyroute2 import IPDB, IPRoute, NetlinkError, NetNS, NSPopen
+from scapy.layers.inet6 import getmacbyip6
 from scapy.layers.l2 import getmacbyip
 
 LOG = logging.getLogger("pipelined.ebpf")
@@ -51,9 +53,10 @@ def get_ebpf_manager(config):
         enabled = False
     gw_info = get_mobilityd_gw_info()
     for gw in gw_info:
+        if gw.ip.version != IPAddress.IPV4:
+            continue
         if gw.vlan in {"NO_VLAN", ""}:
-            gw_ip_str = socket.inet_ntoa(gw.ip.address)
-            bpf_man = ebpf_manager(config['nat_iface'], config['enodeb_iface'], gw_ip_str, enabled)
+            bpf_man = ebpf_manager(config['nat_iface'], config['enodeb_iface'], gw.ip, enabled)
             if enabled:
                 # TODO: For Development purpose dettch and attach latest eBPF code.
                 # Remove this for production deployment
@@ -79,7 +82,7 @@ def get_ebpf_manager(config):
 
 
 class ebpf_manager:
-    def __init__(self, sgi_if_name: str, s1_if_name: str, gw_ip: str, enabled=True, bpf_ul_file: str = BPF_UL_FILE, bpf_dl_file: str = BPF_DL_FILE):
+    def __init__(self, sgi_if_name: str, s1_if_name: str, gw_ip: IPAddress, enabled=True, bpf_ul_file: str = BPF_UL_FILE, bpf_dl_file: str = BPF_DL_FILE):
 
         self.b_ul = BPF(src_file=bpf_ul_file, cflags=[''])
         self.b_dl = BPF(src_file=bpf_dl_file, cflags=[''])
@@ -91,9 +94,13 @@ class ebpf_manager:
         self.sgi_if_name = sgi_if_name
         self.s1_if_name = s1_if_name
         self.ul_src_mac = self._get_mac_address(sgi_if_name)
-        self.ul_gw_mac = self._get_mac_address_of_ip(gw_ip)
         self.sgi_if_index = self._get_ifindex(self.sgi_if_name)
-        self.enabled = enabled
+        self.ul_gw_mac = self._get_mac_address_of_ip(gw_ip)
+
+        if self.ul_gw_mac is None:
+            self.enabled = False
+        else:
+            self.enabled = enabled
 
     """Attach eBPF Uplink traffic handler
     """
@@ -293,9 +300,18 @@ class ebpf_manager:
         LOG.debug("if-name: %s, mac: %s" % (if_name, addr_str))
         return self._pack_mac_addr(addr_str)
 
-    def _get_mac_address_of_ip(self, ip_addr: str):
-        addr_str = getmacbyip(ip_addr)
-        LOG.debug("IP: %s, mac: %s" % (ip_addr, addr_str))
+    def _get_mac_address_of_ip(self, ip_addr: IPAddress):
+        if ip_addr.version == IPAddress.IPV4:
+            ip_str = socket.inet_ntop(socket.AF_INET, ip_addr.address)
+            addr_str = getmacbyip(ip_str)
+        else:
+            ip_str = socket.inet_ntop(socket.AF_INET6, ip_addr.address)
+            addr_str = getmacbyip6(ip_str)
+        if not addr_str:
+            LOG.error("Coudn't find mac for IP: %s, disabling ebpf" % (ip_str))
+            return None
+        LOG.debug("IP: %s, mac: %s" % (ip_str, addr_str))
+
         return self._pack_mac_addr(addr_str)
 
     def _pack_ip(self, ip_str: str):
@@ -317,7 +333,8 @@ class ebpf_manager:
 
 # for debugging
 if __name__ == "__main__":
-    bm = ebpf_manager("sgi0", "enb0", "10.0.2.2", bpf_ul_file=BPF_UL_FILE, bpf_dl_file=BPF_DL_FILE, enabled=True)
+    gw_ip = IPAddress(version=IPAddress.IPV4, address=socket.inet_aton("10.0.2.2"))
+    bm = ebpf_manager("sgi0", "enb0", gw_ip, bpf_ul_file=BPF_UL_FILE, bpf_dl_file=BPF_DL_FILE, enabled=True)
 
     bm.detach_ul_ebpf()
     bm.attach_ul_ebpf()

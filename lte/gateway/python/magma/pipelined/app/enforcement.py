@@ -26,7 +26,6 @@ from magma.pipelined.policy_converters import (
     get_eth_type,
     get_ue_ip_match_args,
 )
-from magma.pipelined.qos.common import QosManager
 from magma.pipelined.qos.qos_meter_impl import MeterManager
 from magma.pipelined.redirect import RedirectException, RedirectionManager
 from magma.pipelined.utils import Utils
@@ -70,7 +69,7 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
             self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
         self._bridge_ip_address = kwargs['config']['bridge_ip_address']
         self._redirect_manager = None
-        self._qos_mgr = None
+        self._qos_mgr = kwargs['qos_manager']
         self._clean_restart = kwargs['config']['clean_restart']
         self._redirect_manager = RedirectionManager(
             self._bridge_ip_address,
@@ -90,7 +89,7 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
             datapath: ryu datapath struct
         """
         self._datapath = datapath
-        self._qos_mgr = QosManager.get_qos_manager(datapath, self.loop, self._config)
+        self._qos_mgr.init_impl(datapath)
 
     def cleanup_on_disconnect(self, datapath):
         """

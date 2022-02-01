@@ -24,7 +24,9 @@ using namespace std;
 using namespace magma::lte;
 using namespace magma::lte::oai;
 
+using magma::lte::oai::GnbDescription;
 using magma::lte::oai::Ngap_UeDescription;
+using magma::lte::oai::NgapImsiMap;
 using magma::lte::oai::NgapState;
 
 namespace magma5g {
@@ -83,7 +85,7 @@ void NgapStateConverter::proto_to_state(
 }
 
 void NgapStateConverter::gnb_to_proto(
-    gnb_description_t* gnb, oai::GnbDescription* proto) {
+    gnb_description_t* gnb, GnbDescription* proto) {
   proto->Clear();
 
   proto->set_gnb_id(gnb->gnb_id);
@@ -103,7 +105,7 @@ void NgapStateConverter::gnb_to_proto(
 }
 
 void NgapStateConverter::proto_to_gnb(
-    const oai::GnbDescription& proto, gnb_description_t* gnb) {
+    const GnbDescription& proto, gnb_description_t* gnb) {
   memset(gnb, 0, sizeof(*gnb));
 
   gnb->gnb_id   = proto.gnb_id();
@@ -140,7 +142,7 @@ void NgapStateConverter::proto_to_gnb(
       &gnb->supported_ta_list, proto.supported_ta_list());
 }
 void NgapStateConverter::ue_to_proto(
-    const m5g_ue_description_t* ue, oai::Ngap_UeDescription* proto) {
+    const m5g_ue_description_t* ue, Ngap_UeDescription* proto) {
   proto->Clear();
 
   proto->set_ng_ue_state(ue->ng_ue_state);
@@ -155,7 +157,7 @@ void NgapStateConverter::ue_to_proto(
       ue->ngap_ue_context_rel_timer.msec);
 }
 void NgapStateConverter::proto_to_ue(
-    const oai::Ngap_UeDescription& proto, m5g_ue_description_t* ue) {
+    const Ngap_UeDescription& proto, m5g_ue_description_t* ue) {
   memset(ue, 0, sizeof(*ue));
 
   ue->ng_ue_state                    = (ng_ue_state_s) proto.ng_ue_state();
@@ -166,16 +168,19 @@ void NgapStateConverter::proto_to_ue(
   ue->sctp_stream_send               = proto.sctp_stream_send();
   ue->ngap_ue_context_rel_timer.id   = proto.ngap_ue_context_rel_timer().id();
   ue->ngap_ue_context_rel_timer.msec = proto.ngap_ue_context_rel_timer().msec();
+
+  ue->comp_ngap_id =
+      ngap_get_comp_ngap_id(ue->sctp_assoc_id, ue->gnb_ue_ngap_id);
 }
 
 void NgapStateConverter::ngap_imsi_map_to_proto(
-    const ngap_imsi_map_t* ngap_imsi_map, oai::NgapImsiMap* ngap_imsi_proto) {
+    const ngap_imsi_map_t* ngap_imsi_map, NgapImsiMap* ngap_imsi_proto) {
   hashtable_uint64_ts_to_proto(
       ngap_imsi_map->amf_ue_id_imsi_htbl,
       ngap_imsi_proto->mutable_amf_ue_id_imsi_map());
 }
 void NgapStateConverter::proto_to_ngap_imsi_map(
-    const oai::NgapImsiMap& ngap_imsi_proto, ngap_imsi_map_t* ngap_imsi_map) {
+    const NgapImsiMap& ngap_imsi_proto, ngap_imsi_map_t* ngap_imsi_map) {
   proto_to_hashtable_uint64_ts(
       ngap_imsi_proto.amf_ue_id_imsi_map(), ngap_imsi_map->amf_ue_id_imsi_htbl);
 }

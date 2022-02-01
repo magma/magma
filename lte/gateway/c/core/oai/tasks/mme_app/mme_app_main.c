@@ -412,6 +412,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
        */
       nas_proc_authentication_info_answer(
           mme_app_desc_p, &S6A_AUTH_INFO_ANS(received_message_p));
+      force_ue_write = true;
     } break;
 
     case MME_APP_DOWNLINK_DATA_CNF: {

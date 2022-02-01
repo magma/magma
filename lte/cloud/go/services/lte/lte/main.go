@@ -22,6 +22,7 @@ import (
 	"magma/lte/cloud/go/services/lte/obsidian/handlers"
 	lte_protos "magma/lte/cloud/go/services/lte/protos"
 	"magma/lte/cloud/go/services/lte/servicers"
+	protected_servicers "magma/lte/cloud/go/services/lte/servicers/protected"
 	lte_storage "magma/lte/cloud/go/services/lte/storage"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/swagger"
@@ -64,7 +65,7 @@ func main() {
 	if err := enbStateStore.Initialize(); err != nil {
 		glog.Fatalf("Error initializing enodeb state lookup storage: %v", err)
 	}
-	lte_protos.RegisterEnodebStateLookupServer(srv.GrpcServer, servicers.NewLookupServicer(enbStateStore))
+	lte_protos.RegisterEnodebStateLookupServer(srv.GrpcServer, protected_servicers.NewLookupServicer(enbStateStore))
 
 	// Initialize analytics
 	// userStateExpr is a metric which enables us to compute the number of active users using the network
