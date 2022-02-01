@@ -22,6 +22,7 @@ py_library(
         "service_configs.py",
     ],
     deps = [
+        "//lte/protos:mconfigs_python_proto",
         "//orc8r/protos:mconfigs_python_proto",
         requirement("pyyaml"),
     ],
