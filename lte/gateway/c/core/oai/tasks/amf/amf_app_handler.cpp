@@ -64,7 +64,8 @@ void amf_ue_context_update_coll_keys(
       ue_context_p->amf_context.imsi64,
       GUTI_ARG_M5G(&ue_context_p->amf_context._guti));
 
-  if ((gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY)) {
+  if ((gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY) &&
+      (ue_context_p->gnb_ngap_id_key != gnb_ngap_id_key)) {
     m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.remove(
         ue_context_p->gnb_ngap_id_key);
     m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.insert(
@@ -83,28 +84,28 @@ void amf_ue_context_update_coll_keys(
   }
 
   if (amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
-    m_rc = amf_state_ue_id_ht->remove(ue_context_p->amf_ue_ngap_id);
-    m_rc = amf_state_ue_id_ht->insert(amf_ue_ngap_id, ue_context_p);
+    if (ue_context_p->amf_ue_ngap_id != amf_ue_ngap_id) {
+      m_rc = amf_state_ue_id_ht->remove(ue_context_p->amf_ue_ngap_id);
+      m_rc = amf_state_ue_id_ht->insert(amf_ue_ngap_id, ue_context_p);
 
-    if (m_rc != magma::MAP_OK) {
-      OAILOG_ERROR(
-          LOG_AMF_APP,
-          "Insertion of Hash entry failed for  "
-          "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
-          amf_ue_ngap_id);
+      if (m_rc != magma::MAP_OK) {
+        OAILOG_ERROR(
+            LOG_AMF_APP,
+            "Insertion of Hash entry failed for  "
+            "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
+            amf_ue_ngap_id);
+      }
+      ue_context_p->amf_ue_ngap_id = amf_ue_ngap_id;
     }
-
-    ue_context_p->amf_ue_ngap_id = amf_ue_ngap_id;
   } else {
     OAILOG_ERROR(
         LOG_AMF_APP, "Invalid  amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
         amf_ue_ngap_id);
   }
 
-  m_rc = amf_ue_context_p->imsi_amf_ue_id_htbl.remove(
-      ue_context_p->amf_context.imsi64);
-
-  if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
+  if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id && imsi != 0) {
+    m_rc = amf_ue_context_p->imsi_amf_ue_id_htbl.remove(
+        ue_context_p->amf_context.imsi64);
     m_rc = amf_ue_context_p->imsi_amf_ue_id_htbl.insert(imsi, amf_ue_ngap_id);
   } else {
     OAILOG_ERROR(
@@ -131,20 +132,25 @@ void amf_ue_context_update_coll_keys(
   ue_context_p->amf_teid_n11 = amf_teid_n11;
 
   if (guti_p) {
-    if ((guti_p->guamfi.amf_set_id !=
-         ue_context_p->amf_context.m5_guti.guamfi.amf_set_id) ||
-        (guti_p->guamfi.amf_regionid !=
-         ue_context_p->amf_context.m5_guti.guamfi.amf_regionid) ||
-        (guti_p->m_tmsi != ue_context_p->amf_context.m5_guti.m_tmsi) ||
-        (guti_p->guamfi.plmn.mcc_digit1 !=
-         ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit1) ||
-        (guti_p->guamfi.plmn.mcc_digit2 !=
-         ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||
-        (guti_p->guamfi.plmn.mcc_digit3 !=
-         ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3) ||
-        (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID)) {
-      m_rc = amf_ue_context_p->guti_ue_context_htbl.remove(*guti_p);
+    if (((guti_p->guamfi.amf_set_id !=
+          ue_context_p->amf_context.m5_guti.guamfi.amf_set_id) ||
+         (guti_p->guamfi.amf_regionid !=
+          ue_context_p->amf_context.m5_guti.guamfi.amf_regionid) ||
+         (guti_p->m_tmsi != ue_context_p->amf_context.m5_guti.m_tmsi) ||
+         (guti_p->guamfi.plmn.mcc_digit1 !=
+          ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit1) ||
+         (guti_p->guamfi.plmn.mcc_digit2 !=
+          ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||
+         (guti_p->guamfi.plmn.mcc_digit3 !=
+          ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3)) ||
+        (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) &&
+            ((guti_p->guamfi.amf_set_id != 0) &&
+             (guti_p->guamfi.amf_regionid != 0) && (guti_p->m_tmsi != 0) &&
+             (guti_p->guamfi.plmn.mcc_digit1 != 0) &&
+             (guti_p->guamfi.plmn.mcc_digit2 != 0) &&
+             (guti_p->guamfi.plmn.mcc_digit3 != 0))) {
       if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
+        m_rc = amf_ue_context_p->guti_ue_context_htbl.remove(*guti_p);
         m_rc = amf_ue_context_p->guti_ue_context_htbl.insert(
             *guti_p, amf_ue_ngap_id);
       } else {
@@ -429,10 +435,10 @@ imsi64_t amf_app_handle_initial_ue_message(
     }
 
     // Allocate new amf_ue_ngap_id
-    ue_context_p->amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
+    amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
         &amf_app_desc_p->amf_app_ue_ngap_id_generator);
 
-    if (ue_context_p->amf_ue_ngap_id == INVALID_AMF_UE_NGAP_ID) {
+    if (amf_ue_ngap_id == INVALID_AMF_UE_NGAP_ID) {
       OAILOG_ERROR(LOG_AMF_APP, "amf_ue_ngap_id allocation failed.\n");
       amf_remove_ue_context(ue_context_p);
       OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
@@ -445,8 +451,12 @@ imsi64_t amf_app_handle_initial_ue_message(
         ue_context_p, ue_context_p->amf_ue_ngap_id);
 
     AMF_APP_GNB_NGAP_ID_KEY(
-        ue_context_p->gnb_ngap_id_key, initial_pP->gnb_id,
-        initial_pP->gnb_ue_ngap_id);
+        gnb_ngap_id_key, initial_pP->gnb_id, initial_pP->gnb_ue_ngap_id);
+
+    amf_ue_context_update_coll_keys(
+        &amf_app_desc_p->amf_ue_contexts, ue_context_p, gnb_ngap_id_key,
+        amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
+        ue_context_p->amf_teid_n11, &guti);
     amf_insert_ue_context(ue_context_p->amf_ue_ngap_id, ue_context_p);
   }
   ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;

@@ -109,9 +109,6 @@ class AmfNasStateManager : public magma::lte::StateManager<
   void put_amf_ue_state(
       amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64, bool force_ue_write);
 
-  bool get_amf_ue_id_from_imsi(
-      amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64, amf_ue_ngap_id_t* ue_id);
-
   void clear_db_state();
 
   /**

@@ -827,5 +827,4 @@ void AmfNasStateConverter::proto_to_smf_context(
       smf_context_proto.qos_flow_list(),
       &state_smf_context->subscribed_qos_profile.qos_flow_req_item);
 }
-
 }  // namespace magma5g

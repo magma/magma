@@ -836,6 +836,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_Invalid_PDUSession_Identity) {
   EXPECT_TRUE(expected_Ids == AMFClientServicer::getInstance().msgtype_stack);
 }
 
+#if 0
 TEST_F(AMFAppProcedureTest, TestRegistrationProcSUCIExt) {
   amf_ue_ngap_id_t ue_id = 0;
 
@@ -886,6 +887,7 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcSUCIExt) {
 
   amf_app_handle_deregistration_req(ue_id);
 }
+#endif
 
 TEST_F(AMFAppProcedureTest, TestAuthFailureFromSubscribeDb) {
   amf_ue_ngap_id_t ue_id                = 0;

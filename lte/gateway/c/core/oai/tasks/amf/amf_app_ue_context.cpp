@@ -477,4 +477,17 @@ void amf_sync_app_maps_from_db() {
     amf_supi_guti_map[it.second->amf_context.imsi64] = guti_and_amf_id;
   }
 }
+
+/* Get the ue id from IMSI */
+bool get_amf_ue_id_from_imsi(
+    amf_ue_context_t* amf_ue_context_p, imsi64_t imsi64,
+    amf_ue_ngap_id_t* ue_id) {
+  magma::map_rc_t rc_map = magma::MAP_OK;
+  rc_map = amf_ue_context_p->imsi_amf_ue_id_htbl.get(imsi64, ue_id);
+  if (rc_map != magma::MAP_OK) {
+    return (false);
+  }
+  return true;
+}
+
 }  // namespace magma5g

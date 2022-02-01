@@ -115,6 +115,7 @@ int AmfNasStateManager::initialize_state(const amf_config_t* amf_config_p) {
 #if MME_UNIT_TEST
   read_state_from_db();
   read_ue_state_from_db();
+  // TODO(panyogesh): This should be removed as part of fixing global tables
   amf_sync_app_maps_from_db();
 #endif
   is_initialized = true;
@@ -169,6 +170,7 @@ amf_app_desc_t* AmfNasStateManager::get_state(bool read_from_redis) {
   if (persist_state_enabled && read_from_redis) {
     read_state_from_db();
     read_ue_state_from_db();
+    // TODO(panyogesh): This should be removed as part of fixing global tables
     amf_sync_app_maps_from_db();
   }
   return state_cache_p;
@@ -176,18 +178,6 @@ amf_app_desc_t* AmfNasStateManager::get_state(bool read_from_redis) {
 
 map_uint64_ue_context_t* AmfNasStateManager::get_ue_state_map() {
   return &state_ue_map;
-}
-
-/* Get the ue id from IMSI */
-bool get_amf_ue_id_from_imsi(
-    amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64, amf_ue_ngap_id_t* ue_id) {
-  amf_ue_context_t* amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
-  magma::map_rc_t rc_map             = magma::MAP_OK;
-  rc_map = amf_ue_context_p->imsi_amf_ue_id_htbl.get(imsi64, ue_id);
-  if (rc_map != magma::MAP_OK) {
-    return (false);
-  }
-  return true;
 }
 
 // This is a helper function for debugging. If the state manager needs to clear
@@ -205,22 +195,21 @@ void AmfNasStateManager::clear_db_state() {
 
 void put_amf_ue_state(
     amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64, bool force_ue_write) {
-  if (AmfNasStateManager::getInstance().is_persist_state_enabled()) {
-    if (imsi64 != INVALID_IMSI64) {
-      ue_m5gmm_context_t* ue_context_p = nullptr;
-      amf_ue_ngap_id_t ue_id;
-      get_amf_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id);
-      ue_context_p =
-          amf_ue_context_exists_amf_ue_ngap_id((amf_ue_ngap_id_t) ue_id);
-      // Only write MME UE state to redis if force flag is set or UE is in EMM
-      // Registered state
-      if ((ue_context_p && force_ue_write) ||
-          (ue_context_p && ue_context_p->mm_state == REGISTERED_CONNECTED)) {
-        auto imsi_str = AmfNasStateManager::getInstance().get_imsi_str(imsi64);
-        AmfNasStateManager::getInstance().write_ue_state_to_db(
-            ue_context_p, imsi_str);
-      }
-    }
+  if ((!AmfNasStateManager::getInstance().is_persist_state_enabled()) ||
+      (imsi64 == INVALID_IMSI64)) {
+    return;
+  }
+  ue_m5gmm_context_t* ue_context_p = nullptr;
+  amf_ue_ngap_id_t ue_id;
+  get_amf_ue_id_from_imsi(&amf_app_desc_p->amf_ue_contexts, imsi64, &ue_id);
+  ue_context_p = amf_ue_context_exists_amf_ue_ngap_id((amf_ue_ngap_id_t) ue_id);
+  // Only write MME UE state to redis if force flag is set or UE is in EMM
+  // Registered state
+  if ((ue_context_p && force_ue_write) ||
+      (ue_context_p && ue_context_p->mm_state == REGISTERED_CONNECTED)) {
+    auto imsi_str = AmfNasStateManager::getInstance().get_imsi_str(imsi64);
+    AmfNasStateManager::getInstance().write_ue_state_to_db(
+        ue_context_p, imsi_str);
   }
 }
 
@@ -259,21 +248,19 @@ void AmfNasStateManager::write_ue_state_to_db(
 status_code_e AmfNasStateManager::read_ue_state_from_db() {
 #if !MME_UNIT_TEST
   /* Data store is Redis db. In this case actual call is made to Redis db */
-  // StateManager::read_ue_state_from_db();
   if (!persist_state_enabled) {
     return RETURNok;
   }
   auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
   for (const auto& key : keys) {
     magma::lte::oai::UeContext ue_proto = magma::lte::oai::UeContext();
-    ue_m5gmm_context_t* ue_context_p    = new ue_m5gmm_context_t();
     if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
       return RETURNerror;
     }
 
     // Update each UE state version from redis
-    this->ue_state_version[key] = redis_client->read_version(table_key);
-
+    this->ue_state_version[key]      = redis_client->read_version(table_key);
+    ue_m5gmm_context_t* ue_context_p = new ue_m5gmm_context_t();
     AmfNasStateConverter::proto_to_ue(ue_proto, ue_context_p);
     state_ue_map.insert(ue_context_p->amf_ue_ngap_id, ue_context_p);
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());

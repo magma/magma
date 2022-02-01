@@ -206,22 +206,22 @@ TEST(TestAMFStateConverter, TestAmfContextStateToProto) {
   magma::lte::oai::EmmContext emm_context_proto = magma::lte::oai::EmmContext();
 
   amf_ctx1.imsi64             = 222456000000101;
-  amf_ctx1.imsi.u.num.digit1  = 3;
-  amf_ctx1.imsi.u.num.digit2  = 1;
-  amf_ctx1.imsi.u.num.digit3  = 0;
-  amf_ctx1.imsi.u.num.digit4  = 1;
+  amf_ctx1.imsi.u.num.digit1  = 2;
+  amf_ctx1.imsi.u.num.digit2  = 2;
+  amf_ctx1.imsi.u.num.digit3  = 2;
+  amf_ctx1.imsi.u.num.digit4  = 4;
   amf_ctx1.imsi.u.num.digit5  = 5;
-  amf_ctx1.imsi.u.num.digit6  = 0;
-  amf_ctx1.imsi.u.num.digit7  = 1;
-  amf_ctx1.imsi.u.num.digit8  = 2;
-  amf_ctx1.imsi.u.num.digit9  = 3;
-  amf_ctx1.imsi.u.num.digit10 = 4;
-  amf_ctx1.imsi.u.num.digit11 = 5;
-  amf_ctx1.imsi.u.num.digit12 = 6;
-  amf_ctx1.imsi.u.num.digit13 = 7;
-  amf_ctx1.imsi.u.num.digit14 = 8;
-  amf_ctx1.imsi.u.num.digit15 = 9;
-  amf_ctx1.saved_imsi64       = 310150123456789;
+  amf_ctx1.imsi.u.num.digit6  = 6;
+  amf_ctx1.imsi.u.num.digit7  = 0;
+  amf_ctx1.imsi.u.num.digit8  = 0;
+  amf_ctx1.imsi.u.num.digit9  = 0;
+  amf_ctx1.imsi.u.num.digit10 = 0;
+  amf_ctx1.imsi.u.num.digit11 = 0;
+  amf_ctx1.imsi.u.num.digit12 = 0;
+  amf_ctx1.imsi.u.num.digit13 = 1;
+  amf_ctx1.imsi.u.num.digit14 = 0;
+  amf_ctx1.imsi.u.num.digit15 = 1;
+  amf_ctx1.saved_imsi64       = 222456000000101;
 
   // imei
   amf_ctx1.imei.length       = 10;
@@ -667,22 +667,12 @@ class AMFAppStatelessTest : public ::testing::Test {
     AMFClientServicer::getInstance().map_imsi_ue_proto_str.clear();
   }
 
-  // This Function mocks mme restart.
+  // This Function mocks AMF task restart.
   void pseudo_amf_restart() {
-    vector<amf_ue_ngap_id_t> ue_id_vector;
-    for_each(ue_context_map.begin(), ue_context_map.end(), [&](auto& it) {
-      ue_id_vector.push_back(it.first);
-    });
-    for (auto& ue_id : ue_id_vector) {
-      ue_m5gmm_context_t* ue_context_p =
-          amf_ue_context_exists_amf_ue_ngap_id((amf_ue_ngap_id_t) ue_id);
-      if (ue_context_p) {
-        // Clean up the procedures
-        amf_nas_proc_clean_up(ue_context_p);
-        delete ue_context_p;
-      }
+    for (auto it = ue_context_map.begin(); it != ue_context_map.end();) {
+      delete it->second;
+      it = ue_context_map.erase(it);
     }
-    ue_context_map.clear();
     amf_supi_guti_map.clear();
     clear_amf_nas_state();
     clear_amf_config(&amf_config);
