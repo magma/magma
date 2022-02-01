@@ -39,6 +39,7 @@ MODULES = [
     'feg',
     'cwf',
     'fbinternal',
+    'dp',
 ]
 
 DEPLOYMENT_TO_MODULES = {

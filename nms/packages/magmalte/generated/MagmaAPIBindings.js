@@ -147,6 +147,12 @@ export type call_trace_state = {
     call_trace_available ? : boolean,
     call_trace_ending ? : boolean,
 };
+export type capabilities = {
+    antenna_gain: number,
+    max_power: number,
+    min_power: number,
+    number_of_antennas: number,
+};
 export type carrier_wifi_gateway_health_status = {
     description: string,
     status: "HEALTHY" | "UNHEALTHY",
@@ -158,6 +164,17 @@ export type carrier_wifi_ha_pair_state = {
 };
 export type carrier_wifi_ha_pair_status = {
     active_gateway: string,
+};
+export type cbsd = {
+    capabilities: capabilities,
+    cbsd_id ? : string,
+    fcc_id: string,
+    grant ? : grant,
+    id ? : number,
+    is_active ? : boolean,
+    serial_number: string,
+    state ? : "unregistered" | "registered",
+    user_id: string,
 };
 export type cellular_gateway_pool = {
     config: cellular_gateway_pool_configs,
@@ -636,6 +653,14 @@ export type gettable_alert_silencer = {
     id: string,
     status: alert_silence_status,
     updatedAt: string,
+};
+export type grant = {
+    bandwidth_mhz ? : number,
+    frequency_mhz ? : number,
+    grant_expire_time ? : string,
+    max_eirp ? : number,
+    state ? : "granted" | "guthorized",
+    transmit_expire_time ? : string,
 };
 export type gx = {
     disableGx ? : boolean,
@@ -2955,6 +2980,138 @@ export default class MagmaAPIBindings {
 
             return await this.request(path, 'GET', query, body);
         }
+    static async getDpByNetworkIdCbsds(
+            parameters: {
+                'networkId': string,
+                'offset' ? : number,
+                'limit' ? : number,
+            }
+        ): Promise < Array < cbsd >
+        >
+        {
+            let path = '/dp/{network_id}/cbsds';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['offset'] !== undefined) {
+                query['offset'] = parameters['offset'];
+            }
+
+            if (parameters['limit'] !== undefined) {
+                query['limit'] = parameters['limit'];
+            }
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postDpByNetworkIdCbsds(
+        parameters: {
+            'networkId': string,
+            'cbsd': cbsd,
+        }
+    ): Promise < "Success" > {
+        let path = '/dp/{network_id}/cbsds';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['cbsd'] === undefined) {
+            throw new Error('Missing required  parameter: cbsd');
+        }
+
+        if (parameters['cbsd'] !== undefined) {
+            body = parameters['cbsd'];
+        }
+
+        return await this.request(path, 'POST', query, body);
+    }
+    static async deleteDpByNetworkIdCbsdsByCbsdId(
+        parameters: {
+            'networkId': string,
+            'cbsdId': number,
+        }
+    ): Promise < "Success" > {
+        let path = '/dp/{network_id}/cbsds/{cbsd_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['cbsdId'] === undefined) {
+            throw new Error('Missing required  parameter: cbsdId');
+        }
+
+        path = path.replace('{cbsd_id}', `${parameters['cbsdId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getDpByNetworkIdCbsdsByCbsdId(
+            parameters: {
+                'networkId': string,
+                'cbsdId': number,
+            }
+        ): Promise < cbsd >
+        {
+            let path = '/dp/{network_id}/cbsds/{cbsd_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['cbsdId'] === undefined) {
+                throw new Error('Missing required  parameter: cbsdId');
+            }
+
+            path = path.replace('{cbsd_id}', `${parameters['cbsdId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putDpByNetworkIdCbsdsByCbsdId(
+        parameters: {
+            'networkId': string,
+            'cbsdId': number,
+            'cbsd': cbsd,
+        }
+    ): Promise < "Success" > {
+        let path = '/dp/{network_id}/cbsds/{cbsd_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['cbsdId'] === undefined) {
+            throw new Error('Missing required  parameter: cbsdId');
+        }
+
+        path = path.replace('{cbsd_id}', `${parameters['cbsdId']}`);
+
+        if (parameters['cbsd'] === undefined) {
+            throw new Error('Missing required  parameter: cbsd');
+        }
+
+        if (parameters['cbsd'] !== undefined) {
+            body = parameters['cbsd'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
     static async getEventsByNetworkId(
             parameters: {
                 'networkId': string,
