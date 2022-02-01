@@ -20,9 +20,9 @@ import (
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 
-	"magma/orc8r/cloud/go/services/directoryd/protos"
+	directoryd_protos "magma/orc8r/cloud/go/services/directoryd/protos"
 	"magma/orc8r/cloud/go/services/directoryd/storage"
-	lib_protos "magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/protos"
 )
 
 type directoryLookupServicer struct {
@@ -30,7 +30,7 @@ type directoryLookupServicer struct {
 	sgwCteidGen *IdGenerator
 }
 
-func NewDirectoryLookupServicer(store storage.DirectorydStorage) (protos.DirectoryLookupServer, error) {
+func NewDirectoryLookupServicer(store storage.DirectorydStorage) (directoryd_protos.DirectoryLookupServer, error) {
 	srv := &directoryLookupServicer{
 		store:       store,
 		sgwCteidGen: NewIdGenerator(),
@@ -39,20 +39,20 @@ func NewDirectoryLookupServicer(store storage.DirectorydStorage) (protos.Directo
 }
 
 func (d *directoryLookupServicer) GetHostnameForHWID(
-	ctx context.Context, req *protos.GetHostnameForHWIDRequest,
-) (*protos.GetHostnameForHWIDResponse, error) {
+	ctx context.Context, req *directoryd_protos.GetHostnameForHWIDRequest,
+) (*directoryd_protos.GetHostnameForHWIDResponse, error) {
 	err := req.Validate()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate GetHostnameForHWIDRequest")
 	}
 
 	hostname, err := d.store.GetHostnameForHWID(req.Hwid)
-	res := &protos.GetHostnameForHWIDResponse{Hostname: hostname}
+	res := &directoryd_protos.GetHostnameForHWIDResponse{Hostname: hostname}
 
 	return res, err
 }
 
-func (d *directoryLookupServicer) MapHWIDsToHostnames(ctx context.Context, req *protos.MapHWIDToHostnameRequest) (*lib_protos.Void, error) {
+func (d *directoryLookupServicer) MapHWIDsToHostnames(ctx context.Context, req *directoryd_protos.MapHWIDToHostnameRequest) (*protos.Void, error) {
 	err := req.Validate()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate MapHWIDToHostnameRequest")
@@ -60,10 +60,10 @@ func (d *directoryLookupServicer) MapHWIDsToHostnames(ctx context.Context, req *
 
 	err = d.store.MapHWIDsToHostnames(req.HwidToHostname)
 
-	return &lib_protos.Void{}, err
+	return &protos.Void{}, err
 }
 
-func (d *directoryLookupServicer) UnmapHWIDsToHostnames(ctx context.Context, req *protos.UnmapHWIDToHostnameRequest) (*lib_protos.Void, error) {
+func (d *directoryLookupServicer) UnmapHWIDsToHostnames(ctx context.Context, req *directoryd_protos.UnmapHWIDToHostnameRequest) (*protos.Void, error) {
 	err := req.Validate()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate UnmapHWIDToHostnameRequest")
@@ -71,12 +71,12 @@ func (d *directoryLookupServicer) UnmapHWIDsToHostnames(ctx context.Context, req
 
 	err = d.store.UnmapHWIDsToHostnames(req.Hwids)
 
-	return &lib_protos.Void{}, err
+	return &protos.Void{}, err
 }
 
 func (d *directoryLookupServicer) GetIMSIForSessionID(
-	ctx context.Context, req *protos.GetIMSIForSessionIDRequest,
-) (*protos.GetIMSIForSessionIDResponse, error) {
+	ctx context.Context, req *directoryd_protos.GetIMSIForSessionIDRequest,
+) (*directoryd_protos.GetIMSIForSessionIDResponse, error) {
 	err := req.Validate()
 
 	if err != nil {
@@ -84,12 +84,12 @@ func (d *directoryLookupServicer) GetIMSIForSessionID(
 	}
 
 	imsi, err := d.store.GetIMSIForSessionID(req.NetworkID, req.SessionID)
-	res := &protos.GetIMSIForSessionIDResponse{Imsi: imsi}
+	res := &directoryd_protos.GetIMSIForSessionIDResponse{Imsi: imsi}
 
 	return res, err
 }
 
-func (d *directoryLookupServicer) MapSessionIDsToIMSIs(ctx context.Context, req *protos.MapSessionIDToIMSIRequest) (*lib_protos.Void, error) {
+func (d *directoryLookupServicer) MapSessionIDsToIMSIs(ctx context.Context, req *directoryd_protos.MapSessionIDToIMSIRequest) (*protos.Void, error) {
 	err := req.Validate()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate MapSessionIDToIMSIRequest")
@@ -97,10 +97,10 @@ func (d *directoryLookupServicer) MapSessionIDsToIMSIs(ctx context.Context, req 
 
 	err = d.store.MapSessionIDsToIMSIs(req.NetworkID, req.SessionIDToIMSI)
 
-	return &lib_protos.Void{}, err
+	return &protos.Void{}, err
 }
 
-func (d *directoryLookupServicer) UnmapSessionIDsToIMSIs(ctx context.Context, req *protos.UnmapSessionIDToIMSIRequest) (*lib_protos.Void, error) {
+func (d *directoryLookupServicer) UnmapSessionIDsToIMSIs(ctx context.Context, req *directoryd_protos.UnmapSessionIDToIMSIRequest) (*protos.Void, error) {
 	err := req.Validate()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate UnmapSessionIDToIMSIRequest")
@@ -108,10 +108,10 @@ func (d *directoryLookupServicer) UnmapSessionIDsToIMSIs(ctx context.Context, re
 
 	err = d.store.UnmapSessionIDsToIMSIs(req.NetworkID, req.SessionIDs)
 
-	return &lib_protos.Void{}, err
+	return &protos.Void{}, err
 }
 
-func (d *directoryLookupServicer) MapSgwCTeidToHWID(ctx context.Context, req *protos.MapSgwCTeidToHWIDRequest) (*lib_protos.Void, error) {
+func (d *directoryLookupServicer) MapSgwCTeidToHWID(ctx context.Context, req *directoryd_protos.MapSgwCTeidToHWIDRequest) (*protos.Void, error) {
 	err := req.Validate()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate MapSgwCTeidToHWIDRequest")
@@ -119,10 +119,10 @@ func (d *directoryLookupServicer) MapSgwCTeidToHWID(ctx context.Context, req *pr
 
 	err = d.store.MapSgwCTeidToHWID(req.NetworkID, req.TeidToHwid)
 
-	return &lib_protos.Void{}, err
+	return &protos.Void{}, err
 }
 
-func (d *directoryLookupServicer) UnmapSgwCTeidToHWID(ctx context.Context, req *protos.UnmapSgwCTeidToHWIDRequest) (*lib_protos.Void, error) {
+func (d *directoryLookupServicer) UnmapSgwCTeidToHWID(ctx context.Context, req *directoryd_protos.UnmapSgwCTeidToHWIDRequest) (*protos.Void, error) {
 	err := req.Validate()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate UnmapSgwCTeidToHWIDRequest")
@@ -130,24 +130,24 @@ func (d *directoryLookupServicer) UnmapSgwCTeidToHWID(ctx context.Context, req *
 
 	err = d.store.UnmapSgwCTeidToHWID(req.NetworkID, req.Teids)
 
-	return &lib_protos.Void{}, err
+	return &protos.Void{}, err
 }
 
 func (d *directoryLookupServicer) GetHWIDForSgwCTeid(
-	ctx context.Context, req *protos.GetHWIDForSgwCTeidRequest,
-) (*protos.GetHWIDForSgwCTeidResponse, error) {
+	ctx context.Context, req *directoryd_protos.GetHWIDForSgwCTeidRequest,
+) (*directoryd_protos.GetHWIDForSgwCTeidResponse, error) {
 	err := req.Validate()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate GetHWIDForSgwCTeidRequest")
 	}
 
 	hwid, err := d.store.GetHWIDForSgwCTeid(req.NetworkID, req.Teid)
-	res := &protos.GetHWIDForSgwCTeidResponse{Hwid: hwid}
+	res := &directoryd_protos.GetHWIDForSgwCTeidResponse{Hwid: hwid}
 
 	return res, err
 }
 
-func (d *directoryLookupServicer) GetNewSgwCTeid(ctx context.Context, req *protos.GetNewSgwCTeidRequest) (*protos.GetNewSgwCTeidResponse, error) {
+func (d *directoryLookupServicer) GetNewSgwCTeid(ctx context.Context, req *directoryd_protos.GetNewSgwCTeidRequest) (*directoryd_protos.GetNewSgwCTeidResponse, error) {
 	err := req.Validate()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate GetNewSgwCTeid")
@@ -159,5 +159,5 @@ func (d *directoryLookupServicer) GetNewSgwCTeid(ctx context.Context, req *proto
 		glog.Error(err)
 		return nil, err
 	}
-	return &protos.GetNewSgwCTeidResponse{Teid: fmt.Sprint(sgwCTeid)}, nil
+	return &directoryd_protos.GetNewSgwCTeidResponse{Teid: fmt.Sprint(sgwCTeid)}, nil
 }
