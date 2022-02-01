@@ -15,6 +15,7 @@
  */
 'use strict';
 import type {
+  base_name_record,
   policy_id,
   policy_qos_profile,
   policy_rule,
@@ -25,6 +26,8 @@ import React from 'react';
 
 export type PolicyContextType = {
   state: {[string]: policy_rule},
+  baseNames: {[string]: base_name_record},
+  setBaseNames: (key: string, val?: base_name_record) => Promise<void>,
   ratingGroups: {[string]: rating_group},
   setRatingGroups: (key: string, val?: rating_group) => Promise<void>,
   qosProfiles: {[string]: policy_qos_profile},

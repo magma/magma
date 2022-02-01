@@ -16,6 +16,7 @@
 import ApnEditDialog from './ApnEdit';
 import ApnOverview from './ApnOverview';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import BaseNameEditDialog from './BaseNameEdit';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataPlanEditDialog from './DataPlanEdit';
@@ -84,6 +85,7 @@ function PolicyMenu() {
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [open, setOpen] = React.useState(false);
+  const [baseNameDialog, setBaseNameDialog] = React.useState(false);
   const [profileDialog, setProfileDialog] = React.useState(false);
   const [ratingGroupDialog, setRatingGroupDialog] = React.useState(false);
 
@@ -98,6 +100,10 @@ function PolicyMenu() {
   return (
     <div>
       <PolicyRuleEditDialog open={open} onClose={() => setOpen(false)} />
+      <BaseNameEditDialog
+        open={baseNameDialog}
+        onClose={() => setBaseNameDialog(false)}
+      />
       <ProfileEditDialog
         open={profileDialog}
         onClose={() => setProfileDialog(false)}
@@ -119,6 +125,11 @@ function PolicyMenu() {
         onClose={handleClose}>
         <MenuItem data-testid="newPolicyMenuItem" onClick={() => setOpen(true)}>
           <Text variant="subtitle2">Policy</Text>
+        </MenuItem>
+        <MenuItem
+          data-testid="newBaseNameMenuItem"
+          onClick={() => setBaseNameDialog(true)}>
+          <Text variant="subtitle2">Base Name</Text>
         </MenuItem>
         <MenuItem onClick={() => setProfileDialog(true)}>
           <Text variant="subtitle2">Profile</Text>
