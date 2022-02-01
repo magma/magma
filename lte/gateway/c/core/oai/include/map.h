@@ -239,6 +239,14 @@ struct map_s {
     umap.clear();
     name.clear();
   }
+  /***************************************************************************
+  **                                                                        **
+  ** Name:    size()                                                       **
+  **                                                                        **
+  ** Description: size the contents of the map                            **
+  **                                                                        **
+  ***************************************************************************/
+  size_t size() { return umap.size(); }
 };
 
 // Amf-Map Declarations:

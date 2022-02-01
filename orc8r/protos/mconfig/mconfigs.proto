@@ -92,6 +92,11 @@ message MagmaD {
 
     // List of dynamic_services
     repeated string dynamic_services = 10;
+
+    // orc8r version
+    // version should be in X.X.X format with only non-negative numbers allowed for X.
+    // in case we cant find orc8r_version, this will be left empty
+    string orc8r_version = 11;
 }
 
 //------------------------------------------------------------------------------

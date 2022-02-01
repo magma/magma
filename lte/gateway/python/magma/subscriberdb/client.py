@@ -31,6 +31,7 @@ from lte.protos.subscriberdb_pb2 import (
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.sdwatchdog import SDWatchdogTask
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.common.service_registry import ServiceRegistry
 from magma.subscriberdb.metrics import (
     SUBSCRIBER_SYNC_FAILURE_TOTAL,
@@ -439,11 +440,18 @@ class SubscriberDBCloudClient(SDWatchdogTask):
 
 
 def _log_grpc_error(err: grpc.RpcError) -> None:
-    if err.code() == grpc.StatusCode.INTERNAL or err.code() == grpc.StatusCode.UNIMPLEMENTED:
+    if err.code() in {grpc.StatusCode.INTERNAL, grpc.StatusCode.UNIMPLEMENTED}:
         logging.error(
             'Internal Error in subscriberdb-Orc8r communication. '
             'If AGW and Orc8r are deployed at a commit hash, '
             'upgrade AGW and Orc8r to latest commit hash.',
+            extra=EXCLUDE_FROM_ERROR_MONITORING,
+        )
+    elif err.code() in {grpc.StatusCode.UNAVAILABLE, grpc.StatusCode.DEADLINE_EXCEEDED}:
+        logging.error(
+            'Internal Error in subscriberdb-Orc8r communication. '
+            'Cannot connect to server: [%s] %s', err.code(), err.details(),
+            extra=EXCLUDE_FROM_ERROR_MONITORING,
         )
     else:
         logging.error(

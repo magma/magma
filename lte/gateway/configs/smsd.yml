@@ -11,7 +11,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 log_level: INFO
-
-# [Experimental] Enable Sentry for this service
-# Allowed values: send_all_errors, send_selected_errors, disabled
-sentry: disabled
