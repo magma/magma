@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/services/certifier/servicers"
+	protected_servicers "magma/orc8r/cloud/go/services/certifier/servicers/protected"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/protos"
@@ -49,10 +49,10 @@ func testCertifierImpl(t *testing.T, store storage.CertifierStorage) {
 	assert.NoError(t, err)
 
 	// just test with default
-	caMap := map[protos.CertType]*servicers.CAInfo{
+	caMap := map[protos.CertType]*protected_servicers.CAInfo{
 		protos.CertType_DEFAULT: {caCert, caKey},
 	}
-	srv, err := servicers.NewCertifierServer(store, caMap)
+	srv, err := protected_servicers.NewCertifierServer(store, caMap)
 	assert.NoError(t, err)
 
 	// sign and add
@@ -93,7 +93,7 @@ func testCertifierImpl(t *testing.T, store storage.CertifierStorage) {
 	assert.NoError(t, err)
 
 	// test garbage collection
-	servicers.CollectGarbageAfter = time.Duration(0)
+	protected_servicers.CollectGarbageAfter = time.Duration(0)
 
 	for i := 0; i < 3; i++ {
 		csrMsg, err = certifierTestUtils.CreateCSR(0, "cn", "cn")
