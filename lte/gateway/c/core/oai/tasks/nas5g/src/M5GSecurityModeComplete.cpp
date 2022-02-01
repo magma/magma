@@ -25,7 +25,6 @@ int SecurityModeCompleteMsg::DecodeSecurityModeCompleteMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, SECURITY_MODE_COMPLETE_MINIMUM_LENGTH, len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding SecurityModeComplete Message");
   if ((decoded_result =
            sec_mode_complete->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
@@ -64,7 +63,6 @@ int SecurityModeCompleteMsg::EncodeSecurityModeCompleteMsg(
   uint32_t encoded = 0;
 
 #ifdef HANDLE_POST_MVC
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding SecurityModeComplete Message");
   int encoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length

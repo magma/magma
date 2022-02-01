@@ -46,11 +46,9 @@ int M5GSRegistrationResultMsg::EncodeM5GSRegistrationResultMsg(
     return TLV_BUFFER_TOO_SHORT;
   }
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding RegistrationResult");
   if (iei > 0) {
     CHECK_IEI_ENCODER(iei, (unsigned char)m5gs_reg_result->iei);
     *buffer = iei;
-    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(*buffer));
     encoded++;
   }
 
@@ -59,17 +57,8 @@ int M5GSRegistrationResultMsg::EncodeM5GSRegistrationResultMsg(
   *(buffer + encoded) = ((m5gs_reg_result->spare & 0xf) << 0x4) |
                         ((m5gs_reg_result->sms_allowed & 0x1) << 3) |
                         (m5gs_reg_result->reg_result_val & 0x7);
-  OAILOG_DEBUG(
-      LOG_NAS5G,
-      "RegistrationResult : 0x0%X, Spare : %X, SMS Allowed : %X, Result Value "
-      ": %X",
-      static_cast<int>(*(buffer + encoded)),
-      ((m5gs_reg_result->spare & 0xf) << 0x4),
-      ((m5gs_reg_result->sms_allowed & 0x1) << 3),
-      static_cast<int>(m5gs_reg_result->reg_result_val & 0x7));
   encoded++;
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
-  OAILOG_DEBUG(LOG_NAS5G, "Length = 0x0%X", static_cast<int>(*lenPtr));
   return encoded;
 };
 }  // namespace magma5g

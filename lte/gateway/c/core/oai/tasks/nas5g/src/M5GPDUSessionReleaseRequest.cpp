@@ -26,7 +26,6 @@ int PDUSessionReleaseRequestMsg::DecodePDUSessionReleaseRequestMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, PDU_SESSION_RELEASE_REQ_MIN_LEN,
                                        len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding PDUSessionReleaseRequest Message");
   if ((decoded_result =
            pdu_session_release_request->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(

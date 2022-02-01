@@ -27,27 +27,17 @@ int AuthenticationResponseParameterMsg::
         uint8_t* buffer, uint32_t len) {
   uint32_t decoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding AuthenticationResponseParameter");
   if (iei > 0) {
     CHECK_IEI_DECODER(iei, *buffer);
     response_parameter->iei = *(buffer + decoded);
-    OAILOG_DEBUG(
-        LOG_NAS5G, "IEI : %X", static_cast<int>(response_parameter->iei));
     decoded++;
   }
   response_parameter->length = *(buffer + decoded);
-  OAILOG_DEBUG(
-      LOG_NAS5G, "Length : %d", static_cast<int>(response_parameter->length));
   decoded++;
   response_parameter->response_parameter[0] = 0;
   for (int i = 0; i < (int)(response_parameter->length); i++) {
     response_parameter->response_parameter[i] = *(buffer + decoded);
     decoded++;
-  }
-  for (int i = 0; i < (int) (response_parameter->length); i++) {
-    OAILOG_DEBUG(
-        LOG_NAS5G, "RES : %X",
-        static_cast<int>(response_parameter->response_parameter[i]));
   }
   return (decoded);
 };
@@ -63,11 +53,9 @@ int AuthenticationResponseParameterMsg::
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, AUTHENTICATION_RESPONSE_PARAMETER_MIN_LEN, len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding AuthenticationResponseParameter");
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char)iei, response_parameter->iei);
     *buffer = iei;
-    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(*buffer));
     encoded++;
   } else {
     return 0;
@@ -75,12 +63,8 @@ int AuthenticationResponseParameterMsg::
 
   lenPtr = (uint16_t*)(buffer + encoded);
   encoded++;
-  std::copy(
-      response_parameter->response_parameter.begin(),
-      response_parameter->response_parameter.end(), buffer + encoded);
-  OAILOG_DEBUG(LOG_NAS5G, "AuthenticationResponseParameter :");
-  BUFFER_PRINT_OAILOG(
-      buffer + encoded, response_parameter->response_parameter.length());
+  std::copy(response_parameter->response_parameter.begin(),
+            response_parameter->response_parameter.end(), buffer + encoded);
   encoded = encoded + response_parameter->response_parameter.length();
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
 #endif

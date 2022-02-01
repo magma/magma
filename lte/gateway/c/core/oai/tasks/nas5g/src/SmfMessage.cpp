@@ -14,6 +14,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
 
 namespace magma5g {
 SMsg_u::SMsg_u(){};
@@ -88,7 +89,6 @@ int SmfMsg::SmfMsgDecodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
   int decode_result = 0;
   int header_result = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding SMF message");
   if (len <= 0 || buffer == NULL) {
     OAILOG_ERROR(LOG_NAS5G, "Buffer is Empty");
     return (RETURNerror);
@@ -99,6 +99,11 @@ int SmfMsg::SmfMsgDecodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
     OAILOG_ERROR(LOG_NAS5G, "Header Decoding Failed");
     return (RETURNerror);
   }
+
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Decoding SMF message : %s",
+      get_message_type_str(static_cast<uint8_t>(msg->header.message_type))
+          .c_str());
 
   switch (
       static_cast<M5GMessageType>((unsigned char)msg->header.message_type)) {
@@ -140,7 +145,6 @@ int SmfMsg::SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
   int encode_result = 0;
   int header_result = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding SMF message");
   if (len <= 0 || buffer == NULL) {
     OAILOG_ERROR(LOG_NAS5G, "Buffer is Empty");
     return (RETURNerror);
@@ -151,6 +155,11 @@ int SmfMsg::SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
     OAILOG_ERROR(LOG_NAS5G, "Header Encoding Failed");
     return (RETURNerror);
   }
+
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Encoding SMF message : %s",
+      get_message_type_str(static_cast<uint8_t>(msg->header.message_type))
+          .c_str());
 
   switch (
       static_cast<M5GMessageType>((unsigned char)msg->header.message_type)) {

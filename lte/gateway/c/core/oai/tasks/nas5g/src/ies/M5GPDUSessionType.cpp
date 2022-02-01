@@ -26,19 +26,13 @@ int PDUSessionTypeMsg::DecodePDUSessionTypeMsg(
     uint32_t len) {
   int decoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding PDUSessionType");
   // Store the IEI Information
   if (iei > 0) {
     pdu_session_type->iei = (*buffer & 0xf0) >> 4;
-    OAILOG_DEBUG(
-        LOG_NAS5G, "IEI : %X", static_cast<int>(pdu_session_type->iei));
     decoded++;
   }
 
   pdu_session_type->type_val = (*buffer & 0x07);
-  OAILOG_DEBUG(
-      LOG_NAS5G, "Type Value : %X",
-      static_cast<int>(pdu_session_type->type_val));
 
   return (decoded);
 };
@@ -49,17 +43,14 @@ int PDUSessionTypeMsg::EncodePDUSessionTypeMsg(
     uint32_t len) {
   int encoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding PDUSessionType");
   // CHECKING IEI
   if (iei > 0) {
     *buffer = (pdu_session_type->iei & 0x0f) << 4;
-    CHECK_IEI_ENCODER(
-        (uint8_t) iei, (uint8_t)((pdu_session_type->iei & 0x0f) << 4));
-    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(*buffer));
+    CHECK_IEI_ENCODER((uint8_t)iei,
+                      (uint8_t)((pdu_session_type->iei & 0x0f) << 4));
   }
 
   *buffer = 0x00 | (*buffer & 0xf0) | (pdu_session_type->type_val & 0x07);
-  OAILOG_DEBUG(LOG_NAS5G, "Type Value : %X", static_cast<int>(*(buffer)));
   encoded++;
 
   return (encoded);

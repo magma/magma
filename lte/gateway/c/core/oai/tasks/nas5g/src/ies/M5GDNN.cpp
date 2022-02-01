@@ -27,24 +27,16 @@ int DNNMsg::DecodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
   int decoded = 0;
   uint8_t ielen = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding DNN");
-
   if (iei > 0) {
     DECODE_U8(buffer + decoded, dnn_message->iei, decoded);
-    CHECK_IEI_DECODER(iei, (unsigned char) *buffer);
-    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(dnn_message->iei));
+    CHECK_IEI_DECODER(iei, (unsigned char)*buffer);
   }
   DECODE_U8(buffer + decoded, ielen, decoded);
   CHECK_LENGTH_DECODER(len - decoded, ielen);
   dnn_message->len = ielen;
-  OAILOG_DEBUG(
-      LOG_NAS5G, "DNN message length : %d", static_cast<int>(dnn_message->len));
-
   uint8_t dnn_length = 0;
   uint8_t dnn_len = 0;
   DECODE_U8(buffer + decoded, dnn_len, decoded);
-  OAILOG_DEBUG(LOG_NAS5G, "DNN length : %d", static_cast<int>(dnn_len));
-
   memcpy(dnn_message->dnn, buffer + decoded, dnn_len);
   dnn_length += dnn_len;
   decoded = decoded + dnn_len;
@@ -60,7 +52,6 @@ int DNNMsg::DecodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
     decoded = decoded + dnn_len;
     dnn_length += dnn_len;
   }
-  MLOG(MDEBUG) << "dnn str : " << dnn_message->dnn;
   return decoded;
 }
 
@@ -69,14 +60,12 @@ int DNNMsg::EncodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
                          uint32_t len) {
   uint32_t encoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding DNN");
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, DNN_MIN_LENGTH, len);
 
   if (iei > 0) {
     CHECK_IEI_ENCODER(iei, (unsigned char)dnn_message->iei);
     ENCODE_U8(buffer, iei, encoded);
-    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(dnn_message->iei));
   }
 
   ENCODE_U8(buffer + encoded, dnn_message->len, encoded);
@@ -97,7 +86,6 @@ int DNNMsg::EncodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
     }
     dnn_length = dnn_length + dnn_len;
 
-    BUFFER_PRINT_OAILOG(buffer + encoded, dnn_len);
     encoded = encoded + dnn_len;
   }
   return encoded;

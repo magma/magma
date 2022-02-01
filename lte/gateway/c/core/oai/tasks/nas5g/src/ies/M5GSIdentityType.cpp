@@ -24,12 +24,8 @@ int M5GSIdentityTypeMsg::DecodeM5GSIdentityTypeMsg(
     uint32_t len) {
   uint8_t decoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding 5GSIdentityType");
   m5gs_identity_type->toi = *(buffer + decoded) & 0x7;
   decoded++;
-  OAILOG_DEBUG(
-      LOG_NAS5G, "Type of Identity : %d",
-      static_cast<int>(m5gs_identity_type->toi));
   return (decoded);
 };
 
@@ -39,11 +35,7 @@ int M5GSIdentityTypeMsg::EncodeM5GSIdentityTypeMsg(
     uint32_t len) {
   int encoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding 5GSIdentityType");
   *(buffer + encoded) = (m5gs_identity_type->toi) & 0x7;
-  OAILOG_DEBUG(
-      LOG_NAS5G, "Type of Identity : %X",
-      static_cast<int>(*(buffer + encoded)));
   encoded++;
   return (encoded);
 };

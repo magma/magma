@@ -29,7 +29,6 @@ int DLNASTransportMsg::DecodeDLNASTransportMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, DL_NAS_TRANSPORT_MINIMUM_LENGTH,
                                        len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding DLNASTransport Message");
   if ((decoded_result =
            dl_nas_transport->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
@@ -137,7 +136,6 @@ int DLNASTransportMsg::EncodeDLNASTransportMsg(
     DLNASTransportMsg* dl_nas_transport, uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding DLNASTransport Message");
   int encoded_result = 0;
 
   // Check if we got a NDLL pointer and if buffer length is >= minimum length

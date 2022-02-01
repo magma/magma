@@ -24,7 +24,6 @@ int ServiceRejectMsg::DecodeServiceRejectMsg(ServiceRejectMsg* svc_rej,
   uint32_t decoded = 0;
   int decoded_result = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding ServiceReject message");
   if ((decoded_result = svc_rej->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
                                 &svc_rej->extended_protocol_discriminator, 0,
@@ -72,7 +71,6 @@ int ServiceRejectMsg::EncodeServiceRejectMsg(ServiceRejectMsg* svc_rej,
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
                                        M5G_SERVICE_REJECT_MINIMUM_LENGTH, len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding ServiceReject message");
   if ((encoded_result = svc_rej->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(
                                 &svc_rej->extended_protocol_discriminator, 0,

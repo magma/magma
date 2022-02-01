@@ -22,11 +22,9 @@ int TAIListMsg::EncodeTAIListMsg(TAIListMsg* TAIList, uint8_t iei,
                                  uint8_t* buffer, uint32_t len) {
   uint8_t encoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding TAIList");
   if (iei > 0) {
     CHECK_IEI_ENCODER(iei, (unsigned char)TAIList->iei);
     *buffer = iei;
-    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(*(buffer + encoded)));
     encoded++;
   }
   *(buffer + encoded) = TAIList->len;
@@ -37,21 +35,12 @@ int TAIListMsg::EncodeTAIListMsg(TAIListMsg* TAIList, uint8_t iei,
   encoded++;
   *(buffer + encoded) =
       0x00 | ((TAIList->mcc_digit2 & 0x0f) << 4) | (TAIList->mcc_digit1 & 0x0f);
-  OAILOG_DEBUG(
-      LOG_NAS5G, "[MCCDigit2, MCCDigit1] : %X",
-      static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((TAIList->mnc_digit3 & 0x0f) << 4) | (TAIList->mcc_digit3 & 0x0f);
-  OAILOG_DEBUG(
-      LOG_NAS5G, "[MNCDigit3, MCCDigit3] : %X",
-      static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((TAIList->mnc_digit2 & 0x0f) << 4) | (TAIList->mnc_digit1 & 0x0f);
-  OAILOG_DEBUG(
-      LOG_NAS5G, "MNCDigit2, MCCDigit1] : %X",
-      static_cast<int>(*(buffer + encoded)));
   encoded++;
 
   *(buffer + encoded) = TAIList->tac[0];
@@ -64,8 +53,8 @@ int TAIListMsg::EncodeTAIListMsg(TAIListMsg* TAIList, uint8_t iei,
   return (encoded);
 }
 
-int TAIListMsg::DecodeTAIListMsg(
-    TAIListMsg* TAIList, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int TAIListMsg::DecodeTAIListMsg(TAIListMsg* TAIList, uint8_t iei,
+                                 uint8_t* buffer, uint32_t len) {
   return 0;
 }
 

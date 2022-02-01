@@ -46,18 +46,11 @@ int M5GPDUSessionReActivationResult::DecodePDUSessionReActivationResult(
     uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding PDUSessionReActivationResult");
   if (iei > 0) {
     pduSessionReActivationStatus->iei = *buffer;
-    OAILOG_DEBUG(
-        LOG_NAS5G, "IEI : %X",
-        static_cast<int>(pduSessionReActivationStatus->iei));
     decoded++;
 
     pduSessionReActivationStatus->len = *(buffer + decoded);
-    OAILOG_DEBUG(
-        LOG_NAS5G, "Length : %d",
-        static_cast<int>(pduSessionReActivationStatus->len));
     decoded++;
 
     pduSessionReActivationStatus->pduSessionReActivationResult =
@@ -65,10 +58,6 @@ int M5GPDUSessionReActivationResult::DecodePDUSessionReActivationResult(
     decoded++;
     pduSessionReActivationStatus->pduSessionReActivationResult |=
         (*(buffer + decoded) << 8);
-    OAILOG_DEBUG(
-        LOG_NAS5G, "pduSessionReActivationResult : %X",
-        static_cast<int>(
-            pduSessionReActivationStatus->pduSessionReActivationResult));
     decoded++;
   }
 

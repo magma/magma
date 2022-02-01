@@ -25,7 +25,6 @@ int M5GSMCauseMsg::DecodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
                                        uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding 5GSMCause");
   // CHECKING IEI
   if (iei > 0) {
     m5gsm_cause->iei = *buffer;
@@ -34,10 +33,6 @@ int M5GSMCauseMsg::DecodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
 
   m5gsm_cause->cause_value = *buffer;
   decoded++;
-  OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(m5gsm_cause->iei));
-  OAILOG_DEBUG(
-      LOG_NAS5G, "Cause Value : %X",
-      static_cast<int>(m5gsm_cause->cause_value));
 
   return (decoded);
 };
@@ -47,20 +42,15 @@ int M5GSMCauseMsg::EncodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
                                        uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding 5GSMCause");
   // CHECKING IEI
   if (iei > 0) {
     m5gsm_cause->iei = *buffer;
-    CHECK_IEI_DECODER(iei, (unsigned char) m5gsm_cause->iei);
-    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(m5gsm_cause->iei));
+    CHECK_IEI_DECODER(iei, (unsigned char)m5gsm_cause->iei);
     encoded++;
   }
 
   *(buffer + encoded) = m5gsm_cause->cause_value;
   encoded++;
-  OAILOG_DEBUG(
-      LOG_NAS5G, "Cause Value : %X",
-      static_cast<int>(m5gsm_cause->cause_value));
 
   return (encoded);
 };

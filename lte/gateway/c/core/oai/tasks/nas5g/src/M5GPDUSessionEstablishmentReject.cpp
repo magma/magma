@@ -27,8 +27,6 @@ int PDUSessionEstablishmentRejectMsg::DecodePDUSessionEstablishmentRejectMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, PDU_SESSION_ESTABLISHMENT_REJ_MIN_LEN, len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding PDUSessionEstablishmentReject Message");
-
   if ((decoded_result =
            pdu_session_estab_reject->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
@@ -77,7 +75,6 @@ int PDUSessionEstablishmentRejectMsg::EncodePDUSessionEstablishmentRejectMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, PDU_SESSION_ESTABLISHMENT_REJ_MIN_LEN, len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding PDUSessionEstablishmentReject Message");
   if ((encoded_result =
            pdu_session_estab_reject->extended_protocol_discriminator
                .EncodeExtendedProtocolDiscriminatorMsg(

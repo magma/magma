@@ -25,10 +25,7 @@ int SpareHalfOctetMsg::DecodeSpareHalfOctetMsg(
     uint32_t len) {
   int decoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding SpareHalfOctet");
   spare_half_octet->spare = (*buffer & 0xf0) >> 4;
-  OAILOG_DEBUG(
-      LOG_NAS5G, "Spare : 0x%X", static_cast<int>(spare_half_octet->spare));
   return (decoded);
 };
 
@@ -38,9 +35,7 @@ int SpareHalfOctetMsg::EncodeSpareHalfOctetMsg(
     uint32_t len) {
   int encoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding SpareHalfOctet");
   *(buffer) = 0x00 | (spare_half_octet->spare & 0xf) << 4;
-  OAILOG_DEBUG(LOG_NAS5G, "Spare : 0x%X", static_cast<int>(*(buffer)));
   return (encoded);
 };
 }  // namespace magma5g

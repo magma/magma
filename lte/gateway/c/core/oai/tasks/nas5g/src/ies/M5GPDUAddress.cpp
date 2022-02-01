@@ -31,25 +31,18 @@ PDUAddressMsg::~PDUAddressMsg(){};
 int PDUAddressMsg::DecodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,
                                        uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding PDUAddress");
   // CHECKING IEI
   if (iei > 0) {
     IES_DECODE_U8(buffer, decoded, pdu_address->iei);
-    CHECK_IEI_DECODER(iei, (unsigned char) pdu_address->iei);
-    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(pdu_address->iei));
+    CHECK_IEI_DECODER(iei, (unsigned char)pdu_address->iei);
   }
 
   IES_DECODE_U8(buffer, decoded, pdu_address->length);
-  OAILOG_DEBUG(LOG_NAS5G, "Length : %d", static_cast<int>(pdu_address->length));
 
   pdu_address->type_val = *(buffer + decoded) && 0x07;
-  OAILOG_DEBUG(
-      LOG_NAS5G, "Type Value : %d", static_cast<int>(pdu_address->length));
   memset(pdu_address->address_info, 0, sizeof(pdu_address->address_info));
   decoded++;
   memcpy(buffer + decoded, pdu_address->address_info, pdu_address->length - 1);
-  OAILOG_DEBUG(LOG_NAS5G, "PDU address INFO : ");
-  BUFFER_PRINT_OAILOG(pdu_address->address_info, pdu_address->length - 1);
   decoded += pdu_address->length - 1;
 
   return (decoded);
@@ -60,13 +53,11 @@ int PDUAddressMsg::EncodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,
                                        uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding PDUAddress");
   // CHECKING IEI
   if (iei > 0) {
     pdu_address->iei = iei;
     CHECK_IEI_DECODER(iei, (unsigned char)pdu_address->iei);
     *(buffer + encoded) = iei;
-    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(pdu_address->iei));
     encoded++;
   }
 

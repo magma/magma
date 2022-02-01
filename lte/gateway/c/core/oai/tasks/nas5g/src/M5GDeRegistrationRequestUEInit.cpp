@@ -28,7 +28,6 @@ int DeRegistrationRequestUEInitMsg::DecodeDeRegistrationRequestUEInitMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, DEREGISTRATION_REQUEST_UEINIT_MINIMUM_LENGTH, len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding De-Registration Request Message");
   if ((decoded_result =
            de_reg_request->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
@@ -93,7 +92,6 @@ int DeRegistrationRequestUEInitMsg::EncodeDeRegistrationRequestUEInitMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, DEREGISTRATION_REQUEST_UEINIT_MINIMUM_LENGTH, len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding De-Registration Request Message");
   if ((encoded_result =
            de_reg_request->extended_protocol_discriminator
                .EncodeExtendedProtocolDiscriminatorMsg(

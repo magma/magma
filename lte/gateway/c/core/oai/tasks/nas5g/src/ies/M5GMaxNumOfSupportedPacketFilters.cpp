@@ -42,20 +42,14 @@ int M5GMaxNumOfSupportedPacketFilters::DecodeMaxNumOfSupportedPacketFilters(
     M5GMaxNumOfSupportedPacketFilters* maxNumOfSuppPktFilters, uint8_t iei,
     uint8_t* buffer, uint32_t len) {
   int decoded = 0;
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding MaxNumOfSupportedPacketFilters");
   if (iei > 0) {
     maxNumOfSuppPktFilters->iei = *buffer;
-    OAILOG_DEBUG(
-        LOG_NAS5G, "IEI : %X", static_cast<int>(maxNumOfSuppPktFilters->iei));
     decoded++;
 
     maxNumOfSuppPktFilters->maxNumOfSuppPktFilters = (*(buffer + decoded) << 8);
     decoded++;
     maxNumOfSuppPktFilters->maxNumOfSuppPktFilters |=
         (*(buffer + decoded) & 0xE0);
-    OAILOG_DEBUG(
-        LOG_NAS5G, "MaxNumOfSuppPktFilters : %X",
-        static_cast<int>(maxNumOfSuppPktFilters->maxNumOfSuppPktFilters));
     decoded++;
   }
 

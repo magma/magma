@@ -31,7 +31,6 @@ int ServiceAcceptMsg::EncodeServiceAcceptMsg(ServiceAcceptMsg* svc_acpt,
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, SERVICE_ACCEPT_MINIMUM_LENGTH,
                                        len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding ServiceAccept message");
   if ((encoded_result = svc_acpt->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(
                                 &svc_acpt->extended_protocol_discriminator, 0,

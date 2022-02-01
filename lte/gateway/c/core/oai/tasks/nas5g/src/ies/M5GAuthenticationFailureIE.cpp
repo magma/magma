@@ -27,7 +27,7 @@ int M5GAuthenticationFailureIE::DecodeM5GAuthenticationFailureIE(
 
   if (iei > 0) {
     m5g_auth_failure_ie->iei = *(buffer + decoded);
-    CHECK_IEI_DECODER((unsigned char) iei, m5g_auth_failure_ie->iei);
+    CHECK_IEI_DECODER((unsigned char)iei, m5g_auth_failure_ie->iei);
     decoded++;
   }
 

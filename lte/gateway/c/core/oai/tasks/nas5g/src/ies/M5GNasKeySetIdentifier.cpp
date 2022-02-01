@@ -25,8 +25,6 @@ int NASKeySetIdentifierMsg::DecodeNASKeySetIdentifierMsg(
     uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding NASKeySetIdentifier");
-
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
                                        NAS_KEY_SET_IDENTIFIER_MIN_LENGTH, len);
@@ -39,12 +37,6 @@ int NASKeySetIdentifierMsg::DecodeNASKeySetIdentifierMsg(
   nas_key_set_identifier->nas_key_set_identifier =
       (*(buffer + decoded) >> 4) & 0x7;
   decoded++;
-  OAILOG_DEBUG(
-      LOG_NAS5G, "Type of Security Context : %d",
-      static_cast<int>(nas_key_set_identifier->tsc));
-  OAILOG_DEBUG(
-      LOG_NAS5G, "NASkeysetidentifier : %d",
-      static_cast<int>(nas_key_set_identifier->nas_key_set_identifier));
   return decoded;
 };
 
@@ -58,22 +50,14 @@ int NASKeySetIdentifierMsg::EncodeNASKeySetIdentifierMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
                                        NAS_KEY_SET_IDENTIFIER_MIN_LENGTH, len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding NASKeySetIdentifier");
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char)iei, nas_key_set_identifier->iei);
     *buffer = iei;
-    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(*buffer));
     encoded++;
   }
 
   *(buffer + encoded) = 0x00 | (nas_key_set_identifier->tsc & 0x1) << 3 |
                         (nas_key_set_identifier->nas_key_set_identifier & 0x7);
-  OAILOG_DEBUG(
-      LOG_NAS5G, "Type of Security Context  = 0x%X",
-      static_cast<int>(nas_key_set_identifier->tsc));
-  OAILOG_DEBUG(
-      LOG_NAS5G, "NASkeysetidentifier = 0x%X",
-      static_cast<int>(*(buffer + encoded)));
   encoded++;
 
   return encoded;

@@ -37,17 +37,13 @@ int AuthenticationParameterRANDMsg::EncodeAuthenticationParameterRANDMsg(
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, RAND_MIN_LEN, len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding AuthenticationParameterRAND");
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char)iei, rand->iei);
     *buffer = iei;
-    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", *buffer);
     encoded++;
   }
 
   memcpy(buffer + encoded, rand->rand_val, RAND_MAX_LEN);
-  OAILOG_DEBUG(LOG_NAS5G, "AuthenticationParameterRAND :");
-  BUFFER_PRINT_OAILOG(buffer + encoded, RAND_MAX_LEN);
   encoded = encoded + RAND_MAX_LEN;
 
   return (encoded);

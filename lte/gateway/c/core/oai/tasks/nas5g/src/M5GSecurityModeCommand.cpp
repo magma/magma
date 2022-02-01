@@ -27,7 +27,6 @@ int SecurityModeCommandMsg::DecodeSecurityModeCommandMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, SECURITY_MODE_COMMAND_MINIMUM_LENGTH, len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding SecurityModeCommand Message");
   if ((decoded_result =
            sec_mode_command->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
@@ -93,7 +92,6 @@ int SecurityModeCommandMsg::EncodeSecurityModeCommandMsg(
     SecurityModeCommandMsg* sec_mode_command, uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding SecurityModeCommand Message");
   int encoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length

@@ -33,7 +33,6 @@ int PDUSessionModificationRejectMsg::EncodePDUSessionModificationRejectMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, PDU_SESSION_MODIFICATION_REJECT_MIN_LEN, len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding PDUSessionModificationReject Message");
   if ((encoded_result =
            pdu_session_modif_reject->extended_protocol_discriminator
                .EncodeExtendedProtocolDiscriminatorMsg(

@@ -25,12 +25,8 @@ int MessageTypeMsg::DecodeMessageTypeMsg(MessageTypeMsg* message_type,
                                          uint32_t len) {
   uint8_t decoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, " Decoding MessageType");
   message_type->msg_type = *(buffer + decoded);
   decoded++;
-  OAILOG_DEBUG(
-      LOG_NAS5G, "Message Type : 0x%X",
-      static_cast<int>(message_type->msg_type));
   return (decoded);
 };
 
@@ -40,10 +36,7 @@ int MessageTypeMsg::EncodeMessageTypeMsg(MessageTypeMsg* message_type,
                                          uint32_t len) {
   uint8_t encoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, " Encoding MessageType");
   *(buffer + encoded) = message_type->msg_type;
-  OAILOG_DEBUG(
-      LOG_NAS5G, "Message type = 0x%X", static_cast<int>(*(buffer + encoded)));
   encoded++;
   return (encoded);
 };

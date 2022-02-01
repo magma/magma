@@ -478,8 +478,8 @@ void log_configure(const log_config_t* const config) {
 
   if ((MAX_LOG_LEVEL > config->nas_log_level) &&
       (MIN_LOG_LEVEL <= config->nas_log_level)) {
-    g_oai_log.log_level[LOG_NAS]     = config->nas_log_level;
-    g_oai_log.log_level[LOG_NAS5G]   = config->nas_log_level;
+    g_oai_log.log_level[LOG_NAS] = config->nas_log_level;
+    g_oai_log.log_level[LOG_NAS5G] = config->nas_log_level;
     g_oai_log.log_level[LOG_NAS_EMM] = config->nas_log_level;
     g_oai_log.log_level[LOG_NAS_ESM] = config->nas_log_level;
   }
@@ -619,128 +619,96 @@ int log_init(const char* app_name, const log_level_t default_log_levelP,
   AssertFatal(NULL != g_oai_log.thread_context_htbl,
               "Could not create hashtable for Log!\n");
   g_oai_log.thread_context_htbl->log_enabled = false;
-  g_oai_log.max_threads                      = max_threadsP;
-  g_oai_log.app_name                         = app_name;
-  g_oai_log.is_async                         = false;
+  g_oai_log.max_threads = max_threadsP;
+  g_oai_log.app_name = app_name;
+  g_oai_log.is_async = false;
 
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_SCTP][0], LOG_MAX_PROTO_NAME_LENGTH, "SCTP");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_UDP][0], LOG_MAX_PROTO_NAME_LENGTH, "UDP");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_GTPV1U][0], LOG_MAX_PROTO_NAME_LENGTH,
-      "GTPv1-U");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_GTPV2C][0], LOG_MAX_PROTO_NAME_LENGTH,
-      "GTPv2-C");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_S1AP][0], LOG_MAX_PROTO_NAME_LENGTH, "S1AP");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_MME_APP][0], LOG_MAX_PROTO_NAME_LENGTH,
-      "MME-APP");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_AMF_APP][0], LOG_MAX_PROTO_NAME_LENGTH,
-      "AMF-APP");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_NGAP][0], LOG_MAX_PROTO_NAME_LENGTH, "NGAP");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_NAS_AMF][0], LOG_MAX_PROTO_NAME_LENGTH,
-      "NAS-AMF");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_NAS][0], LOG_MAX_PROTO_NAME_LENGTH, "NAS");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_NAS5G][0], LOG_MAX_PROTO_NAME_LENGTH,
-      "NAS5G");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_NAS_EMM][0], LOG_MAX_PROTO_NAME_LENGTH,
-      "NAS-EMM");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_NAS_ESM][0], LOG_MAX_PROTO_NAME_LENGTH,
-      "NAS-ESM");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_SPGW_APP][0], LOG_MAX_PROTO_NAME_LENGTH,
-      "SPGW-APP");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_S11][0], LOG_MAX_PROTO_NAME_LENGTH, "S11");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_S6A][0], LOG_MAX_PROTO_NAME_LENGTH, "S6A");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_SGW_S8][0], LOG_MAX_PROTO_NAME_LENGTH,
-      "SGW_S8");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_SECU][0], LOG_MAX_PROTO_NAME_LENGTH, "SECU");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_UTIL][0], LOG_MAX_PROTO_NAME_LENGTH, "UTIL");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_CONFIG][0], LOG_MAX_PROTO_NAME_LENGTH,
-      "CONFIG");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_ITTI][0], LOG_MAX_PROTO_NAME_LENGTH, "ITTI");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_ASYNC_SYSTEM][0], LOG_MAX_PROTO_NAME_LENGTH,
-      "CMD");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_SERVICE303][0], LOG_MAX_PROTO_NAME_LENGTH,
-      "SERVICE303");
-  snprintf(
-      &g_oai_log.log_proto2str[LOG_ASSERT][0], LOG_MAX_PROTO_NAME_LENGTH,
-      "ASSERT");
+  snprintf(&g_oai_log.log_proto2str[LOG_SCTP][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "SCTP");
+  snprintf(&g_oai_log.log_proto2str[LOG_UDP][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "UDP");
+  snprintf(&g_oai_log.log_proto2str[LOG_GTPV1U][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "GTPv1-U");
+  snprintf(&g_oai_log.log_proto2str[LOG_GTPV2C][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "GTPv2-C");
+  snprintf(&g_oai_log.log_proto2str[LOG_S1AP][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "S1AP");
+  snprintf(&g_oai_log.log_proto2str[LOG_MME_APP][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "MME-APP");
+  snprintf(&g_oai_log.log_proto2str[LOG_AMF_APP][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "AMF-APP");
+  snprintf(&g_oai_log.log_proto2str[LOG_NGAP][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "NGAP");
+  snprintf(&g_oai_log.log_proto2str[LOG_NAS_AMF][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "NAS-AMF");
+  snprintf(&g_oai_log.log_proto2str[LOG_NAS][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "NAS");
+  snprintf(&g_oai_log.log_proto2str[LOG_NAS5G][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "NAS5G");
+  snprintf(&g_oai_log.log_proto2str[LOG_NAS_EMM][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "NAS-EMM");
+  snprintf(&g_oai_log.log_proto2str[LOG_NAS_ESM][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "NAS-ESM");
+  snprintf(&g_oai_log.log_proto2str[LOG_SPGW_APP][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "SPGW-APP");
+  snprintf(&g_oai_log.log_proto2str[LOG_S11][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "S11");
+  snprintf(&g_oai_log.log_proto2str[LOG_S6A][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "S6A");
+  snprintf(&g_oai_log.log_proto2str[LOG_SGW_S8][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "SGW_S8");
+  snprintf(&g_oai_log.log_proto2str[LOG_SECU][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "SECU");
+  snprintf(&g_oai_log.log_proto2str[LOG_UTIL][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "UTIL");
+  snprintf(&g_oai_log.log_proto2str[LOG_CONFIG][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "CONFIG");
+  snprintf(&g_oai_log.log_proto2str[LOG_ITTI][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "ITTI");
+  snprintf(&g_oai_log.log_proto2str[LOG_ASYNC_SYSTEM][0],
+           LOG_MAX_PROTO_NAME_LENGTH, "CMD");
+  snprintf(&g_oai_log.log_proto2str[LOG_SERVICE303][0],
+           LOG_MAX_PROTO_NAME_LENGTH, "SERVICE303");
+  snprintf(&g_oai_log.log_proto2str[LOG_ASSERT][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "ASSERT");
 
-  snprintf(
-      &g_oai_log.log_level2str[OAILOG_LEVEL_TRACE][0],
-      LOG_LEVEL_NAME_MAX_LENGTH, "TRACE");
-  snprintf(
-      &g_oai_log.log_level2str[OAILOG_LEVEL_DEBUG][0],
-      LOG_LEVEL_NAME_MAX_LENGTH, "DEBUG");
-  snprintf(
-      &g_oai_log.log_level2str[OAILOG_LEVEL_INFO][0], LOG_LEVEL_NAME_MAX_LENGTH,
-      "INFO");
-  snprintf(
-      &g_oai_log.log_level2str[OAILOG_LEVEL_NOTICE][0],
-      LOG_LEVEL_NAME_MAX_LENGTH, "NOTICE");
-  snprintf(
-      &g_oai_log.log_level2str[OAILOG_LEVEL_WARNING][0],
-      LOG_LEVEL_NAME_MAX_LENGTH, "WARNING");
-  snprintf(
-      &g_oai_log.log_level2str[OAILOG_LEVEL_ERROR][0],
-      LOG_LEVEL_NAME_MAX_LENGTH, "ERROR");
-  snprintf(
-      &g_oai_log.log_level2str[OAILOG_LEVEL_CRITICAL][0],
-      LOG_LEVEL_NAME_MAX_LENGTH, "CRITICAL");
-  snprintf(
-      &g_oai_log.log_level2str[OAILOG_LEVEL_ALERT][0],
-      LOG_LEVEL_NAME_MAX_LENGTH, "ALERT");
-  snprintf(
-      &g_oai_log.log_level2str[OAILOG_LEVEL_EMERGENCY][0],
-      LOG_LEVEL_NAME_MAX_LENGTH, "EMERGENCY");
+  snprintf(&g_oai_log.log_level2str[OAILOG_LEVEL_TRACE][0],
+           LOG_LEVEL_NAME_MAX_LENGTH, "TRACE");
+  snprintf(&g_oai_log.log_level2str[OAILOG_LEVEL_DEBUG][0],
+           LOG_LEVEL_NAME_MAX_LENGTH, "DEBUG");
+  snprintf(&g_oai_log.log_level2str[OAILOG_LEVEL_INFO][0],
+           LOG_LEVEL_NAME_MAX_LENGTH, "INFO");
+  snprintf(&g_oai_log.log_level2str[OAILOG_LEVEL_NOTICE][0],
+           LOG_LEVEL_NAME_MAX_LENGTH, "NOTICE");
+  snprintf(&g_oai_log.log_level2str[OAILOG_LEVEL_WARNING][0],
+           LOG_LEVEL_NAME_MAX_LENGTH, "WARNING");
+  snprintf(&g_oai_log.log_level2str[OAILOG_LEVEL_ERROR][0],
+           LOG_LEVEL_NAME_MAX_LENGTH, "ERROR");
+  snprintf(&g_oai_log.log_level2str[OAILOG_LEVEL_CRITICAL][0],
+           LOG_LEVEL_NAME_MAX_LENGTH, "CRITICAL");
+  snprintf(&g_oai_log.log_level2str[OAILOG_LEVEL_ALERT][0],
+           LOG_LEVEL_NAME_MAX_LENGTH, "ALERT");
+  snprintf(&g_oai_log.log_level2str[OAILOG_LEVEL_EMERGENCY][0],
+           LOG_LEVEL_NAME_MAX_LENGTH, "EMERGENCY");
 
-  snprintf(
-      &g_oai_log.log_level2ansi[OAILOG_LEVEL_TRACE][0], ANSI_CODE_MAX_LENGTH,
-      ANSI_COLOR_FG_WHITE);
-  snprintf(
-      &g_oai_log.log_level2ansi[OAILOG_LEVEL_DEBUG][0], ANSI_CODE_MAX_LENGTH,
-      ANSI_COLOR_FG_GREEN);
-  snprintf(
-      &g_oai_log.log_level2ansi[OAILOG_LEVEL_INFO][0], ANSI_CODE_MAX_LENGTH,
-      ANSI_COLOR_FG_CYAN);
-  snprintf(
-      &g_oai_log.log_level2ansi[OAILOG_LEVEL_NOTICE][0], ANSI_CODE_MAX_LENGTH,
-      ANSI_COLOR_FG_BLUE);
-  snprintf(
-      &g_oai_log.log_level2ansi[OAILOG_LEVEL_WARNING][0], ANSI_CODE_MAX_LENGTH,
-      ANSI_COLOR_FG_YELLOW);
-  snprintf(
-      &g_oai_log.log_level2ansi[OAILOG_LEVEL_ERROR][0], ANSI_CODE_MAX_LENGTH,
-      ANSI_COLOR_FG_RED);
-  snprintf(
-      &g_oai_log.log_level2ansi[OAILOG_LEVEL_CRITICAL][0], ANSI_CODE_MAX_LENGTH,
-      ANSI_COLOR_FG_REV_RED);
-  snprintf(
-      &g_oai_log.log_level2ansi[OAILOG_LEVEL_ALERT][0], ANSI_CODE_MAX_LENGTH,
-      ANSI_COLOR_FG_REV_RED);
-  snprintf(
-      &g_oai_log.log_level2ansi[OAILOG_LEVEL_EMERGENCY][0],
-      ANSI_CODE_MAX_LENGTH, ANSI_COLOR_FG_REV_RED);
+  snprintf(&g_oai_log.log_level2ansi[OAILOG_LEVEL_TRACE][0],
+           ANSI_CODE_MAX_LENGTH, ANSI_COLOR_FG_WHITE);
+  snprintf(&g_oai_log.log_level2ansi[OAILOG_LEVEL_DEBUG][0],
+           ANSI_CODE_MAX_LENGTH, ANSI_COLOR_FG_GREEN);
+  snprintf(&g_oai_log.log_level2ansi[OAILOG_LEVEL_INFO][0],
+           ANSI_CODE_MAX_LENGTH, ANSI_COLOR_FG_CYAN);
+  snprintf(&g_oai_log.log_level2ansi[OAILOG_LEVEL_NOTICE][0],
+           ANSI_CODE_MAX_LENGTH, ANSI_COLOR_FG_BLUE);
+  snprintf(&g_oai_log.log_level2ansi[OAILOG_LEVEL_WARNING][0],
+           ANSI_CODE_MAX_LENGTH, ANSI_COLOR_FG_YELLOW);
+  snprintf(&g_oai_log.log_level2ansi[OAILOG_LEVEL_ERROR][0],
+           ANSI_CODE_MAX_LENGTH, ANSI_COLOR_FG_RED);
+  snprintf(&g_oai_log.log_level2ansi[OAILOG_LEVEL_CRITICAL][0],
+           ANSI_CODE_MAX_LENGTH, ANSI_COLOR_FG_REV_RED);
+  snprintf(&g_oai_log.log_level2ansi[OAILOG_LEVEL_ALERT][0],
+           ANSI_CODE_MAX_LENGTH, ANSI_COLOR_FG_REV_RED);
+  snprintf(&g_oai_log.log_level2ansi[OAILOG_LEVEL_EMERGENCY][0],
+           ANSI_CODE_MAX_LENGTH, ANSI_COLOR_FG_REV_RED);
 
   for (i = MIN_LOG_PROTOS; i < MAX_LOG_PROTOS; i++) {
     g_oai_log.log_level[i] = default_log_levelP;

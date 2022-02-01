@@ -23,10 +23,8 @@ int PTIMsg::DecodePTIMsg(PTIMsg* pti, uint8_t iei, uint8_t* buffer,
                          uint32_t len) {
   uint8_t decoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding PTI");
   pti->pti = *(buffer + decoded);
   decoded++;
-  OAILOG_DEBUG(LOG_NAS5G, "PTI : 0x%X", static_cast<int>(pti->pti));
 
   return (decoded);
 };
@@ -36,9 +34,7 @@ int PTIMsg::EncodePTIMsg(PTIMsg* pti, uint8_t iei, uint8_t* buffer,
                          uint32_t len) {
   int encoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding PTI");
   *(buffer + encoded) = pti->pti;
-  OAILOG_DEBUG(LOG_NAS5G, "PTI : 0x%X", static_cast<int>(*(buffer + encoded)));
   encoded++;
 
   return (encoded);

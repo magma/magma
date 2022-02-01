@@ -44,24 +44,16 @@ int M5GPDUSessionStatus::DecodePDUSessionStatus(
     uint32_t len) {
   int decoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding PDUSessionStatus");
   if (iei > 0) {
     pduSessionStatus->iei = *buffer;
-    OAILOG_DEBUG(
-        LOG_NAS5G, "IEI : %X", static_cast<int>(pduSessionStatus->iei));
     decoded++;
 
     pduSessionStatus->len = *(buffer + decoded);
-    OAILOG_DEBUG(
-        LOG_NAS5G, "Length : %d", static_cast<int>(pduSessionStatus->len));
     decoded++;
 
     pduSessionStatus->pduSessionStatus = *(buffer + decoded);
     decoded++;
     pduSessionStatus->pduSessionStatus |= (*(buffer + decoded) << 8);
-    OAILOG_DEBUG(
-        LOG_NAS5G, "PDUSession Status : %X",
-        static_cast<int>(pduSessionStatus->pduSessionStatus));
     decoded++;
   }
 

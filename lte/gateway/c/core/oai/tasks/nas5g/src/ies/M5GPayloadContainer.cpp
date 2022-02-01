@@ -25,15 +25,10 @@ int PayloadContainerMsg::DecodePayloadContainerMsg(
     uint32_t len) {
   int decoded = 0;
   uint32_t ielen = 0;
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding PayloadContainer");
   IES_DECODE_U16(buffer, decoded, ielen);
   payload_container->len = ielen;
-  OAILOG_DEBUG(
-      LOG_NAS5G, " Length : %d", static_cast<int>(payload_container->len));
-  memcpy(
-      &payload_container->contents, buffer + decoded, static_cast<int>(ielen));
-  OAILOG_DEBUG(LOG_NAS5G, "PayloadContainer Content : ");
-  BUFFER_PRINT_OAILOG(payload_container->contents, static_cast<int>(ielen));
+  memcpy(&payload_container->contents, buffer + decoded,
+         static_cast<int>(ielen));
 
   // SMF NAS Message Decode
   decoded += payload_container->smf_msg.SmfMsgDecodeMsg(
@@ -48,11 +43,9 @@ int PayloadContainerMsg::EncodePayloadContainerMsg(
     uint32_t len) {
   int encoded = 0;
   uint32_t ielen = 0;
-  int tmp        = 0;
+  int tmp = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding PayloadContainer");
   ielen = payload_container->len;
-  OAILOG_DEBUG(LOG_NAS5G, " Length : %X", static_cast<int>(ielen));
 
   // SMF NAS Message Decode
   encoded += payload_container->smf_msg.SmfMsgEncodeMsg(
@@ -67,9 +60,6 @@ int PayloadContainerMsg::EncodePayloadContainerMsg(
   }
 
   IES_ENCODE_U16(buffer, tmp, encoded);
-
-  OAILOG_DEBUG(LOG_NAS5G, "PayloadContainer content :");
-  BUFFER_PRINT_OAILOG(payload_container->contents, encoded);
   memcpy(buffer + tmp, payload_container->contents, encoded);
 
   return (encoded + tmp);

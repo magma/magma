@@ -25,7 +25,6 @@ int AuthenticationFailureMsg::DecodeAuthenticationFailureMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, AUTHENTICATION_FAILURE_MINIMUM_LENGTH, len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding AuthenticationFailure message");
   if ((decoded_result = auth_failure->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
                                 &auth_failure->extended_protocol_discriminator,
@@ -89,7 +88,6 @@ int AuthenticationFailureMsg::EncodeAuthenticationFailureMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, AUTHENTICATION_FAILURE_MINIMUM_LENGTH, len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding AuthenticationFailure message");
   if ((encodedresult = auth_failure->extended_protocol_discriminator
                            .EncodeExtendedProtocolDiscriminatorMsg(
                                &auth_failure->extended_protocol_discriminator,

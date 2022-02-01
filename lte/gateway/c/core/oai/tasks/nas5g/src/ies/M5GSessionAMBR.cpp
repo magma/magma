@@ -25,32 +25,16 @@ int SessionAMBRMsg::DecodeSessionAMBRMsg(SessionAMBRMsg* session_ambr,
   int decoded = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, AMBR_MIN_LEN, len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding SessionAMBRMsg");
   if (iei > 0) {
-    CHECK_IEI_DECODER((unsigned char) iei, session_ambr->iei);
-    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(*buffer));
+    CHECK_IEI_DECODER((unsigned char)iei, session_ambr->iei);
     decoded++;
   }
 
   IES_DECODE_U8(buffer, decoded, session_ambr->length);
-  OAILOG_DEBUG(
-      LOG_NAS5G, "Length : %d", static_cast<int>(session_ambr->length));
-
   IES_DECODE_U8(buffer, decoded, session_ambr->dl_unit);
-  OAILOG_DEBUG(
-      LOG_NAS5G, "AMBR DL unit : %d", static_cast<int>(session_ambr->dl_unit));
   IES_DECODE_U16(buffer, decoded, session_ambr->dl_session_ambr);
-  OAILOG_DEBUG(
-      LOG_NAS5G, "AMBR DL session : %d",
-      static_cast<int>(session_ambr->dl_session_ambr));
-
   IES_DECODE_U8(buffer, decoded, session_ambr->ul_unit);
-  OAILOG_DEBUG(
-      LOG_NAS5G, "AMBR UL unit : %d", static_cast<int>(session_ambr->ul_unit));
   IES_DECODE_U16(buffer, decoded, session_ambr->ul_session_ambr);
-  OAILOG_DEBUG(
-      LOG_NAS5G, "AMBR UL session : %d",
-      static_cast<int>(session_ambr->ul_session_ambr));
   return (decoded);
 };
 
@@ -64,38 +48,25 @@ int SessionAMBRMsg::EncodeSessionAMBRMsg(SessionAMBRMsg* session_ambr,
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, AMBR_MIN_LEN, len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding SessionAMBRMsg");
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char)iei, session_ambr->iei);
     *buffer = iei;
-    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(*buffer));
     encoded++;
   }
 
   lenPtr = (uint8_t*)(buffer + encoded);
   *(buffer + encoded) = session_ambr->length;
-  OAILOG_DEBUG(LOG_NAS5G, "Length : %X", static_cast<int>(*(buffer + encoded)));
   encoded++;
 
   *(buffer + encoded) = session_ambr->dl_unit;
-  OAILOG_DEBUG(
-      LOG_NAS5G, "AMBR DL unit : %X", static_cast<int>(*(buffer + encoded)));
   encoded++;
 
   IES_ENCODE_U16(buffer, encoded, session_ambr->dl_session_ambr);
-  OAILOG_DEBUG(
-      LOG_NAS5G, "AMBR DL session : %X",
-      static_cast<int>(session_ambr->dl_session_ambr));
 
   *(buffer + encoded) = session_ambr->ul_unit;
-  OAILOG_DEBUG(
-      LOG_NAS5G, "AMBR UL unit : %X", static_cast<int>(*(buffer + encoded)));
   encoded++;
 
   IES_ENCODE_U16(buffer, encoded, session_ambr->ul_session_ambr);
-  OAILOG_DEBUG(
-      LOG_NAS5G, "AMBR UL session : %X",
-      static_cast<int>(session_ambr->ul_session_ambr));
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
 
   return (encoded);

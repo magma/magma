@@ -37,7 +37,6 @@ int AuthenticationRequestMsg::EncodeAuthenticationRequestMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, AUTHENTICATION_REQUEST_MINIMUM_LENGTH, len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding AuthenticationRequest message");
   if ((encoded_result = auth_request->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(
                                 &auth_request->extended_protocol_discriminator,

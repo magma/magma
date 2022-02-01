@@ -25,12 +25,8 @@ int SecurityHeaderTypeMsg::DecodeSecurityHeaderTypeMsg(
     uint32_t len) {
   int decoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding SecurityHeaderType");
-  sec_header_type->sec_hdr = *(buffer) &0xf;
+  sec_header_type->sec_hdr = *(buffer)&0xf;
   decoded++;
-  OAILOG_DEBUG(
-      LOG_NAS5G, "Security header type : %d",
-      static_cast<int>(sec_header_type->sec_hdr));
   return (decoded);
 };
 
@@ -40,11 +36,8 @@ int SecurityHeaderTypeMsg::EncodeSecurityHeaderTypeMsg(
     uint32_t len) {
   int encoded = 0;
 
-  OAILOG_DEBUG(LOG_NAS5G, "Encoding SecurityHeaderType");
   *(buffer) = sec_header_type->sec_hdr & 0xf;
   encoded++;
-  OAILOG_DEBUG(
-      LOG_NAS5G, "Security header type = 0x%X", static_cast<int>(*(buffer)));
   return (encoded);
 };
 }  // namespace magma5g

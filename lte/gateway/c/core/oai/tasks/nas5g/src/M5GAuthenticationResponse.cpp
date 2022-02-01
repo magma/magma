@@ -27,7 +27,6 @@ int AuthenticationResponseMsg::DecodeAuthenticationResponseMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, AUTHENTICATION_RESPONSE_MINIMUM_LENGTH, len);
 
-  OAILOG_DEBUG(LOG_NAS5G, "Decoding Authentication Response Message");
   if ((decoded_result = auth_response->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
                                 &auth_response->extended_protocol_discriminator,
