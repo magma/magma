@@ -75,7 +75,7 @@ class ConfigManager(StreamerClient.Callback):
         )
         return mconfig_digest_proto
 
-    def _warn_if_versions_are_incompatible(self, agw_version, unpacked_mconfig):
+    def _parse_versions_and_log_warning(self, agw_version, unpacked_mconfig):
         # version should be in X.X.X format with only non-negative numbers allowed for X
         version_regex = re.compile(r"[0-9]+\.(?P<minor_version>[0-9]+)\.[0-9]+")
 
@@ -177,7 +177,7 @@ class ConfigManager(StreamerClient.Callback):
 
             agw_version = self._magmad_service.version
             unpacked_mconfig = mconfig.configs_by_key.get(MAGMAD)
-            version_info = self._warn_if_versions_are_incompatible(agw_version, unpacked_mconfig)
+            version_info = self._parse_versions_and_log_warning(agw_version, unpacked_mconfig)
             agw_version_parsed = version_info.agw_version
             orc8r_version_parsed = version_info.orc8r_version
 
