@@ -30,8 +30,7 @@ from magma.policydb.reauth_handler import ReAuthHandler
 from magma.policydb.rule_map_store import RuleAssignmentsDict
 from magma.policydb.servicers.policy_servicer import PolicyRpcServicer
 from magma.policydb.servicers.session_servicer import SessionRpcServicer
-
-from .streamer_callback import (
+from magma.policydb.streamer_callback import (
     ApnRuleMappingsStreamerCallback,
     PolicyDBStreamerCallback,
     RatingGroupsStreamerCallback,
@@ -89,7 +88,6 @@ def main():
                 'rating_groups': RatingGroupsStreamerCallback(
                     rating_groups_dict,
                 ),
-
             },
             service.loop,
         )
