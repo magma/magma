@@ -11,20 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
 import unittest
 from unittest import mock
 
 from magma.common.sentry import (
     Event,
     Hint,
-    SentryStatus,
     SharedSentryConfig,
     _filter_excluded_messages,
     _get_before_send_hook,
     _get_shared_sentry_config,
-    _ignore_if_not_marked,
-    send_uncaught_errors_to_monitoring,
+    _ignore_if_marked,
 )
 from orc8r.protos.mconfig import mconfigs_pb2
 
@@ -34,31 +31,15 @@ class SentryTests(unittest.TestCase):
     Tests for Sentry monitoring
     """
 
-    def test_ignore_if_not_marked(self):
-        """Test ignored events that are not sent to Sentry"""
-        self.assertIsNone(_ignore_if_not_marked({"key": "value", "extra": {"something_else": 3}}))
+    def test_ignore_if_marked_as_excluded(self):
+        """Test marked events that are not sent to Sentry"""
+        self.assertIsNone(_ignore_if_marked({"key": "value", "extra": {"exclude_from_error_monitoring": True}}))
 
-    def test_do_not_ignore_and_remove_tag_if_marked(self):
-        """Test marked events that are sent to Sentry"""
-        returned_event = _ignore_if_not_marked({"key": "value", "extra": {"send_to_error_monitoring": True}})
-        self.assertEqual({"key": "value", "extra": {}}, returned_event)
-
-    def test_uncaught_error_wrapper(self):
-        """Test enabled wrapper logs an error"""
-        @send_uncaught_errors_to_monitoring(True)
-        def raise_error():
-            raise ValueError("Something went wrong")
-
-        with self.assertLogs() as captured:
-            try:
-                raise_error()
-            except ValueError:
-                pass
-
-        self.assertEqual(1, len(captured.records))
-        log_record = captured.records[0]
-        self.assertEqual("Uncaught error", log_record.message)
-        self.assertEqual(logging.ERROR, log_record.levelno)
+    def test_do_not_ignore_if_not_marked_as_excluded(self):
+        """Test normal events that are sent to Sentry"""
+        event = {"key": "value", "extra": {"something_else": 3}}
+        returned_event = _ignore_if_marked(event)
+        self.assertEqual(event, returned_event)
 
     @mock.patch('magma.common.sentry.get_service_config_value')
     def test_get_shared_sentry_config_from_control_proxy(self, get_service_config_value_mock):
@@ -115,20 +96,18 @@ class SentryTests(unittest.TestCase):
         result = _filter_excluded_messages(event, hint, ["something", "system2"])
         self.assertEqual(result, event)
 
-    def test_get_before_send_hook_returns_none(self):
-        """Test hook is not set if unnecessary"""
-        self.assertIsNone(_get_before_send_hook(SentryStatus.DISABLED, []))
-        self.assertIsNone(_get_before_send_hook(SentryStatus.SEND_ALL_ERRORS, []))
+    def test_get_before_send_hook_returns_exclusion_and_filter_hook(self):
+        """Test that the returned hook excludes marked events and applies the filter"""
+        hook = _get_before_send_hook(["message to exclude"])
 
-    def test_get_before_send_hook_returns_callback(self):
-        """Test hook is set correctly"""
-        hook = _get_before_send_hook(SentryStatus.SEND_SELECTED_ERRORS, [])
-        self.assertTrue(callable(hook))
-        self.assertEqual(hook.__name__, 'filter_excluded_and_unmarked_messages')
+        excluded_event = {"key": "value", "extra": {"exclude_from_error_monitoring": True}}
+        self.assertIsNone(hook(excluded_event, {}))
 
-        hook = _get_before_send_hook(SentryStatus.SEND_ALL_ERRORS, ["a"])
-        self.assertTrue(callable(hook))
-        self.assertEqual(hook.__name__, 'filter_excluded_messages')
+        filtered_event = _event_with_log_message("some message to exclude")
+        self.assertIsNone(hook(filtered_event, {}))
+
+        unfiltered_event = _event_with_log_message("another message")
+        self.assertEqual(unfiltered_event, hook(unfiltered_event, {}))
 
 
 def _event_with_log_message(message: str) -> Event:

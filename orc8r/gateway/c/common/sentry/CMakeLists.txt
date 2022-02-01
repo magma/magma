@@ -16,7 +16,21 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_library(MAGMA_SENTRY SentryWrapper.cpp)
+# compile the needed macros
+include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
+create_proto_dir("orc8r" ORC8R_CPP_OUT_DIR)
+
+list(APPEND PROTO_SRCS "")
+list(APPEND PROTO_HDRS "")
+
+set(SMGR_ORC8R_CPP_PROTOS common mconfig/mconfigs)
+generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
+
+add_library(MAGMA_SENTRY
+  SentryWrapper.cpp
+  ${PROTO_SRCS}
+  ${PROTO_HDRS})
 
 find_package(MAGMA_CONFIG REQUIRED)
 
@@ -33,7 +47,8 @@ endif()
 
 target_include_directories(MAGMA_SENTRY PUBLIC
     $ENV{MAGMA_ROOT}
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>")
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    $<TARGET_FILE_DIR:MAGMA_SENTRY>)
 
 install(TARGETS MAGMA_SENTRY EXPORT MAGMA_SENTRY_TARGETS
     INCLUDES DESTINATION includes
