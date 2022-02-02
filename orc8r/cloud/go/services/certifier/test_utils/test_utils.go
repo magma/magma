@@ -10,8 +10,8 @@ import (
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/cloud/go/services/tenants"
+	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
 	"magma/orc8r/cloud/go/test_utils"
-	"magma/orc8r/lib/go/protos"
 )
 
 const (
@@ -55,7 +55,7 @@ func CreateTestTenantUser(t *testing.T, store storage.CertifierStorage) string {
 	user, token := createTestTenantUser(t, TestTenantUsername, TestPassword)
 	err := store.PutUser(TestTenantUsername, &user)
 	assert.NoError(t, err)
-	tenants.CreateTenant(context.Background(), TestTenantId, &protos.Tenant{
+	tenants.CreateTenant(context.Background(), TestTenantId, &tenant_protos.Tenant{
 		Name:     string(TestTenantId),
 		Networks: []string{TestTenantNetworkId},
 	})
