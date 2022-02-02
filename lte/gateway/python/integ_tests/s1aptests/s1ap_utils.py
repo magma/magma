@@ -21,7 +21,7 @@ import subprocess
 import threading
 import time
 from enum import Enum
-from queue import Queue, Empty
+from queue import Empty, Queue
 from typing import Optional
 
 import grpc
