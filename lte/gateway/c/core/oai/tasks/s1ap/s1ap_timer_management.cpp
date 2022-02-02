@@ -10,7 +10,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-//--C includes -----------------------------------------------------------------
+
+// --C includes
+#include <stdexcept>
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
@@ -18,10 +20,12 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 }
+
+// --C++ includes
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer_management.h"
-//--C++ includes ---------------------------------------------------------------
-#include <stdexcept>
-//--Other includes -------------------------------------------------------------
+// ---------------------------------------------------------------
+// --Other includes
+// -------------------------------------------------------------
 
 extern task_zmq_ctx_t s1ap_task_zmq_ctx;
 

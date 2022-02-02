@@ -10,19 +10,22 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-#ifndef FILE_S1AP_UE_CONTEXT_H_SEEN
-#define FILE_S1AP_UE_CONTEXT_H_SEEN
+
+#pragma once
+
+// C++ includes ------------------------------------------------------------
+#include <stddef.h>
+#include <stdint.h>
+#include <czmq.h>
+#include <map>
+#include <utility>
+
 // C includes --------------------------------------------------------------
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
 }
-// C++ includes ------------------------------------------------------------
-#include <czmq.h>
-#include <map>
-#include <utility>
-#include <stddef.h>
-#include <stdint.h>
+
 // Other includes ----------------------------------------------------------
 
 namespace magma {
@@ -31,7 +34,7 @@ namespace lte {
 class S1apUeContext {
  private:
   std::map<int, s1ap_timer_arg_t> s1ap_timers;
-  S1apUeContext() : s1ap_timers(){};
+  S1apUeContext() : s1ap_timers() {}
 
  public:
   static S1apUeContext& Instance() {
@@ -59,4 +62,3 @@ class S1apUeContext {
 
 }  // namespace lte
 }  // namespace magma
-#endif /* FILE_S1AP_UE_CONTEXT_H_SEEN */

@@ -1598,15 +1598,10 @@ status_code_e s1ap_mme_handle_ue_context_release_complete(
   }
 
   if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
-    /*
-     * The UE context has already been deleted when the UE context release
-     * command was sent
-     * Ignore this message.
-     */
     OAILOG_DEBUG(
         LOG_S1AP,
-        " UE Context Release commplete: S1 context cleared. Ignore message for "
-        "ueid " MME_UE_S1AP_ID_FMT "\n",
+        "On reception of UE Context Release complete: Failed to find ue "
+        "context for ueid " MME_UE_S1AP_ID_FMT "\n",
         (uint32_t) mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   } else {
@@ -1616,10 +1611,10 @@ status_code_e s1ap_mme_handle_ue_context_release_complete(
        */
       OAILOG_ERROR(
           LOG_S1AP,
-          " UE Context Release commplete: S1 context should have been cleared "
-          "for ueid " MME_UE_S1AP_ID_FMT "\n",
+          "UE Context Release complete: clearing S1 context for "
+          "ueid " MME_UE_S1AP_ID_FMT "\n",
           (uint32_t) mme_ue_s1ap_id);
-      // Dont remove UE context if UE handed over to another eNB
+      // Remove UE context only if UE is not handed over to another eNB
       imsi64_t imsi64           = INVALID_IMSI64;
       s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
       hashtable_uint64_ts_get(

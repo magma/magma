@@ -1206,6 +1206,10 @@ void mme_app_handle_s1ap_ue_context_release_complete(
   if (move_ue_to_idle) {
     mme_ue_context_update_ue_sig_connection_state(
         &mme_app_desc_p->mme_ue_contexts, ue_context_p, ECM_IDLE);
+    /* If UE Context Release was sent after receiving Initial UE Message for UE
+     * in Ecm_connected state. The "saved" Initial UE Message needs to be
+     * processed once UE context release complete is received
+     */
     if ((ue_context_p->ue_context_rel_cause == S1AP_INVALID_ENB_ID) &&
         (ue_context_p->initial_ue_message_for_invalid_enb_s1ap_id)) {
       itti_s1ap_initial_ue_message_t* initial_pP =
