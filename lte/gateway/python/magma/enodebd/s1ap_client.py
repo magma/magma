@@ -14,6 +14,7 @@ from typing import Dict, Optional
 
 import grpc
 from lte.protos.s1ap_service_pb2_grpc import S1apServiceStub
+from magma.common.rpc_utils import print_grpc
 from magma.common.service_registry import ServiceRegistry
 from magma.enodebd.logger import EnodebdLogger as logger
 from orc8r.protos.common_pb2 import Void
@@ -22,7 +23,7 @@ S1AP_SERVICE_NAME = "s1ap_service"
 DEFAULT_GRPC_TIMEOUT = 20
 
 
-def get_all_enb_state() -> Optional[Dict[int, int]]:
+def get_all_enb_state(print_grpc_payload: bool = False) -> Optional[Dict[int, int]]:
     """
     Make RPC call to 'GetENBState' method of s1ap service
     """
@@ -36,7 +37,16 @@ def get_all_enb_state() -> Optional[Dict[int, int]]:
         return {}
     client = S1apServiceStub(chan)
     try:
-        res = client.GetENBState(Void(), DEFAULT_GRPC_TIMEOUT)
+        request = Void()
+        print_grpc(
+            request, print_grpc_payload,
+            "Get All eNB State Request:",
+        )
+        res = client.GetENBState(request, DEFAULT_GRPC_TIMEOUT)
+        print_grpc(
+            res, print_grpc_payload,
+            "Get All eNB State Response:",
+        )
         return res.enb_state_map
     except grpc.RpcError as err:
         logger.warning(

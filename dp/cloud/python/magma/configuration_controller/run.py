@@ -180,15 +180,22 @@ def _log_requests_map(session_manager, requests_map):
 
 
 def _log_request(session, request):
-    network_id = request.cbsd.network_id or ''
-    fcc_id = request.cbsd.fcc_id or ''
-    serial_number = request.cbsd.cbsd_serial_number
+    network_id = ''
+    fcc_id = ''
+    cbsd_serial_number = ''
+    cbsd = request.cbsd
+    if cbsd and cbsd.network_id:
+        network_id = cbsd.network_id
+    if cbsd and cbsd.fcc_id:
+        fcc_id = cbsd.fcc_id
+    if cbsd and cbsd.cbsd_serial_number:
+        cbsd_serial_number = cbsd.cbsd_serial_number
     log = DBLog(
         log_from='DP',
         log_to='SAS',
         log_name=request.type.name,
         log_message=f'{request.payload}',
-        cbsd_serial_number=f'{serial_number}',
+        cbsd_serial_number=f'{cbsd_serial_number}',
         network_id=f'{network_id}',
         fcc_id=f'{fcc_id}',
     )

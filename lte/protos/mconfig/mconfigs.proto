@@ -368,8 +368,9 @@ message MME {
     // MME congestion control configs
     bool congestion_control_enabled = 40;
 
+    // DEPRECATED: now configured in "shared_mconfig"
     // sentry_config stores the Sentry.io configuration for this service
-    SentryConfig sentry_config = 45;
+    SentryConfig sentry_config = 45 [deprecated = true];
 
     // Enables 5G Standalone (SA) at a network level
     bool enable5g_features = 46;

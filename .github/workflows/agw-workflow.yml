@@ -529,3 +529,15 @@ jobs:
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
+
+  jsonlint-mconfig:
+    name: jsonlint-mconfig
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{github.event.pull_request.head.ref}}
+          repository: ${{github.event.pull_request.head.repo.full_name}}
+          fetch-depth: 0
+      - name: jsonlint-mconfig
+        run: find . -name gateway.mconfig -print0 | xargs --max-args=1 --null --replace='%' sh -c ">/dev/null jq . % || { echo % is not a valid json file; exit 1; } "

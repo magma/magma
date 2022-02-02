@@ -18,6 +18,7 @@ from enum import Enum
 from typing import Dict, List  # noqa
 
 from lte.protos.policydb_pb2 import FlowMatch
+from magma.common.redis.client import get_default_client
 from magma.configuration.service_configs import load_service_config
 from magma.pipelined.qos.qos_meter_impl import MeterManager
 from magma.pipelined.qos.qos_tc_impl import TCManager, TrafficClass
@@ -173,13 +174,16 @@ class QosManager(object):
     """
     Qos Manager -> add/remove subscriber qos
     """
-    # protect QoS object create and delete across all QoSManager Objects.
-    lock = threading.Lock()
 
     def init_impl(self, datapath):
         """
         Takese in datapath, and initializes appropriate QoS manager based on config
         """
+        if not self._qos_enabled:
+            return
+        if self._initialized:
+            return
+
         try:
             impl_type = QosImplType(self._config["qos"]["impl"])
 
@@ -187,16 +191,10 @@ class QosManager(object):
                 self.impl = MeterManager(datapath, self._loop, self._config)
             else:
                 self.impl = TCManager(datapath, self._loop, self._config)
-                self.setup()
+            self.setup()
         except ValueError:
             LOG.error("%s is not a valid qos impl type", impl_type)
             raise
-
-    def _is_impl_initialized(self):
-        if not self.impl:
-            LOG.error("QoS Manager Implementation not initialized.")
-            return False
-        return True
 
     @classmethod
     def debug(cls, _, __, ___):
@@ -241,7 +239,15 @@ class QosManager(object):
             return False
         return True
 
-    def __init__(self, loop, config):
+    def __init__(self, loop, config, client=get_default_client()):
+        self._initialized = False
+        self._clean_restart = config["clean_restart"]
+        self._subscriber_state = {}
+        self._loop = loop
+        self._redis_conn_retry_secs = 1
+        self._config = config
+        # protect QoS object create and delete across a QoSManager Object.
+        self._lock = threading.Lock()
         if 'qos' not in config.keys():
             LOG.error("qos field not provided in config")
             return
@@ -250,17 +256,11 @@ class QosManager(object):
             return
         self._apn_ambr_enabled = config["qos"].get("apn_ambr_enabled", True)
         LOG.info("QoS: apn_ambr_enabled: %s", self._apn_ambr_enabled)
-        self._clean_restart = config["clean_restart"]
-        self._subscriber_state = {}
-        self._loop = loop
+        self._redis_store = QosStore(self.__class__.__name__, client)
         self.impl = None
-        self._redis_store = QosStore(self.__class__.__name__)
-        self._initialized = False
-        self._redis_conn_retry_secs = 1
-        self._config = config
 
     def setup(self):
-        with QosManager.lock:
+        with self._lock:
             if not self._qos_enabled:
                 return
 
@@ -390,8 +390,8 @@ class QosManager(object):
             qos_info: QosInfo,
             cleanup_rule=None,
     ):
-        with QosManager.lock:
-            if not self._qos_enabled or not self._initialized or self._is_impl_initialized():
+        with self._lock:
+            if not self._qos_enabled or not self._initialized:
                 LOG.debug("add_subscriber_qos: not enabled or initialized")
                 return None, None, None
 
@@ -493,8 +493,8 @@ class QosManager(object):
             return None, None, None
 
     def remove_subscriber_qos(self, imsi: str = "", del_rule_num: int = -1):
-        with QosManager.lock:
-            if not self._qos_enabled or not self._initialized or not self._is_impl_initialized():
+        with self._lock:
+            if not self._qos_enabled or not self._initialized:
                 LOG.debug("remove_subscriber_qos: not enabled or initialized")
                 return
 
