@@ -39,7 +39,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/bootstrapper"
-	"magma/orc8r/cloud/go/services/bootstrapper/servicers"
+	bootstrapper_servicer "magma/orc8r/cloud/go/services/bootstrapper/servicers/southbound"
 	certifier_test_init "magma/orc8r/cloud/go/services/certifier/test_init"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -59,7 +59,7 @@ const (
 )
 
 func testWithECHO(
-	t *testing.T, networkId string, srv *servicers.BootstrapperServer, ctx context.Context) {
+	t *testing.T, networkId string, srv *bootstrapper_servicer.BootstrapperServer, ctx context.Context) {
 
 	testAgHwId := "test_ag_echo"
 
@@ -96,7 +96,7 @@ func testWithECHO(
 }
 
 func testWithRSA(
-	t *testing.T, networkId string, srv *servicers.BootstrapperServer, ctx context.Context) {
+	t *testing.T, networkId string, srv *bootstrapper_servicer.BootstrapperServer, ctx context.Context) {
 
 	testAgHwId := "test_ag_rsa"
 	privateKey, err := key.GenerateKey("", 1024)
@@ -145,7 +145,7 @@ func testWithRSA(
 }
 
 func testWithECDSA(
-	t *testing.T, networkId string, srv *servicers.BootstrapperServer, ctx context.Context) {
+	t *testing.T, networkId string, srv *bootstrapper_servicer.BootstrapperServer, ctx context.Context) {
 
 	testAgHwId := "test_ag_ecdsa"
 	privateKey, err := key.GenerateKey("P256", 0)
@@ -201,7 +201,7 @@ func testWithGatewayBootstrapper(t *testing.T, networkId string) {
 	privateKey, err := key.GenerateKey("", 2048)
 	assert.NoError(t, err)
 
-	bootstrapperSrv, err := servicers.NewBootstrapperServer(privateKey.(*rsa.PrivateKey))
+	bootstrapperSrv, err := bootstrapper_servicer.NewBootstrapperServer(privateKey.(*rsa.PrivateKey))
 	assert.NoError(t, err)
 	protos.RegisterBootstrapperServer(srv.GrpcServer, bootstrapperSrv)
 
@@ -290,7 +290,7 @@ func testWithGatewayBootstrapper(t *testing.T, networkId string) {
 }
 
 func testNegative(
-	t *testing.T, networkId string, srv *servicers.BootstrapperServer, ctx context.Context) {
+	t *testing.T, networkId string, srv *bootstrapper_servicer.BootstrapperServer, ctx context.Context) {
 
 	testAgHwId := "test_ag_negative"
 	privateKey, err := key.GenerateKey("P256", 0)
@@ -407,13 +407,13 @@ func TestBootstrapperServer(t *testing.T) {
 	// create bootstrapper with short key
 	privateKey, err := key.GenerateKey("", 512)
 	assert.NoError(t, err)
-	_, err = servicers.NewBootstrapperServer(privateKey.(*rsa.PrivateKey))
+	_, err = bootstrapper_servicer.NewBootstrapperServer(privateKey.(*rsa.PrivateKey))
 	assert.Error(t, err)
 
 	// create bootstrapper server
 	privateKey, err = key.GenerateKey("", 2048)
 	assert.NoError(t, err)
-	srv, err := servicers.NewBootstrapperServer(privateKey.(*rsa.PrivateKey))
+	srv, err := bootstrapper_servicer.NewBootstrapperServer(privateKey.(*rsa.PrivateKey))
 	assert.NoError(t, err)
 
 	// for signing csr
