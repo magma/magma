@@ -17,6 +17,7 @@ import unittest
 from collections import namedtuple
 from unittest.mock import MagicMock, call, patch
 
+import fakeredis
 from lte.protos.policydb_pb2 import FlowMatch
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.qos.common import QosImplType, QosManager, SubscriberState
@@ -191,7 +192,7 @@ get_action_instruction",
         if self.config["qos"]["impl"] == QosImplType.LINUX_TC:
             mock_traffic_cls.read_all_classes.side_effect = lambda intf: prior_qids[intf]
 
-        qos_mgr = QosManager(asyncio.new_event_loop(), self.config)
+        qos_mgr = QosManager(asyncio.new_event_loop(), self.config, fakeredis.FakeStrictRedis())
         qos_mgr.init_impl(MagicMock)
         qos_mgr._redis_store = {}
         qos_mgr._setupInternal()
@@ -297,7 +298,7 @@ get_action_instruction",
             mock_traffic_cls.read_all_classes.side_effect = lambda intf: []
             mock_traffic_cls.delete_class.side_effect = lambda *args: 0
 
-        qos_mgr = QosManager(asyncio.new_event_loop(), self.config)
+        qos_mgr = QosManager(asyncio.new_event_loop(), self.config, fakeredis.FakeStrictRedis())
         qos_mgr.init_impl(MagicMock)
         qos_mgr._redis_store = {}
         qos_mgr._setupInternal()
@@ -462,7 +463,7 @@ get_action_instruction",
         and ensure that eventually the system and qos store state remains
         consistent"""
         loop = asyncio.new_event_loop()
-        qos_mgr = QosManager(loop, self.config)
+        qos_mgr = QosManager(loop, self.config, fakeredis.FakeStrictRedis())
         qos_mgr.init_impl(MagicMock)
         qos_mgr._redis_store = {}
 
@@ -596,7 +597,7 @@ get_action_instruction",
         AMBR configs.
         """
         loop = asyncio.new_event_loop()
-        qos_mgr = QosManager(loop, self.config)
+        qos_mgr = QosManager(loop, self.config, fakeredis.FakeStrictRedis())
         qos_mgr.init_impl(MagicMock)
         qos_mgr._redis_store = {}
 
@@ -784,7 +785,7 @@ get_action_instruction",
         prior_qids = {self.ul_intf: [(2, 0)], self.dl_intf: [(3, 0)]}
         mock_traffic_cls.read_all_classes.side_effect = lambda intf: prior_qids[intf]
 
-        qos_mgr = QosManager(asyncio.new_event_loop(), self.config)
+        qos_mgr = QosManager(asyncio.new_event_loop(), self.config, fakeredis.FakeStrictRedis())
         qos_mgr.init_impl(MagicMock)
         qos_mgr._redis_store = {}
         qos_mgr._setupInternal()

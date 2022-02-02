@@ -18,6 +18,7 @@ from enum import Enum
 from typing import Dict, List  # noqa
 
 from lte.protos.policydb_pb2 import FlowMatch
+from magma.common.redis.client import get_default_client
 from magma.configuration.service_configs import load_service_config
 from magma.pipelined.qos.qos_meter_impl import MeterManager
 from magma.pipelined.qos.qos_tc_impl import TCManager, TrafficClass
@@ -238,7 +239,7 @@ class QosManager(object):
             return False
         return True
 
-    def __init__(self, loop, config):
+    def __init__(self, loop, config, client=get_default_client()):
         self._initialized = False
         self._clean_restart = config["clean_restart"]
         self._subscriber_state = {}
@@ -255,7 +256,7 @@ class QosManager(object):
             return
         self._apn_ambr_enabled = config["qos"].get("apn_ambr_enabled", True)
         LOG.info("QoS: apn_ambr_enabled: %s", self._apn_ambr_enabled)
-        self._redis_store = QosStore(self.__class__.__name__)
+        self._redis_store = QosStore(self.__class__.__name__, client)
         self.impl = None
 
     def setup(self):
