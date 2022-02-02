@@ -33,7 +33,7 @@ import (
 	analytics_service "magma/orc8r/cloud/go/services/certifier/analytics"
 	"magma/orc8r/cloud/go/services/certifier/obsidian/handlers"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
-	"magma/orc8r/cloud/go/services/certifier/servicers"
+	servicers "magma/orc8r/cloud/go/services/certifier/servicers/protected"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	storage2 "magma/orc8r/cloud/go/storage"

@@ -2,7 +2,6 @@
 id: configure_sentry
 title: Sentry Integration
 hide_title: true
-original_id: configure_sentry
 ---
 
 # Sentry + Magma AGW

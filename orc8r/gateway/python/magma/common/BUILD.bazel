@@ -21,6 +21,7 @@ py_library(
         requirement("sentry_sdk"),
         requirement("snowflake"),
         "//feg/protos:mconfigs_python_proto",
+        "//orc8r/gateway/python/magma/configuration:service_configs",
     ],
 )
 
