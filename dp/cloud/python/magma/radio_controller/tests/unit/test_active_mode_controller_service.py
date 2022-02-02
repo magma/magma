@@ -76,10 +76,10 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
             with_grant("granted_grant", Granted, 3, 0). \
             with_grant("authorized_grant", Authorized, 5, 6). \
             build()
-        expected = State(active_mode_configs=[config])
 
+        expected = State(active_mode_configs=[config])
         actual = self.amc_service.GetState(GetStateRequest(), None)
-        self.assertEqual(expected, actual)
+        self.assertEqual(actual, expected)
 
     def test_get_state_with_channels(self):
         cbsd = self._prepare_base_cbsd(). \
@@ -96,7 +96,7 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
         expected = State(active_mode_configs=[config])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
-        self.assertEqual(expected, actual)
+        self.assertEqual(actual, expected)
 
     def test_get_state_with_last_seen(self):
         cbsd = self._prepare_base_cbsd().\
