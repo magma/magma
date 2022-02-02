@@ -100,7 +100,7 @@ rootCA.key
 </code></pre></li>
 <li><p>Run the following commands:</p>
 <pre><code class="hljs css language-bash">terraform taint module.orc8r-app.null_resource.orc8r_seed_secrets
-terraform apply --target=module.orc8rapp.null_resource.orc8r_seed_secrets
+terraform apply --target=module.orc8r-app.null_resource.orc8r_seed_secrets
 terraform apply
 </code></pre>
 <p>NOTE: <code>terraform apply</code> command outputs the “plan” of what it intends to add,destroy,modify. Please scrutinize this output before typing “yes” on the confirm prompt. If there are any changes that are not consistent with your expectations, please cancel the run. You can specifically target the secrets portion by doing <code>terraform apply -target=module.&lt;module information&gt;</code></p></li>
