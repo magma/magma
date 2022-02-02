@@ -15,5 +15,5 @@ magma_rootCA_path: ""
 
 magma_5g_upgrade: true
 # If you want any specific version to be installed then uncomment the below and specify the version
-# magma5gVersion: ""
+magma5gVersion: "1.7.0-1643760676-2482dea0"
 magma_pkgrepo_dist: "focal-1.6.1"

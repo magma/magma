@@ -99,6 +99,15 @@ magma_5g_upgrade = true
 # Please specify the version number in below attribute, to install that particular version (1.7.0)
 magma5gVersion = "1.7.0"
 ```
+
+#### To configure the AGW 
+If you want to configure your AGW, then modify the below attribute in the `ansible_vars.yaml` file.
+
+```
+magma_control_proxy_path: ""
+magma_rootCA_path: ""
+```
+
 ### All set to do the deployment by executing the below command:
 ```
 ansible-playbook agw_deploy.yaml -e "@ansible_vars.yaml"
