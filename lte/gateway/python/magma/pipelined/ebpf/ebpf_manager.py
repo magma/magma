@@ -52,6 +52,9 @@ def get_ebpf_manager(config):
     else:
         enabled = False
     gw_info = get_mobilityd_gw_info()
+    if not ('nat_iface' in config and 'enodeb_iface' in config):
+        LOG.info("eBPF manager: Missing nat_iface/ennodeb_iface")
+        return None
     for gw in gw_info:
         if gw.ip.version != IPAddress.IPV4:
             continue
