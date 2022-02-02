@@ -62,5 +62,3 @@ preInstallChecks:
 route53:
   enabled: false
   region:
-  accessKey:
-  secretKey:

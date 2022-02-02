@@ -23,7 +23,3 @@ trace_interfaces:
 #   - tshark
 # tshark has more capabilities - see command_builder.py
 trace_tool: tshark
-
-# [Experimental] Enable Sentry for this service
-# Allowed values: send_all_errors, send_selected_errors, disabled
-sentry: disabled

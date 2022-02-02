@@ -185,13 +185,17 @@ int nas5g_message_decode(
   }
   OAILOG_DEBUG(
       LOG_AMF_APP, "[%s] Msg plain decode bytes[0-%d]\n%s",
-      get_message_type_str(msg->plain.amf.header.message_type).c_str(), bytes,
-      uint8_to_hex_string(buffer, bytes).c_str());
+      get_message_type_str(
+          static_cast<uint8_t>(msg->plain.amf.header.message_type))
+          .c_str(),
+      bytes, uint8_to_hex_string(buffer, bytes).c_str());
 
   OAILOG_INFO(
       LOG_AMF_APP, "Decoded msg(nas5g) id: [%x]-name [%s]",
-      msg->plain.amf.header.message_type,
-      get_message_type_str(msg->plain.amf.header.message_type).c_str());
+      static_cast<uint8_t>(msg->plain.amf.header.message_type),
+      get_message_type_str(
+          static_cast<uint8_t>(msg->plain.amf.header.message_type))
+          .c_str());
 
   if (size > 1) {
     // Security Protected NAS message decoded
@@ -308,9 +312,11 @@ int nas5g_message_encode(
     }
     OAILOG_INFO(
         LOG_AMF_APP, "Encoded msg(nas5g) id: [%x]-name [%s]",
-        msg->security_protected.plain.amf.header.message_type,
+        static_cast<uint8_t>(
+            msg->security_protected.plain.amf.header.message_type),
         get_message_type_str(
-            msg->security_protected.plain.amf.header.message_type)
+            static_cast<uint8_t>(
+                msg->security_protected.plain.amf.header.message_type))
             .c_str());
   } else {
     /*
@@ -321,8 +327,10 @@ int nas5g_message_encode(
 
     OAILOG_INFO(
         LOG_AMF_APP, "Encoded msg(nas5g) id: [%x]-name [%s]",
-        msg->plain.amf.header.message_type,
-        get_message_type_str(msg->plain.amf.header.message_type).c_str());
+        static_cast<uint8_t>(msg->plain.amf.header.message_type),
+        get_message_type_str(
+            static_cast<uint8_t>(msg->plain.amf.header.message_type))
+            .c_str());
   }
 
   if (bytes < 0) {
@@ -623,8 +631,9 @@ int _nas5g_message_plain_encode(
     }
     OAILOG_DEBUG(
         LOG_AMF_APP, "[%s] Msg plain encode bytes[0-%d]\n%s",
-        get_message_type_str(msg->amf.header.message_type).c_str(), bytes,
-        uint8_to_hex_string(buffer, bytes).c_str());
+        get_message_type_str(static_cast<uint8_t>(msg->amf.header.message_type))
+            .c_str(),
+        bytes, uint8_to_hex_string(buffer, bytes).c_str());
   } else {
     /*
      * Discard L3 messages with not supported protocol discriminator
@@ -1030,56 +1039,56 @@ static uint32_t _nas5g_message_get_mac(
 
 std::string get_message_type_str(uint8_t type) {
   std::string msgtype_str;
-  switch (type) {
-    case REG_REQUEST:
+  switch (static_cast<M5GMessageType>(type)) {
+    case M5GMessageType::REG_REQUEST:
       msgtype_str = "REG_REQUEST";
       break;
-    case REG_ACCEPT:
+    case M5GMessageType::REG_ACCEPT:
       msgtype_str = "REG_ACCEPT";
       break;
-    case REG_COMPLETE:
+    case M5GMessageType::REG_COMPLETE:
       msgtype_str = "REG_COMPLETE";
       break;
-    case M5G_SERVICE_REQUEST:
+    case M5GMessageType::M5G_SERVICE_REQUEST:
       msgtype_str = "M5G_SERVICE_REQUEST";
       break;
-    case M5G_SERVICE_ACCEPT:
+    case M5GMessageType::M5G_SERVICE_ACCEPT:
       msgtype_str = "M5G_SERVICE_ACCEPT";
       break;
-    case M5G_SERVICE_REJECT:
+    case M5GMessageType::M5G_SERVICE_REJECT:
       msgtype_str = "M5G_SERVICE_REJECT";
       break;
-    case M5G_IDENTITY_REQUEST:
+    case M5GMessageType::M5G_IDENTITY_REQUEST:
       msgtype_str = "M5G_IDENTITY_REQUEST";
       break;
-    case M5G_IDENTITY_RESPONSE:
+    case M5GMessageType::M5G_IDENTITY_RESPONSE:
       msgtype_str = "M5G_IDENTITY_RESPONSE";
       break;
-    case AUTH_REQUEST:
+    case M5GMessageType::AUTH_REQUEST:
       msgtype_str = "AUTH_REQUEST";
       break;
-    case AUTH_RESPONSE:
+    case M5GMessageType::AUTH_RESPONSE:
       msgtype_str = "AUTH_RESPONSE";
       break;
-    case AUTH_FAILURE:
+    case M5GMessageType::AUTH_FAILURE:
       msgtype_str = "AUTH_FAILURE";
       break;
-    case SEC_MODE_COMMAND:
+    case M5GMessageType::SEC_MODE_COMMAND:
       msgtype_str = "SEC_MODE_COMMAND";
       break;
-    case SEC_MODE_COMPLETE:
+    case M5GMessageType::SEC_MODE_COMPLETE:
       msgtype_str = "SEC_MODE_COMPLETE";
       break;
-    case DE_REG_REQUEST_UE_ORIGIN:
+    case M5GMessageType::DE_REG_REQUEST_UE_ORIGIN:
       msgtype_str = "DE_REG_REQUEST_UE_ORIGIN";
       break;
-    case DE_REG_ACCEPT_UE_ORIGIN:
+    case M5GMessageType::DE_REG_ACCEPT_UE_ORIGIN:
       msgtype_str = "DE_REG_ACCEPT_UE_ORIGIN";
       break;
-    case ULNASTRANSPORT:
+    case M5GMessageType::ULNASTRANSPORT:
       msgtype_str = "ULNASTRANSPORT";
       break;
-    case DLNASTRANSPORT:
+    case M5GMessageType::DLNASTRANSPORT:
       msgtype_str = "DLNASTRANSPORT";
       break;
     default:

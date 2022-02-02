@@ -191,7 +191,8 @@ get_action_instruction",
         if self.config["qos"]["impl"] == QosImplType.LINUX_TC:
             mock_traffic_cls.read_all_classes.side_effect = lambda intf: prior_qids[intf]
 
-        qos_mgr = QosManager(MagicMock, asyncio.new_event_loop(), self.config)
+        qos_mgr = QosManager(asyncio.new_event_loop(), self.config)
+        qos_mgr.init_impl(MagicMock)
         qos_mgr._redis_store = {}
         qos_mgr._setupInternal()
         imsi, ip_addr, rule_num, qos_info = "1234", '1.1.1.1', 0, QosInfo(100000, 100000)
@@ -296,7 +297,8 @@ get_action_instruction",
             mock_traffic_cls.read_all_classes.side_effect = lambda intf: []
             mock_traffic_cls.delete_class.side_effect = lambda *args: 0
 
-        qos_mgr = QosManager(MagicMock, asyncio.new_event_loop(), self.config)
+        qos_mgr = QosManager(asyncio.new_event_loop(), self.config)
+        qos_mgr.init_impl(MagicMock)
         qos_mgr._redis_store = {}
         qos_mgr._setupInternal()
         rule_list1 = [
@@ -460,7 +462,8 @@ get_action_instruction",
         and ensure that eventually the system and qos store state remains
         consistent"""
         loop = asyncio.new_event_loop()
-        qos_mgr = QosManager(MagicMock, loop, self.config)
+        qos_mgr = QosManager(loop, self.config)
+        qos_mgr.init_impl(MagicMock)
         qos_mgr._redis_store = {}
 
         def populate_db(qid_list, rule_list):
@@ -593,7 +596,8 @@ get_action_instruction",
         AMBR configs.
         """
         loop = asyncio.new_event_loop()
-        qos_mgr = QosManager(MagicMock, loop, self.config)
+        qos_mgr = QosManager(loop, self.config)
+        qos_mgr.init_impl(MagicMock)
         qos_mgr._redis_store = {}
 
         def populate_db(qid_list, old_ambr_list, old_leaf_list, rule_list):
@@ -780,7 +784,8 @@ get_action_instruction",
         prior_qids = {self.ul_intf: [(2, 0)], self.dl_intf: [(3, 0)]}
         mock_traffic_cls.read_all_classes.side_effect = lambda intf: prior_qids[intf]
 
-        qos_mgr = QosManager(MagicMock, asyncio.new_event_loop(), self.config)
+        qos_mgr = QosManager(asyncio.new_event_loop(), self.config)
+        qos_mgr.init_impl(MagicMock)
         qos_mgr._redis_store = {}
         qos_mgr._setupInternal()
         ambr_ul, ambr_dl = 250000, 500000

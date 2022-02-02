@@ -252,9 +252,9 @@ typedef struct itti_n11_create_pdu_session_response_s {
   pdu_session_type_t pdu_session_type;
   ssc_mode_t selected_ssc_mode;
   m5g_sm_cause_t m5gsm_cause;
+  SessionAmbr_response session_ambr;
   QosRules_response
       authorized_qos_rules[4];  // TODO 32 in NAS5g,3 in pcap, revisit later
-  SessionAmbr_response session_ambr;
   bool always_on_pdu_session_indication;
   ssc_mode_t allowed_ssc_mode;
   bool m5gsm_congetion_re_attempt_indicator;

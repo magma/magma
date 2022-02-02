@@ -30,12 +30,13 @@ TEST_F(SgwS8ConfigAndCreateMock, check_dedicated_bearer_creation_request) {
   sgw_state_t* sgw_state = create_and_get_contexts_on_cs_req(
       &temporary_create_session_procedure_id, &sgw_pdn_session);
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
+  fill_itti_csrsp(
+      &csresp, temporary_create_session_procedure_id, sgw_s8_up_teid++);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
   s8_create_bearer_request_t cb_req = {0};
   fill_create_bearer_request(
-      &cb_req, csresp.context_teid, default_eps_bearer_id);
+      &cb_req, csresp.context_teid, default_eps_bearer_id, sgw_s8_up_teid);
 
   itti_gx_nw_init_actv_bearer_request_t itti_bearer_req = {0};
   s8_bearer_context_t bc_cbreq = cb_req.bearer_context[0];
@@ -59,7 +60,7 @@ TEST_F(SgwS8ConfigAndCreateMock, check_dedicated_bearer_creation_request) {
   EXPECT_EQ(
       update_pgw_info_to_temp_dedicated_bearer_context(
           sgw_pdn_session, s1_u_sgw_fteid, &bc_cbreq, sgw_state,
-          cb_req.pgw_cp_address),
+          cb_req.pgw_cp_address, cb_req.sgw_s8_up_teid),
       RETURNok);
   // Validates sequence number matches with received create bearer request
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc =
@@ -91,13 +92,14 @@ TEST_F(SgwS8ConfigAndCreateMock, dedicated_bearer_invalid_lbi) {
   sgw_state_t* sgw_state = create_and_get_contexts_on_cs_req(
       &temporary_create_session_procedure_id, &sgw_pdn_session);
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
+  fill_itti_csrsp(
+      &csresp, temporary_create_session_procedure_id, sgw_s8_up_teid++);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
   s8_create_bearer_request_t cb_req = {0};
   // send invalid default eps bearer id
   fill_create_bearer_request(
-      &cb_req, csresp.context_teid, default_eps_bearer_id + 1);
+      &cb_req, csresp.context_teid, default_eps_bearer_id + 1, sgw_s8_up_teid);
   gtpv2c_cause_value_t cause_value = REQUEST_ACCEPTED;
   EXPECT_EQ(
       sgw_s8_handle_create_bearer_request(sgw_state, &cb_req, &cause_value),
@@ -114,12 +116,13 @@ TEST_F(SgwS8ConfigAndCreateMock, check_failed_to_create_dedicated_bearer) {
   sgw_state_t* sgw_state = create_and_get_contexts_on_cs_req(
       &temporary_create_session_procedure_id, &sgw_pdn_session);
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
+  fill_itti_csrsp(
+      &csresp, temporary_create_session_procedure_id, sgw_s8_up_teid++);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
   s8_create_bearer_request_t cb_req = {0};
   fill_create_bearer_request(
-      &cb_req, csresp.context_teid, default_eps_bearer_id);
+      &cb_req, csresp.context_teid, default_eps_bearer_id, sgw_s8_up_teid);
 
   itti_gx_nw_init_actv_bearer_request_t itti_bearer_req = {0};
   s8_bearer_context_t bc_cbreq = cb_req.bearer_context[0];
@@ -139,7 +142,7 @@ TEST_F(SgwS8ConfigAndCreateMock, check_failed_to_create_dedicated_bearer) {
       cb_req.sequence_number, LOG_SGW_S8);
   update_pgw_info_to_temp_dedicated_bearer_context(
       sgw_pdn_session, s1_u_sgw_fteid, &bc_cbreq, sgw_state,
-      cb_req.pgw_cp_address);
+      cb_req.pgw_cp_address, cb_req.sgw_s8_up_teid);
 
   itti_s11_nw_init_actv_bearer_rsp_t s11_actv_bearer_rsp;
   memset(&s11_actv_bearer_rsp, 0, sizeof(itti_s11_nw_init_actv_bearer_rsp_t));
@@ -164,12 +167,13 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_bearer_response_invalid_teid) {
   sgw_state_t* sgw_state = create_and_get_contexts_on_cs_req(
       &temporary_create_session_procedure_id, &sgw_pdn_session);
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
+  fill_itti_csrsp(
+      &csresp, temporary_create_session_procedure_id, sgw_s8_up_teid++);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
   s8_create_bearer_request_t cb_req = {0};
   fill_create_bearer_request(
-      &cb_req, csresp.context_teid, default_eps_bearer_id);
+      &cb_req, csresp.context_teid, default_eps_bearer_id, sgw_s8_up_teid);
 
   itti_gx_nw_init_actv_bearer_request_t itti_bearer_req = {0};
   s8_bearer_context_t bc_cbreq = cb_req.bearer_context[0];
@@ -190,7 +194,7 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_bearer_response_invalid_teid) {
       cb_req.sequence_number, LOG_SGW_S8);
   update_pgw_info_to_temp_dedicated_bearer_context(
       sgw_pdn_session, s1_u_sgw_fteid, &bc_cbreq, sgw_state,
-      cb_req.pgw_cp_address);
+      cb_req.pgw_cp_address, cb_req.sgw_s8_up_teid);
 
   itti_s11_nw_init_deactv_bearer_rsp_t s11_delete_bearer_response = {0};
   fill_delete_bearer_response(
@@ -219,7 +223,8 @@ TEST_F(SgwS8ConfigAndCreateMock, create_bearer_req_fails_to_find_ctxt) {
   s8_create_bearer_request_t cb_req = {0};
   // Send wrong sgw_s11_teid
   fill_create_bearer_request(
-      &cb_req, sgw_s11_tunnel.local_teid + 1, default_eps_bearer_id);
+      &cb_req, sgw_s11_tunnel.local_teid + 1, default_eps_bearer_id,
+      sgw_s8_up_teid);
   gtpv2c_cause_value_t cause_value = REQUEST_REJECTED;
   Imsi_t imsi                      = {0};
   imsi64_t imsi64 =
@@ -250,7 +255,7 @@ TEST_F(SgwS8ConfigAndCreateMock, create_bearer_req_fails_to_find_ctxt) {
   EXPECT_EQ(
       update_pgw_info_to_temp_dedicated_bearer_context(
           sgw_pdn_session, s1_u_sgw_fteid, &bc_cbreq, sgw_state,
-          cb_req.pgw_cp_address),
+          cb_req.pgw_cp_address, cb_req.sgw_s8_up_teid),
       RETURNok);
   free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
 }
@@ -293,7 +298,8 @@ TEST_F(SgwS8ConfigAndCreateMock, send_create_bearer_req_to_mme) {
   sgw_state_t* sgw_state = create_and_get_contexts_on_cs_req(
       &temporary_create_session_procedure_id, &sgw_pdn_session);
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
+  fill_itti_csrsp(
+      &csresp, temporary_create_session_procedure_id, sgw_s8_up_teid++);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
   s8_create_bearer_request_t cb_req = {0};
@@ -301,7 +307,7 @@ TEST_F(SgwS8ConfigAndCreateMock, send_create_bearer_req_to_mme) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
   fill_create_bearer_request(
-      &cb_req, csresp.context_teid, default_eps_bearer_id);
+      &cb_req, csresp.context_teid, default_eps_bearer_id, sgw_s8_up_teid);
   gtpv2c_cause_value_t cause_value = REQUEST_REJECTED;
 
   EXPECT_CALL(
@@ -348,12 +354,13 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_create_bearer_response) {
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
-  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
+  fill_itti_csrsp(
+      &csresp, temporary_create_session_procedure_id, sgw_s8_up_teid++);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
   s8_create_bearer_request_t cb_req = {0};
   fill_create_bearer_request(
-      &cb_req, csresp.context_teid, default_eps_bearer_id);
+      &cb_req, csresp.context_teid, default_eps_bearer_id, sgw_s8_up_teid);
   gtpv2c_cause_value_t cause_value = REQUEST_REJECTED;
 
   EXPECT_CALL(
@@ -426,12 +433,13 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_delete_bearer_req) {
   sgw_state_t* sgw_state = create_and_get_contexts_on_cs_req(
       &temporary_create_session_procedure_id, &sgw_pdn_session);
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
+  fill_itti_csrsp(
+      &csresp, temporary_create_session_procedure_id, sgw_s8_up_teid++);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
   s8_create_bearer_request_t cb_req = {0};
   fill_create_bearer_request(
-      &cb_req, csresp.context_teid, default_eps_bearer_id);
+      &cb_req, csresp.context_teid, default_eps_bearer_id, sgw_s8_up_teid);
   gtpv2c_cause_value_t cause_value = REQUEST_REJECTED;
 
   EXPECT_NE(
@@ -492,12 +500,13 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_bearer_response) {
   sgw_state_t* sgw_state = create_and_get_contexts_on_cs_req(
       &temporary_create_session_procedure_id, &sgw_pdn_session);
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
+  fill_itti_csrsp(
+      &csresp, temporary_create_session_procedure_id, sgw_s8_up_teid++);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
   s8_create_bearer_request_t cb_req = {0};
   fill_create_bearer_request(
-      &cb_req, csresp.context_teid, default_eps_bearer_id);
+      &cb_req, csresp.context_teid, default_eps_bearer_id, sgw_s8_up_teid);
   gtpv2c_cause_value_t cause_value = REQUEST_REJECTED;
 
   EXPECT_NE(

@@ -108,7 +108,7 @@ func NewGyClient(
 	cloudRegistry service_registry.GatewayRegistry,
 	globalConfig *GyGlobalConfig,
 ) *GyClient {
-	diamClient := diameter.NewClient(clientCfg)
+	diamClient := diameter.NewClient(clientCfg, serverCfg.LocalAddr)
 	diamClient.BeginConnection(serverCfg)
 	return NewConnectedGyClient(diamClient, serverCfg, reAuthHandler, cloudRegistry, globalConfig)
 }

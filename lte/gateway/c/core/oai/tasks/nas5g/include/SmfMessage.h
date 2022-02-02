@@ -22,6 +22,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationCommand.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationComplete.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationCommandReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
 
 namespace magma5g {
 // Smf NAS Header Class
@@ -80,8 +81,8 @@ class SmfMsg {
   int SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len);
   void copy(const SmfMsg& s) {
     header.copy(s.header);
-    switch (s.header.message_type) {
-      case PDU_SESSION_ESTABLISHMENT_REQUEST:
+    switch (static_cast<M5GMessageType>(s.header.message_type)) {
+      case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REQUEST:
         msg.pdu_session_estab_request.copy(s.msg.pdu_session_estab_request);
         break;
       default:
@@ -91,8 +92,8 @@ class SmfMsg {
   bool isEqual(const SmfMsg& s) {
     if (!header.isEqual(s.header)) return false;
     bool status = false;
-    switch (s.header.message_type) {
-      case PDU_SESSION_ESTABLISHMENT_REQUEST:
+    switch (static_cast<M5GMessageType>(s.header.message_type)) {
+      case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REQUEST:
         status = msg.pdu_session_estab_request.isEqual(
             s.msg.pdu_session_estab_request);
         break;

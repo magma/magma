@@ -157,11 +157,12 @@ status_code_e mme_app_send_s11_release_access_bearers_req(
   bool route_s11_messages_to_s8_task  = false;
   bool route_s11_messages_to_sgw_task = false;
   for (uint8_t itr = 0; itr < MAX_APN_PER_UE; itr++) {
-    if (ue_mm_context->pdn_contexts[itr] &&
-        ue_mm_context->pdn_contexts[itr]->route_s11_messages_to_s8_task) {
-      route_s11_messages_to_s8_task = true;
-    } else {
-      route_s11_messages_to_sgw_task = true;
+    if (ue_mm_context->pdn_contexts[itr]) {
+      if (ue_mm_context->pdn_contexts[itr]->route_s11_messages_to_s8_task) {
+        route_s11_messages_to_s8_task = true;
+      } else {
+        route_s11_messages_to_sgw_task = true;
+      }
     }
   }
   if (route_s11_messages_to_s8_task) {

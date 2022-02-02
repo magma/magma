@@ -96,6 +96,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
     case S11_RELEASE_ACCESS_BEARERS_REQUEST: {
       sgw_s8_handle_release_access_bearers_request(
+          sgw_state,
           &received_message_p->ittiMsg.s11_release_access_bearers_request,
           imsi64);
     } break;

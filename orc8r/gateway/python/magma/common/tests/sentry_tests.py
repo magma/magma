@@ -11,14 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
 import unittest
 from unittest import mock
 
 from magma.common.sentry import (
-    _ignore_if_not_marked,
-    get_sentry_dsn_and_sample_rate,
-    send_uncaught_errors_to_monitoring,
+    Event,
+    Hint,
+    SharedSentryConfig,
+    _filter_excluded_messages,
+    _get_before_send_hook,
+    _get_shared_sentry_config,
+    _ignore_if_marked,
 )
 from orc8r.protos.mconfig import mconfigs_pb2
 
@@ -28,46 +31,92 @@ class SentryTests(unittest.TestCase):
     Tests for Sentry monitoring
     """
 
-    def test_ignore_if_not_marked(self):
-        """Test ignored events that are not sent to Sentry"""
-        self.assertIsNone(_ignore_if_not_marked({"key": "value", "extra": {"something_else": 3}}, {}))
+    def test_ignore_if_marked_as_excluded(self):
+        """Test marked events that are not sent to Sentry"""
+        self.assertIsNone(_ignore_if_marked({"key": "value", "extra": {"exclude_from_error_monitoring": True}}))
 
-    def test_do_not_ignore_and_remove_tag_if_marked(self):
-        """Test marked events that are sent to Sentry"""
-        returned_event = _ignore_if_not_marked({"key": "value", "extra": {"send_to_error_monitoring": True}}, {})
-        self.assertEqual({"key": "value", "extra": {}}, returned_event)
-
-    def test_uncaught_error_wrapper(self):
-        """Test enabled wrapper logs an error"""
-        @send_uncaught_errors_to_monitoring(True)
-        def raise_error():
-            raise ValueError("Something went wrong")
-
-        with self.assertLogs() as captured:
-            try:
-                raise_error()
-            except ValueError:
-                pass
-
-        self.assertEqual(1, len(captured.records))
-        log_record = captured.records[0]
-        self.assertEqual("Uncaught error", log_record.message)
-        self.assertEqual(logging.ERROR, log_record.levelno)
+    def test_do_not_ignore_if_not_marked_as_excluded(self):
+        """Test normal events that are sent to Sentry"""
+        event = {"key": "value", "extra": {"something_else": 3}}
+        returned_event = _ignore_if_marked(event)
+        self.assertEqual(event, returned_event)
 
     @mock.patch('magma.common.sentry.get_service_config_value')
-    def test_get_sentry_dsn_and_sample_rate_from_control_proxy(self, get_service_config_value_mock):
-        """Test if control_proxy.yml overrides mconfig.
+    def test_get_shared_sentry_config_from_control_proxy(self, get_service_config_value_mock):
+        """Test if control_proxy.yml overrides mconfig (except exclusion).
         """
-        get_service_config_value_mock.side_effect = ['https://test.me', 0.5]
+        get_service_config_value_mock.side_effect = ['https://test.me', 0.5, ["Excluded"]]
         sentry_mconfig = mconfigs_pb2.SharedSentryConfig()
-        self.assertEqual(('https://test.me', 0.5), get_sentry_dsn_and_sample_rate(sentry_mconfig))
+        sentry_mconfig.exclusion_patterns.append("mconfig")
+        sentry_mconfig.exclusion_patterns.append("also mconfig")
+        self.assertEqual(
+            SharedSentryConfig('https://test.me', 0.5, ["mconfig", "also mconfig"]),
+            _get_shared_sentry_config(sentry_mconfig),
+        )
 
     @mock.patch('magma.common.sentry.get_service_config_value')
-    def test_get_sentry_dsn_and_sample_rate_from_mconfig(self, get_service_config_value_mock):
+    def test_get_shared_sentry_config_from_mconfig(self, get_service_config_value_mock):
         """Test if mconfig is used if control_proxy.yml is empty.
         """
-        get_service_config_value_mock.side_effect = ['', 0.5]
+        get_service_config_value_mock.side_effect = ['', 0.5, ["Excluded"]]
         sentry_mconfig = mconfigs_pb2.SharedSentryConfig()
         sentry_mconfig.dsn_python = 'https://test.me'
         sentry_mconfig.sample_rate = 1
-        self.assertEqual(('https://test.me', 1), get_sentry_dsn_and_sample_rate(sentry_mconfig))
+        sentry_mconfig.exclusion_patterns.append("another error")
+        self.assertEqual(
+            SharedSentryConfig('https://test.me', 1, ["another error"]),
+            _get_shared_sentry_config(sentry_mconfig),
+        )
+
+    def test_exclusion_pattern_for_log_messages(self):
+        """Test events written by error logs can be filtered"""
+        event = _event_with_log_message("Error in system1")
+        result = _filter_excluded_messages(event, {}, ["system1"])
+        self.assertEqual(result, None)
+
+        result = _filter_excluded_messages(event, {}, ["system2"])
+        self.assertEqual(result, event)
+
+    def test_exclusion_pattern_for_explicit_messages(self):
+        """Test events written explicitly can be filtered"""
+        event = _event_with_explicit_message("Error in system1")
+        result = _filter_excluded_messages(event, {}, ["Error.*1"])
+        self.assertEqual(result, None)
+
+        result = _filter_excluded_messages(event, {}, ["IN.*1"])
+        self.assertEqual(result, event)
+
+    def test_exclusion_pattern_for_exception_messages(self):
+        """Test events written explicitly can be filtered"""
+        event = _event_with_log_message("Caught exception")
+        hint = _hint_with_exception_message("Error in system1")
+        result = _filter_excluded_messages(event, hint, ["something", "system1"])
+        self.assertEqual(result, None)
+
+        result = _filter_excluded_messages(event, hint, ["something", "system2"])
+        self.assertEqual(result, event)
+
+    def test_get_before_send_hook_returns_exclusion_and_filter_hook(self):
+        """Test that the returned hook excludes marked events and applies the filter"""
+        hook = _get_before_send_hook(["message to exclude"])
+
+        excluded_event = {"key": "value", "extra": {"exclude_from_error_monitoring": True}}
+        self.assertIsNone(hook(excluded_event, {}))
+
+        filtered_event = _event_with_log_message("some message to exclude")
+        self.assertIsNone(hook(filtered_event, {}))
+
+        unfiltered_event = _event_with_log_message("another message")
+        self.assertEqual(unfiltered_event, hook(unfiltered_event, {}))
+
+
+def _event_with_log_message(message: str) -> Event:
+    return {"logentry": {"message": message}}
+
+
+def _event_with_explicit_message(message: str) -> Event:
+    return {"message": message}
+
+
+def _hint_with_exception_message(message: str) -> Hint:
+    return {"exc_info": (None, ValueError(message), None)}

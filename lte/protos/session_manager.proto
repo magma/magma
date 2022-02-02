@@ -591,6 +591,22 @@ message QosInformationRequest {
   BitrateUnitsAMBR br_unit = 7;
 }
 
+message M5GQosInformationRequest {
+  uint64 apn_ambr_dl = 1;
+  uint64 apn_ambr_ul = 2;
+  uint32 priority_level = 3;
+  prem_capab preemption_capability = 4;
+  prem_vuner preemption_vulnerability = 5;
+  QCI qos_class_id = 6;
+
+  enum BitrateUnitsAMBR {
+        BPS = 0;
+        KBPS = 1;
+  }
+  // Unit (either bps or Kbps)
+  BitrateUnitsAMBR br_unit = 7;
+}
+
 // TgppContext is a session specific 3GPP context session proxy may meed session manager to persist
 message TgppContext {
   string gx_dest_host = 1;
@@ -792,16 +808,16 @@ message QosPolicy {
 	INSTALL=0;
 	PENDING=1;
 	REJECT=2;
- }
- PolicyState policy_state=1;
- uint32 version=2;
- enum PolicyAction {
+   }
+   PolicyState policy_state=1;
+   uint32 version=2;
+   enum PolicyAction {
         ADD=0;
         DEL=1;
         MOD=2;
- }
- PolicyAction policy_action=3;
- PolicyRule  qos =4;
+  }
+  PolicyAction policy_action=3;
+  PolicyRule qos =4;
 }
 
 enum prem_capab {
@@ -915,8 +931,7 @@ message M5GSMSessionContext {
   TeidSet upf_endpoint = 24;
   // Procedure transaction identity
   bytes procedure_trans_identity = 25;
-  AggregatedMaximumBitrate default_ambr = 26;
-  // For Modification policy
+  M5GQosInformationRequest subscribed_qos = 26;
   repeated QosPolicy qos_policy = 27;
 }
 
@@ -963,8 +978,7 @@ message M5GSMSessionContextAccess{
     repeated QosRules authorized_qos_rules = 4;
     // TS-24501 - 9.11.4.14 PDU session  Bit Rate imported from subscriberdb.proto
 
-    // TS-24501 - 9.11.4.14 PDU session Aggregate Maximum Bit Rate imported from subscriberdb.proto
-    AggregatedMaximumBitrate session_ambr = 5;
+    M5GQosInformationRequest subscribed_qos = 5;
 
     // TS-24501 - 9.11.4.2
     M5GSMCause M5gsm_cause = 10;
@@ -979,7 +993,7 @@ message M5GSMSessionContextAccess{
     // Procedure transaction identity One byte TS-24501 9.6
     bytes procedure_trans_identity = 16;
     // Mutiple Qos policy support
-    repeated QosPolicy qospolicy = 18;
+    repeated QosPolicy qospolicy = 17;
 }
 
 message SetSMSessionContextAccess {
@@ -987,6 +1001,8 @@ message SetSMSessionContextAccess {
   CommonSessionContext common_context = 1;
   RatSpecificContextAccess   rat_specific_context = 2;
 }
+
+
 
 // Node Level Messages from UPF. Purely Event Based.
 message UPFNodeState {

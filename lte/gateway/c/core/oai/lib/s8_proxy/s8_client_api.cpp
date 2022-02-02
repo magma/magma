@@ -519,6 +519,7 @@ static void convert_proto_msg_to_itti_csr(
       response.pdn_type(), response.paa(), &s5_response->paa);
   get_fteid_from_proto_msg(
       response.bearer_context().user_plane_fteid(), &s8_bc->pgw_s8_up);
+  s5_response->sgw_s8_up_teid = response.u_agw_teid();
 
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }

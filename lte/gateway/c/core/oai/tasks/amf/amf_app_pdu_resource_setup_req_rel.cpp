@@ -51,11 +51,14 @@ uint64_t get_bit_rate(uint8_t ambr_unit) {
  * AMBR calculation based on 9.11.4.14 of 24-501
  */
 void ambr_calculation_pdu_session(
-    uint16_t* dl_session_ambr, uint8_t* dl_ambr_unit, uint16_t* ul_session_ambr,
-    uint8_t* ul_ambr_unit, uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr) {
-  *dl_pdu_ambr = (*dl_session_ambr) * get_bit_rate(*dl_ambr_unit);
+    uint16_t* dl_session_ambr, M5GSessionAmbrUnit dl_ambr_unit,
+    uint16_t* ul_session_ambr, M5GSessionAmbrUnit ul_ambr_unit,
+    uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr) {
+  *dl_pdu_ambr =
+      (*dl_session_ambr) * get_bit_rate(static_cast<uint8_t>(dl_ambr_unit));
 
-  *ul_pdu_ambr = (*ul_session_ambr) * get_bit_rate(*ul_ambr_unit);
+  *ul_pdu_ambr =
+      (*ul_session_ambr) * get_bit_rate(static_cast<uint8_t>(ul_ambr_unit));
 }
 
 /*
@@ -91,9 +94,10 @@ int pdu_session_resource_setup_request(
    * leveraged ambr calculation from qos_params_to_eps_qos and 24-501 spec used
    */
   ambr_calculation_pdu_session(
-      &(smf_context->dl_session_ambr), &(smf_context->dl_ambr_unit),
-      &(smf_context->ul_session_ambr), &(smf_context->ul_ambr_unit),
-      &dl_pdu_ambr, &ul_pdu_ambr);
+      &(smf_context->selected_ambr.dl_session_ambr),
+      (smf_context->selected_ambr.dl_ambr_unit),
+      &(smf_context->selected_ambr.ul_session_ambr),
+      (smf_context->selected_ambr.ul_ambr_unit), &dl_pdu_ambr, &ul_pdu_ambr);
 
   amf_smf_context_ue_aggregate_max_bit_rate_get(
       &(ue_context->amf_context),
@@ -103,8 +107,7 @@ int pdu_session_resource_setup_request(
   // Hardcoded number of pdu sessions as 1
   ngap_pdu_ses_setup_req->pduSessionResource_setup_list.no_of_items = 1;
   ngap_pdu_ses_setup_req->pduSessionResource_setup_list.item[0].Pdu_Session_ID =
-      (Ngap_PDUSessionID_t)
-          smf_context->smf_proc_data.pdu_session_identity.pdu_session_id;
+      (Ngap_PDUSessionID_t) smf_context->smf_proc_data.pdu_session_id;
 
   ngap_pdu_ses_setup_req->pduSessionResource_setup_list.no_of_items = 1;
   // Adding respective header to amf_pdu_ses_setup_transfer_request
@@ -173,8 +176,7 @@ int pdu_session_resource_modify_request(
   // Hardcoded number of pdu sessions as 1
   ngap_pdu_ses_mod_req->pduSessResourceModReqList.no_of_items = 1;
   ngap_pdu_ses_mod_req->pduSessResourceModReqList.item[0].Pdu_Session_ID =
-      (Ngap_PDUSessionID_t)
-          smf_context->smf_proc_data.pdu_session_identity.pdu_session_id;
+      (Ngap_PDUSessionID_t) smf_context->smf_proc_data.pdu_session_id;
 
   ngap_pdu_ses_mod_req->pduSessResourceModReqList.no_of_items = 1;
   // Adding respective header to amf_pdu_ses_setup_transfer_request
@@ -239,7 +241,8 @@ int pdu_session_resource_release_request(
 
   msg.security_protected.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  msg.security_protected.plain.amf.header.message_type = DLNASTRANSPORT;
+  msg.security_protected.plain.amf.header.message_type =
+      M5GMessageType::DLNASTRANSPORT;
   msg.header.security_header_type = SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED;
   msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
   msg.header.sequence_number =
@@ -255,7 +258,8 @@ int pdu_session_resource_release_request(
   encode_msg->spare_half_octet.spare  = 0x00;
   encode_msg->sec_header_type.sec_hdr = 0x00;
   len++;
-  encode_msg->message_type.msg_type = DLNASTRANSPORT;
+  encode_msg->message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::DLNASTRANSPORT);
   len++;
   encode_msg->payload_container.iei = PAYLOAD_CONTAINER;
   // encode_msg->payload_container_type.iei      = PAYLOAD_CONTAINER_TYPE;
@@ -265,27 +269,26 @@ int pdu_session_resource_release_request(
   encode_msg->pdu_session_identity.iei = 0x12;
   len++;
   encode_msg->pdu_session_identity.pdu_session_id =
-      smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
+      smf_ctx->smf_proc_data.pdu_session_id;
   len++;
 
   // NAS SmfMsg
   smf_msg->header.extended_protocol_discriminator =
       M5G_SESSION_MANAGEMENT_MESSAGES;
-  smf_msg->header.pdu_session_id =
-      smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
-  smf_msg->header.message_type             = PDU_SESSION_RELEASE_COMMAND;
-  smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti.pti;
+  smf_msg->header.pdu_session_id = smf_ctx->smf_proc_data.pdu_session_id;
+  smf_msg->header.message_type =
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_RELEASE_COMMAND);
+  smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti;
   smf_msg->msg.pdu_session_release_command.extended_protocol_discriminator
       .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
   container_len++;
   smf_msg->msg.pdu_session_release_command.pdu_session_identity.pdu_session_id =
-      smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
+      smf_ctx->smf_proc_data.pdu_session_id;
   container_len++;
-  smf_msg->msg.pdu_session_release_command.pti.pti =
-      smf_ctx->smf_proc_data.pti.pti;
+  smf_msg->msg.pdu_session_release_command.pti.pti = smf_ctx->smf_proc_data.pti;
   container_len++;
   smf_msg->msg.pdu_session_release_command.message_type.msg_type =
-      PDU_SESSION_RELEASE_COMMAND;
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_RELEASE_COMMAND);
   container_len++;
   smf_msg->msg.pdu_session_release_command.m5gsm_cause.cause_value =
       0x24;  // Regular deactivation
@@ -347,8 +350,7 @@ int pdu_session_resource_release_request(
   ngap_pdu_ses_release_req->pduSessionResourceToRelReqList.no_of_items = 1;
   ngap_pdu_ses_release_req->pduSessionResourceToRelReqList.item[0]
       .Pdu_Session_ID =
-      (Ngap_PDUSessionID_t)
-          smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
+      (Ngap_PDUSessionID_t) smf_ctx->smf_proc_data.pdu_session_id;
   amf_pdu_ses_rel_transfer_req.cause.cause_group.u_group.nas.cause =
       NORMAL_RELEASE;
   amf_pdu_ses_rel_transfer_req.cause.cause_group.cause_group_type = NAS_GROUP;

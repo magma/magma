@@ -38,7 +38,7 @@ build --java_toolchain=@bazel_tools//tools/jdk:toolchain_java11
 
 coverage --config=coverage
 build:coverage --combined_report=lcov
-build:coverage --instrumentation_filter="//(orc8r|lte)/gateway/c[/:],-//(orc8r|lte)/protos[/:],-/*/test[/:]"
+build:coverage --instrumentation_filter="//(orc8r|lte)/gateway/(c|python)[/:],-//(orc8r|lte)/protos[/:],-/*/test[/:]"
 
 # ASAN
 build:asan --copt=-fsanitize=address

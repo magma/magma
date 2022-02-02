@@ -566,15 +566,17 @@ static void get_ambr_unit(
 int amf_app_handle_pdu_session_response(
     itti_n11_create_pdu_session_response_t* pdu_session_resp) {
   DLNASTransportMsg encode_msg;
-  ue_m5gmm_context_s* ue_context;
+  memset(&encode_msg, 0, sizeof(encode_msg));
+  ue_m5gmm_context_s* ue_context = nullptr;
   std::shared_ptr<smf_context_t> smf_ctx;
   amf_smf_t amf_smf_msg;
+  memset(&amf_smf_msg, 0, sizeof(amf_smf_msg));
   // TODO: hardcoded for now, addressed in the upcoming multi-UE PR
   uint64_t ue_id = 0;
   int rc         = RETURNerror;
   uint32_t event;
 
-  imsi64_t imsi64;
+  imsi64_t imsi64 = 0;
   IMSI_STRING_TO_IMSI64(pdu_session_resp->imsi, &imsi64);
   // Handle smf_context
   ue_context = lookup_ue_ctxt_by_imsi(imsi64);
@@ -596,13 +598,15 @@ int amf_app_handle_pdu_session_response(
 
   convert_ambr(
       &pdu_session_resp->session_ambr.downlink_unit_type,
-      &pdu_session_resp->session_ambr.downlink_units, &smf_ctx->dl_ambr_unit,
-      &smf_ctx->dl_session_ambr);
+      &pdu_session_resp->session_ambr.downlink_units,
+      &smf_ctx->selected_ambr.dl_ambr_unit,
+      &smf_ctx->selected_ambr.dl_session_ambr);
 
   convert_ambr(
       &pdu_session_resp->session_ambr.uplink_unit_type,
-      &pdu_session_resp->session_ambr.uplink_units, &smf_ctx->ul_ambr_unit,
-      &smf_ctx->ul_session_ambr);
+      &pdu_session_resp->session_ambr.uplink_units,
+      &smf_ctx->selected_ambr.ul_ambr_unit,
+      &smf_ctx->selected_ambr.ul_session_ambr);
 
   smf_ctx->qos_flow_list = pdu_session_resp->qos_flow_list;
 
@@ -627,9 +631,9 @@ int amf_app_handle_pdu_session_response(
     amf_sap.u.amf_as.u.establish.pdu_session_status_ie =
         (AMF_AS_PDU_SESSION_STATUS | AMF_AS_PDU_SESSION_REACTIVATION_STATUS);
     amf_sap.u.amf_as.u.establish.pdu_session_status =
-        (1 << smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id);
+        (1 << smf_ctx->smf_proc_data.pdu_session_id);
     amf_sap.u.amf_as.u.establish.pdu_session_reactivation_status =
-        (1 << smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id);
+        (1 << smf_ctx->smf_proc_data.pdu_session_id);
     amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
     rc                                = amf_sap_send(&amf_sap);
     if (RETURNok == rc) {
@@ -673,7 +677,7 @@ int amf_app_handle_pdu_session_response(
  ***************************************************************************/
 void convert_ambr(
     const uint32_t* pdu_ambr_response_unit,
-    const uint32_t* pdu_ambr_response_value, uint8_t* ambr_unit,
+    const uint32_t* pdu_ambr_response_value, M5GSessionAmbrUnit* ambr_unit,
     uint16_t* ambr_value) {
   int count                             = 1;
   uint32_t temp_pdu_ambr_response_value = *pdu_ambr_response_value;
@@ -683,8 +687,7 @@ void convert_ambr(
       temp_pdu_ambr_response_value / 1000 == 0) {
     // Values less than 1Kbps are defaulted to 1Kbps
     *ambr_value = static_cast<uint16_t>(1);
-    *ambr_unit  = static_cast<uint8_t>(
-        magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // Kbps
+    *ambr_unit  = magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS;  // Kbps
     return;
   }
 
@@ -699,16 +702,13 @@ void convert_ambr(
 
   switch (count) {
     case 1:
-      *ambr_unit = static_cast<uint8_t>(
-          magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // Kbps
+      *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS;  // Kbps
       break;
     case 2:
-      *ambr_unit = static_cast<uint8_t>(
-          magma5g::M5GSessionAmbrUnit::MULTIPLES_1MBPS);  // Mbps
+      *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1MBPS;  // Mbps
       break;
     case 3:
-      *ambr_unit = static_cast<uint8_t>(
-          magma5g::M5GSessionAmbrUnit::MULTIPLES_1GBPS);  // Gbps
+      *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1GBPS;  // Gbps
       break;
   }
   *ambr_value = static_cast<uint16_t>(temp_pdu_ambr_response_value);
@@ -764,7 +764,8 @@ int amf_app_handle_pdu_session_accept(
   // Message construction for PDU Establishment Accept
   msg.security_protected.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  msg.security_protected.plain.amf.header.message_type = DLNASTRANSPORT;
+  msg.security_protected.plain.amf.header.message_type =
+      M5GMessageType::DLNASTRANSPORT;
   msg.header.security_header_type =
       SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
   msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
@@ -777,9 +778,10 @@ int amf_app_handle_pdu_session_accept(
   // AmfHeader
   encode_msg->extended_protocol_discriminator.extended_proto_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  encode_msg->spare_half_octet.spare     = 0x00;
-  encode_msg->sec_header_type.sec_hdr    = SECURITY_HEADER_TYPE_NOT_PROTECTED;
-  encode_msg->message_type.msg_type      = DLNASTRANSPORT;
+  encode_msg->spare_half_octet.spare  = 0x00;
+  encode_msg->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  encode_msg->message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::DLNASTRANSPORT);
   encode_msg->payload_container_type.iei = 0;
   // encode_msg->payload_container_type.iei = PAYLOAD_CONTAINER_TYPE;
 
@@ -793,17 +795,17 @@ int amf_app_handle_pdu_session_accept(
 
   smf_msg->header.extended_protocol_discriminator =
       M5G_SESSION_MANAGEMENT_MESSAGES;
-  smf_msg->header.pdu_session_id           = pdu_session_resp->pdu_session_id;
-  smf_msg->header.message_type             = PDU_SESSION_ESTABLISHMENT_ACCEPT;
-  smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti.pti;
+  smf_msg->header.pdu_session_id = pdu_session_resp->pdu_session_id;
+  smf_msg->header.message_type =
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_ESTABLISHMENT_ACCEPT);
+  smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti;
   smf_msg->msg.pdu_session_estab_accept.extended_protocol_discriminator
       .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
   smf_msg->msg.pdu_session_estab_accept.pdu_session_identity.pdu_session_id =
       pdu_session_resp->pdu_session_id;
-  smf_msg->msg.pdu_session_estab_accept.pti.pti =
-      smf_ctx->smf_proc_data.pti.pti;
+  smf_msg->msg.pdu_session_estab_accept.pti.pti = smf_ctx->smf_proc_data.pti;
   smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
-      PDU_SESSION_ESTABLISHMENT_ACCEPT;
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_ESTABLISHMENT_ACCEPT);
   smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val = 1;
   smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val =
       (pdu_session_resp->selected_ssc_mode + 1);
@@ -850,14 +852,14 @@ int amf_app_handle_pdu_session_accept(
 
   // Set session ambr
   smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_unit =
-      smf_ctx->dl_ambr_unit;
+      static_cast<uint8_t>(smf_ctx->selected_ambr.dl_ambr_unit);
   smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_session_ambr =
-      smf_ctx->dl_session_ambr;
+      smf_ctx->selected_ambr.dl_session_ambr;
 
   smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_unit =
-      smf_ctx->ul_ambr_unit;
+      static_cast<uint8_t>(smf_ctx->selected_ambr.ul_ambr_unit);
   smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_session_ambr =
-      smf_ctx->ul_session_ambr;
+      smf_ctx->selected_ambr.ul_session_ambr;
 
   smf_msg->msg.pdu_session_estab_accept.session_ambr.length = AMBR_LEN;
 
@@ -875,14 +877,18 @@ int amf_app_handle_pdu_session_accept(
   smf_msg->msg.pdu_session_estab_accept.nssai.iei =
       static_cast<uint8_t>(M5GIei::S_NSSAI);
   uint32_t buf_len = 0;
-  if (smf_ctx->sst) {
-    if (smf_ctx->sd[0]) {
+  if (smf_ctx->requested_nssai.sst) {
+    if (smf_ctx->requested_nssai.sd[0]) {
       smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH + SD_LENGTH;
-      smf_msg->msg.pdu_session_estab_accept.nssai.sst = smf_ctx->sst;
-      memcpy(smf_msg->msg.pdu_session_estab_accept.nssai.sd, smf_ctx->sd, 3);
+      smf_msg->msg.pdu_session_estab_accept.nssai.sst =
+          smf_ctx->requested_nssai.sst;
+      memcpy(
+          smf_msg->msg.pdu_session_estab_accept.nssai.sd,
+          smf_ctx->requested_nssai.sd, 3);
     } else {
       smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH;
-      smf_msg->msg.pdu_session_estab_accept.nssai.sst = smf_ctx->sst;
+      smf_msg->msg.pdu_session_estab_accept.nssai.sst =
+          smf_ctx->requested_nssai.sst;
     }
     buf_len = smf_msg->msg.pdu_session_estab_accept.nssai.len + 2;
   }
@@ -1594,7 +1600,8 @@ int amf_app_pdu_session_modification_request(
   // Message construction for PDU session modification
   msg.security_protected.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  msg.security_protected.plain.amf.header.message_type = DLNASTRANSPORT;
+  msg.security_protected.plain.amf.header.message_type =
+      M5GMessageType::DLNASTRANSPORT;
   msg.header.security_header_type =
       SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
   msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
@@ -1605,9 +1612,10 @@ int amf_app_pdu_session_modification_request(
   // AmfHeader
   encode_msg->extended_protocol_discriminator.extended_proto_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  encode_msg->spare_half_octet.spare     = 0x00;
-  encode_msg->sec_header_type.sec_hdr    = SECURITY_HEADER_TYPE_NOT_PROTECTED;
-  encode_msg->message_type.msg_type      = DLNASTRANSPORT;
+  encode_msg->spare_half_octet.spare  = 0x00;
+  encode_msg->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  encode_msg->message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::DLNASTRANSPORT);
   encode_msg->payload_container_type.iei = 0;
   // encode_msg->payload_container_type.iei = PAYLOAD_CONTAINER_TYPE;
 
@@ -1621,16 +1629,17 @@ int amf_app_pdu_session_modification_request(
 
   smf_msg->header.extended_protocol_discriminator =
       M5G_SESSION_MANAGEMENT_MESSAGES;
-  smf_msg->header.pdu_session_id           = pdu_sess_mod_req->pdu_session_id;
-  smf_msg->header.message_type             = PDU_SESSION_MODIFICATION_COMMAND;
-  smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti.pti;
+  smf_msg->header.pdu_session_id = pdu_sess_mod_req->pdu_session_id;
+  smf_msg->header.message_type =
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND);
+  smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti;
   smf_msg->msg.pdu_session_estab_accept.extended_protocol_discriminator
       .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
   smf_msg->msg.pdu_sess_mod_cmd.pdu_session_identity.pdu_session_id =
       pdu_sess_mod_req->pdu_session_id;
-  smf_msg->msg.pdu_sess_mod_cmd.pti.pti = smf_ctx->smf_proc_data.pti.pti;
+  smf_msg->msg.pdu_sess_mod_cmd.pti.pti = smf_ctx->smf_proc_data.pti;
   smf_msg->msg.pdu_sess_mod_cmd.message_type.msg_type =
-      PDU_SESSION_MODIFICATION_COMMAND;
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND);
 
   // authorized qos rules
   for (int i = 0; i < smf_ctx->qos_flow_list.maxNumOfQosFlows; i++) {
@@ -1779,8 +1788,7 @@ int amf_app_pdu_session_modification_request(
   bytes  = nas5g_message_encode(
       buffer->data, &msg, len, &ue_context->amf_context._security);
   if (bytes > 0) {
-    ue_pdu_id_t id = {
-        ue_id, smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id};
+    ue_pdu_id_t id           = {ue_id, smf_ctx->smf_proc_data.pdu_session_id};
     buffer->slen             = bytes;
     smf_ctx->session_message = bstrcpy(buffer);
     pdu_session_resource_modify_request(ue_context, ue_id, smf_ctx, buffer);

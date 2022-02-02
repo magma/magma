@@ -55,7 +55,3 @@ s6a_over_grpc: True
 
 # Number of thread workers for the gRPC server
 grpc_workers: 10
-
-# [Experimental] Enable Sentry for this service
-# Allowed values: send_all_errors, send_selected_errors, disabled
-sentry: disabled

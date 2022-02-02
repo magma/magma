@@ -233,6 +233,9 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			LogLevel:    protos.LogLevel_INFO,
 			NprobeTasks: npTasks,
 		},
+		"sctpd": &lte_mconfig.SctpD{
+			LogLevel: protos.LogLevel_INFO,
+		},
 	}
 
 	ret.ConfigsByKey, err = mconfig.MarshalConfigs(vals)
@@ -661,10 +664,11 @@ func getNetworkSentryConfig(network *configurator.Network) *lte_mconfig.SentryCo
 		return nil
 	}
 	return &lte_mconfig.SentryConfig{
-		SampleRate:   swag.Float32Value(sentryConfig.SampleRate),
-		UploadMmeLog: sentryConfig.UploadMmeLog,
-		DsnNative:    string(sentryConfig.URLNative),
-		DsnPython:    string(sentryConfig.URLPython),
+		SampleRate:        swag.Float32Value(sentryConfig.SampleRate),
+		UploadMmeLog:      sentryConfig.UploadMmeLog,
+		DsnNative:         string(sentryConfig.URLNative),
+		DsnPython:         string(sentryConfig.URLPython),
+		ExclusionPatterns: sentryConfig.ExclusionPatterns,
 	}
 }
 

@@ -29,6 +29,7 @@ extern "C" {
 #include <string>
 #include "lte/protos/session_manager.grpc.pb.h"
 #include "lte/protos/session_manager.pb.h"
+#include "lte/gateway/c/core/oai/include/map.h"
 
 using grpc::Status;
 using magma::lte::SetSmNotificationContext;
@@ -67,7 +68,8 @@ class AMFClientServicerBase {
       char* imsi, uint8_t* apn, uint32_t pdu_session_id,
       uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
       uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
-      const ambr_t& state_ambr);
+      const ambr_t& state_ambr,
+      const eps_subscribed_qos_profile_t& qos_profile);
 
   virtual bool set_smf_session(SetSMSessionContext& request);
   virtual bool get_decrypt_imsi_info(
@@ -84,6 +86,8 @@ class AMFClientServicer : public AMFClientServicerBase {
 
   AMFClientServicer(AMFClientServicer const&) = delete;
   void operator=(AMFClientServicer const&) = delete;
+
+  magma::map_string_string_t map_table_key_proto_str;
 
 #if MME_UNIT_TEST
   status_code_e amf_send_msg_to_task(
@@ -124,7 +128,8 @@ class AMFClientServicer : public AMFClientServicerBase {
       char* imsi, uint8_t* apn, uint32_t pdu_session_id,
       uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
       uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
-      const ambr_t& state_ambr) {
+      const ambr_t& state_ambr,
+      const eps_subscribed_qos_profile_t& qos_profile) {
     return RETURNok;
   }
 

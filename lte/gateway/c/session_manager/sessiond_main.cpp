@@ -16,7 +16,7 @@
 #include <folly/io/async/EventBaseManager.h>
 #include <glog/logging.h>
 #include <grpcpp/impl/codegen/completion_queue.h>
-#include <lte/protos/mconfig/mconfigs.pb.h>
+
 #include <stdint.h>
 #include <string.h>
 #include <time.h>
@@ -62,17 +62,19 @@
 #include "includes/MConfigLoader.h"
 #include "includes/MagmaService.h"
 #include "includes/SentryWrapper.h"
-#include "includes/ServiceConfigLoader.h"
 #include "includes/ServiceRegistrySingleton.h"
+#include "lte/protos/mconfig/mconfigs.pb.h"
 #include "lte/protos/policydb.pb.h"
 #include "magma_logging.h"
 #include "magma_logging_init.h"
 #include "orc8r/protos/common.pb.h"
+#include "orc8r/protos/mconfig/mconfigs.pb.h"
 
 namespace grpc {
 class Channel;
 }  // namespace grpc
 
+#define SHARED_MCONFIG "shared_mconfig"
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
 #define POLICYDB_SERVICE "policydb"
@@ -103,6 +105,12 @@ static magma::mconfig::SessionD load_mconfig() {
     MLOG(MERROR) << "Unable to load mconfig for SessionD, using default";
     return get_default_mconfig();
   }
+  return mconfig;
+}
+
+static magma::mconfig::SharedMconfig load_shared_mconfig() {
+  magma::mconfig::SharedMconfig mconfig;
+  magma::load_service_mconfig_from_file(SHARED_MCONFIG, &mconfig);
   return mconfig;
 }
 
@@ -227,6 +235,16 @@ long get_quota_exhaust_termination_time(const YAML::Node& config) {
   return quota_exhaust_termination_on_init_ms;
 }
 
+sentry_config_t get_sentry_configuration(
+    magma::mconfig::SharedMconfig mconfig) {
+  sentry_config_t configuration;
+  configuration.sample_rate = mconfig.sentry_config().sample_rate();
+  strncpy(configuration.url_native,
+          mconfig.sentry_config().dsn_native().c_str(), MAX_URL_LENGTH - 1);
+  configuration.url_native[MAX_URL_LENGTH - 1] = '\0';
+  return configuration;
+}
+
 int main(int argc, char* argv[]) {
 #ifdef DEBUG
   __gcov_flush();
@@ -235,6 +253,7 @@ int main(int argc, char* argv[]) {
   magma::init_logging(argv[0]);
 
   auto mconfig = load_mconfig();
+  auto shared_mconfig = load_shared_mconfig();
   auto config =
       magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
   magma::set_verbosity(get_log_verbosity(config, mconfig));
@@ -243,10 +262,7 @@ int main(int argc, char* argv[]) {
     set_grpc_logging_level(config["print_grpc_payload"].as<bool>());
   }
 
-  sentry_config_t sentry_config;
-  sentry_config.sample_rate = mconfig.sentry_config().sample_rate();
-  strncpy(sentry_config.url_native,
-          mconfig.sentry_config().dsn_native().c_str(), MAX_URL_LENGTH);
+  sentry_config_t sentry_config = get_sentry_configuration(shared_mconfig);
   initialize_sentry(SENTRY_TAG_SESSIOND, &sentry_config);
 
   bool enable_5g_features = false;
