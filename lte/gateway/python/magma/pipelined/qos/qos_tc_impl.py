@@ -249,6 +249,10 @@ class TCManager(object):
         )
 
     def destroy(self):
+        if not TrafficClass.tc_ops:
+            LOG.info("TC not initialized, skip destroying existing qos classes")
+            return
+
         LOG.info("destroying existing qos classes")
         # ensure ordering during deletion of classes, children should be deleted
         # prior to the parent class ids
