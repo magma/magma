@@ -180,6 +180,14 @@ proto_library(
     ],
 )
 
+python_proto_library(
+    name = "policydb_python_proto",
+    protos = [":policydb_proto"],
+    deps = [
+        ":mobilityd_python_proto",
+    ],
+)
+
 proto_library(
     name = "sctpd_proto",
     srcs = ["sctpd.proto"],
