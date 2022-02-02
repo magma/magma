@@ -180,7 +180,9 @@ class S1ApUtil(object):
                 return self._ue_ip_map[ue_id]
             return None
 
-    def get_response(self, timeout=None, assert_on_timeout=True):
+    def get_response(
+        self, timeout: int = None, assert_on_timeout: bool = True,
+    ) -> Msg:
         """Return the response message invoked by S1APTester TFW callback
 
         Args:
@@ -197,7 +199,7 @@ class S1ApUtil(object):
             # Default maximum wait time is 900 sec (15 min)
             timeout = S1ApUtil.MAX_RESP_WAIT_TIME
 
-        # Wait until callback is invoked or timeout occured
+        # Wait until callback is invoked or timeout occurred
         try:
             return self._msg.get(True, timeout)
         except Empty:
@@ -205,7 +207,7 @@ class S1ApUtil(object):
                 raise AssertionError(
                     "Timeout ("
                     + str(timeout)
-                    + " sec) occured while waiting for response message",
+                    + " sec) occurred while waiting for response message",
                 )
             else:
                 return None
