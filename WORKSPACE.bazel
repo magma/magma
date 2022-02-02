@@ -144,3 +144,7 @@ install_deps()
 load("//bazel:python_swagger.bzl", "load_swagger_repositories")
 
 load_swagger_repositories()
+
+load("//bazel:python_repositories.bzl", "python_repositories")
+
+python_repositories()

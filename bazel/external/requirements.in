@@ -21,6 +21,11 @@ flask
 bravado_core
 #  jsonschema version 4 not compatible with magma swagger specs
 jsonschema==3.1.0 
+psutil
+systemd
+cryptography
+#  h2 is requirement of aioh2 (loaded via bazel)
+h2
 
 # bazelbase container requirements
 hiredis
