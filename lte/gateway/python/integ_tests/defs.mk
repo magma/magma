@@ -108,8 +108,8 @@ s1aptests/test_multi_enb_multi_ue_diff_enbtype.py \
 s1aptests/test_multi_enb_partial_reset.py \
 s1aptests/test_multi_enb_complete_reset.py \
 s1aptests/test_multi_enb_sctp_shutdown.py \
-s1aptests/test_ipv6_paging_with_dedicated_bearer.py\
-s1aptests/test_ipv4v6_paging_with_dedicated_bearer.py\
+s1aptests/test_ipv6_paging_with_dedicated_bearer.py \
+s1aptests/test_ipv4v6_paging_with_dedicated_bearer.py \
 s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_tcp_data.py \
 s1aptests/test_attach_detach_attach_ul_tcp_data.py \
