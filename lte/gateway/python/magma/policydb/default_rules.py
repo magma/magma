@@ -29,8 +29,9 @@ def get_allow_all_policy_rule(
         # Don't set the rating group
         # Don't set the monitoring key
         # Don't set the hard timeout
+        # Setting priority to a low value
         id=policy_id,
-        priority=2,
+        priority=65530,
         flow_list=_get_allow_all_flows(),
         tracking_type=PolicyRule.TrackingType.Value("NO_TRACKING"),
     )
