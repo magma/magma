@@ -1571,6 +1571,18 @@
     pg "^8.6.0"
     sequelize "^5.8.5"
 
+"@fbcnms/sequelize-models@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.10.tgz#f2207602361aeb0edd1e61872a116d1e82e0fcc4"
+  integrity sha512-msnqzWmcZ0FzmcxX+6MQiaO0XIMMHTRWZEJLHqPeT/A9LThrx3y4IcZSGfL+7Io250lfY/m00rmN/AaSAP6X6A==
+  dependencies:
+    "@fbcnms/babel-register" "^0.1.0"
+    inquirer "^8.0.0"
+    mariadb "^2.4.2"
+    minimist "^1.2.5"
+    pg "^8.6.0"
+    sequelize "^5.8.5"
+
 "@fbcnms/strings@^0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@fbcnms/strings/-/strings-0.1.0.tgz#50dae22b4cb7cb7d1a30c013d0b40c96b741a1f1"
