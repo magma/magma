@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/smsd/servicers"
+	smsd_servicer "magma/lte/cloud/go/services/smsd/servicers/southbound"
 	"magma/lte/cloud/go/services/smsd/storage"
 	"magma/lte/cloud/go/services/smsd/storage/mocks"
 	"magma/lte/cloud/go/sms_ll"
@@ -35,7 +35,7 @@ import (
 func TestSMSDServicer_GetMessages(t *testing.T) {
 	store := new(mocks.SMSStorage)
 	serde := new(mocks2.SMSSerde)
-	srv := servicers.NewSMSDServicer(store, serde)
+	srv := smsd_servicer.NewSMSDServicer(store, serde)
 	ctx := getTestContext(context.Background())
 
 	// 0 case
@@ -127,7 +127,7 @@ func TestSMSDServicer_GetMessages(t *testing.T) {
 func TestSMSDServicer_ReportDelivery(t *testing.T) {
 	store := new(mocks.SMSStorage)
 	serde := new(mocks2.SMSSerde)
-	srv := servicers.NewSMSDServicer(store, serde)
+	srv := smsd_servicer.NewSMSDServicer(store, serde)
 	ctx := getTestContext(context.Background())
 
 	// 0 case
