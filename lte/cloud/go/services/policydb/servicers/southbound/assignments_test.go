@@ -25,7 +25,7 @@ import (
 	"magma/lte/cloud/go/serdes"
 	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
-	"magma/lte/cloud/go/services/policydb/servicers"
+	policydb_servicer "magma/lte/cloud/go/services/policydb/servicers/southbound"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
@@ -96,7 +96,7 @@ func TestAssignmentsServicer(t *testing.T) {
 	id.SetGateway(&idgw)
 	ctx := id.NewContextWithIdentity(context.Background())
 
-	srv := servicers.NewPolicyAssignmentServer()
+	srv := policydb_servicer.NewPolicyAssignmentServer()
 
 	// Associate the rule to the subscriber, missing subscriber ID
 	req := &protos.EnableStaticRuleRequest{Imsi: "s0", RuleIds: []string{testPolicyId}}
