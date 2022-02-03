@@ -208,7 +208,7 @@ function UpgradeTable() {
       lteGatewayRows.push({
         name: gateway.name,
         id: gateway.id,
-        hardwareId: gateway.device.hardware_id,
+        hardwareId: gateway.device?.hardware_id || '-',
         tier: gateway.tier,
         currentVersion:
           packages.find(p => p.name === 'magma')?.version || 'Not Reported',
@@ -342,8 +342,9 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
         name: gateway.name,
         id: gateway.id,
         num_enodeb: numEnodeBs,
-        num_subscribers:
-          gwSubscriberMap?.[gateway.device.hardware_id]?.length ?? 0,
+        num_subscribers: gateway.device
+          ? gwSubscriberMap?.[gateway.device?.hardware_id].length
+          : 0,
         health: isGatewayHealthy(gateway) ? 'Good' : 'Bad',
         checkInTime: checkInTime,
       });

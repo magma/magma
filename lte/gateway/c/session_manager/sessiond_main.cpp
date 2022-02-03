@@ -16,7 +16,7 @@
 #include <folly/io/async/EventBaseManager.h>
 #include <glog/logging.h>
 #include <grpcpp/impl/codegen/completion_queue.h>
-#include <lte/protos/mconfig/mconfigs.pb.h>
+
 #include <stdint.h>
 #include <string.h>
 #include <time.h>
@@ -61,12 +61,12 @@
 #include "includes/EventdClient.h"
 #include "includes/MConfigLoader.h"
 #include "includes/MagmaService.h"
-#include "includes/SentryWrapper.h"
-#include "includes/ServiceConfigLoader.h"
 #include "includes/ServiceRegistrySingleton.h"
+#include "lte/protos/mconfig/mconfigs.pb.h"
 #include "lte/protos/policydb.pb.h"
 #include "magma_logging.h"
 #include "magma_logging_init.h"
+#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
 #include "orc8r/protos/common.pb.h"
 
 namespace grpc {
@@ -243,10 +243,7 @@ int main(int argc, char* argv[]) {
     set_grpc_logging_level(config["print_grpc_payload"].as<bool>());
   }
 
-  sentry_config_t sentry_config;
-  sentry_config.sample_rate = mconfig.sentry_config().sample_rate();
-  strncpy(sentry_config.url_native,
-          mconfig.sentry_config().dsn_native().c_str(), MAX_URL_LENGTH);
+  sentry_config_t sentry_config = construct_sentry_config_from_mconfig();
   initialize_sentry(SENTRY_TAG_SESSIOND, &sentry_config);
 
   bool enable_5g_features = false;

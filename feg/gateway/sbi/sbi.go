@@ -22,6 +22,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
@@ -66,7 +67,11 @@ type BaseClientWithNotifier struct {
 }
 
 func NewEchoServer() *EchoServer {
-	return &EchoServer{echo.New()}
+	e := echo.New()
+	if glog.V(2) {
+		e.Use(ServerLoggingMiddleware())
+	}
+	return &EchoServer{e}
 }
 
 func NewBaseClientWithNotifyServer(notifierConfig NotifierConfig, remoteConfig RemoteConfig) *BaseClientWithNotifier {
@@ -83,7 +88,7 @@ func NewNotifierServer(notifierConfig NotifierConfig) *NotifierServer {
 	}
 }
 
-func (s *EchoServer) StartWithhWait(addrs string) error {
+func (s *EchoServer) StartWithWait(addrs string) error {
 	addr, err := net.ResolveTCPAddr("tcp", addrs)
 	if err != nil {
 		return err
@@ -155,12 +160,18 @@ func (rc RemoteConfig) BuildHttpClient() *http.Client {
 		ClientSecret: rc.ClientSecret,
 		TokenURL:     rc.TokenUrl,
 	}
-	tokenCtxt := context.WithValue(context.Background(), oauth2.HTTPClient, &http.Client{})
+	var httpClient *http.Client
+	if glog.V(2) {
+		httpClient = NewLoggingHttpClient()
+	} else {
+		httpClient = &http.Client{}
+	}
+	tokenCtxt := context.WithValue(context.Background(), oauth2.HTTPClient, httpClient)
 	return tokenConfig.Client(tokenCtxt)
 }
 
 func (s *NotifierServer) Start() error {
-	err := s.Server.StartWithhWait(s.NotifierCfg.LocalAddr)
+	err := s.Server.StartWithWait(s.NotifierCfg.LocalAddr)
 	if err != nil {
 		return fmt.Errorf("NotifierServer could not Start: %s", err)
 	}

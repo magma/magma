@@ -22,6 +22,7 @@ import (
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
 	"magma/lte/cloud/go/services/subscriberdb/protos"
 	"magma/lte/cloud/go/services/subscriberdb/servicers"
+	lookup_servicers "magma/lte/cloud/go/services/subscriberdb/servicers/protected"
 	subscriberdb_storage "magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/obsidian"
@@ -74,8 +75,8 @@ func main() {
 
 	// Attach handlers
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
-	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
-	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
+	protos.RegisterSubscriberLookupServer(srv.GrpcServer, lookup_servicers.NewLookupServicer(fact, ipStore))
+	state_protos.RegisterIndexerServer(srv.GrpcServer, lookup_servicers.NewIndexerServicer())
 	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, subscriberStore))
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(subscriberdb.ServiceName))

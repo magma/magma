@@ -24,12 +24,13 @@ import (
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/orc8r"
+	stream_provider "magma/orc8r/cloud/go/services/streamer/providers/servicers/protected"
 	"magma/orc8r/lib/go/registry"
 )
 
 // GetStreamProvider gets the stream provider for a stream name.
 // Returns an error if no provider has been registered for the stream.
-func GetStreamProvider(streamName string) (StreamProvider, error) {
+func GetStreamProvider(streamName string) (stream_provider.StreamProvider, error) {
 	if len(streamName) == 0 {
 		return nil, errors.New("stream name cannot be empty string")
 	}
@@ -47,7 +48,7 @@ func GetStreamProvider(streamName string) (StreamProvider, error) {
 		glog.Warningf("Found %d stream providers for stream name %s", n, streamName)
 	}
 
-	return NewRemoteProvider(services[0], streamName), nil
+	return stream_provider.NewRemoteProvider(services[0], streamName), nil
 }
 
 func getServicesForStream(streamName string) ([]string, error) {

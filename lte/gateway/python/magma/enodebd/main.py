@@ -65,8 +65,13 @@ def main():
     )
     server_thread.start()
 
+    print_grpc_payload = service.config.get('print_grpc_payload', False)
+
     # Add all servicers to the server
-    enodebd_servicer = EnodebdRpcServicer(state_machine_manager)
+    enodebd_servicer = EnodebdRpcServicer(
+        state_machine_manager,
+        print_grpc_payload,
+    )
     enodebd_servicer.add_to_server(service.rpc_server)
 
     # Register function to get service status
@@ -76,7 +81,10 @@ def main():
 
     # Register a callback function for GetOperationalStates service303 function
     def get_enodeb_operational_states() -> List[State]:
-        return get_operational_states(state_machine_manager, service.mconfig)
+        return get_operational_states(
+            state_machine_manager, service.mconfig,
+            print_grpc_payload,
+        )
     service.register_operational_states_callback(get_enodeb_operational_states)
 
     # Set eNodeBD iptables rules due to exposing public IP to eNodeB

@@ -1,0 +1,35 @@
+# requirements.in
+setuptools
+grpcio-tools
+grpcio
+redis>=3.5
+protobuf
+six
+pyyaml
+urllib3
+certifi
+sentry-sdk
+snowflake>=0.0.3
+prometheus_client
+redis-collections
+redis-lock
+jsonpickle
+netifaces
+scapy
+wsgiserver
+flask
+bravado_core
+#  jsonschema version 4 not compatible with magma swagger specs
+jsonschema==3.1.0 
+
+# bazelbase container requirements
+hiredis
+deprecated
+wrapt
+
+# unit test requirements
+fakeredis
+freezegun
+pytest
+pytest-cov
+coverage-lcov

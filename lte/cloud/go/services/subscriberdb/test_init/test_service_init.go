@@ -23,6 +23,7 @@ import (
 	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/protos"
 	"magma/lte/cloud/go/services/subscriberdb/servicers"
+	lookup_servicers "magma/lte/cloud/go/services/subscriberdb/servicers/protected"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/orc8r"
@@ -65,8 +66,8 @@ func StartTestService(t *testing.T) {
 	}
 
 	// Add servicers
-	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
-	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
+	protos.RegisterSubscriberLookupServer(srv.GrpcServer, lookup_servicers.NewLookupServicer(fact, ipStore))
+	state_protos.RegisterIndexerServer(srv.GrpcServer, lookup_servicers.NewIndexerServicer())
 	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, subscriberStore))
 
 	// Run service

@@ -17,9 +17,9 @@ SCRIPT_DIR=$MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files
 # Clone the code
 $SCRIPT_DIR/clone_s1_tester.sh
 
-# If any pull request is provided, apply them, else use master
+# If any pull request is provided, apply them, else use main
 pushd "$S1AP_TESTER_SRC" || exit
-git checkout master
+git checkout main
 git branch | grep -v '^*' | xargs --no-run-if-empty git branch -D
 
 if [ "$#" == 1 ]; then

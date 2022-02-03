@@ -36,7 +36,7 @@ def _contruct_substitution_commands(ctx, dir_path):
         )
     return substitution_commands
 
-def _constructor_file_filter_commands(ctx, dir_path):
+def _construct_file_filter_commands(ctx, dir_path):
     """Returns a list of commands that removes any files that fit the condition described below.
 
     1. any file that does not end with .c or .h
@@ -81,7 +81,7 @@ def _gen_with_asn1c_impl(ctx):
     gen_path = gen_tree.path
 
     # Run asn1c to generate files and apply some modifications
-    commands = _construct_asn1c_commands(ctx, gen_path) + _constructor_file_filter_commands(ctx, gen_path) + _contruct_substitution_commands(ctx, gen_path)
+    commands = _construct_asn1c_commands(ctx, gen_path) + _construct_file_filter_commands(ctx, gen_path) + _contruct_substitution_commands(ctx, gen_path)
     ctx.actions.run_shell(
         inputs = ctx.attr.asn1_file.files.to_list() + [ctx.executable._asn1c],
         outputs = [gen_tree],

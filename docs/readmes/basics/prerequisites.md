@@ -166,14 +166,9 @@ git checkout v1.6
 git tag -l
 ```
 
-## Build/Deploy Tooling
+## Deployment Tooling
 
-We support building the AGW and Orchestrator on macOS and Linux host operating
-systems. Doing so on a Windows environment should be possible but has not been
-tested. You may prefer to use a Linux virtual machine if you are on a Windows
-host.
-
-First, follow the previous section on developer tools. Then, install some
+First, follow the previous section on [developer tools](#development-tools). Then, install some
 additional prerequisite tools.
 
 ### macOS

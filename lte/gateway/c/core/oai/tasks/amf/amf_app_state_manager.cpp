@@ -20,20 +20,12 @@ extern "C" {
 }
 #endif
 #include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/include/map.h"
 
+using magma::lte::oai::MmeNasState;
 namespace magma5g {
-constexpr char AMF_NAS_STATE_KEY[] = "amf_nas_state";
-constexpr char AMF_UE_ID_UE_CTXT_TABLE_NAME[] =
-    "amf_app_amf_ue_ngap_id_ue_context_htbl";
-constexpr char AMF_IMSI_UE_ID_TABLE_NAME[] = "amf_app_imsi_ue_context_htbl";
-constexpr char AMF_TUN_UE_ID_TABLE_NAME[]  = "amf_app_tun11_ue_context_htbl";
-constexpr char AMF_GUTI_UE_ID_TABLE_NAME[] = "amf_app_tun11_ue_context_htbl";
-constexpr char AMF_GNB_UE_ID_AMF_UE_ID_TABLE_NAME[] =
-    "anf_app_gnb_ue_ngap_id_ue_context_htbl";
-constexpr char AMF_TASK_NAME[]  = "AMF";
-const int NUM_MAX_UE_HTBL_LISTS = 6;
-
 /**
  * When the process starts, initialize the in-memory AMF/NAS state and, if
  * persist state flag is set, load it from the data store.
@@ -110,7 +102,10 @@ int AmfNasStateManager::initialize_state(const amf_config_t* amf_config_p) {
 
   // Allocate the local AMF state and create respective single object
   create_state();
-
+// TODO: This is a temporary check and will be removed in upcoming PR
+#if MME_UNIT_TEST
+  read_state_from_db();
+#endif
   is_initialized = true;
   return rc;
 }
@@ -159,12 +154,63 @@ void AmfNasStateManager::amf_nas_state_init_local_state() {
  */
 amf_app_desc_t* AmfNasStateManager::get_state(bool read_from_redis) {
   state_dirty = true;
-
+  if (persist_state_enabled && read_from_redis) {
+    read_state_from_db();
+  }
   return state_cache_p;
 }
 
 map_uint64_ue_context_t AmfNasStateManager::get_ue_state_map() {
   return state_ue_map;
+}
+
+status_code_e AmfNasStateManager::read_state_from_db() {
+#if !MME_UNIT_TEST
+  StateManager::read_state_from_db();
+#else
+  if (persist_state_enabled) {
+    MmeNasState state_proto = MmeNasState();
+    std::string proto_str;
+    // Reads from the AmfClientServicer DataStore Map(map_table_key_proto_str)
+    if (AMFClientServicer::getInstance().map_table_key_proto_str.get(
+            table_key, &proto_str) != magma::MAP_OK) {
+      OAILOG_DEBUG(LOG_MME_APP, "Failed to read proto from db \n");
+      return RETURNerror;
+    }
+    // Deserialization Step
+    if (!state_proto.ParseFromString(proto_str)) {
+      return RETURNerror;
+    }
+    AmfNasStateConverter::proto_to_state(state_proto, state_cache_p);
+  }
+#endif
+  return RETURNok;
+}
+
+void AmfNasStateManager::write_state_to_db() {
+#if !MME_UNIT_TEST
+  StateManager::write_state_to_db();
+#else
+  if (persist_state_enabled) {
+    MmeNasState state_proto = MmeNasState();
+    AmfNasStateConverter::state_to_proto(state_cache_p, &state_proto);
+    std::string proto_str;
+    redis_client->serialize(state_proto, proto_str);
+    std::size_t new_hash = std::hash<std::string>{}(proto_str);
+    if (new_hash != this->task_state_hash) {
+      // Writes to the AmfClientServicer DataStore Map(map_table_key_proto_str)
+      if (AMFClientServicer::getInstance().map_table_key_proto_str.insert(
+              table_key, proto_str) != magma::MAP_OK) {
+        OAILOG_ERROR(log_task, "Failed to write state to db");
+        return;
+      }
+      OAILOG_DEBUG(log_task, "Finished writing state");
+      this->task_state_version++;
+      this->state_dirty     = false;
+      this->task_state_hash = new_hash;
+    }
+  }
+#endif
 }
 
 }  // namespace magma5g

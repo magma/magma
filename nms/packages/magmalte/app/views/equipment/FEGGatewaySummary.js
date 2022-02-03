@@ -44,7 +44,7 @@ export default function GatewaySummary({gwInfo}: {gwInfo: federation_gateway}) {
     [
       {
         category: 'Hardware UUID',
-        value: gwInfo.device.hardware_id,
+        value: gwInfo.device?.hardware_id || '-',
       },
     ],
     [

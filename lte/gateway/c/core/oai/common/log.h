@@ -471,7 +471,6 @@ char* bytes_to_hex(char* byte_array, int length, char* hex_array);
         lOgLeVeL, pRoTo, __FILE__, __LINE__, mEsSaGe, sTrEaM, sIzE);           \
     OAI_GCC_DIAG_ON("-Wpointer-sign");                                         \
   } while (0); /*!< \brief trace buffer content */
-#if DEBUG_IS_ON
 #define OAILOG_DEBUG(pRoTo, ...)                                               \
   do {                                                                         \
     log_message(                                                               \
@@ -512,7 +511,6 @@ char* bytes_to_hex(char* byte_array, int length, char* hex_array);
         pRoTo, __FILE__, __LINE__, __FUNCTION__, (long) rEtUrNcOdE);           \
     return rEtUrNcOdE;                                                         \
   } while (0) /*!< \brief informational */
-#endif
 #endif
 #include "lte/gateway/c/core/oai/common/shared_ts_log.h"
 

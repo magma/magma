@@ -23,6 +23,7 @@ import (
 	lte_service "magma/lte/cloud/go/services/lte"
 	lte_protos "magma/lte/cloud/go/services/lte/protos"
 	"magma/lte/cloud/go/services/lte/servicers"
+	protected_servicers "magma/lte/cloud/go/services/lte/servicers/protected"
 	"magma/lte/cloud/go/services/lte/storage"
 	"magma/orc8r/cloud/go/orc8r"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
@@ -64,8 +65,8 @@ func StartTestServiceWithConfig(t *testing.T, serviceConfig lte_service.Config) 
 	assert.NoError(t, enbStateStore.Initialize())
 
 	// Add servicers
-	lte_protos.RegisterEnodebStateLookupServer(srv.GrpcServer, servicers.NewLookupServicer(enbStateStore))
-	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
+	lte_protos.RegisterEnodebStateLookupServer(srv.GrpcServer, protected_servicers.NewLookupServicer(enbStateStore))
+	state_protos.RegisterIndexerServer(srv.GrpcServer, protected_servicers.NewIndexerServicer())
 
 	go srv.RunTest(lis)
 }

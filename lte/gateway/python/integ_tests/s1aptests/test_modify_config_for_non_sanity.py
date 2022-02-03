@@ -40,14 +40,6 @@ class TestModifyConfigForNonSanity(unittest.TestCase):
             ),
         )
 
-        # It is assumed that oai-gtp_4.9-9_amd64.deb pkg is already installed
-        print("Enabling IPv6 solicitation service")
-        ret_codes.append(
-            self._magmad_util.config_ipv6_solicitation(
-                MagmadUtil.ipv6_config_cmds.ENABLE,
-            ),
-        )
-
         print(
             "Modifying MME configuration for non-sanity test cases to pass",
         )

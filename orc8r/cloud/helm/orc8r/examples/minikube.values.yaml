@@ -54,7 +54,7 @@ nms:
     env:
       api_host: orc8r-nginx-proxy:443
       mapbox_access_token: ""
-      mysql_host: mysql
+      mysql_host: postgresql
       #labels:
       #node_selector_key: extraRuntime
       #node_selector_value: virtlet
