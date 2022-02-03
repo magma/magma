@@ -15,10 +15,14 @@ load("@rules_python//python:defs.bzl", "py_library")
 py_library(
     name = "aioh2",
     srcs = [
+        "aioh2/__init__.py",
         "aioh2/exceptions.py",
         "aioh2/helper.py",
         "aioh2/protocol.py",
     ],
     visibility = ["//visibility:public"],
-    deps = [requirement("h2")],
+    deps = [
+        requirement("h2"),
+        requirement("priority"),
+    ],
 )
