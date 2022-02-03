@@ -192,6 +192,9 @@
       "lte/dev_unit_testing": {
         "title": "Test AGW"
       },
+      "lte/ebpf_datapath": {
+        "title": "Magma eBPF Datapath"
+      },
       "lte/eventd": {
         "title": "Event Reporting"
       },
