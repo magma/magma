@@ -148,7 +148,7 @@ class AmfNasStateConverter : public magma::lte::StateConverter {
       const magma::lte::oai::Guti_m5& guti_m5_proto, guti_m5_t* state_guti_m5);
 
   static void smf_context_map_to_proto(
-      const std::unordered_map<uint8_t, std::shared_ptr<smf_context_t>>
+      const std::unordered_map<uint8_t, std::shared_ptr<smf_context_t>>&
           smf_ctxt_map,
       google::protobuf::Map<uint32_t, magma::lte::oai::SmfContext>* proto_map);
 

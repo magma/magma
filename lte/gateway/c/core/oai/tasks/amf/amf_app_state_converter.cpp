@@ -691,7 +691,7 @@ void AmfNasStateConverter::proto_to_qos_flow_setup_request_item(
 }
 
 void AmfNasStateConverter::smf_context_map_to_proto(
-    const std::unordered_map<uint8_t, std::shared_ptr<smf_context_t>>
+    const std::unordered_map<uint8_t, std::shared_ptr<smf_context_t>>&
         smf_ctxt_map,
     google::protobuf::Map<uint32_t, magma::lte::oai::SmfContext>* proto_map) {
   for (const auto& it : smf_ctxt_map) {

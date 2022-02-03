@@ -836,6 +836,8 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_Invalid_PDUSession_Identity) {
   EXPECT_TRUE(expected_Ids == AMFClientServicer::getInstance().msgtype_stack);
 }
 
+// TODO: #11034 is the starting point of TestRegistrationProcSUCIExt failure.
+// This issue is tracked here #11382
 #if 0
 TEST_F(AMFAppProcedureTest, TestRegistrationProcSUCIExt) {
   amf_ue_ngap_id_t ue_id = 0;

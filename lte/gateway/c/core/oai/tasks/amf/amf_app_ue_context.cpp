@@ -31,6 +31,7 @@ extern "C" {
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
+// TODO(panyogesh): To be removed as part of Fixing the global maps
 extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
 // Creating ue_context_map based on key:ue_id and value:ue_context
 std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*> ue_context_map;
@@ -461,6 +462,7 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   ue_context_p = NULL;
 }
 
+// TODO(panyogesh): To be removed as part of Fixing the global maps
 // Sync State manager map with Amf Application maps
 void amf_sync_app_maps_from_db() {
   map_uint64_ue_context_t* amf_state_ue_id_ht =

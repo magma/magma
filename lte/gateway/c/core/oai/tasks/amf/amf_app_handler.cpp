@@ -103,7 +103,7 @@ void amf_ue_context_update_coll_keys(
         amf_ue_ngap_id);
   }
 
-  if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id && imsi != 0) {
+  if ((amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) && (imsi != 0)) {
     m_rc = amf_ue_context_p->imsi_amf_ue_id_htbl.remove(
         ue_context_p->amf_context.imsi64);
     m_rc = amf_ue_context_p->imsi_amf_ue_id_htbl.insert(imsi, amf_ue_ngap_id);
@@ -145,11 +145,8 @@ void amf_ue_context_update_coll_keys(
           ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3)) ||
         (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) &&
             ((guti_p->guamfi.amf_set_id != 0) &&
-             (guti_p->guamfi.amf_regionid != 0) && (guti_p->m_tmsi != 0) &&
-             (guti_p->guamfi.plmn.mcc_digit1 != 0) &&
-             (guti_p->guamfi.plmn.mcc_digit2 != 0) &&
-             (guti_p->guamfi.plmn.mcc_digit3 != 0))) {
-      if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
+             (guti_p->guamfi.amf_regionid != 0) && (guti_p->m_tmsi != 0))) {
+      if (amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
         m_rc = amf_ue_context_p->guti_ue_context_htbl.remove(*guti_p);
         m_rc = amf_ue_context_p->guti_ue_context_htbl.insert(
             *guti_p, amf_ue_ngap_id);
