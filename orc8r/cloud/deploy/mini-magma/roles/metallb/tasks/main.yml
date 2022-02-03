@@ -5,19 +5,23 @@
     url: http://169.254.169.254/latest/meta-data/local-ipv4
     return_content: yes
   register: ec2_private_ip
+
 - name: Set MetallLB IP of local EC2 instance
   when: deploy_on_aws
   set_fact:
     metallb_ip: "{{ ec2_private_ip.content }}"
+
 - name: Set MetallLB IP of Public IP
   when: not deploy_on_aws
   set_fact:
     metallb_ip: "{{ ansible_host }}"
+
 - name: Install MetallLB
   kubernetes.core.helm:
     name: metallb
     chart_ref: metallb/metallb
     release_namespace: metallb-system
+    chart_version: "{{ metallb_chart_version }}"
     create_namespace: true
     values:
       configInline:
@@ -26,6 +30,7 @@
             protocol: layer2
             addresses:
               - "{{ metallb_ip }}/32"
+
 - name: Remove metallb-speaker DaemonSet
   when: deploy_on_aws
   kubernetes.core.k8s:

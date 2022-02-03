@@ -1,2 +1,3 @@
 ---
 deploy_on_aws: false
+metallb_chart_version: "0.11.0"

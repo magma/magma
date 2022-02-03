@@ -3,11 +3,13 @@
   become: yes
   shell: |
     curl https://releases.rancher.com/install-docker/{{ docker_version }}.sh | sh
+
 - name: Add {{ ansible_user }} user to docker group
   become: yes
   user:
     name: "{{ ansible_user }}"
     group: docker
+
 - name: Pull alpine docker image
   become: yes
   community.docker.docker_image:

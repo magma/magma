@@ -4,6 +4,7 @@
     name: haproxy
     chart_ref: haproxytech/haproxy
     release_namespace: "{{ magma_namespace }}"
+    chart_version: "{{ haproxy_chart_version }}"
     create_namespace: true
     values:
       service:

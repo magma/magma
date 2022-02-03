@@ -3,16 +3,20 @@
   template:
     src: cluster.yml.j2
     dest: /home/{{ ansible_user }}/{{ magma_directory }}/rke/cluster.yml
+
 - name: Install Rancher Kubernetes Engine
   command: rke up --config /home/{{ ansible_user }}/{{ magma_directory }}/rke/cluster.yml
+
 - name: Copy kubernetes config file to {{ ansible_user }} home
   copy:
     src: /home/{{ ansible_user }}/{{ magma_directory }}/rke/kube_config_cluster.yml
     dest: /home/{{ ansible_user }}/.kube/config
     remote_src: yes
     mode: '0600'
+
 - name: Set {{ magma_namespace }} as default namespace
   command: kubectl config set-context --current --namespace {{ magma_namespace }}
+
 - name: Remove ingress-nginx namespace
   kubernetes.core.k8s:
     name: ingress-nginx

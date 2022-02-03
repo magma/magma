@@ -4,7 +4,9 @@
     name: openebs
     chart_ref: openebs/openebs
     release_namespace: openebs
+    chart_version: "{{ openebs_chart_version }}"
     create_namespace: true
+
 - name: Set {{ default_storage_class }} as default storage class
   kubernetes.core.k8s:
     state: patched

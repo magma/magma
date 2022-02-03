@@ -4,6 +4,7 @@
     name: fluentd
     chart_ref: stable/fluentd
     release_namespace: "{{ magma_namespace }}"
+    chart_version: "{{ fluentd_chart_version }}"
     create_namespace: true
     values:
       configMaps:

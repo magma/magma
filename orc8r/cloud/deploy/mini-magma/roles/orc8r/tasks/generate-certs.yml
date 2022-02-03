@@ -4,6 +4,7 @@
     src: generate-certs.sh.j2
     dest: /home/{{ ansible_user }}/{{ magma_directory }}/secrets/generate-certs.sh
     mode: '0755'
+
 - name: Generate Orc8r secrets
   command: /home/{{ ansible_user }}/{{ magma_directory }}/secrets/generate-certs.sh
   args:
