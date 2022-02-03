@@ -44,7 +44,7 @@ DEBUG_MSG = 'You may want to check that a connection can be made to ' \
 
 
 @grpc_wrapper
-def add_rule(args):
+def add_rule(self, args):
     rule_id = args.rule_id
     policy_dict = PolicyRuleDict()
     arg_list = {

@@ -256,16 +256,16 @@ TEST_F(SessionStateTest5G, test_remove_all_session_rules) {
   session_state->remove_all_rules_for_termination(&update_criteria);
 
   EXPECT_EQ(update_criteria.static_rules_to_uninstall.size(), 1);
-  EXPECT_EQ(update_criteria.dynamic_rules_to_uninstall.size(), 2);
+  EXPECT_EQ(update_criteria.dynamic_rules_to_uninstall.size(), 0);
 
   std::vector<std::string> rules_out{};
   std::vector<std::string>& rules_out_ptr = rules_out;
 
   session_state->get_dynamic_rules().get_rule_ids(rules_out_ptr);
-  EXPECT_EQ(rules_out_ptr.size(), 0);
+  EXPECT_EQ(rules_out_ptr.size(), 2);
 
-  EXPECT_FALSE(session_state->is_dynamic_rule_installed("dynamic-1"));
-  EXPECT_FALSE(session_state->is_dynamic_rule_installed("dynamic-2"));
+  EXPECT_TRUE(session_state->is_dynamic_rule_installed("dynamic-1"));
+  EXPECT_TRUE(session_state->is_dynamic_rule_installed("dynamic-2"));
 
   std::string mkey;
   // searching for non-existent rule should fail
@@ -276,9 +276,9 @@ TEST_F(SessionStateTest5G, test_remove_all_session_rules) {
       session_state->get_dynamic_rules().get_monitoring_key_for_rule_id(
           "dynamic-2", &mkey));
   // deleting an already deleted rule should fail
-  EXPECT_FALSE(
+  EXPECT_TRUE(
       session_state->get_dynamic_rules().remove_rule("dynamic-1", &dynamic_1));
-  EXPECT_FALSE(
+  EXPECT_TRUE(
       session_state->get_dynamic_rules().remove_rule("dynamic-2", &dynamic_2));
 }
 

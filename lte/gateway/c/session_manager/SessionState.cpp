@@ -1218,14 +1218,18 @@ optional<RuleToProcess> SessionState::remove_dynamic_rule(
     const std::string& rule_id, PolicyRule* rule_out,
     SessionStateUpdateCriteria* session_uc) {
   PolicyRule rule;
-  bool removed = dynamic_rules_.remove_rule(rule_id, &rule);
-  if (!removed) {
-    return {};
+  if (!is_5g_session()) {
+    bool removed = dynamic_rules_.remove_rule(rule_id, &rule);
+    if (!removed) {
+      return {};
+    }
+  } else {
+    dynamic_rules_.get_rule(rule_id, &rule);
   }
   if (rule_out) {
     *rule_out = rule;
   }
-  if (session_uc) {
+  if (session_uc && !is_5g_session()) {
     session_uc->dynamic_rules_to_uninstall.insert(rule_id);
   }
   increment_rule_stats(rule_id, session_uc);
@@ -1241,6 +1245,15 @@ bool SessionState::remove_scheduled_dynamic_rule(
     session_uc->dynamic_rules_to_uninstall.insert(rule_id);
   }
   return removed;
+}
+
+void SessionState::m5g_remove_dynamic_rule(
+    const std::vector<QosPolicy>& qospolicy) {
+  for (const QosPolicy& qos_policy : qospolicy) {
+    const std::string& rule_id = qos_policy.qos().id();
+    MLOG(MDEBUG) << "m5g_remove_dynamic_rule: " << rule_id;
+    dynamic_rules_.remove_rule(rule_id, nullptr);
+  }
 }
 
 optional<RuleToProcess> SessionState::remove_gy_rule(
@@ -1464,11 +1477,13 @@ void SessionState::process_rules_to_remove(
     switch (*p_type) {
       case DYNAMIC: {
         remove_info = remove_dynamic_rule(rule_id, &rule, session_uc);
+        MLOG(MDEBUG) << "DYNAMIC process_rules_to_remove : " << rule_id;
         break;
       }
       case STATIC: {
         if (static_rules_.get_rule(rule_id, &rule)) {
           remove_info = deactivate_static_rule(rule_id, session_uc);
+          MLOG(MDEBUG) << "STATIC process_rules_to_remove : " << rule_id;
         }
         break;
       }
@@ -2821,6 +2836,42 @@ void SessionState::process_get_5g_rule_installs(
     to_process.teids = config_.common_context.teids();
     pending_activation->push_back(to_process);
     pending_deactivation->push_back(to_process);
+  }
+}
+
+void SessionState::process_get_mod_rule_installs(
+    const std::vector<QosPolicy>& qospolicy, RulesToProcess* pending_activation,
+    RulesToProcess* pending_deactivation) {
+  for (const QosPolicy& qos_policy : qospolicy) {
+    const std::string& rule_id = qos_policy.qos().id();
+    optional<PolicyType> p_type = get_policy_type(rule_id);
+    std::string rule_type;
+    PolicyRule rule;
+    RuleToProcess to_process;
+    switch (*p_type) {
+      case DYNAMIC: {
+        dynamic_rules_.get_rule(rule_id, &rule);
+        break;
+      }
+      case STATIC: {
+        static_rules_.get_rule(rule_id, &rule);
+        break;
+      }
+      default:
+        MLOG(MERROR) << "Received a policy rule : " << rule_id
+                     << " of type neither STATIC nor DYNAMIC";
+        break;
+    }
+    to_process.version = get_current_rule_version(rule.id());
+    to_process.rule = rule;
+    to_process.teids = config_.common_context.teids();
+    if ((qos_policy.policy_action() == QosPolicy::ADD) &&
+        (qos_policy.version() == to_process.version)) {
+      pending_activation->push_back(to_process);
+    } else if ((qos_policy.policy_action() == QosPolicy::DEL) &&
+               (qos_policy.version() == to_process.version)) {
+      pending_deactivation->push_back(to_process);
+    }
   }
 }
 
