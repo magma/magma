@@ -33,8 +33,7 @@ import (
 	mconfig_protos "magma/orc8r/lib/go/protos/mconfig"
 )
 
-func testUtilForTestSharedConfig(t *testing.T, orc8rVersion string) {
-	expectedDefaultJitteredSyncIntervalGW1 := uint32(71)
+func wrapTestFunctionalityForOrc8rVersionTesting(t *testing.T, orc8rVersion string) {
 	nw := configurator.Network{ID: "n1", Configs: map[string]interface{}{
 		orc8r.NetworkSentryConfig: &models.NetworkSentryConfig{
 			SampleRate:   swag.Float32(0.75),
@@ -59,53 +58,27 @@ func testUtilForTestSharedConfig(t *testing.T, orc8rVersion string) {
 		Entities: []configurator.NetworkEntity{gw},
 	}
 
-	expected := map[string]proto.Message{
-		"control_proxy": &mconfig_protos.ControlProxy{LogLevel: protos.LogLevel_INFO},
-		"magmad": &mconfig_protos.MagmaD{
-			LogLevel:                protos.LogLevel_INFO,
-			CheckinInterval:         60,
-			CheckinTimeout:          10,
-			AutoupgradeEnabled:      true,
-			AutoupgradePollInterval: 300,
-			PackageVersion:          "0.0.0-0",
-			Images:                  nil,
-			DynamicServices:         nil,
-			FeatureFlags:            nil,
-			Orc8RVersion:            orc8rVersion,
-		},
-		"metricsd": &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO},
-		"td-agent-bit": &mconfig_protos.FluentBit{
-			ExtraTags:        map[string]string{"network_id": "n1", "gateway_id": "gw1"},
-			ThrottleRate:     1000,
-			ThrottleWindow:   5,
-			ThrottleInterval: "1m",
-		},
-		"eventd": &mconfig_protos.EventD{
-			LogLevel:       protos.LogLevel_INFO,
-			EventVerbosity: -1,
-		},
-		"state": &mconfig_protos.State{
-			SyncInterval: expectedDefaultJitteredSyncIntervalGW1,
-			LogLevel:     protos.LogLevel_INFO,
-		},
-		"shared_mconfig": &mconfig_protos.SharedMconfig{
-			SentryConfig: &mconfig_protos.SharedSentryConfig{
-				SampleRate:   0.75,
-				UploadMmeLog: true,
-				DsnPython:    "https://www.example.com/v1/api",
-				DsnNative:    "https://www.example.com/v1/api",
-			},
-		},
+	expected := &mconfig_protos.MagmaD{
+		LogLevel:                protos.LogLevel_INFO,
+		CheckinInterval:         60,
+		CheckinTimeout:          10,
+		AutoupgradeEnabled:      true,
+		AutoupgradePollInterval: 300,
+		PackageVersion:          "0.0.0-0",
+		Images:                  nil,
+		DynamicServices:         nil,
+		FeatureFlags:            nil,
+		Orc8RVersion:            orc8rVersion,
 	}
 	actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 	assert.NoError(t, err)
-	assert.Equal(t, expected, actual)
+	assert.Equal(t, expected, actual["magmad"])
 }
 
 func TestBaseOrchestratorMconfigBuilderWithoutOrc8rVersionEnvVariable_Build(t *testing.T) {
 	orchestrator_test_init.StartTestServiceWithNoOcr8Version(t)
 	t.Run("test shared config with env variable for orc8r version not set", func(t *testing.T) {
-		testUtilForTestSharedConfig(t, "")
+		wrapTestFunctionalityForOrc8rVersionTesting(t, "")
 	})
 }
 
@@ -115,7 +88,7 @@ func TestBaseOrchestratorMconfigBuilderWithOrc8rVersion_Build(t *testing.T) {
 	orchestrator_test_init.StartTestServiceWithNoOcr8Version(t)
 
 	t.Run("test shared config with env variable for orc8r version set", func(t *testing.T) {
-		testUtilForTestSharedConfig(t, "1.1.1")
+		wrapTestFunctionalityForOrc8rVersionTesting(t, "1.1.1")
 	})
 }
 

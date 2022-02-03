@@ -37,7 +37,7 @@ import (
 )
 
 type builderServicer struct {
-	orc8Version string
+	orc8rVersion string
 }
 
 func NewBuilderServicerWithOrc8rVersion(orc8rVersion *string) builder_protos.MconfigBuilderServer {
@@ -55,7 +55,7 @@ func NewBuilderServicer() builder_protos.MconfigBuilderServer {
 func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
 	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string][]byte{}}
 
-	configs, err := (&baseOrchestratorBuilder{s.orc8Version}).Build(request.Network, request.Graph, request.GatewayId)
+	configs, err := (&baseOrchestratorBuilder{s.orc8rVersion}).Build(request.Network, request.Graph, request.GatewayId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "builder error")
 	}
@@ -71,7 +71,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 }
 
 type baseOrchestratorBuilder struct {
-	orc8Version string
+	orc8rVersion string
 }
 
 func (b *baseOrchestratorBuilder) Build(network *storage.Network, graph *storage.EntityGraph, gatewayID string) (mconfig.ConfigsByKey, error) {
@@ -98,7 +98,7 @@ func (b *baseOrchestratorBuilder) Build(network *storage.Network, graph *storage
 	vals := map[string]proto.Message{}
 	if gateway.Config != nil {
 		gatewayConfig := gateway.Config.(*models.MagmadGatewayConfigs)
-		vals["magmad"], err = getMagmadMconfig(&gateway, &nativeGraph, gatewayConfig, b.orc8Version)
+		vals["magmad"], err = getMagmadMconfig(&gateway, &nativeGraph, gatewayConfig, b.orc8rVersion)
 		if err != nil {
 			return nil, err
 		}
