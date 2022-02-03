@@ -79,14 +79,14 @@
             </buffer>
           </match>
       extraVolumeMounts:
-      - mountPath: /certs
-        name: certs
-        readOnly: true
+        - mountPath: /certs
+          name: certs
+          readOnly: true
       extraVolumes:
-      - name: certs
-        secret:
-          defaultMode: 420
-          secretName: orc8r-secrets-certs
+        - name: certs
+          secret:
+            defaultMode: 420
+            secretName: orc8r-secrets-certs
       output:
         host: elasticsearch-master
         port: 9200
@@ -96,7 +96,7 @@
       replicaCount: 1
       service:
         ports:
-        - containerPort: 24224
-          name: forward
-          protocol: TCP
+          - containerPort: 24224
+            name: forward
+            protocol: TCP
         type: "{{ magma_service_type }}"

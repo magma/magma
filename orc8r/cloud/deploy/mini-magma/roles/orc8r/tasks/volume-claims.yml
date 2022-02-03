@@ -14,7 +14,6 @@
         resources:
           requests:
             storage: 2Gi
-
 - name: Create Volume Claim for Grafana Data
   kubernetes.core.k8s:
     namespace: "{{ magma_namespace }}"
@@ -30,7 +29,6 @@
         resources:
           requests:
             storage: 2Gi
-
 - name: Create Volume Claim for Grafana Data Source
   kubernetes.core.k8s:
     namespace: "{{ magma_namespace }}"
@@ -46,7 +44,6 @@
         resources:
           requests:
             storage: 100M
-
 - name: Create Volume Claim for Grafana Provider
   kubernetes.core.k8s:
     namespace: "{{ magma_namespace }}"
@@ -62,7 +59,6 @@
         resources:
           requests:
             storage: 100M
-
 - name: Create Volume Claim for OpenVPN
   kubernetes.core.k8s:
     namespace: "{{ magma_namespace }}"
@@ -78,7 +74,6 @@
         resources:
           requests:
             storage: 2M
-
 - name: Create Volume Claim for Prometheus Config
   kubernetes.core.k8s:
     namespace: "{{ magma_namespace }}"
@@ -94,7 +89,6 @@
         resources:
           requests:
             storage: 1Gi
-
 - name: Create Volume Claim for Prometheus Data
   kubernetes.core.k8s:
     namespace: "{{ magma_namespace }}"

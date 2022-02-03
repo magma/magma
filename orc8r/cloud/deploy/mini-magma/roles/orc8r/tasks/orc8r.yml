@@ -6,73 +6,53 @@
     release_namespace: "{{ magma_namespace }}"
     create_namespace: true
     values:
-
       nms:
         magmalte:
           image:
             repository: "{{ magma_docker_registry }}/magmalte"
             tag: "{{ magma_docker_tag }}"
             pullPolicy: IfNotPresent
-
           env:
             api_host: orc8r-nginx-proxy
             mysql_host: postgresql
             mysql_user: postgres
             mysql_pass: postgres
-
         nginx:
           image:
             pullPolicy: IfNotPresent
-
           service:
             type: "{{ magma_service_type }}"
-
         secret:
           certs: orc8r-secrets-certs
-
       nginx:
-
         replicas: 1
-
         image:
           repository: "{{ magma_docker_registry }}/nginx"
           tag: "{{ magma_docker_tag }}"
-
         spec:
           hostname: controller.{{ orc8r_domain }}
-
         service:
           type: "{{ magma_service_type }}"
-
       controller:
-
         replicas: 1
-
         image:
           repository: "{{ magma_docker_registry }}/controller"
           tag: "{{ magma_docker_tag }}"
-
         podDisruptionBudget:
           enabled: true
-
       metrics:
         prometheus:
           includeOrc8rAlerts: true
           create: true
-
         prometheusCache:
           create: true
           limit: 500000
-
         prometheusConfigurer:
           create: true
-
         alertmanager:
           create: true
-
         alertmanagerConfigurer:
           create: true
-
         metrics:
           volumes:
             prometheusConfig:
@@ -83,32 +63,26 @@
               volumeSpec:
                 persistentVolumeClaim:
                   claimName: promdata
-
         userGrafana:
           image:
             tag: 6.7.6
-
           volumes:
             datasources:
               volumeSpec:
                 persistentVolumeClaim:
                   claimName: grafanadatasources
-
             dashboardproviders:
               volumeSpec:
                 persistentVolumeClaim:
                   claimName: grafanaproviders
-
             dashboards:
               volumeSpec:
                 persistentVolumeClaim:
                   claimName: grafanadashboards
-
             grafanaData:
               volumeSpec:
                 persistentVolumeClaim:
                   claimName: grafanadata
-
       secrets:
         create: true
         docker:

@@ -3,32 +3,26 @@
   kubernetes.core.helm_repository:
     name: stable
     repo_url: https://charts.helm.sh/stable
-
 - name: Add Bitnami Helm repository
   kubernetes.core.helm_repository:
     name: bitnami
     repo_url: https://charts.bitnami.com/bitnami
-
 - name: Add Elastic Search Helm repository
   kubernetes.core.helm_repository:
     name: elastic
     repo_url: https://helm.elastic.co
-
 - name: Add OpenEBS Helm repository
   kubernetes.core.helm_repository:
     name: openebs
     repo_url: https://openebs.github.io/charts
-
 - name: Add MetalLB Helm repository
   kubernetes.core.helm_repository:
     name: metallb
     repo_url: https://metallb.github.io/metallb
-
 - name: Add HAProxy Helm repository
   kubernetes.core.helm_repository:
     name: haproxytech
     repo_url: https://haproxytech.github.io/helm-charts
-
 - name: Add Magma Orchestrator Helm repository
   kubernetes.core.helm_repository:
     name: orc8r

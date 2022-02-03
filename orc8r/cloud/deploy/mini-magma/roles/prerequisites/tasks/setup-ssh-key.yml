@@ -3,12 +3,10 @@
   openssh_keypair:
     path: /home/{{ ansible_user }}/{{ magma_directory }}/.ssh/id_rsa
     comment: "{{ ansible_user }}@{{ ansible_hostname }}"
-
 - name: Register SSH Public Key
   slurp:
     src: /home/{{ ansible_user }}/{{ magma_directory }}/.ssh/id_rsa.pub
   register: rke_ssh_key
-
 - name: Add rke public SSH key to authorized keys list
   authorized_key:
     user: "{{ ansible_user }}"
