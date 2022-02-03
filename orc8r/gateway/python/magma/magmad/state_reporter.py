@@ -22,6 +22,7 @@ from magma.common.cert_validity import cert_is_invalid
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.sdwatchdog import SDWatchdogTask
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.common.service import get_service303_client
 from magma.common.service_registry import ServiceRegistry
 from magma.magmad.bootstrap_manager import BootstrapManager
@@ -236,7 +237,10 @@ class StateReporter(SDWatchdogTask):
         except Exception as err:
             logging.error(
                 "GetOperationalStates Error for %s! [%s] %s",
-                service, err.code(), err.details(),
+                service,
+                err.code(),
+                err.details(),
+                extra=EXCLUDE_FROM_ERROR_MONITORING,
             )
             return []
 
