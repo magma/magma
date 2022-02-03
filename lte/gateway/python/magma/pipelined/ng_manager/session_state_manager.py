@@ -111,8 +111,8 @@ class SessionStateManager:
 
     def process_session_message(self, new_session, process_pdr_rules):
         """
-        Process the messages recevied from session. Return True
-        if parsing is successfull.
+        Process the messages received from session. Return True
+        if parsing is successful.
         """
 
         # Assume things are green
@@ -129,7 +129,7 @@ class SessionStateManager:
         context_response.cause_info.cause_ie = \
                   SessionStateManager.validate_session_msg(new_session)
         if context_response.cause_info.cause_ie != CauseIE.REQUEST_ACCEPTED:
-            self.logger.error(
+            self.logger.warning(
                 "Error : Parsing Error in SetInterface Message %d",
                 context_response.cause_info.cause_ie,
             )
