@@ -40,30 +40,31 @@ type builderServicer struct {
 	orc8Version string
 }
 
-func NewBuilderServicer(orc8rVersion *string) builder_protos.MconfigBuilderServer {
-	if orc8rVersion == nil {
-		orc8rVersion, res := os.LookupEnv("VERSION_TAG")
-		if !res {
-			glog.Error("Couldn't get value for VERSION_TAG Env variable.")
-		}
-		return &builderServicer{orc8rVersion}
-	}
+func NewBuilderServicerWithOrc8rVersion(orc8rVersion *string) builder_protos.MconfigBuilderServer {
 	return &builderServicer{*orc8rVersion}
+}
+
+func NewBuilderServicer() builder_protos.MconfigBuilderServer {
+	orc8rVersion, ok := os.LookupEnv("VERSION_TAG")
+	if !ok {
+		glog.Error("Couldn't get value for VERSION_TAG Env variable.")
+	}
+	return NewBuilderServicerWithOrc8rVersion(&orc8rVersion)
 }
 
 func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
 	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string][]byte{}}
 
-	config, err := (&baseOrchestratorBuilder{s.orc8Version}).Build(request.Network, request.Graph, request.GatewayId)
+	configs, err := (&baseOrchestratorBuilder{s.orc8Version}).Build(request.Network, request.Graph, request.GatewayId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "builder error")
 	}
-	for key, configToRet := range config {
+	for key, config := range configs {
 		_, ok := ret.ConfigsByKey[key]
 		if ok {
 			return nil, fmt.Errorf("builder received duplicate config for key: %v", key)
 		}
-		ret.ConfigsByKey[key] = configToRet
+		ret.ConfigsByKey[key] = config
 	}
 
 	return ret, nil
@@ -120,7 +121,7 @@ func (b *baseOrchestratorBuilder) Build(network *storage.Network, graph *storage
 
 func getMagmadMconfig(
 	gateway *configurator.NetworkEntity, graph *configurator.EntityGraph, gatewayConfig *models.MagmadGatewayConfigs,
-	orc8Version string) (*mconfig_protos.MagmaD, error) {
+	orc8rVersion string) (*mconfig_protos.MagmaD, error) {
 	version, images, err := getPackageVersionAndImages(gateway, graph)
 	if err != nil {
 		return nil, err
@@ -136,7 +137,7 @@ func getMagmadMconfig(
 		Images:                  images,
 		DynamicServices:         gatewayConfig.DynamicServices,
 		FeatureFlags:            gatewayConfig.FeatureFlags,
-		Orc8RVersion:            orc8Version,
+		Orc8RVersion:            orc8rVersion,
 	}
 
 	return ret, nil

@@ -103,7 +103,6 @@ func testUtilForTestSharedConfig(t *testing.T, orc8rVersion string) {
 }
 
 func TestBaseOrchestratorMconfigBuilderWithoutOrc8rVersionEnvVariable_Build(t *testing.T) {
-
 	orchestrator_test_init.StartTestServiceWithNoOcr8Version(t)
 	t.Run("test shared config with env variable for orc8r version not set", func(t *testing.T) {
 		testUtilForTestSharedConfig(t, "")
