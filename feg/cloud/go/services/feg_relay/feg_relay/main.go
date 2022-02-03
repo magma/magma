@@ -61,7 +61,7 @@ func main() {
 	lteprotos.RegisterCentralSessionControllerServer(srv.GrpcServer, nhServicer)
 
 	// Register S8 Proxy Neutral Host Routing services
-	s8nhServicer := s8proxy_servicers.NewS8RelayRouter(&nhServicer.Router)
+	s8nhServicer := nh_servicers.NewS8RelayRouter(&nhServicer.Router)
 	protos.RegisterS8ProxyServer(srv.GrpcServer, s8nhServicer)
 
 	// create and run GW_TO_FEG httpserver

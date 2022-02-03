@@ -20,13 +20,13 @@ import (
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/feg_relay"
-	s8proxy_servicers "magma/feg/cloud/go/services/feg_relay/servicers/southbound"
+	fegrelay_servicers "magma/feg/cloud/go/services/feg_relay/servicers/southbound"
 	"magma/orc8r/cloud/go/test_utils"
 )
 
 // A little Go "polymorphism" magic for testing
 type testFegProxyServer struct {
-	s8proxy_servicers.FegToGwRelayServer
+	fegrelay_servicers.FegToGwRelayServer
 }
 
 func (srv *testFegProxyServer) CancelLocation(
