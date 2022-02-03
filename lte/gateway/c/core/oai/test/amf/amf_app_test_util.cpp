@@ -145,6 +145,7 @@ void send_initial_context_response(
   apn_config_profile_t& profile = ue_context_p->amf_context.apn_config_profile;
   profile.nb_apns               = 1;
   strncpy(profile.apn_configuration[0].service_selection, "internet", 8);
+  profile.apn_configuration[0].service_selection_length = 8;
 
   ics_resp.ue_id = ue_id;
 

@@ -287,13 +287,18 @@ def _collect_service_metrics():
         memory_limit = properties[3]
 
         if pid != 0:
-            p = psutil.Process(pid=pid)
-            cpu_percentage = p.cpu_percent(interval=1)
-            _counter_set(
-                SERVICE_CPU_PERCENTAGE.labels(
-                    service_name=service,
-                ), cpu_percentage,
-            )
+            try:
+                p = psutil.Process(pid=pid)
+                cpu_percentage = p.cpu_percent(interval=1)
+            except psutil.NoSuchProcess:
+                logging.warning("When collecting CPU usage for service %s: Process with PID %d no longer exists.", service, pid)
+                continue
+            else:
+                _counter_set(
+                    SERVICE_CPU_PERCENTAGE.labels(
+                        service_name=service,
+                    ), cpu_percentage,
+                )
 
         if not memory.isnumeric():
             continue

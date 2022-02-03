@@ -264,6 +264,7 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
 void amf_remove_ue_context(ue_m5gmm_context_s* ue_context_p) {
   std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*>::iterator
       found_ue_id = ue_context_map.find(ue_context_p->amf_ue_ngap_id);
+  delete_amf_ue_state(ue_context_p->amf_context.imsi64);
 
   if (found_ue_id != ue_context_map.end()) {
     OAILOG_DEBUG(
