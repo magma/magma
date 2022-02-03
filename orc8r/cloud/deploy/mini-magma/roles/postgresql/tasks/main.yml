@@ -4,7 +4,9 @@
     name: postgresql
     chart_ref: bitnami/postgresql
     release_namespace: "{{ magma_namespace }}"
+    chart_version: "{{ postgresql_chart_version }}"
     create_namespace: true
     values:
-      postgresqlPassword: "{{ postgresql_password }}"
-      postgresqlDatabase: "{{ postgresql_database }}"
+      auth:
+        postgresPassword: "{{ postgresql_password }}"
+        database: "{{ postgresql_database }}"
