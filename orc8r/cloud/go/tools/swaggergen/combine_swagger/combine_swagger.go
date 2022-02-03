@@ -22,28 +22,20 @@ limitations under the License.
 	naively, as a full overwrite, and with no guarantees on ordering -- except
 	that the "common" file's subfields receive precedence over other subfields.
 */
-package main
+package combine_swagger
 
 import (
-	"flag"
 	"fmt"
 	"os"
 
 	"github.com/golang/glog"
 
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
-	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
-	"magma/orc8r/cloud/go/tools/combine_swagger/generate"
+	"magma/orc8r/cloud/go/tools/swaggergen/combine_swagger/combine"
+	"magma/orc8r/cloud/go/tools/swaggergen/combine_swagger/generate"
 )
 
-func main() {
-	inDir := flag.String("in", "", "Input directory")
-	commonFilepath := flag.String("common", "", "Common definitions filepath")
-	outFilepath := flag.String("out", "", "Output directory")
-	generateStandAloneSpec := flag.Bool("standalone", true, "Generate standalone specs")
-
-	flag.Parse()
-
+func Run(inDir, commonFilepath, outFilepath *string, generateStandAloneSpec *bool) {
 	fmt.Printf("Reading Swagger specs from directory:\n%s\n\n", *inDir)
 	fmt.Printf("Reading common spec from file:\n%s\n\n", *commonFilepath)
 

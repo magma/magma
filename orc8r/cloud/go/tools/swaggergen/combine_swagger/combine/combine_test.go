@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
-	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
+	"magma/orc8r/cloud/go/tools/swaggergen/combine_swagger/combine"
 )
 
 func init() {

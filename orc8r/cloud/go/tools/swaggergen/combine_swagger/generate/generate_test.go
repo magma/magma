@@ -20,8 +20,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"magma/orc8r/cloud/go/tools/combine_swagger/generate"
-	swaggergen "magma/orc8r/cloud/go/tools/swaggergen/generate"
+	"magma/orc8r/cloud/go/tools/swaggergen/combine_swagger/generate"
+	swaggergen "magma/orc8r/cloud/go/tools/swaggergen/swaggergen/generate"
 )
 
 func Test_GenerateStandaloneSpec(t *testing.T) {
