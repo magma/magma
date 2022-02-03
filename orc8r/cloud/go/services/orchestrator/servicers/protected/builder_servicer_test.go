@@ -26,7 +26,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/orchestrator"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-	"magma/orc8r/cloud/go/services/orchestrator/servicers"
+	servicers "magma/orc8r/cloud/go/services/orchestrator/servicers/protected"
 	orchestrator_test_init "magma/orc8r/cloud/go/services/orchestrator/test_init"
 	"magma/orc8r/lib/go/protos"
 	mconfig_protos "magma/orc8r/lib/go/protos/mconfig"
