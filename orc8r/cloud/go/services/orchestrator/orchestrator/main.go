@@ -71,7 +71,7 @@ func main() {
 
 	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
 	exporter_protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
-	indexer_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
+	indexer_protos.RegisterIndexerServer(srv.GrpcServer, protected_servicers.NewIndexerServicer())
 	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(orchestrator.ServiceName))

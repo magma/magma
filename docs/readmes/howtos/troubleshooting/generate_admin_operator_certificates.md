@@ -49,7 +49,7 @@ hide_title: true
 
 6. To replace certs, we have to first taint the secrets in terraform so that terraform knows to destroy those secrets first and then re-apply them. Taint them using terraform `taint module.orc8r-app.null_resource.orc8r_seed_secrets`
 
-7. Once the secrets have been tainted, you can then go ahead and apply the new secrets by running `terraform apply -target=module.orc8rapp.null_resource.orc8r_seed_secrets` followed by `terraform apply`
+7. Once the secrets have been tainted, you can then go ahead and apply the new secrets by running `terraform apply -target=module.orc8r-app.null_resource.orc8r_seed_secrets` followed by `terraform apply`
 
     NOTE: `terraform apply` command outputs the “plan” of what it intends to add,destroy,modify. Please scrutinize this output before typing “yes” on the confirm prompt. If there are any changes that are not consistent with your expectations, please cancel the run. You can specifically target the secrets portion by doing `terraform apply -target=module.<module information>`
 

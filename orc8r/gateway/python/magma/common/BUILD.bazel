@@ -49,3 +49,9 @@ py_library(
         requirement("prometheus_client"),
     ],
 )
+
+py_library(
+    name = "streamer",
+    srcs = ["streamer.py"],
+    deps = ["//orc8r/protos:streamer_python_grpc"],
+)

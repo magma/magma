@@ -1,0 +1,73 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/tools/swaggergen/testdata/base/models
+  dependencies: []
+  temp-gen-filename: base-swagger.yml
+  output-dir: base
+  types:
+    - go-struct-name: BarDef
+      filename: bar_def_swaggergen.actual
+    - go-struct-name: FooDef
+      filename: foo_def_swaggergen.actual
+
+info:
+  title: Test
+  description: Test API
+  version: 1.0.0
+
+basePath: /foo
+
+consumes:
+  - application/json
+
+produces:
+  - application/json
+
+schemes:
+  - https
+  - http
+
+tags:
+  - name: Tag
+    description: Tag foobar
+
+paths:
+  /foopath:
+    get:
+      summary: Foo
+      responses:
+        '200':
+          description: Bar baz
+          schema:
+            type: integer
+
+definitions:
+  foo_def:
+    type: object
+    required:
+      - bar
+      - baz
+    properties:
+      bar:
+        type: string
+        minLength: 1
+      baz:
+        type: integer
+  bar_def:
+    type: object
+    required:
+      - baz
+      - quz
+    properties:
+      baz:
+        type: object
+        properties:
+          hello:
+            type: string
+            minLength: 1
+          world:
+            type: integer
+      quz:
+        type: integer

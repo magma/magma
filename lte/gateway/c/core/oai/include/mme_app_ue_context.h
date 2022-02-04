@@ -426,7 +426,7 @@ typedef struct ue_mm_context_s {
   /* UE Context Modification Procedure Guard timer */
   nas_timer_t ue_context_modification_timer;
   /* Timer for retrying paging messages */
-#define MAX_PAGING_RETRY_COUNT 1
+#define MAX_PAGING_RETRY_COUNT 4
   uint8_t paging_retx_count;
   nas_timer_t paging_response_timer;
   time_t time_paging_response_timer_started;
