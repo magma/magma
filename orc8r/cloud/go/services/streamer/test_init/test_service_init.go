@@ -18,7 +18,7 @@ import (
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/streamer"
-	"magma/orc8r/cloud/go/services/streamer/servicers"
+	streamer_servicers "magma/orc8r/cloud/go/services/streamer/servicers/southbound"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 )
@@ -28,7 +28,7 @@ type testStreamerServer struct {
 }
 
 func (srv *testStreamerServer) GetUpdates(req *protos.StreamRequest, stream protos.Streamer_GetUpdatesServer) error {
-	return servicers.GetUpdatesUnverified(req, stream)
+	return streamer_servicers.GetUpdatesUnverified(req, stream)
 }
 
 func StartTestService(t *testing.T) {
