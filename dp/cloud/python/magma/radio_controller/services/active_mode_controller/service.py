@@ -27,6 +27,7 @@ from dp.protos.active_mode_pb2 import (
     State,
 )
 from dp.protos.active_mode_pb2_grpc import ActiveModeControllerServicer
+from google.protobuf.wrappers_pb2 import FloatValue
 from magma.db_service.models import (
     DBActiveModeConfig,
     DBCbsd,
@@ -155,8 +156,8 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
                 low=channel.low_frequency,
                 high=channel.high_frequency,
             ),
-            max_eirp=channel.max_eirp,
-            last_eirp=channel.last_used_max_eirp,
+            max_eirp=_make_optional_float(channel.max_eirp),
+            last_eirp=_make_optional_float(channel.last_used_max_eirp),
         )
 
     def _build_eirp_capabilities(self, cbsd: DBCbsd) -> EirpCapabilities:
@@ -169,3 +170,7 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
 
     def _to_timestamp(self, t: Optional[datetime]) -> int:
         return 0 if t is None else int(t.timestamp())
+
+
+def _make_optional_float(value: Optional[float]) -> FloatValue:
+    return FloatValue(value=value) if value is not None else None

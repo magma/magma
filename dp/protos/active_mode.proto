@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-// TODO change names to avoid conflicts
+import "google/protobuf/wrappers.proto";
 
 option go_package = "magma/dp/cloud/go/active_mode_controller/protos/active_mode";
 
@@ -58,8 +58,8 @@ enum GrantState {
 
 message Channel {
   FrequencyRange frequency_range = 1;
-  optional float max_eirp = 2;
-  optional float last_eirp = 3;
+  google.protobuf.FloatValue max_eirp = 2;
+  google.protobuf.FloatValue last_eirp = 3;
 }
 
 message FrequencyRange {

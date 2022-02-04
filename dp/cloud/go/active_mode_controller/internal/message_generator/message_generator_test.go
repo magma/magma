@@ -4,12 +4,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/wrapperspb"
+
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 	"magma/dp/cloud/go/active_mode_controller/protos/requests"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGenerateMessages(t *testing.T) {
@@ -121,7 +122,7 @@ func TestGenerateMessages(t *testing.T) {
 								Low:  3.62e9,
 								High: 3.63e9,
 							},
-							MaxEirp: makeOptionalFloat(4),
+							MaxEirp: wrapperspb.Float(4),
 						}},
 						EirpCapabilities: &active_mode.EirpCapabilities{
 							MinPower:      0,
@@ -148,7 +149,7 @@ func TestGenerateMessages(t *testing.T) {
 								Low:  3.62e9,
 								High: 3.63e9,
 							},
-							MaxEirp: makeOptionalFloat(15),
+							MaxEirp: wrapperspb.Float(15),
 						}},
 						EirpCapabilities: &active_mode.EirpCapabilities{
 							MinPower:      0,
@@ -243,10 +244,6 @@ func TestGenerateMessages(t *testing.T) {
 			}
 		})
 	}
-}
-
-func makeOptionalFloat(v float32) *float32 {
-	return &v
 }
 
 func getSpectrumInquiryRequest() []*requests.RequestPayload {
