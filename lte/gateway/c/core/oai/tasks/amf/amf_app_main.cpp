@@ -55,9 +55,10 @@ void amf_app_exit(void);
  ***************************************************************************/
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
+  imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
-  // imsi64_t imsi64                =
-  // itti_get_associated_imsi(received_message_p);
+  bool is_task_state_same        = false;
+  bool force_ue_write            = false;
 
   OAILOG_INFO(
       LOG_AMF_APP, "Received msg from :[%s] id:[%d] name:[%s]\n",
@@ -76,31 +77,38 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           amf_app_desc_p, AMF_APP_UL_DATA_IND(received_message_p).nas_msg,
           AMF_APP_UL_DATA_IND(received_message_p).ue_id,
           AMF_APP_UL_DATA_IND(received_message_p).tai);
+      is_task_state_same = true;
+      force_ue_write     = true;
       break;
     case AMF_APP_INITIAL_CONTEXT_SETUP_RSP:
       amf_app_handle_initial_context_setup_rsp(
           amf_app_desc_p,
           &AMF_APP_INITIAL_CONTEXT_SETUP_RSP(received_message_p));
+      is_task_state_same = true;
       break;
     /* Handle PDU session Response from UE */
     case N11_CREATE_PDU_SESSION_RESPONSE:
       amf_app_handle_pdu_session_response(
           &N11_CREATE_PDU_SESSION_RESPONSE(received_message_p));
+      is_task_state_same = true;
       break;
     case AMF_APP_SUBS_AUTH_INFO_RESP:
       amf_nas_proc_authentication_info_answer(
           &AMF_APP_AUTH_RESPONSE_DATA(received_message_p));
+      is_task_state_same = true;
       break;
 
     case AMF_APP_DECRYPT_IMSI_INFO_RESP:
       amf_decrypt_imsi_info_answer(
           &AMF_APP_DECRYPT_IMSI_RESPONSE_DATA(received_message_p));
+      is_task_state_same = true;
       break;
 
     case AMF_IP_ALLOCATION_RESPONSE:
       itti_amf_ip_allocation_response_t* response_p;
       response_p = &(received_message_p->ittiMsg.amf_ip_allocation_response);
       amf_smf_handle_ip_address_response(response_p);
+      is_task_state_same = true;
       break;
 
     case S6A_UPDATE_LOCATION_ANS: {
@@ -109,6 +117,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           "Received S6A Update Location Answer from subscriberd\n");
       amf_handle_s6a_update_location_ans(
           &received_message_p->ittiMsg.s6a_update_location_ans);
+      is_task_state_same = true;
     } break;
 
     /* Handle PDU session resource setup response */
@@ -118,6 +127,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
        */
       amf_app_handle_resource_setup_response(
           NGAP_PDUSESSIONRESOURCE_SETUP_RSP(received_message_p));
+      is_task_state_same = true;
       break;
     /* Handle PDU session resource release response */
     case NGAP_PDUSESSIONRESOURCE_REL_RSP:
@@ -126,6 +136,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
        */
       amf_app_handle_resource_release_response(
           NGAP_PDUSESSIONRESOURCE_REL_RSP(received_message_p));
+      is_task_state_same = true;
       break;
     case N11_NOTIFICATION_RECEIVED:
       /* This case handles Notification Received for Paging or other events
@@ -133,6 +144,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
        */
       amf_app_handle_notification_received(
           &N11_NOTIFICATION_RECEIVED(received_message_p));
+      is_task_state_same = true;
       break;
 
     /* Handle UE context Release Requests */
@@ -152,6 +164,10 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     default:
       OAILOG_DEBUG(LOG_AMF_APP, "default message received");
       break;
+  }
+  put_amf_ue_state(amf_app_desc_p, imsi64, force_ue_write);
+  if (!is_task_state_same) {
+    put_amf_nas_state();
   }
   return RETURNok;
 }
