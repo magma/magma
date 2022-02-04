@@ -22,8 +22,8 @@ import (
 	"magma/lte/cloud/go/services/policydb/obsidian/handlers"
 	policydb_servicer "magma/lte/cloud/go/services/policydb/servicers/southbound"
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/obsidian/swagger"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
+	swaggger_servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/service"
 )
 
@@ -36,7 +36,7 @@ func main() {
 	assignmentServicer := policydb_servicer.NewPolicyAssignmentServer()
 	protos.RegisterPolicyAssignmentControllerServer(srv.GrpcServer, assignmentServicer)
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(policydb.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swaggger_servicers.NewSpecServicerFromFile(policydb.ServiceName))
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 	err = srv.Run()
