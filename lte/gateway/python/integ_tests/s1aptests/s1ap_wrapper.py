@@ -57,6 +57,8 @@ class TestWrapper(object):
         self,
         stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         apn_correction=MagmadUtil.apn_correction_cmds.DISABLE,
+        pipelined_managed_tbl0=MagmadUtil.pipelined_managed_tbl0_cmds.DISABLE,
+        enable5g_features=MagmadUtil.enable5g_features_cmds.DISABLE,
         health_service=MagmadUtil.health_service_cmds.DISABLE,
     ):
         """
@@ -85,6 +87,8 @@ class TestWrapper(object):
         self._magmad_util = MagmadUtil(magmad_client)
         self._magmad_util.config_stateless(stateless_mode)
         self._magmad_util.config_apn_correction(apn_correction)
+        self._magmad_util.config_pipelined_managed_tbl0(pipelined_managed_tbl0)
+        self._magmad_util.config_enable5g_features(enable5g_features)
         self._magmad_util.config_health_service(health_service)
         # gateway tests don't require restart, just wait for healthy now
         self._gateway_services = GatewayServicesUtil()

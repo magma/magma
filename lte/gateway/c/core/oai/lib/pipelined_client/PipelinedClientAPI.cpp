@@ -42,8 +42,14 @@ int upf_classifier_add_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
     uint32_t i_tei, uint32_t o_tei, const char* imsi,
     struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl, const char* apn) {
-  std::string imsi_str = std::string(imsi);
-  std::string apn_str  = std::string(apn);
+  std::string imsi_str = "";
+  std::string apn_str  = "";
+  if (imsi) {
+    imsi_str = std::string(imsi);
+  }
+  if (apn) {
+    apn_str = std::string(apn);
+  }
 
   if (ue_ipv6 == nullptr) {
     if (flow_dl == nullptr) {
