@@ -96,12 +96,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       amf_nas_proc_authentication_info_answer(
           &AMF_APP_AUTH_RESPONSE_DATA(received_message_p));
       is_task_state_same = true;
+      force_ue_write     = true;
       break;
 
     case AMF_APP_DECRYPT_IMSI_INFO_RESP:
       amf_decrypt_imsi_info_answer(
           &AMF_APP_DECRYPT_IMSI_RESPONSE_DATA(received_message_p));
       is_task_state_same = true;
+      force_ue_write     = true;
       break;
 
     case AMF_IP_ALLOCATION_RESPONSE:
@@ -109,6 +111,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       response_p = &(received_message_p->ittiMsg.amf_ip_allocation_response);
       amf_smf_handle_ip_address_response(response_p);
       is_task_state_same = true;
+      force_ue_write     = true;
       break;
 
     case S6A_UPDATE_LOCATION_ANS: {
