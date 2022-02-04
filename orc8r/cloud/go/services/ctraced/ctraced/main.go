@@ -18,7 +18,7 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/obsidian"
-	swagger_servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
+	swagger "magma/orc8r/cloud/go/obsidian/swagger"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
@@ -52,7 +52,7 @@ func main() {
 
 	// Init gRPC servicer
 	protos.RegisterCallTraceControllerServer(srv.GrpcServer, servicers.NewCallTraceServicer(ctracedBlobstore))
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(ctraced.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(ctraced.ServiceName))
 
 	gwClient := handlers.NewGwCtracedClient()
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers(gwClient, ctracedBlobstore))
