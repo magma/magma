@@ -274,6 +274,8 @@
         "label": "Access Gateway",
         "ids": [
           "lte/dev_notes",
+          "lte/openvswitch",
+          "lte/pipelined",
           "lte/ebpf_datapath",
           "lte/dev_unit_testing",
           "lte/tr069",
