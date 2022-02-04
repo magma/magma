@@ -32,7 +32,7 @@ import (
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
 	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
-	"magma/lte/cloud/go/services/subscriberdb/servicers"
+	subscriberdbcloud_servicer "magma/lte/cloud/go/services/subscriberdb/servicers/southbound"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -50,7 +50,7 @@ func TestListSuciProfiles(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	storeReader, _ := initializeStore(t)
 
-	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{DigestsEnabled: false}, storeReader)
+	servicer := subscriberdbcloud_servicer.NewSubscriberdbServicer(subscriberdb.Config{DigestsEnabled: false}, storeReader)
 
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{
 		ID:          "nt1",
@@ -122,7 +122,7 @@ func TestListSubscribers(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	storeReader, _ := initializeStore(t)
 
-	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{DigestsEnabled: false}, storeReader)
+	servicer := subscriberdbcloud_servicer.NewSubscriberdbServicer(subscriberdb.Config{DigestsEnabled: false}, storeReader)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
@@ -374,7 +374,7 @@ func TestListSubscribersDigestsEnabled(t *testing.T) {
 	// store (with write access) is created only to insert test data into the database
 	storeReader, store := initializeStore(t)
 
-	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{
+	servicer := subscriberdbcloud_servicer.NewSubscriberdbServicer(subscriberdb.Config{
 		DigestsEnabled:     true,
 		MaxProtosLoadSize:  10,
 		ResyncIntervalSecs: 1000,
@@ -552,7 +552,7 @@ func TestListSubscribersSetLastResyncTime(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	storeReader, store := initializeStore(t)
 
-	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{
+	servicer := subscriberdbcloud_servicer.NewSubscriberdbServicer(subscriberdb.Config{
 		DigestsEnabled:    true,
 		MaxProtosLoadSize: 10,
 	}, storeReader)
@@ -612,7 +612,7 @@ func TestCheckSubscribersInSync(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	storeReader, store := initializeStore(t)
 
-	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{DigestsEnabled: true, ResyncIntervalSecs: 1000}, storeReader)
+	servicer := subscriberdbcloud_servicer.NewSubscriberdbServicer(subscriberdb.Config{DigestsEnabled: true, ResyncIntervalSecs: 1000}, storeReader)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
@@ -670,7 +670,7 @@ func TestSyncSubscribers(t *testing.T) {
 
 	// Create servicer with the subscriber digests feature flag turned on
 	configs := subscriberdb.Config{DigestsEnabled: true, ChangesetSizeThreshold: 100, MaxProtosLoadSize: 100}
-	servicer := servicers.NewSubscriberdbServicer(configs, storeReader)
+	servicer := subscriberdbcloud_servicer.NewSubscriberdbServicer(configs, storeReader)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
@@ -823,7 +823,7 @@ func TestSyncSubscribersResync(t *testing.T) {
 		MaxProtosLoadSize:      100,
 		ResyncIntervalSecs:     1000,
 	}
-	servicer := servicers.NewSubscriberdbServicer(configs, storeReader)
+	servicer := subscriberdbcloud_servicer.NewSubscriberdbServicer(configs, storeReader)
 
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
