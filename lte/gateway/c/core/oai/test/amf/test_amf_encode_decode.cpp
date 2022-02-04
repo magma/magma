@@ -39,6 +39,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_handler.cpp"
 #include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.h"
 
@@ -1621,5 +1622,14 @@ TEST(test_optional_pdu, test_pdu_session_accept_optional) {
   // Clean up the PCO contents
   sm_free_protocol_configuration_options(&msg_accept_pco);
 }
-
+TEST(test_PDUAddressMsg, test_pdu_session_accept_optional_addressinfo) {
+  paa_t pa               = {};
+  pa.pdn_type            = IPv4;
+  pa.ipv4_address.s_addr = 0xc80a8c0;
+  PDUAddressMsg msg;
+  memset(&msg, 0, sizeof(msg));
+  paa_to_address_info(&pa, msg.address_info, &msg.length);
+  EXPECT_TRUE(msg.address_info[0] == 0xc0);
+  EXPECT_TRUE(msg.address_info[1] == 0xa8);
+}
 }  // namespace magma5g

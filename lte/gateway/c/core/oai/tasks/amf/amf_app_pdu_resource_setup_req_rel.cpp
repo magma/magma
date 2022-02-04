@@ -128,7 +128,8 @@ int pdu_session_resource_setup_request(
   amf_pdu_ses_setup_transfer_req->up_transport_layer_info.gtp_tnl
       .endpoint_ip_address = blk2bstr(
       &smf_context->gtp_tunnel_id.upf_gtp_teid_ip_addr, GNB_IPV4_ADDR_LEN);
-  amf_pdu_ses_setup_transfer_req->pdu_ip_type.pdn_type = IPv4;
+  amf_pdu_ses_setup_transfer_req->pdu_ip_type.pdn_type =
+      smf_context->pdu_address.pdn_type;
 
   memcpy(
       &amf_pdu_ses_setup_transfer_req->qos_flow_setup_request_list

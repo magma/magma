@@ -819,11 +819,11 @@ TEST_F(AMFAppStatelessTest, TestAfterRegistrationComplete) {
   EXPECT_EQ(rc, RETURNok);
 
   /* Send ip address response from pipelined */
-  rc = send_ip_address_response_itti();
+  rc = send_ip_address_response_itti(IPv4);
   EXPECT_EQ(rc, RETURNok);
 
   /* Send pdu session setup response from smf */
-  rc = send_pdu_session_response_itti();
+  rc = send_pdu_session_response_itti(IPv4);
   EXPECT_EQ(rc, RETURNok);
 
   /* Send pdu resource setup response from UE */

@@ -17,6 +17,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/include/nas/networkDef.h"
 #ifdef __cplusplus
 }
 #endif
@@ -105,16 +106,17 @@ int create_session_grpc_req_on_gnb_setup_rsp(
 
 /***************************************************************************
 **                                                                        **
-** Name:    amf_smf_create_ipv4_session_grpc_req()                        **
+** Name:    amf_smf_create_session_req()                                  **
 **                                                                        **
 ** Description: Fill session establishment gRPC request to SMF            **
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_smf_create_ipv4_session_grpc_req(
+int amf_smf_create_session_req(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, const ambr_t& state_ambr) {
+    uint8_t* gnb_gtp_teid_ip_addr, char* ue_ipv4_addr, char* ue_ipv6_addr,
+    const ambr_t& state_ambr) {
   imsi64_t imsi64                   = INVALID_IMSI64;
   ue_m5gmm_context_s* ue_mm_context = NULL;
   amf_context_t* amf_ctxt_p         = NULL;
@@ -136,20 +138,20 @@ int amf_smf_create_ipv4_session_grpc_req(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
 
-  return AMFClientServicer::getInstance().amf_smf_create_pdu_session_ipv4(
+  return AMFClientServicer::getInstance().amf_smf_create_pdu_session(
       imsi, apn, pdu_session_id, pdu_session_type, gnb_gtp_teid, pti,
-      gnb_gtp_teid_ip_addr, ipv4_addr, VERSION_0, state_ambr);
+      gnb_gtp_teid_ip_addr, ue_ipv4_addr, ue_ipv6_addr, state_ambr, VERSION_0);
 }
 
 /***************************************************************************
  * **                                                                        **
- * ** Name:    amf_smf_create_pdu_session()                                  **
+ * ** Name:    amf_smf_initiate_pdu_session_creation()                       **
  * **                                                                        **
- * ** Description: Trigger PDU Session Creation in SMF                       **
+ * ** Description: Initiate PDU Session Creation process                     **
  * **                                                                        **
  * **                                                                        **
  * ***************************************************************************/
-int amf_smf_create_pdu_session(
+int amf_smf_initiate_pdu_session_creation(
     amf_smf_establish_t* message, char* imsi, uint32_t version) {
   imsi64_t imsi64                   = INVALID_IMSI64;
   amf_context_t* amf_ctxt_p         = NULL;
@@ -175,9 +177,23 @@ int amf_smf_create_pdu_session(
       "Sending msg(grpc) to :[mobilityd] for ue: [%s] ip-addr pdu session: "
       "[%u]\n",
       imsi, message->pdu_session_id);
-  AMFClientServicer::getInstance().allocate_ipv4_address(
-      imsi, smf_ctx->dnn.c_str(), message->pdu_session_id, message->pti,
-      AF_INET, message->gnb_gtp_teid, message->gnb_gtp_teid_ip_addr, 4);
+
+  if (message->pdu_session_type == NET_PDN_TYPE_IPV4) {
+    AMFClientServicer::getInstance().allocate_ipv4_address(
+        imsi, smf_ctx->dnn.c_str(), message->pdu_session_id, message->pti,
+        NET_PDN_TYPE_IPV4, message->gnb_gtp_teid, message->gnb_gtp_teid_ip_addr,
+        4);
+  } else if (message->pdu_session_type == NET_PDN_TYPE_IPV6) {
+    AMFClientServicer::getInstance().allocate_ipv6_address(
+        imsi, smf_ctx->dnn.c_str(), message->pdu_session_id, message->pti,
+        NET_PDN_TYPE_IPV6, message->gnb_gtp_teid, message->gnb_gtp_teid_ip_addr,
+        4);
+  } else if (message->pdu_session_type == NET_PDN_TYPE_IPV4V6) {
+    AMFClientServicer::getInstance().allocate_ipv4v6_address(
+        imsi, smf_ctx->dnn.c_str(), message->pdu_session_id, message->pti,
+        NET_PDN_TYPE_IPV4V6, message->gnb_gtp_teid,
+        message->gnb_gtp_teid_ip_addr, 4);
+  }
 
   return (RETURNok);
 }
