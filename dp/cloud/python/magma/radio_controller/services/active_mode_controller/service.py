@@ -70,13 +70,32 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
             return state
 
     def _build_state(self, session: Session) -> State:
+        db_grant_idle_state_id = session.query(DBGrantState.id).filter(
+            DBGrantState.name == GrantStates.IDLE.value,
+        ).scalar()
+        db_request_pending_state_id = session.query(DBRequestState.id).filter(
+            DBRequestState.name == RequestStates.PENDING.value,
+        ).scalar()
+
+        # Selectively load sqlalchemy object relations using a single query to avoid commit races.
+        # We want to have CBSD entity "grants" relation only contain grants in a Non-IDLE state.
+        # We want to have CBSD entity "requests" relation only contain PENDING requests.
         db_configs = session.query(DBActiveModeConfig).join(DBCbsd).options(
             joinedload(DBActiveModeConfig.cbsd).options(
                 joinedload(DBCbsd.channels),
-                joinedload(DBCbsd.grants).options(joinedload(DBGrant.state)),
+                joinedload(
+                    DBCbsd.grants.and_(
+                        DBGrant.state_id != db_grant_idle_state_id,
+                    ),
+                ),
+                joinedload(
+                    DBCbsd.requests.and_(
+                        DBRequest.state_id == db_request_pending_state_id,
+                    ),
+                ),
             ),
-        ).filter(*self._get_filter())
-        configs = [self._build_config(session, x) for x in db_configs]
+        ).filter(*self._get_filter()).populate_existing()
+        configs = [self._build_config(db_config) for db_config in db_configs]
         session.commit()
         return State(active_mode_configs=configs)
 
@@ -87,30 +106,25 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
         ]
         return [field != None for field in not_null_fields]  # noqa: E711
 
-    def _build_config(self, session: Session, config: DBActiveModeConfig) -> ActiveModeConfig:
+    def _build_config(self, config: DBActiveModeConfig) -> ActiveModeConfig:
         return ActiveModeConfig(
             desired_state=cbsd_state_mapping[config.desired_state.name],
-            cbsd=self._build_cbsd(session, config.cbsd),
+            cbsd=self._build_cbsd(config.cbsd),
         )
 
-    def _build_cbsd(self, session: Session, cbsd: DBCbsd) -> Cbsd:
-        db_grants = session.query(DBGrant).join(DBGrantState).filter(
-            DBGrant.cbsd_id == cbsd.id,
-            DBGrantState.name != GrantStates.IDLE.value,
-        )
-        pending_requests_payloads = session.query(
-            DBRequest.payload,
-        ).join(
-            DBRequestState,
-        ).filter(
-            DBRequestState.name == RequestStates.PENDING.value,
-            DBRequest.cbsd_id == cbsd.id,
-        )
-        grants = [self._build_grant(x) for x in db_grants]
-        channels = [self._build_channel(x) for x in cbsd.channels]
+    def _build_cbsd(self, cbsd: DBCbsd) -> Cbsd:
         pending_requests = [
-            json.dumps(r.payload, separators=(',', ':')) for r in pending_requests_payloads
+            json.dumps(r.payload, separators=(',', ':')) for r in cbsd.requests
         ]
+
+        # Application may not need those to be sorted.
+        # Applying ordering mostly for easier assertions in testing
+        cbsd_db_grants = sorted(cbsd.grants, key=lambda x: x.id)
+        cbsd_db_channels = sorted(cbsd.channels, key=lambda x: x.id)
+
+        grants = [self._build_grant(x) for x in cbsd_db_grants]
+        channels = [self._build_channel(x) for x in cbsd_db_channels]
+
         last_seen = self._to_timestamp(cbsd.last_seen)
         eirp_capabilities = self._build_eirp_capabilities(cbsd)
         return Cbsd(
