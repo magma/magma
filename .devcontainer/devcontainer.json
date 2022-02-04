@@ -22,7 +22,7 @@
 		"ms-python.vscode-pylance",
 		"njpwerner.autodocstring",
 	],
-	"image": "ghcr.io/magma/magma/devcontainer:sha-206a67a",
+	"image": "ghcr.io/magma/magma/devcontainer:sha-ad15c84",
 	"settings": {
 		"terminal.integrated.shell.linux": "/bin/bash",
 		"files.watcherExclude": {

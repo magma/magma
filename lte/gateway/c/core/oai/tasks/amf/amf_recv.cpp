@@ -382,13 +382,14 @@ int amf_handle_registration_request(
 
         amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
 
+        imsi64_t imsi64                = amf_imsi_to_imsi64(params->imsi);
+        ue_context->amf_context.imsi64 = imsi64;
         amf_ue_context_on_new_guti(ue_context, (guti_m5_t*) &amf_guti);
 
         ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
         ue_context->amf_context.m5_guti.guamfi = amf_guti.guamfi;
-        imsi64_t imsi64                = amf_imsi_to_imsi64(params->imsi);
-        guti_and_amf_id.amf_guti       = amf_guti;
-        guti_and_amf_id.amf_ue_ngap_id = ue_id;
+        guti_and_amf_id.amf_guti               = amf_guti;
+        guti_and_amf_id.amf_ue_ngap_id         = ue_id;
         if (amf_supi_guti_map.size() == 0) {
           // first entry.
           amf_supi_guti_map.insert(

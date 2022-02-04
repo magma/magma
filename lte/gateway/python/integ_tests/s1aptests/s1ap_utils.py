@@ -181,7 +181,9 @@ class S1ApUtil(object):
             return None
 
     def get_response(
-        self, timeout: int = None, assert_on_timeout: bool = True,
+        self,
+        timeout: int = None,
+        assert_on_timeout: bool = True,
     ) -> Msg:
         """Return the response message invoked by S1APTester TFW callback
 
@@ -209,8 +211,6 @@ class S1ApUtil(object):
                     + str(timeout)
                     + " sec) occurred while waiting for response message",
                 )
-            else:
-                return None
 
     def populate_pco(
             self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False,
