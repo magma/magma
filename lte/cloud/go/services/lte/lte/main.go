@@ -50,7 +50,7 @@ func main() {
 	var serviceConfig lte_service.Config
 	config.MustGetStructuredServiceConfig(lte.ModuleName, lte_service.ServiceName, &serviceConfig)
 
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer(serviceConfig))
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, protected_servicers.NewBuilderServicer(serviceConfig))
 	provider_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
 	state_protos.RegisterIndexerServer(srv.GrpcServer, protected_servicers.NewIndexerServicer())
 

@@ -20,7 +20,7 @@ import (
 	cwf_service "magma/cwf/cloud/go/services/cwf"
 	cwf_analytics "magma/cwf/cloud/go/services/cwf/analytics"
 	"magma/cwf/cloud/go/services/cwf/obsidian/handlers"
-	"magma/cwf/cloud/go/services/cwf/servicers"
+	builder_servicers "magma/cwf/cloud/go/services/cwf/servicers/protected"
 	"magma/orc8r/cloud/go/obsidian"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	swagger_servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
@@ -40,7 +40,7 @@ func main() {
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, builder_servicers.NewBuilderServicer())
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(cwf_service.ServiceName))
 

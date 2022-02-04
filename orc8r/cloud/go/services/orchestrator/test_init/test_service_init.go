@@ -38,7 +38,7 @@ func (srv *testStreamerServer) GetUpdates(req *protos.StreamRequest, stream prot
 }
 
 func StartTestService(t *testing.T) {
-	StartTestServiceInternal(t, servicers.NewBuilderServicer(), indexer_servicers.NewIndexerServicer(), servicers.NewProviderServicer())
+	StartTestServiceInternal(t, indexer_servicers.NewBuilderServicer(), indexer_servicers.NewIndexerServicer(), servicers.NewProviderServicer())
 }
 
 func StartTestServiceInternal(
