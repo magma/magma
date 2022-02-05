@@ -217,7 +217,6 @@ void AmfNasStateConverter::proto_to_ue(
 void AmfNasStateConverter::ue_m5gmm_context_to_proto(
     const ue_m5gmm_context_t* state_ue_m5gmm_context,
     magma::lte::oai::UeContext* ue_context_proto) {
-
   ue_context_proto->set_amf_ue_ngap_id(state_ue_m5gmm_context->amf_ue_ngap_id);
   ue_context_proto->set_rel_cause(state_ue_m5gmm_context->ue_context_rel_cause);
 
@@ -248,7 +247,6 @@ void AmfNasStateConverter::ue_m5gmm_context_to_proto(
 void AmfNasStateConverter::proto_to_ue_m5gmm_context(
     const magma::lte::oai::UeContext& ue_context_proto,
     ue_m5gmm_context_t* state_ue_m5gmm_context) {
-
   state_ue_m5gmm_context->amf_ue_ngap_id = ue_context_proto.amf_ue_ngap_id();
   state_ue_m5gmm_context->ue_context_rel_cause =
       static_cast<enum n2cause>(ue_context_proto.rel_cause());

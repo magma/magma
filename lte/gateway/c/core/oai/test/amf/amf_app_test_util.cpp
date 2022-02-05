@@ -528,17 +528,18 @@ void send_ue_context_release_request_message(amf_app_desc_t* amf_app_desc_p,
 }
 
 /* Create context release request */
-void send_ue_context_release_complete_message(
-    amf_app_desc_t* amf_app_desc_p, uint32_t gnb_id,
-    gnb_ue_ngap_id_t gnb_ue_ngap_id, amf_ue_ngap_id_t amf_ue_ngap_id) {
+void send_ue_context_release_complete_message(amf_app_desc_t* amf_app_desc_p,
+                                              uint32_t gnb_id,
+                                              gnb_ue_ngap_id_t gnb_ue_ngap_id,
+                                              amf_ue_ngap_id_t amf_ue_ngap_id) {
   itti_ngap_ue_context_release_complete_t ue_context_release_complete = {};
 
-  ue_context_release_complete.gnb_id         = gnb_id;
+  ue_context_release_complete.gnb_id = gnb_id;
   ue_context_release_complete.gnb_ue_ngap_id = gnb_ue_ngap_id;
   ue_context_release_complete.amf_ue_ngap_id = amf_ue_ngap_id;
 
-  amf_app_handle_ngap_ue_context_release_complete(
-      amf_app_desc_p, &ue_context_release_complete);
+  amf_app_handle_ngap_ue_context_release_complete(amf_app_desc_p,
+                                                  &ue_context_release_complete);
 }
 
 imsi64_t send_initial_ue_message_service_request(
@@ -611,10 +612,10 @@ int send_uplink_nas_message_service_request_with_pdu(
 }
 
 // Check the ue context state
-bool check_ue_context_state(
-    amf_ue_ngap_id_t ue_id, m5gmm_state_t expected_mm_state,
-    m5gcm_state_t expected_cm_state,
-    enum n2cause expected_ue_context_rel_cause) {
+bool check_ue_context_state(amf_ue_ngap_id_t ue_id,
+                            m5gmm_state_t expected_mm_state,
+                            m5gcm_state_t expected_cm_state,
+                            enum n2cause expected_ue_context_rel_cause) {
   m5gmm_state_t mm_state;
   int rc = RETURNerror;
 

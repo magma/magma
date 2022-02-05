@@ -33,8 +33,8 @@ extern task_zmq_ctx_t amf_app_task_zmq_ctx;
  ** inputs:  ue_context_p: Pointer to UE context amf_cause: failed cause   **
  **                                                                        **
  ***************************************************************************/
-void amf_app_itti_ue_context_release(
-    ue_m5gmm_context_s* ue_context_p, enum n2cause n2_cause) {
+void amf_app_itti_ue_context_release(ue_m5gmm_context_s* ue_context_p,
+                                     enum n2cause n2_cause) {
   MessageDef* message_p;
   OAILOG_FUNC_IN(LOG_AMF_APP);
 

@@ -486,8 +486,8 @@ typedef struct amf_msg_header_t {
 } amf_msg_header;
 
 // Release Request routine.
-void amf_app_itti_ue_context_release(
-    ue_m5gmm_context_s* ue_context_p, enum n2cause n2_cause);
+void amf_app_itti_ue_context_release(ue_m5gmm_context_s* ue_context_p,
+                                     enum n2cause n2_cause);
 
 // 5G Mobility Management Messages
 union mobility_msg_u {
@@ -831,8 +831,8 @@ int amf_proc_deregistration_request(amf_ue_ngap_id_t ue_id,
 int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id);
 
 // Remove ue context
-void amf_remove_ue_context(
-    amf_ue_context_t* const amf_ue_context_p, ue_m5gmm_context_s* ue_context_p);
+void amf_remove_ue_context(amf_ue_context_t* const amf_ue_context_p,
+                           ue_m5gmm_context_s* ue_context_p);
 
 void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context);
 
@@ -923,13 +923,12 @@ void amf_ue_context_update_ue_sig_connection_state(
     struct ue_m5gmm_context_s* ue_context_p, m5gcm_state_t new_cm_state);
 
 // Handling the UE context release
-void amf_ctx_release_ue_context(
-    ue_m5gmm_context_s* ue_context_p, enum n2cause n2_cause);
+void amf_ctx_release_ue_context(ue_m5gmm_context_s* ue_context_p,
+                                enum n2cause n2_cause);
 
 // For stored registration information start the registration
-void proc_new_registration_req(
-    amf_ue_context_t* const amf_ue_context_p,
-    struct ue_m5gmm_context_s* ue_context_p);
+void proc_new_registration_req(amf_ue_context_t* const amf_ue_context_p,
+                               struct ue_m5gmm_context_s* ue_context_p);
 
 ue_m5gmm_context_s* ue_context_loopkup_by_guti(tmsi_t tmsi_rcv);
 void ue_context_update_ue_id(ue_m5gmm_context_s* ue_context,
@@ -941,12 +940,13 @@ int t3592_abort_handler(ue_m5gmm_context_t* ue_context,
                         uint8_t pdu_session_id);
 
 /* Store the ongoing registration in new_registration_info */
-void create_new_registration_info(
-    amf_context_t* amf_context_p, amf_ue_ngap_id_t amf_ue_ngap_id,
-    struct amf_registration_request_ies_s* ies, bool is_mm_ctx_new);
+void create_new_registration_info(amf_context_t* amf_context_p,
+                                  amf_ue_ngap_id_t amf_ue_ngap_id,
+                                  struct amf_registration_request_ies_s* ies,
+                                  bool is_mm_ctx_new);
 
-void amf_app_itti_ue_context_release(
-    ue_m5gmm_context_s* ue_context_p, enum n2cause n2_cause);
+void amf_app_itti_ue_context_release(ue_m5gmm_context_s* ue_context_p,
+                                     enum n2cause n2_cause);
 
 /* Fetch tmsi from ue id */
 tmsi_t amf_lookup_guti_by_ueid(amf_ue_ngap_id_t ue_id);
@@ -966,16 +966,16 @@ int m5g_security_select_algorithms(const int ue_iaP, const int ue_eaP,
                                    int* const amf_iaP, int* const amf_eaP);
 
 // Get the context release cause
-status_code_e amf_get_ue_context_rel_cause(
-    amf_ue_ngap_id_t ue_id, enum n2cause* ue_context_rel_cause);
+status_code_e amf_get_ue_context_rel_cause(amf_ue_ngap_id_t ue_id,
+                                           enum n2cause* ue_context_rel_cause);
 
 // Get the context mm state
-status_code_e amf_get_ue_context_mm_state(
-    amf_ue_ngap_id_t ue_id, m5gmm_state_t* mm_state);
+status_code_e amf_get_ue_context_mm_state(amf_ue_ngap_id_t ue_id,
+                                          m5gmm_state_t* mm_state);
 
 // Get the context cm state
-status_code_e amf_get_ue_context_cm_state(
-    amf_ue_ngap_id_t ue_id, m5gcm_state_t* cm_state);
+status_code_e amf_get_ue_context_cm_state(amf_ue_ngap_id_t ue_id,
+                                          m5gcm_state_t* cm_state);
 
 /************************************************************************
  ** Name:    delete_wrapper()                                         **
@@ -999,9 +999,6 @@ void delete_wrapper(T** pObj) {
     *pObj = nullptr;
   }
 }
-
-// Sync State manager map with Amf Application maps
-void amf_sync_app_maps_from_db();
 
 bool get_amf_ue_id_from_imsi(amf_ue_context_t* amf_ue_context_p,
                              imsi64_t imsi64, amf_ue_ngap_id_t* ue_id);

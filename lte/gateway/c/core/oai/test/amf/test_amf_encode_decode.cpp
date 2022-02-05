@@ -958,36 +958,6 @@ TEST(test_optional_dnn_dotted_pdu, test_pdu_session_establish_optional) {
   bdestroy(buffer);
 }
 
-TEST(test_dnn, test_amf_handle_s6a_update_location_ans) {
-  // creating ue_context
-  ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
-
-  // Building s6a_update_location_ans_t
-  std::string imsi = "901700000000001";
-  s6a_update_location_ans_t ula_ans;
-  ula_ans = util_amf_send_s6a_ula(imsi);
-
-  // Building key value pair for amf_supi_guti_map and ue_context_map
-  uint64_t imsi_64 = 901700000000001;
-  guti_and_amf_id_t guti_amf;
-  guti_amf.amf_guti.m_tmsi = 0x2bfb815f;
-  guti_amf.amf_ue_ngap_id = 0x01;
-
-  // Inserting into amf_supi_guti_map, ue_context_map
-  amf_supi_guti_map.insert(
-      std::pair<imsi64_t, guti_and_amf_id_t>(imsi_64, guti_amf));
-  ue_context_map.insert(std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(
-      guti_amf.amf_ue_ngap_id, ue_context));
-
-  int rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
-
-  // Clearing the map and deleting ue_context
-  amf_supi_guti_map.clear();
-  ue_context_map.clear();
-  delete ue_context;
-}
-
 TEST(test_dnn, test_amf_validate_dnn) {
   // uplink nas transport(pdu session request)
   uint8_t pdu[44] = {0x7e, 0x00, 0x67, 0x01, 0x00, 0x15, 0x2e, 0x01, 0x01,
@@ -1047,7 +1017,6 @@ class AmfUeContextTestServiceRequestProc : public ::testing::Test {
   const uint32_t gnb_id = 0x01;
 
   virtual void SetUp() {
-
     itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
               NULL, NULL);
     amf_config_init(&amf_config);
@@ -1061,7 +1030,7 @@ class AmfUeContextTestServiceRequestProc : public ::testing::Test {
 
     // insert ue context
     if (ue_context) {
-      ue_context->amf_ue_ngap_id             = AMF_UE_NGAP_ID;
+      ue_context->amf_ue_ngap_id = AMF_UE_NGAP_ID;
       ue_context->amf_context.m5_guti.m_tmsi = INVALID_TMSI;
       amf_insert_ue_context(&amf_app_desc_p->amf_ue_contexts, ue_context);
     }
@@ -1073,7 +1042,7 @@ class AmfUeContextTestServiceRequestProc : public ::testing::Test {
     // ueContextReq
     ue_context->ue_context_request = M5G_UEContextRequest_requested;
     // ue state
-    ue_context->mm_state = REGISTERED_IDLE;
+    ue_context->mm_state = REGISTERED_CONNECTED;
     // 5G TMSI
     ue_context->amf_context.m5_guti.m_tmsi = M_TMSI;
     guti.m_tmsi = ue_context->amf_context.m5_guti.m_tmsi;
@@ -1181,10 +1150,9 @@ TEST_F(AmfUeContextTestServiceRequestProc,
   // Verify service request is handled
   EXPECT_EQ(RETURNok, amf_handle_service_request(
                           AMF_UE_NGAP_ID, &service_request, decode_status));
+
   // Verify UE moved to REGISTERED
   EXPECT_EQ(REGISTERED_CONNECTED, ue_context->mm_state);
-  // Forcing UE state IDLE to handle initial ue message
-  ue_context->mm_state = REGISTERED_IDLE;
 
   // Allocate initial UE message
   message_p = itti_alloc_new_message(TASK_NGAP, NGAP_INITIAL_UE_MESSAGE);
@@ -1247,7 +1215,7 @@ TEST_F(AmfUeContextTestServiceRequestProc,
   EXPECT_EQ(RETURNok, amf_handle_service_request(
                           AMF_UE_NGAP_ID, &service_request, decode_status));
   // Verify UE still remains in IDLE state
-  EXPECT_EQ(REGISTERED_IDLE, ue_context->mm_state);
+  EXPECT_EQ(REGISTERED_CONNECTED, ue_context->mm_state);
 }
 
 /* Test for Initial Ue message in connected mode */
@@ -1385,15 +1353,14 @@ TEST_F(AmfUeContextTestServiceRequestProc,
                           AMF_UE_NGAP_ID, &service_request, decode_status));
 
   // Verify UE still in CONNECTED MODE though initial ue message is received
-  EXPECT_EQ(REGISTERED_IDLE, ue_context->mm_state);
+  EXPECT_EQ(REGISTERED_CONNECTED, ue_context->mm_state);
 }
 
-TEST_F(
-    AmfUeContextTestServiceRequestProc,
-    test_amf_handle_s6a_update_location_ans) {
+TEST_F(AmfUeContextTestServiceRequestProc,
+       test_amf_handle_s6a_update_location_ans) {
   // Building s6a_update_location_ans_t
   s6a_update_location_ans_t ula_ans;
-  ula_ans = amf_send_s6a_ula(IMSI_STR);
+  ula_ans = util_amf_send_s6a_ula(IMSI_STR);
 
   int rc = amf_handle_s6a_update_location_ans(&ula_ans);
   EXPECT_TRUE(rc == RETURNok);

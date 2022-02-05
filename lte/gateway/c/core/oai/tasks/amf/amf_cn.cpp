@@ -74,19 +74,18 @@ static int amf_cn_authentication_res(amf_cn_auth_res_t* const msg) {
 
 //------------------------------------------------------------------------------
 static int amf_cn_implicit_deregister_ue(const amf_ue_ngap_id_t ue_id) {
-  int rc                          = RETURNok;
+  int rc = RETURNok;
   struct amf_context_s* amf_ctx_p = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_AMF);
 
-  OAILOG_DEBUG(
-      LOG_NAS_AMF, "AMF-PROC Implicit Detach UE" AMF_UE_NGAP_ID_FMT "\n",
-      ue_id);
+  OAILOG_DEBUG(LOG_NAS_AMF,
+               "AMF-PROC Implicit Detach UE" AMF_UE_NGAP_ID_FMT "\n", ue_id);
 
   amf_deregistration_request_ies_t params = {};
-  params.de_reg_type                      = AMF_NORMAL_DEREGISTRATION;
-  params.de_reg_access_type               = AMF_3GPP_ACCESS;
-  params.ksi                              = 0;
+  params.de_reg_type = AMF_NORMAL_DEREGISTRATION;
+  params.de_reg_access_type = AMF_3GPP_ACCESS;
+  params.ksi = 0;
 
   amf_ctx_p = amf_context_get(ue_id);
 

@@ -1386,7 +1386,7 @@ uint16_t amf_as_establish_cnf(const amf_as_establish_t* msg,
     //  1. Context is request and message is registration
     //  2. Service Request message (data or signaling)
     if (ue_mm_context->ue_context_request &&
-        (ue_mm_context->mm_state != REGISTERED_CONNECTED)) {
+        (ue_mm_context->cm_state == M5GCM_IDLE)) {
       // Every time ICS is sent this kgnb needs to be re-calculated
       derive_5gkey_gnb(amf_security_context->kamf, as_msg->nas_ul_count,
                        amf_security_context->kgnb);
@@ -1397,6 +1397,7 @@ uint16_t amf_as_establish_cnf(const amf_as_establish_t* msg,
 
     /* Registration accept can go as part of ICS or pure DL message. */
     ue_mm_context->mm_state = REGISTERED_CONNECTED;
+
     as_msg->err_code = M5G_AS_SUCCESS;
     ret_val = AS_NAS_ESTABLISH_CNF_;
   } else {

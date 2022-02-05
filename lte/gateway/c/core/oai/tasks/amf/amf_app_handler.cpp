@@ -149,8 +149,8 @@ void amf_ue_context_update_coll_keys(amf_ue_context_t* const amf_ue_context_p,
         (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID)) {
       m_rc = amf_ue_context_p->guti_ue_context_htbl.remove(*guti_p);
       if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
-        m_rc = amf_ue_context_p->guti_ue_context_htbl.insert(
-            *guti_p, amf_ue_ngap_id);
+        m_rc = amf_ue_context_p->guti_ue_context_htbl.insert(*guti_p,
+                                                             amf_ue_ngap_id);
       } else {
         OAILOG_ERROR(LOG_AMF_APP,
                      "Insertion of Hash entry failed for  "
@@ -179,7 +179,7 @@ void amf_ue_context_on_new_guti(ue_m5gmm_context_t* const ue_context_p,
 
 /* Insert IMSI into IMSI ue table */
 status_code_e amf_api_notify_imsi(const amf_ue_ngap_id_t id, imsi64_t imsi64) {
-  amf_app_desc_t* amf_app_desc_p   = get_amf_nas_state(false);
+  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
   ue_m5gmm_context_s* ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_AMF);
@@ -342,12 +342,12 @@ imsi64_t amf_app_handle_initial_ue_message(
                        ue_context_p->gnb_ngap_id_key);
 
           ue_context_p->ue_context_rel_cause = NGAP_INVALID_GNB_ID;
-          amf_app_itti_ue_context_release(
-              ue_context_p, ue_context_p->ue_context_rel_cause);
+          amf_app_itti_ue_context_release(ue_context_p,
+                                          ue_context_p->ue_context_rel_cause);
 
           amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.remove(
               ue_context_p->gnb_ngap_id_key);
-          ue_context_p->gnb_ngap_id_key      = INVALID_GNB_UE_NGAP_ID_KEY;
+          ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
           ue_context_p->ue_context_rel_cause = NGAP_INVALID_CAUSE;
         }
 
@@ -357,17 +357,21 @@ imsi64_t amf_app_handle_initial_ue_message(
         AMF_APP_GNB_NGAP_ID_KEY(gnb_ngap_id_key, initial_pP->gnb_id,
                                 initial_pP->gnb_ue_ngap_id);
 
+        // generate new amf_ngap_ue_id
+        amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
+            &amf_app_desc_p->amf_app_ue_ngap_id_generator);
+
         amf_ue_context_update_coll_keys(
             &amf_app_desc_p->amf_ue_contexts, ue_context_p, gnb_ngap_id_key,
-            ue_context_p->amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
+            amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
             ue_context_p->amf_teid_n11, &guti);
 
         imsi64 = ue_context_p->amf_context.imsi64;
       } else {
-        OAILOG_DEBUG(
-            LOG_AMF_APP,
-            "No UE context found for AMF set id %u and S-TMSI %u\n",
-            initial_pP->opt_s_tmsi.amf_set_id, initial_pP->opt_s_tmsi.m_tmsi);
+        OAILOG_DEBUG(LOG_AMF_APP,
+                     "No UE context found for AMF set id %u and S-TMSI %u\n",
+                     initial_pP->opt_s_tmsi.amf_set_id,
+                     initial_pP->opt_s_tmsi.m_tmsi);
       }
     } else {
       OAILOG_DEBUG(
@@ -406,9 +410,8 @@ imsi64_t amf_app_handle_initial_ue_message(
 
     ue_context_p->gnb_ue_ngap_id = initial_pP->gnb_ue_ngap_id;
 
-    AMF_APP_GNB_NGAP_ID_KEY(
-        ue_context_p->gnb_ngap_id_key, initial_pP->gnb_id,
-        initial_pP->gnb_ue_ngap_id);
+    AMF_APP_GNB_NGAP_ID_KEY(ue_context_p->gnb_ngap_id_key, initial_pP->gnb_id,
+                            initial_pP->gnb_ue_ngap_id);
     if (amf_insert_ue_context(&amf_app_desc_p->amf_ue_contexts, ue_context_p) !=
         RETURNok) {
       OAILOG_ERROR(
@@ -577,9 +580,6 @@ int amf_app_handle_pdu_session_response(
           (1 << smf_ctx->smf_proc_data.pdu_session_id);
       amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
       rc = amf_sap_send(&amf_sap);
-      if (RETURNok == rc) {
-        ue_context->mm_state = REGISTERED_CONNECTED;
-      }
     } else {
       OAILOG_DEBUG(LOG_AMF_APP,
                    "Sending message to gNB for PDUSessionResourceSetupRequest "
@@ -1163,7 +1163,7 @@ static void amf_app_handle_ngap_ue_context_release(
     const gnb_ue_ngap_id_t gnb_ue_ngap_id, uint32_t gnb_id,
     enum n2cause cause) {
   struct ue_m5gmm_context_s* ue_context_p = NULL;
-  gnb_ngap_id_key_t gnb_ngap_id_key       = INVALID_GNB_UE_NGAP_ID_KEY;
+  gnb_ngap_id_key_t gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
 
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
@@ -1194,12 +1194,11 @@ static void amf_app_handle_ngap_ue_context_release(
   }
 
   if (!ue_context_p) {
-    OAILOG_ERROR(
-        LOG_AMF_APP,
-        " UE Context Release Req: UE context doesn't exist for "
-        "gnb_ue_ngap_id " GNB_UE_NGAP_ID_FMT
-        " amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT "\n",
-        gnb_ue_ngap_id, amf_ue_ngap_id);
+    OAILOG_ERROR(LOG_AMF_APP,
+                 " UE Context Release Req: UE context doesn't exist for "
+                 "gnb_ue_ngap_id " GNB_UE_NGAP_ID_FMT
+                 " amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT "\n",
+                 gnb_ue_ngap_id, amf_ue_ngap_id);
     OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
 
@@ -1220,8 +1219,8 @@ static void amf_app_handle_ngap_ue_context_release(
       amf_ue_context_update_ue_sig_connection_state(
           &amf_app_desc_p->amf_ue_contexts, ue_context_p, M5GCM_IDLE);
 
-      amf_app_itti_ue_context_release(
-          ue_context_p, ue_context_p->ue_context_rel_cause);
+      amf_app_itti_ue_context_release(ue_context_p,
+                                      ue_context_p->ue_context_rel_cause);
 
       OAILOG_WARNING_UE(
           LOG_AMF_APP, ue_context_p->amf_context.imsi64,
@@ -1233,12 +1232,12 @@ static void amf_app_handle_ngap_ue_context_release(
           ue_context_p->amf_ue_ngap_id, ue_context_p->gnb_ue_ngap_id);
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
-    OAILOG_ERROR_UE(
-        LOG_AMF_APP, ue_context_p->amf_context.imsi64,
-        "ERROR: UE Context Release Request: UE state : IDLE. "
-        "gnb_ue_ngap_id " GNB_UE_NGAP_ID_FMT
-        " amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT " Action--- Ignore the message\n",
-        ue_context_p->gnb_ue_ngap_id, ue_context_p->amf_ue_ngap_id);
+    OAILOG_ERROR_UE(LOG_AMF_APP, ue_context_p->amf_context.imsi64,
+                    "ERROR: UE Context Release Request: UE state : IDLE. "
+                    "gnb_ue_ngap_id " GNB_UE_NGAP_ID_FMT
+                    " amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT
+                    " Action--- Ignore the message\n",
+                    ue_context_p->gnb_ue_ngap_id, ue_context_p->amf_ue_ngap_id);
     OAILOG_FUNC_OUT(LOG_AMF_APP);
   } else {
     // This case could happen during sctp reset, while attach procedure is
@@ -1248,13 +1247,13 @@ static void amf_app_handle_ngap_ue_context_release(
       // Update keys and M5CM state
       amf_ue_context_update_ue_sig_connection_state(
           &amf_app_desc_p->amf_ue_contexts, ue_context_p, M5GCM_IDLE);
-      OAILOG_WARNING_UE(
-          LOG_AMF_APP, ue_context_p->amf_context.imsi64,
-          "SCTP RESET/SHUTDOWN. UE state: CONNECTED. "
-          "amf_ue_ngap_id = " AMF_UE_NGAP_ID_FMT
-          " gnb_ue_ngap_id = " GNB_UE_NGAP_ID_FMT
-          " Action -- Handle the message\n ",
-          ue_context_p->amf_ue_ngap_id, ue_context_p->gnb_ue_ngap_id);
+      OAILOG_WARNING_UE(LOG_AMF_APP, ue_context_p->amf_context.imsi64,
+                        "SCTP RESET/SHUTDOWN. UE state: CONNECTED. "
+                        "amf_ue_ngap_id = " AMF_UE_NGAP_ID_FMT
+                        " gnb_ue_ngap_id = " GNB_UE_NGAP_ID_FMT
+                        " Action -- Handle the message\n ",
+                        ue_context_p->amf_ue_ngap_id,
+                        ue_context_p->gnb_ue_ngap_id);
     }
   }
 
@@ -1272,7 +1271,7 @@ static void amf_app_handle_ngap_ue_context_release(
   } else {
     if (cause == NGAP_RADIO_NR_GENERATED_REASON) {
       int rc = RETURNerror;
-      rc     = ue_state_handle_message_initial(
+      rc = ue_state_handle_message_initial(
           ue_context_p->mm_state, STATE_EVENT_CONTEXT_RELEASE, SESSION_NULL,
           ue_context_p, &ue_context_p->amf_context);
 
@@ -1307,17 +1306,15 @@ void amf_app_handle_ngap_ue_context_release_complete(
   ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(
       ngap_ue_context_release_complete->amf_ue_ngap_id);
 
-  OAILOG_INFO(
-      LOG_AMF_APP,
-      "Received UE context release complete message for "
-      "ue_id: " AMF_UE_NGAP_ID_FMT,
-      ngap_ue_context_release_complete->amf_ue_ngap_id);
+  OAILOG_INFO(LOG_AMF_APP,
+              "Received UE context release complete message for "
+              "ue_id: " AMF_UE_NGAP_ID_FMT,
+              ngap_ue_context_release_complete->amf_ue_ngap_id);
 
   if (!ue_context_p) {
-    OAILOG_ERROR(
-        LOG_AMF_APP,
-        "UE context doesn't exist for ue_id " AMF_UE_NGAP_ID_FMT "\n",
-        ngap_ue_context_release_complete->amf_ue_ngap_id);
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "UE context doesn't exist for ue_id " AMF_UE_NGAP_ID_FMT "\n",
+                 ngap_ue_context_release_complete->amf_ue_ngap_id);
     OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
 
@@ -1330,21 +1327,19 @@ void amf_app_handle_ngap_ue_context_release_complete(
 
   if (ue_context_p->mm_state == DEREGISTERED) {
     // No Session
-    OAILOG_DEBUG(
-        LOG_AMF_APP,
-        "Deleting UE context associated in AMF for "
-        "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT "\n ",
-        ngap_ue_context_release_complete->amf_ue_ngap_id);
+    OAILOG_DEBUG(LOG_AMF_APP,
+                 "Deleting UE context associated in AMF for "
+                 "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT "\n ",
+                 ngap_ue_context_release_complete->amf_ue_ngap_id);
 
     amf_free_ue_context(ue_context_p);
   } else {
     // No Session
-    OAILOG_ERROR(
-        LOG_AMF_APP,
-        "Fail to delete UE context associated in AMF for "
-        "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT "mm_state=%d\n ",
-        ngap_ue_context_release_complete->amf_ue_ngap_id,
-        ue_context_p->mm_state);
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "Fail to delete UE context associated in AMF for "
+                 "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT "mm_state=%d\n ",
+                 ngap_ue_context_release_complete->amf_ue_ngap_id,
+                 ue_context_p->mm_state);
 
     amf_ue_context_update_ue_sig_connection_state(
         &amf_app_desc_p->amf_ue_contexts, ue_context_p, M5GCM_IDLE);

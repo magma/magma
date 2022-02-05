@@ -76,7 +76,7 @@ int amf_handle_service_request(
                  "TMSI matched for UE ID " AMF_UE_NGAP_ID_FMT
                  " receved TMSI %08X stored TMSI %08X \n",
                  ue_id, tmsi_rcv, tmsi_stored);
-  
+
     paging_ctx = &ue_context->paging_context;
 
     if ((paging_ctx) &&
@@ -404,7 +404,7 @@ int amf_handle_registration_request(
 
         amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
 
-        amf_ue_context_on_new_guti(ue_context, (guti_m5_t*) &amf_guti);
+        amf_ue_context_on_new_guti(ue_context, (guti_m5_t*)&amf_guti);
 
         ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
         ue_context->amf_context.m5_guti.guamfi = amf_guti.guamfi;
@@ -473,13 +473,12 @@ int amf_handle_registration_request(
 
       amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
 
-      OAILOG_DEBUG(
-          LOG_NAS_AMF,
-          "In process of periodic registration update"
-          " new 5G-TMSI value 0x%08" PRIx32 "\n",
-          amf_guti.m_tmsi);
+      OAILOG_DEBUG(LOG_NAS_AMF,
+                   "In process of periodic registration update"
+                   " new 5G-TMSI value 0x%08" PRIx32 "\n",
+                   amf_guti.m_tmsi);
 
-      amf_ue_context_on_new_guti(ue_context, (guti_m5_t*) &amf_guti);
+      amf_ue_context_on_new_guti(ue_context, (guti_m5_t*)&amf_guti);
       ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
 
       imsi64_t imsi64 = ue_context->amf_context.imsi64;

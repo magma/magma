@@ -33,7 +33,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
-#include "include/amf_client_servicer.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
 
 #define M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH 1
 #define INVALID_IMSI64 (imsi64_t)0
@@ -198,8 +198,8 @@ int amf_proc_registration_request(amf_ue_ngap_id_t ue_id,
   ue_m5gmm_context->amf_ue_ngap_id = ue_id;
 
   if (ies->imsi) {
-    imsi64                               = amf_imsi_to_imsi64(ies->imsi);
-    amf_app_desc_t* amf_app_desc_p       = get_amf_nas_state(false);
+    imsi64 = amf_imsi_to_imsi64(ies->imsi);
+    amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
     ue_m5gmm_context_s* imsi_ue_mm5g_ctx = NULL;
 
     imsi_ue_mm5g_ctx =
@@ -208,8 +208,8 @@ int amf_proc_registration_request(amf_ue_ngap_id_t ue_id,
       old_ue_id = imsi_ue_mm5g_ctx->amf_ue_ngap_id;
       if ((imsi_ue_mm5g_ctx->mm_state == REGISTERED_CONNECTED) ||
           (imsi_ue_mm5g_ctx->mm_state == REGISTERED_IDLE)) {
-        create_new_registration_info(
-            &imsi_ue_mm5g_ctx->amf_context, ue_id, ies, is_mm_ctx_new);
+        create_new_registration_info(&imsi_ue_mm5g_ctx->amf_context, ue_id, ies,
+                                     is_mm_ctx_new);
         amf_nas_proc_implicit_deregister_ue_ind(old_ue_id);
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
       }
@@ -1045,8 +1045,8 @@ void amf_delete_registration_ies(amf_registration_request_ies_t** ies) {
 **      Others:    None                                                   **
 **                                                                        **
 ***************************************************************************/
-int amf_proc_registration_abort(
-    amf_context_t* amf_ctx, struct ue_m5gmm_context_s* ue_context_p) {
+int amf_proc_registration_abort(amf_context_t* amf_ctx,
+                                struct ue_m5gmm_context_s* ue_context_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   int rc = RETURNerror;
   if (ue_context_p) {
@@ -1097,14 +1097,15 @@ int get_decrypt_imsi_suci_extension(amf_context_t* amf_context,
  **              old ue getting de-registered                             **
  **                                                                       **
  ***************************************************************************/
-void create_new_registration_info(
-    amf_context_t* amf_context_p, amf_ue_ngap_id_t amf_ue_ngap_id,
-    struct amf_registration_request_ies_s* ies, bool is_mm_ctx_new) {
+void create_new_registration_info(amf_context_t* amf_context_p,
+                                  amf_ue_ngap_id_t amf_ue_ngap_id,
+                                  struct amf_registration_request_ies_s* ies,
+                                  bool is_mm_ctx_new) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_context_p->new_registration_info = new (new_registration_info_t)();
   amf_context_p->new_registration_info->amf_ue_ngap_id = amf_ue_ngap_id;
-  amf_context_p->new_registration_info->ies            = ies;
-  amf_context_p->new_registration_info->is_mm_ctx_new  = is_mm_ctx_new;
+  amf_context_p->new_registration_info->ies = ies;
+  amf_context_p->new_registration_info->is_mm_ctx_new = is_mm_ctx_new;
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 

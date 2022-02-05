@@ -108,15 +108,15 @@ static void nas5g_delete_auth_info_procedure(
  **      Others:    None                                              **
  **                                                                   **
  ***********************************************************************/
-void amf_delete_child_procedures(
-    amf_context_t* amf_ctx, struct nas5g_base_proc_t* const parent_proc) {
+void amf_delete_child_procedures(amf_context_t* amf_ctx,
+                                 struct nas5g_base_proc_t* const parent_proc) {
   if (amf_ctx && amf_ctx->amf_procedures) {
     nas_amf_common_procedure_t* p1 =
         LIST_FIRST(&amf_ctx->amf_procedures->amf_common_procs);
     nas_amf_common_procedure_t* p2 = NULL;
     while (p1) {
       p2 = LIST_NEXT(p1, entries);
-      if (((nas5g_base_proc_t*) p1->proc)->parent == parent_proc) {
+      if (((nas5g_base_proc_t*)p1->proc)->parent == parent_proc) {
         amf_delete_common_procedure(amf_ctx, &p1->proc);
       }
       p1 = p2;
@@ -137,7 +137,8 @@ static void delete_common_proc_by_type(nas_amf_common_proc_t* proc) {
       case AMF_COMM_PROC_IDENT: {
         delete (reinterpret_cast<nas_amf_ident_proc_t*>(proc));
       } break;
-      default: {}
+      default: {
+      }
     }
   }
 }
@@ -155,8 +156,8 @@ static void delete_common_proc_by_type(nas_amf_common_proc_t* proc) {
  **      Others:    None                                              **
  **                                                                   **
  ***********************************************************************/
-void amf_delete_common_procedure(
-    amf_context_t* amf_ctx, nas_amf_common_proc_t** proc) {
+void amf_delete_common_procedure(amf_context_t* amf_ctx,
+                                 nas_amf_common_proc_t** proc) {
   if (proc && *proc) {
     switch ((*proc)->type) {
       case AMF_COMM_PROC_AUTH: {
@@ -165,7 +166,8 @@ void amf_delete_common_procedure(
       } break;
       case AMF_COMM_PROC_IDENT: {
       } break;
-      default: {}
+      default: {
+      }
     }
   }
 
@@ -179,7 +181,7 @@ void amf_delete_common_procedure(
     // without searching matching element in the list
     while (p1) {
       p2 = LIST_NEXT(p1, entries);
-      if (p1->proc == (nas_amf_common_proc_t*) (*proc)) {
+      if (p1->proc == (nas_amf_common_proc_t*)(*proc)) {
         LIST_REMOVE(p1, entries);
         delete_common_proc_by_type(p1->proc);
         delete (p1);
@@ -221,19 +223,19 @@ static void nas5g_delete_common_procedures(amf_context_t* amf_context) {
 
       switch (p1->proc->type) {
         case AMF_COMM_PROC_AUTH: {
-          nas5g_amf_auth_proc_t* auth_proc = (nas5g_amf_auth_proc_t*) p1->proc;
+          nas5g_amf_auth_proc_t* auth_proc = (nas5g_amf_auth_proc_t*)p1->proc;
           if (auth_proc->T3560.id != NAS5G_TIMER_INACTIVE_ID) {
             amf_app_stop_timer(auth_proc->T3560.id);
           }
         } break;
         case AMF_COMM_PROC_SMC: {
-          nas_amf_smc_proc_t* smc_proc = (nas_amf_smc_proc_t*) (p1->proc);
+          nas_amf_smc_proc_t* smc_proc = (nas_amf_smc_proc_t*)(p1->proc);
           if (smc_proc->T3560.id != NAS5G_TIMER_INACTIVE_ID) {
             amf_app_stop_timer(smc_proc->T3560.id);
           }
         } break;
         case AMF_COMM_PROC_IDENT: {
-          nas_amf_ident_proc_t* ident_proc = (nas_amf_ident_proc_t*) (p1->proc);
+          nas_amf_ident_proc_t* ident_proc = (nas_amf_ident_proc_t*)(p1->proc);
           if (ident_proc->T3570.id != NAS5G_TIMER_INACTIVE_ID) {
             amf_app_stop_timer(ident_proc->T3570.id);
           }
@@ -308,8 +310,8 @@ static void nas5g_delete_cn_procedures(struct amf_context_s* amf_context) {
       p2 = LIST_NEXT(p1, entries);
       switch (p1->proc->type) {
         case CN5G_PROC_AUTH_INFO:
-          nas5g_delete_auth_info_procedure(
-              amf_context, (nas5g_auth_info_proc_t**) &p1->proc);
+          nas5g_delete_auth_info_procedure(amf_context,
+                                           (nas5g_auth_info_proc_t**)&p1->proc);
           break;
       }
       LIST_REMOVE(p1, entries);
@@ -607,13 +609,13 @@ int amf_proc_identification(amf_context_t* const amf_context,
  **                                                                        **
  ***************************************************************************/
 int amf_nas_proc_implicit_deregister_ue_ind(amf_ue_ngap_id_t ue_id) {
-  int rc            = RETURNerror;
+  int rc = RETURNerror;
   amf_sap_t amf_sap = {};
 
   OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_sap.primitive = AMFCN_IMPLICIT_DEREGISTER_UE;
   amf_sap.u.amf_cn.u.amf_cn_implicit_deregister.ue_id = ue_id;
-  rc                                                  = amf_sap_send(&amf_sap);
+  rc = amf_sap_send(&amf_sap);
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
 
@@ -630,19 +632,19 @@ int amf_nas_proc_auth_param_res(amf_ue_ngap_id_t amf_ue_ngap_id,
                                 uint8_t nb_vectors, m5gauth_vector_t* vectors) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
-  int rc                            = RETURNerror;
-  amf_sap_t amf_sap                 = {};
+  int rc = RETURNerror;
+  amf_sap_t amf_sap = {};
   amf_cn_auth_res_t amf_cn_auth_res = {};
 
-  amf_cn_auth_res.ue_id      = amf_ue_ngap_id;
+  amf_cn_auth_res.ue_id = amf_ue_ngap_id;
   amf_cn_auth_res.nb_vectors = nb_vectors;
   for (int i = 0; i < nb_vectors; i++) {
     amf_cn_auth_res.vector[i] = &vectors[i];
   }
 
-  amf_sap.primitive           = AMFCN_AUTHENTICATION_PARAM_RES;
+  amf_sap.primitive = AMFCN_AUTHENTICATION_PARAM_RES;
   amf_sap.u.amf_cn.u.auth_res = &amf_cn_auth_res;
-  rc                          = amf_sap_send(&amf_sap);
+  rc = amf_sap_send(&amf_sap);
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
@@ -791,7 +793,7 @@ int amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
 
   ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
   ue_context->amf_context.m5_guti.guamfi = amf_guti.guamfi;
-  imsi64                                 = amf_imsi_to_imsi64(params->imsi);
+  imsi64 = amf_imsi_to_imsi64(params->imsi);
 
   params->decode_status = ue_context->amf_context.decode_status;
   /*
