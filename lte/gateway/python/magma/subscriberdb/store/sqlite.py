@@ -22,7 +22,12 @@ from lte.protos.subscriberdb_pb2 import SubscriberData
 from magma.subscriberdb.sid import SIDUtils
 from orc8r.protos.digest_pb2 import Digest, LeafDigest
 
-from .base import BaseStore, DuplicateSubscriberError, SubscriberNotFoundError
+from .base import (
+    BaseStore,
+    DuplicateSubscriberError,
+    SubscriberNotFoundError,
+    SubscriberServerTooBusy,
+)
 from .onready import OnDataReady, OnDigestsReady
 
 DigestDBInfo = NamedTuple(
@@ -264,6 +269,14 @@ class SqliteStore(BaseStore):
                 row = res.fetchone()
                 if not row:
                     raise SubscriberNotFoundError(subscriber_id)
+        except sqlite3.OperationalError:
+            # Print the process holding the lock
+            db_parts = db_location.split(":", 1)
+            if (len(db_parts) == 2) and db_parts[1]:
+                path_str = db_parts[1].split("?")
+                import os
+                os.system('fuser -uv ' + path_str[0])
+            raise SubscriberServerTooBusy(subscriber_id)
         finally:
             conn.close()
         subscriber_data = SubscriberData()
@@ -304,6 +317,7 @@ class SqliteStore(BaseStore):
         data_str = subscriber_data.SerializeToString()
         db_location = self._db_locations[self._sid2bucket(sid)]
         conn = sqlite3.connect(db_location, uri=True)
+
         try:
             with conn:
                 res = conn.execute(
