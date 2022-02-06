@@ -1,5 +1,5 @@
 ---
 magma_namespace: "orc8r"
-postgresql_chart_version: "11.0.0"
+postgresql_chart_version: "11.0.2"
 postgresql_password: "postgres"
 postgresql_database: "magma"

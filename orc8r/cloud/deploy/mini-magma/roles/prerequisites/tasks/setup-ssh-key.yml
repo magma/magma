@@ -12,5 +12,4 @@
 - name: Add rke public SSH key to authorized keys list
   authorized_key:
     user: "{{ ansible_user }}"
-    state: present
     key: "{{ rke_ssh_key['content'] | b64decode }}"

@@ -2,7 +2,6 @@
 - name: Create Volume Claim for Grafana Dashboard
   kubernetes.core.k8s:
     namespace: "{{ magma_namespace }}"
-    state: present
     definition:
       apiVersion: v1
       kind: PersistentVolumeClaim
@@ -18,7 +17,6 @@
 - name: Create Volume Claim for Grafana Data
   kubernetes.core.k8s:
     namespace: "{{ magma_namespace }}"
-    state: present
     definition:
       apiVersion: v1
       kind: PersistentVolumeClaim
@@ -34,7 +32,6 @@
 - name: Create Volume Claim for Grafana Data Source
   kubernetes.core.k8s:
     namespace: "{{ magma_namespace }}"
-    state: present
     definition:
       apiVersion: v1
       kind: PersistentVolumeClaim
@@ -50,7 +47,6 @@
 - name: Create Volume Claim for Grafana Provider
   kubernetes.core.k8s:
     namespace: "{{ magma_namespace }}"
-    state: present
     definition:
       apiVersion: v1
       kind: PersistentVolumeClaim
@@ -66,7 +62,6 @@
 - name: Create Volume Claim for OpenVPN
   kubernetes.core.k8s:
     namespace: "{{ magma_namespace }}"
-    state: present
     definition:
       apiVersion: v1
       kind: PersistentVolumeClaim
@@ -82,7 +77,6 @@
 - name: Create Volume Claim for Prometheus Config
   kubernetes.core.k8s:
     namespace: "{{ magma_namespace }}"
-    state: present
     definition:
       apiVersion: v1
       kind: PersistentVolumeClaim
@@ -98,7 +92,6 @@
 - name: Create Volume Claim for Prometheus Data
   kubernetes.core.k8s:
     namespace: "{{ magma_namespace }}"
-    state: present
     definition:
       apiVersion: v1
       kind: PersistentVolumeClaim
