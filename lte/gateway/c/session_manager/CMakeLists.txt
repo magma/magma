@@ -196,6 +196,8 @@ add_library(SESSION_MANAGER
     RedisMap.hpp
     Serializers.cpp
     Serializers.h
+    Ebpf.cpp
+    Ebpf.h
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 

@@ -280,13 +280,39 @@ void LocalEnforcer::handle_pipelined_response(Status status,
 }
 
 void LocalEnforcer::poll_stats_enforcer(int cookie, int cookie_mask) {
-  // we need to pass in a function pointer. Binding is required because
-  // the function is part of the LocalEnforcer class and has arguments
-  // so we bind to the object and the two arguments the function needs
-  // which are the status and RuleRecordTable response
-  pipelined_client_->poll_stats(
-      cookie, cookie_mask,
-      std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
+    MLOG(MERROR) << "POLLLING";
+//  pipelined_client_->poll_stats(
+//      cookie, cookie_mask,
+//      std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
+//
+    Status status;
+    RuleRecordTable table = GetEbpfTable();
+    MLOG(MERROR) << "size " << table.records_size();
+
+  auto session_map = session_store_.read_all_sessions();
+  for (RuleRecord& record : *table.mutable_records()) {
+    const std::string &imsi = record.sid(), &ip = record.ue_ipv4();
+    const uint32_t teid = record.teid();
+
+    MLOG(MERROR) << "Got records for IMSI - " << imsi << " IP - " << ip << " teid - " << teid;
+    SessionSearchCriteria criteria(imsi, IMSI_AND_UE_IPV4_OR_IPV6_OR_UPF_TEID,
+                                   ip, teid);
+    auto session_it = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MERROR) << "Could not find an 4G and 5G active session for " << imsi
+                   << " and " << ip << " or " << teid
+                   << " during Poll Stats magic";
+      //dead_sessions_to_cleanup.insert(record);
+      continue;
+    }
+    auto& session = **session_it;
+    std::string rule_id = session->get_first_rule_id();
+    int rule_version = session->get_current_rule_version(rule_id);
+    record.set_rule_id(rule_id);
+    record.set_rule_version(rule_version);
+    MLOG(MERROR) << "Looked up rule id - " << rule_id << " rule version - " << rule_version;
+  }
+//    handle_pipelined_response(status, table);
 }
 
 void LocalEnforcer::increment_all_policy_versions(SessionMap& session_map) {
