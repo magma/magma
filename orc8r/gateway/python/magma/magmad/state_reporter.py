@@ -78,7 +78,9 @@ class StateReporterErrorHandler:
         """
         logging.error(
             "Checkin Error! Failed to report states. [%s] %s",
-            err.code(), err.details(),
+            err.code(),
+            err.details(),
+            extra=EXCLUDE_FROM_ERROR_MONITORING,
         )
         CHECKIN_STATUS.set(0)
         self.num_failed_state_reporting += 1
