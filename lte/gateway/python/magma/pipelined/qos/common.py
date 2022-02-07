@@ -278,9 +278,9 @@ class QosManager(object):
             return
         if self._clean_restart:
             LOG.info("Qos Setup: clean start")
+            self.impl.setup()
             self.impl.destroy()
             self._redis_store.clear()
-            self.impl.setup()
             self._initialized = True
         else:
             # read existing state from qos_impl
