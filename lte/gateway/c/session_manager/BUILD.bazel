@@ -14,6 +14,14 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 package(default_visibility = ["//lte/gateway/c/session_manager/test:__pkg__"])
 
 cc_library(
+    name = "event_manager",
+    srcs = ["EventManager.h"],
+    # TODO(@themarwhal): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/session_manager",
+    linkopts = ["-levent"],
+)
+
+cc_library(
     name = "diameter_codes",
     srcs = ["DiameterCodes.cpp"],
     hdrs = ["DiameterCodes.h"],

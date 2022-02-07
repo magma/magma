@@ -52,6 +52,15 @@ cc_library(
 )
 
 cc_test(
+    name = "event_manager_test",
+    srcs = ["test_event_manager.cpp"],
+    deps = [
+        "@com_google_googletest//:gtest_main",
+        "//lte/gateway/c/session_manager:event_manager",
+    ]
+)
+
+cc_test(
     name = "session_store_test",
     size = "small",
     srcs = ["test_session_store.cpp"],
