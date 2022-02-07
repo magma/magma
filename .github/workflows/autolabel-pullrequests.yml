@@ -29,6 +29,8 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
+permissions: read-all
+
 jobs:
   AutoLabelPR:
     runs-on: ubuntu-latest

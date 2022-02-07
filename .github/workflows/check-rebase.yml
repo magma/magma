@@ -7,6 +7,9 @@ on:  # yamllint disable-line rule:truthy
       - master
       - 'v1.*'
 
+permissions:
+  contents: read
+
 jobs:
   checkRebase:
     runs-on: ubuntu-latest

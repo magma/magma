@@ -7,6 +7,9 @@ on:  # yamllint disable-line rule:truthy
       - build-all
     types:
       - completed
+
+permissions: read-all
+
 # Replace registries with new test registries reserved for PR builds
 jobs:
   deploy:
