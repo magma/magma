@@ -81,6 +81,9 @@ class ResponseDBProcessor(object):
             GrantStates.AUTHORIZED.value: session.query(DBGrantState).filter(
                 DBGrantState.name == GrantStates.AUTHORIZED.value,
             ).scalar(),
+            GrantStates.UNSYNC.value: session.query(DBGrantState).filter(
+                DBGrantState.name == GrantStates.UNSYNC.value,
+            ).scalar(),
         }
 
     def _populate_request_states_map(self, session):
