@@ -25,6 +25,7 @@ ENV VIRTUAL_ENV=/build/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV MAGMA_ROOT=/magma
 ENV S1AP_TESTER_ROOT=/s1ap-tester
+ENV S1AP_TESTER_SRC=/S1APTester
 ENV PYTHON_BUILD=/build
 ENV PIP_CACHE_HOME="~/.pipcache"
 ENV TZ=Europe/Paris
@@ -52,7 +53,8 @@ RUN apt-get update && apt-get install -y \
   ruby-dev \
   wget \
   pkg-config \
-  libmysqlclient-dev
+  libmysqlclient-dev \
+  rsync
 
 RUN gem install fpm
 
@@ -79,13 +81,18 @@ RUN cd /usr/local/bin && ln -s /usr/bin/python3 python
 WORKDIR $MAGMA_ROOT/lte/gateway/python
 RUN make
 
-RUN mkdir $S1AP_TESTER_ROOT
-RUN mkdir /var/tmp/test_results/
+RUN mkdir -p $S1AP_TESTER_ROOT/bin /var/tmp/test_results/
 
 WORKDIR $MAGMA_ROOT/lte/gateway/python/integ_tests
 
-# Temp Workaround
-RUN sed -i 's/1.3.12/1.3.13/' Makefile
-##
-
 RUN make
+
+RUN $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/clone_s1_tester.sh
+
+RUN touch /usr/include/stropts.h
+
+RUN $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/build_s1_tester.sh
+
+RUN pip3 install --cache-dir $PIP_CACHE_HOME pyparsing
+
+RUN python3 $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/c_parser.py

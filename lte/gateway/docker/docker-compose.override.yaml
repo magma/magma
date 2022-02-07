@@ -16,3 +16,8 @@ services:
     build:
       context: ${BUILD_CONTEXT}
       dockerfile: lte/gateway/docker/services/s1aptester/Dockerfile
+
+  trfgen:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: lte/gateway/docker/services/trfgen/Dockerfile
