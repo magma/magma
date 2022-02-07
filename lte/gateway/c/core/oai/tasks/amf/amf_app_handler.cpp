@@ -35,6 +35,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
 #include "lte/gateway/c/core/oai/include/n11_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
@@ -53,7 +54,7 @@ void amf_ue_context_update_coll_keys(
     const teid_t amf_teid_n11, const guti_m5_t* const guti_p) {
   magma::map_rc_t m_rc = magma::MAP_OK;
 
-  map_uint64_ue_context_t amf_state_ue_id_ht = get_amf_ue_state();
+  map_uint64_ue_context_t* amf_state_ue_id_ht = get_amf_ue_state();
   OAILOG_FUNC_IN(LOG_AMF_APP);
   OAILOG_TRACE(
       LOG_AMF_APP,
@@ -85,8 +86,8 @@ void amf_ue_context_update_coll_keys(
 
   if (amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
     if (ue_context_p->amf_ue_ngap_id != amf_ue_ngap_id) {
-      m_rc = amf_state_ue_id_ht.remove(ue_context_p->amf_ue_ngap_id);
-      m_rc = amf_state_ue_id_ht.insert(amf_ue_ngap_id, ue_context_p);
+      m_rc = amf_state_ue_id_ht->remove(ue_context_p->amf_ue_ngap_id);
+      m_rc = amf_state_ue_id_ht->insert(amf_ue_ngap_id, ue_context_p);
 
       if (m_rc != magma::MAP_OK) {
         OAILOG_ERROR(
@@ -95,7 +96,6 @@ void amf_ue_context_update_coll_keys(
             "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
             amf_ue_ngap_id);
       }
-
       ue_context_p->amf_ue_ngap_id = amf_ue_ngap_id;
     }
   } else {
@@ -104,10 +104,9 @@ void amf_ue_context_update_coll_keys(
         amf_ue_ngap_id);
   }
 
-  m_rc = amf_ue_context_p->imsi_amf_ue_id_htbl.remove(
-      ue_context_p->amf_context.imsi64);
-
-  if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
+  if ((amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) && (imsi != 0)) {
+    m_rc = amf_ue_context_p->imsi_amf_ue_id_htbl.remove(
+        ue_context_p->amf_context.imsi64);
     m_rc = amf_ue_context_p->imsi_amf_ue_id_htbl.insert(imsi, amf_ue_ngap_id);
   } else {
     OAILOG_ERROR(
@@ -134,20 +133,22 @@ void amf_ue_context_update_coll_keys(
   ue_context_p->amf_teid_n11 = amf_teid_n11;
 
   if (guti_p) {
-    if ((guti_p->guamfi.amf_set_id !=
-         ue_context_p->amf_context.m5_guti.guamfi.amf_set_id) ||
-        (guti_p->guamfi.amf_regionid !=
-         ue_context_p->amf_context.m5_guti.guamfi.amf_regionid) ||
-        (guti_p->m_tmsi != ue_context_p->amf_context.m5_guti.m_tmsi) ||
-        (guti_p->guamfi.plmn.mcc_digit1 !=
-         ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit1) ||
-        (guti_p->guamfi.plmn.mcc_digit2 !=
-         ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||
-        (guti_p->guamfi.plmn.mcc_digit3 !=
-         ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3) ||
-        (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID)) {
-      m_rc = amf_ue_context_p->guti_ue_context_htbl.remove(*guti_p);
-      if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
+    if (((guti_p->guamfi.amf_set_id !=
+          ue_context_p->amf_context.m5_guti.guamfi.amf_set_id) ||
+         (guti_p->guamfi.amf_regionid !=
+          ue_context_p->amf_context.m5_guti.guamfi.amf_regionid) ||
+         (guti_p->m_tmsi != ue_context_p->amf_context.m5_guti.m_tmsi) ||
+         (guti_p->guamfi.plmn.mcc_digit1 !=
+          ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit1) ||
+         (guti_p->guamfi.plmn.mcc_digit2 !=
+          ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||
+         (guti_p->guamfi.plmn.mcc_digit3 !=
+          ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3)) ||
+        (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) &&
+            ((guti_p->guamfi.amf_set_id != 0) &&
+             (guti_p->guamfi.amf_regionid != 0) && (guti_p->m_tmsi != 0))) {
+      if (amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
+        m_rc = amf_ue_context_p->guti_ue_context_htbl.remove(*guti_p);
         m_rc = amf_ue_context_p->guti_ue_context_htbl.insert(
             *guti_p, amf_ue_ngap_id);
       } else {
@@ -432,10 +433,10 @@ imsi64_t amf_app_handle_initial_ue_message(
     }
 
     // Allocate new amf_ue_ngap_id
-    ue_context_p->amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
+    amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
         &amf_app_desc_p->amf_app_ue_ngap_id_generator);
 
-    if (ue_context_p->amf_ue_ngap_id == INVALID_AMF_UE_NGAP_ID) {
+    if (amf_ue_ngap_id == INVALID_AMF_UE_NGAP_ID) {
       OAILOG_ERROR(LOG_AMF_APP, "amf_ue_ngap_id allocation failed.\n");
       amf_remove_ue_context(ue_context_p);
       OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
@@ -448,8 +449,12 @@ imsi64_t amf_app_handle_initial_ue_message(
         ue_context_p, ue_context_p->amf_ue_ngap_id);
 
     AMF_APP_GNB_NGAP_ID_KEY(
-        ue_context_p->gnb_ngap_id_key, initial_pP->gnb_id,
-        initial_pP->gnb_ue_ngap_id);
+        gnb_ngap_id_key, initial_pP->gnb_id, initial_pP->gnb_ue_ngap_id);
+
+    amf_ue_context_update_coll_keys(
+        &amf_app_desc_p->amf_ue_contexts, ue_context_p, gnb_ngap_id_key,
+        amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
+        ue_context_p->amf_teid_n11, &guti);
     amf_insert_ue_context(ue_context_p->amf_ue_ngap_id, ue_context_p);
   }
   ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
@@ -495,8 +500,8 @@ imsi64_t amf_app_handle_initial_ue_message(
    * exists or not
    */
   if (ue_id != INVALID_AMF_UE_NGAP_ID) {
-    map_uint64_ue_context_t amf_state_ue_id_ht = get_amf_ue_state();
-    if (amf_state_ue_id_ht.get(ue_id, &ue_context_p) == magma::MAP_OK) {
+    map_uint64_ue_context_t* amf_state_ue_id_ht = get_amf_ue_state();
+    if (amf_state_ue_id_ht->get(ue_id, &ue_context_p) == magma::MAP_OK) {
       imsi64 = ue_context_p->amf_context.imsi64;
     }
   }
@@ -505,17 +510,17 @@ imsi64_t amf_app_handle_initial_ue_message(
 }
 
 /****************************************************************************
- **                                                                        **
- ** Name:    amf_handle_uplink_nas_message()                               **
- **                                                                        **
- ** Description: Handle uplink nas message                                 **
- **                                                                        **
- ** Inputs:  amf_app_desc_p:    amf application descriptors                **
- **      msg:      nstring msg                                             **
- **                                                                        **
- **      Return:    RETURNok, RETURNerror                                  **
- **                                                                        **
- ***************************************************************************/
+**                                                                        **
+** Name:    amf_handle_uplink_nas_message()                               **
+**                                                                        **
+** Description: Handle uplink nas message                                 **
+**                                                                        **
+** Inputs:  amf_app_desc_p:    amf application descriptors                **
+**      msg:      nstring msg                                             **
+**                                                                        **
+**      Return:    RETURNok, RETURNerror                                  **
+**                                                                        **
+***************************************************************************/
 int amf_app_handle_uplink_nas_message(
     amf_app_desc_t* amf_app_desc_p, bstring msg, amf_ue_ngap_id_t ue_id,
     const tai_t originating_tai) {
@@ -564,14 +569,16 @@ static void get_ambr_unit(
 int amf_app_handle_pdu_session_response(
     itti_n11_create_pdu_session_response_t* pdu_session_resp) {
   DLNASTransportMsg encode_msg;
-  ue_m5gmm_context_s* ue_context;
+  memset(&encode_msg, 0, sizeof(encode_msg));
+  ue_m5gmm_context_s* ue_context = nullptr;
   std::shared_ptr<smf_context_t> smf_ctx;
   amf_smf_t amf_smf_msg;
+  memset(&amf_smf_msg, 0, sizeof(amf_smf_msg));
   // TODO: hardcoded for now, addressed in the upcoming multi-UE PR
   uint64_t ue_id = 0;
   int rc         = RETURNerror;
 
-  imsi64_t imsi64;
+  imsi64_t imsi64 = 0;
   IMSI_STRING_TO_IMSI64(pdu_session_resp->imsi, &imsi64);
   // Handle smf_context
   ue_context = lookup_ue_ctxt_by_imsi(imsi64);
@@ -593,19 +600,19 @@ int amf_app_handle_pdu_session_response(
 
   convert_ambr(
       &pdu_session_resp->session_ambr.downlink_unit_type,
-      &pdu_session_resp->session_ambr.downlink_units, &smf_ctx->dl_ambr_unit,
-      &smf_ctx->dl_session_ambr);
+      &pdu_session_resp->session_ambr.downlink_units,
+      &smf_ctx->selected_ambr.dl_ambr_unit,
+      &smf_ctx->selected_ambr.dl_session_ambr);
 
   convert_ambr(
       &pdu_session_resp->session_ambr.uplink_unit_type,
-      &pdu_session_resp->session_ambr.uplink_units, &smf_ctx->ul_ambr_unit,
-      &smf_ctx->ul_session_ambr);
+      &pdu_session_resp->session_ambr.uplink_units,
+      &smf_ctx->selected_ambr.ul_ambr_unit,
+      &smf_ctx->selected_ambr.ul_session_ambr);
 
   memcpy(
-      &(smf_ctx->pdu_resource_setup_req
-            .pdu_session_resource_setup_request_transfer
-            .qos_flow_setup_request_list),
-      &(pdu_session_resp->qos_list), sizeof(qos_flow_request_list_t));
+      &smf_ctx->subscribed_qos_profile, &(pdu_session_resp->qos_list),
+      sizeof(smf_ctx->subscribed_qos_profile));
   memcpy(
       smf_ctx->gtp_tunnel_id.upf_gtp_teid_ip_addr,
       pdu_session_resp->upf_endpoint.end_ipv4_addr,
@@ -627,9 +634,9 @@ int amf_app_handle_pdu_session_response(
     amf_sap.u.amf_as.u.establish.pdu_session_status_ie =
         (AMF_AS_PDU_SESSION_STATUS | AMF_AS_PDU_SESSION_REACTIVATION_STATUS);
     amf_sap.u.amf_as.u.establish.pdu_session_status =
-        (1 << smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id);
+        (1 << smf_ctx->smf_proc_data.pdu_session_id);
     amf_sap.u.amf_as.u.establish.pdu_session_reactivation_status =
-        (1 << smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id);
+        (1 << smf_ctx->smf_proc_data.pdu_session_id);
     amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
     rc                                = amf_sap_send(&amf_sap);
     if (RETURNok == rc) {
@@ -655,22 +662,22 @@ int amf_app_handle_pdu_session_response(
   return rc;
 }
 /****************************************************************************
- **                                                                        **
- ** Name:    convert_ambr()                                                **
- **                                                                        **
- ** Description: Converts the session ambr format from                     **
- **  one defined in create_pdu_session_response to one defined in          **
- **  pdu_session_estab_accept message                                      **
- **                                                                        **
- ** Inputs:  pdu_ambr_response_unit, pdu_ambr_response_value               **
- **          ambr_unit, ambr_value                                         **
- **                                                                        **
- **      Return:   void                                                    **
- **                                                                        **
- ***************************************************************************/
+**                                                                        **
+** Name:    convert_ambr()                                                **
+**                                                                        **
+** Description: Converts the session ambr format from                     **
+**  one defined in create_pdu_session_response to one defined in          **
+**  pdu_session_estab_accept message                                      **
+**                                                                        **
+** Inputs:  pdu_ambr_response_unit, pdu_ambr_response_value               **
+**          ambr_unit, ambr_value                                         **
+**                                                                        **
+**      Return:   void                                                    **
+**                                                                        **
+***************************************************************************/
 void convert_ambr(
     const uint32_t* pdu_ambr_response_unit,
-    const uint32_t* pdu_ambr_response_value, uint8_t* ambr_unit,
+    const uint32_t* pdu_ambr_response_value, M5GSessionAmbrUnit* ambr_unit,
     uint16_t* ambr_value) {
   int count                             = 1;
   uint32_t temp_pdu_ambr_response_value = *pdu_ambr_response_value;
@@ -680,8 +687,7 @@ void convert_ambr(
       temp_pdu_ambr_response_value / 1000 == 0) {
     // Values less than 1Kbps are defaulted to 1Kbps
     *ambr_value = static_cast<uint16_t>(1);
-    *ambr_unit  = static_cast<uint8_t>(
-        magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // Kbps
+    *ambr_unit  = magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS;  // Kbps
     return;
   }
 
@@ -696,33 +702,79 @@ void convert_ambr(
 
   switch (count) {
     case 1:
-      *ambr_unit = static_cast<uint8_t>(
-          magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // Kbps
+      *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS;  // Kbps
       break;
     case 2:
-      *ambr_unit = static_cast<uint8_t>(
-          magma5g::M5GSessionAmbrUnit::MULTIPLES_1MBPS);  // Mbps
+      *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1MBPS;  // Mbps
       break;
     case 3:
-      *ambr_unit = static_cast<uint8_t>(
-          magma5g::M5GSessionAmbrUnit::MULTIPLES_1GBPS);  // Gbps
+      *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1GBPS;  // Gbps
       break;
   }
   *ambr_value = static_cast<uint16_t>(temp_pdu_ambr_response_value);
 }
 
+// Utility function to convert address to buffer
+static int paa_to_address_info(
+    const paa_t* paa, uint8_t* pdu_address_info, uint8_t* pdu_address_length) {
+  uint32_t ip_int = 0;
+  if ((paa == nullptr) || (pdu_address_info == nullptr) ||
+      (pdu_address_length == nullptr)) {
+    return RETURNerror;
+  }
+  switch (paa->pdn_type) {
+    case IPv4:
+      ip_int = ntohl(paa->ipv4_address.s_addr);
+      INT32_TO_BUFFER(ip_int, pdu_address_info);
+      *pdu_address_length = sizeof(ip_int);
+      break;
+
+    case IPv6:
+      if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
+        memcpy(
+            pdu_address_info, &paa->ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN],
+            IPV6_INTERFACE_ID_LEN);
+        *pdu_address_length = IPV6_INTERFACE_ID_LEN;
+      } else {
+        OAILOG_ERROR(
+            LOG_AMF_APP, "Invalid ipv6_prefix_length : %u\n",
+            paa->ipv6_prefix_length);
+        return RETURNerror;
+      }
+      break;
+    case IPv4_AND_v6:
+      if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
+        memcpy(
+            pdu_address_info, &paa->ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN],
+            IPV6_INTERFACE_ID_LEN);
+        ip_int = ntohl(paa->ipv4_address.s_addr);
+        INT32_TO_BUFFER(ip_int, pdu_address_info + IPV6_INTERFACE_ID_LEN);
+        *pdu_address_length = IPV6_INTERFACE_ID_LEN + sizeof(ip_int);
+      } else {
+        OAILOG_ERROR(
+            LOG_AMF_APP, "Invalid ipv6_prefix_length : %u\n",
+            paa->ipv6_prefix_length);
+        return RETURNerror;
+      }
+      break;
+    default:
+      break;
+  }
+  return RETURNok;
+}
+
 /****************************************************************************
- **                                                                        **
- ** Name:    amf_app_handle_pdu_session_accept()                           **
- **                                                                        **
- ** Description: Send the PDU establishment accept to gnodeb               **
- **                                                                        **
- ** Inputs:  pdu_session_resp:   pdusession response message               **
- **      ue_id:      ue identity                                           **
- **                                                                        **
- **      Return:    RETURNok, RETURNerror                                  **
- **                                                                        **
- ***************************************************************************/
+**                                                                        **
+** Name:    amf_app_handle_pdu_session_accept()                           **
+**                                                                        **
+** Description: Send the PDU establishment accept to gnodeb               **
+**                                                                        **
+** Inputs:  pdu_session_resp:   pdusession response message               **
+**      ue_id:      ue identity                                           **
+**                                                                        **
+**      Return:    RETURNok, RETURNerror                                  **
+**                                                                        **
+***************************************************************************/
 int amf_app_handle_pdu_session_accept(
     itti_n11_create_pdu_session_response_t* pdu_session_resp, uint64_t ue_id) {
   nas5g_error_code_t rc = M5G_AS_SUCCESS;
@@ -761,7 +813,8 @@ int amf_app_handle_pdu_session_accept(
   // Message construction for PDU Establishment Accept
   msg.security_protected.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  msg.security_protected.plain.amf.header.message_type = DLNASTRANSPORT;
+  msg.security_protected.plain.amf.header.message_type =
+      M5GMessageType::DLNASTRANSPORT;
   msg.header.security_header_type =
       SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
   msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
@@ -774,9 +827,10 @@ int amf_app_handle_pdu_session_accept(
   // AmfHeader
   encode_msg->extended_protocol_discriminator.extended_proto_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  encode_msg->spare_half_octet.spare     = 0x00;
-  encode_msg->sec_header_type.sec_hdr    = SECURITY_HEADER_TYPE_NOT_PROTECTED;
-  encode_msg->message_type.msg_type      = DLNASTRANSPORT;
+  encode_msg->spare_half_octet.spare  = 0x00;
+  encode_msg->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  encode_msg->message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::DLNASTRANSPORT);
   encode_msg->payload_container_type.iei = 0;
   // encode_msg->payload_container_type.iei = PAYLOAD_CONTAINER_TYPE;
 
@@ -790,17 +844,17 @@ int amf_app_handle_pdu_session_accept(
 
   smf_msg->header.extended_protocol_discriminator =
       M5G_SESSION_MANAGEMENT_MESSAGES;
-  smf_msg->header.pdu_session_id           = pdu_session_resp->pdu_session_id;
-  smf_msg->header.message_type             = PDU_SESSION_ESTABLISHMENT_ACCEPT;
-  smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti.pti;
+  smf_msg->header.pdu_session_id = pdu_session_resp->pdu_session_id;
+  smf_msg->header.message_type =
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_ESTABLISHMENT_ACCEPT);
+  smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti;
   smf_msg->msg.pdu_session_estab_accept.extended_protocol_discriminator
       .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
   smf_msg->msg.pdu_session_estab_accept.pdu_session_identity.pdu_session_id =
       pdu_session_resp->pdu_session_id;
-  smf_msg->msg.pdu_session_estab_accept.pti.pti =
-      smf_ctx->smf_proc_data.pti.pti;
+  smf_msg->msg.pdu_session_estab_accept.pti.pti = smf_ctx->smf_proc_data.pti;
   smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
-      PDU_SESSION_ESTABLISHMENT_ACCEPT;
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_ESTABLISHMENT_ACCEPT);
   smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val = 1;
   smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val =
       (pdu_session_resp->selected_ssc_mode + 1);
@@ -808,11 +862,47 @@ int amf_app_handle_pdu_session_accept(
   memset(
       &(smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info), 0, 12);
 
-  for (int i = 0; i < PDU_ADDR_IPV4_LEN; i++) {
-    smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info[i] =
-        pdu_session_resp->pdu_address.redirect_server_address[i];
+  // For tracking the length of payload container
+  uint32_t buf_len = 0;
+
+  // encode v4 type address
+  if (pdu_session_resp->pdu_address.pdn_type == IPv4) {
+    smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val =
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV4);
+    smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val =
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV4);
+
+    paa_to_address_info(
+        &(pdu_session_resp->pdu_address),
+        smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info,
+        &(smf_msg->msg.pdu_session_estab_accept.pdu_address.length));
+
+  } else if (pdu_session_resp->pdu_address.pdn_type == IPv6) {
+    smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val =
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV6);
+
+    smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val =
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV6);
+
+    paa_to_address_info(
+        &(pdu_session_resp->pdu_address),
+        smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info,
+        &(smf_msg->msg.pdu_session_estab_accept.pdu_address.length));
+
+  } else if (pdu_session_resp->pdu_address.pdn_type == IPv4_AND_v6) {
+    smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val =
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV4V6);
+
+    smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val =
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV4V6);
+
+    paa_to_address_info(
+        &(pdu_session_resp->pdu_address),
+        smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info,
+        &(smf_msg->msg.pdu_session_estab_accept.pdu_address.length));
   }
-  smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val = PDU_ADDR_TYPE;
+
+  buf_len += sizeof(class PDUAddressMsg);
 
   /* QOSrules are hardcoded as it is not exchanged in AMF-SMF
    * gRPC calls as of now, handled in upcoming PR
@@ -829,9 +919,7 @@ int amf_app_handle_pdu_session_accept(
   qos_rule.spare               = 0x0;
   qos_rule.segregation         = 0x0;
   qos_rule.qfi =
-      smf_ctx->pdu_resource_setup_req
-          .pdu_session_resource_setup_request_transfer
-          .qos_flow_setup_request_list.qos_flow_req_item.qos_flow_identifier;
+      smf_ctx->subscribed_qos_profile.qos_flow_req_item.qos_flow_identifier;
   NewQOSRulePktFilter new_qos_rule_pkt_filter;
   new_qos_rule_pkt_filter.spare          = 0x0;
   new_qos_rule_pkt_filter.pkt_filter_dir = 0x3;
@@ -849,14 +937,14 @@ int amf_app_handle_pdu_session_accept(
 
   // Set session ambr
   smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_unit =
-      smf_ctx->dl_ambr_unit;
+      static_cast<uint8_t>(smf_ctx->selected_ambr.dl_ambr_unit);
   smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_session_ambr =
-      smf_ctx->dl_session_ambr;
+      smf_ctx->selected_ambr.dl_session_ambr;
 
   smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_unit =
-      smf_ctx->ul_ambr_unit;
+      static_cast<uint8_t>(smf_ctx->selected_ambr.ul_ambr_unit);
   smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_session_ambr =
-      smf_ctx->ul_session_ambr;
+      smf_ctx->selected_ambr.ul_session_ambr;
 
   smf_msg->msg.pdu_session_estab_accept.session_ambr.length = AMBR_LEN;
 
@@ -873,15 +961,18 @@ int amf_app_handle_pdu_session_accept(
   -------------------------------------- */
   smf_msg->msg.pdu_session_estab_accept.nssai.iei =
       static_cast<uint8_t>(M5GIei::S_NSSAI);
-  uint32_t buf_len = 0;
-  if (smf_ctx->sst) {
-    if (smf_ctx->sd[0]) {
+  if (smf_ctx->requested_nssai.sst) {
+    if (smf_ctx->requested_nssai.sd[0]) {
       smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH + SD_LENGTH;
-      smf_msg->msg.pdu_session_estab_accept.nssai.sst = smf_ctx->sst;
-      memcpy(smf_msg->msg.pdu_session_estab_accept.nssai.sd, smf_ctx->sd, 3);
+      smf_msg->msg.pdu_session_estab_accept.nssai.sst =
+          smf_ctx->requested_nssai.sst;
+      memcpy(
+          smf_msg->msg.pdu_session_estab_accept.nssai.sd,
+          smf_ctx->requested_nssai.sd, 3);
     } else {
       smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH;
-      smf_msg->msg.pdu_session_estab_accept.nssai.sst = smf_ctx->sst;
+      smf_msg->msg.pdu_session_estab_accept.nssai.sst =
+          smf_ctx->requested_nssai.sst;
     }
     buf_len = smf_msg->msg.pdu_session_estab_accept.nssai.len + 2;
   }
@@ -902,7 +993,7 @@ int amf_app_handle_pdu_session_accept(
 
   encode_msg->payload_container.len =
       PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN + pco_len + buf_len;
-  len = PDU_ESTAB_ACCEPT_NAS_PDU_LEN + pco_len + buf_len;
+  len = PDU_SESSION_ESTABLISH_ACPT_MIN_LEN + encode_msg->payload_container.len;
 
   /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
    * so length is modified such that it will be mode of 4
@@ -1277,7 +1368,9 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
         amf_ctx->m5_guti.guamfi.plmn.mnc_digit3;
     ngap_paging_notify->TAIListForPaging.no_of_items     = 1;
     ngap_paging_notify->TAIListForPaging.tai_list[0].tac = 2;
-
+    paging_ctx->m5_paging_response_timer.id              = amf_app_start_timer(
+        PAGING_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE, paging_t3513_handler,
+        ue_context->amf_ue_ngap_id);
     OAILOG_INFO(LOG_AMF_APP, "T3513: sending downlink message to NGAP");
     rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
     if (rc != RETURNok)

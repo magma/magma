@@ -564,8 +564,8 @@ status_code_e sgw_s8_handle_create_session_response(
 static void insert_sgw_cp_and_up_teid_to_directoryd(
     sgw_state_t* sgw_state, imsi64_t imsi64, uint8_t teid_type) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
-  char teidString[16]                    = {0};
-  char teidlist[16]                      = {0};
+  char teidString[512]                   = {0};
+  uint32_t teidlist[16]                  = {0};
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1] = {0};
   uint8_t teid_list_idx                  = 0;
   IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
@@ -1236,27 +1236,45 @@ static void sgw_s8_send_failed_delete_session_response(
 */
 //------------------------------------------------------------------------------
 void sgw_s8_handle_release_access_bearers_request(
+    sgw_state_t* sgw_state,
     const itti_s11_release_access_bearers_request_t* const
         release_access_bearers_req_pP,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   OAILOG_DEBUG_UE(
       LOG_SGW_S8, imsi64,
-      "Release Access Bearer Request Received in SGW_S8 task \n");
+      "Release Access Bearer Request Received in SGW_S8 task");
 
-  sgw_eps_bearer_context_information_t* sgw_context_p =
-      sgw_get_sgw_eps_bearer_context(release_access_bearers_req_pP->teid);
-  if (sgw_context_p) {
-    sgw_send_release_access_bearer_response(
-        LOG_SGW_S8, imsi64, REQUEST_ACCEPTED, release_access_bearers_req_pP,
-        sgw_context_p->mme_teid_S11);
-    sgw_process_release_access_bearer_request(
-        LOG_SGW_S8, imsi64, sgw_context_p);
-  } else {
-    sgw_send_release_access_bearer_response(
-        LOG_SGW_S8, imsi64, CONTEXT_NOT_FOUND, release_access_bearers_req_pP,
-        0);
+  spgw_ue_context_t* ue_context_p = NULL;
+  gtpv2c_cause_value_t cause      = CONTEXT_NOT_FOUND;
+
+  hashtable_ts_get(
+      sgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64,
+      (void**) &ue_context_p);
+
+  if (!ue_context_p) {
+    OAILOG_ERROR_UE(LOG_SGW_S8, imsi64, "Failed to find ue context");
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
+  }  // end of ue context
+  sgw_s11_teid_t* s11_teid_p = NULL;
+  LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
+    if (!s11_teid_p) {
+      OAILOG_ERROR_UE(
+          LOG_SGW_S8, imsi64,
+          "Failed to find s11 teid entry within ue context's s11 teid list");
+      OAILOG_FUNC_OUT(LOG_SGW_S8);
+    }
+    sgw_eps_bearer_context_information_t* sgw_session_ctxt_p =
+        sgw_get_sgw_eps_bearer_context(s11_teid_p->sgw_s11_teid);
+    if (sgw_session_ctxt_p) {
+      sgw_process_release_access_bearer_request(
+          LOG_SGW_S8, imsi64, sgw_session_ctxt_p);
+      cause = REQUEST_ACCEPTED;
+    }
   }
+  sgw_send_release_access_bearer_response(
+      LOG_SGW_S8, imsi64, cause, release_access_bearers_req_pP,
+      release_access_bearers_req_pP->local_teid);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 

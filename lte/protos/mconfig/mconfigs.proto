@@ -198,8 +198,9 @@ message SessionD {
     WalletExhaustDetection wallet_exhaust_detection = 3;
     // Enable relaying Gx/Gy messages via FeG RPC
     bool gx_gy_relay_enabled = 4;
+    // DEPRECATED: now configured in "shared_mconfig"
     // sentry_config stores the Sentry.io configuration for this service
-    SentryConfig sentry_config = 5;
+    SentryConfig sentry_config = 5 [deprecated = true];
 
     // Enables 5G Standalone (SA) at a network level
     bool enable5g_features = 6;
@@ -367,8 +368,9 @@ message MME {
     // MME congestion control configs
     bool congestion_control_enabled = 40;
 
+    // DEPRECATED: now configured in "shared_mconfig"
     // sentry_config stores the Sentry.io configuration for this service
-    SentryConfig sentry_config = 45;
+    SentryConfig sentry_config = 45 [deprecated = true];
 
     // Enables 5G Standalone (SA) at a network level
     bool enable5g_features = 46;

@@ -24,6 +24,13 @@
 #include "lte/gateway/c/core/oai/include/amf_as_message.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/nas/as_message.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
+#ifdef __cplusplus
+}
+#endif
 
 #define AMF_APP_CONNECTION_ESTABLISHMENT_CNF(mSGpTR)                           \
   (mSGpTR)->ittiMsg.amf_app_connection_establishment_cnf
@@ -148,7 +155,7 @@ typedef struct itti_amf_ip_allocation_response_s {
   paa_t paa;
 
   /* Result Type of IP Allocation */
-  int result;
+  SGIStatus_t result;
 
   ambr_t default_ambr;
 } itti_amf_ip_allocation_response_t;

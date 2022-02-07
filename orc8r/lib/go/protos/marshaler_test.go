@@ -74,7 +74,8 @@ var marshaledSrc = `{
    "featureFlags": {
    },
    "dynamicServices": [
-   ]
+   ],
+   "orc8rVersion": ""
   },
   "metricsd": {
    "@type": "type.googleapis.com/magma.mconfig.MetricsD",

@@ -37,9 +37,9 @@ jobs:
           filters: |
             files_changed:
               - '.github/workflows/bazel.yml'
-              - 'orc8r/gateway/c/**'
+              - 'orc8r/gateway/**'
               - 'orc8r/protos/**'
-              - 'lte/gateway/c/**'
+              - 'lte/gateway/**'
               - 'lte/protos/**'
               - 'src/go/**'
               - '**/BUILD'

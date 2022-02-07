@@ -26,7 +26,7 @@ import (
 	"google.golang.org/grpc/codes"
 
 	"magma/orc8r/cloud/go/services/certifier"
-	"magma/orc8r/cloud/go/services/certifier/servicers"
+	servicers "magma/orc8r/cloud/go/services/certifier/servicers/protected"
 	"magma/orc8r/cloud/go/services/certifier/test_init"
 	"magma/orc8r/lib/go/protos"
 	security_cert "magma/orc8r/lib/go/security/cert"

@@ -889,15 +889,22 @@ void mme_ue_context_update_ue_sig_connection_state(
           OAILOG_DEBUG_UE(
               LOG_MME_APP, ue_context_p->emm_context._imsi64,
               "Started Mobile Reachability timer for UE id " MME_UE_S1AP_ID_FMT
-              "\n",
-              ue_context_p->mme_ue_s1ap_id);
+              ", Timer Id: %ld, Timer Val: %u (ms), Start time: %lu",
+              ue_context_p->mme_ue_s1ap_id,
+              ue_context_p->mobile_reachability_timer.id,
+              ue_context_p->mobile_reachability_timer.msec,
+              ue_context_p->time_mobile_reachability_timer_started);
         }
       } else {
         OAILOG_DEBUG_UE(
             LOG_MME_APP, ue_context_p->emm_context._imsi64,
             "Mobile Reachability timer is already started for UE id:"
-            " " MME_UE_S1AP_ID_FMT "\n",
-            ue_context_p->mme_ue_s1ap_id);
+            " " MME_UE_S1AP_ID_FMT
+            ", Timer Id: %ld, Timer Val: %u (ms), Start time: %lu",
+            ue_context_p->mme_ue_s1ap_id,
+            ue_context_p->mobile_reachability_timer.id,
+            ue_context_p->mobile_reachability_timer.msec,
+            ue_context_p->time_mobile_reachability_timer_started);
       }
     }
     ue_context_p->ecm_state = ECM_IDLE;

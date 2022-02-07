@@ -41,7 +41,6 @@ using magma::sctpd::SctpdUplinkClient;
 int signalMask(void) {
   sigset_t set;
   sigemptyset(&set);
-  sigaddset(&set, SIGSEGV);
   sigaddset(&set, SIGINT);
   sigaddset(&set, SIGTERM);
 
@@ -58,14 +57,8 @@ int signalHandler(int* end, std::unique_ptr<Server>& server,
   sigset_t set;
 
   sigemptyset(&set);
-  sigaddset(&set, SIGSEGV);
   sigaddset(&set, SIGINT);
   sigaddset(&set, SIGTERM);
-
-  if (sigprocmask(SIG_BLOCK, &set, NULL) < 0) {
-    perror("sigprocmask");
-    return -1;
-  }
 
   /*
    * Block till a signal is received.
@@ -89,12 +82,6 @@ static magma::mconfig::SctpD load_sctpd_mconfig() {
   if (!magma::load_service_mconfig_from_file(SCTPD_SERVICE, &mconfig)) {
     mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
   }
-  return mconfig;
-}
-
-static magma::mconfig::SharedMconfig load_shared_mconfig() {
-  magma::mconfig::SharedMconfig mconfig;
-  magma::load_service_mconfig_from_file(SHARED_MCONFIG, &mconfig);
   return mconfig;
 }
 
@@ -129,13 +116,8 @@ int main() {
   magma::init_logging(SCTPD_SERVICE);
   magma::set_verbosity(get_log_verbosity(config, sctpd_mconfig));
 
-  auto sentry_mconfig = load_shared_mconfig().sentry_config();
-  sentry_config_t sentry_config;
-  sentry_config.sample_rate = sentry_mconfig.sample_rate();
-  strncpy(sentry_config.url_native, sentry_mconfig.dsn_native().c_str(),
-          MAX_URL_LENGTH - 1);
-  sentry_config.url_native[MAX_URL_LENGTH - 1] = '\0';
-  initialize_sentry(SENTRY_TAG_SCTPD, &sentry_config);
+  sentry_config_t sentry_config = construct_sentry_config_from_mconfig();
+  initialize_sentry(SENTRY_TAG_SESSIOND, &sentry_config);
 
   auto channel =
       grpc::CreateChannel(UPSTREAM_SOCK, grpc::InsecureChannelCredentials());
@@ -154,5 +136,6 @@ int main() {
   while (end == 0) {
     signalHandler(&end, sctpd_dl_server, service);
   }
+  shutdown_sentry();
   return 0;
 }

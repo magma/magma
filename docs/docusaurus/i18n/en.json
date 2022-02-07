@@ -90,6 +90,9 @@
       "feg/docker_setup": {
         "title": "FeG Docker Setup"
       },
+      "feg/s1ap_federated_tests": {
+        "title": "S1AP Federated Integration Tests"
+      },
       "feg/session_proxy": {
         "title": "feg/session_proxy"
       },
@@ -156,7 +159,7 @@
       "lte/build_install_magma_pkg_in_agw": {
         "title": "Build and install a magma package in AGW"
       },
-      "lte/version-1.6.0-configure_sentry": {
+      "lte/configure_sentry": {
         "title": "Sentry Integration"
       },
       "lte/openvswitch": {
@@ -188,6 +191,9 @@
       },
       "lte/dev_unit_testing": {
         "title": "Test AGW"
+      },
+      "lte/ebpf_datapath": {
+        "title": "Magma eBPF Datapath"
       },
       "lte/eventd": {
         "title": "Event Reporting"
@@ -470,6 +476,9 @@
       },
       "proposals/p023_magma_gtp_gateway": {
         "title": "proposals/p023_magma_gtp_gateway"
+      },
+      "proposals/p024_magma_settlement_service": {
+        "title": "proposals/p024_magma_settlement_service"
       },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"

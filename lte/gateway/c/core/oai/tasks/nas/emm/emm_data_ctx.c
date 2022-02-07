@@ -170,7 +170,6 @@ inline void emm_ctx_set_imsi(
   ctxt->_imsi   = *imsi;
   ctxt->_imsi64 = imsi64;
   emm_ctx_set_attribute_present(ctxt, EMM_CTXT_MEMBER_IMSI);
-#if DEBUG_IS_ON
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1] = {0};
   IMSI64_TO_STRING(ctxt->_imsi64, imsi_str, ctxt->_imsi.length);
   OAILOG_DEBUG(
@@ -178,7 +177,6 @@ inline void emm_ctx_set_imsi(
       (PARENT_STRUCT(ctxt, struct ue_mm_context_s, emm_context))
           ->mme_ue_s1ap_id,
       imsi_str);
-#endif
 }
 
 /* Set IMSI, mark it as valid */
@@ -187,7 +185,6 @@ inline void emm_ctx_set_valid_imsi(
   ctxt->_imsi   = *imsi;
   ctxt->_imsi64 = imsi64;
   emm_ctx_set_attribute_valid(ctxt, EMM_CTXT_MEMBER_IMSI);
-#if DEBUG_IS_ON
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1] = {0};
   IMSI64_TO_STRING(ctxt->_imsi64, imsi_str, ctxt->_imsi.length);
   OAILOG_DEBUG(
@@ -195,7 +192,6 @@ inline void emm_ctx_set_valid_imsi(
       (PARENT_STRUCT(ctxt, struct ue_mm_context_s, emm_context))
           ->mme_ue_s1ap_id,
       imsi_str);
-#endif
   mme_api_notify_imsi(
       (PARENT_STRUCT(ctxt, struct ue_mm_context_s, emm_context))
           ->mme_ue_s1ap_id,
@@ -217,7 +213,6 @@ inline void emm_ctx_clear_imei(emm_context_t* const ctxt) {
 inline void emm_ctx_set_imei(emm_context_t* const ctxt, imei_t* imei) {
   ctxt->_imei = *imei;
   emm_ctx_set_attribute_present(ctxt, EMM_CTXT_MEMBER_IMEI);
-#if DEBUG_IS_ON
   char imei_str[16];
   IMEI_TO_STRING(imei, imei_str, 16);
   OAILOG_DEBUG(
@@ -225,14 +220,12 @@ inline void emm_ctx_set_imei(emm_context_t* const ctxt, imei_t* imei) {
       (PARENT_STRUCT(ctxt, struct ue_mm_context_s, emm_context))
           ->mme_ue_s1ap_id,
       imei_str);
-#endif
 }
 
 /* Set IMEI, mark it as valid */
 inline void emm_ctx_set_valid_imei(emm_context_t* const ctxt, imei_t* imei) {
   ctxt->_imei = *imei;
   emm_ctx_set_attribute_valid(ctxt, EMM_CTXT_MEMBER_IMEI);
-#if DEBUG_IS_ON
   char imei_str[16];
   IMEI_TO_STRING(imei, imei_str, 16);
   OAILOG_DEBUG(
@@ -240,7 +233,6 @@ inline void emm_ctx_set_valid_imei(emm_context_t* const ctxt, imei_t* imei) {
       (PARENT_STRUCT(ctxt, struct ue_mm_context_s, emm_context))
           ->mme_ue_s1ap_id,
       imei_str);
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -680,7 +672,6 @@ struct emm_context_s* emm_context_get_by_imsi(
     emm_context_p = &ue_mm_context->emm_context;
   }
 
-#if DEBUG_IS_ON
   if (emm_context_p) {
     OAILOG_DEBUG(
         LOG_NAS_EMM,
@@ -688,7 +679,6 @@ struct emm_context_s* emm_context_get_by_imsi(
         " context %p by imsi " IMSI_64_FMT "\n",
         ue_mm_context->mme_ue_s1ap_id, emm_context_p, imsi64);
   }
-#endif
   return emm_context_p;
 }
 
@@ -703,7 +693,6 @@ struct emm_context_s* emm_context_get_by_guti(
   if (ue_mm_context) {
     emm_context_p = &ue_mm_context->emm_context;
   }
-#if DEBUG_IS_ON
   if (emm_context_p) {
     OAILOG_DEBUG(
         LOG_NAS_EMM,
@@ -711,7 +700,6 @@ struct emm_context_s* emm_context_get_by_guti(
         " context %p by guti " GUTI_FMT "\n",
         ue_mm_context->mme_ue_s1ap_id, emm_context_p, GUTI_ARG(guti));
   }
-#endif
   return emm_context_p;
 }
 

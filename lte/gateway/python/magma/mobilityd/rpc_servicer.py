@@ -33,11 +33,6 @@ from lte.protos.mobilityd_pb2_grpc import (
 )
 from lte.protos.subscriberdb_pb2 import SubscriberID
 from magma.common.rpc_utils import return_void
-from magma.common.sentry import (
-    SentryStatus,
-    get_sentry_status,
-    send_uncaught_errors_to_monitoring,
-)
 from magma.subscriberdb.sid import SIDUtils
 
 from .ip_address_man import (
@@ -58,8 +53,6 @@ from .subscriberdb_client import (
     SubscriberDBMultiAPNValueError,
     SubscriberDBStaticIPValueError,
 )
-
-enable_sentry_wrapper = get_sentry_status("mobilityd") == SentryStatus.SEND_SELECTED_ERRORS
 
 
 class MobilityServiceRpcServicer(MobilityServiceServicer):
@@ -96,7 +89,6 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         self._ip_address_man.add_ip_block(ip_block)
 
     @return_void
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def AddIPBlock(self, request, context):
         """ Add a range of IP addresses into the free IP pool
 
@@ -121,7 +113,6 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         except IPVersionNotSupportedError:
             self._unimplemented_ip_version_error(context)
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def ListAddedIPv4Blocks(self, request, context):
         """ Return a list of IPv4 blocks assigned """
         logging.debug("Received ListAddedIPv4Blocks")
@@ -142,7 +133,6 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         self._print_grpc(resp)
         return resp
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def ListAddedIPv6Blocks(self, request, context):
         """ Return a list of IPv6 blocks assigned """
         self._print_grpc(request)
@@ -163,7 +153,6 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         self._print_grpc(resp)
         return resp
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def ListAllocatedIPs(self, request, context):
         """ Return a list of IPs allocated from a IP block
 
@@ -203,7 +192,6 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         self._print_grpc(resp)
         return resp
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def AllocateIPAddress(self, request, context):
         """ Allocate an IP address from the free IP pool """
         logging.debug("Received AllocateIPAddress")
@@ -251,7 +239,6 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         return resp
 
     @return_void
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def ReleaseIPAddress(self, request, context):
         """ Release an allocated IP address """
         logging.debug("Received ReleaseIPAddress")
@@ -286,7 +273,6 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             )
             context.set_code(grpc.StatusCode.NOT_FOUND)
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def RemoveIPBlock(self, request, context):
         """ Attempt to remove IP blocks and return the removed blocks """
         logging.debug("Received RemoveIPBlock")
@@ -324,7 +310,6 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         self._print_grpc(resp)
         return resp
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetIPForSubscriber(self, request, context):
         logging.debug("Received GetIPForSubscriber")
         self._print_grpc(request)
@@ -352,7 +337,6 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         self._print_grpc(resp)
         return resp
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetSubscriberIDFromIP(self, request, context):
         logging.debug("Received GetSubscriberIDFromIP")
         ip_addr = request
@@ -372,7 +356,6 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         self._print_grpc(resp)
         return resp
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetSubscriberIPTable(self, request, context):
         """ Get the full subscriber table """
         logging.debug("Received GetSubscriberIPTable")
@@ -392,7 +375,6 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         self._print_grpc(resp)
         return resp
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def ListGatewayInfo(self, request, context):
         logging.debug("Received ListGatewayInfo")
         self._print_grpc(request)
@@ -405,7 +387,6 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         return resp
 
     @return_void
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def SetGatewayInfo(self, request, context):
         logging.debug("Received SetGatewayInfo")
         info = request

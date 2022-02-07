@@ -24,7 +24,7 @@ func NewMockPcf(localAddr string) (*MockPcf, error) {
 		policies:   make(map[string]sbi_NpcfSMPolicyControlServer.SmPolicyControl),
 	}
 	sbi_NpcfSMPolicyControlServer.RegisterHandlers(mockPcf, mockPcf)
-	err := mockPcf.StartWithhWait(localAddr)
+	err := mockPcf.StartWithWait(localAddr)
 	if err != nil {
 		return nil, err
 	}

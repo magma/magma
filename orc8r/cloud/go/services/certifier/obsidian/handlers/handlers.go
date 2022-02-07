@@ -120,26 +120,29 @@ func getUserTokensHandler(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to list user tokens: %v", err))
 	}
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, protos.PolicyListProtoToModel(res.PolicyLists))
 }
 
 func addUserTokenHandler(c echo.Context) error {
 	username := c.Param("username")
 
-	resources := &models.Resources{}
-	if err := c.Bind(resources); err != nil {
+	policies := &models.Policies{}
+	if err := c.Bind(policies); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	if err := resources.Validate(strfmt.Default); err != nil {
+	if err := policies.Validate(strfmt.Default); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	resourceList := resourcesModelToProto(resources)
-	req := &protos.AddUserTokenRequest{
-		Username:  username,
-		Resources: resourceList,
+	policiesProto, err := protos.PoliciesModelToProto(policies)
+	if err != nil {
+		return err
 	}
-	err := certifier.AddUserToken(c.Request().Context(), req)
+	req := &protos.AddUserTokenRequest{
+		Username: username,
+		Policies: policiesProto,
+	}
+	err = certifier.AddUserToken(c.Request().Context(), req)
 	return err
 }
 
@@ -172,52 +175,5 @@ func loginHandler(c echo.Context) error {
 	if err != nil {
 		return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusOK, res.Policies)
-}
-
-func resourcesModelToProto(resources *models.Resources) *protos.ResourceList {
-	resourceList := make([]*protos.Resource, len(*resources))
-	for i, resource := range *resources {
-		resourceProto := &protos.Resource{
-			Effect:       matchEffect(resource.Effect),
-			Action:       matchAction(resource.Action),
-			ResourceType: matchResourceType(resource.ResourceType),
-			Resource:     resource.Resource,
-		}
-		resourceList[i] = resourceProto
-	}
-	return &protos.ResourceList{Resources: resourceList}
-}
-
-func matchResourceType(rawType string) protos.ResourceType {
-	switch rawType {
-	case protos.ResourceType_NETWORK_ID.String():
-		return protos.ResourceType_NETWORK_ID
-	case protos.ResourceType_TENANT_ID.String():
-		return protos.ResourceType_TENANT_ID
-	default:
-		return protos.ResourceType_URI
-	}
-}
-
-func matchEffect(rawEffect string) protos.Effect {
-	switch rawEffect {
-	case protos.Effect_DENY.String():
-		return protos.Effect_DENY
-	case protos.Effect_ALLOW.String():
-		return protos.Effect_ALLOW
-	default:
-		return protos.Effect_UNKNOWN
-	}
-}
-
-func matchAction(rawAction string) protos.Action {
-	switch rawAction {
-	case protos.Action_READ.String():
-		return protos.Action_READ
-	case protos.Action_WRITE.String():
-		return protos.Action_WRITE
-	default:
-		return protos.Action_NONE
-	}
+	return c.JSON(http.StatusOK, protos.PolicyListProtoToModel(res.PolicyLists))
 }
