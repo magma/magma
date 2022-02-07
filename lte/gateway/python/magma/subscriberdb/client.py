@@ -236,8 +236,10 @@ class SubscriberDBCloudClient(SDWatchdogTask):
 
             except grpc.RpcError as err:
                 logging.error(
-                    "Fetch subscribers error! [%s] %s", err.code(),
+                    "Fetch subscribers error! [%s] %s",
+                    err.code(),
                     err.details(),
+                    extra=EXCLUDE_FROM_ERROR_MONITORING,
                 )
                 time_elapsed = datetime.datetime.now() - sync_start
                 SUBSCRIBER_SYNC_LATENCY.observe(
