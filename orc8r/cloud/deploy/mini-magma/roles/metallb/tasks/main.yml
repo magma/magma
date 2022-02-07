@@ -35,7 +35,6 @@
   when: deploy_on_aws
   kubernetes.core.k8s:
     state: absent
-    api_version: v1
-    kind: DaemonSet
-    namespace: metallb-system
     name: metallb-speaker
+    namespace: metallb-system
+    kind: DaemonSet
