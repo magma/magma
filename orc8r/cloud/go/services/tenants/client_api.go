@@ -20,6 +20,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	srvRegistry "magma/orc8r/lib/go/registry"
@@ -27,17 +28,17 @@ import (
 
 // getTenantsClient is a utility function to get a RPC connection to the
 // tenants service
-func getTenantsClient() (protos.TenantsServiceClient, error) {
+func getTenantsClient() (tenant_protos.TenantsServiceClient, error) {
 	conn, err := srvRegistry.GetConnection(ServiceName)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
 		return nil, initErr
 	}
-	return protos.NewTenantsServiceClient(conn), nil
+	return tenant_protos.NewTenantsServiceClient(conn), nil
 }
 
-func GetAllTenants(ctx context.Context) (*protos.TenantList, error) {
+func GetAllTenants(ctx context.Context) (*tenant_protos.TenantList, error) {
 	oc, err := getTenantsClient()
 	if err != nil {
 		return nil, err
@@ -51,7 +52,7 @@ func GetAllTenants(ctx context.Context) (*protos.TenantList, error) {
 	return tenants, nil
 }
 
-func CreateTenant(ctx context.Context, tenantID int64, tenant *protos.Tenant) (*protos.Tenant, error) {
+func CreateTenant(ctx context.Context, tenantID int64, tenant *tenant_protos.Tenant) (*tenant_protos.Tenant, error) {
 	oc, err := getTenantsClient()
 	if err != nil {
 		return nil, err
@@ -59,7 +60,7 @@ func CreateTenant(ctx context.Context, tenantID int64, tenant *protos.Tenant) (*
 
 	_, err = oc.CreateTenant(
 		ctx,
-		&protos.IDAndTenant{
+		&tenant_protos.IDAndTenant{
 			Id:     tenantID,
 			Tenant: tenant,
 		},
@@ -71,20 +72,20 @@ func CreateTenant(ctx context.Context, tenantID int64, tenant *protos.Tenant) (*
 	return tenant, err
 }
 
-func GetTenant(ctx context.Context, tenantID int64) (*protos.Tenant, error) {
+func GetTenant(ctx context.Context, tenantID int64) (*tenant_protos.Tenant, error) {
 	oc, err := getTenantsClient()
 	if err != nil {
 		return nil, err
 	}
 
-	tenant, err := oc.GetTenant(ctx, &protos.GetTenantRequest{Id: tenantID})
+	tenant, err := oc.GetTenant(ctx, &tenant_protos.GetTenantRequest{Id: tenantID})
 	if err != nil {
 		return nil, mapErr(err)
 	}
 	return tenant, nil
 }
 
-func SetTenant(ctx context.Context, tenantID int64, tenant protos.Tenant) error {
+func SetTenant(ctx context.Context, tenantID int64, tenant tenant_protos.Tenant) error {
 	oc, err := getTenantsClient()
 	if err != nil {
 		return err
@@ -92,7 +93,7 @@ func SetTenant(ctx context.Context, tenantID int64, tenant protos.Tenant) error 
 
 	_, err = oc.SetTenant(
 		ctx,
-		&protos.IDAndTenant{
+		&tenant_protos.IDAndTenant{
 			Id:     tenantID,
 			Tenant: &tenant,
 		},
@@ -110,7 +111,7 @@ func DeleteTenant(ctx context.Context, tenantID int64) error {
 		return err
 	}
 
-	_, err = oc.DeleteTenant(ctx, &protos.GetTenantRequest{Id: tenantID})
+	_, err = oc.DeleteTenant(ctx, &tenant_protos.GetTenantRequest{Id: tenantID})
 	if err != nil {
 		return mapErr(err)
 	}
@@ -118,13 +119,13 @@ func DeleteTenant(ctx context.Context, tenantID int64) error {
 	return nil
 }
 
-func GetControlProxy(ctx context.Context, tenantID int64) (*protos.GetControlProxyResponse, error) {
+func GetControlProxy(ctx context.Context, tenantID int64) (*tenant_protos.GetControlProxyResponse, error) {
 	oc, err := getTenantsClient()
 	if err != nil {
 		return nil, err
 	}
 
-	controlProxy, err := oc.GetControlProxy(ctx, &protos.GetControlProxyRequest{Id: tenantID})
+	controlProxy, err := oc.GetControlProxy(ctx, &tenant_protos.GetControlProxyRequest{Id: tenantID})
 	if err != nil {
 		return nil, mapErr(err)
 	}
@@ -132,7 +133,7 @@ func GetControlProxy(ctx context.Context, tenantID int64) (*protos.GetControlPro
 	return controlProxy, nil
 }
 
-func CreateOrUpdateControlProxy(ctx context.Context, controlProxy protos.CreateOrUpdateControlProxyRequest) error {
+func CreateOrUpdateControlProxy(ctx context.Context, controlProxy tenant_protos.CreateOrUpdateControlProxyRequest) error {
 	oc, err := getTenantsClient()
 	if err != nil {
 		return err

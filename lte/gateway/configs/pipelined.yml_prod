@@ -195,9 +195,5 @@ sgi_tunnel:
 #   gtp_tso_enable: false
 #
 
-# [Experimental] Enable Sentry for this service
-# Allowed values: send_all_errors, send_selected_errors, disabled
-sentry: disabled
-
 ebpf:
   enabled: false

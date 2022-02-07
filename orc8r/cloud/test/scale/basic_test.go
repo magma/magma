@@ -58,7 +58,7 @@ import (
 // TODO(hcgatewood): clean up this scale test then add it to daily CI job
 
 func init() {
-	_ = flag.Set("alsologtostderr", "true")
+	_ = flag.Set("logtostderr", "true")
 }
 
 var NSubs int64 = 20_000

@@ -29,6 +29,7 @@ import (
 	"magma/orc8r/cloud/go/services/state/metrics"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/services/state/servicers"
+	indexermgr_servicers "magma/orc8r/cloud/go/services/state/servicers/protected"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
@@ -109,7 +110,7 @@ func newIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.Stor
 
 	autoReindex := cfg.MustGetBool(state_config.EnableAutomaticReindexing)
 	reindexer := reindex.NewReindexerQueue(queue, reindex.NewStore(store))
-	servicer := servicers.NewIndexerManagerServicer(reindexer, autoReindex)
+	servicer := indexermgr_servicers.NewIndexerManagerServicer(reindexer, autoReindex)
 
 	if autoReindex && storage.GetSQLDriver() != sqorc.PostgresDriver {
 		glog.Warning(nonPostgresDriverMessage)

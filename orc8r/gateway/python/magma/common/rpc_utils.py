@@ -152,6 +152,19 @@ def is_grpc_error_retryable(error: grpc.RpcError) -> bool:
     return False
 
 
+def indicates_connection_error(error: grpc.RpcError) -> bool:
+    """Try to determine if an RpcError is caused by a connection error
+    to the RPC endpoint, which means that it's likely not caused by a bug in the code
+
+    Args:
+        error (grpc.RpcError): The RpcError
+
+    Returns:
+        bool: Is this a network error
+    """
+    return error.code() in {grpc.StatusCode.UNAVAILABLE, grpc.StatusCode.DEADLINE_EXCEEDED}
+
+
 def print_grpc(
     message: proto_message.Message, print_grpc_payload: bool,
     message_header: str = "",

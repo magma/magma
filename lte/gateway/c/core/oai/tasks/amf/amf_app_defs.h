@@ -45,7 +45,7 @@ int amf_app_handle_pdu_session_accept(
     itti_n11_create_pdu_session_response_t* pdu_session_resp, uint64_t ue_id);
 void convert_ambr(
     const uint32_t* pdu_ambr_response_unit,
-    const uint32_t* pdu_ambr_response_value, uint8_t* ambr_unit,
+    const uint32_t* pdu_ambr_response_value, M5GSessionAmbrUnit* ambr_unit,
     uint16_t* ambr_value);
 int amf_smf_handle_ip_address_response(
     itti_amf_ip_allocation_response_t* response_p);

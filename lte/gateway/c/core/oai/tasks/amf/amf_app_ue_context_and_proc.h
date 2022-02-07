@@ -93,7 +93,7 @@ struct amf_procedures_t;
 #define PAGING_TIMER_EXPIRY_MSECS 4000
 #define PDUE_SESSION_RELEASE_TIMER_MSECS 16000
 
-#define MAX_PAGING_RETRY_COUNT 1
+#define MAX_PAGING_RETRY_COUNT 4
 // Header length boundaries of 5GS Mobility Management messages
 #define AMF_HEADER_LENGTH sizeof(amf_msg_header)
 
@@ -103,7 +103,6 @@ struct amf_procedures_t;
 #define PDU_ESTAB_ACCEPT_NAS_PDU_LEN 41
 #define SSC_MODE_ONE 0x1
 #define PDU_ADDR_IPV4_LEN 0x4
-#define PDU_ADDR_TYPE 0X1
 #define GNB_IPV4_ADDR_LEN 4
 #define GNB_TEID_LEN 4
 
@@ -242,13 +241,26 @@ typedef struct teid_upf_gnb_s {
 
 // Data get communicated with SMF and stored for reference
 typedef struct smf_proc_data_s {
-  PDUSessionIdentityMsg pdu_session_identity;
-  PTIMsg pti;
-  MessageTypeMsg message_type;
-  IntegrityProtMaxDataRateMsg integrity_prot_max_data_rate;
-  PDUSessionTypeMsg pdu_session_type;
-  SSCModeMsg ssc_mode;
+  uint8_t pdu_session_id;
+  uint8_t pti;
+  M5GMessageType message_type;
+  uint8_t max_uplink;
+  uint8_t max_downlink;
+  M5GPduSessionType pdu_session_type;
+  uint32_t ssc_mode;
 } smf_proc_data_t;
+
+typedef struct session_ambr_s {
+  M5GSessionAmbrUnit dl_ambr_unit;
+  uint16_t dl_session_ambr;
+  M5GSessionAmbrUnit ul_ambr_unit;
+  uint16_t ul_session_ambr;
+} session_ambr_t;
+
+typedef struct s_nssai_s {
+  uint8_t sst;
+  uint8_t sd[SD_LENGTH];
+} s_nssai_t;
 
 // PDU session context part of AMFContext
 typedef struct smf_context_s {
@@ -256,32 +268,23 @@ typedef struct smf_context_s {
   uint32_t pdu_session_version;
   uint32_t n_active_pdus;
   bool is_emergency;
-  uint8_t dl_ambr_unit;
-  uint16_t dl_session_ambr;
-  uint8_t ul_ambr_unit;
-  uint16_t ul_session_ambr;
-  QOSRule qos_rules[1];
+  session_ambr_t selected_ambr;
   teid_upf_gnb_t gtp_tunnel_id;
   paa_t pdu_address;
-  ambr_t smf_ctx_ambr;
+  ambr_t apn_ambr;
   smf_proc_data_t smf_proc_data;
   struct nas5g_timer_s T3592;  // PDU_SESSION_RELEASE command timer
   int retransmission_count;
   protocol_configuration_options_t pco;
   uint32_t duplicate_pdu_session_est_req_count;
   std::string dnn;
-  uint8_t sst;
-  uint8_t sd[SD_LENGTH];
+  s_nssai_t requested_nssai;
 
-  // Request to gnb on PDU establisment request
-  pdu_session_resource_setup_req_t pdu_resource_setup_req;
-  pdu_session_resource_setup_rsp_t pdu_resource_setup_rsp;
-  pdu_session_resource_to_release_list pdu_resource_release_req;
-  pdu_session_resource_to_release_list pdu_resource_release_rsp;
+  qos_flow_request_list_t subscribed_qos_profile;
 } smf_context_t;
 
 typedef struct paging_context_s {
-#define MAX_PAGING_RETRY_COUNT 1
+#define MAX_PAGING_RETRY_COUNT 4
   amf_app_timer_t m5_paging_response_timer;
   uint8_t paging_retx_count;
 } paging_context_t;
@@ -458,7 +461,7 @@ void amf_ctx_clear_attribute_present(
 typedef struct amf_msg_header_t {
   uint8_t extended_protocol_discriminator;
   uint8_t security_header_type;
-  uint8_t message_type;
+  M5GMessageType message_type;
   uint32_t message_authentication_code;
   uint8_t sequence_number;
 } amf_msg_header;
@@ -858,8 +861,9 @@ void amf_ue_context_on_new_guti(
 ue_m5gmm_context_s* amf_ue_context_exists_guti(
     amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p);
 void ambr_calculation_pdu_session(
-    uint16_t* dl_session_ambr, uint8_t* dl_ambr_unit, uint16_t* ul_session_ambr,
-    uint8_t* ul_ambr_unit, uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr);
+    uint16_t* dl_session_ambr, M5GSessionAmbrUnit dl_ambr_unit,
+    uint16_t* ul_session_ambr, M5GSessionAmbrUnit ul_ambr_unit,
+    uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr);
 int amf_proc_registration_abort(
     amf_context_t* amf_ctx, struct ue_m5gmm_context_s* ue_amf_context);
 ue_m5gmm_context_s* ue_context_loopkup_by_guti(tmsi_t tmsi_rcv);
@@ -902,6 +906,13 @@ void delete_wrapper(T** pObj) {
     *pObj = nullptr;
   }
 }
+
+// Sync State manager map with Amf Application maps
+void amf_sync_app_maps_from_db();
+
+bool get_amf_ue_id_from_imsi(
+    amf_ue_context_t* amf_ue_context_p, imsi64_t imsi64,
+    amf_ue_ngap_id_t* ue_id);
 
 void nas_amf_procedure_gc(amf_context_t* amf_ctx);
 }  // namespace magma5g

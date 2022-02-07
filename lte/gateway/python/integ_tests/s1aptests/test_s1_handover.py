@@ -20,7 +20,7 @@ import s1ap_wrapper
 
 
 class TestS1Handover(unittest.TestCase):
-    """Unittest: TestS1Handover"""
+    """Integration Test: TestS1Handover"""
 
     def setUp(self):
         """Initialize before test case execution"""
@@ -100,9 +100,8 @@ class TestS1Handover(unittest.TestCase):
             dl_flow_rules,
         )
 
-        # Configure the S1 Handover Event type as S1_HO_SUCCESS and
         # Trigger the S1 Handover Procedure from Source ENB by sending S1
-        # Handover Required Message
+        # Handover Required Message to MME
         print(
             "************************* Sending S1 Handover Required for UE Id:",
             req.ue_id,
@@ -139,8 +138,19 @@ class TestS1Handover(unittest.TestCase):
             + ")",
         )
 
-        # After receiving S1 Handover Request, S1APTester stack sends S1
-        # Handover Request Ack from target ENB to MME. MME then sends S1
+        # Send the S1 Handover Request Ack message from Target ENB to MME
+        print(
+            "************************* Sending S1 Handover Req Ack for UE Id:",
+            req.ue_id,
+        )
+        s1ho_req_ack = s1ap_types.FwNbS1HoReqAck_t()
+        s1ho_req_ack.ueId = req.ue_id
+        self._s1ap_wrapper.s1_util.issue_cmd(
+            s1ap_types.tfwCmd.S1_HANDOVER_REQ_ACK,
+            s1ho_req_ack,
+        )
+
+        # After receiving S1 Handover Req Ack from Target ENB, MME sends S1
         # Handover Command to Source ENB.
         # Wait for S1 Handover Command Indication
         response = self._s1ap_wrapper.s1_util.get_response()
@@ -162,19 +172,101 @@ class TestS1Handover(unittest.TestCase):
             + ")",
         )
 
-        # TODO: Current S1APTester logic is broken. Fix as follows
-        # 1- Dont send messages automatically on behalf of eNBs
-        # 2- Handover Notify Msg from target ENB should only be sent after
-        # successfully receiving the MME Status Transfer Msg
-        # 3- Source eNB will receive a UE Context Release Command once MME
-        # receives a Handover Notify Msg from Target eNB
+        # Send the ENB Status Transfer message from source ENB to MME
+        print(
+            "************************* Sending ENB Status Transfer for UE Id:",
+            req.ue_id,
+        )
+        enb_status_trf = s1ap_types.FwNbEnbStatusTrnsfr_t()
+        enb_status_trf.ueId = req.ue_id
+        self._s1ap_wrapper.s1_util.issue_cmd(
+            s1ap_types.tfwCmd.S1_ENB_STATUS_TRANSFER,
+            enb_status_trf,
+        )
 
+        # After receiving ENB Status Transfer from Source ENB, MME sends MME
+        # Status Transfer to Target ENB.
+        # Wait for MME Status Transfer Indication
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(
+            response.msg_type,
+            s1ap_types.tfwCmd.S1_MME_STATUS_TRSFR_IND.value,
+        )
+        mme_status_trf_ind = response.cast(s1ap_types.FwNbMmeStatusTrnsfrInd_t)
+        print(
+            "************************* Received MME Status Transfer "
+            "Indication (UeId: "
+            + str(mme_status_trf_ind.ueId)
+            + ", Connected EnbId: "
+            + str(mme_status_trf_ind.currEnbId)
+            + ") (HO SrcEnbId: "
+            + str(mme_status_trf_ind.hoSrcEnbId)
+            + ", HO TgtEnbId: "
+            + str(mme_status_trf_ind.hoTgtEnbId)
+            + ")",
+        )
+
+        # Send the S1 Handover Notify message from target ENB to MME
+        print(
+            "************************* Sending S1 Handover Notify for UE Id:",
+            req.ue_id,
+        )
+        s1ho_notify = s1ap_types.FwNbS1HoNotify_t()
+        s1ho_notify.ueId = req.ue_id
+        self._s1ap_wrapper.s1_util.issue_cmd(
+            s1ap_types.tfwCmd.S1_HANDOVER_NOTIFY,
+            s1ho_required,
+        )
+
+        # After successful handover, MME sends UE context release command to
+        # source ENB for clearing UE context from source ENB
         # Wait for UE Context Release command
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
-        print("************************* Received UE Context Release Command")
+        ue_ctxt_rel_ind = response.cast(s1ap_types.FwNbUeCtxRelInd_t)
+        self.assertEqual(
+            # causeType = 0 (Radio network)
+            ue_ctxt_rel_ind.relCause.causeType,
+            0,
+        )
+        self.assertEqual(
+            # causeVal = 2 (successful-handover)
+            ue_ctxt_rel_ind.relCause.causeVal,
+            2,
+        )
+        print(
+            "************************* Received UE Context Release Command "
+            "after successful handover",
+        )
+
+        print("Waiting for 3 seconds for the flow rules creation")
+        time.sleep(3)
+        # Verify if flow rules are created
+        # 1 UL flow for default bearer
+        num_ul_flows = 1
+        dl_flow_rules = {default_ip: []}
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows,
+            dl_flow_rules,
+        )
+
+        print(
+            "************************* Running UE detach for UE Id:",
+            req.ue_id,
+        )
+        # Now detach the UE
+        self._s1ap_wrapper.s1_util.detach(
+            req.ue_id,
+            s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
+        )
+
+        print("Waiting for 5 seconds for the flow rules deletion")
+        time.sleep(5)
+        # Verify that all UL/DL flows are deleted
+        self._s1ap_wrapper.s1_util.verify_flow_rules_deletion()
 
 
 if __name__ == "__main__":

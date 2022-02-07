@@ -20,10 +20,10 @@ import (
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/tenants"
-	"magma/orc8r/cloud/go/services/tenants/servicers"
+	"magma/orc8r/cloud/go/services/tenants/protos"
+	servicers "magma/orc8r/cloud/go/services/tenants/servicers/protected"
 	"magma/orc8r/cloud/go/services/tenants/servicers/storage"
 	"magma/orc8r/cloud/go/test_utils"
-	"magma/orc8r/lib/go/protos"
 )
 
 // StartTestService instantiates a service backed by an in-memory storage

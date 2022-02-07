@@ -65,7 +65,7 @@ func choseMaxEirp(channel *active_mode.Channel, capabilities *active_mode.EirpCa
 	minEirp, maxEirp := calculateEirpBounds(channel, capabilities)
 	v := maxEirp
 	if channel.LastEirp != nil {
-		v = float64(channel.GetLastEirp() - 1)
+		v = float64(channel.GetLastEirp().Value - 1)
 	}
 	if v < minEirp {
 		return 0, false
@@ -84,7 +84,7 @@ func calculateEirpBounds(channel *active_mode.Channel, capabilities *active_mode
 	minEirp := math.Max(minSASEirp, minCapableEirp)
 	maxEirp := math.Min(maxSASEirp, maxCapableEirp)
 	if channel.MaxEirp != nil {
-		maxEirp = math.Min(float64(channel.GetMaxEirp()), maxEirp)
+		maxEirp = math.Min(float64(channel.GetMaxEirp().Value), maxEirp)
 	}
 	return minEirp, maxEirp
 }
