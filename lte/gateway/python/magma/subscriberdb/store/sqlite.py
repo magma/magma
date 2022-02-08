@@ -13,6 +13,7 @@ limitations under the License.
 
 import logging
 import sqlite3
+import subprocess
 from collections import defaultdict
 from contextlib import contextmanager
 from datetime import datetime
@@ -20,15 +21,14 @@ from typing import List, NamedTuple
 
 from lte.protos.subscriberdb_pb2 import SubscriberData
 from magma.subscriberdb.sid import SIDUtils
-from orc8r.protos.digest_pb2 import Digest, LeafDigest
-
-from .base import (
+from magma.subscriberdb.store.base import (
     BaseStore,
     DuplicateSubscriberError,
     SubscriberNotFoundError,
     SubscriberServerTooBusy,
 )
-from .onready import OnDataReady, OnDigestsReady
+from magma.subscriberdb.store.onready import OnDataReady, OnDigestsReady
+from orc8r.protos.digest_pb2 import Digest, LeafDigest
 
 DigestDBInfo = NamedTuple(
     'DigestDBInfo', [
@@ -274,8 +274,11 @@ class SqliteStore(BaseStore):
             db_parts = db_location.split(":", 1)
             if (len(db_parts) == 2) and db_parts[1]:
                 path_str = db_parts[1].split("?")
-                import os
-                os.system('fuser -uv ' + path_str[0])
+                output = subprocess.Popen(
+                        ["/usr/bin/fuser", "-uv", path_str[0]],
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                )
+                logging.info(output.communicate())
             raise SubscriberServerTooBusy(subscriber_id)
         finally:
             conn.close()
