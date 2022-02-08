@@ -424,13 +424,6 @@ service:
     Required: false
     ConfigApps:
       - tf
-  fbinternal_orc8r_chart_version:
-    Description: Version of the Orchestrator fbinternal module Helm chart to install.
-    Type: string
-    Required: false
-    ConfigApps:
-      - tf
-    Default: 0.2.2
   feg_orc8r_chart_version:
     Description: Version of the Orchestrator feg module Helm chart to install.
     Type: string
