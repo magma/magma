@@ -151,7 +151,7 @@ tools_lint:
 
 swagger: swagger_directories $(SWAGGER_LIST)
 	cp $(MAGMA_ROOT)/orc8r/cloud/go/models/swagger-common.yml $(SWAGGER_V1_COMMON_DIR)/$(SWAGGER_COMMON)
-	combine_swagger --in=$(SWAGGER_V1_PARTIAL_SPECS_DIR) --common=$(SWAGGER_V1_COMMON_DIR)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
+	swaggergen --combine --in=$(SWAGGER_V1_PARTIAL_SPECS_DIR) --common=$(SWAGGER_V1_COMMON_DIR)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
 	swagger validate $(SWAGGER_V1_YML)
 
 swagger_directories:

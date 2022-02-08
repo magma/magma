@@ -1,0 +1,45 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library")
+load("//bazel:python_test.bzl", "pytest_test")
+
+COMMON_TEST_DEPS = ["//lte/gateway/python/magma/policydb:policydb"]
+
+pytest_test(
+    name = "test_policy_servicer",
+    srcs = ["test_policy_servicer.py"],
+    deps = COMMON_TEST_DEPS + [requirement("grpcio")],
+)
+
+pytest_test(
+    name = "test_reauth_handler",
+    srcs = ["test_reauth_handler.py"],
+    deps = COMMON_TEST_DEPS,
+)
+
+pytest_test(
+    name = "test_session_servicer",
+    srcs = ["test_session_servicer.py"],
+    deps = COMMON_TEST_DEPS,
+)
+
+pytest_test(
+    name = "test_streamer_callback",
+    srcs = ["test_streamer_callback.py"],
+    deps = COMMON_TEST_DEPS + [":mock_stubs"],
+)
+
+py_library(
+    name = "mock_stubs",
+    srcs = ["mock_stubs.py"],
+)

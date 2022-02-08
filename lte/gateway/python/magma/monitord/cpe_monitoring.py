@@ -20,7 +20,6 @@ import grpc
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from magma.common.rpc_utils import grpc_async_wrapper
-from magma.common.sentry import SEND_TO_ERROR_MONITORING
 from magma.common.service_registry import ServiceRegistry
 from magma.magmad.check.network_check.ping import PingCommandResult
 from magma.monitord.icmp_state import ICMPMonitoringResponse
@@ -96,7 +95,6 @@ class CpeMonitoringModule:
                 "GetSubscribers Error for %s! %s",
                 err.code(),
                 err.details(),
-                extra=SEND_TO_ERROR_MONITORING,
             )
         return PingedTargets(ping_targets, ping_addresses)
 

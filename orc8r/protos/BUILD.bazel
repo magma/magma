@@ -209,3 +209,14 @@ proto_library(
         "@protobuf//:wrappers_proto",
     ],
 )
+
+proto_library(
+    name = "streamer_proto",
+    srcs = ["streamer.proto"],
+    deps = ["@protobuf//:any_proto"],
+)
+
+python_grpc_library(
+    name = "streamer_python_grpc",
+    protos = [":streamer_proto"],
+)

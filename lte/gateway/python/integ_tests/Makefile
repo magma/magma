@@ -16,7 +16,7 @@ $(PYTHON_BUILD)/setupinteg_env:
 	@echo "Copying s1aptester config files"
 	cp $(S1AP_TESTER_CFG)/* $(S1AP_TESTER_ROOT)
 	@echo "Install MySQL for upstreaming"
-	$(VIRT_ENV_PIP_INSTALL) mysqlclient==1.3.12
+	$(VIRT_ENV_PIP_INSTALL) mysqlclient==1.3.13
 	@echo export PYTHONPATH=$(PYTHONPATH):$(S1AP_TESTER_PYTHON_PATH) >> $(PYTHON_BUILD)/bin/activate
 	touch $(PYTHON_BUILD)/setupinteg_env
 

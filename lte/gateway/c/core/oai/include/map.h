@@ -140,7 +140,7 @@ static std::string map_rc_code2string(map_rc_t rc) {
 **                         pass a suitable EqualTo method.                **
 **                            Default: std::equal_to<keyT>                **
 **                                                                        **
-** APIs:       set_name() , get_name(), get(), insert(), delete()        **
+** APIs:       set_name() , get_name(), get(), insert(), delete()         **
 **                                                                        **
 ***************************************************************************/
 template<
@@ -223,7 +223,7 @@ struct map_s {
   **                                                                        **
   ** Name:    isEmpty()                                                     **
   **                                                                        **
-  ** Description: Returns true if map is empty, else returns false           **
+  ** Description: Returns true if map is empty, else returns false          **
   **                                                                        **
   ***************************************************************************/
   bool isEmpty() { return umap.empty(); }
@@ -239,6 +239,14 @@ struct map_s {
     umap.clear();
     name.clear();
   }
+  /***************************************************************************
+  **                                                                        **
+  ** Name:    size()                                                        **
+  **                                                                        **
+  ** Description: size the contents of the map                              **
+  **                                                                        **
+  ***************************************************************************/
+  size_t size() { return umap.size(); }
 };
 
 // Amf-Map Declarations:

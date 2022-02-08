@@ -279,8 +279,6 @@ status_code_e emm_proc_authentication_complete(
     mme_ue_s1ap_id_t ue_id, authentication_response_msg* msg, int emm_cause,
     const_bstring const res);
 
-status_code_e emm_attach_security(struct emm_context_s* emm_context);
-
 void set_notif_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc);
 void set_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc);
 void set_callbacks_for_auth_info_proc(nas_auth_info_proc_t* auth_info_proc);

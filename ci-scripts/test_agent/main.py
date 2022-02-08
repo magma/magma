@@ -63,7 +63,7 @@ def main():
                     {"state": tester.get_state(), "current_workload": None}
                 )
         db_client.update_worker_state(num_of_testers, testers_state)
-        time.sleep(15)
+        time.sleep(120)
 
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@ limitations under the License.
 """
 import asyncio
 from unittest import TestCase
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
 from google.protobuf.any_pb2 import Any
 from google.protobuf.json_format import MessageToJson
@@ -39,7 +39,7 @@ class ConfigManagerTest(TestCase):
         updated_mconfig = GatewayConfigs()
 
         some_any = Any()
-        magmad = MagmaD(log_level=1)
+        magmad = MagmaD(log_level=1, orc8r_version="0.0.1")
         some_any.Pack(magmad)
         test_mconfig.configs_by_key['magmad'].CopyFrom(some_any)
         updated_mconfig.configs_by_key['magmad'].CopyFrom(some_any)
@@ -67,6 +67,8 @@ class ConfigManagerTest(TestCase):
         service_manager_mock = MagicMock()
         magmad_service_mock = MagicMock()
         mconfig_manager_mock = MconfigManagerImpl()
+        type(magmad_service_mock).version = PropertyMock(return_value="0.1.0")
+        self.assertEqual(magmad_service_mock.version, "0.1.0")
 
         load_mock = patch.object(
             mconfig_manager_mock,
@@ -134,6 +136,11 @@ class ConfigManagerTest(TestCase):
                 'magmad': updated_mconfig.configs_by_key['magmad'],
                 'metricsd': updated_mconfig.configs_by_key['metricsd'],
             }
+            magmad_parsed = MagmaD()
+            updated_mconfig.configs_by_key['magmad'].Unpack(magmad_parsed)
+            orc8r_version = magmad_parsed.orc8r_version
+            self.assertEqual('0.0.1', orc8r_version)
+
             processed_updates.assert_called_once_with(configs_by_service)
 
             restarter.reset_mock()

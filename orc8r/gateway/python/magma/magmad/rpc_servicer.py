@@ -23,12 +23,6 @@ from google.protobuf import json_format
 from google.protobuf.json_format import MessageToJson
 from google.protobuf.struct_pb2 import Struct
 from magma.common.rpc_utils import return_void, set_grpc_err
-from magma.common.sentry import (
-    SEND_TO_ERROR_MONITORING,
-    SentryStatus,
-    get_sentry_status,
-    send_uncaught_errors_to_monitoring,
-)
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.common.stateless_agw import (
@@ -41,8 +35,6 @@ from magma.magmad.check.network_check import ping, traceroute
 from magma.magmad.generic_command.command_executor import CommandExecutor
 from magma.magmad.service_manager import ServiceManager
 from orc8r.protos import magmad_pb2, magmad_pb2_grpc
-
-enable_sentry_wrapper = get_sentry_status("magmad") == SentryStatus.SEND_SELECTED_ERRORS
 
 
 class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
@@ -89,7 +81,6 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         magmad_pb2_grpc.add_MagmadServicer_to_server(self, server)
 
     @return_void
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def StartServices(self, _, context):
         """
         Start all magma services
@@ -97,7 +88,6 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         self._loop.create_task(self._service_manager.start_services())
 
     @return_void
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def StopServices(self, _, context):
         """
         Stop all magma services
@@ -105,7 +95,6 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         self._loop.create_task(self._service_manager.stop_services())
 
     @return_void
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def Reboot(self, _, context):
         """
         Reboot the gateway device
@@ -118,7 +107,6 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         self._loop.create_task(run_reboot())
 
     @return_void
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def RestartServices(self, request, context):
         """
         Restart specified magma services.
@@ -134,7 +122,6 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         self._loop.create_task(run_restart())
 
     @return_void
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def SetConfigs(self, request, context):
         """
         Set the stored mconfig to a specific value. Restarts all services
@@ -159,12 +146,10 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         )
         self._magma_service.reload_mconfig()
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetConfigs(self, _, context):
         # TODO: support streaming mconfig manager impl
         return self._mconfig_manager.load_mconfig()
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def RunNetworkTests(self, request, context):
         """
         Execute some specified network commands to check gateway network health
@@ -180,7 +165,6 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
             traceroutes=traceroute_results,
         )
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetGatewayId(self, _, context):
         """
         Get gateway hardware ID
@@ -189,7 +173,6 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
             gateway_id=snowflake.snowflake(),
         )
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GenericCommand(self, request, context):
         """
         Execute generic command. This method will run the command with params
@@ -243,7 +226,6 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
             logging.error(
                 'Error running command %s! %s: %s',
                 request.command, e.__class__.__name__, e,
-                extra=SEND_TO_ERROR_MONITORING,
             )
             set_grpc_err(
                 context,
@@ -253,7 +235,6 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
 
         return response
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def TailLogs(self, request, context):
         """
         Provides an infinite stream of logs to the client. The client can stop
@@ -310,7 +291,6 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
             except queue.Empty:
                 pass
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def CheckStateless(self, _, context):
         """
         Check the stateless mode on AGW
@@ -323,7 +303,6 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         return magmad_pb2.CheckStatelessResponse(agw_mode=status)
 
     @return_void
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def ConfigureStateless(self, request, context):
         """
         Change the stateless mode on AGW, with one of the following:
