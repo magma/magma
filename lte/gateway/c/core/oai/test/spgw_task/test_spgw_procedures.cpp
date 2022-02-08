@@ -1456,7 +1456,7 @@ TEST_F(SPGWAppProcedureTest, TestDeleteBearerCommand) {
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
-TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivationInvalidImsi) {
+TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivationInvalidImsiLbi) {
   spgw_state_t* spgw_state  = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
   // expect call to MME create session response
@@ -1531,8 +1531,8 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivationInvalidImsi) {
   // verify that exactly one session exists in SPGW state
   EXPECT_TRUE(is_num_sessions_valid(test_imsi64, 1, 1));
 
-  // send network initiated dedicated bearer activation request from Session
-  // Manager
+  // send network initiated dedicated bearer activation request with
+  // invalid imsi
   itti_gx_nw_init_actv_bearer_request_t sample_gx_nw_init_ded_bearer_actv_req =
       {};
   gtpv2c_cause_value_t failed_cause = REQUEST_ACCEPTED;
@@ -1755,7 +1755,30 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivationInvalidImsi) {
 
   EXPECT_EQ(return_code, RETURNok);
 
-  // check that there are 2 bearers
+  // check that there 2 bearers
+  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
+
+  // send deactivate request for dedicated bearer from Session Manager
+  // with invalid imsi
+  fill_nw_initiated_deactivate_bearer_request(
+      &sample_gx_nw_init_ded_bearer_deactv_req, invalid_imsi_str,
+      DEFAULT_EPS_BEARER_ID, ded_eps_bearer_id);
+
+  // check that MME does not get bearer deactivation request
+  EXPECT_CALL(
+      *mme_app_handler,
+      mme_app_handle_nw_init_bearer_deactv_req(
+          check_params_in_deactv_bearer_req(
+              sample_gx_nw_init_ded_bearer_deactv_req.no_of_bearers,
+              sample_gx_nw_init_ded_bearer_deactv_req.ebi)))
+      .Times(0);
+
+  return_code = spgw_handle_nw_initiated_bearer_deactv_req(
+      &sample_gx_nw_init_ded_bearer_deactv_req, test_imsi64);
+
+  EXPECT_EQ(return_code, RETURNok);
+
+  // verify that the dedicated bearer is not deleted
   EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
 
   // send deactivate request for dedicated bearer from Session Manager
@@ -1778,7 +1801,7 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivationInvalidImsi) {
 
   EXPECT_EQ(return_code, RETURNok);
 
-  // verify that there are 2 bearers
+  // verify that the dedicated bearer is not deleted
   EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
 
   // Sleep to ensure that messages are received and contexts are released
