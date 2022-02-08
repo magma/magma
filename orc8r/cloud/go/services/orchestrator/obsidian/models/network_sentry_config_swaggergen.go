@@ -45,7 +45,7 @@ type NetworkSentryConfig struct {
 func (m *NetworkSentryConfig) UnmarshalJSON(b []byte) error {
 	type NetworkSentryConfigAlias NetworkSentryConfig
 	var t NetworkSentryConfigAlias
-	if err := json.Unmarshal([]byte("{\"exclusion_patterns\":[\"ConnectionError\",\"CheckinError\"],\"sample_rate\":1,\"upload_mme_log\":false}"), &t); err != nil {
+	if err := json.Unmarshal([]byte("{\"exclusion_patterns\":[],\"sample_rate\":1,\"upload_mme_log\":false}"), &t); err != nil {
 		return err
 	}
 	if err := json.Unmarshal(b, &t); err != nil {

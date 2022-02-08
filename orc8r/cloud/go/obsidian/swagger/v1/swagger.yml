@@ -9970,9 +9970,7 @@ definitions:
     type: object
   network_sentry_config:
     default:
-      exclusion_patterns:
-      - ConnectionError
-      - CheckinError
+      exclusion_patterns: []
       sample_rate: 1
       upload_mme_log: false
     description: Sentry.io configuration
