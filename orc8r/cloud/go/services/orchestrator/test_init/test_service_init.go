@@ -23,7 +23,7 @@ import (
 	indexer_servicers "magma/orc8r/cloud/go/services/orchestrator/servicers/protected"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
 	streamer_protos "magma/orc8r/cloud/go/services/streamer/protos"
-	streamer_servicers "magma/orc8r/cloud/go/services/streamer/servicers"
+	streamer_servicers "magma/orc8r/cloud/go/services/streamer/servicers/southbound"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
