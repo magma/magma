@@ -1,5 +1,6 @@
 ---
 orc8r_domain: ""
+orc8r_chart_version: "v1.6"
 magma_namespace: "orc8r"
 magma_docker_registry: "magmacore"
 magma_docker_tag: "1.6.1"

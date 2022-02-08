@@ -4,6 +4,7 @@
     name: cwf-orc8r
     chart_ref: orc8r/cwf-orc8r
     release_namespace: "{{ magma_namespace }}"
+    chart_version: "{{ orc8r_chart_version }}"
     create_namespace: true
     values:
       controller:
