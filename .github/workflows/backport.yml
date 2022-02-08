@@ -23,7 +23,7 @@ jobs:
       - name: Install python prerequisites
         run: pip3 install fabric3 jsonpickle requests PyYAML PyGithub
       - run: |
-            cd ${MAGMA_ROOT}/circleci/release
+            cd ${MAGMA_ROOT}/.github/workflows/scripts
             fab find_release_commits
       - name: Extract commit title
         if: failure()

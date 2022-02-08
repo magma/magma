@@ -1,6 +1,4 @@
 # approvers-ci
-/.circleci/ @magma/approvers-ci
-/circleci/ @magma/approvers-ci
 /ci-scripts/ @magma/approvers-ci
 /.github/workflows/ @magma/approvers-ci
 /third_party/build/ @magma/approvers-ci

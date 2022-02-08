@@ -7,8 +7,6 @@ on:  # yamllint disable-line rule:truthy
     types: [opened, reopened, synchronize]
     paths:
       - 'ci-scripts/**'
-      - '.circleci/**'
-      - 'circleci/**'
       - '.github/**'
       - 'cn/**'
       - 'cwf/**'
@@ -53,8 +51,6 @@ jobs:
             for (const f of pulledFiles['data']) {
              switch (true) {
               case /^ci-scripts\/.*/.test(f.filename):
-              case /^\.circleci\/.*/.test(f.filename):
-              case /^circleci\/.*/.test(f.filename):
               case /^\.github\/workflows\/.*/.test(f.filename):
               case /^third_party\/build\/.*/.test(f.filename):
               case /^orc8r\/tools\/packer\/.*/.test(f.filename):
