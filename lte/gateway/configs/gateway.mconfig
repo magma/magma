@@ -139,10 +139,7 @@
         "dsn_python": "",
         "sample_rate": 1.0,
         "upload_mme_log": false,
-        "exclusion_patterns": [
-          "ConnectionError",
-          "CheckinError",
-        ]
+        "exclusion_patterns": []
       }
     },
     "state": {

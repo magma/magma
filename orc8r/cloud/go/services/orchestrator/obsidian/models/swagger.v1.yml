@@ -1466,9 +1466,7 @@ definitions:
     default:
       upload_mme_log: false
       sample_rate: 1
-      exclusion_patterns:
-        - 'ConnectionError'
-        - 'CheckinError'
+      exclusion_patterns: []
 
   state_config:
     type: object
