@@ -45,6 +45,7 @@
 #include "SpgwServiceClient.h"
 #include "StoreClient.h"
 #include "Types.h"
+#include "Ebpf.h"
 #include "lte/protos/pipelined.pb.h"
 #include "lte/protos/session_manager.pb.h"
 

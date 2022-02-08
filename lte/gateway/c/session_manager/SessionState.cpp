@@ -2795,6 +2795,10 @@ void SessionState::increment_rule_stats(
   }
 }
 
+std::string SessionState::get_first_rule_id() {
+    return policy_version_and_stats_.begin()->first;
+}
+
 bool operator==(const Teids& lhs, const Teids& rhs) {
   return lhs.enb_teid() == rhs.enb_teid() && lhs.agw_teid() == rhs.agw_teid();
 }
