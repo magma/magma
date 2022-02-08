@@ -1,5 +1,5 @@
 # requirements.in
-setuptools
+setuptools==49.6.0
 grpcio-tools
 grpcio
 redis>=3.5
@@ -29,6 +29,7 @@ cryptography
 h2>=3,<4
 #  priority==1.3.0 is requirement of aioh2 (loaded via bazel)
 priority==1.3.0
+requests
 
 # bazelbase container requirements
 hiredis

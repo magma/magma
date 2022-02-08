@@ -42,7 +42,10 @@ py_library(
 py_library(
     name = "cert_utils",
     srcs = ["cert_utils.py"],
-    deps = [requirement("cryptography")],
+    deps = [
+        ":service",
+        requirement("cryptography"),
+    ],
 )
 
 py_library(
@@ -63,6 +66,7 @@ py_library(
         "//orc8r/protos:metricsd_python_proto",
         "//orc8r/protos:service303_python_grpc",
         requirement("prometheus_client"),
+        requirement("setuptools"),
     ],
 )
 
