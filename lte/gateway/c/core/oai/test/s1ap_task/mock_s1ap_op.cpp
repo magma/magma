@@ -17,8 +17,8 @@
 #include <google/protobuf/text_format.h>
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.h"
 
-using magma::lte::oai::UeDescription;
 using magma::lte::oai::S1apState;
+using magma::lte::oai::UeDescription;
 
 namespace magma {
 namespace lte {
@@ -48,8 +48,7 @@ std::vector<std::string> load_file_into_vector_of_line_content(
 // samples
 status_code_e mock_read_s1ap_ue_state_db(
     const std::vector<std::string>& ue_samples) {
-
-  hash_table_ts_t *state_ue_ht = get_s1ap_ue_state();
+  hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
 
   for (const auto& name_of_sample_file : ue_samples) {
     UeDescription ue_proto = UeDescription();
@@ -64,16 +63,13 @@ status_code_e mock_read_s1ap_ue_state_db(
     ue_description_t* ue_context_p =
         (ue_description_t*) calloc(1, sizeof(ue_description_t));
     S1apStateConverter::proto_to_ue(ue_proto, ue_context_p);
-    
+
     hashtable_rc_t h_rc = hashtable_ts_insert(
         state_ue_ht, ue_context_p->comp_s1ap_id, (void*) ue_context_p);
 
     if (HASH_TABLE_OK != h_rc) {
-      std::cout << 
-          "Failed to insert UE state :" << name_of_sample_file << std::endl;
-    } else {
-      std::cout << 
-          "Success to insert UE state :" << name_of_sample_file << std::endl;
+      std::cerr << "Failed to insert UE state :" << name_of_sample_file
+                << std::endl;
     }
   }
   return RETURNok;
@@ -83,22 +79,18 @@ status_code_e mock_read_s1ap_ue_state_db(
 // samples
 status_code_e mock_read_s1ap_state_db(
     const std::string& file_name_state_sample) {
+  s1ap_state_t* state_cache_p = get_s1ap_state(false);
 
-    s1ap_state_t* state_cache_p = get_s1ap_state(false);
+  S1apState state_proto = S1apState();
 
-    S1apState state_proto = S1apState();
-
-    std::fstream input(
-        file_name_state_sample.c_str(), std::ios::in | std::ios::binary);
-    if (!state_proto.ParseFromIstream(&input)) {
-      std::cerr << "Failed to parse the sample: " << file_name_state_sample
-                << std::endl;
-      return RETURNerror;
-    }
-    std::cout << "******** num of enbs before loading : " << state_cache_p->num_enbs << std::endl;
-    S1apStateConverter::proto_to_state(state_proto, state_cache_p);
-
-    std::cout << "******** num of enbs after loading : " << state_cache_p->num_enbs << std::endl;
+  std::fstream input(
+      file_name_state_sample.c_str(), std::ios::in | std::ios::binary);
+  if (!state_proto.ParseFromIstream(&input)) {
+    std::cerr << "Failed to parse the sample: " << file_name_state_sample
+              << std::endl;
+    return RETURNerror;
+  }
+  S1apStateConverter::proto_to_state(state_proto, state_cache_p);
   return RETURNok;
 }
 

@@ -67,7 +67,8 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
     task_id_t task_id_list[4] = {TASK_MME_APP, TASK_S1AP, TASK_SCTP,
                                  TASK_SERVICE303};
     init_task_context(
-        TASK_MAIN, task_id_list, 4, handle_message, &task_zmq_ctx_main_s1ap_with_injected_states);
+        TASK_MAIN, task_id_list, 4, handle_message,
+        &task_zmq_ctx_main_s1ap_with_injected_states);
 
     std::thread task_mme_app(start_mock_mme_app_task, mme_app_handler);
     std::thread task_sctp(start_mock_sctp_task, sctp_handler);
@@ -78,18 +79,22 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
 
     // add injection of state loaded in S1AP state manager
     std::string magma_root = std::getenv("MAGMA_ROOT");
-    std::string state_data_path = magma_root + "/" + DEFAULT_S1AP_STATE_DATA_PATH;
-    std::string data_folder_path = magma_root + "/" + DEFAULT_S1AP_CONTEXT_DATA_PATH;
-    std::string data_list_path = magma_root + "/" + DEFAULT_S1AP_CONTEXT_DATA_PATH + "data_list.txt";
-    assoc_id  = 37;
-    stream_id = 0;
+    std::string state_data_path =
+        magma_root + "/" + DEFAULT_S1AP_STATE_DATA_PATH;
+    std::string data_folder_path =
+        magma_root + "/" + DEFAULT_S1AP_CONTEXT_DATA_PATH;
+    std::string data_list_path =
+        magma_root + "/" + DEFAULT_S1AP_CONTEXT_DATA_PATH + "data_list.txt";
+    assoc_id           = 37;
+    stream_id          = 0;
     number_attached_ue = 2;
 
     mock_read_s1ap_state_db(state_data_path);
-    name_of_ue_samples     = load_file_into_vector_of_line_content(data_folder_path, data_list_path);
+    name_of_ue_samples =
+        load_file_into_vector_of_line_content(data_folder_path, data_list_path);
     mock_read_s1ap_ue_state_db(name_of_ue_samples);
 
-    state     = S1apStateManager::getInstance().get_state(false);
+    state = S1apStateManager::getInstance().get_state(false);
   }
 
   virtual void TearDown() {
@@ -124,7 +129,8 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
       .comp_s1ap_id   = S1AP_GENERATE_COMP_S1AP_ID(assoc_id, 1)};
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
+  ASSERT_TRUE(
+      is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   // Invalid S1 Cause returns error
@@ -139,15 +145,18 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
                     INVALID_IMSI64, assoc_id, stream_id, 33, 10));
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue-1));
+  ASSERT_TRUE(
+      is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue - 1));
 }
 
 TEST_F(S1apMmeHandlersWithInjectedStatesTest, HandleS1apPathSwitchRequest) {
   ASSERT_EQ(task_zmq_ctx_main_s1ap_with_injected_states.ready, true);
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
+  ASSERT_TRUE(
+      is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
+  ASSERT_TRUE(
+      is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
   ASSERT_EQ(state->mmeid2associd.num_elements, number_attached_ue);
 

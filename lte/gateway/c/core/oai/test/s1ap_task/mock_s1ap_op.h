@@ -23,7 +23,7 @@ namespace lte {
 #define DEFAULT_S1AP_CONTEXT_DATA_PATH                                         \
   "lte/gateway/c/core/oai/test/s1ap_task/data/"
 
-#define DEFAULT_S1AP_STATE_DATA_PATH                                         \
+#define DEFAULT_S1AP_STATE_DATA_PATH                                           \
   "lte/gateway/c/core/oai/test/s1ap_task/data/s1ap_state_ATTACHED"
 
 std::vector<std::string> load_file_into_vector_of_line_content(
@@ -31,7 +31,7 @@ std::vector<std::string> load_file_into_vector_of_line_content(
 status_code_e mock_read_s1ap_ue_state_db(
     const std::vector<std::string>& ue_samples);
 status_code_e mock_read_s1ap_state_db(
-  const std::string& file_name_state_sample);
+    const std::string& file_name_state_sample);
 
 }  // namespace lte
 }  // namespace magma
