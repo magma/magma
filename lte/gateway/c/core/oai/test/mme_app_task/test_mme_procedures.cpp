@@ -56,7 +56,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: { } break; }
+    default: {
+    } break;
+  }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);
@@ -4262,9 +4264,7 @@ TEST_F(MmeAppProcedureTest, TestDuplicateAttach) {
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
 }
 
-TEST_F(
-    MmeAppProcedureTest,
-    TestNwInitiatedActivateDedicatedBearerRej) {
+TEST_F(MmeAppProcedureTest, TestNwInitiatedActivateDedicatedBearerRej) {
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
@@ -4589,7 +4589,7 @@ TEST_F(
   EXPECT_CALL(*spgw_handler, sgw_handle_nw_initiated_deactv_bearer_rsp())
       .Times(1);
   // Wait for timer expiry.
-  for (int i = 0; i < NAS_RETX_LIMIT+1; ++i) {
+  for (int i = 0; i < NAS_RETX_LIMIT + 1; ++i) {
     // Send ERAB Release Response mimicing S1AP
     send_erab_release_rsp();
     cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));

@@ -44,7 +44,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: { } break; }
+    default: {
+    } break;
+  }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);
@@ -150,11 +152,11 @@ class SPGWAppProcedureTest : public ::testing::Test {
 
  protected:
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
-  std::string test_imsi_str = "001010000000001";
+  std::string test_imsi_str    = "001010000000001";
   std::string invalid_imsi_str = "001010000000002";
-  uint64_t test_imsi64      = 1010000000001;
+  uint64_t test_imsi64         = 1010000000001;
   uint64_t test_invalid_imsi64 = 1010000000002;
-  plmn_t test_plmn          = {.mcc_digit2 = 0,
+  plmn_t test_plmn             = {.mcc_digit2 = 0,
                       .mcc_digit1 = 0,
                       .mnc_digit3 = 0x0f,
                       .mcc_digit3 = 1,
@@ -1568,7 +1570,7 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivationInvalidImsiLbi) {
   // Manager with invalid lbi
   fill_nw_initiated_activate_bearer_request(
       &sample_gx_nw_init_ded_bearer_actv_req, test_imsi_str,
-      DEFAULT_EPS_BEARER_ID+1, sample_dedicated_bearer_qos);
+      DEFAULT_EPS_BEARER_ID + 1, sample_dedicated_bearer_qos);
 
   // check that MME bearer activation request is not sent to MME
   EXPECT_CALL(
@@ -1593,7 +1595,6 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivationInvalidImsiLbi) {
 
   // check that dedicated bearer is not created
   EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
-
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
@@ -1785,7 +1786,7 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivationInvalidImsi) {
   // with invalid bearer id
   fill_nw_initiated_deactivate_bearer_request(
       &sample_gx_nw_init_ded_bearer_deactv_req, test_imsi_str,
-      DEFAULT_EPS_BEARER_ID, ded_eps_bearer_id+1);
+      DEFAULT_EPS_BEARER_ID, ded_eps_bearer_id + 1);
 
   // check that MME does not get bearer deactivation request
   EXPECT_CALL(
