@@ -67,6 +67,7 @@ RUN echo "Install general purpose packages" && \
         libtool \
         lld \
         make \
+        netbase \
         ninja-build \
         perl \
         pkg-config \
@@ -339,12 +340,12 @@ RUN patch -N -s -f /usr/local/lib/python3.8/dist-packages/aioeventlet.py < /tmp/
 ### install eggs (lte, orc8r)
 COPY /lte/gateway/python/ ${MAGMA_ROOT}/lte/gateway/python/
 WORKDIR ${MAGMA_ROOT}/lte/gateway/python/
-RUN pip3 install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose --editable .[dev] && \
+RUN pip3 install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose .[dev] && \
     rm -rf lte.egg-info
 
 COPY /orc8r/gateway/python/ ${MAGMA_ROOT}/orc8r/gateway/python/
 WORKDIR ${MAGMA_ROOT}/orc8r/gateway/python/
-RUN pip3 install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose --editable .[dev] && \
+RUN pip3 install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose .[dev] && \
     rm -rf orc8r.egg-info
 
 #### protos
