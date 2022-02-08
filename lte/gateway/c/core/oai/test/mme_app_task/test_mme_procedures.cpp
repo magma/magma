@@ -4385,7 +4385,7 @@ TEST_F(
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  MME_APP_EXPECT_CALLS(4, 1, 1, 1, 1, 1, 1, 1, 0, 1, 3);
+  MME_APP_EXPECT_CALLS(7, 1, 1, 1, 1, 1, 1, 1, 0, 1, 3);
 
   // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(
@@ -4448,9 +4448,12 @@ TEST_F(
   // Send ERAB Setup Response mimicing S1AP
   send_erab_setup_rsp(6);
 
-  // Wait for DL NAS Transport up to retransmission limit.
-  // The first transmission was piggybacked on ERAB Setup Request
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_CALL(*spgw_handler, sgw_handle_nw_initiated_actv_bearer_rsp())
+      .Times(1);
+  // Wait for timer expiry.
+  for (int i = 1; i < NAS_RETX_LIMIT + 1; ++i) {
+    cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  }
 
   // Check MME state after Bearer Activation
   send_activate_message_to_mme_app();
@@ -4590,6 +4593,7 @@ TEST_F(
   // Wait for ERAB Release up to retransmission limit;
   EXPECT_CALL(*spgw_handler, sgw_handle_nw_initiated_deactv_bearer_rsp())
       .Times(1);
+  // Wait for timer expiry.
   for (int i = 0; i < NAS_RETX_LIMIT+1; ++i) {
     // Send ERAB Release Response mimicing S1AP
     send_erab_release_rsp();
