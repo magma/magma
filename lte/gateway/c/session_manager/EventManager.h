@@ -9,7 +9,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limit
-*/
+ */
 #pragma once
 
 #include "event2/event.h"
@@ -37,47 +37,65 @@ namespace magma {
 // We will guarantee that events are processed in the order they
 // are placed into the events_ container.
 class EventManager {
-public:
-    EventManager(struct event_base* base);
-    void AddEvent(void (*action)(evutil_socket_t sig, short events, void *user_data), void* callback_arg);
-    void AddEventWithDelay(std::function<void> action, uint16_t delay_seconds);
-    void Terminate();
-private:
-    struct event_base* base_;
-    std::unique_ptr<std::thread> processing_thread_;
+ public:
+  EventManager(struct event_base* base);
+  void AddEvent(void (*action)(evutil_socket_t sig, short events,
+                               void* user_data),
+                void* callback_arg);
+  void AddEventWithDelay(std::function<void> action, uint16_t delay_seconds);
+  void Terminate();
 
-    void Dispatcher();
+ private:
+  struct event_base* base_;
+  std::unique_ptr<std::thread> processing_thread_;
+
+  void Dispatcher();
 };
 
 EventManager::EventManager(struct event_base* base) {
-    base_ = base;
-    
-    // Create thread to act as context for libevent dispatch.
-    processing_thread_ = std::make_unique<std::thread>(&EventManager::Dispatcher, this);
+  base_ = base;
+
+  // Create thread to act as context for libevent dispatch.
+  processing_thread_ =
+      std::make_unique<std::thread>(&EventManager::Dispatcher, this);
 }
 
 // Blocking call waits for processing_thread_ join.
 void EventManager::Terminate() {
-    assert(!event_base_loopexit(base_, nullptr));
-    processing_thread_->join();
+  std::cout << "In Terminate! dumping the current event base entries"
+            << std::endl;
+  event_base_dump_events(base_, stdout);
+  std::cout << "going to event_base_loopexit" << std::endl;
+  assert(!event_base_loopexit(base_, nullptr));
+  std::cout << "going to join processing_thread_" << std::endl;
+  processing_thread_->join();
+  std::cout << "done with Terminate!" << std::endl;
 }
 
-void EventManager::AddEvent(void (*action)(evutil_socket_t sig, short events, void *user_data), void* callback_arg){
-    struct event* new_event = event_new(base_, -1, 0, action, callback_arg);
+void EventManager::AddEvent(void (*action)(evutil_socket_t sig, short events,
+                                           void* user_data),
+                            void* callback_arg) {
+  std::cout << "In AddEvent! going to make a new event: event_new" << std::endl;
+  // TODO: I think this event needs to be somewhere
+  struct event* new_event = event_new(base_, -1, 0, action, callback_arg);
 
-    const timeval zero_tv{};
-    event_add(new_event, &zero_tv);
+  const timeval zero_tv{};
+  std::cout << "adding the new event!" << std::endl;
+  event_add(new_event, &zero_tv);
+  event_base_dump_events(base_, stdout);
 }
 
 // Blocking function call that continuously executes libevent
 // callbacks in this context until / unless libevent exit is
 // triggered.
 void EventManager::Dispatcher() {
-    int retval = event_base_loop(base_, EVLOOP_NO_EXIT_ON_EMPTY);
-    if (retval != 0) {
-        std::cout << "LOG ANGRY MESSAGE: " << retval << std::endl;
-    }
-    // log SO BAD WHY DID THIS HAPPEN?!@? WHY
+  std::cout << "In Dispatcher! going to call a blocking func: event_base_loop!"
+            << std::endl;
+  int retval = event_base_loop(base_, EVLOOP_NO_EXIT_ON_EMPTY);
+  if (retval != 0) {
+    std::cout << "LOG ANGRY MESSAGE: " << retval << std::endl;
+  }
+  // log SO BAD WHY DID THIS HAPPEN?!@? WHY
 }
 
 }  // namespace magma

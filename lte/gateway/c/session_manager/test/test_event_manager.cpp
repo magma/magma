@@ -14,7 +14,7 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 #include <condition_variable>
-
+#include <event2/thread.h>
 #include "lte/gateway/c/session_manager/EventManager.h"
 
 namespace magma {
@@ -22,42 +22,49 @@ namespace magma {
 using namespace std::chrono_literals;
 
 TEST(EventManagerTest, test_construction) {
-    struct event_base* base = event_base_new();
-	assert(base);
-    EventManager em(base);
-    em.Terminate();
-    event_base_free(base);
+  evthread_use_pthreads();
+  struct event_base* base = event_base_new();
+  assert(base);
+  std::cout << "TEST: Starting em..." << std::endl;
+  EventManager em(base);
+  sleep(1);
+  std::cout << "TEST: Terminating em..." << std::endl;
+  em.Terminate();
+  std::cout << "TEST: Should have terminated em..." << std::endl;
+  event_base_free(base);
 }
 
-void it_happened(evutil_socket_t sig, short events, void *user_data){
-    std::cout << "WUT! it_happened!!!" << std::endl;
-    std::condition_variable* happened = static_cast<std::condition_variable*>(user_data);
-    happened->notify_one();
+void it_happened(evutil_socket_t sig, short events, void* user_data) {
+  std::cout << "TEST: WUT! it_happened!!!" << std::endl;
+  std::condition_variable* happened =
+      static_cast<std::condition_variable*>(user_data);
+  happened->notify_one();
 }
 
 TEST(EventManagerTest, test_immediate_event) {
-    struct event_base* base = event_base_new();
-	assert(base);
-    EventManager em(base);
+  std::cout << "TEST: Starting test!" << std::endl;
+  evthread_use_pthreads();
+  struct event_base* base = event_base_new();
+  assert(base);
+  EventManager em(base);
 
+  // Create conditional for notify and then capture in a lambda.
+  std::mutex happened_mutex;
+  std::condition_variable happened;
+  em.AddEvent(&it_happened, (void*)&happened);
 
-    // Create conditional for notify and then capture in a lambda.
-    std::mutex happened_mutex;
-    std::condition_variable happened;
-    em.AddEvent(&it_happened, (void*)&happened);
+  std::cout << "TEST: WOOHOO A" << std::endl;
 
-    std::cout << "WOOHOO A" << std::endl;
+  // Pass into event request system.
+  std::unique_lock<std::mutex> lk(happened_mutex);
+  happened.wait_for(lk, 500 * 100ms);
 
-    // Pass into event request system.
-    std::unique_lock<std::mutex> lk(happened_mutex);
-    happened.wait_for(lk, 500 * 100ms);
+  std::cout << "TEST: WOOHOO B" << std::endl;
 
-    std::cout << "WOOHOO B" << std::endl;
+  em.Terminate();
 
-    em.Terminate();
-
-    std::cout << "WOOHOO C" << std::endl;
-    event_base_free(base);
+  std::cout << "TEST: WOOHOO C" << std::endl;
+  event_base_free(base);
 }
 
 int main(int argc, char** argv) {
