@@ -24,7 +24,7 @@ from magma.magmad.check.network_check import ping
 from orc8r.protos.mconfig import mconfigs_pb2
 from prometheus_client import Counter, Gauge
 
-POLL_INTERVAL_SECONDS = 10
+POLL_INTERVAL_SECONDS = 100
 
 MAGMAD_PING_STATS = Gauge(
     'magmad_ping_rtt_ms',
