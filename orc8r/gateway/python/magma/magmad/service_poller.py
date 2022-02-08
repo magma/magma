@@ -17,7 +17,10 @@ from typing import List
 
 import grpc
 from magma.common.job import Job
-from magma.common.rpc_utils import grpc_async_wrapper
+from magma.common.rpc_utils import (
+    grpc_async_wrapper,
+    indicates_connection_error,
+)
 from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.common.service_registry import ServiceRegistry
 from magma.magmad.metrics import UNEXPECTED_SERVICE_RESTARTS
@@ -183,6 +186,6 @@ class ServicePoller(Job):
                     service,
                     err.code(),
                     err.details(),
-                    extra=EXCLUDE_FROM_ERROR_MONITORING,
+                    extra=EXCLUDE_FROM_ERROR_MONITORING if indicates_connection_error(err) else None,
                 )
                 self._service_info[service].continuous_timeouts += 1

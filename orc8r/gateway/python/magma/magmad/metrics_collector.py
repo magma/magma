@@ -20,6 +20,7 @@ import metrics_pb2
 import prometheus_client.core
 import requests
 import snowflake
+from magma.common.rpc_utils import indicates_connection_error
 from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.common.service_registry import ServiceRegistry
 from orc8r.protos import metricsd_pb2
@@ -141,7 +142,7 @@ class MetricsCollector(object):
                 chunk,
                 err.code(),
                 err.details(),
-                extra=EXCLUDE_FROM_ERROR_MONITORING,
+                extra=EXCLUDE_FROM_ERROR_MONITORING if indicates_connection_error(err) else None,
             )
         else:
             logging.debug(
@@ -302,7 +303,7 @@ class MetricsCollector(object):
                 "Prometheus Target Metrics upload error! [%s] %s",
                 err.code(),
                 err.details(),
-                extra=EXCLUDE_FROM_ERROR_MONITORING,
+                extra=EXCLUDE_FROM_ERROR_MONITORING if indicates_connection_error(err) else None,
             )
         else:
             logging.debug(
