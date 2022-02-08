@@ -480,7 +480,7 @@ int amf_nas_proc_authentication_info_answer(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
-int amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
+imsi64_t amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
   imsi64_t imsi64                = INVALID_IMSI64;
   int rc                         = RETURNerror;
   amf_context_t* amf_ctxt_p      = NULL;
@@ -550,13 +550,16 @@ int amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
                                (supi_imsi.plmn.mnc_digit3 & 0xf);
   }
 
+  imsi64                                 = amf_imsi_to_imsi64(params->imsi);
+  ue_context->amf_context.imsi64 	 = imsi64;
+
   amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
   amf_ue_context_on_new_guti(
       ue_context, reinterpret_cast<guti_m5_t*>(&amf_guti));
 
   ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
   ue_context->amf_context.m5_guti.guamfi = amf_guti.guamfi;
-  imsi64                                 = amf_imsi_to_imsi64(params->imsi);
+
   guti_and_amf_id.amf_guti               = amf_guti;
   guti_and_amf_id.amf_ue_ngap_id         = aia->ue_id;
 
@@ -586,7 +589,8 @@ int amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
    * This will initiate identity req in DL.
    */
   rc = amf_proc_registration_request(aia->ue_id, is_amf_ctx_new, params);
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+
+  return imsi64;
 }
 
 int amf_handle_s6a_update_location_ans(

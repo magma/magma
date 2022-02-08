@@ -75,7 +75,7 @@ class AMFAppProcedureTest : public ::testing::Test {
       .ue_id       = 1};
 
   const uint8_t intital_ue_message_suci_ext_hexbuf[65] = {
-      0x7e, 0x00, 0x41, 0x79, 0x00, 0x35, 0x01, 0x09, 0xf1, 0x07, 0x00,
+      0x7e, 0x00, 0x41, 0x79, 0x00, 0x35, 0x01, 0x22, 0x62, 0x54, 0x00,
       0x00, 0x01, 0x04, 0xc8, 0xfc, 0x0c, 0xe5, 0x47, 0x9a, 0x51, 0x5d,
       0xab, 0xf2, 0xf3, 0x45, 0xae, 0xb4, 0x66, 0x92, 0xd6, 0xff, 0x7a,
       0x5f, 0x4f, 0x57, 0x2a, 0x47, 0x99, 0xf2, 0x33, 0x69, 0x35, 0x16,
@@ -848,9 +848,6 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_Invalid_PDUSession_Identity) {
   EXPECT_TRUE(expected_Ids == AMFClientServicer::getInstance().msgtype_stack);
 }
 
-// TODO: #11034 is the starting point of TestRegistrationProcSUCIExt failure.
-// This issue is tracked here #11382
-#if 0
 TEST_F(AMFAppProcedureTest, TestRegistrationProcSUCIExt) {
   amf_ue_ngap_id_t ue_id = 0;
 
@@ -861,7 +858,7 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcSUCIExt) {
       amf_app_desc_p, 36, 1, 1, 0, plmn, intital_ue_message_suci_ext_hexbuf,
       sizeof(intital_ue_message_suci_ext_hexbuf));
 
-  rc = amf_decrypt_imsi_info_answer(&decrypted_imsi);
+  imsi64 = amf_decrypt_imsi_info_answer(&decrypted_imsi);
   EXPECT_TRUE(rc == RETURNok);
 
   // Check if UE Context is created with correct imsi
@@ -901,7 +898,6 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcSUCIExt) {
 
   amf_app_handle_deregistration_req(ue_id);
 }
-#endif
 
 TEST_F(AMFAppProcedureTest, TestAuthFailureFromSubscribeDb) {
   amf_ue_ngap_id_t ue_id                = 0;
