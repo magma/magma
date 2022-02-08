@@ -128,7 +128,6 @@ static int emm_start_attach_proc_authentication(
 static int emm_start_attach_proc_security(
     emm_context_t* emm_context, nas_emm_attach_proc_t* attach_proc);
 
-static int emm_attach_security_a(emm_context_t* emm_context);
 static int emm_attach(emm_context_t* emm_context);
 
 static int emm_attach_success_identification_cb(emm_context_t* emm_context);
@@ -1435,130 +1434,6 @@ static int emm_attach_failure_security_cb(emm_context_t* emm_context) {
   if (attach_proc) {
     emm_attach_release(emm_context);
   }
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-}
-
-//
-//  rc = _emm_start_attach_proc_authentication (emm_context, attach_proc);//,
-//  IDENTITY_TYPE_2_IMSI, _emm_attach_authentified, _emm_attach_release);
-//
-//  if ((emm_context) && (attach_proc)) {
-//    REQUIREMENT_3GPP_24_301(R10_5_5_1_2_3__1);
-//    mme_ue_s1ap_id_t                        ue_id = PARENT_STRUCT(emm_context,
-//    struct ue_mm_context_s, emm_context)->mme_ue_s1ap_id; OAILOG_INFO
-//    (LOG_NAS_EMM, "ue_id=" MME_UE_S1AP_ID_FMT " EMM-PROC  - Setup NAS
-//    security\n", ue_id);
-//
-//    attach_proc->emm_spec_proc.emm_proc.base_proc.success_notif =
-//    _emm_attach_success_authentication_cb;
-//    attach_proc->emm_spec_proc.emm_proc.base_proc.failure_notif =
-//    _emm_attach_failure_authentication_cb;
-//    /*
-//     * Create new NAS security context
-//     */
-//    emm_ctx_clear_security(emm_context);
-//
-//    /*
-//     * Initialize the security mode control procedure
-//     */
-//    rc = emm_proc_security_mode_control (ue_id, emm_context->auth_ksi,
-//                                         _emm_attach, _emm_attach_release);
-//
-//    if (rc != RETURNok) {
-//      /*
-//       * Failed to initiate the security mode control procedure
-//       */
-//      OAILOG_WARNING (LOG_NAS_EMM, "ue_id=" MME_UE_S1AP_ID_FMT "EMM-PROC  -
-//      Failed to initiate security mode control procedure\n", ue_id);
-//      attach_proc->emm_cause = EMM_CAUSE_ILLEGAL_UE;
-//      /*
-//       * Do not accept the UE to attach to the network
-//       */
-//      emm_sap_t emm_sap                      = {0};
-//      emm_sap.primitive                      = EMMREG_ATTACH_REJ;
-//      emm_sap.u.emm_reg.ue_id                = ue_id;
-//      emm_sap.u.emm_reg.ctx                  = emm_context;
-//      emm_sap.u.emm_reg.notify               = true;
-//      emm_sap.u.emm_reg.free_proc            = true;
-//      emm_sap.u.emm_reg.u.attach.attach_proc = attach_proc;
-//      // dont care emm_sap.u.emm_reg.u.attach.is_emergency = false;
-//      rc = emm_sap_send (&emm_sap);
-//    }
-//  }
-//  OAILOG_FUNC_RETURN (LOG_NAS_EMM, rc);
-//}
-/*
- *
- * Name:        emm_attach_security_a()
- *
- * Description: Initiates security mode control EMM common procedure.
- *
- * Inputs:          args:      security argument parameters
- *                  Others:    None
- *
- * Outputs:     None
- *                  Return:    RETURNok, RETURNerror
- *                  Others:    _emm_data
- *
- */
-//------------------------------------------------------------------------------
-status_code_e emm_attach_security(struct emm_context_s* emm_context) {
-  return emm_attach_security_a(emm_context);
-}
-
-//------------------------------------------------------------------------------
-static int emm_attach_security_a(emm_context_t* emm_context) {
-  OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
-
-  nas_emm_attach_proc_t* attach_proc =
-      get_nas_specific_procedure_attach(emm_context);
-
-  if (attach_proc) {
-    REQUIREMENT_3GPP_24_301(R10_5_5_1_2_3__1);
-    mme_ue_s1ap_id_t ue_id =
-        PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
-            ->mme_ue_s1ap_id;
-    OAILOG_INFO(
-        LOG_NAS_EMM,
-        "ue_id=" MME_UE_S1AP_ID_FMT " EMM-PROC  - Setup NAS security\n", ue_id);
-
-    /*
-     * Create new NAS security context
-     */
-    emm_ctx_clear_security(emm_context);
-    /*
-     * Initialize the security mode control procedure
-     */
-    rc = emm_proc_security_mode_control(
-        emm_context, &attach_proc->emm_spec_proc, attach_proc->ksi, emm_attach,
-        emm_attach_release);
-
-    if (rc != RETURNok) {
-      /*
-       * Failed to initiate the security mode control procedure
-       */
-      OAILOG_WARNING(
-          LOG_NAS_EMM,
-          "ue_id=" MME_UE_S1AP_ID_FMT
-          "EMM-PROC  - Failed to initiate security mode control procedure\n",
-          ue_id);
-      attach_proc->emm_cause = EMM_CAUSE_ILLEGAL_UE;
-      /*
-       * Do not accept the UE to attach to the network
-       */
-      emm_sap_t emm_sap               = {0};
-      emm_sap.primitive               = EMMREG_ATTACH_REJ;
-      emm_sap.u.emm_reg.ue_id         = ue_id;
-      emm_sap.u.emm_reg.ctx           = emm_context;
-      emm_sap.u.emm_reg.notify        = true;
-      emm_sap.u.emm_reg.free_proc     = true;
-      emm_sap.u.emm_reg.u.attach.proc = attach_proc;
-      // dont care emm_sap.u.emm_reg.u.attach.is_emergency = false;
-      rc = emm_sap_send(&emm_sap);
-    }
-  }
-
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

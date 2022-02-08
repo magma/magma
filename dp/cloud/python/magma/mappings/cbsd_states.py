@@ -16,6 +16,7 @@ from dp.protos.active_mode_pb2 import (
     Granted,
     Registered,
     Unregistered,
+    Unsync,
 )
 from magma.mappings.types import CbsdStates, GrantStates
 
@@ -26,4 +27,5 @@ cbsd_state_mapping = {
 grant_state_mapping = {
     GrantStates.GRANTED.value: Granted,
     GrantStates.AUTHORIZED.value: Authorized,
+    GrantStates.UNSYNC.value: Unsync,
 }

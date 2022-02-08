@@ -211,7 +211,8 @@ typedef struct itti_n11_create_pdu_session_response_s {
   bool always_on_pdu_session_indication;
   ssc_mode_t allowed_ssc_mode;
   bool m5gsm_congetion_re_attempt_indicator;
-  redirect_server_t pdu_address;
+  redirect_server_t redirect_server_addr;
+  paa_t pdu_address;
 
   qos_flow_request_list_t qos_list;
   TeidSet_response upf_endpoint;

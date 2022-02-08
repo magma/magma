@@ -93,7 +93,7 @@ struct amf_procedures_t;
 #define PAGING_TIMER_EXPIRY_MSECS 4000
 #define PDUE_SESSION_RELEASE_TIMER_MSECS 16000
 
-#define MAX_PAGING_RETRY_COUNT 1
+#define MAX_PAGING_RETRY_COUNT 4
 // Header length boundaries of 5GS Mobility Management messages
 #define AMF_HEADER_LENGTH sizeof(amf_msg_header)
 
@@ -103,7 +103,6 @@ struct amf_procedures_t;
 #define PDU_ESTAB_ACCEPT_NAS_PDU_LEN 41
 #define SSC_MODE_ONE 0x1
 #define PDU_ADDR_IPV4_LEN 0x4
-#define PDU_ADDR_TYPE 0X1
 #define GNB_IPV4_ADDR_LEN 4
 #define GNB_TEID_LEN 4
 
@@ -285,7 +284,7 @@ typedef struct smf_context_s {
 } smf_context_t;
 
 typedef struct paging_context_s {
-#define MAX_PAGING_RETRY_COUNT 1
+#define MAX_PAGING_RETRY_COUNT 4
   amf_app_timer_t m5_paging_response_timer;
   uint8_t paging_retx_count;
 } paging_context_t;
@@ -907,6 +906,13 @@ void delete_wrapper(T** pObj) {
     *pObj = nullptr;
   }
 }
+
+// Sync State manager map with Amf Application maps
+void amf_sync_app_maps_from_db();
+
+bool get_amf_ue_id_from_imsi(
+    amf_ue_context_t* amf_ue_context_p, imsi64_t imsi64,
+    amf_ue_ngap_id_t* ue_id);
 
 void nas_amf_procedure_gc(amf_context_t* amf_ctx);
 }  // namespace magma5g

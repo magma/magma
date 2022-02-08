@@ -47,14 +47,16 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
   }
 
   std::string ue_ipv4_addr("10.20.30.44");
+  std::string ue_ipv6_addr;
+
   uint32_t version = 0;
 
   ambr_t default_ambr;
 
-  request = magma5g::create_sm_pdu_session_v4(
+  request = magma5g::create_sm_pdu_session(
       imsi, (uint8_t*) apn.c_str(), pdu_session_id, pdu_session_type,
-      gnb_gtp_teid, pti, gnb_gtp_teid_ip_addr, (char*) ue_ipv4_addr.c_str(),
-      version, default_ambr);
+      gnb_gtp_teid, pti, gnb_gtp_teid_ip_addr, ue_ipv4_addr, ue_ipv6_addr,
+      default_ambr, version);
 
   auto* rat_req =
       request.mutable_rat_specific_context()->mutable_m5gsm_session_context();
