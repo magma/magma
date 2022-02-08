@@ -59,16 +59,25 @@
 <p>NOTE: Debian-based AGW deployments are no longer supported as of v1.6. If you want to install to Debian, refer to <a href="https://magma.github.io/magma/versions">v1.5 of the documentation</a>.</p>
 </blockquote>
 <h2><a class="anchor" aria-hidden="true" id="prerequisites"></a><a href="#prerequisites" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Prerequisites</h2>
-<p>To setup a Magma Access Gateway, you will need a machine that
+<p>To set up a Magma Access Gateway, you will need a machine that
 satisfies the following requirements:</p>
 <ul>
-<li>AGW_HOST: 64bit-X86 machine, baremetal strongly recommended (not virtualized).
-You will need two ethernet ports. We use enp1s0 and enp2s0 in this guide.
-They might have different names on your hardware so just replace enp1s0 and
-enp2s0 with your current interfaces name in this guideline.
-One port is for the SGi interface (default: enp1s0) and one for the S1
-interface (default: enp2s0). Note that the <code>agw_install_ubuntu.sh</code> script will
-rename the <code>enp1s0</code> interface to <code>eth0</code>.</li>
+<li><p>AGW_HOST: 64bit-X86 machine, baremetal strongly recommended
+(not virtualized). You will need two ethernet ports. We use
+<code>enp1s0</code> and <code>enp2s0</code> in this guide.</p>
+<ul>
+<li><code>enp1s0</code>: Will carry any traffic that is not S1. So data plane traffic (SGi)
+control plane traffic (Orc8r HTTP2), management (ssh)</li>
+<li><code>enp2s0</code>: S1 interface.</li>
+</ul>
+<p>*Note interface names might have different names on your hardware so just
+replace <code>enp1s0</code> and <code>enp2s0</code> with your current interfaces name
+in this guideline.</p>
+<p>*Note that the <code>agw_install_ubuntu.sh</code> script will rename the <code>enp1s0</code>
+interface to <code>eth0</code>.</p>
+<p>*Note if you don't want all internet traffic to go through <code>enp1s0</code>
+to separate control plane (Orc8r Http2 traffic) from user plane, you
+may want to add another interface and configure proper routing.</p></li>
 </ul>
 <h2><a class="anchor" aria-hidden="true" id="deployment"></a><a href="#deployment" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Deployment</h2>
 <h3><a class="anchor" aria-hidden="true" id="1-create-boot-usb-stick-and-install-ubuntu-on-your-agw-host"></a><a href="#1-create-boot-usb-stick-and-install-ubuntu-on-your-agw-host" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>1. Create boot USB stick and install Ubuntu on your AGW host</h3>
