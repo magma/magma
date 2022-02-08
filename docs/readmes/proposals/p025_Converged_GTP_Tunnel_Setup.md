@@ -105,7 +105,7 @@ The following tests scenario are proposed to verify to cover this functionality:
 2. Write UT test cases for sessiond and pipelined.
 3. Write the python stub for verify the functionality.  
 
-### Regration Testing
+### Regression Testing
 
 Following tests will be verified on magma master branch to make sure there is no breakage introduced through this proposal.
 • Verify the 5G and 4G basic call flows and paging using UERANSIM, Teravm etc.
