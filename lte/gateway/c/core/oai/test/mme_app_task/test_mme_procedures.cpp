@@ -4588,14 +4588,14 @@ TEST_F(
       .WillRepeatedly(ReturnFromAsyncTask(&cv));
 
   // Wait for ERAB Release up to retransmission limit;
-  for (int i = 0; i < NAS_RETX_LIMIT+2; ++i) {
+  EXPECT_CALL(*spgw_handler, sgw_handle_nw_initiated_deactv_bearer_rsp())
+      .Times(1);
+  for (int i = 0; i < NAS_RETX_LIMIT+1; ++i) {
     // Send ERAB Release Response mimicing S1AP
     send_erab_release_rsp();
     cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   }
 
-  EXPECT_CALL(*spgw_handler, sgw_handle_nw_initiated_deactv_bearer_rsp())
-      .Times(1);
   // Check MME state after Bearer Deactivation
   send_activate_message_to_mme_app();
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
