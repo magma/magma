@@ -61,6 +61,7 @@ class GrantStates(enum.Enum):
     IDLE = "idle"
     GRANTED = "granted"
     AUTHORIZED = "authorized"
+    UNSYNC = "unsync"
 
 
 class ResponseCodes(enum.Enum):

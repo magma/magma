@@ -347,6 +347,23 @@ WORKDIR ${MAGMA_ROOT}/orc8r/gateway/python/
 RUN pip3 install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose --editable .[dev] && \
     rm -rf orc8r.egg-info
 
+#### protos
+ARG PYTHON_LIB=/usr/local/lib/python3.8
+
+COPY /protos/ ${MAGMA_ROOT}/protos/
+COPY /lte/protos/ ${MAGMA_ROOT}/lte/protos/
+COPY /orc8r/protos/ ${MAGMA_ROOT}/orc8r/protos/
+COPY /feg/protos/ ${MAGMA_ROOT}/feg/protos/
+COPY /dp/protos/ ${MAGMA_ROOT}/dp/protos/
+WORKDIR $MAGMA_ROOT
+RUN pip install mypy-protobuf && \
+    mkdir $PYTHON_LIB/gen && \
+    for PROTO_SRC in orc8r lte feg dp; \
+    do \
+    python protos/gen_protos.py ${PROTO_SRC}/protos ${MAGMA_ROOT},orc8r/protos/prometheus ${MAGMA_ROOT} $PYTHON_LIB/gen && \
+    python protos/gen_prometheus_proto.py ${MAGMA_ROOT} $PYTHON_LIB/gen; \
+    done && \
+    echo "$PYTHON_LIB/gen" > $PYTHON_LIB/dist-packages/magma_gen.pth
 
 RUN ln -s $MAGMA_ROOT/bazel/bazelrcs/devcontainer.bazelrc /etc/bazelrc
 
