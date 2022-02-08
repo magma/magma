@@ -22,6 +22,8 @@ jobs:
       ingress: ${{ steps.filter.outputs.ingress }}
       helm: ${{ steps.filter.outputs.helm }}
     steps:
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
       - uses: dorny/paths-filter@v2
         id: filter
         with:
