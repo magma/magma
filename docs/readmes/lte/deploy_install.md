@@ -10,16 +10,26 @@ hide_title: true
 
 ## Prerequisites
 
-To setup a Magma Access Gateway, you will need a machine that
+To set up a Magma Access Gateway, you will need a machine that
 satisfies the following requirements:
 
-- AGW_HOST: 64bit-X86 machine, baremetal strongly recommended (not virtualized).
-  You will need two ethernet ports. We use enp1s0 and enp2s0 in this guide.
-  They might have different names on your hardware so just replace enp1s0 and
-  enp2s0 with your current interfaces name in this guideline.
-  One port is for the SGi interface (default: enp1s0) and one for the S1
-  interface (default: enp2s0). Note that the `agw_install_ubuntu.sh` script will
-  rename the `enp1s0` interface to `eth0`.
+- AGW_HOST: 64bit-X86 machine, baremetal strongly recommended
+  (not virtualized). You will need two ethernet ports. We use
+  `enp1s0` and `enp2s0` in this guide.
+    - `enp1s0`: Will carry any traffic that is not S1. So data plane traffic (SGi)
+    control plane traffic (Orc8r HTTP2), management (ssh)
+    - `enp2s0`: S1 interface.
+
+  *Note interface names might have different names on your hardware so just
+  replace `enp1s0` and `enp2s0` with your current interfaces name
+  in this guideline.
+
+  *Note that the `agw_install_ubuntu.sh` script will rename the `enp1s0`
+   interface to `eth0`.
+
+  *Note if you don't want all internet traffic to go through `enp1s0`
+  to separate control plane (Orc8r Http2 traffic) from user plane, you
+  may want to add another interface and configure proper routing.
 
 ## Deployment
 
