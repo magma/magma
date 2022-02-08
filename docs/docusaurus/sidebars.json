@@ -347,7 +347,8 @@
           "proposals/p013_Ubuntu_upgrade",
           "proposals/p018_control_network_metrics",
           "proposals/p019_enodeb_cbrs_support",
-          "proposals/p020_sgi_tunnel_transport"
+          "proposals/p020_sgi_tunnel_transport",
+	  "proposals/p025_Converged_GTP_Tunnel_Setup"
         ]
       },
       {

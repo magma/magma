@@ -339,9 +339,6 @@
       "orc8r/deploy_intro": {
         "title": "Introduction"
       },
-      "orc8r/deploy_orcl": {
-        "title": "Install Orchestrator (Managed)"
-      },
       "orc8r/deploy_terraform_options": {
         "title": "Terraform Options"
       },
@@ -479,6 +476,9 @@
       },
       "proposals/p024_magma_settlement_service": {
         "title": "proposals/p024_magma_settlement_service"
+      },
+      "proposals/p025_Converged_GTP_Tunnel_Setup": {
+        "title": "Converged GTP Tunnel Setup for 4G"
       },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
