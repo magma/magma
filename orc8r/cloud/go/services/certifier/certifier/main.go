@@ -29,6 +29,7 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/analytics"
 	analytics_protos "magma/orc8r/cloud/go/services/analytics/protos"
+	analytics_servicers "magma/orc8r/cloud/go/services/analytics/servicers/protected"
 	"magma/orc8r/cloud/go/services/certifier"
 	analytics_service "magma/orc8r/cloud/go/services/certifier/analytics"
 	"magma/orc8r/cloud/go/services/certifier/obsidian/handlers"
@@ -96,7 +97,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("err %v failed parsing the config file: skipping CollectorServicer creation ", err)
 	}
-	collectorServicer := analytics.NewCollectorServicer(
+	collectorServicer := analytics_servicers.NewCollectorServicer(
 		&serviceConfig.Analytics,
 		analytics.GetPrometheusClient(),
 		analytics_service.GetAnalyticsCalculations(&serviceConfig),
