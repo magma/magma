@@ -233,6 +233,17 @@ int amf_config_parse_file(amf_config_t* config_pP,
                                      (const char**)&astring)) {
       config_pP->default_dnn = bfromcstr(astring);
     }
+    // DEFAULT AUTH MAX RETRY COUNT
+    if (config_setting_lookup_string(
+            setting_amf, AUTHENTICATION_COUNTER_MAX_RETRY, &astring)) {
+      config_pP->auth_retry_max_count = (uint32_t)atoi(astring);
+    }
+
+    // DEFAULT AUTH RETRY TIMER EXPIRES MSECS
+    if (config_setting_lookup_string(
+            setting_amf, AUTHENTICATION_RETRY_TIMER_EXPIRY_MSECS, &astring)) {
+      config_pP->auth_retry_interval = (uint32_t)atoi(astring);
+    }
 
     // AMF_PLMN_SUPPORT SETTING
     setting = config_setting_get_member(setting_amf,

@@ -42,6 +42,7 @@ extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 AmfMsg amf_msg_obj;
 extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
 static int identification_t3570_handler(zloop_t* loop, int timer_id, void* arg);
+static int subs_auth_retry(zloop_t* loop, int timer_id, void* output);
 int nas_proc_establish_ind(const amf_ue_ngap_id_t ue_id,
                            const bool is_mm_ctx_new,
                            const tai_t originating_tai, const ecgi_t ecgi,
@@ -413,10 +414,54 @@ int amf_nas_proc_auth_param_res(amf_ue_ngap_id_t amf_ue_ngap_id,
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
+static int subs_auth_retry(zloop_t* loop, int timer_id, void* arg) {
+  amf_ue_ngap_id_t ue_id = 0;
+  amf_context_t* amf_ctxt_p = NULL;
+  int amf_cause = -1;
+  nas5g_auth_info_proc_t* auth_info_proc = NULL;
+  int rc = RETURNerror;
+  ue_m5gmm_context_s* ue_mm_context = NULL;
+  if (!amf_pop_timer_arg(timer_id, &ue_id)) {
+    OAILOG_WARNING(
+        LOG_AMF_APP,
+        "auth_retry_timer: Invalid Timer Id expiration, Timer Id: %d \n",
+        timer_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+  }
+  ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  amf_ctxt_p = &ue_mm_context->amf_context;
+  if (amf_ctxt_p->auth_retry_count < amf_config.auth_retry_max_count) {
+    amf_ctxt_p->auth_retry_count++;
+    OAILOG_INFO(LOG_AMF_APP,
+                "auth_retry_timer: Incrementing auth_retry_count to %u\n",
+                amf_ctxt_p->auth_retry_count);
+    rc = amf_authentication_request_sent(ue_id);
+    amf_ctxt_p->auth_retry_timer.id =
+        amf_app_start_timer(amf_config.auth_retry_interval, TIMER_REPEAT_ONCE,
+                            subs_auth_retry, ue_id);
+  } else {
+    auth_info_proc = get_nas5g_cn_procedure_auth_info(amf_ctxt_p);
+    OAILOG_ERROR(
+        LOG_NAS_AMF,
+        "auth_retry_timer is expired . Authentication reject with cause "
+        "AMF_UE_ILLEGAL\n");
+    amf_cause = AMF_UE_ILLEGAL;
+
+    rc = amf_proc_registration_reject(ue_id, amf_cause);
+    if (auth_info_proc) {
+      nas5g_delete_cn_procedure(amf_ctxt_p, &auth_info_proc->cn_proc);
+    }
+
+    amf_free_ue_context(ue_mm_context);
+  }
+
+  return rc;
+}
+
 int amf_nas_proc_authentication_info_answer(
     itti_amf_subs_auth_info_ans_t* aia) {
   imsi64_t imsi64 = INVALID_IMSI64;
-  int rc = RETURNerror;
+  int rc = RETURNok;
   amf_context_t* amf_ctxt_p = NULL;
   ue_m5gmm_context_s* ue_5gmm_context_p = NULL;
   int amf_cause = -1;
@@ -446,8 +491,16 @@ int amf_nas_proc_authentication_info_answer(
       "Received Authentication Information Answer from Subscriberdb for"
       " UE ID = " AMF_UE_NGAP_ID_FMT,
       amf_ue_ngap_id);
-
   if (aia->auth_info.nb_of_vectors) {
+    nas5g_amf_auth_proc_t* auth_proc =
+        get_nas5g_common_procedure_authentication(amf_ctxt_p);
+    free_wrapper(reinterpret_cast<void**>(&auth_proc->auts.data));
+    if ((NAS5G_TIMER_INACTIVE_ID != amf_ctxt_p->auth_retry_timer.id) &&
+        (0 != amf_ctxt_p->auth_retry_timer.id)) {
+      OAILOG_DEBUG(LOG_NAS_AMF, "Stopping: Timer auth_retry_timer.\n");
+      amf_app_stop_timer(amf_ctxt_p->auth_retry_timer.id);
+      amf_ctxt_p->auth_retry_timer.id = NAS5G_TIMER_INACTIVE_ID;
+    }
     /*
      * Check that list is not empty and contain at most MAX_EPS_AUTH_VECTORS
      * elements
@@ -468,17 +521,32 @@ int amf_nas_proc_authentication_info_answer(
   } else {
     /* Get Auth Info Pro */
     auth_info_proc = get_nas5g_cn_procedure_auth_info(amf_ctxt_p);
-    OAILOG_ERROR(LOG_NAS_AMF,
-                 "result=%d, nb_of_vectors received is zero from subscriberdb",
-                 aia->result);
-    amf_cause = AMF_UE_ILLEGAL;
-    rc = amf_proc_registration_reject(amf_ue_ngap_id, amf_cause);
-    if (auth_info_proc) {
-      nas5g_delete_cn_procedure(amf_ctxt_p, &auth_info_proc->cn_proc);
+    amf_ctxt_p->auth_retry_count = 0;
+    if (aia->result != DIAMETER_TOO_BUSY) {
+      if ((NAS5G_TIMER_INACTIVE_ID != amf_ctxt_p->auth_retry_timer.id) &&
+          (0 != amf_ctxt_p->auth_retry_timer.id)) {
+        OAILOG_DEBUG(LOG_NAS_AMF, "Stopping: Timer auth_retry_timer.\n");
+        amf_app_stop_timer(amf_ctxt_p->auth_retry_timer.id);
+        amf_ctxt_p->auth_retry_timer.id = NAS5G_TIMER_INACTIVE_ID;
+      }
+      OAILOG_ERROR(
+          LOG_NAS_AMF,
+          "result=%d, nb_of_vectors received is zero from subscriberdb",
+          aia->result);
+      amf_cause = AMF_UE_ILLEGAL;
+      rc = amf_proc_registration_reject(amf_ue_ngap_id, amf_cause);
+      if (auth_info_proc) {
+        nas5g_delete_cn_procedure(amf_ctxt_p, &auth_info_proc->cn_proc);
+      }
+      amf_free_ue_context(ue_5gmm_context_p);
+      return rc;
+    } else {
+      amf_ctxt_p->auth_retry_timer.id =
+          amf_app_start_timer(amf_config.auth_retry_interval, TIMER_REPEAT_ONCE,
+                              subs_auth_retry, aia->ue_id);
+      rc = RETURNok;
     }
-    amf_free_ue_context(ue_5gmm_context_p);
   }
-
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 

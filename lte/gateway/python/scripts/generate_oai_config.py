@@ -47,6 +47,8 @@ DEFAULT_NGAP_AMF_REGION_ID = "1"
 DEFAULT_NGAP_SET_ID = "1"
 DEFAULT_NGAP_AMF_POINTER = "0"
 DEFAULT_DEFAULT_DNN = ""
+DEFAULT_AUTH_RETRY_COUNT = 1
+DEFAULT_AUTH_TIMER_EXPIRE_MSEC = 1000
 
 
 def _get_iface_ip(service, iface_config):
@@ -331,6 +333,44 @@ def _get_amf_name_config(service_mconfig: object) -> str:
     return service_mconfig.amf_name or DEFAULT_NGAP_AMF_NAME
 
 
+def _get_default_auth_retry_count(service_mconfig: object) -> str:
+    """Retrieve default_auth_retry_count config value. If it does not exist, it defaults to DEFAULT_AUTH_RETRY_COUNT.
+
+    Args:
+        service_mconfig: This is a configuration placeholder for mme.
+
+    Returns:
+        default default auth retry count.
+    """
+    enable_default_auth_retry_count_config = get_service_config_value(
+        'mme', 'auth_retry_max_count', None,
+    )
+
+    if enable_default_auth_retry_count_config is not None:
+        return enable_default_auth_retry_count_config
+
+    return DEFAULT_AUTH_RETRY_COUNT
+
+
+def _get_default_auth_timer_expire_msec(service_mconfig: object) -> str:
+    """Retrieve default_auth_retry_timer_expire_msec config value. If it does not exist, it defaults to DEFAULT_AUTH_TIMER_EXPIRE_MSEC.
+
+    Args:
+        service_mconfig: This is a configuration placeholder for mme.
+
+    Returns:
+        default default auth timer expire msec.
+    """
+    enable_default_auth_timer_expire_config = get_service_config_value(
+        'mme', 'auth_retry_interval', None,
+    )
+
+    if enable_default_auth_timer_expire_config is not None:
+        return enable_default_auth_timer_expire_config
+
+    return DEFAULT_AUTH_TIMER_EXPIRE_MSEC
+
+
 def _get_default_dnn_config(service_mconfig: object) -> str:
     """Retrieve default_dnn config value. If it does not exist, it defaults to DEFAULT_DEFAULT_DNN.
 
@@ -469,6 +509,8 @@ def _get_context():
         "amf_set_id": _get_amf_set_id(mme_service_config),
         "amf_pointer": _get_amf_pointer(mme_service_config),
         "default_dnn": _get_default_dnn_config(mme_service_config),
+        "auth_retry_max_count": _get_default_auth_retry_count(mme_service_config),
+        "auth_retry_interval": _get_default_auth_timer_expire_msec(mme_service_config),
     }
 
     context["s1u_ip"] = mme_service_config.ipv4_sgw_s1u_addr or _get_iface_ip(

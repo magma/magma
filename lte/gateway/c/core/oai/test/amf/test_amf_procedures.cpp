@@ -1632,7 +1632,6 @@ TEST_F(AMFAppProcedureTest, ServiceRequestSignalling) {
   imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
                                            initial_ue_message_hexbuf,
                                            sizeof(initial_ue_message_hexbuf));
-
   /* Check if UE Context is created with correct imsi */
   EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
 
@@ -1691,6 +1690,40 @@ TEST_F(AMFAppProcedureTest, ServiceRequestSignalling) {
   EXPECT_TRUE(rc == RETURNok);
 
   EXPECT_TRUE(expected_Ids == AMFClientServicer::getInstance().msgtype_stack);
+}
+
+TEST_F(AMFAppProcedureTest, TestAuthFailureFromSubscribeDbLock) {
+  amf_ue_ngap_id_t ue_id = 0;
+  amf_context_t* amf_ctxt_p = NULL;
+  nas5g_auth_info_proc_t* auth_info_proc = NULL;
+  ue_m5gmm_context_s* ue_context_p = nullptr;
+  std::vector<MessagesIds> expected_Ids{
+      AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
+                                            // indication to ngap
+      NGAP_NAS_DL_DATA_REQ,                 // Registration Reject
+      NGAP_UE_CONTEXT_RELEASE_COMMAND       // UEContextReleaseCommand
+  };
+  /* Send the initial UE message */
+  imsi64_t imsi64 = 0;
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
+  /* Check if UE Context is created with correct imsi */
+  EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
+
+  /* Send the authentication response message from subscriberdb */
+  itti_amf_subs_auth_info_ans_t aia_itti_msg = {};
+  strncpy(aia_itti_msg.imsi, imsi.c_str(), imsi.size());
+  aia_itti_msg.imsi_length = imsi.size();
+  aia_itti_msg.result = DIAMETER_TOO_BUSY;
+  int rc = RETURNerror;
+  rc = amf_nas_proc_authentication_info_answer(&aia_itti_msg);
+  EXPECT_TRUE(rc == RETURNok);
+  ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  amf_ctxt_p = &ue_context_p->amf_context;
+  auth_info_proc = get_nas5g_cn_procedure_auth_info(amf_ctxt_p);
+  nas5g_delete_cn_procedure(amf_ctxt_p, &auth_info_proc->cn_proc);
+  amf_free_ue_context(ue_context_p);
 }
 
 }  // namespace magma5g
