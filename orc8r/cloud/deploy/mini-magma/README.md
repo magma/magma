@@ -1,6 +1,6 @@
 # Mini Magma Orchestrator
 
-Install Dependant Collections
+Install dependant collections:
 ```bash
 ansible-galaxy collection install community.docker
 ansible-galaxy collection install kubernetes.core
