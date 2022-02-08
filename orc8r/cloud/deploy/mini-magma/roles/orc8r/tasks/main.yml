@@ -7,4 +7,5 @@
 - include_tasks: feg-orc8r.yml
 - include_tasks: cwf-orc8r.yml
 - include_tasks: wifi-orc8r.yml
+- include_tasks: domain-proxy.yml
 - include_tasks: fbinternal-orc8r.yml

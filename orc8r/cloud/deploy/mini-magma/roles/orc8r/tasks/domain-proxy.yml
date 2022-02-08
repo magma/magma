@@ -1,0 +1,8 @@
+---
+- name: Install Domain Proxy
+  when: deploy_domain_proxy
+  kubernetes.core.helm:
+    name: domain-proxy
+    chart_ref: orc8r/domain-proxy
+    release_namespace: "{{ magma_namespace }}"
+    create_namespace: true

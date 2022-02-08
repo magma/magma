@@ -7,3 +7,4 @@ magma_api_password: "password"
 magma_directory: "magma-galaxy"
 magma_service_type: "ClusterIP"
 deploy_wifi_orc8r: false
+deploy_domain_proxy: false
