@@ -57,15 +57,23 @@ status_code_e mme_config_embedded_spgw_parse_opt_line(
   spgw_config_init(spgw_config_p);
   amf_config_init(amf_config_p);
 
-  while ((c = getopt(argc, argv, "c:hi:Ks:v:V")) != -1) {
+  while ((c = getopt(argc, argv, "c:hi:Ks:v:V:p:")) != -1) {
     switch (c) {
       case 'c':
         mme_config_p->config_file = bfromcstr(optarg);
-
         OAILOG_DEBUG(LOG_CONFIG, "mme_config.config_file %s",
                      bdata(mme_config_p->config_file));
-
         break;
+
+#if MME_BENCHMARK
+      case 'p': {
+        mme_config_p->test_param = atoi(optarg);
+        mme_config_p->test_type = TEST_SERIALIZATION_PROTOBUF;
+        mme_config_p->run_mode = RUN_MODE_TEST;
+        OAI_FPRINTF_INFO("Test serialization protobuf, parameter %u\n",
+                         mme_config_p->test_param);
+      } break;
+#endif
 
       case 'v':
         mme_config_p->log_config.asn1_verbosity_level = atoi(optarg);
@@ -102,6 +110,9 @@ status_code_e mme_config_embedded_spgw_parse_opt_line(
         break;
 
       case 'h':
+#if !MME_BENCHMARK
+      case 'p':
+#endif
       default:
         usage(argv[0]);
         exit(0);

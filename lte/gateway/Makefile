@@ -28,7 +28,7 @@ ifeq ($(BUILD_TYPE),Debug)
 	ifeq ($(ENABLE_ASAN),1)
 		BAZEL_FLAGS := $(BAZEL_FLAGS) --config=asan
 	endif
-else 
+else
 	## RelWithDebInfo enable LSAN and add debug information
 	BAZEL_FLAGS = --config=production
 endif
@@ -80,6 +80,8 @@ TEST_FLAG = -DBUILD_TESTS=1
 OAI_TEST_FLAGS = -DMME_UNIT_TEST=True
 OAI_NOTEST_FLAGS = -DMME_UNIT_TEST=False
 OAI_TESTS ?= ".*"
+OAI_BENCHMARK_FLAGS = -DMME_BENCHMARK=True
+OAI_NOBENCHMARK_FLAGS = -DMME_BENCHMARK=False
 
 all: build
 
@@ -159,6 +161,10 @@ mkdir -p $(C_BUILD)/$(1)
 sudo cp -f $(MAGMA_ROOT)/bazel-bin/lte/gateway/c/$(1)/$(2) $(C_BUILD)/$(1)/$(2)
 endef
 
+
+benchmark_pb: ## Benchmark ProtoBuf, same build_oai but with -DMME_BENCHMARK=True
+	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS) $(OAI_BENCHMARK_FLAGS))
+
 build_c:  ## Build C/C++ targets with Bazel
 	bazel build $(BAZEL_FLAGS) //lte/gateway/c/session_manager:sessiond //lte/gateway/c/sctpd/src:sctpd //lte/gateway/c/connection_tracker/src:connectiond //lte/gateway/c/li_agent/src:liagentd
 	$(call copy_bazel_c_build,session_manager,sessiond)
@@ -167,7 +173,7 @@ build_c:  ## Build C/C++ targets with Bazel
 	$(call copy_bazel_c_build,li_agent/src,liagentd)
 
 build_oai: ## Build OAI
-	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS))
+	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS))
 
 format_all:
 	find $(MAGMA_ROOT)/orc8r/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" -o -iname "*.hpp" \) -exec \
@@ -214,7 +220,7 @@ test_c: ## Run all Bazel-ified C/C++ tests
 	bazel test $(BAZEL_FLAGS) -- //orc8r/gateway/c/...:* //lte/gateway/c/...:* -//lte/gateway/c/core/...:*
 
 test_oai: ## Run all OAI-specific tests
-	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS), $(OAI_TESTS))
+	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS), $(OAI_TESTS))
 
 test_sctpd: ## Run all tests for sctpd
 	$(call run_ctest, $(C_BUILD)/sctp, $(C_BUILD)/sctp/src, $(GATEWAY_C_DIR)/sctpd, )
@@ -247,7 +253,7 @@ precommit_sm: format_all test_session_manager
 precommit_oai: format_all test_oai
 
 build_oai_clang: ## Build OAI with Clang, store compiler outputs to log
-	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS), CC="clang" CXX="clang++") 2>&1 | tee /tmp/clang-build.oai.log
+	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS), CC="clang" CXX="clang++") 2>&1 | tee /tmp/clang-build.oai.log
 
 # Upload Clang-Warning counts by type to Google Sheet via Google Survey
 #  Graph available at https://docs.google.com/spreadsheets/d/1ndiIKJNI2IJZBwavnu1x_KwwvlQppnoYEOtYdihqiIQ/edit#gid=734064581
