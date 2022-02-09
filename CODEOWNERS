@@ -61,6 +61,18 @@
 /docs/ @magma/approvers-docs
 /docs/readmes/proposals @electronjoe
 
+# approvers-bazel
+/.bazel-cache/ @magma/approvers-bazel
+/.bazel-cache-repo/ @magma/approvers-bazel
+/.github/workflows/bazel-cache-push.yml @magma/approvers-bazel
+/.github/workflows/bazel.yml @magma/approvers-bazel
+/.github/workflows/docker-builder-bazel-base.yml @magma/approvers-bazel
+/bazel/ @magma/approvers-bazel
+/experimental/bazel-base/ @magma/approvers-bazel
+/.bazelignore @magma/approvers-bazel
+/.bazelrc @magma/approvers-bazel
+*.bazel @magma/approvers-bazel
+
 /CODEOWNERS @amarpad @electronjoe @hcgatewood
 
 # Generated code excluded from code ownership
