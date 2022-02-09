@@ -439,3 +439,13 @@ cpp_grpc_library(
     protos = [":ha_service_proto"],
     deps = [":ha_service_cpp_proto"],
 )
+
+python_grpc_library(
+    name = "s6a_service_python_grpc",
+    protos = [":s6a_service_proto"],
+)
+
+python_grpc_library(
+    name = "subscriberauth_python_grpc",
+    protos = [":subscriberauth_proto"],
+)
