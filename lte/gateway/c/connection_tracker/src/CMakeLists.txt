@@ -48,6 +48,7 @@ find_package(MAGMA_LOGGING REQUIRED)
 find_package(SERVICE303_LIB REQUIRED)
 find_package(MAGMA_CONFIG REQUIRED)
 find_package(SERVICE_REGISTRY REQUIRED)
+find_package(MAGMA_SENTRY REQUIRED)
 
 # compile the needed protos
 set(CT_ORC8R_CPP_PROTOS "")
@@ -69,7 +70,7 @@ add_library(CONNECTION_TRACKER
     ${PROTO_HDRS})
 
 target_link_libraries(CONNECTION_TRACKER
-    SERVICE303_LIB SERVICE_REGISTRY MAGMA_LOGGING MAGMA_CONFIG
+    SERVICE303_LIB SERVICE_REGISTRY MAGMA_LOGGING MAGMA_CONFIG MAGMA_SENTRY
     glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
     prometheus-cpp tacopie mnl tins
     )

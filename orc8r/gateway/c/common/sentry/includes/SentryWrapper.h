@@ -19,6 +19,7 @@ extern "C" {
 
 #define MAX_URL_LENGTH 255
 #define SENTRY_TAG_MME "MME"
+#define SENTRY_TAG_CONNECTIOND "ConnectionD"
 #define SENTRY_TAG_SESSIOND "SessionD"
 #define SENTRY_TAG_SCTPD "SctpD"
 #define SENTRY_TAG_LEN 16
