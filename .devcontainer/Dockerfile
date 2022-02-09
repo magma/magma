@@ -322,7 +322,7 @@ RUN ldconfig -v
 ##### Install Python requirements
 RUN pip3 install --quiet --upgrade --no-cache-dir "setuptools==49.6.0"
 
-### install python3-aioeventlet from the magma apt repo (from .circleci/config.yml)
+### install python3-aioeventlet from the magma apt repo
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/
 RUN apt-key add /tmp/jfrog.pub && \
     echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" > /etc/apt/sources.list.d/fbc.list && \
