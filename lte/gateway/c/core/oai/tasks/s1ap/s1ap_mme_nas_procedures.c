@@ -937,6 +937,7 @@ void s1ap_handle_conn_est_cnf(
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
+ 
   ie = (S1ap_InitialContextSetupRequestIEs_t*) calloc(
       1, sizeof(S1ap_InitialContextSetupRequestIEs_t));
   ie->id          = S1ap_ProtocolIE_ID_id_uEaggregateMaximumBitrate;
@@ -950,6 +951,7 @@ void s1ap_handle_conn_est_cnf(
       &ie->value.choice.UEAggregateMaximumBitrate.uEaggregateMaximumBitRateUL,
       conn_est_cnf_pP->ue_ambr.br_ul);
 
+
 if (conn_est_cnf_pP->ue_ambr.br_dl > 10000000000
       || conn_est_cnf_pP->ue_ambr.br_ul > 10000000000) {
     extension = calloc(1, sizeof(S1ap_ProtocolExtensionContainer_7327P134_t));
@@ -957,37 +959,33 @@ if (conn_est_cnf_pP->ue_ambr.br_dl > 10000000000
   }
  
   if (conn_est_cnf_pP->ue_ambr.br_dl > 10000000000) {
-  OAILOG_DEBUG(LOG_S1AP, "ambrulvalueextendeddl inside the loop is %ld \n:",conn_est_cnf_pP->ue_ambr.extended_br_dl);
-  OAILOG_DEBUG(LOG_S1AP,"ambrulvaluedl inside the loop is %ld \n:",conn_est_cnf_pP->ue_ambr.br_dl );
-
   ie_ambrext = (S1ap_UEAggregate_MaximumBitrates_ExtIEs_t*) calloc(
       1, sizeof(S1ap_UEAggregate_MaximumBitrates_ExtIEs_t));
   ie_ambrext->id          = S1ap_ProtocolIE_ID_id_extended_uEaggregateMaximumBitRateDL;
   ie_ambrext->criticality = S1ap_Criticality_ignore;
   ie_ambrext->extensionValue.present = S1ap_UEAggregate_MaximumBitrates_ExtIEs__extensionValue_PR_ExtendedBitRate ;
     asn_uint642INTEGER(
-        &ie_ambrext->extensionValue.choice.ExtendedBitRate,
-        conn_est_cnf_pP->ue_ambr.extended_br_dl);
-    ASN_SEQUENCE_ADD(&extension->list, ie_ambrext);
-  OAILOG_DEBUG(LOG_S1AP, "ambrulvalueextendeddl after processing is %ld \n:",conn_est_cnf_pP->ue_ambr.extended_br_dl);
-  OAILOG_DEBUG(LOG_S1AP,"ambrulvaluedl after processing %ld \n:",conn_est_cnf_pP->ue_ambr.br_dl );
+      &ie->value.choice.UEAggregateMaximumBitrate.uEaggregateMaximumBitRateDL,
+      1000000000);
+    asn_uint642INTEGER(
+       &ie_ambrext->extensionValue.choice.ExtendedBitRate,
+       conn_est_cnf_pP->ue_ambr.br_dl);
+  ASN_SEQUENCE_ADD(&extension->list, ie_ambrext);
   }
 
  if (conn_est_cnf_pP->ue_ambr.br_ul > 10000000000) {
- OAILOG_DEBUG(LOG_S1AP,"ambrulvalueextendedul inside the loop is %ld \n:",conn_est_cnf_pP->ue_ambr.extended_br_ul );
- OAILOG_DEBUG(LOG_S1AP,"ambrulvalueul inside the loop is %ld \n:",conn_est_cnf_pP->ue_ambr.br_ul );
   ie_ambrext = (S1ap_UEAggregate_MaximumBitrates_ExtIEs_t*) calloc(
       1, sizeof(S1ap_UEAggregate_MaximumBitrates_ExtIEs_t));
   ie_ambrext->id          = S1ap_ProtocolIE_ID_id_extended_uEaggregateMaximumBitRateUL;
   ie_ambrext->criticality = S1ap_Criticality_ignore;
   ie_ambrext->extensionValue.present = S1ap_UEAggregate_MaximumBitrates_ExtIEs__extensionValue_PR_ExtendedBitRate ;
-    asn_uint642INTEGER(
+  asn_uint642INTEGER(
+      &ie->value.choice.UEAggregateMaximumBitrate.uEaggregateMaximumBitRateUL,
+      1000000000);
+  asn_uint642INTEGER(
         &ie_ambrext->extensionValue.choice.ExtendedBitRate,
-        conn_est_cnf_pP->ue_ambr.extended_br_ul);
-    OAILOG_DEBUG(LOG_S1AP, "ambrulvalueextended is %d \n:",conn_est_cnf_pP->ue_ambr.extended_br_ul );
+        conn_est_cnf_pP->ue_ambr.br_ul);
     ASN_SEQUENCE_ADD(&extension->list, ie_ambrext);
-    OAILOG_DEBUG(LOG_S1AP,"ambrulvalueextendedul after processing %ld \n:",conn_est_cnf_pP->ue_ambr.extended_br_ul );
-    OAILOG_DEBUG(LOG_S1AP,"ambrulvalueul after processing is %ld \n:",conn_est_cnf_pP->ue_ambr.br_ul );
  }
    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
  

@@ -149,10 +149,10 @@ type AIA struct {
 //	Result-Code {Code:268,Flags:0x40,Length:12,VendorId:0,Value:Unsigned32{2001}}
 //
 type AMBR struct {
-	MaxRequestedBandwidthUL uint32 `avp:"Max-Requested-Bandwidth-UL"`
-	MaxRequestedBandwidthDL uint32 `avp:"Max-Requested-Bandwidth-DL"`
-	ExtendMaxRequestedBwUL  uint32 `avp:"Extended-Max-Requested-BW-UL"`
-	ExtendMaxRequestedBwDL  uint32 `avp:"Extended-Max-Requested-BW-DL"`
+	MaxRequestedBandwidthUL uint64 `avp:"Max-Requested-Bandwidth-UL"`
+	MaxRequestedBandwidthDL uint64 `avp:"Max-Requested-Bandwidth-DL"`
+	ExtendMaxRequestedBwUL  uint64 `avp:"Extended-Max-Requested-BW-UL"`
+	ExtendMaxRequestedBwDL  uint64 `avp:"Extended-Max-Requested-BW-DL"`
 }
 
 type AllocationRetentionPriority struct {
