@@ -71,7 +71,7 @@ class eBpfDatapathDLTest(unittest.TestCase):
         BridgeTools.ifup_netdev(cls.gtp_veth_ns, cls.gtp_pkt_src + "/24")
 
         gw_ip = IPAddress(version=IPAddress.IPV4, address=socket.inet_aton(cls.sgi_veth_ip))
-        cls.ebpf_man = ebpf_manager(cls.sgi_veth, cls.gtp_veth, gw_ip, enabled=True, bpf_ul_file=UL_HANDLER, bpf_dl_file=DL_HANDLER)
+        cls.ebpf_man = ebpf_manager(cls.sgi_veth, cls.gtp_veth, gw_ip, bpf_ul_file=UL_HANDLER, bpf_dl_file=DL_HANDLER)
         cls.ebpf_man.detach_dl_ebpf()
         cls.ebpf_man.attach_dl_ebpf()
 
