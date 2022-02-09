@@ -168,6 +168,10 @@ reg10    | Global     | App ID               | DPI app
 reg4     | Local      | Policy version number| Enforcement app
 reg6     | Global     | Passthrough flag     | Ue Mac app
 reg7     | Local      | Vlan Tag             | Vlan learn app
+reg8     | Global     | Tunnel port          | MME
+reg9     | Global     | Tunnel ID            | MME
+reg10    | Local      | Proxy Tag            | HE
+reg11    | Local      | Session ID           | 5G stats
 
 ### Resilience
 
