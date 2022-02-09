@@ -9,16 +9,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//bazel:python_swagger.bzl", "py_swagger")
-load("//bazel:python_swagger_specs.bzl", "py_swagger_specs")
+""" Load external python repositories (that cannot be imported via pip). """
 
-py_swagger_specs(
-    name = "orc8r_swagger_specs",
-    component = "orc8r",
-)
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
 
-py_swagger(
-    name = "magmad_events_v1",
-    spec = "magmad_events.v1.yml",
-    visibility = ["//visibility:public"],
-)
+def python_repositories():
+    new_git_repository(
+        name = "aioh2_repo",
+        build_file = "//bazel/external:aioh2.BUILD",
+        commit = "8c1b5ab2399443087795fe52b71e43b652b1031f",
+        shallow_since = "1548652954 +0800",
+        remote = "https://github.com/URenko/aioh2.git",
+    )

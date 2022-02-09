@@ -9,16 +9,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//bazel:python_swagger.bzl", "py_swagger")
-load("//bazel:python_swagger_specs.bzl", "py_swagger_specs")
+load("//bazel:python_test.bzl", "pytest_test")
 
-py_swagger_specs(
-    name = "orc8r_swagger_specs",
-    component = "orc8r",
+pytest_test(
+    name = "command_executor_test",
+    srcs = ["command_executor_test.py"],
+    deps = ["//orc8r/gateway/python/magma/magmad/generic_command:command_executor"],
 )
 
-py_swagger(
-    name = "magmad_events_v1",
-    spec = "magmad_events.v1.yml",
-    visibility = ["//visibility:public"],
+pytest_test(
+    name = "shell_command_executor_test",
+    srcs = ["shell_command_executor_test.py"],
+    deps = ["//orc8r/gateway/python/magma/magmad/generic_command:command_executor"],
 )

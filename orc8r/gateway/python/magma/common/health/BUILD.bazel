@@ -9,16 +9,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//bazel:python_swagger.bzl", "py_swagger")
-load("//bazel:python_swagger_specs.bzl", "py_swagger_specs")
+load("@rules_python//python:defs.bzl", "py_library")
 
-py_swagger_specs(
-    name = "orc8r_swagger_specs",
-    component = "orc8r",
-)
+package(default_visibility = ["//visibility:public"])
 
-py_swagger(
-    name = "magmad_events_v1",
-    spec = "magmad_events.v1.yml",
-    visibility = ["//visibility:public"],
+py_library(
+    name = "service_state_wrapper",
+    srcs = ["service_state_wrapper.py"],
+    deps = [
+        "//orc8r/gateway/python/magma/common/redis:client",
+        "//orc8r/protos:service_status_python_proto",
+    ],
 )

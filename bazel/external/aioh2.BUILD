@@ -9,16 +9,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//bazel:python_swagger.bzl", "py_swagger")
-load("//bazel:python_swagger_specs.bzl", "py_swagger_specs")
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library")
 
-py_swagger_specs(
-    name = "orc8r_swagger_specs",
-    component = "orc8r",
-)
-
-py_swagger(
-    name = "magmad_events_v1",
-    spec = "magmad_events.v1.yml",
+py_library(
+    name = "aioh2",
+    srcs = [
+        "aioh2/__init__.py",
+        "aioh2/exceptions.py",
+        "aioh2/helper.py",
+        "aioh2/protocol.py",
+    ],
     visibility = ["//visibility:public"],
+    deps = [
+        requirement("h2"),
+        requirement("priority"),
+    ],
 )

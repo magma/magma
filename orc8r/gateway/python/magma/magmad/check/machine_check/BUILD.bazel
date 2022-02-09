@@ -9,16 +9,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//bazel:python_swagger.bzl", "py_swagger")
-load("//bazel:python_swagger_specs.bzl", "py_swagger_specs")
+load("@rules_python//python:defs.bzl", "py_library")
 
-py_swagger_specs(
-    name = "orc8r_swagger_specs",
-    component = "orc8r",
-)
+ORC8R_ROOT = "../../../../"
 
-py_swagger(
-    name = "magmad_events_v1",
-    spec = "magmad_events.v1.yml",
+py_library(
+    name = "cpu_info",
+    srcs = ["cpu_info.py"],
+    imports = [ORC8R_ROOT],
     visibility = ["//visibility:public"],
+    deps = ["//orc8r/gateway/python/magma/magmad/check:subprocess_workflow"],
 )
