@@ -25,7 +25,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
-	"magma/lte/cloud/go/services/ha/servicers"
+	servicers "magma/lte/cloud/go/services/ha/servicers/southbound"
 	lte_service "magma/lte/cloud/go/services/lte"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"

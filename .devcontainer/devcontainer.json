@@ -21,6 +21,7 @@
 		"ms-python.python",
 		"ms-python.vscode-pylance",
 		"njpwerner.autodocstring",
+		"zxh404.vscode-proto3",
 	],
 	"image": "ghcr.io/magma/magma/devcontainer:sha-ad15c84",
 	"settings": {
@@ -68,7 +69,18 @@
 			"/workspaces/magma/lte/gateway/python/",
 		],
 		"python.defaultInterpreterPath": "/usr/bin/python",
-	},
+		"python.formatting.provider": "autopep8",
+		"python.formatting.autopep8Args": [
+			// This should be the same set of flags as ones specified in `lte/gateway/precommit.py`
+			"--select=W191,W291,W292,W293,W391,E131,E2,E3"
+		],
+		"[python]": {
+			"editor.formatOnSave": true,
+			"editor.codeActionsOnSave": {
+				"source.organizeImports": true
+			}
+		}
+    },
 	"mounts": [
 		"source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind"
 	],

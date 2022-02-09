@@ -24,7 +24,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	models "magma/orc8r/cloud/go/services/ctraced/obsidian/models"
-	"magma/orc8r/cloud/go/services/ctraced/servicers"
+	ctraced_servicers "magma/orc8r/cloud/go/services/ctraced/servicers/southbound"
 	"magma/orc8r/cloud/go/services/ctraced/storage"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/test_utils"
@@ -72,7 +72,7 @@ func TestCallTraceServicer(t *testing.T) {
 
 	fact := test_utils.NewSQLBlobstore(t, "ctraced_trace_servicer_test_blobstore")
 	blobstore := storage.NewCtracedBlobstore(fact)
-	srv := servicers.NewCallTraceServicer(blobstore)
+	srv := ctraced_servicers.NewCallTraceServicer(blobstore)
 
 	// Missing subscriber ID
 	req := &protos.ReportEndedTraceRequest{TraceId: "CallTrace0", Success: true, TraceContent: []byte("abcdefghijklmnopqrstuvwxyz\n")}

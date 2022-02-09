@@ -16,22 +16,32 @@ func (*heartbeatRequest) name() string {
 	return "heartbeat"
 }
 
-type heartbeatMessageGenerator struct {
+type heartbeatOrRelinquishMessageGenerator struct {
 	deadlineUnix int64
 }
 
-func (h *heartbeatMessageGenerator) generateMessages(config *active_mode.ActiveModeConfig) []message {
+func (h *heartbeatOrRelinquishMessageGenerator) generateMessages(config *active_mode.ActiveModeConfig) []message {
+	var req message
 	cbsd := config.GetCbsd()
+	cbsdId := cbsd.GetId()
 	grants := cbsd.GetGrants()
 	messages := make([]message, 0, len(grants))
 	for _, grant := range grants {
-		if grant.GetState() == active_mode.GrantState_Authorized && !shouldSendNow(grant, h.deadlineUnix) {
+		grantState := grant.GetState()
+		grantId := grant.GetId()
+		if grantState == active_mode.GrantState_Authorized && !shouldSendNow(grant, h.deadlineUnix) {
 			continue
-		}
-		req := &heartbeatRequest{
-			CbsdId:         cbsd.GetId(),
-			GrantId:        grant.GetId(),
-			OperationState: strings.ToUpper(grant.GetState().String()),
+		} else if grantState == active_mode.GrantState_Unsync {
+			req = &relinquishmentRequest{
+				CbsdId:  cbsdId,
+				GrantId: grantId,
+			}
+		} else {
+			req = &heartbeatRequest{
+				CbsdId:         cbsdId,
+				GrantId:        grantId,
+				OperationState: strings.ToUpper(grantState.String()),
+			}
 		}
 		messages = append(messages, req)
 	}

@@ -24,7 +24,7 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/ctraced"
 	"magma/orc8r/cloud/go/services/ctraced/obsidian/handlers"
-	"magma/orc8r/cloud/go/services/ctraced/servicers"
+	servicers "magma/orc8r/cloud/go/services/ctraced/servicers/southbound"
 	ctraced_storage "magma/orc8r/cloud/go/services/ctraced/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"

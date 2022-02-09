@@ -367,6 +367,7 @@ variable "helm_pass" {
 variable "cert_manager_route53_iam_role_arn" {
   description = "IAM role ARN for cert-manager."
   type        = string
+  default     = null
 }
 
 variable "deploy_cert_manager_helm_chart" {

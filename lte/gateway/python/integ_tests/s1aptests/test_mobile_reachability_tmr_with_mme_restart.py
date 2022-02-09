@@ -20,16 +20,20 @@ import s1ap_wrapper
 from s1ap_utils import MagmadUtil
 
 
-class TestMobileReachabilityTimerWithMmeRestart(unittest.TestCase):
+class TestMobileReachabilityTmrWithMmeRestart(unittest.TestCase):
+    """Integration Test: TestMobileReachabilityTmrWithMmeRestart"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
             stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
-    def test_mobile_reachability_timer_with_mme_restart(self):
+    def test_mobile_reachability_tmr_with_mme_restart(self):
         """
         The test case validates Mobile Reachability Timer resumes the
         configured timer value on MME restart
@@ -48,7 +52,6 @@ class TestMobileReachabilityTimerWithMmeRestart(unittest.TestCase):
 
         """
         self._s1ap_wrapper.configUEDevice(1)
-        time.sleep(20)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
         print(
@@ -80,11 +83,13 @@ class TestMobileReachabilityTimerWithMmeRestart(unittest.TestCase):
         req.ue_Id = ue_id
         req.cause.causeVal = gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req,
+            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST,
+            req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
         print("************************* Restarting MME service on gateway")
@@ -107,11 +112,11 @@ class TestMobileReachabilityTimerWithMmeRestart(unittest.TestCase):
         )
         # 5 Minutes + 5 minutes = 10 minutes (600 seconds)
         # 600 seconds + 60 seconds, delta(Randomly chosen)
-        timeSlept = 0
-        while timeSlept < 660:
+        time_slept = 0
+        while time_slept < 660:
             time.sleep(10)
-            timeSlept += 10
-            print("*********** Slept for", timeSlept, "seconds")
+            time_slept += 10
+            print("*********** Slept for", time_slept, "seconds")
 
         print(
             "************************* Sending Service request for UE id ",
@@ -124,13 +129,14 @@ class TestMobileReachabilityTimerWithMmeRestart(unittest.TestCase):
         req.ueMtmsi.pres = False
         req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_DATA.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req,
+            s1ap_types.tfwCmd.UE_SERVICE_REQUEST,
+            req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value,
         )
-
         print(
             "************************* Received Service Reject for UE id ",
             ue_id,
@@ -139,7 +145,8 @@ class TestMobileReachabilityTimerWithMmeRestart(unittest.TestCase):
         # Wait for UE Context Release command
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
 

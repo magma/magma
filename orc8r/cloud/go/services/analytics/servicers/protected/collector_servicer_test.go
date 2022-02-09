@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package analytics_test
+package servicers_test
 
 import (
 	"context"
@@ -23,10 +23,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
 
-	"magma/orc8r/cloud/go/services/analytics"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/analytics/query_api"
+	analytics_servicers "magma/orc8r/cloud/go/services/analytics/servicers/protected"
 	"magma/orc8r/lib/go/metrics"
 )
 
@@ -65,7 +65,7 @@ func TestUserThresholdEnforcement(t *testing.T) {
 	calcs := []calculations.Calculation{
 		&TestUserCalculations{calculations.BaseCalculation{}},
 	}
-	collectorServicer := analytics.NewCollectorServicer(&analyticsConfig, nil, calcs, &userStateMgr)
+	collectorServicer := analytics_servicers.NewCollectorServicer(&analyticsConfig, nil, calcs, &userStateMgr)
 	resp, err := collectorServicer.Collect(context.Background(), &protos.CollectRequest{})
 	assert.NoError(t, err)
 	assert.Equal(t, len(resp.GetResults()), 0)
@@ -122,7 +122,7 @@ func TestExportEnforcement(t *testing.T) {
 		&TestNetworkCalculations{calculations.BaseCalculation{}},
 	}
 
-	collectorServicer := analytics.NewCollectorServicer(&analyticsConfig, nil, calcs, &userStateMgr)
+	collectorServicer := analytics_servicers.NewCollectorServicer(&analyticsConfig, nil, calcs, &userStateMgr)
 	resp, err := collectorServicer.Collect(context.Background(), &protos.CollectRequest{})
 	assert.NoError(t, err)
 	assert.Equal(t, len(resp.GetResults()), 0)
@@ -161,7 +161,7 @@ func TestRegisterEnforcement(t *testing.T) {
 		}},
 	}
 
-	collectorServicer := analytics.NewCollectorServicer(&analyticsConfig, nil, calcs, &userStateMgr)
+	collectorServicer := analytics_servicers.NewCollectorServicer(&analyticsConfig, nil, calcs, &userStateMgr)
 	resp, err := collectorServicer.Collect(context.Background(), &protos.CollectRequest{})
 	results := resp.GetResults()
 	assert.NoError(t, err)
