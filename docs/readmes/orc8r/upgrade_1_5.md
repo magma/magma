@@ -141,7 +141,7 @@ successfully upgraded.
 A new `Duplicate Request Alert` has been added, which triggers when more than
 100 alerts within the last 5 minutes have been raised.
 
-To enable this alert, you must "Sync Pre-Defined Alerts" for _*every*_ network
+To enable this alert, you must "Sync Pre-Defined Alerts" for **every** network
 defined in the Orc8r.
 See the [NMS Alerts Guide](../nms/alerts#predefined-alerts) for guidance
 on this process.
@@ -178,7 +178,7 @@ If you would like to customize this alert, refer to
 [NMS alerts guide - custom alert rules](../nms/alerts#custom-alert-rules).
 
 In order to start receiving these alarms, it is necessary to click on the
-“Sync Pre-Defined alerts” in the NMS window for _*every*_ network defined in
+“Sync Pre-Defined alerts” in the NMS window for **every** network defined in
 the Orc8r. For more details on this process, see the [NMS alerts guide](../nms/alerts#predefined-alerts)
 Syncing the alerts once on the NMS does not replicate the behavior to other
 networks managed by the same NMS.

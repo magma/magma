@@ -24,6 +24,7 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/analytics"
 	analytics_protos "magma/orc8r/cloud/go/services/analytics/protos"
+	analytics_servicers "magma/orc8r/cloud/go/services/analytics/servicers/protected"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	exporter_protos "magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/cloud/go/services/orchestrator"
@@ -76,7 +77,7 @@ func main() {
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(orchestrator.ServiceName))
 
-	collectorServicer := analytics.NewCollectorServicer(
+	collectorServicer := analytics_servicers.NewCollectorServicer(
 		&serviceConfig.Analytics,
 		analytics.GetPrometheusClient(),
 		analytics_service.GetAnalyticsCalculations(&serviceConfig.Analytics),

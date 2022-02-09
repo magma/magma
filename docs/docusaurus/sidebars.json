@@ -280,7 +280,8 @@
           "lte/tr069",
           "lte/s1ap_tests",
           "lte/eventd",
-          "lte/access_service_restrictions"
+          "lte/access_service_restrictions",
+          "lte/dev_teid_allocation"
         ]
       },
       {
