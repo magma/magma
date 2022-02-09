@@ -15,7 +15,10 @@ package(default_visibility = ["//lte/gateway/c/session_manager/test:__pkg__"])
 
 cc_library(
     name = "event_manager",
-    srcs = ["EventManager.h"],
+    srcs = [
+        "EventBaseManager.h",
+        "SchedulableCallback.h",
+    ],
     linkopts = [
         "-levent",
         "-levent_pthreads",
