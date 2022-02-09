@@ -30,29 +30,18 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
-type sbConfiguratorServicer struct {
+type sbInternalConfiguratorServicer struct {
 	factory storage.ConfiguratorStorageFactory
 }
 
-func NewSouthboundConfiguratorServicer(factory storage.ConfiguratorStorageFactory) (cfg_protos.SouthboundConfiguratorServer, error) {
+func NewSouthboundInternalConfiguratorServicer(factory storage.ConfiguratorStorageFactory) (cfg_protos.SouthboundInternalConfiguratorServer, error) {
 	if factory == nil {
 		return nil, fmt.Errorf("storage factory is nil")
 	}
-	return &sbConfiguratorServicer{factory}, nil
+	return &sbInternalConfiguratorServicer{factory}, nil
 }
 
-func (srv *sbConfiguratorServicer) GetMconfig(ctx context.Context, void *protos.Void) (*protos.GatewayConfigs, error) {
-	gw := protos.GetClientGateway(ctx)
-	if gw == nil {
-		return nil, status.Errorf(codes.PermissionDenied, "missing gateway identity")
-	}
-	if !gw.Registered() {
-		return nil, status.Errorf(codes.PermissionDenied, "gateway not registered")
-	}
-	return srv.getMconfigImpl(gw.NetworkId, gw.LogicalId)
-}
-
-func (srv *sbConfiguratorServicer) GetMconfigInternal(ctx context.Context, req *cfg_protos.GetMconfigRequest) (*cfg_protos.GetMconfigResponse, error) {
+func (srv *sbInternalConfiguratorServicer) GetMconfigInternal(ctx context.Context, req *cfg_protos.GetMconfigInternalRequest) (*cfg_protos.GetMconfigInternalResponse, error) {
 	store, err := srv.factory.StartTransaction(context.Background(), &orc8r_storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		storage.RollbackLogOnError(store)
@@ -73,14 +62,14 @@ func (srv *sbConfiguratorServicer) GetMconfigInternal(ctx context.Context, req *
 	storage.CommitLogOnError(store)
 
 	ent := loadResult.Entities[0]
-	cfg, err := srv.getMconfigImpl(ent.NetworkID, ent.Key)
+	cfg, err := srv.getInternalMconfigImpl(ent.NetworkID, ent.Key)
 	if err != nil {
 		return nil, err
 	}
-	return &cfg_protos.GetMconfigResponse{Configs: cfg, LogicalID: ent.Key}, nil
+	return &cfg_protos.GetMconfigInternalResponse{Configs: cfg, LogicalID: ent.Key}, nil
 }
 
-func (srv *sbConfiguratorServicer) getMconfigImpl(networkID string, gatewayID string) (*protos.GatewayConfigs, error) {
+func (srv *sbInternalConfiguratorServicer) getInternalMconfigImpl(networkID string, gatewayID string) (*protos.GatewayConfigs, error) {
 	store, err := srv.factory.StartTransaction(context.Background(), &orc8r_storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		storage.RollbackLogOnError(store)

@@ -719,20 +719,20 @@ func getNBConfiguratorClient() (protos.NorthboundConfiguratorClient, error) {
 	return protos.NewNorthboundConfiguratorClient(conn), err
 }
 
-func GetMconfigFor(ctx context.Context, hardwareID string) (*protos.GetMconfigResponse, error) {
+func GetMconfigFor(ctx context.Context, hardwareID string) (*protos.GetMconfigInternalResponse, error) {
 	client, err := getSBConfiguratorClient()
 	if err != nil {
 		return nil, err
 	}
-	return client.GetMconfigInternal(ctx, &protos.GetMconfigRequest{HardwareID: hardwareID})
+	return client.GetMconfigInternal(ctx, &protos.GetMconfigInternalRequest{HardwareID: hardwareID})
 }
 
-func getSBConfiguratorClient() (protos.SouthboundConfiguratorClient, error) {
+func getSBConfiguratorClient() (protos.SouthboundInternalConfiguratorClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
 		return nil, initErr
 	}
-	return protos.NewSouthboundConfiguratorClient(conn), err
+	return protos.NewSouthboundInternalConfiguratorClient(conn), err
 }

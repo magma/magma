@@ -23,11 +23,12 @@ import (
 	certifier_test_init "magma/orc8r/cloud/go/services/certifier/test_init"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/protos"
-	servicers "magma/orc8r/cloud/go/services/configurator/servicers"
 	protected_servicers "magma/orc8r/cloud/go/services/configurator/servicers/protected"
+	servicers_southbound "magma/orc8r/cloud/go/services/configurator/servicers/southbound"
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
+	cfgExt_protos "magma/orc8r/lib/go/protos"
 )
 
 const (
@@ -56,11 +57,17 @@ func StartTestService(t *testing.T) {
 	}
 	protos.RegisterNorthboundConfiguratorServer(srv.GrpcServer, nb)
 
-	sb, err := servicers.NewSouthboundConfiguratorServicer(storageFactory)
+	sbInternal, err := protected_servicers.NewSouthboundInternalConfiguratorServicer(storageFactory)
 	if err != nil {
 		t.Fatalf("Failed to create SB configurator servicer: %s", err)
 	}
-	protos.RegisterSouthboundConfiguratorServer(srv.GrpcServer, sb)
+	protos.RegisterSouthboundInternalConfiguratorServer(srv.GrpcServer, sbInternal)
+
+	sbExternal, err := servicers_southbound.NewSouthboundExternalConfiguratorServicer(storageFactory)
+	if err != nil {
+		t.Fatalf("Failed to create SB configurator servicer: %s", err)
+	}
+	cfgExt_protos.RegisterSouthboundExternalConfiguratorServer(srv.GrpcServer, sbExternal)
 
 	go srv.RunTest(lis)
 }

@@ -25,11 +25,12 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/protos"
-	servicers "magma/orc8r/cloud/go/services/configurator/servicers"
 	protected_servicers "magma/orc8r/cloud/go/services/configurator/servicers/protected"
+	servicers_southbound "magma/orc8r/cloud/go/services/configurator/servicers/southbound"
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	storage2 "magma/orc8r/cloud/go/storage"
+	cfgExt_protos "magma/orc8r/lib/go/protos"
 )
 
 const (
@@ -62,14 +63,26 @@ func main() {
 	}
 	protos.RegisterNorthboundConfiguratorServer(srv.GrpcServer, nbServicer)
 
-	sbServicer, err := servicers.NewSouthboundConfiguratorServicer(factory)
+	sbInternalServicer, err := protected_servicers.NewSouthboundInternalConfiguratorServicer(factory)
 	if err != nil {
-		glog.Fatalf("Failed to instantiate the device-facing configurator servicer: %v", sbServicer)
+		glog.Fatalf("Failed to instantiate the device-facing internal configurator servicer: %v", sbInternalServicer)
 	}
-	protos.RegisterSouthboundConfiguratorServer(srv.GrpcServer, sbServicer)
+	protos.RegisterSouthboundInternalConfiguratorServer(srv.GrpcServer, sbInternalServicer)
 
 	err = srv.Run()
 	if err != nil {
-		glog.Fatalf("Failed to start configurator service: %v", err)
+		glog.Fatalf("Failed to start internal configurator service: %v", err)
 	}
+
+	sbExternalServicer, err := servicers_southbound.NewSouthboundExternalConfiguratorServicer(factory)
+	if err != nil {
+		glog.Fatalf("Failed to instantiate the device-facing external configurator servicer: %v", sbExternalServicer)
+	}
+	cfgExt_protos.RegisterSouthboundExternalConfiguratorServer(srv.GrpcServer, sbExternalServicer)
+
+	err = srv.Run()
+	if err != nil {
+		glog.Fatalf("Failed to start external configurator service: %v", err)
+	}
+
 }

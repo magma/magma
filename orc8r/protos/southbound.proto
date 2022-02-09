@@ -16,13 +16,13 @@ import "orc8r/protos/mconfig.proto";
 import "orc8r/protos/common.proto";
 
 package magma.orc8r.configurator;
-option go_package = "magma/orc8r/cloud/go/services/configurator/protos";
+option go_package = "magma/orc8r/lib/go/protos";
 
-message GetMconfigInternalRequest {
+message GetMconfigExternalRequest {
     string hardwareID = 1;
 }
 
-message GetMconfigInternalResponse {
+message GetMconfigExternalResponse {
     // configs contains the mconfigs for the requested hardware ID
     // The contained configs_by_key should be str->any.Any, where the any.Any
     // is a BytesValue wrapper containing the the config.
@@ -34,9 +34,6 @@ message GetMconfigInternalResponse {
     string logicalID = 2;
 }
 
-service SouthboundInternalConfigurator {
-    // GetMconfigInternal exists to support the existing streamer mconfig
-    // policy. This should be removed when we migrate gateway mconfig updates
-    // from streamer to this southbound configurator servicer.
-    rpc GetMconfigInternal(GetMconfigInternalRequest) returns (GetMconfigInternalResponse) {}
-}
+service SouthboundExternalConfigurator {
+    rpc GetMconfig(magma.orc8r.Void) returns (GatewayConfigs) {}
+   }
