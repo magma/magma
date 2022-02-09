@@ -30,6 +30,7 @@ namespace lte {
 #define MME_APP_TIMER_TO_MSEC 10
 #define STATE_MAX_WAIT_MS 2000
 #define NAS_RETX_LIMIT 5
+#define DEFAULT_LBI 5
 
 #define DEFAULT_eNB_S1AP_UE_ID 0
 #define DEFAULT_SCTP_ASSOC_ID 0
@@ -88,9 +89,9 @@ void send_authentication_info_resp(const std::string& imsi, bool success);
 
 void send_s6a_ula(const std::string& imsi, bool success);
 
-void send_create_session_resp(gtpv2c_cause_value_t cause_value);
+void send_create_session_resp(gtpv2c_cause_value_t cause_value, ebi_t ebi);
 
-void send_delete_session_resp();
+void send_delete_session_resp(ebi_t lbi);
 
 void send_ics_response();
 
@@ -112,9 +113,9 @@ void send_s11_deactivate_bearer_req(
     uint8_t no_of_bearers_to_be_deact, uint8_t* ebi_to_be_deactivated,
     bool delete_default_bearer);
 
-void send_s11_create_bearer_req();
+void send_s11_create_bearer_req(ebi_t lbi);
 
-void send_erab_setup_rsp();
+void send_erab_setup_rsp(ebi_t ebi);
 
 void send_erab_release_rsp();
 
@@ -123,6 +124,20 @@ void send_paging_request();
 void send_s1ap_path_switch_req(
     const uint32_t sctp_assoc_id, const uint32_t enb_id,
     const uint32_t enb_ue_s1ap_id, const plmn_t& plmn);
+
+void send_s1ap_handover_required(
+    const uint32_t sctp_assoc_id, const uint32_t enb_id,
+    const uint32_t enb_ue_s1ap_id, const uint32_t mme_ue_s1ap_id);
+
+void send_s1ap_handover_request_ack(
+    const uint32_t sctp_assoc_id, const uint32_t enb_id,
+    const uint32_t tgt_enb_id, const uint32_t enb_ue_s1ap_id,
+    const uint32_t tgt_enb_ue_s1ap_id, const uint32_t mme_ue_s1ap_id);
+
+void send_s1ap_handover_notify(
+    const uint32_t tgt_sctp_assoc_id, const uint32_t enb_id,
+    const uint32_t tgt_enb_id, const uint32_t enb_ue_s1ap_id,
+    const uint32_t tgt_enb_ue_s1ap_id, const uint32_t mme_ue_s1ap_id);
 
 }  // namespace lte
 }  // namespace magma

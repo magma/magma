@@ -81,11 +81,8 @@ SessionConfig SetMessageManagerHandler::m5g_build_session_config(
   cfg.common_context = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
 
-  /* As we dont have 5G polices defined yet, for now
-   * for all new connection we set SSC  mode as SSC_MODE_3
-   */
   cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
-      SSC_MODE_3);
+      request.rat_specific_context().m5gsm_session_context().ssc_mode());
 
   return cfg;
 }
@@ -429,7 +426,7 @@ void SetMessageManagerHandler::pdu_session_inactive(
     response_callback(status, SmContextVoid());
     return;
   }
-  if (session->get_state() == RELEASE) {
+  if (session->get_state() == SESSION_RELEASED) {
     // Nothing to be done;
     MLOG(MINFO) << " No sessions to move to Idle state : " << imsi;
     response_callback(Status::OK, SmContextVoid());
@@ -463,7 +460,7 @@ void SetMessageManagerHandler::idle_mode_change_sessions_handle(
   int count = 0;
   auto session_update = SessionStore::get_default_session_update(session_map);
   for (auto& session : session_map[imsi]) {
-    if (session->get_state() != RELEASE) {
+    if (session->get_state() != SESSION_RELEASED) {
       auto session_id = session->get_session_id();
       SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
       m5g_enforcer_->m5g_move_to_inactive_state(imsi, session, notif,
@@ -507,43 +504,39 @@ void SetMessageManagerHandler::service_handle_request_on_paging(
     std::function<void(Status, SmContextVoid)> response_callback) {
   // extract IMSI value from proto
   auto imsi = notif.common_context().sid().id();
+  uint32_t pdu_id = notif.rat_specific_notification().pdu_session_id();
+  SessionSearchCriteria criteria(imsi, IMSI_AND_PDUID, pdu_id);
   auto session_map = session_store_.read_sessions({imsi});
-  int count = 0;
-  auto session_update = SessionStore::get_default_session_update(session_map);
-  for (auto& session : session_map[imsi]) {
-    if (session->get_state() == INACTIVE) {
-      auto session_id = session->get_session_id();
-      SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
-      m5g_enforcer_->m5g_move_to_active_state(session, notif, &session_uc);
-      bool update_success = session_store_.update_sessions(session_update);
-      if (!update_success) {
-        MLOG(MINFO) << "Operation aborted in  middle"
-                    << " session id: " << session->get_session_id() << imsi
-                    << " of imsi";
-        continue;
-      }
-      MLOG(MDEBUG) << "Successfully updated SessionStore "
-                   << " session id: " << session->get_session_id() << imsi
-                   << " of imsi";
-      count++;
-    }
-  }
-  if (!count) {
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
     MLOG(MINFO) << " No Valid session found for IMSI: " << imsi;
     Status status(grpc::NOT_FOUND, "Sesion Not found");
     response_callback(status, SmContextVoid());
     return;
   }
-  bool update_success = session_store_.update_sessions(session_update);
-  if (!update_success) {
-    Status status(grpc::ABORTED, "update operation aborted in  middle");
-    response_callback(status, SmContextVoid());
-    return;
+  auto& session = **session_it;
+  auto session_update = SessionStore::get_default_session_update(session_map);
+  if (session->get_state() == INACTIVE) {
+    const std::string session_id = session->get_session_id();
+    SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
+    m5g_enforcer_->m5g_move_to_active_state(session, notif, &session_uc);
+    bool update_success = session_store_.update_sessions(session_update);
+    if (!update_success) {
+      MLOG(MINFO) << "Operation aborted in  middle"
+                  << " session id: " << session->get_session_id() << imsi
+                  << " of imsi";
+      Status status(grpc::ABORTED, "update operation aborted in  middle");
+      response_callback(status, SmContextVoid());
+      return;
+    } else {
+      MLOG(MDEBUG) << "Successfully updated SessionStore "
+                   << " session id: " << session->get_session_id() << imsi
+                   << " of imsi";
+    }
   }
   // Send  Paging service request response back to AMF
-  auto session = session_map[imsi].begin();
   m5g_enforcer_->handle_state_update_to_amf(
-      **session, magma::lte::M5GSMCause::OPERATION_SUCCESS,
+      *session, magma::lte::M5GSMCause::OPERATION_SUCCESS,
       UE_SERVICE_REQUEST_ON_PAGING);
   MLOG(MDEBUG) << "Successfully updated SessionStore "
                << "of subscriber :" << imsi;

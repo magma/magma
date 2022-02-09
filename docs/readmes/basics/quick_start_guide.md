@@ -30,11 +30,16 @@ Go ahead and open up 2 fresh terminal tabs. Start in
 
 ### Terminal Tab 1: Provision the AGW VM
 
-The development environment virtualizes the access gateway so you don't need
+The development environment virtualizes the access gateway, so you don't need
 any production hardware on hand to test an end-to-end setup.
 We'll be setting up the LTE AGW VM in this tab.
 
+You need to make sure that your local network setup is correct for the VM to
+start properly. Especially the entry `* 192.168.0.0/16` must exist in your
+`/etc/vbox/networks.conf`.
+
 ```bash
+HOST [magma]$ echo "* 192.168.0.0/16" | sudo tee -a /etc/vbox/networks.conf
 HOST [magma]$ cd lte/gateway
 HOST [magma/lte/gateway]$ vagrant up magma
 ```

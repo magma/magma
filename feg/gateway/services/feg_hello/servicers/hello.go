@@ -20,6 +20,7 @@ import (
 	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"magma/feg/cloud/go/protos"
 	"magma/orc8r/cloud/go/http2"
@@ -32,18 +33,31 @@ func NewFegHelloServer() *helloServer {
 }
 
 func (srv *helloServer) SayHello(ctx context.Context, req *protos.HelloRequest) (*protos.HelloReply, error) {
-	glog.Infof("[FeG HELLO] received greeting: '%s', status: %d (%s)",
+	glog.Infof("[FeG HELLO] received greeting from AGW: '%s', status: %d (%s)",
 		req.GetGreeting(), req.GetGrpcErrCode(), codes.Code(req.GetGrpcErrCode()).String())
 
+	res := getHelloReplyWithTimestamps(req)
+
 	if codes.Code(req.GrpcErrCode) == codes.OK {
-		return &protos.HelloReply{Greeting: req.Greeting}, nil
+		res.Greeting = req.Greeting
+		return res, nil
 	}
 	if req.GrpcErrCode > 16 {
 		msg := fmt.Sprintf("requested errorCode %v is out of bound. Valid Range: 0 - 16", req.GrpcErrCode)
 		glog.Errorf(msg)
-		return &protos.HelloReply{Greeting: req.Greeting}, status.Errorf(codes.OutOfRange, msg)
+		res.Greeting = req.Greeting
+		return res, status.Errorf(codes.OutOfRange, msg)
 	}
-	return &protos.HelloReply{Greeting: ""},
-		status.Errorf(codes.Code(req.GrpcErrCode), http2.PercentEncode(fmt.Sprintf("echo req msg was %v", req.Greeting)))
+	res.Greeting = ""
+	return res, status.Errorf(
+		codes.Code(req.GrpcErrCode), http2.PercentEncode(
+			fmt.Sprintf("echo req msg was %v", req.Greeting)))
+}
 
+func getHelloReplyWithTimestamps(req *protos.HelloRequest) *protos.HelloReply {
+	timestamps := &protos.ResponseTimestamps{
+		AgwToFegRelayTimestamp: req.AgwToFegRelayTimestamp,
+		FegTimestamp:           timestamppb.Now(),
+	}
+	return &protos.HelloReply{Timestamps: timestamps}
 }

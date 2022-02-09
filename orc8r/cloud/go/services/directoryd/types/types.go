@@ -25,7 +25,8 @@ import (
 )
 
 const RecordKeySessionID = "session_id"
-const RecordKeySpgCTeid = "sgw_c_teid"
+const RecordKeySgwCTeid = "sgw_c_teid"
+const RecordKeySgwUTeid = "sgw_u_teid"
 
 type DirectoryRecord struct {
 	LocationHistory []string `json:"location_history"`
@@ -92,24 +93,30 @@ func (m *DirectoryRecord) GetCurrentLocation() (string, error) {
 	return m.LocationHistory[0], nil
 }
 
-// GetSgwCTeids returns the S8Teids stored in the directory record.
+// GetSgwCTeids returns the Control plane Teids stored in the directory record.
 func (m *DirectoryRecord) GetSgwCTeids() ([]string, error) {
-	if m.Identifiers == nil {
-		return nil, fmt.Errorf("directory record's identifiers is nil")
-	}
+	return m.getSgwTeids(RecordKeySgwCTeid)
+}
 
-	storedTeids, ok := m.Identifiers[RecordKeySpgCTeid]
+// GetSgwUTeids returns the User plane Teids stored in the directory record.
+func (m *DirectoryRecord) GetSgwUTeids() ([]string, error) {
+	return m.getSgwTeids(RecordKeySgwUTeid)
+}
+
+func (m *DirectoryRecord) getSgwTeids(recordFieldName string) ([]string, error) {
+	if m.Identifiers == nil {
+		return nil, fmt.Errorf("directory record's identifiers for %s is nil", recordFieldName)
+	}
+	storedTeids, ok := m.Identifiers[recordFieldName]
 	if !ok {
 		return []string{}, nil
 	}
-
 	teidsStr, ok := storedTeids.(string)
 	if !ok {
 		return nil, fmt.Errorf("failed to convert session ID value to string: %v", storedTeids)
 	}
-
-	glog.V(2).Infof("S8 Teids: %s", teidsStr)
-	return parseSgwCTeids(teidsStr), nil
+	glog.V(2).Infof("getSgwTeids got %s: %s", recordFieldName, teidsStr)
+	return parseTeids(teidsStr), nil
 }
 
 // stripIMSIFromSessionID removes an IMSI prefix from the session ID.
@@ -123,8 +130,8 @@ func stripIMSIFromSessionID(sessionID string) string {
 	return sessionID
 }
 
-// parseSgwCTeids converts comma separated string into a slice
-func parseSgwCTeids(teidsStr string) []string {
+// parseTeids converts comma separated string into a slice
+func parseTeids(teidsStr string) []string {
 	teids := []string{}
 	splitTeids := strings.Split(teidsStr, ",")
 	for _, teid := range splitTeids {

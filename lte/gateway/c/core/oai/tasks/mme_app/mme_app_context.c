@@ -889,15 +889,22 @@ void mme_ue_context_update_ue_sig_connection_state(
           OAILOG_DEBUG_UE(
               LOG_MME_APP, ue_context_p->emm_context._imsi64,
               "Started Mobile Reachability timer for UE id " MME_UE_S1AP_ID_FMT
-              "\n",
-              ue_context_p->mme_ue_s1ap_id);
+              ", Timer Id: %ld, Timer Val: %u (ms), Start time: %lu",
+              ue_context_p->mme_ue_s1ap_id,
+              ue_context_p->mobile_reachability_timer.id,
+              ue_context_p->mobile_reachability_timer.msec,
+              ue_context_p->time_mobile_reachability_timer_started);
         }
       } else {
         OAILOG_DEBUG_UE(
             LOG_MME_APP, ue_context_p->emm_context._imsi64,
             "Mobile Reachability timer is already started for UE id:"
-            " " MME_UE_S1AP_ID_FMT "\n",
-            ue_context_p->mme_ue_s1ap_id);
+            " " MME_UE_S1AP_ID_FMT
+            ", Timer Id: %ld, Timer Val: %u (ms), Start time: %lu",
+            ue_context_p->mme_ue_s1ap_id,
+            ue_context_p->mobile_reachability_timer.id,
+            ue_context_p->mobile_reachability_timer.msec,
+            ue_context_p->time_mobile_reachability_timer_started);
       }
     }
     ue_context_p->ecm_state = ECM_IDLE;
@@ -1368,13 +1375,11 @@ static void mme_app_handle_s1ap_ue_context_release(
         }
       }
     } else {
-      // release S1-U tunnel mapping in S_GW for all the active bearers for the
-      // UE
-      for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
-        if (ue_mm_context->pdn_contexts[i]) {
-          mme_app_send_s11_release_access_bearers_req(ue_mm_context, i);
-        }
-      }
+      /* Release S1-U tunnel mapping in S_GW for all the active bearers for the
+       * UE
+       */
+      mme_app_send_s11_release_access_bearers_req(
+          ue_mm_context, ue_mm_context->emm_context._imsi64);
     }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);

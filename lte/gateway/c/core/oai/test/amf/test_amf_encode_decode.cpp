@@ -39,6 +39,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_handler.cpp"
 #include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.h"
 
@@ -164,7 +165,9 @@ TEST_F(AmfNas5GTest, test_amf_ue_register_req_msg) {
       M5G_MOBILITY_MANAGEMENT_MESSAGES);
 
   //  Type is registration Request
-  EXPECT_EQ(reg_request.message_type.msg_type, REG_REQUEST);
+  EXPECT_EQ(
+      reg_request.message_type.msg_type,
+      static_cast<uint8_t>(M5GMessageType::REG_REQUEST));
 
   //  Registraiton Type is Initial Registration
   EXPECT_EQ(reg_request.m5gs_reg_type.type_val, 1);
@@ -204,7 +207,9 @@ TEST_F(AmfNas5GTest, test_amf_ue_suci_ext_register_req_msg) {
       M5G_MOBILITY_MANAGEMENT_MESSAGES);
 
   //  Type is registration Request
-  EXPECT_EQ(reg_request.message_type.msg_type, REG_REQUEST);
+  EXPECT_EQ(
+      reg_request.message_type.msg_type,
+      static_cast<uint8_t>(M5GMessageType::REG_REQUEST));
 
   //  Registration Type is Initial Registration
   EXPECT_EQ(reg_request.m5gs_reg_type.type_val, 1);
@@ -419,7 +424,8 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type3_msg) {
   EXPECT_EQ(pduSessEstReq->pdu_session_identity.pdu_session_id, 0x05);
   EXPECT_EQ(pduSessEstReq->pti.pti, 0x01);
   EXPECT_EQ(
-      pduSessEstReq->message_type.msg_type, PDU_SESSION_ESTABLISHMENT_REQUEST);
+      pduSessEstReq->message_type.msg_type,
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_ESTABLISHMENT_REQUEST));
   EXPECT_EQ(pduSessEstReq->integrity_prot_max_data_rate.max_uplink, 0xFF);
   EXPECT_EQ(pduSessEstReq->integrity_prot_max_data_rate.max_downlink, 0xFF);
   EXPECT_EQ(pduSessEstReq->pdu_session_type.type_val, 0x01);
@@ -478,7 +484,9 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_request_messagetype_data) {
           .extended_proto_discriminator,
       M5G_MOBILITY_MANAGEMENT_MESSAGES);
   EXPECT_EQ(service_request.sec_header_type.sec_hdr, (uint8_t) 0x00);
-  EXPECT_EQ(service_request.message_type.msg_type, M5G_SERVICE_REQUEST);
+  EXPECT_EQ(
+      service_request.message_type.msg_type,
+      static_cast<uint8_t>(M5GMessageType::M5G_SERVICE_REQUEST));
   EXPECT_EQ(service_request.nas_key_set_identifier.nas_key_set_identifier, 1);
   EXPECT_EQ(service_request.service_type.service_type_value, SERVICE_TYPE_DATA);
   EXPECT_EQ(service_request.uplink_data_status.iei, UP_LINK_DATA_STATUS);
@@ -499,7 +507,8 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_accept_message) {
   service_accept.sec_header_type.sec_hdr = 0;
   service_accept.spare_half_octet.spare  = 0;
 
-  service_accept.message_type.msg_type               = M5G_SERVICE_ACCEPT;
+  service_accept.message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::M5G_SERVICE_ACCEPT);
   service_accept.pdu_session_status.iei              = PDU_SESSION_STATUS;
   service_accept.pdu_session_status.len              = 0x02;
   service_accept.pdu_session_status.pduSessionStatus = 0x05;
@@ -631,7 +640,8 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_reject_message) {
   service_reject.sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
   service_reject.spare_half_octet.spare  = 0;
 
-  service_reject.message_type.msg_type               = M5G_SERVICE_REJECT;
+  service_reject.message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::M5G_SERVICE_REJECT);
   service_reject.pdu_session_status.iei              = PDU_SESSION_STATUS;
   service_reject.pdu_session_status.len              = 0x02;
   service_reject.pdu_session_status.pduSessionStatus = 0x05;
@@ -707,11 +717,11 @@ TEST(test_dlnastransport, test_dlnastransport) {
   msg.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
   msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  msg.plain.amf.header.message_type          = DLNASTRANSPORT;
+  msg.plain.amf.header.message_type          = M5GMessageType::DLNASTRANSPORT;
   msg.header.security_header_type = SECURITY_HEADER_TYPE_NOT_PROTECTED;
   // SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
   msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  msg.header.message_type                    = DLNASTRANSPORT;
+  msg.header.message_type                    = M5GMessageType::DLNASTRANSPORT;
   msg.header.sequence_number                 = 1;
 
   dlmsg = &msg.plain.amf.msg.downlinknas5gtransport;
@@ -723,7 +733,8 @@ TEST(test_dlnastransport, test_dlnastransport) {
   dlmsg->spare_half_octet.spare  = 0x00;
   dlmsg->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
   len++;
-  dlmsg->message_type.msg_type = DLNASTRANSPORT;
+  dlmsg->message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::DLNASTRANSPORT);
   len++;
   dlmsg->payload_container.iei = PAYLOAD_CONTAINER;
 
@@ -788,7 +799,9 @@ TEST(test_amf_nas5g_pkt_process, test_amf_security_mode_reject_message_data) {
       sm_reject.extended_protocol_discriminator.extended_proto_discriminator,
       M5G_MOBILITY_MANAGEMENT_MESSAGES);
   EXPECT_EQ(sm_reject.sec_header_type.sec_hdr, (uint8_t) 0x00);
-  EXPECT_EQ(sm_reject.message_type.msg_type, SEC_MODE_REJECT);
+  EXPECT_EQ(
+      sm_reject.message_type.msg_type,
+      static_cast<uint8_t>(M5GMessageType::SEC_MODE_REJECT));
   EXPECT_EQ(sm_reject.m5gmm_cause.m5gmm_cause, 0x24);
 }
 
@@ -925,6 +938,51 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
   EXPECT_EQ(decode_pdu_sess_est_req.nssai.sst, 1);
   EXPECT_EQ(memcmp(pdu_sess_est_req.dnn.dnn, dnn, pdu_sess_est_req.dnn.len), 0);
 
+  bdestroy(buffer);
+}
+
+TEST(test_optional_dnn_dotted_pdu, test_pdu_session_establish_optional) {
+  uint32_t bytes = 0;
+  bstring buffer;
+
+  uint8_t pdu[44] = {0x7e, 0x00, 0x67, 0x01, 0x00, 0x15, 0x2e, 0x01, 0x01,
+                     0xc1, 0xff, 0xff, 0x91, 0xa1, 0x28, 0x01, 0x00, 0x7b,
+                     0x00, 0x07, 0x80, 0x00, 0x0a, 0x00, 0x00, 0x0d, 0x00,
+                     0x12, 0x01, 0x81, 0x22, 0x01, 0x01, 0x25, 0x09, 0x03,
+                     0x6f, 0x61, 0x69, 0x04, 0x69, 0x70, 0x76, 0x34};
+
+  uint32_t len = sizeof(pdu) / sizeof(uint8_t);
+
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  ULNASTransportMsg pdu_sess_est_req;
+  bool decode_res = false;
+  memset(&pdu_sess_est_req, 0, sizeof(ULNASTransportMsg));
+
+  decode_res = decode_ul_nas_transport_msg(&pdu_sess_est_req, pdu, len);
+
+  EXPECT_EQ(decode_res, true);
+  EXPECT_EQ(
+      pdu_sess_est_req.payload_container.smf_msg.msg.pdu_session_estab_request
+          .ssc_mode.mode_val,
+      1);
+  EXPECT_EQ(pdu_sess_est_req.nssai.sst, 1);
+  uint8_t dnn[9] = "oai.ipv4";
+  EXPECT_EQ(memcmp(pdu_sess_est_req.dnn.dnn, dnn, pdu_sess_est_req.dnn.len), 0);
+
+  buffer = bfromcstralloc(len, "\0");
+  bytes  = pdu_sess_est_req.EncodeULNASTransportMsg(
+      &pdu_sess_est_req, buffer->data, len);
+  EXPECT_GT(bytes, 0);
+  ULNASTransportMsg decode_pdu_sess_est_req = {};
+  decode_res = decode_ul_nas_transport_msg(&decode_pdu_sess_est_req, pdu, len);
+  EXPECT_EQ(decode_res, true);
+  // SSC mode Check
+  EXPECT_EQ(
+      decode_pdu_sess_est_req.payload_container.smf_msg.msg
+          .pdu_session_estab_request.ssc_mode.mode_val,
+      1);
+  EXPECT_EQ(decode_pdu_sess_est_req.nssai.sst, 1);
+  EXPECT_EQ(memcmp(pdu_sess_est_req.dnn.dnn, dnn, pdu_sess_est_req.dnn.len), 0);
   bdestroy(buffer);
 }
 
@@ -1086,7 +1144,8 @@ TEST_F(AmfUeContextTestServiceRequestProc, test_amf_service_accept_message) {
   service_accept.sec_header_type.sec_hdr = 0;
   service_accept.spare_half_octet.spare  = 0;
 
-  service_accept.message_type.msg_type               = M5G_SERVICE_ACCEPT;
+  service_accept.message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::M5G_SERVICE_ACCEPT);
   service_accept.pdu_session_status.iei              = PDU_SESSION_STATUS;
   service_accept.pdu_session_status.len              = 0x02;
   service_accept.pdu_session_status.pduSessionStatus = 0x05;
@@ -1134,7 +1193,9 @@ TEST_F(
           .extended_proto_discriminator,
       M5G_MOBILITY_MANAGEMENT_MESSAGES);
   EXPECT_EQ(service_request.sec_header_type.sec_hdr, (uint8_t) 0x00);
-  EXPECT_EQ(service_request.message_type.msg_type, M5G_SERVICE_REQUEST);
+  EXPECT_EQ(
+      service_request.message_type.msg_type,
+      static_cast<uint8_t>(M5GMessageType::M5G_SERVICE_REQUEST));
   EXPECT_EQ(service_request.nas_key_set_identifier.nas_key_set_identifier, 0);
   EXPECT_EQ(
       service_request.service_type.service_type_value, SERVICE_TYPE_SIGNALING);
@@ -1201,7 +1262,9 @@ TEST_F(
           .extended_proto_discriminator,
       M5G_MOBILITY_MANAGEMENT_MESSAGES);
   EXPECT_EQ(service_request.sec_header_type.sec_hdr, (uint8_t) 0x00);
-  EXPECT_EQ(service_request.message_type.msg_type, M5G_SERVICE_REQUEST);
+  EXPECT_EQ(
+      service_request.message_type.msg_type,
+      static_cast<uint8_t>(M5GMessageType::M5G_SERVICE_REQUEST));
   EXPECT_EQ(service_request.nas_key_set_identifier.nas_key_set_identifier, 0);
   EXPECT_EQ(
       service_request.service_type.service_type_value, SERVICE_TYPE_SIGNALING);
@@ -1300,7 +1363,9 @@ TEST_F(
           .extended_proto_discriminator,
       M5G_MOBILITY_MANAGEMENT_MESSAGES);
   EXPECT_EQ(service_request.sec_header_type.sec_hdr, (uint8_t) 0x00);
-  EXPECT_EQ(service_request.message_type.msg_type, M5G_SERVICE_REQUEST);
+  EXPECT_EQ(
+      service_request.message_type.msg_type,
+      static_cast<uint8_t>(M5GMessageType::M5G_SERVICE_REQUEST));
   EXPECT_EQ(service_request.nas_key_set_identifier.nas_key_set_identifier, 0);
   EXPECT_EQ(
       service_request.service_type.service_type_value, SERVICE_TYPE_SIGNALING);
@@ -1339,7 +1404,9 @@ TEST_F(
           .extended_proto_discriminator,
       M5G_MOBILITY_MANAGEMENT_MESSAGES);
   EXPECT_EQ(service_request.sec_header_type.sec_hdr, (uint8_t) 0x00);
-  EXPECT_EQ(service_request.message_type.msg_type, M5G_SERVICE_REQUEST);
+  EXPECT_EQ(
+      service_request.message_type.msg_type,
+      static_cast<uint8_t>(M5GMessageType::M5G_SERVICE_REQUEST));
   EXPECT_EQ(service_request.nas_key_set_identifier.nas_key_set_identifier, 1);
   EXPECT_EQ(service_request.service_type.service_type_value, SERVICE_TYPE_DATA);
   // Verify UP_LINK_DATA_STATUS is not present
@@ -1555,5 +1622,14 @@ TEST(test_optional_pdu, test_pdu_session_accept_optional) {
   // Clean up the PCO contents
   sm_free_protocol_configuration_options(&msg_accept_pco);
 }
-
+TEST(test_PDUAddressMsg, test_pdu_session_accept_optional_addressinfo) {
+  paa_t pa               = {};
+  pa.pdn_type            = IPv4;
+  pa.ipv4_address.s_addr = 0xc80a8c0;
+  PDUAddressMsg msg;
+  memset(&msg, 0, sizeof(msg));
+  paa_to_address_info(&pa, msg.address_info, &msg.length);
+  EXPECT_TRUE(msg.address_info[0] == 0xc0);
+  EXPECT_TRUE(msg.address_info[1] == 0xa8);
+}
 }  // namespace magma5g

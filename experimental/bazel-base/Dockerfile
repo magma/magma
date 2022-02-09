@@ -18,11 +18,14 @@ RUN apt-get update && \
         git \
         gnupg2 \
         g++ \
+        # dependency of mobilityd (tests)
+        iproute2 \
         # dependency of @sentry_native//:sentry
         libcurl4-openssl-dev \
         # dependency of sctpd
         libsctp-dev \
         libssl-dev \
+        lld \
         python3 \
         python-is-python3 \
         unzip \

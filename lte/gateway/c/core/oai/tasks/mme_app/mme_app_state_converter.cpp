@@ -604,7 +604,15 @@ void MmeNasStateConverter::ue_context_to_proto(
       state_ue_context->cs_fallback_indicator);
   sgs_context_to_proto(
       state_ue_context->sgs_context, ue_context_proto->mutable_sgs_context());
-
+  ue_context_proto->set_tau_accept_eps_ber_cntx_status(
+      state_ue_context->tau_accept_eps_ber_cntx_status);
+  ue_context_proto->set_nb_delete_sessions(
+      state_ue_context->nb_delete_sessions);
+  ue_context_proto->set_nb_delete_bearer_cmd(
+      state_ue_context->nb_delete_bearer_cmd);
+  ue_context_proto->set_mme_initiated_ded_bearer_deactivation(
+      state_ue_context->mme_initiated_ded_bearer_deactivation);
+  ue_context_proto->set_nb_rabs(state_ue_context->nb_rabs);
   ue_context_proto->set_rau_tau_timer(state_ue_context->rau_tau_timer);
   ue_context_proto->mutable_time_mobile_reachability_timer_started()
       ->set_seconds(state_ue_context->time_mobile_reachability_timer_started);
@@ -693,10 +701,27 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
 
   proto_to_sgs_context(
       ue_context_proto.sgs_context(), state_ue_mm_context->sgs_context);
+  state_ue_mm_context->tau_accept_eps_ber_cntx_status =
+      ue_context_proto.tau_accept_eps_ber_cntx_status();
+  state_ue_mm_context->nb_delete_sessions =
+      ue_context_proto.nb_delete_sessions();
+  state_ue_mm_context->nb_delete_bearer_cmd =
+      ue_context_proto.nb_delete_bearer_cmd();
+  state_ue_mm_context->mme_initiated_ded_bearer_deactivation =
+      ue_context_proto.mme_initiated_ded_bearer_deactivation();
+  state_ue_mm_context->nb_rabs = ue_context_proto.nb_rabs();
 
   // Initialize timers to INVALID IDs
   state_ue_mm_context->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
   state_ue_mm_context->implicit_detach_timer.id     = MME_APP_TIMER_INACTIVE_ID;
+  state_ue_mm_context->mobile_reachability_timer.msec =
+      ((mme_config.nas_config.t3412_min) +
+       MME_APP_DELTA_T3412_REACHABILITY_TIMER) *
+      60000;
+  state_ue_mm_context->implicit_detach_timer.msec =
+      (state_ue_mm_context->mobile_reachability_timer.msec) +
+      MME_APP_DELTA_REACHABILITY_IMPLICIT_DETACH_TIMER * 60000;
+
   state_ue_mm_context->initial_context_setup_rsp_timer =
       (nas_timer_t){MME_APP_TIMER_INACTIVE_ID, mme_config.nas_config.tics_msec};
   state_ue_mm_context->paging_response_timer = (nas_timer_t){

@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+message CBSDRequest {
+  string user_id = 1;
+  string fcc_id = 2;
+  string serial_number = 3;
+  int64 min_power = 4;
+  int64 max_power = 5;
+  int64 antenna_gain = 6;
+  int64 number_of_ports = 7;
+}
+
+message CBSDStateResult {
+  LteChannel channel = 1;
+  bool radio_enabled = 2;
+}
+
+message LteChannel {
+  int64 low_frequency_hz = 1;
+  int64 high_frequency_hz = 2;
+  float max_eirp_dbm_mhz = 3;
+}
+
+service DPService {
+    rpc GetCBSDState (CBSDRequest) returns (CBSDStateResult) {}
+    rpc CBSDRegister (CBSDRequest) returns (CBSDStateResult) {}
+    rpc CBSDDeregister (CBSDRequest) returns (CBSDStateResult) {}
+    rpc CBSDRelinquish (CBSDRequest) returns (CBSDStateResult) {}
+
+}

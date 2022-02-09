@@ -86,6 +86,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       ITTI_MSG_ORIGIN_NAME(received_message_p), ITTI_MSG_ID(received_message_p),
       ITTI_MSG_NAME(received_message_p));
 
+  bool is_task_state_same = false;
+  bool is_ue_state_same   = false;
+
   ngap_last_msg_latency = ITTI_MSG_LATENCY(received_message_p);  // microseconds
 
   OAILOG_DEBUG(LOG_NGAP, "NGAP ZMQ latency: %ld.", ngap_last_msg_latency);
@@ -119,6 +122,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case SCTP_NEW_ASSOCIATION: {
+      is_ue_state_same = true;
       increment_counter("amf_new_association", 1, NO_LABELS);
       if (ngap_handle_new_association(
               state, &received_message_p->ittiMsg.sctp_new_peer)) {
@@ -153,6 +157,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     // From AMF_APP task
     case NGAP_UE_CONTEXT_RELEASE_COMMAND: {
+      is_ue_state_same = true;
       ngap_handle_ue_context_release_command(
           state, &received_message_p->ittiMsg.ngap_ue_context_release_command,
           imsi64);
@@ -174,6 +179,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case NGAP_PAGING_REQUEST: {
+      is_task_state_same = true;  // the following handler does not modify state
+      is_ue_state_same   = true;
       if (ngap_handle_paging_request(
               state, &NGAP_PAGING_REQUEST(received_message_p), imsi64) !=
           RETURNok) {
@@ -188,10 +195,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
-  put_ngap_imsi_map();
-  put_ngap_state();
-  put_ngap_imsi_map();
-  put_ngap_ue_state(imsi64);
+  if (!is_task_state_same) {
+    put_ngap_state();
+  }
+  if (!is_ue_state_same) {
+    put_ngap_imsi_map();
+    put_ngap_ue_state(imsi64);
+  }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
   return 0;

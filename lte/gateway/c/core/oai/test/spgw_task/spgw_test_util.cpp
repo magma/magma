@@ -15,6 +15,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <iostream>
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
@@ -47,10 +48,12 @@ bool is_num_sessions_valid(
   spgw_ue_context_t* ue_context_p = spgw_get_ue_context(imsi64);
   int num_teids                   = 0;
   sgw_s11_teid_t* s11_teid_p      = nullptr;
-  LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
-    if (s11_teid_p &&
-        (sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid) != nullptr)) {
-      num_teids++;
+  if (ue_context_p) {
+    LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
+      if (s11_teid_p &&
+          (sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid) != nullptr)) {
+        num_teids++;
+      }
     }
   }
   if (num_teids != expected_num_teids) {
@@ -396,6 +399,15 @@ void fill_s11_suspend_notification(
   strncpy(
       (char*) suspend_notif->imsi.digit, imsi_str.c_str(),
       suspend_notif->imsi.length);
+}
+
+void fill_s11_delete_bearer_command(
+    itti_s11_delete_bearer_command_t* delete_bearer_cmd,
+    teid_t sgw_s11_context_teid, teid_t mme_teid_s11, ebi_t ebi) {
+  delete_bearer_cmd->teid             = sgw_s11_context_teid;
+  delete_bearer_cmd->local_teid       = mme_teid_s11;
+  delete_bearer_cmd->ebi_list.num_ebi = 1;
+  delete_bearer_cmd->ebi_list.ebis[0] = ebi;
 }
 
 }  // namespace lte

@@ -41,6 +41,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
+
 using magma5g::AsyncM5GAuthenticationServiceClient;
 
 using namespace magma;
@@ -173,59 +175,59 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   // Process initial NAS message
   AMFMsg* amf_msg = &nas_msg.plain.amf;
 
-  switch (amf_msg->header.message_type) {
-    case REG_REQUEST:
+  switch (static_cast<M5GMessageType>(amf_msg->header.message_type)) {
+    case M5GMessageType::REG_REQUEST:
       memcpy(&originating_tai, &msg->tai, sizeof(originating_tai));
       rc = amf_handle_registration_request(
           msg->ue_id, &originating_tai, &msg->ecgi,
           &amf_msg->msg.registrationrequestmsg, msg->is_initial,
           msg->is_amf_ctx_new, *amf_cause, decode_status);
       break;
-    case M5G_SERVICE_REQUEST:  // SERVICE_REQUEST:
+    case M5GMessageType::M5G_SERVICE_REQUEST:
       rc = amf_handle_service_request(
           msg->ue_id, &amf_msg->msg.service_request, decode_status);
       break;
-    case M5G_IDENTITY_RESPONSE:
+    case M5GMessageType::M5G_IDENTITY_RESPONSE:
       rc = amf_handle_identity_response(
           msg->ue_id, &amf_msg->msg.identityresponsemsg.m5gs_mobile_identity,
           *amf_cause, decode_status);
       break;
-    case AUTH_RESPONSE:
+    case M5GMessageType::AUTH_RESPONSE:
       rc = amf_handle_authentication_response(
           msg->ue_id, &amf_msg->msg.authenticationresponsemsg, *amf_cause,
           decode_status);
       break;
-    case AUTH_FAILURE:
+    case M5GMessageType::AUTH_FAILURE:
       rc = amf_handle_authentication_failure(
           msg->ue_id, &amf_msg->msg.authenticationfailuremsg, *amf_cause,
           decode_status);
       break;
-    case SEC_MODE_COMPLETE:
+    case M5GMessageType::SEC_MODE_COMPLETE:
       rc = amf_handle_security_complete_response(msg->ue_id, decode_status);
       break;
-    case SEC_MODE_REJECT:
+    case M5GMessageType::SEC_MODE_REJECT:
       rc = amf_handle_security_mode_reject(
           msg->ue_id, &amf_msg->msg.securitymodereject, *amf_cause,
           decode_status);
       break;
-    case REG_COMPLETE:
+    case M5GMessageType::REG_COMPLETE:
       rc = amf_handle_registration_complete_response(
           msg->ue_id, &amf_msg->msg.registrationcompletemsg, *amf_cause,
           decode_status);
       break;
-    case DE_REG_REQUEST_UE_ORIGIN:
+    case M5GMessageType::DE_REG_REQUEST_UE_ORIGIN:
       rc = amf_handle_deregistration_ue_origin_req(
           msg->ue_id, &amf_msg->msg.deregistrationequesmsg, *amf_cause,
           decode_status);
       break;
-    case ULNASTRANSPORT:
+    case M5GMessageType::ULNASTRANSPORT:
       rc = amf_smf_process_pdu_session_packet(
           msg->ue_id, &amf_msg->msg.uplinknas5gtransport, *amf_cause);
       break;
     default:
       OAILOG_DEBUG(
-          LOG_NAS_AMF, "Unknown message type: %d, in %s ",
-          amf_msg->header.message_type, __FUNCTION__);
+          LOG_NAS_AMF, "Unknown message type: %u, in %s ",
+          static_cast<uint8_t>(amf_msg->header.message_type), __FUNCTION__);
   }
   return rc;
 }
@@ -389,7 +391,8 @@ static int amf_as_encode(
 int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = REGISTRATION_ACCEPT_MINIMUM_LENGTH;
-  nas_msg->security_protected.plain.amf.header.message_type = REG_ACCEPT;
+  nas_msg->security_protected.plain.amf.header.message_type =
+      M5GMessageType::REG_ACCEPT;
   nas_msg->security_protected.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
@@ -398,7 +401,7 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
       .sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.message_type
-      .msg_type = REG_ACCEPT;
+      .msg_type = static_cast<uint8_t>(M5GMessageType::REG_ACCEPT);
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
       .m5gs_reg_result.sms_allowed = NOT_ALLOWED;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
@@ -521,7 +524,7 @@ int amf_service_acceptmsg(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = SERVICE_ACCEPT_MINIMUM_LENGTH;
   nas_msg->security_protected.plain.amf.header.message_type =
-      M5G_SERVICE_ACCEPT;
+      M5GMessageType::M5G_SERVICE_ACCEPT;
   nas_msg->security_protected.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
@@ -530,7 +533,7 @@ int amf_service_acceptmsg(
   nas_msg->security_protected.plain.amf.msg.service_accept.sec_header_type
       .sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
   nas_msg->security_protected.plain.amf.msg.service_accept.message_type
-      .msg_type = M5G_SERVICE_ACCEPT;
+      .msg_type = static_cast<uint8_t>(M5GMessageType::M5G_SERVICE_ACCEPT);
   nas_msg->header.security_header_type =
       SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
 
@@ -554,7 +557,8 @@ int amf_service_acceptmsg(
         msg->pdu_session_reactivation_status;
   }
 
-  nas_msg->security_protected.header.message_type = M5G_SERVICE_ACCEPT;
+  nas_msg->security_protected.header.message_type =
+      M5GMessageType::M5G_SERVICE_ACCEPT;
   size += NAS5G_MESSAGE_CONTAINER_MAXIMUM_LENGTH;
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
 }
@@ -624,7 +628,7 @@ static int amf_de_reg_acceptmsg(
   nas_msg->security_protected.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
   nas_msg->security_protected.plain.amf.header.message_type =
-      DE_REG_ACCEPT_UE_ORIGIN;
+      M5GMessageType::DE_REG_ACCEPT_UE_ORIGIN;
   nas_msg->header.security_header_type =
       SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
   nas_msg->header.extended_protocol_discriminator =
@@ -636,7 +640,8 @@ static int amf_de_reg_acceptmsg(
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
   amf_msg->spare_half_octet.spare  = 0x00;
   amf_msg->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
-  amf_msg->message_type.msg_type   = DE_REG_ACCEPT_UE_ORIGIN;
+  amf_msg->message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::DE_REG_ACCEPT_UE_ORIGIN);
 
   size += NAS5G_MESSAGE_CONTAINER_MAXIMUM_LENGTH;
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
@@ -873,7 +878,8 @@ static int amf_auth_reject(
   int size = AUTHENTICATION_REJECT_MINIMUM_LENGTH;
   amf_msg->extended_protocol_discriminator.extended_proto_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  amf_msg->message_type.msg_type = AUTH_REJECT;
+  amf_msg->message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::AUTH_REJECT);
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
 }
 /****************************************************************************
@@ -923,8 +929,9 @@ static int amf_as_security_req(
         size = amf_identity_request(msg, &amf_msg->msg.identityrequestmsg);
         nas_msg.header.security_header_type =
             SECURITY_HEADER_TYPE_NOT_PROTECTED;
-        nas_msg.header.extended_protocol_discriminator           = 0x7E;
-        nas_msg.plain.amf.header.message_type                    = 0x5B;
+        nas_msg.header.extended_protocol_discriminator = 0x7E;
+        nas_msg.plain.amf.header.message_type =
+            M5GMessageType::M5G_IDENTITY_REQUEST;
         nas_msg.plain.amf.header.extended_protocol_discriminator = 0x7E;
         nas_msg.plain.amf.msg.identityrequestmsg.extended_protocol_discriminator
             .extended_proto_discriminator                               = 0x7e;
@@ -943,7 +950,7 @@ static int amf_as_security_req(
         nas_msg.header.extended_protocol_discriminator           = 0x7E;
         nas_msg.header.security_header_type                      = 0x0;
         nas_msg.plain.amf.header.extended_protocol_discriminator = 0x7e;
-        nas_msg.plain.amf.header.message_type                    = 0x56;
+        nas_msg.plain.amf.header.message_type = M5GMessageType::AUTH_REQUEST;
         nas_msg.plain.amf.msg.authenticationrequestmsg
             .extended_protocol_discriminator.extended_proto_discriminator =
             0x7e;
@@ -975,8 +982,9 @@ static int amf_as_security_req(
       case AMF_AS_MSG_TYPE_SMC: {
         size = 8;
         nas_msg.security_protected.plain.amf.header
-            .extended_protocol_discriminator                     = 0x7e;
-        nas_msg.security_protected.plain.amf.header.message_type = 0x5d;
+            .extended_protocol_discriminator = 0x7e;
+        nas_msg.security_protected.plain.amf.header.message_type =
+            M5GMessageType::SEC_MODE_COMMAND;
         nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
             .extended_protocol_discriminator.extended_proto_discriminator =
             0x7e;
@@ -1114,14 +1122,14 @@ static int amf_as_security_rej(
         size = amf_auth_reject(msg, &amf_msg->msg.authenticationrejectmsg);
         nas_msg.header.security_header_type =
             SECURITY_HEADER_TYPE_NOT_PROTECTED;
-        nas_msg.header.extended_protocol_discriminator           = 0x7E;
-        nas_msg.plain.amf.header.message_type                    = AUTH_REJECT;
+        nas_msg.header.extended_protocol_discriminator = 0x7E;
+        nas_msg.plain.amf.header.message_type = M5GMessageType::AUTH_REJECT;
         nas_msg.plain.amf.header.extended_protocol_discriminator = 0x7E;
         nas_msg.plain.amf.msg.authenticationrejectmsg
             .extended_protocol_discriminator.extended_proto_discriminator =
             0x7e;
         nas_msg.plain.amf.msg.authenticationrejectmsg.message_type.msg_type =
-            AUTH_REJECT;
+            static_cast<uint8_t>(M5GMessageType::AUTH_REJECT);
         break;
       }
       default: { OAILOG_DEBUG(LOG_AMF_APP, " Invalid as msg type \n"); }
@@ -1212,8 +1220,10 @@ int initial_context_setup_request(
   req->Security_Key = (unsigned char*) &amf_ctx->_security.kgnb;
   memcpy(&req->Ngap_guami, &amf_ctx->m5_guti.guamfi, sizeof(guamfi_t));
 
-  req->ue_aggregate_max_bit_rate.dl = amf_ctx->subscribed_ue_ambr.br_dl;
-  req->ue_aggregate_max_bit_rate.ul = amf_ctx->subscribed_ue_ambr.br_ul;
+  // Get the ambr values
+  amf_smf_context_ue_aggregate_max_bit_rate_get(
+      amf_ctx, &(req->ue_aggregate_max_bit_rate.dl),
+      &(req->ue_aggregate_max_bit_rate.ul));
 
   for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
     pdusession_setup_item_t* item = nullptr;
@@ -1227,11 +1237,15 @@ int initial_context_setup_request(
       pdu_resource_transfer_ie->no_of_items += 1;
       item_num = pdu_resource_transfer_ie->no_of_items - 1;
       item     = &pdu_resource_transfer_ie->item[item_num];
-      ambr_calculation_pdu_session(smf_context, &dl_pdu_ambr, &ul_pdu_ambr);
+      ambr_calculation_pdu_session(
+          &(smf_context->selected_ambr.dl_session_ambr),
+          (smf_context->selected_ambr.dl_ambr_unit),
+          &(smf_context->selected_ambr.ul_session_ambr),
+          (smf_context->selected_ambr.ul_ambr_unit), &dl_pdu_ambr,
+          &ul_pdu_ambr);
 
       // pdu session id
-      item->Pdu_Session_ID =
-          smf_context->smf_proc_data.pdu_session_identity.pdu_session_id;
+      item->Pdu_Session_ID = smf_context->smf_proc_data.pdu_session_id;
 
       // pdu ambr
       item->PDU_Session_Resource_Setup_Request_Transfer
@@ -1256,9 +1270,7 @@ int initial_context_setup_request(
       memcpy(
           &item->PDU_Session_Resource_Setup_Request_Transfer
                .qos_flow_setup_request_list.qos_flow_req_item,
-          &smf_context->pdu_resource_setup_req
-               .pdu_session_resource_setup_request_transfer
-               .qos_flow_setup_request_list.qos_flow_req_item,
+          &smf_context->subscribed_qos_profile.qos_flow_req_item,
           sizeof(qos_flow_setup_request_item));
     }
   }
@@ -1435,7 +1447,8 @@ int amf_send_registration_reject(
   /*
    * Mandatory - Message type
    */
-  amf_msg->message_type.msg_type = REG_REJECT;
+  amf_msg->message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::REG_REJECT);
   /*
    * Mandatory - AMF cause
    */
@@ -1502,13 +1515,14 @@ static int amf_as_establish_rej(
     case AMF_AS_NAS_INFO_REGISTERED:
       size = amf_send_registration_reject(
           msg, &amf_msg->msg.registrationrejectmsg);
-      nas_msg.plain.amf.header.message_type = REG_REJECT;
+      nas_msg.plain.amf.header.message_type = M5GMessageType::REG_REJECT;
       nas_msg.plain.amf.header.extended_protocol_discriminator =
           M5G_MOBILITY_MANAGEMENT_MESSAGES;
       break;
     case AMF_AS_NAS_INFO_SR:
       size = amf_service_rejectmsg(msg, &amf_msg->msg.service_reject);
-      nas_msg.plain.amf.header.message_type = M5G_SERVICE_REJECT;
+      nas_msg.plain.amf.header.message_type =
+          M5GMessageType::M5G_SERVICE_REJECT;
       nas_msg.plain.amf.header.extended_protocol_discriminator =
           M5G_MOBILITY_MANAGEMENT_MESSAGES;
       break;
@@ -1573,7 +1587,8 @@ static int amf_service_rejectmsg(
 
   service_reject->extended_protocol_discriminator.extended_proto_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  service_reject->message_type.msg_type   = M5G_SERVICE_REJECT;
+  service_reject->message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::M5G_SERVICE_REJECT);
   service_reject->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
 
   service_reject->cause.iei         = static_cast<uint8_t>(M5GIei::M5GMM_CAUSE);

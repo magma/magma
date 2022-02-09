@@ -31,4 +31,5 @@ uint64_t get_time_in_sec_since_epoch();
 std::chrono::milliseconds time_difference_from_now(
     const google::protobuf::Timestamp& timestamp);
 std::chrono::milliseconds time_difference_from_now(const std::time_t timestamp);
+std::string prepend_imsi_with_prefix(const std::string& imsi);
 }  // namespace magma

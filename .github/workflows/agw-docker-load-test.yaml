@@ -1,0 +1,60 @@
+---
+name: AGW docker load test
+
+on:  # yamllint disable-line rule:truthy
+  workflow_run:
+    workflows:
+      - build-all
+    branches:
+      - master
+      - v1.*
+    types:
+      - completed
+
+concurrency: ${{ github.workflow }}
+
+jobs:
+  docker-load-test:
+    name: agw docker load tests
+    runs-on: ubuntu-latest
+    env:
+      SHA: "${{ github.event.workflow_run.head_commit.id }}"
+      MAGMA_ROOT: "${{ github.workspace }}"
+      CODE_DIR: "${{ github.workspace }}/experimental/cloudstrapper"
+      VARS_DIR: "${{ github.workspace }}/experimental/cloudstrapper/playbooks/roles/vars"
+      WORK_DIR: "${{ github.workspace }}/experimental/cloudstrapper/playbooks"
+      AGW_DOCKER_AMI: "ami-0d32d65347d4c036a"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run apt
+        run: sudo apt-get update && sudo apt -y upgrade
+      - name: setup pyenv
+        uses: "gabrielfalcao/pyenv-action@v8"
+        with:
+          default: 3.7.0
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - name: Install Dependencies
+        run: |
+          pip install ansible awscli boto3 boto
+          sudo apt-get update
+          ansible-galaxy collection install amazon.aws
+      - name: Export AWS Credentials
+        run: |
+          sed -i -e "s@awsAccessKey:@& ${{ secrets.FB_AWS_ACCESS_KEY }}@1"  ${{ env.VARS_DIR }}/secrets.yaml
+          sed -i -e "s@awsSecretKey:@& ${{ secrets.FB_AWS_SECRET_ACCESS_KEY }}@1"  ${{ env.VARS_DIR }}/secrets.yaml
+      - name: Launch the docker ami in aws
+        run: |
+          ansible-playbook ${{ env.WORK_DIR }}/docker-ami-provision.yaml -e "dirLocalInventory=${{ env.VARS_DIR }}" -e "image=${{env.AGW_DOCKER_AMI}}" -e "tag_host=dockerloadtest"  -e "awsAgwRegion=us-east-1"
+          sleep 120s
+          ls -R ${{ env.VARS_DIR }}
+      - name: Launch the load test
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: false
+        run: |
+          ansible-playbook ${{ env.WORK_DIR }}/ghz-run-remote.yaml -e "dirLocalInventory=${{ env.VARS_DIR }}" --key-file "${{ env.VARS_DIR }}/dockerAMI.pem" -e "dockerHost=tag_agw_dockerloadtest"  -e "awsAgwRegion=us-east-1" -i ${{ env.VARS_DIR }}/common_instance_aws_ec2.yaml -u ubuntu -vv -e "tag=${SHA:0:8}"
+      - name: Terminate instance
+        if: always()
+        run: |
+          ansible-playbook ${{ env.WORK_DIR }}/docker-cleanup.yaml -e "dirLocalInventory=${{ env.VARS_DIR }}" -e "tag_host=dockerloadtest"  -e "awsAgwRegion=us-east-1"

@@ -6295,7 +6295,7 @@ paths:
           description: Success
           schema:
             items:
-              $ref: '#/definitions/policy'
+              $ref: '#/definitions/policyList'
             type: array
         default:
           $ref: '#/responses/UnexpectedError'
@@ -6306,10 +6306,10 @@ paths:
       parameters:
       - $ref: '#/parameters/username'
       - in: body
-        name: resources
+        name: policies
         required: true
         schema:
-          $ref: '#/definitions/resources'
+          $ref: '#/definitions/policies'
       responses:
         "201":
           description: Success
@@ -8429,8 +8429,9 @@ definitions:
         description: AMF Default Slice Descriptor. This is an optional parameter that
           complements the Slice/Service type(s) to allow to differentiate amongst
           multiple Network Slices of the same Slice/Service type. This IE shall be
-          absent if no SD value is associated with the SST. See clause 28.4.2 of 3GPP
-          TS 23.003.
+          absent if no SD value is associated with the SST. Range is 0-FFFFFF. See
+          clause 28.4.2 of 3GPP TS 23.003.
+        example: ffffff
         pattern: ^[A-Fa-f0-9]{1,6}$
         type: string
         x-nullable: false
@@ -8439,6 +8440,7 @@ definitions:
           the standardized SST range. Values 128 to 255 correspond to the Operator-specific
           range. See clause 28.4.2 of 3GPP TS 23.003. Standardized values are defined
           in clause 5.15.2.2 of 3GPP TS 23.501.
+        example: 1
         format: uint32
         maximum: 255
         minimum: 0
@@ -8446,24 +8448,28 @@ definitions:
         x-nullable: false
       amf_name:
         description: FQDN (Fully Qualified Domain Name) of the AMF as defined in clause
-          28.3.2.5 of 3GPP TS 23.003
+          28.3.2.5 of 3GPP TS 23.003.
+        example: amf.example.org
         type: string
         x-nullable: false
       amf_pointer:
-        description: String identifying the AMF Pointer (6 bits) as specified in clause
-          2.10.1 of 3GPP TS 23.003.
+        description: String identifying the AMF Pointer (6 bits), range is 0-3F, as
+          specified in clause 2.10.1 of 3GPP TS 23.003.
+        example: 0
         pattern: ^[0-3][A-Fa-f0-9]{0,1}$
         type: string
         x-nullable: false
       amf_region_id:
-        description: String identifying the AMF Region ID (8 bits) as specified in
-          clause 2.10.1 of 3GPP TS 23.003.
+        description: String identifying the AMF Region ID (8 bits), range is 0-FF,
+          as specified in clause 2.10.1 of 3GPP TS 23.003.
+        example: 1
         pattern: ^[A-Fa-f0-9]{1,2}$
         type: string
         x-nullable: false
       amf_set_id:
-        description: String identifying the AMF Set ID (10 bits) as specified in clause
-          2.10.1 of 3GPP TS 23.003.
+        description: String identifying the AMF Set ID (10 bits), range is 0-3FF,
+          as specified in clause 2.10.1 of 3GPP TS 23.003.
+        example: 1
         pattern: ^[0-3][A-Fa-f0-9]{0,2}$
         type: string
         x-nullable: false
@@ -9963,8 +9969,30 @@ definitions:
     - bandwidth_mhz
     type: object
   network_sentry_config:
+    default:
+      exclusion_patterns:
+      - GetServiceInfo
+      - GetOperationalStates
+      - ConnectionError
+      - CheckinError
+      - Checkin Error
+      - GetChallenge error!
+      - Connection to FluentBit
+      - \[SyncRPC\]
+      - Metrics upload error
+      - Streaming from the cloud failed!
+      - Fetch subscribers error!
+      - GRPC call failed for state replication
+      sample_rate: 1
+      upload_mme_log: false
     description: Sentry.io configuration
     properties:
+      exclusion_patterns:
+        description: log message patterns that are excluded (regex substring match)
+        items:
+          type: string
+        minItems: 0
+        type: array
       sample_rate:
         example: 0.5
         format: float
@@ -10216,27 +10244,61 @@ definitions:
     - mcc
     - mnc
     type: object
-  policy:
-    description: An object that defines a user's permissions to access resources
+  policies:
     example:
-      resources:
-      - action: READ
-        effect: DENY
-        resource: test_network1
-        resourceType: NETWORK_ID
-      - action: WRITE
-        effect: ALLOW
-        resource: /**
-        resourceType: URI
-      token: op_6YHy0uT7DeuWyT3N9nkAOyoeyOI25fletJE69yHGGl4ifjfoq
+    - action: WRITE
+      effect: ALLOW
+      path: '**'
+      resourceType: URI
+    - action: WRITE
+      effect: DENY
+      resourceIDs:
+      - test_network1
+      - test_network2
+      resourceType: NETWORK_ID
+    - action: WRITE
+      effect: ALLOW
+      resourceIDs:
+      - 0
+      - 1
+      - 2
+      resourceType: TENANT_ID
+    items:
+      $ref: '#/definitions/policy'
+    type: array
+  policy:
+    description: |
+      The policy specifies whether a user is  either denied or allowed access to read/write a resource.
+      If the resource is of type URI, the path field should be filled in. If the resource is of
+      type NETWORK_ID or TENANT_ID, the resourceIDs field should be filled in.
+    example:
+      action: WRITE
+      effect: ALLOW
+      path: '**'
+      resourceType: URI
     properties:
-      resources:
-        $ref: '#/definitions/resources'
-      token:
+      action:
+        enum:
+        - READ
+        - WRITE
         type: string
-    required:
-    - token
-    - resources
+      effect:
+        enum:
+        - DENY
+        - ALLOW
+        type: string
+      path:
+        type: string
+      resourceIDs:
+        items:
+          type: string
+        type: array
+      resourceType:
+        enum:
+        - NETWORK_ID
+        - TENANT_ID
+        - URI
+        type: string
     type: object
   policy_id:
     example: All ICMP
@@ -10440,6 +10502,37 @@ definitions:
     required:
     - flow_list
     - priority
+    type: object
+  policyList:
+    description: An object that defines a user's permissions to access resources
+    example:
+      policies:
+      - action: WRITE
+        effect: ALLOW
+        path: '**'
+        resourceType: URI
+      - action: WRITE
+        effect: DENY
+        resourceIDs:
+        - test_network1
+        - test_network2
+        resourceType: NETWORK_ID
+      - action: WRITE
+        effect: ALLOW
+        resourceIDs:
+        - 0
+        - 1
+        - 2
+        resourceType: TENANT_ID
+      token: op_6YHy0uT7DeuWyT3N9nkAOyoeyOI25fletJE69yHGGl4ifjfoq
+    properties:
+      policies:
+        $ref: '#/definitions/policies'
+      token:
+        type: string
+    required:
+    - token
+    - policies
     type: object
   prom_alert_config:
     properties:
@@ -10781,47 +10874,6 @@ definitions:
     - supported_versions
     type: object
     x-nullable: false
-  resource:
-    description: The resource to which the user is either denied or allowed access
-      to read/write
-    example:
-      action: WRITE
-      effect: ALLOW
-      resource: /**
-      resourceType: URI
-    properties:
-      action:
-        enum:
-        - READ
-        - WRITE
-        type: string
-      effect:
-        enum:
-        - DENY
-        - ALLOW
-        type: string
-      resource:
-        type: string
-      resourceType:
-        enum:
-        - NETWORK_ID
-        - TENANT_ID
-        - URI
-        type: string
-    type: object
-  resources:
-    example:
-    - action: READ
-      effect: DENY
-      resource: test_network1
-      resourceType: NETWORK_ID
-    - action: WRITE
-      effect: ALLOW
-      resource: /**
-      resourceType: URI
-    items:
-      $ref: '#/definitions/resource'
-    type: array
   route:
     properties:
       destination_ip:

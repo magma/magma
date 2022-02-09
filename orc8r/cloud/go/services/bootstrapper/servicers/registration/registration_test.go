@@ -24,6 +24,7 @@ import (
 
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers/registration"
 	"magma/orc8r/cloud/go/services/tenants"
+	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
 	tenantsTestInit "magma/orc8r/cloud/go/services/tenants/test_init"
 	"magma/orc8r/lib/go/protos"
 )
@@ -101,7 +102,7 @@ func TestGetControlProxy_NoNetworkID(t *testing.T) {
 func TestGetControlProxy_NoControlProxy(t *testing.T) {
 	setupAddNetworksToTenantsService(t)
 
-	networkIDTenant := &protos.Tenant{
+	networkIDTenant := &tenant_protos.Tenant{
 		Name:     "tenant",
 		Networks: []string{networkID},
 	}
@@ -115,12 +116,12 @@ func TestGetControlProxy_NoControlProxy(t *testing.T) {
 func TestGetControlProxy(t *testing.T) {
 	setupAddNetworksToTenantsService(t)
 
-	networkIDTenant := &protos.Tenant{
+	networkIDTenant := &tenant_protos.Tenant{
 		Name:     "tenant",
 		Networks: []string{networkID},
 	}
 	id := addTenant(t, networkIDTenant)
-	err := tenants.CreateOrUpdateControlProxy(context.Background(), protos.CreateOrUpdateControlProxyRequest{
+	err := tenants.CreateOrUpdateControlProxy(context.Background(), tenant_protos.CreateOrUpdateControlProxyRequest{
 		Id:           id,
 		ControlProxy: controlProxy,
 	})
@@ -149,11 +150,11 @@ func setupMockRegistrationServicer() *registration.RegistrationService {
 
 func setupAddNetworksToTenantsService(t *testing.T) {
 	var (
-		tenant1 = &protos.Tenant{
+		tenant1 = &tenant_protos.Tenant{
 			Name:     "tenant",
 			Networks: []string{"network1", "network2"},
 		}
-		tenant2 = &protos.Tenant{
+		tenant2 = &tenant_protos.Tenant{
 			Name:     "tenant",
 			Networks: []string{"network3", "network4"},
 		}
@@ -164,7 +165,7 @@ func setupAddNetworksToTenantsService(t *testing.T) {
 	addTenant(t, tenant2)
 }
 
-func addTenant(t *testing.T, tenant *protos.Tenant) int64 {
+func addTenant(t *testing.T, tenant *tenant_protos.Tenant) int64 {
 	ctx := context.Background()
 
 	tenantRes, err := tenants.CreateTenant(ctx, nextTenantID, tenant)

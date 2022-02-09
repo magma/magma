@@ -46,6 +46,20 @@ using namespace lte;
 
 AmfServiceImpl::AmfServiceImpl() {}
 
+// Remove the Leading IMSI string if present
+inline void get_subscriber_id(const std::string& subscriber_id, char* imsi) {
+  // No parameter check as these should always be filled up
+  uint8_t imsi_len = 0;
+
+  // Check if the subscriber information received contains IMSI
+  if (subscriber_id.compare(0, 4, "IMSI") == 0) {
+    // If yes then remove the same
+    imsi_len = strlen("IMSI");
+  }
+
+  strcpy(imsi, subscriber_id.c_str() + imsi_len);
+}
+
 Status AmfServiceImpl::SetAmfNotification(
     ServerContext* context, const SetSmNotificationContext* notif,
     SmContextVoid* response) {
@@ -57,7 +71,8 @@ Status AmfServiceImpl::SetAmfNotification(
   auto& req_m5g       = notif->rat_specific_notification();
 
   // CommonSessionContext
-  strcpy(itti_msg.imsi, notify_common.sid().id().c_str());
+  get_subscriber_id(notify_common.sid().id(), itti_msg.imsi);
+
   itti_msg.sm_session_fsm_state =
       (SMSessionFSMState_response) notify_common.sm_session_state();
   itti_msg.sm_session_version = notify_common.sm_session_version();
@@ -82,9 +97,11 @@ Status AmfServiceImpl::SetAmfNotification(
 Status AmfServiceImpl::SetSmfSessionContext(
     ServerContext* context, const SetSMSessionContextAccess* request,
     SmContextVoid* response) {
-  struct in_addr ip_addr       = {0};
-  char ip_str[INET_ADDRSTRLEN] = {0};
-  uint32_t ip_int              = 0;
+  struct in_addr ip_addr           = {0};
+  char ip_v4_str[INET_ADDRSTRLEN]  = {0};
+  char ip_v6_str[INET6_ADDRSTRLEN] = {0};
+
+  uint32_t ip_int = 0;
   OAILOG_INFO(
       LOG_UTIL, "Received GRPC SetSmfSessionContext request from SMF\n");
 
@@ -93,7 +110,8 @@ Status AmfServiceImpl::SetSmfSessionContext(
   auto& req_m5g    = request->rat_specific_context().m5g_session_context_rsp();
 
   // CommonSessionContext
-  strcpy(itti_msg.imsi, req_common.sid().id().c_str());
+  get_subscriber_id(req_common.sid().id(), itti_msg.imsi);
+
   itti_msg.sm_session_fsm_state =
       (sm_session_fsm_state_t) req_common.sm_session_state();
   itti_msg.sm_session_version = req_common.sm_session_version();
@@ -150,14 +168,33 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.allowed_ssc_mode = (ssc_mode_t) req_m5g.allowed_ssc_mode();
   itti_msg.m5gsm_congetion_re_attempt_indicator =
       req_m5g.m5g_sm_congestion_reattempt_indicator();
-  itti_msg.pdu_address.redirect_address_type =
-      (redirect_address_type_t) req_m5g.pdu_address().redirect_address_type();
+
   // PDU IP address coming from SMF in human-readable format has to be packed
   // into 4 raw bytes in hex for NAS5G layer
-  strcpy(ip_str, req_common.ue_ipv4().c_str());
-  inet_pton(AF_INET, ip_str, &(ip_addr.s_addr));
-  ip_int = ntohl(ip_addr.s_addr);
-  INT32_TO_BUFFER(ip_int, itti_msg.pdu_address.redirect_server_address);
+
+  if (req_common.ue_ipv4().size() > 0) {
+    inet_pton(
+        AF_INET, req_common.ue_ipv4().c_str(),
+        &(itti_msg.pdu_address.ipv4_address));
+    uint32_t ip_int = ntohl(ip_addr.s_addr);
+
+    itti_msg.pdu_address.pdn_type = IPv4;
+  }
+
+  if (req_common.ue_ipv6().size() > 0) {
+    inet_pton(
+        AF_INET6, req_common.ue_ipv6().c_str(),
+        &(itti_msg.pdu_address.ipv6_address));
+
+    if (req_common.ue_ipv4().size() == 0) {
+      itti_msg.pdu_address.pdn_type = IPv6;
+    } else {
+      itti_msg.pdu_address.pdn_type = IPv4_AND_v6;
+    }
+
+    itti_msg.pdu_address.ipv6_prefix_length = IPV6_PREFIX_LEN;
+  }
+
   send_n11_create_pdu_session_resp_itti(&itti_msg);
   OAILOG_INFO(LOG_UTIL, "Received  GRPC SetSMSessionContextAccess request \n");
   return Status::OK;

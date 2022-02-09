@@ -54,7 +54,7 @@ resource "helm_release" "yace_exporter" {
   count = var.cloudwatch_exporter_enabled ? 1 : 0
 
   name       = "yace-exporter"
-  namespace  = kubernetes_namespace.monitoring.metadata[0].name
+  namespace  = kubernetes_namespace.monitoring[0].metadata[0].name
   repository = "https://mogaal.github.io/helm-charts/"
   chart      = "prometheus-yace-exporter"
   timeout    = 600

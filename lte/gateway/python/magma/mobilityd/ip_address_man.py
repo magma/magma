@@ -56,6 +56,7 @@ from typing import List, Optional, Tuple
 from lte.protos.mobilityd_pb2 import GWInfo, IPAddress
 from magma.mobilityd.ip_descriptor import IPState
 from magma.mobilityd.metrics import IP_ALLOCATED_TOTAL, IP_RELEASED_TOTAL
+from magma.mobilityd.utils import log_error_and_raise
 
 from .ip_allocator_base import (
     DuplicateIPAssignmentError,
@@ -337,14 +338,13 @@ class IPAddressManager:
             ip_desc = allocator.alloc_ip_address(sid, 0)
             existing_sid = self.get_sid_for_ip(ip_desc.ip)
             if existing_sid:
-                error_msg = "Dup IP: {} for SID: {}, which already is " \
-                            "assigned to SID: {}".format(
-                                ip_desc.ip,
-                                sid,
-                                existing_sid,
-                            )
-                logging.error(error_msg)
-                raise DuplicateIPAssignmentError(error_msg)
+                log_error_and_raise(
+                    DuplicateIPAssignmentError,
+                    "Dup IP: %s for SID: %s, which already is assigned to SID: %s",
+                    ip_desc.ip,
+                    sid,
+                    existing_sid,
+                )
 
             if version == IPAddress.IPV4:
                 self._store.ip_state_map.add_ip_to_state(
@@ -417,7 +417,7 @@ class IPAddressManager:
                 sid in self._store.sid_ips_map and ip
                 == self._store.sid_ips_map[sid].ip
             ):
-                logging.error(
+                logging.warning(
                     "Releasing unknown <SID, IP> pair: <%s, %s> "
                     "sid_ips_map[%s]: %s",
                     sid, ip, sid, self._store.sid_ips_map.get(sid),
@@ -426,7 +426,7 @@ class IPAddressManager:
                     "(%s, %s) pair is not found" % (sid, ip),
                 )
             if not self.is_ip_in_state(ip, IPState.ALLOCATED):
-                logging.error(
+                logging.warning(
                     "IP not found in used list, check if IP is "
                     "already released: <%s, %s>", sid, ip,
                 )

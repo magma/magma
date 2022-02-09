@@ -75,6 +75,15 @@ variable "monitoring_kubernetes_namespace" {
   default     = "monitoring"
 }
 
+variable "orc8r_is_staging_deployment" {
+  description = <<EOT
+    Indicates if the orc8r-app being deploy is a staging environment.
+    Staging environment does not deploy Logging, Metrics and Alerts
+    EOT
+  type        = bool
+  default     = false
+}
+
 ##############################################################################
 # General Orchestrator configuration
 ##############################################################################
@@ -167,7 +176,7 @@ variable "orc8r_deployment_type" {
 variable "orc8r_chart_version" {
   description = "Version of the core orchestrator Helm chart to install."
   type        = string
-  default     = "1.5.24"
+  default     = "1.5.26"
 }
 
 variable "cwf_orc8r_chart_version" {
@@ -198,6 +207,12 @@ variable "wifi_orc8r_chart_version" {
   description = "Version of the orchestrator wifi module Helm chart to install."
   type        = string
   default     = "0.2.2"
+}
+
+variable "dp_orc8r_chart_version" {
+  description = "Version of the orchestrator domain proxy module Helm chart to install."
+  type        = string
+  default     = "0.1.0"
 }
 
 variable "orc8r_tag" {
@@ -346,6 +361,52 @@ variable "helm_pass" {
 }
 
 ##############################################################################
+# Managed Certificates from cert-manager
+##############################################################################
+
+variable "cert_manager_route53_iam_role_arn" {
+  description = "IAM role ARN for cert-manager."
+  type        = string
+  default     = null
+}
+
+variable "deploy_cert_manager_helm_chart" {
+  description = "Deploy cert-manager helm chart."
+  type        = bool
+  default     = false
+}
+
+variable "managed_certs_create" {
+  description = "This will generate certificates that will be stored in kubernetes secrets."
+  type        = bool
+  default     = false
+}
+
+variable "managed_certs_enabled" {
+  description = "This will enable controller pods to use managed certificates."
+  type        = bool
+  default     = false
+}
+
+variable "nms_managed_certs_enabled" {
+  description = "This will enable NMS nginx pod to use managed certificate."
+  type        = bool
+  default     = false
+}
+
+variable "nms_custom_issuer" {
+  description = "Certificate issuer on Route53 for Let's Encrypt."
+  type        = string
+  default     = "orc8r-route53-issuer"
+}
+
+variable "managed_certs_route53_enabled" {
+  description = "Use Route53 as DNS Provider."
+  type        = bool
+  default     = true
+}
+
+##############################################################################
 # Other deployment flags
 ##############################################################################
 
@@ -451,4 +512,45 @@ variable "cloudwatch_exporter_enabled" {
   description = "Enable cloudwatch exporter"
   default     = false
   type        = bool
+}
+
+
+##############################################################################
+# Domain proxy variables
+##############################################################################
+
+variable "dp_enabled" {
+  description = "Enable domain proxy"
+  type        = bool
+  default     = false
+}
+
+variable "dp_sas_endpoint_url" {
+  description = "Sas endpoint url where to connect DP to."
+  type        = string
+  default     = ""
+}
+
+variable "dp_api_prefix" {
+  description = "Protocol controller api prefix."
+  type        = string
+  default     = "/sas/v1"
+}
+
+variable "dp_sas_crt" {
+  description = "SAS certificate filename."
+  type        = string
+  default     = "tls.crt"
+}
+
+variable "dp_sas_key" {
+  description = "SAS private key filename."
+  type        = string
+  default     = "tls.key"
+}
+
+variable "dp_sas_ca" {
+  description = "SAS CA filename."
+  type        = string
+  default     = "ca.crt"
 }

@@ -88,9 +88,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case MME_APP_HANDOVER_REQUEST: {
+      s1ap_handler_->s1ap_mme_handle_handover_request(
+          received_message_p->ittiMsg.mme_app_handover_request);
     } break;
 
     case MME_APP_HANDOVER_COMMAND: {
+      s1ap_handler_->s1ap_mme_handle_handover_command(
+          received_message_p->ittiMsg.mme_app_handover_command);
     } break;
 
     case TERMINATE_MESSAGE: {

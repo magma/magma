@@ -28,8 +28,8 @@ import (
 	"magma/fbinternal/cloud/go/services/testcontroller/statemachines"
 	"magma/fbinternal/cloud/go/services/testcontroller/storage"
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/obsidian/swagger"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
+	swagger_servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
 	storage2 "magma/orc8r/cloud/go/storage"
@@ -65,7 +65,7 @@ func main() {
 	e2eServicer := servicers.NewTestControllerServicer(e2eStore)
 	protos.RegisterTestControllerServer(srv.GrpcServer, e2eServicer)
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(testcontroller.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(testcontroller.ServiceName))
 
 	// Instantiate state machines, start test execution loop
 	go func() {

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 WHOAMI=$(whoami)
-MAGMA_VERSION="1.6.0"
+MAGMA_VERSION="1.6.1"
 # Default is focal
 OS_VERSION="focal"
 
@@ -22,8 +22,8 @@ done
 
 if grep -q 'Debian' /etc/issue; then
   OS_VERSION="stretch"
-  # We don't support 1.6.0 for debian so bumping down to 1.5.2
-  if [ "$MAGMA_VERSION" == "1.6.0" ]; then
+  # We don't support 1.6.1 for debian so bumping down to 1.5.2
+  if [ "$MAGMA_VERSION" == "1.6.1" ]; then
     MAGMA_VERSION="1.5.2"
   fi
 fi

@@ -22,6 +22,7 @@ from fabric.operations import get
 sys.path.append('../../orc8r')
 import tools.fab.dev_utils as dev_utils
 import tools.fab.pkg as pkg
+from fabric.api import lcd
 from tools.fab.hosts import ansible_setup, split_hoststring, vagrant_setup
 from tools.fab.vagrant import setup_env_vagrant
 
@@ -48,8 +49,9 @@ in `release/magma.lockfile`
 """
 
 AGW_ROOT = "$MAGMA_ROOT/lte/gateway"
-FEG_INTEG_TEST_DOCKER_ROOT = "python/integ_tests/federated_tests/Docker"
 AGW_PYTHON_ROOT = "$MAGMA_ROOT/lte/gateway/python"
+FEG_INTEG_TEST_ROOT = AGW_PYTHON_ROOT + "/integ_tests/federated_tests"
+FEG_INTEG_TEST_DOCKER_ROOT = FEG_INTEG_TEST_ROOT + "/Docker"
 ORC8R_AGW_PYTHON_ROOT = "$MAGMA_ROOT/orc8r/gateway/python"
 AGW_INTEG_ROOT = "$MAGMA_ROOT/lte/gateway/python/integ_tests"
 DEFAULT_CERT = "$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
@@ -79,7 +81,7 @@ def release():
 
 
 def package(
-    vcs='git', all_deps="False",
+    all_deps="False",
     cert_file=DEFAULT_CERT, proxy_config=DEFAULT_PROXY,
     destroy_vm='False',
     vm='magma', os="ubuntu",
@@ -99,7 +101,8 @@ def package(
         )
         exit(1)
 
-    hash = pkg.get_commit_hash(vcs)
+    hash = pkg.get_commit_hash()
+    commit_count = pkg.get_commit_count()
 
     with cd('~/magma/lte/gateway'):
         # Generate magma dependency packages
@@ -121,8 +124,8 @@ def package(
         build_type = "Debug" if env.debug_mode else "RelWithDebInfo"
 
         run(
-            './release/build-magma.sh -h "%s" -t %s --cert %s --proxy %s --os %s' %
-            (hash, build_type, cert_file, proxy_config, os),
+            './release/build-magma.sh -h %s --commit-count %s -t %s --cert %s --proxy %s --os %s' %
+            (hash, commit_count, build_type, cert_file, proxy_config, os),
         )
 
         run('rm -rf ~/magma-packages')
@@ -161,8 +164,7 @@ def openvswitch(destroy_vm='False', destdir='~/magma-packages/'):
     # If a host list isn't specified, default to the magma vagrant vm
     if not env.hosts:
         vagrant_setup('magma', destroy_vm=destroy_vm)
-    with cd('~/magma/lte/gateway'):
-        run('./release/build-ovs.sh ' + destdir)
+    run('~/magma/third_party/gtp_ovs/ovs-gtp-patches/2.15/build.sh ' + destdir)
 
 
 def depclean():
@@ -215,6 +217,35 @@ def s1ap_setup_cloud():
 
     run("sudo systemctl stop magma@*")
     run("sudo systemctl restart magma@magmad")
+
+
+def federated_integ_test(
+        build_all='False', clear_orc8r='False', provision_vm='False',
+        destroy_vm='False',
+):
+    build_all = bool(strtobool(build_all))
+    clear_orc8r = bool(strtobool(clear_orc8r))
+    provision_vm = bool(strtobool(provision_vm))
+    destroy_vm = bool(strtobool(destroy_vm))
+    with lcd(FEG_INTEG_TEST_ROOT):
+        if build_all:
+            local(
+                "fab build_all:clear_orc8r={},provision_vm={}".
+                format(clear_orc8r, provision_vm),
+            )
+        local("fab start_all")
+        local("fab configure_orc8r")
+        local("fab test_connectivity")
+
+    vagrant_setup(
+        'magma_trfserver', destroy_vm, force_provision=provision_vm,
+    )
+
+    vagrant_setup(
+            'magma_test', destroy_vm, force_provision=provision_vm,
+    )
+    execute(_make_integ_tests)
+    execute(run_integ_tests, "federated_tests/s1aptests/test_attach_detach.py")
 
 
 def integ_test(

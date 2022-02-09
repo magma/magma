@@ -17,7 +17,7 @@ import (
 // swagger:model gateway_ngc_configs
 type GatewayNgcConfigs struct {
 
-	// AMF Default Slice Descriptor. This is an optional parameter that complements the Slice/Service type(s) to allow to differentiate amongst multiple Network Slices of the same Slice/Service type. This IE shall be absent if no SD value is associated with the SST. See clause 28.4.2 of 3GPP TS 23.003.
+	// AMF Default Slice Descriptor. This is an optional parameter that complements the Slice/Service type(s) to allow to differentiate amongst multiple Network Slices of the same Slice/Service type. This IE shall be absent if no SD value is associated with the SST. Range is 0-FFFFFF. See clause 28.4.2 of 3GPP TS 23.003.
 	// Pattern: ^[A-Fa-f0-9]{1,6}$
 	AmfDefaultSd string `json:"amf_default_sd,omitempty"`
 
@@ -26,18 +26,18 @@ type GatewayNgcConfigs struct {
 	// Minimum: 0
 	AmfDefaultSst uint32 `json:"amf_default_sst,omitempty"`
 
-	// FQDN (Fully Qualified Domain Name) of the AMF as defined in clause 28.3.2.5 of 3GPP TS 23.003
+	// FQDN (Fully Qualified Domain Name) of the AMF as defined in clause 28.3.2.5 of 3GPP TS 23.003.
 	AmfName string `json:"amf_name,omitempty"`
 
-	// String identifying the AMF Pointer (6 bits) as specified in clause 2.10.1 of 3GPP TS 23.003.
+	// String identifying the AMF Pointer (6 bits), range is 0-3F, as specified in clause 2.10.1 of 3GPP TS 23.003.
 	// Pattern: ^[0-3][A-Fa-f0-9]{0,1}$
 	AmfPointer string `json:"amf_pointer,omitempty"`
 
-	// String identifying the AMF Region ID (8 bits) as specified in clause 2.10.1 of 3GPP TS 23.003.
+	// String identifying the AMF Region ID (8 bits), range is 0-FF, as specified in clause 2.10.1 of 3GPP TS 23.003.
 	// Pattern: ^[A-Fa-f0-9]{1,2}$
 	AmfRegionID string `json:"amf_region_id,omitempty"`
 
-	// String identifying the AMF Set ID (10 bits) as specified in clause 2.10.1 of 3GPP TS 23.003.
+	// String identifying the AMF Set ID (10 bits), range is 0-3FF, as specified in clause 2.10.1 of 3GPP TS 23.003.
 	// Pattern: ^[0-3][A-Fa-f0-9]{0,2}$
 	AmfSetID string `json:"amf_set_id,omitempty"`
 }

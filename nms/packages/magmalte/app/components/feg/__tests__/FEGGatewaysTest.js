@@ -91,6 +91,7 @@ const mockGw1: federation_gateway = {
   name: 'test_gateway1',
   device: {
     ...mockGw0.device,
+    key: {key: '', key_type: 'SOFTWARE_ECDSA_SHA256'},
     hardware_id: 'd1039d30-61ef-46c7-93f2-e01fc144144d',
   },
 };

@@ -308,7 +308,7 @@ void SessionStateEnforcer::m5g_start_session_termination(
   /* update respective session's state and return from here before timeout
    * to update session store with state and version
    */
-  session->set_fsm_state(RELEASE, session_uc);
+  session->set_fsm_state(SESSION_RELEASED, session_uc);
   uint32_t cur_version = session->get_current_version();
   session->set_current_version(++cur_version, session_uc);
   MLOG(MDEBUG) << "During release state of session changed to "
@@ -553,14 +553,14 @@ void SessionStateEnforcer::m5g_process_response_from_upf(
   }
   switch (session->get_state()) {
     case CREATED:
-      session->set_fsm_state(ACTIVE, &session_uc);
+      session->set_fsm_state(SESSION_ACTIVE, &session_uc);
       /* As there is no config change, just state change as we
        * got response from UPF, so we dont bump up the session version
        * number here
        */
       amf_update_pending = true;
       break;
-    case RELEASE:
+    case SESSION_RELEASED:
       m5g_complete_termination(session_map, imsi, session_id, session_update);
     default:
       break;
@@ -648,7 +648,7 @@ void SessionStateEnforcer::prepare_response_to_access(
   rsp->mutable_session_ambr()->set_max_bandwidth_dl(
       config.rat_specific_context.m5gsm_session_context()
           .default_ambr()
-          .max_bandwidth_ul());
+          .max_bandwidth_dl());
   /* This flag is used for sending defult qos value or getting from policy
    *  value to AMF.
    */
@@ -906,6 +906,14 @@ void SessionStateEnforcer::set_pdr_attributes(
       config.common_context.ue_ipv4());
   rule->mutable_activate_flow_req()->set_ipv6_addr(
       config.common_context.ue_ipv6());
+  rule->mutable_activate_flow_req()->mutable_apn_ambr()->set_max_bandwidth_ul(
+      config.rat_specific_context.m5gsm_session_context()
+          .default_ambr()
+          .max_bandwidth_ul());
+  rule->mutable_activate_flow_req()->mutable_apn_ambr()->set_max_bandwidth_dl(
+      config.rat_specific_context.m5gsm_session_context()
+          .default_ambr()
+          .max_bandwidth_dl());
   rule->mutable_deactivate_flow_req()->set_ip_addr(
       config.common_context.ue_ipv4());
   rule->mutable_deactivate_flow_req()->set_ipv6_addr(

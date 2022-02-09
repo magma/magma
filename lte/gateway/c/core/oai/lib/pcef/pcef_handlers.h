@@ -103,6 +103,8 @@ int get_imeisv_from_session_req(
     const itti_s11_create_session_request_t* saved_req, char* imeisv);
 
 void convert_imeisv_to_string(char* imeisv);
+
+bool pcef_delete_dedicated_bearer(const char* imsi, const ebi_list_t ebi_list);
 #ifdef __cplusplus
 }
 #endif

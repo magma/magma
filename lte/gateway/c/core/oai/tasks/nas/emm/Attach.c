@@ -128,7 +128,6 @@ static int emm_start_attach_proc_authentication(
 static int emm_start_attach_proc_security(
     emm_context_t* emm_context, nas_emm_attach_proc_t* attach_proc);
 
-static int emm_attach_security_a(emm_context_t* emm_context);
 static int emm_attach(emm_context_t* emm_context);
 
 static int emm_attach_success_identification_cb(emm_context_t* emm_context);
@@ -1039,8 +1038,8 @@ status_code_e _emm_attach_reject(
   OAILOG_WARNING(
       LOG_NAS_EMM,
       "EMM-PROC  - EMM attach procedure not accepted "
-      "by the network (ue_id=" MME_UE_S1AP_ID_FMT ", cause=%d)\n",
-      attach_proc->ue_id, attach_proc->emm_cause);
+      "by the network (ue_id=" MME_UE_S1AP_ID_FMT ", cause=%s)\n",
+      attach_proc->ue_id, emm_cause_str[attach_proc->emm_cause]);
   /*
    * Notify EMM-AS SAP that Attach Reject message has to be sent
    * onto the network
@@ -1295,6 +1294,7 @@ static int emm_attach_failure_authentication_cb(emm_context_t* emm_context) {
       get_nas_specific_procedure_attach(emm_context);
 
   if (attach_proc) {
+    emm_context->emm_cause = EMM_CAUSE_NETWORK_FAILURE;
     attach_proc->emm_cause = emm_context->emm_cause;
 
     emm_sap_t emm_sap               = {0};
@@ -1437,130 +1437,6 @@ static int emm_attach_failure_security_cb(emm_context_t* emm_context) {
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-//
-//  rc = _emm_start_attach_proc_authentication (emm_context, attach_proc);//,
-//  IDENTITY_TYPE_2_IMSI, _emm_attach_authentified, _emm_attach_release);
-//
-//  if ((emm_context) && (attach_proc)) {
-//    REQUIREMENT_3GPP_24_301(R10_5_5_1_2_3__1);
-//    mme_ue_s1ap_id_t                        ue_id = PARENT_STRUCT(emm_context,
-//    struct ue_mm_context_s, emm_context)->mme_ue_s1ap_id; OAILOG_INFO
-//    (LOG_NAS_EMM, "ue_id=" MME_UE_S1AP_ID_FMT " EMM-PROC  - Setup NAS
-//    security\n", ue_id);
-//
-//    attach_proc->emm_spec_proc.emm_proc.base_proc.success_notif =
-//    _emm_attach_success_authentication_cb;
-//    attach_proc->emm_spec_proc.emm_proc.base_proc.failure_notif =
-//    _emm_attach_failure_authentication_cb;
-//    /*
-//     * Create new NAS security context
-//     */
-//    emm_ctx_clear_security(emm_context);
-//
-//    /*
-//     * Initialize the security mode control procedure
-//     */
-//    rc = emm_proc_security_mode_control (ue_id, emm_context->auth_ksi,
-//                                         _emm_attach, _emm_attach_release);
-//
-//    if (rc != RETURNok) {
-//      /*
-//       * Failed to initiate the security mode control procedure
-//       */
-//      OAILOG_WARNING (LOG_NAS_EMM, "ue_id=" MME_UE_S1AP_ID_FMT "EMM-PROC  -
-//      Failed to initiate security mode control procedure\n", ue_id);
-//      attach_proc->emm_cause = EMM_CAUSE_ILLEGAL_UE;
-//      /*
-//       * Do not accept the UE to attach to the network
-//       */
-//      emm_sap_t emm_sap                      = {0};
-//      emm_sap.primitive                      = EMMREG_ATTACH_REJ;
-//      emm_sap.u.emm_reg.ue_id                = ue_id;
-//      emm_sap.u.emm_reg.ctx                  = emm_context;
-//      emm_sap.u.emm_reg.notify               = true;
-//      emm_sap.u.emm_reg.free_proc            = true;
-//      emm_sap.u.emm_reg.u.attach.attach_proc = attach_proc;
-//      // dont care emm_sap.u.emm_reg.u.attach.is_emergency = false;
-//      rc = emm_sap_send (&emm_sap);
-//    }
-//  }
-//  OAILOG_FUNC_RETURN (LOG_NAS_EMM, rc);
-//}
-/*
- *
- * Name:        emm_attach_security_a()
- *
- * Description: Initiates security mode control EMM common procedure.
- *
- * Inputs:          args:      security argument parameters
- *                  Others:    None
- *
- * Outputs:     None
- *                  Return:    RETURNok, RETURNerror
- *                  Others:    _emm_data
- *
- */
-//------------------------------------------------------------------------------
-status_code_e emm_attach_security(struct emm_context_s* emm_context) {
-  return emm_attach_security_a(emm_context);
-}
-
-//------------------------------------------------------------------------------
-static int emm_attach_security_a(emm_context_t* emm_context) {
-  OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
-
-  nas_emm_attach_proc_t* attach_proc =
-      get_nas_specific_procedure_attach(emm_context);
-
-  if (attach_proc) {
-    REQUIREMENT_3GPP_24_301(R10_5_5_1_2_3__1);
-    mme_ue_s1ap_id_t ue_id =
-        PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
-            ->mme_ue_s1ap_id;
-    OAILOG_INFO(
-        LOG_NAS_EMM,
-        "ue_id=" MME_UE_S1AP_ID_FMT " EMM-PROC  - Setup NAS security\n", ue_id);
-
-    /*
-     * Create new NAS security context
-     */
-    emm_ctx_clear_security(emm_context);
-    /*
-     * Initialize the security mode control procedure
-     */
-    rc = emm_proc_security_mode_control(
-        emm_context, &attach_proc->emm_spec_proc, attach_proc->ksi, emm_attach,
-        emm_attach_release);
-
-    if (rc != RETURNok) {
-      /*
-       * Failed to initiate the security mode control procedure
-       */
-      OAILOG_WARNING(
-          LOG_NAS_EMM,
-          "ue_id=" MME_UE_S1AP_ID_FMT
-          "EMM-PROC  - Failed to initiate security mode control procedure\n",
-          ue_id);
-      attach_proc->emm_cause = EMM_CAUSE_ILLEGAL_UE;
-      /*
-       * Do not accept the UE to attach to the network
-       */
-      emm_sap_t emm_sap               = {0};
-      emm_sap.primitive               = EMMREG_ATTACH_REJ;
-      emm_sap.u.emm_reg.ue_id         = ue_id;
-      emm_sap.u.emm_reg.ctx           = emm_context;
-      emm_sap.u.emm_reg.notify        = true;
-      emm_sap.u.emm_reg.free_proc     = true;
-      emm_sap.u.emm_reg.u.attach.proc = attach_proc;
-      // dont care emm_sap.u.emm_reg.u.attach.is_emergency = false;
-      rc = emm_sap_send(&emm_sap);
-    }
-  }
-
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-}
-
 /*
    --------------------------------------------------------------------------
                 MME specific local functions
@@ -1628,8 +1504,8 @@ static int emm_attach(emm_context_t* emm_context) {
         OAILOG_ERROR(
             LOG_NAS_EMM,
             "Sending Attach Reject to UE for ue_id = " MME_UE_S1AP_ID_FMT
-            ", emm_cause = (%d)\n",
-            ue_id, attach_proc->emm_cause);
+            ", emm_cause = (%s)\n",
+            ue_id, emm_cause_str[attach_proc->emm_cause]);
         rc = _emm_attach_reject(
             emm_context, &attach_proc->emm_spec_proc.emm_proc.base_proc);
       } else {
@@ -1666,8 +1542,8 @@ static int emm_attach(emm_context_t* emm_context) {
     OAILOG_ERROR(
         LOG_NAS_EMM,
         "Sending Attach Reject to UE ue_id = " MME_UE_S1AP_ID_FMT
-        ", emm_cause = (%d)\n",
-        ue_id, attach_proc->emm_cause);
+        ", emm_cause = (%s)\n",
+        ue_id, emm_cause_str[attach_proc->emm_cause]);
     rc = _emm_attach_reject(
         emm_context, &attach_proc->emm_spec_proc.emm_proc.base_proc);
     increment_counter(
@@ -2740,3 +2616,45 @@ void proc_new_attach_req(
   emm_attach_run_procedure(&ue_mm_context->emm_context);
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
+
+const char* emm_cause_str[] = {
+    [EMM_CAUSE_IMSI_UNKNOWN_IN_HSS] = "EMM_CAUSE_IMSI_UNKNOWN_IN_HSS",
+    [EMM_CAUSE_ILLEGAL_UE]          = "EMM_CAUSE_ILLEGAL_UE",
+    [EMM_CAUSE_IMEI_NOT_ACCEPTED]   = "EMM_CAUSE_IMEI_NOT_ACCEPTED",
+    [EMM_CAUSE_ILLEGAL_ME]          = "EMM_CAUSE_ILLEGAL_ME",
+    [EMM_CAUSE_EPS_NOT_ALLOWED]     = "EMM_CAUSE_EPS_NOT_ALLOWED",
+    [EMM_CAUSE_BOTH_NOT_ALLOWED]    = "EMM_CAUSE_BOTH_NOT_ALLOWED",
+    [EMM_CAUSE_UE_IDENTITY_CANT_BE_DERIVED_BY_NW] =
+        "EMM_CAUSE_UE_IDENTITY_CANT_BE_DERIVED_BY_NW",
+    [EMM_CAUSE_IMPLICITLY_DETACHED]     = "EMM_CAUSE_IMPLICITLY_DETACHED",
+    [EMM_CAUSE_PLMN_NOT_ALLOWED]        = "EMM_CAUSE_PLMN_NOT_ALLOWED",
+    [EMM_CAUSE_TA_NOT_ALLOWED]          = "EMM_CAUSE_TA_NOT_ALLOWED",
+    [EMM_CAUSE_ROAMING_NOT_ALLOWED]     = "EMM_CAUSE_ROAMING_NOT_ALLOWED",
+    [EMM_CAUSE_EPS_NOT_ALLOWED_IN_PLMN] = "EMM_CAUSE_EPS_NOT_ALLOWED_IN_PLMN",
+    [EMM_CAUSE_NO_SUITABLE_CELLS]       = "EMM_CAUSE_NO_SUITABLE_CELLS",
+    [EMM_CAUSE_MSC_NOT_REACHABLE]       = "EMM_CAUSE_MSC_NOT_REACHABLE",
+    [EMM_CAUSE_NETWORK_FAILURE]         = "EMM_CAUSE_NETWORK_FAILURE",
+    [EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE] = "EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE",
+    [EMM_CAUSE_ESM_FAILURE]             = "EMM_CAUSE_ESM_FAILURE",
+    [EMM_CAUSE_MAC_FAILURE]             = "EMM_CAUSE_MAC_FAILURE",
+    [EMM_CAUSE_SYNCH_FAILURE]           = "EMM_CAUSE_SYNCH_FAILURE",
+    [EMM_CAUSE_CONGESTION]              = "EMM_CAUSE_CONGESTION",
+    [EMM_CAUSE_UE_SECURITY_MISMATCH]    = "EMM_CAUSE_UE_SECURITY_MISMATCH",
+    [EMM_CAUSE_SECURITY_MODE_REJECTED]  = "EMM_CAUSE_SECURITY_MODE_REJECTED",
+    [EMM_CAUSE_NON_EPS_AUTH_UNACCEPTABLE] =
+        "EMM_CAUSE_NON_EPS_AUTH_UNACCEPTABLE",
+    [EMM_CAUSE_NOT_AUTHORIZED_IN_PLMN]   = "EMM_CAUSE_NOT_AUTHORIZED_IN_PLMN",
+    [EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE] = "EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE",
+    [EMM_CAUSE_NO_EPS_BEARER_CTX_ACTIVE] = "EMM_CAUSE_NO_EPS_BEARER_CTX_ACTIVE",
+    [EMM_CAUSE_SEMANTICALLY_INCORRECT]   = "EMM_CAUSE_SEMANTICALLY_INCORRECT",
+    [EMM_CAUSE_INVALID_MANDATORY_INFO]   = "EMM_CAUSE_INVALID_MANDATORY_INFO",
+    [EMM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED] =
+        "EMM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED",
+    [EMM_CAUSE_MESSAGE_TYPE_NOT_COMPATIBLE] =
+        "EMM_CAUSE_MESSAGE_TYPE_NOT_COMPATIBLE",
+    [EMM_CAUSE_IE_NOT_IMPLEMENTED]     = "EMM_CAUSE_IE_NOT_IMPLEMENTED",
+    [EMM_CAUSE_CONDITIONAL_IE_ERROR]   = "EMM_CAUSE_CONDITIONAL_IE_ERROR",
+    [EMM_CAUSE_MESSAGE_NOT_COMPATIBLE] = "EMM_CAUSE_MESSAGE_NOT_COMPATIBLE",
+    [AMF_CAUSE_PROTOCOL_ERROR]         = "AMF_CAUSE_PROTOCOL_ERROR",
+    [EMM_CAUSE_SUCCESS]                = "EMM_CAUSE_SUCCESS",
+};

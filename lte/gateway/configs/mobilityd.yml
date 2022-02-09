@@ -16,7 +16,3 @@ redis_port: 6380
 print_grpc_payload: false
 
 ipv6_prefixlen: 58
-
-# [Experimental] Enable Sentry for this service
-# Allowed values: send_all_errors, send_selected_errors, disabled
-sentry: send_all_errors

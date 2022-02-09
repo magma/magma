@@ -31,17 +31,18 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 
 uint64_t get_bit_rate(uint8_t ambr_unit) {
   if (ambr_unit < 6) {
-    return (1024);
+    return (1000);
   } else if (ambr_unit < 11) {
-    return (1024 * 1024);
+    return (1000 * 1000);
   } else if (ambr_unit < 16) {
-    return (1024 * 1024 * 1024);
+    return (1000 * 1000 * 1000);
   }
   return (0);
 }
@@ -50,32 +51,14 @@ uint64_t get_bit_rate(uint8_t ambr_unit) {
  * AMBR calculation based on 9.11.4.14 of 24-501
  */
 void ambr_calculation_pdu_session(
-    std::shared_ptr<smf_context_t> smf_context, uint64_t* dl_pdu_ambr,
-    uint64_t* ul_pdu_ambr) {
-  if ((smf_context->dl_ambr_unit == 0) || (smf_context->ul_ambr_unit == 0) ||
-      (smf_context->dl_session_ambr == 0) ||
-      (smf_context->dl_session_ambr == 0)) {
-    // AMBR has not been populated till now and default assigned
-    *dl_pdu_ambr = (64 * 32768);
-    *ul_pdu_ambr = (64 * 32768);
-  } else {
-    // refer 24-501 9.11.4.14
-    if ((smf_context->dl_ambr_unit) < 4) {
-      *dl_pdu_ambr =
-          4 ^ (smf_context->dl_ambr_unit - 1) * (smf_context->dl_session_ambr);
-    } else {
-      *dl_pdu_ambr = smf_context->dl_session_ambr *
-                     get_bit_rate(smf_context->dl_ambr_unit);
-    }
+    uint16_t* dl_session_ambr, M5GSessionAmbrUnit dl_ambr_unit,
+    uint16_t* ul_session_ambr, M5GSessionAmbrUnit ul_ambr_unit,
+    uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr) {
+  *dl_pdu_ambr =
+      (*dl_session_ambr) * get_bit_rate(static_cast<uint8_t>(dl_ambr_unit));
 
-    if ((smf_context->ul_ambr_unit) < 4) {
-      *ul_pdu_ambr =
-          4 ^ (smf_context->ul_ambr_unit - 1) * (smf_context->ul_session_ambr);
-    } else {
-      *ul_pdu_ambr = smf_context->ul_session_ambr *
-                     get_bit_rate(smf_context->ul_ambr_unit);
-    }
-  }
+  *ul_pdu_ambr =
+      (*ul_session_ambr) * get_bit_rate(static_cast<uint8_t>(ul_ambr_unit));
 }
 
 /*
@@ -110,17 +93,21 @@ int pdu_session_resource_setup_request(
    * considering default or max bit rate.
    * leveraged ambr calculation from qos_params_to_eps_qos and 24-501 spec used
    */
-  ambr_calculation_pdu_session(smf_context, &dl_pdu_ambr, &ul_pdu_ambr);
-  ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.dl =
-      ue_context->amf_context.subscribed_ue_ambr.br_dl;
-  ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.ul =
-      ue_context->amf_context.subscribed_ue_ambr.br_ul;
+  ambr_calculation_pdu_session(
+      &(smf_context->selected_ambr.dl_session_ambr),
+      (smf_context->selected_ambr.dl_ambr_unit),
+      &(smf_context->selected_ambr.ul_session_ambr),
+      (smf_context->selected_ambr.ul_ambr_unit), &dl_pdu_ambr, &ul_pdu_ambr);
+
+  amf_smf_context_ue_aggregate_max_bit_rate_get(
+      &(ue_context->amf_context),
+      &(ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.dl),
+      &(ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.ul));
 
   // Hardcoded number of pdu sessions as 1
   ngap_pdu_ses_setup_req->pduSessionResource_setup_list.no_of_items = 1;
   ngap_pdu_ses_setup_req->pduSessionResource_setup_list.item[0].Pdu_Session_ID =
-      (Ngap_PDUSessionID_t)
-          smf_context->smf_proc_data.pdu_session_identity.pdu_session_id;
+      (Ngap_PDUSessionID_t) smf_context->smf_proc_data.pdu_session_id;
 
   ngap_pdu_ses_setup_req->pduSessionResource_setup_list.no_of_items = 1;
   // Adding respective header to amf_pdu_ses_setup_transfer_request
@@ -141,14 +128,13 @@ int pdu_session_resource_setup_request(
   amf_pdu_ses_setup_transfer_req->up_transport_layer_info.gtp_tnl
       .endpoint_ip_address = blk2bstr(
       &smf_context->gtp_tunnel_id.upf_gtp_teid_ip_addr, GNB_IPV4_ADDR_LEN);
-  amf_pdu_ses_setup_transfer_req->pdu_ip_type.pdn_type = IPv4;
+  amf_pdu_ses_setup_transfer_req->pdu_ip_type.pdn_type =
+      smf_context->pdu_address.pdn_type;
 
   memcpy(
       &amf_pdu_ses_setup_transfer_req->qos_flow_setup_request_list
            .qos_flow_req_item,
-      &smf_context->pdu_resource_setup_req
-           .pdu_session_resource_setup_request_transfer
-           .qos_flow_setup_request_list.qos_flow_req_item,
+      &smf_context->subscribed_qos_profile.qos_flow_req_item,
       sizeof(qos_flow_setup_request_item));
 
   ngap_pdu_ses_setup_req->nas_pdu = nas_msg;
@@ -176,7 +162,8 @@ int pdu_session_resource_release_request(
 
   msg.security_protected.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  msg.security_protected.plain.amf.header.message_type = DLNASTRANSPORT;
+  msg.security_protected.plain.amf.header.message_type =
+      M5GMessageType::DLNASTRANSPORT;
   msg.header.security_header_type = SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED;
   msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
   msg.header.sequence_number =
@@ -192,7 +179,8 @@ int pdu_session_resource_release_request(
   encode_msg->spare_half_octet.spare  = 0x00;
   encode_msg->sec_header_type.sec_hdr = 0x00;
   len++;
-  encode_msg->message_type.msg_type = DLNASTRANSPORT;
+  encode_msg->message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::DLNASTRANSPORT);
   len++;
   encode_msg->payload_container.iei = PAYLOAD_CONTAINER;
   // encode_msg->payload_container_type.iei      = PAYLOAD_CONTAINER_TYPE;
@@ -202,27 +190,26 @@ int pdu_session_resource_release_request(
   encode_msg->pdu_session_identity.iei = 0x12;
   len++;
   encode_msg->pdu_session_identity.pdu_session_id =
-      smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
+      smf_ctx->smf_proc_data.pdu_session_id;
   len++;
 
   // NAS SmfMsg
   smf_msg->header.extended_protocol_discriminator =
       M5G_SESSION_MANAGEMENT_MESSAGES;
-  smf_msg->header.pdu_session_id =
-      smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
-  smf_msg->header.message_type             = PDU_SESSION_RELEASE_COMMAND;
-  smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti.pti;
+  smf_msg->header.pdu_session_id = smf_ctx->smf_proc_data.pdu_session_id;
+  smf_msg->header.message_type =
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_RELEASE_COMMAND);
+  smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti;
   smf_msg->msg.pdu_session_release_command.extended_protocol_discriminator
       .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
   container_len++;
   smf_msg->msg.pdu_session_release_command.pdu_session_identity.pdu_session_id =
-      smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
+      smf_ctx->smf_proc_data.pdu_session_id;
   container_len++;
-  smf_msg->msg.pdu_session_release_command.pti.pti =
-      smf_ctx->smf_proc_data.pti.pti;
+  smf_msg->msg.pdu_session_release_command.pti.pti = smf_ctx->smf_proc_data.pti;
   container_len++;
   smf_msg->msg.pdu_session_release_command.message_type.msg_type =
-      PDU_SESSION_RELEASE_COMMAND;
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_RELEASE_COMMAND);
   container_len++;
   smf_msg->msg.pdu_session_release_command.m5gsm_cause.cause_value =
       0x24;  // Regular deactivation
@@ -284,8 +271,7 @@ int pdu_session_resource_release_request(
   ngap_pdu_ses_release_req->pduSessionResourceToRelReqList.no_of_items = 1;
   ngap_pdu_ses_release_req->pduSessionResourceToRelReqList.item[0]
       .Pdu_Session_ID =
-      (Ngap_PDUSessionID_t)
-          smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
+      (Ngap_PDUSessionID_t) smf_ctx->smf_proc_data.pdu_session_id;
   amf_pdu_ses_rel_transfer_req.cause.cause_group.u_group.nas.cause =
       NORMAL_RELEASE;
   amf_pdu_ses_rel_transfer_req.cause.cause_group.cause_group_type = NAS_GROUP;

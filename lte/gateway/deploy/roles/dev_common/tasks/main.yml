@@ -222,14 +222,6 @@
     state: link
     force: yes
 
-- name: Set up environment variables for VSCode integration
-  lineinfile:
-    # We set this variable in .profile so that VSCode can determine which build config to use 
-    path: /home/{{ ansible_user }}/.profile
-    line: "export VSCODE_BAZEL_BUILD_CONFIG=vm"
-    state: present
-  when: full_provision
-
 ########################################
 # Install common Magma dev dependencies
 ########################################

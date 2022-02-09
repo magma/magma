@@ -101,5 +101,8 @@ void fill_s11_suspend_notification(
     itti_s11_suspend_notification_t* suspend_notif, teid_t sgw_s11_context_teid,
     const std::string& imsi_str, ebi_t link_bearer_id);
 
+void fill_s11_delete_bearer_command(
+    itti_s11_delete_bearer_command_t* delete_bearer_cmd, teid_t mme_teid_s11,
+    teid_t sgw_s11_context_teid, ebi_t ebi);
 }  // namespace lte
 }  // namespace magma

@@ -603,6 +603,17 @@ class S1ApUtil(object):
             ip6 = ipaddress.ip_address(ipv6_addr)
             self._ue_ip_map[ue_id] = ip6
 
+    def run_ipv6_data(self, ipv6_addr):
+        """Run ipv6 data"""
+        self.magma_utils = MagmadUtil(None)
+        execute_icmpv6_cmd = (
+            "sudo /home/vagrant/build/python/bin/python3 "
+            + "/home/vagrant/magma/lte/gateway/python/scripts/icmpv6.py "
+            + str(ipv6_addr)
+        )
+        print("Running data for ipv6 address", str(ipv6_addr))
+        self.magma_utils.exec_command_output(execute_icmpv6_cmd)
+
 
 class SubscriberUtil(object):
     """
@@ -699,7 +710,6 @@ class MagmadUtil(object):
     config_update_cmds = Enum("config_update_cmds", "MODIFY RESTORE")
     apn_correction_cmds = Enum("apn_correction_cmds", "DISABLE ENABLE")
     health_service_cmds = Enum("health_service_cmds", "DISABLE ENABLE")
-    ipv6_config_cmds = Enum("ipv6_config_cmds", "DISABLE ENABLE")
     ha_service_cmds = Enum("ha_service_cmds", "DISABLE ENABLE")
 
     def __init__(self, magmad_client):
@@ -1003,54 +1013,6 @@ class MagmadUtil(object):
                 self.enable_service("health")
             print("Health service is enabled")
 
-    def config_ipv6_solicitation(self, cmd):
-        """
-        Enable/disable the ipv6_solicitation service in pipelined configuration
-
-        Args:
-            cmd: Specify whether ipv6_solicitation should be enabled or not
-                 - enable: Enable ipv6_solicitation service,
-                           do nothing if already enabled
-                 - disable: Disable ipv6_solicitation service,
-                            do nothing if already disabled
-
-        Returns:
-            -1: Failed to configure
-            0: Already configured
-            1: Configured successfully. Need to restart the service
-        """
-        ipv6_update_config_cmd = ""
-        ipv6_config_status_cmd = (
-            "grep 'ipv6_solicitation' /etc/magma/pipelined.yml | wc -l"
-        )
-        ret_code = self.exec_command_output(ipv6_config_status_cmd).rstrip()
-
-        if cmd.name == MagmadUtil.ipv6_config_cmds.ENABLE.name:
-            if ret_code != "0":
-                print("IPv6 solicitation service is already enabled")
-                return 0
-            else:
-                ipv6_update_config_cmd = (
-                    r"sed -i \"/startup_flows/a \ \ 'ipv6_solicitation',\" "
-                    "/etc/magma/pipelined.yml"
-                )
-        else:
-            if ret_code == "0":
-                print("IPv6 solicitation service is already disabled")
-                return 0
-            else:
-                ipv6_update_config_cmd = (
-                    "sed -i '/ipv6_solicitation/d'  /etc/magma/pipelined.yml"
-                )
-
-        ret_code = self.exec_command("sudo " + ipv6_update_config_cmd)
-        if ret_code == 0:
-            print("IPv6 solicitation service configured successfully")
-            return 1
-
-        print("IPv6 solicitation service configuration failed")
-        return -1
-
     def config_ha_service(self, cmd):
         """
         Modify the mme configuration by enabling/disabling use of Ha service
@@ -1173,6 +1135,45 @@ class MagmadUtil(object):
             "Entries in mme_ueip_imsi_map (should be zero):",
             mme_ueip_imsi_map_entries,
         )
+
+    def enable_nat(self):
+        self._set_agw_nat(True)
+        self._validate_nated_datapath()
+        self.exec_command("sudo ip route del default via 192.168.129.42")
+        self.exec_command("sudo ip route add default via 10.0.2.2 dev eth0")
+
+    def disable_nat(self):
+        self.exec_command("sudo ip route del default via 10.0.2.2 dev eth0")
+        self.exec_command("sudo ip addr replace 192.168.129.1/24 dev uplink_br0")
+        self.exec_command("sudo ip route add default via 192.168.129.42 dev uplink_br0")
+        self._set_agw_nat(False)
+        self._validate_non_nat_datapath()
+
+    def _set_agw_nat(self, enable: bool):
+        mconfig_conf = "/home/vagrant/magma/lte/gateway/configs/gateway.mconfig"
+        with open(mconfig_conf, "r") as jsonFile:
+            data = json.load(jsonFile)
+
+        data['configs_by_key']['mme']['natEnabled'] = enable
+        data['configs_by_key']['pipelined']['natEnabled'] = enable
+
+        with open(mconfig_conf, "w") as jsonFile:
+            json.dump(data, jsonFile, sort_keys=True, indent=2)
+
+        self.restart_sctpd()
+        self.restart_all_services()
+
+    def _validate_non_nat_datapath(self):
+        # validate SGi interface is part of uplink-bridge.
+        out1 = self.exec_command_output("sudo ovs-vsctl list-ports uplink_br0")
+        assert("eth2" in str(out1))
+        print("NAT is disabled")
+
+    def _validate_nated_datapath(self):
+        # validate SGi interface is not part of uplink-bridge.
+        out1 = self.exec_command_output("sudo ovs-vsctl list-ports uplink_br0")
+        assert("eth2" not in str(out1))
+        print("NAT is enabled")
 
 
 class MobilityUtil(object):

@@ -18,6 +18,8 @@ import (
 	"net"
 	"net/url"
 
+	"magma/feg/gateway/sbi"
+
 	"github.com/golang/glog"
 
 	mcfgprotos "magma/feg/cloud/go/protos/mconfig"
@@ -43,22 +45,10 @@ const (
 	DefaultN7ClientApiRoot = "https://localhost/npcf-smpolicycontrol/v1"
 )
 
-type PCFConfig struct {
-	ApiRoot      url.URL
-	TokenUrl     string
-	ClientId     string
-	ClientSecret string
-}
-
-type N7ClientConfig struct {
-	LocalAddr     string // ip:port or :port
-	NotifyApiRoot string
-}
-
 type N7Config struct {
-	DisableN7 bool
-	Server    PCFConfig
-	Client    N7ClientConfig
+	DisableN7    bool
+	ServerConfig sbi.RemoteConfig
+	ClientConfig sbi.NotifierConfig
 }
 
 func GetN7Config() (*N7Config, error) {
@@ -70,16 +60,16 @@ func GetN7Config() (*N7Config, error) {
 		glog.V(2).Infof("Managed Configs Load Error: %v Using EnvVars", err)
 		apiRoot, err := url.ParseRequestURI(utils.GetValueOrEnv("", PcfApiRoot, DefaultPcfApiRoot))
 		if err != nil {
-			return nil, fmt.Errorf("invalid Server ApiRoot - %s", err)
+			return nil, fmt.Errorf("invalid NotifierServer ApiRoot - %s", err)
 		}
-		conf.Server = PCFConfig{
+		conf.ServerConfig = sbi.RemoteConfig{
 			ApiRoot:      *apiRoot,
 			TokenUrl:     utils.GetValueOrEnv("", PcfTokenUrl, DefaultPcfTokenUrl),
 			ClientId:     utils.GetValueOrEnv("", PcfClientId, DefaultClientId),
 			ClientSecret: utils.GetValueOrEnv("", PcfClientSecret, DefaultClientSecret),
 		}
 		conf.DisableN7 = false
-		conf.Client = N7ClientConfig{
+		conf.ClientConfig = sbi.NotifierConfig{
 			LocalAddr:     utils.GetValueOrEnv("", N7ClientLocalAddr, DefaultN7ClientAddr),
 			NotifyApiRoot: utils.GetValueOrEnv("", N7ClientNotifyApiRoot, DefaultN7ClientApiRoot),
 		}
@@ -88,15 +78,15 @@ func GetN7Config() (*N7Config, error) {
 		conf.DisableN7 = n7configPtr.DisableN7
 		apiRoot, err := url.ParseRequestURI(utils.GetValueOrEnv("", PcfApiRoot, n7configPtr.Server.GetApiRoot()))
 		if err != nil {
-			return nil, fmt.Errorf("invalid Server ApiRoot - %s", err)
+			return nil, fmt.Errorf("invalid NotifierServer ApiRoot - %s", err)
 		}
-		conf.Server = PCFConfig{
+		conf.ServerConfig = sbi.RemoteConfig{
 			ApiRoot:      *apiRoot,
 			TokenUrl:     utils.GetValueOrEnv("", PcfTokenUrl, n7configPtr.Server.GetTokenUrl()),
 			ClientId:     utils.GetValueOrEnv("", PcfClientId, n7configPtr.Server.GetClientId()),
 			ClientSecret: utils.GetValueOrEnv("", PcfClientSecret, n7configPtr.Server.GetClientSecret()),
 		}
-		conf.Client = N7ClientConfig{
+		conf.ClientConfig = sbi.NotifierConfig{
 			LocalAddr:     utils.GetValueOrEnv("", N7ClientLocalAddr, n7configPtr.Client.LocalAddr),
 			NotifyApiRoot: utils.GetValueOrEnv("", N7ClientNotifyApiRoot, n7configPtr.Client.NotifyApiRoot),
 		}
@@ -116,17 +106,17 @@ func validManagedConfig(config *mcfgprotos.N7N40ProxyConfig) bool {
 }
 
 func validateN7Config(config *N7Config) error {
-	_, err := url.ParseRequestURI(config.Server.TokenUrl)
+	_, err := url.ParseRequestURI(config.ServerConfig.TokenUrl)
 	if err != nil {
-		return fmt.Errorf("invalid Server TokenUrl - %s", err)
+		return fmt.Errorf("invalid NotifierServer TokenUrl - %s", err)
 	}
-	_, err = url.ParseRequestURI(config.Client.NotifyApiRoot)
+	_, err = url.ParseRequestURI(config.ClientConfig.NotifyApiRoot)
 	if err != nil {
-		return fmt.Errorf("invalid Client NotifyApiRoot - %s", err)
+		return fmt.Errorf("invalid BaseClientWithNotifier NotifyApiRoot - %s", err)
 	}
-	_, err = net.ResolveTCPAddr("tcp", config.Client.LocalAddr)
+	_, err = net.ResolveTCPAddr("tcp", config.ClientConfig.LocalAddr)
 	if err != nil {
-		return fmt.Errorf("invalid Client LocalAddr - %s", err)
+		return fmt.Errorf("invalid BaseClientWithNotifier LocalAddr - %s", err)
 	}
 	return nil
 }

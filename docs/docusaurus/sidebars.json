@@ -102,7 +102,6 @@
         "ids": [
           "orc8r/deploy_intro",
           "orc8r/deploy_install",
-          "orc8r/deploy_orcl",
           "orc8r/deploy_terraform_options",
           "orc8r/deploy_faq"
         ]
@@ -253,7 +252,8 @@
         "label": "Maintain",
         "ids": [
           "contributing/contribute_proposals",
-          "contributing/contribute_codeowners"
+          "contributing/contribute_codeowners",
+          "contributing/contribute_tsc_norms"
         ]
       }
     ],
@@ -273,11 +273,15 @@
         "label": "Access Gateway",
         "ids": [
           "lte/dev_notes",
+          "lte/openvswitch",
+          "lte/pipelined",
+          "lte/ebpf_datapath",
           "lte/dev_unit_testing",
           "lte/tr069",
           "lte/s1ap_tests",
           "lte/eventd",
-          "lte/access_service_restrictions"
+          "lte/access_service_restrictions",
+          "lte/dev_teid_allocation"
         ]
       },
       {
@@ -309,7 +313,8 @@
         "type": "subcategory",
         "label": "Federation Gateway",
         "ids": [
-          "feg/dev_testing"
+          "feg/dev_testing",
+          "feg/s1ap_federated_tests"
         ]
       },
       {

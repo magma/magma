@@ -1,4 +1,4 @@
-From 720d5e54161777e47f8dec570d622ee490903f4a Mon Sep 17 00:00:00 2001
+From 9067df03eef48cdce93be4582a3ba396d61cba8c Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Fri, 13 Aug 2021 07:15:40 +0000
 Subject: [PATCH 05/22] OVS: gtp echo handling
@@ -9,7 +9,7 @@ testing done using ./tests/test-gtp 1.11.1.1 3201000a0000000000010000ff0003000a0
 
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
- include/openvswitch/packets.h  |  16 ++
+ include/openvswitch/packets.h  |  17 ++
  lib/bfd.c                      |  98 +++++++++--
  lib/bfd.h                      |   4 +-
  lib/netdev-provider.h          |   8 +
@@ -25,14 +25,14 @@ Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
  tests/system-common-macros.at  |  19 +++
  tests/system-layer3-tunnels.at | 297 +++++++++++++++++++++++++++------
  tests/test-gtp.c               | 111 ++++++++++++
- 16 files changed, 773 insertions(+), 84 deletions(-)
+ 16 files changed, 774 insertions(+), 84 deletions(-)
  create mode 100644 tests/test-gtp.c
 
 diff --git a/include/openvswitch/packets.h b/include/openvswitch/packets.h
-index 236ae26cc..2f3fa3191 100644
+index 236ae26cc..e1f3c17b5 100644
 --- a/include/openvswitch/packets.h
 +++ b/include/openvswitch/packets.h
-@@ -93,6 +93,22 @@ struct ovs_key_nsh {
+@@ -93,6 +93,23 @@ struct ovs_key_nsh {
  
  #define FLOW_NSH_F_MASK ((1 << 2) - 1)
  
@@ -49,6 +49,7 @@ index 236ae26cc..2f3fa3191 100644
 +
 +struct gtp1_cntr_echo_rsp_header {
 +    ovs_be16	        seq;
++    struct gtpv1_tlv    unused;
 +    struct gtpv1_tlv    recovery;
 +} __attribute__ ((packed));
 +
@@ -656,10 +657,10 @@ index bb0e49091..42bf211e9 100644
                  MSEC_TO_PRIO(next_wake_time));
  }
 diff --git a/ofproto/ofproto-dpif-xlate.c b/ofproto/ofproto-dpif-xlate.c
-index 7108c8a30..6c882b9f7 100644
+index bd7693bf0..a5c8b5f0b 100644
 --- a/ofproto/ofproto-dpif-xlate.c
 +++ b/ofproto/ofproto-dpif-xlate.c
-@@ -7955,17 +7955,14 @@ xlate_resume(struct ofproto_dpif *ofproto,
+@@ -7993,17 +7993,14 @@ xlate_resume(struct ofproto_dpif *ofproto,
   * May modify 'packet'.
   * Returns 0 if successful, otherwise a positive errno value. */
  int
@@ -680,7 +681,7 @@ index 7108c8a30..6c882b9f7 100644
      flow_extract(packet, &flow);
      flow.in_port.ofp_port = OFPP_NONE;
  
-@@ -7974,19 +7971,31 @@ xlate_send_packet(const struct ofport_dpif *ofport, bool oam,
+@@ -8012,19 +8009,31 @@ xlate_send_packet(const struct ofport_dpif *ofport, bool oam,
          return EINVAL;
      }
  

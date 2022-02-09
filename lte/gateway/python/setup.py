@@ -39,6 +39,7 @@ setup(
         'magma.pipelined.ng_manager',
         'magma.pipelined.openflow',
         'magma.pipelined.qos',
+        'magma.pipelined.ebpf',
         'magma.pkt_tester',
         'magma.policydb',
         'magma.policydb.servicers',
@@ -86,9 +87,11 @@ setup(
         'scripts/state_cli.py',
         'scripts/dp_probe_cli.py',
         'scripts/user_trace_cli.py',
+        'scripts/icmpv6.py',
         'load_tests/loadtest_sessiond.py',
         'load_tests/loadtest_pipelined.py',
         'load_tests/loadtest_mobilityd.py',
+        'load_tests/loadtest_subscriberdb.py',
     ],
     package_data={'magma.redirectd.templates': ['*.html']},
     install_requires=[
@@ -98,7 +101,7 @@ setup(
         'envoy>=0.0.3',
         'glob2>=0.7',
         # lxml required by spyne.
-        'lxml==4.6.3',
+        'lxml==4.7.1',
         'ryu>=4.34',
         'spyne>=2.13.15',
         'scapy==2.4.4',
@@ -138,6 +141,7 @@ setup(
             'nose==1.3.7',
             'coverage',
             'iperf3',
+            'parameterized==0.8.1',
         ],
     },
 )
