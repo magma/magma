@@ -90,16 +90,16 @@ class ITTIMessagePassingTest : public ::testing::Test {
     init_task_context(TASK_MAIN, task_id_list, 1, NULL, &task_zmq_ctx_main);
 
     task_thread_args_t task1_thread_args = {};
-    task1_thread_args.this_task       = TASK_TEST_1;
-    task1_thread_args.task_id_list[0] = TASK_TEST_2;
-    task1_thread_args.list_size       = 1;
-    task1_thread_args.task_zmq_ctx    = &task_zmq_ctx_test1;
+    task1_thread_args.this_task          = TASK_TEST_1;
+    task1_thread_args.task_id_list[0]    = TASK_TEST_2;
+    task1_thread_args.list_size          = 1;
+    task1_thread_args.task_zmq_ctx       = &task_zmq_ctx_test1;
 
     task_thread_args_t task2_thread_args = {};
-    task2_thread_args.this_task       = TASK_TEST_2;
-    task2_thread_args.task_id_list[0] = TASK_TEST_1;
-    task2_thread_args.list_size       = 1;
-    task2_thread_args.task_zmq_ctx    = &task_zmq_ctx_test2;
+    task2_thread_args.this_task          = TASK_TEST_2;
+    task2_thread_args.task_id_list[0]    = TASK_TEST_1;
+    task2_thread_args.list_size          = 1;
+    task2_thread_args.task_zmq_ctx       = &task_zmq_ctx_test2;
 
     std::thread task1(task_thread, &task1_thread_args);
     std::thread task2(task_thread, &task2_thread_args);
@@ -146,9 +146,7 @@ class ITTIApiTest : public ::testing::Test {
         NULL);
   }
 
-  virtual void TearDown() {
-     itti_free_desc_threads();
-  }
+  virtual void TearDown() { itti_free_desc_threads(); }
 };
 
 TEST_F(ITTIApiTest, TestInitialContextSetupRsp) {
