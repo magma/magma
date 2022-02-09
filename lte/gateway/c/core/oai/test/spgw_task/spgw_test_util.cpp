@@ -62,6 +62,29 @@ bool is_num_sessions_valid(
   return true;
 }
 
+bool is_num_ue_contexts_valid(uint64_t imsi64, int expected_num_ue_contexts) {
+  hash_table_ts_t* state_ue_ht = get_spgw_ue_state();
+  return state_ue_ht->num_elements == expected_num_ue_contexts;
+}
+
+bool is_num_teids_valid(uint64_t imsi64, int expected_num_teids) {
+  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(imsi64);
+
+  if (!ue_context_p) return expected_num_teids == 0;
+
+  int num_teids              = 0;
+  sgw_s11_teid_t* s11_teid_p = nullptr;
+
+  LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
+    if (s11_teid_p &&
+        (sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid) != nullptr)) {
+      num_teids++;
+    }
+  }
+
+  return num_teids == expected_num_teids;
+}
+
 bool is_num_s1_bearers_valid(
     teid_t context_teid, int expected_num_active_bearers) {
   s_plus_p_gw_eps_bearer_context_information_t* ctxt_p =

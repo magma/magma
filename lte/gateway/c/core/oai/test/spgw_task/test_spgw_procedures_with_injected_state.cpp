@@ -195,6 +195,9 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
 
   ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == test_ue_ip);
 
+  ASSERT_TRUE(is_num_ue_contexts_valid(test_imsi64, name_of_ue_samples.size()));
+  ASSERT_TRUE(is_num_teids_valid(test_imsi64, 1));
+
   // verify that exactly one session exists in SPGW state
   ASSERT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
 
