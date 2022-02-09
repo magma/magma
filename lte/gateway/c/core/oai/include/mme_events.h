@@ -56,7 +56,7 @@ int s1_setup_success_event(const char* enb_name, uint32_t enb_id);
  * @param imsi
  * @return response code
  */
-int attach_failure_event(imsi64_t imsi64);
+int attach_reject_event(imsi64_t imsi64);
 
 #ifdef __cplusplus
 }

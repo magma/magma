@@ -1031,7 +1031,7 @@ status_code_e _emm_attach_reject(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
-  attach_failure_event(emm_context->_imsi64);
+  attach_reject_event(emm_context->_imsi64);
   emm_sap_t emm_sap = {0};
   struct nas_emm_attach_proc_s* attach_proc =
       (struct nas_emm_attach_proc_s*) nas_base_proc;
