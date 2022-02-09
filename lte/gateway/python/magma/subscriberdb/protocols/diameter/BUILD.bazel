@@ -9,32 +9,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_library")
 
-package(default_visibility = ["//visibility:public"])
-
 py_library(
-    name = "metrics",
-    srcs = ["metrics.py"],
-    visibility = ["//visibility:public"],
-    deps = [requirement("prometheus_client")],
-)
-
-py_library(
-    name = "processor",
-    srcs = ["processor.py"],
-    visibility = ["//visibility:public"],
-    deps = [
-        ":sid",
-        "//lte/gateway/python/magma/subscriberdb/crypto:gsm",
-        "//lte/gateway/python/magma/subscriberdb/crypto:milenage",
-        "//lte/gateway/python/magma/subscriberdb/subscription:utils",
-        "//lte/protos:subscriberdb_python_proto",
+    name = "diameter",
+    srcs = [
+        "avp.py",
+        "exception.py",
+        "message.py",
     ],
+    visibility = ["//visibility:public"],
 )
 
 py_library(
-    name = "sid",
-    srcs = ["sid.py"],
+    name = "server",
+    srcs = ["server.py"],
+    visibility = ["//visibility:public"],
+    deps = ["//lte/gateway/python/magma/subscriberdb/protocols/diameter/application"],
 )

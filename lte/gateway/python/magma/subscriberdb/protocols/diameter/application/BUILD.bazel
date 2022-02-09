@@ -9,32 +9,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_library")
 
-package(default_visibility = ["//visibility:public"])
-
 py_library(
-    name = "metrics",
-    srcs = ["metrics.py"],
-    visibility = ["//visibility:public"],
-    deps = [requirement("prometheus_client")],
-)
-
-py_library(
-    name = "processor",
-    srcs = ["processor.py"],
+    name = "application",
+    srcs = [
+        "abc.py",
+        "base.py",
+        "s6a.py",
+        "s6a_relay.py",
+    ],
     visibility = ["//visibility:public"],
     deps = [
-        ":sid",
-        "//lte/gateway/python/magma/subscriberdb/crypto:gsm",
-        "//lte/gateway/python/magma/subscriberdb/crypto:milenage",
+        "//feg/protos:s6a_proxy_grpc_proto",
+        "//lte/gateway/python/magma/subscriberdb:metrics",
+        "//lte/gateway/python/magma/subscriberdb/crypto:utils",
+        "//lte/gateway/python/magma/subscriberdb/protocols/diameter",
+        "//lte/gateway/python/magma/subscriberdb/store:base",
         "//lte/gateway/python/magma/subscriberdb/subscription:utils",
-        "//lte/protos:subscriberdb_python_proto",
+        "//orc8r/gateway/python/magma/common:service",
     ],
-)
-
-py_library(
-    name = "sid",
-    srcs = ["sid.py"],
 )

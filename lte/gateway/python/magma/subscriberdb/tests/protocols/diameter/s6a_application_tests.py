@@ -26,8 +26,7 @@ from magma.subscriberdb.protocols.diameter.application import (
     s6a_relay,
 )
 from magma.subscriberdb.store.base import SubscriberNotFoundError
-
-from .common import MockTransport
+from magma.subscriberdb.tests.protocols.diameter.common import MockTransport
 
 
 def _dummy_eutran_vector():

@@ -31,8 +31,7 @@ from magma.subscriberdb.protocols.diameter.application import (
     s6a,
     s6a_relay,
 )
-
-from .common import MockTransport
+from magma.subscriberdb.tests.protocols.diameter.common import MockTransport
 
 
 class S6AApplicationTests(unittest.TestCase):
