@@ -46,6 +46,8 @@ class eBpfDatapathDLTest(unittest.TestCase):
 
     gtp_tunnel_id = 101
 
+    imsi = '122321231222333'
+
     packet_cap1 = []
     sniffer = None
     ebpf_man = None
@@ -126,7 +128,7 @@ class eBpfDatapathDLTest(unittest.TestCase):
         cls.sendPacket(cls.inner_src_ip, cls.inner_dst_ip)
         self.assertEqual(len(cls.packet_cap1), 0)
 
-        cls.ebpf_man.add_dl_entry(cls.inner_dst_ip, cls.gtp_pkt_dst, cls.gtp_tunnel_id)
+        cls.ebpf_man.add_dl_entry(cls.inner_dst_ip, cls.gtp_pkt_dst, cls.gtp_tunnel_id, cls.imsi)
         cls.sendPacket(cls.inner_src_ip, cls.inner_dst_ip)
 
         self.assertEqual(cls.count_udp_packet(), 1)
