@@ -48,10 +48,20 @@ int gtpu_egress_handler(struct __sk_buff* skb) {
   int ret;
   struct iphdr* iph;
   void* data;
+  void* data_end;
 
   int ip_hdr = sizeof(struct ethhdr) + sizeof(struct iphdr);
 
+  // 1. a. check pkt length
   data     = (void*) (long) skb->data;
+  data_end = (void*) (long) skb->data_end;
+  int len  = data_end - data;
+
+  if ((data + ip_hdr) > data_end) {
+    bpf_trace_printk(
+        "ERR: truncated packet: len: %d, data sz %d\n", skb->len, len);
+    return TC_ACT_OK;
+  }
 
   // 1. b. check UE map
   iph                          = data + sizeof(struct ethhdr);
