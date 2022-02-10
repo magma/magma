@@ -17,6 +17,8 @@ $(PYTHON_BUILD)/setupinteg_env:
 	cp $(S1AP_TESTER_CFG)/* $(S1AP_TESTER_ROOT)
 	@echo "Install MySQL for upstreaming"
 	$(VIRT_ENV_PIP_INSTALL) mysqlclient==1.3.13
+	@echo "Install flaky for test retries support"
+	$(VIRT_ENV_PIP_INSTALL) flaky
 	@echo export PYTHONPATH=$(PYTHONPATH):$(S1AP_TESTER_PYTHON_PATH) >> $(PYTHON_BUILD)/bin/activate
 	touch $(PYTHON_BUILD)/setupinteg_env
 
@@ -24,7 +26,7 @@ $(PYTHON_BUILD)/setupinteg_env:
 RESULTS_DIR := /var/tmp/test_results
 define execute_test
 	echo "Running test: $(1)"
-	timeout --foreground -k 930s 900s sudo -E PATH=$(PATH) PYTHONPATH=$(PYTHONPATH):$(S1AP_TESTER_PYTHON_PATH) $(PYTHON_BUILD)/bin/nosetests --with-xunit --xunit-file=$(RESULTS_DIR)/$(basename $(notdir $(1))).xml -x -s $(1) || exit 1
+	timeout --foreground -k 930s 900s sudo -E PATH=$(PATH) PYTHONPATH=$(PYTHONPATH):$(S1AP_TESTER_PYTHON_PATH) $(PYTHON_BUILD)/bin/nosetests --with-flaky --force-flaky --no-success-flaky-report --max-runs=3 --min-passes=1 --with-xunit --xunit-file=$(RESULTS_DIR)/$(basename $(notdir $(1))).xml -x -s $(1) || exit 1
 	sleep 1
 endef
 
