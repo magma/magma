@@ -205,7 +205,7 @@ class S1ApUtil(object):
         try:
             return self._msg.get(True, timeout)
         except Empty:
-            if assert_on_timeout is True:
+            if assert_on_timeout:
                 raise AssertionError(
                     "Timeout ("
                     + str(timeout)
