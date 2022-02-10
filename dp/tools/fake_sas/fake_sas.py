@@ -148,6 +148,7 @@ class FakeSas(sas_interface.SasInterface):
             'cbsdId': req['cbsdId'],
             'grantId': 'fake_grant_id_%s' % datetime.utcnow().isoformat(),
             'channelType': 'GAA',
+            'heartbeatInterval': 60,
             'response': self._GetSuccessResponse(),
           })
     return response
