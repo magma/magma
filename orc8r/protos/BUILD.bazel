@@ -254,6 +254,16 @@ python_proto_library(
 )
 
 proto_library(
+    name = "ctraced_proto",
+    srcs = ["ctraced.proto"],
+)
+
+python_grpc_library(
+    name = "ctraced_python_grpc",
+    protos = [":ctraced_proto"],
+)
+
+proto_library(
     name = "bootstrapper_proto",
     srcs = ["bootstrapper.proto"],
     deps = [
