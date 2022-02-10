@@ -89,6 +89,14 @@ proto_library(
     deps = ["@protobuf//:any_proto"],
 )
 
+cpp_proto_library(
+    name = "eventd_cpp_proto",
+    protos = [":eventd_proto"],
+    deps = [
+        ":common_cpp_proto",
+    ],
+)
+
 cpp_grpc_library(
     name = "eventd_cpp_grpc",
     protos = [":eventd_proto"],
