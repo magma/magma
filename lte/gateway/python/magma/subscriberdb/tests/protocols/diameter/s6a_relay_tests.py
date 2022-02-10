@@ -210,10 +210,10 @@ class S6AApplicationTests(unittest.TestCase):
             'Authentication-Info', [
                 avp.AVP(
                     'E-UTRAN-Vector', [
-                    avp.AVP('RAND', rand),
-                    avp.AVP('XRES', xres),
-                    avp.AVP('AUTN', autn),
-                    avp.AVP('KASME', kasme),
+                        avp.AVP('RAND', rand),
+                        avp.AVP('XRES', xres),
+                        avp.AVP('AUTN', autn),
+                        avp.AVP('KASME', kasme),
                     ],
                 ),
             ] * num_request_vectors,
@@ -258,8 +258,8 @@ class S6AApplicationTests(unittest.TestCase):
 
         result_info = avp.AVP(
             'Experimental-Result', [
-            avp.AVP('Vendor-Id', 10415),
-            avp.AVP('Experimental-Result-Code', avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN),
+                avp.AVP('Vendor-Id', 10415),
+                avp.AVP('Experimental-Result-Code', avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN),
             ],
         )
         req = self._auth_req(
@@ -528,8 +528,8 @@ class S6AApplicationTests(unittest.TestCase):
 
         result_info = avp.AVP(
             'Experimental-Result', [
-            avp.AVP('Vendor-Id', 10415),
-            avp.AVP('Experimental-Result-Code', avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN),
+                avp.AVP('Vendor-Id', 10415),
+                avp.AVP('Experimental-Result-Code', avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN),
             ],
         )
         resp = self._server._s6a_manager._gen_response(
