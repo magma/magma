@@ -30,6 +30,8 @@ CMD [ "sleep", "infinity" ]
 
 ARG GIT_PROXY
 ARG FEATURES=mme_oai
+ARG PYTHON_VERSION=3.8
+# PYTHON_VERSION must be in sync with "python.defaultInterpreterPath" and "python.analysis.extraPaths" in .devcontainer/devcontainer.json
 ENV MAGMA_ROOT=/workspaces/magma
 ENV BUILD_TYPE=Debug
 ENV C_BUILD=/workspaces/magma/build/c
@@ -70,7 +72,7 @@ RUN echo "Install general purpose packages" && \
         ninja-build \
         perl \
         pkg-config \
-        python3 \
+        python${PYTHON_VERSION} \
         python3-pip \
         python-is-python3 \
         redis-server \
@@ -81,6 +83,7 @@ RUN echo "Install general purpose packages" && \
         tzdata \
         unzip \
         vim \
+        virtualenv=20.0.17-1ubuntu0.4 \
         wget && \
         gem install fpm && \
         update-alternatives --install /usr/bin/clang clang /usr/lib/llvm-11/bin/clang 10 && \
@@ -320,7 +323,14 @@ RUN ldconfig -v
 
 
 ##### Install Python requirements
-RUN pip3 install --quiet --upgrade --no-cache-dir "setuptools==49.6.0"
+
+### create virtualenv
+ARG PYTHON_VENV=/home/vscode/build/python
+ENV PYTHON_VENV_EXECUTABLE=${PYTHON_VENV}/bin/python${PYTHON_VERSION}
+# PYTHON_VENV must by in sync with "python.defaultInterpreterPath", "python.analysis.extraPaths" and magtivate path in "postCreateCommand" in .devcontainer/devcontainer.json
+
+RUN virtualenv --system-site-packages --python=/usr/bin/python${PYTHON_VERSION} ${PYTHON_VENV}
+RUN ${PYTHON_VENV_EXECUTABLE} -m pip install --quiet --upgrade --no-cache-dir "setuptools==49.6.0"
 
 ### install python3-aioeventlet from the magma apt repo
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/
@@ -333,40 +343,40 @@ RUN apt-key add /tmp/jfrog.pub && \
 
 # add patch that is missing in jfrog version of aioeventlet (it only comes with 1 of 2 patches)
 COPY lte/gateway/deploy/roles/magma/files/patches/aioeventlet_fd_exception.patch /tmp/
-RUN patch -N -s -f /usr/local/lib/python3.8/dist-packages/aioeventlet.py < /tmp/aioeventlet_fd_exception.patch && \
+RUN patch -N -s -f /usr/local/lib/python${PYTHON_VERSION}/dist-packages/aioeventlet.py < /tmp/aioeventlet_fd_exception.patch && \
     rm -rf /tmp/*
 
 ### install eggs (lte, orc8r)
 COPY /lte/gateway/python/ ${MAGMA_ROOT}/lte/gateway/python/
 WORKDIR ${MAGMA_ROOT}/lte/gateway/python/
-RUN pip3 install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose --editable .[dev] && \
+RUN ${PYTHON_VENV_EXECUTABLE} -m pip install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose --editable .[dev] && \
     rm -rf lte.egg-info
 
 COPY /orc8r/gateway/python/ ${MAGMA_ROOT}/orc8r/gateway/python/
 WORKDIR ${MAGMA_ROOT}/orc8r/gateway/python/
-RUN pip3 install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose --editable .[dev] && \
+RUN ${PYTHON_VENV_EXECUTABLE} -m pip install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose --editable .[dev] && \
     rm -rf orc8r.egg-info
 
-# install formatter autopep8
-RUN pip install --no-cache-dir autopep8
+### install formatter autopep8
+RUN ${PYTHON_VENV_EXECUTABLE} -m pip install --no-cache-dir autopep8
 
 #### protos
-ARG PYTHON_LIB=/usr/local/lib/python3.8
+ARG GEN_DIR=lib/python${PYTHON_VERSION}/gen
 
 COPY /protos/ ${MAGMA_ROOT}/protos/
 COPY /lte/protos/ ${MAGMA_ROOT}/lte/protos/
 COPY /orc8r/protos/ ${MAGMA_ROOT}/orc8r/protos/
 COPY /feg/protos/ ${MAGMA_ROOT}/feg/protos/
 COPY /dp/protos/ ${MAGMA_ROOT}/dp/protos/
-WORKDIR $MAGMA_ROOT
-RUN pip install mypy-protobuf && \
-    mkdir $PYTHON_LIB/gen && \
+WORKDIR ${MAGMA_ROOT}
+RUN ${PYTHON_VENV_EXECUTABLE} -m pip install --no-cache-dir "mypy-protobuf==2.4" && \
+    mkdir ${PYTHON_VENV}/${GEN_DIR} && \
     for PROTO_SRC in orc8r lte feg dp; \
     do \
-    python protos/gen_protos.py ${PROTO_SRC}/protos ${MAGMA_ROOT},orc8r/protos/prometheus ${MAGMA_ROOT} $PYTHON_LIB/gen && \
-    python protos/gen_prometheus_proto.py ${MAGMA_ROOT} $PYTHON_LIB/gen; \
+    ${PYTHON_VENV_EXECUTABLE} protos/gen_protos.py ${PROTO_SRC}/protos ${MAGMA_ROOT},orc8r/protos/prometheus ${MAGMA_ROOT} ${PYTHON_VENV}/${GEN_DIR} && \
+    ${PYTHON_VENV_EXECUTABLE} protos/gen_prometheus_proto.py ${MAGMA_ROOT} ${PYTHON_VENV}/${GEN_DIR}; \
     done && \
-    echo "$PYTHON_LIB/gen" > $PYTHON_LIB/dist-packages/magma_gen.pth
+    echo "${PYTHON_VENV}/${GEN_DIR}" > ${PYTHON_VENV}/lib/python${PYTHON_VERSION}/site-packages/magma_gen.pth
 
 RUN ln -s $MAGMA_ROOT/bazel/bazelrcs/devcontainer.bazelrc /etc/bazelrc
 
