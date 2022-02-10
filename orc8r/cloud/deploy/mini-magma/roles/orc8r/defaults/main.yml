@@ -9,3 +9,4 @@ magma_directory: "magma-galaxy"
 magma_service_type: "ClusterIP"
 deploy_wifi_orc8r: false
 deploy_domain_proxy: false
+deploy_fbinternal_orc8r: false
