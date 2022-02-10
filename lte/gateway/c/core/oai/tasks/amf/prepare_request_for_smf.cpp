@@ -116,7 +116,7 @@ int amf_smf_create_session_req(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
     uint8_t* gnb_gtp_teid_ip_addr, char* ue_ipv4_addr, char* ue_ipv6_addr,
-    const ambr_t& state_ambr) {
+    const ambr_t& state_ambr, const eps_subscribed_qos_profile_t& qos_profile) {
   imsi64_t imsi64                   = INVALID_IMSI64;
   ue_m5gmm_context_s* ue_mm_context = NULL;
   amf_context_t* amf_ctxt_p         = NULL;
@@ -140,7 +140,8 @@ int amf_smf_create_session_req(
 
   return AMFClientServicer::getInstance().amf_smf_create_pdu_session(
       imsi, apn, pdu_session_id, pdu_session_type, gnb_gtp_teid, pti,
-      gnb_gtp_teid_ip_addr, ue_ipv4_addr, ue_ipv6_addr, state_ambr, VERSION_0);
+      gnb_gtp_teid_ip_addr, ue_ipv4_addr, ue_ipv6_addr, state_ambr, VERSION_0,
+      qos_profile);
 }
 
 /***************************************************************************

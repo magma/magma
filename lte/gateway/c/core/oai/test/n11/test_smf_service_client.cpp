@@ -48,6 +48,13 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
 
   std::string ue_ipv4_addr("10.20.30.44");
   std::string ue_ipv6_addr;
+  eps_subscribed_qos_profile_t qos_profile;
+  qos_profile.qci                                          = 9;
+  qos_profile.allocation_retention_priority.priority_level = 1;
+  qos_profile.allocation_retention_priority.pre_emp_vulnerability =
+      (pre_emption_vulnerability_t) PRE_EMPTION_VULNERABILITY_ENABLED;
+  qos_profile.allocation_retention_priority.pre_emp_capability =
+      (pre_emption_capability_t) PRE_EMPTION_CAPABILITY_ENABLED;
 
   uint32_t version = 0;
 
@@ -56,7 +63,7 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
   request = magma5g::create_sm_pdu_session(
       imsi, (uint8_t*) apn.c_str(), pdu_session_id, pdu_session_type,
       gnb_gtp_teid, pti, gnb_gtp_teid_ip_addr, ue_ipv4_addr, ue_ipv6_addr,
-      default_ambr, version);
+      default_ambr, version, qos_profile);
 
   auto* rat_req =
       request.mutable_rat_specific_context()->mutable_m5gsm_session_context();
