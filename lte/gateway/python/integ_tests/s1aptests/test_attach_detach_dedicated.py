@@ -145,6 +145,8 @@ class TestAttachDetachDedicated(unittest.TestCase):
                 req.ue_id, detach_type[i], wait_for_s1[i],
             )
 
+        raise AssertionError("Temprorary change to see effect in CI. Will be removed")
+
 
 if __name__ == "__main__":
     unittest.main()

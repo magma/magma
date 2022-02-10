@@ -153,6 +153,8 @@ class TestSecondaryPdnConnReq(unittest.TestCase):
             ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
         )
 
+        raise AssertionError("Temprorary change to see effect in CI. Will be removed")
+
 
 if __name__ == "__main__":
     unittest.main()

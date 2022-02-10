@@ -268,6 +268,8 @@ class TestS1Handover(unittest.TestCase):
         # Verify that all UL/DL flows are deleted
         self._s1ap_wrapper.s1_util.verify_flow_rules_deletion()
 
+        raise AssertionError("Temprorary change to see effect in CI. Will be removed")
+
 
 if __name__ == "__main__":
     unittest.main()
