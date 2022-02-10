@@ -57,6 +57,7 @@ py_library(
         "//orc8r/gateway/python/magma/common:misc_utils",
         "//orc8r/gateway/python/magma/common:rpc_utils",
         "//orc8r/gateway/python/magma/common:sdwatchdog",
+        "//orc8r/gateway/python/magma/common:sentry",
         "//orc8r/gateway/python/magma/common:stateless_agw",
         "//orc8r/gateway/python/magma/common:streamer",
         "//orc8r/gateway/python/magma/common/health:service_state_wrapper",
