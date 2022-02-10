@@ -468,7 +468,9 @@ int amf_nas_proc_authentication_info_answer(
     /* Get Auth Info Pro */
     auth_info_proc = get_nas5g_cn_procedure_auth_info(amf_ctxt_p);
     OAILOG_ERROR(
-        LOG_NAS_AMF, "nb_of_vectors received is zero from subscriberdb");
+        LOG_NAS_AMF,
+        "result=%d, nb_of_vectors received is zero from subscriberdb",
+        aia->result);
     amf_cause = AMF_UE_ILLEGAL;
     rc        = amf_proc_registration_reject(amf_ue_ngap_id, amf_cause);
     if (auth_info_proc) {
