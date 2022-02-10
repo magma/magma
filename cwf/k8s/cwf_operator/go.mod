@@ -29,26 +29,23 @@ module magma/cwf/k8s/cwf_operator
 go 1.13
 
 require (
-	github.com/docker/go-metrics v0.0.1 // indirect
 	github.com/garyburd/redigo v1.6.2 // indirect
 	github.com/go-logr/glogr v0.1.0
-	github.com/go-redis/redis v6.15.8+incompatible
+	github.com/go-redis/redis v6.15.8+incompatible // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
 	google.golang.org/grpc v1.31.0
-	helm.sh/helm/v3 v3.1.2 // indirect
-	k8s.io/api v0.17.2
-	k8s.io/apimachinery v0.17.2
+	k8s.io/api v0.18.2
+	k8s.io/apimachinery v0.18.2
 	k8s.io/client-go v12.0.0+incompatible
 	magma/cwf/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0
 	magma/gateway v0.0.0
 	magma/orc8r/lib/go v0.0.0
 	magma/orc8r/lib/go/protos v0.0.0
-	rsc.io/letsencrypt v0.0.3 // indirect
-	sigs.k8s.io/controller-runtime v0.5.1
+	sigs.k8s.io/controller-runtime v0.6.0
 )
 
 // Pinned to kubernetes-1.16.2
