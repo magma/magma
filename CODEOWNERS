@@ -1,6 +1,4 @@
 # approvers-ci
-/.circleci/ @magma/approvers-ci
-/circleci/ @magma/approvers-ci
 /ci-scripts/ @magma/approvers-ci
 /.github/workflows/ @magma/approvers-ci
 /third_party/build/ @magma/approvers-ci
@@ -52,6 +50,8 @@
 /feg/radius @magma/approvers-xwf @magma/approvers-cwf
 
 /src/go/ @markjen
+
+/dp/ @magma/approvers-domain-proxy
 
 # approvers-showtech
 /show-tech/ @magma/approvers-showtech

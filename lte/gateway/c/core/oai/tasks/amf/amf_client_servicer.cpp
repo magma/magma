@@ -65,14 +65,45 @@ int AMFClientServicerBase::release_ipv4_address(
       subscriber_id, apn, addr);
 }
 
-int AMFClientServicerBase::amf_smf_create_pdu_session_ipv4(
+int AMFClientServicerBase::allocate_ipv6_address(
+    const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+    uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+    uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
+  return AsyncM5GMobilityServiceClient::getInstance().allocate_ipv6_address(
+      subscriber_id, apn, pdu_session_id, pti, pdu_session_type, gnb_gtp_teid,
+      gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len);
+}
+
+int AMFClientServicerBase::release_ipv6_address(
+    const char* subscriber_id, const char* apn, const struct in6_addr* addr) {
+  return AsyncM5GMobilityServiceClient::getInstance().release_ipv6_address(
+      subscriber_id, apn, addr);
+}
+
+int AMFClientServicerBase::allocate_ipv4v6_address(
+    const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+    uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+    uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
+  return AsyncM5GMobilityServiceClient::getInstance().allocate_ipv4v6_address(
+      subscriber_id, apn, pdu_session_id, pti, AF_INET, gnb_gtp_teid,
+      gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len);
+}
+
+int AMFClientServicerBase::release_ipv4v6_address(
+    const char* subscriber_id, const char* apn, const struct in_addr* ipv4_addr,
+    const struct in6_addr* ipv6_addr) {
+  return AsyncM5GMobilityServiceClient::getInstance().release_ipv4v6_address(
+      subscriber_id, apn, ipv4_addr, ipv6_addr);
+}
+
+int AMFClientServicerBase::amf_smf_create_pdu_session(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
-    const ambr_t& state_ambr) {
-  return AsyncSmfServiceClient::getInstance().amf_smf_create_pdu_session_ipv4(
+    uint8_t* gnb_gtp_teid_ip_addr, char* ue_ipv4_addr, char* ue_ipv6_addr,
+    const ambr_t& state_ambr, uint32_t version) {
+  return AsyncSmfServiceClient::getInstance().amf_smf_create_pdu_session(
       imsi, apn, pdu_session_id, pdu_session_type, gnb_gtp_teid, pti,
-      gnb_gtp_teid_ip_addr, ipv4_addr, version, state_ambr);
+      gnb_gtp_teid_ip_addr, ue_ipv4_addr, ue_ipv6_addr, state_ambr, version);
 }
 
 bool AMFClientServicerBase::set_smf_session(SetSMSessionContext& request) {

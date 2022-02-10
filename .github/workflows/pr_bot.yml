@@ -17,9 +17,9 @@ jobs:
           script: |
             var msg = `Thanks for opening a PR! :100:
 
-            A couple initial guidelines
-            - [All commits must be signed off](https://docs.magmacore.org/docs/contributing/contribute_workflow#guidelines). This is enforced by \`DCO check\`.
-            - [All PR titles must follow the semantic commits format](https://docs.magmacore.org/docs/contributing/contribute_workflow#guidelines). This is enforced by \`Semantic PR\`.
+            [A couple initial guidelines](https://github.com/magma/magma/wiki/Contributing-Code#commit-and-pull-request-guidelines)
+            - All commits must be signed off. This is [enforced by \`DCO check\`](https://github.com/magma/magma/blob/master/.github/workflows/dco-check.yml).
+            - All PR titles must follow the semantic commits format. This is [enforced by \`Semantic PR\`](https://github.com/magma/magma/blob/master/.github/workflows/semantic-pr.yml).
 
             ### Howto
             - ***Reviews.*** The "Reviewers" listed for this PR are the Magma maintainers who will shepherd it.
@@ -29,13 +29,13 @@ jobs:
             ### More info
 
             Please take a moment to read through the Magma project's
-            - [Contributing Conventions](https://docs.magmacore.org/docs/next/contributing/contribute_conventions) for norms around contributed code
+            - [Contributing Conventions](https://github.com/magma/magma/wiki/Contributing-Code-Conventions) for norms around contributed code
 
             If this is your first Magma PR, also consider reading
             - [Developer Onboarding](https://docs.magmacore.org/docs/next/contributing/contribute_onboarding) for onboarding as a new Magma developer
-            - [Development Workflow](https://docs.magmacore.org/docs/next/contributing/contribute_workflow) for guidance on your first pull request
-            - [CI Checks](https://magma.github.io/magma/docs/next/contributing/contribute_ci_checks) for points of contact for failing or flaky CI checks
-            - [GitHub-to-Slack mappings for Magma maintainers](https://docs.magmacore.org/docs/next/contributing/contribute_id_mappings) for guidance on how to contact maintainers on Slack`
+            - [Development Workflow](https://github.com/magma/magma/wiki/Contributing-Code#developing-workflow) for guidance on your first pull request
+            - [CI Checks](https://github.com/magma/magma/wiki/Contributing-Code#continuous-integration-ci--continuous-deployment-cd) for points of contact for failing or flaky CI checks
+            - [GitHub-to-Slack mappings for Magma maintainers](https://github.com/magma/magma/wiki/Overview-of-the-Community-Structure-and-Governance) for guidance on how to contact maintainers on Slack`
 
             github.issues.createComment({
               issue_number: context.issue.number,

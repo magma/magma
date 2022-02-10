@@ -75,8 +75,6 @@ void* task_thread(task_thread_args_t* args) {
       args->this_task, args->task_id_list, args->list_size, handle_message,
       args->task_zmq_ctx);
 
-  free(args);
-
   zloop_start(args->task_zmq_ctx->event_loop);
 
   return NULL;
@@ -91,22 +89,20 @@ class ITTIMessagePassingTest : public ::testing::Test {
     task_id_t task_id_list[4] = {TASK_TEST_1, TASK_TEST_2};
     init_task_context(TASK_MAIN, task_id_list, 1, NULL, &task_zmq_ctx_main);
 
-    task_thread_args_t* task1_thread_args =
-        (task_thread_args_t*) calloc(1, sizeof(task_thread_args_t));
-    task1_thread_args->this_task       = TASK_TEST_1;
-    task1_thread_args->task_id_list[0] = TASK_TEST_2;
-    task1_thread_args->list_size       = 1;
-    task1_thread_args->task_zmq_ctx    = &task_zmq_ctx_test1;
+    task_thread_args_t task1_thread_args = {};
+    task1_thread_args.this_task          = TASK_TEST_1;
+    task1_thread_args.task_id_list[0]    = TASK_TEST_2;
+    task1_thread_args.list_size          = 1;
+    task1_thread_args.task_zmq_ctx       = &task_zmq_ctx_test1;
 
-    task_thread_args_t* task2_thread_args =
-        (task_thread_args_t*) calloc(1, sizeof(task_thread_args_t));
-    task2_thread_args->this_task       = TASK_TEST_2;
-    task2_thread_args->task_id_list[0] = TASK_TEST_1;
-    task2_thread_args->list_size       = 1;
-    task2_thread_args->task_zmq_ctx    = &task_zmq_ctx_test2;
+    task_thread_args_t task2_thread_args = {};
+    task2_thread_args.this_task          = TASK_TEST_2;
+    task2_thread_args.task_id_list[0]    = TASK_TEST_1;
+    task2_thread_args.list_size          = 1;
+    task2_thread_args.task_zmq_ctx       = &task_zmq_ctx_test2;
 
-    std::thread task1(task_thread, task1_thread_args);
-    std::thread task2(task_thread, task2_thread_args);
+    std::thread task1(task_thread, &task1_thread_args);
+    std::thread task2(task_thread, &task2_thread_args);
     task1.detach();
     task2.detach();
     std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -122,6 +118,7 @@ class ITTIMessagePassingTest : public ::testing::Test {
     destroy_task_context(&task_zmq_ctx_test1);
     destroy_task_context(&task_zmq_ctx_test2);
     destroy_task_context(&task_zmq_ctx_main);
+    itti_free_desc_threads();
   }
 };
 
@@ -143,9 +140,13 @@ TEST_F(ITTIMessagePassingTest, TestMessageLatency) {
 }
 
 class ITTIApiTest : public ::testing::Test {
-  virtual void SetUp() {}
+  virtual void SetUp() {
+    itti_init(
+        TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
+        NULL);
+  }
 
-  virtual void TearDown() {}
+  virtual void TearDown() { itti_free_desc_threads(); }
 };
 
 TEST_F(ITTIApiTest, TestInitialContextSetupRsp) {

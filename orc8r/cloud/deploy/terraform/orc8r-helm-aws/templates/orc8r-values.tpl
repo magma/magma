@@ -31,9 +31,7 @@ certs:
     customIssuer: ${nms_custom_issuer}
   route53:
     enabled: ${managed_certs_route53_enabled}
-    region: "${region}"
-    accessKey: "${managed_certs_route53_access_key}"
-    secretKey: "${managed_certs_route53_secret_key}"
+    region: ${region}
 
 nginx:
   create: true

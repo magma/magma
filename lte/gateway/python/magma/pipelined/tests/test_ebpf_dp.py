@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
+import socket
 import subprocess
 import threading
 import time
@@ -18,6 +19,7 @@ import unittest
 import warnings
 from concurrent.futures import Future
 
+from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.ebpf.ebpf_manager import ebpf_manager
 from scapy.all import AsyncSniffer
@@ -67,7 +69,8 @@ class eBpfDatapathULTest(unittest.TestCase):
         BridgeTools.ifup_netdev(cls.sgi_veth, cls.sgi_veth_ip + "/24")
         BridgeTools.ifup_netdev(cls.sgi_veth1)
 
-        cls.ebpf_man = ebpf_manager(cls.sgi_veth, cls.gtp_veth, cls.sgi_veth_ip, True, UL_HANDLER)
+        gw_ip = IPAddress(version=IPAddress.IPV4, address=socket.inet_aton(cls.sgi_veth_ip))
+        cls.ebpf_man = ebpf_manager(cls.sgi_veth, cls.gtp_veth, gw_ip, UL_HANDLER)
         cls.ebpf_man.detach_ul_ebpf()
         cls.ebpf_man.attach_ul_ebpf()
         time.sleep(2)

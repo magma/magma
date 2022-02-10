@@ -55,7 +55,7 @@ static UE_Handlers_t UE_handlers[] = {
     {"Idle_mode_procedure",
      reinterpret_cast<void (*)(void)>(&amf_idle_mode_procedure)},
     {"PDU_Creating",
-     reinterpret_cast<void (*)(void)>(&amf_smf_create_pdu_session)},
+     reinterpret_cast<void (*)(void)>(&amf_smf_initiate_pdu_session_creation)},
     {"PDU_Created",
      reinterpret_cast<void (*)(void)>(&amf_app_handle_pdu_session_accept)},
     {"PDU_Release",

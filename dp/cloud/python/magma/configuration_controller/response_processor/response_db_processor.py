@@ -81,6 +81,9 @@ class ResponseDBProcessor(object):
             GrantStates.AUTHORIZED.value: session.query(DBGrantState).filter(
                 DBGrantState.name == GrantStates.AUTHORIZED.value,
             ).scalar(),
+            GrantStates.UNSYNC.value: session.query(DBGrantState).filter(
+                DBGrantState.name == GrantStates.UNSYNC.value,
+            ).scalar(),
         }
 
     def _populate_request_states_map(self, session):
@@ -135,9 +138,16 @@ class ResponseDBProcessor(object):
         request.state = self.request_states_map[RequestStates.PROCESSED.value]
 
     def _log_response(self, session: Session, response: DBResponse):
-        network_id = response.request.cbsd.network_id or ''
-        fcc_id = response.request.cbsd.fcc_id or ''
-        serial_number = response.request.cbsd.cbsd_serial_number
+        network_id = ''
+        fcc_id = ''
+        cbsd_serial_number = ''
+        cbsd = response.request.cbsd
+        if cbsd and cbsd.network_id:
+            network_id = cbsd.network_id
+        if cbsd and cbsd.fcc_id:
+            fcc_id = cbsd.fcc_id
+        if cbsd and cbsd.cbsd_serial_number:
+            cbsd_serial_number = cbsd.cbsd_serial_number
         log_name = request_response[response.request.type.name]
         response_code = response.payload.get(
             'response', {},
@@ -147,7 +157,7 @@ class ResponseDBProcessor(object):
             log_to='DP',
             log_name=f'{log_name}',
             log_message=f'{response.payload}',
-            cbsd_serial_number=f'{serial_number}',
+            cbsd_serial_number=f'{cbsd_serial_number}',
             network_id=f'{network_id}',
             fcc_id=f'{fcc_id}',
             response_code=response_code,

@@ -1,0 +1,44 @@
+# requirements.in
+setuptools==49.6.0
+grpcio-tools
+grpcio
+redis>=3.5
+protobuf
+six
+pyyaml
+urllib3
+certifi
+sentry-sdk
+snowflake>=0.0.3
+#  prometheus_client==0.3.1 required (see e.g. magmad/tests/metrics_tests.py)
+prometheus_client==0.3.1
+redis-collections
+redis-lock
+jsonpickle
+netifaces
+scapy
+wsgiserver
+flask
+bravado_core
+#  jsonschema version 4 not compatible with magma swagger specs
+jsonschema==3.1.0 
+psutil
+systemd
+cryptography
+#  h2>=3,<4 is requirement of aioh2 (loaded via bazel)
+h2>=3,<4
+#  priority==1.3.0 is requirement of aioh2 (loaded via bazel)
+priority==1.3.0
+requests
+
+# bazelbase container requirements
+hiredis
+deprecated
+wrapt
+
+# unit test requirements
+fakeredis
+freezegun
+pytest
+pytest-cov
+coverage-lcov

@@ -18,14 +18,24 @@ RUN apt-get update && \
         git \
         gnupg2 \
         g++ \
+        # dependency of mobilityd (tests)
+        iproute2 \
+        # dependency of python services (e.g. magmad)
+        iputils-ping \
         # dependency of @sentry_native//:sentry
         libcurl4-openssl-dev \
         # dependency of sctpd
         libsctp-dev \
         libssl-dev \
+        # dependency of pip systemd
+        libsystemd-dev \
         lld \
+        # dependency of python services (e.g. magmad)
+        net-tools \
         python3 \
         python-is-python3 \
+        # dependency of python services (e.g. magmad)
+        systemd \
         unzip \
         # dependency of liagent
         uuid-dev \

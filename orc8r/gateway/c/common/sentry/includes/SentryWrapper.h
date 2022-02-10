@@ -19,7 +19,9 @@ extern "C" {
 
 #define MAX_URL_LENGTH 255
 #define SENTRY_TAG_MME "MME"
+#define SENTRY_TAG_CONNECTIOND "ConnectionD"
 #define SENTRY_TAG_SESSIOND "SessionD"
+#define SENTRY_TAG_SCTPD "SctpD"
 #define SENTRY_TAG_LEN 16
 #define SENTRY_DB_PREFIX ".sentry-native-"
 #define SENTRY_DB_PREFIX_LEN 16
@@ -34,6 +36,11 @@ typedef struct sentry_config {
   // Add debug logging for sentry, useful for debugging connection issues
   bool add_debug_logging;
 } sentry_config_t;
+
+/**
+ * @brief Get the sentry configuration object from shared mconfig
+ */
+sentry_config_t construct_sentry_config_from_mconfig();
 
 /**
  * @brief Initialize sentry if SENTRY_ENABLED flag is set and project slug is

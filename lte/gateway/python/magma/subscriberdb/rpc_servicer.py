@@ -15,20 +15,14 @@ import logging
 from typing import NamedTuple
 
 import grpc
-from lte.protos import subscriberdb_pb2, subscriberdb_pb2_grpc
+from lte.protos import apn_pb2, subscriberdb_pb2, subscriberdb_pb2_grpc
 from magma.common.rpc_utils import print_grpc, return_void
-from magma.common.sentry import (
-    SentryStatus,
-    get_sentry_status,
-    send_uncaught_errors_to_monitoring,
-)
 from magma.subscriberdb.sid import SIDUtils
 from magma.subscriberdb.store.base import (
     DuplicateSubscriberError,
     SubscriberNotFoundError,
 )
 
-enable_sentry_wrapper = get_sentry_status("subscriberdb") == SentryStatus.SEND_SELECTED_ERRORS
 suci_profile_data = NamedTuple(
     'suci_profile_data', [
         ('protection_scheme', int),
@@ -43,11 +37,12 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
     gRPC based server for the SubscriberDB.
     """
 
-    def __init__(self, store, print_grpc_payload: bool = False):
+    def __init__(self, store, lte_processor, print_grpc_payload: bool = False):
         """
         Store should be thread-safe since we use a thread pool for requests.
         """
         self._store = store
+        self._lte_processor = lte_processor
         self._print_grpc_payload = print_grpc_payload
 
     def add_to_server(self, server):
@@ -57,7 +52,6 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         subscriberdb_pb2_grpc.add_SubscriberDBServicer_to_server(self, server)
 
     @return_void
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def AddSubscriber(self, request, context):
         """
         Add a subscriber to the store
@@ -75,7 +69,6 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
             context.set_code(grpc.StatusCode.ALREADY_EXISTS)
 
     @return_void
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def DeleteSubscriber(self, request, context):
         """
         Delete a subscriber from the store
@@ -89,7 +82,6 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         self._store.delete_subscriber(sid)
 
     @return_void
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def UpdateSubscriber(self, request, context):
         """
         Update the subscription data
@@ -111,7 +103,6 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
             context.set_details("Subscriber not found: %s" % sid)
             context.set_code(grpc.StatusCode.NOT_FOUND)
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetSubscriberData(self, request, context):
         """
         Return the subscription data for the subscriber
@@ -123,6 +114,13 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         sid = SIDUtils.to_str(request)
         try:
             response = self._store.get_subscriber_data(sid)
+            # get_sub_profile converts the imsi id to a string prependend with IMSI string,
+            # so strip the IMSI prefix in sid
+            imsi = sid[4:]
+            sub_profile = self._lte_processor.get_sub_profile(imsi)
+            response.non_3gpp.ambr.max_bandwidth_ul = sub_profile.max_ul_bit_rate
+            response.non_3gpp.ambr.max_bandwidth_dl = sub_profile.max_dl_bit_rate
+            response.non_3gpp.ambr.br_unit = apn_pb2.AggregatedMaximumBitrate.BitrateUnitsAMBR.BPS
         except SubscriberNotFoundError:
             context.set_details("Subscriber not found: %s" % sid)
             context.set_code(grpc.StatusCode.NOT_FOUND)
@@ -133,7 +131,6 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         )
         return response
 
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def ListSubscribers(self, request, context):  # pylint:disable=unused-argument
         """
         Return a list of subscribers from the store

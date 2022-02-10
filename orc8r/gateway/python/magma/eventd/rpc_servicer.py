@@ -20,17 +20,11 @@ from typing import Any, Dict
 import grpc
 import jsonschema
 from magma.common.rpc_utils import return_void
-from magma.common.sentry import (
-    SentryStatus,
-    get_sentry_status,
-    send_uncaught_errors_to_monitoring,
-)
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.eventd.event_validator import EventValidator
 from orc8r.protos import eventd_pb2, eventd_pb2_grpc
 
 RETRY_ON_FAILURE = 'retry_on_failure'
-
-enable_sentry_wrapper = get_sentry_status("eventd") == SentryStatus.SEND_SELECTED_ERRORS
 
 
 class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
@@ -51,7 +45,6 @@ class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
         eventd_pb2_grpc.add_EventServiceServicer_to_server(self, server)
 
     @return_void
-    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def LogEvent(self, request: eventd_pb2.Event, context):
         """
         Logs an event.
@@ -85,7 +78,11 @@ class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
                 logging.debug('Sending log to FluentBit')
                 sock.sendall(json.dumps(value).encode('utf-8'))
         except socket.error as e:
-            logging.error('Connection to FluentBit failed: %s', e)
+            logging.error(
+                'Connection to FluentBit failed: %s',
+                e,
+                extra=EXCLUDE_FROM_ERROR_MONITORING,
+            )
             logging.info(
                 'FluentBit (td-agent-bit) may not be enabled '
                 'or configured correctly',

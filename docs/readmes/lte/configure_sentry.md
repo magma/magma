@@ -1,8 +1,7 @@
 ---
-id: version-1.6.0-configure_sentry
+id: configure_sentry
 title: Sentry Integration
 hide_title: true
-original_id: configure_sentry
 ---
 
 # Sentry + Magma AGW
@@ -13,7 +12,7 @@ As part of v1.5, we have integrated Sentry's [Native](https://docs.sentry.io/pla
 
 ## Connect to the Linux Foundation Sentry Account
 
-The first step to setting up your account is to request access to Linux Foundation [Sentry.io](http://Sentry.io) instance by submitting your email address and company through the [community form](https://docs.google.com/forms/d/e/1FAIpQLSeJMWecw9An5-aYv0US8Fc_PDO7kUMx4Pky13S_3LhFJkge_g/viewform). You should also create a team for your company on the Sentry site. This team name should match your company and will be used to enable group access to your project. Once you are granted access, you will need to login and navigate to the “Projects” tab and locate your team’s project name. You will need this information to update the CircleCI config.yml file on the Magma Github.
+The first step to setting up your account is to request access to Linux Foundation [Sentry.io](http://Sentry.io) instance by submitting your email address and company through the [community form](https://docs.google.com/forms/d/e/1FAIpQLSeJMWecw9An5-aYv0US8Fc_PDO7kUMx4Pky13S_3LhFJkge_g/viewform). You should also create a team for your company on the Sentry site. This team name should match your company and will be used to enable group access to your project. Once you are granted access, you will need to login and navigate to the “Projects” tab and locate your team’s project name. You will need this information to update a CI job in the next section.
 
 ## Configuration
 
@@ -29,7 +28,7 @@ To configure Sentry, you will need to create a pull request to update the config
 
 Reporting for Python services, MME, and SessionD will *only* be enabled if the corresponding URL fields are non-empty.
 
-The URL fields can be set in a network-wide configuration through the Orc8r's Swagger endpoint at `/networks/{network_id}` or `/networks/{network_id}/sentry`. You can also set or override Sentry configuration for specific gateways through the Orc8r's `/networks/{network_id}/gateways/{gateway_id}` endpoint. Finally, you can set them locally on a gateway in the `control_proxy.yml` file by filling out the following fields.
+The URL fields can be set in a network-wide configuration through the Orc8r's Swagger endpoint at `/networks/{network_id}` or `/networks/{network_id}/sentry`. You can also set them locally on a gateway in the `control_proxy.yml` file by filling out the following fields, which overrides the network-wide configuration.
 
 ```bash
 # [Experimental] Sentry related configs
@@ -42,6 +41,30 @@ sentry_upload_mme_log: false
 # A sampling rate to apply to events. A value of 0.0 will send no
 # events, and a value of 1.0 will send all events (default).
 sentry_sample_rate: 1.0
+```
+
+## Client-side filters for error messages
+
+Another configuration option is a list of error messages that should be filtered and not be sent to Sentry. This is done to avoid spamming Sentry with errors that can occur frequently but that are not bugs to be monitored.
+
+This is similar to Sentry's [server-side filters](https://docs.sentry.io/product/accounts/quotas/#inbound-data-filters) that can be configured per project. Filtering on the client side can help avoid network traffic and load on the server.
+
+The filters are configured by giving a list of regex exclusion patterns in Orc8r's Swagger endpoints (at `/networks/{network_id}` or `/networks/{network_id}/sentry`). If exclusion patterns are not included in the call, a list of default patterns is used. In contrast to the other configuration options for Sentry, the exclusion patterns cannot be overridden in `control_proxy.yml`.
+
+Example payload for `/networks/{network_id}/sentry`:
+
+```json
+{
+  "url_native": "https://something@o0.ingest.sentry.io/...",
+  "url_python": "https://another@o0.ingest.sentry.io/...",
+  "exclusion_patterns": [
+    "\\[SyncRPC\\]",
+    "Metrics upload error",
+    "Streaming from the cloud failed!"
+  ],
+  "sample_rate": 1,
+  "upload_mme_log": false
+}
 ```
 
 ## Monitoring

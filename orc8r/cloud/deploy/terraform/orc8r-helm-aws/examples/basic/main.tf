@@ -22,6 +22,8 @@ module "orc8r" {
   # orc8r_db_engine_version     = "12.6"
   orc8r_db_password = "mypassword" # must be at least 8 characters
 
+  setup_cert_manager = false
+
   secretsmanager_orc8r_secret = "orc8r-secrets"
   orc8r_domain_name           = "orc8r.example.com"
 
@@ -56,9 +58,11 @@ module "orc8r-app" {
   secretsmanager_orc8r_name = module.orc8r.secretsmanager_secret_name
   seed_certs_dir            = "~/secrets/certs"
 
-  managed_certs_create      = false
-  managed_certs_enabled     = false
-  nms_managed_certs_enabled = false
+  deploy_cert_manager_helm_chart    = module.orc8r.setup_cert_manager
+  managed_certs_create              = module.orc8r.setup_cert_manager
+  managed_certs_enabled             = module.orc8r.setup_cert_manager
+  nms_managed_certs_enabled         = module.orc8r.setup_cert_manager
+  cert_manager_route53_iam_role_arn = module.orc8r.cert_manager_route53_iam_role_arn
 
   orc8r_db_host    = module.orc8r.orc8r_db_host
   orc8r_db_port    = module.orc8r.orc8r_db_port

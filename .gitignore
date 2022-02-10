@@ -61,8 +61,15 @@ docs/docusaurus/build/
 
 # Terraform
 .terraform
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
+terraform.tfstate
+terraform.tfstate.backup
 *.plan
 aws_keys.tfvars
+
+# AWS EKS config file
+kubeconfig_orc8r
 
 # Helm
 orc8r/cloud/helm/**/.secrets/

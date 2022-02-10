@@ -25,6 +25,7 @@
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/ebpf_dl_map.h"
 #include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
@@ -33,6 +34,8 @@ extern struct gtp_tunnel_ops gtp_tunnel_ops;
 
 // Tunnel port related functionality
 static const char* ovs_gtp_type;
+
+static int ebpf_fd;
 
 #define MAX_GTP_PORT_NAME_LENGTH 39
 
@@ -51,7 +54,6 @@ struct gtp_portno_record {
   int allocated;
   int size;
 };
-
 static struct gtp_portno_record gtp_portno_rec;
 
 /**
@@ -286,6 +288,7 @@ int openflow_init(
   AssertFatal(
       start_of_controller(persist_state) >= 0,
       "Could not start openflow controller\n");
+  ebpf_fd = get_map_fd();
   return 0;
 }
 
@@ -300,6 +303,16 @@ int openflow_add_tunnel(
     struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl, char* apn) {
   uint32_t gtp_portno = find_gtp_port_no(enb, enb_ipv6, false);
 
+  if (spgw_config.sgw_config.ebpf_enabled) {
+    OAILOG_INFO(
+        LOG_GTPV1U, "Adding UE EBPF ENTRY %d, %d htonl %d \n", ue.s_addr, o_tei,
+        htonl(o_tei));
+    if (ue.s_addr != INADDR_ANY && enb.s_addr != INADDR_ANY) {
+      add_ebpf_dl_map_entry(ebpf_fd, ue, enb, o_tei, imsi);
+    }
+    // TODO add IPv6 support
+  }
+
   return openflow_controller_add_gtp_tunnel(
       ue, ue_ipv6, vlan, enb, enb_ipv6, i_tei, o_tei, (const char*) imsi.digit,
       flow_dl, flow_precedence_dl, gtp_portno);
@@ -310,6 +323,13 @@ int openflow_del_tunnel(
     struct in6_addr* ue_ipv6, uint32_t i_tei, uint32_t o_tei,
     struct ip_flow_dl* flow_dl) {
   uint32_t gtp_portno = find_gtp_port_no(enb, enb_ipv6, false);
+
+  if (spgw_config.sgw_config.ebpf_enabled) {
+    if (ue.s_addr != INADDR_ANY && enb.s_addr != INADDR_ANY) {
+      delete_ebpf_dl_map_entry(ebpf_fd, ue);
+    }
+    // TODO add IPv6 support
+  }
 
   return openflow_controller_del_gtp_tunnel(
       ue, ue_ipv6, i_tei, flow_dl, gtp_portno);

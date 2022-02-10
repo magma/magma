@@ -7,12 +7,12 @@ import (
 	"net"
 	"time"
 
+	"google.golang.org/grpc"
+
 	"magma/dp/cloud/go/active_mode_controller/config"
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 	"magma/dp/cloud/go/active_mode_controller/protos/requests"
-
-	"google.golang.org/grpc"
 )
 
 type App struct {

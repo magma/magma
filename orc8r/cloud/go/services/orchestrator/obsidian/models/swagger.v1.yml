@@ -1457,6 +1457,16 @@ definitions:
         minimum: 0
         maximum: 1
         example: 0.5
+      exclusion_patterns:
+        type: array
+        items:
+          type: string
+        minItems: 0
+        description: log message patterns that are excluded (regex substring match)
+    default:
+      upload_mme_log: false
+      sample_rate: 1
+      exclusion_patterns: []
 
   state_config:
     type: object

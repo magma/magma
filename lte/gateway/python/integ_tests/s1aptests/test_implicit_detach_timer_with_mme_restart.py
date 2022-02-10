@@ -21,12 +21,16 @@ from s1ap_utils import MagmadUtil
 
 
 class TestImplicitDetachTimerWithMmeRestart(unittest.TestCase):
+    """Integration Test: TestImplicitDetachTimerWithMmeRestart"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
             stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
     def test_implicit_detach_timer_with_mme_restart(self):
@@ -80,11 +84,13 @@ class TestImplicitDetachTimerWithMmeRestart(unittest.TestCase):
         req.ue_Id = ue_id
         req.cause.causeVal = gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req,
+            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST,
+            req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
         # Delay by 6 minutes to ensure Mobile reachability timer expires.
@@ -94,11 +100,11 @@ class TestImplicitDetachTimerWithMmeRestart(unittest.TestCase):
             "************************* Waiting for Mobile Reachability Timer"
             " to expire. Sleeping for 6 minutes",
         )
-        timeSlept = 0
-        while timeSlept < 360:
+        time_slept = 0
+        while time_slept < 360:
             time.sleep(10)
-            timeSlept += 10
-            print("*********** Slept for", timeSlept, "seconds")
+            time_slept += 10
+            print("*********** Slept for", time_slept, "seconds")
 
         print("************************* Restarting MME service on gateway")
         self._s1ap_wrapper.magmad_util.restart_services(["mme"])
@@ -115,11 +121,11 @@ class TestImplicitDetachTimerWithMmeRestart(unittest.TestCase):
             "************************* Waiting for Implicit Detach Timer"
             " to expire. Sleeping for 6 minutes..",
         )
-        timeSlept = 0
-        while timeSlept < 360:
+        time_slept = 0
+        while time_slept < 360:
             time.sleep(10)
-            timeSlept += 10
-            print("*********** Slept for", timeSlept, "seconds")
+            time_slept += 10
+            print("*********** Slept for", time_slept, "seconds")
 
         print(
             "************************* Sending Service request for UE id ",
@@ -132,13 +138,14 @@ class TestImplicitDetachTimerWithMmeRestart(unittest.TestCase):
         req.ueMtmsi.pres = False
         req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_DATA.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req,
+            s1ap_types.tfwCmd.UE_SERVICE_REQUEST,
+            req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value,
         )
-
         print(
             "************************* Received Service Reject for UE id ",
             ue_id,
@@ -147,7 +154,8 @@ class TestImplicitDetachTimerWithMmeRestart(unittest.TestCase):
         # Wait for UE Context Release command
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
 

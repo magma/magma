@@ -138,7 +138,8 @@
         "dsn_native": "",
         "dsn_python": "",
         "sample_rate": 1.0,
-        "upload_mme_log": false
+        "upload_mme_log": false,
+        "exclusion_patterns": []
       }
     },
     "state": {

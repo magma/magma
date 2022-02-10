@@ -17,7 +17,7 @@ from typing import Any, Optional
 from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 from magma.common.redis.client import get_default_client
-from magma.common.sentry import sentry_init
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING, sentry_init
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.mobilityd.ip_address_man import IPAddressManager
@@ -132,7 +132,11 @@ def _get_ip_block(
     try:
         ip_block = ipaddress.ip_network(ip_block_str)
     except ValueError:
-        logging.error("Invalid IP block format: %s", ip_block_str)
+        logging.error(
+            "Invalid IP block format: %s",
+            ip_block_str,
+            extra=EXCLUDE_FROM_ERROR_MONITORING,
+        )
         return None
     return ip_block
 

@@ -29,6 +29,24 @@ class M5GMobilityServiceClient {
   virtual int release_ipv4_address(
       const char* subscriber_id, const char* apn,
       const struct in_addr* addr) = 0;
+
+  virtual int allocate_ipv6_address(
+      const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+      uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) = 0;
+
+  virtual int release_ipv6_address(
+      const char* subscriber_id, const char* apn,
+      const struct in6_addr* addr) = 0;
+
+  virtual int allocate_ipv4v6_address(
+      const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+      uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) = 0;
+
+  virtual int release_ipv4v6_address(
+      const char* subscriber_id, const char* apn,
+      const struct in_addr* ipv4_addr, const struct in6_addr* ipv6_addr) = 0;
 };
 
 class AsyncM5GMobilityServiceClient : public M5GMobilityServiceClient {
@@ -40,6 +58,23 @@ class AsyncM5GMobilityServiceClient : public M5GMobilityServiceClient {
 
   int release_ipv4_address(
       const char* subscriber_id, const char* apn, const struct in_addr* addr);
+
+  int allocate_ipv6_address(
+      const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+      uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len);
+
+  int release_ipv6_address(
+      const char* subscriber_id, const char* apn, const struct in6_addr* addr);
+
+  int allocate_ipv4v6_address(
+      const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+      uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len);
+
+  int release_ipv4v6_address(
+      const char* subscriber_id, const char* apn,
+      const struct in_addr* ipv4_addr, const struct in6_addr* ipv6_addr);
 
   static AsyncM5GMobilityServiceClient& getInstance();
 

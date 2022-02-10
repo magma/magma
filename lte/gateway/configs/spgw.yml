@@ -58,3 +58,6 @@ ovs_gtpu_checksum: false
 
 # Enable IPv6 support for S1AP SCTP endpoint
 s1_ipv6_enabled: false
+
+# Enabled eBPF map operations
+ebpf_enabled: false

@@ -264,6 +264,16 @@ void itti_free_msg_content(MessageDef* const message_p) {
       break;
 
     case NGAP_INITIAL_CONTEXT_SETUP_REQ:
+      for (uint i = 0;
+           i < message_p->ittiMsg.ngap_initial_context_setup_req
+                   .PDU_Session_Resource_Setup_Transfer_List.no_of_items;
+           ++i) {
+        bdestroy_wrapper(
+            &message_p->ittiMsg.ngap_initial_context_setup_req
+                 .PDU_Session_Resource_Setup_Transfer_List.item[i]
+                 .PDU_Session_Resource_Setup_Request_Transfer
+                 .up_transport_layer_info.gtp_tnl.endpoint_ip_address);
+      }
       bdestroy_wrapper(
           &message_p->ittiMsg.ngap_initial_context_setup_req.nas_pdu);
       break;
