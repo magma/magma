@@ -9970,19 +9970,7 @@ definitions:
     type: object
   network_sentry_config:
     default:
-      exclusion_patterns:
-      - GetServiceInfo
-      - GetOperationalStates
-      - ConnectionError
-      - CheckinError
-      - Checkin Error
-      - GetChallenge error!
-      - Connection to FluentBit
-      - \[SyncRPC\]
-      - Metrics upload error
-      - Streaming from the cloud failed!
-      - Fetch subscribers error!
-      - GRPC call failed for state replication
+      exclusion_patterns: []
       sample_rate: 1
       upload_mme_log: false
     description: Sentry.io configuration

@@ -26,6 +26,8 @@ struct dl_map_key {
 struct dl_map_info {
   u32 remote_ipv4;
   u32 tunnel_id;
+  u64 bytes;
+  u8 user_data[64];
 };
 
 // The map is pinned so that it can be accessed by pipelined or debugging tool
@@ -50,11 +52,11 @@ int gtpu_egress_handler(struct __sk_buff* skb) {
 
   int ip_hdr = sizeof(struct ethhdr) + sizeof(struct iphdr);
 
+  // 1. a. check pkt length
   data     = (void*) (long) skb->data;
   data_end = (void*) (long) skb->data_end;
   int len  = data_end - data;
 
-  // 1. a. check packet len
   if ((data + ip_hdr) > data_end) {
     bpf_trace_printk(
         "ERR: truncated packet: len: %d, data sz %d\n", skb->len, len);
@@ -90,6 +92,9 @@ int gtpu_egress_handler(struct __sk_buff* skb) {
     bpf_trace_printk("ERR: Config array lookup failed\n");
     return TC_ACT_OK;
   }
+
+  // TODO: Add lock for accessing bytes
+  fwd->bytes += skb->len;
 
   return bpf_redirect(cfg->if_idx, 0);
 }

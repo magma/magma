@@ -140,3 +140,11 @@ configure_python_dependencies()
 load("@python_deps//:requirements.bzl", "install_deps")
 
 install_deps()
+
+load("//bazel:python_swagger.bzl", "load_swagger_repositories")
+
+load_swagger_repositories()
+
+load("//bazel:python_repositories.bzl", "python_repositories")
+
+python_repositories()

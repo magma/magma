@@ -31,6 +31,24 @@ py_library(
 )
 
 py_library(
+    name = "misc_utils",
+    srcs = ["misc_utils.py"],
+    deps = [
+        requirement("netifaces"),
+        requirement("snowflake"),
+    ],
+)
+
+py_library(
+    name = "cert_utils",
+    srcs = ["cert_utils.py"],
+    deps = [
+        ":service",
+        requirement("cryptography"),
+    ],
+)
+
+py_library(
     name = "service",
     srcs = [
         "job.py",
@@ -44,9 +62,11 @@ py_library(
     ],
     deps = [
         "//orc8r/gateway/python/magma/configuration:mconfig_managers",
+        "//orc8r/gateway/python/magma/configuration:service_configs",
         "//orc8r/protos:metricsd_python_proto",
         "//orc8r/protos:service303_python_grpc",
         requirement("prometheus_client"),
+        requirement("setuptools"),
     ],
 )
 
@@ -54,4 +74,31 @@ py_library(
     name = "streamer",
     srcs = ["streamer.py"],
     deps = ["//orc8r/protos:streamer_python_grpc"],
+)
+
+py_library(
+    name = "stateless_agw",
+    srcs = ["stateless_agw.py"],
+    deps = ["//orc8r/protos:magmad_python_proto"],
+)
+
+py_library(
+    name = "grpc_client_manager",
+    srcs = ["grpc_client_manager.py"],
+    deps = [
+        ":service",
+        requirement("grpcio"),
+        requirement("psutil"),
+    ],
+)
+
+py_library(
+    name = "sdwatchdog",
+    srcs = ["sdwatchdog.py"],
+    deps = [requirement("systemd")],
+)
+
+py_library(
+    name = "cert_validity",
+    srcs = ["cert_validity.py"],
 )
