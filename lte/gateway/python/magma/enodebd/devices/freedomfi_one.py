@@ -946,7 +946,7 @@ class FreedomFiOneConfigurationInitializer(EnodebConfigurationPostProcessor):
             **SASParameters.defaults,
         }
         for name, val in defaults.items():
-            desired_cfg.set_parameter(name, value=val)
+            desired_cfg.set_parameter(param_name=name, value=val)
 
     def _increment_param_version_key(self):
         """Bump up the parameter key version"""
