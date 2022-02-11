@@ -426,13 +426,15 @@ class DBLog(Base):
     log_to = Column(String)
     log_name = Column(String)
     log_message = Column(String)
-    cbsd_serial_number = Column(String)
+    cbsd_serial_number = Column(String, index=True)
     network_id = Column(String)
-    fcc_id = Column(String)
-    response_code = Column(Integer)
+    fcc_id = Column(String, index=True)
+    response_code = Column(Integer, index=True)
     created_date = Column(
         DateTime(timezone=True),
-        nullable=False, server_default=now(),
+        nullable=False,
+        server_default=now(),
+        index=True,
     )
 
     def __repr__(self):
