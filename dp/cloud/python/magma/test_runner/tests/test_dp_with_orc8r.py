@@ -57,10 +57,10 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         logs = self.when_logs_are_fetched(self.get_current_sas_filters())
         self.then_logs_are(logs, self.get_sas_provision_messages())
 
-        self.then_heartbeat_is_eventually_sent(self.now())
+        filters = self.get_filters_for_request_type('heartbeat')
+        self.then_message_is_eventually_sent(filters, keep_alive=True)
 
-        self.when_cbsd_is_deleted(cbsd_id)
-        self.then_state_is_eventually(self.get_empty_state())
+        self.delete_cbsd(cbsd_id)
 
     def test_activity_status(self):
         cbsd_id = self.given_cbsd_provisioned()
@@ -72,8 +72,7 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         cbsd = self.when_cbsd_is_fetched()
         self.then_cbsd_is(cbsd, self.get_registered_cbsd_data())
 
-        self.when_cbsd_is_deleted(cbsd_id)
-        self.then_state_is_eventually(self.get_empty_state())
+        self.delete_cbsd(cbsd_id)
 
     def given_cbsd_provisioned(self) -> int:
         self.when_cbsd_is_created()
@@ -89,6 +88,17 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         self.then_cbsd_is(cbsd, self.get_cbsd_data_with_grant())
 
         return cbsd['id']
+
+    def delete_cbsd(self, cbsd_id: int):
+        filters = self.get_filters_for_request_type('deregistration')
+
+        self.when_cbsd_is_deleted(cbsd_id)
+        self.then_cbsd_is_deleted()
+
+        state = self.when_cbsd_asks_for_state()
+        self.then_state_is(state, self.get_empty_state())
+
+        self.then_message_is_eventually_sent(filters, keep_alive=False)
 
     def when_cbsd_is_created(self):
         r = requests.post(
@@ -149,6 +159,16 @@ class DomainProxyOrc8rTestCase(DBTestCase):
             del grant['transmit_expire_time']
         self.assertEqual(actual, expected)
 
+    def then_cbsd_is_deleted(self):
+        r = requests.get(
+            f'{config.HTTP_SERVER}/{DP_HTTP_PREFIX}/{NETWORK}/cbsds',
+            cert=(config.DP_CERT_PATH, config.DP_SSL_KEY_PATH),
+            verify=False,  # noqa: S501
+        )
+        self.assertEqual(r.status_code, HTTPStatus.OK)
+        data = r.json()
+        self.assertFalse(data)
+
     def then_state_is(self, actual: CBSDStateResult, expected: CBSDStateResult):
         self.assertEqual(actual, expected)
 
@@ -162,13 +182,10 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         self.assertEqual(actual, expected)
 
     @retry(stop_max_attempt_number=60, wait_fixed=1000)
-    def then_heartbeat_is_eventually_sent(self, begin_datetime: str):
-        self.when_cbsd_asks_for_state()
-        logs = self.when_logs_are_fetched({
-            'serial_number': SERIAL_NUMBER,
-            'type': 'heartbeatResponse',
-            'begin': begin_datetime,
-        })
+    def then_message_is_eventually_sent(self, filters: Dict[str, Any], keep_alive):
+        if keep_alive:
+            self.when_cbsd_asks_for_state()
+        logs = self.when_logs_are_fetched(filters)
         self.assertEqual(len(logs), 1)
 
     @staticmethod
@@ -240,6 +257,13 @@ class DomainProxyOrc8rTestCase(DBTestCase):
             'from': 'SAS',
             'to': 'DP',
             'end': self.now(),
+        }
+
+    def get_filters_for_request_type(self, request_type: str) -> Dict[str, Any]:
+        return {
+            'serial_number': SERIAL_NUMBER,
+            'type': f'{request_type}Response',
+            'begin': self.now(),
         }
 
     @staticmethod
