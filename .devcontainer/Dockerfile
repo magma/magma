@@ -66,6 +66,7 @@ RUN echo "Install general purpose packages" && \
         libssl-dev \
         libtool \
         lld \
+        lldb \
         make \
         ninja-build \
         perl \
