@@ -1,11 +1,13 @@
 package message_generator_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator"
@@ -17,9 +19,10 @@ func TestGenerateMessages(t *testing.T) {
 	const timeout = 100 * time.Second
 	now := time.Unix(1000, 0)
 	data := []struct {
-		name     string
-		state    *active_mode.State
-		expected []*requests.RequestPayload
+		name             string
+		state            *active_mode.State
+		expectedRequests []*requests.RequestPayload
+		expectedActions  []*active_mode.DeleteCbsdRequest
 	}{
 		{
 			name: "Should do nothing for unregistered non active cbsd",
@@ -32,7 +35,6 @@ func TestGenerateMessages(t *testing.T) {
 					},
 				}},
 			},
-			expected: nil,
 		},
 		{
 			name: "Should do nothing when inactive cbsd has no grants",
@@ -45,7 +47,6 @@ func TestGenerateMessages(t *testing.T) {
 					},
 				}},
 			},
-			expected: nil,
 		},
 		{
 			name: "Should generate deregistration request for non active registered cbsd",
@@ -59,7 +60,7 @@ func TestGenerateMessages(t *testing.T) {
 					},
 				}},
 			},
-			expected: []*requests.RequestPayload{{
+			expectedRequests: []*requests.RequestPayload{{
 				Payload: `{
 	"deregistrationRequest": [
 		{
@@ -83,7 +84,7 @@ func TestGenerateMessages(t *testing.T) {
 					},
 				}},
 			},
-			expected: []*requests.RequestPayload{{
+			expectedRequests: []*requests.RequestPayload{{
 				Payload: `{
 	"registrationRequest": [
 		{
@@ -107,7 +108,7 @@ func TestGenerateMessages(t *testing.T) {
 					},
 				}},
 			},
-			expected: getSpectrumInquiryRequest(),
+			expectedRequests: getSpectrumInquiryRequest(),
 		},
 		{
 			name: "Should generate spectrum inquiry request when all channels are unsuitable",
@@ -134,7 +135,7 @@ func TestGenerateMessages(t *testing.T) {
 					},
 				}},
 			},
-			expected: getSpectrumInquiryRequest(),
+			expectedRequests: getSpectrumInquiryRequest(),
 		},
 		{
 			name: "Should generate grant request when there are channels",
@@ -161,7 +162,7 @@ func TestGenerateMessages(t *testing.T) {
 					},
 				}},
 			},
-			expected: []*requests.RequestPayload{{
+			expectedRequests: []*requests.RequestPayload{{
 				Payload: `{
 	"grantRequest": [
 		{
@@ -194,7 +195,7 @@ func TestGenerateMessages(t *testing.T) {
 					},
 				}},
 			},
-			expected: []*requests.RequestPayload{{
+			expectedRequests: []*requests.RequestPayload{{
 				Payload: `{
 	"heartbeatRequest": [
 		{
@@ -228,7 +229,7 @@ func TestGenerateMessages(t *testing.T) {
 					},
 				}},
 			},
-			expected: []*requests.RequestPayload{
+			expectedRequests: []*requests.RequestPayload{
 				{
 					Payload: `{
 	"heartbeatRequest": [
@@ -268,7 +269,7 @@ func TestGenerateMessages(t *testing.T) {
 					},
 				}},
 			},
-			expected: []*requests.RequestPayload{{
+			expectedRequests: []*requests.RequestPayload{{
 				Payload: `{
 	"relinquishmentRequest": [
 		{
@@ -279,14 +280,62 @@ func TestGenerateMessages(t *testing.T) {
 }`,
 			}},
 		},
+		{
+			name: "Should deregister deleted cbsd",
+			state: &active_mode.State{
+				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
+					DesiredState: active_mode.CbsdState_Registered,
+					Cbsd: &active_mode.Cbsd{
+						Id:                "some_cbsd_id",
+						State:             active_mode.CbsdState_Registered,
+						IsDeleted:         true,
+						LastSeenTimestamp: now.Unix(),
+					},
+				}},
+			},
+			expectedRequests: []*requests.RequestPayload{{
+				Payload: `{
+	"deregistrationRequest": [
+		{
+			"cbsdId": "some_cbsd_id"
+		}
+	]
+}`,
+			}},
+		},
+		{
+			name: "Should delete unregistered cbsd marked as deleted",
+			state: &active_mode.State{
+				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
+					DesiredState: active_mode.CbsdState_Registered,
+					Cbsd: &active_mode.Cbsd{
+						SerialNumber:      "some_serial_number",
+						State:             active_mode.CbsdState_Unregistered,
+						LastSeenTimestamp: now.Unix(),
+						IsDeleted:         true,
+					},
+				}},
+			},
+			expectedActions: []*active_mode.DeleteCbsdRequest{{
+				SerialNumber: "some_serial_number",
+			}},
+		},
 	}
 	for _, tt := range data {
 		t.Run(tt.name, func(t *testing.T) {
 			g := message_generator.NewMessageGenerator(0, timeout)
-			actual := g.GenerateMessages(tt.state, now)
-			require.Len(t, actual, len(tt.expected))
-			for i := range tt.expected {
-				assert.JSONEq(t, tt.expected[i].Payload, actual[i].Payload)
+			msgs := g.GenerateMessages(tt.state, now)
+			p := &stubProvider{}
+			for _, msg := range msgs {
+				_ = msg.Send(context.Background(), p)
+			}
+			require.Len(t, p.requests, len(tt.expectedRequests))
+			for i := range tt.expectedRequests {
+				assert.JSONEq(t, tt.expectedRequests[i].Payload, p.requests[i].Payload)
+			}
+			require.Len(t, p.actions, len(tt.expectedActions))
+			for i := range tt.expectedActions {
+				assert.Equal(t, tt.expectedActions[i], p.actions[i])
 			}
 		})
 	}
@@ -308,4 +357,43 @@ func getSpectrumInquiryRequest() []*requests.RequestPayload {
 	]
 }`,
 	}}
+}
+
+type stubProvider struct {
+	requests []*requests.RequestPayload
+	actions  []*active_mode.DeleteCbsdRequest
+}
+
+func (s *stubProvider) GetRequestsClient() requests.RadioControllerClient {
+	return &stubRadioControllerClient{requests: &s.requests}
+}
+
+func (s *stubProvider) GetActiveModeClient() active_mode.ActiveModeControllerClient {
+	return &stubActiveModeControllerClient{actions: &s.actions}
+}
+
+type stubActiveModeControllerClient struct {
+	actions *[]*active_mode.DeleteCbsdRequest
+}
+
+func (s *stubActiveModeControllerClient) GetState(_ context.Context, _ *active_mode.GetStateRequest, _ ...grpc.CallOption) (*active_mode.State, error) {
+	panic("not implemented")
+}
+
+func (s *stubActiveModeControllerClient) DeleteCbsd(_ context.Context, in *active_mode.DeleteCbsdRequest, _ ...grpc.CallOption) (*active_mode.DeleteCbsdResponse, error) {
+	*s.actions = append(*s.actions, in)
+	return nil, nil
+}
+
+type stubRadioControllerClient struct {
+	requests *[]*requests.RequestPayload
+}
+
+func (s *stubRadioControllerClient) UploadRequests(_ context.Context, in *requests.RequestPayload, _ ...grpc.CallOption) (*requests.RequestDbIds, error) {
+	*s.requests = append(*s.requests, in)
+	return nil, nil
+}
+
+func (s *stubRadioControllerClient) GetResponse(_ context.Context, _ *requests.RequestDbId, _ ...grpc.CallOption) (*requests.ResponsePayload, error) {
+	panic("not implemented")
 }
