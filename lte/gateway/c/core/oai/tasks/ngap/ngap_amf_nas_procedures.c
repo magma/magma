@@ -800,19 +800,19 @@ void ngap_handle_conn_est_cnf(
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   if (conn_est_cnf_pP->PDU_Session_Resource_Setup_Transfer_List.no_of_items) {
+    ie = (Ngap_InitialContextSetupRequestIEs_t*) calloc(
+        2, sizeof(Ngap_InitialContextSetupRequestIEs_t));
+    ie->id          = Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListCxtReq;
+    ie->criticality = Ngap_Criticality_reject;
+    ie->value.present =
+        Ngap_InitialContextSetupRequestIEs__value_PR_PDUSessionResourceSetupListCxtReq;
+
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
     for (int i = 0;
          i <
          conn_est_cnf_pP->PDU_Session_Resource_Setup_Transfer_List.no_of_items;
          i++) {
-      ie = (Ngap_InitialContextSetupRequestIEs_t*) calloc(
-          2, sizeof(Ngap_InitialContextSetupRequestIEs_t));
-      ie->id          = Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListCxtReq;
-      ie->criticality = Ngap_Criticality_reject;
-      ie->value.present =
-          Ngap_InitialContextSetupRequestIEs__value_PR_PDUSessionResourceSetupListCxtReq;
-
-      ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-
       pdusession_setup_item_t* pdu_session_item =
           &conn_est_cnf_pP->PDU_Session_Resource_Setup_Transfer_List.item[i];
 

@@ -750,7 +750,7 @@ int amf_validate_dnn(
 ***************************************************************************/
 int amf_smf_notification_send(
     amf_ue_ngap_id_t ue_id, ue_m5gmm_context_s* ue_context,
-    notify_ue_event notify_event_type) {
+    notify_ue_event notify_event_type, uint16_t session_id) {
   /* Get gRPC structure of notification to be filled common and
    * rat type elements.
    * Only need  to be filled IMSI and ue_state_idle of UE
@@ -765,6 +765,7 @@ int amf_smf_notification_send(
   req_common->mutable_sid()->set_id("IMSI" + imsi_str);
   req_common->mutable_sid()->set_type(
       magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
+  req_rat_specific->set_pdu_session_id(session_id);
 
   if (notify_event_type == UE_IDLE_MODE_NOTIFY) {
     req_rat_specific->set_notify_ue_event(

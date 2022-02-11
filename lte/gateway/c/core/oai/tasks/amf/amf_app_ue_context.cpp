@@ -151,6 +151,7 @@ ue_m5gmm_context_s* amf_create_new_ue_context(void) {
 
   new_p->amf_context._security.eksi = KSI_NO_KEY_AVAILABLE;
   new_p->mm_state                   = DEREGISTERED;
+  new_p->pending_service_response   = false;
 
   return new_p;
 }
@@ -403,9 +404,9 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
   for (auto& it : ue_context_p->amf_context.smf_ctxt_map) {
     smf_ctx                    = it.second;
     smf_ctx->pdu_session_state = INACTIVE;
+    amf_smf_notification_send(
+        ue_id, ue_context_p, UE_IDLE_MODE_NOTIFY, it.first);
   }
-
-  amf_smf_notification_send(ue_id, ue_context_p, UE_IDLE_MODE_NOTIFY);
 
   OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }

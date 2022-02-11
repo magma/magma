@@ -623,40 +623,79 @@ int amf_app_handle_pdu_session_response(
 
   smf_ctx->n_active_pdus += 1;
 
-  if (REGISTERED_IDLE == ue_context->mm_state) {
-    // pdu session state
-    smf_ctx->pdu_session_state            = ACTIVE;
-    amf_sap_t amf_sap                     = {};
-    amf_sap.primitive                     = AMFAS_ESTABLISH_CNF;
-    amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
-    amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
+  if (!ue_context->pending_service_response) {
+    if (REGISTERED_IDLE == ue_context->mm_state) {
+      // pdu session state
+      smf_ctx->pdu_session_state            = ACTIVE;
+      amf_sap_t amf_sap                     = {};
+      amf_sap.primitive                     = AMFAS_ESTABLISH_CNF;
+      amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
+      amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
 
-    amf_sap.u.amf_as.u.establish.pdu_session_status_ie =
-        (AMF_AS_PDU_SESSION_STATUS | AMF_AS_PDU_SESSION_REACTIVATION_STATUS);
-    amf_sap.u.amf_as.u.establish.pdu_session_status =
-        (1 << smf_ctx->smf_proc_data.pdu_session_id);
-    amf_sap.u.amf_as.u.establish.pdu_session_reactivation_status =
-        (1 << smf_ctx->smf_proc_data.pdu_session_id);
-    amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
-    rc                                = amf_sap_send(&amf_sap);
-    if (RETURNok == rc) {
-      ue_context->mm_state = REGISTERED_CONNECTED;
+      amf_sap.u.amf_as.u.establish.pdu_session_status_ie =
+          (AMF_AS_PDU_SESSION_STATUS | AMF_AS_PDU_SESSION_REACTIVATION_STATUS);
+      amf_sap.u.amf_as.u.establish.pdu_session_status =
+          (1 << smf_ctx->smf_proc_data.pdu_session_id);
+      amf_sap.u.amf_as.u.establish.pdu_session_reactivation_status =
+          (1 << smf_ctx->smf_proc_data.pdu_session_id);
+      amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
+      rc                                = amf_sap_send(&amf_sap);
+      if (RETURNok == rc) {
+        ue_context->mm_state = REGISTERED_CONNECTED;
+      }
+    } else {
+      OAILOG_DEBUG(
+          LOG_AMF_APP,
+          "Sending message to gNB for PDUSessionResourceSetupRequest "
+          "**n_active_pdus=%d **\n",
+          smf_ctx->n_active_pdus);
+
+      amf_smf_msg.pdu_session_id = pdu_session_resp->pdu_session_id;
+      /*Execute PDU establishement accept from AMF to gnodeb */
+      pdu_state_handle_message(
+          REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
+          CREATING, ue_context, amf_smf_msg, NULL, pdu_session_resp, ue_id);
+      rc = RETURNok;
     }
   } else {
-    OAILOG_DEBUG(
-        LOG_AMF_APP,
-        "Sending message to gNB for PDUSessionResourceSetupRequest "
-        "**n_active_pdus=%d **\n",
-        smf_ctx->n_active_pdus);
+    smf_ctx->pdu_session_state  = ACTIVE;
+    bool all_pdu_active         = true;
+    uint16_t pdu_session_status = 0;
 
-    amf_smf_msg.pdu_session_id = pdu_session_resp->pdu_session_id;
-    /*Execute PDU establishement accept from AMF to gnodeb */
-    pdu_state_handle_message(
-        // ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
-        REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
-        // smf_ctx->pdu_session_state, ue_context, amf_smf_msg, NULL,
-        CREATING, ue_context, amf_smf_msg, NULL, pdu_session_resp, ue_id);
-    rc = RETURNok;
+    for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
+      std::shared_ptr<smf_context_t> smf_ctxt = it.second;
+      if (smf_ctxt) {
+        if (smf_ctxt->pdu_session_state != ACTIVE) {
+          all_pdu_active = false;
+          break;
+        }
+        pdu_session_status |= (1 << smf_ctxt->smf_proc_data.pdu_session_id);
+      }
+    }
+
+    if (all_pdu_active) {
+      amf_sap_t amf_sap = {};
+      amf_sap.u.amf_as.u.establish.pdu_session_status_ie =
+          (AMF_AS_PDU_SESSION_STATUS | AMF_AS_PDU_SESSION_REACTIVATION_STATUS);
+      amf_sap.primitive                               = AMFAS_ESTABLISH_CNF;
+      amf_sap.u.amf_as.u.establish.ue_id              = ue_id;
+      amf_sap.u.amf_as.u.establish.nas_info           = AMF_AS_NAS_INFO_SR;
+      amf_sap.u.amf_as.u.establish.pdu_session_status = pdu_session_status;
+      amf_sap.u.amf_as.u.establish.pdu_session_reactivation_status =
+          pdu_session_status;
+      amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
+      rc                                = amf_sap_send(&amf_sap);
+
+      if (RETURNok == rc) {
+        ue_context->mm_state = REGISTERED_CONNECTED;
+      }
+      OAILOG_WARNING(
+          LOG_NAS_AMF,
+          "Received response from SMF for all requested PDUs "
+          "ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
+          ue_id);
+      ue_context->pending_service_response = false;
+    }
   }
 
   return rc;

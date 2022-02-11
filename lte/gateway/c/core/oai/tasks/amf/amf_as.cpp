@@ -1398,7 +1398,8 @@ uint16_t amf_as_establish_cnf(
       registration_proc->registration_accept_sent++;
     }
 
-    if ((ue_mm_context->ue_context_request) ||
+    if ((ue_mm_context->ue_context_request &&
+         (msg->nas_info == AMF_AS_NAS_INFO_REGISTERED)) ||
         ((msg->nas_info == AMF_AS_NAS_INFO_SR) &&
          (msg->pdu_session_status_ie &
           AMF_AS_PDU_SESSION_REACTIVATION_STATUS))) {
