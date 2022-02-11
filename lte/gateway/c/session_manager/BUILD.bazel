@@ -87,22 +87,6 @@ cc_library(
 )
 
 cc_library(
-    name = "ebpf",
-    srcs = [
-        "Ebpf.cpp",
-    ],
-    hdrs = [
-        "Ebpf.h",
-    ],
-    # TODO(@themarwhal): Migrate to using full path for includes - GH8494
-    strip_include_prefix = "/lte/gateway/c/session_manager",
-    deps = [
-        "//lte/protos:pipelined_cpp_proto",
-        "//lte/protos:session_manager_cpp_proto",
-    ],
-)
-
-cc_library(
     name = "policy_loader",
     srcs = [
         "PolicyLoader.cpp",

@@ -728,8 +728,6 @@ class SessionState {
   void increment_rule_stats(const std::string& rule_id,
                             SessionStateUpdateCriteria* session_uc);
 
-  std::string get_first_rule_id();
-
   void process_get_5g_rule_installs(
       const std::vector<StaticRuleInstall>& static_rule_installs,
       const std::vector<DynamicRuleInstall>& dynamic_rule_installs,

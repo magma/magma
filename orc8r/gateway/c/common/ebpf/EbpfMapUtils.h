@@ -11,13 +11,16 @@
  * limitations under the License.
  */
 
-/* File : ebpf.h
- */
-
 #pragma once
 
+#include <stdint.h>
 #include <unistd.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <linux/bpf.h>
+
+#include "orc8r/gateway/c/common/ebpf/EbpfMap.h"
 
 #ifndef __NR_bpf
 #if defined(__i386__)
@@ -38,6 +41,8 @@
 #define BPF_ANY 0     /* create new element or update existing */
 #define BPF_NOEXIST 1 /* create new element only if it didn't exist */
 #define BPF_EXIST 2   /* only update existing element */
+
+#define DL_MAP_PATH "/sys/fs/bpf/dl_map"
 
 static uint64_t ptr_to_u64(const void* ptr) { return (uint64_t)ptr; }
 
@@ -79,4 +84,23 @@ int bpf_map_delete_elem(int fd, void* key) {
   attr.key = ptr_to_u64(key);
 
   return sys_bpf(BPF_MAP_DELETE_ELEM, &attr, sizeof(attr));
+}
+
+int get_map_fd() { return bpf_obj_get(DL_MAP_PATH); }
+
+int add_ebpf_dl_map_entry(int hash_fd, struct in_addr ue, struct in_addr enb,
+                          uint32_t o_tei, uint8_t* user_data,
+                          size_t user_data_len) {
+  struct dl_map_info val = {htonl(enb.s_addr), o_tei, 0, {}};
+  if (user_data_len > sizeof(val.user_data)) {
+    return -1;
+  }
+  memcpy(val.user_data, user_data, user_data_len);
+  uint32_t nkey = htonl(ue.s_addr);
+  return bpf_map_update_elem(hash_fd, &nkey, &val, 0);
+}
+
+void delete_ebpf_dl_map_entry(int hash_fd, struct in_addr ue) {
+  uint32_t nkey = htonl(ue.s_addr);
+  bpf_map_delete_elem(hash_fd, &nkey);
 }

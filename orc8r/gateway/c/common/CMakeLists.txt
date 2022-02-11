@@ -87,3 +87,10 @@ ExternalProject_Add(MagmaSentry
     INSTALL_COMMAND ""
     DEPENDS MagmaConfig
     CMAKE_ARGS ${CL_ARGS})
+
+ExternalProject_Add(MagmaEbpf
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/ebpf
+    BINARY_DIR ${CMAKE_BINARY_DIR}/ebpf
+    BUILD_ALWAYS 1
+    INSTALL_COMMAND ""
+    CMAKE_ARGS ${CL_ARGS})
