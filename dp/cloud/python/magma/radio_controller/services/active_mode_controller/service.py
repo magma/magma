@@ -16,10 +16,12 @@ import logging
 from datetime import datetime
 from typing import Optional
 
+import grpc
 from dp.protos.active_mode_pb2 import (
     ActiveModeConfig,
     Cbsd,
     Channel,
+    DeleteCbsdResponse,
     EirpCapabilities,
     FrequencyRange,
     GetStateRequest,
@@ -69,6 +71,29 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
             state = self._build_state(session)
             logger.info(f"Sending state: {state}")
             return state
+
+    def DeleteCbsd(self, request, context) -> DeleteCbsdResponse:
+        """
+        Delete CBSD from the Database
+
+        Parameters:
+            request: a DeleteCbsdRequest gRPC Message
+            context: gRPC context
+
+        Returns:
+            DeleteCbsdResponse: a gRPC DeleteCbsdResponse message
+        """
+        serial_number = request.serial_number
+        logger.info(f"Deleting CBSD {serial_number}")
+        with self.session_manager.session_scope() as session:
+            deleted = session.query(DBCbsd).filter(
+                DBCbsd.cbsd_serial_number == serial_number,
+            ).delete()
+            session.commit()
+            if not deleted:
+                context.set_code(grpc.StatusCode.NOT_FOUND)
+                return DeleteCbsdResponse()
+        return DeleteCbsdResponse()
 
     def _build_state(self, session: Session) -> State:
         db_grant_idle_state_id = session.query(DBGrantState.id).filter(
@@ -139,6 +164,7 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
             pending_requests=pending_requests,
             last_seen_timestamp=last_seen,
             eirp_capabilities=eirp_capabilities,
+            is_deleted=cbsd.is_deleted,
         )
 
     def _build_grant(self, grant: DBGrant) -> Grant:

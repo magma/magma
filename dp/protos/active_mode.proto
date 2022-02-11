@@ -18,9 +18,16 @@ option go_package = "magma/dp/cloud/go/active_mode_controller/protos/active_mode
 
 service ActiveModeController {
   rpc GetState(GetStateRequest) returns (State) {}
+  rpc DeleteCbsd(DeleteCbsdRequest) returns (DeleteCbsdResponse) {}
 }
 
 message GetStateRequest {}
+
+message DeleteCbsdRequest {
+  string serial_number = 1;
+}
+
+message DeleteCbsdResponse {}
 
 message State {
   repeated ActiveModeConfig active_mode_configs = 1;
@@ -47,6 +54,7 @@ message Cbsd {
   repeated string pending_requests = 8;
   int64 last_seen_timestamp = 9;
   EirpCapabilities eirp_capabilities = 10;
+  bool is_deleted = 11;
 }
 
 message EirpCapabilities {

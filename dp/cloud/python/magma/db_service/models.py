@@ -14,6 +14,7 @@ limitations under the License.
 from sqlalchemy import (
     JSON,
     BigInteger,
+    Boolean,
     Column,
     DateTime,
     Float,
@@ -279,13 +280,14 @@ class DBCbsd(Base):
     cbsd_id = Column(String)
     user_id = Column(String)
     fcc_id = Column(String)
-    cbsd_serial_number = Column(String)
+    cbsd_serial_number = Column(String, unique=True, index=True)
     last_seen = Column(DateTime(timezone=True))
     min_power = Column(Float)
     max_power = Column(Float)
     antenna_gain = Column(Float)
     number_of_ports = Column(Integer)
     network_id = Column(String)
+    is_deleted = Column(Boolean, nullable=False, server_default='false')
     created_date = Column(
         DateTime(timezone=True),
         nullable=False, server_default=now(),

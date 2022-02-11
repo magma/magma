@@ -62,8 +62,10 @@ func (a *App) Run(ctx context.Context) error {
 		return err
 	}
 	defer conn.Close()
-	stateGetter := active_mode.NewActiveModeControllerClient(conn)
-	requestSender := requests.NewRadioControllerClient(conn)
+	provider := &clientProvider{
+		amcClient: active_mode.NewActiveModeControllerClient(conn),
+		rcClient:  requests.NewRadioControllerClient(conn),
+	}
 	ticker := a.clock.Tick(a.cfg.PollingInterval)
 	defer ticker.Stop()
 	generator := newGenerator(a.cfg)
@@ -72,15 +74,15 @@ func (a *App) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
-			state, err := a.getState(ctx, stateGetter)
+			state, err := a.getState(ctx, provider.amcClient)
 			if err != nil {
 				log.Printf("failed to get state: %s", err)
 				continue
 			}
 			messages := generator.GenerateMessages(state, a.clock.Now())
-			for _, request := range messages {
-				if _, err := a.uploadRequests(ctx, requestSender, request); err != nil {
-					log.Printf("failed to send request '%s': %s", request.Payload, err)
+			for _, msg := range messages {
+				if err := a.sendMessage(ctx, provider, msg); err != nil {
+					log.Printf("failed to send message '%s': %s", msg, err)
 				}
 			}
 		}
@@ -95,7 +97,20 @@ func newGenerator(cfg *config.Config) messageGenerator {
 }
 
 type messageGenerator interface {
-	GenerateMessages(*active_mode.State, time.Time) []*requests.RequestPayload
+	GenerateMessages(*active_mode.State, time.Time) []message_generator.Message
+}
+
+type clientProvider struct {
+	amcClient active_mode.ActiveModeControllerClient
+	rcClient  requests.RadioControllerClient
+}
+
+func (c *clientProvider) GetActiveModeClient() active_mode.ActiveModeControllerClient {
+	return c.amcClient
+}
+
+func (c *clientProvider) GetRequestsClient() requests.RadioControllerClient {
+	return c.rcClient
 }
 
 func (a *App) connect(ctx context.Context) (*grpc.ClientConn, error) {
@@ -114,14 +129,9 @@ func (a *App) getState(ctx context.Context, c active_mode.ActiveModeControllerCl
 	return c.GetState(reqCtx, &active_mode.GetStateRequest{})
 }
 
-func (a *App) uploadRequests(ctx context.Context, c requests.RadioControllerClient, req *requests.RequestPayload) (*requests.RequestDbIds, error) {
-	log.Printf("uploading request: '%s'", req.Payload)
+func (a *App) sendMessage(ctx context.Context, provider *clientProvider, msg message_generator.Message) error {
+	log.Printf("sending message: %s", msg)
 	reqCtx, cancel := context.WithTimeout(ctx, a.cfg.RequestTimeout)
 	defer cancel()
-	return c.UploadRequests(reqCtx, req)
-}
-
-func calculateDeadline(now time.Time, cfg *config.Config) int64 {
-	totalTimeout := cfg.HeartbeatSendTimeout + cfg.PollingInterval + cfg.RequestProcessingInterval
-	return now.Add(-totalTimeout).Unix()
+	return msg.Send(reqCtx, provider)
 }

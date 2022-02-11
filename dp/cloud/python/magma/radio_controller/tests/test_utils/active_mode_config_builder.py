@@ -28,6 +28,7 @@ class ActiveModeConfigBuilder:
         self.pending_requests = None
         self.last_seen_timestamp = None
         self.eirp_capabilities = None
+        self.is_deleted = False
 
     def build(self) -> ActiveModeConfig:
         cbsd = Cbsd(
@@ -41,11 +42,16 @@ class ActiveModeConfigBuilder:
             pending_requests=self.pending_requests,
             last_seen_timestamp=self.last_seen_timestamp,
             eirp_capabilities=self.eirp_capabilities,
+            is_deleted=self.is_deleted,
         )
         return ActiveModeConfig(
             desired_state=self.desired_state,
             cbsd=cbsd,
         )
+
+    def deleted(self) -> ActiveModeConfigBuilder:
+        self.is_deleted = True
+        return self
 
     def with_desired_state(self, state: CbsdState) -> ActiveModeConfigBuilder:
         self.desired_state = state

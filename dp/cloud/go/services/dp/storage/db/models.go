@@ -14,7 +14,7 @@ package db
 
 type Model interface {
 	GetMetadata() *ModelMetadata
-	Fields() map[string]Field
+	Fields() FieldMap
 }
 
 type ModelMetadata struct {
