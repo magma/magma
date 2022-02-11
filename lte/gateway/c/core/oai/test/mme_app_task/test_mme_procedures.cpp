@@ -357,59 +357,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
 
   MME_APP_EXPECT_CALLS(3, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
-  // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
-
-  // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi, true);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
-
-  // Sending ULA to mme_app mimicing successful S6A response for ULR
-  send_s6a_ula(imsi, true);
-
-  // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
-
-  // Constructing and sending ICS Response to mme_app mimicing S1AP
-  send_ics_response();
-
-  // Constructing UE Capability Indication message to mme_app
-  // mimicing S1AP with dummy radio capabilities
-  send_ue_capabilities_ind();
-
-  // Constructing and sending Attach Complete to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
-
-  // Wait for DL NAS Transport for EMM Information
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-
-  // Constructing and sending Modify Bearer Response to mme_app
-  // mimicing SPGW
-  std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
-  send_modify_bearer_resp(b_modify, b_rm);
-
-  // Check MME state after Modify Bearer Response
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  // Attach the UE
+  attach_ue(cv, lock, mme_state_p);
 
   // Constructing and sending Detach Request to mme_app
   // mimicing S1AP
@@ -1268,59 +1217,8 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetach) {
 
   MME_APP_EXPECT_CALLS(4, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
-  // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
-
-  // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi, true);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
-
-  // Sending ULA to mme_app mimicing successful S6A response for ULR
-  send_s6a_ula(imsi, true);
-
-  // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
-
-  // Constructing and sending ICS Response to mme_app mimicing S1AP
-  send_ics_response();
-
-  // Constructing UE Capability Indication message to mme_app
-  // mimicing S1AP with dummy radio capabilities
-  send_ue_capabilities_ind();
-
-  // Constructing and sending Attach Complete to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
-
-  // Wait for DL NAS Transport for EMM Information
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-
-  // Constructing and sending Modify Bearer Response to mme_app
-  // mimicing SPGW
-  std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
-  send_modify_bearer_resp(b_modify, b_rm);
-
-  // Check MME state after Modify Bearer Response
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  // Attach the UE
+  attach_ue(cv, lock, mme_state_p);
 
   uint8_t ebi_to_be_deactivated = 5;
   // Constructing and sending deactivate bearer request
@@ -1364,59 +1262,8 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedExpiredDetach) {
 
   MME_APP_EXPECT_CALLS(8, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
-  // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
-
-  // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi, true);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
-
-  // Sending ULA to mme_app mimicing successful S6A response for ULR
-  send_s6a_ula(imsi, true);
-
-  // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
-
-  // Constructing and sending ICS Response to mme_app mimicing S1AP
-  send_ics_response();
-
-  // Constructing UE Capability Indication message to mme_app
-  // mimicing S1AP with dummy radio capabilities
-  send_ue_capabilities_ind();
-
-  // Constructing and sending Attach Complete to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
-
-  // Wait for DL NAS Transport for EMM Information
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-
-  // Constructing and sending Modify Bearer Response to mme_app
-  // mimicing SPGW
-  std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
-  send_modify_bearer_resp(b_modify, b_rm);
-
-  // Check MME state after Modify Bearer Response
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  // Attach the UE
+  attach_ue(cv, lock, mme_state_p);
 
   uint8_t ebi_to_be_deactivated = 5;
   // Constructing and sending deactivate bearer request
@@ -1462,59 +1309,8 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetachRetxFailure) {
 
   MME_APP_EXPECT_CALLS(8, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
-  // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
-
-  // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi, true);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
-
-  // Sending ULA to mme_app mimicing successful S6A response for ULR
-  send_s6a_ula(imsi, true);
-
-  // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
-
-  // Constructing and sending ICS Response to mme_app mimicing S1AP
-  send_ics_response();
-
-  // Constructing UE Capability Indication message to mme_app
-  // mimicing S1AP with dummy radio capabilities
-  send_ue_capabilities_ind();
-
-  // Constructing and sending Attach Complete to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
-
-  // Wait for DL NAS Transport for EMM Information
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-
-  // Constructing and sending Modify Bearer Response to mme_app
-  // mimicing SPGW
-  std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
-  send_modify_bearer_resp(b_modify, b_rm);
-
-  // Check MME state after Modify Bearer Response
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  // Attach the UE
+  attach_ue(cv, lock, mme_state_p);
 
   uint8_t ebi_to_be_deactivated = 5;
   // Constructing and sending deactivate bearer request
@@ -1558,60 +1354,8 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
 
   MME_APP_EXPECT_CALLS(3, 1, 2, 1, 1, 1, 1, 1, 1, 1, 3);
 
-  // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
-
-  // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi, true);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
-
-  // Sending ULA to mme_app mimicing successful S6A response for ULR
-  send_s6a_ula(imsi, true);
-
-  // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
-
-  // Constructing and sending ICS Response to mme_app mimicing S1AP
-  send_ics_response();
-
-  // Constructing UE Capability Indication message to mme_app
-  // mimicing S1AP with dummy radio capabilities
-  send_ue_capabilities_ind();
-
-  // Constructing and sending Attach Complete to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
-
-  // Wait for DL NAS Transport for EMM Information
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-
-  // Constructing and sending Modify Bearer Response to mme_app
-  // mimicing SPGW
-  std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
-  send_modify_bearer_resp(b_modify, b_rm);
-
-  // Check MME state after Modify Bearer Response
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
+  // Attach the UE
+  attach_ue(cv, lock, mme_state_p);
 
   // Send context release request mimicing S1AP
   send_context_release_req(S1AP_RADIO_EUTRAN_GENERATED_REASON, TASK_S1AP);
@@ -1980,59 +1724,8 @@ TEST_F(
 
   MME_APP_EXPECT_CALLS(3, 1, 1, 1, 1, 1, 1, 1, 0, 1, 4);
 
-  // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
-
-  // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi, true);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
-
-  // Sending ULA to mme_app mimicing successful S6A response for ULR
-  send_s6a_ula(imsi, true);
-
-  // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
-
-  // Constructing and sending ICS Response to mme_app mimicing S1AP
-  send_ics_response();
-
-  // Constructing UE Capability Indication message to mme_app
-  // mimicing S1AP with dummy radio capabilities
-  send_ue_capabilities_ind();
-
-  // Constructing and sending Attach Complete to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
-
-  // Wait for DL NAS Transport for EMM Information
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-
-  // Constructing and sending Modify Bearer Response to mme_app
-  // mimicing SPGW
-  std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
-  send_modify_bearer_resp(b_modify, b_rm);
-
-  // Check MME state after Modify Bearer Response
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  // Attach the UE
+  attach_ue(cv, lock, mme_state_p);
 
   // Send activate dedicated bearer request for lbi 5 mimicing SPGW
   send_s11_create_bearer_req(5);
@@ -2118,59 +1811,8 @@ TEST_F(
 
   MME_APP_EXPECT_CALLS(7, 1, 1, 1, 1, 1, 1, 1, 0, 1, 4);
 
-  // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
-
-  // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi, true);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
-
-  // Sending ULA to mme_app mimicing successful S6A response for ULR
-  send_s6a_ula(imsi, true);
-
-  // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
-
-  // Constructing and sending ICS Response to mme_app mimicing S1AP
-  send_ics_response();
-
-  // Constructing UE Capability Indication message to mme_app
-  // mimicing S1AP with dummy radio capabilities
-  send_ue_capabilities_ind();
-
-  // Constructing and sending Attach Complete to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
-
-  // Wait for DL NAS Transport for EMM Information
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-
-  // Constructing and sending Modify Bearer Response to mme_app
-  // mimicing SPGW
-  std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
-  send_modify_bearer_resp(b_modify, b_rm);
-
-  // Check MME state after Modify Bearer Response
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  // Attach the UE
+  attach_ue(cv, lock, mme_state_p);
 
   // Send activate dedicated bearer request for lbi 5 mimicing SPGW
   send_s11_create_bearer_req(5);
@@ -3144,59 +2786,8 @@ TEST_F(MmeAppProcedureTest, TestFailedPagingForPendingBearers) {
 
   MME_APP_EXPECT_CALLS(3, 1, 2, 1, 1, 1, 1, 1, 1, 1, 4);
 
-  // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
-
-  // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi, true);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
-
-  // Sending ULA to mme_app mimicing successful S6A response for ULR
-  send_s6a_ula(imsi, true);
-
-  // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
-
-  // Constructing and sending ICS Response to mme_app mimicing S1AP
-  send_ics_response();
-
-  // Constructing UE Capability Indication message to mme_app
-  // mimicing S1AP with dummy radio capabilities
-  send_ue_capabilities_ind();
-
-  // Constructing and sending Attach Complete to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
-
-  // Wait for DL NAS Transport for EMM Information
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-
-  // Constructing and sending Modify Bearer Response to mme_app
-  // mimicing SPGW
-  std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
-  send_modify_bearer_resp(b_modify, b_rm);
-
-  // Check MME state after Modify Bearer Response
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  // Attach the UE
+  attach_ue(cv, lock, mme_state_p);
 
   // Force switching to IDLE Mode
   // Send context release request mimicing S1AP
@@ -3279,60 +2870,8 @@ TEST_F(MmeAppProcedureTest, TestMobileReachabilityTimer) {
 
   MME_APP_EXPECT_CALLS(3, 1, 2, 1, 1, 1, 1, 1, 1, 1, 3);
 
-  // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
-
-  // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi, true);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
-
-  // Sending ULA to mme_app mimicing successful S6A response for ULR
-  send_s6a_ula(imsi, true);
-
-  // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
-
-  // Constructing and sending ICS Response to mme_app mimicing S1AP
-  send_ics_response();
-
-  // Constructing UE Capability Indication message to mme_app
-  // mimicing S1AP with dummy radio capabilities
-  send_ue_capabilities_ind();
-
-  // Constructing and sending Attach Complete to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
-
-  // Wait for DL NAS Transport for EMM Information
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-
-  // Constructing and sending Modify Bearer Response to mme_app
-  // mimicing SPGW
-  std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
-  send_modify_bearer_resp(b_modify, b_rm);
-
-  // Check MME state after Modify Bearer Response
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
+  // Attach the UE
+  attach_ue(cv, lock, mme_state_p);
 
   // Send context release request mimicing S1AP
   send_context_release_req(S1AP_RADIO_EUTRAN_GENERATED_REASON, TASK_S1AP);
@@ -3384,59 +2923,8 @@ TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchSuccess) {
 
   MME_APP_EXPECT_CALLS(3, 1, 1, 1, 1, 1, 1, 2, 0, 1, 3);
 
-  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
-
-  // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi, true);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
-
-  // Sending ULA to mme_app mimicing successful S6A response for ULR
-  send_s6a_ula(imsi, true);
-
-  // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
-
-  // Constructing and sending ICS Response to mme_app mimicing S1AP
-  send_ics_response();
-
-  // Constructing UE Capability Indication message to mme_app
-  // mimicing S1AP with dummy radio capabilities
-  send_ue_capabilities_ind();
-
-  // Constructing and sending Attach Complete to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
-
-  // Wait for DL NAS Transport for EMM Information
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-
-  // Constructing and sending Modify Bearer Response to mme_app
-  // mimicing SPGW
-  std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
-  send_modify_bearer_resp(b_modify, b_rm);
-
-  // Check MME state after Modify Bearer Response
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  // Attach the UE
+  attach_ue(cv, lock, mme_state_p);
 
   // Send path switch request to mme_app mimicing S1AP, use 1 for all new ids,
   // since Initial UE message is using 0
@@ -3456,6 +2944,8 @@ TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchSuccess) {
 
   // Constructing and sending Modify Bearer Response to mme_app
   // mimicing SPGW, with same parameters as last one
+  std::vector<int> b_modify = {5};
+  std::vector<int> b_rm     = {};
   send_modify_bearer_resp(b_modify, b_rm);
 
   // Check MME state after Modify Bearer Response
@@ -3501,60 +2991,8 @@ TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchFailure) {
 
   MME_APP_EXPECT_CALLS(3, 1, 1, 1, 1, 1, 1, 2, 0, 1, 3);
 
-  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
-
-  // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi, true);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
-
-  // Sending ULA to mme_app mimicing successful S6A response for ULR
-  send_s6a_ula(imsi, true);
-
-  // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
-
-  // Constructing and sending ICS Response to mme_app mimicing S1AP
-  send_ics_response();
-
-  // Constructing UE Capability Indication message to mme_app
-  // mimicing S1AP with dummy radio capabilities
-  send_ue_capabilities_ind();
-
-  // Constructing and sending Attach Complete to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
-
-  // Wait for DL NAS Transport for EMM Information
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-
-  // Constructing and sending Modify Bearer Response to mme_app
-  // mimicing SPGW
-  std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
-  send_modify_bearer_resp(b_modify, b_rm);
-
-  // Check MME state after Modify Bearer Response
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
+  // Attach the UE
+  attach_ue(cv, lock, mme_state_p);
 
   // Send path switch request to mme_app mimicing S1AP, use 1 for all new ids,
   // since Initial UE message is using 0
@@ -3574,7 +3012,9 @@ TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchFailure) {
 
   // Constructing and sending Modify Bearer Response to mme_app
   // mimicing SPGW, with empty modify bearer list to trigger failure
-  b_modify = {};
+  std::vector<int> b_modify = {};
+  std::vector<int> b_rm     = {};
+  //b_modify = {};
   send_modify_bearer_resp(b_modify, b_rm);
 
   // Check MME state after Modify Bearer Response
@@ -3673,7 +3113,6 @@ TEST_F(
   decoder_rc = nas_message_decode(
       nas_msg->data, &nas_msg_decoded, nas_msg->slen,
       (void*) &emm_security_context, &decode_status);
-  std::cout<<"*** decoder_rc:"<< decoder_rc<<std::endl;
   EXPECT_EQ(nas_msg->slen, 67);
   EXPECT_EQ(decoder_rc, nas_msg->slen);
   guti = nas_msg_decoded.plain.emm.attach_accept.guti.guti;
@@ -4015,60 +3454,10 @@ TEST_F(MmeAppProcedureTest, TestS1HandoverSuccess) {
 
   MME_APP_EXPECT_CALLS(3, 1, 1, 1, 1, 1, 1, 2, 0, 1, 3);
 
-  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
+  // Attach the UE
+  attach_ue(cv, lock, mme_state_p);
 
-  // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi, true);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
-
-  // Wait for DL NAS Transport for once
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
-
-  // Sending ULA to mme_app mimicing successful S6A response for ULR
-  send_s6a_ula(imsi, true);
-
-  // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
-
-  // Constructing and sending ICS Response to mme_app mimicing S1AP
-  send_ics_response();
-
-  // Constructing UE Capability Indication message to mme_app
-  // mimicing S1AP with dummy radio capabilities
-  send_ue_capabilities_ind();
-
-  // Constructing and sending Attach Complete to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
-
-  // Wait for DL NAS Transport for EMM Information
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-
-  // Constructing and sending Modify Bearer Response to mme_app
-  // mimicing SPGW
-  std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
-  send_modify_bearer_resp(b_modify, b_rm);
-
-  // Check MME state after Modify Bearer Response
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
+  //EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
 
   uint32_t new_enb_ue_s1ap_id = DEFAULT_eNB_S1AP_UE_ID + 1;
   uint32_t new_sctp_assoc_id  = DEFAULT_SCTP_ASSOC_ID + 1;
@@ -4106,6 +3495,8 @@ TEST_F(MmeAppProcedureTest, TestS1HandoverSuccess) {
 
   // Constructing and sending Modify Bearer Response to mme_app
   // mimicing SPGW, with same parameters as last one
+  std::vector<int> b_modify = {5};
+  std::vector<int> b_rm     = {};
   send_modify_bearer_resp(b_modify, b_rm);
 
   // Check MME state after Modify Bearer Response
