@@ -20,6 +20,7 @@ from typing import Any, Dict
 import grpc
 import jsonschema
 from magma.common.rpc_utils import return_void
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.eventd.event_validator import EventValidator
 from orc8r.protos import eventd_pb2, eventd_pb2_grpc
 
@@ -77,7 +78,11 @@ class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
                 logging.debug('Sending log to FluentBit')
                 sock.sendall(json.dumps(value).encode('utf-8'))
         except socket.error as e:
-            logging.error('Connection to FluentBit failed: %s', e)
+            logging.error(
+                'Connection to FluentBit failed: %s',
+                e,
+                extra=EXCLUDE_FROM_ERROR_MONITORING,
+            )
             logging.info(
                 'FluentBit (td-agent-bit) may not be enabled '
                 'or configured correctly',

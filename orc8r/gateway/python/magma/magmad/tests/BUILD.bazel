@@ -1,0 +1,63 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("//bazel:python_test.bzl", "pytest_test")
+
+pytest_test(
+    name = "bootstrap_manager_tests",
+    srcs = ["bootstrap_manager_tests.py"],
+    deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
+)
+
+pytest_test(
+    name = "collector_tests",
+    srcs = ["collector_tests.py"],
+    deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
+)
+
+pytest_test(
+    name = "config_manager_tests",
+    srcs = ["config_manager_tests.py"],
+    deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
+)
+
+pytest_test(
+    name = "proxy_client_tests",
+    srcs = ["proxy_client_tests.py"],
+    deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
+)
+
+pytest_test(
+    name = "service_manager_tests",
+    srcs = ["service_manager_tests.py"],
+    deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
+)
+
+pytest_test(
+    name = "service_poller_tests",
+    srcs = ["service_poller_tests.py"],
+    deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
+)
+
+pytest_test(
+    name = "state_reporter_test",
+    srcs = ["state_reporter_test.py"],
+    deps = [
+        "//orc8r/gateway/python/magma/common:grpc_client_manager",
+        "//orc8r/gateway/python/magma/magmad:magmad_lib",
+    ],
+)
+
+pytest_test(
+    name = "sync_rpc_client_tests",
+    srcs = ["sync_rpc_client_tests.py"],
+    deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
+)

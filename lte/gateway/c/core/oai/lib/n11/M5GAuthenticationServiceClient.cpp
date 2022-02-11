@@ -20,8 +20,14 @@
 #include <thread>
 #include <cassert>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 
 #include <google/protobuf/util/time_util.h>
 #include <grpcpp/impl/codegen/client_context.h>
@@ -57,11 +63,14 @@ static void handle_subs_authentication_info_ans(
   memset(
       amf_app_subs_auth_info_resp_p, 0, sizeof(itti_amf_subs_auth_info_ans_t));
 
-  amf_app_subs_auth_info_resp_p->result = status.ok();
+  amf_app_subs_auth_info_resp_p->result = response.error_code();
 
   if (!status.ok()) {
-    std::cout << "get_subs_auth_info fails with code " << status.error_code()
-              << ", msg: " << status.error_message() << std::endl;
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "get_subs_auth_info fails with "
+        "code=%d and message=%s\n",
+        status.error_code(), status.error_message().c_str());
   }
   strncpy(amf_app_subs_auth_info_resp_p->imsi, imsi.c_str(), imsi_length);
   amf_app_subs_auth_info_resp_p->imsi_length = imsi_length;

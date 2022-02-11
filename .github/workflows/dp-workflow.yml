@@ -21,6 +21,7 @@ jobs:
       rc: ${{ steps.filter.outputs.rc }}
       ingress: ${{ steps.filter.outputs.ingress }}
       helm: ${{ steps.filter.outputs.helm }}
+      integration_tests_no_orc8r: ${{ steps.filter.outputs.integration_tests_no_orc8r }}
     steps:
       - uses: actions/checkout@v2
         if: github.event_name == 'push'
@@ -32,18 +33,34 @@ jobs:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/cloud/python/configuration_controller/**'
               - 'dp/cloud/docker/python/configuration_controller/**'
+              - 'dp/cloud/python/magma/db_service/**'
+              - 'dp/protos/**'
+              - 'dp/cloud/go/protos/**'
+              - 'dp/cloud/go/active_mode_controller/protos'
             am:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/cloud/go/active_mode_controller/**'
               - 'dp/cloud/docker/go/active_mode_controller/**'
+              - 'dp/cloud/python/magma/db_service/**'
+              - 'dp/protos/**'
+              - 'dp/cloud/go/protos/**'
+              - 'dp/cloud/go/active_mode_controller/protos'
             pc:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/cloud/python/protocol_controller/**'
               - 'dp/cloud/docker/python/protocol_controller/**'
+              - 'dp/cloud/python/magma/db_service/**'
+              - 'dp/protos/**'
+              - 'dp/cloud/go/protos/**'
+              - 'dp/cloud/go/active_mode_controller/protos'
             rc:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/cloud/python/radio_controller/**'
               - 'dp/cloud/docker/python/radio_controller/**'
+              - 'dp/cloud/python/magma/db_service/**'
+              - 'dp/protos/**'
+              - 'dp/cloud/go/protos/**'
+              - 'dp/cloud/go/active_mode_controller/protos'
             ingress:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/Makefile'
@@ -51,6 +68,8 @@ jobs:
             helm:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/cloud/helm/**'
+            integration_tests_no_orc8r:
+              - 'dp/**'
 
   configuration_controller_unit_tests:
     needs: path_filter
@@ -310,7 +329,7 @@ jobs:
           verbose: true
 
 
-  integation_tests:
+  integration_tests:
     name: "Domain proxy integration tests"
     runs-on: ubuntu-latest
     continue-on-error: false
@@ -321,6 +340,10 @@ jobs:
       TEST_DIR: /tmp/integration-tests-results
     strategy:
       fail-fast: false
+      matrix:
+        test_type:
+          - _ci_integration_tests_orc8r
+          - _ci_integration_tests_no_orc8r
     steps:
       - uses: actions/checkout@v2
       - name: Set env
@@ -342,12 +365,13 @@ jobs:
       - name: Get minikube IP and prepare directory for test results
         run: |
           minikube ip
+          minikube ssh sudo ip link set docker0 promisc on
           mkdir -p $TEST_DIR
           minikube mount $TEST_DIR:$TEST_DIR &
 
       - name: Run integration tests
         run: |
-          make _ci_integration_tests
+          make ${{ matrix.test_type }}
 
       - name: Upload integration test results
         if: always()
@@ -357,7 +381,7 @@ jobs:
           path: ${{ env.TEST_DIR }}
 
   integration-test-results:
-    needs: integation_tests
+    needs: integration_tests
     name: Integration test results
     runs-on: ubuntu-latest
     continue-on-error: true

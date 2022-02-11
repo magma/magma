@@ -143,6 +143,14 @@ class DuplicateSubscriberError(Exception):
     pass
 
 
+class SubscriberServerTooBusy(Exception):
+    """
+    Exception thrown when sqlite3 is locked by other application
+    when a query is requested for a subscriber
+    """
+    pass
+
+
 class SuciProfileNotFoundError(Exception):
     """
     Exception thrown when a suciprofile is not present in the store

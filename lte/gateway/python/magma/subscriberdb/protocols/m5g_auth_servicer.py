@@ -26,6 +26,7 @@ from magma.subscriberdb.crypto.ECIES import ECIES_HN
 from magma.subscriberdb.crypto.utils import CryptoError
 from magma.subscriberdb.store.base import (
     SubscriberNotFoundError,
+    SubscriberServerTooBusy,
     SuciProfileNotFoundError,
 )
 from magma.subscriberdb.subscription.utils import ServiceNotActive
@@ -107,6 +108,13 @@ class M5GAuthRpcServicer(subscriberauth_pb2_grpc.M5GSubscriberAuthenticationServ
                 code=metrics.DIAMETER_ERROR_UNAUTHORIZED_SERVICE,
             ).inc()
             aia.error_code = metrics.DIAMETER_ERROR_UNAUTHORIZED_SERVICE
+            return aia
+        except SubscriberServerTooBusy as e:
+            logging.error("Sqlite3 DB is locked for %s: %s", imsi, e)
+            metrics.M5G_AUTH_FAILURE_TOTAL.labels(
+                code=metrics.DIAMETER_TOO_BUSY,
+            ).inc()
+            aia.error_code = metrics.DIAMETER_TOO_BUSY
             return aia
         finally:
             print_grpc(

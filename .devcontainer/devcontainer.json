@@ -23,7 +23,7 @@
 		"njpwerner.autodocstring",
 		"zxh404.vscode-proto3",
 	],
-	"image": "ghcr.io/magma/magma/devcontainer:sha-ad15c84",
+	"image": "ghcr.io/magma/magma/devcontainer:sha-e05d447",
 	"settings": {
 		"terminal.integrated.shell.linux": "/bin/bash",
 		"files.watcherExclude": {

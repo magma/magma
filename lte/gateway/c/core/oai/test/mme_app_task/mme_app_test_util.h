@@ -139,5 +139,8 @@ void send_s1ap_handover_notify(
     const uint32_t tgt_enb_id, const uint32_t enb_ue_s1ap_id,
     const uint32_t tgt_enb_ue_s1ap_id, const uint32_t mme_ue_s1ap_id);
 
+void send_s6a_clr(const std::string& imsi);
+
+void send_s6a_reset(void);
 }  // namespace lte
 }  // namespace magma

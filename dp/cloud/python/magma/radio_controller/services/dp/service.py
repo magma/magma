@@ -292,7 +292,7 @@ class DPService(DPServiceServicer):
         log = DBLog(
             log_from='CBSD',
             log_to='DP',
-            log_name=method_name + '_request',
+            log_name=method_name + 'Request',
             log_message=f'{request}',
             cbsd_serial_number=f'{cbsd_serial_number}',
             network_id=f'{network_id}',
@@ -309,7 +309,7 @@ class DPService(DPServiceServicer):
         log = DBLog(
             log_from='DP',
             log_to='CBSD',
-            log_name=method_name + '_response',
+            log_name=method_name + 'Response',
             log_message=f'{result}',
             cbsd_serial_number=f'{serial_number}',
             network_id=f'{network_id}',
