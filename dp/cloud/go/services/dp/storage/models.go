@@ -37,10 +37,14 @@ type DBRequestType struct {
 	Name sql.NullString
 }
 
-func (rt *DBRequestType) Fields() map[string]db.Field {
-	return map[string]db.Field{
-		"id":   db.IntField{X: &rt.Id},
-		"name": db.StringField{X: &rt.Name},
+func (rt *DBRequestType) Fields() db.FieldMap {
+	return db.FieldMap{
+		"id": &db.Field{
+			BaseType: db.IntType{X: &rt.Id},
+		},
+		"name": &db.Field{
+			BaseType: db.StringType{X: &rt.Name},
+		},
 	}
 }
 
@@ -59,10 +63,14 @@ type DBRequestState struct {
 	Name sql.NullString
 }
 
-func (rs *DBRequestState) Fields() map[string]db.Field {
-	return map[string]db.Field{
-		"id":   db.IntField{X: &rs.Id},
-		"name": db.StringField{X: &rs.Name},
+func (rs *DBRequestState) Fields() db.FieldMap {
+	return db.FieldMap{
+		"id": &db.Field{
+			BaseType: db.IntType{X: &rs.Id},
+		},
+		"name": &db.Field{
+			BaseType: db.StringType{X: &rs.Name},
+		},
 	}
 }
 
@@ -84,13 +92,27 @@ type DBRequest struct {
 	Payload sql.NullString
 }
 
-func (r *DBRequest) Fields() map[string]db.Field {
-	return map[string]db.Field{
-		"id":       db.IntField{X: &r.Id},
-		"type_id":  db.NullIntField{X: &r.TypeId},
-		"state_id": db.NullIntField{X: &r.StateId},
-		"cbsd_id":  db.NullIntField{X: &r.CbsdId},
-		"payload":  db.NullStringField{X: &r.Payload},
+func (r *DBRequest) Fields() db.FieldMap {
+	return db.FieldMap{
+		"id": &db.Field{
+			BaseType: db.IntType{X: &r.Id},
+		},
+		"type_id": &db.Field{
+			BaseType: db.IntType{X: &r.TypeId},
+			Nullable: true,
+		},
+		"state_id": &db.Field{
+			BaseType: db.IntType{X: &r.StateId},
+			Nullable: true,
+		},
+		"cbsd_id": &db.Field{
+			BaseType: db.IntType{X: &r.CbsdId},
+			Nullable: true,
+		},
+		"payload": &db.Field{
+			BaseType: db.StringType{X: &r.Payload},
+			Nullable: true,
+		},
 	}
 }
 
@@ -116,13 +138,26 @@ type DBResponse struct {
 	Payload      sql.NullString
 }
 
-func (r *DBResponse) Fields() map[string]db.Field {
-	return map[string]db.Field{
-		"id":            db.IntField{X: &r.Id},
-		"request_id":    db.NullIntField{X: &r.RequestId},
-		"grant_id":      db.NullIntField{X: &r.GrantId},
-		"response_code": db.IntField{X: &r.Id},
-		"payload":       db.NullStringField{X: &r.Payload},
+func (r *DBResponse) Fields() db.FieldMap {
+	return db.FieldMap{
+		"id": &db.Field{
+			BaseType: db.IntType{X: &r.Id},
+		},
+		"request_id": &db.Field{
+			BaseType: db.IntType{X: &r.RequestId},
+			Nullable: true,
+		},
+		"grant_id": &db.Field{
+			BaseType: db.IntType{X: &r.GrantId},
+			Nullable: true,
+		},
+		"response_code": &db.Field{
+			BaseType: db.IntType{X: &r.Id},
+		},
+		"payload": &db.Field{
+			BaseType: db.StringType{X: &r.Payload},
+			Nullable: true,
+		},
 	}
 }
 
@@ -144,10 +179,14 @@ type DBGrantState struct {
 	Name sql.NullString
 }
 
-func (gs *DBGrantState) Fields() map[string]db.Field {
-	return map[string]db.Field{
-		"id":   db.IntField{X: &gs.Id},
-		"name": db.StringField{X: &gs.Name},
+func (gs *DBGrantState) Fields() db.FieldMap {
+	return db.FieldMap{
+		"id": &db.Field{
+			BaseType: db.IntType{X: &gs.Id},
+		},
+		"name": &db.Field{
+			BaseType: db.StringType{X: &gs.Name},
+		},
 	}
 }
 
@@ -173,17 +212,41 @@ type DBGrant struct {
 	ChannelType        sql.NullString
 }
 
-func (g *DBGrant) Fields() map[string]db.Field {
-	return map[string]db.Field{
-		"id":                   db.IntField{X: &g.Id},
-		"state_id":             db.IntField{X: &g.StateId},
-		"cbsd_id":              db.NullIntField{X: &g.CbsdId},
-		"channel_id":           db.NullIntField{X: &g.ChannelId},
-		"grant_id":             db.IntField{X: &g.GrantId},
-		"grant_expire_time":    db.NullTimeField{X: &g.GrantExpireTime},
-		"transmit_expire_time": db.NullTimeField{X: &g.TransmitExpireTime},
-		"heartbeat_interval":   db.NullIntField{X: &g.HeartbeatInterval},
-		"channel_type":         db.NullStringField{X: &g.ChannelType},
+func (g *DBGrant) Fields() db.FieldMap {
+	return db.FieldMap{
+		"id": &db.Field{
+			BaseType: db.IntType{X: &g.Id},
+		},
+		"state_id": &db.Field{
+			BaseType: db.IntType{X: &g.StateId},
+		},
+		"cbsd_id": &db.Field{
+			BaseType: db.IntType{X: &g.CbsdId},
+			Nullable: true,
+		},
+		"channel_id": &db.Field{
+			BaseType: db.IntType{X: &g.ChannelId},
+			Nullable: true,
+		},
+		"grant_id": &db.Field{
+			BaseType: db.IntType{X: &g.GrantId},
+		},
+		"grant_expire_time": &db.Field{
+			BaseType: db.TimeType{X: &g.GrantExpireTime},
+			Nullable: true,
+		},
+		"transmit_expire_time": &db.Field{
+			BaseType: db.TimeType{X: &g.TransmitExpireTime},
+			Nullable: true,
+		},
+		"heartbeat_interval": &db.Field{
+			BaseType: db.IntType{X: &g.HeartbeatInterval},
+			Nullable: true,
+		},
+		"channel_type": &db.Field{
+			BaseType: db.StringType{X: &g.ChannelType},
+			Nullable: true,
+		},
 	}
 }
 
@@ -206,10 +269,14 @@ type DBCbsdState struct {
 	Name sql.NullString
 }
 
-func (cs *DBCbsdState) Fields() map[string]db.Field {
-	return map[string]db.Field{
-		"id":   db.IntField{X: &cs.Id},
-		"name": db.StringField{X: &cs.Name},
+func (cs *DBCbsdState) Fields() db.FieldMap {
+	return db.FieldMap{
+		"id": &db.Field{
+			BaseType: db.IntType{X: &cs.Id},
+		},
+		"name": &db.Field{
+			BaseType: db.StringType{X: &cs.Name},
+		},
 	}
 }
 
@@ -236,22 +303,61 @@ type DBCbsd struct {
 	MaxPower         sql.NullFloat64
 	AntennaGain      sql.NullFloat64
 	NumberOfPorts    sql.NullInt64
+	IsDeleted        sql.NullBool
 }
 
-func (c *DBCbsd) Fields() map[string]db.Field {
-	return map[string]db.Field{
-		"id":                 db.IntField{X: &c.Id},
-		"network_id":         db.StringField{X: &c.NetworkId},
-		"state_id":           db.IntField{X: &c.StateId},
-		"cbsd_id":            db.NullStringField{X: &c.CbsdId},
-		"user_id":            db.NullStringField{X: &c.UserId},
-		"fcc_id":             db.NullStringField{X: &c.FccId},
-		"cbsd_serial_number": db.NullStringField{X: &c.CbsdSerialNumber},
-		"last_seen":          db.NullTimeField{X: &c.LastSeen},
-		"min_power":          db.NullFloatField{X: &c.MinPower},
-		"max_power":          db.NullFloatField{X: &c.MaxPower},
-		"antenna_gain":       db.NullFloatField{X: &c.AntennaGain},
-		"number_of_ports":    db.NullIntField{X: &c.NumberOfPorts},
+func (c *DBCbsd) Fields() db.FieldMap {
+	return db.FieldMap{
+		"id": &db.Field{
+			BaseType: db.IntType{X: &c.Id},
+		},
+		"network_id": &db.Field{
+			BaseType: db.StringType{X: &c.NetworkId},
+		},
+		"state_id": &db.Field{
+			BaseType: db.IntType{X: &c.StateId},
+		},
+		"cbsd_id": &db.Field{
+			BaseType: db.StringType{X: &c.CbsdId},
+			Nullable: true,
+		},
+		"user_id": &db.Field{
+			BaseType: db.StringType{X: &c.UserId},
+			Nullable: true,
+		},
+		"fcc_id": &db.Field{
+			BaseType: db.StringType{X: &c.FccId},
+			Nullable: true,
+		},
+		"cbsd_serial_number": &db.Field{
+			BaseType: db.StringType{X: &c.CbsdSerialNumber},
+			Nullable: true,
+		},
+		"last_seen": &db.Field{
+			BaseType: db.TimeType{X: &c.LastSeen},
+			Nullable: true,
+		},
+		"min_power": &db.Field{
+			BaseType: db.FloatType{X: &c.MinPower},
+			Nullable: true,
+		},
+		"max_power": &db.Field{
+			BaseType: db.FloatType{X: &c.MaxPower},
+			Nullable: true,
+		},
+		"antenna_gain": &db.Field{
+			BaseType: db.FloatType{X: &c.AntennaGain},
+			Nullable: true,
+		},
+		"number_of_ports": &db.Field{
+			BaseType: db.IntType{X: &c.NumberOfPorts},
+			Nullable: true,
+		},
+		"is_deleted": &db.Field{
+			BaseType:     db.BoolType{X: &c.IsDeleted},
+			HasDefault:   true,
+			DefaultValue: false,
+		},
 	}
 }
 
@@ -278,16 +384,35 @@ type DBChannel struct {
 	LastUsedMaxEirp sql.NullFloat64
 }
 
-func (c *DBChannel) Fields() map[string]db.Field {
-	return map[string]db.Field{
-		"id":                 db.IntField{X: &c.Id},
-		"cbsd_id":            db.NullIntField{X: &c.CbsdId},
-		"low_frequency":      db.IntField{X: &c.LowFrequency},
-		"high_frequency":     db.IntField{X: &c.HighFrequency},
-		"channel_type":       db.StringField{X: &c.ChannelType},
-		"rule_applied":       db.StringField{X: &c.RuleApplied},
-		"max_eirp":           db.NullFloatField{X: &c.MaxEirp},
-		"last_used_max_eirp": db.NullFloatField{X: &c.LastUsedMaxEirp},
+func (c *DBChannel) Fields() db.FieldMap {
+	return db.FieldMap{
+		"id": &db.Field{
+			BaseType: db.IntType{X: &c.Id},
+		},
+		"cbsd_id": &db.Field{
+			BaseType: db.IntType{X: &c.CbsdId},
+			Nullable: true,
+		},
+		"low_frequency": &db.Field{
+			BaseType: db.IntType{X: &c.LowFrequency},
+		},
+		"high_frequency": &db.Field{
+			BaseType: db.IntType{X: &c.HighFrequency},
+		},
+		"channel_type": &db.Field{
+			BaseType: db.StringType{X: &c.ChannelType},
+		},
+		"rule_applied": &db.Field{
+			BaseType: db.StringType{X: &c.RuleApplied},
+		},
+		"max_eirp": &db.Field{
+			BaseType: db.FloatType{X: &c.MaxEirp},
+			Nullable: true,
+		},
+		"last_used_max_eirp": &db.Field{
+			BaseType: db.FloatType{X: &c.LastUsedMaxEirp},
+			Nullable: true,
+		},
 	}
 }
 
@@ -309,11 +434,17 @@ type DBActiveModeConfig struct {
 	DesiredStateId sql.NullInt64
 }
 
-func (amc *DBActiveModeConfig) Fields() map[string]db.Field {
-	return map[string]db.Field{
-		"id":               db.IntField{X: &amc.Id},
-		"cbsd_id":          db.IntField{X: &amc.CbsdId},
-		"desired_state_id": db.IntField{X: &amc.DesiredStateId},
+func (amc *DBActiveModeConfig) Fields() db.FieldMap {
+	return db.FieldMap{
+		"id": &db.Field{
+			BaseType: db.IntType{X: &amc.Id},
+		},
+		"cbsd_id": &db.Field{
+			BaseType: db.IntType{X: &amc.CbsdId},
+		},
+		"desired_state_id": &db.Field{
+			BaseType: db.IntType{X: &amc.DesiredStateId},
+		},
 	}
 }
 
@@ -343,18 +474,39 @@ type DBLog struct {
 	CreatedDate  sql.NullTime
 }
 
-func (l *DBLog) Fields() map[string]db.Field {
-	return map[string]db.Field{
-		"id":                 db.IntField{X: &l.Id},
-		"network_id":         db.StringField{X: &l.NetworkId},
-		"log_from":           db.StringField{X: &l.From},
-		"log_to":             db.StringField{X: &l.To},
-		"log_name":           db.StringField{X: &l.Name},
-		"log_message":        db.StringField{X: &l.Message},
-		"cbsd_serial_number": db.StringField{X: &l.SerialNumber},
-		"fcc_id":             db.StringField{X: &l.FccId},
-		"response_code":      db.NullIntField{X: &l.ResponseCode},
-		"created_date":       db.TimeField{X: &l.CreatedDate},
+func (l *DBLog) Fields() db.FieldMap {
+	return db.FieldMap{
+		"id": &db.Field{
+			BaseType: db.IntType{X: &l.Id},
+		},
+		"network_id": &db.Field{
+			BaseType: db.StringType{X: &l.NetworkId},
+		},
+		"log_from": &db.Field{
+			BaseType: db.StringType{X: &l.From},
+		},
+		"log_to": &db.Field{
+			BaseType: db.StringType{X: &l.To},
+		},
+		"log_name": &db.Field{
+			BaseType: db.StringType{X: &l.Name},
+		},
+		"log_message": &db.Field{
+			BaseType: db.StringType{X: &l.Message},
+		},
+		"cbsd_serial_number": &db.Field{
+			BaseType: db.StringType{X: &l.SerialNumber},
+		},
+		"fcc_id": &db.Field{
+			BaseType: db.StringType{X: &l.FccId},
+		},
+		"response_code": &db.Field{
+			BaseType: db.IntType{X: &l.ResponseCode},
+			Nullable: true,
+		},
+		"created_date": &db.Field{
+			BaseType: db.TimeType{X: &l.CreatedDate},
+		},
 	}
 }
 

@@ -13,7 +13,6 @@ limitations under the License.
 package storage_test
 
 import (
-	"database/sql"
 	"testing"
 	"time"
 
@@ -118,6 +117,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 
 		cbsd := getBaseCbsd()
 		cbsd.NetworkId = db.MakeString(someNetwork)
+		cbsd.IsDeleted = db.MakeBool(false)
 		expected := []db.Model{
 			cbsd,
 			&storage.DBCbsdState{Name: db.MakeString("unregistered")},
@@ -148,11 +148,6 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 	s.Require().NoError(err)
 }
 
-func (s *CbsdManagerTestSuite) TestUpdateNonExistentCbsd() {
-	err := s.cbsdManager.UpdateCbsd(someNetwork, 0, getBaseCbsd())
-	s.Assert().ErrorIs(err, merrors.ErrNotFound)
-}
-
 func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 	var cbsdId int64
 	err := s.resourceManager.InTransaction(func() {
@@ -176,7 +171,7 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 		actual, err := db.NewQuery().
 			WithBuilder(s.resourceManager.GetBuilder()).
 			From(&storage.DBCbsd{}).
-			Select(db.NewExcludeMask("id", "state_id", "cbsd_id")).
+			Select(db.NewExcludeMask("id", "state_id", "cbsd_id", "is_deleted")).
 			Where(sq.Eq{"id": cbsdId}).
 			Fetch()
 		s.Require().NoError(err)
@@ -187,9 +182,16 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 	s.Require().NoError(err)
 }
 
-func (s *CbsdManagerTestSuite) TestDeleteNonExistentCbsd() {
-	err := s.cbsdManager.DeleteCbsd(someNetwork, 0)
-	s.Require().ErrorIs(err, merrors.ErrNotFound)
+func (s *CbsdManagerTestSuite) TestUpdateDeletedCbsd() {
+	cbsdId := s.givenDeletedCbsd()
+
+	err := s.cbsdManager.UpdateCbsd(someNetwork, cbsdId, getBaseCbsd())
+	s.Assert().ErrorIs(err, merrors.ErrNotFound)
+}
+
+func (s *CbsdManagerTestSuite) TestUpdateNonExistentCbsd() {
+	err := s.cbsdManager.UpdateCbsd(someNetwork, 0, getBaseCbsd())
+	s.Assert().ErrorIs(err, merrors.ErrNotFound)
 }
 
 func (s *CbsdManagerTestSuite) TestDeleteCbsd() {
@@ -204,41 +206,38 @@ func (s *CbsdManagerTestSuite) TestDeleteCbsd() {
 	s.Require().NoError(err)
 
 	err = s.resourceManager.InTransaction(func() {
-		_, err := db.NewQuery().
-			WithBuilder(s.resourceManager.GetBuilder()).
-			From(&storage.DBCbsd{}).
-			Select(db.NewExcludeMask()).
-			Where(sq.Eq{"id": cbsdId}).
-			Fetch()
-		s.Assert().ErrorIs(err, sql.ErrNoRows)
-
-		expected := []db.Model{
-			&storage.DBRequest{
-				Payload: db.MakeString(`{"deregistrationRequest":[{"cbsdId":"some_cbsd_id"}]}`),
-			},
-			&storage.DBRequestType{
-				Name: db.MakeString("deregistrationRequest"),
-			},
-			&storage.DBRequestState{
-				Name: db.MakeString("pending"),
-			},
-		}
 		actual, err := db.NewQuery().
 			WithBuilder(s.resourceManager.GetBuilder()).
-			From(&storage.DBRequest{}).
-			Select(db.NewIncludeMask("payload")).
-			Join(db.NewQuery().
-				From(&storage.DBRequestType{}).
-				Select(db.NewIncludeMask("name"))).
-			Join(db.NewQuery().
-				From(&storage.DBRequestState{}).
-				Select(db.NewIncludeMask("name"))).
-			Where(sq.Eq{}).
+			From(&storage.DBCbsd{}).
+			Select(db.NewIncludeMask("is_deleted")).
+			Where(sq.Eq{"id": cbsdId}).
 			Fetch()
 		s.Require().NoError(err)
+		expected := []db.Model{
+			&storage.DBCbsd{IsDeleted: db.MakeBool(true)},
+		}
 		s.Assert().Equal(expected, actual)
 	})
 	s.Require().NoError(err)
+}
+
+func (s *CbsdManagerTestSuite) TestDeletedDeletedCbsd() {
+	cbsdId := s.givenDeletedCbsd()
+
+	err := s.cbsdManager.DeleteCbsd(someNetwork, cbsdId)
+	s.Assert().ErrorIs(err, merrors.ErrNotFound)
+}
+
+func (s *CbsdManagerTestSuite) TestDeleteNonExistentCbsd() {
+	err := s.cbsdManager.DeleteCbsd(someNetwork, 0)
+	s.Assert().ErrorIs(err, merrors.ErrNotFound)
+}
+
+func (s *CbsdManagerTestSuite) TestFetchDeletedCbsd() {
+	cbsdId := s.givenDeletedCbsd()
+
+	_, err := s.cbsdManager.FetchCbsd(someNetwork, cbsdId)
+	s.Assert().ErrorIs(err, merrors.ErrNotFound)
 }
 
 func (s *CbsdManagerTestSuite) TestFetchCbsdFromDifferentNetwork() {
@@ -439,6 +438,14 @@ func (s *CbsdManagerTestSuite) TestListNotIncludeIdleGrants() {
 	s.Assert().Equal(expected, actual)
 }
 
+func (s *CbsdManagerTestSuite) TestListDeletedCbsd() {
+	s.givenDeletedCbsd()
+
+	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{})
+	s.Require().NoError(err)
+	s.Assert().Empty(actual)
+}
+
 func (s *CbsdManagerTestSuite) givenResourceInserted(model db.Model) int64 {
 	id, err := db.NewQuery().
 		WithBuilder(s.resourceManager.GetBuilder()).
@@ -447,6 +454,18 @@ func (s *CbsdManagerTestSuite) givenResourceInserted(model db.Model) int64 {
 		Insert()
 	s.Require().NoError(err)
 	return id
+}
+
+func (s *CbsdManagerTestSuite) givenDeletedCbsd() int64 {
+	var cbsdId int64
+	err := s.resourceManager.InTransaction(func() {
+		state := s.enumMaps[storage.CbsdStateTable]["registered"]
+		cbsd := getCbsd(someNetwork, state)
+		cbsd.IsDeleted = db.MakeBool(true)
+		cbsdId = s.givenResourceInserted(cbsd)
+	})
+	s.Require().NoError(err)
+	return cbsdId
 }
 
 func (s *CbsdManagerTestSuite) getNameIdMapping(model db.Model) map[string]int64 {
@@ -464,8 +483,8 @@ func (s *CbsdManagerTestSuite) getNameIdMapping(model db.Model) map[string]int64
 	m := make(map[string]int64, len(resources))
 	for _, r := range resources {
 		fields := r[0].Fields()
-		key := fields["name"].Value().(string)
-		value := fields["id"].Value().(int64)
+		key := fields["name"].GetValue().(string)
+		value := fields["id"].GetValue().(int64)
 		m[key] = value
 	}
 	return m
