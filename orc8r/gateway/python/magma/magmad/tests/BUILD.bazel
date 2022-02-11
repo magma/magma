@@ -30,12 +30,6 @@ pytest_test(
 )
 
 pytest_test(
-    name = "metrics_tests",
-    srcs = ["metrics_tests.py"],
-    deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
-)
-
-pytest_test(
     name = "proxy_client_tests",
     srcs = ["proxy_client_tests.py"],
     deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
