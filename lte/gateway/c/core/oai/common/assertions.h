@@ -77,11 +77,7 @@
     }                                                                          \
   } while (0)
 
-#if DEBUG_IS_ON
 #define _ASSERT_FINAL_ _Assert_Builtin_Trap_
-#else
-#define _ASSERT_FINAL_ _Assert_Exit_
-#endif
 
 #define Fatal(format, args...)                                                 \
   do {                                                                         \

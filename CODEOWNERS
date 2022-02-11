@@ -53,6 +53,8 @@
 
 /src/go/ @markjen
 
+/dp/ @magma/approvers-domain-proxy
+
 # approvers-showtech
 /show-tech/ @magma/approvers-showtech
 

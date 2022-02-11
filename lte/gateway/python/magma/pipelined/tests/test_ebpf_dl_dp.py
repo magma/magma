@@ -11,9 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
+import socket
 import subprocess
 import unittest
 
+from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.ebpf.ebpf_manager import ebpf_manager
 from scapy.all import AsyncSniffer
@@ -66,7 +68,8 @@ class eBpfDatapathDLTest(unittest.TestCase):
         BridgeTools.ifup_netdev(cls.sgi_veth, cls.inner_dst_ip + "/24")
         BridgeTools.ifup_netdev(cls.gtp_veth_ns, cls.gtp_pkt_src + "/24")
 
-        cls.ebpf_man = ebpf_manager(cls.sgi_veth, cls.gtp_veth, cls.sgi_veth_ip, enabled=True, bpf_ul_file=UL_HANDLER, bpf_dl_file=DL_HANDLER)
+        gw_ip = IPAddress(version=IPAddress.IPV4, address=socket.inet_aton(cls.sgi_veth_ip))
+        cls.ebpf_man = ebpf_manager(cls.sgi_veth, cls.gtp_veth, gw_ip, enabled=True, bpf_ul_file=UL_HANDLER, bpf_dl_file=DL_HANDLER)
         cls.ebpf_man.detach_dl_ebpf()
         cls.ebpf_man.attach_dl_ebpf()
 
@@ -111,7 +114,7 @@ class eBpfDatapathDLTest(unittest.TestCase):
     def count_udp_packet(cls):
         cnt = 0
         for pkt in cls.packet_cap1:
-            #print(pkt.show(dump=True))
+            # print(pkt.show(dump=True))
             if IP in pkt:
                 if pkt[IP].src == cls.inner_src_ip and pkt[IP].dst == cls.inner_dst_ip:
                     cnt = cnt + 1
