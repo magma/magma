@@ -2245,7 +2245,8 @@ bool does_bearer_context_hold_valid_enb_ip(ip_address_t enb_ip_address_S1u) {
 }
 
 void sgw_send_release_access_bearer_response(
-    log_proto_t module, task_id_t origin_task_id, imsi64_t imsi64, gtpv2c_cause_value_t cause,
+    log_proto_t module, task_id_t origin_task_id, imsi64_t imsi64,
+    gtpv2c_cause_value_t cause,
     const itti_s11_release_access_bearers_request_t* const
         release_access_bearers_req_pP,
     teid_t mme_teid_s11) {
