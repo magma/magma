@@ -4326,19 +4326,19 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedActivateDedicatedBearerRej) {
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 
   // Send activate dedicated bearer request for lbi 5 mimicing SPGW
-  send_s11_create_bearer_req(5);
   EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_setup_req()).Times(1);
+  send_s11_create_bearer_req(5);
 
   // Send ERAB Setup Response mimicing S1AP
   send_erab_setup_rsp(6);
 
   // Constructing and sending Activate Dedicated Bearer Reject to mme_app
   // mimicing S1AP
+  EXPECT_CALL(*spgw_handler, sgw_handle_nw_initiated_actv_bearer_rsp())
+      .Times(1);
   send_mme_app_uplink_data_ind(
       nas_msg_activate_ded_bearer_reject,
       sizeof(nas_msg_activate_ded_bearer_reject), plmn);
-  EXPECT_CALL(*spgw_handler, sgw_handle_nw_initiated_actv_bearer_rsp())
-      .Times(1);
 
   // Check MME state after Bearer Activation Reject
   send_activate_message_to_mme_app();
@@ -4440,8 +4440,8 @@ TEST_F(
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 
   // Send activate dedicated bearer request for lbi 5 mimicing SPGW
-  send_s11_create_bearer_req(5);
   EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_setup_req()).Times(1);
+  send_s11_create_bearer_req(5);
 
   // Send ERAB Setup Response mimicing S1AP
   send_erab_setup_rsp(6);
@@ -4553,19 +4553,19 @@ TEST_F(
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 
   // Send activate dedicated bearer request for lbi 5 mimicing SPGW
-  send_s11_create_bearer_req(5);
   EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_setup_req()).Times(1);
+  send_s11_create_bearer_req(5);
 
   // Send ERAB Setup Response mimicing S1AP
   send_erab_setup_rsp(6);
 
   // Constructing and sending Activate Dedicated Bearer Accept to mme_app
   // mimicing S1AP
+  EXPECT_CALL(*spgw_handler, sgw_handle_nw_initiated_actv_bearer_rsp())
+      .Times(1);
   send_mme_app_uplink_data_ind(
       nas_msg_activate_ded_bearer_accept,
       sizeof(nas_msg_activate_ded_bearer_accept), plmn);
-  EXPECT_CALL(*spgw_handler, sgw_handle_nw_initiated_actv_bearer_rsp())
-      .Times(1);
 
   // Check MME state after Bearer Activation
   send_activate_message_to_mme_app();
@@ -4579,10 +4579,10 @@ TEST_F(
   uint8_t ebi_to_be_deactivated = 6;
   // Constructing and sending deactivate bearer request
   // for dedicated bearer that should trigger ERAB Release Command
-  send_s11_deactivate_bearer_req(1, &ebi_to_be_deactivated, false);
   EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_rel_cmd())
       .Times(5)
       .WillRepeatedly(ReturnFromAsyncTask(&cv));
+  send_s11_deactivate_bearer_req(1, &ebi_to_be_deactivated, false);
 
   EXPECT_CALL(*spgw_handler, sgw_handle_nw_initiated_deactv_bearer_rsp())
       .Times(1);
