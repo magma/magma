@@ -4,10 +4,11 @@
 
 To setup a Magma Access Gateway, user must need a machine that satisfies the following requirements:
 
-**AGW\_HOST**: 
+#### AGW\_HOST: #### 
     -64bit-X86 machine
     -Bare metal or virtual machine installed with Ubuntu Server 20.04 LTS
     -Two ethernet ports (One port is for the SGi interface (default: enp1s0) and the  other port is for the S1 interface (default: enp2s0)
+    -Passwordless sudo user account 
 
 **Note**: The Ansible scripts renames the `enp1s0` interface to `eth0` and the enp2s0 to eth1. 
 
@@ -35,10 +36,59 @@ Below are the minimum hardware specifications that required for AGW installation
 | Storage | Minimum 32GB SSD preferably 128GB-256GB SSD |
 | Operating System | Ubuntu Focal 20.04 (LTS) |
 
+**How to create a passwordless sudo account:**
+To add a passwordless sudo account, you need to edit the `/etc/sudoers` sudo configuration command using the `sudo visudo` editor. For an example if we want to make `ubuntu` as a passwordless sudo account then you need to appned below line in your `/etc/sudoers`
 
-To deploy AGW on the above machine a workstation is required. 
+```
+ubuntu ALL=(ALL) NOPASSWD:ALL
+```
 
-**Workstation**: It could be a VM or bare metal which must have Ansible installed in it and key based SSH authentication to the AGW host.
+After configuring your machine now to deploy AGW on the above machine a workstation is required. 
+
+#### Workstation: ####
+It could be a VM or bare metal which must have Ansible installed in it and key based SSH authentication to the AGW host.
+
+**How to install Ansible on Workstation**:
+To install ansible on your workstation first you need to create a filed named requirements.txt with below content.
+
+```
+# Create the requirements.txt file.
+
+vi requirements.txt
+
+# Add the below content
+
+ansible==5.2.0
+ansible-core==2.12.1
+cryptography==2.8
+Jinja2==2.10.1
+MarkupSafe==1.1.0
+packaging==21.3
+pyparsing==3.0.6
+PyYAML==5.3.1
+resolvelib==0.5.4
+```
+
+Then execute the below command to install Python and Ansible 
+
+```
+sudo apt-get update && sudo apt-get install python3-pip python3 wget -y
+sudo python3 -m pip install -r requirements.txt
+```
+**How to configure key based SSH authentication**:
+
+On your workstation execute the below command to create the ssh keys. 
+
+```
+ssh-keygen -t ed25519
+```
+
+After creating the keys execute the below command to copy the keys to your remote host (box where you want to deploy AGW). 
+
+```
+ssh-copyid <ssh-user>:<AGW remote host IP>
+```
+
 
 ## Deployments
 
