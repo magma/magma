@@ -744,7 +744,7 @@ func getCbsd() *models.Cbsd {
 		SerialNumber: to_pointer.Str("someSerialNumber"),
 		State:        "unregistered",
 		UserID:       to_pointer.Str("someUserId"),
-		IsActive:     to_pointer.Bool(false),
+		IsActive:     false,
 	}
 }
 
