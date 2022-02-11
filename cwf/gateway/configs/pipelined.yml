@@ -124,7 +124,7 @@ bridge_ip_address: 192.168.128.1
 # For CWF internal redirection, same subnet as the ovs bridge ip address
 internal_ip_subnet: '192.168.0.0/16'
 # For ipv6 router solicitation app
-ipv6_router_addr: 'd88d:aba4:472f:fc95:7e7d:8457:5301:ebce'
+# ipv6_router_addr: 'd88d:aba4:472f:fc95:7e7d:8457:5301:ebce'
 
 # QoS parameters
 qos:

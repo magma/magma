@@ -89,6 +89,8 @@ class MockMmeAppHandler {
   MOCK_METHOD0(mme_app_handle_initial_context_setup_failure, void());
   MOCK_METHOD0(mme_app_handle_enb_reset_req, void());
   MOCK_METHOD0(mme_app_handle_e_rab_setup_rsp, void());
+  MOCK_METHOD0(mme_app_handle_s6a_cancel_location_req, void());
+  MOCK_METHOD0(mme_app_handle_s6a_reset_req, void());
   MOCK_METHOD0(mme_app_handle_path_switch_request, void());
   MOCK_METHOD1(
       mme_app_handle_suspend_acknowledge,
@@ -105,6 +107,7 @@ class MockS6aHandler {
   MOCK_METHOD0(s6a_viface_authentication_info_req, void());
   MOCK_METHOD0(s6a_viface_update_location_req, void());
   MOCK_METHOD0(s6a_viface_purge_ue, void());
+  MOCK_METHOD0(s6a_cancel_location_ans, void());
 };
 
 class MockSpgwHandler {

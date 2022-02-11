@@ -58,8 +58,8 @@ dp:
       port: 8080  # Default port of enabled kubernetes service.
 
     # If paths are set chart will generate kubernetes Secret resources for ingress. Mutually exclusive with ingress.tls.
-    tlsConfig: {} # tls configuration for communication with SAS.
-      #paths:
+    tlsConfig:  # tls configuration for communication with SAS.
+      paths: {}
       #  cert: ""  # Client/Server TLS certificate path.
       #  key: ""  # Client/Server TLS private key path.
       #  ca: ""  # Certificate Authority certifcate chain path.
@@ -167,8 +167,8 @@ dp:
 
 
     # If paths are set chart will generate kubernetes Secret resources for ingress. Mutually exclusive with ingress.tls.
-    tlsConfig: {}
-      #paths:
+    tlsConfig:
+      paths: {}
       #  cert: ""  # Client/Server TLS certificate path.
       #  key: ""  # Client/Server TLS private key path.
       #  ca: ""  # Certificate Authority certifcate chain path.

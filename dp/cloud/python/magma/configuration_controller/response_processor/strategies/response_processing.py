@@ -183,7 +183,9 @@ def process_heartbeat_response(obj: ResponseDBProcessor, response: DBResponse, s
         new_state = obj.grant_states_map[GrantStates.AUTHORIZED.value]
     elif response.response_code == ResponseCodes.SUSPENDED_GRANT.value:
         new_state = obj.grant_states_map[GrantStates.GRANTED.value]
-    elif response.response_code in {ResponseCodes.TERMINATED_GRANT.value, ResponseCodes.UNSYNC_OP_PARAM.value}:
+    elif response.response_code == ResponseCodes.UNSYNC_OP_PARAM.value:
+        new_state = obj.grant_states_map[GrantStates.UNSYNC.value]
+    elif response.response_code == ResponseCodes.TERMINATED_GRANT.value:
         new_state = obj.grant_states_map[GrantStates.IDLE.value]
         _reset_last_used_max_eirp(grant)
     elif response.response_code == ResponseCodes.DEREGISTER.value:

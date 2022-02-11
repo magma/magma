@@ -1,6 +1,18 @@
+/*
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 syntax = "proto3";
 
-// TODO change names to avoid conflicts
+import "google/protobuf/wrappers.proto";
 
 option go_package = "magma/dp/cloud/go/active_mode_controller/protos/active_mode";
 
@@ -54,12 +66,13 @@ message Grant {
 enum GrantState {
   Granted = 0;
   Authorized = 1;
+  Unsync = 2;
 }
 
 message Channel {
   FrequencyRange frequency_range = 1;
-  optional float max_eirp = 2;
-  optional float last_eirp = 3;
+  google.protobuf.FloatValue max_eirp = 2;
+  google.protobuf.FloatValue last_eirp = 3;
 }
 
 message FrequencyRange {

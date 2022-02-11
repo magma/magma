@@ -43,6 +43,7 @@ constexpr char MME_STREAM_NAME[]  = "mme";
 constexpr char ATTACH_SUCCESS[]   = "attach_success";
 constexpr char DETACH_SUCCESS[]   = "detach_success";
 constexpr char S1_SETUP_SUCCESS[] = "s1_setup_success";
+constexpr char ATTACH_REJECT[]    = "attach_reject";
 }  // namespace
 
 void event_client_init(void) {
@@ -105,4 +106,14 @@ int s1_setup_success_event(const char* enb_name, uint32_t enb_id) {
   return report_event(
       event_value, S1_SETUP_SUCCESS, MME_STREAM_NAME,
       folly::to<std::string>(enb_id));
+}
+
+int attach_reject_event(imsi64_t imsi64) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+
+  return report_event(event_value, ATTACH_REJECT, MME_STREAM_NAME, imsi_str);
 }

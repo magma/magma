@@ -322,7 +322,7 @@ RUN ldconfig -v
 ##### Install Python requirements
 RUN pip3 install --quiet --upgrade --no-cache-dir "setuptools==49.6.0"
 
-### install python3-aioeventlet from the magma apt repo (from .circleci/config.yml)
+### install python3-aioeventlet from the magma apt repo
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/
 RUN apt-key add /tmp/jfrog.pub && \
     echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" > /etc/apt/sources.list.d/fbc.list && \
@@ -347,6 +347,26 @@ WORKDIR ${MAGMA_ROOT}/orc8r/gateway/python/
 RUN pip3 install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose --editable .[dev] && \
     rm -rf orc8r.egg-info
 
+# install formatter autopep8
+RUN pip install --no-cache-dir autopep8
+
+#### protos
+ARG PYTHON_LIB=/usr/local/lib/python3.8
+
+COPY /protos/ ${MAGMA_ROOT}/protos/
+COPY /lte/protos/ ${MAGMA_ROOT}/lte/protos/
+COPY /orc8r/protos/ ${MAGMA_ROOT}/orc8r/protos/
+COPY /feg/protos/ ${MAGMA_ROOT}/feg/protos/
+COPY /dp/protos/ ${MAGMA_ROOT}/dp/protos/
+WORKDIR $MAGMA_ROOT
+RUN pip install mypy-protobuf && \
+    mkdir $PYTHON_LIB/gen && \
+    for PROTO_SRC in orc8r lte feg dp; \
+    do \
+    python protos/gen_protos.py ${PROTO_SRC}/protos ${MAGMA_ROOT},orc8r/protos/prometheus ${MAGMA_ROOT} $PYTHON_LIB/gen && \
+    python protos/gen_prometheus_proto.py ${MAGMA_ROOT} $PYTHON_LIB/gen; \
+    done && \
+    echo "$PYTHON_LIB/gen" > $PYTHON_LIB/dist-packages/magma_gen.pth
 
 RUN ln -s $MAGMA_ROOT/bazel/bazelrcs/devcontainer.bazelrc /etc/bazelrc
 

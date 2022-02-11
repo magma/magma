@@ -97,9 +97,11 @@ Status AmfServiceImpl::SetAmfNotification(
 Status AmfServiceImpl::SetSmfSessionContext(
     ServerContext* context, const SetSMSessionContextAccess* request,
     SmContextVoid* response) {
-  struct in_addr ip_addr       = {0};
-  char ip_str[INET_ADDRSTRLEN] = {0};
-  uint32_t ip_int              = 0;
+  struct in_addr ip_addr           = {0};
+  char ip_v4_str[INET_ADDRSTRLEN]  = {0};
+  char ip_v6_str[INET6_ADDRSTRLEN] = {0};
+
+  uint32_t ip_int = 0;
   OAILOG_INFO(
       LOG_UTIL, "Received GRPC SetSmfSessionContext request from SMF\n");
 
@@ -166,14 +168,33 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.allowed_ssc_mode = (ssc_mode_t) req_m5g.allowed_ssc_mode();
   itti_msg.m5gsm_congetion_re_attempt_indicator =
       req_m5g.m5g_sm_congestion_reattempt_indicator();
-  itti_msg.pdu_address.redirect_address_type =
-      (redirect_address_type_t) req_m5g.pdu_address().redirect_address_type();
+
   // PDU IP address coming from SMF in human-readable format has to be packed
   // into 4 raw bytes in hex for NAS5G layer
-  strcpy(ip_str, req_common.ue_ipv4().c_str());
-  inet_pton(AF_INET, ip_str, &(ip_addr.s_addr));
-  ip_int = ntohl(ip_addr.s_addr);
-  INT32_TO_BUFFER(ip_int, itti_msg.pdu_address.redirect_server_address);
+
+  if (req_common.ue_ipv4().size() > 0) {
+    inet_pton(
+        AF_INET, req_common.ue_ipv4().c_str(),
+        &(itti_msg.pdu_address.ipv4_address));
+    uint32_t ip_int = ntohl(ip_addr.s_addr);
+
+    itti_msg.pdu_address.pdn_type = IPv4;
+  }
+
+  if (req_common.ue_ipv6().size() > 0) {
+    inet_pton(
+        AF_INET6, req_common.ue_ipv6().c_str(),
+        &(itti_msg.pdu_address.ipv6_address));
+
+    if (req_common.ue_ipv4().size() == 0) {
+      itti_msg.pdu_address.pdn_type = IPv6;
+    } else {
+      itti_msg.pdu_address.pdn_type = IPv4_AND_v6;
+    }
+
+    itti_msg.pdu_address.ipv6_prefix_length = IPV6_PREFIX_LEN;
+  }
+
   send_n11_create_pdu_session_resp_itti(&itti_msg);
   OAILOG_INFO(LOG_UTIL, "Received  GRPC SetSMSessionContextAccess request \n");
   return Status::OK;

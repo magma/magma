@@ -5,12 +5,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/wrapperspb"
+
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 	"magma/dp/cloud/go/active_mode_controller/protos/requests"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 const mega = 1e6
@@ -35,7 +36,7 @@ func TestGenerateGrantMessages(t *testing.T) {
 			capabilities: getDefaultCapabilities(),
 			channels: []*active_mode.Channel{{
 				FrequencyRange: getDefaultFrequencyRange(),
-				MaxEirp:        makeOptionalFloat(15),
+				MaxEirp:        wrapperspb.Float(15),
 			}},
 			expected: newGrantParams(withMaxEirp(15)).toRequest(),
 		},
@@ -44,8 +45,8 @@ func TestGenerateGrantMessages(t *testing.T) {
 			capabilities: getDefaultCapabilities(),
 			channels: []*active_mode.Channel{{
 				FrequencyRange: getDefaultFrequencyRange(),
-				MaxEirp:        makeOptionalFloat(30),
-				LastEirp:       makeOptionalFloat(11),
+				MaxEirp:        wrapperspb.Float(30),
+				LastEirp:       wrapperspb.Float(11),
 			}},
 			expected: newGrantParams(withMaxEirp(10)).toRequest(),
 		},
@@ -70,7 +71,7 @@ func TestGenerateGrantMessages(t *testing.T) {
 			},
 			channels: []*active_mode.Channel{{
 				FrequencyRange: getDefaultFrequencyRange(),
-				LastEirp:       makeOptionalFloat(-10),
+				LastEirp:       wrapperspb.Float(-10),
 			}},
 			expected: getSpectrumInquiryRequest(),
 		},
@@ -84,13 +85,13 @@ func TestGenerateGrantMessages(t *testing.T) {
 			},
 			channels: []*active_mode.Channel{{
 				FrequencyRange: getDefaultFrequencyRange(),
-				LastEirp:       makeOptionalFloat(5),
+				LastEirp:       wrapperspb.Float(5),
 			}, {
 				FrequencyRange: &active_mode.FrequencyRange{
 					Low:  3550 * mega,
 					High: 3560 * mega,
 				},
-				MaxEirp: makeOptionalFloat(6),
+				MaxEirp: wrapperspb.Float(6),
 			}},
 			expected: newGrantParams(
 				withMaxEirp(6),

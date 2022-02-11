@@ -342,9 +342,9 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
         name: gateway.name,
         id: gateway.id,
         num_enodeb: numEnodeBs,
-        num_subscribers: gateway.device
-          ? gwSubscriberMap?.[gateway.device?.hardware_id].length
-          : 0,
+        num_subscribers:
+          // $FlowIgnore: gateway.device should be present
+          gwSubscriberMap?.[gateway.device.hardware_id]?.length ?? 0,
         health: isGatewayHealthy(gateway) ? 'Good' : 'Bad',
         checkInTime: checkInTime,
       });

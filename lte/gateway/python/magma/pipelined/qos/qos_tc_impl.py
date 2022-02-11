@@ -226,11 +226,9 @@ class TCManager(object):
     def __init__(
         self,
         datapath,
-        loop,
         config,
     ) -> None:
         self._datapath = datapath
-        self._loop = loop
         self._uplink = config['nat_iface']
         self._downlink = config['enodeb_iface']
         self._max_rate = config["qos"]["max_rate"]
@@ -253,19 +251,26 @@ class TCManager(object):
             LOG.info("TC not initialized, skip destroying existing qos classes")
             return
 
-        LOG.info("destroying existing qos classes")
+        LOG.info("destroying existing leaf qos classes")
         # ensure ordering during deletion of classes, children should be deleted
         # prior to the parent class ids
+        p_qids = set()
         for intf in [self._uplink, self._downlink]:
             qid_list = TrafficClass.read_all_classes(intf)
             for qid_tuple in qid_list:
                 (qid, pqid) = qid_tuple
                 if self._start_idx <= qid < (self._max_idx - 1):
-                    LOG.info("Attemting to delete class idx %d", qid)
+                    LOG.info("Attempting to delete class idx %d", qid)
                     TrafficClass.delete_class(intf, qid)
                 if self._start_idx <= pqid < (self._max_idx - 1):
-                    LOG.info("Attemting to delete parent class idx %d", pqid)
-                    TrafficClass.delete_class(intf, pqid)
+                    p_qids.add((intf, pqid))
+
+        LOG.info("destroying existing parent classes")
+        for p_qid_tuple in p_qids:
+            (intf, pqid) = p_qid_tuple
+            LOG.info("Attempting to delete parent class idx %d", pqid)
+            TrafficClass.delete_class(intf, pqid, skip_filter=True)
+        LOG.info("destroying All qos classes: done")
 
     def setup(self):
         # initialize new qdisc
@@ -310,7 +315,7 @@ class TCManager(object):
             LOG.error("qos create error: qid %d err %d", qid, err_no)
             return
 
-        LOG.debug("create done: qid %d err %s", qid, err_no)
+        LOG.debug("create done: if: %s qid %d err %s", intf, qid, err_no)
 
     def add_qos(
         self, d: FlowMatch.Direction, qos_info: QosInfo,
@@ -318,8 +323,8 @@ class TCManager(object):
     ) -> int:
         LOG.debug("add QoS: %s", qos_info)
         qid = self._id_manager.allocate_idx()
-        self._loop.call_soon_threadsafe(
-            self.create_class_async, d, qos_info,
+        self.create_class_async(
+            d, qos_info,
             qid, parent, skip_filter, cleanup_rule,
         )
         LOG.debug("assigned qid: %d", qid)

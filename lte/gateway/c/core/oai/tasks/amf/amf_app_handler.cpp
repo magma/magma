@@ -35,6 +35,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
 #include "lte/gateway/c/core/oai/include/n11_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
@@ -509,17 +510,17 @@ imsi64_t amf_app_handle_initial_ue_message(
 }
 
 /****************************************************************************
- **                                                                        **
- ** Name:    amf_handle_uplink_nas_message()                               **
- **                                                                        **
- ** Description: Handle uplink nas message                                 **
- **                                                                        **
- ** Inputs:  amf_app_desc_p:    amf application descriptors                **
- **      msg:      nstring msg                                             **
- **                                                                        **
- **      Return:    RETURNok, RETURNerror                                  **
- **                                                                        **
- ***************************************************************************/
+**                                                                        **
+** Name:    amf_handle_uplink_nas_message()                               **
+**                                                                        **
+** Description: Handle uplink nas message                                 **
+**                                                                        **
+** Inputs:  amf_app_desc_p:    amf application descriptors                **
+**      msg:      nstring msg                                             **
+**                                                                        **
+**      Return:    RETURNok, RETURNerror                                  **
+**                                                                        **
+***************************************************************************/
 int amf_app_handle_uplink_nas_message(
     amf_app_desc_t* amf_app_desc_p, bstring msg, amf_ue_ngap_id_t ue_id,
     const tai_t originating_tai) {
@@ -661,19 +662,19 @@ int amf_app_handle_pdu_session_response(
   return rc;
 }
 /****************************************************************************
- **                                                                        **
- ** Name:    convert_ambr()                                                **
- **                                                                        **
- ** Description: Converts the session ambr format from                     **
- **  one defined in create_pdu_session_response to one defined in          **
- **  pdu_session_estab_accept message                                      **
- **                                                                        **
- ** Inputs:  pdu_ambr_response_unit, pdu_ambr_response_value               **
- **          ambr_unit, ambr_value                                         **
- **                                                                        **
- **      Return:   void                                                    **
- **                                                                        **
- ***************************************************************************/
+**                                                                        **
+** Name:    convert_ambr()                                                **
+**                                                                        **
+** Description: Converts the session ambr format from                     **
+**  one defined in create_pdu_session_response to one defined in          **
+**  pdu_session_estab_accept message                                      **
+**                                                                        **
+** Inputs:  pdu_ambr_response_unit, pdu_ambr_response_value               **
+**          ambr_unit, ambr_value                                         **
+**                                                                        **
+**      Return:   void                                                    **
+**                                                                        **
+***************************************************************************/
 void convert_ambr(
     const uint32_t* pdu_ambr_response_unit,
     const uint32_t* pdu_ambr_response_value, M5GSessionAmbrUnit* ambr_unit,
@@ -713,18 +714,67 @@ void convert_ambr(
   *ambr_value = static_cast<uint16_t>(temp_pdu_ambr_response_value);
 }
 
+// Utility function to convert address to buffer
+static int paa_to_address_info(
+    const paa_t* paa, uint8_t* pdu_address_info, uint8_t* pdu_address_length) {
+  uint32_t ip_int = 0;
+  if ((paa == nullptr) || (pdu_address_info == nullptr) ||
+      (pdu_address_length == nullptr)) {
+    return RETURNerror;
+  }
+  switch (paa->pdn_type) {
+    case IPv4:
+      ip_int = ntohl(paa->ipv4_address.s_addr);
+      INT32_TO_BUFFER(ip_int, pdu_address_info);
+      *pdu_address_length = sizeof(ip_int);
+      break;
+
+    case IPv6:
+      if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
+        memcpy(
+            pdu_address_info, &paa->ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN],
+            IPV6_INTERFACE_ID_LEN);
+        *pdu_address_length = IPV6_INTERFACE_ID_LEN;
+      } else {
+        OAILOG_ERROR(
+            LOG_AMF_APP, "Invalid ipv6_prefix_length : %u\n",
+            paa->ipv6_prefix_length);
+        return RETURNerror;
+      }
+      break;
+    case IPv4_AND_v6:
+      if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
+        memcpy(
+            pdu_address_info, &paa->ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN],
+            IPV6_INTERFACE_ID_LEN);
+        ip_int = ntohl(paa->ipv4_address.s_addr);
+        INT32_TO_BUFFER(ip_int, pdu_address_info + IPV6_INTERFACE_ID_LEN);
+        *pdu_address_length = IPV6_INTERFACE_ID_LEN + sizeof(ip_int);
+      } else {
+        OAILOG_ERROR(
+            LOG_AMF_APP, "Invalid ipv6_prefix_length : %u\n",
+            paa->ipv6_prefix_length);
+        return RETURNerror;
+      }
+      break;
+    default:
+      break;
+  }
+  return RETURNok;
+}
+
 /****************************************************************************
- **                                                                        **
- ** Name:    amf_app_handle_pdu_session_accept()                           **
- **                                                                        **
- ** Description: Send the PDU establishment accept to gnodeb               **
- **                                                                        **
- ** Inputs:  pdu_session_resp:   pdusession response message               **
- **      ue_id:      ue identity                                           **
- **                                                                        **
- **      Return:    RETURNok, RETURNerror                                  **
- **                                                                        **
- ***************************************************************************/
+**                                                                        **
+** Name:    amf_app_handle_pdu_session_accept()                           **
+**                                                                        **
+** Description: Send the PDU establishment accept to gnodeb               **
+**                                                                        **
+** Inputs:  pdu_session_resp:   pdusession response message               **
+**      ue_id:      ue identity                                           **
+**                                                                        **
+**      Return:    RETURNok, RETURNerror                                  **
+**                                                                        **
+***************************************************************************/
 int amf_app_handle_pdu_session_accept(
     itti_n11_create_pdu_session_response_t* pdu_session_resp, uint64_t ue_id) {
   nas5g_error_code_t rc = M5G_AS_SUCCESS;
@@ -812,11 +862,47 @@ int amf_app_handle_pdu_session_accept(
   memset(
       &(smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info), 0, 12);
 
-  for (int i = 0; i < PDU_ADDR_IPV4_LEN; i++) {
-    smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info[i] =
-        pdu_session_resp->pdu_address.redirect_server_address[i];
+  // For tracking the length of payload container
+  uint32_t buf_len = 0;
+
+  // encode v4 type address
+  if (pdu_session_resp->pdu_address.pdn_type == IPv4) {
+    smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val =
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV4);
+    smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val =
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV4);
+
+    paa_to_address_info(
+        &(pdu_session_resp->pdu_address),
+        smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info,
+        &(smf_msg->msg.pdu_session_estab_accept.pdu_address.length));
+
+  } else if (pdu_session_resp->pdu_address.pdn_type == IPv6) {
+    smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val =
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV6);
+
+    smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val =
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV6);
+
+    paa_to_address_info(
+        &(pdu_session_resp->pdu_address),
+        smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info,
+        &(smf_msg->msg.pdu_session_estab_accept.pdu_address.length));
+
+  } else if (pdu_session_resp->pdu_address.pdn_type == IPv4_AND_v6) {
+    smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val =
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV4V6);
+
+    smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val =
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV4V6);
+
+    paa_to_address_info(
+        &(pdu_session_resp->pdu_address),
+        smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info,
+        &(smf_msg->msg.pdu_session_estab_accept.pdu_address.length));
   }
-  smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val = PDU_ADDR_TYPE;
+
+  buf_len += sizeof(class PDUAddressMsg);
 
   /* QOSrules are hardcoded as it is not exchanged in AMF-SMF
    * gRPC calls as of now, handled in upcoming PR
@@ -875,7 +961,6 @@ int amf_app_handle_pdu_session_accept(
   -------------------------------------- */
   smf_msg->msg.pdu_session_estab_accept.nssai.iei =
       static_cast<uint8_t>(M5GIei::S_NSSAI);
-  uint32_t buf_len = 0;
   if (smf_ctx->requested_nssai.sst) {
     if (smf_ctx->requested_nssai.sd[0]) {
       smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH + SD_LENGTH;
@@ -908,7 +993,7 @@ int amf_app_handle_pdu_session_accept(
 
   encode_msg->payload_container.len =
       PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN + pco_len + buf_len;
-  len = PDU_ESTAB_ACCEPT_NAS_PDU_LEN + pco_len + buf_len;
+  len = PDU_SESSION_ESTABLISH_ACPT_MIN_LEN + encode_msg->payload_container.len;
 
   /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
    * so length is modified such that it will be mode of 4

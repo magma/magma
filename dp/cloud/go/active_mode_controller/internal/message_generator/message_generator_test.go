@@ -4,12 +4,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/wrapperspb"
+
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 	"magma/dp/cloud/go/active_mode_controller/protos/requests"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGenerateMessages(t *testing.T) {
@@ -121,7 +122,7 @@ func TestGenerateMessages(t *testing.T) {
 								Low:  3.62e9,
 								High: 3.63e9,
 							},
-							MaxEirp: makeOptionalFloat(4),
+							MaxEirp: wrapperspb.Float(4),
 						}},
 						EirpCapabilities: &active_mode.EirpCapabilities{
 							MinPower:      0,
@@ -148,7 +149,7 @@ func TestGenerateMessages(t *testing.T) {
 								Low:  3.62e9,
 								High: 3.63e9,
 							},
-							MaxEirp: makeOptionalFloat(15),
+							MaxEirp: wrapperspb.Float(15),
 						}},
 						EirpCapabilities: &active_mode.EirpCapabilities{
 							MinPower:      0,
@@ -206,6 +207,52 @@ func TestGenerateMessages(t *testing.T) {
 			}},
 		},
 		{
+			name: "Should send both heartbeat and relinquish message for 2 grants when one is in Granted state and the other in Unsync",
+			state: &active_mode.State{
+				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
+					DesiredState: active_mode.CbsdState_Registered,
+					Cbsd: &active_mode.Cbsd{
+						Id:    "some_cbsd_id",
+						State: active_mode.CbsdState_Registered,
+						Grants: []*active_mode.Grant{
+							{
+								Id:    "some_grant_id",
+								State: active_mode.GrantState_Granted,
+							},
+							{
+								Id:    "some_other_grant_id",
+								State: active_mode.GrantState_Unsync,
+							},
+						},
+						LastSeenTimestamp: now.Unix(),
+					},
+				}},
+			},
+			expected: []*requests.RequestPayload{
+				{
+					Payload: `{
+	"heartbeatRequest": [
+		{
+			"cbsdId": "some_cbsd_id",
+			"grantId": "some_grant_id",
+			"operationState": "GRANTED"
+		}
+	]
+}`,
+				},
+				{
+					Payload: `{
+	"relinquishmentRequest": [
+		{
+			"cbsdId": "some_cbsd_id",
+			"grantId": "some_other_grant_id"
+		}
+	]
+}`,
+				},
+			},
+		},
+		{
 			name: "Should send relinquish message when inactive for too long",
 			state: &active_mode.State{
 				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
@@ -243,10 +290,6 @@ func TestGenerateMessages(t *testing.T) {
 			}
 		})
 	}
-}
-
-func makeOptionalFloat(v float32) *float32 {
-	return &v
 }
 
 func getSpectrumInquiryRequest() []*requests.RequestPayload {
