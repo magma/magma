@@ -21,7 +21,7 @@ PDUSessionModificationRequestMsg::~PDUSessionModificationRequestMsg(){};
 int PDUSessionModificationRequestMsg::DecodePDUSessionModificationRequestMsg(
     PDUSessionModificationRequestMsg* pdu_session_modif_request,
     uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, PDU_SESSION_MODIFICATION_REQ_MIN_LEN, len);

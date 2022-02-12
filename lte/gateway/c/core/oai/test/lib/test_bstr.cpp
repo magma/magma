@@ -26,8 +26,8 @@ class BstrTest : public ::testing::Test {
 
 TEST_F(BstrTest, TestBstrchrp) {
   const char hello[6] = "hello";
-  const char h        = 'h';
-  const char e        = 'e';
+  const char h = 'h';
+  const char e = 'e';
 
   // Create bstring for hello
   bstring hello_bstr = bfromcstr_with_str_len(hello, 5);
@@ -46,7 +46,7 @@ TEST_F(BstrTest, TestBstrchrp) {
 
 TEST_F(BstrTest, TestBtrimws) {
   const char hello[10] = "  hello  ";
-  const char space[5]  = "    ";
+  const char space[5] = "    ";
 
   // Check trimming from start and end
   bstring hello_bstr = bfromcstr_with_str_len(hello, 9);
@@ -66,7 +66,7 @@ TEST_F(BstrTest, TestBtrimws) {
 
 TEST_F(BstrTest, TestBdelete) {
   const char habit[6] = "habit";
-  const char bit[4]   = "bit";
+  const char bit[4] = "bit";
 
   // null check
   EXPECT_EQ(bdelete(nullptr, 1, 2), BSTR_ERR);
@@ -79,9 +79,9 @@ TEST_F(BstrTest, TestBdelete) {
 }
 
 TEST_F(BstrTest, TestBiseqcstrcaseless) {
-  const char hello_lower[6]        = "hello";
-  const char hello_upper[6]        = "HELLO";
-  const char world_lower[6]        = "world";
+  const char hello_lower[6] = "hello";
+  const char hello_upper[6] = "HELLO";
+  const char world_lower[6] = "world";
   const char hello_world_lower[12] = "hello world";
 
   // null check
@@ -101,9 +101,9 @@ TEST_F(BstrTest, TestBiseqcstrcaseless) {
 }
 
 TEST_F(BstrTest, TestBiseqcaselessblk) {
-  const char hello_lower[6]        = "hello";
-  const char hello_upper[6]        = "HELLO";
-  const char world_lower[6]        = "world";
+  const char hello_lower[6] = "hello";
+  const char hello_upper[6] = "HELLO";
+  const char world_lower[6] = "world";
   const char hello_world_lower[12] = "hello world";
 
   // null check

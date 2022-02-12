@@ -21,11 +21,9 @@ class M5GPDUSessionStatus {
 
   M5GPDUSessionStatus();
   ~M5GPDUSessionStatus();
-  int EncodePDUSessionStatus(
-      M5GPDUSessionStatus* pduSessionStatus, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
-  int DecodePDUSessionStatus(
-      M5GPDUSessionStatus* pduSessionStatus, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
+  int EncodePDUSessionStatus(M5GPDUSessionStatus* pduSessionStatus, uint8_t iei,
+                             uint8_t* buffer, uint32_t len);
+  int DecodePDUSessionStatus(M5GPDUSessionStatus* pduSessionStatus, uint8_t iei,
+                             uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

@@ -60,9 +60,9 @@
 status_code_e mme_app_send_s6a_update_location_req(
     struct ue_mm_context_s* const ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  MessageDef* message_p                = NULL;
+  MessageDef* message_p = NULL;
   s6a_update_location_req_t* s6a_ulr_p = NULL;
-  int rc                               = RETURNok;
+  int rc = RETURNok;
 
   OAILOG_INFO(
       TASK_MME_APP,
@@ -75,19 +75,17 @@ status_code_e mme_app_send_s6a_update_location_req(
   }
 
   s6a_ulr_p = &message_p->ittiMsg.s6a_update_location_req;
-  memset((void*) s6a_ulr_p, 0, sizeof(s6a_update_location_req_t));
-  IMSI64_TO_STRING(
-      (ue_context_p->emm_context._imsi64), s6a_ulr_p->imsi,
-      ue_context_p->emm_context._imsi.length);
-  s6a_ulr_p->imsi_length    = strlen(s6a_ulr_p->imsi);
+  memset((void*)s6a_ulr_p, 0, sizeof(s6a_update_location_req_t));
+  IMSI64_TO_STRING((ue_context_p->emm_context._imsi64), s6a_ulr_p->imsi,
+                   ue_context_p->emm_context._imsi.length);
+  s6a_ulr_p->imsi_length = strlen(s6a_ulr_p->imsi);
   s6a_ulr_p->initial_attach = INITIAL_ATTACH;
-  plmn_t visited_plmn       = {0};
+  plmn_t visited_plmn = {0};
   COPY_PLMN(visited_plmn, ue_context_p->emm_context.originating_tai.plmn);
   memcpy(&s6a_ulr_p->visited_plmn, &visited_plmn, sizeof(plmn_t));
   s6a_ulr_p->rat_type = RAT_EUTRAN;
-  OAILOG_DEBUG(
-      TASK_MME_APP, "S6A ULR: RAT TYPE = (%d) for (ue_id = %u)\n",
-      s6a_ulr_p->rat_type, ue_context_p->mme_ue_s1ap_id);
+  OAILOG_DEBUG(TASK_MME_APP, "S6A ULR: RAT TYPE = (%d) for (ue_id = %u)\n",
+               s6a_ulr_p->rat_type, ue_context_p->mme_ue_s1ap_id);
 
   // Set regional_subscription flag
   s6a_ulr_p->supportedfeatures.regional_subscription = true;
@@ -160,10 +158,9 @@ status_code_e mme_app_send_s6a_update_location_req(
           ue_context_p->mme_ue_s1ap_id);
       ue_context_p->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
     } else {
-      OAILOG_DEBUG(
-          LOG_MME_APP,
-          "Started location update response timer for UE id  %d \n",
-          ue_context_p->mme_ue_s1ap_id);
+      OAILOG_DEBUG(LOG_MME_APP,
+                   "Started location update response timer for UE id  %d \n",
+                   ue_context_p->mme_ue_s1ap_id);
     }
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
@@ -184,12 +181,12 @@ status_code_e handle_ula_failure(struct ue_mm_context_s* ue_context_p) {
   if (ue_context_p->emm_context.esm_ctx.esm_proc_data) {
     cn_ula_fail.pti = ue_context_p->emm_context.esm_ctx.esm_proc_data->pti;
   } else {
-    OAILOG_ERROR(
-        LOG_MME_APP, " esm_proc_data is NULL, so failed to fetch pti \n");
+    OAILOG_ERROR(LOG_MME_APP,
+                 " esm_proc_data is NULL, so failed to fetch pti \n");
   }
   cn_ula_fail.ue_id = ue_context_p->mme_ue_s1ap_id;
   cn_ula_fail.cause = CAUSE_SYSTEM_FAILURE;
-  rc                = nas_proc_ula_or_csrsp_fail(&cn_ula_fail);
+  rc = nas_proc_ula_or_csrsp_fail(&cn_ula_fail);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
@@ -198,26 +195,25 @@ status_code_e mme_app_handle_s6a_update_location_ans(
     mme_app_desc_t* mme_app_desc_p,
     const s6a_update_location_ans_t* const ula_pP) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  uint64_t imsi64                       = 0;
+  uint64_t imsi64 = 0;
   struct ue_mm_context_s* ue_mm_context = NULL;
-  int rc                                = RETURNok;
+  int rc = RETURNok;
 
   if (ula_pP == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Invalid S6a Update Location Answer ITTI message received\n");
+    OAILOG_ERROR(LOG_MME_APP,
+                 "Invalid S6a Update Location Answer ITTI message received\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  IMSI_STRING_TO_IMSI64((char*) ula_pP->imsi, &imsi64);
+  IMSI_STRING_TO_IMSI64((char*)ula_pP->imsi, &imsi64);
   OAILOG_DEBUG(LOG_MME_APP, "Handling imsi " IMSI_64_FMT "\n", imsi64);
 
   if ((ue_mm_context = mme_ue_context_exists_imsi(
            &mme_app_desc_p->mme_ue_contexts, imsi64)) == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "That's embarrassing as we don't know this IMSI " IMSI_64_FMT "\n",
-        imsi64);
+    OAILOG_ERROR(LOG_MME_APP,
+                 "That's embarrassing as we don't know this IMSI " IMSI_64_FMT
+                 "\n",
+                 imsi64);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (ula_pP->result.present == S6A_RESULT_BASE) {
@@ -226,17 +222,15 @@ status_code_e mme_app_handle_s6a_update_location_ans(
        * The update location procedure has failed. Notify the NAS module
        * and don't initiate the bearer creation on S-GW side.
        */
-      OAILOG_ERROR(
-          LOG_MME_APP,
-          "ULR/ULA procedure returned non success "
-          "(ULA.result.choice.base=%d)\n",
-          ula_pP->result.choice.base);
+      OAILOG_ERROR(LOG_MME_APP,
+                   "ULR/ULA procedure returned non success "
+                   "(ULA.result.choice.base=%d)\n",
+                   ula_pP->result.choice.base);
       if (handle_ula_failure(ue_mm_context) != RETURNok) {
-        OAILOG_ERROR(
-            LOG_MME_APP,
-            "Failed to handle Un-successful ULA message for "
-            "ue_id " MME_UE_S1AP_ID_FMT "\n",
-            ue_mm_context->mme_ue_s1ap_id);
+        OAILOG_ERROR(LOG_MME_APP,
+                     "Failed to handle Un-successful ULA message for "
+                     "ue_id " MME_UE_S1AP_ID_FMT "\n",
+                     ue_mm_context->mme_ue_s1ap_id);
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       } else {
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -258,11 +252,10 @@ status_code_e mme_app_handle_s6a_update_location_ans(
           ue_mm_context->mme_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
     } else {
-      OAILOG_ERROR(
-          LOG_MME_APP,
-          "Failed to send PDN Connectivity failure to NAS for "
-          "UE ID: " MME_UE_S1AP_ID_FMT "\n",
-          ue_mm_context->mme_ue_s1ap_id);
+      OAILOG_ERROR(LOG_MME_APP,
+                   "Failed to send PDN Connectivity failure to NAS for "
+                   "UE ID: " MME_UE_S1AP_ID_FMT "\n",
+                   ue_mm_context->mme_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
   }
@@ -300,14 +293,12 @@ status_code_e mme_app_handle_s6a_update_location_ans(
           "for ue_id " MME_UE_S1AP_ID_FMT " with emm cause = %d\n",
           ue_mm_context->emm_context.originating_tai.tac,
           ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_NO_SUITABLE_CELLS);
-      if (emm_proc_attach_reject(
-              ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_NO_SUITABLE_CELLS) !=
-          RETURNok) {
-        OAILOG_ERROR_UE(
-            LOG_MME_APP, imsi64,
-            "Sending of attach reject message failed for "
-            "ue_id " MME_UE_S1AP_ID_FMT "\n",
-            ue_mm_context->mme_ue_s1ap_id);
+      if (emm_proc_attach_reject(ue_mm_context->mme_ue_s1ap_id,
+                                 EMM_CAUSE_NO_SUITABLE_CELLS) != RETURNok) {
+        OAILOG_ERROR_UE(LOG_MME_APP, imsi64,
+                        "Sending of attach reject message failed for "
+                        "ue_id " MME_UE_S1AP_ID_FMT "\n",
+                        ue_mm_context->mme_ue_s1ap_id);
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       }
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -318,8 +309,8 @@ status_code_e mme_app_handle_s6a_update_location_ans(
         memcpy(
             ue_mm_context->reg_sub[itr].zone_code,
             ula_pP->subscription_data.reg_sub[itr].zone_code,
-            strlen((const char*) ula_pP->subscription_data.reg_sub[itr]
-                       .zone_code));
+            strlen(
+                (const char*)ula_pP->subscription_data.reg_sub[itr].zone_code));
       }
     }
   }
@@ -328,34 +319,29 @@ status_code_e mme_app_handle_s6a_update_location_ans(
   /*
    * Copy the subscribed UE AMBR (comes from data plan) to UE context
    */
-  memcpy(
-      &ue_mm_context->subscribed_ue_ambr,
-      &ula_pP->subscription_data.subscribed_ambr, sizeof(ambr_t));
-  OAILOG_DEBUG(
-      LOG_MME_APP, "Received UL rate %" PRIu64 " and DL rate %" PRIu64 "\n",
-      ue_mm_context->subscribed_ue_ambr.br_ul,
-      ue_mm_context->subscribed_ue_ambr.br_dl);
+  memcpy(&ue_mm_context->subscribed_ue_ambr,
+         &ula_pP->subscription_data.subscribed_ambr, sizeof(ambr_t));
+  OAILOG_DEBUG(LOG_MME_APP,
+               "Received UL rate %" PRIu64 " and DL rate %" PRIu64 "\n",
+               ue_mm_context->subscribed_ue_ambr.br_ul,
+               ue_mm_context->subscribed_ue_ambr.br_dl);
 
   if (ula_pP->subscription_data.msisdn_length != 0) {
-    ue_mm_context->msisdn = blk2bstr(
-        ula_pP->subscription_data.msisdn,
-        ula_pP->subscription_data.msisdn_length);
+    ue_mm_context->msisdn = blk2bstr(ula_pP->subscription_data.msisdn,
+                                     ula_pP->subscription_data.msisdn_length);
   } else {
-    OAILOG_WARNING(
-        LOG_MME_APP, "No MSISDN received for %s " IMSI_64_FMT "\n",
-        __FUNCTION__, imsi64);
+    OAILOG_WARNING(LOG_MME_APP, "No MSISDN received for %s " IMSI_64_FMT "\n",
+                   __FUNCTION__, imsi64);
   }
 
-  ue_mm_context->rau_tau_timer       = ula_pP->subscription_data.rau_tau_timer;
+  ue_mm_context->rau_tau_timer = ula_pP->subscription_data.rau_tau_timer;
   ue_mm_context->network_access_mode = ula_pP->subscription_data.access_mode;
-  memcpy(
-      &ue_mm_context->apn_config_profile,
-      &ula_pP->subscription_data.apn_config_profile,
-      sizeof(apn_config_profile_t));
-  memcpy(
-      &ue_mm_context->default_charging_characteristics,
-      &ula_pP->subscription_data.default_charging_characteristics,
-      sizeof(charging_characteristics_t));
+  memcpy(&ue_mm_context->apn_config_profile,
+         &ula_pP->subscription_data.apn_config_profile,
+         sizeof(apn_config_profile_t));
+  memcpy(&ue_mm_context->default_charging_characteristics,
+         &ula_pP->subscription_data.default_charging_characteristics,
+         sizeof(charging_characteristics_t));
 
   /*
    * Set the value of  Mobile Reachability timer based on value of T3412
@@ -366,7 +352,7 @@ status_code_e mme_app_handle_s6a_update_location_ans(
    * Mobile Reachability timer
    */
   ue_mm_context->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
-  ue_mm_context->implicit_detach_timer.id     = MME_APP_TIMER_INACTIVE_ID;
+  ue_mm_context->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
 #if !MME_UNIT_TEST
   ue_mm_context->mobile_reachability_timer.msec =
       ((mme_config.nas_config.t3412_min) +
@@ -405,22 +391,20 @@ status_code_e mme_app_handle_s6a_update_location_ans(
 status_code_e mme_app_handle_s6a_cancel_location_req(
     mme_app_desc_t* mme_app_desc_p,
     const s6a_cancel_location_req_t* const clr_pP) {
-  uint64_t imsi                        = 0;
+  uint64_t imsi = 0;
   struct ue_mm_context_s* ue_context_p = NULL;
-  int cla_result                       = DIAMETER_SUCCESS;
+  int cla_result = DIAMETER_SUCCESS;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (clr_pP == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Invalid S6a Cancel Location Request ITTI message received\n");
+    OAILOG_ERROR(LOG_MME_APP,
+                 "Invalid S6a Cancel Location Request ITTI message received\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  IMSI_STRING_TO_IMSI64((char*) clr_pP->imsi, &imsi);
-  OAILOG_DEBUG(
-      LOG_MME_APP, "S6a Cancel Location Request for imsi " IMSI_64_FMT "\n",
-      imsi);
+  IMSI_STRING_TO_IMSI64((char*)clr_pP->imsi, &imsi);
+  OAILOG_DEBUG(LOG_MME_APP,
+               "S6a Cancel Location Request for imsi " IMSI_64_FMT "\n", imsi);
 
   if ((mme_app_send_s6a_cancel_location_ans(
           cla_result, clr_pP->imsi, clr_pP->imsi_length, clr_pP->msg_cla_p)) !=
@@ -435,10 +419,10 @@ status_code_e mme_app_handle_s6a_cancel_location_req(
 
   if ((ue_context_p = mme_ue_context_exists_imsi(
            &mme_app_desc_p->mme_ue_contexts, imsi)) == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "IMSI is not present in the MME context for imsi " IMSI_64_FMT "\n",
-        imsi);
+    OAILOG_ERROR(LOG_MME_APP,
+                 "IMSI is not present in the MME context for imsi " IMSI_64_FMT
+                 "\n",
+                 imsi);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (clr_pP->cancellation_type != SUBSCRIPTION_WITHDRAWL) {
@@ -464,8 +448,8 @@ status_code_e mme_app_handle_s6a_cancel_location_req(
     /* Page the UE to bring it back to connected mode
      * and then send Detach Request
      */
-    mme_app_paging_request_helper(
-        ue_context_p, true, false /* s-tmsi */, CN_DOMAIN_PS);
+    mme_app_paging_request_helper(ue_context_p, true, false /* s-tmsi */,
+                                  CN_DOMAIN_PS);
     // Set the flag and send detach to UE after receiving service req
     ue_context_p->emm_context.nw_init_bearer_deactv = true;
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -489,19 +473,21 @@ status_code_e mme_app_handle_s6a_cancel_location_req(
     } else {
       // Send SGS explicit network initiated Detach Ind to SGS
       if (ue_context_p->sgs_context) {
-        mme_app_handle_sgs_detach_req(
-            ue_context_p, EMM_SGS_NW_INITIATED_EPS_DETACH);
+        mme_app_handle_sgs_detach_req(ue_context_p,
+                                      EMM_SGS_NW_INITIATED_EPS_DETACH);
       }
     }
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
-status_code_e mme_app_send_s6a_cancel_location_ans(
-    int cla_result, const char* imsi, uint8_t imsi_length, void* msg_cla_p) {
-  MessageDef* message_p                = NULL;
+status_code_e mme_app_send_s6a_cancel_location_ans(int cla_result,
+                                                   const char* imsi,
+                                                   uint8_t imsi_length,
+                                                   void* msg_cla_p) {
+  MessageDef* message_p = NULL;
   s6a_cancel_location_ans_t* s6a_cla_p = NULL;
-  int rc                               = RETURNok;
+  int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -512,13 +498,13 @@ status_code_e mme_app_send_s6a_cancel_location_ans(
   }
 
   s6a_cla_p = &message_p->ittiMsg.s6a_cancel_location_ans;
-  memset((void*) s6a_cla_p, 0, sizeof(s6a_cancel_location_ans_t));
+  memset((void*)s6a_cla_p, 0, sizeof(s6a_cancel_location_ans_t));
 
   /* Using the IMSI details deom CLR */
   memcpy(s6a_cla_p->imsi, imsi, imsi_length);
   s6a_cla_p->imsi_length = imsi_length;
 
-  s6a_cla_p->result    = cla_result;
+  s6a_cla_p->result = cla_result;
   s6a_cla_p->msg_cla_p = msg_cla_p;
   rc = send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S6A, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);

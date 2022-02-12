@@ -56,7 +56,7 @@ int decode_authentication_parameter_rand_ie(
     authentication_parameter_rand_t* authenticationparameterrand,
     const bool iei_present, uint8_t* buffer, const uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS);
-  int decoded   = 0;
+  int decoded = 0;
   uint8_t ielen = 16;
   int decode_result;
 
@@ -71,9 +71,8 @@ int decode_authentication_parameter_rand_ie(
         buffer, (AUTHENTICATION_PARAMETER_RAND_IE_MAX_LENGTH - 1), len);
   }
 
-  if ((decode_result = decode_bstring(
-           authenticationparameterrand, ielen, buffer + decoded,
-           len - decoded)) < 0) {
+  if ((decode_result = decode_bstring(authenticationparameterrand, ielen,
+                                      buffer + decoded, len - decoded)) < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS, decode_result);
   } else
     decoded += decode_result;
@@ -99,8 +98,8 @@ int encode_authentication_parameter_rand_ie(
         buffer, (AUTHENTICATION_PARAMETER_RAND_IE_MAX_LENGTH - 2), len);
   }
 
-  if ((encode_result = encode_bstring(
-           authenticationparameterrand, buffer + encoded, len - encoded)) < 0) {
+  if ((encode_result = encode_bstring(authenticationparameterrand,
+                                      buffer + encoded, len - encoded)) < 0) {
     return encode_result;
   } else {
     encoded += encode_result;
@@ -117,7 +116,7 @@ int decode_authentication_parameter_autn_ie(
     authentication_parameter_autn_t* authenticationparameterautn,
     const bool iei_present, uint8_t* buffer, const uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS);
-  int decoded   = 0;
+  int decoded = 0;
   uint8_t ielen = 0;
   int decode_result;
 
@@ -135,9 +134,8 @@ int decode_authentication_parameter_autn_ie(
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
 
-  if ((decode_result = decode_bstring(
-           authenticationparameterautn, ielen, buffer + decoded,
-           len - decoded)) < 0) {
+  if ((decode_result = decode_bstring(authenticationparameterautn, ielen,
+                                      buffer + decoded, len - decoded)) < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS, decode_result);
   } else
     decoded += decode_result;
@@ -166,8 +164,8 @@ int encode_authentication_parameter_autn_ie(
   lenPtr = (buffer + encoded);
   encoded++;
 
-  if ((encode_result = encode_bstring(
-           authenticationparameterautn, buffer + encoded, len - encoded)) < 0)
+  if ((encode_result = encode_bstring(authenticationparameterautn,
+                                      buffer + encoded, len - encoded)) < 0)
     return encode_result;
   else
     encoded += encode_result;
@@ -183,7 +181,7 @@ int decode_authentication_response_parameter_ie(
     authentication_response_parameter_t* authenticationresponseparameter,
     const bool iei_present, uint8_t* buffer, const uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS);
-  int decoded   = 0;
+  int decoded = 0;
   uint8_t ielen = 0;
   int decode_result;
 
@@ -201,9 +199,8 @@ int decode_authentication_response_parameter_ie(
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
 
-  if ((decode_result = decode_bstring(
-           authenticationresponseparameter, ielen, buffer + decoded,
-           len - decoded)) < 0) {
+  if ((decode_result = decode_bstring(authenticationresponseparameter, ielen,
+                                      buffer + decoded, len - decoded)) < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS, decode_result);
   } else
     decoded += decode_result;
@@ -232,9 +229,8 @@ int encode_authentication_response_parameter_ie(
   lenPtr = (buffer + encoded);
   encoded++;
 
-  if ((encode_result = encode_bstring(
-           authenticationresponseparameter, buffer + encoded, len - encoded)) <
-      0)
+  if ((encode_result = encode_bstring(authenticationresponseparameter,
+                                      buffer + encoded, len - encoded)) < 0)
     return encode_result;
   else
     encoded += encode_result;
@@ -251,7 +247,7 @@ int decode_authentication_failure_parameter_ie(
     authentication_failure_parameter_t* authenticationfailureparameter,
     const bool iei_present, uint8_t* buffer, const uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS);
-  int decoded   = 0;
+  int decoded = 0;
   uint8_t ielen = 0;
   int decode_result;
 
@@ -269,9 +265,8 @@ int decode_authentication_failure_parameter_ie(
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
 
-  if ((decode_result = decode_bstring(
-           authenticationfailureparameter, ielen, buffer + decoded,
-           len - decoded)) < 0) {
+  if ((decode_result = decode_bstring(authenticationfailureparameter, ielen,
+                                      buffer + decoded, len - decoded)) < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS, decode_result);
   } else
     decoded += decode_result;
@@ -300,9 +295,8 @@ int encode_authentication_failure_parameter_ie(
   lenPtr = (buffer + encoded);
   encoded++;
 
-  if ((encode_result = encode_bstring(
-           authenticationfailureparameter, buffer + encoded, len - encoded)) <
-      0)
+  if ((encode_result = encode_bstring(authenticationfailureparameter,
+                                      buffer + encoded, len - encoded)) < 0)
     return encode_result;
   else
     encoded += encode_result;
@@ -314,22 +308,21 @@ int encode_authentication_failure_parameter_ie(
 //------------------------------------------------------------------------------
 // 10.5.3.5a Network Name
 //------------------------------------------------------------------------------
-int decode_network_name_ie(
-    network_name_t* networkname, const uint8_t iei, uint8_t* buffer,
-    const uint32_t len) {
+int decode_network_name_ie(network_name_t* networkname, const uint8_t iei,
+                           uint8_t* buffer, const uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS);
-  int decoded   = 0;
+  int decoded = 0;
   uint8_t ielen = 0;
   int decode_result;
 
   if (iei > 0) {
-    CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-        buffer, NETWORK_NAME_IE_MIN_LENGTH, len);
+    CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, NETWORK_NAME_IE_MIN_LENGTH,
+                                         len);
     CHECK_IEI_DECODER(iei, *buffer);
     decoded++;
   } else {
-    CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-        buffer, (NETWORK_NAME_IE_MIN_LENGTH - 1), len);
+    CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
+                                         (NETWORK_NAME_IE_MIN_LENGTH - 1), len);
   }
 
   ielen = *(buffer + decoded);
@@ -341,13 +334,12 @@ int decode_network_name_ie(
     return TLV_VALUE_DOESNT_MATCH;
   }
 
-  networkname->codingscheme                 = (*(buffer + decoded) >> 5) & 0x7;
-  networkname->addci                        = (*(buffer + decoded) >> 4) & 0x1;
+  networkname->codingscheme = (*(buffer + decoded) >> 5) & 0x7;
+  networkname->addci = (*(buffer + decoded) >> 4) & 0x1;
   networkname->numberofsparebitsinlastoctet = (*(buffer + decoded) >> 1) & 0x7;
 
-  if ((decode_result = decode_bstring(
-           &networkname->textstring, ielen, buffer + decoded, len - decoded)) <
-      0) {
+  if ((decode_result = decode_bstring(&networkname->textstring, ielen,
+                                      buffer + decoded, len - decoded)) < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS, decode_result);
   } else
     decoded += decode_result;
@@ -355,9 +347,8 @@ int decode_network_name_ie(
 }
 
 //------------------------------------------------------------------------------
-int encode_network_name_ie(
-    network_name_t* networkname, const uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int encode_network_name_ie(network_name_t* networkname, const uint8_t iei,
+                           uint8_t* buffer, uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
   int encode_result;
@@ -382,8 +373,8 @@ int encode_network_name_ie(
                         (networkname->numberofsparebitsinlastoctet & 0x7);
   encoded++;
 
-  if ((encode_result = encode_bstring(
-           networkname->textstring, buffer + encoded, len - encoded)) < 0)
+  if ((encode_result = encode_bstring(networkname->textstring, buffer + encoded,
+                                      len - encoded)) < 0)
     return encode_result;
   else
     encoded += encode_result;
@@ -395,9 +386,8 @@ int encode_network_name_ie(
 //------------------------------------------------------------------------------
 // 10.5.3.8 Time Zone
 //------------------------------------------------------------------------------
-int encode_time_zone(
-    time_zone_t* timezone, const bool iei_present, uint8_t* buffer,
-    const uint32_t len) {
+int encode_time_zone(time_zone_t* timezone, const bool iei_present,
+                     uint8_t* buffer, const uint32_t len) {
   uint32_t encoded = 0;
 
   /*
@@ -416,9 +406,8 @@ int encode_time_zone(
 }
 
 //------------------------------------------------------------------------------
-int decode_time_zone(
-    time_zone_t* timezone, const bool iei_present, uint8_t* buffer,
-    const uint32_t len) {
+int decode_time_zone(time_zone_t* timezone, const bool iei_present,
+                     uint8_t* buffer, const uint32_t len) {
   int decoded = 0;
 
   if (iei_present) {
@@ -434,16 +423,16 @@ int decode_time_zone(
 //------------------------------------------------------------------------------
 // 10.5.3.9 Time Zone and Time
 //------------------------------------------------------------------------------
-int encode_time_zone_and_time(
-    time_zone_and_time_t* timezoneandtime, const bool iei_present,
-    uint8_t* buffer, const uint32_t len) {
+int encode_time_zone_and_time(time_zone_and_time_t* timezoneandtime,
+                              const bool iei_present, uint8_t* buffer,
+                              const uint32_t len) {
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, TIME_ZONE_AND_TIME_MAX_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, TIME_ZONE_AND_TIME_MAX_LENGTH,
+                                       len);
 
   if (iei_present) {
     *buffer = MM_TIME_ZONE_AND_TIME_IEI;
@@ -468,9 +457,9 @@ int encode_time_zone_and_time(
 }
 
 //------------------------------------------------------------------------------
-int decode_time_zone_and_time(
-    time_zone_and_time_t* timezoneandtime, const bool iei_present,
-    uint8_t* buffer, const uint32_t len) {
+int decode_time_zone_and_time(time_zone_and_time_t* timezoneandtime,
+                              const bool iei_present, uint8_t* buffer,
+                              const uint32_t len) {
   int decoded = 0;
 
   if (iei_present) {
@@ -498,10 +487,10 @@ int decode_time_zone_and_time(
 //------------------------------------------------------------------------------
 // 10.5.3.12 Daylight Saving Time
 //------------------------------------------------------------------------------
-int decode_daylight_saving_time_ie(
-    daylight_saving_time_t* daylightsavingtime, const bool iei_present,
-    uint8_t* buffer, const uint32_t len) {
-  int decoded   = 0;
+int decode_daylight_saving_time_ie(daylight_saving_time_t* daylightsavingtime,
+                                   const bool iei_present, uint8_t* buffer,
+                                   const uint32_t len) {
+  int decoded = 0;
   uint8_t ielen = 0;
 
   if (iei_present) {
@@ -523,9 +512,9 @@ int decode_daylight_saving_time_ie(
 }
 
 //------------------------------------------------------------------------------
-int encode_daylight_saving_time_ie(
-    daylight_saving_time_t* daylightsavingtime, const bool iei_present,
-    uint8_t* buffer, const uint32_t len) {
+int encode_daylight_saving_time_ie(daylight_saving_time_t* daylightsavingtime,
+                                   const bool iei_present, uint8_t* buffer,
+                                   const uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
 
@@ -553,8 +542,8 @@ int encode_daylight_saving_time_ie(
 int decode_emergency_number_list_ie(
     emergency_number_list_t* emergencynumberlist, const bool iei_present,
     uint8_t* buffer, const uint32_t len) {
-  int decoded                = 0;
-  uint8_t ielen              = 0;
+  int decoded = 0;
+  uint8_t ielen = 0;
   emergency_number_list_t* e = emergencynumberlist;
 
   if (iei_present) {
@@ -594,7 +583,7 @@ int encode_emergency_number_list_ie(
     emergency_number_list_t* emergencynumberlist, const bool iei_present,
     uint8_t* buffer, const uint32_t len) {
   uint8_t* lenPtr;
-  uint32_t encoded           = 0;
+  uint32_t encoded = 0;
   emergency_number_list_t* e = emergencynumberlist;
 
   Fatal("TODO Implement encode_emergency_number_list_ie");

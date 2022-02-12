@@ -22,9 +22,9 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/PdnAddress.h"
 
 //------------------------------------------------------------------------------
-int decode_pdn_address(
-    PdnAddress* pdnaddress, uint8_t iei, uint8_t* buffer, uint32_t len) {
-  int decoded   = 0;
+int decode_pdn_address(PdnAddress* pdnaddress, uint8_t iei, uint8_t* buffer,
+                       uint32_t len) {
+  int decoded = 0;
   uint8_t ielen = 0;
   int decode_result;
 
@@ -39,9 +39,9 @@ int decode_pdn_address(
   pdnaddress->pdntypevalue = *(buffer + decoded) & 0x7;
   decoded++;
 
-  if ((decode_result = decode_bstring(
-           &pdnaddress->pdnaddressinformation, ielen - 1, buffer + decoded,
-           len - decoded)) < 0)
+  if ((decode_result =
+           decode_bstring(&pdnaddress->pdnaddressinformation, ielen - 1,
+                          buffer + decoded, len - decoded)) < 0)
     return decode_result;
   else
     decoded += decode_result;
@@ -50,8 +50,8 @@ int decode_pdn_address(
 }
 
 //------------------------------------------------------------------------------
-int encode_pdn_address(
-    PdnAddress* pdnaddress, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_pdn_address(PdnAddress* pdnaddress, uint8_t iei, uint8_t* buffer,
+                       uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
   int encode_result;
@@ -71,9 +71,8 @@ int encode_pdn_address(
   *(buffer + encoded) = 0x00 | (pdnaddress->pdntypevalue & 0x7);
   encoded++;
 
-  if ((encode_result = encode_bstring(
-           pdnaddress->pdnaddressinformation, buffer + encoded,
-           len - encoded)) < 0)
+  if ((encode_result = encode_bstring(pdnaddress->pdnaddressinformation,
+                                      buffer + encoded, len - encoded)) < 0)
     return encode_result;
   else
     encoded += encode_result;

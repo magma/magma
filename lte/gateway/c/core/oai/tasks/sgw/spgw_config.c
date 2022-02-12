@@ -54,8 +54,8 @@ void spgw_config_init(spgw_config_t* config_pP) {
 //------------------------------------------------------------------------------
 static int spgw_config_process(spgw_config_t* config_pP) {
 #if (!EMBEDDED_SGW)
-  async_system_command(
-      TASK_ASYNC_SYSTEM, SPGW_WARN_ON_ERROR, "sysctl -w net.ipv4.ip_forward=1");
+  async_system_command(TASK_ASYNC_SYSTEM, SPGW_WARN_ON_ERROR,
+                       "sysctl -w net.ipv4.ip_forward=1");
   async_system_command(TASK_ASYNC_SYSTEM, SPGW_WARN_ON_ERROR, "sync");
 #endif
 
@@ -79,13 +79,11 @@ status_code_e spgw_config_parse_file(spgw_config_t* config_pP) {
      * Read the file. If there is an error, report it and exit.
      */
     if (!config_read_file(&cfg, bdata(config_pP->config_file))) {
-      OAILOG_ERROR(
-          LOG_SPGW_APP, "%s:%d - %s\n", bdata(config_pP->config_file),
-          config_error_line(&cfg), config_error_text(&cfg));
+      OAILOG_ERROR(LOG_SPGW_APP, "%s:%d - %s\n", bdata(config_pP->config_file),
+                   config_error_line(&cfg), config_error_text(&cfg));
       config_destroy(&cfg);
-      Fatal(
-          "Failed to parse SP-GW configuration file %s!\n",
-          bdata(config_pP->config_file));
+      Fatal("Failed to parse SP-GW configuration file %s!\n",
+            bdata(config_pP->config_file));
     }
   } else {
     OAILOG_ERROR(LOG_SPGW_APP, "No SP-GW configuration file provided!\n");
@@ -93,9 +91,8 @@ status_code_e spgw_config_parse_file(spgw_config_t* config_pP) {
     Fatal("No SP-GW configuration file provided!\n");
   }
 
-  OAILOG_INFO(
-      LOG_SPGW_APP, "Parsing configuration file provided %s\n",
-      bdata(config_pP->config_file));
+  OAILOG_INFO(LOG_SPGW_APP, "Parsing configuration file provided %s\n",
+              bdata(config_pP->config_file));
   if (sgw_config_parse_file(&config_pP->sgw_config) != 0) {
     config_destroy(&cfg);
     return RETURNerror;
@@ -122,9 +119,8 @@ void spgw_config_display(spgw_config_t* config_p) {
 
 //------------------------------------------------------------------------------
 static void usage(char* target) {
-  OAILOG_INFO(
-      LOG_CONFIG, "==== EURECOM %s version: %s ====\n", PACKAGE_NAME,
-      PACKAGE_VERSION);
+  OAILOG_INFO(LOG_CONFIG, "==== EURECOM %s version: %s ====\n", PACKAGE_NAME,
+              PACKAGE_VERSION);
   OAILOG_INFO(LOG_CONFIG, "Please report any bug to: %s\n", PACKAGE_BUGREPORT);
   OAILOG_INFO(LOG_CONFIG, "Usage: %s [options]\n", target);
   OAILOG_INFO(LOG_CONFIG, "Available options:\n");
@@ -133,14 +129,14 @@ static void usage(char* target) {
   OAILOG_INFO(LOG_CONFIG, "        Set the configuration file for S/P-GW\n");
   OAILOG_INFO(LOG_CONFIG, "        See template in ETC\n");
   OAILOG_INFO(LOG_CONFIG, "-K <file>\n");
-  OAILOG_INFO(
-      LOG_CONFIG, "        Output intertask messages to provided file\n");
-  OAILOG_INFO(
-      LOG_CONFIG, "-V      Print %s version and return\n", PACKAGE_NAME);
+  OAILOG_INFO(LOG_CONFIG,
+              "        Output intertask messages to provided file\n");
+  OAILOG_INFO(LOG_CONFIG, "-V      Print %s version and return\n",
+              PACKAGE_NAME);
 }
 //------------------------------------------------------------------------------
-status_code_e spgw_config_parse_opt_line(
-    int argc, char* argv[], spgw_config_t* spgw_config_p) {
+status_code_e spgw_config_parse_opt_line(int argc, char* argv[],
+                                         spgw_config_t* spgw_config_p) {
   int c;
 
   spgw_config_init(spgw_config_p);
@@ -160,25 +156,23 @@ status_code_e spgw_config_parse_opt_line(
             bstrcpy(spgw_config_p->config_file);
         spgw_config_p->sgw_config.config_file =
             bstrcpy(spgw_config_p->config_file);
-        OAILOG_DEBUG(
-            LOG_CONFIG, "spgw_config.config_file %s\n",
-            bdata(spgw_config_p->config_file));
+        OAILOG_DEBUG(LOG_CONFIG, "spgw_config.config_file %s\n",
+                     bdata(spgw_config_p->config_file));
       } break;
 
       case 'V': {
-        OAILOG_DEBUG(
-            LOG_CONFIG,
-            "==== EURECOM %s v%s ===="
-            "Please report any bug to: %s\n",
-            PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_BUGREPORT);
+        OAILOG_DEBUG(LOG_CONFIG,
+                     "==== EURECOM %s v%s ===="
+                     "Please report any bug to: %s\n",
+                     PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_BUGREPORT);
       } break;
 
       case 'K':
         spgw_config_p->sgw_config.itti_config.log_file =
             blk2bstr(optarg, strlen(optarg));
-        OAILOG_DEBUG(
-            LOG_CONFIG, "spgw_config.sgw_config.itti_config.log_file %s\n",
-            bdata(spgw_config_p->sgw_config.itti_config.log_file));
+        OAILOG_DEBUG(LOG_CONFIG,
+                     "spgw_config.sgw_config.itti_config.log_file %s\n",
+                     bdata(spgw_config_p->sgw_config.itti_config.log_file));
         break;
 
       case 'h': /* Fall through */
