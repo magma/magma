@@ -19,14 +19,14 @@ RUN [ "/bin/bash", "-c", "echo \"Install general purpose packages\" && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y gnupg wget software-properties-common autoconf automake \
     libtool curl make g++ unzip git build-essential autoconf libtool pkg-config \
     gcc-7 g++-7 apt-transport-https ca-certificates apt-utils vim redis-server tzdata \
-    libssl-dev ninja-build golang python2.7 automake perl libgmp3-dev clang-format-11 && \
+    libssl-dev ninja-build golang python2.7 automake perl libgmp3-dev clang-format-7 && \
     echo \"Configure C/C++ compiler v7.5 as primary\" && \
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 20 && \
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 20 && \
     echo \"Add required package repository for CMake\" && \
     wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - && \
     apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' && \
-    ln -s /usr/bin/clang-format-11 /usr/bin/clang-format" ]
+    ln -s /usr/bin/clang-format-7 /usr/bin/clang-format" ]
 
 RUN echo "Install 3rd party dependencies" && \
     apt-get update && \
