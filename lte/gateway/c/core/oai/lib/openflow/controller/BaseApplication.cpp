@@ -30,8 +30,8 @@ namespace openflow {
 BaseApplication::BaseApplication(bool persist_state)
     : persist_state_(persist_state) {}
 
-void BaseApplication::event_callback(
-    const ControllerEvent& ev, const OpenflowMessenger& messenger) {
+void BaseApplication::event_callback(const ControllerEvent& ev,
+                                     const OpenflowMessenger& messenger) {
   if (ev.get_type() == EVENT_SWITCH_UP) {
     if (!persist_state_) {
       remove_all_flows(ev.get_connection(), messenger);
@@ -42,8 +42,8 @@ void BaseApplication::event_callback(
   }
 }
 
-void BaseApplication::install_default_flow(
-    fluid_base::OFConnection* ofconn, const OpenflowMessenger& messenger) {
+void BaseApplication::install_default_flow(fluid_base::OFConnection* ofconn,
+                                           const OpenflowMessenger& messenger) {
   of13::FlowMod fm =
       messenger.create_default_flow_mod(0, of13::OFPFC_ADD, LOW_PRIORITY);
   // Output to next table
@@ -53,8 +53,8 @@ void BaseApplication::install_default_flow(
   OAILOG_DEBUG(LOG_GTPV1U, "Default table 0 flow added\n");
 }
 
-void BaseApplication::remove_all_flows(
-    fluid_base::OFConnection* ofconn, const OpenflowMessenger& messenger) {
+void BaseApplication::remove_all_flows(fluid_base::OFConnection* ofconn,
+                                       const OpenflowMessenger& messenger) {
   of13::FlowMod fm =
       messenger.create_default_flow_mod(0, of13::OFPFC_DELETE, 0);
   // match all
@@ -66,16 +66,15 @@ void BaseApplication::remove_all_flows(
 
 void BaseApplication::handle_error_message(const ErrorEvent& ev) {
   // First 16 bits of error message are the type, second 16 bits are the code
-  OAILOG_ERROR(
-      LOG_GTPV1U, "Openflow error received - type: 0x%02x, code: 0x%02x\n",
-      ev.get_error_type(), ev.get_error_code());
+  OAILOG_ERROR(LOG_GTPV1U,
+               "Openflow error received - type: 0x%02x, code: 0x%02x\n",
+               ev.get_error_type(), ev.get_error_code());
   char type_str[50];
   char code_str[50];
   snprintf(type_str, sizeof(type_str), "0x%02x", ev.get_error_type());
   snprintf(code_str, sizeof(code_str), "0x%02x", ev.get_error_code());
-  increment_counter(
-      "openflow_error_msg", 1, 2, "error_type", type_str, "error_code",
-      code_str);
+  increment_counter("openflow_error_msg", 1, 2, "error_type", type_str,
+                    "error_code", code_str);
 }
 
 }  // namespace openflow

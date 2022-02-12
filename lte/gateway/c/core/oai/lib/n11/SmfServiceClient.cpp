@@ -30,8 +30,8 @@ using grpc::Status;
 using magma::AsyncLocalResponse;
 using magma::ServiceRegistrySingleton;
 
-void handle_session_context_response(
-    grpc::Status status, magma::lte::SmContextVoid response) {
+void handle_session_context_response(grpc::Status status,
+                                     magma::lte::SmContextVoid response) {
   if (!status.ok()) {
     std::cout << "AsyncSetAmfSessionContext fails with code "
               << status.error_code() << ", msg: " << status.error_message()
@@ -59,7 +59,7 @@ SetSMSessionContext create_sm_pdu_session(
       magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
 
   // Encode APU, storing apn value
-  req_common->set_apn((char*) apn);
+  req_common->set_apn((char*)apn);
 
   // Encode RAT TYPE
   req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
@@ -99,7 +99,7 @@ SetSMSessionContext create_sm_pdu_session(
   req_rat_specific->mutable_gnode_endpoint()->set_end_ipv4_addr(ipv4_str);
 
   // Set the PTI
-  req_rat_specific->set_procedure_trans_identity((const char*) (&(pti)));
+  req_rat_specific->set_procedure_trans_identity((const char*)(&(pti)));
 
   // Set the default QoS values
   req_rat_specific->mutable_default_ambr()->set_max_bandwidth_ul(
@@ -142,10 +142,10 @@ int AsyncSmfServiceClient::amf_smf_create_pdu_session(
 }
 
 bool AsyncSmfServiceClient::set_smf_session(SetSMSessionContext& request) {
-  SetSMFSessionRPC(
-      request, [](const Status& status, const SmContextVoid& response) {
-        handle_session_context_response(status, response);
-      });
+  SetSMFSessionRPC(request,
+                   [](const Status& status, const SmContextVoid& response) {
+                     handle_session_context_response(status, response);
+                   });
 
   return true;
 }
@@ -153,8 +153,8 @@ bool AsyncSmfServiceClient::set_smf_session(SetSMSessionContext& request) {
 void AsyncSmfServiceClient::SetSMFSessionRPC(
     SetSMSessionContext& request,
     const std::function<void(Status, SmContextVoid)>& callback) {
-  auto localResp = new AsyncLocalResponse<SmContextVoid>(
-      std::move(callback), RESPONSE_TIMEOUT);
+  auto localResp = new AsyncLocalResponse<SmContextVoid>(std::move(callback),
+                                                         RESPONSE_TIMEOUT);
 
   localResp->set_response_reader(std::move(stub_->AsyncSetAmfSessionContext(
       localResp->get_context(), request, &queue_)));
@@ -173,8 +173,8 @@ bool AsyncSmfServiceClient::set_smf_notification(
 void AsyncSmfServiceClient::SetSMFNotificationRPC(
     SetSmNotificationContext& notify,
     const std::function<void(Status, SmContextVoid)>& callback) {
-  auto localResp = new AsyncLocalResponse<SmContextVoid>(
-      std::move(callback), RESPONSE_TIMEOUT);
+  auto localResp = new AsyncLocalResponse<SmContextVoid>(std::move(callback),
+                                                         RESPONSE_TIMEOUT);
 
   localResp->set_response_reader(std::move(stub_->AsyncSetSmfNotification(
       localResp->get_context(), notify, &queue_)));

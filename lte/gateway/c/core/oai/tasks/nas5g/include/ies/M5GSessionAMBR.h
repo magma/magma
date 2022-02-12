@@ -27,9 +27,9 @@ class SessionAMBRMsg {
 
   SessionAMBRMsg();
   ~SessionAMBRMsg();
-  int EncodeSessionAMBRMsg(
-      SessionAMBRMsg* session_ambr, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeSessionAMBRMsg(
-      SessionAMBRMsg* session_ambr, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeSessionAMBRMsg(SessionAMBRMsg* session_ambr, uint8_t iei,
+                           uint8_t* buffer, uint32_t len);
+  int DecodeSessionAMBRMsg(SessionAMBRMsg* session_ambr, uint8_t iei,
+                           uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

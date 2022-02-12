@@ -58,11 +58,10 @@ void dump_ms_network_feature_support_xml(
   if (iei > 0) /* Don't display IEI if = 0 */
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
-  OAILOG_DEBUG(
-      LOG_NAS, "    <spare_bits>%u<spare_bits>\n",
-      msnetworkfeaturesupport->spare_bits);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <extended_periodic_timer>%u<extended_periodic_timer>\n",
-      msnetworkfeaturesupport->extended_periodic_timers);
+  OAILOG_DEBUG(LOG_NAS, "    <spare_bits>%u<spare_bits>\n",
+               msnetworkfeaturesupport->spare_bits);
+  OAILOG_DEBUG(LOG_NAS,
+               "    <extended_periodic_timer>%u<extended_periodic_timer>\n",
+               msnetworkfeaturesupport->extended_periodic_timers);
   OAILOG_DEBUG(LOG_NAS, "</Ms Network Feature Support>\n");
 }

@@ -29,10 +29,10 @@ class SecurityModeRejectMsg {
 
   SecurityModeRejectMsg();
   ~SecurityModeRejectMsg();
-  int DecodeSecurityModeRejectMsg(
-      SecurityModeRejectMsg* sec_mode_reject, uint8_t* buffer, uint32_t len);
-  int EncodeSecurityModeRejectMsg(
-      SecurityModeRejectMsg* sec_mode_reject, uint8_t* buffer, uint32_t len);
+  int DecodeSecurityModeRejectMsg(SecurityModeRejectMsg* sec_mode_reject,
+                                  uint8_t* buffer, uint32_t len);
+  int EncodeSecurityModeRejectMsg(SecurityModeRejectMsg* sec_mode_reject,
+                                  uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 /******************************************************************************

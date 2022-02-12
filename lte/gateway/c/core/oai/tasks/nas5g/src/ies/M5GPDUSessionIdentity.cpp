@@ -27,7 +27,7 @@ int PDUSessionIdentityMsg::DecodePDUSessionIdentityMsg(
 
   if (iei > 0) {
     pdu_session_identity->iei = *(buffer + decoded);
-    CHECK_IEI_DECODER((unsigned char) iei, pdu_session_identity->iei);
+    CHECK_IEI_DECODER((unsigned char)iei, pdu_session_identity->iei);
     MLOG(MDEBUG) << "In DecodePDUSessionIdentityMsg iei = " << std::dec
                  << int(pdu_session_identity->iei) << std::endl;
     decoded++;
@@ -52,9 +52,8 @@ int PDUSessionIdentityMsg::EncodePDUSessionIdentityMsg(
 
   // Checking IEI and pointer
   if (iei > 0) {
-    CHECK_IEI_ENCODER(
-        (unsigned char) iei,
-        static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2));
+    CHECK_IEI_ENCODER((unsigned char)iei,
+                      static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2));
     *buffer = iei;
     encoded++;
   }

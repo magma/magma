@@ -22,13 +22,13 @@ PDUSessionEstablishmentRequestMsg::~PDUSessionEstablishmentRequestMsg(){};
 int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
     PDUSessionEstablishmentRequestMsg* pdu_session_estab_request,
     uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
-  uint8_t type_len   = sizeof(uint8_t);
+  uint8_t type_len = sizeof(uint8_t);
   uint8_t length_len = sizeof(uint8_t);
 
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, PDU_SESSION_ESTABLISH_REQ_MIN_LEN, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
+                                       PDU_SESSION_ESTABLISH_REQ_MIN_LEN, len);
 
   MLOG(MDEBUG) << "DecodePDUSessionEstablishmentRequestMsg : ";
   if ((decoded_result =
@@ -71,9 +71,8 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
 
   while (decoded < len) {
     // Size is incremented for the unhandled types by 1 byte
-    uint32_t type = *(buffer + decoded) >= 0x80 ?
-                        ((*(buffer + decoded)) & 0xf0) :
-                        (*(buffer + decoded));
+    uint32_t type = *(buffer + decoded) >= 0x80 ? ((*(buffer + decoded)) & 0xf0)
+                                                : (*(buffer + decoded));
     decoded_result = 0;
 
     switch (type) {
@@ -135,7 +134,7 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
       case REQUEST_PORT_MANAGEMENT_INFORMATION_CONTAINER_TYPE:
 
         // TLV Types. 1 byte for Type and 1 Byte for size
-        type_len   = sizeof(uint8_t);
+        type_len = sizeof(uint8_t);
         length_len = sizeof(uint8_t);
         DECODE_U8(buffer + decoded + type_len, decoded_result, decoded);
 
@@ -159,7 +158,7 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
 int PDUSessionEstablishmentRequestMsg::EncodePDUSessionEstablishmentRequestMsg(
     PDUSessionEstablishmentRequestMsg* pdu_session_estab_request,
     uint8_t* buffer, uint32_t len) {
-  uint32_t encoded        = 0;
+  uint32_t encoded = 0;
   uint32_t encoded_result = 0;
 
   if (!pdu_session_estab_request || !buffer || (0 == len)) {
@@ -167,8 +166,8 @@ int PDUSessionEstablishmentRequestMsg::EncodePDUSessionEstablishmentRequestMsg(
     return -1;
   }
 
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, PDU_SESSION_ESTABLISH_REQ_MIN_LEN, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
+                                       PDU_SESSION_ESTABLISH_REQ_MIN_LEN, len);
 
   MLOG(MDEBUG) << "EncodePDUSessionEstablishmentRequestMsg : \n";
   if ((encoded_result =
@@ -214,7 +213,7 @@ int PDUSessionEstablishmentRequestMsg::EncodePDUSessionEstablishmentRequestMsg(
     encoded += encoded_result;
   }
 
-  if ((uint32_t) pdu_session_estab_request->pdu_session_type.type_val) {
+  if ((uint32_t)pdu_session_estab_request->pdu_session_type.type_val) {
     if ((encoded_result = pdu_session_estab_request->pdu_session_type
                               .EncodePDUSessionTypeMsg(
                                   &pdu_session_estab_request->pdu_session_type,
@@ -226,7 +225,7 @@ int PDUSessionEstablishmentRequestMsg::EncodePDUSessionEstablishmentRequestMsg(
     }
   }
 
-  if ((uint32_t) pdu_session_estab_request->ssc_mode.mode_val) {
+  if ((uint32_t)pdu_session_estab_request->ssc_mode.mode_val) {
     if ((encoded_result = pdu_session_estab_request->ssc_mode.EncodeSSCModeMsg(
              &pdu_session_estab_request->ssc_mode, REQUEST_SSC_MODE_TYPE,
              buffer + encoded, len - encoded)) < 0) {

@@ -24,20 +24,20 @@ UESecurityCapabilityMsg::~UESecurityCapabilityMsg(){};
 int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
     UESecurityCapabilityMsg* ue_sec_capability, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
-  int decoded        = 0;
-  uint8_t type_len   = sizeof(uint8_t);
+  int decoded = 0;
+  uint8_t type_len = sizeof(uint8_t);
   uint8_t length_len = sizeof(uint8_t);
 
   MLOG(MDEBUG) << " Decoding UE Security Capability : ";
 
   // Checking IEI and pointer
   if (iei > 0) {
-    CHECK_IEI_DECODER(iei, (unsigned char) *buffer);
+    CHECK_IEI_DECODER(iei, (unsigned char)*buffer);
     decoded++;
   }
 
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, UE_SECURITY_CAPABILITY_MIN_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
+                                       UE_SECURITY_CAPABILITY_MIN_LENGTH, len);
 
   ue_sec_capability->length = *(buffer + decoded);
   decoded++;
@@ -45,7 +45,7 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
                << std::endl;
 
   // 5GS encryption algorithms
-  ea                     = *(buffer + decoded);
+  ea = *(buffer + decoded);
   ue_sec_capability->ea0 = (ea >> 7) & 0x1;
   ue_sec_capability->ea1 = (ea >> 6) & 0x1;
   ue_sec_capability->ea2 = (ea >> 5) & 0x1;
@@ -57,7 +57,7 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
   decoded++;
 
   // 5GS integrity algorithm
-  ia                     = *(buffer + decoded);
+  ia = *(buffer + decoded);
   ue_sec_capability->ia0 = (ia >> 7) & 0x1;
   ue_sec_capability->ia1 = (ia >> 6) & 0x1;
   ue_sec_capability->ia2 = (ia >> 5) & 0x1;
@@ -70,29 +70,29 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
 
   // If any optional buffers are present skip it.
   // 2 = 1 Byte for type + 1 Byte for length
-  type_len   = sizeof(uint8_t);
+  type_len = sizeof(uint8_t);
   length_len = sizeof(uint8_t);
   if (ue_sec_capability->length > (decoded - (type_len + length_len))) {
     // 5GS encryption algorithms
-    ue_sec_capability->eea0    = (*(buffer + decoded) >> 7) & 0x1;
+    ue_sec_capability->eea0 = (*(buffer + decoded) >> 7) & 0x1;
     ue_sec_capability->ea1_128 = (*(buffer + decoded) >> 6) & 0x1;
     ue_sec_capability->ea2_128 = (*(buffer + decoded) >> 5) & 0x1;
     ue_sec_capability->ea3_128 = (*(buffer + decoded) >> 4) & 0x1;
-    ue_sec_capability->eea4    = (*(buffer + decoded) >> 3) & 0x1;
-    ue_sec_capability->eea5    = (*(buffer + decoded) >> 2) & 0x1;
-    ue_sec_capability->eea6    = (*(buffer + decoded) >> 1) & 0x1;
-    ue_sec_capability->eea7    = *(buffer + decoded) & 0x1;
+    ue_sec_capability->eea4 = (*(buffer + decoded) >> 3) & 0x1;
+    ue_sec_capability->eea5 = (*(buffer + decoded) >> 2) & 0x1;
+    ue_sec_capability->eea6 = (*(buffer + decoded) >> 1) & 0x1;
+    ue_sec_capability->eea7 = *(buffer + decoded) & 0x1;
     decoded++;
 
     // 5GS integrity algorithm
-    ue_sec_capability->eia0     = (*(buffer + decoded) >> 7) & 0x1;
+    ue_sec_capability->eia0 = (*(buffer + decoded) >> 7) & 0x1;
     ue_sec_capability->eia1_128 = (*(buffer + decoded) >> 6) & 0x1;
     ue_sec_capability->eia2_128 = (*(buffer + decoded) >> 5) & 0x1;
     ue_sec_capability->eia3_128 = (*(buffer + decoded) >> 4) & 0x1;
-    ue_sec_capability->eia4     = (*(buffer + decoded) >> 3) & 0x1;
-    ue_sec_capability->eia5     = (*(buffer + decoded) >> 2) & 0x1;
-    ue_sec_capability->eia6     = (*(buffer + decoded) >> 1) & 0x1;
-    ue_sec_capability->eia7     = *(buffer + decoded) & 0x1;
+    ue_sec_capability->eia4 = (*(buffer + decoded) >> 3) & 0x1;
+    ue_sec_capability->eia5 = (*(buffer + decoded) >> 2) & 0x1;
+    ue_sec_capability->eia6 = (*(buffer + decoded) >> 1) & 0x1;
+    ue_sec_capability->eia7 = *(buffer + decoded) & 0x1;
     decoded++;
 
     // decoded = type_len + length_len + ue_sec_capability->length;
@@ -145,13 +145,13 @@ int UESecurityCapabilityMsg::EncodeUESecurityCapabilityMsg(
 
   // Checking IEI and pointer
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char) iei, ue_sec_capability->iei);
+    CHECK_IEI_ENCODER((unsigned char)iei, ue_sec_capability->iei);
     *buffer = iei;
     encoded++;
   }
 
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, UE_SECURITY_CAPABILITY_MIN_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
+                                       UE_SECURITY_CAPABILITY_MIN_LENGTH, len);
 
   *(buffer + encoded) = ue_sec_capability->length;
   MLOG(MDEBUG) << "Length : " << std::setfill('0') << std::hex << std::setw(2)

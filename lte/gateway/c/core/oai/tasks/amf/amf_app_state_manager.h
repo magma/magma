@@ -34,11 +34,11 @@ constexpr char AMF_NAS_STATE_KEY[] = "amf_nas_state";
 constexpr char AMF_UE_ID_UE_CTXT_TABLE_NAME[] =
     "amf_app_amf_ue_ngap_id_ue_context_htbl";
 constexpr char AMF_IMSI_UE_ID_TABLE_NAME[] = "amf_app_imsi_ue_id_htbl";
-constexpr char AMF_TUN_UE_ID_TABLE_NAME[]  = "amf_app_tun11_ue_id_htbl";
+constexpr char AMF_TUN_UE_ID_TABLE_NAME[] = "amf_app_tun11_ue_id_htbl";
 constexpr char AMF_GUTI_UE_ID_TABLE_NAME[] = "amf_app_guti_ue_id_htbl";
 constexpr char AMF_GNB_UE_ID_AMF_UE_ID_TABLE_NAME[] =
     "amf_app_gnb_ue_ngap_id_ue_id_htbl";
-constexpr char AMF_TASK_NAME[]  = "AMF";
+constexpr char AMF_TASK_NAME[] = "AMF";
 const int NUM_MAX_UE_HTBL_LISTS = 6;
 /**
  * When the process starts, initialize the in-memory AMF+NAS state and, if
@@ -71,9 +71,8 @@ void clear_amf_nas_state();
 map_uint64_ue_context_t* get_amf_ue_state();
 
 // Persists UE AMF state for subscriber into db
-void put_amf_ue_state(
-    magma5g::amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64,
-    bool force_ue_write);
+void put_amf_ue_state(magma5g::amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64,
+                      bool force_ue_write);
 // Deletes entry for UE AMF state on db
 void delete_amf_ue_state(imsi64_t imsi64);
 
@@ -82,9 +81,10 @@ void delete_amf_ue_state(imsi64_t imsi64);
  * that contains functions to maintain Amf and NAS state, i.e. for allocating
  * and freeing state structs, and writing/reading state to db.
  */
-class AmfNasStateManager : public magma::lte::StateManager<
-                               amf_app_desc_t, ue_m5gmm_context_t, MmeNasState,
-                               UeContext, AmfNasStateConverter> {
+class AmfNasStateManager
+    : public magma::lte::StateManager<amf_app_desc_t, ue_m5gmm_context_t,
+                                      MmeNasState, UeContext,
+                                      AmfNasStateConverter> {
  public:
   /**
    * Returns an instance of AmfNasStateManager, guaranteed to be thread safe and
@@ -106,8 +106,8 @@ class AmfNasStateManager : public magma::lte::StateManager<
   map_uint64_ue_context_t* get_ue_state_map();
 
   // Persists UE AMF state for subscriber into db
-  void put_amf_ue_state(
-      amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64, bool force_ue_write);
+  void put_amf_ue_state(amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64,
+                        bool force_ue_write);
 
   void clear_db_state();
 
@@ -128,9 +128,8 @@ class AmfNasStateManager : public magma::lte::StateManager<
   void write_state_to_db() override;
   status_code_e read_state_from_db() override;
 
-  void write_ue_state_to_db(
-      const ue_m5gmm_context_t* ue_context,
-      const std::string& imsi_str) override;
+  void write_ue_state_to_db(const ue_m5gmm_context_t* ue_context,
+                            const std::string& imsi_str) override;
   status_code_e read_ue_state_from_db() override;
 
  private:

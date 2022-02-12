@@ -60,35 +60,35 @@ inline void get_subscriber_id(const std::string& subscriber_id, char* imsi) {
   strcpy(imsi, subscriber_id.c_str() + imsi_len);
 }
 
-Status AmfServiceImpl::SetAmfNotification(
-    ServerContext* context, const SetSmNotificationContext* notif,
-    SmContextVoid* response) {
+Status AmfServiceImpl::SetAmfNotification(ServerContext* context,
+                                          const SetSmNotificationContext* notif,
+                                          SmContextVoid* response) {
   OAILOG_INFO(LOG_UTIL, "Received  GRPC SetSmNotificationContext request\n");
   // ToDo processing ITTI,ZMQ
 
   itti_n11_received_notification_t itti_msg;
   auto& notify_common = notif->common_context();
-  auto& req_m5g       = notif->rat_specific_notification();
+  auto& req_m5g = notif->rat_specific_notification();
 
   // CommonSessionContext
   get_subscriber_id(notify_common.sid().id(), itti_msg.imsi);
 
   itti_msg.sm_session_fsm_state =
-      (SMSessionFSMState_response) notify_common.sm_session_state();
+      (SMSessionFSMState_response)notify_common.sm_session_state();
   itti_msg.sm_session_version = notify_common.sm_session_version();
 
   // RatSpecificContextAccess
-  itti_msg.pdu_session_id   = req_m5g.pdu_session_id();
-  itti_msg.request_type     = (RequestType_received) req_m5g.request_type();
-  itti_msg.pdu_session_type = (pdu_session_type_t) req_m5g.pdu_session_type();
+  itti_msg.pdu_session_id = req_m5g.pdu_session_id();
+  itti_msg.request_type = (RequestType_received)req_m5g.request_type();
+  itti_msg.pdu_session_type = (pdu_session_type_t)req_m5g.pdu_session_type();
   itti_msg.m5g_sm_capability.reflective_qos =
       req_m5g.m5g_sm_capability().reflective_qos();
   itti_msg.m5g_sm_capability.multi_homed_ipv6_pdu_session =
       req_m5g.m5g_sm_capability().multi_homed_ipv6_pdu_session();
-  itti_msg.m5gsm_cause = (m5g_sm_cause_t) req_m5g.m5gsm_cause();
+  itti_msg.m5gsm_cause = (m5g_sm_cause_t)req_m5g.m5gsm_cause();
 
   // pdu_change
-  itti_msg.notify_ue_evnt = (notify_ue_event) req_m5g.notify_ue_event();
+  itti_msg.notify_ue_evnt = (notify_ue_event)req_m5g.notify_ue_event();
 
   send_n11_notification_received_itti(&itti_msg);
   return Status::OK;
@@ -97,38 +97,38 @@ Status AmfServiceImpl::SetAmfNotification(
 Status AmfServiceImpl::SetSmfSessionContext(
     ServerContext* context, const SetSMSessionContextAccess* request,
     SmContextVoid* response) {
-  struct in_addr ip_addr           = {0};
-  char ip_v4_str[INET_ADDRSTRLEN]  = {0};
+  struct in_addr ip_addr = {0};
+  char ip_v4_str[INET_ADDRSTRLEN] = {0};
   char ip_v6_str[INET6_ADDRSTRLEN] = {0};
 
   uint32_t ip_int = 0;
-  OAILOG_INFO(
-      LOG_UTIL, "Received GRPC SetSmfSessionContext request from SMF\n");
+  OAILOG_INFO(LOG_UTIL,
+              "Received GRPC SetSmfSessionContext request from SMF\n");
 
   itti_n11_create_pdu_session_response_t itti_msg;
   auto& req_common = request->common_context();
-  auto& req_m5g    = request->rat_specific_context().m5g_session_context_rsp();
+  auto& req_m5g = request->rat_specific_context().m5g_session_context_rsp();
 
   // CommonSessionContext
   get_subscriber_id(req_common.sid().id(), itti_msg.imsi);
 
   itti_msg.sm_session_fsm_state =
-      (sm_session_fsm_state_t) req_common.sm_session_state();
+      (sm_session_fsm_state_t)req_common.sm_session_state();
   itti_msg.sm_session_version = req_common.sm_session_version();
 
   // RatSpecificContextAccess
-  itti_msg.pdu_session_id    = req_m5g.pdu_session_id();
-  itti_msg.pdu_session_type  = (pdu_session_type_t) req_m5g.pdu_session_type();
-  itti_msg.selected_ssc_mode = (ssc_mode_t) req_m5g.selected_ssc_mode();
-  itti_msg.m5gsm_cause       = (m5g_sm_cause_t) req_m5g.m5gsm_cause();
+  itti_msg.pdu_session_id = req_m5g.pdu_session_id();
+  itti_msg.pdu_session_type = (pdu_session_type_t)req_m5g.pdu_session_type();
+  itti_msg.selected_ssc_mode = (ssc_mode_t)req_m5g.selected_ssc_mode();
+  itti_msg.m5gsm_cause = (m5g_sm_cause_t)req_m5g.m5gsm_cause();
 
   itti_msg.session_ambr.uplink_unit_type = req_m5g.session_ambr().br_unit();
   itti_msg.session_ambr.uplink_units =
-      (uint32_t) req_m5g.session_ambr().max_bandwidth_ul();
+      (uint32_t)req_m5g.session_ambr().max_bandwidth_ul();
 
   itti_msg.session_ambr.downlink_unit_type = req_m5g.session_ambr().br_unit();
   itti_msg.session_ambr.downlink_units =
-      (uint32_t) req_m5g.session_ambr().max_bandwidth_dl();
+      (uint32_t)req_m5g.session_ambr().max_bandwidth_dl();
 
   itti_msg.qos_list.qos_flow_req_item.qos_flow_identifier = req_m5g.qos().qci();
 
@@ -140,32 +140,30 @@ Status AmfServiceImpl::SetSmfSessionContext(
       req_m5g.qos().arp().priority_level();  // uint32
   itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .alloc_reten_priority.pre_emption_cap =
-      (pre_emption_capability) req_m5g.qos().arp().pre_capability();  // enum
+      (pre_emption_capability)req_m5g.qos().arp().pre_capability();  // enum
   itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .alloc_reten_priority.pre_emption_vul =
-      (pre_emption_vulnerability) req_m5g.qos()
+      (pre_emption_vulnerability)req_m5g.qos()
           .arp()
           .pre_vulnerability();  // enum
 
   // get the 4 byte UPF TEID and UPF IP message
-  uint32_t nteid                = req_m5g.upf_endpoint().teid();
+  uint32_t nteid = req_m5g.upf_endpoint().teid();
   itti_msg.upf_endpoint.teid[0] = (nteid >> 24) & 0xFF;
   itti_msg.upf_endpoint.teid[1] = (nteid >> 16) & 0xFF;
   itti_msg.upf_endpoint.teid[2] = (nteid >> 8) & 0xFF;
   itti_msg.upf_endpoint.teid[3] = nteid & 0xFF;
 
   if (req_m5g.upf_endpoint().end_ipv4_addr().size() > 0) {
-    inet_pton(
-        AF_INET, req_m5g.upf_endpoint().end_ipv4_addr().c_str(),
-        itti_msg.upf_endpoint.end_ipv4_addr);
+    inet_pton(AF_INET, req_m5g.upf_endpoint().end_ipv4_addr().c_str(),
+              itti_msg.upf_endpoint.end_ipv4_addr);
   }
 
-  strcpy(
-      (char*) itti_msg.procedure_trans_identity,
-      req_m5g.procedure_trans_identity().c_str());  // pdu_change
+  strcpy((char*)itti_msg.procedure_trans_identity,
+         req_m5g.procedure_trans_identity().c_str());  // pdu_change
   itti_msg.always_on_pdu_session_indication =
       req_m5g.always_on_pdu_session_indication();
-  itti_msg.allowed_ssc_mode = (ssc_mode_t) req_m5g.allowed_ssc_mode();
+  itti_msg.allowed_ssc_mode = (ssc_mode_t)req_m5g.allowed_ssc_mode();
   itti_msg.m5gsm_congetion_re_attempt_indicator =
       req_m5g.m5g_sm_congestion_reattempt_indicator();
 
@@ -173,18 +171,16 @@ Status AmfServiceImpl::SetSmfSessionContext(
   // into 4 raw bytes in hex for NAS5G layer
 
   if (req_common.ue_ipv4().size() > 0) {
-    inet_pton(
-        AF_INET, req_common.ue_ipv4().c_str(),
-        &(itti_msg.pdu_address.ipv4_address));
+    inet_pton(AF_INET, req_common.ue_ipv4().c_str(),
+              &(itti_msg.pdu_address.ipv4_address));
     uint32_t ip_int = ntohl(ip_addr.s_addr);
 
     itti_msg.pdu_address.pdn_type = IPv4;
   }
 
   if (req_common.ue_ipv6().size() > 0) {
-    inet_pton(
-        AF_INET6, req_common.ue_ipv6().c_str(),
-        &(itti_msg.pdu_address.ipv6_address));
+    inet_pton(AF_INET6, req_common.ue_ipv6().c_str(),
+              &(itti_msg.pdu_address.ipv6_address));
 
     if (req_common.ue_ipv4().size() == 0) {
       itti_msg.pdu_address.pdn_type = IPv6;

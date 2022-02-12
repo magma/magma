@@ -124,9 +124,9 @@ void handle_failed_create_bearer_response(
     bearer_context_within_create_bearer_response_t* bearer_context,
     sgw_eps_bearer_ctxt_t* dedicated_bearer_ctxt_p, log_proto_t module);
 
-void generate_dl_flow(
-    packet_filter_contents_t* packet_filter, in_addr_t ipv4_s_addr,
-    struct in6_addr* ue_ipv6, struct ip_flow_dl* dlflow);
+void generate_dl_flow(packet_filter_contents_t* packet_filter,
+                      in_addr_t ipv4_s_addr, struct in6_addr* ue_ipv6,
+                      struct ip_flow_dl* dlflow);
 
 int32_t spgw_build_and_send_s11_deactivate_bearer_req(
     imsi64_t imsi64, uint8_t no_of_bearers_to_be_deact,

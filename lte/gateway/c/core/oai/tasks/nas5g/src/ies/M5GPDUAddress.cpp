@@ -28,13 +28,13 @@ PDUAddressMsg::PDUAddressMsg(){};
 PDUAddressMsg::~PDUAddressMsg(){};
 
 // Decode PDUAddress IE
-int PDUAddressMsg::DecodePDUAddressMsg(
-    PDUAddressMsg* pdu_address, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int PDUAddressMsg::DecodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,
+                                       uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
   // CHECKING IEI
   if (iei > 0) {
     IES_DECODE_U8(buffer, decoded, pdu_address->iei);
-    CHECK_IEI_DECODER(iei, (unsigned char) pdu_address->iei);
+    CHECK_IEI_DECODER(iei, (unsigned char)pdu_address->iei);
   }
 
   IES_DECODE_U8(buffer, decoded, pdu_address->length);
@@ -50,14 +50,14 @@ int PDUAddressMsg::DecodePDUAddressMsg(
 };
 
 // Encode PDUAddress IE
-int PDUAddressMsg::EncodePDUAddressMsg(
-    PDUAddressMsg* pdu_address, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int PDUAddressMsg::EncodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,
+                                       uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
   // CHECKING IEI
   if (iei > 0) {
     pdu_address->iei = iei;
-    CHECK_IEI_DECODER(iei, (unsigned char) pdu_address->iei);
+    CHECK_IEI_DECODER(iei, (unsigned char)pdu_address->iei);
     *(buffer + encoded) = iei;
     encoded++;
   }

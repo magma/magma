@@ -57,7 +57,7 @@ extern __pid_t g_pid;
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
-  imsi64_t imsi64          = itti_get_associated_imsi(received_message_p);
+  imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
   spgw_state_t* spgw_state = get_spgw_state(false);
 
   bool is_state_same = false;
@@ -168,10 +168,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           imsi64);
       is_state_same = true;  // task state is not changed
       if (rc != RETURNok) {
-        OAILOG_ERROR_UE(
-            LOG_SPGW_APP, imsi64,
-            "Failed to handle NW_INITIATED_DEACTIVATE_BEARER_REQ, "
-            "send bearer deactivation reject to SPGW service \n");
+        OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                        "Failed to handle NW_INITIATED_DEACTIVATE_BEARER_REQ, "
+                        "send bearer deactivation reject to SPGW service \n");
         // TODO-Uncomment once implemented at PCRF
         /* rc =
          * send_dedicated_bearer_deactv_rsp(invalid_bearer_id,REQUEST_REJECTED);
@@ -191,9 +190,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           spgw_state, &received_message_p->ittiMsg.ip_allocation_response,
           imsi64);
       if (rc != RETURNok) {
-        OAILOG_ERROR_UE(
-            LOG_SPGW_APP, imsi64,
-            "Failed to handle IP_ALLOCATION_RESPONSE, \n");
+        OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                        "Failed to handle IP_ALLOCATION_RESPONSE, \n");
       }
     } break;
 
@@ -204,9 +202,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     default: {
-      OAILOG_DEBUG(
-          LOG_SPGW_APP, "Unknown message ID %d:%s\n",
-          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
+      OAILOG_DEBUG(LOG_SPGW_APP, "Unknown message ID %d:%s\n",
+                   ITTI_MSG_ID(received_message_p),
+                   ITTI_MSG_NAME(received_message_p));
     } break;
   }
 
@@ -223,13 +221,12 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 //------------------------------------------------------------------------------
 static void* spgw_app_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_SPGW_APP);
-  init_task_context(
-      TASK_SPGW_APP, (task_id_t[]){TASK_MME_APP}, 1, handle_message,
-      &spgw_app_task_zmq_ctx);
+  init_task_context(TASK_SPGW_APP, (task_id_t[]){TASK_MME_APP}, 1,
+                    handle_message, &spgw_app_task_zmq_ctx);
 
   zloop_start(spgw_app_task_zmq_ctx.event_loop);
-  AssertFatal(
-      0, "Asserting as spgw_app_thread should not be exiting on its own!");
+  AssertFatal(0,
+              "Asserting as spgw_app_thread should not be exiting on its own!");
   return NULL;
 }
 

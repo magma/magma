@@ -45,8 +45,8 @@ int decode_apn_aggregate_maximum_bit_rate(
     ApnAggregateMaximumBitRate* apnaggregatemaximumbitrate, uint8_t iei,
     uint8_t* buffer, uint32_t len);
 
-void bit_rate_value_to_eps_qos(
-    ApnAggregateMaximumBitRate* apn_ambr, uint64_t ambr_dl, uint64_t ambr_ul,
-    const apn_ambr_bitrate_unit_t br_unit);
+void bit_rate_value_to_eps_qos(ApnAggregateMaximumBitRate* apn_ambr,
+                               uint64_t ambr_dl, uint64_t ambr_ul,
+                               const apn_ambr_bitrate_unit_t br_unit);
 
 #endif /* APN_AGGREGATE_MAXIMUM_BIT_RATE_SEEN */

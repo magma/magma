@@ -31,7 +31,7 @@
 #define AUTHENTICATION_FAILURE_MINIMUM_LENGTH (EMM_CAUSE_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define AUTHENTICATION_FAILURE_MAXIMUM_LENGTH                                  \
+#define AUTHENTICATION_FAILURE_MAXIMUM_LENGTH \
   (EMM_CAUSE_MAXIMUM_LENGTH + AUTHENTICATION_FAILURE_PARAMETER_IE_MAX_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
