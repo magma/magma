@@ -17,6 +17,7 @@
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
 #include "lte/gateway/c/core/oai/include/amf_config.h"
 }
@@ -683,10 +684,11 @@ TEST_F(NgapFlowTest, pdu_sess_resource_setup_req_sunny_day) {
       .qos_flow_level_qos_param.alloc_reten_priority.priority_level = 1;
   amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list.qos_flow_req_item
       .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_cap =
-      SHALL_NOT_TRIGGER_PRE_EMPTION;
+      static_cast<pre_emption_capability_t>(PRE_EMPTION_CAPABILITY_DISABLED);
   amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list.qos_flow_req_item
       .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_vul =
-      NOT_PREEMPTABLE;
+      static_cast<pre_emption_vulnerability_t>(
+          PRE_EMPTION_VULNERABILITY_DISABLED);
   ngap_pdu_ses_setup_req->pduSessionResource_setup_list.item[0]
       .PDU_Session_Resource_Setup_Request_Transfer =
       amf_pdu_ses_setup_transfer_req;

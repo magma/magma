@@ -140,10 +140,10 @@ Status AmfServiceImpl::SetSmfSessionContext(
       req_m5g.qos().arp().priority_level();  // uint32
   itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .alloc_reten_priority.pre_emption_cap =
-      (pre_emption_capability)req_m5g.qos().arp().pre_capability();  // enum
+      (pre_emption_capability_t)req_m5g.qos().arp().pre_capability();  // enum
   itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .alloc_reten_priority.pre_emption_vul =
-      (pre_emption_vulnerability)req_m5g.qos()
+      (pre_emption_vulnerability_t)req_m5g.qos()
           .arp()
           .pre_vulnerability();  // enum
 

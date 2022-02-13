@@ -511,9 +511,10 @@ bool generator_itti_ngap_pdusession_resource_setup_req(bstring& stream) {
       .fiveQI = 9;
   qos_flow->qos_flow_level_qos_param.alloc_reten_priority.priority_level = 8;
   qos_flow->qos_flow_level_qos_param.alloc_reten_priority.pre_emption_cap =
-      SHALL_NOT_TRIGGER_PRE_EMPTION;
+      static_cast<pre_emption_capability_t>(PRE_EMPTION_CAPABILITY_DISABLED);
   qos_flow->qos_flow_level_qos_param.alloc_reten_priority.pre_emption_vul =
-      PRE_EMPTABLE;
+      static_cast<pre_emption_vulnerability_t>(
+          PRE_EMPTION_VULNERABILITY_DISABLED);
 
   ue_ref.gnb_ue_ngap_id = 1001;
   ue_ref.amf_ue_ngap_id = 2001;

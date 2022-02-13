@@ -655,10 +655,10 @@ void AmfNasStateConverter::proto_to_qos_flow_level_parameters(
   state_qos_flow_parameters->alloc_reten_priority.priority_level =
       qos_flow_parameters_proto.priority_level();
   state_qos_flow_parameters->alloc_reten_priority.pre_emption_vul =
-      static_cast<pre_emption_vulnerability>(
+      static_cast<pre_emption_vulnerability_t>(
           qos_flow_parameters_proto.preemption_vulnerability());
   state_qos_flow_parameters->alloc_reten_priority.pre_emption_cap =
-      static_cast<pre_emption_capability>(
+      static_cast<pre_emption_capability_t>(
           qos_flow_parameters_proto.preemption_capability());
 }
 

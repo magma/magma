@@ -19,11 +19,6 @@
  *  @brief Create PDU Session Response */
 
 /***********************pdu_res_set_change starts*************************/
-typedef enum {
-  SHALL_NOT_TRIGGER_PRE_EMPTION,
-  MAY_TRIGGER_PRE_EMPTION,
-} pre_emption_capability;
-
 typedef enum sm_session_fsm_state_e {
   CREATING,
   CREATE,
@@ -32,15 +27,10 @@ typedef enum sm_session_fsm_state_e {
   RELEASED
 } sm_session_fsm_state_t;
 
-typedef enum {
-  NOT_PREEMPTABLE,
-  PRE_EMPTABLE,
-} pre_emption_vulnerability;
-
 typedef struct m5g_allocation_and_retention_priority_s {
   int priority_level;
-  pre_emption_capability pre_emption_cap;
-  pre_emption_vulnerability pre_emption_vul;
+  pre_emption_capability_t pre_emption_cap;
+  pre_emption_vulnerability_t pre_emption_vul;
 } m5g_allocation_and_retention_priority;
 
 typedef struct non_dynamic_5QI_descriptor_s {

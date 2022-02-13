@@ -38,11 +38,25 @@ imsi64_t send_initial_ue_message_no_tmsi(
     amf_ue_ngap_id_t amf_ue_ngap_id, const plmn_t& plmn, const uint8_t* nas_msg,
     uint8_t nas_msg_length);
 
-imsi64_t send_initial_ue_message_service_request_with_pdu(
+/* For guti based registration */
+uint64_t send_initial_ue_message_with_tmsi(
+    amf_app_desc_t* amf_app_desc_p, sctp_assoc_id_t sctp_assoc_id,
+    uint32_t gnb_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
+    amf_ue_ngap_id_t amf_ue_ngap_id, const plmn_t& plmn, uint32_t m_tmsi,
+    const uint8_t* nas_msg, uint8_t nas_msg_length);
+
+/* For generating the identity response message */
+int send_uplink_nas_identity_response_message(amf_app_desc_t* amf_app_desc_p,
+                                              amf_ue_ngap_id_t ue_id,
+                                              const plmn_t& plmn,
+                                              const uint8_t* nas_msg,
+                                              uint8_t nas_msg_length);
+
+imsi64_t send_initial_ue_message_service_request(
     amf_app_desc_t* amf_app_desc_p, sctp_assoc_id_t sctp_assoc_id,
     uint32_t gnb_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
     amf_ue_ngap_id_t amf_ue_ngap_id, const plmn_t& plmn, const uint8_t* nas_msg,
-    uint8_t nas_msg_length);
+    uint8_t nas_msg_length, uint8_t tmsi_offset);
 
 int send_uplink_nas_message_service_request_with_pdu(
     amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t amf_ue_ngap_id,
@@ -91,6 +105,8 @@ void create_pdu_session_response_ipv4_itti(
     itti_n11_create_pdu_session_response_t* response);
 
 int send_pdu_session_response_itti(pdn_type_value_t type);
+
+int send_pdu_session_response_missing_qfi_itti(pdn_type_value_t type);
 
 void create_pdu_resource_setup_response_itti(
     itti_ngap_pdusessionresource_setup_rsp_t* response, amf_ue_ngap_id_t ue_id);

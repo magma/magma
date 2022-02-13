@@ -447,9 +447,12 @@ TEST(TestAMFStateConverter, TestSMFContextToProto) {
   smf_context1.subscribed_qos_profile.qos_flow_req_item.qos_flow_level_qos_param
       .alloc_reten_priority.priority_level = 1;
   smf_context1.subscribed_qos_profile.qos_flow_req_item.qos_flow_level_qos_param
-      .alloc_reten_priority.pre_emption_cap = SHALL_NOT_TRIGGER_PRE_EMPTION;
+      .alloc_reten_priority.pre_emption_cap =
+      static_cast<pre_emption_capability_t>(PRE_EMPTION_CAPABILITY_DISABLED);
   smf_context1.subscribed_qos_profile.qos_flow_req_item.qos_flow_level_qos_param
-      .alloc_reten_priority.pre_emption_vul = NOT_PREEMPTABLE;
+      .alloc_reten_priority.pre_emption_vul =
+      static_cast<pre_emption_vulnerability_t>(
+          PRE_EMPTION_VULNERABILITY_DISABLED);
 
   AmfNasStateConverter::smf_context_to_proto(&smf_context1, &state_smf_proto);
   AmfNasStateConverter::proto_to_smf_context(state_smf_proto, &smf_context2);
