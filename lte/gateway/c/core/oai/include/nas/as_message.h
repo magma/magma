@@ -592,10 +592,6 @@ typedef struct as_message_s {
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-int as_message_decode(const char* buffer, as_message_t* msg, size_t length);
-
-int as_message_encode(char* buffer, as_message_t* msg, size_t length);
-
 /* Implemented in the network_api.c body file */
 int as_message_send(as_message_t* as_msg);
 
