@@ -17,16 +17,16 @@
 extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/assertions.h"
-#include "hashtable.h"
-#include "obj_hashtable.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
 #ifdef __cplusplus
 }
 #endif
 
-#include "amf_smfDefs.h"
-#include "amf_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_converter.h"
-#include <lte/gateway/c/core/oai/include/state_manager.h>
+#include "lte/gateway/c/core/oai/include/state_manager.h"
 
 using magma::lte::oai::MmeNasState;
 namespace magma5g {
