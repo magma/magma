@@ -27,9 +27,9 @@ message QoSProfile {
 // APN authorized bitrate
 message AggregatedMaximumBitrate {
   // Maximum uplink bitrate
-  uint32 max_bandwidth_ul = 1;
+  uint64 max_bandwidth_ul = 1;
   // Maximum downlink bitrate
-  uint32 max_bandwidth_dl = 2;
+  uint64 max_bandwidth_dl = 2;
 
   enum BitrateUnitsAMBR {
         BPS = 0;
