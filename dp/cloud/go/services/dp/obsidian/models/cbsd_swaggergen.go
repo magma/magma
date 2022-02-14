@@ -36,12 +36,14 @@ type Cbsd struct {
 	Grant *Grant `json:"grant,omitempty"`
 
 	// database id of cbsd
+	// Required: true
 	// Read Only: true
-	ID int64 `json:"id,omitempty"`
+	ID int64 `json:"id"`
 
 	// false if cbsd have not contcated DP for certain amount of time
+	// Required: true
 	// Read Only: true
-	IsActive *bool `json:"is_active,omitempty"`
+	IsActive bool `json:"is_active"`
 
 	// serial number
 	// Required: true
@@ -49,9 +51,10 @@ type Cbsd struct {
 	SerialNumber *string `json:"serial_number"`
 
 	// state of cbsd in SAS
+	// Required: true
 	// Read Only: true
 	// Enum: [unregistered registered]
-	State string `json:"state,omitempty"`
+	State string `json:"state"`
 
 	// user id
 	// Required: true
@@ -72,6 +75,14 @@ func (m *Cbsd) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateGrant(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateIsActive(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -142,6 +153,24 @@ func (m *Cbsd) validateGrant(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *Cbsd) validateID(formats strfmt.Registry) error {
+
+	if err := validate.Required("id", "body", int64(m.ID)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Cbsd) validateIsActive(formats strfmt.Registry) error {
+
+	if err := validate.Required("is_active", "body", bool(m.IsActive)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *Cbsd) validateSerialNumber(formats strfmt.Registry) error {
 
 	if err := validate.Required("serial_number", "body", m.SerialNumber); err != nil {
@@ -186,8 +215,8 @@ func (m *Cbsd) validateStateEnum(path, location string, value string) error {
 
 func (m *Cbsd) validateState(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.State) { // not required
-		return nil
+	if err := validate.RequiredString("state", "body", string(m.State)); err != nil {
+		return err
 	}
 
 	// value enum

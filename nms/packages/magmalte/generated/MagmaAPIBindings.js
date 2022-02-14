@@ -170,10 +170,10 @@ export type cbsd = {
     cbsd_id ? : string,
     fcc_id: string,
     grant ? : grant,
-    id ? : number,
-    is_active ? : boolean,
+    id: number,
+    is_active: boolean,
     serial_number: string,
-    state ? : "unregistered" | "registered",
+    state: "unregistered" | "registered",
     user_id: string,
 };
 export type cellular_gateway_pool = {
@@ -844,6 +844,12 @@ export type msisdn_assignment = {
 };
 export type mutable_call_trace = {
     requested_end: boolean,
+};
+export type mutable_cbsd = {
+    capabilities: capabilities,
+    fcc_id: string,
+    serial_number: string,
+    user_id: string,
 };
 export type mutable_cellular_gateway_pool = {
     config: cellular_gateway_pool_configs,

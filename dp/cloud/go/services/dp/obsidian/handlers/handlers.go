@@ -170,7 +170,7 @@ func createCbsd(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	payload := &models.Cbsd{}
+	payload := &models.MutableCbsd{}
 	if err := c.Bind(payload); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
@@ -222,7 +222,7 @@ func updateCbsd(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	payload := &models.Cbsd{}
+	payload := &models.MutableCbsd{}
 	if err := c.Bind(payload); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
