@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import ipaddress
 import os
 from collections import defaultdict, namedtuple
 from datetime import datetime, timedelta
@@ -36,6 +37,7 @@ from magma.pipelined.app.policy_mixin import (
 )
 from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
 from magma.pipelined.imsi import decode_imsi, encode_imsi
+from magma.pipelined.ipv6_prefix_store import get_ipv6_prefix
 from magma.pipelined.ng_manager.session_state_manager import SessionStateManager
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.exceptions import (
@@ -132,6 +134,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         self._restart_info_store = kwargs['restart_info_store']
         self._ovs_restarted = self._was_ovs_restarted()
         self.ng_config = self._get_ng_config(kwargs['config'], kwargs['rpc_stubs'])
+        self._prefix_mapper = kwargs['interface_to_prefix_mapper']
 
     def _get_ng_config(self, config_dict, rpc_stub_dict):
         ng_service_enabled = config_dict.get('enable5g_features', None)
@@ -568,7 +571,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             if not sid:
                 continue
             ipv4_addr = _get_ipv4(flow_stat)
-            ipv6_addr = _get_ipv6(flow_stat)
+            ipv6_addr = self._get_ipv6(flow_stat)
 
             local_f_teid_ng = _get_ng_local_f_id(flow_stat)
 
@@ -781,6 +784,35 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             self.ng_config.sessiond_setinterface,
         )
 
+    def _get_ipv6(self, flow):
+        if DIRECTION_REG not in flow.match:
+            return None
+        if flow.match[DIRECTION_REG] == Direction.OUT:
+            ip_register = 'ipv6_src'
+        else:
+            ip_register = 'ipv6_dst'
+        if ip_register not in flow.match:
+            return None
+        ipv6 = flow.match[ip_register]
+        # masked value returned as tuple
+
+        if type(ipv6) is tuple:
+            ipv6_addr = ipv6[0]
+        else:
+            ipv6_addr = ipv6
+
+        prefix = get_ipv6_prefix(ipv6_addr)
+        interface = self._prefix_mapper.get_interface(prefix)
+        if interface is None:
+            return ipv6_addr
+        # Rebuild UE IPv6 address from prefix map
+        subnet = ipaddress.ip_address(prefix)
+        host_id = ipaddress.ip_address(interface)
+        ue_ip = ipaddress.ip_address(int(subnet) | int(host_id))
+
+        self.logger.debug("recalc ue_ip: %s sub: %s host: %s", ue_ip, prefix, host_id)
+        return str(ue_ip)
+
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction, local_f_teid_ng=0):
     """
@@ -816,23 +848,6 @@ def _get_ipv4(flow):
         return ipv4[0]
     else:
         return ipv4
-
-
-def _get_ipv6(flow):
-    if DIRECTION_REG not in flow.match:
-        return None
-    if flow.match[DIRECTION_REG] == Direction.OUT:
-        ip_register = 'ipv6_src'
-    else:
-        ip_register = 'ipv6_dst'
-    if ip_register not in flow.match:
-        return None
-    ipv6 = flow.match[ip_register]
-    # masked value returned as tuple
-    if type(ipv6) is tuple:
-        return ipv6[0]
-    else:
-        return ipv6
 
 
 def _get_version(flow):
