@@ -62,7 +62,7 @@ bool is_num_sessions_valid(
   return true;
 }
 
-bool is_num_ue_contexts_valid(uint64_t imsi64, int expected_num_ue_contexts) {
+bool is_num_ue_contexts_valid(int expected_num_ue_contexts) {
   hash_table_ts_t* state_ue_ht = get_spgw_ue_state();
   return state_ue_ht->num_elements == expected_num_ue_contexts;
 }

@@ -44,7 +44,7 @@ namespace lte {
 bool is_num_sessions_valid(
     uint64_t imsi64, int expected_num_ue_contexts, int expected_num_teids);
 
-bool is_num_ue_contexts_valid(uint64_t imsi64, int expected_num_ue_contexts);
+bool is_num_ue_contexts_valid(int expected_num_ue_contexts);
 
 bool is_num_teids_valid(uint64_t imsi64, int expected_num_teids);
 
