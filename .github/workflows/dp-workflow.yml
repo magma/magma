@@ -377,33 +377,30 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: integration-tests-results
-          path: ${{ env.TEST_DIR }}
+          name: ${{ matrix.test_type }}-results
+          path: |
+            ${{ env.TEST_DIR }}
+            /tmp/${{ matrix.test_type }}.txt
 
   integration-test-results:
     needs: integration_tests
     name: Integration test results
     runs-on: ubuntu-latest
-    continue-on-error: true
-    strategy:
-      fail-fast: false
-      matrix:
-        service:
-          - protocol-controller
+    if: always()
     steps:
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v2
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
           workflow: dp-workflow.yml
-          path: test-results-${{ matrix.service }}
+          path: test-results
 
       - name: Publish integration test results
         uses: EnricoMi/publish-unit-test-result-action@v1
         with:
           commit: ${{ github.event.workflow_run.head_sha }}
-          files: test-results-${{ matrix.service }}/**/*.xml
-          comment_title: "Integration Test Results"
+          files: test-results/**/*.xml
+          comment_title: "Domain Proxy integration tests results"
 
 
   helm_chart_tests:
