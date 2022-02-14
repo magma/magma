@@ -96,14 +96,13 @@ status_code_e sgw_handle_s11_create_session_request(
     imsi64_t imsi64) {
   mme_sgw_tunnel_t* new_endpoint_p = NULL;
   s_plus_p_gw_eps_bearer_context_information_t*
-      s_plus_p_gw_eps_bearer_ctxt_info_p   = NULL;
+      s_plus_p_gw_eps_bearer_ctxt_info_p = NULL;
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
 
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   increment_counter("spgw_create_session", 1, NO_LABELS);
-  OAILOG_INFO_UE(
-      LOG_SPGW_APP, imsi64,
-      "Received S11 CREATE SESSION REQUEST from MME_APP\n");
+  OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
+                 "Received S11 CREATE SESSION REQUEST from MME_APP\n");
   /*
    * Upon reception of create session request from MME,
    * * * * S-GW should create UE, eNB and MME contexts and forward message to
@@ -131,22 +130,19 @@ status_code_e sgw_handle_s11_create_session_request(
      * MME sent request with teid = 0. This is not valid...
      */
     OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "F-TEID parameter mismatch\n");
-    increment_counter(
-        "spgw_create_session", 1, 2, "result", "failure", "cause",
-        "sender_fteid_incorrect_parameters");
+    increment_counter("spgw_create_session", 1, 2, "result", "failure", "cause",
+                      "sender_fteid_incorrect_parameters");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
   new_endpoint_p = sgw_cm_create_s11_tunnel(
       session_req_pP->sender_fteid_for_cp.teid, sgw_generate_new_s11_cp_teid());
 
   if (new_endpoint_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64,
-        "Could not create new tunnel endpoint between S-GW and MME "
-        "for S11 abstraction\n");
-    increment_counter(
-        "spgw_create_session", 1, 2, "result", "failure", "cause",
-        "s11_tunnel_creation_failure");
+    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                    "Could not create new tunnel endpoint between S-GW and MME "
+                    "for S11 abstraction\n");
+    increment_counter("spgw_create_session", 1, 2, "result", "failure", "cause",
+                      "s11_tunnel_creation_failure");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
 
@@ -161,10 +157,10 @@ status_code_e sgw_handle_s11_create_session_request(
 
   if (spgw_update_teid_in_ue_context(imsi64, new_endpoint_p->local_teid) ==
       RETURNerror) {
-    OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64,
-        "Failed to update sgw_s11_teid" TEID_FMT " in UE context \n",
-        new_endpoint_p->local_teid);
+    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                    "Failed to update sgw_s11_teid" TEID_FMT
+                    " in UE context \n",
+                    new_endpoint_p->local_teid);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
   s_plus_p_gw_eps_bearer_ctxt_info_p =
@@ -180,14 +176,12 @@ status_code_e sgw_handle_s11_create_session_request(
     // copy informations from create session request to bearer context
     // information
     //--------------------------------------------------
-    memcpy(
-        s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-            .imsi.digit,
-        session_req_pP->imsi.digit, IMSI_BCD_DIGITS_MAX);
-    memcpy(
-        s_plus_p_gw_eps_bearer_ctxt_info_p->pgw_eps_bearer_context_information
-            .imsi.digit,
-        session_req_pP->imsi.digit, IMSI_BCD_DIGITS_MAX);
+    memcpy(s_plus_p_gw_eps_bearer_ctxt_info_p
+               ->sgw_eps_bearer_context_information.imsi.digit,
+           session_req_pP->imsi.digit, IMSI_BCD_DIGITS_MAX);
+    memcpy(s_plus_p_gw_eps_bearer_ctxt_info_p
+               ->pgw_eps_bearer_context_information.imsi.digit,
+           session_req_pP->imsi.digit, IMSI_BCD_DIGITS_MAX);
     s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
         .imsi64 = imsi64;
     s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
@@ -207,10 +201,9 @@ status_code_e sgw_handle_s11_create_session_request(
         (&s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
               .mme_ip_address_S11));
 
-    memset(
-        &s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-             .pdn_connection,
-        0, sizeof(sgw_pdn_connection_t));
+    memset(&s_plus_p_gw_eps_bearer_ctxt_info_p
+                ->sgw_eps_bearer_context_information.pdn_connection,
+           0, sizeof(sgw_pdn_connection_t));
 
     if (session_req_pP->apn) {
       s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
@@ -239,11 +232,10 @@ status_code_e sgw_handle_s11_create_session_request(
                            ->sgw_eps_bearer_context_information);
 
     if (eps_bearer_ctxt_p == NULL) {
-      OAILOG_ERROR_UE(
-          LOG_SPGW_APP, imsi64, "Failed to create new EPS bearer entry\n");
-      increment_counter(
-          "spgw_create_session", 1, 2, "result", "failure", "cause",
-          "internal_software_error");
+      OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                      "Failed to create new EPS bearer entry\n");
+      increment_counter("spgw_create_session", 1, 2, "result", "failure",
+                        "cause", "internal_software_error");
       // TO DO free_wrapper new_bearer_ctxt_info_p and by cascade...
       OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
     }
@@ -255,10 +247,9 @@ status_code_e sgw_handle_s11_create_session_request(
      * Trying to insert the new tunnel into the tree.
      * If collision_p is not NULL (0), it means tunnel is already present.
      */
-    memcpy(
-        &s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-             .saved_message,
-        session_req_pP, sizeof(itti_s11_create_session_request_t));
+    memcpy(&s_plus_p_gw_eps_bearer_ctxt_info_p
+                ->sgw_eps_bearer_context_information.saved_message,
+           session_req_pP, sizeof(itti_s11_create_session_request_t));
     copy_protocol_configuration_options(
         &s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
              .saved_message.pco,
@@ -275,20 +266,19 @@ status_code_e sgw_handle_s11_create_session_request(
         "\n",
         eps_bearer_ctxt_p->eps_bearer_id, new_endpoint_p->local_teid);
 
-    handle_s5_create_session_request(
-        state, s_plus_p_gw_eps_bearer_ctxt_info_p, new_endpoint_p->local_teid,
-        eps_bearer_ctxt_p->eps_bearer_id);
+    handle_s5_create_session_request(state, s_plus_p_gw_eps_bearer_ctxt_info_p,
+                                     new_endpoint_p->local_teid,
+                                     eps_bearer_ctxt_p->eps_bearer_id);
   } else {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
         "Could not create new transaction for SESSION_CREATE message\n");
-    free_wrapper((void**) &new_endpoint_p);
-    increment_counter(
-        "spgw_create_session", 1, 2, "result", "failure", "cause",
-        "internal_software_error");
+    free_wrapper((void**)&new_endpoint_p);
+    increment_counter("spgw_create_session", 1, 2, "result", "failure", "cause",
+                      "internal_software_error");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
-  free_wrapper((void**) &new_endpoint_p);
+  free_wrapper((void**)&new_endpoint_p);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
 }
 
@@ -298,14 +288,13 @@ status_code_e sgw_handle_sgi_endpoint_created(
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   itti_s11_create_session_response_t* create_session_response_p = NULL;
-  MessageDef* message_p                                         = NULL;
-  int rv                                                        = RETURNok;
+  MessageDef* message_p = NULL;
+  int rv = RETURNok;
 
-  OAILOG_DEBUG_UE(
-      LOG_SPGW_APP, imsi64,
-      "Rx SGI_CREATE_ENDPOINT_RESPONSE, Context: S11 teid " TEID_FMT
-      "EPS bearer id %u\n",
-      resp_pP->context_teid, resp_pP->eps_bearer_id);
+  OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
+                  "Rx SGI_CREATE_ENDPOINT_RESPONSE, Context: S11 teid " TEID_FMT
+                  "EPS bearer id %u\n",
+                  resp_pP->context_teid, resp_pP->eps_bearer_id);
 
   message_p =
       itti_alloc_new_message(TASK_SPGW_APP, S11_CREATE_SESSION_RESPONSE);
@@ -315,8 +304,8 @@ status_code_e sgw_handle_sgi_endpoint_created(
   }
 
   create_session_response_p = &message_p->ittiMsg.s11_create_session_response;
-  memset(
-      create_session_response_p, 0, sizeof(itti_s11_create_session_response_t));
+  memset(create_session_response_p, 0,
+         sizeof(itti_s11_create_session_response_t));
 
   s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(resp_pP->context_teid);
@@ -338,15 +327,13 @@ status_code_e sgw_handle_sgi_endpoint_created(
                .pdn_connection,
           resp_pP->eps_bearer_id);
       AssertFatal(eps_bearer_ctxt_p, "ERROR UNABLE TO GET EPS BEARER ENTRY\n");
-      AssertFatal(
-          sizeof(eps_bearer_ctxt_p->paa) ==
-              sizeof(create_session_response_p->paa),
-          "Mismatch in lengths");  // sceptic mode
-      memcpy(
-          &create_session_response_p->paa, &eps_bearer_ctxt_p->paa,
-          sizeof(paa_t));
-      copy_protocol_configuration_options(
-          &create_session_response_p->pco, &resp_pP->pco);
+      AssertFatal(sizeof(eps_bearer_ctxt_p->paa) ==
+                      sizeof(create_session_response_p->paa),
+                  "Mismatch in lengths");  // sceptic mode
+      memcpy(&create_session_response_p->paa, &eps_bearer_ctxt_p->paa,
+             sizeof(paa_t));
+      copy_protocol_configuration_options(&create_session_response_p->pco,
+                                          &resp_pP->pco);
       clear_protocol_configuration_options(&resp_pP->pco);
       create_session_response_p->bearer_contexts_created.bearer_contexts[0]
           .s1u_sgw_fteid.teid = eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up;
@@ -361,14 +348,13 @@ status_code_e sgw_handle_sgi_endpoint_created(
       if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled) {
         create_session_response_p->bearer_contexts_created.bearer_contexts[0]
             .s1u_sgw_fteid.ipv6 = 1;
-        memcpy(
-            &create_session_response_p->bearer_contexts_created
-                 .bearer_contexts[0]
-                 .s1u_sgw_fteid.ipv6_address,
-            &state->sgw_ipv6_address_S1u_S12_S4_up,
-            sizeof(create_session_response_p->bearer_contexts_created
-                       .bearer_contexts[0]
-                       .s1u_sgw_fteid.ipv6_address));
+        memcpy(&create_session_response_p->bearer_contexts_created
+                    .bearer_contexts[0]
+                    .s1u_sgw_fteid.ipv6_address,
+               &state->sgw_ipv6_address_S1u_S12_S4_up,
+               sizeof(create_session_response_p->bearer_contexts_created
+                          .bearer_contexts[0]
+                          .s1u_sgw_fteid.ipv6_address));
       }
       /*
        * Set the Cause information from bearer context created.
@@ -386,7 +372,7 @@ status_code_e sgw_handle_sgi_endpoint_created(
 
     create_session_response_p->s11_sgw_fteid.teid = resp_pP->context_teid;
     create_session_response_p->s11_sgw_fteid.interface_type = S11_SGW_GTP_C;
-    create_session_response_p->s11_sgw_fteid.ipv4           = 1;
+    create_session_response_p->s11_sgw_fteid.ipv4 = 1;
     create_session_response_p->s11_sgw_fteid.ipv4_address.s_addr =
         spgw_config.sgw_config.ipv4.S11.s_addr;
 
@@ -457,7 +443,7 @@ void sgw_populate_mbr_bearer_contexts_removed(
     sgw_eps_bearer_context_information_t* sgw_context_p,
     itti_s11_modify_bearer_response_t* modify_response_p) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  uint8_t rsp_idx                          = 0;
+  uint8_t rsp_idx = 0;
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
   for (uint8_t idx = 0; idx < resp_pP->num_bearers_removed; idx++) {
     eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
@@ -500,8 +486,8 @@ void sgw_populate_mbr_bearer_contexts_removed(
 static void sgw_add_gtp_tunnel(
     imsi64_t imsi64, sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p) {
-  int rv                    = RETURNok;
-  struct in_addr enb        = {.s_addr = 0};
+  int rv = RETURNok;
+  struct in_addr enb = {.s_addr = 0};
   struct in6_addr* enb_ipv6 = NULL;
   enb.s_addr =
       eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
@@ -510,17 +496,17 @@ static void sgw_add_gtp_tunnel(
     enb_ipv6 = &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
   }
 
-  struct in_addr ue_ipv4   = {.s_addr = 0};
+  struct in_addr ue_ipv4 = {.s_addr = 0};
   struct in6_addr* ue_ipv6 = NULL;
-  ue_ipv4.s_addr           = eps_bearer_ctxt_p->paa.ipv4_address.s_addr;
+  ue_ipv4.s_addr = eps_bearer_ctxt_p->paa.ipv4_address.s_addr;
   if ((eps_bearer_ctxt_p->paa.pdn_type == IPv6) ||
       (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
     ue_ipv6 = &eps_bearer_ctxt_p->paa.ipv6_address;
   }
 
-  int vlan    = eps_bearer_ctxt_p->paa.vlan;
+  int vlan = eps_bearer_ctxt_p->paa.vlan;
   Imsi_t imsi = new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi;
-  char* apn = (char*) new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+  char* apn = (char*)new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
                   .pdn_connection.apn_in_use;
   char ip6_str[INET6_ADDRSTRLEN];
 
@@ -537,46 +523,44 @@ static void sgw_add_gtp_tunnel(
         ue_ipv4, ue_ipv6, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL,
         DEFAULT_PRECEDENCE);
     if (rv < 0) {
-      OAILOG_ERROR_UE(
-          LOG_SPGW_APP, imsi64, "ERROR in forwarding data on TUNNEL err=%d\n",
-          rv);
+      OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                      "ERROR in forwarding data on TUNNEL err=%d\n", rv);
     }
   } else {
-    OAILOG_DEBUG_UE(
-        LOG_SPGW_APP, imsi64, "Adding tunnel for bearer %u ue addr %x\n",
-        eps_bearer_ctxt_p->eps_bearer_id, ue_ipv4.s_addr);
+    OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
+                    "Adding tunnel for bearer %u ue addr %x\n",
+                    eps_bearer_ctxt_p->eps_bearer_id, ue_ipv4.s_addr);
     if (eps_bearer_ctxt_p->eps_bearer_id ==
         new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
             .pdn_connection.default_bearer) {
       // Set default precedence and tft for default bearer
       if (ue_ipv6) {
-        OAILOG_INFO_UE(
-            LOG_SPGW_APP, imsi64,
-            "Adding tunnel for ipv6 ue addr %s, enb %x, "
-            "s_gw_teid_S1u_S12_S4_up %x, enb_teid_S1u %x\n",
-            ip6_str, enb.s_addr, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-            eps_bearer_ctxt_p->enb_teid_S1u);
+        OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
+                       "Adding tunnel for ipv6 ue addr %s, enb %x, "
+                       "s_gw_teid_S1u_S12_S4_up %x, enb_teid_S1u %x\n",
+                       ip6_str, enb.s_addr,
+                       eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+                       eps_bearer_ctxt_p->enb_teid_S1u);
       }
 
-      rv = gtpv1u_add_tunnel(
-          ue_ipv4, ue_ipv6, vlan, enb, enb_ipv6,
-          eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-          eps_bearer_ctxt_p->enb_teid_S1u, imsi, NULL, DEFAULT_PRECEDENCE, apn);
+      rv = gtpv1u_add_tunnel(ue_ipv4, ue_ipv6, vlan, enb, enb_ipv6,
+                             eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+                             eps_bearer_ctxt_p->enb_teid_S1u, imsi, NULL,
+                             DEFAULT_PRECEDENCE, apn);
 
       // (@ulaskozat) We only need to update the TEIDs during session creation
       // which triggers rule installments on sessiond. When pipelined needs to
       // use eNB TEID for reporting we need to change this logic into something
       // more meaningful.
-      bool update_teids               = eps_bearer_ctxt_p->update_teids;
+      bool update_teids = eps_bearer_ctxt_p->update_teids;
       eps_bearer_ctxt_p->update_teids = false;
       if (rv < 0) {
-        OAILOG_ERROR_UE(
-            LOG_SPGW_APP, imsi64, "ERROR in setting up TUNNEL err=%d\n", rv);
+        OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                        "ERROR in setting up TUNNEL err=%d\n", rv);
       } else if (update_teids) {
-        pcef_update_teids(
-            (char*) imsi.digit, eps_bearer_ctxt_p->eps_bearer_id,
-            eps_bearer_ctxt_p->enb_teid_S1u,
-            eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
+        pcef_update_teids((char*)imsi.digit, eps_bearer_ctxt_p->eps_bearer_id,
+                          eps_bearer_ctxt_p->enb_teid_S1u,
+                          eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
       }
     } else {
       for (int itrn = 0; itrn < eps_bearer_ctxt_p->tft.numberofpacketfilters;
@@ -587,12 +571,12 @@ static void sgw_add_gtp_tunnel(
             &(eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
                   .packetfiltercontents),
             ue_ipv4.s_addr, ue_ipv6, &dlflow);
-        OAILOG_INFO_UE(
-            LOG_SPGW_APP, imsi64,
-            "Adding tunnel for ded bearer ipv6 ue addr %s, enb %x, "
-            "s_gw_teid_S1u_S12_S4_up %x, enb_teid_S1u %x\n",
-            ip6_str, enb.s_addr, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-            eps_bearer_ctxt_p->enb_teid_S1u);
+        OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
+                       "Adding tunnel for ded bearer ipv6 ue addr %s, enb %x, "
+                       "s_gw_teid_S1u_S12_S4_up %x, enb_teid_S1u %x\n",
+                       ip6_str, enb.s_addr,
+                       eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+                       eps_bearer_ctxt_p->enb_teid_S1u);
 
         rv = gtpv1u_add_tunnel(
             ue_ipv4, ue_ipv6, vlan, enb, enb_ipv6,
@@ -603,15 +587,15 @@ static void sgw_add_gtp_tunnel(
             apn);
 
         if (rv < 0) {
-          OAILOG_ERROR_UE(
-              LOG_SPGW_APP, imsi64, "ERROR in setting up TUNNEL err=%d\n", rv);
+          OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                          "ERROR in setting up TUNNEL err=%d\n", rv);
         } else {
-          OAILOG_INFO_UE(
-              LOG_SPGW_APP, imsi64,
-              "Successfully setup flow rule for EPS bearer id %u "
-              "tunnel " TEID_FMT " (eNB) <-> (SGW) " TEID_FMT "\n",
-              eps_bearer_ctxt_p->eps_bearer_id, eps_bearer_ctxt_p->enb_teid_S1u,
-              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
+          OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
+                         "Successfully setup flow rule for EPS bearer id %u "
+                         "tunnel " TEID_FMT " (eNB) <-> (SGW) " TEID_FMT "\n",
+                         eps_bearer_ctxt_p->eps_bearer_id,
+                         eps_bearer_ctxt_p->enb_teid_S1u,
+                         eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
         }
       }
     }
@@ -627,7 +611,7 @@ static void sgw_populate_mbr_bearer_contexts_modified(
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
     itti_s11_modify_bearer_response_t* modify_response_p) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  uint8_t rsp_idx                          = 0;
+  uint8_t rsp_idx = 0;
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
 
   for (uint8_t idx = 0; idx < resp_pP->num_bearers_modified; idx++) {
@@ -637,9 +621,8 @@ static void sgw_populate_mbr_bearer_contexts_modified(
         resp_pP->bearer_contexts_to_be_modified[idx].eps_bearer_id);
 
     if (NULL != eps_bearer_ctxt_p) {
-      OAILOG_DEBUG_UE(
-          LOG_SPGW_APP, imsi64,
-          "Rx SGI_UPDATE_ENDPOINT_RESPONSE: REQUEST_ACCEPTED\n");
+      OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
+                      "Rx SGI_UPDATE_ENDPOINT_RESPONSE: REQUEST_ACCEPTED\n");
       modify_response_p->bearer_contexts_modified.bearer_contexts[rsp_idx]
           .eps_bearer_id =
           resp_pP->bearer_contexts_to_be_modified[idx].eps_bearer_id;
@@ -676,12 +659,12 @@ void sgw_handle_sgi_endpoint_updated(
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   itti_s11_modify_bearer_response_t* modify_response_p = NULL;
-  MessageDef* message_p                                = NULL;
+  MessageDef* message_p = NULL;
 
-  OAILOG_DEBUG_UE(
-      LOG_SPGW_APP, imsi64,
-      "Rx SGI_UPDATE_ENDPOINT_RESPONSE, Context teid " TEID_FMT "\n",
-      resp_pP->context_teid);
+  OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
+                  "Rx SGI_UPDATE_ENDPOINT_RESPONSE, Context teid " TEID_FMT
+                  "\n",
+                  resp_pP->context_teid);
   message_p = itti_alloc_new_message(TASK_SPGW_APP, S11_MODIFY_BEARER_RESPONSE);
 
   if (!message_p) {
@@ -709,8 +692,8 @@ void sgw_handle_sgi_endpoint_updated(
         resp_pP, imsi64,
         &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information,
         modify_response_p);
-    sgw_populate_mbr_bearer_contexts_not_found(
-        LOG_SPGW_APP, resp_pP, modify_response_p);
+    sgw_populate_mbr_bearer_contexts_not_found(LOG_SPGW_APP, resp_pP,
+                                               modify_response_p);
     send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
   }
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
@@ -719,9 +702,9 @@ void sgw_handle_sgi_endpoint_updated(
 status_code_e sgw_handle_sgi_endpoint_deleted(
     const itti_sgi_delete_end_point_request_t* const resp_pP, imsi64_t imsi64) {
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
-  int rv                                   = RETURNok;
-  char* imsi                               = NULL;
-  char* apn                                = NULL;
+  int rv = RETURNok;
+  char* imsi = NULL;
+  char* apn = NULL;
   struct in_addr inaddr;
   struct in6_addr in6addr;
 
@@ -742,16 +725,14 @@ status_code_e sgw_handle_sgi_endpoint_deleted(
         resp_pP->eps_bearer_id);
 
     if (NULL == eps_bearer_ctxt_p) {
-      OAILOG_DEBUG_UE(
-          LOG_SPGW_APP, imsi64,
-          "Rx SGI_DELETE_ENDPOINT_REQUEST: CONTEXT_NOT_FOUND "
-          "(pdn_connection.sgw_eps_bearers context)\n");
+      OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
+                      "Rx SGI_DELETE_ENDPOINT_REQUEST: CONTEXT_NOT_FOUND "
+                      "(pdn_connection.sgw_eps_bearers context)\n");
     } else {
-      OAILOG_DEBUG_UE(
-          LOG_SPGW_APP, imsi64,
-          "Rx SGI_DELETE_ENDPOINT_REQUEST: REQUEST_ACCEPTED\n");
+      OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
+                      "Rx SGI_DELETE_ENDPOINT_REQUEST: REQUEST_ACCEPTED\n");
 
-      struct in_addr ue_ipv4   = eps_bearer_ctxt_p->paa.ipv4_address;
+      struct in_addr ue_ipv4 = eps_bearer_ctxt_p->paa.ipv4_address;
       struct in6_addr* ue_ipv6 = NULL;
       if ((eps_bearer_ctxt_p->paa.pdn_type == IPv6) ||
           (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
@@ -767,15 +748,15 @@ status_code_e sgw_handle_sgi_endpoint_deleted(
             ue_ipv4, ue_ipv6, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL,
             DEFAULT_PRECEDENCE);
         if (rv < 0) {
-          OAILOG_ERROR_UE(
-              LOG_SPGW_APP, imsi64,
-              "ERROR in resume forwarding data on TUNNEL err=%d\n", rv);
+          OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                          "ERROR in resume forwarding data on TUNNEL err=%d\n",
+                          rv);
         }
       }
 
 #if !MME_UNIT_TEST  // skip tunnel deletion for unit tests
       // delete GTPv1-U tunnel
-      struct in_addr enb        = {.s_addr = 0};
+      struct in_addr enb = {.s_addr = 0};
       struct in6_addr* enb_ipv6 = NULL;
       enb.s_addr =
           eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
@@ -784,54 +765,53 @@ status_code_e sgw_handle_sgi_endpoint_deleted(
         enb_ipv6 = &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
       }
 
-      rv = gtp_tunnel_ops->del_tunnel(
-          enb, enb_ipv6, ue_ipv4, ue_ipv6,
-          eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-          eps_bearer_ctxt_p->enb_teid_S1u, NULL);
+      rv =
+          gtp_tunnel_ops->del_tunnel(enb, enb_ipv6, ue_ipv4, ue_ipv6,
+                                     eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+                                     eps_bearer_ctxt_p->enb_teid_S1u, NULL);
       if (rv < 0) {
         OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "ERROR in deleting TUNNEL\n");
       }
       // delete paging rule
       char* ip_str = inet_ntoa(ue_ipv4);
-      rv           = gtp_tunnel_ops->delete_paging_rule(ue_ipv4, ue_ipv6);
+      rv = gtp_tunnel_ops->delete_paging_rule(ue_ipv4, ue_ipv6);
       if (rv < 0) {
-        OAILOG_ERROR_UE(
-            LOG_SPGW_APP, imsi64,
-            "ERROR in deleting paging rule for IP Addr: %s\n", ip_str);
+        OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                        "ERROR in deleting paging rule for IP Addr: %s\n",
+                        ip_str);
       } else {
         OAILOG_DEBUG(LOG_SPGW_APP, "Stopped paging for IP Addr: %s\n", ip_str);
       }
 #endif
 
-      imsi = (char*) new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+      imsi = (char*)new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
                  .imsi.digit;
-      apn = (char*) new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+      apn = (char*)new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
                 .pdn_connection.apn_in_use;
       switch (resp_pP->paa.pdn_type) {
         case IPv4:
           inaddr = resp_pP->paa.ipv4_address;
           release_ue_ipv4_address(imsi, apn, &inaddr);
-          OAILOG_DEBUG_UE(
-              LOG_SPGW_APP, imsi64, "Released IPv4 PAA for PDN type IPv4\n");
+          OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
+                          "Released IPv4 PAA for PDN type IPv4\n");
           break;
 
         case IPv6:
           in6addr = resp_pP->paa.ipv6_address;
           release_ue_ipv6_address(imsi, apn, &in6addr);
-          OAILOG_DEBUG_UE(
-              LOG_SPGW_APP, imsi64, "Released IPv6 PAA for PDN type IPv6\n");
+          OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
+                          "Released IPv6 PAA for PDN type IPv6\n");
           break;
 
         case IPv4_AND_v6:
           inaddr = resp_pP->paa.ipv4_address;
           release_ue_ipv4_address(imsi, apn, &inaddr);
-          OAILOG_DEBUG_UE(
-              LOG_SPGW_APP, imsi64,
-              "Released IPv4 PAA for PDN type IPv4_AND_v6\n");
+          OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
+                          "Released IPv4 PAA for PDN type IPv4_AND_v6\n");
           in6addr = resp_pP->paa.ipv6_address;
           release_ue_ipv6_address(imsi, apn, &in6addr);
-          OAILOG_DEBUG_UE(
-              LOG_SPGW_APP, imsi64, "Released IPv6 PAA for PDN type IPv4v6\n");
+          OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
+                          "Released IPv6 PAA for PDN type IPv4v6\n");
           break;
 
         default:
@@ -896,9 +876,8 @@ status_code_e send_mbr_failure(
       itti_alloc_new_message(TASK_SPGW_APP, S11_MODIFY_BEARER_RESPONSE);
 
   if (!message_p) {
-    OAILOG_ERROR_UE(
-        module, imsi64,
-        "S11_MODIFY_BEARER_RESPONSE memory allocation failed\n");
+    OAILOG_ERROR_UE(module, imsi64,
+                    "S11_MODIFY_BEARER_RESPONSE memory allocation failed\n");
     OAILOG_FUNC_RETURN(module, RETURNerror);
   }
 
@@ -920,11 +899,11 @@ status_code_e send_mbr_failure(
   modify_response_p->teid = modify_bearer_pP->local_teid;
   modify_response_p->bearer_contexts_marked_for_removal.num_bearer_context += 1;
   modify_response_p->cause.cause_value = CONTEXT_NOT_FOUND;
-  modify_response_p->trxn              = modify_bearer_pP->trxn;
-  OAILOG_DEBUG_UE(
-      module, imsi64,
-      "Rx MODIFY_BEARER_REQUEST, teid " TEID_FMT " CONTEXT_NOT_FOUND\n",
-      modify_bearer_pP->teid);
+  modify_response_p->trxn = modify_bearer_pP->trxn;
+  OAILOG_DEBUG_UE(module, imsi64,
+                  "Rx MODIFY_BEARER_REQUEST, teid " TEID_FMT
+                  " CONTEXT_NOT_FOUND\n",
+                  modify_bearer_pP->teid);
   message_p->ittiMsgHeader.imsi = imsi64;
   rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
 
@@ -936,15 +915,15 @@ status_code_e sgw_handle_modify_bearer_request(
     const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p                       = NULL;
-  int rv                                                         = RETURNok;
-  uint8_t idx                                                    = 0;
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
+  int rv = RETURNok;
+  uint8_t idx = 0;
   itti_sgi_update_end_point_response_t sgi_update_end_point_resp = {0};
   struct in_addr enb = {.s_addr = 0};
 
-  OAILOG_DEBUG_UE(
-      LOG_SPGW_APP, imsi64, "Rx MODIFY_BEARER_REQUEST, teid " TEID_FMT "\n",
-      modify_bearer_pP->teid);
+  OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
+                  "Rx MODIFY_BEARER_REQUEST, teid " TEID_FMT "\n",
+                  modify_bearer_pP->teid);
 
   s_plus_p_gw_eps_bearer_context_information_t* bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(modify_bearer_pP->teid);
@@ -958,7 +937,7 @@ status_code_e sgw_handle_modify_bearer_request(
         modify_bearer_pP->trxn;
 
     sgi_update_end_point_resp.context_teid = modify_bearer_pP->teid;
-    uint8_t sgi_rsp_idx                    = 0;
+    uint8_t sgi_rsp_idx = 0;
     for (idx = 0;
          idx <
          modify_bearer_pP->bearer_contexts_to_be_modified.num_bearer_context;
@@ -993,19 +972,18 @@ status_code_e sgw_handle_modify_bearer_request(
                      .bearer_contexts[idx]
                      .s1_eNB_fteid,
                 &eps_bearer_ctxt_p->enb_ip_address_S1u) == false) {
-          struct in_addr ue_ipv4   = eps_bearer_ctxt_p->paa.ipv4_address;
+          struct in_addr ue_ipv4 = eps_bearer_ctxt_p->paa.ipv4_address;
           struct in6_addr* ue_ipv6 = NULL;
           if ((eps_bearer_ctxt_p->paa.pdn_type == IPv6) ||
               (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
             ue_ipv6 = &eps_bearer_ctxt_p->paa.ipv6_address;
           }
 
-          OAILOG_DEBUG_UE(
-              LOG_SPGW_APP, imsi64,
-              "Delete GTPv1-U tunnel for sgw_teid : %d"
-              "for bearer %d\n",
-              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-              eps_bearer_ctxt_p->eps_bearer_id);
+          OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
+                          "Delete GTPv1-U tunnel for sgw_teid : %d"
+                          "for bearer %d\n",
+                          eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+                          eps_bearer_ctxt_p->eps_bearer_id);
           if (gtp_tunnel_ops) {
             // This is best effort, ignore return code.
             gtp_tunnel_ops->send_end_marker(enb, modify_bearer_pP->teid);
@@ -1016,9 +994,9 @@ status_code_e sgw_handle_modify_bearer_request(
                 eps_bearer_ctxt_p->enb_teid_S1u, NULL);
           }
         }
-        populate_sgi_end_point_update(
-            sgi_rsp_idx, idx, modify_bearer_pP, eps_bearer_ctxt_p,
-            &sgi_update_end_point_resp);
+        populate_sgi_end_point_update(sgi_rsp_idx, idx, modify_bearer_pP,
+                                      eps_bearer_ctxt_p,
+                                      &sgi_update_end_point_resp);
         sgi_rsp_idx++;
       }
     }  // for loop
@@ -1058,8 +1036,8 @@ status_code_e sgw_handle_delete_session_request(
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   itti_s11_delete_session_response_t* delete_session_resp_p = NULL;
-  MessageDef* message_p                                     = NULL;
-  int rv                                                    = RETURNok;
+  MessageDef* message_p = NULL;
+  int rv = RETURNok;
 
   increment_counter("spgw_delete_session", 1, NO_LABELS);
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -1070,16 +1048,15 @@ status_code_e sgw_handle_delete_session_request(
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
   delete_session_resp_p = &message_p->ittiMsg.s11_delete_session_response;
-  OAILOG_INFO_UE(
-      LOG_SPGW_APP, imsi64,
-      "Handle delete session request for sgw_s11_teid " TEID_FMT "\n",
-      delete_session_req_pP->teid);
+  OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
+                 "Handle delete session request for sgw_s11_teid " TEID_FMT
+                 "\n",
+                 delete_session_req_pP->teid);
 
   if (delete_session_req_pP->indication_flags.oi) {
-    OAILOG_DEBUG_UE(
-        LOG_SPGW_APP, imsi64,
-        "OI flag is set for this message indicating the request"
-        "should be forwarded to P-GW entity\n");
+    OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
+                    "OI flag is set for this message indicating the request"
+                    "should be forwarded to P-GW entity\n");
   }
 
   s_plus_p_gw_eps_bearer_context_information_t* ctx_p =
@@ -1106,22 +1083,22 @@ status_code_e sgw_handle_delete_session_request(
           ctx_p->sgw_eps_bearer_context_information.mme_teid_S11;
 
       // TODO make async
-      char* imsi = (char*) ctx_p->sgw_eps_bearer_context_information.imsi.digit;
-      char* apn  = (char*) ctx_p->sgw_eps_bearer_context_information
+      char* imsi = (char*)ctx_p->sgw_eps_bearer_context_information.imsi.digit;
+      char* apn = (char*)ctx_p->sgw_eps_bearer_context_information
                       .pdn_connection.apn_in_use;
       pcef_end_session(imsi, apn);
       itti_sgi_delete_end_point_request_t sgi_delete_end_point_request;
       sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
 
       for (int ebix = 0; ebix < BEARERS_PER_UE; ebix++) {
-        ebi_t ebi         = INDEX_TO_EBI(ebix);
+        ebi_t ebi = INDEX_TO_EBI(ebix);
         eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
             &ctx_p->sgw_eps_bearer_context_information.pdn_connection, ebi);
 
         if (eps_bearer_ctxt_p) {
           if (ebi != delete_session_req_pP->lbi) {
             struct in_addr enb = {.s_addr = 0};
-            enb.s_addr         = eps_bearer_ctxt_p->enb_ip_address_S1u.address
+            enb.s_addr = eps_bearer_ctxt_p->enb_ip_address_S1u.address
                              .ipv4_address.s_addr;
             struct in6_addr* enb_ipv6 = NULL;
             if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
@@ -1141,12 +1118,11 @@ status_code_e sgw_handle_delete_session_request(
                 eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
                 eps_bearer_ctxt_p->enb_teid_S1u, NULL);
             if (rv < 0) {
-              OAILOG_ERROR_UE(
-                  LOG_SPGW_APP, imsi64,
-                  "ERROR in deleting TUNNEL " TEID_FMT
-                  " (eNB) <-> (SGW) " TEID_FMT "\n",
-                  eps_bearer_ctxt_p->enb_teid_S1u,
-                  eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
+              OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                              "ERROR in deleting TUNNEL " TEID_FMT
+                              " (eNB) <-> (SGW) " TEID_FMT "\n",
+                              eps_bearer_ctxt_p->enb_teid_S1u,
+                              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
             }
 #endif
             eps_bearer_ctxt_p->num_sdf = 0;
@@ -1166,9 +1142,8 @@ status_code_e sgw_handle_delete_session_request(
         sgi_delete_end_point_request.eps_bearer_id = delete_session_req_pP->lbi;
         sgi_delete_end_point_request.pdn_type =
             ctx_p->sgw_eps_bearer_context_information.saved_message.pdn_type;
-        memcpy(
-            &sgi_delete_end_point_request.paa, &eps_bearer_ctxt_p->paa,
-            sizeof(paa_t));
+        memcpy(&sgi_delete_end_point_request.paa, &eps_bearer_ctxt_p->paa,
+               sizeof(paa_t));
 
         sgw_handle_sgi_endpoint_deleted(&sgi_delete_end_point_request, imsi64);
       } else {
@@ -1181,8 +1156,8 @@ status_code_e sgw_handle_delete_session_request(
       /*
        * Remove eps bearer context, S11 bearer context and s11 tunnel
        */
-      sgw_cm_remove_bearer_context_information(
-          delete_session_req_pP->teid, imsi64);
+      sgw_cm_remove_bearer_context_information(delete_session_req_pP->teid,
+                                               imsi64);
       increment_counter("spgw_delete_session", 1, 1, "result", "success");
     }
 
@@ -1211,16 +1186,15 @@ status_code_e sgw_handle_delete_session_request(
     }
 
     delete_session_resp_p->cause.cause_value = CONTEXT_NOT_FOUND;
-    delete_session_resp_p->trxn              = delete_session_req_pP->trxn;
+    delete_session_resp_p->trxn = delete_session_req_pP->trxn;
     delete_session_resp_p->peer_ip.s_addr =
         delete_session_req_pP->peer_ip.s_addr;
     delete_session_resp_p->lbi = delete_session_req_pP->lbi;
 
     message_p->ittiMsgHeader.imsi = imsi64;
     rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
-    increment_counter(
-        "spgw_delete_session", 1, 2, "result", "failure", "cause",
-        "context_not_found");
+    increment_counter("spgw_delete_session", 1, 2, "result", "failure", "cause",
+                      "context_not_found");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
   }
 
@@ -1232,9 +1206,8 @@ static void sgw_release_all_enb_related_information(
     sgw_eps_bearer_ctxt_t* const eps_bearer_ctxt) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   if (eps_bearer_ctxt) {
-    memset(
-        &eps_bearer_ctxt->enb_ip_address_S1u, 0,
-        sizeof(eps_bearer_ctxt->enb_ip_address_S1u));
+    memset(&eps_bearer_ctxt->enb_ip_address_S1u, 0,
+           sizeof(eps_bearer_ctxt->enb_ip_address_S1u));
     eps_bearer_ctxt->enb_teid_S1u = INVALID_TEID;
   }
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
@@ -1255,15 +1228,15 @@ void sgw_handle_release_access_bearers_request(
         release_access_bearers_req_pP,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  OAILOG_DEBUG_UE(
-      LOG_SPGW_APP, imsi64, "Release Access Bearer Request Received in SGW\n");
+  OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
+                  "Release Access Bearer Request Received in SGW\n");
 
-  spgw_ue_context_t* ue_context_p                     = NULL;
-  gtpv2c_cause_value_t cause                          = CONTEXT_NOT_FOUND;
-  hash_table_ts_t* state_ue_ht                        = get_spgw_ue_state();
+  spgw_ue_context_t* ue_context_p = NULL;
+  gtpv2c_cause_value_t cause = CONTEXT_NOT_FOUND;
+  hash_table_ts_t* state_ue_ht = get_spgw_ue_state();
   s_plus_p_gw_eps_bearer_context_information_t* ctx_p = NULL;
-  hashtable_ts_get(
-      state_ue_ht, (const hash_key_t) imsi64, (void**) &ue_context_p);
+  hashtable_ts_get(state_ue_ht, (const hash_key_t)imsi64,
+                   (void**)&ue_context_p);
 
   if (ue_context_p) {
     sgw_s11_teid_t* s11_teid_p = NULL;
@@ -1292,7 +1265,7 @@ void handle_s5_create_session_response(
     s5_create_session_response_t session_resp) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   itti_s11_create_session_response_t* create_session_response_p = NULL;
-  MessageDef* message_p                                         = NULL;
+  MessageDef* message_p = NULL;
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp = {0};
   gtpv2c_cause_value_t cause = REQUEST_ACCEPTED;
 
@@ -1330,14 +1303,14 @@ void handle_s5_create_session_response(
         "context_id: " TEID_FMT "\n",
         session_resp.context_teid);
     session_resp.failure_cause = S5_OK;
-    session_resp.status        = SGI_STATUS_ERROR_FAILED_TO_PROCESS_PCO;
+    session_resp.status = SGI_STATUS_ERROR_FAILED_TO_PROCESS_PCO;
   }
   copy_protocol_configuration_options(&sgi_create_endpoint_resp.pco, &pco_resp);
   clear_protocol_configuration_options(&pco_resp);
 
   // Fill SGi create endpoint resp data
-  sgi_create_endpoint_resp.status        = session_resp.status;
-  sgi_create_endpoint_resp.context_teid  = session_resp.context_teid;
+  sgi_create_endpoint_resp.status = session_resp.status;
+  sgi_create_endpoint_resp.context_teid = session_resp.context_teid;
   sgi_create_endpoint_resp.eps_bearer_id = session_resp.eps_bearer_id;
   sgi_create_endpoint_resp.paa.pdn_type =
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
@@ -1362,32 +1335,28 @@ void handle_s5_create_session_response(
 
       case SGI_STATUS_ERROR_CONTEXT_NOT_FOUND:
         cause = CONTEXT_NOT_FOUND;
-        increment_counter(
-            "spgw_create_session", 1, 1, "result", "failure", "cause",
-            "context_not_found");
+        increment_counter("spgw_create_session", 1, 1, "result", "failure",
+                          "cause", "context_not_found");
 
         break;
 
       case SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED:
         cause = ALL_DYNAMIC_ADDRESSES_ARE_OCCUPIED;
-        increment_counter(
-            "spgw_create_session", 1, 1, "result", "failure", "cause",
-            "resource_not_available");
+        increment_counter("spgw_create_session", 1, 1, "result", "failure",
+                          "cause", "resource_not_available");
 
         break;
 
       case SGI_STATUS_ERROR_SERVICE_NOT_SUPPORTED:
         cause = SERVICE_NOT_SUPPORTED;
-        increment_counter(
-            "spgw_create_session", 1, 1, "result", "failure", "cause",
-            "pdn_type_ipv6_not_supported");
+        increment_counter("spgw_create_session", 1, 1, "result", "failure",
+                          "cause", "pdn_type_ipv6_not_supported");
 
         break;
       case SGI_STATUS_ERROR_FAILED_TO_PROCESS_PCO:
         cause = REQUEST_REJECTED;
-        increment_counter(
-            "spgw_create_session", 1, 1, "result", "failure", "cause",
-            "failed_to_process_pco_req");
+        increment_counter("spgw_create_session", 1, 1, "result", "failure",
+                          "cause", "failed_to_process_pco_req");
         break;
       default:
         cause = REQUEST_REJECTED;  // Unspecified reason
@@ -1410,8 +1379,8 @@ void handle_s5_create_session_response(
     OAILOG_FUNC_OUT(LOG_SPGW_APP);
   }
   create_session_response_p = &message_p->ittiMsg.s11_create_session_response;
-  memset(
-      create_session_response_p, 0, sizeof(itti_s11_create_session_response_t));
+  memset(create_session_response_p, 0,
+         sizeof(itti_s11_create_session_response_t));
   create_session_response_p->cause.cause_value = cause;
   create_session_response_p->bearer_contexts_marked_for_removal
       .bearer_contexts[0]
@@ -1461,14 +1430,13 @@ status_code_e sgw_handle_suspend_notification(
     const itti_s11_suspend_notification_t* const suspend_notification_pP,
     imsi64_t imsi64) {
   itti_s11_suspend_acknowledge_t* suspend_acknowledge_p = NULL;
-  MessageDef* message_p                                 = NULL;
-  int rv                                                = RETURNok;
-  sgw_eps_bearer_ctxt_t* eps_bearer_entry_p             = NULL;
+  MessageDef* message_p = NULL;
+  int rv = RETURNok;
+  sgw_eps_bearer_ctxt_t* eps_bearer_entry_p = NULL;
 
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  OAILOG_DEBUG_UE(
-      LOG_SPGW_APP, imsi64, "Rx SUSPEND_NOTIFICATION, teid %u\n",
-      suspend_notification_pP->teid);
+  OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64, "Rx SUSPEND_NOTIFICATION, teid %u\n",
+                  suspend_notification_pP->teid);
 
   message_p = itti_alloc_new_message(TASK_SPGW_APP, S11_SUSPEND_ACKNOWLEDGE);
 
@@ -1479,13 +1447,13 @@ status_code_e sgw_handle_suspend_notification(
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
   suspend_acknowledge_p = &message_p->ittiMsg.s11_suspend_acknowledge;
-  memset(
-      (void*) suspend_acknowledge_p, 0, sizeof(itti_s11_suspend_acknowledge_t));
+  memset((void*)suspend_acknowledge_p, 0,
+         sizeof(itti_s11_suspend_acknowledge_t));
   s_plus_p_gw_eps_bearer_context_information_t* ctx_p =
       sgw_cm_get_spgw_context(suspend_notification_pP->teid);
   if (ctx_p) {
     ctx_p->sgw_eps_bearer_context_information.pdn_connection
-        .ue_suspended_for_ps_handover        = true;
+        .ue_suspended_for_ps_handover = true;
     suspend_acknowledge_p->cause.cause_value = REQUEST_ACCEPTED;
     suspend_acknowledge_p->teid =
         ctx_p->sgw_eps_bearer_context_information.mme_teid_S11;
@@ -1504,7 +1472,7 @@ status_code_e sgw_handle_suspend_notification(
           "Tunnel mapping in"
           "GTP-U Kernel module \n");
       // delete GTPv1-U tunnel
-      struct in_addr ue_ipv4   = eps_bearer_entry_p->paa.ipv4_address;
+      struct in_addr ue_ipv4 = eps_bearer_entry_p->paa.ipv4_address;
       struct in6_addr* ue_ipv6 = NULL;
       if ((eps_bearer_entry_p->paa.pdn_type == IPv6) ||
           (eps_bearer_entry_p->paa.pdn_type == IPv4_AND_v6)) {
@@ -1514,8 +1482,8 @@ status_code_e sgw_handle_suspend_notification(
       rv = gtp_tunnel_ops->discard_data_on_tunnel(
           ue_ipv4, ue_ipv6, eps_bearer_entry_p->s_gw_teid_S1u_S12_S4_up, NULL);
       if (rv < 0) {
-        OAILOG_ERROR_UE(
-            LOG_SPGW_APP, imsi64, "ERROR in Disabling DL data on TUNNEL\n");
+        OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                        "ERROR in Disabling DL data on TUNNEL\n");
       }
 #endif
     } else {
@@ -1529,12 +1497,12 @@ status_code_e sgw_handle_suspend_notification(
         "\n",
         suspend_notification_pP->teid);
     suspend_acknowledge_p->cause.cause_value = CONTEXT_NOT_FOUND;
-    suspend_acknowledge_p->teid              = 0;
+    suspend_acknowledge_p->teid = 0;
   }
 
-  OAILOG_INFO_UE(
-      LOG_SPGW_APP, imsi64, "Send Suspend acknowledge for teid :%d\n",
-      suspend_acknowledge_p->teid);
+  OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
+                 "Send Suspend acknowledge for teid :%d\n",
+                 suspend_acknowledge_p->teid);
   message_p->ittiMsgHeader.imsi = imsi64;
   rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rv);
@@ -1548,12 +1516,12 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
     const itti_s11_nw_init_actv_bearer_rsp_t* const s11_actv_bearer_rsp,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  uint32_t msg_bearer_index                                     = 0;
-  uint32_t rc                                                   = RETURNerror;
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p                      = NULL;
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_entry_p                = NULL;
+  uint32_t msg_bearer_index = 0;
+  uint32_t rc = RETURNerror;
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_entry_p = NULL;
   struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p = NULL;
-  gtpv2c_cause_value_t cause         = REQUEST_REJECTED;
+  gtpv2c_cause_value_t cause = REQUEST_REJECTED;
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = NULL;
   bearer_context_within_create_bearer_response_t bearer_context = {0};
   char policy_rule_name[POLICY_RULE_NAME_MAXLEN + 1];
@@ -1561,10 +1529,9 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
 
   bearer_context =
       s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index];
-  OAILOG_INFO_UE(
-      LOG_SPGW_APP, imsi64,
-      "Received nw_initiated_bearer_actv_rsp from MME with EBI %u\n",
-      bearer_context.eps_bearer_id);
+  OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
+                 "Received nw_initiated_bearer_actv_rsp from MME with EBI %u\n",
+                 bearer_context.eps_bearer_id);
 
   s_plus_p_gw_eps_bearer_context_information_t* spgw_context =
       sgw_cm_get_spgw_context(s11_actv_bearer_rsp->sgw_s11_teid);
@@ -1606,11 +1573,10 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
   }
   // If UE did not accept the request send reject to NW
   if (s11_actv_bearer_rsp->cause.cause_value != REQUEST_ACCEPTED) {
-    OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64,
-        "Did not create new EPS bearer entry as "
-        "UE rejected the request for EBI %u\n",
-        bearer_context.eps_bearer_id);
+    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                    "Did not create new EPS bearer entry as "
+                    "UE rejected the request for EBI %u\n",
+                    bearer_context.eps_bearer_id);
     handle_failed_create_bearer_response(
         &spgw_context->sgw_eps_bearer_context_information,
         s11_actv_bearer_rsp->cause.cause_value, imsi64, &bearer_context, NULL,
@@ -1627,20 +1593,18 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
         eps_bearer_ctxt_p->eps_bearer_id = bearer_context.eps_bearer_id;
 
         // Store enb-s1u teid and ip address
-        get_fteid_ip_address(
-            &bearer_context.s1u_enb_fteid,
-            &eps_bearer_ctxt_p->enb_ip_address_S1u);
+        get_fteid_ip_address(&bearer_context.s1u_enb_fteid,
+                             &eps_bearer_ctxt_p->enb_ip_address_S1u);
         eps_bearer_ctxt_p->enb_teid_S1u = bearer_context.s1u_enb_fteid.teid;
 
         eps_bearer_ctxt_entry_p = sgw_cm_insert_eps_bearer_ctxt_in_collection(
             &spgw_context->sgw_eps_bearer_context_information.pdn_connection,
             eps_bearer_ctxt_p);
         if (eps_bearer_ctxt_entry_p == NULL) {
-          OAILOG_ERROR_UE(
-              LOG_SPGW_APP, imsi64, "Failed to create new EPS bearer entry\n");
-          increment_counter(
-              "s11_actv_bearer_rsp", 1, 2, "result", "failure", "cause",
-              "internal_software_error");
+          OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                          "Failed to create new EPS bearer entry\n");
+          increment_counter("s11_actv_bearer_rsp", 1, 2, "result", "failure",
+                            "cause", "internal_software_error");
         } else {
           OAILOG_INFO_UE(
               LOG_SPGW_APP, imsi64,
@@ -1656,7 +1620,7 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
       }
       // Remove the temporary spgw entry
       LIST_REMOVE(sgw_eps_bearer_entry_p, entries);
-      free_wrapper((void**) &sgw_eps_bearer_entry_p);
+      free_wrapper((void**)&sgw_eps_bearer_entry_p);
       break;
     }
     sgw_eps_bearer_entry_p = LIST_NEXT(sgw_eps_bearer_entry_p, entries);
@@ -1665,18 +1629,17 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
     pgw_base_proc_t* base_proc1 = LIST_FIRST(
         spgw_context->sgw_eps_bearer_context_information.pending_procedures);
     LIST_REMOVE(base_proc1, entries);
-    free_wrapper((void**) &spgw_context->sgw_eps_bearer_context_information
+    free_wrapper((void**)&spgw_context->sgw_eps_bearer_context_information
                      .pending_procedures);
-    free_wrapper((void**) &pgw_ni_cbr_proc->pending_eps_bearers);
-    pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**) &pgw_ni_cbr_proc);
+    free_wrapper((void**)&pgw_ni_cbr_proc->pending_eps_bearers);
+    pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**)&pgw_ni_cbr_proc);
   }
   // Send ACTIVATE_DEDICATED_BEARER_RSP to PCRF
   rc = spgw_send_nw_init_activate_bearer_rsp(
       cause, imsi64, &bearer_context, default_bearer_id, policy_rule_name);
   if (rc != RETURNok) {
-    OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64,
-        "Failed to send ACTIVATE_DEDICATED_BEARER_RSP to PCRF\n");
+    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                    "Failed to send ACTIVATE_DEDICATED_BEARER_RSP to PCRF\n");
   }
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
@@ -1690,15 +1653,14 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
     const itti_s11_nw_init_deactv_bearer_rsp_t* const
         s11_pcrf_ded_bearer_deactv_rsp,
     imsi64_t imsi64) {
-  uint32_t rc            = RETURNok;
-  uint32_t i             = 0;
+  uint32_t rc = RETURNok;
+  uint32_t i = 0;
   uint32_t no_of_bearers = 0;
-  ebi_t ebi              = {0};
+  ebi_t ebi = {0};
   itti_sgi_delete_end_point_request_t sgi_delete_end_point_request;
 
-  OAILOG_INFO_UE(
-      LOG_SPGW_APP, imsi64,
-      "Received nw_initiated_deactv_bearer_rsp from MME\n");
+  OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
+                 "Received nw_initiated_deactv_bearer_rsp from MME\n");
 
   no_of_bearers =
       s11_pcrf_ded_bearer_deactv_rsp->bearer_contexts.num_bearer_context;
@@ -1708,9 +1670,9 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt =
       sgw_cm_get_spgw_context(s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4);
   if (!spgw_ctxt) {
-    OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64, "hashtable_ts_get failed for teid %u\n",
-        s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4);
+    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                    "hashtable_ts_get failed for teid %u\n",
+                    s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
@@ -1722,7 +1684,7 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
     }
     // Delete all the dedicated bearers linked to this default bearer
     for (int ebix = 0; ebix < BEARERS_PER_UE; ebix++) {
-      ebi               = INDEX_TO_EBI(ebix);
+      ebi = INDEX_TO_EBI(ebix);
       eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
           &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection, ebi);
 
@@ -1748,16 +1710,15 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
               eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->enb_teid_S1u, NULL);
           if (rc != RETURNok) {
-            OAILOG_ERROR_UE(
-                LOG_SPGW_APP, imsi64,
-                "ERROR in deleting TUNNEL " TEID_FMT
-                " (eNB) <-> (SGW) " TEID_FMT "\n",
-                eps_bearer_ctxt_p->enb_teid_S1u,
-                eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
+            OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                            "ERROR in deleting TUNNEL " TEID_FMT
+                            " (eNB) <-> (SGW) " TEID_FMT "\n",
+                            eps_bearer_ctxt_p->enb_teid_S1u,
+                            eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
           } else {
-            OAILOG_INFO_UE(
-                LOG_SPGW_APP, imsi64,
-                "Removed dedicated bearer context for (ebi = %d)\n", ebi);
+            OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
+                           "Removed dedicated bearer context for (ebi = %d)\n",
+                           ebi);
           }
 #endif
 
@@ -1768,10 +1729,10 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
       }
     }
 
-    OAILOG_INFO_UE(
-        LOG_SPGW_APP, imsi64, "Removed default bearer context for (ebi = %d)\n",
-        *s11_pcrf_ded_bearer_deactv_rsp->lbi);
-    ebi               = *s11_pcrf_ded_bearer_deactv_rsp->lbi;
+    OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
+                   "Removed default bearer context for (ebi = %d)\n",
+                   *s11_pcrf_ded_bearer_deactv_rsp->lbi);
+    ebi = *s11_pcrf_ded_bearer_deactv_rsp->lbi;
     eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
         &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection, ebi);
 
@@ -1782,9 +1743,8 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
     sgi_delete_end_point_request.eps_bearer_id = ebi;
     sgi_delete_end_point_request.pdn_type =
         spgw_ctxt->sgw_eps_bearer_context_information.saved_message.pdn_type;
-    memcpy(
-        &sgi_delete_end_point_request.paa, &eps_bearer_ctxt_p->paa,
-        sizeof(paa_t));
+    memcpy(&sgi_delete_end_point_request.paa, &eps_bearer_ctxt_p->paa,
+           sizeof(paa_t));
 
     sgw_handle_sgi_endpoint_deleted(&sgi_delete_end_point_request, imsi64);
 
@@ -1800,9 +1760,8 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
       if (eps_bearer_ctxt_p) {
         ebi = s11_pcrf_ded_bearer_deactv_rsp->bearer_contexts.bearer_contexts[i]
                   .eps_bearer_id;
-        OAILOG_INFO_UE(
-            LOG_SPGW_APP, imsi64, "Removed bearer context for (ebi = %d)\n",
-            ebi);
+        OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
+                       "Removed bearer context for (ebi = %d)\n", ebi);
         // Get all the DL flow rules for this dedicated bearer
         for (int itrn = 0; itrn < eps_bearer_ctxt_p->tft.numberofpacketfilters;
              ++itrn) {
@@ -1832,12 +1791,11 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
               eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->enb_teid_S1u, &dlflow);
           if (rc != RETURNok) {
-            OAILOG_ERROR_UE(
-                LOG_SPGW_APP, imsi64,
-                "ERROR in deleting TUNNEL " TEID_FMT
-                " (eNB) <-> (SGW) " TEID_FMT "\n",
-                eps_bearer_ctxt_p->enb_teid_S1u,
-                eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
+            OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                            "ERROR in deleting TUNNEL " TEID_FMT
+                            " (eNB) <-> (SGW) " TEID_FMT "\n",
+                            eps_bearer_ctxt_p->enb_teid_S1u,
+                            eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
           }
 #endif
         }
@@ -1861,17 +1819,16 @@ status_code_e sgw_handle_ip_allocation_rsp(
     const itti_ip_allocation_response_t* ip_allocation_rsp, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
 
-  OAILOG_DEBUG_UE(
-      LOG_SPGW_APP, imsi64,
-      "Received ip_allocation_rsp from gRPC task handler\n");
+  OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
+                  "Received ip_allocation_rsp from gRPC task handler\n");
 
   s_plus_p_gw_eps_bearer_context_information_t* bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ip_allocation_rsp->context_teid);
 
   if (!bearer_ctxt_info_p) {
-    OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64, "Failed to get SPGW UE context for teid %u\n",
-        ip_allocation_rsp->context_teid);
+    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                    "Failed to get SPGW UE context for teid %u\n",
+                    ip_allocation_rsp->context_teid);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
 
@@ -1886,15 +1843,15 @@ status_code_e sgw_handle_ip_allocation_rsp(
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
   char* imsi =
-      (char*) bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
+      (char*)bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
   if (ip_allocation_rsp->status == SGI_STATUS_OK) {
     memcpy(&eps_bearer_ctx_p->paa, &ip_allocation_rsp->paa, sizeof(paa_t));
 
     // create session in PCEF
     s5_create_session_request_t session_req = {0};
-    session_req.context_teid                = ip_allocation_rsp->context_teid;
-    session_req.eps_bearer_id               = ip_allocation_rsp->eps_bearer_id;
-    session_req.status                      = ip_allocation_rsp->status;
+    session_req.context_teid = ip_allocation_rsp->context_teid;
+    session_req.eps_bearer_id = ip_allocation_rsp->eps_bearer_id;
+    session_req.status = ip_allocation_rsp->status;
     struct pcef_create_session_data session_data;
     get_session_req_data(
         spgw_state,
@@ -1904,25 +1861,21 @@ status_code_e sgw_handle_ip_allocation_rsp(
     // Create session based IPv4, IPv6 or IPv4v6 PDN type
     if (ip_allocation_rsp->paa.pdn_type == IPv4) {
       char ip_str[INET_ADDRSTRLEN];
-      inet_ntop(
-          AF_INET, &(ip_allocation_rsp->paa.ipv4_address.s_addr), ip_str,
-          INET_ADDRSTRLEN);
+      inet_ntop(AF_INET, &(ip_allocation_rsp->paa.ipv4_address.s_addr), ip_str,
+                INET_ADDRSTRLEN);
       pcef_create_session(imsi, ip_str, NULL, &session_data, session_req);
     } else if (ip_allocation_rsp->paa.pdn_type == IPv6) {
       char ip6_str[INET6_ADDRSTRLEN];
-      inet_ntop(
-          AF_INET6, &(ip_allocation_rsp->paa.ipv6_address), ip6_str,
-          INET6_ADDRSTRLEN);
+      inet_ntop(AF_INET6, &(ip_allocation_rsp->paa.ipv6_address), ip6_str,
+                INET6_ADDRSTRLEN);
       pcef_create_session(imsi, NULL, ip6_str, &session_data, session_req);
     } else if (ip_allocation_rsp->paa.pdn_type == IPv4_AND_v6) {
       char ip4_str[INET_ADDRSTRLEN];
-      inet_ntop(
-          AF_INET, &(ip_allocation_rsp->paa.ipv4_address.s_addr), ip4_str,
-          INET_ADDRSTRLEN);
+      inet_ntop(AF_INET, &(ip_allocation_rsp->paa.ipv4_address.s_addr), ip4_str,
+                INET_ADDRSTRLEN);
       char ip6_str[INET6_ADDRSTRLEN];
-      inet_ntop(
-          AF_INET6, &(ip_allocation_rsp->paa.ipv6_address), ip6_str,
-          INET6_ADDRSTRLEN);
+      inet_ntop(AF_INET6, &(ip_allocation_rsp->paa.ipv6_address), ip6_str,
+                INET6_ADDRSTRLEN);
       pcef_create_session(imsi, ip4_str, ip6_str, &session_data, session_req);
     }
   } else {
@@ -1932,26 +1885,25 @@ status_code_e sgw_handle_ip_allocation_rsp(
        * Release the IP address so that subsequent attempt is successfull
        */
       // TODO - Release the GTP-tunnel corresponding to this IP address
-      char* apn = (char*) bearer_ctxt_info_p->sgw_eps_bearer_context_information
+      char* apn = (char*)bearer_ctxt_info_p->sgw_eps_bearer_context_information
                       .pdn_connection.apn_in_use;
       if (ip_allocation_rsp->paa.pdn_type == IPv4) {
         release_ipv4_address(imsi, apn, &ip_allocation_rsp->paa.ipv4_address);
       } else if (ip_allocation_rsp->paa.pdn_type == IPv6) {
         release_ipv6_address(imsi, apn, &ip_allocation_rsp->paa.ipv6_address);
       } else if (ip_allocation_rsp->paa.pdn_type == IPv4_AND_v6) {
-        release_ipv4v6_address(
-            imsi, apn, &ip_allocation_rsp->paa.ipv4_address,
-            &ip_allocation_rsp->paa.ipv6_address);
+        release_ipv4v6_address(imsi, apn, &ip_allocation_rsp->paa.ipv4_address,
+                               &ip_allocation_rsp->paa.ipv6_address);
       }
     }
 
     // If we are here then the IP address allocation has failed
     s5_create_session_response_t s5_response;
     s5_response.eps_bearer_id = ip_allocation_rsp->eps_bearer_id;
-    s5_response.context_teid  = ip_allocation_rsp->context_teid;
+    s5_response.context_teid = ip_allocation_rsp->context_teid;
     s5_response.failure_cause = IP_ALLOCATION_FAILURE;
-    handle_s5_create_session_response(
-        spgw_state, bearer_ctxt_info_p, s5_response);
+    handle_s5_create_session_response(spgw_state, bearer_ctxt_info_p,
+                                      s5_response);
   }
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
 }
@@ -1967,9 +1919,8 @@ bool is_enb_ip_address_same(const fteid_t* fte_p, ip_address_t* ip_p) {
       break;
     case IPv4_AND_v6:
     case IPv6:
-      if (memcmp(
-              &(ip_p)->address.ipv6_address, &(fte_p)->ipv6_address,
-              sizeof((ip_p)->address.ipv6_address)) != 0) {
+      if (memcmp(&(ip_p)->address.ipv6_address, &(fte_p)->ipv6_address,
+                 sizeof((ip_p)->address.ipv6_address)) != 0) {
         rc = false;
       }
       break;
@@ -1986,14 +1937,14 @@ void handle_failed_create_bearer_response(
     bearer_context_within_create_bearer_response_t* bearer_context,
     sgw_eps_bearer_ctxt_t* dedicated_bearer_ctxt_p, log_proto_t module) {
   OAILOG_FUNC_IN(module);
-  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc                            = NULL;
+  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = NULL;
   struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p = NULL;
   char policy_rule_name[POLICY_RULE_NAME_MAXLEN + 1];
   ebi_t default_bearer_id = 0;
 
   if (sgw_context_p) {
     default_bearer_id = sgw_context_p->pdn_connection.default_bearer;
-    pgw_ni_cbr_proc   = pgw_get_procedure_create_bearer(sgw_context_p);
+    pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(sgw_context_p);
     if (((pgw_ni_cbr_proc) &&
          (!LIST_EMPTY(pgw_ni_cbr_proc->pending_eps_bearers)))) {
       sgw_eps_bearer_entry_p = LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
@@ -2007,20 +1958,18 @@ void handle_failed_create_bearer_response(
                 sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->policy_rule_name);
           }
           if (dedicated_bearer_ctxt_p) {
-            memcpy(
-                dedicated_bearer_ctxt_p,
-                sgw_eps_bearer_entry_p->sgw_eps_bearer_entry,
-                sizeof(sgw_eps_bearer_ctxt_t));
+            memcpy(dedicated_bearer_ctxt_p,
+                   sgw_eps_bearer_entry_p->sgw_eps_bearer_entry,
+                   sizeof(sgw_eps_bearer_ctxt_t));
           }
           // Remove the temporary spgw entry
           LIST_REMOVE(sgw_eps_bearer_entry_p, entries);
           if (sgw_eps_bearer_entry_p->sgw_eps_bearer_entry) {
-            free_wrapper((void**) &sgw_eps_bearer_entry_p->sgw_eps_bearer_entry
+            free_wrapper((void**)&sgw_eps_bearer_entry_p->sgw_eps_bearer_entry
                              ->pgw_cp_ip_port);
-            free_wrapper(
-                (void**) &sgw_eps_bearer_entry_p->sgw_eps_bearer_entry);
+            free_wrapper((void**)&sgw_eps_bearer_entry_p->sgw_eps_bearer_entry);
           }
-          free_wrapper((void**) &sgw_eps_bearer_entry_p);
+          free_wrapper((void**)&sgw_eps_bearer_entry_p);
           break;
         }
         sgw_eps_bearer_entry_p = LIST_NEXT(sgw_eps_bearer_entry_p, entries);
@@ -2030,10 +1979,9 @@ void handle_failed_create_bearer_response(
         pgw_base_proc_t* base_proc1 =
             LIST_FIRST(sgw_context_p->pending_procedures);
         LIST_REMOVE(base_proc1, entries);
-        free_wrapper((void**) &sgw_context_p->pending_procedures);
-        free_wrapper((void**) &pgw_ni_cbr_proc->pending_eps_bearers);
-        pgw_free_procedure_create_bearer(
-            (pgw_ni_cbr_proc_t**) &pgw_ni_cbr_proc);
+        free_wrapper((void**)&sgw_context_p->pending_procedures);
+        free_wrapper((void**)&pgw_ni_cbr_proc->pending_eps_bearers);
+        pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**)&pgw_ni_cbr_proc);
       }
     }
   }
@@ -2041,18 +1989,17 @@ void handle_failed_create_bearer_response(
     int rc = spgw_send_nw_init_activate_bearer_rsp(
         cause, imsi64, bearer_context, default_bearer_id, policy_rule_name);
     if (rc != RETURNok) {
-      OAILOG_ERROR_UE(
-          module, imsi64,
-          "Failed to send ACTIVATE_DEDICATED_BEARER_RSP to PCRF\n");
+      OAILOG_ERROR_UE(module, imsi64,
+                      "Failed to send ACTIVATE_DEDICATED_BEARER_RSP to PCRF\n");
     }
   }
   OAILOG_FUNC_OUT(module);
 }
 
 // Fills up downlink (DL) flow match rule from packet filters of eps bearer
-void generate_dl_flow(
-    packet_filter_contents_t* packet_filter, in_addr_t ipv4_s_addr,
-    struct in6_addr* ue_ipv6, struct ip_flow_dl* dlflow) {
+void generate_dl_flow(packet_filter_contents_t* packet_filter,
+                      in_addr_t ipv4_s_addr, struct in6_addr* ue_ipv6,
+                      struct ip_flow_dl* dlflow) {
   // Prepare DL flow rule
   // The TFTs are DL TFTs: UE is the destination/local,
   // PDN end point is the source/remote.
@@ -2067,17 +2014,17 @@ void generate_dl_flow(
         TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
       struct in_addr remoteaddr = {.s_addr = 0};
       remoteaddr.s_addr =
-          (((uint32_t) packet_filter->ipv4remoteaddr[0].addr) << 24) +
-          (((uint32_t) packet_filter->ipv4remoteaddr[1].addr) << 16) +
-          (((uint32_t) packet_filter->ipv4remoteaddr[2].addr) << 8) +
-          (((uint32_t) packet_filter->ipv4remoteaddr[3].addr));
+          (((uint32_t)packet_filter->ipv4remoteaddr[0].addr) << 24) +
+          (((uint32_t)packet_filter->ipv4remoteaddr[1].addr) << 16) +
+          (((uint32_t)packet_filter->ipv4remoteaddr[2].addr) << 8) +
+          (((uint32_t)packet_filter->ipv4remoteaddr[3].addr));
       dlflow->src_ip.s_addr = ntohl(remoteaddr.s_addr);
       dlflow->set_params |= SRC_IPV4;
       dlflow->dst_ip.s_addr = ipv4_s_addr;
       dlflow->set_params |= DST_IPV4;
-    } else if (
-        (TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG & packet_filter->flags) ==
-        TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG) {
+    } else if ((TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG &
+                packet_filter->flags) ==
+               TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG) {
       struct in6_addr remoteaddr = {.s6_addr = 0};
       for (uint8_t itr = 0; itr < 16; itr++) {
         remoteaddr.s6_addr[itr] = packet_filter->ipv6remoteaddr[itr].addr;
@@ -2094,10 +2041,10 @@ void generate_dl_flow(
         TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
       struct in_addr remoteaddr = {.s_addr = 0};
       remoteaddr.s_addr =
-          (((uint32_t) packet_filter->ipv4remoteaddr[0].addr) << 24) +
-          (((uint32_t) packet_filter->ipv4remoteaddr[1].addr) << 16) +
-          (((uint32_t) packet_filter->ipv4remoteaddr[2].addr) << 8) +
-          (((uint32_t) packet_filter->ipv4remoteaddr[3].addr));
+          (((uint32_t)packet_filter->ipv4remoteaddr[0].addr) << 24) +
+          (((uint32_t)packet_filter->ipv4remoteaddr[1].addr) << 16) +
+          (((uint32_t)packet_filter->ipv4remoteaddr[2].addr) << 8) +
+          (((uint32_t)packet_filter->ipv4remoteaddr[3].addr));
       dlflow->src_ip.s_addr = ntohl(remoteaddr.s_addr);
       dlflow->set_params |= SRC_IPV4;
     }
@@ -2156,9 +2103,9 @@ void generate_dl_flow(
 static void add_tunnel_helper(
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_entry_p, imsi64_t imsi64) {
-  uint32_t rc        = RETURNerror;
+  uint32_t rc = RETURNerror;
   struct in_addr enb = {.s_addr = 0};
-  char* apn          = (char*) spgw_context->sgw_eps_bearer_context_information
+  char* apn = (char*)spgw_context->sgw_eps_bearer_context_information
                   .pdn_connection.apn_in_use;
   struct in6_addr* enb_ipv6 = NULL;
 
@@ -2170,18 +2117,17 @@ static void add_tunnel_helper(
     enb_ipv6 =
         &eps_bearer_ctxt_entry_p->enb_ip_address_S1u.address.ipv6_address;
   }
-  struct in_addr ue_ipv4   = {.s_addr = 0};
-  ue_ipv4.s_addr           = eps_bearer_ctxt_entry_p->paa.ipv4_address.s_addr;
+  struct in_addr ue_ipv4 = {.s_addr = 0};
+  ue_ipv4.s_addr = eps_bearer_ctxt_entry_p->paa.ipv4_address.s_addr;
   struct in6_addr* ue_ipv6 = NULL;
   if ((eps_bearer_ctxt_entry_p->paa.pdn_type == IPv6) ||
       (eps_bearer_ctxt_entry_p->paa.pdn_type == IPv4_AND_v6)) {
     ue_ipv6 = &eps_bearer_ctxt_entry_p->paa.ipv6_address;
   }
-  int vlan    = eps_bearer_ctxt_entry_p->paa.vlan;
+  int vlan = eps_bearer_ctxt_entry_p->paa.vlan;
   Imsi_t imsi = spgw_context->sgw_eps_bearer_context_information.imsi;
-  OAILOG_INFO_UE(
-      LOG_SPGW_APP, imsi64, "Number of packet filter rules: %d\n",
-      eps_bearer_ctxt_entry_p->tft.numberofpacketfilters);
+  OAILOG_INFO_UE(LOG_SPGW_APP, imsi64, "Number of packet filter rules: %d\n",
+                 eps_bearer_ctxt_entry_p->tft.numberofpacketfilters);
   for (int i = 0; i < eps_bearer_ctxt_entry_p->tft.numberofpacketfilters; ++i) {
     struct ip_flow_dl dlflow = {0};
     generate_dl_flow(
@@ -2199,16 +2145,15 @@ static void add_tunnel_helper(
         apn);
 
     if (rc != RETURNok) {
-      OAILOG_ERROR_UE(
-          LOG_SPGW_APP, imsi64, "ERROR in setting up TUNNEL err=%d\n", rc);
+      OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                      "ERROR in setting up TUNNEL err=%d\n", rc);
     } else {
-      OAILOG_INFO_UE(
-          LOG_SPGW_APP, imsi64,
-          "Successfully setup flow rule for EPS bearer id %u "
-          "tunnel " TEID_FMT " (eNB) <-> (SGW) " TEID_FMT "\n",
-          eps_bearer_ctxt_entry_p->eps_bearer_id,
-          eps_bearer_ctxt_entry_p->enb_teid_S1u,
-          eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up);
+      OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
+                     "Successfully setup flow rule for EPS bearer id %u "
+                     "tunnel " TEID_FMT " (eNB) <-> (SGW) " TEID_FMT "\n",
+                     eps_bearer_ctxt_entry_p->eps_bearer_id,
+                     eps_bearer_ctxt_entry_p->enb_teid_S1u,
+                     eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up);
     }
 #endif
   }
@@ -2224,16 +2169,14 @@ bool does_bearer_context_hold_valid_enb_ip(ip_address_t enb_ip_address_S1u) {
       break;
     case IPv4_AND_v6:
       if ((enb_ip_address_S1u.address.ipv4_address.s_addr) ||
-          (memcmp(
-               &ipv6_address, &(enb_ip_address_S1u.address.ipv6_address),
-               sizeof(struct in6_addr)) != 0)) {
+          (memcmp(&ipv6_address, &(enb_ip_address_S1u.address.ipv6_address),
+                  sizeof(struct in6_addr)) != 0)) {
         OAILOG_FUNC_RETURN(LOG_SPGW_APP, true);
       }
       break;
     case IPv6:
-      if (memcmp(
-              &ipv6_address, &(enb_ip_address_S1u.address.ipv6_address),
-              sizeof(struct in6_addr)) != 0) {
+      if (memcmp(&ipv6_address, &(enb_ip_address_S1u.address.ipv6_address),
+                 sizeof(struct in6_addr)) != 0) {
         OAILOG_FUNC_RETURN(LOG_SPGW_APP, true);
       }
       break;
@@ -2266,7 +2209,7 @@ void sgw_send_release_access_bearer_response(
   release_access_bearers_resp_p =
       &message_p->ittiMsg.s11_release_access_bearers_response;
   release_access_bearers_resp_p->cause.cause_value = cause;
-  release_access_bearers_resp_p->teid              = mme_teid_s11;
+  release_access_bearers_resp_p->teid = mme_teid_s11;
   release_access_bearers_resp_p->trxn = release_access_bearers_req_pP->trxn;
 
   if (module == LOG_SPGW_APP) {
@@ -2277,13 +2220,12 @@ void sgw_send_release_access_bearer_response(
     OAILOG_ERROR_UE(module, imsi64, "Invalid module \n");
   }
   if (rv != RETURNok) {
-    OAILOG_ERROR_UE(
-        module, imsi64,
-        "Failed to send Release Access Bearer Response to MME\n");
+    OAILOG_ERROR_UE(module, imsi64,
+                    "Failed to send Release Access Bearer Response to MME\n");
     OAILOG_FUNC_OUT(module);
   }
-  OAILOG_DEBUG_UE(
-      module, imsi64, "Release Access Bearer Response sent to MME\n");
+  OAILOG_DEBUG_UE(module, imsi64,
+                  "Release Access Bearer Response sent to MME\n");
   OAILOG_FUNC_OUT(module);
 }
 
@@ -2301,7 +2243,7 @@ void sgw_process_release_access_bearer_request(
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt =
         sgw_context->pdn_connection.sgw_eps_bearers_array[ebx];
     if (eps_bearer_ctxt) {
-      struct in_addr enb        = {.s_addr = 0};
+      struct in_addr enb = {.s_addr = 0};
       struct in6_addr* enb_ipv6 = NULL;
       enb.s_addr =
           eps_bearer_ctxt->enb_ip_address_S1u.address.ipv4_address.s_addr;
@@ -2316,8 +2258,8 @@ void sgw_process_release_access_bearer_request(
         ue_ipv6 = &eps_bearer_ctxt->paa.ipv6_address;
       }
       struct in_addr ue_ipv4 = {.s_addr = 0};
-      ue_ipv4.s_addr         = eps_bearer_ctxt->paa.ipv4_address.s_addr;
-      struct in_addr pgw     = {.s_addr = 0};
+      ue_ipv4.s_addr = eps_bearer_ctxt->paa.ipv4_address.s_addr;
+      struct in_addr pgw = {.s_addr = 0};
       pgw.s_addr =
           eps_bearer_ctxt->p_gw_address_in_use_up.address.ipv4_address.s_addr;
       struct in6_addr* pgw_ipv6 = NULL;
@@ -2346,21 +2288,20 @@ void sgw_process_release_access_bearer_request(
             eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up,
             eps_bearer_ctxt->enb_teid_S1u, NULL);
       } else if (module == LOG_SGW_S8) {
-        rv = gtpv1u_del_s8_tunnel(
-            enb, enb_ipv6, pgw, pgw_ipv6, eps_bearer_ctxt->paa.ipv4_address,
-            ue_ipv6, eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up,
-            eps_bearer_ctxt->s_gw_teid_S5_S8_up);
+        rv = gtpv1u_del_s8_tunnel(enb, enb_ipv6, pgw, pgw_ipv6,
+                                  eps_bearer_ctxt->paa.ipv4_address, ue_ipv6,
+                                  eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up,
+                                  eps_bearer_ctxt->s_gw_teid_S5_S8_up);
       }
 
       // TODO Need to add handling on failing to delete s1-u tunnel rules from
       // ovs flow table
       if (rv < 0) {
-        OAILOG_ERROR_UE(
-            module, imsi64,
-            "ERROR in deleting TUNNEL " TEID_FMT " (eNB) <-> (SGW) " TEID_FMT
-            "\n",
-            eps_bearer_ctxt->enb_teid_S1u,
-            eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up);
+        OAILOG_ERROR_UE(module, imsi64,
+                        "ERROR in deleting TUNNEL " TEID_FMT
+                        " (eNB) <-> (SGW) " TEID_FMT "\n",
+                        eps_bearer_ctxt->enb_teid_S1u,
+                        eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up);
       }
       // Paging is performed without packet buffering
       rv = gtp_tunnel_ops->add_paging_rule(
@@ -2368,18 +2309,17 @@ void sgw_process_release_access_bearer_request(
       // Convert to string for logging
       char* ip_str = inet_ntoa(eps_bearer_ctxt->paa.ipv4_address);
       if (rv < 0) {
-        OAILOG_ERROR_UE(
-            module, imsi64, "ERROR in setting paging rule for IP Addr: %s\n",
-            ip_str);
+        OAILOG_ERROR_UE(module, imsi64,
+                        "ERROR in setting paging rule for IP Addr: %s\n",
+                        ip_str);
       }
       if ((eps_bearer_ctxt->paa.pdn_type == IPv6) ||
           (eps_bearer_ctxt->paa.pdn_type == IPv4_AND_v6)) {
         char ip6_str[INET6_ADDRSTRLEN];
-        inet_ntop(
-            AF_INET6, (void*) &eps_bearer_ctxt->paa.ipv6_address, ip6_str,
-            INET6_ADDRSTRLEN);
-        OAILOG_DEBUG(
-            module, "Set the paging rule for IPv6 Addr: %s\n", ip6_str);
+        inet_ntop(AF_INET6, (void*)&eps_bearer_ctxt->paa.ipv6_address, ip6_str,
+                  INET6_ADDRSTRLEN);
+        OAILOG_DEBUG(module, "Set the paging rule for IPv6 Addr: %s\n",
+                     ip6_str);
       } else {
         OAILOG_DEBUG(module, "Set the paging rule for IP Addr: %s\n", ip_str);
       }
@@ -2395,10 +2335,10 @@ static teid_t sgw_generate_new_s11_cp_teid(void) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   s_plus_p_gw_eps_bearer_context_information_t*
       s_plus_p_gw_eps_bearer_ctxt_info_p = NULL;
-  teid_t teid                            = INVALID_TEID;
+  teid_t teid = INVALID_TEID;
   // note srand with seed is initialized at main
   do {
-    teid                               = (teid_t) rand();
+    teid = (teid_t)rand();
     s_plus_p_gw_eps_bearer_ctxt_info_p = sgw_cm_get_spgw_context(teid);
   } while (s_plus_p_gw_eps_bearer_ctxt_info_p);
 
@@ -2411,22 +2351,20 @@ void sgw_handle_delete_bearer_cmd(
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
 
-  OAILOG_INFO_UE(
-      LOG_SPGW_APP, imsi64,
-      "Received s11_delete_bearer_command for teid" TEID_FMT "\n",
-      s11_delete_bearer_command->teid);
+  OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
+                 "Received s11_delete_bearer_command for teid" TEID_FMT "\n",
+                 s11_delete_bearer_command->teid);
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt =
       sgw_cm_get_spgw_context(s11_delete_bearer_command->teid);
   if (!spgw_ctxt) {
-    OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64,
-        "hashtable_ts_get failed for teid " TEID_FMT
-        " while processing s11_delete_bearer_command\n",
-        s11_delete_bearer_command->teid);
+    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                    "hashtable_ts_get failed for teid " TEID_FMT
+                    " while processing s11_delete_bearer_command\n",
+                    s11_delete_bearer_command->teid);
     OAILOG_FUNC_OUT(TASK_SPGW_APP);
   }
 
-  char* imsi = (char*) spgw_ctxt->sgw_eps_bearer_context_information.imsi.digit;
+  char* imsi = (char*)spgw_ctxt->sgw_eps_bearer_context_information.imsi.digit;
   pcef_delete_dedicated_bearer(imsi, s11_delete_bearer_command->ebi_list);
 
   // Send itti_s11_nw_init_deactv_bearer_request_t to MME to delete the bearer/s

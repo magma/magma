@@ -22,8 +22,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/LcsIndicator.h"
 
 //------------------------------------------------------------------------------
-int decode_lcs_indicator(
-    lcs_indicator_t* lcsindicator, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_lcs_indicator(lcs_indicator_t* lcsindicator, uint8_t iei,
+                         uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -37,15 +37,15 @@ int decode_lcs_indicator(
 }
 
 //------------------------------------------------------------------------------
-int encode_lcs_indicator(
-    lcs_indicator_t* lcsindicator, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_lcs_indicator(lcs_indicator_t* lcsindicator, uint8_t iei,
+                         uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, LCS_INDICATOR_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, LCS_INDICATOR_MINIMUM_LENGTH,
+                                       len);
 
   if (iei > 0) {
     *buffer = iei;

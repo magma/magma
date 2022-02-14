@@ -41,18 +41,18 @@
 #include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 
 //------------------------------------------------------------------------------
-status_code_e mme_app_handle_nas_dl_req(
-    const mme_ue_s1ap_id_t ue_id, bstring nas_msg,
-    nas_error_code_t transaction_status)
+status_code_e mme_app_handle_nas_dl_req(const mme_ue_s1ap_id_t ue_id,
+                                        bstring nas_msg,
+                                        nas_error_code_t transaction_status)
 //------------------------------------------------------------------------------
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  MessageDef* message_p           = NULL;
-  int rc                          = RETURNok;
+  MessageDef* message_p = NULL;
+  int rc = RETURNok;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = 0;
 
-  message_p = DEPRECATEDitti_alloc_new_message_fatal(
-      TASK_MME_APP, S1AP_NAS_DL_DATA_REQ);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_MME_APP,
+                                                     S1AP_NAS_DL_DATA_REQ);
 
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   if (!mme_app_desc_p) {
@@ -65,17 +65,16 @@ status_code_e mme_app_handle_nas_dl_req(
   if (ue_context) {
     enb_ue_s1ap_id = ue_context->enb_ue_s1ap_id;
   } else {
-    OAILOG_WARNING(
-        LOG_MME_APP,
-        " DOWNLINK NAS TRANSPORT. Null UE Context for "
-        "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
-        ue_id);
+    OAILOG_WARNING(LOG_MME_APP,
+                   " DOWNLINK NAS TRANSPORT. Null UE Context for "
+                   "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
+                   ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
   S1AP_NAS_DL_DATA_REQ(message_p).enb_ue_s1ap_id = enb_ue_s1ap_id;
   S1AP_NAS_DL_DATA_REQ(message_p).mme_ue_s1ap_id = ue_id;
-  S1AP_NAS_DL_DATA_REQ(message_p).nas_msg        = bstrcpy(nas_msg);
+  S1AP_NAS_DL_DATA_REQ(message_p).nas_msg = bstrcpy(nas_msg);
   bdestroy_wrapper(&nas_msg);
 
   message_p->ittiMsgHeader.imsi = ue_context->emm_context._imsi64;
@@ -121,8 +120,8 @@ status_code_e mme_app_handle_nas_dl_req(
   if (transaction_status != AS_SUCCESS) {
     ue_context->ue_context_rel_cause = S1AP_NAS_NORMAL_RELEASE;
     // Notify S1AP to send UE Context Release Command to eNB.
-    mme_app_itti_ue_context_release(
-        ue_context, ue_context->ue_context_rel_cause);
+    mme_app_itti_ue_context_release(ue_context,
+                                    ue_context->ue_context_rel_cause);
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }

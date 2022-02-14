@@ -44,7 +44,7 @@ int decode_additional_update_result(
 int decode_u8_additional_update_result(
     additional_update_result_t* additionalupdateresult, uint8_t iei,
     uint8_t value, uint32_t len) {
-  int decoded     = 0;
+  int decoded = 0;
   uint8_t* buffer = &value;
 
   *additionalupdateresult = *buffer & 0x3;
@@ -74,7 +74,7 @@ uint8_t encode_u8_additional_update_result(
   uint8_t bufferReturn;
   uint8_t* buffer = &bufferReturn;
   uint8_t encoded = 0;
-  uint8_t iei     = 0;
+  uint8_t iei = 0;
 
   *(buffer + encoded) = 0x00 | (iei & 0xf0) | (*additionalupdateresult & 0x3);
   encoded++;

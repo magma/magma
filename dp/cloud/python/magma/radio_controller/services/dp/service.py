@@ -13,7 +13,7 @@ limitations under the License.
 
 import logging
 from datetime import datetime
-from typing import Callable
+from typing import Callable, Optional
 
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
 from dp.protos.enodebd_dp_pb2_grpc import DPServiceServicer
@@ -71,13 +71,10 @@ class DPService(DPServiceServicer):
                 logger.warning(
                     f"State request from unknown CBSD: {request.serial_number}",
                 )
-                result = self._build_result(None)
+                result = self._build_result()
             else:
                 cbsd.last_seen = self.now()
-                channel = self._get_channel_with_authorized_grant(
-                    session, cbsd,
-                )
-                result = self._build_result(channel)
+                result = self._build_result(cbsd, session)
             self._log_result(
                 session, 'GetCBSDState', result,
                 cbsd, request.serial_number,
@@ -105,8 +102,7 @@ class DPService(DPServiceServicer):
             cbsd = self._get_or_create_cbsd(session, request)
             self._log_request(session, 'CBSDRegister', request, cbsd)
             self._create_or_update_active_mode_config(session, cbsd)
-            channel = self._get_channel_with_authorized_grant(session, cbsd)
-            result = self._build_result(channel)
+            result = self._build_result(cbsd, session)
             self._log_result(
                 session, 'CBSDRegister', result,
                 cbsd, request.serial_number,
@@ -148,7 +144,7 @@ class DPService(DPServiceServicer):
                 logger.info(
                     f"{cbsd.active_mode_config=} set for {cbsd.cbsd_serial_number=}.",
                 )
-            result = self._build_result(None)
+            result = self._build_result()
             self._log_result(
                 session, 'CBSDDeregister',
                 result, cbsd, request.serial_number,
@@ -184,7 +180,7 @@ class DPService(DPServiceServicer):
                 )
             else:
                 self._add_relinquish_requests(session, cbsd)
-            result = self._build_result(None)
+            result = self._build_result()
             self._log_result(
                 session, 'CBSDRelinquish',
                 result, cbsd, request.serial_number,
@@ -270,8 +266,13 @@ class DPService(DPServiceServicer):
         ).first()
         return channel
 
-    def _build_result(self, channel: DBChannel):
-        if not channel:
+    def _build_result(self, cbsd: Optional[DBCbsd] = None, session: Optional[Session] = None):
+        if not cbsd:
+            return CBSDStateResult(radio_enabled=False)
+        channel = self._get_channel_with_authorized_grant(
+            session, cbsd,
+        )
+        if not channel or cbsd.is_deleted:
             return CBSDStateResult(radio_enabled=False)
         return CBSDStateResult(
             radio_enabled=True,

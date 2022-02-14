@@ -27,8 +27,8 @@ int decode_ProtocolConfigurationOptions(
     oai::ProtocolConfigurationOptions* protocolconfigurationoptions,
     const uint8_t iei, const uint8_t* const buffer, const uint32_t len) {
   uint32_t decoded = 0;
-  uint8_t ielen    = 0;
-  int rv           = 0;
+  uint8_t ielen = 0;
+  int rv = 0;
 
   if (iei > 0) {
     CHECK_IEI_DECODER(iei, *buffer);
@@ -39,13 +39,13 @@ int decode_ProtocolConfigurationOptions(
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
 
-  rv = decode_protocol_configuration_options(
-      protocolconfigurationoptions, buffer + decoded, len - decoded);
+  rv = decode_protocol_configuration_options(protocolconfigurationoptions,
+                                             buffer + decoded, len - decoded);
 
   if (rv < 0) {
     return rv;
   }
-  decoded += (uint32_t) rv;
+  decoded += (uint32_t)rv;
 
 #if NAS_DEBUG
   dump_ProtocolConfigurationOptions_xml(protocolconfigurationoptions, iei);
@@ -96,15 +96,13 @@ void dump_ProtocolConfigurationOptions_xml(
      */
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
-  OAILOG_DEBUG(
-      LOG_NAS, "    <Configuration protol>%u</Configuration protol>\n",
-      protocolconfigurationoptions->configuration_protocol);
+  OAILOG_DEBUG(LOG_NAS, "    <Configuration protol>%u</Configuration protol>\n",
+               protocolconfigurationoptions->configuration_protocol);
   i = 0;
 
   while (i < protocolconfigurationoptions->num_protocol_or_container_id) {
-    OAILOG_DEBUG(
-        LOG_NAS, "        <Protocol ID>%u</Protocol ID>\n",
-        protocolconfigurationoptions->protocol_or_container_ids[i].id);
+    OAILOG_DEBUG(LOG_NAS, "        <Protocol ID>%u</Protocol ID>\n",
+                 protocolconfigurationoptions->protocol_or_container_ids[i].id);
     OAILOG_DEBUG(
         LOG_NAS, "        <Length of protocol ID>%u</Length of protocol ID>\n",
         protocolconfigurationoptions->protocol_or_container_ids[i].length);

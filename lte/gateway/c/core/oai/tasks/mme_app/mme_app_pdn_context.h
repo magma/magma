@@ -42,7 +42,7 @@
 pdn_context_t* mme_app_create_pdn_context(
     ue_mm_context_t* const ue_mm_context, const pdn_cid_t pdn_cid,
     const context_identifier_t context_identifier);
-void mme_app_free_pdn_context(
-    pdn_context_t** const pdn_context, imsi64_t imsi64);
+void mme_app_free_pdn_context(pdn_context_t** const pdn_context,
+                              imsi64_t imsi64);
 
 #endif

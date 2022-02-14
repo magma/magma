@@ -84,7 +84,7 @@
  ***************************************************************************/
 status_code_e EmmDeregistered(emm_reg_t* const evt) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc                 = RETURNerror;
+  int rc = RETURNerror;
   emm_context_t* emm_ctx = evt->ctx;
 
   assert(emm_fsm_get_state(emm_ctx) == EMM_DEREGISTERED);
@@ -95,8 +95,8 @@ status_code_e EmmDeregistered(emm_reg_t* const evt) {
        * An EMM common procedure has been initiated;
        * enter state EMM-COMMON-PROCEDURE-INITIATED.
        */
-      rc = emm_fsm_set_state(
-          evt->ue_id, evt->ctx, EMM_COMMON_PROCEDURE_INITIATED);
+      rc = emm_fsm_set_state(evt->ue_id, evt->ctx,
+                             EMM_COMMON_PROCEDURE_INITIATED);
       break;
 
     case _EMMREG_COMMON_PROC_CNF:
@@ -116,11 +116,10 @@ status_code_e EmmDeregistered(emm_reg_t* const evt) {
       break;
 
     case _EMMREG_COMMON_PROC_ABORT:
-      OAILOG_WARNING(
-          LOG_NAS_EMM,
-          "EMM-FSM state EMM_DEREGISTERED - Primitive "
-          "_EMMREG_COMMON_PROC_ABORT "
-          "is not valid\n");
+      OAILOG_WARNING(LOG_NAS_EMM,
+                     "EMM-FSM state EMM_DEREGISTERED - Primitive "
+                     "_EMMREG_COMMON_PROC_ABORT "
+                     "is not valid\n");
       break;
 
     case _EMMREG_ATTACH_CNF:
@@ -266,7 +265,7 @@ status_code_e EmmDeregistered(emm_reg_t* const evt) {
        */
       if (emm_ctx) {
         nas_emm_proc_t* emm_proc = nas_emm_find_procedure_by_msg_digest(
-            emm_ctx, (const char*) evt->u.ll_success.msg_digest,
+            emm_ctx, (const char*)evt->u.ll_success.msg_digest,
             evt->u.ll_success.digest_len, evt->u.ll_success.msg_len);
         if (emm_proc) {
           if ((evt->notify) && (emm_proc->not_delivered)) {
@@ -280,7 +279,7 @@ status_code_e EmmDeregistered(emm_reg_t* const evt) {
     case _EMMREG_LOWERLAYER_FAILURE:
       if (emm_ctx) {
         nas_emm_proc_t* emm_proc = nas_emm_find_procedure_by_msg_digest(
-            emm_ctx, (const char*) evt->u.ll_failure.msg_digest,
+            emm_ctx, (const char*)evt->u.ll_failure.msg_digest,
             evt->u.ll_failure.digest_len, evt->u.ll_failure.msg_len);
         if (emm_proc) {
           if ((evt->notify) && (emm_proc->not_delivered)) {
@@ -298,7 +297,7 @@ status_code_e EmmDeregistered(emm_reg_t* const evt) {
     case _EMMREG_LOWERLAYER_NON_DELIVERY:
       if (emm_ctx) {
         nas_emm_proc_t* emm_proc = nas_emm_find_procedure_by_msg_digest(
-            emm_ctx, (const char*) evt->u.non_delivery_ho.msg_digest,
+            emm_ctx, (const char*)evt->u.non_delivery_ho.msg_digest,
             evt->u.non_delivery_ho.digest_len, evt->u.non_delivery_ho.msg_len);
         if (emm_proc) {
           if ((evt->notify) && (emm_proc->not_delivered)) {

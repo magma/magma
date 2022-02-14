@@ -27,7 +27,7 @@
 int decode_pdn_disconnect_request(
     pdn_disconnect_request_msg* pdn_disconnect_request, uint8_t* buffer,
     uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
@@ -83,7 +83,7 @@ int decode_pdn_disconnect_request(
 int encode_pdn_disconnect_request(
     pdn_disconnect_request_msg* pdn_disconnect_request, uint8_t* buffer,
     uint32_t len) {
-  int encoded       = 0;
+  int encoded = 0;
   int encode_result = 0;
 
   /*
@@ -91,10 +91,9 @@ int encode_pdn_disconnect_request(
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, PDN_DISCONNECT_REQUEST_MINIMUM_LENGTH, len);
-  *(buffer + encoded) =
-      (encode_u8_linked_eps_bearer_identity(
-           &pdn_disconnect_request->linkedepsbeareridentity) &
-       0x0f);
+  *(buffer + encoded) = (encode_u8_linked_eps_bearer_identity(
+                             &pdn_disconnect_request->linkedepsbeareridentity) &
+                         0x0f);
   encoded++;
 
   if ((pdn_disconnect_request->presencemask &

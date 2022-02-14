@@ -472,25 +472,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: DoozyX/clang-format-lint-action@v0.12
+      - uses: DoozyX/clang-format-lint-action@v0.13
         with:
           source: 'orc8r/gateway/c'
           extensions: 'h,hpp,c,cpp'
-          clangFormatVersion: 11
+          clangFormatVersion: 11.1.0
           style: '{BasedOnStyle: Google, IncludeBlocks: Preserve, SortIncludes: false}'
-      - uses: DoozyX/clang-format-lint-action@v0.12
+      - uses: DoozyX/clang-format-lint-action@v0.13
         with:
           source: 'lte/gateway/c'
-          exclude: 'lte/gateway/c/core'
           extensions: 'h,hpp,c,cpp'
-          clangFormatVersion: 11
+          clangFormatVersion: 11.1.0
           style: '{BasedOnStyle: Google, IncludeBlocks: Preserve, SortIncludes: false}'
-      - uses: DoozyX/clang-format-lint-action@v0.12
-        with:
-          source: 'lte/gateway/c/core'
-          extensions: 'h,hpp,c,cpp'
-          clangFormatVersion: 7
-          style: file
 
   session_manager_test:
     needs: path_filter

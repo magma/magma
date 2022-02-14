@@ -27,8 +27,8 @@
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 
 //------------------------------------------------------------------------------
-static int decode_eps_qos_bit_rates(
-    EpsQoSBitRates* epsqosbitrates, const uint8_t* buffer) {
+static int decode_eps_qos_bit_rates(EpsQoSBitRates* epsqosbitrates,
+                                    const uint8_t* buffer) {
   int decoded = 0;
 
   epsqosbitrates->maxBitRateForUL = *(buffer + decoded);
@@ -46,7 +46,7 @@ static int decode_eps_qos_bit_rates(
 status_code_e decode_eps_quality_of_service(
     EpsQualityOfService* epsqualityofservice, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
-  int decoded   = 0;
+  int decoded = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -67,8 +67,8 @@ status_code_e decode_eps_quality_of_service(
      */
 
     epsqualityofservice->bitRatesPresent = 1;
-    decoded += decode_eps_qos_bit_rates(
-        &epsqualityofservice->bitRates, buffer + decoded);
+    decoded += decode_eps_qos_bit_rates(&epsqualityofservice->bitRates,
+                                        buffer + decoded);
   } else {
     /*
      * bitRates is not present
@@ -81,8 +81,8 @@ status_code_e decode_eps_quality_of_service(
      * bitRatesExt is present
      */
     epsqualityofservice->bitRatesExtPresent = 1;
-    decoded += decode_eps_qos_bit_rates(
-        &epsqualityofservice->bitRatesExt, buffer + decoded);
+    decoded += decode_eps_qos_bit_rates(&epsqualityofservice->bitRatesExt,
+                                        buffer + decoded);
   } else {
     /*
      * bitRatesExt is not present
@@ -95,8 +95,8 @@ status_code_e decode_eps_quality_of_service(
      * bitRatesExt2 is present
      */
     epsqualityofservice->bitRatesExt2Present = 1;
-    decoded += decode_eps_qos_bit_rates(
-        &epsqualityofservice->bitRatesExt2, buffer + decoded);
+    decoded += decode_eps_qos_bit_rates(&epsqualityofservice->bitRatesExt2,
+                                        buffer + decoded);
   } else {
     /*
      * bitRatesExt2 is not present
@@ -107,8 +107,8 @@ status_code_e decode_eps_quality_of_service(
 }
 
 //------------------------------------------------------------------------------
-static int encode_eps_qos_bit_rates(
-    const EpsQoSBitRates* epsqosbitrates, uint8_t* buffer) {
+static int encode_eps_qos_bit_rates(const EpsQoSBitRates* epsqosbitrates,
+                                    uint8_t* buffer) {
   int encoded = 0;
 
   *(buffer + encoded) = epsqosbitrates->maxBitRateForUL;
@@ -146,18 +146,18 @@ status_code_e encode_eps_quality_of_service(
   encoded++;
 
   if (epsqualityofservice->bitRatesPresent) {
-    encoded += encode_eps_qos_bit_rates(
-        &epsqualityofservice->bitRates, buffer + encoded);
+    encoded += encode_eps_qos_bit_rates(&epsqualityofservice->bitRates,
+                                        buffer + encoded);
   }
 
   if (epsqualityofservice->bitRatesExtPresent) {
-    encoded += encode_eps_qos_bit_rates(
-        &epsqualityofservice->bitRatesExt, buffer + encoded);
+    encoded += encode_eps_qos_bit_rates(&epsqualityofservice->bitRatesExt,
+                                        buffer + encoded);
   }
 
   if (epsqualityofservice->bitRatesExt2Present) {
-    encoded += encode_eps_qos_bit_rates(
-        &epsqualityofservice->bitRatesExt2, buffer + encoded);
+    encoded += encode_eps_qos_bit_rates(&epsqualityofservice->bitRatesExt2,
+                                        buffer + encoded);
   }
 
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
@@ -166,10 +166,12 @@ status_code_e encode_eps_quality_of_service(
 
 #define EPS_QOS_BIT_RATE_MAX 10240000  // 10 Gbps
 //------------------------------------------------------------------------------
-status_code_e qos_params_to_eps_qos(
-    const qci_t qci, const bitrate_t mbr_dl, const bitrate_t mbr_ul,
-    const bitrate_t gbr_dl, const bitrate_t gbr_ul,
-    EpsQualityOfService* const eps_qos, bool is_default_bearer) {
+status_code_e qos_params_to_eps_qos(const qci_t qci, const bitrate_t mbr_dl,
+                                    const bitrate_t mbr_ul,
+                                    const bitrate_t gbr_dl,
+                                    const bitrate_t gbr_ul,
+                                    EpsQualityOfService* const eps_qos,
+                                    bool is_default_bearer) {
   uint64_t mbr_dl_kbps = mbr_dl / 1000;  // mbr_dl is expected in bps
   uint64_t mbr_ul_kbps = mbr_ul / 1000;  // mbr_ul is expected in bps
   uint64_t gbr_dl_kbps = gbr_dl / 1000;  // mbr_dl is expected in bps
@@ -190,7 +192,7 @@ status_code_e qos_params_to_eps_qos(
         eps_qos->bitRates.maxBitRateForUL = ((mbr_ul_kbps - 576) / 64) + 128;
       } else if (mbr_ul_kbps > 8640) {
         eps_qos->bitRates.maxBitRateForUL = 0xfe;
-        eps_qos->bitRatesExtPresent       = 1;
+        eps_qos->bitRatesExtPresent = 1;
         if ((mbr_ul_kbps >= 8600) && (mbr_ul_kbps <= 16000)) {
           eps_qos->bitRatesExt.maxBitRateForUL = (mbr_ul_kbps - 8600) / 100;
         } else if ((mbr_ul_kbps > 16000) && (mbr_ul_kbps <= 128000)) {
@@ -200,9 +202,9 @@ status_code_e qos_params_to_eps_qos(
           eps_qos->bitRatesExt.maxBitRateForUL =
               ((mbr_ul_kbps - 128000) / 2000) + 186;
         } else if (mbr_ul_kbps > 256000) {
-          eps_qos->bitRates.maxBitRateForUL    = 0xfe;
+          eps_qos->bitRates.maxBitRateForUL = 0xfe;
           eps_qos->bitRatesExt.maxBitRateForUL = 0xfa;
-          eps_qos->bitRatesExt2Present         = 1;
+          eps_qos->bitRatesExt2Present = 1;
           if ((mbr_ul_kbps > 256000) && (mbr_ul_kbps <= 500000)) {
             eps_qos->bitRatesExt2.maxBitRateForUL =
                 (mbr_ul_kbps - 256000) / 4000;
@@ -225,7 +227,7 @@ status_code_e qos_params_to_eps_qos(
         eps_qos->bitRates.maxBitRateForDL = ((mbr_dl_kbps - 576) / 64) + 128;
       } else if (mbr_dl_kbps > 8640) {
         eps_qos->bitRates.maxBitRateForDL = 0xfe;
-        eps_qos->bitRatesExtPresent       = 1;
+        eps_qos->bitRatesExtPresent = 1;
         if ((mbr_dl_kbps >= 8600) && (mbr_dl_kbps <= 16000)) {
           eps_qos->bitRatesExt.maxBitRateForDL = (mbr_dl_kbps - 8600) / 100;
         } else if ((mbr_dl_kbps > 16000) && (mbr_dl_kbps <= 128000)) {
@@ -235,9 +237,9 @@ status_code_e qos_params_to_eps_qos(
           eps_qos->bitRatesExt.maxBitRateForDL =
               ((mbr_dl_kbps - 128000) / 2000) + 186;
         } else if (mbr_dl_kbps > 256000) {
-          eps_qos->bitRates.maxBitRateForDL    = 0xfe;
+          eps_qos->bitRates.maxBitRateForDL = 0xfe;
           eps_qos->bitRatesExt.maxBitRateForDL = 0xfa;
-          eps_qos->bitRatesExt2Present         = 1;
+          eps_qos->bitRatesExt2Present = 1;
           if ((mbr_dl_kbps >= 256000) && (mbr_dl_kbps <= 500000)) {
             eps_qos->bitRatesExt2.maxBitRateForDL =
                 (mbr_dl_kbps - 256000) / 4000;
@@ -260,7 +262,7 @@ status_code_e qos_params_to_eps_qos(
         eps_qos->bitRates.guarBitRateForUL = ((gbr_ul_kbps - 576) / 64) + 128;
       } else if (gbr_ul_kbps > 8640) {
         eps_qos->bitRates.guarBitRateForUL = 0xfe;
-        eps_qos->bitRatesExtPresent        = 1;
+        eps_qos->bitRatesExtPresent = 1;
         if ((gbr_ul_kbps >= 8600) && (gbr_ul_kbps <= 16000)) {
           eps_qos->bitRatesExt.guarBitRateForUL = (gbr_ul_kbps - 8600) / 100;
         } else if ((gbr_ul_kbps > 16000) && (gbr_ul_kbps <= 128000)) {
@@ -270,9 +272,9 @@ status_code_e qos_params_to_eps_qos(
           eps_qos->bitRatesExt.guarBitRateForUL =
               ((gbr_ul_kbps - 128000) / 2000) + 186;
         } else if (gbr_ul_kbps > 256000) {
-          eps_qos->bitRates.guarBitRateForUL    = 0xfe;
+          eps_qos->bitRates.guarBitRateForUL = 0xfe;
           eps_qos->bitRatesExt.guarBitRateForUL = 0xfa;
-          eps_qos->bitRatesExt2Present          = 1;
+          eps_qos->bitRatesExt2Present = 1;
           if ((gbr_ul_kbps >= 256000) && (gbr_ul_kbps <= 500000)) {
             eps_qos->bitRatesExt2.guarBitRateForUL =
                 (gbr_ul_kbps - 256000) / 4000;
@@ -295,7 +297,7 @@ status_code_e qos_params_to_eps_qos(
         eps_qos->bitRates.guarBitRateForDL = ((gbr_dl_kbps - 576) / 64) + 128;
       } else if (gbr_dl_kbps > 8640) {
         eps_qos->bitRates.guarBitRateForDL = 0xfe;
-        eps_qos->bitRatesExtPresent        = 1;
+        eps_qos->bitRatesExtPresent = 1;
         if ((gbr_dl_kbps >= 8600) && (gbr_dl_kbps <= 16000)) {
           eps_qos->bitRatesExt.guarBitRateForDL = (gbr_dl_kbps - 8600) / 100;
         } else if ((gbr_dl_kbps > 16000) && (gbr_dl_kbps <= 128000)) {
@@ -305,9 +307,9 @@ status_code_e qos_params_to_eps_qos(
           eps_qos->bitRatesExt.guarBitRateForDL =
               ((gbr_dl_kbps - 128000) / 2000) + 186;
         } else if (gbr_dl_kbps > 256000) {
-          eps_qos->bitRates.guarBitRateForDL    = 0xfe;
+          eps_qos->bitRates.guarBitRateForDL = 0xfe;
           eps_qos->bitRatesExt.guarBitRateForDL = 0xfa;
-          eps_qos->bitRatesExt2Present          = 1;
+          eps_qos->bitRatesExt2Present = 1;
           if ((gbr_dl_kbps >= 256000) && (gbr_dl_kbps <= 500000)) {
             eps_qos->bitRatesExt2.guarBitRateForDL =
                 (gbr_dl_kbps - 256000) / 4000;

@@ -29,16 +29,15 @@ typedef struct {
 extern "C" {
 #endif
 
-nw_rc_t nwGtpv2cUlpInit(
-    NwGtpv2cNodeUlpT* thiz, nw_gtpv2c_StackHandleT hGtpv2cStack,
-    char* peerIpStr);
+nw_rc_t nwGtpv2cUlpInit(NwGtpv2cNodeUlpT* thiz,
+                        nw_gtpv2c_StackHandleT hGtpv2cStack, char* peerIpStr);
 
 nw_rc_t nwGtpv2cUlpDestroy(NwGtpv2cNodeUlpT* thiz);
 
 nw_rc_t nwGtpv2cUlpCreateSessionRequestToPeer(NwGtpv2cNodeUlpT* thiz);
 
-nw_rc_t nwGtpv2cUlpProcessStackReqCallback(
-    nw_gtpv2c_UlpHandleT hUlp, nw_gtpv2c_ulp_api_t* pUlpApi);
+nw_rc_t nwGtpv2cUlpProcessStackReqCallback(nw_gtpv2c_UlpHandleT hUlp,
+                                           nw_gtpv2c_ulp_api_t* pUlpApi);
 
 #ifdef __cplusplus
 }

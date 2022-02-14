@@ -48,7 +48,7 @@ status_code_e mme_app_handle_s1ap_ue_capabilities_ind(
         " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
         s1ap_ue_cap_ind_pP->enb_ue_s1ap_id, s1ap_ue_cap_ind_pP->mme_ue_s1ap_id);
 
-    free_wrapper((void**) &s1ap_ue_cap_ind_pP->radio_capabilities);
+    free_wrapper((void**)&s1ap_ue_cap_ind_pP->radio_capabilities);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -58,13 +58,13 @@ status_code_e mme_app_handle_s1ap_ue_capabilities_ind(
 
   // Allocate the radio capabilities memory. Note that this takes care of the
   // length = 0 case for us quite nicely.
-  ue_context_p->ue_radio_capability = blk2bstr(
-      s1ap_ue_cap_ind_pP->radio_capabilities,
-      s1ap_ue_cap_ind_pP->radio_capabilities_length);
+  ue_context_p->ue_radio_capability =
+      blk2bstr(s1ap_ue_cap_ind_pP->radio_capabilities,
+               s1ap_ue_cap_ind_pP->radio_capabilities_length);
 
-  OAILOG_DEBUG(
-      LOG_MME_APP, "UE radio capabilities of length %d found and cached\n",
-      blength(ue_context_p->ue_radio_capability));
+  OAILOG_DEBUG(LOG_MME_APP,
+               "UE radio capabilities of length %d found and cached\n",
+               blength(ue_context_p->ue_radio_capability));
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }

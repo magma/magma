@@ -1,27 +1,23 @@
-package message_generator_test
+package sas_test
 
 import (
 	"fmt"
 	"testing"
-	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
-	"magma/dp/cloud/go/active_mode_controller/internal/message_generator"
+	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
-	"magma/dp/cloud/go/active_mode_controller/protos/requests"
 )
 
 const mega = 1e6
 
-func TestGenerateGrantMessages(t *testing.T) {
+func TestGrantRequestGenerator(t *testing.T) {
 	data := []struct {
 		name         string
 		capabilities *active_mode.EirpCapabilities
 		channels     []*active_mode.Channel
-		expected     []*requests.RequestPayload
+		expected     []*request
 	}{
 		{
 			name:         "Should generate grant request with default max eirp",
@@ -73,7 +69,7 @@ func TestGenerateGrantMessages(t *testing.T) {
 				FrequencyRange: getDefaultFrequencyRange(),
 				LastEirp:       wrapperspb.Float(-10),
 			}},
-			expected: getSpectrumInquiryRequest(),
+			expected: nil,
 		},
 		{
 			name: "Should switch to another channel if current is unusable",
@@ -101,23 +97,16 @@ func TestGenerateGrantMessages(t *testing.T) {
 	}
 	for _, tt := range data {
 		t.Run(tt.name, func(t *testing.T) {
-			state := &active_mode.State{
-				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
-					DesiredState: active_mode.CbsdState_Registered,
-					Cbsd: &active_mode.Cbsd{
-						Id:               "some_cbsd_id",
-						State:            active_mode.CbsdState_Registered,
-						Channels:         tt.channels,
-						EirpCapabilities: tt.capabilities,
-					},
-				}},
+			config := &active_mode.ActiveModeConfig{
+				Cbsd: &active_mode.Cbsd{
+					Id:               "some_cbsd_id",
+					Channels:         tt.channels,
+					EirpCapabilities: tt.capabilities,
+				},
 			}
-			g := message_generator.NewMessageGenerator(0, 0)
-			actual := g.GenerateMessages(state, time.Time{})
-			require.Len(t, actual, len(tt.expected))
-			for i := range tt.expected {
-				assert.JSONEq(t, tt.expected[i].Payload, actual[i].Payload)
-			}
+			g := sas.NewGrantRequestGenerator()
+			actual := g.GenerateRequests(config)
+			assertRequestsEqual(t, tt.expected, actual)
 		})
 	}
 }
@@ -171,21 +160,20 @@ func newGrantParams(options ...grantOption) *grantParams {
 	return g
 }
 
-func (g *grantParams) toRequest() []*requests.RequestPayload {
+func (g *grantParams) toRequest() []*request {
 	const requestTemplate = `{
-	"grantRequest": [
-		{
-			"cbsdId": "some_cbsd_id",
-			"operationParam": {
-				"maxEirp": %v,
-				"operationFrequencyRange": {
-					"lowFrequency": %d,
-					"highFrequency": %d
-				}
-			}
+	"cbsdId": "some_cbsd_id",
+	"operationParam": {
+		"maxEirp": %v,
+		"operationFrequencyRange": {
+			"lowFrequency": %d,
+			"highFrequency": %d
 		}
-	]
+	}
 }`
 	payload := fmt.Sprintf(requestTemplate, g.maxEirp, g.minFrequency, g.maxFrequency)
-	return []*requests.RequestPayload{{Payload: payload}}
+	return []*request{{
+		requestType: "grantRequest",
+		data:        payload,
+	}}
 }

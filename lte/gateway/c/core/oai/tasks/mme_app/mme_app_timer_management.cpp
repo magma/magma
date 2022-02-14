@@ -26,21 +26,19 @@ extern "C" {
 extern task_zmq_ctx_t mme_app_task_zmq_ctx;
 
 //------------------------------------------------------------------------------
-int mme_app_start_timer_arg(
-    size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-    timer_arg_t* arg) {
-  return magma::lte::MmeUeContext::Instance().StartTimer(
-      msec, repeat, handler, *arg);
+int mme_app_start_timer_arg(size_t msec, timer_repeat_t repeat,
+                            zloop_timer_fn handler, timer_arg_t* arg) {
+  return magma::lte::MmeUeContext::Instance().StartTimer(msec, repeat, handler,
+                                                         *arg);
 }
 
-int mme_app_start_timer(
-    size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-    mme_ue_s1ap_id_t ue_id) {
+int mme_app_start_timer(size_t msec, timer_repeat_t repeat,
+                        zloop_timer_fn handler, mme_ue_s1ap_id_t ue_id) {
   timer_arg_t arg;
   arg.ue_id = ue_id;
-  arg.ebi   = UINT8_MAX;  // fill in an invalid ebi as it is unused
-  return magma::lte::MmeUeContext::Instance().StartTimer(
-      msec, repeat, handler, arg);
+  arg.ebi = UINT8_MAX;  // fill in an invalid ebi as it is unused
+  return magma::lte::MmeUeContext::Instance().StartTimer(msec, repeat, handler,
+                                                         arg);
 }
 
 //------------------------------------------------------------------------------
@@ -48,11 +46,12 @@ void mme_app_stop_timer(int timer_id) {
   magma::lte::MmeUeContext::Instance().StopTimer(timer_id);
 }
 //------------------------------------------------------------------------------
-void mme_app_resume_timer(
-    struct ue_mm_context_s* const ue_mm_context_pP, time_t start_time,
-    nas_timer_t* timer, zloop_timer_fn timer_expiry_handler, char* timer_name) {
+void mme_app_resume_timer(struct ue_mm_context_s* const ue_mm_context_pP,
+                          time_t start_time, nas_timer_t* timer,
+                          zloop_timer_fn timer_expiry_handler,
+                          char* timer_name) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  time_t current_time       = time(NULL);
+  time_t current_time = time(NULL);
   time_t elapsed_time_in_ms = (current_time - start_time) * 1000;
   OAILOG_DEBUG(LOG_MME_APP, "Handling :%s timer \n", timer_name);
 
@@ -64,32 +63,30 @@ void mme_app_resume_timer(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   uint32_t remaining_time_in_msecs = timer->msec - elapsed_time_in_ms;
-  OAILOG_DEBUG(
-      LOG_MME_APP,
-      "Current_time :%ld %s timer start time :%ld "
-      "elapsed time:%ld (ms) remaining time:%d (ms) \n",
-      current_time, timer_name, start_time, elapsed_time_in_ms,
-      remaining_time_in_msecs);
+  OAILOG_DEBUG(LOG_MME_APP,
+               "Current_time :%ld %s timer start time :%ld "
+               "elapsed time:%ld (ms) remaining time:%d (ms) \n",
+               current_time, timer_name, start_time, elapsed_time_in_ms,
+               remaining_time_in_msecs);
 
   // Start timer only for remaining duration
   timer_arg_t arg;
   arg.ue_id = ue_mm_context_pP->mme_ue_s1ap_id;
-  arg.ebi   = UINT8_MAX;  // fill in an invalid ebi as it is unused
+  arg.ebi = UINT8_MAX;  // fill in an invalid ebi as it is unused
   if ((timer->id = magma::lte::MmeUeContext::Instance().StartTimer(
            remaining_time_in_msecs, TIMER_REPEAT_ONCE, timer_expiry_handler,
            arg)) == -1) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
-        "Failed to start %s timer for UE id "
-        "" MME_UE_S1AP_ID_FMT "\n",
-        timer_name, ue_mm_context_pP->mme_ue_s1ap_id);
+    OAILOG_ERROR_UE(LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
+                    "Failed to start %s timer for UE id "
+                    "" MME_UE_S1AP_ID_FMT "\n",
+                    timer_name, ue_mm_context_pP->mme_ue_s1ap_id);
     timer->id = MME_APP_TIMER_INACTIVE_ID;
   } else {
-    OAILOG_DEBUG_UE(
-        LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
-        "Started %s timer for UE id " MME_UE_S1AP_ID_FMT
-        ", Timer Id: %ld, Timer Val: %u (ms)\n",
-        timer_name, ue_mm_context_pP->mme_ue_s1ap_id, timer->id, timer->msec);
+    OAILOG_DEBUG_UE(LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
+                    "Started %s timer for UE id " MME_UE_S1AP_ID_FMT
+                    ", Timer Id: %ld, Timer Val: %u (ms)\n",
+                    timer_name, ue_mm_context_pP->mme_ue_s1ap_id, timer->id,
+                    timer->msec);
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -109,12 +106,11 @@ bool mme_pop_timer_arg_ue_id(int timer_id, mme_ue_s1ap_id_t* ue_id) {
 namespace magma {
 namespace lte {
 //------------------------------------------------------------------------------
-int MmeUeContext::StartTimer(
-    size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-    const TimerArgType& arg) {
+int MmeUeContext::StartTimer(size_t msec, timer_repeat_t repeat,
+                             zloop_timer_fn handler, const TimerArgType& arg) {
   int timer_id = -1;
-  if ((timer_id = start_timer(
-           &mme_app_task_zmq_ctx, msec, repeat, handler, nullptr)) != -1) {
+  if ((timer_id = start_timer(&mme_app_task_zmq_ctx, msec, repeat, handler,
+                              nullptr)) != -1) {
     mme_app_timers.insert(std::pair<int, TimerArgType>(timer_id, arg));
   }
   return timer_id;

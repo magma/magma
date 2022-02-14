@@ -37,13 +37,13 @@ class S8ServiceImpl final : public S8ProxyResponder::Service {
   /* Create Bearer Request is sent from roaming network's PGW to initiate
    * dedicated bearer establishment
    */
-  grpc::Status CreateBearer(
-      grpc::ServerContext* context, const CreateBearerRequestPgw* request,
-      orc8r::Void* response) override;
+  grpc::Status CreateBearer(grpc::ServerContext* context,
+                            const CreateBearerRequestPgw* request,
+                            orc8r::Void* response) override;
 
-  grpc::Status DeleteBearerRequest(
-      grpc::ServerContext* context, const DeleteBearerRequestPgw* request,
-      orc8r::Void* response) override;
+  grpc::Status DeleteBearerRequest(grpc::ServerContext* context,
+                                   const DeleteBearerRequestPgw* request,
+                                   orc8r::Void* response) override;
 };
 
 }  // namespace magma

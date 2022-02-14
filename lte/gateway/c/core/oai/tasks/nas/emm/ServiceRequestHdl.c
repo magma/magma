@@ -68,8 +68,8 @@ static int check_paging_received_without_lai(mme_ue_s1ap_id_t ue_id);
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
-status_code_e emm_proc_service_reject(
-    const mme_ue_s1ap_id_t ue_id, const uint8_t emm_cause) {
+status_code_e emm_proc_service_reject(const mme_ue_s1ap_id_t ue_id,
+                                      const uint8_t emm_cause) {
   int rc = RETURNok;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   rc = emm_service_reject(ue_id, emm_cause);
@@ -90,33 +90,32 @@ static int emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause)
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   emm_context_t* emm_ctx = emm_context_get(&_emm_data, ue_id);
-  emm_sap_t emm_sap      = {0};
+  emm_sap_t emm_sap = {0};
 
-  OAILOG_WARNING(
-      LOG_NAS_EMM,
-      "EMM-PROC- Sending Service Reject. ue_id=" MME_UE_S1AP_ID_FMT
-      ", cause=%d)\n",
-      ue_id, emm_cause);
+  OAILOG_WARNING(LOG_NAS_EMM,
+                 "EMM-PROC- Sending Service Reject. ue_id=" MME_UE_S1AP_ID_FMT
+                 ", cause=%d)\n",
+                 ue_id, emm_cause);
   /*
    * Notify EMM-AS SAP that Service Reject message has to be sent
    * onto the network
    */
-  emm_sap.primitive                        = EMMAS_ESTABLISH_REJ;
-  emm_sap.u.emm_as.u.establish.ue_id       = ue_id;
+  emm_sap.primitive = EMMAS_ESTABLISH_REJ;
+  emm_sap.u.emm_as.u.establish.ue_id = ue_id;
   emm_sap.u.emm_as.u.establish.eps_id.guti = NULL;
 
   emm_sap.u.emm_as.u.establish.emm_cause = emm_cause;
-  emm_sap.u.emm_as.u.establish.nas_info  = EMM_AS_NAS_INFO_SR;
-  emm_sap.u.emm_as.u.establish.nas_msg   = NULL;
+  emm_sap.u.emm_as.u.establish.nas_info = EMM_AS_NAS_INFO_SR;
+  emm_sap.u.emm_as.u.establish.nas_msg = NULL;
   /*
    * Setup EPS NAS security data
    */
   if (emm_ctx) {
-    emm_as_set_security_data(
-        &emm_sap.u.emm_as.u.establish.sctx, &emm_ctx->_security, false, false);
+    emm_as_set_security_data(&emm_sap.u.emm_as.u.establish.sctx,
+                             &emm_ctx->_security, false, false);
   } else {
-    emm_as_set_security_data(
-        &emm_sap.u.emm_as.u.establish.sctx, NULL, false, false);
+    emm_as_set_security_data(&emm_sap.u.emm_as.u.establish.sctx, NULL, false,
+                             false);
   }
   rc = emm_sap_send(&emm_sap);
 
@@ -136,7 +135,7 @@ static int emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause)
 status_code_e emm_proc_extended_service_request(
     const mme_ue_s1ap_id_t ue_id, const extended_service_request_msg* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc                 = RETURNok;
+  int rc = RETURNok;
   emm_context_t* emm_ctx = NULL;
 
   OAILOG_INFO(
@@ -150,10 +149,10 @@ status_code_e emm_proc_extended_service_request(
   emm_ctx = emm_context_get(&_emm_data, ue_id);
 
   if (!emm_ctx) {
-    OAILOG_WARNING(
-        LOG_NAS_EMM,
-        "No EMM context exists for the UE (ue_id=" MME_UE_S1AP_ID_FMT ") \n",
-        ue_id);
+    OAILOG_WARNING(LOG_NAS_EMM,
+                   "No EMM context exists for the UE (ue_id=" MME_UE_S1AP_ID_FMT
+                   ") \n",
+                   ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
@@ -180,14 +179,13 @@ status_code_e emm_proc_extended_service_request(
       !(_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED)) {
     /* send the service reject to UE */
     rc = emm_proc_service_reject(ue_id, EMM_CAUSE_CONGESTION);
-    increment_counter(
-        "extended_service_request", 1, 2, "result", "failure", "cause",
-        "emm_cause_congestion");
+    increment_counter("extended_service_request", 1, 2, "result", "failure",
+                      "cause", "emm_cause_congestion");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
   // Handle extended service request received in ue connected mode
-  mme_app_handle_nas_extended_service_req(
-      ue_id, msg->servicetype, msg->csfbresponse);
+  mme_app_handle_nas_extended_service_req(ue_id, msg->servicetype,
+                                          msg->csfbresponse);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -205,9 +203,9 @@ status_code_e emm_recv_initial_ext_service_request(
     const mme_ue_s1ap_id_t ue_id, const extended_service_request_msg* msg,
     int* emm_cause, const nas_message_decode_status_t* decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc                 = RETURNok;
+  int rc = RETURNok;
   emm_context_t* emm_ctx = NULL;
-  emm_sap_t emm_sap      = {0};
+  emm_sap_t emm_sap = {0};
 
   OAILOG_INFO(
       LOG_NAS_EMM,
@@ -230,10 +228,10 @@ status_code_e emm_recv_initial_ext_service_request(
   emm_ctx = emm_context_get(&_emm_data, ue_id);
 
   if (!emm_ctx) {
-    OAILOG_WARNING(
-        LOG_NAS_EMM,
-        "No EMM context exists for the UE (ue_id=" MME_UE_S1AP_ID_FMT ") \n",
-        ue_id);
+    OAILOG_WARNING(LOG_NAS_EMM,
+                   "No EMM context exists for the UE (ue_id=" MME_UE_S1AP_ID_FMT
+                   ") \n",
+                   ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
@@ -253,9 +251,8 @@ status_code_e emm_recv_initial_ext_service_request(
       !(_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED)) {
     /* send the service reject to UE */
     rc = emm_proc_service_reject(ue_id, EMM_CAUSE_CONGESTION);
-    increment_counter(
-        "extended_service_request", 1, 2, "result", "failure", "cause",
-        "emm_cause_congestion");
+    increment_counter("extended_service_request", 1, 2, "result", "failure",
+                      "cause", "emm_cause_congestion");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
@@ -265,9 +262,8 @@ status_code_e emm_recv_initial_ext_service_request(
       /* CSFB Resp Missing*/
       /*send the service reject to UE*/
       rc = emm_proc_service_reject(ue_id, EMM_CAUSE_CONDITIONAL_IE_ERROR);
-      increment_counter(
-          "extended_service_request", 1, 2, "result", "failure", "cause",
-          "ue_csfb_response_missing");
+      increment_counter("extended_service_request", 1, 2, "result", "failure",
+                        "cause", "ue_csfb_response_missing");
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
   }
@@ -287,19 +283,19 @@ status_code_e emm_recv_initial_ext_service_request(
     emm_ctx->_security.kenb_ul_count = emm_ctx->_security.ul_count;
   }
 
-  emm_sap.primitive                     = EMMAS_ESTABLISH_CNF;
-  emm_sap.u.emm_as.u.establish.ue_id    = ue_id;
+  emm_sap.primitive = EMMAS_ESTABLISH_CNF;
+  emm_sap.u.emm_as.u.establish.ue_id = ue_id;
   emm_sap.u.emm_as.u.establish.nas_info = EMM_AS_NAS_INFO_NONE;
   emm_sap.u.emm_as.u.establish.encryption =
       emm_ctx->_security.selected_algorithms.encryption;
   emm_sap.u.emm_as.u.establish.integrity =
       emm_ctx->_security.selected_algorithms.integrity;
-  emm_sap.u.emm_as.u.establish.nas_msg       = NULL;
-  emm_sap.u.emm_as.u.establish.eps_id.guti   = &emm_ctx->_guti;
+  emm_sap.u.emm_as.u.establish.nas_msg = NULL;
+  emm_sap.u.emm_as.u.establish.eps_id.guti = &emm_ctx->_guti;
   emm_sap.u.emm_as.u.establish.csfb_response = msg->csfbresponse;
   emm_sap.u.emm_as.u.establish.presencemask |= SERVICE_TYPE_PRESENT;
   emm_sap.u.emm_as.u.establish.service_type = msg->servicetype;
-  rc                                        = emm_sap_send(&emm_sap);
+  rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -318,31 +314,31 @@ static int check_paging_received_without_lai(mme_ue_s1ap_id_t ue_id) {
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, false);
 }
 
-status_code_e emm_send_service_reject_in_dl_nas(
-    const mme_ue_s1ap_id_t ue_id, const uint8_t emm_cause) {
-  int rc                 = RETURNok;
-  emm_sap_t emm_sap      = {0};
+status_code_e emm_send_service_reject_in_dl_nas(const mme_ue_s1ap_id_t ue_id,
+                                                const uint8_t emm_cause) {
+  int rc = RETURNok;
+  emm_sap_t emm_sap = {0};
   emm_context_t* emm_ctx = emm_context_get(&_emm_data, ue_id);
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   if (!emm_ctx) {
-    OAILOG_ERROR(
-        LOG_NAS_EMM,
-        "Failed to find emm context for ue_id :" MME_UE_S1AP_ID_FMT "\n",
-        ue_id);
+    OAILOG_ERROR(LOG_NAS_EMM,
+                 "Failed to find emm context for ue_id :" MME_UE_S1AP_ID_FMT
+                 "\n",
+                 ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
-  emm_ctx->emm_cause                = emm_cause;
-  emm_sap.primitive                 = EMMAS_DATA_REQ;
-  emm_sap.u.emm_as.u.data.emm_cause = (uint32_t*) &emm_ctx->emm_cause;
-  emm_sap.u.emm_as.u.data.ue_id     = ue_id;
-  emm_sap.u.emm_as.u.data.nas_info  = EMM_AS_NAS_DATA_INFO_SR;
-  emm_sap.u.emm_as.u.data.nas_msg   = NULL;  // No ESM container
+  emm_ctx->emm_cause = emm_cause;
+  emm_sap.primitive = EMMAS_DATA_REQ;
+  emm_sap.u.emm_as.u.data.emm_cause = (uint32_t*)&emm_ctx->emm_cause;
+  emm_sap.u.emm_as.u.data.ue_id = ue_id;
+  emm_sap.u.emm_as.u.data.nas_info = EMM_AS_NAS_DATA_INFO_SR;
+  emm_sap.u.emm_as.u.data.nas_msg = NULL;  // No ESM container
   /*
    * Setup EPS NAS security data
    */
-  emm_as_set_security_data(
-      &emm_sap.u.emm_as.u.data.sctx, &emm_ctx->_security, false, true);
+  emm_as_set_security_data(&emm_sap.u.emm_as.u.data.sctx, &emm_ctx->_security,
+                           false, true);
 
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);

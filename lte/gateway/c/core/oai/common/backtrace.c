@@ -42,7 +42,7 @@ void display_backtrace(void) {
   char** strings;
   size_t i;
 
-  size    = backtrace(array, 10);
+  size = backtrace(array, 10);
   strings = backtrace_symbols(array, size);
   printf("Obtained %zd stack frames.\n", size);
 

@@ -45,12 +45,11 @@ void S6aMessagesTest::SetUp() {
   mme_app_handler = std::make_shared<MockMmeAppHandler>();
   async_service_handler =
       std::make_shared<magma::S6aProxyAsyncResponderHandler>();
-  itti_init(
-      TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
-      NULL);
+  itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
+            NULL, NULL);
   task_id_t task_id_list[2] = {TASK_S6A, TASK_MME_APP};
-  init_task_context(
-      TASK_MAIN, task_id_list, 2, handle_message, &task_zmq_ctx_main_s6a);
+  init_task_context(TASK_MAIN, task_id_list, 2, handle_message,
+                    &task_zmq_ctx_main_s6a);
 
   std::thread task_mme_app(start_mock_mme_app_task, mme_app_handler);
   task_mme_app.detach();
@@ -71,7 +70,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: { } break; }
+    default: {
+    } break;
+  }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);

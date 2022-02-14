@@ -40,23 +40,23 @@ TEST_F(NasStateConverterTest, TestEmmContextConversion) {
 
   emm_init_context(&emm_context, true);
 
-  emm_context._imsi64             = 310150123456789;
-  emm_context._imsi.u.num.digit1  = 3;
-  emm_context._imsi.u.num.digit2  = 1;
-  emm_context._imsi.u.num.digit3  = 0;
-  emm_context._imsi.u.num.digit4  = 1;
-  emm_context._imsi.u.num.digit5  = 5;
-  emm_context._imsi.u.num.digit6  = 0;
-  emm_context._imsi.u.num.digit7  = 1;
-  emm_context._imsi.u.num.digit8  = 2;
-  emm_context._imsi.u.num.digit9  = 3;
+  emm_context._imsi64 = 310150123456789;
+  emm_context._imsi.u.num.digit1 = 3;
+  emm_context._imsi.u.num.digit2 = 1;
+  emm_context._imsi.u.num.digit3 = 0;
+  emm_context._imsi.u.num.digit4 = 1;
+  emm_context._imsi.u.num.digit5 = 5;
+  emm_context._imsi.u.num.digit6 = 0;
+  emm_context._imsi.u.num.digit7 = 1;
+  emm_context._imsi.u.num.digit8 = 2;
+  emm_context._imsi.u.num.digit9 = 3;
   emm_context._imsi.u.num.digit10 = 4;
   emm_context._imsi.u.num.digit11 = 5;
   emm_context._imsi.u.num.digit12 = 6;
   emm_context._imsi.u.num.digit13 = 7;
   emm_context._imsi.u.num.digit14 = 8;
   emm_context._imsi.u.num.digit15 = 9;
-  emm_context.saved_imsi64        = 310150123456789;
+  emm_context.saved_imsi64 = 310150123456789;
 
   // Initialize EMM procedures
   nas_emm_attach_proc_t* attach_proc = nas_new_attach_procedure(&emm_context);
@@ -72,25 +72,25 @@ TEST_F(NasStateConverterTest, TestEmmContextConversion) {
   memset(emm_context._vector, sizeof(auth_vector_t), 1);
 
   emm_context.esm_ctx.esm_proc_data =
-      (esm_proc_data_t*) calloc(1, sizeof(*emm_context.esm_ctx.esm_proc_data));
+      (esm_proc_data_t*)calloc(1, sizeof(*emm_context.esm_ctx.esm_proc_data));
   emm_context.esm_ctx.esm_proc_data->pti = 5;
   bstring bstr = bfromcstr_with_str_len("192.168.0.1", 11);
   emm_context.esm_ctx.esm_proc_data->pdn_addr = bstr;
-  bstring bstr_apn                       = bfromcstr_with_str_len("magma", 5);
+  bstring bstr_apn = bfromcstr_with_str_len("magma", 5);
   emm_context.esm_ctx.esm_proc_data->apn = bstr_apn;
-  emm_context.esm_ctx.T3489.id           = NAS_TIMER_INACTIVE_ID;
+  emm_context.esm_ctx.T3489.id = NAS_TIMER_INACTIVE_ID;
 
   emm_context._tai_list.numberoflists = 0;
 
   emm_context.new_attach_info =
-      (new_attach_info_t*) calloc(1, sizeof(new_attach_info_t));
+      (new_attach_info_t*)calloc(1, sizeof(new_attach_info_t));
   emm_context.new_attach_info->mme_ue_s1ap_id = 1;
-  emm_context.new_attach_info->is_mm_ctx_new  = true;
-  emm_context.new_attach_info->ies = (emm_attach_request_ies_t*) calloc(
+  emm_context.new_attach_info->is_mm_ctx_new = true;
+  emm_context.new_attach_info->ies = (emm_attach_request_ies_t*)calloc(
       1, sizeof(*(emm_context.new_attach_info->ies)));
   ;
   emm_context.new_attach_info->ies->is_initial = true;
-  emm_context.new_attach_info->ies->type       = EMM_ATTACH_TYPE_EPS;
+  emm_context.new_attach_info->ies->type = EMM_ATTACH_TYPE_EPS;
 
   oai::EmmContext proto_state;
   NasStateConverter::emm_context_to_proto(&emm_context, &proto_state);
@@ -100,12 +100,10 @@ TEST_F(NasStateConverterTest, TestEmmContextConversion) {
 
   EXPECT_EQ(emm_context._imsi64, final_state._imsi64);
 
-  EXPECT_STREQ(
-      (char*) emm_context.esm_ctx.esm_proc_data->pdn_addr->data,
-      (char*) final_state.esm_ctx.esm_proc_data->pdn_addr->data);
-  EXPECT_STREQ(
-      (char*) emm_context.esm_ctx.esm_proc_data->apn,
-      (char*) final_state.esm_ctx.esm_proc_data->apn);
+  EXPECT_STREQ((char*)emm_context.esm_ctx.esm_proc_data->pdn_addr->data,
+               (char*)final_state.esm_ctx.esm_proc_data->pdn_addr->data);
+  EXPECT_STREQ((char*)emm_context.esm_ctx.esm_proc_data->apn,
+               (char*)final_state.esm_ctx.esm_proc_data->apn);
 
   EXPECT_TRUE(final_state.new_attach_info->ies->is_initial);
   EXPECT_EQ(final_state.new_attach_info->ies->type, EMM_ATTACH_TYPE_EPS);
@@ -119,17 +117,17 @@ TEST_F(NasStateConverterTest, TestEmmContextConversion) {
   // TODO (ssanadhya): Add check for Identification procedure, once state
   // conversion is implemented for it
 
-  free_wrapper((void**) &emm_context.new_attach_info->ies);
-  free_wrapper((void**) &emm_context.new_attach_info);
+  free_wrapper((void**)&emm_context.new_attach_info->ies);
+  free_wrapper((void**)&emm_context.new_attach_info);
   clear_emm_ctxt(&emm_context);
   bdestroy_wrapper(&bstr);
 
   bdestroy_wrapper(&final_state.esm_ctx.esm_proc_data->pdn_addr);
   bdestroy_wrapper(&final_state.esm_ctx.esm_proc_data->apn);
-  free_wrapper((void**) &final_state.new_attach_info->ies);
-  free_wrapper((void**) &final_state.new_attach_info);
-  free_wrapper((void**) &final_state.esm_ctx.esm_proc_data);
-  free_wrapper((void**) &final_state.t3422_arg);
+  free_wrapper((void**)&final_state.new_attach_info->ies);
+  free_wrapper((void**)&final_state.new_attach_info);
+  free_wrapper((void**)&final_state.esm_ctx.esm_proc_data);
+  free_wrapper((void**)&final_state.t3422_arg);
   clear_emm_ctxt(&final_state);
 }
 
@@ -138,8 +136,8 @@ TEST_F(NasStateConverterTest, TestEsmContextSetInactiveT3489) {
   esm_context_t state_esm_context;
 
   esm_context_proto.clear_esm_proc_data();
-  NasStateConverter::proto_to_esm_context(
-      esm_context_proto, &state_esm_context);
+  NasStateConverter::proto_to_esm_context(esm_context_proto,
+                                          &state_esm_context);
 
   EXPECT_EQ(state_esm_context.T3489.id, NAS_TIMER_INACTIVE_ID);
 }
@@ -150,8 +148,8 @@ TEST_F(NasStateConverterTest, TestEsmEbrContextSetInactiveTimer) {
 
   esm_context_proto.clear_pco();
   esm_context_proto.clear_esm_ebr_timer_data();
-  NasStateConverter::proto_to_esm_ebr_context(
-      esm_context_proto, &state_esm_ebr_context);
+  NasStateConverter::proto_to_esm_ebr_context(esm_context_proto,
+                                              &state_esm_ebr_context);
 
   EXPECT_EQ(state_esm_ebr_context.timer.id, NAS_TIMER_INACTIVE_ID);
 }
@@ -172,8 +170,8 @@ TEST_F(NasStateConverterTest, TestNasEmmAuthProcSetInactiveT3460) {
   oai::AuthProc auth_proc_proto;
   nas_emm_auth_proc_t state_nas_emm_auth_proc;
 
-  NasStateConverter::proto_to_nas_emm_auth_proc(
-      auth_proc_proto, &state_nas_emm_auth_proc);
+  NasStateConverter::proto_to_nas_emm_auth_proc(auth_proc_proto,
+                                                &state_nas_emm_auth_proc);
 
   EXPECT_EQ(state_nas_emm_auth_proc.T3460.id, NAS_TIMER_INACTIVE_ID);
 }
