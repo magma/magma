@@ -12,11 +12,11 @@
  */
 
 #include <gtest/gtest.h>
-#include "../../tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 
 extern "C" {
-#include "log.h"
-#include "include/amf_config.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
 }
 
 using ::testing::Test;
