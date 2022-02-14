@@ -619,7 +619,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest,
   // check that session is removed
   EXPECT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size() - 1));
   EXPECT_TRUE(is_num_teids_valid(test_imsi64, 0));
-  
+
   free(sample_nw_init_ded_bearer_deactv_resp.lbi);
 
   // Sleep to ensure that messages are received and contexts are released

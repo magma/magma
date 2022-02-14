@@ -72,7 +72,7 @@ bool is_num_teids_valid(uint64_t imsi64, int expected_num_teids) {
 
   if (!ue_context_p) return expected_num_teids == 0;
 
-  int num_teids              = 0;
+  int num_teids = 0;
   sgw_s11_teid_t* s11_teid_p = nullptr;
 
   LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
