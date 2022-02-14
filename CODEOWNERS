@@ -14,6 +14,11 @@
 /.golangci.yml @magma/approvers-orc8r
 /orc8r/ @magma/approvers-orc8r
 
+# approvers-orc8r-infra
+/orc8r/cloud/docker/ @magma/approvers-orc8r-infra
+/orc8r/cloud/deploy/ @magma/approvers-orc8r-infra
+*/cloud/helm/ @magma/approvers-orc8r-infra
+
 # approvers-nms
 /nms/ @magma/approvers-nms
 
