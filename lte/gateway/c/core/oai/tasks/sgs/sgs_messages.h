@@ -31,10 +31,4 @@ int sgs_send_imsi_detach_indication(
 int sgs_send_tmsi_reallocation_complete(
     itti_sgsap_tmsi_reallocation_comp_t* sgs_tmsi_realloc_comp_p);
 
-int sgs_send_paging_reject(
-    itti_sgsap_paging_reject_t* const sgs_paging_reject_p);
-
-int sgs_send_ue_unreachable(
-    itti_sgsap_ue_unreachable_t* const sgs_ue_unreachable_p);
-
 #endif
