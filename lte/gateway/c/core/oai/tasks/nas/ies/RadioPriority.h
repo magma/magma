@@ -25,17 +25,15 @@
 
 typedef uint8_t radio_priority_t;
 
-int encode_radio_priority(
-    radio_priority_t* radiopriority, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int encode_radio_priority(radio_priority_t* radiopriority, uint8_t iei,
+                          uint8_t* buffer, uint32_t len);
 
 uint8_t encode_u8_radio_priority(radio_priority_t* radiopriority);
 
-int decode_radio_priority(
-    radio_priority_t* radiopriority, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int decode_radio_priority(radio_priority_t* radiopriority, uint8_t iei,
+                          uint8_t* buffer, uint32_t len);
 
-int decode_u8_radio_priority(
-    radio_priority_t* radiopriority, uint8_t iei, uint8_t value, uint32_t len);
+int decode_u8_radio_priority(radio_priority_t* radiopriority, uint8_t iei,
+                             uint8_t value, uint32_t len);
 
 #endif /* RADIO PRIORITY_SEEN */

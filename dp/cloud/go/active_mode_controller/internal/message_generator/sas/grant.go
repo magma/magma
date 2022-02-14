@@ -1,4 +1,4 @@
-package message_generator
+package sas
 
 import (
 	"math"
@@ -6,28 +6,13 @@ import (
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 )
 
-const (
-	minSASEirp = -137
-	maxSASEirp = 37
-)
+type grantRequestGenerator struct{}
 
-type grantRequest struct {
-	CbsdId         string          `json:"cbsdId"`
-	OperationParam *OperationParam `json:"operationParam"`
+func NewGrantRequestGenerator() *grantRequestGenerator {
+	return &grantRequestGenerator{}
 }
 
-func (*grantRequest) name() string {
-	return "grant"
-}
-
-type OperationParam struct {
-	MaxEirp                 float32         `json:"maxEirp"`
-	OperationFrequencyRange *frequencyRange `json:"operationFrequencyRange"`
-}
-
-type grantMessageGenerator struct{}
-
-func (*grantMessageGenerator) generateMessages(config *active_mode.ActiveModeConfig) []message {
+func (*grantRequestGenerator) GenerateRequests(config *active_mode.ActiveModeConfig) []*Request {
 	cbsd := config.GetCbsd()
 	operationParam := chooseSuitableChannel(cbsd.GetChannels(), cbsd.GetEirpCapabilities())
 	if operationParam == nil {
@@ -37,20 +22,30 @@ func (*grantMessageGenerator) generateMessages(config *active_mode.ActiveModeCon
 		CbsdId:         cbsd.Id,
 		OperationParam: operationParam,
 	}
-	return []message{req}
+	return []*Request{asRequest(Grant, req)}
+}
+
+type grantRequest struct {
+	CbsdId         string          `json:"cbsdId"`
+	OperationParam *operationParam `json:"operationParam"`
+}
+
+type operationParam struct {
+	MaxEirp                 float32         `json:"maxEirp"`
+	OperationFrequencyRange *frequencyRange `json:"operationFrequencyRange"`
 }
 
 func chooseSuitableChannel(
 	channels []*active_mode.Channel,
 	capabilities *active_mode.EirpCapabilities,
-) *OperationParam {
+) *operationParam {
 	for _, channel := range channels {
 		maxEirp, ok := choseMaxEirp(channel, capabilities)
 		if !ok {
 			continue
 		}
 		frequency := channel.GetFrequencyRange()
-		return &OperationParam{
+		return &operationParam{
 			MaxEirp: float32(maxEirp),
 			OperationFrequencyRange: &frequencyRange{
 				LowFrequency:  frequency.GetLow(),
@@ -72,6 +67,11 @@ func choseMaxEirp(channel *active_mode.Channel, capabilities *active_mode.EirpCa
 	}
 	return v, true
 }
+
+const (
+	minSASEirp = -137
+	maxSASEirp = 37
+)
 
 func calculateEirpBounds(channel *active_mode.Channel, capabilities *active_mode.EirpCapabilities) (float64, float64) {
 	frequencyRange := channel.GetFrequencyRange()

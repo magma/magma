@@ -28,11 +28,10 @@ namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 
 //------------------------------------------------------------------------------
-int amf_app_start_timer(
-    size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-    timer_arg_t id) {
-  return magma5g::AmfUeContext::Instance().StartTimer(
-      msec, repeat, handler, id);
+int amf_app_start_timer(size_t msec, timer_repeat_t repeat,
+                        zloop_timer_fn handler, timer_arg_t id) {
+  return magma5g::AmfUeContext::Instance().StartTimer(msec, repeat, handler,
+                                                      id);
 }
 
 //------------------------------------------------------------------------------
@@ -46,12 +45,11 @@ bool amf_pop_timer_arg(int timer_id, timer_arg_t* arg) {
 }
 
 //------------------------------------------------------------------------------
-int AmfUeContext::StartTimer(
-    size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-    timer_arg_t arg) {
+int AmfUeContext::StartTimer(size_t msec, timer_repeat_t repeat,
+                             zloop_timer_fn handler, timer_arg_t arg) {
   int timer_id = -1;
-  if ((timer_id = start_timer(
-           &amf_app_task_zmq_ctx, msec, repeat, handler, nullptr)) != -1) {
+  if ((timer_id = start_timer(&amf_app_task_zmq_ctx, msec, repeat, handler,
+                              nullptr)) != -1) {
     amf_app_timers.insert(std::pair<int, timer_arg_t>(timer_id, arg));
   }
   return timer_id;
@@ -73,11 +71,10 @@ bool AmfUeContext::PopTimerArgById(const int timer_id, timer_arg_t* arg) {
 }
 
 //------------------------------------------------------------------------------
-int amf_pdu_start_timer(
-    size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-    ue_pdu_id_t id) {
-  return magma5g::AmfUeContext::Instance().StartPduTimer(
-      msec, repeat, handler, id);
+int amf_pdu_start_timer(size_t msec, timer_repeat_t repeat,
+                        zloop_timer_fn handler, ue_pdu_id_t id) {
+  return magma5g::AmfUeContext::Instance().StartPduTimer(msec, repeat, handler,
+                                                         id);
 }
 
 //------------------------------------------------------------------------------
@@ -91,12 +88,11 @@ bool amf_pop_pdu_timer_arg(int timer_id, ue_pdu_id_t* arg) {
 }
 
 //------------------------------------------------------------------------------
-int AmfUeContext::StartPduTimer(
-    size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-    ue_pdu_id_t arg) {
+int AmfUeContext::StartPduTimer(size_t msec, timer_repeat_t repeat,
+                                zloop_timer_fn handler, ue_pdu_id_t arg) {
   int timer_id = -1;
-  if ((timer_id = start_timer(
-           &amf_app_task_zmq_ctx, msec, repeat, handler, nullptr)) != -1) {
+  if ((timer_id = start_timer(&amf_app_task_zmq_ctx, msec, repeat, handler,
+                              nullptr)) != -1) {
     amf_pdu_timers[timer_id] = arg;
   }
   return timer_id;

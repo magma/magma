@@ -48,10 +48,10 @@ typedef struct attach_complete_msg_tag {
   EsmMessageContainer esmmessagecontainer;
 } attach_complete_msg;
 
-int decode_attach_complete(
-    attach_complete_msg* attachcomplete, uint8_t* buffer, uint32_t len);
+int decode_attach_complete(attach_complete_msg* attachcomplete, uint8_t* buffer,
+                           uint32_t len);
 
-int encode_attach_complete(
-    attach_complete_msg* attachcomplete, uint8_t* buffer, uint32_t len);
+int encode_attach_complete(attach_complete_msg* attachcomplete, uint8_t* buffer,
+                           uint32_t len);
 
 #endif /* ! defined(FILE_ATTACH_COMPLETE_SEEN) */

@@ -39,8 +39,8 @@ namespace magma {
 magma::S6aProxyResponderAsyncService*
     S6aProxyResponderAsyncService::s6a_async_service = 0;
 
-magma::service303::MagmaService server(
-    S6A_ASYNC_PROXY_SERVICE, S6A_ASYNC_PROXY_VERSION);
+magma::service303::MagmaService server(S6A_ASYNC_PROXY_SERVICE,
+                                       S6A_ASYNC_PROXY_VERSION);
 
 void stop_async_s6a_grpc_server(void) {
   magma::S6aProxyResponderAsyncService* s6a_proxy_async_instance =
@@ -62,8 +62,8 @@ void AsyncService::wait_for_requests() {
       return;
     }
     if (!(cq_->Next(&tag, &ok))) {
-      OAILOG_ERROR(
-          LOG_S6A, "Completion queue on s6a interface is shutting down \n");
+      OAILOG_ERROR(LOG_S6A,
+                   "Completion queue on s6a interface is shutting down \n");
       return;
     }
     if (!ok) {
@@ -94,11 +94,11 @@ void S6aProxyResponderAsyncService::init_call_data(void) {
 void S6aProxyResponderAsyncService::set_callback(
     std::unique_ptr<ServerCompletionQueue> cq,
     std::shared_ptr<S6aProxyAsyncResponderHandler> handler) {
-  this->cq_      = std::move(cq);
+  this->cq_ = std::move(cq);
   this->handler_ = handler;
 }
 
-template<class GRPCService, class RequestType, class ResponseType>
+template <class GRPCService, class RequestType, class ResponseType>
 AsyncGRPCRequest<GRPCService, RequestType, ResponseType>::AsyncGRPCRequest(
     ServerCompletionQueue* cq, GRPCService& service)
     : cq_(cq), status_(PROCESS), responder_(&ctx_), service_(service) {}
@@ -107,7 +107,7 @@ AsyncGRPCRequest<GRPCService, RequestType, ResponseType>::AsyncGRPCRequest(
 // Once a request has started processing, create a new AsyncGRPCRequest to
 // standby for new requests. After a request has finished processing, delete the
 // object.
-template<class GRPCService, class RequestType, class ResponseType>
+template <class GRPCService, class RequestType, class ResponseType>
 void AsyncGRPCRequest<GRPCService, RequestType, ResponseType>::proceed() {
   if (status_ == PROCESS) {
     clone();  // Create another stand by CallData
@@ -119,7 +119,7 @@ void AsyncGRPCRequest<GRPCService, RequestType, ResponseType>::proceed() {
   }
 }
 
-template<class GRPCService, class RequestType, class ResponseType>
+template <class GRPCService, class RequestType, class ResponseType>
 std::function<void(grpc::Status, ResponseType)> AsyncGRPCRequest<
     GRPCService, RequestType, ResponseType>::get_finish_callback() {
   return [this](grpc::Status status, ResponseType response) {
@@ -138,11 +138,10 @@ void S6aProxyAsyncResponderHandler::CancelLocation(
   if (response_callback) {
     response_callback(status, ans);
   }
-  auto imsi              = request->user_name();
+  auto imsi = request->user_name();
   auto cancellation_type = request->cancellation_type();
-  OAILOG_INFO(
-      LOG_S6A, "Received CLR for %s of type %d\n ", imsi.c_str(),
-      cancellation_type);
+  OAILOG_INFO(LOG_S6A, "Received CLR for %s of type %d\n ", imsi.c_str(),
+              cancellation_type);
   if (cancellation_type == CancelLocationRequest::SUBSCRIPTION_WITHDRAWAL) {
     auto imsi_len = imsi.length();
     delete_subscriber_request(imsi.c_str(), imsi_len);
@@ -178,9 +177,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       grpc_async_service_exit();
       break;
     default:
-      OAILOG_DEBUG(
-          LOG_UTIL, "Unknown message ID %d: %s\n",
-          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
+      OAILOG_DEBUG(LOG_UTIL, "Unknown message ID %d: %s\n",
+                   ITTI_MSG_ID(received_message_p),
+                   ITTI_MSG_NAME(received_message_p));
       break;
   }
   free(received_message_p);
@@ -191,9 +190,8 @@ static void* grpc_async_service_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_ASYNC_GRPC_SERVICE);
   const task_id_t tasks[] = {TASK_MME_APP, TASK_S6A};
 
-  init_task_context(
-      TASK_ASYNC_GRPC_SERVICE, tasks, 2, handle_message,
-      &grpc_async_service_task_zmq_ctx);
+  init_task_context(TASK_ASYNC_GRPC_SERVICE, tasks, 2, handle_message,
+                    &grpc_async_service_task_zmq_ctx);
   magma::S6aProxyResponderAsyncService* s6a_proxy_async_instance =
       magma::S6aProxyResponderAsyncService::getInstance();
   auto async_service_handler =
@@ -220,8 +218,8 @@ static void* grpc_async_service_thread(__attribute__((unused)) void* args) {
 extern "C" int grpc_async_service_init(void) {
   OAILOG_DEBUG(LOG_UTIL, "Initializing async_grpc_service task interface\n");
 
-  if (itti_create_task(
-          TASK_ASYNC_GRPC_SERVICE, &grpc_async_service_thread, NULL) < 0) {
+  if (itti_create_task(TASK_ASYNC_GRPC_SERVICE, &grpc_async_service_thread,
+                       NULL) < 0) {
     OAILOG_ALERT(LOG_UTIL, "Initializing async_grpc_service: ERROR\n");
     return RETURNerror;
   }

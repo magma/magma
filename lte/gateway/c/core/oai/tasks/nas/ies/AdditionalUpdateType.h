@@ -24,9 +24,9 @@
 
 typedef enum {
   NO_ADDITIONAL_INFORMATION = 0x0,
-  SMS_ONLY                  = 0x1,
-  MAX                       = 1 << ADDITIONAL_UPDATE_TYPE_MAXIMUM_LENGTH,
-  SENTINEL_MAX              = 0xFF
+  SMS_ONLY = 0x1,
+  MAX = 1 << ADDITIONAL_UPDATE_TYPE_MAXIMUM_LENGTH,
+  SENTINEL_MAX = 0xFF
 } additional_update_type_t;
 
 int encode_additional_update_type(

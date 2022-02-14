@@ -78,13 +78,25 @@ class DPTestCase(LocalDBTestCase):
 
         self.assertEqual(self._build_empty_result(), result)
 
-    def test_get_state_with_valid_authorized_grant(self):
-        request = self._build_request(**test_cbsd_dict)
-        self.dp_service.CBSDRegister(request, None)
-        cbsd = self.session.query(DBCbsd).filter(
-            DBCbsd.cbsd_serial_number == request.serial_number,
-        ).first()
+    def test_get_state_with_valid_authorized_grant_for_deleted_cbsd(self):
+        cbsd = self._given_cbsd()
+        channel = self._build_channel(cbsd)
+        grant = self._build_grant(
+            cbsd, self.grant_states[GrantStates.AUTHORIZED.value], channel,
+        )
+        grant.transmit_expire_time = datetime.now() + timedelta(seconds=60)
+        grant.grant_expire_time = datetime.now() + timedelta(days=7)
+        cbsd.is_deleted = True
+        self.session.add_all([cbsd, channel, grant])
+        self.session.commit()
 
+        request = self._build_request(**test_cbsd_dict)
+        result = self.dp_service.GetCBSDState(request, None)
+
+        self.assertEqual(self._build_empty_result(), result)
+
+    def test_get_state_with_valid_authorized_grant(self):
+        cbsd = self._given_cbsd()
         channel = self._build_channel(cbsd)
         grant = self._build_grant(
             cbsd, self.grant_states[GrantStates.AUTHORIZED.value], channel,
@@ -100,11 +112,7 @@ class DPTestCase(LocalDBTestCase):
         self.assertEqual(self._build_expected_result(channel), result)
 
     def test_get_state_with_transmit_expired_authorized_grant(self):
-        request = self._build_request(**test_cbsd_dict)
-        self.dp_service.CBSDRegister(request, None)
-        cbsd = self.session.query(DBCbsd).filter(
-            DBCbsd.cbsd_serial_number == request.serial_number,
-        ).first()
+        cbsd = self._given_cbsd()
         channel = self._build_channel(cbsd)
         grant = self._build_grant(
             cbsd, self.grant_states[GrantStates.AUTHORIZED.value], channel,
@@ -120,11 +128,7 @@ class DPTestCase(LocalDBTestCase):
         self.assertEqual(self._build_empty_result(), result)
 
     def test_get_state_with_grant_expired_authorized_grant(self):
-        request = self._build_request(**test_cbsd_dict)
-        self.dp_service.CBSDRegister(request, None)
-        cbsd = self.session.query(DBCbsd).filter(
-            DBCbsd.cbsd_serial_number == request.serial_number,
-        ).first()
+        cbsd = self._given_cbsd()
         channel = self._build_channel(cbsd)
         grant = self._build_grant(
             cbsd, self.grant_states[GrantStates.AUTHORIZED.value], channel,
@@ -140,11 +144,7 @@ class DPTestCase(LocalDBTestCase):
         self.assertEqual(self._build_empty_result(), result)
 
     def test_get_state_with_unauthorized_grant(self):
-        request = self._build_request(**test_cbsd_dict)
-        self.dp_service.CBSDRegister(request, None)
-        cbsd = self.session.query(DBCbsd).filter(
-            DBCbsd.cbsd_serial_number == request.serial_number,
-        ).first()
+        cbsd = self._given_cbsd()
         channel = self._build_channel(cbsd)
         grant = self._build_grant(
             cbsd, self.grant_states[GrantStates.IDLE.value], channel,
@@ -158,11 +158,7 @@ class DPTestCase(LocalDBTestCase):
         self.assertEqual(self._build_empty_result(), result)
 
     def test_get_state_without_channel(self):
-        request = self._build_request(**test_cbsd_dict)
-        self.dp_service.CBSDRegister(request, None)
-        cbsd = self.session.query(DBCbsd).filter(
-            DBCbsd.cbsd_serial_number == request.serial_number,
-        ).first()
+        cbsd = self._given_cbsd()
         grant = self._build_grant(
             cbsd, self.grant_states[GrantStates.AUTHORIZED.value],
         )
@@ -182,6 +178,13 @@ class DPTestCase(LocalDBTestCase):
         self.assertEqual(
             SOME_TIMESTAMP, self._get_last_seen_timestamp(request),
         )
+
+    def _given_cbsd(self) -> DBCbsd:
+        request = self._build_request(**test_cbsd_dict)
+        self.dp_service.CBSDRegister(request, None)
+        return self.session.query(DBCbsd).filter(
+            DBCbsd.cbsd_serial_number == request.serial_number,
+        ).first()
 
     @staticmethod
     def _now() -> datetime:

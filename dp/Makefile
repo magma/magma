@@ -211,7 +211,7 @@ _ci_ingress_tests_contour: _install_skaffold_ci _contour_install _generate_ci_ce
 	--cacert ca.cert \
 	--resolve "domain-proxy:443:$$(kubectl get svc \
 	contour-envoy --output jsonpath='{.status.loadBalancer.ingress[0].ip}')" \
-	https://domain-proxy/sas/v1/registration 
+	https://domain-proxy/sas/v1/registration
 
 .PHONY: _ci_ingress_tests_nginx
 _ci_ingress_tests_nginx: _install_skaffold_ci _nginx_install _generate_ci_certificates
@@ -223,7 +223,7 @@ _ci_ingress_tests_nginx: _install_skaffold_ci _nginx_install _generate_ci_certif
 	--cacert ca.cert \
 	--resolve "domain-proxy:443:$$(kubectl get svc \
 	nginx-ingress-ingress-nginx-controller --output jsonpath='{.status.loadBalancer.ingress[0].ip}')" \
-	https://domain-proxy/sas/v1/registration 
+	https://domain-proxy/sas/v1/registration
 
 .PHONY: migration
 migration:
@@ -237,6 +237,50 @@ migration:
 	alembic -c ./alembic.ini upgrade head; \
 	alembic -c ./alembic.ini revision --autogenerate
 	docker rm -f db
+
+.PHONY: build_db
+build_db:
+	docker rm -f db
+	@docker run -d -p 5532:5432 --name db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=dp postgres \
+	2> /dev/null || true
+	@sleep 5
+	export SQLALCHEMY_DB_URI=postgresql+psycopg2://postgres:postgres@localhost:5532/dp; \
+	export PYTHONPATH=$(SRC)/dp/cloud/python; \
+	cd cloud/python/magma/db_service/migrations; \
+	alembic -c ./alembic.ini upgrade head; \
+	cd ..; \
+	python3 db_initialize.py; \
+
+LOGS_COUNT ?= 1000
+CBSDS_COUNT ?= 1000
+LOG_FILE ?= performance_tests.log
+.PHONY: prepare_performance_test_data
+prepare_performance_test_data:
+	@docker run -d -p 5532:5432 --name db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=dp postgres \
+	2> /dev/null || true
+	@sleep 5
+	export LOG_FILE=$(LOG_FILE); \
+	export SQLALCHEMY_DB_URI=postgresql+psycopg2://postgres:postgres@localhost:5532/dp; \
+	export PYTHONPATH=$(SRC)/dp/cloud/python; \
+	cd tools/performance_tests; \
+	python3 performance_test_setup.py -c=$(CBSDS_COUNT) -l=$(LOGS_COUNT); \
+
+.PHONY: setup_performance_tests
+setup_performance_tests: build_db prepare_performance_test_data
+
+LIMIT ?= 100
+OFFSET ?= 0
+.PHONY: run_performance_tests
+run_performance_tests:
+	export LOG_FILE=$(LOG_FILE); \
+	export DB_HOST=localhost; \
+	export DB_USER=postgres; \
+	export DB_PASSWORD=postgres; \
+	export DB_PORT=5532; \
+	export DB_NAME=dp; \
+	export PYTHONPATH=$(SRC)/dp/cloud/python; \
+	cd tools/performance_tests; \
+	python3 run_performance_tests.py -l=$(LIMIT) -o=$(OFFSET); \
 
 .PHONY: protos
 protos:: $(PROTO_LIST) prometheus_proto

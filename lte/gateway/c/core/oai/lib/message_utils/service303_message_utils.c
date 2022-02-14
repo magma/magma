@@ -24,12 +24,12 @@
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 
-int send_app_health_to_service303(
-    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id, bool healthy) {
+int send_app_health_to_service303(task_zmq_ctx_t* task_zmq_ctx_p,
+                                  task_id_t origin_id, bool healthy) {
   MessageDef* message_p;
   if (healthy) {
-    message_p = DEPRECATEDitti_alloc_new_message_fatal(
-        origin_id, APPLICATION_HEALTHY_MSG);
+    message_p = DEPRECATEDitti_alloc_new_message_fatal(origin_id,
+                                                       APPLICATION_HEALTHY_MSG);
   } else {
     message_p = DEPRECATEDitti_alloc_new_message_fatal(
         origin_id, APPLICATION_UNHEALTHY_MSG);
@@ -59,9 +59,9 @@ int send_mme_app_stats_to_service303(
   return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
 }
 
-int send_s1ap_stats_to_service303(
-    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id,
-    application_s1ap_stats_msg_t* stats_msg) {
+int send_s1ap_stats_to_service303(task_zmq_ctx_t* task_zmq_ctx_p,
+                                  task_id_t origin_id,
+                                  application_s1ap_stats_msg_t* stats_msg) {
   MessageDef* message_p =
       itti_alloc_new_message(origin_id, APPLICATION_S1AP_STATS_MSG);
   if (message_p == NULL) {

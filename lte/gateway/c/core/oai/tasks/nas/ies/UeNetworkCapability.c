@@ -25,10 +25,9 @@
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 
 //------------------------------------------------------------------------------
-int decode_ue_network_capability(
-    ue_network_capability_t* uenetworkcapability, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
-  int decoded   = 0;
+int decode_ue_network_capability(ue_network_capability_t* uenetworkcapability,
+                                 uint8_t iei, uint8_t* buffer, uint32_t len) {
+  int decoded = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -54,41 +53,41 @@ int decode_ue_network_capability(
 
     if (ielen > 3) {
       uenetworkcapability->ucs2 = (*(buffer + decoded) >> 7) & 0x1;
-      uenetworkcapability->uia  = *(buffer + decoded) & 0x7f;
+      uenetworkcapability->uia = *(buffer + decoded) & 0x7f;
       decoded++;
       uenetworkcapability->umts_present = 1;
       OAILOG_TRACE(LOG_NAS_EMM, "uenetworkcapability decoded UMTS\n");
 
       if (ielen > 4) {
         uenetworkcapability->prosedd = (*(buffer + decoded) >> 7) & 0x1;
-        uenetworkcapability->prose   = (*(buffer + decoded) >> 6) & 0x1;
+        uenetworkcapability->prose = (*(buffer + decoded) >> 6) & 0x1;
         uenetworkcapability->h245ash = (*(buffer + decoded) >> 5) & 0x1;
-        uenetworkcapability->csfb    = (*(buffer + decoded) >> 4) & 0x1;
-        uenetworkcapability->lpp     = (*(buffer + decoded) >> 3) & 0x1;
-        uenetworkcapability->lcs     = (*(buffer + decoded) >> 2) & 0x1;
-        uenetworkcapability->srvcc   = (*(buffer + decoded) >> 1) & 0x1;
-        uenetworkcapability->nf      = *(buffer + decoded) & 0x1;
+        uenetworkcapability->csfb = (*(buffer + decoded) >> 4) & 0x1;
+        uenetworkcapability->lpp = (*(buffer + decoded) >> 3) & 0x1;
+        uenetworkcapability->lcs = (*(buffer + decoded) >> 2) & 0x1;
+        uenetworkcapability->srvcc = (*(buffer + decoded) >> 1) & 0x1;
+        uenetworkcapability->nf = *(buffer + decoded) & 0x1;
         decoded++;
 
         if (ielen > 5) {
-          uenetworkcapability->epco       = (*(buffer + decoded) >> 7) & 0x1;
-          uenetworkcapability->hccpciot   = (*(buffer + decoded) >> 6) & 0x1;
-          uenetworkcapability->erwfopdn   = (*(buffer + decoded) >> 5) & 0x1;
-          uenetworkcapability->s1udata    = (*(buffer + decoded) >> 4) & 0x1;
-          uenetworkcapability->upciot     = (*(buffer + decoded) >> 3) & 0x1;
-          uenetworkcapability->cpciot     = (*(buffer + decoded) >> 2) & 0x1;
+          uenetworkcapability->epco = (*(buffer + decoded) >> 7) & 0x1;
+          uenetworkcapability->hccpciot = (*(buffer + decoded) >> 6) & 0x1;
+          uenetworkcapability->erwfopdn = (*(buffer + decoded) >> 5) & 0x1;
+          uenetworkcapability->s1udata = (*(buffer + decoded) >> 4) & 0x1;
+          uenetworkcapability->upciot = (*(buffer + decoded) >> 3) & 0x1;
+          uenetworkcapability->cpciot = (*(buffer + decoded) >> 2) & 0x1;
           uenetworkcapability->proserelay = (*(buffer + decoded) >> 1) & 0x1;
-          uenetworkcapability->prosedc    = *(buffer + decoded) & 0x1;
+          uenetworkcapability->prosedc = *(buffer + decoded) & 0x1;
           decoded++;
 
           if (ielen > 6) {
-            uenetworkcapability->bearer      = (*(buffer + decoded) >> 7) & 0x1;
-            uenetworkcapability->sgc         = (*(buffer + decoded) >> 6) & 0x1;
-            uenetworkcapability->n1mod       = (*(buffer + decoded) >> 5) & 0x1;
-            uenetworkcapability->dcnr        = (*(buffer + decoded) >> 4) & 0x1;
-            uenetworkcapability->cpbackoff   = (*(buffer + decoded) >> 3) & 0x1;
-            uenetworkcapability->restrictec  = (*(buffer + decoded) >> 2) & 0x1;
-            uenetworkcapability->v2xpc5      = (*(buffer + decoded) >> 1) & 0x1;
+            uenetworkcapability->bearer = (*(buffer + decoded) >> 7) & 0x1;
+            uenetworkcapability->sgc = (*(buffer + decoded) >> 6) & 0x1;
+            uenetworkcapability->n1mod = (*(buffer + decoded) >> 5) & 0x1;
+            uenetworkcapability->dcnr = (*(buffer + decoded) >> 4) & 0x1;
+            uenetworkcapability->cpbackoff = (*(buffer + decoded) >> 3) & 0x1;
+            uenetworkcapability->restrictec = (*(buffer + decoded) >> 2) & 0x1;
+            uenetworkcapability->v2xpc5 = (*(buffer + decoded) >> 1) & 0x1;
             uenetworkcapability->multipledrb = *(buffer + decoded) & 0x1;
             decoded++;
           }
@@ -108,9 +107,8 @@ int decode_ue_network_capability(
 }
 
 //------------------------------------------------------------------------------
-int encode_ue_network_capability(
-    ue_network_capability_t* uenetworkcapability, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int encode_ue_network_capability(ue_network_capability_t* uenetworkcapability,
+                                 uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
 

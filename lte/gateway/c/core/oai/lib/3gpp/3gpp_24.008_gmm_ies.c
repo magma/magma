@@ -53,9 +53,8 @@
 //------------------------------------------------------------------------------
 // 10.5.5.4 TMSI status
 //------------------------------------------------------------------------------
-int decode_tmsi_status(
-    tmsi_status_t* tmsistatus, const bool iei_present, uint8_t* buffer,
-    const uint32_t len) {
+int decode_tmsi_status(tmsi_status_t* tmsistatus, const bool iei_present,
+                       uint8_t* buffer, const uint32_t len) {
   int decoded = 0;
 
   CHECK_IEI_DECODER(GMM_TMSI_STATUS_IEI, (*buffer & 0xF0));
@@ -64,9 +63,8 @@ int decode_tmsi_status(
   return decoded;
 }
 
-int encode_tmsi_status(
-    tmsi_status_t* tmsistatus, const bool iei_present, uint8_t* buffer,
-    const uint32_t len) {
+int encode_tmsi_status(tmsi_status_t* tmsistatus, const bool iei_present,
+                       uint8_t* buffer, const uint32_t len) {
   uint8_t encoded = 0;
 
   /*
@@ -82,14 +80,14 @@ int encode_tmsi_status(
 //------------------------------------------------------------------------------
 // 10.5.5.6 DRX parameter
 //------------------------------------------------------------------------------
-int decode_drx_parameter_ie(
-    drx_parameter_t* drxparameter, const bool iei_present, uint8_t* buffer,
-    const uint32_t len) {
+int decode_drx_parameter_ie(drx_parameter_t* drxparameter,
+                            const bool iei_present, uint8_t* buffer,
+                            const uint32_t len) {
   int decoded = 0;
 
   if (iei_present) {
-    CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-        buffer, DRX_PARAMETER_IE_MAX_LENGTH, len);
+    CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, DRX_PARAMETER_IE_MAX_LENGTH,
+                                         len);
     CHECK_IEI_DECODER(GMM_DRX_PARAMETER_IEI, *buffer);
     decoded++;
   } else {
@@ -108,14 +106,14 @@ int decode_drx_parameter_ie(
 }
 
 //------------------------------------------------------------------------------
-int encode_drx_parameter_ie(
-    drx_parameter_t* drxparameter, const bool iei_present, uint8_t* buffer,
-    const uint32_t len) {
+int encode_drx_parameter_ie(drx_parameter_t* drxparameter,
+                            const bool iei_present, uint8_t* buffer,
+                            const uint32_t len) {
   uint32_t encoded = 0;
 
   if (iei_present) {
-    CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-        buffer, DRX_PARAMETER_IE_MAX_LENGTH, len);
+    CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, DRX_PARAMETER_IE_MAX_LENGTH,
+                                         len);
     *buffer = GMM_DRX_PARAMETER_IEI;
     encoded++;
   } else {
@@ -139,14 +137,14 @@ int encode_drx_parameter_ie(
 //------------------------------------------------------------------------------
 // 10.5.5.8 P-TMSI signature
 //------------------------------------------------------------------------------
-int decode_p_tmsi_signature_ie(
-    p_tmsi_signature_t* ptmsisignature, const bool iei_present, uint8_t* buffer,
-    const uint32_t len) {
+int decode_p_tmsi_signature_ie(p_tmsi_signature_t* ptmsisignature,
+                               const bool iei_present, uint8_t* buffer,
+                               const uint32_t len) {
   int decoded = 0;
 
   if (iei_present) {
-    CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-        buffer, P_TMSI_SIGNATURE_IE_MAX_LENGTH, len);
+    CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, P_TMSI_SIGNATURE_IE_MAX_LENGTH,
+                                         len);
     CHECK_IEI_DECODER(GMM_PTMSI_SIGNATURE_IEI, *buffer);
     decoded++;
   } else {
@@ -159,14 +157,14 @@ int decode_p_tmsi_signature_ie(
 }
 
 //------------------------------------------------------------------------------
-int encode_p_tmsi_signature_ie(
-    p_tmsi_signature_t ptmsisignature, const bool iei_present, uint8_t* buffer,
-    const uint32_t len) {
+int encode_p_tmsi_signature_ie(p_tmsi_signature_t ptmsisignature,
+                               const bool iei_present, uint8_t* buffer,
+                               const uint32_t len) {
   uint32_t encoded = 0;
 
   if (iei_present) {
-    CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-        buffer, P_TMSI_SIGNATURE_IE_MAX_LENGTH, len);
+    CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, P_TMSI_SIGNATURE_IE_MAX_LENGTH,
+                                         len);
     *buffer = GMM_PTMSI_SIGNATURE_IEI;
     encoded++;
   } else {
@@ -181,13 +179,13 @@ int encode_p_tmsi_signature_ie(
 //------------------------------------------------------------------------------
 // 10.5.5.9 Identity type 2
 //------------------------------------------------------------------------------
-int decode_identity_type_2_ie(
-    identity_type2_t* identitytype2, bool is_ie_present, uint8_t* buffer,
-    const uint32_t len) {
+int decode_identity_type_2_ie(identity_type2_t* identitytype2,
+                              bool is_ie_present, uint8_t* buffer,
+                              const uint32_t len) {
   int decoded = 0;
 
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, IDENTITY_TYPE_2_IE_MAX_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, IDENTITY_TYPE_2_IE_MAX_LENGTH,
+                                       len);
 
   if (is_ie_present) {
     Fatal("No IEI for Identity type 2");
@@ -200,16 +198,16 @@ int decode_identity_type_2_ie(
 }
 
 //------------------------------------------------------------------------------
-int encode_identity_type_2_ie(
-    identity_type2_t* identitytype2, bool is_ie_present, uint8_t* buffer,
-    const uint32_t len) {
+int encode_identity_type_2_ie(identity_type2_t* identitytype2,
+                              bool is_ie_present, uint8_t* buffer,
+                              const uint32_t len) {
   uint8_t encoded = 0;
 
   /*
    * Checking length and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, IDENTITY_TYPE_2_IE_MAX_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, IDENTITY_TYPE_2_IE_MAX_LENGTH,
+                                       len);
   *(buffer + encoded) = 0x00;
   if (is_ie_present) {
     Fatal("No IEI for Identity type 2");
@@ -224,13 +222,13 @@ int encode_identity_type_2_ie(
 // 10.5.5.10 IMEISV request
 //------------------------------------------------------------------------------
 
-int decode_imeisv_request_ie(
-    imeisv_request_t* imeisvrequest, bool is_ie_present, uint8_t* buffer,
-    const uint32_t len) {
+int decode_imeisv_request_ie(imeisv_request_t* imeisvrequest,
+                             bool is_ie_present, uint8_t* buffer,
+                             const uint32_t len) {
   int decoded = 0;
 
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, IMEISV_REQUEST_IE_MAX_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, IMEISV_REQUEST_IE_MAX_LENGTH,
+                                       len);
 
   if (is_ie_present) {
     CHECK_IEI_DECODER((*buffer & 0xf0), GMM_IMEISV_REQUEST_IEI);
@@ -242,16 +240,16 @@ int decode_imeisv_request_ie(
 }
 
 //------------------------------------------------------------------------------
-int encode_imeisv_request_ie(
-    imeisv_request_t* imeisvrequest, bool is_ie_present, uint8_t* buffer,
-    const uint32_t len) {
+int encode_imeisv_request_ie(imeisv_request_t* imeisvrequest,
+                             bool is_ie_present, uint8_t* buffer,
+                             const uint32_t len) {
   uint8_t encoded = 0;
 
   /*
    * Checking length and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, IMEISV_REQUEST_IE_MAX_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, IMEISV_REQUEST_IE_MAX_LENGTH,
+                                       len);
   *(buffer + encoded) = 0x00;
   if (is_ie_present) {
     *(buffer + encoded) = GMM_IMEISV_REQUEST_IEI & 0xf0;
@@ -267,9 +265,9 @@ int encode_imeisv_request_ie(
 int decode_ms_network_capability_ie(
     ms_network_capability_t* msnetworkcapability, const bool iei_present,
     uint8_t* buffer, const uint32_t len) {
-  int decoded   = 0;
+  int decoded = 0;
   uint8_t ielen = 0;
-  uint8_t b     = 0;
+  uint8_t b = 0;
 
   if (iei_present) {
     CHECK_PDU_POINTER_AND_LENGTH_DECODER(
@@ -284,11 +282,11 @@ int decode_ms_network_capability_ie(
   DECODE_U8(buffer + decoded, ielen, decoded);
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, ielen, len - decoded);
   memset(msnetworkcapability, 0, sizeof(ms_network_capability_t));
-  OAILOG_TRACE(
-      LOG_NAS_EMM, "decode_ms_network_capability_ie len = %d\n", ielen);
+  OAILOG_TRACE(LOG_NAS_EMM, "decode_ms_network_capability_ie len = %d\n",
+               ielen);
   CHECK_LENGTH_DECODER(len - decoded, ielen);
 
-  b                         = *(buffer + decoded);
+  b = *(buffer + decoded);
   msnetworkcapability->gea1 = (b & MS_NETWORK_CAPABILITY_GEA1) >> 7;
   msnetworkcapability->smdc =
       (b & MS_NETWORK_CAPABILITY_SM_CAP_VIA_DEDICATED_CHANNELS) >> 6;
@@ -322,8 +320,8 @@ int decode_ms_network_capability_ie(
           (b & MS_NETWORK_CAPABILITY_PS_INTER_RAT_HO_GERAN_TO_EUTRAN_S1) >> 6;
       msnetworkcapability->emm_cpc =
           (b & MS_NETWORK_CAPABILITY_EMM_COMBINED_PROCEDURE) >> 5;
-      msnetworkcapability->isr     = (b & MS_NETWORK_CAPABILITY_ISR) >> 4;
-      msnetworkcapability->srvcc   = (b & MS_NETWORK_CAPABILITY_SRVCC) >> 3;
+      msnetworkcapability->isr = (b & MS_NETWORK_CAPABILITY_ISR) >> 4;
+      msnetworkcapability->srvcc = (b & MS_NETWORK_CAPABILITY_SRVCC) >> 3;
       msnetworkcapability->epc_cap = (b & MS_NETWORK_CAPABILITY_EPC) >> 2;
       msnetworkcapability->nf_cap =
           (b & MS_NETWORK_CAPABILITY_NOTIFICATION) >> 1;
@@ -427,18 +425,17 @@ int decode_voice_domain_preference_and_ue_usage_setting(
     voice_domain_preference_and_ue_usage_setting_t*
         voicedomainpreferenceandueusagesetting,
     const bool iei_present, uint8_t* buffer, const uint32_t len) {
-  int decoded   = 0;
+  int decoded = 0;
   uint8_t ielen = 0;
 
   if (iei_present) {
-    CHECK_IEI_DECODER(
-        GMM_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_IEI, *buffer);
+    CHECK_IEI_DECODER(GMM_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_IEI,
+                      *buffer);
     decoded++;
   }
 
-  memset(
-      voicedomainpreferenceandueusagesetting, 0,
-      sizeof(voice_domain_preference_and_ue_usage_setting_t));
+  memset(voicedomainpreferenceandueusagesetting, 0,
+         sizeof(voice_domain_preference_and_ue_usage_setting_t));
   ielen = *(buffer + decoded);
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);

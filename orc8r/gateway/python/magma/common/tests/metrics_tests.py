@@ -16,6 +16,7 @@ import unittest.mock
 
 import metrics_pb2
 from magma.common import metrics_export
+from orc8r.protos import metricsd_pb2
 from prometheus_client import (
     CollectorRegistry,
     Counter,
@@ -37,9 +38,8 @@ class Service303MetricTests(unittest.TestCase):
     def test_counter(self):
         """Test that we can track counters in Service303"""
         # Add a counter with a label to the regisry
-        process_max_metric_name = 'process_max_fds'
         c = Counter(
-            process_max_metric_name, 'A counter', ['result'],
+            'process_max_fds', 'A counter', ['result'],
             registry=self.registry,
         )
 
@@ -59,15 +59,15 @@ class Service303MetricTests(unittest.TestCase):
             timestamp_ms=1234000,
         )
         family = metrics_pb2.MetricFamily(
-            name=process_max_metric_name,
+            name=str(metricsd_pb2.process_max_fds),
             type=metrics_pb2.COUNTER,
         )
         metric1.label.add(
-            name='result',
+            name=str(metricsd_pb2.result),
             value='success',
         )
         metric2.label.add(
-            name='result',
+            name=str(metricsd_pb2.result),
             value='failure',
         )
         family.metric.extend([metric1, metric2])
@@ -82,9 +82,8 @@ class Service303MetricTests(unittest.TestCase):
     def test_gauge(self):
         """Test that we can track gauges in Service303"""
         # Add a gauge with a label to the regisry
-        process_max_metric_name = 'process_max_fds'
         c = Gauge(
-            process_max_metric_name, 'A gauge', ['result'],
+            'process_max_fds', 'A gauge', ['result'],
             registry=self.registry,
         )
 
@@ -104,15 +103,15 @@ class Service303MetricTests(unittest.TestCase):
             timestamp_ms=1234000,
         )
         family = metrics_pb2.MetricFamily(
-            name=process_max_metric_name,
+            name=str(metricsd_pb2.process_max_fds),
             type=metrics_pb2.GAUGE,
         )
         metric1.label.add(
-            name='result',
+            name=str(metricsd_pb2.result),
             value='success',
         )
         metric2.label.add(
-            name='result',
+            name=str(metricsd_pb2.result),
             value='failure',
         )
         family.metric.extend([metric1, metric2])
@@ -127,9 +126,8 @@ class Service303MetricTests(unittest.TestCase):
     def test_summary(self):
         """Test that we can track summaries in Service303"""
         # Add a summary with a label to the regisry
-        process_max_metric_name = 'process_max_fds'
         c = Summary(
-            process_max_metric_name, 'A summary', [
+            'process_max_fds', 'A summary', [
             'result',
             ], registry=self.registry,
         )
@@ -148,15 +146,15 @@ class Service303MetricTests(unittest.TestCase):
             timestamp_ms=1234000,
         )
         family = metrics_pb2.MetricFamily(
-            name=process_max_metric_name,
+            name=str(metricsd_pb2.process_max_fds),
             type=metrics_pb2.SUMMARY,
         )
         metric1.label.add(
-            name='result',
+            name=str(metricsd_pb2.result),
             value='success',
         )
         metric2.label.add(
-            name='result',
+            name=str(metricsd_pb2.result),
             value='failure',
         )
         family.metric.extend([metric1, metric2])
@@ -171,9 +169,8 @@ class Service303MetricTests(unittest.TestCase):
     def test_histogram(self):
         """Test that we can track histogram in Service303"""
         # Add a histogram with a label to the regisry
-        process_max_metric_name = 'process_max_fds'
         c = Histogram(
-            process_max_metric_name, 'A summary', ['result'],
+            'process_max_fds', 'A summary', ['result'],
             registry=self.registry, buckets=[0, 2, float('inf')],
         )
         c.labels('success').observe(1.23)
@@ -197,15 +194,15 @@ class Service303MetricTests(unittest.TestCase):
             timestamp_ms=1234000,
         )
         family = metrics_pb2.MetricFamily(
-            name=process_max_metric_name,
+            name=str(metricsd_pb2.process_max_fds),
             type=metrics_pb2.HISTOGRAM,
         )
         metric1.label.add(
-            name='result',
+            name=str(metricsd_pb2.result),
             value='success',
         )
         metric2.label.add(
-            name='result',
+            name=str(metricsd_pb2.result),
             value='failure',
         )
         family.metric.extend([metric1, metric2])
@@ -219,9 +216,10 @@ class Service303MetricTests(unittest.TestCase):
 
     def test_converted_enums(self):
         """ Test that metric names and labels are auto converted """
-        mme_metric_name = 'mme_new_association'
+        # enum values (from metricsd.proto):
+        # mme_new_association => 500, result => 0
         c = Counter(
-            mme_metric_name, 'A counter', ['result'],
+            'mme_new_association', 'A counter', ['result'],
             registry=self.registry,
         )
 
@@ -231,11 +229,11 @@ class Service303MetricTests(unittest.TestCase):
 
         self.assertEqual(
             metric_family.name,
-            mme_metric_name,
+            str(metricsd_pb2.mme_new_association),
         )
         metric_labels = metric_family.metric[0].label
         # Order not guaranteed=
-        self.assertEqual(metric_labels[0].name, 'result')
+        self.assertEqual(metric_labels[0].name, str(metricsd_pb2.result))
         self.assertEqual(metric_labels[0].value, 'success')
 
 

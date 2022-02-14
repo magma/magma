@@ -24,43 +24,36 @@ s6a_update_location_ans_t amf_send_s6a_ula(const std::string& imsi) {
 
   // building s6a_update_location_ans_t
   strncpy(itti_msg.imsi, imsi.c_str(), imsi.size());
-  itti_msg.imsi_length        = imsi.size();
-  itti_msg.result.present     = S6A_RESULT_BASE;
+  itti_msg.imsi_length = imsi.size();
+  itti_msg.result.present = S6A_RESULT_BASE;
   itti_msg.result.choice.base = DIAMETER_SUCCESS;
 
   // ambr
-  memset(
-      &itti_msg.subscription_data.subscribed_ambr.br_unit, 0,
-      sizeof(apn_ambr_bitrate_unit_t));
-  memset(
-      &itti_msg.subscription_data.subscribed_ambr.br_ul, 100000000,
-      sizeof(bitrate_t));
-  memset(
-      &itti_msg.subscription_data.subscribed_ambr.br_dl, 200000000,
-      sizeof(bitrate_t));
+  memset(&itti_msg.subscription_data.subscribed_ambr.br_unit, 0,
+         sizeof(apn_ambr_bitrate_unit_t));
+  memset(&itti_msg.subscription_data.subscribed_ambr.br_ul, 100000000,
+         sizeof(bitrate_t));
+  memset(&itti_msg.subscription_data.subscribed_ambr.br_dl, 200000000,
+         sizeof(bitrate_t));
 
   // apnconfig
   itti_msg.subscription_data.apn_config_profile.context_identifier = 0;
   itti_msg.subscription_data.apn_config_profile.apn_configuration[0]
       .context_identifier = 0;
 
-  memset(
-      &itti_msg.subscription_data.apn_config_profile.apn_configuration[0]
-           .ambr.br_unit,
-      0, sizeof(apn_ambr_bitrate_unit_t));
-  memset(
-      &itti_msg.subscription_data.apn_config_profile.apn_configuration[0]
-           .ambr.br_ul,
-      100000000, sizeof(bitrate_t));
-  memset(
-      &itti_msg.subscription_data.apn_config_profile.apn_configuration[0]
-           .ambr.br_dl,
-      200000000, sizeof(bitrate_t));
+  memset(&itti_msg.subscription_data.apn_config_profile.apn_configuration[0]
+              .ambr.br_unit,
+         0, sizeof(apn_ambr_bitrate_unit_t));
+  memset(&itti_msg.subscription_data.apn_config_profile.apn_configuration[0]
+              .ambr.br_ul,
+         100000000, sizeof(bitrate_t));
+  memset(&itti_msg.subscription_data.apn_config_profile.apn_configuration[0]
+              .ambr.br_dl,
+         200000000, sizeof(bitrate_t));
 
-  memcpy(
-      &itti_msg.subscription_data.apn_config_profile.apn_configuration[0]
-           .service_selection,
-      "internet", strlen("internet") + 1);
+  memcpy(&itti_msg.subscription_data.apn_config_profile.apn_configuration[0]
+              .service_selection,
+         "internet", strlen("internet") + 1);
   memset(
       &itti_msg.subscription_data.apn_config_profile.apn_configuration[0]
            .service_selection_length,

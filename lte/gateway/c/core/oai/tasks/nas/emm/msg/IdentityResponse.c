@@ -21,22 +21,22 @@
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/IdentityResponse.h"
 
-int decode_identity_response(
-    identity_response_msg* identity_response, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+int decode_identity_response(identity_response_msg* identity_response,
+                             uint8_t* buffer, uint32_t len) {
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
   // expected for the message.
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, IDENTITY_RESPONSE_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, IDENTITY_RESPONSE_MINIMUM_LENGTH,
+                                       len);
 
   /*
    * Decoding mandatory fields
    */
-  if ((decoded_result = decode_mobile_identity_ie(
-           &identity_response->mobileidentity, 0, buffer + decoded,
-           len - decoded)) < 0)
+  if ((decoded_result =
+           decode_mobile_identity_ie(&identity_response->mobileidentity, 0,
+                                     buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -44,16 +44,16 @@ int decode_identity_response(
   return decoded;
 }
 
-int encode_identity_response(
-    identity_response_msg* identity_response, uint8_t* buffer, uint32_t len) {
-  int encoded       = 0;
+int encode_identity_response(identity_response_msg* identity_response,
+                             uint8_t* buffer, uint32_t len) {
+  int encoded = 0;
   int encode_result = 0;
 
   /*
    * Checking IEI and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, IDENTITY_RESPONSE_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, IDENTITY_RESPONSE_MINIMUM_LENGTH,
+                                       len);
 
   if ((encode_result = encode_mobile_identity_ie(
            &identity_response->mobileidentity, 0, buffer + encoded,

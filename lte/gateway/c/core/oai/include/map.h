@@ -25,12 +25,12 @@ typedef size_t hash_size_t;
 /*Default hash function*/
 static hash_size_t def_hashfunc(const void* const keyP, const int key_sizeP) {
   hash_size_t hash = 0;
-  int key_size     = key_sizeP;
+  int key_size = key_sizeP;
 
   // may use MD4 ?
   while (key_size > 0) {
     uint32_t val = 0;
-    int size     = sizeof(val);
+    int size = sizeof(val);
     while ((size > 0) && (key_size > 0)) {
       val = val << 8;
       val |= (reinterpret_cast<const uint8_t*>(keyP))[key_size - 1];
@@ -43,7 +43,7 @@ static hash_size_t def_hashfunc(const void* const keyP, const int key_sizeP) {
   return hash;
 }
 // specialise std::equal_to function for type guti_m5_t
-template<>
+template <>
 struct equal_to<guti_m5_t> {
   bool operator()(const guti_m5_t& guti1, const guti_m5_t& guti2) const {
     return (guti1.m_tmsi == guti2.m_tmsi);
@@ -54,7 +54,7 @@ struct equal_to<guti_m5_t> {
   HashFunction for Guti as key and unit64 data
   Note: This HashFunc in turn calls the def_hashfunc which supports hashing
   only for unit64*/
-template<>
+template <>
 struct hash<guti_m5_t> {
   size_t operator()(const guti_m5_t& k) const {
     return def_hashfunc(&k, sizeof(k));
@@ -143,9 +143,8 @@ static std::string map_rc_code2string(map_rc_t rc) {
 ** APIs:       set_name() , get_name(), get(), insert(), delete()         **
 **                                                                        **
 ***************************************************************************/
-template<
-    typename keyT, typename valueT, class Hash = std::hash<keyT>,
-    class KeyEqual = std::equal_to<keyT>>
+template <typename keyT, typename valueT, class Hash = std::hash<keyT>,
+          class KeyEqual = std::equal_to<keyT>>
 struct map_s {
   std::unordered_map<keyT, valueT, Hash, KeyEqual> umap;
   std::string name;

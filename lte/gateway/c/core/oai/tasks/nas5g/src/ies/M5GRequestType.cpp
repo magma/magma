@@ -21,8 +21,8 @@ RequestType::RequestType() {}
 RequestType::~RequestType() {}
 
 // Decode RequestType IE
-int RequestType::DecodeRequestType(
-    RequestType* reqest_type, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int RequestType::DecodeRequestType(RequestType* reqest_type, uint8_t iei,
+                                   uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   // Store the IEI Information
@@ -41,8 +41,8 @@ int RequestType::DecodeRequestType(
 }
 
 // Encode RequestType IE
-int RequestType::EncodeRequestType(
-    RequestType* reqest_type, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int RequestType::EncodeRequestType(RequestType* reqest_type, uint8_t iei,
+                                   uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
   // CHECKING IEI
@@ -51,7 +51,7 @@ int RequestType::EncodeRequestType(
 
   if (iei > 0) {
     *buffer = (reqest_type->iei & 0x0f) << 4;
-    CHECK_IEI_ENCODER((uint8_t) iei, (uint8_t)((reqest_type->iei & 0x0f) << 4));
+    CHECK_IEI_ENCODER((uint8_t)iei, (uint8_t)((reqest_type->iei & 0x0f) << 4));
     MLOG(MDEBUG) << "In EncodeRequestType: iei" << std::hex << int(*buffer)
                  << std::endl;
   }

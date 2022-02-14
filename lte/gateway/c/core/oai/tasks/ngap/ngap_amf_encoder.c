@@ -37,15 +37,18 @@
 #include "Ngap_UEContextModificationRequest.h"
 #include "Ngap_UEContextReleaseCommand.h"
 
-static inline int ngap_amf_encode_initiating(
-    Ngap_NGAP_PDU_t* pdu, uint8_t** buffer, uint32_t* length);
-static inline int ngap_amf_encode_successful_outcome(
-    Ngap_NGAP_PDU_t* pdu, uint8_t** buffer, uint32_t* len);
-static inline int ngap_amf_encode_unsuccessful_outcome(
-    Ngap_NGAP_PDU_t* pdu, uint8_t** buffer, uint32_t* len);
+static inline int ngap_amf_encode_initiating(Ngap_NGAP_PDU_t* pdu,
+                                             uint8_t** buffer,
+                                             uint32_t* length);
+static inline int ngap_amf_encode_successful_outcome(Ngap_NGAP_PDU_t* pdu,
+                                                     uint8_t** buffer,
+                                                     uint32_t* len);
+static inline int ngap_amf_encode_unsuccessful_outcome(Ngap_NGAP_PDU_t* pdu,
+                                                       uint8_t** buffer,
+                                                       uint32_t* len);
 //------------------------------------------------------------------------------
-int ngap_amf_encode_pdu(
-    Ngap_NGAP_PDU_t* pdu, uint8_t** buffer, uint32_t* length) {
+int ngap_amf_encode_pdu(Ngap_NGAP_PDU_t* pdu, uint8_t** buffer,
+                        uint32_t* length) {
   int ret = -1;
   DevAssert(pdu != NULL);
   DevAssert(buffer != NULL);
@@ -65,9 +68,8 @@ int ngap_amf_encode_pdu(
       break;
 
     default:
-      OAILOG_NOTICE(
-          LOG_NGAP, "Unknown message outcome (%d) or not implemented",
-          (int) pdu->present);
+      OAILOG_NOTICE(LOG_NGAP, "Unknown message outcome (%d) or not implemented",
+                    (int)pdu->present);
       break;
   }
 
@@ -76,8 +78,9 @@ int ngap_amf_encode_pdu(
 }
 
 //------------------------------------------------------------------------------
-static inline int ngap_amf_encode_initiating(
-    Ngap_NGAP_PDU_t* pdu, uint8_t** buffer, uint32_t* length) {
+static inline int ngap_amf_encode_initiating(Ngap_NGAP_PDU_t* pdu,
+                                             uint8_t** buffer,
+                                             uint32_t* length) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
   DevAssert(pdu != NULL);
 
@@ -91,25 +94,26 @@ static inline int ngap_amf_encode_initiating(
       break;
 
     default:
-      OAILOG_NOTICE(
-          LOG_NGAP, "Unknown procedure ID (%d) for initiating message_p\n",
-          (int) pdu->choice.initiatingMessage.procedureCode);
+      OAILOG_NOTICE(LOG_NGAP,
+                    "Unknown procedure ID (%d) for initiating message_p\n",
+                    (int)pdu->choice.initiatingMessage.procedureCode);
       *buffer = NULL;
       *length = 0;
       return -1;
   }
 
   memset(&res, 0, sizeof(res));
-  res = asn_encode_to_new_buffer(
-      NULL, ATS_ALIGNED_CANONICAL_PER, &asn_DEF_Ngap_NGAP_PDU, pdu);
-  *buffer = (uint8_t*) res.buffer;
+  res = asn_encode_to_new_buffer(NULL, ATS_ALIGNED_CANONICAL_PER,
+                                 &asn_DEF_Ngap_NGAP_PDU, pdu);
+  *buffer = (uint8_t*)res.buffer;
   *length = res.result.encoded;
   return 0;
 }
 
 //------------------------------------------------------------------------------
-static inline int ngap_amf_encode_successful_outcome(
-    Ngap_NGAP_PDU_t* pdu, uint8_t** buffer, uint32_t* length) {
+static inline int ngap_amf_encode_successful_outcome(Ngap_NGAP_PDU_t* pdu,
+                                                     uint8_t** buffer,
+                                                     uint32_t* length) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
   DevAssert(pdu != NULL);
 
@@ -118,18 +122,17 @@ static inline int ngap_amf_encode_successful_outcome(
       break;
 
     default:
-      OAILOG_DEBUG(
-          LOG_NGAP,
-          "Unknown procedure ID (%d) for successful outcome message\n",
-          (int) pdu->choice.successfulOutcome.procedureCode);
+      OAILOG_DEBUG(LOG_NGAP,
+                   "Unknown procedure ID (%d) for successful outcome message\n",
+                   (int)pdu->choice.successfulOutcome.procedureCode);
       *buffer = NULL;
       *length = 0;
       return -1;
   }
 
   memset(&res, 0, sizeof(res));
-  res = asn_encode_to_new_buffer(
-      NULL, ATS_ALIGNED_CANONICAL_PER, &asn_DEF_Ngap_NGAP_PDU, pdu);
+  res = asn_encode_to_new_buffer(NULL, ATS_ALIGNED_CANONICAL_PER,
+                                 &asn_DEF_Ngap_NGAP_PDU, pdu);
 
   *buffer = res.buffer;
   *length = res.result.encoded;
@@ -137,8 +140,9 @@ static inline int ngap_amf_encode_successful_outcome(
 }
 
 //------------------------------------------------------------------------------
-static inline int ngap_amf_encode_unsuccessful_outcome(
-    Ngap_NGAP_PDU_t* pdu, uint8_t** buffer, uint32_t* length) {
+static inline int ngap_amf_encode_unsuccessful_outcome(Ngap_NGAP_PDU_t* pdu,
+                                                       uint8_t** buffer,
+                                                       uint32_t* length) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
   DevAssert(pdu != NULL);
 
@@ -150,15 +154,15 @@ static inline int ngap_amf_encode_unsuccessful_outcome(
       OAILOG_DEBUG(
           LOG_NGAP,
           "Unknown procedure ID (%d) for unsuccessful outcome message\n",
-          (int) pdu->choice.unsuccessfulOutcome.procedureCode);
+          (int)pdu->choice.unsuccessfulOutcome.procedureCode);
       *buffer = NULL;
       *length = 0;
       return -1;
   }
 
   memset(&res, 0, sizeof(res));
-  res = asn_encode_to_new_buffer(
-      NULL, ATS_ALIGNED_CANONICAL_PER, &asn_DEF_Ngap_NGAP_PDU, pdu);
+  res = asn_encode_to_new_buffer(NULL, ATS_ALIGNED_CANONICAL_PER,
+                                 &asn_DEF_Ngap_NGAP_PDU, pdu);
 
   *buffer = res.buffer;
   *length = res.result.encoded;

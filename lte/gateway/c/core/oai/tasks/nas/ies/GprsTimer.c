@@ -25,8 +25,8 @@
 
 static const long _gprs_timer_unit[] = {2, 60, 360, 60, 60, 60, 60, 0};
 
-int decode_gprs_timer(
-    GprsTimer* gprstimer, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_gprs_timer(GprsTimer* gprstimer, uint8_t iei, uint8_t* buffer,
+                      uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -34,7 +34,7 @@ int decode_gprs_timer(
     decoded++;
   }
 
-  gprstimer->unit       = (*(buffer + decoded) >> 5) & 0x7;
+  gprstimer->unit = (*(buffer + decoded) >> 5) & 0x7;
   gprstimer->timervalue = *(buffer + decoded) & 0x1f;
   decoded++;
 #if NAS_DEBUG
@@ -43,8 +43,8 @@ int decode_gprs_timer(
   return decoded;
 }
 
-int encode_gprs_timer(
-    GprsTimer* gprstimer, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_gprs_timer(GprsTimer* gprstimer, uint8_t iei, uint8_t* buffer,
+                      uint32_t len) {
   uint32_t encoded = 0;
 
   /*
@@ -76,8 +76,8 @@ void dump_gprs_timer_xml(GprsTimer* gprstimer, uint8_t iei) {
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
   OAILOG_DEBUG(LOG_NAS, "    <Unit>%u</Unit>\n", gprstimer->unit);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <Timer value>%u</Timer value>\n", gprstimer->timervalue);
+  OAILOG_DEBUG(LOG_NAS, "    <Timer value>%u</Timer value>\n",
+               gprstimer->timervalue);
   OAILOG_DEBUG(LOG_NAS, "</Gprs Timer>\n");
 }
 

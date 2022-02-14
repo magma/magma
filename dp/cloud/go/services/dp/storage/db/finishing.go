@@ -78,8 +78,8 @@ func (q *Query) List() ([][]Model, error) {
 	return result, rows.Err()
 }
 
-func applyMask(fields map[string]Field, mask FieldMask) map[string]Field {
-	m := make(map[string]Field, len(fields))
+func applyMask(fields FieldMap, mask FieldMask) FieldMap {
+	m := make(FieldMap, len(fields))
 	for k, v := range fields {
 		if mask.ShouldInclude(k) {
 			m[k] = v
@@ -88,10 +88,10 @@ func applyMask(fields map[string]Field, mask FieldMask) map[string]Field {
 	return m
 }
 
-func toValues(fields map[string]Field) map[string]interface{} {
+func toValues(fields FieldMap) map[string]interface{} {
 	m := make(map[string]interface{}, len(fields))
 	for k, v := range fields {
-		m[k] = v.Value()
+		m[k] = v.GetValue()
 	}
 	return m
 }

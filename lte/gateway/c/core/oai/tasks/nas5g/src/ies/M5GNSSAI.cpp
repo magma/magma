@@ -18,13 +18,13 @@ NSSAIMsg::NSSAIMsg(){};
 
 NSSAIMsg::~NSSAIMsg(){};
 
-int NSSAIMsg::EncodeNSSAIMsg(
-    NSSAIMsg* NSSAI, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int NSSAIMsg::EncodeNSSAIMsg(NSSAIMsg* NSSAI, uint8_t iei, uint8_t* buffer,
+                             uint32_t len) {
   uint8_t encoded = 0;
 
   MLOG(MDEBUG) << "EncodeNSSAIMsg ";
   if (iei > 0) {
-    CHECK_IEI_ENCODER(iei, (unsigned char) NSSAI->iei);
+    CHECK_IEI_ENCODER(iei, (unsigned char)NSSAI->iei);
     ENCODE_U8(buffer, iei, encoded);
     MLOG(MDEBUG) << "iei: " << std::hex << static_cast<int>(iei);
   }
@@ -77,13 +77,13 @@ int NSSAIMsg::EncodeNSSAIMsg(
   return (encoded);
 };
 
-int NSSAIMsg::DecodeNSSAIMsg(
-    NSSAIMsg* NSSAI, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int NSSAIMsg::DecodeNSSAIMsg(NSSAIMsg* NSSAI, uint8_t iei, uint8_t* buffer,
+                             uint32_t len) {
   int decoded = 0;
 
   MLOG(MDEBUG) << "DecodeNSSAIMsg ";
   if (iei > 0) {
-    CHECK_IEI_DECODER(iei, (unsigned char) *buffer);
+    CHECK_IEI_DECODER(iei, (unsigned char)*buffer);
     NSSAI->iei = *(buffer + decoded);
     MLOG(MDEBUG) << "iei: " << std::hex << static_cast<int>(iei);
     decoded++;
@@ -145,13 +145,13 @@ NSSAIMsgList::NSSAIMsgList() {}
 
 NSSAIMsgList::~NSSAIMsgList() {}
 
-int NSSAIMsgList::EncodeNSSAIMsgList(
-    NSSAIMsgList* NSSAI_list, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int NSSAIMsgList::EncodeNSSAIMsgList(NSSAIMsgList* NSSAI_list, uint8_t iei,
+                                     uint8_t* buffer, uint32_t len) {
   uint8_t encoded = 0;
 
   MLOG(MDEBUG) << "EncodeNSSAIMsgList ";
   if (iei > 0) {
-    CHECK_IEI_ENCODER(iei, (unsigned char) NSSAI_list->iei);
+    CHECK_IEI_ENCODER(iei, (unsigned char)NSSAI_list->iei);
     ENCODE_U8(buffer, iei, encoded);
     MLOG(MDEBUG) << "iei: " << std::hex << static_cast<int>(iei);
   }
