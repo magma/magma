@@ -36,7 +36,7 @@ jobs:
       - name: Run fossa analyze script
         run: |
             echo "Running fossa-analyze-go.sh"
-            sudo ${MAGMA_ROOT}/circleci/fossa-analyze-go.sh
+            sudo ${MAGMA_ROOT}/.github/workflows/scripts/fossa-analyze-go.sh
       - name: Extract commit title
         id: commit
         if: failure() && github.event_name == 'push'

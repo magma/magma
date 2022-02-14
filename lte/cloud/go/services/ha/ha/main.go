@@ -19,7 +19,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/ha"
-	"magma/lte/cloud/go/services/ha/servicers"
+	servicers "magma/lte/cloud/go/services/ha/servicers/southbound"
 	"magma/orc8r/cloud/go/service"
 )
 

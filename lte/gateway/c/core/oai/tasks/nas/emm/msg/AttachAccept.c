@@ -24,22 +24,22 @@
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.h"
 
-int decode_attach_accept(
-    attach_accept_msg* attach_accept, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+int decode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
+                         uint32_t len) {
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
   // expected for the message.
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, ATTACH_ACCEPT_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, ATTACH_ACCEPT_MINIMUM_LENGTH,
+                                       len);
 
   /*
    * Decoding mandatory fields
    */
-  if ((decoded_result = decode_u8_eps_attach_result(
-           &attach_accept->epsattachresult, 0, *(buffer + decoded),
-           len - decoded)) < 0)
+  if ((decoded_result =
+           decode_u8_eps_attach_result(&attach_accept->epsattachresult, 0,
+                                       *(buffer + decoded), len - decoded)) < 0)
     return decoded_result;
 
   decoded++;
@@ -56,9 +56,9 @@ int decode_attach_accept(
   else
     decoded += decoded_result;
 
-  if ((decoded_result = decode_esm_message_container(
-           &attach_accept->esmmessagecontainer, 0, buffer + decoded,
-           len - decoded)) < 0)
+  if ((decoded_result =
+           decode_esm_message_container(&attach_accept->esmmessagecontainer, 0,
+                                        buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -156,10 +156,10 @@ int decode_attach_accept(
         break;
 
       case ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI:
-        if ((decoded_result = decode_plmn_list_ie(
-                 &attach_accept->equivalentplmns,
-                 ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
+        if ((decoded_result =
+                 decode_plmn_list_ie(&attach_accept->equivalentplmns,
+                                     ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI,
+                                     buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
         decoded += decoded_result;
@@ -224,23 +224,23 @@ int decode_attach_accept(
 }
 
 //------------------------------------------------------------------------------
-int encode_attach_accept(
-    attach_accept_msg* attach_accept, uint8_t* buffer, uint32_t len) {
-  int encoded       = 0;
+int encode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
+                         uint32_t len) {
+  int encoded = 0;
   int encode_result = 0;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   /*
    * Checking IEI and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, ATTACH_ACCEPT_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, ATTACH_ACCEPT_MINIMUM_LENGTH,
+                                       len);
   *(buffer + encoded) =
       (encode_u8_eps_attach_result(&attach_accept->epsattachresult) & 0x0f);
   encoded++;
 
-  if ((encode_result = encode_gprs_timer_ie(
-           &attach_accept->t3412value, 0, buffer + encoded, len - encoded)) <
+  if ((encode_result = encode_gprs_timer_ie(&attach_accept->t3412value, 0,
+                                            buffer + encoded, len - encoded)) <
       0) {  // Return in case of error
     OAILOG_ERROR(LOG_NAS_EMM, "Failed encode_gprs_timer_ie\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, encode_result);
@@ -282,8 +282,8 @@ int encode_attach_accept(
              &attach_accept->locationareaidentification,
              ATTACH_ACCEPT_LOCATION_AREA_IDENTIFICATION_IEI, buffer + encoded,
              len - encoded)) < 0) {
-      OAILOG_ERROR(
-          LOG_NAS_EMM, "Failed encode_location_area_identification_ie\n");
+      OAILOG_ERROR(LOG_NAS_EMM,
+                   "Failed encode_location_area_identification_ie\n");
       // Return in case of error
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, encode_result);
     } else
@@ -304,7 +304,7 @@ int encode_attach_accept(
 
   if ((attach_accept->presencemask & ATTACH_ACCEPT_EMM_CAUSE_PRESENT) ==
       ATTACH_ACCEPT_EMM_CAUSE_PRESENT) {
-    if (attach_accept->emmcause != (uint8_t) EMM_CAUSE_SUCCESS) {
+    if (attach_accept->emmcause != (uint8_t)EMM_CAUSE_SUCCESS) {
       if ((encode_result = encode_emm_cause(
                &attach_accept->emmcause, ATTACH_ACCEPT_EMM_CAUSE_IEI,
                buffer + encoded, len - encoded)) < 0) {
@@ -341,10 +341,10 @@ int encode_attach_accept(
 
   if ((attach_accept->presencemask & ATTACH_ACCEPT_EQUIVALENT_PLMNS_PRESENT) ==
       ATTACH_ACCEPT_EQUIVALENT_PLMNS_PRESENT) {
-    if ((encode_result = encode_plmn_list_ie(
-             &attach_accept->equivalentplmns,
-             ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI, buffer + encoded,
-             len - encoded)) < 0) {
+    if ((encode_result = encode_plmn_list_ie(&attach_accept->equivalentplmns,
+                                             ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI,
+                                             buffer + encoded, len - encoded)) <
+        0) {
       OAILOG_ERROR(LOG_NAS_EMM, "Failed encode_plmn_list_ie\n");
       // Return in case of error
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, encode_result);

@@ -84,9 +84,8 @@ typedef struct nas_itti_timer_arg_s {
 
 status_code_e nas_timer_init(void);
 void nas_timer_cleanup(void);
-void nas_timer_start(
-    nas_timer_t* const timer, time_out_t time_out_cb,
-    timer_arg_t* time_out_cb_args);
+void nas_timer_start(nas_timer_t* const timer, time_out_t time_out_cb,
+                     timer_arg_t* time_out_cb_args);
 void nas_timer_stop(nas_timer_t* const timer);
 
 #endif /* FILE_NAS_TIMER_SEEN */

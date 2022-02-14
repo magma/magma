@@ -33,15 +33,15 @@ typedef struct EpsUpdateType_tag {
   uint8_t eps_update_type_value : 3;
 } EpsUpdateType;
 
-int encode_eps_update_type(
-    EpsUpdateType* epsupdatetype, uint8_t iei, uint8_t* buffer, uint32_t len);
+int encode_eps_update_type(EpsUpdateType* epsupdatetype, uint8_t iei,
+                           uint8_t* buffer, uint32_t len);
 
 uint8_t encode_u8_eps_update_type(EpsUpdateType* epsupdatetype);
 
-int decode_eps_update_type(
-    EpsUpdateType* epsupdatetype, uint8_t iei, uint8_t* buffer, uint32_t len);
+int decode_eps_update_type(EpsUpdateType* epsupdatetype, uint8_t iei,
+                           uint8_t* buffer, uint32_t len);
 
-int decode_u8_eps_update_type(
-    EpsUpdateType* epsupdatetype, uint8_t iei, uint8_t value, uint32_t len);
+int decode_u8_eps_update_type(EpsUpdateType* epsupdatetype, uint8_t iei,
+                              uint8_t value, uint32_t len);
 
 #endif /* EPS UPDATE TYPE_SEEN */

@@ -32,6 +32,7 @@ from magma.pipelined.qos.types import (
     get_subscriber_key,
 )
 from magma.pipelined.qos.utils import QosStore
+from redis import ConnectionError  # pylint: disable=redefined-builtin
 
 LOG = logging.getLogger("pipelined.qos.common")
 # LOG.setLevel(logging.DEBUG)

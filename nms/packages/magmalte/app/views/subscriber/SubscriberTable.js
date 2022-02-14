@@ -15,7 +15,7 @@
  */
 import type {ActionQuery} from '../../components/ActionTable';
 import type {EnqueueSnackbarOptions} from 'notistack';
-import type {SubscriberInfo} from './SubscriberAddDialog';
+import type {SubscriberActionType, SubscriberInfo} from './SubscriberUtils';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {
   lte_subscription,
@@ -45,8 +45,9 @@ import {AddSubscriberDialog} from './SubscriberAddDialog';
 import {CsvBuilder} from 'filefy';
 import {
   DEFAULT_PAGE_SIZE,
+  REFRESH_TIMEOUT,
   SUBSCRIBER_EXPORT_COLUMNS,
-} from '../../views/subscriber/SubscriberUtils';
+} from './SubscriberUtils';
 import {
   FetchSubscribers,
   handleSubscriberQuery,
@@ -206,6 +207,10 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(SubscriberContext);
   const successCountRef = useRef(0);
+  const [
+    subscriberAction,
+    setSubscriberAction,
+  ] = useState<SubscriberActionType>('add');
   const handleClick = event => {
     setAnchorEl(event.currentTarget);
   };
@@ -213,62 +218,92 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
   /**
-   * Post subscriber chunk or update subscriber(s) if param edit is set to true
+   * Delete array of subscriber IMSIs.
    *
-   * @param {Array<SubscriberInfo>} subscribers Array of subscribers to Add or Edit.
-   * @param {boolean} edit Update existing subscriber(s) if set to true.
+   * @param {Array<string>} subscribers Array of subscriber IMSI to delete
    */
-  const saveSubscribers = async (
-    subscribers: Array<SubscriberInfo>,
-    edit: boolean,
-  ) => {
-    // create array of subscriber chunk
-    const subscriberChunks = subscribers.reduce(
-      (resultArray, subscriber, index) => {
-        const chunkIndex = Math.floor(index / SUBSCRIBERS_CHUNK_SIZE);
-        if (!resultArray[chunkIndex]) {
-          resultArray[chunkIndex] = [];
-        }
-        const authKey =
-          subscriber.authKey && isValidHex(subscriber.authKey)
-            ? hexToBase64(subscriber.authKey)
-            : '';
+  const deleteSubscribers = async (subscribers: Array<string>) => {
+    try {
+      // Delete subscribers
+      subscribers.map(imsi => ctx.setState?.(imsi));
+      enqueueSnackbar(`${subscribers.length} subscriber(s) deleted`, {
+        variant: 'success',
+      });
+    } catch (e) {
+      enqueueSnackbar('Deleting subscribers failed', {
+        variant: 'error',
+      });
+    }
+    props.onClose();
+    setOpen(false);
+  };
 
-        const authOpc =
-          subscriber.authOpc !== undefined && isValidHex(subscriber.authOpc)
-            ? hexToBase64(subscriber.authOpc)
-            : '';
-        const newSubscriber: mutable_subscriber = {
-          active_apns: subscriber.apns,
-          active_policies: subscriber.policies,
-          forbidden_network_types: subscriber.forbiddenNetworkTypes,
-          id: subscriber.imsi,
-          name: subscriber.name,
-          lte: {
-            auth_algo: 'MILENAGE',
-            auth_key: authKey,
-            auth_opc: authOpc,
-            state: subscriber.state,
-            sub_profile: subscriber.dataPlan,
-          },
-        };
+  const addSubscriberChunk = async (addedSubscribers: mutable_subscribers) => {
+    try {
+      await ctx.setState?.('', addedSubscribers);
+      return true;
+    } catch (e) {
+      const errMsg = e.response?.data?.message ?? e.message ?? e;
+      setError('Error saving subscribers: ' + errMsg);
+      return false;
+    }
+  };
 
-        resultArray[chunkIndex].push(newSubscriber);
-        return resultArray;
-      },
-      [],
-    );
+  /**
+   * Add or update subscriber chunks
+   *
+   * @param {Array<SubscriberInfo>} subscribers Array of subscribers to Add or Update
+   * @param {SubscriberActionType} subscriberAction Add or Update subscribers
+   */
+  const handleSubscribers = async (subscribers: Array<SubscriberInfo>) => {
+    // Create array of subscriber chunk
+    const subscriberChunks = subscribers.reduce((chunks, subscriber, index) => {
+      const chunkIndex = Math.floor(index / SUBSCRIBERS_CHUNK_SIZE);
+      if (!chunks[chunkIndex]) {
+        chunks[chunkIndex] = [];
+      }
+      const authKey =
+        subscriber.authKey && isValidHex(subscriber.authKey)
+          ? hexToBase64(subscriber.authKey)
+          : '';
+
+      const authOpc =
+        subscriber.authOpc !== undefined && isValidHex(subscriber.authOpc)
+          ? hexToBase64(subscriber.authOpc)
+          : '';
+      const newSubscriber: mutable_subscriber = {
+        active_apns: subscriber.apns,
+        active_policies: subscriber.policies,
+        forbidden_network_types: subscriber.forbiddenNetworkTypes,
+
+        id: subscriber.imsi,
+        name: subscriber.name,
+        lte: {
+          auth_algo: 'MILENAGE',
+          auth_key: authKey,
+          auth_opc: authOpc,
+          state: subscriber.state,
+          sub_profile: subscriber.dataPlan,
+        },
+      };
+
+      chunks[chunkIndex].push(newSubscriber);
+      return chunks;
+    }, []);
+
     for (let i = 0; i < subscriberChunks.length; i++) {
       const subscriberChunk = subscriberChunks[i];
       try {
-        // PUT subscribers
-        if (edit) {
+        if (subscriberAction === 'edit') {
+          // Update subscribers
           subscriberChunk.map(subscriber => {
             ctx.setState?.(subscriber.id, subscriber);
           });
         } else {
-          // POST subscriber chunk if no errors
+          // Add subscribers
+
           const success = await addSubscriberChunk(subscriberChunk);
           if (success) {
             successCountRef.current =
@@ -287,37 +322,36 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
         });
       }
     }
-    enqueueSnackbar(` Subscriber(s) saved successfully`, {
+    enqueueSnackbar('Subscriber(s) saved successfully', {
       variant: 'success',
     });
     props.onClose();
     setOpen(false);
   };
 
-  const addSubscriberChunk = async (addedSubscribers: mutable_subscribers) => {
-    try {
-      await ctx.setState?.('', addedSubscribers);
-      return true;
-    } catch (e) {
-      const errMsg = e.response?.data?.message ?? e.message ?? e;
-      setError('Error saving subscribers: ' + errMsg);
-      return false;
-    }
-  };
-
   return (
     <div>
       <AddSubscriberDialog
         error={error}
+        subscriberAction={subscriberAction}
         open={open}
-        onSave={subscribers => {
-          saveSubscribers(subscribers, false);
+        onSave={(subscribers: Array<SubscriberInfo>, selectedSubscribers) => {
+          if (subscriberAction === 'delete') {
+            deleteSubscribers(
+              selectedSubscribers?.length
+                ? selectedSubscribers
+                : subscribers.map(subscriber => subscriber.imsi),
+            );
+          } else {
+            handleSubscribers(subscribers);
+          }
         }}
         onClose={() => {
           setOpen(false);
           props.onClose();
         }}
       />
+
       <Button
         variant="contained"
         color="primary"
@@ -330,20 +364,28 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
         keepMounted
         open={Boolean(anchorEl)}
         onClose={handleClose}>
-        <MenuItem data-testid="" onClick={() => setOpen(true)}>
+        <MenuItem
+          data-testid=""
+          onClick={() => {
+            setSubscriberAction('add');
+            setOpen(true);
+          }}>
           <Text variant="subtitle2">Add Subscribers</Text>
         </MenuItem>
         <MenuItem>
           <Text variant="subtitle2">Update Subscribers</Text>
         </MenuItem>
-        <MenuItem>
+        <MenuItem
+          onClick={() => {
+            setSubscriberAction('delete');
+            setOpen(true);
+          }}>
           <Text variant="subtitle2">Delete Subscribers</Text>
         </MenuItem>
       </StyledMenu>
     </div>
   );
 }
-
 function SubscribersTable(props: WithAlert) {
   const {history, match, relativeUrl} = useRouter();
   const [currRow, setCurrRow] = useState<SubscriberRowType>({});
@@ -422,7 +464,9 @@ function SubscribersTable(props: WithAlert) {
               <Grid item>
                 <SubscriberActionsMenu
                   onClose={() => {
-                    setRefresh(!refresh);
+                    setTimeout(() => {
+                      setRefresh(!refresh);
+                    }, REFRESH_TIMEOUT);
                   }}
                 />
               </Grid>
@@ -449,6 +493,7 @@ function SubscribersTable(props: WithAlert) {
               setTokenList,
               pageSize: DEFAULT_PAGE_SIZE,
               subscriberMetrics,
+              deleteTable: false,
             });
           }}
           columns={tableColumns}

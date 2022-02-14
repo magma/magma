@@ -97,11 +97,11 @@
  **      Others:    _emm_data                                  **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_proc_uplink_nas_transport(
-    mme_ue_s1ap_id_t ue_id, bstring nas_msg_pP) {
-  int rc                                     = RETURNok;
-  emm_context_t* emm_ctxt_p                  = NULL;
-  imeisv_t* p_imeisv                         = NULL;
+status_code_e emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id,
+                                            bstring nas_msg_pP) {
+  int rc = RETURNok;
+  emm_context_t* emm_ctxt_p = NULL;
+  imeisv_t* p_imeisv = NULL;
   MobileStationClassmark2* p_mob_st_clsMark2 = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -141,23 +141,22 @@ status_code_e emm_proc_uplink_nas_transport(
             _esm_data.conf.features & MME_API_SMS_ORC8R_SUPPORTED);
       } else {
         if (emm_ctxt_p->is_imsi_only_detach == true) {
-          OAILOG_DEBUG(
-              LOG_NAS_EMM,
-              "Already triggred Detach Request for the UE "
-              "(ue_id=" MME_UE_S1AP_ID_FMT ") \n",
-              ue_id);
+          OAILOG_DEBUG(LOG_NAS_EMM,
+                       "Already triggred Detach Request for the UE "
+                       "(ue_id=" MME_UE_S1AP_ID_FMT ") \n",
+                       ue_id);
         } else {
           // NAS trigger UE to re-attach for non-EPS services.
-          emm_proc_nw_initiated_detach_request(
-              ue_id, NW_DETACH_TYPE_IMSI_DETACH);
+          emm_proc_nw_initiated_detach_request(ue_id,
+                                               NW_DETACH_TYPE_IMSI_DETACH);
         }
       }
     }
   } else {
-    OAILOG_WARNING(
-        LOG_NAS_EMM,
-        "No EMM context exists for the UE (ue_id=" MME_UE_S1AP_ID_FMT ") \n",
-        ue_id);
+    OAILOG_WARNING(LOG_NAS_EMM,
+                   "No EMM context exists for the UE (ue_id=" MME_UE_S1AP_ID_FMT
+                   ") \n",
+                   ue_id);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);

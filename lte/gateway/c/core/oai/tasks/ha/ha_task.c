@@ -30,8 +30,8 @@ task_zmq_ctx_t ha_task_zmq_ctx;
 #define HA_ORC8R_STATE_SYNC_PERIOD 300  // sync up every 5 minutes
 
 static int handle_timer(zloop_t* loop, int id, void* arg) {
-  OAILOG_INFO(
-      LOG_UTIL, "HA PERIODIC TIMER FIRED; SYNC UP THE eNB connection states");
+  OAILOG_INFO(LOG_UTIL,
+              "HA PERIODIC TIMER FIRED; SYNC UP THE eNB connection states");
   sync_up_with_orc8r();
   return 0;
 }
@@ -41,10 +41,10 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case AGW_OFFLOAD_REQ: {
-      OAILOG_INFO(
-          LOG_UTIL, "[%s] Received AGW_OFFLOAD_REQ message for eNB ID %d",
-          AGW_OFFLOAD_REQ(received_message_p).imsi,
-          AGW_OFFLOAD_REQ(received_message_p).eNB_id);
+      OAILOG_INFO(LOG_UTIL,
+                  "[%s] Received AGW_OFFLOAD_REQ message for eNB ID %d",
+                  AGW_OFFLOAD_REQ(received_message_p).imsi,
+                  AGW_OFFLOAD_REQ(received_message_p).eNB_id);
       handle_agw_offload_req(&received_message_p->ittiMsg.ha_agw_offload_req);
     } break;
 
@@ -55,9 +55,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     default: {
-      OAILOG_ERROR(
-          LOG_UTIL, "Unknown message ID %d:%s\n",
-          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
+      OAILOG_ERROR(LOG_UTIL, "Unknown message ID %d:%s\n",
+                   ITTI_MSG_ID(received_message_p),
+                   ITTI_MSG_NAME(received_message_p));
     } break;
   }
   itti_free_msg_content(received_message_p);
@@ -70,12 +70,12 @@ static void* ha_thread(__attribute__((unused)) void* args_p) {
   task_zmq_ctx_t* task_zmq_ctx_p = &ha_task_zmq_ctx;
 
   itti_mark_task_ready(TASK_HA);
-  init_task_context(
-      TASK_HA, (task_id_t[]){TASK_MME_APP}, 1, handle_message, task_zmq_ctx_p);
+  init_task_context(TASK_HA, (task_id_t[]){TASK_MME_APP}, 1, handle_message,
+                    task_zmq_ctx_p);
 
-  ha_task_timer_id = start_timer(
-      task_zmq_ctx_p, 1000 * HA_ORC8R_STATE_SYNC_PERIOD, TIMER_REPEAT_FOREVER,
-      handle_timer, NULL);
+  ha_task_timer_id =
+      start_timer(task_zmq_ctx_p, 1000 * HA_ORC8R_STATE_SYNC_PERIOD,
+                  TIMER_REPEAT_FOREVER, handle_timer, NULL);
 
   zloop_start(task_zmq_ctx_p->event_loop);
   ha_exit();

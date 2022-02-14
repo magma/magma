@@ -116,3 +116,6 @@ bazel-out
 bazel-testlogs
 help
 compile_commands.json
+
+# Domain Proxy
+dp/cloud/helm/dp/charts/domain-proxy/certificates/**/*

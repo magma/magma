@@ -25,45 +25,40 @@
 #define SECU_DIRECTION_UPLINK 0
 #define SECU_DIRECTION_DOWNLINK 1
 
-void kdf(
-    const uint8_t* key, const unsigned key_len, uint8_t* s,
-    const unsigned s_len, uint8_t* out, const unsigned out_len);
+void kdf(const uint8_t* key, const unsigned key_len, uint8_t* s,
+         const unsigned s_len, uint8_t* out, const unsigned out_len);
 
-int derive_keNB(
-    const uint8_t* kasme_32, const uint32_t nas_count, uint8_t* keNB);
+int derive_keNB(const uint8_t* kasme_32, const uint32_t nas_count,
+                uint8_t* keNB);
 
-int derive_key_nas(
-    algorithm_type_dist_t nas_alg_type, uint8_t nas_enc_alg_id,
-    const uint8_t* kasme_32, uint8_t* knas);
+int derive_key_nas(algorithm_type_dist_t nas_alg_type, uint8_t nas_enc_alg_id,
+                   const uint8_t* kasme_32, uint8_t* knas);
 
-int derive_5gkey_amf(
-    const uint8_t* imsi, uint8_t imsi_length, const uint8_t* kasme_32,
-    uint8_t* knas);
+int derive_5gkey_amf(const uint8_t* imsi, uint8_t imsi_length,
+                     const uint8_t* kasme_32, uint8_t* knas);
 
-int derive_5gkey_nas(
-    algorithm_type_dist_t nas_alg_type, uint8_t nas_enc_alg_id,
-    const uint8_t* kasme_32, uint8_t* knas);
+int derive_5gkey_nas(algorithm_type_dist_t nas_alg_type, uint8_t nas_enc_alg_id,
+                     const uint8_t* kasme_32, uint8_t* knas);
 
-int derive_NH(
-    const uint8_t* kasme_32, const uint8_t* syncInput, uint8_t* next_hop,
-    uint8_t* next_hop_chaining_count);
+int derive_NH(const uint8_t* kasme_32, const uint8_t* syncInput,
+              uint8_t* next_hop, uint8_t* next_hop_chaining_count);
 
-#define derive_key_nas_enc(aLGiD, kASME, kNAS)                                 \
+#define derive_key_nas_enc(aLGiD, kASME, kNAS) \
   derive_key_nas(NAS_ENC_ALG, aLGiD, kASME, kNAS)
 
-#define derive_key_nas_int(aLGiD, kASME, kNAS)                                 \
+#define derive_key_nas_int(aLGiD, kASME, kNAS) \
   derive_key_nas(NAS_INT_ALG, aLGiD, kASME, kNAS)
 
-#define derive_key_rrc_enc(aLGiD, kASME, kNAS)                                 \
+#define derive_key_rrc_enc(aLGiD, kASME, kNAS) \
   derive_key_nas(RRC_ENC_ALG, aLGiD, kASME, kNAS)
 
-#define derive_key_rrc_int(aLGiD, kASME, kNAS)                                 \
+#define derive_key_rrc_int(aLGiD, kASME, kNAS) \
   derive_key_nas(RRC_INT_ALG, aLGiD, kASME, kNAS)
 
-#define derive_key_up_enc(aLGiD, kASME, kNAS)                                  \
+#define derive_key_up_enc(aLGiD, kASME, kNAS) \
   derive_key_nas(UP_ENC_ALG, aLGiD, kASME, kNAS)
 
-#define derive_key_up_int(aLGiD, kASME, kNAS)                                  \
+#define derive_key_up_int(aLGiD, kASME, kNAS) \
   derive_key_nas(UP_INT_ALG, aLGiD, kASME, kNAS)
 
 #define SECU_DIRECTION_UPLINK 0
@@ -80,17 +75,17 @@ typedef struct {
   uint32_t blength;
 } nas_stream_cipher_t;
 
-int nas_stream_encrypt_eea1(
-    nas_stream_cipher_t* const stream_cipher, uint8_t* const out);
+int nas_stream_encrypt_eea1(nas_stream_cipher_t* const stream_cipher,
+                            uint8_t* const out);
 
-int nas_stream_encrypt_eia1(
-    nas_stream_cipher_t* const stream_cipher, uint8_t const out[4]);
+int nas_stream_encrypt_eia1(nas_stream_cipher_t* const stream_cipher,
+                            uint8_t const out[4]);
 
-int nas_stream_encrypt_eea2(
-    nas_stream_cipher_t* const stream_cipher, uint8_t* const out);
+int nas_stream_encrypt_eea2(nas_stream_cipher_t* const stream_cipher,
+                            uint8_t* const out);
 
-int nas_stream_encrypt_eia2(
-    nas_stream_cipher_t* const stream_cipher, uint8_t const out[4]);
+int nas_stream_encrypt_eia2(nas_stream_cipher_t* const stream_cipher,
+                            uint8_t const out[4]);
 
 int derive_5gkey_gnb(const uint8_t* kamf, uint32_t ul_count, uint8_t* kgnb);
 

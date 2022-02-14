@@ -251,19 +251,26 @@ class TCManager(object):
             LOG.info("TC not initialized, skip destroying existing qos classes")
             return
 
-        LOG.info("destroying existing qos classes")
+        LOG.info("destroying existing leaf qos classes")
         # ensure ordering during deletion of classes, children should be deleted
         # prior to the parent class ids
+        p_qids = set()
         for intf in [self._uplink, self._downlink]:
             qid_list = TrafficClass.read_all_classes(intf)
             for qid_tuple in qid_list:
                 (qid, pqid) = qid_tuple
                 if self._start_idx <= qid < (self._max_idx - 1):
-                    LOG.info("Attemting to delete class idx %d", qid)
+                    LOG.info("Attempting to delete class idx %d", qid)
                     TrafficClass.delete_class(intf, qid)
                 if self._start_idx <= pqid < (self._max_idx - 1):
-                    LOG.info("Attemting to delete parent class idx %d", pqid)
-                    TrafficClass.delete_class(intf, pqid)
+                    p_qids.add((intf, pqid))
+
+        LOG.info("destroying existing parent classes")
+        for p_qid_tuple in p_qids:
+            (intf, pqid) = p_qid_tuple
+            LOG.info("Attempting to delete parent class idx %d", pqid)
+            TrafficClass.delete_class(intf, pqid, skip_filter=True)
+        LOG.info("destroying All qos classes: done")
 
     def setup(self):
         # initialize new qdisc

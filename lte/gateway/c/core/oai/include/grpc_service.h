@@ -30,6 +30,7 @@ typedef struct grpc_service_data_s {
 int grpc_service_init(const char* grpc_server_ip);
 void grpc_service_exit(void);
 
+int grpc_async_service_init(void);
 #ifdef __cplusplus
 extern "C" {
 #endif

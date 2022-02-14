@@ -176,7 +176,7 @@ variable "orc8r_deployment_type" {
 variable "orc8r_chart_version" {
   description = "Version of the core orchestrator Helm chart to install."
   type        = string
-  default     = "1.5.26"
+  default     = "1.5.27"
 }
 
 variable "cwf_orc8r_chart_version" {
@@ -367,6 +367,7 @@ variable "helm_pass" {
 variable "cert_manager_route53_iam_role_arn" {
   description = "IAM role ARN for cert-manager."
   type        = string
+  default     = null
 }
 
 variable "deploy_cert_manager_helm_chart" {

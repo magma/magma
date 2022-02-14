@@ -22,9 +22,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/PagingIdentity.h"
 
 //------------------------------------------------------------------------------
-int decode_paging_identity(
-    paging_identity_t* pagingidentity, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int decode_paging_identity(paging_identity_t* pagingidentity, uint8_t iei,
+                           uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -38,16 +37,15 @@ int decode_paging_identity(
 }
 
 //------------------------------------------------------------------------------
-int encode_paging_identity(
-    paging_identity_t* pagingidentity, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int encode_paging_identity(paging_identity_t* pagingidentity, uint8_t iei,
+                           uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, PAGING_IDENTITY_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, PAGING_IDENTITY_MINIMUM_LENGTH,
+                                       len);
 
   if (iei > 0) {
     *buffer = iei;

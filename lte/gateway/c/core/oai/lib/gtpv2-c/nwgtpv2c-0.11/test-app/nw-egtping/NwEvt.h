@@ -48,11 +48,11 @@ typedef struct event NwEventT;
 #define NW_EVT_INIT event_init
 #define NW_EVT_LOOP event_dispatch
 
-#define NW_EVENT_ADD(                                                          \
-    __ev, __evSelObj, __evCallback, __evCallbackArg, __evFlags)                \
-  do {                                                                         \
-    event_set(&(__ev), __evSelObj, __evFlags, __evCallback, __evCallbackArg);  \
-    event_add(&(__ev), NULL);                                                  \
+#define NW_EVENT_ADD(__ev, __evSelObj, __evCallback, __evCallbackArg,         \
+                     __evFlags)                                               \
+  do {                                                                        \
+    event_set(&(__ev), __evSelObj, __evFlags, __evCallback, __evCallbackArg); \
+    event_add(&(__ev), NULL);                                                 \
   } while (0)
 
 #else
@@ -70,20 +70,20 @@ typedef struct {
 #define NW_EVT_CALLBACK(__cbFunc) __cbFunc(void* arg)
 #define NW_TMR_CALLBACK(__cbFunc) __cbFunc(void* arg)
 
-#define NW_EVT_INIT()                                                          \
-  do {                                                                         \
-    printf("error: Event library not defined!\n");                             \
-    exit(0);                                                                   \
+#define NW_EVT_INIT()                              \
+  do {                                             \
+    printf("error: Event library not defined!\n"); \
+    exit(0);                                       \
   } while (0)
-#define NW_EVT_LOOP()                                                          \
-  do {                                                                         \
-    printf("error: Event library not defined!\n");                             \
-    exit(0);                                                                   \
+#define NW_EVT_LOOP()                              \
+  do {                                             \
+    printf("error: Event library not defined!\n"); \
+    exit(0);                                       \
   } while (0)
-#define NW_EVENT_ADD(...)                                                      \
-  do {                                                                         \
-    printf("error: Event library not defined!\n");                             \
-    exit(0);                                                                   \
+#define NW_EVENT_ADD(...)                          \
+  do {                                             \
+    printf("error: Event library not defined!\n"); \
+    exit(0);                                       \
   } while (0)
 
 #endif

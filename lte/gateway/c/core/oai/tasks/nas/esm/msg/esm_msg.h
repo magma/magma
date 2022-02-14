@@ -117,8 +117,8 @@ typedef union {
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
-int esm_msg_decode_header(
-    esm_msg_header_t* header, const uint8_t* buffer, uint32_t len);
+int esm_msg_decode_header(esm_msg_header_t* header, const uint8_t* buffer,
+                          uint32_t len);
 
 int esm_msg_decode(ESM_msg* msg, uint8_t* buffer, uint32_t len);
 

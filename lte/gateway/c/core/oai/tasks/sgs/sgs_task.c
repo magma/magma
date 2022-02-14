@@ -152,8 +152,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case SGSAP_UE_UNREACHABLE: {
-      OAILOG_DEBUG(
-          LOG_SGS, "Received  message SGSAP_UE_UNREACHABLE message \n");
+      OAILOG_DEBUG(LOG_SGS,
+                   "Received  message SGSAP_UE_UNREACHABLE message \n");
       send_ue_unreachable(&SGSAP_UE_UNREACHABLE(received_message_p));
     } break;
     case TERMINATE_MESSAGE: {
@@ -162,9 +162,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     default: {
-      OAILOG_DEBUG(
-          LOG_SGS, "Unknown message ID %d:%s\n",
-          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
+      OAILOG_DEBUG(LOG_SGS, "Unknown message ID %d:%s\n",
+                   ITTI_MSG_ID(received_message_p),
+                   ITTI_MSG_NAME(received_message_p));
     } break;
   }
 
@@ -177,8 +177,8 @@ static void* sgs_thread(__attribute__((unused)) void* args_p) {
   task_zmq_ctx_t* task_zmq_ctx_p = &sgs_task_zmq_ctx;
 
   itti_mark_task_ready(TASK_SGS);
-  init_task_context(
-      TASK_SGS, (task_id_t[]){TASK_MME_APP}, 1, handle_message, task_zmq_ctx_p);
+  init_task_context(TASK_SGS, (task_id_t[]){TASK_MME_APP}, 1, handle_message,
+                    task_zmq_ctx_p);
 
   zloop_start(task_zmq_ctx_p->event_loop);
   AssertFatal(0, "Asserting as sgs_thread should not be exiting on its own!");

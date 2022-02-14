@@ -55,7 +55,7 @@ task_zmq_ctx_t s6a_task_zmq_ctx;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
-  int rc                         = RETURNerror;
+  int rc = RETURNerror;
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case MESSAGE_TEST: {
@@ -65,26 +65,22 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       rc = s6a_viface_update_location_req(
           &received_message_p->ittiMsg.s6a_update_location_req);
       if (rc) {
-        OAILOG_DEBUG(
-            LOG_S6A, "Sending s6a ULR for imsi=%s\n",
-            received_message_p->ittiMsg.s6a_update_location_req.imsi);
+        OAILOG_DEBUG(LOG_S6A, "Sending s6a ULR for imsi=%s\n",
+                     received_message_p->ittiMsg.s6a_update_location_req.imsi);
       } else {
-        OAILOG_ERROR(
-            LOG_S6A, "Failure in sending s6a ULR for imsi=%s\n",
-            received_message_p->ittiMsg.s6a_update_location_req.imsi);
+        OAILOG_ERROR(LOG_S6A, "Failure in sending s6a ULR for imsi=%s\n",
+                     received_message_p->ittiMsg.s6a_update_location_req.imsi);
       }
     } break;
     case S6A_AUTH_INFO_REQ: {
       rc = s6a_viface_authentication_info_req(
           &received_message_p->ittiMsg.s6a_auth_info_req);
       if (rc) {
-        OAILOG_DEBUG(
-            LOG_S6A, "Sending s6a AIR for imsi=%s\n",
-            received_message_p->ittiMsg.s6a_auth_info_req.imsi);
+        OAILOG_DEBUG(LOG_S6A, "Sending s6a AIR for imsi=%s\n",
+                     received_message_p->ittiMsg.s6a_auth_info_req.imsi);
       } else {
-        OAILOG_ERROR(
-            LOG_S6A, "Failure in sending s6a AIR for imsi=%s\n",
-            received_message_p->ittiMsg.s6a_auth_info_req.imsi);
+        OAILOG_ERROR(LOG_S6A, "Failure in sending s6a AIR for imsi=%s\n",
+                     received_message_p->ittiMsg.s6a_auth_info_req.imsi);
       }
     } break;
     case S6A_CANCEL_LOCATION_ANS: {
@@ -95,20 +91,18 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       uint8_t imsi_length;
       imsi_length = received_message_p->ittiMsg.s6a_purge_ue_req.imsi_length;
       if (imsi_length > IMSI_BCD_DIGITS_MAX) {
-        OAILOG_ERROR(
-            LOG_S6A, "imsi length exceeds IMSI_BCD_DIGITS_MAX length \n");
+        OAILOG_ERROR(LOG_S6A,
+                     "imsi length exceeds IMSI_BCD_DIGITS_MAX length \n");
       }
       received_message_p->ittiMsg.s6a_purge_ue_req.imsi[imsi_length] = '\0';
       rc = s6a_viface_purge_ue(
           received_message_p->ittiMsg.s6a_purge_ue_req.imsi);
       if (rc) {
-        OAILOG_DEBUG(
-            LOG_S6A, "Sending s6a pur for imsi=%s\n",
-            received_message_p->ittiMsg.s6a_purge_ue_req.imsi);
+        OAILOG_DEBUG(LOG_S6A, "Sending s6a pur for imsi=%s\n",
+                     received_message_p->ittiMsg.s6a_purge_ue_req.imsi);
       } else {
-        OAILOG_ERROR(
-            LOG_S6A, "Failure in sending s6a pur for imsi=%s\n",
-            received_message_p->ittiMsg.s6a_purge_ue_req.imsi);
+        OAILOG_ERROR(LOG_S6A, "Failure in sending s6a pur for imsi=%s\n",
+                     received_message_p->ittiMsg.s6a_purge_ue_req.imsi);
       }
     } break;
     case TERMINATE_MESSAGE: {
@@ -117,9 +111,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       s6a_exit();
     } break;
     default: {
-      OAILOG_DEBUG(
-          LOG_S6A, "Unknown message ID %d: %s\n",
-          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
+      OAILOG_DEBUG(LOG_S6A, "Unknown message ID %d: %s\n",
+                   ITTI_MSG_ID(received_message_p),
+                   ITTI_MSG_NAME(received_message_p));
     } break;
   }
 
@@ -131,11 +125,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 //------------------------------------------------------------------------------
 static void* s6a_thread(void* args) {
   itti_mark_task_ready(TASK_S6A);
-  init_task_context(
-      TASK_S6A, (task_id_t[]){TASK_MME_APP, TASK_S1AP, TASK_AMF_APP}, 3,
-      handle_message, &s6a_task_zmq_ctx);
+  init_task_context(TASK_S6A,
+                    (task_id_t[]){TASK_MME_APP, TASK_S1AP, TASK_AMF_APP}, 3,
+                    handle_message, &s6a_task_zmq_ctx);
 
-  if (!s6a_viface_open((s6a_config_t*) args)) {
+  if (!s6a_viface_open((s6a_config_t*)args)) {
     OAILOG_ERROR(LOG_S6A, "Failed to initialize S6a interface");
     s6a_exit();
     return NULL;
@@ -150,8 +144,8 @@ static void* s6a_thread(void* args) {
 status_code_e s6a_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_S6A, "Initializing S6a interface\n");
 
-  if (itti_create_task(
-          TASK_S6A, &s6a_thread, (void*) &mme_config_p->s6a_config) < 0) {
+  if (itti_create_task(TASK_S6A, &s6a_thread,
+                       (void*)&mme_config_p->s6a_config) < 0) {
     OAILOG_ERROR(LOG_S6A, "s6a create task\n");
     return RETURNerror;
   }

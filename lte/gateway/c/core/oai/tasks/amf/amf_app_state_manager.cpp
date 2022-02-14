@@ -57,9 +57,7 @@ void put_amf_nas_state() {
  * Release the memory allocated for the AMF NAS state, this does not clean the
  * state persisted in data store
  */
-void clear_amf_nas_state() {
-  AmfNasStateManager::getInstance().free_state();
-}
+void clear_amf_nas_state() { AmfNasStateManager::getInstance().free_state(); }
 
 map_uint64_ue_context_t* get_amf_ue_state() {
   return AmfNasStateManager::getInstance().get_ue_state_map();
@@ -74,7 +72,7 @@ void delete_amf_ue_state(imsi64_t imsi64) {
 #else
   /* Data store is a map defined in AmfClientServicer.In this case entry is
    * removed from map_imsi_ue_proto_str */
-  auto imsi_str   = AmfNasStateManager::getInstance().get_imsi_str(imsi64);
+  auto imsi_str = AmfNasStateManager::getInstance().get_imsi_str(imsi64);
   std::string key = IMSI_PREFIX + imsi_str + ":" + AMF_TASK_NAME;
   AMFClientServicer::getInstance().map_imsi_ue_proto_str.remove(key);
 #endif
@@ -94,20 +92,18 @@ AmfNasStateManager::AmfNasStateManager()
     : max_ue_htbl_lists_(NUM_MAX_UE_HTBL_LISTS) {}
 
 // Destructor for AMF NAS state object
-AmfNasStateManager::~AmfNasStateManager() {
-  free_state();
-}
+AmfNasStateManager::~AmfNasStateManager() { free_state(); }
 
 // Singleton class initializer which calls to create new object of
 // AmfNasStateManager
 int AmfNasStateManager::initialize_state(const amf_config_t* amf_config_p) {
-  uint32_t rc           = RETURNok;
+  uint32_t rc = RETURNok;
   persist_state_enabled = amf_config_p->use_stateless;
-  max_ue_htbl_lists_    = amf_config_p->max_ues;
-  amf_statistic_timer_  = amf_config_p->amf_statistic_timer;
-  log_task              = LOG_AMF_APP;
-  task_name             = AMF_TASK_NAME;
-  table_key             = AMF_NAS_STATE_KEY;
+  max_ue_htbl_lists_ = amf_config_p->max_ues;
+  amf_statistic_timer_ = amf_config_p->amf_statistic_timer;
+  log_task = LOG_AMF_APP;
+  task_name = AMF_TASK_NAME;
+  table_key = AMF_NAS_STATE_KEY;
 
   // Allocate the local AMF state and create respective single object
   create_state();
@@ -126,7 +122,7 @@ int AmfNasStateManager::initialize_state(const amf_config_t* amf_config_p) {
 // Create an object of AmfNasStateManager and Initialize memory
 // for AMF state before doing any operation from data store
 void AmfNasStateManager::create_state() {
-  state_cache_p                               = new (amf_app_desc_t);
+  state_cache_p = new (amf_app_desc_t);
   state_cache_p->amf_app_ue_ngap_id_generator = 1;
   state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.set_name(
       AMF_IMSI_UE_ID_TABLE_NAME);
@@ -156,7 +152,7 @@ void AmfNasStateManager::free_state() {
 void AmfNasStateManager::amf_nas_state_init_local_state() {
   // create statistic timer locally
   state_cache_p->m5_statistic_timer_period = amf_statistic_timer_;
-  state_cache_p->m5_statistic_timer_id     = 0;
+  state_cache_p->m5_statistic_timer_id = 0;
 }
 
 /**
@@ -194,8 +190,8 @@ void AmfNasStateManager::clear_db_state() {
   }
 }
 
-void put_amf_ue_state(
-    amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64, bool force_ue_write) {
+void put_amf_ue_state(amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64,
+                      bool force_ue_write) {
   if ((!AmfNasStateManager::getInstance().is_persist_state_enabled()) ||
       (imsi64 == INVALID_IMSI64)) {
     return;
@@ -203,14 +199,14 @@ void put_amf_ue_state(
   ue_m5gmm_context_t* ue_context_p = nullptr;
   amf_ue_ngap_id_t ue_id;
   get_amf_ue_id_from_imsi(&amf_app_desc_p->amf_ue_contexts, imsi64, &ue_id);
-  ue_context_p = amf_ue_context_exists_amf_ue_ngap_id((amf_ue_ngap_id_t) ue_id);
+  ue_context_p = amf_ue_context_exists_amf_ue_ngap_id((amf_ue_ngap_id_t)ue_id);
   // Only write MME UE state to redis if force flag is set or UE is in EMM
   // Registered state
   if ((ue_context_p && force_ue_write) ||
       (ue_context_p && ue_context_p->mm_state == REGISTERED_CONNECTED)) {
     auto imsi_str = AmfNasStateManager::getInstance().get_imsi_str(imsi64);
-    AmfNasStateManager::getInstance().write_ue_state_to_db(
-        ue_context_p, imsi_str);
+    AmfNasStateManager::getInstance().write_ue_state_to_db(ue_context_p,
+                                                           imsi_str);
   }
 }
 
@@ -232,16 +228,15 @@ void AmfNasStateManager::write_ue_state_to_db(
     std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
     if (AMFClientServicer::getInstance().map_imsi_ue_proto_str.insert(
             key, proto_str) != magma::MAP_OK) {
-      OAILOG_ERROR(
-          log_task, "Failed to write UE state to db for IMSI %s",
-          imsi_str.c_str());
+      OAILOG_ERROR(log_task, "Failed to write UE state to db for IMSI %s",
+                   imsi_str.c_str());
       return;
     }
 
     this->ue_state_version[imsi_str]++;
     this->ue_state_hash[imsi_str] = new_hash;
-    OAILOG_DEBUG(
-        log_task, "Finished writing UE state for IMSI %s", imsi_str.c_str());
+    OAILOG_DEBUG(log_task, "Finished writing UE state for IMSI %s",
+                 imsi_str.c_str());
   }
 #endif
 }
@@ -260,7 +255,7 @@ status_code_e AmfNasStateManager::read_ue_state_from_db() {
     }
 
     // Update each UE state version from redis
-    this->ue_state_version[key]      = redis_client->read_version(table_key);
+    this->ue_state_version[key] = redis_client->read_version(table_key);
     ue_m5gmm_context_t* ue_context_p = new ue_m5gmm_context_t();
     AmfNasStateConverter::proto_to_ue(ue_proto, ue_context_p);
     state_ue_map.insert(ue_context_p->amf_ue_ngap_id, ue_context_p);
@@ -336,7 +331,7 @@ void AmfNasStateManager::write_state_to_db() {
       }
       OAILOG_DEBUG(log_task, "Finished writing state");
       this->task_state_version++;
-      this->state_dirty     = false;
+      this->state_dirty = false;
       this->task_state_hash = new_hash;
     }
   }

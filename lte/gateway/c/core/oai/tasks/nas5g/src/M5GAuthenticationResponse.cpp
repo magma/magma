@@ -21,7 +21,7 @@ AuthenticationResponseMsg::~AuthenticationResponseMsg(){};
 // Decode AuthenticationResponse Messsage
 int AuthenticationResponseMsg::DecodeAuthenticationResponseMsg(
     AuthenticationResponseMsg* auth_response, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(

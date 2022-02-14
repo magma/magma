@@ -1,3 +1,15 @@
+/*
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 syntax = "proto3";
 
 import "google/protobuf/wrappers.proto";
@@ -6,9 +18,16 @@ option go_package = "magma/dp/cloud/go/active_mode_controller/protos/active_mode
 
 service ActiveModeController {
   rpc GetState(GetStateRequest) returns (State) {}
+  rpc DeleteCbsd(DeleteCbsdRequest) returns (DeleteCbsdResponse) {}
 }
 
 message GetStateRequest {}
+
+message DeleteCbsdRequest {
+  string serial_number = 1;
+}
+
+message DeleteCbsdResponse {}
 
 message State {
   repeated ActiveModeConfig active_mode_configs = 1;
@@ -35,6 +54,7 @@ message Cbsd {
   repeated string pending_requests = 8;
   int64 last_seen_timestamp = 9;
   EirpCapabilities eirp_capabilities = 10;
+  bool is_deleted = 11;
 }
 
 message EirpCapabilities {

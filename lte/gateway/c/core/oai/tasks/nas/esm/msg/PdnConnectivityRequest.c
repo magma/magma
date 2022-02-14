@@ -27,7 +27,7 @@
 int decode_pdn_connectivity_request(
     pdn_connectivity_request_msg* pdn_connectivity_request, uint8_t* buffer,
     uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
@@ -38,14 +38,14 @@ int decode_pdn_connectivity_request(
   /*
    * Decoding mandatory fields
    */
-  if ((decoded_result = decode_u8_request_type(
-           &pdn_connectivity_request->pdntype, 0, *(buffer + decoded) >> 4,
-           len - decoded)) < 0)
+  if ((decoded_result =
+           decode_u8_request_type(&pdn_connectivity_request->pdntype, 0,
+                                  *(buffer + decoded) >> 4, len - decoded)) < 0)
     return decoded_result;
 
-  if ((decoded_result = decode_u8_pdn_type(
-           &pdn_connectivity_request->requesttype, 0,
-           *(buffer + decoded) & 0x0f, len - decoded)) < 0)
+  if ((decoded_result =
+           decode_u8_pdn_type(&pdn_connectivity_request->requesttype, 0,
+                              *(buffer + decoded) & 0x0f, len - decoded)) < 0)
     return decoded_result;
 
   decoded++;
@@ -129,7 +129,7 @@ int decode_pdn_connectivity_request(
 int encode_pdn_connectivity_request(
     pdn_connectivity_request_msg* pdn_connectivity_request, uint8_t* buffer,
     uint32_t len) {
-  int encoded       = 0;
+  int encoded = 0;
   int encode_result = 0;
 
   /*

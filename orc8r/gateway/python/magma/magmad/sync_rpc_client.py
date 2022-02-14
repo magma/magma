@@ -22,6 +22,7 @@ import grpc
 import magma.magmad.events as magmad_events
 from google.protobuf.json_format import MessageToJson
 from magma.common.rpc_utils import is_grpc_error_retryable
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.common.service_registry import ServiceRegistry
 from magma.magmad.proxy_client import ControlProxyHttpClient
 from orc8r.protos.sync_rpc_service_pb2 import SyncRPCRequest, SyncRPCResponse
@@ -75,7 +76,7 @@ class SyncRPCClient(threading.Thread):
                 self.process_streams(client)
             except grpc.RpcError as err:
                 if is_grpc_error_retryable(err):
-                    logging.error(
+                    logging.warning(
                         "[SyncRPC] Transient gRPC error, retrying: %s",
                         err.details(),
                     )
@@ -83,13 +84,19 @@ class SyncRPCClient(threading.Thread):
                     continue
                 else:
                     logging.error(
-                        "[SyncRPC] gRPC error: %s, reconnecting to "
-                        "cloud.", err.details(),
+                        "[SyncRPC] gRPC error: %s, reconnecting to cloud.",
+                        err.details(),
+                        extra=EXCLUDE_FROM_ERROR_MONITORING,
                     )
                     self._cleanup_and_reconnect()
             except Exception as exp:  # pylint: disable=broad-except
                 conn_time = time.time() - start_time
-                logging.error("[SyncRPC] Error after %ds: %s", conn_time, exp)
+                logging.error(
+                    "[SyncRPC] Error after %ds: %s",
+                    conn_time,
+                    exp,
+                    extra=EXCLUDE_FROM_ERROR_MONITORING,
+                )
                 self._cleanup_and_reconnect()
 
     def process_streams(self, client: SyncRPCServiceStub) -> None:
@@ -156,6 +163,7 @@ class SyncRPCClient(threading.Thread):
                 logging.error(
                     "[SyncRPC] Failing to forward request, err: %s",
                     err.details(),
+                    extra=EXCLUDE_FROM_ERROR_MONITORING,
                 )
                 raise err
 

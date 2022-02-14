@@ -97,7 +97,6 @@ if (EMBEDDED_SGW)
 add_library(TASK_GRPC_SERVICE
     AmfServiceImpl.cpp
     SpgwServiceImpl.cpp
-    S6aGatewayImpl.cpp
     S6aServiceImpl.cpp
     CSFBGatewayServiceImpl.cpp
     SMSOrc8rGatewayServiceImpl.cpp
@@ -117,7 +116,6 @@ else (EMBEDDED_SGW)
 add_library(TASK_GRPC_SERVICE
     AmfServiceImpl.cpp
     SpgwServiceImpl.cpp
-    S6aGatewayImpl.cpp
     S6aServiceImpl.cpp
     CSFBGatewayServiceImpl.cpp
     SMSOrc8rGatewayServiceImpl.cpp

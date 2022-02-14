@@ -77,8 +77,8 @@
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e as_message_decode(
-    const char* buffer, as_message_t* msg, size_t length) {
+status_code_e as_message_decode(const char* buffer, as_message_t* msg,
+                                size_t length) {
   OAILOG_FUNC_IN(LOG_NAS);
   int bytes;
   uint8_t** data = NULL;
@@ -86,8 +86,8 @@ status_code_e as_message_decode(
   /*
    * Get the message type
    */
-  msg->msg_id = *(uint16_t*) (buffer);
-  bytes       = sizeof(uint16_t);
+  msg->msg_id = *(uint16_t*)(buffer);
+  bytes = sizeof(uint16_t);
 
   switch (msg->msg_id) {
     case AS_NAS_ESTABLISH_REQ:
@@ -178,8 +178,8 @@ status_code_e as_message_decode(
 
     default:
       bytes = 0;
-      OAILOG_WARNING(
-          LOG_NAS, "NET-API   - AS message 0x%x is not valid", msg->msg_id);
+      OAILOG_WARNING(LOG_NAS, "NET-API   - AS message 0x%x is not valid",
+                     msg->msg_id);
       break;
   }
 
@@ -188,18 +188,18 @@ status_code_e as_message_decode(
       /*
        * Set the pointer to dedicated NAS information
        */
-      *data = (uint8_t*) (buffer + bytes);
+      *data = (uint8_t*)(buffer + bytes);
     }
 
     /*
      * Decode the message
      */
-    memcpy(msg, (as_message_t*) buffer, bytes);
+    memcpy(msg, (as_message_t*)buffer, bytes);
     OAILOG_FUNC_RETURN(LOG_NAS, msg->msg_id);
   }
 
-  OAILOG_WARNING(
-      LOG_NAS, "NET-API   - Failed to decode AS message 0x%x", msg->msg_id);
+  OAILOG_WARNING(LOG_NAS, "NET-API   - Failed to decode AS message 0x%x",
+                 msg->msg_id);
   OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
 }
 
