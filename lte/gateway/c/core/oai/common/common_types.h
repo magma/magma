@@ -241,8 +241,6 @@ typedef struct {
   apn_ambr_bitrate_unit_t br_unit;
   bitrate_t br_ul;
   bitrate_t br_dl;
-  bitrate_t extended_br_ul;
-  bitrate_t extended_br_dl;
 } ambr_t;
 
 typedef uint8_t pdn_type_t;
