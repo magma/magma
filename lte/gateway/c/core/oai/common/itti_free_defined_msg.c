@@ -293,7 +293,9 @@ void itti_free_msg_content(MessageDef* const message_p) {
       itti_ngap_pdu_session_resource_modify_request_t*
           pdusession_resource_modify_req =
               &NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ(message_p);
-      bdestroy_wrapper(&pdusession_resource_modify_req->nas_pdu);
+      bdestroy_wrapper(
+          &pdusession_resource_modify_req->pduSessResourceModReqList.item[0]
+               .nas_pdu);
       break;
     }
 

@@ -1639,7 +1639,7 @@ TEST(PDU_SESSION_MODIFICATION, PDU_SESSION_MODFICIATION_COMMAND_MSG) {
   pdu_sess_mod_cmd.pti.pti = 0x01;
   // message type
   pdu_sess_mod_cmd.message_type.msg_type =
-      M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND;
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND);
   // session amr
   pdu_sess_mod_cmd.sessionambr.iei             = 0x2a;
   pdu_sess_mod_cmd.sessionambr.length          = 6;
@@ -1762,7 +1762,7 @@ TEST(PDU_SESSION_MODIFICATION, PDU_SESSION_MODFICIATION_COMPLETE_MSG) {
   pdu_sess_mod_com_encoded.pti.pti = 0x01;
   // message type
   pdu_sess_mod_com_encoded.message_type.msg_type =
-      M5GMessageType::PDU_SESSION_MODIFICATION_COMPLETE;
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_MODIFICATION_COMPLETE);
 
   // verify pdu session modification complete message is encoded
   EXPECT_EQ(
@@ -1801,8 +1801,8 @@ TEST(PDU_SESSION_MODIFICATION, PDU_SESSION_MODFICIATION_COMMAND_REJ) {
   // pti
   pdu_sess_mod_com_rej_encoded.pti.pti = 0x01;
   // message type
-  pdu_sess_mod_com_rej_encoded.message_type.msg_type =
-      M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND_REJECT;
+  pdu_sess_mod_com_rej_encoded.message_type.msg_type = static_cast<uint8_t>(
+      M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND_REJECT);
   pdu_sess_mod_com_rej_encoded.cause.iei         = M5GSM_CAUSE;
   pdu_sess_mod_com_rej_encoded.cause.cause_value = M5GSM_CAUSE;
 

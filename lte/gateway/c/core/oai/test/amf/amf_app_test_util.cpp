@@ -10,6 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include <gtest/gtest.h>
@@ -166,6 +167,7 @@ int send_uplink_nas_registration_complete(
   int rc = RETURNerror;
   rc     = amf_app_handle_uplink_nas_message(
       amf_app_desc_p, ue_registration_complete, ue_id, originating_tai);
+  // free(ue_registration_complete->data);
 
   return (rc);
 }

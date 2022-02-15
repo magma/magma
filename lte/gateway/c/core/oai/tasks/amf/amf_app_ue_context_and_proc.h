@@ -93,6 +93,7 @@ struct amf_procedures_t;
 #define PAGING_TIMER_EXPIRY_MSECS 4000
 #define PDUE_SESSION_RELEASE_TIMER_MSECS 16000
 #define PDU_SESSION_MODIFICATION_TIMER_MSECS 16000
+#define PDU_SESSION_DEFAULT_QFI 0X05
 
 #define MAX_PAGING_RETRY_COUNT 1
 // Header length boundaries of 5GS Mobility Management messages
@@ -102,6 +103,7 @@ struct amf_procedures_t;
 #define AMBR_LEN 6
 #define PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN 30
 #define PDU_ESTAB_ACCEPT_NAS_PDU_LEN 41
+#define PDU_SESS_MOD_CMD_NAS_PDU_LEN 1024
 #define SSC_MODE_ONE 0x1
 #define PDU_ADDR_IPV4_LEN 0x4
 #define PDU_ADDR_TYPE 0X1
@@ -498,6 +500,7 @@ union mobility_msg_u {
   DeRegistrationAcceptUEInitMsg deregistrationacceptmsg;
   ULNASTransportMsg uplinknas5gtransport;
   DLNASTransportMsg downlinknas5gtransport;
+  PDUSessionModificationCommand pdu_sess_mod_cmd;
   mobility_msg_u() {}
   ~mobility_msg_u() {}
 };

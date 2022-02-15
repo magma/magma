@@ -257,15 +257,19 @@ TEST(TestAMFStateConverter, TestSMFContextToProto) {
   smf_context1.requested_nssai.sst   = 1;
 
   // Qos
-  smf_context1.subscribed_qos_profile.qos_flow_req_item.qos_flow_identifier = 9;
-  smf_context1.subscribed_qos_profile.qos_flow_req_item.qos_flow_level_qos_param
-      .qos_characteristic.non_dynamic_5QI_desc.fiveQI = 9;
-  smf_context1.subscribed_qos_profile.qos_flow_req_item.qos_flow_level_qos_param
-      .alloc_reten_priority.priority_level = 1;
-  smf_context1.subscribed_qos_profile.qos_flow_req_item.qos_flow_level_qos_param
-      .alloc_reten_priority.pre_emption_cap = SHALL_NOT_TRIGGER_PRE_EMPTION;
-  smf_context1.subscribed_qos_profile.qos_flow_req_item.qos_flow_level_qos_param
-      .alloc_reten_priority.pre_emption_vul = NOT_PREEMPTABLE;
+  smf_context1.qos_flow_list.item[0].qos_flow_req_item.qos_flow_identifier = 9;
+  smf_context1.qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.qos_characteristic
+      .non_dynamic_5QI_desc.fiveQI = 9;
+  smf_context1.qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+      .priority_level = 1;
+  smf_context1.qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+      .pre_emption_cap = SHALL_NOT_TRIGGER_PRE_EMPTION;
+  smf_context1.qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+      .pre_emption_vul = NOT_PREEMPTABLE;
 
   AmfNasStateConverter::smf_context_to_proto(&smf_context1, &state_smf_proto);
   AmfNasStateConverter::proto_to_smf_context(state_smf_proto, &smf_context2);
@@ -397,34 +401,39 @@ TEST(TestAMFStateConverter, TestSMFContextToProto) {
   EXPECT_EQ(smf_context1.requested_nssai.sst, smf_context2.requested_nssai.sst);
 
   EXPECT_EQ(
-      smf_context1.subscribed_qos_profile.qos_flow_req_item.qos_flow_identifier,
-      smf_context2.subscribed_qos_profile.qos_flow_req_item
-          .qos_flow_identifier);
+      smf_context1.qos_flow_list.item[0].qos_flow_req_item.qos_flow_identifier,
+      smf_context2.qos_flow_list.item[0].qos_flow_req_item.qos_flow_identifier);
   EXPECT_EQ(
-      smf_context1.subscribed_qos_profile.qos_flow_req_item
-          .qos_flow_level_qos_param.qos_characteristic.non_dynamic_5QI_desc
-          .fiveQI,
-      smf_context2.subscribed_qos_profile.qos_flow_req_item
-          .qos_flow_level_qos_param.qos_characteristic.non_dynamic_5QI_desc
-          .fiveQI);
+      smf_context1.qos_flow_list.item[0]
+          .qos_flow_req_item.qos_flow_level_qos_param.qos_characteristic
+          .non_dynamic_5QI_desc.fiveQI,
+      smf_context2.qos_flow_list.item[0]
+          .qos_flow_req_item.qos_flow_level_qos_param.qos_characteristic
+          .non_dynamic_5QI_desc.fiveQI);
 
   EXPECT_EQ(
-      smf_context1.subscribed_qos_profile.qos_flow_req_item
-          .qos_flow_level_qos_param.alloc_reten_priority.priority_level,
-      smf_context2.subscribed_qos_profile.qos_flow_req_item
-          .qos_flow_level_qos_param.alloc_reten_priority.priority_level);
+      smf_context1.qos_flow_list.item[0]
+          .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+          .priority_level,
+      smf_context2.qos_flow_list.item[0]
+          .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+          .priority_level);
 
   EXPECT_EQ(
-      smf_context1.subscribed_qos_profile.qos_flow_req_item
-          .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_cap,
-      smf_context2.subscribed_qos_profile.qos_flow_req_item
-          .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_cap);
+      smf_context1.qos_flow_list.item[0]
+          .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+          .pre_emption_cap,
+      smf_context2.qos_flow_list.item[0]
+          .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+          .pre_emption_cap);
 
   EXPECT_EQ(
-      smf_context1.subscribed_qos_profile.qos_flow_req_item
-          .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_vul,
-      smf_context2.subscribed_qos_profile.qos_flow_req_item
-          .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_vul);
+      smf_context1.qos_flow_list.item[0]
+          .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+          .pre_emption_vul,
+      smf_context2.qos_flow_list.item[0]
+          .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+          .pre_emption_vul);
 
   bdestroy(smf_context2.pco.protocol_or_container_ids[0].contents);
   bdestroy(smf_context2.pco.protocol_or_container_ids[1].contents);

@@ -63,6 +63,7 @@ union MMsg_u {
   DeRegistrationAcceptUEInitMsg de_reg_accept;
   ULNASTransportMsg ul_nas_transport;
   DLNASTransportMsg dl_nas_transport;
+  PDUSessionModificationCommand pdu_sess_mod_cmd;
   MMsg_u();
   ~MMsg_u();
 };

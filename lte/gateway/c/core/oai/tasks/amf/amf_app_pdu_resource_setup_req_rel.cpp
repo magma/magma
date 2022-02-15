@@ -165,9 +165,9 @@ int pdu_session_resource_modify_request(
       TASK_AMF_APP, NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ);
   ngap_pdu_ses_mod_req =
       &message_p->ittiMsg.ngap_pdu_session_resource_modify_req;
-  memset(
-      ngap_pdu_ses_mod_req, 0,
-      sizeof(itti_ngap_pdu_session_resource_modify_request_t));
+  // memset(
+  //  ngap_pdu_ses_mod_req, 0,
+  // sizeof(itti_ngap_pdu_session_resource_modify_request_t));
 
   // start filling message in DL to NGAP
   ngap_pdu_ses_mod_req->gnb_ue_ngap_id = ue_context->gnb_ue_ngap_id;
@@ -177,6 +177,8 @@ int pdu_session_resource_modify_request(
   ngap_pdu_ses_mod_req->pduSessResourceModReqList.no_of_items = 1;
   ngap_pdu_ses_mod_req->pduSessResourceModReqList.item[0].Pdu_Session_ID =
       (Ngap_PDUSessionID_t) smf_context->smf_proc_data.pdu_session_id;
+
+  ngap_pdu_ses_mod_req->pduSessResourceModReqList.item[0].nas_pdu = nas_msg;
 
   ngap_pdu_ses_mod_req->pduSessResourceModReqList.no_of_items = 1;
   // Adding respective header to amf_pdu_ses_setup_transfer_request
@@ -215,8 +217,6 @@ int pdu_session_resource_modify_request(
       qos_flow_list_to_release->numOfItems++;
     }
   }
-
-  ngap_pdu_ses_mod_req->nas_pdu = nas_msg;
 
   // Send message to NGAP task
   amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);

@@ -112,6 +112,7 @@ Status AmfServiceImpl::SetSmfSessionContext(
       LOG_UTIL, "Received GRPC SetSmfSessionContext request from SMF\n");
 
   itti_n11_create_pdu_session_response_t itti_msg;
+  memset(&itti_msg, 0, sizeof(itti_n11_create_pdu_session_response_t));
   auto& req_common = request->common_context();
   auto& req_m5g    = request->rat_specific_context().m5g_session_context_rsp();
 
@@ -159,9 +160,9 @@ Status AmfServiceImpl::SetSmfSessionContext(
     i++;
   }
 
-  itti_msg.qos_flow_list.maxNumOfQosFlows = req_m5g.qospolicy_size();
   for (; i < req_m5g.qospolicy_size(); i++) {
-    ul_tft         = &itti_msg.qos_flow_list.item[i].qos_flow_req_item.ul_tft;
+    ul_tft = &itti_msg.qos_flow_list.item[i].qos_flow_req_item.ul_tft;
+    memset(ul_tft, 0, sizeof(traffic_flow_template_t));
     auto& qos_rule = req_m5g.qospolicy(i);
     itti_msg.qos_flow_list.item[i].qos_flow_req_item.qos_flow_identifier =
         qos_rule.qos().qos().qci();
@@ -195,24 +196,26 @@ Status AmfServiceImpl::SetSmfSessionContext(
         qos_rule.qos().id().c_str());
 
     // flow descriptor
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_descriptor.qos_flow_identifier =
-        qos_rule.qos().qos().qci();
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_descriptor.fiveQi =
-        qos_rule.qos().qos().qci();
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_descriptor.mbr_dl =
-        qos_rule.qos().qos().max_req_bw_dl();
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_descriptor.mbr_ul =
-        qos_rule.qos().qos().max_req_bw_ul();
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_descriptor.gbr_dl =
-        qos_rule.qos().qos().gbr_dl();
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_descriptor.mbr_ul =
-        qos_rule.qos().qos().gbr_ul();
+    if (qos_rule.qos().has_qos()) {
+      itti_msg.qos_flow_list.item[i]
+          .qos_flow_req_item.qos_flow_descriptor.qos_flow_identifier =
+          qos_rule.qos().qos().qci();
+      itti_msg.qos_flow_list.item[i]
+          .qos_flow_req_item.qos_flow_descriptor.fiveQi =
+          qos_rule.qos().qos().qci();
+      itti_msg.qos_flow_list.item[i]
+          .qos_flow_req_item.qos_flow_descriptor.mbr_dl =
+          qos_rule.qos().qos().max_req_bw_dl();
+      itti_msg.qos_flow_list.item[i]
+          .qos_flow_req_item.qos_flow_descriptor.mbr_ul =
+          qos_rule.qos().qos().max_req_bw_ul();
+      itti_msg.qos_flow_list.item[i]
+          .qos_flow_req_item.qos_flow_descriptor.gbr_dl =
+          qos_rule.qos().qos().gbr_dl();
+      itti_msg.qos_flow_list.item[i]
+          .qos_flow_req_item.qos_flow_descriptor.gbr_ul =
+          qos_rule.qos().qos().gbr_ul();
+    }
     for (const auto& flow : qos_rule.qos().flow_list()) {
       if (flow.action() == FlowDescription::DENY) {
         continue;
@@ -221,25 +224,31 @@ Status AmfServiceImpl::SetSmfSessionContext(
       if ((flow.match().direction() == FlowMatch::UPLINK) &&
           (ul_count_packetfilters <
            TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX)) {
-        ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
-            .direction = TRAFFIC_FLOW_TEMPLATE_UPLINK_ONLY;
-        ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
-            .eval_precedence = qos_rule.qos().priority();
-        if (!fillUpPacketFilterContents(
-                &ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
-                     .packetfiltercontents,
-                &flow.match())) {
-          OAILOG_ERROR(
-              LOG_UTIL,
-              "The uplink packet filter contents are not formatted correctly."
-              "Cancelling dedicated bearer request. \n");
-          return Status::CANCELLED;
+        if (qos_rule.policy_action() == QosPolicy::ADD) {
+          ul_tft->tftoperationcode =
+              TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT;
+          ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
+              .direction = TRAFFIC_FLOW_TEMPLATE_UPLINK_ONLY;
+          ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
+              .eval_precedence = qos_rule.qos().priority();
+          if (!fillUpPacketFilterContents(
+                  &ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
+                       .packetfiltercontents,
+                  &flow.match())) {
+            OAILOG_ERROR(
+                LOG_UTIL,
+                "The uplink packet filter contents are not formatted correctly."
+                "Cancelling qos flow creation request. \n");
+            return Status::CANCELLED;
+          }
+          ++ul_count_packetfilters;
+          ul_tft->numberofpacketfilters++;
         }
-        ++ul_count_packetfilters;
-        ul_tft->numberofpacketfilters++;
+      } else if (qos_rule.policy_action() == QosPolicy::DEL) {
       }
     }
   }
+  itti_msg.qos_flow_list.maxNumOfQosFlows = i;
 
   // get the 4 byte UPF TEID and UPF IP message
   uint32_t nteid                = req_m5g.upf_endpoint().teid();

@@ -1333,8 +1333,8 @@ int ngap_fill_pdu_session_resource_modify_request_transfer(
                             .qos_flow_req_item.qos_flow_descriptor.gbr_dl));
       ENCODE_U32(
           qos_flow_params->gBR_QosInformation->guaranteedFlowBitRateDL.buf,
-          qos_list->item[i].qos_flow_req_item.qos_flow_descriptor.mbr_dl,
-          qos_flow_params->gBR_QosInformation->maximumFlowBitRateDL.size);
+          qos_list->item[i].qos_flow_req_item.qos_flow_descriptor.gbr_dl,
+          qos_flow_params->gBR_QosInformation->guaranteedFlowBitRateDL.size);
       // GFBR UL
       qos_flow_params->gBR_QosInformation->guaranteedFlowBitRateUL.buf =
           (uint8_t*) calloc(

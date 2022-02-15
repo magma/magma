@@ -274,6 +274,8 @@ int pdu_session_resource_modification_complete(
 
   if (smf_ctx->n_active_pdus) {
     /* Execute PDU Session Release and notify to SMF */
+    amf_smf_msg.u.establish.pdu_session_id =
+        smf_ctx->smf_proc_data.pdu_session_id;
     rc = pdu_state_handle_message(
         ue_context->mm_state, STATE_PDU_SESSION_MODIFICATION_COMPLETE,
         smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL, 0);
