@@ -35,7 +35,10 @@ int M5GQosFlowParam::EncodeM5GQosFlowParam(
       MLOG(MDEBUG) << "5Qi  = 0x" << std::hex << int(*(buffer + encoded));
       encoded++;
     } break;
-    case param_id_mfbr_uplink: {
+    case param_id_mfbr_uplink:
+    case param_id_mfbr_downlink:
+    case param_id_gfbr_uplink:
+    case param_id_gfbr_downlink: {
       *(buffer + encoded) = param->iei;
       MLOG(MDEBUG) << "mfbr_uplink iei = 0x" << std::hex
                    << int(*(buffer + encoded));
@@ -50,80 +53,16 @@ int M5GQosFlowParam::EncodeM5GQosFlowParam(
                    << int(*(buffer + encoded));
       encoded++;
 
-      *(buffer + encoded) = param->element & (0x00ff);
-      encoded++;
       *(buffer + encoded) = (param->element & 0xff00) >> 8;
-      encoded++;
-      MLOG(MDEBUG) << "mfbr element  = 0x" << std::hex
-                   << int(*(buffer + encoded));
-    } break;
-    case param_id_mfbr_downlink: {
-      *(buffer + encoded) = param->iei;
-      MLOG(MDEBUG) << "mfbr_downlink iei = 0x" << std::hex
+      MLOG(MDEBUG) << "Element Octet1  = 0x" << std::hex
                    << int(*(buffer + encoded));
       encoded++;
-
-      *(buffer + encoded) = param->length;
-      MLOG(MDEBUG) << "iei length= 0x" << std::hex << int(*(buffer + encoded));
-      encoded++;
-
-      *(buffer + encoded) = param->units;
-      MLOG(MDEBUG) << "mfbr_downlink units  = 0x" << std::hex
-                   << int(*(buffer + encoded));
-      encoded++;
-
       *(buffer + encoded) = param->element & (0x00ff);
-      encoded++;
-      *(buffer + encoded) = (param->element & 0xff00) >> 8;
-      encoded++;
-      MLOG(MDEBUG) << "gfbr element  = 0x" << std::hex
+      MLOG(MDEBUG) << "Element Octet2 = 0x" << std::hex
                    << int(*(buffer + encoded));
+      encoded++;
     } break;
-    case param_id_gfbr_uplink: {
-      *(buffer + encoded) = param->iei;
-      MLOG(MDEBUG) << "gfbr_uplink iei = 0x" << std::hex
-                   << int(*(buffer + encoded));
-      encoded++;
-
-      *(buffer + encoded) = param->length;
-      MLOG(MDEBUG) << "iei length= 0x" << std::hex << int(*(buffer + encoded));
-      encoded++;
-
-      *(buffer + encoded) = param->units;
-      MLOG(MDEBUG) << "gfbr units  = 0x" << std::hex
-                   << int(*(buffer + encoded));
-      encoded++;
-
-      *(buffer + encoded) = param->element & (0x00ff);
-      encoded++;
-      *(buffer + encoded) = (param->element & 0xff00) >> 8;
-      encoded++;
-      MLOG(MDEBUG) << "gfbr element  = 0x" << std::hex
-                   << int(*(buffer + encoded));
-    } break;
-    case param_id_gfbr_downlink: {
-      *(buffer + encoded) = param->iei;
-      MLOG(MDEBUG) << "gfbr_downlink iei = 0x" << std::hex
-                   << int(*(buffer + encoded));
-      encoded++;
-
-      *(buffer + encoded) = param->length;
-      MLOG(MDEBUG) << "iei length= 0x" << std::hex << int(*(buffer + encoded));
-      encoded++;
-
-      *(buffer + encoded) = param->units;
-      MLOG(MDEBUG) << "gfbr units  = 0x" << std::hex
-                   << int(*(buffer + encoded));
-      encoded++;
-
-      *(buffer + encoded) = param->element & (0x00ff);
-      encoded++;
-      *(buffer + encoded) = (param->element & 0xff00) >> 8;
-      encoded++;
-      MLOG(MDEBUG) << "gfbr element  = 0x" << std::hex
-                   << int(*(buffer + encoded));
-    } break;
-    default: { return -1; }
+    default: {}
   }
   return encoded;
 }
