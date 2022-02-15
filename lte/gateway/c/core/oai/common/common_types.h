@@ -53,12 +53,12 @@ typedef uint16_t sctp_stream_id_t;
 typedef uint32_t sctp_assoc_id_t;
 typedef uint32_t sctp_ppid_t;
 typedef uint64_t enb_s1ap_id_key_t;
-#define MME_APP_ENB_S1AP_ID_KEY(kEy, eNb_Id, eNb_Ue_S1Ap_Id)                   \
-  do {                                                                         \
-    kEy = (((enb_s1ap_id_key_t) eNb_Id) << 24) | eNb_Ue_S1Ap_Id;               \
+#define MME_APP_ENB_S1AP_ID_KEY(kEy, eNb_Id, eNb_Ue_S1Ap_Id)    \
+  do {                                                          \
+    kEy = (((enb_s1ap_id_key_t)eNb_Id) << 24) | eNb_Ue_S1Ap_Id; \
   } while (0);
-#define MME_APP_ENB_S1AP_ID_KEY2ENB_S1AP_ID(kEy)                               \
-  (enb_ue_s1ap_id_t)(((enb_s1ap_id_key_t) kEy) & ENB_UE_S1AP_ID_MASK)
+#define MME_APP_ENB_S1AP_ID_KEY2ENB_S1AP_ID(kEy) \
+  (enb_ue_s1ap_id_t)(((enb_s1ap_id_key_t)kEy) & ENB_UE_S1AP_ID_MASK)
 #define MME_APP_ENB_S1AP_ID_KEY_FORMAT "0x%16" PRIX64
 
 #define M_TMSI_BIT_MASK UINT32_MAX
@@ -94,9 +94,9 @@ typedef uint64_t enb_s1ap_id_key_t;
 #define INVALID_AMF_UE_NGAP_ID 0x0
 #define INVALID_GNB_UE_NGAP_ID 0x0
 
-#define AMF_APP_GNB_NGAP_ID_KEY(kEy, gNb_Id, gNb_Ue_NgAp_Id)                   \
-  do {                                                                         \
-    kEy = (((gnb_ngap_id_key_t) gNb_Id) << 24) | gNb_Ue_NgAp_Id;               \
+#define AMF_APP_GNB_NGAP_ID_KEY(kEy, gNb_Id, gNb_Ue_NgAp_Id)    \
+  do {                                                          \
+    kEy = (((gnb_ngap_id_key_t)gNb_Id) << 24) | gNb_Ue_NgAp_Id; \
   } while (0);
 
 //------------------------------------------------------------------------------
@@ -116,7 +116,7 @@ typedef uint64_t imei64_t;
 #define IMSI_64_FMT "%" SCNu64
 #define IMEI_64_FMT "%" SCNu64
 #define IMSI_64_FMT_DYN_LEN "%.*lu"
-#define INVALID_IMSI64 (imsi64_t) 0
+#define INVALID_IMSI64 (imsi64_t)0
 
 //------------------------------------------------------------------------------
 // PLMN
@@ -125,19 +125,19 @@ typedef uint64_t imei64_t;
 
 #define LAC_FMT "0x%04X"
 /* Checks LAC validity */
-#define LAC_IS_VALID(lac)                                                      \
+#define LAC_IS_VALID(lac) \
   (((lac) != INVALID_LAC_0000) && ((lac) != INVALID_LAC_FFFE))
 
 //------------------------------------------------------------------------------
 // GUTI
 #define GUTI_FMT PLMN_FMT "|%04x|%02x|%08x"
-#define GUTI_ARG(GuTi_PtR)                                                     \
-  PLMN_ARG(&(GuTi_PtR)->gummei.plmn), (GuTi_PtR)->gummei.mme_gid,              \
+#define GUTI_ARG(GuTi_PtR)                                        \
+  PLMN_ARG(&(GuTi_PtR)->gummei.plmn), (GuTi_PtR)->gummei.mme_gid, \
       (GuTi_PtR)->gummei.mme_code, (GuTi_PtR)->m_tmsi
 
-#define GUTI_ARG_M5G(GuTi_PtR)                                                 \
-  PLMN_ARG(&(GuTi_PtR)->guamfi.plmn), (GuTi_PtR)->guamfi.amf_gid,              \
-      (GuTi_PtR)->guamfi.amf_code, (GuTi_PtR)->guamfi.amf_Pointer,             \
+#define GUTI_ARG_M5G(GuTi_PtR)                                     \
+  PLMN_ARG(&(GuTi_PtR)->guamfi.plmn), (GuTi_PtR)->guamfi.amf_gid,  \
+      (GuTi_PtR)->guamfi.amf_code, (GuTi_PtR)->guamfi.amf_Pointer, \
       (GuTi_PtR)->m_tmsi
 
 #define MSISDN_LENGTH (15)
@@ -162,32 +162,32 @@ typedef uint8_t ksi_t;
 typedef uint8_t AcT_t; /* Access Technology    */
 
 typedef enum {
-  RAT_WLAN           = 0,
-  RAT_VIRTUAL        = 1,
-  RAT_UTRAN          = 1000,
-  RAT_GERAN          = 1001,
-  RAT_GAN            = 1002,
+  RAT_WLAN = 0,
+  RAT_VIRTUAL = 1,
+  RAT_UTRAN = 1000,
+  RAT_GERAN = 1001,
+  RAT_GAN = 1002,
   RAT_HSPA_EVOLUTION = 1003,
-  RAT_EUTRAN         = 1004,
-  RAT_NG_RAN         = 1006,
-  RAT_CDMA2000_1X    = 2000,
-  RAT_HRPD           = 2001,
-  RAT_UMB            = 2002,
-  RAT_EHRPD          = 2003,
+  RAT_EUTRAN = 1004,
+  RAT_NG_RAN = 1006,
+  RAT_CDMA2000_1X = 2000,
+  RAT_HRPD = 2001,
+  RAT_UMB = 2002,
+  RAT_EHRPD = 2003,
 } rat_type_t;
 
 #define NUMBER_OF_RAT_TYPE 12
 
 typedef enum {
-  SS_SERVICE_GRANTED             = 0,
+  SS_SERVICE_GRANTED = 0,
   SS_OPERATOR_DETERMINED_BARRING = 1,
   SS_MAX,
 } subscriber_status_t;
 
 typedef enum {
   NAM_PACKET_AND_CIRCUIT = 0,
-  NAM_RESERVED           = 1,
-  NAM_ONLY_PACKET        = 2,
+  NAM_RESERVED = 1,
+  NAM_ONLY_PACKET = 2,
   NAM_MAX,
 } network_access_mode_t;
 
@@ -231,7 +231,7 @@ typedef union {
 } me_identity_t;
 
 typedef enum {
-  BPS  = 0,
+  BPS = 0,
   KBPS = 1,
 } apn_ambr_bitrate_unit_t;
 
@@ -246,10 +246,10 @@ typedef struct {
 typedef uint8_t pdn_type_t;
 
 typedef enum {
-  IPv4        = 0,
-  IPv6        = 1,
+  IPv4 = 0,
+  IPv6 = 1,
   IPv4_AND_v6 = 2,
-  IPv4_OR_v6  = 3,
+  IPv4_OR_v6 = 3,
   IP_MAX,
 } pdn_type_value_t;
 
@@ -300,7 +300,7 @@ typedef uint8_t qci_t;
 #define QCI_SCAN_FMT SCNu8
 
 typedef enum {
-  PRE_EMPTION_CAPABILITY_ENABLED  = 0,
+  PRE_EMPTION_CAPABILITY_ENABLED = 0,
   PRE_EMPTION_CAPABILITY_DISABLED = 1,
   PRE_EMPTION_CAPABILITY_MAX,
 } pre_emption_capability_t;
@@ -309,7 +309,7 @@ typedef enum {
 #define PRE_EMPTION_CAPABILITY_SCAN_FMT SCNu8
 
 typedef enum {
-  PRE_EMPTION_VULNERABILITY_ENABLED  = 0,
+  PRE_EMPTION_VULNERABILITY_ENABLED = 0,
   PRE_EMPTION_VULNERABILITY_DISABLED = 1,
   PRE_EMPTION_VULNERABILITY_MAX,
 } pre_emption_vulnerability_t;
@@ -360,7 +360,7 @@ typedef struct apn_configuration_s {
 } apn_configuration_t;
 
 typedef enum {
-  ALL_APN_CONFIGURATIONS_INCLUDED            = 0,
+  ALL_APN_CONFIGURATIONS_INCLUDED = 0,
   MODIFIED_ADDED_APN_CONFIGURATIONS_INCLUDED = 1,
   ALL_APN_MAX,
 } all_apn_conf_ind_t;
@@ -416,16 +416,16 @@ typedef struct partial_list_s {
 
 typedef enum {
   DIAMETER_AUTHENTICATION_DATA_UNAVAILABLE = 4181,
-  DIAMETER_ERROR_USER_UNKNOWN              = 5001,
-  DIAMETER_ERROR_ROAMING_NOT_ALLOWED       = 5004,
-  DIAMETER_ERROR_UNKNOWN_EPS_SUBSCRIPTION  = 5420,
-  DIAMETER_ERROR_RAT_NOT_ALLOWED           = 5421,
-  DIAMETER_ERROR_EQUIPMENT_UNKNOWN         = 5422,
-  DIAMETER_ERROR_UNKOWN_SERVING_NODE       = 5423,
+  DIAMETER_ERROR_USER_UNKNOWN = 5001,
+  DIAMETER_ERROR_ROAMING_NOT_ALLOWED = 5004,
+  DIAMETER_ERROR_UNKNOWN_EPS_SUBSCRIPTION = 5420,
+  DIAMETER_ERROR_RAT_NOT_ALLOWED = 5421,
+  DIAMETER_ERROR_EQUIPMENT_UNKNOWN = 5422,
+  DIAMETER_ERROR_UNKOWN_SERVING_NODE = 5423,
 } s6a_experimental_result_t;
 
 typedef enum {
-  DIAMETER_SUCCESS          = 2001,
+  DIAMETER_SUCCESS = 2001,
   DIAMETER_UNABLE_TO_COMPLY = 5012,
 } s6a_base_result_t;
 

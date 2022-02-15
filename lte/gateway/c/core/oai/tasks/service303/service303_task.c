@@ -38,8 +38,8 @@ static long display_stats_timer_id;
 static int handle_display_timer(zloop_t*, int, void*);
 static void start_display_stats_timer(size_t);
 
-static int handle_service303_server_message(
-    zloop_t* loop, zsock_t* reader, void* arg) {
+static int handle_service303_server_message(zloop_t* loop, zsock_t* reader,
+                                            void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
@@ -49,9 +49,9 @@ static int handle_service303_server_message(
       service303_server_exit();
       break;
     default: {
-      OAILOG_DEBUG(
-          LOG_UTIL, "Unknown message ID %d: %s\n",
-          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
+      OAILOG_DEBUG(LOG_UTIL, "Unknown message ID %d: %s\n",
+                   ITTI_MSG_ID(received_message_p),
+                   ITTI_MSG_NAME(received_message_p));
     } break;
   }
 
@@ -61,14 +61,14 @@ static int handle_service303_server_message(
 }
 
 static void* service303_server_thread(__attribute__((unused)) void* args) {
-  service303_data_t* service303_data = (service303_data_t*) args;
+  service303_data_t* service303_data = (service303_data_t*)args;
 
   start_service303_server(service303_data->name, service303_data->version);
 
   itti_mark_task_ready(TASK_SERVICE303_SERVER);
-  init_task_context(
-      TASK_SERVICE303_SERVER, (task_id_t[]){}, 0,
-      handle_service303_server_message, &service303_server_task_zmq_ctx);
+  init_task_context(TASK_SERVICE303_SERVER, (task_id_t[]){}, 0,
+                    handle_service303_server_message,
+                    &service303_server_task_zmq_ctx);
 
   zloop_start(service303_server_task_zmq_ctx.event_loop);
   AssertFatal(
@@ -101,9 +101,9 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
       service303_message_exit();
       break;
     default: {
-      OAILOG_DEBUG(
-          LOG_UTIL, "Unknown message ID %d: %s\n",
-          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
+      OAILOG_DEBUG(LOG_UTIL, "Unknown message ID %d: %s\n",
+                   ITTI_MSG_ID(received_message_p),
+                   ITTI_MSG_NAME(received_message_p));
     } break;
   }
 
@@ -112,12 +112,11 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
 }
 
 static void* service303_thread(void* args) {
-  service303_data_t* service303_data = (service303_data_t*) args;
+  service303_data_t* service303_data = (service303_data_t*)args;
   itti_mark_task_ready(TASK_SERVICE303);
-  init_task_context(
-      TASK_SERVICE303, (task_id_t[]){}, 0, handle_service_message,
-      &service303_message_task_zmq_ctx);
-  start_display_stats_timer((size_t) service303_data->stats_display_timer_sec);
+  init_task_context(TASK_SERVICE303, (task_id_t[]){}, 0, handle_service_message,
+                    &service303_message_task_zmq_ctx);
+  start_display_stats_timer((size_t)service303_data->stats_display_timer_sec);
   zloop_start(service303_message_task_zmq_ctx.event_loop);
   AssertFatal(
       0, "Asserting as service303_thread should not be exiting on its own!");
@@ -127,9 +126,8 @@ static void* service303_thread(void* args) {
 status_code_e service303_init(service303_data_t* service303_data) {
   OAILOG_DEBUG(LOG_UTIL, "Initializing Service303 task interface\n");
 
-  if (itti_create_task(
-          TASK_SERVICE303_SERVER, &service303_server_thread, service303_data) <
-      0) {
+  if (itti_create_task(TASK_SERVICE303_SERVER, &service303_server_thread,
+                       service303_data) < 0) {
     perror("pthread_create");
     OAILOG_ALERT(LOG_UTIL, "Initializing Service303 server: ERROR\n");
     return RETURNerror;
@@ -138,8 +136,8 @@ status_code_e service303_init(service303_data_t* service303_data) {
   if (itti_create_task(TASK_SERVICE303, &service303_thread, service303_data) <
       0) {
     perror("pthread_create");
-    OAILOG_ALERT(
-        LOG_UTIL, "Initializing Service303 message interface: ERROR\n");
+    OAILOG_ALERT(LOG_UTIL,
+                 "Initializing Service303 message interface: ERROR\n");
     return RETURNerror;
   }
 

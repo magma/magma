@@ -14,7 +14,7 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 }
 
 int main(int argc, char** argv) {

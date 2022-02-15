@@ -28,13 +28,12 @@
 
 struct avp;
 
-int s6a_parse_supported_features(
-    struct avp* avp_supported_features,
-    supported_features_t* subscription_data) {
+int s6a_parse_supported_features(struct avp* avp_supported_features,
+                                 supported_features_t* subscription_data) {
   struct avp* avp = NULL;
   struct avp_hdr* hdr;
   uint32_t feature_list_id = 0;
-  uint32_t feature_list    = 0;
+  uint32_t feature_list = 0;
 
   CHECK_FCT(
       fd_msg_browse(avp_supported_features, MSG_BRW_FIRST_CHILD, &avp, NULL));
@@ -71,8 +70,8 @@ int s6a_parse_supported_features(
           break;
 
         default:
-          OAILOG_DEBUG(
-              LOG_S6A, "Unknown AVP code %d not processed\n", hdr->avp_code);
+          OAILOG_DEBUG(LOG_S6A, "Unknown AVP code %d not processed\n",
+                       hdr->avp_code);
           return RETURNerror;
       }
     } else {

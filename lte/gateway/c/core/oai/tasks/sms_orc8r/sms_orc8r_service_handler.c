@@ -30,21 +30,20 @@ status_code_e handle_sms_orc8r_downlink_unitdata(
     const itti_sgsap_downlink_unitdata_t* sgs_dl_unitdata_p) {
   int rc = RETURNok;
 
-  MessageDef* message_p                              = NULL;
+  MessageDef* message_p = NULL;
   itti_sgsap_downlink_unitdata_t* sgs_dl_unit_data_p = NULL;
 
-  message_p = DEPRECATEDitti_alloc_new_message_fatal(
-      TASK_SMS_ORC8R, SGSAP_DOWNLINK_UNITDATA);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_SMS_ORC8R,
+                                                     SGSAP_DOWNLINK_UNITDATA);
   sgs_dl_unit_data_p = &message_p->ittiMsg.sgsap_downlink_unitdata;
-  memset((void*) sgs_dl_unit_data_p, 0, sizeof(itti_sgsap_downlink_unitdata_t));
+  memset((void*)sgs_dl_unit_data_p, 0, sizeof(itti_sgsap_downlink_unitdata_t));
 
-  memcpy(
-      sgs_dl_unit_data_p, sgs_dl_unitdata_p,
-      sizeof(itti_sgsap_downlink_unitdata_t));
+  memcpy(sgs_dl_unit_data_p, sgs_dl_unitdata_p,
+         sizeof(itti_sgsap_downlink_unitdata_t));
   // send it to NAS module for further processing
-  OAILOG_DEBUG(
-      LOG_SMS_ORC8R, "Received SMO Downlink UnitData message %s from Orc8r\n",
-      sgs_dl_unit_data_p->nas_msg_container->data);
+  OAILOG_DEBUG(LOG_SMS_ORC8R,
+               "Received SMO Downlink UnitData message %s from Orc8r\n",
+               sgs_dl_unit_data_p->nas_msg_container->data);
   rc = send_msg_to_task(&sms_orc8r_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

@@ -35,8 +35,8 @@
 #define OAI_GCC_DIAG_DO_PRAGMA(x) _Pragma(#x)
 #define OAI_GCC_DIAG_PRAGMA(x) OAI_GCC_DIAG_DO_PRAGMA(GCC diagnostic x)
 #if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 406
-#define OAI_GCC_DIAG_OFF(x)                                                    \
-  OAI_GCC_DIAG_PRAGMA(push)                                                    \
+#define OAI_GCC_DIAG_OFF(x) \
+  OAI_GCC_DIAG_PRAGMA(push) \
   OAI_GCC_DIAG_PRAGMA(ignored x)
 #define OAI_GCC_DIAG_ON(x) OAI_GCC_DIAG_PRAGMA(pop)
 #else

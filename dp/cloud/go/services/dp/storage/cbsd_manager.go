@@ -14,7 +14,6 @@ package storage
 
 import (
 	"database/sql"
-	"encoding/json"
 
 	sq "github.com/Masterminds/squirrel"
 
@@ -78,7 +77,7 @@ func (c *cbsdManager) UpdateCbsd(networkId string, id int64, data *DBCbsd) error
 func (c *cbsdManager) DeleteCbsd(networkId string, id int64) error {
 	_, err := sqorc.ExecInTx(c.db, nil, nil, func(tx *sql.Tx) (interface{}, error) {
 		runner := c.getInTransactionManager(tx)
-		err := runner.deleteAndDeregisterCbsd(networkId, id)
+		err := runner.markCbsdAsDeleted(networkId, id)
 		return nil, err
 	})
 	return makeError(err)
@@ -167,7 +166,7 @@ func (e *enumCache) getValue(builder sq.StatementBuilderType, model db.Model, na
 	if err != nil {
 		return 0, err
 	}
-	e.cache[meta.Table][name] = r[0].Fields()["id"].Value().(int64)
+	e.cache[meta.Table][name] = r[0].Fields()["id"].GetValue().(int64)
 	return e.cache[meta.Table][name], nil
 }
 
@@ -179,8 +178,7 @@ func getCbsdWriteFields() []string {
 }
 
 func (c *cbsdManagerInTransaction) updateCbsd(networkId string, id int64, data *DBCbsd) error {
-	_, err := c.fetchCbsd(networkId, id, "id")
-	if err != nil {
+	if err := c.checkIfCbsdExists(networkId, id); err != nil {
 		return err
 	}
 	return db.NewQuery().
@@ -191,83 +189,31 @@ func (c *cbsdManagerInTransaction) updateCbsd(networkId string, id int64, data *
 		Update()
 }
 
-func (c *cbsdManagerInTransaction) fetchCbsd(networkId string, id int64, columns ...string) (*DBCbsd, error) {
-	cbsd, err := db.NewQuery().
+func (c *cbsdManagerInTransaction) checkIfCbsdExists(networkId string, id int64) error {
+	_, err := db.NewQuery().
 		WithBuilder(c.builder).
 		From(&DBCbsd{}).
-		Select(db.NewIncludeMask(columns...)).
-		Where(sq.Eq{"network_id": networkId, "id": id}).
+		Select(db.NewIncludeMask("id")).
+		Where(getCbsdFiltersWithId(networkId, id)).
 		Fetch()
-	if err != nil {
-		return nil, err
-	}
-	return cbsd[0].(*DBCbsd), nil
-}
-
-func (c *cbsdManagerInTransaction) deleteAndDeregisterCbsd(networkId string, id int64) error {
-	cbsd, err := c.fetchCbsd(networkId, id, "cbsd_id")
-	if err != nil {
-		return err
-	}
-	if cbsd.CbsdId.Valid {
-		if err := c.deregisterCbsd(cbsd.CbsdId.String); err != nil {
-			return err
-		}
-	}
-	return db.NewQuery().
-		WithBuilder(c.builder).
-		From(&DBCbsd{}).
-		Where(sq.Eq{"id": id}).
-		Delete()
-}
-
-func (c *cbsdManagerInTransaction) deregisterCbsd(cbsdId string) error {
-	deregistration, err := c.cache.getValue(c.builder, &DBRequestType{}, "deregistrationRequest")
-	if err != nil {
-		return err
-	}
-	pending, err := c.cache.getValue(c.builder, &DBRequestState{}, "pending")
-	if err != nil {
-		return err
-	}
-	payload := buildDeregistrationPayload(cbsdId)
-	request := &DBRequest{
-		TypeId:  db.MakeInt(deregistration),
-		StateId: db.MakeInt(pending),
-		Payload: db.MakeString(payload),
-	}
-	_, err = db.NewQuery().
-		WithBuilder(c.builder).
-		From(request).
-		Select(db.NewIncludeMask("type_id", "state_id", "payload")).
-		Insert()
 	return err
 }
 
-func buildDeregistrationPayload(cbsdId string) string {
-	r := &deregistrationRequestMessage{
-		DeregistrationRequest: []*deregistrationRequest{{
-			CbsdId: cbsdId,
-		}},
+func (c *cbsdManagerInTransaction) markCbsdAsDeleted(networkId string, id int64) error {
+	if err := c.checkIfCbsdExists(networkId, id); err != nil {
+		return err
 	}
-	b, _ := json.Marshal(r)
-	return string(b)
-}
-
-type deregistrationRequestMessage struct {
-	DeregistrationRequest []*deregistrationRequest `json:"deregistrationRequest"`
-}
-
-type deregistrationRequest struct {
-	CbsdId string `json:"cbsdId"`
+	return db.NewQuery().
+		WithBuilder(c.builder).
+		From(&DBCbsd{IsDeleted: db.MakeBool(true)}).
+		Select(db.NewIncludeMask("is_deleted")).
+		Where(sq.Eq{"id": id}).
+		Update()
 }
 
 func (c *cbsdManagerInTransaction) fetchDetailedCbsd(networkId string, id int64) (*DetailedCbsd, error) {
 	res, err := buildDetailedCbsdQuery(c.builder).
-		Where(sq.Eq{
-			CbsdTable + ".id":         id,
-			CbsdTable + ".network_id": networkId,
-		}).
+		Where(getCbsdFiltersWithId(networkId, id)).
 		Fetch()
 	if err != nil {
 		return nil, err
@@ -289,7 +235,7 @@ func buildDetailedCbsdQuery(builder sq.StatementBuilderType) *db.Query {
 	return db.NewQuery().
 		WithBuilder(builder).
 		From(&DBCbsd{}).
-		Select(db.NewExcludeMask("network_id", "state_id")).
+		Select(db.NewExcludeMask("network_id", "state_id", "is_deleted")).
 		Join(db.NewQuery().
 			From(&DBCbsdState{}).
 			Select(db.NewIncludeMask("name"))).
@@ -309,7 +255,7 @@ func buildDetailedCbsdQuery(builder sq.StatementBuilderType) *db.Query {
 func (c *cbsdManagerInTransaction) listDetailedCbsd(networkId string, pagination *Pagination) ([]*DetailedCbsd, error) {
 	query := buildDetailedCbsdQuery(c.builder)
 	res, err := buildPagination(query, pagination).
-		Where(sq.Eq{CbsdTable + ".network_id": networkId}).
+		Where(getCbsdFilters(networkId)).
 		OrderBy(CbsdTable+".id", db.OrderAsc).
 		List()
 	if err != nil {
@@ -327,4 +273,17 @@ func makeError(err error) error {
 		return merrors.ErrNotFound
 	}
 	return err
+}
+
+func getCbsdFiltersWithId(networkId string, id int64) sq.Eq {
+	filters := getCbsdFilters(networkId)
+	filters[CbsdTable+".id"] = id
+	return filters
+}
+
+func getCbsdFilters(networkId string) sq.Eq {
+	return sq.Eq{
+		CbsdTable + ".network_id": networkId,
+		CbsdTable + ".is_deleted": false,
+	}
 }

@@ -27,13 +27,10 @@ struct bpf_map_val {
   uint8_t user_data[64];
 };
 
-int get_map_fd() {
-  return bpf_obj_get(DL_MAP_PATH);
-}
+int get_map_fd() { return bpf_obj_get(DL_MAP_PATH); }
 
-void add_ebpf_dl_map_entry(
-    int hash_fd, struct in_addr ue, struct in_addr enb, uint32_t o_tei,
-    Imsi_t imsi) {
+void add_ebpf_dl_map_entry(int hash_fd, struct in_addr ue, struct in_addr enb,
+                           uint32_t o_tei, Imsi_t imsi) {
   struct bpf_map_val val = {htonl(enb.s_addr), o_tei, 0, {}};
   memcpy(val.user_data, imsi.digit, sizeof(imsi.digit));
   uint32_t nkey = htonl(ue.s_addr);

@@ -68,17 +68,16 @@
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_proc_status_ind(
-    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
-    esm_cause_t* esm_cause) {
+status_code_e esm_proc_status_ind(emm_context_t* emm_context, proc_tid_t pti,
+                                  ebi_t ebi, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc = RETURNerror;
 
-  OAILOG_INFO_UE(
-      LOG_NAS_ESM, emm_context->_imsi64,
-      "ESM-PROC  - ESM status procedure requested (cause=%d)\n", *esm_cause);
-  OAILOG_DEBUG_UE(
-      LOG_NAS_ESM, emm_context->_imsi64, "ESM-PROC  - To be implemented\n");
+  OAILOG_INFO_UE(LOG_NAS_ESM, emm_context->_imsi64,
+                 "ESM-PROC  - ESM status procedure requested (cause=%d)\n",
+                 *esm_cause);
+  OAILOG_DEBUG_UE(LOG_NAS_ESM, emm_context->_imsi64,
+                  "ESM-PROC  - To be implemented\n");
 
   switch (*esm_cause) {
     case ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY:
@@ -148,28 +147,28 @@ status_code_e esm_proc_status_ind(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_proc_status(
-    const bool is_standalone, emm_context_t* const emm_context, const ebi_t ebi,
-    STOLEN_REF bstring* msg, const bool ue_triggered) {
+status_code_e esm_proc_status(const bool is_standalone,
+                              emm_context_t* const emm_context, const ebi_t ebi,
+                              STOLEN_REF bstring* msg,
+                              const bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc            = RETURNerror;
+  int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
 
-  OAILOG_INFO_UE(
-      LOG_NAS_ESM, emm_context->_imsi64,
-      "ESM-PROC  - ESM status procedure requested\n");
+  OAILOG_INFO_UE(LOG_NAS_ESM, emm_context->_imsi64,
+                 "ESM-PROC  - ESM status procedure requested\n");
   /*
    * Notity EMM that ESM PDU has to be forwarded to lower layers
    */
-  emm_sap.primitive            = EMMESM_UNITDATA_REQ;
-  emm_sap.u.emm_esm.ue_id      = ue_id;
-  emm_sap.u.emm_esm.ctx        = emm_context;
+  emm_sap.primitive = EMMESM_UNITDATA_REQ;
+  emm_sap.u.emm_esm.ue_id = ue_id;
+  emm_sap.u.emm_esm.ctx = emm_context;
   emm_sap.u.emm_esm.u.data.msg = *msg;
-  *msg                         = NULL;
-  rc                           = emm_sap_send(&emm_sap);
+  *msg = NULL;
+  rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
 

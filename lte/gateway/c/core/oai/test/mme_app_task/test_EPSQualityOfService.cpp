@@ -24,9 +24,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 }
 
-TEST(
-    test_qos_params_to_eps_qos_for_apnambr_test,
-    qos_params_to_eps_qos_for_apnambr_test) {
+TEST(test_qos_params_to_eps_qos_for_apnambr_test,
+     qos_params_to_eps_qos_for_apnambr_test) {
   EpsQualityOfService eps_qos = {0};
 
   ASSERT_EQ(
@@ -141,10 +140,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 0);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 8640000, 8640000, 8640000, 8640000, &eps_qos, false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 8640000, 8640000, 8640000, 8640000,
+                                  &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);
@@ -158,10 +156,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 0);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 8800000, 8800000, 8800000, 8800000, &eps_qos, false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 8800000, 8800000, 8800000, 8800000,
+                                  &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);
@@ -175,10 +172,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 0);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 16000000, 16000000, 16000000, 16000000, &eps_qos, false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 16000000, 16000000, 16000000, 16000000,
+                                  &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);
@@ -192,10 +188,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 0);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 17000000, 17000000, 17000000, 17000000, &eps_qos, false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 17000000, 17000000, 17000000, 17000000,
+                                  &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);
@@ -209,10 +204,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 0);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 20000000, 20000000, 20000000, 20000000, &eps_qos, false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 20000000, 20000000, 20000000, 20000000,
+                                  &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);
@@ -226,10 +220,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 0);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 128000000, 128000000, 128000000, 128000000, &eps_qos, false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 128000000, 128000000, 128000000, 128000000,
+                                  &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);
@@ -243,10 +236,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 0);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 130000000, 130000000, 130000000, 130000000, &eps_qos, false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 130000000, 130000000, 130000000, 130000000,
+                                  &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);
@@ -260,10 +252,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 0);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 150000000, 150000000, 150000000, 150000000, &eps_qos, false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 150000000, 150000000, 150000000, 150000000,
+                                  &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);
@@ -277,10 +268,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 0);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 256000000, 256000000, 256000000, 256000000, &eps_qos, false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 256000000, 256000000, 256000000, 256000000,
+                                  &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);
@@ -294,10 +284,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 0);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 260000000, 260000000, 260000000, 260000000, &eps_qos, false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 260000000, 260000000, 260000000, 260000000,
+                                  &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);
@@ -311,10 +300,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 1);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 1);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 300000000, 300000000, 300000000, 300000000, &eps_qos, false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 300000000, 300000000, 300000000, 300000000,
+                                  &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);
@@ -328,10 +316,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 11);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 11);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 500000000, 500000000, 500000000, 500000000, &eps_qos, false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 500000000, 500000000, 500000000, 500000000,
+                                  &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);
@@ -345,10 +332,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 61);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 61);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 510000000, 510000000, 510000000, 510000000, &eps_qos, false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 510000000, 510000000, 510000000, 510000000,
+                                  &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);
@@ -362,10 +348,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 62);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 62);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 600000000, 600000000, 600000000, 600000000, &eps_qos, false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 600000000, 600000000, 600000000, 600000000,
+                                  &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);
@@ -379,10 +364,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 71);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 71);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 1500000000, 1500000000, 1500000000, 1500000000, &eps_qos, false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 1500000000, 1500000000, 1500000000,
+                                  1500000000, &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);
@@ -396,10 +380,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 161);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 161);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 1600000000, 1600000000, 1600000000, 1600000000, &eps_qos, false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 1600000000, 1600000000, 1600000000,
+                                  1600000000, &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);
@@ -413,10 +396,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 162);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 162);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 2000000000, 2000000000, 2000000000, 2000000000, &eps_qos, false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 2000000000, 2000000000, 2000000000,
+                                  2000000000, &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);
@@ -430,11 +412,9 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForUL), 166);
   ASSERT_EQ((eps_qos.bitRatesExt2.guarBitRateForDL), 166);
 
-  ASSERT_EQ(
-      qos_params_to_eps_qos(
-          1, 10000000000, 10000000000, 10000000000, 10000000000, &eps_qos,
-          false),
-      RETURNok);
+  ASSERT_EQ(qos_params_to_eps_qos(1, 10000000000, 10000000000, 10000000000,
+                                  10000000000, &eps_qos, false),
+            RETURNok);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 254);
   ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 254);
   ASSERT_EQ((eps_qos.bitRates.guarBitRateForUL), 254);

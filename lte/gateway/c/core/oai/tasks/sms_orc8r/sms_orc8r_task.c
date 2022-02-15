@@ -61,9 +61,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     default: {
-      OAILOG_DEBUG(
-          LOG_SMS_ORC8R, "Unknown message ID %d:%s\n",
-          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
+      OAILOG_DEBUG(LOG_SMS_ORC8R, "Unknown message ID %d:%s\n",
+                   ITTI_MSG_ID(received_message_p),
+                   ITTI_MSG_NAME(received_message_p));
     } break;
   }
 
@@ -76,9 +76,8 @@ static void* sms_orc8r_thread(__attribute__((unused)) void* args_p) {
   task_zmq_ctx_t* task_zmq_ctx_p = &sms_orc8r_task_zmq_ctx;
 
   itti_mark_task_ready(TASK_SMS_ORC8R);
-  init_task_context(
-      TASK_SMS_ORC8R, (task_id_t[]){TASK_MME_APP}, 1, handle_message,
-      task_zmq_ctx_p);
+  init_task_context(TASK_SMS_ORC8R, (task_id_t[]){TASK_MME_APP}, 1,
+                    handle_message, task_zmq_ctx_p);
 
   zloop_start(task_zmq_ctx_p->event_loop);
   AssertFatal(

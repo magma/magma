@@ -26,7 +26,7 @@
 int decode_tracking_area_update_request(
     tracking_area_update_request_msg* tracking_area_update_request,
     uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   /* Check if we got a NULL pointer and if buffer length is >=
@@ -50,9 +50,9 @@ int decode_tracking_area_update_request(
 
   decoded++;
 
-  if ((decoded_result = decode_eps_mobile_identity(
-           &tracking_area_update_request->oldguti, 0, buffer + decoded,
-           len - decoded)) < 0)
+  if ((decoded_result =
+           decode_eps_mobile_identity(&tracking_area_update_request->oldguti, 0,
+                                      buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -131,10 +131,10 @@ int decode_tracking_area_update_request(
         break;
 
       case TRACKING_AREA_UPDATE_REQUEST_NONCEUE_IEI:
-        if ((decoded_result = decode_nonce(
-                 &tracking_area_update_request->nonceue,
-                 TRACKING_AREA_UPDATE_REQUEST_NONCEUE_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
+        if ((decoded_result =
+                 decode_nonce(&tracking_area_update_request->nonceue,
+                              TRACKING_AREA_UPDATE_REQUEST_NONCEUE_IEI,
+                              buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
         decoded += decoded_result;
@@ -402,7 +402,7 @@ int decode_tracking_area_update_request(
 int encode_tracking_area_update_request(
     tracking_area_update_request_msg* tracking_area_update_request,
     uint8_t* buffer, uint32_t len) {
-  int encoded       = 0;
+  int encoded = 0;
   int encode_result = 0;
 
   /*
@@ -486,10 +486,9 @@ int encode_tracking_area_update_request(
   if ((tracking_area_update_request->presencemask &
        TRACKING_AREA_UPDATE_REQUEST_NONCEUE_PRESENT) ==
       TRACKING_AREA_UPDATE_REQUEST_NONCEUE_PRESENT) {
-    if ((encode_result = encode_nonce(
-             &tracking_area_update_request->nonceue,
-             TRACKING_AREA_UPDATE_REQUEST_NONCEUE_IEI, buffer + encoded,
-             len - encoded)) < 0) {
+    if ((encode_result = encode_nonce(&tracking_area_update_request->nonceue,
+                                      TRACKING_AREA_UPDATE_REQUEST_NONCEUE_IEI,
+                                      buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
     } else {
@@ -599,10 +598,10 @@ int encode_tracking_area_update_request(
   if ((tracking_area_update_request->presencemask &
        TRACKING_AREA_UPDATE_REQUEST_TMSI_STATUS_PRESENT) ==
       TRACKING_AREA_UPDATE_REQUEST_TMSI_STATUS_PRESENT) {
-    if ((encode_result = encode_tmsi_status(
-             &tracking_area_update_request->tmsistatus,
-             TRACKING_AREA_UPDATE_REQUEST_TMSI_STATUS_IEI, buffer + encoded,
-             len - encoded)) < 0) {
+    if ((encode_result =
+             encode_tmsi_status(&tracking_area_update_request->tmsistatus,
+                                TRACKING_AREA_UPDATE_REQUEST_TMSI_STATUS_IEI,
+                                buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
     } else {
@@ -669,10 +668,10 @@ int encode_tracking_area_update_request(
   if ((tracking_area_update_request->presencemask &
        TRACKING_AREA_UPDATE_REQUEST_OLD_GUTI_TYPE_PRESENT) ==
       TRACKING_AREA_UPDATE_REQUEST_OLD_GUTI_TYPE_PRESENT) {
-    if ((encode_result = encode_guti_type(
-             &tracking_area_update_request->oldgutitype,
-             TRACKING_AREA_UPDATE_REQUEST_OLD_GUTI_TYPE_IEI, buffer + encoded,
-             len - encoded)) < 0) {
+    if ((encode_result =
+             encode_guti_type(&tracking_area_update_request->oldgutitype,
+                              TRACKING_AREA_UPDATE_REQUEST_OLD_GUTI_TYPE_IEI,
+                              buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
     } else {

@@ -292,8 +292,10 @@ describe('<NetworkDashboard />', () => {
     };
     const policyCtx = {
       state: policies,
+      baseNames: {},
       qosProfiles: {},
       ratingGroups: {},
+      setBaseNames: async () => {},
       setRatingGroups: async () => {},
       setQosProfiles: async () => {},
       setState: async () => {},

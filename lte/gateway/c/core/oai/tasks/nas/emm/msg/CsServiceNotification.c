@@ -25,7 +25,7 @@
 int decode_cs_service_notification(
     cs_service_notification_msg* cs_service_notification, uint8_t* buffer,
     uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
@@ -36,9 +36,9 @@ int decode_cs_service_notification(
   /*
    * Decoding mandatory fields
    */
-  if ((decoded_result = decode_paging_identity(
-           &cs_service_notification->pagingidentity, 0, buffer + decoded,
-           len - decoded)) < 0)
+  if ((decoded_result =
+           decode_paging_identity(&cs_service_notification->pagingidentity, 0,
+                                  buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -56,9 +56,9 @@ int decode_cs_service_notification(
 
     switch (ieiDecoded) {
       case CS_SERVICE_NOTIFICATION_CLI_IEI:
-        if ((decoded_result = decode_cli(
-                 &cs_service_notification->cli, CS_SERVICE_NOTIFICATION_CLI_IEI,
-                 buffer + decoded, len - decoded)) <= 0)
+        if ((decoded_result = decode_cli(&cs_service_notification->cli,
+                                         CS_SERVICE_NOTIFICATION_CLI_IEI,
+                                         buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
         decoded += decoded_result;
@@ -70,10 +70,10 @@ int decode_cs_service_notification(
         break;
 
       case CS_SERVICE_NOTIFICATION_SS_CODE_IEI:
-        if ((decoded_result = decode_ss_code(
-                 &cs_service_notification->sscode,
-                 CS_SERVICE_NOTIFICATION_SS_CODE_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
+        if ((decoded_result =
+                 decode_ss_code(&cs_service_notification->sscode,
+                                CS_SERVICE_NOTIFICATION_SS_CODE_IEI,
+                                buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
         decoded += decoded_result;
@@ -85,10 +85,10 @@ int decode_cs_service_notification(
         break;
 
       case CS_SERVICE_NOTIFICATION_LCS_INDICATOR_IEI:
-        if ((decoded_result = decode_lcs_indicator(
-                 &cs_service_notification->lcsindicator,
-                 CS_SERVICE_NOTIFICATION_LCS_INDICATOR_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
+        if ((decoded_result =
+                 decode_lcs_indicator(&cs_service_notification->lcsindicator,
+                                      CS_SERVICE_NOTIFICATION_LCS_INDICATOR_IEI,
+                                      buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
         decoded += decoded_result;
@@ -126,7 +126,7 @@ int decode_cs_service_notification(
 int encode_cs_service_notification(
     cs_service_notification_msg* cs_service_notification, uint8_t* buffer,
     uint32_t len) {
-  int encoded       = 0;
+  int encoded = 0;
   int encode_result = 0;
 
   /*
@@ -145,9 +145,9 @@ int encode_cs_service_notification(
   if ((cs_service_notification->presencemask &
        CS_SERVICE_NOTIFICATION_CLI_PRESENT) ==
       CS_SERVICE_NOTIFICATION_CLI_PRESENT) {
-    if ((encode_result = encode_cli(
-             cs_service_notification->cli, CS_SERVICE_NOTIFICATION_CLI_IEI,
-             buffer + encoded, len - encoded)) < 0)
+    if ((encode_result = encode_cli(cs_service_notification->cli,
+                                    CS_SERVICE_NOTIFICATION_CLI_IEI,
+                                    buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else
@@ -157,10 +157,9 @@ int encode_cs_service_notification(
   if ((cs_service_notification->presencemask &
        CS_SERVICE_NOTIFICATION_SS_CODE_PRESENT) ==
       CS_SERVICE_NOTIFICATION_SS_CODE_PRESENT) {
-    if ((encode_result = encode_ss_code(
-             &cs_service_notification->sscode,
-             CS_SERVICE_NOTIFICATION_SS_CODE_IEI, buffer + encoded,
-             len - encoded)) < 0)
+    if ((encode_result = encode_ss_code(&cs_service_notification->sscode,
+                                        CS_SERVICE_NOTIFICATION_SS_CODE_IEI,
+                                        buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else
@@ -170,10 +169,10 @@ int encode_cs_service_notification(
   if ((cs_service_notification->presencemask &
        CS_SERVICE_NOTIFICATION_LCS_INDICATOR_PRESENT) ==
       CS_SERVICE_NOTIFICATION_LCS_INDICATOR_PRESENT) {
-    if ((encode_result = encode_lcs_indicator(
-             &cs_service_notification->lcsindicator,
-             CS_SERVICE_NOTIFICATION_LCS_INDICATOR_IEI, buffer + encoded,
-             len - encoded)) < 0)
+    if ((encode_result =
+             encode_lcs_indicator(&cs_service_notification->lcsindicator,
+                                  CS_SERVICE_NOTIFICATION_LCS_INDICATOR_IEI,
+                                  buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else

@@ -34,8 +34,8 @@ class PagingApplication : public Application {
    *
    * @param ev (in) - pointer to some subclass of ControllerEvent that occurred
    */
-  virtual void event_callback(
-      const ControllerEvent& ev, const OpenflowMessenger& messenger);
+  virtual void event_callback(const ControllerEvent& ev,
+                              const OpenflowMessenger& messenger);
 
   /**
    * Handles downlink data intended for a UE in idle mode, then forwards the
@@ -45,9 +45,8 @@ class PagingApplication : public Application {
    * @param ofconn (in) - given connection to OVS switch
    * @param data (in) - the ethernet packet received by the switch
    */
-  void handle_paging_message(
-      fluid_base::OFConnection* ofconn, uint8_t* data,
-      const OpenflowMessenger& messenger);
+  void handle_paging_message(fluid_base::OFConnection* ofconn, uint8_t* data,
+                             const OpenflowMessenger& messenger);
 
   /**
    * Handles downlink data intended for a UE in idle mode, then forwards the
@@ -57,35 +56,35 @@ class PagingApplication : public Application {
    * @param ofconn (in) - given connection to OVS switch
    * @param data (in) - the ethernet packet received by the switch
    */
-  void handle_paging_ipv6_message(
-      fluid_base::OFConnection* ofconn, uint8_t* data,
-      const OpenflowMessenger& messenger);
+  void handle_paging_ipv6_message(fluid_base::OFConnection* ofconn,
+                                  uint8_t* data,
+                                  const OpenflowMessenger& messenger);
 
   /**
    * Creates exact paging flow, which sends a packet intended for an
    * idle UE to this application
    */
-  void add_paging_flow(
-      const AddPagingRuleEvent& ev, const OpenflowMessenger& messenger);
+  void add_paging_flow(const AddPagingRuleEvent& ev,
+                       const OpenflowMessenger& messenger);
 
   /**
    * Creates exact paging flow, which sends a packet intended for an
    * idle UE with ipv6 to this application
    */
-  void add_paging_flow_ipv6(
-      const AddPagingRuleEvent& ev, const OpenflowMessenger& messenger);
+  void add_paging_flow_ipv6(const AddPagingRuleEvent& ev,
+                            const OpenflowMessenger& messenger);
 
   /**
    * Removes exact paging flow rule to stop paging UE
    */
-  void delete_paging_flow(
-      const DeletePagingRuleEvent& ev, const OpenflowMessenger& messenger);
+  void delete_paging_flow(const DeletePagingRuleEvent& ev,
+                          const OpenflowMessenger& messenger);
 
   /**
    * Removes exact paging flow rule to stop paging UE with IPv6
    */
-  void delete_paging_flow_ipv6(
-      const DeletePagingRuleEvent& ev, const OpenflowMessenger& messenger);
+  void delete_paging_flow_ipv6(const DeletePagingRuleEvent& ev,
+                               const OpenflowMessenger& messenger);
 };
 
 }  // namespace openflow

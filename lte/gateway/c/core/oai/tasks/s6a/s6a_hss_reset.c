@@ -36,17 +36,17 @@ struct avp;
 struct msg;
 struct session;
 
-int s6a_rsr_cb(
-    struct msg** msg_p, struct avp* paramavp_p, struct session* sess_p,
-    void* opaque_p, enum disp_action* act_p) {
+int s6a_rsr_cb(struct msg** msg_p, struct avp* paramavp_p,
+               struct session* sess_p, void* opaque_p,
+               enum disp_action* act_p) {
   struct msg* ans_p = NULL;
   struct msg* qry_p = NULL;
   struct avp *avp_p, *origin_host_p, *origin_realm_p;
   struct avp* failed_avp_p = NULL;
-  struct avp_hdr* hdr_p    = NULL;
+  struct avp_hdr* hdr_p = NULL;
   struct avp_hdr *origin_host_hdr, *origin_realm_hdr;
-  int result_code       = ER_DIAMETER_SUCCESS;
-  int experimental      = 0;
+  int result_code = ER_DIAMETER_SUCCESS;
+  int experimental = 0;
   MessageDef* message_p = NULL;
   // s6a_reset_req_t                        *s6a_reset_req_p = NULL;
 
@@ -63,8 +63,8 @@ int s6a_rsr_cb(
   /*
    * Retrieving Origin host AVP
    */
-  CHECK_FCT(fd_msg_search_avp(
-      qry_p, s6a_fd_cnf.dataobj_s6a_origin_host, &origin_host_p));
+  CHECK_FCT(fd_msg_search_avp(qry_p, s6a_fd_cnf.dataobj_s6a_origin_host,
+                              &origin_host_p));
 
   if (!origin_host_p) {
     OAILOG_ERROR(LOG_S6A, "origin_host ER_DIAMETER_MISSING_AVP\n");
@@ -75,8 +75,8 @@ int s6a_rsr_cb(
   /*
    * Retrieving Origin realm AVP
    */
-  CHECK_FCT(fd_msg_search_avp(
-      qry_p, s6a_fd_cnf.dataobj_s6a_origin_realm, &origin_realm_p));
+  CHECK_FCT(fd_msg_search_avp(qry_p, s6a_fd_cnf.dataobj_s6a_origin_realm,
+                              &origin_realm_p));
 
   if (!origin_realm_p) {
     OAILOG_ERROR(LOG_S6A, "origin_realm ER_DIAMETER_MISSING_AVP\n");
@@ -100,8 +100,8 @@ out:
   /*
    * Add the Auth-Session-State AVP
    */
-  CHECK_FCT(fd_msg_search_avp(
-      qry_p, s6a_fd_cnf.dataobj_s6a_auth_session_state, &avp_p));
+  CHECK_FCT(fd_msg_search_avp(qry_p, s6a_fd_cnf.dataobj_s6a_auth_session_state,
+                              &avp_p));
   CHECK_FCT(fd_msg_avp_hdr(avp_p, &hdr_p));
   CHECK_FCT(
       fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_auth_session_state, 0, &avp_p));

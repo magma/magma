@@ -23,11 +23,13 @@ import type {
 
 import React from 'react';
 
+export type UpdateNetworkContextProps = $Shape<
+  LteUpdateNetworkProps & FegLteUpdateNetworkProps,
+>;
+
 export type LteNetworkContextType = {
   state: $Shape<lte_network & feg_lte_network>,
-  updateNetworks: (
-    props: $Shape<LteUpdateNetworkProps & FegLteUpdateNetworkProps>,
-  ) => Promise<void>,
+  updateNetworks: (props: UpdateNetworkContextProps) => Promise<void>,
 };
 
 export default React.createContext<LteNetworkContextType>({});

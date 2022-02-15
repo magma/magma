@@ -28,7 +28,7 @@ int decode_voice_domain_preference_and_ue_usage_setting(
     VoiceDomainPreferenceAndUeUsageSetting*
         voicedomainpreferenceandueusagesetting,
     uint8_t iei, uint8_t* buffer, uint32_t len) {
-  int decoded   = 0;
+  int decoded = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -36,9 +36,8 @@ int decode_voice_domain_preference_and_ue_usage_setting(
     decoded++;
   }
 
-  memset(
-      voicedomainpreferenceandueusagesetting, 0,
-      sizeof(VoiceDomainPreferenceAndUeUsageSetting));
+  memset(voicedomainpreferenceandueusagesetting, 0,
+         sizeof(VoiceDomainPreferenceAndUeUsageSetting));
   ielen = *(buffer + decoded);
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
@@ -98,11 +97,10 @@ void dump_voice_domain_preference_and_ue_usage_setting_xml(
      */
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
-  OAILOG_DEBUG(
-      LOG_NAS, "    <UE_USAGE_SETTING>%u</UE_USAGE_SETTING>\n",
-      voicedomainpreferenceandueusagesetting->ue_usage_setting);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <VOICE_DOMAIN_FOR_EUTRAN>%u</VOICE_DOMAIN_FOR_EUTRAN>\n",
-      voicedomainpreferenceandueusagesetting->voice_domain_for_eutran);
+  OAILOG_DEBUG(LOG_NAS, "    <UE_USAGE_SETTING>%u</UE_USAGE_SETTING>\n",
+               voicedomainpreferenceandueusagesetting->ue_usage_setting);
+  OAILOG_DEBUG(LOG_NAS,
+               "    <VOICE_DOMAIN_FOR_EUTRAN>%u</VOICE_DOMAIN_FOR_EUTRAN>\n",
+               voicedomainpreferenceandueusagesetting->voice_domain_for_eutran);
   OAILOG_DEBUG(LOG_NAS, "</Voice domain preference and UE usage setting>\n");
 }

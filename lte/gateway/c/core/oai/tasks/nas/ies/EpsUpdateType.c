@@ -22,45 +22,45 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateType.h"
 
 //------------------------------------------------------------------------------
-int decode_eps_update_type(
-    EpsUpdateType* epsupdatetype, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_eps_update_type(EpsUpdateType* epsupdatetype, uint8_t iei,
+                           uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, EPS_UPDATE_TYPE_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, EPS_UPDATE_TYPE_MINIMUM_LENGTH,
+                                       len);
 
   if (iei > 0) {
     CHECK_IEI_DECODER((*buffer & 0xf0), iei);
   }
 
-  epsupdatetype->active_flag           = (*(buffer + decoded) >> 3) & 0x1;
+  epsupdatetype->active_flag = (*(buffer + decoded) >> 3) & 0x1;
   epsupdatetype->eps_update_type_value = *(buffer + decoded) & 0x7;
   decoded++;
   return decoded;
 }
 
 //------------------------------------------------------------------------------
-int decode_u8_eps_update_type(
-    EpsUpdateType* epsupdatetype, uint8_t iei, uint8_t value, uint32_t len) {
-  int decoded     = 0;
+int decode_u8_eps_update_type(EpsUpdateType* epsupdatetype, uint8_t iei,
+                              uint8_t value, uint32_t len) {
+  int decoded = 0;
   uint8_t* buffer = &value;
 
-  epsupdatetype->active_flag           = (*(buffer + decoded) >> 3) & 0x01;
+  epsupdatetype->active_flag = (*(buffer + decoded) >> 3) & 0x01;
   epsupdatetype->eps_update_type_value = *(buffer + decoded) & 0x07;
   decoded++;
   return decoded;
 }
 
 //------------------------------------------------------------------------------
-int encode_eps_update_type(
-    EpsUpdateType* epsupdatetype, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_eps_update_type(EpsUpdateType* epsupdatetype, uint8_t iei,
+                           uint8_t* buffer, uint32_t len) {
   uint8_t encoded = 0;
 
   /*
    * Checking length and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, EPS_UPDATE_TYPE_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, EPS_UPDATE_TYPE_MINIMUM_LENGTH,
+                                       len);
   *(buffer + encoded) = 0x00 | (iei & 0xf0) |
                         ((epsupdatetype->active_flag & 0x1) << 3) |
                         (epsupdatetype->eps_update_type_value & 0x7);
@@ -73,7 +73,7 @@ uint8_t encode_u8_eps_update_type(EpsUpdateType* epsupdatetype) {
   uint8_t bufferReturn;
   uint8_t* buffer = &bufferReturn;
   uint8_t encoded = 0;
-  uint8_t iei     = 0;
+  uint8_t iei = 0;
 
   *(buffer + encoded) = 0x00 | (iei & 0xf0) |
                         ((epsupdatetype->active_flag & 0x1) << 3) |

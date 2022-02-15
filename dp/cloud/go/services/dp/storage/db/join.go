@@ -72,7 +72,7 @@ func (c *columnNamesCollector) preVisit(q *Query) {
 
 func (*columnNamesCollector) postVisit(_ *Query) {}
 
-func getColumns(fields map[string]Field) []string {
+func getColumns(fields FieldMap) []string {
 	cols := make([]string, 0, len(fields))
 	for k := range fields {
 		cols = append(cols, k)
@@ -92,7 +92,7 @@ func (f *fieldPointersCollector) preVisit(q *Query) {
 	fields := model.Fields()
 	f.models = append(f.models, model)
 	for _, col := range f.columns[metadata.Table] {
-		f.pointers = append(f.pointers, fields[col].Ptr())
+		f.pointers = append(f.pointers, fields[col].BaseType.ptr())
 	}
 }
 

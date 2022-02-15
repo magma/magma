@@ -44,30 +44,26 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
 
 //------------------------------------------------------------------------------
-status_code_e nas_timer_init(void) {
-  return (RETURNok);
-}
+status_code_e nas_timer_init(void) { return (RETURNok); }
 
 //------------------------------------------------------------------------------
 void nas_timer_cleanup(void) {}
 
 //------------------------------------------------------------------------------
-void nas_timer_start(
-    struct nas_timer_s* const timer, time_out_t time_out_cb,
-    timer_arg_t* time_out_cb_args) {
+void nas_timer_start(struct nas_timer_s* const timer, time_out_t time_out_cb,
+                     timer_arg_t* time_out_cb_args) {
   if ((timer) && (timer->id == NAS_TIMER_INACTIVE_ID)) {
-    timer->id = mme_app_start_timer_arg(
-        timer->msec, TIMER_REPEAT_ONCE, time_out_cb, time_out_cb_args);
+    timer->id = mme_app_start_timer_arg(timer->msec, TIMER_REPEAT_ONCE,
+                                        time_out_cb, time_out_cb_args);
     if (NAS_TIMER_INACTIVE_ID != timer->id) {
-      OAILOG_DEBUG(
-          LOG_NAS_EMM,
-          "NAS EBR Timer started for ebi:%d UE " MME_UE_S1AP_ID_FMT "\n",
-          time_out_cb_args->ebi, time_out_cb_args->ue_id);
+      OAILOG_DEBUG(LOG_NAS_EMM,
+                   "NAS EBR Timer started UE " MME_UE_S1AP_ID_FMT "\n",
+                   time_out_cb_args->ue_id);
     } else {
-      OAILOG_ERROR(
-          LOG_NAS_EMM,
-          "Could not start NAS EBR Timer for UE " MME_UE_S1AP_ID_FMT " ",
-          time_out_cb_args->ue_id);
+      OAILOG_ERROR(LOG_NAS_EMM,
+                   "Could not start NAS EBR Timer for UE " MME_UE_S1AP_ID_FMT
+                   " ",
+                   time_out_cb_args->ue_id);
     }
   }
 }

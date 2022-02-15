@@ -18,11 +18,11 @@ TAIListMsg::TAIListMsg(){};
 
 TAIListMsg::~TAIListMsg(){};
 
-int TAIListMsg::EncodeTAIListMsg(
-    TAIListMsg* TAIList, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int TAIListMsg::EncodeTAIListMsg(TAIListMsg* TAIList, uint8_t iei,
+                                 uint8_t* buffer, uint32_t len) {
   uint8_t encoded = 0;
   if (iei > 0) {
-    CHECK_IEI_ENCODER(iei, (unsigned char) TAIList->iei);
+    CHECK_IEI_ENCODER(iei, (unsigned char)TAIList->iei);
     *buffer = iei;
     MLOG(MDEBUG) << "iei = " << std::hex << int(*(buffer + encoded));
     encoded++;
@@ -58,8 +58,8 @@ int TAIListMsg::EncodeTAIListMsg(
 
   return (encoded);
 }
-int TAIListMsg::DecodeTAIListMsg(
-    TAIListMsg* TAIList, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int TAIListMsg::DecodeTAIListMsg(TAIListMsg* TAIList, uint8_t iei,
+                                 uint8_t* buffer, uint32_t len) {
   return 0;
 }
 

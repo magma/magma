@@ -21,10 +21,10 @@ class MessageTypeMsg {
 
   MessageTypeMsg();
   ~MessageTypeMsg();
-  int EncodeMessageTypeMsg(
-      MessageTypeMsg* message_type, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeMessageTypeMsg(
-      MessageTypeMsg* message_type, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeMessageTypeMsg(MessageTypeMsg* message_type, uint8_t iei,
+                           uint8_t* buffer, uint32_t len);
+  int DecodeMessageTypeMsg(MessageTypeMsg* message_type, uint8_t iei,
+                           uint8_t* buffer, uint32_t len);
 
   void copy(const MessageTypeMsg& m) { msg_type = m.msg_type; }
   bool isEqual(const MessageTypeMsg& m) { return (msg_type == m.msg_type); }

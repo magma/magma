@@ -39,9 +39,7 @@
 #define BPF_NOEXIST 1 /* create new element only if it didn't exist */
 #define BPF_EXIST 2   /* only update existing element */
 
-static uint64_t ptr_to_u64(const void* ptr) {
-  return (uint64_t) ptr;
-}
+static uint64_t ptr_to_u64(const void* ptr) { return (uint64_t)ptr; }
 
 static inline int sys_bpf(enum bpf_cmd cmd, union bpf_attr* attr, uint size) {
   return syscall(__NR_bpf, cmd, attr, size);
@@ -55,7 +53,7 @@ int bpf_obj_get(const char* pathname) {
   union bpf_attr attr;
 
   bzero(&attr, sizeof(attr));
-  attr.pathname = ptr_to_u64((const void*) pathname);
+  attr.pathname = ptr_to_u64((const void*)pathname);
 
   return sys_bpf(BPF_OBJ_GET, &attr, sizeof(attr));
 }
@@ -65,9 +63,9 @@ int bpf_map_update_elem(int fd, void* key, void* value, uint64_t flags) {
 
   bzero(&attr, sizeof(attr));
   attr.map_fd = fd;
-  attr.key    = ptr_to_u64(key);
-  attr.value  = ptr_to_u64(value);
-  attr.flags  = flags;
+  attr.key = ptr_to_u64(key);
+  attr.value = ptr_to_u64(value);
+  attr.flags = flags;
 
   return sys_bpf(BPF_MAP_UPDATE_ELEM, &attr, sizeof(attr));
 }
@@ -78,7 +76,7 @@ int bpf_map_delete_elem(int fd, void* key) {
 
   memset(&attr, 0, sizeof(attr));
   attr.map_fd = fd;
-  attr.key    = ptr_to_u64(key);
+  attr.key = ptr_to_u64(key);
 
   return sys_bpf(BPF_MAP_DELETE_ELEM, &attr, sizeof(attr));
 }

@@ -16,7 +16,6 @@
 import type {
   apn_resources,
   challenge_key,
-  enodeb,
   enodeb_serials,
   gateway_device,
   gateway_dns_configs,
@@ -387,8 +386,9 @@ export function ConfigEdit(props: Props) {
         device: {...gatewayDevice, key: challengeKey},
       };
       if (props.isAdd) {
-        // check if it is not a modify during add i.e we aren't switching tabs back
-        // during add and modifying the information other than the serial number
+        // check if it is not a modify during add i.e we aren't switching tabs
+        // back during add and modifying the information other than the serial
+        // number
         if (gateway.id in ctx.state && gateway.id !== props.gateway?.id) {
           setError(`Gateway ${gateway.id} already exists`);
           return;
@@ -746,6 +746,30 @@ export function EPCEdit(props: Props) {
               />
             </AltFormField>
           )}
+          <AltFormField label={'SGi management Gateway IPv6 address'}>
+            <OutlinedInput
+              data-testid="gwSgiIpv6"
+              placeholder="2001:4860:4860:0:0:0:0:1"
+              type="string"
+              fullWidth={true}
+              value={EPCConfig.sgi_management_iface_ipv6_gw ?? ''}
+              onChange={({target}) =>
+                handleEPCChange('sgi_management_iface_ipv6_gw', target.value)
+              }
+            />
+          </AltFormField>
+          <AltFormField label={'SGi management interface IPv6 address'}>
+            <OutlinedInput
+              data-testid="sgiStaticIpv6"
+              placeholder="2001:4860:4860:0:0:0:0:8888/64"
+              type="string"
+              fullWidth={true}
+              value={EPCConfig.sgi_management_iface_ipv6_addr ?? ''}
+              onChange={({target}) =>
+                handleEPCChange('sgi_management_iface_ipv6_addr', target.value)
+              }
+            />
+          </AltFormField>
         </List>
       </DialogContent>
       <DialogActions>
@@ -775,43 +799,12 @@ export function RanEdit(props: Props) {
   const [connectedEnodebs, setConnectedEnodebs] = useState<enodeb_serials>(
     props.gateway.connected_enodeb_serials,
   );
-  const [unregisteredEnbsInfo, setUnregisteredEnbsInfo] = useState([]);
   const handleRanChange = (key: string, val) => {
     setRanConfig({...ranConfig, [key]: val});
   };
   const handleDnsChange = (key: string, val) => {
     setDnsConfig({...dnsConfig, [key]: val});
   };
-  useEffect(() => {
-    const isEnodebUnregistered = (enb: enodeb, currentGateway: lte_gateway) => {
-      const gatewaysList = Object.keys(ctx.state);
-      for (const gatewayId of gatewaysList) {
-        if (
-          ctx.state[gatewayId].connected_enodeb_serials?.includes(enb.serial) &&
-          ctx.state[gatewayId].id != currentGateway.id
-        ) {
-          return false;
-        }
-      }
-      return true;
-    };
-    const newUnregisteredEnbsInfo = [];
-    if (enbsCtx?.state?.enbInfo) {
-      Object.keys(enbsCtx.state.enbInfo).map(enbSerial => {
-        if (
-          isEnodebUnregistered(
-            enbsCtx.state.enbInfo[enbSerial].enb,
-            props.gateway,
-          )
-        ) {
-          newUnregisteredEnbsInfo.push({
-            [enbSerial]: enbsCtx.state.enbInfo[enbSerial],
-          });
-        }
-      });
-    }
-    setUnregisteredEnbsInfo(newUnregisteredEnbsInfo);
-  }, [ctx?.state, enbsCtx?.state?.enbInfo, props?.gateway]);
   const onSave = async () => {
     try {
       const gateway = {
@@ -884,18 +877,16 @@ export function RanEdit(props: Props) {
                   className={connectedEnodebs.length ? '' : classes.placeholder}
                 />
               }>
-              {unregisteredEnbsInfo.map(unregisteredEnbInfo => {
-                const enbSerial = Object.keys(unregisteredEnbInfo)[0];
-                return (
+              {enbsCtx?.state &&
+                Object.keys(enbsCtx.state.enbInfo).map(enbSerial => (
                   <MenuItem key={enbSerial} value={enbSerial}>
                     <Checkbox checked={connectedEnodebs.includes(enbSerial)} />
                     <ListItemText
-                      primary={unregisteredEnbInfo[enbSerial].enb.name}
+                      primary={enbsCtx.state.enbInfo[enbSerial].enb.name}
                       secondary={enbSerial}
                     />
                   </MenuItem>
-                );
-              })}
+                ))}
             </Select>
           </AltFormField>
           <AltFormField label={'Transmit Enabled'}>

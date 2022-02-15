@@ -327,6 +327,16 @@ export default createMuiTheme({
         width: '100%',
       },
     },
+    MuiDropzoneArea: {
+      root: {
+        color: colors.primary.gullGray,
+        backgroundColor: colors.primary.concrete,
+        marginBottom: '16px',
+      },
+      icon: {
+        color: colors.primary.gullGray,
+      },
+    },
     MuiFormControl: {
       marginDense: {
         marginTop: '0px',

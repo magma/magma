@@ -26,7 +26,7 @@
 int decode_modify_eps_bearer_context_accept(
     modify_eps_bearer_context_accept_msg* modify_eps_bearer_context_accept,
     uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
@@ -76,7 +76,7 @@ int decode_modify_eps_bearer_context_accept(
 int encode_modify_eps_bearer_context_accept(
     modify_eps_bearer_context_accept_msg* modify_eps_bearer_context_accept,
     uint8_t* buffer, uint32_t len) {
-  int encoded       = 0;
+  int encoded = 0;
   int encode_result = 0;
 
   /*

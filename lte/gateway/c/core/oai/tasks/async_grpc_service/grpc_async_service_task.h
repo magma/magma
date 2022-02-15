@@ -84,14 +84,13 @@ class S6aProxyAsyncResponderHandler {
   S6aProxyAsyncResponderHandler() {}
 
   //  Cancel Location Request is sent from HSS to delete subscriber
-  void CancelLocation(
-      ServerContext* context, const CancelLocationRequest* request,
-      std::function<void(grpc::Status, CancelLocationAnswer)>
-          response_callback);
+  void CancelLocation(ServerContext* context,
+                      const CancelLocationRequest* request,
+                      std::function<void(grpc::Status, CancelLocationAnswer)>
+                          response_callback);
   //  Reset Request is sent from HSS to reset some or all subscribers
-  void Reset(
-      ServerContext* context, const ResetRequest* request,
-      std::function<void(grpc::Status, ResetAnswer)> response_callback);
+  void Reset(ServerContext* context, const ResetRequest* request,
+             std::function<void(grpc::Status, ResetAnswer)> response_callback);
 };
 
 /*
@@ -117,9 +116,8 @@ class S6aProxyResponderAsyncService final
     return s6a_async_service;
   }
 
-  void set_callback(
-      std::unique_ptr<ServerCompletionQueue> cq,
-      std::shared_ptr<S6aProxyAsyncResponderHandler> handler);
+  void set_callback(std::unique_ptr<ServerCompletionQueue> cq,
+                    std::shared_ptr<S6aProxyAsyncResponderHandler> handler);
 
  protected:
   void init_call_data(void);
@@ -141,7 +139,7 @@ class CallData {
    * the queue
    */
   virtual void proceed() = 0;
-  virtual ~CallData()    = default;
+  virtual ~CallData() = default;
 };
 
 /**
@@ -150,7 +148,7 @@ class CallData {
  * created. When a request is made, the call data moves to processing. When
  * finished, the call data destroys itself
  */
-template<class GRPCService, class RequestType, class ResponseType>
+template <class GRPCService, class RequestType, class ResponseType>
 class AsyncGRPCRequest : public CallData {
  public:
   AsyncGRPCRequest(ServerCompletionQueue* cq, GRPCService& service);
@@ -196,16 +194,15 @@ class AsyncGRPCRequest : public CallData {
  * Class to handle Cancel Location requests
  */
 class CancelLocationCallData
-    : public AsyncGRPCRequest<
-          S6aGatewayService::AsyncService, CancelLocationRequest,
-          CancelLocationAnswer> {
+    : public AsyncGRPCRequest<S6aGatewayService::AsyncService,
+                              CancelLocationRequest, CancelLocationAnswer> {
  public:
-  CancelLocationCallData(
-      ServerCompletionQueue* cq, S6aGatewayService::AsyncService& service,
-      S6aProxyAsyncResponderHandler& handler)
+  CancelLocationCallData(ServerCompletionQueue* cq,
+                         S6aGatewayService::AsyncService& service,
+                         S6aProxyAsyncResponderHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
-    service_.RequestCancelLocation(
-        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+    service_.RequestCancelLocation(&ctx_, &request_, &responder_, cq_, cq_,
+                                   (void*)this);
   }
 
  protected:
@@ -222,16 +219,14 @@ class CancelLocationCallData
 /**
  * Class to handle Reset requests
  */
-class ResetCallData
-    : public AsyncGRPCRequest<
-          S6aGatewayService::AsyncService, ResetRequest, ResetAnswer> {
+class ResetCallData : public AsyncGRPCRequest<S6aGatewayService::AsyncService,
+                                              ResetRequest, ResetAnswer> {
  public:
-  ResetCallData(
-      ServerCompletionQueue* cq, S6aGatewayService::AsyncService& service,
-      S6aProxyAsyncResponderHandler& handler)
+  ResetCallData(ServerCompletionQueue* cq,
+                S6aGatewayService::AsyncService& service,
+                S6aProxyAsyncResponderHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
-    service_.RequestReset(
-        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+    service_.RequestReset(&ctx_, &request_, &responder_, cq_, cq_, (void*)this);
   }
 
  protected:
