@@ -1712,8 +1712,8 @@ void mme_app_handle_initial_context_setup_rsp(
 }
 
 //------------------------------------------------------------------------------
-void mme_app_update_stats_for_all_bearers(
-    struct ue_mm_context_s* ue_context_p, pdn_context_t* pdn_contexts) {
+void mme_app_update_stats_for_all_bearers(struct ue_mm_context_s* ue_context_p,
+                                          pdn_context_t* pdn_contexts) {
   for (uint8_t bidx = 0; bidx < BEARERS_PER_UE; bidx++) {
     if (ue_context_p->bearer_contexts[pdn_contexts->bearer_contexts[bidx]]) {
       // Updating statistics for all the active bearers
@@ -1747,16 +1747,16 @@ void mme_app_handle_release_access_bearers_resp(
     for (uint8_t itr = 0; itr < MAX_APN_PER_UE; itr++) {
       if (ue_context_p->pdn_contexts[itr] &&
           (!ue_context_p->pdn_contexts[itr]->route_s11_messages_to_s8_task)) {
-        mme_app_update_stats_for_all_bearers(
-            ue_context_p, ue_context_p->pdn_contexts[itr]);
+        mme_app_update_stats_for_all_bearers(ue_context_p,
+                                             ue_context_p->pdn_contexts[itr]);
       }
     }
   } else if (originTaskId == TASK_SGW_S8) {
     for (uint8_t itr = 0; itr < MAX_APN_PER_UE; itr++) {
       if (ue_context_p->pdn_contexts[itr] &&
           (ue_context_p->pdn_contexts[itr]->route_s11_messages_to_s8_task)) {
-        mme_app_update_stats_for_all_bearers(
-            ue_context_p, ue_context_p->pdn_contexts[itr]);
+        mme_app_update_stats_for_all_bearers(ue_context_p,
+                                             ue_context_p->pdn_contexts[itr]);
       }
     }
   }
