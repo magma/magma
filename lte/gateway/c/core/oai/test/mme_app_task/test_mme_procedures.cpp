@@ -307,7 +307,7 @@ void MmeAppProcedureTest ::attach_ue(std::condition_variable& cv,
   nas_message_t nas_msg_decoded = {0};
   emm_security_context_t emm_security_context;
   nas_message_decode_status_t decode_status;
-  status_code_e decoder_rc;
+  int decoder_rc;
   decoder_rc = nas_message_decode(
       nas_msg->data, &nas_msg_decoded, nas_msg->slen,
       reinterpret_cast<void*>(&emm_security_context), &decode_status);
