@@ -139,6 +139,7 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
         gy: gateway.federation?.gy?.server?.address || '-',
         swx: gateway.federation?.swx?.server?.address || '-',
         s6a: gateway.federation?.s6a?.server?.address || '-',
+        s8: gateway.federation?.s8?.local_address || '-',
         csfb: gateway.federation?.csfb?.client?.server_address || '-',
       });
     });
@@ -187,6 +188,7 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
           {title: 'Gy', field: 'gy'},
           {title: 'SWx', field: 'swx'},
           {title: 'S6a', field: 's6a'},
+          {title: 'S8', field: 's8'},
           {title: 'CSFB', field: 'csfb'},
         ]}
         handleCurrRow={(row: EquipmentFegGatewayRowType) => setCurrRow(row)}
