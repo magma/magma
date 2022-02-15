@@ -1,7 +1,6 @@
 ---
-- include_tasks: generate-certs.yml
-- include_tasks: register-secrets.yml
 - include_tasks: volume-claims.yml
+- include_tasks: register-secrets.yml
 - include_tasks: orc8r.yml
 - include_tasks: lte-orc8r.yml
 - include_tasks: feg-orc8r.yml

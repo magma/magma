@@ -1,19 +1,6 @@
 ---
-- name: Download rke binary for linux
-  become: yes
-  get_url:
-    url: https://github.com/rancher/rke/releases/download/v{{ rke_version }}/rke_linux-amd64
-    dest: /usr/local/bin/rke
-    mode: '0755'
-
-- name: Download kubectl binary for linux
-  become: yes
-  get_url:
-    url: https://dl.k8s.io/release/v{{ kubectl_version }}/bin/linux/amd64/kubectl
-    dest: /usr/local/bin/kubectl
-    mode: '0755'
-
 - name: Install pip package
+  when: ansible_distribution != "MacOSX"
   become: yes
   apt:
     update_cache: yes
@@ -27,20 +14,6 @@
 - name: Install kubernetes python package
   pip:
     name: kubernetes
-
-- name: Download helm binary for linux
-  unarchive:
-    src: https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz
-    dest: /tmp
-    remote_src: yes
-
-- name: Copy helm binary file to executable path
-  become: yes
-  copy:
-    src: /tmp/linux-amd64/helm
-    dest: /usr/local/bin/helm
-    mode: '0755'
-    remote_src: yes
 
 - name: Install Helm Diff Plugin
   kubernetes.core.helm_plugin:

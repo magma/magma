@@ -1,0 +1,10 @@
+---
+- name: Get EC2 instance local IP
+  uri:
+    url: http://169.254.169.254/latest/meta-data/local-ipv4
+    return_content: yes
+  register: ec2_private_ip
+
+- name: Set MetallLB IP of EC2 instance
+  set_fact:
+    metallb_ip: "{{ ec2_private_ip.content }}"

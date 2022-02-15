@@ -1,0 +1,34 @@
+---
+- name: Create rke directory
+  file:
+    path: "{{ ansible_env.HOME }}/{{ magma_directory }}/rke"
+    state: directory
+
+- name: Copy rke config file to {{ ansible_user }} machine
+  template:
+    src: cluster.yml.j2
+    dest: "{{ ansible_env.HOME }}/{{ magma_directory }}/rke/cluster.yml"
+
+- name: Install Rancher Kubernetes Engine
+  command: rke up --config {{ ansible_env.HOME }}/{{ magma_directory }}/rke/cluster.yml
+
+- name: Create kubernetes config directory
+  file:
+    path: "{{ ansible_env.HOME }}/.kube"
+    state: directory
+
+- name: Copy kubernetes config file to {{ ansible_user }} home
+  copy:
+    src: "{{ ansible_env.HOME }}/{{ magma_directory }}/rke/kube_config_cluster.yml"
+    dest: "{{ ansible_env.HOME }}/.kube/config"
+    remote_src: yes
+    mode: '0600'
+
+- name: Set {{ magma_namespace }} as default namespace
+  command: kubectl config set-context --current --namespace {{ magma_namespace }}
+
+- name: Remove ingress-nginx namespace
+  kubernetes.core.k8s:
+    state: absent
+    name: ingress-nginx
+    kind: Namespace

@@ -1,40 +1,19 @@
 ---
-- name: Get EC2 instance local IP
+- name: Set EC2 IP
   when: deploy_on_aws
-  uri:
-    url: http://169.254.169.254/latest/meta-data/local-ipv4
-    return_content: yes
-  register: ec2_private_ip
+  include_tasks: ec2-ip.yml
 
-- name: Set MetallLB IP of local EC2 instance
+- name: Set Kind Cluster IP
+  when: deploy_on_kind
+  include_tasks: kind-ip.yml
+
+- name: Set Host IP
+  when: ( not deploy_on_aws ) and ( not deploy_on_kind )
+  include_tasks: host-ip.yml
+
+- name: Install Metallb
+  include_tasks: metallb.yml
+
+- name: Delete metallb-speaker DaemonSet
   when: deploy_on_aws
-  set_fact:
-    metallb_ip: "{{ ec2_private_ip.content }}"
-
-- name: Set MetallLB IP of Public IP
-  when: not deploy_on_aws
-  set_fact:
-    metallb_ip: "{{ ansible_host }}"
-
-- name: Install MetallLB
-  kubernetes.core.helm:
-    name: metallb
-    chart_ref: metallb/metallb
-    release_namespace: metallb-system
-    chart_version: "{{ metallb_chart_version }}"
-    create_namespace: true
-    values:
-      configInline:
-        address-pools:
-          - name: default
-            protocol: layer2
-            addresses:
-              - "{{ metallb_ip }}/32"
-
-- name: Remove metallb-speaker DaemonSet
-  when: deploy_on_aws
-  kubernetes.core.k8s:
-    state: absent
-    name: metallb-speaker
-    namespace: metallb-system
-    kind: DaemonSet
+  include_tasks: metallb-speaker.yml

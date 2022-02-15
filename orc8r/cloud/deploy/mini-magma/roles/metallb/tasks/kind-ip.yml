@@ -1,0 +1,9 @@
+---
+- name: Get Kind Cluster Node Info
+  kubernetes.core.k8s_info:
+    kind: Node
+  register: node_info
+
+- name: Set MetallLB IP of Kind Cluster
+  set_fact:
+    metallb_ip: "{{ node_info.resources[0].status.addresses[0].address }}"

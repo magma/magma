@@ -1,0 +1,7 @@
+---
+- name: Remove metallb-speaker DaemonSet
+  kubernetes.core.k8s:
+    state: absent
+    name: metallb-speaker
+    namespace: metallb-system
+    kind: DaemonSet

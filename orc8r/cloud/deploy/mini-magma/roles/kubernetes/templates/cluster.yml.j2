@@ -12,7 +12,7 @@ nodes:
     user: ubuntu
     docker_socket: /var/run/docker.sock
     ssh_key: ""
-    ssh_key_path: /home/{{ ansible_user }}/{{ magma_directory }}/.ssh/id_rsa
+    ssh_key_path: {{ ansible_env.HOME }}/{{ magma_directory }}/.ssh/id_rsa
     ssh_cert: ""
     ssh_cert_path: ""
     labels: {}
@@ -147,7 +147,7 @@ system_images:
   aci_controller_container: noiro/aci-containers-controller:5.1.1.0.1ae238a
   aci_gbp_server_container: noiro/gbp-server:5.1.1.0.1ae238a
   aci_opflex_server_container: noiro/opflex-server:5.1.1.0.1ae238a
-ssh_key_path: /home/{{ ansible_user }}/{{ magma_directory }}/.ssh/id_rsa
+ssh_key_path: {{ ansible_env.HOME }}/{{ magma_directory }}/.ssh/id_rsa
 ssh_cert_path: ""
 ssh_agent_auth: false
 authorization:

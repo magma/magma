@@ -8,6 +8,7 @@
     - role: openebs
     - role: metallb
     - role: postgresql
+    - role: secrets
     - role: orc8r
     - role: haproxy
     - role: elasticsearch
