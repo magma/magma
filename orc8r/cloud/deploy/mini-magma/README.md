@@ -2,9 +2,7 @@
 
 Install dependant collections:
 ```bash
-ansible-galaxy collection install community.crypto
-ansible-galaxy collection install community.docker
-ansible-galaxy collection install kubernetes.core
+ansible-galaxy install -r requirements.yml
 ```
 
 Copy your public SSH key to the host:
