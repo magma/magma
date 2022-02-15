@@ -128,8 +128,8 @@ status_code_e sgs_fsm_process(const sgs_fsm_t* sgs_evt) {
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  primitive              = sgs_evt->primitive;
-  sgs_context_t* sgs_ctx = (sgs_context_t*) (sgs_evt->ctx);
+  primitive = sgs_evt->primitive;
+  sgs_context_t* sgs_ctx = (sgs_context_t*)(sgs_evt->ctx);
 
   if (sgs_ctx) {
     state = sgs_fsm_get_status(sgs_evt->ue_id, sgs_ctx);
@@ -165,26 +165,26 @@ status_code_e sgs_fsm_process(const sgs_fsm_t* sgs_evt) {
  **      Others:    _sgs_fsm_state                            **
  **                                                                        **
  ***************************************************************************/
-status_code_e sgs_fsm_set_status(
-    mme_ue_s1ap_id_t ue_id, void* ctx, sgs_fsm_state_t state) {
+status_code_e sgs_fsm_set_status(mme_ue_s1ap_id_t ue_id, void* ctx,
+                                 sgs_fsm_state_t state) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  sgs_context_t* sgs_ctx = (sgs_context_t*) ctx;
+  sgs_context_t* sgs_ctx = (sgs_context_t*)ctx;
 
   if (sgs_ctx == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Invalid SGS context received for UE Id: " MME_UE_S1AP_ID_FMT "\n",
-        ue_id);
+    OAILOG_ERROR(LOG_MME_APP,
+                 "Invalid SGS context received for UE Id: " MME_UE_S1AP_ID_FMT
+                 "\n",
+                 ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
   if (state < SGS_STATE_MAX) {
     if (state != sgs_ctx->sgs_state) {
-      OAILOG_INFO(
-          LOG_MME_APP,
-          "UE " MME_UE_S1AP_ID_FMT " SGS-FSM   - State changed: %s ===> %s\n",
-          ue_id, sgs_fsm_state_str[sgs_ctx->sgs_state],
-          sgs_fsm_state_str[state]);
+      OAILOG_INFO(LOG_MME_APP,
+                  "UE " MME_UE_S1AP_ID_FMT
+                  " SGS-FSM   - State changed: %s ===> %s\n",
+                  ue_id, sgs_fsm_state_str[sgs_ctx->sgs_state],
+                  sgs_fsm_state_str[state]);
       sgs_ctx->sgs_state = state;
     }
 
@@ -208,14 +208,14 @@ status_code_e sgs_fsm_set_status(
  **                                                                        **
  ***************************************************************************/
 sgs_fsm_state_t sgs_fsm_get_status(mme_ue_s1ap_id_t ue_id, void* ctx) {
-  sgs_context_t* sgs_ctx = (sgs_context_t*) ctx;
+  sgs_context_t* sgs_ctx = (sgs_context_t*)ctx;
 
   if (sgs_ctx) {
     if ((sgs_ctx->sgs_state >= SGS_STATE_MAX) ||
         (sgs_ctx->sgs_state <= SGS_STATE_MIN)) {
-      OAILOG_ERROR(
-          LOG_MME_APP, "BAD SGS state (%d) for UE Id: " MME_UE_S1AP_ID_FMT "\n",
-          sgs_ctx->sgs_state, ue_id);
+      OAILOG_ERROR(LOG_MME_APP,
+                   "BAD SGS state (%d) for UE Id: " MME_UE_S1AP_ID_FMT "\n",
+                   sgs_ctx->sgs_state, ue_id);
       return SGS_INVALID;
     }
     return sgs_ctx->sgs_state;

@@ -97,15 +97,15 @@ static tmsi_t generate_random_TMSI(void);
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e mme_api_get_emm_config(
-    mme_api_emm_config_t* config, const struct mme_config_s* mme_config_p) {
+status_code_e mme_api_get_emm_config(mme_api_emm_config_t* config,
+                                     const struct mme_config_s* mme_config_p) {
   OAILOG_FUNC_IN(LOG_NAS);
   if (mme_config_p->served_tai.nb_tai < 1) {
     OAILOG_ERROR(LOG_NAS, "No TAI configured\n");
     OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
   }
-  OAILOG_INFO(
-      LOG_NAS, "Number of GUMMEIs supported = %d\n", mme_config_p->gummei.nb);
+  OAILOG_INFO(LOG_NAS, "Number of GUMMEIs supported = %d\n",
+              mme_config_p->gummei.nb);
   // Read GUMMEI List
   config->gummei.num_gummei = mme_config_p->gummei.nb;
   for (uint8_t num_gummei = 0; num_gummei < mme_config_p->gummei.nb;
@@ -147,8 +147,8 @@ status_code_e mme_api_get_emm_config(
         mme_config_p->nas_config.prefered_ciphering_algorithm[i];
   }
 
-  config->full_network_name    = bstrcpy(mme_config_p->full_network_name);
-  config->short_network_name   = bstrcpy(mme_config_p->short_network_name);
+  config->full_network_name = bstrcpy(mme_config_p->full_network_name);
+  config->short_network_name = bstrcpy(mme_config_p->short_network_name);
   config->daylight_saving_time = mme_config_p->daylight_saving_time;
   OAILOG_FUNC_RETURN(LOG_NAS, RETURNok);
 }
@@ -175,18 +175,14 @@ status_code_e mme_api_get_esm_config(mme_api_esm_config_t* config) {
     OAILOG_FUNC_RETURN(LOG_NAS, RETURNok);
   }
 
-  if (strcmp((const char*) mme_config.non_eps_service_control->data, "SMS") ==
+  if (strcmp((const char*)mme_config.non_eps_service_control->data, "SMS") ==
       0) {
     config->features = config->features | MME_API_SMS_SUPPORTED;
-  } else if (
-      strcmp(
-          (const char*) mme_config.non_eps_service_control->data, "CSFB_SMS") ==
-      0) {
+  } else if (strcmp((const char*)mme_config.non_eps_service_control->data,
+                    "CSFB_SMS") == 0) {
     config->features = config->features | MME_API_CSFB_SMS_SUPPORTED;
-  } else if (
-      strcmp(
-          (const char*) mme_config.non_eps_service_control->data,
-          "SMS_ORC8R") == 0) {
+  } else if (strcmp((const char*)mme_config.non_eps_service_control->data,
+                    "SMS_ORC8R") == 0) {
     config->features = config->features | MME_API_SMS_ORC8R_SUPPORTED;
   }
 
@@ -235,8 +231,8 @@ status_code_e mme_api_notify_imsi(const mme_ue_s1ap_id_t id, imsi64_t imsi64) {
  *  Return:    RETURNok, RETURNerror
  *
  */
-status_code_e mme_api_notify_new_guti(
-    const mme_ue_s1ap_id_t id, guti_t* const guti) {
+status_code_e mme_api_notify_new_guti(const mme_ue_s1ap_id_t id,
+                                      guti_t* const guti) {
   ue_mm_context_t* ue_mm_context = NULL;
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   OAILOG_FUNC_IN(LOG_NAS);
@@ -273,15 +269,16 @@ status_code_e mme_api_notify_new_guti(
  **      Others:    None                                               **
  **                                                                    **
  ***********************************************************************/
-status_code_e mme_api_new_guti(
-    const imsi_t* const imsi, const guti_t* const old_guti, guti_t* const guti,
-    const tai_t* const originating_tai, tai_list_t* const tai_list) {
+status_code_e mme_api_new_guti(const imsi_t* const imsi,
+                               const guti_t* const old_guti, guti_t* const guti,
+                               const tai_t* const originating_tai,
+                               tai_list_t* const tai_list) {
   OAILOG_FUNC_IN(LOG_NAS);
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t* ue_context    = NULL;
-  imsi64_t imsi64                = imsi_to_imsi64(imsi);
-  bool is_plmn_equal             = false;
-  partial_list_t* par_tai_list   = NULL;
+  ue_mm_context_t* ue_context = NULL;
+  imsi64_t imsi64 = imsi_to_imsi64(imsi);
+  bool is_plmn_equal = false;
+  partial_list_t* par_tai_list = NULL;
 
   ue_context =
       mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
@@ -291,9 +288,8 @@ status_code_e mme_api_new_guti(
          nb_gummei++) {
       /* comparing UE serving cell plmn with the gummei list in
        * mme configuration. */
-      if (IS_PLMN_EQUAL(
-              ue_context->emm_context.originating_tai.plmn,
-              mme_config.gummei.gummei[nb_gummei].plmn)) {
+      if (IS_PLMN_EQUAL(ue_context->emm_context.originating_tai.plmn,
+                        mme_config.gummei.gummei[nb_gummei].plmn)) {
         is_plmn_equal = true;
         /* Copies the GUMMEI value from configuration to the emm context */
         COPY_GUMMEI(guti, _emm_data.conf.gummei.gummei[nb_gummei]);
@@ -364,9 +360,10 @@ status_code_e mme_api_new_guti(
  **                  Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e mme_api_subscribe(
-    bstring* apn, mme_api_ip_version_t mme_pdn_index, bstring* pdn_addr,
-    int is_emergency, mme_api_qos_t* qos) {
+status_code_e mme_api_subscribe(bstring* apn,
+                                mme_api_ip_version_t mme_pdn_index,
+                                bstring* pdn_addr, int is_emergency,
+                                mme_api_qos_t* qos) {
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_NAS);
@@ -402,5 +399,5 @@ status_code_e mme_api_unsubscribe(bstring apn) {
 
 static tmsi_t generate_random_TMSI() {
   // note srand with seed is initialized at main
-  return (tmsi_t) rand();
+  return (tmsi_t)rand();
 }

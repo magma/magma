@@ -79,12 +79,11 @@ void emm_esm_initialize(void) {
  ***************************************************************************/
 status_code_e emm_esm_send(const emm_esm_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc                        = RETURNerror;
+  int rc = RETURNerror;
   emm_esm_primitive_t primitive = msg->primitive;
 
-  OAILOG_INFO(
-      LOG_NAS_EMM, "EMMESM-SAP - Received primitive %s (%d)\n",
-      emm_esm_primitive_str[primitive - _EMMESM_START - 1], primitive);
+  OAILOG_INFO(LOG_NAS_EMM, "EMMESM-SAP - Received primitive %s (%d)\n",
+              emm_esm_primitive_str[primitive - _EMMESM_START - 1], primitive);
 
   switch (primitive) {
     case _EMMESM_UNITDATA_REQ:
@@ -102,9 +101,9 @@ status_code_e emm_esm_send(const emm_esm_t* msg) {
       break;
 
     case _EMMESM_DEACTIVATE_BEARER_REQ:
-      rc = lowerlayer_deactivate_bearer_req(
-          msg->ue_id, msg->u.deactivate_bearer.ebi,
-          msg->u.deactivate_bearer.msg);
+      rc = lowerlayer_deactivate_bearer_req(msg->ue_id,
+                                            msg->u.deactivate_bearer.ebi,
+                                            msg->u.deactivate_bearer.msg);
       break;
 
     default:

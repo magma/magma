@@ -25,13 +25,11 @@
 
 typedef bstring AccessPointName;
 
-int encode_access_point_name(
-    AccessPointName accesspointname, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int encode_access_point_name(AccessPointName accesspointname, uint8_t iei,
+                             uint8_t* buffer, uint32_t len);
 
-int decode_access_point_name(
-    AccessPointName* accesspointname, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int decode_access_point_name(AccessPointName* accesspointname, uint8_t iei,
+                             uint8_t* buffer, uint32_t len);
 
 void dump_access_point_name_xml(AccessPointName accesspointname, uint8_t iei);
 

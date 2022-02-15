@@ -1,11 +1,15 @@
 package message_generator
 
 import (
-	"encoding/json"
+	"context"
+	"fmt"
 	"time"
 
+	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/crud"
+	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/message"
+	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas"
+	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas_helpers"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
-	"magma/dp/cloud/go/active_mode_controller/protos/requests"
 )
 
 type messageGenerator struct {
@@ -20,78 +24,120 @@ func NewMessageGenerator(heartbeatTimeout time.Duration, inactivityTimeout time.
 	}
 }
 
-func (m *messageGenerator) GenerateMessages(state *active_mode.State, now time.Time) []*requests.RequestPayload {
-	var messages []message
-	for _, config := range state.ActiveModeConfigs {
-		generator := m.getPerCbsdMessageGenerator(config, now)
-		perCbsd := generator.generateMessages(config)
-		perCbsd = filterMessages(config.GetCbsd().GetPendingRequests(), perCbsd)
-		messages = append(messages, perCbsd...)
-	}
-	payloads := make([]*requests.RequestPayload, len(messages))
-	for i, m := range messages {
-		payloads[i] = messageToRequest(m)
-	}
-	return payloads
+type Message interface {
+	fmt.Stringer
+	Send(context.Context, message.ClientProvider) error
 }
 
-func (m *messageGenerator) getPerCbsdMessageGenerator(config *active_mode.ActiveModeConfig, now time.Time) perCbsdMessageGenerator {
+func (m *messageGenerator) GenerateMessages(state *active_mode.State, now time.Time) []Message {
+	var requests []*sas.Request
+	var actions []*crud.Action
+	for _, config := range state.ActiveModeConfigs {
+		g := m.getPerCbsdMessageGenerator(config, now)
+		reqs := g.sas.GenerateRequests(config)
+		reqs = sas_helpers.Filter(config.GetCbsd().GetPendingRequests(), reqs)
+		requests = append(requests, reqs...)
+		acts := g.crud.GenerateActions(config)
+		actions = append(actions, acts...)
+	}
+	var msgs []Message
+	payloads := sas_helpers.Build(requests)
+	for _, payload := range payloads {
+		msgs = append(msgs, message.NewSasMessage(payload))
+	}
+	for _, action := range actions {
+		msgs = append(msgs, message.NewDeleteMessage(action.SerialNumber))
+	}
+	return msgs
+}
+
+func (m *messageGenerator) getPerCbsdMessageGenerator(config *active_mode.ActiveModeConfig, now time.Time) *perCbsdMessageGenerator {
+	cbsd := config.GetCbsd()
+	if cbsd.GetIsDeleted() && cbsd.GetState() == active_mode.CbsdState_Unregistered {
+		return &perCbsdMessageGenerator{
+			sas:  &noMessageGenerator{},
+			crud: &deleteActionGenerator{},
+		}
+	}
+	return &perCbsdMessageGenerator{
+		sas:  m.getPerCbsdSasRequestGenerator(config, now),
+		crud: &noActionsGenerator{},
+	}
+}
+
+func (m *messageGenerator) getPerCbsdSasRequestGenerator(config *active_mode.ActiveModeConfig, now time.Time) sasRequestGenerator {
+	cbsd := config.GetCbsd()
+	if cbsd.GetIsDeleted() && cbsd.GetState() == active_mode.CbsdState_Registered {
+		return sas.NewDeregistrationRequestGenerator()
+	}
 	if config.GetDesiredState() == active_mode.CbsdState_Unregistered {
-		if config.GetCbsd().GetState() == active_mode.CbsdState_Registered {
-			return &deregistrationMessageGenerator{}
+		if cbsd.GetState() == active_mode.CbsdState_Registered {
+			return sas.NewDeregistrationRequestGenerator()
 		}
 		return &noMessageGenerator{}
 	}
-	if config.GetCbsd().GetLastSeenTimestamp() < now.Add(-m.inactivityTimeout).Unix() {
-		return &relinquishmentMessageGenerator{}
+	if cbsd.GetLastSeenTimestamp() < now.Add(-m.inactivityTimeout).Unix() {
+		return sas.NewRelinquishmentRequestGenerator()
 	}
-	if config.GetCbsd().GetState() == active_mode.CbsdState_Unregistered {
-		return &registerMessageGenerator{}
+	if cbsd.GetState() == active_mode.CbsdState_Unregistered {
+		return sas.NewRegistrationRequestGenerator()
 	}
-	if len(config.GetCbsd().GetGrants()) != 0 {
-		deadlineUnix := now.Add(m.heartbeatTimeout).Unix()
-		return &heartbeatOrRelinquishMessageGenerator{deadlineUnix: deadlineUnix}
+	if len(cbsd.GetGrants()) != 0 {
+		nextSend := now.Add(m.heartbeatTimeout).Unix()
+		return sas.NewHeartbeatRequestGenerator(nextSend)
 	}
 	return &firstNotNullMessageGenerator{
-		generators: []perCbsdMessageGenerator{
-			&grantMessageGenerator{},
-			&spectrumInquiryMessageGenerator{},
+		generators: []sasRequestGenerator{
+			sas.NewGrantRequestGenerator(),
+			sas.NewSpectrumInquiryRequestGenerator(),
 		},
 	}
 }
 
-type perCbsdMessageGenerator interface {
-	generateMessages(config *active_mode.ActiveModeConfig) []message
+type perCbsdMessageGenerator struct {
+	sas  sasRequestGenerator
+	crud crudActionGenerator
 }
 
-type message interface {
-	name() string
+type sasRequestGenerator interface {
+	GenerateRequests(*active_mode.ActiveModeConfig) []*sas.Request
 }
 
-func messageToRequest(m message) *requests.RequestPayload {
-	data := map[string][]interface{}{
-		m.name() + "Request": {m},
-	}
-	payload, _ := json.Marshal(data)
-	return &requests.RequestPayload{Payload: string(payload)}
+type crudActionGenerator interface {
+	GenerateActions(config *active_mode.ActiveModeConfig) []*crud.Action
 }
 
 type noMessageGenerator struct{}
 
-func (*noMessageGenerator) generateMessages(_ *active_mode.ActiveModeConfig) []message {
+func (*noMessageGenerator) GenerateRequests(_ *active_mode.ActiveModeConfig) []*sas.Request {
 	return nil
 }
 
 type firstNotNullMessageGenerator struct {
-	generators []perCbsdMessageGenerator
+	generators []sasRequestGenerator
 }
 
-func (f *firstNotNullMessageGenerator) generateMessages(config *active_mode.ActiveModeConfig) []message {
+func (f *firstNotNullMessageGenerator) GenerateRequests(config *active_mode.ActiveModeConfig) []*sas.Request {
 	for _, g := range f.generators {
-		messages := g.generateMessages(config)
+		messages := g.GenerateRequests(config)
 		if len(messages) > 0 {
 			return messages
 		}
 	}
 	return nil
+}
+
+type noActionsGenerator struct{}
+
+func (*noActionsGenerator) GenerateActions(_ *active_mode.ActiveModeConfig) []*crud.Action {
+	return nil
+}
+
+type deleteActionGenerator struct{}
+
+func (*deleteActionGenerator) GenerateActions(config *active_mode.ActiveModeConfig) []*crud.Action {
+	return []*crud.Action{{
+		Type:         crud.Delete,
+		SerialNumber: config.GetCbsd().GetSerialNumber(),
+	}}
 }

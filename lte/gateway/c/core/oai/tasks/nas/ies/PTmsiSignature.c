@@ -23,9 +23,8 @@
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/PTmsiSignature.h"
 
-int decode_p_tmsi_signature(
-    PTmsiSignature* ptmsisignature, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int decode_p_tmsi_signature(PTmsiSignature* ptmsisignature, uint8_t iei,
+                            uint8_t* buffer, uint32_t len) {
   int decoded = 0;
   int decode_result;
   uint8_t ielen = 3;
@@ -35,8 +34,8 @@ int decode_p_tmsi_signature(
     decoded++;
   }
 
-  if ((decode_result = decode_bstring(
-           ptmsisignature, ielen, buffer + decoded, len - decoded)) < 0)
+  if ((decode_result = decode_bstring(ptmsisignature, ielen, buffer + decoded,
+                                      len - decoded)) < 0)
     return decode_result;
   else
     decoded += decode_result;
@@ -47,16 +46,16 @@ int decode_p_tmsi_signature(
   return decoded;
 }
 
-int encode_p_tmsi_signature(
-    PTmsiSignature ptmsisignature, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_p_tmsi_signature(PTmsiSignature ptmsisignature, uint8_t iei,
+                            uint8_t* buffer, uint32_t len) {
   uint32_t encode_result;
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, P_TMSI_SIGNATURE_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, P_TMSI_SIGNATURE_MINIMUM_LENGTH,
+                                       len);
 #if NAS_DEBUG
   dump_p_tmsi_signature_xml(ptmsisignature, iei);
 #endif

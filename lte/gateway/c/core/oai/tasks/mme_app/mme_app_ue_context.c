@@ -39,8 +39,8 @@
  * @param imsi_src
  */
 
-void mme_app_copy_imsi(
-    mme_app_imsi_t* imsi_dst, const mme_app_imsi_t* imsi_src) {
+void mme_app_copy_imsi(mme_app_imsi_t* imsi_dst,
+                       const mme_app_imsi_t* imsi_src) {
   strncpy(imsi_dst->data, imsi_src->data, IMSI_BCD_DIGITS_MAX + 1);
   imsi_dst->length = imsi_src->length;
 }
@@ -53,8 +53,8 @@ void mme_app_copy_imsi(
  * @return
  */
 
-bool mme_app_imsi_compare(
-    mme_app_imsi_t const* imsi_a, mme_app_imsi_t const* imsi_b) {
+bool mme_app_imsi_compare(mme_app_imsi_t const* imsi_a,
+                          mme_app_imsi_t const* imsi_b) {
   if ((strncmp(imsi_a->data, imsi_b->data, IMSI_BCD_DIGITS_MAX) == 0) &&
       imsi_a->length == imsi_b->length) {
     return true;
@@ -68,8 +68,8 @@ bool mme_app_imsi_compare(
  * @param imsi_string_src
  */
 
-void mme_app_string_to_imsi(
-    mme_app_imsi_t* const imsi_dst, char const* const imsi_string_src) {
+void mme_app_string_to_imsi(mme_app_imsi_t* const imsi_dst,
+                            char const* const imsi_string_src) {
   strncpy(imsi_dst->data, imsi_string_src, IMSI_BCD_DIGITS_MAX + 1);
   imsi_dst->length = strlen(imsi_dst->data);
   return;
@@ -81,8 +81,8 @@ void mme_app_string_to_imsi(
  * @param imsi_src
  */
 
-void mme_app_imsi_to_string(
-    char* const imsi_dst, mme_app_imsi_t const* const imsi_src) {
+void mme_app_imsi_to_string(char* const imsi_dst,
+                            mme_app_imsi_t const* const imsi_src) {
   strncpy(imsi_dst, imsi_src->data, IMSI_BCD_DIGITS_MAX + 1);
   return;
 }

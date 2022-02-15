@@ -47,7 +47,7 @@ int M5GSRegistrationResultMsg::EncodeM5GSRegistrationResultMsg(
   }
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER(iei, (unsigned char) m5gs_reg_result->iei);
+    CHECK_IEI_ENCODER(iei, (unsigned char)m5gs_reg_result->iei);
     *buffer = iei;
     MLOG(MDEBUG) << "In EncodeM5GSRegistrationResultMsg___: iei  = " << std::hex
                  << int(*buffer);

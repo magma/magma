@@ -55,13 +55,9 @@ void put_sgw_state() {
   return;
 }
 
-void put_sgw_ue_state(sgw_state_t* sgw_state, imsi64_t imsi64) {
-  return;
-}
+void put_sgw_ue_state(sgw_state_t* sgw_state, imsi64_t imsi64) { return; }
 
-void delete_sgw_ue_state(imsi64_t imsi64) {
-  return;
-}
+void delete_sgw_ue_state(imsi64_t imsi64) { return; }
 
 void sgw_free_s11_bearer_context_information(
     sgw_eps_bearer_context_information_t** sgw_eps_context) {
@@ -69,6 +65,6 @@ void sgw_free_s11_bearer_context_information(
     sgw_free_pdn_connection(&(*sgw_eps_context)->pdn_connection);
     delete_pending_procedures((*sgw_eps_context));
   }
-  free_wrapper((void**) sgw_eps_context);
+  free_wrapper((void**)sgw_eps_context);
   return;
 }

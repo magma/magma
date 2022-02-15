@@ -42,15 +42,18 @@ status_code_e sctp_itti_send_lower_layer_conf(
     task_id_t origin_task_id, sctp_ppid_t ppid, sctp_assoc_id_t assoc_id,
     sctp_stream_id_t stream, uint32_t agw_ue_xap_id, bool is_success);
 
-status_code_e sctp_itti_send_new_association(
-    sctp_ppid_t ppid, sctp_assoc_id_t assoc_id, sctp_stream_id_t instreams,
-    sctp_stream_id_t outstreams, STOLEN_REF bstring* ran_cp_ipaddr);
+status_code_e sctp_itti_send_new_association(sctp_ppid_t ppid,
+                                             sctp_assoc_id_t assoc_id,
+                                             sctp_stream_id_t instreams,
+                                             sctp_stream_id_t outstreams,
+                                             STOLEN_REF bstring* ran_cp_ipaddr);
 
-status_code_e sctp_itti_send_new_message_ind(
-    STOLEN_REF bstring* payload, sctp_ppid_t ppid, sctp_assoc_id_t assoc_id,
-    sctp_stream_id_t stream);
+status_code_e sctp_itti_send_new_message_ind(STOLEN_REF bstring* payload,
+                                             sctp_ppid_t ppid,
+                                             sctp_assoc_id_t assoc_id,
+                                             sctp_stream_id_t stream);
 
-status_code_e sctp_itti_send_com_down_ind(
-    sctp_ppid_t ppid, sctp_assoc_id_t assoc_id, bool reset);
+status_code_e sctp_itti_send_com_down_ind(sctp_ppid_t ppid,
+                                          sctp_assoc_id_t assoc_id, bool reset);
 
 #endif /* FILE_SCTP_ITTI_MESSAGING_SEEN */

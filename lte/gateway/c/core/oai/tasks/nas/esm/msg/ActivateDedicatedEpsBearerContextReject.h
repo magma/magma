@@ -27,11 +27,11 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT_MINIMUM_LENGTH            \
+#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT_MINIMUM_LENGTH \
   (ESM_CAUSE_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT_MAXIMUM_LENGTH            \
+#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT_MAXIMUM_LENGTH \
   (ESM_CAUSE_MAXIMUM_LENGTH + PROTOCOL_CONFIGURATION_OPTIONS_IE_MAX_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding

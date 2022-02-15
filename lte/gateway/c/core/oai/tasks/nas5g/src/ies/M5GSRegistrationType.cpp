@@ -31,7 +31,7 @@ int M5GSRegistrationTypeMsg::DecodeM5GSRegistrationTypeMsg(
     CHECK_IEI_DECODER((*buffer & 0xf0), iei);
   }
 
-  m5gs_reg_type->FOR      = (*(buffer + decoded) >> 3) & 0x1;
+  m5gs_reg_type->FOR = (*(buffer + decoded) >> 3) & 0x1;
   m5gs_reg_type->type_val = *(buffer + decoded) & 0x7;
   MLOG(MDEBUG) << " FOR = 0x" << std::hex << int(m5gs_reg_type->FOR);
   MLOG(MDEBUG) << " type_val = 0x" << std::hex << int(m5gs_reg_type->type_val);

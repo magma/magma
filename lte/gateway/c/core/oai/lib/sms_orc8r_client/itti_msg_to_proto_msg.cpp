@@ -16,8 +16,6 @@
  */
 
 #include <iomanip>
-#include <iostream>
-#include <string>
 
 #include "lte/protos/mconfig/mconfigs.pb.h"
 #include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
@@ -36,12 +34,6 @@ extern "C" {
 #define DEFAULT_MME_CODE 1
 #define DEFAULT_MME_GID 1
 
-std::string int_to_hex_string(int input, int num_of_digit) {
-  std::stringstream stream;
-  stream << std::setfill('0') << std::setw(num_of_digit) << std::hex << input;
-  return stream.str();
-}
-
 namespace magma {
 using namespace lte;
 
@@ -52,8 +44,8 @@ SMOUplinkUnitdata convert_itti_sgsap_uplink_unitdata_to_proto_msg(
 
   ret.set_imsi(msg->imsi, msg->imsi_length);
 
-  ret.set_nas_message_container(
-      bdata(msg->nas_msg_container), blength(msg->nas_msg_container));
+  ret.set_nas_message_container(bdata(msg->nas_msg_container),
+                                blength(msg->nas_msg_container));
 
   // optional fields
   if (msg->presencemask & UPLINK_UNITDATA_IMEISV_PARAMETER_PRESENT) {
@@ -66,10 +58,10 @@ SMOUplinkUnitdata convert_itti_sgsap_uplink_unitdata_to_proto_msg(
   if (msg->presencemask &
       UPLINK_UNITDATA_MOBILE_STATION_CLASSMARK_2_PARAMETER_PRESENT) {
     char mobile_station_classmark2[IE_LENGTH_MOBILE_STATION_CLASSMARK2];
-    mobile_station_classmark2_to_bytes(
-        &msg->opt_mobilestationclassmark2, mobile_station_classmark2);
-    ret.set_mobile_station_classmark2(
-        mobile_station_classmark2, IE_LENGTH_MOBILE_STATION_CLASSMARK2);
+    mobile_station_classmark2_to_bytes(&msg->opt_mobilestationclassmark2,
+                                       mobile_station_classmark2);
+    ret.set_mobile_station_classmark2(mobile_station_classmark2,
+                                      IE_LENGTH_MOBILE_STATION_CLASSMARK2);
   }
   if (msg->presencemask & UPLINK_UNITDATA_TAI_PARAMETER_PRESENT) {
     char tai[IE_LENGTH_TAI];

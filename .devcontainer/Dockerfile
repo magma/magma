@@ -48,7 +48,6 @@ RUN echo "Install general purpose packages" && \
         build-essential \
         ca-certificates \
         clang-11 \
-        clang-format-7 \
         clang-format-11 \
         clang-tidy-11 \
         curl \
@@ -66,6 +65,7 @@ RUN echo "Install general purpose packages" && \
         libssl-dev \
         libtool \
         lld \
+        lldb \
         make \
         ninja-build \
         perl \
@@ -85,10 +85,9 @@ RUN echo "Install general purpose packages" && \
         gem install fpm && \
         update-alternatives --install /usr/bin/clang clang /usr/lib/llvm-11/bin/clang 10 && \
         update-alternatives --install /usr/bin/clang++ clang++ /usr/lib/llvm-11/bin/clang++ 10 && \
-        update-alternatives --install /usr/bin/clang-format clang-format /usr/lib/llvm-7/bin/clang-format 10 && \
+        update-alternatives --install /usr/bin/clang-format clang-format /usr/lib/llvm-11/bin/clang-format 10 && \
         update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/lib/llvm-11/bin/clang-tidy 10 && \
         update-alternatives --install /usr/bin/clang-apply-replacements clang-apply-replacements /usr/lib/llvm-11/bin/clang-apply-replacements 10
-
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y clangd-12
 
@@ -322,7 +321,7 @@ RUN ldconfig -v
 ##### Install Python requirements
 RUN pip3 install --quiet --upgrade --no-cache-dir "setuptools==49.6.0"
 
-### install python3-aioeventlet from the magma apt repo (from .circleci/config.yml)
+### install python3-aioeventlet from the magma apt repo
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/
 RUN apt-key add /tmp/jfrog.pub && \
     echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" > /etc/apt/sources.list.d/fbc.list && \
@@ -346,6 +345,9 @@ COPY /orc8r/gateway/python/ ${MAGMA_ROOT}/orc8r/gateway/python/
 WORKDIR ${MAGMA_ROOT}/orc8r/gateway/python/
 RUN pip3 install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose --editable .[dev] && \
     rm -rf orc8r.egg-info
+
+# install formatter autopep8
+RUN pip install --no-cache-dir autopep8
 
 #### protos
 ARG PYTHON_LIB=/usr/local/lib/python3.8

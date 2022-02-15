@@ -112,10 +112,10 @@ static shared_log_queue_item_t* create_new_log_queue_item(
     sh_ts_log_app_id_t app_id) {
   shared_log_queue_item_t* item_p = calloc(1, sizeof(shared_log_queue_item_t));
   AssertFatal((item_p), "Allocation of log container failed");
-  AssertFatal(
-      (app_id >= MIN_SH_TS_LOG_CLIENT), "Allocation of log container failed");
-  AssertFatal(
-      (app_id < MAX_SH_TS_LOG_CLIENT), "Allocation of log container failed");
+  AssertFatal((app_id >= MIN_SH_TS_LOG_CLIENT),
+              "Allocation of log container failed");
+  AssertFatal((app_id < MAX_SH_TS_LOG_CLIENT),
+              "Allocation of log container failed");
   item_p->app_id = app_id;
 #if defined(SHARED_LOG_PREALLOC_STRING_BUFFERS)
   item_p->bstr = bfromcstralloc(LOG_MESSAGE_MIN_ALLOC_SIZE, "");
@@ -126,7 +126,7 @@ static shared_log_queue_item_t* create_new_log_queue_item(
 
 //------------------------------------------------------------------------------
 shared_log_queue_item_t* get_new_log_queue_item(sh_ts_log_app_id_t app_id) {
-  shared_log_queue_item_t* item_p  = NULL;
+  shared_log_queue_item_t* item_p = NULL;
   struct lfds710_stack_element* se = NULL;
 
   lfds710_stack_pop(&g_shared_log.log_free_message_queue, &se);
@@ -171,7 +171,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       shared_log_exit();
     } break;
 
-    default: { } break; }
+    default: {
+    } break;
+  }
 
   free(received_message_p);
   return 0;
@@ -180,13 +182,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 //------------------------------------------------------------------------------
 static void* shared_log_thread(__attribute__((unused)) void* args_p) {
   itti_mark_task_ready(TASK_SHARED_TS_LOG);
-  init_task_context(
-      TASK_SHARED_TS_LOG, (task_id_t[]){}, 0, handle_message,
-      &shared_log_task_zmq_ctx);
+  init_task_context(TASK_SHARED_TS_LOG, (task_id_t[]){}, 0, handle_message,
+                    &shared_log_task_zmq_ctx);
 
-  timer_id = start_timer(
-      &shared_log_task_zmq_ctx, LOG_FLUSH_PERIOD_MSEC, TIMER_REPEAT_FOREVER,
-      handle_timer, NULL);
+  timer_id = start_timer(&shared_log_task_zmq_ctx, LOG_FLUSH_PERIOD_MSEC,
+                         TIMER_REPEAT_FOREVER, handle_timer, NULL);
   shared_log_start_use();
 
   zloop_start(shared_log_task_zmq_ctx.event_loop);
@@ -207,7 +207,7 @@ void shared_log_get_elapsed_time_since_start(
 //------------------------------------------------------------------------------
 int shared_log_init(const int max_threadsP) {
   shared_log_queue_item_t* item_p = NULL;
-  struct timeval start_time       = {.tv_sec = 0, .tv_usec = 0};
+  struct timeval start_time = {.tv_sec = 0, .tv_usec = 0};
 
   OAI_FPRINTF_INFO("Initializing shared logging\n");
   gettimeofday(&start_time, NULL);
@@ -219,21 +219,20 @@ int shared_log_init(const int max_threadsP) {
   g_shared_log.thread_context_htbl =
       hashtable_ts_create(LOG_MESSAGE_MIN_ALLOC_SIZE, NULL, free_wrapper, b);
   bdestroy_wrapper(&b);
-  AssertFatal(
-      NULL != g_shared_log.thread_context_htbl,
-      "Could not create hashtable for Log!\n");
+  AssertFatal(NULL != g_shared_log.thread_context_htbl,
+              "Could not create hashtable for Log!\n");
   g_shared_log.thread_context_htbl->log_enabled = false;
 
   log_thread_ctxt_t* thread_ctxt = calloc(1, sizeof(log_thread_ctxt_t));
-  AssertFatal(
-      NULL != thread_ctxt, "Error Could not create log thread context\n");
-  pthread_t p            = pthread_self();
-  thread_ctxt->tid       = p;
-  hashtable_rc_t hash_rc = hashtable_ts_insert(
-      g_shared_log.thread_context_htbl, (hash_key_t) p, thread_ctxt);
+  AssertFatal(NULL != thread_ctxt,
+              "Error Could not create log thread context\n");
+  pthread_t p = pthread_self();
+  thread_ctxt->tid = p;
+  hashtable_rc_t hash_rc = hashtable_ts_insert(g_shared_log.thread_context_htbl,
+                                               (hash_key_t)p, thread_ctxt);
   if (HASH_TABLE_OK != hash_rc) {
     OAI_FPRINTF_ERR("Error Could not register log thread context\n");
-    free_wrapper((void**) &thread_ctxt);
+    free_wrapper((void**)&thread_ctxt);
   }
 
   lfds710_stack_init_valid_on_current_logical_core(
@@ -262,26 +261,26 @@ int shared_log_init(const int max_threadsP) {
 //------------------------------------------------------------------------------
 void shared_log_itti_connect(void) {
   int rv = 0;
-  rv     = itti_create_task(TASK_SHARED_TS_LOG, &shared_log_thread, NULL);
+  rv = itti_create_task(TASK_SHARED_TS_LOG, &shared_log_thread, NULL);
   AssertFatal(rv == 0, "Create task for OAI logging failed!\n");
 }
 
 //------------------------------------------------------------------------------
 void shared_log_start_use(void) {
-  pthread_t p            = pthread_self();
+  pthread_t p = pthread_self();
   hashtable_rc_t hash_rc = hashtable_ts_is_key_exists(
-      g_shared_log.thread_context_htbl, (hash_key_t) p);
+      g_shared_log.thread_context_htbl, (hash_key_t)p);
   if (HASH_TABLE_KEY_NOT_EXISTS == hash_rc) {
     LFDS710_MISC_MAKE_VALID_ON_CURRENT_LOGICAL_CORE_INITS_COMPLETED_BEFORE_NOW_ON_ANY_OTHER_LOGICAL_CORE;
 
     log_thread_ctxt_t* thread_ctxt = calloc(1, sizeof(log_thread_ctxt_t));
     if (thread_ctxt) {
       thread_ctxt->tid = p;
-      hash_rc          = hashtable_ts_insert(
-          g_shared_log.thread_context_htbl, (hash_key_t) p, thread_ctxt);
+      hash_rc = hashtable_ts_insert(g_shared_log.thread_context_htbl,
+                                    (hash_key_t)p, thread_ctxt);
       if (HASH_TABLE_OK != hash_rc) {
         OAI_FPRINTF_ERR("Error Could not register log thread context\n");
-        free_wrapper((void**) &thread_ctxt);
+        free_wrapper((void**)&thread_ctxt);
       }
     } else {
       OAI_FPRINTF_ERR("Error Could not create log thread context\n");
@@ -293,8 +292,8 @@ void shared_log_start_use(void) {
 void shared_log_flush_messages(void) {
   shared_log_queue_item_t* item_p = NULL;
 
-  while (lfds710_queue_bmm_dequeue(
-             &g_shared_log.log_message_queue, NULL, (void**) &item_p) == 1) {
+  while (lfds710_queue_bmm_dequeue(&g_shared_log.log_message_queue, NULL,
+                                   (void**)&item_p) == 1) {
     if ((item_p->app_id >= MIN_SH_TS_LOG_CLIENT) &&
         (item_p->app_id < MAX_SH_TS_LOG_CLIENT)) {
       (*g_shared_log.logger_callback[item_p->app_id])(item_p);
@@ -308,25 +307,25 @@ void shared_log_flush_messages(void) {
 //------------------------------------------------------------------------------
 static void shared_log_element_dequeue_cleanup_callback(
     struct lfds710_queue_bmm_state* qbmms, void* key, void* value) {
-  shared_log_queue_item_t* item_p = (shared_log_queue_item_t*) value;
+  shared_log_queue_item_t* item_p = (shared_log_queue_item_t*)value;
 
   if (item_p) {
     if (item_p->bstr) {
       bdestroy_wrapper(&item_p->bstr);
     }
-    free_wrapper((void**) &item_p);
+    free_wrapper((void**)&item_p);
   }
 }
 //------------------------------------------------------------------------------
 static void shared_log_element_pop_cleanup_callback(
     struct lfds710_stack_state* ss, struct lfds710_stack_element* se) {
-  shared_log_queue_item_t* item_p = (shared_log_queue_item_t*) se->value;
+  shared_log_queue_item_t* item_p = (shared_log_queue_item_t*)se->value;
 
   if (item_p) {
     if (item_p->bstr) {
       bdestroy_wrapper(&item_p->bstr);
     }
-    free_wrapper((void**) &item_p);
+    free_wrapper((void**)&item_p);
   }
 }
 //------------------------------------------------------------------------------
@@ -336,13 +335,11 @@ static void shared_log_exit(void) {
   destroy_task_context(&shared_log_task_zmq_ctx);
   shared_log_flush_messages();
   hashtable_ts_destroy(g_shared_log.thread_context_htbl);
-  lfds710_queue_bmm_cleanup(
-      &g_shared_log.log_message_queue,
-      shared_log_element_dequeue_cleanup_callback);
-  lfds710_stack_cleanup(
-      &g_shared_log.log_free_message_queue,
-      shared_log_element_pop_cleanup_callback);
-  free_wrapper((void**) &g_shared_log.qbmme);
+  lfds710_queue_bmm_cleanup(&g_shared_log.log_message_queue,
+                            shared_log_element_dequeue_cleanup_callback);
+  lfds710_stack_cleanup(&g_shared_log.log_free_message_queue,
+                        shared_log_element_pop_cleanup_callback);
+  free_wrapper((void**)&g_shared_log.qbmme);
   OAI_FPRINTF_INFO("[TRACE] Leaving %s\n", __FUNCTION__);
 
   OAI_FPRINTF_INFO("TASK_SHARED_TS_LOG terminated\n");
@@ -354,13 +351,13 @@ void shared_log_item(shared_log_queue_item_t* messageP) {
   if (messageP) {
     if (g_shared_log.running) {
       shared_log_start_use();
-      lfds710_queue_bmm_enqueue(
-          &g_shared_log.log_message_queue, NULL, messageP);
+      lfds710_queue_bmm_enqueue(&g_shared_log.log_message_queue, NULL,
+                                messageP);
     } else {
       if (messageP->bstr) {
         bdestroy_wrapper(&messageP->bstr);
       }
-      free_wrapper((void**) &messageP);
+      free_wrapper((void**)&messageP);
     }
   }
 }

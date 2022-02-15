@@ -32,16 +32,16 @@
  */
 // TODO: (amar) This and below functions are only used in testing possibly move
 // these to the testing module
-void mme_app_convert_imsi_to_imsi_mme(
-    mme_app_imsi_t* imsi_dst, const imsi_t* imsi_src) {
-  memset(imsi_dst->data, (uint8_t) '\0', sizeof(imsi_dst->data));
+void mme_app_convert_imsi_to_imsi_mme(mme_app_imsi_t* imsi_dst,
+                                      const imsi_t* imsi_src) {
+  memset(imsi_dst->data, (uint8_t)'\0', sizeof(imsi_dst->data));
   IMSI_TO_STRING(imsi_src, imsi_dst->data, IMSI_BCD_DIGITS_MAX + 1);
   imsi_dst->length = strlen(imsi_dst->data);
 }
 
 START_TEST(imsi_empty_test) {
   mme_app_imsi_t imsi_mme = {.length = 0};
-  char imsi_str[]         = "001012234567890";
+  char imsi_str[] = "001012234567890";
 
   /* Check if imsi_mme is empty */
   ck_assert(mme_app_is_imsi_empty(&imsi_mme) == true);
@@ -72,9 +72,8 @@ START_TEST(imsi_convert_to_uint_test) {
   for (i = 0; i < TEST_CASE_COMMON_CONVERT_MAX; i++) {
     mme_app_string_to_imsi(&imsi_mme_test, imsi_compare[i]);
     imsi_uint64 = mme_app_imsi_to_u64(imsi_mme_test);
-    printf(
-        "Convert %" PRIu64 " and assert %" PRIu64 "\n", imsi_uint64,
-        imsi_cmp[i]);
+    printf("Convert %" PRIu64 " and assert %" PRIu64 "\n", imsi_uint64,
+           imsi_cmp[i]);
     ck_assert_uint_eq(imsi_uint64, imsi_cmp[i]);
   }
 }
@@ -85,15 +84,15 @@ START_TEST(imsi_convert_common_struct_test) {
   mme_app_imsi_t imsi_mme;
   imsi_t imsi_structs[TEST_CASE_COMMON_CONVERT_MAX] = {
       // 001011234567890
-      {.u.num.digit1  = 0,
-       .u.num.digit2  = 0,
-       .u.num.digit3  = 1,
-       .u.num.digit4  = 0,
-       .u.num.digit5  = 1,
-       .u.num.digit6  = 1,
-       .u.num.digit7  = 2,
-       .u.num.digit8  = 3,
-       .u.num.digit9  = 4,
+      {.u.num.digit1 = 0,
+       .u.num.digit2 = 0,
+       .u.num.digit3 = 1,
+       .u.num.digit4 = 0,
+       .u.num.digit5 = 1,
+       .u.num.digit6 = 1,
+       .u.num.digit7 = 2,
+       .u.num.digit8 = 3,
+       .u.num.digit9 = 4,
        .u.num.digit10 = 5,
        .u.num.digit11 = 6,
        .u.num.digit12 = 7,
@@ -101,15 +100,15 @@ START_TEST(imsi_convert_common_struct_test) {
        .u.num.digit14 = 9,
        .u.num.digit15 = 0},
       // 262011234567890
-      {.u.num.digit1  = 2,
-       .u.num.digit2  = 6,
-       .u.num.digit3  = 2,
-       .u.num.digit4  = 0,
-       .u.num.digit5  = 1,
-       .u.num.digit6  = 1,
-       .u.num.digit7  = 2,
-       .u.num.digit8  = 3,
-       .u.num.digit9  = 4,
+      {.u.num.digit1 = 2,
+       .u.num.digit2 = 6,
+       .u.num.digit3 = 2,
+       .u.num.digit4 = 0,
+       .u.num.digit5 = 1,
+       .u.num.digit6 = 1,
+       .u.num.digit7 = 2,
+       .u.num.digit8 = 3,
+       .u.num.digit9 = 4,
        .u.num.digit10 = 5,
        .u.num.digit11 = 6,
        .u.num.digit12 = 7,
@@ -117,15 +116,15 @@ START_TEST(imsi_convert_common_struct_test) {
        .u.num.digit14 = 9,
        .u.num.digit15 = 0},
       // 310150123456789
-      {.u.num.digit1  = 3,
-       .u.num.digit2  = 1,
-       .u.num.digit3  = 0,
-       .u.num.digit4  = 1,
-       .u.num.digit5  = 5,
-       .u.num.digit6  = 0,
-       .u.num.digit7  = 1,
-       .u.num.digit8  = 2,
-       .u.num.digit9  = 3,
+      {.u.num.digit1 = 3,
+       .u.num.digit2 = 1,
+       .u.num.digit3 = 0,
+       .u.num.digit4 = 1,
+       .u.num.digit5 = 5,
+       .u.num.digit6 = 0,
+       .u.num.digit7 = 1,
+       .u.num.digit8 = 2,
+       .u.num.digit9 = 3,
        .u.num.digit10 = 4,
        .u.num.digit11 = 5,
        .u.num.digit12 = 6,
@@ -133,15 +132,15 @@ START_TEST(imsi_convert_common_struct_test) {
        .u.num.digit14 = 8,
        .u.num.digit15 = 9},
       // 460001357924680
-      {.u.num.digit1  = 4,
-       .u.num.digit2  = 6,
-       .u.num.digit3  = 0,
-       .u.num.digit4  = 0,
-       .u.num.digit5  = 0,
-       .u.num.digit6  = 1,
-       .u.num.digit7  = 3,
-       .u.num.digit8  = 5,
-       .u.num.digit9  = 7,
+      {.u.num.digit1 = 4,
+       .u.num.digit2 = 6,
+       .u.num.digit3 = 0,
+       .u.num.digit4 = 0,
+       .u.num.digit5 = 0,
+       .u.num.digit6 = 1,
+       .u.num.digit7 = 3,
+       .u.num.digit8 = 5,
+       .u.num.digit9 = 7,
        .u.num.digit10 = 9,
        .u.num.digit11 = 2,
        .u.num.digit12 = 4,
@@ -149,15 +148,15 @@ START_TEST(imsi_convert_common_struct_test) {
        .u.num.digit14 = 8,
        .u.num.digit15 = 0},
       // 520031234567890
-      {.u.num.digit1  = 5,
-       .u.num.digit2  = 2,
-       .u.num.digit3  = 0,
-       .u.num.digit4  = 0,
-       .u.num.digit5  = 3,
-       .u.num.digit6  = 1,
-       .u.num.digit7  = 2,
-       .u.num.digit8  = 3,
-       .u.num.digit9  = 4,
+      {.u.num.digit1 = 5,
+       .u.num.digit2 = 2,
+       .u.num.digit3 = 0,
+       .u.num.digit4 = 0,
+       .u.num.digit5 = 3,
+       .u.num.digit6 = 1,
+       .u.num.digit7 = 2,
+       .u.num.digit8 = 3,
+       .u.num.digit9 = 4,
        .u.num.digit10 = 5,
        .u.num.digit11 = 6,
        .u.num.digit12 = 7,
@@ -165,15 +164,15 @@ START_TEST(imsi_convert_common_struct_test) {
        .u.num.digit14 = 9,
        .u.num.digit15 = 0},
       // 470010171566423
-      {.u.num.digit1  = 4,
-       .u.num.digit2  = 7,
-       .u.num.digit3  = 0,
-       .u.num.digit4  = 0,
-       .u.num.digit5  = 1,
-       .u.num.digit6  = 0,
-       .u.num.digit7  = 1,
-       .u.num.digit8  = 7,
-       .u.num.digit9  = 1,
+      {.u.num.digit1 = 4,
+       .u.num.digit2 = 7,
+       .u.num.digit3 = 0,
+       .u.num.digit4 = 0,
+       .u.num.digit5 = 1,
+       .u.num.digit6 = 0,
+       .u.num.digit7 = 1,
+       .u.num.digit8 = 7,
+       .u.num.digit9 = 1,
        .u.num.digit10 = 5,
        .u.num.digit11 = 6,
        .u.num.digit12 = 6,
@@ -181,15 +180,15 @@ START_TEST(imsi_convert_common_struct_test) {
        .u.num.digit14 = 2,
        .u.num.digit15 = 3},
       // 41004123456789
-      {.u.num.digit1  = 4,
-       .u.num.digit2  = 1,
-       .u.num.digit3  = 0,
-       .u.num.digit4  = 0,
-       .u.num.digit5  = 4,
-       .u.num.digit6  = 1,
-       .u.num.digit7  = 2,
-       .u.num.digit8  = 3,
-       .u.num.digit9  = 4,
+      {.u.num.digit1 = 4,
+       .u.num.digit2 = 1,
+       .u.num.digit3 = 0,
+       .u.num.digit4 = 0,
+       .u.num.digit5 = 4,
+       .u.num.digit6 = 1,
+       .u.num.digit7 = 2,
+       .u.num.digit8 = 3,
+       .u.num.digit9 = 4,
        .u.num.digit10 = 5,
        .u.num.digit11 = 6,
        .u.num.digit12 = 7,
@@ -197,15 +196,15 @@ START_TEST(imsi_convert_common_struct_test) {
        .u.num.digit14 = 9,
        .u.num.digit15 = 0xf},
       // 4100412345678
-      {.u.num.digit1  = 4,
-       .u.num.digit2  = 1,
-       .u.num.digit3  = 0,
-       .u.num.digit4  = 0,
-       .u.num.digit5  = 4,
-       .u.num.digit6  = 1,
-       .u.num.digit7  = 2,
-       .u.num.digit8  = 3,
-       .u.num.digit9  = 4,
+      {.u.num.digit1 = 4,
+       .u.num.digit2 = 1,
+       .u.num.digit3 = 0,
+       .u.num.digit4 = 0,
+       .u.num.digit5 = 4,
+       .u.num.digit6 = 1,
+       .u.num.digit7 = 2,
+       .u.num.digit8 = 3,
+       .u.num.digit9 = 4,
        .u.num.digit10 = 5,
        .u.num.digit11 = 6,
        .u.num.digit12 = 7,
@@ -213,15 +212,15 @@ START_TEST(imsi_convert_common_struct_test) {
        .u.num.digit14 = 0xf,
        .u.num.digit15 = 0xf},
       // 410041234567
-      {.u.num.digit1  = 4,
-       .u.num.digit2  = 1,
-       .u.num.digit3  = 0,
-       .u.num.digit4  = 0,
-       .u.num.digit5  = 4,
-       .u.num.digit6  = 1,
-       .u.num.digit7  = 2,
-       .u.num.digit8  = 3,
-       .u.num.digit9  = 4,
+      {.u.num.digit1 = 4,
+       .u.num.digit2 = 1,
+       .u.num.digit3 = 0,
+       .u.num.digit4 = 0,
+       .u.num.digit5 = 4,
+       .u.num.digit6 = 1,
+       .u.num.digit7 = 2,
+       .u.num.digit8 = 3,
+       .u.num.digit9 = 4,
        .u.num.digit10 = 5,
        .u.num.digit11 = 6,
        .u.num.digit12 = 7,
@@ -229,15 +228,15 @@ START_TEST(imsi_convert_common_struct_test) {
        .u.num.digit14 = 0xf,
        .u.num.digit15 = 0xf},
       // 4100412
-      {.u.num.digit1  = 4,
-       .u.num.digit2  = 1,
-       .u.num.digit3  = 0,
-       .u.num.digit4  = 0,
-       .u.num.digit5  = 4,
-       .u.num.digit6  = 1,
-       .u.num.digit7  = 2,
-       .u.num.digit8  = 0xf,
-       .u.num.digit9  = 0xf,
+      {.u.num.digit1 = 4,
+       .u.num.digit2 = 1,
+       .u.num.digit3 = 0,
+       .u.num.digit4 = 0,
+       .u.num.digit5 = 4,
+       .u.num.digit6 = 1,
+       .u.num.digit7 = 2,
+       .u.num.digit8 = 0xf,
+       .u.num.digit9 = 0xf,
        .u.num.digit10 = 0xf,
        .u.num.digit11 = 0xf,
        .u.num.digit12 = 0xf,
@@ -272,9 +271,8 @@ START_TEST(imsi_convert_common_struct_test) {
 
   for (i = 0; i < TEST_CASE_COMMON_CONVERT_MAX; i++) {
     mme_app_convert_imsi_to_imsi_mme(&imsi_mme, &imsi_structs[i]);
-    printf(
-        "IMSI mme %" IMSI_FORMAT " %d compare %s \n", IMSI_DATA(imsi_mme),
-        imsi_mme.length, imsi_compare[i]);
+    printf("IMSI mme %" IMSI_FORMAT " %d compare %s \n", IMSI_DATA(imsi_mme),
+           imsi_mme.length, imsi_compare[i]);
     ck_assert_str_eq(IMSI_DATA(imsi_mme), imsi_compare[i]);
   }
 }
@@ -320,7 +318,7 @@ int main(void) {
   SRunner* sr;
 
   /* Create SQR Test Suite */
-  s  = imsi_suite();
+  s = imsi_suite();
   sr = srunner_create(s);
 
   srunner_run_all(sr, CK_NORMAL);

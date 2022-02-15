@@ -78,26 +78,24 @@ static int main_init(void) {
       TASK_MAIN,
       (task_id_t[]){TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER,
                     TASK_S6A, TASK_S1AP, TASK_SCTP, TASK_SPGW_APP, TASK_SGW_S8,
-                    TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG},
-      11, NULL, &main_zmq_ctx);
+                    TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG,
+                    TASK_ASYNC_GRPC_SERVICE},
+      12, NULL, &main_zmq_ctx);
 
   return RETURNok;
 }
 
-static void main_exit(void) {
-  destroy_task_context(&main_zmq_ctx);
-}
+static void main_exit(void) { destroy_task_context(&main_zmq_ctx); }
 
 int main(int argc, char* argv[]) {
   srand(time(NULL));
   char* pid_file_name;
 
-  CHECK_INIT_RETURN(OAILOG_INIT(
-      MME_CONFIG_STRING_MME_CONFIG, OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS));
+  CHECK_INIT_RETURN(OAILOG_INIT(MME_CONFIG_STRING_MME_CONFIG,
+                                OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS));
   CHECK_INIT_RETURN(shared_log_init(MAX_LOG_PROTOS));
-  CHECK_INIT_RETURN(itti_init(
-      TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
-      NULL));
+  CHECK_INIT_RETURN(itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info,
+                              messages_info, NULL, NULL));
 
   /*
    * Parse the command line for options and set the mme_config accordingly.
@@ -124,7 +122,7 @@ int main(int argc, char* argv[]) {
   if (!pid_file_lock(pid_file_name)) {
     exit(-EDEADLK);
   }
-  free_wrapper((void**) &pid_file_name);
+  free_wrapper((void**)&pid_file_name);
 
   /*
    * Calling each layer init function
@@ -168,6 +166,7 @@ int main(int argc, char* argv[]) {
   if (mme_config.use_ha) {
     CHECK_INIT_RETURN(ha_init(&mme_config));
   }
+  CHECK_INIT_RETURN(grpc_async_service_init());
   OAILOG_DEBUG(LOG_MME_APP, "MME app initialization complete\n");
 
 #if EMBEDDED_SGW

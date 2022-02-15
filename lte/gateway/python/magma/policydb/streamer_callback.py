@@ -165,10 +165,14 @@ class ApnRuleMappingsStreamerCallback(StreamerClient.Callback):
         try:
             self._session_mgr_stub.SetSessionRules(update, timeout=5)
         except grpc.RpcError as e:
+            error_extra = (
+                EXCLUDE_FROM_ERROR_MONITORING if indicates_connection_error(e)
+                else None
+            )
             logging.error(
                 "Unable to apply apn->policy updates %s",
                 str(e),
-                extra=EXCLUDE_FROM_ERROR_MONITORING if indicates_connection_error(e) else None,
+                extra=error_extra,
             )
 
     def _are_sub_policies_updated(

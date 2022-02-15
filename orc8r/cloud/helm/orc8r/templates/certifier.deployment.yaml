@@ -43,6 +43,8 @@ args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/certifier", "-cac=/var/opt/m
 ports:
   - name: grpc
     containerPort: 9086
+  - name: http
+    containerPort: 10089
 livenessProbe:
   tcpSocket:
     port: 9086

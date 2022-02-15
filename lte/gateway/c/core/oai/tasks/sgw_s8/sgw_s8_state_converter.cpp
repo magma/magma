@@ -24,30 +24,30 @@ using magma::lte::oai::SgwUeContext;
 namespace magma {
 namespace lte {
 
-SgwStateConverter::SgwStateConverter()  = default;
+SgwStateConverter::SgwStateConverter() = default;
 SgwStateConverter::~SgwStateConverter() = default;
 
-void SgwStateConverter::state_to_proto(
-    const sgw_state_t* sgw_state, SgwState* proto) {
+void SgwStateConverter::state_to_proto(const sgw_state_t* sgw_state,
+                                       SgwState* proto) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   proto->Clear();
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
-void SgwStateConverter::proto_to_state(
-    const SgwState& proto, sgw_state_t* sgw_state) {
+void SgwStateConverter::proto_to_state(const SgwState& proto,
+                                       sgw_state_t* sgw_state) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
-void SgwStateConverter::ue_to_proto(
-    const spgw_ue_context_t* ue_state, oai::SgwUeContext* ue_proto) {
+void SgwStateConverter::ue_to_proto(const spgw_ue_context_t* ue_state,
+                                    oai::SgwUeContext* ue_proto) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
-void SgwStateConverter::proto_to_ue(
-    const oai::SgwUeContext& ue_proto, spgw_ue_context_t* ue_context_p) {
+void SgwStateConverter::proto_to_ue(const oai::SgwUeContext& ue_proto,
+                                    spgw_ue_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }

@@ -26,12 +26,10 @@ class PayloadContainerMsg {
 
   PayloadContainerMsg();
   ~PayloadContainerMsg();
-  int EncodePayloadContainerMsg(
-      PayloadContainerMsg* payload_container, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
-  int DecodePayloadContainerMsg(
-      PayloadContainerMsg* payload_container, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
+  int EncodePayloadContainerMsg(PayloadContainerMsg* payload_container,
+                                uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodePayloadContainerMsg(PayloadContainerMsg* payload_container,
+                                uint8_t iei, uint8_t* buffer, uint32_t len);
   void copy(const PayloadContainerMsg& p) {
     iei = p.iei;
     len = p.len;
@@ -40,11 +38,10 @@ class PayloadContainerMsg {
   }
 
   bool isEqual(const PayloadContainerMsg& p) {
-    return (
-        (iei == p.iei) && (len == p.len) &&
-        (0 ==
-         memcmp(contents, p.contents, PAYLOAD_CONTAINER_CONTENTS_MAX_LEN)) &&
-        (smf_msg.isEqual(p.smf_msg)));
+    return ((iei == p.iei) && (len == p.len) &&
+            (0 == memcmp(contents, p.contents,
+                         PAYLOAD_CONTAINER_CONTENTS_MAX_LEN)) &&
+            (smf_msg.isEqual(p.smf_msg)));
   }
 };
 }  // namespace magma5g

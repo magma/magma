@@ -61,8 +61,8 @@ void esm_main_initialize(void) {
    * Retreive MME supported configuration data
    */
   if (mme_api_get_esm_config(&_esm_data.conf) != RETURNok) {
-    OAILOG_ERROR(
-        LOG_NAS_ESM, "ESM-MAIN  - Failed to get MME configuration data\n");
+    OAILOG_ERROR(LOG_NAS_ESM,
+                 "ESM-MAIN  - Failed to get MME configuration data\n");
   }
   /*
    * Initialize the EPS bearer context manager

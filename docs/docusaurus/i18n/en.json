@@ -234,6 +234,9 @@
         "title": "AGW Setup (With Vagrant)",
         "sidebar_label": "Setup (With Vagrant)"
       },
+      "lte/dev_teid_allocation": {
+        "title": "TEID Allocation"
+      },
       "lte/tr069": {
         "title": "Add eNB TR-069 Support"
       },
@@ -338,9 +341,6 @@
       },
       "orc8r/deploy_intro": {
         "title": "Introduction"
-      },
-      "orc8r/deploy_orcl": {
-        "title": "Install Orchestrator (Managed)"
       },
       "orc8r/deploy_terraform_options": {
         "title": "Terraform Options"

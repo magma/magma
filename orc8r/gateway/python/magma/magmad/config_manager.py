@@ -175,16 +175,16 @@ class ConfigManager(StreamerClient.Callback):
             if srv in mconfig.configs_by_key:
                 configs_by_key[srv] = mconfig.configs_by_key.get(srv)
 
-            agw_version = self._magmad_service.version
-            unpacked_mconfig = mconfig.configs_by_key.get(MAGMAD)
-            version_info = self._parse_versions_and_log_warning(agw_version, unpacked_mconfig)
-            agw_version_parsed = version_info.agw_version
-            orc8r_version_parsed = version_info.orc8r_version
+        agw_version = self._magmad_service.version
+        unpacked_mconfig = mconfig.configs_by_key.get(MAGMAD)
+        version_info = self._parse_versions_and_log_warning(agw_version, unpacked_mconfig)
+        agw_version_parsed = version_info.agw_version
+        orc8r_version_parsed = version_info.orc8r_version
 
-            if agw_version_parsed and orc8r_version_parsed:
-                agw_minor = int(agw_version_parsed.group('minor_version'))
-                orc8r_minor = int(orc8r_version_parsed.group('minor_version'))
-                if agw_minor - orc8r_minor <= -1:
-                    logging.warning("Gateway is more than one minor version behind orc8r. Please consider updating it.")
+        if agw_version_parsed and orc8r_version_parsed:
+            agw_minor = int(agw_version_parsed.group('minor_version'))
+            orc8r_minor = int(orc8r_version_parsed.group('minor_version'))
+            if agw_minor - orc8r_minor <= -1:
+                logging.warning("Gateway is more than one minor version behind orc8r. Please consider updating it.")
 
         magmad_events.processed_updates(configs_by_key)

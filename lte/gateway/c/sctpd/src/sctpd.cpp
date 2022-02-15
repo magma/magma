@@ -117,7 +117,7 @@ int main() {
   magma::set_verbosity(get_log_verbosity(config, sctpd_mconfig));
 
   sentry_config_t sentry_config = construct_sentry_config_from_mconfig();
-  initialize_sentry(SENTRY_TAG_SESSIOND, &sentry_config);
+  initialize_sentry(SENTRY_TAG_SCTPD, &sentry_config);
 
   auto channel =
       grpc::CreateChannel(UPSTREAM_SOCK, grpc::InsecureChannelCredentials());

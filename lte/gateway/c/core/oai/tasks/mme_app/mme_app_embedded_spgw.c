@@ -44,9 +44,8 @@ char* USAGE_TEXT =
     "        2 -> ASN1 XER printf on and ASN1 debug on\n";
 
 static void usage(char* exe_path) {
-  OAILOG_INFO(
-      LOG_CONFIG, USAGE_TEXT, PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_BUGREPORT,
-      exe_path, PACKAGE_NAME);
+  OAILOG_INFO(LOG_CONFIG, USAGE_TEXT, PACKAGE_NAME, PACKAGE_VERSION,
+              PACKAGE_BUGREPORT, exe_path, PACKAGE_NAME);
 }
 
 status_code_e mme_config_embedded_spgw_parse_opt_line(
@@ -63,9 +62,8 @@ status_code_e mme_config_embedded_spgw_parse_opt_line(
       case 'c':
         mme_config_p->config_file = bfromcstr(optarg);
 
-        OAILOG_DEBUG(
-            LOG_CONFIG, "mme_config.config_file %s",
-            bdata(mme_config_p->config_file));
+        OAILOG_DEBUG(LOG_CONFIG, "mme_config.config_file %s",
+                     bdata(mme_config_p->config_file));
 
         break;
 
@@ -74,35 +72,32 @@ status_code_e mme_config_embedded_spgw_parse_opt_line(
         break;
 
       case 'V':
-        OAILOG_DEBUG(
-            LOG_CONFIG,
-            "==== EURECOM %s v%s ===="
-            "Please report any bug to: %s",
-            PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_BUGREPORT);
+        OAILOG_DEBUG(LOG_CONFIG,
+                     "==== EURECOM %s v%s ===="
+                     "Please report any bug to: %s",
+                     PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_BUGREPORT);
 
         break;
 
       case 'K':
-        mme_config_p->itti_config.log_file             = bfromcstr(optarg);
+        mme_config_p->itti_config.log_file = bfromcstr(optarg);
         spgw_config_p->sgw_config.itti_config.log_file = bfromcstr(optarg);
 
-        OAILOG_DEBUG(
-            LOG_CONFIG, "mme_config.itti_config.log_file %s",
-            bdata(mme_config_p->itti_config.log_file));
-        OAILOG_DEBUG(
-            LOG_CONFIG, "spgw_config.sgw_config.itti_config.log_file %s",
-            bdata(spgw_config_p->sgw_config.itti_config.log_file));
+        OAILOG_DEBUG(LOG_CONFIG, "mme_config.itti_config.log_file %s",
+                     bdata(mme_config_p->itti_config.log_file));
+        OAILOG_DEBUG(LOG_CONFIG,
+                     "spgw_config.sgw_config.itti_config.log_file %s",
+                     bdata(spgw_config_p->sgw_config.itti_config.log_file));
 
         break;
 
       case 's':
-        spgw_config_p->config_file            = bfromcstr(optarg);
+        spgw_config_p->config_file = bfromcstr(optarg);
         spgw_config_p->pgw_config.config_file = bfromcstr(optarg);
         spgw_config_p->sgw_config.config_file = bfromcstr(optarg);
 
-        OAILOG_DEBUG(
-            LOG_CONFIG, "spgw_config.config_file %s\n",
-            bdata(spgw_config_p->config_file));
+        OAILOG_DEBUG(LOG_CONFIG, "spgw_config.config_file %s\n",
+                     bdata(spgw_config_p->config_file));
 
         break;
 

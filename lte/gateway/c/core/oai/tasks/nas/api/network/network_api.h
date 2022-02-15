@@ -36,6 +36,8 @@ Description Implements the API used by the NAS layer to send/receive
 #ifndef FILE_NETWORK_API_SEEN
 #define FILE_NETWORK_API_SEEN
 
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/

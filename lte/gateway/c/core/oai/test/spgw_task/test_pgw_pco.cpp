@@ -34,26 +34,26 @@ namespace lte {
 #define PCO_PI_IPCP_LEN 16
 
 #define DEFAULT_DNS_PRIMARY_HEX 0x8080808  // 8.8.8.8
-#define DEFAULT_DNS_PRIMARY_ARRAY                                              \
+#define DEFAULT_DNS_PRIMARY_ARRAY \
   { 0x08, 0x08, 0x08, 0x08 }
 #define DEFAULT_DNS_SECONDARY_HEX 0x4040808  // 8.8.4.4
-#define DEFAULT_DNS_SECONDARY_ARRAY                                            \
+#define DEFAULT_DNS_SECONDARY_ARRAY \
   { 0x08, 0x08, 0x04, 0x04 }
 #define DEFAULT_DNS_IPV6 "2001:4860:4860:0:0:0:0:8888"
 
 #define DEFAULT_PCSCF_IPV4 0x96171bac  // "172.27.23.150"
-#define DEFAULT_PCSCF_IPV4_ARRAY                                               \
+#define DEFAULT_PCSCF_IPV4_ARRAY \
   { 0xac, 0x1b, 0x17, 0x96 }
 #define DEFAULT_PCSCF_IPV6 "2a12:577:9941:f99c:0002:0001:c731:f114"
 
 #define DEFAULT_MTU 1400
-#define PCO_IDS_EXPECT_EQ(ipcp, dns, ipnas, dhcp, mtu)                         \
-  do {                                                                         \
-    EXPECT_EQ(pco_ids.pi_ipcp, ipcp);                                          \
-    EXPECT_EQ(pco_ids.ci_dns_server_ipv4_address_request, dns);                \
-    EXPECT_EQ(pco_ids.ci_ip_address_allocation_via_nas_signalling, ipnas);     \
-    EXPECT_EQ(pco_ids.ci_ipv4_address_allocation_via_dhcpv4, dhcp);            \
-    EXPECT_EQ(pco_ids.ci_ipv4_link_mtu_request, mtu);                          \
+#define PCO_IDS_EXPECT_EQ(ipcp, dns, ipnas, dhcp, mtu)                     \
+  do {                                                                     \
+    EXPECT_EQ(pco_ids.pi_ipcp, ipcp);                                      \
+    EXPECT_EQ(pco_ids.ci_dns_server_ipv4_address_request, dns);            \
+    EXPECT_EQ(pco_ids.ci_ip_address_allocation_via_nas_signalling, ipnas); \
+    EXPECT_EQ(pco_ids.ci_ipv4_address_allocation_via_dhcpv4, dhcp);        \
+    EXPECT_EQ(pco_ids.ci_ipv4_link_mtu_request, mtu);                      \
   } while (0)
 
 class SPGWPcoTest : public ::testing::Test {
@@ -64,40 +64,38 @@ class SPGWPcoTest : public ::testing::Test {
         DEFAULT_DNS_SECONDARY_HEX;
     spgw_config.pgw_config.ue_mtu = DEFAULT_MTU;
 
-    inet_pton(
-        AF_INET6, test_dns_ipv6.c_str(),
-        &spgw_config.pgw_config.ipv6.dns_ipv6_addr);
+    inet_pton(AF_INET6, test_dns_ipv6.c_str(),
+              &spgw_config.pgw_config.ipv6.dns_ipv6_addr);
   }
 
   virtual void TearDown() { free_spgw_config(&spgw_config); }
 
  protected:
-  const char test_dns_primary[4]   = DEFAULT_DNS_PRIMARY_ARRAY;
+  const char test_dns_primary[4] = DEFAULT_DNS_PRIMARY_ARRAY;
   const char test_dns_secondary[4] = DEFAULT_DNS_SECONDARY_ARRAY;
-  const std::string test_dns_ipv6  = DEFAULT_DNS_IPV6;
-  const char test_mtu[2]           = {DEFAULT_MTU >> 8, DEFAULT_MTU & 0xFF};
-  const uint8_t test_pcscf_ipv4_addr[4]  = DEFAULT_PCSCF_IPV4_ARRAY;
+  const std::string test_dns_ipv6 = DEFAULT_DNS_IPV6;
+  const char test_mtu[2] = {DEFAULT_MTU >> 8, DEFAULT_MTU & 0xFF};
+  const uint8_t test_pcscf_ipv4_addr[4] = DEFAULT_PCSCF_IPV4_ARRAY;
   const std::string test_pcscf_ipv6_addr = DEFAULT_PCSCF_IPV6;
 
-  void fill_ipcp(
-      pco_protocol_or_container_id_t* poc_id, char* primary_dns,
-      char* secondary_dns) {
-    poc_id->id     = PCO_PI_IPCP;
+  void fill_ipcp(pco_protocol_or_container_id_t* poc_id, char* primary_dns,
+                 char* secondary_dns) {
+    poc_id->id = PCO_PI_IPCP;
     poc_id->length = PCO_PI_IPCP_LEN;
 
     int poc_idx = 0;
     char poc_content[PCO_PI_IPCP_LEN];
 
-    poc_content[0]  = 0x01;  // Code = 01 , i.e. Config Request
-    poc_content[1]  = 0x00;  // Identifier = 00
-    poc_content[2]  = 0x00;  // Length = 0x0010 , i.e. 16
-    poc_content[3]  = 0x10;
-    poc_content[4]  = 0x81;  // Option: 81 for primary DNS IP addr
-    poc_content[5]  = 0x06;  // length = 6
-    poc_content[6]  = primary_dns[0];
-    poc_content[7]  = primary_dns[1];
-    poc_content[8]  = primary_dns[2];
-    poc_content[9]  = primary_dns[3];
+    poc_content[0] = 0x01;  // Code = 01 , i.e. Config Request
+    poc_content[1] = 0x00;  // Identifier = 00
+    poc_content[2] = 0x00;  // Length = 0x0010 , i.e. 16
+    poc_content[3] = 0x10;
+    poc_content[4] = 0x81;  // Option: 81 for primary DNS IP addr
+    poc_content[5] = 0x06;  // length = 6
+    poc_content[6] = primary_dns[0];
+    poc_content[7] = primary_dns[1];
+    poc_content[8] = primary_dns[2];
+    poc_content[9] = primary_dns[3];
     poc_content[10] = 0x83;  // Option: 83 for secondary DNS IP addr
     poc_content[11] = 0x06;  // length = 6
     poc_content[12] = secondary_dns[0];
@@ -114,25 +112,22 @@ class SPGWPcoTest : public ::testing::Test {
     }
   }
 
-  bool are_force_push_pcos_valid(
-      protocol_configuration_options_t* pco_resp, bool expected_dns,
-      bool expected_mtu) {
+  bool are_force_push_pcos_valid(protocol_configuration_options_t* pco_resp,
+                                 bool expected_dns, bool expected_mtu) {
     bool has_dns = false;
     bool has_mtu = false;
     for (int i = 0; i < pco_resp->num_protocol_or_container_id; i++) {
       switch (pco_resp->protocol_or_container_ids[i].id) {
         case PCO_CI_DNS_SERVER_IPV4_ADDRESS:
-          if (memcmp(
-                  pco_resp->protocol_or_container_ids[i].contents->data,
-                  test_dns_primary, sizeof(test_dns_primary)) == 0) {
+          if (memcmp(pco_resp->protocol_or_container_ids[i].contents->data,
+                     test_dns_primary, sizeof(test_dns_primary)) == 0) {
             has_dns = true;
           }
           break;
 
         case PCO_CI_IPV4_LINK_MTU:
-          if (memcmp(
-                  pco_resp->protocol_or_container_ids[i].contents->data,
-                  test_mtu, sizeof(test_mtu)) == 0) {
+          if (memcmp(pco_resp->protocol_or_container_ids[i].contents->data,
+                     test_mtu, sizeof(test_mtu)) == 0) {
             has_mtu = true;
           }
           break;
@@ -146,9 +141,9 @@ class SPGWPcoTest : public ::testing::Test {
 };
 
 TEST_F(SPGWPcoTest, TestIPCPWithNoDNS) {
-  status_code_e return_code                 = RETURNerror;
+  status_code_e return_code = RETURNerror;
   protocol_configuration_options_t pco_resp = {};
-  pco_protocol_or_container_id_t poc_id     = {};
+  pco_protocol_or_container_id_t poc_id = {};
 
   char no_dns[4] = {0x00, 0x00, 0x00, 0x00};
 
@@ -162,38 +157,32 @@ TEST_F(SPGWPcoTest, TestIPCPWithNoDNS) {
   // compare the values in pco_resp with those in the poc_id
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].id, PCO_PI_IPCP);
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].length, PCO_PI_IPCP_LEN);
-  EXPECT_EQ(
-      pco_resp.protocol_or_container_ids[0].contents->data[1],
-      poc_id.contents->data[1]);  // Identifier is same as poc_id
+  EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[1],
+            poc_id.contents->data[1]);  // Identifier is same as poc_id
 
   // check that return code is NACK
-  EXPECT_EQ(
-      pco_resp.protocol_or_container_ids[0].contents->data[0],
-      IPCP_CODE_CONFIGURE_NACK);
+  EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[0],
+            IPCP_CODE_CONFIGURE_NACK);
 
   // check that DNS addresses are filled correctly
-  EXPECT_EQ(
-      memcmp(
-          pco_resp.protocol_or_container_ids[0].contents->data + 6,
-          test_dns_primary, sizeof(test_dns_primary)),
-      0);
+  EXPECT_EQ(memcmp(pco_resp.protocol_or_container_ids[0].contents->data + 6,
+                   test_dns_primary, sizeof(test_dns_primary)),
+            0);
 
-  EXPECT_EQ(
-      memcmp(
-          pco_resp.protocol_or_container_ids[0].contents->data + 12,
-          test_dns_secondary, sizeof(test_dns_secondary)),
-      0);
+  EXPECT_EQ(memcmp(pco_resp.protocol_or_container_ids[0].contents->data + 12,
+                   test_dns_secondary, sizeof(test_dns_secondary)),
+            0);
 
   bdestroy_wrapper(&poc_id.contents);
   clear_pco(&pco_resp);
 }
 
 TEST_F(SPGWPcoTest, TestIPCPWithRandomDNS) {
-  status_code_e return_code                 = RETURNerror;
+  status_code_e return_code = RETURNerror;
   protocol_configuration_options_t pco_resp = {};
-  pco_protocol_or_container_id_t poc_id     = {};
+  pco_protocol_or_container_id_t poc_id = {};
 
-  char primary_dns[4]   = {0x01, 0x02, 0x03, 0x04};  // 1.2.3.4
+  char primary_dns[4] = {0x01, 0x02, 0x03, 0x04};    // 1.2.3.4
   char secondary_dns[4] = {0x05, 0x06, 0x07, 0x08};  // 5.6.7.8
 
   fill_ipcp(&poc_id, primary_dns, secondary_dns);
@@ -206,37 +195,31 @@ TEST_F(SPGWPcoTest, TestIPCPWithRandomDNS) {
   // compare the values in pco_resp with those in the poc_id
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].id, PCO_PI_IPCP);
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].length, PCO_PI_IPCP_LEN);
-  EXPECT_EQ(
-      pco_resp.protocol_or_container_ids[0].contents->data[1],
-      poc_id.contents->data[1]);  // Identifier is same as poc_id
+  EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[1],
+            poc_id.contents->data[1]);  // Identifier is same as poc_id
 
   // check that return code is NACK
-  EXPECT_EQ(
-      pco_resp.protocol_or_container_ids[0].contents->data[0],
-      IPCP_CODE_CONFIGURE_NACK);
+  EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[0],
+            IPCP_CODE_CONFIGURE_NACK);
 
   // check that DNS addresses are filled correctly
-  EXPECT_EQ(
-      memcmp(
-          pco_resp.protocol_or_container_ids[0].contents->data + 6,
-          test_dns_primary, sizeof(test_dns_primary)),
-      0);
-  EXPECT_EQ(
-      memcmp(
-          pco_resp.protocol_or_container_ids[0].contents->data + 12,
-          test_dns_secondary, sizeof(test_dns_secondary)),
-      0);
+  EXPECT_EQ(memcmp(pco_resp.protocol_or_container_ids[0].contents->data + 6,
+                   test_dns_primary, sizeof(test_dns_primary)),
+            0);
+  EXPECT_EQ(memcmp(pco_resp.protocol_or_container_ids[0].contents->data + 12,
+                   test_dns_secondary, sizeof(test_dns_secondary)),
+            0);
 
   bdestroy_wrapper(&poc_id.contents);
   clear_pco(&pco_resp);
 }
 
 TEST_F(SPGWPcoTest, TestIPCPWithMatchingDNS) {
-  status_code_e return_code                 = RETURNerror;
+  status_code_e return_code = RETURNerror;
   protocol_configuration_options_t pco_resp = {};
-  pco_protocol_or_container_id_t poc_id     = {};
+  pco_protocol_or_container_id_t poc_id = {};
 
-  char primary_dns[4]   = DEFAULT_DNS_PRIMARY_ARRAY;
+  char primary_dns[4] = DEFAULT_DNS_PRIMARY_ARRAY;
   char secondary_dns[4] = DEFAULT_DNS_SECONDARY_ARRAY;
 
   fill_ipcp(&poc_id, primary_dns, secondary_dns);
@@ -249,34 +232,28 @@ TEST_F(SPGWPcoTest, TestIPCPWithMatchingDNS) {
   // compare the values in pco_resp with those in the poc_id
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].id, PCO_PI_IPCP);
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].length, PCO_PI_IPCP_LEN);
-  EXPECT_EQ(
-      pco_resp.protocol_or_container_ids[0].contents->data[1],
-      poc_id.contents->data[1]);  // Identifier is same as poc_id
+  EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[1],
+            poc_id.contents->data[1]);  // Identifier is same as poc_id
 
   // check that return code is ACK
-  EXPECT_EQ(
-      pco_resp.protocol_or_container_ids[0].contents->data[0],
-      IPCP_CODE_CONFIGURE_ACK);
+  EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[0],
+            IPCP_CODE_CONFIGURE_ACK);
 
   // check that DNS addresses are filled correctly
-  EXPECT_EQ(
-      memcmp(
-          pco_resp.protocol_or_container_ids[0].contents->data + 6,
-          test_dns_primary, sizeof(test_dns_primary)),
-      0);
+  EXPECT_EQ(memcmp(pco_resp.protocol_or_container_ids[0].contents->data + 6,
+                   test_dns_primary, sizeof(test_dns_primary)),
+            0);
 
-  EXPECT_EQ(
-      memcmp(
-          pco_resp.protocol_or_container_ids[0].contents->data + 12,
-          test_dns_secondary, sizeof(test_dns_secondary)),
-      0);
+  EXPECT_EQ(memcmp(pco_resp.protocol_or_container_ids[0].contents->data + 12,
+                   test_dns_secondary, sizeof(test_dns_secondary)),
+            0);
 
   bdestroy_wrapper(&poc_id.contents);
   clear_pco(&pco_resp);
 }
 
 TEST_F(SPGWPcoTest, TestIpv4DnsServerRequest) {
-  status_code_e return_code                 = RETURNerror;
+  status_code_e return_code = RETURNerror;
   protocol_configuration_options_t pco_resp = {};
 
   return_code = pgw_process_pco_dns_server_request(&pco_resp, NULL);
@@ -284,15 +261,13 @@ TEST_F(SPGWPcoTest, TestIpv4DnsServerRequest) {
   EXPECT_EQ(return_code, RETURNok);
   EXPECT_EQ(pco_resp.num_protocol_or_container_id, 1);
 
-  EXPECT_EQ(
-      pco_resp.protocol_or_container_ids[0].id, PCO_CI_DNS_SERVER_IPV4_ADDRESS);
+  EXPECT_EQ(pco_resp.protocol_or_container_ids[0].id,
+            PCO_CI_DNS_SERVER_IPV4_ADDRESS);
 
   // check that DNS is assigned correctly
-  EXPECT_EQ(
-      memcmp(
-          pco_resp.protocol_or_container_ids[0].contents->data,
-          test_dns_primary, sizeof(test_dns_primary)),
-      0);
+  EXPECT_EQ(memcmp(pco_resp.protocol_or_container_ids[0].contents->data,
+                   test_dns_primary, sizeof(test_dns_primary)),
+            0);
 
   clear_pco(&pco_resp);
 }
@@ -308,19 +283,17 @@ TEST_F(SPGWPcoTest, TestLinkMtuRequest) {
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].id, PCO_CI_IPV4_LINK_MTU);
 
   // check that MTU was assigned correctly
-  EXPECT_EQ(
-      memcmp(
-          pco_resp.protocol_or_container_ids[0].contents->data, test_mtu,
-          sizeof(test_mtu)),
-      0);
+  EXPECT_EQ(memcmp(pco_resp.protocol_or_container_ids[0].contents->data,
+                   test_mtu, sizeof(test_mtu)),
+            0);
 
   clear_pco(&pco_resp);
 }
 
 TEST_F(SPGWPcoTest, TestPcoRequestIpv6DNS) {
-  status_code_e return_code                    = RETURNerror;
-  protocol_configuration_options_t pco_req     = {};
-  protocol_configuration_options_t pco_resp    = {};
+  status_code_e return_code = RETURNerror;
+  protocol_configuration_options_t pco_req = {};
+  protocol_configuration_options_t pco_resp = {};
   protocol_configuration_options_ids_t pco_ids = {};
 
   pco_req.configuration_protocol =
@@ -334,29 +307,27 @@ TEST_F(SPGWPcoTest, TestPcoRequestIpv6DNS) {
   EXPECT_EQ(return_code, RETURNok);
   EXPECT_EQ(pco_resp.num_protocol_or_container_id, 1);
 
-  EXPECT_EQ(
-      pco_resp.protocol_or_container_ids[0].id, PCO_CI_DNS_SERVER_IPV6_ADDRESS);
+  EXPECT_EQ(pco_resp.protocol_or_container_ids[0].id,
+            PCO_CI_DNS_SERVER_IPV6_ADDRESS);
 
   // check that Ipv6 DNS is assigned correctly
-  EXPECT_EQ(
-      memcmp(
-          pco_resp.protocol_or_container_ids[0].contents->data,
-          spgw_config.pgw_config.ipv6.dns_ipv6_addr.s6_addr,
-          sizeof(struct in6_addr)),
-      0);
+  EXPECT_EQ(memcmp(pco_resp.protocol_or_container_ids[0].contents->data,
+                   spgw_config.pgw_config.ipv6.dns_ipv6_addr.s6_addr,
+                   sizeof(struct in6_addr)),
+            0);
 
   clear_pco(&pco_resp);
 }
 
 TEST_F(SPGWPcoTest, TestPcoRequestPcscfIpv4) {
-  status_code_e return_code                    = RETURNerror;
-  protocol_configuration_options_t pco_req     = {};
-  protocol_configuration_options_t pco_resp    = {};
+  status_code_e return_code = RETURNerror;
+  protocol_configuration_options_t pco_req = {};
+  protocol_configuration_options_t pco_resp = {};
   protocol_configuration_options_ids_t pco_ids = {};
 
   pco_req.configuration_protocol =
       PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE;
-  pco_req.num_protocol_or_container_id    = 1;
+  pco_req.num_protocol_or_container_id = 1;
   pco_req.protocol_or_container_ids[0].id = PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST;
 
   // process PCO for PCSCF without initializing SPGW config
@@ -373,28 +344,26 @@ TEST_F(SPGWPcoTest, TestPcoRequestPcscfIpv4) {
   EXPECT_EQ(return_code, RETURNok);
   EXPECT_EQ(pco_resp.num_protocol_or_container_id, 1);
 
-  EXPECT_EQ(
-      pco_resp.protocol_or_container_ids[0].id, PCO_CI_P_CSCF_IPV4_ADDRESS);
+  EXPECT_EQ(pco_resp.protocol_or_container_ids[0].id,
+            PCO_CI_P_CSCF_IPV4_ADDRESS);
 
   // check that Ipv4 PCSCF is assigned correctly
-  EXPECT_EQ(
-      memcmp(
-          pco_resp.protocol_or_container_ids[0].contents->data,
-          test_pcscf_ipv4_addr, sizeof(test_pcscf_ipv4_addr)),
-      0);
+  EXPECT_EQ(memcmp(pco_resp.protocol_or_container_ids[0].contents->data,
+                   test_pcscf_ipv4_addr, sizeof(test_pcscf_ipv4_addr)),
+            0);
 
   clear_pco(&pco_resp);
 }
 
 TEST_F(SPGWPcoTest, TestPcoRequestPcscfIpv6) {
-  status_code_e return_code                    = RETURNerror;
-  protocol_configuration_options_t pco_req     = {};
-  protocol_configuration_options_t pco_resp    = {};
+  status_code_e return_code = RETURNerror;
+  protocol_configuration_options_t pco_req = {};
+  protocol_configuration_options_t pco_resp = {};
   protocol_configuration_options_ids_t pco_ids = {};
 
   pco_req.configuration_protocol =
       PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE;
-  pco_req.num_protocol_or_container_id    = 1;
+  pco_req.num_protocol_or_container_id = 1;
   pco_req.protocol_or_container_ids[0].id = PCO_CI_P_CSCF_IPV6_ADDRESS_REQUEST;
 
   // process PCO for PCSCF without initializing SPGW config
@@ -404,33 +373,30 @@ TEST_F(SPGWPcoTest, TestPcoRequestPcscfIpv6) {
   EXPECT_EQ(pco_resp.num_protocol_or_container_id, 0);
 
   // Initialize SPGW config
-  inet_pton(
-      AF_INET6, test_pcscf_ipv6_addr.c_str(),
-      &spgw_config.pgw_config.pcscf.ipv6_addr);
+  inet_pton(AF_INET6, test_pcscf_ipv6_addr.c_str(),
+            &spgw_config.pgw_config.pcscf.ipv6_addr);
 
   return_code = pgw_process_pco_request(&pco_req, &pco_resp, &pco_ids);
 
   EXPECT_EQ(return_code, RETURNok);
   EXPECT_EQ(pco_resp.num_protocol_or_container_id, 1);
 
-  EXPECT_EQ(
-      pco_resp.protocol_or_container_ids[0].id, PCO_CI_P_CSCF_IPV6_ADDRESS);
+  EXPECT_EQ(pco_resp.protocol_or_container_ids[0].id,
+            PCO_CI_P_CSCF_IPV6_ADDRESS);
 
   // check that Ipv4 PCSCF is assigned correctly
-  EXPECT_EQ(
-      memcmp(
-          pco_resp.protocol_or_container_ids[0].contents->data,
-          spgw_config.pgw_config.pcscf.ipv6_addr.s6_addr,
-          sizeof(struct in6_addr)),
-      0);
+  EXPECT_EQ(memcmp(pco_resp.protocol_or_container_ids[0].contents->data,
+                   spgw_config.pgw_config.pcscf.ipv6_addr.s6_addr,
+                   sizeof(struct in6_addr)),
+            0);
 
   clear_pco(&pco_resp);
 }
 
 TEST_F(SPGWPcoTest, TestPcoRequestNasSignallingIPCP) {
-  status_code_e return_code                    = RETURNerror;
-  protocol_configuration_options_t pco_req     = {};
-  protocol_configuration_options_t pco_resp    = {};
+  status_code_e return_code = RETURNerror;
+  protocol_configuration_options_t pco_req = {};
+  protocol_configuration_options_t pco_resp = {};
   protocol_configuration_options_ids_t pco_ids = {};
 
   char no_dns[4] = {0x00, 0x00, 0x00, 0x00};
@@ -456,37 +422,31 @@ TEST_F(SPGWPcoTest, TestPcoRequestNasSignallingIPCP) {
   // compare the values in pco_resp with those in the poc_id
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].id, PCO_PI_IPCP);
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].length, PCO_PI_IPCP_LEN);
-  EXPECT_EQ(
-      pco_resp.protocol_or_container_ids[0].contents->data[1],
-      pco_req.protocol_or_container_ids[1]
-          .contents->data[1]);  // Identifier is same as poc_id
+  EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[1],
+            pco_req.protocol_or_container_ids[1]
+                .contents->data[1]);  // Identifier is same as poc_id
 
   // check that return code is NACK
-  EXPECT_EQ(
-      pco_resp.protocol_or_container_ids[0].contents->data[0],
-      IPCP_CODE_CONFIGURE_NACK);
+  EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[0],
+            IPCP_CODE_CONFIGURE_NACK);
 
   // check that DNS addresses are filled correctly
-  EXPECT_EQ(
-      memcmp(
-          pco_resp.protocol_or_container_ids[0].contents->data + 6,
-          test_dns_primary, sizeof(test_dns_primary)),
-      0);
+  EXPECT_EQ(memcmp(pco_resp.protocol_or_container_ids[0].contents->data + 6,
+                   test_dns_primary, sizeof(test_dns_primary)),
+            0);
 
-  EXPECT_EQ(
-      memcmp(
-          pco_resp.protocol_or_container_ids[0].contents->data + 12,
-          test_dns_secondary, sizeof(test_dns_secondary)),
-      0);
+  EXPECT_EQ(memcmp(pco_resp.protocol_or_container_ids[0].contents->data + 12,
+                   test_dns_secondary, sizeof(test_dns_secondary)),
+            0);
 
   bdestroy_wrapper(&pco_req.protocol_or_container_ids[1].contents);
   clear_pco(&pco_resp);
 }
 
 TEST_F(SPGWPcoTest, TestPcoRequestForcePush) {
-  status_code_e return_code                    = RETURNerror;
-  protocol_configuration_options_t pco_req     = {};
-  protocol_configuration_options_t pco_resp    = {};
+  status_code_e return_code = RETURNerror;
+  protocol_configuration_options_t pco_req = {};
+  protocol_configuration_options_t pco_resp = {};
   protocol_configuration_options_ids_t pco_ids = {};
 
   // pco request without poc_ids
@@ -514,9 +474,9 @@ TEST_F(SPGWPcoTest, TestPcoRequestForcePush) {
 }
 
 TEST_F(SPGWPcoTest, TestPcoRequestDNSReqForcePush) {
-  status_code_e return_code                    = RETURNerror;
-  protocol_configuration_options_t pco_req     = {};
-  protocol_configuration_options_t pco_resp    = {};
+  status_code_e return_code = RETURNerror;
+  protocol_configuration_options_t pco_req = {};
+  protocol_configuration_options_t pco_resp = {};
   protocol_configuration_options_ids_t pco_ids = {};
 
   // pco request with DNS request
@@ -551,15 +511,15 @@ TEST_F(SPGWPcoTest, TestPcoRequestDNSReqForcePush) {
 }
 
 TEST_F(SPGWPcoTest, TestPcoRequestMTUReqForcePush) {
-  status_code_e return_code                    = RETURNerror;
-  protocol_configuration_options_t pco_req     = {};
-  protocol_configuration_options_t pco_resp    = {};
+  status_code_e return_code = RETURNerror;
+  protocol_configuration_options_t pco_req = {};
+  protocol_configuration_options_t pco_resp = {};
   protocol_configuration_options_ids_t pco_ids = {};
 
   // pco request with MTU request
   pco_req.configuration_protocol =
       PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE;
-  pco_req.num_protocol_or_container_id    = 1;
+  pco_req.num_protocol_or_container_id = 1;
   pco_req.protocol_or_container_ids[0].id = PCO_CI_IPV4_LINK_MTU;
 
   // Disable PCO force push
@@ -587,9 +547,9 @@ TEST_F(SPGWPcoTest, TestPcoRequestMTUReqForcePush) {
 }
 
 TEST_F(SPGWPcoTest, TestPcoRequestConfigurationProtocol) {
-  status_code_e return_code                    = RETURNerror;
-  protocol_configuration_options_t pco_req     = {};
-  protocol_configuration_options_t pco_resp    = {};
+  status_code_e return_code = RETURNerror;
+  protocol_configuration_options_t pco_req = {};
+  protocol_configuration_options_t pco_resp = {};
   protocol_configuration_options_ids_t pco_ids = {};
 
   // pco request without poc_ids

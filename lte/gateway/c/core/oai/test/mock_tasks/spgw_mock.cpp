@@ -54,7 +54,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       spgw_handler_->sgw_handle_nw_initiated_deactv_bearer_rsp();
     } break;
 
-    default: { } break; }
+    default: {
+    } break;
+  }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
 
@@ -68,7 +70,7 @@ void stop_mock_spgw_task() {
 
 void start_mock_spgw_task(std::shared_ptr<MockSpgwHandler> spgw_handler) {
   spgw_handler_ = spgw_handler;
-  init_task_context(
-      TASK_SPGW_APP, nullptr, 0, handle_message, &task_zmq_ctx_spgw);
+  init_task_context(TASK_SPGW_APP, nullptr, 0, handle_message,
+                    &task_zmq_ctx_spgw);
   zloop_start(task_zmq_ctx_spgw.event_loop);
 }

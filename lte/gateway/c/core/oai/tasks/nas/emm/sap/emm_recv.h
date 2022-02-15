@@ -82,9 +82,9 @@ Description Defines functions executed at the EMMAS Service Access
  * Functions executed by the MME upon receiving EMM message from the UE
  * --------------------------------------------------------------------------
  */
-status_code_e emm_recv_status(
-    mme_ue_s1ap_id_t ueid, emm_status_msg* msg, int* emm_cause,
-    const nas_message_decode_status_t* const status);
+status_code_e emm_recv_status(mme_ue_s1ap_id_t ueid, emm_status_msg* msg,
+                              int* emm_cause,
+                              const nas_message_decode_status_t* const status);
 
 status_code_e emm_recv_attach_request(
     const mme_ue_s1ap_id_t ue_id, const tai_t* const originating_tai,

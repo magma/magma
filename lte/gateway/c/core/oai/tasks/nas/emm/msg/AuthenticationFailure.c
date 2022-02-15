@@ -25,7 +25,7 @@
 int decode_authentication_failure(
     authentication_failure_msg* authentication_failure, uint8_t* buffer,
     uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
@@ -36,9 +36,8 @@ int decode_authentication_failure(
   /*
    * Decoding mandatory fields
    */
-  if ((decoded_result = decode_emm_cause(
-           &authentication_failure->emmcause, 0, buffer + decoded,
-           len - decoded)) < 0)
+  if ((decoded_result = decode_emm_cause(&authentication_failure->emmcause, 0,
+                                         buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -82,7 +81,7 @@ int decode_authentication_failure(
 int encode_authentication_failure(
     authentication_failure_msg* authentication_failure, uint8_t* buffer,
     uint32_t len) {
-  int encoded       = 0;
+  int encoded = 0;
   int encode_result = 0;
 
   /*

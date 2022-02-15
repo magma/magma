@@ -48,20 +48,18 @@ TEST(test_create_session_request_pdn1, create_session_request_pdn1) {
   nw_gtpv2c_stack_t* pGtpv2c_stack =
       reinterpret_cast<nw_gtpv2c_stack_t*>(s11_mme_stack_handle);
   {
-    EXPECT_TRUE(
-        sizeof(shift_buffer) >= (128 + sizeof(create_session_request_pdn1)));
+    EXPECT_TRUE(sizeof(shift_buffer) >=
+                (128 + sizeof(create_session_request_pdn1)));
     // whatever is the byte alignment, should not fail
     for (int s = 0; s < 128; s++) {
       memset(shift_buffer, 0, sizeof(shift_buffer));
-      memcpy(
-          &shift_buffer[s], create_session_request_pdn1,
-          sizeof(create_session_request_pdn1));
+      memcpy(&shift_buffer[s], create_session_request_pdn1,
+             sizeof(create_session_request_pdn1));
       nw_gtpv2c_msg_handle_t hMsg = 0;
-      nw_gtpv2c_error_t error     = {0};
-      EXPECT_EQ(
-          NW_OK, nwGtpv2cMsgFromBufferNew(
-                     s11_mme_stack_handle, &shift_buffer[s],
-                     sizeof(create_session_request_pdn1), &hMsg));
+      nw_gtpv2c_error_t error = {0};
+      EXPECT_EQ(NW_OK, nwGtpv2cMsgFromBufferNew(
+                           s11_mme_stack_handle, &shift_buffer[s],
+                           sizeof(create_session_request_pdn1), &hMsg));
 
       nw_gtpv2c_msg_t* pMsg = reinterpret_cast<nw_gtpv2c_msg_t*>(hMsg);
       EXPECT_EQ(pMsg->msgLen, 167);
@@ -70,10 +68,9 @@ TEST(test_create_session_request_pdn1, create_session_request_pdn1) {
       EXPECT_EQ(pMsg->msgType, 32);
       EXPECT_EQ(pMsg->seqNum, 0x4680);
       NW_ASSERT(pGtpv2c_stack->pGtpv2cMsgIeParseInfo[pMsg->msgType]);
-      EXPECT_EQ(
-          NW_OK, nwGtpv2cMsgIeParse(
-                     pGtpv2c_stack->pGtpv2cMsgIeParseInfo[pMsg->msgType], hMsg,
-                     &error));
+      EXPECT_EQ(NW_OK, nwGtpv2cMsgIeParse(
+                           pGtpv2c_stack->pGtpv2cMsgIeParseInfo[pMsg->msgType],
+                           hMsg, &error));
       EXPECT_TRUE(
           pMsg->isIeValid[NW_GTPV2C_IE_RECOVERY][NW_GTPV2C_IE_INSTANCE_ZERO]);
       EXPECT_TRUE(
@@ -142,20 +139,18 @@ TEST(test_create_session_response_pdn1, create_session_response_pdn1) {
   nw_gtpv2c_stack_t* pGtpv2c_stack =
       reinterpret_cast<nw_gtpv2c_stack_t*>(s11_mme_stack_handle);
   {
-    EXPECT_TRUE(
-        sizeof(shift_buffer) >= (128 + sizeof(create_session_response_pdn1)));
+    EXPECT_TRUE(sizeof(shift_buffer) >=
+                (128 + sizeof(create_session_response_pdn1)));
     // whatever is the byte alignment, should not fail
     for (int s = 0; s < 128; s++) {
       memset(shift_buffer, 0, sizeof(shift_buffer));
-      memcpy(
-          &shift_buffer[s], create_session_response_pdn1,
-          sizeof(create_session_response_pdn1));
+      memcpy(&shift_buffer[s], create_session_response_pdn1,
+             sizeof(create_session_response_pdn1));
       nw_gtpv2c_msg_handle_t hMsg = 0;
-      nw_gtpv2c_error_t error     = {0};
-      EXPECT_EQ(
-          NW_OK, nwGtpv2cMsgFromBufferNew(
-                     s11_mme_stack_handle, &shift_buffer[s],
-                     sizeof(create_session_response_pdn1), &hMsg));
+      nw_gtpv2c_error_t error = {0};
+      EXPECT_EQ(NW_OK, nwGtpv2cMsgFromBufferNew(
+                           s11_mme_stack_handle, &shift_buffer[s],
+                           sizeof(create_session_response_pdn1), &hMsg));
       nw_gtpv2c_msg_t* pMsg = reinterpret_cast<nw_gtpv2c_msg_t*>(hMsg);
       EXPECT_EQ(pMsg->msgLen, 85);
       EXPECT_EQ(pMsg->version, 2);
@@ -163,10 +158,9 @@ TEST(test_create_session_response_pdn1, create_session_response_pdn1) {
       EXPECT_EQ(pMsg->msgType, 33);
       EXPECT_EQ(pMsg->seqNum, 0x4680);
       NW_ASSERT(pGtpv2c_stack->pGtpv2cMsgIeParseInfo[pMsg->msgType]);
-      EXPECT_EQ(
-          NW_OK, nwGtpv2cMsgIeParse(
-                     pGtpv2c_stack->pGtpv2cMsgIeParseInfo[pMsg->msgType], hMsg,
-                     &error));
+      EXPECT_EQ(NW_OK, nwGtpv2cMsgIeParse(
+                           pGtpv2c_stack->pGtpv2cMsgIeParseInfo[pMsg->msgType],
+                           hMsg, &error));
       EXPECT_TRUE(
           pMsg->isIeValid[NW_GTPV2C_IE_CAUSE][NW_GTPV2C_IE_INSTANCE_ZERO]);
       EXPECT_TRUE(
@@ -214,20 +208,18 @@ TEST(test_modify_bearer_request_pdn1, modify_bearer_request_pdn1) {
   nw_gtpv2c_stack_t* pGtpv2c_stack =
       reinterpret_cast<nw_gtpv2c_stack_t*>(s11_mme_stack_handle);
   {
-    EXPECT_TRUE(
-        sizeof(shift_buffer) >= (128 + sizeof(modify_bearer_request_pdn1)));
+    EXPECT_TRUE(sizeof(shift_buffer) >=
+                (128 + sizeof(modify_bearer_request_pdn1)));
     // whatever is the byte alignment, should not fail
     for (int s = 0; s < 128; s++) {
       memset(shift_buffer, 0, sizeof(shift_buffer));
-      memcpy(
-          &shift_buffer[s], modify_bearer_request_pdn1,
-          sizeof(modify_bearer_request_pdn1));
+      memcpy(&shift_buffer[s], modify_bearer_request_pdn1,
+             sizeof(modify_bearer_request_pdn1));
       nw_gtpv2c_msg_handle_t hMsg = 0;
-      nw_gtpv2c_error_t error     = {0};
-      EXPECT_EQ(
-          NW_OK, nwGtpv2cMsgFromBufferNew(
-                     s11_mme_stack_handle, &shift_buffer[s],
-                     sizeof(modify_bearer_request_pdn1), &hMsg));
+      nw_gtpv2c_error_t error = {0};
+      EXPECT_EQ(NW_OK, nwGtpv2cMsgFromBufferNew(
+                           s11_mme_stack_handle, &shift_buffer[s],
+                           sizeof(modify_bearer_request_pdn1), &hMsg));
       nw_gtpv2c_msg_t* pMsg = reinterpret_cast<nw_gtpv2c_msg_t*>(hMsg);
       EXPECT_EQ(pMsg->msgLen, 34);
       EXPECT_EQ(pMsg->version, 2);
@@ -262,20 +254,18 @@ TEST(test_modify_bearer_response_pdn1, modify_bearer_response_pdn1) {
   nw_gtpv2c_stack_t* pGtpv2c_stack =
       reinterpret_cast<nw_gtpv2c_stack_t*>(s11_mme_stack_handle);
   {
-    EXPECT_TRUE(
-        sizeof(shift_buffer) >= (128 + sizeof(modify_bearer_response_pdn1)));
+    EXPECT_TRUE(sizeof(shift_buffer) >=
+                (128 + sizeof(modify_bearer_response_pdn1)));
     // whatever is the byte alignment, should not fail
     for (int s = 0; s < 128; s++) {
       memset(shift_buffer, 0, sizeof(shift_buffer));
-      memcpy(
-          &shift_buffer[s], modify_bearer_response_pdn1,
-          sizeof(modify_bearer_response_pdn1));
+      memcpy(&shift_buffer[s], modify_bearer_response_pdn1,
+             sizeof(modify_bearer_response_pdn1));
       nw_gtpv2c_msg_handle_t hMsg = 0;
-      nw_gtpv2c_error_t error     = {0};
-      EXPECT_EQ(
-          NW_OK, nwGtpv2cMsgFromBufferNew(
-                     s11_mme_stack_handle, &shift_buffer[s],
-                     sizeof(modify_bearer_response_pdn1), &hMsg));
+      nw_gtpv2c_error_t error = {0};
+      EXPECT_EQ(NW_OK, nwGtpv2cMsgFromBufferNew(
+                           s11_mme_stack_handle, &shift_buffer[s],
+                           sizeof(modify_bearer_response_pdn1), &hMsg));
       nw_gtpv2c_msg_t* pMsg = reinterpret_cast<nw_gtpv2c_msg_t*>(hMsg);
       EXPECT_EQ(pMsg->msgLen, 46);
       EXPECT_EQ(pMsg->version, 2);
@@ -311,20 +301,18 @@ TEST(test_delete_session_request_pdn1, delete_session_request_pdn1) {
   nw_gtpv2c_stack_t* pGtpv2c_stack =
       reinterpret_cast<nw_gtpv2c_stack_t*>(s11_mme_stack_handle);
   {
-    EXPECT_TRUE(
-        sizeof(shift_buffer) >= (128 + sizeof(delete_session_request_pdn1)));
+    EXPECT_TRUE(sizeof(shift_buffer) >=
+                (128 + sizeof(delete_session_request_pdn1)));
     // whatever is the byte alignment, should not fail
     for (int s = 0; s < 128; s++) {
       memset(shift_buffer, 0, sizeof(shift_buffer));
-      memcpy(
-          &shift_buffer[s], delete_session_request_pdn1,
-          sizeof(delete_session_request_pdn1));
+      memcpy(&shift_buffer[s], delete_session_request_pdn1,
+             sizeof(delete_session_request_pdn1));
       nw_gtpv2c_msg_handle_t hMsg = 0;
-      nw_gtpv2c_error_t error     = {0};
-      EXPECT_TRUE(
-          NW_OK == nwGtpv2cMsgFromBufferNew(
-                       s11_mme_stack_handle, &shift_buffer[s],
-                       sizeof(delete_session_request_pdn1), &hMsg));
+      nw_gtpv2c_error_t error = {0};
+      EXPECT_TRUE(NW_OK == nwGtpv2cMsgFromBufferNew(
+                               s11_mme_stack_handle, &shift_buffer[s],
+                               sizeof(delete_session_request_pdn1), &hMsg));
       nw_gtpv2c_msg_t* pMsg = reinterpret_cast<nw_gtpv2c_msg_t*>(hMsg);
       EXPECT_EQ(pMsg->msgLen, 37);
       EXPECT_EQ(pMsg->version, 2);

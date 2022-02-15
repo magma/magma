@@ -54,26 +54,26 @@ nas5g_auth_info_proc_t* nas5g_new_cn_auth_info_procedure(
 nas5g_auth_info_proc_t* get_nas5g_cn_procedure_auth_info(
     const amf_context_t* ctxt);
 
-void nas5g_delete_cn_procedure(
-    struct amf_context_s* amf_context, nas5g_cn_proc_t* cn_proc);
+void nas5g_delete_cn_procedure(struct amf_context_s* amf_context,
+                               nas5g_cn_proc_t* cn_proc);
 
 int amf_proc_authentication_ksi(
     amf_context_t* amf_context,
     nas_amf_specific_proc_t* const amf_specific_proc, ksi_t ksi,
     const uint8_t* const rand, const uint8_t* const autn, success_cb_t success,
     failure_cb_t failure);
-int amf_proc_authentication(
-    amf_context_t* amf_context,
-    nas_amf_specific_proc_t* const amf_specific_proc, success_cb_t success,
-    failure_cb_t failure);
-int amf_proc_authentication_complete(
-    amf_ue_ngap_id_t ue_id, AuthenticationResponseMsg* msg, int amf_cause,
-    const unsigned char* res);
-int amf_proc_authentication_failure(
-    amf_ue_ngap_id_t ue_id, AuthenticationFailureMsg* msg, int amf_cause);
+int amf_proc_authentication(amf_context_t* amf_context,
+                            nas_amf_specific_proc_t* const amf_specific_proc,
+                            success_cb_t success, failure_cb_t failure);
+int amf_proc_authentication_complete(amf_ue_ngap_id_t ue_id,
+                                     AuthenticationResponseMsg* msg,
+                                     int amf_cause, const unsigned char* res);
+int amf_proc_authentication_failure(amf_ue_ngap_id_t ue_id,
+                                    AuthenticationFailureMsg* msg,
+                                    int amf_cause);
 int amf_registration_security(amf_context_t* amf_context);
-int amf_send_authentication_request(
-    amf_context_t* amf_context, nas5g_amf_auth_proc_t* auth_proc);
+int amf_send_authentication_request(amf_context_t* amf_context,
+                                    nas5g_amf_auth_proc_t* auth_proc);
 
 // To be called when authentication is successful from subscriberdb
 int amf_authentication_proc_success(amf_context_t* amf_context);

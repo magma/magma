@@ -36,14 +36,14 @@ struct avp;
 struct msg;
 struct session;
 
-status_code_e s6a_pua_cb(
-    struct msg** msg_pP, struct avp* paramavp_pP, struct session* sess_pP,
-    void* opaque_pP, enum disp_action* act_pP) {
-  struct msg* ans_p                      = NULL;
-  struct msg* qry_p                      = NULL;
-  struct avp* avp_p                      = NULL;
-  struct avp_hdr* hdr_p                  = NULL;
-  MessageDef* message_p                  = NULL;
+status_code_e s6a_pua_cb(struct msg** msg_pP, struct avp* paramavp_pP,
+                         struct session* sess_pP, void* opaque_pP,
+                         enum disp_action* act_pP) {
+  struct msg* ans_p = NULL;
+  struct msg* qry_p = NULL;
+  struct avp* avp_p = NULL;
+  struct avp_hdr* hdr_p = NULL;
+  MessageDef* message_p = NULL;
   s6a_purge_ue_ans_t* s6a_purge_ue_ans_p = NULL;
 
   DevAssert(msg_pP);
@@ -64,14 +64,12 @@ status_code_e s6a_pua_cb(
 
   if (avp_p) {
     CHECK_FCT(fd_msg_avp_hdr(avp_p, &hdr_p));
-    memcpy(
-        s6a_purge_ue_ans_p->imsi, hdr_p->avp_value->os.data,
-        hdr_p->avp_value->os.len);
+    memcpy(s6a_purge_ue_ans_p->imsi, hdr_p->avp_value->os.data,
+           hdr_p->avp_value->os.len);
     s6a_purge_ue_ans_p->imsi[hdr_p->avp_value->os.len] = '\0';
     s6a_purge_ue_ans_p->imsi_length = hdr_p->avp_value->os.len;
-    OAILOG_DEBUG(
-        LOG_S6A, "Received s6a PURGE UE ANS for imsi=%*s\n",
-        (int) hdr_p->avp_value->os.len, hdr_p->avp_value->os.data);
+    OAILOG_DEBUG(LOG_S6A, "Received s6a PURGE UE ANS for imsi=%*s\n",
+                 (int)hdr_p->avp_value->os.len, hdr_p->avp_value->os.data);
   } else {
     DevMessage("Query has been freed before we received the answer\n");
   }
@@ -84,13 +82,12 @@ status_code_e s6a_pua_cb(
 
   if (avp_p) {
     CHECK_FCT(fd_msg_avp_hdr(avp_p, &hdr_p));
-    s6a_purge_ue_ans_p->result.present     = S6A_RESULT_BASE;
+    s6a_purge_ue_ans_p->result.present = S6A_RESULT_BASE;
     s6a_purge_ue_ans_p->result.choice.base = hdr_p->avp_value->u32;
 
     if (hdr_p->avp_value->u32 != ER_DIAMETER_SUCCESS) {
-      OAILOG_ERROR(
-          LOG_S6A, "Got error %u:%s\n", hdr_p->avp_value->u32,
-          retcode_2_string(hdr_p->avp_value->u32));
+      OAILOG_ERROR(LOG_S6A, "Got error %u:%s\n", hdr_p->avp_value->u32,
+                   retcode_2_string(hdr_p->avp_value->u32));
       goto err;
     }
   } else {
@@ -117,10 +114,9 @@ status_code_e s6a_pua_cb(
        * Neither result-code nor experimental-result is present ->
        * * * * totally incorrect behaviour here.
        */
-      OAILOG_ERROR(
-          LOG_S6A,
-          "Experimental-Result and Result-Code are absent: "
-          "This is not a correct behaviour\n");
+      OAILOG_ERROR(LOG_S6A,
+                   "Experimental-Result and Result-Code are absent: "
+                   "This is not a correct behaviour\n");
       goto err;
     }
   }
@@ -152,10 +148,9 @@ status_code_e s6a_pua_cb(
      * * * * this is not a compliant behaviour...
      * * * * TODO: handle this case.
      */
-    OAILOG_ERROR(
-        LOG_S6A,
-        "PUA-Flags AVP is absent while result code indicates "
-        "DIAMETER_SUCCESS\n");
+    OAILOG_ERROR(LOG_S6A,
+                 "PUA-Flags AVP is absent while result code indicates "
+                 "DIAMETER_SUCCESS\n");
     goto err;
   }
 
@@ -167,8 +162,8 @@ err:
 }
 
 status_code_e s6a_generate_purge_ue_req(const char* imsi) {
-  struct avp* avp_p      = NULL;
-  struct msg* msg_p      = NULL;
+  struct avp* avp_p = NULL;
+  struct msg* msg_p = NULL;
   struct session* sess_p = NULL;
   union avp_value value;
 
@@ -180,9 +175,8 @@ status_code_e s6a_generate_purge_ue_req(const char* imsi) {
   /*
    * Create a new session
    */
-  CHECK_FCT(fd_sess_new(
-      &sess_p, fd_g_config->cnf_diamid, fd_g_config->cnf_diamid_len,
-      (os0_t) "apps6a", 6));
+  CHECK_FCT(fd_sess_new(&sess_p, fd_g_config->cnf_diamid,
+                        fd_g_config->cnf_diamid_len, (os0_t) "apps6a", 6));
   {
     os0_t sid;
     size_t sidlen;
@@ -190,7 +184,7 @@ status_code_e s6a_generate_purge_ue_req(const char* imsi) {
     CHECK_FCT(fd_sess_getsid(sess_p, &sid, &sidlen));
     CHECK_FCT(fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_session_id, 0, &avp_p));
     value.os.data = sid;
-    value.os.len  = sidlen;
+    value.os.len = sidlen;
     CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
     CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_FIRST_CHILD, avp_p));
   }
@@ -213,8 +207,8 @@ status_code_e s6a_generate_purge_ue_req(const char* imsi) {
   {
     CHECK_FCT(
         fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_destination_host, 0, &avp_p));
-    value.os.data = (unsigned char*) bdata(mme_config.s6a_config.hss_host_name);
-    value.os.len  = blength(mme_config.s6a_config.hss_host_name);
+    value.os.data = (unsigned char*)bdata(mme_config.s6a_config.hss_host_name);
+    value.os.len = blength(mme_config.s6a_config.hss_host_name);
     CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
     CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
   }
@@ -224,8 +218,8 @@ status_code_e s6a_generate_purge_ue_req(const char* imsi) {
   {
     CHECK_FCT(
         fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_destination_realm, 0, &avp_p));
-    value.os.data = (unsigned char*) bdata(mme_config.s6a_config.hss_realm);
-    value.os.len  = blength(mme_config.s6a_config.hss_realm);
+    value.os.data = (unsigned char*)bdata(mme_config.s6a_config.hss_realm);
+    value.os.len = blength(mme_config.s6a_config.hss_realm);
     CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
     CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
   }
@@ -234,8 +228,8 @@ status_code_e s6a_generate_purge_ue_req(const char* imsi) {
    * Adding the User-Name (IMSI)
    */
   CHECK_FCT(fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_user_name, 0, &avp_p));
-  value.os.data = (unsigned char*) imsi;
-  value.os.len  = strlen(imsi);
+  value.os.data = (unsigned char*)imsi;
+  value.os.len = strlen(imsi);
   CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
   CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
 

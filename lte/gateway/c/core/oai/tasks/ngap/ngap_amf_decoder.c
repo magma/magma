@@ -36,9 +36,8 @@ int ngap_amf_decode_pdu(Ngap_NGAP_PDU_t* pdu, const_bstring const raw) {
   asn_dec_rval_t dec_ret;
   DevAssert(pdu != NULL);
   DevAssert(blength(raw) != 0);
-  dec_ret = aper_decode(
-      NULL, &asn_DEF_Ngap_NGAP_PDU, (void**) &pdu, bdata(raw), blength(raw), 0,
-      0);
+  dec_ret = aper_decode(NULL, &asn_DEF_Ngap_NGAP_PDU, (void**)&pdu, bdata(raw),
+                        blength(raw), 0, 0);
 
   if (dec_ret.code != RC_OK) {
     OAILOG_ERROR(LOG_NGAP, "Failed to decode PDU\n");
