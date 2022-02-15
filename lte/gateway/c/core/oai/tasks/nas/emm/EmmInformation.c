@@ -69,18 +69,18 @@
 static void emm_information_pack_gsm_7Bit(bstring str, unsigned char* result);
 
 status_code_e emm_proc_emm_information(ue_mm_context_t* ue_emm_ctx) {
-  int rc                    = RETURNerror;
+  int rc = RETURNerror;
   unsigned char result[256] = {0};
-  emm_sap_t emm_sap         = {0};
-  emm_as_data_t* emm_as     = &emm_sap.u.emm_as.u.data;
-  emm_context_t* emm_ctx    = &(ue_emm_ctx->emm_context);
+  emm_sap_t emm_sap = {0};
+  emm_as_data_t* emm_as = &emm_sap.u.emm_as.u.data;
+  emm_context_t* emm_ctx = &(ue_emm_ctx->emm_context);
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   /*
    * Setup NAS information message to transfer
    */
   emm_as->nas_info = EMM_AS_NAS_EMM_INFORMATION;
-  emm_as->nas_msg  = NULL;  // No ESM container
+  emm_as->nas_msg = NULL;  // No ESM container
   /*
    * Set the UE identifier
    */
@@ -94,13 +94,13 @@ status_code_e emm_proc_emm_information(ue_mm_context_t* ue_emm_ctx) {
    * (section: 10.5.3.5a)and 23.038
    */
   emm_information_pack_gsm_7Bit(_emm_data.conf.full_network_name, result);
-  emm_as->full_network_name = bfromcstr((const char*) result);
+  emm_as->full_network_name = bfromcstr((const char*)result);
   /*
    * Encode short_network_name with gsm 7 bit encoding
    */
   memset(result, 0, sizeof(result));
   emm_information_pack_gsm_7Bit(_emm_data.conf.short_network_name, result);
-  emm_as->short_network_name = bfromcstr((const char*) result);
+  emm_as->short_network_name = bfromcstr((const char*)result);
 
   /*
    * Setup EPS NAS security data
@@ -110,7 +110,7 @@ status_code_e emm_proc_emm_information(ue_mm_context_t* ue_emm_ctx) {
    * Notify EMM-AS SAP that TAU Accept message has to be sent to the network
    */
   emm_sap.primitive = EMMAS_DATA_REQ;
-  rc                = emm_sap_send(&emm_sap);
+  rc = emm_sap_send(&emm_sap);
   bdestroy(emm_as->full_network_name);
   bdestroy(emm_as->short_network_name);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);

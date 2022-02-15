@@ -21,7 +21,7 @@ PDUSessionEstablishmentRejectMsg::~PDUSessionEstablishmentRejectMsg(){};
 int PDUSessionEstablishmentRejectMsg::DecodePDUSessionEstablishmentRejectMsg(
     PDUSessionEstablishmentRejectMsg* pdu_session_estab_reject, uint8_t* buffer,
     uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
@@ -72,7 +72,7 @@ int PDUSessionEstablishmentRejectMsg::DecodePDUSessionEstablishmentRejectMsg(
 int PDUSessionEstablishmentRejectMsg::EncodePDUSessionEstablishmentRejectMsg(
     PDUSessionEstablishmentRejectMsg* pdu_session_estab_reject, uint8_t* buffer,
     uint32_t len) {
-  uint32_t encoded   = 0;
+  uint32_t encoded = 0;
   int encoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, PDU_SESSION_ESTABLISHMENT_REJ_MIN_LEN, len);

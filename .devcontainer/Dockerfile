@@ -1,4 +1,3 @@
-# Note: You can use any Debian/Ubuntu based image you want. 
 FROM ubuntu:focal as magma-mme-builder
 
 # [Option] Install zsh
@@ -23,8 +22,8 @@ RUN apt-get update \
     # Clean up
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/library-scripts/
 
-# Setting the ENTRYPOINT to docker-init.sh will configure non-root access to 
-# the Docker socket if "overrideCommand": false is set in devcontainer.json. 
+# Setting the ENTRYPOINT to docker-init.sh will configure non-root access to
+# the Docker socket if "overrideCommand": false is set in devcontainer.json.
 # The script will also execute CMD if you need to alter startup behaviors.
 ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 CMD [ "sleep", "infinity" ]
@@ -35,7 +34,7 @@ ENV MAGMA_ROOT=/workspaces/magma
 ENV BUILD_TYPE=Debug
 ENV C_BUILD=/workspaces/magma/build/c
 ENV DEBIAN_FRONTEND=noninteractive
-ENV PYTHONPATH=$MAGMA_ROOT/lte/gateway/python/:$MAGMA_ROOT/orc8r/gateway/python/
+
 
 RUN echo "Install general purpose packages" && \
     apt-get update && \
@@ -49,7 +48,6 @@ RUN echo "Install general purpose packages" && \
         build-essential \
         ca-certificates \
         clang-11 \
-        clang-format-7 \
         clang-format-11 \
         clang-tidy-11 \
         curl \
@@ -67,11 +65,13 @@ RUN echo "Install general purpose packages" && \
         libssl-dev \
         libtool \
         lld \
+        lldb \
         make \
         ninja-build \
         perl \
         pkg-config \
         python3 \
+        python3-pip \
         python-is-python3 \
         redis-server \
         ruby \
@@ -85,7 +85,7 @@ RUN echo "Install general purpose packages" && \
         gem install fpm && \
         update-alternatives --install /usr/bin/clang clang /usr/lib/llvm-11/bin/clang 10 && \
         update-alternatives --install /usr/bin/clang++ clang++ /usr/lib/llvm-11/bin/clang++ 10 && \
-        update-alternatives --install /usr/bin/clang-format clang-format /usr/lib/llvm-7/bin/clang-format 10 && \
+        update-alternatives --install /usr/bin/clang-format clang-format /usr/lib/llvm-11/bin/clang-format 10 && \
         update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/lib/llvm-11/bin/clang-tidy 10 && \
         update-alternatives --install /usr/bin/clang-apply-replacements clang-apply-replacements /usr/lib/llvm-11/bin/clang-apply-replacements 10
 
@@ -253,7 +253,7 @@ RUN git clone https://github.com/facebook/folly && cd folly && \
     make install && \
     cd / && \
     rm -rf folly
-    
+
 ##### Build and install libgtest and gmock
 RUN cd /usr/src/googletest && \
     mkdir build && \
@@ -296,8 +296,8 @@ RUN git clone https://github.com/include-what-you-use/include-what-you-use && \
 #### libfluid is requird to build MME with OVS support
 COPY third_party /tmp/third_party/
 RUN /tmp/third_party/build/bin/libfluid_build.sh && \
-     find . -name magma-libfluid_0.1* -exec dpkg -i {} \; && \
-     rm -rf /tmp/*
+    find . -name magma-libfluid_0.1* -exec dpkg -i {} \; && \
+    rm -rf /tmp/*
 
 ##### FreeDiameter
 COPY lte/gateway/c/core/oai/patches/ /tmp/
@@ -309,14 +309,63 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     cmake -DDISABLE_SCTP:BOOL=ON ../ && \
     make -j"$(nproc)" && \
     make install && \
-    cd / && \
-    rm -rf freediameter
+    rm -rf /freediameter /tmp/*
 
 ##### Go language server support for vscode
 RUN go get -v golang.org/x/tools/gopls
 
 #### Update shared library configuration
 RUN ldconfig -v
+
+
+##### Install Python requirements
+RUN pip3 install --quiet --upgrade --no-cache-dir "setuptools==49.6.0"
+
+### install python3-aioeventlet from the magma apt repo
+COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/
+RUN apt-key add /tmp/jfrog.pub && \
+    echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" > /etc/apt/sources.list.d/fbc.list && \
+    apt-get update -y && \
+    apt-get install -y python3-aioeventlet && \
+    rm -f /tmp/* && \
+    rm -rf /var/lib/apt/lists/*  # delete lists that are downloaded by apt-get update
+
+# add patch that is missing in jfrog version of aioeventlet (it only comes with 1 of 2 patches)
+COPY lte/gateway/deploy/roles/magma/files/patches/aioeventlet_fd_exception.patch /tmp/
+RUN patch -N -s -f /usr/local/lib/python3.8/dist-packages/aioeventlet.py < /tmp/aioeventlet_fd_exception.patch && \
+    rm -rf /tmp/*
+
+### install eggs (lte, orc8r)
+COPY /lte/gateway/python/ ${MAGMA_ROOT}/lte/gateway/python/
+WORKDIR ${MAGMA_ROOT}/lte/gateway/python/
+RUN pip3 install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose --editable .[dev] && \
+    rm -rf lte.egg-info
+
+COPY /orc8r/gateway/python/ ${MAGMA_ROOT}/orc8r/gateway/python/
+WORKDIR ${MAGMA_ROOT}/orc8r/gateway/python/
+RUN pip3 install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose --editable .[dev] && \
+    rm -rf orc8r.egg-info
+
+# install formatter autopep8
+RUN pip install --no-cache-dir autopep8
+
+#### protos
+ARG PYTHON_LIB=/usr/local/lib/python3.8
+
+COPY /protos/ ${MAGMA_ROOT}/protos/
+COPY /lte/protos/ ${MAGMA_ROOT}/lte/protos/
+COPY /orc8r/protos/ ${MAGMA_ROOT}/orc8r/protos/
+COPY /feg/protos/ ${MAGMA_ROOT}/feg/protos/
+COPY /dp/protos/ ${MAGMA_ROOT}/dp/protos/
+WORKDIR $MAGMA_ROOT
+RUN pip install mypy-protobuf && \
+    mkdir $PYTHON_LIB/gen && \
+    for PROTO_SRC in orc8r lte feg dp; \
+    do \
+    python protos/gen_protos.py ${PROTO_SRC}/protos ${MAGMA_ROOT},orc8r/protos/prometheus ${MAGMA_ROOT} $PYTHON_LIB/gen && \
+    python protos/gen_prometheus_proto.py ${MAGMA_ROOT} $PYTHON_LIB/gen; \
+    done && \
+    echo "$PYTHON_LIB/gen" > $PYTHON_LIB/dist-packages/magma_gen.pth
 
 RUN ln -s $MAGMA_ROOT/bazel/bazelrcs/devcontainer.bazelrc /etc/bazelrc
 

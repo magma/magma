@@ -16,11 +16,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
-#include "dynamic_memory_check.h"
-#include "intertask_interface_types.h"
-#include "intertask_interface.h"
-#include "itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #ifdef __cplusplus
 }
 #endif
@@ -64,11 +64,28 @@ class AMFClientServicerBase {
   virtual int release_ipv4_address(
       const char* subscriber_id, const char* apn, const struct in_addr* addr);
 
-  virtual int amf_smf_create_pdu_session_ipv4(
+  virtual int allocate_ipv6_address(
+      const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+      uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len);
+
+  virtual int release_ipv6_address(
+      const char* subscriber_id, const char* apn, const struct in6_addr* addr);
+
+  virtual int allocate_ipv4v6_address(
+      const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+      uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len);
+
+  virtual int release_ipv4v6_address(
+      const char* subscriber_id, const char* apn,
+      const struct in_addr* ipv4_addr, const struct in6_addr* ipv6_addr);
+
+  virtual int amf_smf_create_pdu_session(
       char* imsi, uint8_t* apn, uint32_t pdu_session_id,
       uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-      uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
-      const ambr_t& state_ambr,
+      uint8_t* gnb_gtp_teid_ip_addr, char* ue_ipv4_addr, char* ue_ipv6_addr,
+      const ambr_t& state_ambr, uint32_t version,
       const eps_subscribed_qos_profile_t& qos_profile);
 
   virtual bool set_smf_session(SetSMSessionContext& request);
@@ -88,6 +105,7 @@ class AMFClientServicer : public AMFClientServicerBase {
   void operator=(AMFClientServicer const&) = delete;
 
   magma::map_string_string_t map_table_key_proto_str;
+  magma::map_string_string_t map_imsi_ue_proto_str;
 
 #if MME_UNIT_TEST
   status_code_e amf_send_msg_to_task(
@@ -124,11 +142,36 @@ class AMFClientServicer : public AMFClientServicerBase {
     return RETURNok;
   }
 
-  int amf_smf_create_pdu_session_ipv4(
+  int allocate_ipv6_address(
+      const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+      uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
+    return RETURNok;
+  }
+
+  int release_ipv6_address(
+      const char* subscriber_id, const char* apn, const struct in6_addr* addr) {
+    return RETURNok;
+  }
+
+  int allocate_ipv4v6_address(
+      const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+      uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
+    return RETURNok;
+  }
+
+  int release_ipv4v6_address(
+      const char* subscriber_id, const char* apn,
+      const struct in_addr* ipv4_addr, const struct in6_addr* ipv6_addr) {
+    return RETURNok;
+  }
+
+  int amf_smf_create_pdu_session(
       char* imsi, uint8_t* apn, uint32_t pdu_session_id,
       uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-      uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
-      const ambr_t& state_ambr,
+      uint8_t* gnb_gtp_teid_ip_addr, char* ue_ipv4_addr, char* ue_ipv6_addr,
+      const ambr_t& state_ambr, uint32_t version,
       const eps_subscribed_qos_profile_t& qos_profile) {
     return RETURNok;
   }

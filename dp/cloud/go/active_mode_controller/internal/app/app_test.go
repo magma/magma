@@ -5,23 +5,26 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/suite"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/test/bufconn"
 
 	"magma/dp/cloud/go/active_mode_controller/config"
 	"magma/dp/cloud/go/active_mode_controller/internal/app"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 	"magma/dp/cloud/go/active_mode_controller/protos/requests"
-
-	"github.com/stretchr/testify/suite"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/test/bufconn"
 )
 
 const (
-	bufferSize  = 16
-	timeout     = time.Millisecond * 20
-	currentTime = 1000
+	bufferSize       = 16
+	timeout          = time.Millisecond * 20
+	heartbeatTimeout = time.Second * 10
+	pollingTimeout   = time.Second * 20
+	currentTime      = 10000
 )
 
 func TestAppTestSuite(t *testing.T) {
@@ -76,15 +79,16 @@ func (s *AppTestSuite) TestFilterPendingRequests() {
 
 func (s *AppTestSuite) TestCalculateHeartbeatDeadline() {
 	const interval = 50 * time.Second
-	const deadline = interval + 3*timeout
+	const delta = heartbeatTimeout + pollingTimeout
 	now := s.clock.Now()
+	base := now.Add(delta - interval)
 	timestamps := []time.Time{
-		now.Add(-deadline + 2), now.Add(-deadline + 1),
-		now.Add(-deadline), now.Add(-deadline - 1),
+		base.Add(2 * time.Second), base.Add(time.Second),
+		base, base.Add(-time.Second),
 	}
 	s.givenState(buildStateWithAuthorizedGrants("some", interval, timestamps...))
 	s.whenTickerFired()
-	s.thenRequestsWereEventuallyReceived(getExpectedHeartbeatRequests("some", "0", "1"))
+	s.thenRequestsWereEventuallyReceived(getExpectedHeartbeatRequests("some", "2", "3"))
 }
 
 func (s *AppTestSuite) TestAppWorkInALoop() {
@@ -115,9 +119,9 @@ func (s *AppTestSuite) givenAppRunning() {
 		app.WithClock(s.clock),
 		app.WithConfig(&config.Config{
 			DialTimeout:               timeout,
-			HeartbeatSendTimeout:      timeout,
+			HeartbeatSendTimeout:      heartbeatTimeout,
 			RequestTimeout:            timeout,
-			PollingInterval:           timeout,
+			PollingInterval:           pollingTimeout,
 			RequestProcessingInterval: timeout,
 			GrpcService:               "",
 			GrpcPort:                  0,
@@ -270,13 +274,16 @@ func getExpectedSingleRequest(name string) string {
 }
 
 func getExpectedHeartbeatRequests(id string, grantIds ...string) []*requests.RequestPayload {
-	const template = `{"heartbeatRequest":[%s]}`
-	result := make([]*requests.RequestPayload, len(grantIds))
-	for i, grantId := range grantIds {
-		request := fmt.Sprintf(template, getExpectedHeartbeatRequest(id, grantId))
-		result[i] = &requests.RequestPayload{Payload: request}
+	if len(grantIds) == 0 {
+		return nil
 	}
-	return result
+	reqs := make([]string, len(grantIds))
+	for i, grantId := range grantIds {
+		reqs[i] = getExpectedHeartbeatRequest(id, grantId)
+	}
+	const template = `{"heartbeatRequest":[%s]}`
+	payload := fmt.Sprintf(template, strings.Join(reqs, ","))
+	return []*requests.RequestPayload{{Payload: payload}}
 }
 
 func getExpectedHeartbeatRequest(id string, grantId string) string {

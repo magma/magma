@@ -141,20 +141,20 @@ void emm_fsm_initialize(void) {
  **      Others:    _emm_fsm_status                            **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_fsm_set_state(
-    const mme_ue_s1ap_id_t ue_id, struct emm_context_s* const emm_context,
-    const emm_fsm_state_t state) {
+status_code_e emm_fsm_set_state(const mme_ue_s1ap_id_t ue_id,
+                                struct emm_context_s* const emm_context,
+                                const emm_fsm_state_t state) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   DevAssert(emm_context);
   if (state < EMM_STATE_MAX) {
     if (state != emm_context->_emm_fsm_state) {
-      OAILOG_INFO(
-          LOG_NAS_EMM,
-          "UE " MME_UE_S1AP_ID_FMT " EMM-FSM   - Status changed: %s ===> %s\n",
-          ue_id, emm_fsm_status_str[emm_context->_emm_fsm_state],
-          emm_fsm_status_str[state]);
-      emm_context->_emm_fsm_state   = state;
+      OAILOG_INFO(LOG_NAS_EMM,
+                  "UE " MME_UE_S1AP_ID_FMT
+                  " EMM-FSM   - Status changed: %s ===> %s\n",
+                  ue_id, emm_fsm_status_str[emm_context->_emm_fsm_state],
+                  emm_fsm_status_str[state]);
+      emm_context->_emm_fsm_state = state;
       emm_fsm_state_t new_emm_state = UE_UNREGISTERED;
       if (state == EMM_REGISTERED) {
         new_emm_state = UE_REGISTERED;
@@ -188,13 +188,12 @@ status_code_e emm_fsm_set_state(
 emm_fsm_state_t emm_fsm_get_state(
     const struct emm_context_s* const emm_context) {
   if (emm_context) {
-    AssertFatal(
-        (emm_context->_emm_fsm_state < EMM_STATE_MAX) &&
-            (emm_context->_emm_fsm_state >= EMM_STATE_MIN),
-        "ue_id " MME_UE_S1AP_ID_FMT " BAD EMM state %d",
-        PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
-            ->mme_ue_s1ap_id,
-        emm_context->_emm_fsm_state);
+    AssertFatal((emm_context->_emm_fsm_state < EMM_STATE_MAX) &&
+                    (emm_context->_emm_fsm_state >= EMM_STATE_MIN),
+                "ue_id " MME_UE_S1AP_ID_FMT " BAD EMM state %d",
+                PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
+                    ->mme_ue_s1ap_id,
+                emm_context->_emm_fsm_state);
     return emm_context->_emm_fsm_state;
   }
   return EMM_INVALID;
@@ -230,15 +229,14 @@ status_code_e emm_fsm_process(struct emm_reg_s* const evt) {
   emm_reg_primitive_t primitive;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  primitive              = evt->primitive;
-  emm_context_t* emm_ctx = (emm_context_t*) evt->ctx;
+  primitive = evt->primitive;
+  emm_context_t* emm_ctx = (emm_context_t*)evt->ctx;
 
   if (emm_ctx) {
     state = emm_fsm_get_state(emm_ctx);
-    OAILOG_INFO(
-        LOG_NAS_EMM, "EMM-FSM   - Received event %s (%d) in state %s\n",
-        emm_fsm_event_str[primitive - _EMMREG_START - 1], primitive,
-        emm_fsm_status_str[state]);
+    OAILOG_INFO(LOG_NAS_EMM, "EMM-FSM   - Received event %s (%d) in state %s\n",
+                emm_fsm_event_str[primitive - _EMMREG_START - 1], primitive,
+                emm_fsm_status_str[state]);
     /*
      * Execute the EMM state machine
      */

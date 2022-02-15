@@ -80,7 +80,7 @@ void PCEFClient::create_session(
 void PCEFClient::end_session(
     const LocalEndSessionRequest& request,
     std::function<void(Status, LocalEndSessionResponse)> callback) {
-  PCEFClient& client  = get_instance();
+  PCEFClient& client = get_instance();
   auto local_response = new AsyncLocalResponse<LocalEndSessionResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
   auto response_reader = client.stub_->AsyncEndSession(
@@ -91,7 +91,7 @@ void PCEFClient::end_session(
 void PCEFClient::bind_policy2bearer(
     const PolicyBearerBindingRequest& request,
     std::function<void(Status, PolicyBearerBindingResponse)> callback) {
-  PCEFClient& client  = get_instance();
+  PCEFClient& client = get_instance();
   auto local_response = new AsyncLocalResponse<PolicyBearerBindingResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
   auto response_reader = client.stub_->AsyncBindPolicy2Bearer(
@@ -102,7 +102,7 @@ void PCEFClient::bind_policy2bearer(
 void PCEFClient::update_teids(
     const UpdateTunnelIdsRequest& request,
     std::function<void(Status, UpdateTunnelIdsResponse)> callback) {
-  PCEFClient& client  = get_instance();
+  PCEFClient& client = get_instance();
   auto local_response = new AsyncLocalResponse<UpdateTunnelIdsResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
   auto response_reader = client.stub_->AsyncUpdateTunnelIds(

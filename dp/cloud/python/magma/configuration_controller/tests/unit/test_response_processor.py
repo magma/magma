@@ -47,6 +47,7 @@ from magma.mappings.types import (
     GrantStates,
     RequestStates,
     RequestTypes,
+    ResponseCodes,
 )
 from parameterized import parameterized
 
@@ -103,15 +104,42 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         )
 
     @parameterized.expand([
-        (GRANT_REQ, grant_requests, 0, GrantStates.GRANTED.value),
-        (GRANT_REQ, grant_requests, 400, GrantStates.IDLE.value),
-        (GRANT_REQ, grant_requests, 401, GrantStates.IDLE.value),
-        (GRANT_REQ, grant_requests, 500, GrantStates.IDLE.value),
-        (HEARTBEAT_REQ, heartbeat_requests, 0, GrantStates.AUTHORIZED.value),
-        (HEARTBEAT_REQ, heartbeat_requests, 500, GrantStates.IDLE.value),
-        (HEARTBEAT_REQ, heartbeat_requests, 501, GrantStates.GRANTED.value),
-        (HEARTBEAT_REQ, heartbeat_requests, 502, GrantStates.IDLE.value),
-        (RELINQUISHMENT_REQ, relinquishment_requests, 0, GrantStates.IDLE.value),
+        (
+            GRANT_REQ, grant_requests, ResponseCodes.SUCCESS.value,
+            GrantStates.GRANTED.value,
+        ),
+        (
+            GRANT_REQ, grant_requests,
+            ResponseCodes.INTERFERENCE.value, GrantStates.IDLE.value,
+        ),
+        (
+            GRANT_REQ, grant_requests,
+            ResponseCodes.GRANT_CONFLICT.value, GrantStates.IDLE.value,
+        ),
+        (
+            GRANT_REQ, grant_requests,
+            ResponseCodes.TERMINATED_GRANT.value, GrantStates.IDLE.value,
+        ),
+        (
+            HEARTBEAT_REQ, heartbeat_requests,
+            ResponseCodes.SUCCESS.value, GrantStates.AUTHORIZED.value,
+        ),
+        (
+            HEARTBEAT_REQ, heartbeat_requests,
+            ResponseCodes.TERMINATED_GRANT.value, GrantStates.IDLE.value,
+        ),
+        (
+            HEARTBEAT_REQ, heartbeat_requests,
+            ResponseCodes.SUSPENDED_GRANT.value, GrantStates.GRANTED.value,
+        ),
+        (
+            HEARTBEAT_REQ, heartbeat_requests,
+            ResponseCodes.UNSYNC_OP_PARAM.value, GrantStates.UNSYNC.value,
+        ),
+        (
+            RELINQUISHMENT_REQ, relinquishment_requests,
+            ResponseCodes.SUCCESS.value, GrantStates.IDLE.value,
+        ),
     ])
     @responses.activate
     def test_grant_state_after_response(
@@ -139,14 +167,23 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         )
 
     @parameterized.expand([
-        (GRANT_REQ, grant_requests, 0, 5, 5),
-        (GRANT_REQ, grant_requests, 400, 5, 5),
-        (GRANT_REQ, grant_requests, 401, 5, 5),
-        (GRANT_REQ, grant_requests, 500, 5, 5),
-        (HEARTBEAT_REQ, heartbeat_requests, 0, 5, 5),
-        (HEARTBEAT_REQ, heartbeat_requests, 500, 5, None),
-        (HEARTBEAT_REQ, heartbeat_requests, 501, 5, 5),
-        (HEARTBEAT_REQ, heartbeat_requests, 502, 5, None),
+        (GRANT_REQ, grant_requests, ResponseCodes.SUCCESS.value, 5, 5),
+        (GRANT_REQ, grant_requests, ResponseCodes.INTERFERENCE.value, 5, 5),
+        (GRANT_REQ, grant_requests, ResponseCodes.GRANT_CONFLICT.value, 5, 5),
+        (GRANT_REQ, grant_requests, ResponseCodes.TERMINATED_GRANT.value, 5, 5),
+        (HEARTBEAT_REQ, heartbeat_requests, ResponseCodes.SUCCESS.value, 5, 5),
+        (
+            HEARTBEAT_REQ, heartbeat_requests,
+            ResponseCodes.TERMINATED_GRANT.value, 5, None,
+        ),
+        (
+            HEARTBEAT_REQ, heartbeat_requests,
+            ResponseCodes.SUSPENDED_GRANT.value, 5, 5,
+        ),
+        (
+            HEARTBEAT_REQ, heartbeat_requests,
+            ResponseCodes.UNSYNC_OP_PARAM.value, 5, 5,
+        ),
         (RELINQUISHMENT_REQ, relinquishment_requests, 0, 5, None),
     ])
     @responses.activate

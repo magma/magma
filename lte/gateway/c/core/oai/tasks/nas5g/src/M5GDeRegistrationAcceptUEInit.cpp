@@ -22,7 +22,7 @@ DeRegistrationAcceptUEInitMsg::~DeRegistrationAcceptUEInitMsg(){};
 int DeRegistrationAcceptUEInitMsg::DecodeDeRegistrationAcceptUEInitMsg(
     DeRegistrationAcceptUEInitMsg* de_reg_accept, uint8_t* buffer,
     uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
@@ -61,7 +61,7 @@ int DeRegistrationAcceptUEInitMsg::DecodeDeRegistrationAcceptUEInitMsg(
 int DeRegistrationAcceptUEInitMsg::EncodeDeRegistrationAcceptUEInitMsg(
     DeRegistrationAcceptUEInitMsg* de_reg_accept, uint8_t* buffer,
     uint32_t len) {
-  uint32_t encoded   = 0;
+  uint32_t encoded = 0;
   int encoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length

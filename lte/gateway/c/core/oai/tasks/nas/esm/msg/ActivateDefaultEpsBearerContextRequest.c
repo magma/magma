@@ -28,7 +28,7 @@ int decode_activate_default_eps_bearer_context_request(
     activate_default_eps_bearer_context_request_msg*
         activate_default_eps_bearer_context_request,
     uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
@@ -204,7 +204,7 @@ int encode_activate_default_eps_bearer_context_request(
     activate_default_eps_bearer_context_request_msg*
         activate_default_eps_bearer_context_request,
     uint8_t* buffer, uint32_t len) {
-  int encoded       = 0;
+  int encoded = 0;
   int encode_result = 0;
 
   /*
@@ -243,10 +243,10 @@ int encode_activate_default_eps_bearer_context_request(
   if ((activate_default_eps_bearer_context_request->presencemask &
        ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_TRANSACTION_IDENTIFIER_PRESENT) ==
       ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_TRANSACTION_IDENTIFIER_PRESENT) {
-    if ((encode_result = encode_linked_ti_ie(
-             &activate_default_eps_bearer_context_request
-                  ->transactionidentifier,
-             true, buffer + encoded, len - encoded)) < 0) {
+    if ((encode_result =
+             encode_linked_ti_ie(&activate_default_eps_bearer_context_request
+                                      ->transactionidentifier,
+                                 true, buffer + encoded, len - encoded)) < 0) {
       OAILOG_ERROR(LOG_NAS_ESM, "ESM  ENCODE transactionidentifier\n");
       // Return in case of error
       return encode_result;
@@ -349,8 +349,7 @@ int encode_activate_default_eps_bearer_context_request(
       encoded += encode_result;
   }
 
-  OAILOG_DEBUG(
-      LOG_NAS_ESM,
-      "ESM  ENCODED activate_default_eps_bearer_context_request\n");
+  OAILOG_DEBUG(LOG_NAS_ESM,
+               "ESM  ENCODED activate_default_eps_bearer_context_request\n");
   return encoded;
 }

@@ -114,9 +114,8 @@ status_code_e sgs_associated_handler(const sgs_fsm_t* evt) {
     } break;
 
     default: {
-      OAILOG_ERROR(
-          LOG_MME_APP, "SGS-FSM   - Primitive is not valid (%d)\n",
-          evt->primitive);
+      OAILOG_ERROR(LOG_MME_APP, "SGS-FSM   - Primitive is not valid (%d)\n",
+                   evt->primitive);
     } break;
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);

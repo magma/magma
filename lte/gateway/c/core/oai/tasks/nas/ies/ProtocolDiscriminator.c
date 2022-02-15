@@ -23,16 +23,14 @@
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/ProtocolDiscriminator.h"
 
-int decode_protocol_discriminator(
-    ProtocolDiscriminator* protocoldiscriminator, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int decode_protocol_discriminator(ProtocolDiscriminator* protocoldiscriminator,
+                                  uint8_t iei, uint8_t* buffer, uint32_t len) {
   Fatal("TODO Implement decode_protocol_discriminator");
   return -1;
 }
 
-int encode_protocol_discriminator(
-    ProtocolDiscriminator* protocoldiscriminator, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int encode_protocol_discriminator(ProtocolDiscriminator* protocoldiscriminator,
+                                  uint8_t iei, uint8_t* buffer, uint32_t len) {
   Fatal("TODO Implement encode_protocol_discriminator");
   return -1;
 }

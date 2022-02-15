@@ -55,7 +55,7 @@ func StartTestServiceWithConfig(t *testing.T, serviceConfig lte_service.Config) 
 	}
 
 	srv, lis := test_utils.NewTestOrchestratorService(t, lte.ModuleName, lte_service.ServiceName, labels, annotations)
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer(serviceConfig))
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, protected_servicers.NewBuilderServicer(serviceConfig))
 	provider_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
 
 	// Init storage
@@ -66,7 +66,7 @@ func StartTestServiceWithConfig(t *testing.T, serviceConfig lte_service.Config) 
 
 	// Add servicers
 	lte_protos.RegisterEnodebStateLookupServer(srv.GrpcServer, protected_servicers.NewLookupServicer(enbStateStore))
-	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
+	state_protos.RegisterIndexerServer(srv.GrpcServer, protected_servicers.NewIndexerServicer())
 
 	go srv.RunTest(lis)
 }

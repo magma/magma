@@ -31,16 +31,16 @@
 // TODO: (amar) unused function check with OAI.
 int oai_mme_log_specific(int log_level) {
   if (log_level == 1) {
-    asn_debug      = 0;
+    asn_debug = 0;
     asn1_xer_print = 1;
     fd_g_debug_lvl = INFO;
   } else if (log_level == 2) {
-    asn_debug      = 1;
+    asn_debug = 1;
     asn1_xer_print = 1;
     fd_g_debug_lvl = ANNOYING;
   } else {
     asn1_xer_print = 0;
-    asn_debug      = 0;
+    asn_debug = 0;
     fd_g_debug_lvl = NONE;
   }
 

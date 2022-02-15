@@ -73,11 +73,11 @@
  * Other aspects of TAU are TODOs for future.
  */
 
-static int emm_tracking_area_update_reject(
-    const mme_ue_s1ap_id_t ue_id, const int emm_cause);
+static int emm_tracking_area_update_reject(const mme_ue_s1ap_id_t ue_id,
+                                           const int emm_cause);
 static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc);
-static int emm_tracking_area_update_abort(
-    struct emm_context_s* emm_context, struct nas_base_proc_s* base_proc);
+static int emm_tracking_area_update_abort(struct emm_context_s* emm_context,
+                                          struct nas_base_proc_s* base_proc);
 
 static nas_emm_tau_proc_t* emm_proc_create_procedure_tau(
     ue_mm_context_t* const ue_mm_context, emm_tau_request_ies_t* const ies);
@@ -108,8 +108,8 @@ status_code_e emm_proc_tracking_area_update_accept(
  ** Outputs: Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-status_code_e csfb_handle_tracking_area_req(
-    emm_context_t* emm_context_p, emm_tau_request_ies_t* ies) {
+status_code_e csfb_handle_tracking_area_req(emm_context_t* emm_context_p,
+                                            emm_tau_request_ies_t* ies) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   ue_mm_context_t* ue_mm_context = NULL;
   ue_mm_context =
@@ -118,11 +118,11 @@ status_code_e csfb_handle_tracking_area_req(
     OAILOG_ERROR(LOG_NAS_EMM, "Got Invalid UE Context during TAU procedure \n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
-  OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMM-PROC"
-      "_csfb_handle_tracking_area_req for UE-ID:" MME_UE_S1AP_ID_FMT "\n",
-      ue_mm_context->mme_ue_s1ap_id);
+  OAILOG_INFO(LOG_NAS_EMM,
+              "EMM-PROC"
+              "_csfb_handle_tracking_area_req for UE-ID:" MME_UE_S1AP_ID_FMT
+              "\n",
+              ue_mm_context->mme_ue_s1ap_id);
   /* If periodic TAU is received, send Location Update to MME
    * only if SGS Association is established
    */
@@ -148,11 +148,10 @@ status_code_e csfb_handle_tracking_area_req(
     if (!tau_proc) {
       tau_proc = emm_proc_create_procedure_tau(ue_mm_context, ies);
       if (!tau_proc) {
-        OAILOG_ERROR_UE(
-            LOG_MME_APP, emm_context_p->_imsi64,
-            "Failed to create new tau_proc for "
-            "ue_id" MME_UE_S1AP_ID_FMT "\n",
-            ue_mm_context->mme_ue_s1ap_id);
+        OAILOG_ERROR_UE(LOG_MME_APP, emm_context_p->_imsi64,
+                        "Failed to create new tau_proc for "
+                        "ue_id" MME_UE_S1AP_ID_FMT "\n",
+                        ue_mm_context->mme_ue_s1ap_id);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
       }
       if (ue_mm_context->sgs_context &&
@@ -162,8 +161,8 @@ status_code_e csfb_handle_tracking_area_req(
             EPS_UPDATE_TYPE_PERIODIC_UPDATING))) {
         if ((ue_mm_context->sgs_context->vlr_reliable == true) &&
             (ue_mm_context->sgs_context->sgs_state == SGS_ASSOCIATED)) {
-          OAILOG_INFO(
-              LOG_MME_APP, "Do not send Location Update Request to MSC\n");
+          OAILOG_INFO(LOG_MME_APP,
+                      "Do not send Location Update Request to MSC\n");
           /* No need to send Location Update Request as SGS state is in
            * associated state and vlr_reliable flag is true
            * Send TAU accept to UE
@@ -200,10 +199,10 @@ static status_code_e handle_and_fill_eps_bearer_cntxt_status(
         rcvd_tau_req_eps_eps_ber_cntx_status,
     ue_mm_context_t* ue_mm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  ebi_t ebi          = 0;
-  uint8_t pos        = 0;
+  ebi_t ebi = 0;
+  uint8_t pos = 0;
   uint8_t shift_bits = 8;
-  pdn_cid_t pid      = 0;
+  pdn_cid_t pid = 0;
   bool is_ebi_active = false;
 
   for (uint8_t itrn = ESM_EBI_MIN; itrn < ESM_EBI_MAX; itrn++) {
@@ -217,10 +216,10 @@ static status_code_e handle_and_fill_eps_bearer_cntxt_status(
        * Ref : Spec 24.301 section 9.9.2.1
        */
       if ((ebi >= ESM_EBI_MIN) && (ebi <= (ESM_EBI_MAX / 2))) {
-        pos           = ebi + shift_bits;  // Octet 3
+        pos = ebi + shift_bits;  // Octet 3
         is_ebi_active = (*rcvd_tau_req_eps_eps_ber_cntx_status) & (1 << pos);
       } else {
-        pos           = ebi - shift_bits;  // Octet 4
+        pos = ebi - shift_bits;  // Octet 4
         is_ebi_active = (*rcvd_tau_req_eps_eps_ber_cntx_status) & (1 << pos);
       }
       /* Delete the bearer context if the bearer id rcvd in TAU req
@@ -228,16 +227,15 @@ static status_code_e handle_and_fill_eps_bearer_cntxt_status(
        */
       pid = ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
       if (pid >= MAX_APN_PER_UE) {
-        OAILOG_ERROR_UE(
-            ue_mm_context->emm_context._imsi64, LOG_NAS_EMM,
-            "No PDN connection found for pid=%d, EBI=%d \n", pid, ebi);
+        OAILOG_ERROR_UE(ue_mm_context->emm_context._imsi64, LOG_NAS_EMM,
+                        "No PDN connection found for pid=%d, EBI=%d \n", pid,
+                        ebi);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
       }
       pdn_context_t* pdn_context = ue_mm_context->pdn_contexts[pid];
       if (!pdn_context) {
-        OAILOG_ERROR_UE(
-            ue_mm_context->emm_context._imsi64, LOG_NAS_EMM,
-            "PDN context is NULL for pid=%d, EBI=%d \n", pid, ebi);
+        OAILOG_ERROR_UE(ue_mm_context->emm_context._imsi64, LOG_NAS_EMM,
+                        "PDN context is NULL for pid=%d, EBI=%d \n", pid, ebi);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
       }
       if (!is_ebi_active) {
@@ -246,8 +244,8 @@ static status_code_e handle_and_fill_eps_bearer_cntxt_status(
          * else trigger deactivate dedicated bearer request
          */
         if (ebi == pdn_context->default_ebi) {
-          mme_app_send_delete_session_request(
-              ue_mm_context, ebi, pid, true /*no_delete_gtpv2c_tunnel*/);
+          mme_app_send_delete_session_request(ue_mm_context, ebi, pid,
+                                              true /*no_delete_gtpv2c_tunnel*/);
           ue_mm_context->nb_delete_sessions++;
           pdn_context->session_deletion_triggered = true;
         } else {
@@ -277,9 +275,8 @@ static status_code_e handle_and_fill_eps_bearer_cntxt_status(
           (ue_mm_context->pdn_contexts[pid]->num_ebi_to_be_del > 0)) {
         mme_app_send_deactivate_dedicated_bearer_request(
             ue_mm_context, ue_mm_context->pdn_contexts[pid]);
-        increment_counter(
-            "mme_initiated_dedicated_bearer_deactivation", 1, 2, "result",
-            "success", "cause", "local_deactivation");
+        increment_counter("mme_initiated_dedicated_bearer_deactivation", 1, 2,
+                          "result", "success", "cause", "local_deactivation");
       }
     }
   }
@@ -290,9 +287,9 @@ status_code_e emm_proc_tracking_area_update_request(
     const mme_ue_s1ap_id_t ue_id, emm_tau_request_ies_t* ies, int* emm_cause,
     tai_t tai) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc                         = RETURNerror;
+  int rc = RETURNerror;
   ue_mm_context_t* ue_mm_context = NULL;
-  emm_context_t* emm_context     = NULL;
+  emm_context_t* emm_context = NULL;
 
   *emm_cause = EMM_CAUSE_SUCCESS;
   /*
@@ -309,7 +306,7 @@ status_code_e emm_proc_tracking_area_update_request(
   if (!ue_mm_context) {
     if (INVALID_M_TMSI != ies->old_guti.m_tmsi) {
       mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-      ue_mm_context                  = mme_ue_context_exists_guti(
+      ue_mm_context = mme_ue_context_exists_guti(
           &mme_app_desc_p->mme_ue_contexts, &ies->old_guti);
 
       if (ue_mm_context) {
@@ -318,11 +315,10 @@ status_code_e emm_proc_tracking_area_update_request(
         OAILOG_DEBUG(LOG_NAS_EMM, "EMM-PROC-  GUTI Context found\n");
       } else {
         // NO S10
-        rc = emm_tracking_area_update_reject(
-            ue_id, EMM_CAUSE_IMPLICITLY_DETACHED);
-        increment_counter(
-            "tracking_area_update_req", 1, 2, "result", "failure", "cause",
-            "ue_identify_cannot_be_derived");
+        rc = emm_tracking_area_update_reject(ue_id,
+                                             EMM_CAUSE_IMPLICITLY_DETACHED);
+        increment_counter("tracking_area_update_req", 1, 2, "result", "failure",
+                          "cause", "ue_identify_cannot_be_derived");
         free_emm_tau_request_ies(&ies);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
       }
@@ -358,8 +354,8 @@ status_code_e emm_proc_tracking_area_update_request(
    * Requirements MME24.301R10_5.5.3.2.4_3
    */
   if (ies->is_ue_radio_capability_information_update_needed) {
-    OAILOG_DEBUG(
-        LOG_NAS_EMM, "UE context exists: %s\n", ue_mm_context ? "yes" : "no");
+    OAILOG_DEBUG(LOG_NAS_EMM, "UE context exists: %s\n",
+                 ue_mm_context ? "yes" : "no");
     if (ue_mm_context) {
       // Note: this is safe from double-free errors because it sets to NULL
       // after freeing, which free treats as a no-op.
@@ -375,7 +371,7 @@ status_code_e emm_proc_tracking_area_update_request(
     emm_context->_mob_st_clsMark2.revisionlevel =
         ies->mobile_station_classmark2->revisionlevel;
     emm_context->_mob_st_clsMark2.esind = ies->mobile_station_classmark2->esind;
-    emm_context->_mob_st_clsMark2.a51   = ies->mobile_station_classmark2->a51;
+    emm_context->_mob_st_clsMark2.a51 = ies->mobile_station_classmark2->a51;
     emm_context->_mob_st_clsMark2.rfpowercapability =
         ies->mobile_station_classmark2->rfpowercapability;
     emm_context->_mob_st_clsMark2.pscapability =
@@ -384,19 +380,19 @@ status_code_e emm_proc_tracking_area_update_request(
         ies->mobile_station_classmark2->ssscreenindicator;
     emm_context->_mob_st_clsMark2.smcapability =
         ies->mobile_station_classmark2->smcapability;
-    emm_context->_mob_st_clsMark2.vbs  = ies->mobile_station_classmark2->vbs;
+    emm_context->_mob_st_clsMark2.vbs = ies->mobile_station_classmark2->vbs;
     emm_context->_mob_st_clsMark2.vgcs = ies->mobile_station_classmark2->vgcs;
-    emm_context->_mob_st_clsMark2.fc   = ies->mobile_station_classmark2->fc;
-    emm_context->_mob_st_clsMark2.cm3  = ies->mobile_station_classmark2->cm3;
+    emm_context->_mob_st_clsMark2.fc = ies->mobile_station_classmark2->fc;
+    emm_context->_mob_st_clsMark2.cm3 = ies->mobile_station_classmark2->cm3;
     emm_context->_mob_st_clsMark2.lcsvacap =
         ies->mobile_station_classmark2->lcsvacap;
-    emm_context->_mob_st_clsMark2.ucs2  = ies->mobile_station_classmark2->ucs2;
+    emm_context->_mob_st_clsMark2.ucs2 = ies->mobile_station_classmark2->ucs2;
     emm_context->_mob_st_clsMark2.solsa = ies->mobile_station_classmark2->solsa;
-    emm_context->_mob_st_clsMark2.cmsp  = ies->mobile_station_classmark2->cmsp;
-    emm_context->_mob_st_clsMark2.a53   = ies->mobile_station_classmark2->a53;
-    emm_context->_mob_st_clsMark2.a52   = ies->mobile_station_classmark2->a52;
-    emm_ctx_set_attribute_present(
-        emm_context, EMM_CTXT_MEMBER_MOB_STATION_CLSMARK2);
+    emm_context->_mob_st_clsMark2.cmsp = ies->mobile_station_classmark2->cmsp;
+    emm_context->_mob_st_clsMark2.a53 = ies->mobile_station_classmark2->a53;
+    emm_context->_mob_st_clsMark2.a52 = ies->mobile_station_classmark2->a52;
+    emm_ctx_set_attribute_present(emm_context,
+                                  EMM_CTXT_MEMBER_MOB_STATION_CLSMARK2);
   }
 
   /*
@@ -420,8 +416,8 @@ status_code_e emm_proc_tracking_area_update_request(
      */
     // Handle TAU
     if (ue_mm_context->num_reg_sub > 0) {
-      if (verify_service_area_restriction(
-              tai.tac, ue_mm_context->reg_sub, ue_mm_context->num_reg_sub) !=
+      if (verify_service_area_restriction(tai.tac, ue_mm_context->reg_sub,
+                                          ue_mm_context->num_reg_sub) !=
           RETURNok) {
         OAILOG_ERROR_UE(
             LOG_MME_APP, ue_mm_context->emm_context._imsi64,
@@ -431,38 +427,35 @@ status_code_e emm_proc_tracking_area_update_request(
             tai.tac, ue_mm_context->mme_ue_s1ap_id,
             EMM_CAUSE_NO_SUITABLE_CELLS);
         free_emm_tau_request_ies(&ies);
-        if (emm_tracking_area_update_reject(
-                ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_NO_SUITABLE_CELLS) !=
+        if (emm_tracking_area_update_reject(ue_mm_context->mme_ue_s1ap_id,
+                                            EMM_CAUSE_NO_SUITABLE_CELLS) !=
             RETURNok) {
-          OAILOG_ERROR_UE(
-              LOG_MME_APP, ue_mm_context->emm_context._imsi64,
-              "Sending of tau reject message failed for "
-              "ue_id " MME_UE_S1AP_ID_FMT "\n",
-              ue_mm_context->mme_ue_s1ap_id);
+          OAILOG_ERROR_UE(LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+                          "Sending of tau reject message failed for "
+                          "ue_id " MME_UE_S1AP_ID_FMT "\n",
+                          ue_mm_context->mme_ue_s1ap_id);
           OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
         }
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
       }
     }
-    if (verify_tau_tai(
-            ue_mm_context->emm_context._imsi64,
-            ue_mm_context->emm_context._guti, tai,
-            &ue_mm_context->emm_context._tai_list) != RETURNok) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_mm_context->emm_context._imsi64,
-          "tac = %d not configured, sending tau_reject "
-          "message "
-          "for ue_id " MME_UE_S1AP_ID_FMT " with emm cause = %d\n",
-          tai.tac, ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_TA_NOT_ALLOWED);
+    if (verify_tau_tai(ue_mm_context->emm_context._imsi64,
+                       ue_mm_context->emm_context._guti, tai,
+                       &ue_mm_context->emm_context._tai_list) != RETURNok) {
+      OAILOG_ERROR_UE(LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+                      "tac = %d not configured, sending tau_reject "
+                      "message "
+                      "for ue_id " MME_UE_S1AP_ID_FMT " with emm cause = %d\n",
+                      tai.tac, ue_mm_context->mme_ue_s1ap_id,
+                      EMM_CAUSE_TA_NOT_ALLOWED);
       free_emm_tau_request_ies(&ies);
-      if (emm_tracking_area_update_reject(
-              ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_TA_NOT_ALLOWED) !=
+      if (emm_tracking_area_update_reject(ue_mm_context->mme_ue_s1ap_id,
+                                          EMM_CAUSE_TA_NOT_ALLOWED) !=
           RETURNok) {
-        OAILOG_ERROR_UE(
-            LOG_MME_APP, ue_mm_context->emm_context._imsi64,
-            "Sending of tau reject message failed for "
-            "ue_id " MME_UE_S1AP_ID_FMT "\n",
-            ue_mm_context->mme_ue_s1ap_id);
+        OAILOG_ERROR_UE(LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+                        "Sending of tau reject message failed for "
+                        "ue_id " MME_UE_S1AP_ID_FMT "\n",
+                        ue_mm_context->mme_ue_s1ap_id);
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       }
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -473,11 +466,10 @@ status_code_e emm_proc_tracking_area_update_request(
       if (tau_proc) {
         // Store the received voice domain pref & UE usage setting IE
         if (ies->voicedomainpreferenceandueusagesetting) {
-          memcpy(
-              &emm_context->volte_params
-                   .voice_domain_preference_and_ue_usage_setting,
-              ies->voicedomainpreferenceandueusagesetting,
-              sizeof(voice_domain_preference_and_ue_usage_setting_t));
+          memcpy(&emm_context->volte_params
+                      .voice_domain_preference_and_ue_usage_setting,
+                 ies->voicedomainpreferenceandueusagesetting,
+                 sizeof(voice_domain_preference_and_ue_usage_setting_t));
         }
         // Send eps_bearer_context_status in TAU Accept if received in TAU Req
         if (tau_proc->ies->eps_bearer_context_status) {
@@ -512,11 +504,10 @@ status_code_e emm_proc_tracking_area_update_request(
                 ue_id);
           }
         }
-        OAILOG_INFO_UE(
-            LOG_NAS_EMM, ue_mm_context->emm_context._imsi64,
-            "EMM-PROC- Sending Tracking Area Update Accept. "
-            "ue_id=" MME_UE_S1AP_ID_FMT ", active flag=%d)\n",
-            ue_id, ies->eps_update_type.active_flag);
+        OAILOG_INFO_UE(LOG_NAS_EMM, ue_mm_context->emm_context._imsi64,
+                       "EMM-PROC- Sending Tracking Area Update Accept. "
+                       "ue_id=" MME_UE_S1AP_ID_FMT ", active flag=%d)\n",
+                       ue_id, ies->eps_update_type.active_flag);
 
         rc = emm_tracking_area_update_accept(tau_proc);
         if (rc != RETURNok) {
@@ -527,15 +518,14 @@ status_code_e emm_proc_tracking_area_update_request(
               ue_id);
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
         }
-        increment_counter(
-            "tracking_area_update_req", 1, 1, "result", "success");
+        increment_counter("tracking_area_update_req", 1, 1, "result",
+                          "success");
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
       } else {
-        OAILOG_ERROR(
-            LOG_NAS_EMM,
-            "EMM-PROC- Failed to create EMM specific proc"
-            "for TAU for ue_id= " MME_UE_S1AP_ID_FMT ")\n",
-            ue_id);
+        OAILOG_ERROR(LOG_NAS_EMM,
+                     "EMM-PROC- Failed to create EMM specific proc"
+                     "for TAU for ue_id= " MME_UE_S1AP_ID_FMT ")\n",
+                     ue_id);
       }
     }
   }
@@ -558,8 +548,8 @@ status_code_e emm_proc_tracking_area_update_request(
  **                  Others:    _emm_data                                  **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_proc_tracking_area_update_reject(
-    const mme_ue_s1ap_id_t ue_id, const int emm_cause) {
+status_code_e emm_proc_tracking_area_update_reject(const mme_ue_s1ap_id_t ue_id,
+                                                   const int emm_cause) {
   int rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   rc = emm_tracking_area_update_reject(ue_id, emm_cause);
@@ -596,13 +586,13 @@ described for case a above.
 @param [in]args unused
 */
 //------------------------------------------------------------------------------
-status_code_e mme_app_handle_tau_t3450_expiry(
-    zloop_t* loop, int timer_id, void* args) {
+status_code_e mme_app_handle_tau_t3450_expiry(zloop_t* loop, int timer_id,
+                                              void* args) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
-    OAILOG_WARNING(
-        LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_WARNING(LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n",
+                   timer_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
@@ -653,12 +643,12 @@ status_code_e mme_app_handle_tau_t3450_expiry(
       /*
        * Abort the security mode control procedure
        */
-      emm_sap_t emm_sap                       = {0};
-      emm_sap.primitive                       = EMMREG_ATTACH_ABORT;
-      emm_sap.u.emm_reg.ue_id                 = tau_proc->ue_id;
-      emm_sap.u.emm_reg.ctx                   = emm_context;
-      emm_sap.u.emm_reg.notify                = true;
-      emm_sap.u.emm_reg.free_proc             = true;
+      emm_sap_t emm_sap = {0};
+      emm_sap.primitive = EMMREG_ATTACH_ABORT;
+      emm_sap.u.emm_reg.ue_id = tau_proc->ue_id;
+      emm_sap.u.emm_reg.ctx = emm_context;
+      emm_sap.u.emm_reg.notify = true;
+      emm_sap.u.emm_reg.free_proc = true;
       emm_sap.u.emm_reg.u.attach.is_emergency = false;
       emm_sap_send(&emm_sap);
     }
@@ -688,15 +678,15 @@ static int _emm_tracking_area_update_security (emm_context_t * emm_context)
      @returns status of operation
 */
 //------------------------------------------------------------------------------
-static int emm_tracking_area_update_reject(
-    const mme_ue_s1ap_id_t ue_id, const int emm_cause)
+static int emm_tracking_area_update_reject(const mme_ue_s1ap_id_t ue_id,
+                                           const int emm_cause)
 
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc                         = RETURNok;
-  emm_sap_t emm_sap              = {0};
+  int rc = RETURNok;
+  emm_sap_t emm_sap = {0};
   ue_mm_context_t* ue_mm_context = NULL;
-  emm_context_t* emm_context     = NULL;
+  emm_context_t* emm_context = NULL;
 
   OAILOG_WARNING(
       LOG_NAS_EMM,
@@ -707,13 +697,13 @@ static int emm_tracking_area_update_reject(
    * Notify EMM-AS SAP that Tracking Area Update Reject message has to be sent
    * onto the network
    */
-  emm_sap.primitive                        = EMMAS_ESTABLISH_REJ;
-  emm_sap.u.emm_as.u.establish.ue_id       = ue_id;
+  emm_sap.primitive = EMMAS_ESTABLISH_REJ;
+  emm_sap.u.emm_as.u.establish.ue_id = ue_id;
   emm_sap.u.emm_as.u.establish.eps_id.guti = NULL;
 
   emm_sap.u.emm_as.u.establish.emm_cause = emm_cause;
-  emm_sap.u.emm_as.u.establish.nas_info  = EMM_AS_NAS_INFO_TAU;
-  emm_sap.u.emm_as.u.establish.nas_msg   = NULL;
+  emm_sap.u.emm_as.u.establish.nas_info = EMM_AS_NAS_INFO_TAU;
+  emm_sap.u.emm_as.u.establish.nas_msg = NULL;
   /*
    * Setup EPS NAS security data
    */
@@ -723,12 +713,11 @@ static int emm_tracking_area_update_reject(
   }
 
   if (emm_context) {
-    emm_as_set_security_data(
-        &emm_sap.u.emm_as.u.establish.sctx, &emm_context->_security, false,
-        false);
+    emm_as_set_security_data(&emm_sap.u.emm_as.u.establish.sctx,
+                             &emm_context->_security, false, false);
   } else {
-    emm_as_set_security_data(
-        &emm_sap.u.emm_as.u.establish.sctx, NULL, false, false);
+    emm_as_set_security_data(&emm_sap.u.emm_as.u.establish.sctx, NULL, false,
+                             false);
   }
   rc = emm_sap_send(&emm_sap);
   increment_counter("tracking_area_update", 1, 1, "action", "tau_reject_sent");
@@ -738,8 +727,8 @@ static int emm_tracking_area_update_reject(
 
 //------------------------------------------------------------------------------
 
-static int build_csfb_parameters_combined_tau(
-    emm_context_t* emm_ctx, emm_as_establish_t* establish) {
+static int build_csfb_parameters_combined_tau(emm_context_t* emm_ctx,
+                                              emm_as_establish_t* establish) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   if ((emm_ctx->tau_updt_type == EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING) ||
@@ -765,7 +754,7 @@ static int build_csfb_parameters_combined_tau(
       establish->eps_update_result = EPS_UPDATE_RESULT_COMBINED_TA_LA_UPDATED;
     } else if (emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) {
       establish->combined_tau_emm_cause = &emm_ctx->emm_cause;
-      establish->eps_update_result      = EPS_UPDATE_RESULT_TA_UPDATED;
+      establish->eps_update_result = EPS_UPDATE_RESULT_TA_UPDATED;
     }
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
@@ -782,22 +771,21 @@ static int build_csfb_parameters_combined_tau(
 //------------------------------------------------------------------------------
 static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc                         = RETURNerror;
-  emm_sap_t emm_sap              = {0};
+  int rc = RETURNerror;
+  emm_sap_t emm_sap = {0};
   ue_mm_context_t* ue_mm_context = NULL;
-  emm_context_t* emm_context     = NULL;
-  uint8_t eps_update_result      = 0;
+  emm_context_t* emm_context = NULL;
+  uint8_t eps_update_result = 0;
 
   if ((tau_proc) && (tau_proc->ies)) {
     ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(tau_proc->ue_id);
     if (ue_mm_context) {
       emm_context = &ue_mm_context->emm_context;
     } else {
-      OAILOG_ERROR(
-          LOG_NAS_EMM,
-          "Failed to get emm context for ue_id"
-          "" MME_UE_S1AP_ID_FMT " \n",
-          tau_proc->ue_id);
+      OAILOG_ERROR(LOG_NAS_EMM,
+                   "Failed to get emm context for ue_id"
+                   "" MME_UE_S1AP_ID_FMT " \n",
+                   tau_proc->ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
 
@@ -819,16 +807,15 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
       /* If active flag is set to true in TAU request then re-establish bearer
        * also for the UE while sending TAU Accept message
        */
-      emm_sap.primitive                  = EMMAS_ESTABLISH_CNF;
+      emm_sap.primitive = EMMAS_ESTABLISH_CNF;
       emm_sap.u.emm_as.u.establish.ue_id = tau_proc->ue_id;
 
       emm_sap.u.emm_as.u.establish.eps_id.guti = &emm_context->_guti;
-      emm_sap.u.emm_as.u.establish.new_guti    = NULL;
+      emm_sap.u.emm_as.u.establish.new_guti = NULL;
 
       emm_sap.u.emm_as.u.establish.eps_update_result = eps_update_result;
-      memcpy(
-          &emm_sap.u.emm_as.u.establish.tai_list, &emm_context->_tai_list,
-          sizeof(tai_list_t));
+      memcpy(&emm_sap.u.emm_as.u.establish.tai_list, &emm_context->_tai_list,
+             sizeof(tai_list_t));
       emm_sap.u.emm_as.u.establish.nas_info = EMM_AS_NAS_INFO_TAU;
 
       // Send eps_bearer_context_status in TAU Accept if received in TAU Req
@@ -839,28 +826,28 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
       }
       // TODO Reminder
       emm_sap.u.emm_as.u.establish.location_area_identification = NULL;
-      emm_sap.u.emm_as.u.establish.combined_tau_emm_cause       = NULL;
+      emm_sap.u.emm_as.u.establish.combined_tau_emm_cause = NULL;
 
       emm_sap.u.emm_as.u.establish.t3423 = NULL;
       emm_sap.u.emm_as.u.establish.t3412 = NULL;
       emm_sap.u.emm_as.u.establish.t3402 = NULL;
       // TODO Reminder
-      emm_sap.u.emm_as.u.establish.equivalent_plmns      = NULL;
+      emm_sap.u.emm_as.u.establish.equivalent_plmns = NULL;
       emm_sap.u.emm_as.u.establish.emergency_number_list = NULL;
 
       emm_sap.u.emm_as.u.establish.eps_network_feature_support =
-          (eps_network_feature_support_t*) &_emm_data.conf
+          (eps_network_feature_support_t*)&_emm_data.conf
               .eps_network_feature_support;
       emm_sap.u.emm_as.u.establish.additional_update_result = NULL;
-      emm_sap.u.emm_as.u.establish.t3412_extended           = NULL;
+      emm_sap.u.emm_as.u.establish.t3412_extended = NULL;
       emm_sap.u.emm_as.u.establish.nas_msg =
           NULL;  // No ESM container message in TAU Accept message
 
       // If CSFB is enabled, encode LAI,Mobile Id and Additional Update Type
       if ((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
           (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) {
-        OAILOG_INFO(
-            LOG_NAS_EMM, "Encoding _build_csfb_parameters_combined_tau\n");
+        OAILOG_INFO(LOG_NAS_EMM,
+                    "Encoding _build_csfb_parameters_combined_tau\n");
         if (build_csfb_parameters_combined_tau(
                 emm_context, &emm_sap.u.emm_as.u.establish) == RETURNerror) {
           OAILOG_ERROR(
@@ -874,27 +861,22 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
        * Setup EPS NAS security data
        */
 
-      emm_as_set_security_data(
-          &emm_sap.u.emm_as.u.establish.sctx, &emm_context->_security, false,
-          true);
-      OAILOG_INFO(
-          LOG_NAS_EMM, "EMM-PROC  - encryption = 0x%X\n",
-          emm_sap.u.emm_as.u.establish.encryption);
-      OAILOG_INFO(
-          LOG_NAS_EMM, "EMM-PROC  - integrity  = 0x%X\n",
-          emm_sap.u.emm_as.u.establish.integrity);
+      emm_as_set_security_data(&emm_sap.u.emm_as.u.establish.sctx,
+                               &emm_context->_security, false, true);
+      OAILOG_INFO(LOG_NAS_EMM, "EMM-PROC  - encryption = 0x%X\n",
+                  emm_sap.u.emm_as.u.establish.encryption);
+      OAILOG_INFO(LOG_NAS_EMM, "EMM-PROC  - integrity  = 0x%X\n",
+                  emm_sap.u.emm_as.u.establish.integrity);
       emm_sap.u.emm_as.u.establish.encryption =
           emm_context->_security.selected_algorithms.encryption;
       emm_sap.u.emm_as.u.establish.integrity =
           emm_context->_security.selected_algorithms.integrity;
-      OAILOG_INFO(
-          LOG_NAS_EMM, "EMM-PROC  - encryption = 0x%X (0x%X)\n",
-          emm_sap.u.emm_as.u.establish.encryption,
-          emm_context->_security.selected_algorithms.encryption);
-      OAILOG_INFO(
-          LOG_NAS_EMM, "EMM-PROC  - integrity  = 0x%X (0x%X)\n",
-          emm_sap.u.emm_as.u.establish.integrity,
-          emm_context->_security.selected_algorithms.integrity);
+      OAILOG_INFO(LOG_NAS_EMM, "EMM-PROC  - encryption = 0x%X (0x%X)\n",
+                  emm_sap.u.emm_as.u.establish.encryption,
+                  emm_context->_security.selected_algorithms.encryption);
+      OAILOG_INFO(LOG_NAS_EMM, "EMM-PROC  - integrity  = 0x%X (0x%X)\n",
+                  emm_sap.u.emm_as.u.establish.integrity,
+                  emm_context->_security.selected_algorithms.integrity);
 
       rc = emm_sap_send(&emm_sap);
 
@@ -906,12 +888,10 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
            * Re-start T3450 timer
            */
           nas_stop_T3450(tau_proc->ue_id, &tau_proc->T3450);
-          nas_start_T3450(
-              tau_proc->ue_id, &tau_proc->T3450,
-              tau_proc->emm_spec_proc.emm_proc.base_proc.time_out);
-          increment_counter(
-              "tracking_area_update", 1, 1, "action",
-              " initial_ictr_tau_accept_sent");
+          nas_start_T3450(tau_proc->ue_id, &tau_proc->T3450,
+                          tau_proc->emm_spec_proc.emm_proc.base_proc.time_out);
+          increment_counter("tracking_area_update", 1, 1, "action",
+                            " initial_ictr_tau_accept_sent");
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
         }
       }
@@ -930,15 +910,14 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
        * Setup NAS information message to transfer
        */
       emm_as->nas_info = EMM_AS_NAS_DATA_TAU;
-      emm_as->nas_msg  = NULL;  // No ESM container
+      emm_as->nas_msg = NULL;  // No ESM container
       /*
        * Set the UE identifier
        */
-      emm_as->ue_id                             = tau_proc->ue_id;
+      emm_as->ue_id = tau_proc->ue_id;
       emm_sap.u.emm_as.u.data.eps_update_result = eps_update_result;
-      memcpy(
-          &emm_sap.u.emm_as.u.data.tai_list, &emm_context->_tai_list,
-          sizeof(tai_list_t));
+      memcpy(&emm_sap.u.emm_as.u.data.tai_list, &emm_context->_tai_list,
+             sizeof(tai_list_t));
       // Send eps_bearer_context_status in TAU Accept if received in TAU Req
       if (tau_proc->ies->eps_bearer_context_status &&
           ue_mm_context->tau_accept_eps_ber_cntx_status) {
@@ -947,7 +926,7 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
       }
 
       emm_sap.u.emm_as.u.data.eps_network_feature_support =
-          (eps_network_feature_support_t*) &_emm_data.conf
+          (eps_network_feature_support_t*)&_emm_data.conf
               .eps_network_feature_support;
 
       /*If CSFB is enabled,store LAI,Mobile Identity and
@@ -969,21 +948,21 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
           emm_as->sgs_loc_updt_status = SUCCESS;
         } else if (emm_context->csfbparams.sgs_loc_updt_status == FAILURE) {
           emm_as->sgs_loc_updt_status = FAILURE;
-          emm_as->sgs_reject_cause    = (uint32_t*) &emm_context->emm_cause;
+          emm_as->sgs_reject_cause = (uint32_t*)&emm_context->emm_cause;
         }
       }
       /*
        * Setup EPS NAS security data
        */
-      emm_as_set_security_data(
-          &emm_as->sctx, &emm_context->_security, false, true);
+      emm_as_set_security_data(&emm_as->sctx, &emm_context->_security, false,
+                               true);
       /*
        * Notify EMM-AS SAP that TAU Accept message has to be sent to the network
        */
       emm_sap.primitive = EMMAS_DATA_REQ;
-      rc                = emm_sap_send(&emm_sap);
-      increment_counter(
-          "tracking_area_update", 1, 1, "action", "tau_accept_sent");
+      rc = emm_sap_send(&emm_sap);
+      increment_counter("tracking_area_update", 1, 1, "action",
+                        "tau_accept_sent");
 
       // Start T3450 timer if new TMSI is allocated
       if (emm_context->csfbparams.newTmsiAllocated) {
@@ -992,23 +971,20 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
            * Re-start T3450 timer
            */
           nas_stop_T3450(tau_proc->ue_id, &tau_proc->T3450);
-          nas_start_T3450(
-              tau_proc->ue_id, &tau_proc->T3450,
-              tau_proc->emm_spec_proc.emm_proc.base_proc.time_out);
+          nas_start_T3450(tau_proc->ue_id, &tau_proc->T3450,
+                          tau_proc->emm_spec_proc.emm_proc.base_proc.time_out);
         } else {
           /*
            * Start T3450 timer
            */
-          nas_start_T3450(
-              tau_proc->ue_id, &tau_proc->T3450,
-              tau_proc->emm_spec_proc.emm_proc.base_proc.time_out);
+          nas_start_T3450(tau_proc->ue_id, &tau_proc->T3450,
+                          tau_proc->emm_spec_proc.emm_proc.base_proc.time_out);
         }
 
-        OAILOG_INFO(
-            LOG_NAS_EMM,
-            "EMM-PROC  - Timer T3450 %ld expires in %u"
-            " seconds (TAU) for ue id " MME_UE_S1AP_ID_FMT "\n",
-            tau_proc->T3450.id, tau_proc->T3450.msec, tau_proc->ue_id);
+        OAILOG_INFO(LOG_NAS_EMM,
+                    "EMM-PROC  - Timer T3450 %ld expires in %u"
+                    " seconds (TAU) for ue id " MME_UE_S1AP_ID_FMT "\n",
+                    tau_proc->T3450.id, tau_proc->T3450.msec, tau_proc->ue_id);
       } else {
         nas_delete_tau_procedure(emm_context);
       }
@@ -1020,8 +996,8 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
 }
 
 //------------------------------------------------------------------------------
-static int emm_tracking_area_update_abort(
-    struct emm_context_s* emm_context, struct nas_base_proc_s* base_proc) {
+static int emm_tracking_area_update_abort(struct emm_context_s* emm_context,
+                                          struct nas_base_proc_s* base_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
@@ -1047,10 +1023,10 @@ static int emm_tracking_area_update_abort(
        */
       emm_sap_t emm_sap = {0};
 
-      emm_sap.primitive       = EMMREG_ATTACH_REJ;
+      emm_sap.primitive = EMMREG_ATTACH_REJ;
       emm_sap.u.emm_reg.ue_id = ue_id;
-      emm_sap.u.emm_reg.ctx   = emm_context;
-      rc                      = emm_sap_send(&emm_sap);
+      emm_sap.u.emm_reg.ctx = emm_context;
+      rc = emm_sap_send(&emm_sap);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -1059,45 +1035,45 @@ static int emm_tracking_area_update_abort(
 //------------------------------------------------------------------------------
 void free_emm_tau_request_ies(emm_tau_request_ies_t** const ies) {
   if ((*ies)->additional_guti) {
-    free_wrapper((void**) &((*ies)->additional_guti));
+    free_wrapper((void**)&((*ies)->additional_guti));
   }
   if ((*ies)->ue_network_capability) {
-    free_wrapper((void**) &((*ies)->ue_network_capability));
+    free_wrapper((void**)&((*ies)->ue_network_capability));
   }
   if ((*ies)->last_visited_registered_tai) {
-    free_wrapper((void**) &((*ies)->last_visited_registered_tai));
+    free_wrapper((void**)&((*ies)->last_visited_registered_tai));
   }
   if ((*ies)->last_visited_registered_tai) {
-    free_wrapper((void**) &((*ies)->last_visited_registered_tai));
+    free_wrapper((void**)&((*ies)->last_visited_registered_tai));
   }
   if ((*ies)->drx_parameter) {
-    free_wrapper((void**) &((*ies)->drx_parameter));
+    free_wrapper((void**)&((*ies)->drx_parameter));
   }
   if ((*ies)->eps_bearer_context_status) {
-    free_wrapper((void**) &((*ies)->eps_bearer_context_status));
+    free_wrapper((void**)&((*ies)->eps_bearer_context_status));
   }
   if ((*ies)->ms_network_capability) {
-    free_wrapper((void**) &((*ies)->ms_network_capability));
+    free_wrapper((void**)&((*ies)->ms_network_capability));
   }
   if ((*ies)->tmsi_status) {
-    free_wrapper((void**) &((*ies)->tmsi_status));
+    free_wrapper((void**)&((*ies)->tmsi_status));
   }
   if ((*ies)->mobile_station_classmark2) {
-    free_wrapper((void**) &((*ies)->mobile_station_classmark2));
+    free_wrapper((void**)&((*ies)->mobile_station_classmark2));
   }
   if ((*ies)->mobile_station_classmark3) {
-    free_wrapper((void**) &((*ies)->mobile_station_classmark3));
+    free_wrapper((void**)&((*ies)->mobile_station_classmark3));
   }
   if ((*ies)->supported_codecs) {
-    free_wrapper((void**) &((*ies)->supported_codecs));
+    free_wrapper((void**)&((*ies)->supported_codecs));
   }
   if ((*ies)->additional_updatetype) {
-    free_wrapper((void**) &((*ies)->additional_updatetype));
+    free_wrapper((void**)&((*ies)->additional_updatetype));
   }
   if ((*ies)->old_guti_type) {
-    free_wrapper((void**) &((*ies)->old_guti_type));
+    free_wrapper((void**)&((*ies)->old_guti_type));
   }
-  free_wrapper((void**) ies);
+  free_wrapper((void**)ies);
 }
 
 /****************************************************************************
@@ -1121,13 +1097,13 @@ void free_emm_tau_request_ies(emm_tau_request_ies_t** const ies) {
  **                                                                        **
  ***************************************************************************/
 status_code_e emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id) {
-  emm_context_t* emm_ctx               = NULL;
+  emm_context_t* emm_ctx = NULL;
   struct ue_mm_context_s* ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMM-PROC  - EPS TAU complete (ue_id=" MME_UE_S1AP_ID_FMT ")\n", ue_id);
+  OAILOG_INFO(LOG_NAS_EMM,
+              "EMM-PROC  - EPS TAU complete (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+              ue_id);
   REQUIREMENT_3GPP_24_301(R10_5_5_1_2_4__20);
   /*
    * Release retransmission timer parameters
@@ -1146,10 +1122,10 @@ status_code_e emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id) {
      */
     nas_emm_tau_proc_t* tau_proc = get_nas_specific_procedure_tau(emm_ctx);
     if (tau_proc) {
-      OAILOG_INFO(
-          LOG_NAS_EMM,
-          "EMM-PROC  - Stop timer T3450 for ue id " MME_UE_S1AP_ID_FMT "\n",
-          ue_id);
+      OAILOG_INFO(LOG_NAS_EMM,
+                  "EMM-PROC  - Stop timer T3450 for ue id " MME_UE_S1AP_ID_FMT
+                  "\n",
+                  ue_id);
       if (emm_ctx->csfbparams.newTmsiAllocated) {
         nas_delete_tau_procedure(emm_ctx);
       }
@@ -1160,15 +1136,14 @@ status_code_e emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id) {
           PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
       ue_context_p->ue_context_rel_cause = S1AP_NAS_NORMAL_RELEASE;
       // Notify S1AP to send UE Context Release Command to eNB.
-      mme_app_itti_ue_context_release(
-          ue_context_p, ue_context_p->ue_context_rel_cause);
+      mme_app_itti_ue_context_release(ue_context_p,
+                                      ue_context_p->ue_context_rel_cause);
     }
   } else {
-    OAILOG_ERROR(
-        LOG_NAS_EMM,
-        "Failed to find emm context for ue_id received in TAU "
-        "Complete" MME_UE_S1AP_ID_FMT "\n",
-        ue_id);
+    OAILOG_ERROR(LOG_NAS_EMM,
+                 "Failed to find emm context for ue_id received in TAU "
+                 "Complete" MME_UE_S1AP_ID_FMT "\n",
+                 ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
@@ -1181,7 +1156,7 @@ static nas_emm_tau_proc_t* emm_proc_create_procedure_tau(
   nas_emm_tau_proc_t* tau_proc =
       nas_new_tau_procedure(&ue_mm_context->emm_context);
   if ((tau_proc)) {
-    tau_proc->ies   = ies;
+    tau_proc->ies = ies;
     tau_proc->ue_id = ue_mm_context->mme_ue_s1ap_id;
     tau_proc->emm_spec_proc.emm_proc.base_proc.abort =
         emm_tracking_area_update_abort;
@@ -1192,10 +1167,10 @@ static nas_emm_tau_proc_t* emm_proc_create_procedure_tau(
     tau_proc->emm_spec_proc.emm_proc.base_proc.fail_out = NULL;
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, tau_proc);
   }
-  OAILOG_ERROR_UE(
-      LOG_NAS_EMM, ue_mm_context->emm_context._imsi64,
-      "Failed to create tau_proc for ue_id " MME_UE_S1AP_ID_FMT "\n",
-      ue_mm_context->mme_ue_s1ap_id);
+  OAILOG_ERROR_UE(LOG_NAS_EMM, ue_mm_context->emm_context._imsi64,
+                  "Failed to create tau_proc for ue_id " MME_UE_S1AP_ID_FMT
+                  "\n",
+                  ue_mm_context->mme_ue_s1ap_id);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, NULL);
 }
 
@@ -1215,24 +1190,23 @@ static int send_tau_accept_and_check_for_neaf_flag(
     nas_emm_tau_proc_t* tau_proc, ue_mm_context_t* ue_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   if ((emm_proc_tracking_area_update_accept(tau_proc)) == RETURNerror) {
-    OAILOG_ERROR(
-        LOG_NAS_EMM,
-        "EMMCN-SAP  - "
-        "Failed to send TAU accept for UE id " MME_UE_S1AP_ID_FMT " \n",
-        ue_context->mme_ue_s1ap_id);
+    OAILOG_ERROR(LOG_NAS_EMM,
+                 "EMMCN-SAP  - "
+                 "Failed to send TAU accept for UE id " MME_UE_S1AP_ID_FMT
+                 " \n",
+                 ue_context->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
   if (mme_ue_context_get_ue_sgs_neaf(ue_context->mme_ue_s1ap_id)) {
-    OAILOG_INFO(
-        LOG_MME_APP,
-        "Sending UE Activity Ind to MSC for ue-id: " MME_UE_S1AP_ID_FMT "\n",
-        ue_context->mme_ue_s1ap_id);
+    OAILOG_INFO(LOG_MME_APP,
+                "Sending UE Activity Ind to MSC for ue-id: " MME_UE_S1AP_ID_FMT
+                "\n",
+                ue_context->mme_ue_s1ap_id);
     /* neaf flag is true*/
     /* send the SGSAP Ue activity indication to MSC/VLR */
     char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
-    IMSI64_TO_STRING(
-        ue_context->emm_context._imsi64, imsi_str,
-        ue_context->emm_context._imsi.length);
+    IMSI64_TO_STRING(ue_context->emm_context._imsi64, imsi_str,
+                     ue_context->emm_context._imsi.length);
     mme_app_send_itti_sgsap_ue_activity_ind(imsi_str, strlen(imsi_str));
     mme_ue_context_update_ue_sgs_neaf(ue_context->mme_ue_s1ap_id, false);
   }
@@ -1257,11 +1231,10 @@ status_code_e send_tau_accept_with_eps_bearer_ctx_status(
   nas_emm_tau_proc_t* tau_proc =
       get_nas_specific_procedure_tau(&ue_context->emm_context);
   if (!tau_proc) {
-    OAILOG_ERROR_UE(
-        LOG_NAS_EMM, ue_context->emm_context._imsi64,
-        "tau_proc is NULL,failed to send TAU accept for UE "
-        "id " MME_UE_S1AP_ID_FMT " \n",
-        ue_context->mme_ue_s1ap_id);
+    OAILOG_ERROR_UE(LOG_NAS_EMM, ue_context->emm_context._imsi64,
+                    "tau_proc is NULL,failed to send TAU accept for UE "
+                    "id " MME_UE_S1AP_ID_FMT " \n",
+                    ue_context->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
   if (!ue_context->tau_accept_eps_ber_cntx_status) {
@@ -1284,11 +1257,10 @@ status_code_e send_tau_accept_with_eps_bearer_ctx_status(
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
-  OAILOG_INFO_UE(
-      LOG_NAS_EMM, ue_context->emm_context._imsi64,
-      "Sent TAU with tau_accept_eps_ber_cntx_status for UE "
-      "id " MME_UE_S1AP_ID_FMT " \n",
-      ue_context->mme_ue_s1ap_id);
+  OAILOG_INFO_UE(LOG_NAS_EMM, ue_context->emm_context._imsi64,
+                 "Sent TAU with tau_accept_eps_ber_cntx_status for UE "
+                 "id " MME_UE_S1AP_ID_FMT " \n",
+                 ue_context->mme_ue_s1ap_id);
 
   // Reset tau_accept_eps_ber_cntx_status stored in ue_context
   ue_context->tau_accept_eps_ber_cntx_status = 0;

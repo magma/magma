@@ -50,8 +50,8 @@
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
 
-int emm_msg_encode_header(
-    const emm_msg_header_t* header, uint8_t* buffer, uint32_t len);
+int emm_msg_encode_header(const emm_msg_header_t* header, uint8_t* buffer,
+                          uint32_t len);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -86,19 +86,17 @@ int emm_msg_decode(EMM_msg* msg, uint8_t* buffer, uint32_t len) {
   header_result = emm_msg_decode_header(&msg->header, buffer, len);
 
   if (header_result < 0) {
-    OAILOG_ERROR(
-        LOG_NAS_EMM,
-        "EMM-MSG   - Failed to decode EMM message header "
-        "(%d)\n",
-        header_result);
+    OAILOG_ERROR(LOG_NAS_EMM,
+                 "EMM-MSG   - Failed to decode EMM message header "
+                 "(%d)\n",
+                 header_result);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, header_result);
   }
 
   buffer += header_result;
   len -= header_result;
-  OAILOG_DEBUG(
-      LOG_NAS_EMM, "EMM-MSG   - Message Type 0x%02x\n",
-      msg->header.message_type);
+  OAILOG_DEBUG(LOG_NAS_EMM, "EMM-MSG   - Message Type 0x%02x\n",
+               msg->header.message_type);
 
   switch (msg->header.message_type) {
     case EMM_INFORMATION:
@@ -112,8 +110,8 @@ int emm_msg_decode(EMM_msg* msg, uint8_t* buffer, uint32_t len) {
       break;
 
     case AUTHENTICATION_REJECT:
-      decode_result = decode_authentication_reject(
-          &msg->authentication_reject, buffer, len);
+      decode_result = decode_authentication_reject(&msg->authentication_reject,
+                                                   buffer, len);
       break;
 
     case AUTHENTICATION_FAILURE:
@@ -176,9 +174,8 @@ int emm_msg_decode(EMM_msg* msg, uint8_t* buffer, uint32_t len) {
           &msg->security_mode_complete, buffer, len);
       // IMEISV is 16 digits. Extra char for null termination.
       char imeisv[MAX_IMEISV_SIZE + 1];
-      IMEISV_MOBID_TO_STRING(
-          &msg->security_mode_complete.imeisv.imeisv, imeisv,
-          MAX_IMEISV_SIZE + 1);
+      IMEISV_MOBID_TO_STRING(&msg->security_mode_complete.imeisv.imeisv, imeisv,
+                             MAX_IMEISV_SIZE + 1);
       OAILOG_INFO(LOG_NAS_EMM, "EMM-MSG   - IMEISV: %s", imeisv);
       break;
 
@@ -221,8 +218,8 @@ int emm_msg_decode(EMM_msg* msg, uint8_t* buffer, uint32_t len) {
       break;
 
     case SECURITY_MODE_COMMAND:
-      decode_result = decode_security_mode_command(
-          &msg->security_mode_command, buffer, len);
+      decode_result = decode_security_mode_command(&msg->security_mode_command,
+                                                   buffer, len);
       break;
 
     case DOWNLINK_NAS_TRANSPORT:
@@ -241,9 +238,8 @@ int emm_msg_decode(EMM_msg* msg, uint8_t* buffer, uint32_t len) {
       break;
 
     default:
-      OAILOG_ERROR(
-          LOG_NAS_EMM, "EMM-MSG   - Unexpected message type: 0x%x\n",
-          msg->header.message_type);
+      OAILOG_ERROR(LOG_NAS_EMM, "EMM-MSG   - Unexpected message type: 0x%x\n",
+                   msg->header.message_type);
       decode_result = TLV_WRONG_MESSAGE_TYPE;
       /*
        * TODO: Handle not standard layer 3 messages: SERVICE_REQUEST
@@ -251,11 +247,10 @@ int emm_msg_decode(EMM_msg* msg, uint8_t* buffer, uint32_t len) {
   }
 
   if (decode_result < 0) {
-    OAILOG_ERROR(
-        LOG_NAS_EMM,
-        "EMM-MSG   - Failed to decode L3 EMM message 0x%x "
-        "(%d)\n",
-        msg->header.message_type, decode_result);
+    OAILOG_ERROR(LOG_NAS_EMM,
+                 "EMM-MSG   - Failed to decode L3 EMM message 0x%x "
+                 "(%d)\n",
+                 msg->header.message_type, decode_result);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, decode_result);
   }
 
@@ -290,11 +285,10 @@ int emm_msg_encode(EMM_msg* msg, uint8_t* buffer, uint32_t len) {
   header_result = emm_msg_encode_header(&msg->header, buffer, len);
 
   if (header_result < 0) {
-    OAILOG_ERROR(
-        LOG_NAS_EMM,
-        "EMM-MSG   - Failed to encode EMM message header "
-        "(%d)\n",
-        header_result);
+    OAILOG_ERROR(LOG_NAS_EMM,
+                 "EMM-MSG   - Failed to encode EMM message header "
+                 "(%d)\n",
+                 header_result);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, header_result);
   }
 
@@ -321,8 +315,8 @@ int emm_msg_encode(EMM_msg* msg, uint8_t* buffer, uint32_t len) {
       break;
 
     case AUTHENTICATION_REJECT:
-      encode_result = encode_authentication_reject(
-          &msg->authentication_reject, buffer, len);
+      encode_result = encode_authentication_reject(&msg->authentication_reject,
+                                                   buffer, len);
       break;
 
     case AUTHENTICATION_REQUEST:
@@ -388,8 +382,8 @@ int emm_msg_encode(EMM_msg* msg, uint8_t* buffer, uint32_t len) {
       break;
 
     case SECURITY_MODE_COMMAND:
-      encode_result = encode_security_mode_command(
-          &msg->security_mode_command, buffer, len);
+      encode_result = encode_security_mode_command(&msg->security_mode_command,
+                                                   buffer, len);
       break;
 
     case SECURITY_MODE_COMPLETE:
@@ -442,9 +436,8 @@ int emm_msg_encode(EMM_msg* msg, uint8_t* buffer, uint32_t len) {
       break;
 
     default:
-      OAILOG_ERROR(
-          LOG_NAS_EMM, "EMM-MSG   - Unexpected message type: 0x%x\n",
-          msg->header.message_type);
+      OAILOG_ERROR(LOG_NAS_EMM, "EMM-MSG   - Unexpected message type: 0x%x\n",
+                   msg->header.message_type);
       encode_result = TLV_WRONG_MESSAGE_TYPE;
       /*
        * TODO: Handle not standard layer 3 messages: SERVICE_REQUEST
@@ -452,11 +445,10 @@ int emm_msg_encode(EMM_msg* msg, uint8_t* buffer, uint32_t len) {
   }
 
   if (encode_result < 0) {
-    OAILOG_ERROR(
-        LOG_NAS_EMM,
-        "EMM-MSG   - Failed to encode L3 EMM message 0x%x "
-        "(%d)\n",
-        msg->header.message_type, encode_result);
+    OAILOG_ERROR(LOG_NAS_EMM,
+                 "EMM-MSG   - Failed to encode L3 EMM message 0x%x "
+                 "(%d)\n",
+                 msg->header.message_type, encode_result);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, header_result + encode_result);
@@ -486,8 +478,8 @@ int emm_msg_encode(EMM_msg* msg, uint8_t* buffer, uint32_t len) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_msg_decode_header(
-    emm_msg_header_t* header, const uint8_t* buffer, uint32_t len) {
+int emm_msg_decode_header(emm_msg_header_t* header, const uint8_t* buffer,
+                          uint32_t len) {
   int size = 0;
 
   /*
@@ -500,7 +492,7 @@ int emm_msg_decode_header(
   /*
    * Decode the security header type and the protocol discriminator
    */
-  DECODE_U8(buffer + size, *(uint8_t*) (header), size);
+  DECODE_U8(buffer + size, *(uint8_t*)(header), size);
   /*
    * Decode the message type
    */
@@ -510,9 +502,9 @@ int emm_msg_decode_header(
    * Check the protocol discriminator
    */
   if (header->protocol_discriminator != EPS_MOBILITY_MANAGEMENT_MESSAGE) {
-    OAILOG_ERROR(
-        LOG_NAS_EMM, "ESM-MSG   - Unexpected protocol discriminator: 0x%x\n",
-        header->protocol_discriminator);
+    OAILOG_ERROR(LOG_NAS_EMM,
+                 "ESM-MSG   - Unexpected protocol discriminator: 0x%x\n",
+                 header->protocol_discriminator);
     return (TLV_PROTOCOL_NOT_SUPPORTED);
   }
 
@@ -537,8 +529,8 @@ int emm_msg_decode_header(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_msg_encode_header(
-    const emm_msg_header_t* header, uint8_t* buffer, uint32_t len) {
+int emm_msg_encode_header(const emm_msg_header_t* header, uint8_t* buffer,
+                          uint32_t len) {
   int size = 0;
 
   /*
@@ -552,16 +544,16 @@ int emm_msg_encode_header(
    * Check the protocol discriminator
    */
   if (header->protocol_discriminator != EPS_MOBILITY_MANAGEMENT_MESSAGE) {
-    OAILOG_ERROR(
-        LOG_NAS_EMM, "ESM-MSG   - Unexpected protocol discriminator: 0x%x\n",
-        header->protocol_discriminator);
+    OAILOG_ERROR(LOG_NAS_EMM,
+                 "ESM-MSG   - Unexpected protocol discriminator: 0x%x\n",
+                 header->protocol_discriminator);
     return (TLV_PROTOCOL_NOT_SUPPORTED);
   }
 
   /*
    * Encode the security header type and the protocol discriminator
    */
-  ENCODE_U8(buffer + size, *(uint8_t*) (header), size);
+  ENCODE_U8(buffer + size, *(uint8_t*)(header), size);
   /*
    * Encode the message type
    */

@@ -44,7 +44,7 @@ pipeline {
       }
       steps{
         script {
-          sh "./circleci/golang_before_install.sh"
+          sh "./.github/workflows/scripts/golang_before_install.sh"
           dir("cwf/gateway"){
             sh "go mod download"
             sh "make -C ${MAGMA_ROOT}/cwf/gateway precommit"
@@ -131,8 +131,7 @@ pipeline {
             }
             
             // On failure, transfer logs of key services from docker containers and
-            // copy to the log directory. This will get stored as an artifact in the
-            // circleCI config.
+            // copy to the log directory. This will get stored as an artifact.
             // Following lines to be translated in to Jenkins DSL yet
             if (test_results) {
               currentBuild.result = 'FAILURE'

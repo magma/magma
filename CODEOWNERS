@@ -1,6 +1,4 @@
 # approvers-ci
-/.circleci/ @magma/approvers-ci
-/circleci/ @magma/approvers-ci
 /ci-scripts/ @magma/approvers-ci
 /.github/workflows/ @magma/approvers-ci
 /third_party/build/ @magma/approvers-ci
@@ -15,6 +13,11 @@
 */cloud/ @magma/approvers-orc8r
 /.golangci.yml @magma/approvers-orc8r
 /orc8r/ @magma/approvers-orc8r
+
+# approvers-orc8r-infra
+/orc8r/cloud/docker/ @magma/approvers-orc8r-infra
+/orc8r/cloud/deploy/ @magma/approvers-orc8r-infra
+*/cloud/helm/ @magma/approvers-orc8r-infra
 
 # approvers-nms
 /nms/ @magma/approvers-nms
@@ -53,11 +56,25 @@
 
 /src/go/ @markjen
 
+/dp/ @magma/approvers-domain-proxy
+
 # approvers-showtech
 /show-tech/ @magma/approvers-showtech
 
 /docs/ @magma/approvers-docs
 /docs/readmes/proposals @electronjoe
+
+# approvers-bazel
+/.bazel-cache/ @magma/approvers-bazel
+/.bazel-cache-repo/ @magma/approvers-bazel
+/.github/workflows/bazel-cache-push.yml @magma/approvers-bazel
+/.github/workflows/bazel.yml @magma/approvers-bazel
+/.github/workflows/docker-builder-bazel-base.yml @magma/approvers-bazel
+/bazel/ @magma/approvers-bazel
+/experimental/bazel-base/ @magma/approvers-bazel
+/.bazelignore @magma/approvers-bazel
+/.bazelrc @magma/approvers-bazel
+*.bazel @magma/approvers-bazel
 
 /CODEOWNERS @amarpad @electronjoe @hcgatewood
 

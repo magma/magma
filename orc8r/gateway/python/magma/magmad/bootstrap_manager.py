@@ -26,8 +26,12 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from google.protobuf.duration_pb2 import Duration
-from magma.common.rpc_utils import grpc_async_wrapper
+from magma.common.rpc_utils import (
+    grpc_async_wrapper,
+    indicates_connection_error,
+)
 from magma.common.sdwatchdog import SDWatchdogTask
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration.service_configs import load_service_config
 from magma.magmad.metrics import BOOTSTRAP_EXCEPTION
@@ -239,8 +243,12 @@ class BootstrapManager(SDWatchdogTask):
         await self._request_sign(response)
 
     def _get_challenge_done_fail(self, err):
-        err = 'GetChallenge error! [%s] %s' % (err.code(), err.details())
-        logging.error(err)
+        logging.error(
+            "GetChallenge error! [%s] %s",
+            err.code(),
+            err.details(),
+            extra=EXCLUDE_FROM_ERROR_MONITORING if indicates_connection_error(err) else None,
+        )
         BOOTSTRAP_EXCEPTION.labels(cause='GetChallengeResp').inc()
         self._schedule_next_bootstrap(hard_failure=False)
 

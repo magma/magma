@@ -17,8 +17,8 @@ import (
 	"github.com/golang/glog"
 
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/obsidian/swagger"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
+	servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/eventd"
@@ -33,7 +33,7 @@ func main() {
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers())
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(eventd.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, servicers.NewSpecServicerFromFile(eventd.ServiceName))
 
 	err = srv.Run()
 	if err != nil {

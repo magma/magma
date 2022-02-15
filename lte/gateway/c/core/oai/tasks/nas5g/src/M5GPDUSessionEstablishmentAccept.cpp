@@ -22,13 +22,13 @@ PDUSessionEstablishmentAcceptMsg::~PDUSessionEstablishmentAcceptMsg(){};
 int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
     PDUSessionEstablishmentAcceptMsg* pdu_session_estab_accept, uint8_t* buffer,
     uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
-  uint8_t type_len   = sizeof(uint8_t);
+  uint8_t type_len = sizeof(uint8_t);
   uint8_t length_len = sizeof(uint8_t);
 
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, PDU_SESSION_ESTABLISH_ACPT_MIN_LEN, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
+                                       PDU_SESSION_ESTABLISH_ACPT_MIN_LEN, len);
 
   MLOG(MDEBUG) << "DecodePDUSessionEstablishmentAcceptMsg : ";
 
@@ -107,9 +107,8 @@ int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
 
   while (decoded < len) {
     // Size is incremented for the unhandled types by 1 byte
-    uint32_t type = *(buffer + decoded) >= 0x80 ?
-                        ((*(buffer + decoded)) & 0xf0) :
-                        (*(buffer + decoded));
+    uint32_t type = *(buffer + decoded) >= 0x80 ? ((*(buffer + decoded)) & 0xf0)
+                                                : (*(buffer + decoded));
     decoded_result = 0;
 
     switch (static_cast<M5GIei>(type)) {
@@ -137,7 +136,7 @@ int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
         break;
       case M5GIei::QOS_FLOW_DESCRIPTIONS:
         // TLV Types.
-        type_len   = sizeof(uint16_t);
+        type_len = sizeof(uint16_t);
         length_len = sizeof(uint16_t);
         DECODE_U8(buffer + decoded + type_len, decoded_result, decoded);
 
@@ -183,11 +182,11 @@ int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
 int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
     PDUSessionEstablishmentAcceptMsg* pdu_session_estab_accept, uint8_t* buffer,
     uint32_t len) {
-  uint32_t encoded        = 0;
+  uint32_t encoded = 0;
   uint32_t encoded_result = 0;
 
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, PDU_SESSION_ESTABLISH_ACPT_MIN_LEN, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
+                                       PDU_SESSION_ESTABLISH_ACPT_MIN_LEN, len);
 
   MLOG(MDEBUG) << "EncodePDUSessionEstablishmentAcceptMsg : \n";
   if ((encoded_result =

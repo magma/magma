@@ -52,8 +52,8 @@
    retransmission counter */
 #define ESM_INFORMATION_COUNTER_MAX 3
 
-static int esm_information(
-    emm_context_t* emm_context_p, ebi_t ebi, esm_ebr_timer_data_t* const data);
+static int esm_information(emm_context_t* emm_context_p, ebi_t ebi,
+                           esm_ebr_timer_data_t* const data);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -74,18 +74,18 @@ status_code_e esm_proc_esm_information_request(
       ue_id);
 
   ESM_msg esm_msg = {.header = {0}};
-  rc              = esm_send_esm_information_request(
-      pti, EPS_BEARER_IDENTITY_UNASSIGNED, &esm_msg.esm_information_request);
+  rc = esm_send_esm_information_request(pti, EPS_BEARER_IDENTITY_UNASSIGNED,
+                                        &esm_msg.esm_information_request);
 
   if (rc != RETURNerror) {
     /*
      * Encode the returned ESM response message
      */
     char emm_sap_buffer[16];  // very short msg
-    int size        = esm_msg_encode(&esm_msg, (uint8_t*) emm_sap_buffer, 16);
+    int size = esm_msg_encode(&esm_msg, (uint8_t*)emm_sap_buffer, 16);
     bstring msg_req = NULL;
-    OAILOG_INFO_UE(
-        LOG_NAS_EMM, emm_context_p->_imsi64, "ESM encoded MSG size %d\n", size);
+    OAILOG_INFO_UE(LOG_NAS_EMM, emm_context_p->_imsi64,
+                   "ESM encoded MSG size %d\n", size);
     if (size > 0) {
       msg_req = blk2bstr(emm_sap_buffer, size);
       /*
@@ -93,12 +93,12 @@ status_code_e esm_proc_esm_information_request(
        * start timer T3489
        */
       esm_ebr_timer_data_t* data =
-          (esm_ebr_timer_data_t*) calloc(1, sizeof(*data));
-      data->ctx   = emm_context_p;
-      data->ebi   = EPS_BEARER_IDENTITY_UNASSIGNED;
-      data->msg   = msg_req;
+          (esm_ebr_timer_data_t*)calloc(1, sizeof(*data));
+      data->ctx = emm_context_p;
+      data->ebi = EPS_BEARER_IDENTITY_UNASSIGNED;
+      data->msg = msg_req;
       data->ue_id = ue_id;
-      rc          = esm_information(emm_context_p, pti, data);
+      rc = esm_information(emm_context_p, pti, data);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -170,14 +170,15 @@ status_code_e esm_proc_esm_information_response(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-status_code_e mme_app_handle_esm_information_t3489_expiry(
-    zloop_t* loop, int timer_id, void* args) {
+status_code_e mme_app_handle_esm_information_t3489_expiry(zloop_t* loop,
+                                                          int timer_id,
+                                                          void* args) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
-    OAILOG_WARNING(
-        LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_WARNING(LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n",
+                   timer_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
   }
 
@@ -196,7 +197,7 @@ status_code_e mme_app_handle_esm_information_t3489_expiry(
    * Get retransmission timer parameters data
    */
   esm_ebr_timer_data_t* esm_ebr_timer_data =
-      (esm_ebr_timer_data_t*) (emm_context->esm_ctx.t3489_arg);
+      (esm_ebr_timer_data_t*)(emm_context->esm_ctx.t3489_arg);
 
   if (esm_ebr_timer_data) {
     /*
@@ -230,7 +231,7 @@ status_code_e mme_app_handle_esm_information_t3489_expiry(
        */
       emm_context->esm_ctx.T3489.id = NAS_TIMER_INACTIVE_ID;
       bdestroy_wrapper(&esm_ebr_timer_data->msg);
-      free_wrapper((void**) &esm_ebr_timer_data);
+      free_wrapper((void**)&esm_ebr_timer_data);
     }
   }
 
@@ -262,8 +263,8 @@ status_code_e mme_app_handle_esm_information_t3489_expiry(
  **      Others:    T3489                                                  **
  **                                                                        **
  ***************************************************************************/
-static int esm_information(
-    emm_context_t* emm_context_p, ebi_t ebi, esm_ebr_timer_data_t* const data) {
+static int esm_information(emm_context_t* emm_context_p, ebi_t ebi,
+                           esm_ebr_timer_data_t* const data) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   emm_sap_t emm_sap = {0};
   int rc;
@@ -277,10 +278,10 @@ static int esm_information(
    */
   emm_esm_data_t* emm_esm = &emm_sap.u.emm_esm.u.data;
 
-  emm_sap.primitive       = EMMESM_UNITDATA_REQ;
+  emm_sap.primitive = EMMESM_UNITDATA_REQ;
   emm_sap.u.emm_esm.ue_id = ue_id;
-  emm_sap.u.emm_esm.ctx   = emm_context_p;
-  emm_esm->msg            = bstrcpy(data->msg);
+  emm_sap.u.emm_esm.ctx = emm_context_p;
+  emm_esm->msg = bstrcpy(data->msg);
 
   rc = emm_sap_send(&emm_sap);
 
@@ -289,21 +290,20 @@ static int esm_information(
     /*
      * Start T3489 timer
      */
-    nas_start_T3489(
-        ue_id, &(emm_context_p->esm_ctx.T3489),
-        mme_app_handle_esm_information_t3489_expiry);
+    nas_start_T3489(ue_id, &(emm_context_p->esm_ctx.T3489),
+                    mme_app_handle_esm_information_t3489_expiry);
   }
   if (NAS_TIMER_INACTIVE_ID != emm_context_p->esm_ctx.T3489.id) {
-    emm_context_p->esm_ctx.t3489_arg = (void*) data;
+    emm_context_p->esm_ctx.t3489_arg = (void*)data;
 
-    OAILOG_INFO_UE(
-        LOG_NAS_EMM, emm_context_p->_imsi64,
-        "UE " MME_UE_S1AP_ID_FMT "Timer T3489 (%lx) expires in %d seconds\n",
-        ue_id, emm_context_p->esm_ctx.T3489.id,
-        emm_context_p->esm_ctx.T3489.msec);
+    OAILOG_INFO_UE(LOG_NAS_EMM, emm_context_p->_imsi64,
+                   "UE " MME_UE_S1AP_ID_FMT
+                   "Timer T3489 (%lx) expires in %d seconds\n",
+                   ue_id, emm_context_p->esm_ctx.T3489.id,
+                   emm_context_p->esm_ctx.T3489.msec);
   } else {
     bdestroy_wrapper(&data->msg);
-    free_wrapper((void**) &data);
+    free_wrapper((void**)&data);
     rc = RETURNerror;
   }
   bdestroy_wrapper(&emm_esm->msg);

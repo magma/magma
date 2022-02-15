@@ -55,9 +55,9 @@ status_code_e NGAPClientServicer::send_message_to_amf(
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-status_code_e ngap_send_msg_to_task(
-    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
-    MessageDef* message) {
+status_code_e ngap_send_msg_to_task(task_zmq_ctx_t* task_zmq_ctx_p,
+                                    task_id_t destination_task_id,
+                                    MessageDef* message) {
   return (magma5g::NGAPClientServicer::getInstance().send_message_to_amf(
       task_zmq_ctx_p, destination_task_id, message));
 }

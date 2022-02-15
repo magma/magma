@@ -450,11 +450,21 @@ describe('<AddEditGatewayButton />', () => {
 
     // Verify EPC Edit
     const natEnabled = getByTestId('natEnabled').firstChild;
+    const gwSgiIpv6 = getByTestId('gwSgiIpv6').firstChild;
+    const sgiStaticIpv6 = getByTestId('sgiStaticIpv6').firstChild;
     if (
       natEnabled instanceof HTMLElement &&
-      natEnabled.firstChild instanceof HTMLElement
+      natEnabled.firstChild instanceof HTMLElement &&
+      gwSgiIpv6 instanceof HTMLInputElement &&
+      sgiStaticIpv6 instanceof HTMLInputElement
     ) {
       fireEvent.click(natEnabled.firstChild);
+      fireEvent.change(gwSgiIpv6, {
+        target: {value: '2001:4860:4860:0:0:0:0:1'},
+      });
+      fireEvent.change(sgiStaticIpv6, {
+        target: {value: '2001:4860:4860:0:0:0:0:8888'},
+      });
     } else {
       throw 'invalid type';
     }
@@ -474,6 +484,8 @@ describe('<AddEditGatewayButton />', () => {
         sgi_management_iface_gw: '',
         sgi_management_iface_static_ip: '',
         sgi_management_iface_vlan: '',
+        sgi_management_iface_ipv6_gw: '2001:4860:4860:0:0:0:0:1',
+        sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888',
       },
     });
 
@@ -584,6 +596,8 @@ describe('<AddEditGatewayButton />', () => {
             sgi_management_iface_gw: '',
             sgi_management_iface_static_ip: '',
             sgi_management_iface_vlan: '',
+            sgi_management_iface_ipv6_gw: '2001:4860:4860:0:0:0:0:1',
+            sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888',
           },
           ran: {pci: 260, transmit_enabled: true},
         },
@@ -680,6 +694,8 @@ describe('<AddEditGatewayButton />', () => {
           sgi_management_iface_gw: '',
           sgi_management_iface_static_ip: '',
           sgi_management_iface_vlan: '',
+          sgi_management_iface_ipv6_gw: '2001:4860:4860:0:0:0:0:1',
+          sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888',
         },
         ran: {
           pci: 260,

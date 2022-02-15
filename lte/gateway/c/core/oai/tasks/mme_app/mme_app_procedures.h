@@ -64,7 +64,7 @@ typedef struct mme_app_s11_proc_s {
 typedef enum {
   S11_PROC_BEARER_UNKNOWN = 0,
   S11_PROC_BEARER_PENDING = 1,
-  S11_PROC_BEARER_FAILED  = 2,
+  S11_PROC_BEARER_FAILED = 2,
   S11_PROC_BEARER_SUCCESS = 3
 } s11_proc_bearer_status_t;
 

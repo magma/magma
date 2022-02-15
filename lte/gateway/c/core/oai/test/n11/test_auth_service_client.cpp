@@ -31,9 +31,8 @@ task_zmq_ctx_t grpc_service_task_zmq_ctx;
 namespace magma {
 namespace lte {
 
-TEST(
-    test_convert_proto_msg_to_itti_m5g_auth_info_ans,
-    convert_proto_msg_to_itti_m5g_auth_info_ans) {
+TEST(test_convert_proto_msg_to_itti_m5g_auth_info_ans,
+     convert_proto_msg_to_itti_m5g_auth_info_ans) {
   magma::lte::M5GAuthenticationInformationAnswer response;
   itti_amf_subs_auth_info_ans_t amf_app_subs_auth_info_resp_p;
 
@@ -58,9 +57,8 @@ TEST(
       expect_auth_info.auth_info.m5gauth_vector[0];
   memcpy(expected_m5gauth_vector.rand, rand.c_str(), rand.length());
   expected_m5gauth_vector.xres_star.size = xres_star.length();
-  memcpy(
-      expected_m5gauth_vector.xres_star.data, xres_star.c_str(),
-      xres_star.length());
+  memcpy(expected_m5gauth_vector.xres_star.data, xres_star.c_str(),
+         xres_star.length());
   memcpy(expected_m5gauth_vector.autn, autn.c_str(), autn.length());
   memcpy(expected_m5gauth_vector.kseaf, kseaf.c_str(), kseaf.length());
 
@@ -68,28 +66,19 @@ TEST(
   m5gauth_vector_t& generated_m5gauth_vector =
       amf_app_subs_auth_info_resp_p.auth_info.m5gauth_vector[0];
 
-  EXPECT_TRUE(
-      expect_auth_info.auth_info.nb_of_vectors ==
-      amf_app_subs_auth_info_resp_p.auth_info.nb_of_vectors);
-  EXPECT_TRUE(
-      0 == memcmp(
-               expected_m5gauth_vector.rand, generated_m5gauth_vector.rand,
-               rand.length()));
-  EXPECT_TRUE(
-      expected_m5gauth_vector.xres_star.size ==
-      generated_m5gauth_vector.xres_star.size);
-  EXPECT_TRUE(
-      0 == memcmp(
-               expected_m5gauth_vector.xres_star.data,
-               generated_m5gauth_vector.xres_star.data, xres_star.length()));
-  EXPECT_TRUE(
-      0 == memcmp(
-               expected_m5gauth_vector.autn, generated_m5gauth_vector.autn,
-               autn.length()));
-  EXPECT_TRUE(
-      0 == memcmp(
-               expected_m5gauth_vector.kseaf, generated_m5gauth_vector.kseaf,
-               kseaf.length()));
+  EXPECT_TRUE(expect_auth_info.auth_info.nb_of_vectors ==
+              amf_app_subs_auth_info_resp_p.auth_info.nb_of_vectors);
+  EXPECT_TRUE(0 == memcmp(expected_m5gauth_vector.rand,
+                          generated_m5gauth_vector.rand, rand.length()));
+  EXPECT_TRUE(expected_m5gauth_vector.xres_star.size ==
+              generated_m5gauth_vector.xres_star.size);
+  EXPECT_TRUE(0 == memcmp(expected_m5gauth_vector.xres_star.data,
+                          generated_m5gauth_vector.xres_star.data,
+                          xres_star.length()));
+  EXPECT_TRUE(0 == memcmp(expected_m5gauth_vector.autn,
+                          generated_m5gauth_vector.autn, autn.length()));
+  EXPECT_TRUE(0 == memcmp(expected_m5gauth_vector.kseaf,
+                          generated_m5gauth_vector.kseaf, kseaf.length()));
 }
 
 TEST(test_get_subs_auth_info, get_subs_auth_info) {
@@ -102,9 +91,8 @@ TEST(test_get_subs_auth_info, get_subs_auth_info) {
   EXPECT_TRUE(snni == req.serving_network_name());
 }
 
-TEST(
-    test_convert_proto_msg_to_itti_m5g_auth_info_ans,
-    convert_proto_msg_to_itti_amf_decrypted_imsi_info_ans) {
+TEST(test_convert_proto_msg_to_itti_m5g_auth_info_ans,
+     convert_proto_msg_to_itti_amf_decrypted_imsi_info_ans) {
   magma::lte::M5GSUCIRegistrationAnswer response;
   itti_amf_decrypted_imsi_info_ans_t amf_decrypt_imsi_info_resp;
 
@@ -115,11 +103,9 @@ TEST(
   magma5g::convert_proto_msg_to_itti_amf_decrypted_imsi_info_ans(
       response, &amf_decrypt_imsi_info_resp);
 
-  EXPECT_EQ(
-      memcmp(
-          amf_decrypt_imsi_info_resp.imsi, response.ue_msin_recv().c_str(),
-          imsi.length()),
-      0);
+  EXPECT_EQ(memcmp(amf_decrypt_imsi_info_resp.imsi,
+                   response.ue_msin_recv().c_str(), imsi.length()),
+            0);
 }
 
 TEST(test_get_decrypt_imsi_info, get_decrypt_imsi_info) {
@@ -128,7 +114,7 @@ TEST(test_get_decrypt_imsi_info, get_decrypt_imsi_info) {
       "0\xc9q\xf4q\xeb\xf9\xa2o\x17\t\xd6qT\xcd;\xf6`\x8d%\xb0^"
       "\xc0\x9c\x13\xc6\xabRw\xbdK\n";
   std::string ciphertext = "\xfc\xf0b\xfc\xad";
-  std::string mac_tag    = "\xa2;\xef\x01\xad\xe1\xd7e";
+  std::string mac_tag = "\xa2;\xef\x01\xad\xe1\xd7e";
 
   M5GSUCIRegistrationRequest req = magma5g::create_decrypt_imsi_request(
       ue_pubkey_identifier, ue_pubkey, ciphertext, mac_tag);

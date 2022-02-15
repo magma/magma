@@ -25,9 +25,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 }
 
-TEST(
-    test_bit_rate_value_to_eps_qos_for_apnambr_extended2_test,
-    bit_rate_value_to_eps_qos_for_apnambr_extended2_test) {
+TEST(test_bit_rate_value_to_eps_qos_for_apnambr_extended2_test,
+     bit_rate_value_to_eps_qos_for_apnambr_extended2_test) {
   ApnAggregateMaximumBitRate apn_testing;
 
   bit_rate_value_to_eps_qos(&apn_testing, 0, 0, BPS);

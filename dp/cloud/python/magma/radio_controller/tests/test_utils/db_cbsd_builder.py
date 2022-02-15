@@ -19,6 +19,10 @@ class DBCbsdBuilder:
     def build(self) -> DBCbsd:
         return self.cbsd
 
+    def deleted(self):
+        self.cbsd.is_deleted = True
+        return self
+
     def with_state(self, state_id: int) -> DBCbsdBuilder:
         self.cbsd.state_id = state_id
         return self

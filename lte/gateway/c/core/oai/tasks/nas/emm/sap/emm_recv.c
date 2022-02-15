@@ -20,13 +20,13 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "AttachRequest.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_recv.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
 #include "lte/gateway/c/core/oai/include/3gpp_requirements_24.301.h"
@@ -93,17 +93,16 @@ static int emm_initiate_default_bearer_re_establishment(emm_context_t* emm_ctx);
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_recv_status(
-    mme_ue_s1ap_id_t ue_id, emm_status_msg* msg, int* emm_cause,
-    const nas_message_decode_status_t* status) {
+status_code_e emm_recv_status(mme_ue_s1ap_id_t ue_id, emm_status_msg* msg,
+                              int* emm_cause,
+                              const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
 
-  OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - Received EMM Status message (cause=%d) for ue "
-      "id " MME_UE_S1AP_ID_FMT "\n",
-      msg->emmcause, ue_id);
+  OAILOG_INFO(LOG_NAS_EMM,
+              "EMMAS-SAP - Received EMM Status message (cause=%d) for ue "
+              "id " MME_UE_S1AP_ID_FMT "\n",
+              msg->emmcause, ue_id);
   /*
    * Message checking
    */
@@ -187,11 +186,10 @@ status_code_e emm_recv_attach_request(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
 
-  OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - Received Attach Request message for ue "
-      "id " MME_UE_S1AP_ID_FMT "\n",
-      ue_id);
+  OAILOG_INFO(LOG_NAS_EMM,
+              "EMMAS-SAP - Received Attach Request message for ue "
+              "id " MME_UE_S1AP_ID_FMT "\n",
+              ue_id);
   increment_counter("ue_attach", 1, NO_LABELS);
 
   /*
@@ -207,7 +205,7 @@ status_code_e emm_recv_attach_request(
         ", emm_cause = "
         "(%d)\n",
         ue_id, *emm_cause);
-    rc         = emm_proc_attach_reject(ue_id, *emm_cause);
+    rc = emm_proc_attach_reject(ue_id, *emm_cause);
     *emm_cause = EMM_CAUSE_SUCCESS;
     // Free the ESM container
     bdestroy_wrapper(&(msg->esmmessagecontainer));
@@ -230,7 +228,7 @@ status_code_e emm_recv_attach_request(
         "(EMM_CAUSE_CONGESTION) last packet latency: %ld prev hop latency: "
         "%ld\n",
         ue_id, mme_app_last_msg_latency, pre_mme_task_msg_latency);
-    rc         = emm_proc_attach_reject(ue_id, EMM_CAUSE_CONGESTION);
+    rc = emm_proc_attach_reject(ue_id, EMM_CAUSE_CONGESTION);
     *emm_cause = EMM_CAUSE_SUCCESS;
     // Free the ESM container
     bdestroy_wrapper(&(msg->esmmessagecontainer));
@@ -255,8 +253,8 @@ status_code_e emm_recv_attach_request(
     params->type = EMM_ATTACH_TYPE_EPS;
 
   } else if (msg->epsattachtype == EPS_ATTACH_TYPE_COMBINED_EPS_IMSI) {
-    increment_counter(
-        "ue_attach", 1, 1, "attach_type", "combined_eps_imsi_attach");
+    increment_counter("ue_attach", 1, 1, "attach_type",
+                      "combined_eps_imsi_attach");
     params->type = EMM_ATTACH_TYPE_COMBINED_EPS_IMSI;
   } else if (msg->epsattachtype == EPS_ATTACH_TYPE_EMERGENCY) {
     params->type = EMM_ATTACH_TYPE_EMERGENCY;
@@ -276,45 +274,45 @@ status_code_e emm_recv_attach_request(
     /*
      * Get the GUTI
      */
-    OAILOG_DEBUG(
-        LOG_NAS_EMM, "Type of identity is EPS_MOBILE_IDENTITY_GUTI  (%d)\n",
-        msg->oldgutiorimsi.guti.typeofidentity);
-    params->guti                         = calloc(1, sizeof(guti_t));
+    OAILOG_DEBUG(LOG_NAS_EMM,
+                 "Type of identity is EPS_MOBILE_IDENTITY_GUTI  (%d)\n",
+                 msg->oldgutiorimsi.guti.typeofidentity);
+    params->guti = calloc(1, sizeof(guti_t));
     params->guti->gummei.plmn.mcc_digit1 = msg->oldgutiorimsi.guti.mcc_digit1;
     params->guti->gummei.plmn.mcc_digit2 = msg->oldgutiorimsi.guti.mcc_digit2;
     params->guti->gummei.plmn.mcc_digit3 = msg->oldgutiorimsi.guti.mcc_digit3;
     params->guti->gummei.plmn.mnc_digit1 = msg->oldgutiorimsi.guti.mnc_digit1;
     params->guti->gummei.plmn.mnc_digit2 = msg->oldgutiorimsi.guti.mnc_digit2;
     params->guti->gummei.plmn.mnc_digit3 = msg->oldgutiorimsi.guti.mnc_digit3;
-    params->guti->gummei.mme_gid         = msg->oldgutiorimsi.guti.mme_group_id;
-    params->guti->gummei.mme_code        = msg->oldgutiorimsi.guti.mme_code;
-    params->guti->m_tmsi                 = msg->oldgutiorimsi.guti.m_tmsi;
-  } else if (
-      msg->oldgutiorimsi.imsi.typeofidentity == EPS_MOBILE_IDENTITY_IMSI) {
+    params->guti->gummei.mme_gid = msg->oldgutiorimsi.guti.mme_group_id;
+    params->guti->gummei.mme_code = msg->oldgutiorimsi.guti.mme_code;
+    params->guti->m_tmsi = msg->oldgutiorimsi.guti.m_tmsi;
+  } else if (msg->oldgutiorimsi.imsi.typeofidentity ==
+             EPS_MOBILE_IDENTITY_IMSI) {
     /*
      * Get the IMSI
      */
-    OAILOG_DEBUG(
-        LOG_NAS_EMM, "Type of identity is EPS_MOBILE_IDENTITY_IMSI  (%d)\n",
-        msg->oldgutiorimsi.imsi.typeofidentity);
-    params->imsi                = calloc(1, sizeof(imsi_t));
-    params->imsi->u.num.digit1  = msg->oldgutiorimsi.imsi.identity_digit1;
-    params->imsi->u.num.digit2  = msg->oldgutiorimsi.imsi.identity_digit2;
-    params->imsi->u.num.digit3  = msg->oldgutiorimsi.imsi.identity_digit3;
-    params->imsi->u.num.digit4  = msg->oldgutiorimsi.imsi.identity_digit4;
-    params->imsi->u.num.digit5  = msg->oldgutiorimsi.imsi.identity_digit5;
-    params->imsi->u.num.digit6  = msg->oldgutiorimsi.imsi.identity_digit6;
-    params->imsi->u.num.digit7  = msg->oldgutiorimsi.imsi.identity_digit7;
-    params->imsi->u.num.digit8  = msg->oldgutiorimsi.imsi.identity_digit8;
-    params->imsi->u.num.digit9  = msg->oldgutiorimsi.imsi.identity_digit9;
+    OAILOG_DEBUG(LOG_NAS_EMM,
+                 "Type of identity is EPS_MOBILE_IDENTITY_IMSI  (%d)\n",
+                 msg->oldgutiorimsi.imsi.typeofidentity);
+    params->imsi = calloc(1, sizeof(imsi_t));
+    params->imsi->u.num.digit1 = msg->oldgutiorimsi.imsi.identity_digit1;
+    params->imsi->u.num.digit2 = msg->oldgutiorimsi.imsi.identity_digit2;
+    params->imsi->u.num.digit3 = msg->oldgutiorimsi.imsi.identity_digit3;
+    params->imsi->u.num.digit4 = msg->oldgutiorimsi.imsi.identity_digit4;
+    params->imsi->u.num.digit5 = msg->oldgutiorimsi.imsi.identity_digit5;
+    params->imsi->u.num.digit6 = msg->oldgutiorimsi.imsi.identity_digit6;
+    params->imsi->u.num.digit7 = msg->oldgutiorimsi.imsi.identity_digit7;
+    params->imsi->u.num.digit8 = msg->oldgutiorimsi.imsi.identity_digit8;
+    params->imsi->u.num.digit9 = msg->oldgutiorimsi.imsi.identity_digit9;
     params->imsi->u.num.digit10 = msg->oldgutiorimsi.imsi.identity_digit10;
     params->imsi->u.num.digit11 = msg->oldgutiorimsi.imsi.identity_digit11;
     params->imsi->u.num.digit12 = msg->oldgutiorimsi.imsi.identity_digit12;
     params->imsi->u.num.digit13 = msg->oldgutiorimsi.imsi.identity_digit13;
     params->imsi->u.num.digit14 = msg->oldgutiorimsi.imsi.identity_digit14;
     params->imsi->u.num.digit15 = msg->oldgutiorimsi.imsi.identity_digit15;
-    params->imsi->u.num.parity  = 0x0f;
-    params->imsi->length        = msg->oldgutiorimsi.imsi.num_digits;
+    params->imsi->u.num.parity = 0x0f;
+    params->imsi->length = msg->oldgutiorimsi.imsi.num_digits;
 
     // Check for PLMN restriction
     *emm_cause = check_plmn_restriction(*params->imsi);
@@ -325,8 +323,8 @@ status_code_e emm_recv_attach_request(
           " , emm_cause =(%d)\n",
           ue_id, *emm_cause);
       rc = emm_proc_attach_reject(ue_id, *emm_cause);
-      free_emm_attach_request_ies(
-          (emm_attach_request_ies_t * * const) & params);
+      free_emm_attach_request_ies((emm_attach_request_ies_t * * const) &
+                                  params);
       // Free the ESM container
       bdestroy_wrapper(&(msg->esmmessagecontainer));
       // Free supported codec list
@@ -334,30 +332,30 @@ status_code_e emm_recv_attach_request(
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
 
-  } else if (
-      msg->oldgutiorimsi.imei.typeofidentity == EPS_MOBILE_IDENTITY_IMEI) {
+  } else if (msg->oldgutiorimsi.imei.typeofidentity ==
+             EPS_MOBILE_IDENTITY_IMEI) {
     /*
      * Get the IMEI
      */
-    OAILOG_DEBUG(
-        LOG_NAS_EMM, "Type of identity is EPS_MOBILE_IDENTITY_IMEI  (%d)\n",
-        msg->oldgutiorimsi.imei.typeofidentity);
-    params->imei               = calloc(1, sizeof(imei_t));
-    params->imei->u.num.tac1   = msg->oldgutiorimsi.imei.identity_digit1;
-    params->imei->u.num.tac2   = msg->oldgutiorimsi.imei.identity_digit2;
-    params->imei->u.num.tac3   = msg->oldgutiorimsi.imei.identity_digit3;
-    params->imei->u.num.tac4   = msg->oldgutiorimsi.imei.identity_digit4;
-    params->imei->u.num.tac5   = msg->oldgutiorimsi.imei.identity_digit5;
-    params->imei->u.num.tac6   = msg->oldgutiorimsi.imei.identity_digit6;
-    params->imei->u.num.tac7   = msg->oldgutiorimsi.imei.identity_digit7;
-    params->imei->u.num.tac8   = msg->oldgutiorimsi.imei.identity_digit8;
-    params->imei->u.num.snr1   = msg->oldgutiorimsi.imei.identity_digit9;
-    params->imei->u.num.snr2   = msg->oldgutiorimsi.imei.identity_digit10;
-    params->imei->u.num.snr3   = msg->oldgutiorimsi.imei.identity_digit11;
-    params->imei->u.num.snr4   = msg->oldgutiorimsi.imei.identity_digit12;
-    params->imei->u.num.snr5   = msg->oldgutiorimsi.imei.identity_digit13;
-    params->imei->u.num.snr6   = msg->oldgutiorimsi.imei.identity_digit14;
-    params->imei->u.num.cdsd   = msg->oldgutiorimsi.imei.identity_digit15;
+    OAILOG_DEBUG(LOG_NAS_EMM,
+                 "Type of identity is EPS_MOBILE_IDENTITY_IMEI  (%d)\n",
+                 msg->oldgutiorimsi.imei.typeofidentity);
+    params->imei = calloc(1, sizeof(imei_t));
+    params->imei->u.num.tac1 = msg->oldgutiorimsi.imei.identity_digit1;
+    params->imei->u.num.tac2 = msg->oldgutiorimsi.imei.identity_digit2;
+    params->imei->u.num.tac3 = msg->oldgutiorimsi.imei.identity_digit3;
+    params->imei->u.num.tac4 = msg->oldgutiorimsi.imei.identity_digit4;
+    params->imei->u.num.tac5 = msg->oldgutiorimsi.imei.identity_digit5;
+    params->imei->u.num.tac6 = msg->oldgutiorimsi.imei.identity_digit6;
+    params->imei->u.num.tac7 = msg->oldgutiorimsi.imei.identity_digit7;
+    params->imei->u.num.tac8 = msg->oldgutiorimsi.imei.identity_digit8;
+    params->imei->u.num.snr1 = msg->oldgutiorimsi.imei.identity_digit9;
+    params->imei->u.num.snr2 = msg->oldgutiorimsi.imei.identity_digit10;
+    params->imei->u.num.snr3 = msg->oldgutiorimsi.imei.identity_digit11;
+    params->imei->u.num.snr4 = msg->oldgutiorimsi.imei.identity_digit12;
+    params->imei->u.num.snr5 = msg->oldgutiorimsi.imei.identity_digit13;
+    params->imei->u.num.snr6 = msg->oldgutiorimsi.imei.identity_digit14;
+    params->imei->u.num.cdsd = msg->oldgutiorimsi.imei.identity_digit15;
     params->imei->u.num.parity = msg->oldgutiorimsi.imei.oddeven;
   }
 
@@ -371,9 +369,8 @@ status_code_e emm_recv_attach_request(
   if (msg->presencemask & ATTACH_REQUEST_LAST_VISITED_REGISTERED_TAI_PRESENT) {
     params->last_visited_registered_tai = calloc(1, sizeof(tai_t));
 
-    COPY_TAI(
-        (*(params->last_visited_registered_tai)),
-        msg->lastvisitedregisteredtai);
+    COPY_TAI((*(params->last_visited_registered_tai)),
+             msg->lastvisitedregisteredtai);
   }
   if (msg->presencemask & ATTACH_REQUEST_DRX_PARAMETER_PRESENT) {
     params->drx_parameter = calloc(1, sizeof(drx_parameter_t));
@@ -383,12 +380,11 @@ status_code_e emm_recv_attach_request(
   params->is_initial = is_initial;
   params->is_native_sc =
       (msg->naskeysetidentifier.tsc != NAS_KEY_SET_IDENTIFIER_MAPPED);
-  params->ksi            = msg->naskeysetidentifier.naskeysetidentifier;
+  params->ksi = msg->naskeysetidentifier.naskeysetidentifier;
   params->is_native_guti = (msg->oldgutitype != GUTI_MAPPED);
 
-  OAILOG_DEBUG(
-      LOG_NAS_EMM, "NAS Key set ID:TSC - (%d) KSI - (%d)\n",
-      params->is_native_sc, params->ksi);
+  OAILOG_DEBUG(LOG_NAS_EMM, "NAS Key set ID:TSC - (%d) KSI - (%d)\n",
+               params->is_native_sc, params->ksi);
 
   if (originating_tai) {
     params->originating_tai = calloc(1, sizeof(tai_t));
@@ -398,15 +394,13 @@ status_code_e emm_recv_attach_request(
     params->originating_ecgi = calloc(1, sizeof(ecgi_t));
     memcpy(params->originating_ecgi, originating_ecgi, sizeof(ecgi_t));
   }
-  memcpy(
-      &params->ue_network_capability, &msg->uenetworkcapability,
-      sizeof(ue_network_capability_t));
+  memcpy(&params->ue_network_capability, &msg->uenetworkcapability,
+         sizeof(ue_network_capability_t));
 
   if (msg->presencemask & ATTACH_REQUEST_MS_NETWORK_CAPABILITY_PRESENT) {
     params->ms_network_capability = calloc(1, sizeof(ms_network_capability_t));
-    memcpy(
-        params->ms_network_capability, &msg->msnetworkcapability,
-        sizeof(ms_network_capability_t));
+    memcpy(params->ms_network_capability, &msg->msnetworkcapability,
+           sizeof(ms_network_capability_t));
   }
 
   if (msg->presencemask & ATTACH_REQUEST_ADDITIONAL_UPDATE_TYPE_PRESENT) {
@@ -418,7 +412,7 @@ status_code_e emm_recv_attach_request(
     bdestroy_wrapper(&msg->supportedcodecs);
   }
 
-  params->esm_msg          = msg->esmmessagecontainer;
+  params->esm_msg = msg->esmmessagecontainer;
   msg->esmmessagecontainer = NULL;
 
   params->decode_status = *decode_status;
@@ -433,48 +427,45 @@ status_code_e emm_recv_attach_request(
     mob_stsn_clsMark2.revisionlevel =
         msg->mobilestationclassmark2.revisionlevel;
     mob_stsn_clsMark2.esind = msg->mobilestationclassmark2.esind;
-    mob_stsn_clsMark2.a51   = msg->mobilestationclassmark2.a51;
+    mob_stsn_clsMark2.a51 = msg->mobilestationclassmark2.a51;
     mob_stsn_clsMark2.rfpowercapability =
         msg->mobilestationclassmark2.rfpowercapability;
     mob_stsn_clsMark2.pscapability = msg->mobilestationclassmark2.pscapability;
     mob_stsn_clsMark2.ssscreenindicator =
         msg->mobilestationclassmark2.ssscreenindicator;
     mob_stsn_clsMark2.smcapability = msg->mobilestationclassmark2.smcapability;
-    mob_stsn_clsMark2.vbs          = msg->mobilestationclassmark2.vbs;
-    mob_stsn_clsMark2.vgcs         = msg->mobilestationclassmark2.vgcs;
-    mob_stsn_clsMark2.fc           = msg->mobilestationclassmark2.fc;
-    mob_stsn_clsMark2.cm3          = msg->mobilestationclassmark2.cm3;
-    mob_stsn_clsMark2.lcsvacap     = msg->mobilestationclassmark2.lcsvacap;
-    mob_stsn_clsMark2.ucs2         = msg->mobilestationclassmark2.ucs2;
-    mob_stsn_clsMark2.solsa        = msg->mobilestationclassmark2.solsa;
-    mob_stsn_clsMark2.cmsp         = msg->mobilestationclassmark2.cmsp;
-    mob_stsn_clsMark2.a53          = msg->mobilestationclassmark2.a53;
-    mob_stsn_clsMark2.a52          = msg->mobilestationclassmark2.a52;
+    mob_stsn_clsMark2.vbs = msg->mobilestationclassmark2.vbs;
+    mob_stsn_clsMark2.vgcs = msg->mobilestationclassmark2.vgcs;
+    mob_stsn_clsMark2.fc = msg->mobilestationclassmark2.fc;
+    mob_stsn_clsMark2.cm3 = msg->mobilestationclassmark2.cm3;
+    mob_stsn_clsMark2.lcsvacap = msg->mobilestationclassmark2.lcsvacap;
+    mob_stsn_clsMark2.ucs2 = msg->mobilestationclassmark2.ucs2;
+    mob_stsn_clsMark2.solsa = msg->mobilestationclassmark2.solsa;
+    mob_stsn_clsMark2.cmsp = msg->mobilestationclassmark2.cmsp;
+    mob_stsn_clsMark2.a53 = msg->mobilestationclassmark2.a53;
+    mob_stsn_clsMark2.a52 = msg->mobilestationclassmark2.a52;
 
     params->mob_st_clsMark2 = calloc(1, sizeof(MobileStationClassmark2));
-    memcpy(
-        params->mob_st_clsMark2, &mob_stsn_clsMark2,
-        sizeof(MobileStationClassmark2));
+    memcpy(params->mob_st_clsMark2, &mob_stsn_clsMark2,
+           sizeof(MobileStationClassmark2));
   }
   // Voice domain preference should be sent to MME APP
   if (msg->presencemask &
       ATTACH_REQUEST_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_PRESENT) {
     params->voicedomainpreferenceandueusagesetting =
         calloc(1, sizeof(voice_domain_preference_and_ue_usage_setting_t));
-    memcpy(
-        params->voicedomainpreferenceandueusagesetting,
-        &msg->voicedomainpreferenceandueusagesetting,
-        sizeof(voice_domain_preference_and_ue_usage_setting_t));
+    memcpy(params->voicedomainpreferenceandueusagesetting,
+           &msg->voicedomainpreferenceandueusagesetting,
+           sizeof(voice_domain_preference_and_ue_usage_setting_t));
   }
 
   if (msg->presencemask &
       ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_PRESENT) {
     params->ueadditionalsecuritycapability =
         calloc(1, sizeof(ue_additional_security_capability_t));
-    memcpy(
-        params->ueadditionalsecuritycapability,
-        &msg->ueadditionalsecuritycapability,
-        sizeof(ue_additional_security_capability_t));
+    memcpy(params->ueadditionalsecuritycapability,
+           &msg->ueadditionalsecuritycapability,
+           sizeof(ue_additional_security_capability_t));
   }
 
   /*
@@ -505,16 +496,15 @@ status_code_e emm_recv_attach_complete(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc;
 
-  OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - Received Attach Complete message for ue_id "
-      "= " MME_UE_S1AP_ID_FMT "\n",
-      ue_id);
+  OAILOG_INFO(LOG_NAS_EMM,
+              "EMMAS-SAP - Received Attach Complete message for ue_id "
+              "= " MME_UE_S1AP_ID_FMT "\n",
+              ue_id);
   /*
    * Execute the attach procedure completion
    */
-  rc = emm_proc_attach_complete(
-      ue_id, msg->esmmessagecontainer, *emm_cause, *status);
+  rc = emm_proc_attach_complete(ue_id, msg->esmmessagecontainer, *emm_cause,
+                                *status);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -540,11 +530,10 @@ status_code_e emm_recv_detach_request(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
 
-  OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - Received Detach Request message for ue "
-      "id " MME_UE_S1AP_ID_FMT "\n",
-      ue_id);
+  OAILOG_INFO(LOG_NAS_EMM,
+              "EMMAS-SAP - Received Detach Request message for ue "
+              "id " MME_UE_S1AP_ID_FMT "\n",
+              ue_id);
   /*
    * Message processing
    */
@@ -582,7 +571,7 @@ status_code_e emm_recv_detach_request(
   // Send the SGS Detach indication towards MME App
   rc = emm_proc_sgs_detach_request(ue_id, params.type);
   if (rc != RETURNerror) {
-    rc         = emm_proc_detach_request(ue_id, &params);
+    rc = emm_proc_detach_request(ue_id, &params);
     *emm_cause = RETURNok == rc ? EMM_CAUSE_SUCCESS : EMM_CAUSE_PROTOCOL_ERROR;
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -627,7 +616,7 @@ status_code_e emm_recv_tracking_area_update_request(
    */
 
   emm_tau_request_ies_t* ies = calloc(1, sizeof(emm_tau_request_ies_t));
-  ies->is_initial            = is_initial;
+  ies->is_initial = is_initial;
   // Mandatory fields
   ies->eps_update_type = msg->epsupdatetype;
   ies->is_native_sc =
@@ -640,9 +629,9 @@ status_code_e emm_recv_tracking_area_update_request(
   ies->old_guti.gummei.plmn.mnc_digit1 = msg->oldguti.guti.mnc_digit1;
   ies->old_guti.gummei.plmn.mnc_digit2 = msg->oldguti.guti.mnc_digit2;
   ies->old_guti.gummei.plmn.mnc_digit3 = msg->oldguti.guti.mnc_digit3;
-  ies->old_guti.gummei.mme_gid         = msg->oldguti.guti.mme_group_id;
-  ies->old_guti.gummei.mme_code        = msg->oldguti.guti.mme_code;
-  ies->old_guti.m_tmsi                 = msg->oldguti.guti.m_tmsi;
+  ies->old_guti.gummei.mme_gid = msg->oldguti.guti.mme_group_id;
+  ies->old_guti.gummei.mme_code = msg->oldguti.guti.mme_code;
+  ies->old_guti.m_tmsi = msg->oldguti.guti.m_tmsi;
 
   // Optional fields
   if (msg->presencemask &
@@ -658,17 +647,15 @@ status_code_e emm_recv_tracking_area_update_request(
   if (msg->presencemask &
       TRACKING_AREA_UPDATE_REQUEST_UE_NETWORK_CAPABILITY_PRESENT) {
     ies->ue_network_capability = calloc(1, sizeof(*ies->ue_network_capability));
-    memcpy(
-        ies->ue_network_capability, &msg->uenetworkcapability,
-        sizeof(*ies->ue_network_capability));
+    memcpy(ies->ue_network_capability, &msg->uenetworkcapability,
+           sizeof(*ies->ue_network_capability));
   }
   if (msg->presencemask &
       TRACKING_AREA_UPDATE_REQUEST_LAST_VISITED_REGISTERED_TAI_PRESENT) {
     ies->last_visited_registered_tai =
         calloc(1, sizeof(*ies->last_visited_registered_tai));
-    memcpy(
-        ies->last_visited_registered_tai, &msg->lastvisitedregisteredtai,
-        sizeof(*ies->last_visited_registered_tai));
+    memcpy(ies->last_visited_registered_tai, &msg->lastvisitedregisteredtai,
+           sizeof(*ies->last_visited_registered_tai));
   }
   if (msg->presencemask & TRACKING_AREA_UPDATE_REQUEST_DRX_PARAMETER_PRESENT) {
     ies->drx_parameter = calloc(1, sizeof(*ies->drx_parameter));
@@ -683,16 +670,14 @@ status_code_e emm_recv_tracking_area_update_request(
       TRACKING_AREA_UPDATE_REQUEST_EPS_BEARER_CONTEXT_STATUS_PRESENT) {
     ies->eps_bearer_context_status =
         calloc(1, sizeof(*ies->eps_bearer_context_status));
-    memcpy(
-        ies->eps_bearer_context_status, &msg->epsbearercontextstatus,
-        sizeof(*ies->eps_bearer_context_status));
+    memcpy(ies->eps_bearer_context_status, &msg->epsbearercontextstatus,
+           sizeof(*ies->eps_bearer_context_status));
   }
   if (msg->presencemask &
       TRACKING_AREA_UPDATE_REQUEST_MS_NETWORK_CAPABILITY_PRESENT) {
     ies->ms_network_capability = calloc(1, sizeof(*ies->ms_network_capability));
-    memcpy(
-        ies->ms_network_capability, &msg->msnetworkcapability,
-        sizeof(*ies->ms_network_capability));
+    memcpy(ies->ms_network_capability, &msg->msnetworkcapability,
+           sizeof(*ies->ms_network_capability));
   }
   if (msg->presencemask & TRACKING_AREA_UPDATE_REQUEST_TMSI_STATUS_PRESENT) {
     ies->tmsi_status = calloc(1, sizeof(*ies->tmsi_status));
@@ -702,31 +687,27 @@ status_code_e emm_recv_tracking_area_update_request(
       TRACKING_AREA_UPDATE_REQUEST_MOBILE_STATION_CLASSMARK_2_PRESENT) {
     ies->mobile_station_classmark2 =
         calloc(1, sizeof(*ies->mobile_station_classmark2));
-    memcpy(
-        ies->mobile_station_classmark2, &msg->mobilestationclassmark2,
-        sizeof(*ies->mobile_station_classmark2));
+    memcpy(ies->mobile_station_classmark2, &msg->mobilestationclassmark2,
+           sizeof(*ies->mobile_station_classmark2));
   }
   if (msg->presencemask &
       TRACKING_AREA_UPDATE_REQUEST_MOBILE_STATION_CLASSMARK_3_PRESENT) {
     ies->mobile_station_classmark3 =
         calloc(1, sizeof(*ies->mobile_station_classmark3));
-    memcpy(
-        ies->mobile_station_classmark3, &msg->mobilestationclassmark3,
-        sizeof(*ies->mobile_station_classmark3));
+    memcpy(ies->mobile_station_classmark3, &msg->mobilestationclassmark3,
+           sizeof(*ies->mobile_station_classmark3));
   }
   if (msg->presencemask &
       TRACKING_AREA_UPDATE_REQUEST_SUPPORTED_CODECS_PRESENT) {
     ies->supported_codecs = calloc(1, sizeof(*ies->supported_codecs));
-    memcpy(
-        ies->supported_codecs, &msg->supportedcodecs,
-        sizeof(*ies->supported_codecs));
+    memcpy(ies->supported_codecs, &msg->supportedcodecs,
+           sizeof(*ies->supported_codecs));
   }
   if (msg->presencemask &
       TRACKING_AREA_UPDATE_REQUEST_ADDITIONAL_UPDATE_TYPE_PRESENT) {
     ies->additional_updatetype = calloc(1, sizeof(*ies->additional_updatetype));
-    memcpy(
-        ies->additional_updatetype, &msg->additionalupdatetype,
-        sizeof(*ies->additional_updatetype));
+    memcpy(ies->additional_updatetype, &msg->additionalupdatetype,
+           sizeof(*ies->additional_updatetype));
   }
   if (msg->presencemask & TRACKING_AREA_UPDATE_REQUEST_OLD_GUTI_TYPE_PRESENT) {
     ies->old_guti_type = calloc(1, sizeof(*ies->old_guti_type));
@@ -759,16 +740,15 @@ status_code_e emm_recv_service_request(
     const bool is_initial, int* emm_cause,
     const nas_message_decode_status_t* decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc                 = RETURNok;
+  int rc = RETURNok;
   emm_context_t* emm_ctx = NULL;
   csfb_service_type_t service_type;
   *emm_cause = EMM_CAUSE_PROTOCOL_ERROR;
 
-  OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - Received Service Request message for (ue_id "
-      "= " MME_UE_S1AP_ID_FMT ")\n",
-      ue_id);
+  OAILOG_INFO(LOG_NAS_EMM,
+              "EMMAS-SAP - Received Service Request message for (ue_id "
+              "= " MME_UE_S1AP_ID_FMT ")\n",
+              ue_id);
   OAILOG_DEBUG(
       LOG_NAS_EMM,
       "Service Request message for (ue_id = %u)\n"
@@ -828,9 +808,8 @@ status_code_e emm_recv_service_request(
     *emm_cause = EMM_CAUSE_SUCCESS;
     increment_counter("service_request", 1, 1, "result", "success");
   } else {
-    increment_counter(
-        "service_request", 1, 2, "result", "failure", "cause",
-        "bearer_reestablish_failure");
+    increment_counter("service_request", 1, 2, "result", "failure", "cause",
+                      "bearer_reestablish_failure");
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -872,9 +851,8 @@ status_code_e emm_recv_ext_service_request(
       /* CSFB Resp Missing*/
       /*send the service reject to UE*/
       rc = emm_proc_service_reject(ue_id, EMM_CAUSE_CONDITIONAL_IE_ERROR);
-      increment_counter(
-          "extended_service_request", 1, 2, "result", "failure", "cause",
-          "ue_csfb_response_missing");
+      increment_counter("extended_service_request", 1, 2, "result", "failure",
+                        "cause", "ue_csfb_response_missing");
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
   }
@@ -904,11 +882,10 @@ status_code_e emm_recv_identity_response(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
 
-  OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - Received Identity Response message for ue "
-      "id " MME_UE_S1AP_ID_FMT "\n",
-      ue_id);
+  OAILOG_INFO(LOG_NAS_EMM,
+              "EMMAS-SAP - Received Identity Response message for ue "
+              "id " MME_UE_S1AP_ID_FMT "\n",
+              ue_id);
   /*
    * Message processing
    */
@@ -924,85 +901,85 @@ status_code_e emm_recv_identity_response(
     /*
      * Get the IMSI
      */
-    p_imsi             = &imsi;
-    imsi.u.num.digit1  = msg->mobileidentity.imsi.digit1;
-    imsi.u.num.digit2  = msg->mobileidentity.imsi.digit2;
-    imsi.u.num.digit3  = msg->mobileidentity.imsi.digit3;
-    imsi.u.num.digit4  = msg->mobileidentity.imsi.digit4;
-    imsi.u.num.digit5  = msg->mobileidentity.imsi.digit5;
-    imsi.u.num.digit6  = msg->mobileidentity.imsi.digit6;
-    imsi.u.num.digit7  = msg->mobileidentity.imsi.digit7;
-    imsi.u.num.digit8  = msg->mobileidentity.imsi.digit8;
-    imsi.u.num.digit9  = msg->mobileidentity.imsi.digit9;
+    p_imsi = &imsi;
+    imsi.u.num.digit1 = msg->mobileidentity.imsi.digit1;
+    imsi.u.num.digit2 = msg->mobileidentity.imsi.digit2;
+    imsi.u.num.digit3 = msg->mobileidentity.imsi.digit3;
+    imsi.u.num.digit4 = msg->mobileidentity.imsi.digit4;
+    imsi.u.num.digit5 = msg->mobileidentity.imsi.digit5;
+    imsi.u.num.digit6 = msg->mobileidentity.imsi.digit6;
+    imsi.u.num.digit7 = msg->mobileidentity.imsi.digit7;
+    imsi.u.num.digit8 = msg->mobileidentity.imsi.digit8;
+    imsi.u.num.digit9 = msg->mobileidentity.imsi.digit9;
     imsi.u.num.digit10 = msg->mobileidentity.imsi.digit10;
     imsi.u.num.digit11 = msg->mobileidentity.imsi.digit11;
     imsi.u.num.digit12 = msg->mobileidentity.imsi.digit12;
     imsi.u.num.digit13 = msg->mobileidentity.imsi.digit13;
     imsi.u.num.digit14 = msg->mobileidentity.imsi.digit14;
     imsi.u.num.digit15 = msg->mobileidentity.imsi.digit15;
-    imsi.u.num.parity  = 0x0f;
-    imsi.length        = msg->mobileidentity.imsi.numOfValidImsiDigits;
+    imsi.u.num.parity = 0x0f;
+    imsi.length = msg->mobileidentity.imsi.numOfValidImsiDigits;
 
   } else if (msg->mobileidentity.imei.typeofidentity == MOBILE_IDENTITY_IMEI) {
     /*
      * Get the IMEI
      */
-    p_imei            = &imei;
-    imei.u.num.tac1   = msg->mobileidentity.imei.tac1;
-    imei.u.num.tac2   = msg->mobileidentity.imei.tac2;
-    imei.u.num.tac3   = msg->mobileidentity.imei.tac3;
-    imei.u.num.tac4   = msg->mobileidentity.imei.tac4;
-    imei.u.num.tac5   = msg->mobileidentity.imei.tac5;
-    imei.u.num.tac6   = msg->mobileidentity.imei.tac6;
-    imei.u.num.tac7   = msg->mobileidentity.imei.tac7;
-    imei.u.num.tac8   = msg->mobileidentity.imei.tac8;
-    imei.u.num.snr1   = msg->mobileidentity.imei.snr1;
-    imei.u.num.snr2   = msg->mobileidentity.imei.snr2;
-    imei.u.num.snr3   = msg->mobileidentity.imei.snr3;
-    imei.u.num.snr4   = msg->mobileidentity.imei.snr4;
-    imei.u.num.snr5   = msg->mobileidentity.imei.snr5;
-    imei.u.num.snr6   = msg->mobileidentity.imei.snr6;
-    imei.u.num.cdsd   = msg->mobileidentity.imei.cdsd;
+    p_imei = &imei;
+    imei.u.num.tac1 = msg->mobileidentity.imei.tac1;
+    imei.u.num.tac2 = msg->mobileidentity.imei.tac2;
+    imei.u.num.tac3 = msg->mobileidentity.imei.tac3;
+    imei.u.num.tac4 = msg->mobileidentity.imei.tac4;
+    imei.u.num.tac5 = msg->mobileidentity.imei.tac5;
+    imei.u.num.tac6 = msg->mobileidentity.imei.tac6;
+    imei.u.num.tac7 = msg->mobileidentity.imei.tac7;
+    imei.u.num.tac8 = msg->mobileidentity.imei.tac8;
+    imei.u.num.snr1 = msg->mobileidentity.imei.snr1;
+    imei.u.num.snr2 = msg->mobileidentity.imei.snr2;
+    imei.u.num.snr3 = msg->mobileidentity.imei.snr3;
+    imei.u.num.snr4 = msg->mobileidentity.imei.snr4;
+    imei.u.num.snr5 = msg->mobileidentity.imei.snr5;
+    imei.u.num.snr6 = msg->mobileidentity.imei.snr6;
+    imei.u.num.cdsd = msg->mobileidentity.imei.cdsd;
     imei.u.num.parity = msg->mobileidentity.imei.oddeven;
-  } else if (
-      msg->mobileidentity.imeisv.typeofidentity == MOBILE_IDENTITY_IMEISV) {
+  } else if (msg->mobileidentity.imeisv.typeofidentity ==
+             MOBILE_IDENTITY_IMEISV) {
     /*
      * Get the IMEISV
      */
-    p_imeisv            = &imeisv;
-    imeisv.u.num.tac1   = msg->mobileidentity.imeisv.tac1;
-    imeisv.u.num.tac2   = msg->mobileidentity.imeisv.tac2;
-    imeisv.u.num.tac3   = msg->mobileidentity.imeisv.tac3;
-    imeisv.u.num.tac4   = msg->mobileidentity.imeisv.tac4;
-    imeisv.u.num.tac5   = msg->mobileidentity.imeisv.tac5;
-    imeisv.u.num.tac6   = msg->mobileidentity.imeisv.tac6;
-    imeisv.u.num.tac7   = msg->mobileidentity.imeisv.tac7;
-    imeisv.u.num.tac8   = msg->mobileidentity.imeisv.tac8;
-    imeisv.u.num.snr1   = msg->mobileidentity.imeisv.snr1;
-    imeisv.u.num.snr2   = msg->mobileidentity.imeisv.snr2;
-    imeisv.u.num.snr3   = msg->mobileidentity.imeisv.snr3;
-    imeisv.u.num.snr4   = msg->mobileidentity.imeisv.snr4;
-    imeisv.u.num.snr5   = msg->mobileidentity.imeisv.snr5;
-    imeisv.u.num.snr6   = msg->mobileidentity.imeisv.snr6;
-    imeisv.u.num.svn1   = msg->mobileidentity.imeisv.svn1;
-    imeisv.u.num.svn2   = msg->mobileidentity.imeisv.svn2;
+    p_imeisv = &imeisv;
+    imeisv.u.num.tac1 = msg->mobileidentity.imeisv.tac1;
+    imeisv.u.num.tac2 = msg->mobileidentity.imeisv.tac2;
+    imeisv.u.num.tac3 = msg->mobileidentity.imeisv.tac3;
+    imeisv.u.num.tac4 = msg->mobileidentity.imeisv.tac4;
+    imeisv.u.num.tac5 = msg->mobileidentity.imeisv.tac5;
+    imeisv.u.num.tac6 = msg->mobileidentity.imeisv.tac6;
+    imeisv.u.num.tac7 = msg->mobileidentity.imeisv.tac7;
+    imeisv.u.num.tac8 = msg->mobileidentity.imeisv.tac8;
+    imeisv.u.num.snr1 = msg->mobileidentity.imeisv.snr1;
+    imeisv.u.num.snr2 = msg->mobileidentity.imeisv.snr2;
+    imeisv.u.num.snr3 = msg->mobileidentity.imeisv.snr3;
+    imeisv.u.num.snr4 = msg->mobileidentity.imeisv.snr4;
+    imeisv.u.num.snr5 = msg->mobileidentity.imeisv.snr5;
+    imeisv.u.num.snr6 = msg->mobileidentity.imeisv.snr6;
+    imeisv.u.num.svn1 = msg->mobileidentity.imeisv.svn1;
+    imeisv.u.num.svn2 = msg->mobileidentity.imeisv.svn2;
     imeisv.u.num.parity = msg->mobileidentity.imeisv.oddeven;
   } else if (msg->mobileidentity.tmsi.typeofidentity == MOBILE_IDENTITY_TMSI) {
     /*
      * Get the TMSI
      */
     p_tmsi = &tmsi;
-    tmsi   = ((tmsi_t) msg->mobileidentity.tmsi.tmsi[0]) << 24;
-    tmsi |= (((tmsi_t) msg->mobileidentity.tmsi.tmsi[1]) << 16);
-    tmsi |= (((tmsi_t) msg->mobileidentity.tmsi.tmsi[2]) << 8);
-    tmsi |= ((tmsi_t) msg->mobileidentity.tmsi.tmsi[3]);
+    tmsi = ((tmsi_t)msg->mobileidentity.tmsi.tmsi[0]) << 24;
+    tmsi |= (((tmsi_t)msg->mobileidentity.tmsi.tmsi[1]) << 16);
+    tmsi |= (((tmsi_t)msg->mobileidentity.tmsi.tmsi[2]) << 8);
+    tmsi |= ((tmsi_t)msg->mobileidentity.tmsi.tmsi[3]);
   }
 
   /*
    * Execute the identification completion procedure
    */
-  rc = emm_proc_identification_complete(
-      ue_id, p_imsi, p_imei, p_imeisv, (uint32_t*) (p_tmsi));
+  rc = emm_proc_identification_complete(ue_id, p_imsi, p_imei, p_imeisv,
+                                        (uint32_t*)(p_tmsi));
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -1027,11 +1004,10 @@ status_code_e emm_recv_authentication_response(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
 
-  OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - Received Authentication Response message for ue "
-      "id " MME_UE_S1AP_ID_FMT "\n",
-      ue_id);
+  OAILOG_INFO(LOG_NAS_EMM,
+              "EMMAS-SAP - Received Authentication Response message for ue "
+              "id " MME_UE_S1AP_ID_FMT "\n",
+              ue_id);
 
   /*
    * Message checking
@@ -1054,8 +1030,8 @@ status_code_e emm_recv_authentication_response(
   /*
    * Execute the authentication completion procedure
    */
-  rc = emm_proc_authentication_complete(
-      ue_id, msg, EMM_CAUSE_SUCCESS, msg->authenticationresponseparameter);
+  rc = emm_proc_authentication_complete(ue_id, msg, EMM_CAUSE_SUCCESS,
+                                        msg->authenticationresponseparameter);
   /*
    * Free authenticationresponseparameter IE
    */
@@ -1084,11 +1060,10 @@ status_code_e emm_recv_authentication_failure(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
 
-  OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - Received Authentication Failure message for ue "
-      "id " MME_UE_S1AP_ID_FMT "\n",
-      ue_id);
+  OAILOG_INFO(LOG_NAS_EMM,
+              "EMMAS-SAP - Received Authentication Failure message for ue "
+              "id " MME_UE_S1AP_ID_FMT "\n",
+              ue_id);
 
   /*
    * Message checking
@@ -1118,8 +1093,8 @@ status_code_e emm_recv_authentication_failure(
   /*
    * Execute the authentication completion procedure
    */
-  rc = emm_proc_authentication_failure(
-      ue_id, msg->emmcause, msg->authenticationfailureparameter);
+  rc = emm_proc_authentication_failure(ue_id, msg->emmcause,
+                                       msg->authenticationfailureparameter);
   /*
    * Free authenticationfailureparameter IE
    */
@@ -1146,11 +1121,10 @@ status_code_e emm_recv_security_mode_complete(
     mme_ue_s1ap_id_t ue_id, security_mode_complete_msg* msg, int* emm_cause,
     const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - Received Security Mode Complete message for ue "
-      "id " MME_UE_S1AP_ID_FMT "\n",
-      ue_id);
+  OAILOG_INFO(LOG_NAS_EMM,
+              "EMMAS-SAP - Received Security Mode Complete message for ue "
+              "id " MME_UE_S1AP_ID_FMT "\n",
+              ue_id);
   int rc = RETURNok;
   // imeisv_t                                imeisv = {0};
 
@@ -1210,11 +1184,10 @@ status_code_e emm_recv_security_mode_reject(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
 
-  OAILOG_WARNING(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - Received Security Mode Reject message "
-      "(cause=%d) for ue id " MME_UE_S1AP_ID_FMT "\n",
-      msg->emmcause, ue_id);
+  OAILOG_WARNING(LOG_NAS_EMM,
+                 "EMMAS-SAP - Received Security Mode Reject message "
+                 "(cause=%d) for ue id " MME_UE_S1AP_ID_FMT "\n",
+                 msg->emmcause, ue_id);
 
   /*
    * Message checking
@@ -1231,11 +1204,11 @@ status_code_e emm_recv_security_mode_reject(
   }
 
   if (msg->emmcause == EMM_CAUSE_UE_SECURITY_CAP_MISMATCH) {
-    increment_counter(
-        "security_mode_reject_received", 1, 1, "cause", "ue_sec_cap_mismatch");
+    increment_counter("security_mode_reject_received", 1, 1, "cause",
+                      "ue_sec_cap_mismatch");
   } else {
-    increment_counter(
-        "security_mode_reject_received", 1, 1, "cause", "unspecified");
+    increment_counter("security_mode_reject_received", 1, 1, "cause",
+                      "unspecified");
   }
 
   /*
@@ -1268,7 +1241,7 @@ status_code_e emm_recv_detach_accept(mme_ue_s1ap_id_t ue_id, int* emm_cause) {
   int rc = RETURNok;
 
   OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Received Detach Accept  message\n");
-  rc         = emm_proc_detach_accept(ue_id);
+  rc = emm_proc_detach_accept(ue_id);
   *emm_cause = RETURNok == rc ? EMM_CAUSE_SUCCESS : EMM_CAUSE_PROTOCOL_ERROR;
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -1285,7 +1258,7 @@ static int emm_initiate_default_bearer_re_establishment(
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap_t emm_sap = {0};
-  int rc            = RETURNerror;
+  int rc = RETURNerror;
   if (emm_ctx) {
     emm_sap.primitive = EMMAS_ESTABLISH_CNF;
     emm_sap.u.emm_as.u.establish.ue_id =
@@ -1296,9 +1269,9 @@ static int emm_initiate_default_bearer_re_establishment(
         emm_ctx->_security.selected_algorithms.encryption;
     emm_sap.u.emm_as.u.establish.integrity =
         emm_ctx->_security.selected_algorithms.integrity;
-    emm_sap.u.emm_as.u.establish.nas_msg     = NULL;
+    emm_sap.u.emm_as.u.establish.nas_msg = NULL;
     emm_sap.u.emm_as.u.establish.eps_id.guti = &emm_ctx->_guti;
-    rc                                       = emm_sap_send(&emm_sap);
+    rc = emm_sap_send(&emm_sap);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

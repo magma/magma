@@ -23,10 +23,9 @@
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/DaylightSavingTime.h"
 
-int decode_daylight_saving_time(
-    DaylightSavingTime* daylightsavingtime, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
-  int decoded   = 0;
+int decode_daylight_saving_time(DaylightSavingTime* daylightsavingtime,
+                                uint8_t iei, uint8_t* buffer, uint32_t len) {
+  int decoded = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -42,9 +41,8 @@ int decode_daylight_saving_time(
   return decoded;
 }
 
-int encode_daylight_saving_time(
-    DaylightSavingTime* daylightsavingtime, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int encode_daylight_saving_time(DaylightSavingTime* daylightsavingtime,
+                                uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
 
@@ -67,8 +65,8 @@ int encode_daylight_saving_time(
   return encoded;
 }
 
-void dump_daylight_saving_time_xml(
-    DaylightSavingTime* daylightsavingtime, uint8_t iei) {
+void dump_daylight_saving_time_xml(DaylightSavingTime* daylightsavingtime,
+                                   uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Daylight Saving Time>\n");
 
   if (iei > 0)

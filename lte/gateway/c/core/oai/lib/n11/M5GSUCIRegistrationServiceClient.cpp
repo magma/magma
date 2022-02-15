@@ -68,9 +68,8 @@ static void handle_decrypted_imsi_info_ans(
   itti_amf_decrypted_imsi_info_ans_t* amf_app_decrypted_imsi_info_resp;
   amf_app_decrypted_imsi_info_resp =
       &message_p->ittiMsg.amf_app_decrypt_info_resp;
-  memset(
-      amf_app_decrypted_imsi_info_resp, 0,
-      sizeof(itti_amf_decrypted_imsi_info_ans_t));
+  memset(amf_app_decrypted_imsi_info_resp, 0,
+         sizeof(itti_amf_decrypted_imsi_info_ans_t));
 
   magma5g::convert_proto_msg_to_itti_amf_decrypted_imsi_info_ans(
       response, amf_app_decrypted_imsi_info_resp);
@@ -117,11 +116,10 @@ bool AsyncM5GSUCIRegistrationServiceClient::get_decrypt_imsi_info(
   M5GSUCIRegistrationRequest request = create_decrypt_imsi_request(
       ue_pubkey_identifier, ue_pubkey, ciphertext, mac_tag);
 
-  GetSuciInfoRPC(
-      request,
-      [ue_id](const Status& status, const M5GSUCIRegistrationAnswer& response) {
-        handle_decrypted_imsi_info_ans(status, response, ue_id);
-      });
+  GetSuciInfoRPC(request, [ue_id](const Status& status,
+                                  const M5GSUCIRegistrationAnswer& response) {
+    handle_decrypted_imsi_info_ans(status, response, ue_id);
+  });
   return true;
 }
 

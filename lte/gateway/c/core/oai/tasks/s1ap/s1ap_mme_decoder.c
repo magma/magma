@@ -37,15 +37,15 @@
 #include "per_decoder.h"
 
 //-----------------------------------------------------------------------------
-status_code_e s1ap_mme_decode_pdu(
-    S1ap_S1AP_PDU_t* pdu, const_bstring const raw) {
+status_code_e s1ap_mme_decode_pdu(S1ap_S1AP_PDU_t* pdu,
+                                  const_bstring const raw) {
   if ((pdu) && (raw)) {
     if (blength(raw) == 0) {
       OAILOG_DEBUG(LOG_S1AP, "Buffer length is Zero \n");
     }
-    asn_dec_rval_t dec_ret = aper_decode(
-        NULL, &asn_DEF_S1ap_S1AP_PDU, (void**) &pdu, bdata(raw), blength(raw),
-        0, 0);
+    asn_dec_rval_t dec_ret =
+        aper_decode(NULL, &asn_DEF_S1ap_S1AP_PDU, (void**)&pdu, bdata(raw),
+                    blength(raw), 0, 0);
 
     if (dec_ret.code != RC_OK) {
       OAILOG_ERROR(LOG_S1AP, "Failed to decode PDU\n");

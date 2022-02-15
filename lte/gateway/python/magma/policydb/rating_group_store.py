@@ -40,8 +40,9 @@ class RatingGroupsDict(RedisHashDict):
 
     def send_update_notification(self):
         """
-        Use Redis pub/sub channels to send notifications. Subscribers can listen
-        to this channel to know when an update is done to the policy store
+        Use Redis pub/sub channels to send notifications. Subscribers can
+        listen to this channel to know when an update is done to the policy
+        store
         """
         self.redis.publish(self._NOTIFY_CHANNEL, "Stream Update")
 

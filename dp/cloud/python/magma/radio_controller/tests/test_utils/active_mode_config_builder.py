@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional
+
 from dp.protos.active_mode_pb2 import (
     ActiveModeConfig,
     Cbsd,
@@ -10,6 +12,7 @@ from dp.protos.active_mode_pb2 import (
     Grant,
     GrantState,
 )
+from google.protobuf.wrappers_pb2 import FloatValue
 
 
 class ActiveModeConfigBuilder:
@@ -25,6 +28,7 @@ class ActiveModeConfigBuilder:
         self.pending_requests = None
         self.last_seen_timestamp = None
         self.eirp_capabilities = None
+        self.is_deleted = False
 
     def build(self) -> ActiveModeConfig:
         cbsd = Cbsd(
@@ -38,11 +42,16 @@ class ActiveModeConfigBuilder:
             pending_requests=self.pending_requests,
             last_seen_timestamp=self.last_seen_timestamp,
             eirp_capabilities=self.eirp_capabilities,
+            is_deleted=self.is_deleted,
         )
         return ActiveModeConfig(
             desired_state=self.desired_state,
             cbsd=cbsd,
         )
+
+    def deleted(self) -> ActiveModeConfigBuilder:
+        self.is_deleted = True
+        return self
 
     def with_desired_state(self, state: CbsdState) -> ActiveModeConfigBuilder:
         self.desired_state = state
@@ -92,17 +101,21 @@ class ActiveModeConfigBuilder:
     def with_channel(
         self,
         low: int, high: int,
-        max_eirp: float = None, last_eirp: float = None,
+        max_eirp: Optional[float] = None, last_eirp: Optional[float] = None,
     ) -> ActiveModeConfigBuilder:
         if not self.channels:
             self.channels = []
         channel = Channel(
             frequency_range=FrequencyRange(low=low, high=high),
-            max_eirp=max_eirp,
-            last_eirp=last_eirp,
+            max_eirp=self.make_optional_float(max_eirp),
+            last_eirp=self.make_optional_float(last_eirp),
         )
         self.channels.append(channel)
         return self
+
+    @staticmethod
+    def make_optional_float(value: Optional[float] = None) -> FloatValue:
+        return FloatValue(value=value) if value is not None else None
 
     def with_pending_request(self, payload: str) -> ActiveModeConfigBuilder:
         if not self.pending_requests:

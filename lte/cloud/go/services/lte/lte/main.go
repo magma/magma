@@ -25,12 +25,13 @@ import (
 	protected_servicers "magma/lte/cloud/go/services/lte/servicers/protected"
 	lte_storage "magma/lte/cloud/go/services/lte/storage"
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/obsidian/swagger"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
+	swagger_servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/analytics"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
+	analytics_servicer "magma/orc8r/cloud/go/services/analytics/servicers/protected"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	provider_protos "magma/orc8r/cloud/go/services/streamer/protos"
@@ -50,11 +51,11 @@ func main() {
 	var serviceConfig lte_service.Config
 	config.MustGetStructuredServiceConfig(lte.ModuleName, lte_service.ServiceName, &serviceConfig)
 
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer(serviceConfig))
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, protected_servicers.NewBuilderServicer(serviceConfig))
 	provider_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
-	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
+	state_protos.RegisterIndexerServer(srv.GrpcServer, protected_servicers.NewIndexerServicer())
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(lte_service.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(lte_service.ServiceName))
 
 	// Init storage
 	db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
@@ -72,7 +73,7 @@ func main() {
 	promQLClient := analytics.GetPrometheusClient()
 	userStateManager := calculations.NewUserStateManager(promQLClient, "ue_connected")
 	calcs := lte_analytics.GetAnalyticsCalculations(&serviceConfig.Analytics)
-	collectorServicer := analytics.NewCollectorServicer(&serviceConfig.Analytics, promQLClient, calcs, userStateManager)
+	collectorServicer := analytics_servicer.NewCollectorServicer(&serviceConfig.Analytics, promQLClient, calcs, userStateManager)
 	protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
 
 	err = srv.Run()

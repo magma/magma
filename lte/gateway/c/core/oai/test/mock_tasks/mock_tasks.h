@@ -27,7 +27,7 @@ extern "C" {
 
 const task_info_t tasks_info[] = {
     {THREAD_NULL, "TASK_UNKNOWN", "ipc://IPC_TASK_UNKNOWN"},
-#define TASK_DEF(tHREADiD)                                                     \
+#define TASK_DEF(tHREADiD) \
   {THREAD_##tHREADiD, #tHREADiD, "ipc://IPC_" #tHREADiD},
 #include "lte/gateway/c/core/oai/include/tasks_def.h"
 #undef TASK_DEF
@@ -46,26 +46,21 @@ const message_info_t messages_info[] = {
 #define SLEEP_AT_INITIALIZATION_TIME_MS 500
 class MockS1apHandler {
  public:
-  MOCK_METHOD1(
-      s1ap_generate_downlink_nas_transport,
-      void(itti_s1ap_nas_dl_data_req_t cb_req));
+  MOCK_METHOD1(s1ap_generate_downlink_nas_transport,
+               void(itti_s1ap_nas_dl_data_req_t cb_req));
   MOCK_METHOD1(s1ap_handle_conn_est_cnf, void(bstring nas_pdu));
   MOCK_METHOD0(s1ap_handle_ue_context_release_command, void());
   MOCK_METHOD0(s1ap_generate_s1ap_e_rab_setup_req, void());
   MOCK_METHOD0(s1ap_generate_s1ap_e_rab_rel_cmd, void());
   MOCK_METHOD0(s1ap_handle_paging_request, void());
-  MOCK_METHOD1(
-      s1ap_handle_path_switch_req_ack,
-      bool(itti_s1ap_path_switch_request_ack_t path_switch_ack));
-  MOCK_METHOD1(
-      s1ap_handle_path_switch_req_failure,
-      bool(itti_s1ap_path_switch_request_failure_t path_switch_fail));
-  MOCK_METHOD1(
-      s1ap_mme_handle_handover_request,
-      bool(itti_mme_app_handover_request_t mme_handover_request));
-  MOCK_METHOD1(
-      s1ap_mme_handle_handover_command,
-      bool(itti_mme_app_handover_command_t mme_handover_request));
+  MOCK_METHOD1(s1ap_handle_path_switch_req_ack,
+               bool(itti_s1ap_path_switch_request_ack_t path_switch_ack));
+  MOCK_METHOD1(s1ap_handle_path_switch_req_failure,
+               bool(itti_s1ap_path_switch_request_failure_t path_switch_fail));
+  MOCK_METHOD1(s1ap_mme_handle_handover_request,
+               bool(itti_mme_app_handover_request_t mme_handover_request));
+  MOCK_METHOD1(s1ap_mme_handle_handover_command,
+               bool(itti_mme_app_handover_command_t mme_handover_request));
 };
 
 class MockMmeAppHandler {
@@ -73,26 +68,24 @@ class MockMmeAppHandler {
   MOCK_METHOD0(mme_app_handle_initial_ue_message, void());
   MOCK_METHOD0(mme_app_handle_s1ap_ue_context_release_req, void());
   MOCK_METHOD0(mme_app_handle_create_sess_resp, void());
-  MOCK_METHOD1(
-      mme_app_handle_nw_init_ded_bearer_actv_req,
-      bool(itti_s11_nw_init_actv_bearer_request_t cb_req));
-  MOCK_METHOD1(
-      mme_app_handle_nw_init_bearer_deactv_req,
-      bool(itti_s11_nw_init_deactv_bearer_request_t db_req));
+  MOCK_METHOD1(mme_app_handle_nw_init_ded_bearer_actv_req,
+               bool(itti_s11_nw_init_actv_bearer_request_t cb_req));
+  MOCK_METHOD1(mme_app_handle_nw_init_bearer_deactv_req,
+               bool(itti_s11_nw_init_deactv_bearer_request_t db_req));
   MOCK_METHOD0(mme_app_handle_modify_bearer_rsp, void());
-  MOCK_METHOD1(
-      mme_app_handle_delete_sess_rsp,
-      bool(itti_s11_delete_session_response_t ds_rsp));
+  MOCK_METHOD1(mme_app_handle_delete_sess_rsp,
+               bool(itti_s11_delete_session_response_t ds_rsp));
   MOCK_METHOD0(nas_proc_dl_transfer_rej, void());
   MOCK_METHOD0(mme_app_handle_release_access_bearers_resp, void());
   MOCK_METHOD0(mme_app_handle_handover_required, void());
   MOCK_METHOD0(mme_app_handle_initial_context_setup_failure, void());
   MOCK_METHOD0(mme_app_handle_enb_reset_req, void());
   MOCK_METHOD0(mme_app_handle_e_rab_setup_rsp, void());
+  MOCK_METHOD0(mme_app_handle_s6a_cancel_location_req, void());
+  MOCK_METHOD0(mme_app_handle_s6a_reset_req, void());
   MOCK_METHOD0(mme_app_handle_path_switch_request, void());
-  MOCK_METHOD1(
-      mme_app_handle_suspend_acknowledge,
-      bool(itti_s11_suspend_acknowledge_t suspend_ack));
+  MOCK_METHOD1(mme_app_handle_suspend_acknowledge,
+               bool(itti_s11_suspend_acknowledge_t suspend_ack));
 };
 
 class MockSctpHandler {
@@ -105,6 +98,7 @@ class MockS6aHandler {
   MOCK_METHOD0(s6a_viface_authentication_info_req, void());
   MOCK_METHOD0(s6a_viface_update_location_req, void());
   MOCK_METHOD0(s6a_viface_purge_ue, void());
+  MOCK_METHOD0(s6a_cancel_location_ans, void());
 };
 
 class MockSpgwHandler {
@@ -123,18 +117,14 @@ class MockService303Handler {
 
 class MockS8Handler {
  public:
-  MOCK_METHOD1(
-      sgw_s8_handle_create_bearer_request,
-      bool(s8_create_bearer_request_t cb_req));
-  MOCK_METHOD1(
-      sgw_s8_handle_delete_bearer_request,
-      bool(s8_delete_bearer_request_t db_req));
-  MOCK_METHOD1(
-      sgw_s8_handle_create_session_response,
-      bool(s8_create_session_response_t cs_rsp));
-  MOCK_METHOD1(
-      sgw_s8_handle_delete_session_response,
-      bool(s8_delete_session_response_t ds_rsp));
+  MOCK_METHOD1(sgw_s8_handle_create_bearer_request,
+               bool(s8_create_bearer_request_t cb_req));
+  MOCK_METHOD1(sgw_s8_handle_delete_bearer_request,
+               bool(s8_delete_bearer_request_t db_req));
+  MOCK_METHOD1(sgw_s8_handle_create_session_response,
+               bool(s8_create_session_response_t cs_rsp));
+  MOCK_METHOD1(sgw_s8_handle_delete_session_response,
+               bool(s8_delete_session_response_t ds_rsp));
 };
 
 void start_mock_ha_task();

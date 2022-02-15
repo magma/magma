@@ -43,10 +43,10 @@ status_code_e mme_app_send_s6a_purge_ue_req(
     mme_app_desc_t* mme_app_desc_p,
     struct ue_mm_context_s* const ue_context_pP) {
   struct ue_mm_context_s* ue_context_p = NULL;
-  uint64_t imsi                        = 0;
-  MessageDef* message_p                = NULL;
-  s6a_purge_ue_req_t* s6a_pur_p        = NULL;
-  int rc                               = RETURNok;
+  uint64_t imsi = 0;
+  MessageDef* message_p = NULL;
+  s6a_purge_ue_req_t* s6a_pur_p = NULL;
+  int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   imsi = ue_context_pP->emm_context._imsi64;
@@ -54,8 +54,8 @@ status_code_e mme_app_send_s6a_purge_ue_req(
 
   if ((ue_context_p = mme_ue_context_exists_imsi(
            &mme_app_desc_p->mme_ue_contexts, imsi)) == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "That's embarrassing as we don't know this IMSI\n");
+    OAILOG_ERROR(LOG_MME_APP,
+                 "That's embarrassing as we don't know this IMSI\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -70,12 +70,12 @@ status_code_e mme_app_send_s6a_purge_ue_req(
   }
 
   s6a_pur_p = &message_p->ittiMsg.s6a_purge_ue_req;
-  memset((void*) s6a_pur_p, 0, sizeof(s6a_purge_ue_req_t));
-  IMSI64_TO_STRING(
-      imsi, s6a_pur_p->imsi, ue_context_p->emm_context._imsi.length);
+  memset((void*)s6a_pur_p, 0, sizeof(s6a_purge_ue_req_t));
+  IMSI64_TO_STRING(imsi, s6a_pur_p->imsi,
+                   ue_context_p->emm_context._imsi.length);
   s6a_pur_p->imsi_length = strlen(s6a_pur_p->imsi);
-  OAILOG_INFO(
-      LOG_MME_APP, "Sent PUR to S6a TASK for IMSI " IMSI_64_FMT "\n", imsi);
+  OAILOG_INFO(LOG_MME_APP, "Sent PUR to S6a TASK for IMSI " IMSI_64_FMT "\n",
+              imsi);
 
   rc = send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S6A, message_p);
 
@@ -88,23 +88,22 @@ status_code_e mme_app_handle_s6a_purge_ue_ans(
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (pua_pP == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "Invalid S6a Purge UE Answer ITTI message received\n");
+    OAILOG_ERROR(LOG_MME_APP,
+                 "Invalid S6a Purge UE Answer ITTI message received\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  IMSI_STRING_TO_IMSI64((char*) pua_pP->imsi, &imsi);
+  IMSI_STRING_TO_IMSI64((char*)pua_pP->imsi, &imsi);
   OAILOG_INFO(LOG_MME_APP, "Received PUA for imsi " IMSI_64_FMT "\n", imsi);
 
   if (pua_pP->result.present == S6A_RESULT_BASE) {
     if (pua_pP->result.choice.base != DIAMETER_SUCCESS) {
-      OAILOG_WARNING(
-          LOG_MME_APP,
-          "PUR/PUA procedure returned non success "
-          "(PUA.result.choice.base=%d)\n",
-          pua_pP->result.choice.base);
+      OAILOG_WARNING(LOG_MME_APP,
+                     "PUR/PUA procedure returned non success "
+                     "(PUA.result.choice.base=%d)\n",
+                     pua_pP->result.choice.base);
     } else {
-      OAILOG_INFO(
-          LOG_MME_APP, "Received PUA Success for imsi " IMSI_64_FMT "\n", imsi);
+      OAILOG_INFO(LOG_MME_APP,
+                  "Received PUA Success for imsi " IMSI_64_FMT "\n", imsi);
     }
   } else {
     /*
