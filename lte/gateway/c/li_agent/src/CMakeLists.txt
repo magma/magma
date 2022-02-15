@@ -77,7 +77,7 @@ add_library(LI_AGENT
 
 target_link_libraries(LI_AGENT
     SERVICE303_LIB SERVICE_REGISTRY MAGMA_CONFIG ASYNC_GRPC MAGMA_LOGGING
-    glog pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf
+    pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf
     mnl tins pcap ssl crypto uuid
     )
 
