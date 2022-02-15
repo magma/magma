@@ -424,7 +424,8 @@ TEST_F(SessiondTest, end_to_end_success) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(IMSI1, ipv4_addrs, "rule1", 512, 512, record_list->Add());
-  create_rule_record(IMSI1, ipv6_addrs, "rule2", 512, 0, record_list->Add());
+  create_rule_record_ipv6(IMSI1, ipv6_addrs, "rule2", 512, 0,
+                          record_list->Add());
   create_rule_record(IMSI1, ipv4_addrs, "rule3", 32, 32, record_list->Add());
   send_update_pipelined_table(stub, table);
 
