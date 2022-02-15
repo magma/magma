@@ -178,7 +178,8 @@ class SPGWAppProcedureTest : public ::testing::Test {
       .mbr = {.br_ul = 200000000, .br_dl = 100000000}};
 
   void create_default_session(spgw_state_t* spgw_state, teid_t *ue_sgw_teid);
-
+  ebi_t activate_dedicated_bearer(spgw_state_t* spgw_state, s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p, teid_t ue_sgw_teid);
+  void deactivate_dedicated_bearer(spgw_state_t* spgw_state, teid_t ue_sgw_teid, ebi_t ded_eps_bearer_id);
 };
 
 void SPGWAppProcedureTest :: create_default_session(spgw_state_t* spgw_state, teid_t *ue_sgw_teid) {
@@ -256,6 +257,111 @@ void SPGWAppProcedureTest :: create_default_session(spgw_state_t* spgw_state, te
 
   // verify that eNB address information exists
   ASSERT_TRUE(is_num_s1_bearers_valid(*ue_sgw_teid, 1));
+}
+
+
+ebi_t SPGWAppProcedureTest :: activate_dedicated_bearer(spgw_state_t* spgw_state, s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p, teid_t ue_sgw_teid) {
+  status_code_e return_code = RETURNerror;
+  // send network initiated dedicated bearer activation request from Session
+  // Manager
+  itti_gx_nw_init_actv_bearer_request_t sample_gx_nw_init_ded_bearer_actv_req =
+      {};
+  gtpv2c_cause_value_t failed_cause = REQUEST_ACCEPTED;
+  fill_nw_initiated_activate_bearer_request(
+      &sample_gx_nw_init_ded_bearer_actv_req, test_imsi_str,
+      DEFAULT_EPS_BEARER_ID, sample_dedicated_bearer_qos);
+
+  // check that MME gets a bearer activation request
+  EXPECT_CALL(
+      *mme_app_handler, mme_app_handle_nw_init_ded_bearer_actv_req(
+                            check_params_in_actv_bearer_req(
+                                sample_gx_nw_init_ded_bearer_actv_req.lbi,
+                                sample_gx_nw_init_ded_bearer_actv_req.ul_tft)))
+      .Times(1);
+
+  return_code = spgw_handle_nw_initiated_bearer_actv_req(
+      spgw_state, &sample_gx_nw_init_ded_bearer_actv_req, test_imsi64,
+      &failed_cause);
+
+  EXPECT_EQ(return_code, RETURNok);
+
+  // check number of pending procedures
+  EXPECT_EQ(
+      get_num_pending_create_bearer_procedures(
+          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
+      1);
+
+  // fetch new SGW teid for the pending bearer procedure
+  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(
+      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information);
+  EXPECT_TRUE(pgw_ni_cbr_proc != nullptr);
+  sgw_eps_bearer_entry_wrapper_t* spgw_eps_bearer_entry_p =
+      LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
+  teid_t ue_ded_bearer_sgw_teid =
+      spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up;
+
+  // send bearer activation response from MME
+  ebi_t ded_eps_bearer_id = DEFAULT_EPS_BEARER_ID + 1;
+  itti_s11_nw_init_actv_bearer_rsp_t sample_nw_init_ded_bearer_actv_resp = {};
+  fill_nw_initiated_activate_bearer_response(
+      &sample_nw_init_ded_bearer_actv_resp, DEFAULT_MME_S11_TEID, ue_sgw_teid,
+      ue_ded_bearer_sgw_teid, DEFAULT_ENB_GTP_TEID + 1,
+      ded_eps_bearer_id, REQUEST_ACCEPTED, test_plmn);
+  return_code = sgw_handle_nw_initiated_actv_bearer_rsp(
+      &sample_nw_init_ded_bearer_actv_resp, test_imsi64);
+
+  EXPECT_EQ(return_code, RETURNok);
+
+  // check that bearer is created
+  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
+
+  // check that no pending procedure is left
+  EXPECT_EQ(
+      get_num_pending_create_bearer_procedures(
+          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
+      0);
+  return ded_eps_bearer_id;
+}
+
+void SPGWAppProcedureTest :: deactivate_dedicated_bearer(spgw_state_t* spgw_state, teid_t ue_sgw_teid, ebi_t ded_eps_bearer_id) {
+  status_code_e return_code = RETURNerror;
+  // send deactivate request for dedicated bearer from Session Manager
+  itti_gx_nw_init_deactv_bearer_request_t
+      sample_gx_nw_init_ded_bearer_deactv_req = {};
+  fill_nw_initiated_deactivate_bearer_request(
+      &sample_gx_nw_init_ded_bearer_deactv_req, test_imsi_str,
+      DEFAULT_EPS_BEARER_ID, ded_eps_bearer_id);
+
+  // check that MME gets a bearer deactivation request
+  EXPECT_CALL(
+      *mme_app_handler,
+      mme_app_handle_nw_init_bearer_deactv_req(
+          check_params_in_deactv_bearer_req(
+              sample_gx_nw_init_ded_bearer_deactv_req.no_of_bearers,
+              sample_gx_nw_init_ded_bearer_deactv_req.ebi)))
+      .Times(1);
+
+  return_code = spgw_handle_nw_initiated_bearer_deactv_req(
+      &sample_gx_nw_init_ded_bearer_deactv_req, test_imsi64);
+
+  EXPECT_EQ(return_code, RETURNok);
+
+  // send a delete dedicated bearer response from MME
+  itti_s11_nw_init_deactv_bearer_rsp_t sample_nw_init_ded_bearer_deactv_resp =
+      {};
+  int num_bearers_to_delete   = 1;
+  ebi_t eps_bearer_id_array[] = {ded_eps_bearer_id};
+
+  fill_nw_initiated_deactivate_bearer_response(
+      &sample_nw_init_ded_bearer_deactv_resp, test_imsi64, false,
+      REQUEST_ACCEPTED, eps_bearer_id_array, num_bearers_to_delete,
+      ue_sgw_teid);
+  return_code = sgw_handle_nw_initiated_deactv_bearer_rsp(
+      spgw_state, &sample_nw_init_ded_bearer_deactv_resp, test_imsi64);
+  EXPECT_EQ(return_code, RETURNok);
+
+  // check that bearer is deleted
+  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
 }
 
 TEST_F(SPGWAppProcedureTest, TestCreateSessionSuccess) {
@@ -505,63 +611,8 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivation) {
   s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
-  // send network initiated dedicated bearer activation request from Session
-  // Manager
-  itti_gx_nw_init_actv_bearer_request_t sample_gx_nw_init_ded_bearer_actv_req =
-      {};
-  gtpv2c_cause_value_t failed_cause = REQUEST_ACCEPTED;
-  fill_nw_initiated_activate_bearer_request(
-      &sample_gx_nw_init_ded_bearer_actv_req, test_imsi_str,
-      DEFAULT_EPS_BEARER_ID, sample_dedicated_bearer_qos);
-
-  // check that MME gets a bearer activation request
-  EXPECT_CALL(
-      *mme_app_handler, mme_app_handle_nw_init_ded_bearer_actv_req(
-                            check_params_in_actv_bearer_req(
-                                sample_gx_nw_init_ded_bearer_actv_req.lbi,
-                                sample_gx_nw_init_ded_bearer_actv_req.ul_tft)))
-      .Times(1);
-
-  return_code = spgw_handle_nw_initiated_bearer_actv_req(
-      spgw_state, &sample_gx_nw_init_ded_bearer_actv_req, test_imsi64,
-      &failed_cause);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check number of pending procedures
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      1);
-
-  // fetch new SGW teid for the pending bearer procedure
-  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information);
-  EXPECT_TRUE(pgw_ni_cbr_proc != nullptr);
-  sgw_eps_bearer_entry_wrapper_t* spgw_eps_bearer_entry_p =
-      LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
-  teid_t ue_ded_bearer_sgw_teid =
-      spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up;
-
-  // send bearer activation response from MME
-  itti_s11_nw_init_actv_bearer_rsp_t sample_nw_init_ded_bearer_actv_resp = {};
-  fill_nw_initiated_activate_bearer_response(
-      &sample_nw_init_ded_bearer_actv_resp, DEFAULT_MME_S11_TEID, ue_sgw_teid,
-      ue_ded_bearer_sgw_teid, DEFAULT_ENB_GTP_TEID + 1,
-      DEFAULT_EPS_BEARER_ID + 1, REQUEST_ACCEPTED, test_plmn);
-  return_code = sgw_handle_nw_initiated_actv_bearer_rsp(
-      &sample_nw_init_ded_bearer_actv_resp, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check that bearer is created
-  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
-
-  // check that no pending procedure is left
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      0);
+  // Activate dedicated bearer
+  ebi_t ded_eps_bearer_id = activate_dedicated_bearer(spgw_state, spgw_eps_bearer_ctxt_info_p, ue_sgw_teid);
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
@@ -578,102 +629,11 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivation) {
   s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
-  // send network initiated dedicated bearer activation request from Session
-  // Manager
-  itti_gx_nw_init_actv_bearer_request_t sample_gx_nw_init_ded_bearer_actv_req =
-      {};
-  gtpv2c_cause_value_t failed_cause = REQUEST_ACCEPTED;
-  fill_nw_initiated_activate_bearer_request(
-      &sample_gx_nw_init_ded_bearer_actv_req, test_imsi_str,
-      DEFAULT_EPS_BEARER_ID, sample_dedicated_bearer_qos);
+  // Activate dedicated bearer
+  ebi_t ded_eps_bearer_id = activate_dedicated_bearer(spgw_state, spgw_eps_bearer_ctxt_info_p, ue_sgw_teid);
 
-  // check that MME gets a bearer activation request
-  EXPECT_CALL(
-      *mme_app_handler, mme_app_handle_nw_init_ded_bearer_actv_req(
-                            check_params_in_actv_bearer_req(
-                                sample_gx_nw_init_ded_bearer_actv_req.lbi,
-                                sample_gx_nw_init_ded_bearer_actv_req.ul_tft)))
-      .Times(1);
-
-  return_code = spgw_handle_nw_initiated_bearer_actv_req(
-      spgw_state, &sample_gx_nw_init_ded_bearer_actv_req, test_imsi64,
-      &failed_cause);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check number of pending procedures
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      1);
-
-  // fetch new SGW teid for the pending bearer procedure
-  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information);
-  EXPECT_TRUE(pgw_ni_cbr_proc != nullptr);
-  sgw_eps_bearer_entry_wrapper_t* spgw_eps_bearer_entry_p =
-      LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
-  teid_t ue_ded_bearer_sgw_teid =
-      spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up;
-
-  // send bearer activation response from MME
-  ebi_t ded_eps_bearer_id = DEFAULT_EPS_BEARER_ID + 1;
-  itti_s11_nw_init_actv_bearer_rsp_t sample_nw_init_ded_bearer_actv_resp = {};
-  fill_nw_initiated_activate_bearer_response(
-      &sample_nw_init_ded_bearer_actv_resp, DEFAULT_MME_S11_TEID, ue_sgw_teid,
-      ue_ded_bearer_sgw_teid, DEFAULT_ENB_GTP_TEID + 1, ded_eps_bearer_id,
-      REQUEST_ACCEPTED, test_plmn);
-  return_code = sgw_handle_nw_initiated_actv_bearer_rsp(
-      &sample_nw_init_ded_bearer_actv_resp, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check that bearer is created
-  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
-
-  // check that no pending procedure is left
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      0);
-
-  // send deactivate request for dedicated bearer from Session Manager
-  itti_gx_nw_init_deactv_bearer_request_t
-      sample_gx_nw_init_ded_bearer_deactv_req = {};
-  fill_nw_initiated_deactivate_bearer_request(
-      &sample_gx_nw_init_ded_bearer_deactv_req, test_imsi_str,
-      DEFAULT_EPS_BEARER_ID, ded_eps_bearer_id);
-
-  // check that MME gets a bearer deactivation request
-  EXPECT_CALL(
-      *mme_app_handler,
-      mme_app_handle_nw_init_bearer_deactv_req(
-          check_params_in_deactv_bearer_req(
-              sample_gx_nw_init_ded_bearer_deactv_req.no_of_bearers,
-              sample_gx_nw_init_ded_bearer_deactv_req.ebi)))
-      .Times(1);
-
-  return_code = spgw_handle_nw_initiated_bearer_deactv_req(
-      &sample_gx_nw_init_ded_bearer_deactv_req, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // send a delete dedicated bearer response from MME
-  itti_s11_nw_init_deactv_bearer_rsp_t sample_nw_init_ded_bearer_deactv_resp =
-      {};
-  int num_bearers_to_delete   = 1;
-  ebi_t eps_bearer_id_array[] = {ded_eps_bearer_id};
-
-  fill_nw_initiated_deactivate_bearer_response(
-      &sample_nw_init_ded_bearer_deactv_resp, test_imsi64, false,
-      REQUEST_ACCEPTED, eps_bearer_id_array, num_bearers_to_delete,
-      ue_sgw_teid);
-  return_code = sgw_handle_nw_initiated_deactv_bearer_rsp(
-      spgw_state, &sample_nw_init_ded_bearer_deactv_resp, test_imsi64);
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check that bearer is deleted
-  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
+  // Deactivate dedicated bearer
+  deactivate_dedicated_bearer(spgw_state, ue_sgw_teid, ded_eps_bearer_id);
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
@@ -696,64 +656,8 @@ TEST_F(
            .pdn_connection,
       DEFAULT_EPS_BEARER_ID);
 
-  // send network initiated dedicated bearer activation request from Session
-  // Manager
-  itti_gx_nw_init_actv_bearer_request_t sample_gx_nw_init_ded_bearer_actv_req =
-      {};
-  gtpv2c_cause_value_t failed_cause = REQUEST_ACCEPTED;
-  fill_nw_initiated_activate_bearer_request(
-      &sample_gx_nw_init_ded_bearer_actv_req, test_imsi_str,
-      DEFAULT_EPS_BEARER_ID, sample_dedicated_bearer_qos);
-
-  // check that MME gets a bearer activation request
-  EXPECT_CALL(
-      *mme_app_handler, mme_app_handle_nw_init_ded_bearer_actv_req(
-                            check_params_in_actv_bearer_req(
-                                sample_gx_nw_init_ded_bearer_actv_req.lbi,
-                                sample_gx_nw_init_ded_bearer_actv_req.ul_tft)))
-      .Times(1);
-
-  return_code = spgw_handle_nw_initiated_bearer_actv_req(
-      spgw_state, &sample_gx_nw_init_ded_bearer_actv_req, test_imsi64,
-      &failed_cause);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check number of pending procedures
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      1);
-
-  // fetch new SGW teid for the pending bearer procedure
-  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information);
-  EXPECT_TRUE(pgw_ni_cbr_proc != nullptr);
-  sgw_eps_bearer_entry_wrapper_t* spgw_eps_bearer_entry_p =
-      LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
-  teid_t ue_ded_bearer_sgw_teid =
-      spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up;
-
-  // send bearer activation response from MME
-  ebi_t ded_eps_bearer_id = DEFAULT_EPS_BEARER_ID + 1;
-  itti_s11_nw_init_actv_bearer_rsp_t sample_nw_init_ded_bearer_actv_resp = {};
-  fill_nw_initiated_activate_bearer_response(
-      &sample_nw_init_ded_bearer_actv_resp, DEFAULT_MME_S11_TEID, ue_sgw_teid,
-      ue_ded_bearer_sgw_teid, DEFAULT_ENB_GTP_TEID + 1, ded_eps_bearer_id,
-      REQUEST_ACCEPTED, test_plmn);
-  return_code = sgw_handle_nw_initiated_actv_bearer_rsp(
-      &sample_nw_init_ded_bearer_actv_resp, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check that bearer is created
-  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
-
-  // check that no pending procedure is left
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      0);
+  // Activate dedicated bearer
+  ebi_t ded_eps_bearer_id = activate_dedicated_bearer(spgw_state, spgw_eps_bearer_ctxt_info_p, ue_sgw_teid);
 
   // send deactivate request for dedicated bearer from Session Manager
   itti_gx_nw_init_deactv_bearer_request_t
@@ -850,64 +754,8 @@ TEST_F(SPGWAppProcedureTest, TestDeleteBearerCommand) {
            .pdn_connection,
       DEFAULT_EPS_BEARER_ID);
 
-  // send network initiated dedicated bearer activation request from Session
-  // Manager
-  itti_gx_nw_init_actv_bearer_request_t sample_gx_nw_init_ded_bearer_actv_req =
-      {};
-  gtpv2c_cause_value_t failed_cause = REQUEST_ACCEPTED;
-  fill_nw_initiated_activate_bearer_request(
-      &sample_gx_nw_init_ded_bearer_actv_req, test_imsi_str,
-      DEFAULT_EPS_BEARER_ID, sample_dedicated_bearer_qos);
-
-  // check that MME gets a bearer activation request
-  EXPECT_CALL(
-      *mme_app_handler, mme_app_handle_nw_init_ded_bearer_actv_req(
-                            check_params_in_actv_bearer_req(
-                                sample_gx_nw_init_ded_bearer_actv_req.lbi,
-                                sample_gx_nw_init_ded_bearer_actv_req.ul_tft)))
-      .Times(1);
-
-  return_code = spgw_handle_nw_initiated_bearer_actv_req(
-      spgw_state, &sample_gx_nw_init_ded_bearer_actv_req, test_imsi64,
-      &failed_cause);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check number of pending procedures
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      1);
-
-  // fetch new SGW teid for the pending bearer procedure
-  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information);
-  EXPECT_TRUE(pgw_ni_cbr_proc != nullptr);
-  sgw_eps_bearer_entry_wrapper_t* spgw_eps_bearer_entry_p =
-      LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
-  teid_t ue_ded_bearer_sgw_teid =
-      spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up;
-
-  // send bearer activation response from MME
-  ebi_t ded_eps_bearer_id = DEFAULT_EPS_BEARER_ID + 1;
-  itti_s11_nw_init_actv_bearer_rsp_t sample_nw_init_ded_bearer_actv_resp = {};
-  fill_nw_initiated_activate_bearer_response(
-      &sample_nw_init_ded_bearer_actv_resp, DEFAULT_MME_S11_TEID, ue_sgw_teid,
-      ue_ded_bearer_sgw_teid, DEFAULT_ENB_GTP_TEID + 1, ded_eps_bearer_id,
-      REQUEST_ACCEPTED, test_plmn);
-  return_code = sgw_handle_nw_initiated_actv_bearer_rsp(
-      &sample_nw_init_ded_bearer_actv_resp, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check that bearer is created
-  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
-
-  // check that no pending procedure is left
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      0);
+  // Activate dedicated bearer
+  ebi_t ded_eps_bearer_id = activate_dedicated_bearer(spgw_state, spgw_eps_bearer_ctxt_info_p, ue_sgw_teid);
 
   // create and send delete bearer command to SPGW task
   itti_s11_delete_bearer_command_t s11_delete_bearer_command = {};
@@ -1029,7 +877,7 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivationInvalidImsiLbi) {
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
-TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivationInvalidImsi) {
+TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivationInvalidImsiLbi) {
   spgw_state_t* spgw_state  = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
@@ -1045,64 +893,8 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivationInvalidImsi) {
            .pdn_connection,
       DEFAULT_EPS_BEARER_ID);
 
-  // send network initiated dedicated bearer activation request from Session
-  // Manager
-  itti_gx_nw_init_actv_bearer_request_t sample_gx_nw_init_ded_bearer_actv_req =
-      {};
-  gtpv2c_cause_value_t failed_cause = REQUEST_ACCEPTED;
-  fill_nw_initiated_activate_bearer_request(
-      &sample_gx_nw_init_ded_bearer_actv_req, test_imsi_str,
-      DEFAULT_EPS_BEARER_ID, sample_dedicated_bearer_qos);
-
-  // check that MME gets a bearer activation request
-  EXPECT_CALL(
-      *mme_app_handler, mme_app_handle_nw_init_ded_bearer_actv_req(
-                            check_params_in_actv_bearer_req(
-                                sample_gx_nw_init_ded_bearer_actv_req.lbi,
-                                sample_gx_nw_init_ded_bearer_actv_req.ul_tft)))
-      .Times(1);
-
-  return_code = spgw_handle_nw_initiated_bearer_actv_req(
-      spgw_state, &sample_gx_nw_init_ded_bearer_actv_req, test_imsi64,
-      &failed_cause);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check number of pending procedures
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      1);
-
-  // fetch new SGW teid for the pending bearer procedure
-  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information);
-  EXPECT_TRUE(pgw_ni_cbr_proc != nullptr);
-  sgw_eps_bearer_entry_wrapper_t* spgw_eps_bearer_entry_p =
-      LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
-  teid_t ue_ded_bearer_sgw_teid =
-      spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up;
-
-  // send bearer activation response from MME
-  ebi_t ded_eps_bearer_id = DEFAULT_EPS_BEARER_ID + 1;
-  itti_s11_nw_init_actv_bearer_rsp_t sample_nw_init_ded_bearer_actv_resp = {};
-  fill_nw_initiated_activate_bearer_response(
-      &sample_nw_init_ded_bearer_actv_resp, DEFAULT_MME_S11_TEID, ue_sgw_teid,
-      ue_ded_bearer_sgw_teid, DEFAULT_ENB_GTP_TEID + 1, ded_eps_bearer_id,
-      REQUEST_ACCEPTED, test_plmn);
-  return_code = sgw_handle_nw_initiated_actv_bearer_rsp(
-      &sample_nw_init_ded_bearer_actv_resp, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check that bearer is created
-  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
-
-  // check that no pending procedure is left
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      0);
+  // Activate dedicated bearer
+  ebi_t ded_eps_bearer_id = activate_dedicated_bearer(spgw_state, spgw_eps_bearer_ctxt_info_p, ue_sgw_teid);
 
   // send deactivate request for dedicated bearer from Session Manager
   // with invalid imsi
@@ -1127,29 +919,6 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivationInvalidImsi) {
   EXPECT_EQ(return_code, RETURNok);
 
   // check that there are 2 bearers
-  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
-
-  // send deactivate request for dedicated bearer from Session Manager
-  // with invalid imsi
-  fill_nw_initiated_deactivate_bearer_request(
-      &sample_gx_nw_init_ded_bearer_deactv_req, invalid_imsi_str,
-      DEFAULT_EPS_BEARER_ID, ded_eps_bearer_id);
-
-  // check that MME does not get bearer deactivation request
-  EXPECT_CALL(
-      *mme_app_handler,
-      mme_app_handle_nw_init_bearer_deactv_req(
-          check_params_in_deactv_bearer_req(
-              sample_gx_nw_init_ded_bearer_deactv_req.no_of_bearers,
-              sample_gx_nw_init_ded_bearer_deactv_req.ebi)))
-      .Times(0);
-
-  return_code = spgw_handle_nw_initiated_bearer_deactv_req(
-      &sample_gx_nw_init_ded_bearer_deactv_req, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // verify that the dedicated bearer is not deleted
   EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
 
   // send deactivate request for dedicated bearer from Session Manager
