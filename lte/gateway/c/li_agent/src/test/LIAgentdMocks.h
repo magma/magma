@@ -20,7 +20,6 @@
 
 #include "lte/protos/mobilityd.pb.h"
 #include "lte/protos/mobilityd.grpc.pb.h"
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
 
 #include "lte/gateway/c/li_agent/src/MobilitydClient.h"
 #include "lte/gateway/c/li_agent/src/ProxyConnector.h"

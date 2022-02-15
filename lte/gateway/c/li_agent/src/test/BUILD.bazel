@@ -17,19 +17,13 @@ cc_test(
     srcs = [
         "Consts.h",
         "test_pdu_generator.cpp",
+        "LIAgentdMocks.h",
     ],
     deps = [
-        ":li_agentd_mocks",
         "//lte/gateway/c/li_agent/src:mobilityd_client",
         "//lte/gateway/c/li_agent/src:pdu_generator",
         "//lte/gateway/c/li_agent/src:utilities",
-        "@com_github_gflags_gflags//:gflags",
         "@com_github_google_glog//:glog",
         "@com_google_googletest//:gtest_main",
     ],
-)
-
-cc_library(
-    name = "li_agentd_mocks",
-    hdrs = ["LIAgentdMocks.h"],
 )

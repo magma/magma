@@ -77,8 +77,8 @@ add_library(LI_AGENT
 
 target_link_libraries(LI_AGENT
     SERVICE303_LIB SERVICE_REGISTRY MAGMA_CONFIG ASYNC_GRPC MAGMA_LOGGING
-    glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
-    prometheus-cpp tacopie mnl tins pcap ssl crypto uuid
+    glog pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf
+    mnl tins pcap ssl crypto uuid
     )
 
 target_include_directories(LI_AGENT PUBLIC
