@@ -47,6 +47,16 @@ RuleSet create_rule_set(const bool apply_subscriber_wide,
                         std::vector<std::string> static_rules,
                         std::vector<PolicyRule> dynamic_rules);
 
+void create_rule_record_ipv6(const std::string& imsi, const std::string& ip,
+                             const std::string& rule_id, uint64_t bytes_rx,
+                             uint64_t bytes_tx, RuleRecord* rule_record);
+
+void create_rule_record_ipv6(const std::string& imsi, const std::string& ip,
+                             const std::string& rule_id, uint64_t rule_version,
+                             uint64_t bytes_rx, uint64_t bytes_tx,
+                             uint64_t dropped_rx, uint64_t dropped_tx,
+                             RuleRecord* rule_record);
+
 void create_rule_record(const std::string& imsi, const std::string& rule_id,
                         uint64_t bytes_rx, uint64_t bytes_tx,
                         RuleRecord* rule_record);
