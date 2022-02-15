@@ -411,52 +411,6 @@ status_code_e network_api_encode_data(void* data) {
   OAILOG_FUNC_RETURN(LOG_NAS, bytes);
 }
 
-/****************************************************************************
- **                                                                        **
- ** Name:  as_message_send()                                         **
- **                                                                        **
- ** Description: Service provided to the EPS Mobility Management protocol  **
- **    at the EMMAS Access Point (EMMAS-SAP) to send AS messages **
- **    to the Access Stratum sublayer.                           **
- **                                                                        **
- ** Inputs:  as_msg:  The AS message to send                     **
- **      Others:  _network_api_send_buffer, _network_api_id  **
- **                                                                        **
- ** Outputs:   Return:  The number of bytes sent when success;     **
- **       RETURNerror Otherwise                      **
- **      Others:  _network_api_send_buffer                   **
- **                                                                        **
- ***************************************************************************/
-status_code_e as_message_send(as_message_t* as_msg) {
-  int bytes;
-
-  OAILOG_FUNC_IN(LOG_NAS);
-  OAILOG_INFO(LOG_NAS,
-              "NET-API   - Send message 0x%.4x to the Access Stratum "
-              "layer",
-              as_msg->msg_id);
-  /*
-   * Encode the AS message
-   */
-  bytes = network_api_encode_data(as_msg);
-
-  if (bytes > 0) {
-    /*
-     * Get the network file descriptor
-     */
-    int fd = network_api_get_fd();
-
-    if (fd != RETURNerror) {
-      /*
-       * Send the AS message to the network
-       */
-      bytes = network_api_send_data(fd, bytes);
-    }
-  }
-
-  OAILOG_FUNC_RETURN(LOG_NAS, bytes);
-}
-
 /****************************************************************************/
 /*********************  L O C A L    F U N C T I O N S  *********************/
 /****************************************************************************/
