@@ -10,20 +10,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <lte/gateway/c/core/oai/tasks/sgw/spgw_state_manager.h>
 #include <string.h>
 #include <gtest/gtest.h>
 #include <cstdio>
 #include <cstdlib>
 
 #include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_manager.h"
 #include "lte/gateway/c/core/oai/test/spgw_task/state_creators.h"
 #include "lte/protos/oai/mme_nas_state.pb.h"
 
 extern "C" {
-#include "ie_to_bytes.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
+#include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
-#include "spgw_state.h"
 }
 
 namespace magma {

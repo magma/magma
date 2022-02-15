@@ -11,13 +11,13 @@
  * limitations under the License.
  */
 
-#include "include/amf_client_servicer.h"
-#include "M5GAuthenticationServiceClient.h"
-#include "M5GSUCIRegistrationServiceClient.h"
-#include "amf_common.h"
 #include <memory>
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
+#include "lte/gateway/c/core/oai/lib/n11/M5GAuthenticationServiceClient.h"
 #include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/n11/M5GSUCIRegistrationServiceClient.h"
 #include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 
 using magma5g::AsyncM5GAuthenticationServiceClient;
 using magma5g::AsyncM5GSUCIRegistrationServiceClient;

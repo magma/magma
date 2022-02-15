@@ -49,7 +49,7 @@
 #include "lte/gateway/c/core/oai/tasks/s11/s11_common.h"
 #include "lte/gateway/c/core/oai/tasks/s11/s11_mme_session_manager.h"
 
-#include "../gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
 #include "lte/gateway/c/core/oai/tasks/s11/s11_ie_formatter.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 

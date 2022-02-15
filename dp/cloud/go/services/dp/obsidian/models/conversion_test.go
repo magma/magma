@@ -44,7 +44,7 @@ func TestMessageFromBackend(t *testing.T) {
 }
 
 func TestCbsdToBackend(t *testing.T) {
-	cbsd := models.Cbsd{
+	cbsd := models.MutableCbsd{
 		Capabilities: &models.Capabilities{
 			AntennaGain:      to_pointer.Float(5),
 			MaxPower:         to_pointer.Float(24),
@@ -52,7 +52,6 @@ func TestCbsdToBackend(t *testing.T) {
 			NumberOfAntennas: to_pointer.Int(1),
 		},
 		FccID:        to_pointer.Str("barID"),
-		IsActive:     to_pointer.Bool(false),
 		SerialNumber: to_pointer.Str("12345"),
 		UserID:       to_pointer.Str("fooUser"),
 	}
@@ -71,6 +70,7 @@ func TestCbsdFromBackendWithoutGrant(t *testing.T) {
 	data := models.CbsdFromBackend(details)
 	assert.Nil(t, data.Grant)
 	assert.Equal(t, data.ID, details.Id)
+	assert.Equal(t, data.IsActive, details.IsActive)
 	assert.Equal(t, data.CbsdID, details.CbsdId)
 	assert.Equal(t, *data.UserID, details.Data.UserId)
 	assert.Equal(t, *data.FccID, details.Data.FccId)
@@ -94,7 +94,8 @@ func TestCbsdFromBackendWithGrant(t *testing.T) {
 
 func getCbsdDetails(withGrant bool) *protos.CbsdDetails {
 	details := protos.CbsdDetails{
-		Id: 1,
+		Id:       1,
+		IsActive: false,
 		Data: &protos.CbsdData{
 			UserId:       "barId",
 			FccId:        "bazId",

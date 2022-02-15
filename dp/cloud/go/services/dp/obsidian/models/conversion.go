@@ -30,7 +30,7 @@ func MessageFromBackend(details *protos.Log) *Message {
 	}
 }
 
-func CbsdToBackend(m *Cbsd) *protos.CbsdData {
+func CbsdToBackend(m *MutableCbsd) *protos.CbsdData {
 	return &protos.CbsdData{
 		UserId:       *m.UserID,
 		FccId:        *m.FccID,
@@ -56,7 +56,7 @@ func CbsdFromBackend(details *protos.CbsdDetails) *Cbsd {
 		FccID:        &details.Data.FccId,
 		Grant:        getGrant(details),
 		ID:           details.Id,
-		IsActive:     &details.IsActive,
+		IsActive:     details.IsActive,
 		SerialNumber: &details.Data.SerialNumber,
 		State:        details.State,
 		UserID:       &details.Data.UserId,

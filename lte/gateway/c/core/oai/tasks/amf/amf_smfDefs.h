@@ -19,16 +19,11 @@
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/amf_config.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 #define NAS_MESSAGE_SECURITY_HEADER_SIZE 7
 typedef uint8_t amf_cause_t;
 namespace magma5g {
-#define OFFSET_OF(TyPe, MeMBeR) ((size_t) & ((TyPe*)0)->MeMBeR)
-#define PARENT_STRUCT(cOnTaiNeD, TyPe, MeMBeR)                    \
-  ({                                                              \
-    const typeof(((TyPe*)0)->MeMBeR)* __MemBeR_ptr = (cOnTaiNeD); \
-    (TyPe*)((char*)__MemBeR_ptr - OFFSET_OF(TyPe, MeMBeR));       \
-  })
 //------------------------------------------------------------------------------
 // Causes related to invalid messages
 //------------------------------------------------------------------------------

@@ -16,8 +16,6 @@
  */
 
 #include <iomanip>
-#include <iostream>
-#include <string>
 
 #include "lte/protos/mconfig/mconfigs.pb.h"
 #include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
@@ -35,12 +33,6 @@ extern "C" {
 #define DEFAULT_CSFB_MCC "001"
 #define DEFAULT_MME_CODE 1
 #define DEFAULT_MME_GID 1
-
-std::string int_to_hex_string(int input, int num_of_digit) {
-  std::stringstream stream;
-  stream << std::setfill('0') << std::setw(num_of_digit) << std::hex << input;
-  return stream.str();
-}
 
 namespace magma {
 using namespace lte;

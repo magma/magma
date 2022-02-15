@@ -247,8 +247,10 @@ describe('<AddSubscriberButton />', () => {
     };
     const policyCtx = {
       state: policies,
+      baseNames: {},
       qosProfiles: {},
       ratingGroups: {},
+      setBaseNames: async () => {},
       setRatingGroups: async () => {},
       setQosProfiles: async () => {},
       setState: async () => {},
@@ -302,8 +304,10 @@ describe('<AddSubscriberButton />', () => {
     const [forbiddenNetworkTypes, setForbiddenNetworkTypes] = useState({});
     const policyCtx = {
       state: policies,
+      baseNames: {},
       qosProfiles: {},
       ratingGroups: {},
+      setBaseNames: async () => {},
       setRatingGroups: async () => {},
       setQosProfiles: async () => {},
       setState: async () => {},
