@@ -307,7 +307,7 @@ void MmeAppProcedureTest ::attach_ue(std::condition_variable& cv,
   nas_message_t nas_msg_decoded = {0};
   emm_security_context_t emm_security_context;
   nas_message_decode_status_t decode_status;
-  int decoder_rc;
+  int decoder_rc = 0;
   decoder_rc = nas_message_decode(
       nas_msg->data, &nas_msg_decoded, nas_msg->slen,
       reinterpret_cast<void*>(&emm_security_context), &decode_status);
@@ -316,8 +316,8 @@ void MmeAppProcedureTest ::attach_ue(std::condition_variable& cv,
   *guti = nas_msg_decoded.plain.emm.attach_accept.guti.guti;
   bdestroy_wrapper(
       &nas_msg_decoded.plain.emm.attach_accept.esmmessagecontainer);
-  // Destruction at tear down is not sufficient as ICS occurs
-  // twice in this test case.
+  // Destruction at tear down is not sufficient as nas_msg might be used
+  // again in the TC
   bdestroy_wrapper(&nas_msg);
   // Constructing and sending Modify Bearer Response to mme_app
   // mimicing SPGW

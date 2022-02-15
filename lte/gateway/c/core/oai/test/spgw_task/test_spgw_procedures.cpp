@@ -531,10 +531,9 @@ TEST_F(SPGWAppProcedureTest, TestDeleteSessionSuccess) {
                               DEFAULT_MME_S11_TEID, ue_sgw_teid,
                               DEFAULT_EPS_BEARER_ID, test_plmn);
 
-  EXPECT_CALL(
-      *mme_app_handler,
-      mme_app_handle_delete_sess_rsp(check_cause_in_ds_rsp(
-          REQUEST_ACCEPTED, DEFAULT_MME_S11_TEID)))
+  EXPECT_CALL(*mme_app_handler,
+              mme_app_handle_delete_sess_rsp(check_cause_in_ds_rsp(
+                  REQUEST_ACCEPTED, DEFAULT_MME_S11_TEID)))
       .Times(1);
 
   return_code = sgw_handle_delete_session_request(
