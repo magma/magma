@@ -1232,7 +1232,7 @@ void sgw_s8_handle_release_access_bearers_request(
     }
   }
   sgw_send_release_access_bearer_response(
-      LOG_SGW_S8, imsi64, cause, release_access_bearers_req_pP,
+      LOG_SGW_S8, TASK_SGW_S8, imsi64, cause, release_access_bearers_req_pP,
       release_access_bearers_req_pP->local_teid);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }

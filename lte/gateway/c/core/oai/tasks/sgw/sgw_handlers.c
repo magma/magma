@@ -1253,7 +1253,7 @@ void sgw_handle_release_access_bearers_request(
     }
   }
   sgw_send_release_access_bearer_response(
-      LOG_SPGW_APP, imsi64, cause, release_access_bearers_req_pP,
+      LOG_SPGW_APP, TASK_SPGW_APP, imsi64, cause, release_access_bearers_req_pP,
       ctx_p ? ctx_p->sgw_eps_bearer_context_information.mme_teid_S11 : 0);
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
@@ -2188,7 +2188,8 @@ bool does_bearer_context_hold_valid_enb_ip(ip_address_t enb_ip_address_S1u) {
 }
 
 void sgw_send_release_access_bearer_response(
-    log_proto_t module, imsi64_t imsi64, gtpv2c_cause_value_t cause,
+    log_proto_t module, task_id_t origin_task_id, imsi64_t imsi64,
+    gtpv2c_cause_value_t cause,
     const itti_s11_release_access_bearers_request_t* const
         release_access_bearers_req_pP,
     teid_t mme_teid_s11) {
@@ -2196,8 +2197,8 @@ void sgw_send_release_access_bearer_response(
   int rv = RETURNok;
   itti_s11_release_access_bearers_response_t* release_access_bearers_resp_p =
       NULL;
-  MessageDef* message_p =
-      itti_alloc_new_message(module, S11_RELEASE_ACCESS_BEARERS_RESPONSE);
+  MessageDef* message_p = itti_alloc_new_message(
+      origin_task_id, S11_RELEASE_ACCESS_BEARERS_RESPONSE);
   if (message_p == NULL) {
     OAILOG_ERROR_UE(
         module, imsi64,
