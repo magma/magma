@@ -22,10 +22,12 @@ add_library(LIAGENTD_TEST_LIB
 
 link_directories(/usr/src/googletest/googlemock/lib/)
 target_link_libraries(LIAGENTD_TEST_LIB LI_AGENT gmock_main gtest gtest_main
-    gmock)
+    gmock rt)
 target_include_directories(LIAGENTD_TEST_LIB PUBLIC
     ${PROJECT_SOURCE_DIR})
 
-add_executable(pdu_generator_test test_pdu_generator.cpp)
-target_link_libraries(pdu_generator_test LIAGENTD_TEST_LIB)
-add_test(test_pdu_generator pdu_generator_test)
+foreach (li_agent_test pdu_generator)
+  add_executable(${li_agent_test}_test test_${li_agent_test}.cpp)
+  target_link_libraries(${li_agent_test}_test LIAGENTD_TEST_LIB)
+  add_test(test_${li_agent_test} ${li_agent_test}_test)
+endforeach (li_agent_test)

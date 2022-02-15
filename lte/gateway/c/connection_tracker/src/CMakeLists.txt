@@ -71,7 +71,8 @@ add_library(CONNECTION_TRACKER
 
 target_link_libraries(CONNECTION_TRACKER
     SERVICE303_LIB SERVICE_REGISTRY MAGMA_LOGGING MAGMA_CONFIG MAGMA_SENTRY
-    ${GCOV_LIB} grpc++ yaml-cpp protobuf mnl tins
+    folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
+    prometheus-cpp tacopie mnl tins
     )
 
 target_include_directories(CONNECTION_TRACKER PUBLIC
@@ -79,6 +80,22 @@ target_include_directories(CONNECTION_TRACKER PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
     $<TARGET_FILE_DIR:CONNECTION_TRACKER>)
 
-add_executable(connectiond main.cpp)
+if (CLANG_FORMAT)
+  add_custom_target(
+      clang-format
+      COMMAND ${CLANG_FORMAT}
+      -style=file
+      -i
+      ${ALL_CXX_SOURCE_FILES}
+  )
+endif ()
+
+add_executable(connectiond
+    main.cpp)
 
 target_link_libraries(connectiond CONNECTION_TRACKER)
+
+if (BUILD_TESTS)
+  ENABLE_TESTING()
+  ADD_SUBDIRECTORY(test)
+endif (BUILD_TESTS)
