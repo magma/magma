@@ -58,7 +58,7 @@ add_library(SCTPD_LIB
 target_compile_definitions(SCTPD_LIB PUBLIC LOG_WITH_GLOG)
 
 target_link_libraries(SCTPD_LIB MAGMA_LOGGING MAGMA_CONFIG MAGMA_SENTRY
-    sctp pthread grpc++ grpc protobuf glog yaml-cpp
+    sctp pthread grpc++ grpc protobuf yaml-cpp
     )
 
 target_include_directories(SCTPD_LIB PUBLIC

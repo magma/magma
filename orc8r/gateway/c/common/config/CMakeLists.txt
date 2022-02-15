@@ -25,7 +25,6 @@ add_library(MAGMA_CONFIG
     YAMLUtils.cpp
     )
 target_link_libraries(MAGMA_CONFIG PRIVATE MAGMA_LOGGING)
-target_link_libraries(MAGMA_CONFIG PRIVATE glog)
 
 if (BUILD_TESTS)
   ENABLE_TESTING()

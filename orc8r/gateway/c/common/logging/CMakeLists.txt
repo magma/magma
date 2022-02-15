@@ -16,9 +16,22 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_library(MAGMA_LOGGING INTERFACE)
+set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}/common/includes)
+
+add_library(MAGMA_LOGGING magma_logging_init.cpp magma_logging_init.h magma_logging.h)
 # Specify include path for chained dependencies
-target_include_directories(MAGMA_LOGGING INTERFACE $ENV{MAGMA_ROOT} ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(MAGMA_LOGGING PUBLIC
+    $ENV{MAGMA_ROOT}
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>")
+target_link_libraries(MAGMA_LOGGING PUBLIC glog)
+
+# copy headers to build directory so they can be shared with OAI,
+# session_manager, etc.
+add_custom_command(TARGET MAGMA_LOGGING POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${MAGMA_INCLUDE_DIR})
+add_custom_command(TARGET MAGMA_LOGGING POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${PROJECT_SOURCE_DIR}/*.h ${MAGMA_INCLUDE_DIR})
 
 install(TARGETS MAGMA_LOGGING EXPORT MAGMA_LOGGING
     INCLUDES DESTINATION ""
