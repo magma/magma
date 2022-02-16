@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from lte.protos.pipelined_pb2 import RuleModResult
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.policy_mixin import PolicyMixin
@@ -231,7 +232,7 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
         except MagmaDPDisconnectedError:
             self.logger.error(
                 "Datapath disconnected, failed to install rule %s"
-                "for imsi %s", rule, imsi,
+                "for imsi %s", rule, imsi, extra=EXCLUDE_FROM_ERROR_MONITORING,
             )
             return RuleModResult.FAILURE
         return self._wait_for_rule_responses(imsi, ip_addr, rule, chan)

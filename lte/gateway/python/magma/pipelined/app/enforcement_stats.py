@@ -24,6 +24,7 @@ from lte.protos.session_manager_pb2 import (
     RuleRecordTable,
     UPFSessionState,
 )
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.pipelined.app.base import (
     ControllerType,
     MagmaController,
@@ -224,7 +225,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         except MagmaDPDisconnectedError:
             self.logger.error(
                 "Datapath disconnected, failed to install rule %s"
-                "for imsi %s", rule, imsi,
+                "for imsi %s", rule, imsi, extra=EXCLUDE_FROM_ERROR_MONITORING,
             )
             return RuleModResult.FAILURE
         for _ in range(len(msgs)):
