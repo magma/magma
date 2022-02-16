@@ -23,9 +23,9 @@ py_binary(
     python_version = "PY3",
     visibility = ["//visibility:public"],
     deps = [
+        ":ctraced_lib",
         "//orc8r/gateway/python/magma/common:sentry",
         "//orc8r/gateway/python/magma/common:service",
-        "//orc8r/protos:ctraced_python_grpc",
     ],
 )
 
@@ -36,6 +36,6 @@ py_library(
         "rpc_servicer.py",
         "trace_manager.py",
     ],
-    visibility = ["//visibility:public"],
-    deps = [],
+    visibility = ["//visibility:private"],
+    deps = ["//orc8r/protos:ctraced_python_grpc"],
 )
