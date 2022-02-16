@@ -111,6 +111,8 @@ RUN apt-get update && apt-get install -y \
   wget \
   ethtool \
   linux-headers-`uname -r` \
+  bpfcc-tools \
+  python3-bpfcc \
   iptables \
   iproute2
 
