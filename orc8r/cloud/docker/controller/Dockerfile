@@ -1,7 +1,9 @@
 # ------------------------------------------------------------------------------
 # Base: for tests, precommit, codegen, etc.
 # ------------------------------------------------------------------------------
-FROM ubuntu:xenial as base
+ARG PLATFORM=linux/amd64
+
+FROM --platform=$PLATFORM ubuntu:xenial as base
 
 ENV GO111MODULE on
 ENV GOPATH ${USER}/go
