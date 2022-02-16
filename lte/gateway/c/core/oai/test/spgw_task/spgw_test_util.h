@@ -46,7 +46,7 @@ bool is_num_sessions_valid(uint64_t imsi64, int expected_num_ue_contexts,
 
 bool is_num_ue_contexts_valid(int expected_num_ue_contexts);
 
-bool is_num_teids_valid(uint64_t imsi64, int expected_num_teids);
+bool is_num_cp_teids_valid(uint64_t imsi64, int expected_num_teids);
 
 bool is_num_s1_bearers_valid(teid_t context_teid,
                              int expected_num_active_bearers);

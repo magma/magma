@@ -195,7 +195,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
 
   // verify that exactly one session exists in SPGW state
   ASSERT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
-  ASSERT_TRUE(is_num_teids_valid(test_imsi64, 1));
+  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // verify that eNB address information exists
   ASSERT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
@@ -216,7 +216,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
 
   // verify SPGW state is cleared
   ASSERT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size() - 1));
-  ASSERT_TRUE(is_num_teids_valid(test_imsi64, 0));
+  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 0));
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
@@ -227,7 +227,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestModifyBearerFailure) {
 
   // verify that sessions exist in SPGW state
   ASSERT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
-  ASSERT_TRUE(is_num_teids_valid(test_imsi64, 1));
+  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // create sample modify default bearer request
   itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
@@ -244,7 +244,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestModifyBearerFailure) {
   // verify that number of valid sessions do not change after the modify bearer
   // request
   ASSERT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
-  ASSERT_TRUE(is_num_teids_valid(test_imsi64, 1));
+  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
@@ -260,7 +260,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerSuccess) {
 
   // verify that exactly one session exists in SPGW state
   ASSERT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
-  ASSERT_TRUE(is_num_teids_valid(test_imsi64, 1));
+  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // verify that eNB address information exists
   ASSERT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
@@ -291,7 +291,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerWithInvalidImsi64) {
 
   // verify that exactly one session exists in SPGW state
   ASSERT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
-  ASSERT_TRUE(is_num_teids_valid(test_imsi64, 1));
+  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // verify that eNB address information exists
   ASSERT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
@@ -329,7 +329,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerActivation) {
 
   // verify that exactly one session exists in SPGW state
   EXPECT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
-  EXPECT_TRUE(is_num_teids_valid(test_imsi64, 1));
+  EXPECT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // send network initiated dedicated bearer activation request from Session
   // Manager
@@ -406,7 +406,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerDeactivation) {
 
   // verify that exactly one session exists in SPGW state
   EXPECT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
-  EXPECT_TRUE(is_num_teids_valid(test_imsi64, 1));
+  EXPECT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // send network initiated dedicated bearer activation request from Session
   // Manager
@@ -521,7 +521,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest,
 
   // verify that exactly one session exists in SPGW state
   EXPECT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
-  EXPECT_TRUE(is_num_teids_valid(test_imsi64, 1));
+  EXPECT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // send network initiated dedicated bearer activation request from Session
   // Manager
@@ -618,7 +618,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest,
 
   // check that session is removed
   EXPECT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size() - 1));
-  EXPECT_TRUE(is_num_teids_valid(test_imsi64, 0));
+  EXPECT_TRUE(is_num_cp_teids_valid(test_imsi64, 0));
 
   free(sample_nw_init_ded_bearer_deactv_resp.lbi);
 

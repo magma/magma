@@ -67,7 +67,7 @@ bool is_num_ue_contexts_valid(int expected_num_ue_contexts) {
   return state_ue_ht->num_elements == expected_num_ue_contexts;
 }
 
-bool is_num_teids_valid(uint64_t imsi64, int expected_num_teids) {
+bool is_num_cp_teids_valid(uint64_t imsi64, int expected_num_teids) {
   spgw_ue_context_t* ue_context_p = spgw_get_ue_context(imsi64);
 
   if (!ue_context_p) return expected_num_teids == 0;
