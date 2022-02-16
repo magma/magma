@@ -86,6 +86,11 @@ int create_session_grpc_req_on_gnb_setup_rsp(
   req_common->set_sm_session_version(version);
   req_rat_specific->set_pdu_session_id((message->pdu_session_id));
   req_rat_specific->set_request_type(magma::lte::RequestType::INITIAL_REQUEST);
+  TeidSet* gnode_endpoint = req_rat_specific->mutable_gnode_endpoint();
+  gnode_endpoint->set_teid(message->gnb_gtp_teid);
+  char ipv4_str[INET_ADDRSTRLEN] = {0};
+  inet_ntop(AF_INET, message->gnb_gtp_teid_ip_addr, ipv4_str, INET_ADDRSTRLEN);
+  req_rat_specific->mutable_gnode_endpoint()->set_end_ipv4_addr(ipv4_str);
 
   for (int i = 0; i < smf_ctx->qos_flow_list.maxNumOfQosFlows; i++) {
     QosPolicy* qosPolicy = req_rat_specific->add_qos_policy();
@@ -314,7 +319,7 @@ int amf_app_pdu_session_modification_complete(
 
   if (!smf_ctx) {
     OAILOG_ERROR(
-        LOG_NAS_AMF, "session context not found using session id\n",
+        LOG_NAS_AMF, "session context not found using session id [%u]\n",
         message->pdu_session_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
