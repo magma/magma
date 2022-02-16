@@ -118,11 +118,11 @@ status_code_e s6a_ula_cb(struct msg** msg_pP, struct avp* paramavp_pP,
     } else {
       /*
        * Neither result-code nor experimental-result is present ->
-       * * * * totally incorrect behaviour here.
+       * * * * totally incorrect behavior here.
        */
       OAILOG_ERROR(LOG_S6A,
                    "Experimental-Result and Result-Code are absent: "
-                   "This is not a correct behaviour\n");
+                   "This is not a correct behavior\n");
       goto err;
     }
   }
@@ -143,13 +143,13 @@ status_code_e s6a_ula_cb(struct msg** msg_pP, struct avp* paramavp_pP,
     if (!FLAG_IS_SET(hdr_p->avp_value->u32, ULA_SEPARATION_IND)) {
       OAILOG_ERROR(LOG_S6A,
                    "ULA-Flags does not indicate the HSS is post Rel.8: "
-                   "This behaviour is not compliant\n");
+                   "This behavior is not compliant\n");
       goto err;
     }
   } else {
     /*
      * ULA-Flags is absent while the error code indicates DIAMETER_SUCCESS:
-     * * * * this is not a compliant behaviour...
+     * * * * this is not a compliant behavior...
      * * * * TODO: handle this case.
      */
     OAILOG_ERROR(LOG_S6A,

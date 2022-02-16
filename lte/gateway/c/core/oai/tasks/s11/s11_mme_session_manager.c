@@ -492,7 +492,7 @@ status_code_e s11_mme_handle_ulp_error_indicatior(
                                come at all or could not be dealt with properly.
                              */
       OAILOG_ERROR(LOG_S11,
-                   "DELETE_SESSION_RESPONE could not be received for for local "
+                   "DELETE_SESSION_RESPONSE could not be received for for local "
                    "teid " TEID_FMT
                    ". Sending ACCEPTED back (ignoring the network failure). \n",
                    rsp_p->teid);

@@ -27,10 +27,10 @@
 static inline int s1ap_mme_encode_initiating(S1ap_S1AP_PDU_t* pdu,
                                              uint8_t** buffer,
                                              uint32_t* length);
-static inline int s1ap_mme_encode_successfull_outcome(S1ap_S1AP_PDU_t* pdu,
+static inline int s1ap_mme_encode_successful_outcome(S1ap_S1AP_PDU_t* pdu,
                                                       uint8_t** buffer,
                                                       uint32_t* len);
-static inline int s1ap_mme_encode_unsuccessfull_outcome(S1ap_S1AP_PDU_t* pdu,
+static inline int s1ap_mme_encode_unsuccessful_outcome(S1ap_S1AP_PDU_t* pdu,
                                                         uint8_t** buffer,
                                                         uint32_t* len);
 //------------------------------------------------------------------------------
@@ -57,11 +57,11 @@ status_code_e s1ap_mme_encode_pdu(S1ap_S1AP_PDU_t* pdu, uint8_t** buffer,
       break;
 
     case S1ap_S1AP_PDU_PR_successfulOutcome:
-      ret = s1ap_mme_encode_successfull_outcome(pdu, buffer, length);
+      ret = s1ap_mme_encode_successful_outcome(pdu, buffer, length);
       break;
 
     case S1ap_S1AP_PDU_PR_unsuccessfulOutcome:
-      ret = s1ap_mme_encode_unsuccessfull_outcome(pdu, buffer, length);
+      ret = s1ap_mme_encode_unsuccessful_outcome(pdu, buffer, length);
       break;
 
     default:
@@ -117,7 +117,7 @@ static inline int s1ap_mme_encode_initiating(S1ap_S1AP_PDU_t* pdu,
 }
 
 //------------------------------------------------------------------------------
-static inline int s1ap_mme_encode_successfull_outcome(S1ap_S1AP_PDU_t* pdu,
+static inline int s1ap_mme_encode_successful_outcome(S1ap_S1AP_PDU_t* pdu,
                                                       uint8_t** buffer,
                                                       uint32_t* length) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
@@ -138,7 +138,7 @@ static inline int s1ap_mme_encode_successfull_outcome(S1ap_S1AP_PDU_t* pdu,
     default:
       OAILOG_DEBUG(
           LOG_S1AP,
-          "Unknown procedure ID (%d) for successfull outcome message\n",
+          "Unknown procedure ID (%d) for successful outcome message\n",
           (int)pdu->choice.successfulOutcome.procedureCode);
       *buffer = NULL;
       *length = 0;
@@ -152,7 +152,7 @@ static inline int s1ap_mme_encode_successfull_outcome(S1ap_S1AP_PDU_t* pdu,
 }
 
 //------------------------------------------------------------------------------
-static inline int s1ap_mme_encode_unsuccessfull_outcome(S1ap_S1AP_PDU_t* pdu,
+static inline int s1ap_mme_encode_unsuccessful_outcome(S1ap_S1AP_PDU_t* pdu,
                                                         uint8_t** buffer,
                                                         uint32_t* length) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
@@ -171,7 +171,7 @@ static inline int s1ap_mme_encode_unsuccessfull_outcome(S1ap_S1AP_PDU_t* pdu,
     default:
       OAILOG_DEBUG(
           LOG_S1AP,
-          "Unknown procedure ID (%d) for unsuccessfull outcome message\n",
+          "Unknown procedure ID (%d) for unsuccessful outcome message\n",
           (int)pdu->choice.unsuccessfulOutcome.procedureCode);
       *buffer = NULL;
       *length = 0;
