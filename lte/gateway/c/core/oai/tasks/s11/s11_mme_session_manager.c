@@ -491,11 +491,12 @@ status_code_e s11_mme_handle_ulp_error_indicatior(
           REQUEST_ACCEPTED; /**< Would mean that this message either did not
                                come at all or could not be dealt with properly.
                              */
-      OAILOG_ERROR(LOG_S11,
-                   "DELETE_SESSION_RESPONSE could not be received for for local "
-                   "teid " TEID_FMT
-                   ". Sending ACCEPTED back (ignoring the network failure). \n",
-                   rsp_p->teid);
+      OAILOG_ERROR(
+          LOG_S11,
+          "DELETE_SESSION_RESPONSE could not be received for for local "
+          "teid " TEID_FMT
+          ". Sending ACCEPTED back (ignoring the network failure). \n",
+          rsp_p->teid);
     } break;
     case NW_GTP_RELEASE_ACCESS_BEARERS_REQ: {
       /**

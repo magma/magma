@@ -47,13 +47,13 @@ namespace lte {
 #define DEFAULT_PCSCF_IPV6 "2a12:577:9941:f99c:0002:0001:c731:f114"
 
 #define DEFAULT_MTU 1400
-#define PCO_IDS_EXPECT_EQ(ipcp, dns, ipnas, dhcp, mtu)                     \
-  do {                                                                     \
-    EXPECT_EQ(pco_ids.pi_ipcp, ipcp);                                      \
-    EXPECT_EQ(pco_ids.ci_dns_server_ipv4_address_request, dns);            \
+#define PCO_IDS_EXPECT_EQ(ipcp, dns, ipnas, dhcp, mtu)                    \
+  do {                                                                    \
+    EXPECT_EQ(pco_ids.pi_ipcp, ipcp);                                     \
+    EXPECT_EQ(pco_ids.ci_dns_server_ipv4_address_request, dns);           \
     EXPECT_EQ(pco_ids.ci_ip_address_allocation_via_nas_signaling, ipnas); \
-    EXPECT_EQ(pco_ids.ci_ipv4_address_allocation_via_dhcpv4, dhcp);        \
-    EXPECT_EQ(pco_ids.ci_ipv4_link_mtu_request, mtu);                      \
+    EXPECT_EQ(pco_ids.ci_ipv4_address_allocation_via_dhcpv4, dhcp);       \
+    EXPECT_EQ(pco_ids.ci_ipv4_link_mtu_request, mtu);                     \
   } while (0)
 
 class SPGWPcoTest : public ::testing::Test {
