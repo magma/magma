@@ -2,7 +2,7 @@
   "name": "fbc",
   "private": true,
   "version": "0.1.0",
-  "description": "Code shared outside of Facebook for fbc",
+  "description": "Code shared outside of Facebook for fbc - no edit, just a stub for debugging CI problems",
   "dependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.14.0",
