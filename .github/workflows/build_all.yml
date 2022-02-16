@@ -38,7 +38,7 @@ jobs:
       - name: Launch build and publish script
         run: |
           if [ "${GITHUB_REF##*/}" = "master" ] ;then
-            orc8r/tools/helm/package.sh --deployment-type all --version $VERSION
+            orc8r/tools/helm/package.sh --deployment-type all --version $VERSION  --only-package
           elif [ "${EVENT_NAME}" = "pull_request" ] ;then
             mkdir charts
             orc8r/tools/helm/package.sh --deployment-type all --version $VERSION --only-package
