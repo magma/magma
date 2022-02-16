@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package storage_test
 
 import (
@@ -38,14 +39,18 @@ func TestFields(t *testing.T) {
 			expected: []string{"id", "name"},
 		},
 		{
-			name:     "check field names for DBRequest",
-			model:    &storage.DBRequest{},
-			expected: []string{"id", "type_id", "state_id", "cbsd_id", "payload"},
+			name:  "check field names for DBRequest",
+			model: &storage.DBRequest{},
+			expected: []string{
+				"id", "type_id", "state_id", "cbsd_id", "payload",
+			},
 		},
 		{
-			name:     "check field names for DBResponse",
-			model:    &storage.DBResponse{},
-			expected: []string{"id", "request_id", "grant_id", "response_code", "payload"},
+			name:  "check field names for DBResponse",
+			model: &storage.DBResponse{},
+			expected: []string{
+				"id", "request_id", "grant_id", "response_code", "payload",
+			},
 		},
 		{
 			name:     "check field names for DBGrantState",
@@ -53,9 +58,13 @@ func TestFields(t *testing.T) {
 			expected: []string{"id", "name"},
 		},
 		{
-			name:     "check field names for DBGrant",
-			model:    &storage.DBGrant{},
-			expected: []string{"id", "state_id", "cbsd_id", "channel_id", "grant_id", "grant_expire_time", "transmit_expire_time", "heartbeat_interval", "channel_type"},
+			name:  "check field names for DBGrant",
+			model: &storage.DBGrant{},
+			expected: []string{
+				"id", "state_id", "cbsd_id", "channel_id", "grant_id",
+				"grant_expire_time", "transmit_expire_time",
+				"heartbeat_interval", "channel_type",
+			},
 		},
 		{
 			name:     "check field names for DBCbsdState",
@@ -63,14 +72,23 @@ func TestFields(t *testing.T) {
 			expected: []string{"id", "name"},
 		},
 		{
-			name:     "check field names for DBCbsd",
-			model:    &storage.DBCbsd{},
-			expected: []string{"id", "network_id", "state_id", "cbsd_id", "user_id", "fcc_id", "cbsd_serial_number", "last_seen", "min_power", "max_power", "antenna_gain", "number_of_ports", "is_deleted"},
+			name:  "check field names for DBCbsd",
+			model: &storage.DBCbsd{},
+			expected: []string{
+				"id", "network_id", "state_id", "cbsd_id", "user_id",
+				"fcc_id", "cbsd_serial_number", "last_seen", "min_power",
+				"max_power", "antenna_gain", "number_of_ports",
+				"is_deleted", "is_updated",
+			},
 		},
 		{
-			name:     "check field names for DBChannel",
-			model:    &storage.DBChannel{},
-			expected: []string{"id", "cbsd_id", "low_frequency", "high_frequency", "channel_type", "rule_applied", "max_eirp", "last_used_max_eirp"},
+			name:  "check field names for DBChannel",
+			model: &storage.DBChannel{},
+			expected: []string{
+				"id", "cbsd_id", "low_frequency", "high_frequency",
+				"channel_type", "rule_applied", "max_eirp",
+				"last_used_max_eirp",
+			},
 		},
 		{
 			name:     "check field names for DBActiveModeConfig",
@@ -78,9 +96,13 @@ func TestFields(t *testing.T) {
 			expected: []string{"id", "cbsd_id", "desired_state_id"},
 		},
 		{
-			name:     "check field names for DBLog",
-			model:    &storage.DBLog{},
-			expected: []string{"id", "network_id", "log_from", "log_to", "log_name", "log_message", "cbsd_serial_number", "fcc_id", "response_code", "created_date"},
+			name:  "check field names for DBLog",
+			model: &storage.DBLog{},
+			expected: []string{
+				"id", "network_id", "log_from", "log_to", "log_name",
+				"log_message", "cbsd_serial_number", "fcc_id",
+				"response_code", "created_date",
+			},
 		},
 	}
 	for _, tc := range testCases {
