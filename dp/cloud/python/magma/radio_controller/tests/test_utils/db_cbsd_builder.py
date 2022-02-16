@@ -89,9 +89,10 @@ class DBCbsdBuilder:
         self.cbsd.channels.append(channel)
         return self
 
-    def with_request(self, state_id: int, payload: str) -> DBCbsdBuilder:
+    def with_request(self, state_id: int, type_id: int, payload: str) -> DBCbsdBuilder:
         request = DBRequest(
             state_id=state_id,
+            type_id=type_id,
             payload=json.loads(payload),
         )
         self.cbsd.requests.append(request)

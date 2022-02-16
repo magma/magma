@@ -7,6 +7,7 @@ import (
 
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas"
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas_helpers"
+	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 )
 
 const request = `{"cbsdId":"someId"}`
@@ -14,18 +15,22 @@ const request = `{"cbsdId":"someId"}`
 func TestFilter(t *testing.T) {
 	data := []struct {
 		name     string
-		pending  []string
+		pending  []*active_mode.Request
 		expected []*sas.Request
 	}{
 		{
-			name:     "Should filter request if pending",
-			pending:  []string{request},
+			name: "Should filter request if pending",
+			pending: []*active_mode.Request{{
+				Payload: request,
+			}},
 			expected: []*sas.Request{},
 		},
 		{
-			name:     "Should not filter request if not pending",
-			pending:  nil,
-			expected: []*sas.Request{{Data: []byte(request)}},
+			name:    "Should not filter request if not pending",
+			pending: nil,
+			expected: []*sas.Request{{
+				Data: []byte(request),
+			}},
 		},
 	}
 	for _, tt := range data {

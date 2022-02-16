@@ -53,6 +53,12 @@ func (m *messageGenerator) GenerateMessages(state *active_mode.State, now time.T
 
 func (m *messageGenerator) getPerCbsdMessageGenerator(config *active_mode.ActiveModeConfig, now time.Time) *perCbsdMessageGenerator {
 	cbsd := config.GetCbsd()
+	if pendingStateChange(cbsd.GetPendingRequests()) {
+		return &perCbsdMessageGenerator{
+			sas:  &noMessageGenerator{},
+			crud: &noActionsGenerator{},
+		}
+	}
 	if cbsd.GetIsDeleted() && cbsd.GetState() == active_mode.CbsdState_Unregistered {
 		return &perCbsdMessageGenerator{
 			sas:  &noMessageGenerator{},
@@ -63,6 +69,20 @@ func (m *messageGenerator) getPerCbsdMessageGenerator(config *active_mode.Active
 		sas:  m.getPerCbsdSasRequestGenerator(config, now),
 		crud: &noActionsGenerator{},
 	}
+}
+
+var stateChangeRequestType = map[active_mode.RequestsType]bool{
+	active_mode.RequestsType_RegistrationRequest:   true,
+	active_mode.RequestsType_DeregistrationRequest: true,
+}
+
+func pendingStateChange(requests []*active_mode.Request) bool {
+	for _, r := range requests {
+		if stateChangeRequestType[r.Type] {
+			return true
+		}
+	}
+	return false
 }
 
 func (m *messageGenerator) getPerCbsdSasRequestGenerator(config *active_mode.ActiveModeConfig, now time.Time) sasRequestGenerator {
