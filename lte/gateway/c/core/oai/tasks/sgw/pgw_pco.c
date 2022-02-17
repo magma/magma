@@ -412,7 +412,7 @@ status_code_e pgw_process_pco_request(
       case PCO_CI_IP_ADDRESS_ALLOCATION_VIA_NAS_SIGNALLING:
         OAILOG_DEBUG(LOG_SPGW_APP,
                      "PCO: Allocation via NAS signalling requested\n");
-        pco_ids->ci_ip_address_allocation_via_nas_signalling = true;
+        pco_ids->ci_ip_address_allocation_via_nas_signaling = true;
         break;
 
       case PCO_CI_IPV4_LINK_MTU_REQUEST:
@@ -442,7 +442,7 @@ status_code_e pgw_process_pco_request(
   }
 
   if (spgw_config.pgw_config.force_push_pco) {
-    pco_ids->ci_ip_address_allocation_via_nas_signalling = true;
+    pco_ids->ci_ip_address_allocation_via_nas_signaling = true;
     if (!pco_ids->ci_dns_server_ipv4_address_request) {
       pgw_process_pco_dns_server_request(pco_resp, NULL);
     }

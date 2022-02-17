@@ -315,10 +315,10 @@ typedef struct sgs_context_s {
   /* Indicates ongoing CSFB procedure */
   csfb_service_type_t csfb_service_type;
 
-  /* Call Cancelled: is set on reception of SGS SERVICE ABORT message
+  /* Call Canceled: is set on reception of SGS SERVICE ABORT message
    *             fom MSC to cancel the ongoing MT call
    */
-  bool call_cancelled;
+  bool call_canceled;
 
   /* mt_call_in_progress: If true, indicates MT call is in progress,
    *              used when SERVICE ABORT is received from MSC
