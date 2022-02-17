@@ -426,7 +426,7 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			enbMconfig.BandwidthMhz = int32(cellularEnbConfig.BandwidthMhz)
 			enbMconfig.Tac = int32(cellularEnbConfig.Tac)
 			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
-
+			getHoAlgorithmConfig(enbMconfig, cellularEnbConfig)
 			// override zero values with network/gateway configs
 			if enbMconfig.Earfcndl == 0 {
 				enbMconfig.Earfcndl = int32(nwConfig.GetEarfcndl())
@@ -700,4 +700,38 @@ func (s *builderServicer) getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, g
 func (s *builderServicer) getRandomizedSyncInterval(gwKey string, nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
 	syncInterval := s.getSyncInterval(nwEpc, gwEpc)
 	return math.JitterUint32(syncInterval, gwKey, 0.2)
+}
+
+// get Ho HoAlgorithm parameters
+func getHoAlgorithmConfig(enbMconfig *lte_mconfig.EnodebD_EnodebConfig, cellularEnbConfig *lte_models.EnodebConfiguration) {
+	cellHoAlgorithmConfig := cellularEnbConfig.HoAlgorithmConfig
+	if cellHoAlgorithmConfig != nil {
+		enbHoAlgorithmConfig := &lte_mconfig.EnodebD_EnodebConfig_HoAlgorithmConfig{}
+		enbHoAlgorithmConfig.A1ThresholdRsrp = swag.Uint32Value(cellHoAlgorithmConfig.A1ThresholdRsrp)
+		enbHoAlgorithmConfig.LteA1ThresholdRsrq = cellHoAlgorithmConfig.LteA1ThresholdRsrq
+		enbHoAlgorithmConfig.Hysteresis = swag.Int32Value(cellHoAlgorithmConfig.Hysteresis)
+		enbHoAlgorithmConfig.TimeToTrigger = cellHoAlgorithmConfig.TimeToTrigger
+		enbHoAlgorithmConfig.A2ThresholdRsrp = swag.Int32Value(cellHoAlgorithmConfig.A2ThresholdRsrp)
+		enbHoAlgorithmConfig.LteA2ThresholdRsrq = cellHoAlgorithmConfig.LteA2ThresholdRsrq
+		enbHoAlgorithmConfig.A3Offset = swag.Int32Value(cellHoAlgorithmConfig.A3Offset)
+		enbHoAlgorithmConfig.A3OffsetAnr = cellHoAlgorithmConfig.A3OffsetAnr
+		enbHoAlgorithmConfig.A4ThresholdRsrp = cellHoAlgorithmConfig.A4ThresholdRsrp
+		enbHoAlgorithmConfig.LteIntraA5Threshold_1Rsrp = swag.Int32Value(cellHoAlgorithmConfig.LteIntraA5Threshold1Rsrp)
+		enbHoAlgorithmConfig.LteIntraA5Threshold_2Rsrp = swag.Int32Value(cellHoAlgorithmConfig.LteIntraA5Threshold2Rsrp)
+		enbHoAlgorithmConfig.LteInterAnrA5Threshold_1Rsrp = swag.Int32Value(cellHoAlgorithmConfig.LteInterAnrA5Threshold1Rsrp)
+		enbHoAlgorithmConfig.LteInterAnrA5Threshold_2Rsrp = swag.Int32Value(cellHoAlgorithmConfig.LteInterAnrA5Threshold2Rsrp)
+		enbHoAlgorithmConfig.B2Threshold1Rsrp = swag.Uint32Value(cellHoAlgorithmConfig.B2Threshold1Rsrp)
+		enbHoAlgorithmConfig.B2Threshold2Rsrp = swag.Int32Value(cellHoAlgorithmConfig.B2Threshold2Rsrp)
+		enbHoAlgorithmConfig.B2GeranIratThreshold = swag.Uint32Value(cellHoAlgorithmConfig.B2GeranIratThreshold)
+		enbHoAlgorithmConfig.QrxlevminSelection = cellHoAlgorithmConfig.QrxlevminSelection
+		enbHoAlgorithmConfig.Qrxlevminoffset = cellHoAlgorithmConfig.Qrxlevminoffset
+		enbHoAlgorithmConfig.SIntrasearch = swag.Uint32Value(cellHoAlgorithmConfig.SIntrasearch)
+		enbHoAlgorithmConfig.SNonintrasearch = swag.Uint32Value(cellHoAlgorithmConfig.SNonintrasearch)
+		enbHoAlgorithmConfig.QrxlevminReselection = cellHoAlgorithmConfig.QrxlevminReselection
+		enbHoAlgorithmConfig.ReselectionPriority = cellHoAlgorithmConfig.ReselectionPriority
+		enbHoAlgorithmConfig.Threshservinglow = cellHoAlgorithmConfig.Threshservinglow
+		enbHoAlgorithmConfig.CipheringAlgorithm = cellHoAlgorithmConfig.CipheringAlgorithm
+		enbHoAlgorithmConfig.IntegrityAlgorithm = cellHoAlgorithmConfig.IntegrityAlgorithm
+		enbMconfig.HoAlgorithmConfig = enbHoAlgorithmConfig
+	}
 }

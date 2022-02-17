@@ -7938,6 +7938,9 @@ definitions:
         example: 44590
         format: uint32
         type: integer
+      ho_algorithm_config:
+        $ref: '#/definitions/ho_algorithm_configuration'
+        x-nullable: true
       pci:
         example: 260
         exclusiveMinimum: true
@@ -9028,6 +9031,155 @@ definitions:
         type: integer
     type: object
     x-go-custom-tag: magma_alt_name:"HEALTH"
+  ho_algorithm_configuration:
+    description: ho algorithm configuration for enodeb configuration.
+    properties:
+      a1_threshold_rsrp:
+        default: 50
+        example: 50
+        format: uint32
+        maximum: 97
+        minimum: 0
+        type: integer
+      a2_threshold_rsrp:
+        example: 5
+        format: int32
+        maximum: 97
+        minimum: 0
+        type: integer
+      a3_offset:
+        example: 10
+        format: int32
+        maximum: 30
+        minimum: -30
+        type: integer
+      a3_offset_anr:
+        example: 10
+        format: int32
+        type: integer
+      a4_threshold_rsrp:
+        example: 50
+        format: int32
+        type: integer
+      b2_geran_irat_threshold:
+        example: 8
+        format: uint32
+        maximum: 63
+        minimum: 0
+        type: integer
+      b2_threshold1_rsrp:
+        example: 8
+        format: uint32
+        maximum: 97
+        minimum: 0
+        type: integer
+      b2_threshold2_rsrp:
+        example: 8
+        format: int32
+        maximum: 91
+        minimum: -5
+        type: integer
+      ciphering_algorithm:
+        default: 128-EEA1,128-EEA2
+        example: 128-EEA1,128-EEA2
+        type: string
+      hysteresis:
+        example: 3
+        format: int32
+        maximum: 30
+        minimum: 0
+        type: integer
+      integrity_algorithm:
+        default: 128-EIA1,128-EIA2
+        example: 128-EIA1,128-EIA2
+        type: string
+      lte_a1_threshold_rsrq:
+        example: 2
+        format: int32
+        type: integer
+      lte_a2_threshold_rsrp_irat_volte:
+        example: 7
+        format: int32
+        type: integer
+      lte_a2_threshold_rsrq:
+        example: 6
+        format: int32
+        type: integer
+      lte_a2_threshold_rsrq_irat_volte:
+        example: 8
+        format: int32
+        type: integer
+      lte_inter_anr_a5_threshold_1_rsrp:
+        example: 55
+        format: int32
+        maximum: 97
+        minimum: 0
+        type: integer
+      lte_inter_anr_a5_threshold_2_rsrp:
+        example: 50
+        format: int32
+        maximum: 97
+        minimum: 0
+        type: integer
+      lte_intra_a5_threshold_1_rsrp:
+        example: 50
+        format: int32
+        maximum: 97
+        minimum: 0
+        type: integer
+      lte_intra_a5_threshold_2_rsrp:
+        example: 51
+        format: int32
+        maximum: 97
+        minimum: 0
+        type: integer
+      qrxlevmin_sib1:
+        default: -23
+        example: 8
+        format: int32
+        maximum: -22
+        minimum: -70
+        type: integer
+      qrxlevmin_sib3:
+        default: -23
+        example: 8
+        format: int32
+        maximum: -22
+        minimum: -70
+        type: integer
+      qrxlevminoffset:
+        default: 6
+        example: 8
+        format: uint32
+        maximum: 8
+        minimum: 1
+        type: integer
+      reselection_priority:
+        example: 8
+        format: uint32
+        maximum: 65535
+        minimum: 1
+        type: integer
+      s_intrasearch:
+        example: 8
+        format: uint32
+        maximum: 31
+        minimum: 0
+        type: integer
+      s_nonintrasearch:
+        example: 8
+        format: uint32
+        maximum: 31
+        minimum: 0
+        type: integer
+      threshservinglow:
+        example: 8
+        format: uint32
+        type: integer
+      time_to_trigger:
+        example: ms480
+        type: string
+    type: object
   hss:
     description: HSS configuration
     properties:
