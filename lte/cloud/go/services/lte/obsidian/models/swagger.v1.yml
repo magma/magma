@@ -2460,6 +2460,153 @@ definitions:
           - 'NuRAN Cavium OC-LTE'
           - 'FreedomFi One'
         x-nullable: false
+      ho_algorithm_config:
+        x-nullable: true
+        $ref: '#/definitions/ho_algorithm_configuration'
+
+  ho_algorithm_configuration:
+    description: ho algorithm configuration for enodeb configuration.
+    type: object
+    properties:
+      a1_threshold_rsrp:
+        type: integer
+        format: uint32
+        minimum: 0
+        maximum: 97
+        example: 50
+      lte_a1_threshold_rsrq:
+        type: integer
+        format: int32
+        example: 2
+      hysteresis:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 30
+        example: 3
+      time_to_trigger:
+        type: string
+        example: "ms480"
+      a2_threshold_rsrp:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 97
+        example: 5
+      lte_a2_threshold_rsrq:
+        type: integer
+        format: int32
+        example: 6
+      lte_a2_threshold_rsrp_irat_volte:
+        type: integer
+        format: int32
+        example: 7
+      lte_a2_threshold_rsrq_irat_volte:
+        type: integer
+        format: int32
+        example: 8
+      a3_offset:
+        type: integer
+        format: int32
+        minimum: -30
+        maximum: 30
+        example: 10
+      a3_offset_anr:
+        type: integer
+        format: int32
+        example: 10
+      a4_threshold_rsrp:
+        type: integer
+        format: int32
+        example: 50
+      lte_intra_a5_threshold_1_rsrp:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 97
+        example: 50
+      lte_intra_a5_threshold_2_rsrp:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 97
+        example: 51
+      lte_inter_anr_a5_threshold_1_rsrp:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 97
+        example: 55
+      lte_inter_anr_a5_threshold_2_rsrp:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 97
+        example: 50
+      b2_threshold1_rsrp:
+        type: integer
+        format: uint32
+        minimum: 0
+        maximum: 97
+        example: 8
+      b2_threshold2_rsrp:
+        type: integer
+        format: int32
+        minimum: -5
+        maximum: 91
+        example: 8
+      b2_geran_irat_threshold:
+        type: integer
+        format: uint32
+        minimum: 0
+        maximum: 63
+        example: 8
+      qrxlevmin_sib1:
+        type: integer
+        format: int32
+        minimum: -70
+        maximum: -22
+        example: -23
+      qrxlevminoffset:
+        type: integer
+        format: uint32
+        minimum: 1
+        maximum: 8
+        example: 6
+      s_intrasearch:
+        type: integer
+        format: uint32
+        minimum: 0
+        maximum: 31
+        example: 8
+      s_nonintrasearch:
+        type: integer
+        format: uint32
+        minimum: 0
+        maximum: 31
+        example: 8
+      qrxlevmin_sib3:
+        type: integer
+        format: int32
+        minimum: -70
+        maximum: -22
+        example: -23
+      reselection_priority:
+        type: integer
+        format: uint32
+        minimum: 1
+        maximum: 65535
+        example: 8
+      threshservinglow:
+        type: integer
+        format: uint32
+        example: 8
+      ciphering_algorithm:
+        type: string
+        example: "128-EEA1,128-EEA2"
+      integrity_algorithm:
+        type: string
+        example: "128-EIA1,128-EIA2"      
 
   unmanaged_enodeb_configuration:
     description: Configuration for externally managed eNodeb devices.

@@ -20,7 +20,10 @@ from magma.common.misc_utils import get_ip_from_if
 from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.mconfig_managers import load_service_mconfig_as_json
 from magma.enodebd.data_models.data_model import DataModel
-from magma.enodebd.data_models.data_model_parameters import ParameterName
+from magma.enodebd.data_models.data_model_parameters import (
+    BaicellsParameterName,
+    ParameterName,
+)
 from magma.enodebd.device_config.enodeb_config_postprocessor import (
     EnodebConfigurationPostProcessor,
 )
@@ -48,6 +51,7 @@ SingleEnodebConfig = namedtuple(
         'bandwidth_mhz', 'cell_id',
         'allow_enodeb_transmit',
         'mme_address', 'mme_port',
+        'ho_algorithm_config',
     ],
 )
 
@@ -86,6 +90,10 @@ def build_desired_config(
     # Attempt to load device configuration from YANG before service mconfig
     enb_config = _get_enb_yang_config(device_config) or \
                  _get_enb_config(mconfig, device_config)
+
+    # add Algorithm parametars
+    if enb_config.ho_algorithm_config is not None:
+        _set_ho_algorithm_config(cfg_desired, enb_config.ho_algorithm_config)
 
     _set_earfcn_freq_band_mode(
         device_config, cfg_desired, data_model,
@@ -175,7 +183,7 @@ def _get_enb_yang_config(
         bandwidth_mhz=enb_config.get('bandwidth_mhz'),
         cell_id=enb_config.get('cell_id'),
         allow_enodeb_transmit=enb_config.get('transmit_enabled'),
-        mme_address=mme_address,
+        dmme_address=mme_address,
         mme_port=mme_port,
     )
     return single_enodeb_config
@@ -186,6 +194,8 @@ def _get_enb_config(
         device_config: EnodebConfiguration,
 ) -> SingleEnodebConfig:
     # For fields that are specified per eNB
+    # algorithm pm config
+    ho_algorithm_config = None
     if mconfig.enb_configs_by_serial is not None and \
             len(mconfig.enb_configs_by_serial) > 0:
         enb_serial = \
@@ -205,6 +215,10 @@ def _get_enb_config(
                 subframe_assignment = enb_config.subframe_assignment
                 special_subframe_pattern = \
                     enb_config.special_subframe_pattern
+            # add algorithm configuration
+            if enb_config.ho_algorithm_config is not None and \
+               enb_config.ho_algorithm_config.qrxlevminoffset > 0:
+                ho_algorithm_config = enb_config.ho_algorithm_config
         else:
             raise ConfigurationError(
                 'Could not construct desired config '
@@ -245,6 +259,7 @@ def _get_enb_config(
         allow_enodeb_transmit=allow_enodeb_transmit,
         mme_address=None,
         mme_port=None,
+        ho_algorithm_config=ho_algorithm_config,
     )
     return single_enodeb_config
 
@@ -482,6 +497,58 @@ def _set_plmnids_tac(
                 object_name,
             )
     cfg.set_parameter(ParameterName.TAC, tac)
+
+
+def _set_ho_algorithm_config(
+    cfg: EnodebConfiguration,
+    ho_algorithm_config: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - algorithm config pm
+    """
+    if ho_algorithm_config.a1_threshold_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_A1_THRESHOLD_RSRP, ho_algorithm_config.a1_threshold_rsrp)
+    if ho_algorithm_config.a2_threshold_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_A2_THRESHOLD_RSRP, ho_algorithm_config.a2_threshold_rsrp)
+    if ho_algorithm_config.a3_offset is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_A3_OFFSET, ho_algorithm_config.a3_offset)
+    if ho_algorithm_config.a3_offset_anr is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_A3_OFFSET_ANR, ho_algorithm_config.a3_offset_anr)
+    if ho_algorithm_config.a4_threshold_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_A4_THRESHOLD_RSRP, ho_algorithm_config.a4_threshold_rsrp)
+    if ho_algorithm_config.lte_intra_a5_threshold_1_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_LTE_INTRA_A5_THRESHOLD_1_RSRP, ho_algorithm_config.lte_intra_a5_threshold_1_rsrp)
+    if ho_algorithm_config.lte_intra_a5_threshold_2_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_LTE_INTRA_A5_THRESHOLD_2_RSRP, ho_algorithm_config.lte_intra_a5_threshold_2_rsrp)
+    if ho_algorithm_config.lte_inter_anr_a5_threshold_1_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_LTE_INTER_ANR_A5_THRESHOLD_1_RSRP, ho_algorithm_config.lte_inter_anr_a5_threshold_1_rsrp)
+    if ho_algorithm_config.lte_inter_anr_a5_threshold_2_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_LTE_INTER_ANR_A5_THRESHOLD_2_RSRP, ho_algorithm_config.lte_inter_anr_a5_threshold_2_rsrp)
+    if ho_algorithm_config.b2_threshold1_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_B2_THRESHOLD1_RSRP, ho_algorithm_config.b2_threshold1_rsrp)
+    if ho_algorithm_config.b2_threshold2_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_B2_THRESHOLD2_RSRP, ho_algorithm_config.b2_threshold2_rsrp)
+    if ho_algorithm_config.b2_geran_irat_threshold is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_B2_GERAN_IRAT_THRESHOLD, ho_algorithm_config.b2_geran_irat_threshold)
+    if ho_algorithm_config.qrxlevmin_sib1 < 0:
+        cfg.set_parameter(BaicellsParameterName.HO_QRXLEVMIN_CHOICE, ho_algorithm_config.qrxlevmin_sib1)
+    if ho_algorithm_config.qrxlevminoffset > 0:
+        cfg.set_parameter(BaicellsParameterName.HO_QRXLEVMINOFFSET, ho_algorithm_config.qrxlevminoffset)
+    if ho_algorithm_config.s_intrasearch is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_S_INTRASEARCH, ho_algorithm_config.s_intrasearch)
+    if ho_algorithm_config.s_nonintrasearch is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_S_NONINTRASEARCH, ho_algorithm_config.s_nonintrasearch)
+    if ho_algorithm_config.qrxlevmin_sib3 < 0:
+        cfg.set_parameter(BaicellsParameterName.HO_QRXLEVMIN_RESELECTION, ho_algorithm_config.qrxlevmin_sib3)
+    if ho_algorithm_config.reselection_priority is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_RESELECTION_PRIORITY, ho_algorithm_config.reselection_priority)
+    if ho_algorithm_config.threshservinglow is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_THRESHSERVINGLOW, ho_algorithm_config.threshservinglow)
+    if len(ho_algorithm_config.ciphering_algorithm) > 0:
+        cfg.set_parameter(BaicellsParameterName.HO_CIPHERING_ALGORITHM, ho_algorithm_config.ciphering_algorithm)
+    if len(ho_algorithm_config.ciphering_algorithm) > 0:
+        cfg.set_parameter(BaicellsParameterName.HO_INTEGRITY_ALGORITHM, ho_algorithm_config.integrity_algorithm)
 
 
 def _set_earfcn_freq_band_mode(
