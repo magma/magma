@@ -635,6 +635,27 @@ static void sgw_populate_mbr_bearer_contexts_modified(
 #if !MME_UNIT_TEST  // skip tunnel creation for unit tests
       // setup GTPv1-U tunnel
       sgw_add_gtp_tunnel(imsi64, eps_bearer_ctxt_p, new_bearer_ctxt_info_p);
+
+      // delete paging rule
+      if (gtp_tunnel_ops) {
+        struct in_addr ue_ipv4   = {.s_addr = 0};
+        struct in6_addr* ue_ipv6 = NULL;
+        ue_ipv4.s_addr           = eps_bearer_ctxt_p->paa.ipv4_address.s_addr;
+        if ((eps_bearer_ctxt_p->paa.pdn_type == IPv6) ||
+            (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
+          ue_ipv6 = &eps_bearer_ctxt_p->paa.ipv6_address;
+        }
+        char* ip_str = inet_ntoa(ue_ipv4);
+        int rv = gtp_tunnel_ops->delete_paging_rule(ue_ipv4, ue_ipv6);
+        if (rv < 0) {
+          OAILOG_ERROR_UE(
+              LOG_SPGW_APP, imsi64,
+              "ERROR in deleting paging rule for IP Addr: %s\n", ip_str);
+        } else {
+          OAILOG_DEBUG(
+              LOG_SPGW_APP, "Stopped paging for IP Addr: %s\n", ip_str);
+        }
+      }
 #endif
       // may be removed
       if (TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX >
