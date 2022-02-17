@@ -592,7 +592,4 @@ typedef struct as_message_s {
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-/* Implemented in the network_api.c body file */
-int as_message_send(as_message_t* as_msg);
-
 #endif /* FILE_AS_MESSAGE_H_SEEN*/

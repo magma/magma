@@ -26,6 +26,7 @@ from dp.protos.active_mode_pb2 import (
     FrequencyRange,
     GetStateRequest,
     Grant,
+    Request,
     State,
 )
 from dp.protos.active_mode_pb2_grpc import ActiveModeControllerServicer
@@ -40,7 +41,11 @@ from magma.db_service.models import (
     DBRequestState,
 )
 from magma.db_service.session_manager import Session, SessionManager
-from magma.mappings.cbsd_states import cbsd_state_mapping, grant_state_mapping
+from magma.mappings.cbsd_states import (
+    cbsd_state_mapping,
+    grant_state_mapping,
+    request_type_mapping,
+)
 from magma.mappings.types import GrantStates, RequestStates
 from sqlalchemy.orm import joinedload
 
@@ -139,10 +144,6 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
         )
 
     def _build_cbsd(self, cbsd: DBCbsd) -> Cbsd:
-        pending_requests = [
-            json.dumps(r.payload, separators=(',', ':')) for r in cbsd.requests
-        ]
-
         # Application may not need those to be sorted.
         # Applying ordering mostly for easier assertions in testing
         cbsd_db_grants = sorted(cbsd.grants, key=lambda x: x.id)
@@ -150,6 +151,7 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
 
         grants = [self._build_grant(x) for x in cbsd_db_grants]
         channels = [self._build_channel(x) for x in cbsd_db_channels]
+        pending_requests = [self._build_request(x) for x in cbsd.requests]
 
         last_seen = self._to_timestamp(cbsd.last_seen)
         eirp_capabilities = self._build_eirp_capabilities(cbsd)
@@ -184,6 +186,12 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
             ),
             max_eirp=_make_optional_float(channel.max_eirp),
             last_eirp=_make_optional_float(channel.last_used_max_eirp),
+        )
+
+    def _build_request(self, request: DBRequest) -> Request:
+        return Request(
+            type=request_type_mapping[request.type.name],
+            payload=json.dumps(request.payload, separators=(',', ':')),
         )
 
     def _build_eirp_capabilities(self, cbsd: DBCbsd) -> EirpCapabilities:

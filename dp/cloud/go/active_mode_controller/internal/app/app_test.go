@@ -212,7 +212,10 @@ func (s *AppTestSuite) thenNoOtherRequestWasReceived() {
 func withPendingRequests(state *active_mode.State, name string) *active_mode.State {
 	for _, cfg := range state.ActiveModeConfigs {
 		if cfg.Cbsd.UserId == name {
-			cfg.Cbsd.PendingRequests = []string{getExpectedSingleRequest(name)}
+			cfg.Cbsd.PendingRequests = []*active_mode.Request{{
+				Type:    active_mode.RequestsType_RegistrationRequest,
+				Payload: getExpectedSingleRequest(name),
+			}}
 			break
 		}
 	}

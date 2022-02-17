@@ -21,13 +21,14 @@ from concurrent.futures import Future
 
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.ebpf.ebpf_manager import ebpf_manager
+from magma.pipelined.ebpf.ebpf_manager import EbpfManager
 from scapy.all import AsyncSniffer
 from scapy.layers.inet import IP, UDP
 
 GTP_SCRIPT = "/home/vagrant/magma/lte/gateway/python/magma/pipelined/tests/script/gtp-packet.py"
 PY_PATH = "/home/vagrant/build/python/bin/python"
 UL_HANDLER = "/home/vagrant/magma/lte/gateway/python/magma/pipelined/ebpf/ebpf_ul_handler.c"
+BPF_HEADER_PATH = "/home/vagrant/magma/orc8r/gateway/c/common/ebpf/"
 
 
 # This test works when ran separately.
@@ -70,10 +71,11 @@ class eBpfDatapathULTest(unittest.TestCase):
         BridgeTools.ifup_netdev(cls.sgi_veth1)
 
         gw_ip = IPAddress(version=IPAddress.IPV4, address=socket.inet_aton(cls.sgi_veth_ip))
-        cls.ebpf_man = ebpf_manager(cls.sgi_veth, cls.gtp_veth, gw_ip, UL_HANDLER)
+
+        cls.ebpf_man = EbpfManager(cls.sgi_veth, cls.gtp_veth, gw_ip, UL_HANDLER, bpf_header_path=BPF_HEADER_PATH)
         cls.ebpf_man.detach_ul_ebpf()
         cls.ebpf_man.attach_ul_ebpf()
-        time.sleep(2)
+
         cls.sniffer = AsyncSniffer(
             iface=cls.sgi_veth1,
             store=False,

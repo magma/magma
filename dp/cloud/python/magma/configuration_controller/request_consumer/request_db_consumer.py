@@ -14,13 +14,8 @@ limitations under the License.
 import logging
 
 from magma.configuration_controller.custom_types.custom_types import RequestsMap
-from magma.db_service.models import (
-    DBCbsd,
-    DBRequest,
-    DBRequestState,
-    DBRequestType,
-)
-from magma.mappings.types import RequestStates, RequestTypes
+from magma.db_service.models import DBRequest, DBRequestState, DBRequestType
+from magma.mappings.types import RequestStates
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +31,6 @@ class RequestDBConsumer(object):
         """
         Get requests in pending state and acquiring lock on them if they weren't previously locked
         by another process. If they have a lock on them, select the ones that don't.
-        When cbsd is marked for deletion, only process deregistration requests.
 
         Parameters:
             session: Database session
@@ -48,11 +42,6 @@ class RequestDBConsumer(object):
             DBRequestType.name == self.request_type,
             DBRequestState.name == RequestStates.PENDING.value,
         ).with_for_update(skip_locked=True, of=DBRequest)
-
-        if self.request_type != RequestTypes.DEREGISTRATION.value:
-            db_requests_query = db_requests_query.join(
-                DBCbsd,
-            ).filter(DBCbsd.is_deleted.is_(False))
 
         if self.request_processing_limit > 0:
             db_requests_query = db_requests_query.limit(

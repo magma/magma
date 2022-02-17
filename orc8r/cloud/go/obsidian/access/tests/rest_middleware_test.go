@@ -14,6 +14,7 @@ limitations under the License.
 package tests
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -22,9 +23,12 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/obsidian/access"
+	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	certifier_test_service "magma/orc8r/cloud/go/services/certifier/test_init"
 	"magma/orc8r/cloud/go/services/certifier/test_utils"
+	"magma/orc8r/cloud/go/services/tenants"
 	tenantsh "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
+	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
 	tenants_test_init "magma/orc8r/cloud/go/services/tenants/test_init"
 )
 
@@ -56,9 +60,52 @@ func TestAuthMiddleware(t *testing.T) {
 
 	store := test_utils.GetCertifierBlobstore(t)
 
-	rootToken := test_utils.CreateTestAdmin(t, store)
-	userToken := test_utils.CreateTestUser(t, store)
-	tenantUserToken := test_utils.CreateTestTenantUser(t, store)
+	rootToken := test_utils.CreateTestUser(t, store, test_utils.TestRootUsername, test_utils.TestPassword, []*certprotos.Policy{
+		{
+			Effect:   certprotos.Effect_ALLOW,
+			Action:   certprotos.Action_WRITE,
+			Resource: &certprotos.Policy_Path{Path: &certprotos.PathResource{Path: "**"}},
+		},
+	})
+
+	userToken := test_utils.CreateTestUser(t, store, test_utils.TestUsername, test_utils.TestPassword, []*certprotos.Policy{
+		{
+			Effect:   certprotos.Effect_ALLOW,
+			Action:   certprotos.Action_READ,
+			Resource: &certprotos.Policy_Path{Path: &certprotos.PathResource{Path: "**"}},
+		},
+		{
+			Effect:   certprotos.Effect_DENY,
+			Action:   certprotos.Action_WRITE,
+			Resource: &certprotos.Policy_Network{Network: &certprotos.NetworkResource{Networks: []string{test_utils.WriteTestNetworkId}}},
+		},
+	})
+
+	queryUserToken := test_utils.CreateTestUser(t, store, test_utils.TestQueryUsername, test_utils.TestPassword, []*certprotos.Policy{
+		{
+			Effect:   certprotos.Effect_ALLOW,
+			Action:   certprotos.Action_READ,
+			Resource: &certprotos.Policy_Network{Network: &certprotos.NetworkResource{Networks: []string{"foo"}}},
+		},
+		{
+			Effect:   certprotos.Effect_DENY,
+			Action:   certprotos.Action_WRITE,
+			Resource: &certprotos.Policy_Network{Network: &certprotos.NetworkResource{Networks: []string{test_utils.WriteTestNetworkId}}},
+		},
+	})
+
+	tenants.CreateTenant(context.Background(), test_utils.TestTenantId, &tenant_protos.Tenant{
+		Name:     string(test_utils.TestTenantId),
+		Networks: []string{test_utils.TestTenantNetworkId},
+	})
+	tenantUserToken := test_utils.CreateTestUser(t, store, test_utils.TestTenantUsername, test_utils.TestPassword, []*certprotos.Policy{
+		{
+			Effect:   certprotos.Effect_ALLOW,
+			Action:   certprotos.Action_WRITE,
+			Resource: &certprotos.Policy_Tenant{Tenant: &certprotos.TenantResource{Tenants: []int64{test_utils.TestTenantId}}},
+		},
+	})
+
 	e := startTestMiddlewareServer(t)
 	e.Use(access.TokenMiddleware)
 	listener := WaitForTestServer(t, e)
@@ -67,7 +114,6 @@ func TestAuthMiddleware(t *testing.T) {
 	}
 
 	urlPrefix := fmt.Sprintf("http://%s", listener.Addr().String())
-
 	tests := []struct {
 		method   string
 		url      string
@@ -96,6 +142,15 @@ func TestAuthMiddleware(t *testing.T) {
 		{"PUT", fmt.Sprintf("%s%s/%s", urlPrefix, RegisterNetworkV1, TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusForbidden},
 		{"GET", fmt.Sprintf("%s%s/%s", urlPrefix, RegisterNetworkV1, WRITE_TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusForbidden},
 		{"PUT", fmt.Sprintf("%s%s/%s", urlPrefix, RegisterNetworkV1, WRITE_TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusForbidden},
+
+		// Test query parameters, ensuring network_id is pulled only from path params
+		// User is allowed to read random network foo
+		{"GET", fmt.Sprintf("%s%s/%s", urlPrefix, RegisterLteNetworkV1, "foo"), test_utils.TestQueryUsername, queryUserToken, http.StatusOK},
+		// User is not allowed to read network foo when it is included in query param
+		{"GET", fmt.Sprintf("%s%s?network_id=%s", urlPrefix, RegisterLteNetworkV1, "foo"), test_utils.TestQueryUsername, queryUserToken, http.StatusForbidden},
+		// User is denied write access to WRITE_TEST_NETWORK_ID when it is included in query param
+		{"PUT", fmt.Sprintf("%s%s/%s?network_id=%s", urlPrefix, RegisterLteNetworkV1, "foo", WRITE_TEST_NETWORK_ID), test_utils.TestQueryUsername, queryUserToken, http.StatusForbidden},
+
 		// User does not have write access to any tenants
 		{"GET", fmt.Sprintf("%s%s/%d", urlPrefix, TenantRootPathV1, test_utils.TestTenantId), test_utils.TestUsername, userToken, http.StatusOK},
 		{"POST", fmt.Sprintf("%s%s/%d", urlPrefix, TenantRootPathV1, test_utils.TestTenantId), test_utils.TestUsername, userToken, http.StatusForbidden},
@@ -181,6 +236,18 @@ func startTestMiddlewareServer(t *testing.T) *echo.Echo {
 
 	// Endpoint requiring Network Wildcard WRITE Access Permissions
 	e.POST(RegisterNetworkV1, dummyHandlerFunc)
+
+	// Endpoint requiring Network Wildcard READ Access Permissions
+	e.GET(RegisterLteNetworkV1, dummyHandlerFunc)
+
+	// Endpoint requiring Network Wildcard WRITE Access Permissions
+	e.POST(RegisterLteNetworkV1, dummyHandlerFunc)
+
+	// Endpoint requiring Network Wildcard READ Access Permissions
+	e.GET(ManageLteNetworkV1, dummyHandlerFunc)
+
+	// Endpoint requiring Network Wildcard WRITE Access Permissions
+	e.POST(ManageLteNetworkV1, dummyHandlerFunc)
 
 	// Endpoint requiring a specific Network READ Entity Access Permissions
 	e.GET(ManageNetworkV1, dummyHandlerFunc)

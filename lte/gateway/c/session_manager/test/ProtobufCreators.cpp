@@ -79,6 +79,29 @@ RuleSet create_rule_set(const bool apply_subscriber_wide,
   return rule_set;
 }
 
+void create_rule_record_ipv6(const std::string& imsi, const std::string& ip,
+                             const std::string& rule_id, uint64_t bytes_rx,
+                             uint64_t bytes_tx, RuleRecord* rule_record) {
+  create_rule_record(imsi, rule_id, bytes_rx, bytes_tx, rule_record);
+  rule_record->set_dropped_rx(0);
+  rule_record->set_dropped_tx(0);
+  rule_record->set_ue_ipv6(ip);
+}
+void create_rule_record_ipv6(const std::string& imsi, const std::string& ip,
+                             const std::string& rule_id, uint64_t rule_version,
+                             uint64_t bytes_rx, uint64_t bytes_tx,
+                             uint64_t dropped_rx, uint64_t dropped_tx,
+                             RuleRecord* rule_record) {
+  rule_record->set_sid(imsi);
+  rule_record->set_rule_id(rule_id);
+  rule_record->set_bytes_rx(bytes_rx);
+  rule_record->set_bytes_tx(bytes_tx);
+  rule_record->set_dropped_rx(dropped_rx);
+  rule_record->set_dropped_tx(dropped_tx);
+  rule_record->set_ue_ipv6(ip);
+  rule_record->set_rule_version(rule_version);
+}
+
 void create_rule_record(const std::string& imsi, const std::string& rule_id,
                         uint64_t bytes_rx, uint64_t bytes_tx,
                         RuleRecord* rule_record) {

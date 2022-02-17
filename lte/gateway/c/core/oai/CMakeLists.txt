@@ -106,6 +106,7 @@ find_package(EVENTD REQUIRED)
 find_package(SERVICE303_LIB REQUIRED)
 find_package(MAGMA_LOGGING REQUIRED)
 find_package(MAGMA_SENTRY REQUIRED)
+find_package(MAGMA_EBPF REQUIRED)
 
 
 ################################################################

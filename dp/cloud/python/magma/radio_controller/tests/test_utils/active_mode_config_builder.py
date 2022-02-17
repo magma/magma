@@ -11,6 +11,8 @@ from dp.protos.active_mode_pb2 import (
     FrequencyRange,
     Grant,
     GrantState,
+    Request,
+    RequestsType,
 )
 from google.protobuf.wrappers_pb2 import FloatValue
 
@@ -117,10 +119,15 @@ class ActiveModeConfigBuilder:
     def make_optional_float(value: Optional[float] = None) -> FloatValue:
         return FloatValue(value=value) if value is not None else None
 
-    def with_pending_request(self, payload: str) -> ActiveModeConfigBuilder:
+    def with_pending_request(self, request_type: RequestsType, payload: str) -> ActiveModeConfigBuilder:
         if not self.pending_requests:
             self.pending_requests = []
-        self.pending_requests.append(payload)
+        self.pending_requests.append(
+            Request(
+                type=request_type,
+                payload=payload,
+            ),
+        )
         return self
 
     def with_last_seen(self, last_seen_timestamp: int) -> ActiveModeConfigBuilder:
