@@ -4,7 +4,7 @@ Author(s): [@arsenii-oganov]
 
 Last updated: 02/16/2022
 
-Link to issue: (https://github.com/magma/magma/issues/11636)
+Link to issue: <https://github.com/magma/magma/issues/11636>
 
 ## 1.0 Objectives
 
