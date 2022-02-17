@@ -285,7 +285,7 @@ int openflow_init(struct in_addr* ue_net, uint32_t mask, int mtu, int* fd0,
                   int* fd1u, bool persist_state) {
   AssertFatal(start_of_controller(persist_state) >= 0,
               "Could not start openflow controller\n");
-  ebpf_fd = get_map_fd();
+  ebpf_fd = get_dl_map_fd();
   return 0;
 }
 

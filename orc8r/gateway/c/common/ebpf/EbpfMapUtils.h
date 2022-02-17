@@ -43,6 +43,7 @@
 #define BPF_EXIST 2   /* only update existing element */
 
 #define DL_MAP_PATH "/sys/fs/bpf/dl_map"
+#define UL_MAP_PATH "/sys/fs/bpf/ul_map"
 
 static uint64_t ptr_to_u64(const void* ptr) { return (uint64_t)ptr; }
 
@@ -53,6 +54,8 @@ static inline int sys_bpf(enum bpf_cmd cmd, union bpf_attr* attr, uint size) {
 int bpf_obj_get(const char* pathname);
 int bpf_map_update_elem(int fd, void* key, void* value, uint64_t flags);
 int bpf_map_lookup_elem(int fd, void* key, void* value);
+int bpf_map_get_next_key(int fd, void* key, void* next_key);
+int bpf_map_delete_elem(int fd, void* key);
 
 int bpf_obj_get(const char* pathname) {
   union bpf_attr attr;
@@ -75,6 +78,28 @@ int bpf_map_update_elem(int fd, void* key, void* value, uint64_t flags) {
   return sys_bpf(BPF_MAP_UPDATE_ELEM, &attr, sizeof(attr));
 }
 
+int bpf_map_get_next_key(int fd, void* key, void* next_key) {
+  union bpf_attr attr;
+
+  bzero(&attr, sizeof(attr));
+  attr.map_fd = fd;
+  attr.key = ptr_to_u64(key);
+  attr.next_key = ptr_to_u64(next_key);
+
+  return sys_bpf(BPF_MAP_GET_NEXT_KEY, &attr, sizeof(attr));
+}
+
+int bpf_map_lookup_elem(int fd, void* key, void* value) {
+  union bpf_attr attr;
+
+  bzero(&attr, sizeof(attr));
+  attr.map_fd = fd;
+  attr.key = ptr_to_u64(key);
+  attr.value = ptr_to_u64(value);
+
+  return sys_bpf(BPF_MAP_LOOKUP_ELEM, &attr, sizeof(attr));
+}
+
 int bpf_map_delete_elem(int fd, void* key) {
   union bpf_attr attr;
   int ret;
@@ -86,7 +111,8 @@ int bpf_map_delete_elem(int fd, void* key) {
   return sys_bpf(BPF_MAP_DELETE_ELEM, &attr, sizeof(attr));
 }
 
-int get_map_fd() { return bpf_obj_get(DL_MAP_PATH); }
+int get_dl_map_fd() { return bpf_obj_get(DL_MAP_PATH); }
+int get_ul_map_fd() { return bpf_obj_get(UL_MAP_PATH); }
 
 int add_ebpf_dl_map_entry(int hash_fd, struct in_addr ue, struct in_addr enb,
                           uint32_t o_tei, uint8_t* user_data,
