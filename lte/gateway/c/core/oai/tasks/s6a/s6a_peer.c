@@ -54,35 +54,10 @@ void s6a_peer_connected_cb(struct peer_info* info, void* arg) {
 
     send_activate_messages();
   }
-
-  /*
-   * For test
-   */
-#if 0
-  s6a_auth_info_req_t                     s6a_air;
-
-  memset (&s6a_air, 0, sizeof (s6a_auth_info_req_t));
-  snprintf (s6a_air.imsi, sizeof(s6a_air.imsi), "%14llu", 20834123456789ULL);
-  s6a_air.nb_of_vectors = 1;
-  s6a_air.visited_plmn.mcc_digit2 = 0,
-    s6a_air.visited_plmn.mcc_digit1 = 8, s6a_air.visited_plmn.mcc_digit3 = 2, s6a_air.visited_plmn.mnc_digit1 = 0, s6a_air.visited_plmn.mnc_digit2 = 3, s6a_air.visited_plmn.mnc_digit3 = 4, s6a_generate_authentication_info_req (&s6a_air);
-  // #else
-  //     s6a_update_location_req_t s6a_ulr;
-  //
-  //     memset(&s6a_ulr, 0, sizeof(s6a_update_location_req_t));
-  //
-  //     snprintf(s6a_ulr.imsi, sizeof(s6a_air.imsi), "%14llu", 20834123456789ULL);
-  //     s6a_ulr.initial_attach = INITIAL_ATTACH;
-  //     s6a_ulr.rat_type = RAT_EUTRAN;
-  //     s6a_generate_update_location(&s6a_ulr);
-#endif
 }
 
 status_code_e s6a_fd_new_peer(void) {
   int ret = 0;
-#if FD_CONF_FILE_NO_CONNECT_PEERS_CONFIGURED
-  struct peer_info info = {0};
-#endif
 
   if (mme_config_read_lock(&mme_config)) {
     OAILOG_ERROR(LOG_S6A, "Failed to lock configuration for reading\n");
@@ -97,25 +72,6 @@ status_code_e s6a_fd_new_peer(void) {
     OAILOG_ERROR(LOG_S6A, "Failed to unlock configuration\n");
     return RETURNerror;
   }
-#if FD_CONF_FILE_NO_CONNECT_PEERS_CONFIGURED
-  info.pi_diamid = bdata(hss_name);
-  info.pi_diamidlen = blength(hss_name);
-  OAILOG_DEBUG(LOG_S6A, "Diameter identity of HSS: %s with length: %zd\n",
-               info.pi_diamid, info.pi_diamidlen);
-  info.config.pic_flags.sec = PI_SEC_NONE;
-  info.config.pic_flags.pro3 = PI_P3_DEFAULT;
-  info.config.pic_flags.pro4 = PI_P4_TCP;
-  info.config.pic_flags.alg = PI_ALGPREF_TCP;
-  info.config.pic_flags.exp = PI_EXP_INACTIVE;
-  info.config.pic_flags.persist = PI_PRST_NONE;
-  info.config.pic_port = 3868;
-  info.config.pic_lft = 3600;
-  info.config.pic_tctimer = 7;   // retry time-out connection
-  info.config.pic_twtimer = 60;  // watchdog
-  CHECK_FCT(fd_peer_add(&info, "", s6a_peer_connected_cb, NULL));
-
-  return ret;
-#else
   DiamId_t diamid = bdata(hss_name);
   size_t diamidlen = blength(hss_name);
   struct peer_hdr* peer = NULL;
@@ -160,7 +116,6 @@ status_code_e s6a_fd_new_peer(void) {
   free_wrapper((void**)&fd_g_config->cnf_diamid);
   fd_g_config->cnf_diamid_len = 0;
   return RETURNerror;
-#endif
 }
 
 #endif
