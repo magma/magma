@@ -75,6 +75,13 @@
         "ids": [
           "feg/architecture_overview"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Domain Proxy",
+        "ids": [
+          "dp/architecture_overview"
+        ]
       }
     ],
     "Deploy": [
@@ -120,6 +127,13 @@
           "feg/deploy_intro",
           "feg/deploy_build",
           "feg/deploy_install"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Domain Proxy",
+        "ids": [
+          "dp/deploy_build"
         ]
       }
     ],
@@ -231,6 +245,13 @@
         "label": "NMS",
         "ids": [
           "nms/alerts_troubleshooting"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Domain Proxy",
+        "ids": [
+          "dp/debug_logs"
         ]
       }
     ],
