@@ -355,6 +355,7 @@ imsi64_t amf_app_handle_initial_ue_message(
           amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.remove(
               ue_context_p->gnb_ngap_id_key);
           ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
+          ue_context_p->mm_state = DEREGISTERED;
         }
 
         /* remove amf_ngap_ud_id entry from ue context */
