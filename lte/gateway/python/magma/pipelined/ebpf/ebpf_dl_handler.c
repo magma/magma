@@ -11,24 +11,13 @@
  * limitations under the License.
  */
 
+#include "EbpfMap.h"
+
 #include <bcc/proto.h>
 #include <linux/in.h>
 #include <linux/ip.h>
 #include <linux/udp.h>
-#include <linux/if_ether.h>
 #include <uapi/linux/ipv6.h>
-
-// UE sessions map definitions.
-struct dl_map_key {
-  u32 ue_ip;
-};
-
-struct dl_map_info {
-  u32 remote_ipv4;
-  u32 tunnel_id;
-  u64 bytes;
-  u8 user_data[64];
-};
 
 // The map is pinned so that it can be accessed by pipelined or debugging tool
 // to examine datapath state.

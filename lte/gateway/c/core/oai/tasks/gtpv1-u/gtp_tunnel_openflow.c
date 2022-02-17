@@ -25,7 +25,7 @@
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/ebpf_dl_map.h"
+#include "orc8r/gateway/c/common/ebpf/EbpfMapUtils.h"
 #include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
@@ -305,7 +305,8 @@ int openflow_add_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6, int vlan,
     OAILOG_INFO(LOG_GTPV1U, "Adding UE EBPF ENTRY %d, %d htonl %d \n",
                 ue.s_addr, o_tei, htonl(o_tei));
     if (ue.s_addr != INADDR_ANY && enb.s_addr != INADDR_ANY) {
-      add_ebpf_dl_map_entry(ebpf_fd, ue, enb, o_tei, imsi);
+      add_ebpf_dl_map_entry(ebpf_fd, ue, enb, o_tei, imsi.digit,
+                            sizeof(imsi.digit));
     }
     // TODO add IPv6 support
   }
