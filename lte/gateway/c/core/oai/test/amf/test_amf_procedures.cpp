@@ -14,7 +14,7 @@
 #include <gtest/gtest.h>
 #include <thread>
 
-#include "../mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/common_types.h"
