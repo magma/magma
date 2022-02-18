@@ -22,13 +22,14 @@
 const struct gtp_tunnel_ops* upf_gtp_tunnel_ops_init_openflow(void);
 
 int upf_add_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6, int vlan,
-                   struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
-                   Imsi_t imsi, struct ip_flow_dl* flow_dl,
-                   uint32_t flow_precedence_dl, char* apn);
+                   struct in_addr enb, struct in6_addr* unused_in6_addr,
+                   uint32_t i_tei, uint32_t o_tei, Imsi_t imsi,
+                   struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl,
+                   char* apn);
 
-int upf_del_tunnel(struct in_addr enb, struct in_addr ue,
-                   struct in6_addr* ue_ipv6, uint32_t i_tei, uint32_t o_tei,
-                   struct ip_flow_dl* flow_dl);
+int upf_del_tunnel(struct in_addr enb, struct in6_addr* unused_in6_addr,
+                   struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
+                   uint32_t o_tei, struct ip_flow_dl* flow_dl);
 
 int upf_discard_data_on_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6,
                                uint32_t i_tei, struct ip_flow_dl* flow_dl);
@@ -37,6 +38,7 @@ int upf_forward_data_on_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6,
                                uint32_t i_tei, struct ip_flow_dl* flow_dl,
                                uint32_t flow_precedence_dl);
 
-int upf_add_paging_rule(struct in_addr ue);
+int upf_add_paging_rule(Imsi_t unused_imsi_t, struct in_addr ue,
+                        struct in6_addr* unused_in6_addr);
 
-int upf_delete_paging_rule(struct in_addr ue);
+int upf_delete_paging_rule(struct in_addr ue, struct in6_addr* unused_in6_addr);
