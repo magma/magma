@@ -25,7 +25,7 @@ jobs:
       ISSUE_NUMBER: "${{ github.event.number }}"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       # Version is github job run number when running on master
       # Or is branch name when on release branch
       - name: Set Helm chart version
@@ -46,7 +46,7 @@ jobs:
             orc8r/tools/helm/package.sh --deployment-type all
           fi
       - name: Upload charts as artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         if: github.event_name == 'pull_request'
         with:
           name: helm-charts
@@ -58,7 +58,7 @@ jobs:
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/pr_number
           echo "false" > ./pr/skipped
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         with:
           name: pr
           path: pr/
@@ -72,7 +72,7 @@ jobs:
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action Push helm charts to artifactory failed"
@@ -84,7 +84,7 @@ jobs:
       # Notify ci channel when push succeeds
       - name: Notify success to Slack
         if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
@@ -105,14 +105,14 @@ jobs:
     outputs:
       artifacts: ${{ steps.publish_packages.outputs.artifacts }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         with:
           fetch-depth: 0
       - name: setup pyenv
-        uses: "gabrielfalcao/pyenv-action@v8"
+        uses: "gabrielfalcao/pyenv-action@5327db2939908b2ef8f62d284403d678c4b611d0 # v8"
         with:
           default: 3.8.5
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # v2
         with:
           python-version: '3.8.5'
       - name: Install pre requisites
@@ -162,12 +162,12 @@ jobs:
             ARTIFACTS=$(echo $ARTIFACTS | jq '. += {"valid":true}')
           fi
           echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         if: github.event_name == 'pull_request'
         with:
           name: magma-packages
           path: lte/gateway/magma-packages/*.deb
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         name: Export sentry executables
         if: github.event_name == 'push'
         with:
@@ -186,7 +186,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_USERNAME: "Github action agw build failed"
           SLACK_AVATAR: ":boom:"
-        uses: Ilshidur/action-slack@2.1.0
+        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # 2.1.0
         with:
           args: "AGW  build failed on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"
       # Notify ci channel when push succeeds
@@ -196,7 +196,7 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_USERNAME: "Github action agw build got published"
-        uses: Ilshidur/action-slack@2.1.0
+        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # 2.1.0
         with:
           args: "AGW  build succeeded on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"
   sentry_release:
@@ -210,13 +210,13 @@ jobs:
       MAGMA_VERSION: ${{ needs.agw-build.outputs.magma_version }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         with:
           fetch-depth: 0
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@f023be2c48cc18debc3bacd34cb396e0295e2869 # v2
         with:
           name: sentry-exec
-      - uses: geekyeggo/delete-artifact@v1
+      - uses: geekyeggo/delete-artifact@a6ab43859c960a8b74cbc6291f362c7fb51829ba # v1
         with:
           name: sentry-exec
       - run: ls -R
@@ -268,10 +268,10 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - name: Run apt-get update
         run: sudo apt-get update
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # v2
         with:
           python-version: '3.7'
       - name: Run build.py
@@ -285,7 +285,7 @@ jobs:
           cd images
           docker save orc8r_nginx | gzip > nginx.tar.gz
           docker save orc8r_controller  | gzip > controller.tar.gz
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         if: github.event_name == 'pull_request'
         with:
           name: docker-images-orc8r
@@ -318,7 +318,7 @@ jobs:
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         # yamllint enable
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
@@ -331,7 +331,7 @@ jobs:
       # Notify ci channel when push succeeds
       - name: Notify success to Slack
         if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
@@ -349,7 +349,7 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
       DOCKER_BUILDKIT: 1
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - name: Run agw docker compose
         id: agw-docker-compose
         continue-on-error: true
@@ -406,7 +406,7 @@ jobs:
           docker save ghz_gateway_c | gzip > ghz_gateway_c.tar.gz
           docker save ghz_gateway_python | gzip > ghz_gateway_python.tar.gz
       - name: Upload docker images as artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         if: github.event_name == 'pull_request'
         with:
           name: docker-images-agw
@@ -417,7 +417,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/NR
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         with:
           name: pr
           path: pr/
@@ -444,7 +444,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.repository_owner == 'magma'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - name: Install SwaggerHub CLI
         run: npm install --global swaggerhub-cli
       - name: Publish SwaggerHub API
@@ -462,7 +462,7 @@ jobs:
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action cloud-upload failed"
@@ -474,7 +474,7 @@ jobs:
       # Notify ci channel when push succeeds
       - name: Notify success to Slack
         if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
@@ -493,7 +493,7 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - name: Run docker compose
         id: cwag-docker-compose
         continue-on-error: true
@@ -545,7 +545,7 @@ jobs:
           docker save goradius | gzip > goradius.tar.gz
           docker save xwfm-integ-tests | gzip > xwfm-integ-tests.tar.gz
       - name: Upload docker images as artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         if: github.event_name == 'pull_request'
         with:
           name: docker-images-cwag
@@ -556,7 +556,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/pr_number
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         with:
           name: pr
           path: pr/
@@ -609,7 +609,7 @@ jobs:
       # yamllint enable
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "CWAG/xwfm-deploy failed"
@@ -621,7 +621,7 @@ jobs:
       # Notify ci channel when push succeeds
       - name: Notify success to slack
         if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
@@ -638,7 +638,7 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - name: Run docker compose build
         env:
           DOCKER_REGISTRY: cwf_
@@ -652,7 +652,7 @@ jobs:
           cd images
           docker save cwf_operator | gzip > operator.tar.gz
       - name: Upload docker images as artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         if: github.event_name == 'pull_request'
         with:
           name: docker-images-cwf
@@ -663,7 +663,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/pr_number
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         with:
           name: pr
           path: pr/
@@ -695,7 +695,7 @@ jobs:
       # yamllint enable
       - name: Notify failure to slack
         if: failure() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "CWF-operator-build failed"
@@ -707,7 +707,7 @@ jobs:
       # Notify ci channel when push succeeds
       - name: Notify success to slack
         if: success() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
@@ -726,8 +726,8 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
+      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # v2
         with:
           python-version: '3.7'
       - name: generate test certs and snowflake
@@ -761,7 +761,7 @@ jobs:
           docker save feg_gateway_go | gzip > feg_gateway_go.tar.gz
           docker save feg_gateway_python | gzip > feg_gateway_python.tar.gz
       - name: Upload docker images as artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         if: github.event_name == 'pull_request'
         with:
           name: docker-images-feg
@@ -796,7 +796,7 @@ jobs:
       # yamllint enable
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "FeG-precommit tests failed"
@@ -808,7 +808,7 @@ jobs:
       # Notify ci channel when push succeeds
       - name: Notify success to slack
         if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
@@ -828,7 +828,7 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
       NMS_ROOT: "${{ github.workspace }}/nms/packages/magmalte"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - name: Run docker compose
         id: nms-docker-compose
         # yamllint disable rule:line-length
@@ -842,7 +842,7 @@ jobs:
           cd images
           docker save magmalte_magmalte | gzip > magmalte.tar.gz
       - name: Upload docker images as artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         if: github.event_name == 'pull_request'
         with:
           name: docker-images-nms
@@ -878,7 +878,7 @@ jobs:
       # yamllint enable
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Github action nms-build failed"
@@ -890,7 +890,7 @@ jobs:
       # Notify ci channel when push succeeds
       - name: Notify success to slack
         if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
@@ -906,8 +906,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [agw-build, feg-build, orc8r-build, cwag-deploy, nms-build]
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
+      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # v2
         with:
           python-version: '3.7'
       - name: Publish to

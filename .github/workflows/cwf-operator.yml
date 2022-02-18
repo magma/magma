@@ -23,9 +23,9 @@ jobs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # v2
         id: changes
         with:
           filters: |
@@ -40,14 +40,14 @@ jobs:
       GO111MODULE: on  # yamllint disable-line rule:truthy
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
+      - uses: actions/setup-go@bfdd3570ce990073878bf10f6b2d79082de49492 # v2
         with:
           go-version: '1.15.7'
       - name: Run golang_before_install.sh script
-        run: ./.github/workflows/scripts/golang_before_install.sh
+        run: ./circleci/golang_before_install.sh
       - name: Run go mod download with retry
-        uses: nick-invision/retry@v2
+        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c # v2
         with:
           command: cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator && go mod download
           timeout_minutes: 10
@@ -64,7 +64,7 @@ jobs:
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
         if: failure() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "CWF-operator-precommit tests failed"

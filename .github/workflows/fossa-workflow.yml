@@ -21,7 +21,7 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - name: Download fossa analyze script
         # yamllint disable rule:line-length
         run: |
@@ -47,7 +47,7 @@ jobs:
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action fossa-analyze update failed"

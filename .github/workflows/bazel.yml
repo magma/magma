@@ -30,7 +30,7 @@ jobs:
       files_changed: ${{ steps.changes.outputs.files_changed }}
     steps:
       # Need to get git on push event
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # v2
         if: github.event_name == 'pull_request'
         id: changes
         with:
@@ -59,9 +59,9 @@ jobs:
     steps:
         - name: Check Out Repo
           # This is necessary for overlays into the Docker container below.
-          uses: actions/checkout@v2
+          uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         - name: Bazel Cache
-          uses: actions/cache@v2
+          uses: actions/cache@661fd3eb7f2f20d8c7c84bc2b0509efd7a826628 # v2
           with:
             path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
             key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
@@ -69,7 +69,7 @@ jobs:
               ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
 
         - name: Bazel Cache Repo
-          uses: actions/cache@v2
+          uses: actions/cache@661fd3eb7f2f20d8c7c84bc2b0509efd7a826628 # v2
           with:
             path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
             key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
@@ -99,14 +99,14 @@ jobs:
               rm -rf $EXPANDED_BAZEL_CACHE_PATH $EXPANDED_BAZEL_CACHE_REPO_PATH
             fi
         - name: Setup Devcontainer Image
-          uses: addnab/docker-run-action@v2
+          uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
           with:
             image: ${{ env.DEVCONTAINER_IMAGE }}
             # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
             run: |
               echo "Pulled the devontainer image!"
         - name: Run `bazel build //...`
-          uses: addnab/docker-run-action@v2
+          uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
           with:
             image: ${{ env.DEVCONTAINER_IMAGE }}
             # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -116,7 +116,7 @@ jobs:
               bazel build //...
         - name: Run `bazel test //...`
           if: github.event_name == 'pull_request'
-          uses: addnab/docker-run-action@v2
+          uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
           with:
             image: ${{ env.DEVCONTAINER_IMAGE }}
             # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)

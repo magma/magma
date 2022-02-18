@@ -26,9 +26,9 @@ jobs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # v2
         id: changes
         with:
           filters: |
@@ -39,7 +39,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         if: always()
         with:
           name: pr
@@ -53,13 +53,13 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - name: install flow
         run: |
             cd ${MAGMA_ROOT}/nms
             # Extract the specified flow version from the .flowconfig
             yarn add --dev -W flow-bin@$(x=$(grep "\[version\]" .flowconfig -A 1 | tail -n 1); echo ${x:1})
-      - uses: borales/actions-yarn@v2.3.0
+      - uses: borales/actions-yarn@4965e1a0f0ae9c422a9a5748ebd1fb5e097d22b9 # v2.3.0
         with:
           cmd: install  # will run `yarn install` command
       - name: flow typecheck
@@ -76,7 +76,7 @@ jobs:
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "NMS flow tests failed"
@@ -93,8 +93,8 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
+      - uses: actions/setup-node@1f8c6b94b26d0feae1e387ca63ccbdc44d27b561 # v2
         with:
           node-version: 16
       - name: apt install yarn
@@ -123,7 +123,7 @@ jobs:
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "NMS eslint tests failed"
@@ -140,8 +140,8 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
-      - uses: borales/actions-yarn@v2.3.0
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
+      - uses: borales/actions-yarn@4965e1a0f0ae9c422a9a5748ebd1fb5e097d22b9 # v2.3.0
         with:
           cmd: install  # will run `yarn install` command
       - name: run yarn test
@@ -159,7 +159,7 @@ jobs:
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "NMS yarn tests failed"
@@ -179,7 +179,7 @@ jobs:
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
       PUPPETEER_EXECUTABLE_PATH: "/usr/bin/google-chrome-stable"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - name: apt install yarn
         run: |
             cd ${MAGMA_ROOT}/nms
@@ -200,7 +200,7 @@ jobs:
             sudo apt-get update -y
             sudo apt-get install -y google-chrome-stable libxss1 --no-install-recommends
             sudo rm -rf /var/lib/apt/lists/*
-      - uses: borales/actions-yarn@v2.3.0
+      - uses: borales/actions-yarn@4965e1a0f0ae9c422a9a5748ebd1fb5e097d22b9 # v2.3.0
         with:
           cmd: install  # will run `yarn install` command
       - name: run e2e_test_setup.sh
@@ -211,7 +211,7 @@ jobs:
             ./e2e_test_setup.sh
       - name: Publish Test Results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         with:
           name: NMS Test Results
           path: "/tmp/nms_artifacts/*"
@@ -225,7 +225,7 @@ jobs:
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "NMS e2e tests failed"

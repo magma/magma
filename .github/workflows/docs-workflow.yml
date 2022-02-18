@@ -21,9 +21,9 @@ jobs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # v2
         id: changes
         with:
           filters: |
@@ -37,7 +37,7 @@ jobs:
           echo -n ${{ github.event.number }} > ./pr/pr_number
           echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
           echo -n "false" > ./pr/is_reverted_pr
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         if: always()
         with:
           name: pr
@@ -52,8 +52,8 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
+      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # v2
         with:
           python-version: '3.7'
       - name: Run docs precommit

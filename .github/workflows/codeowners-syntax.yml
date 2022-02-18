@@ -19,9 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checks-out your repository, which is validated in the next step
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - name: GitHub CODEOWNERS Validator
-        uses: mszostok/codeowners-validator@v0.6.0
+        uses: mszostok/codeowners-validator@2f6e3bb39aa6837d7dcf8eff2de5d6c046d0c9a9 # v0.6.0
         with:
           checks: "syntax,files,duppatterns"
           # TODO: enable owner check

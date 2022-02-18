@@ -20,7 +20,7 @@ jobs:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         with:
           ref: ${{ env.SHA }}
       - name: Run docker compose
@@ -37,7 +37,7 @@ jobs:
           docker save cwf_cwag_go:latest  | gzip > cwf_cwag_go.tar.gz
           docker save cwf_gateway_go:latest | gzip > cwf_gateway_go.tar.gz
           docker save cwf_gateway_pipelined:latest | gzip > cwf_gateway_pipelined.tar.gz
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         with:
           name: docker-images
           path: images
@@ -54,7 +54,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_USERNAME: "CWF integ test"
           SLACK_AVATAR: ":boom:"
-        uses: Ilshidur/action-slack@2.1.0
+        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # 2.1.0
         with:
           args: 'CWF integration test: docker build step failed on [${{ env.SHA }}](${{github.event.repository.owner.html_url}}/magma/commits/${{ env.SHA }}): ${{ steps.commit.outputs.title}}'
   cwf-integ-test:
@@ -62,14 +62,14 @@ jobs:
     runs-on: macos-10.15
     needs: docker-build
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         with:
           ref: ${{ env.SHA }}
       - name: Setup Python env
-        uses: "gabrielfalcao/pyenv-action@v8"
+        uses: "gabrielfalcao/pyenv-action@5327db2939908b2ef8f62d284403d678c4b611d0 # v8"
         with:
           default: 3.8.5
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # v2
         with:
           python-version: '3.8.5'
       - name: Install pre requisites
@@ -77,10 +77,10 @@ jobs:
           pip3 install --upgrade pip
           pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
           vagrant plugin install vagrant-vbguest vagrant-disksize
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@f023be2c48cc18debc3bacd34cb396e0295e2869 # v2
         with:
           name: docker-images
-      - uses: geekyeggo/delete-artifact@v1
+      - uses: geekyeggo/delete-artifact@a6ab43859c960a8b74cbc6291f362c7fb51829ba # v1
         with:
           name: docker-images
       - name: Copy docker images into /tmp/cwf-images
@@ -102,13 +102,13 @@ jobs:
           fab integ_test:destroy_vm=True,transfer_images=True,test_result_xml=tests.xml,rerun_fails=3,skip_docker_load=True,tar_path="/tmp/cwf-images"
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         with:
           name: test-results
           path: cwf/gateway/tests.xml
       - name: Publish Unit Test Results
         if: always()
-        uses: EnricoMi/publish-unit-test-result-action/composite@v1
+        uses: EnricoMi/publish-unit-test-result-action/composite@3ffc83e522f8100f1206e8b2682423be5c42e2b2 # v1
         with:
           check_run_annotations: all tests
           files: cwf/gateway/tests.xml
@@ -121,7 +121,7 @@ jobs:
           cp *.log logs/
       - name: Upload logs
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         with:
           name: test-logs
           path: cwf/gateway/logs
@@ -142,6 +142,6 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_USERNAME: "CWF integ test"
           SLACK_AVATAR: ":boom:"
-        uses: Ilshidur/action-slack@2.1.0
+        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # 2.1.0
         with:
           args: 'CWF integration test: tests failed on [${{ env.SHA }}](${{github.event.repository.owner.html_url}}/magma/commits/${{ env.SHA }}): ${{ steps.commit.outputs.title}}'

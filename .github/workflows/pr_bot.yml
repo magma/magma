@@ -11,7 +11,7 @@ jobs:
   comment:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/github-script@v3
+      - uses: actions/github-script@b1b209d0dd746638662369ff5ef5f00a46e22570 # v3
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |

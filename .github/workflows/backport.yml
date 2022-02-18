@@ -13,8 +13,8 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
+      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # v2
         with:
           python-version: '3.7'
       - run: |
@@ -23,7 +23,7 @@ jobs:
       - name: Install python prerequisites
         run: pip3 install fabric3 jsonpickle requests PyYAML PyGithub
       - run: |
-            cd ${MAGMA_ROOT}/.github/workflows/scripts
+            cd ${MAGMA_ROOT}/circleci/release
             fab find_release_commits
       - name: Extract commit title
         if: failure()
@@ -33,7 +33,7 @@ jobs:
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
         if: failure()
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Failure of backport on master"

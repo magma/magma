@@ -22,9 +22,9 @@ jobs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # v2
         id: changes
         with:
           filters: |
@@ -37,9 +37,9 @@ jobs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # v2
         id: changes
         with:
           filters: |
@@ -63,7 +63,7 @@ jobs:
     ##
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         with:
           ref: ${{github.event.pull_request.head.ref}}
           repository: ${{github.event.pull_request.head.repo.full_name}}
@@ -88,13 +88,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         with:
           ref: ${{github.event.pull_request.head.ref}}
           repository: ${{github.event.pull_request.head.repo.full_name}}
           fetch-depth: 0
       - name: golangci-lint
-        uses: reviewdog/action-golangci-lint@v2
+        uses: reviewdog/action-golangci-lint@311d5cb30fe9643c883115a2ddf3be1eaa87c8ce # v2
         with:
           golangci_lint_flags: '--config=../../.golangci.yml'
           reporter: github-pr-review  # Comments on PR with review comments.
@@ -105,13 +105,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         with:
           ref: ${{github.event.pull_request.head.ref}}
           repository: ${{github.event.pull_request.head.repo.full_name}}
           fetch-depth: 0
       - name: hadolint
-        uses: reviewdog/action-hadolint@v1
+        uses: reviewdog/action-hadolint@4ec146ef61d8f860ef21f616c8ac2075dd350943 # v1
         with:
           github_token: ${{ secrets.github_token }}
           reporter: github-pr-check  # Default is github-pr-check
@@ -124,13 +124,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code.
-        uses: actions/checkout@v2
+        uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         with:
           ref: ${{github.event.pull_request.head.ref}}
           repository: ${{github.event.pull_request.head.repo.full_name}}
           fetch-depth: 0
       - name: misspell
-        uses: reviewdog/action-misspell@v1
+        uses: reviewdog/action-misspell@83fd95f00e0c172832739f5b4af713aa809f1436 # v1
         with:
           github_token: ${{ secrets.github_token }}
           filter_mode: added  # Any added or changed content.
@@ -141,13 +141,13 @@ jobs:
     name: shellcheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         with:
           ref: ${{github.event.pull_request.head.ref}}
           repository: ${{github.event.pull_request.head.repo.full_name}}
           fetch-depth: 0
       - name: shellcheck
-        uses: reviewdog/action-shellcheck@v1
+        uses: reviewdog/action-shellcheck@79faa5680407f43c2eff07b72b563847bd247044 # v1
         with:
           github_token: ${{ secrets.github_token }}
           filter_mode: added # Any added or changed content.
@@ -163,7 +163,7 @@ jobs:
     name: wemake-python-styleguide
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         with:
           fetch-depth: 0
           ref: ${{github.event.pull_request.head.ref}}
@@ -175,7 +175,7 @@ jobs:
           echo "::set-output name=py::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep .py$ | xargs)"
       - if: ${{ steps.py-changes.outputs.py }}
         name: wemake-python-styleguide
-        uses: wemake-services/wemake-python-styleguide@0.15.2
+        uses: wemake-services/wemake-python-styleguide@833c7b413e8fdac24e25e929151470a09552ba8d # 0.15.2
         with:
           reporter: 'github-pr-check'
           path: ${{ steps.py-changes.outputs.py }}
@@ -186,13 +186,13 @@ jobs:
     name: yamllint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         with:
           ref: ${{github.event.pull_request.head.ref}}
           repository: ${{github.event.pull_request.head.repo.full_name}}
           fetch-depth: 0
       - name: yamllint
-        uses: reviewdog/action-yamllint@v1
+        uses: reviewdog/action-yamllint@1e1695b62253d813a2e647b79ccb8476d56796e8 # v1
         with:
           github_token: ${{ secrets.github_token }}
           level: warning

@@ -29,7 +29,7 @@ jobs:
   build_dockerfile:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - uses: ./.github/workflows/composite/docker-builder
         with:
           REGISTRY: ${{ env.REGISTRY }}

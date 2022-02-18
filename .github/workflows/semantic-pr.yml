@@ -25,7 +25,7 @@ jobs:
     steps:
       - name: Check if PR is a Reverted PR
         id: reverted_pr_check
-        uses: actions/github-script@v3
+        uses: actions/github-script@b1b209d0dd746638662369ff5ef5f00a46e22570 # v3
         with:
           script: |
             if( process.env.PR_TITLE.startsWith('Revert') ) {
@@ -40,7 +40,7 @@ jobs:
           mkdir -p ./pr
           echo -n ${{ steps.reverted_pr_check.outputs.is_reverted_pr }} > ./pr/is_reverted_pr
           echo -n "false" > ./pr/skipped
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         if: always()
         with:
           name: pr
@@ -53,7 +53,7 @@ jobs:
     steps:
       # Please look up the latest version from
       # https://github.com/amannn/action-semantic-pull-request/releases
-      - uses: amannn/action-semantic-pull-request@v3.4.0
+      - uses: amannn/action-semantic-pull-request@db6e259b93f286e3416eef27aaae88935d16cf2e # v3.4.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -140,7 +140,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo -n ${{ github.event.number }} > ./pr/pr_number
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         if: always()
         with:
           name: pr

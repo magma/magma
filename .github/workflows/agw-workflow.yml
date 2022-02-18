@@ -28,9 +28,9 @@ jobs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # v2
         id: changes
         with:
           filters: |
@@ -43,7 +43,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         if: always()
         with:
           name: pr
@@ -64,12 +64,12 @@ jobs:
       MAGMA_DEV_MODE: 1
       SKIP_SUDO_TESTS: 1
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - name: setup pyenv
-        uses: "gabrielfalcao/pyenv-action@v8"
+        uses: "gabrielfalcao/pyenv-action@5327db2939908b2ef8f62d284403d678c4b611d0 # v8"
         with:
           default: 3.8.5
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # v2
         with:
           python-version: '3.8.5'
       - name: Run apt-focal-install-aioeventlet
@@ -108,11 +108,11 @@ jobs:
             make -C ${{ env.MAGMA_ROOT }}/lte/gateway/python test_all
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         with:
           name: Unit Test Results
           path: /var/tmp/test_results
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@29386c70ef20e286228c72b668a06fd0e8399192 # v1
         with:
           files: /var/tmp/codecovs/cover_lte.xml,/var/tmp/codecovs/cover_orc8r.xml
           flags: lte-test
@@ -124,7 +124,7 @@ jobs:
             echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action lte-test update failed"
@@ -142,30 +142,30 @@ jobs:
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@v2
+        uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - name: Bazel Cache
-        uses: actions/cache@v2
+        uses: actions/cache@661fd3eb7f2f20d8c7c84bc2b0509efd7a826628 # v2
         with:
           path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
           key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
       - name: Bazel Cache Repo
-        uses: actions/cache@v2
+        uses: actions/cache@661fd3eb7f2f20d8c7c84bc2b0509efd7a826628 # v2
         with:
           path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
           key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
       - name: Setup Devcontainer Image
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
             echo "Pulled the devontainer image!"
       - name: Build C / C++ code with Bazel
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -174,7 +174,7 @@ jobs:
             cd /workspaces/magma
             bazel build //orc8r/gateway/c/...:* //lte/gateway/c/...:*
       - name: Test C / C++ code with Bazel
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
         with:
           shell: bash
           image: ${{ env.DEVCONTAINER_IMAGE }}
@@ -191,7 +191,7 @@ jobs:
             exit $TEST_RESULT
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         with:
           name: Unit Test Results
           path: c-cpp-test-results/
@@ -204,7 +204,7 @@ jobs:
             echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action c_cpp_unit_tests failed"
@@ -222,10 +222,10 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - name: Run li agent tests
         timeout-minutes: 5
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -242,7 +242,7 @@ jobs:
             echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action li_agent_test failed"
@@ -260,9 +260,9 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - name: Run sctpd tests with Debug build type
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -271,7 +271,7 @@ jobs:
             cd /workspaces/magma/lte/gateway
             make test_sctpd BUILD_TYPE=Debug
       - name: Run sctpd tests with RelWithDebInfo build type
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -280,7 +280,7 @@ jobs:
             cd /workspaces/magma/lte/gateway
             make test_sctpd BUILD_TYPE=RelWithDebInfo
       - name: Run mme tests with Debug build type
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -289,7 +289,7 @@ jobs:
             cd /workspaces/magma/lte/gateway
             make test_oai BUILD_TYPE=Debug;
       - name: Run mme tests with RelWithDebInfo build type
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -306,7 +306,7 @@ jobs:
             echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action mme_test failed"
@@ -326,9 +326,9 @@ jobs:
       BRANCH: "${{ github.base_ref }}"
       REVISION: "${{ github.sha }}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - name: Setup Devcontainer Image
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
@@ -336,7 +336,7 @@ jobs:
             echo "Pulled the devontainer image!"
       - name: Run mme-clang-tidy
         if: always()
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -346,7 +346,7 @@ jobs:
             make clang_tidy_oai_upload
       - name: Run mme-clang-warnings
         if: always()
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -363,7 +363,7 @@ jobs:
             echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
         if: steps.mme-clang-warning.outcome=='failure' && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action mme-clang-warnings failed"
@@ -374,7 +374,7 @@ jobs:
           SLACK_FOOTER: ' '
       - name: Notify failure to slack
         if: steps.mme-clang-tidy.outcome=='failure' && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action mme-clang-tidy failed"
@@ -394,23 +394,23 @@ jobs:
       BRANCH: "${{ github.base_ref }}"
       REVISION: "${{ github.sha }}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - name: Bazel Cache
-        uses: actions/cache@v2
+        uses: actions/cache@661fd3eb7f2f20d8c7c84bc2b0509efd7a826628 # v2
         with:
           path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
           key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
       - name: Bazel Cache Repo
-        uses: actions/cache@v2
+        uses: actions/cache@661fd3eb7f2f20d8c7c84bc2b0509efd7a826628 # v2
         with:
           path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
           key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
       - name: Setup Devcontainer Image
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
@@ -419,7 +419,7 @@ jobs:
             bazel # pull down bazel, if bazel download fails we can fail before we do all the lengthy work below
       - name: Run codecov with CMake (MME)
         if: always()
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -430,7 +430,7 @@ jobs:
             cp $C_BUILD/coverage.info $MAGMA_ROOT
       - name: Run coverage with Bazel (COMMON / SESSIOND / SCTPD / LIAGENT / CONNECTIOND)
         if: always()
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -444,7 +444,7 @@ jobs:
       - name: Upload code coverage
         if: always()
         id: c-cpp-codecov-upload
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@29386c70ef20e286228c72b668a06fd0e8399192 # v1
         with:
           flags: c_cpp
       - name: Extract commit title
@@ -456,7 +456,7 @@ jobs:
             echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
         if: steps.c-cpp-codecov-upload.outcome=='failure' && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action c-cpp-codecov-upload failed"
@@ -471,14 +471,14 @@ jobs:
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: DoozyX/clang-format-lint-action@v0.13
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
+      - uses: DoozyX/clang-format-lint-action@9ea72631b74e61ce337d0839a90e76180e997283 # v0.13
         with:
           source: 'orc8r/gateway/c'
           extensions: 'h,hpp,c,cpp'
           clangFormatVersion: 11.1.0
           style: '{BasedOnStyle: Google, IncludeBlocks: Preserve, SortIncludes: false}'
-      - uses: DoozyX/clang-format-lint-action@v0.13
+      - uses: DoozyX/clang-format-lint-action@9ea72631b74e61ce337d0839a90e76180e997283 # v0.13
         with:
           source: 'lte/gateway/c'
           extensions: 'h,hpp,c,cpp'
@@ -493,10 +493,10 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
       - name: Run session_manager tests
         timeout-minutes: 20
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5 # v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -513,7 +513,7 @@ jobs:
             echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@823e115f29172bd8a8bde6e4f7f9e49519504ff3 # v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action session_manager_test failed"
@@ -527,7 +527,7 @@ jobs:
     name: jsonlint-mconfig
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         with:
           ref: ${{github.event.pull_request.head.ref}}
           repository: ${{github.event.pull_request.head.repo.full_name}}

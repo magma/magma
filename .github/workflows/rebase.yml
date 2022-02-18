@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the latest code
-        uses: actions/checkout@v2
+        uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         with:
           token: ${{ secrets.PAT_TOKEN }}
           fetch-depth: 0  # otherwise, you will fail to push refs to dest repo
       - name: Automatic Rebase
-        uses: cirrus-actions/rebase@1.4
+        uses: cirrus-actions/rebase@7cea12ac34ab078fa37e87798d8986185afa7bf2 # 1.4
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}

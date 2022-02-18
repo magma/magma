@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Check if PR is a Reverted PR
         id: reverted_pr_check
-        uses: actions/github-script@v3
+        uses: actions/github-script@b1b209d0dd746638662369ff5ef5f00a46e22570 # v3
         with:
           script: |
             if( process.env.PR_TITLE.startsWith('Revert') ) {
@@ -35,7 +35,7 @@ jobs:
           mkdir -p ./pr
           echo -n ${{ steps.reverted_pr_check.outputs.is_reverted_pr }} > ./pr/is_reverted_pr
           echo -n "false" > ./pr/skipped
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
         if: always()
         with:
           name: pr
@@ -49,11 +49,11 @@ jobs:
     steps:
     - name: Get PR Commits
       id: 'get-pr-commits'
-      uses: tim-actions/get-pr-commits@master
+      uses: tim-actions/get-pr-commits@c64db31d359214d244884dd68f971a110b29ab83 # master
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
     - name: DCO Check
-      uses: tim-actions/dco@master
+      uses: tim-actions/dco@f2279e6e62d5a7d9115b0cb8e837b777b1b02e21 # master
       with:
         commits: ${{ steps.get-pr-commits.outputs.commits }}
     # Need to save PR number as Github action does not propagate it with workflow_run event
@@ -62,7 +62,7 @@ jobs:
       run: |
         mkdir -p ./pr
         echo -n ${{ github.event.number }} > ./pr/pr_number
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2
       if: always()
       with:
         name: pr

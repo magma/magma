@@ -17,12 +17,12 @@ jobs:
       BASE_SHA: "${{ github.event.pull_request.base.sha }}"
     steps:
       - name: Checkout Head
-        uses: actions/checkout@v2
+        uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         with:
           repository: "${{env.HEAD_FULL_NAME}}"
           fetch-depth: 0
       - name: Checkout Base
-        uses: actions/checkout@v2
+        uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
         with:
           repository: "${{env.BASE_FULL_NAME}}"
           fetch-depth: 0
