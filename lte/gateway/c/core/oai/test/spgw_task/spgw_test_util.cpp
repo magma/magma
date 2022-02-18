@@ -34,34 +34,6 @@ namespace lte {
 
 extern task_zmq_ctx_t task_zmq_ctx_main_spgw;
 
-bool is_num_sessions_valid(uint64_t imsi64, int expected_num_ue_contexts,
-                           int expected_num_teids) {
-  hash_table_ts_t* state_ue_ht = get_spgw_ue_state();
-  if (state_ue_ht->num_elements != expected_num_ue_contexts) {
-    return false;
-  }
-  if (expected_num_ue_contexts == 0) {
-    return true;
-  }
-
-  // If one UE context exists, check that teids also exist in hashtable
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(imsi64);
-  int num_teids = 0;
-  sgw_s11_teid_t* s11_teid_p = nullptr;
-  if (ue_context_p) {
-    LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
-      if (s11_teid_p &&
-          (sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid) != nullptr)) {
-        num_teids++;
-      }
-    }
-  }
-  if (num_teids != expected_num_teids) {
-    return false;
-  }
-  return true;
-}
-
 bool is_num_ue_contexts_valid(int expected_num_ue_contexts) {
   hash_table_ts_t* state_ue_ht = get_spgw_ue_state();
   return state_ue_ht->num_elements == expected_num_ue_contexts;
