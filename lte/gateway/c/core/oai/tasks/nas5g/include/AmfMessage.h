@@ -78,10 +78,10 @@ class AmfMsg {
   ~AmfMsg();
   int M5gNasMessageEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
   int M5gNasMessageDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
-  int AmfMsgDecodeHeaderMsg(
-      AmfMsgHeader_s* header, uint8_t* buffer, uint32_t len);
-  int AmfMsgEncodeHeaderMsg(
-      AmfMsgHeader_s* header, uint8_t* buffer, uint32_t len);
+  int AmfMsgDecodeHeaderMsg(AmfMsgHeader_s* header, uint8_t* buffer,
+                            uint32_t len);
+  int AmfMsgEncodeHeaderMsg(AmfMsgHeader_s* header, uint8_t* buffer,
+                            uint32_t len);
   int AmfMsgDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
   int AmfMsgEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
 };

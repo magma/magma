@@ -16,8 +16,8 @@ namespace magma5g {
 M5GQosFlowParam::M5GQosFlowParam() {}
 M5GQosFlowParam::~M5GQosFlowParam() {}
 
-int M5GQosFlowParam::EncodeM5GQosFlowParam(
-    M5GQosFlowParam* param, uint8_t* buffer, uint32_t len) {
+int M5GQosFlowParam::EncodeM5GQosFlowParam(M5GQosFlowParam* param,
+                                           uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
   MLOG(MDEBUG) << " EncodeQosFlowParamemeter : ";
@@ -62,13 +62,14 @@ int M5GQosFlowParam::EncodeM5GQosFlowParam(
                    << int(*(buffer + encoded));
       encoded++;
     } break;
-    default: {}
+    default: {
+    }
   }
   return encoded;
 }
 
-int M5GQosFlowParam::DecodeM5GQosFlowParam(
-    M5GQosFlowParam* param, uint8_t* buffer, uint32_t len) {
+int M5GQosFlowParam::DecodeM5GQosFlowParam(M5GQosFlowParam* param,
+                                           uint8_t* buffer, uint32_t len) {
   uint32_t decoded = 0;
 
   MLOG(MDEBUG) << " DecodeM5GQosFlowParam : ";
@@ -141,7 +142,9 @@ int M5GQosFlowParam::DecodeM5GQosFlowParam(
       MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->element);
       decoded++;
     } break;
-    default: { } break; }
+    default: {
+    } break;
+  }
 
   return decoded;
 }

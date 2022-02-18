@@ -22,10 +22,10 @@ class GPRSTimerMsg {
   GPRSTimerMsg();
   ~GPRSTimerMsg();
 
-  int EncodeGPRSTimerMsg(
-      GPRSTimerMsg* gprstimer, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeGPRSTimerMsg(GPRSTimerMsg* gprstimer, uint8_t iei, uint8_t* buffer,
+                         uint32_t len);
 
-  int DecodeGPRSTimerMsg(
-      GPRSTimerMsg* gprstimer, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodeGPRSTimerMsg(GPRSTimerMsg* gprstimer, uint8_t iei, uint8_t* buffer,
+                         uint32_t len);
 };
 }  // namespace magma5g

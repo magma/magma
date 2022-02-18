@@ -58,8 +58,8 @@ extern "C" {
  * @return -RPC_STATUS_INVALID_ARGUMENT if IPBlock is invalid
  * @return -RPC_STATUS_FAILED_PRECONDITION if IPBlock overlaps
  */
-int get_assigned_ipv4_block(
-    int index, struct in_addr* netaddr, uint32_t* netmask);
+int get_assigned_ipv4_block(int index, struct in_addr* netaddr,
+                            uint32_t* netmask);
 
 /**
  * Allocate IP address from MobilityServiceClient over gRPC (non-blocking),
@@ -71,9 +71,9 @@ int get_assigned_ipv4_block(
  * @param pdn_type str for PDN type (ipv4, ipv6...)
  * @return status of gRPC call
  */
-int pgw_handle_allocate_ipv4_address(
-    const char* subscriber_id, const char* apn, const char* pdn_type,
-    teid_t context_teid, ebi_t eps_bearer_id);
+int pgw_handle_allocate_ipv4_address(const char* subscriber_id, const char* apn,
+                                     const char* pdn_type, teid_t context_teid,
+                                     ebi_t eps_bearer_id);
 
 /**
  * Allocate IP address from MobilityServiceClient over gRPC (non-blocking),
@@ -85,9 +85,9 @@ int pgw_handle_allocate_ipv4_address(
  * @return status of gRPC call
  */
 
-int pgw_handle_allocate_ipv6_address(
-    const char* subscriber_id, const char* apn, const char* pdn_type,
-    teid_t context_teid, ebi_t eps_bearer_id);
+int pgw_handle_allocate_ipv6_address(const char* subscriber_id, const char* apn,
+                                     const char* pdn_type, teid_t context_teid,
+                                     ebi_t eps_bearer_id);
 
 /*
  * Release an allocated IP address.
@@ -98,8 +98,8 @@ int pgw_handle_allocate_ipv6_address(
  * @param subscriber_id: subscriber id string, i.e. IMSI
  * @param addr: IP address to release
  */
-void release_ipv4_address(
-    const char* subscriber_id, const char* apn, const struct in_addr* addr);
+void release_ipv4_address(const char* subscriber_id, const char* apn,
+                          const struct in_addr* addr);
 
 /*
  * Release an allocated IP address.
@@ -111,8 +111,8 @@ void release_ipv4_address(
  * @param apn: access point name string, e.g., "ims", "internet", etc.
  * @param addr: IPv6 address to release in "host byte order
  */
-void release_ipv6_address(
-    const char* subscriber_id, const char* apn, const struct in6_addr* addr);
+void release_ipv6_address(const char* subscriber_id, const char* apn,
+                          const struct in6_addr* addr);
 
 /*
  * Release an allocated IP address.
@@ -125,9 +125,9 @@ void release_ipv6_address(
  * @param ipv4_addr: IPv4 address to release in "host byte order
  * @param ipv6_addr: IPv6 address to release in "host byte order
  */
-void release_ipv4v6_address(
-    const char* subscriber_id, const char* apn, const struct in_addr* ipv4_addr,
-    const struct in6_addr* ipv6_addr);
+void release_ipv4v6_address(const char* subscriber_id, const char* apn,
+                            const struct in_addr* ipv4_addr,
+                            const struct in6_addr* ipv6_addr);
 
 /*
  * Get the allocated IPv4 address for a subscriber
@@ -136,8 +136,8 @@ void release_ipv4v6_address(
  * @return 0 on success
  * @return -RPC_STATUS_NOT_FOUND if the SID is not found
  */
-int get_ipv4_address_for_subscriber(
-    const char* subscriber_id, const char* apn, struct in_addr* addr);
+int get_ipv4_address_for_subscriber(const char* subscriber_id, const char* apn,
+                                    struct in_addr* addr);
 
 /*
  * Get the subscriber id given its allocated IPv4 address. If the address
@@ -148,8 +148,8 @@ int get_ipv4_address_for_subscriber(
  * @return 0 on success
  * @return -RPC_STATUS_NOT_FOUND if IPv4 address is not found
  */
-int get_subscriber_id_from_ipv4(
-    const struct in_addr* addr, char** subscriber_id);
+int get_subscriber_id_from_ipv4(const struct in_addr* addr,
+                                char** subscriber_id);
 
 /**
  * Allocate IP address from MobilityServiceClient over gRPC (non-blocking),
@@ -164,9 +164,10 @@ int get_subscriber_id_from_ipv4(
  * @return status of gRPC call
  */
 
-int pgw_handle_allocate_ipv4v6_address(
-    const char* subscriber_id, const char* apn, const char* pdn_type,
-    teid_t context_teid, ebi_t eps_bearer_id);
+int pgw_handle_allocate_ipv4v6_address(const char* subscriber_id,
+                                       const char* apn, const char* pdn_type,
+                                       teid_t context_teid,
+                                       ebi_t eps_bearer_id);
 
 #ifdef __cplusplus
 }

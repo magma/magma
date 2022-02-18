@@ -31,10 +31,10 @@ class AuthenticationResultMsg {
   NASKeySetIdentifierMsg nas_key_set_identifier;
   EAPMessageMsg eap_message;
 #define AUTHENTICATION_RESULT_MINIMUM_LENGTH 10
-  int DecodeAuthenticationResultMsg(
-      AuthenticationResultMsg* auth_result, uint8_t* buffer, uint32_t len);
-  int EncodeAuthenticationResultMsg(
-      AuthenticationResultMsg* auth_result, uint8_t* buffer, uint32_t len);
+  int DecodeAuthenticationResultMsg(AuthenticationResultMsg* auth_result,
+                                    uint8_t* buffer, uint32_t len);
+  int EncodeAuthenticationResultMsg(AuthenticationResultMsg* auth_result,
+                                    uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

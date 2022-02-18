@@ -48,7 +48,7 @@ grpc::Status HaServiceImpl::StartAgwOffload(
 
   AGW_OFFLOAD_REQ(message_p).eNB_id = request->enb_id();
   AGW_OFFLOAD_REQ(message_p).enb_offload_type =
-      (offload_type_t) request->enb_offload_type();
+      (offload_type_t)request->enb_offload_type();
 
   send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_HA, message_p);
   return grpc::Status::OK;

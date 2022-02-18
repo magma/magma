@@ -26,8 +26,8 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/bootstrapper"
 	bootstrapper_config "magma/orc8r/cloud/go/services/bootstrapper/config"
-	"magma/orc8r/cloud/go/services/bootstrapper/servicers"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers/registration"
+	bootstrapper_servicer "magma/orc8r/cloud/go/services/bootstrapper/servicers/southbound"
 	"magma/orc8r/cloud/go/sqorc"
 	storage2 "magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
@@ -58,7 +58,7 @@ func main() {
 	}
 }
 
-func createBootstrapperServicer() *servicers.BootstrapperServer {
+func createBootstrapperServicer() *bootstrapper_servicer.BootstrapperServer {
 	key, err := key.ReadKey(*keyFilepath)
 	if err != nil {
 		glog.Fatalf("error reading bootstrapper private key: %+v", err)
@@ -68,7 +68,7 @@ func createBootstrapperServicer() *servicers.BootstrapperServer {
 		glog.Fatalf("error coercing bootstrapper private key to RSA private key; actual type: %T", key)
 	}
 
-	servicer, err := servicers.NewBootstrapperServer(rsaPrivateKey)
+	servicer, err := bootstrapper_servicer.NewBootstrapperServer(rsaPrivateKey)
 	if err != nil {
 		glog.Fatalf("error creating bootstrapper server: %+v", err)
 	}

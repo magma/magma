@@ -43,15 +43,14 @@ static NwGtpv2cNodeUdpT udpObj;
 static NwEgtPingT egtPing;
 
 void nwEgtPingHandleSignal(int sigNum) {
-  printf(
-      "\n--- %s (" NW_IPV4_ADDR ") EGTPING statistics --- ",
-      egtPing.targetIpStr, NW_IPV4_ADDR_FORMAT(inet_addr(egtPing.targetIpStr)));
-  printf(
-      "\n%u requests sent, %u response received, %d%% packet loss \n\n",
-      udpObj.packetsSent, udpObj.packetsRcvd,
-      (udpObj.packetsSent ? 100 * (udpObj.packetsSent - udpObj.packetsRcvd) /
-                                udpObj.packetsSent :
-                            0));
+  printf("\n--- %s (" NW_IPV4_ADDR ") EGTPING statistics --- ",
+         egtPing.targetIpStr,
+         NW_IPV4_ADDR_FORMAT(inet_addr(egtPing.targetIpStr)));
+  printf("\n%u requests sent, %u response received, %d%% packet loss \n\n",
+         udpObj.packetsSent, udpObj.packetsRcvd,
+         (udpObj.packetsSent ? 100 * (udpObj.packetsSent - udpObj.packetsRcvd) /
+                                   udpObj.packetsSent
+                             : 0));
   exit(sigNum);
 }
 
@@ -78,11 +77,11 @@ nw_rc_t nwEgtPingHelp() {
 
 nw_rc_t nwEgtPingParseCmdLineOpts(int argc, char* argv[]) {
   nw_rc_t rc = NW_OK;
-  int i      = 0;
+  int i = 0;
 
   i++;
   egtPing.pingInterval = 1;
-  egtPing.pingCount    = 0xffffffff;
+  egtPing.pingCount = 0xffffffff;
 
   if (argc < 2) return NW_FAILURE;
 
@@ -99,22 +98,22 @@ nw_rc_t nwEgtPingParseCmdLineOpts(int argc, char* argv[]) {
       if (i >= (argc - 1)) return NW_FAILURE;
 
       strcpy(egtPing.localIpStr, (argv[i]));
-    } else if (
-        (strcmp("--interval", argv[i]) == 0) || (strcmp(argv[i], "-i") == 0)) {
+    } else if ((strcmp("--interval", argv[i]) == 0) ||
+               (strcmp(argv[i], "-i") == 0)) {
       i++;
 
       if (i >= (argc - 1)) return NW_FAILURE;
 
       egtPing.pingInterval = atoi(argv[i]);
-    } else if (
-        (strcmp("--count", argv[i]) == 0) || (strcmp(argv[i], "-c") == 0)) {
+    } else if ((strcmp("--count", argv[i]) == 0) ||
+               (strcmp(argv[i], "-c") == 0)) {
       i++;
 
       if (i >= (argc - 1)) return NW_FAILURE;
 
       egtPing.pingCount = atoi(argv[i]);
-    } else if (
-        (strcmp("--help", argv[i]) == 0) || (strcmp(argv[i], "-h") == 0)) {
+    } else if ((strcmp("--help", argv[i]) == 0) ||
+               (strcmp(argv[i], "-h") == 0)) {
       rc = NW_FAILURE;
     } else {
       return NW_FAILURE;
@@ -186,9 +185,8 @@ int main(int argc, char* argv[]) {
   rc = nwGtpv2cInitialize(&hGtpv2cStack);
 
   if (rc != NW_OK) {
-    NW_LOG(
-        NW_LOG_LEVEL_ERRO,
-        "Failed to create gtpv2c stack instance. Error '%u' occured", rc);
+    NW_LOG(NW_LOG_LEVEL_ERRO,
+           "Failed to create gtpv2c stack instance. Error '%u' occurred", rc);
     exit(1);
   }
 
@@ -198,43 +196,42 @@ int main(int argc, char* argv[]) {
     --------------------------------------------------------------------------*/
   rc = nwGtpv2cUlpInit(&ulpObj, hGtpv2cStack, egtPing.localIpStr);
   NW_ASSERT(NW_OK == rc);
-  ulp.hUlp           = (nw_gtpv2c_UlpHandleT) &ulpObj;
+  ulp.hUlp = (nw_gtpv2c_UlpHandleT)&ulpObj;
   ulp.ulpReqCallback = nwGtpv2cUlpProcessStackReqCallback;
-  rc                 = nwGtpv2cSetUlpEntity(hGtpv2cStack, &ulp);
+  rc = nwGtpv2cSetUlpEntity(hGtpv2cStack, &ulp);
   NW_ASSERT(NW_OK == rc);
   /*---------------------------------------------------------------------------
      Set up Udp Entity
     --------------------------------------------------------------------------*/
   rc = nwGtpv2cUdpInit(&udpObj, hGtpv2cStack, egtPing.localIpStr);
   NW_ASSERT(NW_OK == rc);
-  udp.hUdp               = (nw_gtpv2c_UdpHandleT) &udpObj;
+  udp.hUdp = (nw_gtpv2c_UdpHandleT)&udpObj;
   udp.udpDataReqCallback = nwGtpv2cUdpDataReq;
-  rc                     = nwGtpv2cSetUdpEntity(hGtpv2cStack, &udp);
+  rc = nwGtpv2cSetUdpEntity(hGtpv2cStack, &udp);
   NW_ASSERT(NW_OK == rc);
   /*---------------------------------------------------------------------------
      Set up Log Entity
     --------------------------------------------------------------------------*/
-  tmrMgr.tmrMgrHandle     = 0;
+  tmrMgr.tmrMgrHandle = 0;
   tmrMgr.tmrStartCallback = nwTimerStart;
-  tmrMgr.tmrStopCallback  = nwTimerStop;
-  rc                      = nwGtpv2cSetTimerMgrEntity(hGtpv2cStack, &tmrMgr);
+  tmrMgr.tmrStopCallback = nwTimerStop;
+  rc = nwGtpv2cSetTimerMgrEntity(hGtpv2cStack, &tmrMgr);
   NW_ASSERT(NW_OK == rc);
   /*---------------------------------------------------------------------------
      Set up Log Entity
     --------------------------------------------------------------------------*/
-  logMgr.logMgrHandle   = (nw_gtpv2c_LogMgrHandleT) nwMiniLogMgrGetInstance();
+  logMgr.logMgrHandle = (nw_gtpv2c_LogMgrHandleT)nwMiniLogMgrGetInstance();
   logMgr.logReqCallback = nwMiniLogMgrLogRequest;
-  rc                    = nwGtpv2cSetLogMgrEntity(hGtpv2cStack, &logMgr);
+  rc = nwGtpv2cSetLogMgrEntity(hGtpv2cStack, &logMgr);
   NW_ASSERT(NW_OK == rc);
   /*---------------------------------------------------------------------------
       Send Message Request to Gtpv2c Stack Instance
     --------------------------------------------------------------------------*/
-  NW_LOG(
-      NW_LOG_LEVEL_NOTI, "EGTPING %s (" NW_IPV4_ADDR ")", egtPing.targetIpStr,
-      NW_IPV4_ADDR_FORMAT(inet_addr(egtPing.targetIpStr)));
-  rc = nwGtpv2cUlpPing(
-      &ulpObj, inet_addr(egtPing.targetIpStr), egtPing.pingCount,
-      egtPing.pingInterval, 2, 3);
+  NW_LOG(NW_LOG_LEVEL_NOTI, "EGTPING %s (" NW_IPV4_ADDR ")",
+         egtPing.targetIpStr,
+         NW_IPV4_ADDR_FORMAT(inet_addr(egtPing.targetIpStr)));
+  rc = nwGtpv2cUlpPing(&ulpObj, inet_addr(egtPing.targetIpStr),
+                       egtPing.pingCount, egtPing.pingInterval, 2, 3);
   NW_ASSERT(NW_OK == rc);
   /*---------------------------------------------------------------------------
      Install signal handler
@@ -251,9 +248,8 @@ int main(int argc, char* argv[]) {
   rc = nwGtpv2cFinalize(hGtpv2cStack);
 
   if (rc != NW_OK) {
-    NW_LOG(
-        NW_LOG_LEVEL_ERRO,
-        "Failed to finalize gtpv2c stack instance. Error '%u' occured", rc);
+    NW_LOG(NW_LOG_LEVEL_ERRO,
+           "Failed to finalize gtpv2c stack instance. Error '%u' occurred", rc);
   }
 
   return rc;

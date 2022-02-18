@@ -15,19 +15,26 @@
 #include <cstring>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUAddress.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/include/nas/networkDef.h"
+#ifdef __cplusplus
+}
+#endif
 
 namespace magma5g {
 PDUAddressMsg::PDUAddressMsg(){};
 PDUAddressMsg::~PDUAddressMsg(){};
 
 // Decode PDUAddress IE
-int PDUAddressMsg::DecodePDUAddressMsg(
-    PDUAddressMsg* pdu_address, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int PDUAddressMsg::DecodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,
+                                       uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
   // CHECKING IEI
   if (iei > 0) {
     IES_DECODE_U8(buffer, decoded, pdu_address->iei);
-    CHECK_IEI_DECODER(iei, (unsigned char) pdu_address->iei);
+    CHECK_IEI_DECODER(iei, (unsigned char)pdu_address->iei);
   }
 
   IES_DECODE_U8(buffer, decoded, pdu_address->length);
@@ -43,26 +50,24 @@ int PDUAddressMsg::DecodePDUAddressMsg(
 };
 
 // Encode PDUAddress IE
-int PDUAddressMsg::EncodePDUAddressMsg(
-    PDUAddressMsg* pdu_address, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int PDUAddressMsg::EncodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,
+                                       uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
   // CHECKING IEI
   if (iei > 0) {
     pdu_address->iei = iei;
-    CHECK_IEI_DECODER(iei, (unsigned char) pdu_address->iei);
+    CHECK_IEI_DECODER(iei, (unsigned char)pdu_address->iei);
     *(buffer + encoded) = iei;
     encoded++;
   }
 
-  if (pdu_address->type_val == TYPE_VAL_IPV4) {
-    *(buffer + encoded) = 0x5;
-    encoded++;
-    *(buffer + encoded) = 0x00 | (pdu_address->type_val & 0x07);
-    encoded++;
-    memcpy(buffer + encoded, pdu_address->address_info, IPV4_ADDRESS_LENGTH);
-    encoded = encoded + IPV4_ADDRESS_LENGTH;
-  }
+  // Sizeof type_val + address length
+  IES_ENCODE_U8(buffer, encoded, sizeof(uint8_t) + pdu_address->length);
+  IES_ENCODE_U8(buffer, encoded, (0x00 | (pdu_address->type_val & 0x07)));
+  memcpy(buffer + encoded, pdu_address->address_info, pdu_address->length);
+  encoded = encoded + pdu_address->length;
+
   return (encoded);
 };
 }  // namespace magma5g

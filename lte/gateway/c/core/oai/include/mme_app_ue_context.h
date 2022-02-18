@@ -70,22 +70,22 @@ typedef struct {
 
 bool mme_app_is_imsi_empty(mme_app_imsi_t const* imsi);
 
-bool mme_app_imsi_compare(
-    mme_app_imsi_t const* imsi_a, mme_app_imsi_t const* imsi_b);
+bool mme_app_imsi_compare(mme_app_imsi_t const* imsi_a,
+                          mme_app_imsi_t const* imsi_b);
 
-void mme_app_copy_imsi(
-    mme_app_imsi_t* imsi_dst, mme_app_imsi_t const* imsi_src);
+void mme_app_copy_imsi(mme_app_imsi_t* imsi_dst,
+                       mme_app_imsi_t const* imsi_src);
 
-void mme_app_string_to_imsi(
-    mme_app_imsi_t* const imsi_dst, char const* const imsi_string_src);
+void mme_app_string_to_imsi(mme_app_imsi_t* const imsi_dst,
+                            char const* const imsi_string_src);
 
-void mme_app_imsi_to_string(
-    char* const imsi_dst, mme_app_imsi_t const* const imsi_src);
+void mme_app_imsi_to_string(char* const imsi_dst,
+                            mme_app_imsi_t const* const imsi_src);
 
 uint64_t mme_app_imsi_to_u64(mme_app_imsi_t imsi_src);
 
-void mme_app_ue_context_uint_to_imsi(
-    uint64_t imsi_src, mme_app_imsi_t* imsi_dst);
+void mme_app_ue_context_uint_to_imsi(uint64_t imsi_src,
+                                     mme_app_imsi_t* imsi_dst);
 
 mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(
     mme_ue_s1ap_id_t* mme_app_ue_s1ap_id_generator_p);
@@ -315,10 +315,10 @@ typedef struct sgs_context_s {
   /* Indicates ongoing CSFB procedure */
   csfb_service_type_t csfb_service_type;
 
-  /* Call Cancelled: is set on reception of SGS SERVICE ABORT message
+  /* Call Canceled: is set on reception of SGS SERVICE ABORT message
    *             fom MSC to cancel the ongoing MT call
    */
-  bool call_cancelled;
+  bool call_canceled;
 
   /* mt_call_in_progress: If true, indicates MT call is in progress,
    *              used when SERVICE ABORT is received from MSC
@@ -426,7 +426,7 @@ typedef struct ue_mm_context_s {
   /* UE Context Modification Procedure Guard timer */
   nas_timer_t ue_context_modification_timer;
   /* Timer for retrying paging messages */
-#define MAX_PAGING_RETRY_COUNT 1
+#define MAX_PAGING_RETRY_COUNT 4
   uint8_t paging_retx_count;
   nas_timer_t paging_response_timer;
   time_t time_paging_response_timer_started;
@@ -549,12 +549,13 @@ void mme_ue_context_duplicate_enb_ue_s1ap_id_detected(
  * \param nas_ue_id The UE id identifier used in S1AP MME and NAS
  * \param guti_p The GUTI used by the UE
  **/
-void mme_ue_context_update_coll_keys(
-    mme_ue_context_t* const mme_ue_context_p,
-    ue_mm_context_t* const ue_context_p,
-    const enb_s1ap_id_key_t enb_s1ap_id_key,
-    const mme_ue_s1ap_id_t mme_ue_s1ap_id, imsi64_t imsi,
-    const s11_teid_t mme_s11_teid, const guti_t* const guti_p);
+void mme_ue_context_update_coll_keys(mme_ue_context_t* const mme_ue_context_p,
+                                     ue_mm_context_t* const ue_context_p,
+                                     const enb_s1ap_id_key_t enb_s1ap_id_key,
+                                     const mme_ue_s1ap_id_t mme_ue_s1ap_id,
+                                     imsi64_t imsi,
+                                     const s11_teid_t mme_s11_teid,
+                                     const guti_t* const guti_p);
 
 /** \brief dump MME associative collections
  **/
@@ -566,16 +567,14 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p);
  * \param ue_context_p The UE context to insert
  * @returns 0 in case of success, -1 otherwise
  **/
-int mme_insert_ue_context(
-    mme_ue_context_t* const mme_ue_context,
-    const struct ue_mm_context_s* const ue_context_p);
+int mme_insert_ue_context(mme_ue_context_t* const mme_ue_context,
+                          const struct ue_mm_context_s* const ue_context_p);
 
 /** \brief Remove a UE context of the tree of known UEs.
  * \param ue_context_p The UE context to remove
  **/
-void mme_remove_ue_context(
-    mme_ue_context_t* const mme_ue_context,
-    struct ue_mm_context_s* const ue_context_p);
+void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context,
+                           struct ue_mm_context_s* const ue_context_p);
 
 /** \brief Allocate memory for a new UE context
  * @returns Pointer to the new structure, NULL if allocation failed
@@ -594,8 +593,8 @@ void mme_app_state_free_ue_context(void** ue_context_node);
 void mme_app_handle_s1ap_ue_context_release_req(
     const itti_s1ap_ue_context_release_req_t* s1ap_ue_context_release_req);
 
-bearer_context_t* mme_app_get_bearer_context(
-    ue_mm_context_t* const ue_context, const ebi_t ebi);
+bearer_context_t* mme_app_get_bearer_context(ue_mm_context_t* const ue_context,
+                                             const ebi_t ebi);
 
 void mme_app_handle_enb_deregister_ind(
     const itti_s1ap_eNB_deregistered_ind_t* eNB_deregistered_ind);
@@ -613,20 +612,19 @@ void mme_app_handle_s1ap_ue_context_modification_resp(
 void mme_app_handle_s1ap_ue_context_modification_fail(
     const itti_s1ap_ue_context_mod_resp_fail_t* s1ap_ue_context_mod_fail);
 
-void mme_app_ue_sgs_context_free_content(
-    sgs_context_t* const sgs_context_p, imsi64_t imsi);
+void mme_app_ue_sgs_context_free_content(sgs_context_t* const sgs_context_p,
+                                         imsi64_t imsi);
 bool is_mme_ue_context_network_access_mode_packet_only(
     ue_mm_context_t* ue_context_p);
 int mme_app_send_s6a_update_location_req(
     struct ue_mm_context_s* const ue_context_pP);
 void mme_app_recover_timers_for_all_ues(void);
 
-void proc_new_attach_req(
-    mme_ue_context_t* const mme_ue_context,
-    struct ue_mm_context_s* ue_context_p);
+void proc_new_attach_req(mme_ue_context_t* const mme_ue_context,
+                         struct ue_mm_context_s* ue_context_p);
 
-int eps_bearer_release(
-    emm_context_t* emm_context_p, ebi_t ebi, pdn_cid_t* pid, int* bidx);
+int eps_bearer_release(emm_context_t* emm_context_p, ebi_t ebi, pdn_cid_t* pid,
+                       int* bidx);
 
 status_code_e send_tau_accept_with_eps_bearer_ctx_status(
     ue_mm_context_t* ue_context);

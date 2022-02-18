@@ -35,26 +35,24 @@
 
 struct avp;
 
-static inline int s6a_parse_subscriber_status(
-    struct avp_hdr* hdr_sub_status, subscriber_status_t* sub_status) {
-  DevCheck(
-      hdr_sub_status->avp_value->u32 < SS_MAX, hdr_sub_status->avp_value->u32,
-      SS_MAX, 0);
+static inline int s6a_parse_subscriber_status(struct avp_hdr* hdr_sub_status,
+                                              subscriber_status_t* sub_status) {
+  DevCheck(hdr_sub_status->avp_value->u32 < SS_MAX,
+           hdr_sub_status->avp_value->u32, SS_MAX, 0);
   *sub_status = hdr_sub_status->avp_value->u32;
   return RETURNok;
 }
 
-static inline int s6a_parse_msisdn(
-    struct avp_hdr* hdr_msisdn, char* msisdn, uint8_t* length) {
+static inline int s6a_parse_msisdn(struct avp_hdr* hdr_msisdn, char* msisdn,
+                                   uint8_t* length) {
   int i;
 
-  DevCheck(
-      hdr_msisdn->avp_value->os.len <= MSISDN_LENGTH,
-      hdr_msisdn->avp_value->os.len, MSISDN_LENGTH, 0);
+  DevCheck(hdr_msisdn->avp_value->os.len <= MSISDN_LENGTH,
+           hdr_msisdn->avp_value->os.len, MSISDN_LENGTH, 0);
 
   if (hdr_msisdn->avp_value->os.len == 0) return RETURNok;
 
-  *length = (int) hdr_msisdn->avp_value->os.len;
+  *length = (int)hdr_msisdn->avp_value->os.len;
 
   for (i = 0; i < (*length); i++) {
     msisdn[i] = hdr_msisdn->avp_value->os.data[i];
@@ -64,10 +62,9 @@ static inline int s6a_parse_msisdn(
 
 static inline int s6a_parse_network_access_mode(
     struct avp_hdr* hdr_network_am, network_access_mode_t* access_mode) {
-  DevCheck(
-      hdr_network_am->avp_value->u32 < NAM_MAX &&
-          hdr_network_am->avp_value->u32 != NAM_RESERVED,
-      hdr_network_am->avp_value->u32, NAM_MAX, NAM_RESERVED);
+  DevCheck(hdr_network_am->avp_value->u32 < NAM_MAX &&
+               hdr_network_am->avp_value->u32 != NAM_RESERVED,
+           hdr_network_am->avp_value->u32, NAM_MAX, NAM_RESERVED);
   *access_mode = hdr_network_am->avp_value->u32;
   return RETURNok;
 }
@@ -75,15 +72,14 @@ static inline int s6a_parse_network_access_mode(
 static inline int s6a_parse_access_restriction_data(
     struct avp_hdr* hdr_access_restriction,
     access_restriction_t* access_restriction) {
-  DevCheck(
-      hdr_access_restriction->avp_value->u32 < ARD_MAX,
-      hdr_access_restriction->avp_value->u32, ARD_MAX, 0);
+  DevCheck(hdr_access_restriction->avp_value->u32 < ARD_MAX,
+           hdr_access_restriction->avp_value->u32, ARD_MAX, 0);
   *access_restriction = hdr_access_restriction->avp_value->u32;
   return RETURNok;
 }
 
-static inline int s6a_parse_bitrate(
-    struct avp_hdr* hdr_bitrate, bitrate_t* bitrate) {
+static inline int s6a_parse_bitrate(struct avp_hdr* hdr_bitrate,
+                                    bitrate_t* bitrate) {
   *bitrate = hdr_bitrate->avp_value->u32;
   return RETURNok;
 }
@@ -124,9 +120,8 @@ static inline int s6a_parse_ambr(struct avp* avp_ambr, ambr_t* ambr) {
           break;
 
         default:
-          OAILOG_DEBUG(
-              LOG_S6A, "AMBR child AVP %u is silently discarded\n",
-              hdr->avp_code);
+          OAILOG_DEBUG(LOG_S6A, "AMBR child AVP %u is silently discarded\n",
+                       hdr->avp_code);
           return RETURNerror;
       }
     } else {
@@ -141,7 +136,7 @@ static inline int s6a_parse_ambr(struct avp* avp_ambr, ambr_t* ambr) {
     ambr->br_unit = BPS;
   } else if ((ambr->br_ul == 4294967295)) {
     ambr->br_unit = KBPS;
-    ambr->br_ul   = ext_max_req_bw_ul;
+    ambr->br_ul = ext_max_req_bw_ul;
   } else {
     OAILOG_DEBUG(LOG_S6A, "AMBR UL parsing error\n");
     return RETURNerror;
@@ -154,7 +149,7 @@ static inline int s6a_parse_ambr(struct avp* avp_ambr, ambr_t* ambr) {
   } else if ((ambr->br_dl == 4294967295)) {
     if (ambr->br_unit == BPS) {
       ambr->br_unit = KBPS;
-      ambr->br_ul   = ambr->br_ul / 1000;
+      ambr->br_ul = ambr->br_ul / 1000;
     }
     ambr->br_dl = ext_max_req_bw_dl;
   } else {
@@ -164,16 +159,16 @@ static inline int s6a_parse_ambr(struct avp* avp_ambr, ambr_t* ambr) {
   return RETURNok;
 }
 
-static inline int s6a_parse_all_apn_conf_inc_ind(
-    struct avp_hdr* hdr, all_apn_conf_ind_t* ptr) {
-  DevCheck(
-      hdr->avp_value->u32 < ALL_APN_MAX, hdr->avp_value->u32, ALL_APN_MAX, 0);
+static inline int s6a_parse_all_apn_conf_inc_ind(struct avp_hdr* hdr,
+                                                 all_apn_conf_ind_t* ptr) {
+  DevCheck(hdr->avp_value->u32 < ALL_APN_MAX, hdr->avp_value->u32, ALL_APN_MAX,
+           0);
   *ptr = hdr->avp_value->u32;
   return RETURNok;
 }
 
-static inline int s6a_parse_pdn_type(
-    struct avp_hdr* hdr, pdn_type_t* pdn_type) {
+static inline int s6a_parse_pdn_type(struct avp_hdr* hdr,
+                                     pdn_type_t* pdn_type) {
   DevCheck(hdr->avp_value->u32 < IP_MAX, hdr->avp_value->u32, IP_MAX, 0);
   *pdn_type = hdr->avp_value->u32;
   return RETURNok;
@@ -186,10 +181,9 @@ static inline int s6a_parse_service_selection(
       hdr_service_selection->avp_value->os.len <= SERVICE_SELECTION_MAX_LENGTH,
       hdr_service_selection->avp_value->os.len, ACCESS_POINT_NAME_MAX_LENGTH,
       0);
-  *length = snprintf(
-      service_selection, SERVICE_SELECTION_MAX_LENGTH, "%*s",
-      (int) hdr_service_selection->avp_value->os.len,
-      hdr_service_selection->avp_value->os.data);
+  *length = snprintf(service_selection, SERVICE_SELECTION_MAX_LENGTH, "%*s",
+                     (int)hdr_service_selection->avp_value->os.len,
+                     hdr_service_selection->avp_value->os.data);
 
   return RETURNok;
 }
@@ -200,30 +194,27 @@ static inline int s6a_parse_qci(struct avp_hdr* hdr, qci_t* qci) {
   return RETURNok;
 }
 
-static inline int s6a_parse_priority_level(
-    struct avp_hdr* hdr, priority_level_t* priority_level) {
-  DevCheck(
-      hdr->avp_value->u32 <= PRIORITY_LEVEL_MAX &&
-          hdr->avp_value->u32 >= PRIORITY_LEVEL_MIN,
-      hdr->avp_value->u32, PRIORITY_LEVEL_MAX, PRIORITY_LEVEL_MIN);
-  *priority_level = (priority_level_t) hdr->avp_value->u32;
+static inline int s6a_parse_priority_level(struct avp_hdr* hdr,
+                                           priority_level_t* priority_level) {
+  DevCheck(hdr->avp_value->u32 <= PRIORITY_LEVEL_MAX &&
+               hdr->avp_value->u32 >= PRIORITY_LEVEL_MIN,
+           hdr->avp_value->u32, PRIORITY_LEVEL_MAX, PRIORITY_LEVEL_MIN);
+  *priority_level = (priority_level_t)hdr->avp_value->u32;
   return RETURNok;
 }
 
 static inline int s6a_parse_pre_emp_capability(
     struct avp_hdr* hdr, pre_emption_capability_t* pre_emp_capability) {
-  DevCheck(
-      hdr->avp_value->u32 < PRE_EMPTION_CAPABILITY_MAX, hdr->avp_value->u32,
-      PRE_EMPTION_CAPABILITY_MAX, 0);
+  DevCheck(hdr->avp_value->u32 < PRE_EMPTION_CAPABILITY_MAX,
+           hdr->avp_value->u32, PRE_EMPTION_CAPABILITY_MAX, 0);
   *pre_emp_capability = hdr->avp_value->u32;
   return RETURNok;
 }
 
 static inline int s6a_parse_pre_emp_vulnerability(
     struct avp_hdr* hdr, pre_emption_vulnerability_t* pre_emp_vulnerability) {
-  DevCheck(
-      hdr->avp_value->u32 < PRE_EMPTION_VULNERABILITY_MAX, hdr->avp_value->u32,
-      PRE_EMPTION_VULNERABILITY_MAX, 0);
+  DevCheck(hdr->avp_value->u32 < PRE_EMPTION_VULNERABILITY_MAX,
+           hdr->avp_value->u32, PRE_EMPTION_VULNERABILITY_MAX, 0);
   *pre_emp_vulnerability = hdr->avp_value->u32;
   return RETURNok;
 }
@@ -310,8 +301,8 @@ static inline int s6a_parse_eps_subscribed_qos_profile(
   return RETURNok;
 }
 
-static inline int s6a_parse_ip_address(
-    struct avp_hdr* hdr, ip_address_t* ip_address) {
+static inline int s6a_parse_ip_address(struct avp_hdr* hdr,
+                                       ip_address_t* ip_address) {
   uint16_t ip_type;
 
   DevCheck(hdr->avp_value->os.len >= 2, hdr->avp_value->os.len, 2, 0);
@@ -323,10 +314,10 @@ static inline int s6a_parse_ip_address(
      */
     ip_address->pdn_type = IPv4;
     DevCheck(hdr->avp_value->os.len == 6, hdr->avp_value->os.len, 6, ip_type);
-    uint32_t ip = (((uint32_t) hdr->avp_value->os.data[2]) << 24) |
-                  (((uint32_t) hdr->avp_value->os.data[3]) << 16) |
-                  (((uint32_t) hdr->avp_value->os.data[4]) << 8) |
-                  ((uint32_t) hdr->avp_value->os.data[5]);
+    uint32_t ip = (((uint32_t)hdr->avp_value->os.data[2]) << 24) |
+                  (((uint32_t)hdr->avp_value->os.data[3]) << 16) |
+                  (((uint32_t)hdr->avp_value->os.data[4]) << 8) |
+                  ((uint32_t)hdr->avp_value->os.data[5]);
 
     ip_address->address.ipv4_address.s_addr = htonl(ip);
   } else if (ip_type == IANA_IPV6) {
@@ -335,9 +326,8 @@ static inline int s6a_parse_ip_address(
      */
     ip_address->pdn_type = IPv6;
     DevCheck(hdr->avp_value->os.len == 18, hdr->avp_value->os.len, 18, ip_type);
-    memcpy(
-        ip_address->address.ipv6_address.__in6_u.__u6_addr8,
-        &hdr->avp_value->os.data[2], 16);
+    memcpy(ip_address->address.ipv6_address.__in6_u.__u6_addr8,
+           &hdr->avp_value->os.data[2], 16);
   } else {
     /*
      * unhandled case...
@@ -348,8 +338,8 @@ static inline int s6a_parse_ip_address(
   return RETURNok;
 }
 
-static inline int s6a_parse_apn_configuration(
-    struct avp* avp_apn_conf_prof, apn_configuration_t* apn_config) {
+static inline int s6a_parse_apn_configuration(struct avp* avp_apn_conf_prof,
+                                              apn_configuration_t* apn_config) {
   struct avp* avp = NULL;
   struct avp_hdr* hdr;
 
@@ -380,9 +370,9 @@ static inline int s6a_parse_apn_configuration(
         break;
 
       case AVP_CODE_SERVICE_SELECTION:
-        CHECK_FCT(s6a_parse_service_selection(
-            hdr, apn_config->service_selection,
-            &apn_config->service_selection_length));
+        CHECK_FCT(
+            s6a_parse_service_selection(hdr, apn_config->service_selection,
+                                        &apn_config->service_selection_length));
         break;
 
       case AVP_CODE_EPS_SUBSCRIBED_QOS_PROFILE:
@@ -402,23 +392,21 @@ static inline int s6a_parse_apn_configuration(
         break;
 
       case AVP_CODE_3GPP_CHARGING_CHARACTERISTICS:
-        OAILOG_INFO(
-            LOG_S6A,
-            "AVP_CODE_3GPP_CHARGING_CHARACTERISTICS %d not processed\n",
-            hdr->avp_code);
+        OAILOG_INFO(LOG_S6A,
+                    "AVP_CODE_3GPP_CHARGING_CHARACTERISTICS %d not processed\n",
+                    hdr->avp_code);
         break;
 
       case AVP_CODE_VPLMN_DYNAMIC_ADDRESS_ALLOWED:
-        OAILOG_INFO(
-            LOG_S6A,
-            "AVP_CODE_VPLMN_DYNAMIC_ADDRESS_ALLOWED %d not processed\n",
-            hdr->avp_code);
+        OAILOG_INFO(LOG_S6A,
+                    "AVP_CODE_VPLMN_DYNAMIC_ADDRESS_ALLOWED %d not processed\n",
+                    hdr->avp_code);
         break;
 
       default:
-        OAILOG_ERROR(
-            LOG_S6A, "Unknownn AVP code %d while parsing APN configuration\n",
-            hdr->avp_code);
+        OAILOG_ERROR(LOG_S6A,
+                     "Unknownn AVP code %d while parsing APN configuration\n",
+                     hdr->avp_code);
     }
 
     /*
@@ -453,9 +441,8 @@ static inline int s6a_parse_apn_configuration_profile(
         break;
 
       case AVP_CODE_APN_CONFIGURATION: {
-        DevCheck(
-            apn_config_profile->nb_apns < MAX_APN_PER_UE,
-            apn_config_profile->nb_apns, MAX_APN_PER_UE, 0);
+        DevCheck(apn_config_profile->nb_apns < MAX_APN_PER_UE,
+                 apn_config_profile->nb_apns, MAX_APN_PER_UE, 0);
         CHECK_FCT(s6a_parse_apn_configuration(
             avp, &apn_config_profile
                       ->apn_configuration[apn_config_profile->nb_apns]));
@@ -492,9 +479,8 @@ status_code_e s6a_parse_subscription_data(
           break;
 
         case AVP_CODE_MSISDN:
-          CHECK_FCT(s6a_parse_msisdn(
-              hdr, subscription_data->msisdn,
-              &subscription_data->msisdn_length));
+          CHECK_FCT(s6a_parse_msisdn(hdr, subscription_data->msisdn,
+                                     &subscription_data->msisdn_length));
           break;
 
         case AVP_CODE_NETWORK_ACCESS_MODE:
@@ -521,9 +507,9 @@ status_code_e s6a_parse_subscription_data(
           break;
 
         case AVP_CODE_APN_OI_REPLACEMENT:
-          OAILOG_DEBUG(
-              LOG_S6A, "AVP code %d APN-OI-Replacement not processed\n",
-              hdr->avp_code);
+          OAILOG_DEBUG(LOG_S6A,
+                       "AVP code %d APN-OI-Replacement not processed\n",
+                       hdr->avp_code);
           break;
 
         case AVP_CODE_3GPP_CHARGING_CHARACTERISTICS:
@@ -541,8 +527,8 @@ status_code_e s6a_parse_subscription_data(
           break;
 
         default:
-          OAILOG_DEBUG(
-              LOG_S6A, "Unknown AVP code %d not processed\n", hdr->avp_code);
+          OAILOG_DEBUG(LOG_S6A, "Unknown AVP code %d not processed\n",
+                       hdr->avp_code);
           return RETURNerror;
       }
     } else {

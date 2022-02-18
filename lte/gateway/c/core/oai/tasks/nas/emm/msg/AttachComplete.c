@@ -21,15 +21,15 @@
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachComplete.h"
 
-int decode_attach_complete(
-    attach_complete_msg* attach_complete, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+int decode_attach_complete(attach_complete_msg* attach_complete,
+                           uint8_t* buffer, uint32_t len) {
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
   // expected for the message.
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, ATTACH_COMPLETE_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, ATTACH_COMPLETE_MINIMUM_LENGTH,
+                                       len);
 
   /*
    * Decoding mandatory fields
@@ -44,16 +44,16 @@ int decode_attach_complete(
   return decoded;
 }
 
-int encode_attach_complete(
-    attach_complete_msg* attach_complete, uint8_t* buffer, uint32_t len) {
-  int encoded       = 0;
+int encode_attach_complete(attach_complete_msg* attach_complete,
+                           uint8_t* buffer, uint32_t len) {
+  int encoded = 0;
   int encode_result = 0;
 
   /*
    * Checking IEI and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, ATTACH_COMPLETE_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, ATTACH_COMPLETE_MINIMUM_LENGTH,
+                                       len);
 
   if ((encode_result = encode_esm_message_container(
            attach_complete->esmmessagecontainer, 0, buffer + encoded,

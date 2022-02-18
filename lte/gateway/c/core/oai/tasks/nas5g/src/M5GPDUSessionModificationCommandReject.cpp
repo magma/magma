@@ -21,7 +21,7 @@ int PDUSessionModificationCommandReject::
     EncodePDUSessionModificationCommandReject(
         PDUSessionModificationCommandReject* pdu_sess_mod_comd_rej,
         uint8_t* buffer, uint32_t len) {
-  uint32_t encoded        = 0;
+  uint32_t encoded = 0;
   uint32_t encoded_result = 0;
 
   MLOG(MDEBUG) << "EncodePDUSessionModificationCommandReject : \n";
@@ -72,7 +72,7 @@ int PDUSessionModificationCommandReject::
     DecodePDUSessionModificationCommandReject(
         PDUSessionModificationCommandReject* pdu_sess_mod_comd_rej,
         uint8_t* buffer, uint32_t len) {
-  uint32_t decoded        = 0;
+  uint32_t decoded = 0;
   uint32_t decoded_result = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(

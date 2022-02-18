@@ -32,7 +32,7 @@ using magma::lte::oai::NgapState;
 namespace magma5g {
 
 NgapStateConverter::~NgapStateConverter() = default;
-NgapStateConverter::NgapStateConverter()  = default;
+NgapStateConverter::NgapStateConverter() = default;
 
 void NgapStateConverter::state_to_proto(ngap_state_t* state, NgapState* proto) {
   proto->Clear();
@@ -52,9 +52,9 @@ void NgapStateConverter::state_to_proto(ngap_state_t* state, NgapState* proto) {
     OAILOG_DEBUG(LOG_NGAP, "No keys in amfid2associd hashtable");
   } else {
     for (int i = 0; i < keys->num_keys; i++) {
-      amfid = (amf_ue_ngap_id_t) keys->keys[i];
-      ht_rc = hashtable_ts_get(
-          &state->amfid2associd, (hash_key_t) amfid, (void**) &associd);
+      amfid = (amf_ue_ngap_id_t)keys->keys[i];
+      ht_rc = hashtable_ts_get(&state->amfid2associd, (hash_key_t)amfid,
+                               (void**)&associd);
       AssertFatal(ht_rc == HASH_TABLE_OK, "amfid not in amfid2associd");
 
       (*amfid2associd)[amfid] = associd;
@@ -65,27 +65,27 @@ void NgapStateConverter::state_to_proto(ngap_state_t* state, NgapState* proto) {
   proto->set_num_gnbs(state->num_gnbs);
 }
 
-void NgapStateConverter::proto_to_state(
-    const NgapState& proto, ngap_state_t* state) {
+void NgapStateConverter::proto_to_state(const NgapState& proto,
+                                        ngap_state_t* state) {
   proto_to_hashtable_ts<GnbDescription, gnb_description_t>(
       proto.gnbs(), &state->gnbs, proto_to_gnb, LOG_NGAP);
 
   hashtable_rc_t ht_rc;
   auto amfid2associd = proto.amfid2associd();
   for (auto const& kv : amfid2associd) {
-    amf_ue_ngap_id_t amfid  = (amf_ue_ngap_id_t) kv.first;
-    sctp_assoc_id_t associd = (sctp_assoc_id_t) kv.second;
+    amf_ue_ngap_id_t amfid = (amf_ue_ngap_id_t)kv.first;
+    sctp_assoc_id_t associd = (sctp_assoc_id_t)kv.second;
 
-    ht_rc = hashtable_ts_insert(
-        &state->amfid2associd, (hash_key_t) amfid, (void*) (uintptr_t) associd);
+    ht_rc = hashtable_ts_insert(&state->amfid2associd, (hash_key_t)amfid,
+                                (void*)(uintptr_t)associd);
     AssertFatal(ht_rc == HASH_TABLE_OK, "failed to insert associd");
   }
 
   state->num_gnbs = proto.num_gnbs();
 }
 
-void NgapStateConverter::gnb_to_proto(
-    gnb_description_t* gnb, GnbDescription* proto) {
+void NgapStateConverter::gnb_to_proto(gnb_description_t* gnb,
+                                      GnbDescription* proto) {
   proto->Clear();
 
   proto->set_gnb_id(gnb->gnb_id);
@@ -100,49 +100,49 @@ void NgapStateConverter::gnb_to_proto(
 
   // store ue_ids
   hashtable_uint64_ts_to_proto(&gnb->ue_id_coll, proto->mutable_ue_ids());
-  supported_ta_list_to_proto(
-      &gnb->supported_ta_list, proto->mutable_supported_ta_list());
+  supported_ta_list_to_proto(&gnb->supported_ta_list,
+                             proto->mutable_supported_ta_list());
 }
 
-void NgapStateConverter::proto_to_gnb(
-    const GnbDescription& proto, gnb_description_t* gnb) {
+void NgapStateConverter::proto_to_gnb(const GnbDescription& proto,
+                                      gnb_description_t* gnb) {
   memset(gnb, 0, sizeof(*gnb));
 
-  gnb->gnb_id   = proto.gnb_id();
-  gnb->ng_state = (amf_ng_gnb_state_s) proto.ng_state();
+  gnb->gnb_id = proto.gnb_id();
+  gnb->ng_state = (amf_ng_gnb_state_s)proto.ng_state();
   strncpy(gnb->gnb_name, proto.gnb_name().c_str(), sizeof(gnb->gnb_name));
   gnb->default_paging_drx = proto.default_paging_drx();
-  gnb->nb_ue_associated   = proto.nb_ue_associated();
-  gnb->sctp_assoc_id      = proto.sctp_assoc_id();
-  gnb->next_sctp_stream   = proto.next_sctp_stream();
-  gnb->instreams          = proto.instreams();
-  gnb->outstreams         = proto.outstreams();
+  gnb->nb_ue_associated = proto.nb_ue_associated();
+  gnb->sctp_assoc_id = proto.sctp_assoc_id();
+  gnb->next_sctp_stream = proto.next_sctp_stream();
+  gnb->instreams = proto.instreams();
+  gnb->outstreams = proto.outstreams();
 
   // load ues
   hashtable_rc_t ht_rc;
   auto ht_name = bfromcstr("ngap_ue_coll");
 
-  hashtable_uint64_ts_init(
-      &gnb->ue_id_coll, amf_config.max_ues, nullptr, ht_name);
+  hashtable_uint64_ts_init(&gnb->ue_id_coll, amf_config.max_ues, nullptr,
+                           ht_name);
   bdestroy(ht_name);
 
   auto ue_ids = proto.ue_ids();
   for (auto const& kv : ue_ids) {
     amf_ue_ngap_id_t amf_ue_ngap_id = kv.first;
-    uint64_t comp_ngap_id           = kv.second;
+    uint64_t comp_ngap_id = kv.second;
 
     ht_rc = hashtable_uint64_ts_insert(
-        &gnb->ue_id_coll, (hash_key_t) amf_ue_ngap_id, comp_ngap_id);
+        &gnb->ue_id_coll, (hash_key_t)amf_ue_ngap_id, comp_ngap_id);
     if (ht_rc != HASH_TABLE_OK) {
-      OAILOG_DEBUG(
-          LOG_NGAP, "Failed to insert amf_ue_ngap_id in ue_coll_id hashtable");
+      OAILOG_DEBUG(LOG_NGAP,
+                   "Failed to insert amf_ue_ngap_id in ue_coll_id hashtable");
     }
   }
-  proto_to_supported_ta_list(
-      &gnb->supported_ta_list, proto.supported_ta_list());
+  proto_to_supported_ta_list(&gnb->supported_ta_list,
+                             proto.supported_ta_list());
 }
-void NgapStateConverter::ue_to_proto(
-    const m5g_ue_description_t* ue, Ngap_UeDescription* proto) {
+void NgapStateConverter::ue_to_proto(const m5g_ue_description_t* ue,
+                                     Ngap_UeDescription* proto) {
   proto->Clear();
 
   proto->set_ng_ue_state(ue->ng_ue_state);
@@ -156,17 +156,17 @@ void NgapStateConverter::ue_to_proto(
   proto->mutable_ngap_ue_context_rel_timer()->set_msec(
       ue->ngap_ue_context_rel_timer.msec);
 }
-void NgapStateConverter::proto_to_ue(
-    const Ngap_UeDescription& proto, m5g_ue_description_t* ue) {
+void NgapStateConverter::proto_to_ue(const Ngap_UeDescription& proto,
+                                     m5g_ue_description_t* ue) {
   memset(ue, 0, sizeof(*ue));
 
-  ue->ng_ue_state                    = (ng_ue_state_s) proto.ng_ue_state();
-  ue->gnb_ue_ngap_id                 = proto.gnb_ue_ngap_id();
-  ue->amf_ue_ngap_id                 = proto.amf_ue_ngap_id();
-  ue->sctp_assoc_id                  = proto.sctp_assoc_id();
-  ue->sctp_stream_recv               = proto.sctp_stream_recv();
-  ue->sctp_stream_send               = proto.sctp_stream_send();
-  ue->ngap_ue_context_rel_timer.id   = proto.ngap_ue_context_rel_timer().id();
+  ue->ng_ue_state = (ng_ue_state_s)proto.ng_ue_state();
+  ue->gnb_ue_ngap_id = proto.gnb_ue_ngap_id();
+  ue->amf_ue_ngap_id = proto.amf_ue_ngap_id();
+  ue->sctp_assoc_id = proto.sctp_assoc_id();
+  ue->sctp_stream_recv = proto.sctp_stream_recv();
+  ue->sctp_stream_send = proto.sctp_stream_send();
+  ue->ngap_ue_context_rel_timer.id = proto.ngap_ue_context_rel_timer().id();
   ue->ngap_ue_context_rel_timer.msec = proto.ngap_ue_context_rel_timer().msec();
 
   ue->comp_ngap_id =
@@ -175,14 +175,13 @@ void NgapStateConverter::proto_to_ue(
 
 void NgapStateConverter::ngap_imsi_map_to_proto(
     const ngap_imsi_map_t* ngap_imsi_map, NgapImsiMap* ngap_imsi_proto) {
-  hashtable_uint64_ts_to_proto(
-      ngap_imsi_map->amf_ue_id_imsi_htbl,
-      ngap_imsi_proto->mutable_amf_ue_id_imsi_map());
+  hashtable_uint64_ts_to_proto(ngap_imsi_map->amf_ue_id_imsi_htbl,
+                               ngap_imsi_proto->mutable_amf_ue_id_imsi_map());
 }
 void NgapStateConverter::proto_to_ngap_imsi_map(
     const NgapImsiMap& ngap_imsi_proto, ngap_imsi_map_t* ngap_imsi_map) {
-  proto_to_hashtable_uint64_ts(
-      ngap_imsi_proto.amf_ue_id_imsi_map(), ngap_imsi_map->amf_ue_id_imsi_htbl);
+  proto_to_hashtable_uint64_ts(ngap_imsi_proto.amf_ue_id_imsi_map(),
+                               ngap_imsi_map->amf_ue_id_imsi_htbl);
 }
 
 void NgapStateConverter::supported_ta_list_to_proto(
@@ -193,8 +192,8 @@ void NgapStateConverter::supported_ta_list_to_proto(
     OAILOG_DEBUG(LOG_NGAP, "Writing Ngap_Supported TAI list at index %d", idx);
     oai::Ngap_SupportedTaiItems* supported_tai_item =
         supported_ta_list_proto->add_supported_tai_items();
-    supported_tai_item_to_proto(
-        &supported_ta_list->supported_tai_items[idx], supported_tai_item);
+    supported_tai_item_to_proto(&supported_ta_list->supported_tai_items[idx],
+                                supported_tai_item);
   }
 }
 

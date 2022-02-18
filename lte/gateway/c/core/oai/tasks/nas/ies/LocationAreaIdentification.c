@@ -95,24 +95,18 @@ void dump_location_area_identification_xml(
      */
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
-  OAILOG_DEBUG(
-      LOG_NAS, "    <MCC digit 2>%u</MCC digit 2>\n",
-      locationareaidentification->mccdigit2);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <MCC digit 1>%u</MCC digit 1>\n",
-      locationareaidentification->mccdigit1);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <MNC digit 3>%u</MNC digit 3>\n",
-      locationareaidentification->mncdigit3);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <MCC digit 3>%u</MCC digit 3>\n",
-      locationareaidentification->mccdigit3);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <MNC digit 2>%u</MNC digit 2>\n",
-      locationareaidentification->mncdigit2);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <MNC digit 1>%u</MNC digit 1>\n",
-      locationareaidentification->mncdigit1);
+  OAILOG_DEBUG(LOG_NAS, "    <MCC digit 2>%u</MCC digit 2>\n",
+               locationareaidentification->mccdigit2);
+  OAILOG_DEBUG(LOG_NAS, "    <MCC digit 1>%u</MCC digit 1>\n",
+               locationareaidentification->mccdigit1);
+  OAILOG_DEBUG(LOG_NAS, "    <MNC digit 3>%u</MNC digit 3>\n",
+               locationareaidentification->mncdigit3);
+  OAILOG_DEBUG(LOG_NAS, "    <MCC digit 3>%u</MCC digit 3>\n",
+               locationareaidentification->mccdigit3);
+  OAILOG_DEBUG(LOG_NAS, "    <MNC digit 2>%u</MNC digit 2>\n",
+               locationareaidentification->mncdigit2);
+  OAILOG_DEBUG(LOG_NAS, "    <MNC digit 1>%u</MNC digit 1>\n",
+               locationareaidentification->mncdigit1);
   OAILOG_DEBUG(LOG_NAS, "    <LAC>%u</LAC>\n", locationareaidentification->lac);
   OAILOG_DEBUG(LOG_NAS, "</Location Area Identification>\n");
 }

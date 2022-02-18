@@ -39,9 +39,10 @@
  * \param message The message as decoded by the ASN.1 codec
  * @returns -1 on failure, 0 otherwise
  **/
-status_code_e s1ap_mme_handle_initial_ue_message(
-    s1ap_state_t* state, const sctp_assoc_id_t assocId,
-    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message);
+status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
+                                                 const sctp_assoc_id_t assocId,
+                                                 const sctp_stream_id_t stream,
+                                                 S1ap_S1AP_PDU_t* message);
 
 /** \brief Handle an Uplink NAS transport message.
  * Process the RRC transparent container and forward it to NAS entity.
@@ -60,9 +61,10 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
  * \param message The message as decoded by the ASN.1 codec
  * @returns -1 on failure, 0 otherwise
  **/
-status_code_e s1ap_mme_handle_nas_non_delivery(
-    s1ap_state_t* state, const sctp_assoc_id_t assocId,
-    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message);
+status_code_e s1ap_mme_handle_nas_non_delivery(s1ap_state_t* state,
+                                               const sctp_assoc_id_t assocId,
+                                               const sctp_stream_id_t stream,
+                                               S1ap_S1AP_PDU_t* message);
 
 void s1ap_handle_conn_est_cnf(
     s1ap_state_t* state,

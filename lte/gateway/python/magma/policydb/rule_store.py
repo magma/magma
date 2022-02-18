@@ -22,9 +22,9 @@ from magma.common.redis.serializers import (
 
 class PolicyRuleDict(RedisHashDict):
     """
-    PolicyRuleDict uses the RedisHashDict collection to store a mapping of policy
-    rule ids to PolicyRules. Setting and deleting items in the dictionary syncs
-    with Redis automatically
+    PolicyRuleDict uses the RedisHashDict collection to store a mapping of
+    policy rule ids to PolicyRules.
+    Setting and deleting items in the dictionary syncs with Redis automatically
     """
     _DICT_HASH = "policydb:rules"
     _NOTIFY_CHANNEL = "policydb:rules:stream_update"
@@ -40,8 +40,9 @@ class PolicyRuleDict(RedisHashDict):
 
     def send_update_notification(self):
         """
-        Use Redis pub/sub channels to send notifications. Subscribers can listen
-        to this channel to know when an update is done to the policy store
+        Use Redis pub/sub channels to send notifications. Subscribers can
+        listen to this channel to know when an update is done to the policy
+        store
         """
         self.redis.publish(self._NOTIFY_CHANNEL, "Stream Update")
 

@@ -34,9 +34,9 @@ class M5GQosFlowParam {
 
   M5GQosFlowParam();
   ~M5GQosFlowParam();
-  int EncodeM5GQosFlowParam(
-      M5GQosFlowParam* param, uint8_t* buffer, uint32_t len);
-  int DecodeM5GQosFlowParam(
-      M5GQosFlowParam* param, uint8_t* buffer, uint32_t len);
+  int EncodeM5GQosFlowParam(M5GQosFlowParam* param, uint8_t* buffer,
+                            uint32_t len);
+  int DecodeM5GQosFlowParam(M5GQosFlowParam* param, uint8_t* buffer,
+                            uint32_t len);
 };
 }  // namespace magma5g

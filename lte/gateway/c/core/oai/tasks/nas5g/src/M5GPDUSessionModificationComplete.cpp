@@ -20,7 +20,7 @@ PDUSessionModificationComplete::~PDUSessionModificationComplete() {}
 int PDUSessionModificationComplete::EncodePDUSessionModificationComplete(
     PDUSessionModificationComplete* pdu_sess_mod_com, uint8_t* buffer,
     uint32_t len) {
-  uint32_t encoded        = 0;
+  uint32_t encoded = 0;
   uint32_t encoded_result = 0;
 
   MLOG(MDEBUG) << "EncodePDUSessionModificationComplete : \n";
@@ -61,7 +61,7 @@ int PDUSessionModificationComplete::EncodePDUSessionModificationComplete(
 int PDUSessionModificationComplete::DecodePDUSessionModificationComplete(
     PDUSessionModificationComplete* pdu_sess_mod_com, uint8_t* buffer,
     uint32_t len) {
-  uint32_t decoded        = 0;
+  uint32_t decoded = 0;
   uint32_t decoded_result = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(

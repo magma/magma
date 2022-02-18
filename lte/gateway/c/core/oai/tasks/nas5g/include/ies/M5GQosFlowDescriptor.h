@@ -25,10 +25,10 @@ class M5GQosFlowDescription {
   uint8_t Ebit : 2;
   M5GQosFlowParam paramList[MAX_QOS_FLOW_PARAMS_LIST];
 
-  int EncodeM5GQosFlowDescription(
-      M5GQosFlowDescription* qosFlowDesc, uint8_t* buffer, uint32_t len);
-  int DecodeM5GQosFlowDescription(
-      M5GQosFlowDescription* qosFlowDesc, uint8_t* buffer, uint32_t len);
+  int EncodeM5GQosFlowDescription(M5GQosFlowDescription* qosFlowDesc,
+                                  uint8_t* buffer, uint32_t len);
+  int DecodeM5GQosFlowDescription(M5GQosFlowDescription* qosFlowDesc,
+                                  uint8_t* buffer, uint32_t len);
 
   M5GQosFlowDescription();
   ~M5GQosFlowDescription();

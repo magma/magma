@@ -65,9 +65,9 @@ env:
   - name: SERVICE_REGISTRY_NAMESPACE
     value: {{ .Release.Namespace }}
   - name: HELM_VERSION_TAG
-    value: {{ .Chart.Version }}
+    value: {{ .Chart.Version | quote }}
   - name: VERSION_TAG
-    value: {{ .Values.controller.image.tag }}
+    value: {{ .Values.controller.image.tag | quote }}
 livenessProbe:
   tcpSocket:
     port: 9180

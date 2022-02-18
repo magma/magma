@@ -21,8 +21,8 @@ namespace magma5g {
 GPRSTimerMsg::GPRSTimerMsg() {}
 GPRSTimerMsg::~GPRSTimerMsg() {}
 
-int GPRSTimerMsg::DecodeGPRSTimerMsg(
-    GPRSTimerMsg* gprstimer, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int GPRSTimerMsg::DecodeGPRSTimerMsg(GPRSTimerMsg* gprstimer, uint8_t iei,
+                                     uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -40,8 +40,8 @@ int GPRSTimerMsg::DecodeGPRSTimerMsg(
   return decoded;
 }
 
-int GPRSTimerMsg::EncodeGPRSTimerMsg(
-    GPRSTimerMsg* gprstimer, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int GPRSTimerMsg::EncodeGPRSTimerMsg(GPRSTimerMsg* gprstimer, uint8_t iei,
+                                     uint8_t* buffer, uint32_t len) {
   uint8_t encoded = 0;
 
   if (iei > 0) {

@@ -148,6 +148,7 @@ export type ActionTableProps<T> = {
   data: Array<T> | (ActionQuery => {}),
   options: ActionTableOptions,
   detailPanel?: Array<{}>,
+  onSelectionChange?: (Array<T>) => void,
 };
 
 export function PaperComponent(props: {}) {
@@ -288,6 +289,7 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
         }
         options={props.options}
         detailPanel={props.detailPanel}
+        onSelectionChange={props.onSelectionChange}
       />
     </>
   );

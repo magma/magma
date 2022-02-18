@@ -38,97 +38,88 @@
 #ifndef ASSERTIONS_H_
 #define ASSERTIONS_H_
 
-#define _Assert_Exit_                                                          \
-  do {                                                                         \
-    fprintf(stderr, "\nExiting execution\n");                                  \
-    display_backtrace();                                                       \
-    fflush(stdout);                                                            \
-    fflush(stderr);                                                            \
-    exit(EXIT_FAILURE);                                                        \
+#define _Assert_Exit_                         \
+  do {                                        \
+    fprintf(stderr, "\nExiting execution\n"); \
+    display_backtrace();                      \
+    fflush(stdout);                           \
+    fflush(stderr);                           \
+    exit(EXIT_FAILURE);                       \
   } while (0)
 
 #ifndef __clang_analyzer__
 // TODO: explore use of portable github.com/scottt/debugbreak.
 // In the event that __builtin_trap behavior is not desirable across platforms
 // and compilers.
-#define _Assert_Builtin_Trap_                                                  \
-  do {                                                                         \
-    fprintf(stderr, "\n Will use __builtin_trap() to be caught by GDB!\n");    \
-    display_backtrace();                                                       \
-    fflush(stdout);                                                            \
-    fflush(stderr);                                                            \
-    __builtin_trap();                                                          \
-    exit(EXIT_FAILURE);                                                        \
+#define _Assert_Builtin_Trap_                                               \
+  do {                                                                      \
+    fprintf(stderr, "\n Will use __builtin_trap() to be caught by GDB!\n"); \
+    display_backtrace();                                                    \
+    fflush(stdout);                                                         \
+    fflush(stderr);                                                         \
+    __builtin_trap();                                                       \
+    exit(EXIT_FAILURE);                                                     \
   } while (0)
 #else
 #define _Assert_Builtin_Trap_ _Assert_Exit_
 #endif
 
-#define _Assert_(cOND, aCTION, fORMAT, aRGS...)                                \
-  do {                                                                         \
-    if (!(cOND)) {                                                             \
-      fprintf(                                                                 \
-          stderr,                                                              \
-          "\nAssertion (" #cOND                                                \
-          ") failed!\n"                                                        \
-          "In %s() %s:%d\n" fORMAT,                                            \
-          __FUNCTION__, __FILE__, __LINE__, ##aRGS);                           \
-      aCTION;                                                                  \
-    }                                                                          \
+#define _Assert_(cOND, aCTION, fORMAT, aRGS...)          \
+  do {                                                   \
+    if (!(cOND)) {                                       \
+      fprintf(stderr,                                    \
+              "\nAssertion (" #cOND                      \
+              ") failed!\n"                              \
+              "In %s() %s:%d\n" fORMAT,                  \
+              __FUNCTION__, __FILE__, __LINE__, ##aRGS); \
+      aCTION;                                            \
+    }                                                    \
   } while (0)
 
-#if DEBUG_IS_ON
 #define _ASSERT_FINAL_ _Assert_Builtin_Trap_
-#else
-#define _ASSERT_FINAL_ _Assert_Exit_
-#endif
 
-#define Fatal(format, args...)                                                 \
-  do {                                                                         \
-    fprintf(                                                                   \
-        stderr, "\nFatal!\n %s() %s:%d\n" format, __FUNCTION__, __FILE__,      \
-        __LINE__, ##args);                                                     \
-    _ASSERT_FINAL_;                                                            \
+#define Fatal(format, args...)                                                \
+  do {                                                                        \
+    fprintf(stderr, "\nFatal!\n %s() %s:%d\n" format, __FUNCTION__, __FILE__, \
+            __LINE__, ##args);                                                \
+    _ASSERT_FINAL_;                                                           \
   } while (0)
 
-#define AssertFatal(cond, format, ...)                                         \
+#define AssertFatal(cond, format, ...) \
   _Assert_(cond, _ASSERT_FINAL_, format, ##__VA_ARGS__)
-#define DevCheck(cOND, vALUE1, vALUE2, vALUE3)                                 \
-  _Assert_(                                                                    \
-      cOND, _ASSERT_FINAL_,                                                    \
-      #vALUE1 ": %" PRIdMAX "\n" #vALUE2 ": %" PRIdMAX "\n" #vALUE3            \
-              ": %" PRIdMAX "\n\n",                                            \
-      (intmax_t) vALUE1, (intmax_t) vALUE2, (intmax_t) vALUE3)
+#define DevCheck(cOND, vALUE1, vALUE2, vALUE3)                           \
+  _Assert_(cOND, _ASSERT_FINAL_,                                         \
+           #vALUE1 ": %" PRIdMAX "\n" #vALUE2 ": %" PRIdMAX "\n" #vALUE3 \
+                   ": %" PRIdMAX "\n\n",                                 \
+           (intmax_t)vALUE1, (intmax_t)vALUE2, (intmax_t)vALUE3)
 
-#define DevCheck4(cOND, vALUE1, vALUE2, vALUE3, vALUE4)                        \
-  _Assert_(                                                                    \
-      cOND, _ASSERT_FINAL_,                                                    \
-      #vALUE1 ": %" PRIdMAX "\n" #vALUE2 ": %" PRIdMAX "\n" #vALUE3            \
-              ": %" PRIdMAX "\n" #vALUE4 ": %" PRIdMAX "\n\n",                 \
-      (intmax_t) vALUE1, (intmax_t) vALUE2, (intmax_t) vALUE3,                 \
-      (intmax_t) vALUE4)
+#define DevCheck4(cOND, vALUE1, vALUE2, vALUE3, vALUE4)                  \
+  _Assert_(cOND, _ASSERT_FINAL_,                                         \
+           #vALUE1 ": %" PRIdMAX "\n" #vALUE2 ": %" PRIdMAX "\n" #vALUE3 \
+                   ": %" PRIdMAX "\n" #vALUE4 ": %" PRIdMAX "\n\n",      \
+           (intmax_t)vALUE1, (intmax_t)vALUE2, (intmax_t)vALUE3,         \
+           (intmax_t)vALUE4)
 
 #define DevAssert(cOND) _Assert_(cOND, _ASSERT_FINAL_, "")
 
 #define DevMessage(mESSAGE) _Assert_(0, _ASSERT_FINAL_, #mESSAGE)
 
-#define CHECK_INIT_RETURN(fCT)                                                 \
-  do {                                                                         \
-    int fct_ret;                                                               \
-    if ((fct_ret = (fCT)) != 0) {                                              \
-      fprintf(                                                                 \
-          stderr,                                                              \
-          "Function " #fCT                                                     \
-          " has failed\n"                                                      \
-          "returning %d\n",                                                    \
-          fct_ret);                                                            \
-      fflush(stdout);                                                          \
-      fflush(stderr);                                                          \
-      exit(EXIT_FAILURE);                                                      \
-    }                                                                          \
+#define CHECK_INIT_RETURN(fCT)    \
+  do {                            \
+    int fct_ret;                  \
+    if ((fct_ret = (fCT)) != 0) { \
+      fprintf(stderr,             \
+              "Function " #fCT    \
+              " has failed\n"     \
+              "returning %d\n",   \
+              fct_ret);           \
+      fflush(stdout);             \
+      fflush(stderr);             \
+      exit(EXIT_FAILURE);         \
+    }                             \
   } while (0)
 
-#define AssertError(cOND, aCTION, fORMAT, aRGS...)                             \
+#define AssertError(cOND, aCTION, fORMAT, aRGS...) \
   _Assert_(cOND, aCTION, fORMAT, ##aRGS)
 #define DevParam(vALUE1, vALUE2, vALUE3) DevCheck(0, vALUE1, vALUE2, vALUE3)
 

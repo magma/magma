@@ -32,7 +32,7 @@
 int decode_security_mode_command(
     security_mode_command_msg* security_mode_command, uint8_t* buffer,
     uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
@@ -93,10 +93,10 @@ int decode_security_mode_command(
         break;
 
       case SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_IEI:
-        if ((decoded_result = decode_nonce(
-                 &security_mode_command->replayednonceue,
-                 SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
+        if ((decoded_result =
+                 decode_nonce(&security_mode_command->replayednonceue,
+                              SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_IEI,
+                              buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
         decoded += decoded_result;
@@ -108,10 +108,10 @@ int decode_security_mode_command(
         break;
 
       case SECURITY_MODE_COMMAND_NONCEMME_IEI:
-        if ((decoded_result = decode_nonce(
-                 &security_mode_command->noncemme,
-                 SECURITY_MODE_COMMAND_NONCEMME_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
+        if ((decoded_result = decode_nonce(&security_mode_command->noncemme,
+                                           SECURITY_MODE_COMMAND_NONCEMME_IEI,
+                                           buffer + decoded, len - decoded)) <=
+            0)
           return decoded_result;
 
         decoded += decoded_result;
@@ -154,7 +154,7 @@ int decode_security_mode_command(
 int encode_security_mode_command(
     security_mode_command_msg* security_mode_command, uint8_t* buffer,
     uint32_t len) {
-  int encoded       = 0;
+  int encoded = 0;
   int encode_result = 0;
 
   /*
@@ -171,10 +171,9 @@ int encode_security_mode_command(
   else
     encoded += encode_result;
 
-  *(buffer + encoded) =
-      (encode_u8_nas_key_set_identifier(
-           &security_mode_command->naskeysetidentifier) &
-       0x0f);
+  *(buffer + encoded) = (encode_u8_nas_key_set_identifier(
+                             &security_mode_command->naskeysetidentifier) &
+                         0x0f);
   encoded++;
 
   if ((encode_result = encode_ue_security_capability(
@@ -188,10 +187,10 @@ int encode_security_mode_command(
   if ((security_mode_command->presencemask &
        SECURITY_MODE_COMMAND_IMEISV_REQUEST_PRESENT) ==
       SECURITY_MODE_COMMAND_IMEISV_REQUEST_PRESENT) {
-    if ((encode_result = encode_imeisv_request_ie(
-             &security_mode_command->imeisvrequest,
-             SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI, buffer + encoded,
-             len - encoded)) < 0)
+    if ((encode_result =
+             encode_imeisv_request_ie(&security_mode_command->imeisvrequest,
+                                      SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI,
+                                      buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else
@@ -201,10 +200,10 @@ int encode_security_mode_command(
   if ((security_mode_command->presencemask &
        SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_PRESENT) ==
       SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_PRESENT) {
-    if ((encode_result = encode_nonce(
-             &security_mode_command->replayednonceue,
-             SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_IEI, buffer + encoded,
-             len - encoded)) < 0)
+    if ((encode_result =
+             encode_nonce(&security_mode_command->replayednonceue,
+                          SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_IEI,
+                          buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else
@@ -214,10 +213,9 @@ int encode_security_mode_command(
   if ((security_mode_command->presencemask &
        SECURITY_MODE_COMMAND_NONCEMME_PRESENT) ==
       SECURITY_MODE_COMMAND_NONCEMME_PRESENT) {
-    if ((encode_result = encode_nonce(
-             &security_mode_command->noncemme,
-             SECURITY_MODE_COMMAND_NONCEMME_IEI, buffer + encoded,
-             len - encoded)) < 0)
+    if ((encode_result = encode_nonce(&security_mode_command->noncemme,
+                                      SECURITY_MODE_COMMAND_NONCEMME_IEI,
+                                      buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else

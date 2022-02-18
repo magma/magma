@@ -53,9 +53,9 @@ class S6aServiceImpl final : public S6aService::Service {
                                 err message.
        * @return grpc Status instance
        */
-  grpc::Status DeleteSubscriber(
-      ServerContext* context, const DeleteSubscriberRequest* request,
-      DeleteSubscriberResponse* response) override;
+  grpc::Status DeleteSubscriber(ServerContext* context,
+                                const DeleteSubscriberRequest* request,
+                                DeleteSubscriberResponse* response) override;
 };
 
 }  // namespace magma

@@ -20,11 +20,12 @@ import (
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/smsd"
 	"magma/lte/cloud/go/services/smsd/servicers"
+	smsd_servicer "magma/lte/cloud/go/services/smsd/servicers/southbound"
 	storage2 "magma/lte/cloud/go/services/smsd/storage"
 	"magma/lte/cloud/go/sms_ll"
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/obsidian/swagger"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
+	swagger_servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -49,9 +50,9 @@ func main() {
 
 	restServicer := servicers.NewRESTServicer(store)
 	obsidian.AttachHandlers(srv.EchoServer, restServicer.GetHandlers())
-	protos.RegisterSmsDServer(srv.GrpcServer, servicers.NewSMSDServicer(store, &sms_ll.DefaultSMSSerde{}))
+	protos.RegisterSmsDServer(srv.GrpcServer, smsd_servicer.NewSMSDServicer(store, &sms_ll.DefaultSMSSerde{}))
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(smsd.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(smsd.ServiceName))
 
 	err = srv.Run()
 	if err != nil {

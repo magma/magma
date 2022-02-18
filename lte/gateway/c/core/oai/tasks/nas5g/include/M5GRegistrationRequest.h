@@ -60,10 +60,10 @@ class RegistrationRequestMsg {
 
   RegistrationRequestMsg();
   ~RegistrationRequestMsg();
-  int DecodeRegistrationRequestMsg(
-      RegistrationRequestMsg* reg_request, uint8_t* buffer, uint32_t len);
-  int EncodeRegistrationRequestMsg(
-      RegistrationRequestMsg* reg_request, uint8_t* buffer, uint32_t len);
+  int DecodeRegistrationRequestMsg(RegistrationRequestMsg* reg_request,
+                                   uint8_t* buffer, uint32_t len);
+  int EncodeRegistrationRequestMsg(RegistrationRequestMsg* reg_request,
+                                   uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

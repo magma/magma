@@ -13,18 +13,20 @@ limitations under the License.
 
 import logging
 
+from grpc import StatusCode
 from lte.protos import (
     subscriberauth_pb2,
     subscriberauth_pb2_grpc,
     subscriberdb_pb2,
     subscriberdb_pb2_grpc,
 )
-from magma.common.rpc_utils import print_grpc
+from magma.common.rpc_utils import print_grpc, set_grpc_err
 from magma.subscriberdb import metrics
 from magma.subscriberdb.crypto.ECIES import ECIES_HN
 from magma.subscriberdb.crypto.utils import CryptoError
 from magma.subscriberdb.store.base import (
     SubscriberNotFoundError,
+    SubscriberServerTooBusy,
     SuciProfileNotFoundError,
 )
 from magma.subscriberdb.subscription.utils import ServiceNotActive
@@ -107,6 +109,13 @@ class M5GAuthRpcServicer(subscriberauth_pb2_grpc.M5GSubscriberAuthenticationServ
             ).inc()
             aia.error_code = metrics.DIAMETER_ERROR_UNAUTHORIZED_SERVICE
             return aia
+        except SubscriberServerTooBusy as e:
+            logging.error("Sqlite3 DB is locked for %s: %s", imsi, e)
+            metrics.M5G_AUTH_FAILURE_TOTAL.labels(
+                code=metrics.DIAMETER_TOO_BUSY,
+            ).inc()
+            aia.error_code = metrics.DIAMETER_TOO_BUSY
+            return aia
         finally:
             print_grpc(
                 aia, self._print_grpc_payload,
@@ -147,7 +156,14 @@ class M5GSUCIRegRpcServicer(subscriberdb_pb2_grpc.M5GSUCIRegistrationServicer):
         aia = subscriberdb_pb2.M5GSUCIRegistrationAnswer()
 
         try:
-            suciprofile = self.suciprofile_db[request.ue_pubkey_identifier]
+            suciprofile = self.suciprofile_db.get(request.ue_pubkey_identifier)
+            if suciprofile is None:
+                set_grpc_err(
+                    context,
+                    StatusCode.NOT_FOUND,
+                    f"identifier {request.ue_pubkey_identifier} not found",
+                )
+                return aia
 
             if suciprofile.protection_scheme == 0:
                 profile = 'A'

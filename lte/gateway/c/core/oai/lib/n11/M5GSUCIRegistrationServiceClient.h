@@ -37,20 +37,22 @@ M5GSUCIRegistrationRequest create_decrypt_imsi_request(
 class M5GSUCIRegistrationServiceClient {
  public:
   virtual ~M5GSUCIRegistrationServiceClient() {}
-  virtual bool get_decrypt_imsi_info(
-      const uint8_t ue_pubkey_identifier, const std::string& ue_pubkey,
-      const std::string& ciphertext, const std::string& mac_tag,
-      amf_ue_ngap_id_t ue_id) = 0;
+  virtual bool get_decrypt_imsi_info(const uint8_t ue_pubkey_identifier,
+                                     const std::string& ue_pubkey,
+                                     const std::string& ciphertext,
+                                     const std::string& mac_tag,
+                                     amf_ue_ngap_id_t ue_id) = 0;
 };
 
 class AsyncM5GSUCIRegistrationServiceClient
     : public GRPCReceiver,
       public M5GSUCIRegistrationServiceClient {
  public:
-  bool get_decrypt_imsi_info(
-      const uint8_t ue_pubkey_identifier, const std::string& ue_pubkey,
-      const std::string& ciphertext, const std::string& mac_tag,
-      amf_ue_ngap_id_t ue_id);
+  bool get_decrypt_imsi_info(const uint8_t ue_pubkey_identifier,
+                             const std::string& ue_pubkey,
+                             const std::string& ciphertext,
+                             const std::string& mac_tag,
+                             amf_ue_ngap_id_t ue_id);
 
   static AsyncM5GSUCIRegistrationServiceClient& getInstance();
 

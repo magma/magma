@@ -21,16 +21,17 @@
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/EmmInformation.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"  // decode_time_zone, ...
 
-int decode_emm_information(
-    emm_information_msg* emm_information, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+int decode_emm_information(emm_information_msg* emm_information,
+                           uint8_t* buffer, uint32_t len) {
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
   // expected for the message.
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, EMM_INFORMATION_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, EMM_INFORMATION_MINIMUM_LENGTH,
+                                       len);
 
   /*
    * Decoding mandatory fields
@@ -78,10 +79,10 @@ int decode_emm_information(
         break;
 
       case EMM_INFORMATION_LOCAL_TIME_ZONE_IEI:
-        if ((decoded_result = decode_time_zone(
-                 &emm_information->localtimezone,
-                 EMM_INFORMATION_LOCAL_TIME_ZONE_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
+        if ((decoded_result =
+                 decode_time_zone(&emm_information->localtimezone,
+                                  EMM_INFORMATION_LOCAL_TIME_ZONE_IEI,
+                                  buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
         decoded += decoded_result;
@@ -131,24 +132,24 @@ int decode_emm_information(
   return decoded;
 }
 
-int encode_emm_information(
-    emm_information_msg* emm_information, uint8_t* buffer, uint32_t len) {
-  int encoded       = 0;
+int encode_emm_information(emm_information_msg* emm_information,
+                           uint8_t* buffer, uint32_t len) {
+  int encoded = 0;
   int encode_result = 0;
 
   /*
    * Checking IEI and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, EMM_INFORMATION_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, EMM_INFORMATION_MINIMUM_LENGTH,
+                                       len);
 
   if ((emm_information->presencemask &
        EMM_INFORMATION_FULL_NAME_FOR_NETWORK_PRESENT) ==
       EMM_INFORMATION_FULL_NAME_FOR_NETWORK_PRESENT) {
-    if ((encode_result = encode_network_name_ie(
-             &emm_information->fullnamefornetwork,
-             EMM_INFORMATION_FULL_NAME_FOR_NETWORK_IEI, buffer + encoded,
-             len - encoded)) < 0)
+    if ((encode_result =
+             encode_network_name_ie(&emm_information->fullnamefornetwork,
+                                    EMM_INFORMATION_FULL_NAME_FOR_NETWORK_IEI,
+                                    buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else
@@ -158,10 +159,10 @@ int encode_emm_information(
   if ((emm_information->presencemask &
        EMM_INFORMATION_SHORT_NAME_FOR_NETWORK_PRESENT) ==
       EMM_INFORMATION_SHORT_NAME_FOR_NETWORK_PRESENT) {
-    if ((encode_result = encode_network_name_ie(
-             &emm_information->shortnamefornetwork,
-             EMM_INFORMATION_SHORT_NAME_FOR_NETWORK_IEI, buffer + encoded,
-             len - encoded)) < 0)
+    if ((encode_result =
+             encode_network_name_ie(&emm_information->shortnamefornetwork,
+                                    EMM_INFORMATION_SHORT_NAME_FOR_NETWORK_IEI,
+                                    buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else
@@ -171,10 +172,9 @@ int encode_emm_information(
   if ((emm_information->presencemask &
        EMM_INFORMATION_LOCAL_TIME_ZONE_PRESENT) ==
       EMM_INFORMATION_LOCAL_TIME_ZONE_PRESENT) {
-    if ((encode_result = encode_time_zone(
-             &emm_information->localtimezone,
-             EMM_INFORMATION_LOCAL_TIME_ZONE_IEI, buffer + encoded,
-             len - encoded)) < 0)
+    if ((encode_result = encode_time_zone(&emm_information->localtimezone,
+                                          EMM_INFORMATION_LOCAL_TIME_ZONE_IEI,
+                                          buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else

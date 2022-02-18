@@ -26,7 +26,7 @@
 int decode_tracking_area_update_accept(
     tracking_area_update_accept_msg* tracking_area_update_accept,
     uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
@@ -147,10 +147,10 @@ int decode_tracking_area_update_accept(
         break;
 
       case TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_IEI:
-        if ((decoded_result = decode_emm_cause(
-                 &tracking_area_update_accept->emmcause,
-                 TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
+        if ((decoded_result =
+                 decode_emm_cause(&tracking_area_update_accept->emmcause,
+                                  TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_IEI,
+                                  buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
         decoded += decoded_result;
@@ -263,7 +263,7 @@ int decode_tracking_area_update_accept(
 int encode_tracking_area_update_accept(
     tracking_area_update_accept_msg* tracking_area_update_accept,
     uint8_t* buffer, uint32_t len) {
-  int encoded       = 0;
+  int encoded = 0;
   int encode_result = 0;
 
   /*
@@ -277,18 +277,18 @@ int encode_tracking_area_update_accept(
   //(&tracking_area_update_accept->epsupdateresult) & 0x0f) << 4) | 0x00;
   *(buffer + encoded) = (encode_u8_eps_update_result(
       &tracking_area_update_accept->epsupdateresult));
-  OAILOG_INFO(
-      LOG_MME_APP, "epsupdateresult in encode_tracking_area_update_accept %x\n",
-      *(buffer + encoded));
+  OAILOG_INFO(LOG_MME_APP,
+              "epsupdateresult in encode_tracking_area_update_accept %x\n",
+              *(buffer + encoded));
   encoded++;
 
   if ((tracking_area_update_accept->presencemask &
        TRACKING_AREA_UPDATE_ACCEPT_T3412_VALUE_PRESENT) ==
       TRACKING_AREA_UPDATE_ACCEPT_T3412_VALUE_PRESENT) {
-    if ((encode_result = encode_gprs_timer_ie(
-             &tracking_area_update_accept->t3412value,
-             TRACKING_AREA_UPDATE_ACCEPT_T3412_VALUE_IEI, buffer + encoded,
-             len - encoded)) < 0)
+    if ((encode_result =
+             encode_gprs_timer_ie(&tracking_area_update_accept->t3412value,
+                                  TRACKING_AREA_UPDATE_ACCEPT_T3412_VALUE_IEI,
+                                  buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else
@@ -298,10 +298,10 @@ int encode_tracking_area_update_accept(
   if ((tracking_area_update_accept->presencemask &
        TRACKING_AREA_UPDATE_ACCEPT_GUTI_PRESENT) ==
       TRACKING_AREA_UPDATE_ACCEPT_GUTI_PRESENT) {
-    if ((encode_result = encode_eps_mobile_identity(
-             &tracking_area_update_accept->guti,
-             TRACKING_AREA_UPDATE_ACCEPT_GUTI_IEI, buffer + encoded,
-             len - encoded)) < 0)
+    if ((encode_result =
+             encode_eps_mobile_identity(&tracking_area_update_accept->guti,
+                                        TRACKING_AREA_UPDATE_ACCEPT_GUTI_IEI,
+                                        buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else
@@ -363,10 +363,10 @@ int encode_tracking_area_update_accept(
   if ((tracking_area_update_accept->presencemask &
        TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_PRESENT) ==
       TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_PRESENT) {
-    if ((encode_result = encode_emm_cause(
-             &tracking_area_update_accept->emmcause,
-             TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_IEI, buffer + encoded,
-             len - encoded)) < 0)
+    if ((encode_result =
+             encode_emm_cause(&tracking_area_update_accept->emmcause,
+                              TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_IEI,
+                              buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else
@@ -376,10 +376,10 @@ int encode_tracking_area_update_accept(
   if ((tracking_area_update_accept->presencemask &
        TRACKING_AREA_UPDATE_ACCEPT_T3402_VALUE_PRESENT) ==
       TRACKING_AREA_UPDATE_ACCEPT_T3402_VALUE_PRESENT) {
-    if ((encode_result = encode_gprs_timer_ie(
-             &tracking_area_update_accept->t3402value,
-             TRACKING_AREA_UPDATE_ACCEPT_T3402_VALUE_IEI, buffer + encoded,
-             len - encoded)) < 0)
+    if ((encode_result =
+             encode_gprs_timer_ie(&tracking_area_update_accept->t3402value,
+                                  TRACKING_AREA_UPDATE_ACCEPT_T3402_VALUE_IEI,
+                                  buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else
@@ -389,10 +389,10 @@ int encode_tracking_area_update_accept(
   if ((tracking_area_update_accept->presencemask &
        TRACKING_AREA_UPDATE_ACCEPT_T3423_VALUE_PRESENT) ==
       TRACKING_AREA_UPDATE_ACCEPT_T3423_VALUE_PRESENT) {
-    if ((encode_result = encode_gprs_timer_ie(
-             &tracking_area_update_accept->t3423value,
-             TRACKING_AREA_UPDATE_ACCEPT_T3423_VALUE_IEI, buffer + encoded,
-             len - encoded)) < 0)
+    if ((encode_result =
+             encode_gprs_timer_ie(&tracking_area_update_accept->t3423value,
+                                  TRACKING_AREA_UPDATE_ACCEPT_T3423_VALUE_IEI,
+                                  buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else

@@ -23,7 +23,6 @@ on:  # yamllint disable-line rule:truthy
 env:
   REGISTRY: ghcr.io
   IMAGE_STREAM: ${{ github.repository }}/devcontainer
-  IMAGE_TAGS: type=sha
   DOCKERFILE: .devcontainer/Dockerfile
 
 jobs:

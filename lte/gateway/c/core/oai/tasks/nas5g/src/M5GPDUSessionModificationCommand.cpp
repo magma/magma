@@ -20,8 +20,8 @@ PDUSessionModificationCommand::~PDUSessionModificationCommand() {}
 int PDUSessionModificationCommand::EncodePDUSessionModificationCommand(
     PDUSessionModificationCommand* pdu_sess_mod_comd, uint8_t* buffer,
     uint32_t len) {
-  uint32_t encoded              = 0;
-  uint32_t encoded_result       = 0;
+  uint32_t encoded = 0;
+  uint32_t encoded_result = 0;
   uint16_t qos_flow_des_encoded = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, PDU_SESSION_MODIFICATION_COMMAND_MIN_LEN, len);
@@ -113,7 +113,7 @@ int PDUSessionModificationCommand::EncodePDUSessionModificationCommand(
 int PDUSessionModificationCommand::DecodePDUSessionModificationCommand(
     PDUSessionModificationCommand* pdu_sess_mod_comd, uint8_t* buffer,
     uint32_t len) {
-  uint32_t decoded        = 0;
+  uint32_t decoded = 0;
   uint32_t decoded_result = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
@@ -200,7 +200,8 @@ int PDUSessionModificationCommand::DecodePDUSessionModificationCommand(
           decoded += decoded_result;
         }
       } break;
-      default: {}
+      default: {
+      }
     }
   }
   return decoded;

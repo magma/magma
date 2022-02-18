@@ -27,7 +27,7 @@ int decode_bearer_resource_modification_request(
     bearer_resource_modification_request_msg*
         bearer_resource_modification_request,
     uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
@@ -123,7 +123,7 @@ int encode_bearer_resource_modification_request(
     bearer_resource_modification_request_msg*
         bearer_resource_modification_request,
     uint8_t* buffer, uint32_t len) {
-  int encoded       = 0;
+  int encoded = 0;
   int encode_result = 0;
 
   /*

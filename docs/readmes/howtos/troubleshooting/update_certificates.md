@@ -69,7 +69,7 @@ hide_title: true
 
     ```bash
     terraform taint module.orc8r-app.null_resource.orc8r_seed_secrets
-    terraform apply --target=module.orc8rapp.null_resource.orc8r_seed_secrets
+    terraform apply --target=module.orc8r-app.null_resource.orc8r_seed_secrets
     terraform apply
     ```
 

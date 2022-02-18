@@ -20,16 +20,16 @@ ABBAMsg::ABBAMsg(){};
 ABBAMsg::~ABBAMsg(){};
 
 // Decode ABBA Message IE
-int ABBAMsg::DecodeABBAMsg(
-    ABBAMsg* abba, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int ABBAMsg::DecodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer,
+                           uint32_t len) {
   uint8_t decoded = 0;
   /*** Not Implemented, Will be supported POST MVC ***/
   return (decoded);
 };
 
 // Encode ABBA Message IE
-int ABBAMsg::EncodeABBAMsg(
-    ABBAMsg* abba, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int ABBAMsg::EncodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer,
+                           uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
 
@@ -37,7 +37,7 @@ int ABBAMsg::EncodeABBAMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, ABBA_MIN_LEN, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char) iei, abba->iei);
+    CHECK_IEI_ENCODER((unsigned char)iei, abba->iei);
     *buffer = iei;
     MLOG(MDEBUG) << "In EncodeABBAMsg: iei" << std::hex << int(*buffer);
     encoded++;

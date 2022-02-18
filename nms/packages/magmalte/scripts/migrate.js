@@ -28,4 +28,4 @@ const {runMigrations} = require('./runMigrations');
 
 runMigrations()
   .then(_ => console.log('Ran migrations successfully'))
-  .catch(_ => console.error('Failed to run migrations'));
+  .catch(err => console.error('Failed to run migrations', err));

@@ -16,7 +16,8 @@ MAGMA_MODULES := \
 	$(MAGMA_ROOT)/lte \
 	$(MAGMA_ROOT)/feg \
 	$(MAGMA_ROOT)/cwf \
-	$(MAGMA_ROOT)/fbinternal
+	$(MAGMA_ROOT)/fbinternal \
+	$(MAGMA_ROOT)/dp
 $(warning MAGMA_MODULES is undefined, using default: $(MAGMA_MODULES))
 endif
 
@@ -151,7 +152,7 @@ tools_lint:
 
 swagger: swagger_directories $(SWAGGER_LIST)
 	cp $(MAGMA_ROOT)/orc8r/cloud/go/models/swagger-common.yml $(SWAGGER_V1_COMMON_DIR)/$(SWAGGER_COMMON)
-	combine_swagger --in=$(SWAGGER_V1_PARTIAL_SPECS_DIR) --common=$(SWAGGER_V1_COMMON_DIR)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
+	swaggergen --combine --in=$(SWAGGER_V1_PARTIAL_SPECS_DIR) --common=$(SWAGGER_V1_COMMON_DIR)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
 	swagger validate $(SWAGGER_V1_YML)
 
 swagger_directories:
