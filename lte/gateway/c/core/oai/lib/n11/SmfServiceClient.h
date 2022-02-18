@@ -40,7 +40,7 @@ SetSMSessionContext create_sm_pdu_session(
 class SmfServiceClient {
  public:
   virtual ~SmfServiceClient() {}
-  virtual bool set_smf_session(SetSMSessionContext& request)          = 0;
+  virtual bool set_smf_session(SetSMSessionContext& request) = 0;
   virtual bool set_smf_notification(SetSmNotificationContext& notify) = 0;
 };
 
