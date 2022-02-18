@@ -21,6 +21,7 @@ from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.mconfig_managers import load_service_mconfig_as_json
 from magma.enodebd.data_models.data_model import DataModel
 from magma.enodebd.data_models.data_model_parameters import ParameterName
+from magma.enodebd.data_models.transform_for_enb import unicast_mulit_switch
 from magma.enodebd.device_config.enodeb_config_postprocessor import (
     EnodebConfigurationPostProcessor,
 )
@@ -48,6 +49,15 @@ SingleEnodebConfig = namedtuple(
         'bandwidth_mhz', 'cell_id',
         'allow_enodeb_transmit',
         'mme_address', 'mme_port',
+        'mme_pool_1', 'mme_pool_2',
+        'management_server_host', 'management_server_port',
+        'management_server_ssl_enable',
+        'sync_1588_switch',
+        'sync_1588_domain', 'sync_1588_msg_interval',
+        'sync_1588_delay_rq_msg_interval',
+        'sync_1588_holdover', 'sync_1588_asymmetry',
+        'sync_1588_unicast_enable',
+        'sync_1588_unicast_serverIp',
     ],
 )
 
@@ -101,6 +111,17 @@ def build_desired_config(
     _set_plmnids_tac(cfg_desired, enb_config.plmnid_list, enb_config.tac)
     _set_bandwidth(cfg_desired, data_model, enb_config.bandwidth_mhz)
     _set_cell_id(cfg_desired, enb_config.cell_id)
+    if enb_config.mme_pool_1 is not None:
+        _set_mme_pool_1(cfg_desired, data_model, enb_config.mme_pool_1)
+    if enb_config.mme_pool_2 is not None:
+        _set_mme_pool_2(cfg_desired, data_model, enb_config.mme_pool_2)
+    if enb_config.management_server_host is not None and enb_config.management_server_port is not None:
+        _set_management_server_url(cfg_desired, enb_config.management_server_host, enb_config.management_server_port, enb_config.management_server_ssl_enable)
+    _set_sync_1588(
+        cfg_desired, enb_config.sync_1588_switch, enb_config.sync_1588_domain, enb_config.sync_1588_unicast_enable,
+        enb_config.sync_1588_msg_interval, enb_config.sync_1588_delay_rq_msg_interval,
+        enb_config.sync_1588_holdover, enb_config.sync_1588_asymmetry, enb_config.sync_1588_unicast_serverIp,
+    )
     _set_perf_mgmt(
         cfg_desired,
         get_ip_from_if(service_config['tr069']['interface']),
@@ -291,6 +312,110 @@ def _set_cell_id(
         'Cell Identity should be from 0 - (2^28 - 1)',
     )
     cfg.set_parameter(ParameterName.CELL_ID, cell_id)
+
+
+def _set_mme_pool_1(
+    cfg: EnodebConfiguration,
+    data_model: DataModel,
+    mme_pool_1: Any,
+) -> None:
+    """
+    Set the following parameters:
+    - mme_pool_1
+    """
+    _set_mme_pool_enable(cfg, data_model, True)
+    _set_param_if_present(cfg, data_model, ParameterName.MME_POOL_1, mme_pool_1)
+
+
+def _set_mme_pool_2(
+    cfg: EnodebConfiguration,
+    data_model: DataModel,
+    mme_pool_2: Any,
+) -> None:
+    """
+    Set the following parameters:
+    - mme_pool_1
+    """
+    _set_mme_pool_enable(cfg, data_model, True)
+    _set_param_if_present(cfg, data_model, ParameterName.MME_POOL_2, mme_pool_2)
+
+
+def _set_sync_1588(
+    cfg: EnodebConfiguration,
+    sync_1588_switch: bool,
+    sync_1588_domain_num: int,
+    sync_1588_unicast_multi_switch: bool,
+    sync_1588_msg_interval: int,
+    sync_1588_delay_rq_msg_interval: int,
+    sync_1588_holdover: int,
+    sync_1588_asymmetry: int,
+    sync_1588_unicast_serverIp=str,
+) -> None:
+    """
+        Set the following parameters:
+         - sync_1588_switch: bool,
+         - sync_1588_domain_num: int,
+         - sync_1588_unicast_multi_switch: bool,
+         - sync_1588_msg_interval: int,
+         - sync_1588_delay_rq_msg_interval: int,
+         - sync_1588_holdover
+         - sync_1588_asymmetry
+         - sync_1588_unicast_serverIp
+    """
+    if sync_1588_switch:
+        cfg.set_parameter(ParameterName.SYNC_1588_SWITCH, sync_1588_switch)
+        if sync_1588_domain_num is not None:
+            cfg.set_parameter(ParameterName.SYNC_1588_DOMAIN, sync_1588_domain_num)
+        if sync_1588_unicast_multi_switch is not None:
+            cfg.set_parameter(ParameterName.SYNC_1588_UNICAST_ENABLE, unicast_mulit_switch(sync_1588_unicast_multi_switch))
+        if sync_1588_msg_interval is not None:
+            cfg.set_parameter(ParameterName.SYNC_1588_SYNC_MSG_INTREVAL, sync_1588_msg_interval)
+        if sync_1588_delay_rq_msg_interval is not None:
+            cfg.set_parameter(ParameterName.SYNC_1588_DELAY_REQUEST_MSG_INTERVAL, sync_1588_delay_rq_msg_interval)
+        if sync_1588_holdover is not None:
+            cfg.set_parameter(ParameterName.SYNC_1588_HOLDOVER, sync_1588_holdover)
+        if sync_1588_asymmetry is not None:
+            cfg.set_parameter(ParameterName.SYNC_1588_ASYMMETRY, sync_1588_asymmetry)
+        if sync_1588_unicast_serverIp is not None and sync_1588_unicast_serverIp != '':
+            cfg.set_parameter(ParameterName.SYNC_1588_UNICAST_SERVERIP, sync_1588_unicast_serverIp)
+    else:
+        cfg.set_parameter(ParameterName.SYNC_1588_SWITCH, sync_1588_switch)
+
+
+def _set_management_server_url(
+    cfg: EnodebConfiguration,
+    management_server_host: str,
+    management_server_port: int,
+    management_server_ssl_enable: bool,
+) -> None:
+    """
+    Set the following parameters:
+     - management_server_host
+     - management_server_ssl_enable
+     - management_server_port
+    """
+
+    cfg.set_parameter(ParameterName.MANAGEMENT_SERVER_PORT, management_server_port)
+    if management_server_ssl_enable:
+        cfg.set_parameter(ParameterName.MANAGEMENT_SERVER_SSL_ENABLE, True)
+        cfg.set_parameter(
+            ParameterName.MANAGEMENT_SERVER,
+            'https://%s:%d/' % (management_server_host, management_server_port), )
+    else:
+        cfg.set_parameter(ParameterName.MANAGEMENT_SERVER_SSL_ENABLE, False)
+        cfg.set_parameter(ParameterName.MANAGEMENT_SERVER, 'http://%s:%d/' % (management_server_host, management_server_port))
+
+
+def _set_mme_pool_enable(
+    cfg: EnodebConfiguration,
+    data_model: DataModel,
+    mme_pool_enable: Any,
+) -> None:
+    """
+    Set the following parameters:
+    - mme_pool_enable
+    """
+    _set_param_if_present(cfg, data_model, ParameterName.MME_POOL_ENABLE, mme_pool_enable)
 
 
 def _set_tdd_subframe_config(
