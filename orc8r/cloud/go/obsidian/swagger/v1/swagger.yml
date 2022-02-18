@@ -7938,6 +7938,16 @@ definitions:
         example: 44590
         format: uint32
         type: integer
+      managementServer:
+        $ref: '#/definitions/managementServer'
+      mme_pool_1:
+        example: ""
+        format: ipv4
+        type: string
+      mme_pool_2:
+        example: ""
+        format: ipv4
+        type: string
       pci:
         example: 260
         exclusiveMinimum: true
@@ -7955,6 +7965,8 @@ definitions:
         format: uint32
         maximum: 6
         type: integer
+      sync_1588:
+        $ref: '#/definitions/sync_1588'
       tac:
         example: 1
         format: uint32
@@ -9373,6 +9385,20 @@ definitions:
     - autoupgrade_poll_interval
     - checkin_interval
     - checkin_timeout
+    type: object
+  managementServer:
+    description: ManagementServer Configuration for  eNodeb devices.
+    properties:
+      management_server_host:
+        example: baiomc.cloudapp.net
+        type: string
+      management_server_port:
+        example: 48080
+        format: uint32
+        type: integer
+      management_server_ssl_enable:
+        example: false
+        type: boolean
     type: object
   matcher:
     properties:
@@ -11657,6 +11683,40 @@ definitions:
         type: boolean
     type: object
     x-go-custom-tag: magma_alt_name:"SWX"
+  sync_1588:
+    description: sync_1588 Configuration for  eNodeb devices.
+    properties:
+      sync_1588_asymmetry:
+        example: 300
+        format: uint32
+        type: integer
+      sync_1588_delay_rq_msg_interval:
+        example: 60
+        format: int32
+        type: integer
+      sync_1588_domain:
+        example: 0
+        format: int32
+        type: integer
+      sync_1588_holdover:
+        example: 300
+        format: uint32
+        type: integer
+      sync_1588_msg_interval:
+        example: 60
+        format: int32
+        type: integer
+      sync_1588_switch:
+        example: false
+        type: boolean
+      sync_1588_unicast_enable:
+        example: true
+        type: boolean
+      sync_1588_unicast_serverIp:
+        example: 0.0.0.0
+        format: ipv4
+        type: string
+    type: object
   system_status:
     properties:
       cpu_idle:

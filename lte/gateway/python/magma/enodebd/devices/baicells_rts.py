@@ -17,6 +17,7 @@ from magma.common.service import MagmaService
 from magma.enodebd.data_models import transform_for_enb, transform_for_magma
 from magma.enodebd.data_models.data_model import DataModel, TrParam
 from magma.enodebd.data_models.data_model_parameters import (
+    BaicellsParameterName,
     ParameterName,
     TrParameterType,
 )
@@ -203,6 +204,10 @@ class BaicellsRTSTrDataModel(DataModel):
             FAPSERVICE_PATH
             + 'FAPControl.LTE.Gateway.X_BAICELLS_COM_MmePool.Enable', True, TrParameterType.BOOLEAN, False,
         ),
+        ParameterName.MME_POOL_1:
+            TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.X_BAICELLS_COM_MmePool.MmePool1List', True, TrParameterType.STRING, False),
+        ParameterName.MME_POOL_2:
+            TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.X_BAICELLS_COM_MmePool.MmePool2List', True, TrParameterType.STRING, False),
 
         # Management server parameters
         ParameterName.PERIODIC_INFORM_ENABLE:
@@ -220,6 +225,32 @@ class BaicellsRTSTrDataModel(DataModel):
         ParameterName.PERF_MGMT_UPLOAD_URL: TrParam(
             DEVICE_PATH + 'FAP.PerfMgmt.Config.1.URL', False, TrParameterType.STRING, False,
         ),
+
+        # Management server
+        BaicellsParameterName.MANAGEMENT_SERVER:
+            TrParam('Device.ManagementServer.URL', True, TrParameterType.STRING, False),
+        BaicellsParameterName.MANAGEMENT_SERVER_PORT:
+            TrParam('Device.ManagementServer.tr069_port', True, TrParameterType.INT, False),
+        BaicellsParameterName.MANAGEMENT_SERVER_SSL_ENABLE:
+            TrParam('Device.ManagementServer.ssl_enable', True, TrParameterType.BOOLEAN, False),
+
+        # SYNC
+        BaicellsParameterName.SYNC_1588_SWITCH:
+            TrParam('Device.DeviceInfo.X_BAICELLS_COM_1588SyncEnable', True, TrParameterType.BOOLEAN, False),
+        BaicellsParameterName.SYNC_1588_DOMAIN:
+            TrParam('Device.DeviceInfo.X_COM_1588Domain_Num', True, TrParameterType.INT, False),
+        BaicellsParameterName.SYNC_1588_SYNC_MSG_INTREVAL:
+            TrParam('Device.DeviceInfo.X_COM_1588Sync_Message_Interval', True, TrParameterType.INT, False),
+        BaicellsParameterName.SYNC_1588_DELAY_REQUEST_MSG_INTERVAL:
+            TrParam('Device.DeviceInfo.X_COM_1588Delay_Request_Message_Interval', True, TrParameterType.INT, False),
+        BaicellsParameterName.SYNC_1588_HOLDOVER:
+            TrParam('Device.DeviceInfo.X_COM_1588Holdover', True, TrParameterType.INT, False),
+        BaicellsParameterName.SYNC_1588_ASYMMETRY:
+            TrParam('Device.DeviceInfo.X_COM_1588Asymmetry_Value', True, TrParameterType.INT, False),
+        BaicellsParameterName.SYNC_1588_UNICAST_ENABLE:
+            TrParam('Device.DeviceInfo.X_COM_1588Unicast_Switch', True, TrParameterType.INT, False),
+        BaicellsParameterName.SYNC_1588_UNICAST_SERVERIP:
+            TrParam('Device.DeviceInfo.X_COM_1588Unicast_IpAddr', True, TrParameterType.STRING, False),
 
     }
 

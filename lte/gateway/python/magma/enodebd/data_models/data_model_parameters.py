@@ -45,8 +45,6 @@ class ParameterName():
     UL_BANDWIDTH = 'UL bandwidth'
     SUBFRAME_ASSIGNMENT = 'Subframe assignment'
     SPECIAL_SUBFRAME_PATTERN = 'Special subframe pattern'
-    POWER_SPECTRAL_DENSITY = 'Power Spectral Density'
-    RADIO_ENABLE = "Radio Enable"
 
     # Other LTE parameters
     ADMIN_STATE = 'Admin state'
@@ -63,6 +61,8 @@ class ParameterName():
     NUM_PLMNS = 'Num PLMNs'
     PLMN = 'PLMN'
     PLMN_LIST = 'PLMN List'
+    MME_POOL_1 = 'MME Pool 1'
+    MME_POOL_2 = 'MME Pool 2'
 
     # PLMN parameters
     PLMN_N = 'PLMN %d'
@@ -87,11 +87,6 @@ class ParameterName():
     PERF_MGMT_USER = 'Perf mgmt username'
     PERF_MGMT_PASSWORD = 'Perf mgmt password'
 
-    SAS_ENABLED = 'SAS enabled'
-    SAS_FCC_ID = 'SAS FCC ID'
-    SAS_USER_ID = 'SAS User ID'
-    SAS_RADIO_ENABLE = 'SAS Radio Enable'
-
 
 class TrParameterType():
     BOOLEAN = 'boolean'
@@ -99,3 +94,20 @@ class TrParameterType():
     INT = 'int'
     UNSIGNED_INT = 'unsignedInt'
     OBJECT = 'object'
+
+
+class BaicellsParameterName():
+    # management server
+    MANAGEMENT_SERVER = 'Management Server'
+    MANAGEMENT_SERVER_PORT = 'Management Server Port'
+    MANAGEMENT_SERVER_SSL_ENABLE = 'Management Server SSL Enable'
+
+    # Sync
+    SYNC_1588_SWITCH = '1588 sync switch'
+    SYNC_1588_DOMAIN = '1588 domain'
+    SYNC_1588_SYNC_MSG_INTREVAL = '1588 sync message interval'
+    SYNC_1588_DELAY_REQUEST_MSG_INTERVAL = '1588 delay request msg interval'
+    SYNC_1588_HOLDOVER = '1588 holdover'
+    SYNC_1588_ASYMMETRY = '1588 asymmetry'
+    SYNC_1588_UNICAST_ENABLE = '1588 unicast enable'
+    SYNC_1588_UNICAST_SERVERIP = '1588 unicast server IP'
