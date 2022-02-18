@@ -28,6 +28,7 @@ py_library(
 py_library(
     name = "rpc_utils",
     srcs = ["rpc_utils.py"],
+    deps = [":service"],
 )
 
 py_library(
