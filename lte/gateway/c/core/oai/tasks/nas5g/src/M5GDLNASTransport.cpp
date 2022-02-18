@@ -12,6 +12,13 @@
  */
 
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -29,7 +36,6 @@ int DLNASTransportMsg::DecodeDLNASTransportMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, DL_NAS_TRANSPORT_MINIMUM_LENGTH,
                                        len);
 
-  MLOG(MDEBUG) << "DecodeDLNASTransportMsg : \n";
   if ((decoded_result =
            dl_nas_transport->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
@@ -119,13 +125,13 @@ int DLNASTransportMsg::DecodeDLNASTransportMsg(
         break;
       }
       default:
-        MLOG(MDEBUG) << "ERROR: Unable to decode Optional Parameter \n";
+        OAILOG_ERROR(LOG_NAS5G, "Unable to decode Optional Parameter");
         decoded_result = -1;
         break;
     }
 
     if (decoded_result < 0) {
-      MLOG(MDEBUG) << "ERROR: decode DLNASTransportMsg failed";
+      OAILOG_ERROR(LOG_NAS5G, "DLNASTransport Message Decoding FAILED");
       return decoded_result;
     }
   }
@@ -137,7 +143,6 @@ int DLNASTransportMsg::EncodeDLNASTransportMsg(
     DLNASTransportMsg* dl_nas_transport, uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
-  MLOG(MDEBUG) << "EncodeDLNASTransportMsg:";
   int encoded_result = 0;
 
   // Check if we got a NDLL pointer and if buffer length is >= minimum length

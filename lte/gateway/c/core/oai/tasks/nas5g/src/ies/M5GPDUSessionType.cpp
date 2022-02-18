@@ -13,6 +13,13 @@
 #include <sstream>
 #include <cstdint>
 #include <cstring>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionType.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -29,14 +36,10 @@ int PDUSessionTypeMsg::DecodePDUSessionTypeMsg(
   // Store the IEI Information
   if (iei > 0) {
     pdu_session_type->iei = (*buffer & 0xf0) >> 4;
-    MLOG(MDEBUG) << "In DecodePDUSessionTypeMsg: iei" << std::hex
-                 << int(pdu_session_type->iei) << std::endl;
     decoded++;
   }
 
   pdu_session_type->type_val = (*buffer & 0x07);
-  MLOG(MDEBUG) << "DecodePDUSessionTypeMsg: type_val = " << std::hex
-               << int(pdu_session_type->type_val) << std::endl;
 
   return (decoded);
 };
@@ -48,19 +51,13 @@ int PDUSessionTypeMsg::EncodePDUSessionTypeMsg(
   int encoded = 0;
 
   // CHECKING IEI
-  MLOG(MDEBUG) << "In EncodePDUSessionTypeMsg: pdu_session_type"
-               << pdu_session_type->type_val << std::endl;
   if (iei > 0) {
     *buffer = (pdu_session_type->iei & 0x0f) << 4;
     CHECK_IEI_ENCODER((uint8_t)iei,
                       (uint8_t)((pdu_session_type->iei & 0x0f) << 4));
-    MLOG(MDEBUG) << "In EncodePDUSessionTypeMsg: iei" << std::hex
-                 << int(*buffer) << std::endl;
   }
 
   *buffer = 0x00 | (*buffer & 0xf0) | (pdu_session_type->type_val & 0x07);
-  MLOG(MDEBUG) << "EncodePDUSessionTypeMsg: type_val = " << std::hex
-               << int(*(buffer)) << std::endl;
   encoded++;
 
   return (encoded);
