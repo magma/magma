@@ -51,11 +51,43 @@
 #define COUNT_OF(x) \
   ((sizeof(x) / sizeof(0 [x])) / ((size_t)(!(sizeof(x) % sizeof(0 [x])))))
 
-#define PARENT_STRUCT(cOnTaiNeD, TyPe, MeMBeR)                    \
-  ({                                                              \
-    const typeof(((TyPe*)0)->MeMBeR)* __MemBeR_ptr = (cOnTaiNeD); \
-    (TyPe*)((char*)__MemBeR_ptr - OFFSET_OF(TyPe, MeMBeR));       \
-  })
+// Taken from FreeBSD contrib/ofed/opensm/include/complib/cl_types.h
+/****d* Component Library: Pointer Manipulation/PARENT_STRUCT
+ * NAME
+ *	PARENT_STRUCT
+ *
+ * DESCRIPTION
+ *	The PARENT_STRUCT macro returns a pointer to a structure
+ *	given a name and pointer to one of its members.
+ *
+ * SYNOPSIS
+ *	PARENT_TYPE*
+ *	PARENT_STRUCT(
+ *		IN void* const p_member,
+ *		IN PARENT_TYPE,
+ *		IN MEMBER_NAME );
+ *
+ * PARAMETERS
+ *	p_member
+ *		[in] Pointer to the MEMBER_NAME member of a PARENT_TYPE
+ *structure.
+ *
+ *	PARENT_TYPE
+ *		[in] Name of the structure containing the specified member.
+ *
+ *	MEMBER_NAME
+ *		[in] Name of the member whose address is passed in the p_member
+ *		parameter.
+ *
+ * RETURN VALUE
+ *	Pointer to a structure of type PARENT_TYPE whose MEMBER_NAME member is
+ *	located at p_member.
+ *
+ * SEE ALSO
+ *	offsetof
+ *********/
+#define PARENT_STRUCT(p_member, PARENT_TYPE, MEMBER_NAME) \
+  ((PARENT_TYPE*)((uint8_t*)(p_member)-offsetof(PARENT_TYPE, MEMBER_NAME)))
 
 #define OAI_MAX(a, b)       \
   ({                        \
