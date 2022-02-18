@@ -147,6 +147,11 @@ int amf_send_grpc_req_on_gnb_pdu_sess_mod_rsp(
   req_rat_specific->set_pdu_session_id((message->pdu_session_id));
   req_rat_specific->set_request_type(
       magma::lte::RequestType::EXISTING_PDU_SESSION);
+  TeidSet* gnode_endpoint = req_rat_specific->mutable_gnode_endpoint();
+  gnode_endpoint->set_teid(message->gnb_gtp_teid);
+  char ipv4_str[INET_ADDRSTRLEN] = {0};
+  inet_ntop(AF_INET, message->gnb_gtp_teid_ip_addr, ipv4_str, INET_ADDRSTRLEN);
+  req_rat_specific->mutable_gnode_endpoint()->set_end_ipv4_addr(ipv4_str);
 
   for (int i = 0; i < smf_ctx->qos_flow_list.maxNumOfQosFlows; i++) {
     QosPolicy* qosPolicy = req_rat_specific->add_qos_policy();
@@ -331,6 +336,20 @@ int amf_app_pdu_session_modification_complete(
   smf_ctx->pdu_session_version++;
 
   amf_smf_grpc_ies.pdu_session_id = message->pdu_session_id;
+
+  //gnb tunnel info
+  memset(
+        &amf_smf_grpc_ies.gnb_gtp_teid_ip_addr, '\0',
+        sizeof(amf_smf_grpc_ies.gnb_gtp_teid_ip_addr));
+  memset(
+        &amf_smf_grpc_ies.gnb_gtp_teid, '\0',
+        sizeof(amf_smf_grpc_ies.gnb_gtp_teid));
+  memcpy(
+        &amf_smf_grpc_ies.gnb_gtp_teid_ip_addr,
+        &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, 4);
+  memcpy(
+        &amf_smf_grpc_ies.gnb_gtp_teid, &smf_ctx->gtp_tunnel_id.gnb_gtp_teid,
+        4);
 
   IMSI64_TO_STRING(ue_mm_context->amf_context.imsi64, imsi, 15);
   // Prepare and send modify setup response message to SMF through gRPC
