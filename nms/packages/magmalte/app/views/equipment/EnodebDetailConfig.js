@@ -236,6 +236,109 @@ function EnodebManagedRanConfig({
     ],
     [
       {
+        category: 'MME Pool 1',
+        value: enbInfo.enb.enodeb_config?.managed_config?.mme_pool_1 ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'MME Pool 2',
+        value: enbInfo.enb.enodeb_config?.managed_config?.mme_pool_2 ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'Management Server SSL Enable',
+        value: enbInfo.enb.enodeb_config?.managed_config?.managementServer
+          ?.management_server_ssl_enable
+          ? 'Enabled'
+          : 'Disabled',
+      },
+    ],
+    [
+      {
+        category: 'Management Server Host',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.managementServer
+            ?.management_server_host ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'Management Server Port',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.managementServer
+            ?.management_server_port ?? '',
+      },
+    ],
+    [
+      {
+        category: '1588 SYNC Switch',
+        value: enbInfo.enb.enodeb_config?.managed_config?.sync_1588
+          ?.sync_1588_switch
+          ? 'Enabled'
+          : 'Disabled',
+      },
+    ],
+    [
+      {
+        category: '1588 SYNC domain num',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.sync_1588
+            ?.sync_1588_domain ?? '',
+      },
+    ],
+    [
+      {
+        category: '1588 SYNC asymmetry',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.sync_1588
+            ?.sync_1588_asymmetry ?? '',
+      },
+    ],
+    [
+      {
+        category: '1588 SYNC holdover',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.sync_1588
+            ?.sync_1588_holdover ?? '',
+      },
+    ],
+    [
+      {
+        category: '1588 SYNC Message Interval',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.sync_1588
+            ?.sync_1588_msg_interval ?? '',
+      },
+    ],
+    [
+      {
+        category: '1588 SYNC Delay request message Interval',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.sync_1588
+            ?.sync_1588_delay_rq_msg_interval ?? '',
+      },
+    ],
+    [
+      {
+        category: '1588 unicast switch',
+        value: enbInfo.enb.enodeb_config?.managed_config?.sync_1588
+          ?.sync_1588_unicast_enable
+          ? 'Unicast'
+          : 'Multicast',
+      },
+    ],
+    [
+      {
+        category: '1588 SYNC Unicast ServerIp',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.sync_1588
+            ?.sync_1588_unicast_serverIp ?? '',
+      },
+    ],
+    [
+      {
         category: 'Transmit',
         value: enbInfo.enb.enodeb_config?.managed_config?.transmit_enabled
           ? 'Enabled'
