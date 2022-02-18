@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {EditSubscriberProps} from './SubscriberAddDialog.js';
+import type {EditSubscriberProps} from './SubscriberEditDialog.js';
 
 import Accordion from '@material-ui/core/Accordion';
 import AccordionDetails from '@material-ui/core/AccordionDetails';

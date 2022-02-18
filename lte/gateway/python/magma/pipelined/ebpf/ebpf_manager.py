@@ -13,6 +13,7 @@ limitations under the License.
 
 import ctypes
 import logging
+import os
 import socket
 import struct
 import subprocess
@@ -31,11 +32,12 @@ from scapy.layers.inet6 import getmacbyip6
 from scapy.layers.l2 import getmacbyip
 
 LOG = logging.getLogger("pipelined.ebpf")
-# LOG.setLevel(logging.DEBUG)
 
 BASE_MAP_FS = "/sys/fs/bpf/"
+DEFAULT_BPF_HEADER_PATH = "/var/opt/magma/ebpf/"
 BPF_UL_FILE = "/var/opt/magma/ebpf/ebpf_ul_handler.c"
 BPF_DL_FILE = "/var/opt/magma/ebpf/ebpf_dl_handler.c"
+BPF_HEADER_FILE = "EbpfMap.h"
 UL_MAP_NAME = "ul_map"
 DL_MAP_NAME = "dl_map"
 DL_CFG_ARRAY_NAME = "cfg_array"
@@ -46,7 +48,6 @@ DL_CFG_ARRAY_NAME = "cfg_array"
 
 
 def get_ebpf_manager(config):
-
     if 'ebpf' not in config or not config['ebpf']['enabled']:
         LOG.info("eBPF manager: Not initilized")
         return None
@@ -59,7 +60,7 @@ def get_ebpf_manager(config):
         if gw.ip.version != IPAddress.IPV4:
             continue
         if gw.vlan in {"NO_VLAN", ""}:
-            bpf_man = ebpf_manager(config['nat_iface'], config['enodeb_iface'], gw.ip)
+            bpf_man = EbpfManager(config['nat_iface'], config['enodeb_iface'], gw.ip)
             # TODO: For Development purpose dettch and attach latest eBPF code.
             # Remove this for production deployment
             bpf_man.detach_ul_ebpf()
@@ -82,11 +83,11 @@ def get_ebpf_manager(config):
 """
 
 
-class ebpf_manager:
-    def __init__(self, sgi_if_name: str, s1_if_name: str, gw_ip: IPAddress, bpf_ul_file: str = BPF_UL_FILE, bpf_dl_file: str = BPF_DL_FILE):
+class EbpfManager:
+    def __init__(self, sgi_if_name: str, s1_if_name: str, gw_ip: IPAddress, bpf_ul_file: str = BPF_UL_FILE, bpf_dl_file: str = BPF_DL_FILE, bpf_header_path: str = DEFAULT_BPF_HEADER_PATH):
         self.enabled = True
-        self.b_ul = BPF(src_file=bpf_ul_file, cflags=[''])
-        self.b_dl = BPF(src_file=bpf_dl_file, cflags=[''])
+        self.b_ul = BPF(src_file=bpf_ul_file, cflags=['-I', bpf_header_path])
+        self.b_dl = BPF(src_file=bpf_dl_file, cflags=['-I', bpf_header_path])
         self.s1_fn = self.b_ul.load_func("gtpu_ingress_handler", BPF.SCHED_CLS)
         self.sgi_fn = self.b_dl.load_func("gtpu_egress_handler", BPF.SCHED_CLS)
         self.ul_map = self.b_ul.get_table(UL_MAP_NAME)
@@ -201,7 +202,7 @@ class ebpf_manager:
         )
 
         key = self.ul_map.Key(ip_addr)
-        val = self.ul_map.Leaf(mark, self.sgi_if_index, self.ul_src_mac, self.ul_gw_mac, 0)
+        val = self.ul_map.Leaf(mark, self.sgi_if_index, 0, self.ul_src_mac, self.ul_gw_mac)
         self.ul_map[key] = val
 
     def add_dl_entry(self, ue_ip: str, remote_ipv4: str, tunnel_id: int, imsi: str):
@@ -260,10 +261,11 @@ class ebpf_manager:
             egress_dev_name = self._get_if_name(egress_dev_index)
             dst_mac = self._unpack_mac_addr(v.mac_dst)
             src_mac = self._unpack_mac_addr(v.mac_src)
+            bytes = v.bytes
 
             print(
-                "UE: %s -> {mark: %d, dev: %s (%d), src_mac %s dst_mac %s" %
-                (ue_ip, mark, egress_dev_name, egress_dev_index, src_mac, dst_mac),
+                "UE: %s -> {mark: %d, dev: %s (%d), src_mac %s dst_mac %s, bytes %d}" %
+                (ue_ip, mark, egress_dev_name, egress_dev_index, src_mac, dst_mac, bytes),
             )
 
     def print_dl_map(self):
@@ -356,7 +358,7 @@ class ebpf_manager:
 # for debugging
 if __name__ == "__main__":
     gw_ip = IPAddress(version=IPAddress.IPV4, address=socket.inet_aton("10.0.2.2"))
-    bm = ebpf_manager("eth0", "eth0", gw_ip, bpf_ul_file=BPF_UL_FILE, bpf_dl_file=BPF_DL_FILE)
+    bm = EbpfManager("eth0", "eth0", gw_ip, bpf_ul_file=BPF_UL_FILE, bpf_dl_file=BPF_DL_FILE)
 
     bm.detach_ul_ebpf()
     bm.attach_ul_ebpf()

@@ -112,11 +112,11 @@ status_code_e s6a_pua_cb(struct msg** msg_pP, struct avp* paramavp_pP,
     } else {
       /*
        * Neither result-code nor experimental-result is present ->
-       * * * * totally incorrect behaviour here.
+       * * * * totally incorrect behavior here.
        */
       OAILOG_ERROR(LOG_S6A,
                    "Experimental-Result and Result-Code are absent: "
-                   "This is not a correct behaviour\n");
+                   "This is not a correct behavior\n");
       goto err;
     }
   }
@@ -145,7 +145,7 @@ status_code_e s6a_pua_cb(struct msg** msg_pP, struct avp* paramavp_pP,
   } else {
     /*
      * PUA-Flags is absent while the error code indicates DIAMETER_SUCCESS:
-     * * * * this is not a compliant behaviour...
+     * * * * this is not a compliant behavior...
      * * * * TODO: handle this case.
      */
     OAILOG_ERROR(LOG_S6A,

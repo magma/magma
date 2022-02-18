@@ -81,6 +81,31 @@ definitions:
       - serial_number
       - user_id
       - capabilities
+      - is_active
+      - id
+      - state
+  mutable_cbsd:
+    type: object
+    properties:
+      capabilities:
+        $ref: '#/definitions/capabilities'
+      fcc_id:
+        example: some_fcc_id
+        minLength: 1
+        type: string
+      serial_number:
+        example: some_serial_number
+        minLength: 1
+        type: string
+      user_id:
+        example: some_user_id
+        minLength: 1
+        type: string
+    required:
+      - fcc_id
+      - serial_number
+      - user_id
+      - capabilities
   grant:
     properties:
       bandwidth_mhz:

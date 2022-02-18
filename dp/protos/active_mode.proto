@@ -23,12 +23,6 @@ service ActiveModeController {
 
 message GetStateRequest {}
 
-message DeleteCbsdRequest {
-  string serial_number = 1;
-}
-
-message DeleteCbsdResponse {}
-
 message State {
   repeated ActiveModeConfig active_mode_configs = 1;
 }
@@ -51,17 +45,10 @@ message Cbsd {
   CbsdState state = 5;
   repeated Grant grants = 6;
   repeated Channel channels = 7;
-  repeated string pending_requests = 8;
+  repeated Request pending_requests = 8;
   int64 last_seen_timestamp = 9;
   EirpCapabilities eirp_capabilities = 10;
   bool is_deleted = 11;
-}
-
-message EirpCapabilities {
-  float min_power = 1;
-  float max_power = 2;
-  float antenna_gain = 3;
-  int32 number_of_ports = 4;
 }
 
 message Grant {
@@ -87,3 +74,30 @@ message FrequencyRange {
   int64 low = 1;
   int64 high = 2;
 }
+
+message Request {
+  RequestsType type = 1;
+  string payload = 2;
+}
+
+enum RequestsType {
+  RegistrationRequest = 0;
+  SpectrumInquiryRequest = 1;
+  GrantRequest = 2;
+  HeartbeatRequest = 3;
+  RelinquishmentRequest = 4;
+  DeregistrationRequest = 5;
+}
+
+message EirpCapabilities {
+  float min_power = 1;
+  float max_power = 2;
+  float antenna_gain = 3;
+  int32 number_of_ports = 4;
+}
+
+message DeleteCbsdRequest {
+  string serial_number = 1;
+}
+
+message DeleteCbsdResponse {}

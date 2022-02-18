@@ -262,11 +262,11 @@ status_code_e s6a_aia_cb(struct msg** msg, struct avp* paramavp,
     } else {
       /*
        * Neither result-code nor experimental-result is present ->
-       * * * * totally incorrect behaviour here.
+       * * * * totally incorrect behavior here.
        */
       OAILOG_ERROR(LOG_S6A,
                    "Experimental-Result and Result-Code are absent: "
-                   "This is not a correct behaviour\n");
+                   "This is not a correct behavior\n");
       goto err;
     }
   }

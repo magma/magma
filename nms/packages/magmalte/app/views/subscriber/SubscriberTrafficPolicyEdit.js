@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {EditSubscriberProps} from './SubscriberAddDialog.js';
+import type {EditSubscriberProps} from './SubscriberEditDialog.js';
 
 import ApnContext from '../../components/context/ApnContext';
 import Checkbox from '@material-ui/core/Checkbox';

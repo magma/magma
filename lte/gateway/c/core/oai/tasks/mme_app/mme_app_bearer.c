@@ -1712,10 +1712,23 @@ void mme_app_handle_initial_context_setup_rsp(
 }
 
 //------------------------------------------------------------------------------
+void mme_app_update_stats_for_all_bearers(struct ue_mm_context_s* ue_context_p,
+                                          pdn_context_t* pdn_contexts) {
+  for (uint8_t bidx = 0; bidx < BEARERS_PER_UE; bidx++) {
+    if (ue_context_p->bearer_contexts[pdn_contexts->bearer_contexts[bidx]]) {
+      // Updating statistics for all the active bearers
+      update_mme_app_stats_s1u_bearer_sub();
+    }
+  }
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+//------------------------------------------------------------------------------
 void mme_app_handle_release_access_bearers_resp(
     mme_app_desc_t* mme_app_desc_p,
     const itti_s11_release_access_bearers_response_t* const
-        rel_access_bearers_rsp_pP) {
+        rel_access_bearers_rsp_pP,
+    task_id_t originTaskId) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   struct ue_mm_context_s* ue_context_p = NULL;
 
@@ -1730,16 +1743,27 @@ void mme_app_handle_release_access_bearers_resp(
   }
 
   ue_context_p->nb_rabs--;
-  /* Wait for all the RAB responses, in case RAB req was sent to both
-   * spgw and s8 tasks
-   */
+  if (originTaskId == TASK_SPGW) {
+    for (uint8_t itr = 0; itr < MAX_APN_PER_UE; itr++) {
+      if (ue_context_p->pdn_contexts[itr] &&
+          (!ue_context_p->pdn_contexts[itr]->route_s11_messages_to_s8_task)) {
+        mme_app_update_stats_for_all_bearers(ue_context_p,
+                                             ue_context_p->pdn_contexts[itr]);
+      }
+    }
+  } else if (originTaskId == TASK_SGW_S8) {
+    for (uint8_t itr = 0; itr < MAX_APN_PER_UE; itr++) {
+      if (ue_context_p->pdn_contexts[itr] &&
+          (ue_context_p->pdn_contexts[itr]->route_s11_messages_to_s8_task)) {
+        mme_app_update_stats_for_all_bearers(ue_context_p,
+                                             ue_context_p->pdn_contexts[itr]);
+      }
+    }
+  }
+
+  // Send UE Context Release Command after receiving RAB rsps from both tasks
   if (ue_context_p->nb_rabs) {
     OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
-  // Updating statistics for all the active bearers
-  for (uint8_t itr = 0; itr < BEARERS_PER_UE; itr++) {
-    if (ue_context_p->bearer_contexts[itr])
-      update_mme_app_stats_s1u_bearer_sub();
   }
 
   // Send UE Context Release Command
@@ -2641,11 +2665,11 @@ status_code_e mme_app_handle_nas_extended_service_req(
     case MO_CS_FB:
       if (ue_context_p->sgs_context != NULL) {
         ue_context_p->sgs_context->csfb_service_type = CSFB_SERVICE_MO_CALL;
-        /* If call_cancelled is set to TRUE when MO call is triggered.
-         * Set call_cancelled to false
+        /* If call_canceled is set to TRUE when MO call is triggered.
+         * Set call_canceled to false
          */
-        if (ue_context_p->sgs_context->call_cancelled) {
-          ue_context_p->sgs_context->call_cancelled = false;
+        if (ue_context_p->sgs_context->call_canceled) {
+          ue_context_p->sgs_context->call_canceled = false;
         }
         mme_app_itti_ue_context_mod_for_csfb(ue_context_p);
       } else {
@@ -2662,12 +2686,12 @@ status_code_e mme_app_handle_nas_extended_service_req(
     case MT_CS_FB:
       if (csfb_response == CSFB_REJECTED_BY_UE) {
         if (ue_context_p->sgs_context) {
-          /* If call_cancelled is set to TRUE and
+          /* If call_canceled is set to TRUE and
            * receive EXT Service Request with csfb_response
-           * set to call_rejected. Set call_cancelled to false
+           * set to call_rejected. Set call_canceled to false
            */
-          if (ue_context_p->sgs_context->call_cancelled) {
-            ue_context_p->sgs_context->call_cancelled = false;
+          if (ue_context_p->sgs_context->call_canceled) {
+            ue_context_p->sgs_context->call_canceled = false;
           }
           rc = mme_app_send_sgsap_paging_reject(
               ue_context_p, ue_context_p->emm_context._imsi64,
@@ -2697,10 +2721,10 @@ status_code_e mme_app_handle_nas_extended_service_req(
          * not when SERVICE ABORT request is received from MSC/VLR
          */
         ue_context_p->sgs_context->mt_call_in_progress = true;
-        /* If call_cancelled is set, send Service Reject to UE as MSC/VLR
+        /* If call_canceled is set, send Service Reject to UE as MSC/VLR
          * has triggered SGSAP SERVICE ABORT procedure
          */
-        if (ue_context_p->sgs_context->call_cancelled) {
+        if (ue_context_p->sgs_context->call_canceled) {
           /* If UE's ECM state is IDLE send
            * service_reject in Establish cnf else send in DL NAS Transport
            */
@@ -2726,8 +2750,8 @@ status_code_e mme_app_handle_nas_extended_service_req(
                 ue_id, EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE,
                 UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED);
           }
-          // Reset call_cancelled flag
-          ue_context_p->sgs_context->call_cancelled = false;
+          // Reset call_canceled flag
+          ue_context_p->sgs_context->call_canceled = false;
           OAILOG_WARNING_UE(
               LOG_MME_APP, ue_context_p->emm_context._imsi64,
               "Sending Service Reject to NAS module as MSC has triggered SGS "

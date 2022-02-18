@@ -92,7 +92,7 @@ _pytest_runner = rule(
     },
 )
 
-def pytest_test(name, srcs, deps = [], args = [], data = [], python_version = None, **kwargs):
+def pytest_test(name, srcs, deps = [], args = [], data = [], imports = [], python_version = None, **kwargs):
     runner_target = "%s-runner.py" % name
 
     _pytest_runner(
@@ -112,6 +112,6 @@ def pytest_test(name, srcs, deps = [], args = [], data = [], python_version = No
         deps = deps + PYTEST_DEPS + ["//bazel/python_utils:coverage_decorator"],
         main = runner_target,
         legacy_create_init = False,
-        imports = ["."],
+        imports = imports + ["."],
         **kwargs
     )

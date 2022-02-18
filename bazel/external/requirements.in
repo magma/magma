@@ -30,6 +30,7 @@ h2>=3,<4
 #  priority==1.3.0 is requirement of aioh2 (loaded via bazel)
 priority==1.3.0
 requests
+pycryptodome
 
 # bazelbase container requirements
 hiredis

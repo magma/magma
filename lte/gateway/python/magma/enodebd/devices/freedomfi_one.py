@@ -543,7 +543,7 @@ class FreedomFiOneHandler(BasicEnodebAcsStateMachine):
             ),
             'wait_post_reboot_inform': WaitInformMRebootState(
                 self,
-                when_done='wait_empty',
+                when_done='wait_inform',
                 when_timeout='wait_inform',
             ),
             # The states below are entered when an unexpected message type is
@@ -946,7 +946,7 @@ class FreedomFiOneConfigurationInitializer(EnodebConfigurationPostProcessor):
             **SASParameters.defaults,
         }
         for name, val in defaults.items():
-            desired_cfg.set_parameter(name, val)
+            desired_cfg.set_parameter(param_name=name, value=val)
 
     def _increment_param_version_key(self):
         """Bump up the parameter key version"""

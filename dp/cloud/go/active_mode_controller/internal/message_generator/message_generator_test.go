@@ -2,6 +2,7 @@ package message_generator_test
 
 import (
 	"context"
+	"sort"
 	"testing"
 	"time"
 
@@ -320,6 +321,23 @@ func TestGenerateMessages(t *testing.T) {
 				SerialNumber: "some_serial_number",
 			}},
 		},
+		{
+			name: "Should not delete unregistered cbsd when there are pending requests",
+			state: &active_mode.State{
+				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
+					DesiredState: active_mode.CbsdState_Registered,
+					Cbsd: &active_mode.Cbsd{
+						SerialNumber:      "some_serial_number",
+						State:             active_mode.CbsdState_Unregistered,
+						LastSeenTimestamp: now.Unix(),
+						IsDeleted:         true,
+						PendingRequests: []*active_mode.Request{{
+							Type: active_mode.RequestsType_RegistrationRequest,
+						}},
+					},
+				}},
+			},
+		},
 	}
 	for _, tt := range data {
 		t.Run(tt.name, func(t *testing.T) {
@@ -329,16 +347,28 @@ func TestGenerateMessages(t *testing.T) {
 			for _, msg := range msgs {
 				_ = msg.Send(context.Background(), p)
 			}
-			require.Len(t, p.requests, len(tt.expectedRequests))
-			for i := range tt.expectedRequests {
-				assert.JSONEq(t, tt.expectedRequests[i].Payload, p.requests[i].Payload)
-			}
+			thenRequestsAreEqual(t, tt.expectedRequests, p.requests)
 			require.Len(t, p.actions, len(tt.expectedActions))
 			for i := range tt.expectedActions {
 				assert.Equal(t, tt.expectedActions[i], p.actions[i])
 			}
 		})
 	}
+}
+
+func thenRequestsAreEqual(t *testing.T, expected, actual []*requests.RequestPayload) {
+	require.Len(t, actual, len(expected))
+	sortRequests(expected)
+	sortRequests(actual)
+	for i := range expected {
+		assert.JSONEq(t, expected[i].Payload, actual[i].Payload)
+	}
+}
+
+func sortRequests(requests []*requests.RequestPayload) {
+	sort.Slice(requests, func(i, j int) bool {
+		return requests[i].Payload < requests[j].Payload
+	})
 }
 
 func getSpectrumInquiryRequest() []*requests.RequestPayload {

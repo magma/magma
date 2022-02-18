@@ -8,6 +8,7 @@ from dp.protos.active_mode_pb2 import (
     DeleteCbsdRequest,
     GetStateRequest,
     Granted,
+    GrantRequest,
     Registered,
     State,
     Unregistered,
@@ -22,10 +23,16 @@ from magma.db_service.models import (
     DBCbsdState,
     DBGrantState,
     DBRequestState,
+    DBRequestType,
 )
 from magma.db_service.session_manager import SessionManager
 from magma.db_service.tests.local_db_test_case import LocalDBTestCase
-from magma.mappings.types import CbsdStates, GrantStates, RequestStates
+from magma.mappings.types import (
+    CbsdStates,
+    GrantStates,
+    RequestStates,
+    RequestTypes,
+)
 from magma.radio_controller.services.active_mode_controller.service import (
     ActiveModeControllerService,
 )
@@ -54,6 +61,9 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
         request_states = {
             x.name: x.id for x in self.session.query(DBRequestState).all()
         }
+        request_types = {
+            x.name: x.id for x in self.session.query(DBRequestType).all()
+        }
 
         self.unregistered = cbsd_states[CbsdStates.UNREGISTERED.value]
         self.registered = cbsd_states[CbsdStates.REGISTERED.value]
@@ -64,6 +74,8 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
 
         self.pending = request_states[RequestStates.PENDING.value]
         self.processed = request_states[RequestStates.PROCESSED.value]
+
+        self.grant = request_types[RequestTypes.GRANT.value]
 
     def _prepare_base_cbsd(self) -> DBCbsdBuilder:
         return DBCbsdBuilder(). \
@@ -215,14 +227,14 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
 
     def test_get_state_with_requests(self):
         cbsd = self._prepare_base_cbsd(). \
-            with_request(self.processed, '{"key1":"value1"}'). \
-            with_request(self.pending, '{"key2":"value2"}'). \
+            with_request(self.processed, self.grant, '{"key1":"value1"}'). \
+            with_request(self.pending, self.grant, '{"key2":"value2"}'). \
             build()
         self.session.add(cbsd)
         self.session.commit()
 
         config = self._prepare_base_active_mode_config(). \
-            with_pending_request('{"key2":"value2"}'). \
+            with_pending_request(GrantRequest, '{"key2":"value2"}'). \
             build()
         expected = State(active_mode_configs=[config])
 

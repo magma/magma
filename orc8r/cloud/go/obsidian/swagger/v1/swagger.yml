@@ -7212,6 +7212,9 @@ definitions:
     - serial_number
     - user_id
     - capabilities
+    - is_active
+    - id
+    - state
     type: object
   cellular_gateway_pool:
     description: Highly available gateway pool in an LTE network
@@ -9490,6 +9493,28 @@ definitions:
         type: boolean
     required:
     - requested_end
+    type: object
+  mutable_cbsd:
+    properties:
+      capabilities:
+        $ref: '#/definitions/capabilities'
+      fcc_id:
+        example: some_fcc_id
+        minLength: 1
+        type: string
+      serial_number:
+        example: some_serial_number
+        minLength: 1
+        type: string
+      user_id:
+        example: some_user_id
+        minLength: 1
+        type: string
+    required:
+    - fcc_id
+    - serial_number
+    - user_id
+    - capabilities
     type: object
   mutable_cellular_gateway_pool:
     description: Mutable version of the cellular gateway pool

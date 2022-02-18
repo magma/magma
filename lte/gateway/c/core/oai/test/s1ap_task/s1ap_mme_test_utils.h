@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "common_types.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 extern "C" {
 #include "lte/gateway/c/core/oai/include/s1ap_types.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"

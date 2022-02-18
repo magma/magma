@@ -118,8 +118,8 @@ status_code_e sgs_fsm_associated_service_abort_request(
    * call_accepted drop SERVICE_ABORT message and proceed wit MT call
    */
   if (!sgs_context->mt_call_in_progress) {
-    sgs_context->call_cancelled = true;
-    OAILOG_DEBUG(LOG_MME_APP, "Setting Call Cancelled flag to true\n");
+    sgs_context->call_canceled = true;
+    OAILOG_DEBUG(LOG_MME_APP, "Setting Call Canceled flag to true\n");
   } else {
     OAILOG_INFO(
         LOG_MME_APP,

@@ -17,8 +17,7 @@ import unittest
 from unittest.mock import Mock
 
 from magma.subscriberdb.protocols.diameter import message, server
-
-from .common import MockTransport
+from magma.subscriberdb.tests.protocols.diameter.common import MockTransport
 
 
 class ServerTests(unittest.TestCase):

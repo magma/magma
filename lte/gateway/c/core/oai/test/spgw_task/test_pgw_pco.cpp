@@ -47,13 +47,13 @@ namespace lte {
 #define DEFAULT_PCSCF_IPV6 "2a12:577:9941:f99c:0002:0001:c731:f114"
 
 #define DEFAULT_MTU 1400
-#define PCO_IDS_EXPECT_EQ(ipcp, dns, ipnas, dhcp, mtu)                     \
-  do {                                                                     \
-    EXPECT_EQ(pco_ids.pi_ipcp, ipcp);                                      \
-    EXPECT_EQ(pco_ids.ci_dns_server_ipv4_address_request, dns);            \
-    EXPECT_EQ(pco_ids.ci_ip_address_allocation_via_nas_signalling, ipnas); \
-    EXPECT_EQ(pco_ids.ci_ipv4_address_allocation_via_dhcpv4, dhcp);        \
-    EXPECT_EQ(pco_ids.ci_ipv4_link_mtu_request, mtu);                      \
+#define PCO_IDS_EXPECT_EQ(ipcp, dns, ipnas, dhcp, mtu)                    \
+  do {                                                                    \
+    EXPECT_EQ(pco_ids.pi_ipcp, ipcp);                                     \
+    EXPECT_EQ(pco_ids.ci_dns_server_ipv4_address_request, dns);           \
+    EXPECT_EQ(pco_ids.ci_ip_address_allocation_via_nas_signaling, ipnas); \
+    EXPECT_EQ(pco_ids.ci_ipv4_address_allocation_via_dhcpv4, dhcp);       \
+    EXPECT_EQ(pco_ids.ci_ipv4_link_mtu_request, mtu);                     \
   } while (0)
 
 class SPGWPcoTest : public ::testing::Test {
@@ -467,7 +467,7 @@ TEST_F(SPGWPcoTest, TestPcoRequestForcePush) {
   EXPECT_EQ(pco_resp.num_protocol_or_container_id, 2);
   // Check that both MTU and DNS PCOs are added in PCO response
   EXPECT_TRUE(are_force_push_pcos_valid(&pco_resp, true, true));
-  // check that only NAS signalling flag is set to true in pco_ids
+  // check that only NAS signaling flag is set to true in pco_ids
   PCO_IDS_EXPECT_EQ(0, 0, 1, 0, 0);
 
   clear_pco(&pco_resp);

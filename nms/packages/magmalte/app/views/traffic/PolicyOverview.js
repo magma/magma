@@ -20,6 +20,7 @@ import type {
 } from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
+import BaseNameEditDialog from './BaseNameEdit';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
@@ -110,6 +111,7 @@ const useStyles = makeStyles(theme => ({
     minWidth: 120,
   },
 }));
+
 type PolicyRowType = {
   policyID: string,
   numFlows: number,
@@ -119,6 +121,12 @@ type PolicyRowType = {
   rating: string,
   trackingType: string,
   networkWide: string,
+};
+
+type BaseNameRowType = {
+  baseNameID: string,
+  ruleNames: Array<string>,
+  numSubscribers: number,
 };
 
 type ProfileRowType = {
@@ -156,6 +164,7 @@ export default function PolicyOverview() {
   const [currTabIndex, setCurrTabIndex] = useState<number>(0);
   const policyTabList: Array<string> = [
     'Policies',
+    'Base Names',
     'Profiles',
     'Rating Groups',
   ];
@@ -171,8 +180,9 @@ export default function PolicyOverview() {
         })}
       </MagmaTabs>
       {currTabIndex === 0 && <PolicyTable />}
-      {currTabIndex === 1 && <ProfileTable />}
-      {currTabIndex === 2 && <RatingGroupTable />}
+      {currTabIndex === 1 && <BaseNameTable />}
+      {currTabIndex === 2 && <ProfileTable />}
+      {currTabIndex === 3 && <RatingGroupTable />}
     </div>
   );
 }
@@ -286,6 +296,113 @@ export function PolicyTableRaw(props: WithAlert) {
                   } catch (e) {
                     enqueueSnackbar(
                       'failed deleting policy ' + currRow.policyID,
+                      {
+                        variant: 'error',
+                      },
+                    );
+                  }
+                });
+            },
+          },
+        ]}
+        options={{
+          actionsColumnIndex: -1,
+          pageSizeOptions: [5, 10],
+        }}
+      />
+    </>
+  );
+}
+
+export function BaseNameTableRaw(props: WithAlert) {
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [open, setOpen] = React.useState(false);
+  const [currRow, setCurrRow] = useState<BaseNameRowType>({});
+  const ctx = useContext(PolicyContext);
+  const baseNames = ctx.baseNames;
+  const baseNameRows: Array<BaseNameRowType> = baseNames
+    ? Object.keys(baseNames).map((baseNameID: string) => {
+        const baseNameRecord = baseNames[baseNameID];
+        return {
+          baseNameID: baseNameID,
+          ruleNames: baseNameRecord.rule_names,
+          numSubscribers: baseNameRecord?.assigned_subscribers?.length || 0,
+        };
+      })
+    : [];
+
+  return (
+    <>
+      <BaseNameEditDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        baseNameId={currRow?.baseNameID}
+      />
+      <ActionTable
+        data={baseNameRows}
+        columns={[
+          {
+            title: 'Base Name ID',
+            field: 'baseNameID',
+            render: currRow => (
+              <Link
+                variant="body2"
+                component="button"
+                onClick={() => {
+                  setCurrRow(currRow);
+                  setOpen(true);
+                }}>
+                {currRow.baseNameID}
+              </Link>
+            ),
+          },
+          {
+            title: 'Rule Names',
+            field: 'ruleNames',
+            render: rowData => {
+              return (
+                <TextField
+                  value={rowData.ruleNames.join(', ')}
+                  InputProps={{
+                    disableUnderline: true,
+                    readOnly: true,
+                  }}
+                />
+              );
+            },
+          },
+          {
+            title: '# of Assigned Subscribers',
+            field: 'numSubscribers',
+            type: 'numeric',
+          },
+        ]}
+        handleCurrRow={(row: BaseNameRowType) => setCurrRow(row)}
+        menuItems={[
+          {
+            name: 'Edit',
+            handleFunc: () => {
+              setOpen(true);
+            },
+          },
+          {
+            name: 'Remove',
+            handleFunc: () => {
+              props
+                .confirm(
+                  `Are you sure you want to delete ${currRow.baseNameID}?`,
+                )
+                .then(async confirmed => {
+                  if (!confirmed) {
+                    return;
+                  }
+
+                  try {
+                    // trigger deletion
+                    ctx.setBaseNames(currRow.baseNameID);
+                  } catch (e) {
+                    enqueueSnackbar(
+                      'failed deleting base name ' + currRow.baseNameID,
                       {
                         variant: 'error',
                       },
@@ -563,5 +680,6 @@ export function PolicyJsonConfig() {
 }
 
 const PolicyTable = withAlert(PolicyTableRaw);
+const BaseNameTable = withAlert(BaseNameTableRaw);
 const ProfileTable = withAlert(ProfileTableRaw);
 const RatingGroupTable = withAlert(RatingGroupTableRaw);

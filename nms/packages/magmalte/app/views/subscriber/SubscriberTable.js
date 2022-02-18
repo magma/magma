@@ -373,7 +373,14 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
           <Text variant="subtitle2">Add Subscribers</Text>
         </MenuItem>
         <MenuItem>
-          <Text variant="subtitle2">Update Subscribers</Text>
+          <Text
+            variant="subtitle2"
+            onClick={() => {
+              setSubscriberAction('edit');
+              setOpen(true);
+            }}>
+            Update Subscribers
+          </Text>
         </MenuItem>
         <MenuItem
           onClick={() => {

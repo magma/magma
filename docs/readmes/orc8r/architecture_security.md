@@ -69,10 +69,21 @@ the `certifier` service, to an identity.
 
 At the *southbound interface*, only gateway identities are allowed to make requests. Unregistered gateways are blocked.
 
-At the the *northbound interface*, only operator identities are allowed to make requests. Operators must have ACLs collectively covering
-the requested REST resources.
+At the *northbound interface*, only operator identities are allowed to make requests.
 
-For more information, see the following servicer definitions
+Additionally, the northbound interface is protected by a token that is sent in the header with every request.
 
-- [`access.proto`](https://github.com/magma/magma/blob/master/orc8r/cloud/go/services/accessd/protos/access.proto) access control
-- [`certifier.proto`](https://github.com/magma/magma/blob/master/orc8r/cloud/go/services/certifier/protos/certifier.proto) certificate management
+The admin can create additional users and tokens with desired permissions using the REST API.
+
+To access REST API resources, perform the following steps:
+
+1. Log in with their username and password through the `/login` endpoint
+2. Copy the token from the response body
+3. Authenticate with their username and token (in lieu of the password field) through the Swagger Authorize tool on the top right corner
+   ![rest_api_auth_3](assets/orc8r/rest_api_auth_3.png)
+   ![rest_api_auth_4](assets/orc8r/rest_api_auth_4.png)
+
+For backwards compatibility, token security layer is hidden under the [`useToken`](https://github.com/magma/magma/blob/master/orc8r/cloud/configs/certifier.yml#L25-L25) in the certifier config.
+Currently, it is off by default.
+
+Check out [REST API Security](./dev_rest_api_auth.md) for more details.

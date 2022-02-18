@@ -1570,7 +1570,7 @@ static void encode_csfb_parameters_attach_accept(
     or if MME is configures to support SMS only*/
     if ((emm_ctx->additional_update_type == SMS_ONLY) ||
         (emm_ctx->csfbparams.additional_updt_res ==
-         ADDITONAL_UPDT_RES_SMS_ONLY)) {
+         ADDITIONAL_UPDT_RES_SMS_ONLY)) {
       establish_p->additional_update_result =
           &emm_ctx->csfbparams.additional_updt_res;
     }
