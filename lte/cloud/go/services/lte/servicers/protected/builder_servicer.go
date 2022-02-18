@@ -426,6 +426,11 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			enbMconfig.BandwidthMhz = int32(cellularEnbConfig.BandwidthMhz)
 			enbMconfig.Tac = int32(cellularEnbConfig.Tac)
 			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
+			enbMconfig.MmeIp = gwConfig.Epc.IPV4SgwS1uAddr
+			enbMconfig.MmePool_1 = string(cellularEnbConfig.MmePool1)
+			enbMconfig.MmePool_2 = string(cellularEnbConfig.MmePool2)
+			getManagementSeverConfig(enbMconfig, cellularEnbConfig)
+			getSysc1158Config(enbMconfig, cellularEnbConfig)
 
 			// override zero values with network/gateway configs
 			if enbMconfig.Earfcndl == 0 {
@@ -700,4 +705,33 @@ func (s *builderServicer) getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, g
 func (s *builderServicer) getRandomizedSyncInterval(gwKey string, nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
 	syncInterval := s.getSyncInterval(nwEpc, gwEpc)
 	return math.JitterUint32(syncInterval, gwKey, 0.2)
+}
+
+// Management Server
+func getManagementSeverConfig(enbMconfig *lte_mconfig.EnodebD_EnodebConfig, cellularEnbConfig *lte_models.EnodebConfiguration) {
+	cellManagementSeverConfig := cellularEnbConfig.ManagementServer
+	if cellManagementSeverConfig != nil {
+		enbManagementSeverConfig := &lte_mconfig.EnodebD_EnodebConfig_ManagementServerConfig{}
+		enbManagementSeverConfig.ManagementServerHost = cellManagementSeverConfig.ManagementServerHost
+		enbManagementSeverConfig.ManagementServerPort = cellManagementSeverConfig.ManagementServerPort
+		enbManagementSeverConfig.ManagementServerSslEnable = cellManagementSeverConfig.ManagementServerSslEnable
+		enbMconfig.ManagementServerConfig = enbManagementSeverConfig
+	}
+}
+
+// sysc 1158 config
+func getSysc1158Config(enbMconfig *lte_mconfig.EnodebD_EnodebConfig, cellularEnbConfig *lte_models.EnodebConfiguration) {
+	cellSyscConfig := cellularEnbConfig.Sync1588
+	if cellSyscConfig != nil {
+		enbSyscConfig := &lte_mconfig.EnodebD_EnodebConfig_Sync1588Config{}
+		enbSyscConfig.Sync_1588Switch = cellSyscConfig.Sync1588Switch
+		enbSyscConfig.Sync_1588Domain = cellSyscConfig.Sync1588Domain
+		enbSyscConfig.Sync_1588MsgInterval = cellSyscConfig.Sync1588MsgInterval
+		enbSyscConfig.Sync_1588DelayRqMsgInterval = cellSyscConfig.Sync1588DelayRqMsgInterval
+		enbSyscConfig.Sync_1588Holdover = cellSyscConfig.Sync1588Holdover
+		enbSyscConfig.Sync_1588Asymmetry = cellSyscConfig.Sync1588Asymmetry
+		enbSyscConfig.Sync_1588UnicastEnable = cellSyscConfig.Sync1588UnicastEnable
+		enbSyscConfig.Sync_1588UnicastServerIp = string(cellSyscConfig.Sync1588UnicastServerIP)
+		enbMconfig.Sync_1588Config = enbSyscConfig
+	}
 }

@@ -74,6 +74,29 @@ message EnodebD {
         int32 tac = 8;
         int32 cell_id = 9;
         string ip_address = 10;
+        string mme_ip = 11;
+        string mme_pool_1 = 17;
+        string mme_pool_2 = 18;
+        ManagementServerConfig management_server_config = 19;
+        Sync1588Config sync_1588_config = 20;
+
+        //management server config
+        message ManagementServerConfig {
+            string management_server_host = 1;
+            uint32 management_server_port = 2;
+            bool management_server_ssl_enable = 3;
+        }
+        //sync 1588 config
+        message Sync1588Config {
+            bool sync_1588_switch = 1;
+            int32 sync_1588_domain = 2;
+            int32 sync_1588_msg_interval = 3;
+            int32 sync_1588_delay_rq_msg_interval = 4;
+            uint32 sync_1588_holdover = 5;
+            uint32 sync_1588_asymmetry = 6;
+            bool sync_1588_unicast_enable = 7;
+            string sync_1588_unicast_serverIp = 8;
+        }
     }
 
     orc8r.LogLevel log_level = 1;
