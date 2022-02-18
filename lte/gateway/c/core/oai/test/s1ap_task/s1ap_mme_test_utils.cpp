@@ -107,6 +107,7 @@ status_code_e send_s1ap_erab_rel_cmd(s1ap_state_t* state,
 }
 
 status_code_e send_conn_establishment_cnf(mme_ue_s1ap_id_t ue_id,
+                                          bool extueambr,
                                           bool sec_capabilities_present,
                                           bool ue_radio_capability) {
   MessageDef* message_p;
@@ -126,9 +127,14 @@ status_code_e send_conn_establishment_cnf(mme_ue_s1ap_id_t ue_id,
   establishment_cnf_p->transport_layer_address[0] = bfromcstr("test");
   establishment_cnf_p->gtp_teid[0] = 1;
 
+if(extueambr){
+  establishment_cnf_p->ue_ambr.br_ul = 10000000001;
+  establishment_cnf_p->ue_ambr.br_dl = 10000000001;
+  }
+else {
   establishment_cnf_p->ue_ambr.br_ul = 1000;
   establishment_cnf_p->ue_ambr.br_dl = 1000;
-
+}
   apn_ambr_bitrate_unit_t br_unit = BPS;
   establishment_cnf_p->ue_ambr.br_unit = br_unit;
   establishment_cnf_p->ue_security_capabilities_encryption_algorithms = 1;
