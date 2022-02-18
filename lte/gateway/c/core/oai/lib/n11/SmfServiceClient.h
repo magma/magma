@@ -35,7 +35,7 @@ SetSMSessionContext create_sm_pdu_session(
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
     uint8_t* gnb_gtp_teid_ip_addr, std::string& ipv4_addr,
     std::string& ipv6_addr, const ambr_t& state_ambr, uint32_t version,
-    const eps_subscribed_qos_profile_t& qos_proile);
+    const eps_subscribed_qos_profile_t& qos_profile);
 
 class SmfServiceClient {
  public:
