@@ -258,6 +258,11 @@ class MmeAppProcedureTest : public ::testing::Test {
   void attach_ue(std::condition_variable& cv,
                  std::unique_lock<std::mutex>& lock,
                  mme_app_desc_t* mme_state_p, guti_eps_mobile_identity_t* guti);
+
+  void detach_ue(std::condition_variable& cv,
+                 std::unique_lock<std::mutex>& lock,
+                 mme_app_desc_t* mme_state_p, guti_eps_mobile_identity_t guti,
+                 bool is_initial_ue);
 };
 
 void MmeAppProcedureTest ::attach_ue(std::condition_variable& cv,
@@ -334,6 +339,40 @@ void MmeAppProcedureTest ::attach_ue(std::condition_variable& cv,
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 }
 
+void MmeAppProcedureTest ::detach_ue(std::condition_variable& cv,
+                                     std::unique_lock<std::mutex>& lock,
+                                     mme_app_desc_t* mme_state_p,
+                                     guti_eps_mobile_identity_t guti,
+                                     bool is_initial_ue) {
+  // Constructing and sending Detach Request to mme_app
+  // mimicing S1AP
+  if (is_initial_ue) {
+    send_mme_app_initial_ue_msg(nas_msg_detach_req, sizeof(nas_msg_detach_req),
+                                plmn, guti, 1);
+  } else {
+    send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
+                                 plmn);
+  }
+  // Constructing and sending Delete Session Response to mme_app
+  // mimicing SPGW task
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  send_delete_session_resp(DEFAULT_LBI);
+
+  // Wait for context release command
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check MME state after detach complete
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+}
+
 TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
@@ -378,29 +417,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
   guti = {0};
   attach_ue(cv, lock, mme_state_p, &guti);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
@@ -472,29 +489,7 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirFailure) {
@@ -808,29 +803,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachExpiredNasTimers) {
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachRejectAuthRetxFailure) {
@@ -984,29 +957,7 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachRejectIdentRetxFailure) {
@@ -1401,30 +1352,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
   EXPECT_EQ(mme_state_p->nb_ue_idle, 1);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 TEST_F(MmeAppProcedureTest, TestAttachIdleServiceReqDetach) {
@@ -1484,30 +1412,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleServiceReqDetach) {
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 TEST_F(MmeAppProcedureTest, TestPagingMaxRetx) {
@@ -1576,30 +1481,7 @@ TEST_F(MmeAppProcedureTest, TestPagingMaxRetx) {
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 TEST_F(MmeAppProcedureTest,
@@ -1664,29 +1546,7 @@ TEST_F(MmeAppProcedureTest,
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 TEST_F(
@@ -1766,29 +1626,7 @@ TEST_F(
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 // Periodic TAU with active flag set to true
@@ -1849,30 +1687,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithActiveFlag) {
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 // Periodic TAU with active flag set to false
@@ -1930,30 +1745,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithoutActiveFlag) {
   EXPECT_EQ(mme_state_p->nb_ue_idle, 1);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_initial_ue_msg(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                              plmn, guti, 1);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+  detach_ue(cv, lock, mme_state_p, guti, true);
 }
 
 // Normal TAU sent in idle mode with active flag set to true
@@ -2014,30 +1806,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithActiveFlag) {
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 // Normal TAU sent in idle mode with active flag set to false
@@ -2094,30 +1863,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithoutActiveFlag) {
   EXPECT_EQ(mme_state_p->nb_ue_idle, 1);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_initial_ue_msg(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                              plmn, guti, 1);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+  detach_ue(cv, lock, mme_state_p, guti, true);
 }
 
 // Normal TAU sent in connected mode with active flag set to false
@@ -2145,30 +1891,7 @@ TEST_F(MmeAppProcedureTest, TestAttachNormalTauReqInConnectedState) {
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 // TAU reject due to service area restriction
@@ -2231,30 +1954,7 @@ TEST_F(MmeAppProcedureTest, TestTauRejDueToInvalidTac) {
   EXPECT_EQ(mme_state_p->nb_ue_idle, 1);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_initial_ue_msg(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                              plmn, guti, 1);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+  detach_ue(cv, lock, mme_state_p, guti, true);
 }
 
 TEST_F(MmeAppProcedureTest, TestFailedPagingForPendingBearers) {
@@ -2317,29 +2017,7 @@ TEST_F(MmeAppProcedureTest, TestFailedPagingForPendingBearers) {
   EXPECT_EQ(mme_state_p->nb_ue_idle, 1);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 TEST_F(MmeAppProcedureTest, TestMobileReachabilityTimer) {
@@ -2439,29 +2117,7 @@ TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchSuccess) {
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchFailure) {
@@ -2508,30 +2164,7 @@ TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchFailure) {
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 // Normal TAU sent in idle mode with eps bearer context status IE with inactive
@@ -2631,30 +2264,7 @@ TEST_F(MmeAppProcedureTest,
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 // Normal TAU sent in idle mode with eps bearer context status IE with inactive
@@ -2802,8 +2412,6 @@ TEST_F(MmeAppProcedureTest, TestS1HandoverSuccess) {
   guti = {0};
   attach_ue(cv, lock, mme_state_p, &guti);
 
-  // EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
-
   uint32_t new_enb_ue_s1ap_id = DEFAULT_eNB_S1AP_UE_ID + 1;
   uint32_t new_sctp_assoc_id = DEFAULT_SCTP_ASSOC_ID + 1;
   uint32_t new_enb_id = DEFAULT_ENB_ID + 1;
@@ -2851,29 +2459,7 @@ TEST_F(MmeAppProcedureTest, TestS1HandoverSuccess) {
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 2);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 TEST_F(MmeAppProcedureTest, TestDuplicateAttach) {
@@ -3028,30 +2614,7 @@ TEST_F(MmeAppProcedureTest, TestDuplicateAttach) {
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 // Test case validates the handling of cancel location request,
 // which initiates network initiated detach
@@ -3222,29 +2785,8 @@ TEST_F(MmeAppProcedureTest, TestS6aReset) {
   // ULR is sent in response S6a reset message handling
   // Sending ULA to mme_app mimicing successful S6A response for ULR
   send_s6a_ula(imsi, true);
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
 
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release request
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 TEST_F(MmeAppProcedureTest, TestNwInitiatedActivateDedicatedBearerRej) {
@@ -3284,29 +2826,7 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedActivateDedicatedBearerRej) {
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 TEST_F(MmeAppProcedureTest,
@@ -3346,29 +2866,7 @@ TEST_F(MmeAppProcedureTest,
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 TEST_F(MmeAppProcedureTest,
@@ -3435,29 +2933,7 @@ TEST_F(MmeAppProcedureTest,
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 2);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 
-  // Constructing and sending Detach Request to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
-                               plmn);
-
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 }  // namespace lte
