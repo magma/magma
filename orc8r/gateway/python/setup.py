@@ -170,7 +170,7 @@ setup(
         'python-redis-lock>=3.7.0',
         'aiohttp>=0.17.2',
         'grpcio>=1.16.1',
-        'protobuf>=3.14.0',
+        'protobuf==3.19.0',
         'Jinja2>=2.8',
         'netifaces>=0.10.4',
         'pylint>=1.7.1',

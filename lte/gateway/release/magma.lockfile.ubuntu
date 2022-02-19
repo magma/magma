@@ -806,7 +806,7 @@
           "root": true,
           "source": "pypi",
           "sysdep": "python3-protobuf",
-          "version": "3.14.0"
+          "version": "3.19.0"
         },
         "psutil": {
           "root": true,
@@ -1063,7 +1063,7 @@
           "version": "0.3.1"
         },
         "protobuf": {
-          "version": "3.14.0"
+          "version": "3.19.0"
         },
         "psutil": {
           "version": "5.6.6"
