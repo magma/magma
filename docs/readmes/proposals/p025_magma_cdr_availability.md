@@ -2,7 +2,7 @@
 
 Author(s): [@arsenii-oganov]
 
-Last updated: 02/16/2022
+Last updated: 03/07/2022
 
 Link to issue: <https://github.com/magma/magma/issues/11636>
 
@@ -19,39 +19,39 @@ Currently Magma doesn’t support any kind of CDR files for any scenarios. By im
 
 ### 3.1 High - level solution architecture
 
-![arch](https://user-images.githubusercontent.com/93994458/154291563-b1897e7e-9c3d-45fb-9ea9-ccd3c2c73ad0.png)
+![arch](https://user-images.githubusercontent.com/93994458/154846892-d5e197cf-fccd-492d-89d3-c6f5b59e3911.png)
 
 Where:
-
-- SessionD runs CTF (Charging Trigger Function) that generates and sends session init/update/terminate events to the data storage.
-- Session telemetry - database stores information about all sessions for all network elements for all user equipments.
-- CDR engine runs CDF (Charging Data Function)
-- Bx - 3GPP integration reference points
-- SFTP - Persistent CDR storage
-- Sessiond enhancements and Session telemetry creation functions are covered inside different proposal (Settlement service) and here assumed to be fully implemented.
+SessionD runs CTF (Charging Trigger Function) that generates and sends session init/update/terminate events to the data storage.
+Session telemetry - database stores information about all sessions for all network elements for all user equipments.
+CDR engine runs CDF (Charging Data Function)
+Bx - 3GPP integration reference points
+CDR Gateway - Persistent CDR storage
+Sessiond enhancements and Session telemetry creation functions are covered inside different proposal (Settlement service, <https://github.com/magma/magma/issues/11166>) and here assumed to be fully implemented.
 
 ### 3.2 CDR engine
 
 The CDR engine pulls data from the Session telemetry  via GRPC interface and uses the information contained in the charging events to construct CDRs. The result of the CDR engine task is generated Charging Data Records (CDRs) with a well-defined content and format. The content and format of these CDRs are specified per domain/subsystem/service in the related charging specification 3GPP TS 32.251 for PS domain. The CDR engine implements the following main functions:
-CDR pre-processing
-Validation, Consolidation and (Re)Formatting of CDRs
-CDR error handling
-CDR filtering, push CDRs to SFTP and put on separate files based on filtering criteria such as CDR type, CDR parameters, originating of network element etc.
-CDR File Management, e.g. file creation, file opening / closure triggers, file deletion
-CDR file transfer to the CDR clients
+
+- CDR pre-processing
+- Validation, Consolidation and (Re)Formatting of CDRs
+- CDR error handling
+- CDR filtering, push CDRs to SFTP and put on separate files based on filtering criteria such as CDR type, CDR parameters, originating of network element etc.
+- CDR File Management, e.g. file creation, file opening / closure triggers, file deletion
+- CDR file transfer to the CDR clients
 
 ### 3.3. Session based charging scenario
 
 This scenario represent the flow how CDRs will be generated.
 In the call flow below, red number messages indicate new functionality supported by a Magma elements.
 
-![flow](https://user-images.githubusercontent.com/93994458/154293187-af67e937-70a5-4a1c-9805-3e35b0c85964.png)
+![flow](https://user-images.githubusercontent.com/93994458/154847051-64776ef2-265a-4705-be2f-cddd52f7b4fa.png)
 
 - Steps 1-8 General steps of Session activation and OVS provisioning in Magma. Since the flow table is installed in to OVS, OVS start to collect session statistics
 - Steps 9-12 SessionD query and gets user session statistics
 - Step 13-14 Session telemetry pulls statistics near real time and stores in it's own database.
 - Step 15 CDR engine pulls statistics near real time and uses the information contained in the statistics to construct CDRs.
-- Step 16 CDR engine puts Charging Data Records (CDRs) with a well-defined content and format to SFTP for permanent store
+- Step 16 CDR engine puts Charging Data Records (CDRs) with a well-defined content and format to CDR Gateway for permanent store
 - Step 17 Sessions has predefined/configurable time treshold to repeat statistics query by steps 18-21 described above
 - Steps 18-21 SessionD intermediate queries and gets user session statistics , the process of intermediate queries continues to collect usages until its flows are no longer included in the report (flow deleted in Pipelined) or a specified timeout
 - Steps 22-25 the same procedure as described below in steps 13-16, the process continues until sessiond can collect related flow statistics
