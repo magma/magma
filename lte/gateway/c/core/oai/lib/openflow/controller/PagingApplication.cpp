@@ -44,12 +44,16 @@ void PagingApplication::event_callback(const ControllerEvent& ev,
   struct in6_addr dest_ipv6;
 
   if (ev.get_type() == EVENT_PACKET_IN) {
-    OAILOG_DEBUG(LOG_GTPV1U, "Handling packet-in message in paging app\n");
     const PacketInEvent& pi = static_cast<const PacketInEvent&>(ev);
     of13::PacketIn ofpi;
     ofpi.unpack(const_cast<uint8_t*>(pi.get_data()));
-    handle_paging_message(ev.get_connection(),
-                          static_cast<uint8_t*>(ofpi.data()), messenger);
+    OAILOG_DEBUG(LOG_GTPV1U,
+                 "Handling packet-in message in paging app: tbl: %d\n",
+                 ofpi.table_id());
+    if (ofpi.table_id() == 0) {
+      handle_paging_message(ev.get_connection(),
+                            static_cast<uint8_t*>(ofpi.data()), messenger);
+    }
   } else if (ev.get_type() == EVENT_ADD_PAGING_RULE) {
     auto add_paging_rule_event = static_cast<const AddPagingRuleEvent&>(ev);
     // Add paging rule for ipv4 and ipv6

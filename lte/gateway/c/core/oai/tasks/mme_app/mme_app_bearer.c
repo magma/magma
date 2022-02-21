@@ -2693,11 +2693,11 @@ status_code_e mme_app_handle_nas_extended_service_req(
     case MO_CS_FB:
       if (ue_context_p->sgs_context != NULL) {
         ue_context_p->sgs_context->csfb_service_type = CSFB_SERVICE_MO_CALL;
-        /* If call_cancelled is set to TRUE when MO call is triggered.
-         * Set call_cancelled to false
+        /* If call_canceled is set to TRUE when MO call is triggered.
+         * Set call_canceled to false
          */
-        if (ue_context_p->sgs_context->call_cancelled) {
-          ue_context_p->sgs_context->call_cancelled = false;
+        if (ue_context_p->sgs_context->call_canceled) {
+          ue_context_p->sgs_context->call_canceled = false;
         }
         mme_app_itti_ue_context_mod_for_csfb(ue_context_p);
       } else {
@@ -2714,12 +2714,12 @@ status_code_e mme_app_handle_nas_extended_service_req(
     case MT_CS_FB:
       if (csfb_response == CSFB_REJECTED_BY_UE) {
         if (ue_context_p->sgs_context) {
-          /* If call_cancelled is set to TRUE and
+          /* If call_canceled is set to TRUE and
            * receive EXT Service Request with csfb_response
-           * set to call_rejected. Set call_cancelled to false
+           * set to call_rejected. Set call_canceled to false
            */
-          if (ue_context_p->sgs_context->call_cancelled) {
-            ue_context_p->sgs_context->call_cancelled = false;
+          if (ue_context_p->sgs_context->call_canceled) {
+            ue_context_p->sgs_context->call_canceled = false;
           }
           rc = mme_app_send_sgsap_paging_reject(
               ue_context_p, ue_context_p->emm_context._imsi64,
@@ -2749,10 +2749,10 @@ status_code_e mme_app_handle_nas_extended_service_req(
          * not when SERVICE ABORT request is received from MSC/VLR
          */
         ue_context_p->sgs_context->mt_call_in_progress = true;
-        /* If call_cancelled is set, send Service Reject to UE as MSC/VLR
+        /* If call_canceled is set, send Service Reject to UE as MSC/VLR
          * has triggered SGSAP SERVICE ABORT procedure
          */
-        if (ue_context_p->sgs_context->call_cancelled) {
+        if (ue_context_p->sgs_context->call_canceled) {
           /* If UE's ECM state is IDLE send
            * service_reject in Establish cnf else send in DL NAS Transport
            */
@@ -2778,8 +2778,8 @@ status_code_e mme_app_handle_nas_extended_service_req(
                 ue_id, EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE,
                 UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED);
           }
-          // Reset call_cancelled flag
-          ue_context_p->sgs_context->call_cancelled = false;
+          // Reset call_canceled flag
+          ue_context_p->sgs_context->call_canceled = false;
           OAILOG_WARNING_UE(
               LOG_MME_APP, ue_context_p->emm_context._imsi64,
               "Sending Service Reject to NAS module as MSC has triggered SGS "

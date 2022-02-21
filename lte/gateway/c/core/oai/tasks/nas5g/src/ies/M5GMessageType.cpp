@@ -25,10 +25,8 @@ int MessageTypeMsg::DecodeMessageTypeMsg(MessageTypeMsg* message_type,
                                          uint32_t len) {
   uint8_t decoded = 0;
 
-  MLOG(MDEBUG) << "   DecodeMessageTypeMsg : ";
   message_type->msg_type = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << " msg_type = 0x" << std::hex << int(message_type->msg_type);
   return (decoded);
 };
 
@@ -38,9 +36,7 @@ int MessageTypeMsg::EncodeMessageTypeMsg(MessageTypeMsg* message_type,
                                          uint32_t len) {
   uint8_t encoded = 0;
 
-  MLOG(MDEBUG) << " EncodeMessageTypeMsg : ";
   *(buffer + encoded) = message_type->msg_type;
-  MLOG(MDEBUG) << "Message type = 0x" << std::hex << int(*(buffer + encoded));
   encoded++;
   return (encoded);
 };

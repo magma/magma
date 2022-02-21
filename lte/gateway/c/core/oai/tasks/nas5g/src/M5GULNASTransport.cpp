@@ -11,6 +11,13 @@
 
 #include <sstream>
 #include <iomanip>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GULNASTransport.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -30,7 +37,6 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, UL_NAS_TRANSPORT_MINIMUM_LENGTH,
                                        len);
 
-  MLOG(MDEBUG) << "DecodeULNASTransportMsg : \n";
   if ((decoded_result =
            ul_nas_transport->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
@@ -139,7 +145,7 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
         break;
     }
     if (decoded_result < 0) {
-      MLOG(MDEBUG) << "ERROR: decode ULNASTransportMsg failed";
+      OAILOG_ERROR(LOG_NAS5G, "ULNASTransportMsg Decoding FAILED");
       return decoded_result;
     }
   }
@@ -152,7 +158,6 @@ int ULNASTransportMsg::EncodeULNASTransportMsg(
     ULNASTransportMsg* ul_nas_transport, uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
-  MLOG(MDEBUG) << "EncodeULNASTransportMsg:";
   int encoded_result = 0;
 
   // Check if we got a NDLL pointer and if buffer length is >= minimum length

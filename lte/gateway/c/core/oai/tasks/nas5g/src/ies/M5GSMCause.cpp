@@ -13,6 +13,13 @@ limitations under the License.
 #include <sstream>
 #include <cstdint>
 #include <cstring>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMCause.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -33,10 +40,6 @@ int M5GSMCauseMsg::DecodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
 
   m5gsm_cause->cause_value = *buffer;
   decoded++;
-  MLOG(MDEBUG) << "DecodeM5GSMCauseMsg__: iei = " << std::hex
-               << int(m5gsm_cause->iei) << std::endl;
-  MLOG(MDEBUG) << "DecodeM5GSMCauseMsg__: cause_value = " << std::hex
-               << int(m5gsm_cause->cause_value) << std::endl;
 
   return (decoded);
 };
@@ -55,8 +58,6 @@ int M5GSMCauseMsg::EncodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
 
   *(buffer + encoded) = m5gsm_cause->cause_value;
   encoded++;
-  MLOG(MDEBUG) << "EncodeM5GSMCauseMsg__: cause_value = " << std::hex
-               << int(m5gsm_cause->cause_value) << std::endl;
 
   return (encoded);
 };

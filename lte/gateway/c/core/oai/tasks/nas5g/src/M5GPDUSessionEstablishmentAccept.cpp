@@ -10,6 +10,13 @@
  */
 
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionEstablishmentAccept.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
@@ -29,8 +36,6 @@ int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
                                        PDU_SESSION_ESTABLISH_ACPT_MIN_LEN, len);
-
-  MLOG(MDEBUG) << "DecodePDUSessionEstablishmentAcceptMsg : ";
 
   if ((decoded_result =
            pdu_session_estab_accept->extended_protocol_discriminator
@@ -188,7 +193,6 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
                                        PDU_SESSION_ESTABLISH_ACPT_MIN_LEN, len);
 
-  MLOG(MDEBUG) << "EncodePDUSessionEstablishmentAcceptMsg : \n";
   if ((encoded_result =
            pdu_session_estab_accept->extended_protocol_discriminator
                .EncodeExtendedProtocolDiscriminatorMsg(

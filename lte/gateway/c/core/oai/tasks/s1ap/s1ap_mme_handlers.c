@@ -3350,7 +3350,7 @@ status_code_e s1ap_mme_handle_path_switch_request(
     if (new_ue_ref_p != NULL) {
       OAILOG_ERROR_UE(
           LOG_S1AP, imsi64,
-          "S1AP:Path Switch Request- Recieved ENB_UE_S1AP_ID is not Unique "
+          "S1AP:Path Switch Request- Received ENB_UE_S1AP_ID is not Unique "
           "Drop Path Switch Request for eNBUeS1APId:" ENB_UE_S1AP_ID_FMT "\n",
           enb_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -4821,7 +4821,7 @@ status_code_e s1ap_mme_handle_enb_configuration_transfer(
                              S1ap_ProtocolIE_ID_id_SONConfigurationTransferECT,
                              false);
 
-  OAILOG_DEBUG(LOG_S1AP, "Recieved eNB Confiuration Request from assoc_id %u\n",
+  OAILOG_DEBUG(LOG_S1AP, "Received eNB Confiuration Request from assoc_id %u\n",
                assoc_id);
   enb_association = s1ap_state_get_enb(state, assoc_id);
   if (enb_association == NULL) {

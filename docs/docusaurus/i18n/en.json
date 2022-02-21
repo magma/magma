@@ -372,6 +372,9 @@
       "orc8r/dev_testing": {
         "title": "Test Orchestrator"
       },
+      "orc8r/dev_token_security": {
+        "title": "REST API Auth"
+      },
       "orc8r/upgrade_1_1": {
         "title": "Upgrade to v1.1"
       },

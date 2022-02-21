@@ -747,7 +747,7 @@ static int build_csfb_parameters_combined_tau(emm_context_t* emm_ctx,
       // Send Additional Update type if SMS_ONLY is enabled
       if ((emm_ctx->csfbparams.presencemask & ADD_UPDATE_TYPE) &&
           (emm_ctx->csfbparams.additional_updt_res ==
-           ADDITONAL_UPDT_RES_SMS_ONLY)) {
+           ADDITIONAL_UPDT_RES_SMS_ONLY)) {
         establish->additional_update_result =
             &emm_ctx->csfbparams.additional_updt_res;
       }

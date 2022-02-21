@@ -205,11 +205,11 @@ static status_code_e sgs_handle_paging_request_for_mt_call(
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   sgs_context = (sgs_context_t*)evt->ctx;
-  /* If call_cancelled is set to TRUE when a new Paging message
-   * is received.Set call_cancelled to false
+  /* If call_canceled is set to TRUE when a new Paging message
+   * is received.Set call_canceled to false
    */
-  if (sgs_context->call_cancelled == true) {
-    sgs_context->call_cancelled = false;
+  if (sgs_context->call_canceled == true) {
+    sgs_context->call_canceled = false;
   }
   sgsap_paging_req_pP = (itti_sgsap_paging_request_t*)sgs_context->sgsap_msg;
   IMSI_STRING_TO_IMSI64((char*)sgsap_paging_req_pP->imsi, &imsi64);

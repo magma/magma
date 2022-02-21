@@ -10,6 +10,13 @@
  */
 
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GIdentityRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -27,7 +34,6 @@ int IdentityRequestMsg::DecodeIdentityRequestMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, IDENTITY_REQUEST_MINIMUM_LENGTH,
                                        len);
 
-  MLOG(MDEBUG) << "DecodeIdentityRequestMsg : \n";
   if ((decoded_result =
            identity_request->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
@@ -79,7 +85,6 @@ int IdentityRequestMsg::EncodeIdentityRequestMsg(
     IdentityRequestMsg* identity_request, uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
-  MLOG(MDEBUG) << "EncodeIdentityRequestMsg:";
   int encoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
