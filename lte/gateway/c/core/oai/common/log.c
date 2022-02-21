@@ -479,6 +479,7 @@ void log_configure(const log_config_t* const config) {
   if ((MAX_LOG_LEVEL > config->nas_log_level) &&
       (MIN_LOG_LEVEL <= config->nas_log_level)) {
     g_oai_log.log_level[LOG_NAS] = config->nas_log_level;
+    g_oai_log.log_level[LOG_NAS5G] = config->nas_log_level;
     g_oai_log.log_level[LOG_NAS_EMM] = config->nas_log_level;
     g_oai_log.log_level[LOG_NAS_ESM] = config->nas_log_level;
   }
@@ -642,6 +643,8 @@ int log_init(const char* app_name, const log_level_t default_log_levelP,
            "NAS-AMF");
   snprintf(&g_oai_log.log_proto2str[LOG_NAS][0], LOG_MAX_PROTO_NAME_LENGTH,
            "NAS");
+  snprintf(&g_oai_log.log_proto2str[LOG_NAS5G][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "NAS5G");
   snprintf(&g_oai_log.log_proto2str[LOG_NAS_EMM][0], LOG_MAX_PROTO_NAME_LENGTH,
            "NAS-EMM");
   snprintf(&g_oai_log.log_proto2str[LOG_NAS_ESM][0], LOG_MAX_PROTO_NAME_LENGTH,

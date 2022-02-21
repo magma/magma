@@ -18,6 +18,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
 #ifdef __cplusplus
 }
@@ -43,7 +44,6 @@ int PDUAddressMsg::DecodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,
   memset(pdu_address->address_info, 0, sizeof(pdu_address->address_info));
   decoded++;
   memcpy(buffer + decoded, pdu_address->address_info, pdu_address->length - 1);
-
   decoded += pdu_address->length - 1;
 
   return (decoded);

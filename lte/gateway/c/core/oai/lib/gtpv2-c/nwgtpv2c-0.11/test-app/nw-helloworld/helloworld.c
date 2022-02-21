@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
 
   if (rc != NW_OK) {
     NW_LOG(NW_LOG_LEVEL_ERRO,
-           "Failed to create gtpv2c stack instance. Error '%u' occured", rc);
+           "Failed to create gtpv2c stack instance. Error '%u' occurred", rc);
     exit(1);
   }
 
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
 
   if (rc != NW_OK) {
     NW_LOG(NW_LOG_LEVEL_ERRO,
-           "Failed to finalize gtpv2c stack instance. Error '%u' occured", rc);
+           "Failed to finalize gtpv2c stack instance. Error '%u' occurred", rc);
   } else {
     NW_LOG(NW_LOG_LEVEL_INFO, "Gtpv2c Stack Handle '%X' Finalize Successful!",
            hGtpv2cStack);

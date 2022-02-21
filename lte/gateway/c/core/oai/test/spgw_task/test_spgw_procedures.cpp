@@ -257,7 +257,8 @@ teid_t SPGWAppProcedureTest ::create_default_session(spgw_state_t* spgw_state) {
   EXPECT_EQ(return_code, RETURNok);
 
   // verify that exactly one session exists in SPGW state
-  EXPECT_TRUE(is_num_sessions_valid(test_imsi64, 1, 1));
+  EXPECT_TRUE(is_num_ue_contexts_valid(1));
+  EXPECT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // verify that eNB address information exists
   EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
@@ -512,7 +513,8 @@ TEST_F(SPGWAppProcedureTest, TestModifyBearerFailure) {
   ASSERT_EQ(return_code, RETURNok);
 
   // verify that no session exists in SPGW state
-  ASSERT_TRUE(is_num_sessions_valid(test_imsi64, 0, 0));
+  ASSERT_TRUE(is_num_ue_contexts_valid(0));
+  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 0));
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
@@ -541,7 +543,9 @@ TEST_F(SPGWAppProcedureTest, TestDeleteSessionSuccess) {
   ASSERT_EQ(return_code, RETURNok);
 
   // verify SPGW state is cleared
-  ASSERT_TRUE(is_num_sessions_valid(test_imsi64, 0, 0));
+  ASSERT_TRUE(is_num_ue_contexts_valid(0));
+  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 0));
+
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
@@ -692,7 +696,8 @@ TEST_F(SPGWAppProcedureTest,
   EXPECT_EQ(return_code, RETURNok);
 
   // check that session is removed
-  EXPECT_TRUE(is_num_sessions_valid(test_imsi64, 0, 0));
+  EXPECT_TRUE(is_num_ue_contexts_valid(0));
+  EXPECT_TRUE(is_num_cp_teids_valid(test_imsi64, 0));
 
   free(sample_nw_init_ded_bearer_deactv_resp.lbi);
 
@@ -709,6 +714,11 @@ TEST_F(SPGWAppProcedureTest, TestSuspendNotification) {
 
   s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
+
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
+      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+           .pdn_connection,
+      DEFAULT_EPS_BEARER_ID);
 
   // trigger suspend notification to SPGW task
   itti_s11_suspend_notification_t sample_suspend_notification = {};

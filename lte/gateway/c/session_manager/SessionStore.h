@@ -59,8 +59,9 @@ struct SessionSearchCriteria {
   std::string imsi;
   SessionSearchCriteriaType search_type;
   std::string secondary_key;
+  std::string tertiary_key;
   uint32_t secondary_key_unit32;
-  uint32_t tertiary_key_unit32;
+  uint32_t quaternary_key_unit32;
 
   SessionSearchCriteria(const std::string p_imsi,
                         SessionSearchCriteriaType p_type,
@@ -69,19 +70,21 @@ struct SessionSearchCriteria {
 
   SessionSearchCriteria(const std::string p_imsi,
                         SessionSearchCriteriaType p_type,
-                        const uint32_t secondary_key_unit32)
+                        const uint32_t p_secondary_key_unit32)
       : imsi(p_imsi),
         search_type(p_type),
-        secondary_key_unit32(secondary_key_unit32) {}
+        secondary_key_unit32(p_secondary_key_unit32) {}
 
   SessionSearchCriteria(const std::string p_imsi,
                         SessionSearchCriteriaType p_type,
                         const std::string p_secondary_key,
-                        const uint32_t tertiary_key_unit32)
+                        const std::string p_tertiary_key,
+                        const uint32_t p_quaternary_key_unit32)
       : imsi(p_imsi),
         search_type(p_type),
         secondary_key(p_secondary_key),
-        tertiary_key_unit32(tertiary_key_unit32) {}
+        tertiary_key(p_tertiary_key),
+        quaternary_key_unit32(p_quaternary_key_unit32) {}
 };
 
 /**

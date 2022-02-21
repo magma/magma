@@ -52,7 +52,7 @@ extern task_zmq_ctx_t s6a_task_zmq_ctx;
 #define DIAMETER_ERROR_UNKNOWN_EPS_SUBSCRIPTION (5420)
 #define DIAMETER_ERROR_RAT_NOT_ALLOWED (5421)
 #define DIAMETER_ERROR_EQUIPMENT_UNKNOWN (5422)
-#define DIAMETER_ERROR_UNKOWN_SERVING_NODE (5423)
+#define DIAMETER_ERROR_UNKNOWN_SERVING_NODE (5423)
 
 /* Result codes that fall within the transient failures category shall be used
  * to inform a peer that the request could not be satisfied at the time it was
@@ -71,7 +71,7 @@ extern task_zmq_ctx_t s6a_task_zmq_ctx;
    (x == DIAMETER_ERROR_RAT_NOT_ALLOWED) ||           \
    (x == DIAMETER_ERROR_EQUIPMENT_UNKNOWN) ||         \
    (x == DIAMETER_AUTHENTICATION_DATA_UNAVAILABLE) || \
-   (x == DIAMETER_ERROR_UNKOWN_SERVING_NODE))
+   (x == DIAMETER_ERROR_UNKNOWN_SERVING_NODE))
 
 typedef struct {
   struct dict_object* dataobj_s6a_vendor; /* s6a vendor object */

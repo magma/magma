@@ -42,8 +42,9 @@ class Void;
 }
 
 namespace magma {
-using namespace orc8r;
-using namespace lte;
+
+using lte::SMSOrc8rService;
+using orc8r::Void;
 
 /**
  * SMSOrc8rClient is the main client for sending message to orc8r.

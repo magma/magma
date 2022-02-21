@@ -18,6 +18,7 @@ find_package(SERVICE_REGISTRY REQUIRED)
 find_package(MAGMA_CONFIG REQUIRED)
 find_package(ASYNC_GRPC REQUIRED)
 find_package(MAGMA_LOGGING REQUIRED)
+find_package(MAGMA_SENTRY REQUIRED)
 
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
@@ -76,7 +77,7 @@ add_library(LI_AGENT
     ${PROTO_HDRS})
 
 target_link_libraries(LI_AGENT
-    SERVICE303_LIB SERVICE_REGISTRY MAGMA_CONFIG ASYNC_GRPC MAGMA_LOGGING
+    SERVICE303_LIB SERVICE_REGISTRY MAGMA_CONFIG ASYNC_GRPC MAGMA_LOGGING MAGMA_SENTRY
     glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
     prometheus-cpp tacopie mnl tins pcap ssl crypto uuid
     )

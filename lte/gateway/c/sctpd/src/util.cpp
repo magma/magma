@@ -30,8 +30,8 @@ int set_sctp_opts(const int sd, const uint16_t instreams,
 int convert_addrs(const InitReq* req, struct sockaddr** addrs, int* num_addrs);
 
 int create_sctp_sock(const InitReq& req) {
+  struct sockaddr* addrs = NULL;
   int num_addrs;
-  struct sockaddr* addrs;
   int sd;
 
   if (!req.use_ipv4() && !req.use_ipv6()) return -1;
@@ -111,8 +111,10 @@ int set_sctp_opts(const int sd, const uint16_t instreams,
   return 0;
 }
 
-int convert_addrs(const InitReq* req, struct sockaddr** addrs, int* num_addrs) {
-  int i;
+int convert_addrs(const InitReq* req, struct sockaddr** ret_addrs,
+                  int* num_addrs) {
+  int i, sz;
+  struct sockaddr* addrs;
   struct sockaddr_in* ipv4_addr;
   struct sockaddr_in6* ipv6_addr;
 
@@ -120,30 +122,33 @@ int convert_addrs(const InitReq* req, struct sockaddr** addrs, int* num_addrs) {
   auto num_ipv6_addrs = req->ipv6_addrs_size();
   *num_addrs = num_ipv4_addrs + num_ipv6_addrs;
 
-  *addrs = (struct sockaddr*)calloc(*num_addrs, sizeof(struct sockaddr*));
-  if (*addrs == NULL) return -1;
+  sz = num_ipv4_addrs * sizeof(struct sockaddr_in) +
+       num_ipv6_addrs * sizeof(struct sockaddr_in6);
 
+  addrs = (struct sockaddr*)calloc(1, sz);
+  if (addrs == NULL) return -1;
+
+  ipv4_addr = (struct sockaddr_in*)addrs;
   for (i = 0; i < num_ipv4_addrs; i++) {
-    ipv4_addr = (struct sockaddr_in*)&(*addrs)[i];
-
     ipv4_addr->sin_family = AF_INET;
     ipv4_addr->sin_port = htons(req->port());
     if (inet_aton(req->ipv4_addrs(i).c_str(), &ipv4_addr->sin_addr) < 0) {
       return -1;
     }
+    ipv4_addr++;
   }
 
+  ipv6_addr = (struct sockaddr_in6*)ipv4_addr;
   for (i = 0; i < num_ipv6_addrs; i++) {
-    ipv6_addr = (struct sockaddr_in6*)&(*addrs)[i + num_ipv4_addrs];
-
     ipv6_addr->sin6_family = AF_INET6;
     ipv6_addr->sin6_port = htons(req->port());
     if (inet_pton(AF_INET6, req->ipv6_addrs(i).c_str(), &ipv6_addr->sin6_addr) <
         0) {
       return -1;
     }
+    ipv6_addr++;
   }
-
+  *ret_addrs = addrs;
   return 0;
 }
 
