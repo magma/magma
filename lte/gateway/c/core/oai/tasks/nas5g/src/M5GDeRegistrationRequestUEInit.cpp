@@ -11,6 +11,13 @@
 
 #include <iostream>
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationRequestUEInit.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -28,8 +35,6 @@ int DeRegistrationRequestUEInitMsg::DecodeDeRegistrationRequestUEInitMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, DEREGISTRATION_REQUEST_UEINIT_MINIMUM_LENGTH, len);
 
-  MLOG(MDEBUG) << "\n\n---Decoding De-Registration Request Message---\n"
-               << std::endl;
   if ((decoded_result =
            de_reg_request->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(

@@ -9,6 +9,13 @@
    limitations under the License.
  */
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQosFlowParam.h"
 
@@ -20,19 +27,19 @@ int M5GQosFlowParam::EncodeM5GQosFlowParam(M5GQosFlowParam* param,
                                            uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
-  MLOG(MDEBUG) << " EncodeQosFlowParamemeter : ";
+  OAILOG_DEBUG(LOG_NAS5G, "EncodeQosFlowParamemeter: ");
   switch (param->iei) {
     case param_id_5qi: {
       *(buffer + encoded) = param->iei;
-      MLOG(MDEBUG) << "5Qi iei = 0x" << std::hex << int(*(buffer + encoded));
+      OAILOG_DEBUG(LOG_NAS5G, "5Qi iei = 0X%x", int(*(buffer + encoded)));
       encoded++;
 
       *(buffer + encoded) = param->length;
-      MLOG(MDEBUG) << "5Qi length= 0x" << std::hex << int(*(buffer + encoded));
+      OAILOG_DEBUG(LOG_NAS5G, "5Qi length= 0X%x", int(*(buffer + encoded)));
       encoded++;
 
       *(buffer + encoded) = param->element;
-      MLOG(MDEBUG) << "5Qi  = 0x" << std::hex << int(*(buffer + encoded));
+      OAILOG_DEBUG(LOG_NAS5G, "5Qi  = 0X%x", int(*(buffer + encoded)));
       encoded++;
     } break;
     case param_id_mfbr_uplink:
@@ -40,26 +47,26 @@ int M5GQosFlowParam::EncodeM5GQosFlowParam(M5GQosFlowParam* param,
     case param_id_gfbr_uplink:
     case param_id_gfbr_downlink: {
       *(buffer + encoded) = param->iei;
-      MLOG(MDEBUG) << "mfbr_uplink iei = 0x" << std::hex
-                   << int(*(buffer + encoded));
+      OAILOG_DEBUG(LOG_NAS5G, "mfbr_uplink iei = 0X%x",
+                   int(*(buffer + encoded)));
       encoded++;
 
       *(buffer + encoded) = param->length;
-      MLOG(MDEBUG) << "iei length= 0x" << std::hex << int(*(buffer + encoded));
+      OAILOG_DEBUG(LOG_NAS5G, "iei length= 0X%x", int(*(buffer + encoded)));
       encoded++;
 
       *(buffer + encoded) = param->units;
-      MLOG(MDEBUG) << "mfbr_uplink units  = 0x" << std::hex
-                   << int(*(buffer + encoded));
+      OAILOG_DEBUG(LOG_NAS5G, "mfbr_uplink units  = 0X%x",
+                   int(*(buffer + encoded)));
       encoded++;
 
-      *(buffer + encoded) = (param->element & 0xff00) >> 8;
-      MLOG(MDEBUG) << "Element Octet1  = 0x" << std::hex
-                   << int(*(buffer + encoded));
+      *(buffer + encoded) = (param->element & 0Xff00) >> 8;
+      OAILOG_DEBUG(LOG_NAS5G, "Element Octet1  = 0X%x",
+                   int(*(buffer + encoded)));
       encoded++;
-      *(buffer + encoded) = param->element & (0x00ff);
-      MLOG(MDEBUG) << "Element Octet2 = 0x" << std::hex
-                   << int(*(buffer + encoded));
+      *(buffer + encoded) = param->element & (0X00ff);
+      OAILOG_DEBUG(LOG_NAS5G, "Element Octet2 = 0X%x",
+                   int(*(buffer + encoded)));
       encoded++;
     } break;
     default: {
@@ -72,74 +79,74 @@ int M5GQosFlowParam::DecodeM5GQosFlowParam(M5GQosFlowParam* param,
                                            uint8_t* buffer, uint32_t len) {
   uint32_t decoded = 0;
 
-  MLOG(MDEBUG) << " DecodeM5GQosFlowParam : ";
+  OAILOG_DEBUG(LOG_NAS5G, "DecodeM5GQosFlowParam :");
   param->iei = *(buffer + decoded);
   decoded++;
 
   switch (param->iei) {
     case param_id_5qi: {
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->iei);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->iei));
       param->length = *(buffer + decoded);
       decoded++;
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->length);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->length));
       param->element = *(buffer + decoded);
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->element);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->element));
       decoded++;
     } break;
     case param_id_gfbr_uplink: {
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->iei);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->iei));
       param->length = *(buffer + decoded);
       decoded++;
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->length);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->length));
       param->units = *(buffer + decoded);
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->units);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->units));
       decoded++;
       param->element = *(buffer + decoded);
       decoded++;
       param->element |= *(buffer + decoded) << 8;
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->element);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->element));
       decoded++;
     } break;
     case param_id_gfbr_downlink: {
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->iei);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->iei));
       param->length = *(buffer + decoded);
       decoded++;
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->length);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->length));
       param->units = *(buffer + decoded);
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->units);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->units));
       decoded++;
       param->element = *(buffer + decoded);
       decoded++;
       param->element |= *(buffer + decoded) << 8;
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->element);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->element));
       decoded++;
     } break;
     case param_id_mfbr_uplink: {
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->iei);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->iei));
       param->length = *(buffer + decoded);
       decoded++;
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->length);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->length));
       param->units = *(buffer + decoded);
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->units);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->units));
       decoded++;
       param->element = *(buffer + decoded);
       decoded++;
       param->element |= *(buffer + decoded) << 8;
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->element);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->element));
       decoded++;
     } break;
     case param_id_mfbr_downlink: {
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->iei);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->iei));
       param->length = *(buffer + decoded);
       decoded++;
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->length);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->length));
       param->units = *(buffer + decoded);
       decoded++;
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->units);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->units));
       param->element = *(buffer + decoded);
       decoded++;
       param->element |= *(buffer + decoded) << 8;
-      MLOG(MDEBUG) << "IEI = 0x" << std::hex << int(param->element);
+      OAILOG_DEBUG(LOG_NAS5G, "IEI = 0X%x", int(param->element));
       decoded++;
     } break;
     default: {

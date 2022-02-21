@@ -58,4 +58,5 @@ int amf_app_pdu_session_modification_complete(amf_smf_establish_t* message,
                                               char* imsi, uint32_t version);
 int amf_app_pdu_session_modification_command_reject(
     amf_smf_establish_t* message, char* imsi, uint32_t version);
+std::string get_message_type_str(uint8_t type);
 }  // namespace magma5g

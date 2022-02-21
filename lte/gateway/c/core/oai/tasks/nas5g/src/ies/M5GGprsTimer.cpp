@@ -13,7 +13,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer.h"
 
@@ -27,13 +33,13 @@ int GPRSTimerMsg::DecodeGPRSTimerMsg(GPRSTimerMsg* gprstimer, uint8_t iei,
 
   if (iei > 0) {
     gprstimer->iei = *buffer;
-    MLOG(MDEBUG) << "DecodeGPRSTimerMsg: iei = " << std::hex
-                 << int(gprstimer->iei);
+    OAILOG_DEBUG(LOG_NAS5G, "DecodeGPRSTimerMsg: iei 0x%x",
+                 int(gprstimer->iei));
     decoded++;
 
     gprstimer->timervalue = *(buffer + decoded);
-    MLOG(MDEBUG) << "DecodeGPRSTimerMsg: timervalue = " << std::hex
-                 << int(gprstimer->timervalue);
+    OAILOG_DEBUG(LOG_NAS5G, "DecodeGPRSTimerMsg: timervalue = 0X%x",
+                 int(gprstimer->timervalue));
     decoded++;
   }
 

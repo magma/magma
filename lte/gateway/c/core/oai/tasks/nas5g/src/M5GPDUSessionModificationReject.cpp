@@ -10,6 +10,13 @@
  */
 
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationReject.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -33,7 +40,6 @@ int PDUSessionModificationRejectMsg::EncodePDUSessionModificationRejectMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, PDU_SESSION_MODIFICATION_REJECT_MIN_LEN, len);
 
-  MLOG(MDEBUG) << "EncodePDUSessionModificationRejectMsg : \n";
   if ((encoded_result =
            pdu_session_modif_reject->extended_protocol_discriminator
                .EncodeExtendedProtocolDiscriminatorMsg(

@@ -13,6 +13,13 @@
 #include <sstream>
 #include <cstdint>
 #include <cstring>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSSCMode.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -28,8 +35,6 @@ int SSCModeMsg::DecodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei,
   // Storing the IEI Information
   if (iei > 0) {
     ssc_mode->iei = (*buffer & 0xf0) >> 4;
-    MLOG(MDEBUG) << "In DecodeSSCModeMsg: iei = " << std::hex
-                 << int(ssc_mode->iei);
     decoded++;
   }
 
@@ -38,8 +43,6 @@ int SSCModeMsg::DecodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei,
   } else {
     ssc_mode->mode_val = (*buffer >> 4) & 0x07;
   }
-  MLOG(MDEBUG) << "DecodeSSCModeMsg__: mode_val = " << std::hex
-               << int(ssc_mode->mode_val);
 
   return decoded;
 };
@@ -54,7 +57,6 @@ int SSCModeMsg::EncodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei,
     CHECK_IEI_ENCODER((uint8_t)iei,
                       (uint8_t)(0x00 | (ssc_mode->iei & 0x0f) << 4));
     *buffer = (ssc_mode->iei & 0x0f) << 4;
-    MLOG(MDEBUG) << "In EncodeSSCModeMsg: iei" << std::hex << int(*buffer);
     encoded++;
   }
   if (iei > 0) {
@@ -62,7 +64,6 @@ int SSCModeMsg::EncodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei,
   } else {
     *buffer = 0x00 | (*buffer & 0x0f) | ((ssc_mode->mode_val & 0x07) << 4);
   }
-  MLOG(MDEBUG) << "EncodeSSCModeMsg__: mode_val = " << std::hex << int(*buffer);
 
   return (encoded);
 };

@@ -9,6 +9,13 @@
    limitations under the License.
  */
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationCommand.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
@@ -26,7 +33,7 @@ int PDUSessionModificationCommand::EncodePDUSessionModificationCommand(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, PDU_SESSION_MODIFICATION_COMMAND_MIN_LEN, len);
 
-  MLOG(MDEBUG) << "EncodePDUSessionModificationCommand : \n";
+  OAILOG_DEBUG(LOG_NAS5G, "EncodePDUSessionModificationCommand");
   if ((encoded_result =
            pdu_sess_mod_comd->extended_protocol_discriminator
                .EncodeExtendedProtocolDiscriminatorMsg(
@@ -119,7 +126,7 @@ int PDUSessionModificationCommand::DecodePDUSessionModificationCommand(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, PDU_SESSION_MODIFICATION_COMMAND_MIN_LEN, len);
 
-  MLOG(MDEBUG) << "DecodePDUSessionModificationCommandMsg : ";
+  OAILOG_DEBUG(LOG_NAS5G, "DecodePDUSessionModificationCommandMsg");
   if ((decoded_result =
            pdu_sess_mod_comd->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(

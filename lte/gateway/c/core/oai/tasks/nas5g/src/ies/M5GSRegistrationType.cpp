@@ -12,6 +12,13 @@
 #include <iostream>
 #include <sstream>
 #include <cstdint>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSRegistrationType.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include <bitset>
@@ -33,8 +40,6 @@ int M5GSRegistrationTypeMsg::DecodeM5GSRegistrationTypeMsg(
 
   m5gs_reg_type->FOR = (*(buffer + decoded) >> 3) & 0x1;
   m5gs_reg_type->type_val = *(buffer + decoded) & 0x7;
-  MLOG(MDEBUG) << " FOR = 0x" << std::hex << int(m5gs_reg_type->FOR);
-  MLOG(MDEBUG) << " type_val = 0x" << std::hex << int(m5gs_reg_type->type_val);
   return decoded;
 };
 
