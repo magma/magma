@@ -55,8 +55,8 @@ DEFAULT_INFORM_PARAMS = [
     Param('Device.Services.FAPService.1.FAPControl.X_RADISYS_COM_AlarmStatus', 'string', 'Cleared'),
     Param('Device.Services.FAPService.2.FAPControl.LTE.OpState', 'boolean', 'false'),
     Param('Device.Services.FAPService.2.FAPControl.LTE.RFTxStatus', 'boolean', 'false'),
-    Param('Device.Services.FAPService.2.FAPControl.LTE.X_COM_HSS.HaloBEnableState', 'int', '0'),
-    Param('Device.Services.FAPService.2.FAPControl.LTE.X_COM_HSS.HaloBMode', 'int', '0'),
+    Param('Device.Services.FAPService.2.FAPControl.LTE.X_COM_HSS.HaloBEnableState', 'int', '1'),
+    Param('Device.Services.FAPService.2.FAPControl.LTE.X_COM_HSS.HaloBMode', 'int', '1'),
 ]
 
 GET_TRANSIENT_PARAMS_RESPONSE_PARAMS = [
@@ -103,6 +103,8 @@ GET_PARAMS_RESPONSE_PARAMS = [
     Param('Device.Services.FAPService.1.FAPControl.LTE.Gateway.S1SigLinkServerList', 'string', '192.168.60.142'),
     Param('Device.Services.FAPService.1.FAPControl.LTE.Gateway.X_COM_MmePool.Enable', 'boolean', 'false'),
     Param('Device.Services.FAPService.Ipsec.IPSEC_ENABLE', 'boolean', 'false'),
+    Param('Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.CarrierNumberOfEntries', 'int', '0'),
+    Param('Device.Services.FAPService.1.CellConfig.LTE.RAN.NeighborList.LTECellNumberOfEntries', 'int', '0'),
 ]
 
 MOCK_CBSD_STATE = CBSDStateResult(
@@ -429,6 +431,21 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
             'receiving a RebootResponse',
         )
 
+    def test_initial_enb_bootup(self) -> None:
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QRTB)
+        inform_msg = Tr069MessageBuilder.get_qrtb_inform(
+            params=DEFAULT_INFORM_PARAMS,
+            oui='48BF74',
+            enb_serial='1202000181186TB0006',
+            event_codes=['1 BOOT'],
+        )
+        resp = acs_state_machine.handle_tr069_message(inform_msg)
+
+        self.assertTrue(
+            isinstance(resp, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
+
     @mock.patch('magma.enodebd.devices.baicells_qrtb.get_cbsd_state')
     def test_provision(self, mock_get_state) -> None:
         mock_get_state.return_value = MOCK_CBSD_STATE
@@ -440,7 +457,7 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
         inform_msg = Tr069MessageBuilder.get_qrtb_inform(
             params=DEFAULT_INFORM_PARAMS,
             oui='48BF74',
-            enb_serial='1202000181186TB0006',
+            enb_serial='120200024019APP0105',
             event_codes=['2 PERIODIC'],
         )
         resp = acs_state_machine.handle_tr069_message(inform_msg)
@@ -614,6 +631,7 @@ class BaicellsQRTBConfigTests(EnodebHandlerTestCase):
     def test_frequency_related_params_removed_in_postprocessor(self):
         acs_state_machine = provision_clean_sm()
         acs_state_machine.device_cfg.set_parameter(ParameterName.IP_SEC_ENABLE, 'false')
+        acs_state_machine.device_cfg.set_parameter(ParameterName.SERIAL_NUMBER, '120200024019APP0105')
 
         parameters_to_delete = [
             ParameterName.RADIO_ENABLE, ParameterName.POWER_SPECTRAL_DENSITY,
@@ -646,7 +664,7 @@ class BaicellsQRTBConfigTests(EnodebHandlerTestCase):
         # Need to set this param on the device_cfg first, otherwise we won't be able to generate the desired_cfg
         # using 'build_desired_config' function
         acs_state_machine.device_cfg.set_parameter(ParameterName.IP_SEC_ENABLE, 'false')
-
+        acs_state_machine.device_cfg.set_parameter(ParameterName.SERIAL_NUMBER, '120200024019APP0105')
         acs_state_machine.desired_cfg = build_desired_config(
             acs_state_machine.mconfig,
             acs_state_machine.service_config,
@@ -692,7 +710,7 @@ class BaicellsQRTBConfigTests(EnodebHandlerTestCase):
     def test_sas_enable_mode_is_enabled(self):
         acs_state_machine = provision_clean_sm()
         acs_state_machine.device_cfg.set_parameter(ParameterName.IP_SEC_ENABLE, 'false')
-
+        acs_state_machine.device_cfg.set_parameter(ParameterName.SERIAL_NUMBER, '120200024019APP0105')
         acs_state_machine.desired_cfg = build_desired_config(
             acs_state_machine.mconfig,
             acs_state_machine.service_config,

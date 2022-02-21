@@ -350,8 +350,12 @@ export type enodeb_config = {
 export type enodeb_configuration = {
     bandwidth_mhz ? : 3 | 5 | 10 | 15 | 20,
     cell_id: number,
-    device_class: "Baicells Nova-233 G2 OD FDD" | "Baicells Nova-243 OD TDD" | "Baicells Neutrino 224 ID FDD" | "Baicells ID TDD/FDD" | "NuRAN Cavium OC-LTE" | "FreedomFi One",
+    device_class: "Baicells Nova-233 G2 OD FDD" | "Baicells Nova-243 OD TDD" | "Baicells Neutrino 224 ID FDD" | "Baicells Nova-436q TDD" | "Baicells ID TDD/FDD" | "NuRAN Cavium OC-LTE" | "FreedomFi One",
     earfcndl ? : number,
+    neighbor_cell_list ? : Array < neighbor_cell >
+        ,
+    neighbor_frequency_list ? : Array < neighbor_frequency >
+        ,
     pci ? : number,
     special_subframe_pattern ? : number,
     subframe_assignment ? : number,
@@ -864,6 +868,30 @@ export type mutable_subscriber = {
 };
 export type mutable_subscribers = Array < mutable_subscriber >
 ;
+export type neighbor_cell = {
+    cell_id ? : number,
+    cio ? : -24 | -22,
+    earfcn ? : number,
+    enable ? : boolean,
+    index ? : number,
+    pci ? : number,
+    plmn ? : string,
+    q_offset ? : -24 | -22 | -20,
+    tac ? : number,
+};
+export type neighbor_frequency = {
+    earfcn ? : number,
+    enable ? : boolean,
+    index ? : number,
+    p_max ? : number,
+    q_offset_range ? : -24 | -22,
+    q_rx_lev_min_sib5 ? : number,
+    resel_thresh_high ? : number,
+    resel_thresh_low ? : number,
+    reselection_priority ? : number,
+    t_reselection_eutra ? : number,
+    t_reselection_eutra_sf_medium ? : 25 | 50 | 75 | 100,
+};
 export type network = {
     description: network_description,
     dns: network_dns_config,

@@ -37,7 +37,6 @@ class GetParamsTestCase(EnodebHandlerTestCase):
     ):
         acs_state_machine = self._prepare_sm()
         data_model = BaicellsQRTBTrDataModel()
-
         if with_desired_config:
             acs_state_machine.desired_cfg = self._prepare_desired_cfg_for_sm(acs_state_machine)
 
@@ -55,6 +54,7 @@ class GetParamsTestCase(EnodebHandlerTestCase):
         sm = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QRTB)
         sm.device_cfg.set_parameter(ParameterName.IP_SEC_ENABLE, False)
         sm.device_cfg.set_parameter(ParameterName.NUM_PLMNS, 1)
+        sm.device_cfg.set_parameter(ParameterName.SERIAL_NUMBER, '120200024019APP0105')
         return sm
 
     @staticmethod

@@ -7577,6 +7577,7 @@ definitions:
         - Baicells Nova-233 G2 OD FDD
         - Baicells Nova-243 OD TDD
         - Baicells Neutrino 224 ID FDD
+        - Baicells Nova-436q TDD
         - Baicells ID TDD/FDD
         - NuRAN Cavium OC-LTE
         - FreedomFi One
@@ -7587,6 +7588,14 @@ definitions:
         example: 44590
         format: uint32
         type: integer
+      neighbor_cell_list:
+        items:
+          $ref: '#/definitions/neighbor_cell'
+        type: array
+      neighbor_frequency_list:
+        items:
+          $ref: '#/definitions/neighbor_frequency'
+        type: array
       pci:
         example: 260
         exclusiveMinimum: true
@@ -9264,6 +9273,143 @@ definitions:
     items:
       $ref: '#/definitions/mutable_subscriber'
     type: array
+  neighbor_cell:
+    description: Neighbor Cell Configuration for eNodeb devices.
+    properties:
+      cell_id:
+        description: Cell Identifier that identifies a cell.
+        example: 138777000
+        format: uint32
+        maximum: 268435455
+        type: integer
+      cio:
+        description: Cell individual offset applicable to a specific neighboring cell.
+        enum:
+        - -24
+        - -22
+        example: -24
+        format: int32
+        type: integer
+      earfcn:
+        description: Cell individual offset applicable to a spec neighbor cell.
+        example: 44390
+        format: uint32
+        type: integer
+      enable:
+        description: Neighbor Cell enable and disable.
+        example: true
+        type: boolean
+      index:
+        description: Neighbor Cell Object index, from 1 to 16.
+        example: 1
+        format: uint32
+        maximum: 16
+        minimum: 1
+        type: integer
+      pci:
+        description: Physical Cell ID for Neighbor cell.
+        example: 260
+        exclusiveMinimum: true
+        format: uint32
+        maximum: 503
+        minimum: 0
+        type: integer
+      plmn:
+        description: Enodeb Neighbor Cell PLMN ID Consists of MCC and MNC.
+        example: "00101"
+        pattern: ^(\d{5,6})$
+        type: string
+        x-nullable: false
+      q_offset:
+        description: Enodeb Neighbor Cell Q Offset Parameter.
+        enum:
+        - -24
+        - -22
+        - -20
+        example: -24
+        format: int32
+        type: integer
+      tac:
+        description: Tacking Area Code for LTE FAT as spec in SIB1 message.
+        example: 1
+        format: uint32
+        maximum: 65535
+        minimum: 1
+        type: integer
+    type: object
+  neighbor_frequency:
+    description: Neighbor Freq Configuration for eNodeb devices.
+    properties:
+      earfcn:
+        description: eighbor Freq E-UTRA Absolute Radio Frequency Channel Number.
+        example: 1
+        format: uint32
+        type: integer
+      enable:
+        description: Neighbor Freq enable and disable parameter.
+        example: true
+        type: boolean
+      index:
+        description: Neighbor freq index.
+        example: 1
+        format: uint32
+        maximum: 8
+        minimum: 1
+        type: integer
+      p_max:
+        description: Used to limit the allowed UE uplink tr power on the serving freq.
+        example: 1
+        format: int32
+        type: integer
+      q_offset_range:
+        description: Q offset range for neighbor Freq.
+        enum:
+        - -24
+        - -22
+        example: -24
+        format: int32
+        type: integer
+      q_rx_lev_min_sib5:
+        description: Minimum required quality measure, spec in db. See Section 10.3.2.3.
+        example: 1
+        format: int32
+        maximum: -22
+        minimum: -70
+        type: integer
+      resel_thresh_high:
+        description: Threshold used when re-selecting from a lower priority  E-UTRAN
+          frequency, specified in dB.
+        example: 31
+        format: uint32
+        type: integer
+      resel_thresh_low:
+        description: Threshold used when re-selecting from a lower priority E-UTRAN
+          frequency, specified in dB.
+        example: 31
+        format: uint32
+        type: integer
+      reselection_priority:
+        description: Absolute priority of this E-UTRA frequency carrier.
+        example: 7
+        format: uint32
+        type: integer
+      t_reselection_eutra:
+        description: The E-UTRA parameter for reselection.
+        example: 1
+        format: uint32
+        type: integer
+      t_reselection_eutra_sf_medium:
+        description: Scaling factor for intra-frequency TreselectionEUTRA in Medium-mobility
+          state.
+        enum:
+        - 25
+        - 50
+        - 75
+        - 100
+        example: 25
+        format: uint32
+        type: integer
+    type: object
   network:
     description: Orchestrator network spec
     properties:

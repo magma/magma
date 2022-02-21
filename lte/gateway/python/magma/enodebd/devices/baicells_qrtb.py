@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import re
 from typing import Any, Callable, Dict, List, Optional
 
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult
@@ -17,6 +18,7 @@ from magma.common.service import MagmaService
 from magma.enodebd.data_models import transform_for_magma
 from magma.enodebd.data_models.data_model import DataModel, TrParam
 from magma.enodebd.data_models.data_model_parameters import (
+    BaicellsParameterName,
     ParameterName,
     TrParameterType,
 )
@@ -25,6 +27,7 @@ from magma.enodebd.device_config.cbrs_consts import (
     SAS_MAX_POWER_SPECTRAL_DENSITY,
     SAS_MIN_POWER_SPECTRAL_DENSITY,
 )
+from magma.enodebd.device_config.configuration_init import build_desired_config
 from magma.enodebd.device_config.configuration_util import (
     calc_bandwidth_mhz,
     calc_bandwidth_rbs,
@@ -36,28 +39,31 @@ from magma.enodebd.device_config.enodeb_config_postprocessor import (
 from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.dp_client import get_cbsd_state
-from magma.enodebd.exceptions import ConfigurationError
+from magma.enodebd.exceptions import ConfigurationError, Tr069Error
 from magma.enodebd.logger import EnodebdLogger
-from magma.enodebd.state_machines.acs_state_utils import process_inform_message
+from magma.enodebd.state_machines.acs_state_utils import (
+    get_all_objects_to_add,
+    get_all_objects_to_delete,
+    get_all_param_values_to_set,
+    get_params_to_get,
+    parse_get_parameter_values_response,
+    process_inform_message,
+)
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_impl import BasicEnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_states import (
     AcsMsgAndTransition,
     AcsReadMsgResult,
-    AddObjectsState,
     DeleteObjectsState,
     EnbSendRebootState,
     EnodebAcsState,
     ErrorState,
-    GetObjectParametersState,
     GetParametersState,
     NotifyDPState,
     SendGetTransientParametersState,
     SetParameterValuesState,
     WaitEmptyMessageState,
-    WaitGetObjectParametersState,
     WaitGetParametersState,
-    WaitGetTransientParametersState,
     WaitInformMRebootState,
     WaitInformState,
     WaitRebootResponseState,
@@ -102,7 +108,7 @@ class BaicellsQRTBHandler(BasicEnodebAcsStateMachine):
             'wait_inform': WaitInformState(self, when_done='wait_empty', when_boot=None),
             'wait_empty': WaitEmptyMessageState(self, when_done='get_transient_params'),
             'get_transient_params': SendGetTransientParametersState(self, when_done='wait_get_transient_params'),
-            'wait_get_transient_params': WaitGetTransientParametersState(
+            'wait_get_transient_params': BaicellsWaitGetTransientParametersState(
                 self,
                 when_get='get_params',
                 when_get_obj_params='get_obj_params',
@@ -114,13 +120,13 @@ class BaicellsQRTBHandler(BasicEnodebAcsStateMachine):
             ),
             'get_params': GetParametersState(self, when_done='wait_get_params', request_all_params=True),
             'wait_get_params': WaitGetParametersState(self, when_done='get_obj_params'),
-            'get_obj_params': GetObjectParametersState(self, when_done='wait_get_obj_params', request_all_params=True),
-            'wait_get_obj_params': WaitGetObjectParametersState(
+            'get_obj_params': BaicellsGetObjectParametersState(self, when_done='wait_get_obj_params', request_all_params=True),
+            'wait_get_obj_params': BaicellsWaitGetObjectParametersState(
                 self, when_delete='delete_objs', when_add='add_objs',
                 when_set='set_params', when_skip='end_session',
             ),
             'delete_objs': DeleteObjectsState(self, when_add='add_objs', when_skip='set_params'),
-            'add_objs': AddObjectsState(self, when_done='set_params'),
+            'add_objs': BaicellsAddObjectsState(self, when_done='set_params'),
             'set_params': SetParameterValuesState(self, when_done='wait_set_params'),
             'wait_set_params': WaitSetParameterValuesState(
                 self, when_done='check_get_params',
@@ -514,6 +520,14 @@ class BaicellsQRTBTrDataModel(DataModel):
             path=FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNListNumberOfEntries',
             is_invasive=True, type=TrParameterType.INT, is_optional=False,
         ),
+        BaicellsParameterName.NUM_LTE_NEIGHBOR_FREQ: TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.CarrierNumberOfEntries', is_invasive=False,
+            type=TrParameterType.INT, is_optional=False,
+        ),
+        BaicellsParameterName.NUM_LTE_NEIGHBOR_CELL: TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.NeighborList.LTECellNumberOfEntries', is_invasive=False, type=TrParameterType.INT,
+            is_optional=False,
+        ),
 
         # PLMN arrays are added below
         ParameterName.PLMN: TrParam(
@@ -605,6 +619,92 @@ class BaicellsQRTBTrDataModel(DataModel):
             is_optional=False,
         )
 
+    NUM_NEIGHBOR_CELL_CONFIG = 16
+    for i in range(1, NUM_NEIGHBOR_CELL_CONFIG + 1):
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_CELL_LIST_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.NeighborList.LTECell.%d.' % i, is_invasive=True, type=TrParameterType.INT, is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_CELL_CELL_ID_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.NeighborList.LTECell.%d.CID' % i, is_invasive=True, type=TrParameterType.UNSIGNED_INT,
+            is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_CELL_PLMN_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.NeighborList.LTECell.%d.PLMNID' % i, is_invasive=True, type=TrParameterType.STRING,
+            is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_CELL_EARFCN_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.NeighborList.LTECell.%d.EUTRACarrierARFCN' % i, is_invasive=True,
+            type=TrParameterType.UNSIGNED_INT, is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_CELL_PCI_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.NeighborList.LTECell.%d.PhyCellID' % i, is_invasive=True,
+            type=TrParameterType.UNSIGNED_INT, is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_CELL_TAC_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.NeighborList.LTECell.%d.X_COM_TAC' % i, is_invasive=True,
+            type=TrParameterType.UNSIGNED_INT, is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_CELL_QOFFSET_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.NeighborList.LTECell.%d.QOffset' % i, is_invasive=True, type=TrParameterType.INT,
+            is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_CELL_CIO_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.NeighborList.LTECell.%d.CIO' % i, is_invasive=True, type=TrParameterType.INT, is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_CELL_ENABLE_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.NeighborList.LTECell.%d.Enable' % i, is_invasive=True, type=TrParameterType.BOOLEAN,
+            is_optional=False,
+        )
+
+    NUM_NEIGHBOR_FREQ_CONFIG = 8
+    for i in range(1, NUM_NEIGHBOR_FREQ_CONFIG + 1):
+        PARAMETERS[BaicellsParameterName.NEGIH_FREQ_LIST % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.%d.' % i, is_invasive=True,
+            type=TrParameterType.UNSIGNED_INT, is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_FREQ_EARFCN_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.%d.EUTRACarrierARFCN' % i, is_invasive=True,
+            type=TrParameterType.UNSIGNED_INT, is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_FREQ_QRXLEVMINSIB5_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.%d.QRxLevMinSIB5' % i, is_invasive=True,
+            type=TrParameterType.INT, is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_FREQ_Q_OFFSETRANGE_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.%d.QOffsetFreq' % i, is_invasive=True,
+            type=TrParameterType.INT, is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_FREQ_TRESELECTIONEUTRA_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.%d.TReselectionEUTRA' % i, is_invasive=True,
+            type=TrParameterType.UNSIGNED_INT, is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_FREQ_RESELECTIONPRIORITY_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.%d.CellReselectionPriority' % i,
+            is_invasive=True,
+            type=TrParameterType.UNSIGNED_INT, is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_FREQ_RESELTHRESHHIGH_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.%d.ThreshXHigh' % i, is_invasive=True,
+            type=TrParameterType.UNSIGNED_INT, is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_FREQ_RESELTHRESHLOW_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.%d.ThreshXLow' % i, is_invasive=True,
+            type=TrParameterType.UNSIGNED_INT, is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_FREQ_PMAX_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.%d.PMax' % i, is_invasive=True,
+            type=TrParameterType.INT, is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_FREQ_TRESELECTIONEUTRASFMEDIUM_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.%d.TReselectionEUTRASFMedium' % i,
+            is_invasive=True,
+            type=TrParameterType.UNSIGNED_INT, is_optional=False,
+        )
+        PARAMETERS[BaicellsParameterName.NEIGHBOR_FREQ_ENABLE_N % i] = TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.%d.Enable' % i, is_invasive=True,
+            type=TrParameterType.BOOLEAN, is_optional=False,
+        )
+
     TRANSFORMS_FOR_MAGMA = {
         # We don't set GPS, so we don't need transform for enb
         ParameterName.GPS_LAT: transform_for_magma.gps_tr181,
@@ -655,6 +755,16 @@ class BaicellsQRTBTrDataModel(DataModel):
         return cls.NUM_PLMNS_IN_CONFIG
 
     @classmethod
+    def get_num_neighbor_freq(cls) -> int:
+        """ Get the neighbor freq number """
+        return cls.NUM_NEIGHBOR_FREQ_CONFIG
+
+    @classmethod
+    def get_num_neighbor_cell(cls) -> int:
+        """ Get the neighbor cell number """
+        return cls.NUM_NEIGHBOR_CELL_CONFIG
+
+    @classmethod
     def get_parameter_names(cls) -> List[ParameterName]:
         """
         Retrieve all parameter names
@@ -668,7 +778,8 @@ class BaicellsQRTBTrDataModel(DataModel):
         ]
         names = list(
             filter(
-                lambda x: (not str(x).startswith('PLMN')) and (str(x) not in excluded_params),
+                lambda x: (not str(x).startswith('PLMN')) and (not str(x).startswith('neighbor'))
+                and (str(x) not in excluded_params),
                 cls.PARAMETERS.keys(),
             ),
         )
@@ -690,6 +801,32 @@ class BaicellsQRTBTrDataModel(DataModel):
             params.append(ParameterName.PLMN_N_PRIMARY % i)
             params.append(ParameterName.PLMN_N_PLMNID % i)
             names[ParameterName.PLMN_N % i] = params
+        for i in range(1, cls.NUM_NEIGHBOR_FREQ_CONFIG + 1):
+            params = [
+                BaicellsParameterName.NEIGHBOR_FREQ_ENABLE_N % i,
+                BaicellsParameterName.NEIGHBOR_FREQ_EARFCN_N % i,
+                BaicellsParameterName.NEIGHBOR_FREQ_PMAX_N % i,
+                BaicellsParameterName.NEIGHBOR_FREQ_Q_OFFSETRANGE_N % i,
+                BaicellsParameterName.NEIGHBOR_FREQ_Q_OFFSETRANGE_N % i,
+                BaicellsParameterName.NEIGHBOR_FREQ_RESELTHRESHLOW_N % i,
+                BaicellsParameterName.NEIGHBOR_FREQ_RESELTHRESHHIGH_N % i,
+                BaicellsParameterName.NEIGHBOR_FREQ_RESELECTIONPRIORITY_N % i,
+                BaicellsParameterName.NEIGHBOR_FREQ_QRXLEVMINSIB5_N % i,
+                BaicellsParameterName.NEIGHBOR_FREQ_TRESELECTIONEUTRA_N % i,
+            ]
+            names[BaicellsParameterName.NEGIH_FREQ_LIST % i] = params
+        for i in range(1, cls.NUM_NEIGHBOR_CELL_CONFIG + 1):
+            params = [
+                BaicellsParameterName.NEIGHBOR_CELL_ENABLE_N % i,
+                BaicellsParameterName.NEIGHBOR_CELL_PLMN_N % i,
+                BaicellsParameterName.NEIGHBOR_CELL_CELL_ID_N % i,
+                BaicellsParameterName.NEIGHBOR_CELL_EARFCN_N % i,
+                BaicellsParameterName.NEIGHBOR_CELL_PCI_N % i,
+                BaicellsParameterName.NEIGHBOR_CELL_TAC_N % i,
+                BaicellsParameterName.NEIGHBOR_CELL_QOFFSET_N % i,
+                BaicellsParameterName.NEIGHBOR_CELL_CIO_N % i,
+            ]
+            names[BaicellsParameterName.NEIGHBOR_CELL_LIST_N % i] = params
         return names
 
 
@@ -765,3 +902,502 @@ def _calc_psd(eirp: float) -> int:
             (psd, SAS_MIN_POWER_SPECTRAL_DENSITY, SAS_MAX_POWER_SPECTRAL_DENSITY),
         )
     return psd
+
+
+class BaicellsWaitGetObjectParametersState(EnodebAcsState):
+    """
+        The state method for Baicells 436q.  Add the neighbor cell
+        object and neighbor freq object in current method.
+    """
+
+    def __init__(
+            self,
+            acs: EnodebAcsStateMachine,
+            when_delete: str,
+            when_add: str,
+            when_set: str,
+            when_skip: str,
+    ):
+        super().__init__()
+        self.acs = acs
+        self.rm_obj_transition = when_delete
+        self.add_obj_transition = when_add
+        self.set_params_transition = when_set
+        self.skip_transition = when_skip
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        """ Process GetParameterValuesResponse """
+        if not isinstance(
+                message,
+                models.GetParameterValuesResponse,
+        ):
+            return AcsReadMsgResult(msg_handled=False, next_state=None)
+
+        path_to_val = {}
+        if hasattr(message.ParameterList, 'ParameterValueStruct') and \
+                message.ParameterList.ParameterValueStruct is not None:
+            for param_value_struct in message.ParameterList.ParameterValueStruct:
+                path_to_val[param_value_struct.Name] = \
+                    param_value_struct.Value.Data
+        logger.debug('Received object parameters: %s', str(path_to_val))
+
+        # Number of PLMN objects reported can be incorrect. Let's count them
+        num_plmns = 0
+        obj_to_params = self.acs.data_model.get_numbered_param_names()
+        logger.info('enb obj_to_params= %s', obj_to_params)
+        while True:
+            obj_name = ParameterName.PLMN_N % (num_plmns + 1)
+            if obj_name not in obj_to_params or len(obj_to_params[obj_name]) == 0:
+                logger.warning(
+                    "eNB has PLMN %s but not defined in model",
+                    obj_name,
+                )
+                break
+            param_name_list = obj_to_params[obj_name]
+            obj_path = self.acs.data_model.get_parameter(param_name_list[0]).path
+            if obj_path not in path_to_val:
+                break
+            if not self.acs.device_cfg.has_object(obj_name):
+                self.acs.device_cfg.add_object(obj_name)
+            num_plmns += 1
+            for name in param_name_list:
+                path = self.acs.data_model.get_parameter(name).path
+                value = path_to_val[path]
+                magma_val = \
+                    self.acs.data_model.transform_for_magma(name, value)
+                self.acs.device_cfg.set_parameter_for_object(
+                    name, magma_val,
+                    obj_name,
+                )
+        num_plmns_reported = \
+            int(self.acs.device_cfg.get_parameter(ParameterName.NUM_PLMNS))
+        if num_plmns != num_plmns_reported:
+            logger.warning(
+                "eNB reported %d PLMNs but found %d",
+                num_plmns_reported, num_plmns,
+            )
+            self.acs.device_cfg.set_parameter(
+                ParameterName.NUM_PLMNS,
+                num_plmns,
+            )
+        # Number of Neighbor Freq objects reported can be incorrect. Let's count them
+        num_neighbor = 0
+        while True:
+            obj_name = BaicellsParameterName.NEGIH_FREQ_LIST % (num_neighbor + 1)
+            logger.info('enb obj_name= %s', obj_name)
+            if obj_name not in obj_to_params or len(obj_to_params[obj_name]) == 0:
+                logger.warning(
+                    "eNB has Neighbor %s but not defined in model",
+                    obj_name,
+                )
+                break
+            param_name_list = obj_to_params[obj_name]
+            obj_path = self.acs.data_model.get_parameter(param_name_list[0]).path
+            if obj_path not in path_to_val:
+                break
+            if not self.acs.device_cfg.has_object(obj_name):
+                self.acs.device_cfg.add_object(obj_name)
+            num_neighbor = num_neighbor + 1
+            for name in param_name_list:
+                path = self.acs.data_model.get_parameter(name).path
+                value = path_to_val[path]
+                magma_val = \
+                    self.acs.data_model.transform_for_magma(name, value)
+                self.acs.device_cfg.set_parameter_for_object(
+                    name, magma_val, obj_name,
+                )
+        num_neighbor_reported = \
+            int(self.acs.device_cfg.get_parameter(BaicellsParameterName.NUM_LTE_NEIGHBOR_FREQ))
+        if num_neighbor != num_neighbor_reported:
+            logger.warning(
+                "eNB reported %d Neighbor but found %d",
+                num_neighbor_reported, num_neighbor,
+            )
+            self.acs.device_cfg.set_parameter(
+                BaicellsParameterName.NUM_LTE_NEIGHBOR_FREQ,
+                num_neighbor,
+            )
+        # Number of Neighbor Cell objects reported can be incorrect. Let's count them
+        num_neighbor_cell = 0
+        while True:
+            obj_name = BaicellsParameterName.NEIGHBOR_CELL_LIST_N % (num_neighbor_cell + 1)
+            if obj_name not in obj_to_params or len(obj_to_params[obj_name]) == 0:
+                logger.warning(
+                    "eNB has Neighbor %s but not defined in model",
+                    obj_name,
+                )
+                break
+            param_name_list = obj_to_params[obj_name]
+            obj_path = self.acs.data_model.get_parameter(param_name_list[0]).path
+            if obj_path not in path_to_val:
+                break
+            if not self.acs.device_cfg.has_object(obj_name):
+                self.acs.device_cfg.add_object(obj_name)
+            num_neighbor_cell = num_neighbor_cell + 1
+            for name in param_name_list:
+                path = self.acs.data_model.get_parameter(name).path
+                value = path_to_val[path]
+                magma_val = \
+                    self.acs.data_model.transform_for_magma(name, value)
+                self.acs.device_cfg.set_parameter_for_object(
+                    name, magma_val, obj_name,
+                )
+        num_neighbor_cell_reported = int(self.acs.device_cfg.get_parameter(BaicellsParameterName.NUM_LTE_NEIGHBOR_CELL))
+        if num_neighbor_cell != num_neighbor_cell_reported:
+            logger.warning(
+                "eNB reported %d neighbor cell but found %d",
+                num_neighbor_cell_reported, num_neighbor_cell,
+            )
+            self.acs.device_cfg.set_parameter(
+                BaicellsParameterName.NUM_LTE_NEIGHBOR_CELL,
+                num_neighbor_cell,
+            )
+
+        # Now we can have the desired state
+        if self.acs.desired_cfg is None:
+            self.acs.desired_cfg = build_desired_config(
+                self.acs.mconfig,
+                self.acs.service_config,
+                self.acs.device_cfg,
+                self.acs.data_model,
+                self.acs.config_postprocessor,
+            )
+        logger.debug('the building desired config is %s', self.acs.desired_cfg.get_object_names())
+        logger.debug('the building device_cfg  is------%s-------', self.acs.device_cfg.get_object_names())
+        if len(
+                get_all_objects_to_delete(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
+        ) > 0:
+
+            return AcsReadMsgResult(msg_handled=True, next_state=self.rm_obj_transition)
+        elif len(
+                get_all_objects_to_add(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
+        ) > 0:
+            return AcsReadMsgResult(msg_handled=True, next_state=self.add_obj_transition)
+        elif len(
+                get_all_param_values_to_set(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                    self.acs.data_model,
+                ),
+        ) > 0:
+            return AcsReadMsgResult(msg_handled=True, next_state=self.set_params_transition)
+        return AcsReadMsgResult(msg_handled=True, next_state=self.skip_transition)
+
+    def state_description(self) -> str:
+        return 'Getting object parameters'
+
+
+class BaicellsDeleteObjectsState(EnodebAcsState):
+    def __init__(
+            self,
+            acs: EnodebAcsStateMachine,
+            when_add: str,
+            when_skip: str,
+    ):
+        super().__init__()
+        self.acs = acs
+        self.deleted_param = None
+        self.add_obj_transition = when_add
+        self.skip_transition = when_skip
+
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        """
+        Send DeleteObject message to TR-069 and poll for response(s).
+        Input:
+            - Object name (string)
+            - message
+        - return
+        """
+        request = models.DeleteObject()
+        self.deleted_param = get_all_objects_to_delete(
+            self.acs.desired_cfg,
+            self.acs.device_cfg,
+        )[0]
+        logger.debug('get obj to delete %s', self.deleted_param)
+        request.ObjectName = \
+            self.acs.data_model.get_parameter(self.deleted_param).path
+        return AcsMsgAndTransition(request, None)
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        """
+        Send DeleteObject message to TR-069 and poll for response(s).
+        Input:
+            - Object name (string)
+        """
+        if isinstance(message, models.DeleteObjectResponse):
+            if message.Status != 0:
+                raise Tr069Error(
+                    'Received DeleteObjectResponse with '
+                    'Status=%d' % message.Status,
+                )
+        elif isinstance(message, models.Fault):
+            raise Tr069Error(
+                'Received Fault in response to DeleteObject '
+                '(faultstring = %s)' % message.FaultString,
+            )
+        else:
+            return AcsReadMsgResult(msg_handled=False, next_state=None)
+
+        self.acs.device_cfg.delete_object(self.deleted_param)
+        obj_list_to_delete = get_all_objects_to_delete(
+            self.acs.desired_cfg,
+            self.acs.device_cfg,
+        )
+        if len(obj_list_to_delete) > 0:
+            return AcsReadMsgResult(True, None)
+        if len(
+                get_all_objects_to_add(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
+        ) == 0:
+            return AcsReadMsgResult(True, self.skip_transition)
+        return AcsReadMsgResult(True, self.add_obj_transition)
+
+    def state_description(self) -> str:
+        return 'Deleting objects'
+
+
+class BaicellsGetObjectParametersState(EnodebAcsState):
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str, request_all_params: bool = False):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+        self.request_all_params = request_all_params
+
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        """ Respond with GetParameterValuesRequest """
+        names = get_object_params_to_get(
+            self.acs.desired_cfg,
+            self.acs.device_cfg,
+            self.acs.data_model,
+            self.request_all_params,
+        )
+
+        # Generate the request
+        request = models.GetParameterValues()
+        request.ParameterNames = models.ParameterNames()
+        request.ParameterNames.arrayType = 'xsd:string[%d]' \
+                                           % len(names)
+        request.ParameterNames.string = []
+        for name in names:
+            path = self.acs.data_model.get_parameter(name).path
+            request.ParameterNames.string.append(path)
+
+        return AcsMsgAndTransition(request, self.done_transition)
+
+    def state_description(self) -> str:
+        return 'Getting object parameters'
+
+
+class BaicellsWaitGetTransientParametersState(EnodebAcsState):
+    """
+    Periodically read eNodeB status. Note: keep frequency low to avoid
+    backing up large numbers of read operations if enodebd is busy
+    """
+
+    def __init__(
+            self,
+            acs: EnodebAcsStateMachine,
+            when_get: str,
+            when_get_obj_params: str,
+            when_delete: str,
+            when_add: str,
+            when_set: str,
+            when_skip: str,
+            request_all_params: bool = False,
+    ):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_get
+        self.get_obj_params_transition = when_get_obj_params
+        self.rm_obj_transition = when_delete
+        self.add_obj_transition = when_add
+        self.set_transition = when_set
+        self.skip_transition = when_skip
+        self.request_all_params = request_all_params
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        if not isinstance(message, models.GetParameterValuesResponse):
+            return AcsReadMsgResult(False, None)
+        # Current values of the fetched parameters
+        name_to_val = parse_get_parameter_values_response(
+            self.acs.data_model,
+            message,
+        )
+        logger.debug('Fetched Transient Params: %s', str(name_to_val))
+
+        # Update device configuration
+        for name in name_to_val:
+            magma_val = \
+                self.acs.data_model.transform_for_magma(
+                    name,
+                    name_to_val[name],
+                )
+            self.acs.device_cfg.set_parameter(name, magma_val)
+
+        return AcsReadMsgResult(True, self.get_next_state())
+
+    def get_next_state(self) -> str:
+        should_get_params = \
+            len(
+                get_params_to_get(
+                    self.acs.device_cfg,
+                    self.acs.data_model,
+                    request_all_params=self.request_all_params,
+                ),
+            ) > 0
+        if should_get_params:
+            return self.done_transition
+        should_get_obj_params = \
+            len(
+                get_object_params_to_get(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                    self.acs.data_model,
+                ),
+            ) > 0
+        if should_get_obj_params:
+            return self.get_obj_params_transition
+        elif len(
+            get_all_objects_to_delete(
+                self.acs.desired_cfg,
+                self.acs.device_cfg,
+            ),
+        ) > 0:
+            return self.rm_obj_transition
+        elif len(
+            get_all_objects_to_add(
+                self.acs.desired_cfg,
+                self.acs.device_cfg,
+            ),
+        ) > 0:
+            return self.add_obj_transition
+        return self.skip_transition
+
+    def state_description(self) -> str:
+        return 'Getting transient read-only parameters'
+
+
+def get_object_params_to_get(
+        desired_cfg: Optional[EnodebConfiguration],
+        device_cfg: EnodebConfiguration,
+        data_model: DataModel,
+        request_all_params: bool = False,
+) -> List[ParameterName]:
+    """
+     - data_model
+     - desired_cfg
+     - device_cfg
+     - return Returns a list of parameter names for object parameters we don't know the
+    current value of
+    """
+    names = []
+    # TODO: This might a string for some strange reason, investigate why
+    num_plmns = \
+        int(device_cfg.get_parameter(ParameterName.NUM_PLMNS))
+    for i in range(1, num_plmns + 1):
+        obj_name = ParameterName.PLMN_N % i
+        if not device_cfg.has_object(obj_name):
+            device_cfg.add_object(obj_name)
+        obj_to_params = data_model.get_numbered_param_names()
+        desired = obj_to_params[obj_name]
+        if request_all_params:
+            names += desired
+        else:
+            current = []
+            if desired_cfg is not None:
+                current = desired_cfg.get_parameter_names_for_object(obj_name)
+            names_to_add = list(set(desired) - set(current))
+            names = names + names_to_add
+    num_neighbor_freq = int(device_cfg.get_parameter(BaicellsParameterName.NUM_LTE_NEIGHBOR_FREQ))
+    for i in range(1, num_neighbor_freq + 1):
+        obj_name = BaicellsParameterName.NEGIH_FREQ_LIST % i
+        if not device_cfg.has_object(obj_name):
+            device_cfg.add_object(obj_name)
+        obj_to_params = data_model.get_numbered_param_names()
+        desired = obj_to_params[obj_name]
+        if request_all_params:
+            names += desired
+        else:
+            current = []
+            if desired_cfg is not None and desired_cfg.has_object():
+                current = desired_cfg.get_parameter_names_for_object(obj_name)
+            names_to_add = list(set(desired) - set(current))
+            names = names + names_to_add
+    num_neighbor_cell = int(device_cfg.get_parameter(BaicellsParameterName.NUM_LTE_NEIGHBOR_CELL))
+    for i in range(1, num_neighbor_cell + 1):
+        obj_name = BaicellsParameterName.NEIGHBOR_CELL_LIST_N % i
+        if not device_cfg.has_object(obj_name):
+            device_cfg.add_object(obj_name)
+        obj_to_params = data_model.get_numbered_param_names()
+        desired = obj_to_params[obj_name]
+        if request_all_params:
+            names += desired
+        else:
+            current = []
+            if desired_cfg is not None and desired_cfg.has_object(obj_name):
+                current = desired_cfg.get_parameter_names_for_object(obj_name)
+            names_to_add = list(set(desired) - set(current))
+            names = names + names_to_add
+    return names
+
+
+class BaicellsAddObjectsState(EnodebAcsState):
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+        self.added_param = None
+
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        request = models.AddObject()
+        self.added_param = get_all_objects_to_add(
+            self.acs.desired_cfg,
+            self.acs.device_cfg,
+        )[0]
+        desired_param = self.acs.data_model.get_parameter(self.added_param)
+        desired_path = desired_param.path
+        path_parts = desired_path.split('.')
+        # If adding enumerated object, ie. XX.N. we should add it to the
+        # parent object XX. so strip the index
+        if len(path_parts) > 2 and \
+                path_parts[-1] == '' and path_parts[-2].isnumeric():
+            logger.debug('Stripping index from path=%s', desired_path)
+            desired_path = '.'.join(path_parts[:-2]) + '.'
+        request.ObjectName = desired_path
+        return AcsMsgAndTransition(request, None)
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        if isinstance(message, models.AddObjectResponse):
+            if message.Status != 0:
+                raise Tr069Error(
+                    'Received AddObjectResponse with '
+                    'Status=%d' % message.Status,
+                )
+        elif isinstance(message, models.Fault):
+            raise Tr069Error(
+                'Received Fault in response to AddObject '
+                '(faultstring = %s)' % message.FaultString,
+            )
+        else:
+            return AcsReadMsgResult(msg_handled=False, next_state=None)
+        instance_n = message.InstanceNumber
+        self.added_param = re.sub(r'\d', str(instance_n), self.added_param)
+        self.acs.device_cfg.add_object(self.added_param)
+        obj_list_to_add = get_all_objects_to_add(
+            self.acs.desired_cfg,
+            self.acs.device_cfg,
+        )
+        if len(obj_list_to_add) > 0:
+            return AcsReadMsgResult(msg_handled=True, next_state=None)
+        return AcsReadMsgResult(msg_handled=True, next_state=self.done_transition)
+
+    def state_description(self) -> str:
+        return 'Adding objects'

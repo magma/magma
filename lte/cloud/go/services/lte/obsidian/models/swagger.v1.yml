@@ -2456,10 +2456,155 @@ definitions:
           - 'Baicells Nova-233 G2 OD FDD'
           - 'Baicells Nova-243 OD TDD'
           - 'Baicells Neutrino 224 ID FDD'
+          - 'Baicells Nova-436q TDD'
           - 'Baicells ID TDD/FDD'
           - 'NuRAN Cavium OC-LTE'
           - 'FreedomFi One'
         x-nullable: false
+      neighbor_frequency_list:
+        type: array
+        items:
+          $ref: '#/definitions/neighbor_frequency'
+      neighbor_cell_list:
+        type: array
+        items:
+          $ref: '#/definitions/neighbor_cell'
+
+  neighbor_cell:
+    description: Neighbor Cell Configuration for eNodeb devices.
+    type: object
+    properties:
+      index:
+        description: Neighbor Cell Object index, from 1 to 16.
+        type: integer
+        format: uint32
+        minimum: 1
+        maximum: 16
+        example: 1
+      plmn:
+        description: Enodeb Neighbor Cell PLMN ID Consists of MCC and MNC.
+        type: string
+        pattern: '^(\d{5,6})$'
+        example: '00101'
+        x-nullable: false
+      cell_id:
+        description: Cell Identifier that identifies a cell.
+        type: integer
+        format: uint32
+        maximum: 268435455
+        example: 138777000
+      earfcn:
+        description: Cell individual offset applicable to a spec neighbor cell.
+        type: integer
+        format: uint32
+        example: 44390
+      pci:
+        description: Physical Cell ID for Neighbor cell.
+        type: integer
+        format: uint32
+        minimum: 0
+        exclusiveMinimum: true
+        maximum: 503
+        example: 260
+      tac:
+        description: Tacking Area Code for LTE FAT as spec in SIB1 message.
+        type: integer
+        format: uint32
+        minimum: 1
+        maximum: 65535
+        example: 1
+      q_offset:
+        description: Enodeb Neighbor Cell Q Offset Parameter.
+        type: integer
+        format: int32
+        example: -24
+        enum:
+          - -24
+          - -22
+          - -20
+      cio:
+        description: Cell individual offset applicable to a specific neighboring cell.
+        type: integer
+        format: int32
+        example: -24
+        enum:
+          - -24
+          - -22
+      enable:
+        description: Neighbor Cell enable and disable.
+        type: boolean
+        example: true
+
+  neighbor_frequency:
+    description: Neighbor Freq Configuration for eNodeb devices.
+    type: object
+    properties:
+      index:
+        description: Neighbor freq index.
+        type: integer
+        format: uint32
+        minimum: 1
+        maximum: 8
+        example: 1
+      earfcn:
+        description: eighbor Freq E-UTRA Absolute Radio Frequency Channel Number.
+        type: integer
+        format: uint32
+        example: 1
+      q_offset_range:
+        description: Q offset range for neighbor Freq.
+        type: integer
+        format: int32
+        example: -24
+        enum:
+          - -24
+          - -22
+      q_rx_lev_min_sib5:
+        description: Minimum required quality measure, spec in db. See Section 10.3.2.3.
+        type: integer
+        format: int32
+        minimum: -70
+        maximum: -22
+        example: 1
+      p_max:
+        description: Used to limit the allowed UE uplink tr power on the serving freq.
+        type: integer
+        format: int32
+        example: 1
+      t_reselection_eutra:
+        description: The E-UTRA parameter for reselection.
+        type: integer
+        format: uint32
+        example: 1
+      t_reselection_eutra_sf_medium:
+        description: Scaling factor for intra-frequency TreselectionEUTRA in Medium-mobility state.
+        type: integer
+        format: uint32
+        example: 25
+        enum:
+          - 25
+          - 50
+          - 75
+          - 100
+      resel_thresh_high:
+        description: Threshold used when re-selecting from a lower priority  E-UTRAN frequency, specified in dB.
+        type: integer
+        format: uint32
+        example: 31
+      resel_thresh_low:
+        description: Threshold used when re-selecting from a lower priority E-UTRAN frequency, specified in dB.
+        type: integer
+        format: uint32
+        example: 31
+      reselection_priority:
+        description: Absolute priority of this E-UTRA frequency carrier.
+        type: integer
+        format: uint32
+        example: 7
+      enable:
+        description: Neighbor Freq enable and disable parameter.
+        type: boolean
+        example: true
 
   unmanaged_enodeb_configuration:
     description: Configuration for externally managed eNodeb devices.

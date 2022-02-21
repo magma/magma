@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strconv"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -426,6 +427,8 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			enbMconfig.BandwidthMhz = int32(cellularEnbConfig.BandwidthMhz)
 			enbMconfig.Tac = int32(cellularEnbConfig.Tac)
 			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
+			enbMconfig.NeighborCellList = getNeighborCell(enodebConfig)
+			enbMconfig.NeighborFreqList = getNeighborFreq(enodebConfig)
 
 			// override zero values with network/gateway configs
 			if enbMconfig.Earfcndl == 0 {
@@ -463,6 +466,48 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 		}
 
 		ret[serial] = enbMconfig
+	}
+	return ret
+}
+
+func getNeighborCell(enbConfig *lte_models.EnodebConfig) map[string]*lte_mconfig.EnodebD_EnodebConfigNeighborCellTable {
+	cellularNeighborCell := enbConfig.ManagedConfig.NeighborCellList
+	ret := make(map[string]*lte_mconfig.EnodebD_EnodebConfigNeighborCellTable, len(cellularNeighborCell))
+	for _, neighbor := range cellularNeighborCell {
+		enbNeighborCell := &lte_mconfig.EnodebD_EnodebConfigNeighborCellTable{}
+		enbNeighborCell.Index = neighbor.Index
+		enbNeighborCell.CellId = neighbor.CellID
+		enbNeighborCell.Earfcn = neighbor.Earfcn
+		enbNeighborCell.Pci = neighbor.Pci
+		enbNeighborCell.Tac = neighbor.Tac
+		enbNeighborCell.QOffset = neighbor.QOffset
+		enbNeighborCell.Cio = neighbor.Cio
+		enbNeighborCell.Enable = neighbor.Enable
+		enbNeighborCell.Plmn = neighbor.Plmn
+		index := strconv.Itoa(int(neighbor.Index))
+		ret[index] = enbNeighborCell
+	}
+	return ret
+}
+
+func getNeighborFreq(enbConfig *lte_models.EnodebConfig) map[string]*lte_mconfig.EnodebD_EnodebConfigNeighborFreqTable {
+	cellularNeighborFreq := enbConfig.ManagedConfig.NeighborFrequencyList
+	ret := make(map[string]*lte_mconfig.EnodebD_EnodebConfigNeighborFreqTable, len(cellularNeighborFreq))
+	for _, neighbor := range cellularNeighborFreq {
+		enbNeighborFreq := &lte_mconfig.EnodebD_EnodebConfigNeighborFreqTable{}
+		enbNeighborFreq.Index = neighbor.Index
+		enbNeighborFreq.Enable = neighbor.Enable
+		enbNeighborFreq.Earfcn = neighbor.Earfcn
+		enbNeighborFreq.QOffsetRange = neighbor.QOffsetRange
+		enbNeighborFreq.QRxLevMinSib5 = neighbor.QRxLevMinSib5
+		enbNeighborFreq.PMax = neighbor.PMax
+		enbNeighborFreq.TReselectionEutra = neighbor.TReselectionEutra
+		enbNeighborFreq.TReselectionEutraSfMedium = neighbor.TReselectionEutraSfMedium
+		enbNeighborFreq.ReselThreshHigh = neighbor.ReselThreshHigh
+		enbNeighborFreq.ReselThreshLow = neighbor.ReselThreshLow
+		enbNeighborFreq.ReselectionPriority = neighbor.ReselectionPriority
+		index := strconv.Itoa(int(neighbor.Index))
+		ret[index] = enbNeighborFreq
 	}
 	return ret
 }

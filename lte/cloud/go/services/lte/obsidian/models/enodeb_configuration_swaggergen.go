@@ -7,6 +7,7 @@ package models
 
 import (
 	"encoding/json"
+	"strconv"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -30,11 +31,17 @@ type EnodebConfiguration struct {
 
 	// device class
 	// Required: true
-	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells Neutrino 224 ID FDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE FreedomFi One]
+	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells Neutrino 224 ID FDD Baicells Nova-436q TDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE FreedomFi One]
 	DeviceClass string `json:"device_class"`
 
 	// earfcndl
 	Earfcndl uint32 `json:"earfcndl,omitempty"`
+
+	// neighbor cell list
+	NeighborCellList []*NeighborCell `json:"neighbor_cell_list"`
+
+	// neighbor frequency list
+	NeighborFrequencyList []*NeighborFrequency `json:"neighbor_frequency_list"`
 
 	// pci
 	// Maximum: 503
@@ -72,6 +79,14 @@ func (m *EnodebConfiguration) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateDeviceClass(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateNeighborCellList(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateNeighborFrequencyList(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -152,7 +167,7 @@ var enodebConfigurationTypeDeviceClassPropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["Baicells Nova-233 G2 OD FDD","Baicells Nova-243 OD TDD","Baicells Neutrino 224 ID FDD","Baicells ID TDD/FDD","NuRAN Cavium OC-LTE","FreedomFi One"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["Baicells Nova-233 G2 OD FDD","Baicells Nova-243 OD TDD","Baicells Neutrino 224 ID FDD","Baicells Nova-436q TDD","Baicells ID TDD/FDD","NuRAN Cavium OC-LTE","FreedomFi One"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -170,6 +185,9 @@ const (
 
 	// EnodebConfigurationDeviceClassBaicellsNeutrino224IDFDD captures enum value "Baicells Neutrino 224 ID FDD"
 	EnodebConfigurationDeviceClassBaicellsNeutrino224IDFDD string = "Baicells Neutrino 224 ID FDD"
+
+	// EnodebConfigurationDeviceClassBaicellsNova436qTDD captures enum value "Baicells Nova-436q TDD"
+	EnodebConfigurationDeviceClassBaicellsNova436qTDD string = "Baicells Nova-436q TDD"
 
 	// EnodebConfigurationDeviceClassBaicellsIDTDDFDD captures enum value "Baicells ID TDD/FDD"
 	EnodebConfigurationDeviceClassBaicellsIDTDDFDD string = "Baicells ID TDD/FDD"
@@ -198,6 +216,56 @@ func (m *EnodebConfiguration) validateDeviceClass(formats strfmt.Registry) error
 	// value enum
 	if err := m.validateDeviceClassEnum("device_class", "body", m.DeviceClass); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *EnodebConfiguration) validateNeighborCellList(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.NeighborCellList) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.NeighborCellList); i++ {
+		if swag.IsZero(m.NeighborCellList[i]) { // not required
+			continue
+		}
+
+		if m.NeighborCellList[i] != nil {
+			if err := m.NeighborCellList[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("neighbor_cell_list" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *EnodebConfiguration) validateNeighborFrequencyList(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.NeighborFrequencyList) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.NeighborFrequencyList); i++ {
+		if swag.IsZero(m.NeighborFrequencyList[i]) { // not required
+			continue
+		}
+
+		if m.NeighborFrequencyList[i] != nil {
+			if err := m.NeighborFrequencyList[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("neighbor_frequency_list" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
 	}
 
 	return nil
