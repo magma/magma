@@ -42,20 +42,14 @@ int M5GMaxNumOfSupportedPacketFilters::DecodeMaxNumOfSupportedPacketFilters(
     M5GMaxNumOfSupportedPacketFilters* maxNumOfSuppPktFilters, uint8_t iei,
     uint8_t* buffer, uint32_t len) {
   int decoded = 0;
-
   if (iei > 0) {
     maxNumOfSuppPktFilters->iei = *buffer;
-    MLOG(MDEBUG) << "maxNumOfSuppPktFilters: iei = " << std::hex
-                 << int(maxNumOfSuppPktFilters->iei);
     decoded++;
 
     maxNumOfSuppPktFilters->maxNumOfSuppPktFilters = (*(buffer + decoded) << 8);
     decoded++;
     maxNumOfSuppPktFilters->maxNumOfSuppPktFilters |=
         (*(buffer + decoded) & 0xE0);
-    MLOG(MDEBUG) << "In DecodeMaxNumOfSuppPktFilters: maxNumOfSuppPktFilters = "
-                 << std::hex
-                 << int(maxNumOfSuppPktFilters->maxNumOfSuppPktFilters);
     decoded++;
   }
 

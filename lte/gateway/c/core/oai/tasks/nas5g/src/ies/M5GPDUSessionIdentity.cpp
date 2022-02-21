@@ -11,6 +11,13 @@
 
 #include <sstream>
 #include <cstdint>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
@@ -28,16 +35,11 @@ int PDUSessionIdentityMsg::DecodePDUSessionIdentityMsg(
   if (iei > 0) {
     pdu_session_identity->iei = *(buffer + decoded);
     CHECK_IEI_DECODER((unsigned char)iei, pdu_session_identity->iei);
-    MLOG(MDEBUG) << "In DecodePDUSessionIdentityMsg iei = " << std::dec
-                 << int(pdu_session_identity->iei) << std::endl;
     decoded++;
   }
 
-  MLOG(MDEBUG) << "   DecodePDUSessionIdentityMsg : ";
   pdu_session_identity->pdu_session_id = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << " PDUSessionIdentity = " << std::hex
-               << int(pdu_session_identity->pdu_session_id);
 
   return (decoded);
 };
@@ -48,8 +50,6 @@ int PDUSessionIdentityMsg::EncodePDUSessionIdentityMsg(
     uint32_t len) {
   int encoded = 0;
 
-  MLOG(MDEBUG) << " EncodePDUSessionIdentityMsg : ";
-
   // Checking IEI and pointer
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char)iei,
@@ -59,8 +59,6 @@ int PDUSessionIdentityMsg::EncodePDUSessionIdentityMsg(
   }
 
   *(buffer + encoded) = pdu_session_identity->pdu_session_id;
-  MLOG(MDEBUG) << "PDUSessionIdentity = 0x" << std::hex
-               << int(*(buffer + encoded));
   encoded++;
 
   return (encoded);

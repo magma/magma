@@ -194,7 +194,8 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
   ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == test_ue_ip);
 
   // verify that exactly one session exists in SPGW state
-  ASSERT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
+  ASSERT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
+  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // verify that eNB address information exists
   ASSERT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
@@ -214,8 +215,9 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
   ASSERT_EQ(return_code, RETURNok);
 
   // verify SPGW state is cleared
-  ASSERT_TRUE(
-      is_num_sessions_valid(test_imsi64, name_of_ue_samples.size() - 1, 0));
+  ASSERT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size() - 1));
+  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 0));
+
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
@@ -224,7 +226,8 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestModifyBearerFailure) {
   status_code_e return_code = RETURNerror;
 
   // verify that sessions exist in SPGW state
-  ASSERT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
+  ASSERT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
+  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // create sample modify default bearer request
   itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
@@ -240,7 +243,8 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestModifyBearerFailure) {
 
   // verify that number of valid sessions do not change after the modify bearer
   // request
-  ASSERT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
+  ASSERT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
+  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
@@ -255,7 +259,8 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerSuccess) {
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
 
   // verify that exactly one session exists in SPGW state
-  ASSERT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
+  ASSERT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
+  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // verify that eNB address information exists
   ASSERT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
@@ -285,7 +290,8 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerWithInvalidImsi64) {
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
 
   // verify that exactly one session exists in SPGW state
-  ASSERT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
+  ASSERT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
+  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // verify that eNB address information exists
   ASSERT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
@@ -322,7 +328,8 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerActivation) {
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   // verify that exactly one session exists in SPGW state
-  EXPECT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
+  EXPECT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
+  EXPECT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // send network initiated dedicated bearer activation request from Session
   // Manager
@@ -398,7 +405,8 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerDeactivation) {
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   // verify that exactly one session exists in SPGW state
-  EXPECT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
+  EXPECT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
+  EXPECT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // send network initiated dedicated bearer activation request from Session
   // Manager
@@ -512,7 +520,8 @@ TEST_F(SPGWAppInjectedStateProcedureTest,
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   // verify that exactly one session exists in SPGW state
-  EXPECT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
+  EXPECT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
+  EXPECT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // send network initiated dedicated bearer activation request from Session
   // Manager
@@ -608,8 +617,8 @@ TEST_F(SPGWAppInjectedStateProcedureTest,
   EXPECT_EQ(return_code, RETURNok);
 
   // check that session is removed
-  EXPECT_TRUE(
-      is_num_sessions_valid(test_imsi64, name_of_ue_samples.size() - 1, 0));
+  EXPECT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size() - 1));
+  EXPECT_TRUE(is_num_cp_teids_valid(test_imsi64, 0));
 
   free(sample_nw_init_ded_bearer_deactv_resp.lbi);
 

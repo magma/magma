@@ -10,6 +10,13 @@
  */
 
 #include <iostream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationResult.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
@@ -27,8 +34,6 @@ int AuthenticationResultMsg::DecodeAuthenticationResultMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, AUTHENTICATION_RESULT_MINIMUM_LENGTH, len);
 
-  MLOG(MDEBUG) << "\n\n---Decoding Authentication Result Message---\n"
-               << std::endl;
   if ((decoded_result = auth_result->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
                                 &auth_result->extended_protocol_discriminator,
