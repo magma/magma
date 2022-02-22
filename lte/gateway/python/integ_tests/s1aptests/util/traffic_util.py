@@ -403,6 +403,7 @@ class TrafficTest(object):
             aliases = ()
             for instance in instances:
                 aliases += (TrafficTest._iface_up(instance.ip),)
+                print("instance.ip",instance.ip)
                 if not instance.is_uplink:
                     # Assign a local port for the downlink UE server
                     instance.port = TrafficTest._get_port()

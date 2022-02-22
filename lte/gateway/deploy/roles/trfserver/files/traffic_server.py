@@ -558,7 +558,7 @@ class TrafficTestDriver(object):
             iperf (iperf3.IPerf3): the iperf3 object to run
         '''
         # Constructing the subprocess call
-        params = ('-B', iperf.bind_address, '-p', str(iperf.port), '-J')
+        params = ('-6', '-B', iperf.bind_address, '-p', str(iperf.port), '-J')
         if 'c' == iperf.role:
             params = ('-c', iperf.server_hostname) + params
             params += ('-b', str(iperf.bandwidth), '-t', str(iperf.duration))
@@ -583,16 +583,19 @@ class TrafficTestDriver(object):
         for instance in self._instances:
             if instance.is_uplink:
                 iperf = iperf3.Server()
-                iperf.bind_address = '192.168.129.42'
+                #iperf.bind_address = '192.168.129.42'
+                iperf.bind_address = '2001::9'
                 iperf.port = TrafficTestDriver._get_port()
             else:
                 iperf = iperf3.Client()
                 iperf.bandwidth = 10 ** 7  # 10 Mbps
-                iperf.bind_address = '192.168.129.42'
+                #iperf.bind_address = '192.168.129.42'
+                iperf.bind_address = '2001::9'
                 iperf.duration = instance.duration
                 iperf.port = instance.port
                 iperf.protocol = 'udp' if instance.is_udp else 'tcp'
                 iperf.server_hostname = instance.ip.exploded
+                print("iperf.server_hostname", iperf.server_hostname)
             self._iperfs += (iperf,)
 
     @property
