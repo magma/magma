@@ -19,7 +19,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/golang/glog"
+	"magma/orc8r/lib/go/util"
 )
 
 // SbiLogger logs to glog when verbose level is set to 2
@@ -31,7 +31,7 @@ func (logger *SbiLogger) LogRequest(method string, url *url.URL, reqBody []byte,
 	if len(reqBody) != 0 {
 		extraReqInfo = fmt.Sprintf("\nBody = %s", string(reqBody))
 	}
-	glog.V(2).Infof("Request %s %v %s\n", method, url.Path, extraReqInfo)
+	util.SafeLog("Request %s %v %s\n", method, url.Path, extraReqInfo)
 }
 
 // LogResponse logs http response related info after receiving the response from the server
@@ -44,5 +44,5 @@ func (logger *SbiLogger) LogResponse(url *url.URL, status string, resBody []byte
 	if len(resBody) != 0 {
 		extraResInfo = fmt.Sprintf("%s\nBody = %s", extraResInfo, string(resBody))
 	}
-	glog.V(2).Infof("Response %v for %v took %dms %s\n", status, url.Path, latency.Milliseconds(), extraResInfo)
+	util.SafeLog("Response %v for %v took %dms %s\n", status, url.Path, latency.Milliseconds(), extraResInfo)
 }

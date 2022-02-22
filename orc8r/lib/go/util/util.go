@@ -17,6 +17,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"io/ioutil"
 	"net"
@@ -25,6 +26,9 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"unicode"
+
+	"github.com/golang/glog"
 )
 
 func GetFreeTcpPort(preferredPort int) int {
@@ -160,4 +164,27 @@ func GetEnvBool(envVariable string, defaultValue ...bool) bool {
 		return defaultValue[0]
 	}
 	return false
+}
+
+func SafeLog(strInput string, args ...interface{}) {
+	//format string
+	strInput = fmt.Sprintf(strInput, args...)
+	//remove non UTF-8 chars
+	strInput = strings.ToValidUTF8(strInput, "")
+	//remove non unicode characters
+	tmpSanitized := ""
+	for _, item := range strInput {
+		if unicode.IsPrint(item) {
+			tmpSanitized += string(item)
+		} else {
+			tmpSanitized += " "
+		}
+	}
+	//escape special characters in HTML text
+	tmpSanitized = html.EscapeString(tmpSanitized)
+	//limit output to 1024 chars
+	if len(tmpSanitized) > 1024 {
+		tmpSanitized = tmpSanitized[:1024]
+	}
+	glog.V(2).Infof(tmpSanitized)
 }

@@ -16,6 +16,7 @@ import (
 
 	"magma/fbinternal/cloud/go/services/download"
 	"magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/util"
 )
 
 const (
@@ -25,7 +26,7 @@ const (
 
 func RootHandler(config DownloadServiceConfig) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		glog.V(2).Infof("Download svc called with '%s'", r.URL.Path)
+		util.SafeLog("Download svc called with '%s'", r.URL.Path)
 
 		if !(strings.HasPrefix(r.URL.Path, s3Prefix)) {
 			// Return 400 since the download path is unknown
@@ -74,7 +75,7 @@ func s3Handler(
 	if reqRange != "" {
 		s3Req.SetRange(reqRange)
 	}
-	glog.V(2).Infof("Fetching s3 object %s from bucket %s", key, bucket)
+	util.SafeLog("Fetching s3 object %s from bucket %s", key, bucket)
 	result, err := s3svc.GetObject(&s3Req)
 	if err != nil {
 		glog.Errorf("Error with s3 GetObj: %s", err.Error())

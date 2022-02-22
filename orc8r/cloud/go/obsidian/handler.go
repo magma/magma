@@ -218,7 +218,7 @@ func CheckNetworkAccess(c echo.Context, networkId string) *echo.HTTPError {
 			return nil
 		}
 	}
-	glog.Infof("Client cert %s is not authorized for network: %+v", util.FormatPkixSubject(&cert.Subject), networkId)
+	util.SafeLog("Client cert %s is not authorized for network: %+v", util.FormatPkixSubject(&cert.Subject), networkId)
 	return echo.NewHTTPError(http.StatusForbidden, "Client certificate is not authorized")
 }
 

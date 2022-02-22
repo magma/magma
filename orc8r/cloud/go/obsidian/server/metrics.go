@@ -16,9 +16,10 @@ package server
 import (
 	"strconv"
 
-	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/prometheus/client_golang/prometheus"
+
+	"magma/orc8r/lib/go/util"
 )
 
 var (
@@ -50,7 +51,7 @@ func CollectStats(next echo.HandlerFunc) echo.HandlerFunc {
 		requestCount.Inc()
 		status := strconv.Itoa(c.Response().Status)
 		respStatuses.WithLabelValues(status, c.Request().Method).Inc()
-		glog.V(2).Infof(
+		util.SafeLog(
 			"REST API code: %v, method: %v, url: %v\n",
 			status,
 			c.Request().Method,
