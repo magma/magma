@@ -45,9 +45,8 @@ class S1apUeContext {
   S1apUeContext(S1apUeContext const&) = delete;
   void operator=(S1apUeContext const&) = delete;
 
-  int StartTimer(
-      size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-      const s1ap_timer_arg_t arg);
+  int StartTimer(size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
+                 const s1ap_timer_arg_t arg);
   void StopTimer(int timer_id);
 
   /**

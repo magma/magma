@@ -424,7 +424,7 @@ TEST_F(S1apMmeHandlersTest, GenerateUEContextReleaseCommand) {
       .sctp_assoc_id = assoc_id,
       .comp_s1ap_id = S1AP_GENERATE_COMP_S1AP_ID(assoc_id, 1)};
 
-  ue_ref_p.s1ap_ue_context_rel_timer.id   = -1;
+  ue_ref_p.s1ap_ue_context_rel_timer.id = -1;
   ue_ref_p.s1ap_ue_context_rel_timer.msec = 1000;
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(2);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);

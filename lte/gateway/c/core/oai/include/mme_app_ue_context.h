@@ -634,9 +634,9 @@ imsi64_t update_ue_context_and_indicate_to_nas(
     struct ue_mm_context_s* ue_context_p,
     itti_s1ap_initial_ue_message_t* const initial_pP, bool is_mm_ctx_new);
 
-bool mme_app_construct_guti(
-    const plmn_t* const plmn_p, const s_tmsi_t* const s_tmsi_p,
-    guti_t* const guti_p);
+bool mme_app_construct_guti(const plmn_t* const plmn_p,
+                            const s_tmsi_t* const s_tmsi_p,
+                            guti_t* const guti_p);
 #endif /* FILE_MME_APP_UE_CONTEXT_SEEN */
 
 /* @} */

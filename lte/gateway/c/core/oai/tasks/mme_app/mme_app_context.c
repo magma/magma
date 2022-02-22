@@ -264,7 +264,7 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
     bdestroy_wrapper(
         &ue_context_p->initial_ue_message_for_invalid_enb_s1ap_id->nas);
     free_wrapper(
-        (void**) &ue_context_p->initial_ue_message_for_invalid_enb_s1ap_id);
+        (void**)&ue_context_p->initial_ue_message_for_invalid_enb_s1ap_id);
   }
 }
 
@@ -1117,7 +1117,7 @@ void mme_app_handle_s1ap_ue_context_release_complete(
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
   struct ue_mm_context_s* ue_context_p = NULL;
-  bool move_ue_to_idle                 = false;
+  bool move_ue_to_idle = false;
 
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
       s1ap_ue_context_release_complete->mme_ue_s1ap_id);
@@ -1194,10 +1194,10 @@ void mme_app_handle_s1ap_ue_context_release_complete(
           ue_context_p->initial_ue_message_for_invalid_enb_s1ap_id;
 
       enb_s1ap_id_key_t enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
-      guti_t guti                       = {.gummei.plmn     = {0},
-                     .gummei.mme_gid  = 0,
+      guti_t guti = {.gummei.plmn = {0},
+                     .gummei.mme_gid = 0,
                      .gummei.mme_code = 0,
-                     .m_tmsi          = INVALID_M_TMSI};
+                     .m_tmsi = INVALID_M_TMSI};
       plmn_t plmn;
       COPY_PLMN(plmn, (initial_pP->tai.plmn));
       mme_app_construct_guti(&plmn, &(initial_pP->opt_s_tmsi), &guti);
@@ -1205,8 +1205,8 @@ void mme_app_handle_s1ap_ue_context_release_complete(
       // Update MME UE context with new enb_ue_s1ap_id
       ue_context_p->enb_ue_s1ap_id = initial_pP->enb_ue_s1ap_id;
       // regenerate the enb_s1ap_id_key as enb_ue_s1ap_id is changed.
-      MME_APP_ENB_S1AP_ID_KEY(
-          enb_s1ap_id_key, initial_pP->enb_id, initial_pP->enb_ue_s1ap_id);
+      MME_APP_ENB_S1AP_ID_KEY(enb_s1ap_id_key, initial_pP->enb_id,
+                              initial_pP->enb_ue_s1ap_id);
       // Update enb_s1ap_id_key in hashtable
       mme_ue_context_update_coll_keys(
           &mme_app_desc_p->mme_ue_contexts, ue_context_p, enb_s1ap_id_key,
@@ -1217,7 +1217,7 @@ void mme_app_handle_s1ap_ue_context_release_complete(
         mme_app_stop_timer(ue_context_p->paging_response_timer.id);
         ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
         ue_context_p->time_paging_response_timer_started = 0;
-        ue_context_p->paging_retx_count                  = 0;
+        ue_context_p->paging_retx_count = 0;
       }
       update_ue_context_and_indicate_to_nas(
           ue_context_p,

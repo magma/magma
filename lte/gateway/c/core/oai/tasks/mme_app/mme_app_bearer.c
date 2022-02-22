@@ -569,9 +569,9 @@ imsi64_t update_ue_context_and_indicate_to_nas(
     struct ue_mm_context_s* ue_context_p,
     itti_s1ap_initial_ue_message_t* const initial_pP, bool is_mm_ctx_new) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  imsi64_t imsi64                 = INVALID_IMSI64;
+  imsi64_t imsi64 = INVALID_IMSI64;
   ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
-  ue_context_p->e_utran_cgi       = initial_pP->ecgi;
+  ue_context_p->e_utran_cgi = initial_pP->ecgi;
   // Notify S1AP about the mapping between mme_ue_s1ap_id and
   // sctp assoc id + enb_ue_s1ap_id
   notify_s1ap_new_ue_mme_s1ap_id_association(ue_context_p);
@@ -580,28 +580,26 @@ imsi64_t update_ue_context_and_indicate_to_nas(
     s_tmsi = initial_pP->opt_s_tmsi;
   } else {
     s_tmsi.mme_code = 0;
-    s_tmsi.m_tmsi   = INVALID_M_TMSI;
+    s_tmsi.m_tmsi = INVALID_M_TMSI;
   }
-  OAILOG_INFO_UE(
-      LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "INITIAL_UE_MESSAGE RCVD \n"
-      "mme_ue_s1ap_id  = %d\n"
-      "enb_ue_s1ap_id  = %d\n",
-      ue_context_p->mme_ue_s1ap_id, ue_context_p->enb_ue_s1ap_id);
-  OAILOG_DEBUG(
-      LOG_MME_APP, "Is S-TMSI Valid - (%d)\n", initial_pP->is_s_tmsi_valid);
+  OAILOG_INFO_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
+                 "INITIAL_UE_MESSAGE RCVD \n"
+                 "mme_ue_s1ap_id  = %d\n"
+                 "enb_ue_s1ap_id  = %d\n",
+                 ue_context_p->mme_ue_s1ap_id, ue_context_p->enb_ue_s1ap_id);
+  OAILOG_DEBUG(LOG_MME_APP, "Is S-TMSI Valid - (%d)\n",
+               initial_pP->is_s_tmsi_valid);
 
-  OAILOG_INFO_UE(
-      LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "Sending NAS Establishment Indication to NAS for ue_id "
-      "= " MME_UE_S1AP_ID_FMT "\n",
-      ue_context_p->mme_ue_s1ap_id);
+  OAILOG_INFO_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
+                 "Sending NAS Establishment Indication to NAS for ue_id "
+                 "= " MME_UE_S1AP_ID_FMT "\n",
+                 ue_context_p->mme_ue_s1ap_id);
 
   mme_ue_s1ap_id_t ue_id = ue_context_p->mme_ue_s1ap_id;
-  nas_proc_establish_ind(
-      ue_context_p->mme_ue_s1ap_id, is_mm_ctx_new, initial_pP->tai,
-      initial_pP->ecgi, initial_pP->rrc_establishment_cause, s_tmsi,
-      &initial_pP->nas);
+  nas_proc_establish_ind(ue_context_p->mme_ue_s1ap_id, is_mm_ctx_new,
+                         initial_pP->tai, initial_pP->ecgi,
+                         initial_pP->rrc_establishment_cause, s_tmsi,
+                         &initial_pP->nas);
 
   initial_pP->nas = NULL;
   /* In case duplicate attach handling, ue_context_p might be removed
@@ -610,8 +608,8 @@ imsi64_t update_ue_context_and_indicate_to_nas(
    */
   if (INVALID_MME_UE_S1AP_ID != ue_id) {
     hash_table_ts_t* mme_state_ue_id_ht = get_mme_ue_state();
-    if (hashtable_ts_is_key_exists(
-            mme_state_ue_id_ht, (const hash_key_t) ue_id) == HASH_TABLE_OK) {
+    if (hashtable_ts_is_key_exists(mme_state_ue_id_ht,
+                                   (const hash_key_t)ue_id) == HASH_TABLE_OK) {
       imsi64 = ue_context_p->emm_context._imsi64;
     }
   }
@@ -675,30 +673,27 @@ imsi64_t mme_app_handle_initial_ue_message(
           // Inform s1ap for local cleanup of enb_ue_s1ap_id from ue context
           ue_context_p->ue_context_rel_cause = S1AP_INVALID_ENB_ID;
           if (ue_context_p->ecm_state == ECM_CONNECTED) {
-            OAILOG_ERROR(
-                LOG_MME_APP,
-                " Sending Release Access Bearer Req to SPGW for ue_id "
-                "= " MME_UE_S1AP_ID_FMT "\n",
-                ue_context_p->mme_ue_s1ap_id);
+            OAILOG_ERROR(LOG_MME_APP,
+                         " Sending Release Access Bearer Req to SPGW for ue_id "
+                         "= " MME_UE_S1AP_ID_FMT "\n",
+                         ue_context_p->mme_ue_s1ap_id);
             mme_app_send_s11_release_access_bearers_req(
                 ue_context_p, ue_context_p->emm_context._imsi64);
           } else {
-            OAILOG_ERROR(
-                LOG_MME_APP,
-                " Sending UE Context Release to S1AP for ue_id "
-                "= " MME_UE_S1AP_ID_FMT "\n",
-                ue_context_p->mme_ue_s1ap_id);
-            mme_app_itti_ue_context_release(
-                ue_context_p, ue_context_p->ue_context_rel_cause);
+            OAILOG_ERROR(LOG_MME_APP,
+                         " Sending UE Context Release to S1AP for ue_id "
+                         "= " MME_UE_S1AP_ID_FMT "\n",
+                         ue_context_p->mme_ue_s1ap_id);
+            mme_app_itti_ue_context_release(ue_context_p,
+                                            ue_context_p->ue_context_rel_cause);
           }
           // Store the received initial ue message and process after releasing
           // previous s1 connection
           ue_context_p->initial_ue_message_for_invalid_enb_s1ap_id =
-              (itti_s1ap_initial_ue_message_t*) calloc(
+              (itti_s1ap_initial_ue_message_t*)calloc(
                   1, sizeof(itti_s1ap_initial_ue_message_t));
-          memcpy(
-              ue_context_p->initial_ue_message_for_invalid_enb_s1ap_id,
-              initial_pP, sizeof(itti_s1ap_initial_ue_message_t));
+          memcpy(ue_context_p->initial_ue_message_for_invalid_enb_s1ap_id,
+                 initial_pP, sizeof(itti_s1ap_initial_ue_message_t));
           ue_context_p->initial_ue_message_for_invalid_enb_s1ap_id->nas =
               bstrcpy(initial_pP->nas);
           OAILOG_FUNC_RETURN(LOG_MME_APP, imsi64);
@@ -778,8 +773,8 @@ imsi64_t mme_app_handle_initial_ue_message(
     }
   }
 
-  imsi64 = update_ue_context_and_indicate_to_nas(
-      ue_context_p, initial_pP, is_mm_ctx_new);
+  imsi64 = update_ue_context_and_indicate_to_nas(ue_context_p, initial_pP,
+                                                 is_mm_ctx_new);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, imsi64);
 }
@@ -2121,9 +2116,9 @@ void mme_app_handle_initial_context_setup_failure(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 //------------------------------------------------------------------------------
-bool mme_app_construct_guti(
-    const plmn_t* const plmn_p, const s_tmsi_t* const s_tmsi_p,
-    guti_t* const guti_p) {
+bool mme_app_construct_guti(const plmn_t* const plmn_p,
+                            const s_tmsi_t* const s_tmsi_p,
+                            guti_t* const guti_p) {
   /*
    * This is a helper function to construct GUTI from S-TMSI. It uses PLMN id
    * and MME Group Id of the serving MME for this purpose.

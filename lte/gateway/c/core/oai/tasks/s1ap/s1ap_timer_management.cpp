@@ -30,13 +30,12 @@ extern "C" {
 extern task_zmq_ctx_t s1ap_task_zmq_ctx;
 
 //------------------------------------------------------------------------------
-int s1ap_start_timer(
-    size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-    mme_ue_s1ap_id_t ue_id) {
+int s1ap_start_timer(size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
+                     mme_ue_s1ap_id_t ue_id) {
   s1ap_timer_arg_t arg;
   arg.ue_id = ue_id;
-  return magma::lte::S1apUeContext::Instance().StartTimer(
-      msec, repeat, handler, arg);
+  return magma::lte::S1apUeContext::Instance().StartTimer(msec, repeat, handler,
+                                                          arg);
 }
 
 //------------------------------------------------------------------------------
@@ -57,12 +56,12 @@ namespace magma {
 namespace lte {
 
 //------------------------------------------------------------------------------
-int S1apUeContext::StartTimer(
-    size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-    const s1ap_timer_arg_t arg) {
+int S1apUeContext::StartTimer(size_t msec, timer_repeat_t repeat,
+                              zloop_timer_fn handler,
+                              const s1ap_timer_arg_t arg) {
   int timer_id = -1;
-  if ((timer_id = start_timer(
-           &s1ap_task_zmq_ctx, msec, repeat, handler, nullptr)) != -1) {
+  if ((timer_id = start_timer(&s1ap_task_zmq_ctx, msec, repeat, handler,
+                              nullptr)) != -1) {
     s1ap_timers.insert(std::pair<int, s1ap_timer_arg_t>(timer_id, arg));
   }
   return timer_id;

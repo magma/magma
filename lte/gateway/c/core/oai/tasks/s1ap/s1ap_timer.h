@@ -25,9 +25,8 @@ typedef struct s1ap_timer_arg_s {
   mme_ue_s1ap_id_t ue_id;
 } s1ap_timer_arg_t;
 
-int s1ap_start_timer(
-    size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-    mme_ue_s1ap_id_t ue_id);
+int s1ap_start_timer(size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
+                     mme_ue_s1ap_id_t ue_id);
 
 void s1ap_stop_timer(int timer_id);
 
