@@ -448,6 +448,16 @@
     pkg:
       - clang-format-11
 
+# TODO: this can be removed once the role below is preburned
+- name: Remove all links for clang-format
+  become: yes
+  command: 'update-alternatives --remove-all clang-format'
+
+# TODO: preburn this
+- name: Create links for clang-format
+  become: yes
+  command: 'update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-11 1000'
+
 - name: Symlink system wide bazelrc into the VM
   file:
     src: '/home/vagrant/magma/bazel/bazelrcs/vm.bazelrc'
