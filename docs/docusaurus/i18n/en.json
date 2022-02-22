@@ -63,6 +63,15 @@
       "docs/docs_overview": {
         "title": "Documentation Overview"
       },
+      "dp/architecture_overview": {
+        "title": "Overview"
+      },
+      "dp/debug_logs": {
+        "title": "View Logs"
+      },
+      "dp/deploy_build": {
+        "title": "Build DP"
+      },
       "faq/faq_magma": {
         "title": "Frequently Asked Questions"
       },
