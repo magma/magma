@@ -12,6 +12,13 @@
 #include <sstream>
 #include <cstdint>
 #include <cstring>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GEAPMessage.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -48,11 +55,8 @@ int EAPMessageMsg::EncodeEAPMessageMsg(EAPMessageMsg* eap_message, uint8_t iei,
     encoded++;
   }
 
-  MLOG(MDEBUG) << "EncodeEAPMessage : ";
   IES_ENCODE_U16(buffer, encoded, eap_message->len);
-  MLOG(MDEBUG) << "Length = " << std::hex << int(eap_message->len);
   std::copy(eap_message->eap.begin(), eap_message->eap.end(), buffer + encoded);
-  BUFFER_PRINT_LOG(buffer + encoded, eap_message->eap.length());
   encoded = encoded + eap_message->eap.length();
 
   return encoded;

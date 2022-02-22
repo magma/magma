@@ -13,7 +13,7 @@ snowflake>=0.0.3
 #  prometheus_client==0.3.1 required (see e.g. magmad/tests/metrics_tests.py)
 prometheus_client==0.3.1
 redis-collections
-redis-lock
+python-redis-lock
 jsonpickle
 netifaces
 scapy
@@ -30,6 +30,7 @@ h2>=3,<4
 #  priority==1.3.0 is requirement of aioh2 (loaded via bazel)
 priority==1.3.0
 requests
+pycryptodome
 
 # bazelbase container requirements
 hiredis
@@ -38,6 +39,8 @@ wrapt
 
 # unit test requirements
 fakeredis
+#  lupa is required by fakeredis
+lupa
 freezegun
 pytest
 pytest-cov

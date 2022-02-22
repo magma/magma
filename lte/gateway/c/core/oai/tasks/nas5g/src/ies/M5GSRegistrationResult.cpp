@@ -13,6 +13,13 @@
 #include <sstream>
 #include <bitset>
 #include <cstdint>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSRegistrationResult.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -49,8 +56,6 @@ int M5GSRegistrationResultMsg::EncodeM5GSRegistrationResultMsg(
   if (iei > 0) {
     CHECK_IEI_ENCODER(iei, (unsigned char)m5gs_reg_result->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "In EncodeM5GSRegistrationResultMsg___: iei  = " << std::hex
-                 << int(*buffer);
     encoded++;
   }
 
@@ -59,17 +64,8 @@ int M5GSRegistrationResultMsg::EncodeM5GSRegistrationResultMsg(
   *(buffer + encoded) = ((m5gs_reg_result->spare & 0xf) << 0x4) |
                         ((m5gs_reg_result->sms_allowed & 0x1) << 3) |
                         (m5gs_reg_result->reg_result_val & 0x7);
-  MLOG(MDEBUG) << " EncodeM5GSRegistrationResultMsg : 0x0"
-               << int(*(buffer + encoded)) << " ("
-               << "spare = " << ((m5gs_reg_result->spare & 0xf) << 0x4)
-               << ", sms allowed = "
-               << ((m5gs_reg_result->sms_allowed & 0x1) << 3)
-               << ", result val = " << std::hex
-               << int(m5gs_reg_result->reg_result_val & 0x7) << ")";
   encoded++;
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
-  MLOG(MDEBUG) << " EncodeM5GSRegistrationResultMsg : length  = 0x0" << std::hex
-               << int(*lenPtr);
   return encoded;
 };
 }  // namespace magma5g

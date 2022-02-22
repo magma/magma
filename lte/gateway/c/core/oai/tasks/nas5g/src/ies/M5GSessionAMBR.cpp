@@ -11,6 +11,13 @@
 
 #include <sstream>
 #include <cstdint>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSessionAMBR.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -27,15 +34,12 @@ int SessionAMBRMsg::DecodeSessionAMBRMsg(SessionAMBRMsg* session_ambr,
 
   if (iei > 0) {
     CHECK_IEI_DECODER((unsigned char)iei, session_ambr->iei);
-    MLOG(MDEBUG) << "In DecodeSessionAMBRMsg: iei" << std::hex << int(*buffer);
     decoded++;
   }
 
   IES_DECODE_U8(buffer, decoded, session_ambr->length);
-
   IES_DECODE_U8(buffer, decoded, session_ambr->dl_unit);
   IES_DECODE_U16(buffer, decoded, session_ambr->dl_session_ambr);
-
   IES_DECODE_U8(buffer, decoded, session_ambr->ul_unit);
   IES_DECODE_U16(buffer, decoded, session_ambr->ul_session_ambr);
   return (decoded);
@@ -54,7 +58,6 @@ int SessionAMBRMsg::EncodeSessionAMBRMsg(SessionAMBRMsg* session_ambr,
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char)iei, session_ambr->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "In EncodeSessionAMBRMsg: iei" << std::hex << int(*buffer);
     encoded++;
   }
 

@@ -70,6 +70,7 @@ RUN echo "Install general purpose packages" && \
         lldb \
         make \
         ninja-build \
+        openjdk-8-jdk \
         perl \
         pkg-config \
         python${PYTHON_VERSION} \
@@ -376,6 +377,38 @@ RUN ${PYTHON_VENV_EXECUTABLE} -m pip install --no-cache-dir "mypy-protobuf==2.4"
     ${PYTHON_VENV_EXECUTABLE} protos/gen_prometheus_proto.py ${MAGMA_ROOT} ${PYTHON_VENV}/${GEN_DIR}; \
     done && \
     echo "${PYTHON_VENV}/${GEN_DIR}" > ${PYTHON_VENV}/lib/python${PYTHON_VERSION}/site-packages/magma_gen.pth
+
+### swagger
+ENV SWAGGER_CODEGEN_JAR=/var/tmp/codegen/modules/swagger-codegen-cli/target/swagger-codegen-cli.jar
+ARG MVN_VERSION=3.5.4
+ARG CODEGEN_VERSION=v2.2.3
+
+WORKDIR /var/tmp/
+RUN wget --progress=dot:giga http://mirrors.ibiblio.org/apache/maven/maven-3/${MVN_VERSION}/binaries/apache-maven-${MVN_VERSION}-bin.tar.gz && \
+    tar --extract --verbose --file apache-maven-${MVN_VERSION}-bin.tar.gz
+
+WORKDIR /var/tmp/codegen
+RUN git clone --branch ${CODEGEN_VERSION} https://github.com/swagger-api/swagger-codegen /var/tmp/codegen
+RUN /var/tmp/apache-maven-${MVN_VERSION}/bin/mvn clean package -D skipTests
+
+# Copy swagger specs over to the build directory,
+# so that eventd can access them at runtime
+COPY lte/swagger/*.yml ${PYTHON_VENV}/${GEN_DIR}/lte/swagger/specs/
+COPY orc8r/swagger/*.yml ${PYTHON_VENV}/${GEN_DIR}/orc8r/swagger/specs/
+RUN for SWAGGER_SRC in lte orc8r; \
+    do \
+    # Generate the files
+    ls ${PYTHON_VENV}/${GEN_DIR}/${SWAGGER_SRC}/swagger/specs/*.yml \
+    | xargs -t -I% /usr/bin/java -jar ${SWAGGER_CODEGEN_JAR} generate \
+    -i % \
+    -o ${PYTHON_VENV}/${GEN_DIR}/${SWAGGER_SRC}/swagger \
+    -l python \
+    -D models && \
+    # Flatten and clean up directory
+    mv ${PYTHON_VENV}/${GEN_DIR}/${SWAGGER_SRC}/swagger/swagger_client/* ${PYTHON_VENV}/${GEN_DIR}/${SWAGGER_SRC}/swagger/ && \
+    rmdir ${PYTHON_VENV}/${GEN_DIR}/${SWAGGER_SRC}/swagger/swagger_client && \
+    rm -r ${PYTHON_VENV}/${GEN_DIR}/${SWAGGER_SRC}/swagger/test; \
+    done
 
 RUN ln -s $MAGMA_ROOT/bazel/bazelrcs/devcontainer.bazelrc /etc/bazelrc
 
