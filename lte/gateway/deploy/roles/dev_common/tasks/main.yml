@@ -396,11 +396,6 @@
     grub-mkconfig -o /boot/grub/grub.cfg
   when: preburn
 
-- name: Create links for clang-format
-  become: yes
-  command: "update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-11 1000"
-  when: preburn
-
 - file:
     path: /var/tmp/test_results
     state: directory
