@@ -182,6 +182,6 @@ void shutdown_sentry(void) {}
 
 void set_sentry_transaction(__attribute__((unused)) const char* name) {}
 
-void sentry_log_error(__attribute__((unused)) const char* message);
+void sentry_log_error(__attribute__((unused)) const char* message) {}
 
 #endif
