@@ -288,6 +288,7 @@ class DBCbsd(Base):
     number_of_ports = Column(Integer)
     network_id = Column(String)
     is_deleted = Column(Boolean, nullable=False, server_default='false')
+    is_updated = Column(Boolean, nullable=False, server_default='false')
     created_date = Column(
         DateTime(timezone=True),
         nullable=False, server_default=now(),

@@ -8,13 +8,9 @@ import (
 )
 
 func TestDeregistrationRequestGenerator(t *testing.T) {
-	config := &active_mode.ActiveModeConfig{
-		Cbsd: &active_mode.Cbsd{
-			Id: "some_id",
-		},
-	}
+	cbsd := &active_mode.Cbsd{Id: "some_id"}
 	g := sas.NewDeregistrationRequestGenerator()
-	actual := g.GenerateRequests(config)
+	actual := g.GenerateRequests(cbsd)
 	expected := []*request{{
 		requestType: "deregistrationRequest",
 		data: `{
