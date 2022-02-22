@@ -86,7 +86,7 @@
 	"mounts": [
 		"source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind"
 	],
-	"postCreateCommand": "sudo ln -s ${containerWorkspaceFolder}/lte/gateway/configs /etc/magma; echo \"\nalias magtivate='source /home/vscode/build/python/bin/activate'\" >> ~/.bashrc",
+	"postCreateCommand": "${containerWorkspaceFolder}/.devcontainer/post-create-commands.sh ${containerWorkspaceFolder}",
 	// multiple postCreateCommands: currently only possible with '&&'/';' or shell script (https://github.com/microsoft/vscode-remote-release/issues/3527)
 	"runArgs": [
 		"--init"
