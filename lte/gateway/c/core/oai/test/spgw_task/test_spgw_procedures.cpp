@@ -715,11 +715,6 @@ TEST_F(SPGWAppProcedureTest, TestSuspendNotification) {
   s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      DEFAULT_EPS_BEARER_ID);
-
   // trigger suspend notification to SPGW task
   itti_s11_suspend_notification_t sample_suspend_notification = {};
   fill_s11_suspend_notification(&sample_suspend_notification, ue_sgw_teid,
