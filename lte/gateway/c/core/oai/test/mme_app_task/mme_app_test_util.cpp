@@ -21,7 +21,6 @@
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.h"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
@@ -30,7 +29,7 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-extern task_zmq_ctx_t task_zmq_ctx_main;
+task_zmq_ctx_t task_zmq_ctx_main;
 
 #define DEFAULT_TEID 1
 #define DEFAULT_MME_S1AP_UE_ID 1
