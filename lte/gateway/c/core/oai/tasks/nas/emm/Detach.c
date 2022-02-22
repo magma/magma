@@ -124,18 +124,18 @@ status_code_e mme_app_handle_detach_t3422_expiry(zloop_t* loop, int timer_id,
   }
 
   if (!data) {
-    OAILOG_ERROR(LOG_NAS_EMM,
-                 "The argument for network initiated"
-                 "detach timer is NULL \n");
+    OAILOG_ERROR_UE(LOG_NAS_EMM, emm_ctx->_imsi64,
+                    "The argument for network initiated"
+                    "detach timer is NULL \n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
   // Increment the retransmission counter
   data->retransmission_count += 1;
-  OAILOG_WARNING(LOG_NAS_EMM,
-                 "EMM-PROC: T3422 timer expired,retransmission "
-                 "counter = %d for ue id " MME_UE_S1AP_ID_FMT "\n",
-                 data->retransmission_count, mme_ue_s1ap_id);
+  OAILOG_WARNING_UE(LOG_NAS_EMM, emm_ctx->_imsi64,
+                    "EMM-PROC: T3422 timer expired,retransmission "
+                    "counter = %d for ue id " MME_UE_S1AP_ID_FMT "\n",
+                    data->retransmission_count, mme_ue_s1ap_id);
 
   if (data->retransmission_count < DETACH_REQ_COUNTER_MAX) {
     // Resend detach request message to the UE
@@ -382,8 +382,8 @@ status_code_e emm_proc_detach_request(mme_ue_s1ap_id_t ue_id,
      * release and don't clear emm context return from here
      */
     if (params->type == EMM_DETACH_TYPE_IMSI) {
-      OAILOG_INFO(
-          LOG_NAS_EMM,
+      OAILOG_INFO_UE(
+          LOG_NAS_EMM, emm_ctx->_imsi64,
           "Do not clear emm context for UE Initiated IMSI Detach Request "
           " for the UE (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
           ue_id);
@@ -543,8 +543,8 @@ status_code_e emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
         nw_detach_data_t* data =
             (nw_detach_data_t*)calloc(1, sizeof(nw_detach_data_t));
         if (!data) {
-          OAILOG_ERROR(
-              LOG_NAS_EMM,
+          OAILOG_ERROR_UE(
+              LOG_NAS_EMM, emm_ctx->_imsi64,
               "Failed to allocate memory for 3422 timer argument. Didn't start "
               "the 3422 timer for ue id " MME_UE_S1AP_ID_FMT "\n",
               ue_id);
