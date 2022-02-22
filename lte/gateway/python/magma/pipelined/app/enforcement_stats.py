@@ -16,6 +16,7 @@ from collections import defaultdict, namedtuple
 from datetime import datetime, timedelta
 from subprocess import check_output
 
+import grpc
 import ryu.app.ofctl.api as ofctl_api
 from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.policydb_pb2 import FlowDescription
@@ -24,6 +25,7 @@ from lte.protos.session_manager_pb2 import (
     RuleRecordTable,
     UPFSessionState,
 )
+from magma.common.rpc_utils import indicates_connection_error
 from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.pipelined.app.base import (
     ControllerType,
@@ -530,7 +532,13 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         )
         err = future.exception()
         if err:
-            self.logger.error('Couldnt send flow records to sessiond: %s', err)
+            if isinstance(err, grpc.RpcError) and indicates_connection_error(err):
+                self.logger.error(
+                    "Couldn't send flow records to sessiond, connection error",
+                    extra=EXCLUDE_FROM_ERROR_MONITORING,
+                )
+            else:
+                self.logger.error("Couldn't send flow records to sessiond: %s", err)
             return
         try:
             self._delete_old_flows(records)
