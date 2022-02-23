@@ -110,7 +110,8 @@ setup(
     ],
     extras_require={
         'dev': [
-            "fakeredis[lua]",
+            "lupa==1.10",
+            "fakeredis[lua]==1.7.1",
         ],
     },
 )
