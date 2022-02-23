@@ -1582,10 +1582,10 @@
     nearley "^2.19.0"
     notistack "^1.0.3"
 
-"@fbcnms/auth@^0.1.5":
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/@fbcnms/auth/-/auth-0.1.5.tgz#6ecb64d60224d7e5d19e273e9cc7dc6101901618"
-  integrity sha512-c9v8cLUa/bPMbY3ObEIKoGnqqS55vUckH9EpZRV40HdF4MCUh9dNt+W56kjOS8iYxi07Lb4UeVmbs6RGabk3Lw==
+"@fbcnms/auth@^0.1.6":
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/@fbcnms/auth/-/auth-0.1.6.tgz#90cdee3d440347fe421b355a6cb140ddc4254772"
+  integrity sha512-s1v8IOafYPrEzEBZ8wSU2mO46MRNutdeo7V/PbHNm6ivVzYjmipkMhhUdEyH774sKlkivaw0tj3Nv0NcC1kMFQ==
   dependencies:
     "@fbcnms/sequelize-models" "^0.1.11"
     "@fbcnms/webpack-config" "^0.1.0"
@@ -1627,12 +1627,12 @@
     morgan "^1.9.1"
     winston "^3.0.0"
 
-"@fbcnms/platform-server@^0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@fbcnms/platform-server/-/platform-server-0.3.2.tgz#ad708064b8ae0f455dc3c403f6a4df07797e0ed5"
-  integrity sha512-QWfsrix3Lw5STyqzmcT13YwQwFWTxP5f/HVUF8qju7yugr2vtrblmpfBG7Gealu6DQqKNu/IX9tvY7Bm5Aa2Og==
+"@fbcnms/platform-server@^0.3.3":
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/@fbcnms/platform-server/-/platform-server-0.3.3.tgz#e70f5235c3d5135e350412de02dc6c80f67a0e54"
+  integrity sha512-69tm9vPtBENDlysEBUEkX37g+S/JzvmiPbkC1dBBPifaA78aclFQ2v22A1TneCdZRopY9XYXUqBVjCpljv4owg==
   dependencies:
-    "@fbcnms/auth" "^0.1.5"
+    "@fbcnms/auth" "^0.1.6"
     "@fbcnms/babel-register" "^0.1.0"
     "@fbcnms/express-middleware" "^0.1.5"
     "@fbcnms/logging" "^0.1.0"
