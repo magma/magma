@@ -12,7 +12,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer2.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -20,32 +26,25 @@ namespace magma5g {
 GPRSTimer2Msg::GPRSTimer2Msg(){};
 GPRSTimer2Msg::~GPRSTimer2Msg(){};
 
-int GPRSTimer2Msg::DecodeGPRSTimer2Msg(
-    GPRSTimer2Msg* gprstimer, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int GPRSTimer2Msg::DecodeGPRSTimer2Msg(GPRSTimer2Msg* gprstimer, uint8_t iei,
+                                       uint8_t* buffer, uint32_t len) {
   int decoded = 0;
-
   if (iei > 0) {
     gprstimer->iei = *buffer;
-    MLOG(MDEBUG) << "DecodeGPRSTimer2Msg: iei = " << std::hex
-                 << int(gprstimer->iei);
     decoded++;
 
     gprstimer->len = *(buffer + decoded);
-    MLOG(MDEBUG) << "DecodeGPRSTimer2Msg: len = " << std::hex
-                 << int(gprstimer->len);
     decoded++;
 
     gprstimer->timervalue = *(buffer + decoded);
-    MLOG(MDEBUG) << "DecodeGPRSTimer2Msg: timervalue = " << std::hex
-                 << int(gprstimer->timervalue);
     decoded++;
   }
 
   return decoded;
 };
 
-int GPRSTimer2Msg::EncodeGPRSTimer2Msg(
-    GPRSTimer2Msg* gprstimer, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int GPRSTimer2Msg::EncodeGPRSTimer2Msg(GPRSTimer2Msg* gprstimer, uint8_t iei,
+                                       uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   if (iei > 0) {

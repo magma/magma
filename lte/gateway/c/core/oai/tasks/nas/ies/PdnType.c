@@ -23,8 +23,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/PdnType.h"
 
 //------------------------------------------------------------------------------
-int decode_pdn_type(
-    pdn_type_t* pdntype, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_pdn_type(pdn_type_t* pdntype, uint8_t iei, uint8_t* buffer,
+                    uint32_t len) {
   int decoded = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, PDN_TYPE_MINIMUM_LENGTH, len);
@@ -39,9 +39,9 @@ int decode_pdn_type(
 }
 
 //------------------------------------------------------------------------------
-int decode_u8_pdn_type(
-    pdn_type_t* pdntype, uint8_t iei, uint8_t value, uint32_t len) {
-  int decoded     = 0;
+int decode_u8_pdn_type(pdn_type_t* pdntype, uint8_t iei, uint8_t value,
+                       uint32_t len) {
+  int decoded = 0;
   uint8_t* buffer = &value;
 
   *pdntype = *buffer & 0x7;
@@ -50,8 +50,8 @@ int decode_u8_pdn_type(
 }
 
 //------------------------------------------------------------------------------
-int encode_pdn_type(
-    pdn_type_t* pdntype, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_pdn_type(pdn_type_t* pdntype, uint8_t iei, uint8_t* buffer,
+                    uint32_t len) {
   uint8_t encoded = 0;
 
   /*
@@ -68,7 +68,7 @@ uint8_t encode_u8_pdn_type(pdn_type_t* pdntype) {
   uint8_t bufferReturn;
   uint8_t* buffer = &bufferReturn;
   uint8_t encoded = 0;
-  uint8_t iei     = 0;
+  uint8_t iei = 0;
 
   *(buffer + encoded) = 0x00 | (iei & 0xf0) | (*pdntype & 0x7);
   encoded++;

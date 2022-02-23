@@ -872,19 +872,18 @@ static NwGtpv2cMsgIeInfoT relocationCancelResponseIeInfoTbl[] = {
 /*----------------------------------------------------------------------------*
                        P R I V A T E     F U N C T I O N S
   ----------------------------------------------------------------------------*/
-static nw_rc_t nwGtpv2cMsgIeParseInfoUpdate(
-    nw_gtpv2c_msg_ie_parse_info_t* thiz, NwGtpv2cMsgIeInfoT* pMsgIeInfo) {
+static nw_rc_t nwGtpv2cMsgIeParseInfoUpdate(nw_gtpv2c_msg_ie_parse_info_t* thiz,
+                                            NwGtpv2cMsgIeInfoT* pMsgIeInfo) {
   uint32_t i, j;
 
   for (i = 0; pMsgIeInfo[i].ieType; i++) {
     if (pMsgIeInfo[i].pGroupedIeInfo) {
       nw_gtpv2c_grouped_ie_parse_info_t* pMsgIeParseInfo;
 
-      NW_GTPV2C_MALLOC(
-          thiz->hStack, sizeof(nw_gtpv2c_grouped_ie_parse_info_t),
-          pMsgIeParseInfo, nw_gtpv2c_grouped_ie_parse_info_t*);
+      NW_GTPV2C_MALLOC(thiz->hStack, sizeof(nw_gtpv2c_grouped_ie_parse_info_t),
+                       pMsgIeParseInfo, nw_gtpv2c_grouped_ie_parse_info_t*);
       pMsgIeParseInfo->groupedIeType = pMsgIeInfo[i].ieType;
-      pMsgIeParseInfo->hStack        = thiz->hStack;
+      pMsgIeParseInfo->hStack = thiz->hStack;
 
       for (j = 0; pMsgIeInfo[i].pGroupedIeInfo[j].ieType; j++) {
         pMsgIeParseInfo
@@ -945,13 +944,12 @@ nw_gtpv2c_msg_ie_parse_info_t* nwGtpv2cMsgIeParseInfoNew(
   nw_rc_t rc;
   nw_gtpv2c_msg_ie_parse_info_t* thiz = NULL;
 
-  NW_GTPV2C_MALLOC(
-      hStack, sizeof(nw_gtpv2c_msg_ie_parse_info_t), thiz,
-      nw_gtpv2c_msg_ie_parse_info_t*);
+  NW_GTPV2C_MALLOC(hStack, sizeof(nw_gtpv2c_msg_ie_parse_info_t), thiz,
+                   nw_gtpv2c_msg_ie_parse_info_t*);
 
   if (thiz) {
     memset(thiz, 0, sizeof(nw_gtpv2c_msg_ie_parse_info_t));
-    thiz->hStack  = hStack;
+    thiz->hStack = hStack;
     thiz->msgType = msgType;
 
     switch (msgType) {
@@ -981,8 +979,8 @@ nw_gtpv2c_msg_ie_parse_info_t* nwGtpv2cMsgIeParseInfoNew(
       } break;
 
       case NW_GTP_REMOTE_UE_REPORT_NOTIFICATION: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(
-            thiz, remoteUeReportNotificationIeInfoTbl);
+        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
+                                          remoteUeReportNotificationIeInfoTbl);
         NW_ASSERT(NW_OK == rc);
       } break;
 
@@ -1043,8 +1041,8 @@ nw_gtpv2c_msg_ie_parse_info_t* nwGtpv2cMsgIeParseInfoNew(
       } break;
 
       case NW_GTP_BEARER_RESOURCE_FAILURE_IND: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(
-            thiz, bearerResourceFailureIndIeInfoTbl);
+        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
+                                          bearerResourceFailureIndIeInfoTbl);
         NW_ASSERT(NW_OK == rc);
       } break;
 
@@ -1054,14 +1052,14 @@ nw_gtpv2c_msg_ie_parse_info_t* nwGtpv2cMsgIeParseInfoNew(
       } break;
 
       case NW_GTP_RELEASE_ACCESS_BEARERS_REQ: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(
-            thiz, releaseAccessBearersReqIeInfoTbl);
+        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
+                                          releaseAccessBearersReqIeInfoTbl);
         NW_ASSERT(NW_OK == rc);
       } break;
 
       case NW_GTP_RELEASE_ACCESS_BEARERS_RSP: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(
-            thiz, releaseAccessBearersRspIeInfoTbl);
+        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
+                                          releaseAccessBearersRspIeInfoTbl);
         NW_ASSERT(NW_OK == rc);
       } break;
 
@@ -1076,14 +1074,14 @@ nw_gtpv2c_msg_ie_parse_info_t* nwGtpv2cMsgIeParseInfoNew(
       } break;
 
       case NW_GTP_FORWARD_ACCESS_CONTEXT_NTF: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(
-            thiz, forwardAccessContextNtfIeInfoTbl);
+        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
+                                          forwardAccessContextNtfIeInfoTbl);
         NW_ASSERT(NW_OK == rc);
       } break;
 
       case NW_GTP_FORWARD_ACCESS_CONTEXT_ACK: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(
-            thiz, forwardAccessContextAckIeInfoTbl);
+        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
+                                          forwardAccessContextAckIeInfoTbl);
         NW_ASSERT(NW_OK == rc);
       } break;
 
@@ -1115,14 +1113,14 @@ nw_gtpv2c_msg_ie_parse_info_t* nwGtpv2cMsgIeParseInfoNew(
       } break;
 
       case NW_GTP_RELOCATION_CANCEL_REQ: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(
-            thiz, relocationCancelRequestIeInfoTbl);
+        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
+                                          relocationCancelRequestIeInfoTbl);
         NW_ASSERT(NW_OK == rc);
       } break;
 
       case NW_GTP_RELOCATION_CANCEL_RSP: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(
-            thiz, relocationCancelResponseIeInfoTbl);
+        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
+                                          relocationCancelResponseIeInfoTbl);
         NW_ASSERT(NW_OK == rc);
       } break;
 
@@ -1143,7 +1141,7 @@ nw_gtpv2c_msg_ie_parse_info_t* nwGtpv2cMsgIeParseInfoNew(
       } break;
 
       default: {
-        free_wrapper((void**) &thiz);
+        free_wrapper((void**)&thiz);
         thiz = NULL;
       } break;
     }
@@ -1159,7 +1157,7 @@ nw_gtpv2c_msg_ie_parse_info_t* nwGtpv2cMsgIeParseInfoNew(
 
 nw_rc_t nwGtpv2cMsgIeParseInfoDelete(nw_gtpv2c_msg_ie_parse_info_t* thiz) {
   uint16_t ieInstance = 0;
-  uint16_t ieType     = 0;
+  uint16_t ieType = 0;
 
   if (thiz) {
     /** Check if group info exists. */
@@ -1167,9 +1165,8 @@ nw_rc_t nwGtpv2cMsgIeParseInfoDelete(nw_gtpv2c_msg_ie_parse_info_t* thiz) {
       for (ieInstance = 0; ieInstance < NW_GTPV2C_IE_INSTANCE_MAXIMUM;
            ieInstance++) {
         if (thiz->ieParseInfo[ieType][ieInstance].pGroupedIeInfo)
-          NW_GTPV2C_FREE(
-              thiz->hStack,
-              thiz->ieParseInfo[ieType][ieInstance].pGroupedIeInfo);
+          NW_GTPV2C_FREE(thiz->hStack,
+                         thiz->ieParseInfo[ieType][ieInstance].pGroupedIeInfo);
       }
     }
     NW_GTPV2C_FREE(thiz->hStack, thiz);
@@ -1182,10 +1179,10 @@ nw_rc_t nwGtpv2cMsgIeParseInfoDelete(nw_gtpv2c_msg_ie_parse_info_t* thiz) {
    @return NW_OK on success.
 */
 
-nw_rc_t nwGtpv2cMsgIeParse(
-    NW_IN nw_gtpv2c_msg_ie_parse_info_t* thiz,
-    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_INOUT nw_gtpv2c_error_t* pError) {
-  nw_rc_t rc                = NW_OK;
+nw_rc_t nwGtpv2cMsgIeParse(NW_IN nw_gtpv2c_msg_ie_parse_info_t* thiz,
+                           NW_IN nw_gtpv2c_msg_handle_t hMsg,
+                           NW_INOUT nw_gtpv2c_error_t* pError) {
+  nw_rc_t rc = NW_OK;
   uint16_t mandatoryIeCount = 0;
   uint8_t* pIeBufStart;
   uint8_t* pIeBufEnd;
@@ -1193,22 +1190,21 @@ nw_rc_t nwGtpv2cMsgIeParse(
   uint16_t ieLength;
   uint16_t ieInstance;
   nw_gtpv2c_ie_tlv_t* pIe;
-  nw_gtpv2c_msg_t* pMsg = (nw_gtpv2c_msg_t*) hMsg;
-  uint8_t flags         = *((uint8_t*) (pMsg->msgBuf));
+  nw_gtpv2c_msg_t* pMsg = (nw_gtpv2c_msg_t*)hMsg;
+  uint8_t flags = *((uint8_t*)(pMsg->msgBuf));
 
-  pIeBufStart = (uint8_t*) (pMsg->msgBuf + (flags & 0x08 ? 12 : 8));
-  pIeBufEnd   = (uint8_t*) (pMsg->msgBuf + pMsg->msgLen);
+  pIeBufStart = (uint8_t*)(pMsg->msgBuf + (flags & 0x08 ? 12 : 8));
+  pIeBufEnd = (uint8_t*)(pMsg->msgBuf + pMsg->msgLen);
   // memset(pMsg->pIe, 0, sizeof(uint8_t*) * (NW_GTPV2C_IE_TYPE_MAXIMUM) *
   // (NW_GTPV2C_IE_INSTANCE_MAXIMUM));
-  memset(
-      pMsg->isIeValid, (false),
-      sizeof(uint8_t) * (NW_GTPV2C_IE_TYPE_MAXIMUM) *
-          (NW_GTPV2C_IE_INSTANCE_MAXIMUM));
+  memset(pMsg->isIeValid, (false),
+         sizeof(uint8_t) * (NW_GTPV2C_IE_TYPE_MAXIMUM) *
+             (NW_GTPV2C_IE_INSTANCE_MAXIMUM));
 
   while (pIeBufStart < pIeBufEnd) {
-    pIe        = (nw_gtpv2c_ie_tlv_t*) pIeBufStart;
-    ieType     = pIe->t;
-    ieLength   = ntohs(pIe->l);
+    pIe = (nw_gtpv2c_ie_tlv_t*)pIeBufStart;
+    ieType = pIe->t;
+    ieLength = ntohs(pIe->l);
     ieInstance = pIe->i & 0x0F;
     NW_ASSERT(NW_GTPV2C_IE_INSTANCE_MAXIMUM >= ieInstance);
     OAILOG_DEBUG(
@@ -1217,11 +1213,11 @@ nw_rc_t nwGtpv2cMsgIeParse(
         ieType, ieInstance, ieLength, thiz->msgType);
 
     if (pIeBufStart + 4 + ieLength > pIeBufEnd) {
-      OAILOG_ERROR(
-          LOG_GTPV2C, "Invalid length for IE of type %u and instance %u!\n",
-          ieType, ieInstance);
-      pError->cause                = NW_GTPV2C_CAUSE_INVALID_LENGTH;
-      pError->offendingIe.type     = ieType;
+      OAILOG_ERROR(LOG_GTPV2C,
+                   "Invalid length for IE of type %u and instance %u!\n",
+                   ieType, ieInstance);
+      pError->cause = NW_GTPV2C_CAUSE_INVALID_LENGTH;
+      pError->offendingIe.type = ieType;
       pError->offendingIe.instance = ieInstance;
       return NW_FAILURE;
     }
@@ -1236,13 +1232,12 @@ nw_rc_t nwGtpv2cMsgIeParse(
           pIeBufStart += (ieLength + 4);
           continue;
         } else {
-          pError->cause                = NW_GTPV2C_CAUSE_MANDATORY_IE_INCORRECT;
-          pError->offendingIe.type     = ieType;
+          pError->cause = NW_GTPV2C_CAUSE_MANDATORY_IE_INCORRECT;
+          pError->offendingIe.type = ieType;
           pError->offendingIe.instance = ieInstance;
-          OAILOG_ERROR(
-              LOG_GTPV2C,
-              "Mandatory IE of type %u and instance %u incorrect!\n", ieType,
-              ieInstance);
+          OAILOG_ERROR(LOG_GTPV2C,
+                       "Mandatory IE of type %u and instance %u incorrect!\n",
+                       ieType, ieInstance);
           return NW_FAILURE;
         }
       }
@@ -1260,7 +1255,7 @@ nw_rc_t nwGtpv2cMsgIeParse(
         continue;
       }
 
-      pMsg->pIe[ieType][ieInstance]       = (uint8_t*) pIeBufStart;
+      pMsg->pIe[ieType][ieInstance] = (uint8_t*)pIeBufStart;
       pMsg->isIeValid[ieType][ieInstance] = true;
 
       if (thiz->ieParseInfo[ieType][ieInstance].pGroupedIeInfo) {
@@ -1269,16 +1264,15 @@ nw_rc_t nwGtpv2cMsgIeParse(
          */
         rc = nwGtpv2cMsgGroupedIeParse(
             thiz->ieParseInfo[ieType][ieInstance].pGroupedIeInfo, ieType,
-            ieLength, ieInstance, ((uint8_t*) pIe) + 4);
+            ieLength, ieInstance, ((uint8_t*)pIe) + 4);
 
         if (rc != NW_OK) {
-          pError->cause                = NW_GTPV2C_CAUSE_MANDATORY_IE_INCORRECT;
-          pError->offendingIe.type     = ieType;
+          pError->cause = NW_GTPV2C_CAUSE_MANDATORY_IE_INCORRECT;
+          pError->offendingIe.type = ieType;
           pError->offendingIe.instance = ieInstance;
-          OAILOG_ERROR(
-              LOG_GTPV2C,
-              "Mandatory IE of type %u and instance %u incorrect!\n", ieType,
-              ieInstance);
+          OAILOG_ERROR(LOG_GTPV2C,
+                       "Mandatory IE of type %u and instance %u incorrect!\n",
+                       ieType, ieInstance);
           return NW_FAILURE;
         }
       }
@@ -1310,8 +1304,8 @@ nw_rc_t nwGtpv2cMsgIeParse(
                 "Mandatory IE of type %u and instance %u missing in msg type "
                 "%u\n",
                 ieType, ieInstance, pMsg->msgType);
-            pError->cause                = NW_GTPV2C_CAUSE_MANDATORY_IE_MISSING;
-            pError->offendingIe.type     = ieType;
+            pError->cause = NW_GTPV2C_CAUSE_MANDATORY_IE_MISSING;
+            pError->offendingIe.type = ieType;
             pError->offendingIe.instance = ieInstance;
             return NW_FAILURE;
           }
@@ -1322,8 +1316,8 @@ nw_rc_t nwGtpv2cMsgIeParse(
     OAILOG_CRITICAL(
         LOG_GTPV2C,
         "Unknown mandatory IE missing. Msg parser formed incorrectly!\n");
-    pError->cause                = NW_GTPV2C_CAUSE_MANDATORY_IE_MISSING;
-    pError->offendingIe.type     = 0;
+    pError->cause = NW_GTPV2C_CAUSE_MANDATORY_IE_MISSING;
+    pError->offendingIe.type = 0;
     pError->offendingIe.instance = 0;
     return NW_FAILURE;
   }

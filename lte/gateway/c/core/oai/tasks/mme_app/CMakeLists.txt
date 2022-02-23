@@ -40,7 +40,6 @@ add_library(TASK_MME_APP
     mme_app_sgs_alert.c
     mme_app_sgsap_service_abort.c
     mme_app_sgs_paging.c
-    mme_app_sgsap.c
     mme_app_apn_selection.c
     mme_app_bearer_context.c
     mme_app_pdn_context.c

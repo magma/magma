@@ -18,13 +18,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/labstack/echo"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/tenants"
 	"magma/orc8r/cloud/go/services/tenants/obsidian/models"
+	"magma/orc8r/cloud/go/services/tenants/protos"
 	"magma/orc8r/lib/go/errors"
-	"magma/orc8r/lib/go/protos"
 )
 
 const (
@@ -185,15 +186,19 @@ func CreateOrUpdateControlProxyHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-
-	var IDAndControlProxy = protos.CreateOrUpdateControlProxyRequest{}
-	err = json.NewDecoder(c.Request().Body).Decode(&IDAndControlProxy)
-	IDAndControlProxy.Id = tenantID
-	if err != nil {
+	var req = protos.CreateOrUpdateControlProxyRequest{}
+	req.Id = tenantID
+	data := &models.ControlProxy{}
+	if err := c.Bind(data); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("error decoding request: %v", err))
 	}
+	if err := data.Validate(strfmt.Default); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
 
-	err = tenants.CreateOrUpdateControlProxy(c.Request().Context(), IDAndControlProxy)
+	req.ControlProxy = *data.ControlProxy
+
+	err = tenants.CreateOrUpdateControlProxy(c.Request().Context(), req)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error setting control_proxy contents: %v", err))
 	}

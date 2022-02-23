@@ -78,21 +78,20 @@ static int mme_app_send_sgsap_alert_ack(
 status_code_e mme_app_handle_sgsap_alert_request(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_alert_request_t* const sgsap_alert_req_pP) {
-  uint64_t imsi64                      = 0;
+  uint64_t imsi64 = 0;
   struct ue_mm_context_s* ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (!sgsap_alert_req_pP) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "Invalid SGSAP Alert Request ITTI message received\n");
+    OAILOG_ERROR(LOG_MME_APP,
+                 "Invalid SGSAP Alert Request ITTI message received\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
   IMSI_STRING_TO_IMSI64(sgsap_alert_req_pP->imsi, &imsi64);
 
-  OAILOG_INFO(
-      LOG_MME_APP, "Received SGS-ALERT REQUEST for IMSI " IMSI_64_FMT "\n",
-      imsi64);
+  OAILOG_INFO(LOG_MME_APP,
+              "Received SGS-ALERT REQUEST for IMSI " IMSI_64_FMT "\n", imsi64);
   if ((ue_context_p = mme_ue_context_exists_imsi(
            &mme_app_desc_p->mme_ue_contexts, imsi64)) == NULL) {
     OAILOG_ERROR(
@@ -100,8 +99,8 @@ status_code_e mme_app_handle_sgsap_alert_request(
         "SGS-ALERT REQUEST: Failed to find UE context for IMSI " IMSI_64_FMT
         "\n",
         imsi64);
-    mme_app_send_sgsap_alert_reject(
-        sgsap_alert_req_pP, SGS_CAUSE_IMSI_UNKNOWN, imsi64);
+    mme_app_send_sgsap_alert_reject(sgsap_alert_req_pP, SGS_CAUSE_IMSI_UNKNOWN,
+                                    imsi64);
     increment_counter("sgsap_alert_reject", 1, 1, "cause", "imsi_unknown");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
@@ -113,8 +112,8 @@ status_code_e mme_app_handle_sgsap_alert_request(
         imsi64);
     mme_app_send_sgsap_alert_reject(
         sgsap_alert_req_pP, SGS_CAUSE_IMSI_DETACHED_FOR_EPS_SERVICE, imsi64);
-    increment_counter(
-        "sgsap_alert_reject", 1, 1, "cause", "ue_is_not_registered_to_eps");
+    increment_counter("sgsap_alert_reject", 1, 1, "cause",
+                      "ue_is_not_registered_to_eps");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (ue_context_p->sgs_context == NULL) {
@@ -148,8 +147,8 @@ static status_code_e mme_app_send_sgsap_alert_reject(
     itti_sgsap_alert_request_t* const sgsap_alert_req_pP, SgsCause_t sgs_cause,
     uint64_t imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  int rc                                           = RETURNerror;
-  MessageDef* message_p                            = NULL;
+  int rc = RETURNerror;
+  MessageDef* message_p = NULL;
   itti_sgsap_alert_reject_t* sgsap_alert_reject_pP = NULL;
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_ALERT_REJECT);
@@ -162,18 +161,18 @@ static status_code_e mme_app_send_sgsap_alert_reject(
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   sgsap_alert_reject_pP = &message_p->ittiMsg.sgsap_alert_reject;
-  memset((void*) sgsap_alert_reject_pP, 0, sizeof(itti_sgsap_alert_reject_t));
+  memset((void*)sgsap_alert_reject_pP, 0, sizeof(itti_sgsap_alert_reject_t));
 
-  memcpy(
-      (void*) sgsap_alert_reject_pP->imsi,
-      (const void*) sgsap_alert_req_pP->imsi, sgsap_alert_req_pP->imsi_length);
+  memcpy((void*)sgsap_alert_reject_pP->imsi,
+         (const void*)sgsap_alert_req_pP->imsi,
+         sgsap_alert_req_pP->imsi_length);
   sgsap_alert_reject_pP->imsi_length = sgsap_alert_req_pP->imsi_length;
-  sgsap_alert_reject_pP->sgs_cause   = sgs_cause;
+  sgsap_alert_reject_pP->sgs_cause = sgs_cause;
 
-  OAILOG_INFO(
-      LOG_MME_APP,
-      "Send SGSAP-Alert Reject for IMSI" IMSI_64_FMT " with sgs-cause :%d \n",
-      imsi64, (int) sgs_cause);
+  OAILOG_INFO(LOG_MME_APP,
+              "Send SGSAP-Alert Reject for IMSI" IMSI_64_FMT
+              " with sgs-cause :%d \n",
+              imsi64, (int)sgs_cause);
   rc = send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -191,8 +190,8 @@ static status_code_e mme_app_send_sgsap_alert_reject(
  ***********************************************************************************/
 static status_code_e mme_app_send_sgsap_alert_ack(
     itti_sgsap_alert_request_t* const sgsap_alert_req_pP, uint64_t imsi64) {
-  int rc                                     = RETURNerror;
-  MessageDef* message_p                      = NULL;
+  int rc = RETURNerror;
+  MessageDef* message_p = NULL;
   itti_sgsap_alert_ack_t* sgsap_alert_ack_pP = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -206,16 +205,14 @@ static status_code_e mme_app_send_sgsap_alert_ack(
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   sgsap_alert_ack_pP = &message_p->ittiMsg.sgsap_alert_ack;
-  memset((void*) sgsap_alert_ack_pP, 0, sizeof(itti_sgsap_alert_ack_t));
+  memset((void*)sgsap_alert_ack_pP, 0, sizeof(itti_sgsap_alert_ack_t));
 
-  memcpy(
-      (void*) sgsap_alert_ack_pP->imsi, (const void*) sgsap_alert_req_pP->imsi,
-      sgsap_alert_req_pP->imsi_length);
+  memcpy((void*)sgsap_alert_ack_pP->imsi, (const void*)sgsap_alert_req_pP->imsi,
+         sgsap_alert_req_pP->imsi_length);
   sgsap_alert_ack_pP->imsi_length = sgsap_alert_req_pP->imsi_length;
 
-  OAILOG_INFO(
-      LOG_MME_APP, "Send SGSAP-Alert Reject for IMSI" IMSI_64_FMT " \n",
-      imsi64);
+  OAILOG_INFO(LOG_MME_APP, "Send SGSAP-Alert Reject for IMSI" IMSI_64_FMT " \n",
+              imsi64);
   rc = send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }

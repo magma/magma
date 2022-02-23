@@ -17,11 +17,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/certifier"
@@ -99,7 +97,7 @@ func updateUserHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request body for updating user: %v", err))
 	}
 	newUser := &protos.User{Username: username, Password: []byte(updatePassword)}
-	certifier.UpdateUser(c.Request().Context(), newUser)
+	err = certifier.UpdateUser(c.Request().Context(), newUser)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
@@ -122,7 +120,7 @@ func getUserTokensHandler(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to list user tokens: %v", err))
 	}
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, protos.PolicyListProtoToModel(res.PolicyLists))
 }
 
 func addUserTokenHandler(c echo.Context) error {
@@ -136,7 +134,7 @@ func addUserTokenHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	policiesProto, err := policiesModelToProto(policies)
+	policiesProto, err := protos.PoliciesModelToProto(policies)
 	if err != nil {
 		return err
 	}
@@ -177,72 +175,5 @@ func loginHandler(c echo.Context) error {
 	if err != nil {
 		return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusOK, res.PolicyLists)
-}
-
-func policiesModelToProto(policies *models.Policies) ([]*protos.Policy, error) {
-	policyProtos := make([]*protos.Policy, len(*policies))
-	for i, policyModel := range *policies {
-		policyProto := &protos.Policy{
-			Effect: matchEffect(policyModel.Effect),
-			Action: matchAction(policyModel.Action),
-		}
-		if err := setResource(policyModel, policyProto); err != nil {
-			return nil, err
-		}
-		policyProtos[i] = policyProto
-	}
-	return policyProtos, nil
-}
-
-func convertTenantResourceIDs(ids []string) ([]int64, error) {
-	var intIDs []int64
-	for _, i := range ids {
-		j, err := strconv.ParseInt(i, 10, 64)
-		if err != nil {
-			return []int64{}, errors.Wrapf(err, "failed to convert tenant IDs to integers")
-		}
-		intIDs = append(intIDs, j)
-	}
-	return intIDs, nil
-}
-
-func matchEffect(rawEffect string) protos.Effect {
-	switch rawEffect {
-	case protos.Effect_DENY.String():
-		return protos.Effect_DENY
-	case protos.Effect_ALLOW.String():
-		return protos.Effect_ALLOW
-	default:
-		return protos.Effect_UNKNOWN
-	}
-}
-
-func matchAction(rawAction string) protos.Action {
-	switch rawAction {
-	case protos.Action_READ.String():
-		return protos.Action_READ
-	case protos.Action_WRITE.String():
-		return protos.Action_WRITE
-	default:
-		return protos.Action_NONE
-	}
-}
-
-// setResource uses the resource value in the policy model and sets the
-// resource based on its type in the policy proto
-func setResource(policyModel *models.Policy, policyProto *protos.Policy) error {
-	switch policyModel.ResourceType {
-	case models.PolicyResourceTypeNETWORKID:
-		policyProto.Resource = &protos.Policy_Network{Network: &protos.NetworkResource{Networks: policyModel.ResourceIDs}}
-	case models.PolicyResourceTypeTENANTID:
-		tenantIDs, err := convertTenantResourceIDs(policyModel.ResourceIDs)
-		if err != nil {
-			return err
-		}
-		policyProto.Resource = &protos.Policy_Tenant{Tenant: &protos.TenantResource{Tenants: tenantIDs}}
-	default:
-		policyProto.Resource = &protos.Policy_Path{Path: &protos.PathResource{Path: policyModel.Path}}
-	}
-	return nil
+	return c.JSON(http.StatusOK, protos.PolicyListProtoToModel(res.PolicyLists))
 }

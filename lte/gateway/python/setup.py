@@ -126,7 +126,7 @@ setup(
         'freezegun>=0.3.15',
         'pycryptodome>=3.9.9',
         'pyroute2==0.5.14',
-        'aiohttp==3.6.2',
+        'aiohttp',
         'jsonpointer>=1.14',
         'ovs>=2.13',
         'prometheus-client>=0.3.1',

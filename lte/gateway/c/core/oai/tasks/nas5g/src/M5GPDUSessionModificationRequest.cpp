@@ -10,6 +10,13 @@
  */
 
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -21,12 +28,11 @@ PDUSessionModificationRequestMsg::~PDUSessionModificationRequestMsg(){};
 int PDUSessionModificationRequestMsg::DecodePDUSessionModificationRequestMsg(
     PDUSessionModificationRequestMsg* pdu_session_modif_request,
     uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, PDU_SESSION_MODIFICATION_REQ_MIN_LEN, len);
 
-  MLOG(MDEBUG) << "DecodePDUSessionModificationRequestMsg\n";
   if ((decoded_result =
            pdu_session_modif_request->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
@@ -64,7 +70,6 @@ int PDUSessionModificationRequestMsg::DecodePDUSessionModificationRequestMsg(
 int PDUSessionModificationRequestMsg::EncodePDUSessionModificationRequestMsg(
     PDUSessionModificationRequestMsg* pdu_session_modif_request,
     uint8_t* buffer, uint32_t len) {
-  MLOG(MDEBUG) << "EncodePDUSessionModificationRequestMsg\n";
   // Not yet implemented, Will be supported POST MVC.
   return 0;
 }

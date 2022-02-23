@@ -36,6 +36,36 @@ proto_library(
 )
 
 proto_library(
+    name = "sync_rpc_service_proto",
+    srcs = ["sync_rpc_service.proto"],
+)
+
+python_grpc_library(
+    name = "sync_rpc_service_python_grpc",
+    protos = [":sync_rpc_service_proto"],
+)
+
+proto_library(
+    name = "magmad_proto",
+    srcs = ["magmad.proto"],
+    deps = [
+        ":common_proto",
+        ":mconfig_orc8r_proto",
+        "@protobuf//:struct_proto",
+    ],
+)
+
+python_proto_library(
+    name = "magmad_python_proto",
+    protos = [":magmad_proto"],
+)
+
+python_grpc_library(
+    name = "magmad_python_grpc",
+    protos = [":magmad_proto"],
+)
+
+proto_library(
     name = "mconfig_orc8r_proto",
     srcs = ["mconfig.proto"],
     deps = [
@@ -57,6 +87,14 @@ proto_library(
     name = "digest_proto",
     srcs = ["digest.proto"],
     deps = ["@protobuf//:any_proto"],
+)
+
+cpp_proto_library(
+    name = "eventd_cpp_proto",
+    protos = [":eventd_proto"],
+    deps = [
+        ":common_cpp_proto",
+    ],
 )
 
 cpp_grpc_library(
@@ -87,6 +125,11 @@ proto_library(
     name = "directoryd_proto",
     srcs = ["directoryd.proto"],
     deps = [":common_proto"],
+)
+
+python_grpc_library(
+    name = "directoryd_python_grpc",
+    protos = [":directoryd_proto"],
 )
 
 cpp_proto_library(
@@ -155,6 +198,15 @@ python_proto_library(
     ],
 )
 
+python_grpc_library(
+    name = "metricsd_python_grpc",
+    protos = [":metricsd_proto"],
+    deps = [
+        ":common_python_proto",
+        ":metrics_python_proto",
+    ],
+)
+
 proto_library(
     name = "metricsd_proto",
     srcs = ["metricsd.proto"],
@@ -162,6 +214,82 @@ proto_library(
         ":common_proto",
         ":metrics_proto",
     ],
+)
+
+proto_library(
+    name = "service_status_proto",
+    srcs = ["service_status.proto"],
+)
+
+python_proto_library(
+    name = "service_status_python_proto",
+    protos = [":service_status_proto"],
+)
+
+proto_library(
+    name = "state_proto",
+    srcs = ["state.proto"],
+    deps = [
+        ":common_proto",
+        ":service303_proto",
+    ],
+)
+
+python_grpc_library(
+    name = "state_python_grpc",
+    protos = [":state_proto"],
+)
+
+proto_library(
+    name = "certifier_proto",
+    srcs = ["certifier.proto"],
+    deps = [
+        ":identity_proto",
+        "@protobuf//:duration_proto",
+        "@protobuf//:timestamp_proto",
+    ],
+)
+
+python_proto_library(
+    name = "certifier_python_proto",
+    protos = [":certifier_proto"],
+    deps = [":identity_python_proto"],
+)
+
+proto_library(
+    name = "identity_proto",
+    srcs = ["identity.proto"],
+)
+
+python_proto_library(
+    name = "identity_python_proto",
+    protos = [":identity_proto"],
+)
+
+proto_library(
+    name = "ctraced_proto",
+    srcs = ["ctraced.proto"],
+)
+
+python_grpc_library(
+    name = "ctraced_python_grpc",
+    protos = [":ctraced_proto"],
+)
+
+proto_library(
+    name = "bootstrapper_proto",
+    srcs = ["bootstrapper.proto"],
+    deps = [
+        ":certifier_proto",
+        ":identity_proto",
+        "@protobuf//:timestamp_proto",
+    ],
+)
+
+python_grpc_library(
+    name = "bootstrapper_python_grpc",
+    protos = [":bootstrapper_proto"],
+    deps = [":certifier_python_proto"],
 )
 
 cpp_grpc_library(
@@ -208,4 +336,15 @@ proto_library(
         ":metricsd_proto",
         "@protobuf//:wrappers_proto",
     ],
+)
+
+proto_library(
+    name = "streamer_proto",
+    srcs = ["streamer.proto"],
+    deps = ["@protobuf//:any_proto"],
+)
+
+python_grpc_library(
+    name = "streamer_python_grpc",
+    protos = [":streamer_proto"],
 )

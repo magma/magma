@@ -70,8 +70,8 @@ extern task_zmq_ctx_t mme_app_task_zmq_ctx;
  **          emm_casue: failed cause                                       **
  **                                                                        **
  ***************************************************************************/
-void mme_app_itti_ue_context_release(
-    struct ue_mm_context_s* ue_context_p, enum s1cause cause) {
+void mme_app_itti_ue_context_release(struct ue_mm_context_s* ue_context_p,
+                                     enum s1cause cause) {
   MessageDef* message_p;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -154,7 +154,7 @@ status_code_e mme_app_send_s11_release_access_bearers_req(
 
   message_p->ittiMsgHeader.imsi = ue_mm_context->emm_context._imsi64;
 
-  bool route_s11_messages_to_s8_task  = false;
+  bool route_s11_messages_to_s8_task = false;
   bool route_s11_messages_to_sgw_task = false;
   for (uint8_t itr = 0; itr < MAX_APN_PER_UE; itr++) {
     if (ue_mm_context->pdn_contexts[itr]) {
@@ -209,7 +209,7 @@ status_code_e mme_app_send_s11_create_session_req(
   /*
    * Keep the identifier to the default APN
    */
-  MessageDef* message_p                                = NULL;
+  MessageDef* message_p = NULL;
   itti_s11_create_session_request_t* session_request_p = NULL;
 
   if (ue_mm_context == NULL) {
@@ -252,10 +252,9 @@ status_code_e mme_app_send_s11_create_session_req(
    * The remote teid will be provided in the response message.
    */
   session_request_p->teid = 0;
-  IMSI64_TO_STRING(
-      ue_mm_context->emm_context._imsi64,
-      (char*) (&session_request_p->imsi.digit),
-      ue_mm_context->emm_context._imsi.length);
+  IMSI64_TO_STRING(ue_mm_context->emm_context._imsi64,
+                   (char*)(&session_request_p->imsi.digit),
+                   ue_mm_context->emm_context._imsi.length);
   session_request_p->imsi.length = ue_mm_context->emm_context._imsi.length;
 
   message_p->ittiMsgHeader.imsi = ue_mm_context->emm_context._imsi64;
@@ -264,14 +263,13 @@ status_code_e mme_app_send_s11_create_session_req(
    * Copy the MSISDN
    */
   if (ue_mm_context->msisdn) {
-    memcpy(
-        session_request_p->msisdn.digit, ue_mm_context->msisdn->data,
-        ue_mm_context->msisdn->slen);
+    memcpy(session_request_p->msisdn.digit, ue_mm_context->msisdn->data,
+           ue_mm_context->msisdn->slen);
     session_request_p->msisdn.length = ue_mm_context->msisdn->slen;
   } else {
     session_request_p->msisdn.length = 0;
   }
-  session_request_p->mei.present       = MEI_IMEISV;
+  session_request_p->mei.present = MEI_IMEISV;
   session_request_p->mei.choice.imeisv = ue_mm_context->emm_context._imeisv;
   // Fill User Location Information
   session_request_p->uli.present = 0;  // initialize the presencemask
@@ -310,10 +308,10 @@ status_code_e mme_app_send_s11_create_session_req(
   session_request_p->bearer_contexts_to_be_created.bearer_contexts[0]
       .bearer_level_qos.pl = bc->priority_level;
   session_request_p->bearer_contexts_to_be_created.bearer_contexts[0]
-      .eps_bearer_id                                                  = bc->ebi;
+      .eps_bearer_id = bc->ebi;
   session_request_p->bearer_contexts_to_be_created.num_bearer_context = 1;
   session_request_p->sender_fteid_for_cp.teid =
-      (teid_t) ue_mm_context->mme_ue_s1ap_id;
+      (teid_t)ue_mm_context->mme_ue_s1ap_id;
   session_request_p->sender_fteid_for_cp.interface_type = S11_MME_GTP_C;
   mme_config_read_lock(&mme_config);
   if (session_request_p->pdn_type == IPv4 ||
@@ -322,10 +320,9 @@ status_code_e mme_app_send_s11_create_session_req(
         mme_config.ip.s11_mme_v4.s_addr;
     session_request_p->sender_fteid_for_cp.ipv4 = 1;
   } else {
-    memcpy(
-        &session_request_p->sender_fteid_for_cp.ipv6_address,
-        &mme_config.ip.s11_mme_v6,
-        sizeof(session_request_p->sender_fteid_for_cp.ipv6_address));
+    memcpy(&session_request_p->sender_fteid_for_cp.ipv6_address,
+           &mme_config.ip.s11_mme_v6,
+           sizeof(session_request_p->sender_fteid_for_cp.ipv6_address));
 
     session_request_p->sender_fteid_for_cp.ipv6 = 1;
   }
@@ -342,23 +339,22 @@ status_code_e mme_app_send_s11_create_session_req(
   struct apn_configuration_s* selected_apn_config_p = mme_app_get_apn_config(
       ue_mm_context, ue_mm_context->pdn_contexts[pdn_cid]->context_identifier);
 
-  memcpy(
-      session_request_p->apn, selected_apn_config_p->service_selection,
-      selected_apn_config_p->service_selection_length);
+  memcpy(session_request_p->apn, selected_apn_config_p->service_selection,
+         selected_apn_config_p->service_selection_length);
 
   /*
    * Copy the APN AMBR to the sgw create session request message
    */
-  memcpy(
-      &session_request_p->ambr, &selected_apn_config_p->ambr, sizeof(ambr_t));
+  memcpy(&session_request_p->ambr, &selected_apn_config_p->ambr,
+         sizeof(ambr_t));
   /*
    * Set PDN type for pdn_type and PAA even if this IE is redundant
    */
-  OAILOG_DEBUG_UE(
-      LOG_MME_APP, ue_mm_context->emm_context._imsi64,
-      "selected apn config PDN Type = %d for (ue_id = %u)\n",
-      selected_apn_config_p->pdn_type, ue_mm_context->mme_ue_s1ap_id);
-  session_request_p->pdn_type     = selected_apn_config_p->pdn_type;
+  OAILOG_DEBUG_UE(LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+                  "selected apn config PDN Type = %d for (ue_id = %u)\n",
+                  selected_apn_config_p->pdn_type,
+                  ue_mm_context->mme_ue_s1ap_id);
+  session_request_p->pdn_type = selected_apn_config_p->pdn_type;
   session_request_p->paa.pdn_type = selected_apn_config_p->pdn_type;
 
   if (selected_apn_config_p->nb_ip_address == 0) {
@@ -366,7 +362,7 @@ status_code_e mme_app_send_s11_create_session_req(
      * UE DHCPv4 allocated ip address
      */
     session_request_p->paa.ipv4_address.s_addr = INADDR_ANY;
-    session_request_p->paa.ipv6_address        = in6addr_any;
+    session_request_p->paa.ipv6_address = in6addr_any;
   } else {
     uint8_t j;
 
@@ -377,10 +373,9 @@ status_code_e mme_app_send_s11_create_session_req(
         session_request_p->paa.ipv4_address.s_addr =
             ip_address->address.ipv4_address.s_addr;
       } else if (ip_address->pdn_type == IPv6) {
-        memcpy(
-            &session_request_p->paa.ipv6_address,
-            &ip_address->address.ipv6_address,
-            sizeof(session_request_p->paa.ipv6_address));
+        memcpy(&session_request_p->paa.ipv6_address,
+               &ip_address->address.ipv6_address,
+               sizeof(session_request_p->paa.ipv6_address));
       }
     }
   }
@@ -390,15 +385,13 @@ status_code_e mme_app_send_s11_create_session_req(
   // default value. The length values should be set to 0 if there is no value
   // specified.
   if (selected_apn_config_p->charging_characteristics.length > 0) {
-    memcpy(
-        &session_request_p->charging_characteristics,
-        &selected_apn_config_p->charging_characteristics,
-        sizeof(charging_characteristics_t));
+    memcpy(&session_request_p->charging_characteristics,
+           &selected_apn_config_p->charging_characteristics,
+           sizeof(charging_characteristics_t));
   } else {
-    memcpy(
-        &session_request_p->charging_characteristics,
-        &ue_mm_context->default_charging_characteristics,
-        sizeof(charging_characteristics_t));
+    memcpy(&session_request_p->charging_characteristics,
+           &ue_mm_context->default_charging_characteristics,
+           sizeof(charging_characteristics_t));
   }
 
   if (ue_mm_context->pdn_contexts[pdn_cid]->pco) {
@@ -433,27 +426,24 @@ status_code_e mme_app_send_s11_create_session_req(
       return RETURNerror;
     }
   }
-  COPY_PLMN_IN_ARRAY_FMT(
-      (session_request_p->serving_network),
-      (ue_mm_context->emm_context.originating_tai.plmn));
+  COPY_PLMN_IN_ARRAY_FMT((session_request_p->serving_network),
+                         (ue_mm_context->emm_context.originating_tai.plmn));
 
   session_request_p->selection_mode = MS_O_N_P_APN_S_V;
   int mode =
-      match_fed_mode_map((char*) session_request_p->imsi.digit, LOG_MME_APP);
+      match_fed_mode_map((char*)session_request_p->imsi.digit, LOG_MME_APP);
   if (mode == S8_SUBSCRIBER) {
-    OAILOG_INFO_UE(
-        LOG_MME_APP, ue_mm_context->emm_context._imsi64,
-        "Sending s11 create session req message to SGW_s8 task for "
-        "ue_id " MME_UE_S1AP_ID_FMT "\n",
-        ue_mm_context->mme_ue_s1ap_id);
+    OAILOG_INFO_UE(LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+                   "Sending s11 create session req message to SGW_s8 task for "
+                   "ue_id " MME_UE_S1AP_ID_FMT "\n",
+                   ue_mm_context->mme_ue_s1ap_id);
     send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGW_S8, message_p);
     ue_mm_context->pdn_contexts[pdn_cid]->route_s11_messages_to_s8_task = true;
   } else {
-    OAILOG_INFO_UE(
-        LOG_MME_APP, ue_mm_context->emm_context._imsi64,
-        "Sending s11 create session req message to SPGW task for "
-        "ue_id " MME_UE_S1AP_ID_FMT "\n",
-        ue_mm_context->mme_ue_s1ap_id);
+    OAILOG_INFO_UE(LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+                   "Sending s11 create session req message to SPGW task for "
+                   "ue_id " MME_UE_S1AP_ID_FMT "\n",
+                   ue_mm_context->mme_ue_s1ap_id);
     send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -526,22 +516,21 @@ void nas_itti_sgsap_uplink_unitdata(
     tai_t* tai_pP, ecgi_t* ecgi_pP, bool sms_orc8r_enabled) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef* message_p = NULL;
-  int uetimezone        = 0;
+  int uetimezone = 0;
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_UPLINK_UNITDATA);
   if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "Failed to allocate memory for SGSAP_UPLINK_UNITDATA \n");
+    OAILOG_ERROR(LOG_MME_APP,
+                 "Failed to allocate memory for SGSAP_UPLINK_UNITDATA \n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  memset(
-      &message_p->ittiMsg.sgsap_uplink_unitdata, 0,
-      sizeof(itti_sgsap_uplink_unitdata_t));
+  memset(&message_p->ittiMsg.sgsap_uplink_unitdata, 0,
+         sizeof(itti_sgsap_uplink_unitdata_t));
   memcpy(SGSAP_UPLINK_UNITDATA(message_p).imsi, imsi, imsi_len);
-  SGSAP_UPLINK_UNITDATA(message_p).imsi[imsi_len]    = '\0';
-  SGSAP_UPLINK_UNITDATA(message_p).imsi_length       = imsi_len;
+  SGSAP_UPLINK_UNITDATA(message_p).imsi[imsi_len] = '\0';
+  SGSAP_UPLINK_UNITDATA(message_p).imsi_length = imsi_len;
   SGSAP_UPLINK_UNITDATA(message_p).nas_msg_container = nas_msg;
-  nas_msg                                            = NULL;
+  nas_msg = NULL;
   /*
    * optional - UE Time Zone
    * update the ue time zone presence bitmask
@@ -556,9 +545,8 @@ void nas_itti_sgsap_uplink_unitdata(
    * update the imeisv presence bitmask
    */
   if (imeisv_pP) {
-    hexa_to_ascii(
-        (uint8_t*) imeisv_pP->u.value,
-        SGSAP_UPLINK_UNITDATA(message_p).opt_imeisv, 8);
+    hexa_to_ascii((uint8_t*)imeisv_pP->u.value,
+                  SGSAP_UPLINK_UNITDATA(message_p).opt_imeisv, 8);
     SGSAP_UPLINK_UNITDATA(message_p).opt_imeisv[imeisv_pP->length] = '\0';
     SGSAP_UPLINK_UNITDATA(message_p).opt_imeisv_length = imeisv_pP->length;
     SGSAP_UPLINK_UNITDATA(message_p).presencemask |=
@@ -570,7 +558,7 @@ void nas_itti_sgsap_uplink_unitdata(
    */
   if (mobilestationclassmark2_pP) {
     SGSAP_UPLINK_UNITDATA(message_p).opt_mobilestationclassmark2 =
-        *((MobileStationClassmark2_t*) mobilestationclassmark2_pP);
+        *((MobileStationClassmark2_t*)mobilestationclassmark2_pP);
     SGSAP_UPLINK_UNITDATA(message_p).presencemask |=
         UPLINK_UNITDATA_MOBILE_STATION_CLASSMARK_2_PARAMETER_PRESENT;
   }
@@ -579,7 +567,7 @@ void nas_itti_sgsap_uplink_unitdata(
    * update the tai presence bitmask.
    */
   if (tai_pP) {
-    SGSAP_UPLINK_UNITDATA(message_p).opt_tai = *((tai_t*) tai_pP);
+    SGSAP_UPLINK_UNITDATA(message_p).opt_tai = *((tai_t*)tai_pP);
     SGSAP_UPLINK_UNITDATA(message_p).presencemask |=
         UPLINK_UNITDATA_TAI_PARAMETER_PRESENT;
   }
@@ -604,19 +592,17 @@ void nas_itti_sgsap_uplink_unitdata(
           LOG_MME_APP, imsi64,
           "Failed to send SGSAP Uplink Unitdata to SMS_ORC8R task\n");
     } else {
-      OAILOG_DEBUG_UE(
-          LOG_MME_APP, imsi64,
-          "Sent SGSAP Uplink Unitdata to SMS_ORC8R task\n");
+      OAILOG_DEBUG_UE(LOG_MME_APP, imsi64,
+                      "Sent SGSAP Uplink Unitdata to SMS_ORC8R task\n");
     }
   } else {
     if (send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p) !=
         RETURNok) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, imsi64,
-          "Failed to send SGSAP Uplink Unitdata to SGS task\n");
+      OAILOG_ERROR_UE(LOG_MME_APP, imsi64,
+                      "Failed to send SGSAP Uplink Unitdata to SGS task\n");
     } else {
-      OAILOG_DEBUG_UE(
-          LOG_MME_APP, imsi64, "Sent SGSAP Uplink Unitdata to SGS task\n");
+      OAILOG_DEBUG_UE(LOG_MME_APP, imsi64,
+                      "Sent SGSAP Uplink Unitdata to SGS task\n");
     }
   }
 
@@ -633,24 +619,22 @@ void nas_itti_sgsap_uplink_unitdata(
  **          imsi_len : Length of IMSI                                     **
  **                                                                        **
  ***************************************************************************/
-void mme_app_itti_sgsap_tmsi_reallocation_comp(
-    const char* imsi, const unsigned int imsi_len) {
+void mme_app_itti_sgsap_tmsi_reallocation_comp(const char* imsi,
+                                               const unsigned int imsi_len) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef* message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_TMSI_REALLOC_COMP);
   if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Failed to allocate memory for SGSAP_TMSI_REALLOC_COMP \n");
+    OAILOG_ERROR(LOG_MME_APP,
+                 "Failed to allocate memory for SGSAP_TMSI_REALLOC_COMP \n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  memset(
-      &message_p->ittiMsg.sgsap_tmsi_realloc_comp, 0,
-      sizeof(itti_sgsap_tmsi_reallocation_comp_t));
+  memset(&message_p->ittiMsg.sgsap_tmsi_realloc_comp, 0,
+         sizeof(itti_sgsap_tmsi_reallocation_comp_t));
   memcpy(SGSAP_TMSI_REALLOC_COMP(message_p).imsi, imsi, imsi_len);
   SGSAP_TMSI_REALLOC_COMP(message_p).imsi[imsi_len] = '\0';
-  SGSAP_TMSI_REALLOC_COMP(message_p).imsi_length    = imsi_len;
+  SGSAP_TMSI_REALLOC_COMP(message_p).imsi_length = imsi_len;
 
   IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
   imsi64_t imsi64 = message_p->ittiMsgHeader.imsi;
@@ -660,9 +644,8 @@ void mme_app_itti_sgsap_tmsi_reallocation_comp(
         LOG_MME_APP, imsi64,
         "Failed to send SGSAP Tmsi Reallocation Complete to SGS task\n");
   } else {
-    OAILOG_DEBUG_UE(
-        LOG_MME_APP, imsi64,
-        "Sent SGSAP Tmsi Reallocation Complete to SGS task\n");
+    OAILOG_DEBUG_UE(LOG_MME_APP, imsi64,
+                    "Sent SGSAP Tmsi Reallocation Complete to SGS task\n");
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -677,23 +660,22 @@ void mme_app_itti_sgsap_tmsi_reallocation_comp(
  **          imsi_len : Length of IMSI                                     **
  **                                                                        **
  ***************************************************************************/
-void mme_app_itti_sgsap_ue_activity_ind(
-    const char* imsi, const unsigned int imsi_len) {
+void mme_app_itti_sgsap_ue_activity_ind(const char* imsi,
+                                        const unsigned int imsi_len) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef* message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_UE_ACTIVITY_IND);
   if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "Failed to allocate memory for SGSAP_UE_ACTIVITY_IND \n");
+    OAILOG_ERROR(LOG_MME_APP,
+                 "Failed to allocate memory for SGSAP_UE_ACTIVITY_IND \n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  memset(
-      &message_p->ittiMsg.sgsap_ue_activity_ind, 0,
-      sizeof(itti_sgsap_ue_activity_ind_t));
+  memset(&message_p->ittiMsg.sgsap_ue_activity_ind, 0,
+         sizeof(itti_sgsap_ue_activity_ind_t));
   memcpy(SGSAP_UE_ACTIVITY_IND(message_p).imsi, imsi, imsi_len);
   SGSAP_UE_ACTIVITY_IND(message_p).imsi[imsi_len] = '\0';
-  SGSAP_UE_ACTIVITY_IND(message_p).imsi_length    = imsi_len;
+  SGSAP_UE_ACTIVITY_IND(message_p).imsi_length = imsi_len;
 
   IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
   imsi64_t imsi64 = message_p->ittiMsgHeader.imsi;
@@ -704,9 +686,9 @@ void mme_app_itti_sgsap_ue_activity_ind(
         "Failed to send SGSAP UE ACTIVITY IND to SGS task for Imsi : %s \n",
         imsi);
   } else {
-    OAILOG_DEBUG_UE(
-        LOG_MME_APP, imsi64,
-        "Sent SGSAP UE ACTIVITY IND to SGS task for Imsi :%s \n", imsi);
+    OAILOG_DEBUG_UE(LOG_MME_APP, imsi64,
+                    "Sent SGSAP UE ACTIVITY IND to SGS task for Imsi :%s \n",
+                    imsi);
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }

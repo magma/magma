@@ -22,10 +22,9 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/SupportedCodecList.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 
-int decode_supported_codec_list(
-    SupportedCodecList* supportedcodeclist, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
-  int decoded   = 0;
+int decode_supported_codec_list(SupportedCodecList* supportedcodeclist,
+                                uint8_t iei, uint8_t* buffer, uint32_t len) {
+  int decoded = 0;
   uint8_t ielen = 0, indx = 0;
   uint8_t total_coded_len = 0, decoded_len;
 
@@ -38,11 +37,10 @@ int decode_supported_codec_list(
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
 
-  for (indx = 0;
-       ((indx < SUPPORTED_CODEC_LIST_NUMBER_OF_SYSTEM_INDICATION) &&
-        (total_coded_len < (ielen - 2)));
+  for (indx = 0; ((indx < SUPPORTED_CODEC_LIST_NUMBER_OF_SYSTEM_INDICATION) &&
+                  (total_coded_len < (ielen - 2)));
        indx++) {
-    decoded_len                                    = decoded;
+    decoded_len = decoded;
     supportedcodeclist[indx]->systemidentification = *(buffer + decoded);
     decoded++;
     supportedcodeclist[indx]->lengthofbitmap = *(buffer + decoded);
@@ -52,9 +50,8 @@ int decode_supported_codec_list(
     } else if (supportedcodeclist[indx]->lengthofbitmap == sizeof(uint16_t)) {
       IES_DECODE_U16(buffer, decoded, supportedcodeclist[indx]->codecbitmap);
     } else {
-      OAILOG_ERROR(
-          LOG_NAS, "Supported codec list: Invalid Bitmap length :%d\n",
-          supportedcodeclist[indx]->lengthofbitmap);
+      OAILOG_ERROR(LOG_NAS, "Supported codec list: Invalid Bitmap length :%d\n",
+                   supportedcodeclist[indx]->lengthofbitmap);
     }
     total_coded_len += decoded - decoded_len;
   }
@@ -64,12 +61,11 @@ int decode_supported_codec_list(
   return decoded;
 }
 
-int encode_supported_codec_list(
-    SupportedCodecList* supportedcodeclist, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int encode_supported_codec_list(SupportedCodecList* supportedcodeclist,
+                                uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
-  uint8_t indx     = 0;
+  uint8_t indx = 0;
 
   /*
    * Checking IEI and pointer
@@ -98,9 +94,9 @@ int encode_supported_codec_list(
     } else if (supportedcodeclist[indx]->lengthofbitmap == sizeof(uint16_t)) {
       IES_ENCODE_U16(buffer, encoded, supportedcodeclist[indx]->codecbitmap);
     } else {
-      OAILOG_ERROR(
-          LOG_NAS, "Encode supported codec list: Invalid Bitmal length: %d \n",
-          supportedcodeclist[indx]->lengthofbitmap);
+      OAILOG_ERROR(LOG_NAS,
+                   "Encode supported codec list: Invalid Bitmal length: %d \n",
+                   supportedcodeclist[indx]->lengthofbitmap);
     }
   }
 
@@ -108,8 +104,8 @@ int encode_supported_codec_list(
   return encoded;
 }
 
-void dump_supported_codec_list_xml(
-    SupportedCodecList* supportedcodeclist, uint8_t iei) {
+void dump_supported_codec_list_xml(SupportedCodecList* supportedcodeclist,
+                                   uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Supported Codec List>\n");
   uint8_t indx = 0;
 
@@ -121,15 +117,12 @@ void dump_supported_codec_list_xml(
 
   for (indx = 0; indx < SUPPORTED_CODEC_LIST_NUMBER_OF_SYSTEM_INDICATION;
        indx++) {
-    OAILOG_DEBUG(
-        LOG_NAS, "<System identification>%u</System identification>\n",
-        supportedcodeclist[indx]->systemidentification);
-    OAILOG_DEBUG(
-        LOG_NAS, "<Length of bitmap>%u</Length of bitmap>\n",
-        supportedcodeclist[indx]->lengthofbitmap);
-    OAILOG_DEBUG(
-        LOG_NAS, "<Codec bitmap>%u</Codec bitmap>\n",
-        supportedcodeclist[indx]->codecbitmap);
+    OAILOG_DEBUG(LOG_NAS, "<System identification>%u</System identification>\n",
+                 supportedcodeclist[indx]->systemidentification);
+    OAILOG_DEBUG(LOG_NAS, "<Length of bitmap>%u</Length of bitmap>\n",
+                 supportedcodeclist[indx]->lengthofbitmap);
+    OAILOG_DEBUG(LOG_NAS, "<Codec bitmap>%u</Codec bitmap>\n",
+                 supportedcodeclist[indx]->codecbitmap);
   }
   OAILOG_DEBUG(LOG_NAS, "</Supported Codec List>\n");
 }

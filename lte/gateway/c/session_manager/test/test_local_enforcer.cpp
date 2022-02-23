@@ -341,8 +341,8 @@ TEST_F(LocalEnforcerTest, test_aggregate_records_mixed_ips) {
   create_rule_record(IMSI1, default_cfg_1.common_context.ue_ipv4(), "rule1", 10,
                      20, record_list->Add());
   // ipv6 usage for the same charging key and subscriber
-  create_rule_record(IMSI1, default_cfg_1.common_context.ue_ipv6(), "rule2", 5,
-                     15, record_list->Add());
+  create_rule_record_ipv6(IMSI1, default_cfg_1.common_context.ue_ipv6(),
+                          "rule2", 5, 15, record_list->Add());
   create_rule_record(IMSI1, default_cfg_1.common_context.ue_ipv4(), "rule3",
                      100, 150, record_list->Add());
 
@@ -547,12 +547,16 @@ TEST_F(LocalEnforcerTest, test_erroneous_data) {
   auto ipv4 = default_cfg_1.common_context.ue_ipv4();
   auto ipv6 = default_cfg_1.common_context.ue_ipv6();
   create_rule_record(IMSI1, ipv4, "rule1", 1, 15, 30, 0, 0, record_list->Add());
-  create_rule_record(IMSI1, ipv6, "rule1", 1, 10, 20, 0, 0, record_list->Add());
-  create_rule_record(IMSI1, ipv6, "rule1", 2, 40, 90, 0, 0, record_list->Add());
-  create_rule_record(IMSI1, ipv6, "rule1", 2, 16, 24, 0, 0, record_list->Add());
-  create_rule_record(IMSI1, ipv6, "rule1", 3, 50, 100, 0, 0,
-                     record_list->Add());
-  create_rule_record(IMSI1, ipv6, "rule1", 3, 25, 60, 0, 0, record_list->Add());
+  create_rule_record_ipv6(IMSI1, ipv6, "rule1", 1, 10, 20, 0, 0,
+                          record_list->Add());
+  create_rule_record_ipv6(IMSI1, ipv6, "rule1", 2, 40, 90, 0, 0,
+                          record_list->Add());
+  create_rule_record_ipv6(IMSI1, ipv6, "rule1", 2, 16, 24, 0, 0,
+                          record_list->Add());
+  create_rule_record_ipv6(IMSI1, ipv6, "rule1", 3, 50, 100, 0, 0,
+                          record_list->Add());
+  create_rule_record_ipv6(IMSI1, ipv6, "rule1", 3, 25, 60, 0, 0,
+                          record_list->Add());
 
   auto update = SessionStore::get_default_session_update(session_map);
   auto uc = get_default_update_criteria();

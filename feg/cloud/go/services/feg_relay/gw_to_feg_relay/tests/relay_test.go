@@ -29,7 +29,7 @@ import (
 	"magma/feg/cloud/go/serdes"
 	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay"
-	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay/servicers"
+	servicers "magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay/servicers/southbound"
 	healthTestUtils "magma/feg/cloud/go/services/health/test_utils"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"

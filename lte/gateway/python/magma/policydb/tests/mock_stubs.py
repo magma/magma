@@ -74,6 +74,8 @@ class MockSessionProxyResponderStub3:
         return PolicyReAuthAnswer(
             result=ReAuthResult.Value('UPDATE_INITIATED'),
             failed_rules={
-                "p2": PolicyReAuthAnswer.FailureCode.Value("UNKNOWN_RULE_NAME"),
+                "p2": PolicyReAuthAnswer.FailureCode.Value(
+                    "UNKNOWN_RULE_NAME",
+                ),
             },
         )

@@ -90,48 +90,46 @@ int main(int argc, char* argv[]) {
   rc = nwGtpv2cInitialize(&hGtpv2cStack);
 
   if (rc != NW_OK) {
-    NW_LOG(
-        NW_LOG_LEVEL_ERRO,
-        "Failed to create gtpv2c stack instance. Error '%u' occured", rc);
+    NW_LOG(NW_LOG_LEVEL_ERRO,
+           "Failed to create gtpv2c stack instance. Error '%u' occurred", rc);
     exit(1);
   }
 
-  NW_LOG(
-      NW_LOG_LEVEL_INFO, "Gtpv2c Stack Handle '%X' Creation Successful!",
-      hGtpv2cStack);
+  NW_LOG(NW_LOG_LEVEL_INFO, "Gtpv2c Stack Handle '%X' Creation Successful!",
+         hGtpv2cStack);
   rc = nwGtpv2cSetLogLevel(hGtpv2cStack, logLevel);
   /*---------------------------------------------------------------------------
      Set up Ulp Entity
     --------------------------------------------------------------------------*/
   rc = nwGtpv2cUlpInit(&ulpObj, hGtpv2cStack, argv[2]);
   NW_ASSERT(NW_OK == rc);
-  ulp.hUlp           = (nw_gtpv2c_UlpHandleT) &ulpObj;
+  ulp.hUlp = (nw_gtpv2c_UlpHandleT)&ulpObj;
   ulp.ulpReqCallback = nwGtpv2cUlpProcessStackReqCallback;
-  rc                 = nwGtpv2cSetUlpEntity(hGtpv2cStack, &ulp);
+  rc = nwGtpv2cSetUlpEntity(hGtpv2cStack, &ulp);
   NW_ASSERT(NW_OK == rc);
   /*---------------------------------------------------------------------------
      Set up Udp Entity
     --------------------------------------------------------------------------*/
   rc = nwGtpv2cUdpInit(&udpObj, hGtpv2cStack, (argv[1]));
   NW_ASSERT(NW_OK == rc);
-  udp.hUdp               = (nw_gtpv2c_UdpHandleT) &udpObj;
+  udp.hUdp = (nw_gtpv2c_UdpHandleT)&udpObj;
   udp.udpDataReqCallback = nwGtpv2cUdpDataReq;
-  rc                     = nwGtpv2cSetUdpEntity(hGtpv2cStack, &udp);
+  rc = nwGtpv2cSetUdpEntity(hGtpv2cStack, &udp);
   NW_ASSERT(NW_OK == rc);
   /*---------------------------------------------------------------------------
      Set up Log Entity
     --------------------------------------------------------------------------*/
-  tmrMgr.tmrMgrHandle     = 0;
+  tmrMgr.tmrMgrHandle = 0;
   tmrMgr.tmrStartCallback = nwTimerStart;
-  tmrMgr.tmrStopCallback  = nwTimerStop;
-  rc                      = nwGtpv2cSetTimerMgrEntity(hGtpv2cStack, &tmrMgr);
+  tmrMgr.tmrStopCallback = nwTimerStop;
+  rc = nwGtpv2cSetTimerMgrEntity(hGtpv2cStack, &tmrMgr);
   NW_ASSERT(NW_OK == rc);
   /*---------------------------------------------------------------------------
      Set up Log Entity
     --------------------------------------------------------------------------*/
-  logMgr.logMgrHandle   = (nw_gtpv2c_LogMgrHandleT) nwMiniLogMgrGetInstance();
+  logMgr.logMgrHandle = (nw_gtpv2c_LogMgrHandleT)nwMiniLogMgrGetInstance();
   logMgr.logReqCallback = nwMiniLogMgrLogRequest;
-  rc                    = nwGtpv2cSetLogMgrEntity(hGtpv2cStack, &logMgr);
+  rc = nwGtpv2cSetLogMgrEntity(hGtpv2cStack, &logMgr);
   NW_ASSERT(NW_OK == rc);
   /*---------------------------------------------------------------------------
       Send Message Request to Gtpv2c Stack Instance
@@ -150,13 +148,11 @@ int main(int argc, char* argv[]) {
   rc = nwGtpv2cFinalize(hGtpv2cStack);
 
   if (rc != NW_OK) {
-    NW_LOG(
-        NW_LOG_LEVEL_ERRO,
-        "Failed to finalize gtpv2c stack instance. Error '%u' occured", rc);
+    NW_LOG(NW_LOG_LEVEL_ERRO,
+           "Failed to finalize gtpv2c stack instance. Error '%u' occurred", rc);
   } else {
-    NW_LOG(
-        NW_LOG_LEVEL_INFO, "Gtpv2c Stack Handle '%X' Finalize Successful!",
-        hGtpv2cStack);
+    NW_LOG(NW_LOG_LEVEL_INFO, "Gtpv2c Stack Handle '%X' Finalize Successful!",
+           hGtpv2cStack);
   }
 
   return rc;

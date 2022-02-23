@@ -39,8 +39,8 @@ mme_host_address: 127.0.0.1
 mme_port: 3868
 
 # Default Subscription Profile
-default_max_ul_bit_rate: 100000000  # 100 Mbps
-default_max_dl_bit_rate: 200000000  # 200 Mbps
+default_max_ul_bit_rate: 2000000000  # 2 Gbps
+default_max_dl_bit_rate: 4000000000  # 4 Gbps
 
 # Relay S6A via gRPC
 relay_mode: False
@@ -55,7 +55,3 @@ s6a_over_grpc: True
 
 # Number of thread workers for the gRPC server
 grpc_workers: 10
-
-# [Experimental] Enable Sentry for this service
-# Allowed values: send_all_errors, send_selected_errors, disabled
-sentry: disabled

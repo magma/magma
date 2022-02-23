@@ -40,5 +40,8 @@ cc_library(
     deps = select({
         ":disable_sentry_native": sentry_deps,
         "//conditions:default": sentry_deps + ["@sentry_native//:sentry"],
-    }),
+    }) + [
+        "//orc8r/gateway/c/common/config:mconfig_loader",
+        "//orc8r/protos:mconfigs_cpp_proto",
+    ],
 )

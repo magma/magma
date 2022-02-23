@@ -40,18 +40,16 @@ int main(int argc, char** argv) {
 
     MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
         "0001", apn,
-        [apn, &str, &tmp](
-            const Status& status, AllocateIPAddressResponse ip_msg) {
+        [apn, &str, &tmp](const Status& status,
+                          AllocateIPAddressResponse ip_msg) {
           struct in_addr ipv4_addr1;
-          memcpy(
-              &ipv4_addr1,
-              ip_msg.mutable_ip_list(0)->mutable_address()->c_str(),
-              sizeof(in_addr));
+          memcpy(&ipv4_addr1,
+                 ip_msg.mutable_ip_list(0)->mutable_address()->c_str(),
+                 sizeof(in_addr));
 
           if (!status.ok()) {
-            printf(
-                "allocate_ipv4_address error %d for sid %s for apn %s\n",
-                status.error_code(), "0001", apn);
+            printf("allocate_ipv4_address error %d for sid %s for apn %s\n",
+                   status.error_code(), "0001", apn);
             return -1;
           }
           tmp.s_addr = htonl(ipv4_addr1.s_addr);
@@ -59,40 +57,37 @@ int main(int argc, char** argv) {
           printf("IP allocated: %s\n", str);
           printf("Releasing IP address...\n");
 
-          MobilityServiceClient::getInstance().ReleaseIPv4Address(
-              "0001", apn, ipv4_addr1);
+          MobilityServiceClient::getInstance().ReleaseIPv4Address("0001", apn,
+                                                                  ipv4_addr1);
           return 0;
         });
 
     MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
         "0002", apn,
-        [apn, &str, &tmp](
-            const Status& status, AllocateIPAddressResponse ip_msg) {
+        [apn, &str, &tmp](const Status& status,
+                          AllocateIPAddressResponse ip_msg) {
           struct in_addr ipv4_addr2;
-          memcpy(
-              &ipv4_addr2,
-              ip_msg.mutable_ip_list(0)->mutable_address()->c_str(),
-              sizeof(in_addr));
+          memcpy(&ipv4_addr2,
+                 ip_msg.mutable_ip_list(0)->mutable_address()->c_str(),
+                 sizeof(in_addr));
           if (!status.ok()) {
-            printf(
-                "allocate_ipv4_address error %d for sid %s for apn %s\n",
-                status.error_code(), "0002", apn);
+            printf("allocate_ipv4_address error %d for sid %s for apn %s\n",
+                   status.error_code(), "0002", apn);
             return -1;
           }
           tmp.s_addr = htonl(ipv4_addr2.s_addr);
           inet_ntop(AF_INET, &tmp, str, INET_ADDRSTRLEN);
           printf("IP allocated: %s\n", str);
-          MobilityServiceClient::getInstance().ReleaseIPv4Address(
-              "0002", apn, ipv4_addr2);
+          MobilityServiceClient::getInstance().ReleaseIPv4Address("0002", apn,
+                                                                  ipv4_addr2);
           return 0;
         });
 
     status = MobilityServiceClient::getInstance().GetIPv4AddressForSubscriber(
         "0002", apn, &ipv4_addr3);
     if (status) {
-      printf(
-          "get_ipv4_address_for_subscriber error %d for sid %s\n", status,
-          "0002");
+      printf("get_ipv4_address_for_subscriber error %d for sid %s\n", status,
+             "0002");
       return -1;
     }
     tmp.s_addr = htonl(ipv4_addr3.s_addr);

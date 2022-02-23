@@ -39,20 +39,20 @@
 
 status_code_e mme_app_handle_s6a_reset_req(
     const s6a_reset_req_t* const rsr_pP) {
-  int rc                               = RETURNok;
+  int rc = RETURNok;
   struct ue_mm_context_s* ue_context_p = NULL;
-  hash_node_t* node                    = NULL;
-  unsigned int i                       = 0;
-  unsigned int num_elements            = 0;
-  hash_table_ts_t* hashtblP            = NULL;
+  hash_node_t* node = NULL;
+  unsigned int i = 0;
+  unsigned int num_elements = 0;
+  hash_table_ts_t* hashtblP = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   OAILOG_DEBUG(LOG_MME_APP, "S6a Reset Request received\n");
 
   if (rsr_pP == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "Invalid S6a Reset Request ITTI message received\n");
+    OAILOG_ERROR(LOG_MME_APP,
+                 "Invalid S6a Reset Request ITTI message received\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -69,8 +69,8 @@ status_code_e mme_app_handle_s6a_reset_req(
     pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     while (node) {
       num_elements++;
-      hashtable_ts_get(
-          hashtblP, (const hash_key_t) node->key, (void**) &ue_context_p);
+      hashtable_ts_get(hashtblP, (const hash_key_t)node->key,
+                       (void**)&ue_context_p);
       if (ue_context_p != NULL) {
         if (ue_context_p->mm_state == UE_REGISTERED) {
           /*

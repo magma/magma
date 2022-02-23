@@ -13,6 +13,9 @@
 #
 # log_level is set in mconfig. It can be overridden here
 
+# Append GRPC content to the log
+print_grpc_payload: false
+
 tr069:
   interface: eth1 # NOTE: this value must be consistent with dnsmasq.conf
   port: 48080
@@ -25,7 +28,7 @@ tr069:
 # connect enodebd with the domain proxy which is responsible for talking to
 # SAS.
 sas:
-  sas_enabled: True
+  dp_mode: True
   sas_server_url: "https://spectrum-connect.federatedwireless.com/v1.2/"
   sas_uid: "INVALID_ID"
   sas_category: "A"
@@ -52,7 +55,3 @@ web_ui_enable_list: []
 
 # Network interface to terminate S1
 s1_interface: eth1
-
-# [Experimental] Enable Sentry for this service
-# Allowed values: send_all_errors, send_selected_errors, disabled
-sentry: disabled

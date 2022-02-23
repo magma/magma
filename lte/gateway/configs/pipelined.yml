@@ -119,7 +119,7 @@ bridge_name: gtp_br0
 # Bridge ip comes from magma_ifaces_gtp
 bridge_ip_address: 192.168.128.1
 # For ipv6 router solicitation app
-ipv6_router_addr: 'd88d:aba4:472f:fc95:7e7d:8457:5301:ebce'
+# ipv6_router_addr: 'd88d:aba4:472f:fc95:7e7d:8457:5301:ebce'
 
 # QoS parameters
 qos:
@@ -219,10 +219,6 @@ sgi_tunnel:
 # dp_tso:
 #   gtp_tso_enable: false
 #
-
-# [Experimental] Enable Sentry for this service
-# Allowed values: send_all_errors, send_selected_errors, disabled
-sentry: disabled
 
 ebpf:
   enabled: true

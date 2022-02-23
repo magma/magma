@@ -40,8 +40,8 @@ class BaseNameDict(RedisHashDict):
 
     def send_update_notification(self):
         """
-        Use Redis pub/sub channels to send notifications. Subscribers can listen
-        to this channel to know when an update is done
+        Use Redis pub/sub channels to send notifications. Subscribers can
+        listen to this channel to know when an update is done
         """
         self.redis.publish(self._NOTIFY_CHANNEL, "Stream Update")
 

@@ -551,6 +551,7 @@ def _copy_out_c_execs_in_magma_vm():
         exec_paths = [
             '/usr/local/bin/sessiond', '/usr/local/bin/mme',
             '/usr/local/sbin/sctpd', '/usr/local/bin/connectiond',
+            '/usr/local/bin/liagentd',
         ]
         dest_path = '~/magma-packages/executables'
         run('mkdir -p ' + dest_path)

@@ -60,8 +60,12 @@ tags:
   name: Upgrades
 - description: Baremetal CI executors and workloads
   name: baremetal
+- description: API for CBSDs
+  name: cbsds
 - description: End to end testing
   name: e2e
+- description: API for retrieving logs
+  name: logs
 paths:
   /about/version:
     get:
@@ -1054,6 +1058,158 @@ paths:
       summary: Get the directory record of a subscriber
       tags:
       - Carrier Wifi Networks
+  /dp/{network_id}/cbsds:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/offset'
+      - $ref: '#/parameters/limit'
+      responses:
+        "200":
+          description: All CBSDs in LTE network
+          schema:
+            items:
+              $ref: '#/definitions/cbsd'
+            type: array
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List all CBSDs in LTE network
+      tags:
+      - cbsds
+    post:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - description: CBSD
+        in: body
+        name: cbsd
+        required: true
+        schema:
+          $ref: '#/definitions/cbsd'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Create new cbsd
+      tags:
+      - cbsds
+  /dp/{network_id}/cbsds/{cbsd_id}:
+    delete:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/cbsd_id'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Delete CBSD from LTE network
+      tags:
+      - cbsds
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/cbsd_id'
+      responses:
+        "200":
+          description: CBSD
+          schema:
+            $ref: '#/definitions/cbsd'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Retrieve CBSD from LTE network
+      tags:
+      - cbsds
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/cbsd_id'
+      - description: CBSD
+        in: body
+        name: cbsd
+        required: true
+        schema:
+          $ref: '#/definitions/cbsd'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update CBSD in LTE network
+      tags:
+      - cbsds
+  /dp/{network_id}/logs:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/offset'
+      - $ref: '#/parameters/limit'
+      - description: start datetime of messages
+        format: date-time
+        in: query
+        name: begin
+        required: false
+        type: string
+      - description: end datatime of messages
+        format: date-time
+        in: query
+        name: end
+        required: false
+        type: string
+      - description: serial number of cbsd
+        in: query
+        maxLength: 64
+        minLength: 1
+        name: serial_number
+        required: false
+        type: string
+      - description: fcc id of cbsd
+        in: query
+        maxLength: 19
+        minLength: 1
+        name: fcc_id
+        required: false
+        type: string
+      - description: message type
+        in: query
+        name: type
+        required: false
+        type: string
+      - description: response code (only applicable for SAS responses)
+        in: query
+        name: response_code
+        required: false
+        type: integer
+      - description: message origin
+        enum:
+        - SAS
+        - DP
+        - CBSD
+        in: query
+        name: from
+        required: false
+        type: string
+      - description: message destination
+        enum:
+        - SAS
+        - DP
+        - CBSD
+        in: query
+        name: to
+        required: false
+        type: string
+      responses:
+        "200":
+          description: Messages between DP and SAS
+          schema:
+            items:
+              $ref: '#/definitions/message'
+            type: array
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List messages between DP and SAS ordered by time
+      tags:
+      - logs
   /events/{network_id}:
     get:
       parameters:
@@ -6369,6 +6525,12 @@ parameters:
     name: base_name
     required: true
     type: string
+  cbsd_id:
+    description: CBSD ID
+    in: path
+    name: cbsd_id
+    required: true
+    type: integer
   channel_id:
     description: Release Channel ID
     in: path
@@ -6419,6 +6581,13 @@ parameters:
     name: image_name
     required: true
     type: string
+  limit:
+    description: Number of record to return
+    in: query
+    minimum: 1
+    name: limit
+    required: false
+    type: integer
   msisdn:
     description: Mobile station international subscriber directory number
     in: path
@@ -6446,6 +6615,13 @@ parameters:
     name: node_id
     required: true
     type: string
+  offset:
+    description: Start index for pagination
+    in: query
+    minimum: 1
+    name: offset
+    required: false
+    type: integer
   page_size:
     description: Maximum number of entities to return
     format: uint32
@@ -6935,6 +7111,28 @@ definitions:
         description: True if trace has been requested to end
         type: boolean
     type: object
+  capabilities:
+    properties:
+      antenna_gain:
+        example: 15
+        type: number
+      max_power:
+        description: max tx power available on cbsd
+        example: 30
+        type: number
+      min_power:
+        description: min tx power available on cbsd
+        type: number
+      number_of_antennas:
+        example: 2
+        minimum: 1
+        type: integer
+    required:
+    - antenna_gain
+    - min_power
+    - max_power
+    - number_of_antennas
+    type: object
   carrier_wifi_gateway_health_status:
     description: Health status of a Carrier Wifi Gateway
     properties:
@@ -6970,6 +7168,53 @@ definitions:
         x-nullable: false
     required:
     - active_gateway
+    type: object
+  cbsd:
+    properties:
+      capabilities:
+        $ref: '#/definitions/capabilities'
+      cbsd_id:
+        description: id of cbsd in SAS
+        example: some_cbsd_id
+        readOnly: true
+        type: string
+      fcc_id:
+        example: some_fcc_id
+        minLength: 1
+        type: string
+      grant:
+        $ref: '#/definitions/grant'
+      id:
+        description: database id of cbsd
+        readOnly: true
+        type: integer
+      is_active:
+        description: false if cbsd have not contcated DP for certain amount of time
+        readOnly: true
+        type: boolean
+      serial_number:
+        example: some_serial_number
+        minLength: 1
+        type: string
+      state:
+        description: state of cbsd in SAS
+        enum:
+        - unregistered
+        - registered
+        readOnly: true
+        type: string
+      user_id:
+        example: some_user_id
+        minLength: 1
+        type: string
+    required:
+    - fcc_id
+    - serial_number
+    - user_id
+    - capabilities
+    - is_active
+    - id
+    - state
     type: object
   cellular_gateway_pool:
     description: Highly available gateway pool in an LTE network
@@ -7085,6 +7330,12 @@ definitions:
     - vpn_ip
     - available
     type: object
+  components:
+    enum:
+    - SAS
+    - DP
+    - CBSD
+    type: string
   config_info:
     properties:
       mconfig_created_at:
@@ -8650,6 +8901,32 @@ definitions:
       - status
       - updatedAt
       type: object
+  grant:
+    properties:
+      bandwidth_mhz:
+        example: 20
+        type: integer
+      frequency_mhz:
+        example: 3600
+        maximum: 3700
+        minimum: 3550
+        type: integer
+      grant_expire_time:
+        format: date-time
+        type: string
+      max_eirp:
+        maximum: 37
+        minimum: -137
+        type: number
+      state:
+        enum:
+        - granted
+        - guthorized
+        type: string
+      transmit_expire_time:
+        format: date-time
+        type: string
+    readOnly: true
   gx:
     description: gx configuration
     properties:
@@ -9110,6 +9387,49 @@ definitions:
     - name
     - value
     type: object
+  message:
+    properties:
+      body:
+        description: Body of message
+        example: '{[{"registrationRequest":{"cbsdSerialNumber":"some_serial_number"}}]}'
+        readOnly: true
+        type: string
+      fcc_id:
+        description: Fcc Id of cbsd involved in message
+        example: some_fcc_id
+        readOnly: true
+        type: string
+      from:
+        description: message origin
+        enum:
+        - SAS
+        - DP
+        - CBSD
+        readOnly: true
+        type: string
+      serial_number:
+        description: Serial number of cbsd involved in message
+        example: some_serial_number
+        readOnly: true
+        type: string
+      time:
+        description: Datetime of message
+        format: date-time
+        readOnly: true
+        type: string
+      to:
+        description: message destination
+        enum:
+        - SAS
+        - DP
+        - CBSD
+        readOnly: true
+        type: string
+      type:
+        description: Type of message
+        readOnly: true
+        type: string
+    type: object
   metric_datapoint:
     example:
     - 1.548439790115e+09
@@ -9173,6 +9493,28 @@ definitions:
         type: boolean
     required:
     - requested_end
+    type: object
+  mutable_cbsd:
+    properties:
+      capabilities:
+        $ref: '#/definitions/capabilities'
+      fcc_id:
+        example: some_fcc_id
+        minLength: 1
+        type: string
+      serial_number:
+        example: some_serial_number
+        minLength: 1
+        type: string
+      user_id:
+        example: some_user_id
+        minLength: 1
+        type: string
+    required:
+    - fcc_id
+    - serial_number
+    - user_id
+    - capabilities
     type: object
   mutable_cellular_gateway_pool:
     description: Mutable version of the cellular gateway pool
@@ -9970,19 +10312,7 @@ definitions:
     type: object
   network_sentry_config:
     default:
-      exclusion_patterns:
-      - GetServiceInfo
-      - GetOperationalStates
-      - ConnectionError
-      - CheckinError
-      - Checkin Error
-      - GetChallenge error!
-      - Connection to FluentBit
-      - \[SyncRPC\]
-      - Metrics upload error
-      - Streaming from the cloud failed!
-      - Fetch subscribers error!
-      - GRPC call failed for state replication
+      exclusion_patterns: []
       sample_rate: 1
       upload_mme_log: false
     description: Sentry.io configuration

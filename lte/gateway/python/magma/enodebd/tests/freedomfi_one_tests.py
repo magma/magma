@@ -12,7 +12,7 @@ limitations under the License.
 """
 import logging
 import os
-from unittest import TestCase, mock
+from unittest import TestCase
 from unittest.mock import Mock, call, patch
 
 from dp.protos.enodebd_dp_pb2 import CBSDStateResult, LteChannel
@@ -28,6 +28,7 @@ from magma.enodebd.devices.freedomfi_one import (
     FreedomFiOneConfigurationInitializer,
     FreedomFiOneEndSessionState,
     FreedomFiOneGetInitState,
+    FreedomFiOneMiscParameters,
     FreedomFiOneNotifyDPState,
     FreedomFiOneTrDataModel,
     SASParameters,
@@ -35,6 +36,7 @@ from magma.enodebd.devices.freedomfi_one import (
     ff_one_update_desired_config_from_cbsd_state,
 )
 from magma.enodebd.exceptions import ConfigurationError
+from magma.enodebd.state_machines.enb_acs_states import WaitInformMRebootState
 from magma.enodebd.tests.test_utils.config_builder import EnodebConfigBuilder
 from magma.enodebd.tests.test_utils.enb_acs_builder import (
     EnodebAcsStateMachineBuilder,
@@ -52,16 +54,20 @@ SRC_CONFIG_DIR = os.path.join(
 MOCK_CBSD_STATE = CBSDStateResult(
     radio_enabled=True,
     channel=LteChannel(
-        low_frequency_hz=3550_000_000,
-        high_frequency_hz=3570_000_000,
+        low_frequency_hz=3550000000,
+        high_frequency_hz=3570000000,
         max_eirp_dbm_mhz=15,
     ),
 )
 
+TEST_SAS_URL = 'test_sas_url'
+TEST_SAS_CERT_SUBJECT = 'test_sas_cert_subject'
+
 
 class FreedomFiOneTests(EnodebHandlerTestCase):
+    """Testing FreedomfiOne state machine"""
 
-    def _get_freedomfi_one_read_only_param_values_response(
+    def _get_ff_one_read_only_param_values_resp(
             self,
     ) -> models.GetParameterValuesResponse:
         msg = models.GetParameterValuesResponse()
@@ -217,7 +223,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             Tr069MessageBuilder.get_parameter_value_struct(
                 name='Device.Services.FAPService.1.FAPControl.LTE.X_000E8F_SAS.CertSubject',
                 val_type='string',
-                data='/C=TW/O=Sercomm/OU=WInnForum CBSD Certificate/CN=P27-SCE4255W:%s',
+                data=TEST_SAS_CERT_SUBJECT,
             ),
         )
         param_val_list.append(
@@ -350,7 +356,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             Tr069MessageBuilder.get_parameter_value_struct(
                 name='Device.Services.FAPService.1.FAPControl.LTE.X_000E8F_SAS.Server',
                 val_type='string',
-                data='https://spectrum-connect.federatedwireless.com/v1.2/',
+                data=TEST_SAS_URL,
             ),
         )
         param_val_list.append(
@@ -390,6 +396,13 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
         )
         param_val_list.append(
             Tr069MessageBuilder.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.FAPControl.LTE.X_000E8F_SAS.Method',
+                val_type='boolean',
+                data='0',
+            ),
+        )
+        param_val_list.append(
+            Tr069MessageBuilder.get_parameter_value_struct(
                 name='Device.ManagementServer.PeriodicInformEnable',
                 val_type='boolean',
                 data='1',
@@ -425,7 +438,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
         )
         return msg
 
-    @mock.patch('magma.enodebd.devices.freedomfi_one.get_cbsd_state')
+    @patch('magma.enodebd.devices.freedomfi_one.get_cbsd_state')
     def test_provision(self, mock_get_state) -> None:
         """
         Test the basic provisioning workflow
@@ -434,13 +447,16 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
         3 - enodebd sends get transient params, updates the device state.
         4 - enodebd sends get param values, updates the device state
         5 - enodebd, sets fields including SAS fields.
+
+        Args:
+            mock_get_state (Any): mocking get_cbsd_state method
         """
 
         mock_get_state.return_value = MOCK_CBSD_STATE
 
         logging.root.level = logging.DEBUG
         acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.FREEDOMFI_ONE)
-        acs_state_machine._service.config = get_service_config()
+        acs_state_machine._service.config = _get_service_config()
         acs_state_machine.desired_cfg = build_desired_config(
             acs_state_machine.mconfig,
             acs_state_machine.service_config,
@@ -469,10 +485,10 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             isinstance(resp, models.GetParameterValues),
             'State machine should be requesting param values',
         )
-        for tr_69_nodes in StatusParameters.STATUS_PARAMETERS.values():
-            self.assertIn(tr_69_nodes.path, resp.ParameterNames.string)
+        for tr69nodes in StatusParameters.STATUS_PARAMETERS.values():
+            self.assertIn(tr69nodes.path, resp.ParameterNames.string)
 
-        req = self._get_freedomfi_one_read_only_param_values_response()
+        req = self._get_ff_one_read_only_param_values_resp()
         get_resp = acs_state_machine.handle_tr069_message(req)
 
         self.assertTrue(
@@ -510,20 +526,26 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
     """Testing FreedomfiOne specific states"""
 
     @parameterized.expand([
-        (False, FreedomFiOneNotifyDPState),
-        (True, FreedomFiOneEndSessionState),
+        (True, FreedomFiOneNotifyDPState),
+        (False, FreedomFiOneEndSessionState),
     ])
-    @mock.patch('magma.enodebd.devices.freedomfi_one.get_cbsd_state')
-    def test_end_session_and_notify_dp_transition_depending_on_sas_enabled_flag(
-            self, sas_enabled, expected_state, mock_get_state,
+    @patch('magma.enodebd.devices.freedomfi_one.get_cbsd_state')
+    def test_transition_depending_on_sas_enabled_flag(
+            self, dp_mode, expected_state, mock_get_state,
     ):
         """Testing if SM steps in and out of FreedomFiOneWaitNotifyDPState as per state map depending on whether
-        sas_enabled param is set to True or False in the service config"""
+        sas_enabled param is set to True or False in the service config
+
+        Args:
+            dp_mode: bool flag to enable or disable dp mode
+            expected_state (Any): State
+            mock_get_state (Any): mocking get_cbsd_state method
+        """
 
         mock_get_state.return_value = MOCK_CBSD_STATE
 
         acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.FREEDOMFI_ONE)
-        acs_state_machine._service.config = get_service_config(sas_enabled=sas_enabled)
+        acs_state_machine._service.config = _get_service_config(dp_mode=dp_mode)
         acs_state_machine.desired_cfg = build_desired_config(
             acs_state_machine.mconfig,
             acs_state_machine.service_config,
@@ -556,7 +578,7 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
     def test_manual_reboot_during_provisioning(self) -> None:
         """
         Test a scenario where a Magma user goes through the enodebd CLI to
-        reboot the Baicells eNodeB.
+        reboot the Sercomm eNodeB.
 
         This checks the scenario where the command is sent in the middle
         of a TR-069 provisioning session.
@@ -603,18 +625,161 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
             'State machine should end TR-069 session after '
             'receiving a RebootResponse',
         )
+        self.assertIsInstance(acs_state_machine.state, WaitInformMRebootState)
+        inform = Tr069MessageBuilder.get_inform(
+            event_codes=["M Reboot"],
+        )
+        resp = acs_state_machine.handle_tr069_message(inform)
+        self.assertIsInstance(resp, models.InformResponse)
+        self.assertIsInstance(acs_state_machine.state, FreedomFiOneGetInitState)
 
-    @parameterized.expand([
-        (True, "GNSS"),
-        (False, "GNSS"),
-        (True, "some_other_value"),
-        (False, "some_other_value"),
-    ])
-    def test_post_processing(self, sas_enabled, prim_src) -> None:
-        """ Test FreedomFi One specific post processing functionality"""
+    def test_post_processing_in_dp_mode(self) -> None:
+        """ Test FreedomFi One specific post processing functionality in Domain Proxy mode"""
 
-        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.FREEDOMFI_ONE)
+        service_cfg = _get_service_config()
+        expected = [
+            call.delete_parameter(ParameterName.EARFCNDL),
+            call.delete_parameter(ParameterName.DL_BANDWIDTH),
+            call.delete_parameter(ParameterName.UL_BANDWIDTH),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.TUNNEL_REF,
+                value='Device.IP.Interface.1.IPv4Address.1.',
+            ),
+            call.set_parameter(param_name=FreedomFiOneMiscParameters.CARRIER_AGG_ENABLE, value=True),
+            call.set_parameter(param_name=FreedomFiOneMiscParameters.CARRIER_NUMBER, value=2),
+            call.set_parameter(param_name=FreedomFiOneMiscParameters.CONTIGUOUS_CC, value=0),
+            call.set_parameter(param_name=FreedomFiOneMiscParameters.WEB_UI_ENABLE, value=False),
+            call.set_parameter(param_name=SASParameters.SAS_ENABLE, value=True),
+            call.set_parameter(param_name=SASParameters.SAS_METHOD, value=False),
+            call.set_parameter_for_object(
+                param_name='PLMN 1 cell reserved',
+                value=True, object_name='PLMN 1',
+            ),
+            call.set_parameter(SASParameters.SAS_METHOD, value=True),
+            call.set_parameter(FreedomFiOneMiscParameters.PRIM_SOURCE, 'GNSS'),
+        ]
+        self._check_postprocessing(expected=expected, service_cfg=service_cfg)
+
+    def test_post_processing_in_non_dp_mode(self) -> None:
+        """ Test FreedomFi One specific post processing functionality in standalone mode"""
+        service_cfg = _get_service_config(dp_mode=False)
+        expected = [
+            call.delete_parameter(ParameterName.EARFCNDL),
+            call.delete_parameter(ParameterName.DL_BANDWIDTH),
+            call.delete_parameter(ParameterName.UL_BANDWIDTH),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.TUNNEL_REF,
+                value='Device.IP.Interface.1.IPv4Address.1.',
+            ),
+            call.set_parameter(param_name=FreedomFiOneMiscParameters.CARRIER_AGG_ENABLE, value=True),
+            call.set_parameter(param_name=FreedomFiOneMiscParameters.CARRIER_NUMBER, value=2),
+            call.set_parameter(param_name=FreedomFiOneMiscParameters.CONTIGUOUS_CC, value=0),
+            call.set_parameter(param_name=FreedomFiOneMiscParameters.WEB_UI_ENABLE, value=False),
+            call.set_parameter(param_name=SASParameters.SAS_ENABLE, value=True),
+            call.set_parameter(param_name=SASParameters.SAS_METHOD, value=False),
+            call.set_parameter_for_object(
+                param_name='PLMN 1 cell reserved',
+                value=True, object_name='PLMN 1',
+            ),
+            call.set_parameter(
+                SASParameters.SAS_SERVER_URL,
+                TEST_SAS_URL,
+            ),
+            call.set_parameter(SASParameters.SAS_UID, 'M0LK4T'),
+            call.set_parameter(SASParameters.SAS_CATEGORY, 'A'),
+            call.set_parameter(SASParameters.SAS_CHANNEL_TYPE, 'GAA'),
+            call.set_parameter(
+                SASParameters.SAS_CERT_SUBJECT,
+                TEST_SAS_CERT_SUBJECT,
+            ),
+            call.set_parameter(SASParameters.SAS_LOCATION, 'indoor'),
+            call.set_parameter(SASParameters.SAS_HEIGHT_TYPE, 'AMSL'),
+
+            call.set_parameter(FreedomFiOneMiscParameters.PRIM_SOURCE, 'GNSS'),
+        ]
+
+        self._check_postprocessing(expected=expected, service_cfg=service_cfg)
+
+    def test_post_processing_without_sas_config(self) -> None:
+        """ Test FreedomFi One specific post processing functionality without sas config"""
+        service_cfg = {
+            "tr069": {
+                "interface": "eth1",
+                "port": 48080,
+                "perf_mgmt_port": 8081,
+                "public_ip": "192.88.99.142",
+            },
+            "prim_src": 'GNSS',
+            "reboot_enodeb_on_mme_disconnected": True,
+            "s1_interface": "eth1",
+        }
+        expected = [
+            call.delete_parameter(ParameterName.EARFCNDL),
+            call.delete_parameter(ParameterName.DL_BANDWIDTH),
+            call.delete_parameter(ParameterName.UL_BANDWIDTH),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.TUNNEL_REF,
+                value='Device.IP.Interface.1.IPv4Address.1.',
+            ),
+            call.set_parameter(param_name=FreedomFiOneMiscParameters.CARRIER_AGG_ENABLE, value=True),
+            call.set_parameter(param_name=FreedomFiOneMiscParameters.CARRIER_NUMBER, value=2),
+            call.set_parameter(param_name=FreedomFiOneMiscParameters.CONTIGUOUS_CC, value=0),
+            call.set_parameter(param_name=FreedomFiOneMiscParameters.WEB_UI_ENABLE, value=False),
+            call.set_parameter(param_name=SASParameters.SAS_ENABLE, value=True),
+            call.set_parameter(param_name=SASParameters.SAS_METHOD, value=False),
+            call.set_parameter_for_object(
+                param_name='PLMN 1 cell reserved',
+                value=True, object_name='PLMN 1',
+            ),
+            call.set_parameter(SASParameters.SAS_METHOD, value=True),
+            call.set_parameter(FreedomFiOneMiscParameters.PRIM_SOURCE, 'GNSS'),
+        ]
+
+        self._check_postprocessing(expected=expected, service_cfg=service_cfg)
+
+    def test_post_process_without_sas_cfg_with_ui(self) -> None:
+        """ Test FreedomFi One specific post processing functionality without sas config with ui enabled"""
+        service_cfg = {
+            "tr069": {
+                "interface": "eth1",
+                "port": 48080,
+                "perf_mgmt_port": 8081,
+                "public_ip": "192.88.99.142",
+            },
+            "prim_src": 'GNSS',
+            "reboot_enodeb_on_mme_disconnected": True,
+            "s1_interface": "eth1",
+            "web_ui_enable_list": ["2006CW5000023"],
+        }
+
+        expected = [
+            call.delete_parameter(ParameterName.EARFCNDL),
+            call.delete_parameter(ParameterName.DL_BANDWIDTH),
+            call.delete_parameter(ParameterName.UL_BANDWIDTH),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.TUNNEL_REF,
+                value='Device.IP.Interface.1.IPv4Address.1.',
+            ),
+            call.set_parameter(param_name=FreedomFiOneMiscParameters.CARRIER_AGG_ENABLE, value=True),
+            call.set_parameter(param_name=FreedomFiOneMiscParameters.CARRIER_NUMBER, value=2),
+            call.set_parameter(param_name=FreedomFiOneMiscParameters.CONTIGUOUS_CC, value=0),
+            call.set_parameter(param_name=FreedomFiOneMiscParameters.WEB_UI_ENABLE, value=False),
+            call.set_parameter(param_name=SASParameters.SAS_ENABLE, value=True),
+            call.set_parameter(param_name=SASParameters.SAS_METHOD, value=False),
+            call.set_parameter_for_object(
+                param_name='PLMN 1 cell reserved',
+                value=True, object_name='PLMN 1',
+            ),
+            call.set_parameter(FreedomFiOneMiscParameters.WEB_UI_ENABLE, value=True),
+            call.set_parameter(SASParameters.SAS_METHOD, value=True),
+            call.set_parameter(FreedomFiOneMiscParameters.PRIM_SOURCE, 'GNSS'),
+        ]
+
+        self._check_postprocessing(expected=expected, service_cfg=service_cfg)
+
+    def _check_postprocessing(self, expected, service_cfg):
         cfg_desired = Mock()
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.FREEDOMFI_ONE)
         acs_state_machine.device_cfg.set_parameter(
             ParameterName.SERIAL_NUMBER,
             "2006CW5000023",
@@ -623,113 +788,11 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
         cfg_init = FreedomFiOneConfigurationInitializer(acs_state_machine)
         cfg_init.postprocess(
             EnodebConfigBuilder.get_mconfig(),
-            get_service_config(sas_enabled=sas_enabled, prim_src=prim_src),
+            service_cfg,
             cfg_desired,
         )
-        expected = [
-            call.delete_parameter('EARFCNDL'),
-            call.delete_parameter('DL bandwidth'),
-            call.delete_parameter('UL bandwidth'),
-            call.set_parameter(
-                'tunnel_ref',
-                value='Device.IP.Interface.1.IPv4Address.1.',
-            ),
-            call.set_parameter('prim_src', prim_src),
-            call.set_parameter('carrier_agg_enable', value=True),
-            call.set_parameter('carrier_number', value=2),
-            call.set_parameter('contiguous_cc', value=0),
-            call.set_parameter('web_ui_enable', value=False),
-            call.set_parameter('sas_enabled', sas_enabled),
-            call.set_parameter_for_object(
-                param_name='PLMN 1 cell reserved',
-                value=True, object_name='PLMN 1',
-            ),
-        ]
-        if sas_enabled:
-            expected += [
-                call.set_parameter(
-                    'sas_server_url',
-                    'https://spectrum-connect.federatedwireless.com/v1.2/',
-                ),
-                call.set_parameter('sas_uid', 'M0LK4T'),
-                call.set_parameter('sas_category', 'A'),
-                call.set_parameter('sas_channel_type', 'GAA'),
-                call.set_parameter(
-                    'sas_cert_subject',
-                    '/C=TW/O=Sercomm/OU=WInnForum CBSD Certificate/CN=P27-SCE4255W:%s',
-                ),
-                call.set_parameter('sas_location', 'indoor'),
-                call.set_parameter('sas_height_type', 'AMSL'),
-            ]
 
-        cfg_desired.assert_has_calls(expected, any_order=True)
-
-        # Check without sas config
-        service_cfg = {
-            "tr069": {
-                "interface": "eth1",
-                "port": 48080,
-                "perf_mgmt_port": 8081,
-                "public_ip": "192.88.99.142",
-            },
-            "prim_src": prim_src,
-            "reboot_enodeb_on_mme_disconnected": True,
-            "s1_interface": "eth1",
-        }
-        cfg_desired = Mock()
-        cfg_init.postprocess(
-            EnodebConfigBuilder.get_mconfig(),
-            service_cfg, cfg_desired,
-        )
-        expected = [
-            call.delete_parameter('EARFCNDL'),
-            call.delete_parameter('DL bandwidth'),
-            call.delete_parameter('UL bandwidth'),
-            call.set_parameter(
-                'tunnel_ref',
-                value='Device.IP.Interface.1.IPv4Address.1.',
-            ),
-            call.set_parameter('sas_enabled', False),
-            call.set_parameter('prim_src', prim_src),
-            call.set_parameter('carrier_agg_enable', value=True),
-            call.set_parameter('carrier_number', value=2),
-            call.set_parameter('contiguous_cc', value=0),
-            call.set_parameter('web_ui_enable', value=False),
-            call.set_parameter_for_object(
-                param_name='PLMN 1 cell reserved',
-                value=True, object_name='PLMN 1',
-            ),
-        ]
-        cfg_desired.assert_has_calls(expected, any_order=True)
-
-        service_cfg['web_ui_enable_list'] = ["2006CW5000023"]
-
-        expected = [
-            call.delete_parameter('EARFCNDL'),
-            call.delete_parameter('DL bandwidth'),
-            call.delete_parameter('UL bandwidth'),
-            call.set_parameter(
-                'tunnel_ref',
-                value='Device.IP.Interface.1.IPv4Address.1.',
-            ),
-            call.set_parameter('sas_enabled', False),
-            call.set_parameter('prim_src', prim_src),
-            call.set_parameter('carrier_agg_enable', value=True),
-            call.set_parameter('carrier_number', value=2),
-            call.set_parameter('contiguous_cc', value=0),
-            call.set_parameter('web_ui_enable', value=False),
-            call.set_parameter('web_ui_enable', value=True),
-            call.set_parameter_for_object(
-                param_name='PLMN 1 cell reserved',
-                value=True, object_name='PLMN 1',
-            ),
-        ]
-        cfg_desired = Mock()
-        cfg_init.postprocess(
-            EnodebConfigBuilder.get_mconfig(),
-            service_cfg, cfg_desired,
-        )
-        cfg_desired.assert_has_calls(expected, any_order=True)
+        cfg_desired.assert_has_calls(expected)
 
     @patch('magma.configuration.service_configs.CONFIG_DIR', SRC_CONFIG_DIR)
     def test_service_cfg_parsing(self):
@@ -737,12 +800,14 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
         self.maxDiff = None
         service = MagmaService('enodebd', mconfigs_pb2.EnodebD())
         service_cfg = service.config
-        service_cfg_1 = get_service_config()
-        service_cfg_1['web_ui_enable_list'] = []
-        service_cfg_1["prim_src"] = "GNSS"
-        service_cfg_1[SAS_KEY][SASParameters.SAS_UID] = "INVALID_ID"
-        service_cfg_1[SAS_KEY][SASParameters.SAS_CERT_SUBJECT] = "INVALID_CERT_SUBJECT"
-        self.assertDictEqual(service_cfg, service_cfg_1)
+        service_cfg["sas"]["sas_server_url"] = TEST_SAS_URL
+        service_cfg1 = _get_service_config()
+        service_cfg1['web_ui_enable_list'] = []
+        service_cfg1['prim_src'] = 'GNSS'
+        service_cfg1[SAS_KEY][SASParameters.SAS_UID] = 'INVALID_ID'
+        service_cfg1[SAS_KEY][SASParameters.SAS_CERT_SUBJECT] = 'INVALID_CERT_SUBJECT'
+        service_cfg1['print_grpc_payload'] = False
+        self.assertDictEqual(service_cfg, service_cfg1)
 
     def test_status_nodes(self):
         """ Test that the status of the node is valid"""
@@ -880,10 +945,11 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
 
 
 class TXParamsTests(TestCase):
+    """Testing TX parameters calculations"""
     @parameterized.expand([
-        (3550_000_000, 3560_000_000, 19, '50', 55290, 24),
-        (3555_000_000, 3570_000_000, 17, '75', 55365, 23),
-        (3600_000_000, 3605_000_000, 19, '25', 55765, 20),
+        (3550000000, 3560000000, 19, '50', 55290, 24),
+        (3555000000, 3570000000, 17, '75', 55365, 23),
+        (3600000000, 3605000000, 19, '25', 55765, 20),
     ])
     def test_tx_parameters_with_eirp_within_range(
             self,
@@ -895,7 +961,16 @@ class TXParamsTests(TestCase):
             expected_tx_power,
     ) -> None:
         """Test that tx parameters of the enodeb are calculated correctly when eirp received from SAS
-        is within acceptable range for the given bandwidth"""
+        is within acceptable range for the given bandwidth
+
+        Args:
+            low_frequency_hz (Any): low frequency in hz
+            high_frequency_hz (Any): high frequency in hz
+            max_eirp_dbm_mhz (Any): max eirp
+            expected_bw_rbs (Any): expected bandwidth
+            expected_earfcn (Any): expected earfcn
+            expected_tx_power (Any): expected tx power
+        """
         desired_config = EnodebConfiguration(FreedomFiOneTrDataModel())
         channel = LteChannel(
             low_frequency_hz=low_frequency_hz,
@@ -908,7 +983,7 @@ class TXParamsTests(TestCase):
         )
 
         ff_one_update_desired_config_from_cbsd_state(state, desired_config)
-        self.assert_config_updated(
+        self._assert_config_updated(
             config=desired_config,
             bandwidth=expected_bw_rbs,
             earfcn=expected_earfcn,
@@ -922,11 +997,15 @@ class TXParamsTests(TestCase):
     ])
     def test_tx_parameters_with_eirp_out_of_range(self, max_eirp_dbm_mhz) -> None:
         """Test that tx parameters calculations raise an exception when eirp received from SAS
-        is outside of acceptable range for the given bandwidth"""
+        is outside of acceptable range for the given bandwidth
+
+        Args:
+            max_eirp_dbm_mhz (Any): max eirp
+        """
         desired_config = EnodebConfiguration(FreedomFiOneTrDataModel())
         channel = LteChannel(
-            low_frequency_hz=3550_000_000,
-            high_frequency_hz=3570_000_000,
+            low_frequency_hz=3550000000,
+            high_frequency_hz=3570000000,
             max_eirp_dbm_mhz=max_eirp_dbm_mhz,
         )
         state = CBSDStateResult(
@@ -937,10 +1016,10 @@ class TXParamsTests(TestCase):
             ff_one_update_desired_config_from_cbsd_state(state, desired_config)
 
     @parameterized.expand([
-        (3550_000_000, 3551_000_000),
-        (3550_000_000, 3552_000_000),
+        (3550000000, 3551000000),
+        (3550000000, 3552000000),
     ])
-    def test_tx_parameters_with_unsupported_bandwidths(self, low_frequency_hz, high_frequency_hz) -> None:
+    def test_tx_params_with_unsupported_bandwidths(self, low_frequency_hz, high_frequency_hz) -> None:
         """Test that tx parameters calculations raise an exception for unsupported bandwidth ranges"""
         desired_config = EnodebConfiguration(FreedomFiOneTrDataModel())
         channel = LteChannel(
@@ -955,12 +1034,12 @@ class TXParamsTests(TestCase):
         with self.assertRaises(ConfigurationError):
             ff_one_update_desired_config_from_cbsd_state(state, desired_config)
 
-    def test_tx_parameters_not_set_when_radio_disabled(self):
+    def test_tx_params_not_set_when_radio_disabled(self):
         """Test that tx parameters of the enodeb are not set when ADMIN_STATE is disabled on the radio"""
         desired_config = EnodebConfiguration(FreedomFiOneTrDataModel())
         channel = LteChannel(
-            low_frequency_hz=3550_000_000,
-            high_frequency_hz=3570_000_000,
+            low_frequency_hz=3550000000,
+            high_frequency_hz=3570000000,
             max_eirp_dbm_mhz=20,
         )
         state = CBSDStateResult(
@@ -970,9 +1049,9 @@ class TXParamsTests(TestCase):
 
         ff_one_update_desired_config_from_cbsd_state(state, desired_config)
         self.assertEqual(1, len(desired_config.get_parameter_names()))
-        self.assertEqual(False, desired_config.get_parameter(ParameterName.ADMIN_STATE))
+        self.assertFalse(desired_config.get_parameter(ParameterName.ADMIN_STATE))
 
-    def assert_config_updated(
+    def _assert_config_updated(
             self, config: EnodebConfiguration, bandwidth: str, earfcn: int, tx_power: int, radio_enabled: bool,
     ) -> None:
         expected_values = {
@@ -989,7 +1068,7 @@ class TXParamsTests(TestCase):
             self.assertEqual(config.get_parameter(key), value)
 
 
-def get_service_config(sas_enabled: bool = True, prim_src: str = "GNSS"):
+def _get_service_config(dp_mode: bool = True, prim_src: str = "GNSS"):
     return {
         "tr069": {
             "interface": "eth1",
@@ -1000,18 +1079,16 @@ def get_service_config(sas_enabled: bool = True, prim_src: str = "GNSS"):
         "reboot_enodeb_on_mme_disconnected": True,
         "s1_interface": "eth1",
         "sas": {
-            "sas_enabled": sas_enabled,
+            "dp_mode": dp_mode,
             "sas_server_url":
-                "https://spectrum-connect.federatedwireless.com/v1.2/",
+                TEST_SAS_URL,
             "sas_uid": "M0LK4T",
             "sas_category": "A",
             "sas_channel_type": "GAA",
-            "sas_cert_subject": "/C=TW/O=Sercomm/OU=WInnForum CBSD "
-                                "Certificate/CN=P27-SCE4255W:%s",
+            "sas_cert_subject": TEST_SAS_CERT_SUBJECT,
             "sas_icg_group_id": "",
             "sas_location": "indoor",
             "sas_height_type": "AMSL",
         },
-        'sentry': 'disabled',
         'prim_src': prim_src,
     }

@@ -13,7 +13,6 @@ limitations under the License.
 
 from threading import Thread
 from typing import List
-from unittest import mock
 
 from lte.protos.mconfig import mconfigs_pb2
 from magma.common.sentry import sentry_init
@@ -22,22 +21,13 @@ from magma.enodebd.enodeb_status import (
     get_operational_states,
     get_service_status_old,
 )
+from magma.enodebd.enodebd_iptables_rules import set_enodebd_iptables_rule
 from magma.enodebd.logger import EnodebdLogger as logger
+from magma.enodebd.rpc_servicer import EnodebdRpcServicer
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
+from magma.enodebd.stats_manager import StatsManager
+from magma.enodebd.tr069.server import tr069_server
 from orc8r.protos.service303_pb2 import State
-
-from .enodebd_iptables_rules import set_enodebd_iptables_rule
-from .rpc_servicer import EnodebdRpcServicer
-from .stats_manager import StatsManager
-from .tr069.server import tr069_server
-
-
-def get_context(ip: str):
-    with mock.patch('spyne.server.wsgi.WsgiApplication') as MockTransport:
-        MockTransport.req_env = {"REMOTE_ADDR": ip}
-        with mock.patch('spyne.server.wsgi.WsgiMethodContext') as MockContext:
-            MockContext.transport = MockTransport
-            return MockContext
 
 
 def main():
@@ -65,8 +55,13 @@ def main():
     )
     server_thread.start()
 
+    print_grpc_payload = service.config.get('print_grpc_payload', False)
+
     # Add all servicers to the server
-    enodebd_servicer = EnodebdRpcServicer(state_machine_manager)
+    enodebd_servicer = EnodebdRpcServicer(
+        state_machine_manager,
+        print_grpc_payload,
+    )
     enodebd_servicer.add_to_server(service.rpc_server)
 
     # Register function to get service status
@@ -76,7 +71,10 @@ def main():
 
     # Register a callback function for GetOperationalStates service303 function
     def get_enodeb_operational_states() -> List[State]:
-        return get_operational_states(state_machine_manager, service.mconfig)
+        return get_operational_states(
+            state_machine_manager, service.mconfig,
+            print_grpc_payload,
+        )
     service.register_operational_states_callback(get_enodeb_operational_states)
 
     # Set eNodeBD iptables rules due to exposing public IP to eNodeB

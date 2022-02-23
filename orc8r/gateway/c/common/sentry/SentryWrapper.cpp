@@ -25,12 +25,15 @@
 #include <cstring>
 
 #include "sentry.h"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
 #include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.h"
+#include "orc8r/protos/mconfig/mconfigs.pb.h"
 
 #define COMMIT_HASH_ENV "COMMIT_HASH"
 #define CONTROL_PROXY_SERVICE_NAME "control_proxy"
 #define SENTRY_NATIVE_URL "sentry_url_native"
 #define SENTRY_SAMPLE_RATE "sentry_sample_rate"
+#define SHARED_MCONFIG "shared_mconfig"
 #define SHOULD_UPLOAD_MME_LOG "sentry_upload_mme_log"
 #define MME_LOG_PATH "/var/log/mme.log"
 #define SNOWFLAKE_PATH "/etc/snowflake"
@@ -42,6 +45,18 @@
 #define DEFAULT_SAMPLE_RATE 0.5f
 
 using std::experimental::optional;
+
+sentry_config_t construct_sentry_config_from_mconfig() {
+  magma::mconfig::SharedMconfig mconfig;
+  magma::load_service_mconfig_from_file(SHARED_MCONFIG, &mconfig);
+  sentry_config_t configuration;
+  configuration.sample_rate = mconfig.sentry_config().sample_rate();
+  std::strncpy(configuration.url_native,
+               mconfig.sentry_config().dsn_native().c_str(),
+               MAX_URL_LENGTH - 1);
+  configuration.url_native[MAX_URL_LENGTH - 1] = '\0';
+  return configuration;
+}
 
 bool should_upload_mme_log(bool sentry_upload_mme_log,
                            YAML::Node control_proxy_config) {
@@ -157,6 +172,8 @@ void sentry_log_error(const char* message) {
 
 #else
 
+sentry_config_t construct_sentry_config_from_mconfig() { return {0}; }
+
 void initialize_sentry(__attribute__((unused)) const char* service_tag,
                        __attribute__((unused))
                        const sentry_config_t* sentry_config) {}
@@ -165,6 +182,6 @@ void shutdown_sentry(void) {}
 
 void set_sentry_transaction(__attribute__((unused)) const char* name) {}
 
-void sentry_log_error(__attribute__((unused)) const char* message);
+void sentry_log_error(__attribute__((unused)) const char* message) {}
 
 #endif

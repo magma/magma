@@ -23,10 +23,9 @@
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/PacketFlowIdentifier.h"
 
-int decode_packet_flow_identifier(
-    PacketFlowIdentifier* packetflowidentifier, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
-  int decoded   = 0;
+int decode_packet_flow_identifier(PacketFlowIdentifier* packetflowidentifier,
+                                  uint8_t iei, uint8_t* buffer, uint32_t len) {
+  int decoded = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -45,9 +44,8 @@ int decode_packet_flow_identifier(
   return decoded;
 }
 
-int encode_packet_flow_identifier(
-    PacketFlowIdentifier* packetflowidentifier, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int encode_packet_flow_identifier(PacketFlowIdentifier* packetflowidentifier,
+                                  uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
 
@@ -73,8 +71,8 @@ int encode_packet_flow_identifier(
   return encoded;
 }
 
-void dump_packet_flow_identifier_xml(
-    PacketFlowIdentifier* packetflowidentifier, uint8_t iei) {
+void dump_packet_flow_identifier_xml(PacketFlowIdentifier* packetflowidentifier,
+                                     uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Packet Flow Identifier>\n");
 
   if (iei > 0)

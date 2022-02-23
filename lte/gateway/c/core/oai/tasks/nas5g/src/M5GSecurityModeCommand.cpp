@@ -10,6 +10,13 @@
  */
 
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeCommand.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -20,14 +27,13 @@ SecurityModeCommandMsg::~SecurityModeCommandMsg(){};
 // Decode SecurityModeCommand Message and its IEs
 int SecurityModeCommandMsg::DecodeSecurityModeCommandMsg(
     SecurityModeCommandMsg* sec_mode_command, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Checking Pointer
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, SECURITY_MODE_COMMAND_MINIMUM_LENGTH, len);
 
-  MLOG(MDEBUG) << "DecodeSecurityModeCommandMsg : \n";
   if ((decoded_result =
            sec_mode_command->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
@@ -93,7 +99,6 @@ int SecurityModeCommandMsg::EncodeSecurityModeCommandMsg(
     SecurityModeCommandMsg* sec_mode_command, uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
-  MLOG(MDEBUG) << "EncodeSecurityModeCommandMsg:";
   int encoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length

@@ -28,8 +28,8 @@ using ::testing::Return;
 namespace magma5g {
 
 /* Utility : Get ue_id from imsi */
-bool get_ue_id_from_imsi(
-    amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64, amf_ue_ngap_id_t* ue_id);
+bool get_ue_id_from_imsi(amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64,
+                         amf_ue_ngap_id_t* ue_id);
 
 /* API for creating intial UE message without TMSI */
 imsi64_t send_initial_ue_message_no_tmsi(
@@ -38,28 +38,44 @@ imsi64_t send_initial_ue_message_no_tmsi(
     amf_ue_ngap_id_t amf_ue_ngap_id, const plmn_t& plmn, const uint8_t* nas_msg,
     uint8_t nas_msg_length);
 
-/* API for creating subscriberdb auth answer */
-int send_proc_authentication_info_answer(
-    const std::string& imsi, amf_ue_ngap_id_t ue_id, bool success);
+imsi64_t send_initial_ue_message_service_request_with_pdu(
+    amf_app_desc_t* amf_app_desc_p, sctp_assoc_id_t sctp_assoc_id,
+    uint32_t gnb_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
+    amf_ue_ngap_id_t amf_ue_ngap_id, const plmn_t& plmn, const uint8_t* nas_msg,
+    uint8_t nas_msg_length);
 
-/* API for creating uplink nas message for Auth Response */
-int send_uplink_nas_message_ue_auth_response(
+int send_uplink_nas_message_service_request_with_pdu(
     amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t amf_ue_ngap_id,
     const plmn_t& plmn, const uint8_t* nas_msg, uint8_t nas_msg_length);
 
+/* API for creating subscriberdb auth answer */
+int send_proc_authentication_info_answer(const std::string& imsi,
+                                         amf_ue_ngap_id_t ue_id, bool success);
+
+/* API for creating uplink nas message for Auth Response */
+int send_uplink_nas_message_ue_auth_response(amf_app_desc_t* amf_app_desc_p,
+                                             amf_ue_ngap_id_t amf_ue_ngap_id,
+                                             const plmn_t& plmn,
+                                             const uint8_t* nas_msg,
+                                             uint8_t nas_msg_length);
+
 /* API for creating uplink nas message for security mode complete response */
-int send_uplink_nas_message_ue_smc_response(
-    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
-    const uint8_t* nas_msg, uint8_t nas_msg_length);
+int send_uplink_nas_message_ue_smc_response(amf_app_desc_t* amf_app_desc_p,
+                                            amf_ue_ngap_id_t ue_id,
+                                            const plmn_t& plmn,
+                                            const uint8_t* nas_msg,
+                                            uint8_t nas_msg_length);
 
 /* API for sending initial context setup response */
-void send_initial_context_response(
-    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id);
+void send_initial_context_response(amf_app_desc_t* amf_app_desc_p,
+                                   amf_ue_ngap_id_t ue_id);
 
 /* API for creating uplink nas message for registration complete response */
-int send_uplink_nas_registration_complete(
-    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
-    const uint8_t* nas_msg, uint8_t nas_msg_length);
+int send_uplink_nas_registration_complete(amf_app_desc_t* amf_app_desc_p,
+                                          amf_ue_ngap_id_t ue_id,
+                                          const plmn_t& plmn,
+                                          const uint8_t* nas_msg,
+                                          uint8_t nas_msg_length);
 
 /* Create pdu session establishment  request from ue */
 int send_uplink_nas_pdu_session_establishment_request(
@@ -69,12 +85,12 @@ int send_uplink_nas_pdu_session_establishment_request(
 void create_ip_address_response_itti(
     itti_amf_ip_allocation_response_t* response);
 
-int send_ip_address_response_itti();
+int send_ip_address_response_itti(pdn_type_value_t type);
 
 void create_pdu_session_response_ipv4_itti(
     itti_n11_create_pdu_session_response_t* response);
 
-int send_pdu_session_response_itti();
+int send_pdu_session_response_itti(pdn_type_value_t type);
 
 void create_pdu_resource_setup_response_itti(
     itti_ngap_pdusessionresource_setup_rsp_t* response, amf_ue_ngap_id_t ue_id);
@@ -87,12 +103,22 @@ void create_pdu_notification_response_itti(
 int send_pdu_notification_response();
 
 /* Create pdu session  release from ue */
-int send_uplink_nas_pdu_session_release_message(
-    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
-    const uint8_t* nas_msg, uint8_t nas_msg_length);
+int send_uplink_nas_pdu_session_release_message(amf_app_desc_t* amf_app_desc_p,
+                                                amf_ue_ngap_id_t ue_id,
+                                                const plmn_t& plmn,
+                                                const uint8_t* nas_msg,
+                                                uint8_t nas_msg_length);
 
-int send_uplink_nas_ue_deregistration_request(
-    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
-    uint8_t* nas_msg, uint8_t nas_msg_length);
+int send_uplink_nas_ue_deregistration_request(amf_app_desc_t* amf_app_desc_p,
+                                              amf_ue_ngap_id_t ue_id,
+                                              const plmn_t& plmn,
+                                              uint8_t* nas_msg,
+                                              uint8_t nas_msg_length);
+
+/* Send ue context release message */
+void send_ue_context_release_request_message(amf_app_desc_t* amf_app_desc_p,
+                                             uint32_t gnb_id,
+                                             gnb_ue_ngap_id_t gnb_ue_ngap_id,
+                                             amf_ue_ngap_id_t amf_ue_ngap_id);
 
 }  // namespace magma5g

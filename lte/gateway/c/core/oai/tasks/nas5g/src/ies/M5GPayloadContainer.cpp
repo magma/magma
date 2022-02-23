@@ -13,6 +13,13 @@
 #include <sstream>
 #include <cstdint>
 #include <cstring>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainer.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -23,18 +30,17 @@ PayloadContainerMsg::~PayloadContainerMsg(){};
 int PayloadContainerMsg::DecodePayloadContainerMsg(
     PayloadContainerMsg* payload_container, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
-  int decoded    = 0;
+  int decoded = 0;
   uint32_t ielen = 0;
   IES_DECODE_U16(buffer, decoded, ielen);
   payload_container->len = ielen;
-  MLOG(MDEBUG) << "DecodePayloadContainerMsg__: len = " << std::dec
-               << int(payload_container->len) << std::endl;
-  memcpy(&payload_container->contents, buffer + decoded, int(ielen));
-  BUFFER_PRINT_LOG(payload_container->contents, int(ielen));
+  memcpy(&payload_container->contents, buffer + decoded,
+         static_cast<int>(ielen));
 
   // SMF NAS Message Decode
   decoded += payload_container->smf_msg.SmfMsgDecodeMsg(
-      &payload_container->smf_msg, payload_container->contents, int(ielen));
+      &payload_container->smf_msg, payload_container->contents,
+      static_cast<int>(ielen));
 
   return (decoded);
 };
@@ -42,13 +48,11 @@ int PayloadContainerMsg::DecodePayloadContainerMsg(
 int PayloadContainerMsg::EncodePayloadContainerMsg(
     PayloadContainerMsg* payload_container, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
-  int encoded    = 0;
+  int encoded = 0;
   uint32_t ielen = 0;
-  int tmp        = 0;
-  ielen          = payload_container->len;
+  int tmp = 0;
 
-  MLOG(MDEBUG) << "DecodePayloadContainerMsg__: len = " << std::hex
-               << int(ielen) << std::endl;
+  ielen = payload_container->len;
 
   // SMF NAS Message Decode
   encoded += payload_container->smf_msg.SmfMsgEncodeMsg(
@@ -56,13 +60,13 @@ int PayloadContainerMsg::EncodePayloadContainerMsg(
       payload_container->len);
 
   if (static_cast<int>(ielen) != encoded) {
-    MLOG(MDEBUG) << "WARNING: mismatch IE length :" << ielen
-                 << " encoded SmfMsg length :" << encoded;
+    OAILOG_WARNING(
+        LOG_NAS5G,
+        "Length missmatch : IE length : %d, Encoded SMF message length : %d",
+        ielen, encoded);
   }
 
   IES_ENCODE_U16(buffer, tmp, encoded);
-
-  BUFFER_PRINT_LOG(payload_container->contents, encoded);
   memcpy(buffer + tmp, payload_container->contents, encoded);
 
   return (encoded + tmp);

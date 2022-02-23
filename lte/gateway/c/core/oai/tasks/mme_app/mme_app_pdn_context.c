@@ -37,21 +37,21 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
-static void mme_app_pdn_context_init(
-    ue_mm_context_t* const ue_context, pdn_context_t* const pdn_context);
+static void mme_app_pdn_context_init(ue_mm_context_t* const ue_context,
+                                     pdn_context_t* const pdn_context);
 
 //------------------------------------------------------------------------------
-void mme_app_free_pdn_context(
-    pdn_context_t** const pdn_context, imsi64_t imsi64) {
+void mme_app_free_pdn_context(pdn_context_t** const pdn_context,
+                              imsi64_t imsi64) {
   bdestroy_wrapper(&(*pdn_context)->apn_in_use);
   bdestroy_wrapper(&(*pdn_context)->apn_subscribed);
   bdestroy_wrapper(&(*pdn_context)->apn_oi_replacement);
   free_protocol_configuration_options(&(*pdn_context)->pco);
-  free_wrapper((void**) pdn_context);
+  free_wrapper((void**)pdn_context);
 }
 //------------------------------------------------------------------------------
-static void mme_app_pdn_context_init(
-    ue_mm_context_t* const ue_context, pdn_context_t* const pdn_context) {
+static void mme_app_pdn_context_init(ue_mm_context_t* const ue_context,
+                                     pdn_context_t* const pdn_context) {
   if ((pdn_context) && (ue_context)) {
     memset(pdn_context, 0, sizeof(*pdn_context));
     pdn_context->is_active = false;
@@ -76,7 +76,7 @@ pdn_context_t* mme_app_create_pdn_context(
         mme_app_pdn_context_init(ue_mm_context, pdn_context);
 
         pdn_context->context_identifier = apn_configuration->context_identifier;
-        pdn_context->pdn_type           = apn_configuration->pdn_type;
+        pdn_context->pdn_type = apn_configuration->pdn_type;
         if (apn_configuration->nb_ip_address) {
           pdn_context->paa.pdn_type =
               apn_configuration->ip_address[0]
@@ -90,17 +90,15 @@ pdn_context_t* mme_app_create_pdn_context(
           }
         }
         // pdn_context->apn_oi_replacement
-        memcpy(
-            &pdn_context->default_bearer_eps_subscribed_qos_profile,
-            &apn_configuration->subscribed_qos,
-            sizeof(eps_subscribed_qos_profile_t));
-        memcpy(
-            &pdn_context->subscribed_apn_ambr, &apn_configuration->ambr,
-            sizeof(ambr_t));
+        memcpy(&pdn_context->default_bearer_eps_subscribed_qos_profile,
+               &apn_configuration->subscribed_qos,
+               sizeof(eps_subscribed_qos_profile_t));
+        memcpy(&pdn_context->subscribed_apn_ambr, &apn_configuration->ambr,
+               sizeof(ambr_t));
         // pdn_context->pgw_apn_ambr = ;
-        pdn_context->apn_subscribed = blk2bstr(
-            apn_configuration->service_selection,
-            apn_configuration->service_selection_length);
+        pdn_context->apn_subscribed =
+            blk2bstr(apn_configuration->service_selection,
+                     apn_configuration->service_selection_length);
         pdn_context->default_ebi = EPS_BEARER_IDENTITY_UNASSIGNED;
         // TODO pdn_context->apn_in_use     =
 
@@ -108,7 +106,7 @@ pdn_context_t* mme_app_create_pdn_context(
 
         OAILOG_FUNC_RETURN(LOG_MME_APP, pdn_context);
       } else {
-        free_wrapper((void**) &pdn_context);
+        free_wrapper((void**)&pdn_context);
       }
     }
   }

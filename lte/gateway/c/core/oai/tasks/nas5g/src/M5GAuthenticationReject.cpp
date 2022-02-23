@@ -10,6 +10,13 @@
  */
 
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationReject.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -20,7 +27,7 @@ AuthenticationRejectMsg::~AuthenticationRejectMsg(){};
 // Decoding Authentication Reject Message and its IEs
 int AuthenticationRejectMsg::DecodeAuthenticationRejectMsg(
     AuthenticationRejectMsg* auth_reject, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, AUTHENTICATION_REJECT_MINIMUM_LENGTH, len);
@@ -57,7 +64,7 @@ int AuthenticationRejectMsg::DecodeAuthenticationRejectMsg(
 // Encoding Authentication Reject Message and its IEs
 int AuthenticationRejectMsg::EncodeAuthenticationRejectMsg(
     AuthenticationRejectMsg* auth_reject, uint8_t* buffer, uint32_t len) {
-  uint32_t encoded   = 0;
+  uint32_t encoded = 0;
   int encoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, AUTHENTICATION_REJECT_MINIMUM_LENGTH, len);

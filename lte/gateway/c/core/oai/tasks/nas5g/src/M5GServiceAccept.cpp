@@ -10,6 +10,13 @@
  */
 
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceAccept.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -18,18 +25,18 @@ ServiceAcceptMsg::ServiceAcceptMsg(){};
 ServiceAcceptMsg::~ServiceAcceptMsg(){};
 
 // Decoding Service Accept Message and its IEs
-int ServiceAcceptMsg::DecodeServiceAcceptMsg(
-    ServiceAcceptMsg* svc_acpt, uint8_t* buffer, uint32_t len) {
+int ServiceAcceptMsg::DecodeServiceAcceptMsg(ServiceAcceptMsg* svc_acpt,
+                                             uint8_t* buffer, uint32_t len) {
   return 0;
 }
 
 // Encoding Service Accept Message and its IEs
-int ServiceAcceptMsg::EncodeServiceAcceptMsg(
-    ServiceAcceptMsg* svc_acpt, uint8_t* buffer, uint32_t len) {
-  uint32_t encoded   = 0;
+int ServiceAcceptMsg::EncodeServiceAcceptMsg(ServiceAcceptMsg* svc_acpt,
+                                             uint8_t* buffer, uint32_t len) {
+  uint32_t encoded = 0;
   int encoded_result = 0;
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, SERVICE_ACCEPT_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, SERVICE_ACCEPT_MINIMUM_LENGTH,
+                                       len);
 
   if ((encoded_result = svc_acpt->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(

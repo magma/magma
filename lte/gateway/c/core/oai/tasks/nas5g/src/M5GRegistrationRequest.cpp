@@ -10,6 +10,13 @@
  */
 
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
@@ -21,15 +28,14 @@ RegistrationRequestMsg::~RegistrationRequestMsg(){};
 // Decode RegistrationRequest Message and its IEs
 int RegistrationRequestMsg::DecodeRegistrationRequestMsg(
     RegistrationRequestMsg* reg_request, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
-  uint8_t type_len   = 0;
+  uint8_t type_len = 0;
   uint8_t length_len = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, REGISTRATION_REQUEST_MINIMUM_LENGTH, len);
 
-  MLOG(MDEBUG) << "DecodeRegistrationRequestMsg : \n";
   if ((decoded_result = reg_request->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
                                 &reg_request->extended_protocol_discriminator,
@@ -79,9 +85,8 @@ int RegistrationRequestMsg::DecodeRegistrationRequestMsg(
 
   while (decoded < len) {
     // Size is incremented for the unhandled types by 1 byte
-    uint32_t type = *(buffer + decoded) >= 0x80 ?
-                        ((*(buffer + decoded)) & 0xf0) :
-                        (*(buffer + decoded));
+    uint32_t type = *(buffer + decoded) >= 0x80 ? ((*(buffer + decoded)) & 0xf0)
+                                                : (*(buffer + decoded));
     decoded_result = 0;
 
     switch (type) {
@@ -121,11 +126,11 @@ int RegistrationRequestMsg::DecodeRegistrationRequestMsg(
         // TLV Types. 1 byte for Type and 1 Byte for size
 
         if (type == REGISTRATION_REQUEST_NAS_MESSAGE_CONTAINER_TYPE) {
-          type_len   = sizeof(uint8_t);
+          type_len = sizeof(uint8_t);
           length_len = 2 * sizeof(uint8_t);
           DECODE_U16(buffer + decoded + type_len, decoded_result, decoded);
         } else {
-          type_len   = sizeof(uint8_t);
+          type_len = sizeof(uint8_t);
           length_len = sizeof(uint8_t);
           DECODE_U8(buffer + decoded + type_len, decoded_result, decoded);
         }

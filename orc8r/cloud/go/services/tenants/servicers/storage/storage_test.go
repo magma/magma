@@ -10,16 +10,17 @@ import (
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/blobstore/mocks"
 	"magma/orc8r/cloud/go/services/tenants"
+	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 )
 
 var (
-	sampleTenant0        = protos.Tenant{Name: "tenant0", Networks: []string{"net1", "net2"}}
+	sampleTenant0        = tenant_protos.Tenant{Name: "tenant0", Networks: []string{"net1", "net2"}}
 	sampleTenant0Blob, _ = tenantToBlob(0, sampleTenant0)
 
-	sampleTenant1        = protos.Tenant{Name: "tenant1", Networks: []string{"net3", "net4"}}
+	sampleTenant1        = tenant_protos.Tenant{Name: "tenant1", Networks: []string{"net3", "net4"}}
 	sampleTenant1Blob, _ = tenantToBlob(1, sampleTenant1)
 
 	marshaledTenant0, _ = protos.Marshal(&sampleTenant0)
@@ -96,7 +97,7 @@ func TestBlobstoreStore_GetAllTenants(t *testing.T) {
 
 	retTenants, err := s.GetAllTenants()
 	assert.NoError(t, err)
-	assert.Equal(t, &protos.TenantList{Tenants: []*protos.IDAndTenant{
+	assert.Equal(t, &tenant_protos.TenantList{Tenants: []*tenant_protos.IDAndTenant{
 		{Id: 0, Tenant: &sampleTenant0},
 		{Id: 1, Tenant: &sampleTenant1},
 	}}, retTenants)

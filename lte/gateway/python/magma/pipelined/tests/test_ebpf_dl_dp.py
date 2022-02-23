@@ -11,11 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
+import socket
 import subprocess
 import unittest
 
+from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.ebpf.ebpf_manager import ebpf_manager
+from magma.pipelined.ebpf.ebpf_manager import EbpfManager
 from scapy.all import AsyncSniffer
 from scapy.layers.inet import IP
 
@@ -23,6 +25,7 @@ PKT_SCRIPT = "/home/vagrant/magma/lte/gateway/python/magma/pipelined/tests/scrip
 PY_PATH = "/home/vagrant/build/python/bin/python"
 UL_HANDLER = "/home/vagrant/magma/lte/gateway/python/magma/pipelined/ebpf/ebpf_ul_handler.c"
 DL_HANDLER = "/home/vagrant/magma/lte/gateway/python/magma/pipelined/ebpf/ebpf_dl_handler.c"
+BPF_HEADER_PATH = "/home/vagrant/magma/orc8r/gateway/c/common/ebpf/"
 
 
 # This test works when ran separately.
@@ -43,6 +46,8 @@ class eBpfDatapathDLTest(unittest.TestCase):
     gtp_pkt_src = '11.1.1.2'
 
     gtp_tunnel_id = 101
+
+    imsi = '122321231222333'
 
     packet_cap1 = []
     sniffer = None
@@ -66,7 +71,9 @@ class eBpfDatapathDLTest(unittest.TestCase):
         BridgeTools.ifup_netdev(cls.sgi_veth, cls.inner_dst_ip + "/24")
         BridgeTools.ifup_netdev(cls.gtp_veth_ns, cls.gtp_pkt_src + "/24")
 
-        cls.ebpf_man = ebpf_manager(cls.sgi_veth, cls.gtp_veth, cls.sgi_veth_ip, enabled=True, bpf_ul_file=UL_HANDLER, bpf_dl_file=DL_HANDLER)
+        gw_ip = IPAddress(version=IPAddress.IPV4, address=socket.inet_aton(cls.sgi_veth_ip))
+
+        cls.ebpf_man = EbpfManager(cls.sgi_veth, cls.gtp_veth, gw_ip, bpf_ul_file=UL_HANDLER, bpf_dl_file=DL_HANDLER, bpf_header_path=BPF_HEADER_PATH)
         cls.ebpf_man.detach_dl_ebpf()
         cls.ebpf_man.attach_dl_ebpf()
 
@@ -111,7 +118,7 @@ class eBpfDatapathDLTest(unittest.TestCase):
     def count_udp_packet(cls):
         cnt = 0
         for pkt in cls.packet_cap1:
-            #print(pkt.show(dump=True))
+            # print(pkt.show(dump=True))
             if IP in pkt:
                 if pkt[IP].src == cls.inner_src_ip and pkt[IP].dst == cls.inner_dst_ip:
                     cnt = cnt + 1
@@ -123,7 +130,7 @@ class eBpfDatapathDLTest(unittest.TestCase):
         cls.sendPacket(cls.inner_src_ip, cls.inner_dst_ip)
         self.assertEqual(len(cls.packet_cap1), 0)
 
-        cls.ebpf_man.add_dl_entry(cls.inner_dst_ip, cls.gtp_pkt_dst, cls.gtp_tunnel_id)
+        cls.ebpf_man.add_dl_entry(cls.inner_dst_ip, cls.gtp_pkt_dst, cls.gtp_tunnel_id, cls.imsi)
         cls.sendPacket(cls.inner_src_ip, cls.inner_dst_ip)
 
         self.assertEqual(cls.count_udp_packet(), 1)

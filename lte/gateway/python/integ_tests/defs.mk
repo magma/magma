@@ -108,8 +108,8 @@ s1aptests/test_multi_enb_multi_ue_diff_enbtype.py \
 s1aptests/test_multi_enb_partial_reset.py \
 s1aptests/test_multi_enb_complete_reset.py \
 s1aptests/test_multi_enb_sctp_shutdown.py \
-s1aptests/test_ipv6_paging_with_dedicated_bearer.py\
-s1aptests/test_ipv4v6_paging_with_dedicated_bearer.py\
+s1aptests/test_ipv6_paging_with_dedicated_bearer.py \
+s1aptests/test_ipv4v6_paging_with_dedicated_bearer.py \
 s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_tcp_data.py \
 s1aptests/test_attach_detach_attach_ul_tcp_data.py \
@@ -167,6 +167,8 @@ s1aptests/test_guti_attach_with_zero_mtmsi.py \
 s1aptests/test_ics_timer_expiry_with_mme_restart.py \
 s1aptests/test_attach_mobile_reachability_timer_expiry.py \
 s1aptests/test_attach_implicit_detach_timer_expiry.py \
+s1aptests/test_mobile_reachability_tmr_with_mme_restart.py \
+s1aptests/test_implicit_detach_timer_with_mme_restart.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
 NON_SANITY_TESTS = s1aptests/test_modify_config_for_non_sanity.py \
@@ -225,6 +227,7 @@ s1aptests/test_s1_handover_ping_pong.py \
 s1aptests/test_s1_handover_cancel.py \
 s1aptests/test_s1_handover_failure.py \
 s1aptests/test_s1_handover_timer_expiry.py \
+s1aptests/test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue.py \
 s1aptests/test_restore_config_after_non_sanity.py
 
 #---------------
@@ -232,7 +235,6 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_outoforder_erab_setup_rsp_default_bearer.py \ GitHubIssue 5992
 # s1aptests/test_stateless_multi_ue_mixedstate_mme_restart.py \ GitHubIssue 5997
 # s1aptests/test_attach_with_multiple_mme_restarts.py \ GitHubIssue 5997
-# s1aptests/test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue.py \ Need to configure UE inactivity timer from test case
 
 # Non-Sanity: Flaky Test Cases
 # s1aptests/test_attach_detach_two_pdns_with_tcptraffic.py \ GitHubIssue 9670
@@ -257,10 +259,6 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_enb_complete_reset.py \
 # s1aptests/test_attach_detach_multi_ue_looped.py \
 # s1aptests/test_attach_detach_rar_tcp_he.py \ GitHubIssue 6254
-
-# Temporarily disabled for Github issue #11237
-# s1aptests/test_mobile_reachability_timer_with_mme_restart.py \
-# s1aptests/test_implicit_detach_timer_with_mme_restart.py \
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \
 cloud_tests/metrics_export_test.py \

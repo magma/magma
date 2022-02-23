@@ -77,18 +77,20 @@ Description Defines functions executed at the ESM Service Access
 status_code_e esm_send_esm_information_request(
     pti_t pti, ebi_t ebi, esm_information_request_msg* msg);
 
-status_code_e esm_send_status(
-    pti_t pti, ebi_t ebi, esm_status_msg* msg, int esm_cause);
+status_code_e esm_send_status(pti_t pti, ebi_t ebi, esm_status_msg* msg,
+                              int esm_cause);
 
 /*
  * Transaction related messages
  * ----------------------------
  */
-status_code_e esm_send_pdn_connectivity_reject(
-    pti_t pti, pdn_connectivity_reject_msg* msg, int esm_cause);
+status_code_e esm_send_pdn_connectivity_reject(pti_t pti,
+                                               pdn_connectivity_reject_msg* msg,
+                                               int esm_cause);
 
-status_code_e esm_send_pdn_disconnect_reject(
-    pti_t pti, pdn_disconnect_reject_msg* msg, int esm_cause);
+status_code_e esm_send_pdn_disconnect_reject(pti_t pti,
+                                             pdn_disconnect_reject_msg* msg,
+                                             int esm_cause);
 
 /*
  * Messages related to EPS bearer contexts

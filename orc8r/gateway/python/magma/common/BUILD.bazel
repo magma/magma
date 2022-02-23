@@ -21,20 +21,32 @@ py_library(
         requirement("sentry_sdk"),
         requirement("snowflake"),
         "//feg/protos:mconfigs_python_proto",
-    ],
-)
-
-py_library(
-    name = "metrics",
-    srcs = ["metrics.py"],
-    deps = [
-        requirement("prometheus_client"),
+        "//orc8r/gateway/python/magma/configuration:service_configs",
     ],
 )
 
 py_library(
     name = "rpc_utils",
     srcs = ["rpc_utils.py"],
+    deps = [":service"],
+)
+
+py_library(
+    name = "misc_utils",
+    srcs = ["misc_utils.py"],
+    deps = [
+        requirement("netifaces"),
+        requirement("snowflake"),
+    ],
+)
+
+py_library(
+    name = "cert_utils",
+    srcs = ["cert_utils.py"],
+    deps = [
+        ":service",
+        requirement("cryptography"),
+    ],
 )
 
 py_library(
@@ -43,13 +55,51 @@ py_library(
         "job.py",
         "log_count_handler.py",
         "log_counter.py",
+        "metrics.py",
         "metrics_export.py",
         "serialization_utils.py",
         "service.py",
         "service_registry.py",
     ],
     deps = [
-        "//orc8r/gateway/python/magma/configuration:events",
         "//orc8r/gateway/python/magma/configuration:mconfig_managers",
+        "//orc8r/gateway/python/magma/configuration:service_configs",
+        "//orc8r/protos:metricsd_python_proto",
+        "//orc8r/protos:service303_python_grpc",
+        requirement("prometheus_client"),
+        requirement("setuptools"),
     ],
+)
+
+py_library(
+    name = "streamer",
+    srcs = ["streamer.py"],
+    deps = ["//orc8r/protos:streamer_python_grpc"],
+)
+
+py_library(
+    name = "stateless_agw",
+    srcs = ["stateless_agw.py"],
+    deps = ["//orc8r/protos:magmad_python_proto"],
+)
+
+py_library(
+    name = "grpc_client_manager",
+    srcs = ["grpc_client_manager.py"],
+    deps = [
+        ":service",
+        requirement("grpcio"),
+        requirement("psutil"),
+    ],
+)
+
+py_library(
+    name = "sdwatchdog",
+    srcs = ["sdwatchdog.py"],
+    deps = [requirement("systemd")],
+)
+
+py_library(
+    name = "cert_validity",
+    srcs = ["cert_validity.py"],
 )

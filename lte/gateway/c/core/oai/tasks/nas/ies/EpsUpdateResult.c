@@ -23,13 +23,12 @@
 #include "lte/gateway/c/core/oai/common/log.h"
 
 //------------------------------------------------------------------------------
-int decode_eps_update_result(
-    eps_update_result_t* epsupdateresult, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int decode_eps_update_result(eps_update_result_t* epsupdateresult, uint8_t iei,
+                             uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, EPS_UPDATE_RESULT_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, EPS_UPDATE_RESULT_MINIMUM_LENGTH,
+                                       len);
 
   if (iei > 0) {
     CHECK_IEI_DECODER((*buffer & 0xf0), iei);
@@ -41,10 +40,9 @@ int decode_eps_update_result(
 }
 
 //------------------------------------------------------------------------------
-int decode_u8_eps_update_result(
-    eps_update_result_t* epsupdateresult, uint8_t iei, uint8_t value,
-    uint32_t len) {
-  int decoded     = 0;
+int decode_u8_eps_update_result(eps_update_result_t* epsupdateresult,
+                                uint8_t iei, uint8_t value, uint32_t len) {
+  int decoded = 0;
   uint8_t* buffer = &value;
 
   *epsupdateresult = *buffer & 0x7;
@@ -53,16 +51,15 @@ int decode_u8_eps_update_result(
 }
 
 //------------------------------------------------------------------------------
-int encode_eps_update_result(
-    eps_update_result_t* epsupdateresult, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int encode_eps_update_result(eps_update_result_t* epsupdateresult, uint8_t iei,
+                             uint8_t* buffer, uint32_t len) {
   uint8_t encoded = 0;
 
   /*
    * Checking length and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, EPS_UPDATE_RESULT_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, EPS_UPDATE_RESULT_MINIMUM_LENGTH,
+                                       len);
   *(buffer + encoded) = 0x00 | (iei & 0xf0) | (*epsupdateresult & 0x7);
   encoded++;
   return encoded;
@@ -73,13 +70,12 @@ uint8_t encode_u8_eps_update_result(eps_update_result_t* epsupdateresult) {
   uint8_t bufferReturn;
   uint8_t* buffer = &bufferReturn;
   uint8_t encoded = 0;
-  uint8_t iei     = 0;
+  uint8_t iei = 0;
 
   *(buffer + encoded) = 0x00 | (iei & 0xf0) | (*epsupdateresult & 0x7);
-  OAILOG_INFO(
-      LOG_MME_APP,
-      "epsupdateresult in encode_tracking_area_update_accept3 %x\n",
-      *(buffer + encoded));
+  OAILOG_INFO(LOG_MME_APP,
+              "epsupdateresult in encode_tracking_area_update_accept3 %x\n",
+              *(buffer + encoded));
   encoded++;
   return bufferReturn;
 }

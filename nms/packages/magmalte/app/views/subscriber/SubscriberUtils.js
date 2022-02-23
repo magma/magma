@@ -14,7 +14,12 @@
  * @format
  */
 
-import type {promql_return_object} from '../../../generated/MagmaAPIBindings';
+import type {
+  core_network_types,
+  promql_return_object,
+} from '../../../generated/MagmaAPIBindings';
+
+import {isValidHex} from '@fbcnms/util/strings';
 
 const mBIT = 1000000;
 const kBIT = 1000;
@@ -79,3 +84,86 @@ export const SUBSCRIBER_ADD_ERRORS = Object.freeze({
   DUPLICATE_IMSI: 'The IMSI is duplicated',
   REQUIRED_AUTH_KEY: 'Auth key is required',
 });
+
+const SUBSCRIBER_ACTION_TYPE = Object.freeze({
+  ADD: 'add',
+  EDIT: 'edit',
+  DELETE: 'delete',
+});
+
+export type SubscriberActionType = $Values<typeof SUBSCRIBER_ACTION_TYPE>;
+
+export const REFRESH_TIMEOUT = 1000;
+
+export type SubscriberInfo = {
+  name: string,
+  imsi: string,
+  authKey: string,
+  authOpc: string,
+  state: 'INACTIVE' | 'ACTIVE',
+  forbiddenNetworkTypes: core_network_types,
+  dataPlan: string,
+  apns: Array<string>,
+  policies?: Array<string>,
+};
+
+type SubscriberError = $Values<typeof SUBSCRIBER_ADD_ERRORS>;
+
+/**
+ * Checks subscriber fields format
+ *
+ * @param {Array<SubscriberInfo>} subscribers Array of subcribers to validate
+ * @returns {Array<string>} Returns array of errors
+ */
+export function validateSubscribers(
+  subscribers: Array<SubscriberInfo>,
+  action: SubscriberActionType,
+) {
+  const errors: {
+    [error: SubscriberError]: Array<number>,
+  } = {};
+  const imsiList = [];
+
+  Object.keys(SUBSCRIBER_ADD_ERRORS).map(error => {
+    const subscriberError = SUBSCRIBER_ADD_ERRORS[error];
+    errors[subscriberError] = [];
+  });
+  subscribers.forEach((info, i) => {
+    if (!(action === 'delete')) {
+      if (!info.authKey) {
+        errors[SUBSCRIBER_ADD_ERRORS['REQUIRED_AUTH_KEY']].push(i + 1);
+      }
+      if (!info.dataPlan) {
+        errors[SUBSCRIBER_ADD_ERRORS['REQUIRED_SUB_PROFILE']].push(i + 1);
+      }
+      if (imsiList.includes(info.imsi)) {
+        errors[SUBSCRIBER_ADD_ERRORS['DUPLICATE_IMSI']].push(i + 1);
+      }
+    }
+    if (!imsiList.includes(info.imsi)) {
+      imsiList.push(info.imsi);
+    }
+    if (!info?.imsi?.match(/^(IMSI\d{10,15})$/)) {
+      errors[SUBSCRIBER_ADD_ERRORS['INVALID_IMSI']].push(i + 1);
+    }
+    if (info.authKey && !isValidHex(info.authKey)) {
+      errors[SUBSCRIBER_ADD_ERRORS['INVALID_AUTH_KEY']].push(i + 1);
+    }
+    if (info.authOpc && !isValidHex(info.authOpc)) {
+      errors[SUBSCRIBER_ADD_ERRORS['INVALID_AUTH_OPC']].push(i + 1);
+    }
+  });
+
+  const errorList: Array<string> = Object.keys(SUBSCRIBER_ADD_ERRORS)
+    .map(error => SUBSCRIBER_ADD_ERRORS[error])
+    .reduce((res, errorMessage) => {
+      if (errors[errorMessage].length > 0) {
+        res.push(
+          `${errorMessage} : Row ${errors[errorMessage].sort().join(', ')}`,
+        );
+      }
+      return res;
+    }, []);
+
+  return errorList;
+}

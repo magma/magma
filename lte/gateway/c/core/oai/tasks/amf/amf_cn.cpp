@@ -40,7 +40,7 @@ namespace magma5g {
 static int amf_cn_authentication_res(amf_cn_auth_res_t* const msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   amf_context_t* amf_ctx = NULL;
-  int rc                 = RETURNerror;
+  int rc = RETURNerror;
 
   /*
    * We received security vector from HSS. Try to setup security with UE
@@ -56,18 +56,17 @@ static int amf_cn_authentication_res(amf_cn_auth_res_t* const msg) {
     if (auth_info_proc) {
       for (int i = 0; i < msg->nb_vectors; i++) {
         auth_info_proc->vector[i] = msg->vector[i];
-        msg->vector[i]            = NULL;
+        msg->vector[i] = NULL;
       }
       auth_info_proc->nb_vectors = msg->nb_vectors;
 
       rc = amf_authentication_proc_success(amf_ctx);
     } else {
-      OAILOG_ERROR(
-          LOG_NAS_AMF,
-          "EMM-PROC  - "
-          "Failed to find Auth_info procedure associated to UE "
-          "ID: " AMF_UE_NGAP_ID_FMT,
-          msg->ue_id);
+      OAILOG_ERROR(LOG_NAS_AMF,
+                   "EMM-PROC  - "
+                   "Failed to find Auth_info procedure associated to UE "
+                   "ID: " AMF_UE_NGAP_ID_FMT,
+                   msg->ue_id);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
@@ -75,7 +74,7 @@ static int amf_cn_authentication_res(amf_cn_auth_res_t* const msg) {
 
 //------------------------------------------------------------------------------
 int amf_cn_send(const amf_cn_t* msg) {
-  int rc                       = RETURNerror;
+  int rc = RETURNerror;
   amf_cn_primitive_t primitive = msg->primitive;
 
   OAILOG_FUNC_IN(LOG_NAS_AMF);

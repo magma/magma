@@ -21,7 +21,7 @@ import subprocess
 import threading
 import time
 from enum import Enum
-from queue import Queue
+from queue import Empty, Queue
 from typing import Optional
 
 import grpc
@@ -84,6 +84,7 @@ class S1ApUtil(object):
 
     _cond = threading.Condition()
     _msg = Queue()
+    MAX_RESP_WAIT_TIME = 900
 
     MAX_NUM_RETRIES = 5
     datapath = get_datapath()
@@ -179,9 +180,37 @@ class S1ApUtil(object):
                 return self._ue_ip_map[ue_id]
             return None
 
-    def get_response(self):
-        # Wait until callback is invoked.
-        return self._msg.get(True)
+    def get_response(
+        self,
+        timeout: int = None,
+        assert_on_timeout: bool = True,
+    ) -> Msg:
+        """Return the response message invoked by S1APTester TFW callback
+
+        Args:
+            timeout: Timeout value
+            assert_on_timeout: Trigger assert on timeout
+
+        Returns:
+            Response Message or None
+
+        Raises:
+            AssertionError: Assert if timeout occurs
+        """
+        if timeout is None:
+            # Default maximum wait time is 900 sec (15 min)
+            timeout = S1ApUtil.MAX_RESP_WAIT_TIME
+
+        # Wait until callback is invoked or timeout occurred
+        try:
+            return self._msg.get(True, timeout)
+        except Empty:
+            if assert_on_timeout:
+                raise AssertionError(
+                    "Timeout ("
+                    + str(timeout)
+                    + " sec) occurred while waiting for response message",
+                )
 
     def populate_pco(
             self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False,

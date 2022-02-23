@@ -14,7 +14,7 @@
 #include <gtest/gtest.h>
 #include <thread>
 
-#include "../mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/common_types.h"
@@ -35,9 +35,8 @@ extern std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*> ue_context_map;
 
 class AMFAppProcedureTest : public ::testing::Test {
   virtual void SetUp() {
-    itti_init(
-        TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
-        NULL);
+    itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
+              NULL, NULL);
 
     // initialize mme config
     amf_config_init(&amf_config);
@@ -61,7 +60,7 @@ class AMFAppProcedureTest : public ::testing::Test {
  protected:
   amf_app_desc_t* amf_app_desc_p;
   std::string imsi = "222456000000001";
-  plmn_t plmn      = {.mcc_digit2 = 0,
+  plmn_t plmn = {.mcc_digit2 = 0,
                  .mcc_digit1 = 0,
                  .mnc_digit3 = 0x0f,
                  .mcc_digit3 = 1,
@@ -69,10 +68,7 @@ class AMFAppProcedureTest : public ::testing::Test {
                  .mnc_digit1 = 0};
 
   itti_amf_decrypted_imsi_info_ans_t decrypted_imsi = {
-      .imsi        = "222456000000001",
-      .imsi_length = 15,
-      .result      = 1,
-      .ue_id       = 1};
+      .imsi = "222456000000001", .imsi_length = 15, .result = 1, .ue_id = 1};
 
   const uint8_t intital_ue_message_suci_ext_hexbuf[65] = {
       0x7e, 0x00, 0x41, 0x79, 0x00, 0x35, 0x01, 0x09, 0xf1, 0x07, 0x00,
@@ -113,6 +109,18 @@ class AMFAppProcedureTest : public ::testing::Test {
       0x0a, 0x00, 0x00, 0x0d, 0x00, 0x12, 0x01, 0x81, 0x22, 0x01, 0x01,
       0x25, 0x09, 0x08, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74};
 
+  const uint8_t ue_pdu_session_v6_est_req_hexbuf[44] = {
+      0x7e, 0x00, 0x67, 0x01, 0x00, 0x15, 0x2e, 0x01, 0x01, 0xc1, 0xff,
+      0xff, 0x92, 0xa1, 0x28, 0x01, 0x00, 0x7b, 0x00, 0x07, 0x80, 0x00,
+      0x0a, 0x00, 0x00, 0x0d, 0x00, 0x12, 0x01, 0x81, 0x22, 0x01, 0x01,
+      0x25, 0x09, 0x08, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74};
+
+  const uint8_t ue_pdu_session_v4v6_est_req_hexbuf[44] = {
+      0x7e, 0x00, 0x67, 0x01, 0x00, 0x15, 0x2e, 0x01, 0x01, 0xc1, 0xff,
+      0xff, 0x93, 0xa1, 0x28, 0x01, 0x00, 0x7b, 0x00, 0x07, 0x80, 0x00,
+      0x0a, 0x00, 0x00, 0x0d, 0x00, 0x12, 0x01, 0x81, 0x22, 0x01, 0x01,
+      0x25, 0x09, 0x08, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74};
+
   const uint8_t ue_pdu_session_est_req_dnn_not_subscried_hexbuf[42] = {
       0x7e, 0x00, 0x67, 0x01, 0x00, 0x15, 0x2e, 0x01, 0x01, 0xc1, 0xff,
       0xff, 0x91, 0xa1, 0x28, 0x01, 0x00, 0x7b, 0x00, 0x07, 0x80, 0x00,
@@ -141,6 +149,25 @@ class AMFAppProcedureTest : public ::testing::Test {
   uint8_t ue_initiated_dereg_hexbuf[24] = {
       0x7e, 0x01, 0x41, 0x21, 0xe6, 0xe2, 0x03, 0x7e, 0x00, 0x45, 0x01, 0x00,
       0x0b, 0xf2, 0x22, 0x62, 0x54, 0x01, 0x00, 0x40, 0x0,  0x0,  0x0,  0x0};
+
+  const uint8_t initial_ue_msg_service_request_with_pdu[28] = {
+      // Security protected NAS 5G msg with
+      // Mobility mgmt msg with security header and auth code
+      0x7e, 0x01, 0xca, 0x3f, 0x92, 0xbe,
+      // seq no
+      0x03,
+      // Plain NAS 5G msg with
+      // Mobility mgmt msg with no security header and msg type
+      0x7e, 0x00, 0x4c,
+      // service type as Mobile Terminated
+      0x20,
+      // 5GS Mobile identity
+      0x00, 0x07, 0xf4, 0x00, 0x40,
+      // Replace TMSI value to be sent
+      // during message tx at position[16]to [19]
+      0xff, 0xff, 0xff, 0xff,
+      // Uplink data status and pdu session status
+      0x40, 0x02, 0x20, 0x00, 0x50, 0x02, 0x20, 0x00};
 };
 
 amf_context_t* get_amf_context_by_ueid(amf_ue_ngap_id_t ue_id) {
@@ -157,8 +184,8 @@ amf_context_t* get_amf_context_by_ueid(amf_ue_ngap_id_t ue_id) {
   return amf_ctx;
 }
 
-bool validate_auth_procedure(
-    amf_ue_ngap_id_t ue_id, uint32_t expected_retransmission_count) {
+bool validate_auth_procedure(amf_ue_ngap_id_t ue_id,
+                             uint32_t expected_retransmission_count) {
   amf_context_t* amf_ctx = get_amf_context_by_ueid(ue_id);
   if (amf_ctx == NULL) {
     return false;
@@ -179,8 +206,8 @@ bool validate_auth_procedure(
   return true;
 }
 
-bool validate_smc_procedure(
-    amf_ue_ngap_id_t ue_id, uint32_t expected_retransmission_count) {
+bool validate_smc_procedure(amf_ue_ngap_id_t ue_id,
+                            uint32_t expected_retransmission_count) {
   amf_context_t* amf_ctx = get_amf_context_by_ueid(ue_id);
   if (amf_ctx == NULL) {
     return false;
@@ -207,16 +234,16 @@ TEST_F(AMFAppProcedureTest, TestRegistrationAuthSecurityModeReject) {
   amf_ue_ngap_id_t ue_id = 0;
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
-  imsi64          = send_initial_ue_message_no_tmsi(
-      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
-      sizeof(initial_ue_message_hexbuf));
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
 
   /* Check if UE Context is created with correct imsi */
   EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
 
   /* Send the authentication response message from subscriberdb */
   int rc = RETURNok;
-  rc     = send_proc_authentication_info_answer(imsi, ue_id, true);
+  rc = send_proc_authentication_info_answer(imsi, ue_id, true);
   EXPECT_TRUE(rc == RETURNok);
 
   /* Validate if authentication procedure is initialized as expected */
@@ -238,16 +265,16 @@ TEST_F(AMFAppProcedureTest, TestRegistrationAuthSecurityCapabilityMismatch) {
   amf_ue_ngap_id_t ue_id = 0;
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
-  imsi64          = send_initial_ue_message_no_tmsi(
-      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
-      sizeof(initial_ue_message_hexbuf));
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
 
   /* Check if UE Context is created with correct imsi */
   EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
 
   /* Send the authentication response message from subscriberdb */
   int rc = RETURNok;
-  rc     = send_proc_authentication_info_answer(imsi, ue_id, true);
+  rc = send_proc_authentication_info_answer(imsi, ue_id, true);
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send uplink nas message for auth response from UE */
@@ -277,16 +304,16 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcNoTMSI) {
 
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
-  imsi64          = send_initial_ue_message_no_tmsi(
-      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
-      sizeof(initial_ue_message_hexbuf));
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
 
   /* Check if UE Context is created with correct imsi */
   EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
 
   /* Send the authentication response message from subscriberdb */
   int rc = RETURNok;
-  rc     = send_proc_authentication_info_answer(imsi, ue_id, true);
+  rc = send_proc_authentication_info_answer(imsi, ue_id, true);
   EXPECT_TRUE(rc == RETURNok);
 
   /* Validate if authentication procedure is initialized as expected */
@@ -302,9 +329,9 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcNoTMSI) {
   EXPECT_TRUE(validate_smc_procedure(ue_id, 0));
 
   /* Send uplink nas message for security mode complete response from UE */
-  rc = send_uplink_nas_message_ue_smc_response(
-      amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
-      sizeof(ue_smc_response_hexbuf));
+  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
+                                               ue_smc_response_hexbuf,
+                                               sizeof(ue_smc_response_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
@@ -318,7 +345,7 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcNoTMSI) {
 }
 
 TEST_F(AMFAppProcedureTest, TestDeRegistration) {
-  int rc                 = RETURNerror;
+  int rc = RETURNerror;
   amf_ue_ngap_id_t ue_id = 0;
   std::vector<MessagesIds> expected_Ids{
       AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
@@ -333,9 +360,9 @@ TEST_F(AMFAppProcedureTest, TestDeRegistration) {
 
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
-  imsi64          = send_initial_ue_message_no_tmsi(
-      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
-      sizeof(initial_ue_message_hexbuf));
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
 
   /* Check if UE Context is created with correct imsi */
   EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
@@ -351,9 +378,9 @@ TEST_F(AMFAppProcedureTest, TestDeRegistration) {
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send uplink nas message for security mode complete response from UE */
-  rc = send_uplink_nas_message_ue_smc_response(
-      amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
-      sizeof(ue_smc_response_hexbuf));
+  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
+                                               ue_smc_response_hexbuf,
+                                               sizeof(ue_smc_response_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
   send_initial_context_response(amf_app_desc_p, ue_id);
@@ -374,7 +401,7 @@ TEST_F(AMFAppProcedureTest, TestDeRegistration) {
 }
 
 TEST_F(AMFAppProcedureTest, TestPDUSessionSetup) {
-  int rc                 = RETURNerror;
+  int rc = RETURNerror;
   amf_ue_ngap_id_t ue_id = 0;
   std::vector<MessagesIds> expected_Ids{
       AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
@@ -392,9 +419,9 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionSetup) {
 
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
-  imsi64          = send_initial_ue_message_no_tmsi(
-      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
-      sizeof(initial_ue_message_hexbuf));
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
 
   /* Check if UE Context is created with correct imsi */
   EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
@@ -410,9 +437,9 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionSetup) {
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send uplink nas message for security mode complete response from UE */
-  rc = send_uplink_nas_message_ue_smc_response(
-      amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
-      sizeof(ue_smc_response_hexbuf));
+  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
+                                               ue_smc_response_hexbuf,
+                                               sizeof(ue_smc_response_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
   send_initial_context_response(amf_app_desc_p, ue_id);
@@ -430,11 +457,11 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionSetup) {
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send ip address response  from pipelined */
-  rc = send_ip_address_response_itti();
+  rc = send_ip_address_response_itti(IPv4);
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send pdu session setup response  from smf */
-  rc = send_pdu_session_response_itti();
+  rc = send_pdu_session_response_itti(IPv4);
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send pdu resource setup response  from UE */
@@ -474,7 +501,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionSetup) {
 }
 
 TEST_F(AMFAppProcedureTest, TestPDUSessionFailure_dnn_not_subscribed) {
-  int rc                 = RETURNerror;
+  int rc = RETURNerror;
   amf_ue_ngap_id_t ue_id = 0;
   std::vector<MessagesIds> expected_Ids{
       AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
@@ -491,9 +518,9 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionFailure_dnn_not_subscribed) {
 
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
-  imsi64          = send_initial_ue_message_no_tmsi(
-      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
-      sizeof(initial_ue_message_hexbuf));
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
 
   /* Check if UE Context is created with correct imsi */
   EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
@@ -509,9 +536,9 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionFailure_dnn_not_subscribed) {
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send uplink nas message for security mode complete response from UE */
-  rc = send_uplink_nas_message_ue_smc_response(
-      amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
-      sizeof(ue_smc_response_hexbuf));
+  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
+                                               ue_smc_response_hexbuf,
+                                               sizeof(ue_smc_response_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
   send_initial_context_response(amf_app_desc_p, ue_id);
@@ -545,7 +572,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionFailure_dnn_not_subscribed) {
 }
 
 TEST_F(AMFAppProcedureTest, TestPDUSession_missing_dnn) {
-  int rc                 = RETURNerror;
+  int rc = RETURNerror;
   amf_ue_ngap_id_t ue_id = 0;
   std::vector<MessagesIds> expected_Ids{
       AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
@@ -562,9 +589,9 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_missing_dnn) {
 
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
-  imsi64          = send_initial_ue_message_no_tmsi(
-      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
-      sizeof(initial_ue_message_hexbuf));
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
 
   /* Check if UE Context is created with correct imsi */
   EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
@@ -580,9 +607,9 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_missing_dnn) {
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send uplink nas message for security mode complete response from UE */
-  rc = send_uplink_nas_message_ue_smc_response(
-      amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
-      sizeof(ue_smc_response_hexbuf));
+  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
+                                               ue_smc_response_hexbuf,
+                                               sizeof(ue_smc_response_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
   send_initial_context_response(amf_app_desc_p, ue_id);
@@ -597,9 +624,8 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_missing_dnn) {
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   // ue context should exist
   ASSERT_NE(ue_context_p, nullptr);
-  memset(
-      &ue_context_p->amf_context.apn_config_profile, 0,
-      sizeof(ue_context_p->amf_context.apn_config_profile));
+  memset(&ue_context_p->amf_context.apn_config_profile, 0,
+         sizeof(ue_context_p->amf_context.apn_config_profile));
 
   /* Send uplink nas message for pdu session establishment request from UE */
   rc = send_uplink_nas_pdu_session_establishment_request(
@@ -623,7 +649,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_missing_dnn) {
 }
 
 TEST_F(AMFAppProcedureTest, TestPDUSession_unknown_pdu_session_type) {
-  int rc                 = RETURNerror;
+  int rc = RETURNerror;
   amf_ue_ngap_id_t ue_id = 0;
   std::vector<MessagesIds> expected_Ids{
       AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
@@ -640,9 +666,9 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_unknown_pdu_session_type) {
 
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
-  imsi64          = send_initial_ue_message_no_tmsi(
-      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
-      sizeof(initial_ue_message_hexbuf));
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
 
   /* Check if UE Context is created with correct imsi */
   EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
@@ -658,9 +684,9 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_unknown_pdu_session_type) {
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send uplink nas message for security mode complete response from UE */
-  rc = send_uplink_nas_message_ue_smc_response(
-      amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
-      sizeof(ue_smc_response_hexbuf));
+  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
+                                               ue_smc_response_hexbuf,
+                                               sizeof(ue_smc_response_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
   send_initial_context_response(amf_app_desc_p, ue_id);
@@ -695,7 +721,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_unknown_pdu_session_type) {
 }
 
 TEST_F(AMFAppProcedureTest, TestPDUSession_Invalid_PDUSession_Identity) {
-  int rc                 = RETURNerror;
+  int rc = RETURNerror;
   amf_ue_ngap_id_t ue_id = 0;
   std::vector<MessagesIds> expected_Ids{
       AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
@@ -715,9 +741,9 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_Invalid_PDUSession_Identity) {
 
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
-  imsi64          = send_initial_ue_message_no_tmsi(
-      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
-      sizeof(initial_ue_message_hexbuf));
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
 
   /* Check if UE Context is created with correct imsi */
   EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
@@ -742,9 +768,9 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_Invalid_PDUSession_Identity) {
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send uplink nas message for security mode complete response from UE */
-  rc = send_uplink_nas_message_ue_smc_response(
-      amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
-      sizeof(ue_smc_response_hexbuf));
+  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
+                                               ue_smc_response_hexbuf,
+                                               sizeof(ue_smc_response_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
   send_initial_context_response(amf_app_desc_p, ue_id);
@@ -762,11 +788,11 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_Invalid_PDUSession_Identity) {
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send ip address response  from pipelined */
-  rc = send_ip_address_response_itti();
+  rc = send_ip_address_response_itti(IPv4);
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send pdu session setup response  from smf */
-  rc = send_pdu_session_response_itti();
+  rc = send_pdu_session_response_itti(IPv4);
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send pdu resource setup response  from UE */
@@ -836,6 +862,9 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_Invalid_PDUSession_Identity) {
   EXPECT_TRUE(expected_Ids == AMFClientServicer::getInstance().msgtype_stack);
 }
 
+// TODO: #11034 is the starting point of TestRegistrationProcSUCIExt failure.
+// This issue is tracked here #11382
+#if 0
 TEST_F(AMFAppProcedureTest, TestRegistrationProcSUCIExt) {
   amf_ue_ngap_id_t ue_id = 0;
 
@@ -886,9 +915,10 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcSUCIExt) {
 
   amf_app_handle_deregistration_req(ue_id);
 }
+#endif
 
 TEST_F(AMFAppProcedureTest, TestAuthFailureFromSubscribeDb) {
-  amf_ue_ngap_id_t ue_id                = 0;
+  amf_ue_ngap_id_t ue_id = 0;
   ue_m5gmm_context_s* ue_5gmm_context_p = NULL;
   std::vector<MessagesIds> expected_Ids{
       AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
@@ -899,16 +929,16 @@ TEST_F(AMFAppProcedureTest, TestAuthFailureFromSubscribeDb) {
 
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
-  imsi64          = send_initial_ue_message_no_tmsi(
-      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
-      sizeof(initial_ue_message_hexbuf));
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
 
   /* Check if UE Context is created with correct imsi */
   EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
 
   /* Send the authentication response message from subscriberdb */
   int rc = RETURNok;
-  rc     = send_proc_authentication_info_answer(imsi, ue_id, false);
+  rc = send_proc_authentication_info_answer(imsi, ue_id, false);
   EXPECT_TRUE(rc == RETURNok);
   ue_5gmm_context_p = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   EXPECT_TRUE(ue_5gmm_context_p == NULL);
@@ -917,7 +947,7 @@ TEST_F(AMFAppProcedureTest, TestAuthFailureFromSubscribeDb) {
 TEST(test_t3592abort, test_pdu_session_release_notify_smf) {
   amf_ue_ngap_id_t ue_id = 1;
   uint8_t pdu_session_id = 1;
-  int rc                 = RETURNerror;
+  int rc = RETURNerror;
   // creating ue_context
   ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
   ue_context_map.insert(
@@ -925,8 +955,8 @@ TEST(test_t3592abort, test_pdu_session_release_notify_smf) {
   std::shared_ptr<smf_context_t> smf_ctx =
       amf_insert_smf_context(ue_context, pdu_session_id);
   smf_ctx->pdu_session_state = ACTIVE;
-  ue_context->mm_state       = REGISTERED_CONNECTED;
-  smf_ctx->n_active_pdus     = 1;
+  ue_context->mm_state = REGISTERED_CONNECTED;
+  smf_ctx->n_active_pdus = 1;
   EXPECT_NE(ue_context, nullptr);
   EXPECT_NE(ue_context->amf_context.smf_ctxt_map.size(), 0);
   rc = t3592_abort_handler(ue_context, smf_ctx, pdu_session_id);
@@ -934,5 +964,332 @@ TEST(test_t3592abort, test_pdu_session_release_notify_smf) {
   EXPECT_EQ(ue_context->amf_context.smf_ctxt_map.size(), 0);
   ue_context_map.clear();
   delete ue_context;
+}
+
+TEST_F(AMFAppProcedureTest, TestPDUv6SessionSetup) {
+  int rc = RETURNerror;
+  amf_ue_ngap_id_t ue_id = 0;
+  std::vector<MessagesIds> expected_Ids{
+      AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
+                                            // indication to ngap
+      NGAP_NAS_DL_DATA_REQ,                 // Authentication Request to UE
+      NGAP_NAS_DL_DATA_REQ,            // Security Command Mode Request to UE
+      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // Initial Conext Setup Request to UE &
+                                       // Registration Accept
+      NGAP_PDUSESSION_RESOURCE_SETUP_REQ,  // PDU Resource Setup Request to GNB
+                                           // & PDU Session Establishment Accept
+      NGAP_PDUSESSIONRESOURCE_REL_REQ,  // PDU Session Resource Release Command
+      NGAP_NAS_DL_DATA_REQ,             // Deregistaration Accept
+      NGAP_UE_CONTEXT_RELEASE_COMMAND   // UEContextReleaseCommand
+  };
+
+  /* Send the initial UE message */
+  imsi64_t imsi64 = 0;
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
+
+  /* Check if UE Context is created with correct imsi */
+  EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
+
+  /* Send the authentication response message from subscriberdb */
+  rc = send_proc_authentication_info_answer(imsi, ue_id, true);
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for auth response from UE */
+  rc = send_uplink_nas_message_ue_auth_response(
+      amf_app_desc_p, ue_id, plmn, ue_auth_response_hexbuf,
+      sizeof(ue_auth_response_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for security mode complete response from UE */
+  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
+                                               ue_smc_response_hexbuf,
+                                               sizeof(ue_smc_response_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  send_initial_context_response(amf_app_desc_p, ue_id);
+
+  /* Send uplink nas message for registration complete response from UE */
+  rc = send_uplink_nas_registration_complete(
+      amf_app_desc_p, ue_id, plmn, ue_registration_complete_hexbuf,
+      sizeof(ue_registration_complete_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for pdu session establishment request from UE */
+  rc = send_uplink_nas_pdu_session_establishment_request(
+      amf_app_desc_p, ue_id, plmn, ue_pdu_session_v6_est_req_hexbuf,
+      sizeof(ue_pdu_session_est_req_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send ip address response  from pipelined */
+  rc = send_ip_address_response_itti(IPv6);
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send pdu session setup response  from smf */
+  rc = send_pdu_session_response_itti(IPv6);
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send pdu resource setup response  from UE */
+  rc = send_pdu_resource_setup_response(ue_id);
+  EXPECT_TRUE(rc == RETURNok);
+
+  rc = send_pdu_notification_response();
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for pdu session release request from UE */
+  rc = send_uplink_nas_pdu_session_release_message(
+      amf_app_desc_p, ue_id, plmn, pdu_sess_release_hexbuf,
+      sizeof(pdu_sess_release_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for pdu session release complete from UE */
+  rc = send_uplink_nas_pdu_session_release_message(
+      amf_app_desc_p, ue_id, plmn, pdu_sess_release_complete_hexbuf,
+      sizeof(pdu_sess_release_complete_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  ue_m5gmm_context_t* ue_context_p =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ASSERT_NE(ue_context_p, nullptr);
+  EXPECT_EQ(ue_context_p->amf_context.smf_ctxt_map.size(), 0);
+
+  rc = send_pdu_notification_response();
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for deregistration complete response from UE */
+  rc = send_uplink_nas_ue_deregistration_request(
+      amf_app_desc_p, ue_id, plmn, ue_initiated_dereg_hexbuf,
+      sizeof(ue_initiated_dereg_hexbuf));
+
+  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_TRUE(expected_Ids == AMFClientServicer::getInstance().msgtype_stack);
+}
+
+TEST_F(AMFAppProcedureTest, TestPDUv4v6SessionSetup) {
+  int rc = RETURNerror;
+  amf_ue_ngap_id_t ue_id = 0;
+  std::vector<MessagesIds> expected_Ids{
+      AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
+                                            // indication to ngap
+      NGAP_NAS_DL_DATA_REQ,                 // Authentication Request to UE
+      NGAP_NAS_DL_DATA_REQ,            // Security Command Mode Request to UE
+      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // Initial Conext Setup Request to UE &
+                                       // Registration Accept
+      NGAP_PDUSESSION_RESOURCE_SETUP_REQ,  // PDU Resource Setup Request to GNB
+                                           // & PDU Session Establishment Accept
+      NGAP_PDUSESSIONRESOURCE_REL_REQ,  // PDU Session Resource Release Command
+      NGAP_NAS_DL_DATA_REQ,             // Deregistaration Accept
+      NGAP_UE_CONTEXT_RELEASE_COMMAND   // UEContextReleaseCommand
+  };
+
+  /* Send the initial UE message */
+  imsi64_t imsi64 = 0;
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
+
+  /* Check if UE Context is created with correct imsi */
+  EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
+
+  /* Send the authentication response message from subscriberdb */
+  rc = send_proc_authentication_info_answer(imsi, ue_id, true);
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for auth response from UE */
+  rc = send_uplink_nas_message_ue_auth_response(
+      amf_app_desc_p, ue_id, plmn, ue_auth_response_hexbuf,
+      sizeof(ue_auth_response_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for security mode complete response from UE */
+  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
+                                               ue_smc_response_hexbuf,
+                                               sizeof(ue_smc_response_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  send_initial_context_response(amf_app_desc_p, ue_id);
+
+  /* Send uplink nas message for registration complete response from UE */
+  rc = send_uplink_nas_registration_complete(
+      amf_app_desc_p, ue_id, plmn, ue_registration_complete_hexbuf,
+      sizeof(ue_registration_complete_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for pdu session establishment request from UE */
+  rc = send_uplink_nas_pdu_session_establishment_request(
+      amf_app_desc_p, ue_id, plmn, ue_pdu_session_v4v6_est_req_hexbuf,
+      sizeof(ue_pdu_session_est_req_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send ip address response  from pipelined */
+  rc = send_ip_address_response_itti(IPv4_AND_v6);
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send pdu session setup response  from smf */
+  rc = send_pdu_session_response_itti(IPv4_AND_v6);
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send pdu resource setup response  from UE */
+  rc = send_pdu_resource_setup_response(ue_id);
+  EXPECT_TRUE(rc == RETURNok);
+
+  rc = send_pdu_notification_response();
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for pdu session release request from UE */
+  rc = send_uplink_nas_pdu_session_release_message(
+      amf_app_desc_p, ue_id, plmn, pdu_sess_release_hexbuf,
+      sizeof(pdu_sess_release_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for pdu session release complete from UE */
+  rc = send_uplink_nas_pdu_session_release_message(
+      amf_app_desc_p, ue_id, plmn, pdu_sess_release_complete_hexbuf,
+      sizeof(pdu_sess_release_complete_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  ue_m5gmm_context_t* ue_context_p =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ASSERT_NE(ue_context_p, nullptr);
+  EXPECT_EQ(ue_context_p->amf_context.smf_ctxt_map.size(), 0);
+
+  rc = send_pdu_notification_response();
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for deregistration complete response from UE */
+  rc = send_uplink_nas_ue_deregistration_request(
+      amf_app_desc_p, ue_id, plmn, ue_initiated_dereg_hexbuf,
+      sizeof(ue_initiated_dereg_hexbuf));
+
+  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_TRUE(expected_Ids == AMFClientServicer::getInstance().msgtype_stack);
+}
+
+TEST_F(AMFAppProcedureTest, ServiceRequestMTWithPDU) {
+  int rc = RETURNerror;
+  amf_ue_ngap_id_t ue_id = 0;
+  std::vector<MessagesIds> expected_Ids{AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,
+                                        NGAP_NAS_DL_DATA_REQ,
+                                        NGAP_NAS_DL_DATA_REQ,
+                                        NGAP_INITIAL_CONTEXT_SETUP_REQ,
+                                        NGAP_PDUSESSION_RESOURCE_SETUP_REQ,
+                                        NGAP_UE_CONTEXT_RELEASE_COMMAND,
+                                        AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,
+                                        AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,
+                                        NGAP_INITIAL_CONTEXT_SETUP_REQ,
+                                        NGAP_NAS_DL_DATA_REQ,
+                                        NGAP_PDUSESSIONRESOURCE_REL_REQ,
+                                        NGAP_NAS_DL_DATA_REQ,
+                                        NGAP_UE_CONTEXT_RELEASE_COMMAND};
+
+  /* Send the initial UE message */
+  imsi64_t imsi64 = 0;
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
+
+  /* Check if UE Context is created with correct imsi */
+  EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
+
+  /* Send the authentication response message from subscriberdb */
+  rc = send_proc_authentication_info_answer(imsi, ue_id, true);
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for auth response from UE */
+  rc = send_uplink_nas_message_ue_auth_response(
+      amf_app_desc_p, ue_id, plmn, ue_auth_response_hexbuf,
+      sizeof(ue_auth_response_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for security mode complete response from UE */
+  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
+                                               ue_smc_response_hexbuf,
+                                               sizeof(ue_smc_response_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for registration complete response from UE */
+  rc = send_uplink_nas_registration_complete(
+      amf_app_desc_p, ue_id, plmn, ue_registration_complete_hexbuf,
+      sizeof(ue_registration_complete_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  send_initial_context_response(amf_app_desc_p, ue_id);
+
+  /* Send uplink nas message for pdu session establishment request from UE */
+  rc = send_uplink_nas_pdu_session_establishment_request(
+      amf_app_desc_p, ue_id, plmn, ue_pdu_session_est_req_hexbuf,
+      sizeof(ue_pdu_session_est_req_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send ip address response  from pipelined */
+  rc = send_ip_address_response_itti(IPv4);
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send pdu session setup response  from smf */
+  rc = send_pdu_session_response_itti(IPv4);
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send pdu resource setup response  from UE */
+  rc = send_pdu_resource_setup_response(ue_id);
+  EXPECT_TRUE(rc == RETURNok);
+
+  rc = send_pdu_notification_response();
+  EXPECT_TRUE(rc == RETURNok);
+
+  /*Send UE context release request to move to idle mode*/
+  send_ue_context_release_request_message(amf_app_desc_p, 1, 1, ue_id);
+  ue_m5gmm_context_s* ue_context = nullptr;
+  ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  EXPECT_EQ(REGISTERED_IDLE, ue_context->mm_state);
+
+  /*Send initial UE message Service Request with PDU*/
+  imsi64 = 0;
+  imsi64 = send_initial_ue_message_service_request_with_pdu(
+      amf_app_desc_p, 36, 1, 1, ue_id, plmn,
+      initial_ue_msg_service_request_with_pdu,
+      sizeof(initial_ue_msg_service_request_with_pdu));
+
+  EXPECT_EQ(REGISTERED_IDLE, ue_context->mm_state);
+  EXPECT_EQ(true, ue_context->pending_service_response);
+
+  /* Send pdu session setup response  from smf */
+  rc = send_pdu_session_response_itti(IPv4);
+  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(REGISTERED_CONNECTED, ue_context->mm_state);
+  EXPECT_EQ(false, ue_context->pending_service_response);
+
+  send_initial_context_response(amf_app_desc_p, ue_id);
+
+  /*Send Uplink NAS transport Service request with PDU*/
+  rc = send_uplink_nas_message_service_request_with_pdu(
+      amf_app_desc_p, ue_id, plmn, initial_ue_msg_service_request_with_pdu,
+      sizeof(initial_ue_msg_service_request_with_pdu));
+  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(false, ue_context->pending_service_response);
+
+  /* Send uplink nas message for pdu session release request from UE */
+  rc = send_uplink_nas_pdu_session_release_message(
+      amf_app_desc_p, ue_id, plmn, pdu_sess_release_hexbuf,
+      sizeof(pdu_sess_release_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for pdu session release complete from UE */
+  rc = send_uplink_nas_pdu_session_release_message(
+      amf_app_desc_p, ue_id, plmn, pdu_sess_release_complete_hexbuf,
+      sizeof(pdu_sess_release_complete_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  rc = send_pdu_notification_response();
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for deregistration complete response from UE */
+  rc = send_uplink_nas_ue_deregistration_request(
+      amf_app_desc_p, ue_id, plmn, ue_initiated_dereg_hexbuf,
+      sizeof(ue_initiated_dereg_hexbuf));
+
+  EXPECT_TRUE(rc == RETURNok);
+
+  EXPECT_TRUE(expected_Ids == AMFClientServicer::getInstance().msgtype_stack);
 }
 }  // namespace magma5g

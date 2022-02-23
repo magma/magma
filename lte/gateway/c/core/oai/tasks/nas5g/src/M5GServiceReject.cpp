@@ -10,6 +10,13 @@
  */
 
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceReject.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
@@ -19,9 +26,9 @@ ServiceRejectMsg::ServiceRejectMsg(){};
 ServiceRejectMsg::~ServiceRejectMsg(){};
 
 // Decoding Service Reject Message and its IEs
-int ServiceRejectMsg::DecodeServiceRejectMsg(
-    ServiceRejectMsg* svc_rej, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+int ServiceRejectMsg::DecodeServiceRejectMsg(ServiceRejectMsg* svc_rej,
+                                             uint8_t* buffer, uint32_t len) {
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   if ((decoded_result = svc_rej->extended_protocol_discriminator
@@ -64,12 +71,12 @@ int ServiceRejectMsg::DecodeServiceRejectMsg(
 }
 
 // Encoding Service Reject Message and its IEs
-int ServiceRejectMsg::EncodeServiceRejectMsg(
-    ServiceRejectMsg* svc_rej, uint8_t* buffer, uint32_t len) {
-  uint32_t encoded   = 0;
+int ServiceRejectMsg::EncodeServiceRejectMsg(ServiceRejectMsg* svc_rej,
+                                             uint8_t* buffer, uint32_t len) {
+  uint32_t encoded = 0;
   int encoded_result = 0;
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, M5G_SERVICE_REJECT_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
+                                       M5G_SERVICE_REJECT_MINIMUM_LENGTH, len);
 
   if ((encoded_result = svc_rej->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(

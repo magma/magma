@@ -19,26 +19,22 @@ PTIMsg::PTIMsg(){};
 PTIMsg::~PTIMsg(){};
 
 // Decode PTI IE
-int PTIMsg::DecodePTIMsg(
-    PTIMsg* pti, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int PTIMsg::DecodePTIMsg(PTIMsg* pti, uint8_t iei, uint8_t* buffer,
+                         uint32_t len) {
   uint8_t decoded = 0;
 
-  MLOG(MDEBUG) << " DecodePTIMsg : ";
   pti->pti = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << " PTI = 0x" << std::hex << int(pti->pti);
 
   return (decoded);
 };
 
 // Encode PTI IE
-int PTIMsg::EncodePTIMsg(
-    PTIMsg* pti, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int PTIMsg::EncodePTIMsg(PTIMsg* pti, uint8_t iei, uint8_t* buffer,
+                         uint32_t len) {
   int encoded = 0;
 
-  MLOG(MDEBUG) << " EncodePTIMsg : ";
   *(buffer + encoded) = pti->pti;
-  MLOG(MDEBUG) << "PTI = 0x" << std::hex << int(*(buffer + encoded));
   encoded++;
 
   return (encoded);

@@ -27,7 +27,7 @@
 int decode_ue_security_capability(
     ue_security_capability_t* uesecuritycapability, uint8_t iei,
     uint8_t* buffer, uint32_t len) {
-  int decoded   = 0;
+  int decoded = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -46,14 +46,14 @@ int decode_ue_security_capability(
 
   if (len >= (decoded + 2)) {
     uesecuritycapability->umts_present = 1;
-    uesecuritycapability->uea          = *(buffer + decoded);
+    uesecuritycapability->uea = *(buffer + decoded);
     decoded++;
     uesecuritycapability->uia = *(buffer + decoded) & 0x7f;
     decoded++;
 
     if (len >= (decoded + 1)) {
       uesecuritycapability->gprs_present = 1;
-      uesecuritycapability->gea          = *(buffer + decoded) & 0x7f;
+      uesecuritycapability->gea = *(buffer + decoded) & 0x7f;
       decoded++;
     }
   }

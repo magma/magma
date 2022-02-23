@@ -11,6 +11,13 @@
 
 #include <iostream>
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
@@ -20,15 +27,15 @@ ServiceRequestMsg::ServiceRequestMsg(){};
 ServiceRequestMsg::~ServiceRequestMsg(){};
 
 // Decode ServiceRequest Messsage
-int ServiceRequestMsg::DecodeServiceRequestMsg(
-    ServiceRequestMsg* svc_req, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+int ServiceRequestMsg::DecodeServiceRequestMsg(ServiceRequestMsg* svc_req,
+                                               uint8_t* buffer, uint32_t len) {
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
   // expected for the message.
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, SERVICE_REQUEST_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, SERVICE_REQUEST_MINIMUM_LENGTH,
+                                       len);
 
   if ((decoded_result = svc_req->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
@@ -102,7 +109,9 @@ int ServiceRequestMsg::DecodeServiceRequestMsg(
           decoded += (decoded_result + 3);
         }
       } break;
-      default: { return decoded; }
+      default: {
+        return decoded;
+      }
     }
   }
 
@@ -110,8 +119,8 @@ int ServiceRequestMsg::DecodeServiceRequestMsg(
 };
 
 // Encode ServiceRequest Messsage
-int ServiceRequestMsg::EncodeServiceRequestMsg(
-    ServiceRequestMsg* svc_req, uint8_t* buffer, uint32_t len) {
+int ServiceRequestMsg::EncodeServiceRequestMsg(ServiceRequestMsg* svc_req,
+                                               uint8_t* buffer, uint32_t len) {
   /*** Not Implemented, will be supported POST MVC ***/
   return 0;
 };

@@ -31,13 +31,29 @@ endif ()
 
 add_executable(mme ${PROJECT_SOURCE_DIR}/oai_mme/oai_mme.c)
 
+# compile the needed macros
+
+create_proto_dir("orc8r" ORC8R_CPP_OUT_DIR)
+
+list(APPEND PROTO_SRCS "")
+list(APPEND PROTO_HDRS "")
+
+set(SMGR_ORC8R_CPP_PROTOS mconfig/mconfigs)
+generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
+
+find_package(MAGMA_LOGGING REQUIRED)
+find_package(MAGMA_SENTRY REQUIRED)
+
 target_link_libraries(mme
     -Wl,--start-group
     COMMON
+    MAGMA_LOGGING MAGMA_SENTRY
     LIB_3GPP LIB_S1AP LIB_NGAP LIB_SECU LIB_DIRECTORYD LIB_SGS_CLIENT LIB_BSTR
     LIB_HASHTABLE LIB_S6A_PROXY
     TASK_S1AP TASK_NGAP TASK_SCTP_SERVER TASK_SGS TASK_SMS_ORC8R
     TASK_S6A TASK_MME_APP TASK_AMF_APP TASK_GRPC_SERVICE TASK_NAS TASK_HA
+    TASK_ASYNC_GRPC_SERVICE
     ${ITTI_LIB} ${GCOV_LIB}
     -Wl,--end-group
     ${LFDS} pthread m sctp rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}

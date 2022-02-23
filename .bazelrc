@@ -28,6 +28,11 @@ build:devcontainer --disk_cache=/workspaces/magma/.bazel-cache
 common:devcontainer --repository_cache=/workspaces/magma/.bazel-cache-repo
 build:devcontainer --define=folly_so=1
 
+# TEST CONFIGS
+#  Bazel test runtime default: PATH=/bin:/usr/bin:/usr/local/bin
+#  Some python tests require access to /usr/sbin binaries (e.g. route, ifconfig)
+build --test_env=PATH=/bin:/usr/bin:/usr/local/bin:/usr/sbin
+
 # CODE COVERAGE CONFIGS
 build --javacopt="-source 8"
 build --javacopt="-target 8"
@@ -38,7 +43,7 @@ build --java_toolchain=@bazel_tools//tools/jdk:toolchain_java11
 
 coverage --config=coverage
 build:coverage --combined_report=lcov
-build:coverage --instrumentation_filter="//(orc8r|lte)/gateway/c[/:],-//(orc8r|lte)/protos[/:],-/*/test[/:]"
+build:coverage --instrumentation_filter="//(orc8r|lte)/gateway/(c|python)[/:],-//(orc8r|lte)/protos[/:],-/*/test[/:]"
 
 # ASAN
 build:asan --copt=-fsanitize=address
