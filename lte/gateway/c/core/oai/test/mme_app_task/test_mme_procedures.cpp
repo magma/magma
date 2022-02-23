@@ -48,8 +48,6 @@ namespace lte {
 
 ACTION_P(ReturnFromAsyncTask, cv) { cv->notify_all(); }
 
-task_zmq_ctx_t task_zmq_ctx_main;
-
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
