@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"magma/orc8r/cloud/go/services/directoryd/servicers"
+	servicers "magma/orc8r/cloud/go/services/directoryd/servicers/protected"
 	"magma/orc8r/lib/go/merrors"
 )
 

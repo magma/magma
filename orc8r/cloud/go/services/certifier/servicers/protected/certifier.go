@@ -35,6 +35,7 @@ import (
 	"magma/orc8r/cloud/go/services/certifier/constants"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
+	"magma/orc8r/cloud/go/services/tenants"
 	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
