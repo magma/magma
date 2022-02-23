@@ -97,7 +97,7 @@ func updateUserHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request body for updating user: %v", err))
 	}
 	newUser := &protos.User{Username: username, Password: []byte(updatePassword)}
-	certifier.UpdateUser(c.Request().Context(), newUser)
+	err = certifier.UpdateUser(c.Request().Context(), newUser)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
