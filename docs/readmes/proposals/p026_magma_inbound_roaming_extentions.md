@@ -2,7 +2,9 @@
 
 Author(s): [@arsenii-oganov]
 
-Last updated: 02/18/2022
+Last updated: 03/18/2022
+
+Link to detailed discussion doc: <https://docs.google.com/document/d/1_uYf7372V1Rs7I4QPbTuizou2ONuXsEYRqb7mdwOj48/edit>
 
 ## 1 Background and Objective
 
@@ -36,25 +38,25 @@ Blue: The existing messages for local users which have to be added to the inboun
 
 #### 2.1.1 UE Attach call flow (successful case)
 
-![attach](https://user-images.githubusercontent.com/93994458/154483466-712c211d-7754-47b2-9993-4dee2da5d052.png)
+![attach_s](https://user-images.githubusercontent.com/93994458/159000182-af7f39f5-3fea-4fa1-9928-f87ff2a21f10.png)
 
 #### 2.1.2 UE Attach call flow (unsuccessful case)
 
 The behaviour if quota has not been received from OCS.
 
-![negative attach](https://user-images.githubusercontent.com/93994458/154483571-3b7bd11d-51fc-4375-95f6-af3959191fe8.png)
+![attach_ns](https://user-images.githubusercontent.com/93994458/159000340-cafb5f86-4060-4b9f-a25c-4eb9fac1d587.png)
 
 Note: In case if quota has not been received from OCS the MME should terminate the established session using standard GTP-С termination procedure.
 
 #### 2.1.3 Quota Update Call Flow
 
-![update flow](https://user-images.githubusercontent.com/93994458/154483741-db7b1935-2d1d-4b61-9719-3135b0910cf9.png)
+![update](https://user-images.githubusercontent.com/93994458/159000507-168536b3-3174-4c55-b667-2330a2956b07.png)
 
 #### 2.1.4 Session Termination due to quota exhausted call flow
 
 The session termination procedure should be the same as is for local subscribers.
 
-![termination flow](https://user-images.githubusercontent.com/93994458/154483837-da479f5a-02e6-4147-b8ae-7647917e01a1.png)
+![terminate](https://user-images.githubusercontent.com/93994458/159000649-9ae860a4-ba05-4802-b2a1-2a1975232013.png)
 
 ## 3 Roadmap and schedule
 
