@@ -56,6 +56,8 @@ RUN echo "Install general purpose packages" && \
         g++ \
         g++-9 \
         gcc-9 \
+        # iputils-ping is a dependency of python services (e.g. magmad)
+        iputils-ping \
         lcov \
         gdb \
         git \
