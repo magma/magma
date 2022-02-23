@@ -184,6 +184,15 @@
       - python3-aioeventlet
   retries: 5
 
+- name: Install LLDB debugger
+  # TODO: Make this preburn
+  apt:
+    pkg: lldb
+    state: present
+    update_cache: no
+  retries: 5
+  when: full_provision
+
 # /etc/environment doesn't expand variables, so if we want to modify the path,
 # we need to do it in profile.d
 - name: Create the env script
