@@ -128,7 +128,6 @@ class TestAttachRestrictedPlmn(unittest.TestCase):
         self._s1ap_wrapper.s1_util.detach(
             req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
         )
-        raise AssertionError("Temprorary change to see effect in CI. Will be removed")
 
 
 if __name__ == "__main__":
