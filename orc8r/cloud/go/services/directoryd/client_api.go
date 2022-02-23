@@ -25,12 +25,8 @@ import (
 	"magma/orc8r/cloud/go/services/directoryd/protos"
 	"magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/state"
-<<<<<<< HEAD
-	merrors "magma/orc8r/lib/go/errors"
-=======
 	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
->>>>>>> f8d49ac79... fix(orc8r): Rename lib_errors to lib_merrors
 	"magma/orc8r/lib/go/registry"
 )
 
