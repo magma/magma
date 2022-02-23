@@ -96,6 +96,7 @@
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 #include "lte/gateway/c/core/oai/include/s1ap_state.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 
 struct S1ap_E_RABItem_s;
 struct S1ap_E_RABSetupItemBearerSURes_s;
@@ -1345,11 +1346,14 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
   rc = s1ap_mme_itti_send_sctp_request(&b, assoc_id, stream, mme_ue_s1ap_id);
 
   if (rc == RETURNok) {
-    // Start timer to track UE context release complete from eNB
-    ue_ref_p->s1_ue_state = S1AP_UE_WAITING_CRR;
-    ue_ref_p->s1ap_ue_context_rel_timer.id = s1ap_start_timer(
-        ue_ref_p->s1ap_ue_context_rel_timer.msec, TIMER_REPEAT_ONCE,
-        handle_ue_context_rel_timer_expiry, mme_ue_s1ap_id);
+    if (cause != S1AP_SUCCESSFUL_HANDOVER) {
+      // If UE is not being handed over to another eNB,
+      // start timer to track UE context release complete from eNB
+      ue_ref_p->s1_ue_state = S1AP_UE_WAITING_CRR;
+      ue_ref_p->s1ap_ue_context_rel_timer.id = s1ap_start_timer(
+          ue_ref_p->s1ap_ue_context_rel_timer.msec, TIMER_REPEAT_ONCE,
+          handle_ue_context_rel_timer_expiry, mme_ue_s1ap_id);
+    }
   } else {
     // Remove UE context and inform MME_APP.
     s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
