@@ -29,13 +29,7 @@ using ::testing::Test;
 
 namespace magma5g {
 
-class NGAPStateConverterTest : public ::testing::Test {
-  virtual void SetUp() {}
-
-  virtual void TearDown() {}
-};
-
-TEST_F(NGAPStateConverterTest, NgapStateConversionSuccess) {
+TEST(NgapStateConversionSuccess, NgapStateConversionSuccess) {
   sctp_assoc_id_t assoc_id = 1;
   ngap_state_t* init_state = create_ngap_state(2, 2);
   ngap_state_t* final_state = create_ngap_state(2, 2);
@@ -130,7 +124,7 @@ TEST_F(NGAPStateConverterTest, NgapStateConversionSuccess) {
   free_ngap_state(final_state);
 }
 
-TEST_F(NGAPStateConverterTest, NgapStateConversionUeContext) {
+TEST(NgapStateConversionUeContext, NgapStateConversionUeContext) {
   m5g_ue_description_t* ue = reinterpret_cast<m5g_ue_description_t*>(
       calloc(1, sizeof(m5g_ue_description_t)));
   m5g_ue_description_t* final_ue = reinterpret_cast<m5g_ue_description_t*>(
@@ -169,7 +163,7 @@ TEST_F(NGAPStateConverterTest, NgapStateConversionUeContext) {
   free_wrapper(reinterpret_cast<void**>(&final_ue));
 }
 
-TEST_F(NGAPStateConverterTest, NgapStateConversionNgapImsimap) {
+TEST(NgapStateConversionNgapImsimap, NgapStateConversionNgapImsimap) {
   ngap_imsi_map_t* ngap_imsi_map =
       reinterpret_cast<ngap_imsi_map_t*>(calloc(1, sizeof(ngap_imsi_map_t)));
   ngap_imsi_map_t* final_ngap_imsi_map =
@@ -247,6 +241,29 @@ class NgapStateConverterTest : public testing::Test {
     amf_config_free(&amf_config);
     state = NULL;
     imsi_map = NULL;
+  }
+
+  // This Function mocks NGAP task TearDown.
+  void PseudoNgapTearDown() {
+    ngap_state_exit();
+    itti_free_desc_threads();
+    amf_config_free(&amf_config);
+    state = NULL;
+    imsi_map = NULL;
+  }
+
+  // This Function mocks NGAP task Setup.
+  void PseudoNgapSetup() {
+    itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
+              NULL, NULL);
+
+    amf_config_init(&amf_config);
+    amf_config.use_stateless = true;
+    ngap_state_init(amf_config.max_ues, amf_config.max_gnbs,
+                    amf_config.use_stateless);
+
+    state = get_ngap_state(false);
+    imsi_map = get_ngap_imsi_map();
   }
 
   ngap_state_t* state = NULL;
@@ -411,12 +428,15 @@ TEST_F(NgapStateConverterTest, TestAfterSctpAssociation) {
   EXPECT_EQ(NGAPClientServicer::getInstance().map_imsi_table_proto_str.size(),
             0);
 
-  NgapStateConverterTest::TearDown();
+  // Calling PseudoNgapTearDown() and PseudoNgapSetup() simulates a service
+  // restart.
+
+  NgapStateConverterTest::PseudoNgapTearDown();
 
   EXPECT_EQ(state, nullptr);
   EXPECT_EQ(imsi_map, nullptr);
 
-  NgapStateConverterTest::SetUp();
+  NgapStateConverterTest::PseudoNgapSetup();
 
   gnb_description_t* get_gNB_ref = NULL;
   // Check if gNB exists
@@ -585,12 +605,15 @@ TEST_F(NgapStateConverterTest, TestNgapServiceRestart) {
   EXPECT_EQ(NGAPClientServicer::getInstance().map_imsi_table_proto_str.size(),
             1);
 
-  NgapStateConverterTest::TearDown();
+  // Calling PseudoNgapTearDown() and PseudoNgapSetup() simulates a service
+  // restart.
+
+  NgapStateConverterTest::PseudoNgapTearDown();
 
   EXPECT_EQ(state, nullptr);
   EXPECT_EQ(imsi_map, nullptr);
 
-  NgapStateConverterTest::SetUp();
+  NgapStateConverterTest::PseudoNgapSetup();
 
   gnb_description_t* get_gNB_ref = NULL;
   // Check if gNB exists
