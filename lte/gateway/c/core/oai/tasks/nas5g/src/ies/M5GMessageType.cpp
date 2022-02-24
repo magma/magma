@@ -20,25 +20,23 @@ MessageTypeMsg::MessageTypeMsg(){};
 MessageTypeMsg::~MessageTypeMsg(){};
 
 // Decode MessageType IE
-int MessageTypeMsg::DecodeMessageTypeMsg(
-    MessageTypeMsg* message_type, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int MessageTypeMsg::DecodeMessageTypeMsg(MessageTypeMsg* message_type,
+                                         uint8_t iei, uint8_t* buffer,
+                                         uint32_t len) {
   uint8_t decoded = 0;
 
-  MLOG(MDEBUG) << "   DecodeMessageTypeMsg : ";
   message_type->msg_type = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << " msg_type = 0x" << std::hex << int(message_type->msg_type);
   return (decoded);
 };
 
 // Encode MessageType IE
-int MessageTypeMsg::EncodeMessageTypeMsg(
-    MessageTypeMsg* message_type, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int MessageTypeMsg::EncodeMessageTypeMsg(MessageTypeMsg* message_type,
+                                         uint8_t iei, uint8_t* buffer,
+                                         uint32_t len) {
   uint8_t encoded = 0;
 
-  MLOG(MDEBUG) << " EncodeMessageTypeMsg : ";
   *(buffer + encoded) = message_type->msg_type;
-  MLOG(MDEBUG) << "Message type = 0x" << std::hex << int(*(buffer + encoded));
   encoded++;
   return (encoded);
 };

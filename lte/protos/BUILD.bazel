@@ -335,3 +335,122 @@ proto_library(
         ":subscriberdb_proto",
     ],
 )
+
+proto_library(
+    name = "sms_orc8r_proto",
+    srcs = ["sms_orc8r.proto"],
+    deps = ["//orc8r/protos:common_proto"],
+)
+
+cpp_proto_library(
+    name = "sms_orc8r_cpp_proto",
+    protos = [":sms_orc8r_proto"],
+    deps = ["//orc8r/protos:common_cpp_proto"],
+)
+
+cpp_grpc_library(
+    name = "sms_orc8r_cpp_grpc",
+    protos = [":sms_orc8r_proto"],
+    deps = [":sms_orc8r_cpp_proto"],
+)
+
+proto_library(
+    name = "subscriberauth_proto",
+    srcs = ["subscriberauth.proto"],
+)
+
+cpp_proto_library(
+    name = "subscriberauth_cpp_proto",
+    protos = [":subscriberauth_proto"],
+)
+
+cpp_grpc_library(
+    name = "subscriberauth_cpp_grpc",
+    protos = [":subscriberauth_proto"],
+    deps = [":subscriberauth_cpp_proto"],
+)
+
+proto_library(
+    name = "ha_orc8r_proto",
+    srcs = ["ha_orc8r.proto"],
+)
+
+cpp_proto_library(
+    name = "ha_orc8r_cpp_proto",
+    protos = [":ha_orc8r_proto"],
+)
+
+cpp_grpc_library(
+    name = "ha_orc8r_cpp_grpc",
+    protos = [":ha_orc8r_proto"],
+    deps = [":ha_orc8r_cpp_proto"],
+)
+
+proto_library(
+    name = "s6a_service_proto",
+    srcs = ["s6a_service.proto"],
+)
+
+cpp_proto_library(
+    name = "s6a_service_cpp_proto",
+    protos = [":s6a_service_proto"],
+)
+
+python_proto_library(
+    name = "s6a_service_python_proto",
+    protos = [":s6a_service_proto"],
+)
+
+cpp_grpc_library(
+    name = "s6a_service_cpp_grpc",
+    protos = [":s6a_service_proto"],
+    deps = [":s6a_service_cpp_proto"],
+)
+
+proto_library(
+    name = "s1ap_service_proto",
+    srcs = ["s1ap_service.proto"],
+    deps = [
+        "//orc8r/protos:common_proto",
+    ],
+)
+
+cpp_proto_library(
+    name = "s1ap_service_cpp_proto",
+    protos = [":s1ap_service_proto"],
+    deps = [
+        "//orc8r/protos:common_cpp_proto",
+    ],
+)
+
+cpp_grpc_library(
+    name = "s1ap_service_cpp_grpc",
+    protos = [":s1ap_service_proto"],
+    deps = [":s1ap_service_cpp_proto"],
+)
+
+proto_library(
+    name = "ha_service_proto",
+    srcs = ["ha_service.proto"],
+)
+
+cpp_proto_library(
+    name = "ha_service_cpp_proto",
+    protos = [":ha_service_proto"],
+)
+
+cpp_grpc_library(
+    name = "ha_service_cpp_grpc",
+    protos = [":ha_service_proto"],
+    deps = [":ha_service_cpp_proto"],
+)
+
+python_grpc_library(
+    name = "s6a_service_python_grpc",
+    protos = [":s6a_service_proto"],
+)
+
+python_grpc_library(
+    name = "subscriberauth_python_grpc",
+    protos = [":subscriberauth_proto"],
+)

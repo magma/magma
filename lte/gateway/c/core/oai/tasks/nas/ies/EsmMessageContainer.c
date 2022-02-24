@@ -25,9 +25,8 @@
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 
 //------------------------------------------------------------------------------
-int decode_esm_message_container(
-    EsmMessageContainer* esmmessagecontainer, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int decode_esm_message_container(EsmMessageContainer* esmmessagecontainer,
+                                 uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
   int decode_result;
   uint16_t ielen;
@@ -42,8 +41,8 @@ int decode_esm_message_container(
   DECODE_LENGTH_U16(buffer + decoded, ielen, decoded);
   CHECK_LENGTH_DECODER(len - decoded, ielen);
 
-  if ((decode_result = decode_bstring(
-           esmmessagecontainer, ielen, buffer + decoded, len - decoded)) < 0) {
+  if ((decode_result = decode_bstring(esmmessagecontainer, ielen,
+                                      buffer + decoded, len - decoded)) < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, decode_result);
   } else {
     decoded += decode_result;
@@ -53,9 +52,8 @@ int decode_esm_message_container(
 }
 
 //------------------------------------------------------------------------------
-int encode_esm_message_container(
-    EsmMessageContainer esmmessagecontainer, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int encode_esm_message_container(EsmMessageContainer esmmessagecontainer,
+                                 uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
   int32_t encode_result;
@@ -73,9 +71,9 @@ int encode_esm_message_container(
 
   lenPtr = (buffer + encoded);
 
-  if ((encode_result = encode_bstring(
-           esmmessagecontainer, lenPtr + sizeof(uint16_t),
-           len - sizeof(uint16_t))) < 0)
+  if ((encode_result =
+           encode_bstring(esmmessagecontainer, lenPtr + sizeof(uint16_t),
+                          len - sizeof(uint16_t))) < 0)
     return encode_result;
   else
     encoded += encode_result;

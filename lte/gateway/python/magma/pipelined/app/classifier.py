@@ -15,6 +15,7 @@ import socket
 import subprocess
 from collections import namedtuple
 
+import grpc
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.pipelined_pb2 import (
     CauseIE,
@@ -26,6 +27,8 @@ from lte.protos.pipelined_pb2 import (
 )
 from lte.protos.session_manager_pb2 import UPFPagingInfo
 from lte.protos.subscriberdb_pb2 import SubscriberID
+from magma.common.rpc_utils import indicates_connection_error
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.app.inout import INGRESS
 from magma.pipelined.imsi import encode_imsi
@@ -248,7 +251,14 @@ class Classifier(MagmaController):
         """
         err = future.exception()
         if err:
-            self.logger.error('Couldnt send flow records to sessiond: %s', err)
+            if isinstance(err, grpc.RpcError) and indicates_connection_error(err):
+                self.logger.error(
+                    "Couldn't send flow records to sessiond, connection error",
+                    extra=EXCLUDE_FROM_ERROR_MONITORING,
+                )
+            else:
+                self.logger.error("Couldn't send flow records to sessiond: %s", err)
+            return
 
     def _install_uplink_tunnel_flows(
         self, priority: int, i_teid: int,

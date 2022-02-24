@@ -39,17 +39,21 @@ uint32_t prefix2mask(int prefix) {
   }
 }
 
-void PagingApplication::event_callback(
-    const ControllerEvent& ev, const OpenflowMessenger& messenger) {
+void PagingApplication::event_callback(const ControllerEvent& ev,
+                                       const OpenflowMessenger& messenger) {
   struct in6_addr dest_ipv6;
 
   if (ev.get_type() == EVENT_PACKET_IN) {
-    OAILOG_DEBUG(LOG_GTPV1U, "Handling packet-in message in paging app\n");
     const PacketInEvent& pi = static_cast<const PacketInEvent&>(ev);
     of13::PacketIn ofpi;
     ofpi.unpack(const_cast<uint8_t*>(pi.get_data()));
-    handle_paging_message(
-        ev.get_connection(), static_cast<uint8_t*>(ofpi.data()), messenger);
+    OAILOG_DEBUG(LOG_GTPV1U,
+                 "Handling packet-in message in paging app: tbl: %d\n",
+                 ofpi.table_id());
+    if (ofpi.table_id() == 0) {
+      handle_paging_message(ev.get_connection(),
+                            static_cast<uint8_t*>(ofpi.data()), messenger);
+    }
   } else if (ev.get_type() == EVENT_ADD_PAGING_RULE) {
     auto add_paging_rule_event = static_cast<const AddPagingRuleEvent&>(ev);
     // Add paging rule for ipv4 and ipv6
@@ -68,18 +72,18 @@ void PagingApplication::handle_paging_message(
     fluid_base::OFConnection* ofconn, uint8_t* data,
     const OpenflowMessenger& messenger) {
   // send paging request to MME
-  struct ip* ip_header      = (struct ip*) (data + ETH_HEADER_LENGTH);
+  struct ip* ip_header = (struct ip*)(data + ETH_HEADER_LENGTH);
   struct in_addr* dest_ipv4 = NULL;
 
   if ((ip_header->ip_v == 6)) {
     handle_paging_ipv6_message(ofconn, data, messenger);
 
   } else {
-    dest_ipv4         = &ip_header->ip_dst;
+    dest_ipv4 = &ip_header->ip_dst;
     char* dest_ip_str = inet_ntoa(*dest_ipv4);
 
-    OAILOG_DEBUG(
-        LOG_GTPV1U, "Initiating paging procedure for IP %s\n", dest_ip_str);
+    OAILOG_DEBUG(LOG_GTPV1U, "Initiating paging procedure for IP %s\n",
+                 dest_ip_str);
     sgw_send_paging_request(dest_ipv4, NULL);
 
     /*
@@ -104,8 +108,8 @@ void PagingApplication::handle_paging_message(
   }
 }
 
-static void mask_ipv6_address(
-    uint8_t* dst, const uint8_t* src, const uint8_t* mask) {
+static void mask_ipv6_address(uint8_t* dst, const uint8_t* src,
+                              const uint8_t* mask) {
   for (int i = 0; i < INET6_ADDRSTRLEN; i++) {
     dst[i] = src[i] & mask[i];
   }
@@ -115,8 +119,8 @@ void PagingApplication::handle_paging_ipv6_message(
     fluid_base::OFConnection* ofconn, uint8_t* data,
     const OpenflowMessenger& messenger) {
   // send paging request to MME
-  struct ip6_hdr* ipv6_header = (struct ip6_hdr*) (data + ETH_HEADER_LENGTH);
-  struct in6_addr* dest_ipv6  = NULL;
+  struct ip6_hdr* ipv6_header = (struct ip6_hdr*)(data + ETH_HEADER_LENGTH);
+  struct in6_addr* dest_ipv6 = NULL;
   char ip6_str[INET6_ADDRSTRLEN];
 
   if (!ipv6_header) {
@@ -127,8 +131,8 @@ void PagingApplication::handle_paging_ipv6_message(
 
   inet_ntop(AF_INET6, dest_ipv6, ip6_str, INET6_ADDRSTRLEN);
 
-  OAILOG_DEBUG(
-      LOG_GTPV1U, "Initiating paging procedure for IPv6 %s\n", ip6_str);
+  OAILOG_DEBUG(LOG_GTPV1U, "Initiating paging procedure for IPv6 %s\n",
+               ip6_str);
 
   sgw_send_paging_request(NULL, dest_ipv6);
 
@@ -148,7 +152,7 @@ void PagingApplication::handle_paging_ipv6_message(
   static IPAddress mask("ffff:ffff:ffff:ffff::");
 
   // Match UE IP destination
-  of13::IPv6Dst ipv6_match(IPAddress((const uint8_t*) dest_ipv6), mask);
+  of13::IPv6Dst ipv6_match(IPAddress((const uint8_t*)dest_ipv6), mask);
   fm.add_oxm_field(ipv6_match);
 
   // No actions mean packet is dropped
@@ -156,8 +160,8 @@ void PagingApplication::handle_paging_ipv6_message(
   return;
 }
 
-void PagingApplication::add_paging_flow(
-    const AddPagingRuleEvent& ev, const OpenflowMessenger& messenger) {
+void PagingApplication::add_paging_flow(const AddPagingRuleEvent& ev,
+                                        const OpenflowMessenger& messenger) {
   of13::FlowMod fm =
       messenger.create_default_flow_mod(0, of13::OFPFC_ADD, MID_PRIORITY);
   // IP eth type
@@ -204,8 +208,8 @@ void PagingApplication::add_paging_flow_ipv6(
     static IPAddress mask("ffff:ffff:ffff:ffff::");
     // Match UE IP destination
     struct in6_addr ue_ip6_masked;
-    mask_ipv6_address(
-        (uint8_t*) &ue_ip6_masked, (const uint8_t*) &ue_ipv6, mask.getIPv6());
+    mask_ipv6_address((uint8_t*)&ue_ip6_masked, (const uint8_t*)&ue_ipv6,
+                      mask.getIPv6());
 
     of13::IPv6Dst ipv6_match(IPAddress(ue_ip6_masked), mask);
     fm.add_oxm_field(ipv6_match);
@@ -224,8 +228,8 @@ void PagingApplication::add_paging_flow_ipv6(
   }
 }
 
-void PagingApplication::delete_paging_flow(
-    const DeletePagingRuleEvent& ev, const OpenflowMessenger& messenger) {
+void PagingApplication::delete_paging_flow(const DeletePagingRuleEvent& ev,
+                                           const OpenflowMessenger& messenger) {
   of13::FlowMod fm =
       messenger.create_default_flow_mod(0, of13::OFPFC_DELETE, 0);
 
@@ -277,8 +281,8 @@ void PagingApplication::delete_paging_flow_ipv6(
     const struct in6_addr& ue_ipv6 = ev.get_ue_ipv6();
     static IPAddress mask("ffff:ffff:ffff:ffff::");
     struct in6_addr ue_ip6_masked;
-    mask_ipv6_address(
-        (uint8_t*) &ue_ip6_masked, (const uint8_t*) &ue_ipv6, mask.getIPv6());
+    mask_ipv6_address((uint8_t*)&ue_ip6_masked, (const uint8_t*)&ue_ipv6,
+                      mask.getIPv6());
 
     of13::IPv6Dst ipv6_match(IPAddress(ue_ip6_masked), mask);
     fm.add_oxm_field(ipv6_match);
@@ -295,8 +299,8 @@ void PagingApplication::delete_paging_flow_ipv6(
     // Convert to string for logging
     char ip_str[INET6_ADDRSTRLEN];
     inet_ntop(AF_INET6, &(ue_ipv6), ip_str, INET6_ADDRSTRLEN);
-    OAILOG_INFO(
-        LOG_GTPV1U, "Deleted paging flow rule for UE IPv6 %s\n", ip_str);
+    OAILOG_INFO(LOG_GTPV1U, "Deleted paging flow rule for UE IPv6 %s\n",
+                ip_str);
   }
 }
 

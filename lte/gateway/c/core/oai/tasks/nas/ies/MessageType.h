@@ -25,10 +25,10 @@
 
 typedef uint8_t message_type_t;
 
-int encode_message_type(
-    message_type_t* messagetype, uint8_t iei, uint8_t* buffer, uint32_t len);
+int encode_message_type(message_type_t* messagetype, uint8_t iei,
+                        uint8_t* buffer, uint32_t len);
 
-int decode_message_type(
-    message_type_t* messagetype, uint8_t iei, uint8_t* buffer, uint32_t len);
+int decode_message_type(message_type_t* messagetype, uint8_t iei,
+                        uint8_t* buffer, uint32_t len);
 
 #endif /* MESSAGE TYPE_SEEN */

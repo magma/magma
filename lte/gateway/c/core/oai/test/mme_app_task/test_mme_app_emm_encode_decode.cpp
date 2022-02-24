@@ -39,26 +39,26 @@ namespace lte {
 
 #define BUFFER_LEN 200
 
-#define FILL_EMM_COMMON_MANDATORY_DEFAULTS(msg)                                \
-  do {                                                                         \
-    msg.protocoldiscriminator = EPS_SESSION_MANAGEMENT_MESSAGE;                \
-    msg.securityheadertype    = 0x0001;                                        \
-    msg.messagetype           = 33;                                            \
+#define FILL_EMM_COMMON_MANDATORY_DEFAULTS(msg)                 \
+  do {                                                          \
+    msg.protocoldiscriminator = EPS_SESSION_MANAGEMENT_MESSAGE; \
+    msg.securityheadertype = 0x0001;                            \
+    msg.messagetype = 33;                                       \
   } while (0)
 
-#define FILL_EMM_GUTI(msg_guti)                                                \
-  do {                                                                         \
-    msg_guti.guti.typeofidentity = EPS_MOBILE_IDENTITY_GUTI;                   \
-    msg_guti.guti.mcc_digit1     = 0;                                          \
-    msg_guti.guti.mcc_digit2     = 0;                                          \
-    msg_guti.guti.mcc_digit3     = 1;                                          \
-    msg_guti.guti.mnc_digit1     = 0;                                          \
-    msg_guti.guti.mnc_digit2     = 1;                                          \
-    msg_guti.guti.mnc_digit3     = 0x0f;                                       \
-    msg_guti.guti.mme_group_id   = 1;                                          \
-    msg_guti.guti.mme_code       = 1;                                          \
-    msg_guti.guti.m_tmsi         = 0x2bfb815f;                                 \
-    msg_guti.guti.spare          = 0xf;                                        \
+#define FILL_EMM_GUTI(msg_guti)                              \
+  do {                                                       \
+    msg_guti.guti.typeofidentity = EPS_MOBILE_IDENTITY_GUTI; \
+    msg_guti.guti.mcc_digit1 = 0;                            \
+    msg_guti.guti.mcc_digit2 = 0;                            \
+    msg_guti.guti.mcc_digit3 = 1;                            \
+    msg_guti.guti.mnc_digit1 = 0;                            \
+    msg_guti.guti.mnc_digit2 = 1;                            \
+    msg_guti.guti.mnc_digit3 = 0x0f;                         \
+    msg_guti.guti.mme_group_id = 1;                          \
+    msg_guti.guti.mme_code = 1;                              \
+    msg_guti.guti.m_tmsi = 0x2bfb815f;                       \
+    msg_guti.guti.spare = 0xf;                               \
   } while (0)
 
 class EMMEncodeDecodeTest : public ::testing::Test {
@@ -75,7 +75,7 @@ TEST_F(EMMEncodeDecodeTest, TestDecodeEncodeAttachRequest) {
                       0x00, 0x10, 0x02, 0xe0, 0xe0, 0x00, 0x04, 0x02,
                       0x01, 0xd0, 0x11, 0x40, 0x08, 0x04, 0x02, 0x60,
                       0x04, 0x00, 0x02, 0x1c, 0x00};
-  uint32_t len     = 29;
+  uint32_t len = 29;
   attach_request_msg attach_request = {0};
 
   // Decode and encode back message
@@ -92,7 +92,7 @@ TEST_F(EMMEncodeDecodeTest, TestDecodeEncodeAttachRequest) {
 
 TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeAttachRequest2) {
   attach_request_msg original_msg = {0};
-  attach_request_msg decoded_msg  = {0};
+  attach_request_msg decoded_msg = {0};
 
   FILL_EMM_COMMON_MANDATORY_DEFAULTS(original_msg);
 
@@ -111,7 +111,7 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeAttachRequest2) {
   original_msg.uenetworkcapability.ucs2 =
       UE_NETWORK_CAPABILITY_DEFAULT_ALPHABET;
   original_msg.uenetworkcapability.umts_present = true;
-  original_msg.uenetworkcapability.length       = 5;
+  original_msg.uenetworkcapability.length = 5;
 
   original_msg.esmmessagecontainer = bfromcstr("TEST_CONTAINER");
 
@@ -130,7 +130,7 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeAttachRequest2) {
   original_msg.oldlocationareaidentification.mncdigit1 = 0;
   original_msg.oldlocationareaidentification.mncdigit2 = 0;
   original_msg.oldlocationareaidentification.mncdigit3 = 1;
-  original_msg.oldlocationareaidentification.lac       = 1;
+  original_msg.oldlocationareaidentification.lac = 1;
 
   original_msg.oldgutitype = 1;
 
@@ -153,20 +153,16 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeAttachRequest2) {
   ASSERT_EQ(original_msg.oldgutitype, decoded_msg.oldgutitype);
   ASSERT_EQ(original_msg.oldptmsisignature, decoded_msg.oldptmsisignature);
   ASSERT_EQ(original_msg.tmsistatus, decoded_msg.tmsistatus);
-  ASSERT_EQ(
-      original_msg.naskeysetidentifier.naskeysetidentifier,
-      decoded_msg.naskeysetidentifier.naskeysetidentifier);
-  ASSERT_EQ(
-      original_msg.naskeysetidentifier.tsc,
-      decoded_msg.naskeysetidentifier.tsc);
+  ASSERT_EQ(original_msg.naskeysetidentifier.naskeysetidentifier,
+            decoded_msg.naskeysetidentifier.naskeysetidentifier);
+  ASSERT_EQ(original_msg.naskeysetidentifier.tsc,
+            decoded_msg.naskeysetidentifier.tsc);
 
-  ASSERT_TRUE(!memcmp(
-      &original_msg.drxparameter, &decoded_msg.drxparameter,
-      sizeof(original_msg.drxparameter)));
-  ASSERT_TRUE(!memcmp(
-      &original_msg.oldlocationareaidentification,
-      &decoded_msg.oldlocationareaidentification,
-      sizeof(original_msg.oldlocationareaidentification)));
+  ASSERT_TRUE(!memcmp(&original_msg.drxparameter, &decoded_msg.drxparameter,
+                      sizeof(original_msg.drxparameter)));
+  ASSERT_TRUE(!memcmp(&original_msg.oldlocationareaidentification,
+                      &decoded_msg.oldlocationareaidentification,
+                      sizeof(original_msg.oldlocationareaidentification)));
 
   bdestroy_wrapper(&original_msg.esmmessagecontainer);
   bdestroy_wrapper(&decoded_msg.esmmessagecontainer);
@@ -192,9 +188,8 @@ TEST_F(EMMEncodeDecodeTest, TestDecodeAttachRequestPixel) {
   int rc = decode_attach_request(&attach_request, buffer, len);
   ASSERT_EQ(rc, len);
   ASSERT_EQ(attach_request.epsattachtype, EPS_ATTACH_TYPE_COMBINED_EPS_IMSI);
-  ASSERT_EQ(
-      attach_request.naskeysetidentifier.naskeysetidentifier,
-      NAS_KEY_SET_IDENTIFIER_NOT_AVAILABLE);
+  ASSERT_EQ(attach_request.naskeysetidentifier.naskeysetidentifier,
+            NAS_KEY_SET_IDENTIFIER_NOT_AVAILABLE);
   ASSERT_EQ(attach_request.naskeysetidentifier.tsc, 0);
 
   bdestroy_wrapper(&attach_request.esmmessagecontainer);
@@ -203,12 +198,12 @@ TEST_F(EMMEncodeDecodeTest, TestDecodeAttachRequestPixel) {
 
 TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeEmmInformation) {
   emm_information_msg original_msg = {0};
-  emm_information_msg decoded_msg  = {0};
+  emm_information_msg decoded_msg = {0};
 
   FILL_EMM_COMMON_MANDATORY_DEFAULTS(original_msg);
 
   // Set EMMInformation optional IEs
-  original_msg.localtimezone             = 2;
+  original_msg.localtimezone = 2;
   original_msg.networkdaylightsavingtime = 1;
 
   original_msg.presencemask =
@@ -221,14 +216,13 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeEmmInformation) {
 
   ASSERT_EQ(encoded, decoded);
   ASSERT_EQ(original_msg.localtimezone, decoded_msg.localtimezone);
-  ASSERT_EQ(
-      original_msg.networkdaylightsavingtime,
-      decoded_msg.networkdaylightsavingtime);
+  ASSERT_EQ(original_msg.networkdaylightsavingtime,
+            decoded_msg.networkdaylightsavingtime);
 }
 
 TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeUplinkNasTransport) {
   uplink_nas_transport_msg original_msg = {0};
-  uplink_nas_transport_msg decoded_msg  = {0};
+  uplink_nas_transport_msg decoded_msg = {0};
 
   FILL_EMM_COMMON_MANDATORY_DEFAULTS(original_msg);
 
@@ -241,9 +235,8 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeUplinkNasTransport) {
   int decoded = decode_uplink_nas_transport(&decoded_msg, temp_buffer, encoded);
 
   ASSERT_EQ(encoded, decoded);
-  ASSERT_EQ(
-      std::string(bdata(original_msg.nasmessagecontainer)),
-      std::string(bdata(decoded_msg.nasmessagecontainer)));
+  ASSERT_EQ(std::string(bdata(original_msg.nasmessagecontainer)),
+            std::string(bdata(decoded_msg.nasmessagecontainer)));
 
   bdestroy_wrapper(&original_msg.nasmessagecontainer);
   bdestroy_wrapper(&decoded_msg.nasmessagecontainer);
@@ -251,7 +244,7 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeUplinkNasTransport) {
 
 TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeTAURequest) {
   tracking_area_update_request_msg original_msg = {0};
-  tracking_area_update_request_msg decoded_msg  = {0};
+  tracking_area_update_request_msg decoded_msg = {0};
 
   FILL_EMM_COMMON_MANDATORY_DEFAULTS(original_msg);
 
@@ -269,20 +262,20 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeTAURequest) {
   original_msg.noncurrentnativenaskeysetidentifier.naskeysetidentifier =
       NAS_KEY_SET_IDENTIFIER_NOT_AVAILABLE;
   original_msg.noncurrentnativenaskeysetidentifier.tsc = 0;
-  original_msg.gprscipheringkeysequencenumber          = 1;
-  original_msg.oldptmsisignature                       = 2;
+  original_msg.gprscipheringkeysequencenumber = 1;
+  original_msg.oldptmsisignature = 2;
 
   FILL_EMM_GUTI(original_msg.additionalguti);
 
   original_msg.nonceue = 3;
 
-  original_msg.drxparameter.nondrxtimer      = 0x7;
-  original_msg.drxparameter.splitonccch      = 1;
+  original_msg.drxparameter.nondrxtimer = 0x7;
+  original_msg.drxparameter.splitonccch = 1;
   original_msg.drxparameter.splitpgcyclecode = 1;
 
   original_msg.ueradiocapabilityinformationupdateneeded = 1;
-  original_msg.epsbearercontextstatus                   = 1;
-  original_msg.tmsistatus                               = 1;
+  original_msg.epsbearercontextstatus = 1;
+  original_msg.tmsistatus = 1;
   original_msg.supportedcodecs = bfromcstr("TEST_CODECS");
 
   original_msg.presencemask =
@@ -298,57 +291,46 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeTAURequest) {
       TRACKING_AREA_UPDATE_REQUEST_SUPPORTED_CODECS_PRESENT;
 
   // Encode and decode back message
-  int encoded = encode_tracking_area_update_request(
-      &original_msg, temp_buffer, BUFFER_LEN);
+  int encoded = encode_tracking_area_update_request(&original_msg, temp_buffer,
+                                                    BUFFER_LEN);
   int decoded =
       decode_tracking_area_update_request(&decoded_msg, temp_buffer, encoded);
 
   ASSERT_EQ(encoded, decoded);
 
-  ASSERT_TRUE(!memcmp(
-      &original_msg.oldguti.guti, &decoded_msg.oldguti.guti,
-      sizeof(original_msg.oldguti.guti)));
-  ASSERT_TRUE(!memcmp(
-      &original_msg.additionalguti.guti, &decoded_msg.additionalguti.guti,
-      sizeof(original_msg.additionalguti.guti)));
-  ASSERT_EQ(
-      original_msg.gprscipheringkeysequencenumber,
-      decoded_msg.gprscipheringkeysequencenumber);
+  ASSERT_TRUE(!memcmp(&original_msg.oldguti.guti, &decoded_msg.oldguti.guti,
+                      sizeof(original_msg.oldguti.guti)));
+  ASSERT_TRUE(!memcmp(&original_msg.additionalguti.guti,
+                      &decoded_msg.additionalguti.guti,
+                      sizeof(original_msg.additionalguti.guti)));
+  ASSERT_EQ(original_msg.gprscipheringkeysequencenumber,
+            decoded_msg.gprscipheringkeysequencenumber);
   ASSERT_EQ(original_msg.oldptmsisignature, decoded_msg.oldptmsisignature);
-  ASSERT_EQ(
-      original_msg.naskeysetidentifier.naskeysetidentifier,
-      decoded_msg.naskeysetidentifier.naskeysetidentifier);
+  ASSERT_EQ(original_msg.naskeysetidentifier.naskeysetidentifier,
+            decoded_msg.naskeysetidentifier.naskeysetidentifier);
   ASSERT_EQ(
       original_msg.noncurrentnativenaskeysetidentifier.naskeysetidentifier,
       decoded_msg.noncurrentnativenaskeysetidentifier.naskeysetidentifier);
-  ASSERT_EQ(
-      original_msg.noncurrentnativenaskeysetidentifier.tsc,
-      decoded_msg.noncurrentnativenaskeysetidentifier.tsc);
-  ASSERT_EQ(
-      original_msg.epsupdatetype.eps_update_type_value,
-      decoded_msg.epsupdatetype.eps_update_type_value);
-  ASSERT_EQ(
-      original_msg.epsupdatetype.active_flag,
-      decoded_msg.epsupdatetype.active_flag);
-  ASSERT_EQ(
-      original_msg.drxparameter.nondrxtimer,
-      decoded_msg.drxparameter.nondrxtimer);
-  ASSERT_EQ(
-      original_msg.drxparameter.splitonccch,
-      decoded_msg.drxparameter.splitonccch);
-  ASSERT_EQ(
-      original_msg.drxparameter.splitpgcyclecode,
-      decoded_msg.drxparameter.splitpgcyclecode);
+  ASSERT_EQ(original_msg.noncurrentnativenaskeysetidentifier.tsc,
+            decoded_msg.noncurrentnativenaskeysetidentifier.tsc);
+  ASSERT_EQ(original_msg.epsupdatetype.eps_update_type_value,
+            decoded_msg.epsupdatetype.eps_update_type_value);
+  ASSERT_EQ(original_msg.epsupdatetype.active_flag,
+            decoded_msg.epsupdatetype.active_flag);
+  ASSERT_EQ(original_msg.drxparameter.nondrxtimer,
+            decoded_msg.drxparameter.nondrxtimer);
+  ASSERT_EQ(original_msg.drxparameter.splitonccch,
+            decoded_msg.drxparameter.splitonccch);
+  ASSERT_EQ(original_msg.drxparameter.splitpgcyclecode,
+            decoded_msg.drxparameter.splitpgcyclecode);
   ASSERT_EQ(original_msg.nonceue, decoded_msg.nonceue);
   ASSERT_EQ(original_msg.tmsistatus, decoded_msg.tmsistatus);
-  ASSERT_EQ(
-      original_msg.epsbearercontextstatus, decoded_msg.epsbearercontextstatus);
-  ASSERT_EQ(
-      original_msg.ueradiocapabilityinformationupdateneeded,
-      decoded_msg.ueradiocapabilityinformationupdateneeded);
-  ASSERT_EQ(
-      std::string(bdata(original_msg.supportedcodecs)),
-      std::string(bdata(decoded_msg.supportedcodecs)));
+  ASSERT_EQ(original_msg.epsbearercontextstatus,
+            decoded_msg.epsbearercontextstatus);
+  ASSERT_EQ(original_msg.ueradiocapabilityinformationupdateneeded,
+            decoded_msg.ueradiocapabilityinformationupdateneeded);
+  ASSERT_EQ(std::string(bdata(original_msg.supportedcodecs)),
+            std::string(bdata(decoded_msg.supportedcodecs)));
 
   bdestroy_wrapper(&original_msg.supportedcodecs);
   bdestroy_wrapper(&decoded_msg.supportedcodecs);
@@ -356,7 +338,7 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeTAURequest) {
 
 TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeTAUAccept) {
   tracking_area_update_accept_msg original_msg = {0};
-  tracking_area_update_accept_msg decoded_msg  = {0};
+  tracking_area_update_accept_msg decoded_msg = {0};
 
   FILL_EMM_COMMON_MANDATORY_DEFAULTS(original_msg);
 
@@ -364,7 +346,7 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeTAUAccept) {
   original_msg.epsupdateresult = EPS_UPDATE_RESULT_COMBINED_TA_LA_UPDATED;
 
   // Set optional IEs
-  original_msg.t3412value.unit       = GPRS_TIMER_UNIT_2S;
+  original_msg.t3412value.unit = GPRS_TIMER_UNIT_2S;
   original_msg.t3412value.timervalue = 1;
 
   FILL_EMM_GUTI(original_msg.guti);
@@ -377,7 +359,7 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeTAUAccept) {
   original_msg.locationareaidentification.mncdigit1 = 0;
   original_msg.locationareaidentification.mncdigit2 = 1;
   original_msg.locationareaidentification.mncdigit3 = 1;
-  original_msg.locationareaidentification.lac       = 0x01;
+  original_msg.locationareaidentification.lac = 0x01;
 
   original_msg.emmcause = 1;
 
@@ -396,39 +378,36 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeTAUAccept) {
       TRACKING_AREA_UPDATE_ACCEPT_ADDITIONAL_UPDATE_RESULT_PRESENT;
 
   // Encode and decode back message
-  int encoded = encode_tracking_area_update_accept(
-      &original_msg, temp_buffer, BUFFER_LEN);
+  int encoded = encode_tracking_area_update_accept(&original_msg, temp_buffer,
+                                                   BUFFER_LEN);
   int decoded =
       decode_tracking_area_update_accept(&decoded_msg, temp_buffer, encoded);
 
   ASSERT_EQ(decoded, encoded);
   ASSERT_EQ(original_msg.epsupdateresult, decoded_msg.epsupdateresult);
   ASSERT_EQ(original_msg.t3412value.unit, decoded_msg.t3412value.unit);
-  ASSERT_EQ(
-      original_msg.t3412value.timervalue, decoded_msg.t3412value.timervalue);
+  ASSERT_EQ(original_msg.t3412value.timervalue,
+            decoded_msg.t3412value.timervalue);
 
-  ASSERT_TRUE(!memcmp(
-      &original_msg.guti, &decoded_msg.guti, sizeof(original_msg.guti)));
-  ASSERT_EQ(
-      original_msg.epsbearercontextstatus, decoded_msg.epsbearercontextstatus);
-  ASSERT_TRUE(!memcmp(
-      &original_msg.locationareaidentification,
-      &decoded_msg.locationareaidentification,
-      sizeof(original_msg.locationareaidentification)));
+  ASSERT_TRUE(!memcmp(&original_msg.guti, &decoded_msg.guti,
+                      sizeof(original_msg.guti)));
+  ASSERT_EQ(original_msg.epsbearercontextstatus,
+            decoded_msg.epsbearercontextstatus);
+  ASSERT_TRUE(!memcmp(&original_msg.locationareaidentification,
+                      &decoded_msg.locationareaidentification,
+                      sizeof(original_msg.locationareaidentification)));
   ASSERT_EQ(original_msg.emmcause, decoded_msg.emmcause);
-  ASSERT_EQ(
-      original_msg.epsnetworkfeaturesupport.b1,
-      decoded_msg.epsnetworkfeaturesupport.b1);
-  ASSERT_EQ(
-      original_msg.epsnetworkfeaturesupport.b2,
-      decoded_msg.epsnetworkfeaturesupport.b2);
-  ASSERT_EQ(
-      original_msg.additionalupdateresult, decoded_msg.additionalupdateresult);
+  ASSERT_EQ(original_msg.epsnetworkfeaturesupport.b1,
+            decoded_msg.epsnetworkfeaturesupport.b1);
+  ASSERT_EQ(original_msg.epsnetworkfeaturesupport.b2,
+            decoded_msg.epsnetworkfeaturesupport.b2);
+  ASSERT_EQ(original_msg.additionalupdateresult,
+            decoded_msg.additionalupdateresult);
 }
 
 TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeTAUReject) {
   tracking_area_update_reject_msg original_msg = {0};
-  tracking_area_update_reject_msg decoded_msg  = {0};
+  tracking_area_update_reject_msg decoded_msg = {0};
 
   FILL_EMM_COMMON_MANDATORY_DEFAULTS(original_msg);
 
@@ -436,8 +415,8 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeTAUReject) {
   original_msg.emmcause = 1;
 
   // Encode and decode back message
-  int encoded = encode_tracking_area_update_reject(
-      &original_msg, temp_buffer, BUFFER_LEN);
+  int encoded = encode_tracking_area_update_reject(&original_msg, temp_buffer,
+                                                   BUFFER_LEN);
   int decoded =
       decode_tracking_area_update_reject(&decoded_msg, temp_buffer, encoded);
 
@@ -447,7 +426,7 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeTAUReject) {
 
 TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeCSServiceNotification) {
   cs_service_notification_msg original_msg = {0};
-  cs_service_notification_msg decoded_msg  = {0};
+  cs_service_notification_msg decoded_msg = {0};
 
   FILL_EMM_COMMON_MANDATORY_DEFAULTS(original_msg);
 
@@ -455,9 +434,9 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeCSServiceNotification) {
   original_msg.pagingidentity = 1;
 
   // Set optional IEs
-  original_msg.cli               = bfromcstr("TEST_CLI");
-  original_msg.sscode            = 2;
-  original_msg.lcsindicator      = 1;
+  original_msg.cli = bfromcstr("TEST_CLI");
+  original_msg.sscode = 2;
+  original_msg.lcsindicator = 1;
   original_msg.lcsclientidentity = bfromcstr("TEST_LCS");
 
   original_msg.presencemask =
@@ -476,12 +455,10 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeCSServiceNotification) {
   ASSERT_EQ(original_msg.pagingidentity, decoded_msg.pagingidentity);
   ASSERT_EQ(original_msg.lcsindicator, decoded_msg.lcsindicator);
   ASSERT_EQ(original_msg.sscode, decoded_msg.sscode);
-  ASSERT_EQ(
-      std::string(bdata(original_msg.cli)),
-      std::string(bdata(decoded_msg.cli)));
-  ASSERT_EQ(
-      std::string(bdata(original_msg.lcsclientidentity)),
-      std::string(bdata(decoded_msg.lcsclientidentity)));
+  ASSERT_EQ(std::string(bdata(original_msg.cli)),
+            std::string(bdata(decoded_msg.cli)));
+  ASSERT_EQ(std::string(bdata(original_msg.lcsclientidentity)),
+            std::string(bdata(decoded_msg.lcsclientidentity)));
 
   bdestroy_wrapper(&original_msg.cli);
   bdestroy_wrapper(&decoded_msg.cli);
@@ -492,14 +469,14 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeCSServiceNotification) {
 
 TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeAttachAcceptConsecutiveTACs) {
   attach_accept_msg original_msg = {0};
-  attach_accept_msg decoded_msg  = {0};
+  attach_accept_msg decoded_msg = {0};
 
   FILL_EMM_COMMON_MANDATORY_DEFAULTS(original_msg);
 
   // Set mandatory IEs
   original_msg.epsattachresult = EPS_ATTACH_RESULT_EPS;
 
-  original_msg.t3412value.unit       = GPRS_TIMER_UNIT_2S;
+  original_msg.t3412value.unit = GPRS_TIMER_UNIT_2S;
   original_msg.t3412value.timervalue = 1;
 
   original_msg.esmmessagecontainer = bfromcstr("TEST_CONTAINER");
@@ -526,7 +503,7 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeAttachAcceptConsecutiveTACs) {
   // Set optional IEs
   FILL_EMM_GUTI(original_msg.guti);
 
-  original_msg.t3402value.unit       = GPRS_TIMER_UNIT_60S;
+  original_msg.t3402value.unit = GPRS_TIMER_UNIT_60S;
   original_msg.t3402value.timervalue = 1;
 
   original_msg.locationareaidentification.mccdigit1 = 0;
@@ -535,7 +512,7 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeAttachAcceptConsecutiveTACs) {
   original_msg.locationareaidentification.mncdigit1 = 0;
   original_msg.locationareaidentification.mncdigit2 = 1;
   original_msg.locationareaidentification.mncdigit3 = 1;
-  original_msg.locationareaidentification.lac       = 0x01;
+  original_msg.locationareaidentification.lac = 0x01;
 
   original_msg.emmcause = 1;
 
@@ -559,33 +536,28 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeAttachAcceptConsecutiveTACs) {
 
   ASSERT_EQ(original_msg.epsattachresult, decoded_msg.epsattachresult);
   ASSERT_EQ(original_msg.t3412value.unit, decoded_msg.t3412value.unit);
-  ASSERT_EQ(
-      original_msg.t3412value.timervalue, decoded_msg.t3412value.timervalue);
-  ASSERT_EQ(
-      original_msg.t3402value.timervalue, decoded_msg.t3402value.timervalue);
+  ASSERT_EQ(original_msg.t3412value.timervalue,
+            decoded_msg.t3412value.timervalue);
+  ASSERT_EQ(original_msg.t3402value.timervalue,
+            decoded_msg.t3402value.timervalue);
   ASSERT_EQ(original_msg.t3402value.unit, decoded_msg.t3402value.unit);
-  ASSERT_EQ(
-      std::string(bdata(original_msg.esmmessagecontainer)),
-      std::string(bdata(decoded_msg.esmmessagecontainer)));
+  ASSERT_EQ(std::string(bdata(original_msg.esmmessagecontainer)),
+            std::string(bdata(decoded_msg.esmmessagecontainer)));
 
-  ASSERT_TRUE(!memcmp(
-      &original_msg.guti, &decoded_msg.guti, sizeof(original_msg.guti)));
-  ASSERT_TRUE(!memcmp(
-      &original_msg.tailist, &decoded_msg.tailist,
-      sizeof(original_msg.tailist)));
-  ASSERT_TRUE(!memcmp(
-      &original_msg.locationareaidentification,
-      &decoded_msg.locationareaidentification,
-      sizeof(original_msg.locationareaidentification)));
+  ASSERT_TRUE(!memcmp(&original_msg.guti, &decoded_msg.guti,
+                      sizeof(original_msg.guti)));
+  ASSERT_TRUE(!memcmp(&original_msg.tailist, &decoded_msg.tailist,
+                      sizeof(original_msg.tailist)));
+  ASSERT_TRUE(!memcmp(&original_msg.locationareaidentification,
+                      &decoded_msg.locationareaidentification,
+                      sizeof(original_msg.locationareaidentification)));
   ASSERT_EQ(original_msg.emmcause, decoded_msg.emmcause);
-  ASSERT_EQ(
-      original_msg.epsnetworkfeaturesupport.b1,
-      decoded_msg.epsnetworkfeaturesupport.b1);
-  ASSERT_EQ(
-      original_msg.epsnetworkfeaturesupport.b2,
-      decoded_msg.epsnetworkfeaturesupport.b2);
-  ASSERT_EQ(
-      original_msg.additionalupdateresult, decoded_msg.additionalupdateresult);
+  ASSERT_EQ(original_msg.epsnetworkfeaturesupport.b1,
+            decoded_msg.epsnetworkfeaturesupport.b1);
+  ASSERT_EQ(original_msg.epsnetworkfeaturesupport.b2,
+            decoded_msg.epsnetworkfeaturesupport.b2);
+  ASSERT_EQ(original_msg.additionalupdateresult,
+            decoded_msg.additionalupdateresult);
 
   bdestroy_wrapper(&original_msg.esmmessagecontainer);
   bdestroy_wrapper(&decoded_msg.esmmessagecontainer);
@@ -593,7 +565,7 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeAttachAcceptConsecutiveTACs) {
 
 TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeSMCCommand) {
   security_mode_command_msg original_msg = {0};
-  security_mode_command_msg decoded_msg  = {0};
+  security_mode_command_msg decoded_msg = {0};
 
   FILL_EMM_COMMON_MANDATORY_DEFAULTS(original_msg);
 
@@ -632,50 +604,45 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeSMCCommand) {
 
   ASSERT_EQ(encoded, decoded);
 
-  ASSERT_TRUE(!memcmp(
-      &original_msg.replayeduesecuritycapabilities,
-      &decoded_msg.replayeduesecuritycapabilities,
-      sizeof(original_msg.replayeduesecuritycapabilities)));
-  ASSERT_EQ(
-      original_msg.replayedueadditionalsecuritycapabilities._5g_ea,
-      decoded_msg.replayedueadditionalsecuritycapabilities._5g_ea);
-  ASSERT_EQ(
-      original_msg.replayedueadditionalsecuritycapabilities._5g_ia,
-      decoded_msg.replayedueadditionalsecuritycapabilities._5g_ia);
-  ASSERT_EQ(
-      original_msg.naskeysetidentifier.naskeysetidentifier,
-      decoded_msg.naskeysetidentifier.naskeysetidentifier);
-  ASSERT_EQ(
-      original_msg.naskeysetidentifier.tsc,
-      decoded_msg.naskeysetidentifier.tsc);
+  ASSERT_TRUE(!memcmp(&original_msg.replayeduesecuritycapabilities,
+                      &decoded_msg.replayeduesecuritycapabilities,
+                      sizeof(original_msg.replayeduesecuritycapabilities)));
+  ASSERT_EQ(original_msg.replayedueadditionalsecuritycapabilities._5g_ea,
+            decoded_msg.replayedueadditionalsecuritycapabilities._5g_ea);
+  ASSERT_EQ(original_msg.replayedueadditionalsecuritycapabilities._5g_ia,
+            decoded_msg.replayedueadditionalsecuritycapabilities._5g_ia);
+  ASSERT_EQ(original_msg.naskeysetidentifier.naskeysetidentifier,
+            decoded_msg.naskeysetidentifier.naskeysetidentifier);
+  ASSERT_EQ(original_msg.naskeysetidentifier.tsc,
+            decoded_msg.naskeysetidentifier.tsc);
 }
 
 TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeSMCComplete) {
   security_mode_complete_msg original_msg = {0};
-  security_mode_complete_msg decoded_msg  = {0};
+  security_mode_complete_msg decoded_msg = {0};
 
   FILL_EMM_COMMON_MANDATORY_DEFAULTS(original_msg);
 
   // Set optional IEs
   original_msg.imeisv.imeisv.typeofidentity = MOBILE_IDENTITY_IMEISV;
-  original_msg.imeisv.imeisv.oddeven        = 1;
-  original_msg.imeisv.imeisv.tac1           = 1;
-  original_msg.imeisv.imeisv.tac2           = 1;
-  original_msg.imeisv.imeisv.tac3           = 0;
-  original_msg.imeisv.imeisv.tac4           = 0;
-  original_msg.imeisv.imeisv.tac5           = 0;
-  original_msg.imeisv.imeisv.tac6           = 0;
-  original_msg.imeisv.imeisv.tac7           = 0;
-  original_msg.imeisv.imeisv.tac8           = 0;
-  original_msg.imeisv.imeisv.snr1           = 1;
-  original_msg.imeisv.imeisv.snr2           = 1;
-  original_msg.imeisv.imeisv.snr3           = 0;
-  original_msg.imeisv.imeisv.snr4           = 0;
-  original_msg.imeisv.imeisv.snr5           = 0;
-  original_msg.imeisv.imeisv.snr6           = 0;
-  original_msg.imeisv.imeisv.svn1           = 0;
-  original_msg.imeisv.imeisv.svn2           = 0;
-  original_msg.imeisv.imeisv.last           = 0;
+  original_msg.imeisv.imeisv.oddeven = 1;
+  original_msg.imeisv.imeisv.tac1 = 1;
+  original_msg.imeisv.imeisv.tac2 = 1;
+  original_msg.imeisv.imeisv.tac3 = 0;
+  original_msg.imeisv.imeisv.tac4 = 0;
+  original_msg.imeisv.imeisv.tac5 = 0;
+  original_msg.imeisv.imeisv.tac6 = 0;
+  original_msg.imeisv.imeisv.tac7 = 0;
+  original_msg.imeisv.imeisv.tac8 = 0;
+  original_msg.imeisv.imeisv.snr1 = 1;
+  original_msg.imeisv.imeisv.snr2 = 1;
+  original_msg.imeisv.imeisv.snr3 = 0;
+  original_msg.imeisv.imeisv.snr4 = 0;
+  original_msg.imeisv.imeisv.snr5 = 0;
+  original_msg.imeisv.imeisv.snr6 = 0;
+  original_msg.imeisv.imeisv.svn1 = 0;
+  original_msg.imeisv.imeisv.svn2 = 0;
+  original_msg.imeisv.imeisv.last = 0;
 
   original_msg.presencemask = SECURITY_MODE_COMPLETE_IMEISV_PRESENT;
 
@@ -687,28 +654,28 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeSMCComplete) {
 
   ASSERT_EQ(encoded, decoded);
 
-  ASSERT_TRUE(!memcmp(
-      &original_msg.imeisv, &decoded_msg.imeisv, sizeof(original_msg.imeisv)));
+  ASSERT_TRUE(!memcmp(&original_msg.imeisv, &decoded_msg.imeisv,
+                      sizeof(original_msg.imeisv)));
 }
 
 TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeExtendedServiceRequest) {
   extended_service_request_msg original_msg = {0};
-  extended_service_request_msg decoded_msg  = {0};
+  extended_service_request_msg decoded_msg = {0};
 
   FILL_EMM_COMMON_MANDATORY_DEFAULTS(original_msg);
 
   // Set mandatory IEs
-  original_msg.servicetype                             = MT_CS_FB;
+  original_msg.servicetype = MT_CS_FB;
   original_msg.naskeysetidentifier.naskeysetidentifier = 1;
-  original_msg.naskeysetidentifier.tsc                 = 1;
+  original_msg.naskeysetidentifier.tsc = 1;
 
   original_msg.mtmsi.tmsi.typeofidentity = MOBILE_IDENTITY_TMSI;
-  original_msg.mtmsi.tmsi.tmsi[0]        = 1;
-  original_msg.mtmsi.tmsi.tmsi[1]        = 0;
-  original_msg.mtmsi.tmsi.tmsi[2]        = 1;
-  original_msg.mtmsi.tmsi.tmsi[3]        = 1;
-  original_msg.mtmsi.tmsi.oddeven        = 0;
-  original_msg.mtmsi.tmsi.f              = 0xf;
+  original_msg.mtmsi.tmsi.tmsi[0] = 1;
+  original_msg.mtmsi.tmsi.tmsi[1] = 0;
+  original_msg.mtmsi.tmsi.tmsi[2] = 1;
+  original_msg.mtmsi.tmsi.tmsi[3] = 1;
+  original_msg.mtmsi.tmsi.oddeven = 0;
+  original_msg.mtmsi.tmsi.f = 0xf;
 
   original_msg.csfbresponse = 1;
 
@@ -724,24 +691,22 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeExtendedServiceRequest) {
 
   ASSERT_EQ(original_msg.servicetype, decoded_msg.servicetype);
   ASSERT_EQ(original_msg.csfbresponse, decoded_msg.csfbresponse);
-  ASSERT_EQ(
-      original_msg.naskeysetidentifier.naskeysetidentifier,
-      decoded_msg.naskeysetidentifier.naskeysetidentifier);
-  ASSERT_EQ(
-      original_msg.naskeysetidentifier.tsc,
-      decoded_msg.naskeysetidentifier.tsc);
-  ASSERT_TRUE(!memcmp(
-      &original_msg.mtmsi, &decoded_msg.mtmsi, sizeof(original_msg.mtmsi)));
+  ASSERT_EQ(original_msg.naskeysetidentifier.naskeysetidentifier,
+            decoded_msg.naskeysetidentifier.naskeysetidentifier);
+  ASSERT_EQ(original_msg.naskeysetidentifier.tsc,
+            decoded_msg.naskeysetidentifier.tsc);
+  ASSERT_TRUE(!memcmp(&original_msg.mtmsi, &decoded_msg.mtmsi,
+                      sizeof(original_msg.mtmsi)));
 }
 
 TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeServiceRequest) {
   service_request_msg original_msg = {0};
-  service_request_msg decoded_msg  = {0};
+  service_request_msg decoded_msg = {0};
 
   FILL_EMM_COMMON_MANDATORY_DEFAULTS(original_msg);
 
   // Set mandatory IEs
-  original_msg.ksiandsequencenumber.ksi            = 0b111;
+  original_msg.ksiandsequencenumber.ksi = 0b111;
   original_msg.ksiandsequencenumber.sequencenumber = 1;
 
   original_msg.messageauthenticationcode = 1;
@@ -752,20 +717,17 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeServiceRequest) {
 
   ASSERT_EQ(encoded, decoded);
 
-  ASSERT_EQ(
-      original_msg.ksiandsequencenumber.ksi,
-      decoded_msg.ksiandsequencenumber.ksi);
-  ASSERT_EQ(
-      original_msg.ksiandsequencenumber.sequencenumber,
-      decoded_msg.ksiandsequencenumber.sequencenumber);
-  ASSERT_EQ(
-      original_msg.messageauthenticationcode,
-      decoded_msg.messageauthenticationcode);
+  ASSERT_EQ(original_msg.ksiandsequencenumber.ksi,
+            decoded_msg.ksiandsequencenumber.ksi);
+  ASSERT_EQ(original_msg.ksiandsequencenumber.sequencenumber,
+            decoded_msg.ksiandsequencenumber.sequencenumber);
+  ASSERT_EQ(original_msg.messageauthenticationcode,
+            decoded_msg.messageauthenticationcode);
 }
 
 TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeAuthenticationResponse) {
   authentication_response_msg original_msg = {0};
-  authentication_response_msg decoded_msg  = {0};
+  authentication_response_msg decoded_msg = {0};
 
   FILL_EMM_COMMON_MANDATORY_DEFAULTS(original_msg);
 
@@ -780,9 +742,8 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeAuthenticationResponse) {
 
   ASSERT_EQ(encoded, decoded);
 
-  ASSERT_EQ(
-      std::string(bdata(original_msg.authenticationresponseparameter)),
-      std::string(bdata(decoded_msg.authenticationresponseparameter)));
+  ASSERT_EQ(std::string(bdata(original_msg.authenticationresponseparameter)),
+            std::string(bdata(decoded_msg.authenticationresponseparameter)));
 
   bdestroy_wrapper(&original_msg.authenticationresponseparameter);
   bdestroy_wrapper(&decoded_msg.authenticationresponseparameter);

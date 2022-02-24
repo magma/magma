@@ -25,11 +25,8 @@ int SecurityHeaderTypeMsg::DecodeSecurityHeaderTypeMsg(
     uint32_t len) {
   int decoded = 0;
 
-  MLOG(MDEBUG) << "   DecodeSecurityHeaderTypeMsg : ";
-  sec_header_type->sec_hdr = *(buffer) &0xf;
+  sec_header_type->sec_hdr = *(buffer)&0xf;
   decoded++;
-  MLOG(MDEBUG) << " Security header type = " << std::dec
-               << int(sec_header_type->sec_hdr);
   return (decoded);
 };
 
@@ -39,10 +36,8 @@ int SecurityHeaderTypeMsg::EncodeSecurityHeaderTypeMsg(
     uint32_t len) {
   int encoded = 0;
 
-  MLOG(MDEBUG) << " EncodeSecurityHeaderTypeMsg : ";
   *(buffer) = sec_header_type->sec_hdr & 0xf;
   encoded++;
-  MLOG(MDEBUG) << "Security header type = 0x" << std::hex << int(*(buffer));
   return (encoded);
 };
 }  // namespace magma5g

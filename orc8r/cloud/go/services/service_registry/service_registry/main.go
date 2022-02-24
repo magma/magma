@@ -23,7 +23,7 @@ import (
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
-	"magma/orc8r/cloud/go/services/service_registry/servicers"
+	servicers "magma/orc8r/cloud/go/services/service_registry/servicers/protected"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )

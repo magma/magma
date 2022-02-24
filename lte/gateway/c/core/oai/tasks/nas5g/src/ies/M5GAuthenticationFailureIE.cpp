@@ -11,6 +11,13 @@
 
 #include <sstream>
 #include <cstdint>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationFailureIE.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -23,13 +30,11 @@ int M5GAuthenticationFailureIE::DecodeM5GAuthenticationFailureIE(
     M5GAuthenticationFailureIE* m5g_auth_failure_ie, uint8_t iei,
     uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
-  uint8_t ielen   = 0;
+  uint8_t ielen = 0;
 
   if (iei > 0) {
     m5g_auth_failure_ie->iei = *(buffer + decoded);
-    CHECK_IEI_DECODER((unsigned char) iei, m5g_auth_failure_ie->iei);
-    MLOG(MDEBUG) << "In DecodeM5GAuthenticationFailureIE: iei = " << std::hex
-                 << int(m5g_auth_failure_ie->iei) << std::endl;
+    CHECK_IEI_DECODER((unsigned char)iei, m5g_auth_failure_ie->iei);
     decoded++;
   }
 

@@ -29,13 +29,12 @@ task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 
 static void* sgw_s8_thread(void* args) {
   itti_mark_task_ready(TASK_SGW_S8);
-  init_task_context(
-      TASK_SGW_S8, (task_id_t[]){TASK_MME_APP}, 1, handle_message,
-      &sgw_s8_task_zmq_ctx);
+  init_task_context(TASK_SGW_S8, (task_id_t[]){TASK_MME_APP}, 1, handle_message,
+                    &sgw_s8_task_zmq_ctx);
 
   zloop_start(sgw_s8_task_zmq_ctx.event_loop);
-  AssertFatal(
-      0, "Asserting as sgw_s8_thread should not be exiting on its own!");
+  AssertFatal(0,
+              "Asserting as sgw_s8_thread should not be exiting on its own!");
   return NULL;
 }
 
@@ -57,7 +56,7 @@ status_code_e sgw_s8_init(sgw_config_t* sgw_config_p) {
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
-  imsi64_t imsi64        = itti_get_associated_imsi(received_message_p);
+  imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
   sgw_state_t* sgw_state = get_sgw_state(false);
 
   switch (ITTI_MSG_ID(received_message_p)) {
@@ -129,9 +128,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     default: {
-      OAILOG_DEBUG(
-          LOG_SGW_S8, "Unknown message ID %d: %s\n",
-          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
+      OAILOG_DEBUG(LOG_SGW_S8, "Unknown message ID %d: %s\n",
+                   ITTI_MSG_ID(received_message_p),
+                   ITTI_MSG_NAME(received_message_p));
     } break;
   }
 

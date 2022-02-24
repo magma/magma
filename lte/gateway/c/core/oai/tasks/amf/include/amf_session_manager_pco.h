@@ -36,7 +36,6 @@ void sm_copy_protocol_configuration_options(
     protocol_configuration_options_t* const pco_dst,
     const protocol_configuration_options_t* const pco_src);
 
-uint16_t sm_process_pco_request(
-    protocol_configuration_options_t* pco_req,
-    protocol_configuration_options_t* pco_resp);
+uint16_t sm_process_pco_request(protocol_configuration_options_t* pco_req,
+                                protocol_configuration_options_t* pco_resp);
 }  // namespace magma5g

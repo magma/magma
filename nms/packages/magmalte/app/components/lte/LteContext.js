@@ -31,6 +31,8 @@ import type {EnodebInfo} from '../lte/EnodebUtils';
 import type {EnodebState} from '../context/EnodebContext';
 import type {
   apn,
+  base_name,
+  base_name_record,
   call_trace,
   call_trace_config,
   feg_lte_network,
@@ -66,6 +68,7 @@ import {
 import {InitTraceState, SetCallTraceState} from '../../state/TraceState';
 import {SetApnState} from '../../state/lte/ApnState';
 import {
+  SetBaseNameState,
   SetPolicyState,
   SetQosProfileState,
   SetRatingGroupState,
@@ -409,6 +412,9 @@ export function PolicyProvider(props: Props) {
   const networkCtx = useContext(NetworkContext);
   const lteNetworkCtx = useContext(LteNetworkContext);
   const [policies, setPolicies] = useState<{[string]: policy_rule}>({});
+  const [baseNames, setBaseNames] = useState<{
+    [string]: base_name_record,
+  }>({});
   const [qosProfiles, setQosProfiles] = useState<{
     [string]: policy_qos_profile,
   }>({});
@@ -433,6 +439,27 @@ export function PolicyProvider(props: Props) {
             networkId,
           }),
         );
+        // Base Names
+        // eslint-disable-next-line max-len
+        const baseNameIDs: Array<base_name> = await MagmaV1API.getNetworksByNetworkIdPoliciesBaseNames(
+          {
+            networkId,
+          },
+        );
+        const baseNameRecords: Array<base_name_record> = await Promise.all(
+          baseNameIDs.map(baseNameID =>
+            MagmaV1API.getNetworksByNetworkIdPoliciesBaseNamesByBaseName({
+              networkId,
+              baseName: baseNameID,
+            }),
+          ),
+        );
+        const newBaseNames: {[string]: base_name_record} = {};
+        baseNameRecords.map(record => {
+          newBaseNames[record.name] = record;
+        });
+        setBaseNames(newBaseNames);
+
         setRatingGroups(
           // $FlowIgnore
           await MagmaV1API.getNetworksByNetworkIdRatingGroups({networkId}),
@@ -473,6 +500,17 @@ export function PolicyProvider(props: Props) {
             networkId,
             ratingGroups,
             setRatingGroups,
+            key,
+            value,
+          });
+        },
+
+        baseNames: baseNames,
+        setBaseNames: async (key, value) => {
+          await SetBaseNameState({
+            networkId,
+            baseNames,
+            setBaseNames,
             key,
             value,
           });

@@ -34,10 +34,14 @@ class InterfaceIDToPrefixMapper:
 
     def __init__(self):
         self._prefix_by_interface = {}
+        # reverse map
+        self._interface_by_prefix = {}
         self._lock = threading.Lock()  # write lock
 
     def setup_redis(self):
         self._prefix_by_interface = PrefixDict()
+        for k, v in self._prefix_by_interface.items():
+            self._interface_by_prefix[v] = k
 
     def get_prefix(self, interface):
         with self._lock:
@@ -45,9 +49,14 @@ class InterfaceIDToPrefixMapper:
                 return None
             return self._prefix_by_interface[interface]
 
+    def get_interface(self, prefix):
+        with self._lock:
+            return self._interface_by_prefix.get(prefix, None)
+
     def save_prefix(self, interface, prefix):
         with self._lock:
             self._prefix_by_interface[interface] = prefix
+            self._interface_by_prefix[prefix] = interface
 
 
 class PrefixDict(RedisHashDict):

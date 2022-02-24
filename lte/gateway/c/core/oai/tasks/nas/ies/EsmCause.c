@@ -22,8 +22,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
 
 //------------------------------------------------------------------------------
-int decode_esm_cause(
-    esm_cause_t* esmcause, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_esm_cause(esm_cause_t* esmcause, uint8_t iei, uint8_t* buffer,
+                     uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -37,8 +37,8 @@ int decode_esm_cause(
 }
 
 //------------------------------------------------------------------------------
-int encode_esm_cause(
-    esm_cause_t* esmcause, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_esm_cause(esm_cause_t* esmcause, uint8_t iei, uint8_t* buffer,
+                     uint32_t len) {
   uint32_t encoded = 0;
 
   /*
@@ -51,7 +51,7 @@ int encode_esm_cause(
     encoded++;
   }
 
-  *(buffer + encoded) = (uint8_t) *esmcause;
+  *(buffer + encoded) = (uint8_t)*esmcause;
   encoded++;
   return encoded;
 }

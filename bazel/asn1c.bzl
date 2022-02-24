@@ -19,7 +19,7 @@ def _get_dir_name(name):
     return name + ".c"
 
 def _contruct_substitution_commands(ctx, dir_path):
-    """Returns a list of commands that replaces certain strings with another. 
+    """Return a list of commands that replaces certain strings with another. 
 
     The replacement configuration is taken from ctx.attr.substitutions.
     """
@@ -37,33 +37,23 @@ def _contruct_substitution_commands(ctx, dir_path):
     return substitution_commands
 
 def _construct_file_filter_commands(ctx, dir_path):
-    """Returns a list of commands that removes any files that fit the condition described below.
-
-    1. any file that does not end with .c or .h
-    2. any file that is specified in ctx.attr.files_to_remove
-    """
+    """Return a list of commands that removes any files that are not .c or .h"""
     filter_commands = []
 
     # cc_library will complain if there are files that are not one of (.c, .cc, .cpp, .h, ...)
     filter_files_template = "ls -d {dir}/* | grep --invert-match --extended-regexp \'{choose}\' | xargs  --no-run-if-empty rm "
     choose = "**.[.][ch]$"
     filter_commands.append(filter_files_template.format(dir = dir_path, choose = choose))
-
-    # remove any files specified in ctx.attr
-    for file_name in ctx.attr.files_to_remove:
-        filter_commands.append("rm {dir}/{file} || true".format(dir = dir_path, file = file_name))
     return filter_commands
 
 def _construct_asn1c_commands(ctx, dir_path):
-    """Returns a string of command that runs asn1c"""
-    prefix = ctx.attr.prefix
+    """Return a string of command that runs asn1c"""
     flags = ctx.attr.flags
     asn1_file = ctx.attr.asn1_file.files.to_list()[0].path
     asn1c_command_template = "{asn1c} {flags} -D {dir} {input}"
     return [
         asn1c_command_template.format(
             asn1c = ctx.executable._asn1c.path,
-            prefix = prefix,
             flags = flags,
             dir = dir_path,
             input = asn1_file,
@@ -71,7 +61,7 @@ def _construct_asn1c_commands(ctx, dir_path):
     ]
 
 def _gen_with_asn1c_impl(ctx):
-    """generate files by running asn1c
+    """Generate files by running asn1c
 
     Args:
         ctx: passed through Bazel
@@ -112,9 +102,6 @@ def _get_attrs():
             allow_single_file = [".asn1"],
             doc = """The asn file asn1c should use to generate files""",
         ),
-        "files_to_remove": attr.string_list(
-            doc = """A list of file names to remove after code generation""",
-        ),
         "flags": attr.string(
             doc = """Command line flags passed to asn1c""",
         ),
@@ -145,11 +132,10 @@ def cc_asn1_library(
         prefix):
     """Create a CC library of generated asn1 files.
 
-    This library wraps up generated files from these 4 actions:
+    This library wraps up generated files from these 3 actions:
       1. generate .c/.h files by running asn1c with the given input: asn1_file
       2. remove all non .c/.h files
-      3. remove converter-example.c
-      4. apply string substitutions
+      3. apply string substitutions
 
     Args:
         name: the name of rule
@@ -158,7 +144,7 @@ def cc_asn1_library(
     """
     gen_name = name + "_genrule"
 
-    flags = "-pdu=all -fcompound-names -fno-include-deps -gen-PER"
+    flags = "-pdu=all -fcompound-names -fno-include-deps -gen-PER -no-gen-example"
 
     # Taken from https://github.com/magma/magma/blob/14c1cf643a61d576b3d24642e17ed3911d19210d/lte/gateway/c/core/oai/tasks/s1ap/CMakeLists.txt#L35
     # The original PR (PR2707) doesn't give an explanation on why this is necessary.
@@ -173,8 +159,6 @@ def cc_asn1_library(
         flags = flags,
         prefix = prefix,
         substitutions = substitutions,
-        # We want to remove converter-example.c as it does not compile
-        files_to_remove = ["converter-example.c"],
     )
 
     cc_library(
@@ -182,4 +166,7 @@ def cc_asn1_library(
         srcs = [gen_name],
         # This is needed so that the CCInfo (header/include info) can be used
         deps = [gen_name],
+        # Dynamically linking this library is currently broken
+        # linkstatic=True here forces only a .a file to be produced, forcing this library to be linked statically
+        linkstatic = True,
     )

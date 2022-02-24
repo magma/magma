@@ -441,12 +441,31 @@
       - lld
 
 # TODO: preburn this
-- name: Install clang-format-11 c/c++ formatting tooling
+- name: Install requirements for VSCode <-> Bazel integration
   retries: 5
   apt:
     state: latest
     pkg:
-      - clang-format-11
+      - clangd-12
+      - lld
+
+# TODO: preburn this
+- name: Create a symlink for clangd
+  file:
+    src: '/usr/bin/clangd-12'
+    path: '/usr/bin/clangd'
+    state: link
+    force: yes
+
+# TODO: this can be removed once the role below is preburned
+- name: Remove all links for clang-format
+  become: yes
+  command: 'update-alternatives --remove-all clang-format'
+
+# TODO: preburn this
+- name: Create links for clang-format
+  become: yes
+  command: 'update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-11 1000'
 
 - name: Symlink system wide bazelrc into the VM
   file:
@@ -480,4 +499,13 @@
   with_items:
     - ebpf_ul_handler.c
     - ebpf_dl_handler.c
+  when: full_provision
+
+
+- name: Copy eBPF code
+  copy:
+    src: '{{ magma_root }}/orc8r/gateway/c/common/ebpf/EbpfMap.h'
+    dest: /var/opt/magma/ebpf/EbpfMap.h
+    force: yes
+    remote_src: yes
   when: full_provision

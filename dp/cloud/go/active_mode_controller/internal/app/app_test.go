@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"strings"
 	"testing"
 	"time"
 
@@ -19,9 +20,11 @@ import (
 )
 
 const (
-	bufferSize  = 16
-	timeout     = time.Millisecond * 20
-	currentTime = 1000
+	bufferSize       = 16
+	timeout          = time.Millisecond * 20
+	heartbeatTimeout = time.Second * 10
+	pollingTimeout   = time.Second * 20
+	currentTime      = 10000
 )
 
 func TestAppTestSuite(t *testing.T) {
@@ -76,15 +79,16 @@ func (s *AppTestSuite) TestFilterPendingRequests() {
 
 func (s *AppTestSuite) TestCalculateHeartbeatDeadline() {
 	const interval = 50 * time.Second
-	const deadline = interval + 3*timeout
+	const delta = heartbeatTimeout + pollingTimeout
 	now := s.clock.Now()
+	base := now.Add(delta - interval)
 	timestamps := []time.Time{
-		now.Add(-deadline + 2), now.Add(-deadline + 1),
-		now.Add(-deadline), now.Add(-deadline - 1),
+		base.Add(2 * time.Second), base.Add(time.Second),
+		base, base.Add(-time.Second),
 	}
 	s.givenState(buildStateWithAuthorizedGrants("some", interval, timestamps...))
 	s.whenTickerFired()
-	s.thenRequestsWereEventuallyReceived(getExpectedHeartbeatRequests("some", "0", "1"))
+	s.thenRequestsWereEventuallyReceived(getExpectedHeartbeatRequests("some", "2", "3"))
 }
 
 func (s *AppTestSuite) TestAppWorkInALoop() {
@@ -115,9 +119,9 @@ func (s *AppTestSuite) givenAppRunning() {
 		app.WithClock(s.clock),
 		app.WithConfig(&config.Config{
 			DialTimeout:               timeout,
-			HeartbeatSendTimeout:      timeout,
+			HeartbeatSendTimeout:      heartbeatTimeout,
 			RequestTimeout:            timeout,
-			PollingInterval:           timeout,
+			PollingInterval:           pollingTimeout,
 			RequestProcessingInterval: timeout,
 			GrpcService:               "",
 			GrpcPort:                  0,
@@ -206,9 +210,12 @@ func (s *AppTestSuite) thenNoOtherRequestWasReceived() {
 }
 
 func withPendingRequests(state *active_mode.State, name string) *active_mode.State {
-	for _, cfg := range state.ActiveModeConfigs {
-		if cfg.Cbsd.UserId == name {
-			cfg.Cbsd.PendingRequests = []string{getExpectedSingleRequest(name)}
+	for _, cbsd := range state.Cbsds {
+		if cbsd.UserId == name {
+			cbsd.PendingRequests = []*active_mode.Request{{
+				Type:    active_mode.RequestsType_RegistrationRequest,
+				Payload: getExpectedSingleRequest(name),
+			}}
 			break
 		}
 	}
@@ -216,22 +223,18 @@ func withPendingRequests(state *active_mode.State, name string) *active_mode.Sta
 }
 
 func buildSomeState(names ...string) *active_mode.State {
-	configs := make([]*active_mode.ActiveModeConfig, len(names))
+	cbsds := make([]*active_mode.Cbsd, len(names))
 	for i, name := range names {
-		configs[i] = &active_mode.ActiveModeConfig{
-			DesiredState: active_mode.CbsdState_Registered,
-			Cbsd: &active_mode.Cbsd{
-				UserId:            name,
-				FccId:             name,
-				SerialNumber:      name,
-				State:             active_mode.CbsdState_Unregistered,
-				LastSeenTimestamp: currentTime,
-			},
+		cbsds[i] = &active_mode.Cbsd{
+			DesiredState:      active_mode.CbsdState_Registered,
+			UserId:            name,
+			FccId:             name,
+			SerialNumber:      name,
+			State:             active_mode.CbsdState_Unregistered,
+			LastSeenTimestamp: currentTime,
 		}
 	}
-	return &active_mode.State{
-		ActiveModeConfigs: configs,
-	}
+	return &active_mode.State{Cbsds: cbsds}
 }
 
 func buildStateWithAuthorizedGrants(name string, interval time.Duration, timestamps ...time.Time) *active_mode.State {
@@ -244,18 +247,14 @@ func buildStateWithAuthorizedGrants(name string, interval time.Duration, timesta
 			LastHeartbeatTimestamp: timestamp.Unix(),
 		}
 	}
-	configs := []*active_mode.ActiveModeConfig{{
-		DesiredState: active_mode.CbsdState_Registered,
-		Cbsd: &active_mode.Cbsd{
-			Id:                name,
-			State:             active_mode.CbsdState_Registered,
-			Grants:            grants,
-			LastSeenTimestamp: currentTime,
-		},
+	cbsds := []*active_mode.Cbsd{{
+		DesiredState:      active_mode.CbsdState_Registered,
+		Id:                name,
+		State:             active_mode.CbsdState_Registered,
+		Grants:            grants,
+		LastSeenTimestamp: currentTime,
 	}}
-	return &active_mode.State{
-		ActiveModeConfigs: configs,
-	}
+	return &active_mode.State{Cbsds: cbsds}
 }
 
 func getExpectedRequests(name string) []*requests.RequestPayload {
@@ -270,13 +269,16 @@ func getExpectedSingleRequest(name string) string {
 }
 
 func getExpectedHeartbeatRequests(id string, grantIds ...string) []*requests.RequestPayload {
-	const template = `{"heartbeatRequest":[%s]}`
-	result := make([]*requests.RequestPayload, len(grantIds))
-	for i, grantId := range grantIds {
-		request := fmt.Sprintf(template, getExpectedHeartbeatRequest(id, grantId))
-		result[i] = &requests.RequestPayload{Payload: request}
+	if len(grantIds) == 0 {
+		return nil
 	}
-	return result
+	reqs := make([]string, len(grantIds))
+	for i, grantId := range grantIds {
+		reqs[i] = getExpectedHeartbeatRequest(id, grantId)
+	}
+	const template = `{"heartbeatRequest":[%s]}`
+	payload := fmt.Sprintf(template, strings.Join(reqs, ","))
+	return []*requests.RequestPayload{{Payload: payload}}
 }
 
 func getExpectedHeartbeatRequest(id string, grantId string) string {

@@ -33,8 +33,8 @@ namespace magma5g {
 #define AUTH_AK_SIZE 6  /* Anonymity key:            48 bits  */
 #define AUTH_AMF_SIZE 2 /* Authentication Management Field:  16 bits  */
 #define AUTH_MAC_SIZE 8 /* Message Authentication Code:  64 bits  */
-#define AUTH_AUTN_SIZE                                                         \
-  16                           /* Authentication token:     128 bits           \
+#define AUTH_AUTN_SIZE                                               \
+  16                           /* Authentication token:     128 bits \
                  AUTN = (SQN ⊕ AK) || AMF || MAC        */
 #define AUTH_MACS_SIZE 8       /* Re-synchronization MAC:       64 bits  */
 #define AUTH_AUTS_SIZE 16      /* Re-synchronization AUT:       128 bits */
@@ -53,7 +53,7 @@ namespace magma5g {
 #define AUTH_NEXT_HOP_SIZE AUTH_KASME_SIZE /* Next Hop security parameter*/
 
 /* "Separation bit" of AMF field */
-#define AUTH_AMF_SEPARATION_BIT(a) ((a) &0x80)
+#define AUTH_AMF_SEPARATION_BIT(a) ((a)&0x80)
 /*
  * --------------------------------------------------------------------------
  * 5G CN NAS security context handled by 5G CN Mobility Management sublayer in

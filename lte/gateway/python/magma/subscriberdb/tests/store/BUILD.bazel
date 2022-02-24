@@ -1,0 +1,35 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("//bazel:python_test.bzl", "pytest_test")
+
+LTE_ROOT = "../../../../"
+
+COMMON_TEST_DEPS = [
+    "//lte/gateway/python/magma/subscriberdb:sid",
+    "//lte/gateway/python/magma/subscriberdb/store:base",
+    "//lte/gateway/python/magma/subscriberdb/store:sqlite",
+    "//lte/protos:subscriberdb_python_proto",
+]
+
+pytest_test(
+    name = "onready_test",
+    srcs = ["onready_test.py"],
+    imports = [LTE_ROOT],
+    deps = COMMON_TEST_DEPS,
+)
+
+pytest_test(
+    name = "store_tests",
+    srcs = ["store_tests.py"],
+    imports = [LTE_ROOT],
+    deps = COMMON_TEST_DEPS,
+)

@@ -1,3 +1,4 @@
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -15,13 +16,22 @@ spec:
         - image: test_runner_image
           name: test-runner
           imagePullPolicy: IfNotPresent
-          args: ["-m", "pytest", "-vvv", "-s", "-o", "log_cli=true", "-o", "log_cli_level=DEBUG", "tests", "--junitxml=/backend/test_runner/test-results/test_report.xml"]
+          command: ["python"]
+          args: ["-m", "pytest", "-vvv", "-s", "-m", "local", "--junit-xml=/backend/test_runner/test-results/test_report.xml", "tests"]
           volumeMounts:
             - name: test-results
               mountPath: /backend/test_runner/test-results
+            - name: certificates
+              mountPath: /backend/test_runner/certs
+              readOnly: true
       volumes:
         - name: test-results
           hostPath:
             path: /tmp/integration-tests-results
             type: DirectoryOrCreate
+        - name: certificates
+          projected:
+            sources:
+              - secret:
+                  name: orc8r-secrets-certs
   backoffLimit: 10

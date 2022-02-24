@@ -23,8 +23,8 @@ extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 status_code_e send_n11_create_pdu_session_resp_itti(
     itti_n11_create_pdu_session_response_t* itti_msg) {
-  OAILOG_DEBUG(
-      LOG_UTIL, "Sending itti_n11_create_pdu_session_response to AMF \n");
+  OAILOG_DEBUG(LOG_UTIL,
+               "Sending itti_n11_create_pdu_session_response to AMF \n");
   MessageDef* message_p = itti_alloc_new_message(
       TASK_GRPC_SERVICE, N11_CREATE_PDU_SESSION_RESPONSE);
   if (message_p == NULL) {
@@ -39,8 +39,8 @@ status_code_e send_n11_create_pdu_session_resp_itti(
 
 int send_n11_notification_received_itti(
     itti_n11_received_notification_t* itti_msg) {
-  OAILOG_INFO(
-      LOG_UTIL, "Sending itti_n11_create_pdu_session_response to AMF \n");
+  OAILOG_INFO(LOG_UTIL,
+              "Sending itti_n11_create_pdu_session_response to AMF \n");
   MessageDef* message_p =
       itti_alloc_new_message(TASK_GRPC_SERVICE, N11_NOTIFICATION_RECEIVED);
   message_p->ittiMsg.n11_notification_received = *itti_msg;

@@ -26,7 +26,7 @@
 int decode_bearer_resource_allocation_reject(
     bearer_resource_allocation_reject_msg* bearer_resource_allocation_reject,
     uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
@@ -37,9 +37,9 @@ int decode_bearer_resource_allocation_reject(
   /*
    * Decoding mandatory fields
    */
-  if ((decoded_result = decode_esm_cause(
-           &bearer_resource_allocation_reject->esmcause, 0, buffer + decoded,
-           len - decoded)) < 0)
+  if ((decoded_result =
+           decode_esm_cause(&bearer_resource_allocation_reject->esmcause, 0,
+                            buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -83,7 +83,7 @@ int decode_bearer_resource_allocation_reject(
 int encode_bearer_resource_allocation_reject(
     bearer_resource_allocation_reject_msg* bearer_resource_allocation_reject,
     uint8_t* buffer, uint32_t len) {
-  int encoded       = 0;
+  int encoded = 0;
   int encode_result = 0;
 
   /*

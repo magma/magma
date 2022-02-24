@@ -171,11 +171,9 @@ build_oai: ## Build OAI
 
 format_all:
 	find $(MAGMA_ROOT)/orc8r/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" -o -iname "*.hpp" \) -exec \
-	/usr/bin/clang-format-11 --style='{BasedOnStyle: Google, IncludeBlocks: Preserve, SortIncludes: false}' -i {} \;
-	find $(MAGMA_ROOT)/lte/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h"  -o -iname "*.hpp" \) -not \( -path "$(MAGMA_ROOT)/lte/gateway/c/core/*" -prune \) -exec \
-	/usr/bin/clang-format-11 --style='{BasedOnStyle: Google, IncludeBlocks: Preserve, SortIncludes: false}' -i {} \;
-	find $(MAGMA_ROOT)/lte/gateway/c/core/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" -o -iname "*.hpp" \) -exec \
-	clang-format --style=file -i {} \;
+	/usr/bin/clang-format-11 -i {} \;
+	find $(MAGMA_ROOT)/lte/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h"  -o -iname "*.hpp" \) -exec \
+	/usr/bin/clang-format-11 -i {} \;
 
 build_sctpd:
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )

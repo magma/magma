@@ -32,7 +32,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       service303_handler_->service303_set_application_health();
     } break;
 
-    default: { } break; }
+    default: {
+    } break;
+  }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
 
@@ -47,7 +49,7 @@ void stop_mock_service303_task() {
 void start_mock_service303_task(
     std::shared_ptr<MockService303Handler> service303_handler) {
   service303_handler_ = service303_handler;
-  init_task_context(
-      TASK_SERVICE303, nullptr, 0, handle_message, &task_zmq_ctx_service303);
+  init_task_context(TASK_SERVICE303, nullptr, 0, handle_message,
+                    &task_zmq_ctx_service303);
   zloop_start(task_zmq_ctx_service303.event_loop);
 }

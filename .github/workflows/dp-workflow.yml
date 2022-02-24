@@ -19,8 +19,10 @@ jobs:
       am: ${{ steps.filter.outputs.am }}
       pc: ${{ steps.filter.outputs.pc }}
       rc: ${{ steps.filter.outputs.rc }}
+      db: ${{ steps.filter.outputs.db }}
       ingress: ${{ steps.filter.outputs.ingress }}
       helm: ${{ steps.filter.outputs.helm }}
+      integration_tests_no_orc8r: ${{ steps.filter.outputs.integration_tests_no_orc8r }}
     steps:
       - uses: actions/checkout@v2
         if: github.event_name == 'push'
@@ -32,18 +34,34 @@ jobs:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/cloud/python/configuration_controller/**'
               - 'dp/cloud/docker/python/configuration_controller/**'
+              - 'dp/cloud/python/magma/db_service/**'
+              - 'dp/protos/**'
+              - 'dp/cloud/go/protos/**'
+              - 'dp/cloud/go/active_mode_controller/protos'
             am:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/cloud/go/active_mode_controller/**'
               - 'dp/cloud/docker/go/active_mode_controller/**'
+              - 'dp/cloud/python/magma/db_service/**'
+              - 'dp/protos/**'
+              - 'dp/cloud/go/protos/**'
+              - 'dp/cloud/go/active_mode_controller/protos'
             pc:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/cloud/python/protocol_controller/**'
               - 'dp/cloud/docker/python/protocol_controller/**'
+              - 'dp/cloud/python/magma/db_service/**'
+              - 'dp/protos/**'
+              - 'dp/cloud/go/protos/**'
+              - 'dp/cloud/go/active_mode_controller/protos'
             rc:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/cloud/python/radio_controller/**'
               - 'dp/cloud/docker/python/radio_controller/**'
+              - 'dp/cloud/python/magma/db_service/**'
+              - 'dp/protos/**'
+              - 'dp/cloud/go/protos/**'
+              - 'dp/cloud/go/active_mode_controller/protos'
             ingress:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/Makefile'
@@ -51,6 +69,12 @@ jobs:
             helm:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/cloud/helm/**'
+            integration_tests_no_orc8r:
+              - 'dp/**'
+            db:
+              - '.github/workflows/dp-workflow.yml'
+              - 'dp/cloud/python/magma/db_service/**'
+            
 
   configuration_controller_unit_tests:
     needs: path_filter
@@ -309,8 +333,62 @@ jobs:
           fail_ci_if_error: false
           verbose: true
 
+  db_service_unit_tests:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.db == 'true' }}
+    name: "DB service unit tests"
+    runs-on: ubuntu-latest
+    env:
+      COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
+      PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/build/gen"
+      MAGMA_ROOT: "${{ github.workspace }}"
+      PYTHON_BUILD: "${{ github.workspace }}/build"
 
-  integation_tests:
+    defaults:
+      run:
+        working-directory: dp/cloud/python/magma/db_service
+
+    strategy:
+      matrix:
+        python-version: [3.8]
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f tests/requirements.txt ]; then pip install -r tests/requirements.txt; fi
+
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Test with pytest
+        working-directory: "${{ github.workspace }}/dp/cloud/python"
+        run: |
+          coverage run --source=. -m pytest magma/db_service/tests
+          coverage report
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          flags: unittests,db-service
+          name: codecov-db-service
+          fail_ci_if_error: false
+          verbose: true
+
+  integration_tests:
     name: "Domain proxy integration tests"
     runs-on: ubuntu-latest
     continue-on-error: false
@@ -321,6 +399,10 @@ jobs:
       TEST_DIR: /tmp/integration-tests-results
     strategy:
       fail-fast: false
+      matrix:
+        test_type:
+          - _ci_integration_tests_orc8r
+          - _ci_integration_tests_no_orc8r
     steps:
       - uses: actions/checkout@v2
       - name: Set env
@@ -342,44 +424,42 @@ jobs:
       - name: Get minikube IP and prepare directory for test results
         run: |
           minikube ip
+          minikube ssh sudo ip link set docker0 promisc on
           mkdir -p $TEST_DIR
           minikube mount $TEST_DIR:$TEST_DIR &
 
       - name: Run integration tests
         run: |
-          make _ci_integration_tests
+          make ${{ matrix.test_type }}
 
       - name: Upload integration test results
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: integration-tests-results
-          path: ${{ env.TEST_DIR }}
+          name: ${{ matrix.test_type }}-results
+          path: |
+            ${{ env.TEST_DIR }}
+            /tmp/${{ matrix.test_type }}.txt
 
   integration-test-results:
-    needs: integation_tests
+    needs: integration_tests
     name: Integration test results
     runs-on: ubuntu-latest
-    continue-on-error: true
-    strategy:
-      fail-fast: false
-      matrix:
-        service:
-          - protocol-controller
+    if: always()
     steps:
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v2
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
           workflow: dp-workflow.yml
-          path: test-results-${{ matrix.service }}
+          path: test-results
 
       - name: Publish integration test results
         uses: EnricoMi/publish-unit-test-result-action@v1
         with:
           commit: ${{ github.event.workflow_run.head_sha }}
-          files: test-results-${{ matrix.service }}/**/*.xml
-          comment_title: "Integration Test Results"
+          files: test-results/**/*.xml
+          comment_title: "Domain Proxy integration tests results"
 
 
   helm_chart_tests:

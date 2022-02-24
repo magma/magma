@@ -136,8 +136,10 @@ describe('<TrafficDashboard />', () => {
   const networkId = 'test';
   const policyCtx = {
     state: policies,
+    baseNames: {},
     qosProfiles: qosProfiles,
     ratingGroups: ratingGroups,
+    setBaseNames: (_key, _value?) => Promise.resolve(),
     setRatingGroups: (key, value?) => {
       return SetRatingGroupState({
         ratingGroups,
@@ -385,8 +387,10 @@ describe('<TrafficDashboard APNs/>', () => {
   const networkId = 'test';
   const policyCtx = {
     state: policies,
+    baseNames: {},
     qosProfiles: {},
     ratingGroups: {},
+    setBaseNames: async () => {},
     setRatingGroups: async () => {},
     setQosProfiles: async () => {},
     setState: (key, value?) => {

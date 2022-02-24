@@ -14,6 +14,7 @@ limitations under the License.
 from time import sleep
 
 import grpc
+import pytest
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
 from dp.protos.enodebd_dp_pb2_grpc import DPServiceStub
 from magma.db_service.db_initialize import DBInitializer
@@ -29,6 +30,7 @@ FCC_ID = "some_fcc_id"
 USER_ID = "some_user_id"
 
 
+@pytest.mark.local
 class ActiveModeControllerTestCase(DBTestCase):
     def setUp(self):
         super().setUp()
@@ -76,7 +78,7 @@ class ActiveModeControllerTestCase(DBTestCase):
     def when_cbsd_is_inactive():
         inactivity = 3
         polling = 1
-        delta = 10  # TODO investigate if such high delta is needed
+        delta = 3  # TODO investigate if such high delta is needed
         total_wait_time = inactivity + 2 * polling + delta
         sleep(total_wait_time)
 

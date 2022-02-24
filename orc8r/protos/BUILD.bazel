@@ -89,6 +89,14 @@ proto_library(
     deps = ["@protobuf//:any_proto"],
 )
 
+cpp_proto_library(
+    name = "eventd_cpp_proto",
+    protos = [":eventd_proto"],
+    deps = [
+        ":common_cpp_proto",
+    ],
+)
+
 cpp_grpc_library(
     name = "eventd_cpp_grpc",
     protos = [":eventd_proto"],
@@ -117,6 +125,11 @@ proto_library(
     name = "directoryd_proto",
     srcs = ["directoryd.proto"],
     deps = [":common_proto"],
+)
+
+python_grpc_library(
+    name = "directoryd_python_grpc",
+    protos = [":directoryd_proto"],
 )
 
 cpp_proto_library(
@@ -251,6 +264,16 @@ proto_library(
 python_proto_library(
     name = "identity_python_proto",
     protos = [":identity_proto"],
+)
+
+proto_library(
+    name = "ctraced_proto",
+    srcs = ["ctraced.proto"],
+)
+
+python_grpc_library(
+    name = "ctraced_python_grpc",
+    protos = [":ctraced_proto"],
 )
 
 proto_library(

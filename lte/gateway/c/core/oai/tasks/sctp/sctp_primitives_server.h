@@ -25,9 +25,6 @@
  */
 
 #include <stdint.h>
-#if !defined(HAVE_LIBSCTP)
-#error "You must install libsctp-dev"
-#endif
 
 #ifndef FILE_SCTP_PRIMITIVES_SERVER_SEEN
 #define FILE_SCTP_PRIMITIVES_SERVER_SEEN

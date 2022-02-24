@@ -23,9 +23,9 @@
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/PlmnList.h"
 
-int decode_plmn_list(
-    PlmnList* plmnlist, uint8_t iei, uint8_t* buffer, uint32_t len) {
-  int decoded   = 0;
+int decode_plmn_list(PlmnList* plmnlist, uint8_t iei, uint8_t* buffer,
+                     uint32_t len) {
+  int decoded = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -51,8 +51,8 @@ int decode_plmn_list(
   return decoded;
 }
 
-int encode_plmn_list(
-    PlmnList* plmnlist, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_plmn_list(PlmnList* plmnlist, uint8_t iei, uint8_t* buffer,
+                     uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
 
@@ -93,17 +93,17 @@ void dump_plmn_list_xml(PlmnList* plmnlist, uint8_t iei) {
      */
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
-  OAILOG_DEBUG(
-      LOG_NAS, "    <MCC digit 2>%u</MCC digit 2>\n", plmnlist->mccdigit2);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <MCC digit 1>%u</MCC digit 1>\n", plmnlist->mccdigit1);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <MNC digit 3>%u</MNC digit 3>\n", plmnlist->mncdigit3);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <MCC digit 3>%u</MCC digit 3>\n", plmnlist->mccdigit3);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <MNC digit 2>%u</MNC digit 2>\n", plmnlist->mncdigit2);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <MNC digit 1>%u</MNC digit 1>\n", plmnlist->mncdigit1);
+  OAILOG_DEBUG(LOG_NAS, "    <MCC digit 2>%u</MCC digit 2>\n",
+               plmnlist->mccdigit2);
+  OAILOG_DEBUG(LOG_NAS, "    <MCC digit 1>%u</MCC digit 1>\n",
+               plmnlist->mccdigit1);
+  OAILOG_DEBUG(LOG_NAS, "    <MNC digit 3>%u</MNC digit 3>\n",
+               plmnlist->mncdigit3);
+  OAILOG_DEBUG(LOG_NAS, "    <MCC digit 3>%u</MCC digit 3>\n",
+               plmnlist->mccdigit3);
+  OAILOG_DEBUG(LOG_NAS, "    <MNC digit 2>%u</MNC digit 2>\n",
+               plmnlist->mncdigit2);
+  OAILOG_DEBUG(LOG_NAS, "    <MNC digit 1>%u</MNC digit 1>\n",
+               plmnlist->mncdigit1);
   OAILOG_DEBUG(LOG_NAS, "</Plmn List>\n");
 }
