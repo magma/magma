@@ -1262,6 +1262,8 @@ status_code_e send_tau_accept_with_eps_bearer_ctx_status(
                  "id " MME_UE_S1AP_ID_FMT " \n",
                  ue_context->mme_ue_s1ap_id);
 
+  // Reset tau_accept_eps_ber_cntx_status stored in ue_context
+  ue_context->tau_accept_eps_ber_cntx_status = 0;
   increment_counter("tracking_area_update_req", 1, 1, "result", "success");
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }

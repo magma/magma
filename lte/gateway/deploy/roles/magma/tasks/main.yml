@@ -441,12 +441,21 @@
       - lld
 
 # TODO: preburn this
-- name: Install clang-format-11 c/c++ formatting tooling
+- name: Install requirements for VSCode <-> Bazel integration
   retries: 5
   apt:
     state: latest
     pkg:
-      - clang-format-11
+      - clangd-12
+      - lld
+
+# TODO: preburn this
+- name: Create a symlink for clangd
+  file:
+    src: '/usr/bin/clangd-12'
+    path: '/usr/bin/clangd'
+    state: link
+    force: yes
 
 # TODO: this can be removed once the role below is preburned
 - name: Remove all links for clang-format
