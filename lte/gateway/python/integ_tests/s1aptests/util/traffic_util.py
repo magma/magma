@@ -59,6 +59,9 @@ class TrafficUtil(object):
     # Trfgen library setup
     _trfgen_lib_name = "libtrfgen.so"
     _trfgen_tests = ()
+    # This is set to True if the data traffic fails with some error
+    # and leaving behind running iperf3 server(s) in TRF server VM
+    need_to_close_iperf3_server = False
 
     # Traffic setup
     _remote_ip = ipaddress.IPv4Address("192.168.129.42")
@@ -133,6 +136,15 @@ class TrafficUtil(object):
             return False
         return True
 
+    def close_running_iperf_servers(self):
+        """ Close Running Iperf3 Servers in TRF server VM """
+        ret_code = self.exec_command(
+            "pidof iperf3 && pidof iperf3 | xargs sudo kill -9",
+        )
+        if ret_code != 0:
+            return False
+        return True
+
     def _init_lib(self):
         """ Initialize the trfgen library by loading in binary compiled from C
         """
@@ -179,6 +191,10 @@ class TrafficUtil(object):
         """ Cleanup the dll loaded explicitly so the next run doesn't reuse the
         same globals as ctypes LoadLibrary uses dlopen under the covers """
         # self._test_lib.dlclose(self._test_lib._handle)
+        if TrafficUtil.need_to_close_iperf3_server:
+            print("Closing all the running Iperf3 servers in TRF Server VM")
+            if not self.close_running_iperf_servers():
+                print("Failed to stop running iperf servers in TRF Server VM")
         self._test_lib = None
         self._data = None
 
@@ -380,20 +396,23 @@ class TrafficTest(object):
         # wiped in a later operation. Basically, render tests immune to later
         # operations after the test has started.
         with self._test_lock:
-            instances = copy.deepcopy(self._instances)
+            self.instances = copy.deepcopy(self._instances)
             test_ids = copy.deepcopy(self._test_ids)
 
         try:
             # Set up sockets and associated streams
-            sc = socket.create_connection(self._remote_server)
-            sc_in = sc.makefile('rb')
-            sc_out = sc.makefile('wb')
+            self.sc = socket.create_connection(self._remote_server)
+            self.sc_in = self.sc.makefile('rb')
+            self.sc_out = self.sc.makefile('wb')
+            # Setting timeout 5 sec less than maximum runtime for verify
+            # function to run properly
+            self.sc.settimeout(TRAFFIC_TEST_TIMEOUT_SEC-5)
 
             # Flush all the addresses left by previous failed tests
             net_iface_index = TrafficTest._iproute.link_lookup(
                 ifname=TrafficTest._net_iface,
             )[0]
-            for instance in instances:
+            for instance in self.instances:
                 TrafficTest._iproute.flush_addr(
                     index=net_iface_index,
                     address=instance.ip.exploded,
@@ -401,7 +420,7 @@ class TrafficTest(object):
 
             # Set up network ifaces and get UL port assignments for DL
             aliases = ()
-            for instance in instances:
+            for instance in self.instances:
                 aliases += (TrafficTest._iface_up(instance.ip),)
                 if not instance.is_uplink:
                     # Assign a local port for the downlink UE server
@@ -409,22 +428,22 @@ class TrafficTest(object):
 
             # Create and send TEST message
             msg = TrafficRequest(
-                TrafficRequestType.TEST, payload=instances,
+                TrafficRequestType.TEST, payload=self.instances,
             )
-            msg.send(sc_out)
+            msg.send(self.sc_out)
 
             # Receive SERVER message and update test instances
-            msg = TrafficMessage.recv(sc_in)
+            msg = TrafficMessage.recv(self.sc_in)
             assert msg.message is TrafficResponseType.SERVER
             r_id = msg.id  # Remote server test identifier
             server_instances = msg.payload  # (TrafficServerInstance, ...)
 
             # Locally keep references to arguments passed into trfgen
-            args = [None] * len(instances)
+            args = [None] * len(self.instances)
 
             # Post-SERVER, pre-START logic
-            for i in range(len(instances)):
-                instance = instances[i]
+            for i in range(len(self.instances)):
+                instance = self.instances[i]
                 server_instance = server_instances[i]
 
                 # Add ip network route
@@ -458,16 +477,16 @@ class TrafficTest(object):
             msg = TrafficRequest(
                 TrafficRequestType.START, identifier=r_id,
             )
-            msg.send(sc_out)
+            msg.send(self.sc_out)
 
             # Wait for STARTED response
-            msg = TrafficMessage.recv(sc_in)
+            msg = TrafficMessage.recv(self.sc_in)
             assert msg.message is TrafficResponseType.STARTED
             assert msg.id == r_id
 
             # Post-STARTED, pre-RESULTS logic
-            for i in range(len(instances)):
-                instance = instances[i]
+            for i in range(len(self.instances)):
+                instance = self.instances[i]
                 if instance.is_uplink:
                     args[i] = self._run_test(
                         test_ids[i], server_instances[i].ip, instance.ip,
@@ -475,36 +494,22 @@ class TrafficTest(object):
                     )
 
             # Wait for RESULTS message
-            msg = TrafficMessage.recv(sc_in)
+            msg = TrafficMessage.recv(self.sc_in)
             assert msg.message is TrafficResponseType.RESULTS
             assert msg.id == r_id
             results = msg.payload
 
-            # Signal to end connection
-            msg = TrafficRequest(TrafficRequestType.EXIT)
-            msg.send(sc_out)
-
-            # Close out network ifaces
-            net_iface_index = TrafficTest._iproute.link_lookup(
-                ifname=TrafficTest._net_iface,
-            )[0]
-            # For some reason the first call to flush this address flushes all
-            # the addresses brought up during testing. But subsequent flushes
-            # do nothing if the address doesn't exist
-            for instance in instances:
-                TrafficTest._iproute.flush_addr(
-                    index=net_iface_index,
-                    address=instance.ip.exploded,
-                )
-            # Do socket cleanup
-            sc_in.close()
-            sc_out.close()
-            sc.shutdown(socket.SHUT_RDWR)  # Ensures safe socket closure
-            sc.close()
+            # Call cleanup to close network interfaces and open sockets
+            self.cleanup()
 
             # Cache results after cleanup
             with self._test_lock:
                 self._results = results
+
+        except Exception  as e:
+            print("Running iperf data failed. Error: " + str(e))
+            TrafficUtil.need_to_close_iperf3_server = True
+            self.cleanup()
         finally:
             # Signal that we're done
             self._done.set()
@@ -581,6 +586,10 @@ class TrafficTest(object):
         self.wait()
         with self._test_lock:
             if not isinstance(self.results, tuple):
+                if not self._done.is_set():
+                    TrafficUtil.need_to_close_iperf3_server = True
+                    self._done.set()
+                    self.cleanup()
                 raise RuntimeError(
                     'Cached results object is not a tuple : {}'.format(
                         self.results,
@@ -592,6 +601,7 @@ class TrafficTest(object):
                         'Cached results are not iperf3.TestResult objects',
                     )
                 if result.error:
+                    TrafficUtil.need_to_close_iperf3_server = True
                     # iPerf dumps out-of-order packet information on stderr,
                     # ignore these while verifying the test results
                     if "OUT OF ORDER" not in result.error:
@@ -600,3 +610,26 @@ class TrafficTest(object):
     def wait(self):
         ''' Wait for this test to complete '''
         self._done.wait(timeout=TRAFFIC_TEST_TIMEOUT_SEC)
+
+    def cleanup(self):
+        # Signal to end connection
+        msg = TrafficRequest(TrafficRequestType.EXIT)
+        msg.send(self.sc_out)
+
+        # Close out network ifaces
+        net_iface_index = TrafficTest._iproute.link_lookup(
+            ifname=TrafficTest._net_iface,
+        )[0]
+        # For some reason the first call to flush this address flushes all
+        # the addresses brought up during testing. But subsequent flushes
+        # do nothing if the address doesn't exist
+        for instance in self.instances:
+            TrafficTest._iproute.flush_addr(
+                index=net_iface_index,
+                address=instance.ip.exploded,
+            )
+        # Do socket cleanup
+        self.sc_in.close()
+        self.sc_out.close()
+        self.sc.shutdown(socket.SHUT_RDWR)  # Ensures safe socket closure
+        self.sc.close()
