@@ -241,6 +241,8 @@ class NgapStateConverterTest : public testing::Test {
     amf_config_free(&amf_config);
     state = NULL;
     imsi_map = NULL;
+    gNB_ref = NULL;
+    ue_ref = NULL;
   }
 
   // This Function mocks NGAP task TearDown.
@@ -250,6 +252,8 @@ class NgapStateConverterTest : public testing::Test {
     amf_config_free(&amf_config);
     state = NULL;
     imsi_map = NULL;
+    gNB_ref = NULL;
+    ue_ref = NULL;
   }
 
   // This Function mocks NGAP task Setup.
@@ -268,6 +272,8 @@ class NgapStateConverterTest : public testing::Test {
 
   ngap_state_t* state = NULL;
   ngap_imsi_map_t* imsi_map = NULL;
+  gnb_description_t* gNB_ref = NULL;
+  m5g_ue_description_t* ue_ref = NULL;
   const unsigned int AMF_UE_NGAP_ID = 0x05;
   const unsigned int gNB_UE_NGAP_ID = 0x09;
   bool is_task_state_same = false;
@@ -325,8 +331,6 @@ TEST_F(NgapStateConverterTest, TestAfterSctpAssociation) {
             RETURNok);
 
   Ngap_InitialUEMessage_t* container;
-  gnb_description_t* gNB_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
 
   container =
       &(decoded_pdu.choice.initiatingMessage.value.choice.InitialUEMessage);
@@ -354,6 +358,24 @@ TEST_F(NgapStateConverterTest, TestAfterSctpAssociation) {
   // Check if UE is pointing to invalid ID if it is initial ue message
   EXPECT_EQ(ue_ref->amf_ue_ngap_id, INVALID_AMF_UE_NGAP_ID);
 
+  itti_amf_app_ngap_amf_ue_id_notification_t notification_p;
+  memset(&notification_p, 0,
+         sizeof(itti_amf_app_ngap_amf_ue_id_notification_t));
+  notification_p.gnb_ue_ngap_id = gnb_ue_ngap_id;
+  notification_p.amf_ue_ngap_id = 1;
+  notification_p.sctp_assoc_id = gNB_ref->sctp_assoc_id;
+  comp_ngap_id = ngap_get_comp_ngap_id(notification_p.sctp_assoc_id,
+                                       notification_p.gnb_ue_ngap_id);
+
+  ngap_handle_amf_ue_id_notification(state, &notification_p);
+
+  // Check for UE associated with gNB
+  ue_ref = ngap_state_get_ue_gnbid(gNB_ref->sctp_assoc_id, gnb_ue_ngap_id);
+  ASSERT_TRUE(ue_ref != NULL);
+
+  // Check if UE is pointing to amf_ue_ngap_id
+  EXPECT_EQ(ue_ref->amf_ue_ngap_id, 1);
+
   MessageDef* message_p = NULL;
   bstring buffer;
   unsigned int len = sizeof(dl_nas_auth_req_msg) / sizeof(unsigned char);
@@ -373,17 +395,6 @@ TEST_F(NgapStateConverterTest, TestAfterSctpAssociation) {
                 &NGAP_NAS_DL_DATA_REQ(message_p).nas_msg,
                 message_p->ittiMsgHeader.imsi),
             RETURNok);
-
-  itti_amf_app_ngap_amf_ue_id_notification_t notification_p;
-  memset(&notification_p, 0,
-         sizeof(itti_amf_app_ngap_amf_ue_id_notification_t));
-  notification_p.gnb_ue_ngap_id = gnb_ue_ngap_id;
-  notification_p.amf_ue_ngap_id = ue_ref->amf_ue_ngap_id;
-  notification_p.sctp_assoc_id = gNB_ref->sctp_assoc_id;
-  comp_ngap_id = ngap_get_comp_ngap_id(notification_p.sctp_assoc_id,
-                                       notification_p.gnb_ue_ngap_id);
-
-  ngap_handle_amf_ue_id_notification(state, &notification_p);
 
   NGAPClientServicer::getInstance().map_ngap_state_proto_str.clear();
   NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.clear();
@@ -438,28 +449,17 @@ TEST_F(NgapStateConverterTest, TestAfterSctpAssociation) {
 
   NgapStateConverterTest::PseudoNgapSetup();
 
-  gnb_description_t* get_gNB_ref = NULL;
   // Check if gNB exists
-  get_gNB_ref = ngap_state_get_gnb(state, peerInfo.assoc_id);
-  ASSERT_TRUE(get_gNB_ref != NULL);
+  gNB_ref = ngap_state_get_gnb(state, peerInfo.assoc_id);
+  ASSERT_TRUE(gNB_ref != NULL);
 
   EXPECT_NE(state, nullptr);
   EXPECT_NE(imsi_map, nullptr);
+
+  // Only state->gnbs hashtable will sync in this test case
   EXPECT_EQ(hashtable_ts_is_key_exists(
                 &state->gnbs, (const hash_key_t)gNB_ref->sctp_assoc_id),
             HASH_TABLE_OK);
-  EXPECT_EQ(
-      hashtable_ts_is_key_exists(&state->amfid2associd,
-                                 (const hash_key_t)ue_ref->amf_ue_ngap_id),
-      HASH_TABLE_OK);
-  EXPECT_EQ(
-      hashtable_uint64_ts_is_key_exists(
-          &get_gNB_ref->ue_id_coll, (const hash_key_t)ue_ref->amf_ue_ngap_id),
-      HASH_TABLE_OK);
-  EXPECT_EQ(hashtable_uint64_ts_is_key_exists(
-                imsi_map->amf_ue_id_imsi_htbl,
-                (const hash_key_t)ue_ref->amf_ue_ngap_id),
-            HASH_TABLE_KEY_NOT_EXISTS);
 
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
   itti_free_msg_content(message_p);
@@ -502,8 +502,6 @@ TEST_F(NgapStateConverterTest, TestNgapServiceRestart) {
             RETURNok);
 
   Ngap_InitialUEMessage_t* container;
-  gnb_description_t* gNB_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
 
   container =
       &(decoded_pdu.choice.initiatingMessage.value.choice.InitialUEMessage);
@@ -531,6 +529,24 @@ TEST_F(NgapStateConverterTest, TestNgapServiceRestart) {
   // Check if UE is pointing to invalid ID if it is initial ue message
   EXPECT_EQ(ue_ref->amf_ue_ngap_id, INVALID_AMF_UE_NGAP_ID);
 
+  itti_amf_app_ngap_amf_ue_id_notification_t notification_p;
+  memset(&notification_p, 0,
+         sizeof(itti_amf_app_ngap_amf_ue_id_notification_t));
+  notification_p.gnb_ue_ngap_id = gnb_ue_ngap_id;
+  notification_p.amf_ue_ngap_id = 1;
+  notification_p.sctp_assoc_id = gNB_ref->sctp_assoc_id;
+  comp_ngap_id = ngap_get_comp_ngap_id(notification_p.sctp_assoc_id,
+                                       notification_p.gnb_ue_ngap_id);
+
+  ngap_handle_amf_ue_id_notification(state, &notification_p);
+
+  // Check for UE associated with gNB
+  ue_ref = ngap_state_get_ue_gnbid(gNB_ref->sctp_assoc_id, gnb_ue_ngap_id);
+  ASSERT_TRUE(ue_ref != NULL);
+
+  // Check if UE is pointing to amf_ue_ngap_id
+  EXPECT_EQ(ue_ref->amf_ue_ngap_id, 1);
+
   MessageDef* message_p = NULL;
   bstring buffer;
   unsigned int len = sizeof(dl_nas_auth_req_msg) / sizeof(unsigned char);
@@ -550,17 +566,6 @@ TEST_F(NgapStateConverterTest, TestNgapServiceRestart) {
                 &NGAP_NAS_DL_DATA_REQ(message_p).nas_msg,
                 message_p->ittiMsgHeader.imsi),
             RETURNok);
-
-  itti_amf_app_ngap_amf_ue_id_notification_t notification_p;
-  memset(&notification_p, 0,
-         sizeof(itti_amf_app_ngap_amf_ue_id_notification_t));
-  notification_p.gnb_ue_ngap_id = gnb_ue_ngap_id;
-  notification_p.amf_ue_ngap_id = ue_ref->amf_ue_ngap_id;
-  notification_p.sctp_assoc_id = gNB_ref->sctp_assoc_id;
-  comp_ngap_id = ngap_get_comp_ngap_id(notification_p.sctp_assoc_id,
-                                       notification_p.gnb_ue_ngap_id);
-
-  ngap_handle_amf_ue_id_notification(state, &notification_p);
 
   NGAPClientServicer::getInstance().map_ngap_state_proto_str.clear();
   NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.clear();
@@ -615,10 +620,16 @@ TEST_F(NgapStateConverterTest, TestNgapServiceRestart) {
 
   NgapStateConverterTest::PseudoNgapSetup();
 
-  gnb_description_t* get_gNB_ref = NULL;
   // Check if gNB exists
-  get_gNB_ref = ngap_state_get_gnb(state, peerInfo.assoc_id);
-  ASSERT_TRUE(get_gNB_ref != NULL);
+  gNB_ref = ngap_state_get_gnb(state, peerInfo.assoc_id);
+  ASSERT_TRUE(gNB_ref != NULL);
+
+  // Check for UE associated with gNB
+  ue_ref = ngap_state_get_ue_gnbid(gNB_ref->sctp_assoc_id, gnb_ue_ngap_id);
+  ASSERT_TRUE(ue_ref != NULL);
+
+  // Check if UE is pointing to amf_ue_ngap_id
+  EXPECT_EQ(ue_ref->amf_ue_ngap_id, 1);
 
   EXPECT_NE(state, nullptr);
   EXPECT_NE(imsi_map, nullptr);
@@ -629,10 +640,9 @@ TEST_F(NgapStateConverterTest, TestNgapServiceRestart) {
       hashtable_ts_is_key_exists(&state->amfid2associd,
                                  (const hash_key_t)ue_ref->amf_ue_ngap_id),
       HASH_TABLE_OK);
-  EXPECT_EQ(
-      hashtable_uint64_ts_is_key_exists(
-          &get_gNB_ref->ue_id_coll, (const hash_key_t)ue_ref->amf_ue_ngap_id),
-      HASH_TABLE_OK);
+  EXPECT_EQ(hashtable_uint64_ts_is_key_exists(
+                &gNB_ref->ue_id_coll, (const hash_key_t)ue_ref->amf_ue_ngap_id),
+            HASH_TABLE_OK);
   EXPECT_EQ(hashtable_uint64_ts_is_key_exists(
                 imsi_map->amf_ue_id_imsi_htbl,
                 (const hash_key_t)ue_ref->amf_ue_ngap_id),
