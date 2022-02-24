@@ -355,13 +355,25 @@ cpp_grpc_library(
 )
 
 proto_library(
+    name = "diam_errors_proto",
+    srcs = ["diam_errors.proto"],
+)
+
+cpp_proto_library(
+    name = "diam_errors_cpp_proto",
+    protos = [":diam_errors_proto"],
+)
+
+proto_library(
     name = "subscriberauth_proto",
     srcs = ["subscriberauth.proto"],
+    deps = [":diam_errors_proto"],
 )
 
 cpp_proto_library(
     name = "subscriberauth_cpp_proto",
     protos = [":subscriberauth_proto"],
+    deps = [":diam_errors_cpp_proto"],
 )
 
 cpp_grpc_library(
