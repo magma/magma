@@ -18,32 +18,13 @@ ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
 LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
-DEPS = [
-    "//lte/protos:mconfigs_python_proto",
-    "//lte/protos:policydb_python_proto",
-    "//orc8r/gateway/python/magma/common:sentry",
-    "//orc8r/gateway/python/magma/configuration:service_configs",
-    "//orc8r/protos:mconfigs_python_proto",
-    "//orc8r/gateway/python/magma/common:service",
-    "//orc8r/protos:metricsd_python_proto",
-    "//orc8r/protos:eventd_python_grpc",
-    "//orc8r/protos:mconfig_python_proto",
-    "//orc8r/protos:service303_python_grpc",
-    "//orc8r/gateway/python/magma/common/redis:client",
-    requirement("grpcio"),
-    requirement("wsgiserver"),
-    requirement("flask"),
-]
-
-SRCS = [
-    "main.py",
-    "redirect_server.py",
-    "redirect_store.py",
-]
-
 py_binary(
     name = "redirectd",
-    srcs = SRCS,
+    srcs = [
+        "main.py",
+        "redirect_server.py",
+        "redirect_store.py",
+    ],
     data = [
         "templates/404.html",
         "templates/layout.html",
@@ -57,5 +38,20 @@ py_binary(
     main = "main.py",
     python_version = "PY3",
     visibility = ["//visibility:public"],
-    deps = DEPS,
+    deps = [
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:policydb_python_proto",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+        "//orc8r/gateway/python/magma/common/redis:client",
+        "//orc8r/gateway/python/magma/configuration:service_configs",
+        "//orc8r/protos:eventd_python_grpc",
+        "//orc8r/protos:mconfig_python_proto",
+        "//orc8r/protos:mconfigs_python_proto",
+        "//orc8r/protos:metricsd_python_proto",
+        "//orc8r/protos:service303_python_grpc",
+        requirement("grpcio"),
+        requirement("wsgiserver"),
+        requirement("flask"),
+    ],
 )

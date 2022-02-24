@@ -25,24 +25,13 @@ ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
 LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
-DEPS = [
-    "//orc8r/gateway/python/magma/common:sentry",
-    "//orc8r/gateway/python/magma/common:service",
-    "//orc8r/gateway/python/magma/common:rpc_utils",
-    "//lte/swagger:lte_swagger_specs",
-    "//orc8r/swagger:orc8r_swagger_specs",
-    requirement("bravado_core"),
-]
-
-SRCS = [
-    "main.py",
-    "event_validator.py",
-    "rpc_servicer.py",
-]
-
 py_binary(
     name = "eventd",
-    srcs = SRCS,
+    srcs = [
+        "event_validator.py",
+        "main.py",
+        "rpc_servicer.py",
+    ],
     imports = [
         LTE_ROOT,
         ORC8R_ROOT,
@@ -52,5 +41,12 @@ py_binary(
     main = "main.py",
     python_version = "PY3",
     visibility = ["//visibility:public"],
-    deps = DEPS,
+    deps = [
+        "//lte/swagger:lte_swagger_specs",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+        "//orc8r/swagger:orc8r_swagger_specs",
+        requirement("bravado_core"),
+    ],
 )
