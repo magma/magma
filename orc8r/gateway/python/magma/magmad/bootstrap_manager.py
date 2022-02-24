@@ -185,7 +185,7 @@ class BootstrapManager(SDWatchdogTask):
         try:
             chan = ServiceRegistry.get_bootstrap_rpc_channel()
         except ValueError as exp:
-            logging.error('Failed to get rpc channel: %s', exp)
+            logging.error('Failed to get rpc channel: %s', exp, extra=EXCLUDE_FROM_ERROR_MONITORING)
             self._schedule_next_bootstrap(hard_failure=False)
             return
 
@@ -263,7 +263,7 @@ class BootstrapManager(SDWatchdogTask):
         try:
             chan = ServiceRegistry.get_bootstrap_rpc_channel()
         except ValueError as exp:
-            logging.error('Failed to get rpc channel: %s', exp)
+            logging.error('Failed to get rpc channel: %s', exp, extra=EXCLUDE_FROM_ERROR_MONITORING)
             BOOTSTRAP_EXCEPTION.labels(cause='RequestSignGetRPC').inc()
             self._schedule_next_bootstrap(hard_failure=False)
             return
