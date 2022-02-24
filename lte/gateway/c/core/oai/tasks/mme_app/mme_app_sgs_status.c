@@ -156,8 +156,8 @@ status_code_e mme_app_handle_sgs_status_message(
                      "Received SGS Error Status message for"
                      "SERVICE_REQUEST for MT CS call \n");
         if (!ue_context_p->sgs_context->mt_call_in_progress) {
-          ue_context_p->sgs_context->call_cancelled = true;
-          OAILOG_DEBUG(LOG_MME_APP, "Setting Call Cancelled flag to true \n");
+          ue_context_p->sgs_context->call_canceled = true;
+          OAILOG_DEBUG(LOG_MME_APP, "Setting Call Canceled flag to true \n");
         } else {
           OAILOG_INFO(LOG_MME_APP,
                       "Can not abort MT call, as MT call is"

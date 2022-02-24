@@ -75,6 +75,13 @@
         "ids": [
           "feg/architecture_overview"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Domain Proxy",
+        "ids": [
+          "dp/architecture_overview"
+        ]
       }
     ],
     "Deploy": [
@@ -120,6 +127,13 @@
           "feg/deploy_intro",
           "feg/deploy_build",
           "feg/deploy_install"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Domain Proxy",
+        "ids": [
+          "dp/deploy_build"
         ]
       }
     ],
@@ -232,6 +246,13 @@
         "ids": [
           "nms/alerts_troubleshooting"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Domain Proxy",
+        "ids": [
+          "dp/debug_logs"
+        ]
       }
     ],
     "Contribute": [
@@ -295,6 +316,7 @@
           "orc8r/dev_security",
           "orc8r/dev_indexers",
           "orc8r/dev_sub_digests",
+          "orc8r/dev_token_security",
           "orc8r/dev_dependencies",
           "orc8r/dev_aws_stack"
         ]

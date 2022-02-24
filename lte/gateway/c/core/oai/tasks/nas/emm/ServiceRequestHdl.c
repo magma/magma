@@ -92,10 +92,6 @@ static int emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause)
   emm_context_t* emm_ctx = emm_context_get(&_emm_data, ue_id);
   emm_sap_t emm_sap = {0};
 
-  OAILOG_WARNING(LOG_NAS_EMM,
-                 "EMM-PROC- Sending Service Reject. ue_id=" MME_UE_S1AP_ID_FMT
-                 ", cause=%d)\n",
-                 ue_id, emm_cause);
   /*
    * Notify EMM-AS SAP that Service Reject message has to be sent
    * onto the network
@@ -111,9 +107,19 @@ static int emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause)
    * Setup EPS NAS security data
    */
   if (emm_ctx) {
+    OAILOG_WARNING_UE(
+        LOG_NAS_EMM, emm_ctx->_imsi64,
+        "EMM-PROC- Sending Service Reject. ue_id=" MME_UE_S1AP_ID_FMT
+        ", cause=%d)\n",
+        ue_id, emm_cause);
     emm_as_set_security_data(&emm_sap.u.emm_as.u.establish.sctx,
                              &emm_ctx->_security, false, false);
   } else {
+    OAILOG_WARNING(
+        LOG_NAS_EMM,
+        "EMM-PROC- Sending Service Reject. No EMM context for the UE. "
+        "ue_id=" MME_UE_S1AP_ID_FMT ", cause=%d)\n",
+        ue_id, emm_cause);
     emm_as_set_security_data(&emm_sap.u.emm_as.u.establish.sctx, NULL, false,
                              false);
   }
@@ -138,23 +144,25 @@ status_code_e emm_proc_extended_service_request(
   int rc = RETURNok;
   emm_context_t* emm_ctx = NULL;
 
-  OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMM-PROC- Extended Service Request for the UE (ue_id=" MME_UE_S1AP_ID_FMT
-      ") \n",
-      ue_id);
   /*
    * Get the UE context
    */
   emm_ctx = emm_context_get(&_emm_data, ue_id);
 
   if (!emm_ctx) {
-    OAILOG_WARNING(LOG_NAS_EMM,
-                   "No EMM context exists for the UE (ue_id=" MME_UE_S1AP_ID_FMT
-                   ") \n",
-                   ue_id);
+    OAILOG_WARNING(
+        LOG_NAS_EMM,
+        "EMM-PROC- Extended Service Request, No EMM context exists for the UE "
+        "(ue_id=" MME_UE_S1AP_ID_FMT ") \n",
+        ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
+
+  OAILOG_INFO_UE(
+      LOG_NAS_EMM, emm_ctx->_imsi64,
+      "EMM-PROC- Extended Service Request for the UE (ue_id=" MME_UE_S1AP_ID_FMT
+      ") \n",
+      ue_id);
 
   /*
    * if CSFB Response is recieved for MT CSFB as accepted by ue,
@@ -207,21 +215,6 @@ status_code_e emm_recv_initial_ext_service_request(
   emm_context_t* emm_ctx = NULL;
   emm_sap_t emm_sap = {0};
 
-  OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMM-PROC- Extended Service Request for the UE (ue_id=" MME_UE_S1AP_ID_FMT
-      ") \n",
-      ue_id);
-  OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - Received Extended Service Request message, Security context "
-      "%s"
-      "Integrity protected %s MAC matched %s Ciphered %s\n",
-      (decode_status->security_context_available) ? "yes" : "no",
-      (decode_status->integrity_protected_message) ? "yes" : "no",
-      (decode_status->mac_matched) ? "yes" : "no",
-      (decode_status->ciphered_message) ? "yes" : "no");
-
   /*
    * Get the UE context
    */
@@ -229,11 +222,27 @@ status_code_e emm_recv_initial_ext_service_request(
 
   if (!emm_ctx) {
     OAILOG_WARNING(LOG_NAS_EMM,
-                   "No EMM context exists for the UE (ue_id=" MME_UE_S1AP_ID_FMT
+                   "EMM-PROC- Extended Service Request received but no EMM "
+                   "context exists for the UE (ue_id=" MME_UE_S1AP_ID_FMT
                    ") \n",
                    ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
+
+  OAILOG_INFO_UE(
+      LOG_NAS_EMM, emm_ctx->_imsi64,
+      "EMM-PROC- Extended Service Request for the UE (ue_id=" MME_UE_S1AP_ID_FMT
+      ") \n",
+      ue_id);
+  OAILOG_INFO_UE(
+      LOG_NAS_EMM, emm_ctx->_imsi64,
+      "EMMAS-SAP - Received Extended Service Request message, Security context "
+      "%s"
+      "Integrity protected %s MAC matched %s Ciphered %s\n",
+      (decode_status->security_context_available) ? "yes" : "no",
+      (decode_status->integrity_protected_message) ? "yes" : "no",
+      (decode_status->mac_matched) ? "yes" : "no",
+      (decode_status->ciphered_message) ? "yes" : "no");
 
   if (msg->servicetype == MO_CS_FB) {
     /* neaf flag is true*/

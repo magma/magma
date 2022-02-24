@@ -83,9 +83,9 @@ typedef enum additional_updt_s {
 } additional_updt_t;
 
 typedef enum additional_updt_result_s {
-  ADDITONAL_UPDT_RES_NO_ADDITIONAL_INFO = 0,
-  ADDITONAL_UPDT_RESCSFB_NOT_PREFERRED = 1,
-  ADDITONAL_UPDT_RES_SMS_ONLY = 2,
+  ADDITIONAL_UPDT_RES_NO_ADDITIONAL_INFO = 0,
+  ADDITIONAL_UPDT_RESCSFB_NOT_PREFERRED = 1,
+  ADDITIONAL_UPDT_RES_SMS_ONLY = 2,
 } additional_updt_result_t;
 
 typedef enum ongoing_procedure_s {

@@ -15,16 +15,16 @@
 #define grpc_async_service_TASK_C
 
 #include <thread>
-#include "includes/MagmaService.h"
-#include "grpc_async_service_task.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
+#include "lte/gateway/c/core/oai/tasks/async_grpc_service/grpc_async_service_task.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "assertions.h"
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "log.h"
-#include "s6a_service_handler.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/s6a_service_handler.h"
 #ifdef __cplusplus
 }
 #endif

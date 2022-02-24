@@ -10,7 +10,6 @@ from magma.db_service.models import (
 )
 from magma.db_service.session_manager import Session
 from magma.db_service.tests.local_db_test_case import LocalDBTestCase
-from magma.mappings.types import RequestTypes
 from parameterized import parameterized
 
 REQUEST_PROCESSING_LIMIT = 10
@@ -32,14 +31,11 @@ class RegistrationDBConsumerTestCase(LocalDBTestCase):
 
     def test_get_pending_requests_retrieves_pending_requests_only(self):
         # Given
-        req_type_name = "someRequest"
         consumer = RequestDBConsumer(
-            req_type_name, request_processing_limit=REQUEST_PROCESSING_LIMIT,
+            "someRequest", request_processing_limit=REQUEST_PROCESSING_LIMIT,
         )
 
-        self._prepare_two_pending_and_one_processed_request(
-            req_type_name=req_type_name,
-        )
+        self._prepare_two_pending_and_one_processed_request()
 
         # When
         reqs = consumer.get_pending_requests(self.session)
@@ -65,14 +61,11 @@ class RegistrationDBConsumerTestCase(LocalDBTestCase):
         config.REQUEST_PROCESSING_LIMIT = max_batch_size
         session1 = Session(bind=self.engine)
         session2 = Session(bind=self.engine)
-        req_type_name = "someRequest"
 
         consumer = RequestDBConsumer(
-            req_type_name, request_processing_limit=config.REQUEST_PROCESSING_LIMIT,
+            "someRequest", request_processing_limit=config.REQUEST_PROCESSING_LIMIT,
         )
-        self._prepare_two_pending_and_one_processed_request(
-            req_type_name=req_type_name,
-        )
+        self._prepare_two_pending_and_one_processed_request()
 
         # When
         reqs1 = consumer.get_pending_requests(session1)
@@ -94,61 +87,7 @@ class RegistrationDBConsumerTestCase(LocalDBTestCase):
         session1.close()
         session2.close()
 
-    @parameterized.expand([
-        RequestTypes.REGISTRATION.value,
-        RequestTypes.SPECTRUM_INQUIRY.value,
-        RequestTypes.GRANT.value,
-        RequestTypes.HEARTBEAT.value,
-        RequestTypes.RELINQUISHMENT.value,
-    ])
-    def test_get_pending_requests_return_empty_list_when_cbsd_is_deleted_non_dereg(self, req_type_name):
-        """
-        This test tests if get_pending_requests does not pick up non-deregistration pending requests
-        when CBSD entity is marked for deletion
-        """
-        # Given
-        consumer = RequestDBConsumer(
-            req_type_name, request_processing_limit=REQUEST_PROCESSING_LIMIT,
-        )
-
-        self._prepare_two_pending_and_one_processed_request(
-            req_type_name=req_type_name,
-            is_cbsd_deleted=True,
-        )
-
-        # When
-        reqs = consumer.get_pending_requests(self.session)
-
-        # Then
-        self.assertEqual(0, len(list(reqs.values())[0]))
-
-    def test_get_pending_requests_return_non_empty_list_when_cbsd_is_deleted_dereg(self):
-        """
-        When CBSD is marked for deletion, deregistration requests should be picked up
-        by get_pending_requests
-        """
-        # Given
-        req_type_name = RequestTypes.DEREGISTRATION.value
-        consumer = RequestDBConsumer(
-            req_type_name, request_processing_limit=REQUEST_PROCESSING_LIMIT,
-        )
-
-        self._prepare_two_pending_and_one_processed_request(
-            req_type_name=req_type_name,
-            is_cbsd_deleted=True,
-        )
-
-        # When
-        reqs = consumer.get_pending_requests(self.session)
-
-        # Then
-        self.assertEqual(2, len(list(reqs.values())[0]))
-
-    def _prepare_two_pending_and_one_processed_request(
-        self,
-        req_type_name,
-        is_cbsd_deleted=False,
-    ):
+    def _prepare_two_pending_and_one_processed_request(self):
         test_state = DBCbsdState(name="test_state")
         cbsds = []
         for i in range(1, 4):
@@ -160,10 +99,9 @@ class RegistrationDBConsumerTestCase(LocalDBTestCase):
                     user_id="test_user",
                     fcc_id=f"test_fcc_id{i}",
                     cbsd_serial_number=f"test_serial_nr{i}",
-                    is_deleted=is_cbsd_deleted,
                 ),
             )
-        req_type = DBRequestType(name=req_type_name)
+        req_type = DBRequestType(name="someRequest")
         pending_status = DBRequestState(name="pending")
         processed_status = DBRequestState(name="processed")
         req1 = DBRequest(

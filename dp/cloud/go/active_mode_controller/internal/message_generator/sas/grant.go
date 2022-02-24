@@ -12,8 +12,7 @@ func NewGrantRequestGenerator() *grantRequestGenerator {
 	return &grantRequestGenerator{}
 }
 
-func (*grantRequestGenerator) GenerateRequests(config *active_mode.ActiveModeConfig) []*Request {
-	cbsd := config.GetCbsd()
+func (*grantRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Request {
 	operationParam := chooseSuitableChannel(cbsd.GetChannels(), cbsd.GetEirpCapabilities())
 	if operationParam == nil {
 		return nil

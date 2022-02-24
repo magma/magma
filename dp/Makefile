@@ -163,7 +163,7 @@ _ci_integration_tests_no_orc8r: _install_skaffold_ci _contour_install
 	kubectl wait --for=condition=complete --timeout=10m job/test-runner-job & \
 	kubectl wait --for=condition=failed --timeout=10m job/test-runner-job & \
 	wait -n 1 2
-	kubectl logs -l type=integration-tests
+	kubectl logs -l type=integration-tests | tee /tmp/$@.txt
 	@set -e;\
 	SUCCESS=$$(kubectl get jobs test-runner-job -o jsonpath='{.status.succeeded}');\
 	if [[ -z $$SUCCESS ]]; then SUCCESS=0; fi; \
@@ -176,6 +176,7 @@ _ci_integration_tests_orc8r: _install_skaffold_ci _contour_install
 	kubectl wait --for=condition=complete --timeout=10m job/test-runner-job-orc8r & \
 	kubectl wait --for=condition=failed --timeout=10m job/test-runner-job-orc8r & \
 	wait -n 1 2
+	kubectl logs -l type=integration-tests | tee /tmp/$@.txt
 	@set -e;\
 	SUCCESS=$$(kubectl get jobs test-runner-job-orc8r -o jsonpath='{.status.succeeded}');\
 	if [[ -z $$SUCCESS ]]; then SUCCESS=0; fi; \

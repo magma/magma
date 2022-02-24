@@ -31,6 +31,8 @@ class Status;
 
 namespace magma {
 
+using lte::SMOUplinkUnitdata;
+
 SMSOrc8rClient& SMSOrc8rClient::get_instance() {
   static SMSOrc8rClient client_instance;
   return client_instance;
@@ -51,7 +53,7 @@ void SMSOrc8rClient::send_uplink_unitdata(
     std::function<void(grpc::Status, Void)> callback) {
   SMSOrc8rClient& client = get_instance();
   SMOUplinkUnitdata proto_msg =
-      convert_itti_sgsap_uplink_unitdata_to_proto_msg(msg);
+      convert_itti_sgsap_uplink_unitdata_to_smo_proto_msg(msg);
   auto local_response =
       new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
   auto response_reader = client.stub_->AsyncSMOUplink(

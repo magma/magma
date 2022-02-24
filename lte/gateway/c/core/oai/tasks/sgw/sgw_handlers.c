@@ -329,7 +329,7 @@ status_code_e sgw_handle_sgi_endpoint_created(
       AssertFatal(eps_bearer_ctxt_p, "ERROR UNABLE TO GET EPS BEARER ENTRY\n");
       AssertFatal(sizeof(eps_bearer_ctxt_p->paa) ==
                       sizeof(create_session_response_p->paa),
-                  "Mismatch in lengths");  // sceptic mode
+                  "Mismatch in lengths");  // skeptic mode
       memcpy(&create_session_response_p->paa, &eps_bearer_ctxt_p->paa,
              sizeof(paa_t));
       copy_protocol_configuration_options(&create_session_response_p->pco,

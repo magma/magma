@@ -37,7 +37,7 @@ extern "C" {
 namespace magma {
 using namespace lte;
 
-SMOUplinkUnitdata convert_itti_sgsap_uplink_unitdata_to_proto_msg(
+SMOUplinkUnitdata convert_itti_sgsap_uplink_unitdata_to_smo_proto_msg(
     const itti_sgsap_uplink_unitdata_t* msg) {
   SMOUplinkUnitdata ret;
   ret.Clear();

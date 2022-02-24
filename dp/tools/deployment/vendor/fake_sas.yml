@@ -54,6 +54,5 @@ spec:
     - name: https
       port: 443
       targetPort: 9000
-      nodePort: 30443
   selector:
     app: fake-sas

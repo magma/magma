@@ -472,18 +472,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: DoozyX/clang-format-lint-action@v0.13
+      - name: Check clang-format for orc8r/gateway/c
+        uses: DoozyX/clang-format-lint-action@v0.13
         with:
           source: 'orc8r/gateway/c'
           extensions: 'h,hpp,c,cpp'
           clangFormatVersion: 11.1.0
-          style: '{BasedOnStyle: Google, IncludeBlocks: Preserve, SortIncludes: false}'
-      - uses: DoozyX/clang-format-lint-action@v0.13
+          # taken from .clang-format
+          style: file
+      - name: Check clang-format for lte/gateway/c
+        uses: DoozyX/clang-format-lint-action@v0.13
         with:
           source: 'lte/gateway/c'
           extensions: 'h,hpp,c,cpp'
           clangFormatVersion: 11.1.0
-          style: '{BasedOnStyle: Google, IncludeBlocks: Preserve, SortIncludes: false}'
+          # taken from .clang-format
+          style: file
 
   session_manager_test:
     needs: path_filter

@@ -8,16 +8,14 @@ import (
 )
 
 func TestRelinquishmentRequestGenerator(t *testing.T) {
-	config := &active_mode.ActiveModeConfig{
-		Cbsd: &active_mode.Cbsd{
-			Id: "some_id",
-			Grants: []*active_mode.Grant{{
-				Id: "some_grant_id",
-			}},
-		},
+	cbsd := &active_mode.Cbsd{
+		Id: "some_id",
+		Grants: []*active_mode.Grant{{
+			Id: "some_grant_id",
+		}},
 	}
 	g := sas.NewRelinquishmentRequestGenerator()
-	actual := g.GenerateRequests(config)
+	actual := g.GenerateRequests(cbsd)
 	expected := []*request{{
 		requestType: "relinquishmentRequest",
 		data: `{

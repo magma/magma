@@ -13,6 +13,13 @@
 #include <string.h>
 #include <cstring>
 #include <cstdint>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationResponseParameter.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -27,25 +34,17 @@ int AuthenticationResponseParameterMsg::
         uint8_t* buffer, uint32_t len) {
   uint32_t decoded = 0;
 
-  MLOG(MDEBUG) << "Decoding Authentication Response Parameter IE";
-
   if (iei > 0) {
     CHECK_IEI_DECODER(iei, *buffer);
     response_parameter->iei = *(buffer + decoded);
-    MLOG(MDEBUG) << " ElementID : " << std::hex << int(response_parameter->iei);
     decoded++;
   }
   response_parameter->length = *(buffer + decoded);
-  MLOG(MDEBUG) << " Length : " << std::dec << int(response_parameter->length);
   decoded++;
   response_parameter->response_parameter[0] = 0;
   for (int i = 0; i < (int)(response_parameter->length); i++) {
     response_parameter->response_parameter[i] = *(buffer + decoded);
     decoded++;
-  }
-  for (int i = 0; i < (int)(response_parameter->length); i++) {
-    MLOG(MDEBUG) << " RES : " << std::hex
-                 << int(response_parameter->response_parameter[i]);
   }
   return (decoded);
 };
@@ -64,8 +63,6 @@ int AuthenticationResponseParameterMsg::
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char)iei, response_parameter->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "In EncodeAuthenticationResponseParameterMsg: iei"
-                 << std::hex << int(*buffer) << std::endl;
     encoded++;
   } else {
     return 0;
@@ -75,8 +72,6 @@ int AuthenticationResponseParameterMsg::
   encoded++;
   std::copy(response_parameter->response_parameter.begin(),
             response_parameter->response_parameter.end(), buffer + encoded);
-  BUFFER_PRINT_LOG(buffer + encoded,
-                   response_parameter->response_parameter.length());
   encoded = encoded + response_parameter->response_parameter.length();
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
 #endif

@@ -89,7 +89,7 @@ void mme_app_update_granted_service_for_ue(ue_mm_context_t* ue_context) {
   }
   if (ue_context->granted_service == GRANTED_SERVICE_SMS_ONLY) {
     ue_context->emm_context.csfbparams.additional_updt_res =
-        ADDITONAL_UPDT_RES_SMS_ONLY;
+        ADDITIONAL_UPDT_RES_SMS_ONLY;
     ue_context->emm_context.csfbparams.presencemask |= ADD_UPDATE_TYPE;
   }
   mme_config_unlock(&mme_config);
@@ -337,7 +337,7 @@ static status_code_e handle_cs_domain_loc_updt_acc(
   // Additional Update type
   if (ue_context_p->granted_service == GRANTED_SERVICE_SMS_ONLY) {
     emm_ctx_p->csfbparams.presencemask |= ADD_UPDATE_TYPE;
-    emm_ctx_p->csfbparams.additional_updt_res = ADDITONAL_UPDT_RES_SMS_ONLY;
+    emm_ctx_p->csfbparams.additional_updt_res = ADDITIONAL_UPDT_RES_SMS_ONLY;
   }
   // Send Attach Accept/TAU Accept
   rc = emm_send_cs_domain_attach_or_tau_accept(ue_context_p);
@@ -1030,7 +1030,7 @@ status_code_e mme_app_create_sgs_context(ue_mm_context_t* ue_context_p) {
   ue_context_p->sgs_context->ts13_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->sgs_context->ts13_timer.msec = mme_config.sgs_config.ts13_msec;
   ue_context_p->sgs_context->ts13_retransmission_count = 0;
-  ue_context_p->sgs_context->call_cancelled = false;
+  ue_context_p->sgs_context->call_canceled = false;
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 

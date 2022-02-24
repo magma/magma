@@ -1131,7 +1131,7 @@ paths:
         schema:
           $ref: '#/definitions/cbsd'
       responses:
-        "201":
+        "204":
           description: Success
         default:
           $ref: '#/responses/UnexpectedError'
