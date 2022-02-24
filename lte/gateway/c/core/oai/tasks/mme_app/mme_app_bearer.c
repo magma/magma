@@ -1739,7 +1739,7 @@ void mme_app_handle_initial_context_setup_rsp(
 void mme_app_update_stats_for_all_bearers(struct ue_mm_context_s* ue_context_p,
                                           pdn_context_t* pdn_contexts) {
   for (uint8_t bidx = 0; bidx < BEARERS_PER_UE; bidx++) {
-    if (ue_context_p->bearer_contexts[pdn_contexts->bearer_contexts[bidx]]) {
+    if ( (pdn_contexts->bearer_contexts[bidx] != -1) && (ue_context_p->bearer_contexts[pdn_contexts->bearer_contexts[bidx]])) {
       // Updating statistics for all the active bearers
       update_mme_app_stats_s1u_bearer_sub();
     }
