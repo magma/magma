@@ -817,6 +817,7 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionAmbr) {
       magma::lte::M5GQosInformationRequest_BitrateUnitsAMBR_KBPS);
   rsp->mutable_subscribed_qos()->set_apn_ambr_ul(10000);
   rsp->mutable_subscribed_qos()->set_apn_ambr_dl(20000);
+
   EXPECT_CALL(*amf_srv_client,
               handle_response_to_access(CheckSrvResponse(&expected_response)))
       .Times(1);

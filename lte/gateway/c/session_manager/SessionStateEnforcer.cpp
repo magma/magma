@@ -584,6 +584,28 @@ void SessionStateEnforcer::m5g_process_response_from_upf(
   }
 }
 
+void SessionStateEnforcer::set_subscribed_qos(
+    const SessionState& session_state,
+    magma::SetSMSessionContextAccess* response) {
+  const auto& config = session_state.get_config();
+  auto* rsp = response->mutable_rat_specific_context()
+                  ->mutable_m5g_session_context_rsp();
+
+  const auto& subscribed_qos =
+      config.rat_specific_context.m5gsm_session_context().subscribed_qos();
+  rsp->mutable_subscribed_qos()->set_br_unit(subscribed_qos.br_unit());
+  rsp->mutable_subscribed_qos()->set_apn_ambr_ul(subscribed_qos.apn_ambr_ul());
+  rsp->mutable_subscribed_qos()->set_apn_ambr_dl(subscribed_qos.apn_ambr_dl());
+  rsp->mutable_subscribed_qos()->set_priority_level(
+      subscribed_qos.priority_level());
+  rsp->mutable_subscribed_qos()->set_preemption_capability(
+      subscribed_qos.preemption_capability());
+  rsp->mutable_subscribed_qos()->set_preemption_vulnerability(
+      subscribed_qos.preemption_vulnerability());
+  rsp->mutable_subscribed_qos()->set_qos_class_id(
+      subscribed_qos.qos_class_id());
+}
+
 /* To prepare response back to AMF
  * Fill the response structure from session context message
  * and call rpc of AmfServiceClient.
@@ -644,40 +666,13 @@ void SessionStateEnforcer::prepare_response_to_access(
       rsp->mutable_qos()->CopyFrom(val.rule.qos());
     }
   }
-  /* AMBR value need to compared from AMF and PCF, then fill the required
-   * values and sent to AMF. Otherwise sessiond will set default AMBR info.
+  /* AMF fetches the mandatory subscriberd_qos information from subscriberdb
+   * and send to sessiond. If there are any subscriberd_qos information sessiond
+   * will send back to AMF, Otherwise sessiond will set default AMBR info.
    */
   if (config.rat_specific_context.m5gsm_session_context()
           .has_subscribed_qos()) {
-    rsp->mutable_subscribed_qos()->set_br_unit(
-        config.rat_specific_context.m5gsm_session_context()
-            .subscribed_qos()
-            .br_unit());
-    rsp->mutable_subscribed_qos()->set_apn_ambr_ul(
-        config.rat_specific_context.m5gsm_session_context()
-            .subscribed_qos()
-            .apn_ambr_ul());
-    rsp->mutable_subscribed_qos()->set_apn_ambr_dl(
-        config.rat_specific_context.m5gsm_session_context()
-            .subscribed_qos()
-            .apn_ambr_dl());
-    rsp->mutable_subscribed_qos()->set_priority_level(
-        config.rat_specific_context.m5gsm_session_context()
-            .subscribed_qos()
-            .priority_level());
-    rsp->mutable_subscribed_qos()->set_preemption_capability(
-        config.rat_specific_context.m5gsm_session_context()
-            .subscribed_qos()
-            .preemption_capability());
-    rsp->mutable_subscribed_qos()->set_preemption_vulnerability(
-        config.rat_specific_context.m5gsm_session_context()
-            .subscribed_qos()
-            .preemption_vulnerability());
-    rsp->mutable_subscribed_qos()->set_qos_class_id(
-        config.rat_specific_context.m5gsm_session_context()
-            .subscribed_qos()
-            .qos_class_id());
-
+    set_subscribed_qos(session_state, &response);
   } else {
     auto* convg_subscribed_qos = rsp->mutable_subscribed_qos();
     convg_subscribed_qos->set_qos_class_id(QCI_9);
