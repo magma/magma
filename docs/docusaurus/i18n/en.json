@@ -216,6 +216,9 @@
       "lte/HIL_AGW_tests": {
         "title": "Hardware In Loop Testing"
       },
+      "lte/integrated_5G_sa": {
+        "title": "Integrated 5G SA"
+      },
       "lte/ipfix": {
         "title": "Magma IPFIX Support"
       },
@@ -497,6 +500,9 @@
       },
       "proposals/p024_magma_settlement_service": {
         "title": "proposals/p024_magma_settlement_service"
+      },
+      "proposals/p026_magma_inbound_roaming_extentions": {
+        "title": "proposals/p026_magma_inbound_roaming_extentions"
       },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
