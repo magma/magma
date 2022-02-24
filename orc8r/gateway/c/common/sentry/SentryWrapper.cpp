@@ -36,7 +36,7 @@
 #define SHARED_MCONFIG "shared_mconfig"
 #define SHOULD_UPLOAD_MME_LOG "sentry_upload_mme_log"
 #define MME_LOG_PATH "/var/log/mme.log"
-#define JOURNAL_LOG_PATH "/var/log/magma_services.log"
+#define JOURNAL_LOG_PATH "/var/log/journal.log"
 #define SNOWFLAKE_PATH "/etc/snowflake"
 #define HWID "hwid"
 #define HOSTNAME "hostname"
@@ -56,6 +56,8 @@ sentry_config_t construct_sentry_config_from_mconfig() {
                mconfig.sentry_config().dsn_native().c_str(),
                MAX_URL_LENGTH - 1);
   configuration.url_native[MAX_URL_LENGTH - 1] = '\0';
+  configuration.number_of_lines_in_log =
+      mconfig.sentry_config().number_of_lines_in_log();
   return configuration;
 }
 
@@ -117,9 +119,11 @@ std::string get_snowflake() {
 }
 
 static sentry_value_t before_send(sentry_value_t event, void* hint,
-                                  void* data) {
-  std::string command = "journalctl -u magma@* -n 1000 > ";
-  command.append(JOURNAL_LOG_PATH);
+                                  void* number_of_lines) {
+  int _number_of_lines = *((int*)(&number_of_lines));
+  std::string command = "journalctl -u magma@* -u sctpd -n " +
+                        std::to_string(_number_of_lines) + " > " +
+                        JOURNAL_LOG_PATH;
   system(command.c_str());
   return event;
 }
@@ -147,8 +151,12 @@ void initialize_sentry(const char* service_tag,
                             control_proxy_config)) {
     sentry_options_add_attachment(options, MME_LOG_PATH);
   }
-  sentry_options_set_before_send(options, before_send, NULL);
-  sentry_options_add_attachment(options, JOURNAL_LOG_PATH);
+  if (sentry_config->number_of_lines_in_log > 0) {
+    sentry_options_set_before_send(
+        options, before_send,
+        (void*)(intptr_t)sentry_config->number_of_lines_in_log);
+    sentry_options_add_attachment(options, JOURNAL_LOG_PATH);
+  }
   if (sentry_config->add_debug_logging) {
     sentry_options_set_debug(options, 1);
   }
