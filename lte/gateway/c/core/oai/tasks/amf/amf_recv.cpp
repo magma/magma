@@ -256,6 +256,30 @@ int amf_copy_plmn_to_context(const ImsiM5GSMobileIdentity& imsi,
   return RETURNok;
 }
 
+void amf_get_registration_type_request(
+    uint8_t received_reg_type, amf_proc_registration_type_t* params_reg_type) {
+  std::string reg_type;
+
+  if (received_reg_type == AMF_REGISTRATION_TYPE_INITIAL) {
+    reg_type = "INITIAL REGISTRATION TYPE";
+  } else if (received_reg_type == AMF_REGISTRATION_TYPE_MOBILITY_UPDATING) {
+    reg_type = "MOBILITY UPDATING REGISTRATION TYPE";
+  } else if (received_reg_type == AMF_REGISTRATION_TYPE_PERIODIC_UPDATING) {
+    reg_type = "PERIODIC UPDATING REGISTRATION TYPE";
+  } else if (received_reg_type == AMF_REGISTRATION_TYPE_EMERGENCY) {
+    reg_type = "EMERGENCY TYPE REGISTRATION";
+  } else if (received_reg_type == AMF_REGISTRATION_TYPE_RESERVED) {
+    reg_type = "RESERVED REGISTRATION TYPE";
+  } else {
+    reg_type = "UNKNOWN REGISTRATION TYPE";
+  }
+
+  *params_reg_type =
+      static_cast<amf_proc_registration_type_t>(received_reg_type);
+
+  OAILOG_INFO(LOG_AMF_APP, "Received registration type %s", reg_type.c_str());
+}
+
 /* Identifies 5GS Registration type and processes the Message accordingly */
 int amf_handle_registration_request(
     amf_ue_ngap_id_t ue_id, tai_t* originating_tai, ecgi_t* originating_ecgi,
@@ -275,37 +299,32 @@ int amf_handle_registration_request(
     rc = amf_proc_registration_reject(ue_id, amf_cause);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
-  amf_registration_request_ies_t* params =
-      new (amf_registration_request_ies_t)();
-  /*
-   * Message processing
-   */
-  /*
-   * Get the 5GS Registration type
-   */
-  params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_RESERVED;
-  if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_INITIAL) {
-    params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_INITIAL;
-  } else if (msg->m5gs_reg_type.type_val ==
-             AMF_REGISTRATION_TYPE_MOBILITY_UPDATING) {
-    params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_MOBILITY_UPDATING;
-  } else if (msg->m5gs_reg_type.type_val ==
-             AMF_REGISTRATION_TYPE_PERIODIC_UPDATING) {
-    params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_PERIODIC_UPDATING;
-  } else if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_EMERGENCY) {
-    params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_EMERGENCY;
-  } else if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_RESERVED) {
-    params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_RESERVED;
-  } else {
-    params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_INITIAL;
+
+  // Get the 5GS Registration type
+  amf_proc_registration_type_t m5gsregistrationtype =
+      AMF_REGISTRATION_TYPE_RESERVED;
+
+  amf_get_registration_type_request(msg->m5gs_reg_type.type_val,
+                                    &m5gsregistrationtype);
+
+  if (m5gsregistrationtype > AMF_REGISTRATION_TYPE_PERIODIC_UPDATING) {
+    OAILOG_ERROR(LOG_AMF_APP, "Registration type not supported \n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
 
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_context == NULL) {
     OAILOG_ERROR(LOG_AMF_APP,
                  "UE context is null for UE ID: " AMF_UE_NGAP_ID_FMT, ue_id);
-    return RETURNerror;
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
+
+  amf_registration_request_ies_t* params =
+      new (amf_registration_request_ies_t)();
+
+  // Store the registration type in params
+  params->m5gsregistrationtype = m5gsregistrationtype;
+
   // Save the UE Security Capability into AMF's UE Context
   memcpy(&(ue_context->amf_context.ue_sec_capability),
          &(msg->ue_sec_capability), sizeof(UESecurityCapabilityMsg));
@@ -314,7 +333,11 @@ int amf_handle_registration_request(
 
   ue_context->amf_context.decode_status = decode_status;
 
-  if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_INITIAL) {
+  // If registration type is initial registration or
+  // Context is new and registration type is mobile updating start registration
+  if ((params->m5gsregistrationtype == AMF_REGISTRATION_TYPE_INITIAL) ||
+      ((is_amf_ctx_new == true) && (params->m5gsregistrationtype ==
+                                    AMF_REGISTRATION_TYPE_MOBILITY_UPDATING))) {
     OAILOG_DEBUG(LOG_NAS_AMF, "New REGISTRATION_REQUEST processing\n");
     // Check integrity and ciphering algorithm bits
     // If all bits are zero it means integrity and ciphering algorithms are not
@@ -457,9 +480,8 @@ int amf_handle_registration_request(
       params->guti = new (guti_m5_t)();
       ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_GUTI;
     }
-  }  // end of AMF_REGISTRATION_TYPE_INITIAL
-
-  if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_PERIODIC_UPDATING) {
+  } else if (params->m5gsregistrationtype ==
+             AMF_REGISTRATION_TYPE_PERIODIC_UPDATING) {
     /*
      * This request for periodic registration update
      * For registered UE, is_amf_ctx_new = False
@@ -526,10 +548,11 @@ int amf_handle_registration_request(
           LOG_AMF_APP,
           "UE context was not existing or UE identity type is not GUTI "
           "Periodic Registration Update failed and sending reject message\n");
-      // TODO Implement Reject message
-      return RETURNerror;
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
     }
-  }  // end of AMF_REGISTRATION_TYPE_PERIODIC_UPDATING
+  } else {
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
 
   params->decode_status = decode_status;
   /*

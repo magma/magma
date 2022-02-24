@@ -487,16 +487,13 @@ int amf_smf_process_pdu_session_packet(amf_ue_ngap_id_t ue_id,
       amf_smf_msg.u.establish.gnb_gtp_teid =
           smf_ctx->gtp_tunnel_id.gnb_gtp_teid;
 
-      // Initialize DNN
-      char* default_dnn = bstr2cstr(amf_config.default_dnn, '?');
-
       int index_dnn = 0;
       bool ue_sent_dnn = true;
       std::string dnn_string;
 
       if (msg->dnn.len <= 1) {
         ue_sent_dnn = false;
-        dnn_string = default_dnn;
+        dnn_string.assign(bdata(amf_config.default_dnn));
       } else {
         dnn_string.assign(reinterpret_cast<char*>(msg->dnn.dnn),
                           msg->dnn.len - 1);
@@ -504,7 +501,6 @@ int amf_smf_process_pdu_session_packet(amf_ue_ngap_id_t ue_id,
 
       int validate = amf_validate_dnn(&ue_context->amf_context, dnn_string,
                                       &index_dnn, ue_sent_dnn);
-      free(default_dnn);
 
       if (validate == RETURNok) {
         smf_dnn_ambr_select(smf_ctx, ue_context, index_dnn);
@@ -833,8 +829,8 @@ int amf_smf_handle_ip_address_response(
                                                   response_p->pdu_session_id);
   if (NULL == smf_ctx) {
     OAILOG_ERROR(LOG_AMF_APP,
-                 "Smf Context not found for pdu session id: [%s] \n",
-                 reinterpret_cast<char*>(response_p->pdu_session_id));
+                 "Smf Context not found for pdu session id: [%u] \n",
+                 response_p->pdu_session_id);
     return rc;
   }
 
