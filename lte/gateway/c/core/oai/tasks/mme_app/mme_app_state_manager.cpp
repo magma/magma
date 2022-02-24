@@ -219,10 +219,11 @@ status_code_e MmeNasStateManager::read_ue_state_from_db() {
     for (const auto& key : keys) {
       OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
       oai::UeContext ue_proto = oai::UeContext();
-      auto* ue_context = (ue_mm_context_t*)(calloc(1, sizeof(ue_mm_context_t)));
       if (redis_client->read_proto(key, ue_proto) != RETURNok) {
         return RETURNerror;
       }
+      auto* ue_context = reinterpret_cast<ue_mm_context_t*>(
+          calloc(1, sizeof(ue_mm_context_t)));
       MmeNasStateConverter::proto_to_ue(ue_proto, ue_context);
 
       hashtable_rc_t h_rc = hashtable_ts_insert(
