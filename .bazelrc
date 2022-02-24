@@ -9,7 +9,6 @@ build:production --config=lsan --compilation_mode=dbg --strip=never --copt=-O3
 
 # C/C++ CONFIGS
 build --cxxopt=-std=c++14
-build --cxxopt=-DLOG_WITH_GLOG=1
 build --experimental_strict_action_env
 
 # MAGMA VM CONFIGS
