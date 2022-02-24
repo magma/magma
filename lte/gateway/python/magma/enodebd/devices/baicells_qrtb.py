@@ -15,7 +15,11 @@ from typing import Any, Callable, Dict, List, Optional
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult
 from magma.common.service import MagmaService
 from magma.enodebd.data_models import transform_for_magma
-from magma.enodebd.data_models.data_model import DataModel, TrParam
+from magma.enodebd.data_models.data_model import (
+    DataModel,
+    InvalidTrParamPath,
+    TrParam,
+)
 from magma.enodebd.data_models.data_model_parameters import (
     ParameterName,
     TrParameterType,
@@ -46,6 +50,7 @@ from magma.enodebd.state_machines.enb_acs_states import (
     AcsReadMsgResult,
     AddObjectsState,
     DeleteObjectsState,
+    EnbSendDownloadState,
     EnbSendRebootState,
     EnodebAcsState,
     ErrorState,
@@ -54,6 +59,7 @@ from magma.enodebd.state_machines.enb_acs_states import (
     NotifyDPState,
     SendGetTransientParametersState,
     SetParameterValuesState,
+    WaitDownloadResponseState,
     WaitEmptyMessageState,
     WaitGetObjectParametersState,
     WaitGetParametersState,
@@ -86,6 +92,22 @@ class BaicellsQRTBHandler(BasicEnodebAcsStateMachine):
         Transition to 'reboot' state
         """
         self.transition('reboot')
+
+    def download_asap(
+        self, url: str, user_name: str, password: str, target_file_name: str, file_size: int,
+        md5: str,
+    ) -> None:
+        """
+        Transition to 'download' state
+        """
+        if url is not None:
+            self.desired_cfg.set_parameter(ParameterName.DOWNLOAD_URL, url)
+            self.desired_cfg.set_parameter(ParameterName.DOWNLOAD_USER, user_name)
+            self.desired_cfg.set_parameter(ParameterName.DOWNLOAD_PASSWORD, password)
+            self.desired_cfg.set_parameter(ParameterName.DOWNLOAD_FILENAME, target_file_name)
+            self.desired_cfg.set_parameter(ParameterName.DOWNLOAD_FILESIZE, file_size)
+            self.desired_cfg.set_parameter(ParameterName.DOWNLOAD_MD5, md5)
+        self.transition('download')
 
     def is_enodeb_connected(self) -> bool:
         """
@@ -147,6 +169,13 @@ class BaicellsQRTBHandler(BasicEnodebAcsStateMachine):
             ),
             'wait_inform_post_reboot': WaitInformState(self, when_done='wait_empty_post_reboot', when_boot=None),
             'wait_empty_post_reboot': WaitEmptyMessageState(
+                self, when_done='get_transient_params',
+                when_missing='check_optional_params',
+            ),
+            'download': EnbSendDownloadState(self, when_done='wait_download'),
+            'wait_download': WaitDownloadResponseState(self, when_done='wait_inform_post_download'),
+            'wait_inform_post_download': WaitInformState(self, when_done='wait_empty_post_download', when_boot=None),
+            'wait_empty_post_download': WaitEmptyMessageState(
                 self, when_done='get_transient_params',
                 when_missing='check_optional_params',
             ),
@@ -576,6 +605,25 @@ class BaicellsQRTBTrDataModel(DataModel):
             path=DEVICE_PATH + 'DeviceInfo.SAS.RadioEnable', is_invasive=False,
             type=TrParameterType.BOOLEAN, is_optional=False,
         ),
+        # download params that don't have tr69 representation.
+        ParameterName.DOWNLOAD_URL: TrParam(
+            InvalidTrParamPath, False, TrParameterType.STRING, False,
+        ),
+        ParameterName.DOWNLOAD_USER: TrParam(
+            InvalidTrParamPath, False, TrParameterType.STRING, False,
+        ),
+        ParameterName.DOWNLOAD_PASSWORD: TrParam(
+            InvalidTrParamPath, False, TrParameterType.STRING, False,
+        ),
+        ParameterName.DOWNLOAD_FILENAME: TrParam(
+            InvalidTrParamPath, False, TrParameterType.STRING, False,
+        ),
+        ParameterName.DOWNLOAD_FILESIZE: TrParam(
+            InvalidTrParamPath, False, TrParameterType.UNSIGNED_INT, False,
+        ),
+        ParameterName.DOWNLOAD_MD5: TrParam(
+            InvalidTrParamPath, False, TrParameterType.STRING, False,
+        ),
     }
 
     NUM_PLMNS_IN_CONFIG = 6
@@ -668,8 +716,9 @@ class BaicellsQRTBTrDataModel(DataModel):
         ]
         names = list(
             filter(
-                lambda x: (not str(x).startswith('PLMN')) and (str(x) not in excluded_params),
-                cls.PARAMETERS.keys(),
+                lambda x: (not str(x).startswith('PLMN')) and (not str(x).startswith('Download')) and (
+                    str(x) not in excluded_params
+                ), cls.PARAMETERS.keys(),
             ),
         )
         return names

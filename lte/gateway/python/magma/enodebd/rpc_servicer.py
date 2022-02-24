@@ -16,6 +16,8 @@ from typing import Any
 import grpc
 from lte.protos.enodebd_pb2 import (
     AllEnodebStatus,
+    DownloadRequest,
+    DownloadResponse,
     EnodebIdentity,
     GetParameterRequest,
     GetParameterResponse,
@@ -150,6 +152,29 @@ class EnodebdRpcServicer(EnodebdServicer):
         for enb_serial in serial_list:
             handler = self._get_handler(enb_serial)
             handler.reboot_asap()
+
+    def Download(self, request: DownloadRequest, context: Any) -> DownloadResponse:
+        """ Download file and upgrade the eNodeB """
+        print_grpc(
+            Void(), self._print_grpc_payload,
+            "Download Request:",
+        )
+        url = request.url
+        user_name = request.user_name
+        password = request.password
+        target_file_name = request.target_file_name
+        file_size = int(request.file_size)
+        md5 = request.md5
+        download_resp = DownloadResponse()
+        handler = self._get_handler(request.device_serial)
+        handler.download_asap(
+            url=url, user_name=user_name, password=password, target_file_name=target_file_name,
+            file_size=file_size, md5=md5,
+        )
+        download_resp.status = 0
+        download_resp.start_time = ''
+        download_resp.complete_time = ''
+        return download_resp
 
     def GetStatus(self, _=None, context=None) -> ServiceStatus:
         """

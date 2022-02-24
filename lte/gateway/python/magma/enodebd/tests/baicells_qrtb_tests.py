@@ -336,6 +336,47 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
                 value, acs_state_machine.desired_cfg.get_parameter(param),
             )
 
+    def test_manual_download(self) -> None:
+        """
+        Test a scenario where a Magma user goes through the enodebd CLI to
+        download&upgrade the BAICELLS_RTS eNodeB.
+        """
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QRTB)
+
+        acs_state_machine.desired_cfg = EnodebConfiguration(acs_state_machine.data_model)
+
+        # User uses the CLI tool to get eNodeB to download
+        acs_state_machine.download_asap('test', 'test', 'test', 'test.IMG', 10000, 'ca4afd4a2dc1e8667c016d86b1f70fea')
+
+        # And now the Inform message arrives from the eNodeB
+        inform_msg = \
+            Tr069MessageBuilder.get_qrtb_inform(
+                params=DEFAULT_INFORM_PARAMS,
+                oui='48BF74',
+                enb_serial='1202000181186TB0006',
+                event_codes=['2 PERIODIC'],
+            )
+        resp = acs_state_machine.handle_tr069_message(inform_msg)
+        self.assertTrue(
+            isinstance(resp, models.InformResponse),
+            'In download sequence, state machine should still '
+            'respond to an Inform with InformResponse.',
+        )
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(
+            isinstance(resp, models.Download),
+            'In download sequence, state machine should send a '
+            'Download message.',
+        )
+        req = Tr069MessageBuilder.get_download_response()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(
+            isinstance(resp, models.DummyInput),
+            'State machine should end TR-069 session after '
+            'receiving a DownloadResponse',
+        )
+
     def test_manual_reboot(self) -> None:
         """
         Test a scenario where a Magma user goes through the enodebd CLI to

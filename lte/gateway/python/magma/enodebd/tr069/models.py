@@ -294,6 +294,7 @@ class Download(Tr069ComplexModel):
     _type_info["DelaySeconds"] = UnsignedInteger
     _type_info["SuccessURL"] = String(max_length=256)
     _type_info["FailureURL"] = String(max_length=256)
+    _type_info["Md5"] = CommandKeyType
 
 
 class DownloadResponse(Tr069ComplexModel):
@@ -421,6 +422,7 @@ class AcsToCpeRequests(Tr069ComplexModel):
     _type_info["DelaySeconds"] = UnsignedInteger
     _type_info["SuccessURL"] = String(max_length=256)
     _type_info["FailureURL"] = String(max_length=256)
+    _type_info["Md5"] = CommandKeyType
 
     # Fields for Reboot
     # _type_info["CommandKey"] = CommandKeyType - Already covered above
