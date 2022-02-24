@@ -19,23 +19,7 @@
 #define MDEBUG 4
 
 // GLOG LOGGING
-#ifdef LOG_WITH_GLOG
 #include <glog/logging.h>
 
 #define MLOG(VERBOSITY) VLOG(VERBOSITY)
 #define MLOG_IF(VERBOSITY, CONDITION) VLOG_IF(VERBOSITY, CONDITION)
-
-#endif
-
-// NON GLOG LOGGING
-#ifndef LOG_WITH_GLOG
-#include <iostream>
-
-// for non glog use cases, just log to std cout
-struct _MLOG_NEWLINE {
-  ~_MLOG_NEWLINE() { std::cout << std::endl; }
-};
-#define MLOG(VERBOSITY) \
-  (_MLOG_NEWLINE(), std::cout << "[" << __FILE__ << ":" << __LINE__ << "] ")
-
-#endif
