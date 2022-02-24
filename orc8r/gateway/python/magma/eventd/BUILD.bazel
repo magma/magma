@@ -19,9 +19,11 @@ py_library(
     deps = ["//orc8r/protos:eventd_python_grpc"],
 )
 
-ORC8R_ROOT = "../../"
+MAGMA_ROOT = "../../../../../"
 
-LTE_ROOT = ORC8R_ROOT + "../../../lte/gateway/python"
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 DEPS = [
     "//orc8r/gateway/python/magma/common:sentry",

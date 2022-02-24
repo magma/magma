@@ -11,7 +11,9 @@
 
 load("//bazel:python_test.bzl", "pytest_test")
 
-LTE_ROOT = "../../../../"
+MAGMA_ROOT = "../../../../../../../"
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 COMMON_TEST_DEPS = [
     "//lte/gateway/python/magma/subscriberdb:sid",

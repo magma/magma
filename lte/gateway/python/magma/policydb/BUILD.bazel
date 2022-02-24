@@ -11,9 +11,11 @@
 
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
-LTE_ROOT = "../../"
+MAGMA_ROOT = "../../../../../"
 
-ORC8R_ROOT = LTE_ROOT + "../../../orc8r/gateway/python"
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 DEPS = [
     "//lte/protos:mconfigs_python_proto",

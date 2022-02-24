@@ -11,7 +11,9 @@
 
 load("@rules_python//python:defs.bzl", "py_library")
 
-ORC8R_ROOT = "../../../"
+MAGMA_ROOT = "../../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
 py_library(
     name = "subprocess_workflow",
