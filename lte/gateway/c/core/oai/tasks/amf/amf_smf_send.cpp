@@ -591,6 +591,11 @@ void smf_dnn_ambr_select(const std::shared_ptr<smf_context_t>& smf_ctx,
       &ue_context->amf_context.apn_config_profile.apn_configuration[index_dnn]
            .ambr,
       sizeof(ambr_t));
+  memcpy(
+      &smf_ctx->subscribed_qos,
+      &ue_context->amf_context.apn_config_profile.apn_configuration[index_dnn]
+           .subscribed_qos,
+      sizeof(eps_subscribed_qos_profile_t));
 }
 /***************************************************************************
 **                                                                        **
@@ -848,11 +853,12 @@ int amf_smf_handle_ip_address_response(
 
       inet_ntop(AF_INET, &(response_p->paa.ipv4_address.s_addr), ip_v4_str,
                 INET_ADDRSTRLEN);
+
       rc = amf_smf_create_session_req(
           response_p->imsi, response_p->apn, response_p->pdu_session_id,
           response_p->pdu_session_type, response_p->gnb_gtp_teid,
           response_p->pti, response_p->gnb_gtp_teid_ip_addr, ip_v4_str, NULL,
-          smf_ctx->apn_ambr);
+          smf_ctx->apn_ambr, smf_ctx->subscribed_qos);
 
       if (rc < 0) {
         OAILOG_ERROR(LOG_AMF_APP, "Create IPV4 Session \n");
@@ -868,7 +874,7 @@ int amf_smf_handle_ip_address_response(
           response_p->imsi, response_p->apn, response_p->pdu_session_id,
           response_p->pdu_session_type, response_p->gnb_gtp_teid,
           response_p->pti, response_p->gnb_gtp_teid_ip_addr, NULL, ip_v6_str,
-          smf_ctx->apn_ambr);
+          smf_ctx->apn_ambr, smf_ctx->subscribed_qos);
       if (rc < 0) {
         OAILOG_ERROR(LOG_AMF_APP, "Create IPV6 Session \n");
       }
@@ -888,7 +894,7 @@ int amf_smf_handle_ip_address_response(
           response_p->imsi, response_p->apn, response_p->pdu_session_id,
           response_p->pdu_session_type, response_p->gnb_gtp_teid,
           response_p->pti, response_p->gnb_gtp_teid_ip_addr, ip_v4_str,
-          ip_v6_str, smf_ctx->apn_ambr);
+          ip_v6_str, smf_ctx->apn_ambr, smf_ctx->subscribed_qos);
 
       if (rc < 0) {
         OAILOG_ERROR(LOG_AMF_APP, "Create IPV4V6 Session \n");

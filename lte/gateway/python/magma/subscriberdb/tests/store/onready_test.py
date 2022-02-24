@@ -19,7 +19,6 @@ import unittest
 
 from lte.protos.subscriberdb_pb2 import SubscriberData
 from magma.subscriberdb.sid import SIDUtils
-from magma.subscriberdb.store.cached_store import CachedStore
 from magma.subscriberdb.store.sqlite import SqliteStore
 from orc8r.protos.digest_pb2 import Digest, LeafDigest
 
@@ -30,11 +29,9 @@ class OnReadyMixinTests(unittest.TestCase):
     """
 
     def setUp(self):
-        cache_size = 3
         self.loop = asyncio.new_event_loop()
         self._tmpfile = tempfile.TemporaryDirectory()
-        sqlite = SqliteStore(self._tmpfile.name + '/', loop=self.loop)
-        self._store = CachedStore(sqlite, cache_size, self.loop)
+        self._store = SqliteStore(self._tmpfile.name + '/', loop=self.loop)
 
     def tearDown(self):
         self._tmpfile.cleanup()
@@ -49,9 +46,6 @@ class OnReadyMixinTests(unittest.TestCase):
         Test if subscriber addition triggers ready
         """
         self.assertEqual(self._store._on_ready.event.is_set(), False)
-        self.assertEqual(
-            self._store._persistent_store._on_ready.event.is_set(), False,
-        )
         self._add_subscriber('IMSI11111')
 
         async def defer():
@@ -59,18 +53,12 @@ class OnReadyMixinTests(unittest.TestCase):
         self.loop.run_until_complete(defer())
 
         self.assertEqual(self._store._on_ready.event.is_set(), True)
-        self.assertEqual(
-            self._store._persistent_store._on_ready.event.is_set(), True,
-        )
 
     def test_resync(self):
         """
         Test if resync triggers ready
         """
         self.assertEqual(self._store._on_ready.event.is_set(), False)
-        self.assertEqual(
-            self._store._persistent_store._on_ready.event.is_set(), False,
-        )
         self._store.resync([])
 
         async def defer():
@@ -78,18 +66,12 @@ class OnReadyMixinTests(unittest.TestCase):
         self.loop.run_until_complete(defer())
 
         self.assertEqual(self._store._on_ready.event.is_set(), True)
-        self.assertEqual(
-            self._store._persistent_store._on_ready.event.is_set(), True,
-        )
 
     def test_delete_subscriber(self):
         """
         Test if subscriber deletion triggers ready
         """
         self.assertEqual(self._store._on_ready.event.is_set(), False)
-        self.assertEqual(
-            self._store._persistent_store._on_ready.event.is_set(), False,
-        )
         self._store.delete_subscriber('IMSI11111')
 
         async def defer():
@@ -97,18 +79,12 @@ class OnReadyMixinTests(unittest.TestCase):
         self.loop.run_until_complete(defer())
 
         self.assertEqual(self._store._on_ready.event.is_set(), True)
-        self.assertEqual(
-            self._store._persistent_store._on_ready.event.is_set(), True,
-        )
 
     def test_upsert_subscriber(self):
         """
         Test if subscriber upsertion triggers ready
         """
         self.assertEqual(self._store._on_ready.event.is_set(), False)
-        self.assertEqual(
-            self._store._persistent_store._on_ready.event.is_set(), False,
-        )
         self._store.upsert_subscriber(
             SubscriberData(sid=SIDUtils.to_pb('IMSI1111')),
         )
@@ -118,9 +94,6 @@ class OnReadyMixinTests(unittest.TestCase):
         self.loop.run_until_complete(defer())
 
         self.assertEqual(self._store._on_ready.event.is_set(), True)
-        self.assertEqual(
-            self._store._persistent_store._on_ready.event.is_set(), True,
-        )
 
 
 class OnDigestsReadyMixinTests(unittest.TestCase):

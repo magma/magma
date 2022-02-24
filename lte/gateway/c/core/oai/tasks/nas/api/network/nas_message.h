@@ -123,13 +123,11 @@ status_code_e nas_message_decrypt(const unsigned char* const inbuf,
                                   size_t length, void* security,
                                   nas_message_decode_status_t* status);
 
-status_code_e nas_message_decode(const unsigned char* const buffer,
-                                 nas_message_t* msg, size_t length,
-                                 void* security,
-                                 nas_message_decode_status_t* status);
+int nas_message_decode(const unsigned char* const buffer, nas_message_t* msg,
+                       size_t length, void* security,
+                       nas_message_decode_status_t* status);
 
-status_code_e nas_message_encode(unsigned char* buffer,
-                                 const nas_message_t* const msg, size_t length,
-                                 void* security);
+int nas_message_encode(unsigned char* buffer, const nas_message_t* const msg,
+                       size_t length, void* security);
 
 #endif /* FILE_NAS_MESSAGE_SEEN*/

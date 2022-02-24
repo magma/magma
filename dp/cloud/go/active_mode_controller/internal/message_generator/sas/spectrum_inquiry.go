@@ -8,9 +8,9 @@ func NewSpectrumInquiryRequestGenerator() *spectrumInquiryRequestGenerator {
 	return &spectrumInquiryRequestGenerator{}
 }
 
-func (*spectrumInquiryRequestGenerator) GenerateRequests(config *active_mode.ActiveModeConfig) []*Request {
+func (*spectrumInquiryRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Request {
 	req := &spectrumInquiryRequest{
-		CbsdId: config.GetCbsd().GetId(),
+		CbsdId: cbsd.GetId(),
 		InquiredSpectrum: []*frequencyRange{{
 			LowFrequency:  lowestFrequencyHz,
 			HighFrequency: highestFrequencyHz,

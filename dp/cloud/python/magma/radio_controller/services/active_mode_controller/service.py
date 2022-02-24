@@ -18,10 +18,11 @@ from typing import Optional
 
 import grpc
 from dp.protos.active_mode_pb2 import (
-    ActiveModeConfig,
+    AcknowledgeCbsdUpdateRequest,
     Cbsd,
     Channel,
-    DeleteCbsdResponse,
+    DatabaseCbsd,
+    DeleteCbsdRequest,
     EirpCapabilities,
     FrequencyRange,
     GetStateRequest,
@@ -30,6 +31,7 @@ from dp.protos.active_mode_pb2 import (
     State,
 )
 from dp.protos.active_mode_pb2_grpc import ActiveModeControllerServicer
+from google.protobuf.empty_pb2 import Empty
 from google.protobuf.wrappers_pb2 import FloatValue
 from magma.db_service.models import (
     DBActiveModeConfig,
@@ -77,7 +79,7 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
             logger.info(f"Sending state: {state}")
             return state
 
-    def DeleteCbsd(self, request, context) -> DeleteCbsdResponse:
+    def DeleteCbsd(self, request: DeleteCbsdRequest, context) -> Empty:
         """
         Delete CBSD from the Database
 
@@ -86,19 +88,40 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
             context: gRPC context
 
         Returns:
-            DeleteCbsdResponse: a gRPC DeleteCbsdResponse message
+            Empty: an empty gRPC message
         """
-        serial_number = request.serial_number
-        logger.info(f"Deleting CBSD {serial_number}")
+        db_id = request.id
+        logger.info(f"Deleting CBSD {db_id}")
         with self.session_manager.session_scope() as session:
             deleted = session.query(DBCbsd).filter(
-                DBCbsd.cbsd_serial_number == serial_number,
+                DBCbsd.id == db_id,
             ).delete()
             session.commit()
             if not deleted:
                 context.set_code(grpc.StatusCode.NOT_FOUND)
-                return DeleteCbsdResponse()
-        return DeleteCbsdResponse()
+        return Empty()
+
+    def AcknowledgeCbsdUpdate(self, request: AcknowledgeCbsdUpdateRequest, context) -> Empty:
+        """
+        Mark CBSD in the Database as not updated
+
+        Parameters:
+            request: a AcknowledgeCbsdUpdateRequest gRPC Message
+            context: gRPC context
+
+        Returns:
+            Empty: an empty gRPC message
+        """
+        db_id = request.id
+        logger.info(f"Acknowledging CBSD update {db_id}")
+        with self.session_manager.session_scope() as session:
+            updated = session.query(DBCbsd).filter(
+                DBCbsd.id == db_id,
+            ).update({'is_updated': False})
+            session.commit()
+            if not updated:
+                context.set_code(grpc.StatusCode.NOT_FOUND)
+        return Empty()
 
     def _build_state(self, session: Session) -> State:
         db_grant_idle_state_id = session.query(DBGrantState.id).filter(
@@ -126,9 +149,9 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
                 ),
             ),
         ).filter(*self._get_filter()).populate_existing()
-        configs = [self._build_config(db_config) for db_config in db_configs]
+        cbsds = [self._build_cbsd(db_config) for db_config in db_configs]
         session.commit()
-        return State(active_mode_configs=configs)
+        return State(cbsds=cbsds)
 
     def _get_filter(self):
         not_null_fields = [
@@ -137,13 +160,8 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
         ]
         return [field != None for field in not_null_fields]  # noqa: E711
 
-    def _build_config(self, config: DBActiveModeConfig) -> ActiveModeConfig:
-        return ActiveModeConfig(
-            desired_state=cbsd_state_mapping[config.desired_state.name],
-            cbsd=self._build_cbsd(config.cbsd),
-        )
-
-    def _build_cbsd(self, cbsd: DBCbsd) -> Cbsd:
+    def _build_cbsd(self, config: DBActiveModeConfig) -> Cbsd:
+        cbsd = config.cbsd
         # Application may not need those to be sorted.
         # Applying ordering mostly for easier assertions in testing
         cbsd_db_grants = sorted(cbsd.grants, key=lambda x: x.id)
@@ -153,24 +171,26 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
         channels = [self._build_channel(x) for x in cbsd_db_channels]
         pending_requests = [self._build_request(x) for x in cbsd.requests]
 
-        last_seen = self._to_timestamp(cbsd.last_seen)
+        last_seen = _to_timestamp(cbsd.last_seen)
         eirp_capabilities = self._build_eirp_capabilities(cbsd)
+        db_data = self._build_db_data(cbsd)
         return Cbsd(
             id=cbsd.cbsd_id,
             user_id=cbsd.user_id,
             fcc_id=cbsd.fcc_id,
             serial_number=cbsd.cbsd_serial_number,
             state=cbsd_state_mapping[cbsd.state.name],
+            desired_state=cbsd_state_mapping[config.desired_state.name],
             grants=grants,
             channels=channels,
             pending_requests=pending_requests,
             last_seen_timestamp=last_seen,
             eirp_capabilities=eirp_capabilities,
-            is_deleted=cbsd.is_deleted,
+            db_data=db_data,
         )
 
     def _build_grant(self, grant: DBGrant) -> Grant:
-        last_heartbeat = self._to_timestamp(grant.last_heartbeat_request_time)
+        last_heartbeat = _to_timestamp(grant.last_heartbeat_request_time)
         return Grant(
             id=grant.grant_id,
             state=grant_state_mapping[grant.state.name],
@@ -202,8 +222,16 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
             number_of_ports=cbsd.number_of_ports,
         )
 
-    def _to_timestamp(self, t: Optional[datetime]) -> int:
-        return 0 if t is None else int(t.timestamp())
+    def _build_db_data(self, cbsd: DBCbsd) -> DatabaseCbsd:
+        return DatabaseCbsd(
+            id=cbsd.id,
+            is_updated=cbsd.is_updated,
+            is_deleted=cbsd.is_deleted,
+        )
+
+
+def _to_timestamp(t: Optional[datetime]) -> int:
+    return 0 if t is None else int(t.timestamp())
 
 
 def _make_optional_float(value: Optional[float]) -> FloatValue:

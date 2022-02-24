@@ -19,9 +19,7 @@
 
 #include <cstdlib>
 #include <iostream>
-#include <folly/Format.h>
-#include <folly/json.h>
-#include <folly/dynamic.h>
+#include <nlohmann/json.hpp>
 #include <grpcpp/support/status.h>
 
 #include "lte/gateway/c/core/oai/common/conversions.h"
@@ -56,7 +54,7 @@ void event_client_init(void) { init_eventd_client(); }
  * @param event_tag
  * @return response code
  */
-static int report_event(folly::dynamic& event_value,
+static int report_event(const nlohmann::json& event_value,
                         const std::string& event_type,
                         const std::string& stream_name,
                         const std::string& event_tag) {
@@ -64,7 +62,7 @@ static int report_event(folly::dynamic& event_value,
   event_request.set_event_type(event_type);
   event_request.set_stream_name(stream_name);
 
-  std::string event_value_string = folly::toJson(event_value);
+  std::string event_value_string = event_value.dump();
   event_request.set_value(event_value_string);
   event_request.set_tag(event_tag);
   return log_event(event_request);
@@ -74,7 +72,7 @@ int attach_success_event(imsi64_t imsi64) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi64, (char*)imsi_str, IMSI_BCD_DIGITS_MAX);
 
-  folly::dynamic event_value = folly::dynamic::object;
+  nlohmann::json event_value;
   event_value["imsi"] = imsi_str;
 
   return report_event(event_value, ATTACH_SUCCESS, MME_STREAM_NAME, imsi_str);
@@ -84,7 +82,7 @@ int detach_success_event(imsi64_t imsi64, const char* action) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi64, (char*)imsi_str, IMSI_BCD_DIGITS_MAX);
 
-  folly::dynamic event_value = folly::dynamic::object;
+  nlohmann::json event_value;
   event_value["imsi"] = imsi_str;
   event_value["action"] = action;
 
@@ -92,7 +90,7 @@ int detach_success_event(imsi64_t imsi64, const char* action) {
 }
 
 int s1_setup_success_event(const char* enb_name, uint32_t enb_id) {
-  folly::dynamic event_value = folly::dynamic::object;
+  nlohmann::json event_value;
 
   if (enb_name) {
     event_value["enb_name"] = enb_name;
@@ -103,14 +101,14 @@ int s1_setup_success_event(const char* enb_name, uint32_t enb_id) {
   event_value["enb_id"] = enb_id;
 
   return report_event(event_value, S1_SETUP_SUCCESS, MME_STREAM_NAME,
-                      folly::to<std::string>(enb_id));
+                      std::to_string(enb_id));
 }
 
 int attach_reject_event(imsi64_t imsi64) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi64, (char*)imsi_str, IMSI_BCD_DIGITS_MAX);
 
-  folly::dynamic event_value = folly::dynamic::object;
+  nlohmann::json event_value;
   event_value["imsi"] = imsi_str;
 
   return report_event(event_value, ATTACH_REJECT, MME_STREAM_NAME, imsi_str);

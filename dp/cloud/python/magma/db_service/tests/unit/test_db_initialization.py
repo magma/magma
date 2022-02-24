@@ -19,7 +19,7 @@ class DBInitializationTestCase(LocalDBTestCase):
     @parameterized.expand([
         (DBRequestType, 6),
         (DBRequestState, 2),
-        (DBGrantState, 3),
+        (DBGrantState, 4),
         (DBCbsdState, 2),
     ])
     def test_db_is_initialized_with_db_states_and_types(self, model, expected_post_init_count):

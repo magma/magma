@@ -171,9 +171,9 @@ deprecated==1.2.13 \
     # via
     #   -r requirements.in
     #   redis
-fakeredis==1.7.0 \
-    --hash=sha256:6f1e04f64557ad3b6835bdc6e5a8d022cbace4bdc24a47ad58f6a72e0fbff760 \
-    --hash=sha256:c9bd12e430336cbd3e189fae0e91eb99997b93e76dbfdd6ed67fa352dc684c71
+fakeredis==1.7.1 \
+    --hash=sha256:7c2c4ba1b42e0a75337c54b777bf0671056b4569650e3ff927e4b9b385afc8ec \
+    --hash=sha256:be3668e50f6b57d5fc4abfd27f9f655bed07a2c5aecfc8b15d0aad59f997c1ba
     # via -r requirements.in
 flask==2.0.2 \
     --hash=sha256:7b2fb8e934ddd50731893bdcdb00fc8c0315916f9fcd50d22c7cc1a95ab634e2 \
@@ -377,6 +377,44 @@ jsonschema[format]==3.1.0 \
     #   -r requirements.in
     #   bravado-core
     #   swagger-spec-validator
+lupa==1.10 \
+    --hash=sha256:037e1213da6e8775518b5d16b9f8e120334e3d87908097bb0ebdf3fbc5a53c42 \
+    --hash=sha256:0d9998bc7d9c2ecda35e8cad55d794c26f913ee703d6bd468276281b63dae99c \
+    --hash=sha256:19d42c494d04257ba15bb3c2c347ea6b6316acc3aed6fe4f147cf2de068c8245 \
+    --hash=sha256:21a97db5be9654d7359e185345e11a12e861b1c58945c8bf75e36d1b58b9e679 \
+    --hash=sha256:254fe6ffd574d7b2459e39b1196ed4c2d108e77779bc948b75c9a25051cd9e02 \
+    --hash=sha256:311b0fe54b21b7e053e01ece0e1bb0fd21f3febcd3d785fa19946519c4815569 \
+    --hash=sha256:32d05befe63db1dc99944fa03d84dca06bb8c8d0e44499aee1c6a541a017c273 \
+    --hash=sha256:34c0c4f920a2d6df8d39b460ff39363378e08052c56fca66bfbd7c43f28f4557 \
+    --hash=sha256:3768c7ad63e88755030900e42f180b463c8dccc1e226cad87e9ff021211c6e0d \
+    --hash=sha256:390815338c4f61ea6bc199a9afffe143ef271aa8ac320471ca6664d2d4794293 \
+    --hash=sha256:490fb29b6b631f0e284d6c51a34470f950c552148865d394368c4f93b3b6f4b6 \
+    --hash=sha256:4b08fd62c58e73f7975bdcffd3227edca978a1e8e992cccb29c17d529741e8b1 \
+    --hash=sha256:4db0ffddee4201de22a1d2854accf29bf1cccff1f6a2ad16e6f788f5ebb8c0d9 \
+    --hash=sha256:532ec13af930c506756886c2edb4edbde6ad29399f411c4599661747792d78f3 \
+    --hash=sha256:59ee950e0edf39ce15569d57dcbbb4e2f7ef264db8696cabfb0c0ceb3d83844d \
+    --hash=sha256:5ac77b3773ee585c5453126d89f86b17c802df636f7601e9c02639686821add9 \
+    --hash=sha256:5f57bf3df25937a50afa286b121db913710cfabcfd85e6d478e34e8bd7129218 \
+    --hash=sha256:5ffee1248814d736e943390bd6db45d8e2bb3e9e1cffa645508a365a88de6145 \
+    --hash=sha256:66b60b0aafc8a007b1c4f7f876b62798a7292e4df09e4f0a0da0e58ae024a64d \
+    --hash=sha256:6d81b8c90d62a26b23f124f12908d879746c00879f67f31192a92a9d37654db1 \
+    --hash=sha256:79de55c8d8a64def8b8904836a8c148c658d232bf998cf1d7c9aa9f576036d02 \
+    --hash=sha256:7a5046416f8b3ef8019c4e75c9547f84270fbc88b67ea17f179216205817c7ec \
+    --hash=sha256:7b5f3cc365df9ca85eac2ca3c226867a586b5b14a5e5c61bfb1895a6eefc7a59 \
+    --hash=sha256:7f42e7c23385445ca7b3fc2e9f77455757f219a9f630882c95430249de77a003 \
+    --hash=sha256:8140882bf4cba06822531807ed9531228c9f1308e842f202e1dd8fa14f229afd \
+    --hash=sha256:831ad0aa71491bfcbdc7a59ee2426ee6e2ab6754aaba836f21d34230f50690f4 \
+    --hash=sha256:a03361f5045ea6052e43afb0c4c58eb9ad8b90bdc50bee30359d90ac461d81b2 \
+    --hash=sha256:cdb749d95551e580615418083852fc5e1edf4f47dafc9fa1ab758d59aac1c4fd \
+    --hash=sha256:d3e0c22656a6c6a0e1e643873bb5cf734fc531382f61917f4ffd59441e9d30bc \
+    --hash=sha256:defc24ff024a80804861345d87be51b335a6fd7838284c1a9acad225b65d35fe \
+    --hash=sha256:e2511b27f381f6fdb66ef40dcc518215038197431b241935678dfc3d51178231 \
+    --hash=sha256:ec472c2c5bafefc4939d0de2213c106a4bd21c6dc0f34db8cb06a1220fa11999 \
+    --hash=sha256:f27fcc8c95b00d229b06e77ef5b666cdfb0ca767f38ed742e87bc14c065e2fa6 \
+    --hash=sha256:f37c3a343c2db74e4e9bbca561b0b11a8d0adacbf677bd9cb94f5347fe388b2a \
+    --hash=sha256:f388df201c12c4b3bf118ca044bffc86fd97aaa104995acbfe5bf8ab1f5324c3 \
+    --hash=sha256:fb157e36b6ee5c65b0bbcd758d6c36f14660fb3a9d23fc7a66916e69bb45764f
+    # via -r requirements.in
 markupsafe==2.0.1 \
     --hash=sha256:01a9b8ea66f1658938f65b93a85ebe8bc016e6769611be228d797c9d998dd298 \
     --hash=sha256:023cb26ec21ece8dc3907c0e8320058b2e0cb3c55cf9564da612bc325bed5e64 \
@@ -680,6 +718,10 @@ python-dateutil==2.8.2 \
     # via
     #   bravado-core
     #   freezegun
+python-redis-lock==3.7.0 \
+    --hash=sha256:0101c9033bd38e2a7b99989e0c6111451c40551b08d19d281047bf6630337574 \
+    --hash=sha256:4265a476e39d476a8acf5c2766485c44c75f3a1bd6cf73bb195f3079153b8374
+    # via -r requirements.in
 pytz==2021.3 \
     --hash=sha256:3672058bc3453457b622aab7a1c3bfd5ab0bdae451512f6cf25f64ed37f5b87c \
     --hash=sha256:acad2d8b20a1af07d4e4c9d2e9285c5ed9104354062f275f3fcd88dcef4f1326
@@ -728,13 +770,11 @@ redis==4.0.2 \
     # via
     #   -r requirements.in
     #   fakeredis
+    #   python-redis-lock
     #   redis-collections
 redis-collections==0.11.0 \
     --hash=sha256:0f6cda00666fdd26e3b8ca47da13a653eaf4cc4e45470a3b09f17d65061fea8a \
     --hash=sha256:d23e8c0f6bf50de10c98a14a3b636ff1bb21119386f884f2641c906832bc4ec9
-    # via -r requirements.in
-redis-lock==0.2.0 \
-    --hash=sha256:94f0bc9374cd78c33150ca49c5ce08ddbd2ddaae08166cbf381e9f8a39c096eb
     # via -r requirements.in
 requests==2.27.1 \
     --hash=sha256:68d7c56fd5a8999887728ef304a6d12edc7be74f1cfa47714fc8b414525c9a61 \

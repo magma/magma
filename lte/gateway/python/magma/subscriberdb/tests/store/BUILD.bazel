@@ -21,17 +21,10 @@ COMMON_TEST_DEPS = [
 ]
 
 pytest_test(
-    name = "cached_store_tests",
-    srcs = ["cached_store_tests.py"],
-    imports = [LTE_ROOT],
-    deps = COMMON_TEST_DEPS + ["//lte/gateway/python/magma/subscriberdb/store:cached_store"],
-)
-
-pytest_test(
     name = "onready_test",
     srcs = ["onready_test.py"],
     imports = [LTE_ROOT],
-    deps = COMMON_TEST_DEPS + ["//lte/gateway/python/magma/subscriberdb/store:cached_store"],
+    deps = COMMON_TEST_DEPS,
 )
 
 pytest_test(

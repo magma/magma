@@ -13,7 +13,7 @@ snowflake>=0.0.3
 #  prometheus_client==0.3.1 required (see e.g. magmad/tests/metrics_tests.py)
 prometheus_client==0.3.1
 redis-collections
-redis-lock
+python-redis-lock
 jsonpickle
 netifaces
 scapy
@@ -38,7 +38,9 @@ deprecated
 wrapt
 
 # unit test requirements
-fakeredis
+fakeredis==1.7.1
+#  lupa is required by fakeredis
+lupa==1.10
 freezegun
 pytest
 pytest-cov
