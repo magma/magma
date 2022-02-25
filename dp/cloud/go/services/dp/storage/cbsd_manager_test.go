@@ -24,7 +24,7 @@ import (
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/dp/cloud/go/services/dp/storage/dbtest"
 	"magma/orc8r/cloud/go/sqorc"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 func TestCbsdManager(t *testing.T) {

@@ -23,7 +23,7 @@ import (
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/device/protos"
 	"magma/orc8r/cloud/go/storage"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/registry"
 )
 

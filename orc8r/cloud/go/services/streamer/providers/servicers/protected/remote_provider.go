@@ -21,7 +21,7 @@ import (
 	"github.com/golang/protobuf/ptypes/any"
 
 	streamer_protos "magma/orc8r/cloud/go/services/streamer/protos"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )

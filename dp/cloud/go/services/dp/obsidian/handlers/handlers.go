@@ -31,7 +31,7 @@ import (
 	dp_service "magma/dp/cloud/go/services/dp"
 	"magma/dp/cloud/go/services/dp/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/registry"
 )
 

@@ -23,7 +23,7 @@ import (
 	"github.com/golang/glog"
 
 	"magma/feg/cloud/go/protos"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -32,7 +32,7 @@ import (
 func getHealthClient() (protos.HealthClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
-		initErr := errors.NewInitError(err, ServiceName)
+		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
 		return nil, initErr
 	}
