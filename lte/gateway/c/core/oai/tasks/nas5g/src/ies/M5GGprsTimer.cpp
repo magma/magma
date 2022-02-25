@@ -13,6 +13,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,8 +22,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer.h"
 
 namespace magma5g {
 GPRSTimerMsg::GPRSTimerMsg() {}
@@ -34,12 +34,12 @@ int GPRSTimerMsg::DecodeGPRSTimerMsg(GPRSTimerMsg* gprstimer, uint8_t iei,
   if (iei > 0) {
     gprstimer->iei = *buffer;
     OAILOG_DEBUG(LOG_NAS5G, "DecodeGPRSTimerMsg: iei 0x%x",
-                 int(gprstimer->iei));
+                 static_cast<int>(gprstimer->iei));
     decoded++;
 
     gprstimer->timervalue = *(buffer + decoded);
     OAILOG_DEBUG(LOG_NAS5G, "DecodeGPRSTimerMsg: timervalue = 0X%x",
-                 int(gprstimer->timervalue));
+                 static_cast<int>(gprstimer->timervalue));
     decoded++;
   }
 
