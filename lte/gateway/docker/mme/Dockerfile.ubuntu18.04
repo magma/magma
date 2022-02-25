@@ -368,7 +368,8 @@ COPY --from=magma-mme-builder \
 # Create running dirs
 WORKDIR /var/opt/magma/configs
 # Adding mme configuration for stateful run
-RUN echo "use_stateless: false" > mme.yml
+RUN echo "use_stateless: false" > mme.yml && \
+    openssl rand -out /root/.rnd 128
 
 WORKDIR /etc/magma
 COPY --from=magma-mme-builder \
@@ -388,7 +389,6 @@ RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" \
            -e "s@echo_warning@echo@" check_mme_s6a_certificate
 
 WORKDIR /magma-mme
-RUN openssl rand -out /root/.rnd 128
 
 # use this label for CI purpose
 LABEL use-separate-hss-realm="true"
