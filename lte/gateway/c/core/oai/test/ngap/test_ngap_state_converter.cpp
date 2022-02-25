@@ -29,7 +29,68 @@ using ::testing::Test;
 
 namespace magma5g {
 
-TEST(NgapStateConversionSuccess, NgapStateConversionSuccess) {
+class NgapStateConverterTest : public testing::Test {
+ protected:
+  void SetUp() {
+    itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
+              NULL, NULL);
+
+    amf_config_init(&amf_config);
+    amf_config.use_stateless = true;
+    ngap_state_init(amf_config.max_ues, amf_config.max_gnbs,
+                    amf_config.use_stateless);
+
+    state = get_ngap_state(false);
+    imsi_map = get_ngap_imsi_map();
+  }
+
+  void TearDown() {
+    ngap_state_exit();
+    itti_free_desc_threads();
+    amf_config_free(&amf_config);
+    state = NULL;
+    imsi_map = NULL;
+    gNB_ref = NULL;
+    ue_ref = NULL;
+  }
+
+  // This Function mocks NGAP task TearDown.
+  void PseudoNgapTearDown() {
+    ngap_state_exit();
+    itti_free_desc_threads();
+    amf_config_free(&amf_config);
+    state = NULL;
+    imsi_map = NULL;
+    gNB_ref = NULL;
+    ue_ref = NULL;
+  }
+
+  // This Function mocks NGAP task Setup.
+  void PseudoNgapSetup() {
+    itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
+              NULL, NULL);
+
+    amf_config_init(&amf_config);
+    amf_config.use_stateless = true;
+    ngap_state_init(amf_config.max_ues, amf_config.max_gnbs,
+                    amf_config.use_stateless);
+
+    state = get_ngap_state(false);
+    imsi_map = get_ngap_imsi_map();
+  }
+
+  ngap_state_t* state = NULL;
+  ngap_imsi_map_t* imsi_map = NULL;
+  gnb_description_t* gNB_ref = NULL;
+  m5g_ue_description_t* ue_ref = NULL;
+  const unsigned int AMF_UE_NGAP_ID = 0x05;
+  const unsigned int gNB_UE_NGAP_ID = 0x09;
+  bool is_task_state_same = false;
+  bool is_ue_state_same = false;
+  imsi64_t imsi64;
+};
+
+TEST_F(NgapStateConverterTest, NgapStateConversionSuccess) {
   sctp_assoc_id_t assoc_id = 1;
   ngap_state_t* init_state = create_ngap_state(2, 2);
   ngap_state_t* final_state = create_ngap_state(2, 2);
@@ -74,7 +135,6 @@ TEST(NgapStateConversionSuccess, NgapStateConversionSuccess) {
 
   hashtable_ts_insert(&init_state->amfid2associd, (const hash_key_t)1,
                       reinterpret_cast<void**>(&assoc_id));
-
   oai::NgapState state_proto;
   NgapStateConverter::state_to_proto(init_state, &state_proto);
   NgapStateConverter::proto_to_state(state_proto, final_state);
@@ -220,66 +280,6 @@ TEST(NgapStateConversionNgapImsimap, NgapStateConversionNgapImsimap) {
   free_wrapper(reinterpret_cast<void**>(&ngap_imsi_map));
   free_wrapper(reinterpret_cast<void**>(&final_ngap_imsi_map));
 }
-class NgapStateConverterTest : public testing::Test {
- protected:
-  void SetUp() {
-    itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
-              NULL, NULL);
-
-    amf_config_init(&amf_config);
-    amf_config.use_stateless = true;
-    ngap_state_init(amf_config.max_ues, amf_config.max_gnbs,
-                    amf_config.use_stateless);
-
-    state = get_ngap_state(false);
-    imsi_map = get_ngap_imsi_map();
-  }
-
-  void TearDown() {
-    ngap_state_exit();
-    itti_free_desc_threads();
-    amf_config_free(&amf_config);
-    state = NULL;
-    imsi_map = NULL;
-    gNB_ref = NULL;
-    ue_ref = NULL;
-  }
-
-  // This Function mocks NGAP task TearDown.
-  void PseudoNgapTearDown() {
-    ngap_state_exit();
-    itti_free_desc_threads();
-    amf_config_free(&amf_config);
-    state = NULL;
-    imsi_map = NULL;
-    gNB_ref = NULL;
-    ue_ref = NULL;
-  }
-
-  // This Function mocks NGAP task Setup.
-  void PseudoNgapSetup() {
-    itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
-              NULL, NULL);
-
-    amf_config_init(&amf_config);
-    amf_config.use_stateless = true;
-    ngap_state_init(amf_config.max_ues, amf_config.max_gnbs,
-                    amf_config.use_stateless);
-
-    state = get_ngap_state(false);
-    imsi_map = get_ngap_imsi_map();
-  }
-
-  ngap_state_t* state = NULL;
-  ngap_imsi_map_t* imsi_map = NULL;
-  gnb_description_t* gNB_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
-  const unsigned int AMF_UE_NGAP_ID = 0x05;
-  const unsigned int gNB_UE_NGAP_ID = 0x09;
-  bool is_task_state_same = false;
-  bool is_ue_state_same = false;
-  imsi64_t imsi64;
-};
 
 unsigned char initial_ue_message_hexbuf[] = {
     0x00, 0x0f, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x55, 0x00, 0x02,
