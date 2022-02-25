@@ -242,7 +242,7 @@ def federated_integ_test(
     )
 
     vagrant_setup(
-            'magma_test', destroy_vm, force_provision=provision_vm,
+        'magma_test', destroy_vm, force_provision=provision_vm,
     )
     execute(_make_integ_tests)
     execute(run_integ_tests, "federated_tests/s1aptests/test_attach_detach.py")
@@ -601,7 +601,7 @@ def _set_service_config_var(service, var_name, value):
     """ Sets variable in config file by value """
     run(
         "echo '%s: %s' | sudo tee -a /var/opt/magma/configs/%s.yml" % (
-        var_name, str(value), service,
+            var_name, str(value), service,
         ),
     )
 
