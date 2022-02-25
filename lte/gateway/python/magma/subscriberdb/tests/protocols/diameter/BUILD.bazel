@@ -94,5 +94,6 @@ pytest_test(
 
 py_library(
     name = "common",
+    testonly = True,
     srcs = ["common.py"],
 )
