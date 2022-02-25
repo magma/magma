@@ -29,13 +29,6 @@ py_library(
 )
 
 py_library(
-    name = "cached_store",
-    srcs = ["cached_store.py"],
-    visibility = ["//visibility:public"],
-    deps = [":onready"],
-)
-
-py_library(
     name = "onready",
     srcs = ["onready.py"],
     visibility = ["//visibility:private"],

@@ -5086,7 +5086,7 @@ func (m *QosCharacteristics) String() string { return proto.CompactTextString(m)
 func (*QosCharacteristics) ProtoMessage()    {}
 func (*QosCharacteristics) Descriptor() ([]byte, []int) {
 	return fileDescriptor_85add0446af78174, []int{55}
-}
+
 
 func (m *QosCharacteristics) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_QosCharacteristics.Unmarshal(m, b)

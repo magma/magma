@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package storage
 
 import (
@@ -304,6 +305,7 @@ type DBCbsd struct {
 	AntennaGain      sql.NullFloat64
 	NumberOfPorts    sql.NullInt64
 	IsDeleted        sql.NullBool
+	IsUpdated        sql.NullBool
 }
 
 func (c *DBCbsd) Fields() db.FieldMap {
@@ -355,6 +357,11 @@ func (c *DBCbsd) Fields() db.FieldMap {
 		},
 		"is_deleted": &db.Field{
 			BaseType:     db.BoolType{X: &c.IsDeleted},
+			HasDefault:   true,
+			DefaultValue: false,
+		},
+		"is_updated": &db.Field{
+			BaseType:     db.BoolType{X: &c.IsUpdated},
 			HasDefault:   true,
 			DefaultValue: false,
 		},

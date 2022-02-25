@@ -742,8 +742,8 @@ void convert_ambr(const uint32_t* pdu_ambr_response_unit,
 }
 
 // Utility function to convert address to buffer
-static int paa_to_address_info(const paa_t* paa, uint8_t* pdu_address_info,
-                               uint8_t* pdu_address_length) {
+int paa_to_address_info(const paa_t* paa, uint8_t* pdu_address_info,
+                        uint8_t* pdu_address_length) {
   uint32_t ip_int = 0;
   if ((paa == nullptr) || (pdu_address_info == nullptr) ||
       (pdu_address_length == nullptr)) {

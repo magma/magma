@@ -8,9 +8,9 @@ func NewDeregistrationRequestGenerator() *deregistrationRequestGenerator {
 	return &deregistrationRequestGenerator{}
 }
 
-func (*deregistrationRequestGenerator) GenerateRequests(config *active_mode.ActiveModeConfig) []*Request {
+func (*deregistrationRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Request {
 	req := &deregistrationRequest{
-		CbsdId: config.GetCbsd().GetId(),
+		CbsdId: cbsd.GetId(),
 	}
 	return []*Request{asRequest(Deregistration, req)}
 }

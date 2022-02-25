@@ -501,7 +501,7 @@ void create_pdu_session_modify_request_itti(
   response->qos_flow_list.item[0].qos_flow_req_item.qos_flow_descriptor.gbr_dl =
       100000;
 
-  // trafic flow template
+  // traffic flow template
   response->qos_flow_list.item[0].qos_flow_req_item.ul_tft.tftoperationcode =
       TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT;
   response->qos_flow_list.item[0]

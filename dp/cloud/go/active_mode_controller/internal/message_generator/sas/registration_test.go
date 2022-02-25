@@ -11,15 +11,13 @@ import (
 )
 
 func TestRegistrationRequestGenerator(t *testing.T) {
-	config := &active_mode.ActiveModeConfig{
-		Cbsd: &active_mode.Cbsd{
-			UserId:       "some_user_id",
-			FccId:        "some_fcc_id",
-			SerialNumber: "some_serial_number",
-		},
+	cbsd := &active_mode.Cbsd{
+		UserId:       "some_user_id",
+		FccId:        "some_fcc_id",
+		SerialNumber: "some_serial_number",
 	}
 	g := sas.NewRegistrationRequestGenerator()
-	actual := g.GenerateRequests(config)
+	actual := g.GenerateRequests(cbsd)
 	expected := []*request{{
 		requestType: "registrationRequest",
 		data: `{

@@ -8,8 +8,7 @@ func NewRegistrationRequestGenerator() *registrationRequestGenerator {
 	return &registrationRequestGenerator{}
 }
 
-func (*registrationRequestGenerator) GenerateRequests(config *active_mode.ActiveModeConfig) []*Request {
-	cbsd := config.GetCbsd()
+func (*registrationRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Request {
 	req := &registrationRequest{
 		UserId:           cbsd.GetUserId(),
 		FccId:            cbsd.GetFccId(),

@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package storage
 
 import (
@@ -181,10 +182,12 @@ func (c *cbsdManagerInTransaction) updateCbsd(networkId string, id int64, data *
 	if err := c.checkIfCbsdExists(networkId, id); err != nil {
 		return err
 	}
+	data.IsUpdated = db.MakeBool(true)
+	columns := append(getCbsdWriteFields(), "is_updated")
 	return db.NewQuery().
 		WithBuilder(c.builder).
 		From(data).
-		Select(db.NewIncludeMask(getCbsdWriteFields()...)).
+		Select(db.NewIncludeMask(columns...)).
 		Where(sq.Eq{"id": id}).
 		Update()
 }
@@ -235,7 +238,7 @@ func buildDetailedCbsdQuery(builder sq.StatementBuilderType) *db.Query {
 	return db.NewQuery().
 		WithBuilder(builder).
 		From(&DBCbsd{}).
-		Select(db.NewExcludeMask("network_id", "state_id", "is_deleted")).
+		Select(db.NewExcludeMask("network_id", "state_id", "is_deleted", "is_updated")).
 		Join(db.NewQuery().
 			From(&DBCbsdState{}).
 			Select(db.NewIncludeMask("name"))).

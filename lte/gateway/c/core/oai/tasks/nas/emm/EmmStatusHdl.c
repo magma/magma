@@ -101,7 +101,6 @@ int emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause) {
   emm_security_context_t* sctx = NULL;
   struct emm_context_s* ctx = NULL;
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMM-PROC  - EMM status procedure requested\n");
   /*
    * Notity EMM that EMM status indication has to be sent to lower layers
    */
@@ -115,6 +114,10 @@ int emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause) {
     if (ctx) {
       sctx = &ctx->_security;
     }
+    OAILOG_INFO_UE(LOG_NAS_EMM, ctx->_imsi64,
+                   "EMM-PROC  - EMM status procedure requested\n");
+  } else {
+    OAILOG_INFO(LOG_NAS_EMM, "EMM-PROC  - EMM status procedure requested\n");
   }
 
   /*

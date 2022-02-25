@@ -60,6 +60,7 @@ set(COMMON_SRC
     pid_file.c
     shared_ts_log.c
     log.c
+    sentry_log.cpp
     state_converter.cpp
     common_utility_funs.cpp
     ${PROTO_SRCS}

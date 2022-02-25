@@ -237,7 +237,7 @@ Status AmfServiceImpl::SetSmfSessionContext(
             OAILOG_ERROR(
                 LOG_UTIL,
                 "The uplink packet filter contents are not formatted correctly."
-                "Cancelling qos flow creation request. \n");
+                "Canceling qos flow creation request. \n");
             return Status::CANCELLED;
           }
           ++ul_count_packetfilters;

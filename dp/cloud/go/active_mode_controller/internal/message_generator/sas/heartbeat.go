@@ -16,8 +16,7 @@ func NewHeartbeatRequestGenerator(nextSendTimestamp int64) *heartbeatRequestGene
 	}
 }
 
-func (h *heartbeatRequestGenerator) GenerateRequests(config *active_mode.ActiveModeConfig) []*Request {
-	cbsd := config.GetCbsd()
+func (h *heartbeatRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Request {
 	grants := cbsd.GetGrants()
 	var reqs []*Request
 	for _, grant := range grants {

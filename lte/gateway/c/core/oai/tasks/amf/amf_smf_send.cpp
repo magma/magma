@@ -925,6 +925,7 @@ int amf_smf_handle_ip_address_response(
 
       inet_ntop(AF_INET, &(response_p->paa.ipv4_address.s_addr), ip_v4_str,
                 INET_ADDRSTRLEN);
+
       rc = amf_smf_create_session_req(
           response_p->imsi, response_p->apn, response_p->pdu_session_id,
           response_p->pdu_session_type, response_p->gnb_gtp_teid,

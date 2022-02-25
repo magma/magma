@@ -39,6 +39,7 @@ namespace magma5g {
 #define SMF_CAUSE_UNKNOWN_PDN_TYPE 28
 #define SMF_CAUSE_INVALID_PTI_VALUE 81
 #define SMF_CAUSE_SUCCESS 0
+#define SMF_CAUSE_FAILURE 1
 
 // PDN Session Type
 #define PDN_TYPE_IPV4 0
@@ -91,11 +92,6 @@ int amf_smf_create_session_req(char* imsi, uint8_t* apn,
                                char* ue_ipv4_addr, char* ue_ipv6_addr,
                                const ambr_t& state_ambr,
                                const eps_subscribed_qos_profile_t& qos_profile);
-#if 0
-int create_session_grpc_req_on_gnb_setup_rsp(amf_smf_establish_t* message,
-                                             char* imsi, uint32_t version,
-					     std::shared_ptr<smf_context_t> smf_ctx);
-#endif
 int create_session_grpc_req(amf_smf_establish_t* message, char* imsi);
 int release_session_gprc_req(amf_smf_release_t* message, char* imsi);
 }  // namespace magma5g

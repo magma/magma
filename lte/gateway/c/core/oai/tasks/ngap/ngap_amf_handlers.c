@@ -66,7 +66,7 @@
 #include "Ngap_UE-associatedLogicalNG-connectionItem.h"
 #include "Ngap_UE-associatedLogicalNG-connectionList.h"
 #include "Ngap_UEAggregateMaximumBitRate.h"
-#include "Ngap_UEPagingIdentity.c"
+#include "Ngap_UEPagingIdentity.h"
 #include "Ngap_UERadioCapability.h"
 #include "asn_SEQUENCE_OF.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
