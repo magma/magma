@@ -11,37 +11,24 @@
 
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
-LTE_ROOT = "../../"
+MAGMA_ROOT = "../../../../../"
 
-ORC8R_ROOT = LTE_ROOT + "../../../orc8r/gateway/python"
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
-DEPS = [
-    "//lte/protos:mconfigs_python_proto",
-    "//lte/protos:policydb_python_grpc",
-    "//lte/protos:session_manager_python_grpc",
-    "//lte/gateway/python/magma/policydb/servicers:policy_servicer",
-    "//lte/gateway/python/magma/policydb/servicers:session_servicer",
-    "//orc8r/gateway/python/magma/common:sentry",
-    "//orc8r/gateway/python/magma/common:service",
-    "//orc8r/gateway/python/magma/common:streamer",
-    "//orc8r/gateway/python/magma/common:rpc_utils",
-    "//orc8r/gateway/python/magma/common/redis:client",
-]
-
-SRCS = [
-    "main.py",
-    "apn_rule_map_store.py",
-    "basename_store.py",
-    "rating_group_store.py",
-    "reauth_handler.py",
-    "rule_map_store.py",
-    "streamer_callback.py",
-    "rule_store.py",
-]
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 py_binary(
     name = "policydb",
-    srcs = SRCS,
+    srcs = [
+        "apn_rule_map_store.py",
+        "basename_store.py",
+        "main.py",
+        "rating_group_store.py",
+        "reauth_handler.py",
+        "rule_map_store.py",
+        "rule_store.py",
+        "streamer_callback.py",
+    ],
     imports = [
         LTE_ROOT,
         ORC8R_ROOT,
@@ -51,7 +38,18 @@ py_binary(
     main = "main.py",
     python_version = "PY3",
     visibility = ["//visibility:public"],
-    deps = DEPS,
+    deps = [
+        "//lte/gateway/python/magma/policydb/servicers:policy_servicer",
+        "//lte/gateway/python/magma/policydb/servicers:session_servicer",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:policydb_python_grpc",
+        "//lte/protos:session_manager_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+        "//orc8r/gateway/python/magma/common:streamer",
+        "//orc8r/gateway/python/magma/common/redis:client",
+    ],
 )
 
 py_library(

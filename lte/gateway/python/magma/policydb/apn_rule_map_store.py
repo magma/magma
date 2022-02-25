@@ -31,7 +31,7 @@ class ApnRuleAssignmentsDict(RedisHashDict):
     """
     _DICT_HASH = "policydb:apn_installed"
 
-    def __init__(self):
+    def __init__(self, clear_data: bool = True):
         client = get_default_client()
         super().__init__(
             client,
@@ -39,4 +39,5 @@ class ApnRuleAssignmentsDict(RedisHashDict):
             get_proto_serializer(),
             get_proto_deserializer(SubscriberPolicySet),
         )
-        self._clear()
+        if (clear_data):
+            self._clear()
