@@ -175,7 +175,7 @@ func createCbsd(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	if err := payload.Validate(strfmt.Default); err != nil {
-		return echo.NewHTTPError(http.StatusBadGateway)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	client, err := getCbsdManagerClient()
 	if err != nil {
@@ -227,7 +227,7 @@ func updateCbsd(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	if err := payload.Validate(strfmt.Default); err != nil {
-		return echo.NewHTTPError(http.StatusBadGateway)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	cbsdId, nerr := getCbsdId(c)
 	if nerr != nil {
