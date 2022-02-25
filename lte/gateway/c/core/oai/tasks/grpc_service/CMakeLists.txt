@@ -138,7 +138,6 @@ target_link_libraries(TASK_GRPC_SERVICE
     LIB_HASHTABLE
     ${PROTOBUF_LIBRARIES}
     grpc++
-    folly
     TASK_SGS
     TASK_S6A
     TASK_SMS_ORC8R
