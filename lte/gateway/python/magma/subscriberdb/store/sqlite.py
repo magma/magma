@@ -83,11 +83,11 @@ class SqliteStore(BaseStore):
 
     def _create_digest_db_locations(self, db_location: str) -> DigestDBInfo:
         root_digest_db_location = 'file:' + db_location + \
-                             'subscriber-root-digest.db?cache=shared'
+            'subscriber-root-digest.db?cache=shared'
         logging.info("root digest db location: %s", root_digest_db_location)
 
         leaf_digests_db_location = 'file:' + db_location + \
-                                     'subscriber-leaf-digests.db?cache=shared'
+            'subscriber-leaf-digests.db?cache=shared'
         logging.info(
             "leaf digests db location: %s",
             leaf_digests_db_location,
@@ -275,8 +275,8 @@ class SqliteStore(BaseStore):
             if (len(db_parts) == 2) and db_parts[1]:
                 path_str = db_parts[1].split("?")
                 output = subprocess.Popen(
-                        ["/usr/bin/fuser", "-uv", path_str[0]],
-                        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    ["/usr/bin/fuser", "-uv", path_str[0]],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 )
                 logging.info(output.communicate())
             raise SubscriberServerTooBusy(subscriber_id)
