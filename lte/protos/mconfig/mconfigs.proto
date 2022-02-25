@@ -33,15 +33,15 @@ message SentryConfig {
     // upload_mme_log decides whether MME service log file (/var/log/mme.log)
     // is uploaded along with MME crashreports
     bool upload_mme_log = 3;
-    // number_of_lines_in_log defines the number of lines from the 
-    // journal log that is uploaded with every crash report
-    int32 number_of_lines_in_log = 4;
     // sample_rate sets the rate at which Python error events are sampled.
     // sample_rate should be a number between 0 (0% of errors sent) and 1 (100%
     // of errors sent)
-    float sample_rate = 5;
+    float sample_rate = 4;
     // message patterns that are excluded from Sentry (regex substring match)
-    repeated string exclusion_patterns = 6;
+    repeated string exclusion_patterns = 5;
+    // number_of_lines_in_log defines the number of lines from the 
+    // journal log that is uploaded with every crash report
+    uint32 number_of_lines_in_log = 6;
 }
 
 //------------------------------------------------------------------------------
