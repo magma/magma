@@ -156,7 +156,8 @@ controller:
     repository: docker.artifactory.magmacore.org/controller
     tag: 1.6.1
     pullPolicy: IfNotPresent
-
+    env:
+      orc8r_domain_name: magma.test
   spec:
     # Postgres/mysql configuration
     database:
