@@ -588,9 +588,9 @@ class AccessControlTestLocalIpBlockLTE(unittest.TestCase):
 
 def _build_default_ip_packet(mac, dst, src):
     return IPPacketBuilder() \
-            .set_ip_layer(dst, src) \
-            .set_ether_layer(mac, "00:00:00:00:00:00") \
-            .build()
+        .set_ip_layer(dst, src) \
+        .set_ether_layer(mac, "00:00:00:00:00:00") \
+        .build()
 
 
 if __name__ == "__main__":

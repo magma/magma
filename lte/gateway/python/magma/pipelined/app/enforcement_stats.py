@@ -99,8 +99,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     MAX_DELAY_INTERVALS = 20
 
     ng_config = namedtuple(
-            'ng_config',
-            ['ng_service_enabled', 'sessiond_setinterface'],
+        'ng_config',
+        ['ng_service_enabled', 'sessiond_setinterface'],
     )
     _CONTEXTS = {
         'dpset': dpset.DPSet,
@@ -643,7 +643,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                 ip_addr = convert_ipv6_str_to_ip_proto(record.ue_ipv6)
 
             current_ver = self._session_rule_version_mapper.get_version(
-                    record.sid, ip_addr, record.rule_id,
+                record.sid, ip_addr, record.rule_id,
             )
             local_f_teid_ng = 0
             if record.teid:
@@ -782,11 +782,11 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     continue
 
                 session_config_dict[local_f_teid_ng] = \
-                                             UPFSessionState(
-                                                 subscriber_id=sid,
-                                                 session_version=rule_version,
-                                                 local_f_teid=local_f_teid_ng,
-                                             )
+                    UPFSessionState(
+                    subscriber_id=sid,
+                    session_version=rule_version,
+                    local_f_teid=local_f_teid_ng,
+                    )
 
         SessionStateManager.report_session_config_state(
             session_config_dict,
