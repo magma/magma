@@ -16,6 +16,7 @@ package testcontroller
 const (
 	ServiceName = "testcontroller"
 
-	EnodedTestCaseType       = "enodebd_e2e" // Includes traffic tests
+	EnodedTestCaseType = "enodebd_e2e" // Includes traffic tests
+
 	EnodedTestExcludeTraffic = "enodebd_e2e_exclude_traffic"
 )
