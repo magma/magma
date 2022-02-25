@@ -32,7 +32,7 @@ class BaicellsQAFBHandlerTests(EnodebHandlerTestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
 
         # User uses the CLI tool to get eNodeB to reboot
         acs_state_machine.reboot_asap()
@@ -76,7 +76,7 @@ class BaicellsQAFBHandlerTests(EnodebHandlerTestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = \
@@ -195,7 +195,7 @@ class BaicellsQAFBHandlerTests(EnodebHandlerTestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder\
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = \

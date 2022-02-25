@@ -18,28 +18,28 @@ from lte.protos.pipelined_pb2 import (
 )
 
 FARRuleEntry = NamedTuple(
-                   'FARRuleEntry',
-                    [
-                        ('apply_action', int),
-                        ('o_teid', int),
-                        ('gnb_ip_addr', str),
-                    ],
+    'FARRuleEntry',
+    [
+        ('apply_action', int),
+        ('o_teid', int),
+        ('gnb_ip_addr', str),
+    ],
 )
 
 PDRRuleEntry = NamedTuple(
-                'PDRRuleEntry',
-                [
-                    ('pdr_id', int),
-                    ('pdr_version', int),
-                    ('pdr_state', int),
-                    ('precedence', int),
-                    ('local_f_teid', int),
-                    ('ue_ip_addr', str),
-                    ('del_qos_enforce_rule', DeactivateFlowsRequest),
-                    ('add_qos_enforce_rule', ActivateFlowsRequest),
-                    ('far_action', FARRuleEntry),
-                    ('ue_ipv6_addr', str),
-                ],
+    'PDRRuleEntry',
+    [
+        ('pdr_id', int),
+        ('pdr_version', int),
+        ('pdr_state', int),
+        ('precedence', int),
+        ('local_f_teid', int),
+        ('ue_ip_addr', str),
+        ('del_qos_enforce_rule', DeactivateFlowsRequest),
+        ('add_qos_enforce_rule', ActivateFlowsRequest),
+        ('far_action', FARRuleEntry),
+        ('ue_ipv6_addr', str),
+    ],
 )
 
 # Create the Named tuple for the FAR entry

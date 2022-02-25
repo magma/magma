@@ -178,7 +178,7 @@ class _TableManager:
                 TableRange(
                     self.PHYSICAL_TO_LOGICAL_TABLE_NUM + 1,
                     self.EGRESS_TABLE_NUM,
-                ),
+            ),
         }
         self._scratch_range = TableRange(
             self.SCRATCH_TABLE_START_NUM,

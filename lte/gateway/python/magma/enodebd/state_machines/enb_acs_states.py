@@ -183,7 +183,7 @@ class GetRPCMethodsState(EnodebAcsState):
         resp.MethodList = models.MethodList()
         RPC_METHODS = ['Inform', 'GetRPCMethods', 'TransferComplete']
         resp.MethodList.arrayType = 'xsd:string[%d]' \
-                                          % len(RPC_METHODS)
+            % len(RPC_METHODS)
         resp.MethodList.string = RPC_METHODS
         return AcsMsgAndTransition(resp, self.done_transition)
 
@@ -657,7 +657,7 @@ class WaitGetObjectParametersState(EnodebAcsState):
                     obj_name,
                 )
         num_plmns_reported = \
-                int(self.acs.device_cfg.get_parameter(ParameterName.NUM_PLMNS))
+            int(self.acs.device_cfg.get_parameter(ParameterName.NUM_PLMNS))
         if num_plmns != num_plmns_reported:
             logger.warning(
                 "eNB reported %d PLMNs but found %d",
@@ -842,7 +842,7 @@ class SetParameterValuesState(EnodebAcsState):
             self.acs.data_model,
         )
         request.ParameterList.arrayType = 'cwmp:ParameterValueStruct[%d]' \
-                                           % len(param_values)
+            % len(param_values)
         request.ParameterList.ParameterValueStruct = []
         logger.debug(
             'Sending TR069 request to set CPE parameter values: %s',

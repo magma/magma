@@ -85,7 +85,7 @@ def build_desired_config(
 
     # Attempt to load device configuration from YANG before service mconfig
     enb_config = _get_enb_yang_config(device_config) or \
-                 _get_enb_config(mconfig, device_config)
+        _get_enb_config(mconfig, device_config)
 
     _set_earfcn_freq_band_mode(
         device_config, cfg_desired, data_model,

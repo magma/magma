@@ -312,9 +312,9 @@ class AWSClusterFactory():
         dns_dict.update(constants)
         rc = run_playbook(
             AnsiblePlay(
-            playbook=f"{constants['playbooks']}/main.yml",
-            tags=['update_dns_records'],
-            extra_vars=dns_dict,
+                playbook=f"{constants['playbooks']}/main.yml",
+                tags=['update_dns_records'],
+                extra_vars=dns_dict,
             ),
         )
         if rc != 0:

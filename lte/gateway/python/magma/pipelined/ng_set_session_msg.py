@@ -37,8 +37,8 @@ from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.subscriberdb.sid import SIDUtils
 
 QoSEnforceRuleEntry = namedtuple(
-                         'QoSEnforceRuleEntry',
-                         ['imsi', 'rule_id', 'ipv4_dst', 'allow', 'priority', 'hard_timeout', 'direction'],
+    'QoSEnforceRuleEntry',
+    ['imsi', 'rule_id', 'ipv4_dst', 'allow', 'priority', 'hard_timeout', 'direction'],
 )
 
 
@@ -50,12 +50,12 @@ class CreateSessionUtil:
         This will anchor point for create sessions with PDR, FAR & QER.
         """
         self._set_session = \
-                  SessionSet(
-                      subscriber_id=subscriber_id, local_f_teid=local_f_teid,\
-                      session_version=session_version,\
-                      node_id=NodeID(node_id_type=NodeID.IPv4, node_id=node_id),\
-                      state=Fsm_state(state=Fsm_state.CREATED),
-                  )
+            SessionSet(
+                subscriber_id=subscriber_id, local_f_teid=local_f_teid,\
+                session_version=session_version,\
+                node_id=NodeID(node_id_type=NodeID.IPv4, node_id=node_id),\
+                state=Fsm_state(state=Fsm_state.CREATED),
+            )
 
     @staticmethod
     def CreateAddQERinPDR(
@@ -96,19 +96,19 @@ class CreateSessionUtil:
                 ),
             ]
         qos_enforce_rule = ActivateFlowsRequest(
-                                  sid=SIDUtils.to_pb(qos_enforce_rule.imsi),
-                                  ip_addr=ue_ip_addr,
-                                  policies=[
-                                      VersionedPolicy(
-                                          rule=PolicyRule(
-                                            id=qos_enforce_rule.rule_id,
-                                            priority=qos_enforce_rule.priority,
-                                            hard_timeout=qos_enforce_rule.hard_timeout,
-                                            flow_list=flow_list,
-                                          ), version=1,
-                                      ), ],
-                                  request_origin=RequestOriginType(type=RequestOriginType.N4),
-                                  apn_ambr=apn_ambr,
+            sid=SIDUtils.to_pb(qos_enforce_rule.imsi),
+            ip_addr=ue_ip_addr,
+            policies=[
+                VersionedPolicy(
+                    rule=PolicyRule(
+                        id=qos_enforce_rule.rule_id,
+                        priority=qos_enforce_rule.priority,
+                        hard_timeout=qos_enforce_rule.hard_timeout,
+                        flow_list=flow_list,
+                    ), version=1,
+                ), ],
+            request_origin=RequestOriginType(type=RequestOriginType.N4),
+            apn_ambr=apn_ambr,
         )
         return qos_enforce_rule
 
@@ -119,10 +119,10 @@ class CreateSessionUtil:
     ) -> DeactivateFlowsRequest:
 
         qos_enforce_rule = DeactivateFlowsRequest(
-                                  sid=SIDUtils.to_pb(qos_enforce_rule.imsi),
-                                  ip_addr=ue_ip_addr,
-                                  policies=[VersionedPolicyID(rule_id=qos_enforce_rule.rule_id)],
-                                  request_origin=RequestOriginType(type=RequestOriginType.N4),
+            sid=SIDUtils.to_pb(qos_enforce_rule.imsi),
+            ip_addr=ue_ip_addr,
+            policies=[VersionedPolicyID(rule_id=qos_enforce_rule.rule_id)],
+            request_origin=RequestOriginType(type=RequestOriginType.N4),
         )
 
         return qos_enforce_rule
@@ -137,7 +137,7 @@ class CreateSessionUtil:
                 fwd_parm=FwdParam(
                     dest_iface=0,
                     outr_head_cr=OuterHeaderCreation(
-                                 o_teid=o_teid, gnb_ipv4_adr=gnb_ip_addr,
+                        o_teid=o_teid, gnb_ipv4_adr=gnb_ip_addr,
                     ),
                 ),
             )
@@ -156,9 +156,9 @@ class CreateSessionUtil:
                 pdr_state=pdr_state,\
                 precedence=precedence,\
                 pdi=PDI(
-                                   src_interface=0,\
-                                   local_f_teid=local_f_teid,\
-                                   ue_ipv4=ue_ip_addr,
+                    src_interface=0,\
+                    local_f_teid=local_f_teid,\
+                    ue_ipv4=ue_ip_addr,
                 ), \
                 o_h_remo_desc=0,
             )

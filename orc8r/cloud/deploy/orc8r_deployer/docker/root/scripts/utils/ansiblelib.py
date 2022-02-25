@@ -47,14 +47,14 @@ def run_playbook(play: AnsiblePlay) -> int:
         env = {"ANSIBLE_HOST_KEY_CHECKING": "False"}
         return execute_command(
             [
-            "ansible-playbook",
-            "-i",
-            play.inventory,
-            "-e",
-            json.dumps(play.extra_vars),
-            "--tags",
-            ",".join(play.tags),
-            play.playbook,
+                "ansible-playbook",
+                "-i",
+                play.inventory,
+                "-e",
+                json.dumps(play.extra_vars),
+                "--tags",
+                ",".join(play.tags),
+                play.playbook,
             ], env=env,
         )
 
