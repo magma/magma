@@ -9,21 +9,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@python_deps//:requirements.bzl", "requirement")
 load("//bazel:python_test.bzl", "pytest_test")
 
 MAGMA_ROOT = "../../../../../../"
 
 ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
 pytest_test(
-    name = "rpc_servicer_tests",
-    srcs = ["rpc_servicer_tests.py"],
-    imports = [ORC8R_ROOT],
+    name = "test_icmp_monitor",
+    srcs = ["test_icmp_monitor.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
     deps = [
-        "//orc8r/gateway/python/magma/common/redis/mocks:mock_redis",
-        "//orc8r/gateway/python/magma/directoryd:rpc_servicer",
-        requirement("fakeredis"),
-        requirement("lupa"),
+        "//lte/gateway/python/magma/monitord:monitord_lib",
+        "//lte/protos:mobilityd_python_proto",
     ],
 )

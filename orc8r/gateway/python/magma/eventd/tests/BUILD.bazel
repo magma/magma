@@ -11,10 +11,8 @@
 
 load("//bazel:python_test.bzl", "pytest_test")
 
-COMMON_TEST_DEPS = ["//orc8r/gateway/python/magma/eventd:eventd"]
-
 pytest_test(
     name = "event_validation_tests",
     srcs = ["event_validation_tests.py"],
-    deps = COMMON_TEST_DEPS,
+    deps = ["//orc8r/gateway/python/magma/eventd"],
 )

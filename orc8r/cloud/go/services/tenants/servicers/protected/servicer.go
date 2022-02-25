@@ -118,7 +118,6 @@ func (s *tenantsServicer) CreateOrUpdateControlProxy(c context.Context, request 
 
 	err = s.store.CreateOrUpdateControlProxy(request.Id, request.ControlProxy)
 	if err != nil {
-		request.GetControlProxy()
 		return nil, status.Errorf(codes.Internal, "Error setting control proxy %d: %v", request.Id, err)
 	}
 

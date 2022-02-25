@@ -432,31 +432,30 @@
     dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
 
 # TODO: preburn this
-- name: Install requirements for VSCode <-> Bazel integration
+- name: Install dev requirements only used for Magma VM
   retries: 5
   apt:
     state: latest
     pkg:
       - clangd-12
       - lld
-
-# TODO: preburn this
-- name: Install clang-format-11 c/c++ formatting tooling
-  retries: 5
-  apt:
-    state: latest
-    pkg:
       - clang-format-11
 
-# TODO: this can be removed once the role below is preburned
-- name: Remove all links for clang-format
-  become: yes
-  command: 'update-alternatives --remove-all clang-format'
+# TODO: preburn this
+- name: Create a symlink for clangd
+  file:
+    src: '/usr/bin/clangd-12'
+    path: '/usr/bin/clangd'
+    state: link
+    force: yes
 
 # TODO: preburn this
-- name: Create links for clang-format
-  become: yes
-  command: 'update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-11 1000'
+- name: Create a symlink for clang-format
+  file:
+    src: '/usr/bin/clang-format-11'
+    path: '/usr/bin/clang-format'
+    state: link
+    force: yes
 
 - name: Symlink system wide bazelrc into the VM
   file:

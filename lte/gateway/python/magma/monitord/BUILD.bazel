@@ -15,29 +15,40 @@ MAGMA_ROOT = "../../../../../"
 
 ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
 py_binary(
-    name = "ctraced",
+    name = "monitord",
     srcs = ["main.py"],
-    imports = [ORC8R_ROOT],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
     # legacy_creat_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
     legacy_create_init = False,
     main = "main.py",
-    python_version = "PY3",
-    visibility = ["//visibility:public"],
+    visibility = ["//visibility:private"],
     deps = [
-        ":ctraced_lib",
+        ":monitord_lib",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:mobilityd_python_proto",
         "//orc8r/gateway/python/magma/common:sentry",
         "//orc8r/gateway/python/magma/common:service",
     ],
 )
 
 py_library(
-    name = "ctraced_lib",
+    name = "monitord_lib",
     srcs = [
-        "command_builder.py",
-        "rpc_servicer.py",
-        "trace_manager.py",
+        "cpe_monitoring.py",
+        "icmp_job.py",
+        "icmp_state.py",
     ],
-    visibility = ["//visibility:private"],
-    deps = ["//orc8r/protos:ctraced_python_grpc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//lte/protos:mobilityd_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/magmad/check/network_check:ping",
+    ],
 )
