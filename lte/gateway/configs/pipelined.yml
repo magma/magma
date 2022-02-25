@@ -194,6 +194,8 @@ ovs_internal_conntrack_port_number: 15579
 ovs_internal_conntrack_fwd_tbl_number: 202
 
 # For 5G Functionality Support flag
+# Commenting local config parameter for enable5g_features to give
+# precedence to Orc8r streamed config parameter in gateway.mcofnig file
 # enable5g_features: false
 
 upf_node_identifier: 192.168.200.1
