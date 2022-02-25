@@ -1344,6 +1344,14 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
   free(buffer);
   rc = s1ap_mme_itti_send_sctp_request(&b, assoc_id, stream, mme_ue_s1ap_id);
 
+  // For handover; intention is release the s1-signaling connection with
+  //  source eNB and retain the UE contexts mme_app, nas and spgw. Since
+  //  mme_ue_s1ap_id remains same for UE before and after handover, so s1ap
+  //  doesn't send 'ue context release complete' message to mme_app
+
+  if (cause == S1AP_SUCCESSFUL_HANDOVER) {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+  }
   if (rc == RETURNok) {
     // Start timer to track UE context release complete from eNB
     ue_ref_p->s1_ue_state = S1AP_UE_WAITING_CRR;
@@ -3013,6 +3021,7 @@ status_code_e s1ap_mme_handle_handover_notify(s1ap_state_t* state,
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
+  OAILOG_INFO(LOG_S1AP, "handover notify received");
   container = &pdu->choice.initiatingMessage.value.choice.HandoverNotify;
 
   // HandoverNotify means the handover has completed successfully. We can
