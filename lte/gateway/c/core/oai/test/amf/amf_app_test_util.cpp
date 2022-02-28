@@ -47,6 +47,75 @@ imsi64_t send_initial_ue_message_no_tmsi(
   return imsi64;
 }
 
+/* For guti based registration */
+uint64_t send_initial_ue_message_with_tmsi(
+    amf_app_desc_t* amf_app_desc_p, sctp_assoc_id_t sctp_assoc_id,
+    uint32_t gnb_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
+    amf_ue_ngap_id_t amf_ue_ngap_id, const plmn_t& plmn, uint32_t m_tmsi,
+    const uint8_t* nas_msg, uint8_t nas_msg_length) {
+  tai_t originating_tai = {};
+  int rc = RETURNerror;
+  tai_t tai = {.plmn = plmn, .tac = 1};
+
+  itti_ngap_initial_ue_message_t initial_ue_message = {};
+
+  initial_ue_message.nas = blk2bstr(nas_msg, nas_msg_length);
+
+  initial_ue_message.sctp_assoc_id = sctp_assoc_id;
+  initial_ue_message.gnb_ue_ngap_id = gnb_ue_ngap_id;
+  initial_ue_message.gnb_id = gnb_id;
+  initial_ue_message.m5g_rrc_establishment_cause = M5G_MO_SIGNALING;
+  initial_ue_message.is_s_tmsi_valid = true;
+  initial_ue_message.opt_s_tmsi.amf_set_id = 1;
+  initial_ue_message.opt_s_tmsi.amf_pointer = 0;
+  initial_ue_message.opt_s_tmsi.m_tmsi = m_tmsi;
+  initial_ue_message.tai = tai;
+  initial_ue_message.ue_context_request = M5G_UEContextRequest_requested;
+
+  amf_app_handle_initial_ue_message(amf_app_desc_p, &initial_ue_message);
+
+  guti_m5_t guti_search;
+  memset(&guti_search, 0, sizeof(guti_m5_t));
+
+  guti_search.guamfi.amf_regionid = 1;
+  guti_search.guamfi.amf_set_id = 1;
+  guti_search.guamfi.amf_pointer = 0;
+  guti_search.guamfi.plmn = plmn;
+  guti_search.m_tmsi = m_tmsi;
+
+  uint64_t amf_ue_ngap_id64 = 0;
+  magma::map_rc_t m_rc = magma::MAP_KEY_NOT_EXISTS;
+  rc = amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.get(
+      guti_search, &amf_ue_ngap_id64);
+
+  return amf_ue_ngap_id64;
+}
+
+/* Create the identiy response message */
+int send_uplink_nas_identity_response_message(amf_app_desc_t* amf_app_desc_p,
+                                              amf_ue_ngap_id_t ue_id,
+                                              const plmn_t& plmn,
+                                              const uint8_t* nas_msg,
+                                              uint8_t nas_msg_length) {
+  bstring pdu_session_req;
+  tai_t originating_tai = {};
+
+  if ((!amf_app_desc_p) || (!nas_msg) || (nas_msg_length == 0)) {
+    return RETURNerror;
+  }
+
+  pdu_session_req = blk2bstr(nas_msg, nas_msg_length);
+
+  originating_tai.plmn = plmn;
+  originating_tai.tac = 1;
+
+  int rc = RETURNerror;
+  rc = amf_app_handle_uplink_nas_message(amf_app_desc_p, pdu_session_req, ue_id,
+                                         originating_tai);
+
+  return (rc);
+}
+
 /* Create authentication answer from subscriberdb */
 int send_proc_authentication_info_answer(const std::string& imsi,
                                          amf_ue_ngap_id_t ue_id, bool success) {
@@ -339,6 +408,7 @@ void create_pdu_resource_setup_response_itti(
   qosFlow->items = 1;
   qosFlow->QosFlowIdentifier[0] = 9;
 }
+
 int send_pdu_resource_setup_response(amf_ue_ngap_id_t ue_id) {
   int rc = RETURNok;
   itti_ngap_pdusessionresource_setup_rsp_t response = {};
@@ -457,11 +527,11 @@ void send_ue_context_release_request_message(amf_app_desc_t* amf_app_desc_p,
   amf_app_handle_cm_idle_on_ue_context_release(ue_context_release_request);
 }
 
-imsi64_t send_initial_ue_message_service_request_with_pdu(
+imsi64_t send_initial_ue_message_service_request(
     amf_app_desc_t* amf_app_desc_p, sctp_assoc_id_t sctp_assoc_id,
     uint32_t gnb_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
     amf_ue_ngap_id_t amf_ue_ngap_id, const plmn_t& plmn, const uint8_t* nas_msg,
-    uint8_t nas_msg_length) {
+    uint8_t nas_msg_length, uint8_t tmsi_offset) {
   tai_t originating_tai = {};
   int rc = RETURNerror;
   imsi64_t imsi64 = 0;
@@ -480,7 +550,8 @@ imsi64_t send_initial_ue_message_service_request_with_pdu(
    * message has uplink data status(4 bytess)
    * and PDU session status(4 bytes) after TMSI*/
   ue_tmsi = htonl(ue_tmsi);
-  memcpy(&(initial_ue_message.nas->data[nas_msg_length - sizeof(tmsi_t) - 8]),
+  memcpy(&(initial_ue_message.nas
+               ->data[nas_msg_length - sizeof(tmsi_t) - tmsi_offset]),
          &(ue_tmsi), sizeof(tmsi_t));
   initial_ue_message.sctp_assoc_id = sctp_assoc_id;
   initial_ue_message.gnb_ue_ngap_id = gnb_ue_ngap_id;

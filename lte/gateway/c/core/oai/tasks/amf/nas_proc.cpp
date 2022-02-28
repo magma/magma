@@ -369,6 +369,8 @@ int amf_proc_identification(amf_context_t* const amf_context,
       ident_proc->identity_type = type;
       ident_proc->retransmission_count = 0;
       ident_proc->ue_id = ue_id;
+      (reinterpret_cast<nas5g_base_proc_t*>(ident_proc))->parent =
+          reinterpret_cast<nas5g_base_proc_t*>(amf_proc);
       ident_proc->amf_com_proc.amf_proc.delivered = NULL;
       ident_proc->amf_com_proc.amf_proc.base_proc.success_notif = success;
       ident_proc->amf_com_proc.amf_proc.base_proc.failure_notif = failure;
