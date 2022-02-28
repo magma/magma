@@ -720,19 +720,19 @@ func getNBConfiguratorClient() (protos.NorthboundConfiguratorClient, error) {
 }
 
 func GetMconfigFor(ctx context.Context, hardwareID string) (*protos.GetMconfigResponse, error) {
-	client, err := getSBConfiguratorClient()
+	client, err := getCloudSBConfiguratorClient()
 	if err != nil {
 		return nil, err
 	}
 	return client.GetMconfigInternal(ctx, &protos.GetMconfigRequest{HardwareID: hardwareID})
 }
 
-func getSBConfiguratorClient() (protos.SouthboundConfiguratorClient, error) {
+func getCloudSBConfiguratorClient() (protos.CloudSouthboundConfiguratorClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
 		return nil, initErr
 	}
-	return protos.NewSouthboundConfiguratorClient(conn), err
+	return protos.NewCloudSouthboundConfiguratorClient(conn), err
 }

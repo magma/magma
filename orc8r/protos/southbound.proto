@@ -36,7 +36,9 @@ message GetMconfigResponse {
 
 service SouthboundConfigurator {
     rpc GetMconfig(magma.orc8r.Void) returns (GatewayConfigs) {}
+}
 
+service CloudSouthboundConfigurator {
     // GetMconfigInternal exists to support the existing streamer mconfig
     // policy. This should be removed when we migrate gateway mconfig updates
     // from streamer to this southbound configurator servicer.

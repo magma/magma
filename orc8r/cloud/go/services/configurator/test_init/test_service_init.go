@@ -62,6 +62,12 @@ func StartTestService(t *testing.T) {
 	}
 	protos.RegisterSouthboundConfiguratorServer(srv.GrpcServer, sb)
 
+	cloudSb, err := servicers.NewCloudSouthboundConfiguratorServicer(storageFactory)
+	if err != nil {
+		t.Fatalf("Failed to create SB configurator servicer: %s", err)
+	}
+	protos.RegisterCloudSouthboundConfiguratorServer(srv.GrpcServer, cloudSb)
+
 	go srv.RunTest(lis)
 }
 
