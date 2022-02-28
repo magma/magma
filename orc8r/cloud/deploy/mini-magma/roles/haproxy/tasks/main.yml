@@ -47,25 +47,20 @@
 
         backend fluentd
           mode tcp
-          option ssl-hello-chk
           server svc fluentd:24224
 
         backend nginx-proxy
           mode tcp
-          option ssl-hello-chk
           server svc nginx-proxy:443
 
         backend orc8r-nginx-proxy
           mode tcp
-          option ssl-hello-chk
           server svc orc8r-nginx-proxy:443
 
         backend orc8r-clientcert-nginx
           mode tcp
-          option ssl-hello-chk
           server svc orc8r-clientcert-nginx:443
 
         backend bootstrapper-orc8r-nginx
           mode tcp
-          option ssl-hello-chk
           server svc bootstrapper-orc8r-nginx:443
