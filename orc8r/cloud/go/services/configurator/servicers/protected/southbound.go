@@ -1,16 +1,3 @@
-/*
-Copyright 2020 The Magma Authors.
-
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package servicers
 
 import (
@@ -41,16 +28,6 @@ func NewSouthboundConfiguratorServicer(factory storage.ConfiguratorStorageFactor
 	return &sbConfiguratorServicer{factory}, nil
 }
 
-type cloudSbConfiguratorServicer struct {
-	factory storage.ConfiguratorStorageFactory
-}
-
-func NewCloudSouthboundConfiguratorServicer(factory storage.ConfiguratorStorageFactory) (cfg_protos.CloudSouthboundConfiguratorServer, error) {
-	if factory == nil {
-		return nil, fmt.Errorf("storage factory is nil")
-	}
-	return &cloudSbConfiguratorServicer{factory}, nil
-}
 func (srv *sbConfiguratorServicer) GetMconfig(ctx context.Context, void *protos.Void) (*protos.GatewayConfigs, error) {
 	gw := protos.GetClientGateway(ctx)
 	if gw == nil {
@@ -62,7 +39,7 @@ func (srv *sbConfiguratorServicer) GetMconfig(ctx context.Context, void *protos.
 	return srv.getMconfigImpl(gw.NetworkId, gw.LogicalId)
 }
 
-func (srv *cloudSbConfiguratorServicer) GetMconfigInternal(ctx context.Context, req *cfg_protos.GetMconfigRequest) (*cfg_protos.GetMconfigResponse, error) {
+func (srv *sbConfiguratorServicer) GetMconfigInternal(ctx context.Context, req *cfg_protos.GetMconfigRequest) (*cfg_protos.GetMconfigResponse, error) {
 	store, err := srv.factory.StartTransaction(context.Background(), &orc8r_storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		storage.RollbackLogOnError(store)
@@ -91,42 +68,6 @@ func (srv *cloudSbConfiguratorServicer) GetMconfigInternal(ctx context.Context, 
 }
 
 func (srv *sbConfiguratorServicer) getMconfigImpl(networkID string, gatewayID string) (*protos.GatewayConfigs, error) {
-	store, err := srv.factory.StartTransaction(context.Background(), &orc8r_storage.TxOptions{ReadOnly: true})
-	if err != nil {
-		storage.RollbackLogOnError(store)
-		return nil, status.Errorf(codes.Aborted, "failed to start transaction: %s", err)
-	}
-
-	graph, err := store.LoadGraphForEntity(
-		networkID,
-		storage.EntityID{Type: orc8r.MagmadGatewayType, Key: gatewayID},
-		storage.FullEntityLoadCriteria,
-	)
-	if err != nil {
-		storage.RollbackLogOnError(store)
-		return nil, status.Errorf(codes.Internal, "failed to load entity graph: %s", err)
-	}
-
-	nwLoad, err := store.LoadNetworks(storage.NetworkLoadFilter{Ids: []string{networkID}}, storage.FullNetworkLoadCriteria)
-	if err != nil {
-		storage.RollbackLogOnError(store)
-		return nil, status.Errorf(codes.Internal, "failed to load network: %s", err)
-	}
-	if !funk.IsEmpty(nwLoad.NetworkIDsNotFound) || funk.IsEmpty(nwLoad.Networks) {
-		storage.RollbackLogOnError(store)
-		return nil, status.Errorf(codes.Internal, "network %s not found: %s", networkID, err)
-	}
-
-	// Error on commit is fine for a readonly tx
-	storage.CommitLogOnError(store)
-
-	ret, err := mconfig.CreateMconfigJSON(nwLoad.Networks[0], &graph, gatewayID)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to build mconfig: %s", err)
-	}
-	return ret, nil
-}
-func (srv *cloudSbConfiguratorServicer) getMconfigImpl(networkID string, gatewayID string) (*protos.GatewayConfigs, error) {
 	store, err := srv.factory.StartTransaction(context.Background(), &orc8r_storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		storage.RollbackLogOnError(store)
