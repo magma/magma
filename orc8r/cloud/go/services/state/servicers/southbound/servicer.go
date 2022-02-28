@@ -20,21 +20,15 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
-	"github.com/thoas/go-funk"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer/index"
 	state_types "magma/orc8r/cloud/go/services/state/types"
-	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
-)
-
-var (
-	errMissingGateway       = status.Error(codes.PermissionDenied, "missing gateway identity")
-	errGatewayNotRegistered = status.Error(codes.PermissionDenied, "gateway not registered")
 )
 
 type stateServicer struct {
@@ -49,42 +43,20 @@ func NewStateServicer(factory blobstore.StoreFactory) (protos.StateServiceServer
 	return &stateServicer{factory}, nil
 }
 
-type cloudStateServicer struct {
-	factory blobstore.StoreFactory
-}
-
-// NewCloudStateServicer returns a state server backed by storage passed in.
-func NewCloudStateServicer(factory blobstore.StoreFactory) (protos.CloudStateServiceServer, error) {
-	if factory == nil {
-		return nil, errors.New("storage factory is nil")
-	}
-	return &cloudStateServicer{factory}, nil
-}
-
-func (srv *cloudStateServicer) GetStates(ctx context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
-	if err := validateGetStatesRequest(req); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-	if !funk.IsEmpty(req.Ids) {
-		return srv.getStates(ctx, req)
-	}
-	return srv.searchStates(ctx, req)
-}
-
 // ReportStates from a gateway.
 // Always reports UnreportedStates as empty.
 func (srv *stateServicer) ReportStates(ctx context.Context, req *protos.ReportStatesRequest) (*protos.ReportStatesResponse, error) {
-	if err := validateReportStatesRequest(req); err != nil {
+	if err := ValidateReportStatesRequest(req); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	// Get gateway information from context
 	gw := protos.GetClientGateway(ctx)
 	if gw == nil {
-		return nil, errMissingGateway
+		return nil, state.ErrMissingGateway
 	}
 	if !gw.Registered() {
-		return nil, errGatewayNotRegistered
+		return nil, state.ErrGatewayNotRegistered
 	}
 	hwID := gw.HardwareId
 	networkID := gw.NetworkId
@@ -93,26 +65,26 @@ func (srv *stateServicer) ReportStates(ctx context.Context, req *protos.ReportSt
 
 	states, err := addWrapperAndMakeBlobs(req.States, hwID, timeMs, certExpiry)
 	if err != nil {
-		return nil, internalErr(err, "ReportStates convert to blobs")
+		return nil, state.InternalErr(err, "ReportStates convert to blobs")
 	}
 
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
-		return nil, internalErr(err, "ReportStates blobstore start transaction")
+		return nil, state.InternalErr(err, "ReportStates blobstore start transaction")
 	}
 	err = store.Write(networkID, states)
 	if err != nil {
 		_ = store.Rollback()
-		return nil, internalErr(err, "ReportStates blobstore create or update")
+		return nil, state.InternalErr(err, "ReportStates blobstore create or update")
 	}
 	err = store.Commit()
 	if err != nil {
-		return nil, internalErr(err, "ReportStates blobstore commit transaction")
+		return nil, state.InternalErr(err, "ReportStates blobstore commit transaction")
 	}
 
 	byID, err := state_types.MakeSerializedStatesByID(req.States)
 	if err != nil {
-		return nil, internalErr(err, "ReportStates make states by ID")
+		return nil, state.InternalErr(err, "ReportStates make states by ID")
 	}
 	go index.MustIndex(networkID, byID)
 
@@ -131,11 +103,11 @@ func (srv *stateServicer) DeleteStates(ctx context.Context, req *protos.DeleteSt
 		}
 		req.NetworkID = gw.NetworkId
 	}
-	if err := validateDeleteStatesRequest(req); err != nil {
+	if err := ValidateDeleteStatesRequest(req); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	networkID := req.GetNetworkID()
-	ids := idsToTKs(req.GetIds())
+	ids := state.IdsToTKs(req.GetIds())
 
 	stateRequest := &protos.GetStatesRequest{NetworkID: networkID, Ids: req.Ids}
 	getStateRes, err := srv.getStates(ctx, stateRequest)
@@ -144,51 +116,51 @@ func (srv *stateServicer) DeleteStates(ctx context.Context, req *protos.DeleteSt
 	} else {
 		byID, err := state_types.MakeSerializedStatesByID(getStateRes.GetStates())
 		if err != nil {
-			return nil, internalErr(err, "ReportStates make states by ID")
+			return nil, state.InternalErr(err, "ReportStates make states by ID")
 		}
 		go index.MustDeIndex(networkID, byID)
 	}
 
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
-		return nil, internalErr(err, "DeleteStates blobstore start transaction")
+		return nil, state.InternalErr(err, "DeleteStates blobstore start transaction")
 	}
 	err = store.Delete(networkID, ids)
 	if err != nil {
 		_ = store.Rollback()
-		return nil, internalErr(err, "DeleteStates blobstore delete")
+		return nil, state.InternalErr(err, "DeleteStates blobstore delete")
 	}
 	err = store.Commit()
 	if err != nil {
-		return nil, internalErr(err, "DeleteStates blobstore commit transaction")
+		return nil, state.InternalErr(err, "DeleteStates blobstore commit transaction")
 	}
 
 	return &protos.Void{}, nil
 }
 
 func (srv *stateServicer) SyncStates(ctx context.Context, req *protos.SyncStatesRequest) (*protos.SyncStatesResponse, error) {
-	if err := validateSyncStatesRequest(req); err != nil {
+	if err := ValidateSyncStatesRequest(req); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	// Get gateway information from context
 	gw := protos.GetClientGateway(ctx)
 	if gw == nil {
-		return nil, errMissingGateway
+		return nil, state.ErrMissingGateway
 	}
 	if !gw.Registered() {
-		return nil, errGatewayNotRegistered
+		return nil, state.ErrGatewayNotRegistered
 	}
 	networkID := gw.NetworkId
 
-	tkIds := idAndVersionsToTKs(req.GetStates())
+	tkIds := state.IdAndVersionsToTKs(req.GetStates())
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
-		return nil, internalErr(err, "SyncStates blobstore start transaction")
+		return nil, state.InternalErr(err, "SyncStates blobstore start transaction")
 	}
 	blobs, err := store.GetMany(networkID, tkIds)
 	if err != nil {
 		_ = store.Rollback()
-		return nil, internalErr(err, "SyncStates blobstore get many")
+		return nil, state.InternalErr(err, "SyncStates blobstore get many")
 	}
 	// Pre-sort the blobstore results for faster syncing
 	statesByDeviceID := map[string][]*protos.State{}
@@ -210,7 +182,7 @@ func (srv *stateServicer) SyncStates(ctx context.Context, req *protos.SyncStates
 	}
 	err = store.Commit()
 	if err != nil {
-		return nil, internalErr(err, "SyncStates blobstore commit transaction")
+		return nil, state.InternalErr(err, "SyncStates blobstore commit transaction")
 	}
 
 	return &protos.SyncStatesResponse{UnsyncedStates: unsyncedStates}, nil
@@ -219,70 +191,22 @@ func (srv *stateServicer) SyncStates(ctx context.Context, req *protos.SyncStates
 func (srv *stateServicer) getStates(_ context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
-		return nil, internalErr(err, "GetStates (get) blobstore start transaction")
+		return nil, state.InternalErr(err, "GetStates (get) blobstore start transaction")
 	}
 
-	ids := idsToTKs(req.GetIds())
+	ids := state.IdsToTKs(req.GetIds())
 	blobs, err := store.GetMany(req.GetNetworkID(), ids)
 	if err != nil {
 		_ = store.Rollback()
-		return nil, internalErr(err, "GetStates (get) blobstore get many")
+		return nil, state.InternalErr(err, "GetStates (get) blobstore get many")
 	}
 
 	err = store.Commit()
 	if err != nil {
-		return nil, internalErr(err, "GetStates (get) blobstore commit transaction")
+		return nil, state.InternalErr(err, "GetStates (get) blobstore commit transaction")
 	}
 
-	return &protos.GetStatesResponse{States: blobsToStates(blobs)}, nil
-}
-
-func (srv *cloudStateServicer) getStates(_ context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
-	store, err := srv.factory.StartTransaction(nil)
-	if err != nil {
-		return nil, internalErr(err, "GetStates (get) blobstore start transaction")
-	}
-
-	ids := idsToTKs(req.GetIds())
-	blobs, err := store.GetMany(req.GetNetworkID(), ids)
-	if err != nil {
-		_ = store.Rollback()
-		return nil, internalErr(err, "GetStates (get) blobstore get many")
-	}
-
-	err = store.Commit()
-	if err != nil {
-		return nil, internalErr(err, "GetStates (get) blobstore commit transaction")
-	}
-
-	return &protos.GetStatesResponse{States: blobsToStates(blobs)}, nil
-}
-
-func (srv *cloudStateServicer) searchStates(_ context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
-	store, err := srv.factory.StartTransaction(nil)
-	if err != nil {
-		return nil, internalErr(err, "GetStates (search) blobstore start transaction")
-	}
-
-	var idPrefix *string
-	if req.IdPrefix != "" {
-		idPrefix = &req.IdPrefix
-	}
-	searchResults, err := store.Search(
-		blobstore.CreateSearchFilter(&req.NetworkID, req.TypeFilter, req.IdFilter, idPrefix),
-		blobstore.LoadCriteria{LoadValue: req.LoadValues},
-	)
-	if err != nil {
-		_ = store.Rollback()
-		return nil, internalErr(err, "GetStates (search) blobstore search")
-	}
-
-	err = store.Commit()
-	if err != nil {
-		return nil, internalErr(err, "GetStates (search) blobstore commit transaction")
-	}
-
-	return &protos.GetStatesResponse{States: blobsToStates(searchResults[req.NetworkID])}, nil
+	return &protos.GetStatesResponse{States: state.BlobsToStates(blobs)}, nil
 }
 
 func isStateSynced(deviceIdToStates map[string][]*protos.State, reqIdAndVersion *protos.IDAndVersion) (bool, uint64) {
@@ -321,55 +245,7 @@ func addWrapperAndMakeBlobs(states []*protos.State, hwID string, timeMs uint64, 
 			return nil, err
 		}
 		st.Value = wrappedValue
-		blobs = append(blobs, stateToBlob(st))
+		blobs = append(blobs, state.StateToBlob(st))
 	}
 	return blobs, nil
-}
-
-func idToTK(id *protos.StateID) storage.TK {
-	return storage.TK{Type: id.GetType(), Key: id.GetDeviceID()}
-}
-
-func idsToTKs(ids []*protos.StateID) storage.TKs {
-	var tks storage.TKs
-	for _, id := range ids {
-		tks = append(tks, idToTK(id))
-	}
-	return tks
-}
-
-func idAndVersionsToTKs(IDs []*protos.IDAndVersion) storage.TKs {
-	var ids storage.TKs
-	for _, idAndVersion := range IDs {
-		ids = append(ids, idToTK(idAndVersion.Id))
-	}
-	return ids
-}
-
-func blobsToStates(blobs blobstore.Blobs) []*protos.State {
-	var states []*protos.State
-	for _, b := range blobs {
-		st := &protos.State{
-			Type:     b.Type,
-			DeviceID: b.Key,
-			Value:    b.Value,
-			Version:  b.Version,
-		}
-		states = append(states, st)
-	}
-	return states
-}
-
-func stateToBlob(state *protos.State) blobstore.Blob {
-	return blobstore.Blob{
-		Type:    state.GetType(),
-		Key:     state.GetDeviceID(),
-		Value:   state.GetValue(),
-		Version: state.GetVersion(),
-	}
-}
-
-func internalErr(err error, wrap string) error {
-	e := errors.Wrap(err, wrap)
-	return status.Error(codes.Internal, e.Error())
 }

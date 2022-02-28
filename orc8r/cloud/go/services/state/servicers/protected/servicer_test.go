@@ -1,17 +1,17 @@
 /*
- * Copyright 2020 The Magma Authors.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ Copyright 2020 The Magma Authors.
 
-package servicers_test
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
+package protected
 
 import (
 	"context"
@@ -22,7 +22,6 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/blobstore/mocks"
-	"magma/orc8r/cloud/go/services/state/servicers/protected"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 )
@@ -58,7 +57,7 @@ func TestStateServicer_GetStates(t *testing.T) {
 	fact := &mocks.StoreFactory{}
 	fact.On("StartTransaction", mock.Anything).Return(mockStore, nil)
 
-	srv, err := protected.NewCloudStateServicer(fact)
+	srv, err := NewCloudStateServicer(fact)
 	assert.NoError(t, err)
 
 	actual, err := srv.GetStates(ctx, &protos.GetStatesRequest{
