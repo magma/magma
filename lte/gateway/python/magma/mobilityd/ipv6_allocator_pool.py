@@ -36,13 +36,17 @@ MAX_CALC_TRIES = 10
 class IPv6AllocatorPool(IPAllocator):
     def __init__(
         self, store: MobilityStore, session_prefix_alloc_mode: str,
-        ipv6_prefixlen: int = MAX_IPV6_CONF_PREFIX_LEN,
+        ipv6_prefixlen: Optional[int] = MAX_IPV6_CONF_PREFIX_LEN,
     ):
         super().__init__()
         self._store = store
         self._assigned_ip_block = None
         self._ipv6_session_prefix_alloc_mode = session_prefix_alloc_mode
-        self._ipv6_prefixlen = ipv6_prefixlen
+        self._ipv6_prefixlen = (
+            ipv6_prefixlen
+            if ipv6_prefixlen is not None
+            else MAX_IPV6_CONF_PREFIX_LEN
+        )
 
     def add_ip_block(self, ipblock: ip_network):
         """
@@ -59,7 +63,10 @@ class IPv6AllocatorPool(IPAllocator):
             raise OverlappedIPBlocksError(ipblock)
 
         if ipblock.prefixlen > self._ipv6_prefixlen:
-            log_error_and_raise(InvalidIPv6NetworkError, "IPv6 block exceeds maximum allowed prefix length")
+            log_error_and_raise(
+                InvalidIPv6NetworkError,
+                "IPv6 block exceeds maximum allowed prefix length",
+            )
 
         # For now only one IPv6 network is supported
         self._assigned_ip_block = ipblock
