@@ -18,6 +18,9 @@ controller:
   image:
     repository: controller
     tag: "latest"
+    pullPolicy: IfNotPresent
+    env:
+      orc8r_domain_name: magma.test
   migration:
     new_handlers: 1
     new_mconfigs: 1
