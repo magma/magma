@@ -1,4 +1,4 @@
-add_compile_options(-std=c++11)
+add_compile_options(-std=c++14)
 
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 

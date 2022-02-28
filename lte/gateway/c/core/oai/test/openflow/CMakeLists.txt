@@ -7,7 +7,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_compile_options(-std=c++11)
+add_compile_options(-std=c++14)
 
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 

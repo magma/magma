@@ -1,4 +1,4 @@
-add_compile_options(-std=c++11)
+add_compile_options(-std=c++14)
 
 # compile the needed protos
 set(DRD_ORC8R_CPP_PROTOS common directoryd)
