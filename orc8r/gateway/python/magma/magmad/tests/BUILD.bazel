@@ -9,6 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@python_deps//:requirements.bzl", "requirement")
 load("//bazel:python_test.bzl", "pytest_test")
 
 pytest_test(
@@ -20,13 +21,19 @@ pytest_test(
 pytest_test(
     name = "collector_tests",
     srcs = ["collector_tests.py"],
-    deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
+    deps = [
+        requirement("prometheus_client"),
+        "//orc8r/gateway/python/magma/magmad:magmad_lib",
+    ],
 )
 
 pytest_test(
     name = "config_manager_tests",
     srcs = ["config_manager_tests.py"],
-    deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
+    deps = [
+        "//orc8r/gateway/python/magma/configuration:mconfig_managers",
+        "//orc8r/gateway/python/magma/magmad:magmad_lib",
+    ],
 )
 
 pytest_test(

@@ -76,7 +76,7 @@ pytest_test(
         "//feg/protos:s6a_proxy_grpc_proto",
         "//lte/gateway/python/magma/subscriberdb/protocols/diameter",
         "//lte/gateway/python/magma/subscriberdb/protocols/diameter:server",
-        "//orc8r/gateway/python/magma/common:service",
+        "//orc8r/gateway/python/magma/common:service_registry",
         requirement("grpcio"),
     ],
 )
