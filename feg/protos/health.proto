@@ -113,7 +113,9 @@ message GatewayStatusRequest {
 service Health {
   // Update the cloud representation of gateway health
   rpc UpdateHealth (HealthRequest) returns (HealthResponse) {}
+}
 
+service CloudHealth {
   // Get the health statistics of a gateway
   rpc GetHealth (GatewayStatusRequest) returns (HealthStats) {}
 
