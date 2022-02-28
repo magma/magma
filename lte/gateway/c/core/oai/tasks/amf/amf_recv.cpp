@@ -117,7 +117,11 @@ int amf_handle_service_request(
 
     if (msg->service_type.service_type_value == SERVICE_TYPE_SIGNALING) {
       OAILOG_DEBUG(LOG_NAS_AMF, "Service request type is signalling \n");
-      amf_sap.primitive = AMFAS_ESTABLISH_CNF;
+      if (ue_context->amf_context._security.eksi != KSI_NO_KEY_AVAILABLE) {
+        amf_sap.primitive = AMFAS_ESTABLISH_CNF;
+      } else {
+        amf_sap.primitive = AMFAS_ESTABLISH_REJ;
+      }
 
       amf_sap.u.amf_as.u.establish.ue_id = ue_id;
       amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;

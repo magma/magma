@@ -45,5 +45,6 @@ pytest_test(
 
 py_library(
     name = "mock_stubs",
+    testonly = True,
     srcs = ["mock_stubs.py"],
 )

@@ -49,6 +49,12 @@ using magma::lte::SpgwService;
 namespace magma {
 using namespace lte;
 
+typedef struct ipv4_network {
+  uint32_t addr_hbo;
+  int mask_len;
+  bool success;
+} ipv4_network_t;
+
 class SpgwServiceImpl final : public SpgwService::Service {
  public:
   SpgwServiceImpl();
@@ -79,6 +85,8 @@ class SpgwServiceImpl final : public SpgwService::Service {
                             const DeleteBearerRequest* request,
                             DeleteBearerResult* response) override;
 
+  ipv4_network_t parseIpv4Network(const std::string& ipv4network_str);
+
  private:
   /*
    * Fill up the packet filter contents such as flags and flow tuple fields
@@ -96,7 +104,7 @@ class SpgwServiceImpl final : public SpgwService::Service {
    * @return bool: Return true if successful, false if not
    */
   bool fillIpv4(packet_filter_contents_t* pf_content,
-                const std::string ipv4addr);
+                const std::string& ipv4addr);
 
   /*
    * Fill up the ipv6 remote address field in packet filter

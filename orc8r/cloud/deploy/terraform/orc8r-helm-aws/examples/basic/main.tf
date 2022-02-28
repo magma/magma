@@ -30,8 +30,8 @@ module "orc8r" {
   orc8r_sns_email             = "admin@example.com"
   enable_aws_db_notifications = true
 
-  vpc_name        = "orc8r"
-  cluster_name    = "orc8r"
+  vpc_name     = "orc8r"
+  cluster_name = "orc8r"
 
   deploy_elasticsearch          = true
   elasticsearch_domain_name     = "orc8r-es"
@@ -77,9 +77,9 @@ module "orc8r-app" {
   docker_pass     = ""
 
   # Note that this can be any Helm chart repo provider
-  helm_repo       = "https://artifactory.magmacore.org/artifactory/helm"
-  helm_user       = ""
-  helm_pass       = ""
+  helm_repo      = "https://artifactory.magmacore.org/artifactory/helm"
+  helm_user      = ""
+  helm_pass      = ""
   eks_cluster_id = module.orc8r.eks_cluster_id
 
   efs_file_system_id       = module.orc8r.efs_file_system_id
