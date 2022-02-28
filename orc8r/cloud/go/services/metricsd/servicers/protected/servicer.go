@@ -11,34 +11,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package servicers
+package protected
 
 import (
 	"context"
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	prom_proto "github.com/prometheus/client_model/go"
 
-	"magma/orc8r/cloud/go/serdes"
-	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/lib/go/metrics"
 	"magma/orc8r/lib/go/protos"
 )
-
-// MetricsControllerServer implements a handler to the gRPC server run by the
-// Metrics Controller. It can register instances of the Exporter interface for
-// writing to storage
-type MetricsControllerServer struct {
-	exporters []exporters.Exporter
-}
-
-func NewMetricsControllerServer() *MetricsControllerServer {
-	return &MetricsControllerServer{}
-}
 
 // CloudMetricsControllerServer implements a handler to the gRPC server run by the
 // Metrics Controller. It can register instances of the Exporter interface for
@@ -70,44 +56,10 @@ func (srv *CloudMetricsControllerServer) Push(ctx context.Context, in *protos.Pu
 	return new(protos.Void), nil
 }
 
-func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.MetricsContainer) (*protos.Void, error) {
-	if in.Family == nil || len(in.Family) == 0 {
-		return new(protos.Void), nil
-	}
-
-	hardwareID := in.GetGatewayId()
-	checkID, err := protos.GetGatewayIdentity(ctx)
-	if err != nil {
-		return new(protos.Void), err
-	}
-	if len(checkID.HardwareId) > 0 && checkID.HardwareId != hardwareID {
-		glog.Errorf("Expected %s, but found %s as Hardware ID", checkID.HardwareId, hardwareID)
-		hardwareID = checkID.HardwareId
-	}
-	networkID, gatewayID, err := getNetworkAndEntityIDForPhysicalID(ctx, hardwareID)
-	if err != nil {
-		return new(protos.Void), err
-	}
-	glog.V(2).Infof("collecting %v metrics from gateway %v\n", len(in.Family), in.GatewayId)
-
-	metricsToSubmit := metricsContainerToMetricAndContexts(in, networkID, gatewayID)
-	metricsExporters, err := metricsd.GetMetricsExporters()
-	if err != nil {
-		return &protos.Void{}, err
-	}
-	for _, e := range metricsExporters {
-		err := e.Submit(metricsToSubmit)
-		if err != nil {
-			glog.Error(err)
-		}
-	}
-	return new(protos.Void), nil
-}
-
 // ConsumeCloudMetrics pulls metrics off the given input channel and sends
 // them to all exporters after some preprocessing.
 // Returns only when inputChan closed, which should never happen.
-func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *prom_proto.MetricFamily, hostName string) {
+func (srv *CloudMetricsControllerServer) ConsumeCloudMetrics(inputChan chan *prom_proto.MetricFamily, hostName string) {
 	for family := range inputChan {
 		metricsToSubmit := preprocessCloudMetrics(family, hostName)
 		metricsExporters, err := metricsd.GetMetricsExporters()
@@ -137,34 +89,6 @@ func preprocessCloudMetrics(family *prom_proto.MetricFamily, hostName string) ex
 		addLabel(metric, metrics.CloudHostLabelName, hostName)
 	}
 	return exporters.MetricAndContext{Family: family, Context: ctx}
-}
-
-func (srv *MetricsControllerServer) RegisterExporter(e exporters.Exporter) []exporters.Exporter {
-	srv.exporters = append(srv.exporters, e)
-	return srv.exporters
-}
-
-func metricsContainerToMetricAndContexts(
-	in *protos.MetricsContainer,
-	networkID, gatewayID string,
-) []exporters.MetricAndContext {
-	ret := make([]exporters.MetricAndContext, 0, len(in.Family))
-	for _, fam := range in.Family {
-		ctx := exporters.MetricContext{
-			MetricName: protos.GetDecodedName(fam),
-			AdditionalContext: &exporters.GatewayMetricContext{
-				NetworkID: networkID,
-				GatewayID: gatewayID,
-			},
-		}
-		for _, metric := range fam.Metric {
-			metric.Label = protos.GetDecodedLabel(metric)
-			addLabel(metric, metrics.NetworkLabelName, networkID)
-			addLabel(metric, metrics.GatewayLabelName, gatewayID)
-		}
-		ret = append(ret, exporters.MetricAndContext{Family: fam, Context: ctx})
-	}
-	return ret
 }
 
 func pushedMetricsToMetricsAndContext(in *protos.PushedMetricsContainer) []exporters.MetricAndContext {
@@ -223,15 +147,4 @@ func addLabel(metric *prom_proto.Metric, labelName, labelValue string) {
 
 func strPtr(s string) *string {
 	return &s
-}
-
-func getNetworkAndEntityIDForPhysicalID(ctx context.Context, physicalID string) (string, string, error) {
-	if len(physicalID) == 0 {
-		return "", "", errors.New("Empty Hardware ID")
-	}
-	entity, err := configurator.LoadEntityForPhysicalID(ctx, physicalID, configurator.EntityLoadCriteria{}, serdes.Entity)
-	if err != nil {
-		return "", "", err
-	}
-	return entity.NetworkID, entity.Key, nil
 }
