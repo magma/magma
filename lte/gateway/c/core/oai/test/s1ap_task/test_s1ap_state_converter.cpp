@@ -15,11 +15,13 @@
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "S1ap_S1AP-PDU.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
 }
 
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 
 using ::testing::Test;
 
@@ -27,9 +29,19 @@ namespace magma {
 namespace lte {
 
 class S1APStateConverterTest : public ::testing::Test {
-  virtual void SetUp() {}
+  void SetUp() {
+    itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
+              NULL, NULL);
+    mme_config_init(&mme_config);
+    s1ap_state_init(amf_config.max_ues, amf_config.max_gnbs,
+                    amf_config.use_stateless);
+  }
 
-  virtual void TearDown() {}
+  void TearDown() {
+    s1ap_state_exit();
+    free_mme_config(&mme_config);
+    itti_free_desc_threads();
+  }
 };
 
 TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
