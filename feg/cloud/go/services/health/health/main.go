@@ -22,7 +22,8 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health"
 	"magma/feg/cloud/go/services/health/reporter"
-	"magma/feg/cloud/go/services/health/servicers"
+	protected_servicers "magma/feg/cloud/go/services/health/servicers/protected"
+	servicers "magma/feg/cloud/go/services/health/servicers/southbound"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
@@ -54,6 +55,12 @@ func main() {
 		glog.Fatalf("Error creating health servicer: %+v", err)
 	}
 	protos.RegisterHealthServer(srv.GrpcServer, healthServer)
+
+	cloudHealthServer, err := protected_servicers.NewCloudHealthServer(store)
+	if err != nil {
+		glog.Fatalf("Error creating cloud health servicer: %+v", err)
+	}
+	protos.RegisterCloudHealthServer(srv.GrpcServer, cloudHealthServer)
 
 	// create a networkHealthStatusReporter to monitor and periodically log metrics
 	// on if all gateways in a network are unhealthy
