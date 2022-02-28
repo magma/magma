@@ -13,6 +13,7 @@ module magma/orc8r/cloud/go
 
 replace (
 	k8s.io/client-go => k8s.io/client-go v0.0.0-20191016111102-bec269661e48
+	
 	magma/gateway => ../../gateway/go
 	magma/orc8r/lib/go => ../../lib/go
 	magma/orc8r/lib/go/protos => ../../lib/go/protos
