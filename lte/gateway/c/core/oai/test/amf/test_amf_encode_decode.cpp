@@ -967,7 +967,7 @@ TEST(test_dnn, test_amf_handle_s6a_update_location_ans) {
   // Building s6a_update_location_ans_t
   std::string imsi = "901700000000001";
   s6a_update_location_ans_t ula_ans;
-  ula_ans = amf_send_s6a_ula(imsi);
+  ula_ans = util_amf_send_s6a_ula(imsi);
 
   // Building key value pair for amf_supi_guti_map and ue_context_map
   uint64_t imsi_64 = 901700000000001;
@@ -1014,7 +1014,7 @@ TEST(test_dnn, test_amf_validate_dnn) {
   s6a_update_location_ans_t ula_ans;
 
   // mock handling ans received from s6a_update_location_request
-  ula_ans = amf_send_s6a_ula(imsi);
+  ula_ans = util_amf_send_s6a_ula(imsi);
   memcpy(&amf_ctx.apn_config_profile,
          &ula_ans.subscription_data.apn_config_profile,
          sizeof(apn_config_profile_t));

@@ -298,7 +298,7 @@ class StateReplicator(SDWatchdogTask):
 
     async def _cleanup_deleted_keys(self):
         deleted_keys = set(self._state_versions) - \
-                       self._state_keys_from_current_iteration
+            self._state_keys_from_current_iteration
         for key in deleted_keys:
             del self._state_versions[key]
         self._state_keys_from_current_iteration = set()

@@ -23,6 +23,7 @@ replace (
 
 require (
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
+	github.com/emakeev/milenage v1.0.0
 	github.com/go-openapi/errors v0.19.2
 	github.com/go-openapi/strfmt v0.19.4
 	github.com/go-openapi/swag v0.19.15
@@ -45,6 +46,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/thoas/go-funk v0.7.0
 	github.com/warthog618/sms v0.3.0
+	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 	google.golang.org/grpc v1.31.0
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0

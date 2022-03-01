@@ -11,13 +11,15 @@
 
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
-ORC8R_ROOT = "../../"
+MAGMA_ROOT = "../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
 py_binary(
     name = "directoryd",
     srcs = ["main.py"],
     imports = [ORC8R_ROOT],
-    # legacy_creat_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
+    # legacy_create_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
     legacy_create_init = False,
     main = "main.py",
     python_version = "PY3",

@@ -58,7 +58,7 @@ def check_feg_cloud_connectivity(timeout=5):
     local("cd docker")
     local("pwd")
     dev_utils.local_command_with_repetition(
-            "cd docker; docker-compose exec magmad checkin_cli.py", timeout,
+        "cd docker; docker-compose exec magmad checkin_cli.py", timeout,
     )
 
 

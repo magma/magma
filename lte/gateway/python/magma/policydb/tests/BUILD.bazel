@@ -13,33 +13,38 @@ load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_library")
 load("//bazel:python_test.bzl", "pytest_test")
 
-COMMON_TEST_DEPS = ["//lte/gateway/python/magma/policydb:policydb"]
-
 pytest_test(
     name = "test_policy_servicer",
     srcs = ["test_policy_servicer.py"],
-    deps = COMMON_TEST_DEPS + [requirement("grpcio")],
+    deps = [
+        "//lte/gateway/python/magma/policydb",
+        requirement("grpcio"),
+    ],
 )
 
 pytest_test(
     name = "test_reauth_handler",
     srcs = ["test_reauth_handler.py"],
-    deps = COMMON_TEST_DEPS,
+    deps = ["//lte/gateway/python/magma/policydb"],
 )
 
 pytest_test(
     name = "test_session_servicer",
     srcs = ["test_session_servicer.py"],
-    deps = COMMON_TEST_DEPS,
+    deps = ["//lte/gateway/python/magma/policydb"],
 )
 
 pytest_test(
     name = "test_streamer_callback",
     srcs = ["test_streamer_callback.py"],
-    deps = COMMON_TEST_DEPS + [":mock_stubs"],
+    deps = [
+        ":mock_stubs",
+        "//lte/gateway/python/magma/policydb",
+    ],
 )
 
 py_library(
     name = "mock_stubs",
+    testonly = True,
     srcs = ["mock_stubs.py"],
 )

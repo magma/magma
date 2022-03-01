@@ -15,6 +15,7 @@ import logging
 
 from grpc import StatusCode
 from lte.protos import (
+    diam_errors_pb2,
     subscriberauth_pb2,
     subscriberauth_pb2_grpc,
     subscriberdb_pb2,
@@ -79,7 +80,7 @@ class M5GAuthRpcServicer(subscriberauth_pb2_grpc.M5GSubscriberAuthenticationServ
             metrics.M5G_AUTH_SUCCESS_TOTAL.inc()
 
             # Generate and return response message
-            aia.error_code = subscriberauth_pb2.SUCCESS
+            aia.error_code = diam_errors_pb2.SUCCESS
             m5gauth_vector = aia.m5gauth_vectors.add()
             m5gauth_vector.rand = bytes(m5g_ran_auth_vectors.rand)
             m5gauth_vector.xres_star = m5g_ran_auth_vectors.xres_star[16:]

@@ -71,7 +71,7 @@ def send_paging_intiated_notification(
     setinterface_stub: SetInterfaceForUserPlaneStub,
 ):
     """
-	Make RPC call to send paging initiated notification to sessionD
+        Make RPC call to send paging initiated notification to sessionD
     """
     try:
         setinterface_stub.SetPagingInitiated(paging_info, DEFAULT_GRPC_TIMEOUT)

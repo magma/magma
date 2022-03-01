@@ -252,6 +252,9 @@ class SessionStateEnforcer {
                                   const magma::lte::M5GSMCause m5gsmcause,
                                   std::string upf_ip, uint32_t upf_teid);
 
+  void set_subscribed_qos(const SessionState& session_state,
+                          magma::lte::SetSMSessionContextAccess* response);
+
   /* Function to handle termination if UPF doesn't send required report
    * As per current implementation, upf report is not in place and
    * termination on time out will be executed forcefully

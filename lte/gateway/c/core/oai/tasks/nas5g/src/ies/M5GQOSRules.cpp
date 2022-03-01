@@ -70,7 +70,7 @@ int QOSRulesMsg::DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
 
       IES_DECODE_U8(buffer, decoded,
                     qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len);
-      memcpy(qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].contents,
+      memcpy(&(qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].contents),
              buffer + decoded,
              qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len);
       decoded += qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len;
@@ -127,7 +127,7 @@ int QOSRulesMsg::EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
           qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len;
       encoded++;
       memcpy(buffer + encoded,
-             qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].contents,
+             &(qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].contents),
              qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len);
       encoded = encoded + qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len;
     }

@@ -259,7 +259,7 @@ func (s *HandlersTestSuite) TestListLogs() {
 		s.Run(t.testName, func() {
 			s.logsServer.expectedListRequest = t.expectedListRequest
 			tc := tests.Test{
-				Method:         "GET",
+				Method:         http.MethodGet,
 				URL:            handlers.ManageLogsPath + "?" + t.queryParamsString.Encode(),
 				Payload:        nil,
 				ParamNames:     t.paramNames,
@@ -340,7 +340,7 @@ func (s *HandlersTestSuite) TestListCbsds() {
 		s.Run(t.testName, func() {
 			s.cbsdServer.expectedListRequest = t.expectedListRequest
 			tc := tests.Test{
-				Method:         "GET",
+				Method:         http.MethodGet,
 				URL:            handlers.ManageCbsdsPath + t.queryParamsString,
 				Payload:        nil,
 				ParamNames:     t.paramNames,
@@ -366,7 +366,7 @@ func (s *HandlersTestSuite) TestFetchCbsd() {
 	fetchCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdPath, obsidian.GET).HandlerFunc
 	expectedResult := getCbsd()
 	tc := tests.Test{
-		Method:         "GET",
+		Method:         http.MethodGet,
 		URL:            "/magma/v1/dp/n1/cbsds/1",
 		Payload:        nil,
 		ParamNames:     []string{"network_id", "cbsd_id"},
@@ -390,7 +390,7 @@ func (s *HandlersTestSuite) TestFetchNonexistentCbsd() {
 	}
 	fetchCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdPath, obsidian.GET).HandlerFunc
 	tc := tests.Test{
-		Method:                 "GET",
+		Method:                 http.MethodGet,
 		URL:                    "/magma/v1/dp/n1/cbsds/1",
 		Payload:                nil,
 		ParamNames:             []string{"network_id", "cbsd_id"},
@@ -423,7 +423,7 @@ func (s *HandlersTestSuite) TestCreateCbsd() {
 	}
 	createCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdsPath, obsidian.POST).HandlerFunc
 	tc := tests.Test{
-		Method:         "POST",
+		Method:         http.MethodPost,
 		URL:            "/magma/v1/dp/n1/cbsds",
 		Payload:        payload,
 		ParamNames:     []string{"network_id"},
@@ -438,7 +438,7 @@ func (s *HandlersTestSuite) TestCreateCbsd() {
 func (s *HandlersTestSuite) TestCreateCbsdWithoutAllRequiredParams() {
 	e := echo.New()
 	obsidianHandlers := handlers.GetHandlers()
-	payload := &models.Cbsd{
+	payload := &models.MutableCbsd{
 		Capabilities: &models.Capabilities{
 			AntennaGain:      to_pointer.Float(1),
 			NumberOfAntennas: to_pointer.Int(1),
@@ -458,14 +458,14 @@ func (s *HandlersTestSuite) TestCreateCbsdWithoutAllRequiredParams() {
 	}
 	createCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdsPath, obsidian.POST).HandlerFunc
 	tc := tests.Test{
-		Method:         "POST",
-		URL:            "/magma/v1/dp/n1/cbsds",
-		Payload:        payload,
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{"n1"},
-		Handler:        createCbsd,
-		ExpectedStatus: http.StatusBadGateway,
-		ExpectedError:  "Bad Gateway",
+		Method:                 http.MethodPost,
+		URL:                    "/magma/v1/dp/n1/cbsds",
+		Payload:                payload,
+		ParamNames:             []string{"network_id"},
+		ParamValues:            []string{"n1"},
+		Handler:                createCbsd,
+		ExpectedStatus:         http.StatusBadRequest,
+		ExpectedErrorSubstring: "validation failure list",
 	}
 	tests.RunUnitTest(s.T(), e, tc)
 }
@@ -480,7 +480,7 @@ func (s *HandlersTestSuite) TestDeleteCbsd() {
 		Id:        1,
 	}
 	tc := tests.Test{
-		Method:         "DELETE",
+		Method:         http.MethodDelete,
 		URL:            "/magma/v1/dp/n1/cbsds/1",
 		ParamNames:     []string{"network_id", "cbsd_id"},
 		ParamValues:    []string{"n1", "1"},
@@ -502,7 +502,7 @@ func (s *HandlersTestSuite) TestDeleteNonexistentCbsd() {
 	}
 	deleteCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdPath, obsidian.DELETE).HandlerFunc
 	tc := tests.Test{
-		Method:                 "DELETE",
+		Method:                 http.MethodDelete,
 		URL:                    "/magma/v1/dp/n1/cbsds/1",
 		Payload:                nil,
 		ParamNames:             []string{"network_id", "cbsd_id"},
@@ -535,7 +535,7 @@ func (s *HandlersTestSuite) TestUpdateCbsd() {
 		},
 	}
 	tc := tests.Test{
-		Method:         "PUT",
+		Method:         http.MethodPut,
 		URL:            "/magma/v1/dp/n1/cbsds/0",
 		Payload:        payload,
 		ParamNames:     []string{"network_id", "cbsd_id"},
@@ -543,6 +543,30 @@ func (s *HandlersTestSuite) TestUpdateCbsd() {
 		Handler:        updateCbsd,
 		ExpectedStatus: http.StatusNoContent,
 		ExpectedError:  "",
+	}
+	tests.RunUnitTest(s.T(), e, tc)
+}
+
+func (s *HandlersTestSuite) TestUpdateCbsdWithoutAllRequiredParams() {
+	e := echo.New()
+	obsidianHandlers := handlers.GetHandlers()
+	payload := &models.MutableCbsd{
+		Capabilities: &models.Capabilities{
+			AntennaGain:      to_pointer.Float(1),
+			NumberOfAntennas: to_pointer.Int(1),
+		},
+		SerialNumber: to_pointer.Str("someSerialNumber"),
+	}
+	updateCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdPath, obsidian.PUT).HandlerFunc
+	tc := tests.Test{
+		Method:                 http.MethodPut,
+		URL:                    "/magma/v1/dp/n1/cbsds",
+		Payload:                payload,
+		ParamNames:             []string{"network_id"},
+		ParamValues:            []string{"n1"},
+		Handler:                updateCbsd,
+		ExpectedStatus:         http.StatusBadRequest,
+		ExpectedErrorSubstring: "validation failure list",
 	}
 	tests.RunUnitTest(s.T(), e, tc)
 }
@@ -569,7 +593,7 @@ func (s *HandlersTestSuite) TestUpdateNonexistentCbsd() {
 	}
 	updateCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdPath, obsidian.PUT).HandlerFunc
 	tc := tests.Test{
-		Method:                 "PUT",
+		Method:                 http.MethodPut,
 		URL:                    "/magma/v1/dp/n1/cbsds/0",
 		Payload:                payload,
 		ParamNames:             []string{"network_id", "cbsd_id"},
@@ -748,8 +772,8 @@ func getCbsd() *models.Cbsd {
 	}
 }
 
-func createOrUpdateCbsdPayload() *models.Cbsd {
-	return &models.Cbsd{
+func createOrUpdateCbsdPayload() *models.MutableCbsd {
+	return &models.MutableCbsd{
 		Capabilities: &models.Capabilities{
 			AntennaGain:      to_pointer.Float(1),
 			MaxPower:         to_pointer.Float(24),

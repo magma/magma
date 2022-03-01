@@ -135,17 +135,24 @@ npm install --global yarn
 
 Run the following command from `magma/nms` to install these dependencies:
 ```
-yarn
+yarn install --frozen-lockfile
+```
+
+And also install additional dependencies from `magma/nms/packages/magmalte`:
+```
+yarn install --frozen-lockfile
 ```
 
 ### Eslint
-Run from `magma/nms`
+Run from `magma/nms`.
+Version `7.3.2` of `eslint` is used currently.
 ```
 yarn run eslint ./
 ```
 
 ### Flow
-Run from `magma/nms`
+Run from `magma/nms`.
+Version `0.132.0` of `flow` is used currently.
 ```
 flow
 ```
@@ -154,6 +161,20 @@ flow
 Run from `magma/nms`
 ```
 yarn run test
+```
+
+### E2E Tests
+Run from `magma/nms/packages/magmalte`
+```
+./e2e_test_setup.sh
+```
+This brings up the NMS docker containers, as well as a mock Orc8r API server.
+Tests are run using puppeteer to control a headless Chrome.
+
+These tests can also be triggered without the mocked API.
+Run the following in `magma/nms` in the `magmalte` docker container:
+```
+yarn test:e2e
 ```
 
 ### Testing Coverage

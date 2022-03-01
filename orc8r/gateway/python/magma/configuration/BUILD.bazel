@@ -37,6 +37,7 @@ py_library(
         "mconfigs.py",
     ],
     deps = [
+        "//orc8r/gateway/python/magma/common:serialization_utils",
         "//orc8r/gateway/python/magma/eventd:eventd_client",
         "//orc8r/protos:mconfig_python_proto",
         requirement("snowflake"),
