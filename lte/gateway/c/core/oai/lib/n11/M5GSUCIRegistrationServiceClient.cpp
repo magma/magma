@@ -61,7 +61,7 @@ static void handle_decrypted_imsi_info_ans(
   if (!status.ok() || (response.ue_msin_recv().length() == 0)) {
     OAILOG_ERROR(LOG_AMF_APP,
                  "get_decrypt_imsi_info fails with code %d, Message : %s",
-                 status.error_code(), status.error_message());
+                 status.error_code(), status.error_message().c_str());
     OAILOG_ERROR(LOG_AMF_APP,
                  "Deconcealing IMSI Failed, sending Registration Reject");
     int amf_cause = AMF_UE_ILLEGAL;
