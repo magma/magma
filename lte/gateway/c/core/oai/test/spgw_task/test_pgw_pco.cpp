@@ -138,6 +138,14 @@ class SPGWPcoTest : public ::testing::Test {
     }
     return false;
   }
+
+  void show_dns_ip(unsigned char* dns_addr) {
+    for (int i = 0; i < 4; i++) {
+      std::cout << std::hex << (int)dns_addr[i] << ".";
+    }
+    std::cout << std::endl;
+  }
+
 };
 
 TEST_F(SPGWPcoTest, TestIPCPWithNoDNS) {
@@ -163,6 +171,16 @@ TEST_F(SPGWPcoTest, TestIPCPWithNoDNS) {
   // check that return code is NACK
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[0],
             IPCP_CODE_CONFIGURE_NACK);
+
+  std::cout << "PCO RESP PRIMARY DNS ";
+  show_dns_ip(pco_resp.protocol_or_container_ids[0].contents->data + 6);
+  std::cout << "EXPECTED PRIMARY DNS ";
+  show_dns_ip((unsigned char*)test_dns_primary);
+
+  std::cout << "PCO RESP SECONDARY DNS ";
+  show_dns_ip(pco_resp.protocol_or_container_ids[0].contents->data + 12);
+  std::cout << "EXPECTED SECONDARY DNS ";
+  show_dns_ip((unsigned char*)test_dns_secondary);
 
   // check that DNS addresses are filled correctly
   EXPECT_EQ(memcmp(pco_resp.protocol_or_container_ids[0].contents->data + 6,
