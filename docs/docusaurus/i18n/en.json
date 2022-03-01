@@ -63,14 +63,14 @@
       "docs/docs_overview": {
         "title": "Documentation Overview"
       },
-      "dp/architecture_overview": {
-        "title": "Overview"
+      "dp/architecture_overview title: Overview hide_title: true": {
+        "title": "dp/architecture_overview title: Overview hide_title: true"
       },
-      "dp/debug_logs": {
-        "title": "View Logs"
+      "dp/debug_logs title: View Logs hide_title: true": {
+        "title": "dp/debug_logs title: View Logs hide_title: true"
       },
-      "dp/deploy_build": {
-        "title": "Build DP"
+      "dp/deploy_build title: Build DP hide_title: true": {
+        "title": "dp/deploy_build title: Build DP hide_title: true"
       },
       "faq/faq_magma": {
         "title": "Frequently Asked Questions"
@@ -369,6 +369,9 @@
       "orc8r/dev_minikube": {
         "title": "Deploy on Minikube"
       },
+      "orc8r/dev_token_security": {
+        "title": "REST API Auth"
+      },
       "orc8r/dev_rest_api": {
         "title": "REST API"
       },
@@ -380,9 +383,6 @@
       },
       "orc8r/dev_testing": {
         "title": "Test Orchestrator"
-      },
-      "orc8r/dev_token_security": {
-        "title": "REST API Auth"
       },
       "orc8r/upgrade_1_1": {
         "title": "Upgrade to v1.1"
