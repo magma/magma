@@ -438,7 +438,7 @@ func (s *HandlersTestSuite) TestCreateCbsd() {
 func (s *HandlersTestSuite) TestCreateCbsdWithoutAllRequiredParams() {
 	e := echo.New()
 	obsidianHandlers := handlers.GetHandlers()
-	payload := &models.Cbsd{
+	payload := &models.MutableCbsd{
 		Capabilities: &models.Capabilities{
 			AntennaGain:      to_pointer.Float(1),
 			NumberOfAntennas: to_pointer.Int(1),
@@ -550,7 +550,7 @@ func (s *HandlersTestSuite) TestUpdateCbsd() {
 func (s *HandlersTestSuite) TestUpdateCbsdWithoutAllRequiredParams() {
 	e := echo.New()
 	obsidianHandlers := handlers.GetHandlers()
-	payload := &models.Cbsd{
+	payload := &models.MutableCbsd{
 		Capabilities: &models.Capabilities{
 			AntennaGain:      to_pointer.Float(1),
 			NumberOfAntennas: to_pointer.Int(1),
@@ -772,8 +772,8 @@ func getCbsd() *models.Cbsd {
 	}
 }
 
-func createOrUpdateCbsdPayload() *models.Cbsd {
-	return &models.Cbsd{
+func createOrUpdateCbsdPayload() *models.MutableCbsd {
+	return &models.MutableCbsd{
 		Capabilities: &models.Capabilities{
 			AntennaGain:      to_pointer.Float(1),
 			MaxPower:         to_pointer.Float(24),
