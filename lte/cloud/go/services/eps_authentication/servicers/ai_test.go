@@ -76,7 +76,8 @@ func (suite *EpsAuthTestSuite) TestAuthenticationInformation_UnknownSubscriber()
 
 	aia, err := suite.AuthenticationInformation(air)
 	suite.EqualError(
-		err, "rpc error: code = NotFound desc = Error fetching subscriber: IMSIsub_unknown, No record for query")
+		err,
+		"rpc error: code = NotFound desc = error loading subscriber entity for NID: test, SID: sub_unknown: Not found")
 	suite.checkAIA(aia, protos.ErrorCode_USER_UNKNOWN, 0)
 }
 
@@ -103,8 +104,7 @@ func (suite *EpsAuthTestSuite) TestAuthenticationInformation_MissingSubscriberSt
 
 	aia, err := suite.AuthenticationInformation(air)
 	suite.EqualError(
-		err,
-		"rpc error: code = Unauthenticated desc = Authentication rejected: Subscriber data missing LTE subscription")
+		err, "rpc error: code = Unauthenticated desc = Authentication rejected: Subscriber data missing LTE subscription")
 	suite.checkAIA(aia, protos.ErrorCode_AUTHORIZATION_REJECTED, 0)
 }
 

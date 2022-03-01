@@ -39,8 +39,9 @@ func NewEPSAuthServer(store storage.SubscriberDBStorage) (*EPSAuthServer, error)
 // lookupSubscriber returns a subscriber's data or an error.
 func (srv *EPSAuthServer) lookupSubscriber(
 	userName, networkID string) (*lteprotos.SubscriberData, lteprotos.ErrorCode, error) {
-	subscriber, err :=
-		srv.store.GetSubscriberData(&lteprotos.SubscriberID{Id: userName}, &protos.NetworkID{Id: networkID})
+	subscriber, err := srv.store.GetSubscriberData(
+		&lteprotos.SubscriberID{Id: userName}, &protos.NetworkID{Id: networkID})
+
 	if err != nil {
 		if status.Convert(err).Code() == codes.NotFound {
 			return nil, lteprotos.ErrorCode_USER_UNKNOWN, err
