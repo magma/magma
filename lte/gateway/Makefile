@@ -24,7 +24,6 @@ AVAILABLE_FEATURE_LIST = s6a_fd agw_of mme_oai
 REQUESTED_FEATURE_LIST = $(sort $(FEATURES))
 
 ifeq ($(BUILD_TYPE),Debug)
-	BAZEL_FLAGS = --config=development
 	ifeq ($(ENABLE_ASAN),1)
 		BAZEL_FLAGS := $(BAZEL_FLAGS) --config=asan
 	endif
