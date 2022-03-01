@@ -41,11 +41,14 @@ jobs:
               - 'orc8r/protos/**'
               - 'lte/gateway/**'
               - 'lte/protos/**'
+              - 'feg/protos/**'
+              - 'dp/protos/**'
               - 'src/go/**'
               - '**/BUILD'
               - '**/*.BUILD'
               - '**/*.bazel'
               - '**/*.bzl'
+              - '.bazelrc'
 
   bazel_build_and_test:
     needs: path_filter
@@ -124,3 +127,23 @@ jobs:
             run: |
               cd /workspaces/magma
               bazel test //... --test_output=errors --cache_test_results=no
+        - name: Check if there are non-Bazelified oai sources
+          uses: addnab/docker-run-action@v2
+          with:
+            image: ${{ env.DEVCONTAINER_IMAGE }}
+            # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+            options: -v ${{ github.workspace }}:/workspaces/magma/
+            run: |
+              cd /workspaces/magma
+              OAI_SRCS=`find lte/gateway/c/core/oai \( -iname "*.cpp" -or -iname "*.c" -or -iname "*.h" -or -iname "*.hpp" \) -type f -printf '%f\n'`
+              SRC_NOT_IN_BAZEL=0
+              echo "Source files not found in BUILD.bazel file:"
+              for src in $OAI_SRCS  
+              do
+                if ! (grep -r -F -q "$src" --include BUILD.bazel lte/gateway/c/core)
+                then
+                  echo $src
+                  SRC_NOT_IN_BAZEL=1
+                fi
+              done
+              exit $SRC_NOT_IN_BAZEL
