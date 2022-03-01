@@ -39,20 +39,15 @@ MODULES = (
     'lte',
     'feg',
     'cwf',
-    'fbinternal',
     'dp',
 )
 
 DEPLOYMENT_TO_MODULES = MappingProxyType({
     'all': MODULES,
     'orc8r': ('orc8r'),
-    'orc8r-f': ('orc8r', 'fbinternal'),
     'fwa': ('orc8r', 'lte'),
-    'fwa-f': ('orc8r', 'lte', 'fbinternal'),
     'ffwa': ('orc8r', 'lte', 'feg'),
-    'ffwa-f': ('orc8r', 'lte', 'feg', 'fbinternal'),
     'cwf': ('orc8r', 'lte', 'feg', 'cwf'),
-    'cwf-f': ('orc8r', 'lte', 'feg', 'cwf', 'fbinternal'),
 })
 
 DEPLOYMENTS = DEPLOYMENT_TO_MODULES.keys()
