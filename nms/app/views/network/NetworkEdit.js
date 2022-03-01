@@ -14,6 +14,7 @@
  * @format
  */
 import type {
+  feg_lte_network,
   lte_network,
   network_epc_configs,
 } from '../../../generated/MagmaAPIBindings';
@@ -27,6 +28,7 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
 import {NetworkEpcEdit} from './NetworkEpc';
+import {NetworkFederationEdit} from './NetworkFederationConfig';
 import {NetworkInfoEdit} from './NetworkInfo';
 import {NetworkRanEdit} from './NetworkRanConfig';
 import {colors, typography} from '../../theme/default';
@@ -34,6 +36,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
 
 const NETWORK_TITLE = 'Network';
+const FEDERATION_TITLE = 'Federation';
 const EPC_TITLE = 'Epc';
 const RAN_TITLE = 'Ran';
 
@@ -122,7 +125,9 @@ export function NetworkEditDialog(props: DialogProps) {
   const classes = useStyles();
   const ctx = useContext(LteNetworkContext);
 
-  const [lteNetwork, setLteNetwork] = useState<lte_network>({});
+  const [lteNetwork, setLteNetwork] = useState<
+    $Shape<lte_network & feg_lte_network>,
+  >({});
   const [epcConfigs, setEpcConfigs] = useState<network_epc_configs>({});
   const lteRanConfigs = editProps ? ctx.state.cellular?.ran : undefined;
 
@@ -140,7 +145,7 @@ export function NetworkEditDialog(props: DialogProps) {
   };
 
   return (
-    <Dialog data-testid="editDialog" open={open} fullWidth={true} maxWidth="sm">
+    <Dialog data-testid="editDialog" open={open} fullWidth={true} maxWidth="md">
       <DialogTitle
         label={editProps ? 'Edit Network Settings' : 'Add Network'}
         onClose={onClose}
@@ -151,6 +156,17 @@ export function NetworkEditDialog(props: DialogProps) {
         indicatorColor="primary"
         className={classes.tabBar}>
         <Tab key="network" data-testid="networkTab" label={NETWORK_TITLE} />;
+        {lteNetwork.federation ? (
+          <Tab
+            key="federation"
+            data-testid="federationTab"
+            disabled={editProps ? false : true}
+            label={FEDERATION_TITLE}
+          />
+        ) : (
+          <div />
+        )}
+        ;
         <Tab
           key="epc"
           data-testid="epcTab"
@@ -176,12 +192,29 @@ export function NetworkEditDialog(props: DialogProps) {
             if (editProps) {
               onClose();
             } else {
-              setTabPos(tabPos + 1);
+              // $FlowIgnore: Check for null or undefined
+              setTabPos(lteNetwork.federation ? tabPos + 2 : tabPos + 1);
             }
           }}
         />
       )}
       {tabPos === 1 && (
+        <NetworkFederationEdit
+          saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
+          networkId={lteNetwork.id}
+          config={lteNetwork.federation}
+          onClose={onClose}
+          onSave={federationConfigs => {
+            setLteNetwork({...lteNetwork, federation: federationConfigs});
+            if (editProps) {
+              onClose();
+            } else {
+              setTabPos(tabPos + 1);
+            }
+          }}
+        />
+      )}
+      {tabPos === 2 && (
         <NetworkEpcEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
           networkId={lteNetwork.id}
@@ -197,7 +230,7 @@ export function NetworkEditDialog(props: DialogProps) {
           }}
         />
       )}
-      {tabPos === 2 && (
+      {tabPos === 3 && (
         <NetworkRanEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Add Network'}
           networkId={lteNetwork.id}
