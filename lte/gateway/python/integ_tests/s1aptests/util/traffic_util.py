@@ -441,7 +441,7 @@ class TrafficTest(object):
                 # Add arp table entry
                 os.system(
                     '/usr/sbin/arp -s %s %s' % (
-                    server_instance.ip.exploded, server_instance.mac,
+                        server_instance.ip.exploded, server_instance.mac,
                     ),
                 )
 
