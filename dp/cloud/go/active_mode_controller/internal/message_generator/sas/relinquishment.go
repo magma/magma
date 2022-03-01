@@ -8,8 +8,7 @@ func NewRelinquishmentRequestGenerator() *relinquishmentRequestGenerator {
 	return &relinquishmentRequestGenerator{}
 }
 
-func (*relinquishmentRequestGenerator) GenerateRequests(config *active_mode.ActiveModeConfig) []*Request {
-	cbsd := config.GetCbsd()
+func (*relinquishmentRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Request {
 	grants := cbsd.GetGrants()
 	cbsdId := cbsd.GetId()
 	reqs := make([]*Request, 0, len(grants))

@@ -38,9 +38,9 @@ deprecated
 wrapt
 
 # unit test requirements
-fakeredis
+fakeredis==1.7.1
 #  lupa is required by fakeredis
-lupa
+lupa==1.10
 freezegun
 pytest
 pytest-cov

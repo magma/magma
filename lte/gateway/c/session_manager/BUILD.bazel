@@ -480,9 +480,6 @@ cc_library(
 cc_binary(
     name = "sessiond",
     srcs = ["sessiond_main.cpp"],
-    copts = [
-        "-DLOG_WITH_GLOG",
-    ],
     # Make the binary as static as possible to allow for more reliable behavior when moving binaries around
     # From bazel doc: this flag makes it so all user libraries are linked statically (if a static version is available),
     #                 but where system libraries (excluding C/C++ runtime libraries) are linked dynamically

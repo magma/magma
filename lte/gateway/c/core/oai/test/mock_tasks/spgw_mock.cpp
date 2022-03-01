@@ -49,6 +49,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       spgw_handler_->sgw_handle_nw_initiated_actv_bearer_rsp();
     } break;
 
+    case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
+      // Handle Dedicated bearer Deactivation Rsp from MME
+      spgw_handler_->sgw_handle_nw_initiated_deactv_bearer_rsp();
+    } break;
+
     default: {
     } break;
   }

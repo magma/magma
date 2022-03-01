@@ -187,7 +187,7 @@ func CreateGateway(c echo.Context, model MagmadEncompassingGateway, entitySerdes
 		return echo.NewHTTPError(http.StatusBadRequest, "requested tier does not exist")
 	}
 
-	// attempt to register device
+	// Attempt to register device
 	httpErr := registerDevice(reqCtx, nid, mdGateway, entitySerdes, deviceSerdes)
 	if httpErr != nil {
 		return httpErr

@@ -392,7 +392,7 @@ def _get_latest_agw_tag(setup, key_filename):
         sys.exit(1)
     sudo("apt update")
     tag = sudo(
-            "apt-cache madison magma | awk 'NR==1{{print substr ($3,1)}}'",
+        "apt-cache madison magma | awk 'NR==1{{print substr ($3,1)}}'",
     )
     fastprint("Latest tag of AGW is %s \n" % tag)
 

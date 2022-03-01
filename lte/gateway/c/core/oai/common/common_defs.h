@@ -51,11 +51,21 @@
 #define COUNT_OF(x) \
   ((sizeof(x) / sizeof(0 [x])) / ((size_t)(!(sizeof(x) % sizeof(0 [x])))))
 
+#ifndef __cplusplus
 #define PARENT_STRUCT(cOnTaiNeD, TyPe, MeMBeR)                    \
   ({                                                              \
     const typeof(((TyPe*)0)->MeMBeR)* __MemBeR_ptr = (cOnTaiNeD); \
     (TyPe*)((char*)__MemBeR_ptr - OFFSET_OF(TyPe, MeMBeR));       \
   })
+#endif
+
+#ifdef __cplusplus
+#define PARENT_STRUCT(cOnTaiNeD, TyPe, MeMBeR)                      \
+  ({                                                                \
+    const decltype(((TyPe*)0)->MeMBeR)* __MemBeR_ptr = (cOnTaiNeD); \
+    (TyPe*)((char*)__MemBeR_ptr - OFFSET_OF(TyPe, MeMBeR));         \
+  })
+#endif
 
 #define OAI_MAX(a, b)       \
   ({                        \

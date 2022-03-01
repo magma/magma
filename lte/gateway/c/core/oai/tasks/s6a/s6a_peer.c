@@ -40,7 +40,6 @@
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 
 #if !S6A_OVER_GRPC
-
 #define NB_MAX_TRIES (8)
 
 extern __pid_t g_pid;
@@ -55,8 +54,12 @@ void s6a_peer_connected_cb(struct peer_info* info, void* arg) {
     send_activate_messages();
   }
 }
+#endif
 
 status_code_e s6a_fd_new_peer(void) {
+// We need to expose the function definition here because the declaration is
+// outside of the guard (GH11646)
+#if !S6A_OVER_GRPC
   int ret = 0;
 
   if (mme_config_read_lock(&mme_config)) {
@@ -115,10 +118,10 @@ status_code_e s6a_fd_new_peer(void) {
   bdestroy(hss_name);
   free_wrapper((void**)&fd_g_config->cnf_diamid);
   fd_g_config->cnf_diamid_len = 0;
+#endif
   return RETURNerror;
 }
 
-#endif
 /*
  * Inform S1AP and MME that connection to HSS is established
  */

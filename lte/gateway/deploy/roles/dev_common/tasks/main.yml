@@ -184,6 +184,15 @@
       - python3-aioeventlet
   retries: 5
 
+- name: Install LLDB debugger
+  # TODO: Make this preburn
+  apt:
+    pkg: lldb
+    state: present
+    update_cache: no
+  retries: 5
+  when: full_provision
+
 # /etc/environment doesn't expand variables, so if we want to modify the path,
 # we need to do it in profile.d
 - name: Create the env script
@@ -394,11 +403,6 @@
     sed -i 's/enp0s3/eth0/g' /etc/netplan/50-cloud-init.yaml
     sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
     grub-mkconfig -o /boot/grub/grub.cfg
-  when: preburn
-
-- name: Create links for clang-format
-  become: yes
-  command: "update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-11 1000"
   when: preburn
 
 - file:

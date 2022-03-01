@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package storage_test
 
 import (
@@ -118,6 +119,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 		cbsd := getBaseCbsd()
 		cbsd.NetworkId = db.MakeString(someNetwork)
 		cbsd.IsDeleted = db.MakeBool(false)
+		cbsd.IsUpdated = db.MakeBool(false)
 		expected := []db.Model{
 			cbsd,
 			&storage.DBCbsdState{Name: db.MakeString("unregistered")},
@@ -176,6 +178,7 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 			Fetch()
 		s.Require().NoError(err)
 		cbsd.NetworkId = db.MakeString(someNetwork)
+		cbsd.IsUpdated = db.MakeBool(true)
 		expected := []db.Model{cbsd}
 		s.Assert().Equal(expected, actual)
 	})

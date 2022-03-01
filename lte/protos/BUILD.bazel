@@ -355,13 +355,25 @@ cpp_grpc_library(
 )
 
 proto_library(
+    name = "diam_errors_proto",
+    srcs = ["diam_errors.proto"],
+)
+
+cpp_proto_library(
+    name = "diam_errors_cpp_proto",
+    protos = [":diam_errors_proto"],
+)
+
+proto_library(
     name = "subscriberauth_proto",
     srcs = ["subscriberauth.proto"],
+    deps = [":diam_errors_proto"],
 )
 
 cpp_proto_library(
     name = "subscriberauth_cpp_proto",
     protos = [":subscriberauth_proto"],
+    deps = [":diam_errors_cpp_proto"],
 )
 
 cpp_grpc_library(
@@ -453,4 +465,33 @@ python_grpc_library(
 python_grpc_library(
     name = "subscriberauth_python_grpc",
     protos = [":subscriberauth_proto"],
+)
+
+# This proto library is exclusively meant for the state service.
+# Users can manually add proto libraries to state.yml.
+# This means that all proto libraries need to be available
+# in builds of the state service.
+proto_library(
+    name = "all_proto",
+    srcs = glob(["*.proto"]),
+    visibility = ["//visibility:private"],
+    deps = [
+        "//orc8r/protos:common_proto",
+        "//orc8r/protos:digest_proto",
+        "//orc8r/protos:service303_proto",
+        "@protobuf//:field_mask_proto",
+        "@protobuf//:timestamp_proto",
+    ],
+)
+
+# See comment at :all_proto
+python_proto_library(
+    name = "all_python_proto",
+    protos = [":all_proto"],
+    visibility = ["//orc8r/gateway/python/magma/state:__pkg__"],
+    deps = [
+        "//orc8r/protos:common_python_proto",
+        "//orc8r/protos:digest_python_proto",
+        "//orc8r/protos:service303_python_proto",
+    ],
 )

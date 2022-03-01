@@ -932,8 +932,7 @@ int ngap_amf_handle_ue_context_release_request(ngap_state_t* state,
   NGAP_FIND_PROTOCOLIE_BY_ID(Ngap_UEContextReleaseRequest_IEs_t, ie, container,
                              Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID, true);
   if (ie) {
-    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID &
-                                        GNB_UE_NGAP_ID_MASK);
+    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }

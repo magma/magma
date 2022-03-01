@@ -1,31 +1,45 @@
 {
 	"extensions": [
 		"CoenraadS.bracket-pair-colorizer-2",
-		"xaver.clang-format",
-		"golang.go",
-		"notskm.clang-tidy",
+		"samverschueren.final-newline", // Adds a newline on save
 		"eamodio.gitlens",
-		"yzhang.markdown-all-in-one",
-		"christian-kohler.path-intellisense",
-		"vscodevim.vim",
 		"vscode-icons-team.vscode-icons",
 		"ms-vsliveshare.vsliveshare",
 		"ms-azuretools.vscode-docker",
+		// Editor
+		"vscodevim.vim",
+		// Markdown
+		"yzhang.markdown-all-in-one",
+		// Golang
+		"golang.go",
+		// C/C++
+		"notskm.clang-tidy",
+		"christian-kohler.path-intellisense",
 		"llvm-vs-code-extensions.vscode-clangd",
-		"mitaki28.vscode-clang",
-		"stackbuild.bazel-stack-vscode",
-		"coolchyni.beyond-debug",
-		"stackbuild.bazel-stack-vscode-cc",
-		"augustocdias.tasks-shell-input",
-		"ryuta46.multi-command",
+		// Python
 		"ms-python.python",
 		"ms-python.vscode-pylance",
 		"njpwerner.autodocstring",
+		// Protobuf
 		"zxh404.vscode-proto3",
+		// Bazel
+		"stackbuild.bazel-stack-vscode",
+		"stackbuild.bazel-stack-vscode-cc",
+		"augustocdias.tasks-shell-input",
+		"ryuta46.multi-command",
+		"coolchyni.beyond-debug",
 	],
-	"image": "ghcr.io/magma/magma/devcontainer:sha-e05d447",
+	"image": "ghcr.io/magma/magma/devcontainer:master",
 	"settings": {
-		"terminal.integrated.shell.linux": "/bin/bash",
+		"terminal.integrated.profiles.linux": {
+			"bash": {
+				"path": "bash",
+				"icon": "terminal-bash"
+			},
+			"zsh": {
+				"path": "zsh"
+			}
+		},
 		"files.watcherExclude": {
 			"**/.bazel-cache/**": true,
 			"**/.bazel-cache-repo/**": true,
@@ -48,6 +62,7 @@
 			"--background-index",
 		],
 		"clangd.onConfigChanged": "restart",
+		"editor.formatOnSave": true,
 		// Update this field with any new Bazel targets that need compilation database generation
 		"bsv.cc.compdb.targets": [
 			"//lte/gateway/c/session_manager:sessiond",
@@ -77,16 +92,15 @@
 			"--select=W191,W291,W292,W293,W391,E131,E2,E3"
 		],
 		"[python]": {
-			"editor.formatOnSave": true,
 			"editor.codeActionsOnSave": {
 				"source.organizeImports": true
 			}
 		}
-    },
+	},
 	"mounts": [
 		"source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind"
 	],
-	"postCreateCommand": "sudo ln -s ${containerWorkspaceFolder}/lte/gateway/configs /etc/magma; echo \"\nalias magtivate='source /home/vscode/build/python/bin/activate'\" >> ~/.bashrc",
+	"postCreateCommand": "${containerWorkspaceFolder}/.devcontainer/post-create-commands.sh ${containerWorkspaceFolder}",
 	// multiple postCreateCommands: currently only possible with '&&'/';' or shell script (https://github.com/microsoft/vscode-remote-release/issues/3527)
 	"runArgs": [
 		"--init"

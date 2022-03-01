@@ -210,9 +210,9 @@ func (s *AppTestSuite) thenNoOtherRequestWasReceived() {
 }
 
 func withPendingRequests(state *active_mode.State, name string) *active_mode.State {
-	for _, cfg := range state.ActiveModeConfigs {
-		if cfg.Cbsd.UserId == name {
-			cfg.Cbsd.PendingRequests = []*active_mode.Request{{
+	for _, cbsd := range state.Cbsds {
+		if cbsd.UserId == name {
+			cbsd.PendingRequests = []*active_mode.Request{{
 				Type:    active_mode.RequestsType_RegistrationRequest,
 				Payload: getExpectedSingleRequest(name),
 			}}
@@ -223,22 +223,18 @@ func withPendingRequests(state *active_mode.State, name string) *active_mode.Sta
 }
 
 func buildSomeState(names ...string) *active_mode.State {
-	configs := make([]*active_mode.ActiveModeConfig, len(names))
+	cbsds := make([]*active_mode.Cbsd, len(names))
 	for i, name := range names {
-		configs[i] = &active_mode.ActiveModeConfig{
-			DesiredState: active_mode.CbsdState_Registered,
-			Cbsd: &active_mode.Cbsd{
-				UserId:            name,
-				FccId:             name,
-				SerialNumber:      name,
-				State:             active_mode.CbsdState_Unregistered,
-				LastSeenTimestamp: currentTime,
-			},
+		cbsds[i] = &active_mode.Cbsd{
+			DesiredState:      active_mode.CbsdState_Registered,
+			UserId:            name,
+			FccId:             name,
+			SerialNumber:      name,
+			State:             active_mode.CbsdState_Unregistered,
+			LastSeenTimestamp: currentTime,
 		}
 	}
-	return &active_mode.State{
-		ActiveModeConfigs: configs,
-	}
+	return &active_mode.State{Cbsds: cbsds}
 }
 
 func buildStateWithAuthorizedGrants(name string, interval time.Duration, timestamps ...time.Time) *active_mode.State {
@@ -251,18 +247,14 @@ func buildStateWithAuthorizedGrants(name string, interval time.Duration, timesta
 			LastHeartbeatTimestamp: timestamp.Unix(),
 		}
 	}
-	configs := []*active_mode.ActiveModeConfig{{
-		DesiredState: active_mode.CbsdState_Registered,
-		Cbsd: &active_mode.Cbsd{
-			Id:                name,
-			State:             active_mode.CbsdState_Registered,
-			Grants:            grants,
-			LastSeenTimestamp: currentTime,
-		},
+	cbsds := []*active_mode.Cbsd{{
+		DesiredState:      active_mode.CbsdState_Registered,
+		Id:                name,
+		State:             active_mode.CbsdState_Registered,
+		Grants:            grants,
+		LastSeenTimestamp: currentTime,
 	}}
-	return &active_mode.State{
-		ActiveModeConfigs: configs,
-	}
+	return &active_mode.State{Cbsds: cbsds}
 }
 
 func getExpectedRequests(name string) []*requests.RequestPayload {

@@ -7,21 +7,21 @@ import (
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 )
 
-func NewDeleteMessage(serialNumber string) *deleteMessage {
-	return &deleteMessage{serialNumber: serialNumber}
+func NewDeleteMessage(id int64) *deleteMessage {
+	return &deleteMessage{id: id}
 }
 
 type deleteMessage struct {
-	serialNumber string
+	id int64
 }
 
 func (d *deleteMessage) Send(ctx context.Context, provider ClientProvider) error {
-	req := &active_mode.DeleteCbsdRequest{SerialNumber: d.serialNumber}
+	req := &active_mode.DeleteCbsdRequest{Id: d.id}
 	client := provider.GetActiveModeClient()
 	_, err := client.DeleteCbsd(ctx, req)
 	return err
 }
 
 func (d *deleteMessage) String() string {
-	return fmt.Sprintf("delete: %s", d.serialNumber)
+	return fmt.Sprintf("delete: %d", d.id)
 }
