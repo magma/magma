@@ -1084,7 +1084,7 @@ paths:
         name: cbsd
         required: true
         schema:
-          $ref: '#/definitions/cbsd'
+          $ref: '#/definitions/mutable_cbsd'
       responses:
         "201":
           description: Success
@@ -1129,7 +1129,7 @@ paths:
         name: cbsd
         required: true
         schema:
-          $ref: '#/definitions/cbsd'
+          $ref: '#/definitions/mutable_cbsd'
       responses:
         "204":
           description: Success

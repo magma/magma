@@ -3027,7 +3027,7 @@ export default class MagmaAPIBindings {
     static async postDpByNetworkIdCbsds(
         parameters: {
             'networkId': string,
-            'cbsd': cbsd,
+            'cbsd': mutable_cbsd,
         }
     ): Promise < "Success" > {
         let path = '/dp/{network_id}/cbsds';
@@ -3100,7 +3100,7 @@ export default class MagmaAPIBindings {
         parameters: {
             'networkId': string,
             'cbsdId': number,
-            'cbsd': cbsd,
+            'cbsd': mutable_cbsd,
         }
     ): Promise < "Success" > {
         let path = '/dp/{network_id}/cbsds/{cbsd_id}';
