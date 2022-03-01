@@ -96,6 +96,14 @@
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 #include "lte/gateway/c/core/oai/include/s1ap_state.h"
 
+typedef struct arg_s1ap_send_enb_dereg_ind_s {
+  uint8_t current_ue_index;
+  uint32_t handled_ues;
+  MessageDef* message_p;
+  uint32_t associated_enb_id;
+  uint32_t deregister_ue_count;
+} arg_s1ap_send_enb_dereg_ind_t;
+
 struct S1ap_E_RABItem_s;
 struct S1ap_E_RABSetupItemBearerSURes_s;
 struct S1ap_E_RABSetupItemCtxtSURes_s;
@@ -106,6 +114,10 @@ status_code_e s1ap_generate_s1_setup_response(
 
 bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container);
 
+static bool s1ap_send_enb_deregistered_ind(__attribute__((unused))
+                                           const hash_key_t keyP,
+                                           uint64_t const dataP, void* argP,
+                                           void** resultP);
 /* Handlers matrix. Only mme related procedures present here.
  */
 s1ap_message_handler_t message_handlers[][3] = {
@@ -511,21 +523,57 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
         S1ap_TimeToWait_v20s);
     increment_counter("s1_setup", 1, 2, "result", "failure", "cause",
                       "invalid_state");
-    // Check if the UE counters for eNB are equal.
-    // If not, the eNB will never switch to INIT state, particularly in
-    // stateless mode.
-    // Exit the process so that health checker can clean-up all Redis
-    // state and restart all stateless services.
-    AssertFatal(
-        enb_association->nb_ue_associated ==
-            enb_association->ue_id_coll.num_elements,
-        "Num UEs associated with eNB (%u) is more than the UEs with valid "
-        "mme_ue_s1ap_id (%zu). This is a deadlock state potentially caused by "
-        "misbehaving eNB; restarting MME. In stateless mode, health management "
-        "service will eventually detect multiple MME restarts due to this "
-        "deadlock state and force sctpd and hence all services to restart.",
-        enb_association->nb_ue_associated,
-        enb_association->ue_id_coll.num_elements);
+    /* Check if the UE counters for eNB are equal.
+     * If not, the eNB will never switch to INIT state, particularly in
+     * stateless mode.
+     * UE state at s1ap task is created on reception of initial ue message
+     * Hash list, ue_id_coll is updated after mme_app_task assigns and provides
+     * mme_ue_s1ap_id to s1ap task
+     * s1ap task shall clear this UE state if mme_app task has not yet provided
+     * mme_ue_s1ap_id
+     */
+    if (enb_association->ue_id_coll.num_elements == 0) {
+      unsigned int i = 0;
+      unsigned int num_elements = 0;
+      bool unlock = true;
+      hash_table_ts_t* hashtblP = get_s1ap_ue_state();
+      hash_node_t *node = NULL, *oldnode = NULL;
+      if (!hashtblP) {
+        OAILOG_ERROR(LOG_S1AP, "No UEs found in comp_s1ap_id hash list");
+        OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+      }
+      while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
+        pthread_mutex_lock(&hashtblP->lock_nodes[i]);
+        if (hashtblP->nodes[i] != NULL) {
+          node = hashtblP->nodes[i];
+        }
+        while (node) {
+          num_elements++;
+          oldnode = node;
+          node = node->next;
+          if (oldnode->data) {
+            unlock = false;
+            pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
+            s1ap_remove_ue(state, node->data);
+          }
+        }
+        if (unlock) {
+          pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
+        }
+        i++;
+      }
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+    }
+
+    arg_s1ap_send_enb_dereg_ind_t arg = {0};
+    MessageDef* message_p = NULL;
+
+    arg.associated_enb_id = enb_association->enb_id;
+    arg.deregister_ue_count = enb_association->ue_id_coll.num_elements;
+    hashtable_uint64_ts_apply_callback_on_elements(
+        &enb_association->ue_id_coll, s1ap_send_enb_deregistered_ind,
+        (void*)&arg, (void**)&message_p);
+
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
   log_queue_item_t* context = NULL;
@@ -3474,19 +3522,11 @@ status_code_e s1ap_mme_handle_path_switch_request(
 }
 
 //------------------------------------------------------------------------------
-typedef struct arg_s1ap_send_enb_dereg_ind_s {
-  uint8_t current_ue_index;
-  uint32_t handled_ues;
-  MessageDef* message_p;
-  uint32_t associated_enb_id;
-  uint32_t deregister_ue_count;
-} arg_s1ap_send_enb_dereg_ind_t;
-
 //------------------------------------------------------------------------------
-bool s1ap_send_enb_deregistered_ind(__attribute__((unused))
-                                    const hash_key_t keyP,
-                                    uint64_t const dataP, void* argP,
-                                    void** resultP) {
+static bool s1ap_send_enb_deregistered_ind(__attribute__((unused))
+                                           const hash_key_t keyP,
+                                           uint64_t const dataP, void* argP,
+                                           void** resultP) {
   arg_s1ap_send_enb_dereg_ind_t* arg = (arg_s1ap_send_enb_dereg_ind_t*)argP;
   ue_description_t* ue_ref_p = NULL;
 
@@ -3626,21 +3666,47 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
   }
 
   if (reset) {
-    // Check if the UE counters for eNB are equal.
-    // If not, the eNB will never switch to INIT state, particularly in
-    // stateless mode.
-    // Exit the process so that health checker can clean-up all Redis
-    // state and restart all stateless services.
-    AssertFatal(
-        enb_association->nb_ue_associated ==
-            enb_association->ue_id_coll.num_elements,
-        "Num UEs associated with eNB (%u) is more than the UEs with valid "
-        "mme_ue_s1ap_id (%zu). This is a deadlock state potentially caused by "
-        "misbehaving eNB; restarting MME. In stateless mode, health management "
-        "service will eventually detect multiple MME restarts due to this "
-        "deadlock state and force sctpd and hence all services to restart.",
-        enb_association->nb_ue_associated,
-        enb_association->ue_id_coll.num_elements);
+    /* Check if the UE counters for eNB are equal.
+     * If not, the eNB will never switch to INIT state, particularly in
+     * stateless mode.
+     * UE state at s1ap task is created on reception of initial ue message
+     * Hash list, ue_id_coll is updated after mme_app_task assigns and provides
+     * mme_ue_s1ap_id to s1ap task
+     * s1ap task shall clear this UE state if mme_app task has not yet provided
+     * mme_ue_s1ap_id
+     */
+    if (enb_association->ue_id_coll.num_elements == 0) {
+      unsigned int i = 0;
+      unsigned int num_elements = 0;
+      bool unlock = true;
+      hash_table_ts_t* hashtblP = get_s1ap_ue_state();
+      hash_node_t *node = NULL, *oldnode = NULL;
+      if (!hashtblP) {
+        OAILOG_ERROR(LOG_S1AP, "No UEs found in comp_s1ap_id hash list");
+        OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+      }
+      while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
+        pthread_mutex_lock(&hashtblP->lock_nodes[i]);
+        if (hashtblP->nodes[i] != NULL) {
+          node = hashtblP->nodes[i];
+        }
+        while (node) {
+          num_elements++;
+          oldnode = node;
+          node = node->next;
+          if (oldnode->data) {
+            unlock = false;
+            pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
+            s1ap_remove_ue(state, oldnode->data);
+          }
+        }
+        if (unlock) {
+          pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
+        }
+        i++;
+      }
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+    }
   }
   /*
    * Send S1ap deregister indication to MME app in batches of UEs where
