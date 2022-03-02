@@ -1951,13 +1951,19 @@ status_code_e mme_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
-    OAILOG_WARNING(LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n",
-                   timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+  struct ue_mm_context_s* ue_context_p = NULL;
+  if (timer_id == MME_APP_TIMER_INACTIVE_ID) {
+    // Expiry handler was called as part of timer recovery on service restart
+    ue_context_p = (struct ue_mm_context_s*)args;
+  } else {
+    if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+      OAILOG_WARNING(LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n",
+                     timer_id);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+    }
+    ue_context_p = mme_app_get_ue_context_for_timer(
+        mme_ue_s1ap_id, "Mobile reachability timer");
   }
-  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-      mme_ue_s1ap_id, "Mobile reachability timer");
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -2008,13 +2014,20 @@ status_code_e mme_app_handle_implicit_detach_timer_expiry(zloop_t* loop,
                                                           void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
-    OAILOG_WARNING(LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n",
-                   timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+  struct ue_mm_context_s* ue_context_p = NULL;
+  if (timer_id == MME_APP_TIMER_INACTIVE_ID) {
+    // Expiry handler was called as part of timer recovery on service restart
+    ue_context_p = (struct ue_mm_context_s*)args;
+  } else {
+    if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+      OAILOG_WARNING(LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n",
+                     timer_id);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+    }
+    ue_context_p = mme_app_get_ue_context_for_timer(mme_ue_s1ap_id,
+                                                    "Implicit detach timer");
   }
-  struct ue_mm_context_s* ue_context_p =
-      mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "Implicit detach timer");
+
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -2040,6 +2053,7 @@ status_code_e mme_app_handle_initial_context_setup_rsp_timer_expiry(
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   struct ue_mm_context_s* ue_context_p = NULL;
   if (timer_id == MME_APP_TIMER_INACTIVE_ID) {
+    // Expiry handler was called as part of timer recovery on service restart
     ue_context_p = (struct ue_mm_context_s*)args;
   } else {
     if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
@@ -2437,14 +2451,19 @@ status_code_e mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id,
                                                  void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
-    OAILOG_WARNING(LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n",
-                   timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+  struct ue_mm_context_s* ue_context_p = NULL;
+  if (timer_id == MME_APP_TIMER_INACTIVE_ID) {
+    // Expiry handler was called as part of timer recovery on service restart
+    ue_context_p = (struct ue_mm_context_s*)args;
+  } else {
+    if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+      OAILOG_WARNING(LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n",
+                     timer_id);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+    }
+    ue_context_p =
+        mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "Paging timer");
   }
-  struct ue_mm_context_s* ue_context_p =
-      mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "Paging timer");
-
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
