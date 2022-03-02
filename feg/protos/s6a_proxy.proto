@@ -217,9 +217,9 @@ message UpdateLocationAnswer {
 
     message AggregatedMaximumBitrate {
         // Maximum uplink bitrate
-        uint64 max_bandwidth_ul = 1;
+        uint32 max_bandwidth_ul = 1;
         // Maximum downlink bitrate
-        uint64 max_bandwidth_dl = 2;
+        uint32 max_bandwidth_dl = 2;
         // Unit (either bps or Kbps)
         BitrateUnitsAMBR unit = 3;
 
