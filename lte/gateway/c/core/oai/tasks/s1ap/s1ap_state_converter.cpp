@@ -265,7 +265,7 @@ void S1apStateConverter::supported_tai_item_to_proto(
   supported_tai_item_proto->set_tac(state_supported_tai_item->tac);
   supported_tai_item_proto->set_bplmnlist_count(
       state_supported_tai_item->bplmnlist_count);
-  char plmn_array[PLMN_BYTES] = {0};
+  char plmn_array[PLMN_BYTES + 1] = {0};
   for (int idx = 0; idx < state_supported_tai_item->bplmnlist_count; idx++) {
     plmn_array[0] =
         (char)(state_supported_tai_item->bplmns[idx].mcc_digit1 + ASCII_ZERO);
