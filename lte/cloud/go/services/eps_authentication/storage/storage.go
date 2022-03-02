@@ -65,19 +65,23 @@ func (s *subscriberDBStorageImpl) GetSubscriberData(
 	}
 
 	ent, err := configurator.LoadEntity(
-		context.Background(), nid.GetId(), lte.SubscriberEntityType, sid.GetId(), lc, serdes.Entity)
+		context.Background(), nid.GetId(), lte.SubscriberEntityType, lteprotos.SidString(sid), lc, serdes.Entity)
 
 	if err != nil {
-		return nil, status.Errorf(codes.Unavailable, "error loading subscriber entity: %v", err)
+		return nil, status.Errorf(
+			codes.NotFound,
+			"error loading subscriber entity for NID: %s, SID: %s: %v", nid.GetId(), sid.GetId(), err)
 	}
 	subData := &lteprotos.SubscriberData{
 		Sid:       sid,
 		NetworkId: nid,
 	}
 	if ent.Config == nil {
-		return nil, status.Error(codes.NotFound, "missing subscriber configuration")
+		return nil, status.Errorf(
+			codes.NotFound, "missing subscriber configuration for NID: %s, SID: %s", nid.GetId(), sid.GetId())
 	}
-	if cfg := ent.Config.(*models.SubscriberConfig); cfg != nil {
+	if cfg := ent.Config.(*models.SubscriberConfig); cfg != nil && cfg.Lte != nil {
+		subData.SubProfile = string(cfg.Lte.SubProfile)
 		subData.Lte = &lteprotos.LTESubscription{
 			State: lteprotos.LTESubscription_LTESubscriptionState(
 				lteprotos.LTESubscription_LTESubscriptionState_value[cfg.Lte.State]),
