@@ -498,7 +498,7 @@ class EnforcementTableTest(unittest.TestCase):
         )
 
         with s1.isolator, s1.context, s2.isolator, s2.context, flow_verifier, \
-             snapshot_verifier:
+                snapshot_verifier:
             for pkt in pkts_to_send:
                 pkt_sender.send(pkt.pkt, pkt.num)
 

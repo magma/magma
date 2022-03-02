@@ -147,9 +147,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
-          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-c-cpp-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-c-cpp-
       - name: Bazel Cache Repo
         uses: actions/cache@v2
         with:
@@ -157,6 +157,23 @@ jobs:
           key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
+      - name: Ensure cache size (only on master)
+        if: github.event_name == 'push'
+        env:
+          BAZEL_CACHE_DIR: .${{ env.BAZEL_CACHE }}
+        run: |
+          # See https://stackoverflow.com/a/27485157 for reference.
+          # We do not care about the repo cache size here because it is handled in bazel.yml
+          EXPANDED_BAZEL_CACHE_PATH="${BAZEL_CACHE_DIR/#\~/$HOME}"
+
+          CACHE_SIZE_MB=$(du -smc $EXPANDED_BAZEL_CACHE_PATH | grep total | cut -f1)
+          echo "Total size of Bazel cache (rounded up to MBs): $CACHE_SIZE_MB"
+          # Use a 6GB threshold since actions/cache compresses the results, and Bazel caches seem
+          # to only increase by a few hundred megabytes across changes for unrelated branches.
+          if [[ "$CACHE_SIZE_MB" -gt 6000 ]]; then
+            echo "Cache exceeds cut-off; resetting it (will result in a slow build)"
+            rm -rf $EXPANDED_BAZEL_CACHE_PATH
+          fi
       - name: Setup Devcontainer Image
         uses: addnab/docker-run-action@v2
         with:
@@ -164,16 +181,7 @@ jobs:
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
             echo "Pulled the devontainer image!"
-      - name: Build C / C++ code with Bazel
-        uses: addnab/docker-run-action@v2
-        with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
-          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
-          run: |
-            cd /workspaces/magma
-            bazel build //orc8r/gateway/c/...:* //lte/gateway/c/...:*
-      - name: Test C / C++ code with Bazel
+      - name: Create a directory to store XML test results
         uses: addnab/docker-run-action@v2
         with:
           shell: bash
@@ -182,12 +190,39 @@ jobs:
           options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
             cd /workspaces/magma
-            bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* --test_output=errors
+            mkdir -p c-cpp-test-results/
+            echo "created c-cpp-test-results/ directory"
+      - name: Run `bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* --config=asan`
+        uses: addnab/docker-run-action@v2
+        with:
+          shell: bash
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma
+            bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* --config=asan --test_output=errors --cache_test_results=no
             TEST_RESULT=$?
             # copy out test results
-            mkdir -p c-cpp-test-results/
-            echo "created c-cpp-test-results/ directory, copying out test result XMLs"
-            find bazel-out/k8-dbg/testlogs/ -name "*.xml" | while IFS= read -r f; do cp "$f" "c-cpp-test-results/${f//\//_}"; done
+            echo "Copying out test result XMLs for testing with ASAN"
+            find bazel-out/k8-dbg/testlogs/ -name "*.xml" | while IFS= read -r f; do cp "$f" "c-cpp-test-results/asan_${f//\//_}"; done
+            exit $TEST_RESULT
+      - name: Run `bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* --config=lsan`
+        uses: addnab/docker-run-action@v2
+        with:
+          shell: bash
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma
+            # Clean so that test XML outputs are wiped from the previous run
+            bazel clean
+            bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* --config=lsan --test_output=errors --cache_test_results=no
+            TEST_RESULT=$?
+            # copy out test results
+            echo "Copying out test result XMLs for testing with LSAN"
+            find bazel-out/k8-dbg/testlogs/ -name "*.xml" | while IFS= read -r f; do cp "$f" "c-cpp-test-results/lsan_${f//\//_}"; done
             exit $TEST_RESULT
       - name: Upload Test Results
         if: always()
@@ -195,24 +230,6 @@ jobs:
         with:
           name: Unit Test Results
           path: c-cpp-test-results/
-      - name: Extract commit title
-        # yamllint enable
-        if: failure() && github.event_name == 'push'
-        id: commit
-        run: |
-            str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-            echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action c_cpp_unit_tests failed"
-          SLACK_USERNAME: "AGW workflow"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title }}"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
 
   li_agent_test:
     needs: path_filter

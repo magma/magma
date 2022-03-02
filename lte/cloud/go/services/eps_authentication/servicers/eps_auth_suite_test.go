@@ -25,7 +25,6 @@ import (
 	"magma/lte/cloud/go/serdes"
 	utils "magma/lte/cloud/go/services/eps_authentication/servicers/test_utils"
 	"magma/lte/cloud/go/services/eps_authentication/storage"
-	eps_storage "magma/lte/cloud/go/services/eps_authentication/storage"
 	"magma/lte/cloud/go/services/lte/obsidian/models"
 	sdb_models "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/blobstore"
@@ -57,29 +56,10 @@ func (suite *EpsAuthTestSuite) PurgeUE(purge *lteprotos.PurgeUERequest) (*ltepro
 	return suite.Server.PurgeUE(getTestContext(), purge)
 }
 
-func (suite *EpsAuthTestSuite) SetupTest() {
-	db, err := sqorc.Open("sqlite3", ":memory:")
-	suite.NoError(err)
-	stateStoreFactory := blobstore.NewSQLStoreFactory(eps_storage.EpsAuthStateStore, db, sqorc.GetSqlBuilder())
-	if err := stateStoreFactory.InitializeFactory(); err != nil {
-		suite.NoError(err)
-	}
-	store := storage.NewSubscriberDBStorage(stateStoreFactory)
-
-	for _, subscriber := range utils.GetTestSubscribers() {
-		err := addSubscriber(store, subscriber)
-		suite.NoError(err)
-	}
-
-	server, err := NewEPSAuthServer(store)
-	suite.NoError(err)
-	suite.Server = server
+func (*EpsAuthTestSuite) SetupTest() {
 }
 
-// DEPRECATED -- un-skip if service is un-deprecated
 func TestEpsAuthSuite(t *testing.T) {
-	t.Skip("eps_authentication service temporarily deprecated")
-
 	test_init.StartTestService(t)
 
 	cellularConfig := &models.NetworkCellularConfigs{
@@ -110,6 +90,24 @@ func TestEpsAuthSuite(t *testing.T) {
 	assert.NoError(t, err)
 
 	testSuite := &EpsAuthTestSuite{}
+
+	db, err := sqorc.Open("sqlite3", ":memory:")
+	assert.NoError(t, err)
+	stateStoreFactory := blobstore.NewSQLStoreFactory(storage.EpsAuthStateStore, db, sqorc.GetSqlBuilder())
+	if err := stateStoreFactory.InitializeFactory(); err != nil {
+		assert.NoError(t, err)
+	}
+	store := storage.NewSubscriberDBStorage(stateStoreFactory)
+
+	for _, subscriber := range utils.GetTestSubscribers() {
+		err := addSubscriber(store, subscriber)
+		assert.NoError(t, err)
+	}
+
+	server, err := NewEPSAuthServer(store)
+	assert.NoError(t, err)
+	testSuite.Server = server
+
 	suite.Run(t, testSuite)
 }
 
@@ -121,14 +119,18 @@ func getTestContext() context.Context {
 func addSubscriber(store storage.SubscriberDBStorage, sd *lteprotos.SubscriberData) error {
 	ent := configurator.NetworkEntity{
 		Type: lte.SubscriberEntityType, Key: lteprotos.SidString(sd.GetSid()),
-		Config: &sdb_models.SubscriberConfig{
+		Config: &sdb_models.SubscriberConfig{},
+	}
+	if sd.GetLte() != nil {
+		ent.Config = &sdb_models.SubscriberConfig{
 			Lte: &sdb_models.LteSubscription{
 				AuthAlgo:   sd.GetLte().GetAuthAlgo().String(),
 				AuthKey:    sd.GetLte().GetAuthKey(),
 				AuthOpc:    sd.GetLte().GetAuthOpc(),
 				State:      "ACTIVE",
 				SubProfile: sdb_models.SubProfile(sd.GetSubProfile()),
-			}},
+			},
+		}
 	}
 	_, err := configurator.CreateEntities(
 		context.Background(), sd.GetNetworkId().GetId(), []configurator.NetworkEntity{ent}, serdes.Entity)

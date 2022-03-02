@@ -34,6 +34,8 @@ build:devcontainer --define=folly_so=1
 #  Bazel test runtime default: PATH=/bin:/usr/bin:/usr/local/bin
 #  Some python tests require access to /usr/sbin binaries (e.g. route, ifconfig)
 build --test_env=PATH=/bin:/usr/bin:/usr/local/bin:/usr/sbin
+#  For testing compile mme libraries with unit test flag
+test --copt=-DMME_UNIT_TEST
 
 # CODE COVERAGE CONFIGS
 build --javacopt="-source 8"
