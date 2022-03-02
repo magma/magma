@@ -115,6 +115,7 @@ class TestIcsTimerExpiryWithMmeRestart(unittest.TestCase):
             print("Waiting for", j, "seconds")
             time.sleep(1)
 
+        print("************************* Waiting for response from MME")
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
