@@ -81,7 +81,7 @@ def _get_ipv4_allocator(
 def _get_ipv6_allocator(
         store: MobilityStore, allocator_type: int,
         static_ip_enabled: bool, mconfig: any,
-        ipv6_prefixlen: int,
+        ipv6_prefixlen: Optional[int],
         subscriberdb_rpc_stub: SubscriberDBStub = None,
 ):
 

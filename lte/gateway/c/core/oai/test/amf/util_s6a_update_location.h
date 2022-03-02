@@ -18,6 +18,6 @@
 namespace magma5g {
 // api to mock handling s6a_update_location_ans
 
-s6a_update_location_ans_t amf_send_s6a_ula(const std::string& imsi);
+s6a_update_location_ans_t util_amf_send_s6a_ula(const std::string& imsi);
 
 }  // namespace magma5g

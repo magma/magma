@@ -10,7 +10,7 @@ ENABLE_ASAN ?= 0
 # interfaces.
 # AGW means Acces GateWay, is the result of the aggregation of MME, SGW and PGW.
 # First in FEATURES, select what to you want to build : mme or agw with OpenFlow
-# (OVS): FEATURE=mme or agw_of
+# (OVS): FEATURE=mme_oai or agw_of
 # Then you can have other features that can be built for mme or agw :
 # s6a with fd (freeDiameter)
 
@@ -18,13 +18,12 @@ ENABLE_ASAN ?= 0
 FEATURES ?= agw_of
 # EXCLUSIVE_FEATURE_LIST : list of primary features that cannot be requested
 # together.
-EXCLUSIVE_FEATURE_LIST = mme agw_of mme_oai
+EXCLUSIVE_FEATURE_LIST = agw_of mme_oai
 # AVAILABLE_FEATURE_LIST : every feature not in this list will trigger an error.
-AVAILABLE_FEATURE_LIST = s6a_fd mme agw_of mme_oai
+AVAILABLE_FEATURE_LIST = s6a_fd agw_of mme_oai
 REQUESTED_FEATURE_LIST = $(sort $(FEATURES))
 
 ifeq ($(BUILD_TYPE),Debug)
-	BAZEL_FLAGS = --config=development
 	ifeq ($(ENABLE_ASAN),1)
 		BAZEL_FLAGS := $(BAZEL_FLAGS) --config=asan
 	endif
@@ -45,6 +44,7 @@ ifneq ($(words $(strip $(filter $(EXCLUSIVE_FEATURE_LIST),$(REQUESTED_FEATURE_LI
 endif
 
 MAIN_FEATURE = $(strip $(filter $(EXCLUSIVE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))
+$(info MAIN_FEATURE $(MAIN_FEATURE))
 
 ifneq ($(words $(strip $(filter $(REQUESTED_FEATURE_LIST),s6a_fd))), 0)
 S6A_FLAGS = -DS6A_OVER_GRPC=False
@@ -53,19 +53,14 @@ else
 S6A_FLAGS = -DS6A_OVER_GRPC=True
 endif
 
-ifeq ($(MAIN_FEATURE),mme)
-# Here force S6A to use freeDiameter
-OAI_FLAGS = -DS6A_OVER_GRPC=True
-else ifeq ($(MAIN_FEATURE),mme_oai)
+ifeq ($(MAIN_FEATURE),mme_oai)
 # Set DS6A_OVER_GRPC=False if using OAI-HSS
 OAI_FLAGS = -DS6A_OVER_GRPC=False
 else ifeq ($(MAIN_FEATURE),agw_of)
 OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True
-
 else
 # default
 OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True
-
 endif
 
 # debian stretch build uses older cc not recognizing options needed on ubuntu focal

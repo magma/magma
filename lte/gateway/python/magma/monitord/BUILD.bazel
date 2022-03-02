@@ -9,6 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
 MAGMA_ROOT = "../../../../../"
@@ -47,8 +48,11 @@ py_library(
     visibility = ["//visibility:public"],
     deps = [
         "//lte/protos:mobilityd_python_grpc",
+        "//orc8r/gateway/python/magma/common:job",
         "//orc8r/gateway/python/magma/common:rpc_utils",
         "//orc8r/gateway/python/magma/common:sentry",
         "//orc8r/gateway/python/magma/magmad/check/network_check:ping",
+        "//orc8r/protos:service303_python_proto",
+        requirement("prometheus_client"),
     ],
 )

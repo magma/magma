@@ -37,8 +37,9 @@ void sm_free_protocol_configuration_options(
     protocol_configuration_options_t** const protocol_configuration_options) {
   protocol_configuration_options_t* pco = *protocol_configuration_options;
   if (pco) {
-    for (int i = 0; i < PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID; i++) {
-      if (pco->protocol_or_container_ids[i].contents) {
+    for (int i = 0; i < pco->num_protocol_or_container_id; i++) {
+      if (pco->protocol_or_container_ids[i].contents &&
+          pco->protocol_or_container_ids[i].length) {
         bdestroy_wrapper(&pco->protocol_or_container_ids[i].contents);
       }
     }
@@ -49,6 +50,8 @@ void sm_copy_protocol_configuration_options(
     protocol_configuration_options_t* const pco_dst,
     const protocol_configuration_options_t* const pco_src) {
   if ((pco_dst) && (pco_src)) {
+    memset(pco_dst, 0, sizeof(protocol_configuration_options_t));
+
     pco_dst->ext = pco_src->ext;
     pco_dst->spare = pco_src->spare;
     pco_dst->configuration_protocol = pco_src->configuration_protocol;
@@ -60,8 +63,10 @@ void sm_copy_protocol_configuration_options(
           pco_src->protocol_or_container_ids[i].id;
       pco_dst->protocol_or_container_ids[i].length =
           pco_src->protocol_or_container_ids[i].length;
-      pco_dst->protocol_or_container_ids[i].contents =
-          bstrcpy(pco_src->protocol_or_container_ids[i].contents);
+      if (pco_src->protocol_or_container_ids[i].length) {
+        pco_dst->protocol_or_container_ids[i].contents =
+            bstrcpy(pco_src->protocol_or_container_ids[i].contents);
+      }
     }
   }
 }
@@ -191,17 +196,17 @@ uint16_t sm_process_pco_request_ipcp(
 
 uint16_t sm_process_pco_request(protocol_configuration_options_t* pco_req,
                                 protocol_configuration_options_t* pco_resp) {
-  auto rc = 0;
+  auto length = 0;
 
   for (auto id = 0; id < pco_req->num_protocol_or_container_id; id++) {
     switch (pco_req->protocol_or_container_ids[id].id) {
       case PCO_PI_IPCP:
-        rc = sm_process_pco_request_ipcp(
+        length += sm_process_pco_request_ipcp(
             pco_resp, &pco_req->protocol_or_container_ids[id]);
         break;
 
       case PCO_CI_DNS_SERVER_IPV4_ADDRESS_REQUEST:
-        rc = sm_process_pco_dns_server_request(pco_resp);
+        length += sm_process_pco_dns_server_request(pco_resp);
         break;
 
       default:
@@ -209,7 +214,7 @@ uint16_t sm_process_pco_request(protocol_configuration_options_t* pco_req,
     }
   }
 
-  return (rc);
+  return (length);
 }
 
 }  // namespace magma5g

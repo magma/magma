@@ -4,12 +4,15 @@ startup --output_base=/tmp/bazel
 build --announce_rc
 build --color=yes
 
-build:development --compilation_mode=fastbuild
-build:production --config=lsan --compilation_mode=dbg --strip=never --copt=-O3
+build:production --config=lsan --strip=never --copt=-O3
 
 # C/C++ CONFIGS
 build --cxxopt=-std=c++14
 build --experimental_strict_action_env
+build --compilation_mode=dbg
+
+# Default test configuration
+test --test_output=errors
 
 # MAGMA VM CONFIGS
 build:specify_vm_cc --action_env=CC=/usr/bin/gcc
@@ -31,6 +34,8 @@ build:devcontainer --define=folly_so=1
 #  Bazel test runtime default: PATH=/bin:/usr/bin:/usr/local/bin
 #  Some python tests require access to /usr/sbin binaries (e.g. route, ifconfig)
 build --test_env=PATH=/bin:/usr/bin:/usr/local/bin:/usr/sbin
+#  For testing compile mme libraries with unit test flag
+test --copt=-DMME_UNIT_TEST
 
 # CODE COVERAGE CONFIGS
 build --javacopt="-source 8"
