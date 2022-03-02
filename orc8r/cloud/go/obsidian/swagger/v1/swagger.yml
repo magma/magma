@@ -9853,6 +9853,7 @@ definitions:
   network_sentry_config:
     default:
       exclusion_patterns: []
+      number_of_lines_in_log: 0
       sample_rate: 1
       upload_mme_log: false
     description: Sentry.io configuration
@@ -9863,6 +9864,10 @@ definitions:
           type: string
         minItems: 0
         type: array
+      number_of_lines_in_log:
+        example: 1000
+        format: uint32
+        type: integer
       sample_rate:
         example: 0.5
         format: float

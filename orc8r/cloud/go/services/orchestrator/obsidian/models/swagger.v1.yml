@@ -1451,6 +1451,10 @@ definitions:
       upload_mme_log:
         type: boolean
         example: false
+      number_of_lines_in_log:
+        type: integer
+        format: uint32
+        example: 1000
       sample_rate:
         type: number
         format: float
@@ -1465,6 +1469,7 @@ definitions:
         description: log message patterns that are excluded (regex substring match)
     default:
       upload_mme_log: false
+      number_of_lines_in_log: 0
       sample_rate: 1
       exclusion_patterns: []
 

@@ -1029,6 +1029,7 @@ export type network_ran_configs = {
 export type network_sentry_config = {
     exclusion_patterns ? : Array < string >
         ,
+    number_of_lines_in_log ? : number,
     sample_rate ? : number,
     upload_mme_log ? : boolean,
     url_native ? : string,
