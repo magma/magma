@@ -31,6 +31,7 @@
 	],
 	"image": "ghcr.io/magma/magma/devcontainer:master",
 	"settings": {
+		"search.followSymlinks": false,
 		"terminal.integrated.profiles.linux": {
 			"bash": {
 				"path": "bash",
