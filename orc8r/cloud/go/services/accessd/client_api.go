@@ -27,7 +27,7 @@ import (
 	"magma/orc8r/lib/go/registry"
 )
 
-const ServiceName = "ACCESSD"
+const ServiceName = "accessd"
 
 // getAccessbClient is a utility function to get a RPC connection to the
 // accessd service
