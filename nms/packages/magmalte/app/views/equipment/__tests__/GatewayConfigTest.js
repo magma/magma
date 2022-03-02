@@ -485,7 +485,7 @@ describe('<AddEditGatewayButton />', () => {
         sgi_management_iface_static_ip: '',
         sgi_management_iface_vlan: '',
         sgi_management_iface_ipv6_gw: '2001:4860:4860:0:0:0:0:1',
-        sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888',
+        sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888/64',
       },
     });
 
@@ -597,7 +597,7 @@ describe('<AddEditGatewayButton />', () => {
             sgi_management_iface_static_ip: '',
             sgi_management_iface_vlan: '',
             sgi_management_iface_ipv6_gw: '2001:4860:4860:0:0:0:0:1',
-            sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888',
+            sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888/64',
           },
           ran: {pci: 260, transmit_enabled: true},
         },
@@ -695,7 +695,7 @@ describe('<AddEditGatewayButton />', () => {
           sgi_management_iface_static_ip: '',
           sgi_management_iface_vlan: '',
           sgi_management_iface_ipv6_gw: '2001:4860:4860:0:0:0:0:1',
-          sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888',
+          sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888/64',
         },
         ran: {
           pci: 260,
