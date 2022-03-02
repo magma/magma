@@ -35,7 +35,7 @@ build:devcontainer --define=folly_so=1
 #  Some python tests require access to /usr/sbin binaries (e.g. route, ifconfig)
 build --test_env=PATH=/bin:/usr/bin:/usr/local/bin:/usr/sbin
 #  For testing compile mme libraries with unit test flag
-test --copt=-DMME_UNIT_TEST
+test --define=set_test_env=1
 
 # CODE COVERAGE CONFIGS
 build --javacopt="-source 8"
@@ -50,18 +50,10 @@ build:coverage --combined_report=lcov
 build:coverage --instrumentation_filter="//(orc8r|lte)/gateway/(c|python)[/:],-//(orc8r|lte)/protos[/:],-/*/test[/:]"
 
 # ASAN
-build:asan --copt=-fsanitize=address
-build:asan --copt=-fsanitize=undefined
-build:asan --copt=-O0
-build:asan --copt=-fno-omit-frame-pointer
-build:asan --linkopt=-fsanitize=address
-build:asan --linkopt=-fsanitize=undefined
-build:asan --action_env=ASAN_OPTIONS=detect_leaks=1:color=always
+build:asan --define=enable_asan=1
 
 # LSAN
-build:lsan --copt=-fsanitize=leak
-build:lsan --copt=-fno-omit-frame-pointer
-build:lsan --linkopt=-fsanitize=leak
+build:lsan --define=enable_lsan=1
 
 # system bazelrc should include config specific to different build envs (--config=vm, --config=devcontainer, etc.)
 try-import /etc/bazelrc

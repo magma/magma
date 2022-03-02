@@ -9,9 +9,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_test")
+load("//bazel:magma_cc.bzl", "magma_cc_test")
 
-cc_test(
+magma_cc_test(
     name = "event_handler_test",
     size = "small",
     srcs = ["test_event_handler.cpp"],
@@ -23,7 +23,7 @@ cc_test(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "sctp_desc_test",
     size = "small",
     srcs = ["test_sctp_desc.cpp"],

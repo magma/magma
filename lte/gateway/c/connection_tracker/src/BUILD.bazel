@@ -9,9 +9,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("//bazel:magma_cc.bzl", "magma_cc_binary", "magma_cc_library")
 
-cc_binary(
+magma_cc_binary(
     name = "connectiond",
     srcs = ["main.cpp"],
     deps = [
@@ -23,7 +23,7 @@ cc_binary(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "event_tracker",
     srcs = ["EventTracker.cpp"],
     hdrs = ["EventTracker.h"],
@@ -33,7 +33,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "packet_generator",
     srcs = ["PacketGenerator.cpp"],
     hdrs = ["PacketGenerator.h"],

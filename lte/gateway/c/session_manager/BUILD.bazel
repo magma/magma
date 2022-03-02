@@ -9,11 +9,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("//bazel:magma_cc.bzl", "magma_cc_binary", "magma_cc_library")
 
 package(default_visibility = ["//lte/gateway/c/session_manager/test:__pkg__"])
 
-cc_library(
+magma_cc_library(
     name = "diameter_codes",
     srcs = ["DiameterCodes.cpp"],
     hdrs = ["DiameterCodes.h"],
@@ -21,7 +21,7 @@ cc_library(
     strip_include_prefix = "/lte/gateway/c/session_manager",
 )
 
-cc_library(
+magma_cc_library(
     name = "grpc_magma_utils",
     srcs = ["GrpcMagmaUtils.cpp"],
     hdrs = ["GrpcMagmaUtils.h"],
@@ -34,7 +34,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "session_id",
     srcs = ["SessionID.cpp"],
     hdrs = ["SessionID.h"],
@@ -42,7 +42,7 @@ cc_library(
     strip_include_prefix = "/lte/gateway/c/session_manager",
 )
 
-cc_library(
+magma_cc_library(
     name = "utilities",
     srcs = ["Utilities.cpp"],
     hdrs = ["Utilities.h"],
@@ -51,7 +51,7 @@ cc_library(
     deps = ["@protobuf"],
 )
 
-cc_library(
+magma_cc_library(
     name = "credit_key",
     hdrs = ["CreditKey.h"],
     # TODO(@themarwhal): Migrate to using full path for includes - GH8494
@@ -62,7 +62,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "types",
     hdrs = ["Types.h"],
     # TODO(@themarwhal): Migrate to using full path for includes - GH8494
@@ -74,7 +74,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "service_action",
     hdrs = ["ServiceAction.h"],
     # TODO(@themarwhal): Migrate to using full path for includes - GH8494
@@ -86,7 +86,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "policy_loader",
     srcs = [
         "PolicyLoader.cpp",
@@ -111,7 +111,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "session_reporter",
     srcs = ["SessionReporter.cpp"],
     hdrs = ["SessionReporter.h"],
@@ -127,7 +127,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "stored_state",
     srcs = ["StoredState.cpp"],
     hdrs = ["StoredState.h"],
@@ -144,7 +144,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "rule_store",
     srcs = ["RuleStore.cpp"],
     hdrs = ["RuleStore.h"],
@@ -159,7 +159,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "session_credit",
     srcs = [
         "ChargingGrant.cpp",
@@ -185,7 +185,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "shard_tracker",
     srcs = ["ShardTracker.cpp"],
     hdrs = ["ShardTracker.h"],
@@ -193,7 +193,7 @@ cc_library(
     strip_include_prefix = "/lte/gateway/c/session_manager",
 )
 
-cc_library(
+magma_cc_library(
     name = "session_state",
     srcs = ["SessionState.cpp"],
     hdrs = ["SessionState.h"],
@@ -211,7 +211,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "metering_reporter",
     srcs = ["MeteringReporter.cpp"],
     hdrs = ["MeteringReporter.h"],
@@ -224,7 +224,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "session_store",
     srcs = [
         "MemoryStoreClient.cpp",
@@ -248,7 +248,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "aaa_client",
     srcs = ["AAAClient.cpp"],
     hdrs = ["AAAClient.h"],
@@ -262,7 +262,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "directoryd_client",
     srcs = ["DirectorydClient.cpp"],
     hdrs = ["DirectorydClient.h"],
@@ -275,7 +275,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "mobilityd_client",
     srcs = ["MobilitydClient.cpp"],
     hdrs = ["MobilitydClient.h"],
@@ -290,7 +290,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "pipelined_client",
     srcs = ["PipelinedClient.cpp"],
     hdrs = ["PipelinedClient.h"],
@@ -304,7 +304,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "spgw_service_client",
     srcs = ["SpgwServiceClient.cpp"],
     hdrs = ["SpgwServiceClient.h"],
@@ -319,7 +319,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "amf_service_client",
     srcs = ["AmfServiceClient.cpp"],
     hdrs = ["AmfServiceClient.h"],
@@ -334,7 +334,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "session_events",
     srcs = ["SessionEvents.cpp"],
     hdrs = ["SessionEvents.h"],
@@ -347,7 +347,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "local_enforcer",
     srcs = ["LocalEnforcer.cpp"],
     hdrs = ["LocalEnforcer.h"],
@@ -365,7 +365,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "session_state_enforcer",
     srcs = ["SessionStateEnforcer.cpp"],
     hdrs = ["SessionStateEnforcer.h"],
@@ -384,7 +384,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "stats_poller",
     srcs = ["StatsPoller.cpp"],
     hdrs = ["StatsPoller.h"],
@@ -393,21 +393,21 @@ cc_library(
     deps = [":local_enforcer"],
 )
 
-cc_library(
+magma_cc_library(
     name = "operational_states_handler",
     srcs = ["OperationalStatesHandler.cpp"],
     hdrs = ["OperationalStatesHandler.h"],
     deps = [":session_store"],
 )
 
-cc_library(
+magma_cc_library(
     name = "restart_handler",
     srcs = ["RestartHandler.cpp"],
     hdrs = ["RestartHandler.h"],
     deps = [":local_enforcer"],
 )
 
-cc_library(
+magma_cc_library(
     name = "session_proxy_responder_handler",
     srcs = ["SessionProxyResponderHandler.cpp"],
     hdrs = ["SessionProxyResponderHandler.h"],
@@ -420,7 +420,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "local_session_manager_handler",
     srcs = ["LocalSessionManagerHandler.cpp"],
     hdrs = ["LocalSessionManagerHandler.h"],
@@ -433,7 +433,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "set_message_manager_handler",
     srcs = ["SetMessageManagerHandler.cpp"],
     hdrs = ["SetMessageManagerHandler.h"],
@@ -448,7 +448,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "upf_msg_manage_handler",
     srcs = ["UpfMsgManageHandler.cpp"],
     hdrs = ["UpfMsgManageHandler.h"],
@@ -463,7 +463,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "session_manager_server",
     srcs = ["SessionManagerServer.cpp"],
     hdrs = ["SessionManagerServer.h"],
@@ -477,7 +477,7 @@ cc_library(
     ],
 )
 
-cc_binary(
+magma_cc_binary(
     name = "sessiond",
     srcs = ["sessiond_main.cpp"],
     # Make the binary as static as possible to allow for more reliable behavior when moving binaries around

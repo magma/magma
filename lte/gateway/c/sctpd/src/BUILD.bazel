@@ -9,11 +9,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("//bazel:magma_cc.bzl", "magma_cc_binary", "magma_cc_library")
 
 package(default_visibility = ["//lte/gateway/c/sctpd/src:__subpackages__"])
 
-cc_binary(
+magma_cc_binary(
     name = "sctpd",
     srcs = ["sctpd.cpp"],
     linkstatic = True,
@@ -29,7 +29,7 @@ cc_binary(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "sctpd_event_handler",
     srcs = ["sctpd_event_handler.cpp"],
     hdrs = ["sctpd_event_handler.h"],
@@ -39,7 +39,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "sctpd_uplink_client",
     srcs = ["sctpd_uplink_client.cpp"],
     hdrs = ["sctpd_uplink_client.h"],
@@ -49,7 +49,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "sctpd_downlink_impl",
     srcs = ["sctpd_downlink_impl.cpp"],
     hdrs = ["sctpd_downlink_impl.h"],
@@ -59,7 +59,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "sctp_connection",
     srcs = ["sctp_connection.cpp"],
     hdrs = ["sctp_connection.h"],
@@ -69,7 +69,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "sctp_desc",
     srcs = ["sctp_desc.cpp"],
     hdrs = ["sctp_desc.h"],
@@ -78,7 +78,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "sctp_assoc",
     srcs = ["sctp_assoc.cpp"],
     hdrs = ["sctp_assoc.h"],
@@ -87,7 +87,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "util",
     srcs = ["util.cpp"],
     hdrs = ["util.h"],
@@ -99,7 +99,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "config",
     hdrs = ["sctpd.h"],
 )

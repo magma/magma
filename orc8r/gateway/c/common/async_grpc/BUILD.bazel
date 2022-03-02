@@ -9,11 +9,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//bazel:magma_cc.bzl", "magma_cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
+magma_cc_library(
     # TODO(@themarwhal) The library name will match the file names once we resolve GH8467
     name = "async_grpc_receiver",
     srcs = ["GRPCReceiver.cpp"],

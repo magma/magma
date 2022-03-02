@@ -9,11 +9,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//bazel:magma_cc.bzl", "magma_cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
+magma_cc_library(
     name = "eventd_client",
     srcs = ["EventdClient.cpp"],
     # TODO(@themarwhal): Remove includes/ project directories - GH8446

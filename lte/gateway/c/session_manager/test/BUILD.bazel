@@ -9,19 +9,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("//bazel:magma_cc.bzl", "magma_cc_library", "magma_cc_test")
 
-cc_library(
+magma_cc_library(
     name = "consts",
     hdrs = ["Consts.h"],
 )
 
-cc_library(
+magma_cc_library(
     name = "matchers",
     hdrs = ["Matchers.h"],
 )
 
-cc_library(
+magma_cc_library(
     name = "sessiond_mocks",
     hdrs = ["SessiondMocks.h"],
     deps = [
@@ -30,12 +30,12 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "session_state_tester",
     hdrs = ["SessionStateTester.h"],
 )
 
-cc_library(
+magma_cc_library(
     name = "protobuf_creators",
     srcs = ["ProtobufCreators.cpp"],
     hdrs = ["ProtobufCreators.h"],
@@ -51,7 +51,7 @@ cc_library(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "session_store_test",
     size = "small",
     srcs = ["test_session_store.cpp"],
@@ -69,7 +69,7 @@ cc_test(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "polling_pipelined_test",
     size = "small",
     srcs = ["test_polling_pipelined.cpp"],
@@ -83,7 +83,7 @@ cc_test(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "session_credit_test",
     size = "small",
     srcs = ["test_session_credit.cpp"],
@@ -95,7 +95,7 @@ cc_test(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "charging_grant_test",
     size = "small",
     srcs = ["test_charging_grant.cpp"],
@@ -106,7 +106,7 @@ cc_test(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "usage_monitor_test",
     size = "small",
     srcs = ["test_usage_monitor.cpp"],
@@ -119,7 +119,7 @@ cc_test(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "local_enforcer_test",
     size = "small",
     srcs = ["test_local_enforcer.cpp"],
@@ -133,7 +133,7 @@ cc_test(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "local_enforcer_wallet_exhaust_test",
     size = "small",
     srcs = ["test_local_enforcer_wallet_exhaust.cpp"],
@@ -147,7 +147,7 @@ cc_test(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "cloud_reporter_test",
     size = "small",
     srcs = ["test_cloud_reporter.cpp"],
@@ -160,7 +160,7 @@ cc_test(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "session_manager_handler_test",
     size = "small",
     srcs = ["test_session_manager_handler.cpp"],
@@ -174,7 +174,7 @@ cc_test(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "sessiond_integ_test",
     size = "small",
     srcs = ["test_sessiond_integ.cpp"],
@@ -194,7 +194,7 @@ cc_test(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "session_state_test",
     size = "small",
     srcs = ["test_session_state.cpp"],
@@ -208,7 +208,7 @@ cc_test(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "store_client_test",
     size = "small",
     srcs = ["test_store_client.cpp"],
@@ -222,7 +222,7 @@ cc_test(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "stored_state_test",
     size = "small",
     srcs = ["test_stored_state.cpp"],
@@ -234,7 +234,7 @@ cc_test(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "proxy_responder_handler_test",
     size = "small",
     srcs = ["test_proxy_responder_handler.cpp"],
@@ -248,7 +248,7 @@ cc_test(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "metering_reporter_test",
     size = "small",
     srcs = ["test_metering_reporter.cpp"],
@@ -258,7 +258,7 @@ cc_test(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "upf_node_state_test",
     size = "small",
     srcs = ["test_upf_node_state.cpp"],
@@ -270,7 +270,7 @@ cc_test(
     ],
 )
 
-cc_test(
+magma_cc_test(
     name = "set_session_manager_handler_test",
     size = "small",
     srcs = ["test_set_session_manager_handler.cpp"],

@@ -9,11 +9,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//bazel:magma_cc.bzl", "magma_cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
+magma_cc_library(
     name = "yaml_utils",
     srcs = ["YAMLUtils.cpp"],
     hdrs = ["YAMLUtils.h"],
@@ -24,7 +24,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "mconfig_loader",
     srcs = ["MConfigLoader.cpp"],
     hdrs = ["includes/MConfigLoader.h"],
@@ -37,7 +37,7 @@ cc_library(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "service_config_loader",
     srcs = ["ServiceConfigLoader.cpp"],
     # TODO(@themarwhal): Remove includes/ project directories - GH8446

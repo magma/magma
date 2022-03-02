@@ -12,3 +12,25 @@
 load(":python_toolchain.bzl", "configure_python_toolchain")
 
 configure_python_toolchain()
+
+config_setting(
+    name = "enable_asan",
+    values = {
+        "define": "enable_asan=1",
+    },
+)
+
+config_setting(
+    name = "enable_lsan",
+    values = {
+        "define": "enable_lsan=1",
+    },
+)
+
+config_setting(
+    name = "set_test_flag",
+    values = {
+        "define": "set_test_flag=1",
+    },
+)
+

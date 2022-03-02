@@ -9,9 +9,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("//bazel:magma_cc.bzl", "magma_cc_library", "magma_cc_test")
 
-cc_test(
+magma_cc_test(
     name = "pdu_generator_test",
     size = "small",
     srcs = [
@@ -29,7 +29,7 @@ cc_test(
     ],
 )
 
-cc_library(
+magma_cc_library(
     name = "li_agentd_mocks",
     hdrs = ["LIAgentdMocks.h"],
 )
