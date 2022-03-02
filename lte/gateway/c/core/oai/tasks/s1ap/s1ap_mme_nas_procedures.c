@@ -76,6 +76,8 @@
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_common.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 
+#define EXT_UE_AMBR_UL 1000000000
+#define EXT_UE_AMBR_DL 1000000000
 extern bool s1ap_congestion_control_enabled;
 extern long s1ap_last_msg_latency;
 extern long s1ap_zmq_th;
@@ -848,8 +850,8 @@ void s1ap_handle_conn_est_cnf(
   S1ap_InitialContextSetupRequest_t* out;
   S1ap_InitialContextSetupRequestIEs_t* ie = NULL;
   S1ap_UEAggregate_MaximumBitrates_ExtIEs_t* ie_ambrext = NULL;
-  S1ap_S1AP_PDU_t pdu                      = {0};  // yes, alloc on stack
-  S1ap_ProtocolExtensionContainer_7327P134_t *extension = NULL ;
+  S1ap_S1AP_PDU_t pdu = {0};  // yes, alloc on stack
+  S1ap_ProtocolExtensionContainer_7327P134_t* extension = NULL;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   if (conn_est_cnf_pP == NULL) {
@@ -905,8 +907,8 @@ void s1ap_handle_conn_est_cnf(
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
- 
-  ie = (S1ap_InitialContextSetupRequestIEs_t*) calloc(
+
+  ie = (S1ap_InitialContextSetupRequestIEs_t*)calloc(
       1, sizeof(S1ap_InitialContextSetupRequestIEs_t));
   ie->id = S1ap_ProtocolIE_ID_id_uEaggregateMaximumBitrate;
   ie->criticality = S1ap_Criticality_reject;
@@ -919,44 +921,44 @@ void s1ap_handle_conn_est_cnf(
       &ie->value.choice.UEAggregateMaximumBitrate.uEaggregateMaximumBitRateUL,
       conn_est_cnf_pP->ue_ambr.br_ul);
 
-
-if (conn_est_cnf_pP->ue_ambr.br_dl > 10000000000
-      || conn_est_cnf_pP->ue_ambr.br_ul > 10000000000) {
+  if (conn_est_cnf_pP->ue_ambr.br_dl > EXT_UE_AMBR_DL ||
+      conn_est_cnf_pP->ue_ambr.br_ul > EXT_UE_AMBR_UL) {
     extension = calloc(1, sizeof(S1ap_ProtocolExtensionContainer_7327P134_t));
-    ie->value.choice.UEAggregateMaximumBitrate.iE_Extensions = (struct S1AP_ProtocolExtensionContainer *)extension;
-  }
- 
-  if (conn_est_cnf_pP->ue_ambr.br_dl > 10000000000) {
-  ie_ambrext = (S1ap_UEAggregate_MaximumBitrates_ExtIEs_t*) calloc(
-      1, sizeof(S1ap_UEAggregate_MaximumBitrates_ExtIEs_t));
-  ie_ambrext->id          = S1ap_ProtocolIE_ID_id_extended_uEaggregateMaximumBitRateDL;
-  ie_ambrext->criticality = S1ap_Criticality_ignore;
-  ie_ambrext->extensionValue.present = S1ap_UEAggregate_MaximumBitrates_ExtIEs__extensionValue_PR_ExtendedBitRate ;
-    asn_uint642INTEGER(
-      &ie->value.choice.UEAggregateMaximumBitrate.uEaggregateMaximumBitRateDL,
-      1000000000);
-    asn_uint642INTEGER(
-       &ie_ambrext->extensionValue.choice.ExtendedBitRate,
-       conn_est_cnf_pP->ue_ambr.br_dl);
-  ASN_SEQUENCE_ADD(&extension->list, ie_ambrext);
+    ie->value.choice.UEAggregateMaximumBitrate.iE_Extensions =
+        (struct S1AP_ProtocolExtensionContainer*)extension;
   }
 
- if (conn_est_cnf_pP->ue_ambr.br_ul > 10000000000) {
-  ie_ambrext = (S1ap_UEAggregate_MaximumBitrates_ExtIEs_t*) calloc(
-      1, sizeof(S1ap_UEAggregate_MaximumBitrates_ExtIEs_t));
-  ie_ambrext->id          = S1ap_ProtocolIE_ID_id_extended_uEaggregateMaximumBitRateUL;
-  ie_ambrext->criticality = S1ap_Criticality_ignore;
-  ie_ambrext->extensionValue.present = S1ap_UEAggregate_MaximumBitrates_ExtIEs__extensionValue_PR_ExtendedBitRate ;
-  asn_uint642INTEGER(
-      &ie->value.choice.UEAggregateMaximumBitrate.uEaggregateMaximumBitRateUL,
-      1000000000);
-  asn_uint642INTEGER(
-        &ie_ambrext->extensionValue.choice.ExtendedBitRate,
-        conn_est_cnf_pP->ue_ambr.br_ul);
+  if (conn_est_cnf_pP->ue_ambr.br_dl > EXT_UE_AMBR_DL) {
+    ie_ambrext = (S1ap_UEAggregate_MaximumBitrates_ExtIEs_t*)calloc(
+        1, sizeof(S1ap_UEAggregate_MaximumBitrates_ExtIEs_t));
+    ie_ambrext->id = S1ap_ProtocolIE_ID_id_extended_uEaggregateMaximumBitRateDL;
+    ie_ambrext->criticality = S1ap_Criticality_ignore;
+    ie_ambrext->extensionValue.present =
+        S1ap_UEAggregate_MaximumBitrates_ExtIEs__extensionValue_PR_ExtendedBitRate;
+    asn_uint642INTEGER(
+        &ie->value.choice.UEAggregateMaximumBitrate.uEaggregateMaximumBitRateDL,
+        EXT_UE_AMBR_DL);
+    asn_uint642INTEGER(&ie_ambrext->extensionValue.choice.ExtendedBitRate,
+                       conn_est_cnf_pP->ue_ambr.br_dl);
     ASN_SEQUENCE_ADD(&extension->list, ie_ambrext);
- }
-   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
- 
+  }
+
+  if (conn_est_cnf_pP->ue_ambr.br_ul > EXT_UE_AMBR_UL) {
+    ie_ambrext = (S1ap_UEAggregate_MaximumBitrates_ExtIEs_t*)calloc(
+        1, sizeof(S1ap_UEAggregate_MaximumBitrates_ExtIEs_t));
+    ie_ambrext->id = S1ap_ProtocolIE_ID_id_extended_uEaggregateMaximumBitRateUL;
+    ie_ambrext->criticality = S1ap_Criticality_ignore;
+    ie_ambrext->extensionValue.present =
+        S1ap_UEAggregate_MaximumBitrates_ExtIEs__extensionValue_PR_ExtendedBitRate;
+    asn_uint642INTEGER(
+        &ie->value.choice.UEAggregateMaximumBitrate.uEaggregateMaximumBitRateUL,
+        EXT_UE_AMBR_UL);
+    asn_uint642INTEGER(&ie_ambrext->extensionValue.choice.ExtendedBitRate,
+                       conn_est_cnf_pP->ue_ambr.br_ul);
+    ASN_SEQUENCE_ADD(&extension->list, ie_ambrext);
+  }
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
   /* mandatory */
   ie = (S1ap_InitialContextSetupRequestIEs_t*)calloc(
       1, sizeof(S1ap_InitialContextSetupRequestIEs_t));

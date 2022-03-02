@@ -127,14 +127,13 @@ status_code_e send_conn_establishment_cnf(mme_ue_s1ap_id_t ue_id,
   establishment_cnf_p->transport_layer_address[0] = bfromcstr("test");
   establishment_cnf_p->gtp_teid[0] = 1;
 
-if(extueambr){
-  establishment_cnf_p->ue_ambr.br_ul = 10000000001;
-  establishment_cnf_p->ue_ambr.br_dl = 10000000001;
+  if (extueambr) {
+    establishment_cnf_p->ue_ambr.br_ul = 10000000001;
+    establishment_cnf_p->ue_ambr.br_dl = 10000000001;
+  } else {
+    establishment_cnf_p->ue_ambr.br_ul = 1000;
+    establishment_cnf_p->ue_ambr.br_dl = 1000;
   }
-else {
-  establishment_cnf_p->ue_ambr.br_ul = 1000;
-  establishment_cnf_p->ue_ambr.br_dl = 1000;
-}
   apn_ambr_bitrate_unit_t br_unit = BPS;
   establishment_cnf_p->ue_ambr.br_unit = br_unit;
   establishment_cnf_p->ue_security_capabilities_encryption_algorithms = 1;

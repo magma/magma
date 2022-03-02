@@ -579,14 +579,13 @@ TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnf) {
 
   // Send UE connection establishment cnf mimicing MME_APP
 
-  ASSERT_EQ(send_conn_establishment_cnf(7,false, true, true), RETURNok);
-  
+  ASSERT_EQ(send_conn_establishment_cnf(7, false, true, true), RETURNok);
+
   // Freeing pdu and payload data
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
 }
 
 TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnfExtUEAMBR) {
- 
   ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
 
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(2);
@@ -618,13 +617,13 @@ TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnfExtUEAMBR) {
                                     state, assoc_id, stream_id),
             RETURNok);
 
-handle_mme_ue_id_notification(state, assoc_id);
+  handle_mme_ue_id_notification(state, assoc_id);
 
   ASSERT_EQ(state->mmeid2associd.num_elements, 1);
 
   // Send UE connection establishment cnf mimicing MME_APP
 
-  ASSERT_EQ(send_conn_establishment_cnf(7,true, true, true), RETURNok);
+  ASSERT_EQ(send_conn_establishment_cnf(7, true, true, true), RETURNok);
 
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
 }
