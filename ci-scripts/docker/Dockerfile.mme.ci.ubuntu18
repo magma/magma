@@ -106,7 +106,6 @@ COPY --from=magma-mme-builder \
     /usr/local/lib/libfdcore.so.6 \
     /usr/local/lib/libgrpc++.so \
     /usr/local/lib/libprotobuf.so.17 \
-    /usr/local/lib/libfolly.so \
     /usr/local/lib/libgrpc.so \
     /usr/local/lib/libgpr.so \
     /usr/local/lib/libgflags.so.2.2 \
