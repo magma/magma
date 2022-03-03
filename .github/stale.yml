@@ -1,17 +1,18 @@
+---
 # Number of days of inactivity before an issue becomes stale
 daysUntilStale: 45
 # Number of days of inactivity before a stale issue is closed
 daysUntilClose: 7
 # Issues with these labels will never be considered stale
 exemptLabels:
-  - status: status: willfix
+  - status: willfix
 # Label to use when marking an issue as stale
-staleLabel: status: wontfix
+staleLabel: wontfix
 # Comment to post when marking an issue as stale. Set to `false` to disable
 markComment: >
-  This pull request has been automatically marked as stale because it has not 
-  had any recent activity by the author or maintainer in the past 45 days. 
-  It will be closed if no further activity occurs in the next 7 days. 
+  This pull request has been automatically marked as stale because it has not
+  had any recent activity by the author or maintainer in the past 45 days.
+  It will be closed if no further activity occurs in the next 7 days.
   Thank you for your contributions.
 # Comment to post when closing a stale issue. Set to `false` to disable
 closeComment: >
