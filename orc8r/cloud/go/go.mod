@@ -22,6 +22,9 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.3.3
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
 	github.com/bmatcuk/doublestar v1.3.4
+	github.com/docker/distribution v2.8.0+incompatible // indirect
+	github.com/docker/docker v1.13.1
+	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe
 	github.com/facebookincubator/prometheus-configmanager v0.0.0-20200717220759-a8282767b087
 	github.com/facebookincubator/prometheus-edge-hub v1.1.0
