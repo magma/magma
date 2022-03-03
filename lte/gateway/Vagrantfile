@@ -37,7 +37,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # using a specific IP.
     magma.vm.network "private_network", ip: "192.168.60.142", nic_type: "82540EM"
     # iperf3 trfserver routable IP.
-    magma.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM"
+    magma.vm.network "private_network", ip: "fdee::1", nic_type: "82540EM"
 
     magma.vm.provider "virtualbox" do |vb|
       vb.name = "magma-dev"
@@ -67,7 +67,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # using a specific IP.
     magma_trfserver.vm.network "private_network", ip: "192.168.60.144", nic_type: "82540EM"
     # iperf3 server IP.
-    magma_trfserver.vm.network "private_network", ip: "192.168.129.42", nic_type: "82540EM"
+    magma_trfserver.vm.network "private_network", ip: "fdee::2", nic_type: "82540EM"
 
     magma_trfserver.vm.provider "virtualbox" do |vb|
       vb.name = "magma-trfserver"
@@ -118,7 +118,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # using a specific IP.
     magma_test.vm.network "private_network", ip: "192.168.60.141", nic_type: "82540EM"
     # UE trfgen network
-    magma_test.vm.network "private_network", ip: "192.168.128.11", nic_type: "82540EM"
+    magma_test.vm.network "private_network", ip: "fdee::3", nic_type: "82540EM"
     #config.ssh.private_key_path = "~/.ssh/vagrant.key"
     config.ssh.forward_agent = true
 
