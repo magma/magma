@@ -34,10 +34,6 @@ RUN echo "Install 3rd party dependencies" && \
     apt-get -y install cmake && \
     echo "Install FMT lib requirements" && \
     apt-get -y install libunwind8-dev libelf-dev libdwarf-dev bzip2 && \
-    echo "Install Folly requirements" && \
-    apt-get -y install libboost-all-dev libevent-dev libdouble-conversion-dev \
-    libgoogle-glog-dev libgflags-dev libiberty-dev liblz4-dev liblzma-dev \
-    libsnappy-dev binutils-dev libjemalloc-dev libssl-dev pkg-config libunwind-dev && \
     echo "Install FreeDiameter requirements" && \
     apt-get -y install libsctp1 libsctp-dev libgcrypt-dev \
     bison flex libidn11-dev && \
@@ -173,24 +169,6 @@ RUN git clone https://gitlab.eurecom.fr/oai/asn1c.git && \
     make -j`nproc` && \
     make install && \
     ldconfig
-
-##### Facebook Folly C++ lib
-WORKDIR /
-RUN echo "Install fmtlib required by Folly" && \
-    git clone https://github.com/fmtlib/fmt.git && cd fmt && \
-    mkdir _build && cd _build && \
-    cmake .. && \
-    make -j`nproc` && \
-    make install && \
-    cd / && \
-    echo "Install Folly" && \
-    git clone https://github.com/facebook/folly && cd folly && \
-    git checkout 7c996f43bc368cd9b7e91f5bff0594a72db4fd3a && \
-    mkdir _build && \
-    cd _build && \
-    cmake -DBUILD_SHARED_LIBS=ON -Wno-dev .. && \
-    make -j`nproc` && \
-    make install
 
 
 # Add Converged MME sources to the container
@@ -333,7 +311,6 @@ COPY --from=magma-mme-builder \
     /usr/local/lib/libfdcore.so.6 \
     /usr/local/lib/libgrpc++.so \
     /usr/local/lib/libprotobuf.so.17 \
-    /usr/local/lib/libfolly.so \
     /usr/local/lib/libgrpc.so \
     /usr/local/lib/libgpr.so \
     /usr/local/lib/libgflags.so.2.2 \

@@ -47,6 +47,9 @@ message SharedSentryConfig {
   float sample_rate = 4;
   // message patterns that are excluded from Sentry (regex substring match)
   repeated string exclusion_patterns = 5;
+  // number_of_lines_in_log defines the number of lines from the 
+  // journal log that is uploaded with every crash report
+  uint32 number_of_lines_in_log = 6;
 }
 
 // ===========================================================================

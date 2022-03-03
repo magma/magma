@@ -13,7 +13,6 @@ on:  # yamllint disable-line rule:truthy
       - 'docs/**'
       - 'example/**'
       - 'experimental/**'
-      - 'fbinternal/**'
       - 'feg/**'
       - 'lte/**'
       - 'nms/**'
