@@ -92,6 +92,9 @@ jobs:
           run: |
             cd /workspaces/magma
             bazel build //...
+            bazel test //...
+            bazel test //... --config=asan
+            bazel test //... --config=lsan
       - name: Upload .bazel-cache and .bazel-cache-repo to S3
         run: |
           tar -zcvf ${{ env.BAZEL_CACHE_DEVCONTAINER_TAR }} ${{ env.BAZEL_CACHE }}/
