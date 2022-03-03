@@ -61,8 +61,8 @@ void mme_app_resume_timer(struct ue_mm_context_s* const ue_mm_context_pP,
   if (timer->msec <= elapsed_time_in_ms) {
     // In this case, the timer has no id since it is just getting resumed, pass
     // the UE context to expiry handler
-    timer_expiry_handler(mme_app_task_zmq_ctx.event_loop,
-                         MME_APP_TIMER_INACTIVE_ID, (void*)ue_mm_context_pP);
+    timer_expiry_handler(mme_app_task_zmq_ctx.event_loop, timer->id,
+                         reinterpret_cast<void*>(ue_mm_context_pP));
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   uint32_t remaining_time_in_msecs = timer->msec - elapsed_time_in_ms;
