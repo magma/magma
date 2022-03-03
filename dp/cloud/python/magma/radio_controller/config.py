@@ -10,8 +10,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+import importlib
+import logging
 import os
+from distutils.util import strtobool
 
 from magma.db_service import config as conf
 
@@ -31,6 +33,18 @@ class Config(object):
     SQLALCHEMY_DB_ENCODING = conf.Config().SQLALCHEMY_DB_ENCODING
     SQLALCHEMY_ECHO = conf.Config().SQLALCHEMY_ECHO
     SQLALCHEMY_FUTURE = conf.Config().SQLALCHEMY_FUTURE
+
+    # Elasticsearch
+    ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX', 'dp')
+
+    # Fluentd
+    FLUENTD_HOST = os.environ.get('FLUENTD_HOST', 'fluentd-service')
+    FLUENTD_PORT = int(os.environ.get('FLUENTD_PORT', 24224))
+    FLUENTD_TLS_ENABLED = strtobool(os.environ.get('FLUENTD_TLS_ENABLED', 'False'))
+    FLUENTD_CERT_PATH = os.environ.get('FLUENTD_CERT_PATH', '')
+    FLUENTD_KEY_PATH = os.environ.get('FLUENTD_KEY_PATH', '')
+    FLUENTD_PROTOCOL = 'https' if FLUENTD_TLS_ENABLED else 'http'
+    FLUENTD_URL = f'{FLUENTD_PROTOCOL}://{FLUENTD_HOST}:{FLUENTD_PORT}/{ELASTICSEARCH_INDEX}'
 
 
 class DevelopmentConfig(Config):
@@ -55,3 +69,19 @@ class ProductionConfig(Config):
     """
 
     pass  # noqa: WPS604
+
+
+def get_config() -> Config:
+    """
+    Get Configuration object for radio controller
+    """
+    app_config = os.environ.get('APP_CONFIG', 'ProductionConfig')
+    config_module = importlib.import_module(
+        '.'.join(
+            f"magma.radio_controller.config.{app_config}".split('.')[:-1],
+        ),
+    )
+    config_class = getattr(config_module, app_config.split('.')[-1])
+    logging.info(str(config_class))
+
+    return config_class()

@@ -10,11 +10,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+from collections import defaultdict
 from time import sleep
 
 import grpc
 import pytest
+import requests
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
 from dp.protos.enodebd_dp_pb2_grpc import DPServiceStub
 from magma.db_service.db_initialize import DBInitializer
@@ -39,6 +40,7 @@ class ActiveModeControllerTestCase(DBTestCase):
         )
         self.dp_client = DPServiceStub(grpc_channel)
         DBInitializer(SessionManager(self.engine)).initialize()
+        self._delete_dp_elasticsearch_indices()
 
     # retrying is needed because of a possible deadlock
     # with cc locking request table
@@ -46,8 +48,18 @@ class ActiveModeControllerTestCase(DBTestCase):
     def drop_all(self):
         super().drop_all()
 
+    def tearDown(self):
+        super().tearDown()
+        self._delete_dp_elasticsearch_indices()
+
     def test_provision_cbsd_in_sas_requested_by_dp_client(self):
         self.given_cbsd_provisioned()
+
+    def test_logs_are_written_to_elasticsearch(self):
+        self.given_cbsd_provisioned()
+        # Giving ElasticSearch time to index logs
+        sleep(3)
+        self.then_elasticsearch_contains_logs()
 
     def test_grant_relinquished_after_inactivity(self):
         self.given_cbsd_provisioned()
@@ -67,6 +79,39 @@ class ActiveModeControllerTestCase(DBTestCase):
         )
 
         self.then_cbsd_is_eventually_provisioned_in_sas(self.dp_client)
+
+    def then_elasticsearch_contains_logs(self):
+        actual = requests.get(f"{config.ELASTICSEARCH_URL}/dp*/_search?size=100").json()
+        log_field_names = [
+            "log_from",
+            "log_to",
+            "log_name",
+            "log_message",
+            "cbsd_serial_number",
+            "network_id",
+            "fcc_id",
+        ]
+        actual_log_types = defaultdict(int)
+        logs = actual["hits"]["hits"]
+        for log in logs:
+            actual_log_types[log["_source"]["log_name"]] += 1
+            for fn in log_field_names:
+                self.assertIn(fn, log["_source"].keys())
+
+        self.assertEqual(1, actual_log_types["CBSDRegisterRequest"])
+        self.assertEqual(1, actual_log_types["CBSDRegisterResponse"])
+        self.assertEqual(1, actual_log_types["registrationRequest"])
+        self.assertEqual(1, actual_log_types["registrationResponse"])
+        self.assertEqual(1, actual_log_types["spectrumInquiryRequest"])
+        self.assertEqual(1, actual_log_types["spectrumInquiryResponse"])
+        self.assertEqual(1, actual_log_types["spectrumInquiryResponse"])
+        self.assertEqual(1, actual_log_types["grantRequest"])
+        self.assertEqual(1, actual_log_types["grantResponse"])
+        self.assertEqual(1, actual_log_types["heartbeatRequest"])
+        self.assertEqual(1, actual_log_types["heartbeatResponse"])
+        # The number of GetCBSDStateRequest may differ between tests, so only asserting they have been logged
+        self.assertGreater(actual_log_types["GetCBSDStateRequest"], 0)
+        self.assertGreater(actual_log_types["GetCBSDStateResponse"], 0)
 
     # TODO change this when some API for domain proxy is introduced
     def given_cbsd_with_transmission_parameters(self):
@@ -117,3 +162,6 @@ class ActiveModeControllerTestCase(DBTestCase):
     @staticmethod
     def _build_empty_state_result() -> CBSDStateResult:
         return CBSDStateResult(radio_enabled=False)
+
+    def _delete_dp_elasticsearch_indices(self):
+        requests.delete(f"{config.ELASTICSEARCH_URL}/{config.ELASTICSEARCH_INDEX}*")

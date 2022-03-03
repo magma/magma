@@ -38,3 +38,13 @@ class TestConfig(object):
     DP_SSL_KEY_PATH = os.environ.get(
         'DP_SSL_KEY_PATH', '/backend/test_runner/certs/admin_operator.key.pem',
     )
+
+    # Test Elasticsearch
+    ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST', 'elasticsearch-service')
+    ELASTICSEARCH_PORT = int(os.environ.get('ELASTICSEARCH_PORT', 9200))
+    ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX', 'dp')
+    ELASTICSEARCH_URL = f"http://{ELASTICSEARCH_HOST}:{ELASTICSEARCH_PORT}"
+
+    # Test Fluentd
+    FLUENTD_HOST = os.environ.get('FLUENTD_HOST', 'fluentd-service')
+    FLUENTD_PORT = int(os.environ.get('FLUENTD_PORT', 24224))

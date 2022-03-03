@@ -10,11 +10,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
 import logging
 from datetime import datetime
 from typing import Callable, Optional
 
+import requests
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
 from dp.protos.enodebd_dp_pb2_grpc import DPServiceServicer
 from magma.db_service.models import (
@@ -23,7 +23,6 @@ from magma.db_service.models import (
     DBCbsdState,
     DBGrant,
     DBGrantState,
-    DBLog,
     DBRequest,
     DBRequestState,
     DBRequestType,
@@ -35,9 +34,13 @@ from magma.mappings.types import (
     RequestStates,
     RequestTypes,
 )
+from magma.radio_controller.config import get_config
 from sqlalchemy.sql.functions import now
 
 logger = logging.getLogger(__name__)
+
+
+config = get_config()
 
 
 class DPService(DPServiceServicer):
@@ -61,11 +64,15 @@ class DPService(DPServiceServicer):
             CBSDStateResult: State result with RF data
         """
         logger.info(f"Getting CBSD state for {request.serial_number=}")
+        request_type = result_type = 'GetCBSDState'  # noqa: WPS429
         with self.session_manager.session_scope() as session:
             cbsd = session.query(DBCbsd).filter(
                 DBCbsd.cbsd_serial_number == request.serial_number,
             ).first()
-            self._log_request(session, 'GetCBSDState', request, cbsd)
+            try:
+                self._log_request(request_type, request, cbsd)
+            except (requests.HTTPError, requests.RequestException) as err:
+                logging.error(f"Failed to log {request_type} request. {err}")
             if not cbsd:
                 logger.warning(
                     f"State request from unknown CBSD: {request.serial_number}",
@@ -74,10 +81,10 @@ class DPService(DPServiceServicer):
             else:
                 cbsd.last_seen = self.now()
                 result = self._build_result(cbsd, session)
-            self._log_result(
-                session, 'GetCBSDState', result,
-                cbsd, request.serial_number,
-            )
+            try:
+                self._log_result(result_type, result, cbsd, request.serial_number)
+            except (requests.HTTPError, requests.RequestException) as err:
+                logging.error(f"Failed to log {result_type} result. {err}")
             session.commit()
         logger.info(
             f"Returning CBSD state {result=} for {request.serial_number=}",
@@ -97,15 +104,19 @@ class DPService(DPServiceServicer):
         """
 
         logger.info(f"Registering CBSD {request.serial_number=}")
+        request_type = result_type = 'CBSDRegister'  # noqa: WPS429
         with self.session_manager.session_scope() as session:
             cbsd = self._get_or_create_cbsd(session, request)
-            self._log_request(session, 'CBSDRegister', request, cbsd)
+            try:
+                self._log_request(request_type, request, cbsd)
+            except (requests.HTTPError, requests.RequestException) as err:
+                logging.error(f"Failed to log {request_type} request. {err}")
             self._create_or_update_active_mode_config(session, cbsd)
             result = self._build_result(cbsd, session)
-            self._log_result(
-                session, 'CBSDRegister', result,
-                cbsd, request.serial_number,
-            )
+            try:
+                self._log_result(result_type, result, cbsd, request.serial_number)
+            except (requests.HTTPError, requests.RequestException) as err:
+                logging.error(f"Failed to log {result_type} result. {err}")
             session.commit()
         return result
 
@@ -122,11 +133,15 @@ class DPService(DPServiceServicer):
         """
 
         logger.info(f"Deregistering CBSD {request.serial_number=}")
+        request_type = result_type = 'CBSDDeregister'  # noqa: WPS429
         with self.session_manager.session_scope() as session:
             cbsd = session.query(DBCbsd).filter(
                 DBCbsd.cbsd_serial_number == request.serial_number,
             ).first()
-            self._log_request(session, 'CBSDDeregister', request, cbsd)
+            try:
+                self._log_request(request_type, request, cbsd)
+            except (requests.HTTPError, requests.RequestException) as err:
+                logging.error(f"Failed to log {request_type} request. {err}")
             if not cbsd:
                 logger.info(
                     f"CBSD with serial number {request.serial_number} does not exist.",
@@ -144,10 +159,10 @@ class DPService(DPServiceServicer):
                     f"{cbsd.active_mode_config=} set for {cbsd.cbsd_serial_number=}.",
                 )
             result = self._build_result()
-            self._log_result(
-                session, 'CBSDDeregister',
-                result, cbsd, request.serial_number,
-            )
+            try:
+                self._log_result(result_type, result, cbsd, request.serial_number)
+            except (requests.HTTPError, requests.RequestException) as err:
+                logging.error(f"Failed to log {result_type} result. {err}")
             session.commit()
         return result
 
@@ -164,11 +179,15 @@ class DPService(DPServiceServicer):
         """
 
         logger.info(f"Relinquishing grants for CBSD {request.serial_number=}")
+        request_type = result_type = 'CBSDRelinquish'  # noqa: WPS429
         with self.session_manager.session_scope() as session:
             cbsd = session.query(DBCbsd).filter(
                 DBCbsd.cbsd_serial_number == request.serial_number,
             ).first()
-            self._log_request(session, 'CBSDRelinquish', request, cbsd)
+            try:
+                self._log_request(request_type, request, cbsd)
+            except (requests.HTTPError, requests.RequestException) as err:
+                logging.error(f"Failed to log {request_type} request. {err}")
             if not cbsd:
                 logger.info(
                     f"CBSD with serial number {request.serial_number} does not exist.",
@@ -180,10 +199,10 @@ class DPService(DPServiceServicer):
             else:
                 self._add_relinquish_requests(session, cbsd)
             result = self._build_result()
-            self._log_result(
-                session, 'CBSDRelinquish',
-                result, cbsd, request.serial_number,
-            )
+            try:
+                self._log_result(result_type, result, cbsd, request.serial_number)
+            except (requests.HTTPError, requests.RequestException) as err:
+                logging.error(f"Failed to log {result_type} result. {err}")
             session.commit()
 
         return result
@@ -280,37 +299,47 @@ class DPService(DPServiceServicer):
             ),
         )
 
-    def _log_request(self, session: Session, method_name: str, request: CBSDRequest, cbsd: DBCbsd):
+    def _log_request(self, method_name: str, request: CBSDRequest, cbsd: DBCbsd):
         cbsd_serial_number = request.serial_number
         network_id = ''
         fcc_id = ''
         if cbsd:
             network_id = cbsd.network_id or ''
             fcc_id = cbsd.fcc_id or ''
-        log = DBLog(
-            log_from='CBSD',
-            log_to='DP',
-            log_name=method_name + 'Request',
-            log_message=f'{request}',
-            cbsd_serial_number=f'{cbsd_serial_number}',
-            network_id=f'{network_id}',
-            fcc_id=f'{fcc_id}',
+        log = {
+            'log_from': 'CBSD',
+            'log_to': 'DP',
+            'log_name': method_name + 'Request',
+            'log_message': f'{request}',
+            'cbsd_serial_number': f'{cbsd_serial_number}',
+            'network_id': f'{network_id}',
+            'fcc_id': f'{fcc_id}',
+        }
+        requests.post(
+            url=config.FLUENTD_URL,
+            json=log,
+            verify=config.FLUENTD_TLS_ENABLED,
+            cert=(config.FLUENTD_CERT_PATH, config.FLUENTD_CERT_PATH),
         )
-        session.add(log)
 
-    def _log_result(self, session: Session, method_name: str, result: CBSDStateResult, cbsd: DBCbsd, serial_number: str):
+    def _log_result(self, method_name: str, result: CBSDStateResult, cbsd: DBCbsd, serial_number: str):
         network_id = ''
         fcc_id = ''
         if cbsd:
             network_id = cbsd.network_id or ''
             fcc_id = cbsd.fcc_id or ''
-        log = DBLog(
-            log_from='DP',
-            log_to='CBSD',
-            log_name=method_name + 'Response',
-            log_message=f'{result}',
-            cbsd_serial_number=f'{serial_number}',
-            network_id=f'{network_id}',
-            fcc_id=f'{fcc_id}',
+        log = {
+            'log_from': 'DP',
+            'log_to': 'CBSD',
+            'log_name': method_name + 'Response',
+            'log_message': f'{result}',
+            'cbsd_serial_number': f'{serial_number}',
+            'network_id': f'{network_id}',
+            'fcc_id': f'{fcc_id}',
+        }
+        requests.post(
+            url=config.FLUENTD_URL,
+            json=log,
+            verify=config.FLUENTD_TLS_ENABLED,
+            cert=(config.FLUENTD_CERT_PATH, config.FLUENTD_CERT_PATH),
         )
-        session.add(log)

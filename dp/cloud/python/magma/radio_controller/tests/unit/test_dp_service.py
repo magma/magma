@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Any, List
+from unittest import mock
 
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
 from magma.db_service.db_initialize import DBInitializer
@@ -29,6 +30,8 @@ SOME_SERIAL_NUMBER = "some_serial_number"
 SOME_TIMESTAMP = 1234
 
 
+@mock.patch("magma.radio_controller.tests.unit.test_dp_service.DPService._log_request")
+@mock.patch("magma.radio_controller.tests.unit.test_dp_service.DPService._log_result")
 class DPTestCase(LocalDBTestCase):
     def setUp(self):
         super().setUp()
@@ -42,13 +45,15 @@ class DPTestCase(LocalDBTestCase):
             x.name: x.id for x in self.session.query(DBGrantState).all()
         }
 
-    def test_cbsd_registered_and_enabled_active_mode(self):
+    def test_cbsd_registered_and_enabled_active_mode(self, mock_log_result, mock_log_request):
+        mock_log_request.return_value = mock_log_result.return_value = None
         request = self._build_request(**test_cbsd_dict)
         self.dp_service.CBSDRegister(request, None)
 
         self._then_exactly_one_cbsd_is_active(request)
 
-    def test_cbsd_register_when_already_registered(self):
+    def test_cbsd_register_when_already_registered(self, mock_log_result, mock_log_request):
+        mock_log_request.return_value = mock_log_result.return_value = None
         cbsd = self._build_cbsd(SOME_SERIAL_NUMBER)
         self.session.add(cbsd)
         self.session.commit()
@@ -58,7 +63,10 @@ class DPTestCase(LocalDBTestCase):
 
         self._then_exactly_one_cbsd_is_active(request)
 
-    def test_cbsd_register_updates_active_mode_config_if_desired_state_is_unregistered(self):
+    def test_cbsd_register_updates_active_mode_config_if_desired_state_is_unregistered(
+            self, mock_log_result, mock_log_request,
+    ):
+        mock_log_request.return_value = mock_log_result.return_value = None
         cbsd = self._build_cbsd(SOME_SERIAL_NUMBER)
         active_mode_config = DBActiveModeConfig(
             cbsd=cbsd,
@@ -72,13 +80,15 @@ class DPTestCase(LocalDBTestCase):
 
         self.assertEqual(1, self._get_active_cbsd_count(request))
 
-    def test_get_state_for_unknown_cbsd(self):
+    def test_get_state_for_unknown_cbsd(self, mock_log_result, mock_log_request):
+        mock_log_request.return_value = mock_log_result.return_value = None
         request = self._build_request(**test_cbsd_dict)
         result = self.dp_service.GetCBSDState(request, None)
 
         self.assertEqual(self._build_empty_result(), result)
 
-    def test_get_state_with_valid_authorized_grant_for_deleted_cbsd(self):
+    def test_get_state_with_valid_authorized_grant_for_deleted_cbsd(self, mock_log_result, mock_log_request):
+        mock_log_request.return_value = mock_log_result.return_value = None
         cbsd = self._given_cbsd()
         grant = self._build_grant(
             cbsd, self.grant_states[GrantStates.AUTHORIZED.value],
@@ -94,7 +104,8 @@ class DPTestCase(LocalDBTestCase):
 
         self.assertEqual(self._build_empty_result(), result)
 
-    def test_get_state_with_valid_authorized_grant(self):
+    def test_get_state_with_valid_authorized_grant(self, mock_log_result, mock_log_request):
+        mock_log_request.return_value = mock_log_result.return_value = None
         cbsd = self._given_cbsd()
         grant = self._build_grant(
             cbsd, self.grant_states[GrantStates.AUTHORIZED.value],
@@ -109,7 +120,8 @@ class DPTestCase(LocalDBTestCase):
 
         self.assertEqual(self._build_expected_result(grant), result)
 
-    def test_get_state_with_transmit_expired_authorized_grant(self):
+    def test_get_state_with_transmit_expired_authorized_grant(self, mock_log_result, mock_log_request):
+        mock_log_request.return_value = mock_log_result.return_value = None
         cbsd = self._given_cbsd()
         grant = self._build_grant(
             cbsd, self.grant_states[GrantStates.AUTHORIZED.value],
@@ -124,7 +136,8 @@ class DPTestCase(LocalDBTestCase):
 
         self.assertEqual(self._build_empty_result(), result)
 
-    def test_get_state_with_grant_expired_authorized_grant(self):
+    def test_get_state_with_grant_expired_authorized_grant(self, mock_log_result, mock_log_request):
+        mock_log_request.return_value = mock_log_result.return_value = None
         cbsd = self._given_cbsd()
         grant = self._build_grant(
             cbsd, self.grant_states[GrantStates.AUTHORIZED.value],
@@ -139,7 +152,8 @@ class DPTestCase(LocalDBTestCase):
 
         self.assertEqual(self._build_empty_result(), result)
 
-    def test_get_state_with_unauthorized_grant(self):
+    def test_get_state_with_unauthorized_grant(self, mock_log_result, mock_log_request):
+        mock_log_request.return_value = mock_log_result.return_value = None
         cbsd = self._given_cbsd()
         grant = self._build_grant(
             cbsd, self.grant_states[GrantStates.IDLE.value],
@@ -152,7 +166,9 @@ class DPTestCase(LocalDBTestCase):
 
         self.assertEqual(self._build_empty_result(), result)
 
-    def test_update_last_seen_on_request(self):
+    def test_update_last_seen_on_request(self, mock_log_result, mock_log_request):
+        mock_log_request.return_value = mock_log_result.return_value = None
+        mock_log_request.return_value = mock_log_result.return_value = None
         request = self._build_request(**test_cbsd_dict)
         self.dp_service.CBSDRegister(request, None)
         self.dp_service.GetCBSDState(request, None)
