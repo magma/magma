@@ -584,13 +584,13 @@ class TrafficTestDriver(object):
             if instance.is_uplink:
                 iperf = iperf3.Server()
                 #iperf.bind_address = '192.168.129.42'
-                iperf.bind_address = '2001::9'
+                iperf.bind_address = 'fdee::2'
                 iperf.port = TrafficTestDriver._get_port()
             else:
                 iperf = iperf3.Client()
                 iperf.bandwidth = 10 ** 7  # 10 Mbps
                 #iperf.bind_address = '192.168.129.42'
-                iperf.bind_address = '2001::9'
+                iperf.bind_address = 'fdee::2'
                 iperf.duration = instance.duration
                 iperf.port = instance.port
                 iperf.protocol = 'udp' if instance.is_udp else 'tcp'
