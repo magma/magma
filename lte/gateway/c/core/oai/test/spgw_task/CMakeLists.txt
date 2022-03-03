@@ -13,6 +13,9 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Needed to determine if build with CMAKE or Bazel
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -DCMAKE_BUILD")
+
 set(SPGW_LIB_DIR $ENV{C_BUILD}/oai/tasks/sgw)
 
 include_directories("/usr/src/googletest/googlemock/include/")

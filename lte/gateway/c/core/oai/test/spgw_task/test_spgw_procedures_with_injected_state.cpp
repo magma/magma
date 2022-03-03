@@ -124,10 +124,14 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
     spgw_app_init(&spgw_config, mme_config.use_stateless);
 
     // add injection of state loaded in SPGW state manager
+#ifdef CMAKE_BUILD  // if CMAKE is used the absolute path is needed
     std::string magma_root = std::getenv("MAGMA_ROOT");
-    name_of_ue_samples = load_file_into_vector_of_line_content(
-        magma_root + "/" + DEFAULT_SPGW_CONTEXT_DATA_PATH,
-        magma_root + "/" + DEFAULT_SPGW_CONTEXT_DATA_PATH + "data_list.txt");
+    std::string path = magma_root + "/" + DEFAULT_SPGW_CONTEXT_DATA_PATH;
+#else  // if bazel is used the relative path is used
+    std::string path = DEFAULT_SPGW_CONTEXT_DATA_PATH;
+#endif
+    name_of_ue_samples =
+        load_file_into_vector_of_line_content(path, path + "data_list.txt");
     mock_read_spgw_ue_state_db(name_of_ue_samples);
 
     std::this_thread::sleep_for(
