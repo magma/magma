@@ -1130,7 +1130,6 @@ cc_library(
         "@libfluid_msg//:fluid_msg",
         "@liblfds//:lfds710",
         "@system_libraries//:czmq",
-        "@system_libraries//:folly",
         "@system_libraries//:libconfig",
         "@system_libraries//:libfd",
         "@system_libraries//:libgnutls",
