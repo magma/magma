@@ -38,6 +38,9 @@ jobs:
               - '.github/workflows/agw-workflow.yml'
               - 'orc8r/**'
               - 'lte/**'
+              - '.bazelrc'
+              - 'WORKSPACE.bazel'
+              - 'bazel/**'
       - name: Save should_not_skip output
         if: always()
         run: |
