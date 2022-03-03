@@ -80,11 +80,14 @@ func (c *cbsdManager) ListCbsds(_ context.Context, request *protos.ListCbsdReque
 	if err != nil {
 		return nil, makeErr(err, "list cbsds")
 	}
-	details := make([]*protos.CbsdDetails, len(result))
-	for i, data := range result {
-		details[i] = cbsdFromDatabase(data, c.cbsdInactivityInterval)
+	resp := &protos.ListCbsdResponse{
+		Details:    make([]*protos.CbsdDetails, len(result.Cbsds)),
+		TotalCount: result.Count,
 	}
-	return &protos.ListCbsdResponse{Details: details}, nil
+	for i, data := range result.Cbsds {
+		resp.Details[i] = cbsdFromDatabase(data, c.cbsdInactivityInterval)
+	}
+	return resp, nil
 }
 
 func dbPagination(pagination *protos.Pagination) *storage.Pagination {

@@ -1048,6 +1048,11 @@ export type package_type = {
     version ? : string,
 };
 export type page_token = string;
+export type paginated_cbsds = {
+    cbsds: Array < cbsd >
+        ,
+    total_count: number,
+};
 export type paginated_enodebs = {
     enodebs: {
         [string]: enodeb,
@@ -2771,8 +2776,7 @@ export default class MagmaAPIBindings {
                 'offset' ? : number,
                 'limit' ? : number,
             }
-        ): Promise < Array < cbsd >
-        >
+        ): Promise < paginated_cbsds >
         {
             let path = '/dp/{network_id}/cbsds';
             let body;
