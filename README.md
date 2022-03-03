@@ -27,7 +27,7 @@ Magma is an open-source software platform that gives network operators an open, 
 
 The figure below shows the high-level Magma architecture. Magma is 3GPP generation (2G, 3G, 4G or upcoming 5G networks) and access network agnostic (cellular or WiFi). It can flexibly support a radio access network with minimal development and deployment effort.
 
-Magma has three major components
+Magma has three major components:
 
 - **Access Gateway.** The Access Gateway (AGW) provides network services and policy enforcement. In an LTE network, the AGW implements an evolved packet core (EPC), and a combination of an AAA and a PGW. It works with existing, unmodified commercial radio hardware.
 
