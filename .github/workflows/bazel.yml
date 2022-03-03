@@ -18,6 +18,9 @@ env:
   DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:latest"
   BAZEL_CACHE: bazel-cache
   BAZEL_CACHE_REPO: bazel-cache-repo
+  S3_BUCKET: "magma-cache"
+  CACHE_REPO_TAR: "bazel-cache-repo-devcontainer.tar.gz"
+  CACHE_TAR: "bazel-cache-devcontainer.tar.gz"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -57,68 +60,73 @@ jobs:
     name: Bazel Build and Test Job
     runs-on: ubuntu-latest
     steps:
-        - name: Check Out Repo
-          # This is necessary for overlays into the Docker container below.
-          uses: actions/checkout@v2
-        - name: Bazel Cache
-          uses: actions/cache@v2
-          with:
-            path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
-            key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
-            restore-keys: |
-              ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+        # - name: Check Out Repo
+        #   # This is necessary for overlays into the Docker container below.
+        #   uses: actions/checkout@v2
+        # - name: Bazel Cache
+        #   uses: actions/cache@v2
+        #   with:
+        #     path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
+        #     key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
+        #     restore-keys: |
+        #       ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
 
-        - name: Bazel Cache Repo
-          uses: actions/cache@v2
-          with:
-            path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
-            key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
-            restore-keys: |
-              ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
+        # - name: Bazel Cache Repo
+        #   uses: actions/cache@v2
+        #   with:
+        #     path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
+        #     key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
+        #     restore-keys: |
+        #       ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
 
         # This check is needed to ensure that Bazel's unbounded cache growth doesn't result in a
         # situation where the cache never updates (e.g. due to exceeding GitHub's cache size limit)
         # thereby only ever using the last successful cache version. This solution will result in a
         # few slower CI actions around the time cache is detected to be too large, but it should
         # incrementally improve thereafter.
-        - name: Ensure cache size BAZEL_CACHE
-          # Only run on master to avoid slow build on PRs
-          if: github.event_name == 'push'
-          env:
-            BAZEL_CACHE_DIR: .${{ env.BAZEL_CACHE }}
-            # Use a 7GB threshold since actions/cache compresses the results, and Bazel caches seem
-            # to only increase by a few hundred megabytes across changes for unrelated branches.
-            # Uncompressed cache on master is looking to be around 6GB (from observing jobs on master)
-            BAZEL_CACHE_CUTOFF_MB: 7000
-          run: |
-            # See https://stackoverflow.com/a/27485157 for reference.
-            EXPANDED_BAZEL_CACHE_PATH="${BAZEL_CACHE_DIR/#\~/$HOME}"
+        # - name: Ensure cache size BAZEL_CACHE
+        #   # Only run on master to avoid slow build on PRs
+        #   if: github.event_name == 'push'
+        #   env:
+        #     BAZEL_CACHE_DIR: .${{ env.BAZEL_CACHE }}
+        #     # Use a 7GB threshold since actions/cache compresses the results, and Bazel caches seem
+        #     # to only increase by a few hundred megabytes across changes for unrelated branches.
+        #     # Uncompressed cache on master is looking to be around 6GB (from observing jobs on master)
+        #     BAZEL_CACHE_CUTOFF_MB: 7000
+        #   run: |
+        #     # See https://stackoverflow.com/a/27485157 for reference.
+        #     EXPANDED_BAZEL_CACHE_PATH="${BAZEL_CACHE_DIR/#\~/$HOME}"
 
-            CACHE_SIZE_MB=$(du -smc $EXPANDED_BAZEL_CACHE_PATH | cut -f1)
-            echo "Total size of Bazel cache (rounded up to MBs): $CACHE_SIZE_MB"
+        #     CACHE_SIZE_MB=$(du -smc $EXPANDED_BAZEL_CACHE_PATH | cut -f1)
+        #     echo "Total size of Bazel cache (rounded up to MBs): $CACHE_SIZE_MB"
             
-            if [[ "$CACHE_SIZE_MB" -gt $BAZEL_CACHE_CUTOFF_MB ]]; then
-              echo "Cache exceeds cut-off; resetting it (will result in a slow build)"
-              rm -rf $EXPANDED_BAZEL_CACHE_PATH $EXPANDED_BAZEL_CACHE_REPO_PATH
-            fi
-        - name: Ensure cache size BAZEL_CACHE_REPO
-          # Only run on master to avoid slow build on PRs
-          if: github.event_name == 'push'
-          env:
-            BAZEL_CACHE_REPO_DIR: .${{ env.BAZEL_CACHE_REPO }}
-            # Use a 600 threshold since actions/cache compresses the results, and the repository cache should not increase unless we add more dependencies
-            # Uncompressed cache on master is looking to be around 400MB (from observing jobs on master)
-            BAZEL_CACHE_REPO_CUTOFF_MB: 600
-          run: |
-            # See https://stackoverflow.com/a/27485157 for reference.
-            EXPANDED_BAZEL_CACHE_REPO_PATH="${BAZEL_CACHE_REPO_DIR/#\~/$HOME}"
+        #     if [[ "$CACHE_SIZE_MB" -gt $BAZEL_CACHE_CUTOFF_MB ]]; then
+        #       echo "Cache exceeds cut-off; resetting it (will result in a slow build)"
+        #       rm -rf $EXPANDED_BAZEL_CACHE_PATH $EXPANDED_BAZEL_CACHE_REPO_PATH
+        #     fi
+        # - name: Ensure cache size BAZEL_CACHE_REPO
+        #   # Only run on master to avoid slow build on PRs
+        #   if: github.event_name == 'push'
+        #   env:
+        #     BAZEL_CACHE_REPO_DIR: .${{ env.BAZEL_CACHE_REPO }}
+        #     # Use a 600 threshold since actions/cache compresses the results, and the repository cache should not increase unless we add more dependencies
+        #     # Uncompressed cache on master is looking to be around 400MB (from observing jobs on master)
+        #     BAZEL_CACHE_REPO_CUTOFF_MB: 600
+        #   run: |
+        #     # See https://stackoverflow.com/a/27485157 for reference.
+        #     EXPANDED_BAZEL_CACHE_REPO_PATH="${BAZEL_CACHE_REPO_DIR/#\~/$HOME}"
 
-            CACHE_SIZE_MB=$(du -smc $EXPANDED_BAZEL_CACHE_REPO_PATH | cut -f1)
-            echo "Total size of Bazel cache (rounded up to MBs): $CACHE_SIZE_MB"
-            if [[ "$CACHE_SIZE_MB" -gt "$BAZEL_CACHE_REPO_CUTOFF_MB" ]]; then
-              echo "Cache exceeds cut-off; resetting it (will result in a slow build)"
-              rm -rf $EXPANDED_BAZEL_CACHE_PATH $EXPANDED_BAZEL_CACHE_REPO_PATH
-            fi
+        #     CACHE_SIZE_MB=$(du -smc $EXPANDED_BAZEL_CACHE_REPO_PATH | cut -f1)
+        #     echo "Total size of Bazel cache (rounded up to MBs): $CACHE_SIZE_MB"
+        #     if [[ "$CACHE_SIZE_MB" -gt "$BAZEL_CACHE_REPO_CUTOFF_MB" ]]; then
+        #       echo "Cache exceeds cut-off; resetting it (will result in a slow build)"
+        #       rm -rf $EXPANDED_BAZEL_CACHE_PATH $EXPANDED_BAZEL_CACHE_REPO_PATH
+        #     fi
+
+        - name: Download Magma VM Bazel build cache from S3
+          run: |
+            wget -qO- https://${{ env.S3_BUCKET }}.s3.amazonaws.com/${{ env.CACHE_REPO_TAR }} | tar xvfz - 
+            wget -qO- https://${{ env.S3_BUCKET }}.s3.amazonaws.com/${{ env.CACHE_TAR }} | tar xvfz - 
         - name: Setup Devcontainer Image
           uses: addnab/docker-run-action@v2
           with:
