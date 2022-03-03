@@ -190,9 +190,10 @@ class TrafficUtil(object):
         same globals as ctypes LoadLibrary uses dlopen under the covers"""
         # self._test_lib.dlclose(self._test_lib._handle)
         if TrafficUtil.need_to_close_iperf3_server:
-            print("Closing all the running Iperf3 servers in TRF Server VM")
+            print("Closing all the running Iperf3 servers and forked processes")
             if not self.close_running_iperf_servers():
-                print("Failed to stop running iperf servers in TRF Server VM")
+                print("Failed to stop running Iperf3 servers in TRF Server VM")
+            self._test_lib.cleaningAllProcessIds()
         self._test_lib = None
         self._data = None
 
