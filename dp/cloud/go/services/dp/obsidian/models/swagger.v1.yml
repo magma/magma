@@ -175,6 +175,22 @@ definitions:
         enum: *components
         type: string
     type: object
+  paginated_cbsds:
+    description: Page of cbsds
+    properties:
+      cbsds:
+        items:
+          $ref: '#/definitions/cbsd'
+        readOnly: true
+        type: array
+      total_count:
+        description: Total number of cbsds
+        example: 10
+        readOnly: true
+        type: integer
+    required:
+      - cbsds
+      - total_count
 tags:
   - description: API for retrieving logs
     name: logs
@@ -257,9 +273,7 @@ paths:
         '200':
           description: All CBSDs in LTE network
           schema:
-            items:
-              $ref: '#/definitions/cbsd'
-            type: array
+            $ref: '#/definitions/paginated_cbsds'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
       summary: List all CBSDs in LTE network

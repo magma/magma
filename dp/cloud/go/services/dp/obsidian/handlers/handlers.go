@@ -132,9 +132,12 @@ func listCbsds(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	var payload []models.Cbsd
-	for _, cd := range cbsds.Details {
-		payload = append(payload, *models.CbsdFromBackend(cd))
+	payload := &models.PaginatedCbsds{
+		Cbsds:      make([]*models.Cbsd, len(cbsds.Details)),
+		TotalCount: cbsds.TotalCount,
+	}
+	for i, cd := range cbsds.Details {
+		payload.Cbsds[i] = models.CbsdFromBackend(cd)
 	}
 	return c.JSON(http.StatusOK, payload)
 }
