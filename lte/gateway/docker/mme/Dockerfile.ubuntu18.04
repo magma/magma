@@ -192,7 +192,9 @@ RUN ldconfig && \
     echo $FEATURES && \
     make build_oai && \
     make build_sctpd && \
-    cp $C_BUILD/core/oai/oai_mme/mme $C_BUILD/core/oai/oai_mme/oai_mme
+    cp $C_BUILD/core/oai/oai_mme/mme $C_BUILD/core/oai/oai_mme/oai_mme && \
+    ldd $C_BUILD/core/oai/oai_mme/oai_mme && \
+    ldd $C_BUILD/sctpd/src/sctpd
 
 # Prepare config file
 RUN apt-get install -y python3-pip && \
@@ -278,26 +280,13 @@ RUN apt-get update && \
 # Copy pre-built shared object files
 COPY --from=magma-mme-builder \
     /usr/lib/x86_64-linux-gnu/liblsan.so.0 \
-    /usr/lib/x86_64-linux-gnu/libasan.so.4 \
-    /usr/lib/x86_64-linux-gnu/libubsan.so.0 \
     /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 \
     /usr/lib/x86_64-linux-gnu/libconfig.so.9 \
     /usr/lib/x86_64-linux-gnu/libglog.so.0  \
     /usr/lib/x86_64-linux-gnu/libyaml-cpp.so.0.5 \
     /usr/lib/x86_64-linux-gnu/libsctp.so.1 \
     /usr/lib/x86_64-linux-gnu/libunwind.so.8 \
-    /usr/lib/x86_64-linux-gnu/libboost_context.so.1.65.1 \
-    /usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.65.1 \
-    /usr/lib/x86_64-linux-gnu/libboost_program_options.so.1.65.1 \
-    /usr/lib/x86_64-linux-gnu/libboost_regex.so.1.65.1 \
-    /usr/lib/x86_64-linux-gnu/libboost_system.so.1.65.1 \
-    /usr/lib/x86_64-linux-gnu/libdouble-conversion.so.1 \
-    /usr/lib/x86_64-linux-gnu/libevent-2.1.so.6 \
     /usr/lib/x86_64-linux-gnu/libssl.so.1.1 \
-    /usr/lib/x86_64-linux-gnu/libsnappy.so.1 \
-    /usr/lib/x86_64-linux-gnu/libicui18n.so.60 \
-    /usr/lib/x86_64-linux-gnu/libicuuc.so.60 \
-    /usr/lib/x86_64-linux-gnu/libicudata.so.60 \
     /usr/lib/x86_64-linux-gnu/libczmq.so.4.1.0 \
     /usr/lib/x86_64-linux-gnu/libzmq.so.5.1.5 \
     /usr/lib/x86_64-linux-gnu/libsodium.so.23.1.0 \
@@ -346,7 +335,9 @@ COPY --from=magma-mme-builder \
 WORKDIR /var/opt/magma/configs
 # Adding mme configuration for stateful run
 RUN echo "use_stateless: false" > mme.yml && \
-    openssl rand -out /root/.rnd 128
+    openssl rand -out /root/.rnd 128 && \
+    ldd /magma-mme/bin/oai_mme && \
+    ldd /magma-mme/bin/sctpd
 
 WORKDIR /etc/magma
 COPY --from=magma-mme-builder \

@@ -455,7 +455,9 @@ jobs:
           run: |
             cd $MAGMA_ROOT
             # Collecting coverage with Bazel can be slow. We can follow this thread to see if this can be improved: https://github.com/bazelbuild/bazel/issues/8178
-            bazel coverage //orc8r/gateway/c/...:* //lte/gateway/c/...:*
+            # Omit OAI coverage until it is tested. We need to determine what the behavior is for doing both CMake and Bazel based coverage at the same time
+            # TODO: GH11936
+            bazel coverage -- //orc8r/gateway/c/...:* //lte/gateway/c/...:* -//lte/gateway/c/core/...:*
             # copy out coverage information into magma so that it's accessible from the CI node
             cp bazel-out/_coverage/_coverage_report.dat $MAGMA_ROOT
       - name: Upload code coverage

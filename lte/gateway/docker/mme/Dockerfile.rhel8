@@ -6,7 +6,7 @@ FROM registry.access.redhat.com/ubi8/ubi:latest as magma-mme-builder
 ARG GIT_PROXY
 ARG FEATURES=mme_oai
 ENV MAGMA_ROOT=/magma
-ENV BUILD_TYPE=Debug
+ENV BUILD_TYPE=RelWithDebInfo
 ENV C_BUILD=/build/c
 ENV TZ=Europe/Paris
 # Copy RHEL certificates for builder image
@@ -75,6 +75,11 @@ RUN yum install -y \
     # Install FMT lib requirements
     elfutils-libelf-devel-static \
     libdwarf-devel \
+    # Install double-conversion and unwind requirements
+    boost \
+    boost-devel \
+    glog-devel \
+    binutils-devel \
     # Install FreeDiameter requirements
     lksctp-tools \
     lksctp-tools-devel \
@@ -264,6 +269,24 @@ RUN cd asn1c && \
     make -j`nproc` && \
     make install
 
+##### Unwind and Double-Conversion
+RUN echo "Install Double Conversion" && \
+    # Moved git clone --depth=1 --branch=v3.1.5 https://github.com/google/double-conversion.git && \
+    cd double-conversion && \
+    cmake3 -DBUILD_SHARED_LIBS=ON . && \
+    make -j`nproc` && \
+    make install && \
+    ldconfig && \
+    cd / && \
+    echo "Install Unwind" && \
+    # Moved git clone --depth=1 --branch=v1.2.1 https://github.com/libunwind/libunwind.git && \
+    cd libunwind && \
+    ./autogen.sh && \
+    ./configure && \
+    make -j`nproc` && \
+    make install && \
+    ldconfig
+
 ##### FreeDiameter
 RUN cd freediameter && \
     # Moved git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
@@ -327,7 +350,9 @@ RUN ldconfig --verbose && \
     echo $FEATURES && \
     make build_oai && \
     make build_sctpd && \
-    cp $C_BUILD/core/oai/oai_mme/mme $C_BUILD/core/oai/oai_mme/oai_mme
+    cp $C_BUILD/core/oai/oai_mme/mme $C_BUILD/core/oai/oai_mme/oai_mme && \
+    ldd $C_BUILD/core/oai/oai_mme/oai_mme && \
+    ldd $C_BUILD/sctpd/src/sctpd
 
 # Prepare config file
 RUN yum install -y python3-pip && \
@@ -475,7 +500,9 @@ COPY --from=magma-mme-builder \
 WORKDIR /var/opt/magma/configs
 # Adding mme configuration for stateful run
 RUN echo "use_stateless: false" > mme.yml && \
-    openssl rand -out /root/.rnd 128
+    openssl rand -out /root/.rnd 128 && \
+    ldd /magma-mme/bin/oai_mme && \
+    ldd /magma-mme/bin/sctpd
 
 WORKDIR /etc/magma
 COPY --from=magma-mme-builder \
