@@ -62,8 +62,8 @@ status_code_e mock_read_s1ap_ue_state_db(
       return RETURNerror;
     }
 
-    ue_description_t* ue_context_p =
-        (ue_description_t*) calloc(1, sizeof(ue_description_t));
+    ue_description_t* ue_context_p = reinterpret_cast<ue_description_t*>(
+        calloc(1, sizeof(ue_description_t)));
     S1apStateConverter::proto_to_ue(ue_proto, ue_context_p);
 
     hashtable_rc_t h_rc = hashtable_ts_insert(
