@@ -128,20 +128,21 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
 
             print("Sleeping for 5 seconds")
             time.sleep(5)
-            for i in range(loop):
+            num_flows_per_bearer = 4
+            for idx in range(loop):
                 # Add dedicated bearer to 2nd PDN
                 print(
                     "********************** Adding dedicated bearer to ims"
                     " PDN",
                 )
                 flow_lists2.append(
-                    self._spgw_util.create_default_ipv4_flows(port_idx=i),
+                    self._spgw_util.create_default_ipv4_flows(port_idx=(idx * num_flows_per_bearer) + 10),
                 )
                 self._spgw_util.create_bearer(
                     "IMSI" + "".join([str(i) for i in req.imsi]),
                     act_def_bearer_req.m.pdnInfo.epsBearerId,
-                    flow_lists2[i],
-                    qci_val=i + 1,
+                    flow_lists2[idx],
+                    qci_val=idx + 1,
                 )
                 response = self._s1ap_wrapper.s1_util.get_response()
                 self.assertEqual(
