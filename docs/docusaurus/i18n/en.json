@@ -111,6 +111,9 @@
       "general/upgrade_intro": {
         "title": "Introduction"
       },
+      "howtos/5g_nsa_support": {
+        "title": "5G NSA Support"
+      },
       "howtos/call_tracing": {
         "title": "Call Tracing"
       },

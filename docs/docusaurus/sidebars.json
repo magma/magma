@@ -13,6 +13,7 @@
         "ids": [
           "howtos/ue_metering",
           "howtos/config_agw_bridged",
+          "howtos/5g_nsa_support",
           "howtos/call_tracing",
           "howtos/events_monitoring",
           "howtos/he_api",
