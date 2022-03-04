@@ -91,16 +91,7 @@ jobs:
           # Uncompressed cache on master is looking to be around 6GB (from observing jobs on master)
           BAZEL_CACHE_CUTOFF_MB: 6500
         run: |
-          # See https://stackoverflow.com/a/27485157 for reference.
-          EXPANDED_BAZEL_CACHE_PATH="${BAZEL_CACHE_DIR/#\~/$HOME}"
-
-          CACHE_SIZE_MB=$(du -smc $EXPANDED_BAZEL_CACHE_PATH | cut -f1)
-          echo "Total size of Bazel cache (rounded up to MBs): $CACHE_SIZE_MB"
-
-          if [[ "$CACHE_SIZE_MB" -gt $BAZEL_CACHE_CUTOFF_MB ]]; then
-            echo "Cache exceeds cut-off; resetting it (will result in a slow build)"
-            rm -rf $EXPANDED_BAZEL_CACHE_PATH $EXPANDED_BAZEL_CACHE_REPO_PATH
-          fi
+          ./.github/workflows/check-bazel-cache-dir-size.sh "$BAZEL_CACHE_DIR" "$BAZEL_CACHE_CUTOFF_MB"
       - name: Ensure cache size BAZEL_CACHE_REPO
         # Only run on master to avoid slow build on PRs
         if: github.event_name == 'schedule' || github.event_name == 'push'
@@ -110,15 +101,7 @@ jobs:
           # Uncompressed cache on master is looking to be around 400MB (from observing jobs on master)
           BAZEL_CACHE_REPO_CUTOFF_MB: 600
         run: |
-          # See https://stackoverflow.com/a/27485157 for reference.
-          EXPANDED_BAZEL_CACHE_REPO_PATH="${BAZEL_CACHE_REPO_DIR/#\~/$HOME}"
-
-          CACHE_SIZE_MB=$(du -smc $EXPANDED_BAZEL_CACHE_REPO_PATH | cut -f1)
-          echo "Total size of Bazel cache (rounded up to MBs): $CACHE_SIZE_MB"
-          if [[ "$CACHE_SIZE_MB" -gt "$BAZEL_CACHE_REPO_CUTOFF_MB" ]]; then
-            echo "Cache exceeds cut-off; resetting it (will result in a slow build)"
-            rm -rf $EXPANDED_BAZEL_CACHE_PATH $EXPANDED_BAZEL_CACHE_REPO_PATH
-          fi
+          ./.github/workflows/check-bazel-cache-dir-size.sh "$BAZEL_CACHE_REPO_DIR" "$BAZEL_CACHE_REPO_CUTOFF_MB"
       - name: Setup Devcontainer Image
         uses: addnab/docker-run-action@v2
         with:
@@ -180,16 +163,7 @@ jobs:
           # Uncompressed cache on master is looking to be around 6GB (from observing jobs on master)
           BAZEL_CACHE_CUTOFF_MB: 6500
         run: |
-          # See https://stackoverflow.com/a/27485157 for reference.
-          EXPANDED_BAZEL_CACHE_PATH="${BAZEL_CACHE_DIR/#\~/$HOME}"
-
-          CACHE_SIZE_MB=$(du -smc $EXPANDED_BAZEL_CACHE_PATH | cut -f1)
-          echo "Total size of Bazel cache (rounded up to MBs): $CACHE_SIZE_MB"
-
-          if [[ "$CACHE_SIZE_MB" -gt $BAZEL_CACHE_CUTOFF_MB ]]; then
-            echo "Cache exceeds cut-off; resetting it (will result in a slow build)"
-            rm -rf $EXPANDED_BAZEL_CACHE_PATH $EXPANDED_BAZEL_CACHE_REPO_PATH
-          fi
+          ./.github/workflows/check-bazel-cache-dir-size.sh "$BAZEL_CACHE_DIR" "$BAZEL_CACHE_CUTOFF_MB"
       # Letting the Build job above handle cache clean up for bazel-cache-repo
       - name: Setup Devcontainer Image
         uses: addnab/docker-run-action@v2
