@@ -14,11 +14,7 @@
 
 BUILDTS="$(date -u +"%Y%m%d%H%M%S")"
 
-if [ "$(uname -m)" == "aarch64" ]; then
-  CPU_ARCH=arm64
-else
-  CPU_ARCH=amd64
-fi
+[[ "$(uname -m)" == "aarch64" ]] && CPU_ARCH=arm64 || CPU_ARCH=amd64
 
 # IMPORTANT! set variables
 # * PKGNAME
