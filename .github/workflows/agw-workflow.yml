@@ -164,19 +164,9 @@ jobs:
         if: github.event_name == 'push'
         env:
           BAZEL_CACHE_DIR: .${{ env.BAZEL_CACHE }}
+          BAZEL_CACHE_CUTOFF_MB: 6000
         run: |
-          # See https://stackoverflow.com/a/27485157 for reference.
-          # We do not care about the repo cache size here because it is handled in bazel.yml
-          EXPANDED_BAZEL_CACHE_PATH="${BAZEL_CACHE_DIR/#\~/$HOME}"
-
-          CACHE_SIZE_MB=$(du -smc $EXPANDED_BAZEL_CACHE_PATH | grep total | cut -f1)
-          echo "Total size of Bazel cache (rounded up to MBs): $CACHE_SIZE_MB"
-          # Use a 6GB threshold since actions/cache compresses the results, and Bazel caches seem
-          # to only increase by a few hundred megabytes across changes for unrelated branches.
-          if [[ "$CACHE_SIZE_MB" -gt 6000 ]]; then
-            echo "Cache exceeds cut-off; resetting it (will result in a slow build)"
-            rm -rf $EXPANDED_BAZEL_CACHE_PATH
-          fi
+          ./.github/workflows/check-bazel-cache-dir-size.sh "$BAZEL_CACHE_DIR" "$BAZEL_CACHE_CUTOFF_MB"
       - name: Setup Devcontainer Image
         uses: addnab/docker-run-action@v2
         with:
