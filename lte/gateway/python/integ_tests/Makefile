@@ -46,7 +46,7 @@ ifdef TESTS
 	$(call execute_test,$(TESTS))
 else
 	echo "pass" > $(MAGMA_ROOT)/test_status.txt
-	$(foreach test,$(JUNK_TESTS),$(call execute_test,$(test));)
+	$(foreach test,$(EXTENDED_TESTS) $(PRECOMMIT_TESTS),$(call execute_test,$(test));)
 endif
 
 .PHONY: nonsanity
