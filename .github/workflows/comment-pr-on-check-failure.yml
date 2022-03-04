@@ -7,6 +7,7 @@ on:  # yamllint disable-line rule:truthy
       - Python Format Check
       - Semantic PR
       - Markdown lint check
+      - Bazel Build & Test
     types:
       - completed
 
@@ -123,6 +124,12 @@ jobs:
           ### Howto
           - [Instructions on formatting your Markdown changes](https://magma.github.io/magma/docs/next/docs/docs_overview#precommit)
           - $CHECK_GUIDELINE" >> $GITHUB_WORKSPACE/msg
+      - name: Bazel build & test comment message
+        if: ${{ github.event.workflow.name == 'Bazel Build & Test' }}
+        run: |
+          echo "Oops! Looks like you failed \`Bazel Build & Test\`.
+          ### Howto
+          - Slack channel: #bazel
       - name: Comment on PR
         uses: actions/github-script@v3
         with:
