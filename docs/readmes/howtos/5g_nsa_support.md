@@ -6,7 +6,7 @@ hide_title: true
 
 # 5G NSA Support
 
-Under 5G NSA Support, we aim to bridge the connectivity gap between a 5G compatible UE and the full stack MAGMA core. In order to achieve NSA support in the existing MAGMA codebase, we have added/updated supplementary messages, IEs over different interfaces, layers and services which are described as follows:
+Under 5G NSA Support, we aim to bridge the connectivity gap between a 5G compatible UE and the full stack MAGMA core. This feature does not require any additional configuration and is enabled in the existing codebase by default. In order to achieve NSA support in the existing MAGMA codebase, we have added/updated supplementary messages, IEs over different interfaces, layers and services which are described as follows:
 
 ## Message Addition
 
@@ -38,7 +38,7 @@ In order to have NSA support over S1-AP interface, We have upgraded the existing
 
 - HSS in response adds Extended Max-Requested-BW-UL and Extended Max-Requested-BW-DL AVP in Update Location Answer message to the MME.
 
-- In the Initial Context Setup Request message sent by MME to the eNB over S1AP, MME adds Extended UE-AMBR UL and Extended UE-AMBR DL values in order to accommodate AMBR values larger than 10Gb/s in the uplink and downlink direction respectively.
+- In the Initial Context Setup Request message sent by MME to the eNB over S1AP, MME adds Extended UE-AMBR UL and Extended UE-AMBR DL values in order to accommodate AMBR values larger than 10Gb/s in the uplink and downlink direction respectively. This feature is currently under development and will be added in the next release.
 
 ![NSA IEs Addition](assets/lte/NSA-IE-Addition.png?raw=true "NSA IEs Addition")
 
