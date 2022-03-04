@@ -61,9 +61,10 @@ func TestFields(t *testing.T) {
 			name:  "check field names for DBGrant",
 			model: &storage.DBGrant{},
 			expected: []string{
-				"id", "state_id", "cbsd_id", "channel_id", "grant_id",
+				"id", "state_id", "cbsd_id", "grant_id",
 				"grant_expire_time", "transmit_expire_time",
 				"heartbeat_interval", "channel_type",
+				"low_frequency", "high_frequency", "max_eirp",
 			},
 		},
 		{
@@ -178,7 +179,6 @@ func TestGetMetadata(t *testing.T) {
 				Table: storage.GrantTable,
 				Relations: map[string]string{
 					storage.CbsdTable:       "cbsd_id",
-					storage.ChannelTable:    "channel_id",
 					storage.GrantStateTable: "state_id",
 				},
 			},

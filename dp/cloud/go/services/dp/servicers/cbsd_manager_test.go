@@ -165,7 +165,6 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithoutGrant() {
 	s.store.details = &storage.DetailedCbsd{
 		Cbsd:       getDBCbsd(),
 		CbsdState:  &storage.DBCbsdState{},
-		Channel:    &storage.DBChannel{},
 		Grant:      &storage.DBGrant{},
 		GrantState: &storage.DBGrantState{},
 	}
@@ -297,14 +296,12 @@ func getDetailedCbsd() *storage.DetailedCbsd {
 		CbsdState: &storage.DBCbsdState{
 			Name: db.MakeString("registered"),
 		},
-		Channel: &storage.DBChannel{
-			LowFrequency:    db.MakeInt(3600 * 1e6),
-			HighFrequency:   db.MakeInt(3620 * 1e6),
-			LastUsedMaxEirp: db.MakeFloat(35),
-		},
 		Grant: &storage.DBGrant{
 			GrantExpireTime:    db.MakeTime(time.Unix(2e9, 0).UTC()),
 			TransmitExpireTime: db.MakeTime(time.Unix(1e9, 0).UTC()),
+			LowFrequency:       db.MakeInt(3600 * 1e6),
+			HighFrequency:      db.MakeInt(3620 * 1e6),
+			MaxEirp:            db.MakeFloat(35),
 		},
 		GrantState: &storage.DBGrantState{
 			Name: db.MakeString("authorized"),

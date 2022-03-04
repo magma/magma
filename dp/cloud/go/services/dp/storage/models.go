@@ -205,12 +205,14 @@ type DBGrant struct {
 	Id                 sql.NullInt64
 	StateId            sql.NullInt64
 	CbsdId             sql.NullInt64
-	ChannelId          sql.NullInt64
 	GrantId            sql.NullInt64
 	GrantExpireTime    sql.NullTime
 	TransmitExpireTime sql.NullTime
 	HeartbeatInterval  sql.NullInt64
 	ChannelType        sql.NullString
+	LowFrequency       sql.NullInt64
+	HighFrequency      sql.NullInt64
+	MaxEirp            sql.NullFloat64
 }
 
 func (g *DBGrant) Fields() db.FieldMap {
@@ -223,10 +225,6 @@ func (g *DBGrant) Fields() db.FieldMap {
 		},
 		"cbsd_id": &db.Field{
 			BaseType: db.IntType{X: &g.CbsdId},
-			Nullable: true,
-		},
-		"channel_id": &db.Field{
-			BaseType: db.IntType{X: &g.ChannelId},
 			Nullable: true,
 		},
 		"grant_id": &db.Field{
@@ -248,6 +246,15 @@ func (g *DBGrant) Fields() db.FieldMap {
 			BaseType: db.StringType{X: &g.ChannelType},
 			Nullable: true,
 		},
+		"low_frequency": &db.Field{
+			BaseType: db.IntType{X: &g.LowFrequency},
+		},
+		"high_frequency": &db.Field{
+			BaseType: db.IntType{X: &g.HighFrequency},
+		},
+		"max_eirp": &db.Field{
+			BaseType: db.FloatType{X: &g.MaxEirp},
+		},
 	}
 }
 
@@ -257,7 +264,6 @@ func (g *DBGrant) GetMetadata() *db.ModelMetadata {
 		Relations: map[string]string{
 			GrantStateTable: "state_id",
 			CbsdTable:       "cbsd_id",
-			ChannelTable:    "channel_id",
 		},
 		CreateObject: func() db.Model {
 			return &DBGrant{}

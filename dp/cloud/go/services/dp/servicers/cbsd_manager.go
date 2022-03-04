@@ -118,12 +118,12 @@ func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Durati
 	const mega int64 = 1e6
 	var grant *protos.GrantDetails
 	if data.GrantState.Name.Valid {
-		bandwidth := (data.Channel.HighFrequency.Int64 - data.Channel.LowFrequency.Int64) / mega
-		frequency := (data.Channel.HighFrequency.Int64 + data.Channel.LowFrequency.Int64) / (mega * 2)
+		bandwidth := (data.Grant.HighFrequency.Int64 - data.Grant.LowFrequency.Int64) / mega
+		frequency := (data.Grant.HighFrequency.Int64 + data.Grant.LowFrequency.Int64) / (mega * 2)
 		grant = &protos.GrantDetails{
 			BandwidthMhz:            bandwidth,
 			FrequencyMhz:            frequency,
-			MaxEirp:                 data.Channel.LastUsedMaxEirp.Float64,
+			MaxEirp:                 data.Grant.MaxEirp.Float64,
 			State:                   data.GrantState.Name.String,
 			TransmitExpireTimestamp: data.Grant.TransmitExpireTime.Time.Unix(),
 			GrantExpireTimestamp:    data.Grant.GrantExpireTime.Time.Unix(),
