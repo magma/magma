@@ -281,7 +281,7 @@ func (s *HandlersTestSuite) TestListCbsds() {
 		ParamValues         []string
 		model               db.Model
 		expectedStatus      int
-		expectedResult      []*models.Cbsd
+		expectedResult      *models.PaginatedCbsds
 		expectedError       string
 		queryParamsString   string
 		expectedListRequest *protos.ListCbsdRequest
@@ -291,7 +291,7 @@ func (s *HandlersTestSuite) TestListCbsds() {
 			paramNames:        []string{"network_id"},
 			ParamValues:       []string{"n1"},
 			expectedStatus:    http.StatusOK,
-			expectedResult:    []*models.Cbsd{getCbsd()},
+			expectedResult:    getPaginatedCbsds(),
 			expectedError:     "",
 			queryParamsString: "",
 			expectedListRequest: &protos.ListCbsdRequest{
@@ -304,7 +304,7 @@ func (s *HandlersTestSuite) TestListCbsds() {
 			paramNames:        []string{"network_id"},
 			ParamValues:       []string{"n1"},
 			expectedStatus:    http.StatusOK,
-			expectedResult:    []*models.Cbsd{getCbsd()},
+			expectedResult:    getPaginatedCbsds(),
 			expectedError:     "",
 			queryParamsString: "?limit=4&offset=3",
 			expectedListRequest: &protos.ListCbsdRequest{
@@ -334,7 +334,10 @@ func (s *HandlersTestSuite) TestListCbsds() {
 	}
 	e := echo.New()
 	obsidianHandlers := handlers.GetHandlers()
-	s.cbsdServer.listResponse = &protos.ListCbsdResponse{Details: []*protos.CbsdDetails{getCbsdDetails()}}
+	s.cbsdServer.listResponse = &protos.ListCbsdResponse{
+		Details:    []*protos.CbsdDetails{getCbsdDetails()},
+		TotalCount: 1,
+	}
 	listCbsds := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdsPath, obsidian.GET).HandlerFunc
 	for _, t := range testCases {
 		s.Run(t.testName, func() {
@@ -744,6 +747,13 @@ func (s *stubLogsServer) ListLogs(ctx context.Context, request *protos.ListLogsR
 	}
 	assert.Equal(s.t, s.expectedListRequest.Filter.FccId, request.Filter.FccId)
 	return s.listResponse, s.err
+}
+
+func getPaginatedCbsds() *models.PaginatedCbsds {
+	return &models.PaginatedCbsds{
+		Cbsds:      []*models.Cbsd{getCbsd()},
+		TotalCount: 1,
+	}
 }
 
 func getCbsd() *models.Cbsd {
