@@ -34,7 +34,7 @@ extern "C" {
 #include "lte/protos/session_manager.pb.h"
 #include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
+#include "include/amf_client_servicer.h"
 
 #define VERSION_0 0
 
@@ -48,6 +48,7 @@ using magma::lte::IPAddress;
 using magma::lte::MobilityServiceClient;
 using magma::lte::SetSMSessionContext;
 using magma::lte::TeidSet;
+using magma5g::AsyncM5GMobilityServiceClient;
 using magma5g::AsyncSmfServiceClient;
 
 namespace magma5g {

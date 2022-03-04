@@ -43,12 +43,6 @@ void amf_ctx_set_valid_imsi(amf_context_t* ctxt, imsi_t* imsi,
   ctxt->imsi = *imsi;
   ctxt->imsi64 = imsi64;
   ctxt->is_initial_identity_imsi = true;
-
-  amf_ue_ngap_id_t ue_id =
-      PARENT_STRUCT(ctxt, struct ue_m5gmm_context_s, amf_context)
-          ->amf_ue_ngap_id;
-
-  amf_api_notify_imsi(ue_id, imsi64);
 }
 
 /***************************************************************************

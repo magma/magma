@@ -47,23 +47,17 @@ bool amf_pop_timer_arg(int timer_id, timer_arg_t* arg) {
 //------------------------------------------------------------------------------
 int AmfUeContext::StartTimer(size_t msec, timer_repeat_t repeat,
                              zloop_timer_fn handler, timer_arg_t arg) {
-#if !MME_UNIT_TEST
   int timer_id = -1;
   if ((timer_id = start_timer(&amf_app_task_zmq_ctx, msec, repeat, handler,
                               nullptr)) != -1) {
     amf_app_timers.insert(std::pair<int, timer_arg_t>(timer_id, arg));
   }
   return timer_id;
-#else
-  return 0;
-#endif /* !MME_UNIT_TEST */
 }
 //------------------------------------------------------------------------------
 void AmfUeContext::StopTimer(int timer_id) {
-#if !MME_UNIT_TEST
   stop_timer(&amf_app_task_zmq_ctx, timer_id);
   amf_app_timers.erase(timer_id);
-#endif /* !MME_UNIT_TEST */
 }
 //------------------------------------------------------------------------------
 bool AmfUeContext::PopTimerArgById(const int timer_id, timer_arg_t* arg) {

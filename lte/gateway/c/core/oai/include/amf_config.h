@@ -62,8 +62,6 @@ typedef struct nas5g_config_s {
   uint32_t t3586_sec;
   uint32_t t3589_sec;
   uint32_t t3595_sec;
-  uint32_t implicit_dereg_sec;
-
   // non standard features
   bool force_reject_tau;
   bool force_reject_sr;

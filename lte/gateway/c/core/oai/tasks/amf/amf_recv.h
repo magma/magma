@@ -71,6 +71,11 @@ int amf_registration_success_security_cb(amf_context_t* amf_context);
 int amf_proc_registration_reject(const amf_ue_ngap_id_t ue_id,
                                  amf_cause_t amf_cause);
 
+// Handle UE CONTEXT RELEASE COMMAND in DL to NGAP
+void ue_context_release_command(amf_ue_ngap_id_t amf_ue_ngap_id,
+                                gnb_ue_ngap_id_t gnb_ue_ngap_id,
+                                Ngcause ng_cause);
+
 int get_decrypt_imsi_suci_extension(amf_context_t* amf_context,
                                     uint8_t ue_pubkey_identifier,
                                     const std::string& ue_pubkey,

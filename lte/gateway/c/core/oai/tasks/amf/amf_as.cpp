@@ -1393,10 +1393,8 @@ uint16_t amf_as_establish_cnf(const amf_as_establish_t* msg,
       initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
     } else {
       amf_app_handle_nas_dl_req(as_msg->ue_id, as_msg->nas_msg, M5G_AS_SUCCESS);
+      ue_mm_context->mm_state = REGISTERED_CONNECTED;
     }
-
-    /* Registration accept can go as part of ICS or pure DL message. */
-    ue_mm_context->mm_state = REGISTERED_CONNECTED;
 
     as_msg->err_code = M5G_AS_SUCCESS;
     ret_val = AS_NAS_ESTABLISH_CNF_;

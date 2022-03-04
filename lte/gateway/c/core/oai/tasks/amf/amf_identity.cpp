@@ -34,6 +34,9 @@ extern "C" {
 extern amf_config_t amf_config;
 namespace magma5g {
 
+// Global map of supi to guti along with amf_ue_ngap_id
+std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
+
 /***************************************************************************
 **                                                                        **
 ** Name:    amf_ctx_set_attribute_valid()                                 **

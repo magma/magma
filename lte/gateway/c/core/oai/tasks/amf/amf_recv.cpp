@@ -34,6 +34,7 @@ extern "C" {
 #define AMF_CAUSE_SUCCESS (1)
 #define AMF_CAUSE_UE_SEC_CAP_MISSMATCH (23)
 namespace magma5g {
+extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
 
 int amf_handle_service_request(
     amf_ue_ngap_id_t ue_id, ServiceRequestMsg* msg,
@@ -72,7 +73,7 @@ int amf_handle_service_request(
                tmsi_stored);
   OAILOG_DEBUG(LOG_NAS_AMF, " TMSI received %08" PRIx32 "\n", tmsi_rcv);
 
-  if ((tmsi_stored != INVALID_TMSI) && (tmsi_rcv == tmsi_stored)) {
+  if (ue_context && (tmsi_rcv == tmsi_stored)) {
     OAILOG_DEBUG(LOG_NAS_AMF,
                  "TMSI matched for UE ID " AMF_UE_NGAP_ID_FMT
                  " receved TMSI %08X stored TMSI %08X \n",
@@ -91,6 +92,28 @@ int amf_handle_service_request(
     }
 
     imsi64_t imsi64 = ue_context->amf_context.imsi64;
+    guti_and_amf_id.amf_guti.m_tmsi = ue_context->amf_context.m5_guti.m_tmsi;
+    guti_and_amf_id.amf_guti.guamfi = ue_context->amf_context.m5_guti.guamfi;
+    guti_and_amf_id.amf_ue_ngap_id = ue_id;
+    if (amf_supi_guti_map.size() == 0) {
+      // first entry.
+      amf_supi_guti_map.insert(
+          std::pair<imsi64_t, guti_and_amf_id_t>(imsi64, guti_and_amf_id));
+    } else {
+      /* already elements exist then check if same imsi already present
+       * if same imsi then update/overwrite the element
+       */
+      std::unordered_map<imsi64_t, guti_and_amf_id_t>::iterator found_imsi =
+          amf_supi_guti_map.find(imsi64);
+      if (found_imsi == amf_supi_guti_map.end()) {
+        // it is new entry to map
+        amf_supi_guti_map.insert(
+            std::pair<imsi64_t, guti_and_amf_id_t>(imsi64, guti_and_amf_id));
+      } else {
+        // Overwrite the second element.
+        found_imsi->second = guti_and_amf_id;
+      }
+    }
 
     if (msg->service_type.service_type_value == SERVICE_TYPE_SIGNALING) {
       OAILOG_DEBUG(LOG_NAS_AMF, "Service request type is signalling \n");
@@ -103,6 +126,7 @@ int amf_handle_service_request(
       amf_sap.u.amf_as.u.establish.ue_id = ue_id;
       amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
       rc = amf_sap_send(&amf_sap);
+      ue_context->mm_state = REGISTERED_CONNECTED;
     } else if ((msg->service_type.service_type_value == SERVICE_TYPE_DATA) ||
                (msg->service_type.service_type_value ==
                 SERVICE_TYPE_HIGH_PRIORITY_ACCESS) ||
@@ -134,7 +158,7 @@ int amf_handle_service_request(
                          ? "Data"
                          : "Mobile Terminated Services");
 
-        if (ue_context->cm_state == M5GCM_CONNECTED) {
+        if (REGISTERED_CONNECTED == ue_context->mm_state) {
           amf_sap.primitive = AMFAS_ESTABLISH_CNF;
           amf_sap.u.amf_as.u.establish.ue_id = ue_id;
           amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
@@ -200,11 +224,6 @@ int amf_handle_service_request(
     }
     amf_sap.u.amf_as.u.establish.amf_cause = AMF_CAUSE_UE_ID_CAN_NOT_BE_DERIVED;
     rc = amf_sap_send(&amf_sap);
-
-    // Haven't received 5G TMSI. Temporary context created to be cleaned up
-    if (tmsi_stored == INVALID_TMSI) {
-      amf_free_ue_context(ue_context);
-    }
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
@@ -405,11 +424,33 @@ int amf_handle_registration_request(
 
         amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
 
+        imsi64_t imsi64 = amf_imsi_to_imsi64(params->imsi);
+        ue_context->amf_context.imsi64 = imsi64;
         amf_ue_context_on_new_guti(ue_context, (guti_m5_t*)&amf_guti);
 
         ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
         ue_context->amf_context.m5_guti.guamfi = amf_guti.guamfi;
-        imsi64_t imsi64 = amf_imsi_to_imsi64(params->imsi);
+        guti_and_amf_id.amf_guti = amf_guti;
+        guti_and_amf_id.amf_ue_ngap_id = ue_id;
+        if (amf_supi_guti_map.size() == 0) {
+          // first entry.
+          amf_supi_guti_map.insert(
+              std::pair<imsi64_t, guti_and_amf_id_t>(imsi64, guti_and_amf_id));
+        } else {
+          /* already elements exist then check if same imsi already present
+           * if same imsi then update/overwrite the element
+           */
+          std::unordered_map<imsi64_t, guti_and_amf_id_t>::iterator found_imsi =
+              amf_supi_guti_map.find(imsi64);
+          if (found_imsi == amf_supi_guti_map.end()) {
+            // it is new entry to map
+            amf_supi_guti_map.insert(std::pair<imsi64_t, guti_and_amf_id_t>(
+                imsi64, guti_and_amf_id));
+          } else {
+            // Overwrite the second element.
+            found_imsi->second = guti_and_amf_id;
+          }
+        }
       } else {
         /*
          * Call subscriberdb to decode the SUPI or IMSI from SUCI as scheme
@@ -473,16 +514,26 @@ int amf_handle_registration_request(
           msg->m5gs_mobile_identity.mobile_identity.guti.mnc_digit3;
 
       amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
-
       OAILOG_DEBUG(LOG_NAS_AMF,
                    "In process of periodic registration update"
                    " new 5G-TMSI value 0x%08" PRIx32 "\n",
                    amf_guti.m_tmsi);
-
+      /* Update this new GUTI in amf_context and map
+       * unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map
+       */
       amf_ue_context_on_new_guti(ue_context, (guti_m5_t*)&amf_guti);
       ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
 
       imsi64_t imsi64 = ue_context->amf_context.imsi64;
+      guti_and_amf_id.amf_guti = amf_guti;
+      guti_and_amf_id.amf_ue_ngap_id = ue_id;
+      // Find the respective element in map with key imsi_64
+      std::unordered_map<imsi64_t, guti_and_amf_id_t>::iterator found_imsi =
+          amf_supi_guti_map.find(imsi64);
+      if (found_imsi != amf_supi_guti_map.end()) {
+        // element found in map and update the GUTI
+        found_imsi->second = guti_and_amf_id;
+      }
 
       params->guti = new (guti_m5_t)();
       memcpy(params->guti, &(ue_context->amf_context.m5_guti),
@@ -547,6 +598,7 @@ int amf_handle_identity_response(
   tmsi_t* p_tmsi = NULL;
   supi_as_imsi_t supi_imsi;
   amf_guti_m5g_t amf_guti;
+  guti_and_amf_id_t guti_and_amf_id;
   guti_m5_t* amf_ctx_guti = NULL;
 
   /* This is SUCI message identity type is SUPI as IMSI type
@@ -609,7 +661,32 @@ int amf_handle_identity_response(
      */
     amf_ctx_guti = (guti_m5_t*)&amf_guti;
 
+    /* store this GUTI in
+     * unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map
+     */
     imsi64_t imsi64 = amf_imsi_to_imsi64(&imsi);
+    guti_and_amf_id.amf_guti = amf_guti;
+    guti_and_amf_id.amf_ue_ngap_id = ue_id;
+
+    if (amf_supi_guti_map.size() == 0) {
+      // first entry.
+      amf_supi_guti_map.insert(
+          std::pair<imsi64_t, guti_and_amf_id_t>(imsi64, guti_and_amf_id));
+    } else {
+      /* already elements exist then check if same imsi already present
+       * if same imsi then update/overwrite the element
+       */
+      std::unordered_map<imsi64_t, guti_and_amf_id_t>::iterator found_imsi =
+          amf_supi_guti_map.find(imsi64);
+      if (found_imsi == amf_supi_guti_map.end()) {
+        // it is new entry to map
+        amf_supi_guti_map.insert(
+            std::pair<imsi64_t, guti_and_amf_id_t>(imsi64, guti_and_amf_id));
+      } else {
+        // Overwrite the second element.
+        found_imsi->second = guti_and_amf_id;
+      }
+    }
 
     ue_m5gmm_context_s* ue_context =
         amf_ue_context_exists_amf_ue_ngap_id(ue_id);
@@ -708,6 +785,32 @@ int amf_handle_authentication_failure(amf_ue_ngap_id_t ue_id,
   rc = amf_proc_authentication_failure(ue_id, msg, AMF_CAUSE_SUCCESS);
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    lookup_ue_ctxt_by_imsi()                                      **
+ **                                                                        **
+ ** Description: Lookup the guti structure based on imsi in                **
+ **              amf_supi_guti_map                                         **
+ **                                                                        **
+ ** Inputs:  imsi64: imsi value                                            **
+ **                                                                        **
+ ** Outputs: ue_m5gmm_context_s: pointer to ue context                     **
+ **                                                                        **
+ ***************************************************************************/
+ue_m5gmm_context_s* lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
+  /*Check imsi found
+   *
+   */
+  std::unordered_map<imsi64_t, guti_and_amf_id_t>::iterator found_imsi =
+      amf_supi_guti_map.find(imsi64);
+  if (found_imsi == amf_supi_guti_map.end()) {
+    return NULL;
+  } else {
+    return amf_ue_context_exists_amf_ue_ngap_id(
+        found_imsi->second.amf_ue_ngap_id);
+  }
 }
 
 /****************************************************************************
