@@ -110,7 +110,7 @@ void PagingApplication::handle_paging_message(
 
 static void mask_ipv6_address(uint8_t* dst, const uint8_t* src,
                               const uint8_t* mask) {
-  for (int i = 0; i < INET6_ADDRSTRLEN; i++) {
+  for (int i = 0; i < sizeof(struct in6_addr); i++) {
     dst[i] = src[i] & mask[i];
   }
 }
