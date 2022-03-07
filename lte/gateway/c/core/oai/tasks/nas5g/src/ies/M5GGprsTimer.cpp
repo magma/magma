@@ -51,6 +51,7 @@ int GPRSTimerMsg::EncodeGPRSTimerMsg(
   uint8_t encoded = 0;
 
   if (iei > 0) {
+    OAILOG_DEBUG(LOG_NAS5G, "EncodingGPRSTimerMsg:");
     *buffer = iei;
     encoded++;
 
