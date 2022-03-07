@@ -42,7 +42,7 @@ status_code_e send_s1ap_erab_setup_req(s1ap_state_t* state,
 // TODO: Migrate pending ITTI sending functions to call handlers directly
 // instead
 status_code_e send_conn_establishment_cnf(mme_ue_s1ap_id_t ue_id,
-                                          bool extueambr,
+                                          bool trigger_ext_ue_ambr,
                                           bool sec_capabilities_present,
                                           bool ue_radio_capability);
 
