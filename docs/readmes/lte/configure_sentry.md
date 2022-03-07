@@ -63,9 +63,26 @@ Example payload for `/networks/{network_id}/sentry`:
     "Streaming from the cloud failed!"
   ],
   "sample_rate": 1,
-  "upload_mme_log": false
+  "upload_mme_log": false,
+  "number_of_lines_in_log": 0
 }
 ```
+
+## Log file support
+
+There are two configuration options for sending log files to Sentry after a C++ service crash occurs. Both can be activated and deactivated via the Swagger UI. The first option is `upload_mme_log`. In the case it is set to `true` like the following example, the MME service log file located in `/var/log/mme.log` will be submitted within the crash report.
+
+```json
+"upload_mme_log": true,
+```
+
+The second option `number_of_lines_in_log` supports the transmission of the journal syslog file `/var/log/syslog`. It selects the last `n` entries in the file and sends them to Sentry attached to the crash report. The sent file considers log entries of all services marked with `magma@` and additionally of the service `sctpd`. In the subsequent example, `n` is 1000. If `n` is set to 0, `number_of_lines_in_log` is disabled, and no log history will be sent.
+
+```json
+"number_of_lines_in_log": 1000, 
+```
+
+Note: Only `upload_mme_log` can be overridden in the `control_proxy.yml`.
 
 ## Monitoring
 
