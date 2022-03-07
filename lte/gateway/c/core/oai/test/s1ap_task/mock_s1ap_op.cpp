@@ -15,6 +15,7 @@
 
 #include <fstream>
 #include <algorithm>
+#include <sstream>
 
 #include <google/protobuf/text_format.h>
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.h"
@@ -85,15 +86,75 @@ status_code_e mock_read_s1ap_state_db(
 
   S1apState state_proto = S1apState();
 
-  std::fstream input(
+  std::ifstream input(
       file_name_state_sample.c_str(), std::ios::in | std::ios::binary);
-  if (!state_proto.ParseFromIstream(&input)) {
-    std::cerr << "Failed to parse the sample: " << file_name_state_sample
-              << std::endl;
+  std::vector<char> data = std::vector<char>(
+      std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
+  std::string decoded_msg = decode_msg(data);
+  std::istringstream input_stream(decoded_msg);
+  if (!state_proto.ParseFromIstream(&input_stream)) {
+    std::cerr << "Failed to decode and parse the sample: "
+              << file_name_state_sample << std::endl;
     return RETURNerror;
   }
   S1apStateConverter::proto_to_state(state_proto, state_cache_p);
   return RETURNok;
+}
+
+// putting data in the buffer to decode and update the size of the buffer
+void add_data_to_buffer(
+    unsigned int& buf, int& buf_size, int data,
+    const std::vector<int>& decode_table) {
+  buf = buf << ENCODER_BLOCK_SIZE;
+  buf += data;
+  buf_size += ENCODER_BLOCK_SIZE;
+}
+
+// getting the last byte from the buffer
+int get_last_decoder_block_size_bit(int num) {
+  return num & ((1 << DECODER_BLOCK_SIZE) - 1);
+}
+
+// decoding each byte and putting it into the buffer of the decoded message
+void add_decoded_data_to_output(
+    unsigned int& buf, int& buf_size, std::string& buf_decoded_msg) {
+  if (buf_size >= DECODER_BLOCK_SIZE) {
+    buf_size -= DECODER_BLOCK_SIZE;
+    char decoded_char =
+        static_cast<char>(get_last_decoder_block_size_bit(buf >> buf_size));
+    buf_decoded_msg.push_back(decoded_char);
+  }
+}
+
+// decoding an encoded message
+std::string decode_msg(const std::vector<char>& encoded_msg) {
+  if (encoded_msg.size() % 4 != 0) {
+    std::cerr << " This data is wrongly encoded." << std::endl;
+    return "";
+  }
+  std::vector<int> decode_table(MAX_ASCII_VAL_OF_DECODE_TABLE, NO_CODE_VAL);
+  for (int i = 0; i < LENGTH_OF_STR_DECODE_TABLE; i++)
+    decode_table[STR_DECODE_TABLE[i]] = i;
+
+  int pad_size        = 0;
+  int cur_len_buffer  = 0;
+  unsigned int buffer = 0;
+  std::string decoded_msg;
+  for (int i = 0; i < encoded_msg.size(); ++i) {
+    char ch = encoded_msg[i];
+    ch -= SHIFT;
+    int data = decode_table[ch];
+    if (data == NO_CODE_VAL) {
+      if (ch != PAD_SYMBOL) {
+        std::cerr << " Invalid char in the encoded message." << std::endl;
+        return "";
+      }
+      break;
+    }
+    add_data_to_buffer(buffer, cur_len_buffer, data, decode_table);
+    add_decoded_data_to_output(buffer, cur_len_buffer, decoded_msg);
+  }
+  return decoded_msg;
 }
 
 }  // namespace lte
