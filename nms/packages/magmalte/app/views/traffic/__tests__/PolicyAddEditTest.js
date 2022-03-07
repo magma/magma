@@ -29,7 +29,8 @@ import {
 
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+// $FlowFixMe Upgrade react-testing-library
+import {cleanup, fireEvent, render, waitFor} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
@@ -163,6 +164,12 @@ describe('<TrafficDashboard />', () => {
     MagmaAPIBindings.getFegLteByNetworkId.mockResolvedValue(feg_lte_network);
     MagmaAPIBindings.getFegByNetworkId.mockResolvedValue(feg_network);
     MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles.mockResolvedValue({});
+    MagmaAPIBindings.getNetworksByNetworkIdPoliciesBaseNamesByBaseName.mockResolvedValue(
+      {},
+    );
+    MagmaAPIBindings.getNetworksByNetworkIdPoliciesBaseNames.mockResolvedValue(
+      [],
+    );
     MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull.mockResolvedValue(
       policies,
     );
@@ -221,12 +228,13 @@ describe('<TrafficDashboard />', () => {
     const {queryByTestId, getByTestId, getByText} = render(
       <PolicyWrapper networkType={FEG_LTE} />,
     );
-    await wait();
 
     // verify if feg_lte and feg api calls are invoked
-    expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledWith({
-      networkId,
-    });
+    await waitFor(() =>
+      expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledWith({
+        networkId,
+      }),
+    );
     expect(
       MagmaAPIBindings.getFegLteByNetworkIdSubscriberConfig,
     ).toHaveBeenCalledWith({networkId});
@@ -236,18 +244,18 @@ describe('<TrafficDashboard />', () => {
     expect(
       MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles,
     ).toHaveBeenCalledWith({networkId});
-    expect(
-      MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
-    ).toHaveBeenCalledWith({networkId: fegNetworkId});
+    await waitFor(() =>
+      expect(
+        MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
+      ).toHaveBeenCalledWith({networkId: fegNetworkId}),
+    );
 
     expect(queryByTestId('editDialog')).toBeNull();
 
-    fireEvent.click(getByText('Create New'));
-    await wait();
+    await waitFor(() => fireEvent.click(getByText('Create New')));
 
     const newPolicyMenu = getByTestId('newPolicyMenuItem');
-    fireEvent.click(newPolicyMenu);
-    await wait();
+    await waitFor(() => fireEvent.click(newPolicyMenu));
 
     expect(queryByTestId('editDialog')).not.toBeNull();
 
@@ -270,10 +278,11 @@ describe('<TrafficDashboard />', () => {
     }
 
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
 
-    expect(getByTestId('configEditError')).toHaveTextContent(
-      'Policy policy_0 already exists',
+    await waitFor(() =>
+      expect(getByTestId('configEditError')).toHaveTextContent(
+        'Policy policy_0 already exists',
+      ),
     );
 
     if (
@@ -291,42 +300,45 @@ describe('<TrafficDashboard />', () => {
     }
 
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
 
-    expect(
-      MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules,
-    ).toHaveBeenCalledWith({
-      networkId: 'test',
-      policyRule: {
-        app_name: undefined,
-        app_service_type: undefined,
-        assigned_subscribers: undefined,
-        flow_list: [],
-        id: 'test_policy_0',
-        monitoring_key: '',
-        priority: 1,
-        qos_profile: undefined,
-        rating_group: 0,
-        redirect_information: {},
-      },
-    });
-    expect(
-      MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules,
-    ).toHaveBeenCalledWith({
-      networkId: 'test_feg_network',
-      policyRule: {
-        app_name: undefined,
-        app_service_type: undefined,
-        assigned_subscribers: undefined,
-        flow_list: [],
-        id: 'test_policy_0',
-        monitoring_key: '',
-        priority: 1,
-        qos_profile: undefined,
-        rating_group: 0,
-        redirect_information: {},
-      },
-    });
+    await waitFor(() =>
+      expect(
+        MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules,
+      ).toHaveBeenCalledWith({
+        networkId: 'test',
+        policyRule: {
+          app_name: undefined,
+          app_service_type: undefined,
+          assigned_subscribers: undefined,
+          flow_list: [],
+          id: 'test_policy_0',
+          monitoring_key: '',
+          priority: 1,
+          qos_profile: undefined,
+          rating_group: 0,
+          redirect_information: {},
+        },
+      }),
+    );
+    await waitFor(() =>
+      expect(
+        MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules,
+      ).toHaveBeenCalledWith({
+        networkId: 'test_feg_network',
+        policyRule: {
+          app_name: undefined,
+          app_service_type: undefined,
+          assigned_subscribers: undefined,
+          flow_list: [],
+          id: 'test_policy_0',
+          monitoring_key: '',
+          priority: 1,
+          qos_profile: undefined,
+          rating_group: 0,
+          redirect_information: {},
+        },
+      }),
+    );
 
     // verify if network's subscriber config is populated as well
     expect(
@@ -354,12 +366,13 @@ describe('<TrafficDashboard />', () => {
     const {queryByTestId, getByTestId, getByText} = render(
       <PolicyWrapper networkType={LTE} />,
     );
-    await wait();
 
     // verify if lte api calls are invoked
-    expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledWith({
-      networkId,
-    });
+    await waitFor(() =>
+      expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledWith({
+        networkId,
+      }),
+    );
     expect(
       MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
     ).toHaveBeenCalledWith({networkId});
@@ -369,13 +382,10 @@ describe('<TrafficDashboard />', () => {
 
     expect(queryByTestId('editDialog')).toBeNull();
 
-    fireEvent.click(getByText('Create New'));
-    await wait();
+    await waitFor(() => fireEvent.click(getByText('Create New')));
+    await waitFor(() => fireEvent.click(getByTestId('newPolicyMenuItem')));
 
-    fireEvent.click(getByTestId('newPolicyMenuItem'));
-    await wait();
-
-    expect(queryByTestId('editDialog')).not.toBeNull();
+    await waitFor(() => expect(queryByTestId('editDialog')).not.toBeNull());
 
     expect(queryByTestId('infoEdit')).not.toBeNull();
     expect(queryByTestId('flowEdit')).toBeNull();
@@ -394,11 +404,12 @@ describe('<TrafficDashboard />', () => {
       throw 'invalid type';
     }
 
-    fireEvent.click(getByText('Save And Continue'));
-    await wait();
+    await waitFor(() => fireEvent.click(getByText('Save And Continue')));
 
-    expect(getByTestId('configEditError')).toHaveTextContent(
-      'Policy policy_0 already exists',
+    await waitFor(() =>
+      expect(getByTestId('configEditError')).toHaveTextContent(
+        'Policy policy_0 already exists',
+      ),
     );
 
     if (
@@ -416,25 +427,26 @@ describe('<TrafficDashboard />', () => {
     }
 
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
 
-    expect(
-      MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules,
-    ).toHaveBeenCalledWith({
-      networkId: 'test',
-      policyRule: {
-        app_name: undefined,
-        app_service_type: undefined,
-        assigned_subscribers: undefined,
-        flow_list: [],
-        id: 'test_policy_0',
-        monitoring_key: '',
-        priority: 1,
-        qos_profile: undefined,
-        rating_group: 0,
-        redirect_information: {},
-      },
-    });
+    await waitFor(() =>
+      expect(
+        MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules,
+      ).toHaveBeenCalledWith({
+        networkId: 'test',
+        policyRule: {
+          app_name: undefined,
+          app_service_type: undefined,
+          assigned_subscribers: undefined,
+          flow_list: [],
+          id: 'test_policy_0',
+          monitoring_key: '',
+          priority: 1,
+          qos_profile: undefined,
+          rating_group: 0,
+          redirect_information: {},
+        },
+      }),
+    );
 
     // verify if network's subscriber config is populated as well
     expect(
@@ -454,27 +466,32 @@ describe('<TrafficDashboard />', () => {
     const {queryByTestId, getByTestId, getByText} = render(
       <PolicyWrapper networkType={LTE} />,
     );
-    await wait();
-
-    // verify if lte api calls are invoked
-    expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledWith({
-      networkId,
-    });
-    expect(
-      MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
-    ).toHaveBeenCalledWith({networkId});
-    expect(
-      MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles,
-    ).toHaveBeenCalledWith({networkId});
+    await waitFor(() =>
+      // verify if lte api calls are invoked
+      expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledWith({
+        networkId,
+      }),
+    );
+    await waitFor(() =>
+      expect(
+        MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
+      ).toHaveBeenCalledWith({networkId}),
+    );
+    await waitFor(
+      () =>
+        expect(
+          MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles,
+        ).toHaveBeenCalled(),
+      {timeout: 5000},
+    );
 
     expect(queryByTestId('editDialog')).toBeNull();
 
-    fireEvent.click(getByText('Create New'));
-    await wait();
+    await waitFor(() => fireEvent.click(getByText('Create New')));
 
-    fireEvent.click(getByTestId('newPolicyMenuItem'));
-    await wait();
-    expect(queryByTestId('editDialog')).not.toBeNull();
+    await waitFor(() => fireEvent.click(getByTestId('newPolicyMenuItem')));
+
+    await waitFor(() => expect(queryByTestId('editDialog')).not.toBeNull());
 
     expect(queryByTestId('infoEdit')).not.toBeNull();
     expect(queryByTestId('flowEdit')).toBeNull();
@@ -496,7 +513,6 @@ describe('<TrafficDashboard />', () => {
     }
 
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
 
     const newRule = {
       app_name: undefined,
@@ -511,9 +527,11 @@ describe('<TrafficDashboard />', () => {
       redirect_information: {},
     };
 
-    expect(
-      MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules,
-    ).toHaveBeenCalledWith({networkId, policyRule: newRule});
+    await waitFor(() =>
+      expect(
+        MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules,
+      ).toHaveBeenCalledWith({networkId, policyRule: newRule}),
+    );
 
     // verify if we transition to flow tab
     expect(queryByTestId('infoEdit')).toBeNull();
@@ -523,8 +541,7 @@ describe('<TrafficDashboard />', () => {
     expect(queryByTestId('headerEnrichmentEdit')).toBeNull();
     expect(queryByTestId('appEdit')).toBeNull();
 
-    fireEvent.click(getByTestId('addFlowButton'));
-    await wait();
+    await waitFor(() => fireEvent.click(getByTestId('addFlowButton')));
 
     const ipSrc = getByTestId('ipSrc').firstChild;
     const ipDest = getByTestId('ipDest').firstChild;
@@ -533,8 +550,12 @@ describe('<TrafficDashboard />', () => {
       ipSrc instanceof HTMLInputElement &&
       ipDest instanceof HTMLInputElement
     ) {
-      fireEvent.change(ipSrc, {target: {value: '1.1.1.1'}});
-      fireEvent.change(ipDest, {target: {value: '1.1.1.2'}});
+      await waitFor(() =>
+        fireEvent.change(ipSrc, {target: {value: '1.1.1.1'}}),
+      );
+      await waitFor(() =>
+        fireEvent.change(ipDest, {target: {value: '1.1.1.2'}}),
+      );
     } else {
       throw 'invalid type';
     }
@@ -559,15 +580,16 @@ describe('<TrafficDashboard />', () => {
     MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesByRuleId.mockResolvedValue(
       newRule,
     );
-    fireEvent.click(getByText('Save And Continue'));
-    await wait();
-    expect(
-      MagmaAPIBindings.putNetworksByNetworkIdPoliciesRulesByRuleId,
-    ).toHaveBeenCalledWith({
-      networkId,
-      ruleId: 'test_policy_0',
-      policyRule: newRule,
-    });
+    await waitFor(() => fireEvent.click(getByText('Save And Continue')));
+    await waitFor(() =>
+      expect(
+        MagmaAPIBindings.putNetworksByNetworkIdPoliciesRulesByRuleId,
+      ).toHaveBeenCalledWith({
+        networkId,
+        ruleId: 'test_policy_0',
+        policyRule: newRule,
+      }),
+    );
 
     // verify if we transition to tracking tab
     expect(queryByTestId('trackingEdit')).not.toBeNull();
@@ -589,14 +611,16 @@ describe('<TrafficDashboard />', () => {
       newRule,
     );
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
-    expect(
-      MagmaAPIBindings.putNetworksByNetworkIdPoliciesRulesByRuleId,
-    ).toHaveBeenCalledWith({
-      networkId,
-      ruleId: 'test_policy_0',
-      policyRule: newRule,
-    });
+
+    await waitFor(() =>
+      expect(
+        MagmaAPIBindings.putNetworksByNetworkIdPoliciesRulesByRuleId,
+      ).toHaveBeenCalledWith({
+        networkId,
+        ruleId: 'test_policy_0',
+        policyRule: newRule,
+      }),
+    );
 
     // verify if we transition to redirect tab
     expect(queryByTestId('trackingEdit')).toBeNull();
@@ -619,14 +643,16 @@ describe('<TrafficDashboard />', () => {
         newRule,
       );
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
-    expect(
-      MagmaAPIBindings.putNetworksByNetworkIdPoliciesRulesByRuleId,
-    ).toHaveBeenCalledWith({
-      networkId,
-      ruleId: 'test_policy_0',
-      policyRule: newRule,
-    });
+
+    await waitFor(() =>
+      expect(
+        MagmaAPIBindings.putNetworksByNetworkIdPoliciesRulesByRuleId,
+      ).toHaveBeenCalledWith({
+        networkId,
+        ruleId: 'test_policy_0',
+        policyRule: newRule,
+      }),
+    );
 
     // verify if we transition to header enrichment tab
     expect(queryByTestId('trackingEdit')).toBeNull();
@@ -642,23 +668,22 @@ describe('<TrafficDashboard />', () => {
     } else {
       throw 'invalid type';
     }
-    fireEvent.click(getByTestId('addUrlButton'));
-    await wait();
+    await waitFor(() => fireEvent.click(getByTestId('addUrlButton')));
 
-    fireEvent.click(getByText('Save And Continue'));
+    await waitFor(() => fireEvent.click(getByText('Save And Continue')));
 
-    await wait();
-
-    expect(
-      MagmaAPIBindings.putNetworksByNetworkIdPoliciesRulesByRuleId,
-    ).toHaveBeenCalledWith({
-      networkId,
-      ruleId: 'test_policy_0',
-      policyRule: {
-        ...newRule,
-        header_enrichment_targets: ['http://example.com'],
-      },
-    });
+    await waitFor(() =>
+      expect(
+        MagmaAPIBindings.putNetworksByNetworkIdPoliciesRulesByRuleId,
+      ).toHaveBeenCalledWith({
+        networkId,
+        ruleId: 'test_policy_0',
+        policyRule: {
+          ...newRule,
+          header_enrichment_targets: ['http://example.com'],
+        },
+      }),
+    );
   });
 
   it('verify lte policy edit', async () => {
@@ -666,23 +691,28 @@ describe('<TrafficDashboard />', () => {
     const {queryByTestId, getByTestId, getByText} = render(
       <PolicyWrapper networkType={LTE} />,
     );
-    await wait();
 
     // verify if lte api calls are invoked
-    expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledWith({
-      networkId,
-    });
-    expect(
-      MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
-    ).toHaveBeenCalledWith({networkId});
-    expect(
-      MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles,
-    ).toHaveBeenCalledWith({networkId});
+    await waitFor(() =>
+      expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledWith({
+        networkId,
+      }),
+    );
+    await waitFor(() =>
+      expect(
+        MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
+      ).toHaveBeenCalledWith({networkId}),
+    );
+    await waitFor(() =>
+      expect(
+        MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles,
+      ).toHaveBeenCalledWith({networkId}),
+    );
 
     expect(queryByTestId('editDialog')).toBeNull();
-    fireEvent.click(getByText('policy_0'));
-    await wait();
-    expect(queryByTestId('editDialog')).not.toBeNull();
+    await waitFor(() => fireEvent.click(getByText('policy_0')));
+
+    await waitFor(() => expect(queryByTestId('editDialog')).not.toBeNull());
 
     expect(queryByTestId('infoEdit')).not.toBeNull();
     expect(queryByTestId('flowEdit')).toBeNull();
@@ -700,19 +730,20 @@ describe('<TrafficDashboard />', () => {
     }
 
     fireEvent.click(getByText('Save'));
-    await wait();
 
-    expect(
-      MagmaAPIBindings.putNetworksByNetworkIdPoliciesRulesByRuleId,
-    ).toHaveBeenCalledWith({
-      networkId,
-      ruleId: 'policy_0',
-      policyRule: {
-        flow_list: [],
-        id: 'policy_0',
-        monitoring_key: '',
-        priority: 2,
-      },
-    });
+    await waitFor(() =>
+      expect(
+        MagmaAPIBindings.putNetworksByNetworkIdPoliciesRulesByRuleId,
+      ).toHaveBeenCalledWith({
+        networkId,
+        ruleId: 'policy_0',
+        policyRule: {
+          flow_list: [],
+          id: 'policy_0',
+          monitoring_key: '',
+          priority: 2,
+        },
+      }),
+    );
   });
 });
