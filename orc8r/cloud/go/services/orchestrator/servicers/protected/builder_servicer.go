@@ -29,7 +29,7 @@ import (
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 	mconfig_protos "magma/orc8r/lib/go/protos/mconfig"
 )
@@ -227,10 +227,11 @@ func getNetworkSentryConfig(network *configurator.Network) *mconfig_protos.Share
 		return nil
 	}
 	return &mconfig_protos.SharedSentryConfig{
-		SampleRate:        swag.Float32Value(sentryConfig.SampleRate),
-		UploadMmeLog:      sentryConfig.UploadMmeLog,
-		DsnNative:         string(sentryConfig.URLNative),
-		DsnPython:         string(sentryConfig.URLPython),
-		ExclusionPatterns: sentryConfig.ExclusionPatterns,
+		SampleRate:         swag.Float32Value(sentryConfig.SampleRate),
+		UploadMmeLog:       sentryConfig.UploadMmeLog,
+		NumberOfLinesInLog: sentryConfig.NumberOfLinesInLog,
+		DsnNative:          string(sentryConfig.URLNative),
+		DsnPython:          string(sentryConfig.URLPython),
+		ExclusionPatterns:  sentryConfig.ExclusionPatterns,
 	}
 }

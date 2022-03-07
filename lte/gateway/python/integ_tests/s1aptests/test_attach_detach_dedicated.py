@@ -32,7 +32,7 @@ class TestAttachDetachDedicated(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach(self):
+    def test_attach_detach_dedicated(self):
         """attach/detach + dedicated bearer test with a single UE"""
         num_ues = 1
         detach_type = [

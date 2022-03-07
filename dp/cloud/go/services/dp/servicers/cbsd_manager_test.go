@@ -28,7 +28,7 @@ import (
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/clock"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 func TestCbsdManager(t *testing.T) {
@@ -198,7 +198,7 @@ func (s *CbsdManagerTestSuite) TestFetchNonexistentCbsd() {
 }
 
 func (s *CbsdManagerTestSuite) TestListCbsd() {
-	s.store.details = getDetailedCbsd()
+	s.store.list = getDetailedCbsdList()
 
 	request := &protos.ListCbsdRequest{
 		NetworkId:  networkId,
@@ -209,12 +209,12 @@ func (s *CbsdManagerTestSuite) TestListCbsd() {
 
 	s.Assert().Equal(networkId, s.store.networkId)
 	s.Assert().Equal(&storage.Pagination{}, s.store.pagination)
-	expected := []*protos.CbsdDetails{getProtoDetailedCbsd()}
-	s.Assert().Equal(expected, actual.Details)
+	expected := getProtoDetailedCbsdList()
+	s.Assert().Equal(expected, actual)
 }
 
 func (s *CbsdManagerTestSuite) TestListCbsdWithPagination() {
-	s.store.details = getDetailedCbsd()
+	s.store.list = getDetailedCbsdList()
 
 	request := &protos.ListCbsdRequest{
 		NetworkId: networkId,
@@ -232,8 +232,8 @@ func (s *CbsdManagerTestSuite) TestListCbsdWithPagination() {
 		Offset: db.MakeInt(20),
 	}
 	s.Assert().Equal(expectedPagination, s.store.pagination)
-	expected := []*protos.CbsdDetails{getProtoDetailedCbsd()}
-	s.Assert().Equal(expected, actual.Details)
+	expected := getProtoDetailedCbsdList()
+	s.Assert().Equal(expected, actual)
 }
 
 func getProtoCbsd() *protos.CbsdData {
@@ -265,6 +265,13 @@ func getProtoDetailedCbsd() *protos.CbsdDetails {
 			TransmitExpireTimestamp: 1e9,
 			GrantExpireTimestamp:    2e9,
 		},
+	}
+}
+
+func getProtoDetailedCbsdList() *protos.ListCbsdResponse {
+	return &protos.ListCbsdResponse{
+		Details:    []*protos.CbsdDetails{getProtoDetailedCbsd()},
+		TotalCount: 1,
 	}
 }
 
@@ -305,11 +312,19 @@ func getDetailedCbsd() *storage.DetailedCbsd {
 	}
 }
 
+func getDetailedCbsdList() *storage.DetailedCbsdList {
+	return &storage.DetailedCbsdList{
+		Cbsds: []*storage.DetailedCbsd{getDetailedCbsd()},
+		Count: 1,
+	}
+}
+
 type stubCbsdManager struct {
 	networkId  string
 	id         int64
 	data       *storage.DBCbsd
 	details    *storage.DetailedCbsd
+	list       *storage.DetailedCbsdList
 	pagination *storage.Pagination
 	err        error
 }
@@ -339,8 +354,8 @@ func (s *stubCbsdManager) FetchCbsd(networkId string, id int64) (*storage.Detail
 	return s.details, s.err
 }
 
-func (s *stubCbsdManager) ListCbsd(networkId string, pagination *storage.Pagination) ([]*storage.DetailedCbsd, error) {
+func (s *stubCbsdManager) ListCbsd(networkId string, pagination *storage.Pagination) (*storage.DetailedCbsdList, error) {
 	s.networkId = networkId
 	s.pagination = pagination
-	return []*storage.DetailedCbsd{s.details}, nil
+	return s.list, s.err
 }

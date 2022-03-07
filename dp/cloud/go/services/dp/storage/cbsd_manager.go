@@ -20,7 +20,7 @@ import (
 
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/sqorc"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 type CbsdManager interface {
@@ -28,7 +28,12 @@ type CbsdManager interface {
 	UpdateCbsd(networkId string, id int64, data *DBCbsd) error
 	DeleteCbsd(networkId string, id int64) error
 	FetchCbsd(networkId string, id int64) (*DetailedCbsd, error)
-	ListCbsd(networkId string, pagination *Pagination) ([]*DetailedCbsd, error)
+	ListCbsd(networkId string, pagination *Pagination) (*DetailedCbsdList, error)
+}
+
+type DetailedCbsdList struct {
+	Cbsds []*DetailedCbsd
+	Count int64
 }
 
 type DetailedCbsd struct {
@@ -95,7 +100,7 @@ func (c *cbsdManager) FetchCbsd(networkId string, id int64) (*DetailedCbsd, erro
 	return cbsd.(*DetailedCbsd), nil
 }
 
-func (c *cbsdManager) ListCbsd(networkId string, pagination *Pagination) ([]*DetailedCbsd, error) {
+func (c *cbsdManager) ListCbsd(networkId string, pagination *Pagination) (*DetailedCbsdList, error) {
 	cbsds, err := sqorc.ExecInTx(c.db, nil, nil, func(tx *sql.Tx) (interface{}, error) {
 		runner := c.getInTransactionManager(tx)
 		return runner.listDetailedCbsd(networkId, pagination)
@@ -103,7 +108,7 @@ func (c *cbsdManager) ListCbsd(networkId string, pagination *Pagination) ([]*Det
 	if err != nil {
 		return nil, makeError(err)
 	}
-	return cbsds.([]*DetailedCbsd), nil
+	return cbsds.(*DetailedCbsdList), nil
 }
 
 func (c *cbsdManager) getInTransactionManager(tx sq.BaseRunner) *cbsdManagerInTransaction {
@@ -255,7 +260,11 @@ func buildDetailedCbsdQuery(builder sq.StatementBuilderType) *db.Query {
 			Nullable())
 }
 
-func (c *cbsdManagerInTransaction) listDetailedCbsd(networkId string, pagination *Pagination) ([]*DetailedCbsd, error) {
+func (c *cbsdManagerInTransaction) listDetailedCbsd(networkId string, pagination *Pagination) (*DetailedCbsdList, error) {
+	count, err := countCbsds(networkId, c.builder)
+	if err != nil {
+		return nil, err
+	}
 	query := buildDetailedCbsdQuery(c.builder)
 	res, err := buildPagination(query, pagination).
 		Where(getCbsdFilters(networkId)).
@@ -268,7 +277,18 @@ func (c *cbsdManagerInTransaction) listDetailedCbsd(networkId string, pagination
 	for i, models := range res {
 		cbsds[i] = convertToDetails(models)
 	}
-	return cbsds, nil
+	return &DetailedCbsdList{
+		Cbsds: cbsds,
+		Count: count,
+	}, nil
+}
+
+func countCbsds(networkId string, builder sq.StatementBuilderType) (int64, error) {
+	return db.NewQuery().
+		WithBuilder(builder).
+		From(&DBCbsd{}).
+		Where(getCbsdFilters(networkId)).
+		Count()
 }
 
 func makeError(err error) error {

@@ -29,8 +29,9 @@
 		"ryuta46.multi-command",
 		"coolchyni.beyond-debug",
 	],
-	"image": "ghcr.io/magma/magma/devcontainer:master",
+	"image": "ghcr.io/magma/magma/devcontainer:latest",
 	"settings": {
+		"search.followSymlinks": false,
 		"terminal.integrated.profiles.linux": {
 			"bash": {
 				"path": "bash",

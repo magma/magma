@@ -142,7 +142,7 @@ RUN wget --progress=dot:giga https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz &&
     cd nettle-2.5 && \
     mkdir build && \
     cd build/ && \
-    ../configure --disable-openssl --enable-shared --libdir=/usr/local/lib && \
+    ../configure --disable-openssl --enable-shared --libdir=/usr/lib && \
     make -j"$(nproc)" && \
     make install && \
     ldconfig -v && \
@@ -151,7 +151,7 @@ RUN wget --progress=dot:giga https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz &&
     tar xf gnutls-3.1.23.tar.xz && \
     cd gnutls-3.1.23 && \
     mkdir build && cd build && \
-    CFLAGS=-D_IO_ftrylockfile ../configure --with-libnettle-prefix=/usr/local && \
+    CFLAGS=-D_IO_ftrylockfile ../configure --libdir=/usr/lib --with-libnettle-prefix=/usr && \
     make -j"$(nproc)" && \
     make install && \
     ldconfig -v && \

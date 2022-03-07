@@ -33,7 +33,7 @@ import (
 	"magma/gateway/services/magmad/service/ping"
 	"magma/gateway/services/magmad/service_manager"
 	"magma/orc8r/lib/go/definitions"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/service"
 )
@@ -43,7 +43,7 @@ type magmadService struct {
 }
 
 func (m *magmadService) StartServices(context.Context, *protos.Void) (*protos.Void, error) {
-	resErrs := errors.NewMulti()
+	resErrs := merrors.NewMulti()
 	sm := service_manager.Get()
 	for _, srv := range getServices() {
 		glog.Infof("Starting service '%s'", srv)
@@ -53,7 +53,7 @@ func (m *magmadService) StartServices(context.Context, *protos.Void) (*protos.Vo
 }
 
 func (m *magmadService) StopServices(context.Context, *protos.Void) (*protos.Void, error) {
-	resErrs := errors.NewMulti()
+	resErrs := merrors.NewMulti()
 	sm := service_manager.Get()
 	for _, srv := range getServices() {
 		glog.Infof("Stopping service '%s'", srv)
@@ -69,7 +69,7 @@ func (m *magmadService) Reboot(context.Context, *protos.Void) (*protos.Void, err
 }
 
 func (m *magmadService) RestartServices(context.Context, *protos.RestartServicesRequest) (*protos.Void, error) {
-	resErrs := errors.NewMulti()
+	resErrs := merrors.NewMulti()
 	sm := service_manager.Get()
 	for _, srv := range getServices() {
 		glog.Infof("Restarting service '%s'", srv)

@@ -64,6 +64,7 @@ message ListCbsdRequest {
 
 message ListCbsdResponse {
   repeated CbsdDetails details = 1;
+  int64 total_count = 2;
 }
 
 message CbsdData {

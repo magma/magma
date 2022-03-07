@@ -21,7 +21,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 	srvRegistry "magma/orc8r/lib/go/registry"
 )

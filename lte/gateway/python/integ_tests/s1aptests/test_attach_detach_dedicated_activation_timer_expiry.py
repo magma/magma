@@ -34,7 +34,7 @@ class TestAttachDetachDedicatedActTmrExp(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach(self):
+    def test_attach_detach_dedicated_activation_timer_expiry(self):
         """attach/detach + dedicated bearer activation timer expiry test
         with a single UE
         """

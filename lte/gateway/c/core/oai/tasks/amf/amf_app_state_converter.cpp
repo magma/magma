@@ -294,7 +294,7 @@ void AmfNasStateConverter::tai_to_proto(const tai_t* state_tai,
                                         magma::lte::oai::Tai* tai_proto) {
   OAILOG_DEBUG(LOG_MME_APP, "State PLMN " PLMN_FMT "to proto",
                PLMN_ARG(&state_tai->plmn));
-  char plmn_array[PLMN_BYTES];
+  char plmn_array[PLMN_BYTES] = {0};
   plmn_array[0] = static_cast<char>(state_tai->plmn.mcc_digit1 + ASCII_ZERO);
   plmn_array[1] = static_cast<char>(state_tai->plmn.mcc_digit2 + ASCII_ZERO);
   plmn_array[2] = static_cast<char>(state_tai->plmn.mcc_digit3 + ASCII_ZERO);
@@ -327,7 +327,7 @@ void AmfNasStateConverter::proto_to_tai(const magma::lte::oai::Tai& tai_proto,
 void AmfNasStateConverter::guti_m5_to_proto(
     const guti_m5_t& state_guti_m5, magma::lte::oai::Guti_m5* guti_m5_proto) {
   guti_m5_proto->Clear();
-  char plmn_array[PLMN_BYTES];
+  char plmn_array[PLMN_BYTES] = {0};
   AmfNasStateConverter::plmn_to_chars(state_guti_m5.guamfi.plmn, plmn_array);
   guti_m5_proto->set_plmn(plmn_array);
   guti_m5_proto->set_amf_regionid(state_guti_m5.guamfi.amf_regionid);

@@ -38,6 +38,7 @@ typedef struct sentry_config {
   char url_native[MAX_URL_LENGTH];
   // Add debug logging for sentry, useful for debugging connection issues
   bool add_debug_logging;
+  int number_of_lines_in_log;
 } sentry_config_t;
 
 /**

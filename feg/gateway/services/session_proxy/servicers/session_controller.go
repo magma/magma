@@ -30,7 +30,7 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/feg/gateway/services/session_proxy/metrics"
 	"magma/lte/cloud/go/protos"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	orcprotos "magma/orc8r/lib/go/protos"
 )
 
@@ -339,7 +339,7 @@ func (srv *CentralSessionController) Enable(
 	ctx context.Context,
 	void *orcprotos.Void,
 ) (*orcprotos.Void, error) {
-	multiError := errors.NewMulti()
+	multiError := merrors.NewMulti()
 	if !srv.cfg.DisableGx {
 		err := srv.policyClient.EnableConnections()
 		if err != nil {
