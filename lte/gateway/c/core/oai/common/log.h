@@ -388,9 +388,6 @@ int append_log_ctx_info_prefix_id(
 
 const char* get_short_file_name(const char* const source_file_nameP);
 
-// Return the hex representation of a char array
-char* bytes_to_hex(char* byte_array, int length, char* hex_array);
-
 #define OAILOG_LOG_CONFIGURE log_configure
 #define OAILOG_LEVEL_STR2INT log_level_str2int
 #define OAILOG_LEVEL_INT2STR log_level_int2str
