@@ -15,7 +15,7 @@
 #include <string>
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.h"
 #include "lte/gateway/c/core/oai/include/sgw_s8_state.h"
-#include "../mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"

@@ -51,9 +51,11 @@ build:coverage --instrumentation_filter="//(orc8r|lte)/gateway/(c|python)[/:],-/
 
 # ASAN
 build:asan --copt=-fsanitize=address
+build:asan --copt=-fsanitize=undefined
 build:asan --copt=-O0
 build:asan --copt=-fno-omit-frame-pointer
 build:asan --linkopt=-fsanitize=address
+build:asan --linkopt=-fsanitize=undefined
 build:asan --action_env=ASAN_OPTIONS=detect_leaks=1:color=always
 
 # LSAN

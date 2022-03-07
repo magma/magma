@@ -49,6 +49,17 @@ func (q *Query) Delete() error {
 	return err
 }
 
+func (q *Query) Count() (int64, error) {
+	var count int64
+	err := q.builder.
+		Select("COUNT(*)").
+		From(q.arg.model.GetMetadata().Table).
+		Where(q.arg.filter).
+		QueryRow().
+		Scan(&count)
+	return count, err
+}
+
 func (q *Query) Fetch() ([]Model, error) {
 	colsCollector := collectColumns(q)
 	fieldsCollector := collectFields(q, colsCollector.columns)

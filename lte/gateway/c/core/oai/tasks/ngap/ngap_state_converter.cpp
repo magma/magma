@@ -45,6 +45,7 @@ void NgapStateConverter::state_to_proto(ngap_state_t* state, NgapState* proto) {
   hashtable_rc_t ht_rc;
   amf_ue_ngap_id_t amfid;
   sctp_assoc_id_t associd;
+  void* associd_ptr = nullptr;
   auto amfid2associd = proto->mutable_amfid2associd();
 
   hashtable_key_array_t* keys = hashtable_ts_get_keys(&state->amfid2associd);
@@ -54,10 +55,13 @@ void NgapStateConverter::state_to_proto(ngap_state_t* state, NgapState* proto) {
     for (int i = 0; i < keys->num_keys; i++) {
       amfid = (amf_ue_ngap_id_t)keys->keys[i];
       ht_rc = hashtable_ts_get(&state->amfid2associd, (hash_key_t)amfid,
-                               (void**)&associd);
+                               reinterpret_cast<void**>(&associd_ptr));
       AssertFatal(ht_rc == HASH_TABLE_OK, "amfid not in amfid2associd");
 
-      (*amfid2associd)[amfid] = associd;
+      if (associd_ptr) {
+        associd = (sctp_assoc_id_t)(uintptr_t)associd_ptr;
+        (*amfid2associd)[amfid] = associd;
+      }
     }
     FREE_HASHTABLE_KEY_ARRAY(keys);
   }

@@ -13,10 +13,9 @@ limitations under the License.
 import logging
 import random
 from copy import deepcopy
-from ipaddress import ip_address, ip_network
 from typing import List, Optional
 
-from magma.mobilityd.utils import log_error_and_raise
+from magma.mobilityd.utils import IPAddress, IPNetwork, log_error_and_raise
 
 from .ip_allocator_base import (
     IPAllocator,
@@ -48,7 +47,7 @@ class IPv6AllocatorPool(IPAllocator):
             else MAX_IPV6_CONF_PREFIX_LEN
         )
 
-    def add_ip_block(self, ipblock: ip_network):
+    def add_ip_block(self, ipblock: IPNetwork):
         """
         Adds IP block to the assigned IP block of the IPv6 allocator
 
@@ -73,9 +72,9 @@ class IPv6AllocatorPool(IPAllocator):
         self._store.assigned_ip_blocks.add(ipblock)
 
     def remove_ip_blocks(
-        self, ipblocks: List[ip_network],
+        self, ipblocks: List[IPNetwork],
         force: bool = False,
-    ) -> List[ip_network]:
+    ) -> List[IPNetwork]:
         """
         Removes assigned IP block (as it only supports one for now)
 
@@ -98,7 +97,7 @@ class IPv6AllocatorPool(IPAllocator):
             if allocated_ip_block_set:
                 return []
 
-        removed_blocks = []
+        removed_blocks: List[IPNetwork] = []
         # Clear allocated session prefix and IID store
         self._store.allocated_iid.clear()
         self._store.sid_session_prefix_allocated.clear()
@@ -240,7 +239,7 @@ class IPv6AllocatorPool(IPAllocator):
                     return session_prefix_part
         return None
 
-    def list_added_ip_blocks(self) -> List[ip_network]:
+    def list_added_ip_blocks(self) -> List[IPNetwork]:
         """
         Returns: assigned IP blocks on the allocator
         """
@@ -250,7 +249,7 @@ class IPv6AllocatorPool(IPAllocator):
                 ret.append(ipblock)
         return list(deepcopy(ret))
 
-    def list_allocated_ips(self, ipblock: ip_network) -> List[ip_address]:
+    def list_allocated_ips(self, ipblock: IPNetwork) -> List[IPAddress]:
         raise NotImplementedError
 
 

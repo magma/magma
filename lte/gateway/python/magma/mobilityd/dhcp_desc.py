@@ -94,6 +94,7 @@ class DHCPDescriptor:
         if self.state == DHCPState.OFFER or self.state == DHCPState.REQUEST \
                 or self.state == DHCPState.ACK:
             return self.ip
+        return None
 
     def ip_is_allocated(self) -> bool:
         """

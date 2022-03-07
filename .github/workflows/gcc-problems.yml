@@ -12,17 +12,17 @@ on:
   push:
     branches:
       - master
-      - v1.*
+      - 'v1.*'
   pull_request:
     branches:
       - master
-      - v1.*
+      - 'v1.*'
     types:
       - opened
       - reopened
       - synchronize
 env:
-  DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:sha-206a67a"
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:latest"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}

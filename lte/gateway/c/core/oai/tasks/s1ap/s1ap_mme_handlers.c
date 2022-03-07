@@ -1591,9 +1591,6 @@ status_code_e s1ap_mme_handle_ue_context_release_complete(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   } else {
     if (ue_ref_p->sctp_assoc_id == assoc_id) {
-      /* This is an error scenario, the S1 UE context should have been deleted
-       * when UE context release command was sent
-       */
       OAILOG_ERROR(LOG_S1AP,
                    "UE Context Release complete: clearing S1 context for "
                    "ueid " MME_UE_S1AP_ID_FMT "\n",

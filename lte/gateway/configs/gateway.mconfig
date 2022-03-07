@@ -139,6 +139,7 @@
         "dsn_python": "",
         "sample_rate": 1.0,
         "upload_mme_log": false,
+        "number_of_lines_in_log": 0,
         "exclusion_patterns": []
       }
     },

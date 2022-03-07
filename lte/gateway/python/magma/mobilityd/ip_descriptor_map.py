@@ -39,10 +39,11 @@ from __future__ import (
     unicode_literals,
 )
 
-from ipaddress import ip_address, ip_network
+from ipaddress import ip_address
 from typing import Dict, List, MutableMapping, Optional, Set
 
 from magma.mobilityd.ip_descriptor import IPDesc, IPState
+from magma.mobilityd.utils import IPAddress, IPNetwork
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 
@@ -58,7 +59,7 @@ class IpDescriptorMap:
         self.ip_states = ip_states
 
     def add_ip_to_state(
-        self, ip: ip_address, ip_desc: IPDesc,
+        self, ip: IPAddress, ip_desc: IPDesc,
         state: IPState,
     ):
         """ Add ip=>ip_desc pairs to a internal dict """
@@ -69,7 +70,7 @@ class IpDescriptorMap:
 
         self.ip_states[state][ip.exploded] = ip_desc
 
-    def remove_ip_from_state(self, ip: ip_address, state: IPState) -> IPDesc:
+    def remove_ip_from_state(self, ip: IPAddress, state: IPState) -> IPDesc:
         """ Remove an IP from a internal dict """
         assert state in IPState, "unknown state %s" % state
 
@@ -97,26 +98,26 @@ class IpDescriptorMap:
 
         return bool(self.ip_states[state]) == False
 
-    def test_ip_state(self, ip: ip_address, state: IPState) -> bool:
+    def test_ip_state(self, ip: IPAddress, state: IPState) -> bool:
         """ check if IP is in state X """
         assert state in IPState, "unknown state %s" % state
 
         return ip.exploded in self.ip_states[state]
 
-    def get_ip_state(self, ip: ip_address) -> IPState:
+    def get_ip_state(self, ip: IPAddress) -> IPState:
         """ return the state of an IP """
         for state in IPState:
             if self.test_ip_state(ip, state):
                 return state
         raise AssertionError("IP %s not found in any states" % ip)
 
-    def list_ips(self, state: IPState) -> List[ip_address]:
+    def list_ips(self, state: IPState) -> List[IPAddress]:
         """ return a list of IPs in state X """
         assert state in IPState, "unknown state %s" % state
 
         return [ip_address(ip) for ip in self.ip_states[state]]
 
-    def mark_ip_state(self, ip: ip_address, state: IPState) -> IPDesc:
+    def mark_ip_state(self, ip: IPAddress, state: IPState) -> IPDesc:
         """ Remove, mark, add: move IP to a new state """
         assert state in IPState, "unknown state %s" % state
 
@@ -141,7 +142,7 @@ class IpDescriptorMap:
         self.add_ip_to_state(ip, ip_desc, state)
         return ip_desc
 
-    def get_allocated_ip_block_set(self) -> Set[ip_network]:
+    def get_allocated_ip_block_set(self) -> Set[IPNetwork]:
         """ A IP block is allocated if ANY IP is allocated from it """
         allocated_ips = self.ip_states[IPState.ALLOCATED]
         return {ip_desc.ip_block for ip_desc in allocated_ips.values()}

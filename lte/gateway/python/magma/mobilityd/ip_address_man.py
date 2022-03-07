@@ -50,13 +50,13 @@ from __future__ import (
 import ipaddress
 import logging
 import threading
-from ipaddress import ip_address, ip_network
 from typing import List, Optional, Tuple
 
-from lte.protos.mobilityd_pb2 import GWInfo, IPAddress
+from lte.protos import mobilityd_pb2
+from lte.protos.mobilityd_pb2 import GWInfo
 from magma.mobilityd.ip_descriptor import IPState
 from magma.mobilityd.metrics import IP_ALLOCATED_TOTAL, IP_RELEASED_TOTAL
-from magma.mobilityd.utils import log_error_and_raise
+from magma.mobilityd.utils import IPAddress, IPNetwork, log_error_and_raise
 
 from .ip_allocator_base import (
     DuplicateIPAssignmentError,
@@ -143,7 +143,7 @@ class IPAddressManager:
         self.ip_allocator = ipv4_allocator
         self.ipv6_allocator = ipv6_allocator
 
-    def add_ip_block(self, ipblock: ip_network):
+    def add_ip_block(self, ipblock: IPNetwork):
         """ Add a block of IP addresses to the free IP list
 
         IP blocks should not overlap.
@@ -174,9 +174,9 @@ class IPAddressManager:
                 logging.warning("Failing to add IPBlock as is invalid")
 
     def remove_ip_blocks(
-        self, *ipblocks: List[ip_network],
+        self, *ipblocks: IPNetwork,
         force: bool = False
-    ) -> List[ip_network]:
+    ) -> List[IPNetwork]:
         """ Makes the indicated block(s) unavailable for allocation
 
         If force is False, blocks that have any addresses currently allocated
@@ -226,7 +226,7 @@ class IPAddressManager:
 
         return ipv4_blocks_deleted + ipv6_blocks_deleted
 
-    def list_added_ip_blocks(self) -> List[ip_network]:
+    def list_added_ip_blocks(self) -> List[IPNetwork]:
         """ List IP blocks added to the IP allocator
 
         Return:
@@ -236,24 +236,24 @@ class IPAddressManager:
             ip_blocks = self.ip_allocator.list_added_ip_blocks()
         return ip_blocks
 
-    def get_assigned_ipv6_block(self) -> ip_network:
+    def get_assigned_ipv6_block(self) -> IPNetwork:
         """
         Returns currently assigned block to IPv6 allocator
-        :return: ip_network object for assigned block
+        :return: IpNetwork object for assigned block
         """
         with self._lock:
             ip_block = self.ipv6_allocator.list_added_ip_blocks()
         return ip_block
 
-    def list_allocated_ips(self, ipblock: ip_network) -> List[ip_address]:
+    def list_allocated_ips(self, ipblock: IPNetwork) -> List[IPAddress]:
         """ List IP addresses allocated from a given IP block
 
         Args:
-            ipblock (ipaddress.ip_network): ip network to add
+            ipblock (IPNetwork): ip network to add
             e.g. ipaddress.ip_network("10.0.0.0/24")
 
         Return:
-            list of IP addresses (ipaddress.ip_address)
+            list of IP addresses (IPAddress)
 
         Raises:
           IPBlockNotFoundError: if the given IP block is not found in the
@@ -264,8 +264,8 @@ class IPAddressManager:
             res = self.ip_allocator.list_allocated_ips(ipblock)
         return res
 
-    def alloc_ip_address(self, sid: str, version: int = IPAddress.IPV4) -> \
-            Tuple[ip_address, int]:
+    def alloc_ip_address(self, sid: str, version: int = mobilityd_pb2.IPAddress.IPV4) -> \
+            Tuple[IPAddress, int]:
         """ Allocate an IP address from the free list
 
         Assumption: one-to-one mappings between SID and IP.
@@ -333,7 +333,7 @@ class IPAddressManager:
                 return old_ip_desc.ip, old_ip_desc.vlan_id
 
             # Now try to allocate it from underlying allocator.
-            allocator = self.ip_allocator if version == IPAddress.IPV4 \
+            allocator = self.ip_allocator if version == mobilityd_pb2.IPAddress.IPV4 \
                 else self.ipv6_allocator
             ip_desc = allocator.alloc_ip_address(sid, 0)
             existing_sid = self.get_sid_for_ip(ip_desc.ip)
@@ -346,12 +346,12 @@ class IPAddressManager:
                     existing_sid,
                 )
 
-            if version == IPAddress.IPV4:
+            if version == mobilityd_pb2.IPAddress.IPV4:
                 self._store.ip_state_map.add_ip_to_state(
                     ip_desc.ip, ip_desc,
                     IPState.ALLOCATED,
                 )
-            elif version == IPAddress.IPV6:
+            elif version == mobilityd_pb2.IPAddress.IPV6:
                 self._store.ipv6_state_map.add_ip_to_state(
                     ip_desc.ip, ip_desc,
                     IPState.ALLOCATED,
@@ -363,7 +363,7 @@ class IPAddressManager:
             IP_ALLOCATED_TOTAL.inc()
             return ip_desc.ip, ip_desc.vlan_id
 
-    def get_sid_ip_table(self) -> List[Tuple[str, ip_address]]:
+    def get_sid_ip_table(self) -> List[Tuple[str, IPAddress]]:
         """ Return list of tuples (sid, ip) """
         with self._lock:
             res = [
@@ -372,21 +372,21 @@ class IPAddressManager:
             ]
             return res
 
-    def get_ip_for_sid(self, sid: str) -> Optional[ip_address]:
+    def get_ip_for_sid(self, sid: str) -> Optional[IPAddress]:
         """ if ip is mapped to sid, return it, else return None """
         if not self._store.sid_ips_map.get(sid, None):
             return None
         else:
             return self._store.sid_ips_map[sid].ip
 
-    def get_sid_for_ip(self, requested_ip: ip_address) -> Optional[str]:
+    def get_sid_for_ip(self, requested_ip: IPAddress) -> Optional[str]:
         """ If ip is associated with an sid, return the sid, else None """
         for sid, ip_desc in self._store.sid_ips_map.items():
             if requested_ip == ip_desc.ip:
                 return sid
         return None
 
-    def is_ip_in_state(self, ip_addr: ip_address, state: IPState):
+    def is_ip_in_state(self, ip_addr: IPAddress, state: IPState):
         """
             Check if IP address is on a given state
         """
@@ -395,7 +395,7 @@ class IPAddressManager:
         return ip_state_map.test_ip_state(ip_addr, state)
 
     def release_ip_address(
-        self, sid: str, ip: ip_address,
+        self, sid: str, ip: IPAddress,
     ):
         """ Release an IP address.
 

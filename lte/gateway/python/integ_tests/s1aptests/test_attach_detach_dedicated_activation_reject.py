@@ -34,7 +34,7 @@ class TestAttachDetachDedicatedReject(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach(self):
+    def test_attach_detach_dedicated_activation_reject(self):
         """attach/detach + dedicated bearer activation reject test with a
         single UE
         """
