@@ -91,10 +91,10 @@ as a starting point, as individual needs may vary.</p>
 <span class="hljs-built_in">export</span> REGISTRY=registry.hub.docker.com/REGISTRY  <span class="hljs-comment"># or desired registry</span>
 <span class="hljs-built_in">export</span> MAGMA_TAG=1.6.0-master  <span class="hljs-comment"># or desired tag</span>
 </code></pre>
-<p>Checkout the v1.6 release branch</p>
+<p>Checkout the desired Git target, e.g. the v1.6 branch</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> <span class="hljs-variable">${MAGMA_ROOT}</span>
 git fetch origin
-git checkout -b v1.6 origin/v1.6
+git checkout -b v1.6 origin/v1.6  <span class="hljs-comment"># or desired Git target, e.g. master</span>
 </code></pre>
 <p>Build and publish Orchestrator images</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> <span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/cloud/docker
