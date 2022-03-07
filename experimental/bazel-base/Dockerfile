@@ -6,6 +6,9 @@ FROM ubuntu:focal as bazel_builder
 ENV TZ=America/New_York \
     DEBIAN_FRONTEND=noninteractive
 
+#  MAGMA_ROOT is needed by python tests (e.g. freedomfi_one_tests in enodebd)
+ENV MAGMA_ROOT=/magma
+
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
