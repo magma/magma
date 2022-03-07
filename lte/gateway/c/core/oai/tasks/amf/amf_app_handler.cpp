@@ -101,6 +101,7 @@ void amf_ue_context_update_coll_keys(amf_ue_context_t* const amf_ue_context_p,
                      "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
                      amf_ue_ngap_id);
       }
+
       ue_context_p->amf_ue_ngap_id = amf_ue_ngap_id;
     }
   } else {
