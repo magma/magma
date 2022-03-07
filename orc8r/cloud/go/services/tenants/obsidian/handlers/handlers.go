@@ -25,7 +25,7 @@ import (
 	"magma/orc8r/cloud/go/services/tenants"
 	"magma/orc8r/cloud/go/services/tenants/obsidian/models"
 	"magma/orc8r/cloud/go/services/tenants/protos"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 const (
@@ -208,7 +208,7 @@ func CreateOrUpdateControlProxyHandler(c echo.Context) error {
 
 func mapErr(err error, notFoundErr error, nonNilErr error) error {
 	switch {
-	case err == errors.ErrNotFound:
+	case err == merrors.ErrNotFound:
 		return echo.NewHTTPError(http.StatusNotFound, notFoundErr)
 	case err != nil:
 		return echo.NewHTTPError(http.StatusInternalServerError, nonNilErr)

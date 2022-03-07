@@ -17,7 +17,7 @@ import (
 	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/storage"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 // why pointer receivers here? we can cache intermediate computation steps

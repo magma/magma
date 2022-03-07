@@ -23,7 +23,7 @@ import (
 	"google.golang.org/grpc"
 
 	"magma/feg/cloud/go/protos"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	platformregistry "magma/orc8r/lib/go/registry"
 )
 
@@ -39,7 +39,7 @@ func getBaseAcctClient() (protos.AccountingClient, error) {
 	)
 	conn, err = platformregistry.Get().GetSharedCloudConnection(strings.ToLower(ServiceName))
 	if err != nil {
-		initErr := errors.NewInitError(err, ServiceName)
+		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
 		return nil, initErr
 	}

@@ -23,7 +23,7 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/types"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 // GetGatewayStatus returns the status for an indicated gateway.
@@ -33,7 +33,7 @@ func GetGatewayStatus(ctx context.Context, networkID string, deviceID string) (*
 		return nil, err
 	}
 	if st.ReportedState == nil {
-		return nil, errors.ErrNotFound
+		return nil, merrors.ErrNotFound
 	}
 	return fillInGatewayStatusState(st), nil
 }
