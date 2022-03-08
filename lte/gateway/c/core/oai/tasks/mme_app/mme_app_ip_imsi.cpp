@@ -144,7 +144,6 @@ int mme_app_get_imsi_from_ipv6(struct in6_addr ipv6_addr,
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  struct in6_addr ue_ip6_masked;
   auto itr_map = ueip_imsi_map.find(ipv6);
 
   if (itr_map == ueip_imsi_map.end()) {
