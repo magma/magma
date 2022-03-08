@@ -200,23 +200,6 @@ jobs:
             echo "Copying out test result XMLs for testing with ASAN"
             find bazel-out/k8-dbg/testlogs/ -name "*.xml" | while IFS= read -r f; do cp "$f" "c-cpp-test-results/asan_${f//\//_}"; done
             exit $TEST_RESULT
-      - name: Run `bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* --config=lsan`
-        uses: addnab/docker-run-action@v2
-        with:
-          shell: bash
-          image: ${{ env.DEVCONTAINER_IMAGE }}
-          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
-          run: |
-            cd /workspaces/magma
-            # Clean so that test XML outputs are wiped from the previous run
-            bazel clean
-            bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* --config=lsan --test_output=errors --cache_test_results=no
-            TEST_RESULT=$?
-            # copy out test results
-            echo "Copying out test result XMLs for testing with LSAN"
-            find bazel-out/k8-dbg/testlogs/ -name "*.xml" | while IFS= read -r f; do cp "$f" "c-cpp-test-results/lsan_${f//\//_}"; done
-            exit $TEST_RESULT
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v2
