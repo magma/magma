@@ -35,7 +35,7 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state/wrappers"
 	"magma/orc8r/cloud/go/storage"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 // MagmadEncompassingGateway represents a subtype of the Magmad gateway.
@@ -187,7 +187,7 @@ func CreateGateway(c echo.Context, model MagmadEncompassingGateway, entitySerdes
 		return echo.NewHTTPError(http.StatusBadRequest, "requested tier does not exist")
 	}
 
-	// attempt to register device
+	// Attempt to register device
 	httpErr := registerDevice(reqCtx, nid, mdGateway, entitySerdes, deviceSerdes)
 	if httpErr != nil {
 		return httpErr

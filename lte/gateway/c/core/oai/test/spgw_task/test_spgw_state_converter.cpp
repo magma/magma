@@ -10,20 +10,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <lte/gateway/c/core/oai/tasks/sgw/spgw_state_manager.h>
 #include <string.h>
 #include <gtest/gtest.h>
 #include <cstdio>
 #include <cstdlib>
 
 #include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_manager.h"
 #include "lte/gateway/c/core/oai/test/spgw_task/state_creators.h"
 #include "lte/protos/oai/mme_nas_state.pb.h"
 
 extern "C" {
-#include "ie_to_bytes.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
+#include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
-#include "spgw_state.h"
 }
 
 namespace magma {
@@ -53,7 +53,7 @@ TEST_F(SPGWStateConverterTest, TestSPGWStateConversion) {
     EXPECT_EQ(initial_state.gtpv1u_teid, final_state.gtpv1u_teid);
 
     gtpv1u_data_t initial_gtp_data = initial_state.gtpv1u_data;
-    gtpv1u_data_t final_gtp_data   = final_state.gtpv1u_data;
+    gtpv1u_data_t final_gtp_data = final_state.gtpv1u_data;
     EXPECT_EQ(initial_gtp_data.fd0, final_gtp_data.fd0);
     EXPECT_EQ(initial_gtp_data.fd1u, final_gtp_data.fd1u);
   }
@@ -62,7 +62,7 @@ TEST_F(SPGWStateConverterTest, TestSPGWStateConversion) {
 TEST_F(SPGWStateConverterTest, TestUEContextConversion) {
   // Init SPGW hashtable
   spgw_config_t* spgw_config_p =
-      (spgw_config_t*) calloc(1, sizeof(spgw_config_t));
+      (spgw_config_t*)calloc(1, sizeof(spgw_config_t));
   spgw_config_init(spgw_config_p);
   spgw_state_init(false, spgw_config_p);
 
@@ -83,7 +83,7 @@ TEST_F(SPGWStateConverterTest, TestUEContextConversion) {
 
     oai::SpgwUeContext proto_ctx;
     spgw_ue_context_t* final_ctx =
-        (spgw_ue_context_t*) calloc(1, sizeof(spgw_ue_context_t));
+        (spgw_ue_context_t*)calloc(1, sizeof(spgw_ue_context_t));
     SpgwStateConverter::ue_to_proto(initial_ctx, &proto_ctx);
     SpgwStateConverter::proto_to_ue(proto_ctx, final_ctx);
 
@@ -93,40 +93,38 @@ TEST_F(SPGWStateConverterTest, TestUEContextConversion) {
 
     // Ensure PGW context matches
     auto want_pgw = want->pgw_eps_bearer_context_information;
-    auto got_pgw  = got->pgw_eps_bearer_context_information;
+    auto got_pgw = got->pgw_eps_bearer_context_information;
 
     EXPECT_TRUE(!memcmp(&want_pgw.imsi, &got_pgw.imsi, sizeof(want_pgw.imsi)));
 
-    EXPECT_EQ(
-        want_pgw.imsi_unauthenticated_indicator,
-        got_pgw.imsi_unauthenticated_indicator);
+    EXPECT_EQ(want_pgw.imsi_unauthenticated_indicator,
+              got_pgw.imsi_unauthenticated_indicator);
     EXPECT_EQ(std::string(want_pgw.msisdn), std::string(got_pgw.msisdn));
 
     // Ensure SGW context matches
     auto want_sgw = want->sgw_eps_bearer_context_information;
-    auto got_sgw  = got->sgw_eps_bearer_context_information;
+    auto got_sgw = got->sgw_eps_bearer_context_information;
 
     EXPECT_TRUE(!memcmp(&want_sgw.imsi, &got_sgw.imsi, sizeof(want_sgw.imsi)));
 
     EXPECT_EQ(want_sgw.imsi64, got_sgw.imsi64);
-    EXPECT_EQ(
-        want_sgw.imsi_unauthenticated_indicator,
-        got_sgw.imsi_unauthenticated_indicator);
+    EXPECT_EQ(want_sgw.imsi_unauthenticated_indicator,
+              got_sgw.imsi_unauthenticated_indicator);
     EXPECT_EQ(std::string(want_sgw.msisdn), std::string(got_sgw.msisdn));
     EXPECT_EQ(want_sgw.mme_teid_S11, got_sgw.mme_teid_S11);
     EXPECT_EQ(want_sgw.s_gw_teid_S11_S4, got_sgw.s_gw_teid_S11_S4);
 
-    EXPECT_TRUE(!memcmp(
-        &want_sgw.mme_ip_address_S11, &got_sgw.mme_ip_address_S11,
-        sizeof(want_sgw.mme_ip_address_S11)));
+    EXPECT_TRUE(!memcmp(&want_sgw.mme_ip_address_S11,
+                        &got_sgw.mme_ip_address_S11,
+                        sizeof(want_sgw.mme_ip_address_S11)));
 
-    EXPECT_TRUE(!memcmp(
-        &want_sgw.s_gw_ip_address_S11_S4, &got_sgw.s_gw_ip_address_S11_S4,
-        sizeof(want_sgw.s_gw_ip_address_S11_S4)));
+    EXPECT_TRUE(!memcmp(&want_sgw.s_gw_ip_address_S11_S4,
+                        &got_sgw.s_gw_ip_address_S11_S4,
+                        sizeof(want_sgw.s_gw_ip_address_S11_S4)));
 
-    EXPECT_TRUE(!memcmp(
-        &want_sgw.last_known_cell_Id, &got_sgw.last_known_cell_Id,
-        sizeof(want_sgw.last_known_cell_Id)));
+    EXPECT_TRUE(!memcmp(&want_sgw.last_known_cell_Id,
+                        &got_sgw.last_known_cell_Id,
+                        sizeof(want_sgw.last_known_cell_Id)));
   }
 }
 

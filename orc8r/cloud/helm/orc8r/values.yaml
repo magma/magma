@@ -156,7 +156,8 @@ controller:
     repository: docker.artifactory.magmacore.org/controller
     tag: 1.6.1
     pullPolicy: IfNotPresent
-
+    env:
+      orc8r_domain_name: magma.test
   spec:
     # Postgres/mysql configuration
     database:
@@ -338,4 +339,11 @@ logging:
 
 # Domain proxy sub-chart configuration. Set true to enable.
 dp:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: /magma/v1/dp
   enabled: true
+  cbsd_inactivity_interval_sec: 14400

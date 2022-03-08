@@ -5,11 +5,11 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
-      - v1.*
+      - 'v1.*'
   pull_request:
     branches:
       - master
-      - v1.*
+      - 'v1.*'
     types: [opened, reopened, synchronize]
 
 concurrency:
@@ -30,7 +30,7 @@ jobs:
         with:
           filters: |
             filesChanged:
-              - [".github/workflows/cloud-workflow.yml", "lte/protos/**", "cwf/cloud/**", "fbinternal/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/**"]
+              - [".github/workflows/cloud-workflow.yml", "lte/protos/**", "cwf/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/**"]
       - name: Save should_not_skip output
         if: always()
         run: |

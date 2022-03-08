@@ -10,7 +10,7 @@ ENABLE_ASAN ?= 0
 # interfaces.
 # AGW means Acces GateWay, is the result of the aggregation of MME, SGW and PGW.
 # First in FEATURES, select what to you want to build : mme or agw with OpenFlow
-# (OVS): FEATURE=mme or agw_of
+# (OVS): FEATURE=mme_oai or agw_of
 # Then you can have other features that can be built for mme or agw :
 # s6a with fd (freeDiameter)
 
@@ -18,17 +18,16 @@ ENABLE_ASAN ?= 0
 FEATURES ?= agw_of
 # EXCLUSIVE_FEATURE_LIST : list of primary features that cannot be requested
 # together.
-EXCLUSIVE_FEATURE_LIST = mme agw_of mme_oai
+EXCLUSIVE_FEATURE_LIST = agw_of mme_oai
 # AVAILABLE_FEATURE_LIST : every feature not in this list will trigger an error.
-AVAILABLE_FEATURE_LIST = s6a_fd mme agw_of mme_oai
+AVAILABLE_FEATURE_LIST = s6a_fd agw_of mme_oai
 REQUESTED_FEATURE_LIST = $(sort $(FEATURES))
 
 ifeq ($(BUILD_TYPE),Debug)
-	BAZEL_FLAGS = --config=development
 	ifeq ($(ENABLE_ASAN),1)
 		BAZEL_FLAGS := $(BAZEL_FLAGS) --config=asan
 	endif
-else 
+else
 	## RelWithDebInfo enable LSAN and add debug information
 	BAZEL_FLAGS = --config=production
 endif
@@ -45,6 +44,7 @@ ifneq ($(words $(strip $(filter $(EXCLUSIVE_FEATURE_LIST),$(REQUESTED_FEATURE_LI
 endif
 
 MAIN_FEATURE = $(strip $(filter $(EXCLUSIVE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))
+$(info MAIN_FEATURE $(MAIN_FEATURE))
 
 ifneq ($(words $(strip $(filter $(REQUESTED_FEATURE_LIST),s6a_fd))), 0)
 S6A_FLAGS = -DS6A_OVER_GRPC=False
@@ -53,19 +53,14 @@ else
 S6A_FLAGS = -DS6A_OVER_GRPC=True
 endif
 
-ifeq ($(MAIN_FEATURE),mme)
-# Here force S6A to use freeDiameter
-OAI_FLAGS = -DS6A_OVER_GRPC=True
-else ifeq ($(MAIN_FEATURE),mme_oai)
+ifeq ($(MAIN_FEATURE),mme_oai)
 # Set DS6A_OVER_GRPC=False if using OAI-HSS
 OAI_FLAGS = -DS6A_OVER_GRPC=False
 else ifeq ($(MAIN_FEATURE),agw_of)
 OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True
-
 else
 # default
 OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True
-
 endif
 
 # debian stretch build uses older cc not recognizing options needed on ubuntu focal
@@ -80,6 +75,8 @@ TEST_FLAG = -DBUILD_TESTS=1
 OAI_TEST_FLAGS = -DMME_UNIT_TEST=True
 OAI_NOTEST_FLAGS = -DMME_UNIT_TEST=False
 OAI_TESTS ?= ".*"
+OAI_BENCHMARK_FLAGS = -DMME_BENCHMARK=True
+OAI_NOBENCHMARK_FLAGS = -DMME_BENCHMARK=False
 
 all: build
 
@@ -159,6 +156,10 @@ mkdir -p $(C_BUILD)/$(1)
 sudo cp -f $(MAGMA_ROOT)/bazel-bin/lte/gateway/c/$(1)/$(2) $(C_BUILD)/$(1)/$(2)
 endef
 
+
+benchmark_pb: ## Benchmark ProtoBuf, same build_oai but with -DMME_BENCHMARK=True
+	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS) $(OAI_BENCHMARK_FLAGS))
+
 build_c:  ## Build C/C++ targets with Bazel
 	bazel build $(BAZEL_FLAGS) //lte/gateway/c/session_manager:sessiond //lte/gateway/c/sctpd/src:sctpd //lte/gateway/c/connection_tracker/src:connectiond //lte/gateway/c/li_agent/src:liagentd
 	$(call copy_bazel_c_build,session_manager,sessiond)
@@ -167,15 +168,13 @@ build_c:  ## Build C/C++ targets with Bazel
 	$(call copy_bazel_c_build,li_agent/src,liagentd)
 
 build_oai: ## Build OAI
-	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS))
+	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS))
 
 format_all:
 	find $(MAGMA_ROOT)/orc8r/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" -o -iname "*.hpp" \) -exec \
-	/usr/bin/clang-format-11 --style='{BasedOnStyle: Google, IncludeBlocks: Preserve, SortIncludes: false}' -i {} \;
-	find $(MAGMA_ROOT)/lte/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h"  -o -iname "*.hpp" \) -not \( -path "$(MAGMA_ROOT)/lte/gateway/c/core/*" -prune \) -exec \
-	/usr/bin/clang-format-11 --style='{BasedOnStyle: Google, IncludeBlocks: Preserve, SortIncludes: false}' -i {} \;
-	find $(MAGMA_ROOT)/lte/gateway/c/core/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" -o -iname "*.hpp" \) -exec \
-	clang-format --style=file -i {} \;
+	/usr/bin/clang-format-11 -i {} \;
+	find $(MAGMA_ROOT)/lte/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h"  -o -iname "*.hpp" \) -exec \
+	/usr/bin/clang-format-11 -i {} \;
 
 build_sctpd:
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
@@ -216,7 +215,7 @@ test_c: ## Run all Bazel-ified C/C++ tests
 	bazel test $(BAZEL_FLAGS) -- //orc8r/gateway/c/...:* //lte/gateway/c/...:* -//lte/gateway/c/core/...:*
 
 test_oai: ## Run all OAI-specific tests
-	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS), $(OAI_TESTS))
+	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS), $(OAI_TESTS))
 
 test_sctpd: ## Run all tests for sctpd
 	$(call run_ctest, $(C_BUILD)/sctp, $(C_BUILD)/sctp/src, $(GATEWAY_C_DIR)/sctpd, )
@@ -249,7 +248,7 @@ precommit_sm: format_all test_session_manager
 precommit_oai: format_all test_oai
 
 build_oai_clang: ## Build OAI with Clang, store compiler outputs to log
-	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS), CC="clang" CXX="clang++") 2>&1 | tee /tmp/clang-build.oai.log
+	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS), CC="clang" CXX="clang++") 2>&1 | tee /tmp/clang-build.oai.log
 
 # Upload Clang-Warning counts by type to Google Sheet via Google Survey
 #  Graph available at https://docs.google.com/spreadsheets/d/1ndiIKJNI2IJZBwavnu1x_KwwvlQppnoYEOtYdihqiIQ/edit#gid=734064581

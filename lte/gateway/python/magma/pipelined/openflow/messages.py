@@ -15,6 +15,7 @@ from typing import Any, List, Optional
 
 # there's a cyclic dependency in ryu
 import ryu.base.app_manager  # pylint: disable=unused-import
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.pipelined.metrics import DP_SEND_MSG_ERROR
 from magma.pipelined.openflow.exceptions import (
     MagmaDPDisconnectedError,
@@ -60,7 +61,7 @@ def send_msg(datapath, msg, retries=3):
             if i == retries - 1:    # Only propagate if all retries are up
                 logging.error(
                     'Send msg error! Type: %s, Reason: %s',
-                    type(e).__name__, e,
+                    type(e).__name__, e, extra=EXCLUDE_FROM_ERROR_MONITORING,
                 )
                 DP_SEND_MSG_ERROR.labels(cause=type(e).__name__).inc()
                 raise MagmaOFError(e)
@@ -317,7 +318,7 @@ class MessageHub(object):
         flow_match = strip_common(match_flow) == strip_common(match_msg)
 
         return flow_match and reg_loads_match and resubmits_match and \
-               outputs_match
+            outputs_match
 
     def _get_msg_index_in_flow_list(self, dp, msg, flow_list):
         for i in range(len(flow_list)):

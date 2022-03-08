@@ -7,6 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -78,6 +79,43 @@ func (GrantState) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_cca56e429e696f1e, []int{1}
 }
 
+type RequestsType int32
+
+const (
+	RequestsType_RegistrationRequest    RequestsType = 0
+	RequestsType_SpectrumInquiryRequest RequestsType = 1
+	RequestsType_GrantRequest           RequestsType = 2
+	RequestsType_HeartbeatRequest       RequestsType = 3
+	RequestsType_RelinquishmentRequest  RequestsType = 4
+	RequestsType_DeregistrationRequest  RequestsType = 5
+)
+
+var RequestsType_name = map[int32]string{
+	0: "RegistrationRequest",
+	1: "SpectrumInquiryRequest",
+	2: "GrantRequest",
+	3: "HeartbeatRequest",
+	4: "RelinquishmentRequest",
+	5: "DeregistrationRequest",
+}
+
+var RequestsType_value = map[string]int32{
+	"RegistrationRequest":    0,
+	"SpectrumInquiryRequest": 1,
+	"GrantRequest":           2,
+	"HeartbeatRequest":       3,
+	"RelinquishmentRequest":  4,
+	"DeregistrationRequest":  5,
+}
+
+func (x RequestsType) String() string {
+	return proto.EnumName(RequestsType_name, int32(x))
+}
+
+func (RequestsType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_cca56e429e696f1e, []int{2}
+}
+
 type GetStateRequest struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -110,10 +148,10 @@ func (m *GetStateRequest) XXX_DiscardUnknown() {
 var xxx_messageInfo_GetStateRequest proto.InternalMessageInfo
 
 type State struct {
-	ActiveModeConfigs    []*ActiveModeConfig `protobuf:"bytes,1,rep,name=active_mode_configs,json=activeModeConfigs,proto3" json:"active_mode_configs,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
-	XXX_unrecognized     []byte              `json:"-"`
-	XXX_sizecache        int32               `json:"-"`
+	Cbsds                []*Cbsd  `protobuf:"bytes,1,rep,name=cbsds,proto3" json:"cbsds,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *State) Reset()         { *m = State{} }
@@ -141,56 +179,9 @@ func (m *State) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_State proto.InternalMessageInfo
 
-func (m *State) GetActiveModeConfigs() []*ActiveModeConfig {
+func (m *State) GetCbsds() []*Cbsd {
 	if m != nil {
-		return m.ActiveModeConfigs
-	}
-	return nil
-}
-
-type ActiveModeConfig struct {
-	DesiredState         CbsdState `protobuf:"varint,1,opt,name=desired_state,json=desiredState,proto3,enum=CbsdState" json:"desired_state,omitempty"`
-	Cbsd                 *Cbsd     `protobuf:"bytes,2,opt,name=cbsd,proto3" json:"cbsd,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
-	XXX_unrecognized     []byte    `json:"-"`
-	XXX_sizecache        int32     `json:"-"`
-}
-
-func (m *ActiveModeConfig) Reset()         { *m = ActiveModeConfig{} }
-func (m *ActiveModeConfig) String() string { return proto.CompactTextString(m) }
-func (*ActiveModeConfig) ProtoMessage()    {}
-func (*ActiveModeConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cca56e429e696f1e, []int{2}
-}
-
-func (m *ActiveModeConfig) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ActiveModeConfig.Unmarshal(m, b)
-}
-func (m *ActiveModeConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ActiveModeConfig.Marshal(b, m, deterministic)
-}
-func (m *ActiveModeConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ActiveModeConfig.Merge(m, src)
-}
-func (m *ActiveModeConfig) XXX_Size() int {
-	return xxx_messageInfo_ActiveModeConfig.Size(m)
-}
-func (m *ActiveModeConfig) XXX_DiscardUnknown() {
-	xxx_messageInfo_ActiveModeConfig.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ActiveModeConfig proto.InternalMessageInfo
-
-func (m *ActiveModeConfig) GetDesiredState() CbsdState {
-	if m != nil {
-		return m.DesiredState
-	}
-	return CbsdState_Unregistered
-}
-
-func (m *ActiveModeConfig) GetCbsd() *Cbsd {
-	if m != nil {
-		return m.Cbsd
+		return m.Cbsds
 	}
 	return nil
 }
@@ -201,11 +192,13 @@ type Cbsd struct {
 	FccId                string            `protobuf:"bytes,3,opt,name=fcc_id,json=fccId,proto3" json:"fcc_id,omitempty"`
 	SerialNumber         string            `protobuf:"bytes,4,opt,name=serial_number,json=serialNumber,proto3" json:"serial_number,omitempty"`
 	State                CbsdState         `protobuf:"varint,5,opt,name=state,proto3,enum=CbsdState" json:"state,omitempty"`
-	Grants               []*Grant          `protobuf:"bytes,6,rep,name=grants,proto3" json:"grants,omitempty"`
-	Channels             []*Channel        `protobuf:"bytes,7,rep,name=channels,proto3" json:"channels,omitempty"`
-	PendingRequests      []string          `protobuf:"bytes,8,rep,name=pending_requests,json=pendingRequests,proto3" json:"pending_requests,omitempty"`
-	LastSeenTimestamp    int64             `protobuf:"varint,9,opt,name=last_seen_timestamp,json=lastSeenTimestamp,proto3" json:"last_seen_timestamp,omitempty"`
-	EirpCapabilities     *EirpCapabilities `protobuf:"bytes,10,opt,name=eirp_capabilities,json=eirpCapabilities,proto3" json:"eirp_capabilities,omitempty"`
+	DesiredState         CbsdState         `protobuf:"varint,6,opt,name=desired_state,json=desiredState,proto3,enum=CbsdState" json:"desired_state,omitempty"`
+	Grants               []*Grant          `protobuf:"bytes,7,rep,name=grants,proto3" json:"grants,omitempty"`
+	Channels             []*Channel        `protobuf:"bytes,8,rep,name=channels,proto3" json:"channels,omitempty"`
+	PendingRequests      []*Request        `protobuf:"bytes,9,rep,name=pending_requests,json=pendingRequests,proto3" json:"pending_requests,omitempty"`
+	LastSeenTimestamp    int64             `protobuf:"varint,10,opt,name=last_seen_timestamp,json=lastSeenTimestamp,proto3" json:"last_seen_timestamp,omitempty"`
+	EirpCapabilities     *EirpCapabilities `protobuf:"bytes,11,opt,name=eirp_capabilities,json=eirpCapabilities,proto3" json:"eirp_capabilities,omitempty"`
+	DbData               *DatabaseCbsd     `protobuf:"bytes,12,opt,name=db_data,json=dbData,proto3" json:"db_data,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_unrecognized     []byte            `json:"-"`
 	XXX_sizecache        int32             `json:"-"`
@@ -215,7 +208,7 @@ func (m *Cbsd) Reset()         { *m = Cbsd{} }
 func (m *Cbsd) String() string { return proto.CompactTextString(m) }
 func (*Cbsd) ProtoMessage()    {}
 func (*Cbsd) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cca56e429e696f1e, []int{3}
+	return fileDescriptor_cca56e429e696f1e, []int{2}
 }
 
 func (m *Cbsd) XXX_Unmarshal(b []byte) error {
@@ -271,6 +264,13 @@ func (m *Cbsd) GetState() CbsdState {
 	return CbsdState_Unregistered
 }
 
+func (m *Cbsd) GetDesiredState() CbsdState {
+	if m != nil {
+		return m.DesiredState
+	}
+	return CbsdState_Unregistered
+}
+
 func (m *Cbsd) GetGrants() []*Grant {
 	if m != nil {
 		return m.Grants
@@ -285,7 +285,7 @@ func (m *Cbsd) GetChannels() []*Channel {
 	return nil
 }
 
-func (m *Cbsd) GetPendingRequests() []string {
+func (m *Cbsd) GetPendingRequests() []*Request {
 	if m != nil {
 		return m.PendingRequests
 	}
@@ -306,67 +306,11 @@ func (m *Cbsd) GetEirpCapabilities() *EirpCapabilities {
 	return nil
 }
 
-type EirpCapabilities struct {
-	MinPower             float32  `protobuf:"fixed32,1,opt,name=min_power,json=minPower,proto3" json:"min_power,omitempty"`
-	MaxPower             float32  `protobuf:"fixed32,2,opt,name=max_power,json=maxPower,proto3" json:"max_power,omitempty"`
-	AntennaGain          float32  `protobuf:"fixed32,3,opt,name=antenna_gain,json=antennaGain,proto3" json:"antenna_gain,omitempty"`
-	NumberOfPorts        int32    `protobuf:"varint,4,opt,name=number_of_ports,json=numberOfPorts,proto3" json:"number_of_ports,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *EirpCapabilities) Reset()         { *m = EirpCapabilities{} }
-func (m *EirpCapabilities) String() string { return proto.CompactTextString(m) }
-func (*EirpCapabilities) ProtoMessage()    {}
-func (*EirpCapabilities) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cca56e429e696f1e, []int{4}
-}
-
-func (m *EirpCapabilities) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_EirpCapabilities.Unmarshal(m, b)
-}
-func (m *EirpCapabilities) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_EirpCapabilities.Marshal(b, m, deterministic)
-}
-func (m *EirpCapabilities) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EirpCapabilities.Merge(m, src)
-}
-func (m *EirpCapabilities) XXX_Size() int {
-	return xxx_messageInfo_EirpCapabilities.Size(m)
-}
-func (m *EirpCapabilities) XXX_DiscardUnknown() {
-	xxx_messageInfo_EirpCapabilities.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_EirpCapabilities proto.InternalMessageInfo
-
-func (m *EirpCapabilities) GetMinPower() float32 {
+func (m *Cbsd) GetDbData() *DatabaseCbsd {
 	if m != nil {
-		return m.MinPower
+		return m.DbData
 	}
-	return 0
-}
-
-func (m *EirpCapabilities) GetMaxPower() float32 {
-	if m != nil {
-		return m.MaxPower
-	}
-	return 0
-}
-
-func (m *EirpCapabilities) GetAntennaGain() float32 {
-	if m != nil {
-		return m.AntennaGain
-	}
-	return 0
-}
-
-func (m *EirpCapabilities) GetNumberOfPorts() int32 {
-	if m != nil {
-		return m.NumberOfPorts
-	}
-	return 0
+	return nil
 }
 
 type Grant struct {
@@ -383,7 +327,7 @@ func (m *Grant) Reset()         { *m = Grant{} }
 func (m *Grant) String() string { return proto.CompactTextString(m) }
 func (*Grant) ProtoMessage()    {}
 func (*Grant) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cca56e429e696f1e, []int{5}
+	return fileDescriptor_cca56e429e696f1e, []int{3}
 }
 
 func (m *Grant) XXX_Unmarshal(b []byte) error {
@@ -445,7 +389,7 @@ func (m *Channel) Reset()         { *m = Channel{} }
 func (m *Channel) String() string { return proto.CompactTextString(m) }
 func (*Channel) ProtoMessage()    {}
 func (*Channel) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cca56e429e696f1e, []int{6}
+	return fileDescriptor_cca56e429e696f1e, []int{4}
 }
 
 func (m *Channel) XXX_Unmarshal(b []byte) error {
@@ -499,7 +443,7 @@ func (m *FrequencyRange) Reset()         { *m = FrequencyRange{} }
 func (m *FrequencyRange) String() string { return proto.CompactTextString(m) }
 func (*FrequencyRange) ProtoMessage()    {}
 func (*FrequencyRange) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cca56e429e696f1e, []int{7}
+	return fileDescriptor_cca56e429e696f1e, []int{5}
 }
 
 func (m *FrequencyRange) XXX_Unmarshal(b []byte) error {
@@ -534,72 +478,333 @@ func (m *FrequencyRange) GetHigh() int64 {
 	return 0
 }
 
+type Request struct {
+	Type                 RequestsType `protobuf:"varint,1,opt,name=type,proto3,enum=RequestsType" json:"type,omitempty"`
+	Payload              string       `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
+	XXX_unrecognized     []byte       `json:"-"`
+	XXX_sizecache        int32        `json:"-"`
+}
+
+func (m *Request) Reset()         { *m = Request{} }
+func (m *Request) String() string { return proto.CompactTextString(m) }
+func (*Request) ProtoMessage()    {}
+func (*Request) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cca56e429e696f1e, []int{6}
+}
+
+func (m *Request) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Request.Unmarshal(m, b)
+}
+func (m *Request) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Request.Marshal(b, m, deterministic)
+}
+func (m *Request) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Request.Merge(m, src)
+}
+func (m *Request) XXX_Size() int {
+	return xxx_messageInfo_Request.Size(m)
+}
+func (m *Request) XXX_DiscardUnknown() {
+	xxx_messageInfo_Request.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Request proto.InternalMessageInfo
+
+func (m *Request) GetType() RequestsType {
+	if m != nil {
+		return m.Type
+	}
+	return RequestsType_RegistrationRequest
+}
+
+func (m *Request) GetPayload() string {
+	if m != nil {
+		return m.Payload
+	}
+	return ""
+}
+
+type EirpCapabilities struct {
+	MinPower             float32  `protobuf:"fixed32,1,opt,name=min_power,json=minPower,proto3" json:"min_power,omitempty"`
+	MaxPower             float32  `protobuf:"fixed32,2,opt,name=max_power,json=maxPower,proto3" json:"max_power,omitempty"`
+	AntennaGain          float32  `protobuf:"fixed32,3,opt,name=antenna_gain,json=antennaGain,proto3" json:"antenna_gain,omitempty"`
+	NumberOfPorts        int32    `protobuf:"varint,4,opt,name=number_of_ports,json=numberOfPorts,proto3" json:"number_of_ports,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *EirpCapabilities) Reset()         { *m = EirpCapabilities{} }
+func (m *EirpCapabilities) String() string { return proto.CompactTextString(m) }
+func (*EirpCapabilities) ProtoMessage()    {}
+func (*EirpCapabilities) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cca56e429e696f1e, []int{7}
+}
+
+func (m *EirpCapabilities) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_EirpCapabilities.Unmarshal(m, b)
+}
+func (m *EirpCapabilities) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_EirpCapabilities.Marshal(b, m, deterministic)
+}
+func (m *EirpCapabilities) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EirpCapabilities.Merge(m, src)
+}
+func (m *EirpCapabilities) XXX_Size() int {
+	return xxx_messageInfo_EirpCapabilities.Size(m)
+}
+func (m *EirpCapabilities) XXX_DiscardUnknown() {
+	xxx_messageInfo_EirpCapabilities.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EirpCapabilities proto.InternalMessageInfo
+
+func (m *EirpCapabilities) GetMinPower() float32 {
+	if m != nil {
+		return m.MinPower
+	}
+	return 0
+}
+
+func (m *EirpCapabilities) GetMaxPower() float32 {
+	if m != nil {
+		return m.MaxPower
+	}
+	return 0
+}
+
+func (m *EirpCapabilities) GetAntennaGain() float32 {
+	if m != nil {
+		return m.AntennaGain
+	}
+	return 0
+}
+
+func (m *EirpCapabilities) GetNumberOfPorts() int32 {
+	if m != nil {
+		return m.NumberOfPorts
+	}
+	return 0
+}
+
+type DatabaseCbsd struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	IsUpdated            bool     `protobuf:"varint,2,opt,name=is_updated,json=isUpdated,proto3" json:"is_updated,omitempty"`
+	IsDeleted            bool     `protobuf:"varint,3,opt,name=is_deleted,json=isDeleted,proto3" json:"is_deleted,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DatabaseCbsd) Reset()         { *m = DatabaseCbsd{} }
+func (m *DatabaseCbsd) String() string { return proto.CompactTextString(m) }
+func (*DatabaseCbsd) ProtoMessage()    {}
+func (*DatabaseCbsd) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cca56e429e696f1e, []int{8}
+}
+
+func (m *DatabaseCbsd) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DatabaseCbsd.Unmarshal(m, b)
+}
+func (m *DatabaseCbsd) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DatabaseCbsd.Marshal(b, m, deterministic)
+}
+func (m *DatabaseCbsd) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DatabaseCbsd.Merge(m, src)
+}
+func (m *DatabaseCbsd) XXX_Size() int {
+	return xxx_messageInfo_DatabaseCbsd.Size(m)
+}
+func (m *DatabaseCbsd) XXX_DiscardUnknown() {
+	xxx_messageInfo_DatabaseCbsd.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DatabaseCbsd proto.InternalMessageInfo
+
+func (m *DatabaseCbsd) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *DatabaseCbsd) GetIsUpdated() bool {
+	if m != nil {
+		return m.IsUpdated
+	}
+	return false
+}
+
+func (m *DatabaseCbsd) GetIsDeleted() bool {
+	if m != nil {
+		return m.IsDeleted
+	}
+	return false
+}
+
+type DeleteCbsdRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteCbsdRequest) Reset()         { *m = DeleteCbsdRequest{} }
+func (m *DeleteCbsdRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteCbsdRequest) ProtoMessage()    {}
+func (*DeleteCbsdRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cca56e429e696f1e, []int{9}
+}
+
+func (m *DeleteCbsdRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteCbsdRequest.Unmarshal(m, b)
+}
+func (m *DeleteCbsdRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteCbsdRequest.Marshal(b, m, deterministic)
+}
+func (m *DeleteCbsdRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteCbsdRequest.Merge(m, src)
+}
+func (m *DeleteCbsdRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteCbsdRequest.Size(m)
+}
+func (m *DeleteCbsdRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteCbsdRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteCbsdRequest proto.InternalMessageInfo
+
+func (m *DeleteCbsdRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type AcknowledgeCbsdUpdateRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AcknowledgeCbsdUpdateRequest) Reset()         { *m = AcknowledgeCbsdUpdateRequest{} }
+func (m *AcknowledgeCbsdUpdateRequest) String() string { return proto.CompactTextString(m) }
+func (*AcknowledgeCbsdUpdateRequest) ProtoMessage()    {}
+func (*AcknowledgeCbsdUpdateRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cca56e429e696f1e, []int{10}
+}
+
+func (m *AcknowledgeCbsdUpdateRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AcknowledgeCbsdUpdateRequest.Unmarshal(m, b)
+}
+func (m *AcknowledgeCbsdUpdateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AcknowledgeCbsdUpdateRequest.Marshal(b, m, deterministic)
+}
+func (m *AcknowledgeCbsdUpdateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AcknowledgeCbsdUpdateRequest.Merge(m, src)
+}
+func (m *AcknowledgeCbsdUpdateRequest) XXX_Size() int {
+	return xxx_messageInfo_AcknowledgeCbsdUpdateRequest.Size(m)
+}
+func (m *AcknowledgeCbsdUpdateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AcknowledgeCbsdUpdateRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AcknowledgeCbsdUpdateRequest proto.InternalMessageInfo
+
+func (m *AcknowledgeCbsdUpdateRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterEnum("CbsdState", CbsdState_name, CbsdState_value)
 	proto.RegisterEnum("GrantState", GrantState_name, GrantState_value)
+	proto.RegisterEnum("RequestsType", RequestsType_name, RequestsType_value)
 	proto.RegisterType((*GetStateRequest)(nil), "GetStateRequest")
 	proto.RegisterType((*State)(nil), "State")
-	proto.RegisterType((*ActiveModeConfig)(nil), "ActiveModeConfig")
 	proto.RegisterType((*Cbsd)(nil), "Cbsd")
-	proto.RegisterType((*EirpCapabilities)(nil), "EirpCapabilities")
 	proto.RegisterType((*Grant)(nil), "Grant")
 	proto.RegisterType((*Channel)(nil), "Channel")
 	proto.RegisterType((*FrequencyRange)(nil), "FrequencyRange")
+	proto.RegisterType((*Request)(nil), "Request")
+	proto.RegisterType((*EirpCapabilities)(nil), "EirpCapabilities")
+	proto.RegisterType((*DatabaseCbsd)(nil), "DatabaseCbsd")
+	proto.RegisterType((*DeleteCbsdRequest)(nil), "DeleteCbsdRequest")
+	proto.RegisterType((*AcknowledgeCbsdUpdateRequest)(nil), "AcknowledgeCbsdUpdateRequest")
 }
 
 func init() { proto.RegisterFile("dp/protos/active_mode.proto", fileDescriptor_cca56e429e696f1e) }
 
 var fileDescriptor_cca56e429e696f1e = []byte{
-	// 778 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x54, 0xed, 0x8e, 0xdb, 0x44,
-	0x14, 0xad, 0xed, 0x7c, 0xde, 0xec, 0x26, 0xce, 0xb4, 0x14, 0xd3, 0x95, 0xaa, 0xd4, 0xa0, 0x2a,
-	0x54, 0xc2, 0x91, 0x02, 0x54, 0x2b, 0x21, 0x2a, 0x2d, 0x2b, 0xba, 0x2c, 0x12, 0x50, 0xcd, 0x52,
-	0x7e, 0xf0, 0x83, 0xd1, 0xc4, 0xbe, 0x71, 0x46, 0xb2, 0xc7, 0x66, 0x66, 0xd2, 0xdd, 0xf2, 0x22,
-	0xbc, 0x03, 0xff, 0x79, 0x2d, 0x9e, 0x01, 0xcd, 0xd8, 0xd9, 0x6d, 0x52, 0x24, 0xfe, 0xf9, 0x9e,
-	0x73, 0xee, 0xe4, 0xe8, 0x9e, 0xdc, 0x0b, 0x27, 0x59, 0xbd, 0xa8, 0x55, 0x65, 0x2a, 0xbd, 0xe0,
-	0xa9, 0x11, 0x6f, 0x90, 0x95, 0x55, 0x86, 0x89, 0x83, 0x1e, 0x3d, 0xce, 0xab, 0x2a, 0x2f, 0xb0,
-	0x11, 0xac, 0xb6, 0xeb, 0xc5, 0xb5, 0xe2, 0x75, 0x8d, 0x4a, 0x37, 0x7c, 0x3c, 0x85, 0xc9, 0x05,
-	0x9a, 0x2b, 0xc3, 0x0d, 0x52, 0xfc, 0x7d, 0x8b, 0xda, 0xc4, 0xdf, 0x43, 0xd7, 0xd5, 0xe4, 0x0c,
-	0xee, 0xbf, 0xf3, 0x20, 0x4b, 0x2b, 0xb9, 0x16, 0xb9, 0x8e, 0xbc, 0x59, 0x30, 0x1f, 0x2d, 0xa7,
-	0xc9, 0x99, 0xe3, 0x7e, 0xa8, 0x32, 0x3c, 0x77, 0x0c, 0x9d, 0xf2, 0x03, 0x44, 0xc7, 0xbf, 0x41,
-	0x78, 0x28, 0x23, 0x0b, 0x38, 0xce, 0x50, 0x0b, 0x85, 0x19, 0xd3, 0xf6, 0x77, 0x22, 0x6f, 0xe6,
-	0xcd, 0xc7, 0x4b, 0x48, 0xce, 0x57, 0x3a, 0x6b, 0x9c, 0x1c, 0xb5, 0x82, 0xc6, 0xc7, 0x47, 0xd0,
-	0x49, 0x57, 0x3a, 0x8b, 0xfc, 0x99, 0x37, 0x1f, 0x2d, 0xbb, 0x4e, 0x47, 0x1d, 0x14, 0xff, 0xe3,
-	0x43, 0xc7, 0x96, 0x64, 0x0c, 0xbe, 0xc8, 0xdc, 0x4b, 0x43, 0xea, 0x8b, 0x8c, 0x7c, 0x08, 0xfd,
-	0xad, 0x46, 0xc5, 0x44, 0xd3, 0x36, 0xa4, 0x3d, 0x5b, 0x5e, 0x66, 0xe4, 0x03, 0xe8, 0xad, 0xd3,
-	0xd4, 0xe2, 0x81, 0xc3, 0xbb, 0xeb, 0x34, 0xbd, 0xcc, 0xc8, 0xc7, 0x70, 0xac, 0x51, 0x09, 0x5e,
-	0x30, 0xb9, 0x2d, 0x57, 0xa8, 0xa2, 0x8e, 0x63, 0x8f, 0x1a, 0xf0, 0x47, 0x87, 0x91, 0x19, 0x74,
-	0x1b, 0xc7, 0xdd, 0xf7, 0x1c, 0x37, 0x04, 0x79, 0x0c, 0xbd, 0x5c, 0x71, 0x69, 0x74, 0xd4, 0x73,
-	0x53, 0xea, 0x25, 0x17, 0xb6, 0xa4, 0x2d, 0x4a, 0x3e, 0x81, 0x41, 0xba, 0xe1, 0x52, 0x62, 0xa1,
-	0xa3, 0xbe, 0x53, 0x0c, 0x92, 0xf3, 0x06, 0xa0, 0xb7, 0x0c, 0xf9, 0x14, 0xc2, 0x1a, 0x65, 0x26,
-	0x64, 0xce, 0x54, 0x13, 0x8a, 0x8e, 0x06, 0xb3, 0x60, 0x3e, 0xa4, 0x93, 0x16, 0x6f, 0xb3, 0xd2,
-	0x24, 0x81, 0xfb, 0x05, 0xd7, 0x86, 0x69, 0x44, 0xc9, 0x8c, 0x28, 0x51, 0x1b, 0x5e, 0xd6, 0xd1,
-	0x70, 0xe6, 0xcd, 0x03, 0x3a, 0xb5, 0xd4, 0x15, 0xa2, 0xfc, 0x79, 0x47, 0x90, 0x17, 0x30, 0x45,
-	0xa1, 0x6a, 0x96, 0xf2, 0x9a, 0xaf, 0x44, 0x21, 0x8c, 0x40, 0x1d, 0x81, 0x1b, 0xec, 0x34, 0xf9,
-	0x56, 0xa8, 0xfa, 0xfc, 0x1d, 0x82, 0x86, 0x78, 0x80, 0xc4, 0x7f, 0x7a, 0x10, 0x1e, 0xca, 0xc8,
-	0x09, 0x0c, 0x4b, 0x21, 0x59, 0x5d, 0x5d, 0xa3, 0x72, 0x19, 0xf8, 0x74, 0x50, 0x0a, 0xf9, 0xca,
-	0xd6, 0x8e, 0xe4, 0x37, 0x2d, 0xe9, 0xb7, 0x24, 0xbf, 0x69, 0xc8, 0x27, 0x70, 0xc4, 0xa5, 0x41,
-	0x29, 0x39, 0xcb, 0xb9, 0x90, 0x2e, 0x13, 0x9f, 0x8e, 0x5a, 0xec, 0x82, 0x0b, 0x49, 0x9e, 0xc2,
-	0xa4, 0x89, 0x84, 0x55, 0x6b, 0x56, 0x57, 0xca, 0x68, 0x97, 0x4d, 0x97, 0x1e, 0x37, 0xf0, 0x4f,
-	0xeb, 0x57, 0x16, 0x8c, 0xff, 0xf2, 0xa0, 0xeb, 0x86, 0xfd, 0xde, 0x7f, 0xe1, 0xc9, 0x2e, 0x36,
-	0xdf, 0xc5, 0x36, 0x6a, 0x32, 0xd9, 0xcb, 0xed, 0x0b, 0x78, 0xb8, 0x41, 0xae, 0xcc, 0x0a, 0xb9,
-	0x61, 0x42, 0x1a, 0x54, 0x6f, 0x78, 0xc1, 0x34, 0xa6, 0xce, 0x51, 0x40, 0x1f, 0xdc, 0xb2, 0x97,
-	0x2d, 0x79, 0x85, 0x29, 0x39, 0x85, 0xc8, 0x0d, 0xff, 0xae, 0xf5, 0x2e, 0x81, 0x8e, 0xeb, 0x7b,
-	0x68, 0xf9, 0xef, 0x76, 0xf4, 0x6d, 0x0c, 0xf1, 0xdf, 0x1e, 0xf4, 0xdb, 0xdc, 0xc9, 0x29, 0x4c,
-	0xd6, 0x2e, 0x66, 0x99, 0xbe, 0x65, 0x8a, 0xcb, 0xbc, 0xd9, 0x88, 0xd1, 0x72, 0x92, 0xbc, 0xdc,
-	0xe1, 0xd4, 0xc2, 0x74, 0xbc, 0xde, 0xab, 0xc9, 0x73, 0xb0, 0x93, 0x64, 0x36, 0xa4, 0x76, 0x39,
-	0x4e, 0x92, 0x66, 0xdf, 0x93, 0xdd, 0xbe, 0x27, 0x2f, 0x8b, 0x8a, 0x9b, 0x5f, 0x78, 0xb1, 0x45,
-	0xda, 0x2f, 0xf9, 0x8d, 0xcd, 0x8e, 0x9c, 0xc2, 0xd0, 0xf9, 0x76, 0x8d, 0xc1, 0xff, 0x37, 0x0e,
-	0xac, 0xda, 0x76, 0xc6, 0xcf, 0x61, 0xbc, 0xef, 0x89, 0x84, 0x10, 0x14, 0xd5, 0xb5, 0x73, 0x1c,
-	0x50, 0xfb, 0x49, 0x08, 0x74, 0x36, 0x22, 0xdf, 0x38, 0x47, 0x01, 0x75, 0xdf, 0xcf, 0x3e, 0x83,
-	0xe1, 0xed, 0xae, 0x90, 0x10, 0x8e, 0x5e, 0x4b, 0x85, 0xb9, 0xd0, 0x06, 0x15, 0x66, 0xe1, 0x3d,
-	0x32, 0x06, 0xa0, 0x77, 0xb5, 0xf7, 0xec, 0x4b, 0x80, 0xbb, 0x8c, 0xc8, 0x08, 0xfa, 0xae, 0xda,
-	0x49, 0xcf, 0xb6, 0x66, 0x53, 0x29, 0xf1, 0x87, 0x95, 0x12, 0x80, 0xde, 0x6b, 0xa9, 0xdf, 0xca,
-	0x34, 0xf4, 0x97, 0x2f, 0xe0, 0xc1, 0xde, 0xb5, 0x31, 0xaa, 0x2a, 0x0a, 0x54, 0xe4, 0x29, 0x0c,
-	0x76, 0x47, 0x8e, 0x84, 0xc9, 0xc1, 0xbd, 0x7b, 0xd4, 0x4b, 0x5c, 0x19, 0xdf, 0xfb, 0xe6, 0xeb,
-	0x5f, 0xbf, 0x2a, 0x79, 0x5e, 0xf2, 0x45, 0x56, 0x2f, 0xd2, 0xa2, 0xda, 0x66, 0x8b, 0xbc, 0x5a,
-	0x1c, 0x9c, 0xc0, 0xf6, 0xcd, 0xff, 0xb8, 0xb8, 0xab, 0x9e, 0xc3, 0x3e, 0xff, 0x37, 0x00, 0x00,
-	0xff, 0xff, 0x99, 0x92, 0x36, 0x8d, 0x91, 0x05, 0x00, 0x00,
+	// 1005 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x55, 0xcd, 0x6e, 0xdb, 0x46,
+	0x10, 0x36, 0x45, 0xfd, 0x8e, 0x64, 0x59, 0xde, 0x24, 0x0e, 0x6b, 0x37, 0x81, 0xc2, 0x04, 0x86,
+	0x61, 0xa0, 0x14, 0xa0, 0xb4, 0x81, 0xd1, 0xa2, 0x05, 0x5c, 0x3b, 0x76, 0x7d, 0x68, 0x6b, 0xd0,
+	0x71, 0x0f, 0x45, 0x01, 0x62, 0x45, 0x8e, 0xa8, 0x45, 0xc9, 0x25, 0xb3, 0xbb, 0x8a, 0xad, 0xbe,
+	0x48, 0xcf, 0xbd, 0xf6, 0xde, 0xb7, 0xe8, 0xa5, 0x6f, 0x54, 0x70, 0x97, 0x94, 0xfc, 0x97, 0xf6,
+	0xb6, 0xf3, 0x7d, 0x33, 0xcb, 0xd9, 0x6f, 0x66, 0x38, 0xb0, 0x13, 0xe5, 0xa3, 0x5c, 0x64, 0x2a,
+	0x93, 0x23, 0x1a, 0x2a, 0xf6, 0x01, 0x83, 0x34, 0x8b, 0xd0, 0xd3, 0xd0, 0xf6, 0x4e, 0x9c, 0x65,
+	0x71, 0x82, 0xc6, 0x61, 0x32, 0x9f, 0x8e, 0x30, 0xcd, 0xd5, 0xa2, 0x24, 0x9f, 0xdf, 0x25, 0xaf,
+	0x04, 0xcd, 0x73, 0x14, 0xd2, 0xf0, 0xee, 0x26, 0x6c, 0x9c, 0xa2, 0xba, 0x50, 0x54, 0xa1, 0x8f,
+	0xef, 0xe7, 0x28, 0x95, 0xfb, 0x0a, 0x1a, 0xda, 0x26, 0x3b, 0xd0, 0x08, 0x27, 0x32, 0x92, 0x8e,
+	0x35, 0xb4, 0xf7, 0xba, 0xe3, 0x86, 0x77, 0x34, 0x91, 0x91, 0x6f, 0x30, 0xf7, 0x1f, 0x1b, 0xea,
+	0x85, 0x4d, 0xfa, 0x50, 0x63, 0x91, 0x63, 0x0d, 0xad, 0xbd, 0x8e, 0x5f, 0x63, 0x11, 0x79, 0x0a,
+	0xad, 0xb9, 0x44, 0x11, 0xb0, 0xc8, 0xa9, 0x69, 0xb0, 0x59, 0x98, 0x67, 0x11, 0x79, 0x02, 0xcd,
+	0x69, 0x18, 0x16, 0xb8, 0xad, 0xf1, 0xc6, 0x34, 0x0c, 0xcf, 0x22, 0xf2, 0x12, 0xd6, 0x25, 0x0a,
+	0x46, 0x93, 0x80, 0xcf, 0xd3, 0x09, 0x0a, 0xa7, 0xae, 0xd9, 0x9e, 0x01, 0x7f, 0xd0, 0x18, 0x19,
+	0x42, 0x43, 0x16, 0x39, 0x39, 0x8d, 0xa1, 0xb5, 0xd7, 0x1f, 0x83, 0x4e, 0xc5, 0x64, 0x6d, 0x08,
+	0x32, 0x82, 0xf5, 0x08, 0x25, 0x13, 0x18, 0x05, 0xc6, 0xb3, 0x79, 0xcf, 0xb3, 0x57, 0x3a, 0x98,
+	0xd7, 0x3d, 0x87, 0x66, 0x2c, 0x28, 0x57, 0xd2, 0x69, 0xe9, 0xe7, 0x35, 0xbd, 0xd3, 0xc2, 0xf4,
+	0x4b, 0x94, 0xbc, 0x82, 0x76, 0x38, 0xa3, 0x9c, 0x63, 0x22, 0x9d, 0xb6, 0xf6, 0x68, 0x7b, 0x47,
+	0x06, 0xf0, 0x97, 0x0c, 0x79, 0x0d, 0x83, 0x1c, 0x79, 0xc4, 0x78, 0x1c, 0x08, 0xa3, 0x9f, 0x74,
+	0x3a, 0xa5, 0x77, 0x29, 0xa8, 0xbf, 0x51, 0x7a, 0x94, 0xb6, 0x24, 0x1e, 0x3c, 0x4a, 0xa8, 0x54,
+	0x81, 0x44, 0xe4, 0x81, 0x62, 0x29, 0x4a, 0x45, 0xd3, 0xdc, 0x81, 0xa1, 0xb5, 0x67, 0xfb, 0x9b,
+	0x05, 0x75, 0x81, 0xc8, 0xdf, 0x55, 0x04, 0xf9, 0x06, 0x36, 0x91, 0x89, 0x3c, 0x08, 0x69, 0x4e,
+	0x27, 0x2c, 0x61, 0x8a, 0xa1, 0x74, 0xba, 0x43, 0x6b, 0xaf, 0x3b, 0xde, 0xf4, 0xde, 0x32, 0x91,
+	0x1f, 0xdd, 0x20, 0xfc, 0x01, 0xde, 0x41, 0xc8, 0x2e, 0xb4, 0xa2, 0x49, 0x10, 0x51, 0x45, 0x9d,
+	0x9e, 0x8e, 0x5a, 0xf7, 0x8e, 0xa9, 0xa2, 0x13, 0x2a, 0x51, 0x97, 0xb4, 0x19, 0x4d, 0x0a, 0xdb,
+	0xfd, 0xd3, 0x82, 0x86, 0x16, 0xe1, 0x5e, 0x51, 0x5f, 0x54, 0xfa, 0xd7, 0xb4, 0xaa, 0x5d, 0xa3,
+	0xd5, 0xad, 0x02, 0x7c, 0x0e, 0x5b, 0x33, 0xa4, 0x42, 0x4d, 0x90, 0xaa, 0x80, 0x71, 0x85, 0xe2,
+	0x03, 0x4d, 0x02, 0x89, 0xa1, 0x2e, 0xb7, 0xed, 0x3f, 0x5e, 0xb2, 0x67, 0x25, 0x79, 0x81, 0x21,
+	0x39, 0x00, 0x47, 0x4b, 0xb1, 0x0a, 0x5d, 0xe9, 0x51, 0xd7, 0x71, 0x5b, 0x05, 0xff, 0x5d, 0x45,
+	0x2f, 0x45, 0x71, 0xff, 0xb2, 0xa0, 0x55, 0xd6, 0x83, 0x1c, 0xc0, 0xc6, 0x54, 0xcb, 0xcf, 0xc3,
+	0x45, 0x20, 0x28, 0x8f, 0x51, 0xe7, 0xde, 0x1d, 0x6f, 0x78, 0x27, 0x15, 0xee, 0x17, 0xb0, 0xdf,
+	0x9f, 0xde, 0xb2, 0xc9, 0x1b, 0x68, 0xa7, 0xf4, 0x3a, 0x28, 0x24, 0xd3, 0x6f, 0xeb, 0x8e, 0x77,
+	0x3c, 0x33, 0x32, 0x5e, 0x35, 0x32, 0xde, 0x49, 0x92, 0x51, 0xf5, 0x13, 0x4d, 0xe6, 0xe8, 0xb7,
+	0x52, 0x7a, 0x5d, 0x08, 0x4e, 0x0e, 0xa0, 0xa3, 0xf3, 0xd6, 0x81, 0xf6, 0xff, 0x07, 0xb6, 0x0b,
+	0xef, 0x22, 0xd2, 0x7d, 0x03, 0xfd, 0xdb, 0x39, 0x91, 0x01, 0xd8, 0x49, 0x76, 0xa5, 0x33, 0xb6,
+	0xfd, 0xe2, 0x48, 0x08, 0xd4, 0x67, 0x2c, 0x9e, 0xe9, 0x8c, 0x6c, 0x5f, 0x9f, 0xdd, 0x13, 0x68,
+	0x95, 0x0d, 0x44, 0x5e, 0x40, 0x5d, 0x2d, 0x72, 0xf3, 0xc6, 0xfe, 0x78, 0xbd, 0x6a, 0x34, 0xf9,
+	0x6e, 0x91, 0xa3, 0xaf, 0x29, 0xe2, 0x40, 0x2b, 0xa7, 0x8b, 0x24, 0xa3, 0xd5, 0x14, 0x56, 0xa6,
+	0xfb, 0xbb, 0x05, 0x83, 0xbb, 0x3d, 0x43, 0x76, 0xa0, 0x93, 0x32, 0x1e, 0xe4, 0xd9, 0x15, 0x0a,
+	0x7d, 0x6d, 0xcd, 0x6f, 0xa7, 0x8c, 0x9f, 0x17, 0xb6, 0x26, 0xe9, 0x75, 0x49, 0xd6, 0x4a, 0x92,
+	0x5e, 0x1b, 0xf2, 0x05, 0xf4, 0x28, 0x57, 0xc8, 0x39, 0x0d, 0x62, 0xca, 0xb8, 0xd6, 0xa2, 0xe6,
+	0x77, 0x4b, 0xec, 0x94, 0x32, 0x4e, 0x76, 0x61, 0xc3, 0x8c, 0x76, 0x90, 0x4d, 0x83, 0x3c, 0x13,
+	0x4a, 0xea, 0xd2, 0x36, 0xfc, 0x75, 0x03, 0xff, 0x38, 0x3d, 0x2f, 0x40, 0xf7, 0x17, 0xe8, 0xdd,
+	0x6c, 0xcb, 0x1b, 0x4d, 0x68, 0xeb, 0x26, 0x7c, 0x06, 0xc0, 0x64, 0x30, 0xcf, 0x23, 0xaa, 0xd0,
+	0x3c, 0xab, 0xed, 0x77, 0x98, 0xbc, 0x34, 0x40, 0x49, 0x47, 0x98, 0x60, 0x41, 0xdb, 0x15, 0x7d,
+	0x6c, 0x00, 0xf7, 0x25, 0x6c, 0x9a, 0xa3, 0x6e, 0xf9, 0x52, 0xc9, 0x3b, 0x9f, 0x70, 0x3d, 0xf8,
+	0xf4, 0x30, 0xfc, 0x95, 0x67, 0x57, 0x09, 0x46, 0xb1, 0xf6, 0x34, 0xb7, 0x7f, 0xc4, 0x7f, 0xff,
+	0x33, 0xe8, 0x2c, 0xff, 0x2f, 0x64, 0x00, 0xbd, 0x4b, 0x2e, 0x30, 0x66, 0x52, 0xa1, 0xc0, 0x68,
+	0xb0, 0x46, 0xfa, 0x00, 0xfe, 0xca, 0xb6, 0xf6, 0xbf, 0x00, 0x58, 0x0d, 0x0e, 0xe9, 0x42, 0x4b,
+	0x5b, 0x95, 0xeb, 0xe1, 0x5c, 0xcd, 0x32, 0xc1, 0x7e, 0x2b, 0x5c, 0x09, 0x40, 0xf3, 0x92, 0xcb,
+	0x05, 0x0f, 0x07, 0xb5, 0xfd, 0x3f, 0x2c, 0xe8, 0xdd, 0xac, 0x31, 0x79, 0x0a, 0x8f, 0xcc, 0xbd,
+	0x82, 0x2a, 0x96, 0xf1, 0x92, 0x1b, 0xac, 0x91, 0x6d, 0xd8, 0xba, 0xc8, 0x31, 0x54, 0x62, 0x9e,
+	0x9e, 0xf1, 0xf7, 0x73, 0x26, 0x16, 0x15, 0x67, 0x15, 0xe9, 0x99, 0x3f, 0x5c, 0x89, 0xd4, 0xc8,
+	0x63, 0x18, 0x2c, 0x07, 0xab, 0x42, 0x6d, 0xf2, 0x09, 0x3c, 0xf1, 0x31, 0x61, 0x45, 0xb8, 0x9c,
+	0xa5, 0xb8, 0x0a, 0xa8, 0x17, 0xd4, 0x31, 0x8a, 0x07, 0xbe, 0xdc, 0x18, 0xff, 0x6d, 0xc1, 0xe3,
+	0x43, 0xbd, 0x9b, 0xbe, 0xcf, 0x22, 0x3c, 0xca, 0xb8, 0x12, 0x59, 0x92, 0xa0, 0x20, 0xbb, 0xd0,
+	0xae, 0x36, 0x0c, 0x19, 0x78, 0x77, 0x96, 0xcd, 0x76, 0xd3, 0xd3, 0xa6, 0xbb, 0x46, 0xbe, 0x04,
+	0x58, 0xd5, 0x87, 0x10, 0xef, 0x5e, 0xb1, 0xb6, 0xb7, 0xee, 0x0d, 0xd8, 0xdb, 0x62, 0xd3, 0xb9,
+	0x6b, 0xe4, 0x1c, 0x9e, 0x3c, 0x58, 0x36, 0xf2, 0xcc, 0xfb, 0xaf, 0x72, 0x7e, 0xfc, 0xc6, 0x6f,
+	0xbf, 0xfe, 0xf9, 0xab, 0x94, 0xc6, 0x29, 0x1d, 0x45, 0xf9, 0x28, 0x4c, 0xb2, 0x79, 0x34, 0x8a,
+	0xb3, 0x9b, 0xbb, 0x37, 0x08, 0x97, 0x2f, 0x7c, 0x60, 0x33, 0x4f, 0x9a, 0x1a, 0x7b, 0xfd, 0x6f,
+	0x00, 0x00, 0x00, 0xff, 0xff, 0xe3, 0x9e, 0xf9, 0x9c, 0xb9, 0x07, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -615,6 +820,8 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ActiveModeControllerClient interface {
 	GetState(ctx context.Context, in *GetStateRequest, opts ...grpc.CallOption) (*State, error)
+	DeleteCbsd(ctx context.Context, in *DeleteCbsdRequest, opts ...grpc.CallOption) (*empty.Empty, error)
+	AcknowledgeCbsdUpdate(ctx context.Context, in *AcknowledgeCbsdUpdateRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
 type activeModeControllerClient struct {
@@ -634,9 +841,29 @@ func (c *activeModeControllerClient) GetState(ctx context.Context, in *GetStateR
 	return out, nil
 }
 
+func (c *activeModeControllerClient) DeleteCbsd(ctx context.Context, in *DeleteCbsdRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/ActiveModeController/DeleteCbsd", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *activeModeControllerClient) AcknowledgeCbsdUpdate(ctx context.Context, in *AcknowledgeCbsdUpdateRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/ActiveModeController/AcknowledgeCbsdUpdate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ActiveModeControllerServer is the server API for ActiveModeController service.
 type ActiveModeControllerServer interface {
 	GetState(context.Context, *GetStateRequest) (*State, error)
+	DeleteCbsd(context.Context, *DeleteCbsdRequest) (*empty.Empty, error)
+	AcknowledgeCbsdUpdate(context.Context, *AcknowledgeCbsdUpdateRequest) (*empty.Empty, error)
 }
 
 // UnimplementedActiveModeControllerServer can be embedded to have forward compatible implementations.
@@ -645,6 +872,12 @@ type UnimplementedActiveModeControllerServer struct {
 
 func (*UnimplementedActiveModeControllerServer) GetState(ctx context.Context, req *GetStateRequest) (*State, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetState not implemented")
+}
+func (*UnimplementedActiveModeControllerServer) DeleteCbsd(ctx context.Context, req *DeleteCbsdRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteCbsd not implemented")
+}
+func (*UnimplementedActiveModeControllerServer) AcknowledgeCbsdUpdate(ctx context.Context, req *AcknowledgeCbsdUpdateRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AcknowledgeCbsdUpdate not implemented")
 }
 
 func RegisterActiveModeControllerServer(s *grpc.Server, srv ActiveModeControllerServer) {
@@ -669,6 +902,42 @@ func _ActiveModeController_GetState_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ActiveModeController_DeleteCbsd_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteCbsdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActiveModeControllerServer).DeleteCbsd(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ActiveModeController/DeleteCbsd",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActiveModeControllerServer).DeleteCbsd(ctx, req.(*DeleteCbsdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ActiveModeController_AcknowledgeCbsdUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AcknowledgeCbsdUpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActiveModeControllerServer).AcknowledgeCbsdUpdate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ActiveModeController/AcknowledgeCbsdUpdate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActiveModeControllerServer).AcknowledgeCbsdUpdate(ctx, req.(*AcknowledgeCbsdUpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _ActiveModeController_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ActiveModeController",
 	HandlerType: (*ActiveModeControllerServer)(nil),
@@ -676,6 +945,14 @@ var _ActiveModeController_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetState",
 			Handler:    _ActiveModeController_GetState_Handler,
+		},
+		{
+			MethodName: "DeleteCbsd",
+			Handler:    _ActiveModeController_DeleteCbsd_Handler,
+		},
+		{
+			MethodName: "AcknowledgeCbsdUpdate",
+			Handler:    _ActiveModeController_AcknowledgeCbsdUpdate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

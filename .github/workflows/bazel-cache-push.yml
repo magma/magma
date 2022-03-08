@@ -21,7 +21,7 @@ env:
 
   S3_BUCKET_PATH: s3://magma-cache
 
-  DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:sha-206a67a"
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:latest"
 
 jobs:
   bazel-build-magma-vm-and-push-cache:
@@ -61,10 +61,10 @@ jobs:
         run: |
           cd lte/gateway
           vagrant ssh -c 'cd ~/magma; bazel build //... --config=production' magma
-      - name: Build all with Bazel from scratch `bazel build //... --config=development`
+      - name: Build all with Bazel from scratch `bazel build //...`
         run: |
           cd lte/gateway
-          vagrant ssh -c 'cd ~/magma; bazel build //... --config=development' magma
+          vagrant ssh -c 'cd ~/magma; bazel build //...' magma
       - name: Upload .bazel-cache and .bazel-cache-repo to S3
         run: |
           tar -zcvf ${{ env.BAZEL_CACHE_MAGMA_VM_TAR }} ${{ env.BAZEL_CACHE }}/
@@ -92,6 +92,9 @@ jobs:
           run: |
             cd /workspaces/magma
             bazel build //...
+            bazel test //...
+            bazel test //... --config=asan
+            bazel test //... --config=lsan
       - name: Upload .bazel-cache and .bazel-cache-repo to S3
         run: |
           tar -zcvf ${{ env.BAZEL_CACHE_DEVCONTAINER_TAR }} ${{ env.BAZEL_CACHE }}/

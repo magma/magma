@@ -242,7 +242,7 @@ def federated_integ_test(
     )
 
     vagrant_setup(
-            'magma_test', destroy_vm, force_provision=provision_vm,
+        'magma_test', destroy_vm, force_provision=provision_vm,
     )
     execute(_make_integ_tests)
     execute(run_integ_tests, "federated_tests/s1aptests/test_attach_detach.py")
@@ -551,6 +551,7 @@ def _copy_out_c_execs_in_magma_vm():
         exec_paths = [
             '/usr/local/bin/sessiond', '/usr/local/bin/mme',
             '/usr/local/sbin/sctpd', '/usr/local/bin/connectiond',
+            '/usr/local/bin/liagentd',
         ]
         dest_path = '~/magma-packages/executables'
         run('mkdir -p ' + dest_path)
@@ -600,7 +601,7 @@ def _set_service_config_var(service, var_name, value):
     """ Sets variable in config file by value """
     run(
         "echo '%s: %s' | sudo tee -a /var/opt/magma/configs/%s.yml" % (
-        var_name, str(value), service,
+            var_name, str(value), service,
         ),
     )
 
@@ -680,7 +681,7 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None):
         ' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
         ' source ~/build/python/bin/activate;'
         ' export GATEWAY_IP=%s;'
-        ' make integ_test %s\''
+        ' make -i integ_test %s\''
         % (key, host, port, gateway_ip, tests),
     )
 

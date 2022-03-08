@@ -106,7 +106,7 @@ RUN apt-get update && apt-get install -y \
   redis-server \
   wget \
   ethtool \
-  linux-headers-`uname -r` \
+  linux-headers-generic \
   iptables \
   iproute2
 

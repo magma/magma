@@ -63,6 +63,15 @@
       "docs/docs_overview": {
         "title": "Documentation Overview"
       },
+      "dp/architecture_overview title: Overview hide_title: true": {
+        "title": "dp/architecture_overview title: Overview hide_title: true"
+      },
+      "dp/debug_logs title: View Logs hide_title: true": {
+        "title": "dp/debug_logs title: View Logs hide_title: true"
+      },
+      "dp/deploy_build title: Build DP hide_title: true": {
+        "title": "dp/deploy_build title: Build DP hide_title: true"
+      },
       "faq/faq_magma": {
         "title": "Frequently Asked Questions"
       },
@@ -101,6 +110,9 @@
       },
       "general/upgrade_intro": {
         "title": "Introduction"
+      },
+      "howtos/5g_nsa_support": {
+        "title": "5G NSA Support"
       },
       "howtos/call_tracing": {
         "title": "Call Tracing"
@@ -234,6 +246,9 @@
         "title": "AGW Setup (With Vagrant)",
         "sidebar_label": "Setup (With Vagrant)"
       },
+      "lte/dev_teid_allocation": {
+        "title": "TEID Allocation"
+      },
       "lte/tr069": {
         "title": "Add eNB TR-069 Support"
       },
@@ -339,9 +354,6 @@
       "orc8r/deploy_intro": {
         "title": "Introduction"
       },
-      "orc8r/deploy_orcl": {
-        "title": "Install Orchestrator (Managed)"
-      },
       "orc8r/deploy_terraform_options": {
         "title": "Terraform Options"
       },
@@ -359,6 +371,9 @@
       },
       "orc8r/dev_minikube": {
         "title": "Deploy on Minikube"
+      },
+      "orc8r/dev_token_security": {
+        "title": "REST API Auth"
       },
       "orc8r/dev_rest_api": {
         "title": "REST API"

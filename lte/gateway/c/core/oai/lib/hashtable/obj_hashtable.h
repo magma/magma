@@ -44,11 +44,11 @@
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
-#define FREE_OBJ_HASHTABLE_KEY_ARRAY(key_array_ptr)                            \
-  do {                                                                         \
-    AssertFatal(key_array_ptr, "Trying to free a NULL array pointer");         \
-    free(*(key_array_ptr));                                                    \
-    free(key_array_ptr);                                                       \
+#define FREE_OBJ_HASHTABLE_KEY_ARRAY(key_array_ptr)                    \
+  do {                                                                 \
+    AssertFatal(key_array_ptr, "Trying to free a NULL array pointer"); \
+    free(*(key_array_ptr));                                            \
+    free(key_array_ptr);                                               \
   } while (0) /*Free the list of keys of an object hash table */
 
 typedef struct obj_hash_node_s {
@@ -90,22 +90,25 @@ typedef struct obj_hash_table_uint64_s {
   bool log_enabled;
 } obj_hash_table_uint64_t;
 
-obj_hash_table_t* obj_hashtable_init(
-    obj_hash_table_t* hashtblP, hash_size_t sizeP,
-    hash_size_t (*hashfuncP)(const void*, int), void (*freekeyfuncP)(void**),
-    void (*freedatafuncP)(void**), bstring display_name_pP);
+obj_hash_table_t* obj_hashtable_init(obj_hash_table_t* hashtblP,
+                                     hash_size_t sizeP,
+                                     hash_size_t (*hashfuncP)(const void*, int),
+                                     void (*freekeyfuncP)(void**),
+                                     void (*freedatafuncP)(void**),
+                                     bstring display_name_pP);
 obj_hash_table_t* obj_hashtable_create(
     hash_size_t size, hash_size_t (*hashfunc)(const void*, int),
     void (*freekeyfunc)(void**), void (*freedatafunc)(void**),
     bstring display_name_pP);
 hashtable_rc_t obj_hashtable_destroy(obj_hash_table_t* hashtblP);
-hashtable_rc_t obj_hashtable_insert(
-    obj_hash_table_t* hashtblP, const void* keyP, int key_sizeP, void* dataP);
-hashtable_rc_t obj_hashtable_free(
-    obj_hash_table_t* hashtblP, const void* keyP, int key_sizeP);
-hashtable_rc_t obj_hashtable_get(
-    const obj_hash_table_t* hashtblP, const void* keyP, int key_sizeP,
-    void** dataP) __attribute__((hot));
+hashtable_rc_t obj_hashtable_insert(obj_hash_table_t* hashtblP,
+                                    const void* keyP, int key_sizeP,
+                                    void* dataP);
+hashtable_rc_t obj_hashtable_free(obj_hash_table_t* hashtblP, const void* keyP,
+                                  int key_sizeP);
+hashtable_rc_t obj_hashtable_get(const obj_hash_table_t* hashtblP,
+                                 const void* keyP, int key_sizeP, void** dataP)
+    __attribute__((hot));
 
 // Thread-safe functions
 obj_hash_table_t* obj_hashtable_ts_init(
@@ -117,8 +120,9 @@ obj_hash_table_t* obj_hashtable_ts_create(
     void (*freekeyfunc)(void**), void (*freedatafunc)(void**),
     bstring display_name_pP);
 hashtable_rc_t obj_hashtable_ts_destroy(obj_hash_table_t* hashtblP);
-hashtable_rc_t obj_hashtable_ts_insert(
-    obj_hash_table_t* hashtblP, const void* keyP, int key_sizeP, void* dataP);
+hashtable_rc_t obj_hashtable_ts_insert(obj_hash_table_t* hashtblP,
+                                       const void* keyP, int key_sizeP,
+                                       void* dataP);
 obj_hash_table_uint64_t* obj_hashtable_uint64_init(
     obj_hash_table_uint64_t* hashtblP, hash_size_t sizeP,
     hash_size_t (*hashfuncP)(const void*, int), void (*freekeyfuncP)(void**),
@@ -137,13 +141,13 @@ obj_hash_table_uint64_t* obj_hashtable_uint64_ts_create(
     void (*freekeyfunc)(void**), bstring display_name_pP);
 hashtable_rc_t obj_hashtable_uint64_ts_destroy(
     obj_hash_table_uint64_t* hashtblP);
-hashtable_rc_t obj_hashtable_uint64_ts_insert(
-    obj_hash_table_uint64_t* hashtblP, const void* keyP, int key_sizeP,
-    uint64_t dataP);
+hashtable_rc_t obj_hashtable_uint64_ts_insert(obj_hash_table_uint64_t* hashtblP,
+                                              const void* keyP, int key_sizeP,
+                                              uint64_t dataP);
 hashtable_rc_t obj_hashtable_uint64_ts_dump_content(
     const obj_hash_table_uint64_t* hashtblP, bstring str);
-hashtable_rc_t obj_hashtable_uint64_ts_remove(
-    obj_hash_table_uint64_t* hashtblP, const void* keyP, int key_sizeP);
+hashtable_rc_t obj_hashtable_uint64_ts_remove(obj_hash_table_uint64_t* hashtblP,
+                                              const void* keyP, int key_sizeP);
 hashtable_rc_t obj_hashtable_uint64_ts_get(
     const obj_hash_table_uint64_t* hashtblP, const void* keyP, int key_sizeP,
     uint64_t* dataP) __attribute__((hot));

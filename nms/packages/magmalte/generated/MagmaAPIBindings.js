@@ -35,13 +35,6 @@ export type aggregation_logging_configs = {
     throttle_rate ? : number,
     throttle_window ? : number,
 };
-export type agw_test_config = {
-    package_repo: string,
-    release_channel: string,
-    slack_webhook: string,
-    target_gateway_id: string,
-    target_tier: string,
-};
 export type alert_bulk_upload_response = {
     errors: {
         [string]: string,
@@ -147,6 +140,12 @@ export type call_trace_state = {
     call_trace_available ? : boolean,
     call_trace_ending ? : boolean,
 };
+export type capabilities = {
+    antenna_gain: number,
+    max_power: number,
+    min_power: number,
+    number_of_antennas: number,
+};
 export type carrier_wifi_gateway_health_status = {
     description: string,
     status: "HEALTHY" | "UNHEALTHY",
@@ -158,6 +157,17 @@ export type carrier_wifi_ha_pair_state = {
 };
 export type carrier_wifi_ha_pair_status = {
     active_gateway: string,
+};
+export type cbsd = {
+    capabilities: capabilities,
+    cbsd_id ? : string,
+    fcc_id: string,
+    grant ? : grant,
+    id: number,
+    is_active: boolean,
+    serial_number: string,
+    state: "unregistered" | "registered",
+    user_id: string,
 };
 export type cellular_gateway_pool = {
     config: cellular_gateway_pool_configs,
@@ -181,13 +191,7 @@ export type challenge_key = {
     key_type: "ECHO" | "SOFTWARE_ECDSA_SHA256",
 };
 export type channel_id = string;
-export type ci_node = {
-    available: boolean,
-    id: string,
-    last_lease_time ? : string,
-    tag ? : string,
-    vpn_ip: string,
-};
+export type components = "SAS" | "DP" | "CBSD";
 export type config_info = {
     mconfig_created_at ? : number,
 };
@@ -273,19 +277,6 @@ export type dns_config_record = {
     cname_record ? : Array < string >
         ,
     domain: string,
-};
-export type e2e_test_case = {
-    config: {},
-    pk: number,
-    state: e2e_test_case_state,
-    test_type: string,
-};
-export type e2e_test_case_state = {
-    current_state ? : string,
-    error ? : string,
-    is_executing: boolean,
-    last_execution_time ? : string,
-    next_scheduled_time ? : string,
 };
 export type eap_aka = {
     mnc_len ? : number,
@@ -385,23 +376,6 @@ export type enodeb_state = {
     rf_tx_on: boolean,
     time_reported ? : number,
     ues_connected ? : number,
-};
-export type enodebd_e2e_test = {
-    config: enodebd_test_config,
-    pk: number,
-    state: e2e_test_case_state,
-};
-export type enodebd_test_config = {
-    agw_config: agw_test_config,
-    enodeb_SN: string,
-    enodeb_config: enodeb_config,
-    network_id: string,
-    run_traffic_tests: boolean,
-    ssid ? : string,
-    ssid_pw ? : string,
-    start_state ? : string,
-    subscriberID: string,
-    traffic_gwID: string,
 };
 export type error = {
     message: string,
@@ -637,6 +611,14 @@ export type gettable_alert_silencer = {
     status: alert_silence_status,
     updatedAt: string,
 };
+export type grant = {
+    bandwidth_mhz ? : number,
+    frequency_mhz ? : number,
+    grant_expire_time ? : string,
+    max_eirp ? : number,
+    state ? : "granted" | "guthorized",
+    transmit_expire_time ? : string,
+};
 export type gx = {
     disableGx ? : boolean,
     overwrite_apn ? : string,
@@ -706,10 +688,6 @@ export type ipdr_export_dst = {
 export type label_pair = {
     name: string,
     value: string,
-};
-export type latest_script_execution = {
-    timestamp: number,
-    version: string,
 };
 export type li_ues = {
     imsis: Array < string >
@@ -792,6 +770,15 @@ export type matcher = {
     name: string,
     value: string,
 };
+export type message = {
+    body ? : string,
+    fcc_id ? : string,
+    from ? : "SAS" | "DP" | "CBSD",
+    serial_number ? : string,
+    time ? : string,
+    to ? : "SAS" | "DP" | "CBSD",
+    type ? : string,
+};
 export type metric_datapoint = Array < string >
 ;
 export type metric_datapoints = Array < metric_datapoint >
@@ -810,15 +797,16 @@ export type msisdn_assignment = {
 export type mutable_call_trace = {
     requested_end: boolean,
 };
+export type mutable_cbsd = {
+    capabilities: capabilities,
+    fcc_id: string,
+    serial_number: string,
+    user_id: string,
+};
 export type mutable_cellular_gateway_pool = {
     config: cellular_gateway_pool_configs,
     gateway_pool_id: gateway_pool_id,
     gateway_pool_name ? : string,
-};
-export type mutable_ci_node = {
-    id: string,
-    tag ? : string,
-    vpn_ip: string,
 };
 export type mutable_cwf_gateway = {
     carrier_wifi: gateway_cwf_configs,
@@ -834,10 +822,6 @@ export type mutable_cwf_ha_pair = {
     gateway_id_1: string,
     gateway_id_2: string,
     ha_pair_id: string,
-};
-export type mutable_enodebd_e2e_test = {
-    config: enodebd_test_config,
-    pk: number,
 };
 export type mutable_federation_gateway = {
     description: gateway_description,
@@ -1045,6 +1029,7 @@ export type network_ran_configs = {
 export type network_sentry_config = {
     exclusion_patterns ? : Array < string >
         ,
+    number_of_lines_in_log ? : number,
     sample_rate ? : number,
     upload_mme_log ? : boolean,
     url_native ? : string,
@@ -1058,16 +1043,16 @@ export type network_type = string;
 export type nh_routes = {
     [string]: string,
 };
-export type node_lease = {
-    id: string,
-    lease_id: string,
-    vpn_ip: string,
-};
 export type package_type = {
     name ? : string,
     version ? : string,
 };
 export type page_token = string;
+export type paginated_cbsds = {
+    cbsds: Array < cbsd >
+        ,
+    total_count: number,
+};
 export type paginated_enodebs = {
     enodebs: {
         [string]: enodeb,
@@ -1620,176 +1605,6 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
-    static async getCiNodes(
-            parameters: {
-                'tag' ? : string,
-                'listUntagged' ? : string,
-            }
-        ): Promise < Array < ci_node >
-        >
-        {
-            let path = '/ci/nodes';
-            let body;
-            let query = {};
-
-            if (parameters['tag'] !== undefined) {
-                query['tag'] = parameters['tag'];
-            }
-
-            if (parameters['listUntagged'] !== undefined) {
-                query['list_untagged'] = parameters['listUntagged'];
-            }
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async postCiNodes(
-        parameters: {
-            'ciNode': mutable_ci_node,
-        }
-    ): Promise < "Created" > {
-        let path = '/ci/nodes';
-        let body;
-        let query = {};
-        if (parameters['ciNode'] === undefined) {
-            throw new Error('Missing required  parameter: ciNode');
-        }
-
-        if (parameters['ciNode'] !== undefined) {
-            body = parameters['ciNode'];
-        }
-
-        return await this.request(path, 'POST', query, body);
-    }
-    static async deleteCiNodesByNodeId(
-        parameters: {
-            'nodeId': string,
-        }
-    ): Promise < "Success" > {
-        let path = '/ci/nodes/{node_id}';
-        let body;
-        let query = {};
-        if (parameters['nodeId'] === undefined) {
-            throw new Error('Missing required  parameter: nodeId');
-        }
-
-        path = path.replace('{node_id}', `${parameters['nodeId']}`);
-
-        return await this.request(path, 'DELETE', query, body);
-    }
-    static async getCiNodesByNodeId(
-            parameters: {
-                'nodeId': string,
-            }
-        ): Promise < ci_node >
-        {
-            let path = '/ci/nodes/{node_id}';
-            let body;
-            let query = {};
-            if (parameters['nodeId'] === undefined) {
-                throw new Error('Missing required  parameter: nodeId');
-            }
-
-            path = path.replace('{node_id}', `${parameters['nodeId']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async putCiNodesByNodeId(
-        parameters: {
-            'nodeId': string,
-            'ciNode': mutable_ci_node,
-        }
-    ): Promise < "Updated" > {
-        let path = '/ci/nodes/{node_id}';
-        let body;
-        let query = {};
-        if (parameters['nodeId'] === undefined) {
-            throw new Error('Missing required  parameter: nodeId');
-        }
-
-        path = path.replace('{node_id}', `${parameters['nodeId']}`);
-
-        if (parameters['ciNode'] === undefined) {
-            throw new Error('Missing required  parameter: ciNode');
-        }
-
-        if (parameters['ciNode'] !== undefined) {
-            body = parameters['ciNode'];
-        }
-
-        return await this.request(path, 'PUT', query, body);
-    }
-    static async postCiNodesByNodeIdRelease(
-        parameters: {
-            'nodeId': string,
-        }
-    ): Promise < "Node released successfully" > {
-        let path = '/ci/nodes/{node_id}/release';
-        let body;
-        let query = {};
-        if (parameters['nodeId'] === undefined) {
-            throw new Error('Missing required  parameter: nodeId');
-        }
-
-        path = path.replace('{node_id}', `${parameters['nodeId']}`);
-
-        return await this.request(path, 'POST', query, body);
-    }
-    static async postCiNodesByNodeIdReleaseByLeaseId(
-        parameters: {
-            'nodeId': string,
-            'leaseId': string,
-        }
-    ): Promise < "Node released successfully" > {
-        let path = '/ci/nodes/{node_id}/release/{lease_id}';
-        let body;
-        let query = {};
-        if (parameters['nodeId'] === undefined) {
-            throw new Error('Missing required  parameter: nodeId');
-        }
-
-        path = path.replace('{node_id}', `${parameters['nodeId']}`);
-
-        if (parameters['leaseId'] === undefined) {
-            throw new Error('Missing required  parameter: leaseId');
-        }
-
-        path = path.replace('{lease_id}', `${parameters['leaseId']}`);
-
-        return await this.request(path, 'POST', query, body);
-    }
-    static async postCiNodesByNodeIdReserve(
-            parameters: {
-                'nodeId': string,
-            }
-        ): Promise < node_lease >
-        {
-            let path = '/ci/nodes/{node_id}/reserve';
-            let body;
-            let query = {};
-            if (parameters['nodeId'] === undefined) {
-                throw new Error('Missing required  parameter: nodeId');
-            }
-
-            path = path.replace('{node_id}', `${parameters['nodeId']}`);
-
-            return await this.request(path, 'POST', query, body);
-        }
-    static async postCiReserve(
-            parameters: {
-                'tag' ? : string,
-            }
-        ): Promise < node_lease >
-        {
-            let path = '/ci/reserve';
-            let body;
-            let query = {};
-
-            if (parameters['tag'] !== undefined) {
-                query['tag'] = parameters['tag'];
-            }
-
-            return await this.request(path, 'POST', query, body);
-        }
     static async getCwf(): Promise < Array < string >
         >
         {
@@ -2952,6 +2767,205 @@ export default class MagmaAPIBindings {
             }
 
             path = path.replace('{subscriber_id}', `${parameters['subscriberId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async getDpByNetworkIdCbsds(
+            parameters: {
+                'networkId': string,
+                'offset' ? : number,
+                'limit' ? : number,
+            }
+        ): Promise < paginated_cbsds >
+        {
+            let path = '/dp/{network_id}/cbsds';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['offset'] !== undefined) {
+                query['offset'] = parameters['offset'];
+            }
+
+            if (parameters['limit'] !== undefined) {
+                query['limit'] = parameters['limit'];
+            }
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postDpByNetworkIdCbsds(
+        parameters: {
+            'networkId': string,
+            'cbsd': mutable_cbsd,
+        }
+    ): Promise < "Success" > {
+        let path = '/dp/{network_id}/cbsds';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['cbsd'] === undefined) {
+            throw new Error('Missing required  parameter: cbsd');
+        }
+
+        if (parameters['cbsd'] !== undefined) {
+            body = parameters['cbsd'];
+        }
+
+        return await this.request(path, 'POST', query, body);
+    }
+    static async deleteDpByNetworkIdCbsdsByCbsdId(
+        parameters: {
+            'networkId': string,
+            'cbsdId': number,
+        }
+    ): Promise < "Success" > {
+        let path = '/dp/{network_id}/cbsds/{cbsd_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['cbsdId'] === undefined) {
+            throw new Error('Missing required  parameter: cbsdId');
+        }
+
+        path = path.replace('{cbsd_id}', `${parameters['cbsdId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getDpByNetworkIdCbsdsByCbsdId(
+            parameters: {
+                'networkId': string,
+                'cbsdId': number,
+            }
+        ): Promise < cbsd >
+        {
+            let path = '/dp/{network_id}/cbsds/{cbsd_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['cbsdId'] === undefined) {
+                throw new Error('Missing required  parameter: cbsdId');
+            }
+
+            path = path.replace('{cbsd_id}', `${parameters['cbsdId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putDpByNetworkIdCbsdsByCbsdId(
+        parameters: {
+            'networkId': string,
+            'cbsdId': number,
+            'cbsd': mutable_cbsd,
+        }
+    ): Promise < "Success" > {
+        let path = '/dp/{network_id}/cbsds/{cbsd_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['cbsdId'] === undefined) {
+            throw new Error('Missing required  parameter: cbsdId');
+        }
+
+        path = path.replace('{cbsd_id}', `${parameters['cbsdId']}`);
+
+        if (parameters['cbsd'] === undefined) {
+            throw new Error('Missing required  parameter: cbsd');
+        }
+
+        if (parameters['cbsd'] !== undefined) {
+            body = parameters['cbsd'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getDpByNetworkIdLogs(
+            parameters: {
+                'networkId': string,
+                'offset' ? : number,
+                'limit' ? : number,
+                'begin' ? : string,
+                'end' ? : string,
+                'serialNumber' ? : string,
+                'fccId' ? : string,
+                'type' ? : string,
+                'responseCode' ? : number,
+                'from' ? : "SAS" | "DP" | "CBSD",
+                'to' ? : "SAS" | "DP" | "CBSD",
+            }
+        ): Promise < Array < message >
+        >
+        {
+            let path = '/dp/{network_id}/logs';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['offset'] !== undefined) {
+                query['offset'] = parameters['offset'];
+            }
+
+            if (parameters['limit'] !== undefined) {
+                query['limit'] = parameters['limit'];
+            }
+
+            if (parameters['begin'] !== undefined) {
+                query['begin'] = parameters['begin'];
+            }
+
+            if (parameters['end'] !== undefined) {
+                query['end'] = parameters['end'];
+            }
+
+            if (parameters['serialNumber'] !== undefined) {
+                query['serial_number'] = parameters['serialNumber'];
+            }
+
+            if (parameters['fccId'] !== undefined) {
+                query['fcc_id'] = parameters['fccId'];
+            }
+
+            if (parameters['type'] !== undefined) {
+                query['type'] = parameters['type'];
+            }
+
+            if (parameters['responseCode'] !== undefined) {
+                query['response_code'] = parameters['responseCode'];
+            }
+
+            if (parameters['from'] !== undefined) {
+                query['from'] = parameters['from'];
+            }
+
+            if (parameters['to'] !== undefined) {
+                query['to'] = parameters['to'];
+            }
 
             return await this.request(path, 'GET', query, body);
         }
@@ -10379,100 +10393,6 @@ export default class MagmaAPIBindings {
 
             return await this.request(path, 'GET', query, body);
         }
-    static async getTestsE2E(): Promise < Array < e2e_test_case >
-        >
-        {
-            let path = '/tests/e2e';
-            let body;
-            let query = {};
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async getTestsE2EEnodebd(): Promise < Array < enodebd_e2e_test >
-        >
-        {
-            let path = '/tests/e2e/enodebd';
-            let body;
-            let query = {};
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async postTestsE2EEnodebd(
-        parameters: {
-            'test': mutable_enodebd_e2e_test,
-        }
-    ): Promise < "Created" > {
-        let path = '/tests/e2e/enodebd';
-        let body;
-        let query = {};
-        if (parameters['test'] === undefined) {
-            throw new Error('Missing required  parameter: test');
-        }
-
-        if (parameters['test'] !== undefined) {
-            body = parameters['test'];
-        }
-
-        return await this.request(path, 'POST', query, body);
-    }
-    static async deleteTestsE2EEnodebdByTestPk(
-        parameters: {
-            'testPk': number,
-        }
-    ): Promise < "Deleted" > {
-        let path = '/tests/e2e/enodebd/{test_pk}';
-        let body;
-        let query = {};
-        if (parameters['testPk'] === undefined) {
-            throw new Error('Missing required  parameter: testPk');
-        }
-
-        path = path.replace('{test_pk}', `${parameters['testPk']}`);
-
-        return await this.request(path, 'DELETE', query, body);
-    }
-    static async getTestsE2EEnodebdByTestPk(
-            parameters: {
-                'testPk': number,
-            }
-        ): Promise < enodebd_test_config >
-        {
-            let path = '/tests/e2e/enodebd/{test_pk}';
-            let body;
-            let query = {};
-            if (parameters['testPk'] === undefined) {
-                throw new Error('Missing required  parameter: testPk');
-            }
-
-            path = path.replace('{test_pk}', `${parameters['testPk']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async putTestsE2EEnodebdByTestPk(
-        parameters: {
-            'testPk': number,
-            'test': enodebd_test_config,
-        }
-    ): Promise < "Updated" > {
-        let path = '/tests/e2e/enodebd/{test_pk}';
-        let body;
-        let query = {};
-        if (parameters['testPk'] === undefined) {
-            throw new Error('Missing required  parameter: testPk');
-        }
-
-        path = path.replace('{test_pk}', `${parameters['testPk']}`);
-
-        if (parameters['test'] === undefined) {
-            throw new Error('Missing required  parameter: test');
-        }
-
-        if (parameters['test'] !== undefined) {
-            body = parameters['test'];
-        }
-
-        return await this.request(path, 'PUT', query, body);
-    }
     static async getUser(): Promise < Array < string >
         >
         {

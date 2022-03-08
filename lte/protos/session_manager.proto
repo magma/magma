@@ -16,7 +16,6 @@ syntax = "proto3";
 import "orc8r/protos/common.proto";
 import "lte/protos/policydb.proto";
 import "lte/protos/subscriberdb.proto";
-import "lte/protos/apn.proto";
 import "google/protobuf/timestamp.proto";
 
 package magma.lte;
@@ -591,6 +590,22 @@ message QosInformationRequest {
   BitrateUnitsAMBR br_unit = 7;
 }
 
+message M5GQosInformationRequest {
+  uint64 apn_ambr_dl = 1;
+  uint64 apn_ambr_ul = 2;
+  uint32 priority_level = 3;
+  prem_capab preemption_capability = 4;
+  prem_vuner preemption_vulnerability = 5;
+  QCI qos_class_id = 6;
+
+  enum BitrateUnitsAMBR {
+        BPS = 0;
+        KBPS = 1;
+  }
+  // Unit (either bps or Kbps)
+  BitrateUnitsAMBR br_unit = 7;
+}
+
 // TgppContext is a session specific 3GPP context session proxy may meed session manager to persist
 message TgppContext {
   string gx_dest_host = 1;
@@ -898,7 +913,7 @@ message M5GSMSessionContext {
   TeidSet upf_endpoint = 24;
   // Procedure transaction identity
   bytes procedure_trans_identity = 25;
-  AggregatedMaximumBitrate default_ambr = 26;
+  M5GQosInformationRequest subscribed_qos = 26;
 }
 
 message SetSMSessionContext {
@@ -944,8 +959,7 @@ message M5GSMSessionContextAccess{
     repeated QosRules authorized_qos_rules = 4;
     // TS-24501 - 9.11.4.14 PDU session  Bit Rate imported from subscriberdb.proto
 
-    // TS-24501 - 9.11.4.14 PDU session Aggregate Maximum Bit Rate imported from subscriberdb.proto
-    AggregatedMaximumBitrate session_ambr = 5;
+    M5GQosInformationRequest subscribed_qos = 5;
 
     // TS-24501 - 9.11.4.2
     M5GSMCause M5gsm_cause = 10;

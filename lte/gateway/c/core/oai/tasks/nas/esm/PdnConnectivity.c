@@ -67,8 +67,8 @@ static pdn_cid_t pdn_connectivity_create(
     protocol_configuration_options_t* const pco, const bool is_emergency,
     esm_cause_t* esm_cause);
 
-proc_tid_t pdn_connectivity_delete(
-    emm_context_t* emm_context, pdn_cid_t pdn_cid);
+proc_tid_t pdn_connectivity_delete(emm_context_t* emm_context,
+                                   pdn_cid_t pdn_cid);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -129,48 +129,45 @@ status_code_e esm_proc_pdn_connectivity_request(
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
 
-  OAILOG_INFO(
-      LOG_NAS_ESM,
-      "ESM-PROC  - PDN connectivity requested by the UE "
-      "(ue_id=" MME_UE_S1AP_ID_FMT ")\n",
-      ue_id);
+  OAILOG_INFO(LOG_NAS_ESM,
+              "ESM-PROC  - PDN connectivity requested by the UE "
+              "(ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+              ue_id);
   OAILOG_DEBUG(
       LOG_NAS_ESM,
       "PDN connectivity request :pti= %d PDN type = %s, APN = %s pdn addr = %s "
       "pdn id %d for (ue_id = %u)\n",
       pti,
-      (pdn_type == ESM_PDN_TYPE_IPV4) ?
-          "IPv4" :
-          (pdn_type == ESM_PDN_TYPE_IPV6) ? "IPv6" : "IPv4v6",
-      (apn) ? (char*) bdata(apn) : "null",
-      (pdn_addr) ? (char*) bdata(pdn_addr) : "null", pdn_cid, ue_id);
+      (pdn_type == ESM_PDN_TYPE_IPV4)   ? "IPv4"
+      : (pdn_type == ESM_PDN_TYPE_IPV6) ? "IPv6"
+                                        : "IPv4v6",
+      (apn) ? (char*)bdata(apn) : "null",
+      (pdn_addr) ? (char*)bdata(pdn_addr) : "null", pdn_cid, ue_id);
 
   /*
    * Check network IP capabilities
    */
-  OAILOG_DEBUG(
-      LOG_NAS_ESM,
-      "ESM-PROC  - _esm_data.conf.features %08x for (ue_id = %u)\n",
-      _esm_data.conf.features, ue_id);
+  OAILOG_DEBUG(LOG_NAS_ESM,
+               "ESM-PROC  - _esm_data.conf.features %08x for (ue_id = %u)\n",
+               _esm_data.conf.features, ue_id);
 
   int is_emergency = (request_type == ESM_PDN_REQUEST_EMERGENCY);
-  OAILOG_DEBUG(
-      LOG_NAS_ESM, "ESM-PROC  - is_emergency = (%d) for (ue_id = %u)\n",
-      is_emergency, ue_id);
+  OAILOG_DEBUG(LOG_NAS_ESM,
+               "ESM-PROC  - is_emergency = (%d) for (ue_id = %u)\n",
+               is_emergency, ue_id);
 
   /*
    * Create new PDN connection
    */
-  rc = pdn_connectivity_create(
-      emm_context, pti, pdn_cid, context_identifier, apn, pdn_type, pdn_addr,
-      pco, is_emergency, esm_cause);
+  rc = pdn_connectivity_create(emm_context, pti, pdn_cid, context_identifier,
+                               apn, pdn_type, pdn_addr, pco, is_emergency,
+                               esm_cause);
 
   if (rc < 0) {
-    OAILOG_WARNING(
-        LOG_NAS_ESM,
-        "ESM-PROC  - Failed to create PDN connection for "
-        "ue_id " MME_UE_S1AP_ID_FMT "\n",
-        ue_id);
+    OAILOG_WARNING(LOG_NAS_ESM,
+                   "ESM-PROC  - Failed to create PDN connection for "
+                   "ue_id " MME_UE_S1AP_ID_FMT "\n",
+                   ue_id);
     *esm_cause = ESM_CAUSE_INSUFFICIENT_RESOURCES;
   }
 
@@ -204,20 +201,21 @@ status_code_e esm_proc_pdn_connectivity_request(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_proc_pdn_connectivity_reject(
-    bool is_standalone, emm_context_t* emm_context, ebi_t ebi,
-    STOLEN_REF bstring* msg, bool ue_triggered) {
+status_code_e esm_proc_pdn_connectivity_reject(bool is_standalone,
+                                               emm_context_t* emm_context,
+                                               ebi_t ebi,
+                                               STOLEN_REF bstring* msg,
+                                               bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc = RETURNerror;
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
 
-  OAILOG_WARNING(
-      LOG_NAS_ESM,
-      "ESM-PROC  - PDN connectivity not accepted by the "
-      "network (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
-      ue_id);
+  OAILOG_WARNING(LOG_NAS_ESM,
+                 "ESM-PROC  - PDN connectivity not accepted by the "
+                 "network (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+                 ue_id);
 
   if (is_standalone) {
     emm_sap_t emm_sap = {0};
@@ -225,11 +223,11 @@ status_code_e esm_proc_pdn_connectivity_reject(
     /*
      * Notity EMM that ESM PDU has to be forwarded to lower layers
      */
-    emm_sap.primitive            = EMMESM_UNITDATA_REQ;
-    emm_sap.u.emm_esm.ue_id      = ue_id;
-    emm_sap.u.emm_esm.ctx        = emm_context;
+    emm_sap.primitive = EMMESM_UNITDATA_REQ;
+    emm_sap.u.emm_esm.ue_id = ue_id;
+    emm_sap.u.emm_esm.ctx = emm_context;
     emm_sap.u.emm_esm.u.data.msg = *msg;
-    rc                           = emm_sap_send(&emm_sap);
+    rc = emm_sap_send(&emm_sap);
   }
 
   /*
@@ -262,8 +260,8 @@ status_code_e esm_proc_pdn_connectivity_reject(
  **                  Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_proc_pdn_connectivity_failure(
-    emm_context_t* emm_context, pdn_cid_t pdn_cid) {
+status_code_e esm_proc_pdn_connectivity_failure(emm_context_t* emm_context,
+                                                pdn_cid_t pdn_cid) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   proc_tid_t pti = ESM_PT_UNASSIGNED;
   mme_ue_s1ap_id_t ue_id =
@@ -334,10 +332,9 @@ static int pdn_connectivity_create(
       "%d, IP address = %s "
       "PDN id %d (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
       pti, bdata(apn), pdn_type,
-      (pdn_type == ESM_PDN_TYPE_IPV4) ?
-          esm_data_get_ipv4_addr(pdn_addr) :
-          (pdn_type == ESM_PDN_TYPE_IPV6) ? esm_data_get_ipv6_addr(pdn_addr) :
-                                            esm_data_get_ipv4v6_addr(pdn_addr),
+      (pdn_type == ESM_PDN_TYPE_IPV4)   ? esm_data_get_ipv4_addr(pdn_addr)
+      : (pdn_type == ESM_PDN_TYPE_IPV6) ? esm_data_get_ipv6_addr(pdn_addr)
+                                        : esm_data_get_ipv4v6_addr(pdn_addr),
       pdn_cid, ue_mm_context->mme_ue_s1ap_id);
 
   if (!ue_mm_context->pdn_contexts[pdn_cid]) {
@@ -373,33 +370,30 @@ static int pdn_connectivity_create(
         }
         copy_protocol_configuration_options(pdn_context->pco, pco);
       } else {
-        OAILOG_WARNING(
-            LOG_NAS_ESM,
-            "ESM-PROC  - PCO is NULL for ue_id " MME_UE_S1AP_ID_FMT "\n",
-            ue_mm_context->mme_ue_s1ap_id);
+        OAILOG_WARNING(LOG_NAS_ESM,
+                       "ESM-PROC  - PCO is NULL for ue_id " MME_UE_S1AP_ID_FMT
+                       "\n",
+                       ue_mm_context->mme_ue_s1ap_id);
       }
 
       /*
        * Setup the IP address allocated by the network
        */
-      OAILOG_DEBUG(
-          LOG_NAS_ESM, "PDN TYPE = %d for (ue_id = %u)\n", pdn_type,
-          ue_mm_context->mme_ue_s1ap_id);
+      OAILOG_DEBUG(LOG_NAS_ESM, "PDN TYPE = %d for (ue_id = %u)\n", pdn_type,
+                   ue_mm_context->mme_ue_s1ap_id);
       pdn_context->pdn_type = pdn_type;
       if (pdn_addr) {
         pdn_context->paa.pdn_type = pdn_type;
         switch (pdn_type) {
           case IPv4:
-            IPV4_STR_ADDR_TO_INADDR(
-                (const char*) pdn_addr->data, pdn_context->paa.ipv4_address,
-                "BAD IPv4 ADDRESS FORMAT FOR PAA!\n");
+            IPV4_STR_ADDR_TO_INADDR((const char*)pdn_addr->data,
+                                    pdn_context->paa.ipv4_address,
+                                    "BAD IPv4 ADDRESS FORMAT FOR PAA!\n");
             break;
           case IPv6:
-            AssertFatal(
-                1 == inet_pton(
-                         AF_INET6, (const char*) pdn_addr->data,
-                         &pdn_context->paa.ipv6_address),
-                "BAD IPv6 ADDRESS FORMAT FOR PAA!\n");
+            AssertFatal(1 == inet_pton(AF_INET6, (const char*)pdn_addr->data,
+                                       &pdn_context->paa.ipv6_address),
+                        "BAD IPv6 ADDRESS FORMAT FOR PAA!\n");
             break;
           // TODO Handle static IPv4v6 addr allocation
           case IPv4_AND_v6:
@@ -434,7 +428,7 @@ static int pdn_connectivity_create(
       /*
        * Set the procedure transaction identity
        */
-      pdn_context->esm_data.pti          = pti;
+      pdn_context->esm_data.pti = pti;
       pdn_context->esm_data.is_emergency = is_emergency;
       if (pco) {
         if (!pdn_context->pco) {
@@ -445,26 +439,24 @@ static int pdn_connectivity_create(
         }
         copy_protocol_configuration_options(pdn_context->pco, pco);
       } else {
-        OAILOG_WARNING(
-            LOG_NAS_ESM,
-            "ESM-PROC  - PCO is NULL for ue_id " MME_UE_S1AP_ID_FMT "\n",
-            ue_mm_context->mme_ue_s1ap_id);
+        OAILOG_WARNING(LOG_NAS_ESM,
+                       "ESM-PROC  - PCO is NULL for ue_id " MME_UE_S1AP_ID_FMT
+                       "\n",
+                       ue_mm_context->mme_ue_s1ap_id);
       }
       pdn_context->pdn_type = pdn_type;
       if (pdn_addr) {
         pdn_context->paa.pdn_type = pdn_type;
         switch (pdn_type) {
           case IPv4:
-            IPV4_STR_ADDR_TO_INADDR(
-                (const char*) pdn_addr->data, pdn_context->paa.ipv4_address,
-                "BAD IPv4 ADDRESS FORMAT FOR PAA!\n");
+            IPV4_STR_ADDR_TO_INADDR((const char*)pdn_addr->data,
+                                    pdn_context->paa.ipv4_address,
+                                    "BAD IPv4 ADDRESS FORMAT FOR PAA!\n");
             break;
           case IPv6:
-            AssertFatal(
-                1 == inet_pton(
-                         AF_INET6, (const char*) pdn_addr->data,
-                         &pdn_context->paa.ipv6_address),
-                "BAD IPv6 ADDRESS FORMAT FOR PAA!\n");
+            AssertFatal(1 == inet_pton(AF_INET6, (const char*)pdn_addr->data,
+                                       &pdn_context->paa.ipv6_address),
+                        "BAD IPv6 ADDRESS FORMAT FOR PAA!\n");
             break;
           case IPv4_AND_v6:
             Fatal("TODO Implement pdn_connectivity_create IPv4_AND_v6 \n");
@@ -502,8 +494,8 @@ static int pdn_connectivity_create(
  **                  Others:    _esm_data                                  **
  **                                                                        **
  ***************************************************************************/
-proc_tid_t pdn_connectivity_delete(
-    emm_context_t* emm_context, pdn_cid_t pdn_cid) {
+proc_tid_t pdn_connectivity_delete(emm_context_t* emm_context,
+                                   pdn_cid_t pdn_cid) {
   proc_tid_t pti = ESM_PT_UNASSIGNED;
 
   if (!emm_context) {
@@ -514,8 +506,8 @@ proc_tid_t pdn_connectivity_delete(
 
   if (pdn_cid < MAX_APN_PER_UE) {
     if (!ue_mm_context->pdn_contexts[pdn_cid]) {
-      OAILOG_ERROR(
-          LOG_NAS_ESM, "ESM-PROC  - PDN connection has not been allocated\n");
+      OAILOG_ERROR(LOG_NAS_ESM,
+                   "ESM-PROC  - PDN connection has not been allocated\n");
     } else if (ue_mm_context->pdn_contexts[pdn_cid]->is_active) {
       OAILOG_ERROR(LOG_NAS_ESM, "ESM-PROC  - PDN connection is active\n");
     } else {
@@ -526,17 +518,16 @@ proc_tid_t pdn_connectivity_delete(
       pti = ue_mm_context->pdn_contexts[pdn_cid]->esm_data.pti;
     }
   } else {
-    OAILOG_WARNING(
-        LOG_NAS_ESM, "ESM-PROC  - PDN connection identifier is not valid\n");
+    OAILOG_WARNING(LOG_NAS_ESM,
+                   "ESM-PROC  - PDN connection identifier is not valid\n");
   }
   if (pti != ESM_PT_UNASSIGNED) {
     // Release allocated PDN connection data
     bdestroy_wrapper(&ue_mm_context->pdn_contexts[pdn_cid]->apn_in_use);
     bdestroy_wrapper(&ue_mm_context->pdn_contexts[pdn_cid]->apn_oi_replacement);
     bdestroy_wrapper(&ue_mm_context->pdn_contexts[pdn_cid]->apn_subscribed);
-    memset(
-        &ue_mm_context->pdn_contexts[pdn_cid]->esm_data, 0,
-        sizeof(ue_mm_context->pdn_contexts[pdn_cid]->esm_data));
+    memset(&ue_mm_context->pdn_contexts[pdn_cid]->esm_data, 0,
+           sizeof(ue_mm_context->pdn_contexts[pdn_cid]->esm_data));
 
     // Free protocol configuration options and its contents
     if (ue_mm_context->pdn_contexts[pdn_cid]->pco) {

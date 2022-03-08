@@ -14,16 +14,17 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+#include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.h"
+
 #include <string>
+#include <arpa/inet.h>
 
 #include "lte/protos/spgw_service.pb.h"
-#include <folly/IPAddress.h>
 
 extern "C" {
 #include "lte/gateway/c/core/oai/include/spgw_service_handler.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 }
-#include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.h"
 
 namespace grpc {
 class ServerContext;
@@ -44,9 +45,9 @@ SpgwServiceImpl::SpgwServiceImpl() {}
 /*
  * CreateBearer is called by North Bound to create dedicated bearers
  */
-Status SpgwServiceImpl::CreateBearer(
-    ServerContext* context, const CreateBearerRequest* request,
-    CreateBearerResult* response) {
+Status SpgwServiceImpl::CreateBearer(ServerContext* context,
+                                     const CreateBearerRequest* request,
+                                     CreateBearerResult* response) {
   OAILOG_INFO(LOG_UTIL, "Received CreateBearer GRPC request\n");
   itti_gx_nw_init_actv_bearer_request_t itti_msg;
   std::string imsi = request->sid().id();
@@ -71,23 +72,23 @@ Status SpgwServiceImpl::CreateBearer(
   // request.
   // (2) Refactor this code with functions to copy from
   // policy rules to itti message fields
-  bearer_qos_t* qos               = &itti_msg.eps_bearer_qos;
+  bearer_qos_t* qos = &itti_msg.eps_bearer_qos;
   traffic_flow_template_t* ul_tft = &itti_msg.ul_tft;
   traffic_flow_template_t* dl_tft = &itti_msg.dl_tft;
   for (const auto& policy_rule : request->policy_rules()) {
     // Copy the policy rule name
     std::string policy_rule_name = policy_rule.id();
     // Truncate to maximum allowed in ITTI message
-    uint8_t truncated_len = std::min(
-        policy_rule_name.size(), (std::size_t) POLICY_RULE_NAME_MAXLEN);
+    uint8_t truncated_len =
+        std::min(policy_rule_name.size(), (std::size_t)POLICY_RULE_NAME_MAXLEN);
     strncpy(itti_msg.policy_rule_name, policy_rule_name.c_str(), truncated_len);
     itti_msg.policy_rule_name[truncated_len] = '\0';
-    itti_msg.policy_rule_name_length         = truncated_len;
+    itti_msg.policy_rule_name_length = truncated_len;
     // Copy the QoS vector specified in the policy rule
-    qos->pci       = policy_rule.qos().arp().pre_capability();
-    qos->pl        = policy_rule.qos().arp().priority_level();
-    qos->pvi       = policy_rule.qos().arp().pre_vulnerability();
-    qos->qci       = policy_rule.qos().qci();
+    qos->pci = policy_rule.qos().arp().pre_capability();
+    qos->pl = policy_rule.qos().arp().priority_level();
+    qos->pvi = policy_rule.qos().arp().pre_vulnerability();
+    qos->qci = policy_rule.qos().qci();
     qos->gbr.br_ul = policy_rule.qos().gbr_ul();
     qos->gbr.br_dl = policy_rule.qos().gbr_dl();
     qos->mbr.br_ul = policy_rule.qos().max_req_bw_ul();
@@ -143,10 +144,9 @@ Status SpgwServiceImpl::CreateBearer(
           return Status::CANCELLED;
         }
         ++ul_count_packetfilters;
-      } else if (
-          (flow.match().direction() == FlowMatch::DOWNLINK) &&
-          (dl_count_packetfilters <
-           TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX)) {
+      } else if ((flow.match().direction() == FlowMatch::DOWNLINK) &&
+                 (dl_count_packetfilters <
+                  TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX)) {
         dl_tft->packetfilterlist.createnewtft[dl_count_packetfilters]
             .direction = TRAFFIC_FLOW_TEMPLATE_DOWNLINK_ONLY;
         dl_tft->packetfilterlist.createnewtft[dl_count_packetfilters]
@@ -164,20 +164,20 @@ Status SpgwServiceImpl::CreateBearer(
         ++dl_count_packetfilters;
       }
 
-      OAILOG_DEBUG(
-          LOG_UTIL,
-          " Flow Tuple (0 or empty if field does not exist)"
-          " IP Protocol Number: %d"
-          " Source IP address: %s"
-          " Source TCP port: %d"
-          " Source UDP port: %d"
-          " Destination IP address: %s"
-          " Destination TCP port: %d"
-          " Destination UDP port: %d \n",
-          flow.match().ip_proto(), flow.match().ip_src().address().c_str(),
-          flow.match().tcp_src(), flow.match().udp_src(),
-          flow.match().ip_dst().address().c_str(), flow.match().tcp_dst(),
-          flow.match().udp_dst());
+      OAILOG_DEBUG(LOG_UTIL,
+                   " Flow Tuple (0 or empty if field does not exist)"
+                   " IP Protocol Number: %d"
+                   " Source IP address: %s"
+                   " Source TCP port: %d"
+                   " Source UDP port: %d"
+                   " Destination IP address: %s"
+                   " Destination TCP port: %d"
+                   " Destination UDP port: %d \n",
+                   flow.match().ip_proto(),
+                   flow.match().ip_src().address().c_str(),
+                   flow.match().tcp_src(), flow.match().udp_src(),
+                   flow.match().ip_dst().address().c_str(),
+                   flow.match().tcp_dst(), flow.match().udp_dst());
     }
 
     ul_tft->numberofpacketfilters = ul_count_packetfilters;
@@ -188,9 +188,9 @@ Status SpgwServiceImpl::CreateBearer(
   return Status::OK;
 }  // namespace magma
 
-Status SpgwServiceImpl::DeleteBearer(
-    ServerContext* context, const DeleteBearerRequest* request,
-    DeleteBearerResult* response) {
+Status SpgwServiceImpl::DeleteBearer(ServerContext* context,
+                                     const DeleteBearerRequest* request,
+                                     DeleteBearerResult* response) {
   OAILOG_INFO(LOG_UTIL, "Received DeleteBearer GRPC request\n");
   itti_gx_nw_init_deactv_bearer_request_t itti_msg;
   std::string imsi = request->sid().id();
@@ -202,7 +202,7 @@ Status SpgwServiceImpl::DeleteBearer(
   }
   itti_msg.imsi_length = imsi.size();
   strcpy(itti_msg.imsi, imsi.c_str());
-  itti_msg.lbi           = request->link_bearer_id();
+  itti_msg.lbi = request->link_bearer_id();
   itti_msg.no_of_bearers = request->eps_bearer_ids_size();
   for (int i = 0; i < request->eps_bearer_ids_size() && i < BEARERS_PER_UE;
        i++) {
@@ -214,7 +214,7 @@ Status SpgwServiceImpl::DeleteBearer(
 
 bool SpgwServiceImpl::fillUpPacketFilterContents(
     packet_filter_contents_t* pf_content, const FlowMatch* flow_match_rule) {
-  uint16_t flags                            = 0;
+  uint16_t flags = 0;
   pf_content->protocolidentifier_nextheader = flow_match_rule->ip_proto();
   if (pf_content->protocolidentifier_nextheader) {
     flags |= TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG;
@@ -290,35 +290,71 @@ bool SpgwServiceImpl::fillUpPacketFilterContents(
   return true;
 }
 
+// Extract and validate IP address and subnet mask
+// IPv4 network format ex.: 192.176.128.10/24
+ipv4_network_t SpgwServiceImpl::parseIpv4Network(
+    const std::string& ipv4network_str) {
+  ipv4_network_t result;
+  const int slash_pos = ipv4network_str.find("/");
+  std::string ipv4addr = (slash_pos != std::string::npos)
+                             ? ipv4network_str.substr(0, slash_pos)
+                             : ipv4network_str;
+  in_addr addr;
+  if (inet_pton(AF_INET, ipv4addr.c_str(), &addr) != 1) {
+    OAILOG_ERROR(LOG_UTIL, "Invalid address string %s \n",
+                 ipv4network_str.c_str());
+    result.success = false;
+    return result;
+  }
+  // Host Byte Order
+  result.addr_hbo = ntohl(addr.s_addr);
+  constexpr char default_mask_len_str[] = "32";
+  std::string mask_len_str = (slash_pos != std::string::npos)
+                                 ? ipv4network_str.substr(slash_pos + 1)
+                                 : default_mask_len_str;
+  int mask_len;
+  try {
+    mask_len = std::stoi(mask_len_str);
+  } catch (...) {
+    OAILOG_ERROR(LOG_UTIL, "Invalid address string %s \n",
+                 ipv4network_str.c_str());
+    result.success = false;
+    return result;
+  }
+  if (mask_len > 32 || mask_len < 0) {
+    OAILOG_ERROR(LOG_UTIL, "Invalid address string %s \n",
+                 ipv4network_str.c_str());
+    result.success = false;
+    return result;
+  }
+  result.mask_len = mask_len;
+  result.success = true;
+  return result;
+}
+
 // IPv4 address format ex.: 192.176.128.10/24
 // FEG can provide an empty string which indicates
 // ANY and it is equivalent to 0.0.0.0/0
 // But this function is called only for non-empty ipv4 string
-bool SpgwServiceImpl::fillIpv4(
-    packet_filter_contents_t* pf_content, const std::string ipv4addr) {
-  const auto cidrNetworkExpect = folly::IPAddress::tryCreateNetwork(ipv4addr);
-  if (cidrNetworkExpect.hasError()) {
-    OAILOG_ERROR(LOG_UTIL, "Invalid address string %s \n", ipv4addr.c_str());
+bool SpgwServiceImpl::fillIpv4(packet_filter_contents_t* pf_content,
+                               const std::string& ipv4network_str) {
+  ipv4_network_t ipv4network = parseIpv4Network(ipv4network_str);
+  if (!ipv4network.success) {
     return false;
   }
-  // Host Byte Order
-  uint32_t ipv4addrHBO = cidrNetworkExpect.value().first.asV4().toLongHBO();
+  uint32_t ipv4addrHBO = ipv4network.addr_hbo;
   for (int i = (TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1); i >= 0; --i) {
-    pf_content->ipv4remoteaddr[i].addr = (unsigned char) ipv4addrHBO & 0xFF;
-    ipv4addrHBO                        = ipv4addrHBO >> 8;
+    pf_content->ipv4remoteaddr[i].addr = (unsigned char)ipv4addrHBO & 0xFF;
+    ipv4addrHBO = ipv4addrHBO >> 8;
   }
-
-  // Get the mask length:
-  // folly takes care of absence of mask_len by defaulting to 32
-  // i.e., 255.255.255.255.
-  int mask_len  = cidrNetworkExpect.value().second;
-  uint32_t mask = UINT32_MAX;        // all ones
-  mask = (mask << (32 - mask_len));  // first mask_len bits are 1s, rest 0s
+  uint32_t mask = UINT32_MAX;  // all ones
+  mask =
+      (mask << (32 -
+                ipv4network.mask_len));  // first mask_len bits are 1s, rest 0s
   for (int i = (TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1); i >= 0; --i) {
-    pf_content->ipv4remoteaddr[i].mask = (unsigned char) mask & 0xFF;
-    mask                               = mask >> 8;
+    pf_content->ipv4remoteaddr[i].mask = (unsigned char)mask & 0xFF;
+    mask = mask >> 8;
   }
-
   OAILOG_DEBUG(
       LOG_UTIL,
       "Network Address: %d.%d.%d.%d "
@@ -330,8 +366,8 @@ bool SpgwServiceImpl::fillIpv4(
   return true;
 }
 
-bool SpgwServiceImpl::fillIpv6(
-    packet_filter_contents_t* pf_content, const std::string ipv6addr) {
+bool SpgwServiceImpl::fillIpv6(packet_filter_contents_t* pf_content,
+                               const std::string ipv6addr) {
   struct in6_addr in6addr;
   if (inet_pton(AF_INET6, ipv6addr.c_str(), &in6addr) != 1) {
     OAILOG_ERROR(LOG_UTIL, "Invalid address string %s \n", ipv6addr.c_str());

@@ -22,6 +22,7 @@
 #include "lte/gateway/c/connection_tracker/src/EventTracker.h"
 #include "lte/gateway/c/connection_tracker/src/PacketGenerator.h"
 #include "orc8r/gateway/c/common/logging/magma_logging_init.h"
+#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
 
 #define CONNECTION_SERVICE "connectiond"
 #define CONNECTIOND_VERSION "1.0"
@@ -65,6 +66,8 @@ static uint32_t get_log_verbosity(const YAML::Node& config,
 }
 
 int main(void) {
+  sentry_config_t sentry_config = construct_sentry_config_from_mconfig();
+  initialize_sentry(SENTRY_TAG_CONNECTIOND, &sentry_config);
   magma::init_logging(CONNECTION_SERVICE);
 
   auto mconfig = load_mconfig();
@@ -90,5 +93,6 @@ int main(void) {
 
   event_tracker->init_conntrack_event_loop();
 
+  shutdown_sentry();
   return 0;
 }

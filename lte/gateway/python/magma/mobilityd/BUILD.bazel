@@ -12,58 +12,56 @@
 load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary")
 
-LTE_ROOT = "../../"
+MAGMA_ROOT = "../../../../../"
 
-ORC8R_ROOT = LTE_ROOT + "../../../orc8r/gateway/python"
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
-DEPS = [
-    "//lte/protos:keyval_python_proto",
-    "//lte/protos:mconfigs_python_proto",
-    "//lte/protos:mobilityd_python_grpc",
-    "//lte/protos:subscriberdb_python_grpc",
-    "//lte/gateway/python/magma/subscriberdb:sid",
-    "//orc8r/gateway/python/magma/common:rpc_utils",
-    "//orc8r/gateway/python/magma/common:sentry",
-    "//orc8r/gateway/python/magma/common:service",
-    "//orc8r/gateway/python/magma/common/redis:client",
-    requirement("netifaces"),
-    requirement("scapy"),
-]
-
-SRCS = [
-    "dhcp_client.py",
-    "ip_allocator_base.py",
-    "ip_allocator_pool.py",
-    "ip_descriptor_map.py",
-    "main.py",
-    "serialize_utils.py",
-    "uplink_gw.py",
-    "dhcp_desc.py",
-    "ip_allocator_dhcp.py",
-    "ip_allocator_static.py",
-    "ipv6_allocator_pool.py",
-    "metrics.py",
-    "rpc_servicer.py",
-    "subscriberdb_client.py",
-    "ip_allocator_multi_apn.py",
-    "ip_descriptor.py",
-    "mac.py",
-    "ip_address_man.py",
-    "utils.py",
-    "mobility_store.py",
-]
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 py_binary(
     name = "mobilityd",
-    srcs = SRCS,
+    srcs = [
+        "dhcp_client.py",
+        "dhcp_desc.py",
+        "ip_address_man.py",
+        "ip_allocator_base.py",
+        "ip_allocator_dhcp.py",
+        "ip_allocator_multi_apn.py",
+        "ip_allocator_pool.py",
+        "ip_allocator_static.py",
+        "ip_descriptor.py",
+        "ip_descriptor_map.py",
+        "ipv6_allocator_pool.py",
+        "mac.py",
+        "main.py",
+        "metrics.py",
+        "mobility_store.py",
+        "rpc_servicer.py",
+        "serialize_utils.py",
+        "subscriberdb_client.py",
+        "uplink_gw.py",
+        "utils.py",
+    ],
     imports = [
         LTE_ROOT,
         ORC8R_ROOT,
     ],
-    # legacy_creat_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
+    # legacy_create_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
     legacy_create_init = False,
     main = "main.py",
     python_version = "PY3",
     visibility = ["//visibility:public"],
-    deps = DEPS,
+    deps = [
+        "//lte/gateway/python/magma/subscriberdb:sid",
+        "//lte/protos:keyval_python_proto",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:mobilityd_python_grpc",
+        "//lte/protos:subscriberdb_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+        "//orc8r/gateway/python/magma/common/redis:client",
+        requirement("netifaces"),
+        requirement("scapy"),
+    ],
 )

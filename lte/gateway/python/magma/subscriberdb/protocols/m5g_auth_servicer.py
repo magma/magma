@@ -15,6 +15,7 @@ import logging
 
 from grpc import StatusCode
 from lte.protos import (
+    diam_errors_pb2,
     subscriberauth_pb2,
     subscriberauth_pb2_grpc,
     subscriberdb_pb2,
@@ -26,6 +27,7 @@ from magma.subscriberdb.crypto.ECIES import ECIES_HN
 from magma.subscriberdb.crypto.utils import CryptoError
 from magma.subscriberdb.store.base import (
     SubscriberNotFoundError,
+    SubscriberServerTooBusy,
     SuciProfileNotFoundError,
 )
 from magma.subscriberdb.subscription.utils import ServiceNotActive
@@ -78,7 +80,7 @@ class M5GAuthRpcServicer(subscriberauth_pb2_grpc.M5GSubscriberAuthenticationServ
             metrics.M5G_AUTH_SUCCESS_TOTAL.inc()
 
             # Generate and return response message
-            aia.error_code = subscriberauth_pb2.SUCCESS
+            aia.error_code = diam_errors_pb2.SUCCESS
             m5gauth_vector = aia.m5gauth_vectors.add()
             m5gauth_vector.rand = bytes(m5g_ran_auth_vectors.rand)
             m5gauth_vector.xres_star = m5g_ran_auth_vectors.xres_star[16:]
@@ -107,6 +109,13 @@ class M5GAuthRpcServicer(subscriberauth_pb2_grpc.M5GSubscriberAuthenticationServ
                 code=metrics.DIAMETER_ERROR_UNAUTHORIZED_SERVICE,
             ).inc()
             aia.error_code = metrics.DIAMETER_ERROR_UNAUTHORIZED_SERVICE
+            return aia
+        except SubscriberServerTooBusy as e:
+            logging.error("Sqlite3 DB is locked for %s: %s", imsi, e)
+            metrics.M5G_AUTH_FAILURE_TOTAL.labels(
+                code=metrics.DIAMETER_TOO_BUSY,
+            ).inc()
+            aia.error_code = metrics.DIAMETER_TOO_BUSY
             return aia
         finally:
             print_grpc(

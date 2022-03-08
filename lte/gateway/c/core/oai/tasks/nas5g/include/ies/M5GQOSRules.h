@@ -22,8 +22,7 @@ class NewQOSRulePktFilter {
   uint8_t pkt_filter_dir : 2;
   uint8_t pkt_filter_id : 4;
   uint8_t len;
-  uint8_t contents[1 * ONE_K];  // need to revisit if the QOS rules occupy more
-                                // space than 4k.
+  uint8_t contents;
   NewQOSRulePktFilter();
   ~NewQOSRulePktFilter();
 };
@@ -57,9 +56,9 @@ class QOSRulesMsg {
   QOSRule qos_rule[1];
   QOSRulesMsg();
   ~QOSRulesMsg();
-  int EncodeQOSRulesMsg(
-      QOSRulesMsg* qos_rules, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeQOSRulesMsg(
-      QOSRulesMsg* qos_rules, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei, uint8_t* buffer,
+                        uint32_t len);
+  int DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei, uint8_t* buffer,
+                        uint32_t len);
 };
 }  // namespace magma5g

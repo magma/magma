@@ -31,11 +31,11 @@ from magma.pipelined.set_interface_client import send_periodic_session_update
 
 # Help to build failure report
 MsgParseOutput = NamedTuple(
-                   'MsgParseOutput',
-                   [
-                       ('offending_ie', OffendingIE),
-                       ('cause_info', int),
-                   ],
+    'MsgParseOutput',
+    [
+        ('offending_ie', OffendingIE),
+        ('cause_info', int),
+    ],
 )
 
 
@@ -76,7 +76,7 @@ class SessionStateManager:
 
             # If session is creted or activiated FAR_IDs cann't be 0
             if len(pdr_entry.set_gr_far.ListFields()) == 0 and \
-                     pdr_entry.pdr_state == PdrState.Value('INSTALL'):
+                    pdr_entry.pdr_state == PdrState.Value('INSTALL'):
                 offending_ie = OffendingIE(
                     identifier=pdr_entry.pdr_id,
                     version=pdr_entry.pdr_version,
@@ -111,25 +111,25 @@ class SessionStateManager:
 
     def process_session_message(self, new_session, process_pdr_rules):
         """
-        Process the messages recevied from session. Return True
-        if parsing is successfull.
+        Process the messages received from session. Return True
+        if parsing is successful.
         """
 
         # Assume things are green
         context_response =\
-             UPFSessionContextState(
-                 cause_info=CauseIE(cause_ie=CauseIE.REQUEST_ACCEPTED),
-                 session_snapshot=UPFSessionState(
-                     subscriber_id=new_session.subscriber_id,
-                     local_f_teid=new_session.local_f_teid,
-                     session_version=new_session.session_version,
-                 ),
-             )
+            UPFSessionContextState(
+                cause_info=CauseIE(cause_ie=CauseIE.REQUEST_ACCEPTED),
+                session_snapshot=UPFSessionState(
+                    subscriber_id=new_session.subscriber_id,
+                    local_f_teid=new_session.local_f_teid,
+                    session_version=new_session.session_version,
+                ),
+            )
 
         context_response.cause_info.cause_ie = \
-                  SessionStateManager.validate_session_msg(new_session)
+            SessionStateManager.validate_session_msg(new_session)
         if context_response.cause_info.cause_ie != CauseIE.REQUEST_ACCEPTED:
-            self.logger.error(
+            self.logger.warning(
                 "Error : Parsing Error in SetInterface Message %d",
                 context_response.cause_info.cause_ie,
             )

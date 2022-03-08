@@ -42,6 +42,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>  // socket, setsockopt, connect, bind, recv, send
 #include <netdb.h>       // getaddrinfo
+#include <stdbool.h>     // true, false
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -129,8 +130,8 @@ void* socket_udp_open(int type, const char* host, const char* port) {
    * are returned by getaddrinfo in the list pointed to by result.
    */
   memset(&socket_info, 0, sizeof(struct addrinfo));
-  socket_info.ai_socktype = SOCK_DGRAM;     /* Datagram socket   */
-  socket_info.ai_flags    = AI_NUMERICSERV; /* numeric port number  */
+  socket_info.ai_socktype = SOCK_DGRAM;  /* Datagram socket   */
+  socket_info.ai_flags = AI_NUMERICSERV; /* numeric port number  */
 
   if (type != SOCKET_CLIENT) {
     /*
@@ -229,12 +230,12 @@ void* socket_udp_open(int type, const char* host, const char* port) {
   /*
    * The connection endpoint has been successfully setup
    */
-  socket_id_t* sid = (socket_id_t*) malloc(sizeof(struct socket_id_s));
+  socket_id_t* sid = (socket_id_t*)malloc(sizeof(struct socket_id_s));
 
   if (sid) {
     sid->type = type;
     sid->port = atoi(port);
-    sid->fd   = sfd;
+    sid->fd = sfd;
   }
 
   return sid;
@@ -259,7 +260,7 @@ void* socket_udp_open(int type, const char* host, const char* port) {
  ***************************************************************************/
 void socket_close(void* id) {
   if (id) {
-    close(((socket_id_t*) id)->fd);
+    close(((socket_id_t*)id)->fd);
     free(id);
   }
 }
@@ -283,8 +284,8 @@ void socket_close(void* id) {
  **                                                                        **
  ***************************************************************************/
 ssize_t socket_recv(void* id, char* buffer, size_t length) {
-  socket_id_t* sid = (socket_id_t*) (id);
-  ssize_t rbytes   = -1;
+  socket_id_t* sid = (socket_id_t*)(id);
+  ssize_t rbytes = -1;
 
   if (sid->type == SOCKET_CLIENT) {
     /*
@@ -298,8 +299,8 @@ ssize_t socket_recv(void* id, char* buffer, size_t length) {
     /*
      * Receive data from the socket and retreive the remote host address
      */
-    rbytes = recvfrom(
-        sid->fd, buffer, length, 0, (struct sockaddr*) &addr, &addrlen);
+    rbytes =
+        recvfrom(sid->fd, buffer, length, 0, (struct sockaddr*)&addr, &addrlen);
     sid->addr = addr;
   }
 
@@ -337,8 +338,8 @@ ssize_t socket_recv(void* id, char* buffer, size_t length) {
  **                                                                        **
  ***************************************************************************/
 ssize_t socket_send(const void* id, const char* buffer, size_t length) {
-  const socket_id_t* sid = (socket_id_t*) (id);
-  ssize_t sbytes         = -1;
+  const socket_id_t* sid = (socket_id_t*)(id);
+  ssize_t sbytes = -1;
 
   if (sid->type == SOCKET_CLIENT) {
     /*
@@ -349,9 +350,8 @@ ssize_t socket_send(const void* id, const char* buffer, size_t length) {
     /*
      * Send data to the socket using the remote host address
      */
-    sbytes = sendto(
-        sid->fd, buffer, length, 0, (struct sockaddr*) &sid->addr,
-        (socklen_t) sizeof(sid->addr));
+    sbytes = sendto(sid->fd, buffer, length, 0, (struct sockaddr*)&sid->addr,
+                    (socklen_t)sizeof(sid->addr));
   }
 
   if (errno == EINTR) {
@@ -387,7 +387,7 @@ ssize_t socket_send(const void* id, const char* buffer, size_t length) {
  ***************************************************************************/
 status_code_e socket_get_fd(const void* id) {
   if (id) {
-    return ((socket_id_t*) id)->fd;
+    return ((socket_id_t*)id)->fd;
   }
 
   return RETURNerror;

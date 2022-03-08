@@ -25,7 +25,6 @@ runs:
       shell: bash
       run: |
         # The assumption here is that packages.tar.gz was copied out and untarred
-        # in $MAGMA_ROOT/circleci in the magma_integ_test step
         echo "${{ inputs.PATH_TO_EXEC }} ${{ inputs.EXECUTABLE_NAME }}"
         cd "${{ inputs.PATH_TO_EXEC }}"
         ls -R

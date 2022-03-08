@@ -27,7 +27,7 @@ int decode_deactivate_eps_bearer_context_request(
     deactivate_eps_bearer_context_request_msg*
         deactivate_eps_bearer_context_request,
     uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
@@ -38,9 +38,9 @@ int decode_deactivate_eps_bearer_context_request(
   /*
    * Decoding mandatory fields
    */
-  if ((decoded_result = decode_esm_cause(
-           &deactivate_eps_bearer_context_request->esmcause, 0,
-           buffer + decoded, len - decoded)) < 0)
+  if ((decoded_result =
+           decode_esm_cause(&deactivate_eps_bearer_context_request->esmcause, 0,
+                            buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -85,7 +85,7 @@ int encode_deactivate_eps_bearer_context_request(
     deactivate_eps_bearer_context_request_msg*
         deactivate_eps_bearer_context_request,
     uint8_t* buffer, uint32_t len) {
-  int encoded       = 0;
+  int encoded = 0;
   int encode_result = 0;
 
   /*
@@ -94,10 +94,10 @@ int encode_deactivate_eps_bearer_context_request(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST_MINIMUM_LENGTH, len);
 
-  if ((encode_result = encode_esm_cause(
-           &deactivate_eps_bearer_context_request->esmcause, 0,
-           buffer + encoded,
-           len - encoded)) < 0)  // Return in case of error
+  if ((encode_result =
+           encode_esm_cause(&deactivate_eps_bearer_context_request->esmcause, 0,
+                            buffer + encoded,
+                            len - encoded)) < 0)  // Return in case of error
     return encode_result;
   else
     encoded += encode_result;

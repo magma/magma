@@ -5,11 +5,11 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
-      - v1.*
+      - 'v1.*'
   pull_request:
     branches:
       - master
-      - v1.*
+      - 'v1.*'
     types: [opened, reopened, synchronize]
 
 jobs:
@@ -38,7 +38,7 @@ jobs:
       - name: Launch build and publish script
         run: |
           if [ "${GITHUB_REF##*/}" = "master" ] ;then
-            orc8r/tools/helm/package.sh --deployment-type all --version $VERSION
+            orc8r/tools/helm/package.sh --deployment-type all --version $VERSION  --only-package
           elif [ "${EVENT_NAME}" = "pull_request" ] ;then
             mkdir charts
             orc8r/tools/helm/package.sh --deployment-type all --version $VERSION --only-package
@@ -236,6 +236,18 @@ jobs:
       - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
         with:
           EXECUTABLE_NAME: sctpd
+          SENTRY_ORG: lf-9c
+          PATH_TO_EXEC: "./executables"
+          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
+      - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
+        with:
+          EXECUTABLE_NAME: connectiond
+          SENTRY_ORG: lf-9c
+          PATH_TO_EXEC: "./executables"
+          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
+      - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
+        with:
+          EXECUTABLE_NAME: liagentd
           SENTRY_ORG: lf-9c
           PATH_TO_EXEC: "./executables"
           SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"

@@ -62,10 +62,10 @@ Description Defines EMM procedures executed by the Non-Access Stratum
 /****************************************************************************/
 
 status_code_e lowerlayer_success(mme_ue_s1ap_id_t ue_id, bstring* nas_msg);
-status_code_e lowerlayer_failure(
-    mme_ue_s1ap_id_t ueid, STOLEN_REF bstring* nas_msg);
-status_code_e lowerlayer_non_delivery_indication(
-    mme_ue_s1ap_id_t ue_id, STOLEN_REF bstring* nas_msg);
+status_code_e lowerlayer_failure(mme_ue_s1ap_id_t ueid,
+                                 STOLEN_REF bstring* nas_msg);
+status_code_e lowerlayer_non_delivery_indication(mme_ue_s1ap_id_t ue_id,
+                                                 STOLEN_REF bstring* nas_msg);
 status_code_e lowerlayer_establish(void);
 status_code_e lowerlayer_release(mme_ue_s1ap_id_t ue_id, int cause);
 
@@ -75,7 +75,7 @@ status_code_e lowerlayer_activate_bearer_req(
     const mme_ue_s1ap_id_t ue_id, const ebi_t ebi, const bitrate_t mbr_dl,
     const bitrate_t mbr_ul, const bitrate_t gbr_dl, const bitrate_t gbr_ul,
     bstring data);
-status_code_e lowerlayer_deactivate_bearer_req(
-    const mme_ue_s1ap_id_t ue_id, const ebi_t ebi, bstring data);
+status_code_e lowerlayer_deactivate_bearer_req(const mme_ue_s1ap_id_t ue_id,
+                                               const ebi_t ebi, bstring data);
 
 #endif /* __LOWERLAYER_H__*/

@@ -10,6 +10,7 @@ add_subdirectory(service303) # TASK_SERVICE303
 add_subdirectory(sgs) # TASK_SGS
 add_subdirectory(sms_orc8r) # TASK_SMS_ORC8R
 add_subdirectory(grpc_service) # TASK_GRPC_SERVICE
+add_subdirectory(async_grpc_service) # TASK_ASYNC_GRPC_SERVICE
 add_subdirectory(ha) # TASK_HA
 
 if (EMBEDDED_SGW)

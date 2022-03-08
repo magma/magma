@@ -111,7 +111,6 @@ spec:
           requests:
             storage: 1Gi
 
-
 ---
 
 apiVersion: v1
@@ -126,8 +125,6 @@ spec:
     - name: db1
       port: 5432
       targetPort: 5432
-      nodePort: 30432
     - name: db2
       port: 5433
       targetPort: 5433
-      nodePort: 30433

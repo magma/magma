@@ -52,29 +52,29 @@
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 
 #if S1AP_DEBUG_LIST
-#define eNB_LIST_OUT(x, args...)                                               \
+#define eNB_LIST_OUT(x, args...) \
   (LOG_S1AP, "[eNB]%*s" x "\n", 4 * indent, "", ##args)
-#define UE_LIST_OUT(x, args...)                                                \
+#define UE_LIST_OUT(x, args...) \
   OAILOG_DEBUG(LOG_S1AP, "[UE] %*s" x "\n", 4 * indent, "", ##args)
 #else
 #define eNB_LIST_OUT(x, args...)
 #define UE_LIST_OUT(x, args...)
 #endif
 
-bool s1ap_dump_ue_hash_cb(
-    hash_key_t keyP, void* ue_void, void* parameter, void** unused_res);
+bool s1ap_dump_ue_hash_cb(hash_key_t keyP, void* ue_void, void* parameter,
+                          void** unused_res);
 static void start_stats_timer(void);
 static int handle_stats_timer(zloop_t* loop, int id, void* arg);
 static long epc_stats_timer_id;
 static size_t epc_stats_timer_sec = 60;
 
 bool hss_associated = false;
-static int indent   = 0;
+static int indent = 0;
 task_zmq_ctx_t s1ap_task_zmq_ctx;
 
 bool s1ap_congestion_control_enabled = true;
-long s1ap_last_msg_latency           = 0;
-long s1ap_zmq_th                     = LONG_MAX;
+long s1ap_last_msg_latency = 0;
+long s1ap_zmq_th = LONG_MAX;
 
 //------------------------------------------------------------------------------
 static int s1ap_send_init_sctp(void) {
@@ -90,16 +90,16 @@ static int s1ap_send_init_sctp(void) {
    * SR WARNING: ipv6 multi-homing fails sometimes for localhost.
    * Only allow multi homing when IPv6 is enabled.
    */
-  message_p->ittiMsg.sctpInit.ipv4         = 1;
+  message_p->ittiMsg.sctpInit.ipv4 = 1;
   message_p->ittiMsg.sctpInit.nb_ipv4_addr = 1;
   message_p->ittiMsg.sctpInit.ipv4_address[0].s_addr =
       mme_config.ip.s1_mme_v4.s_addr;
 
   if (message_p->ittiMsg.sctpInit.ipv6) {
-    message_p->ittiMsg.sctpInit.nb_ipv6_addr    = 1;
+    message_p->ittiMsg.sctpInit.nb_ipv6_addr = 1;
     message_p->ittiMsg.sctpInit.ipv6_address[0] = mme_config.ip.s1_mme_v6;
   } else {
-    message_p->ittiMsg.sctpInit.nb_ipv6_addr    = 0;
+    message_p->ittiMsg.sctpInit.nb_ipv6_addr = 0;
     message_p->ittiMsg.sctpInit.ipv6_address[0] = in6addr_loopback;
   }
 
@@ -109,12 +109,12 @@ static int s1ap_send_init_sctp(void) {
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   s1ap_state_t* state;
   MessageDef* received_message_p = receive_msg(reader);
-  imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
-  state                          = get_s1ap_state(false);
+  imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
+  state = get_s1ap_state(false);
   AssertFatal(state != NULL, "failed to retrieve s1ap state (was null)");
 
   bool is_task_state_same = false;
-  bool is_ue_state_same   = false;
+  bool is_ue_state_same = false;
 
   s1ap_last_msg_latency = ITTI_MSG_LATENCY(received_message_p);  // microseconds
 
@@ -123,13 +123,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   switch (ITTI_MSG_ID(received_message_p)) {
     case ACTIVATE_MESSAGE: {
       is_task_state_same = true;  // does not modify state
-      is_ue_state_same   = true;
-      hss_associated     = true;
+      is_ue_state_same = true;
+      hss_associated = true;
     } break;
 
     case MESSAGE_TEST:
       is_task_state_same = true;  // does not modify state
-      is_ue_state_same   = true;
+      is_ue_state_same = true;
       OAILOG_DEBUG(LOG_S1AP, "Received MESSAGE_TEST\n");
       break;
 
@@ -146,9 +146,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
         // TODO: Notify eNB of failure with right cause
         OAILOG_ERROR(LOG_S1AP, "Failed to decode new buffer\n");
       } else {
-        s1ap_mme_handle_message(
-            state, SCTP_DATA_IND(received_message_p).assoc_id,
-            SCTP_DATA_IND(received_message_p).stream, &pdu);
+        s1ap_mme_handle_message(state,
+                                SCTP_DATA_IND(received_message_p).assoc_id,
+                                SCTP_DATA_IND(received_message_p).stream, &pdu);
       }
 
       // Free received PDU array
@@ -158,7 +158,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case SCTP_DATA_CNF:
       is_task_state_same = true;  // the following handler does not modify state
-      is_ue_state_same   = true;
+      is_ue_state_same = true;
       s1ap_mme_itti_nas_downlink_cnf(
           SCTP_DATA_CNF(received_message_p).agw_ue_xap_id,
           SCTP_DATA_CNF(received_message_p).is_success);
@@ -202,7 +202,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case S1AP_E_RAB_MODIFICATION_CNF: {
       is_task_state_same = true;  // the following handler does not modify state
-      is_ue_state_same   = true;
+      is_ue_state_same = true;
       s1ap_mme_generate_erab_modification_confirm(
           state, &received_message_p->ittiMsg.s1ap_e_rab_modification_cnf);
     } break;
@@ -231,24 +231,24 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case S1AP_ENB_INITIATED_RESET_ACK: {
       is_task_state_same = true;  // the following handler does not modify state
-      is_ue_state_same   = true;
+      is_ue_state_same = true;
       s1ap_handle_enb_initiated_reset_ack(
           &S1AP_ENB_INITIATED_RESET_ACK(received_message_p), imsi64);
     } break;
 
     case S1AP_PAGING_REQUEST: {
       is_task_state_same = true;  // the following handler does not modify state
-      is_ue_state_same   = true;
-      if (s1ap_handle_paging_request(
-              state, &S1AP_PAGING_REQUEST(received_message_p), imsi64) !=
-          RETURNok) {
+      is_ue_state_same = true;
+      if (s1ap_handle_paging_request(state,
+                                     &S1AP_PAGING_REQUEST(received_message_p),
+                                     imsi64) != RETURNok) {
         OAILOG_ERROR(LOG_S1AP, "Failed to send paging message\n");
       }
     } break;
 
     case S1AP_UE_CONTEXT_MODIFICATION_REQUEST: {
       is_task_state_same = true;  // the following handler does not modify state
-      is_ue_state_same   = true;
+      is_ue_state_same = true;
       s1ap_handle_ue_context_mod_req(
           state, &received_message_p->ittiMsg.s1ap_ue_context_mod_request,
           imsi64);
@@ -256,14 +256,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case S1AP_E_RAB_REL_CMD: {
       is_task_state_same = true;  // the following handler does not modify state
-      is_ue_state_same   = true;
-      s1ap_generate_s1ap_e_rab_rel_cmd(
-          state, &S1AP_E_RAB_REL_CMD(received_message_p));
+      is_ue_state_same = true;
+      s1ap_generate_s1ap_e_rab_rel_cmd(state,
+                                       &S1AP_E_RAB_REL_CMD(received_message_p));
     } break;
 
     case S1AP_PATH_SWITCH_REQUEST_ACK: {
       is_task_state_same = true;  // the following handler does not modify state
-      is_ue_state_same   = true;
+      is_ue_state_same = true;
       s1ap_handle_path_switch_req_ack(
           state, &received_message_p->ittiMsg.s1ap_path_switch_request_ack,
           imsi64);
@@ -271,7 +271,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case S1AP_PATH_SWITCH_REQUEST_FAILURE: {
       is_task_state_same = true;  // the following handler does not modify state
-      is_ue_state_same   = true;
+      is_ue_state_same = true;
       s1ap_handle_path_switch_req_failure(
           &received_message_p->ittiMsg.s1ap_path_switch_request_failure,
           imsi64);
@@ -294,9 +294,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     default: {
-      OAILOG_ERROR(
-          LOG_S1AP, "Unknown message ID %d:%s\n",
-          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
+      OAILOG_DEBUG(LOG_S1AP, "Unknown message ID %d:%s\n",
+                   ITTI_MSG_ID(received_message_p),
+                   ITTI_MSG_NAME(received_message_p));
     } break;
   }
 
@@ -316,9 +316,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 //------------------------------------------------------------------------------
 static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_S1AP);
-  init_task_context(
-      TASK_S1AP, (task_id_t[]){TASK_MME_APP, TASK_SCTP, TASK_SERVICE303}, 3,
-      handle_message, &s1ap_task_zmq_ctx);
+  init_task_context(TASK_S1AP,
+                    (task_id_t[]){TASK_MME_APP, TASK_SCTP, TASK_SERVICE303}, 3,
+                    handle_message, &s1ap_task_zmq_ctx);
 
   if (s1ap_send_init_sctp() < 0) {
     OAILOG_ERROR(LOG_S1AP, "Error while sendind SCTP_INIT_MSG to SCTP \n");
@@ -326,8 +326,8 @@ static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
   start_stats_timer();
 
   zloop_start(s1ap_task_zmq_ctx.event_loop);
-  AssertFatal(
-      0, "Asserting as s1ap_mme_thread should not be exiting on its own!");
+  AssertFatal(0,
+              "Asserting as s1ap_mme_thread should not be exiting on its own!");
   return NULL;
 }
 
@@ -336,23 +336,21 @@ status_code_e s1ap_mme_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_S1AP, "Initializing S1AP interface\n");
 
   if (get_asn1c_environment_version() < ASN1_MINIMUM_VERSION) {
-    OAILOG_ERROR(
-        LOG_S1AP, "ASN1C version %d found, expecting at least %d\n",
-        get_asn1c_environment_version(), ASN1_MINIMUM_VERSION);
+    OAILOG_ERROR(LOG_S1AP, "ASN1C version %d found, expecting at least %d\n",
+                 get_asn1c_environment_version(), ASN1_MINIMUM_VERSION);
     return RETURNerror;
   }
 
   OAILOG_DEBUG(LOG_S1AP, "ASN1C version %d\n", get_asn1c_environment_version());
 
   s1ap_congestion_control_enabled = mme_config_p->enable_congestion_control;
-  s1ap_zmq_th                     = mme_config_p->s1ap_zmq_th;
+  s1ap_zmq_th = mme_config_p->s1ap_zmq_th;
 
   // Initialize global stats timer
-  epc_stats_timer_sec = (size_t) mme_config_p->stats_timer_sec;
+  epc_stats_timer_sec = (size_t)mme_config_p->stats_timer_sec;
 
-  if (s1ap_state_init(
-          mme_config_p->max_ues, mme_config_p->max_enbs,
-          mme_config_p->use_stateless) < 0) {
+  if (s1ap_state_init(mme_config_p->max_ues, mme_config_p->max_enbs,
+                      mme_config_p->use_stateless) < 0) {
     OAILOG_ERROR(LOG_S1AP, "Error while initing S1AP state\n");
     return RETURNerror;
   }
@@ -394,9 +392,8 @@ void s1ap_dump_enb(const enb_description_t* const enb_ref) {
   }
 
   eNB_LIST_OUT("");
-  eNB_LIST_OUT(
-      "eNB name:          %s",
-      enb_ref->enb_name == NULL ? "not present" : enb_ref->enb_name);
+  eNB_LIST_OUT("eNB name:          %s",
+               enb_ref->enb_name == NULL ? "not present" : enb_ref->enb_name);
   eNB_LIST_OUT("eNB ID:            %07x", enb_ref->enb_id);
   eNB_LIST_OUT("SCTP assoc id:     %d", enb_ref->sctp_assoc_id);
   eNB_LIST_OUT("SCTP instreams:    %d", enb_ref->instreams);
@@ -406,9 +403,9 @@ void s1ap_dump_enb(const enb_description_t* const enb_ref) {
   sctp_assoc_id_t sctp_assoc_id = enb_ref->sctp_assoc_id;
 
   hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
-  hashtable_ts_apply_callback_on_elements(
-      (hash_table_ts_t* const) state_ue_ht, s1ap_dump_ue_hash_cb,
-      &sctp_assoc_id, NULL);
+  hashtable_ts_apply_callback_on_elements((hash_table_ts_t* const)state_ue_ht,
+                                          s1ap_dump_ue_hash_cb, &sctp_assoc_id,
+                                          NULL);
   indent--;
   eNB_LIST_OUT("");
 #else
@@ -417,11 +414,11 @@ void s1ap_dump_enb(const enb_description_t* const enb_ref) {
 }
 
 //------------------------------------------------------------------------------
-bool s1ap_dump_ue_hash_cb(
-    __attribute__((unused)) const hash_key_t keyP, void* const ue_void,
-    void* parameter, void __attribute__((unused)) * *unused_resultP) {
-  ue_description_t* ue_ref       = (ue_description_t*) ue_void;
-  sctp_assoc_id_t* sctp_assoc_id = (sctp_assoc_id_t*) parameter;
+bool s1ap_dump_ue_hash_cb(__attribute__((unused)) const hash_key_t keyP,
+                          void* const ue_void, void* parameter,
+                          void __attribute__((unused)) * *unused_resultP) {
+  ue_description_t* ue_ref = (ue_description_t*)ue_void;
+  sctp_assoc_id_t* sctp_assoc_id = (sctp_assoc_id_t*)parameter;
   if (ue_ref == NULL) {
     return false;
   }
@@ -464,11 +461,11 @@ enb_description_t* s1ap_new_enb(void) {
 }
 
 //------------------------------------------------------------------------------
-ue_description_t* s1ap_new_ue(
-    s1ap_state_t* state, const sctp_assoc_id_t sctp_assoc_id,
-    enb_ue_s1ap_id_t enb_ue_s1ap_id) {
+ue_description_t* s1ap_new_ue(s1ap_state_t* state,
+                              const sctp_assoc_id_t sctp_assoc_id,
+                              enb_ue_s1ap_id_t enb_ue_s1ap_id) {
   enb_description_t* enb_ref = NULL;
-  ue_description_t* ue_ref   = NULL;
+  ue_description_t* ue_ref = NULL;
 
   enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
   DevAssert(enb_ref != NULL);
@@ -479,27 +476,25 @@ ue_description_t* s1ap_new_ue(
    * * * * TODO: Notify eNB with a cause like Hardware Failure.
    */
   DevAssert(ue_ref != NULL);
-  ue_ref->sctp_assoc_id  = sctp_assoc_id;
+  ue_ref->sctp_assoc_id = sctp_assoc_id;
   ue_ref->enb_ue_s1ap_id = enb_ue_s1ap_id;
   ue_ref->comp_s1ap_id =
       S1AP_GENERATE_COMP_S1AP_ID(sctp_assoc_id, enb_ue_s1ap_id);
 
   hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
-  hashtable_rc_t hashrc        = hashtable_ts_insert(
-      state_ue_ht, (const hash_key_t) ue_ref->comp_s1ap_id, (void*) ue_ref);
+  hashtable_rc_t hashrc = hashtable_ts_insert(
+      state_ue_ht, (const hash_key_t)ue_ref->comp_s1ap_id, (void*)ue_ref);
 
   if (HASH_TABLE_OK != hashrc) {
-    OAILOG_ERROR(
-        LOG_S1AP, "Could not insert UE descr in ue_coll: %s\n",
-        hashtable_rc_code2string(hashrc));
-    free_wrapper((void**) &ue_ref);
+    OAILOG_ERROR(LOG_S1AP, "Could not insert UE descr in ue_coll: %s\n",
+                 hashtable_rc_code2string(hashrc));
+    free_wrapper((void**)&ue_ref);
     return NULL;
   }
   // Increment number of UE
   enb_ref->nb_ue_associated++;
-  OAILOG_DEBUG(
-      LOG_S1AP, "Num ue associated: %d on assoc id:%d",
-      enb_ref->nb_ue_associated, sctp_assoc_id);
+  OAILOG_DEBUG(LOG_S1AP, "Num ue associated: %d on assoc id:%d",
+               enb_ref->nb_ue_associated, sctp_assoc_id);
   return ue_ref;
 }
 
@@ -516,11 +511,10 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
   // Updating number of UE
   enb_ref->nb_ue_associated--;
 
-  OAILOG_TRACE(
-      LOG_S1AP,
-      "Removing UE enb_ue_s1ap_id: " ENB_UE_S1AP_ID_FMT
-      " mme_ue_s1ap_id:" MME_UE_S1AP_ID_FMT " in eNB id : %d\n",
-      ue_ref->enb_ue_s1ap_id, ue_ref->mme_ue_s1ap_id, enb_ref->enb_id);
+  OAILOG_TRACE(LOG_S1AP,
+               "Removing UE enb_ue_s1ap_id: " ENB_UE_S1AP_ID_FMT
+               " mme_ue_s1ap_id:" MME_UE_S1AP_ID_FMT " in eNB id : %d\n",
+               ue_ref->enb_ue_s1ap_id, ue_ref->mme_ue_s1ap_id, enb_ref->enb_id);
 
   ue_ref->s1_ue_state = S1AP_UE_INVALID_STATE;
 
@@ -529,18 +523,16 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
   hashtable_ts_free(&state->mmeid2associd, mme_ue_s1ap_id);
   hashtable_uint64_ts_remove(&enb_ref->ue_id_coll, mme_ue_s1ap_id);
 
-  imsi64_t imsi64                = INVALID_IMSI64;
+  imsi64_t imsi64 = INVALID_IMSI64;
   s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(
-      s1ap_imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
-      &imsi64);
+  hashtable_uint64_ts_get(s1ap_imsi_map->mme_ue_id_imsi_htbl,
+                          (const hash_key_t)mme_ue_s1ap_id, &imsi64);
   delete_s1ap_ue_state(imsi64);
-  hashtable_uint64_ts_remove(
-      s1ap_imsi_map->mme_ue_id_imsi_htbl, mme_ue_s1ap_id);
+  hashtable_uint64_ts_remove(s1ap_imsi_map->mme_ue_id_imsi_htbl,
+                             mme_ue_s1ap_id);
 
-  OAILOG_DEBUG(
-      LOG_S1AP, "Num UEs associated %u num ue_id_coll %zu",
-      enb_ref->nb_ue_associated, enb_ref->ue_id_coll.num_elements);
+  OAILOG_DEBUG(LOG_S1AP, "Num UEs associated %u num ue_id_coll %zu",
+               enb_ref->nb_ue_associated, enb_ref->ue_id_coll.num_elements);
   if (!enb_ref->nb_ue_associated) {
     if (enb_ref->s1_state == S1AP_RESETING) {
       OAILOG_INFO(LOG_S1AP, "Moving eNB state to S1AP_INIT \n");
@@ -569,14 +561,14 @@ void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref) {
 static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
   s1ap_state_t* s1ap_state_p = get_s1ap_state(false);
   application_s1ap_stats_msg_t stats_msg;
-  stats_msg.nb_enb_connected         = s1ap_state_p->num_enbs;
+  stats_msg.nb_enb_connected = s1ap_state_p->num_enbs;
   stats_msg.nb_s1ap_last_msg_latency = s1ap_last_msg_latency;
-  return send_s1ap_stats_to_service303(
-      &s1ap_task_zmq_ctx, TASK_S1AP, &stats_msg);
+  return send_s1ap_stats_to_service303(&s1ap_task_zmq_ctx, TASK_S1AP,
+                                       &stats_msg);
 }
 
 static void start_stats_timer(void) {
-  epc_stats_timer_id = start_timer(
-      &s1ap_task_zmq_ctx, 1000 * epc_stats_timer_sec, TIMER_REPEAT_FOREVER,
-      handle_stats_timer, NULL);
+  epc_stats_timer_id =
+      start_timer(&s1ap_task_zmq_ctx, 1000 * epc_stats_timer_sec,
+                  TIMER_REPEAT_FOREVER, handle_stats_timer, NULL);
 }

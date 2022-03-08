@@ -61,8 +61,9 @@ gazelle_dependencies(go_repository_default_config = "@//:WORKSPACE.bazel")
 
 http_archive(
     name = "com_github_bazelbuild_buildtools",
-    strip_prefix = "buildtools-master",
-    url = "https://github.com/bazelbuild/buildtools/archive/master.zip",
+    sha256 = "7f43df3cca7bb4ea443b4159edd7a204c8d771890a69a50a190dc9543760ca21",
+    strip_prefix = "buildtools-5.0.1",
+    url = "https://github.com/bazelbuild/buildtools/archive/refs/tags/5.0.1.tar.gz",
 )
 ### BUILDIFIER DEPENDENCIES
 
@@ -140,3 +141,11 @@ configure_python_dependencies()
 load("@python_deps//:requirements.bzl", "install_deps")
 
 install_deps()
+
+load("//bazel:python_swagger.bzl", "load_swagger_repositories")
+
+load_swagger_repositories()
+
+load("//bazel:python_repositories.bzl", "python_repositories")
+
+python_repositories()

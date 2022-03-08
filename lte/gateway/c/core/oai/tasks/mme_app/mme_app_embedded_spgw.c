@@ -44,9 +44,8 @@ char* USAGE_TEXT =
     "        2 -> ASN1 XER printf on and ASN1 debug on\n";
 
 static void usage(char* exe_path) {
-  OAILOG_INFO(
-      LOG_CONFIG, USAGE_TEXT, PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_BUGREPORT,
-      exe_path, PACKAGE_NAME);
+  OAILOG_INFO(LOG_CONFIG, USAGE_TEXT, PACKAGE_NAME, PACKAGE_VERSION,
+              PACKAGE_BUGREPORT, exe_path, PACKAGE_NAME);
 }
 
 status_code_e mme_config_embedded_spgw_parse_opt_line(
@@ -58,55 +57,62 @@ status_code_e mme_config_embedded_spgw_parse_opt_line(
   spgw_config_init(spgw_config_p);
   amf_config_init(amf_config_p);
 
-  while ((c = getopt(argc, argv, "c:hi:Ks:v:V")) != -1) {
+  while ((c = getopt(argc, argv, "c:hi:Ks:v:V:p:")) != -1) {
     switch (c) {
       case 'c':
         mme_config_p->config_file = bfromcstr(optarg);
-
-        OAILOG_DEBUG(
-            LOG_CONFIG, "mme_config.config_file %s",
-            bdata(mme_config_p->config_file));
-
+        OAILOG_DEBUG(LOG_CONFIG, "mme_config.config_file %s",
+                     bdata(mme_config_p->config_file));
         break;
+
+#if MME_BENCHMARK
+      case 'p': {
+        mme_config_p->test_param = atoi(optarg);
+        mme_config_p->test_type = TEST_SERIALIZATION_PROTOBUF;
+        mme_config_p->run_mode = RUN_MODE_TEST;
+        OAI_FPRINTF_INFO("Test serialization protobuf, parameter %u\n",
+                         mme_config_p->test_param);
+      } break;
+#endif
 
       case 'v':
         mme_config_p->log_config.asn1_verbosity_level = atoi(optarg);
         break;
 
       case 'V':
-        OAILOG_DEBUG(
-            LOG_CONFIG,
-            "==== EURECOM %s v%s ===="
-            "Please report any bug to: %s",
-            PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_BUGREPORT);
+        OAILOG_DEBUG(LOG_CONFIG,
+                     "==== EURECOM %s v%s ===="
+                     "Please report any bug to: %s",
+                     PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_BUGREPORT);
 
         break;
 
       case 'K':
-        mme_config_p->itti_config.log_file             = bfromcstr(optarg);
+        mme_config_p->itti_config.log_file = bfromcstr(optarg);
         spgw_config_p->sgw_config.itti_config.log_file = bfromcstr(optarg);
 
-        OAILOG_DEBUG(
-            LOG_CONFIG, "mme_config.itti_config.log_file %s",
-            bdata(mme_config_p->itti_config.log_file));
-        OAILOG_DEBUG(
-            LOG_CONFIG, "spgw_config.sgw_config.itti_config.log_file %s",
-            bdata(spgw_config_p->sgw_config.itti_config.log_file));
+        OAILOG_DEBUG(LOG_CONFIG, "mme_config.itti_config.log_file %s",
+                     bdata(mme_config_p->itti_config.log_file));
+        OAILOG_DEBUG(LOG_CONFIG,
+                     "spgw_config.sgw_config.itti_config.log_file %s",
+                     bdata(spgw_config_p->sgw_config.itti_config.log_file));
 
         break;
 
       case 's':
-        spgw_config_p->config_file            = bfromcstr(optarg);
+        spgw_config_p->config_file = bfromcstr(optarg);
         spgw_config_p->pgw_config.config_file = bfromcstr(optarg);
         spgw_config_p->sgw_config.config_file = bfromcstr(optarg);
 
-        OAILOG_DEBUG(
-            LOG_CONFIG, "spgw_config.config_file %s\n",
-            bdata(spgw_config_p->config_file));
+        OAILOG_DEBUG(LOG_CONFIG, "spgw_config.config_file %s\n",
+                     bdata(spgw_config_p->config_file));
 
         break;
 
       case 'h':
+#if !MME_BENCHMARK
+      case 'p':
+#endif
       default:
         usage(argv[0]);
         exit(0);

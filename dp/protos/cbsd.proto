@@ -1,0 +1,100 @@
+/*
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+package magma.dp;
+
+import "dp/protos/pagination.proto";
+
+option go_package = "magma/dp/cloud/go/protos";
+
+service CbsdManagement {
+  rpc CreateCbsd (CreateCbsdRequest) returns (CreateCbsdResponse) {}
+  rpc UpdateCbsd (UpdateCbsdRequest) returns (UpdateCbsdResponse) {}
+  rpc DeleteCbsd (DeleteCbsdRequest) returns (DeleteCbsdResponse) {}
+  rpc FetchCbsd(FetchCbsdRequest) returns (FetchCbsdResponse) {}
+  rpc ListCbsds(ListCbsdRequest) returns (ListCbsdResponse) {}
+}
+
+message CreateCbsdRequest {
+  string network_id = 1;
+  CbsdData data = 2;
+}
+
+message CreateCbsdResponse {}
+
+message UpdateCbsdRequest {
+  string network_id = 1;
+  int64 id = 2;
+  CbsdData data = 3;
+}
+
+message UpdateCbsdResponse {}
+
+message DeleteCbsdRequest {
+  string network_id = 1;
+  int64 id = 2;
+}
+
+message DeleteCbsdResponse {}
+
+message FetchCbsdRequest {
+  string network_id = 1;
+  int64 id = 2;
+}
+
+message FetchCbsdResponse {
+  CbsdDetails details = 1;
+}
+
+message ListCbsdRequest {
+  string network_id = 1;
+  Pagination pagination = 2;
+}
+
+message ListCbsdResponse {
+  repeated CbsdDetails details = 1;
+  int64 total_count = 2;
+}
+
+message CbsdData {
+  string user_id = 1;
+  string fcc_id = 2;
+  string serial_number = 3;
+  Capabilities capabilities = 4;
+}
+
+message Capabilities {
+  double min_power = 1;
+  double max_power = 2;
+  int64 number_of_antennas = 3;
+  double antenna_gain = 4;
+}
+
+message CbsdDetails {
+  int64 id = 1;
+  CbsdData data = 2;
+  string cbsd_id = 3;
+  string state = 4;
+  bool is_active = 5;
+  GrantDetails grant = 6;
+}
+
+message GrantDetails {
+  int64 bandwidth_mhz = 1;
+  int64 frequency_mhz = 2;
+  double max_eirp = 3;
+  string state = 4;
+  int64 transmit_expire_timestamp = 5;
+  int64 grant_expire_timestamp = 6;
+}

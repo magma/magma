@@ -31,7 +31,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {EditSubscriberButton} from './SubscriberAddDialog';
+import {EditSubscriberButton} from './SubscriberEditDialog';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';

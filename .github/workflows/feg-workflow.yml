@@ -6,11 +6,11 @@ on:
   push:
     branches:
       - master
-      - v1.*
+      - 'v1.*'
   pull_request:
     branches:
       - master
-      - v1.*
+      - 'v1.*'
     types: [opened, reopened, synchronize]
 
 concurrency:
@@ -58,8 +58,7 @@ jobs:
           go-version: '1.15.7'
       - run: go version
       - name: Run golang_before_install.sh script
-        run: |
-              ./circleci/golang_before_install.sh
+        run: ./.github/workflows/scripts/golang_before_install.sh
       - name: Run go mod download with retry
         uses: nick-invision/retry@v2
         if: always()

@@ -465,7 +465,7 @@ class EnforcementStatsTest(unittest.TestCase):
         with isolator, sub_context, snapshot_verifier:
             pkt_sender.send(packet)
         enf_stat_name = imsi + '|' + self.DEFAULT_DROP_FLOW_NAME + '|' \
-                        + sub_ip + '|' + "0"
+            + sub_ip + '|' + "0"
         wait_for_enforcement_stats(
             self.enforcement_stats_controller,
             [enf_stat_name],

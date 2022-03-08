@@ -34,8 +34,8 @@
 
 struct avp;
 
-status_code_e s6a_parse_experimental_result(
-    struct avp* avp, s6a_experimental_result_t* ptr) {
+status_code_e s6a_parse_experimental_result(struct avp* avp,
+                                            s6a_experimental_result_t* ptr) {
   struct avp_hdr* hdr;
   struct avp* child_avp = NULL;
 
@@ -52,20 +52,19 @@ status_code_e s6a_parse_experimental_result(
 
     switch (hdr->avp_code) {
       case AVP_CODE_EXPERIMENTAL_RESULT_CODE:
-        OAILOG_ERROR(
-            LOG_S6A, "Got experimental error %u:%s\n", hdr->avp_value->u32,
-            experimental_retcode_2_string(hdr->avp_value->u32));
+        OAILOG_ERROR(LOG_S6A, "Got experimental error %u:%s\n",
+                     hdr->avp_value->u32,
+                     experimental_retcode_2_string(hdr->avp_value->u32));
 
         if (ptr) {
-          *ptr = (s6a_experimental_result_t) hdr->avp_value->u32;
+          *ptr = (s6a_experimental_result_t)hdr->avp_value->u32;
         }
 
         break;
 
       case AVP_CODE_VENDOR_ID:
-        DevCheck(
-            hdr->avp_value->u32 == 10415, hdr->avp_value->u32,
-            AVP_CODE_VENDOR_ID, 10415);
+        DevCheck(hdr->avp_value->u32 == 10415, hdr->avp_value->u32,
+                 AVP_CODE_VENDOR_ID, 10415);
         break;
 
       default:
@@ -101,8 +100,8 @@ char* experimental_retcode_2_string(uint32_t ret_code) {
     case DIAMETER_ERROR_EQUIPMENT_UNKNOWN:
       return "DIAMETER_ERROR_EQUIPMENT_UNKNOWN";
 
-    case DIAMETER_ERROR_UNKOWN_SERVING_NODE:
-      return "DIAMETER_ERROR_UNKOWN_SERVING_NODE";
+    case DIAMETER_ERROR_UNKNOWN_SERVING_NODE:
+      return "DIAMETER_ERROR_UNKNOWN_SERVING_NODE";
 
     case DIAMETER_AUTHENTICATION_DATA_UNAVAILABLE:
       return "DIAMETER_AUTHENTICATION_DATA_UNAVAILABLE";

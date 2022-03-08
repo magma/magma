@@ -48,13 +48,9 @@ int M5GPDUSessionReActivationResult::DecodePDUSessionReActivationResult(
 
   if (iei > 0) {
     pduSessionReActivationStatus->iei = *buffer;
-    MLOG(MDEBUG) << "In DecodeM5GPDUSessionReActivationResult: iei = "
-                 << std::hex << int(pduSessionReActivationStatus->iei);
     decoded++;
 
     pduSessionReActivationStatus->len = *(buffer + decoded);
-    MLOG(MDEBUG) << "In DecodeM5GPDUSessionReActivationResult: len = "
-                 << std::hex << int(pduSessionReActivationStatus->len);
     decoded++;
 
     pduSessionReActivationStatus->pduSessionReActivationResult =
@@ -62,11 +58,6 @@ int M5GPDUSessionReActivationResult::DecodePDUSessionReActivationResult(
     decoded++;
     pduSessionReActivationStatus->pduSessionReActivationResult |=
         (*(buffer + decoded) << 8);
-    MLOG(MDEBUG)
-        << "In DecodeM5GPDUSessionReActivationResult: "
-           "pduSessionReActivationResult = "
-        << std::hex
-        << int(pduSessionReActivationStatus->pduSessionReActivationResult);
     decoded++;
   }
 

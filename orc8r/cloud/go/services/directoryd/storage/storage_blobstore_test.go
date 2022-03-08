@@ -24,7 +24,7 @@ import (
 	"magma/orc8r/cloud/go/blobstore/mocks"
 	dstorage "magma/orc8r/cloud/go/services/directoryd/storage"
 	"magma/orc8r/cloud/go/storage"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 const (

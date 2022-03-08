@@ -27,9 +27,9 @@ class PDUAddressMsg {
 
   PDUAddressMsg();
   ~PDUAddressMsg();
-  int EncodePDUAddressMsg(
-      PDUAddressMsg* pdu_address, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodePDUAddressMsg(
-      PDUAddressMsg* pdu_address, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,
+                          uint8_t* buffer, uint32_t len);
+  int DecodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,
+                          uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

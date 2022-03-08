@@ -115,7 +115,7 @@ MAGMA_DEPS=(
     "lighttpd >= 1.4.45"
     "libxslt1.1"
     "nghttp2-proxy >= 1.18.1"
-    "python3-protobuf >= 3.14.0"
+    "python3-protobuf >= 3.19.0"
     "redis-server >= 3.2.0"
     "sudo"
     "dnsmasq >= 2.7"
@@ -166,10 +166,10 @@ OAI_DEPS=(
 # OVS runtime dependencies
 OVS_DEPS=(
       "magma-libfluid >= 0.1.0.7"
-      "libopenvswitch >= 2.15.2-6"
-      "openvswitch-switch >= 2.15.2-6"
-      "openvswitch-common >= 2.15.2-6"
-      "openvswitch-datapath-dkms >= 2.15.2-6"
+      "libopenvswitch >= 2.15.4-8"
+      "openvswitch-switch >= 2.15.4-8"
+      "openvswitch-common >= 2.15.4-8"
+      "openvswitch-datapath-dkms >= 2.15.4-8"
       )
 
 # generate string for FPM
@@ -244,12 +244,14 @@ cd "${MAGMA_ROOT}/lte/gateway"
 OAI_BUILD="${C_BUILD}/core/oai"
 SESSIOND_BUILD="${C_BUILD}/session_manager"
 CONNECTIOND_BUILD="${C_BUILD}/connection_tracker"
+LI_AGENT_BUILD="${C_BUILD}/li_agent"
 SCTPD_BUILD="${C_BUILD}/sctpd/src"
 
 make build_oai BUILD_TYPE="${BUILD_TYPE}"
 make build_session_manager BUILD_TYPE="${BUILD_TYPE}"
 make build_sctpd BUILD_TYPE="${BUILD_TYPE}"
 make build_connection_tracker BUILD_TYPE="${BUILD_TYPE}"
+make build_li_agent BUILD_TYPE="${BUILD_TYPE}"
 
 # Build Magma Envoy Controller service
 cd "${MAGMA_ROOT}/feg/gateway"
@@ -358,6 +360,7 @@ ${SYSTEM_DEPS} \
 ${OAI_BUILD}/oai_mme/mme=/usr/local/bin/ \
 ${SESSIOND_BUILD}/sessiond=/usr/local/bin/ \
 ${CONNECTIOND_BUILD}/src/connectiond=/usr/local/bin/ \
+${LI_AGENT_BUILD}/src/liagentd=/usr/local/bin/ \
 ${GO_BUILD}/envoy_controller=/usr/local/bin/ \
 ${SCTPD_MIN_VERSION_FILE}=/usr/local/share/magma/sctpd_min_version \
 ${COMMIT_HASH_FILE}=/usr/local/share/magma/commit_hash \

@@ -1,0 +1,37 @@
+From 98e875b18456608a1668e7a9ffeaf88f266e0a86 Mon Sep 17 00:00:00 2001
+From: Nick Yurchenko <urchennko@gmail.com>
+Date: Mon, 13 Sep 2021 18:44:22 +0000
+Subject: [PATCH 23/23] Set Default QFI
+
+---
+diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
+index 725db82d2..a7033031d 100644
+--- a/datapath/linux/compat/gtp.c
++++ b/datapath/linux/compat/gtp.c
+@@ -329,7 +329,7 @@ const struct gtpu_ext_hdr n_hdr = {
+ const struct gtpu_ext_hdr_pdu_sc pdu_sc_hdr = {
+ 	.len = 1,
+ 	.pdu_type = 0x0, /* PDU_TYPE_DL_PDU_SESSION_INFORMATION */
+-	.qfi = 5,
++	.qfi = 9,
+ 		.next_type = 0,
+ };
+ 
+@@ -572,7 +572,7 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+ 		netdev_dbg(dev, "packet with opt len %d", info->options_len);
+ 		if (info->options_len == 0) {
+ 			if (info->key.tun_flags & TUNNEL_OAM) {
+-			   set_qfi = 5;
++			   set_qfi = 9;
+ 			}
+ 			gtp1_push_header(dev, skb, tunnel_id_to_key32(info->key.tun_id), set_qfi);
+ 		} else if (info->key.tun_flags & TUNNEL_GTPU_OPT) {
+@@ -616,7 +616,7 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+ 		netdev_dbg(dev, "packet with opt len %d", info->options_len);
+ 		if (info->options_len == 0) {
+ 			if (info->key.tun_flags & TUNNEL_OAM) {
+-			   set_qfi = 5;
++			   set_qfi = 9;
+ 			}
+ 			gtp1_push_header(dev, skb, tunnel_id_to_key32(info->key.tun_id), set_qfi);
+ 		} else if (info->key.tun_flags & TUNNEL_GTPU_OPT) {

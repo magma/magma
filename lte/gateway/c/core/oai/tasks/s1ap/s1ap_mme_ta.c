@@ -39,9 +39,9 @@
 #include "lte/gateway/c/core/oai/include/s1ap_types.h"
 
 static int s1ap_mme_compare_plmn(const S1ap_PLMNidentity_t* const plmn) {
-  int i            = 0;
-  uint16_t mcc     = 0;
-  uint16_t mnc     = 0;
+  int i = 0;
+  uint16_t mcc = 0;
+  uint16_t mnc = 0;
   uint16_t mnc_len = 0;
 
   DevAssert(plmn != NULL);
@@ -72,7 +72,7 @@ static int s1ap_mme_compare_plmn(const S1ap_PLMNidentity_t* const plmn) {
 /* @brief compare a list of broadcasted plmns against the MME configured.
  */
 static int s1ap_mme_compare_plmns(S1ap_BPLMNs_t* b_plmns) {
-  int i                  = 0;
+  int i = 0;
   int matching_occurence = 0;
 
   DevAssert(b_plmns != NULL);
@@ -94,7 +94,7 @@ static int s1ap_mme_compare_plmns(S1ap_BPLMNs_t* b_plmns) {
 /* @brief compare a TAC
  */
 static int s1ap_mme_compare_tac(const S1ap_TAC_t* const tac) {
-  int i              = 0;
+  int i = 0;
   uint16_t tac_value = 0;
 
   DevAssert(tac != NULL);
@@ -102,9 +102,8 @@ static int s1ap_mme_compare_tac(const S1ap_TAC_t* const tac) {
   mme_config_read_lock(&mme_config);
 
   for (i = 0; i < mme_config.served_tai.nb_tai; i++) {
-    OAILOG_TRACE(
-        LOG_S1AP, "Comparing config tac %d, received tac = %d\n",
-        mme_config.served_tai.tac[i], tac_value);
+    OAILOG_TRACE(LOG_S1AP, "Comparing config tac %d, received tac = %d\n",
+                 mme_config.served_tai.tac[i], tac_value);
 
     if (mme_config.served_tai.tac[i] == tac_value)
       return TA_LIST_AT_LEAST_ONE_MATCH;
@@ -134,7 +133,7 @@ int s1ap_mme_compare_ta_lists(S1ap_SupportedTAs_t* ta_list) {
 
     ta = ta_list->list.array[i];
     DevAssert(ta != NULL);
-    tac_ret   = s1ap_mme_compare_tac(&ta->tAC);
+    tac_ret = s1ap_mme_compare_tac(&ta->tAC);
     bplmn_ret = s1ap_mme_compare_plmns(&ta->broadcastPLMNs);
 
     if (tac_ret == TA_LIST_NO_MATCH && bplmn_ret == TA_LIST_NO_MATCH) {
@@ -153,14 +152,13 @@ int s1ap_mme_compare_ta_lists(S1ap_SupportedTAs_t* ta_list) {
 
 /* @brief compare PLMNs
  */
-static int s1ap_paging_compare_plmns(
-    plmn_t* enb_bplmns, uint8_t enb_plmn_count,
-    const paging_tai_list_t* p_tai_list) {
+static int s1ap_paging_compare_plmns(plmn_t* enb_bplmns, uint8_t enb_plmn_count,
+                                     const paging_tai_list_t* p_tai_list) {
   int plmn_idx, p_plmn_idx;
 
   for (plmn_idx = 0; plmn_idx < enb_plmn_count; plmn_idx++) {
     plmn_t* enb_plmn = NULL;
-    enb_plmn         = &enb_bplmns[plmn_idx];
+    enb_plmn = &enb_bplmns[plmn_idx];
     if (enb_plmn == NULL) {
       OAILOG_ERROR(LOG_S1AP, "PLMN Information not found in eNB tai list\n");
       return false;
@@ -183,8 +181,8 @@ static int s1ap_paging_compare_plmns(
 
 /* @brief compare a TAC
  */
-static int s1ap_paging_compare_tac(
-    uint8_t enb_tac, const paging_tai_list_t* p_tai_list) {
+static int s1ap_paging_compare_tac(uint8_t enb_tac,
+                                   const paging_tai_list_t* p_tai_list) {
   for (int p_tac_count = 0; p_tac_count < (p_tai_list->numoftac + 1);
        p_tac_count++) {
     if (enb_tac == p_tai_list->tai_list[p_tac_count].tac) {
@@ -200,9 +198,9 @@ static int s1ap_paging_compare_tac(
    ENBs
            - tai_matching=1 if both TAC and PLMN matches with list of ENBs
 */
-int s1ap_paging_compare_ta_lists(
-    supported_ta_list_t* enb_ta_list, const paging_tai_list_t* p_tai_list,
-    uint8_t p_tai_list_count) {
+int s1ap_paging_compare_ta_lists(supported_ta_list_t* enb_ta_list,
+                                 const paging_tai_list_t* p_tai_list,
+                                 uint8_t p_tai_list_count) {
   bool tac_ret = false, bplmn_ret = false;
   int enb_tai_count, p_list_count;
 
@@ -216,7 +214,7 @@ int s1ap_paging_compare_ta_lists(
     }
     for (p_list_count = 0; p_list_count < p_tai_list_count; p_list_count++) {
       const paging_tai_list_t* tai = NULL;
-      tai                          = &p_tai_list[p_list_count];
+      tai = &p_tai_list[p_list_count];
       if (tai == NULL) {
         OAILOG_ERROR(LOG_S1AP, "Paging TAI list not found\n");
         return false;

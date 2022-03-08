@@ -22,7 +22,7 @@ import (
 
 	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
 	"magma/orc8r/cloud/go/services/tenants/servicers/storage"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 )
 
@@ -51,7 +51,7 @@ func (s *tenantsServicer) CreateTenant(c context.Context, request *tenant_protos
 	switch {
 	case err == nil:
 		return nil, status.Errorf(codes.AlreadyExists, "Tenant with Id %d already exists", request.Id)
-	case err != errors.ErrNotFound:
+	case err != merrors.ErrNotFound:
 		return nil, status.Errorf(codes.Internal, "Error getting existing tenants: %v", err)
 	}
 
@@ -88,7 +88,7 @@ func (s *tenantsServicer) SetTenant(c context.Context, request *tenant_protos.ID
 func (s *tenantsServicer) DeleteTenant(c context.Context, request *tenant_protos.GetTenantRequest) (*protos.Void, error) {
 	err := s.store.DeleteTenant(request.Id)
 	switch {
-	case err == errors.ErrNotFound:
+	case err == merrors.ErrNotFound:
 		return nil, status.Errorf(codes.NotFound, "Tenant %d not found", request.Id)
 	case err != nil:
 		return nil, status.Errorf(codes.Internal, "Error deleting tenant %d: %v", request.Id, err)
@@ -118,7 +118,6 @@ func (s *tenantsServicer) CreateOrUpdateControlProxy(c context.Context, request 
 
 	err = s.store.CreateOrUpdateControlProxy(request.Id, request.ControlProxy)
 	if err != nil {
-		request.GetControlProxy()
 		return nil, status.Errorf(codes.Internal, "Error setting control proxy %d: %v", request.Id, err)
 	}
 
@@ -127,7 +126,7 @@ func (s *tenantsServicer) CreateOrUpdateControlProxy(c context.Context, request 
 
 func mapErrForGet(err error, id int64, getType string) error {
 	switch {
-	case err == errors.ErrNotFound:
+	case err == merrors.ErrNotFound:
 		return status.Errorf(codes.NotFound, "%s %d not found", getType, id)
 	case err != nil:
 		return status.Errorf(codes.Internal, "Error %s getting %d: %v", getType, id, err)

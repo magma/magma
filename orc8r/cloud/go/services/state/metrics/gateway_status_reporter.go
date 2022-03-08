@@ -24,7 +24,7 @@ import (
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/state/wrappers"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 func PeriodicallyReportGatewayStatus(dur time.Duration) {
@@ -61,7 +61,7 @@ func reportGatewayStatus() error {
 			gatewayID := gatewayEntity.Key
 			status, err := wrappers.GetGatewayStatus(context.Background(), networkID, gatewayEntity.PhysicalID)
 			if err != nil {
-				if err != errors.ErrNotFound {
+				if err != merrors.ErrNotFound {
 					glog.Errorf("Error getting gateway state for network:%v, gateway:%v, %v", networkID, gatewayID, err)
 				}
 				continue

@@ -43,7 +43,7 @@ int decode_ciphering_key_sequence_number(
 int decode_u8_ciphering_key_sequence_number(
     CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei,
     uint8_t value, uint32_t len) {
-  int decoded     = 0;
+  int decoded = 0;
   uint8_t* buffer = &value;
 
   *cipheringkeysequencenumber = *buffer & 0x7;
@@ -72,7 +72,7 @@ uint8_t encode_u8_ciphering_key_sequence_number(
   uint8_t bufferReturn;
   uint8_t* buffer = &bufferReturn;
   uint8_t encoded = 0;
-  uint8_t iei     = 0;
+  uint8_t iei = 0;
 
   dump_ciphering_key_sequence_number_xml(cipheringkeysequencenumber, 0);
   *(buffer + encoded) =
@@ -91,8 +91,7 @@ void dump_ciphering_key_sequence_number_xml(
      */
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
-  OAILOG_DEBUG(
-      LOG_NAS, "    <Key sequence>%u</Key sequence>\n",
-      *cipheringkeysequencenumber);
+  OAILOG_DEBUG(LOG_NAS, "    <Key sequence>%u</Key sequence>\n",
+               *cipheringkeysequencenumber);
   OAILOG_DEBUG(LOG_NAS, "</Ciphering Key Sequence Number>\n");
 }

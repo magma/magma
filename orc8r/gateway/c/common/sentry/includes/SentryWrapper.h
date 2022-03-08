@@ -13,13 +13,17 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #define MAX_URL_LENGTH 255
 #define SENTRY_TAG_MME "MME"
+#define SENTRY_TAG_CONNECTIOND "ConnectionD"
 #define SENTRY_TAG_SESSIOND "SessionD"
+#define SENTRY_TAG_LI_AGENTD "LiAgentD"
 #define SENTRY_TAG_SCTPD "SctpD"
 #define SENTRY_TAG_LEN 16
 #define SENTRY_DB_PREFIX ".sentry-native-"
@@ -34,6 +38,7 @@ typedef struct sentry_config {
   char url_native[MAX_URL_LENGTH];
   // Add debug logging for sentry, useful for debugging connection issues
   bool add_debug_logging;
+  int number_of_lines_in_log;
 } sentry_config_t;
 
 /**

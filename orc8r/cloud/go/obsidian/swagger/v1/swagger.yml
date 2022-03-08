@@ -58,10 +58,10 @@ tags:
   name: Tenants
 - description: Configuration to manage upgrades
   name: Upgrades
-- description: Baremetal CI executors and workloads
-  name: baremetal
-- description: End to end testing
-  name: e2e
+- description: API for CBSDs
+  name: cbsds
+- description: API for retrieving logs
+  name: logs
 paths:
   /about/version:
     get:
@@ -147,150 +147,6 @@ paths:
       summary: Update a release channel
       tags:
       - Upgrades
-  /ci/nodes:
-    get:
-      parameters:
-      - description: Optional tag to filter listed nodes by
-        in: query
-        name: tag
-        required: false
-        type: string
-      - description: Set this to a non-empty value to filter for all untagged nodes
-        in: query
-        name: list_untagged
-        required: false
-        type: string
-      responses:
-        "200":
-          description: All CI worker nodes
-          schema:
-            items:
-              $ref: '#/definitions/ci_node'
-            type: array
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: List CI worker nodes
-      tags:
-      - baremetal
-    post:
-      parameters:
-      - description: CI node to create
-        in: body
-        name: ci_node
-        required: true
-        schema:
-          $ref: '#/definitions/mutable_ci_node'
-      responses:
-        "201":
-          description: Created
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Create new available CI worker node
-      tags:
-      - baremetal
-  /ci/nodes/{node_id}:
-    delete:
-      parameters:
-      - $ref: '#/parameters/node_id'
-      responses:
-        "204":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Delete a CI node
-      tags:
-      - baremetal
-    get:
-      parameters:
-      - $ref: '#/parameters/node_id'
-      responses:
-        "200":
-          description: The requested node
-          schema:
-            $ref: '#/definitions/ci_node'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Get a specific CI node
-      tags:
-      - baremetal
-    put:
-      parameters:
-      - $ref: '#/parameters/node_id'
-      - description: CI node to create
-        in: body
-        name: ci_node
-        required: true
-        schema:
-          $ref: '#/definitions/mutable_ci_node'
-      responses:
-        "204":
-          description: Updated
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Update a CI node
-      tags:
-      - baremetal
-  /ci/nodes/{node_id}/release:
-    post:
-      parameters:
-      - $ref: '#/parameters/node_id'
-      responses:
-        "204":
-          description: Node released successfully
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Release a manually reserved CI node
-      tags:
-      - baremetal
-  /ci/nodes/{node_id}/release/{lease_id}:
-    post:
-      parameters:
-      - $ref: '#/parameters/node_id'
-      - description: Lease ID to release
-        in: path
-        name: lease_id
-        required: true
-        type: string
-      responses:
-        "204":
-          description: Node released successfully
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Release a CI worker node
-      tags:
-      - baremetal
-  /ci/nodes/{node_id}/reserve:
-    post:
-      parameters:
-      - $ref: '#/parameters/node_id'
-      responses:
-        "200":
-          description: Lease for the requested node
-          schema:
-            $ref: '#/definitions/node_lease'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Manually reserve a specific CI node
-      tags:
-      - baremetal
-  /ci/reserve:
-    post:
-      parameters:
-      - description: Optional tag to restrict reservation pool to
-        in: query
-        name: tag
-        required: false
-        type: string
-      responses:
-        "200":
-          description: Lease information about the reserved node
-          schema:
-            $ref: '#/definitions/node_lease'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Reserve a CI worker node if available
-      tags:
-      - baremetal
   /cwf:
     get:
       responses:
@@ -1054,6 +910,156 @@ paths:
       summary: Get the directory record of a subscriber
       tags:
       - Carrier Wifi Networks
+  /dp/{network_id}/cbsds:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/offset'
+      - $ref: '#/parameters/limit'
+      responses:
+        "200":
+          description: All CBSDs in LTE network
+          schema:
+            $ref: '#/definitions/paginated_cbsds'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List all CBSDs in LTE network
+      tags:
+      - cbsds
+    post:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - description: CBSD
+        in: body
+        name: cbsd
+        required: true
+        schema:
+          $ref: '#/definitions/mutable_cbsd'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Create new cbsd
+      tags:
+      - cbsds
+  /dp/{network_id}/cbsds/{cbsd_id}:
+    delete:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/cbsd_id'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Delete CBSD from LTE network
+      tags:
+      - cbsds
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/cbsd_id'
+      responses:
+        "200":
+          description: CBSD
+          schema:
+            $ref: '#/definitions/cbsd'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Retrieve CBSD from LTE network
+      tags:
+      - cbsds
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/cbsd_id'
+      - description: CBSD
+        in: body
+        name: cbsd
+        required: true
+        schema:
+          $ref: '#/definitions/mutable_cbsd'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update CBSD in LTE network
+      tags:
+      - cbsds
+  /dp/{network_id}/logs:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/offset'
+      - $ref: '#/parameters/limit'
+      - description: start datetime of messages
+        format: date-time
+        in: query
+        name: begin
+        required: false
+        type: string
+      - description: end datatime of messages
+        format: date-time
+        in: query
+        name: end
+        required: false
+        type: string
+      - description: serial number of cbsd
+        in: query
+        maxLength: 64
+        minLength: 1
+        name: serial_number
+        required: false
+        type: string
+      - description: fcc id of cbsd
+        in: query
+        maxLength: 19
+        minLength: 1
+        name: fcc_id
+        required: false
+        type: string
+      - description: message type
+        in: query
+        name: type
+        required: false
+        type: string
+      - description: response code (only applicable for SAS responses)
+        in: query
+        name: response_code
+        required: false
+        type: integer
+      - description: message origin
+        enum:
+        - SAS
+        - DP
+        - CBSD
+        in: query
+        name: from
+        required: false
+        type: string
+      - description: message destination
+        enum:
+        - SAS
+        - DP
+        - CBSD
+        in: query
+        name: to
+        required: false
+        type: string
+      responses:
+        "200":
+          description: Messages between DP and SAS
+          schema:
+            items:
+              $ref: '#/definitions/message'
+            type: array
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List messages between DP and SAS ordered by time
+      tags:
+      - logs
   /events/{network_id}:
     get:
       parameters:
@@ -6126,92 +6132,6 @@ paths:
       summary: Retrieve description of all metrics
       tags:
       - Metrics
-  /tests/e2e:
-    get:
-      responses:
-        "200":
-          description: List of test configurations
-          schema:
-            items:
-              $ref: '#/definitions/e2e_test_case'
-            type: array
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: List e2e tests
-      tags:
-      - e2e
-  /tests/e2e/enodebd:
-    get:
-      responses:
-        "200":
-          description: List of enodebd test cases
-          schema:
-            items:
-              $ref: '#/definitions/enodebd_e2e_test'
-            type: array
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: List enodebd e2e test cases
-      tags:
-      - e2e
-    post:
-      parameters:
-      - description: enodebd test to create
-        in: body
-        name: test
-        required: true
-        schema:
-          $ref: '#/definitions/mutable_enodebd_e2e_test'
-      responses:
-        "201":
-          description: Created
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Create new enodebe e2e test case
-      tags:
-      - e2e
-  /tests/e2e/enodebd/{test_pk}:
-    delete:
-      parameters:
-      - $ref: '#/parameters/test_pk'
-      responses:
-        "204":
-          description: Deleted
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Delete enodebd e2e test case
-      tags:
-      - e2e
-    get:
-      parameters:
-      - $ref: '#/parameters/test_pk'
-      responses:
-        "200":
-          description: Requested enodebd test case
-          schema:
-            $ref: '#/definitions/enodebd_test_config'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Get enodebd e2e test case
-      tags:
-      - e2e
-    put:
-      parameters:
-      - $ref: '#/parameters/test_pk'
-      - description: Updated test case configuration
-        in: body
-        name: test
-        required: true
-        schema:
-          $ref: '#/definitions/enodebd_test_config'
-      responses:
-        "204":
-          description: Updated
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Update enodebd e2e test case
-      tags:
-      - e2e
   /user:
     get:
       responses:
@@ -6369,6 +6289,12 @@ parameters:
     name: base_name
     required: true
     type: string
+  cbsd_id:
+    description: CBSD ID
+    in: path
+    name: cbsd_id
+    required: true
+    type: integer
   channel_id:
     description: Release Channel ID
     in: path
@@ -6419,6 +6345,13 @@ parameters:
     name: image_name
     required: true
     type: string
+  limit:
+    description: Number of record to return
+    in: query
+    minimum: 1
+    name: limit
+    required: false
+    type: integer
   msisdn:
     description: Mobile station international subscriber directory number
     in: path
@@ -6440,12 +6373,13 @@ parameters:
     pattern: ^[a-z_][\da-z_]+$
     required: true
     type: string
-  node_id:
-    description: CI node ID
-    in: path
-    name: node_id
-    required: true
-    type: string
+  offset:
+    description: Start index for pagination
+    in: query
+    minimum: 1
+    name: offset
+    required: false
+    type: integer
   page_size:
     description: Maximum number of entities to return
     format: uint32
@@ -6500,13 +6434,6 @@ parameters:
     description: Tenant ID
     in: path
     name: tenant_id
-    required: true
-    type: integer
-  test_pk:
-    description: E2E test case PK
-    format: int64
-    in: path
-    name: test_pk
     required: true
     type: integer
   tier_id:
@@ -6600,43 +6527,6 @@ definitions:
         format: uint32
         type: integer
         x-nullable: true
-    type: object
-  agw_test_config:
-    description: Shared AGW test configuration for auto-upgrades
-    properties:
-      package_repo:
-        description: URL of debian package repo
-        example: https://artifactory.magmacore.org/artifactory/debian/
-        minLength: 1
-        type: string
-      release_channel:
-        description: Release channel for package repo (stretch-beta, stretch-dev,
-          etc)
-        example: stretch-beta
-        minLength: 1
-        type: string
-      slack_webhook:
-        description: Slack webhook for test notifications
-        example: https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX
-        minLength: 1
-        type: string
-      target_gateway_id:
-        description: Gateway ID of the target gateway
-        example: mpk_dogfooding_magma_1
-        minLength: 1
-        type: string
-      target_tier:
-        description: ID of upgrade tier to bump when new version is found in package
-          repo
-        example: t2
-        minLength: 1
-        type: string
-    required:
-    - target_gateway_id
-    - target_tier
-    - package_repo
-    - release_channel
-    - slack_webhook
     type: object
   alert_bulk_upload_response:
     properties:
@@ -6935,6 +6825,28 @@ definitions:
         description: True if trace has been requested to end
         type: boolean
     type: object
+  capabilities:
+    properties:
+      antenna_gain:
+        example: 15
+        type: number
+      max_power:
+        description: max tx power available on cbsd
+        example: 30
+        type: number
+      min_power:
+        description: min tx power available on cbsd
+        type: number
+      number_of_antennas:
+        example: 2
+        minimum: 1
+        type: integer
+    required:
+    - antenna_gain
+    - min_power
+    - max_power
+    - number_of_antennas
+    type: object
   carrier_wifi_gateway_health_status:
     description: Health status of a Carrier Wifi Gateway
     properties:
@@ -6970,6 +6882,53 @@ definitions:
         x-nullable: false
     required:
     - active_gateway
+    type: object
+  cbsd:
+    properties:
+      capabilities:
+        $ref: '#/definitions/capabilities'
+      cbsd_id:
+        description: id of cbsd in SAS
+        example: some_cbsd_id
+        readOnly: true
+        type: string
+      fcc_id:
+        example: some_fcc_id
+        minLength: 1
+        type: string
+      grant:
+        $ref: '#/definitions/grant'
+      id:
+        description: database id of cbsd
+        readOnly: true
+        type: integer
+      is_active:
+        description: false if cbsd have not contcated DP for certain amount of time
+        readOnly: true
+        type: boolean
+      serial_number:
+        example: some_serial_number
+        minLength: 1
+        type: string
+      state:
+        description: state of cbsd in SAS
+        enum:
+        - unregistered
+        - registered
+        readOnly: true
+        type: string
+      user_id:
+        example: some_user_id
+        minLength: 1
+        type: string
+    required:
+    - fcc_id
+    - serial_number
+    - user_id
+    - capabilities
+    - is_active
+    - id
+    - state
     type: object
   cellular_gateway_pool:
     description: Highly available gateway pool in an LTE network
@@ -7060,31 +7019,12 @@ definitions:
     pattern: ^[a-z][\da-z_]+$
     type: string
     x-nullable: false
-  ci_node:
-    description: Baremetal executor status
-    properties:
-      available:
-        example: false
-        type: boolean
-      id:
-        example: node1
-        minLength: 1
-        type: string
-      last_lease_time:
-        format: date-time
-        type: string
-      tag:
-        example: tagged
-        type: string
-      vpn_ip:
-        example: 10.240.0.2
-        format: ipv4
-        type: string
-    required:
-    - id
-    - vpn_ip
-    - available
-    type: object
+  components:
+    enum:
+    - SAS
+    - DP
+    - CBSD
+    type: string
   config_info:
     properties:
       mconfig_created_at:
@@ -7397,46 +7337,6 @@ definitions:
         x-nullable: false
     required:
     - domain
-    type: object
-  e2e_test_case:
-    description: Generic e2e test case
-    properties:
-      config:
-        type: object
-      pk:
-        example: 42
-        format: int64
-        type: integer
-      state:
-        $ref: '#/definitions/e2e_test_case_state'
-      test_type:
-        example: enodebd
-        minLength: 1
-        type: string
-    required:
-    - pk
-    - test_type
-    - config
-    - state
-    type: object
-  e2e_test_case_state:
-    description: Test case execution state
-    properties:
-      current_state:
-        type: string
-      error:
-        type: string
-      is_executing:
-        example: false
-        type: boolean
-      last_execution_time:
-        format: date-time
-        type: string
-      next_scheduled_time:
-        format: date-time
-        type: string
-    required:
-    - is_executing
     type: object
   eap_aka:
     description: eap_aka configuration
@@ -7777,73 +7677,6 @@ definitions:
     - ptp_connected
     - mme_connected
     - fsm_state
-    type: object
-  enodebd_e2e_test:
-    description: Enodebd e2e test
-    properties:
-      config:
-        $ref: '#/definitions/enodebd_test_config'
-      pk:
-        example: 42
-        format: int64
-        type: integer
-      state:
-        $ref: '#/definitions/e2e_test_case_state'
-    required:
-    - pk
-    - config
-    - state
-    type: object
-  enodebd_test_config:
-    description: Enodebd e2e test configuration
-    properties:
-      agw_config:
-        $ref: '#/definitions/agw_test_config'
-      enodeb_SN:
-        description: Enodeb serial number for the test case
-        minLength: 1
-        type: string
-      enodeb_config:
-        $ref: '#/definitions/enodeb_config'
-        description: Config will be used to reconfigure enodeb
-      network_id:
-        description: Network for the test case
-        example: mpk_dogfooding
-        minLength: 1
-        type: string
-      run_traffic_tests:
-        description: Toggle whether or not to run traffic test cases
-        example: false
-        type: boolean
-      ssid:
-        description: SSID the enodeb will connect to
-        minLength: 1
-        type: string
-      ssid_pw:
-        description: Password to authenticate to SSID
-        minLength: 1
-        type: string
-      start_state:
-        description: Specify which testcontroller state to begin on
-        example: check_for_upgrade
-        minLength: 1
-        type: string
-      subscriberID:
-        description: SubscriberID that will be used to fetch subscriber state
-        minLength: 1
-        type: string
-      traffic_gwID:
-        description: NUC gateway ID
-        minLength: 1
-        type: string
-    required:
-    - network_id
-    - agw_config
-    - enodeb_SN
-    - traffic_gwID
-    - enodeb_config
-    - run_traffic_tests
-    - subscriberID
     type: object
   error:
     properties:
@@ -8650,6 +8483,32 @@ definitions:
       - status
       - updatedAt
       type: object
+  grant:
+    properties:
+      bandwidth_mhz:
+        example: 20
+        type: integer
+      frequency_mhz:
+        example: 3600
+        maximum: 3700
+        minimum: 3550
+        type: integer
+      grant_expire_time:
+        format: date-time
+        type: string
+      max_eirp:
+        maximum: 37
+        minimum: -137
+        type: number
+      state:
+        enum:
+        - granted
+        - guthorized
+        type: string
+      transmit_expire_time:
+        format: date-time
+        type: string
+    readOnly: true
   gx:
     description: gx configuration
     properties:
@@ -8863,20 +8722,6 @@ definitions:
     required:
     - name
     - value
-    type: object
-  latest_script_execution:
-    properties:
-      timestamp:
-        description: Timestamp of latest script execution
-        type: integer
-        x-nullable: false
-      version:
-        description: Magma version of latest script execution
-        type: string
-        x-nullable: false
-    required:
-    - timestamp
-    - version
     type: object
   li_ues:
     properties:
@@ -9110,6 +8955,49 @@ definitions:
     - name
     - value
     type: object
+  message:
+    properties:
+      body:
+        description: Body of message
+        example: '{[{"registrationRequest":{"cbsdSerialNumber":"some_serial_number"}}]}'
+        readOnly: true
+        type: string
+      fcc_id:
+        description: Fcc Id of cbsd involved in message
+        example: some_fcc_id
+        readOnly: true
+        type: string
+      from:
+        description: message origin
+        enum:
+        - SAS
+        - DP
+        - CBSD
+        readOnly: true
+        type: string
+      serial_number:
+        description: Serial number of cbsd involved in message
+        example: some_serial_number
+        readOnly: true
+        type: string
+      time:
+        description: Datetime of message
+        format: date-time
+        readOnly: true
+        type: string
+      to:
+        description: message destination
+        enum:
+        - SAS
+        - DP
+        - CBSD
+        readOnly: true
+        type: string
+      type:
+        description: Type of message
+        readOnly: true
+        type: string
+    type: object
   metric_datapoint:
     example:
     - 1.548439790115e+09
@@ -9174,6 +9062,28 @@ definitions:
     required:
     - requested_end
     type: object
+  mutable_cbsd:
+    properties:
+      capabilities:
+        $ref: '#/definitions/capabilities'
+      fcc_id:
+        example: some_fcc_id
+        minLength: 1
+        type: string
+      serial_number:
+        example: some_serial_number
+        minLength: 1
+        type: string
+      user_id:
+        example: some_user_id
+        minLength: 1
+        type: string
+    required:
+    - fcc_id
+    - serial_number
+    - user_id
+    - capabilities
+    type: object
   mutable_cellular_gateway_pool:
     description: Mutable version of the cellular gateway pool
     properties:
@@ -9187,24 +9097,6 @@ definitions:
     required:
     - gateway_pool_id
     - config
-    type: object
-  mutable_ci_node:
-    description: Baremetal executor writable fields
-    properties:
-      id:
-        example: node1
-        minLength: 1
-        type: string
-      tag:
-        example: tagged
-        type: string
-      vpn_ip:
-        example: 10.240.0.2
-        format: ipv4
-        type: string
-    required:
-    - id
-    - vpn_ip
     type: object
   mutable_cwf_gateway:
     description: CWF gateway object with read-only fields omitted
@@ -9252,18 +9144,6 @@ definitions:
     - ha_pair_id
     - gateway_id_1
     - gateway_id_2
-    - config
-    type: object
-  mutable_enodebd_e2e_test:
-    properties:
-      config:
-        $ref: '#/definitions/enodebd_test_config'
-      pk:
-        example: 42
-        format: int64
-        type: integer
-    required:
-    - pk
     - config
     type: object
   mutable_federation_gateway:
@@ -9970,19 +9850,8 @@ definitions:
     type: object
   network_sentry_config:
     default:
-      exclusion_patterns:
-      - GetServiceInfo
-      - GetOperationalStates
-      - ConnectionError
-      - CheckinError
-      - Checkin Error
-      - GetChallenge error!
-      - Connection to FluentBit
-      - \[SyncRPC\]
-      - Metrics upload error
-      - Streaming from the cloud failed!
-      - Fetch subscribers error!
-      - GRPC call failed for state replication
+      exclusion_patterns: []
+      number_of_lines_in_log: 0
       sample_rate: 1
       upload_mme_log: false
     description: Sentry.io configuration
@@ -9993,6 +9862,10 @@ definitions:
           type: string
         minItems: 0
         type: array
+      number_of_lines_in_log:
+        example: 1000
+        format: uint32
+        type: integer
       sample_rate:
         example: 0.5
         format: float
@@ -10032,26 +9905,6 @@ definitions:
       type: string
     description: neutral host PLMN ID to serving FeG network routes
     type: object
-  node_lease:
-    description: Node lease information
-    properties:
-      id:
-        example: node1
-        minLength: 1
-        type: string
-      lease_id:
-        example: abcdefg
-        minLength: 1
-        type: string
-      vpn_ip:
-        example: 10.240.0.2
-        format: ipv4
-        type: string
-    required:
-    - id
-    - vpn_ip
-    - lease_id
-    type: object
   package:
     properties:
       name:
@@ -10064,6 +9917,22 @@ definitions:
   page_token:
     description: Base64-encoded page token for subsequent paginated API requests
     type: string
+  paginated_cbsds:
+    description: Page of cbsds
+    properties:
+      cbsds:
+        items:
+          $ref: '#/definitions/cbsd'
+        readOnly: true
+        type: array
+      total_count:
+        description: Total number of cbsds
+        example: 10
+        readOnly: true
+        type: integer
+    required:
+    - cbsds
+    - total_count
   paginated_enodebs:
     description: Page of eNodeBs
     properties:
