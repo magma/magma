@@ -39,7 +39,7 @@ class IPv6AllocatorPool(IPAllocator):
     ):
         super().__init__()
         self._store = store
-        self._assigned_ip_block = None
+        self._assigned_ip_block: Optional[IPNetwork] = None
         self._ipv6_session_prefix_alloc_mode = session_prefix_alloc_mode
         self._ipv6_prefixlen = (
             ipv6_prefixlen
@@ -177,6 +177,8 @@ class IPv6AllocatorPool(IPAllocator):
         """
         sid = ip_desc.sid
         ip_addr = ip_desc.ip
+        if not self._assigned_ip_block or not ip_addr:
+            return
         ipv6_addr_part = int(next(self._assigned_ip_block.hosts()))
 
         session_prefix = self._store.sid_session_prefix_allocated.get(sid)
@@ -223,6 +225,8 @@ class IPv6AllocatorPool(IPAllocator):
 
         Returns: session prefix N bits
         """
+        if not self._assigned_ip_block:
+            return None
         session_prefix_len = IPV6_PREFIX_PART_LEN - self._assigned_ip_block.prefixlen
         session_prefix_allocated = self._store.sid_session_prefix_allocated.get(
             sid,

@@ -174,3 +174,4 @@ class ECIES_HN(object):             # noqa: N801
         cleartext = aes.decrypt(ciphertext)
         if mac_verif:
             return cleartext
+        return None

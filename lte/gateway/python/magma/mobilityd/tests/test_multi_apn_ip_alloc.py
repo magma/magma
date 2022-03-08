@@ -14,7 +14,7 @@ limitations under the License.
 import ipaddress
 import logging
 import unittest
-from typing import Optional
+from typing import Dict, Optional
 
 import fakeredis
 from lte.protos.apn_pb2 import APNConfiguration
@@ -36,7 +36,7 @@ from magma.subscriberdb.sid import SIDUtils
 
 class MockedSubscriberDBStub:
     # subscriber map
-    subs = {}
+    subs: Dict[str, SubscriberData] = {}
 
     def __init__(self):
         pass

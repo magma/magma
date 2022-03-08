@@ -91,8 +91,8 @@ class DHCPClient:
     def send_dhcp_packet(
         self, mac: MacAddress, vlan: str,
         state: DHCPState,
-        dhcp_desc: DHCPDescriptor = None,
-    ):
+        dhcp_desc: Optional[DHCPDescriptor] = None,
+    ) -> None:
         """
         Send DHCP packet and record state in dhcp_client_state.
 
@@ -113,7 +113,7 @@ class DHCPClient:
             )
             self._msg_xid = self._msg_xid + 1
             pkt_xid = self._msg_xid
-        elif state == DHCPState.REQUEST:
+        elif state == DHCPState.REQUEST and dhcp_desc:
             dhcp_opts = [
                 ("message-type", "request"),
                 ("requested_addr", dhcp_desc.ip),
@@ -122,7 +122,7 @@ class DHCPClient:
             dhcp_desc.state_requested = DHCPState.REQUEST
             pkt_xid = dhcp_desc.xid
             ciaddr = dhcp_desc.ip
-        elif state == DHCPState.RELEASE:
+        elif state == DHCPState.RELEASE and dhcp_desc:
             dhcp_opts = [
                 ("message-type", "release"),
                 ("server_id", dhcp_desc.server_ip),
@@ -139,7 +139,7 @@ class DHCPClient:
             )
             return
 
-        dhcp_opts.append("end")
+        dhcp_opts.append("end")  # type: ignore[arg-type]
         dhcp_desc.xid = pkt_xid
         with self._dhcp_notify:
             self.dhcp_client_state[mac.as_redis_key(vlan)] = dhcp_desc
