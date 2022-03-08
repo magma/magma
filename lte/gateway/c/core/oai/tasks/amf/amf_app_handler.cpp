@@ -541,20 +541,6 @@ int amf_app_handle_uplink_nas_message(amf_app_desc_t* amf_app_desc_p,
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
-static void get_ambr_unit(uint8_t apn_ambr_unit, uint32_t apn_session_ambr,
-                          uint8_t* calc_ambr_unit,
-                          uint16_t* calc_session_ambr) {
-  *calc_ambr_unit = 0;
-
-  while (apn_session_ambr) {
-    *calc_ambr_unit += 1;
-
-    apn_session_ambr >>= 2;
-  }
-
-  *calc_session_ambr = PDU_SESSION_DEFAULT_AMBR;
-}
-
 /* Received the session created response message from SMF. Populate and Send
  * PDU Session Resource Setup Request message to gNB and  PDU Session
  * Establishment Accept Message to UE*/
