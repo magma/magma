@@ -42,7 +42,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: { } break; }
+    default: {
+    } break;
+  }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);
@@ -52,23 +54,21 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
   virtual void SetUp() {
     mme_app_handler = std::make_shared<MockMmeAppHandler>();
-    sctp_handler    = std::make_shared<MockSctpHandler>();
+    sctp_handler = std::make_shared<MockSctpHandler>();
 
-    itti_init(
-        TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
-        NULL);
+    itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
+              NULL, NULL);
 
     // initialize mme config
     mme_config_init(&mme_config);
     create_partial_lists(&mme_config);
     mme_config.use_stateless = false;
-    hss_associated           = true;
+    hss_associated = true;
 
     task_id_t task_id_list[4] = {TASK_MME_APP, TASK_S1AP, TASK_SCTP,
                                  TASK_SERVICE303};
-    init_task_context(
-        TASK_MAIN, task_id_list, 4, handle_message,
-        &task_zmq_ctx_main_s1ap_with_injected_states);
+    init_task_context(TASK_MAIN, task_id_list, 4, handle_message,
+                      &task_zmq_ctx_main_s1ap_with_injected_states);
 
     std::thread task_mme_app(start_mock_mme_app_task, mme_app_handler);
     std::thread task_sctp(start_mock_sctp_task, sctp_handler);
@@ -85,8 +85,8 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
         magma_root + "/" + DEFAULT_S1AP_CONTEXT_DATA_PATH;
     std::string data_list_path =
         magma_root + "/" + DEFAULT_S1AP_CONTEXT_DATA_PATH + "data_list.txt";
-    assoc_id           = 37;
-    stream_id          = 0;
+    assoc_id = 37;
+    stream_id = 0;
     number_attached_ue = 2;
 
     mock_read_s1ap_state_db(state_data_path);
@@ -125,8 +125,8 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
   ue_description_t ue_ref_p = {
       .enb_ue_s1ap_id = 1,
       .mme_ue_s1ap_id = 1,
-      .sctp_assoc_id  = assoc_id,
-      .comp_s1ap_id   = S1AP_GENERATE_COMP_S1AP_ID(assoc_id, 1)};
+      .sctp_assoc_id = assoc_id,
+      .comp_s1ap_id = S1AP_GENERATE_COMP_S1AP_ID(assoc_id, 1)};
 
   // State validation
   ASSERT_TRUE(
@@ -134,15 +134,13 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   // Invalid S1 Cause returns error
-  ASSERT_EQ(
-      RETURNerror, s1ap_mme_generate_ue_context_release_command(
-                       state, &ue_ref_p, S1AP_IMPLICIT_CONTEXT_RELEASE,
-                       INVALID_IMSI64, assoc_id, stream_id, 33, 10));
+  ASSERT_EQ(RETURNerror, s1ap_mme_generate_ue_context_release_command(
+                             state, &ue_ref_p, S1AP_IMPLICIT_CONTEXT_RELEASE,
+                             INVALID_IMSI64, assoc_id, stream_id, 33, 10));
   // Valid S1 Causes passess successfully
-  ASSERT_EQ(
-      RETURNok, s1ap_mme_generate_ue_context_release_command(
-                    state, &ue_ref_p, S1AP_INITIAL_CONTEXT_SETUP_FAILED,
-                    INVALID_IMSI64, assoc_id, stream_id, 33, 10));
+  ASSERT_EQ(RETURNok, s1ap_mme_generate_ue_context_release_command(
+                          state, &ue_ref_p, S1AP_INITIAL_CONTEXT_SETUP_FAILED,
+                          INVALID_IMSI64, assoc_id, stream_id, 33, 10));
 
   // State validation
   ASSERT_TRUE(

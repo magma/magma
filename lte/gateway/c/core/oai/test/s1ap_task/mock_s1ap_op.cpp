@@ -55,8 +55,8 @@ status_code_e mock_read_s1ap_ue_state_db(
 
   for (const auto& name_of_sample_file : ue_samples) {
     UeDescription ue_proto = UeDescription();
-    std::fstream input(
-        name_of_sample_file.c_str(), std::ios::in | std::ios::binary);
+    std::fstream input(name_of_sample_file.c_str(),
+                       std::ios::in | std::ios::binary);
     if (!ue_proto.ParseFromIstream(&input)) {
       std::cerr << "Failed to parse the sample: " << name_of_sample_file
                 << std::endl;
@@ -68,7 +68,7 @@ status_code_e mock_read_s1ap_ue_state_db(
     S1apStateConverter::proto_to_ue(ue_proto, ue_context_p);
 
     hashtable_rc_t h_rc = hashtable_ts_insert(
-        state_ue_ht, ue_context_p->comp_s1ap_id, (void*) ue_context_p);
+        state_ue_ht, ue_context_p->comp_s1ap_id, (void*)ue_context_p);
 
     if (HASH_TABLE_OK != h_rc) {
       std::cerr << "Failed to insert UE state :" << name_of_sample_file
@@ -86,8 +86,8 @@ status_code_e mock_read_s1ap_state_db(
 
   S1apState state_proto = S1apState();
 
-  std::ifstream input(
-      file_name_state_sample.c_str(), std::ios::in | std::ios::binary);
+  std::ifstream input(file_name_state_sample.c_str(),
+                      std::ios::in | std::ios::binary);
   std::vector<char> data = std::vector<char>(
       std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
   std::string decoded_msg = decode_msg(data);
@@ -102,9 +102,8 @@ status_code_e mock_read_s1ap_state_db(
 }
 
 // putting data in the buffer to decode and update the size of the buffer
-void add_data_to_buffer(
-    unsigned int& buf, int& buf_size, int data,
-    const std::vector<int>& decode_table) {
+void add_data_to_buffer(unsigned int& buf, int& buf_size, int data,
+                        const std::vector<int>& decode_table) {
   buf = buf << ENCODER_BLOCK_SIZE;
   buf += data;
   buf_size += ENCODER_BLOCK_SIZE;
@@ -116,8 +115,8 @@ int get_last_decoder_block_size_bit(int num) {
 }
 
 // decoding each byte and putting it into the buffer of the decoded message
-void add_decoded_data_to_output(
-    unsigned int& buf, int& buf_size, std::string& buf_decoded_msg) {
+void add_decoded_data_to_output(unsigned int& buf, int& buf_size,
+                                std::string& buf_decoded_msg) {
   if (buf_size >= DECODER_BLOCK_SIZE) {
     buf_size -= DECODER_BLOCK_SIZE;
     char decoded_char =
@@ -136,8 +135,8 @@ std::string decode_msg(const std::vector<char>& encoded_msg) {
   for (int i = 0; i < LENGTH_OF_STR_DECODE_TABLE; i++)
     decode_table[STR_DECODE_TABLE[i]] = i;
 
-  int pad_size        = 0;
-  int cur_len_buffer  = 0;
+  int pad_size = 0;
+  int cur_len_buffer = 0;
   unsigned int buffer = 0;
   std::string decoded_msg;
   for (int i = 0; i < encoded_msg.size(); ++i) {

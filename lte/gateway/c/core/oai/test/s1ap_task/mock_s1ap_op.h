@@ -17,7 +17,7 @@
 
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 
-#define STR_DECODE_TABLE                                                       \
+#define STR_DECODE_TABLE \
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 #define MAX_ASCII_VAL_OF_DECODE_TABLE 123
 #define NO_CODE_VAL 128
@@ -41,10 +41,10 @@
 namespace magma {
 namespace lte {
 
-#define DEFAULT_S1AP_CONTEXT_DATA_PATH                                         \
+#define DEFAULT_S1AP_CONTEXT_DATA_PATH \
   "lte/gateway/c/core/oai/test/s1ap_task/data/"
 
-#define DEFAULT_S1AP_STATE_DATA_PATH                                           \
+#define DEFAULT_S1AP_STATE_DATA_PATH \
   "lte/gateway/c/core/oai/test/s1ap_task/data/s1ap_state_ATTACHED_encoded"
 
 std::vector<std::string> load_file_into_vector_of_line_content(
@@ -53,12 +53,11 @@ status_code_e mock_read_s1ap_ue_state_db(
     const std::vector<std::string>& ue_samples);
 status_code_e mock_read_s1ap_state_db(
     const std::string& file_name_state_sample);
-void add_data_to_buffer(
-    unsigned int& buf, int& buf_size, int data,
-    const std::vector<int>& decode_table);
+void add_data_to_buffer(unsigned int& buf, int& buf_size, int data,
+                        const std::vector<int>& decode_table);
 int get_last_decoder_block_size_bit(int num);
-void add_decoded_data_to_output(
-    unsigned int& buf, int& buf_size, std::string& buf_decoded_msg);
+void add_decoded_data_to_output(unsigned int& buf, int& buf_size,
+                                std::string& buf_decoded_msg);
 std::string decode_msg(const std::vector<char>& encoded_msg);
 
 }  // namespace lte
