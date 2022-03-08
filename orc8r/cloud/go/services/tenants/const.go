@@ -11,4 +11,10 @@
  * limitations under the License.
  */
 
-package cwf
+package tenants
+
+const (
+	ServiceName    = "tenants"
+	DBTableName    = "tenants"
+	TenantInfoType = "tenant_info"
+)

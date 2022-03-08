@@ -16,5 +16,3 @@ limitations under the License.
 // The radiusd service is a simple mirror for getting the prometheus metrics
 // from the radius server
 package radiusd
-
-const ServiceName = "RADIUSD"

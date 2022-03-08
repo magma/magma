@@ -12,3 +12,8 @@ limitations under the License.
 */
 
 package ctraced
+
+const (
+	ServiceName          = "ctraced"
+	LookupTableBlobstore = "ctraced_blobstore"
+)
