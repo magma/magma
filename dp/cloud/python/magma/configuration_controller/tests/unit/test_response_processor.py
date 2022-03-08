@@ -419,7 +419,6 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         cbsd: DBCbsd,
         low_frequency: int,
         high_frequency: int,
-        last_used_max_eirp=None,
     ) -> DBChannel:
         channel = DBChannel(
             cbsd=cbsd,
@@ -427,7 +426,6 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             high_frequency=high_frequency,
             channel_type="some_type",
             rule_applied="some_rule",
-            last_used_max_eirp=last_used_max_eirp,
         )
         self.session.add(channel)
         self.session.commit()

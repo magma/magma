@@ -422,10 +422,6 @@ func (c *DBChannel) Fields() db.FieldMap {
 			BaseType: db.FloatType{X: &c.MaxEirp},
 			Nullable: true,
 		},
-		"last_used_max_eirp": &db.Field{
-			BaseType: db.FloatType{X: &c.LastUsedMaxEirp},
-			Nullable: true,
-		},
 	}
 }
 

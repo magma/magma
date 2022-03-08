@@ -88,7 +88,6 @@ func TestFields(t *testing.T) {
 			expected: []string{
 				"id", "cbsd_id", "low_frequency", "high_frequency",
 				"channel_type", "rule_applied", "max_eirp",
-				"last_used_max_eirp",
 			},
 		},
 		{

@@ -200,14 +200,14 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
 
     def test_get_state_with_channels(self):
         cbsd = self._prepare_base_cbsd(). \
-            with_channel(1, 2, 3, 4). \
+            with_channel(1, 2, 3). \
             with_channel(5, 6). \
             build()
         self.session.add(cbsd)
         self.session.commit()
 
         config = self._prepare_base_active_mode_config(). \
-            with_channel(1, 2, 3, 4). \
+            with_channel(1, 2, 3). \
             with_channel(5, 6). \
             build()
         expected = State(cbsds=[config])

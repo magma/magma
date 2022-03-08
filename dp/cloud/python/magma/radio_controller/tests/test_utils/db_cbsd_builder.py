@@ -87,13 +87,12 @@ class DBCbsdBuilder:
     def with_channel(
         self,
         low: int, high: int,
-        max_eirp: float = None, last_eirp: float = None,
+        max_eirp: float = None,
     ) -> DBCbsdBuilder:
         channel = DBChannel(
             low_frequency=low,
             high_frequency=high,
             max_eirp=max_eirp,
-            last_used_max_eirp=last_eirp,
             channel_type='channel_type',
             rule_applied='rule',
         )

@@ -345,7 +345,6 @@ class DBChannel(Base):
     channel_type = Column(String, nullable=False)
     rule_applied = Column(String, nullable=False)
     max_eirp = Column(Float)
-    last_used_max_eirp = Column(Float)
     created_date = Column(
         DateTime(timezone=True),
         nullable=False, server_default=now(),
