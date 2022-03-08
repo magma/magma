@@ -428,6 +428,42 @@ void clean_stale_enb_state(s1ap_state_t* state,
   OAILOG_DEBUG(LOG_S1AP, "Removed stale eNB and all associated UEs.");
 }
 
+static status_code_e s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
+    s1ap_state_t* state) {
+  OAILOG_FUNC_IN(LOG_S1AP);
+  unsigned int i = 0;
+  unsigned int num_elements = 0;
+  bool unlock = true;
+  hash_table_ts_t* hashtblP = get_s1ap_ue_state();
+  hash_node_t *node = NULL, *oldnode = NULL;
+  if (!hashtblP) {
+    OAILOG_ERROR(LOG_S1AP, "No UEs found in comp_s1ap_id hash list");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
+    pthread_mutex_lock(&hashtblP->lock_nodes[i]);
+    if (hashtblP->nodes[i] != NULL) {
+      node = hashtblP->nodes[i];
+    }
+    unlock = true;
+    while (node) {
+      num_elements++;
+      oldnode = node;
+      node = node->next;
+      if (oldnode->data) {
+        unlock = false;
+        pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
+        s1ap_remove_ue(state, oldnode->data);
+      }
+    }
+    if (unlock) {
+      pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
+    }
+    i++;
+  }
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}
+
 status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
                                                const sctp_assoc_id_t assoc_id,
                                                const sctp_stream_id_t stream,
@@ -523,48 +559,16 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
         S1ap_TimeToWait_v20s);
     increment_counter("s1_setup", 1, 2, "result", "failure", "cause",
                       "invalid_state");
-    /* Check if the UE counters for eNB are equal.
-     * If not, the eNB will never switch to INIT state, particularly in
-     * stateless mode.
-     * UE state at s1ap task is created on reception of initial ue message
+    /* UE state at s1ap task is created on reception of initial ue message
      * Hash list, ue_id_coll is updated after mme_app_task assigns and provides
      * mme_ue_s1ap_id to s1ap task
      * s1ap task shall clear this UE state if mme_app task has not yet provided
      * mme_ue_s1ap_id
      */
     if (enb_association->ue_id_coll.num_elements == 0) {
-      unsigned int i = 0;
-      unsigned int num_elements = 0;
-      bool unlock = true;
-      hash_table_ts_t* hashtblP = get_s1ap_ue_state();
-      hash_node_t *node = NULL, *oldnode = NULL;
-      if (!hashtblP) {
-        OAILOG_ERROR(LOG_S1AP, "No UEs found in comp_s1ap_id hash list");
-        OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-      }
-      while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
-        pthread_mutex_lock(&hashtblP->lock_nodes[i]);
-        if (hashtblP->nodes[i] != NULL) {
-          node = hashtblP->nodes[i];
-        }
-        while (node) {
-          num_elements++;
-          oldnode = node;
-          node = node->next;
-          if (oldnode->data) {
-            unlock = false;
-            pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-            s1ap_remove_ue(state, node->data);
-          }
-        }
-        if (unlock) {
-          pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-        }
-        i++;
-      }
-      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+      OAILOG_FUNC_RETURN(LOG_S1AP,
+                         s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(state));
     }
-
     arg_s1ap_send_enb_dereg_ind_t arg = {0};
     MessageDef* message_p = NULL;
 
@@ -3666,46 +3670,15 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
   }
 
   if (reset) {
-    /* Check if the UE counters for eNB are equal.
-     * If not, the eNB will never switch to INIT state, particularly in
-     * stateless mode.
-     * UE state at s1ap task is created on reception of initial ue message
+    /* UE state at s1ap task is created on reception of initial ue message
      * Hash list, ue_id_coll is updated after mme_app_task assigns and provides
      * mme_ue_s1ap_id to s1ap task
      * s1ap task shall clear this UE state if mme_app task has not yet provided
      * mme_ue_s1ap_id
      */
     if (enb_association->ue_id_coll.num_elements == 0) {
-      unsigned int i = 0;
-      unsigned int num_elements = 0;
-      bool unlock = true;
-      hash_table_ts_t* hashtblP = get_s1ap_ue_state();
-      hash_node_t *node = NULL, *oldnode = NULL;
-      if (!hashtblP) {
-        OAILOG_ERROR(LOG_S1AP, "No UEs found in comp_s1ap_id hash list");
-        OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-      }
-      while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
-        pthread_mutex_lock(&hashtblP->lock_nodes[i]);
-        if (hashtblP->nodes[i] != NULL) {
-          node = hashtblP->nodes[i];
-        }
-        while (node) {
-          num_elements++;
-          oldnode = node;
-          node = node->next;
-          if (oldnode->data) {
-            unlock = false;
-            pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-            s1ap_remove_ue(state, oldnode->data);
-          }
-        }
-        if (unlock) {
-          pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-        }
-        i++;
-      }
-      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+      OAILOG_FUNC_RETURN(LOG_S1AP,
+                         s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(state));
     }
   }
   /*
