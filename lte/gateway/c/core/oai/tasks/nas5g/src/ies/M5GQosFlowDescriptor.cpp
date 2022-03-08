@@ -10,6 +10,13 @@
  */
 
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQosFlowDescriptor.h"
 
@@ -21,18 +28,18 @@ int M5GQosFlowDescription::EncodeM5GQosFlowDescription(
     M5GQosFlowDescription* qosFlowDesc, uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
-  MLOG(MDEBUG) << " EncodeQosFlowDescriptor : ";
+  OAILOG_DEBUG(LOG_NAS5G, " EncodeQosFlowDescriptor : ");
   *(buffer + encoded) = qosFlowDesc->qfi;
-  MLOG(MDEBUG) << "QFI = 0x" << std::hex << int(*(buffer + encoded));
+  OAILOG_DEBUG(LOG_NAS5G, "QFI = 0x%X", int(*(buffer + encoded)));
   encoded++;
 
   *(buffer + encoded) = qosFlowDesc->operationCode;
-  MLOG(MDEBUG) << "OperationCode = 0x" << std::hex << int(*(buffer + encoded));
+  OAILOG_DEBUG(LOG_NAS5G, "OperationCode = 0x%x", int(*(buffer + encoded)));
   encoded++;
 
   *(buffer + encoded) = qosFlowDesc->Ebit << 6;
   *(buffer + encoded) |= qosFlowDesc->numOfParams & 0x3f;
-  MLOG(MDEBUG) << "NumOfParams = 0x" << std::hex << int(*(buffer + encoded));
+  OAILOG_DEBUG(LOG_NAS5G, "NumOfParams = 0X%x", int(*(buffer + encoded)));
   encoded++;
   for (uint8_t i = 0; i < qosFlowDesc->numOfParams; i++) {
     M5GQosFlowParam* qosParams = &qosFlowDesc->paramList[i];
@@ -47,19 +54,19 @@ int M5GQosFlowDescription::DecodeM5GQosFlowDescription(
     M5GQosFlowDescription* qosFlowDesc, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
-  MLOG(MDEBUG) << " EncodeQosFlowDescriptor : ";
+  OAILOG_DEBUG(LOG_NAS5G, " EncodeQosFlowDescriptor : ");
   qosFlowDesc->qfi = (*(buffer + decoded)) & 0x3F;
-  MLOG(MDEBUG) << "QFI = 0x" << std::hex << int(qosFlowDesc->qfi);
+  OAILOG_DEBUG(LOG_NAS5G, "QFI = 0x%x", int(qosFlowDesc->qfi));
   decoded++;
   qosFlowDesc->operationCode = (*(buffer + decoded) & 0xE0);
-  MLOG(MDEBUG) << "OperationCode = 0x" << std::hex
-               << int(qosFlowDesc->operationCode);
+   OAILOG_DEBUG(LOG_NAS5G, "OperationCode = 0x%x",
+               int(qosFlowDesc->operationCode));
   decoded++;
   qosFlowDesc->numOfParams = ((*(buffer + decoded) & 0x3F));
-  MLOG(MDEBUG) << "NumOfParams = 0x" << std::hex
-               << int(qosFlowDesc->numOfParams);
+  OAILOG_DEBUG(LOG_NAS5G, "NumOfParams = 0x%x", int(qosFlowDesc->numOfParams));
+
   qosFlowDesc->Ebit = ((*(buffer + decoded) & 0x40) >> 6);
-  MLOG(MDEBUG) << "Ebit = 0x" << std::hex << int(qosFlowDesc->Ebit);
+  OAILOG_DEBUG(LOG_NAS5G, "Ebit = 0x%x", int(qosFlowDesc->Ebit));
   decoded++;
 
   for (uint8_t i = 0; i < qosFlowDesc->numOfParams; i++) {

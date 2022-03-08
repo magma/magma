@@ -33,9 +33,7 @@ int SessionAMBRMsg::DecodeSessionAMBRMsg(SessionAMBRMsg* session_ambr,
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, AMBR_MIN_LEN, len);
 
   if (iei > 0) {
-    session_ambr->iei = *buffer;
-    CHECK_IEI_DECODER((unsigned char) iei, session_ambr->iei);
-    MLOG(MDEBUG) << "In DecodeSessionAMBRMsg: iei" << std::hex << int(*buffer);
+    CHECK_IEI_DECODER((unsigned char)iei, session_ambr->iei);
     decoded++;
   }
 
@@ -64,7 +62,7 @@ int SessionAMBRMsg::EncodeSessionAMBRMsg(SessionAMBRMsg* session_ambr,
     encoded++;
   }
 
-  lenPtr              = reinterpret_cast<uint8_t*>(buffer + encoded);
+  lenPtr = reinterpret_cast<uint8_t*>(buffer + encoded);
   *(buffer + encoded) = session_ambr->length;
   encoded++;
 

@@ -101,6 +101,7 @@ Status AmfServiceImpl::SetSmfSessionContext(
   struct in_addr ip_addr          = {0};
   char ip_str[INET_ADDRSTRLEN]    = {0};
   uint32_t ip_int                 = 0;
+  uint32_t i	                  = 0;
   uint32_t index1                 = 0;
   uint32_t index2                 = 0;
   traffic_flow_template_t* ul_tft = NULL;
@@ -159,10 +160,10 @@ Status AmfServiceImpl::SetSmfSessionContext(
     i++;
   }
 
-  for (; i < req_m5g.qospolicy_size(); i++) {
+  for (; i < req_m5g.qos_policy_size(); i++) {
     ul_tft = &itti_msg.qos_flow_list.item[i].qos_flow_req_item.ul_tft;
     memset(ul_tft, 0, sizeof(traffic_flow_template_t));
-    auto& qos_rule = req_m5g.qospolicy(i);
+    auto& qos_rule = req_m5g.qos_policy(i);
     itti_msg.qos_flow_list.item[i].qos_flow_req_item.qos_flow_identifier =
         qos_rule.qos().qos().qci();
 
@@ -378,6 +379,7 @@ bool AmfServiceImpl::fillUpPacketFilterContents(
 // FEG can provide an empty string which indicates
 // ANY and it is equivalent to 0.0.0.0/0
 // But this function is called only for non-empty ipv4 string
+
 bool AmfServiceImpl::fillIpv4(
     packet_filter_contents_t* pf_content, const std::string ipv4addr) {
   const auto cidrNetworkExpect = folly::IPAddress::tryCreateNetwork(ipv4addr);
@@ -413,6 +415,7 @@ bool AmfServiceImpl::fillIpv4(
       pf_content->ipv4remoteaddr[2].mask, pf_content->ipv4remoteaddr[3].mask);
   return true;
 }
+
 
 bool AmfServiceImpl::fillIpv6(
     packet_filter_contents_t* pf_content, const std::string ipv6addr) {

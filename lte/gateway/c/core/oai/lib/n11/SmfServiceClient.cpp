@@ -45,8 +45,9 @@ namespace magma5g {
 SetSMSessionContext create_sm_pdu_session(
     std::string& imsi, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
-    const ambr_t& state_ambr, const eps_subscribed_qos_profile_t& qos_proile) {
+    uint8_t* gnb_gtp_teid_ip_addr, std::string& ip4, std::string& ip6,
+    const ambr_t& state_ambr, uint32_t version,
+    const eps_subscribed_qos_profile_t& qos_profile) {
   magma::lte::SetSMSessionContext req;
   M5GQosInformationRequest qos_info;
 
@@ -100,16 +101,17 @@ SetSMSessionContext create_sm_pdu_session(
   req_rat_specific->mutable_gnode_endpoint()->set_end_ipv4_addr(ipv4_str);
 
   // Set the PTI
-  req_rat_specific->set_procedure_trans_identity((const char*) (&(pti)));
+  req_rat_specific->set_procedure_trans_identity((const char*)(&pti),
+                                                 sizeof(uint8_t));
 
   // qos_info
-  qos_info.set_qos_class_id(static_cast<magma::lte::QCI>(qos_proile.qci));
+  qos_info.set_qos_class_id(static_cast<magma::lte::QCI>(qos_profile.qci));
   qos_info.set_priority_level(static_cast<magma::lte::prem_capab>(
-      qos_proile.allocation_retention_priority.priority_level));
+      qos_profile.allocation_retention_priority.priority_level));
   qos_info.set_preemption_capability(static_cast<magma::lte::prem_capab>(
-      qos_proile.allocation_retention_priority.pre_emp_capability));
+      qos_profile.allocation_retention_priority.pre_emp_capability));
   qos_info.set_preemption_vulnerability(static_cast<magma::lte::prem_vuner>(
-      qos_proile.allocation_retention_priority.pre_emp_vulnerability));
+      qos_profile.allocation_retention_priority.pre_emp_vulnerability));
   qos_info.set_apn_ambr_ul(state_ambr.br_ul);
   qos_info.set_apn_ambr_dl(state_ambr.br_dl);
   qos_info.set_br_unit(
@@ -124,13 +126,23 @@ SetSMSessionContext create_sm_pdu_session(
 int AsyncSmfServiceClient::amf_smf_create_pdu_session(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
-    const ambr_t& state_ambr, const eps_subscribed_qos_profile_t& qos_profile) {
+    uint8_t* gnb_gtp_teid_ip_addr, char* ue_ipv4_addr, char* ue_ipv6_addr,
+    const ambr_t& state_ambr, uint32_t version,
+    const eps_subscribed_qos_profile_t& qos_profile) {
+  std::string ip4_str, ip6_str;
+
+  if (ue_ipv4_addr) {
+    ip4_str = ue_ipv4_addr;
+  }
+  if (ue_ipv6_addr) {
+    ip6_str = ue_ipv6_addr;
+  }
+
   auto imsi_str = std::string(imsi);
 
   magma::lte::SetSMSessionContext req = create_sm_pdu_session(
       imsi_str, apn, pdu_session_id, pdu_session_type, gnb_gtp_teid, pti,
-      gnb_gtp_teid_ip_addr, ipv4_addr, version, state_ambr, qos_profile);
+      gnb_gtp_teid_ip_addr, ip4_str, ip6_str, state_ambr, version, qos_profile);
 
   AsyncSmfServiceClient::getInstance().set_smf_session(req);
   return 0;

@@ -22,7 +22,8 @@ class NewQOSRulePktFilter {
   uint8_t pkt_filter_dir : 2;
   uint8_t pkt_filter_id : 4;
   uint8_t len;
-  uint8_t contents;
+  uint8_t contents[1 * ONE_K];  // need to revisit if the QOS rules occupy more
+                                // space than 4k.
   NewQOSRulePktFilter();
   ~NewQOSRulePktFilter();
 };

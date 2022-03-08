@@ -811,7 +811,7 @@ int amf_app_handle_pdu_session_accept(
   msg.security_protected.plain.amf.header.message_type =
       M5GMessageType::DLNASTRANSPORT;
   msg.header.security_header_type =
-      SECURITY_Hlte/gateway/c/core/oai/tasks/amf/amf_app_handler.cppEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
+      SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
   msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
   msg.header.sequence_number =
       ue_context->amf_context._security.dl_count.seq_num;
@@ -922,7 +922,8 @@ int amf_app_handle_pdu_session_accept(
   new_qos_rule_pkt_filter.len = 0x1;
   uint8_t contents = 0x1;
 
-  new_qos_rule_pkt_filter.contents = contents;
+  memcpy(new_qos_rule_pkt_filter.contents, &contents,
+         new_qos_rule_pkt_filter.len);
 
   memcpy(qos_rule.new_qos_rule_pkt_filter, &new_qos_rule_pkt_filter,
          1 * sizeof(NewQOSRulePktFilter));
@@ -1826,7 +1827,7 @@ int amf_app_pdu_session_modification_request(
       buffer->data, &msg, len, &ue_context->amf_context._security);
   if (bytes > 0) {
     ue_pdu_id_t id = {
-        ue_id, smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id};
+        ue_id, smf_ctx->smf_proc_data.pdu_session_id};
     buffer->slen             = bytes;
     smf_ctx->session_message = bstrcpy(buffer);
     pdu_session_resource_modify_request(ue_context, ue_id, smf_ctx, buffer);
@@ -1926,7 +1927,7 @@ static int pdu_session_resource_modification_t3591_handler(
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   int rc = 0;
 
-  if (!amf_pdu_get_timer_arg(timer_id, &uepdu_id)) {
+  if (!amf_pop_pdu_timer_arg(timer_id, &uepdu_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP, "T3591: Invalid Timer Id expiration, Timer Id: %u\n",
         timer_id);

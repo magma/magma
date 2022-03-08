@@ -178,8 +178,8 @@ int pdu_session_resource_modify_request(
   // Hardcoded number of pdu sessions as 1
   ngap_pdu_ses_mod_req->pduSessResourceModReqList.no_of_items = 1;
   ngap_pdu_ses_mod_req->pduSessResourceModReqList.item[0].Pdu_Session_ID =
-      (Ngap_PDUSessionID_t)
-          smf_context->smf_proc_data.pdu_session_identity.pdu_session_id;
+      (Ngap_PDUSessionID_t) smf_context->smf_proc_data.pdu_session_id;
+          
 
   ngap_pdu_ses_mod_req->pduSessResourceModReqList.item[0].nas_pdu = nas_msg;
 

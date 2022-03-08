@@ -294,7 +294,7 @@ void AmfNasStateConverter::tai_to_proto(const tai_t* state_tai,
                                         magma::lte::oai::Tai* tai_proto) {
   OAILOG_DEBUG(LOG_MME_APP, "State PLMN " PLMN_FMT "to proto",
                PLMN_ARG(&state_tai->plmn));
-  char plmn_array[PLMN_BYTES] = {0};
+  char plmn_array[PLMN_BYTES];
   plmn_array[0] = static_cast<char>(state_tai->plmn.mcc_digit1 + ASCII_ZERO);
   plmn_array[1] = static_cast<char>(state_tai->plmn.mcc_digit2 + ASCII_ZERO);
   plmn_array[2] = static_cast<char>(state_tai->plmn.mcc_digit3 + ASCII_ZERO);
@@ -327,7 +327,7 @@ void AmfNasStateConverter::proto_to_tai(const magma::lte::oai::Tai& tai_proto,
 void AmfNasStateConverter::guti_m5_to_proto(
     const guti_m5_t& state_guti_m5, magma::lte::oai::Guti_m5* guti_m5_proto) {
   guti_m5_proto->Clear();
-  char plmn_array[PLMN_BYTES] = {0};
+  char plmn_array[PLMN_BYTES];
   AmfNasStateConverter::plmn_to_chars(state_guti_m5.guamfi.plmn, plmn_array);
   guti_m5_proto->set_plmn(plmn_array);
   guti_m5_proto->set_amf_regionid(state_guti_m5.guamfi.amf_regionid);
@@ -753,7 +753,7 @@ void AmfNasStateConverter::smf_context_to_proto(
       smf_context_proto->mutable_requested_nssai());
 
   AmfNasStateConverter::qos_flow_setup_request_item_to_proto(
-      state_smf_context->subscribed_qos_profile.qos_flow_req_item,
+      state_smf_context->qos_flow_list.item[0].qos_flow_req_item,
       smf_context_proto->mutable_qos_flow_list());
 }
 
@@ -808,6 +808,6 @@ void AmfNasStateConverter::proto_to_smf_context(
 
   AmfNasStateConverter::proto_to_qos_flow_setup_request_item(
       smf_context_proto.qos_flow_list(),
-      &state_smf_context->subscribed_qos_profile.qos_flow_req_item);
+      &state_smf_context->qos_flow_list.item[0].qos_flow_req_item);
 }
 }  // namespace magma5g

@@ -22,6 +22,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationCommand.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationComplete.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationCommandReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
 
 namespace magma5g {
 // Smf NAS Header Class

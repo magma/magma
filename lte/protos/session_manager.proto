@@ -16,6 +16,7 @@ syntax = "proto3";
 import "orc8r/protos/common.proto";
 import "lte/protos/policydb.proto";
 import "lte/protos/subscriberdb.proto";
+import "lte/protos/apn.proto";
 import "google/protobuf/timestamp.proto";
 
 package magma.lte;
@@ -931,6 +932,7 @@ message M5GSMSessionContext {
   // Procedure transaction identity
   bytes procedure_trans_identity = 25;
   M5GQosInformationRequest subscribed_qos = 26;
+  repeated QosPolicy qos_policy = 27;
 }
 
 message SetSMSessionContext {
@@ -991,7 +993,7 @@ message M5GSMSessionContextAccess{
     // Procedure transaction identity One byte TS-24501 9.6
     bytes procedure_trans_identity = 16;
     // Mutiple Qos policy support
-    repeated QosPolicy qospolicy = 18;
+    repeated QosPolicy qos_policy = 17;
 }
 
 message SetSMSessionContextAccess {

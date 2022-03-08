@@ -252,6 +252,13 @@ int pdu_session_resource_release_complete(
     AMFClientServicer::getInstance().release_ipv4_address(
         imsi, smf_ctx->dnn.c_str(), &(smf_ctx->pdu_address.ipv4_address));
   }
+  
+  if ((smf_ctx->pdu_address.pdn_type == IPv6) ||
+      (smf_ctx->pdu_address.pdn_type == IPv4_AND_v6)) {
+    // Clean up the Mobility IP Address
+    AsyncM5GMobilityServiceClient::getInstance().release_ipv6_address(
+        imsi, smf_ctx->dnn.c_str(), &(smf_ctx->pdu_address.ipv6_address));
+  }
 
   OAILOG_DEBUG(
       LOG_AMF_APP, "clear saved context associated with the PDU session\n");
@@ -297,15 +304,15 @@ int pdu_session_resource_modification_command_reject(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
-int t3592_abort_handler(
-    ue_m5gmm_context_t* ue_context, std::shared_ptr<smf_context_t> smf_ctx,
-    uint8_t pdu_session_id) {
-  int rc                               = RETURNerror;
-  amf_smf_t amf_smf_msg                = {};
-  amf_smf_msg.pdu_session_id           = pdu_session_id;
-  amf_smf_msg.u.release.pti            = smf_ctx->smf_proc_data.pti.pti;
+int t3592_abort_handler(ue_m5gmm_context_t* ue_context,
+                        std::shared_ptr<smf_context_t> smf_ctx,
+                        uint8_t pdu_session_id) {
+  int rc = RETURNerror;
+  amf_smf_t amf_smf_msg = {};
+  amf_smf_msg.pdu_session_id = pdu_session_id;
+  amf_smf_msg.u.release.pti = smf_ctx->smf_proc_data.pti;
   amf_smf_msg.u.release.pdu_session_id = pdu_session_id;
-  amf_smf_msg.u.release.cause_value    = SMF_CAUSE_SUCCESS;
+  amf_smf_msg.u.release.cause_value = SMF_CAUSE_SUCCESS;
   rc = pdu_session_resource_release_complete(ue_context, amf_smf_msg, smf_ctx);
   return rc;
 }
@@ -423,7 +430,7 @@ int amf_smf_process_pdu_session_packet(
   }
 
   if (msg->payload_container.smf_msg.header.message_type ==
-      PDU_SESSION_ESTABLISHMENT_REQUEST) {
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_ESTABLISHMENT_REQUEST)) {
     M5GSmCause cause = amf_smf_get_smcause(ue_id, msg);
 
     if (cause != M5GSmCause::INVALID_CAUSE) {
@@ -502,7 +509,7 @@ int amf_smf_process_pdu_session_packet(
         return rc;
       }
 
-      smf_ctx->sst = msg->nssai.sst;
+      smf_ctx->requested_nssai.sst = msg->nssai.sst;
       if (msg->nssai.sd[0]) {
         memcpy(smf_ctx->requested_nssai.sd, msg->nssai.sd, SD_LENGTH);
       }
@@ -590,7 +597,7 @@ int amf_smf_process_pdu_session_packet(
 
       pdu_session_resource_release_complete(ue_context, amf_smf_msg, smf_ctx);
     } break;
-    case PDU_SESSION_MODIFICATION_COMPLETE: {
+    case M5GMessageType::PDU_SESSION_MODIFICATION_COMPLETE: {
       if (smf_ctx->T3591.id != NAS5G_TIMER_INACTIVE_ID) {
         amf_pdu_stop_timer(smf_ctx->T3591.id);
         OAILOG_INFO(
@@ -607,7 +614,7 @@ int amf_smf_process_pdu_session_packet(
       rc = pdu_session_resource_modification_complete(
           ue_context, amf_smf_msg, smf_ctx);
     } break;
-    case PDU_SESSION_MODIFICATION_COMMAND_REJECT: {
+    case M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND_REJECT: {
       if (smf_ctx->T3591.id != NAS5G_TIMER_INACTIVE_ID) {
         amf_pdu_stop_timer(smf_ctx->T3591.id);
         OAILOG_INFO(
@@ -650,12 +657,12 @@ void smf_dnn_ambr_select(
   OAILOG_INFO(LOG_AMF_APP, "dnn selected %s\n", smf_ctx->dnn.c_str());
 
   memcpy(
-      &smf_ctx->smf_ctx_ambr,
+      &smf_ctx->apn_ambr,
       &ue_context->amf_context.apn_config_profile.apn_configuration[index_dnn]
            .ambr,
       sizeof(ambr_t));
   memcpy(
-      &smf_ctx->subscribed_qos_profile,
+      &smf_ctx->subscribed_qos,
       &ue_context->amf_context.apn_config_profile.apn_configuration[index_dnn]
            .subscribed_qos,
       sizeof(eps_subscribed_qos_profile_t));
@@ -713,7 +720,8 @@ M5GSmCause amf_smf_get_smcause(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg) {
       ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
 
   if ((msg->payload_container.smf_msg.header.message_type ==
-       PDU_SESSION_ESTABLISHMENT_REQUEST) &&
+       static_cast<uint8_t>(
+           M5GMessageType::PDU_SESSION_ESTABLISHMENT_REQUEST)) &&
       (requestType == M5GRequestType::INITIAL_REQUEST) && smf_ctx &&
       (smf_ctx->pdu_session_state == ACTIVE)) {
     if (smf_ctx->duplicate_pdu_session_est_req_count >=
@@ -818,6 +826,7 @@ int amf_smf_notification_send(amf_ue_ngap_id_t ue_id,
   req_common->mutable_sid()->set_id("IMSI" + imsi_str);
   req_common->mutable_sid()->set_type(
       magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
+  req_rat_specific->set_pdu_session_id(session_id);
 
   if (notify_event_type == UE_IDLE_MODE_NOTIFY) {
     req_rat_specific->set_notify_ue_event(
@@ -859,8 +868,8 @@ int amf_smf_notification_send(amf_ue_ngap_id_t ue_id,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_update_smf_context_pdu_ip(
-    const std::shared_ptr<smf_context_t>& smf_ctx, paa_t* address_info) {
+int amf_update_smf_context_pdu_ip(const std::shared_ptr<smf_context_t>& smf_ctx,
+                                  paa_t* address_info) {
   OAILOG_INFO(LOG_AMF_APP, "SMF context PDU address updated\n");
   memcpy(&(smf_ctx->pdu_address), address_info, sizeof(paa_t));
 
@@ -950,11 +959,8 @@ int amf_smf_handle_ip_address_response(
       inet_ntop(AF_INET, &(response_p->paa.ipv4_address.s_addr), ip_v4_str,
                 INET_ADDRSTRLEN);
 
-    rc = amf_smf_create_ipv4_session_grpc_req(
-        response_p->imsi, response_p->apn, response_p->pdu_session_id,
-        response_p->pdu_session_type, response_p->gnb_gtp_teid, response_p->pti,
-        response_p->gnb_gtp_teid_ip_addr, ip_str, smf_ctx->smf_ctx_ambr,
-        smf_ctx->subscribed_qos_profile);
+      inet_ntop(AF_INET6, &(response_p->paa.ipv6_address.s6_addr), ip_v6_str,
+                INET6_ADDRSTRLEN);
 
       rc = amf_smf_create_session_req(
           response_p->imsi, response_p->apn, response_p->pdu_session_id,

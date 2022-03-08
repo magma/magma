@@ -9,6 +9,13 @@
    limitations under the License.
  */
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationComplete.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
@@ -20,10 +27,10 @@ PDUSessionModificationComplete::~PDUSessionModificationComplete() {}
 int PDUSessionModificationComplete::EncodePDUSessionModificationComplete(
     PDUSessionModificationComplete* pdu_sess_mod_com, uint8_t* buffer,
     uint32_t len) {
-  uint32_t encoded        = 0;
+  uint32_t encoded = 0;
   uint32_t encoded_result = 0;
 
-  MLOG(MDEBUG) << "EncodePDUSessionModificationComplete : \n";
+  OAILOG_DEBUG(LOG_NAS5G, "EncodePDUSessionModificationComplete");
   if ((encoded_result =
            pdu_sess_mod_com->extended_protocol_discriminator
                .EncodeExtendedProtocolDiscriminatorMsg(
@@ -61,13 +68,13 @@ int PDUSessionModificationComplete::EncodePDUSessionModificationComplete(
 int PDUSessionModificationComplete::DecodePDUSessionModificationComplete(
     PDUSessionModificationComplete* pdu_sess_mod_com, uint8_t* buffer,
     uint32_t len) {
-  uint32_t decoded        = 0;
+  uint32_t decoded = 0;
   uint32_t decoded_result = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, PDU_SESSION_MODIFICATION_COMPLETE_MIN_LEN, len);
 
-  MLOG(MDEBUG) << "DecodePDUSessionModificationComplete : ";
+  OAILOG_DEBUG(LOG_NAS5G, "DecodePDUSessionModificationComplete");
   if ((decoded_result =
            pdu_sess_mod_com->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
