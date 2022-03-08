@@ -304,23 +304,6 @@ func TestGenerateMessages(t *testing.T) {
 			},
 		},
 		{
-			name: "Should not delete unregistered cbsd when there are pending requests",
-			state: &active_mode.State{
-				Cbsds: []*active_mode.Cbsd{{
-					DesiredState:      active_mode.CbsdState_Registered,
-					SerialNumber:      "some_serial_number",
-					State:             active_mode.CbsdState_Unregistered,
-					LastSeenTimestamp: now.Unix(),
-					PendingRequests: []*active_mode.Request{{
-						Type: active_mode.RequestsType_RegistrationRequest,
-					}},
-					DbData: &active_mode.DatabaseCbsd{
-						IsDeleted: true,
-					},
-				}},
-			},
-		},
-		{
 			name: "Should deregister updated cbsd",
 			state: &active_mode.State{
 				Cbsds: []*active_mode.Cbsd{{

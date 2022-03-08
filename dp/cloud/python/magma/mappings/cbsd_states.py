@@ -13,18 +13,12 @@ limitations under the License.
 
 from dp.protos.active_mode_pb2 import (
     Authorized,
-    DeregistrationRequest,
     Granted,
-    GrantRequest,
-    HeartbeatRequest,
     Registered,
-    RegistrationRequest,
-    RelinquishmentRequest,
-    SpectrumInquiryRequest,
     Unregistered,
     Unsync,
 )
-from magma.mappings.types import CbsdStates, GrantStates, RequestTypes
+from magma.mappings.types import CbsdStates, GrantStates
 
 cbsd_state_mapping = {
     CbsdStates.UNREGISTERED.value: Unregistered,
@@ -35,13 +29,4 @@ grant_state_mapping = {
     GrantStates.GRANTED.value: Granted,
     GrantStates.AUTHORIZED.value: Authorized,
     GrantStates.UNSYNC.value: Unsync,
-}
-
-request_type_mapping = {
-    RequestTypes.REGISTRATION.value: RegistrationRequest,
-    RequestTypes.SPECTRUM_INQUIRY.value: SpectrumInquiryRequest,
-    RequestTypes.GRANT.value: GrantRequest,
-    RequestTypes.HEARTBEAT.value: HeartbeatRequest,
-    RequestTypes.RELINQUISHMENT.value: RelinquishmentRequest,
-    RequestTypes.DEREGISTRATION.value: DeregistrationRequest,
 }
