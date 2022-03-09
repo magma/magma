@@ -11,6 +11,8 @@
 //
 module magma/feg/gateway
 
+go 1.16
+
 replace (
 	magma/feg/cloud/go => ../../feg/cloud/go
 	magma/feg/cloud/go/protos => ../../feg/cloud/go/protos
@@ -56,5 +58,3 @@ require (
 	magma/orc8r/lib/go v0.0.0
 	magma/orc8r/lib/go/protos v0.0.0
 )
-
-go 1.13

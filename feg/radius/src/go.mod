@@ -1,5 +1,7 @@
 module fbc/cwf/radius
 
+go 1.16
+
 replace (
 	fbc/lib/go/machine => ../lib/go/machine
 	fbc/lib/go/radius => ../lib/go/radius
@@ -35,5 +37,3 @@ require (
 	google.golang.org/protobuf v1.26.0
 	magma/orc8r/lib/go v0.0.0
 )
-
-go 1.13

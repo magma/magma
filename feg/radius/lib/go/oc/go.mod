@@ -1,6 +1,6 @@
 module fbc/lib/go/oc
 
-go 1.12
+go 1.16
 
 replace (
 	fbc/lib/go/http => ../http

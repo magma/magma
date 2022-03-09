@@ -11,7 +11,7 @@
 //
 module magma/dp/cloud/go
 
-go 1.13
+go 1.16
 
 replace (
 	magma/dp/cloud/go => ../../../dp/cloud/go
@@ -23,12 +23,10 @@ replace (
 
 require (
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
-	github.com/go-openapi/errors v0.20.1
+	github.com/go-openapi/errors v0.20.1 // indirect
 	github.com/go-openapi/strfmt v0.21.1
-	github.com/go-openapi/swag v0.19.15
-	github.com/go-openapi/validate v0.20.3
+	github.com/go-openapi/validate v0.20.3 // indirect
 	github.com/golang/glog v1.0.0
-	github.com/golang/protobuf v1.5.0
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0

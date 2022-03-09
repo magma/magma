@@ -11,6 +11,8 @@
 //
 module magma/lte/cloud/go
 
+go 1.16
+
 replace (
 	magma/feg/cloud/go => ../../../feg/cloud/go
 	magma/feg/cloud/go/protos => ../../../feg/cloud/go/protos
@@ -32,7 +34,7 @@ require (
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gogf/gf v1.16.6
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/golang/protobuf v1.5.0
+	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.6
 	github.com/google/uuid v1.1.1
 	github.com/hashicorp/go-multierror v1.0.0
@@ -49,6 +51,7 @@ require (
 	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 	google.golang.org/grpc v1.31.0
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	magma/feg/cloud/go v0.0.0
 	magma/orc8r/cloud/go v0.0.0
@@ -56,5 +59,3 @@ require (
 	magma/orc8r/lib/go/protos v0.0.0
 
 )
-
-go 1.12
