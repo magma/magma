@@ -572,13 +572,4 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
   set_timeout(5000, end_promise);
   end_promise->get_future().get();
 }
-
-int main(int argc, char** argv) {
-  google::InitGoogleLogging(argv[0]);
-  FLAGS_logtostderr = 1;
-  FLAGS_v = 10;
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

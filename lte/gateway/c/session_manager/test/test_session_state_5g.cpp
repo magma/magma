@@ -309,12 +309,4 @@ TEST_F(SessionStateTest5G, test_marshal_unmarshal) {
   EXPECT_EQ(unmarshaled->is_static_rule_installed("rule1"), true);
   EXPECT_EQ(unmarshaled->is_dynamic_rule_installed("rule2"), false);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  FLAGS_logtostderr = 1;
-  FLAGS_v = 10;
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma
