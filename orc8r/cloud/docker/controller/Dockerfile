@@ -9,6 +9,7 @@ ENV GO111MODULE on
 ENV GOPATH ${USER}/go
 ENV GOBIN /build/bin
 ENV PATH ${PATH}:${GOBIN}:${GOPATH}/bin
+ENV GOFLAGS="-mod=mod"
 
 # Used in Makefiles
 ENV MAGMA_ROOT /src/magma
@@ -21,12 +22,17 @@ RUN apt-get update && apt-get install -y \
   git \
   make \
   unzip \
-  vim
+  vim \
+  wget
 
 # Golang 1.13
+#WORKDIR /usr/local
+#RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.13.4.linux-amd64.tar.gz -O && \
+#    tar xf go1.13.4.linux-amd64.tar.gz && \
+#    cp -r go/bin/* /usr/local/bin/
 WORKDIR /usr/local
-RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.13.4.linux-amd64.tar.gz -O && \
-    tar xf go1.13.4.linux-amd64.tar.gz && \
+RUN wget https://go.dev/dl/go1.16.15.linux-amd64.tar.gz && \
+    tar xf go1.16.15.linux-amd64.tar.gz && \
     cp -r go/bin/* /usr/local/bin/
 
 # Install goimports

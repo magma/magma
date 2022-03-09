@@ -90,7 +90,7 @@ lint:
 	golangci-lint run
 
 swagger_tools:
-	go install magma/orc8r/cloud/go/tools/swaggergen
+	go install -mod=mod magma/orc8r/cloud/go/tools/swaggergen
 
 ifndef TEST_RESULTS_DIR
 TEST_RESULTS_DIR := $(MAGMA_ROOT)/orc8r/cloud/test-results
