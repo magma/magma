@@ -36,6 +36,7 @@
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 #include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
@@ -50,7 +51,6 @@
 #include "lte/gateway/c/core/oai/common/mme_default_values.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
 
 #if S1AP_DEBUG_LIST
 #define eNB_LIST_OUT(x, args...) \
