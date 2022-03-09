@@ -5387,10 +5387,10 @@ domhandler@2.3:
   dependencies:
     domelementtype "1"
 
-dompurify@^2.0.12:
-  version "2.0.12"
-  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.0.12.tgz#284a2b041e1c60b8e72d7b4d2fadad36141254ae"
-  integrity sha512-Fl8KseK1imyhErHypFPA8qpq9gPzlsJ/EukA6yk9o0gX23p1TzC+rh9LqNg1qvErRTc0UNMYlKxEGSfSh43NDg==
+dompurify@^2.2.0:
+  version "2.3.6"
+  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.3.6.tgz#2e019d7d7617aacac07cbbe3d88ae3ad354cf875"
+  integrity sha512-OFP2u/3T1R5CEgWCEONuJ1a5+MFKnOYpkywpUSxv/dj1LeBT1erK+JwM7zK0ROy2BRhqVCf0LRw/kHqKuMkVGg==
 
 domutils@1.5:
   version "1.5.1"
@@ -6524,6 +6524,11 @@ fecha@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/fecha/-/fecha-4.2.0.tgz#3ffb6395453e3f3efff850404f0a59b6747f5f41"
   integrity sha512-aN3pcx/DSmtyoovUudctc8+6Hl4T+hI9GBBHLjA76jdZl7+b1sgh5g4k+u/GL3dTy1/pnYzKp69FpJ0OicE3Wg==
+
+fflate@^0.4.8:
+  version "0.4.8"
+  resolved "https://registry.yarnpkg.com/fflate/-/fflate-0.4.8.tgz#f90b82aefbd8ac174213abb338bd7ef848f0f5ae"
+  integrity sha512-FJqqoDBR00Mdj9ppamLa/Y7vxm+PRmNWA67N846RvsoYVMKB4q3y/de5PA7gUmRMYK/8CMz2GDZQmCRN1wBcWA==
 
 figgy-pudding@^3.5.1:
   version "3.5.2"
@@ -9016,17 +9021,19 @@ jspdf-autotable@3.5.9:
   resolved "https://registry.yarnpkg.com/jspdf-autotable/-/jspdf-autotable-3.5.9.tgz#8a625ef2aead44271da95e9f649843c401536925"
   integrity sha512-ZRfiI5P7leJuWmvC0jGVXu227m68C2Jfz1dkDckshmDYDeVFCGxwIBYdCUXJ8Eb2CyFQC2ok82fEWO+xRDovDQ==
 
-jspdf@2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/jspdf/-/jspdf-2.0.0.tgz#cade1cb458cdb75487197284ba942f952d7f4116"
-  integrity sha512-4qDyU2T6jp0IcTun1mXO1azrZhoQnY2fbaegwBETa6faN7gXKTLRVHYT7cZ4rUNwoqDpz+XydW/sWJ7YT+An+A==
+jspdf@2.0.0, jspdf@^2.3.1:
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/jspdf/-/jspdf-2.5.1.tgz#00c85250abf5447a05f3b32ab9935ab4a56592cc"
+  integrity sha512-hXObxz7ZqoyhxET78+XR34Xu2qFGrJJ2I2bE5w4SM8eFaFEkW2xcGRVUss360fYelwRSid/jT078kbNvmoW0QA==
   dependencies:
+    "@babel/runtime" "^7.14.0"
     atob "^2.1.2"
     btoa "^1.2.1"
+    fflate "^0.4.8"
   optionalDependencies:
     canvg "^3.0.6"
     core-js "^3.6.0"
-    dompurify "^2.0.12"
+    dompurify "^2.2.0"
     html2canvas "^1.0.0-rc.5"
 
 jsprim@^1.2.2:
