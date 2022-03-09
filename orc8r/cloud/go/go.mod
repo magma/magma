@@ -79,4 +79,4 @@ require (
 	magma/orc8r/lib/go/protos v0.0.0
 )
 
-go 1.12
+go 1.16

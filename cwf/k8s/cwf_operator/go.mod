@@ -26,13 +26,13 @@
 //
 module magma/cwf/k8s/cwf_operator
 
-go 1.13
+go 1.16
 
 require (
 	github.com/docker/go-metrics v0.0.1 // indirect
 	github.com/garyburd/redigo v1.6.2 // indirect
 	github.com/go-logr/glogr v0.1.0
-	github.com/go-redis/redis v6.15.8+incompatible
+	github.com/go-redis/redis v6.15.8+incompatible // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/spf13/pflag v1.0.5

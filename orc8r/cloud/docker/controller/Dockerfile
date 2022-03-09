@@ -9,6 +9,7 @@ ENV GO111MODULE on
 ENV GOPATH ${USER}/go
 ENV GOBIN /build/bin
 ENV PATH ${PATH}:${GOBIN}:${GOPATH}/bin
+ENV GOFLAGS="-mod=mod"
 
 # Used in Makefiles
 ENV MAGMA_ROOT /src/magma
@@ -23,14 +24,15 @@ RUN apt-get update && apt-get install -y \
   unzip \
   vim
 
-# Golang 1.13
+# Golang 1.16
 WORKDIR /usr/local
-RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.13.4.linux-amd64.tar.gz -O && \
-    tar xf go1.13.4.linux-amd64.tar.gz && \
+RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.16.6.linux-amd64.tar.gz  -O && \
+    tar xf go1.16.6.linux-amd64.tar.gz && \
     cp -r go/bin/* /usr/local/bin/
 
 # Install goimports
 # RUN go get golang.org/x/tools/cmd/goimports
+# RUN go get gotest.tools/gotestsum
 
 # Protobuf compiler
 # Apt has 2.x but we need 3.x
