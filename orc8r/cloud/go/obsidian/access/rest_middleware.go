@@ -28,7 +28,7 @@ import (
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/services/certifier/constants"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 var unprotectedPaths = map[string]bool{

@@ -53,7 +53,7 @@ void StateConverter::guti_to_proto(const guti_t& state_guti,
                                    oai::Guti* guti_proto) {
   guti_proto->Clear();
 
-  char plmn_array[PLMN_BYTES];
+  char plmn_array[PLMN_BYTES] = {0};
   plmn_to_chars(state_guti.gummei.plmn, plmn_array);
   guti_proto->set_plmn(plmn_array);
   guti_proto->set_mme_gid(state_guti.gummei.mme_gid);
@@ -74,7 +74,7 @@ void StateConverter::ecgi_to_proto(const ecgi_t& state_ecgi,
                                    oai::Ecgi* ecgi_proto) {
   ecgi_proto->Clear();
 
-  char plmn_array[PLMN_BYTES];
+  char plmn_array[PLMN_BYTES] = {0};
   plmn_to_chars(state_ecgi.plmn, plmn_array);
   ecgi_proto->set_plmn(plmn_array);
   ecgi_proto->set_enb_id(state_ecgi.cell_identity.enb_id);

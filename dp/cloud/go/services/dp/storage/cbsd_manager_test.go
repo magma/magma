@@ -24,7 +24,7 @@ import (
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/dp/cloud/go/services/dp/storage/dbtest"
 	"magma/orc8r/cloud/go/sqorc"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 func TestCbsdManager(t *testing.T) {
@@ -356,7 +356,11 @@ func (s *CbsdManagerTestSuite) TestListCbsdFromDifferentNetwork() {
 	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{})
 	s.Require().NoError(err)
 
-	s.Assert().Empty(actual)
+	expected := &storage.DetailedCbsdList{
+		Cbsds: []*storage.DetailedCbsd{},
+		Count: 0,
+	}
+	s.Assert().Equal(expected, actual)
 }
 
 func (s *CbsdManagerTestSuite) TestListNotIncludeEmptyChannels() {
@@ -372,18 +376,22 @@ func (s *CbsdManagerTestSuite) TestListNotIncludeEmptyChannels() {
 	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{})
 	s.Require().NoError(err)
 
-	expected := []*storage.DetailedCbsd{{
-		Cbsd:       getDetailedCbsd(cbsdId),
-		CbsdState:  &storage.DBCbsdState{Name: db.MakeString("registered")},
-		Channel:    &storage.DBChannel{},
-		Grant:      &storage.DBGrant{},
-		GrantState: &storage.DBGrantState{},
-	}}
+	expected := &storage.DetailedCbsdList{
+		Cbsds: []*storage.DetailedCbsd{{
+			Cbsd:       getDetailedCbsd(cbsdId),
+			CbsdState:  &storage.DBCbsdState{Name: db.MakeString("registered")},
+			Channel:    &storage.DBChannel{},
+			Grant:      &storage.DBGrant{},
+			GrantState: &storage.DBGrantState{},
+		}},
+		Count: 1,
+	}
 	s.Assert().Equal(expected, actual)
 }
 
 func (s *CbsdManagerTestSuite) TestListWithPagination() {
-	models := make([]db.Model, 4)
+	const count = 4
+	models := make([]db.Model, count)
 	for i := range models {
 		models[i] = &storage.DBCbsd{
 			Id:        db.MakeInt(int64(i + 1)),
@@ -403,9 +411,12 @@ func (s *CbsdManagerTestSuite) TestListWithPagination() {
 	actual, err := s.cbsdManager.ListCbsd(someNetwork, pagination)
 	s.Require().NoError(err)
 
-	expected := make([]*storage.DetailedCbsd, limit)
-	for i := range expected {
-		expected[i] = &storage.DetailedCbsd{
+	expected := &storage.DetailedCbsdList{
+		Count: count,
+		Cbsds: make([]*storage.DetailedCbsd, limit),
+	}
+	for i := range expected.Cbsds {
+		expected.Cbsds[i] = &storage.DetailedCbsd{
 			Cbsd:       &storage.DBCbsd{Id: db.MakeInt(int64(i + 1 + offset))},
 			CbsdState:  &storage.DBCbsdState{Name: db.MakeString("unregistered")},
 			Channel:    &storage.DBChannel{},
@@ -431,13 +442,16 @@ func (s *CbsdManagerTestSuite) TestListNotIncludeIdleGrants() {
 	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{})
 	s.Require().NoError(err)
 
-	expected := []*storage.DetailedCbsd{{
-		Cbsd:       getDetailedCbsd(cbsdId),
-		CbsdState:  &storage.DBCbsdState{Name: db.MakeString("registered")},
-		Channel:    &storage.DBChannel{},
-		Grant:      &storage.DBGrant{},
-		GrantState: &storage.DBGrantState{},
-	}}
+	expected := &storage.DetailedCbsdList{
+		Cbsds: []*storage.DetailedCbsd{{
+			Cbsd:       getDetailedCbsd(cbsdId),
+			CbsdState:  &storage.DBCbsdState{Name: db.MakeString("registered")},
+			Channel:    &storage.DBChannel{},
+			Grant:      &storage.DBGrant{},
+			GrantState: &storage.DBGrantState{},
+		}},
+		Count: 1,
+	}
 	s.Assert().Equal(expected, actual)
 }
 
@@ -446,7 +460,12 @@ func (s *CbsdManagerTestSuite) TestListDeletedCbsd() {
 
 	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{})
 	s.Require().NoError(err)
-	s.Assert().Empty(actual)
+
+	expected := &storage.DetailedCbsdList{
+		Cbsds: []*storage.DetailedCbsd{},
+		Count: 0,
+	}
+	s.Assert().Equal(expected, actual)
 }
 
 func (s *CbsdManagerTestSuite) givenResourceInserted(model db.Model) int64 {

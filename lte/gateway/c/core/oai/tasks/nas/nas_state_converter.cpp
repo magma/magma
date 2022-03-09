@@ -53,7 +53,7 @@ void NasStateConverter::partial_tai_list_to_proto(
           partial_tai_list_proto->mutable_tai_one_plmn_consecutive_tacs());
     } break;
     case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS: {
-      char plmn_array[PLMN_BYTES];
+      char plmn_array[PLMN_BYTES] = {0};
       plmn_array[0] =
           (char)(state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs
                      .plmn.mcc_digit1 +
@@ -153,7 +153,7 @@ void NasStateConverter::tai_to_proto(const tai_t* state_tai,
                                      oai::Tai* tai_proto) {
   OAILOG_DEBUG(LOG_MME_APP, "State PLMN " PLMN_FMT "to proto",
                PLMN_ARG(&state_tai->plmn));
-  char plmn_array[PLMN_BYTES];
+  char plmn_array[PLMN_BYTES] = {0};
   plmn_array[0] = (char)(state_tai->plmn.mcc_digit1 + ASCII_ZERO);
   plmn_array[1] = (char)(state_tai->plmn.mcc_digit2 + ASCII_ZERO);
   plmn_array[2] = (char)(state_tai->plmn.mcc_digit3 + ASCII_ZERO);

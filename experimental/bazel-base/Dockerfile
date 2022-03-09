@@ -6,6 +6,9 @@ FROM ubuntu:focal as bazel_builder
 ENV TZ=America/New_York \
     DEBIAN_FRONTEND=noninteractive
 
+#  MAGMA_ROOT is needed by python tests (e.g. freedomfi_one_tests in enodebd)
+ENV MAGMA_ROOT=/magma
+
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
@@ -30,9 +33,6 @@ RUN apt-get update && \
         libidn11-dev \
         libsctp1 \
         libsctp-dev \
-        # dependencies of libfluid_build.sh
-        pkg-config \
-        ruby \
         # dependencies of oai/mme
         libczmq-dev \
         libconfig-dev \
@@ -56,9 +56,6 @@ RUN apt-get update && \
         vim \
         wget \
         zip
-
-# Necessary for execution of libfluid_build.sh
-RUN gem install fpm
 
 # Install bazel
 WORKDIR /usr/sbin
@@ -136,7 +133,7 @@ RUN wget --progress=dot:giga http://ftp.ntua.gr/mirror/gnu/nettle/nettle-2.5.tar
     cd nettle-2.5 && \
     mkdir build && \
     cd build/ && \
-    ../configure --disable-openssl --enable-shared --libdir=/usr/local/lib && \
+    ../configure --disable-openssl --enable-shared --libdir=/usr/lib && \
     make -j"$(nproc)" && \
     make install && \
     ldconfig -v && \
@@ -145,19 +142,13 @@ RUN wget --progress=dot:giga http://ftp.ntua.gr/mirror/gnu/nettle/nettle-2.5.tar
     tar xf gnutls-3.1.23.tar.xz && \
     cd gnutls-3.1.23 && \
     mkdir build && cd build && \
-    CFLAGS=-D_IO_ftrylockfile ../configure --with-libnettle-prefix=/usr/local && \
+    CFLAGS=-D_IO_ftrylockfile ../configure --libdir=/usr/lib --with-libnettle-prefix=/usr && \
     make -j"$(nproc)" && \
     make install && \
     ldconfig -v && \
     cd / && \
     rm -rf nettle* && \
     rm -rf gnutls*
-
-#### libfluid is requird to build MME with OVS support
-COPY third_party /tmp/third_party/
-RUN /tmp/third_party/build/bin/libfluid_build.sh && \
-    find . -name magma-libfluid_0.1* -exec dpkg -i {} \; && \
-    rm -rf /tmp/*
 
 ##### FreeDiameter
 COPY lte/gateway/c/core/oai/patches/ /tmp/

@@ -191,7 +191,8 @@ void mme_app_remove_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
         break;
       }
     }
-    if (vec_it == itr_map->second.end()) {
+    if (ueip_imsi_map.find(ipv4) != ueip_imsi_map.end() &&
+        vec_it == itr_map->second.end()) {
       OAILOG_ERROR(
           LOG_MME_APP,
           "Failed to remove an entry for ue_ip:%x from ipv4_imsi map \n",

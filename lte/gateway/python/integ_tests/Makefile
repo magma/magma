@@ -26,7 +26,7 @@ $(PYTHON_BUILD)/setupinteg_env:
 RESULTS_DIR := /var/tmp/test_results
 define execute_test
 	echo "Running test: $(1)"
-	timeout --foreground -k 930s 900s sudo -E PATH=$(PATH) PYTHONPATH=$(PYTHONPATH):$(S1AP_TESTER_PYTHON_PATH) $(PYTHON_BUILD)/bin/nosetests --with-flaky --force-flaky --no-success-flaky-report --max-runs=1 --min-passes=1 --with-xunit --xunit-file=$(RESULTS_DIR)/$(basename $(notdir $(1))).xml -x -s $(1) || exit 1
+	timeout --foreground -k 930s 900s sudo -E PATH=$(PATH) PYTHONPATH=$(PYTHONPATH):$(S1AP_TESTER_PYTHON_PATH) $(PYTHON_BUILD)/bin/nosetests --with-flaky --force-flaky --no-success-flaky-report --max-runs=1 --min-passes=1 --with-xunit --xunit-file=$(RESULTS_DIR)/$(basename $(notdir $(1))).xml -x -s $(1) || (echo "fail" > $(MAGMA_ROOT)/test_status.txt && exit 1)
 	sleep 1
 endef
 
@@ -45,6 +45,7 @@ integ_test: $(PYTHON_BUILD)/setupinteg_env $(BIN)/nosetests
 ifdef TESTS
 	$(call execute_test,$(TESTS))
 else
+	echo "pass" > $(MAGMA_ROOT)/test_status.txt
 	$(foreach test,$(EXTENDED_TESTS) $(PRECOMMIT_TESTS),$(call execute_test,$(test));)
 endif
 

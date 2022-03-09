@@ -31,6 +31,9 @@ h2>=3,<4
 priority==1.3.0
 requests
 pycryptodome
+spyne
+aiohttp
+lxml==4.7.1
 
 # bazelbase container requirements
 hiredis
@@ -41,6 +44,7 @@ wrapt
 fakeredis==1.7.1
 #  lupa is required by fakeredis
 lupa==1.10
+parameterized==0.8.1
 freezegun
 pytest
 pytest-cov

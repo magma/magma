@@ -26,7 +26,7 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/lte/cloud/go/protos"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	orcprotos "magma/orc8r/lib/go/protos"
 )
 
@@ -219,7 +219,7 @@ func (srv *CentralSessionControllers) Enable(
 	ctx context.Context,
 	void *orcprotos.Void,
 ) (*orcprotos.Void, error) {
-	multiError := errors.NewMulti()
+	multiError := merrors.NewMulti()
 	for i, controller := range srv.centralControllers {
 		_, err := controller.Enable(ctx, void)
 		multiError = multiError.AddFmt(err, "error(%d):", i+1)

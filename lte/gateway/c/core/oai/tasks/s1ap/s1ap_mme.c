@@ -295,7 +295,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     default: {
-      OAILOG_ERROR(LOG_S1AP, "Unknown message ID %d:%s\n",
+      OAILOG_DEBUG(LOG_S1AP, "Unknown message ID %d:%s\n",
                    ITTI_MSG_ID(received_message_p),
                    ITTI_MSG_NAME(received_message_p));
     } break;

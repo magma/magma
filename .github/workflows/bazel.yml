@@ -15,7 +15,7 @@ on:  # yamllint disable-line rule:truthy
     # Run four times a day to build bazel cache
     - cron: '0 0,6,12,18 * * *'
 env:
-  DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:master"
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:latest"
   BAZEL_CACHE: bazel-cache
   BAZEL_CACHE_REPO: bazel-cache-repo
 
@@ -47,80 +47,137 @@ jobs:
               - '**/*.bazel'
               - '**/*.bzl'
 
-  bazel_build_and_test:
+  bazel_build:
     needs: path_filter
     # Only run workflow if this is a scheduled run on master branch,
     # or a pull_request that skip-duplicate-action wants to run again.
     if: |
       (github.event_name == `schedule` && github.ref == 'refs/heads/master')
         || ${{ needs.path_filter.outputs.files_changed == 'true' }}
-    name: Bazel Build and Test Job
+    name: Bazel Build Job `bazel build //...`
     runs-on: ubuntu-latest
     steps:
-        - name: Check Out Repo
-          # This is necessary for overlays into the Docker container below.
-          uses: actions/checkout@v2
-        - name: Bazel Cache
-          uses: actions/cache@v2
-          with:
-            path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
-            key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
-            restore-keys: |
-              ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+      - name: Check Out Repo
+        # This is necessary for overlays into the Docker container below.
+        uses: actions/checkout@v2
+      - name: Bazel Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-build-all-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
 
-        - name: Bazel Cache Repo
-          uses: actions/cache@v2
-          with:
-            path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
-            key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
-            restore-keys: |
-              ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
+      - name: Bazel Cache Repo
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
 
-        # This check is needed to ensure that Bazel's unbounded cache growth doesn't result in a
-        # situation where the cache never updates (e.g. due to exceeding GitHub's cache size limit)
-        # thereby only ever using the last successful cache version. This solution will result in a
-        # few slower CI actions around the time cache is detected to be too large, but it should
-        # incrementally improve thereafter.
-        - name: Ensure cache size
-          env:
-            BAZEL_CACHE_DIR: .${{ env.BAZEL_CACHE }}
-            BAZEL_CACHE_REPO_DIR: .${{ env.BAZEL_CACHE_REPO }}
+      # This check is needed to ensure that Bazel's unbounded cache growth doesn't result in a
+      # situation where the cache never updates (e.g. due to exceeding GitHub's cache size limit)
+      # thereby only ever using the last successful cache version. This solution will result in a
+      # few slower CI actions around the time cache is detected to be too large, but it should
+      # incrementally improve thereafter.
+      - name: Ensure cache size BAZEL_CACHE
+        # Only run on master to avoid slow build on PRs
+        if: github.event_name == 'schedule' || github.event_name == 'push'
+        env:
+          BAZEL_CACHE_DIR: .${{ env.BAZEL_CACHE }}
+          # Use a 6.5GB threshold since actions/cache compresses the results, and Bazel caches seem
+          # to only increase by a few hundred megabytes across changes for unrelated branches.
+          # Uncompressed cache on master is looking to be around 6GB (from observing jobs on master)
+          BAZEL_CACHE_CUTOFF_MB: 6500
+        run: |
+          ./.github/workflows/check-bazel-cache-dir-size.sh "$BAZEL_CACHE_DIR" "$BAZEL_CACHE_CUTOFF_MB"
+      - name: Ensure cache size BAZEL_CACHE_REPO
+        # Only run on master to avoid slow build on PRs
+        if: github.event_name == 'schedule' || github.event_name == 'push'
+        env:
+          BAZEL_CACHE_REPO_DIR: .${{ env.BAZEL_CACHE_REPO }}
+          # Use a 600 threshold since actions/cache compresses the results, and the repository cache should not increase unless we add more dependencies
+          # Uncompressed cache on master is looking to be around 400MB (from observing jobs on master)
+          BAZEL_CACHE_REPO_CUTOFF_MB: 600
+        run: |
+          ./.github/workflows/check-bazel-cache-dir-size.sh "$BAZEL_CACHE_REPO_DIR" "$BAZEL_CACHE_REPO_CUTOFF_MB"
+      - name: Setup Devcontainer Image
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
-            # See https://stackoverflow.com/a/27485157 for reference.
-            EXPANDED_BAZEL_CACHE_PATH="${BAZEL_CACHE_DIR/#\~/$HOME}"
-            EXPANDED_BAZEL_CACHE_REPO_PATH="${BAZEL_CACHE_REPO_DIR/#\~/$HOME}"
+            echo "Pulled the devontainer image!"
+      - name: Run `bazel build //...`
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/
+          run: |
+            cd /workspaces/magma
+            bazel build //...
 
-            CACHE_SIZE_MB=$(du -smc $EXPANDED_BAZEL_CACHE_PATH $EXPANDED_BAZEL_CACHE_REPO_PATH | grep total | cut -f1)
-            echo "Total size of Bazel cache (rounded up to MBs): $CACHE_SIZE_MB"
-            # Use a 4.5GB threshold since actions/cache compresses the results, and Bazel caches seem
-            # to only increase by a few hundred megabytes across changes for unrelated branches.
-            if [[ "$CACHE_SIZE_MB" -gt 4500 ]]; then
-              echo "Cache exceeds cut-off; resetting it (will result in a slow build)"
-              rm -rf $EXPANDED_BAZEL_CACHE_PATH $EXPANDED_BAZEL_CACHE_REPO_PATH
-            fi
-        - name: Setup Devcontainer Image
-          uses: addnab/docker-run-action@v2
-          with:
-            image: ${{ env.DEVCONTAINER_IMAGE }}
-            # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
-            run: |
-              echo "Pulled the devontainer image!"
-        - name: Run `bazel build //...`
-          uses: addnab/docker-run-action@v2
-          with:
-            image: ${{ env.DEVCONTAINER_IMAGE }}
-            # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-            options: -v ${{ github.workspace }}:/workspaces/magma/
-            run: |
-              cd /workspaces/magma
-              bazel build //...
-        - name: Run `bazel test //...`
-          if: github.event_name == 'pull_request'
-          uses: addnab/docker-run-action@v2
-          with:
-            image: ${{ env.DEVCONTAINER_IMAGE }}
-            # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-            options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
-            run: |
-              cd /workspaces/magma
-              bazel test //... --test_output=errors --cache_test_results=no
+  bazel_test:
+    needs: path_filter
+    # Only run workflow if this is a scheduled run on master branch,
+    # or a pull_request that skip-duplicate-action wants to run again.
+    if: |
+      (github.event_name == `schedule` && github.ref == 'refs/heads/master')
+        || ${{ needs.path_filter.outputs.files_changed == 'true' }}
+    name: Bazel Test Job `bazel test //...`
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Repo
+        # This is necessary for overlays into the Docker container below.
+        uses: actions/checkout@v2
+      - name: Bazel Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-test-all-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+
+      - name: Bazel Cache Repo
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
+
+      # This check is needed to ensure that Bazel's unbounded cache growth doesn't result in a
+      # situation where the cache never updates (e.g. due to exceeding GitHub's cache size limit)
+      # thereby only ever using the last successful cache version. This solution will result in a
+      # few slower CI actions around the time cache is detected to be too large, but it should
+      # incrementally improve thereafter.
+      - name: Ensure cache size BAZEL_CACHE
+        # Only run on master to avoid slow build on PRs
+        if: github.event_name == 'schedule' || github.event_name == 'push'
+        env:
+          BAZEL_CACHE_DIR: .${{ env.BAZEL_CACHE }}
+          # Use a 6.5GB threshold since actions/cache compresses the results, and Bazel caches seem
+          # to only increase by a few hundred megabytes across changes for unrelated branches.
+          # Uncompressed cache on master is looking to be around 6GB (from observing jobs on master)
+          BAZEL_CACHE_CUTOFF_MB: 6500
+        run: |
+          ./.github/workflows/check-bazel-cache-dir-size.sh "$BAZEL_CACHE_DIR" "$BAZEL_CACHE_CUTOFF_MB"
+      # Letting the Build job above handle cache clean up for bazel-cache-repo
+      - name: Setup Devcontainer Image
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+          run: |
+            echo "Pulled the devontainer image!"
+      - name: Run `bazel test //...`
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma
+            bazel test //... --test_output=errors --cache_test_results=no
