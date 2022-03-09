@@ -7,7 +7,6 @@ from magma.db_service.models import (
     DBActiveModeConfig,
     DBCbsd,
     DBCbsdState,
-    DBChannel,
     DBGrant,
     DBGrantState,
 )
@@ -26,6 +25,7 @@ test_cbsd_dict = {
     "number_of_ports": 1,
 }
 
+SOME_SERIAL_NUMBER = "some_serial_number"
 SOME_TIMESTAMP = 1234
 
 
@@ -49,7 +49,7 @@ class DPTestCase(LocalDBTestCase):
         self._then_exactly_one_cbsd_is_active(request)
 
     def test_cbsd_register_when_already_registered(self):
-        cbsd = self._build_cbsd(**test_cbsd_dict)
+        cbsd = self._build_cbsd(SOME_SERIAL_NUMBER)
         self.session.add(cbsd)
         self.session.commit()
 
@@ -59,7 +59,7 @@ class DPTestCase(LocalDBTestCase):
         self._then_exactly_one_cbsd_is_active(request)
 
     def test_cbsd_register_updates_active_mode_config_if_desired_state_is_unregistered(self):
-        cbsd = self._build_cbsd(**test_cbsd_dict)
+        cbsd = self._build_cbsd(SOME_SERIAL_NUMBER)
         active_mode_config = DBActiveModeConfig(
             cbsd=cbsd,
             desired_state_id=self.cbsd_states[CbsdStates.UNREGISTERED.value],
@@ -80,14 +80,13 @@ class DPTestCase(LocalDBTestCase):
 
     def test_get_state_with_valid_authorized_grant_for_deleted_cbsd(self):
         cbsd = self._given_cbsd()
-        channel = self._build_channel(cbsd)
         grant = self._build_grant(
-            cbsd, self.grant_states[GrantStates.AUTHORIZED.value], channel,
+            cbsd, self.grant_states[GrantStates.AUTHORIZED.value],
         )
         grant.transmit_expire_time = datetime.now() + timedelta(seconds=60)
         grant.grant_expire_time = datetime.now() + timedelta(days=7)
         cbsd.is_deleted = True
-        self.session.add_all([cbsd, channel, grant])
+        self.session.add_all([cbsd, grant])
         self.session.commit()
 
         request = self._build_request(**test_cbsd_dict)
@@ -97,29 +96,27 @@ class DPTestCase(LocalDBTestCase):
 
     def test_get_state_with_valid_authorized_grant(self):
         cbsd = self._given_cbsd()
-        channel = self._build_channel(cbsd)
         grant = self._build_grant(
-            cbsd, self.grant_states[GrantStates.AUTHORIZED.value], channel,
+            cbsd, self.grant_states[GrantStates.AUTHORIZED.value],
         )
         grant.transmit_expire_time = datetime.now() + timedelta(seconds=60)
         grant.grant_expire_time = datetime.now() + timedelta(days=7)
-        self.session.add_all([cbsd, channel, grant])
+        self.session.add_all([cbsd, grant])
         self.session.commit()
 
         request = self._build_request(**test_cbsd_dict)
         result = self.dp_service.GetCBSDState(request, None)
 
-        self.assertEqual(self._build_expected_result(channel), result)
+        self.assertEqual(self._build_expected_result(grant), result)
 
     def test_get_state_with_transmit_expired_authorized_grant(self):
         cbsd = self._given_cbsd()
-        channel = self._build_channel(cbsd)
         grant = self._build_grant(
-            cbsd, self.grant_states[GrantStates.AUTHORIZED.value], channel,
+            cbsd, self.grant_states[GrantStates.AUTHORIZED.value],
         )
         grant.transmit_expire_time = datetime.now() - timedelta(seconds=1)
         grant.grant_expire_time = datetime.now() + timedelta(days=7)
-        self.session.add_all([cbsd, channel, grant])
+        self.session.add_all([cbsd, grant])
         self.session.commit()
 
         request = self._build_request()
@@ -129,13 +126,12 @@ class DPTestCase(LocalDBTestCase):
 
     def test_get_state_with_grant_expired_authorized_grant(self):
         cbsd = self._given_cbsd()
-        channel = self._build_channel(cbsd)
         grant = self._build_grant(
-            cbsd, self.grant_states[GrantStates.AUTHORIZED.value], channel,
+            cbsd, self.grant_states[GrantStates.AUTHORIZED.value],
         )
         grant.transmit_expire_time = datetime.now() - timedelta(seconds=1)
         grant.grant_expire_time = datetime.now() - timedelta(seconds=1)
-        self.session.add_all([cbsd, channel, grant])
+        self.session.add_all([cbsd, grant])
         self.session.commit()
 
         request = self._build_request()
@@ -145,22 +141,8 @@ class DPTestCase(LocalDBTestCase):
 
     def test_get_state_with_unauthorized_grant(self):
         cbsd = self._given_cbsd()
-        channel = self._build_channel(cbsd)
         grant = self._build_grant(
-            cbsd, self.grant_states[GrantStates.IDLE.value], channel,
-        )
-        self.session.add_all([cbsd, channel, grant])
-        self.session.commit()
-
-        request = self._build_request()
-        result = self.dp_service.GetCBSDState(request, None)
-
-        self.assertEqual(self._build_empty_result(), result)
-
-    def test_get_state_without_channel(self):
-        cbsd = self._given_cbsd()
-        grant = self._build_grant(
-            cbsd, self.grant_states[GrantStates.AUTHORIZED.value],
+            cbsd, self.grant_states[GrantStates.IDLE.value],
         )
         self.session.add_all([cbsd, grant])
         self.session.commit()
@@ -194,30 +176,21 @@ class DPTestCase(LocalDBTestCase):
     def _build_request(**kwargs) -> CBSDRequest:
         return CBSDRequest(**kwargs)
 
-    def _build_cbsd(self, serial_number, **kwargs) -> DBCbsd:
+    def _build_cbsd(self, serial_number) -> DBCbsd:
         return DBCbsd(
             cbsd_serial_number=serial_number,
             state_id=self.cbsd_states[CbsdStates.UNREGISTERED.value],
         )
 
     @staticmethod
-    def _build_channel(cbsd: DBCbsd) -> DBChannel:
-        return DBChannel(
-            cbsd=cbsd,
-            channel_type="some_channel_type",
-            rule_applied="some_rule",
-            low_frequency=3550_000_000,
-            high_frequency=3570_000_000,
-            last_used_max_eirp=20,
-        )
-
-    @staticmethod
-    def _build_grant(cbsd: DBCbsd, state_id: str, channel: DBChannel = None) -> DBGrant:
+    def _build_grant(cbsd: DBCbsd, state_id: str) -> DBGrant:
         return DBGrant(
             cbsd=cbsd,
-            channel=channel,
             grant_id="some_grant_id",
             state_id=state_id,
+            low_frequency=3550_000_000,
+            high_frequency=3570_000_000,
+            max_eirp=20,
         )
 
     def _then_exactly_one_cbsd_is_active(self, request: CBSDRequest):
@@ -248,13 +221,13 @@ class DPTestCase(LocalDBTestCase):
         ]
 
     @staticmethod
-    def _build_expected_result(channel: DBChannel) -> CBSDStateResult:
+    def _build_expected_result(grant: DBGrant) -> CBSDStateResult:
         return CBSDStateResult(
             radio_enabled=True,
             channel=LteChannel(
-                low_frequency_hz=channel.low_frequency,
-                high_frequency_hz=channel.high_frequency,
-                max_eirp_dbm_mhz=channel.last_used_max_eirp,
+                low_frequency_hz=grant.low_frequency,
+                high_frequency_hz=grant.high_frequency,
+                max_eirp_dbm_mhz=grant.max_eirp,
             ),
         )
 
