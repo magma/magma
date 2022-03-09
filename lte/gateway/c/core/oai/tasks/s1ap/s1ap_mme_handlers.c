@@ -429,7 +429,7 @@ void clean_stale_enb_state(s1ap_state_t* state,
 }
 
 static status_code_e s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
-    s1ap_state_t* state) {
+    s1ap_state_t* state, sctp_assoc_id_t sctp_assoc_id) {
   OAILOG_FUNC_IN(LOG_S1AP);
   unsigned int i = 0;
   unsigned int num_elements = 0;
@@ -450,7 +450,9 @@ static status_code_e s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
       num_elements++;
       oldnode = node;
       node = node->next;
-      if (oldnode->data) {
+      if (oldnode->data &&
+          (sctp_assoc_id ==
+           ((ue_description_t*)oldnode->data)->sctp_assoc_id)) {
         unlock = false;
         pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
         s1ap_remove_ue(state, oldnode->data);
@@ -567,7 +569,8 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
      */
     if (enb_association->ue_id_coll.num_elements == 0) {
       OAILOG_FUNC_RETURN(LOG_S1AP,
-                         s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(state));
+                         s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
+                             state, enb_association->sctp_assoc_id));
     }
     arg_s1ap_send_enb_dereg_ind_t arg = {0};
     MessageDef* message_p = NULL;
@@ -3678,7 +3681,8 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
      */
     if (enb_association->ue_id_coll.num_elements == 0) {
       OAILOG_FUNC_RETURN(LOG_S1AP,
-                         s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(state));
+                         s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
+                             state, enb_association->sctp_assoc_id));
     }
   }
   /*
