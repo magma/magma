@@ -8,13 +8,13 @@ package models
 import (
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // MachineInfo machine info
+//
 // swagger:model machine_info
 type MachineInfo struct {
 
@@ -98,6 +98,7 @@ func (m *MachineInfo) UnmarshalBinary(b []byte) error {
 }
 
 // MachineInfoCPUInfo machine info CPU info
+//
 // swagger:model MachineInfoCPUInfo
 type MachineInfoCPUInfo struct {
 
@@ -138,6 +139,7 @@ func (m *MachineInfoCPUInfo) UnmarshalBinary(b []byte) error {
 }
 
 // MachineInfoNetworkInfo machine info network info
+//
 // swagger:model MachineInfoNetworkInfo
 type MachineInfoNetworkInfo struct {
 

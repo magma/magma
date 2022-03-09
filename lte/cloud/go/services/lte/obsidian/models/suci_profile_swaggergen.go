@@ -8,14 +8,14 @@ package models
 import (
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // SuciProfile SUCI profile for a network. These attributes are defined as per the SUCI encryption/decryption mechanisms specified in the 3GPP TS 33.501.
+//
 // swagger:model suci_profile
 type SuciProfile struct {
 
@@ -41,14 +41,6 @@ type SuciProfile struct {
 func (m *SuciProfile) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateHomeNetworkPrivateKey(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateHomeNetworkPublicKey(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateHomeNetworkPublicKeyIdentifier(formats); err != nil {
 		res = append(res, err)
 	}
@@ -60,28 +52,6 @@ func (m *SuciProfile) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-func (m *SuciProfile) validateHomeNetworkPrivateKey(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.HomeNetworkPrivateKey) { // not required
-		return nil
-	}
-
-	// Format "byte" (base64 string) is already validated when unmarshalled
-
-	return nil
-}
-
-func (m *SuciProfile) validateHomeNetworkPublicKey(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.HomeNetworkPublicKey) { // not required
-		return nil
-	}
-
-	// Format "byte" (base64 string) is already validated when unmarshalled
-
 	return nil
 }
 

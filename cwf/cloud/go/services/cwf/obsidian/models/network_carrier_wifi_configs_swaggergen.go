@@ -10,14 +10,14 @@ import (
 	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // NetworkCarrierWifiConfigs Carrier WiFi configuration for a network
+//
 // swagger:model network_carrier_wifi_configs
 type NetworkCarrierWifiConfigs struct {
 

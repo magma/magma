@@ -6,14 +6,14 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // GettableAlertSilencer gettable alert silencer
+//
 // swagger:model gettable_alert_silencer
 type GettableAlertSilencer struct {
 	AlertSilencer
@@ -70,7 +70,6 @@ func (m GettableAlertSilencer) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	_parts = append(_parts, aO0)
-
 	var dataAO1 struct {
 		ID *string `json:"id"`
 
@@ -90,7 +89,6 @@ func (m GettableAlertSilencer) MarshalJSON() ([]byte, error) {
 		return nil, errAO1
 	}
 	_parts = append(_parts, jsonDataAO1)
-
 	return swag.ConcatJSON(_parts...), nil
 }
 

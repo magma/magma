@@ -6,14 +6,14 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // RadiusConfig built-in radius server configuration
+//
 // swagger:model radiusConfig
 type RadiusConfig struct {
 
@@ -50,10 +50,6 @@ func (m *RadiusConfig) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateAuthAddr(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateSecret(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -98,17 +94,6 @@ func (m *RadiusConfig) validateAuthAddr(formats strfmt.Registry) error {
 	if err := validate.Pattern("auth_addr", "body", string(m.AuthAddr), `[0-9a-f\:\.]*(:[0-9]{1,5})?`); err != nil {
 		return err
 	}
-
-	return nil
-}
-
-func (m *RadiusConfig) validateSecret(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Secret) { // not required
-		return nil
-	}
-
-	// Format "byte" (base64 string) is already validated when unmarshalled
 
 	return nil
 }

@@ -6,13 +6,13 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // CarrierWifiHaPairState Full state object of an ha pair
+//
 // swagger:model carrier_wifi_ha_pair_state
 type CarrierWifiHaPairState struct {
 

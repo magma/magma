@@ -6,16 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-	models4 "magma/orc8r/cloud/go/models"
-	models5 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
+	models4 "magma/orc8r/cloud/go/models"
+	models5 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 )
 
 // FederationGateway Full description of a federation gateway
+//
 // swagger:model federation_gateway
 type FederationGateway struct {
 

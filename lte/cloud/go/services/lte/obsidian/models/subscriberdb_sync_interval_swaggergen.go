@@ -6,13 +6,13 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
 )
 
 // SubscriberdbSyncInterval Interval in seconds between gateway requests to sync its subscriberdb with the cloud.
+//
 // swagger:model subscriberdb_sync_interval
 type SubscriberdbSyncInterval uint32
 

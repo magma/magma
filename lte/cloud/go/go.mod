@@ -24,10 +24,10 @@ replace (
 require (
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
 	github.com/emakeev/milenage v1.0.0
-	github.com/go-openapi/errors v0.19.2
-	github.com/go-openapi/strfmt v0.19.4
+	github.com/go-openapi/errors v0.19.4
+	github.com/go-openapi/strfmt v0.19.5
 	github.com/go-openapi/swag v0.19.15
-	github.com/go-openapi/validate v0.19.3
+	github.com/go-openapi/validate v0.19.7
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gogf/gf v1.16.6
@@ -49,6 +49,7 @@ require (
 	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 	google.golang.org/grpc v1.31.0
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	magma/feg/cloud/go v0.0.0
 	magma/orc8r/cloud/go v0.0.0

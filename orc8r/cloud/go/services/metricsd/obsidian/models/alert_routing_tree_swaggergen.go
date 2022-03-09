@@ -8,14 +8,14 @@ package models
 import (
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // AlertRoutingTree alert routing tree
+//
 // swagger:model alert_routing_tree
 type AlertRoutingTree struct {
 
@@ -163,6 +163,7 @@ func (m *AlertRoutingTree) UnmarshalBinary(b []byte) error {
 }
 
 // AlertRoutingTreeMatch alert routing tree match
+//
 // swagger:model AlertRoutingTreeMatch
 type AlertRoutingTreeMatch struct {
 
@@ -197,6 +198,7 @@ func (m *AlertRoutingTreeMatch) UnmarshalBinary(b []byte) error {
 }
 
 // AlertRoutingTreeMatchRe alert routing tree match re
+//
 // swagger:model AlertRoutingTreeMatchRe
 type AlertRoutingTreeMatchRe struct {
 

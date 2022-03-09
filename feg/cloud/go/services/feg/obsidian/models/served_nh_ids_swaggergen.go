@@ -6,10 +6,11 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // ServedNhIds served neutral host IDs
+//
 // swagger:model served_nh_ids
 type ServedNhIds []string
 

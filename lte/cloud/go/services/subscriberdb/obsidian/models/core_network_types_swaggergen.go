@@ -9,13 +9,13 @@ import (
 	"encoding/json"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
 )
 
 // CoreNetworkTypes List of core network types.
+//
 // swagger:model core_network_types
 type CoreNetworkTypes []string
 

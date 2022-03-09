@@ -8,14 +8,14 @@ package models
 import (
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // GatewayEpcConfigs EPC configuration for an LTE gateway
+//
 // swagger:model gateway_epc_configs
 type GatewayEpcConfigs struct {
 

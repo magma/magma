@@ -8,13 +8,13 @@ package models
 import (
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // NetworkDNSRecords network dns records
+//
 // swagger:model network_dns_records
 type NetworkDNSRecords []*DNSConfigRecord
 

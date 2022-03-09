@@ -6,10 +6,11 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // FegNetworkID Name of the federated network serving this LTE network. Blank for non federated
+//
 // swagger:model fegNetworkId
 type FegNetworkID string
 

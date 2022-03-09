@@ -6,15 +6,15 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-	models1 "magma/lte/cloud/go/services/policydb/obsidian/models"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
+	models1 "magma/lte/cloud/go/services/policydb/obsidian/models"
 )
 
 // MutableSubscriber Subset of subscriber field which are mutable
+//
 // swagger:model mutable_subscriber
 type MutableSubscriber struct {
 

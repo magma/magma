@@ -8,13 +8,13 @@ package models
 import (
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // CellularGatewayPoolRecords cellular gateway pool records
+//
 // swagger:model cellular_gateway_pool_records
 type CellularGatewayPoolRecords []*CellularGatewayPoolRecord
 

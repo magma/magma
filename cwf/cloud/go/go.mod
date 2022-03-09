@@ -22,10 +22,10 @@ replace (
 )
 
 require (
-	github.com/go-openapi/errors v0.19.2
-	github.com/go-openapi/strfmt v0.19.4
+	github.com/go-openapi/errors v0.19.4
+	github.com/go-openapi/strfmt v0.19.5
 	github.com/go-openapi/swag v0.19.15
-	github.com/go-openapi/validate v0.19.3
+	github.com/go-openapi/validate v0.19.7
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.5.2
 	github.com/labstack/echo v3.3.10+incompatible
@@ -34,6 +34,7 @@ require (
 	github.com/prometheus/common v0.9.1
 	github.com/stretchr/testify v1.7.0
 	google.golang.org/grpc v1.31.0
+	google.golang.org/protobuf v1.27.1
 	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0
 	magma/lte/cloud/go v0.0.0

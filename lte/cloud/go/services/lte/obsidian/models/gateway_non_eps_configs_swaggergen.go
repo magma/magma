@@ -8,14 +8,14 @@ package models
 import (
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // GatewayNonEpsConfigs Non-EPS service configuration for a gateway
+//
 // swagger:model gateway_non_eps_configs
 type GatewayNonEpsConfigs struct {
 

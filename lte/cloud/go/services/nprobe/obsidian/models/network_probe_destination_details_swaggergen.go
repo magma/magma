@@ -8,14 +8,14 @@ package models
 import (
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // NetworkProbeDestinationDetails network probe destination details
+//
 // swagger:model network_probe_destination_details
 type NetworkProbeDestinationDetails struct {
 
@@ -79,8 +79,6 @@ func (m *NetworkProbeDestinationDetails) validateCertificate(formats strfmt.Regi
 		return err
 	}
 
-	// Format "byte" (base64 string) is already validated when unmarshalled
-
 	return nil
 }
 
@@ -141,8 +139,6 @@ func (m *NetworkProbeDestinationDetails) validatePrivateKey(formats strfmt.Regis
 	if err := validate.Required("private_key", "body", m.PrivateKey); err != nil {
 		return err
 	}
-
-	// Format "byte" (base64 string) is already validated when unmarshalled
 
 	return nil
 }

@@ -6,14 +6,14 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-	models1 "magma/lte/cloud/go/services/policydb/obsidian/models"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	models1 "magma/lte/cloud/go/services/policydb/obsidian/models"
 )
 
 // MsisdnAssignment msisdn assignment
+//
 // swagger:model msisdn_assignment
 type MsisdnAssignment struct {
 
