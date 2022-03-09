@@ -1174,7 +1174,8 @@ class MagmadUtil(object):
     def disable_nat(self):
         self.exec_command("sudo ip route del default via 10.0.2.2 dev eth0")
         self.exec_command("sudo ip addr replace 192.168.129.1/24 dev uplink_br0")
-        self.exec_command("sudo ip route add default via 192.168.129.42 dev uplink_br0")
+        #self.exec_command("sudo ip route add default via 192.168.129.42 dev uplink_br0")
+        self.exec_command("sudo ip route -A inet6 add default via fdee:5:6c::2 dev uplink_br0")
         self._set_agw_nat(False)
         self._validate_non_nat_datapath()
 

@@ -499,7 +499,7 @@ class TrafficTestDriver(object):
     ''' Driver for creating the iperf3 instances, monitoring them, caching the
     results, and reporting the results '''
 
-    _port = 5000
+    _port = 7000
     _port_lock = threading.Lock()
 
     def __init__(self, server, instances):
@@ -567,7 +567,7 @@ class TrafficTestDriver(object):
         else:
             params = ('-s',) + params
             params += ('-1',)
-        params = ('iperf3',) + params
+        params = ('sudo',) + ('iperf3',) + params
 
         # Make the iperf3 call and spin off the subprocess
         self._server.log.debug('Running iperf3 command: %s', ' '.join(params))
@@ -584,13 +584,13 @@ class TrafficTestDriver(object):
             if instance.is_uplink:
                 iperf = iperf3.Server()
                 #iperf.bind_address = '192.168.129.42'
-                iperf.bind_address = 'fdee::2'
+                iperf.bind_address = 'fdee:5:6c::2'
                 iperf.port = TrafficTestDriver._get_port()
             else:
                 iperf = iperf3.Client()
                 iperf.bandwidth = 10 ** 7  # 10 Mbps
                 #iperf.bind_address = '192.168.129.42'
-                iperf.bind_address = 'fdee::2'
+                iperf.bind_address = 'fdee:5:6c::2'
                 iperf.duration = instance.duration
                 iperf.port = instance.port
                 iperf.protocol = 'udp' if instance.is_udp else 'tcp'
@@ -691,7 +691,7 @@ def main():
 
     # The IP address to bind to
     parser.add_argument(
-        'host', default=ipaddress.ip_address('127.0.0.1'),
+        'host', default=ipaddress.ip_address('::1'),
         nargs='?', type=ipaddress.ip_address,
         help='Specify IPv4/6 bind address. Default: 127.0.0.1',
     )

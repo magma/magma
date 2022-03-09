@@ -19,6 +19,7 @@ import shlex
 import socket
 import subprocess
 import threading
+import time
 
 import iperf3
 import pyroute2
@@ -330,21 +331,22 @@ class TrafficTest(object):
         Returns the iface name with alias that was brought up
         '''
         # Generate a unique alias
-        with TrafficTest._alias_lock:
-            TrafficTest._alias_counter += 1
-            net_iface = TrafficTest._net_iface
-            alias = TrafficTest._alias_counter
-        net_alias = '%s:UE%d' % (net_iface, alias)
+        #with TrafficTest._alias_lock:
+        #    TrafficTest._alias_counter += 1
+        #    net_iface = TrafficTest._net_iface
+        #    alias = TrafficTest._alias_counter
+        #net_alias = '%s:UE%d' % (net_iface, alias)
 
+        print("ip in _iface_up", ip)
+        print("._net_iface in _iface_up", TrafficTest._net_iface)
         # Bring up the iface alias
         net_iface_index = TrafficTest._iproute.link_lookup(
             ifname=TrafficTest._net_iface,
         )[0]
         TrafficTest._iproute.addr(
-            'add', index=net_iface_index, label=net_alias, address=ip.exploded,
+            'add', index=net_iface_index, address=ip.exploded,
         )
-
-        return net_alias
+        #return net_alias
 
     @staticmethod
     def _network_from_ip(ip, mask_len):
@@ -400,9 +402,10 @@ class TrafficTest(object):
                 )
 
             # Set up network ifaces and get UL port assignments for DL
-            aliases = ()
+            #aliases = ()
             for instance in instances:
-                aliases += (TrafficTest._iface_up(instance.ip),)
+                #aliases += (TrafficTest._iface_up(instance.ip),)
+                (TrafficTest._iface_up(instance.ip),)
                 print("instance.ip",instance.ip)
                 if not instance.is_uplink:
                     # Assign a local port for the downlink UE server
@@ -434,18 +437,26 @@ class TrafficTest(object):
                 )[0]
                 server_instance_network = \
                     TrafficTest._network_from_ip(server_instance.ip, 8)
+                print("server_instance_network\n", server_instance_network)
                 TrafficTest._iproute.route(
                     'replace', dst=server_instance_network.exploded,
                     iif=net_iface_index, oif=net_iface_index, scope='link',
                 )
+                print("After _iproute.route\n")
 
                 # Add arp table entry
+                #os.system(
+                #    '/usr/sbin/arp -s %s %s' % (
+                #    server_instance.ip.exploded, server_instance.mac,
+                #    ),
+                #)
                 os.system(
-                    '/usr/sbin/arp -s %s %s' % (
+                    'ip -6 neigh add %s lladdr %s dev eth2' % (
                     server_instance.ip.exploded, server_instance.mac,
                     ),
                 )
 
+                print("After Add arp table entry server_instance=%s, mac=%s\n"%(server_instance.ip.exploded, server_instance.mac))
                 if instance.is_uplink:
                     # Port should be the port of the remote for uplink
                     instance.port = server_instance.port
@@ -459,6 +470,7 @@ class TrafficTest(object):
             msg = TrafficRequest(
                 TrafficRequestType.START, identifier=r_id,
             )
+            print("Sent TrafficRequest\n")
             msg.send(sc_out)
 
             # Wait for STARTED response
@@ -470,6 +482,8 @@ class TrafficTest(object):
             for i in range(len(instances)):
                 instance = instances[i]
                 if instance.is_uplink:
+                    #print("Sleeping for 60 secs")
+                    #time.sleep(60)
                     args[i] = self._run_test(
                         test_ids[i], server_instances[i].ip, instance.ip,
                         server_instances[i].port,
@@ -531,6 +545,7 @@ class TrafficTest(object):
             str(port).encode(),
         )
         self._runner(*args)
+        print("args in _run_test", args)
         return args
 
     @staticmethod
