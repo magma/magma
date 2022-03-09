@@ -351,7 +351,8 @@ bool SpgwServiceImpl::fillIpv4(packet_filter_contents_t* pf_content,
 
   for (int i = (TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1); i >= 0; --i) {
     pf_content->ipv4remoteaddr[i].mask = (unsigned char)mask & 0xFF;
-    pf_content->ipv4remoteaddr[i].addr = (unsigned char)ipv4addrHBO & pf_content->ipv4remoteaddr[i].mask;
+    pf_content->ipv4remoteaddr[i].addr =
+        (unsigned char)ipv4addrHBO & pf_content->ipv4remoteaddr[i].mask;
     ipv4addrHBO = ipv4addrHBO >> 8;
     mask = mask >> 8;
   }
