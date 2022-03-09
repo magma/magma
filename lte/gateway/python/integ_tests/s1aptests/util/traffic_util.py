@@ -656,7 +656,7 @@ class TrafficTest(object):
         net_iface = TrafficTest._iproute.link_lookup(
             ifname=TrafficTest._net_iface,
         )
-        if len(net_iface) != 0:
+        if net_iface:
             net_iface_index = net_iface[0]
             # For some reason the first call to flush this address flushes all
             # the addresses brought up during testing. But subsequent flushes
