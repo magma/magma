@@ -33,6 +33,8 @@ from util.traffic_messages import (
 
 # Tests shouldn't take longer than a few minutes
 TRAFFIC_TEST_TIMEOUT_SEC = 180
+# For verify function to run properly, setting 5 sec less iperf data timeout
+IPERF_DATA_TIMEOUT_SEC = TRAFFIC_TEST_TIMEOUT_SEC - 5
 
 """
 Using TrafficUtil
@@ -415,9 +417,7 @@ class TrafficTest(object):
             self.sc = socket.create_connection(self._remote_server)
             self.sc_in = self.sc.makefile("rb")
             self.sc_out = self.sc.makefile("wb")
-            # Setting timeout 5 sec less than maximum runtime for verify
-            # function to run properly
-            self.sc.settimeout(TRAFFIC_TEST_TIMEOUT_SEC - 5)
+            self.sc.settimeout(IPERF_DATA_TIMEOUT_SEC)
 
             # Flush all the addresses left by previous failed tests
             net_iface_index = TrafficTest._iproute.link_lookup(
@@ -531,6 +531,10 @@ class TrafficTest(object):
             with self._test_lock:
                 self._results = results
 
+        except socket.timeout:
+            print("Running iperf data failed with timeout")
+            TrafficUtil.need_to_close_iperf3_server = True
+            self.cleanup()
         except Exception as e:
             print("Running iperf data failed. Error: " + str(e))
             TrafficUtil.need_to_close_iperf3_server = True
@@ -649,17 +653,20 @@ class TrafficTest(object):
         msg.send(self.sc_out)
 
         # Close out network ifaces
-        net_iface_index = TrafficTest._iproute.link_lookup(
+        net_iface = TrafficTest._iproute.link_lookup(
             ifname=TrafficTest._net_iface,
-        )[0]
-        # For some reason the first call to flush this address flushes all
-        # the addresses brought up during testing. But subsequent flushes
-        # do nothing if the address doesn't exist
-        for instance in self.instances:
-            TrafficTest._iproute.flush_addr(
-                index=net_iface_index,
-                address=instance.ip.exploded,
-            )
+        )
+        if len(net_iface) != 0:
+            net_iface_index = net_iface[0]
+            # For some reason the first call to flush this address flushes all
+            # the addresses brought up during testing. But subsequent flushes
+            # do nothing if the address doesn't exist
+            for instance in self.instances:
+                TrafficTest._iproute.flush_addr(
+                    index=net_iface_index,
+                    address=instance.ip.exploded,
+                )
+
         # Do socket cleanup
         self.sc_in.close()
         self.sc_out.close()
