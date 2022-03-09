@@ -26,10 +26,10 @@ replace (
 require (
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
 	github.com/emakeev/milenage v1.0.0
-	github.com/go-openapi/errors v0.19.2
-	github.com/go-openapi/strfmt v0.19.4
+	github.com/go-openapi/errors v0.20.1
+	github.com/go-openapi/strfmt v0.20.2
 	github.com/go-openapi/swag v0.19.15
-	github.com/go-openapi/validate v0.19.3
+	github.com/go-openapi/validate v0.20.3
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gogf/gf v1.16.6
