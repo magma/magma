@@ -37,6 +37,17 @@ func GetStateClient() (protos.StateServiceClient, error) {
 	return protos.NewStateServiceClient(conn), nil
 }
 
+// GetCloudStateClient returns a client to the state service.
+func GetCloudStateClient() (protos.CloudStateServiceClient, error) {
+	conn, err := registry.GetConnection(ServiceName)
+	if err != nil {
+		initErr := merrors.NewInitError(err, ServiceName)
+		glog.Error(initErr)
+		return nil, initErr
+	}
+	return protos.NewCloudStateServiceClient(conn), nil
+}
+
 // GetState returns the state specified by the networkID, typeVal, and hwID.
 func GetState(ctx context.Context, networkID string, typ string, hwID string, serdes serde.Registry) (state_types.State, error) {
 	id := state_types.ID{Type: typ, DeviceID: hwID}
@@ -60,7 +71,7 @@ func GetStates(ctx context.Context, networkID string, stateIDs state_types.IDs, 
 		return state_types.StatesByID{}, nil
 	}
 
-	client, err := GetStateClient()
+	client, err := GetCloudStateClient()
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +96,7 @@ func GetStates(ctx context.Context, networkID string, stateIDs state_types.IDs, 
 // the keyFilter argument.
 // e.g.: ["t1", "t2"], ["k1", "k2"] => (t1 OR t2) AND (k1 OR k2)
 func SearchStates(ctx context.Context, networkID string, typeFilter []string, keyFilter []string, keyPrefix *string, serdes serde.Registry) (state_types.StatesByID, error) {
-	client, err := GetStateClient()
+	client, err := GetCloudStateClient()
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +143,7 @@ func GetSerializedStates(ctx context.Context, networkID string, stateIDs state_t
 		return state_types.SerializedStatesByID{}, nil
 	}
 
-	client, err := GetStateClient()
+	client, err := GetCloudStateClient()
 	if err != nil {
 		return nil, err
 	}
