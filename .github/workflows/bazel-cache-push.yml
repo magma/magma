@@ -65,6 +65,14 @@ jobs:
         run: |
           cd lte/gateway
           vagrant ssh -c 'cd ~/magma; bazel build //...' magma
+      - name: Test all with Bazel `bazel test //... --cache_test_results=no`
+        run: |
+          cd lte/gateway
+          vagrant ssh -c 'cd ~/magma; bazel test //... --cache_test_results=no' magma
+      - name: Test C/C++ with ASAN `bazel test //orc8r/gateway/c/... //lte/gateway/c/... --config=asan`
+        run: |
+          cd lte/gateway
+          vagrant ssh -c 'cd ~/magma; bazel test //orc8r/gateway/c/... //lte/gateway/c/... --config=asan --cache_test_results=no' magma
       - name: Upload .bazel-cache and .bazel-cache-repo to S3
         run: |
           tar -zcvf ${{ env.BAZEL_CACHE_MAGMA_VM_TAR }} ${{ env.BAZEL_CACHE }}/
