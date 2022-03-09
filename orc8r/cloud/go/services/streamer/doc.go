@@ -27,7 +27,3 @@ limitations under the License.
 // (*) streamer: look up service name of provider for "subscriber" stream
 // (b) GetUpdates("subscriber")
 package streamer
-
-const (
-	ServiceName = "STREAMER"
-)

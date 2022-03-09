@@ -10,8 +10,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import ipaddress
 from enum import Enum
+
+from magma.mobilityd.utils import IPAddress, IPNetwork
 
 
 class IPState(Enum):
@@ -47,8 +48,8 @@ class IPDesc:
     """
 
     def __init__(
-        self, ip: ipaddress.ip_address = None, state: IPState = None,
-        sid: str = None, ip_block: ipaddress.ip_network = None,
+        self, ip: IPAddress = None, state: IPState = None,
+        sid: str = None, ip_block: IPNetwork = None,
         ip_type: IPType = None, vlan_id: int = 0,
     ):
         self.ip = ip

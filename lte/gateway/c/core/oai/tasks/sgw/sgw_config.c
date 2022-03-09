@@ -83,9 +83,6 @@ status_code_e sgw_config_parse_string(const char* config_string,
   libconfig_int sgw_udp_port_S1u_S12_S4_up = 2152;
   libconfig_int sgw_udp_port_S1u_S12_S4_up_v6 = 2152;
   config_setting_t* subsetting = NULL;
-#if (!EMBEDDED_SGW)
-  const char* astring = NULL;
-#endif
   bstring address = NULL;
   bstring cidr = NULL;
   bstring mask = NULL;
@@ -114,106 +111,6 @@ status_code_e sgw_config_parse_string(const char* config_string,
               bdata(config_pP->config_file));
   setting_sgw = config_lookup(&cfg, SGW_CONFIG_STRING_SGW_CONFIG);
   if (setting_sgw) {
-#if (!EMBEDDED_SGW)
-    // LOGGING setting
-    subsetting =
-        config_setting_get_member(setting_sgw, LOG_CONFIG_STRING_LOGGING);
-
-    config_pP->log_config.udp_log_level = MAX_LOG_LEVEL;  // Means invalid
-    config_pP->log_config.gtpv1u_log_level = MAX_LOG_LEVEL;
-    config_pP->log_config.gtpv2c_log_level = MAX_LOG_LEVEL;
-    config_pP->log_config.sctp_log_level = MAX_LOG_LEVEL;
-    config_pP->log_config.s1ap_log_level = MAX_LOG_LEVEL;
-    config_pP->log_config.nas_log_level = MAX_LOG_LEVEL;
-    config_pP->log_config.mme_app_log_level = MAX_LOG_LEVEL;
-    config_pP->log_config.spgw_app_log_level = MAX_LOG_LEVEL;
-    config_pP->log_config.s11_log_level = MAX_LOG_LEVEL;
-    config_pP->log_config.s6a_log_level = MAX_LOG_LEVEL;
-    config_pP->log_config.util_log_level = MAX_LOG_LEVEL;
-    config_pP->log_config.itti_log_level = MAX_LOG_LEVEL;
-    config_pP->log_config.async_system_log_level = MAX_LOG_LEVEL;
-    if (subsetting) {
-      if (config_setting_lookup_string(subsetting, LOG_CONFIG_STRING_OUTPUT,
-                                       (const char**)&astring)) {
-        if (astring != NULL) {
-          if (config_pP->log_config.output) {
-            bassigncstr(config_pP->log_config.output, astring);
-          } else {
-            config_pP->log_config.output = bfromcstr(astring);
-          }
-        }
-      }
-
-      if (config_setting_lookup_string(subsetting,
-                                       LOG_CONFIG_STRING_OUTPUT_THREAD_SAFE,
-                                       (const char**)&astring)) {
-        if (astring != NULL) {
-          if (strcasecmp(astring, "yes") == 0) {
-            config_pP->log_config.is_output_thread_safe = true;
-          } else {
-            config_pP->log_config.is_output_thread_safe = false;
-          }
-        }
-      }
-
-      if (config_setting_lookup_string(subsetting, LOG_CONFIG_STRING_COLOR,
-                                       (const char**)&astring)) {
-        if (!strcasecmp("yes", astring))
-          config_pP->log_config.color = true;
-        else
-          config_pP->log_config.color = false;
-      }
-      if (config_setting_lookup_string(subsetting,
-                                       LOG_CONFIG_STRING_UDP_LOG_LEVEL,
-                                       (const char**)&astring)) {
-        config_pP->log_config.udp_log_level = OAILOG_LEVEL_STR2INT(astring);
-      }
-
-      if (config_setting_lookup_string(subsetting,
-                                       LOG_CONFIG_STRING_GTPV1U_LOG_LEVEL,
-                                       (const char**)&astring)) {
-        config_pP->log_config.gtpv1u_log_level = OAILOG_LEVEL_STR2INT(astring);
-      }
-
-      if (config_setting_lookup_string(subsetting,
-                                       LOG_CONFIG_STRING_GTPV2C_LOG_LEVEL,
-                                       (const char**)&astring)) {
-        config_pP->log_config.gtpv2c_log_level = OAILOG_LEVEL_STR2INT(astring);
-      }
-
-      if (config_setting_lookup_string(subsetting,
-                                       LOG_CONFIG_STRING_SPGW_APP_LOG_LEVEL,
-                                       (const char**)&astring)) {
-        config_pP->log_config.spgw_app_log_level =
-            OAILOG_LEVEL_STR2INT(astring);
-      }
-
-      if (config_setting_lookup_string(subsetting,
-                                       LOG_CONFIG_STRING_S11_LOG_LEVEL,
-                                       (const char**)&astring)) {
-        config_pP->log_config.s11_log_level = OAILOG_LEVEL_STR2INT(astring);
-      }
-
-      if (config_setting_lookup_string(subsetting,
-                                       LOG_CONFIG_STRING_UTIL_LOG_LEVEL,
-                                       (const char**)&astring)) {
-        config_pP->log_config.util_log_level = OAILOG_LEVEL_STR2INT(astring);
-      }
-
-      if (config_setting_lookup_string(subsetting,
-                                       LOG_CONFIG_STRING_ITTI_LOG_LEVEL,
-                                       (const char**)&astring)) {
-        config_pP->log_config.itti_log_level = OAILOG_LEVEL_STR2INT(astring);
-      }
-
-      if (config_setting_lookup_string(subsetting,
-                                       LOG_CONFIG_STRING_ASYNC_SYSTEM_LOG_LEVEL,
-                                       (const char**)&astring)) {
-        config_pP->log_config.async_system_log_level =
-            OAILOG_LEVEL_STR2INT(astring);
-      }
-    }
-#endif
     subsetting = config_setting_get_member(
         setting_sgw, SGW_CONFIG_STRING_NETWORK_INTERFACES_CONFIG);
 
@@ -507,28 +404,6 @@ void sgw_config_display(sgw_config_t* config_p) {
               config_p->itti_config.queue_size);
   OAILOG_INFO(LOG_SPGW_APP, "    log file .........: %s\n",
               bdata(config_p->itti_config.log_file));
-#if (!EMBEDDED_SGW)
-  OAILOG_INFO(LOG_SPGW_APP, "- Logging:\n");
-  OAILOG_INFO(LOG_SPGW_APP, "    Output ..............: %s\n",
-              bdata(config_p->log_config.output));
-  OAILOG_INFO(LOG_SPGW_APP, "    Output thread-safe...: %s\n",
-              (config_p->log_config.is_output_thread_safe) ? "true" : "false");
-  OAILOG_INFO(LOG_SPGW_APP, "    UDP log level........: %s\n",
-              OAILOG_LEVEL_INT2STR(config_p->log_config.udp_log_level));
-  OAILOG_INFO(LOG_SPGW_APP, "    GTPV1-U log level....: %s\n",
-              OAILOG_LEVEL_INT2STR(config_p->log_config.gtpv1u_log_level));
-  OAILOG_INFO(LOG_SPGW_APP, "    GTPV2-C log level....: %s\n",
-              OAILOG_LEVEL_INT2STR(config_p->log_config.gtpv2c_log_level));
-  OAILOG_INFO(LOG_SPGW_APP, "    S/P-GW APP log level.: %s\n",
-              OAILOG_LEVEL_INT2STR(config_p->log_config.spgw_app_log_level));
-  OAILOG_INFO(LOG_SPGW_APP, "    S11 log level........: %s\n",
-              OAILOG_LEVEL_INT2STR(config_p->log_config.s11_log_level));
-  OAILOG_INFO(LOG_SPGW_APP, "    UTIL log level.......: %s\n",
-              OAILOG_LEVEL_INT2STR(config_p->log_config.util_log_level));
-  OAILOG_INFO(LOG_SPGW_APP,
-              "    ITTI log level.......: %s (InTer-Task Interface)\n",
-              OAILOG_LEVEL_INT2STR(config_p->log_config.itti_log_level));
-#endif
 }
 
 void free_sgw_config(sgw_config_t* sgw_config) {

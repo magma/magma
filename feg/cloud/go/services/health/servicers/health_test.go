@@ -61,7 +61,7 @@ func TestHealthServer_GetHealth(t *testing.T) {
 	store.On("Get", test_utils.TestFegNetwork, id1).Return(healthBlob, nil).Once()
 	store.On("Commit").Return(nil).Once()
 
-	stats, err := service.GetHealth(context.Background(), gwStatusReq)
+	stats, err := service.CloudHealthServer.GetHealth(context.Background(), gwStatusReq)
 	assert.NoError(t, err)
 	assert.Equal(t, fegprotos.HealthStatus_HEALTHY, stats.Health.Health)
 	assert.Equal(t, healthyReq.HealthStats.SystemStatus, stats.SystemStatus)
@@ -80,7 +80,7 @@ func TestHealthServer_GetHealth(t *testing.T) {
 	store.On("Get", test_utils.TestFegNetwork, id1).Return(unhealthyBlob, nil).Once()
 	store.On("Commit").Return(nil).Once()
 
-	stats, err = service.GetHealth(context.Background(), gwStatusReq)
+	stats, err = service.CloudHealthServer.GetHealth(context.Background(), gwStatusReq)
 	assert.NoError(t, err)
 	assert.Equal(t, fegprotos.HealthStatus_UNHEALTHY, stats.Health.Health)
 	assert.Equal(t, unhealthyReq.HealthStats.SystemStatus, stats.SystemStatus)

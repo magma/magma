@@ -914,6 +914,7 @@ void mme_ue_context_update_ue_sig_connection_state(
         MME_APP_TIMER_INACTIVE_ID) {
       mme_app_stop_timer(ue_context_p->mobile_reachability_timer.id);
       ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
+      ue_context_p->time_mobile_reachability_timer_started = 0;
     }
     // Stop Implicit detach timer,if running
     if (ue_context_p->implicit_detach_timer.id != MME_APP_TIMER_INACTIVE_ID) {

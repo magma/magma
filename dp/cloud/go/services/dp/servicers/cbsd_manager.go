@@ -25,7 +25,7 @@ import (
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/clock"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 type cbsdManager struct {
@@ -80,11 +80,14 @@ func (c *cbsdManager) ListCbsds(_ context.Context, request *protos.ListCbsdReque
 	if err != nil {
 		return nil, makeErr(err, "list cbsds")
 	}
-	details := make([]*protos.CbsdDetails, len(result))
-	for i, data := range result {
-		details[i] = cbsdFromDatabase(data, c.cbsdInactivityInterval)
+	resp := &protos.ListCbsdResponse{
+		Details:    make([]*protos.CbsdDetails, len(result.Cbsds)),
+		TotalCount: result.Count,
 	}
-	return &protos.ListCbsdResponse{Details: details}, nil
+	for i, data := range result.Cbsds {
+		resp.Details[i] = cbsdFromDatabase(data, c.cbsdInactivityInterval)
+	}
+	return resp, nil
 }
 
 func dbPagination(pagination *protos.Pagination) *storage.Pagination {
@@ -115,12 +118,12 @@ func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Durati
 	const mega int64 = 1e6
 	var grant *protos.GrantDetails
 	if data.GrantState.Name.Valid {
-		bandwidth := (data.Channel.HighFrequency.Int64 - data.Channel.LowFrequency.Int64) / mega
-		frequency := (data.Channel.HighFrequency.Int64 + data.Channel.LowFrequency.Int64) / (mega * 2)
+		bandwidth := (data.Grant.HighFrequency.Int64 - data.Grant.LowFrequency.Int64) / mega
+		frequency := (data.Grant.HighFrequency.Int64 + data.Grant.LowFrequency.Int64) / (mega * 2)
 		grant = &protos.GrantDetails{
 			BandwidthMhz:            bandwidth,
 			FrequencyMhz:            frequency,
-			MaxEirp:                 data.Channel.LastUsedMaxEirp.Float64,
+			MaxEirp:                 data.Grant.MaxEirp.Float64,
 			State:                   data.GrantState.Name.String,
 			TransmitExpireTimestamp: data.Grant.TransmitExpireTime.Time.Unix(),
 			GrantExpireTimestamp:    data.Grant.GrantExpireTime.Time.Unix(),

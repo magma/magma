@@ -20,7 +20,7 @@ class MacAddress:
     def __init__(self, mac: str):
         self.mac_address = mac
 
-    def as_hex(self) -> str:
+    def as_hex(self) -> bytes:
         """
         Covert Mac address string to binary number format.
         Returns: packed binary number.

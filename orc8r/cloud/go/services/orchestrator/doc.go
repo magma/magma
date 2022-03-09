@@ -12,7 +12,3 @@
  */
 
 package orchestrator
-
-const (
-	ServiceName = "orchestrator"
-)

@@ -101,7 +101,8 @@ SetSMSessionContext create_sm_pdu_session(
   req_rat_specific->mutable_gnode_endpoint()->set_end_ipv4_addr(ipv4_str);
 
   // Set the PTI
-  req_rat_specific->set_procedure_trans_identity((const char*)(&(pti)));
+  req_rat_specific->set_procedure_trans_identity((const char*)(&pti),
+                                                 sizeof(uint8_t));
 
   // qos_info
   qos_info.set_qos_class_id(static_cast<magma::lte::QCI>(qos_profile.qci));

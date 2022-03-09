@@ -64,6 +64,7 @@ py_library(
         "//orc8r/protos:metricsd_python_proto",
         "//orc8r/protos:service303_python_grpc",
         requirement("prometheus_client"),
+        requirement("setuptools"),
     ],
 )
 

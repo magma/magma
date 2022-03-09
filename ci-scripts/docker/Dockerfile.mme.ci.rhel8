@@ -5,7 +5,7 @@ FROM magma-dev-mme:ci-base-image as magma-mme-builder
 
 ARG FEATURES=mme_oai
 ENV MAGMA_ROOT=/magma
-ENV BUILD_TYPE=Debug
+ENV BUILD_TYPE=RelWithDebInfo
 ENV C_BUILD=/build/c
 
 # Remove any old CI artifact
@@ -20,7 +20,9 @@ RUN export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig/ && \
     echo $FEATURES && \
     make build_oai && \
     make build_sctpd && \
-    cp $C_BUILD/core/oai/oai_mme/mme $C_BUILD/core/oai/oai_mme/oai_mme
+    cp $C_BUILD/core/oai/oai_mme/mme $C_BUILD/core/oai/oai_mme/oai_mme && \
+    ldd $C_BUILD/core/oai/oai_mme/oai_mme && \
+    ldd $C_BUILD/sctpd/src/sctpd
 
 # Prepare config file
 RUN cd $MAGMA_ROOT/lte/gateway/docker/mme/configs/ && \
@@ -129,7 +131,9 @@ COPY --from=magma-mme-builder \
 WORKDIR /var/opt/magma/configs
 # Adding mme configuration for stateful run
 RUN echo "use_stateless: false" > mme.yml && \
-    openssl rand -out /root/.rnd 128
+    openssl rand -out /root/.rnd 128 && \
+    ldd /magma-mme/bin/oai_mme && \
+    ldd /magma-mme/bin/sctpd
 
 WORKDIR /etc/magma
 COPY --from=magma-mme-builder \

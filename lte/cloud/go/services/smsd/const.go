@@ -13,4 +13,4 @@
 
 package smsd
 
-const ServiceName = "SMSD"
+const ServiceName = "smsd"

@@ -101,7 +101,7 @@ func (d *directoryUpdateServicer) GetDirectoryField(
 	if err != nil {
 		return ret, err
 	}
-	client, err := state.GetStateClient()
+	client, err := state.GetCloudStateClient()
 	if err != nil {
 		return ret, err
 	}
@@ -150,7 +150,7 @@ func (d *directoryUpdateServicer) GetAllDirectoryRecords(
 	if err != nil {
 		return ret, err
 	}
-	client, err := state.GetStateClient()
+	client, err := state.GetCloudStateClient()
 	if err != nil {
 		return ret, err
 	}

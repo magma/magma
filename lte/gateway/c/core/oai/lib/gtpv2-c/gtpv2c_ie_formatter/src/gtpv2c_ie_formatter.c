@@ -22,7 +22,7 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include "../../gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
 
 #include <stdio.h>
 #include <stdint.h>

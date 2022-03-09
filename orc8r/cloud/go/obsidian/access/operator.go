@@ -21,7 +21,7 @@ import (
 
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/services/certifier"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 )
 
@@ -39,7 +39,7 @@ func getOperator(req *http.Request, decorate logDecorator) (*protos.Identity, er
 	}
 	certInfo, err := certifier.GetCertificateIdentity(req.Context(), csn)
 	if err != nil {
-		if _, ok := err.(errors.ClientInitError); ok {
+		if _, ok := err.(merrors.ClientInitError); ok {
 			glog.Error(decorate("Certificate SN '%s' lookup error '%s'", csn, err))
 			return nil, err
 		}

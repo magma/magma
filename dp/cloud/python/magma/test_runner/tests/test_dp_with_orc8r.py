@@ -126,8 +126,10 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         r = send_request_to_backend('get', 'cbsds')
         self.assertEqual(r.status_code, HTTPStatus.OK)
         data = r.json()
-        self.assertEqual(len(data), 1)
-        return data[0]
+        self.assertEqual(data.get('total_count'), 1)
+        cbsds = data.get('cbsds', [])
+        self.assertEqual(len(cbsds), 1)
+        return cbsds[0]
 
     def when_logs_are_fetched(self, params: Dict[str, Any]) -> List[Dict[str, Any]]:
         r = send_request_to_backend('get', 'logs', params=params)
@@ -166,14 +168,10 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         self.assertEqual(actual, expected)
 
     def then_cbsd_is_deleted(self):
-        r = requests.get(
-            f'{config.HTTP_SERVER}/{DP_HTTP_PREFIX}/{NETWORK}/cbsds',
-            cert=(config.DP_CERT_PATH, config.DP_SSL_KEY_PATH),
-            verify=False,  # noqa: S501
-        )
+        r = send_request_to_backend('get', 'cbsds')
         self.assertEqual(r.status_code, HTTPStatus.OK)
         data = r.json()
-        self.assertFalse(data)
+        self.assertFalse(data.get('total_count', True))
 
     def then_state_is(self, actual: CBSDStateResult, expected: CBSDStateResult):
         self.assertEqual(actual, expected)
