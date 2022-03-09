@@ -13,4 +13,4 @@ limitations under the License.
 
 package basic_acct
 
-const ServiceName = "BASE_ACCT"
+const ServiceName = "base_acct"

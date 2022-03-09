@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	ServiceName = "DIRECTORYD"
+	ServiceName = "directoryd"
 	ImsiPrefix  = "IMSI"
 
 	UseCloudDirectordEnv = "USE_CLOUD_DIRECTORYD"
