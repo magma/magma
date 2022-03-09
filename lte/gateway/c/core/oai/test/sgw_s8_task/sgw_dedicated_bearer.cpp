@@ -305,7 +305,7 @@ TEST_F(SgwS8ConfigAndCreateMock, send_create_bearer_req_to_mme) {
               mme_app_handle_nw_init_ded_bearer_actv_req(check_params_in_cb_req(
                   cb_req.linked_eps_bearer_id, cb_req.bearer_context[0].tft)))
       .Times(1)
-      .WillOnce(ReturnFromAsyncTask(&cv));
+      .WillOnce(ReturnFromAsyncTaskWithReturn(&cv));
 
   EXPECT_NE(
       sgw_s8_handle_create_bearer_request(sgw_state, &cb_req, &cause_value),
@@ -357,7 +357,7 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_create_bearer_response) {
               mme_app_handle_nw_init_ded_bearer_actv_req(check_params_in_cb_req(
                   cb_req.linked_eps_bearer_id, cb_req.bearer_context[0].tft)))
       .Times(1)
-      .WillOnce(ReturnFromAsyncTask(&cv));
+      .WillOnce(ReturnFromAsyncTaskWithReturn(&cv));
   EXPECT_NE(
       sgw_s8_handle_create_bearer_request(sgw_state, &cb_req, &cause_value),
       INVALID_IMSI64);
@@ -472,7 +472,7 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_delete_bearer_req) {
               mme_app_handle_nw_init_bearer_deactv_req(check_params_in_db_req(
                   db_req.num_eps_bearer_id, db_req.eps_bearer_id)))
       .Times(1)
-      .WillOnce(ReturnFromAsyncTask(&cv));
+      .WillOnce(ReturnFromAsyncTaskWithReturn(&cv));
   EXPECT_EQ(sgw_s8_handle_delete_bearer_request(sgw_state, &db_req), RETURNok);
   cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
   free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
