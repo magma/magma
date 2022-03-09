@@ -467,6 +467,8 @@ class S1ApUtil(object):
                     },
                 },
             )
+            print ("Created ", len(total_dl_ovs_flows_created),
+                    "Expected ", total_num_dl_flows_to_be_verified)
             assert (
                 len(total_dl_ovs_flows_created)
                 == total_num_dl_flows_to_be_verified
