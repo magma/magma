@@ -125,7 +125,7 @@ func (m RuleNames) ToTKs() storage.TKs {
 func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
 	ent := configurator.NetworkEntity{
 		Type:         lte.PolicyRuleEntityType,
-		Key:          string(m.ID),
+		Key:          string(*m.ID),
 		Config:       m.getConfig(),
 		Associations: m.GetAssocs(),
 	}
