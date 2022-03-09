@@ -175,7 +175,6 @@ class SessionManagerHandlerTest : public ::testing::Test {
     auto cfg = set_session_manager->m5g_build_session_config(*session_ctx_req);
     auto& noti = *req;
     auto ue_event = noti.notify_ue_event();
-    std::function<void(Status, SmContextVoid)> response_callback;
 
     EXPECT_EQ(pdu_id, 0x5);
     EXPECT_EQ(imsi, "IMSI000000000000001");
@@ -185,7 +184,9 @@ class SessionManagerHandlerTest : public ::testing::Test {
 
     EXPECT_EQ(reqcmn->ue_ipv4(), "192.168.128.11");
     EXPECT_EQ(reqcmn->rat_type(), magma::RATType::TGPP_NR);
-    set_session_manager->send_create_session(session_map_, imsi, cfg, pdu_id);
+    set_session_manager->send_create_session(
+        session_map_, imsi, cfg, pdu_id,
+        [this](grpc::Status status, SmContextVoid Void) {});
 
     EXPECT_EQ(reqcmn->sm_session_state(), magma::SMSessionFSMState::CREATING_0);
     EXPECT_EQ(ue_event, magma::NotifyUeEvents::PDU_SESSION_INACTIVE_NOTIFY);
@@ -621,7 +622,9 @@ TEST_F(SessionManagerHandlerTest, test_IPv6PDUSessionEstablishmentContext) {
   uint32_t pdu_id = request.mutable_rat_specific_context()
                         ->mutable_m5gsm_session_context()
                         ->pdu_session_id();
-  set_session_manager->send_create_session(session_map, IMSI1, cfg, pdu_id);
+  set_session_manager->send_create_session(
+      session_map, IMSI1, cfg, pdu_id,
+      [this](grpc::Status status, SmContextVoid Void) {});
 
   auto it = session_map.find(IMSI1);
   EXPECT_FALSE(it == session_map.end());
