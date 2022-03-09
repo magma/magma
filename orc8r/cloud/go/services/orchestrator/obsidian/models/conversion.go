@@ -496,7 +496,7 @@ func (m *TierVersion) FromBackendModels(ctx context.Context, networkID string, k
 	if err != nil {
 		return err
 	}
-	*m = iConfig.(*Tier).Version
+	*m = *iConfig.(*Tier).Version
 	return nil
 }
 
@@ -506,7 +506,7 @@ func (m *TierVersion) ToUpdateCriteria(ctx context.Context, networkID string, ke
 		return []configurator.EntityUpdateCriteria{}, err
 	}
 	tier := iConfig.(*Tier)
-	tier.Version = *m
+	tier.Version = m
 	return []configurator.EntityUpdateCriteria{
 		{Type: orc8r.UpgradeTierEntityType, Key: key, NewConfig: tier},
 	}, nil
