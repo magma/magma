@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json
 import logging
 from datetime import datetime
 from typing import Optional
@@ -27,7 +26,6 @@ from dp.protos.active_mode_pb2 import (
     FrequencyRange,
     GetStateRequest,
     Grant,
-    Request,
     State,
 )
 from dp.protos.active_mode_pb2_grpc import ActiveModeControllerServicer
@@ -43,13 +41,10 @@ from magma.db_service.models import (
     DBRequestState,
 )
 from magma.db_service.session_manager import Session, SessionManager
-from magma.mappings.cbsd_states import (
-    cbsd_state_mapping,
-    grant_state_mapping,
-    request_type_mapping,
-)
+from magma.mappings.cbsd_states import cbsd_state_mapping, grant_state_mapping
 from magma.mappings.types import GrantStates, RequestStates
-from sqlalchemy.orm import joinedload
+from sqlalchemy import and_
+from sqlalchemy.orm import contains_eager, joinedload
 
 logger = logging.getLogger(__name__)
 
@@ -124,32 +119,46 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
         return Empty()
 
     def _build_state(self, session: Session) -> State:
+        # It might be possible to use join instead of nested queries
+        # however it requires some serious investigation on how to use it
+        # with eager_contains and filter (aliases)
         db_grant_idle_state_id = session.query(DBGrantState.id).filter(
             DBGrantState.name == GrantStates.IDLE.value,
-        ).scalar()
+        ).scalar_subquery()
         db_request_pending_state_id = session.query(DBRequestState.id).filter(
             DBRequestState.name == RequestStates.PENDING.value,
-        ).scalar()
+        ).scalar_subquery()
 
         # Selectively load sqlalchemy object relations using a single query to avoid commit races.
         # We want to have CBSD entity "grants" relation only contain grants in a Non-IDLE state.
         # We want to have CBSD entity "requests" relation only contain PENDING requests.
-        db_configs = session.query(DBActiveModeConfig).join(DBCbsd).options(
-            joinedload(DBActiveModeConfig.cbsd).options(
+        db_cbsds = (
+            session.query(DBCbsd).
+            join(DBActiveModeConfig).
+            outerjoin(
+                DBGrant, and_(
+                    DBGrant.cbsd_id == DBCbsd.id,
+                    DBGrant.state_id != db_grant_idle_state_id,
+                ),
+            ).
+            outerjoin(
+                DBRequest, and_(
+                    DBRequest.cbsd_id == DBCbsd.id,
+                    DBRequest.state_id == db_request_pending_state_id,
+                ),
+            ).
+            options(
+                joinedload(DBCbsd.state),
                 joinedload(DBCbsd.channels),
-                joinedload(
-                    DBCbsd.grants.and_(
-                        DBGrant.state_id != db_grant_idle_state_id,
-                    ),
-                ),
-                joinedload(
-                    DBCbsd.requests.and_(
-                        DBRequest.state_id == db_request_pending_state_id,
-                    ),
-                ),
-            ),
-        ).filter(*self._get_filter()).populate_existing()
-        cbsds = [self._build_cbsd(db_config) for db_config in db_configs]
+                contains_eager(DBCbsd.active_mode_config).
+                joinedload(DBActiveModeConfig.desired_state),
+                contains_eager(DBCbsd.grants).
+                joinedload(DBGrant.state),
+            ).
+            filter(*self._get_filter()).
+            populate_existing()
+        )
+        cbsds = [self._build_cbsd(db_cbsd) for db_cbsd in db_cbsds]
         session.commit()
         return State(cbsds=cbsds)
 
@@ -158,18 +167,17 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
             DBCbsd.fcc_id, DBCbsd.user_id, DBCbsd.number_of_ports,
             DBCbsd.antenna_gain, DBCbsd.min_power, DBCbsd.max_power,
         ]
-        return [field != None for field in not_null_fields]  # noqa: E711
+        return [field != None for field in not_null_fields] + [DBRequest.id == None]  # noqa: E711
 
-    def _build_cbsd(self, config: DBActiveModeConfig) -> Cbsd:
-        cbsd = config.cbsd
+    def _build_cbsd(self, cbsd: DBCbsd) -> Cbsd:
         # Application may not need those to be sorted.
         # Applying ordering mostly for easier assertions in testing
+        config = cbsd.active_mode_config[0]
         cbsd_db_grants = sorted(cbsd.grants, key=lambda x: x.id)
         cbsd_db_channels = sorted(cbsd.channels, key=lambda x: x.id)
 
         grants = [self._build_grant(x) for x in cbsd_db_grants]
         channels = [self._build_channel(x) for x in cbsd_db_channels]
-        pending_requests = [self._build_request(x) for x in cbsd.requests]
 
         last_seen = _to_timestamp(cbsd.last_seen)
         eirp_capabilities = self._build_eirp_capabilities(cbsd)
@@ -183,7 +191,6 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
             desired_state=cbsd_state_mapping[config.desired_state.name],
             grants=grants,
             channels=channels,
-            pending_requests=pending_requests,
             last_seen_timestamp=last_seen,
             eirp_capabilities=eirp_capabilities,
             db_data=db_data,
@@ -206,12 +213,6 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
             ),
             max_eirp=_make_optional_float(channel.max_eirp),
             last_eirp=_make_optional_float(channel.last_used_max_eirp),
-        )
-
-    def _build_request(self, request: DBRequest) -> Request:
-        return Request(
-            type=request_type_mapping[request.type.name],
-            payload=json.dumps(request.payload, separators=(',', ':')),
         )
 
     def _build_eirp_capabilities(self, cbsd: DBCbsd) -> EirpCapabilities:

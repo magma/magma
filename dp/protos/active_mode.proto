@@ -38,10 +38,9 @@ message Cbsd {
   CbsdState desired_state = 6;
   repeated Grant grants = 7;
   repeated Channel channels = 8;
-  repeated Request pending_requests = 9;
-  int64 last_seen_timestamp = 10;
-  EirpCapabilities eirp_capabilities = 11;
-  DatabaseCbsd db_data = 12;
+  int64 last_seen_timestamp = 9;
+  EirpCapabilities eirp_capabilities = 10;
+  DatabaseCbsd db_data = 11;
 }
 
 enum CbsdState {
@@ -71,20 +70,6 @@ message Channel {
 message FrequencyRange {
   int64 low = 1;
   int64 high = 2;
-}
-
-message Request {
-  RequestsType type = 1;
-  string payload = 2;
-}
-
-enum RequestsType {
-  RegistrationRequest = 0;
-  SpectrumInquiryRequest = 1;
-  GrantRequest = 2;
-  HeartbeatRequest = 3;
-  RelinquishmentRequest = 4;
-  DeregistrationRequest = 5;
 }
 
 message EirpCapabilities {

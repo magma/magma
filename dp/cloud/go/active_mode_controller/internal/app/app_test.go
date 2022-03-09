@@ -71,12 +71,6 @@ func (s *AppTestSuite) TestGetStateAndSendRequests() {
 	s.thenRequestsWereEventuallyReceived(getExpectedRequests("some"))
 }
 
-func (s *AppTestSuite) TestFilterPendingRequests() {
-	s.givenState(withPendingRequests(buildSomeState("some", "other"), "some"))
-	s.whenTickerFired()
-	s.thenRequestsWereEventuallyReceived(getExpectedRequests("other"))
-}
-
 func (s *AppTestSuite) TestCalculateHeartbeatDeadline() {
 	const interval = 50 * time.Second
 	const delta = heartbeatTimeout + pollingTimeout
@@ -207,19 +201,6 @@ func (s *AppTestSuite) thenNoOtherRequestWasReceived() {
 		s.Failf("Expected no more requests, got: %s", actual.Payload)
 	default:
 	}
-}
-
-func withPendingRequests(state *active_mode.State, name string) *active_mode.State {
-	for _, cbsd := range state.Cbsds {
-		if cbsd.UserId == name {
-			cbsd.PendingRequests = []*active_mode.Request{{
-				Type:    active_mode.RequestsType_RegistrationRequest,
-				Payload: getExpectedSingleRequest(name),
-			}}
-			break
-		}
-	}
-	return state
 }
 
 func buildSomeState(names ...string) *active_mode.State {
