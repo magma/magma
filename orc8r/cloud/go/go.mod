@@ -11,6 +11,8 @@
 
 module magma/orc8r/cloud/go
 
+go 1.16
+
 replace (
 	k8s.io/client-go => k8s.io/client-go v0.0.0-20191016111102-bec269661e48
 	magma/gateway => ../../gateway/go
@@ -78,5 +80,3 @@ require (
 	magma/orc8r/lib/go v0.0.0-00010101000000-000000000000
 	magma/orc8r/lib/go/protos v0.0.0
 )
-
-go 1.12
