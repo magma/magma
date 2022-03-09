@@ -25,6 +25,7 @@ env:
   DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:latest"
   BAZEL_CACHE: bazel-cache
   BAZEL_CACHE_REPO: bazel-cache-repo
+  CACHE_SUB_KEY: build-warnings
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -67,9 +68,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
-          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-build-warnings-${{ github.sha }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ env.CACHE_SUB_KEY }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ env.CACHE_SUB_KEY }}-
       - name: Bazel Cache Repo
         uses: actions/cache@v2
         with:
