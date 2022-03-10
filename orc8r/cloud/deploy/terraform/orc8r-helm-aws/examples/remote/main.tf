@@ -72,8 +72,8 @@ module "orc8r" {
   secretsmanager_orc8r_secret = "orc8r-secrets"
   orc8r_domain_name           = "orc8r.example.com"
 
-  vpc_name        = "orc8r"
-  cluster_name    = "orc8r"
+  vpc_name     = "orc8r"
+  cluster_name = "orc8r"
 
   deploy_elasticsearch          = true
   elasticsearch_domain_name     = "orc8r-es"
