@@ -36,6 +36,8 @@ services:
         port: 9103
       session_proxy:
         port: 9079
+      n7_n40_proxy:
+        port: 9103
       swx_proxy:
         port: 9103
       csfb:

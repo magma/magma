@@ -180,7 +180,6 @@ class RadioControllerTestCase(LocalDBTestCase):
                 channel_type=f"test_type{number}",
                 rule_applied=f"test_rule{number}",
                 max_eirp=0.1 + number,
-                last_used_max_eirp=1.1 + number,
             ) for _ in range(0, number)
         ]
         self.session.add_all(channels)

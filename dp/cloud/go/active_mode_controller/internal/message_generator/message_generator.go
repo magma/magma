@@ -8,18 +8,25 @@ import (
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/message"
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas"
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas_helpers"
+	"magma/dp/cloud/go/active_mode_controller/internal/ranges"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 )
 
 type messageGenerator struct {
 	heartbeatTimeout  time.Duration
 	inactivityTimeout time.Duration
+	indexProvider     ranges.IndexProvider
 }
 
-func NewMessageGenerator(heartbeatTimeout time.Duration, inactivityTimeout time.Duration) *messageGenerator {
+func NewMessageGenerator(
+	heartbeatTimeout time.Duration,
+	inactivityTimeout time.Duration,
+	indexProvider ranges.IndexProvider,
+) *messageGenerator {
 	return &messageGenerator{
 		heartbeatTimeout:  heartbeatTimeout,
 		inactivityTimeout: inactivityTimeout,
+		indexProvider:     indexProvider,
 	}
 }
 
@@ -34,7 +41,6 @@ func (m *messageGenerator) GenerateMessages(state *active_mode.State, now time.T
 	for _, cbsd := range state.Cbsds {
 		g := m.getPerCbsdMessageGenerator(cbsd, now)
 		reqs := g.sas.GenerateRequests(cbsd)
-		reqs = sas_helpers.Filter(cbsd.GetPendingRequests(), reqs)
 		requests = append(requests, reqs...)
 		msgs = append(msgs, g.crud.generateMessages(cbsd.GetDbData())...)
 	}
@@ -46,12 +52,6 @@ func (m *messageGenerator) GenerateMessages(state *active_mode.State, now time.T
 }
 
 func (m *messageGenerator) getPerCbsdMessageGenerator(cbsd *active_mode.Cbsd, now time.Time) *perCbsdMessageGenerator {
-	if pendingStateChange(cbsd.GetPendingRequests()) {
-		return &perCbsdMessageGenerator{
-			sas:  &noRequestGenerator{},
-			crud: &noMessageGenerator{},
-		}
-	}
 	if cbsd.GetState() == active_mode.CbsdState_Unregistered {
 		data := cbsd.GetDbData()
 		if data.GetIsDeleted() {
@@ -71,20 +71,6 @@ func (m *messageGenerator) getPerCbsdMessageGenerator(cbsd *active_mode.Cbsd, no
 		sas:  m.getPerCbsdSasRequestGenerator(cbsd, now),
 		crud: &noMessageGenerator{},
 	}
-}
-
-var stateChangeRequestType = map[active_mode.RequestsType]bool{
-	active_mode.RequestsType_RegistrationRequest:   true,
-	active_mode.RequestsType_DeregistrationRequest: true,
-}
-
-func pendingStateChange(requests []*active_mode.Request) bool {
-	for _, r := range requests {
-		if stateChangeRequestType[r.Type] {
-			return true
-		}
-	}
-	return false
 }
 
 func (m *messageGenerator) getPerCbsdSasRequestGenerator(cbsd *active_mode.Cbsd, now time.Time) sasRequestGenerator {
@@ -109,7 +95,7 @@ func (m *messageGenerator) getPerCbsdSasRequestGenerator(cbsd *active_mode.Cbsd,
 	}
 	return &firstNotNullRequestGenerator{
 		generators: []sasRequestGenerator{
-			sas.NewGrantRequestGenerator(),
+			sas.NewGrantRequestGenerator(m.indexProvider),
 			sas.NewSpectrumInquiryRequestGenerator(),
 		},
 	}

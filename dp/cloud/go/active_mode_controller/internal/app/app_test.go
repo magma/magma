@@ -71,12 +71,6 @@ func (s *AppTestSuite) TestGetStateAndSendRequests() {
 	s.thenRequestsWereEventuallyReceived(getExpectedRequests("some"))
 }
 
-func (s *AppTestSuite) TestFilterPendingRequests() {
-	s.givenState(withPendingRequests(buildSomeState("some", "other"), "some"))
-	s.whenTickerFired()
-	s.thenRequestsWereEventuallyReceived(getExpectedRequests("other"))
-}
-
 func (s *AppTestSuite) TestCalculateHeartbeatDeadline() {
 	const interval = 50 * time.Second
 	const delta = heartbeatTimeout + pollingTimeout
@@ -117,6 +111,7 @@ func (s *AppTestSuite) givenAppRunning() {
 	a := app.NewApp(
 		app.WithDialer(s.dialer),
 		app.WithClock(s.clock),
+		app.WithIndexProvider(&stubIndexProvider{}),
 		app.WithConfig(&config.Config{
 			DialTimeout:               timeout,
 			HeartbeatSendTimeout:      heartbeatTimeout,
@@ -209,19 +204,6 @@ func (s *AppTestSuite) thenNoOtherRequestWasReceived() {
 	}
 }
 
-func withPendingRequests(state *active_mode.State, name string) *active_mode.State {
-	for _, cbsd := range state.Cbsds {
-		if cbsd.UserId == name {
-			cbsd.PendingRequests = []*active_mode.Request{{
-				Type:    active_mode.RequestsType_RegistrationRequest,
-				Payload: getExpectedSingleRequest(name),
-			}}
-			break
-		}
-	}
-	return state
-}
-
 func buildSomeState(names ...string) *active_mode.State {
 	cbsds := make([]*active_mode.Cbsd, len(names))
 	for i, name := range names {
@@ -284,6 +266,12 @@ func getExpectedHeartbeatRequests(id string, grantIds ...string) []*requests.Req
 func getExpectedHeartbeatRequest(id string, grantId string) string {
 	const template = `{"cbsdId":"%s","grantId":"%s","operationState":"AUTHORIZED"}`
 	return fmt.Sprintf(template, id, grantId)
+}
+
+type stubIndexProvider struct{}
+
+func (s *stubIndexProvider) Intn(_ int) int {
+	return 0
 }
 
 type stubClock struct {

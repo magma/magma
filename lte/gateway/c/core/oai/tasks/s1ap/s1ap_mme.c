@@ -36,6 +36,7 @@
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 #include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
@@ -517,6 +518,10 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
                ue_ref->enb_ue_s1ap_id, ue_ref->mme_ue_s1ap_id, enb_ref->enb_id);
 
   ue_ref->s1_ue_state = S1AP_UE_INVALID_STATE;
+  if (ue_ref->s1ap_ue_context_rel_timer.id != S1AP_TIMER_INACTIVE_ID) {
+    s1ap_stop_timer(ue_ref->s1ap_ue_context_rel_timer.id);
+    ue_ref->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
+  }
 
   hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
   hashtable_ts_free(state_ue_ht, ue_ref->comp_s1ap_id);

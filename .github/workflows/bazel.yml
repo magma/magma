@@ -18,6 +18,8 @@ env:
   DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:latest"
   BAZEL_CACHE: bazel-cache
   BAZEL_CACHE_REPO: bazel-cache-repo
+  CACHE_SUB_KEY_BUILD_ALL: build-all
+  CACHE_SUB_KEY_TEST_ALL: test-all
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -64,9 +66,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
-          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-build-all-${{ github.sha }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ env.CACHE_SUB_KEY_BUILD_ALL }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ env.CACHE_SUB_KEY_BUILD_ALL }}-
 
       - name: Bazel Cache Repo
         uses: actions/cache@v2
@@ -136,9 +138,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
-          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-test-all-${{ github.sha }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ env.CACHE_SUB_KEY_TEST_ALL }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ env.CACHE_SUB_KEY_TEST_ALL }}-
 
       - name: Bazel Cache Repo
         uses: actions/cache@v2

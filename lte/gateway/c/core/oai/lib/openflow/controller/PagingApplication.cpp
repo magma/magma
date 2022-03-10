@@ -41,8 +41,6 @@ uint32_t prefix2mask(int prefix) {
 
 void PagingApplication::event_callback(const ControllerEvent& ev,
                                        const OpenflowMessenger& messenger) {
-  struct in6_addr dest_ipv6;
-
   if (ev.get_type() == EVENT_PACKET_IN) {
     const PacketInEvent& pi = static_cast<const PacketInEvent&>(ev);
     of13::PacketIn ofpi;
