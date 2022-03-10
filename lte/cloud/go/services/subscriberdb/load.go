@@ -178,8 +178,8 @@ func ConvertSubEntsToProtos(ent configurator.NetworkEntity, apnConfigs map[strin
 	}
 	subData.SubNetwork = subNetwork
 
-	if cfg.Lte.SubProfile != "" {
-		subData.SubProfile = string(cfg.Lte.SubProfile)
+	if *cfg.Lte.SubProfile != "" {
+		subData.SubProfile = string(*cfg.Lte.SubProfile)
 	} else {
 		subData.SubProfile = defaultSubProfile
 	}

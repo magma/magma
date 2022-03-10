@@ -337,7 +337,7 @@ func UpdateRule(c echo.Context) error {
 	if err := rule.ValidateModel(reqCtx); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	if ruleID != string(rule.ID) {
+	if ruleID != string(*rule.ID) {
 		return echo.NewHTTPError(http.StatusBadRequest, errors.New("rule ID in body does not match URL param"))
 	}
 
