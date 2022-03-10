@@ -47,7 +47,7 @@
     "dotenv": "^8.2.0",
     "https": "^1.0.0",
     "lodash": "^4.17.11",
-    "mapbox-gl": "^0.53.0",
+    "mapbox-gl": "^1.0.0",
     "mariadb": "^2.4.2",
     "material-table": "1.69.0",
     "material-ui-dropzone": "^3.5.0",
