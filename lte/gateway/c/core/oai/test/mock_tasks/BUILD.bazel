@@ -34,5 +34,6 @@ cc_library(
     ],
     deps = [
         "//lte/gateway/c/core",
+        "@com_google_googletest//:gtest_main",
     ],
 )
