@@ -7,12 +7,11 @@ package sms
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new sms API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,10 +23,23 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteLTENetworkIDSMSSMSPk(params *DeleteLTENetworkIDSMSSMSPkParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDSMSSMSPkNoContent, error)
+
+	GetLTENetworkIDSMS(params *GetLTENetworkIDSMSParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDSMSOK, error)
+
+	GetLTENetworkIDSMSSMSPk(params *GetLTENetworkIDSMSSMSPkParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDSMSSMSPkOK, error)
+
+	PostLTENetworkIDSMS(params *PostLTENetworkIDSMSParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDSMSCreated, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteLTENetworkIDSMSSMSPk deletes SMS message
+  DeleteLTENetworkIDSMSSMSPk deletes SMS message
 */
-func (a *Client) DeleteLTENetworkIDSMSSMSPk(params *DeleteLTENetworkIDSMSSMSPkParams) (*DeleteLTENetworkIDSMSSMSPkNoContent, error) {
+func (a *Client) DeleteLTENetworkIDSMSSMSPk(params *DeleteLTENetworkIDSMSSMSPkParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDSMSSMSPkNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDSMSSMSPkParams()
@@ -42,6 +54,7 @@ func (a *Client) DeleteLTENetworkIDSMSSMSPk(params *DeleteLTENetworkIDSMSSMSPkPa
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteLTENetworkIDSMSSMSPkReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -58,9 +71,9 @@ func (a *Client) DeleteLTENetworkIDSMSSMSPk(params *DeleteLTENetworkIDSMSSMSPkPa
 }
 
 /*
-GetLTENetworkIDSMS lists SMS messages
+  GetLTENetworkIDSMS lists SMS messages
 */
-func (a *Client) GetLTENetworkIDSMS(params *GetLTENetworkIDSMSParams) (*GetLTENetworkIDSMSOK, error) {
+func (a *Client) GetLTENetworkIDSMS(params *GetLTENetworkIDSMSParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDSMSOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDSMSParams()
@@ -75,6 +88,7 @@ func (a *Client) GetLTENetworkIDSMS(params *GetLTENetworkIDSMSParams) (*GetLTENe
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetLTENetworkIDSMSReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -91,9 +105,9 @@ func (a *Client) GetLTENetworkIDSMS(params *GetLTENetworkIDSMSParams) (*GetLTENe
 }
 
 /*
-GetLTENetworkIDSMSSMSPk gets SMS message
+  GetLTENetworkIDSMSSMSPk gets SMS message
 */
-func (a *Client) GetLTENetworkIDSMSSMSPk(params *GetLTENetworkIDSMSSMSPkParams) (*GetLTENetworkIDSMSSMSPkOK, error) {
+func (a *Client) GetLTENetworkIDSMSSMSPk(params *GetLTENetworkIDSMSSMSPkParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDSMSSMSPkOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDSMSSMSPkParams()
@@ -108,6 +122,7 @@ func (a *Client) GetLTENetworkIDSMSSMSPk(params *GetLTENetworkIDSMSSMSPkParams) 
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetLTENetworkIDSMSSMSPkReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -124,9 +139,9 @@ func (a *Client) GetLTENetworkIDSMSSMSPk(params *GetLTENetworkIDSMSSMSPkParams) 
 }
 
 /*
-PostLTENetworkIDSMS creates new SMS message
+  PostLTENetworkIDSMS creates new SMS message
 */
-func (a *Client) PostLTENetworkIDSMS(params *PostLTENetworkIDSMSParams) (*PostLTENetworkIDSMSCreated, error) {
+func (a *Client) PostLTENetworkIDSMS(params *PostLTENetworkIDSMSParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDSMSCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTENetworkIDSMSParams()
@@ -141,6 +156,7 @@ func (a *Client) PostLTENetworkIDSMS(params *PostLTENetworkIDSMSParams) (*PostLT
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostLTENetworkIDSMSReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})

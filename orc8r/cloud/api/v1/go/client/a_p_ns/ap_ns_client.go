@@ -7,12 +7,11 @@ package a_p_ns
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new a p ns API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,10 +23,25 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteLTENetworkIDAPNSAPNName(params *DeleteLTENetworkIDAPNSAPNNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDAPNSAPNNameNoContent, error)
+
+	GetLTENetworkIDAPNS(params *GetLTENetworkIDAPNSParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDAPNSOK, error)
+
+	GetLTENetworkIDAPNSAPNName(params *GetLTENetworkIDAPNSAPNNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDAPNSAPNNameOK, error)
+
+	PostLTENetworkIDAPNS(params *PostLTENetworkIDAPNSParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDAPNSCreated, error)
+
+	PutLTENetworkIDAPNSAPNName(params *PutLTENetworkIDAPNSAPNNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDAPNSAPNNameNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteLTENetworkIDAPNSAPNName removes an APN from the network
+  DeleteLTENetworkIDAPNSAPNName removes an APN from the network
 */
-func (a *Client) DeleteLTENetworkIDAPNSAPNName(params *DeleteLTENetworkIDAPNSAPNNameParams) (*DeleteLTENetworkIDAPNSAPNNameNoContent, error) {
+func (a *Client) DeleteLTENetworkIDAPNSAPNName(params *DeleteLTENetworkIDAPNSAPNNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDAPNSAPNNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDAPNSAPNNameParams()
@@ -42,6 +56,7 @@ func (a *Client) DeleteLTENetworkIDAPNSAPNName(params *DeleteLTENetworkIDAPNSAPN
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteLTENetworkIDAPNSAPNNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -58,9 +73,9 @@ func (a *Client) DeleteLTENetworkIDAPNSAPNName(params *DeleteLTENetworkIDAPNSAPN
 }
 
 /*
-GetLTENetworkIDAPNS lists a p ns in the network
+  GetLTENetworkIDAPNS lists a p ns in the network
 */
-func (a *Client) GetLTENetworkIDAPNS(params *GetLTENetworkIDAPNSParams) (*GetLTENetworkIDAPNSOK, error) {
+func (a *Client) GetLTENetworkIDAPNS(params *GetLTENetworkIDAPNSParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDAPNSOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDAPNSParams()
@@ -75,6 +90,7 @@ func (a *Client) GetLTENetworkIDAPNS(params *GetLTENetworkIDAPNSParams) (*GetLTE
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetLTENetworkIDAPNSReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -91,9 +107,9 @@ func (a *Client) GetLTENetworkIDAPNS(params *GetLTENetworkIDAPNSParams) (*GetLTE
 }
 
 /*
-GetLTENetworkIDAPNSAPNName retrieves the APN info
+  GetLTENetworkIDAPNSAPNName retrieves the APN info
 */
-func (a *Client) GetLTENetworkIDAPNSAPNName(params *GetLTENetworkIDAPNSAPNNameParams) (*GetLTENetworkIDAPNSAPNNameOK, error) {
+func (a *Client) GetLTENetworkIDAPNSAPNName(params *GetLTENetworkIDAPNSAPNNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDAPNSAPNNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDAPNSAPNNameParams()
@@ -108,6 +124,7 @@ func (a *Client) GetLTENetworkIDAPNSAPNName(params *GetLTENetworkIDAPNSAPNNamePa
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetLTENetworkIDAPNSAPNNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -124,9 +141,9 @@ func (a *Client) GetLTENetworkIDAPNSAPNName(params *GetLTENetworkIDAPNSAPNNamePa
 }
 
 /*
-PostLTENetworkIDAPNS adds a new APN to the network
+  PostLTENetworkIDAPNS adds a new APN to the network
 */
-func (a *Client) PostLTENetworkIDAPNS(params *PostLTENetworkIDAPNSParams) (*PostLTENetworkIDAPNSCreated, error) {
+func (a *Client) PostLTENetworkIDAPNS(params *PostLTENetworkIDAPNSParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDAPNSCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTENetworkIDAPNSParams()
@@ -141,6 +158,7 @@ func (a *Client) PostLTENetworkIDAPNS(params *PostLTENetworkIDAPNSParams) (*Post
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostLTENetworkIDAPNSReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -157,9 +175,9 @@ func (a *Client) PostLTENetworkIDAPNS(params *PostLTENetworkIDAPNSParams) (*Post
 }
 
 /*
-PutLTENetworkIDAPNSAPNName updates an existing APN in the network
+  PutLTENetworkIDAPNSAPNName updates an existing APN in the network
 */
-func (a *Client) PutLTENetworkIDAPNSAPNName(params *PutLTENetworkIDAPNSAPNNameParams) (*PutLTENetworkIDAPNSAPNNameNoContent, error) {
+func (a *Client) PutLTENetworkIDAPNSAPNName(params *PutLTENetworkIDAPNSAPNNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDAPNSAPNNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDAPNSAPNNameParams()
@@ -174,6 +192,7 @@ func (a *Client) PutLTENetworkIDAPNSAPNName(params *PutLTENetworkIDAPNSAPNNamePa
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutLTENetworkIDAPNSAPNNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})

@@ -9,12 +9,11 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new call tracing API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -26,10 +25,27 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteNetworksNetworkIDTracingTraceID(params *DeleteNetworksNetworkIDTracingTraceIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDTracingTraceIDNoContent, error)
+
+	GetNetworksNetworkIDTracing(params *GetNetworksNetworkIDTracingParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTracingOK, error)
+
+	GetNetworksNetworkIDTracingTraceID(params *GetNetworksNetworkIDTracingTraceIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTracingTraceIDOK, error)
+
+	GetNetworksNetworkIDTracingTraceIDDownload(params *GetNetworksNetworkIDTracingTraceIDDownloadParams, authInfo runtime.ClientAuthInfoWriter, writer io.Writer) (*GetNetworksNetworkIDTracingTraceIDDownloadOK, error)
+
+	PostNetworksNetworkIDTracing(params *PostNetworksNetworkIDTracingParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDTracingCreated, error)
+
+	PutNetworksNetworkIDTracingTraceID(params *PutNetworksNetworkIDTracingTraceIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTracingTraceIDNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteNetworksNetworkIDTracingTraceID deletes a call trace record
+  DeleteNetworksNetworkIDTracingTraceID deletes a call trace record
 */
-func (a *Client) DeleteNetworksNetworkIDTracingTraceID(params *DeleteNetworksNetworkIDTracingTraceIDParams) (*DeleteNetworksNetworkIDTracingTraceIDNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDTracingTraceID(params *DeleteNetworksNetworkIDTracingTraceIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDTracingTraceIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDTracingTraceIDParams()
@@ -44,6 +60,7 @@ func (a *Client) DeleteNetworksNetworkIDTracingTraceID(params *DeleteNetworksNet
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteNetworksNetworkIDTracingTraceIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -60,9 +77,9 @@ func (a *Client) DeleteNetworksNetworkIDTracingTraceID(params *DeleteNetworksNet
 }
 
 /*
-GetNetworksNetworkIDTracing lists all call traces for a network
+  GetNetworksNetworkIDTracing lists all call traces for a network
 */
-func (a *Client) GetNetworksNetworkIDTracing(params *GetNetworksNetworkIDTracingParams) (*GetNetworksNetworkIDTracingOK, error) {
+func (a *Client) GetNetworksNetworkIDTracing(params *GetNetworksNetworkIDTracingParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTracingOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDTracingParams()
@@ -77,6 +94,7 @@ func (a *Client) GetNetworksNetworkIDTracing(params *GetNetworksNetworkIDTracing
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDTracingReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -93,9 +111,9 @@ func (a *Client) GetNetworksNetworkIDTracing(params *GetNetworksNetworkIDTracing
 }
 
 /*
-GetNetworksNetworkIDTracingTraceID gets tracing status
+  GetNetworksNetworkIDTracingTraceID gets tracing status
 */
-func (a *Client) GetNetworksNetworkIDTracingTraceID(params *GetNetworksNetworkIDTracingTraceIDParams) (*GetNetworksNetworkIDTracingTraceIDOK, error) {
+func (a *Client) GetNetworksNetworkIDTracingTraceID(params *GetNetworksNetworkIDTracingTraceIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTracingTraceIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDTracingTraceIDParams()
@@ -110,6 +128,7 @@ func (a *Client) GetNetworksNetworkIDTracingTraceID(params *GetNetworksNetworkID
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDTracingTraceIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -126,9 +145,9 @@ func (a *Client) GetNetworksNetworkIDTracingTraceID(params *GetNetworksNetworkID
 }
 
 /*
-GetNetworksNetworkIDTracingTraceIDDownload gets the call trace in p c a p format
+  GetNetworksNetworkIDTracingTraceIDDownload gets the call trace in p c a p format
 */
-func (a *Client) GetNetworksNetworkIDTracingTraceIDDownload(params *GetNetworksNetworkIDTracingTraceIDDownloadParams, writer io.Writer) (*GetNetworksNetworkIDTracingTraceIDDownloadOK, error) {
+func (a *Client) GetNetworksNetworkIDTracingTraceIDDownload(params *GetNetworksNetworkIDTracingTraceIDDownloadParams, authInfo runtime.ClientAuthInfoWriter, writer io.Writer) (*GetNetworksNetworkIDTracingTraceIDDownloadOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDTracingTraceIDDownloadParams()
@@ -143,6 +162,7 @@ func (a *Client) GetNetworksNetworkIDTracingTraceIDDownload(params *GetNetworksN
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDTracingTraceIDDownloadReader{formats: a.formats, writer: writer},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -159,9 +179,9 @@ func (a *Client) GetNetworksNetworkIDTracingTraceIDDownload(params *GetNetworksN
 }
 
 /*
-PostNetworksNetworkIDTracing starts a new call trace
+  PostNetworksNetworkIDTracing starts a new call trace
 */
-func (a *Client) PostNetworksNetworkIDTracing(params *PostNetworksNetworkIDTracingParams) (*PostNetworksNetworkIDTracingCreated, error) {
+func (a *Client) PostNetworksNetworkIDTracing(params *PostNetworksNetworkIDTracingParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDTracingCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDTracingParams()
@@ -176,6 +196,7 @@ func (a *Client) PostNetworksNetworkIDTracing(params *PostNetworksNetworkIDTraci
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksNetworkIDTracingReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -192,9 +213,9 @@ func (a *Client) PostNetworksNetworkIDTracing(params *PostNetworksNetworkIDTraci
 }
 
 /*
-PutNetworksNetworkIDTracingTraceID updates a call trace
+  PutNetworksNetworkIDTracingTraceID updates a call trace
 */
-func (a *Client) PutNetworksNetworkIDTracingTraceID(params *PutNetworksNetworkIDTracingTraceIDParams) (*PutNetworksNetworkIDTracingTraceIDNoContent, error) {
+func (a *Client) PutNetworksNetworkIDTracingTraceID(params *PutNetworksNetworkIDTracingTraceIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTracingTraceIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDTracingTraceIDParams()
@@ -209,6 +230,7 @@ func (a *Client) PutNetworksNetworkIDTracingTraceID(params *PutNetworksNetworkID
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDTracingTraceIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})

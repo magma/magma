@@ -6,10 +6,11 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // PrometheusLabelset prometheus labelset
+//
 // swagger:model prometheus_labelset
 type PrometheusLabelset map[string]string
 

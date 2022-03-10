@@ -6,14 +6,14 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // MutableFederationGateway Federation gateway object with read-only fields omitted
+//
 // swagger:model mutable_federation_gateway
 type MutableFederationGateway struct {
 
@@ -22,8 +22,7 @@ type MutableFederationGateway struct {
 	Description GatewayDescription `json:"description"`
 
 	// device
-	// Required: true
-	Device *GatewayDevice `json:"device"`
+	Device *GatewayDevice `json:"device,omitempty"`
 
 	// federation
 	Federation *GatewayFederationConfigs `json:"federation,omitempty"`
@@ -97,8 +96,8 @@ func (m *MutableFederationGateway) validateDescription(formats strfmt.Registry) 
 
 func (m *MutableFederationGateway) validateDevice(formats strfmt.Registry) error {
 
-	if err := validate.Required("device", "body", m.Device); err != nil {
-		return err
+	if swag.IsZero(m.Device) { // not required
+		return nil
 	}
 
 	if m.Device != nil {

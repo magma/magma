@@ -7,12 +7,11 @@ package networks
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new networks API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,10 +23,65 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteNetworksNetworkID(params *DeleteNetworksNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDNoContent, error)
+
+	DeleteNetworksNetworkIDDNSRecordsDomain(params *DeleteNetworksNetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDDNSRecordsDomainNoContent, error)
+
+	GetNetworks(params *GetNetworksParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksOK, error)
+
+	GetNetworksNetworkID(params *GetNetworksNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDOK, error)
+
+	GetNetworksNetworkIDDNS(params *GetNetworksNetworkIDDNSParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDDNSOK, error)
+
+	GetNetworksNetworkIDDNSRecords(params *GetNetworksNetworkIDDNSRecordsParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDDNSRecordsOK, error)
+
+	GetNetworksNetworkIDDNSRecordsDomain(params *GetNetworksNetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDDNSRecordsDomainOK, error)
+
+	GetNetworksNetworkIDDescription(params *GetNetworksNetworkIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDDescriptionOK, error)
+
+	GetNetworksNetworkIDFeatures(params *GetNetworksNetworkIDFeaturesParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDFeaturesOK, error)
+
+	GetNetworksNetworkIDName(params *GetNetworksNetworkIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDNameOK, error)
+
+	GetNetworksNetworkIDSentry(params *GetNetworksNetworkIDSentryParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDSentryOK, error)
+
+	GetNetworksNetworkIDState(params *GetNetworksNetworkIDStateParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDStateOK, error)
+
+	GetNetworksNetworkIDType(params *GetNetworksNetworkIDTypeParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTypeOK, error)
+
+	PostNetworks(params *PostNetworksParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksCreated, error)
+
+	PostNetworksNetworkIDDNSRecordsDomain(params *PostNetworksNetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDDNSRecordsDomainCreated, error)
+
+	PutNetworksNetworkID(params *PutNetworksNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDNoContent, error)
+
+	PutNetworksNetworkIDDNS(params *PutNetworksNetworkIDDNSParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDDNSNoContent, error)
+
+	PutNetworksNetworkIDDNSRecords(params *PutNetworksNetworkIDDNSRecordsParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDDNSRecordsNoContent, error)
+
+	PutNetworksNetworkIDDNSRecordsDomain(params *PutNetworksNetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDDNSRecordsDomainNoContent, error)
+
+	PutNetworksNetworkIDDescription(params *PutNetworksNetworkIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDDescriptionNoContent, error)
+
+	PutNetworksNetworkIDFeatures(params *PutNetworksNetworkIDFeaturesParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDFeaturesNoContent, error)
+
+	PutNetworksNetworkIDName(params *PutNetworksNetworkIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDNameNoContent, error)
+
+	PutNetworksNetworkIDSentry(params *PutNetworksNetworkIDSentryParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDSentryNoContent, error)
+
+	PutNetworksNetworkIDState(params *PutNetworksNetworkIDStateParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDStateNoContent, error)
+
+	PutNetworksNetworkIDType(params *PutNetworksNetworkIDTypeParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTypeNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteNetworksNetworkID deletes a network
+  DeleteNetworksNetworkID deletes a network
 */
-func (a *Client) DeleteNetworksNetworkID(params *DeleteNetworksNetworkIDParams) (*DeleteNetworksNetworkIDNoContent, error) {
+func (a *Client) DeleteNetworksNetworkID(params *DeleteNetworksNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDParams()
@@ -42,6 +96,7 @@ func (a *Client) DeleteNetworksNetworkID(params *DeleteNetworksNetworkIDParams) 
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteNetworksNetworkIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -58,9 +113,9 @@ func (a *Client) DeleteNetworksNetworkID(params *DeleteNetworksNetworkIDParams) 
 }
 
 /*
-DeleteNetworksNetworkIDDNSRecordsDomain deletes the DNS record for a specific domain
+  DeleteNetworksNetworkIDDNSRecordsDomain deletes the DNS record for a specific domain
 */
-func (a *Client) DeleteNetworksNetworkIDDNSRecordsDomain(params *DeleteNetworksNetworkIDDNSRecordsDomainParams) (*DeleteNetworksNetworkIDDNSRecordsDomainNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDDNSRecordsDomain(params *DeleteNetworksNetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDDNSRecordsDomainNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDDNSRecordsDomainParams()
@@ -75,6 +130,7 @@ func (a *Client) DeleteNetworksNetworkIDDNSRecordsDomain(params *DeleteNetworksN
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteNetworksNetworkIDDNSRecordsDomainReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -91,9 +147,9 @@ func (a *Client) DeleteNetworksNetworkIDDNSRecordsDomain(params *DeleteNetworksN
 }
 
 /*
-GetNetworks lists all network i ds
+  GetNetworks lists all network i ds
 */
-func (a *Client) GetNetworks(params *GetNetworksParams) (*GetNetworksOK, error) {
+func (a *Client) GetNetworks(params *GetNetworksParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksParams()
@@ -108,6 +164,7 @@ func (a *Client) GetNetworks(params *GetNetworksParams) (*GetNetworksOK, error) 
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -124,9 +181,9 @@ func (a *Client) GetNetworks(params *GetNetworksParams) (*GetNetworksOK, error) 
 }
 
 /*
-GetNetworksNetworkID gets a generic network description
+  GetNetworksNetworkID gets a generic network description
 */
-func (a *Client) GetNetworksNetworkID(params *GetNetworksNetworkIDParams) (*GetNetworksNetworkIDOK, error) {
+func (a *Client) GetNetworksNetworkID(params *GetNetworksNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDParams()
@@ -141,6 +198,7 @@ func (a *Client) GetNetworksNetworkID(params *GetNetworksNetworkIDParams) (*GetN
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -157,9 +215,9 @@ func (a *Client) GetNetworksNetworkID(params *GetNetworksNetworkIDParams) (*GetN
 }
 
 /*
-GetNetworksNetworkIDDNS gets DNS of network
+  GetNetworksNetworkIDDNS gets DNS of network
 */
-func (a *Client) GetNetworksNetworkIDDNS(params *GetNetworksNetworkIDDNSParams) (*GetNetworksNetworkIDDNSOK, error) {
+func (a *Client) GetNetworksNetworkIDDNS(params *GetNetworksNetworkIDDNSParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDDNSOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDDNSParams()
@@ -174,6 +232,7 @@ func (a *Client) GetNetworksNetworkIDDNS(params *GetNetworksNetworkIDDNSParams) 
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDDNSReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -190,9 +249,9 @@ func (a *Client) GetNetworksNetworkIDDNS(params *GetNetworksNetworkIDDNSParams) 
 }
 
 /*
-GetNetworksNetworkIDDNSRecords gets the DNS config records for the network
+  GetNetworksNetworkIDDNSRecords gets the DNS config records for the network
 */
-func (a *Client) GetNetworksNetworkIDDNSRecords(params *GetNetworksNetworkIDDNSRecordsParams) (*GetNetworksNetworkIDDNSRecordsOK, error) {
+func (a *Client) GetNetworksNetworkIDDNSRecords(params *GetNetworksNetworkIDDNSRecordsParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDDNSRecordsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDDNSRecordsParams()
@@ -207,6 +266,7 @@ func (a *Client) GetNetworksNetworkIDDNSRecords(params *GetNetworksNetworkIDDNSR
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDDNSRecordsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -223,9 +283,9 @@ func (a *Client) GetNetworksNetworkIDDNSRecords(params *GetNetworksNetworkIDDNSR
 }
 
 /*
-GetNetworksNetworkIDDNSRecordsDomain gets the DNS config record for a specific domain
+  GetNetworksNetworkIDDNSRecordsDomain gets the DNS config record for a specific domain
 */
-func (a *Client) GetNetworksNetworkIDDNSRecordsDomain(params *GetNetworksNetworkIDDNSRecordsDomainParams) (*GetNetworksNetworkIDDNSRecordsDomainOK, error) {
+func (a *Client) GetNetworksNetworkIDDNSRecordsDomain(params *GetNetworksNetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDDNSRecordsDomainOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDDNSRecordsDomainParams()
@@ -240,6 +300,7 @@ func (a *Client) GetNetworksNetworkIDDNSRecordsDomain(params *GetNetworksNetwork
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDDNSRecordsDomainReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -256,9 +317,9 @@ func (a *Client) GetNetworksNetworkIDDNSRecordsDomain(params *GetNetworksNetwork
 }
 
 /*
-GetNetworksNetworkIDDescription gets the description of a network
+  GetNetworksNetworkIDDescription gets the description of a network
 */
-func (a *Client) GetNetworksNetworkIDDescription(params *GetNetworksNetworkIDDescriptionParams) (*GetNetworksNetworkIDDescriptionOK, error) {
+func (a *Client) GetNetworksNetworkIDDescription(params *GetNetworksNetworkIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDDescriptionOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDDescriptionParams()
@@ -273,6 +334,7 @@ func (a *Client) GetNetworksNetworkIDDescription(params *GetNetworksNetworkIDDes
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDDescriptionReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -289,9 +351,9 @@ func (a *Client) GetNetworksNetworkIDDescription(params *GetNetworksNetworkIDDes
 }
 
 /*
-GetNetworksNetworkIDFeatures gets feature flags for network
+  GetNetworksNetworkIDFeatures gets feature flags for network
 */
-func (a *Client) GetNetworksNetworkIDFeatures(params *GetNetworksNetworkIDFeaturesParams) (*GetNetworksNetworkIDFeaturesOK, error) {
+func (a *Client) GetNetworksNetworkIDFeatures(params *GetNetworksNetworkIDFeaturesParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDFeaturesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDFeaturesParams()
@@ -306,6 +368,7 @@ func (a *Client) GetNetworksNetworkIDFeatures(params *GetNetworksNetworkIDFeatur
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDFeaturesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -322,9 +385,9 @@ func (a *Client) GetNetworksNetworkIDFeatures(params *GetNetworksNetworkIDFeatur
 }
 
 /*
-GetNetworksNetworkIDName gets the name of a network
+  GetNetworksNetworkIDName gets the name of a network
 */
-func (a *Client) GetNetworksNetworkIDName(params *GetNetworksNetworkIDNameParams) (*GetNetworksNetworkIDNameOK, error) {
+func (a *Client) GetNetworksNetworkIDName(params *GetNetworksNetworkIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDNameParams()
@@ -339,6 +402,7 @@ func (a *Client) GetNetworksNetworkIDName(params *GetNetworksNetworkIDNameParams
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -355,9 +419,9 @@ func (a *Client) GetNetworksNetworkIDName(params *GetNetworksNetworkIDNameParams
 }
 
 /*
-GetNetworksNetworkIDSentry gets the sentry io configuration for network
+  GetNetworksNetworkIDSentry gets the sentry io configuration for network
 */
-func (a *Client) GetNetworksNetworkIDSentry(params *GetNetworksNetworkIDSentryParams) (*GetNetworksNetworkIDSentryOK, error) {
+func (a *Client) GetNetworksNetworkIDSentry(params *GetNetworksNetworkIDSentryParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDSentryOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDSentryParams()
@@ -372,6 +436,7 @@ func (a *Client) GetNetworksNetworkIDSentry(params *GetNetworksNetworkIDSentryPa
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDSentryReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -388,9 +453,43 @@ func (a *Client) GetNetworksNetworkIDSentry(params *GetNetworksNetworkIDSentryPa
 }
 
 /*
-GetNetworksNetworkIDType gets the type of a network
+  GetNetworksNetworkIDState gets the state configuration for network
 */
-func (a *Client) GetNetworksNetworkIDType(params *GetNetworksNetworkIDTypeParams) (*GetNetworksNetworkIDTypeOK, error) {
+func (a *Client) GetNetworksNetworkIDState(params *GetNetworksNetworkIDStateParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDStateOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewGetNetworksNetworkIDStateParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "GetNetworksNetworkIDState",
+		Method:             "GET",
+		PathPattern:        "/networks/{network_id}/state",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &GetNetworksNetworkIDStateReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	success, ok := result.(*GetNetworksNetworkIDStateOK)
+	if ok {
+		return success, nil
+	}
+	// unexpected success response
+	unexpectedSuccess := result.(*GetNetworksNetworkIDStateDefault)
+	return nil, runtime.NewAPIError("unexpected success response: content available as default response in error", unexpectedSuccess, unexpectedSuccess.Code())
+}
+
+/*
+  GetNetworksNetworkIDType gets the type of a network
+*/
+func (a *Client) GetNetworksNetworkIDType(params *GetNetworksNetworkIDTypeParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTypeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDTypeParams()
@@ -405,6 +504,7 @@ func (a *Client) GetNetworksNetworkIDType(params *GetNetworksNetworkIDTypeParams
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDTypeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -421,9 +521,9 @@ func (a *Client) GetNetworksNetworkIDType(params *GetNetworksNetworkIDTypeParams
 }
 
 /*
-PostNetworks registers a network
+  PostNetworks registers a network
 */
-func (a *Client) PostNetworks(params *PostNetworksParams) (*PostNetworksCreated, error) {
+func (a *Client) PostNetworks(params *PostNetworksParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksParams()
@@ -438,6 +538,7 @@ func (a *Client) PostNetworks(params *PostNetworksParams) (*PostNetworksCreated,
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -454,9 +555,9 @@ func (a *Client) PostNetworks(params *PostNetworksParams) (*PostNetworksCreated,
 }
 
 /*
-PostNetworksNetworkIDDNSRecordsDomain creates a DNS record for a specific domain
+  PostNetworksNetworkIDDNSRecordsDomain creates a DNS record for a specific domain
 */
-func (a *Client) PostNetworksNetworkIDDNSRecordsDomain(params *PostNetworksNetworkIDDNSRecordsDomainParams) (*PostNetworksNetworkIDDNSRecordsDomainCreated, error) {
+func (a *Client) PostNetworksNetworkIDDNSRecordsDomain(params *PostNetworksNetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDDNSRecordsDomainCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDDNSRecordsDomainParams()
@@ -471,6 +572,7 @@ func (a *Client) PostNetworksNetworkIDDNSRecordsDomain(params *PostNetworksNetwo
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksNetworkIDDNSRecordsDomainReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -487,9 +589,9 @@ func (a *Client) PostNetworksNetworkIDDNSRecordsDomain(params *PostNetworksNetwo
 }
 
 /*
-PutNetworksNetworkID updates an entire network
+  PutNetworksNetworkID updates an entire network
 */
-func (a *Client) PutNetworksNetworkID(params *PutNetworksNetworkIDParams) (*PutNetworksNetworkIDNoContent, error) {
+func (a *Client) PutNetworksNetworkID(params *PutNetworksNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDParams()
@@ -504,6 +606,7 @@ func (a *Client) PutNetworksNetworkID(params *PutNetworksNetworkIDParams) (*PutN
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -520,9 +623,9 @@ func (a *Client) PutNetworksNetworkID(params *PutNetworksNetworkIDParams) (*PutN
 }
 
 /*
-PutNetworksNetworkIDDNS updates DNS of network
+  PutNetworksNetworkIDDNS updates DNS of network
 */
-func (a *Client) PutNetworksNetworkIDDNS(params *PutNetworksNetworkIDDNSParams) (*PutNetworksNetworkIDDNSNoContent, error) {
+func (a *Client) PutNetworksNetworkIDDNS(params *PutNetworksNetworkIDDNSParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDDNSNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDDNSParams()
@@ -537,6 +640,7 @@ func (a *Client) PutNetworksNetworkIDDNS(params *PutNetworksNetworkIDDNSParams) 
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDDNSReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -553,9 +657,9 @@ func (a *Client) PutNetworksNetworkIDDNS(params *PutNetworksNetworkIDDNSParams) 
 }
 
 /*
-PutNetworksNetworkIDDNSRecords changes all the DNS records for the network
+  PutNetworksNetworkIDDNSRecords changes all the DNS records for the network
 */
-func (a *Client) PutNetworksNetworkIDDNSRecords(params *PutNetworksNetworkIDDNSRecordsParams) (*PutNetworksNetworkIDDNSRecordsNoContent, error) {
+func (a *Client) PutNetworksNetworkIDDNSRecords(params *PutNetworksNetworkIDDNSRecordsParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDDNSRecordsNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDDNSRecordsParams()
@@ -570,6 +674,7 @@ func (a *Client) PutNetworksNetworkIDDNSRecords(params *PutNetworksNetworkIDDNSR
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDDNSRecordsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -586,9 +691,9 @@ func (a *Client) PutNetworksNetworkIDDNSRecords(params *PutNetworksNetworkIDDNSR
 }
 
 /*
-PutNetworksNetworkIDDNSRecordsDomain updates a DNS record for a specific domain
+  PutNetworksNetworkIDDNSRecordsDomain updates a DNS record for a specific domain
 */
-func (a *Client) PutNetworksNetworkIDDNSRecordsDomain(params *PutNetworksNetworkIDDNSRecordsDomainParams) (*PutNetworksNetworkIDDNSRecordsDomainNoContent, error) {
+func (a *Client) PutNetworksNetworkIDDNSRecordsDomain(params *PutNetworksNetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDDNSRecordsDomainNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDDNSRecordsDomainParams()
@@ -603,6 +708,7 @@ func (a *Client) PutNetworksNetworkIDDNSRecordsDomain(params *PutNetworksNetwork
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDDNSRecordsDomainReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -619,9 +725,9 @@ func (a *Client) PutNetworksNetworkIDDNSRecordsDomain(params *PutNetworksNetwork
 }
 
 /*
-PutNetworksNetworkIDDescription updates the description of a network
+  PutNetworksNetworkIDDescription updates the description of a network
 */
-func (a *Client) PutNetworksNetworkIDDescription(params *PutNetworksNetworkIDDescriptionParams) (*PutNetworksNetworkIDDescriptionNoContent, error) {
+func (a *Client) PutNetworksNetworkIDDescription(params *PutNetworksNetworkIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDDescriptionNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDDescriptionParams()
@@ -636,6 +742,7 @@ func (a *Client) PutNetworksNetworkIDDescription(params *PutNetworksNetworkIDDes
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDDescriptionReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -652,9 +759,9 @@ func (a *Client) PutNetworksNetworkIDDescription(params *PutNetworksNetworkIDDes
 }
 
 /*
-PutNetworksNetworkIDFeatures updates feature flags for network
+  PutNetworksNetworkIDFeatures updates feature flags for network
 */
-func (a *Client) PutNetworksNetworkIDFeatures(params *PutNetworksNetworkIDFeaturesParams) (*PutNetworksNetworkIDFeaturesNoContent, error) {
+func (a *Client) PutNetworksNetworkIDFeatures(params *PutNetworksNetworkIDFeaturesParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDFeaturesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDFeaturesParams()
@@ -669,6 +776,7 @@ func (a *Client) PutNetworksNetworkIDFeatures(params *PutNetworksNetworkIDFeatur
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDFeaturesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -685,9 +793,9 @@ func (a *Client) PutNetworksNetworkIDFeatures(params *PutNetworksNetworkIDFeatur
 }
 
 /*
-PutNetworksNetworkIDName updates the name of a network
+  PutNetworksNetworkIDName updates the name of a network
 */
-func (a *Client) PutNetworksNetworkIDName(params *PutNetworksNetworkIDNameParams) (*PutNetworksNetworkIDNameNoContent, error) {
+func (a *Client) PutNetworksNetworkIDName(params *PutNetworksNetworkIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDNameParams()
@@ -702,6 +810,7 @@ func (a *Client) PutNetworksNetworkIDName(params *PutNetworksNetworkIDNameParams
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -718,9 +827,9 @@ func (a *Client) PutNetworksNetworkIDName(params *PutNetworksNetworkIDNameParams
 }
 
 /*
-PutNetworksNetworkIDSentry updates the sentry io configuration for network
+  PutNetworksNetworkIDSentry updates the sentry io configuration for network
 */
-func (a *Client) PutNetworksNetworkIDSentry(params *PutNetworksNetworkIDSentryParams) (*PutNetworksNetworkIDSentryNoContent, error) {
+func (a *Client) PutNetworksNetworkIDSentry(params *PutNetworksNetworkIDSentryParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDSentryNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDSentryParams()
@@ -735,6 +844,7 @@ func (a *Client) PutNetworksNetworkIDSentry(params *PutNetworksNetworkIDSentryPa
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDSentryReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -751,9 +861,43 @@ func (a *Client) PutNetworksNetworkIDSentry(params *PutNetworksNetworkIDSentryPa
 }
 
 /*
-PutNetworksNetworkIDType updates the type of a network
+  PutNetworksNetworkIDState updates the state configuration for network
 */
-func (a *Client) PutNetworksNetworkIDType(params *PutNetworksNetworkIDTypeParams) (*PutNetworksNetworkIDTypeNoContent, error) {
+func (a *Client) PutNetworksNetworkIDState(params *PutNetworksNetworkIDStateParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDStateNoContent, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewPutNetworksNetworkIDStateParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "PutNetworksNetworkIDState",
+		Method:             "PUT",
+		PathPattern:        "/networks/{network_id}/state",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &PutNetworksNetworkIDStateReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	success, ok := result.(*PutNetworksNetworkIDStateNoContent)
+	if ok {
+		return success, nil
+	}
+	// unexpected success response
+	unexpectedSuccess := result.(*PutNetworksNetworkIDStateDefault)
+	return nil, runtime.NewAPIError("unexpected success response: content available as default response in error", unexpectedSuccess, unexpectedSuccess.Code())
+}
+
+/*
+  PutNetworksNetworkIDType updates the type of a network
+*/
+func (a *Client) PutNetworksNetworkIDType(params *PutNetworksNetworkIDTypeParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTypeNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDTypeParams()
@@ -768,6 +912,7 @@ func (a *Client) PutNetworksNetworkIDType(params *PutNetworksNetworkIDTypeParams
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDTypeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})

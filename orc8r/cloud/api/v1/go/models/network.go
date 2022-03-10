@@ -6,14 +6,14 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // Network Orchestrator network spec
+//
 // swagger:model network
 type Network struct {
 
@@ -38,6 +38,9 @@ type Network struct {
 
 	// sentry config
 	SentryConfig *NetworkSentryConfig `json:"sentry_config,omitempty"`
+
+	// state config
+	StateConfig *StateConfig `json:"state_config,omitempty"`
 
 	// type
 	Type NetworkType `json:"type,omitempty"`
@@ -68,6 +71,10 @@ func (m *Network) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateSentryConfig(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateStateConfig(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -163,6 +170,24 @@ func (m *Network) validateSentryConfig(formats strfmt.Registry) error {
 		if err := m.SentryConfig.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("sentry_config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Network) validateStateConfig(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.StateConfig) { // not required
+		return nil
+	}
+
+	if m.StateConfig != nil {
+		if err := m.StateConfig.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("state_config")
 			}
 			return err
 		}

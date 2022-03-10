@@ -8,14 +8,14 @@ package models
 import (
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // ModeMapItem Item containing {mode, [plmnA, plmB], [imsi1, imsi2], [apnY, apnZ]}
+//
 // swagger:model mode_map_item
 type ModeMapItem struct {
 

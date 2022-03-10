@@ -6,14 +6,14 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // MutableSubscriber Subset of subscriber field which are mutable
+//
 // swagger:model mutable_subscriber
 type MutableSubscriber struct {
 
@@ -28,6 +28,9 @@ type MutableSubscriber struct {
 
 	// active policies by apn
 	ActivePoliciesByAPN PolicyIdsByAPN `json:"active_policies_by_apn,omitempty"`
+
+	// List of Network Types to be restricted per subscriber. If not configured, subscriber will have access to all Network Types by default.
+	ForbiddenNetworkTypes CoreNetworkTypes `json:"forbidden_network_types,omitempty"`
 
 	// id
 	// Required: true
@@ -61,6 +64,10 @@ func (m *MutableSubscriber) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateActivePoliciesByAPN(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateForbiddenNetworkTypes(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -139,6 +146,22 @@ func (m *MutableSubscriber) validateActivePoliciesByAPN(formats strfmt.Registry)
 	if err := m.ActivePoliciesByAPN.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("active_policies_by_apn")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableSubscriber) validateForbiddenNetworkTypes(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ForbiddenNetworkTypes) { // not required
+		return nil
+	}
+
+	if err := m.ForbiddenNetworkTypes.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("forbidden_network_types")
 		}
 		return err
 	}

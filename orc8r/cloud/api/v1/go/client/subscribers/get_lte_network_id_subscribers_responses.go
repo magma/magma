@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetLTENetworkIDSubscribersReader is a Reader for the GetLTENetworkIDSubscribers structure.
@@ -49,24 +48,26 @@ func NewGetLTENetworkIDSubscribersOK() *GetLTENetworkIDSubscribersOK {
 
 /*GetLTENetworkIDSubscribersOK handles this case with default header values.
 
-List of all the subscribers in the network
+List of subscribers in the network
 */
 type GetLTENetworkIDSubscribersOK struct {
-	Payload map[string]models.Subscriber
+	Payload *models.PaginatedSubscribers
 }
 
 func (o *GetLTENetworkIDSubscribersOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/subscribers][%d] getLteNetworkIdSubscribersOK  %+v", 200, o.Payload)
 }
 
-func (o *GetLTENetworkIDSubscribersOK) GetPayload() map[string]models.Subscriber {
+func (o *GetLTENetworkIDSubscribersOK) GetPayload() *models.PaginatedSubscribers {
 	return o.Payload
 }
 
 func (o *GetLTENetworkIDSubscribersOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
+	o.Payload = new(models.PaginatedSubscribers)
+
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 

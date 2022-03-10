@@ -13,8 +13,8 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
 )
 
 // NewGetLTENetworkIDEnodebsParams creates a new GetLTENetworkIDEnodebsParams object
@@ -66,6 +66,16 @@ type GetLTENetworkIDEnodebsParams struct {
 
 	*/
 	NetworkID string
+	/*PageSize
+	  Maximum number of entities to return
+
+	*/
+	PageSize *uint32
+	/*PageToken
+	  Opaque page token for paginated requests
+
+	*/
+	PageToken *string
 
 	timeout    time.Duration
 	Context    context.Context
@@ -116,6 +126,28 @@ func (o *GetLTENetworkIDEnodebsParams) SetNetworkID(networkID string) {
 	o.NetworkID = networkID
 }
 
+// WithPageSize adds the pageSize to the get LTE network ID enodebs params
+func (o *GetLTENetworkIDEnodebsParams) WithPageSize(pageSize *uint32) *GetLTENetworkIDEnodebsParams {
+	o.SetPageSize(pageSize)
+	return o
+}
+
+// SetPageSize adds the pageSize to the get LTE network ID enodebs params
+func (o *GetLTENetworkIDEnodebsParams) SetPageSize(pageSize *uint32) {
+	o.PageSize = pageSize
+}
+
+// WithPageToken adds the pageToken to the get LTE network ID enodebs params
+func (o *GetLTENetworkIDEnodebsParams) WithPageToken(pageToken *string) *GetLTENetworkIDEnodebsParams {
+	o.SetPageToken(pageToken)
+	return o
+}
+
+// SetPageToken adds the pageToken to the get LTE network ID enodebs params
+func (o *GetLTENetworkIDEnodebsParams) SetPageToken(pageToken *string) {
+	o.PageToken = pageToken
+}
+
 // WriteToRequest writes these params to a swagger request
 func (o *GetLTENetworkIDEnodebsParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registry) error {
 
@@ -127,6 +159,38 @@ func (o *GetLTENetworkIDEnodebsParams) WriteToRequest(r runtime.ClientRequest, r
 	// path param network_id
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
+	}
+
+	if o.PageSize != nil {
+
+		// query param page_size
+		var qrPageSize uint32
+		if o.PageSize != nil {
+			qrPageSize = *o.PageSize
+		}
+		qPageSize := swag.FormatUint32(qrPageSize)
+		if qPageSize != "" {
+			if err := r.SetQueryParam("page_size", qPageSize); err != nil {
+				return err
+			}
+		}
+
+	}
+
+	if o.PageToken != nil {
+
+		// query param page_token
+		var qrPageToken string
+		if o.PageToken != nil {
+			qrPageToken = *o.PageToken
+		}
+		qPageToken := qrPageToken
+		if qPageToken != "" {
+			if err := r.SetQueryParam("page_token", qPageToken); err != nil {
+				return err
+			}
+		}
+
 	}
 
 	if len(res) > 0 {

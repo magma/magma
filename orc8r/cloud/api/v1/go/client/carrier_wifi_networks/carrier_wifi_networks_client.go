@@ -7,12 +7,11 @@ package carrier_wifi_networks
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new carrier wifi networks API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,10 +23,77 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteCwfNetworkID(params *DeleteCwfNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteCwfNetworkIDNoContent, error)
+
+	DeleteCwfNetworkIDCarrierWifi(params *DeleteCwfNetworkIDCarrierWifiParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteCwfNetworkIDCarrierWifiNoContent, error)
+
+	DeleteCwfNetworkIDHaPairsHaPairID(params *DeleteCwfNetworkIDHaPairsHaPairIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteCwfNetworkIDHaPairsHaPairIDNoContent, error)
+
+	DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseName(params *DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameNoContent, error)
+
+	DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleID(params *DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDNoContent, error)
+
+	GetCwf(params *GetCwfParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfOK, error)
+
+	GetCwfNetworkID(params *GetCwfNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDOK, error)
+
+	GetCwfNetworkIDCarrierWifi(params *GetCwfNetworkIDCarrierWifiParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDCarrierWifiOK, error)
+
+	GetCwfNetworkIDDescription(params *GetCwfNetworkIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDDescriptionOK, error)
+
+	GetCwfNetworkIDHaPairs(params *GetCwfNetworkIDHaPairsParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDHaPairsOK, error)
+
+	GetCwfNetworkIDHaPairsHaPairID(params *GetCwfNetworkIDHaPairsHaPairIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDHaPairsHaPairIDOK, error)
+
+	GetCwfNetworkIDHaPairsHaPairIDStatus(params *GetCwfNetworkIDHaPairsHaPairIDStatusParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDHaPairsHaPairIDStatusOK, error)
+
+	GetCwfNetworkIDLiUes(params *GetCwfNetworkIDLiUesParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDLiUesOK, error)
+
+	GetCwfNetworkIDName(params *GetCwfNetworkIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDNameOK, error)
+
+	GetCwfNetworkIDSubscriberConfig(params *GetCwfNetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDSubscriberConfigOK, error)
+
+	GetCwfNetworkIDSubscriberConfigBaseNames(params *GetCwfNetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDSubscriberConfigBaseNamesOK, error)
+
+	GetCwfNetworkIDSubscriberConfigRuleNames(params *GetCwfNetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDSubscriberConfigRuleNamesOK, error)
+
+	GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecord(params *GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordOK, error)
+
+	PostCwf(params *PostCwfParams, authInfo runtime.ClientAuthInfoWriter) (*PostCwfCreated, error)
+
+	PostCwfNetworkIDHaPairs(params *PostCwfNetworkIDHaPairsParams, authInfo runtime.ClientAuthInfoWriter) (*PostCwfNetworkIDHaPairsCreated, error)
+
+	PostCwfNetworkIDSubscriberConfigBaseNamesBaseName(params *PostCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*PostCwfNetworkIDSubscriberConfigBaseNamesBaseNameCreated, error)
+
+	PostCwfNetworkIDSubscriberConfigRuleNamesRuleID(params *PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDCreated, error)
+
+	PutCwfNetworkID(params *PutCwfNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDNoContent, error)
+
+	PutCwfNetworkIDCarrierWifi(params *PutCwfNetworkIDCarrierWifiParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDCarrierWifiOK, error)
+
+	PutCwfNetworkIDDescription(params *PutCwfNetworkIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDDescriptionNoContent, error)
+
+	PutCwfNetworkIDHaPairsHaPairID(params *PutCwfNetworkIDHaPairsHaPairIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDHaPairsHaPairIDOK, error)
+
+	PutCwfNetworkIDLiUes(params *PutCwfNetworkIDLiUesParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDLiUesNoContent, error)
+
+	PutCwfNetworkIDName(params *PutCwfNetworkIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDNameNoContent, error)
+
+	PutCwfNetworkIDSubscriberConfig(params *PutCwfNetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDSubscriberConfigNoContent, error)
+
+	PutCwfNetworkIDSubscriberConfigBaseNames(params *PutCwfNetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDSubscriberConfigBaseNamesNoContent, error)
+
+	PutCwfNetworkIDSubscriberConfigRuleNames(params *PutCwfNetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDSubscriberConfigRuleNamesNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteCwfNetworkID deletes a carrier wifi network
+  DeleteCwfNetworkID deletes a carrier wifi network
 */
-func (a *Client) DeleteCwfNetworkID(params *DeleteCwfNetworkIDParams) (*DeleteCwfNetworkIDNoContent, error) {
+func (a *Client) DeleteCwfNetworkID(params *DeleteCwfNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteCwfNetworkIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteCwfNetworkIDParams()
@@ -42,6 +108,7 @@ func (a *Client) DeleteCwfNetworkID(params *DeleteCwfNetworkIDParams) (*DeleteCw
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteCwfNetworkIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -58,9 +125,9 @@ func (a *Client) DeleteCwfNetworkID(params *DeleteCwfNetworkIDParams) (*DeleteCw
 }
 
 /*
-DeleteCwfNetworkIDCarrierWifi deletes network carrier wifi configs
+  DeleteCwfNetworkIDCarrierWifi deletes network carrier wifi configs
 */
-func (a *Client) DeleteCwfNetworkIDCarrierWifi(params *DeleteCwfNetworkIDCarrierWifiParams) (*DeleteCwfNetworkIDCarrierWifiNoContent, error) {
+func (a *Client) DeleteCwfNetworkIDCarrierWifi(params *DeleteCwfNetworkIDCarrierWifiParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteCwfNetworkIDCarrierWifiNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteCwfNetworkIDCarrierWifiParams()
@@ -75,6 +142,7 @@ func (a *Client) DeleteCwfNetworkIDCarrierWifi(params *DeleteCwfNetworkIDCarrier
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteCwfNetworkIDCarrierWifiReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -91,9 +159,9 @@ func (a *Client) DeleteCwfNetworkIDCarrierWifi(params *DeleteCwfNetworkIDCarrier
 }
 
 /*
-DeleteCwfNetworkIDHaPairsHaPairID deletes high availability gateway pair for carrier wifi network
+  DeleteCwfNetworkIDHaPairsHaPairID deletes high availability gateway pair for carrier wifi network
 */
-func (a *Client) DeleteCwfNetworkIDHaPairsHaPairID(params *DeleteCwfNetworkIDHaPairsHaPairIDParams) (*DeleteCwfNetworkIDHaPairsHaPairIDNoContent, error) {
+func (a *Client) DeleteCwfNetworkIDHaPairsHaPairID(params *DeleteCwfNetworkIDHaPairsHaPairIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteCwfNetworkIDHaPairsHaPairIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteCwfNetworkIDHaPairsHaPairIDParams()
@@ -108,6 +176,7 @@ func (a *Client) DeleteCwfNetworkIDHaPairsHaPairID(params *DeleteCwfNetworkIDHaP
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteCwfNetworkIDHaPairsHaPairIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -124,9 +193,9 @@ func (a *Client) DeleteCwfNetworkIDHaPairsHaPairID(params *DeleteCwfNetworkIDHaP
 }
 
 /*
-DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseName adds a network wide base name
+  DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseName adds a network wide base name
 */
-func (a *Client) DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseName(params *DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams) (*DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameNoContent, error) {
+func (a *Client) DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseName(params *DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams()
@@ -141,6 +210,7 @@ func (a *Client) DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseName(params *Del
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -157,9 +227,9 @@ func (a *Client) DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseName(params *Del
 }
 
 /*
-DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleID adds a network wide rule name
+  DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleID adds a network wide rule name
 */
-func (a *Client) DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleID(params *DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDParams) (*DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDNoContent, error) {
+func (a *Client) DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleID(params *DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDParams()
@@ -174,6 +244,7 @@ func (a *Client) DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleID(params *Delet
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -190,9 +261,9 @@ func (a *Client) DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleID(params *Delet
 }
 
 /*
-GetCwf lists all carrier wifi network i ds
+  GetCwf lists all carrier wifi network i ds
 */
-func (a *Client) GetCwf(params *GetCwfParams) (*GetCwfOK, error) {
+func (a *Client) GetCwf(params *GetCwfParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfParams()
@@ -207,6 +278,7 @@ func (a *Client) GetCwf(params *GetCwfParams) (*GetCwfOK, error) {
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetCwfReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -223,9 +295,9 @@ func (a *Client) GetCwf(params *GetCwfParams) (*GetCwfOK, error) {
 }
 
 /*
-GetCwfNetworkID describes a carrier wifi network
+  GetCwfNetworkID describes a carrier wifi network
 */
-func (a *Client) GetCwfNetworkID(params *GetCwfNetworkIDParams) (*GetCwfNetworkIDOK, error) {
+func (a *Client) GetCwfNetworkID(params *GetCwfNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDParams()
@@ -240,6 +312,7 @@ func (a *Client) GetCwfNetworkID(params *GetCwfNetworkIDParams) (*GetCwfNetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetCwfNetworkIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -256,9 +329,9 @@ func (a *Client) GetCwfNetworkID(params *GetCwfNetworkIDParams) (*GetCwfNetworkI
 }
 
 /*
-GetCwfNetworkIDCarrierWifi retrieves network carrier wifi configs
+  GetCwfNetworkIDCarrierWifi retrieves network carrier wifi configs
 */
-func (a *Client) GetCwfNetworkIDCarrierWifi(params *GetCwfNetworkIDCarrierWifiParams) (*GetCwfNetworkIDCarrierWifiOK, error) {
+func (a *Client) GetCwfNetworkIDCarrierWifi(params *GetCwfNetworkIDCarrierWifiParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDCarrierWifiOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDCarrierWifiParams()
@@ -273,6 +346,7 @@ func (a *Client) GetCwfNetworkIDCarrierWifi(params *GetCwfNetworkIDCarrierWifiPa
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetCwfNetworkIDCarrierWifiReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -289,9 +363,9 @@ func (a *Client) GetCwfNetworkIDCarrierWifi(params *GetCwfNetworkIDCarrierWifiPa
 }
 
 /*
-GetCwfNetworkIDDescription gets description of a carrier wifi network
+  GetCwfNetworkIDDescription gets description of a carrier wifi network
 */
-func (a *Client) GetCwfNetworkIDDescription(params *GetCwfNetworkIDDescriptionParams) (*GetCwfNetworkIDDescriptionOK, error) {
+func (a *Client) GetCwfNetworkIDDescription(params *GetCwfNetworkIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDDescriptionOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDDescriptionParams()
@@ -306,6 +380,7 @@ func (a *Client) GetCwfNetworkIDDescription(params *GetCwfNetworkIDDescriptionPa
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetCwfNetworkIDDescriptionReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -322,9 +397,9 @@ func (a *Client) GetCwfNetworkIDDescription(params *GetCwfNetworkIDDescriptionPa
 }
 
 /*
-GetCwfNetworkIDHaPairs lists all high availability gateway pairs in carrier wifi network
+  GetCwfNetworkIDHaPairs lists all high availability gateway pairs in carrier wifi network
 */
-func (a *Client) GetCwfNetworkIDHaPairs(params *GetCwfNetworkIDHaPairsParams) (*GetCwfNetworkIDHaPairsOK, error) {
+func (a *Client) GetCwfNetworkIDHaPairs(params *GetCwfNetworkIDHaPairsParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDHaPairsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDHaPairsParams()
@@ -339,6 +414,7 @@ func (a *Client) GetCwfNetworkIDHaPairs(params *GetCwfNetworkIDHaPairsParams) (*
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetCwfNetworkIDHaPairsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -355,9 +431,9 @@ func (a *Client) GetCwfNetworkIDHaPairs(params *GetCwfNetworkIDHaPairsParams) (*
 }
 
 /*
-GetCwfNetworkIDHaPairsHaPairID retrieves high availability gateway pair for carrier wifi network
+  GetCwfNetworkIDHaPairsHaPairID retrieves high availability gateway pair for carrier wifi network
 */
-func (a *Client) GetCwfNetworkIDHaPairsHaPairID(params *GetCwfNetworkIDHaPairsHaPairIDParams) (*GetCwfNetworkIDHaPairsHaPairIDOK, error) {
+func (a *Client) GetCwfNetworkIDHaPairsHaPairID(params *GetCwfNetworkIDHaPairsHaPairIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDHaPairsHaPairIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDHaPairsHaPairIDParams()
@@ -372,6 +448,7 @@ func (a *Client) GetCwfNetworkIDHaPairsHaPairID(params *GetCwfNetworkIDHaPairsHa
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetCwfNetworkIDHaPairsHaPairIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -388,9 +465,9 @@ func (a *Client) GetCwfNetworkIDHaPairsHaPairID(params *GetCwfNetworkIDHaPairsHa
 }
 
 /*
-GetCwfNetworkIDHaPairsHaPairIDStatus retrieves status of a carrier wifi h a pair
+  GetCwfNetworkIDHaPairsHaPairIDStatus retrieves status of a carrier wifi h a pair
 */
-func (a *Client) GetCwfNetworkIDHaPairsHaPairIDStatus(params *GetCwfNetworkIDHaPairsHaPairIDStatusParams) (*GetCwfNetworkIDHaPairsHaPairIDStatusOK, error) {
+func (a *Client) GetCwfNetworkIDHaPairsHaPairIDStatus(params *GetCwfNetworkIDHaPairsHaPairIDStatusParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDHaPairsHaPairIDStatusOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDHaPairsHaPairIDStatusParams()
@@ -405,6 +482,7 @@ func (a *Client) GetCwfNetworkIDHaPairsHaPairIDStatus(params *GetCwfNetworkIDHaP
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetCwfNetworkIDHaPairsHaPairIDStatusReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -421,9 +499,9 @@ func (a *Client) GetCwfNetworkIDHaPairsHaPairIDStatus(params *GetCwfNetworkIDHaP
 }
 
 /*
-GetCwfNetworkIDLiUes gets monitored l i u es for carrier wifi network
+  GetCwfNetworkIDLiUes gets monitored l i u es for carrier wifi network
 */
-func (a *Client) GetCwfNetworkIDLiUes(params *GetCwfNetworkIDLiUesParams) (*GetCwfNetworkIDLiUesOK, error) {
+func (a *Client) GetCwfNetworkIDLiUes(params *GetCwfNetworkIDLiUesParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDLiUesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDLiUesParams()
@@ -438,6 +516,7 @@ func (a *Client) GetCwfNetworkIDLiUes(params *GetCwfNetworkIDLiUesParams) (*GetC
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetCwfNetworkIDLiUesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -454,9 +533,9 @@ func (a *Client) GetCwfNetworkIDLiUes(params *GetCwfNetworkIDLiUesParams) (*GetC
 }
 
 /*
-GetCwfNetworkIDName gets name of a carrier wifi network
+  GetCwfNetworkIDName gets name of a carrier wifi network
 */
-func (a *Client) GetCwfNetworkIDName(params *GetCwfNetworkIDNameParams) (*GetCwfNetworkIDNameOK, error) {
+func (a *Client) GetCwfNetworkIDName(params *GetCwfNetworkIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDNameParams()
@@ -471,6 +550,7 @@ func (a *Client) GetCwfNetworkIDName(params *GetCwfNetworkIDNameParams) (*GetCwf
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetCwfNetworkIDNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -487,9 +567,9 @@ func (a *Client) GetCwfNetworkIDName(params *GetCwfNetworkIDNameParams) (*GetCwf
 }
 
 /*
-GetCwfNetworkIDSubscriberConfig gets a network wide subscriber config
+  GetCwfNetworkIDSubscriberConfig gets a network wide subscriber config
 */
-func (a *Client) GetCwfNetworkIDSubscriberConfig(params *GetCwfNetworkIDSubscriberConfigParams) (*GetCwfNetworkIDSubscriberConfigOK, error) {
+func (a *Client) GetCwfNetworkIDSubscriberConfig(params *GetCwfNetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDSubscriberConfigOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDSubscriberConfigParams()
@@ -504,6 +584,7 @@ func (a *Client) GetCwfNetworkIDSubscriberConfig(params *GetCwfNetworkIDSubscrib
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetCwfNetworkIDSubscriberConfigReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -520,9 +601,9 @@ func (a *Client) GetCwfNetworkIDSubscriberConfig(params *GetCwfNetworkIDSubscrib
 }
 
 /*
-GetCwfNetworkIDSubscriberConfigBaseNames gets network wide base names
+  GetCwfNetworkIDSubscriberConfigBaseNames gets network wide base names
 */
-func (a *Client) GetCwfNetworkIDSubscriberConfigBaseNames(params *GetCwfNetworkIDSubscriberConfigBaseNamesParams) (*GetCwfNetworkIDSubscriberConfigBaseNamesOK, error) {
+func (a *Client) GetCwfNetworkIDSubscriberConfigBaseNames(params *GetCwfNetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDSubscriberConfigBaseNamesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDSubscriberConfigBaseNamesParams()
@@ -537,6 +618,7 @@ func (a *Client) GetCwfNetworkIDSubscriberConfigBaseNames(params *GetCwfNetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetCwfNetworkIDSubscriberConfigBaseNamesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -553,9 +635,9 @@ func (a *Client) GetCwfNetworkIDSubscriberConfigBaseNames(params *GetCwfNetworkI
 }
 
 /*
-GetCwfNetworkIDSubscriberConfigRuleNames gets network wide rule names
+  GetCwfNetworkIDSubscriberConfigRuleNames gets network wide rule names
 */
-func (a *Client) GetCwfNetworkIDSubscriberConfigRuleNames(params *GetCwfNetworkIDSubscriberConfigRuleNamesParams) (*GetCwfNetworkIDSubscriberConfigRuleNamesOK, error) {
+func (a *Client) GetCwfNetworkIDSubscriberConfigRuleNames(params *GetCwfNetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDSubscriberConfigRuleNamesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDSubscriberConfigRuleNamesParams()
@@ -570,6 +652,7 @@ func (a *Client) GetCwfNetworkIDSubscriberConfigRuleNames(params *GetCwfNetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetCwfNetworkIDSubscriberConfigRuleNamesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -586,9 +669,9 @@ func (a *Client) GetCwfNetworkIDSubscriberConfigRuleNames(params *GetCwfNetworkI
 }
 
 /*
-GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecord gets the directory record of a subscriber
+  GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecord gets the directory record of a subscriber
 */
-func (a *Client) GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecord(params *GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams) (*GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordOK, error) {
+func (a *Client) GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecord(params *GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams, authInfo runtime.ClientAuthInfoWriter) (*GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams()
@@ -603,6 +686,7 @@ func (a *Client) GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecord(params *G
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -619,9 +703,9 @@ func (a *Client) GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecord(params *G
 }
 
 /*
-PostCwf creates a new carrier wifi network
+  PostCwf creates a new carrier wifi network
 */
-func (a *Client) PostCwf(params *PostCwfParams) (*PostCwfCreated, error) {
+func (a *Client) PostCwf(params *PostCwfParams, authInfo runtime.ClientAuthInfoWriter) (*PostCwfCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostCwfParams()
@@ -636,6 +720,7 @@ func (a *Client) PostCwf(params *PostCwfParams) (*PostCwfCreated, error) {
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostCwfReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -652,9 +737,9 @@ func (a *Client) PostCwf(params *PostCwfParams) (*PostCwfCreated, error) {
 }
 
 /*
-PostCwfNetworkIDHaPairs creates new high availability gateway pair in carrier wifi network
+  PostCwfNetworkIDHaPairs creates new high availability gateway pair in carrier wifi network
 */
-func (a *Client) PostCwfNetworkIDHaPairs(params *PostCwfNetworkIDHaPairsParams) (*PostCwfNetworkIDHaPairsCreated, error) {
+func (a *Client) PostCwfNetworkIDHaPairs(params *PostCwfNetworkIDHaPairsParams, authInfo runtime.ClientAuthInfoWriter) (*PostCwfNetworkIDHaPairsCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostCwfNetworkIDHaPairsParams()
@@ -669,6 +754,7 @@ func (a *Client) PostCwfNetworkIDHaPairs(params *PostCwfNetworkIDHaPairsParams) 
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostCwfNetworkIDHaPairsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -685,9 +771,9 @@ func (a *Client) PostCwfNetworkIDHaPairs(params *PostCwfNetworkIDHaPairsParams) 
 }
 
 /*
-PostCwfNetworkIDSubscriberConfigBaseNamesBaseName adds a network wide base name
+  PostCwfNetworkIDSubscriberConfigBaseNamesBaseName adds a network wide base name
 */
-func (a *Client) PostCwfNetworkIDSubscriberConfigBaseNamesBaseName(params *PostCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams) (*PostCwfNetworkIDSubscriberConfigBaseNamesBaseNameCreated, error) {
+func (a *Client) PostCwfNetworkIDSubscriberConfigBaseNamesBaseName(params *PostCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*PostCwfNetworkIDSubscriberConfigBaseNamesBaseNameCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams()
@@ -702,6 +788,7 @@ func (a *Client) PostCwfNetworkIDSubscriberConfigBaseNamesBaseName(params *PostC
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostCwfNetworkIDSubscriberConfigBaseNamesBaseNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -718,9 +805,9 @@ func (a *Client) PostCwfNetworkIDSubscriberConfigBaseNamesBaseName(params *PostC
 }
 
 /*
-PostCwfNetworkIDSubscriberConfigRuleNamesRuleID adds a network wide rule name
+  PostCwfNetworkIDSubscriberConfigRuleNamesRuleID adds a network wide rule name
 */
-func (a *Client) PostCwfNetworkIDSubscriberConfigRuleNamesRuleID(params *PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDParams) (*PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDCreated, error) {
+func (a *Client) PostCwfNetworkIDSubscriberConfigRuleNamesRuleID(params *PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostCwfNetworkIDSubscriberConfigRuleNamesRuleIDParams()
@@ -735,6 +822,7 @@ func (a *Client) PostCwfNetworkIDSubscriberConfigRuleNamesRuleID(params *PostCwf
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -751,9 +839,9 @@ func (a *Client) PostCwfNetworkIDSubscriberConfigRuleNamesRuleID(params *PostCwf
 }
 
 /*
-PutCwfNetworkID updates an entire carrier wifi network
+  PutCwfNetworkID updates an entire carrier wifi network
 */
-func (a *Client) PutCwfNetworkID(params *PutCwfNetworkIDParams) (*PutCwfNetworkIDNoContent, error) {
+func (a *Client) PutCwfNetworkID(params *PutCwfNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutCwfNetworkIDParams()
@@ -768,6 +856,7 @@ func (a *Client) PutCwfNetworkID(params *PutCwfNetworkIDParams) (*PutCwfNetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutCwfNetworkIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -784,9 +873,9 @@ func (a *Client) PutCwfNetworkID(params *PutCwfNetworkIDParams) (*PutCwfNetworkI
 }
 
 /*
-PutCwfNetworkIDCarrierWifi modifies network carrier wifi configs
+  PutCwfNetworkIDCarrierWifi modifies network carrier wifi configs
 */
-func (a *Client) PutCwfNetworkIDCarrierWifi(params *PutCwfNetworkIDCarrierWifiParams) (*PutCwfNetworkIDCarrierWifiOK, error) {
+func (a *Client) PutCwfNetworkIDCarrierWifi(params *PutCwfNetworkIDCarrierWifiParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDCarrierWifiOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutCwfNetworkIDCarrierWifiParams()
@@ -801,6 +890,7 @@ func (a *Client) PutCwfNetworkIDCarrierWifi(params *PutCwfNetworkIDCarrierWifiPa
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutCwfNetworkIDCarrierWifiReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -817,9 +907,9 @@ func (a *Client) PutCwfNetworkIDCarrierWifi(params *PutCwfNetworkIDCarrierWifiPa
 }
 
 /*
-PutCwfNetworkIDDescription updates the description of a carrier wifi network
+  PutCwfNetworkIDDescription updates the description of a carrier wifi network
 */
-func (a *Client) PutCwfNetworkIDDescription(params *PutCwfNetworkIDDescriptionParams) (*PutCwfNetworkIDDescriptionNoContent, error) {
+func (a *Client) PutCwfNetworkIDDescription(params *PutCwfNetworkIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDDescriptionNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutCwfNetworkIDDescriptionParams()
@@ -834,6 +924,7 @@ func (a *Client) PutCwfNetworkIDDescription(params *PutCwfNetworkIDDescriptionPa
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutCwfNetworkIDDescriptionReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -850,9 +941,9 @@ func (a *Client) PutCwfNetworkIDDescription(params *PutCwfNetworkIDDescriptionPa
 }
 
 /*
-PutCwfNetworkIDHaPairsHaPairID modifies high availability gateway pair for carrier wifi network
+  PutCwfNetworkIDHaPairsHaPairID modifies high availability gateway pair for carrier wifi network
 */
-func (a *Client) PutCwfNetworkIDHaPairsHaPairID(params *PutCwfNetworkIDHaPairsHaPairIDParams) (*PutCwfNetworkIDHaPairsHaPairIDOK, error) {
+func (a *Client) PutCwfNetworkIDHaPairsHaPairID(params *PutCwfNetworkIDHaPairsHaPairIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDHaPairsHaPairIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutCwfNetworkIDHaPairsHaPairIDParams()
@@ -867,6 +958,7 @@ func (a *Client) PutCwfNetworkIDHaPairsHaPairID(params *PutCwfNetworkIDHaPairsHa
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutCwfNetworkIDHaPairsHaPairIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -883,9 +975,9 @@ func (a *Client) PutCwfNetworkIDHaPairsHaPairID(params *PutCwfNetworkIDHaPairsHa
 }
 
 /*
-PutCwfNetworkIDLiUes updates monitored l i u es for carrier wifi network
+  PutCwfNetworkIDLiUes updates monitored l i u es for carrier wifi network
 */
-func (a *Client) PutCwfNetworkIDLiUes(params *PutCwfNetworkIDLiUesParams) (*PutCwfNetworkIDLiUesNoContent, error) {
+func (a *Client) PutCwfNetworkIDLiUes(params *PutCwfNetworkIDLiUesParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDLiUesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutCwfNetworkIDLiUesParams()
@@ -900,6 +992,7 @@ func (a *Client) PutCwfNetworkIDLiUes(params *PutCwfNetworkIDLiUesParams) (*PutC
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutCwfNetworkIDLiUesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -916,9 +1009,9 @@ func (a *Client) PutCwfNetworkIDLiUes(params *PutCwfNetworkIDLiUesParams) (*PutC
 }
 
 /*
-PutCwfNetworkIDName updates the name of a carrier wifi network
+  PutCwfNetworkIDName updates the name of a carrier wifi network
 */
-func (a *Client) PutCwfNetworkIDName(params *PutCwfNetworkIDNameParams) (*PutCwfNetworkIDNameNoContent, error) {
+func (a *Client) PutCwfNetworkIDName(params *PutCwfNetworkIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutCwfNetworkIDNameParams()
@@ -933,6 +1026,7 @@ func (a *Client) PutCwfNetworkIDName(params *PutCwfNetworkIDNameParams) (*PutCwf
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutCwfNetworkIDNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -949,9 +1043,9 @@ func (a *Client) PutCwfNetworkIDName(params *PutCwfNetworkIDNameParams) (*PutCwf
 }
 
 /*
-PutCwfNetworkIDSubscriberConfig updates a network wide subscriber config
+  PutCwfNetworkIDSubscriberConfig updates a network wide subscriber config
 */
-func (a *Client) PutCwfNetworkIDSubscriberConfig(params *PutCwfNetworkIDSubscriberConfigParams) (*PutCwfNetworkIDSubscriberConfigNoContent, error) {
+func (a *Client) PutCwfNetworkIDSubscriberConfig(params *PutCwfNetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDSubscriberConfigNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutCwfNetworkIDSubscriberConfigParams()
@@ -966,6 +1060,7 @@ func (a *Client) PutCwfNetworkIDSubscriberConfig(params *PutCwfNetworkIDSubscrib
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutCwfNetworkIDSubscriberConfigReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -982,9 +1077,9 @@ func (a *Client) PutCwfNetworkIDSubscriberConfig(params *PutCwfNetworkIDSubscrib
 }
 
 /*
-PutCwfNetworkIDSubscriberConfigBaseNames updates network wide base names
+  PutCwfNetworkIDSubscriberConfigBaseNames updates network wide base names
 */
-func (a *Client) PutCwfNetworkIDSubscriberConfigBaseNames(params *PutCwfNetworkIDSubscriberConfigBaseNamesParams) (*PutCwfNetworkIDSubscriberConfigBaseNamesNoContent, error) {
+func (a *Client) PutCwfNetworkIDSubscriberConfigBaseNames(params *PutCwfNetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDSubscriberConfigBaseNamesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutCwfNetworkIDSubscriberConfigBaseNamesParams()
@@ -999,6 +1094,7 @@ func (a *Client) PutCwfNetworkIDSubscriberConfigBaseNames(params *PutCwfNetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutCwfNetworkIDSubscriberConfigBaseNamesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -1015,9 +1111,9 @@ func (a *Client) PutCwfNetworkIDSubscriberConfigBaseNames(params *PutCwfNetworkI
 }
 
 /*
-PutCwfNetworkIDSubscriberConfigRuleNames updates network wide rule names
+  PutCwfNetworkIDSubscriberConfigRuleNames updates network wide rule names
 */
-func (a *Client) PutCwfNetworkIDSubscriberConfigRuleNames(params *PutCwfNetworkIDSubscriberConfigRuleNamesParams) (*PutCwfNetworkIDSubscriberConfigRuleNamesNoContent, error) {
+func (a *Client) PutCwfNetworkIDSubscriberConfigRuleNames(params *PutCwfNetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PutCwfNetworkIDSubscriberConfigRuleNamesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutCwfNetworkIDSubscriberConfigRuleNamesParams()
@@ -1032,6 +1128,7 @@ func (a *Client) PutCwfNetworkIDSubscriberConfigRuleNames(params *PutCwfNetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutCwfNetworkIDSubscriberConfigRuleNamesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})

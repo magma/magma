@@ -6,16 +6,19 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // SubscriberConfig subscriber config
+//
 // swagger:model subscriber_config
 type SubscriberConfig struct {
+
+	// forbidden network types
+	ForbiddenNetworkTypes CoreNetworkTypes `json:"forbidden_network_types,omitempty"`
 
 	// lte
 	// Required: true
@@ -29,6 +32,10 @@ type SubscriberConfig struct {
 func (m *SubscriberConfig) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateForbiddenNetworkTypes(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateLTE(formats); err != nil {
 		res = append(res, err)
 	}
@@ -40,6 +47,22 @@ func (m *SubscriberConfig) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *SubscriberConfig) validateForbiddenNetworkTypes(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ForbiddenNetworkTypes) { // not required
+		return nil
+	}
+
+	if err := m.ForbiddenNetworkTypes.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("forbidden_network_types")
+		}
+		return err
+	}
+
 	return nil
 }
 

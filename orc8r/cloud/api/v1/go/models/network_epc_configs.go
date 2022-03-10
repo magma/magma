@@ -9,14 +9,14 @@ import (
 	"encoding/json"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // NetworkEpcConfigs EPC (evolved packet core) cellular configuration for a network
+//
 // swagger:model network_epc_configs
 type NetworkEpcConfigs struct {
 
@@ -29,7 +29,7 @@ type NetworkEpcConfigs struct {
 	// default rule id
 	DefaultRuleID string `json:"default_rule_id,omitempty"`
 
-	// True if 5G Standalone (SA) should be enabled
+	// Enables 5G Standalone (SA) at a network level
 	Enable5gFeatures *bool `json:"enable5g_features,omitempty"`
 
 	// gx gy relay enabled
@@ -47,8 +47,6 @@ type NetworkEpcConfigs struct {
 
 	// lte auth op
 	// Required: true
-	// Max Length: 16
-	// Min Length: 15
 	// Format: byte
 	LTEAuthOp strfmt.Base64 `json:"lte_auth_op"`
 
@@ -67,6 +65,10 @@ type NetworkEpcConfigs struct {
 
 	// Configuration for network services. Services will be instantiated in the listed order.
 	NetworkServices []string `json:"network_services,omitempty"`
+
+	// Node Identifier for 5G Standalone (SA) at a network level
+	// Format: ipv4
+	NodeIdentifier strfmt.IPv4 `json:"node_identifier,omitempty"`
 
 	// List of IMEIs restricted in the network
 	RestrictedImeis []*Imei `json:"restricted_imeis,omitempty"`
@@ -126,6 +128,10 @@ func (m *NetworkEpcConfigs) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateNodeIdentifier(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateRestrictedImeis(formats); err != nil {
 		res = append(res, err)
 	}
@@ -180,8 +186,6 @@ func (m *NetworkEpcConfigs) validateLTEAuthAmf(formats strfmt.Registry) error {
 		return err
 	}
 
-	// Format "byte" (base64 string) is already validated when unmarshalled
-
 	return nil
 }
 
@@ -190,16 +194,6 @@ func (m *NetworkEpcConfigs) validateLTEAuthOp(formats strfmt.Registry) error {
 	if err := validate.Required("lte_auth_op", "body", strfmt.Base64(m.LTEAuthOp)); err != nil {
 		return err
 	}
-
-	if err := validate.MinLength("lte_auth_op", "body", string(m.LTEAuthOp), 15); err != nil {
-		return err
-	}
-
-	if err := validate.MaxLength("lte_auth_op", "body", string(m.LTEAuthOp), 16); err != nil {
-		return err
-	}
-
-	// Format "byte" (base64 string) is already validated when unmarshalled
 
 	return nil
 }
@@ -280,6 +274,19 @@ func (m *NetworkEpcConfigs) validateNetworkServices(formats strfmt.Registry) err
 			return err
 		}
 
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigs) validateNodeIdentifier(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.NodeIdentifier) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("node_identifier", "body", "ipv4", m.NodeIdentifier.String(), formats); err != nil {
+		return err
 	}
 
 	return nil
@@ -429,6 +436,7 @@ func (m *NetworkEpcConfigs) UnmarshalBinary(b []byte) error {
 }
 
 // NetworkEpcConfigsMobility Configuration for IP Allocation (Mobility).
+//
 // swagger:model NetworkEpcConfigsMobility
 type NetworkEpcConfigsMobility struct {
 
@@ -600,6 +608,7 @@ func (m *NetworkEpcConfigsMobility) UnmarshalBinary(b []byte) error {
 }
 
 // NetworkEpcConfigsMobilityNat network epc configs mobility nat
+//
 // swagger:model NetworkEpcConfigsMobilityNat
 type NetworkEpcConfigsMobilityNat struct {
 
@@ -661,6 +670,7 @@ func (m *NetworkEpcConfigsMobilityNat) UnmarshalBinary(b []byte) error {
 }
 
 // NetworkEpcConfigsMobilityStatic network epc configs mobility static
+//
 // swagger:model NetworkEpcConfigsMobilityStatic
 type NetworkEpcConfigsMobilityStatic struct {
 
@@ -726,6 +736,7 @@ func (m *NetworkEpcConfigsMobilityStatic) UnmarshalBinary(b []byte) error {
 }
 
 // NetworkEpcConfigsSubProfilesAnon network epc configs sub profiles anon
+//
 // swagger:model NetworkEpcConfigsSubProfilesAnon
 type NetworkEpcConfigsSubProfilesAnon struct {
 

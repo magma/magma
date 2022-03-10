@@ -7,12 +7,11 @@ package network_probes
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new network probes API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,10 +23,35 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteLTENetworkIDNetworkProbeDestinationsDestinationID(params *DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent, error)
+
+	DeleteLTENetworkIDNetworkProbeTasksTaskID(params *DeleteLTENetworkIDNetworkProbeTasksTaskIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDNetworkProbeTasksTaskIDNoContent, error)
+
+	GetLTENetworkIDNetworkProbeDestinations(params *GetLTENetworkIDNetworkProbeDestinationsParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDNetworkProbeDestinationsOK, error)
+
+	GetLTENetworkIDNetworkProbeDestinationsDestinationID(params *GetLTENetworkIDNetworkProbeDestinationsDestinationIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDNetworkProbeDestinationsDestinationIDOK, error)
+
+	GetLTENetworkIDNetworkProbeTasks(params *GetLTENetworkIDNetworkProbeTasksParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDNetworkProbeTasksOK, error)
+
+	GetLTENetworkIDNetworkProbeTasksTaskID(params *GetLTENetworkIDNetworkProbeTasksTaskIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDNetworkProbeTasksTaskIDOK, error)
+
+	PostLTENetworkIDNetworkProbeDestinations(params *PostLTENetworkIDNetworkProbeDestinationsParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDNetworkProbeDestinationsCreated, error)
+
+	PostLTENetworkIDNetworkProbeTasks(params *PostLTENetworkIDNetworkProbeTasksParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDNetworkProbeTasksCreated, error)
+
+	PutLTENetworkIDNetworkProbeDestinationsDestinationID(params *PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent, error)
+
+	PutLTENetworkIDNetworkProbeTasksTaskID(params *PutLTENetworkIDNetworkProbeTasksTaskIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDNetworkProbeTasksTaskIDNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteLTENetworkIDNetworkProbeDestinationsDestinationID removes a network probe destination from the network
+  DeleteLTENetworkIDNetworkProbeDestinationsDestinationID removes a network probe destination from the network
 */
-func (a *Client) DeleteLTENetworkIDNetworkProbeDestinationsDestinationID(params *DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDParams) (*DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent, error) {
+func (a *Client) DeleteLTENetworkIDNetworkProbeDestinationsDestinationID(params *DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDNetworkProbeDestinationsDestinationIDParams()
@@ -42,6 +66,7 @@ func (a *Client) DeleteLTENetworkIDNetworkProbeDestinationsDestinationID(params 
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -58,9 +83,9 @@ func (a *Client) DeleteLTENetworkIDNetworkProbeDestinationsDestinationID(params 
 }
 
 /*
-DeleteLTENetworkIDNetworkProbeTasksTaskID removes an network probe task from the network
+  DeleteLTENetworkIDNetworkProbeTasksTaskID removes an network probe task from the network
 */
-func (a *Client) DeleteLTENetworkIDNetworkProbeTasksTaskID(params *DeleteLTENetworkIDNetworkProbeTasksTaskIDParams) (*DeleteLTENetworkIDNetworkProbeTasksTaskIDNoContent, error) {
+func (a *Client) DeleteLTENetworkIDNetworkProbeTasksTaskID(params *DeleteLTENetworkIDNetworkProbeTasksTaskIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDNetworkProbeTasksTaskIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDNetworkProbeTasksTaskIDParams()
@@ -75,6 +100,7 @@ func (a *Client) DeleteLTENetworkIDNetworkProbeTasksTaskID(params *DeleteLTENetw
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteLTENetworkIDNetworkProbeTasksTaskIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -91,9 +117,9 @@ func (a *Client) DeleteLTENetworkIDNetworkProbeTasksTaskID(params *DeleteLTENetw
 }
 
 /*
-GetLTENetworkIDNetworkProbeDestinations lists network probe destinations in the network
+  GetLTENetworkIDNetworkProbeDestinations lists network probe destinations in the network
 */
-func (a *Client) GetLTENetworkIDNetworkProbeDestinations(params *GetLTENetworkIDNetworkProbeDestinationsParams) (*GetLTENetworkIDNetworkProbeDestinationsOK, error) {
+func (a *Client) GetLTENetworkIDNetworkProbeDestinations(params *GetLTENetworkIDNetworkProbeDestinationsParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDNetworkProbeDestinationsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDNetworkProbeDestinationsParams()
@@ -108,6 +134,7 @@ func (a *Client) GetLTENetworkIDNetworkProbeDestinations(params *GetLTENetworkID
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetLTENetworkIDNetworkProbeDestinationsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -124,9 +151,9 @@ func (a *Client) GetLTENetworkIDNetworkProbeDestinations(params *GetLTENetworkID
 }
 
 /*
-GetLTENetworkIDNetworkProbeDestinationsDestinationID retrieves a network probe destination
+  GetLTENetworkIDNetworkProbeDestinationsDestinationID retrieves a network probe destination
 */
-func (a *Client) GetLTENetworkIDNetworkProbeDestinationsDestinationID(params *GetLTENetworkIDNetworkProbeDestinationsDestinationIDParams) (*GetLTENetworkIDNetworkProbeDestinationsDestinationIDOK, error) {
+func (a *Client) GetLTENetworkIDNetworkProbeDestinationsDestinationID(params *GetLTENetworkIDNetworkProbeDestinationsDestinationIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDNetworkProbeDestinationsDestinationIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDNetworkProbeDestinationsDestinationIDParams()
@@ -141,6 +168,7 @@ func (a *Client) GetLTENetworkIDNetworkProbeDestinationsDestinationID(params *Ge
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetLTENetworkIDNetworkProbeDestinationsDestinationIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -157,9 +185,9 @@ func (a *Client) GetLTENetworkIDNetworkProbeDestinationsDestinationID(params *Ge
 }
 
 /*
-GetLTENetworkIDNetworkProbeTasks lists network probe task in the network
+  GetLTENetworkIDNetworkProbeTasks lists network probe task in the network
 */
-func (a *Client) GetLTENetworkIDNetworkProbeTasks(params *GetLTENetworkIDNetworkProbeTasksParams) (*GetLTENetworkIDNetworkProbeTasksOK, error) {
+func (a *Client) GetLTENetworkIDNetworkProbeTasks(params *GetLTENetworkIDNetworkProbeTasksParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDNetworkProbeTasksOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDNetworkProbeTasksParams()
@@ -174,6 +202,7 @@ func (a *Client) GetLTENetworkIDNetworkProbeTasks(params *GetLTENetworkIDNetwork
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetLTENetworkIDNetworkProbeTasksReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -190,9 +219,9 @@ func (a *Client) GetLTENetworkIDNetworkProbeTasks(params *GetLTENetworkIDNetwork
 }
 
 /*
-GetLTENetworkIDNetworkProbeTasksTaskID retrieves the network probe task info
+  GetLTENetworkIDNetworkProbeTasksTaskID retrieves the network probe task info
 */
-func (a *Client) GetLTENetworkIDNetworkProbeTasksTaskID(params *GetLTENetworkIDNetworkProbeTasksTaskIDParams) (*GetLTENetworkIDNetworkProbeTasksTaskIDOK, error) {
+func (a *Client) GetLTENetworkIDNetworkProbeTasksTaskID(params *GetLTENetworkIDNetworkProbeTasksTaskIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDNetworkProbeTasksTaskIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDNetworkProbeTasksTaskIDParams()
@@ -207,6 +236,7 @@ func (a *Client) GetLTENetworkIDNetworkProbeTasksTaskID(params *GetLTENetworkIDN
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetLTENetworkIDNetworkProbeTasksTaskIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -223,9 +253,9 @@ func (a *Client) GetLTENetworkIDNetworkProbeTasksTaskID(params *GetLTENetworkIDN
 }
 
 /*
-PostLTENetworkIDNetworkProbeDestinations adds a new network probe destination to the network
+  PostLTENetworkIDNetworkProbeDestinations adds a new network probe destination to the network
 */
-func (a *Client) PostLTENetworkIDNetworkProbeDestinations(params *PostLTENetworkIDNetworkProbeDestinationsParams) (*PostLTENetworkIDNetworkProbeDestinationsCreated, error) {
+func (a *Client) PostLTENetworkIDNetworkProbeDestinations(params *PostLTENetworkIDNetworkProbeDestinationsParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDNetworkProbeDestinationsCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTENetworkIDNetworkProbeDestinationsParams()
@@ -240,6 +270,7 @@ func (a *Client) PostLTENetworkIDNetworkProbeDestinations(params *PostLTENetwork
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostLTENetworkIDNetworkProbeDestinationsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -256,9 +287,9 @@ func (a *Client) PostLTENetworkIDNetworkProbeDestinations(params *PostLTENetwork
 }
 
 /*
-PostLTENetworkIDNetworkProbeTasks adds a new network probe task to the network
+  PostLTENetworkIDNetworkProbeTasks adds a new network probe task to the network
 */
-func (a *Client) PostLTENetworkIDNetworkProbeTasks(params *PostLTENetworkIDNetworkProbeTasksParams) (*PostLTENetworkIDNetworkProbeTasksCreated, error) {
+func (a *Client) PostLTENetworkIDNetworkProbeTasks(params *PostLTENetworkIDNetworkProbeTasksParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDNetworkProbeTasksCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTENetworkIDNetworkProbeTasksParams()
@@ -273,6 +304,7 @@ func (a *Client) PostLTENetworkIDNetworkProbeTasks(params *PostLTENetworkIDNetwo
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostLTENetworkIDNetworkProbeTasksReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -289,9 +321,9 @@ func (a *Client) PostLTENetworkIDNetworkProbeTasks(params *PostLTENetworkIDNetwo
 }
 
 /*
-PutLTENetworkIDNetworkProbeDestinationsDestinationID updates an existing network probe destination in the network
+  PutLTENetworkIDNetworkProbeDestinationsDestinationID updates an existing network probe destination in the network
 */
-func (a *Client) PutLTENetworkIDNetworkProbeDestinationsDestinationID(params *PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams) (*PutLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent, error) {
+func (a *Client) PutLTENetworkIDNetworkProbeDestinationsDestinationID(params *PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDNetworkProbeDestinationsDestinationIDParams()
@@ -306,6 +338,7 @@ func (a *Client) PutLTENetworkIDNetworkProbeDestinationsDestinationID(params *Pu
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutLTENetworkIDNetworkProbeDestinationsDestinationIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -322,9 +355,9 @@ func (a *Client) PutLTENetworkIDNetworkProbeDestinationsDestinationID(params *Pu
 }
 
 /*
-PutLTENetworkIDNetworkProbeTasksTaskID updates an existing network probe task in the network
+  PutLTENetworkIDNetworkProbeTasksTaskID updates an existing network probe task in the network
 */
-func (a *Client) PutLTENetworkIDNetworkProbeTasksTaskID(params *PutLTENetworkIDNetworkProbeTasksTaskIDParams) (*PutLTENetworkIDNetworkProbeTasksTaskIDNoContent, error) {
+func (a *Client) PutLTENetworkIDNetworkProbeTasksTaskID(params *PutLTENetworkIDNetworkProbeTasksTaskIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDNetworkProbeTasksTaskIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDNetworkProbeTasksTaskIDParams()
@@ -339,6 +372,7 @@ func (a *Client) PutLTENetworkIDNetworkProbeTasksTaskID(params *PutLTENetworkIDN
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutLTENetworkIDNetworkProbeTasksTaskIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})

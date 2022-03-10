@@ -8,14 +8,14 @@ package models
 import (
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // GatewayEpcConfigs EPC configuration for an LTE gateway
+//
 // swagger:model gateway_epc_configs
 type GatewayEpcConfigs struct {
 
@@ -70,6 +70,13 @@ type GatewayEpcConfigs struct {
 	// Max Length: 49
 	// Min Length: 5
 	SgiManagementIfaceGw string `json:"sgi_management_iface_gw,omitempty"`
+
+	// IPv6 address for management interface on the AGW in CIDR format
+	SgiManagementIfaceIPV6Addr string `json:"sgi_management_iface_ipv6_addr,omitempty"`
+
+	// IPv6 address of gateway for management interface on the AGW
+	// Format: ipv6
+	SgiManagementIfaceIPV6Gw strfmt.IPv6 `json:"sgi_management_iface_ipv6_gw,omitempty"`
 
 	// IP address for management interface on the AGW, If not specified AGW uses DHCP to configure it.
 	// Max Length: 49
@@ -126,6 +133,10 @@ func (m *GatewayEpcConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateSgiManagementIfaceGw(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSgiManagementIfaceIPV6Gw(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -317,6 +328,19 @@ func (m *GatewayEpcConfigs) validateSgiManagementIfaceGw(formats strfmt.Registry
 	}
 
 	if err := validate.MaxLength("sgi_management_iface_gw", "body", string(m.SgiManagementIfaceGw), 49); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *GatewayEpcConfigs) validateSgiManagementIfaceIPV6Gw(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.SgiManagementIfaceIPV6Gw) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("sgi_management_iface_ipv6_gw", "body", "ipv6", m.SgiManagementIfaceIPV6Gw.String(), formats); err != nil {
 		return err
 	}
 

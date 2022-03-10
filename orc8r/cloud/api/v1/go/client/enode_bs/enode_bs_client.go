@@ -7,12 +7,11 @@ package enode_bs
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new enode bs API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,10 +23,27 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteLTENetworkIDEnodebsENODEBSerial(params *DeleteLTENetworkIDEnodebsENODEBSerialParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDEnodebsENODEBSerialNoContent, error)
+
+	GetLTENetworkIDEnodebs(params *GetLTENetworkIDEnodebsParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDEnodebsOK, error)
+
+	GetLTENetworkIDEnodebsENODEBSerial(params *GetLTENetworkIDEnodebsENODEBSerialParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDEnodebsENODEBSerialOK, error)
+
+	GetLTENetworkIDEnodebsENODEBSerialState(params *GetLTENetworkIDEnodebsENODEBSerialStateParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDEnodebsENODEBSerialStateOK, error)
+
+	PostLTENetworkIDEnodebs(params *PostLTENetworkIDEnodebsParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDEnodebsCreated, error)
+
+	PutLTENetworkIDEnodebsENODEBSerial(params *PutLTENetworkIDEnodebsENODEBSerialParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDEnodebsENODEBSerialNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteLTENetworkIDEnodebsENODEBSerial unregisters an enode b
+  DeleteLTENetworkIDEnodebsENODEBSerial unregisters an enode b
 */
-func (a *Client) DeleteLTENetworkIDEnodebsENODEBSerial(params *DeleteLTENetworkIDEnodebsENODEBSerialParams) (*DeleteLTENetworkIDEnodebsENODEBSerialNoContent, error) {
+func (a *Client) DeleteLTENetworkIDEnodebsENODEBSerial(params *DeleteLTENetworkIDEnodebsENODEBSerialParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDEnodebsENODEBSerialNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDEnodebsENODEBSerialParams()
@@ -42,6 +58,7 @@ func (a *Client) DeleteLTENetworkIDEnodebsENODEBSerial(params *DeleteLTENetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteLTENetworkIDEnodebsENODEBSerialReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -58,9 +75,9 @@ func (a *Client) DeleteLTENetworkIDEnodebsENODEBSerial(params *DeleteLTENetworkI
 }
 
 /*
-GetLTENetworkIDEnodebs lists all enode bs in the network
+  GetLTENetworkIDEnodebs lists all enode bs in the network
 */
-func (a *Client) GetLTENetworkIDEnodebs(params *GetLTENetworkIDEnodebsParams) (*GetLTENetworkIDEnodebsOK, error) {
+func (a *Client) GetLTENetworkIDEnodebs(params *GetLTENetworkIDEnodebsParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDEnodebsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDEnodebsParams()
@@ -75,6 +92,7 @@ func (a *Client) GetLTENetworkIDEnodebs(params *GetLTENetworkIDEnodebsParams) (*
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetLTENetworkIDEnodebsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -91,9 +109,9 @@ func (a *Client) GetLTENetworkIDEnodebs(params *GetLTENetworkIDEnodebsParams) (*
 }
 
 /*
-GetLTENetworkIDEnodebsENODEBSerial retrieves a specific enode b configuration
+  GetLTENetworkIDEnodebsENODEBSerial retrieves a specific enode b configuration
 */
-func (a *Client) GetLTENetworkIDEnodebsENODEBSerial(params *GetLTENetworkIDEnodebsENODEBSerialParams) (*GetLTENetworkIDEnodebsENODEBSerialOK, error) {
+func (a *Client) GetLTENetworkIDEnodebsENODEBSerial(params *GetLTENetworkIDEnodebsENODEBSerialParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDEnodebsENODEBSerialOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDEnodebsENODEBSerialParams()
@@ -108,6 +126,7 @@ func (a *Client) GetLTENetworkIDEnodebsENODEBSerial(params *GetLTENetworkIDEnode
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetLTENetworkIDEnodebsENODEBSerialReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -124,9 +143,9 @@ func (a *Client) GetLTENetworkIDEnodebsENODEBSerial(params *GetLTENetworkIDEnode
 }
 
 /*
-GetLTENetworkIDEnodebsENODEBSerialState retrieves reported state from enodeb device
+  GetLTENetworkIDEnodebsENODEBSerialState retrieves reported state from enodeb device
 */
-func (a *Client) GetLTENetworkIDEnodebsENODEBSerialState(params *GetLTENetworkIDEnodebsENODEBSerialStateParams) (*GetLTENetworkIDEnodebsENODEBSerialStateOK, error) {
+func (a *Client) GetLTENetworkIDEnodebsENODEBSerialState(params *GetLTENetworkIDEnodebsENODEBSerialStateParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDEnodebsENODEBSerialStateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDEnodebsENODEBSerialStateParams()
@@ -141,6 +160,7 @@ func (a *Client) GetLTENetworkIDEnodebsENODEBSerialState(params *GetLTENetworkID
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetLTENetworkIDEnodebsENODEBSerialStateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -157,9 +177,9 @@ func (a *Client) GetLTENetworkIDEnodebsENODEBSerialState(params *GetLTENetworkID
 }
 
 /*
-PostLTENetworkIDEnodebs registers a new enode b
+  PostLTENetworkIDEnodebs registers a new enode b
 */
-func (a *Client) PostLTENetworkIDEnodebs(params *PostLTENetworkIDEnodebsParams) (*PostLTENetworkIDEnodebsCreated, error) {
+func (a *Client) PostLTENetworkIDEnodebs(params *PostLTENetworkIDEnodebsParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDEnodebsCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTENetworkIDEnodebsParams()
@@ -174,6 +194,7 @@ func (a *Client) PostLTENetworkIDEnodebs(params *PostLTENetworkIDEnodebsParams) 
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostLTENetworkIDEnodebsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -190,9 +211,9 @@ func (a *Client) PostLTENetworkIDEnodebs(params *PostLTENetworkIDEnodebsParams) 
 }
 
 /*
-PutLTENetworkIDEnodebsENODEBSerial updates an enode b s configuration
+  PutLTENetworkIDEnodebsENODEBSerial updates an enode b s configuration
 */
-func (a *Client) PutLTENetworkIDEnodebsENODEBSerial(params *PutLTENetworkIDEnodebsENODEBSerialParams) (*PutLTENetworkIDEnodebsENODEBSerialNoContent, error) {
+func (a *Client) PutLTENetworkIDEnodebsENODEBSerial(params *PutLTENetworkIDEnodebsENODEBSerialParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDEnodebsENODEBSerialNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDEnodebsENODEBSerialParams()
@@ -207,6 +228,7 @@ func (a *Client) PutLTENetworkIDEnodebsENODEBSerial(params *PutLTENetworkIDEnode
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutLTENetworkIDEnodebsENODEBSerialReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})

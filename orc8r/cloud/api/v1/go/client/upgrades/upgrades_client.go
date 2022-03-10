@@ -7,12 +7,11 @@ package upgrades
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new upgrades API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,10 +23,59 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteChannelsChannelID(params *DeleteChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteChannelsChannelIDNoContent, error)
+
+	DeleteNetworksNetworkIDTiersTierID(params *DeleteNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDTiersTierIDNoContent, error)
+
+	DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayID(params *DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDNoContent, error)
+
+	DeleteNetworksNetworkIDTiersTierIDImagesImageName(params *DeleteNetworksNetworkIDTiersTierIDImagesImageNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDTiersTierIDImagesImageNameNoContent, error)
+
+	GetChannels(params *GetChannelsParams, authInfo runtime.ClientAuthInfoWriter) (*GetChannelsOK, error)
+
+	GetChannelsChannelID(params *GetChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetChannelsChannelIDOK, error)
+
+	GetNetworksNetworkIDTiers(params *GetNetworksNetworkIDTiersParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersOK, error)
+
+	GetNetworksNetworkIDTiersTierID(params *GetNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDOK, error)
+
+	GetNetworksNetworkIDTiersTierIDGateways(params *GetNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDGatewaysOK, error)
+
+	GetNetworksNetworkIDTiersTierIDImages(params *GetNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDImagesOK, error)
+
+	GetNetworksNetworkIDTiersTierIDName(params *GetNetworksNetworkIDTiersTierIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDNameOK, error)
+
+	GetNetworksNetworkIDTiersTierIDVersion(params *GetNetworksNetworkIDTiersTierIDVersionParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDVersionOK, error)
+
+	PostChannels(params *PostChannelsParams, authInfo runtime.ClientAuthInfoWriter) (*PostChannelsCreated, error)
+
+	PostNetworksNetworkIDTiers(params *PostNetworksNetworkIDTiersParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDTiersCreated, error)
+
+	PostNetworksNetworkIDTiersTierIDGateways(params *PostNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDTiersTierIDGatewaysNoContent, error)
+
+	PostNetworksNetworkIDTiersTierIDImages(params *PostNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDTiersTierIDImagesNoContent, error)
+
+	PutChannelsChannelID(params *PutChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutChannelsChannelIDNoContent, error)
+
+	PutNetworksNetworkIDTiersTierID(params *PutNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDNoContent, error)
+
+	PutNetworksNetworkIDTiersTierIDGateways(params *PutNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDGatewaysNoContent, error)
+
+	PutNetworksNetworkIDTiersTierIDImages(params *PutNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDImagesNoContent, error)
+
+	PutNetworksNetworkIDTiersTierIDName(params *PutNetworksNetworkIDTiersTierIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDNameNoContent, error)
+
+	PutNetworksNetworkIDTiersTierIDVersion(params *PutNetworksNetworkIDTiersTierIDVersionParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDVersionNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteChannelsChannelID deletes a release channel
+  DeleteChannelsChannelID deletes a release channel
 */
-func (a *Client) DeleteChannelsChannelID(params *DeleteChannelsChannelIDParams) (*DeleteChannelsChannelIDNoContent, error) {
+func (a *Client) DeleteChannelsChannelID(params *DeleteChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteChannelsChannelIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteChannelsChannelIDParams()
@@ -42,6 +90,7 @@ func (a *Client) DeleteChannelsChannelID(params *DeleteChannelsChannelIDParams) 
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteChannelsChannelIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -58,9 +107,9 @@ func (a *Client) DeleteChannelsChannelID(params *DeleteChannelsChannelIDParams) 
 }
 
 /*
-DeleteNetworksNetworkIDTiersTierID deletes upgrade tier
+  DeleteNetworksNetworkIDTiersTierID deletes upgrade tier
 */
-func (a *Client) DeleteNetworksNetworkIDTiersTierID(params *DeleteNetworksNetworkIDTiersTierIDParams) (*DeleteNetworksNetworkIDTiersTierIDNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDTiersTierID(params *DeleteNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDTiersTierIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDTiersTierIDParams()
@@ -75,6 +124,7 @@ func (a *Client) DeleteNetworksNetworkIDTiersTierID(params *DeleteNetworksNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteNetworksNetworkIDTiersTierIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -91,9 +141,9 @@ func (a *Client) DeleteNetworksNetworkIDTiersTierID(params *DeleteNetworksNetwor
 }
 
 /*
-DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayID removes a gateway from tier
+  DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayID removes a gateway from tier
 */
-func (a *Client) DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayID(params *DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams) (*DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayID(params *DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams()
@@ -108,6 +158,7 @@ func (a *Client) DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayID(params *Del
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -124,9 +175,9 @@ func (a *Client) DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayID(params *Del
 }
 
 /*
-DeleteNetworksNetworkIDTiersTierIDImagesImageName removes an image from tier
+  DeleteNetworksNetworkIDTiersTierIDImagesImageName removes an image from tier
 */
-func (a *Client) DeleteNetworksNetworkIDTiersTierIDImagesImageName(params *DeleteNetworksNetworkIDTiersTierIDImagesImageNameParams) (*DeleteNetworksNetworkIDTiersTierIDImagesImageNameNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDTiersTierIDImagesImageName(params *DeleteNetworksNetworkIDTiersTierIDImagesImageNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDTiersTierIDImagesImageNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDTiersTierIDImagesImageNameParams()
@@ -141,6 +192,7 @@ func (a *Client) DeleteNetworksNetworkIDTiersTierIDImagesImageName(params *Delet
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteNetworksNetworkIDTiersTierIDImagesImageNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -157,9 +209,9 @@ func (a *Client) DeleteNetworksNetworkIDTiersTierIDImagesImageName(params *Delet
 }
 
 /*
-GetChannels lists all release channels
+  GetChannels lists all release channels
 */
-func (a *Client) GetChannels(params *GetChannelsParams) (*GetChannelsOK, error) {
+func (a *Client) GetChannels(params *GetChannelsParams, authInfo runtime.ClientAuthInfoWriter) (*GetChannelsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetChannelsParams()
@@ -174,6 +226,7 @@ func (a *Client) GetChannels(params *GetChannelsParams) (*GetChannelsOK, error) 
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetChannelsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -190,9 +243,9 @@ func (a *Client) GetChannels(params *GetChannelsParams) (*GetChannelsOK, error) 
 }
 
 /*
-GetChannelsChannelID gets release channel by id
+  GetChannelsChannelID gets release channel by id
 */
-func (a *Client) GetChannelsChannelID(params *GetChannelsChannelIDParams) (*GetChannelsChannelIDOK, error) {
+func (a *Client) GetChannelsChannelID(params *GetChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetChannelsChannelIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetChannelsChannelIDParams()
@@ -207,6 +260,7 @@ func (a *Client) GetChannelsChannelID(params *GetChannelsChannelIDParams) (*GetC
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetChannelsChannelIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -223,9 +277,9 @@ func (a *Client) GetChannelsChannelID(params *GetChannelsChannelIDParams) (*GetC
 }
 
 /*
-GetNetworksNetworkIDTiers gets a list of upgrade tiers
+  GetNetworksNetworkIDTiers gets a list of upgrade tiers
 */
-func (a *Client) GetNetworksNetworkIDTiers(params *GetNetworksNetworkIDTiersParams) (*GetNetworksNetworkIDTiersOK, error) {
+func (a *Client) GetNetworksNetworkIDTiers(params *GetNetworksNetworkIDTiersParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDTiersParams()
@@ -240,6 +294,7 @@ func (a *Client) GetNetworksNetworkIDTiers(params *GetNetworksNetworkIDTiersPara
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDTiersReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -256,9 +311,9 @@ func (a *Client) GetNetworksNetworkIDTiers(params *GetNetworksNetworkIDTiersPara
 }
 
 /*
-GetNetworksNetworkIDTiersTierID gets upgrade tier
+  GetNetworksNetworkIDTiersTierID gets upgrade tier
 */
-func (a *Client) GetNetworksNetworkIDTiersTierID(params *GetNetworksNetworkIDTiersTierIDParams) (*GetNetworksNetworkIDTiersTierIDOK, error) {
+func (a *Client) GetNetworksNetworkIDTiersTierID(params *GetNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDTiersTierIDParams()
@@ -273,6 +328,7 @@ func (a *Client) GetNetworksNetworkIDTiersTierID(params *GetNetworksNetworkIDTie
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDTiersTierIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -289,9 +345,9 @@ func (a *Client) GetNetworksNetworkIDTiersTierID(params *GetNetworksNetworkIDTie
 }
 
 /*
-GetNetworksNetworkIDTiersTierIDGateways gets gateways of upgrade tier
+  GetNetworksNetworkIDTiersTierIDGateways gets gateways of upgrade tier
 */
-func (a *Client) GetNetworksNetworkIDTiersTierIDGateways(params *GetNetworksNetworkIDTiersTierIDGatewaysParams) (*GetNetworksNetworkIDTiersTierIDGatewaysOK, error) {
+func (a *Client) GetNetworksNetworkIDTiersTierIDGateways(params *GetNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDGatewaysOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDTiersTierIDGatewaysParams()
@@ -306,6 +362,7 @@ func (a *Client) GetNetworksNetworkIDTiersTierIDGateways(params *GetNetworksNetw
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDTiersTierIDGatewaysReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -322,9 +379,9 @@ func (a *Client) GetNetworksNetworkIDTiersTierIDGateways(params *GetNetworksNetw
 }
 
 /*
-GetNetworksNetworkIDTiersTierIDImages gets images of upgrade tier
+  GetNetworksNetworkIDTiersTierIDImages gets images of upgrade tier
 */
-func (a *Client) GetNetworksNetworkIDTiersTierIDImages(params *GetNetworksNetworkIDTiersTierIDImagesParams) (*GetNetworksNetworkIDTiersTierIDImagesOK, error) {
+func (a *Client) GetNetworksNetworkIDTiersTierIDImages(params *GetNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDImagesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDTiersTierIDImagesParams()
@@ -339,6 +396,7 @@ func (a *Client) GetNetworksNetworkIDTiersTierIDImages(params *GetNetworksNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDTiersTierIDImagesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -355,9 +413,9 @@ func (a *Client) GetNetworksNetworkIDTiersTierIDImages(params *GetNetworksNetwor
 }
 
 /*
-GetNetworksNetworkIDTiersTierIDName gets name of upgrade tier
+  GetNetworksNetworkIDTiersTierIDName gets name of upgrade tier
 */
-func (a *Client) GetNetworksNetworkIDTiersTierIDName(params *GetNetworksNetworkIDTiersTierIDNameParams) (*GetNetworksNetworkIDTiersTierIDNameOK, error) {
+func (a *Client) GetNetworksNetworkIDTiersTierIDName(params *GetNetworksNetworkIDTiersTierIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDTiersTierIDNameParams()
@@ -372,6 +430,7 @@ func (a *Client) GetNetworksNetworkIDTiersTierIDName(params *GetNetworksNetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDTiersTierIDNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -388,9 +447,9 @@ func (a *Client) GetNetworksNetworkIDTiersTierIDName(params *GetNetworksNetworkI
 }
 
 /*
-GetNetworksNetworkIDTiersTierIDVersion gets version of upgrade tier
+  GetNetworksNetworkIDTiersTierIDVersion gets version of upgrade tier
 */
-func (a *Client) GetNetworksNetworkIDTiersTierIDVersion(params *GetNetworksNetworkIDTiersTierIDVersionParams) (*GetNetworksNetworkIDTiersTierIDVersionOK, error) {
+func (a *Client) GetNetworksNetworkIDTiersTierIDVersion(params *GetNetworksNetworkIDTiersTierIDVersionParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDVersionOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDTiersTierIDVersionParams()
@@ -405,6 +464,7 @@ func (a *Client) GetNetworksNetworkIDTiersTierIDVersion(params *GetNetworksNetwo
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDTiersTierIDVersionReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -421,9 +481,9 @@ func (a *Client) GetNetworksNetworkIDTiersTierIDVersion(params *GetNetworksNetwo
 }
 
 /*
-PostChannels creates a new release channel
+  PostChannels creates a new release channel
 */
-func (a *Client) PostChannels(params *PostChannelsParams) (*PostChannelsCreated, error) {
+func (a *Client) PostChannels(params *PostChannelsParams, authInfo runtime.ClientAuthInfoWriter) (*PostChannelsCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostChannelsParams()
@@ -438,6 +498,7 @@ func (a *Client) PostChannels(params *PostChannelsParams) (*PostChannelsCreated,
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostChannelsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -454,9 +515,9 @@ func (a *Client) PostChannels(params *PostChannelsParams) (*PostChannelsCreated,
 }
 
 /*
-PostNetworksNetworkIDTiers registers a tier
+  PostNetworksNetworkIDTiers registers a tier
 */
-func (a *Client) PostNetworksNetworkIDTiers(params *PostNetworksNetworkIDTiersParams) (*PostNetworksNetworkIDTiersCreated, error) {
+func (a *Client) PostNetworksNetworkIDTiers(params *PostNetworksNetworkIDTiersParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDTiersCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDTiersParams()
@@ -471,6 +532,7 @@ func (a *Client) PostNetworksNetworkIDTiers(params *PostNetworksNetworkIDTiersPa
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksNetworkIDTiersReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -487,9 +549,9 @@ func (a *Client) PostNetworksNetworkIDTiers(params *PostNetworksNetworkIDTiersPa
 }
 
 /*
-PostNetworksNetworkIDTiersTierIDGateways adds a gateway to upgrade tier
+  PostNetworksNetworkIDTiersTierIDGateways adds a gateway to upgrade tier
 */
-func (a *Client) PostNetworksNetworkIDTiersTierIDGateways(params *PostNetworksNetworkIDTiersTierIDGatewaysParams) (*PostNetworksNetworkIDTiersTierIDGatewaysNoContent, error) {
+func (a *Client) PostNetworksNetworkIDTiersTierIDGateways(params *PostNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDTiersTierIDGatewaysNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDTiersTierIDGatewaysParams()
@@ -504,6 +566,7 @@ func (a *Client) PostNetworksNetworkIDTiersTierIDGateways(params *PostNetworksNe
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksNetworkIDTiersTierIDGatewaysReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -520,9 +583,9 @@ func (a *Client) PostNetworksNetworkIDTiersTierIDGateways(params *PostNetworksNe
 }
 
 /*
-PostNetworksNetworkIDTiersTierIDImages adds an image to upgrade tier
+  PostNetworksNetworkIDTiersTierIDImages adds an image to upgrade tier
 */
-func (a *Client) PostNetworksNetworkIDTiersTierIDImages(params *PostNetworksNetworkIDTiersTierIDImagesParams) (*PostNetworksNetworkIDTiersTierIDImagesNoContent, error) {
+func (a *Client) PostNetworksNetworkIDTiersTierIDImages(params *PostNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDTiersTierIDImagesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDTiersTierIDImagesParams()
@@ -537,6 +600,7 @@ func (a *Client) PostNetworksNetworkIDTiersTierIDImages(params *PostNetworksNetw
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksNetworkIDTiersTierIDImagesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -553,9 +617,9 @@ func (a *Client) PostNetworksNetworkIDTiersTierIDImages(params *PostNetworksNetw
 }
 
 /*
-PutChannelsChannelID updates a release channel
+  PutChannelsChannelID updates a release channel
 */
-func (a *Client) PutChannelsChannelID(params *PutChannelsChannelIDParams) (*PutChannelsChannelIDNoContent, error) {
+func (a *Client) PutChannelsChannelID(params *PutChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutChannelsChannelIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutChannelsChannelIDParams()
@@ -570,6 +634,7 @@ func (a *Client) PutChannelsChannelID(params *PutChannelsChannelIDParams) (*PutC
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutChannelsChannelIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -586,9 +651,9 @@ func (a *Client) PutChannelsChannelID(params *PutChannelsChannelIDParams) (*PutC
 }
 
 /*
-PutNetworksNetworkIDTiersTierID updates upgrade tier
+  PutNetworksNetworkIDTiersTierID updates upgrade tier
 */
-func (a *Client) PutNetworksNetworkIDTiersTierID(params *PutNetworksNetworkIDTiersTierIDParams) (*PutNetworksNetworkIDTiersTierIDNoContent, error) {
+func (a *Client) PutNetworksNetworkIDTiersTierID(params *PutNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDTiersTierIDParams()
@@ -603,6 +668,7 @@ func (a *Client) PutNetworksNetworkIDTiersTierID(params *PutNetworksNetworkIDTie
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDTiersTierIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -619,9 +685,9 @@ func (a *Client) PutNetworksNetworkIDTiersTierID(params *PutNetworksNetworkIDTie
 }
 
 /*
-PutNetworksNetworkIDTiersTierIDGateways updates upgrade tier gateways
+  PutNetworksNetworkIDTiersTierIDGateways updates upgrade tier gateways
 */
-func (a *Client) PutNetworksNetworkIDTiersTierIDGateways(params *PutNetworksNetworkIDTiersTierIDGatewaysParams) (*PutNetworksNetworkIDTiersTierIDGatewaysNoContent, error) {
+func (a *Client) PutNetworksNetworkIDTiersTierIDGateways(params *PutNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDGatewaysNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDTiersTierIDGatewaysParams()
@@ -636,6 +702,7 @@ func (a *Client) PutNetworksNetworkIDTiersTierIDGateways(params *PutNetworksNetw
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDTiersTierIDGatewaysReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -652,9 +719,9 @@ func (a *Client) PutNetworksNetworkIDTiersTierIDGateways(params *PutNetworksNetw
 }
 
 /*
-PutNetworksNetworkIDTiersTierIDImages updates upgrade tier images
+  PutNetworksNetworkIDTiersTierIDImages updates upgrade tier images
 */
-func (a *Client) PutNetworksNetworkIDTiersTierIDImages(params *PutNetworksNetworkIDTiersTierIDImagesParams) (*PutNetworksNetworkIDTiersTierIDImagesNoContent, error) {
+func (a *Client) PutNetworksNetworkIDTiersTierIDImages(params *PutNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDImagesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDTiersTierIDImagesParams()
@@ -669,6 +736,7 @@ func (a *Client) PutNetworksNetworkIDTiersTierIDImages(params *PutNetworksNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDTiersTierIDImagesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -685,9 +753,9 @@ func (a *Client) PutNetworksNetworkIDTiersTierIDImages(params *PutNetworksNetwor
 }
 
 /*
-PutNetworksNetworkIDTiersTierIDName updates upgrade tier name
+  PutNetworksNetworkIDTiersTierIDName updates upgrade tier name
 */
-func (a *Client) PutNetworksNetworkIDTiersTierIDName(params *PutNetworksNetworkIDTiersTierIDNameParams) (*PutNetworksNetworkIDTiersTierIDNameNoContent, error) {
+func (a *Client) PutNetworksNetworkIDTiersTierIDName(params *PutNetworksNetworkIDTiersTierIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDTiersTierIDNameParams()
@@ -702,6 +770,7 @@ func (a *Client) PutNetworksNetworkIDTiersTierIDName(params *PutNetworksNetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDTiersTierIDNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -718,9 +787,9 @@ func (a *Client) PutNetworksNetworkIDTiersTierIDName(params *PutNetworksNetworkI
 }
 
 /*
-PutNetworksNetworkIDTiersTierIDVersion updates upgrade tier version
+  PutNetworksNetworkIDTiersTierIDVersion updates upgrade tier version
 */
-func (a *Client) PutNetworksNetworkIDTiersTierIDVersion(params *PutNetworksNetworkIDTiersTierIDVersionParams) (*PutNetworksNetworkIDTiersTierIDVersionNoContent, error) {
+func (a *Client) PutNetworksNetworkIDTiersTierIDVersion(params *PutNetworksNetworkIDTiersTierIDVersionParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDVersionNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDTiersTierIDVersionParams()
@@ -735,6 +804,7 @@ func (a *Client) PutNetworksNetworkIDTiersTierIDVersion(params *PutNetworksNetwo
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDTiersTierIDVersionReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})

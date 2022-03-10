@@ -6,14 +6,14 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // Hss HSS configuration
+//
 // swagger:model hss
 type Hss struct {
 
@@ -46,14 +46,6 @@ func (m *Hss) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateLTEAuthAmf(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateLTEAuthOp(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateServer(formats); err != nil {
 		res = append(res, err)
 	}
@@ -82,28 +74,6 @@ func (m *Hss) validateDefaultSubProfile(formats strfmt.Registry) error {
 			return err
 		}
 	}
-
-	return nil
-}
-
-func (m *Hss) validateLTEAuthAmf(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.LTEAuthAmf) { // not required
-		return nil
-	}
-
-	// Format "byte" (base64 string) is already validated when unmarshalled
-
-	return nil
-}
-
-func (m *Hss) validateLTEAuthOp(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.LTEAuthOp) { // not required
-		return nil
-	}
-
-	// Format "byte" (base64 string) is already validated when unmarshalled
 
 	return nil
 }

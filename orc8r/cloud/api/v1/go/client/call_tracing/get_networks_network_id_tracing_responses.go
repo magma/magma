@@ -13,12 +13,11 @@ import (
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetNetworksNetworkIDTracingReader is a Reader for the GetNetworksNetworkIDTracing structure.
@@ -146,7 +145,6 @@ func (o *GetNetworksNetworkIDTracingOKBodyTuple0) UnmarshalJSON(raw []byte) erro
 	}
 
 	// stage 2: hydrates struct members with tuple elements
-
 	if len(stage1) > 0 {
 		var dataP0 models.CallTrace
 		buf = bytes.NewBuffer(stage1[0])

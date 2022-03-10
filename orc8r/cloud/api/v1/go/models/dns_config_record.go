@@ -8,14 +8,14 @@ package models
 import (
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // DNSConfigRecord Mapping used for DNS resolving from a domain
+//
 // swagger:model dns_config_record
 type DNSConfigRecord struct {
 

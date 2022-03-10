@@ -7,12 +7,11 @@ package commands
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new commands API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,10 +23,23 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	PostNetworksNetworkIDGatewaysGatewayIDCommandGeneric(params *PostNetworksNetworkIDGatewaysGatewayIDCommandGenericParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK, error)
+
+	PostNetworksNetworkIDGatewaysGatewayIDCommandPing(params *PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysGatewayIDCommandPingOK, error)
+
+	PostNetworksNetworkIDGatewaysGatewayIDCommandReboot(params *PostNetworksNetworkIDGatewaysGatewayIDCommandRebootParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysGatewayIDCommandRebootOK, error)
+
+	PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServices(params *PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesOK, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-PostNetworksNetworkIDGatewaysGatewayIDCommandGeneric executes generic command on gateway
+  PostNetworksNetworkIDGatewaysGatewayIDCommandGeneric executes generic command on gateway
 */
-func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandGeneric(params *PostNetworksNetworkIDGatewaysGatewayIDCommandGenericParams) (*PostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK, error) {
+func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandGeneric(params *PostNetworksNetworkIDGatewaysGatewayIDCommandGenericParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDGatewaysGatewayIDCommandGenericParams()
@@ -42,6 +54,7 @@ func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandGeneric(params *Po
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksNetworkIDGatewaysGatewayIDCommandGenericReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -58,9 +71,9 @@ func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandGeneric(params *Po
 }
 
 /*
-PostNetworksNetworkIDGatewaysGatewayIDCommandPing pings host s from gateway
+  PostNetworksNetworkIDGatewaysGatewayIDCommandPing pings host s from gateway
 */
-func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandPing(params *PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams) (*PostNetworksNetworkIDGatewaysGatewayIDCommandPingOK, error) {
+func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandPing(params *PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysGatewayIDCommandPingOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDGatewaysGatewayIDCommandPingParams()
@@ -75,6 +88,7 @@ func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandPing(params *PostN
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksNetworkIDGatewaysGatewayIDCommandPingReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -91,9 +105,9 @@ func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandPing(params *PostN
 }
 
 /*
-PostNetworksNetworkIDGatewaysGatewayIDCommandReboot reboots gateway device
+  PostNetworksNetworkIDGatewaysGatewayIDCommandReboot reboots gateway device
 */
-func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandReboot(params *PostNetworksNetworkIDGatewaysGatewayIDCommandRebootParams) (*PostNetworksNetworkIDGatewaysGatewayIDCommandRebootOK, error) {
+func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandReboot(params *PostNetworksNetworkIDGatewaysGatewayIDCommandRebootParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysGatewayIDCommandRebootOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDGatewaysGatewayIDCommandRebootParams()
@@ -108,6 +122,7 @@ func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandReboot(params *Pos
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksNetworkIDGatewaysGatewayIDCommandRebootReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -124,9 +139,9 @@ func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandReboot(params *Pos
 }
 
 /*
-PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServices restarts gateway services
+  PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServices restarts gateway services
 */
-func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServices(params *PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesParams) (*PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesOK, error) {
+func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServices(params *PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesParams()
@@ -141,6 +156,7 @@ func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServices(pa
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})

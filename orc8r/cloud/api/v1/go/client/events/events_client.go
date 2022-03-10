@@ -7,12 +7,11 @@ package events
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new events API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,10 +23,21 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	GetEventsNetworkID(params *GetEventsNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetEventsNetworkIDOK, error)
+
+	GetEventsNetworkIDAboutCount(params *GetEventsNetworkIDAboutCountParams, authInfo runtime.ClientAuthInfoWriter) (*GetEventsNetworkIDAboutCountOK, error)
+
+	GetEventsNetworkIDStreamName(params *GetEventsNetworkIDStreamNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetEventsNetworkIDStreamNameOK, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-GetEventsNetworkID queries events
+  GetEventsNetworkID queries events
 */
-func (a *Client) GetEventsNetworkID(params *GetEventsNetworkIDParams) (*GetEventsNetworkIDOK, error) {
+func (a *Client) GetEventsNetworkID(params *GetEventsNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetEventsNetworkIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetEventsNetworkIDParams()
@@ -42,6 +52,7 @@ func (a *Client) GetEventsNetworkID(params *GetEventsNetworkIDParams) (*GetEvent
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetEventsNetworkIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -58,9 +69,9 @@ func (a *Client) GetEventsNetworkID(params *GetEventsNetworkIDParams) (*GetEvent
 }
 
 /*
-GetEventsNetworkIDAboutCount gets a count of events that match the query
+  GetEventsNetworkIDAboutCount gets a count of events that match the query
 */
-func (a *Client) GetEventsNetworkIDAboutCount(params *GetEventsNetworkIDAboutCountParams) (*GetEventsNetworkIDAboutCountOK, error) {
+func (a *Client) GetEventsNetworkIDAboutCount(params *GetEventsNetworkIDAboutCountParams, authInfo runtime.ClientAuthInfoWriter) (*GetEventsNetworkIDAboutCountOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetEventsNetworkIDAboutCountParams()
@@ -75,6 +86,7 @@ func (a *Client) GetEventsNetworkIDAboutCount(params *GetEventsNetworkIDAboutCou
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetEventsNetworkIDAboutCountReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -91,9 +103,9 @@ func (a *Client) GetEventsNetworkIDAboutCount(params *GetEventsNetworkIDAboutCou
 }
 
 /*
-GetEventsNetworkIDStreamName queries events logged by services
+  GetEventsNetworkIDStreamName queries events logged by services
 */
-func (a *Client) GetEventsNetworkIDStreamName(params *GetEventsNetworkIDStreamNameParams) (*GetEventsNetworkIDStreamNameOK, error) {
+func (a *Client) GetEventsNetworkIDStreamName(params *GetEventsNetworkIDStreamNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetEventsNetworkIDStreamNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetEventsNetworkIDStreamNameParams()
@@ -108,6 +120,7 @@ func (a *Client) GetEventsNetworkIDStreamName(params *GetEventsNetworkIDStreamNa
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetEventsNetworkIDStreamNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})

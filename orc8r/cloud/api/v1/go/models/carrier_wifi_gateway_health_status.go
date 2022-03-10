@@ -8,14 +8,14 @@ package models
 import (
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // CarrierWifiGatewayHealthStatus Health status of a Carrier Wifi Gateway
+//
 // swagger:model carrier_wifi_gateway_health_status
 type CarrierWifiGatewayHealthStatus struct {
 
