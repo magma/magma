@@ -6,16 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-	models5 "magma/orc8r/cloud/go/models"
-	models6 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
+	models5 "magma/orc8r/cloud/go/models"
+	models6 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 )
 
 // CwfGateway Full description of a CWF gateway
+//
 // swagger:model cwf_gateway
 type CwfGateway struct {
 

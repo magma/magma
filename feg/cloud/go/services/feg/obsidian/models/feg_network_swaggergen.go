@@ -6,17 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 	models3 "magma/lte/cloud/go/services/policydb/obsidian/models"
 	models4 "magma/orc8r/cloud/go/models"
 	models5 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-
-	"github.com/go-openapi/errors"
-	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // FegNetwork Federation Network spec
+//
 // swagger:model feg_network
 type FegNetwork struct {
 

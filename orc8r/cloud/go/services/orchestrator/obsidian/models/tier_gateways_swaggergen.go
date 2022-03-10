@@ -9,13 +9,13 @@ import (
 	models1 "magma/orc8r/cloud/go/models"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
 )
 
 // TierGateways tier gateways
+//
 // swagger:model tier_gateways
 type TierGateways []models1.GatewayID
 

@@ -8,14 +8,14 @@ package models
 import (
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // ChallengeKey challenge key
+//
 // swagger:model challenge_key
 type ChallengeKey struct {
 
@@ -33,10 +33,6 @@ type ChallengeKey struct {
 func (m *ChallengeKey) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateKey(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateKeyType(formats); err != nil {
 		res = append(res, err)
 	}
@@ -44,17 +40,6 @@ func (m *ChallengeKey) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-func (m *ChallengeKey) validateKey(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Key) { // not required
-		return nil
-	}
-
-	// Format "byte" (base64 string) is already validated when unmarshalled
-
 	return nil
 }
 

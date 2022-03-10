@@ -8,12 +8,12 @@ package models
 import (
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 )
 
 // BaseNames List of base names
+//
 // swagger:model base_names
 type BaseNames []BaseName
 

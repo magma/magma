@@ -8,13 +8,13 @@ package models
 import (
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // FederatedModeMap Mapping for PLMN, imsi ranges, vs its gateway mode
+//
 // swagger:model federatedModeMap
 type FederatedModeMap struct {
 

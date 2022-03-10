@@ -6,15 +6,15 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-	models1 "magma/orc8r/cloud/go/models"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
+	models1 "magma/orc8r/cloud/go/models"
 )
 
 // MagmadGateway Full representation of a generic gateway
+//
 // swagger:model magmad_gateway
 type MagmadGateway struct {
 

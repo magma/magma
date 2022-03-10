@@ -8,12 +8,12 @@ package models
 import (
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 )
 
 // MetricDatapoints metric datapoints
+//
 // swagger:model metric_datapoints
 type MetricDatapoints []MetricDatapoint
 

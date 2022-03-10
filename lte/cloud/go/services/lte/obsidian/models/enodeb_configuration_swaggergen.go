@@ -8,14 +8,14 @@ package models
 import (
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // EnodebConfiguration Configuration for an enodeB. Unfilled fields will be inherited from LTE network and gateway configuration.
+//
 // swagger:model enodeb_configuration
 type EnodebConfiguration struct {
 

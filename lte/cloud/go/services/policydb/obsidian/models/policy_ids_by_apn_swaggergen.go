@@ -6,12 +6,12 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 )
 
 // PolicyIdsByApn APN-specific policies for this subscriber
+//
 // swagger:model policy_ids_by_apn
 type PolicyIdsByApn map[string]PolicyIds
 

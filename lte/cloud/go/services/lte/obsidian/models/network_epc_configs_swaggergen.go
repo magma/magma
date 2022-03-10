@@ -9,14 +9,14 @@ import (
 	"encoding/json"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // NetworkEpcConfigs EPC (evolved packet core) cellular configuration for a network
+//
 // swagger:model network_epc_configs
 type NetworkEpcConfigs struct {
 
@@ -186,8 +186,6 @@ func (m *NetworkEpcConfigs) validateLteAuthAmf(formats strfmt.Registry) error {
 		return err
 	}
 
-	// Format "byte" (base64 string) is already validated when unmarshalled
-
 	return nil
 }
 
@@ -196,8 +194,6 @@ func (m *NetworkEpcConfigs) validateLteAuthOp(formats strfmt.Registry) error {
 	if err := validate.Required("lte_auth_op", "body", strfmt.Base64(m.LteAuthOp)); err != nil {
 		return err
 	}
-
-	// Format "byte" (base64 string) is already validated when unmarshalled
 
 	return nil
 }
@@ -440,6 +436,7 @@ func (m *NetworkEpcConfigs) UnmarshalBinary(b []byte) error {
 }
 
 // NetworkEpcConfigsMobility Configuration for IP Allocation (Mobility).
+//
 // swagger:model NetworkEpcConfigsMobility
 type NetworkEpcConfigsMobility struct {
 
@@ -611,6 +608,7 @@ func (m *NetworkEpcConfigsMobility) UnmarshalBinary(b []byte) error {
 }
 
 // NetworkEpcConfigsMobilityNat network epc configs mobility nat
+//
 // swagger:model NetworkEpcConfigsMobilityNat
 type NetworkEpcConfigsMobilityNat struct {
 
@@ -672,6 +670,7 @@ func (m *NetworkEpcConfigsMobilityNat) UnmarshalBinary(b []byte) error {
 }
 
 // NetworkEpcConfigsMobilityStatic network epc configs mobility static
+//
 // swagger:model NetworkEpcConfigsMobilityStatic
 type NetworkEpcConfigsMobilityStatic struct {
 
@@ -737,6 +736,7 @@ func (m *NetworkEpcConfigsMobilityStatic) UnmarshalBinary(b []byte) error {
 }
 
 // NetworkEpcConfigsSubProfilesAnon network epc configs sub profiles anon
+//
 // swagger:model NetworkEpcConfigsSubProfilesAnon
 type NetworkEpcConfigsSubProfilesAnon struct {
 

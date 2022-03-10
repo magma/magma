@@ -9,14 +9,14 @@ import (
 	"encoding/json"
 	models1 "magma/lte/cloud/go/services/policydb/obsidian/models"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // SmsMessage sms message
+//
 // swagger:model sms_message
 type SmsMessage struct {
 

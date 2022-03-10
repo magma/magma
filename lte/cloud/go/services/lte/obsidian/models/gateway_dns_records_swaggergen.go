@@ -9,13 +9,13 @@ import (
 	models4 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // GatewayDNSRecords gateway dns records
+//
 // swagger:model gateway_dns_records
 type GatewayDNSRecords []*models4.DNSConfigRecord
 

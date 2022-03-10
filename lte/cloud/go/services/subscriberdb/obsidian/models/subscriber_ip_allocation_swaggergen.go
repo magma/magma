@@ -6,14 +6,14 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // SubscriberIPAllocation An IP address which has been allocated for a subscriber for a specific APN
+//
 // swagger:model subscriber_ip_allocation
 type SubscriberIPAllocation struct {
 

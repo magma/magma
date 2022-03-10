@@ -8,9 +8,8 @@ package models
 import (
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
@@ -18,6 +17,7 @@ import (
 // Policy The policy specifies whether a user is  either denied or allowed access to read/write a resource.
 // If the resource is of type URI, the path field should be filled in. If the resource is of
 // type NETWORK_ID or TENANT_ID, the resourceIDs field should be filled in.
+//
 //
 // swagger:model policy
 type Policy struct {

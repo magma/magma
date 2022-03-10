@@ -47,7 +47,7 @@ magma-gen-meta:
 info:
   title: Federation Network Management
   description: Federation REST APIs
-  version: 1.0.0
+  version: 1.0.
 
 basePath: /magma/v1
 

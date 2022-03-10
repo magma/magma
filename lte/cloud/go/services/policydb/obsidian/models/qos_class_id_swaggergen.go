@@ -8,13 +8,13 @@ package models
 import (
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
 )
 
 // QosClassID qos class id
+//
 // swagger:model qos_class_id
 type QosClassID int32
 

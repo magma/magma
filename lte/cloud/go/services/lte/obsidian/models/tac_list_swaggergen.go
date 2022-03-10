@@ -8,12 +8,12 @@ package models
 import (
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 )
 
 // TacList List of tac ids
+//
 // swagger:model tac_list
 type TacList []Tac
 
