@@ -6,16 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // FlowMatch flow match
+//
 // swagger:model flow_match
 type FlowMatch struct {
 
@@ -25,7 +26,7 @@ type FlowMatch struct {
 	Direction *string `json:"direction"`
 
 	// ip dst
-	IPDst *IPAddress `json:"ip_dst,omitempty" magma_alt_name:"IpDst"`
+	IPDst *IPAddress `json:"ip_dst,omitempty"`
 
 	// ip proto
 	// Required: true
@@ -33,12 +34,14 @@ type FlowMatch struct {
 	IPProto *string `json:"ip_proto"`
 
 	// ip src
-	IPSrc *IPAddress `json:"ip_src,omitempty" magma_alt_name:"IpSrc"`
+	IPSrc *IPAddress `json:"ip_src,omitempty"`
 
 	// ipv4 dst
+	// Example: 0.0.0.0/0
 	IPV4Dst string `json:"ipv4_dst,omitempty" magma_alt_name:"Ipv4Dst"`
 
 	// ipv4 src
+	// Example: 192.168.0.1/24
 	IPV4Src string `json:"ipv4_src,omitempty" magma_alt_name:"Ipv4Src"`
 
 	// tcp dst
@@ -103,7 +106,7 @@ const (
 
 // prop value enum
 func (m *FlowMatch) validateDirectionEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, flowMatchTypeDirectionPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, flowMatchTypeDirectionPropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -124,7 +127,6 @@ func (m *FlowMatch) validateDirection(formats strfmt.Registry) error {
 }
 
 func (m *FlowMatch) validateIPDst(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.IPDst) { // not required
 		return nil
 	}
@@ -170,7 +172,7 @@ const (
 
 // prop value enum
 func (m *FlowMatch) validateIPProtoEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, flowMatchTypeIPProtoPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, flowMatchTypeIPProtoPropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -191,13 +193,58 @@ func (m *FlowMatch) validateIPProto(formats strfmt.Registry) error {
 }
 
 func (m *FlowMatch) validateIPSrc(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.IPSrc) { // not required
 		return nil
 	}
 
 	if m.IPSrc != nil {
 		if err := m.IPSrc.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("ip_src")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this flow match based on the context it is used
+func (m *FlowMatch) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateIPDst(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateIPSrc(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *FlowMatch) contextValidateIPDst(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.IPDst != nil {
+		if err := m.IPDst.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("ip_dst")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *FlowMatch) contextValidateIPSrc(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.IPSrc != nil {
+		if err := m.IPSrc.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("ip_src")
 			}

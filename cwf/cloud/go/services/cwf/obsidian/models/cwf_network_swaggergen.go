@@ -6,18 +6,20 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
 	models4 "magma/lte/cloud/go/services/policydb/obsidian/models"
 	models5 "magma/orc8r/cloud/go/models"
 	models6 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // CwfNetwork Carrier Wifi Network spec
+//
 // swagger:model cwf_network
 type CwfNetwork struct {
 
@@ -114,6 +116,10 @@ func (m *CwfNetwork) validateCarrierWifi(formats strfmt.Registry) error {
 
 func (m *CwfNetwork) validateDescription(formats strfmt.Registry) error {
 
+	if err := validate.Required("description", "body", models5.NetworkDescription(m.Description)); err != nil {
+		return err
+	}
+
 	if err := m.Description.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("description")
@@ -143,7 +149,6 @@ func (m *CwfNetwork) validateDNS(formats strfmt.Registry) error {
 }
 
 func (m *CwfNetwork) validateFeatures(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Features) { // not required
 		return nil
 	}
@@ -180,6 +185,10 @@ func (m *CwfNetwork) validateFederation(formats strfmt.Registry) error {
 
 func (m *CwfNetwork) validateID(formats strfmt.Registry) error {
 
+	if err := validate.Required("id", "body", models5.NetworkID(m.ID)); err != nil {
+		return err
+	}
+
 	if err := m.ID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("id")
@@ -192,6 +201,10 @@ func (m *CwfNetwork) validateID(formats strfmt.Registry) error {
 
 func (m *CwfNetwork) validateName(formats strfmt.Registry) error {
 
+	if err := validate.Required("name", "body", models5.NetworkName(m.Name)); err != nil {
+		return err
+	}
+
 	if err := m.Name.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("name")
@@ -203,13 +216,160 @@ func (m *CwfNetwork) validateName(formats strfmt.Registry) error {
 }
 
 func (m *CwfNetwork) validateSubscriberConfig(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.SubscriberConfig) { // not required
 		return nil
 	}
 
 	if m.SubscriberConfig != nil {
 		if err := m.SubscriberConfig.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("subscriber_config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this cwf network based on the context it is used
+func (m *CwfNetwork) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateCarrierWifi(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateDescription(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateDNS(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateFeatures(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateFederation(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateName(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateSubscriberConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *CwfNetwork) contextValidateCarrierWifi(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.CarrierWifi != nil {
+		if err := m.CarrierWifi.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("carrier_wifi")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *CwfNetwork) contextValidateDescription(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Description.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("description")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *CwfNetwork) contextValidateDNS(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.DNS != nil {
+		if err := m.DNS.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("dns")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *CwfNetwork) contextValidateFeatures(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Features != nil {
+		if err := m.Features.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("features")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *CwfNetwork) contextValidateFederation(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Federation != nil {
+		if err := m.Federation.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("federation")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *CwfNetwork) contextValidateID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ID.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("id")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *CwfNetwork) contextValidateName(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Name.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("name")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *CwfNetwork) contextValidateSubscriberConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.SubscriberConfig != nil {
+		if err := m.SubscriberConfig.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("subscriber_config")
 			}

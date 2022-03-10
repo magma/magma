@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // NetworkFederationConfigs Federation configuration for a network
+//
 // swagger:model network_federation_configs
 type NetworkFederationConfigs struct {
 
@@ -41,18 +43,18 @@ type NetworkFederationConfigs struct {
 
 	// health
 	// Required: true
-	Health *Health `json:"health"`
+	Health *Health `json:"health" magma_alt_name:"HEALTH"`
 
 	// hss
 	// Required: true
-	Hss *Hss `json:"hss"`
+	Hss *Hss `json:"hss" magma_alt_name:"HSS"`
 
 	// nh routes
 	NhRoutes NhRoutes `json:"nh_routes,omitempty"`
 
 	// s6a
 	// Required: true
-	S6a *S6a `json:"s6a"`
+	S6a *S6a `json:"s6a" magma_alt_name:"S6A"`
 
 	// s8
 	S8 *S8 `json:"s8,omitempty"`
@@ -66,7 +68,7 @@ type NetworkFederationConfigs struct {
 
 	// swx
 	// Required: true
-	Swx *Swx `json:"swx"`
+	Swx *Swx `json:"swx" magma_alt_name:"SWX"`
 }
 
 // Validate validates this network federation configs
@@ -154,7 +156,6 @@ func (m *NetworkFederationConfigs) validateAaaServer(formats strfmt.Registry) er
 }
 
 func (m *NetworkFederationConfigs) validateCsfb(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Csfb) { // not required
 		return nil
 	}
@@ -190,7 +191,6 @@ func (m *NetworkFederationConfigs) validateEapAka(formats strfmt.Registry) error
 }
 
 func (m *NetworkFederationConfigs) validateEapSim(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.EapSim) { // not required
 		return nil
 	}
@@ -280,16 +280,17 @@ func (m *NetworkFederationConfigs) validateHss(formats strfmt.Registry) error {
 }
 
 func (m *NetworkFederationConfigs) validateNhRoutes(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.NhRoutes) { // not required
 		return nil
 	}
 
-	if err := m.NhRoutes.Validate(formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("nh_routes")
+	if m.NhRoutes != nil {
+		if err := m.NhRoutes.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("nh_routes")
+			}
+			return err
 		}
-		return err
 	}
 
 	return nil
@@ -314,7 +315,6 @@ func (m *NetworkFederationConfigs) validateS6a(formats strfmt.Registry) error {
 }
 
 func (m *NetworkFederationConfigs) validateS8(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.S8) { // not required
 		return nil
 	}
@@ -348,7 +348,6 @@ func (m *NetworkFederationConfigs) validateServedNetworkIds(formats strfmt.Regis
 }
 
 func (m *NetworkFederationConfigs) validateServedNhIds(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ServedNhIds) { // not required
 		return nil
 	}
@@ -371,6 +370,262 @@ func (m *NetworkFederationConfigs) validateSwx(formats strfmt.Registry) error {
 
 	if m.Swx != nil {
 		if err := m.Swx.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("swx")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this network federation configs based on the context it is used
+func (m *NetworkFederationConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateAaaServer(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateCsfb(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateEapAka(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateEapSim(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateGx(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateGy(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateHealth(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateHss(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateNhRoutes(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateS6a(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateS8(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateServedNetworkIds(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateServedNhIds(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateSwx(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *NetworkFederationConfigs) contextValidateAaaServer(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.AaaServer != nil {
+		if err := m.AaaServer.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("aaa_server")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigs) contextValidateCsfb(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Csfb != nil {
+		if err := m.Csfb.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("csfb")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigs) contextValidateEapAka(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.EapAka != nil {
+		if err := m.EapAka.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("eap_aka")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigs) contextValidateEapSim(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.EapSim != nil {
+		if err := m.EapSim.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("eap_sim")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigs) contextValidateGx(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Gx != nil {
+		if err := m.Gx.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("gx")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigs) contextValidateGy(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Gy != nil {
+		if err := m.Gy.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("gy")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigs) contextValidateHealth(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Health != nil {
+		if err := m.Health.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("health")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigs) contextValidateHss(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Hss != nil {
+		if err := m.Hss.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("hss")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigs) contextValidateNhRoutes(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.NhRoutes.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("nh_routes")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigs) contextValidateS6a(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.S6a != nil {
+		if err := m.S6a.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("s6a")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigs) contextValidateS8(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.S8 != nil {
+		if err := m.S8.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("s8")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigs) contextValidateServedNetworkIds(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ServedNetworkIds.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("served_network_ids")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigs) contextValidateServedNhIds(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ServedNhIds.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("served_nh_ids")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigs) contextValidateSwx(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Swx != nil {
+		if err := m.Swx.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("swx")
 			}

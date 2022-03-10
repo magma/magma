@@ -6,23 +6,26 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // Grant grant
+//
 // swagger:model grant
 type Grant struct {
 
 	// bandwidth mhz
+	// Example: 20
 	BandwidthMhz int64 `json:"bandwidth_mhz,omitempty"`
 
 	// frequency mhz
+	// Example: 3600
 	// Maximum: 3700
 	// Minimum: 3550
 	FrequencyMhz int64 `json:"frequency_mhz,omitempty"`
@@ -76,16 +79,15 @@ func (m *Grant) Validate(formats strfmt.Registry) error {
 }
 
 func (m *Grant) validateFrequencyMhz(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.FrequencyMhz) { // not required
 		return nil
 	}
 
-	if err := validate.MinimumInt("frequency_mhz", "body", int64(m.FrequencyMhz), 3550, false); err != nil {
+	if err := validate.MinimumInt("frequency_mhz", "body", m.FrequencyMhz, 3550, false); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("frequency_mhz", "body", int64(m.FrequencyMhz), 3700, false); err != nil {
+	if err := validate.MaximumInt("frequency_mhz", "body", m.FrequencyMhz, 3700, false); err != nil {
 		return err
 	}
 
@@ -93,7 +95,6 @@ func (m *Grant) validateFrequencyMhz(formats strfmt.Registry) error {
 }
 
 func (m *Grant) validateGrantExpireTime(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.GrantExpireTime) { // not required
 		return nil
 	}
@@ -106,16 +107,15 @@ func (m *Grant) validateGrantExpireTime(formats strfmt.Registry) error {
 }
 
 func (m *Grant) validateMaxEirp(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.MaxEirp) { // not required
 		return nil
 	}
 
-	if err := validate.Minimum("max_eirp", "body", float64(*m.MaxEirp), -137, false); err != nil {
+	if err := validate.Minimum("max_eirp", "body", *m.MaxEirp, -137, false); err != nil {
 		return err
 	}
 
-	if err := validate.Maximum("max_eirp", "body", float64(*m.MaxEirp), 37, false); err != nil {
+	if err := validate.Maximum("max_eirp", "body", *m.MaxEirp, 37, false); err != nil {
 		return err
 	}
 
@@ -145,14 +145,13 @@ const (
 
 // prop value enum
 func (m *Grant) validateStateEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, grantTypeStatePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, grantTypeStatePropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *Grant) validateState(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.State) { // not required
 		return nil
 	}
@@ -166,7 +165,6 @@ func (m *Grant) validateState(formats strfmt.Registry) error {
 }
 
 func (m *Grant) validateTransmitExpireTime(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.TransmitExpireTime) { // not required
 		return nil
 	}
@@ -175,6 +173,16 @@ func (m *Grant) validateTransmitExpireTime(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validate this grant based on the context it is used
+func (m *Grant) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }
 

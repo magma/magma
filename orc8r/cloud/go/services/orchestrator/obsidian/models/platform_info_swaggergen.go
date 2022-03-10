@@ -6,15 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // PlatformInfo platform info
+//
 // swagger:model platform_info
 type PlatformInfo struct {
 
@@ -22,15 +23,18 @@ type PlatformInfo struct {
 	ConfigInfo *ConfigInfo `json:"config_info,omitempty"`
 
 	// kernel version
+	// Example: 4.9.0-6-amd64
 	KernelVersion string `json:"kernel_version,omitempty"`
 
 	// kernel versions installed
+	// Example: ["4.9.0-6-amd64","4.9.0-7-amd64"]
 	KernelVersionsInstalled []string `json:"kernel_versions_installed,omitempty"`
 
 	// packages
 	Packages []*Package `json:"packages,omitempty"`
 
 	// vpn ip
+	// Example: 10.0.0.1
 	VpnIP string `json:"vpn_ip,omitempty" magma_alt_name:"VpnIp"`
 }
 
@@ -53,7 +57,6 @@ func (m *PlatformInfo) Validate(formats strfmt.Registry) error {
 }
 
 func (m *PlatformInfo) validateConfigInfo(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ConfigInfo) { // not required
 		return nil
 	}
@@ -71,7 +74,6 @@ func (m *PlatformInfo) validateConfigInfo(formats strfmt.Registry) error {
 }
 
 func (m *PlatformInfo) validatePackages(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Packages) { // not required
 		return nil
 	}
@@ -83,6 +85,56 @@ func (m *PlatformInfo) validatePackages(formats strfmt.Registry) error {
 
 		if m.Packages[i] != nil {
 			if err := m.Packages[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("packages" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ContextValidate validate this platform info based on the context it is used
+func (m *PlatformInfo) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateConfigInfo(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidatePackages(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *PlatformInfo) contextValidateConfigInfo(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.ConfigInfo != nil {
+		if err := m.ConfigInfo.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("config_info")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *PlatformInfo) contextValidatePackages(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.Packages); i++ {
+
+		if m.Packages[i] != nil {
+			if err := m.Packages[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("packages" + "." + strconv.Itoa(i))
 				}

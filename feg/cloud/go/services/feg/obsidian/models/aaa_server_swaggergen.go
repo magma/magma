@@ -6,29 +6,34 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // AaaServer aaa server configuration
+//
 // swagger:model aaa_server
 type AaaServer struct {
 
 	// accounting enabled
+	// Example: true
 	AccountingEnabled bool `json:"accounting_enabled,omitempty"`
 
 	// acct reporting enabled
 	AcctReportingEnabled bool `json:"acct_reporting_enabled,omitempty"`
 
 	// create session on auth
+	// Example: true
 	CreateSessionOnAuth bool `json:"create_session_on_auth,omitempty"`
 
 	// event logging enabled
 	EventLoggingEnabled bool `json:"event_logging_enabled,omitempty"`
 
 	// idle session timeout ms
+	// Example: 21600000
 	IdleSessionTimeoutMs uint32 `json:"idle_session_timeout_ms,omitempty" magma_alt_name:"IdleSessionTimeoutMs"`
 
 	// radius config
@@ -50,13 +55,40 @@ func (m *AaaServer) Validate(formats strfmt.Registry) error {
 }
 
 func (m *AaaServer) validateRadiusConfig(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.RadiusConfig) { // not required
 		return nil
 	}
 
 	if m.RadiusConfig != nil {
 		if err := m.RadiusConfig.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("radius_config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this aaa server based on the context it is used
+func (m *AaaServer) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateRadiusConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *AaaServer) contextValidateRadiusConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.RadiusConfig != nil {
+		if err := m.RadiusConfig.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("radius_config")
 			}

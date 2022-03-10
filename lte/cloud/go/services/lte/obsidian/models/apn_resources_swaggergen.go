@@ -6,13 +6,15 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
 )
 
 // ApnResources APN resources keyed by APN name
+//
 // swagger:model apn_resources
 type ApnResources map[string]ApnResource
 
@@ -27,6 +29,26 @@ func (m ApnResources) Validate(formats strfmt.Registry) error {
 		}
 		if val, ok := m[k]; ok {
 			if err := val.Validate(formats); err != nil {
+				return err
+			}
+		}
+
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+// ContextValidate validate this apn resources based on the context it is used
+func (m ApnResources) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	for k := range m {
+
+		if val, ok := m[k]; ok {
+			if err := val.ContextValidate(ctx, formats); err != nil {
 				return err
 			}
 		}

@@ -6,16 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // Cbsd cbsd
+//
 // swagger:model cbsd
 type Cbsd struct {
 
@@ -24,10 +25,12 @@ type Cbsd struct {
 	Capabilities *Capabilities `json:"capabilities"`
 
 	// id of cbsd in SAS
+	// Example: some_cbsd_id
 	// Read Only: true
 	CbsdID string `json:"cbsd_id,omitempty"`
 
 	// fcc id
+	// Example: some_fcc_id
 	// Required: true
 	// Min Length: 1
 	FccID *string `json:"fcc_id"`
@@ -46,6 +49,7 @@ type Cbsd struct {
 	IsActive bool `json:"is_active"`
 
 	// serial number
+	// Example: some_serial_number
 	// Required: true
 	// Min Length: 1
 	SerialNumber *string `json:"serial_number"`
@@ -57,6 +61,7 @@ type Cbsd struct {
 	State string `json:"state"`
 
 	// user id
+	// Example: some_user_id
 	// Required: true
 	// Min Length: 1
 	UserID *string `json:"user_id"`
@@ -128,7 +133,7 @@ func (m *Cbsd) validateFccID(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("fcc_id", "body", string(*m.FccID), 1); err != nil {
+	if err := validate.MinLength("fcc_id", "body", *m.FccID, 1); err != nil {
 		return err
 	}
 
@@ -136,7 +141,6 @@ func (m *Cbsd) validateFccID(formats strfmt.Registry) error {
 }
 
 func (m *Cbsd) validateGrant(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Grant) { // not required
 		return nil
 	}
@@ -177,7 +181,7 @@ func (m *Cbsd) validateSerialNumber(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("serial_number", "body", string(*m.SerialNumber), 1); err != nil {
+	if err := validate.MinLength("serial_number", "body", *m.SerialNumber, 1); err != nil {
 		return err
 	}
 
@@ -207,7 +211,7 @@ const (
 
 // prop value enum
 func (m *Cbsd) validateStateEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, cbsdTypeStatePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, cbsdTypeStatePropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -215,7 +219,7 @@ func (m *Cbsd) validateStateEnum(path, location string, value string) error {
 
 func (m *Cbsd) validateState(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("state", "body", string(m.State)); err != nil {
+	if err := validate.RequiredString("state", "body", m.State); err != nil {
 		return err
 	}
 
@@ -233,7 +237,105 @@ func (m *Cbsd) validateUserID(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("user_id", "body", string(*m.UserID), 1); err != nil {
+	if err := validate.MinLength("user_id", "body", *m.UserID, 1); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this cbsd based on the context it is used
+func (m *Cbsd) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateCapabilities(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateCbsdID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateGrant(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateIsActive(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateState(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *Cbsd) contextValidateCapabilities(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Capabilities != nil {
+		if err := m.Capabilities.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("capabilities")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Cbsd) contextValidateCbsdID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := validate.ReadOnly(ctx, "cbsd_id", "body", string(m.CbsdID)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Cbsd) contextValidateGrant(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Grant != nil {
+		if err := m.Grant.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("grant")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Cbsd) contextValidateID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := validate.ReadOnly(ctx, "id", "body", int64(m.ID)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Cbsd) contextValidateIsActive(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := validate.ReadOnly(ctx, "is_active", "body", bool(m.IsActive)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Cbsd) contextValidateState(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := validate.ReadOnly(ctx, "state", "body", string(m.State)); err != nil {
 		return err
 	}
 

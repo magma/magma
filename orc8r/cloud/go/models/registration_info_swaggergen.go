@@ -6,27 +6,32 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // RegistrationInfo registration info
+//
 // swagger:model registration_info
 type RegistrationInfo struct {
 
 	// domain_name is the domain name where the stated orc8r can be accessed
+	// Example: example.com
 	// Required: true
 	DomainName *string `json:"domain_name"`
 
 	// registration_token is a token for the operator to give to the AGW; it keys to logical and network ID
+	// Example: reg_a9vnap30fN0anrfjVneB
 	// Required: true
 	// Min Length: 4
 	RegistrationToken *string `json:"registration_token"`
 
 	// root_ca is a certificate that access gateways (AGW) can use to handshake and communicate with the stated orc8r
+	// Example: =example rootCA.pem=
 	// Required: true
 	RootCa *string `json:"root_ca"`
 }
@@ -68,7 +73,7 @@ func (m *RegistrationInfo) validateRegistrationToken(formats strfmt.Registry) er
 		return err
 	}
 
-	if err := validate.MinLength("registration_token", "body", string(*m.RegistrationToken), 4); err != nil {
+	if err := validate.MinLength("registration_token", "body", *m.RegistrationToken, 4); err != nil {
 		return err
 	}
 
@@ -81,6 +86,11 @@ func (m *RegistrationInfo) validateRootCa(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this registration info based on context it is used
+func (m *RegistrationInfo) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

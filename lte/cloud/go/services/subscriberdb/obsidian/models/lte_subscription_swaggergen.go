@@ -6,16 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // LteSubscription lte subscription
+//
 // swagger:model lte_subscription
 type LteSubscription struct {
 
@@ -25,11 +26,13 @@ type LteSubscription struct {
 	AuthAlgo string `json:"auth_algo"`
 
 	// auth key
+	// Example: AAAAAAAAAAAAAAAAAAAAAA==
 	// Required: true
 	// Format: byte
 	AuthKey strfmt.Base64 `json:"auth_key"`
 
 	// auth opc
+	// Example: AAECAwQFBgcICQoLDA0ODw==
 	// Format: byte
 	AuthOpc strfmt.Base64 `json:"auth_opc,omitempty"`
 
@@ -40,7 +43,7 @@ type LteSubscription struct {
 
 	// sub profile
 	// Required: true
-	SubProfile SubProfile `json:"sub_profile"`
+	SubProfile *SubProfile `json:"sub_profile"`
 }
 
 // Validate validates this lte subscription
@@ -52,10 +55,6 @@ func (m *LteSubscription) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateAuthKey(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateAuthOpc(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -93,7 +92,7 @@ const (
 
 // prop value enum
 func (m *LteSubscription) validateAuthAlgoEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, lteSubscriptionTypeAuthAlgoPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, lteSubscriptionTypeAuthAlgoPropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -101,7 +100,7 @@ func (m *LteSubscription) validateAuthAlgoEnum(path, location string, value stri
 
 func (m *LteSubscription) validateAuthAlgo(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("auth_algo", "body", string(m.AuthAlgo)); err != nil {
+	if err := validate.RequiredString("auth_algo", "body", m.AuthAlgo); err != nil {
 		return err
 	}
 
@@ -118,19 +117,6 @@ func (m *LteSubscription) validateAuthKey(formats strfmt.Registry) error {
 	if err := validate.Required("auth_key", "body", strfmt.Base64(m.AuthKey)); err != nil {
 		return err
 	}
-
-	// Format "byte" (base64 string) is already validated when unmarshalled
-
-	return nil
-}
-
-func (m *LteSubscription) validateAuthOpc(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.AuthOpc) { // not required
-		return nil
-	}
-
-	// Format "byte" (base64 string) is already validated when unmarshalled
 
 	return nil
 }
@@ -158,7 +144,7 @@ const (
 
 // prop value enum
 func (m *LteSubscription) validateStateEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, lteSubscriptionTypeStatePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, lteSubscriptionTypeStatePropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -166,7 +152,7 @@ func (m *LteSubscription) validateStateEnum(path, location string, value string)
 
 func (m *LteSubscription) validateState(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("state", "body", string(m.State)); err != nil {
+	if err := validate.RequiredString("state", "body", m.State); err != nil {
 		return err
 	}
 
@@ -180,11 +166,49 @@ func (m *LteSubscription) validateState(formats strfmt.Registry) error {
 
 func (m *LteSubscription) validateSubProfile(formats strfmt.Registry) error {
 
-	if err := m.SubProfile.Validate(formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("sub_profile")
-		}
+	if err := validate.Required("sub_profile", "body", m.SubProfile); err != nil {
 		return err
+	}
+
+	if err := validate.Required("sub_profile", "body", m.SubProfile); err != nil {
+		return err
+	}
+
+	if m.SubProfile != nil {
+		if err := m.SubProfile.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("sub_profile")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this lte subscription based on the context it is used
+func (m *LteSubscription) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateSubProfile(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *LteSubscription) contextValidateSubProfile(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.SubProfile != nil {
+		if err := m.SubProfile.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("sub_profile")
+			}
+			return err
+		}
 	}
 
 	return nil

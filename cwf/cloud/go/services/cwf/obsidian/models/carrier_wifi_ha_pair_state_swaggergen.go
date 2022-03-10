@@ -6,13 +6,15 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // CarrierWifiHaPairState Full state object of an ha pair
+//
 // swagger:model carrier_wifi_ha_pair_state
 type CarrierWifiHaPairState struct {
 
@@ -49,7 +51,6 @@ func (m *CarrierWifiHaPairState) Validate(formats strfmt.Registry) error {
 }
 
 func (m *CarrierWifiHaPairState) validateGateway1Health(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Gateway1Health) { // not required
 		return nil
 	}
@@ -67,7 +68,6 @@ func (m *CarrierWifiHaPairState) validateGateway1Health(formats strfmt.Registry)
 }
 
 func (m *CarrierWifiHaPairState) validateGateway2Health(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Gateway2Health) { // not required
 		return nil
 	}
@@ -85,13 +85,76 @@ func (m *CarrierWifiHaPairState) validateGateway2Health(formats strfmt.Registry)
 }
 
 func (m *CarrierWifiHaPairState) validateHaPairStatus(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.HaPairStatus) { // not required
 		return nil
 	}
 
 	if m.HaPairStatus != nil {
 		if err := m.HaPairStatus.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("ha_pair_status")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this carrier wifi ha pair state based on the context it is used
+func (m *CarrierWifiHaPairState) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateGateway1Health(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateGateway2Health(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateHaPairStatus(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *CarrierWifiHaPairState) contextValidateGateway1Health(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Gateway1Health != nil {
+		if err := m.Gateway1Health.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("gateway1_health")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *CarrierWifiHaPairState) contextValidateGateway2Health(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Gateway2Health != nil {
+		if err := m.Gateway2Health.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("gateway2_health")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *CarrierWifiHaPairState) contextValidateHaPairStatus(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.HaPairStatus != nil {
+		if err := m.HaPairStatus.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("ha_pair_status")
 			}

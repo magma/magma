@@ -6,17 +6,18 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	models3 "magma/orc8r/cloud/go/models"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // CellularGatewayPool Highly available gateway pool in an LTE network
+//
 // swagger:model cellular_gateway_pool
 type CellularGatewayPool struct {
 
@@ -34,6 +35,7 @@ type CellularGatewayPool struct {
 	GatewayPoolID GatewayPoolID `json:"gateway_pool_id"`
 
 	// gateway pool name
+	// Example: Pool 1
 	GatewayPoolName string `json:"gateway_pool_name,omitempty"`
 }
 
@@ -103,7 +105,75 @@ func (m *CellularGatewayPool) validateGatewayIds(formats strfmt.Registry) error 
 
 func (m *CellularGatewayPool) validateGatewayPoolID(formats strfmt.Registry) error {
 
+	if err := validate.Required("gateway_pool_id", "body", GatewayPoolID(m.GatewayPoolID)); err != nil {
+		return err
+	}
+
 	if err := m.GatewayPoolID.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("gateway_pool_id")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this cellular gateway pool based on the context it is used
+func (m *CellularGatewayPool) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateGatewayIds(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateGatewayPoolID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *CellularGatewayPool) contextValidateConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Config != nil {
+		if err := m.Config.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *CellularGatewayPool) contextValidateGatewayIds(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.GatewayIds); i++ {
+
+		if err := m.GatewayIds[i].ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("gateway_ids" + "." + strconv.Itoa(i))
+			}
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+func (m *CellularGatewayPool) contextValidateGatewayPoolID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.GatewayPoolID.ContextValidate(ctx, formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("gateway_pool_id")
 		}

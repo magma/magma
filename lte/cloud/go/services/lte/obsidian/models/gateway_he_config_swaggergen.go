@@ -6,46 +6,54 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // GatewayHeConfig Header Enrichment configuration
+//
 // swagger:model gateway_he_config
 type GatewayHeConfig struct {
 
 	// True if headers should be encrypted
+	// Example: true
 	// Required: true
 	EnableEncryption *bool `json:"enable_encryption"`
 
 	// True if header enrichment feature should be disabled for gateway
+	// Example: true
 	// Required: true
 	EnableHeaderEnrichment *bool `json:"enable_header_enrichment"`
 
 	// Key to be used in header encryption
+	// Example: C14r0315v0x
 	EncryptionKey string `json:"encryption_key,omitempty"`
 
 	// he encoding type
+	// Example: BASE64
 	// Required: true
 	// Enum: [BASE64 HEX2BIN]
 	HeEncodingType string `json:"he_encoding_type"`
 
 	// he encryption algorithm
+	// Example: RC4
 	// Required: true
 	// Enum: [RC4 AES256_CBC_HMAC_MD5 AES256_ECB_HMAC_MD5 GZIPPED_AES256_ECB_SHA1]
 	HeEncryptionAlgorithm string `json:"he_encryption_algorithm"`
 
 	// he hash function
+	// Example: MD5
 	// Required: true
 	// Enum: [MD5 HEX SHA256]
 	HeHashFunction string `json:"he_hash_function"`
 
 	// Hmac key to be used in header encryption
+	// Example: Xs21Ncas87
 	HmacKey string `json:"hmac_key,omitempty"`
 }
 
@@ -120,7 +128,7 @@ const (
 
 // prop value enum
 func (m *GatewayHeConfig) validateHeEncodingTypeEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, gatewayHeConfigTypeHeEncodingTypePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, gatewayHeConfigTypeHeEncodingTypePropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -128,7 +136,7 @@ func (m *GatewayHeConfig) validateHeEncodingTypeEnum(path, location string, valu
 
 func (m *GatewayHeConfig) validateHeEncodingType(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("he_encoding_type", "body", string(m.HeEncodingType)); err != nil {
+	if err := validate.RequiredString("he_encoding_type", "body", m.HeEncodingType); err != nil {
 		return err
 	}
 
@@ -169,7 +177,7 @@ const (
 
 // prop value enum
 func (m *GatewayHeConfig) validateHeEncryptionAlgorithmEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, gatewayHeConfigTypeHeEncryptionAlgorithmPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, gatewayHeConfigTypeHeEncryptionAlgorithmPropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -177,7 +185,7 @@ func (m *GatewayHeConfig) validateHeEncryptionAlgorithmEnum(path, location strin
 
 func (m *GatewayHeConfig) validateHeEncryptionAlgorithm(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("he_encryption_algorithm", "body", string(m.HeEncryptionAlgorithm)); err != nil {
+	if err := validate.RequiredString("he_encryption_algorithm", "body", m.HeEncryptionAlgorithm); err != nil {
 		return err
 	}
 
@@ -215,7 +223,7 @@ const (
 
 // prop value enum
 func (m *GatewayHeConfig) validateHeHashFunctionEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, gatewayHeConfigTypeHeHashFunctionPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, gatewayHeConfigTypeHeHashFunctionPropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -223,7 +231,7 @@ func (m *GatewayHeConfig) validateHeHashFunctionEnum(path, location string, valu
 
 func (m *GatewayHeConfig) validateHeHashFunction(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("he_hash_function", "body", string(m.HeHashFunction)); err != nil {
+	if err := validate.RequiredString("he_hash_function", "body", m.HeHashFunction); err != nil {
 		return err
 	}
 
@@ -232,6 +240,11 @@ func (m *GatewayHeConfig) validateHeHashFunction(formats strfmt.Registry) error 
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this gateway he config based on context it is used
+func (m *GatewayHeConfig) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

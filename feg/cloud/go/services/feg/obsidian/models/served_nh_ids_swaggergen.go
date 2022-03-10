@@ -6,14 +6,22 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
+
+	"github.com/go-openapi/strfmt"
 )
 
 // ServedNhIds served neutral host IDs
+//
 // swagger:model served_nh_ids
 type ServedNhIds []string
 
 // Validate validates this served nh ids
 func (m ServedNhIds) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this served nh ids based on context it is used
+func (m ServedNhIds) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

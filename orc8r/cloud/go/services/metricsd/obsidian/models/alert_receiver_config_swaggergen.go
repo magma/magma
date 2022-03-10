@@ -6,16 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // AlertReceiverConfig alert receiver config
+//
 // swagger:model alert_receiver_config
 type AlertReceiverConfig struct {
 
@@ -60,7 +61,6 @@ func (m *AlertReceiverConfig) Validate(formats strfmt.Registry) error {
 }
 
 func (m *AlertReceiverConfig) validateEmailConfigs(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.EmailConfigs) { // not required
 		return nil
 	}
@@ -94,7 +94,6 @@ func (m *AlertReceiverConfig) validateName(formats strfmt.Registry) error {
 }
 
 func (m *AlertReceiverConfig) validateSlackConfigs(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.SlackConfigs) { // not required
 		return nil
 	}
@@ -119,7 +118,6 @@ func (m *AlertReceiverConfig) validateSlackConfigs(formats strfmt.Registry) erro
 }
 
 func (m *AlertReceiverConfig) validateWebhookConfigs(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.WebhookConfigs) { // not required
 		return nil
 	}
@@ -131,6 +129,82 @@ func (m *AlertReceiverConfig) validateWebhookConfigs(formats strfmt.Registry) er
 
 		if m.WebhookConfigs[i] != nil {
 			if err := m.WebhookConfigs[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("webhook_configs" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ContextValidate validate this alert receiver config based on the context it is used
+func (m *AlertReceiverConfig) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateEmailConfigs(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateSlackConfigs(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateWebhookConfigs(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *AlertReceiverConfig) contextValidateEmailConfigs(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.EmailConfigs); i++ {
+
+		if m.EmailConfigs[i] != nil {
+			if err := m.EmailConfigs[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("email_configs" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *AlertReceiverConfig) contextValidateSlackConfigs(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.SlackConfigs); i++ {
+
+		if m.SlackConfigs[i] != nil {
+			if err := m.SlackConfigs[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("slack_configs" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *AlertReceiverConfig) contextValidateWebhookConfigs(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.WebhookConfigs); i++ {
+
+		if m.WebhookConfigs[i] != nil {
+			if err := m.WebhookConfigs[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("webhook_configs" + "." + strconv.Itoa(i))
 				}

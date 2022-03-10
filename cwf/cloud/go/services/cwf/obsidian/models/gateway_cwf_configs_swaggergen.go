@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // GatewayCwfConfigs CWF configuration for a gateway
+//
 // swagger:model gateway_cwf_configs
 type GatewayCwfConfigs struct {
 
@@ -67,7 +69,6 @@ func (m *GatewayCwfConfigs) validateAllowedGrePeers(formats strfmt.Registry) err
 }
 
 func (m *GatewayCwfConfigs) validateGatewayHealthConfigs(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.GatewayHealthConfigs) { // not required
 		return nil
 	}
@@ -85,13 +86,74 @@ func (m *GatewayCwfConfigs) validateGatewayHealthConfigs(formats strfmt.Registry
 }
 
 func (m *GatewayCwfConfigs) validateIpdrExportDst(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.IpdrExportDst) { // not required
 		return nil
 	}
 
 	if m.IpdrExportDst != nil {
 		if err := m.IpdrExportDst.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("ipdr_export_dst")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this gateway cwf configs based on the context it is used
+func (m *GatewayCwfConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateAllowedGrePeers(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateGatewayHealthConfigs(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateIpdrExportDst(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *GatewayCwfConfigs) contextValidateAllowedGrePeers(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.AllowedGrePeers.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("allowed_gre_peers")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *GatewayCwfConfigs) contextValidateGatewayHealthConfigs(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.GatewayHealthConfigs != nil {
+		if err := m.GatewayHealthConfigs.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("gateway_health_configs")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *GatewayCwfConfigs) contextValidateIpdrExportDst(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.IpdrExportDst != nil {
+		if err := m.IpdrExportDst.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("ipdr_export_dst")
 			}

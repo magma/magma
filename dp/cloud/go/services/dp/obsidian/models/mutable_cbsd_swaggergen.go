@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // MutableCbsd mutable cbsd
+//
 // swagger:model mutable_cbsd
 type MutableCbsd struct {
 
@@ -22,16 +24,19 @@ type MutableCbsd struct {
 	Capabilities *Capabilities `json:"capabilities"`
 
 	// fcc id
+	// Example: some_fcc_id
 	// Required: true
 	// Min Length: 1
 	FccID *string `json:"fcc_id"`
 
 	// serial number
+	// Example: some_serial_number
 	// Required: true
 	// Min Length: 1
 	SerialNumber *string `json:"serial_number"`
 
 	// user id
+	// Example: some_user_id
 	// Required: true
 	// Min Length: 1
 	UserID *string `json:"user_id"`
@@ -87,7 +92,7 @@ func (m *MutableCbsd) validateFccID(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("fcc_id", "body", string(*m.FccID), 1); err != nil {
+	if err := validate.MinLength("fcc_id", "body", *m.FccID, 1); err != nil {
 		return err
 	}
 
@@ -100,7 +105,7 @@ func (m *MutableCbsd) validateSerialNumber(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("serial_number", "body", string(*m.SerialNumber), 1); err != nil {
+	if err := validate.MinLength("serial_number", "body", *m.SerialNumber, 1); err != nil {
 		return err
 	}
 
@@ -113,8 +118,36 @@ func (m *MutableCbsd) validateUserID(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("user_id", "body", string(*m.UserID), 1); err != nil {
+	if err := validate.MinLength("user_id", "body", *m.UserID, 1); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this mutable cbsd based on the context it is used
+func (m *MutableCbsd) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateCapabilities(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *MutableCbsd) contextValidateCapabilities(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Capabilities != nil {
+		if err := m.Capabilities.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("capabilities")
+			}
+			return err
+		}
 	}
 
 	return nil

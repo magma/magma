@@ -6,13 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
 )
 
 // SubscriberdbSyncInterval Interval in seconds between gateway requests to sync its subscriberdb with the cloud.
+// Example: 300
+//
 // swagger:model subscriberdb_sync_interval
 type SubscriberdbSyncInterval uint32
 
@@ -20,12 +23,17 @@ type SubscriberdbSyncInterval uint32
 func (m SubscriberdbSyncInterval) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := validate.MinimumInt("", "body", int64(m), 60, false); err != nil {
+	if err := validate.MinimumUint("", "body", uint64(m), 60, false); err != nil {
 		return err
 	}
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+// ContextValidate validates this subscriberdb sync interval based on context it is used
+func (m SubscriberdbSyncInterval) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

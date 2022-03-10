@@ -6,16 +6,18 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 	models4 "magma/orc8r/cloud/go/models"
 	models5 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // FederationGateway Full description of a federation gateway
+//
 // swagger:model federation_gateway
 type FederationGateway struct {
 
@@ -101,6 +103,10 @@ func (m *FederationGateway) Validate(formats strfmt.Registry) error {
 
 func (m *FederationGateway) validateDescription(formats strfmt.Registry) error {
 
+	if err := validate.Required("description", "body", models4.GatewayDescription(m.Description)); err != nil {
+		return err
+	}
+
 	if err := m.Description.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("description")
@@ -112,7 +118,6 @@ func (m *FederationGateway) validateDescription(formats strfmt.Registry) error {
 }
 
 func (m *FederationGateway) validateDevice(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Device) { // not required
 		return nil
 	}
@@ -149,6 +154,10 @@ func (m *FederationGateway) validateFederation(formats strfmt.Registry) error {
 
 func (m *FederationGateway) validateID(formats strfmt.Registry) error {
 
+	if err := validate.Required("id", "body", models4.GatewayID(m.ID)); err != nil {
+		return err
+	}
+
 	if err := m.ID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("id")
@@ -179,6 +188,10 @@ func (m *FederationGateway) validateMagmad(formats strfmt.Registry) error {
 
 func (m *FederationGateway) validateName(formats strfmt.Registry) error {
 
+	if err := validate.Required("name", "body", models4.GatewayName(m.Name)); err != nil {
+		return err
+	}
+
 	if err := m.Name.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("name")
@@ -190,7 +203,6 @@ func (m *FederationGateway) validateName(formats strfmt.Registry) error {
 }
 
 func (m *FederationGateway) validateRegistrationInfo(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.RegistrationInfo) { // not required
 		return nil
 	}
@@ -208,7 +220,6 @@ func (m *FederationGateway) validateRegistrationInfo(formats strfmt.Registry) er
 }
 
 func (m *FederationGateway) validateStatus(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Status) { // not required
 		return nil
 	}
@@ -227,7 +238,175 @@ func (m *FederationGateway) validateStatus(formats strfmt.Registry) error {
 
 func (m *FederationGateway) validateTier(formats strfmt.Registry) error {
 
+	if err := validate.Required("tier", "body", models5.TierID(m.Tier)); err != nil {
+		return err
+	}
+
 	if err := m.Tier.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("tier")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this federation gateway based on the context it is used
+func (m *FederationGateway) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateDescription(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateDevice(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateFederation(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateMagmad(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateName(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateRegistrationInfo(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateStatus(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateTier(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *FederationGateway) contextValidateDescription(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Description.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("description")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *FederationGateway) contextValidateDevice(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Device != nil {
+		if err := m.Device.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("device")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *FederationGateway) contextValidateFederation(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Federation != nil {
+		if err := m.Federation.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("federation")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *FederationGateway) contextValidateID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ID.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("id")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *FederationGateway) contextValidateMagmad(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Magmad != nil {
+		if err := m.Magmad.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("magmad")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *FederationGateway) contextValidateName(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Name.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("name")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *FederationGateway) contextValidateRegistrationInfo(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.RegistrationInfo != nil {
+		if err := m.RegistrationInfo.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("registration_info")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *FederationGateway) contextValidateStatus(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Status != nil {
+		if err := m.Status.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("status")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *FederationGateway) contextValidateTier(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Tier.ContextValidate(ctx, formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("tier")
 		}

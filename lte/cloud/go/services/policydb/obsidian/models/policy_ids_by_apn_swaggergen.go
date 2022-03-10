@@ -6,12 +6,14 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 )
 
 // PolicyIdsByApn APN-specific policies for this subscriber
+//
 // swagger:model policy_ids_by_apn
 type PolicyIdsByApn map[string]PolicyIds
 
@@ -22,6 +24,27 @@ func (m PolicyIdsByApn) Validate(formats strfmt.Registry) error {
 	for k := range m {
 
 		if err := m[k].Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName(k)
+			}
+			return err
+		}
+
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+// ContextValidate validate this policy ids by apn based on the context it is used
+func (m PolicyIdsByApn) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	for k := range m {
+
+		if err := m[k].ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName(k)
 			}

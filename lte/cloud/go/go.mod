@@ -49,7 +49,7 @@ require (
 	github.com/thoas/go-funk v0.7.0
 	github.com/warthog618/sms v0.3.0
 	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
-	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
+	google.golang.org/genproto v0.0.0-20200825200019-8632dd797987
 	google.golang.org/grpc v1.31.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0

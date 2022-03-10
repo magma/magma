@@ -6,29 +6,33 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // Swx swx configuration
+//
 // swagger:model swx
 type Swx struct {
 
 	// cache TTL seconds
+	// Example: 10800
 	CacheTTLSeconds uint32 `json:"cache_TTL_seconds,omitempty"`
 
 	// derive unregister realm
+	// Example: false
 	DeriveUnregisterRealm bool `json:"derive_unregister_realm,omitempty"`
 
 	// hlr plmn ids
 	HlrPlmnIds []string `json:"hlr_plmn_ids"`
 
 	// register on auth
+	// Example: false
 	RegisterOnAuth bool `json:"register_on_auth,omitempty"`
 
 	// server
@@ -38,6 +42,7 @@ type Swx struct {
 	Servers []*DiameterClientConfigs `json:"servers"`
 
 	// verify authorization
+	// Example: false
 	VerifyAuthorization bool `json:"verify_authorization,omitempty"`
 }
 
@@ -64,22 +69,21 @@ func (m *Swx) Validate(formats strfmt.Registry) error {
 }
 
 func (m *Swx) validateHlrPlmnIds(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.HlrPlmnIds) { // not required
 		return nil
 	}
 
 	for i := 0; i < len(m.HlrPlmnIds); i++ {
 
-		if err := validate.MinLength("hlr_plmn_ids"+"."+strconv.Itoa(i), "body", string(m.HlrPlmnIds[i]), 5); err != nil {
+		if err := validate.MinLength("hlr_plmn_ids"+"."+strconv.Itoa(i), "body", m.HlrPlmnIds[i], 5); err != nil {
 			return err
 		}
 
-		if err := validate.MaxLength("hlr_plmn_ids"+"."+strconv.Itoa(i), "body", string(m.HlrPlmnIds[i]), 6); err != nil {
+		if err := validate.MaxLength("hlr_plmn_ids"+"."+strconv.Itoa(i), "body", m.HlrPlmnIds[i], 6); err != nil {
 			return err
 		}
 
-		if err := validate.Pattern("hlr_plmn_ids"+"."+strconv.Itoa(i), "body", string(m.HlrPlmnIds[i]), `^(\d{5,6})$`); err != nil {
+		if err := validate.Pattern("hlr_plmn_ids"+"."+strconv.Itoa(i), "body", m.HlrPlmnIds[i], `^(\d{5,6})$`); err != nil {
 			return err
 		}
 
@@ -89,7 +93,6 @@ func (m *Swx) validateHlrPlmnIds(formats strfmt.Registry) error {
 }
 
 func (m *Swx) validateServer(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Server) { // not required
 		return nil
 	}
@@ -107,7 +110,6 @@ func (m *Swx) validateServer(formats strfmt.Registry) error {
 }
 
 func (m *Swx) validateServers(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Servers) { // not required
 		return nil
 	}
@@ -119,6 +121,56 @@ func (m *Swx) validateServers(formats strfmt.Registry) error {
 
 		if m.Servers[i] != nil {
 			if err := m.Servers[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("servers" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ContextValidate validate this swx based on the context it is used
+func (m *Swx) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateServer(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateServers(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *Swx) contextValidateServer(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Server != nil {
+		if err := m.Server.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("server")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Swx) contextValidateServers(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.Servers); i++ {
+
+		if m.Servers[i] != nil {
+			if err := m.Servers[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("servers" + "." + strconv.Itoa(i))
 				}

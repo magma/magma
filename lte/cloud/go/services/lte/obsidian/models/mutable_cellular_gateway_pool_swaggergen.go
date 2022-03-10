@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // MutableCellularGatewayPool Mutable version of the cellular gateway pool
+//
 // swagger:model mutable_cellular_gateway_pool
 type MutableCellularGatewayPool struct {
 
@@ -26,6 +28,7 @@ type MutableCellularGatewayPool struct {
 	GatewayPoolID GatewayPoolID `json:"gateway_pool_id"`
 
 	// gateway pool name
+	// Example: Pool 1
 	GatewayPoolName string `json:"gateway_pool_name,omitempty"`
 }
 
@@ -67,7 +70,55 @@ func (m *MutableCellularGatewayPool) validateConfig(formats strfmt.Registry) err
 
 func (m *MutableCellularGatewayPool) validateGatewayPoolID(formats strfmt.Registry) error {
 
+	if err := validate.Required("gateway_pool_id", "body", GatewayPoolID(m.GatewayPoolID)); err != nil {
+		return err
+	}
+
 	if err := m.GatewayPoolID.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("gateway_pool_id")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this mutable cellular gateway pool based on the context it is used
+func (m *MutableCellularGatewayPool) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateGatewayPoolID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *MutableCellularGatewayPool) contextValidateConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Config != nil {
+		if err := m.Config.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *MutableCellularGatewayPool) contextValidateGatewayPoolID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.GatewayPoolID.ContextValidate(ctx, formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("gateway_pool_id")
 		}

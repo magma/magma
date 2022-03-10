@@ -6,22 +6,26 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // Capabilities capabilities
+//
 // swagger:model capabilities
 type Capabilities struct {
 
 	// antenna gain
+	// Example: 15
 	// Required: true
 	AntennaGain *float64 `json:"antenna_gain"`
 
 	// max tx power available on cbsd
+	// Example: 30
 	// Required: true
 	MaxPower *float64 `json:"max_power"`
 
@@ -30,6 +34,7 @@ type Capabilities struct {
 	MinPower *float64 `json:"min_power"`
 
 	// number of antennas
+	// Example: 2
 	// Required: true
 	// Minimum: 1
 	NumberOfAntennas *int64 `json:"number_of_antennas"`
@@ -94,10 +99,15 @@ func (m *Capabilities) validateNumberOfAntennas(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinimumInt("number_of_antennas", "body", int64(*m.NumberOfAntennas), 1, false); err != nil {
+	if err := validate.MinimumInt("number_of_antennas", "body", *m.NumberOfAntennas, 1, false); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this capabilities based on context it is used
+func (m *Capabilities) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

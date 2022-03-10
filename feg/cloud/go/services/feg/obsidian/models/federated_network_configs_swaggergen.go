@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // FederatedNetworkConfigs Configs for networks that are federated
+//
 // swagger:model federated_network_configs
 type FederatedNetworkConfigs struct {
 
@@ -21,6 +23,7 @@ type FederatedNetworkConfigs struct {
 	FederatedModesMapping *FederatedModeMap `json:"federated_modes_mapping,omitempty"`
 
 	// feg network id
+	// Example: example_feg_network
 	// Required: true
 	FegNetworkID *string `json:"feg_network_id"`
 }
@@ -44,7 +47,6 @@ func (m *FederatedNetworkConfigs) Validate(formats strfmt.Registry) error {
 }
 
 func (m *FederatedNetworkConfigs) validateFederatedModesMapping(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.FederatedModesMapping) { // not required
 		return nil
 	}
@@ -65,6 +67,34 @@ func (m *FederatedNetworkConfigs) validateFegNetworkID(formats strfmt.Registry) 
 
 	if err := validate.Required("feg_network_id", "body", m.FegNetworkID); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this federated network configs based on the context it is used
+func (m *FederatedNetworkConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateFederatedModesMapping(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *FederatedNetworkConfigs) contextValidateFederatedModesMapping(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.FederatedModesMapping != nil {
+		if err := m.FederatedModesMapping.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("federated_modes_mapping")
+			}
+			return err
+		}
 	}
 
 	return nil

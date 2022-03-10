@@ -6,20 +6,22 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // EapAka eap_aka configuration
+//
 // swagger:model eap_aka
 type EapAka struct {
 
 	// mnc len
+	// Example: 3
 	MncLen int32 `json:"mnc_len,omitempty"`
 
 	// plmn ids
@@ -29,6 +31,7 @@ type EapAka struct {
 	Timeout *EapAkaTimeouts `json:"timeout,omitempty"`
 
 	// use s6a
+	// Example: false
 	UseS6a bool `json:"use_s6a,omitempty"`
 }
 
@@ -51,22 +54,21 @@ func (m *EapAka) Validate(formats strfmt.Registry) error {
 }
 
 func (m *EapAka) validatePlmnIds(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.PlmnIds) { // not required
 		return nil
 	}
 
 	for i := 0; i < len(m.PlmnIds); i++ {
 
-		if err := validate.MinLength("plmn_ids"+"."+strconv.Itoa(i), "body", string(m.PlmnIds[i]), 5); err != nil {
+		if err := validate.MinLength("plmn_ids"+"."+strconv.Itoa(i), "body", m.PlmnIds[i], 5); err != nil {
 			return err
 		}
 
-		if err := validate.MaxLength("plmn_ids"+"."+strconv.Itoa(i), "body", string(m.PlmnIds[i]), 6); err != nil {
+		if err := validate.MaxLength("plmn_ids"+"."+strconv.Itoa(i), "body", m.PlmnIds[i], 6); err != nil {
 			return err
 		}
 
-		if err := validate.Pattern("plmn_ids"+"."+strconv.Itoa(i), "body", string(m.PlmnIds[i]), `^(\d{5,6})$`); err != nil {
+		if err := validate.Pattern("plmn_ids"+"."+strconv.Itoa(i), "body", m.PlmnIds[i], `^(\d{5,6})$`); err != nil {
 			return err
 		}
 
@@ -76,13 +78,40 @@ func (m *EapAka) validatePlmnIds(formats strfmt.Registry) error {
 }
 
 func (m *EapAka) validateTimeout(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Timeout) { // not required
 		return nil
 	}
 
 	if m.Timeout != nil {
 		if err := m.Timeout.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("timeout")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this eap aka based on the context it is used
+func (m *EapAka) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateTimeout(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *EapAka) contextValidateTimeout(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Timeout != nil {
+		if err := m.Timeout.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("timeout")
 			}

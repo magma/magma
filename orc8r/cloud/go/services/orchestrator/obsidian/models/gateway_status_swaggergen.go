@@ -6,29 +6,35 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // GatewayStatus gateway status
+//
 // swagger:model gateway_status
 type GatewayStatus struct {
 
 	// cert expiration time
+	// Example: 1234567890
 	CertExpirationTime int64 `json:"cert_expiration_time,omitempty"`
 
 	// checkin time
+	// Example: 1234567890
 	CheckinTime uint64 `json:"checkin_time,omitempty"`
 
 	// hardware id
 	HardwareID string `json:"hardware_id,omitempty"`
 
 	// deprecated
+	// Example: 4.9.0-6-amd64
 	KernelVersion string `json:"kernel_version,omitempty"`
 
 	// deprecated
+	// Example: ["4.9.0-6-amd64","4.9.0-7-amd64"]
 	KernelVersionsInstalled []string `json:"kernel_versions_installed,omitempty"`
 
 	// machine info
@@ -47,6 +53,7 @@ type GatewayStatus struct {
 	Version string `json:"version,omitempty"`
 
 	// deprecated
+	// Example: 10.0.0.1
 	VpnIP string `json:"vpn_ip,omitempty"`
 }
 
@@ -73,7 +80,6 @@ func (m *GatewayStatus) Validate(formats strfmt.Registry) error {
 }
 
 func (m *GatewayStatus) validateMachineInfo(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.MachineInfo) { // not required
 		return nil
 	}
@@ -91,7 +97,6 @@ func (m *GatewayStatus) validateMachineInfo(formats strfmt.Registry) error {
 }
 
 func (m *GatewayStatus) validatePlatformInfo(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.PlatformInfo) { // not required
 		return nil
 	}
@@ -109,13 +114,76 @@ func (m *GatewayStatus) validatePlatformInfo(formats strfmt.Registry) error {
 }
 
 func (m *GatewayStatus) validateSystemStatus(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.SystemStatus) { // not required
 		return nil
 	}
 
 	if m.SystemStatus != nil {
 		if err := m.SystemStatus.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("system_status")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this gateway status based on the context it is used
+func (m *GatewayStatus) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateMachineInfo(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidatePlatformInfo(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateSystemStatus(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *GatewayStatus) contextValidateMachineInfo(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.MachineInfo != nil {
+		if err := m.MachineInfo.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("machine_info")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *GatewayStatus) contextValidatePlatformInfo(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.PlatformInfo != nil {
+		if err := m.PlatformInfo.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("platform_info")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *GatewayStatus) contextValidateSystemStatus(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.SystemStatus != nil {
+		if err := m.SystemStatus.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("system_status")
 			}

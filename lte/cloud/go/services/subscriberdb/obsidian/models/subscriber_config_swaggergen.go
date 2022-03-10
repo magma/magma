@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // SubscriberConfig subscriber config
+//
 // swagger:model subscriber_config
 type SubscriberConfig struct {
 
@@ -51,7 +53,6 @@ func (m *SubscriberConfig) Validate(formats strfmt.Registry) error {
 }
 
 func (m *SubscriberConfig) validateForbiddenNetworkTypes(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ForbiddenNetworkTypes) { // not required
 		return nil
 	}
@@ -85,12 +86,73 @@ func (m *SubscriberConfig) validateLte(formats strfmt.Registry) error {
 }
 
 func (m *SubscriberConfig) validateStaticIps(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.StaticIps) { // not required
 		return nil
 	}
 
-	if err := m.StaticIps.Validate(formats); err != nil {
+	if m.StaticIps != nil {
+		if err := m.StaticIps.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("static_ips")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this subscriber config based on the context it is used
+func (m *SubscriberConfig) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateForbiddenNetworkTypes(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateLte(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateStaticIps(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *SubscriberConfig) contextValidateForbiddenNetworkTypes(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ForbiddenNetworkTypes.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("forbidden_network_types")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *SubscriberConfig) contextValidateLte(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Lte != nil {
+		if err := m.Lte.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("lte")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *SubscriberConfig) contextValidateStaticIps(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.StaticIps.ContextValidate(ctx, formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("static_ips")
 		}
