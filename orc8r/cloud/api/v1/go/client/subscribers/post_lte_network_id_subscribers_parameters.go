@@ -13,10 +13,9 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // NewPostLTENetworkIDSubscribersParams creates a new PostLTENetworkIDSubscribersParams object
@@ -68,11 +67,11 @@ type PostLTENetworkIDSubscribersParams struct {
 
 	*/
 	NetworkID string
-	/*Subscriber
-	  Subscriber that needs to be added
+	/*Subscribers
+	  Subscribers to add
 
 	*/
-	Subscriber *models.MutableSubscriber
+	Subscribers models.MutableSubscribers
 
 	timeout    time.Duration
 	Context    context.Context
@@ -123,15 +122,15 @@ func (o *PostLTENetworkIDSubscribersParams) SetNetworkID(networkID string) {
 	o.NetworkID = networkID
 }
 
-// WithSubscriber adds the subscriber to the post LTE network ID subscribers params
-func (o *PostLTENetworkIDSubscribersParams) WithSubscriber(subscriber *models.MutableSubscriber) *PostLTENetworkIDSubscribersParams {
-	o.SetSubscriber(subscriber)
+// WithSubscribers adds the subscribers to the post LTE network ID subscribers params
+func (o *PostLTENetworkIDSubscribersParams) WithSubscribers(subscribers models.MutableSubscribers) *PostLTENetworkIDSubscribersParams {
+	o.SetSubscribers(subscribers)
 	return o
 }
 
-// SetSubscriber adds the subscriber to the post LTE network ID subscribers params
-func (o *PostLTENetworkIDSubscribersParams) SetSubscriber(subscriber *models.MutableSubscriber) {
-	o.Subscriber = subscriber
+// SetSubscribers adds the subscribers to the post LTE network ID subscribers params
+func (o *PostLTENetworkIDSubscribersParams) SetSubscribers(subscribers models.MutableSubscribers) {
+	o.Subscribers = subscribers
 }
 
 // WriteToRequest writes these params to a swagger request
@@ -147,8 +146,8 @@ func (o *PostLTENetworkIDSubscribersParams) WriteToRequest(r runtime.ClientReque
 		return err
 	}
 
-	if o.Subscriber != nil {
-		if err := r.SetBodyParam(o.Subscriber); err != nil {
+	if o.Subscribers != nil {
+		if err := r.SetBodyParam(o.Subscribers); err != nil {
 			return err
 		}
 	}

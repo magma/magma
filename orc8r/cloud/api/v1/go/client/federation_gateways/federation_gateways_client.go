@@ -7,12 +7,11 @@ package federation_gateways
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new federation gateways API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,10 +23,35 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteFegNetworkIDGatewaysGatewayID(params *DeleteFegNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDGatewaysGatewayIDNoContent, error)
+
+	DeleteFegNetworkIDGatewaysGatewayIDFederation(params *DeleteFegNetworkIDGatewaysGatewayIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDGatewaysGatewayIDFederationNoContent, error)
+
+	GetFegNetworkIDGateways(params *GetFegNetworkIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDGatewaysOK, error)
+
+	GetFegNetworkIDGatewaysGatewayID(params *GetFegNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDGatewaysGatewayIDOK, error)
+
+	GetFegNetworkIDGatewaysGatewayIDFederation(params *GetFegNetworkIDGatewaysGatewayIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDGatewaysGatewayIDFederationOK, error)
+
+	GetFegNetworkIDGatewaysGatewayIDHealthStatus(params *GetFegNetworkIDGatewaysGatewayIDHealthStatusParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDGatewaysGatewayIDHealthStatusOK, error)
+
+	PostFegNetworkIDGateways(params *PostFegNetworkIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*PostFegNetworkIDGatewaysCreated, error)
+
+	PostFegNetworkIDGatewaysGatewayIDFederation(params *PostFegNetworkIDGatewaysGatewayIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*PostFegNetworkIDGatewaysGatewayIDFederationCreated, error)
+
+	PutFegNetworkIDGatewaysGatewayID(params *PutFegNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDGatewaysGatewayIDNoContent, error)
+
+	PutFegNetworkIDGatewaysGatewayIDFederation(params *PutFegNetworkIDGatewaysGatewayIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDGatewaysGatewayIDFederationOK, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteFegNetworkIDGatewaysGatewayID deletes a federation gateway
+  DeleteFegNetworkIDGatewaysGatewayID deletes a federation gateway
 */
-func (a *Client) DeleteFegNetworkIDGatewaysGatewayID(params *DeleteFegNetworkIDGatewaysGatewayIDParams) (*DeleteFegNetworkIDGatewaysGatewayIDNoContent, error) {
+func (a *Client) DeleteFegNetworkIDGatewaysGatewayID(params *DeleteFegNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDGatewaysGatewayIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteFegNetworkIDGatewaysGatewayIDParams()
@@ -42,6 +66,7 @@ func (a *Client) DeleteFegNetworkIDGatewaysGatewayID(params *DeleteFegNetworkIDG
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteFegNetworkIDGatewaysGatewayIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -58,9 +83,9 @@ func (a *Client) DeleteFegNetworkIDGatewaysGatewayID(params *DeleteFegNetworkIDG
 }
 
 /*
-DeleteFegNetworkIDGatewaysGatewayIDFederation deletes gateway federation configs
+  DeleteFegNetworkIDGatewaysGatewayIDFederation deletes gateway federation configs
 */
-func (a *Client) DeleteFegNetworkIDGatewaysGatewayIDFederation(params *DeleteFegNetworkIDGatewaysGatewayIDFederationParams) (*DeleteFegNetworkIDGatewaysGatewayIDFederationNoContent, error) {
+func (a *Client) DeleteFegNetworkIDGatewaysGatewayIDFederation(params *DeleteFegNetworkIDGatewaysGatewayIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDGatewaysGatewayIDFederationNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteFegNetworkIDGatewaysGatewayIDFederationParams()
@@ -75,6 +100,7 @@ func (a *Client) DeleteFegNetworkIDGatewaysGatewayIDFederation(params *DeleteFeg
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteFegNetworkIDGatewaysGatewayIDFederationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -91,9 +117,9 @@ func (a *Client) DeleteFegNetworkIDGatewaysGatewayIDFederation(params *DeleteFeg
 }
 
 /*
-GetFegNetworkIDGateways lists all federation gateways for a federation network
+  GetFegNetworkIDGateways lists all gateways for a federation network
 */
-func (a *Client) GetFegNetworkIDGateways(params *GetFegNetworkIDGatewaysParams) (*GetFegNetworkIDGatewaysOK, error) {
+func (a *Client) GetFegNetworkIDGateways(params *GetFegNetworkIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDGatewaysOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDGatewaysParams()
@@ -108,6 +134,7 @@ func (a *Client) GetFegNetworkIDGateways(params *GetFegNetworkIDGatewaysParams) 
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegNetworkIDGatewaysReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -124,9 +151,9 @@ func (a *Client) GetFegNetworkIDGateways(params *GetFegNetworkIDGatewaysParams) 
 }
 
 /*
-GetFegNetworkIDGatewaysGatewayID gets a specific federation gateway
+  GetFegNetworkIDGatewaysGatewayID gets a specific federation gateway
 */
-func (a *Client) GetFegNetworkIDGatewaysGatewayID(params *GetFegNetworkIDGatewaysGatewayIDParams) (*GetFegNetworkIDGatewaysGatewayIDOK, error) {
+func (a *Client) GetFegNetworkIDGatewaysGatewayID(params *GetFegNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDGatewaysGatewayIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDGatewaysGatewayIDParams()
@@ -141,6 +168,7 @@ func (a *Client) GetFegNetworkIDGatewaysGatewayID(params *GetFegNetworkIDGateway
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegNetworkIDGatewaysGatewayIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -157,9 +185,9 @@ func (a *Client) GetFegNetworkIDGatewaysGatewayID(params *GetFegNetworkIDGateway
 }
 
 /*
-GetFegNetworkIDGatewaysGatewayIDFederation retrieves gateway federation configs
+  GetFegNetworkIDGatewaysGatewayIDFederation retrieves gateway federation configs
 */
-func (a *Client) GetFegNetworkIDGatewaysGatewayIDFederation(params *GetFegNetworkIDGatewaysGatewayIDFederationParams) (*GetFegNetworkIDGatewaysGatewayIDFederationOK, error) {
+func (a *Client) GetFegNetworkIDGatewaysGatewayIDFederation(params *GetFegNetworkIDGatewaysGatewayIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDGatewaysGatewayIDFederationOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDGatewaysGatewayIDFederationParams()
@@ -174,6 +202,7 @@ func (a *Client) GetFegNetworkIDGatewaysGatewayIDFederation(params *GetFegNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegNetworkIDGatewaysGatewayIDFederationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -190,9 +219,9 @@ func (a *Client) GetFegNetworkIDGatewaysGatewayIDFederation(params *GetFegNetwor
 }
 
 /*
-GetFegNetworkIDGatewaysGatewayIDHealthStatus retrieves health status of a federation gateway
+  GetFegNetworkIDGatewaysGatewayIDHealthStatus retrieves health status of a federation gateway
 */
-func (a *Client) GetFegNetworkIDGatewaysGatewayIDHealthStatus(params *GetFegNetworkIDGatewaysGatewayIDHealthStatusParams) (*GetFegNetworkIDGatewaysGatewayIDHealthStatusOK, error) {
+func (a *Client) GetFegNetworkIDGatewaysGatewayIDHealthStatus(params *GetFegNetworkIDGatewaysGatewayIDHealthStatusParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDGatewaysGatewayIDHealthStatusOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDGatewaysGatewayIDHealthStatusParams()
@@ -207,6 +236,7 @@ func (a *Client) GetFegNetworkIDGatewaysGatewayIDHealthStatus(params *GetFegNetw
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegNetworkIDGatewaysGatewayIDHealthStatusReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -223,9 +253,9 @@ func (a *Client) GetFegNetworkIDGatewaysGatewayIDHealthStatus(params *GetFegNetw
 }
 
 /*
-PostFegNetworkIDGateways registers a new federation gateway
+  PostFegNetworkIDGateways registers a new federation gateway
 */
-func (a *Client) PostFegNetworkIDGateways(params *PostFegNetworkIDGatewaysParams) (*PostFegNetworkIDGatewaysCreated, error) {
+func (a *Client) PostFegNetworkIDGateways(params *PostFegNetworkIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*PostFegNetworkIDGatewaysCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostFegNetworkIDGatewaysParams()
@@ -240,6 +270,7 @@ func (a *Client) PostFegNetworkIDGateways(params *PostFegNetworkIDGatewaysParams
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostFegNetworkIDGatewaysReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -256,9 +287,9 @@ func (a *Client) PostFegNetworkIDGateways(params *PostFegNetworkIDGatewaysParams
 }
 
 /*
-PostFegNetworkIDGatewaysGatewayIDFederation creates gateway federation configs
+  PostFegNetworkIDGatewaysGatewayIDFederation creates gateway federation configs
 */
-func (a *Client) PostFegNetworkIDGatewaysGatewayIDFederation(params *PostFegNetworkIDGatewaysGatewayIDFederationParams) (*PostFegNetworkIDGatewaysGatewayIDFederationCreated, error) {
+func (a *Client) PostFegNetworkIDGatewaysGatewayIDFederation(params *PostFegNetworkIDGatewaysGatewayIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*PostFegNetworkIDGatewaysGatewayIDFederationCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostFegNetworkIDGatewaysGatewayIDFederationParams()
@@ -273,6 +304,7 @@ func (a *Client) PostFegNetworkIDGatewaysGatewayIDFederation(params *PostFegNetw
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostFegNetworkIDGatewaysGatewayIDFederationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -289,9 +321,9 @@ func (a *Client) PostFegNetworkIDGatewaysGatewayIDFederation(params *PostFegNetw
 }
 
 /*
-PutFegNetworkIDGatewaysGatewayID updates an entire federation gateway record
+  PutFegNetworkIDGatewaysGatewayID updates an entire federation gateway record
 */
-func (a *Client) PutFegNetworkIDGatewaysGatewayID(params *PutFegNetworkIDGatewaysGatewayIDParams) (*PutFegNetworkIDGatewaysGatewayIDNoContent, error) {
+func (a *Client) PutFegNetworkIDGatewaysGatewayID(params *PutFegNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDGatewaysGatewayIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegNetworkIDGatewaysGatewayIDParams()
@@ -306,6 +338,7 @@ func (a *Client) PutFegNetworkIDGatewaysGatewayID(params *PutFegNetworkIDGateway
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutFegNetworkIDGatewaysGatewayIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -322,9 +355,9 @@ func (a *Client) PutFegNetworkIDGatewaysGatewayID(params *PutFegNetworkIDGateway
 }
 
 /*
-PutFegNetworkIDGatewaysGatewayIDFederation modifies gateway federation configs
+  PutFegNetworkIDGatewaysGatewayIDFederation modifies gateway federation configs
 */
-func (a *Client) PutFegNetworkIDGatewaysGatewayIDFederation(params *PutFegNetworkIDGatewaysGatewayIDFederationParams) (*PutFegNetworkIDGatewaysGatewayIDFederationOK, error) {
+func (a *Client) PutFegNetworkIDGatewaysGatewayIDFederation(params *PutFegNetworkIDGatewaysGatewayIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDGatewaysGatewayIDFederationOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegNetworkIDGatewaysGatewayIDFederationParams()
@@ -339,6 +372,7 @@ func (a *Client) PutFegNetworkIDGatewaysGatewayIDFederation(params *PutFegNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutFegNetworkIDGatewaysGatewayIDFederationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})

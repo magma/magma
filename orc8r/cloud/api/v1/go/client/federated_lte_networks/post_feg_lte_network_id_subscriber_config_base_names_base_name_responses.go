@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameReader is a Reader for the PostFegLTENetworkIDSubscriberConfigBaseNamesBaseName structure.

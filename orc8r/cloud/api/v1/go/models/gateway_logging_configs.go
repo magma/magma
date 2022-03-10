@@ -8,14 +8,14 @@ package models
 import (
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // GatewayLoggingConfigs Configuration for gateway logging (local and aggregation configs)
+//
 // swagger:model gateway_logging_configs
 type GatewayLoggingConfigs struct {
 

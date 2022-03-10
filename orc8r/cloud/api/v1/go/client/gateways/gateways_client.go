@@ -7,12 +7,11 @@ package gateways
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new gateways API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,10 +23,47 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteNetworksNetworkIDGatewaysGatewayID(params *DeleteNetworksNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDGatewaysGatewayIDNoContent, error)
+
+	GetNetworksNetworkIDGateways(params *GetNetworksNetworkIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDGatewaysOK, error)
+
+	GetNetworksNetworkIDGatewaysGatewayID(params *GetNetworksNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDGatewaysGatewayIDOK, error)
+
+	GetNetworksNetworkIDGatewaysGatewayIDDescription(params *GetNetworksNetworkIDGatewaysGatewayIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDGatewaysGatewayIDDescriptionOK, error)
+
+	GetNetworksNetworkIDGatewaysGatewayIDDevice(params *GetNetworksNetworkIDGatewaysGatewayIDDeviceParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDGatewaysGatewayIDDeviceOK, error)
+
+	GetNetworksNetworkIDGatewaysGatewayIDMagmad(params *GetNetworksNetworkIDGatewaysGatewayIDMagmadParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDGatewaysGatewayIDMagmadOK, error)
+
+	GetNetworksNetworkIDGatewaysGatewayIDName(params *GetNetworksNetworkIDGatewaysGatewayIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDGatewaysGatewayIDNameOK, error)
+
+	GetNetworksNetworkIDGatewaysGatewayIDStatus(params *GetNetworksNetworkIDGatewaysGatewayIDStatusParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDGatewaysGatewayIDStatusOK, error)
+
+	GetNetworksNetworkIDGatewaysGatewayIDTier(params *GetNetworksNetworkIDGatewaysGatewayIDTierParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDGatewaysGatewayIDTierOK, error)
+
+	PostNetworksNetworkIDGateways(params *PostNetworksNetworkIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysCreated, error)
+
+	PutNetworksNetworkIDGatewaysGatewayID(params *PutNetworksNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDGatewaysGatewayIDNoContent, error)
+
+	PutNetworksNetworkIDGatewaysGatewayIDDescription(params *PutNetworksNetworkIDGatewaysGatewayIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDGatewaysGatewayIDDescriptionNoContent, error)
+
+	PutNetworksNetworkIDGatewaysGatewayIDDevice(params *PutNetworksNetworkIDGatewaysGatewayIDDeviceParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDGatewaysGatewayIDDeviceNoContent, error)
+
+	PutNetworksNetworkIDGatewaysGatewayIDMagmad(params *PutNetworksNetworkIDGatewaysGatewayIDMagmadParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDGatewaysGatewayIDMagmadNoContent, error)
+
+	PutNetworksNetworkIDGatewaysGatewayIDName(params *PutNetworksNetworkIDGatewaysGatewayIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDGatewaysGatewayIDNameNoContent, error)
+
+	PutNetworksNetworkIDGatewaysGatewayIDTier(params *PutNetworksNetworkIDGatewaysGatewayIDTierParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDGatewaysGatewayIDTierNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteNetworksNetworkIDGatewaysGatewayID deletes a gateway
+  DeleteNetworksNetworkIDGatewaysGatewayID deletes a gateway
 */
-func (a *Client) DeleteNetworksNetworkIDGatewaysGatewayID(params *DeleteNetworksNetworkIDGatewaysGatewayIDParams) (*DeleteNetworksNetworkIDGatewaysGatewayIDNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDGatewaysGatewayID(params *DeleteNetworksNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDGatewaysGatewayIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDGatewaysGatewayIDParams()
@@ -42,6 +78,7 @@ func (a *Client) DeleteNetworksNetworkIDGatewaysGatewayID(params *DeleteNetworks
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteNetworksNetworkIDGatewaysGatewayIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -58,9 +95,9 @@ func (a *Client) DeleteNetworksNetworkIDGatewaysGatewayID(params *DeleteNetworks
 }
 
 /*
-GetNetworksNetworkIDGateways lists all gateways for a network
+  GetNetworksNetworkIDGateways lists all gateways for a network
 */
-func (a *Client) GetNetworksNetworkIDGateways(params *GetNetworksNetworkIDGatewaysParams) (*GetNetworksNetworkIDGatewaysOK, error) {
+func (a *Client) GetNetworksNetworkIDGateways(params *GetNetworksNetworkIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDGatewaysOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDGatewaysParams()
@@ -75,6 +112,7 @@ func (a *Client) GetNetworksNetworkIDGateways(params *GetNetworksNetworkIDGatewa
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDGatewaysReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -91,9 +129,9 @@ func (a *Client) GetNetworksNetworkIDGateways(params *GetNetworksNetworkIDGatewa
 }
 
 /*
-GetNetworksNetworkIDGatewaysGatewayID gets a specific gateway
+  GetNetworksNetworkIDGatewaysGatewayID gets a specific gateway
 */
-func (a *Client) GetNetworksNetworkIDGatewaysGatewayID(params *GetNetworksNetworkIDGatewaysGatewayIDParams) (*GetNetworksNetworkIDGatewaysGatewayIDOK, error) {
+func (a *Client) GetNetworksNetworkIDGatewaysGatewayID(params *GetNetworksNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDGatewaysGatewayIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDGatewaysGatewayIDParams()
@@ -108,6 +146,7 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayID(params *GetNetworksNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDGatewaysGatewayIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -124,9 +163,9 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayID(params *GetNetworksNetwor
 }
 
 /*
-GetNetworksNetworkIDGatewaysGatewayIDDescription gets the description of a gateway
+  GetNetworksNetworkIDGatewaysGatewayIDDescription gets the description of a gateway
 */
-func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDDescription(params *GetNetworksNetworkIDGatewaysGatewayIDDescriptionParams) (*GetNetworksNetworkIDGatewaysGatewayIDDescriptionOK, error) {
+func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDDescription(params *GetNetworksNetworkIDGatewaysGatewayIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDGatewaysGatewayIDDescriptionOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDGatewaysGatewayIDDescriptionParams()
@@ -141,6 +180,7 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDDescription(params *GetNet
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDGatewaysGatewayIDDescriptionReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -157,9 +197,9 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDDescription(params *GetNet
 }
 
 /*
-GetNetworksNetworkIDGatewaysGatewayIDDevice gets the physical device for a gateway
+  GetNetworksNetworkIDGatewaysGatewayIDDevice gets the physical device for a gateway
 */
-func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDDevice(params *GetNetworksNetworkIDGatewaysGatewayIDDeviceParams) (*GetNetworksNetworkIDGatewaysGatewayIDDeviceOK, error) {
+func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDDevice(params *GetNetworksNetworkIDGatewaysGatewayIDDeviceParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDGatewaysGatewayIDDeviceOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDGatewaysGatewayIDDeviceParams()
@@ -174,6 +214,7 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDDevice(params *GetNetworks
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDGatewaysGatewayIDDeviceReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -190,9 +231,9 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDDevice(params *GetNetworks
 }
 
 /*
-GetNetworksNetworkIDGatewaysGatewayIDMagmad gets magmad agent configuration
+  GetNetworksNetworkIDGatewaysGatewayIDMagmad gets magmad agent configuration
 */
-func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDMagmad(params *GetNetworksNetworkIDGatewaysGatewayIDMagmadParams) (*GetNetworksNetworkIDGatewaysGatewayIDMagmadOK, error) {
+func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDMagmad(params *GetNetworksNetworkIDGatewaysGatewayIDMagmadParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDGatewaysGatewayIDMagmadOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDGatewaysGatewayIDMagmadParams()
@@ -207,6 +248,7 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDMagmad(params *GetNetworks
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDGatewaysGatewayIDMagmadReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -223,9 +265,9 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDMagmad(params *GetNetworks
 }
 
 /*
-GetNetworksNetworkIDGatewaysGatewayIDName gets the name of a gateway
+  GetNetworksNetworkIDGatewaysGatewayIDName gets the name of a gateway
 */
-func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDName(params *GetNetworksNetworkIDGatewaysGatewayIDNameParams) (*GetNetworksNetworkIDGatewaysGatewayIDNameOK, error) {
+func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDName(params *GetNetworksNetworkIDGatewaysGatewayIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDGatewaysGatewayIDNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDGatewaysGatewayIDNameParams()
@@ -240,6 +282,7 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDName(params *GetNetworksNe
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDGatewaysGatewayIDNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -256,9 +299,9 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDName(params *GetNetworksNe
 }
 
 /*
-GetNetworksNetworkIDGatewaysGatewayIDStatus gets the status of a gateway
+  GetNetworksNetworkIDGatewaysGatewayIDStatus gets the status of a gateway
 */
-func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDStatus(params *GetNetworksNetworkIDGatewaysGatewayIDStatusParams) (*GetNetworksNetworkIDGatewaysGatewayIDStatusOK, error) {
+func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDStatus(params *GetNetworksNetworkIDGatewaysGatewayIDStatusParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDGatewaysGatewayIDStatusOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDGatewaysGatewayIDStatusParams()
@@ -273,6 +316,7 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDStatus(params *GetNetworks
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDGatewaysGatewayIDStatusReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -289,9 +333,9 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDStatus(params *GetNetworks
 }
 
 /*
-GetNetworksNetworkIDGatewaysGatewayIDTier gets the ID of the upgrade tier a gateway belongs to
+  GetNetworksNetworkIDGatewaysGatewayIDTier gets the ID of the upgrade tier a gateway belongs to
 */
-func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDTier(params *GetNetworksNetworkIDGatewaysGatewayIDTierParams) (*GetNetworksNetworkIDGatewaysGatewayIDTierOK, error) {
+func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDTier(params *GetNetworksNetworkIDGatewaysGatewayIDTierParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDGatewaysGatewayIDTierOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDGatewaysGatewayIDTierParams()
@@ -306,6 +350,7 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDTier(params *GetNetworksNe
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDGatewaysGatewayIDTierReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -322,9 +367,9 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDTier(params *GetNetworksNe
 }
 
 /*
-PostNetworksNetworkIDGateways registers a new gateway
+  PostNetworksNetworkIDGateways registers a new gateway
 */
-func (a *Client) PostNetworksNetworkIDGateways(params *PostNetworksNetworkIDGatewaysParams) (*PostNetworksNetworkIDGatewaysCreated, error) {
+func (a *Client) PostNetworksNetworkIDGateways(params *PostNetworksNetworkIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDGatewaysParams()
@@ -339,6 +384,7 @@ func (a *Client) PostNetworksNetworkIDGateways(params *PostNetworksNetworkIDGate
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksNetworkIDGatewaysReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -355,9 +401,9 @@ func (a *Client) PostNetworksNetworkIDGateways(params *PostNetworksNetworkIDGate
 }
 
 /*
-PutNetworksNetworkIDGatewaysGatewayID updates an entire gateway record
+  PutNetworksNetworkIDGatewaysGatewayID updates an entire gateway record
 */
-func (a *Client) PutNetworksNetworkIDGatewaysGatewayID(params *PutNetworksNetworkIDGatewaysGatewayIDParams) (*PutNetworksNetworkIDGatewaysGatewayIDNoContent, error) {
+func (a *Client) PutNetworksNetworkIDGatewaysGatewayID(params *PutNetworksNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDGatewaysGatewayIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDGatewaysGatewayIDParams()
@@ -372,6 +418,7 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayID(params *PutNetworksNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDGatewaysGatewayIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -388,9 +435,9 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayID(params *PutNetworksNetwor
 }
 
 /*
-PutNetworksNetworkIDGatewaysGatewayIDDescription updates the description of a gateway
+  PutNetworksNetworkIDGatewaysGatewayIDDescription updates the description of a gateway
 */
-func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDDescription(params *PutNetworksNetworkIDGatewaysGatewayIDDescriptionParams) (*PutNetworksNetworkIDGatewaysGatewayIDDescriptionNoContent, error) {
+func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDDescription(params *PutNetworksNetworkIDGatewaysGatewayIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDGatewaysGatewayIDDescriptionNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDGatewaysGatewayIDDescriptionParams()
@@ -405,6 +452,7 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDDescription(params *PutNet
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDGatewaysGatewayIDDescriptionReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -421,9 +469,9 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDDescription(params *PutNet
 }
 
 /*
-PutNetworksNetworkIDGatewaysGatewayIDDevice updates the physical device for a gateway
+  PutNetworksNetworkIDGatewaysGatewayIDDevice updates the physical device for a gateway
 */
-func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDDevice(params *PutNetworksNetworkIDGatewaysGatewayIDDeviceParams) (*PutNetworksNetworkIDGatewaysGatewayIDDeviceNoContent, error) {
+func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDDevice(params *PutNetworksNetworkIDGatewaysGatewayIDDeviceParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDGatewaysGatewayIDDeviceNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDGatewaysGatewayIDDeviceParams()
@@ -438,6 +486,7 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDDevice(params *PutNetworks
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDGatewaysGatewayIDDeviceReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -454,9 +503,9 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDDevice(params *PutNetworks
 }
 
 /*
-PutNetworksNetworkIDGatewaysGatewayIDMagmad reconfigures magmad agent
+  PutNetworksNetworkIDGatewaysGatewayIDMagmad reconfigures magmad agent
 */
-func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDMagmad(params *PutNetworksNetworkIDGatewaysGatewayIDMagmadParams) (*PutNetworksNetworkIDGatewaysGatewayIDMagmadNoContent, error) {
+func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDMagmad(params *PutNetworksNetworkIDGatewaysGatewayIDMagmadParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDGatewaysGatewayIDMagmadNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDGatewaysGatewayIDMagmadParams()
@@ -471,6 +520,7 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDMagmad(params *PutNetworks
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDGatewaysGatewayIDMagmadReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -487,9 +537,9 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDMagmad(params *PutNetworks
 }
 
 /*
-PutNetworksNetworkIDGatewaysGatewayIDName updates the name of a gateway
+  PutNetworksNetworkIDGatewaysGatewayIDName updates the name of a gateway
 */
-func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDName(params *PutNetworksNetworkIDGatewaysGatewayIDNameParams) (*PutNetworksNetworkIDGatewaysGatewayIDNameNoContent, error) {
+func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDName(params *PutNetworksNetworkIDGatewaysGatewayIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDGatewaysGatewayIDNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDGatewaysGatewayIDNameParams()
@@ -504,6 +554,7 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDName(params *PutNetworksNe
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDGatewaysGatewayIDNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -520,9 +571,9 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDName(params *PutNetworksNe
 }
 
 /*
-PutNetworksNetworkIDGatewaysGatewayIDTier updates the ID of the upgrade tier a gateway belongs to
+  PutNetworksNetworkIDGatewaysGatewayIDTier updates the ID of the upgrade tier a gateway belongs to
 */
-func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDTier(params *PutNetworksNetworkIDGatewaysGatewayIDTierParams) (*PutNetworksNetworkIDGatewaysGatewayIDTierNoContent, error) {
+func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDTier(params *PutNetworksNetworkIDGatewaysGatewayIDTierParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDGatewaysGatewayIDTierNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDGatewaysGatewayIDTierParams()
@@ -537,6 +588,7 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDTier(params *PutNetworksNe
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDGatewaysGatewayIDTierReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})

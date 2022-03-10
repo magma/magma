@@ -7,12 +7,11 @@ package federation_networks
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new federation networks API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,10 +23,53 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteFegNetworkID(params *DeleteFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDNoContent, error)
+
+	DeleteFegNetworkIDFederation(params *DeleteFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDFederationNoContent, error)
+
+	DeleteFegNetworkIDSubscriberConfigBaseNamesBaseName(params *DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameNoContent, error)
+
+	DeleteFegNetworkIDSubscriberConfigRuleNamesRuleID(params *DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDNoContent, error)
+
+	GetFeg(params *GetFegParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegOK, error)
+
+	GetFegNetworkID(params *GetFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDOK, error)
+
+	GetFegNetworkIDClusterStatus(params *GetFegNetworkIDClusterStatusParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDClusterStatusOK, error)
+
+	GetFegNetworkIDFederation(params *GetFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDFederationOK, error)
+
+	GetFegNetworkIDSubscriberConfig(params *GetFegNetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDSubscriberConfigOK, error)
+
+	GetFegNetworkIDSubscriberConfigBaseNames(params *GetFegNetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDSubscriberConfigBaseNamesOK, error)
+
+	GetFegNetworkIDSubscriberConfigRuleNames(params *GetFegNetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDSubscriberConfigRuleNamesOK, error)
+
+	PostFeg(params *PostFegParams, authInfo runtime.ClientAuthInfoWriter) (*PostFegCreated, error)
+
+	PostFegNetworkIDSubscriberConfigBaseNamesBaseName(params *PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*PostFegNetworkIDSubscriberConfigBaseNamesBaseNameCreated, error)
+
+	PostFegNetworkIDSubscriberConfigRuleNamesRuleID(params *PostFegNetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*PostFegNetworkIDSubscriberConfigRuleNamesRuleIDCreated, error)
+
+	PutFegNetworkID(params *PutFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDNoContent, error)
+
+	PutFegNetworkIDFederation(params *PutFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDFederationOK, error)
+
+	PutFegNetworkIDSubscriberConfig(params *PutFegNetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDSubscriberConfigNoContent, error)
+
+	PutFegNetworkIDSubscriberConfigBaseNames(params *PutFegNetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDSubscriberConfigBaseNamesNoContent, error)
+
+	PutFegNetworkIDSubscriberConfigRuleNames(params *PutFegNetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDSubscriberConfigRuleNamesNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteFegNetworkID deletes a federation network
+  DeleteFegNetworkID deletes a federation network
 */
-func (a *Client) DeleteFegNetworkID(params *DeleteFegNetworkIDParams) (*DeleteFegNetworkIDNoContent, error) {
+func (a *Client) DeleteFegNetworkID(params *DeleteFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteFegNetworkIDParams()
@@ -42,6 +84,7 @@ func (a *Client) DeleteFegNetworkID(params *DeleteFegNetworkIDParams) (*DeleteFe
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteFegNetworkIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -58,9 +101,9 @@ func (a *Client) DeleteFegNetworkID(params *DeleteFegNetworkIDParams) (*DeleteFe
 }
 
 /*
-DeleteFegNetworkIDFederation deletes network federation configs
+  DeleteFegNetworkIDFederation deletes network federation configs
 */
-func (a *Client) DeleteFegNetworkIDFederation(params *DeleteFegNetworkIDFederationParams) (*DeleteFegNetworkIDFederationNoContent, error) {
+func (a *Client) DeleteFegNetworkIDFederation(params *DeleteFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDFederationNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteFegNetworkIDFederationParams()
@@ -75,6 +118,7 @@ func (a *Client) DeleteFegNetworkIDFederation(params *DeleteFegNetworkIDFederati
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteFegNetworkIDFederationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -91,9 +135,9 @@ func (a *Client) DeleteFegNetworkIDFederation(params *DeleteFegNetworkIDFederati
 }
 
 /*
-DeleteFegNetworkIDSubscriberConfigBaseNamesBaseName adds a network wide base name
+  DeleteFegNetworkIDSubscriberConfigBaseNamesBaseName adds a network wide base name
 */
-func (a *Client) DeleteFegNetworkIDSubscriberConfigBaseNamesBaseName(params *DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameParams) (*DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameNoContent, error) {
+func (a *Client) DeleteFegNetworkIDSubscriberConfigBaseNamesBaseName(params *DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameParams()
@@ -108,6 +152,7 @@ func (a *Client) DeleteFegNetworkIDSubscriberConfigBaseNamesBaseName(params *Del
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -124,9 +169,9 @@ func (a *Client) DeleteFegNetworkIDSubscriberConfigBaseNamesBaseName(params *Del
 }
 
 /*
-DeleteFegNetworkIDSubscriberConfigRuleNamesRuleID adds a network wide rule name
+  DeleteFegNetworkIDSubscriberConfigRuleNamesRuleID adds a network wide rule name
 */
-func (a *Client) DeleteFegNetworkIDSubscriberConfigRuleNamesRuleID(params *DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams) (*DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDNoContent, error) {
+func (a *Client) DeleteFegNetworkIDSubscriberConfigRuleNamesRuleID(params *DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams()
@@ -141,6 +186,7 @@ func (a *Client) DeleteFegNetworkIDSubscriberConfigRuleNamesRuleID(params *Delet
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -157,9 +203,9 @@ func (a *Client) DeleteFegNetworkIDSubscriberConfigRuleNamesRuleID(params *Delet
 }
 
 /*
-GetFeg lists all federation network i ds
+  GetFeg lists all federation network i ds
 */
-func (a *Client) GetFeg(params *GetFegParams) (*GetFegOK, error) {
+func (a *Client) GetFeg(params *GetFegParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegParams()
@@ -174,6 +220,7 @@ func (a *Client) GetFeg(params *GetFegParams) (*GetFegOK, error) {
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -190,9 +237,9 @@ func (a *Client) GetFeg(params *GetFegParams) (*GetFegOK, error) {
 }
 
 /*
-GetFegNetworkID describes a federation network
+  GetFegNetworkID describes a federation network
 */
-func (a *Client) GetFegNetworkID(params *GetFegNetworkIDParams) (*GetFegNetworkIDOK, error) {
+func (a *Client) GetFegNetworkID(params *GetFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDParams()
@@ -207,6 +254,7 @@ func (a *Client) GetFegNetworkID(params *GetFegNetworkIDParams) (*GetFegNetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegNetworkIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -223,9 +271,9 @@ func (a *Client) GetFegNetworkID(params *GetFegNetworkIDParams) (*GetFegNetworkI
 }
 
 /*
-GetFegNetworkIDClusterStatus retrieves h a cluster status of a federation network
+  GetFegNetworkIDClusterStatus retrieves h a cluster status of a federation network
 */
-func (a *Client) GetFegNetworkIDClusterStatus(params *GetFegNetworkIDClusterStatusParams) (*GetFegNetworkIDClusterStatusOK, error) {
+func (a *Client) GetFegNetworkIDClusterStatus(params *GetFegNetworkIDClusterStatusParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDClusterStatusOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDClusterStatusParams()
@@ -240,6 +288,7 @@ func (a *Client) GetFegNetworkIDClusterStatus(params *GetFegNetworkIDClusterStat
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegNetworkIDClusterStatusReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -256,9 +305,9 @@ func (a *Client) GetFegNetworkIDClusterStatus(params *GetFegNetworkIDClusterStat
 }
 
 /*
-GetFegNetworkIDFederation retrieves network federation configs
+  GetFegNetworkIDFederation retrieves network federation configs
 */
-func (a *Client) GetFegNetworkIDFederation(params *GetFegNetworkIDFederationParams) (*GetFegNetworkIDFederationOK, error) {
+func (a *Client) GetFegNetworkIDFederation(params *GetFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDFederationOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDFederationParams()
@@ -273,6 +322,7 @@ func (a *Client) GetFegNetworkIDFederation(params *GetFegNetworkIDFederationPara
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegNetworkIDFederationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -289,9 +339,9 @@ func (a *Client) GetFegNetworkIDFederation(params *GetFegNetworkIDFederationPara
 }
 
 /*
-GetFegNetworkIDSubscriberConfig gets a network wide subscriber config
+  GetFegNetworkIDSubscriberConfig gets a network wide subscriber config
 */
-func (a *Client) GetFegNetworkIDSubscriberConfig(params *GetFegNetworkIDSubscriberConfigParams) (*GetFegNetworkIDSubscriberConfigOK, error) {
+func (a *Client) GetFegNetworkIDSubscriberConfig(params *GetFegNetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDSubscriberConfigOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDSubscriberConfigParams()
@@ -306,6 +356,7 @@ func (a *Client) GetFegNetworkIDSubscriberConfig(params *GetFegNetworkIDSubscrib
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegNetworkIDSubscriberConfigReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -322,9 +373,9 @@ func (a *Client) GetFegNetworkIDSubscriberConfig(params *GetFegNetworkIDSubscrib
 }
 
 /*
-GetFegNetworkIDSubscriberConfigBaseNames gets network wide base names
+  GetFegNetworkIDSubscriberConfigBaseNames gets network wide base names
 */
-func (a *Client) GetFegNetworkIDSubscriberConfigBaseNames(params *GetFegNetworkIDSubscriberConfigBaseNamesParams) (*GetFegNetworkIDSubscriberConfigBaseNamesOK, error) {
+func (a *Client) GetFegNetworkIDSubscriberConfigBaseNames(params *GetFegNetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDSubscriberConfigBaseNamesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDSubscriberConfigBaseNamesParams()
@@ -339,6 +390,7 @@ func (a *Client) GetFegNetworkIDSubscriberConfigBaseNames(params *GetFegNetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegNetworkIDSubscriberConfigBaseNamesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -355,9 +407,9 @@ func (a *Client) GetFegNetworkIDSubscriberConfigBaseNames(params *GetFegNetworkI
 }
 
 /*
-GetFegNetworkIDSubscriberConfigRuleNames gets network wide rule names
+  GetFegNetworkIDSubscriberConfigRuleNames gets network wide rule names
 */
-func (a *Client) GetFegNetworkIDSubscriberConfigRuleNames(params *GetFegNetworkIDSubscriberConfigRuleNamesParams) (*GetFegNetworkIDSubscriberConfigRuleNamesOK, error) {
+func (a *Client) GetFegNetworkIDSubscriberConfigRuleNames(params *GetFegNetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDSubscriberConfigRuleNamesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDSubscriberConfigRuleNamesParams()
@@ -372,6 +424,7 @@ func (a *Client) GetFegNetworkIDSubscriberConfigRuleNames(params *GetFegNetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegNetworkIDSubscriberConfigRuleNamesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -388,9 +441,9 @@ func (a *Client) GetFegNetworkIDSubscriberConfigRuleNames(params *GetFegNetworkI
 }
 
 /*
-PostFeg creates a new federation network
+  PostFeg creates a new federation network
 */
-func (a *Client) PostFeg(params *PostFegParams) (*PostFegCreated, error) {
+func (a *Client) PostFeg(params *PostFegParams, authInfo runtime.ClientAuthInfoWriter) (*PostFegCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostFegParams()
@@ -405,6 +458,7 @@ func (a *Client) PostFeg(params *PostFegParams) (*PostFegCreated, error) {
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostFegReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -421,9 +475,9 @@ func (a *Client) PostFeg(params *PostFegParams) (*PostFegCreated, error) {
 }
 
 /*
-PostFegNetworkIDSubscriberConfigBaseNamesBaseName adds a network wide base name
+  PostFegNetworkIDSubscriberConfigBaseNamesBaseName adds a network wide base name
 */
-func (a *Client) PostFegNetworkIDSubscriberConfigBaseNamesBaseName(params *PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams) (*PostFegNetworkIDSubscriberConfigBaseNamesBaseNameCreated, error) {
+func (a *Client) PostFegNetworkIDSubscriberConfigBaseNamesBaseName(params *PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*PostFegNetworkIDSubscriberConfigBaseNamesBaseNameCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams()
@@ -438,6 +492,7 @@ func (a *Client) PostFegNetworkIDSubscriberConfigBaseNamesBaseName(params *PostF
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostFegNetworkIDSubscriberConfigBaseNamesBaseNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -454,9 +509,9 @@ func (a *Client) PostFegNetworkIDSubscriberConfigBaseNamesBaseName(params *PostF
 }
 
 /*
-PostFegNetworkIDSubscriberConfigRuleNamesRuleID adds a network wide rule name
+  PostFegNetworkIDSubscriberConfigRuleNamesRuleID adds a network wide rule name
 */
-func (a *Client) PostFegNetworkIDSubscriberConfigRuleNamesRuleID(params *PostFegNetworkIDSubscriberConfigRuleNamesRuleIDParams) (*PostFegNetworkIDSubscriberConfigRuleNamesRuleIDCreated, error) {
+func (a *Client) PostFegNetworkIDSubscriberConfigRuleNamesRuleID(params *PostFegNetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*PostFegNetworkIDSubscriberConfigRuleNamesRuleIDCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostFegNetworkIDSubscriberConfigRuleNamesRuleIDParams()
@@ -471,6 +526,7 @@ func (a *Client) PostFegNetworkIDSubscriberConfigRuleNamesRuleID(params *PostFeg
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostFegNetworkIDSubscriberConfigRuleNamesRuleIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -487,9 +543,9 @@ func (a *Client) PostFegNetworkIDSubscriberConfigRuleNamesRuleID(params *PostFeg
 }
 
 /*
-PutFegNetworkID updates an entire federation network
+  PutFegNetworkID updates an entire federation network
 */
-func (a *Client) PutFegNetworkID(params *PutFegNetworkIDParams) (*PutFegNetworkIDNoContent, error) {
+func (a *Client) PutFegNetworkID(params *PutFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegNetworkIDParams()
@@ -504,6 +560,7 @@ func (a *Client) PutFegNetworkID(params *PutFegNetworkIDParams) (*PutFegNetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutFegNetworkIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -520,9 +577,9 @@ func (a *Client) PutFegNetworkID(params *PutFegNetworkIDParams) (*PutFegNetworkI
 }
 
 /*
-PutFegNetworkIDFederation creates or modify network federation configs
+  PutFegNetworkIDFederation creates or modify network federation configs
 */
-func (a *Client) PutFegNetworkIDFederation(params *PutFegNetworkIDFederationParams) (*PutFegNetworkIDFederationOK, error) {
+func (a *Client) PutFegNetworkIDFederation(params *PutFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDFederationOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegNetworkIDFederationParams()
@@ -537,6 +594,7 @@ func (a *Client) PutFegNetworkIDFederation(params *PutFegNetworkIDFederationPara
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutFegNetworkIDFederationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -553,9 +611,9 @@ func (a *Client) PutFegNetworkIDFederation(params *PutFegNetworkIDFederationPara
 }
 
 /*
-PutFegNetworkIDSubscriberConfig updates a network wide subscriber config
+  PutFegNetworkIDSubscriberConfig updates a network wide subscriber config
 */
-func (a *Client) PutFegNetworkIDSubscriberConfig(params *PutFegNetworkIDSubscriberConfigParams) (*PutFegNetworkIDSubscriberConfigNoContent, error) {
+func (a *Client) PutFegNetworkIDSubscriberConfig(params *PutFegNetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDSubscriberConfigNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegNetworkIDSubscriberConfigParams()
@@ -570,6 +628,7 @@ func (a *Client) PutFegNetworkIDSubscriberConfig(params *PutFegNetworkIDSubscrib
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutFegNetworkIDSubscriberConfigReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -586,9 +645,9 @@ func (a *Client) PutFegNetworkIDSubscriberConfig(params *PutFegNetworkIDSubscrib
 }
 
 /*
-PutFegNetworkIDSubscriberConfigBaseNames updates network wide base names
+  PutFegNetworkIDSubscriberConfigBaseNames updates network wide base names
 */
-func (a *Client) PutFegNetworkIDSubscriberConfigBaseNames(params *PutFegNetworkIDSubscriberConfigBaseNamesParams) (*PutFegNetworkIDSubscriberConfigBaseNamesNoContent, error) {
+func (a *Client) PutFegNetworkIDSubscriberConfigBaseNames(params *PutFegNetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDSubscriberConfigBaseNamesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegNetworkIDSubscriberConfigBaseNamesParams()
@@ -603,6 +662,7 @@ func (a *Client) PutFegNetworkIDSubscriberConfigBaseNames(params *PutFegNetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutFegNetworkIDSubscriberConfigBaseNamesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -619,9 +679,9 @@ func (a *Client) PutFegNetworkIDSubscriberConfigBaseNames(params *PutFegNetworkI
 }
 
 /*
-PutFegNetworkIDSubscriberConfigRuleNames updates network wide rule names
+  PutFegNetworkIDSubscriberConfigRuleNames updates network wide rule names
 */
-func (a *Client) PutFegNetworkIDSubscriberConfigRuleNames(params *PutFegNetworkIDSubscriberConfigRuleNamesParams) (*PutFegNetworkIDSubscriberConfigRuleNamesNoContent, error) {
+func (a *Client) PutFegNetworkIDSubscriberConfigRuleNames(params *PutFegNetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDSubscriberConfigRuleNamesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegNetworkIDSubscriberConfigRuleNamesParams()
@@ -636,6 +696,7 @@ func (a *Client) PutFegNetworkIDSubscriberConfigRuleNames(params *PutFegNetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutFegNetworkIDSubscriberConfigRuleNamesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})

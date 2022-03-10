@@ -6,20 +6,20 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // PaginatedSubscribers Page of subscribers
+//
 // swagger:model paginated_subscribers
 type PaginatedSubscribers struct {
 
 	// next page token
 	// Required: true
-	NextPageToken NextPageToken `json:"next_page_token"`
+	NextPageToken PageToken `json:"next_page_token"`
 
 	// subscribers
 	// Required: true

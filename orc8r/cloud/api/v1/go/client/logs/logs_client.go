@@ -7,12 +7,11 @@ package logs
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new logs API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,10 +23,55 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	GetDpNetworkIDLogs(params *GetDpNetworkIDLogsParams, authInfo runtime.ClientAuthInfoWriter) (*GetDpNetworkIDLogsOK, error)
+
+	GetNetworksNetworkIDLogsCount(params *GetNetworksNetworkIDLogsCountParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDLogsCountOK, error)
+
+	GetNetworksNetworkIDLogsSearch(params *GetNetworksNetworkIDLogsSearchParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDLogsSearchOK, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-GetNetworksNetworkIDLogsCount counts logs
+  GetDpNetworkIDLogs lists messages between d p and s a s ordered by time
 */
-func (a *Client) GetNetworksNetworkIDLogsCount(params *GetNetworksNetworkIDLogsCountParams) (*GetNetworksNetworkIDLogsCountOK, error) {
+func (a *Client) GetDpNetworkIDLogs(params *GetDpNetworkIDLogsParams, authInfo runtime.ClientAuthInfoWriter) (*GetDpNetworkIDLogsOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewGetDpNetworkIDLogsParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "GetDpNetworkIDLogs",
+		Method:             "GET",
+		PathPattern:        "/dp/{network_id}/logs",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &GetDpNetworkIDLogsReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	success, ok := result.(*GetDpNetworkIDLogsOK)
+	if ok {
+		return success, nil
+	}
+	// unexpected success response
+	unexpectedSuccess := result.(*GetDpNetworkIDLogsDefault)
+	return nil, runtime.NewAPIError("unexpected success response: content available as default response in error", unexpectedSuccess, unexpectedSuccess.Code())
+}
+
+/*
+  GetNetworksNetworkIDLogsCount counts logs
+*/
+func (a *Client) GetNetworksNetworkIDLogsCount(params *GetNetworksNetworkIDLogsCountParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDLogsCountOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDLogsCountParams()
@@ -42,6 +86,7 @@ func (a *Client) GetNetworksNetworkIDLogsCount(params *GetNetworksNetworkIDLogsC
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDLogsCountReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -58,9 +103,9 @@ func (a *Client) GetNetworksNetworkIDLogsCount(params *GetNetworksNetworkIDLogsC
 }
 
 /*
-GetNetworksNetworkIDLogsSearch searches logs
+  GetNetworksNetworkIDLogsSearch searches logs
 */
-func (a *Client) GetNetworksNetworkIDLogsSearch(params *GetNetworksNetworkIDLogsSearchParams) (*GetNetworksNetworkIDLogsSearchOK, error) {
+func (a *Client) GetNetworksNetworkIDLogsSearch(params *GetNetworksNetworkIDLogsSearchParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDLogsSearchOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDLogsSearchParams()
@@ -75,6 +120,7 @@ func (a *Client) GetNetworksNetworkIDLogsSearch(params *GetNetworksNetworkIDLogs
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDLogsSearchReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})

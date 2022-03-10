@@ -9,12 +9,11 @@ import (
 	"fmt"
 
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new operations API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -26,10 +25,17 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	GetFoo(params *GetFooParams, authInfo runtime.ClientAuthInfoWriter) (*GetFooOK, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-GetFoo mocks API path so the y a m l passes spec
+  GetFoo mocks API path so the y a m l passes spec
 */
-func (a *Client) GetFoo(params *GetFooParams) (*GetFooOK, error) {
+func (a *Client) GetFoo(params *GetFooParams, authInfo runtime.ClientAuthInfoWriter) (*GetFooOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFooParams()
@@ -44,6 +50,7 @@ func (a *Client) GetFoo(params *GetFooParams) (*GetFooOK, error) {
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFooReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})

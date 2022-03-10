@@ -6,20 +6,26 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"encoding/json"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // APNConfiguration apn configuration
+//
 // swagger:model apn_configuration
 type APNConfiguration struct {
 
 	// ambr
 	// Required: true
 	Ambr *AggregatedMaximumBitrate `json:"ambr"`
+
+	// Value identifier for PDN type (0=IPv4 1=IPv6 2=IPv4v6 3=IPv4orv6)
+	// Enum: [0 1 2 3]
+	PdnType uint32 `json:"pdn_type,omitempty"`
 
 	// qos profile
 	// Required: true
@@ -31,6 +37,10 @@ func (m *APNConfiguration) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateAmbr(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validatePdnType(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -57,6 +67,40 @@ func (m *APNConfiguration) validateAmbr(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+var apnConfigurationTypePdnTypePropEnum []interface{}
+
+func init() {
+	var res []uint32
+	if err := json.Unmarshal([]byte(`[0,1,2,3]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		apnConfigurationTypePdnTypePropEnum = append(apnConfigurationTypePdnTypePropEnum, v)
+	}
+}
+
+// prop value enum
+func (m *APNConfiguration) validatePdnTypeEnum(path, location string, value uint32) error {
+	if err := validate.Enum(path, location, value, apnConfigurationTypePdnTypePropEnum); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *APNConfiguration) validatePdnType(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.PdnType) { // not required
+		return nil
+	}
+
+	// value enum
+	if err := m.validatePdnTypeEnum("pdn_type", "body", m.PdnType); err != nil {
+		return err
 	}
 
 	return nil

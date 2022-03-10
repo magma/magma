@@ -8,14 +8,14 @@ package models
 import (
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // CellularGatewayPool Highly available gateway pool in an LTE network
+//
 // swagger:model cellular_gateway_pool
 type CellularGatewayPool struct {
 

@@ -8,14 +8,14 @@ package models
 import (
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // LTESubscription lte subscription
+//
 // swagger:model lte_subscription
 type LTESubscription struct {
 
@@ -52,10 +52,6 @@ func (m *LTESubscription) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateAuthKey(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateAuthOpc(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -118,19 +114,6 @@ func (m *LTESubscription) validateAuthKey(formats strfmt.Registry) error {
 	if err := validate.Required("auth_key", "body", strfmt.Base64(m.AuthKey)); err != nil {
 		return err
 	}
-
-	// Format "byte" (base64 string) is already validated when unmarshalled
-
-	return nil
-}
-
-func (m *LTESubscription) validateAuthOpc(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.AuthOpc) { // not required
-		return nil
-	}
-
-	// Format "byte" (base64 string) is already validated when unmarshalled
 
 	return nil
 }

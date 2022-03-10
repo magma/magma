@@ -6,14 +6,14 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // LTEGateway Full description of an LTE gateway
+//
 // swagger:model lte_gateway
 type LTEGateway struct {
 
@@ -33,8 +33,7 @@ type LTEGateway struct {
 	Description GatewayDescription `json:"description"`
 
 	// device
-	// Required: true
-	Device *GatewayDevice `json:"device"`
+	Device *GatewayDevice `json:"device,omitempty"`
 
 	// id
 	// Required: true
@@ -47,6 +46,9 @@ type LTEGateway struct {
 	// name
 	// Required: true
 	Name GatewayName `json:"name"`
+
+	// registration info
+	RegistrationInfo *RegistrationInfo `json:"registration_info,omitempty"`
 
 	// status
 	Status *GatewayStatus `json:"status,omitempty"`
@@ -89,6 +91,10 @@ func (m *LTEGateway) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateName(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateRegistrationInfo(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -170,8 +176,8 @@ func (m *LTEGateway) validateDescription(formats strfmt.Registry) error {
 
 func (m *LTEGateway) validateDevice(formats strfmt.Registry) error {
 
-	if err := validate.Required("device", "body", m.Device); err != nil {
-		return err
+	if swag.IsZero(m.Device) { // not required
+		return nil
 	}
 
 	if m.Device != nil {
@@ -223,6 +229,24 @@ func (m *LTEGateway) validateName(formats strfmt.Registry) error {
 			return ve.ValidateName("name")
 		}
 		return err
+	}
+
+	return nil
+}
+
+func (m *LTEGateway) validateRegistrationInfo(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.RegistrationInfo) { // not required
+		return nil
+	}
+
+	if m.RegistrationInfo != nil {
+		if err := m.RegistrationInfo.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("registration_info")
+			}
+			return err
+		}
 	}
 
 	return nil

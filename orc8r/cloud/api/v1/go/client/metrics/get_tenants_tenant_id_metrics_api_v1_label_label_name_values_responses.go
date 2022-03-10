@@ -11,12 +11,11 @@ import (
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesReader is a Reader for the GetTenantsTenantIDMetricsAPIV1LabelLabelNameValues structure.

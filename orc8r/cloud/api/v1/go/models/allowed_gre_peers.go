@@ -8,13 +8,13 @@ package models
 import (
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // AllowedGrePeers allowed gre peers
+//
 // swagger:model allowed_gre_peers
 type AllowedGrePeers []*AllowedGrePeer
 

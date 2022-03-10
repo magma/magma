@@ -9,12 +9,11 @@ import (
 	"fmt"
 
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new alerts API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -26,10 +25,45 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteNetworksNetworkIDAlertsSilence(params *DeleteNetworksNetworkIDAlertsSilenceParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDAlertsSilenceOK, error)
+
+	DeleteNetworksNetworkIDPrometheusAlertConfig(params *DeleteNetworksNetworkIDPrometheusAlertConfigParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDPrometheusAlertConfigOK, error)
+
+	DeleteNetworksNetworkIDPrometheusAlertReceiver(params *DeleteNetworksNetworkIDPrometheusAlertReceiverParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDPrometheusAlertReceiverOK, error)
+
+	GetNetworksNetworkIDAlerts(params *GetNetworksNetworkIDAlertsParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDAlertsOK, error)
+
+	GetNetworksNetworkIDAlertsSilence(params *GetNetworksNetworkIDAlertsSilenceParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDAlertsSilenceOK, error)
+
+	GetNetworksNetworkIDPrometheusAlertConfig(params *GetNetworksNetworkIDPrometheusAlertConfigParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPrometheusAlertConfigOK, error)
+
+	GetNetworksNetworkIDPrometheusAlertReceiver(params *GetNetworksNetworkIDPrometheusAlertReceiverParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPrometheusAlertReceiverOK, error)
+
+	GetNetworksNetworkIDPrometheusAlertReceiverRoute(params *GetNetworksNetworkIDPrometheusAlertReceiverRouteParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPrometheusAlertReceiverRouteOK, error)
+
+	PostNetworksNetworkIDAlertsSilence(params *PostNetworksNetworkIDAlertsSilenceParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDAlertsSilenceOK, error)
+
+	PostNetworksNetworkIDPrometheusAlertConfig(params *PostNetworksNetworkIDPrometheusAlertConfigParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDPrometheusAlertConfigCreated, error)
+
+	PostNetworksNetworkIDPrometheusAlertReceiver(params *PostNetworksNetworkIDPrometheusAlertReceiverParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDPrometheusAlertReceiverCreated, error)
+
+	PostNetworksNetworkIDPrometheusAlertReceiverRoute(params *PostNetworksNetworkIDPrometheusAlertReceiverRouteParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDPrometheusAlertReceiverRouteOK, error)
+
+	PutNetworksNetworkIDPrometheusAlertConfigAlertName(params *PutNetworksNetworkIDPrometheusAlertConfigAlertNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDPrometheusAlertConfigAlertNameOK, error)
+
+	PutNetworksNetworkIDPrometheusAlertConfigBulk(params *PutNetworksNetworkIDPrometheusAlertConfigBulkParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDPrometheusAlertConfigBulkOK, error)
+
+	PutNetworksNetworkIDPrometheusAlertReceiverReceiver(params *PutNetworksNetworkIDPrometheusAlertReceiverReceiverParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDPrometheusAlertReceiverReceiverOK, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteNetworksNetworkIDAlertsSilence deletes an alert silencer
+  DeleteNetworksNetworkIDAlertsSilence deletes an alert silencer
 */
-func (a *Client) DeleteNetworksNetworkIDAlertsSilence(params *DeleteNetworksNetworkIDAlertsSilenceParams) (*DeleteNetworksNetworkIDAlertsSilenceOK, error) {
+func (a *Client) DeleteNetworksNetworkIDAlertsSilence(params *DeleteNetworksNetworkIDAlertsSilenceParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDAlertsSilenceOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDAlertsSilenceParams()
@@ -44,6 +78,7 @@ func (a *Client) DeleteNetworksNetworkIDAlertsSilence(params *DeleteNetworksNetw
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteNetworksNetworkIDAlertsSilenceReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -60,9 +95,9 @@ func (a *Client) DeleteNetworksNetworkIDAlertsSilence(params *DeleteNetworksNetw
 }
 
 /*
-DeleteNetworksNetworkIDPrometheusAlertConfig deletes an alerting rule
+  DeleteNetworksNetworkIDPrometheusAlertConfig deletes an alerting rule
 */
-func (a *Client) DeleteNetworksNetworkIDPrometheusAlertConfig(params *DeleteNetworksNetworkIDPrometheusAlertConfigParams) (*DeleteNetworksNetworkIDPrometheusAlertConfigOK, error) {
+func (a *Client) DeleteNetworksNetworkIDPrometheusAlertConfig(params *DeleteNetworksNetworkIDPrometheusAlertConfigParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDPrometheusAlertConfigOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDPrometheusAlertConfigParams()
@@ -77,6 +112,7 @@ func (a *Client) DeleteNetworksNetworkIDPrometheusAlertConfig(params *DeleteNetw
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteNetworksNetworkIDPrometheusAlertConfigReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -93,9 +129,9 @@ func (a *Client) DeleteNetworksNetworkIDPrometheusAlertConfig(params *DeleteNetw
 }
 
 /*
-DeleteNetworksNetworkIDPrometheusAlertReceiver deletes alert receiver
+  DeleteNetworksNetworkIDPrometheusAlertReceiver deletes alert receiver
 */
-func (a *Client) DeleteNetworksNetworkIDPrometheusAlertReceiver(params *DeleteNetworksNetworkIDPrometheusAlertReceiverParams) (*DeleteNetworksNetworkIDPrometheusAlertReceiverOK, error) {
+func (a *Client) DeleteNetworksNetworkIDPrometheusAlertReceiver(params *DeleteNetworksNetworkIDPrometheusAlertReceiverParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDPrometheusAlertReceiverOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDPrometheusAlertReceiverParams()
@@ -110,6 +146,7 @@ func (a *Client) DeleteNetworksNetworkIDPrometheusAlertReceiver(params *DeleteNe
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteNetworksNetworkIDPrometheusAlertReceiverReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -126,9 +163,9 @@ func (a *Client) DeleteNetworksNetworkIDPrometheusAlertReceiver(params *DeleteNe
 }
 
 /*
-GetNetworksNetworkIDAlerts views currently firing alerts
+  GetNetworksNetworkIDAlerts views currently firing alerts
 */
-func (a *Client) GetNetworksNetworkIDAlerts(params *GetNetworksNetworkIDAlertsParams) (*GetNetworksNetworkIDAlertsOK, error) {
+func (a *Client) GetNetworksNetworkIDAlerts(params *GetNetworksNetworkIDAlertsParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDAlertsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDAlertsParams()
@@ -143,6 +180,7 @@ func (a *Client) GetNetworksNetworkIDAlerts(params *GetNetworksNetworkIDAlertsPa
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDAlertsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -159,9 +197,9 @@ func (a *Client) GetNetworksNetworkIDAlerts(params *GetNetworksNetworkIDAlertsPa
 }
 
 /*
-GetNetworksNetworkIDAlertsSilence views active alert silencers
+  GetNetworksNetworkIDAlertsSilence views active alert silencers
 */
-func (a *Client) GetNetworksNetworkIDAlertsSilence(params *GetNetworksNetworkIDAlertsSilenceParams) (*GetNetworksNetworkIDAlertsSilenceOK, error) {
+func (a *Client) GetNetworksNetworkIDAlertsSilence(params *GetNetworksNetworkIDAlertsSilenceParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDAlertsSilenceOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDAlertsSilenceParams()
@@ -176,6 +214,7 @@ func (a *Client) GetNetworksNetworkIDAlertsSilence(params *GetNetworksNetworkIDA
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDAlertsSilenceReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -192,11 +231,11 @@ func (a *Client) GetNetworksNetworkIDAlertsSilence(params *GetNetworksNetworkIDA
 }
 
 /*
-GetNetworksNetworkIDPrometheusAlertConfig retrives alerting rule configurations
+  GetNetworksNetworkIDPrometheusAlertConfig retrives alerting rule configurations
 
-If no query parameters are included, all alerting rules for the given network are returned.
+  If no query parameters are included, all alerting rules for the given network are returned.
 */
-func (a *Client) GetNetworksNetworkIDPrometheusAlertConfig(params *GetNetworksNetworkIDPrometheusAlertConfigParams) (*GetNetworksNetworkIDPrometheusAlertConfigOK, error) {
+func (a *Client) GetNetworksNetworkIDPrometheusAlertConfig(params *GetNetworksNetworkIDPrometheusAlertConfigParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPrometheusAlertConfigOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPrometheusAlertConfigParams()
@@ -211,6 +250,7 @@ func (a *Client) GetNetworksNetworkIDPrometheusAlertConfig(params *GetNetworksNe
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDPrometheusAlertConfigReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -227,9 +267,9 @@ func (a *Client) GetNetworksNetworkIDPrometheusAlertConfig(params *GetNetworksNe
 }
 
 /*
-GetNetworksNetworkIDPrometheusAlertReceiver retrives alert receivers
+  GetNetworksNetworkIDPrometheusAlertReceiver retrives alert receivers
 */
-func (a *Client) GetNetworksNetworkIDPrometheusAlertReceiver(params *GetNetworksNetworkIDPrometheusAlertReceiverParams) (*GetNetworksNetworkIDPrometheusAlertReceiverOK, error) {
+func (a *Client) GetNetworksNetworkIDPrometheusAlertReceiver(params *GetNetworksNetworkIDPrometheusAlertReceiverParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPrometheusAlertReceiverOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPrometheusAlertReceiverParams()
@@ -244,6 +284,7 @@ func (a *Client) GetNetworksNetworkIDPrometheusAlertReceiver(params *GetNetworks
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDPrometheusAlertReceiverReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -260,9 +301,9 @@ func (a *Client) GetNetworksNetworkIDPrometheusAlertReceiver(params *GetNetworks
 }
 
 /*
-GetNetworksNetworkIDPrometheusAlertReceiverRoute retrieves alert routing tree
+  GetNetworksNetworkIDPrometheusAlertReceiverRoute retrieves alert routing tree
 */
-func (a *Client) GetNetworksNetworkIDPrometheusAlertReceiverRoute(params *GetNetworksNetworkIDPrometheusAlertReceiverRouteParams) (*GetNetworksNetworkIDPrometheusAlertReceiverRouteOK, error) {
+func (a *Client) GetNetworksNetworkIDPrometheusAlertReceiverRoute(params *GetNetworksNetworkIDPrometheusAlertReceiverRouteParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPrometheusAlertReceiverRouteOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPrometheusAlertReceiverRouteParams()
@@ -277,6 +318,7 @@ func (a *Client) GetNetworksNetworkIDPrometheusAlertReceiverRoute(params *GetNet
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDPrometheusAlertReceiverRouteReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -294,9 +336,9 @@ func (a *Client) GetNetworksNetworkIDPrometheusAlertReceiverRoute(params *GetNet
 }
 
 /*
-PostNetworksNetworkIDAlertsSilence creates a new alert silencer
+  PostNetworksNetworkIDAlertsSilence creates a new alert silencer
 */
-func (a *Client) PostNetworksNetworkIDAlertsSilence(params *PostNetworksNetworkIDAlertsSilenceParams) (*PostNetworksNetworkIDAlertsSilenceOK, error) {
+func (a *Client) PostNetworksNetworkIDAlertsSilence(params *PostNetworksNetworkIDAlertsSilenceParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDAlertsSilenceOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDAlertsSilenceParams()
@@ -311,6 +353,7 @@ func (a *Client) PostNetworksNetworkIDAlertsSilence(params *PostNetworksNetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksNetworkIDAlertsSilenceReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -327,9 +370,9 @@ func (a *Client) PostNetworksNetworkIDAlertsSilence(params *PostNetworksNetworkI
 }
 
 /*
-PostNetworksNetworkIDPrometheusAlertConfig creates new alerting rule
+  PostNetworksNetworkIDPrometheusAlertConfig creates new alerting rule
 */
-func (a *Client) PostNetworksNetworkIDPrometheusAlertConfig(params *PostNetworksNetworkIDPrometheusAlertConfigParams) (*PostNetworksNetworkIDPrometheusAlertConfigCreated, error) {
+func (a *Client) PostNetworksNetworkIDPrometheusAlertConfig(params *PostNetworksNetworkIDPrometheusAlertConfigParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDPrometheusAlertConfigCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDPrometheusAlertConfigParams()
@@ -344,6 +387,7 @@ func (a *Client) PostNetworksNetworkIDPrometheusAlertConfig(params *PostNetworks
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksNetworkIDPrometheusAlertConfigReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -360,9 +404,9 @@ func (a *Client) PostNetworksNetworkIDPrometheusAlertConfig(params *PostNetworks
 }
 
 /*
-PostNetworksNetworkIDPrometheusAlertReceiver creates new alert receiver
+  PostNetworksNetworkIDPrometheusAlertReceiver creates new alert receiver
 */
-func (a *Client) PostNetworksNetworkIDPrometheusAlertReceiver(params *PostNetworksNetworkIDPrometheusAlertReceiverParams) (*PostNetworksNetworkIDPrometheusAlertReceiverCreated, error) {
+func (a *Client) PostNetworksNetworkIDPrometheusAlertReceiver(params *PostNetworksNetworkIDPrometheusAlertReceiverParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDPrometheusAlertReceiverCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDPrometheusAlertReceiverParams()
@@ -377,6 +421,7 @@ func (a *Client) PostNetworksNetworkIDPrometheusAlertReceiver(params *PostNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksNetworkIDPrometheusAlertReceiverReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -393,9 +438,9 @@ func (a *Client) PostNetworksNetworkIDPrometheusAlertReceiver(params *PostNetwor
 }
 
 /*
-PostNetworksNetworkIDPrometheusAlertReceiverRoute modifies alert routing tree
+  PostNetworksNetworkIDPrometheusAlertReceiverRoute modifies alert routing tree
 */
-func (a *Client) PostNetworksNetworkIDPrometheusAlertReceiverRoute(params *PostNetworksNetworkIDPrometheusAlertReceiverRouteParams) (*PostNetworksNetworkIDPrometheusAlertReceiverRouteOK, error) {
+func (a *Client) PostNetworksNetworkIDPrometheusAlertReceiverRoute(params *PostNetworksNetworkIDPrometheusAlertReceiverRouteParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDPrometheusAlertReceiverRouteOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDPrometheusAlertReceiverRouteParams()
@@ -410,6 +455,7 @@ func (a *Client) PostNetworksNetworkIDPrometheusAlertReceiverRoute(params *PostN
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksNetworkIDPrometheusAlertReceiverRouteReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -426,9 +472,9 @@ func (a *Client) PostNetworksNetworkIDPrometheusAlertReceiverRoute(params *PostN
 }
 
 /*
-PutNetworksNetworkIDPrometheusAlertConfigAlertName updates an alerting rule
+  PutNetworksNetworkIDPrometheusAlertConfigAlertName updates an alerting rule
 */
-func (a *Client) PutNetworksNetworkIDPrometheusAlertConfigAlertName(params *PutNetworksNetworkIDPrometheusAlertConfigAlertNameParams) (*PutNetworksNetworkIDPrometheusAlertConfigAlertNameOK, error) {
+func (a *Client) PutNetworksNetworkIDPrometheusAlertConfigAlertName(params *PutNetworksNetworkIDPrometheusAlertConfigAlertNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDPrometheusAlertConfigAlertNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDPrometheusAlertConfigAlertNameParams()
@@ -443,6 +489,7 @@ func (a *Client) PutNetworksNetworkIDPrometheusAlertConfigAlertName(params *PutN
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDPrometheusAlertConfigAlertNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -459,9 +506,9 @@ func (a *Client) PutNetworksNetworkIDPrometheusAlertConfigAlertName(params *PutN
 }
 
 /*
-PutNetworksNetworkIDPrometheusAlertConfigBulk bulks update create alerting rules
+  PutNetworksNetworkIDPrometheusAlertConfigBulk bulks update create alerting rules
 */
-func (a *Client) PutNetworksNetworkIDPrometheusAlertConfigBulk(params *PutNetworksNetworkIDPrometheusAlertConfigBulkParams) (*PutNetworksNetworkIDPrometheusAlertConfigBulkOK, error) {
+func (a *Client) PutNetworksNetworkIDPrometheusAlertConfigBulk(params *PutNetworksNetworkIDPrometheusAlertConfigBulkParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDPrometheusAlertConfigBulkOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDPrometheusAlertConfigBulkParams()
@@ -476,6 +523,7 @@ func (a *Client) PutNetworksNetworkIDPrometheusAlertConfigBulk(params *PutNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDPrometheusAlertConfigBulkReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -492,9 +540,9 @@ func (a *Client) PutNetworksNetworkIDPrometheusAlertConfigBulk(params *PutNetwor
 }
 
 /*
-PutNetworksNetworkIDPrometheusAlertReceiverReceiver updates existing alert receiver
+  PutNetworksNetworkIDPrometheusAlertReceiverReceiver updates existing alert receiver
 */
-func (a *Client) PutNetworksNetworkIDPrometheusAlertReceiverReceiver(params *PutNetworksNetworkIDPrometheusAlertReceiverReceiverParams) (*PutNetworksNetworkIDPrometheusAlertReceiverReceiverOK, error) {
+func (a *Client) PutNetworksNetworkIDPrometheusAlertReceiverReceiver(params *PutNetworksNetworkIDPrometheusAlertReceiverReceiverParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDPrometheusAlertReceiverReceiverOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDPrometheusAlertReceiverReceiverParams()
@@ -509,6 +557,7 @@ func (a *Client) PutNetworksNetworkIDPrometheusAlertReceiverReceiver(params *Put
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDPrometheusAlertReceiverReceiverReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})

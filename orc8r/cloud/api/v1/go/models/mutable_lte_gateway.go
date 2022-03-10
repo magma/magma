@@ -6,14 +6,14 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // MutableLTEGateway LTE gateway object with read-only fields omitted
+//
 // swagger:model mutable_lte_gateway
 type MutableLTEGateway struct {
 
@@ -33,8 +33,7 @@ type MutableLTEGateway struct {
 	Description GatewayDescription `json:"description"`
 
 	// device
-	// Required: true
-	Device *GatewayDevice `json:"device"`
+	Device *GatewayDevice `json:"device,omitempty"`
 
 	// id
 	// Required: true
@@ -163,8 +162,8 @@ func (m *MutableLTEGateway) validateDescription(formats strfmt.Registry) error {
 
 func (m *MutableLTEGateway) validateDevice(formats strfmt.Registry) error {
 
-	if err := validate.Required("device", "body", m.Device); err != nil {
-		return err
+	if swag.IsZero(m.Device) { // not required
+		return nil
 	}
 
 	if m.Device != nil {

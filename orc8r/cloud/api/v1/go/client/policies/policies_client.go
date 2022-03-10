@@ -7,12 +7,11 @@ package policies
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new policies API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,10 +23,49 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteLTENetworkIDPolicyQosProfilesProfileID(params *DeleteLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent, error)
+
+	DeleteNetworksNetworkIDPoliciesBaseNamesBaseName(params *DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error)
+
+	DeleteNetworksNetworkIDPoliciesRulesRuleID(params *DeleteNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDPoliciesRulesRuleIDNoContent, error)
+
+	GetLTENetworkIDPolicyQosProfiles(params *GetLTENetworkIDPolicyQosProfilesParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDPolicyQosProfilesOK, error)
+
+	GetLTENetworkIDPolicyQosProfilesProfileID(params *GetLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDPolicyQosProfilesProfileIDOK, error)
+
+	GetNetworksNetworkIDPoliciesBaseNames(params *GetNetworksNetworkIDPoliciesBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesBaseNamesOK, error)
+
+	GetNetworksNetworkIDPoliciesBaseNamesBaseName(params *GetNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK, error)
+
+	GetNetworksNetworkIDPoliciesBaseNamesViewFull(params *GetNetworksNetworkIDPoliciesBaseNamesViewFullParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesBaseNamesViewFullOK, error)
+
+	GetNetworksNetworkIDPoliciesRules(params *GetNetworksNetworkIDPoliciesRulesParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesRulesOK, error)
+
+	GetNetworksNetworkIDPoliciesRulesRuleID(params *GetNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesRulesRuleIDOK, error)
+
+	GetNetworksNetworkIDPoliciesRulesViewFull(params *GetNetworksNetworkIDPoliciesRulesViewFullParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesRulesViewFullOK, error)
+
+	PostLTENetworkIDPolicyQosProfiles(params *PostLTENetworkIDPolicyQosProfilesParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDPolicyQosProfilesCreated, error)
+
+	PostNetworksNetworkIDPoliciesBaseNames(params *PostNetworksNetworkIDPoliciesBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDPoliciesBaseNamesCreated, error)
+
+	PostNetworksNetworkIDPoliciesRules(params *PostNetworksNetworkIDPoliciesRulesParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDPoliciesRulesCreated, error)
+
+	PutLTENetworkIDPolicyQosProfilesProfileID(params *PutLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDPolicyQosProfilesProfileIDNoContent, error)
+
+	PutNetworksNetworkIDPoliciesBaseNamesBaseName(params *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error)
+
+	PutNetworksNetworkIDPoliciesRulesRuleID(params *PutNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDPoliciesRulesRuleIDNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteLTENetworkIDPolicyQosProfilesProfileID deletes policy qo s profile in LTE network
+  DeleteLTENetworkIDPolicyQosProfilesProfileID deletes policy qo s profile in LTE network
 */
-func (a *Client) DeleteLTENetworkIDPolicyQosProfilesProfileID(params *DeleteLTENetworkIDPolicyQosProfilesProfileIDParams) (*DeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent, error) {
+func (a *Client) DeleteLTENetworkIDPolicyQosProfilesProfileID(params *DeleteLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDPolicyQosProfilesProfileIDParams()
@@ -42,6 +80,7 @@ func (a *Client) DeleteLTENetworkIDPolicyQosProfilesProfileID(params *DeleteLTEN
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteLTENetworkIDPolicyQosProfilesProfileIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -58,9 +97,9 @@ func (a *Client) DeleteLTENetworkIDPolicyQosProfilesProfileID(params *DeleteLTEN
 }
 
 /*
-DeleteNetworksNetworkIDPoliciesBaseNamesBaseName deletes a charging rule base name
+  DeleteNetworksNetworkIDPoliciesBaseNamesBaseName deletes a charging rule base name
 */
-func (a *Client) DeleteNetworksNetworkIDPoliciesBaseNamesBaseName(params *DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameParams) (*DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDPoliciesBaseNamesBaseName(params *DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDPoliciesBaseNamesBaseNameParams()
@@ -75,6 +114,7 @@ func (a *Client) DeleteNetworksNetworkIDPoliciesBaseNamesBaseName(params *Delete
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -91,9 +131,9 @@ func (a *Client) DeleteNetworksNetworkIDPoliciesBaseNamesBaseName(params *Delete
 }
 
 /*
-DeleteNetworksNetworkIDPoliciesRulesRuleID deletes a policy rule
+  DeleteNetworksNetworkIDPoliciesRulesRuleID deletes a policy rule
 */
-func (a *Client) DeleteNetworksNetworkIDPoliciesRulesRuleID(params *DeleteNetworksNetworkIDPoliciesRulesRuleIDParams) (*DeleteNetworksNetworkIDPoliciesRulesRuleIDNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDPoliciesRulesRuleID(params *DeleteNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDPoliciesRulesRuleIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDPoliciesRulesRuleIDParams()
@@ -108,6 +148,7 @@ func (a *Client) DeleteNetworksNetworkIDPoliciesRulesRuleID(params *DeleteNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteNetworksNetworkIDPoliciesRulesRuleIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -124,9 +165,9 @@ func (a *Client) DeleteNetworksNetworkIDPoliciesRulesRuleID(params *DeleteNetwor
 }
 
 /*
-GetLTENetworkIDPolicyQosProfiles gets policy qo s profiles in LTE network
+  GetLTENetworkIDPolicyQosProfiles gets policy qo s profiles in LTE network
 */
-func (a *Client) GetLTENetworkIDPolicyQosProfiles(params *GetLTENetworkIDPolicyQosProfilesParams) (*GetLTENetworkIDPolicyQosProfilesOK, error) {
+func (a *Client) GetLTENetworkIDPolicyQosProfiles(params *GetLTENetworkIDPolicyQosProfilesParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDPolicyQosProfilesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDPolicyQosProfilesParams()
@@ -141,6 +182,7 @@ func (a *Client) GetLTENetworkIDPolicyQosProfiles(params *GetLTENetworkIDPolicyQ
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetLTENetworkIDPolicyQosProfilesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -157,9 +199,9 @@ func (a *Client) GetLTENetworkIDPolicyQosProfiles(params *GetLTENetworkIDPolicyQ
 }
 
 /*
-GetLTENetworkIDPolicyQosProfilesProfileID gets policy qo s profile in LTE network
+  GetLTENetworkIDPolicyQosProfilesProfileID gets policy qo s profile in LTE network
 */
-func (a *Client) GetLTENetworkIDPolicyQosProfilesProfileID(params *GetLTENetworkIDPolicyQosProfilesProfileIDParams) (*GetLTENetworkIDPolicyQosProfilesProfileIDOK, error) {
+func (a *Client) GetLTENetworkIDPolicyQosProfilesProfileID(params *GetLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDPolicyQosProfilesProfileIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDPolicyQosProfilesProfileIDParams()
@@ -174,6 +216,7 @@ func (a *Client) GetLTENetworkIDPolicyQosProfilesProfileID(params *GetLTENetwork
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetLTENetworkIDPolicyQosProfilesProfileIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -190,9 +233,9 @@ func (a *Client) GetLTENetworkIDPolicyQosProfilesProfileID(params *GetLTENetwork
 }
 
 /*
-GetNetworksNetworkIDPoliciesBaseNames lists charging rule base names
+  GetNetworksNetworkIDPoliciesBaseNames lists charging rule base names
 */
-func (a *Client) GetNetworksNetworkIDPoliciesBaseNames(params *GetNetworksNetworkIDPoliciesBaseNamesParams) (*GetNetworksNetworkIDPoliciesBaseNamesOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesBaseNames(params *GetNetworksNetworkIDPoliciesBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesBaseNamesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesBaseNamesParams()
@@ -207,6 +250,7 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNames(params *GetNetworksNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDPoliciesBaseNamesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -223,9 +267,9 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNames(params *GetNetworksNetwor
 }
 
 /*
-GetNetworksNetworkIDPoliciesBaseNamesBaseName gets charging rule base name
+  GetNetworksNetworkIDPoliciesBaseNamesBaseName gets charging rule base name
 */
-func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesBaseName(params *GetNetworksNetworkIDPoliciesBaseNamesBaseNameParams) (*GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesBaseName(params *GetNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesBaseNamesBaseNameParams()
@@ -240,6 +284,7 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesBaseName(params *GetNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDPoliciesBaseNamesBaseNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -256,9 +301,9 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesBaseName(params *GetNetwor
 }
 
 /*
-GetNetworksNetworkIDPoliciesBaseNamesViewFull gets all base names
+  GetNetworksNetworkIDPoliciesBaseNamesViewFull gets all base names
 */
-func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesViewFull(params *GetNetworksNetworkIDPoliciesBaseNamesViewFullParams) (*GetNetworksNetworkIDPoliciesBaseNamesViewFullOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesViewFull(params *GetNetworksNetworkIDPoliciesBaseNamesViewFullParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesBaseNamesViewFullOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesBaseNamesViewFullParams()
@@ -273,6 +318,7 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesViewFull(params *GetNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDPoliciesBaseNamesViewFullReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -289,9 +335,9 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesViewFull(params *GetNetwor
 }
 
 /*
-GetNetworksNetworkIDPoliciesRules lists policy rules
+  GetNetworksNetworkIDPoliciesRules lists policy rules
 */
-func (a *Client) GetNetworksNetworkIDPoliciesRules(params *GetNetworksNetworkIDPoliciesRulesParams) (*GetNetworksNetworkIDPoliciesRulesOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesRules(params *GetNetworksNetworkIDPoliciesRulesParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesRulesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesRulesParams()
@@ -306,6 +352,7 @@ func (a *Client) GetNetworksNetworkIDPoliciesRules(params *GetNetworksNetworkIDP
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDPoliciesRulesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -322,9 +369,9 @@ func (a *Client) GetNetworksNetworkIDPoliciesRules(params *GetNetworksNetworkIDP
 }
 
 /*
-GetNetworksNetworkIDPoliciesRulesRuleID gets policy rule
+  GetNetworksNetworkIDPoliciesRulesRuleID gets policy rule
 */
-func (a *Client) GetNetworksNetworkIDPoliciesRulesRuleID(params *GetNetworksNetworkIDPoliciesRulesRuleIDParams) (*GetNetworksNetworkIDPoliciesRulesRuleIDOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesRulesRuleID(params *GetNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesRulesRuleIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesRulesRuleIDParams()
@@ -339,6 +386,7 @@ func (a *Client) GetNetworksNetworkIDPoliciesRulesRuleID(params *GetNetworksNetw
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDPoliciesRulesRuleIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -355,9 +403,9 @@ func (a *Client) GetNetworksNetworkIDPoliciesRulesRuleID(params *GetNetworksNetw
 }
 
 /*
-GetNetworksNetworkIDPoliciesRulesViewFull gets all policy rules
+  GetNetworksNetworkIDPoliciesRulesViewFull gets all policy rules
 */
-func (a *Client) GetNetworksNetworkIDPoliciesRulesViewFull(params *GetNetworksNetworkIDPoliciesRulesViewFullParams) (*GetNetworksNetworkIDPoliciesRulesViewFullOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesRulesViewFull(params *GetNetworksNetworkIDPoliciesRulesViewFullParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesRulesViewFullOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesRulesViewFullParams()
@@ -372,6 +420,7 @@ func (a *Client) GetNetworksNetworkIDPoliciesRulesViewFull(params *GetNetworksNe
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDPoliciesRulesViewFullReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -388,9 +437,9 @@ func (a *Client) GetNetworksNetworkIDPoliciesRulesViewFull(params *GetNetworksNe
 }
 
 /*
-PostLTENetworkIDPolicyQosProfiles creates policy qo s profile in LTE network
+  PostLTENetworkIDPolicyQosProfiles creates policy qo s profile in LTE network
 */
-func (a *Client) PostLTENetworkIDPolicyQosProfiles(params *PostLTENetworkIDPolicyQosProfilesParams) (*PostLTENetworkIDPolicyQosProfilesCreated, error) {
+func (a *Client) PostLTENetworkIDPolicyQosProfiles(params *PostLTENetworkIDPolicyQosProfilesParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDPolicyQosProfilesCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTENetworkIDPolicyQosProfilesParams()
@@ -405,6 +454,7 @@ func (a *Client) PostLTENetworkIDPolicyQosProfiles(params *PostLTENetworkIDPolic
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostLTENetworkIDPolicyQosProfilesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -421,9 +471,9 @@ func (a *Client) PostLTENetworkIDPolicyQosProfiles(params *PostLTENetworkIDPolic
 }
 
 /*
-PostNetworksNetworkIDPoliciesBaseNames creates charging rule base name
+  PostNetworksNetworkIDPoliciesBaseNames creates charging rule base name
 */
-func (a *Client) PostNetworksNetworkIDPoliciesBaseNames(params *PostNetworksNetworkIDPoliciesBaseNamesParams) (*PostNetworksNetworkIDPoliciesBaseNamesCreated, error) {
+func (a *Client) PostNetworksNetworkIDPoliciesBaseNames(params *PostNetworksNetworkIDPoliciesBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDPoliciesBaseNamesCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDPoliciesBaseNamesParams()
@@ -438,6 +488,7 @@ func (a *Client) PostNetworksNetworkIDPoliciesBaseNames(params *PostNetworksNetw
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksNetworkIDPoliciesBaseNamesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -454,9 +505,9 @@ func (a *Client) PostNetworksNetworkIDPoliciesBaseNames(params *PostNetworksNetw
 }
 
 /*
-PostNetworksNetworkIDPoliciesRules adds a new policy rule
+  PostNetworksNetworkIDPoliciesRules adds a new policy rule
 */
-func (a *Client) PostNetworksNetworkIDPoliciesRules(params *PostNetworksNetworkIDPoliciesRulesParams) (*PostNetworksNetworkIDPoliciesRulesCreated, error) {
+func (a *Client) PostNetworksNetworkIDPoliciesRules(params *PostNetworksNetworkIDPoliciesRulesParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDPoliciesRulesCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDPoliciesRulesParams()
@@ -471,6 +522,7 @@ func (a *Client) PostNetworksNetworkIDPoliciesRules(params *PostNetworksNetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksNetworkIDPoliciesRulesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -487,9 +539,9 @@ func (a *Client) PostNetworksNetworkIDPoliciesRules(params *PostNetworksNetworkI
 }
 
 /*
-PutLTENetworkIDPolicyQosProfilesProfileID updates policy qo s profile in LTE network
+  PutLTENetworkIDPolicyQosProfilesProfileID updates policy qo s profile in LTE network
 */
-func (a *Client) PutLTENetworkIDPolicyQosProfilesProfileID(params *PutLTENetworkIDPolicyQosProfilesProfileIDParams) (*PutLTENetworkIDPolicyQosProfilesProfileIDNoContent, error) {
+func (a *Client) PutLTENetworkIDPolicyQosProfilesProfileID(params *PutLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDPolicyQosProfilesProfileIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDPolicyQosProfilesProfileIDParams()
@@ -504,6 +556,7 @@ func (a *Client) PutLTENetworkIDPolicyQosProfilesProfileID(params *PutLTENetwork
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutLTENetworkIDPolicyQosProfilesProfileIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -520,9 +573,9 @@ func (a *Client) PutLTENetworkIDPolicyQosProfilesProfileID(params *PutLTENetwork
 }
 
 /*
-PutNetworksNetworkIDPoliciesBaseNamesBaseName modifies a charging rule base name
+  PutNetworksNetworkIDPoliciesBaseNamesBaseName modifies a charging rule base name
 */
-func (a *Client) PutNetworksNetworkIDPoliciesBaseNamesBaseName(params *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams) (*PutNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error) {
+func (a *Client) PutNetworksNetworkIDPoliciesBaseNamesBaseName(params *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDPoliciesBaseNamesBaseNameParams()
@@ -537,6 +590,7 @@ func (a *Client) PutNetworksNetworkIDPoliciesBaseNamesBaseName(params *PutNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDPoliciesBaseNamesBaseNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -553,9 +607,9 @@ func (a *Client) PutNetworksNetworkIDPoliciesBaseNamesBaseName(params *PutNetwor
 }
 
 /*
-PutNetworksNetworkIDPoliciesRulesRuleID modifies a policy rule
+  PutNetworksNetworkIDPoliciesRulesRuleID modifies a policy rule
 */
-func (a *Client) PutNetworksNetworkIDPoliciesRulesRuleID(params *PutNetworksNetworkIDPoliciesRulesRuleIDParams) (*PutNetworksNetworkIDPoliciesRulesRuleIDNoContent, error) {
+func (a *Client) PutNetworksNetworkIDPoliciesRulesRuleID(params *PutNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDPoliciesRulesRuleIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDPoliciesRulesRuleIDParams()
@@ -570,6 +624,7 @@ func (a *Client) PutNetworksNetworkIDPoliciesRulesRuleID(params *PutNetworksNetw
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDPoliciesRulesRuleIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})

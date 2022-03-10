@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetTenantsTenantIDReader is a Reader for the GetTenantsTenantID structure.
@@ -49,7 +48,7 @@ func NewGetTenantsTenantIDOK() *GetTenantsTenantIDOK {
 
 /*GetTenantsTenantIDOK handles this case with default header values.
 
-Requested Tenant Information
+Requested tenant information
 */
 type GetTenantsTenantIDOK struct {
 	Payload *models.Tenant

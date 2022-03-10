@@ -7,12 +7,11 @@ package tenants
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new tenants API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,10 +23,29 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteTenantsTenantID(params *DeleteTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteTenantsTenantIDNoContent, error)
+
+	GetTenants(params *GetTenantsParams, authInfo runtime.ClientAuthInfoWriter) (*GetTenantsOK, error)
+
+	GetTenantsTenantID(params *GetTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetTenantsTenantIDOK, error)
+
+	GetTenantsTenantIDControlProxy(params *GetTenantsTenantIDControlProxyParams, authInfo runtime.ClientAuthInfoWriter) (*GetTenantsTenantIDControlProxyOK, error)
+
+	PostTenants(params *PostTenantsParams, authInfo runtime.ClientAuthInfoWriter) (*PostTenantsCreated, error)
+
+	PutTenantsTenantID(params *PutTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutTenantsTenantIDNoContent, error)
+
+	PutTenantsTenantIDControlProxy(params *PutTenantsTenantIDControlProxyParams, authInfo runtime.ClientAuthInfoWriter) (*PutTenantsTenantIDControlProxyNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteTenantsTenantID deletes tenant
+  DeleteTenantsTenantID deletes tenant
 */
-func (a *Client) DeleteTenantsTenantID(params *DeleteTenantsTenantIDParams) (*DeleteTenantsTenantIDNoContent, error) {
+func (a *Client) DeleteTenantsTenantID(params *DeleteTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteTenantsTenantIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteTenantsTenantIDParams()
@@ -42,6 +60,7 @@ func (a *Client) DeleteTenantsTenantID(params *DeleteTenantsTenantIDParams) (*De
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteTenantsTenantIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -58,9 +77,9 @@ func (a *Client) DeleteTenantsTenantID(params *DeleteTenantsTenantIDParams) (*De
 }
 
 /*
-GetTenants retrieves all tenants
+  GetTenants retrieves all tenants
 */
-func (a *Client) GetTenants(params *GetTenantsParams) (*GetTenantsOK, error) {
+func (a *Client) GetTenants(params *GetTenantsParams, authInfo runtime.ClientAuthInfoWriter) (*GetTenantsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTenantsParams()
@@ -75,6 +94,7 @@ func (a *Client) GetTenants(params *GetTenantsParams) (*GetTenantsOK, error) {
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetTenantsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -91,9 +111,9 @@ func (a *Client) GetTenants(params *GetTenantsParams) (*GetTenantsOK, error) {
 }
 
 /*
-GetTenantsTenantID retrieves tenant info by tenant ID
+  GetTenantsTenantID retrieves tenant info by tenant ID
 */
-func (a *Client) GetTenantsTenantID(params *GetTenantsTenantIDParams) (*GetTenantsTenantIDOK, error) {
+func (a *Client) GetTenantsTenantID(params *GetTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetTenantsTenantIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTenantsTenantIDParams()
@@ -108,6 +128,7 @@ func (a *Client) GetTenantsTenantID(params *GetTenantsTenantIDParams) (*GetTenan
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetTenantsTenantIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -124,9 +145,43 @@ func (a *Client) GetTenantsTenantID(params *GetTenantsTenantIDParams) (*GetTenan
 }
 
 /*
-PostTenants creates an tenant
+  GetTenantsTenantIDControlProxy retrieves control proxy content by tenant ID
 */
-func (a *Client) PostTenants(params *PostTenantsParams) (*PostTenantsCreated, error) {
+func (a *Client) GetTenantsTenantIDControlProxy(params *GetTenantsTenantIDControlProxyParams, authInfo runtime.ClientAuthInfoWriter) (*GetTenantsTenantIDControlProxyOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewGetTenantsTenantIDControlProxyParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "GetTenantsTenantIDControlProxy",
+		Method:             "GET",
+		PathPattern:        "/tenants/{tenant_id}/control_proxy",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &GetTenantsTenantIDControlProxyReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	success, ok := result.(*GetTenantsTenantIDControlProxyOK)
+	if ok {
+		return success, nil
+	}
+	// unexpected success response
+	unexpectedSuccess := result.(*GetTenantsTenantIDControlProxyDefault)
+	return nil, runtime.NewAPIError("unexpected success response: content available as default response in error", unexpectedSuccess, unexpectedSuccess.Code())
+}
+
+/*
+  PostTenants creates an tenant
+*/
+func (a *Client) PostTenants(params *PostTenantsParams, authInfo runtime.ClientAuthInfoWriter) (*PostTenantsCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostTenantsParams()
@@ -141,6 +196,7 @@ func (a *Client) PostTenants(params *PostTenantsParams) (*PostTenantsCreated, er
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostTenantsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -157,9 +213,9 @@ func (a *Client) PostTenants(params *PostTenantsParams) (*PostTenantsCreated, er
 }
 
 /*
-PutTenantsTenantID sets tenant info
+  PutTenantsTenantID sets tenant info
 */
-func (a *Client) PutTenantsTenantID(params *PutTenantsTenantIDParams) (*PutTenantsTenantIDNoContent, error) {
+func (a *Client) PutTenantsTenantID(params *PutTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutTenantsTenantIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutTenantsTenantIDParams()
@@ -174,6 +230,7 @@ func (a *Client) PutTenantsTenantID(params *PutTenantsTenantIDParams) (*PutTenan
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutTenantsTenantIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
@@ -186,6 +243,40 @@ func (a *Client) PutTenantsTenantID(params *PutTenantsTenantIDParams) (*PutTenan
 	}
 	// unexpected success response
 	unexpectedSuccess := result.(*PutTenantsTenantIDDefault)
+	return nil, runtime.NewAPIError("unexpected success response: content available as default response in error", unexpectedSuccess, unexpectedSuccess.Code())
+}
+
+/*
+  PutTenantsTenantIDControlProxy creates or update control proxy content
+*/
+func (a *Client) PutTenantsTenantIDControlProxy(params *PutTenantsTenantIDControlProxyParams, authInfo runtime.ClientAuthInfoWriter) (*PutTenantsTenantIDControlProxyNoContent, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewPutTenantsTenantIDControlProxyParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "PutTenantsTenantIDControlProxy",
+		Method:             "PUT",
+		PathPattern:        "/tenants/{tenant_id}/control_proxy",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &PutTenantsTenantIDControlProxyReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	success, ok := result.(*PutTenantsTenantIDControlProxyNoContent)
+	if ok {
+		return success, nil
+	}
+	// unexpected success response
+	unexpectedSuccess := result.(*PutTenantsTenantIDControlProxyDefault)
 	return nil, runtime.NewAPIError("unexpected success response: content available as default response in error", unexpectedSuccess, unexpectedSuccess.Code())
 }
 

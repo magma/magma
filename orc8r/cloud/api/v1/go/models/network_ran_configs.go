@@ -8,14 +8,14 @@ package models
 import (
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // NetworkRanConfigs RAN (radio access network) cellular configuration for a network
+//
 // swagger:model network_ran_configs
 type NetworkRanConfigs struct {
 
@@ -142,6 +142,7 @@ func (m *NetworkRanConfigs) UnmarshalBinary(b []byte) error {
 }
 
 // NetworkRanConfigsFddConfig network ran configs fdd config
+//
 // swagger:model NetworkRanConfigsFddConfig
 type NetworkRanConfigsFddConfig struct {
 
@@ -214,6 +215,7 @@ func (m *NetworkRanConfigsFddConfig) UnmarshalBinary(b []byte) error {
 }
 
 // NetworkRanConfigsTddConfig network ran configs tdd config
+//
 // swagger:model NetworkRanConfigsTddConfig
 type NetworkRanConfigsTddConfig struct {
 

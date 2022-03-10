@@ -8,13 +8,13 @@ package models
 import (
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // PromAlertConfigList prom alert config list
+//
 // swagger:model prom_alert_config_list
 type PromAlertConfigList []*PromAlertConfig
 

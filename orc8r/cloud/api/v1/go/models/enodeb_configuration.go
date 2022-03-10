@@ -8,14 +8,14 @@ package models
 import (
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // ENODEBConfiguration Configuration for an enodeB. Unfilled fields will be inherited from LTE network and gateway configuration.
+//
 // swagger:model enodeb_configuration
 type ENODEBConfiguration struct {
 
@@ -30,7 +30,7 @@ type ENODEBConfiguration struct {
 
 	// device class
 	// Required: true
-	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells Neutrino 224 ID FDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE]
+	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells Neutrino 224 ID FDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE FreedomFi One]
 	DeviceClass string `json:"device_class"`
 
 	// earfcndl
@@ -152,7 +152,7 @@ var enodebConfigurationTypeDeviceClassPropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["Baicells Nova-233 G2 OD FDD","Baicells Nova-243 OD TDD","Baicells Neutrino 224 ID FDD","Baicells ID TDD/FDD","NuRAN Cavium OC-LTE"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["Baicells Nova-233 G2 OD FDD","Baicells Nova-243 OD TDD","Baicells Neutrino 224 ID FDD","Baicells ID TDD/FDD","NuRAN Cavium OC-LTE","FreedomFi One"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -176,6 +176,9 @@ const (
 
 	// ENODEBConfigurationDeviceClassNuRANCaviumOCLTE captures enum value "NuRAN Cavium OC-LTE"
 	ENODEBConfigurationDeviceClassNuRANCaviumOCLTE string = "NuRAN Cavium OC-LTE"
+
+	// ENODEBConfigurationDeviceClassFreedomFiOne captures enum value "FreedomFi One"
+	ENODEBConfigurationDeviceClassFreedomFiOne string = "FreedomFi One"
 )
 
 // prop value enum
