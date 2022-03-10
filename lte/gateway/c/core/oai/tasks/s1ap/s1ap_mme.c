@@ -55,8 +55,6 @@
 #define eNB_LIST_OUT(x, args...)
 #define UE_LIST_OUT(x, args...)
 
-bool s1ap_dump_ue_hash_cb(hash_key_t keyP, void* ue_void, void* parameter,
-                          void** unused_res);
 static void start_stats_timer(void);
 static int handle_stats_timer(zloop_t* loop, int id, void* arg);
 static long epc_stats_timer_id;
@@ -367,11 +365,6 @@ void s1ap_mme_exit(void) {
   OAI_FPRINTF_INFO("TASK_S1AP terminated\n");
   pthread_exit(NULL);
 }
-
-//------------------------------------------------------------------------------
-bool s1ap_dump_ue_hash_cb(__attribute__((unused)) const hash_key_t keyP,
-                          void* const ue_void, void* parameter,
-                          void __attribute__((unused)) * *unused_resultP) {}
 
 //------------------------------------------------------------------------------
 enb_description_t* s1ap_new_enb(void) {
