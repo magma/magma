@@ -52,15 +52,8 @@
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 
-#if S1AP_DEBUG_LIST
-#define eNB_LIST_OUT(x, args...) \
-  (LOG_S1AP, "[eNB]%*s" x "\n", 4 * indent, "", ##args)
-#define UE_LIST_OUT(x, args...) \
-  OAILOG_DEBUG(LOG_S1AP, "[UE] %*s" x "\n", 4 * indent, "", ##args)
-#else
 #define eNB_LIST_OUT(x, args...)
 #define UE_LIST_OUT(x, args...)
-#endif
 
 bool s1ap_dump_ue_hash_cb(hash_key_t keyP, void* ue_void, void* parameter,
                           void** unused_res);
@@ -376,65 +369,9 @@ void s1ap_mme_exit(void) {
 }
 
 //------------------------------------------------------------------------------
-void s1ap_dump_enb(const enb_description_t* const enb_ref) {
-#ifdef S1AP_DEBUG_LIST
-  // Reset indentation
-  indent = 0;
-
-  if (enb_ref == NULL) {
-    return;
-  }
-
-  eNB_LIST_OUT("");
-  eNB_LIST_OUT("eNB name:          %s",
-               enb_ref->enb_name == NULL ? "not present" : enb_ref->enb_name);
-  eNB_LIST_OUT("eNB ID:            %07x", enb_ref->enb_id);
-  eNB_LIST_OUT("SCTP assoc id:     %d", enb_ref->sctp_assoc_id);
-  eNB_LIST_OUT("SCTP instreams:    %d", enb_ref->instreams);
-  eNB_LIST_OUT("SCTP outstreams:   %d", enb_ref->outstreams);
-  eNB_LIST_OUT("UEs attached to eNB: %d", enb_ref->nb_ue_associated);
-  indent++;
-  sctp_assoc_id_t sctp_assoc_id = enb_ref->sctp_assoc_id;
-
-  hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
-  hashtable_ts_apply_callback_on_elements((hash_table_ts_t* const)state_ue_ht,
-                                          s1ap_dump_ue_hash_cb, &sctp_assoc_id,
-                                          NULL);
-  indent--;
-  eNB_LIST_OUT("");
-#else
-  s1ap_dump_ue(NULL);
-#endif
-}
-
-//------------------------------------------------------------------------------
 bool s1ap_dump_ue_hash_cb(__attribute__((unused)) const hash_key_t keyP,
                           void* const ue_void, void* parameter,
-                          void __attribute__((unused)) * *unused_resultP) {
-  ue_description_t* ue_ref = (ue_description_t*)ue_void;
-  sctp_assoc_id_t* sctp_assoc_id = (sctp_assoc_id_t*)parameter;
-  if (ue_ref == NULL) {
-    return false;
-  }
-
-  if (ue_ref->sctp_assoc_id == *sctp_assoc_id) {
-    s1ap_dump_ue(ue_ref);
-  }
-  return false;
-}
-
-//------------------------------------------------------------------------------
-void s1ap_dump_ue(const ue_description_t* const ue_ref) {
-#ifdef S1AP_DEBUG_LIST
-
-  if (ue_ref == NULL) return;
-
-  UE_LIST_OUT("eNB UE s1ap id:   0x%06x", ue_ref->enb_ue_s1ap_id);
-  UE_LIST_OUT("MME UE s1ap id:   0x%08x", ue_ref->mme_ue_s1ap_id);
-  UE_LIST_OUT("SCTP stream recv: 0x%04x", ue_ref->sctp_stream_recv);
-  UE_LIST_OUT("SCTP stream send: 0x%04x", ue_ref->sctp_stream_send);
-#endif
-}
+                          void __attribute__((unused)) * *unused_resultP) {}
 
 //------------------------------------------------------------------------------
 enb_description_t* s1ap_new_enb(void) {

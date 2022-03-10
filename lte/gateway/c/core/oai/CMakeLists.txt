@@ -65,11 +65,6 @@ set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBIN
 set(STATE_PROTO_DIR $ENV{MAGMA_ROOT}/lte/protos/oai)
 
 ################################################################
-# S1AP LAYER OPTIONS
-################################################################
-add_boolean_option(S1AP_DEBUG_LIST False "Traces, option to be removed soon")
-
-################################################################
 # SCTP LAYER OPTIONS
 ################################################################
 add_boolean_option(SCTP_DUMP_LIST False "Traces, option to be removed soon")

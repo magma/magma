@@ -652,7 +652,6 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
   // Clean any stale eNB association (from Redis) for this enb_id
   clean_stale_enb_state(state, enb_association);
 
-  s1ap_dump_enb(enb_association);
   rc = s1ap_generate_s1_setup_response(state, enb_association);
   if (rc == RETURNok) {
     state->num_enbs++;
@@ -3157,8 +3156,6 @@ status_code_e s1ap_mme_handle_handover_notify(s1ap_state_t* state,
         ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
         assoc_id, new_ue_ref_p->enb_ue_s1ap_id, new_ue_ref_p->mme_ue_s1ap_id,
         hashtable_rc_code2string(h_rc));
-
-    s1ap_dump_enb(target_enb);
   }
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
@@ -3406,8 +3403,6 @@ status_code_e s1ap_mme_handle_path_switch_request(
         ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
         assoc_id, new_ue_ref_p->enb_ue_s1ap_id, new_ue_ref_p->mme_ue_s1ap_id,
         hashtable_rc_code2string(h_rc));
-
-    s1ap_dump_enb(enb_association);
 
     S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_PathSwitchRequestIEs_t, ie, container,
                                S1ap_ProtocolIE_ID_id_E_RABToBeSwitchedDLList,
