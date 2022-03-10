@@ -125,7 +125,6 @@ std::function<void(grpc::Status, ResponseType)> AsyncGRPCRequest<
 void S6aProxyAsyncResponderHandler::CancelLocation(
     ServerContext* context, const CancelLocationRequest* request,
     std::function<void(grpc::Status, CancelLocationAnswer)> response_callback) {
-  auto& request_cpy = *request;
   CancelLocationAnswer ans;
   Status status;
   status = Status::OK;
@@ -147,7 +146,6 @@ void S6aProxyAsyncResponderHandler::CancelLocation(
 void S6aProxyAsyncResponderHandler::Reset(
     ServerContext* context, const ResetRequest* request,
     std::function<void(grpc::Status, ResetAnswer)> response_callback) {
-  auto& request_cpy = *request;
   ResetAnswer ans;
   Status status;
   status = Status::OK;
