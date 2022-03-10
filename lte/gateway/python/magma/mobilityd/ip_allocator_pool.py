@@ -26,7 +26,10 @@ import logging
 from copy import deepcopy
 from typing import List
 
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
+from magma.mobilityd.mobility_store import MobilityStore
+from magma.mobilityd.utils import IPAddress, IPNetwork
 
 from .ip_allocator_base import (
     IPAllocator,
@@ -34,8 +37,6 @@ from .ip_allocator_base import (
     NoAvailableIPError,
     OverlappedIPBlocksError,
 )
-from .mobility_store import MobilityStore
-from .utils import IPAddress, IPNetwork
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 
@@ -230,7 +231,10 @@ class IpAllocatorPool(IPAllocator):
             ip_desc.state = IPState.ALLOCATED
             return ip_desc
         else:
-            logging.error("Run out of available IP addresses")
+            logging.error(
+                "Run out of available IP addresses",
+                extra=EXCLUDE_FROM_ERROR_MONITORING,
+            )
             raise NoAvailableIPError("No available IP addresses")
 
     def release_ip(self, ip_desc: IPDesc):
