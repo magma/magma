@@ -1,6 +1,5 @@
 # Override options for MME
 set(BYTE_ORDER=LITTLE_ENDIAN)
-set(TRACE_HASHTABLE False)
 set(TRACE_3GPP_SPEC False)
 
 

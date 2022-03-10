@@ -1821,8 +1821,6 @@ void mme_config_display(mme_config_t* config_pP) {
                CMAKE_BUILD_TYPE);
   OAILOG_DEBUG(LOG_CONFIG, "Built with PACKAGE_NAME ....................: %s\n",
                PACKAGE_NAME);
-  OAILOG_DEBUG(LOG_CONFIG, "Built with TRACE_HASHTABLE .................: %d\n",
-               TRACE_HASHTABLE);
   OAILOG_DEBUG(LOG_CONFIG, "Built with TRACE_3GPP_SPEC .................: %d\n",
                TRACE_3GPP_SPEC);
 
