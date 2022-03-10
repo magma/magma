@@ -11,6 +11,6 @@
 
 module magma/orc8r/cloud/api/v1/go
 
-go 1.13
+go 1.17
 
 require github.com/go-swagger/go-swagger v0.21.0

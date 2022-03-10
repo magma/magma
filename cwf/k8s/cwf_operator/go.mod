@@ -26,7 +26,7 @@
 //
 module magma/cwf/k8s/cwf_operator
 
-go 1.13
+go 1.17
 
 require (
 	github.com/garyburd/redigo v1.6.2 // indirect
