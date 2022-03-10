@@ -52,9 +52,6 @@
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 
-#define eNB_LIST_OUT(x, args...)
-#define UE_LIST_OUT(x, args...)
-
 static void start_stats_timer(void);
 static int handle_stats_timer(zloop_t* loop, int id, void* arg);
 static long epc_stats_timer_id;
