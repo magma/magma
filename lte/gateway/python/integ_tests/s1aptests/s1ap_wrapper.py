@@ -454,7 +454,8 @@ class TestWrapper(object):
         """Get magmad_util instance"""
         return self._magmad_util
 
-    def get_test_status(self, test):
+    @classmethod
+    def get_test_status(cls, test):
         """Get current test case execution status"""
         if test is None:
             test = inspect.currentframe().f_back.f_back.f_locals["self"]
