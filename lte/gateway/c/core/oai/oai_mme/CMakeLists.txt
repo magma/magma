@@ -1,7 +1,5 @@
 # Override options for MME
 set(BYTE_ORDER=LITTLE_ENDIAN)
-set(TRACE_3GPP_SPEC False)
-
 
 # Dependencies
 pkg_search_module(LIBXML2 libxml-2.0 REQUIRED)

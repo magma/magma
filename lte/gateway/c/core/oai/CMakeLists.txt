@@ -67,7 +67,6 @@ set(STATE_PROTO_DIR $ENV{MAGMA_ROOT}/lte/protos/oai)
 ################################################################
 # SCTP LAYER OPTIONS
 ################################################################
-add_boolean_option(TRACE_3GPP_SPEC True "Log hits of 3GPP specifications requirements")
 add_boolean_option(LINK_GCOV False "Whether to link gcov")
 
 if (EMBEDDED_SGW)
