@@ -178,17 +178,18 @@ void mme_app_remove_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
     OAILOG_FUNC_OUT(LOG_MME_APP);
   } else {
     auto vec_it = itr_map->second.begin();
-    for (; vec_it != itr_map->second.end(); ++vec_it) {
+    while (vec_it != itr_map->second.end()) {
       if (*vec_it == imsi64) {
         OAILOG_DEBUG_UE(LOG_MME_APP, imsi64,
                         "Deleted ue ipv4:%x from ipv4_imsi map \n", ipv4_addr);
-        itr_map->second.erase(vec_it);
-        vec_it--;
+        vec_it = itr_map->second.erase(vec_it);
         if (itr_map->second.empty()) {
           ueip_imsi_map.erase(ipv4);
         }
         MmeNasStateManager::getInstance().write_mme_ueip_imsi_map_to_db();
         break;
+      } else {
+        vec_it++;
       }
     }
     if (ueip_imsi_map.find(ipv4) != ueip_imsi_map.end() &&
@@ -217,20 +218,22 @@ void mme_app_remove_ue_ipv6_addr(struct in6_addr ipv6_addr, imsi64_t imsi64) {
     OAILOG_FUNC_OUT(LOG_MME_APP);
   } else {
     auto vec_it = itr_map->second.begin();
-    for (; vec_it != itr_map->second.end(); ++vec_it) {
+    while (vec_it != itr_map->second.end()) {
       if (*vec_it == imsi64) {
         OAILOG_DEBUG_UE(LOG_MME_APP, imsi64,
                         "Deleted ue ipv6:%s from ipv6_imsi map \n", ipv6);
-        itr_map->second.erase(vec_it);
-        vec_it--;
+        vec_it = itr_map->second.erase(vec_it);
         if (itr_map->second.empty()) {
           ueip_imsi_map.erase(ipv6);
         }
         MmeNasStateManager::getInstance().write_mme_ueip_imsi_map_to_db();
         break;
+      } else {
+        vec_it++;
       }
     }
-    if (vec_it == itr_map->second.end()) {
+    if (ueip_imsi_map.find(ipv6) != ueip_imsi_map.end() &&
+        vec_it == itr_map->second.end()) {
       OAILOG_ERROR(
           LOG_MME_APP,
           "Failed to remove an entry for ue_ipv6:%s from ipv6_imsi map \n",
