@@ -564,7 +564,9 @@ int amf_app_handle_pdu_session_response(
   smf_ctx->n_active_pdus += 1;
 
   if (!ue_context->pending_service_response) {
-    if (ue_context->cm_state == M5GCM_IDLE) {
+    /* If idle and context is requested */
+    if ((ue_context->cm_state == M5GCM_IDLE) &&
+        (ue_context->ue_context_request)) {
       // pdu session state
       smf_ctx->pdu_session_state = ACTIVE;
       amf_sap_t amf_sap = {};

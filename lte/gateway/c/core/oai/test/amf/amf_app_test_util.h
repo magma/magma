@@ -38,6 +38,13 @@ imsi64_t send_initial_ue_message_no_tmsi(
     amf_ue_ngap_id_t amf_ue_ngap_id, const plmn_t& plmn, const uint8_t* nas_msg,
     uint8_t nas_msg_length);
 
+/* API for creating intial UE message without TMSI */
+imsi64_t send_initial_ue_message_no_tmsi_no_ctx_req(
+    amf_app_desc_t* amf_app_desc_p, sctp_assoc_id_t sctp_assoc_id,
+    uint32_t gnb_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
+    amf_ue_ngap_id_t amf_ue_ngap_id, const plmn_t& plmn, const uint8_t* nas_msg,
+    uint8_t nas_msg_length);
+
 /* For guti based registration */
 uint64_t send_initial_ue_message_with_tmsi(
     amf_app_desc_t* amf_app_desc_p, sctp_assoc_id_t sctp_assoc_id,
