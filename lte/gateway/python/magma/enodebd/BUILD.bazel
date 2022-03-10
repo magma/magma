@@ -32,10 +32,10 @@ py_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":enodebd_lib",
+        "//lte/gateway/python/magma/enodebd/tr069:server",
         "//lte/protos:mconfigs_python_proto",
         "//orc8r/gateway/python/magma/common:sentry",
         "//orc8r/gateway/python/magma/common:service",
-        "//lte/gateway/python/magma/enodebd/tr069:server",
     ],
 )
 
@@ -72,11 +72,11 @@ py_library(
     visibility = ["//visibility:public"],
     deps = [
         ":metrics",
-        "//lte/protos:enodebd_python_proto",
         "//lte/gateway/python/magma/enodebd/data_models:data_model_parameters",
         "//lte/gateway/python/magma/enodebd/device_config:configuration_util",
         "//lte/gateway/python/magma/enodebd/state_machines:enb_acs",
         "//lte/gateway/python/magma/enodebd/state_machines:enb_acs_manager",
+        "//lte/protos:enodebd_python_proto",
         "//lte/protos:mconfigs_python_proto",
         "//lte/protos:s1ap_service_python_grpc",
         "//orc8r/gateway/python/magma/common:rpc_utils",
