@@ -137,11 +137,12 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
                     " PDN",
                 )
 
-                uniq_port_idx = pdn_count*100 + idx*num_flows_per_bearer
+                uniq_port_idx = pdn_count * 100 + idx * num_flows_per_bearer
 
                 flow_lists2.append(
                     self._spgw_util.create_default_ipv4_flows(
-                        port_idx=uniq_port_idx),
+                        port_idx=uniq_port_idx,
+                    ),
                 )
                 self._spgw_util.create_bearer(
                     "IMSI" + "".join([str(i) for i in req.imsi]),
