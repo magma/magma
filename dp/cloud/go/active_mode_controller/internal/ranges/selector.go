@@ -1,6 +1,6 @@
 package ranges
 
-func SelectPoint(ranges []Range, provider indexProvider) Point {
+func SelectPoint(ranges []Range, provider IndexProvider) Point {
 	sum := 0
 	for _, r := range ranges {
 		sum += r.End - r.Begin + 1
@@ -16,6 +16,6 @@ func SelectPoint(ranges []Range, provider indexProvider) Point {
 	}
 }
 
-type indexProvider interface {
+type IndexProvider interface {
 	Intn(int) int
 }

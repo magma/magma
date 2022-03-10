@@ -111,6 +111,7 @@ func (s *AppTestSuite) givenAppRunning() {
 	a := app.NewApp(
 		app.WithDialer(s.dialer),
 		app.WithClock(s.clock),
+		app.WithIndexProvider(&stubIndexProvider{}),
 		app.WithConfig(&config.Config{
 			DialTimeout:               timeout,
 			HeartbeatSendTimeout:      heartbeatTimeout,
@@ -265,6 +266,12 @@ func getExpectedHeartbeatRequests(id string, grantIds ...string) []*requests.Req
 func getExpectedHeartbeatRequest(id string, grantId string) string {
 	const template = `{"cbsdId":"%s","grantId":"%s","operationState":"AUTHORIZED"}`
 	return fmt.Sprintf(template, id, grantId)
+}
+
+type stubIndexProvider struct{}
+
+func (s *stubIndexProvider) Intn(_ int) int {
+	return 0
 }
 
 type stubClock struct {
