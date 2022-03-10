@@ -1169,7 +1169,6 @@ int get_decrypt_imsi_suci_extension(amf_context_t* amf_context,
                                     const std::string& mac_tag) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
 
-  int rc = RETURNerror;
   amf_ue_ngap_id_t ue_id =
       PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context)
           ->amf_ue_ngap_id;
