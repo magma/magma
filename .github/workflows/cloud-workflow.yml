@@ -98,7 +98,7 @@ jobs:
         if: always()
         id: gateway_test_init
         with:
-          go-version: '1.13'
+          go-version: '1.17'
       - name: Download dependencies
         if: always() && steps.gateway_test_init.outcome=='success'
         id: gateway_test_dep
