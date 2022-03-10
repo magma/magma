@@ -1132,9 +1132,4 @@ TEST_F(SessionManagerHandlerTest, test_update_session_credits_and_rules_5g) {
                 .ssc_mode(),
             magma::SscMode::SSC_MODE_2);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
 }  // namespace magma
