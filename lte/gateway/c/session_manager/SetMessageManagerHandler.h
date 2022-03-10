@@ -115,8 +115,10 @@ class SetMessageManagerHandler : public SetMessageManager {
    * session_map in memoery and response set message to AMF by gRPC.
    * It uses SessionStateEnforcer object to create new session state.
    */
-  void send_create_session(SessionMap& session_map, const std::string& imsi,
-                           SessionConfig& cfg, uint32_t& pdu_id);
+  void send_create_session(
+      SessionMap& session_map, const std::string& imsi, SessionConfig& cfg,
+      uint32_t& pdu_id,
+      std::function<void(Status, SmContextVoid)> response_callback);
   /*initialize the session message from proto message*/
   SessionConfig m5g_build_session_config(const SetSMSessionContext& request);
 

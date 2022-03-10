@@ -1136,7 +1136,7 @@ class MagmadUtil(object):
 
     def restart_sctpd(self):
         """
-        Restart sctpd service explicitely because it is not managed by magmad
+        Restart sctpd service explicitly because it is not managed by magmad
         """
         self.exec_command("sudo service sctpd restart")
         for j in range(30):

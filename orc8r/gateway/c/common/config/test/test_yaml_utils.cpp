@@ -65,9 +65,4 @@ TEST(test_nested_overrides, test_yaml_utils) {
   EXPECT_EQ("e", merge["nest"]["a"].as<std::string>());
   EXPECT_EQ("d", merge["nest"]["c"].as<std::string>());
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
 }  // namespace magma
