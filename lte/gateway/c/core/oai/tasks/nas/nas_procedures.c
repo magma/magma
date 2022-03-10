@@ -440,9 +440,9 @@ void nas_delete_tau_procedure(struct emm_context_s* emm_context) {
   nas_emm_tau_proc_t* proc = get_nas_specific_procedure_tau(emm_context);
   if (proc) {
     // free content
-    mme_ue_s1ap_id_t ue_id =
-        PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
-            ->mme_ue_s1ap_id;
+    ue_mm_context_t* ue_mm_context =
+        PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+    mme_ue_s1ap_id_t ue_id = ue_mm_context->mme_ue_s1ap_id;
     nas_stop_T3450(ue_id, &proc->T3450);
     if (proc->ies) {
       free_emm_tau_request_ies(&proc->ies);
@@ -455,6 +455,8 @@ void nas_delete_tau_procedure(struct emm_context_s* emm_context) {
 
     free_wrapper((void**)&emm_context->emm_procedures->emm_specific_proc);
     nas_emm_procedure_gc(emm_context);
+    // Reset tau_accept_eps_ber_cntx_status stored in ue_context
+    ue_mm_context->tau_accept_eps_ber_cntx_status = 0;
   }
 }
 //-----------------------------------------------------------------------------
