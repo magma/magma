@@ -133,8 +133,8 @@ func subscriberToMconfig(ent configurator.NetworkEntity, apnConfigs map[string]*
 		AuthOpc:  cfg.Lte.AuthOpc,
 	}
 
-	if cfg.Lte.SubProfile != "" {
-		sub.SubProfile = string(cfg.Lte.SubProfile)
+	if *cfg.Lte.SubProfile != "" {
+		sub.SubProfile = string(*cfg.Lte.SubProfile)
 	} else {
 		sub.SubProfile = "default"
 	}

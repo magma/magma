@@ -133,7 +133,8 @@ func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
 }
 
 func (m *PolicyRule) FromEntity(ent configurator.NetworkEntity) *PolicyRule {
-	m.ID = PolicyID(ent.Key)
+	policyID := PolicyID(ent.Key)
+	m.ID = &policyID
 	m.fillFromConfig(ent.Config)
 
 	for _, assoc := range ent.ParentAssociations.Filter(lte.SubscriberEntityType) {
@@ -150,7 +151,7 @@ func (m *PolicyRule) FromEntity(ent configurator.NetworkEntity) *PolicyRule {
 func (m *PolicyRule) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 	update := configurator.EntityUpdateCriteria{
 		Type:              lte.PolicyRuleEntityType,
-		Key:               string(m.ID),
+		Key:               string(*m.ID),
 		NewConfig:         m.getConfig(),
 		AssociationsToAdd: m.GetAssocs(),
 	}
@@ -452,7 +453,7 @@ func (m *PolicyQosProfile) ToProto() *protos.FlowQos {
 	proto := &protos.FlowQos{
 		MaxReqBwUl: swag.Uint32Value(m.MaxReqBwUl),
 		MaxReqBwDl: swag.Uint32Value(m.MaxReqBwDl),
-		Qci:        protos.FlowQos_Qci(m.ClassID),
+		Qci:        protos.FlowQos_Qci(*m.ClassID),
 	}
 	if m.Gbr != nil {
 		proto.GbrUl = swag.Uint32Value(m.Gbr.Uplink)
