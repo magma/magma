@@ -334,13 +334,6 @@ static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_S1AP, "Initializing S1AP interface\n");
-
-  if (get_asn1c_environment_version() < ASN1_MINIMUM_VERSION) {
-    OAILOG_ERROR(LOG_S1AP, "ASN1C version %d found, expecting at least %d\n",
-                 get_asn1c_environment_version(), ASN1_MINIMUM_VERSION);
-    return RETURNerror;
-  }
-
   OAILOG_DEBUG(LOG_S1AP, "ASN1C version %d\n", get_asn1c_environment_version());
 
   s1ap_congestion_control_enabled = mme_config_p->enable_congestion_control;
