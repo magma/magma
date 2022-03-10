@@ -34,7 +34,6 @@ github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7
 github.com/facebookincubator/magma/orc8r/lib/go v0.0.0-20200625002311-c12331e4dadc h1:3b5dO48ZJ2GALXns4KO2o5cIfF+55UGOgQ8i9cYi66o=
 github.com/facebookincubator/magma/orc8r/lib/go v0.0.0-20200625002311-c12331e4dadc/go.mod h1:uiwwhzBSWHZSU99s17dmVVr2dOiHMMVgS3ngchgl0n8=
 github.com/facebookincubator/magma/orc8r/lib/go/protos v0.0.0-20200625002311-c12331e4dadc/go.mod h1:Z2jud+fzVNWFvWGo7RIYr2+1yRELLyS2/brVeWEUERk=
-github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV9I=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/go-kit/kit v0.8.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
 github.com/go-logfmt/logfmt v0.3.0/go.mod h1:Qt1PoO58o5twSAckw1HlFXLmHsOX5/0LbT9GBnD5lWE=
