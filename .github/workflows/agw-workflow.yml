@@ -160,6 +160,9 @@ jobs:
           key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
+      - name: Log cache size
+        run: |
+          du -sh .bazel-cache
       - name: Ensure cache size (only on master)
         if: github.event_name == 'push'
         env:
@@ -200,6 +203,10 @@ jobs:
             echo "Copying out test result XMLs for testing with ASAN"
             find bazel-out/k8-dbg/testlogs/ -name "*.xml" | while IFS= read -r f; do cp "$f" "c-cpp-test-results/asan_${f//\//_}"; done
             exit $TEST_RESULT
+      - name: Log cache size
+        if: always()
+        run: |
+          du -sh .bazel-cache
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v2
