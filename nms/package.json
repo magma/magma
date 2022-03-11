@@ -56,7 +56,8 @@
   },
   "resolutions": {
     "@babel/runtime": "^7.3.4",
-    "refractor/prismjs": "^1.27.0"
+    "refractor/prismjs": "^1.27.0",
+    "jspdf": "^2.3.1"
   },
   "scripts": {
     "eslint": "./node_modules/.bin/eslint --ignore-path .eslintignore",
