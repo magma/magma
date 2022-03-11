@@ -149,8 +149,6 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
 
 TEST_F(S1apMmeHandlersWithInjectedStatesTest, HandleS1apPathSwitchRequest) {
   ASSERT_EQ(task_zmq_ctx_main_s1ap_with_injected_states.ready, true);
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
 
   // State validation
   ASSERT_TRUE(
@@ -160,6 +158,10 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, HandleS1apPathSwitchRequest) {
 
   // Send S1AP_PATH_SWITCH_REQUEST_ACK mimicing MME_APP
   ASSERT_EQ(send_s1ap_path_switch_req(assoc_id, 1, 7), RETURNok);
+
+  // verify number of ues after sending S1AP_PATH_SWITCH_REQUEST_ACK
+  ASSERT_TRUE(
+      is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
 }
 
 }  // namespace lte
