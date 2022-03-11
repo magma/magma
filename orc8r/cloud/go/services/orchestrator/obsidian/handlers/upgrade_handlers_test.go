@@ -269,7 +269,7 @@ func Test_Tiers(t *testing.T) {
 		URL:            tiersRoot,
 		Handler:        createTier,
 		ExpectedStatus: 500,
-		ExpectedError:  "could not find entities matching [type:\"magmad_gateway\" key:\"g1\" ]",
+		ExpectedError:  "could not find entities matching [type:\"magmad_gateway\"  key:\"g1\"]",
 	}
 	tests.RunUnitTest(t, e, tc)
 
