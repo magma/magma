@@ -382,6 +382,7 @@ class TrafficTestServer(socketserver.StreamRequestHandler):
 
             elif msg is TrafficRequestType.START:
                 self.log.debug('Waiting to store START message')
+                self.log.debug(msg)
                 with self._start_msgs_cond:
                     self._start_msgs |= {identifier}
                     self.log.debug('Stored START message, notifying drivers')
@@ -567,12 +568,13 @@ class TrafficTestDriver(object):
         else:
             params = ('-s',) + params
             params += ('-1',)
-        params = ('sudo',) + ('iperf3',) + params
+        params = ('iperf3',) + params
 
         # Make the iperf3 call and spin off the subprocess
         self._server.log.debug('Running iperf3 command: %s', ' '.join(params))
         with subprocess.Popen(params, stdout=subprocess.PIPE) as proc:
             result_str = proc.stdout.read().decode('utf-8')
+            print("result_str", result_str)
             results_buffer += [iperf3.TestResult(result_str)]
         self._barrier.wait()
 
@@ -585,6 +587,16 @@ class TrafficTestDriver(object):
                 iperf = iperf3.Server()
                 #iperf.bind_address = '192.168.129.42'
                 iperf.bind_address = 'fdee:5:6c::2'
+                print("instance", instance.ip.exploded)
+                #os.system(
+                #    'sudo route -A inet6 add fdee:5:6c::1/64 dev eth2'
+                #)
+                os.system(
+                    'sudo route -A inet6 add %s/64 dev eth2' % (
+                    instance.ip.exploded,
+                    ),
+                )
+
                 iperf.port = TrafficTestDriver._get_port()
             else:
                 iperf = iperf3.Client()
@@ -612,6 +624,7 @@ class TrafficTestDriver(object):
         ips = (
             ipaddress.ip_address(iperf.bind_address) for iperf in self._iperfs
         )
+        print("In run ips", ips)
         ports = (
             iperf.port if 's' == iperf.role else 0 for iperf in self._iperfs
         )
