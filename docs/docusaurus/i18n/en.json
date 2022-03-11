@@ -216,6 +216,9 @@
       "lte/HIL_AGW_tests": {
         "title": "Hardware In Loop Testing"
       },
+      "lte/ipfix": {
+        "title": "Magma IPFIX Support"
+      },
       "lte/pipelined_tests": {
         "title": "Pipelined testing framework"
       },
