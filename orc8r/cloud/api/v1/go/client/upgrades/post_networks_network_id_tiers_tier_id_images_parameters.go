@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostNetworksNetworkIDTiersTierIDImagesParams creates a new PostNetworksNetworkIDTiersTierIDImagesParams object
-// with the default values initialized.
+// NewPostNetworksNetworkIDTiersTierIDImagesParams creates a new PostNetworksNetworkIDTiersTierIDImagesParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostNetworksNetworkIDTiersTierIDImagesParams() *PostNetworksNetworkIDTiersTierIDImagesParams {
-	var ()
 	return &PostNetworksNetworkIDTiersTierIDImagesParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostNetworksNetworkIDTiersTierIDImagesParamsWithTimeout creates a new PostNetworksNetworkIDTiersTierIDImagesParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostNetworksNetworkIDTiersTierIDImagesParamsWithTimeout(timeout time.Duration) *PostNetworksNetworkIDTiersTierIDImagesParams {
-	var ()
 	return &PostNetworksNetworkIDTiersTierIDImagesParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostNetworksNetworkIDTiersTierIDImagesParamsWithContext creates a new PostNetworksNetworkIDTiersTierIDImagesParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostNetworksNetworkIDTiersTierIDImagesParamsWithContext(ctx context.Context) *PostNetworksNetworkIDTiersTierIDImagesParams {
-	var ()
 	return &PostNetworksNetworkIDTiersTierIDImagesParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostNetworksNetworkIDTiersTierIDImagesParamsWithHTTPClient creates a new PostNetworksNetworkIDTiersTierIDImagesParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostNetworksNetworkIDTiersTierIDImagesParamsWithHTTPClient(client *http.Client) *PostNetworksNetworkIDTiersTierIDImagesParams {
-	var ()
 	return &PostNetworksNetworkIDTiersTierIDImagesParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostNetworksNetworkIDTiersTierIDImagesParams contains all the parameters to send to the API endpoint
-for the post networks network ID tiers tier ID images operation typically these are written to a http.Request
+/* PostNetworksNetworkIDTiersTierIDImagesParams contains all the parameters to send to the API endpoint
+   for the post networks network ID tiers tier ID images operation.
+
+   Typically these are written to a http.Request.
 */
 type PostNetworksNetworkIDTiersTierIDImagesParams struct {
 
-	/*Image
-	  New image for the tier
+	/* Image.
 
+	   New image for the tier
 	*/
 	Image *models.TierImage
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*TierID
-	  Tier ID
 
+	/* TierID.
+
+	   Tier ID
 	*/
 	TierID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post networks network ID tiers tier ID images params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDTiersTierIDImagesParams) WithDefaults() *PostNetworksNetworkIDTiersTierIDImagesParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post networks network ID tiers tier ID images params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDTiersTierIDImagesParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post networks network ID tiers tier ID images params
@@ -156,7 +172,6 @@ func (o *PostNetworksNetworkIDTiersTierIDImagesParams) WriteToRequest(r runtime.
 		return err
 	}
 	var res []error
-
 	if o.Image != nil {
 		if err := r.SetBodyParam(o.Image); err != nil {
 			return err

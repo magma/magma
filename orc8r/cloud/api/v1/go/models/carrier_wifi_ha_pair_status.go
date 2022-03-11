@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -18,6 +20,7 @@ import (
 type CarrierWifiHaPairStatus struct {
 
 	// active gateway
+	// Example: active_gatewayID
 	// Required: true
 	ActiveGateway string `json:"active_gateway"`
 }
@@ -38,10 +41,15 @@ func (m *CarrierWifiHaPairStatus) Validate(formats strfmt.Registry) error {
 
 func (m *CarrierWifiHaPairStatus) validateActiveGateway(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("active_gateway", "body", string(m.ActiveGateway)); err != nil {
+	if err := validate.RequiredString("active_gateway", "body", m.ActiveGateway); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this carrier wifi ha pair status based on context it is used
+func (m *CarrierWifiHaPairStatus) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

@@ -46,7 +46,7 @@ func NewDeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent() *DeleteNetwo
 	return &DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent{}
 }
 
-/*DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent handles this case with default header values.
+/* DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewDeleteNetworksNetworkIDPoliciesBaseNamesBaseNameDefault(code int) *Delet
 	}
 }
 
-/*DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameDefault handles this case with default header values.
+/* DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameDefault) Code() int {
 func (o *DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameDefault) Error() string {
 	return fmt.Sprintf("[DELETE /networks/{network_id}/policies/base_names/{base_name}][%d] DeleteNetworksNetworkIDPoliciesBaseNamesBaseName default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameDefault) GetPayload() *models.Error {
 	return o.Payload
 }

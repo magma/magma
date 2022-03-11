@@ -46,7 +46,7 @@ func NewPutCwfNetworkIDSubscriberConfigBaseNamesNoContent() *PutCwfNetworkIDSubs
 	return &PutCwfNetworkIDSubscriberConfigBaseNamesNoContent{}
 }
 
-/*PutCwfNetworkIDSubscriberConfigBaseNamesNoContent handles this case with default header values.
+/* PutCwfNetworkIDSubscriberConfigBaseNamesNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutCwfNetworkIDSubscriberConfigBaseNamesDefault(code int) *PutCwfNetwork
 	}
 }
 
-/*PutCwfNetworkIDSubscriberConfigBaseNamesDefault handles this case with default header values.
+/* PutCwfNetworkIDSubscriberConfigBaseNamesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutCwfNetworkIDSubscriberConfigBaseNamesDefault) Code() int {
 func (o *PutCwfNetworkIDSubscriberConfigBaseNamesDefault) Error() string {
 	return fmt.Sprintf("[PUT /cwf/{network_id}/subscriber_config/base_names][%d] PutCwfNetworkIDSubscriberConfigBaseNames default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutCwfNetworkIDSubscriberConfigBaseNamesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

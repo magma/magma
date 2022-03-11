@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostNetworksNetworkIDGatewaysParams creates a new PostNetworksNetworkIDGatewaysParams object
-// with the default values initialized.
+// NewPostNetworksNetworkIDGatewaysParams creates a new PostNetworksNetworkIDGatewaysParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostNetworksNetworkIDGatewaysParams() *PostNetworksNetworkIDGatewaysParams {
-	var ()
 	return &PostNetworksNetworkIDGatewaysParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostNetworksNetworkIDGatewaysParamsWithTimeout creates a new PostNetworksNetworkIDGatewaysParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostNetworksNetworkIDGatewaysParamsWithTimeout(timeout time.Duration) *PostNetworksNetworkIDGatewaysParams {
-	var ()
 	return &PostNetworksNetworkIDGatewaysParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostNetworksNetworkIDGatewaysParamsWithContext creates a new PostNetworksNetworkIDGatewaysParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostNetworksNetworkIDGatewaysParamsWithContext(ctx context.Context) *PostNetworksNetworkIDGatewaysParams {
-	var ()
 	return &PostNetworksNetworkIDGatewaysParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostNetworksNetworkIDGatewaysParamsWithHTTPClient creates a new PostNetworksNetworkIDGatewaysParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostNetworksNetworkIDGatewaysParamsWithHTTPClient(client *http.Client) *PostNetworksNetworkIDGatewaysParams {
-	var ()
 	return &PostNetworksNetworkIDGatewaysParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostNetworksNetworkIDGatewaysParams contains all the parameters to send to the API endpoint
-for the post networks network ID gateways operation typically these are written to a http.Request
+/* PostNetworksNetworkIDGatewaysParams contains all the parameters to send to the API endpoint
+   for the post networks network ID gateways operation.
+
+   Typically these are written to a http.Request.
 */
 type PostNetworksNetworkIDGatewaysParams struct {
 
-	/*Gateway
-	  Full desired configuration of the gateway
+	/* Gateway.
 
+	   Full desired configuration of the gateway
 	*/
 	Gateway *models.MagmadGateway
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post networks network ID gateways params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDGatewaysParams) WithDefaults() *PostNetworksNetworkIDGatewaysParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post networks network ID gateways params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDGatewaysParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post networks network ID gateways params
@@ -140,7 +155,6 @@ func (o *PostNetworksNetworkIDGatewaysParams) WriteToRequest(r runtime.ClientReq
 		return err
 	}
 	var res []error
-
 	if o.Gateway != nil {
 		if err := r.SetBodyParam(o.Gateway); err != nil {
 			return err

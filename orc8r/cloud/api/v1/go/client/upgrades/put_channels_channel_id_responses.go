@@ -46,7 +46,7 @@ func NewPutChannelsChannelIDNoContent() *PutChannelsChannelIDNoContent {
 	return &PutChannelsChannelIDNoContent{}
 }
 
-/*PutChannelsChannelIDNoContent handles this case with default header values.
+/* PutChannelsChannelIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutChannelsChannelIDDefault(code int) *PutChannelsChannelIDDefault {
 	}
 }
 
-/*PutChannelsChannelIDDefault handles this case with default header values.
+/* PutChannelsChannelIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutChannelsChannelIDDefault) Code() int {
 func (o *PutChannelsChannelIDDefault) Error() string {
 	return fmt.Sprintf("[PUT /channels/{channel_id}][%d] PutChannelsChannelID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutChannelsChannelIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

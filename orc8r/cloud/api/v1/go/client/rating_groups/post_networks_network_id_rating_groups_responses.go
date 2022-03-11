@@ -46,7 +46,7 @@ func NewPostNetworksNetworkIDRatingGroupsCreated() *PostNetworksNetworkIDRatingG
 	return &PostNetworksNetworkIDRatingGroupsCreated{}
 }
 
-/*PostNetworksNetworkIDRatingGroupsCreated handles this case with default header values.
+/* PostNetworksNetworkIDRatingGroupsCreated describes a response with status code 201, with default header values.
 
 Rating group id
 */
@@ -57,7 +57,6 @@ type PostNetworksNetworkIDRatingGroupsCreated struct {
 func (o *PostNetworksNetworkIDRatingGroupsCreated) Error() string {
 	return fmt.Sprintf("[POST /networks/{network_id}/rating_groups][%d] postNetworksNetworkIdRatingGroupsCreated  %+v", 201, o.Payload)
 }
-
 func (o *PostNetworksNetworkIDRatingGroupsCreated) GetPayload() models.RatingGroupID {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewPostNetworksNetworkIDRatingGroupsDefault(code int) *PostNetworksNetworkI
 	}
 }
 
-/*PostNetworksNetworkIDRatingGroupsDefault handles this case with default header values.
+/* PostNetworksNetworkIDRatingGroupsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *PostNetworksNetworkIDRatingGroupsDefault) Code() int {
 func (o *PostNetworksNetworkIDRatingGroupsDefault) Error() string {
 	return fmt.Sprintf("[POST /networks/{network_id}/rating_groups][%d] PostNetworksNetworkIDRatingGroups default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostNetworksNetworkIDRatingGroupsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

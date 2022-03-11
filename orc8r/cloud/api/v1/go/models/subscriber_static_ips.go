@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
@@ -22,7 +24,7 @@ func (m SubscriberStaticIps) Validate(formats strfmt.Registry) error {
 
 	for k := range m {
 
-		if err := validate.MinLength(k, "body", string(m[k]), 1); err != nil {
+		if err := validate.MinLength(k, "body", m[k], 1); err != nil {
 			return err
 		}
 
@@ -31,5 +33,10 @@ func (m SubscriberStaticIps) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+// ContextValidate validates this subscriber static ips based on context it is used
+func (m SubscriberStaticIps) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

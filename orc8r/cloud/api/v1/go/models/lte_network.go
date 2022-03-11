@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -92,6 +94,8 @@ func (m *LTENetwork) validateCellular(formats strfmt.Registry) error {
 		if err := m.Cellular.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("cellular")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("cellular")
 			}
 			return err
 		}
@@ -102,9 +106,15 @@ func (m *LTENetwork) validateCellular(formats strfmt.Registry) error {
 
 func (m *LTENetwork) validateDescription(formats strfmt.Registry) error {
 
+	if err := validate.Required("description", "body", NetworkDescription(m.Description)); err != nil {
+		return err
+	}
+
 	if err := m.Description.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("description")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("description")
 		}
 		return err
 	}
@@ -122,6 +132,8 @@ func (m *LTENetwork) validateDNS(formats strfmt.Registry) error {
 		if err := m.DNS.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("dns")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("dns")
 			}
 			return err
 		}
@@ -131,7 +143,6 @@ func (m *LTENetwork) validateDNS(formats strfmt.Registry) error {
 }
 
 func (m *LTENetwork) validateFeatures(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Features) { // not required
 		return nil
 	}
@@ -140,6 +151,8 @@ func (m *LTENetwork) validateFeatures(formats strfmt.Registry) error {
 		if err := m.Features.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("features")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("features")
 			}
 			return err
 		}
@@ -150,9 +163,15 @@ func (m *LTENetwork) validateFeatures(formats strfmt.Registry) error {
 
 func (m *LTENetwork) validateID(formats strfmt.Registry) error {
 
+	if err := validate.Required("id", "body", NetworkID(m.ID)); err != nil {
+		return err
+	}
+
 	if err := m.ID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
 		}
 		return err
 	}
@@ -162,9 +181,15 @@ func (m *LTENetwork) validateID(formats strfmt.Registry) error {
 
 func (m *LTENetwork) validateName(formats strfmt.Registry) error {
 
+	if err := validate.Required("name", "body", NetworkName(m.Name)); err != nil {
+		return err
+	}
+
 	if err := m.Name.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("name")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("name")
 		}
 		return err
 	}
@@ -173,7 +198,6 @@ func (m *LTENetwork) validateName(formats strfmt.Registry) error {
 }
 
 func (m *LTENetwork) validateSubscriberConfig(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.SubscriberConfig) { // not required
 		return nil
 	}
@@ -182,6 +206,152 @@ func (m *LTENetwork) validateSubscriberConfig(formats strfmt.Registry) error {
 		if err := m.SubscriberConfig.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("subscriber_config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("subscriber_config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this lte network based on the context it is used
+func (m *LTENetwork) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateCellular(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateDescription(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateDNS(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateFeatures(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateName(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateSubscriberConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *LTENetwork) contextValidateCellular(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Cellular != nil {
+		if err := m.Cellular.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("cellular")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("cellular")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *LTENetwork) contextValidateDescription(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Description.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("description")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("description")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *LTENetwork) contextValidateDNS(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.DNS != nil {
+		if err := m.DNS.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("dns")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("dns")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *LTENetwork) contextValidateFeatures(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Features != nil {
+		if err := m.Features.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("features")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("features")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *LTENetwork) contextValidateID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ID.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *LTENetwork) contextValidateName(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Name.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("name")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("name")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *LTENetwork) contextValidateSubscriberConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.SubscriberConfig != nil {
+		if err := m.SubscriberConfig.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("subscriber_config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("subscriber_config")
 			}
 			return err
 		}

@@ -46,7 +46,7 @@ func NewPostLTENetworkIDGatewaysCreated() *PostLTENetworkIDGatewaysCreated {
 	return &PostLTENetworkIDGatewaysCreated{}
 }
 
-/*PostLTENetworkIDGatewaysCreated handles this case with default header values.
+/* PostLTENetworkIDGatewaysCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostLTENetworkIDGatewaysDefault(code int) *PostLTENetworkIDGatewaysDefau
 	}
 }
 
-/*PostLTENetworkIDGatewaysDefault handles this case with default header values.
+/* PostLTENetworkIDGatewaysDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostLTENetworkIDGatewaysDefault) Code() int {
 func (o *PostLTENetworkIDGatewaysDefault) Error() string {
 	return fmt.Sprintf("[POST /lte/{network_id}/gateways][%d] PostLTENetworkIDGateways default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostLTENetworkIDGatewaysDefault) GetPayload() *models.Error {
 	return o.Payload
 }

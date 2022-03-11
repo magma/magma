@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostLTENetworkIDGatewayPoolsParams creates a new PostLTENetworkIDGatewayPoolsParams object
-// with the default values initialized.
+// NewPostLTENetworkIDGatewayPoolsParams creates a new PostLTENetworkIDGatewayPoolsParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostLTENetworkIDGatewayPoolsParams() *PostLTENetworkIDGatewayPoolsParams {
-	var ()
 	return &PostLTENetworkIDGatewayPoolsParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostLTENetworkIDGatewayPoolsParamsWithTimeout creates a new PostLTENetworkIDGatewayPoolsParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostLTENetworkIDGatewayPoolsParamsWithTimeout(timeout time.Duration) *PostLTENetworkIDGatewayPoolsParams {
-	var ()
 	return &PostLTENetworkIDGatewayPoolsParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostLTENetworkIDGatewayPoolsParamsWithContext creates a new PostLTENetworkIDGatewayPoolsParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostLTENetworkIDGatewayPoolsParamsWithContext(ctx context.Context) *PostLTENetworkIDGatewayPoolsParams {
-	var ()
 	return &PostLTENetworkIDGatewayPoolsParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostLTENetworkIDGatewayPoolsParamsWithHTTPClient creates a new PostLTENetworkIDGatewayPoolsParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostLTENetworkIDGatewayPoolsParamsWithHTTPClient(client *http.Client) *PostLTENetworkIDGatewayPoolsParams {
-	var ()
 	return &PostLTENetworkIDGatewayPoolsParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostLTENetworkIDGatewayPoolsParams contains all the parameters to send to the API endpoint
-for the post LTE network ID gateway pools operation typically these are written to a http.Request
+/* PostLTENetworkIDGatewayPoolsParams contains all the parameters to send to the API endpoint
+   for the post LTE network ID gateway pools operation.
+
+   Typically these are written to a http.Request.
 */
 type PostLTENetworkIDGatewayPoolsParams struct {
 
-	/*HAGatewayPool
-	  LTE HA gateway pool
+	/* HAGatewayPool.
 
+	   LTE HA gateway pool
 	*/
 	HAGatewayPool *models.MutableCellularGatewayPool
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post LTE network ID gateway pools params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostLTENetworkIDGatewayPoolsParams) WithDefaults() *PostLTENetworkIDGatewayPoolsParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post LTE network ID gateway pools params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostLTENetworkIDGatewayPoolsParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post LTE network ID gateway pools params
@@ -140,7 +155,6 @@ func (o *PostLTENetworkIDGatewayPoolsParams) WriteToRequest(r runtime.ClientRequ
 		return err
 	}
 	var res []error
-
 	if o.HAGatewayPool != nil {
 		if err := r.SetBodyParam(o.HAGatewayPool); err != nil {
 			return err

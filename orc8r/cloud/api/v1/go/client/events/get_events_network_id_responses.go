@@ -7,6 +7,7 @@ package events
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -51,7 +52,7 @@ func NewGetEventsNetworkIDOK() *GetEventsNetworkIDOK {
 	return &GetEventsNetworkIDOK{}
 }
 
-/*GetEventsNetworkIDOK handles this case with default header values.
+/* GetEventsNetworkIDOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -62,7 +63,6 @@ type GetEventsNetworkIDOK struct {
 func (o *GetEventsNetworkIDOK) Error() string {
 	return fmt.Sprintf("[GET /events/{network_id}][%d] getEventsNetworkIdOK  %+v", 200, o.Payload)
 }
-
 func (o *GetEventsNetworkIDOK) GetPayload() *GetEventsNetworkIDOKBodyTuple0 {
 	return o.Payload
 }
@@ -86,7 +86,7 @@ func NewGetEventsNetworkIDDefault(code int) *GetEventsNetworkIDDefault {
 	}
 }
 
-/*GetEventsNetworkIDDefault handles this case with default header values.
+/* GetEventsNetworkIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -104,7 +104,6 @@ func (o *GetEventsNetworkIDDefault) Code() int {
 func (o *GetEventsNetworkIDDefault) Error() string {
 	return fmt.Sprintf("[GET /events/{network_id}][%d] GetEventsNetworkID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetEventsNetworkIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }
@@ -193,6 +192,38 @@ func (o *GetEventsNetworkIDOKBodyTuple0) validateP0(formats strfmt.Registry) err
 		if err := o.P0.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("P0")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("P0")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this get events network ID o k body tuple0 based on the context it is used
+func (o *GetEventsNetworkIDOKBodyTuple0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.contextValidateP0(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (o *GetEventsNetworkIDOKBodyTuple0) contextValidateP0(ctx context.Context, formats strfmt.Registry) error {
+
+	if o.P0 != nil {
+		if err := o.P0.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("P0")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("P0")
 			}
 			return err
 		}

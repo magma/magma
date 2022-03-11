@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams creates a new PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams object
-// with the default values initialized.
+// NewPutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams creates a new PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams() *PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParamsWithTimeout creates a new PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParamsWithTimeout(timeout time.Duration) *PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParamsWithContext creates a new PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParamsWithContext(ctx context.Context) *PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParamsWithHTTPClient creates a new PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParamsWithHTTPClient(client *http.Client) *PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams contains all the parameters to send to the API endpoint
-for the put LTE network ID gateways gateway ID cellular DNS records operation typically these are written to a http.Request
+/* PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams contains all the parameters to send to the API endpoint
+   for the put LTE network ID gateways gateway ID cellular DNS records operation.
+
+   Typically these are written to a http.Request.
 */
 type PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams struct {
 
-	/*GatewayID
-	  Gateway ID
+	/* GatewayID.
 
+	   Gateway ID
 	*/
 	GatewayID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*Records
-	  Custom DNS records for the gateway
 
+	/* Records.
+
+	   Custom DNS records for the gateway
 	*/
 	Records []*models.DNSConfigRecord
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put LTE network ID gateways gateway ID cellular DNS records params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams) WithDefaults() *PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put LTE network ID gateways gateway ID cellular DNS records params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put LTE network ID gateways gateway ID cellular DNS records params
@@ -166,7 +182,6 @@ func (o *PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsParams) WriteToReques
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.Records != nil {
 		if err := r.SetBodyParam(o.Records); err != nil {
 			return err

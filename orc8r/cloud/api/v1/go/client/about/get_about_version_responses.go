@@ -46,7 +46,7 @@ func NewGetAboutVersionOK() *GetAboutVersionOK {
 	return &GetAboutVersionOK{}
 }
 
-/*GetAboutVersionOK handles this case with default header values.
+/* GetAboutVersionOK describes a response with status code 200, with default header values.
 
 Version
 */
@@ -57,7 +57,6 @@ type GetAboutVersionOK struct {
 func (o *GetAboutVersionOK) Error() string {
 	return fmt.Sprintf("[GET /about/version][%d] getAboutVersionOK  %+v", 200, o.Payload)
 }
-
 func (o *GetAboutVersionOK) GetPayload() *models.VersionInfo {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetAboutVersionDefault(code int) *GetAboutVersionDefault {
 	}
 }
 
-/*GetAboutVersionDefault handles this case with default header values.
+/* GetAboutVersionDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetAboutVersionDefault) Code() int {
 func (o *GetAboutVersionDefault) Error() string {
 	return fmt.Sprintf("[GET /about/version][%d] GetAboutVersion default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetAboutVersionDefault) GetPayload() *models.Error {
 	return o.Payload
 }

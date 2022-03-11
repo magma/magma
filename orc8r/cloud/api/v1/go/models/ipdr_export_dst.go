@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -18,11 +20,13 @@ import (
 type IpdrExportDst struct {
 
 	// ip
+	// Example: 192.168.128.88
 	// Required: true
 	// Format: ipv4
 	IP strfmt.IPv4 `json:"ip"`
 
 	// port
+	// Example: 2040
 	// Required: true
 	Port uint32 `json:"port"`
 }
@@ -64,6 +68,11 @@ func (m *IpdrExportDst) validatePort(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this ipdr export dst based on context it is used
+func (m *IpdrExportDst) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

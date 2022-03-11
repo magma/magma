@@ -46,7 +46,7 @@ func NewPostLTENetworkIDPolicyQosProfilesCreated() *PostLTENetworkIDPolicyQosPro
 	return &PostLTENetworkIDPolicyQosProfilesCreated{}
 }
 
-/*PostLTENetworkIDPolicyQosProfilesCreated handles this case with default header values.
+/* PostLTENetworkIDPolicyQosProfilesCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostLTENetworkIDPolicyQosProfilesDefault(code int) *PostLTENetworkIDPoli
 	}
 }
 
-/*PostLTENetworkIDPolicyQosProfilesDefault handles this case with default header values.
+/* PostLTENetworkIDPolicyQosProfilesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostLTENetworkIDPolicyQosProfilesDefault) Code() int {
 func (o *PostLTENetworkIDPolicyQosProfilesDefault) Error() string {
 	return fmt.Sprintf("[POST /lte/{network_id}/policy_qos_profiles][%d] PostLTENetworkIDPolicyQosProfiles default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostLTENetworkIDPolicyQosProfilesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

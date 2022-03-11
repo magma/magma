@@ -46,7 +46,7 @@ func NewPostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesOK() *PostNe
 	return &PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesOK{}
 }
 
-/*PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesOK handles this case with default header values.
+/* PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesDefault(code
 	}
 }
 
-/*PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesDefault handles this case with default header values.
+/* PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesDefault) Co
 func (o *PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesDefault) Error() string {
 	return fmt.Sprintf("[POST /networks/{network_id}/gateways/{gateway_id}/command/restart_services][%d] PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServices default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

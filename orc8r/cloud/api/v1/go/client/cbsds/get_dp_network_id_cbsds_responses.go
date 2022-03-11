@@ -46,7 +46,7 @@ func NewGetDpNetworkIDCbsdsOK() *GetDpNetworkIDCbsdsOK {
 	return &GetDpNetworkIDCbsdsOK{}
 }
 
-/*GetDpNetworkIDCbsdsOK handles this case with default header values.
+/* GetDpNetworkIDCbsdsOK describes a response with status code 200, with default header values.
 
 All CBSDs in LTE network
 */
@@ -57,7 +57,6 @@ type GetDpNetworkIDCbsdsOK struct {
 func (o *GetDpNetworkIDCbsdsOK) Error() string {
 	return fmt.Sprintf("[GET /dp/{network_id}/cbsds][%d] getDpNetworkIdCbsdsOK  %+v", 200, o.Payload)
 }
-
 func (o *GetDpNetworkIDCbsdsOK) GetPayload() *models.PaginatedCbsds {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetDpNetworkIDCbsdsDefault(code int) *GetDpNetworkIDCbsdsDefault {
 	}
 }
 
-/*GetDpNetworkIDCbsdsDefault handles this case with default header values.
+/* GetDpNetworkIDCbsdsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetDpNetworkIDCbsdsDefault) Code() int {
 func (o *GetDpNetworkIDCbsdsDefault) Error() string {
 	return fmt.Sprintf("[GET /dp/{network_id}/cbsds][%d] GetDpNetworkIDCbsds default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetDpNetworkIDCbsdsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

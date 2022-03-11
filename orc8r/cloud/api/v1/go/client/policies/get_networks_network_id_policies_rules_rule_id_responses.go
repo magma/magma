@@ -46,7 +46,7 @@ func NewGetNetworksNetworkIDPoliciesRulesRuleIDOK() *GetNetworksNetworkIDPolicie
 	return &GetNetworksNetworkIDPoliciesRulesRuleIDOK{}
 }
 
-/*GetNetworksNetworkIDPoliciesRulesRuleIDOK handles this case with default header values.
+/* GetNetworksNetworkIDPoliciesRulesRuleIDOK describes a response with status code 200, with default header values.
 
 Policy rule on success
 */
@@ -57,7 +57,6 @@ type GetNetworksNetworkIDPoliciesRulesRuleIDOK struct {
 func (o *GetNetworksNetworkIDPoliciesRulesRuleIDOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/policies/rules/{rule_id}][%d] getNetworksNetworkIdPoliciesRulesRuleIdOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDPoliciesRulesRuleIDOK) GetPayload() *models.PolicyRule {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetNetworksNetworkIDPoliciesRulesRuleIDDefault(code int) *GetNetworksNet
 	}
 }
 
-/*GetNetworksNetworkIDPoliciesRulesRuleIDDefault handles this case with default header values.
+/* GetNetworksNetworkIDPoliciesRulesRuleIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetNetworksNetworkIDPoliciesRulesRuleIDDefault) Code() int {
 func (o *GetNetworksNetworkIDPoliciesRulesRuleIDDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/policies/rules/{rule_id}][%d] GetNetworksNetworkIDPoliciesRulesRuleID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDPoliciesRulesRuleIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

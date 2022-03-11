@@ -23,95 +23,98 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
 // ClientService is the interface for Client methods
 type ClientService interface {
-	DeleteLTENetworkID(params *DeleteLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDNoContent, error)
+	DeleteLTENetworkID(params *DeleteLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteLTENetworkIDNoContent, error)
 
-	DeleteLTENetworkIDDNSRecordsDomain(params *DeleteLTENetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDDNSRecordsDomainNoContent, error)
+	DeleteLTENetworkIDDNSRecordsDomain(params *DeleteLTENetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteLTENetworkIDDNSRecordsDomainNoContent, error)
 
-	DeleteLTENetworkIDGatewayPoolsGatewayPoolID(params *DeleteLTENetworkIDGatewayPoolsGatewayPoolIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDGatewayPoolsGatewayPoolIDNoContent, error)
+	DeleteLTENetworkIDGatewayPoolsGatewayPoolID(params *DeleteLTENetworkIDGatewayPoolsGatewayPoolIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteLTENetworkIDGatewayPoolsGatewayPoolIDNoContent, error)
 
-	DeleteLTENetworkIDSubscriberConfigBaseNamesBaseName(params *DeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameNoContent, error)
+	DeleteLTENetworkIDSubscriberConfigBaseNamesBaseName(params *DeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameNoContent, error)
 
-	DeleteLTENetworkIDSubscriberConfigRuleNamesRuleID(params *DeleteLTENetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDSubscriberConfigRuleNamesRuleIDNoContent, error)
+	DeleteLTENetworkIDSubscriberConfigRuleNamesRuleID(params *DeleteLTENetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteLTENetworkIDSubscriberConfigRuleNamesRuleIDNoContent, error)
 
-	GetLTE(params *GetLTEParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTEOK, error)
+	GetLTE(params *GetLTEParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTEOK, error)
 
-	GetLTENetworkID(params *GetLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDOK, error)
+	GetLTENetworkID(params *GetLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDOK, error)
 
-	GetLTENetworkIDCellular(params *GetLTENetworkIDCellularParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDCellularOK, error)
+	GetLTENetworkIDCellular(params *GetLTENetworkIDCellularParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDCellularOK, error)
 
-	GetLTENetworkIDCellularEpc(params *GetLTENetworkIDCellularEpcParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDCellularEpcOK, error)
+	GetLTENetworkIDCellularEpc(params *GetLTENetworkIDCellularEpcParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDCellularEpcOK, error)
 
-	GetLTENetworkIDCellularFegNetworkID(params *GetLTENetworkIDCellularFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDCellularFegNetworkIDOK, error)
+	GetLTENetworkIDCellularFegNetworkID(params *GetLTENetworkIDCellularFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDCellularFegNetworkIDOK, error)
 
-	GetLTENetworkIDCellularNgc(params *GetLTENetworkIDCellularNgcParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDCellularNgcOK, error)
+	GetLTENetworkIDCellularNgc(params *GetLTENetworkIDCellularNgcParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDCellularNgcOK, error)
 
-	GetLTENetworkIDCellularRan(params *GetLTENetworkIDCellularRanParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDCellularRanOK, error)
+	GetLTENetworkIDCellularRan(params *GetLTENetworkIDCellularRanParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDCellularRanOK, error)
 
-	GetLTENetworkIDDNS(params *GetLTENetworkIDDNSParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDDNSOK, error)
+	GetLTENetworkIDDNS(params *GetLTENetworkIDDNSParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDDNSOK, error)
 
-	GetLTENetworkIDDNSRecords(params *GetLTENetworkIDDNSRecordsParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDDNSRecordsOK, error)
+	GetLTENetworkIDDNSRecords(params *GetLTENetworkIDDNSRecordsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDDNSRecordsOK, error)
 
-	GetLTENetworkIDDNSRecordsDomain(params *GetLTENetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDDNSRecordsDomainOK, error)
+	GetLTENetworkIDDNSRecordsDomain(params *GetLTENetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDDNSRecordsDomainOK, error)
 
-	GetLTENetworkIDDescription(params *GetLTENetworkIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDDescriptionOK, error)
+	GetLTENetworkIDDescription(params *GetLTENetworkIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDDescriptionOK, error)
 
-	GetLTENetworkIDFeatures(params *GetLTENetworkIDFeaturesParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDFeaturesOK, error)
+	GetLTENetworkIDFeatures(params *GetLTENetworkIDFeaturesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDFeaturesOK, error)
 
-	GetLTENetworkIDGatewayPools(params *GetLTENetworkIDGatewayPoolsParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDGatewayPoolsOK, error)
+	GetLTENetworkIDGatewayPools(params *GetLTENetworkIDGatewayPoolsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDGatewayPoolsOK, error)
 
-	GetLTENetworkIDGatewayPoolsGatewayPoolID(params *GetLTENetworkIDGatewayPoolsGatewayPoolIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDGatewayPoolsGatewayPoolIDOK, error)
+	GetLTENetworkIDGatewayPoolsGatewayPoolID(params *GetLTENetworkIDGatewayPoolsGatewayPoolIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDGatewayPoolsGatewayPoolIDOK, error)
 
-	GetLTENetworkIDName(params *GetLTENetworkIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDNameOK, error)
+	GetLTENetworkIDName(params *GetLTENetworkIDNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDNameOK, error)
 
-	GetLTENetworkIDSubscriberConfig(params *GetLTENetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDSubscriberConfigOK, error)
+	GetLTENetworkIDSubscriberConfig(params *GetLTENetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDSubscriberConfigOK, error)
 
-	GetLTENetworkIDSubscriberConfigBaseNames(params *GetLTENetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDSubscriberConfigBaseNamesOK, error)
+	GetLTENetworkIDSubscriberConfigBaseNames(params *GetLTENetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDSubscriberConfigBaseNamesOK, error)
 
-	GetLTENetworkIDSubscriberConfigRuleNames(params *GetLTENetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDSubscriberConfigRuleNamesOK, error)
+	GetLTENetworkIDSubscriberConfigRuleNames(params *GetLTENetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDSubscriberConfigRuleNamesOK, error)
 
-	PostLTE(params *PostLTEParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTECreated, error)
+	PostLTE(params *PostLTEParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostLTECreated, error)
 
-	PostLTENetworkIDDNSRecordsDomain(params *PostLTENetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDDNSRecordsDomainCreated, error)
+	PostLTENetworkIDDNSRecordsDomain(params *PostLTENetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostLTENetworkIDDNSRecordsDomainCreated, error)
 
-	PostLTENetworkIDGatewayPools(params *PostLTENetworkIDGatewayPoolsParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDGatewayPoolsCreated, error)
+	PostLTENetworkIDGatewayPools(params *PostLTENetworkIDGatewayPoolsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostLTENetworkIDGatewayPoolsCreated, error)
 
-	PostLTENetworkIDSubscriberConfigBaseNamesBaseName(params *PostLTENetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated, error)
+	PostLTENetworkIDSubscriberConfigBaseNamesBaseName(params *PostLTENetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated, error)
 
-	PostLTENetworkIDSubscriberConfigRuleNamesRuleID(params *PostLTENetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDSubscriberConfigRuleNamesRuleIDCreated, error)
+	PostLTENetworkIDSubscriberConfigRuleNamesRuleID(params *PostLTENetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostLTENetworkIDSubscriberConfigRuleNamesRuleIDCreated, error)
 
-	PutLTENetworkID(params *PutLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDNoContent, error)
+	PutLTENetworkID(params *PutLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDNoContent, error)
 
-	PutLTENetworkIDCellular(params *PutLTENetworkIDCellularParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDCellularNoContent, error)
+	PutLTENetworkIDCellular(params *PutLTENetworkIDCellularParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDCellularNoContent, error)
 
-	PutLTENetworkIDCellularEpc(params *PutLTENetworkIDCellularEpcParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDCellularEpcNoContent, error)
+	PutLTENetworkIDCellularEpc(params *PutLTENetworkIDCellularEpcParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDCellularEpcNoContent, error)
 
-	PutLTENetworkIDCellularFegNetworkID(params *PutLTENetworkIDCellularFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDCellularFegNetworkIDNoContent, error)
+	PutLTENetworkIDCellularFegNetworkID(params *PutLTENetworkIDCellularFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDCellularFegNetworkIDNoContent, error)
 
-	PutLTENetworkIDCellularNgc(params *PutLTENetworkIDCellularNgcParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDCellularNgcNoContent, error)
+	PutLTENetworkIDCellularNgc(params *PutLTENetworkIDCellularNgcParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDCellularNgcNoContent, error)
 
-	PutLTENetworkIDCellularRan(params *PutLTENetworkIDCellularRanParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDCellularRanNoContent, error)
+	PutLTENetworkIDCellularRan(params *PutLTENetworkIDCellularRanParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDCellularRanNoContent, error)
 
-	PutLTENetworkIDDNS(params *PutLTENetworkIDDNSParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDDNSNoContent, error)
+	PutLTENetworkIDDNS(params *PutLTENetworkIDDNSParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDDNSNoContent, error)
 
-	PutLTENetworkIDDNSRecords(params *PutLTENetworkIDDNSRecordsParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDDNSRecordsNoContent, error)
+	PutLTENetworkIDDNSRecords(params *PutLTENetworkIDDNSRecordsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDDNSRecordsNoContent, error)
 
-	PutLTENetworkIDDNSRecordsDomain(params *PutLTENetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDDNSRecordsDomainNoContent, error)
+	PutLTENetworkIDDNSRecordsDomain(params *PutLTENetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDDNSRecordsDomainNoContent, error)
 
-	PutLTENetworkIDDescription(params *PutLTENetworkIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDDescriptionNoContent, error)
+	PutLTENetworkIDDescription(params *PutLTENetworkIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDDescriptionNoContent, error)
 
-	PutLTENetworkIDFeatures(params *PutLTENetworkIDFeaturesParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDFeaturesNoContent, error)
+	PutLTENetworkIDFeatures(params *PutLTENetworkIDFeaturesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDFeaturesNoContent, error)
 
-	PutLTENetworkIDGatewayPoolsGatewayPoolID(params *PutLTENetworkIDGatewayPoolsGatewayPoolIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDGatewayPoolsGatewayPoolIDCreated, error)
+	PutLTENetworkIDGatewayPoolsGatewayPoolID(params *PutLTENetworkIDGatewayPoolsGatewayPoolIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDGatewayPoolsGatewayPoolIDCreated, error)
 
-	PutLTENetworkIDName(params *PutLTENetworkIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDNameNoContent, error)
+	PutLTENetworkIDName(params *PutLTENetworkIDNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDNameNoContent, error)
 
-	PutLTENetworkIDSubscriberConfig(params *PutLTENetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDSubscriberConfigNoContent, error)
+	PutLTENetworkIDSubscriberConfig(params *PutLTENetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDSubscriberConfigNoContent, error)
 
-	PutLTENetworkIDSubscriberConfigBaseNames(params *PutLTENetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDSubscriberConfigBaseNamesNoContent, error)
+	PutLTENetworkIDSubscriberConfigBaseNames(params *PutLTENetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDSubscriberConfigBaseNamesNoContent, error)
 
-	PutLTENetworkIDSubscriberConfigRuleNames(params *PutLTENetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDSubscriberConfigRuleNamesNoContent, error)
+	PutLTENetworkIDSubscriberConfigRuleNames(params *PutLTENetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDSubscriberConfigRuleNamesNoContent, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -119,13 +122,12 @@ type ClientService interface {
 /*
   DeleteLTENetworkID deletes an LTE network
 */
-func (a *Client) DeleteLTENetworkID(params *DeleteLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDNoContent, error) {
+func (a *Client) DeleteLTENetworkID(params *DeleteLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteLTENetworkIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteLTENetworkID",
 		Method:             "DELETE",
 		PathPattern:        "/lte/{network_id}",
@@ -137,7 +139,12 @@ func (a *Client) DeleteLTENetworkID(params *DeleteLTENetworkIDParams, authInfo r
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -153,13 +160,12 @@ func (a *Client) DeleteLTENetworkID(params *DeleteLTENetworkIDParams, authInfo r
 /*
   DeleteLTENetworkIDDNSRecordsDomain deletes the DNS record for a specific domain
 */
-func (a *Client) DeleteLTENetworkIDDNSRecordsDomain(params *DeleteLTENetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDDNSRecordsDomainNoContent, error) {
+func (a *Client) DeleteLTENetworkIDDNSRecordsDomain(params *DeleteLTENetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteLTENetworkIDDNSRecordsDomainNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDDNSRecordsDomainParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteLTENetworkIDDNSRecordsDomain",
 		Method:             "DELETE",
 		PathPattern:        "/lte/{network_id}/dns/records/{domain}",
@@ -171,7 +177,12 @@ func (a *Client) DeleteLTENetworkIDDNSRecordsDomain(params *DeleteLTENetworkIDDN
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -187,13 +198,12 @@ func (a *Client) DeleteLTENetworkIDDNSRecordsDomain(params *DeleteLTENetworkIDDN
 /*
   DeleteLTENetworkIDGatewayPoolsGatewayPoolID deletes gateway pool from LTE network
 */
-func (a *Client) DeleteLTENetworkIDGatewayPoolsGatewayPoolID(params *DeleteLTENetworkIDGatewayPoolsGatewayPoolIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDGatewayPoolsGatewayPoolIDNoContent, error) {
+func (a *Client) DeleteLTENetworkIDGatewayPoolsGatewayPoolID(params *DeleteLTENetworkIDGatewayPoolsGatewayPoolIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteLTENetworkIDGatewayPoolsGatewayPoolIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDGatewayPoolsGatewayPoolIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteLTENetworkIDGatewayPoolsGatewayPoolID",
 		Method:             "DELETE",
 		PathPattern:        "/lte/{network_id}/gateway_pools/{gateway_pool_id}",
@@ -205,7 +215,12 @@ func (a *Client) DeleteLTENetworkIDGatewayPoolsGatewayPoolID(params *DeleteLTENe
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -221,13 +236,12 @@ func (a *Client) DeleteLTENetworkIDGatewayPoolsGatewayPoolID(params *DeleteLTENe
 /*
   DeleteLTENetworkIDSubscriberConfigBaseNamesBaseName adds a network wide base name
 */
-func (a *Client) DeleteLTENetworkIDSubscriberConfigBaseNamesBaseName(params *DeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameNoContent, error) {
+func (a *Client) DeleteLTENetworkIDSubscriberConfigBaseNamesBaseName(params *DeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteLTENetworkIDSubscriberConfigBaseNamesBaseName",
 		Method:             "DELETE",
 		PathPattern:        "/lte/{network_id}/subscriber_config/base_names/{base_name}",
@@ -239,7 +253,12 @@ func (a *Client) DeleteLTENetworkIDSubscriberConfigBaseNamesBaseName(params *Del
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -255,13 +274,12 @@ func (a *Client) DeleteLTENetworkIDSubscriberConfigBaseNamesBaseName(params *Del
 /*
   DeleteLTENetworkIDSubscriberConfigRuleNamesRuleID adds a network wide rule name
 */
-func (a *Client) DeleteLTENetworkIDSubscriberConfigRuleNamesRuleID(params *DeleteLTENetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDSubscriberConfigRuleNamesRuleIDNoContent, error) {
+func (a *Client) DeleteLTENetworkIDSubscriberConfigRuleNamesRuleID(params *DeleteLTENetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteLTENetworkIDSubscriberConfigRuleNamesRuleIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDSubscriberConfigRuleNamesRuleIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteLTENetworkIDSubscriberConfigRuleNamesRuleID",
 		Method:             "DELETE",
 		PathPattern:        "/lte/{network_id}/subscriber_config/rule_names/{rule_id}",
@@ -273,7 +291,12 @@ func (a *Client) DeleteLTENetworkIDSubscriberConfigRuleNamesRuleID(params *Delet
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -289,13 +312,12 @@ func (a *Client) DeleteLTENetworkIDSubscriberConfigRuleNamesRuleID(params *Delet
 /*
   GetLTE lists all LTE network i ds
 */
-func (a *Client) GetLTE(params *GetLTEParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTEOK, error) {
+func (a *Client) GetLTE(params *GetLTEParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTEOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTEParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTE",
 		Method:             "GET",
 		PathPattern:        "/lte",
@@ -307,7 +329,12 @@ func (a *Client) GetLTE(params *GetLTEParams, authInfo runtime.ClientAuthInfoWri
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -323,13 +350,12 @@ func (a *Client) GetLTE(params *GetLTEParams, authInfo runtime.ClientAuthInfoWri
 /*
   GetLTENetworkID describes an LTE network
 */
-func (a *Client) GetLTENetworkID(params *GetLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDOK, error) {
+func (a *Client) GetLTENetworkID(params *GetLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkID",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}",
@@ -341,7 +367,12 @@ func (a *Client) GetLTENetworkID(params *GetLTENetworkIDParams, authInfo runtime
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -357,13 +388,12 @@ func (a *Client) GetLTENetworkID(params *GetLTENetworkIDParams, authInfo runtime
 /*
   GetLTENetworkIDCellular gets cellular configuration of LTE network
 */
-func (a *Client) GetLTENetworkIDCellular(params *GetLTENetworkIDCellularParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDCellularOK, error) {
+func (a *Client) GetLTENetworkIDCellular(params *GetLTENetworkIDCellularParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDCellularOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDCellularParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDCellular",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/cellular",
@@ -375,7 +405,12 @@ func (a *Client) GetLTENetworkIDCellular(params *GetLTENetworkIDCellularParams, 
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -391,13 +426,12 @@ func (a *Client) GetLTENetworkIDCellular(params *GetLTENetworkIDCellularParams, 
 /*
   GetLTENetworkIDCellularEpc gets e p c configuration of LTE network
 */
-func (a *Client) GetLTENetworkIDCellularEpc(params *GetLTENetworkIDCellularEpcParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDCellularEpcOK, error) {
+func (a *Client) GetLTENetworkIDCellularEpc(params *GetLTENetworkIDCellularEpcParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDCellularEpcOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDCellularEpcParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDCellularEpc",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/cellular/epc",
@@ -409,7 +443,12 @@ func (a *Client) GetLTENetworkIDCellularEpc(params *GetLTENetworkIDCellularEpcPa
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -425,13 +464,12 @@ func (a *Client) GetLTENetworkIDCellularEpc(params *GetLTENetworkIDCellularEpcPa
 /*
   GetLTENetworkIDCellularFegNetworkID gets federation gateway network ID for the network
 */
-func (a *Client) GetLTENetworkIDCellularFegNetworkID(params *GetLTENetworkIDCellularFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDCellularFegNetworkIDOK, error) {
+func (a *Client) GetLTENetworkIDCellularFegNetworkID(params *GetLTENetworkIDCellularFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDCellularFegNetworkIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDCellularFegNetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDCellularFegNetworkID",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/cellular/feg_network_id",
@@ -443,7 +481,12 @@ func (a *Client) GetLTENetworkIDCellularFegNetworkID(params *GetLTENetworkIDCell
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -459,13 +502,12 @@ func (a *Client) GetLTENetworkIDCellularFegNetworkID(params *GetLTENetworkIDCell
 /*
   GetLTENetworkIDCellularNgc gets n g c configuration of LTE network
 */
-func (a *Client) GetLTENetworkIDCellularNgc(params *GetLTENetworkIDCellularNgcParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDCellularNgcOK, error) {
+func (a *Client) GetLTENetworkIDCellularNgc(params *GetLTENetworkIDCellularNgcParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDCellularNgcOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDCellularNgcParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDCellularNgc",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/cellular/ngc",
@@ -477,7 +519,12 @@ func (a *Client) GetLTENetworkIDCellularNgc(params *GetLTENetworkIDCellularNgcPa
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -493,13 +540,12 @@ func (a *Client) GetLTENetworkIDCellularNgc(params *GetLTENetworkIDCellularNgcPa
 /*
   GetLTENetworkIDCellularRan gets r a n configuration of LTE network
 */
-func (a *Client) GetLTENetworkIDCellularRan(params *GetLTENetworkIDCellularRanParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDCellularRanOK, error) {
+func (a *Client) GetLTENetworkIDCellularRan(params *GetLTENetworkIDCellularRanParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDCellularRanOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDCellularRanParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDCellularRan",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/cellular/ran",
@@ -511,7 +557,12 @@ func (a *Client) GetLTENetworkIDCellularRan(params *GetLTENetworkIDCellularRanPa
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -527,13 +578,12 @@ func (a *Client) GetLTENetworkIDCellularRan(params *GetLTENetworkIDCellularRanPa
 /*
   GetLTENetworkIDDNS gets DNS configuration of LTE network
 */
-func (a *Client) GetLTENetworkIDDNS(params *GetLTENetworkIDDNSParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDDNSOK, error) {
+func (a *Client) GetLTENetworkIDDNS(params *GetLTENetworkIDDNSParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDDNSOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDDNSParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDDNS",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/dns",
@@ -545,7 +595,12 @@ func (a *Client) GetLTENetworkIDDNS(params *GetLTENetworkIDDNSParams, authInfo r
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -561,13 +616,12 @@ func (a *Client) GetLTENetworkIDDNS(params *GetLTENetworkIDDNSParams, authInfo r
 /*
   GetLTENetworkIDDNSRecords gets the DNS config records for the LTE network
 */
-func (a *Client) GetLTENetworkIDDNSRecords(params *GetLTENetworkIDDNSRecordsParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDDNSRecordsOK, error) {
+func (a *Client) GetLTENetworkIDDNSRecords(params *GetLTENetworkIDDNSRecordsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDDNSRecordsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDDNSRecordsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDDNSRecords",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/dns/records",
@@ -579,7 +633,12 @@ func (a *Client) GetLTENetworkIDDNSRecords(params *GetLTENetworkIDDNSRecordsPara
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -595,13 +654,12 @@ func (a *Client) GetLTENetworkIDDNSRecords(params *GetLTENetworkIDDNSRecordsPara
 /*
   GetLTENetworkIDDNSRecordsDomain gets the DNS config record for a specific domain
 */
-func (a *Client) GetLTENetworkIDDNSRecordsDomain(params *GetLTENetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDDNSRecordsDomainOK, error) {
+func (a *Client) GetLTENetworkIDDNSRecordsDomain(params *GetLTENetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDDNSRecordsDomainOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDDNSRecordsDomainParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDDNSRecordsDomain",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/dns/records/{domain}",
@@ -613,7 +671,12 @@ func (a *Client) GetLTENetworkIDDNSRecordsDomain(params *GetLTENetworkIDDNSRecor
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -629,13 +692,12 @@ func (a *Client) GetLTENetworkIDDNSRecordsDomain(params *GetLTENetworkIDDNSRecor
 /*
   GetLTENetworkIDDescription gets description of an LTE network
 */
-func (a *Client) GetLTENetworkIDDescription(params *GetLTENetworkIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDDescriptionOK, error) {
+func (a *Client) GetLTENetworkIDDescription(params *GetLTENetworkIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDDescriptionOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDDescriptionParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDDescription",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/description",
@@ -647,7 +709,12 @@ func (a *Client) GetLTENetworkIDDescription(params *GetLTENetworkIDDescriptionPa
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -663,13 +730,12 @@ func (a *Client) GetLTENetworkIDDescription(params *GetLTENetworkIDDescriptionPa
 /*
   GetLTENetworkIDFeatures gets feature flags for LTE network
 */
-func (a *Client) GetLTENetworkIDFeatures(params *GetLTENetworkIDFeaturesParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDFeaturesOK, error) {
+func (a *Client) GetLTENetworkIDFeatures(params *GetLTENetworkIDFeaturesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDFeaturesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDFeaturesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDFeatures",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/features",
@@ -681,7 +747,12 @@ func (a *Client) GetLTENetworkIDFeatures(params *GetLTENetworkIDFeaturesParams, 
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -697,13 +768,12 @@ func (a *Client) GetLTENetworkIDFeatures(params *GetLTENetworkIDFeaturesParams, 
 /*
   GetLTENetworkIDGatewayPools lists all gateway pools in LTE network
 */
-func (a *Client) GetLTENetworkIDGatewayPools(params *GetLTENetworkIDGatewayPoolsParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDGatewayPoolsOK, error) {
+func (a *Client) GetLTENetworkIDGatewayPools(params *GetLTENetworkIDGatewayPoolsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDGatewayPoolsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDGatewayPoolsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDGatewayPools",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/gateway_pools",
@@ -715,7 +785,12 @@ func (a *Client) GetLTENetworkIDGatewayPools(params *GetLTENetworkIDGatewayPools
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -731,13 +806,12 @@ func (a *Client) GetLTENetworkIDGatewayPools(params *GetLTENetworkIDGatewayPools
 /*
   GetLTENetworkIDGatewayPoolsGatewayPoolID retrieves gateway pool from LTE network
 */
-func (a *Client) GetLTENetworkIDGatewayPoolsGatewayPoolID(params *GetLTENetworkIDGatewayPoolsGatewayPoolIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDGatewayPoolsGatewayPoolIDOK, error) {
+func (a *Client) GetLTENetworkIDGatewayPoolsGatewayPoolID(params *GetLTENetworkIDGatewayPoolsGatewayPoolIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDGatewayPoolsGatewayPoolIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDGatewayPoolsGatewayPoolIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDGatewayPoolsGatewayPoolID",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/gateway_pools/{gateway_pool_id}",
@@ -749,7 +823,12 @@ func (a *Client) GetLTENetworkIDGatewayPoolsGatewayPoolID(params *GetLTENetworkI
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -765,13 +844,12 @@ func (a *Client) GetLTENetworkIDGatewayPoolsGatewayPoolID(params *GetLTENetworkI
 /*
   GetLTENetworkIDName gets name of an LTE network
 */
-func (a *Client) GetLTENetworkIDName(params *GetLTENetworkIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDNameOK, error) {
+func (a *Client) GetLTENetworkIDName(params *GetLTENetworkIDNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDName",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/name",
@@ -783,7 +861,12 @@ func (a *Client) GetLTENetworkIDName(params *GetLTENetworkIDNameParams, authInfo
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -799,13 +882,12 @@ func (a *Client) GetLTENetworkIDName(params *GetLTENetworkIDNameParams, authInfo
 /*
   GetLTENetworkIDSubscriberConfig gets a network wide subscriber config
 */
-func (a *Client) GetLTENetworkIDSubscriberConfig(params *GetLTENetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDSubscriberConfigOK, error) {
+func (a *Client) GetLTENetworkIDSubscriberConfig(params *GetLTENetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDSubscriberConfigOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDSubscriberConfigParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDSubscriberConfig",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/subscriber_config",
@@ -817,7 +899,12 @@ func (a *Client) GetLTENetworkIDSubscriberConfig(params *GetLTENetworkIDSubscrib
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -833,13 +920,12 @@ func (a *Client) GetLTENetworkIDSubscriberConfig(params *GetLTENetworkIDSubscrib
 /*
   GetLTENetworkIDSubscriberConfigBaseNames gets network wide base names
 */
-func (a *Client) GetLTENetworkIDSubscriberConfigBaseNames(params *GetLTENetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDSubscriberConfigBaseNamesOK, error) {
+func (a *Client) GetLTENetworkIDSubscriberConfigBaseNames(params *GetLTENetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDSubscriberConfigBaseNamesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDSubscriberConfigBaseNamesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDSubscriberConfigBaseNames",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/subscriber_config/base_names",
@@ -851,7 +937,12 @@ func (a *Client) GetLTENetworkIDSubscriberConfigBaseNames(params *GetLTENetworkI
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -867,13 +958,12 @@ func (a *Client) GetLTENetworkIDSubscriberConfigBaseNames(params *GetLTENetworkI
 /*
   GetLTENetworkIDSubscriberConfigRuleNames gets network wide rule names
 */
-func (a *Client) GetLTENetworkIDSubscriberConfigRuleNames(params *GetLTENetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDSubscriberConfigRuleNamesOK, error) {
+func (a *Client) GetLTENetworkIDSubscriberConfigRuleNames(params *GetLTENetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDSubscriberConfigRuleNamesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDSubscriberConfigRuleNamesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDSubscriberConfigRuleNames",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/subscriber_config/rule_names",
@@ -885,7 +975,12 @@ func (a *Client) GetLTENetworkIDSubscriberConfigRuleNames(params *GetLTENetworkI
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -901,13 +996,12 @@ func (a *Client) GetLTENetworkIDSubscriberConfigRuleNames(params *GetLTENetworkI
 /*
   PostLTE creates a new LTE network
 */
-func (a *Client) PostLTE(params *PostLTEParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTECreated, error) {
+func (a *Client) PostLTE(params *PostLTEParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostLTECreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTEParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostLTE",
 		Method:             "POST",
 		PathPattern:        "/lte",
@@ -919,7 +1013,12 @@ func (a *Client) PostLTE(params *PostLTEParams, authInfo runtime.ClientAuthInfoW
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -935,13 +1034,12 @@ func (a *Client) PostLTE(params *PostLTEParams, authInfo runtime.ClientAuthInfoW
 /*
   PostLTENetworkIDDNSRecordsDomain creates a DNS record for a specific domain
 */
-func (a *Client) PostLTENetworkIDDNSRecordsDomain(params *PostLTENetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDDNSRecordsDomainCreated, error) {
+func (a *Client) PostLTENetworkIDDNSRecordsDomain(params *PostLTENetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostLTENetworkIDDNSRecordsDomainCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTENetworkIDDNSRecordsDomainParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostLTENetworkIDDNSRecordsDomain",
 		Method:             "POST",
 		PathPattern:        "/lte/{network_id}/dns/records/{domain}",
@@ -953,7 +1051,12 @@ func (a *Client) PostLTENetworkIDDNSRecordsDomain(params *PostLTENetworkIDDNSRec
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -969,13 +1072,12 @@ func (a *Client) PostLTENetworkIDDNSRecordsDomain(params *PostLTENetworkIDDNSRec
 /*
   PostLTENetworkIDGatewayPools creates new gateway pool in LTE network
 */
-func (a *Client) PostLTENetworkIDGatewayPools(params *PostLTENetworkIDGatewayPoolsParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDGatewayPoolsCreated, error) {
+func (a *Client) PostLTENetworkIDGatewayPools(params *PostLTENetworkIDGatewayPoolsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostLTENetworkIDGatewayPoolsCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTENetworkIDGatewayPoolsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostLTENetworkIDGatewayPools",
 		Method:             "POST",
 		PathPattern:        "/lte/{network_id}/gateway_pools",
@@ -987,7 +1089,12 @@ func (a *Client) PostLTENetworkIDGatewayPools(params *PostLTENetworkIDGatewayPoo
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1003,13 +1110,12 @@ func (a *Client) PostLTENetworkIDGatewayPools(params *PostLTENetworkIDGatewayPoo
 /*
   PostLTENetworkIDSubscriberConfigBaseNamesBaseName adds a network wide base name
 */
-func (a *Client) PostLTENetworkIDSubscriberConfigBaseNamesBaseName(params *PostLTENetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated, error) {
+func (a *Client) PostLTENetworkIDSubscriberConfigBaseNamesBaseName(params *PostLTENetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTENetworkIDSubscriberConfigBaseNamesBaseNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostLTENetworkIDSubscriberConfigBaseNamesBaseName",
 		Method:             "POST",
 		PathPattern:        "/lte/{network_id}/subscriber_config/base_names/{base_name}",
@@ -1021,7 +1127,12 @@ func (a *Client) PostLTENetworkIDSubscriberConfigBaseNamesBaseName(params *PostL
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1037,13 +1148,12 @@ func (a *Client) PostLTENetworkIDSubscriberConfigBaseNamesBaseName(params *PostL
 /*
   PostLTENetworkIDSubscriberConfigRuleNamesRuleID adds a network wide rule name
 */
-func (a *Client) PostLTENetworkIDSubscriberConfigRuleNamesRuleID(params *PostLTENetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDSubscriberConfigRuleNamesRuleIDCreated, error) {
+func (a *Client) PostLTENetworkIDSubscriberConfigRuleNamesRuleID(params *PostLTENetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostLTENetworkIDSubscriberConfigRuleNamesRuleIDCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTENetworkIDSubscriberConfigRuleNamesRuleIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostLTENetworkIDSubscriberConfigRuleNamesRuleID",
 		Method:             "POST",
 		PathPattern:        "/lte/{network_id}/subscriber_config/rule_names/{rule_id}",
@@ -1055,7 +1165,12 @@ func (a *Client) PostLTENetworkIDSubscriberConfigRuleNamesRuleID(params *PostLTE
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1071,13 +1186,12 @@ func (a *Client) PostLTENetworkIDSubscriberConfigRuleNamesRuleID(params *PostLTE
 /*
   PutLTENetworkID updates an entire LTE network
 */
-func (a *Client) PutLTENetworkID(params *PutLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDNoContent, error) {
+func (a *Client) PutLTENetworkID(params *PutLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkID",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}",
@@ -1089,7 +1203,12 @@ func (a *Client) PutLTENetworkID(params *PutLTENetworkIDParams, authInfo runtime
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1105,13 +1224,12 @@ func (a *Client) PutLTENetworkID(params *PutLTENetworkIDParams, authInfo runtime
 /*
   PutLTENetworkIDCellular updates cellular configuration of LTE network
 */
-func (a *Client) PutLTENetworkIDCellular(params *PutLTENetworkIDCellularParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDCellularNoContent, error) {
+func (a *Client) PutLTENetworkIDCellular(params *PutLTENetworkIDCellularParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDCellularNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDCellularParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDCellular",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/cellular",
@@ -1123,7 +1241,12 @@ func (a *Client) PutLTENetworkIDCellular(params *PutLTENetworkIDCellularParams, 
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1139,13 +1262,12 @@ func (a *Client) PutLTENetworkIDCellular(params *PutLTENetworkIDCellularParams, 
 /*
   PutLTENetworkIDCellularEpc updates e p c configuration of LTE network
 */
-func (a *Client) PutLTENetworkIDCellularEpc(params *PutLTENetworkIDCellularEpcParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDCellularEpcNoContent, error) {
+func (a *Client) PutLTENetworkIDCellularEpc(params *PutLTENetworkIDCellularEpcParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDCellularEpcNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDCellularEpcParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDCellularEpc",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/cellular/epc",
@@ -1157,7 +1279,12 @@ func (a *Client) PutLTENetworkIDCellularEpc(params *PutLTENetworkIDCellularEpcPa
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1173,13 +1300,12 @@ func (a *Client) PutLTENetworkIDCellularEpc(params *PutLTENetworkIDCellularEpcPa
 /*
   PutLTENetworkIDCellularFegNetworkID updates the federation gateway network ID
 */
-func (a *Client) PutLTENetworkIDCellularFegNetworkID(params *PutLTENetworkIDCellularFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDCellularFegNetworkIDNoContent, error) {
+func (a *Client) PutLTENetworkIDCellularFegNetworkID(params *PutLTENetworkIDCellularFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDCellularFegNetworkIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDCellularFegNetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDCellularFegNetworkID",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/cellular/feg_network_id",
@@ -1191,7 +1317,12 @@ func (a *Client) PutLTENetworkIDCellularFegNetworkID(params *PutLTENetworkIDCell
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1207,13 +1338,12 @@ func (a *Client) PutLTENetworkIDCellularFegNetworkID(params *PutLTENetworkIDCell
 /*
   PutLTENetworkIDCellularNgc updates n g c configuration of LTE network
 */
-func (a *Client) PutLTENetworkIDCellularNgc(params *PutLTENetworkIDCellularNgcParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDCellularNgcNoContent, error) {
+func (a *Client) PutLTENetworkIDCellularNgc(params *PutLTENetworkIDCellularNgcParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDCellularNgcNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDCellularNgcParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDCellularNgc",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/cellular/ngc",
@@ -1225,7 +1355,12 @@ func (a *Client) PutLTENetworkIDCellularNgc(params *PutLTENetworkIDCellularNgcPa
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1241,13 +1376,12 @@ func (a *Client) PutLTENetworkIDCellularNgc(params *PutLTENetworkIDCellularNgcPa
 /*
   PutLTENetworkIDCellularRan updates r a n configuration of LTE network
 */
-func (a *Client) PutLTENetworkIDCellularRan(params *PutLTENetworkIDCellularRanParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDCellularRanNoContent, error) {
+func (a *Client) PutLTENetworkIDCellularRan(params *PutLTENetworkIDCellularRanParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDCellularRanNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDCellularRanParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDCellularRan",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/cellular/ran",
@@ -1259,7 +1393,12 @@ func (a *Client) PutLTENetworkIDCellularRan(params *PutLTENetworkIDCellularRanPa
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1275,13 +1414,12 @@ func (a *Client) PutLTENetworkIDCellularRan(params *PutLTENetworkIDCellularRanPa
 /*
   PutLTENetworkIDDNS updates DNS configuration of LTE network
 */
-func (a *Client) PutLTENetworkIDDNS(params *PutLTENetworkIDDNSParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDDNSNoContent, error) {
+func (a *Client) PutLTENetworkIDDNS(params *PutLTENetworkIDDNSParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDDNSNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDDNSParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDDNS",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/dns",
@@ -1293,7 +1431,12 @@ func (a *Client) PutLTENetworkIDDNS(params *PutLTENetworkIDDNSParams, authInfo r
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1309,13 +1452,12 @@ func (a *Client) PutLTENetworkIDDNS(params *PutLTENetworkIDDNSParams, authInfo r
 /*
   PutLTENetworkIDDNSRecords changes all the DNS records for the LTE network
 */
-func (a *Client) PutLTENetworkIDDNSRecords(params *PutLTENetworkIDDNSRecordsParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDDNSRecordsNoContent, error) {
+func (a *Client) PutLTENetworkIDDNSRecords(params *PutLTENetworkIDDNSRecordsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDDNSRecordsNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDDNSRecordsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDDNSRecords",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/dns/records",
@@ -1327,7 +1469,12 @@ func (a *Client) PutLTENetworkIDDNSRecords(params *PutLTENetworkIDDNSRecordsPara
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1343,13 +1490,12 @@ func (a *Client) PutLTENetworkIDDNSRecords(params *PutLTENetworkIDDNSRecordsPara
 /*
   PutLTENetworkIDDNSRecordsDomain updates a DNS record for a specific domain
 */
-func (a *Client) PutLTENetworkIDDNSRecordsDomain(params *PutLTENetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDDNSRecordsDomainNoContent, error) {
+func (a *Client) PutLTENetworkIDDNSRecordsDomain(params *PutLTENetworkIDDNSRecordsDomainParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDDNSRecordsDomainNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDDNSRecordsDomainParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDDNSRecordsDomain",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/dns/records/{domain}",
@@ -1361,7 +1507,12 @@ func (a *Client) PutLTENetworkIDDNSRecordsDomain(params *PutLTENetworkIDDNSRecor
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1377,13 +1528,12 @@ func (a *Client) PutLTENetworkIDDNSRecordsDomain(params *PutLTENetworkIDDNSRecor
 /*
   PutLTENetworkIDDescription updates the description of an LTE network
 */
-func (a *Client) PutLTENetworkIDDescription(params *PutLTENetworkIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDDescriptionNoContent, error) {
+func (a *Client) PutLTENetworkIDDescription(params *PutLTENetworkIDDescriptionParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDDescriptionNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDDescriptionParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDDescription",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/description",
@@ -1395,7 +1545,12 @@ func (a *Client) PutLTENetworkIDDescription(params *PutLTENetworkIDDescriptionPa
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1411,13 +1566,12 @@ func (a *Client) PutLTENetworkIDDescription(params *PutLTENetworkIDDescriptionPa
 /*
   PutLTENetworkIDFeatures updates feature flags for LTE network
 */
-func (a *Client) PutLTENetworkIDFeatures(params *PutLTENetworkIDFeaturesParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDFeaturesNoContent, error) {
+func (a *Client) PutLTENetworkIDFeatures(params *PutLTENetworkIDFeaturesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDFeaturesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDFeaturesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDFeatures",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/features",
@@ -1429,7 +1583,12 @@ func (a *Client) PutLTENetworkIDFeatures(params *PutLTENetworkIDFeaturesParams, 
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1445,13 +1604,12 @@ func (a *Client) PutLTENetworkIDFeatures(params *PutLTENetworkIDFeaturesParams, 
 /*
   PutLTENetworkIDGatewayPoolsGatewayPoolID updates gateway pool in LTE network
 */
-func (a *Client) PutLTENetworkIDGatewayPoolsGatewayPoolID(params *PutLTENetworkIDGatewayPoolsGatewayPoolIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDGatewayPoolsGatewayPoolIDCreated, error) {
+func (a *Client) PutLTENetworkIDGatewayPoolsGatewayPoolID(params *PutLTENetworkIDGatewayPoolsGatewayPoolIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDGatewayPoolsGatewayPoolIDCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDGatewayPoolsGatewayPoolIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDGatewayPoolsGatewayPoolID",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/gateway_pools/{gateway_pool_id}",
@@ -1463,7 +1621,12 @@ func (a *Client) PutLTENetworkIDGatewayPoolsGatewayPoolID(params *PutLTENetworkI
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1479,13 +1642,12 @@ func (a *Client) PutLTENetworkIDGatewayPoolsGatewayPoolID(params *PutLTENetworkI
 /*
   PutLTENetworkIDName updates the name of an LTE network
 */
-func (a *Client) PutLTENetworkIDName(params *PutLTENetworkIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDNameNoContent, error) {
+func (a *Client) PutLTENetworkIDName(params *PutLTENetworkIDNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDName",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/name",
@@ -1497,7 +1659,12 @@ func (a *Client) PutLTENetworkIDName(params *PutLTENetworkIDNameParams, authInfo
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1513,13 +1680,12 @@ func (a *Client) PutLTENetworkIDName(params *PutLTENetworkIDNameParams, authInfo
 /*
   PutLTENetworkIDSubscriberConfig updates a network wide subscriber config
 */
-func (a *Client) PutLTENetworkIDSubscriberConfig(params *PutLTENetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDSubscriberConfigNoContent, error) {
+func (a *Client) PutLTENetworkIDSubscriberConfig(params *PutLTENetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDSubscriberConfigNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDSubscriberConfigParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDSubscriberConfig",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/subscriber_config",
@@ -1531,7 +1697,12 @@ func (a *Client) PutLTENetworkIDSubscriberConfig(params *PutLTENetworkIDSubscrib
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1547,13 +1718,12 @@ func (a *Client) PutLTENetworkIDSubscriberConfig(params *PutLTENetworkIDSubscrib
 /*
   PutLTENetworkIDSubscriberConfigBaseNames updates network wide base names
 */
-func (a *Client) PutLTENetworkIDSubscriberConfigBaseNames(params *PutLTENetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDSubscriberConfigBaseNamesNoContent, error) {
+func (a *Client) PutLTENetworkIDSubscriberConfigBaseNames(params *PutLTENetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDSubscriberConfigBaseNamesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDSubscriberConfigBaseNamesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDSubscriberConfigBaseNames",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/subscriber_config/base_names",
@@ -1565,7 +1735,12 @@ func (a *Client) PutLTENetworkIDSubscriberConfigBaseNames(params *PutLTENetworkI
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -1581,13 +1756,12 @@ func (a *Client) PutLTENetworkIDSubscriberConfigBaseNames(params *PutLTENetworkI
 /*
   PutLTENetworkIDSubscriberConfigRuleNames updates network wide rule names
 */
-func (a *Client) PutLTENetworkIDSubscriberConfigRuleNames(params *PutLTENetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDSubscriberConfigRuleNamesNoContent, error) {
+func (a *Client) PutLTENetworkIDSubscriberConfigRuleNames(params *PutLTENetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDSubscriberConfigRuleNamesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDSubscriberConfigRuleNamesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDSubscriberConfigRuleNames",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/subscriber_config/rule_names",
@@ -1599,7 +1773,12 @@ func (a *Client) PutLTENetworkIDSubscriberConfigRuleNames(params *PutLTENetworkI
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

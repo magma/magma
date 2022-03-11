@@ -23,15 +23,18 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
 // ClientService is the interface for Client methods
 type ClientService interface {
-	DeleteLTENetworkIDSMSSMSPk(params *DeleteLTENetworkIDSMSSMSPkParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDSMSSMSPkNoContent, error)
+	DeleteLTENetworkIDSMSSMSPk(params *DeleteLTENetworkIDSMSSMSPkParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteLTENetworkIDSMSSMSPkNoContent, error)
 
-	GetLTENetworkIDSMS(params *GetLTENetworkIDSMSParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDSMSOK, error)
+	GetLTENetworkIDSMS(params *GetLTENetworkIDSMSParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDSMSOK, error)
 
-	GetLTENetworkIDSMSSMSPk(params *GetLTENetworkIDSMSSMSPkParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDSMSSMSPkOK, error)
+	GetLTENetworkIDSMSSMSPk(params *GetLTENetworkIDSMSSMSPkParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDSMSSMSPkOK, error)
 
-	PostLTENetworkIDSMS(params *PostLTENetworkIDSMSParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDSMSCreated, error)
+	PostLTENetworkIDSMS(params *PostLTENetworkIDSMSParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostLTENetworkIDSMSCreated, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -39,13 +42,12 @@ type ClientService interface {
 /*
   DeleteLTENetworkIDSMSSMSPk deletes SMS message
 */
-func (a *Client) DeleteLTENetworkIDSMSSMSPk(params *DeleteLTENetworkIDSMSSMSPkParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDSMSSMSPkNoContent, error) {
+func (a *Client) DeleteLTENetworkIDSMSSMSPk(params *DeleteLTENetworkIDSMSSMSPkParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteLTENetworkIDSMSSMSPkNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDSMSSMSPkParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteLTENetworkIDSMSSMSPk",
 		Method:             "DELETE",
 		PathPattern:        "/lte/{network_id}/sms/{sms_pk}",
@@ -57,7 +59,12 @@ func (a *Client) DeleteLTENetworkIDSMSSMSPk(params *DeleteLTENetworkIDSMSSMSPkPa
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -73,13 +80,12 @@ func (a *Client) DeleteLTENetworkIDSMSSMSPk(params *DeleteLTENetworkIDSMSSMSPkPa
 /*
   GetLTENetworkIDSMS lists SMS messages
 */
-func (a *Client) GetLTENetworkIDSMS(params *GetLTENetworkIDSMSParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDSMSOK, error) {
+func (a *Client) GetLTENetworkIDSMS(params *GetLTENetworkIDSMSParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDSMSOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDSMSParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDSMS",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/sms",
@@ -91,7 +97,12 @@ func (a *Client) GetLTENetworkIDSMS(params *GetLTENetworkIDSMSParams, authInfo r
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -107,13 +118,12 @@ func (a *Client) GetLTENetworkIDSMS(params *GetLTENetworkIDSMSParams, authInfo r
 /*
   GetLTENetworkIDSMSSMSPk gets SMS message
 */
-func (a *Client) GetLTENetworkIDSMSSMSPk(params *GetLTENetworkIDSMSSMSPkParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDSMSSMSPkOK, error) {
+func (a *Client) GetLTENetworkIDSMSSMSPk(params *GetLTENetworkIDSMSSMSPkParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDSMSSMSPkOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDSMSSMSPkParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDSMSSMSPk",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/sms/{sms_pk}",
@@ -125,7 +135,12 @@ func (a *Client) GetLTENetworkIDSMSSMSPk(params *GetLTENetworkIDSMSSMSPkParams, 
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -141,13 +156,12 @@ func (a *Client) GetLTENetworkIDSMSSMSPk(params *GetLTENetworkIDSMSSMSPkParams, 
 /*
   PostLTENetworkIDSMS creates new SMS message
 */
-func (a *Client) PostLTENetworkIDSMS(params *PostLTENetworkIDSMSParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDSMSCreated, error) {
+func (a *Client) PostLTENetworkIDSMS(params *PostLTENetworkIDSMSParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostLTENetworkIDSMSCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTENetworkIDSMSParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostLTENetworkIDSMS",
 		Method:             "POST",
 		PathPattern:        "/lte/{network_id}/sms",
@@ -159,7 +173,12 @@ func (a *Client) PostLTENetworkIDSMS(params *PostLTENetworkIDSMSParams, authInfo
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

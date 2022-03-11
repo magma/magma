@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutFegLTENetworkIDParams creates a new PutFegLTENetworkIDParams object
-// with the default values initialized.
+// NewPutFegLTENetworkIDParams creates a new PutFegLTENetworkIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutFegLTENetworkIDParams() *PutFegLTENetworkIDParams {
-	var ()
 	return &PutFegLTENetworkIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutFegLTENetworkIDParamsWithTimeout creates a new PutFegLTENetworkIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutFegLTENetworkIDParamsWithTimeout(timeout time.Duration) *PutFegLTENetworkIDParams {
-	var ()
 	return &PutFegLTENetworkIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutFegLTENetworkIDParamsWithContext creates a new PutFegLTENetworkIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutFegLTENetworkIDParamsWithContext(ctx context.Context) *PutFegLTENetworkIDParams {
-	var ()
 	return &PutFegLTENetworkIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutFegLTENetworkIDParamsWithHTTPClient creates a new PutFegLTENetworkIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutFegLTENetworkIDParamsWithHTTPClient(client *http.Client) *PutFegLTENetworkIDParams {
-	var ()
 	return &PutFegLTENetworkIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutFegLTENetworkIDParams contains all the parameters to send to the API endpoint
-for the put feg LTE network ID operation typically these are written to a http.Request
+/* PutFegLTENetworkIDParams contains all the parameters to send to the API endpoint
+   for the put feg LTE network ID operation.
+
+   Typically these are written to a http.Request.
 */
 type PutFegLTENetworkIDParams struct {
 
-	/*LTENetwork
-	  Full desired configuration of the network
+	/* LTENetwork.
 
+	   Full desired configuration of the network
 	*/
 	LTENetwork *models.FegLTENetwork
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put feg LTE network ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutFegLTENetworkIDParams) WithDefaults() *PutFegLTENetworkIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put feg LTE network ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutFegLTENetworkIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put feg LTE network ID params
@@ -140,7 +155,6 @@ func (o *PutFegLTENetworkIDParams) WriteToRequest(r runtime.ClientRequest, reg s
 		return err
 	}
 	var res []error
-
 	if o.LTENetwork != nil {
 		if err := r.SetBodyParam(o.LTENetwork); err != nil {
 			return err

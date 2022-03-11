@@ -46,7 +46,7 @@ func NewPostDpNetworkIDCbsdsCreated() *PostDpNetworkIDCbsdsCreated {
 	return &PostDpNetworkIDCbsdsCreated{}
 }
 
-/*PostDpNetworkIDCbsdsCreated handles this case with default header values.
+/* PostDpNetworkIDCbsdsCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostDpNetworkIDCbsdsDefault(code int) *PostDpNetworkIDCbsdsDefault {
 	}
 }
 
-/*PostDpNetworkIDCbsdsDefault handles this case with default header values.
+/* PostDpNetworkIDCbsdsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostDpNetworkIDCbsdsDefault) Code() int {
 func (o *PostDpNetworkIDCbsdsDefault) Error() string {
 	return fmt.Sprintf("[POST /dp/{network_id}/cbsds][%d] PostDpNetworkIDCbsds default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostDpNetworkIDCbsdsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

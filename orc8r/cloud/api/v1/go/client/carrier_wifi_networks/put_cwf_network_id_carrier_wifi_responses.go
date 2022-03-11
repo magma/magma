@@ -46,7 +46,7 @@ func NewPutCwfNetworkIDCarrierWifiOK() *PutCwfNetworkIDCarrierWifiOK {
 	return &PutCwfNetworkIDCarrierWifiOK{}
 }
 
-/*PutCwfNetworkIDCarrierWifiOK handles this case with default header values.
+/* PutCwfNetworkIDCarrierWifiOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutCwfNetworkIDCarrierWifiDefault(code int) *PutCwfNetworkIDCarrierWifiD
 	}
 }
 
-/*PutCwfNetworkIDCarrierWifiDefault handles this case with default header values.
+/* PutCwfNetworkIDCarrierWifiDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutCwfNetworkIDCarrierWifiDefault) Code() int {
 func (o *PutCwfNetworkIDCarrierWifiDefault) Error() string {
 	return fmt.Sprintf("[PUT /cwf/{network_id}/carrier_wifi][%d] PutCwfNetworkIDCarrierWifi default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutCwfNetworkIDCarrierWifiDefault) GetPayload() *models.Error {
 	return o.Payload
 }

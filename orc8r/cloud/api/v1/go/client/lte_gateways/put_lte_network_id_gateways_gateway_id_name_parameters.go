@@ -18,66 +18,82 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutLTENetworkIDGatewaysGatewayIDNameParams creates a new PutLTENetworkIDGatewaysGatewayIDNameParams object
-// with the default values initialized.
+// NewPutLTENetworkIDGatewaysGatewayIDNameParams creates a new PutLTENetworkIDGatewaysGatewayIDNameParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutLTENetworkIDGatewaysGatewayIDNameParams() *PutLTENetworkIDGatewaysGatewayIDNameParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDNameParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDNameParamsWithTimeout creates a new PutLTENetworkIDGatewaysGatewayIDNameParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutLTENetworkIDGatewaysGatewayIDNameParamsWithTimeout(timeout time.Duration) *PutLTENetworkIDGatewaysGatewayIDNameParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDNameParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDNameParamsWithContext creates a new PutLTENetworkIDGatewaysGatewayIDNameParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutLTENetworkIDGatewaysGatewayIDNameParamsWithContext(ctx context.Context) *PutLTENetworkIDGatewaysGatewayIDNameParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDNameParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDNameParamsWithHTTPClient creates a new PutLTENetworkIDGatewaysGatewayIDNameParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutLTENetworkIDGatewaysGatewayIDNameParamsWithHTTPClient(client *http.Client) *PutLTENetworkIDGatewaysGatewayIDNameParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDNameParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDNameParams contains all the parameters to send to the API endpoint
-for the put LTE network ID gateways gateway ID name operation typically these are written to a http.Request
+/* PutLTENetworkIDGatewaysGatewayIDNameParams contains all the parameters to send to the API endpoint
+   for the put LTE network ID gateways gateway ID name operation.
+
+   Typically these are written to a http.Request.
 */
 type PutLTENetworkIDGatewaysGatewayIDNameParams struct {
 
-	/*GatewayID
-	  Gateway ID
+	/* GatewayID.
 
+	   Gateway ID
 	*/
 	GatewayID string
-	/*Name*/
-	Name models.GatewayName
-	/*NetworkID
-	  Network ID
 
+	// Name.
+	Name models.GatewayName
+
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put LTE network ID gateways gateway ID name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDGatewaysGatewayIDNameParams) WithDefaults() *PutLTENetworkIDGatewaysGatewayIDNameParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put LTE network ID gateways gateway ID name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDGatewaysGatewayIDNameParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put LTE network ID gateways gateway ID name params
@@ -158,7 +174,6 @@ func (o *PutLTENetworkIDGatewaysGatewayIDNameParams) WriteToRequest(r runtime.Cl
 	if err := r.SetPathParam("gateway_id", o.GatewayID); err != nil {
 		return err
 	}
-
 	if err := r.SetBodyParam(o.Name); err != nil {
 		return err
 	}

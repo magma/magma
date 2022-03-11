@@ -46,7 +46,7 @@ func NewPostNetworksNetworkIDPrometheusAlertReceiverRouteOK() *PostNetworksNetwo
 	return &PostNetworksNetworkIDPrometheusAlertReceiverRouteOK{}
 }
 
-/*PostNetworksNetworkIDPrometheusAlertReceiverRouteOK handles this case with default header values.
+/* PostNetworksNetworkIDPrometheusAlertReceiverRouteOK describes a response with status code 200, with default header values.
 
 OK
 */
@@ -69,7 +69,7 @@ func NewPostNetworksNetworkIDPrometheusAlertReceiverRouteDefault(code int) *Post
 	}
 }
 
-/*PostNetworksNetworkIDPrometheusAlertReceiverRouteDefault handles this case with default header values.
+/* PostNetworksNetworkIDPrometheusAlertReceiverRouteDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostNetworksNetworkIDPrometheusAlertReceiverRouteDefault) Code() int {
 func (o *PostNetworksNetworkIDPrometheusAlertReceiverRouteDefault) Error() string {
 	return fmt.Sprintf("[POST /networks/{network_id}/prometheus/alert_receiver/route][%d] PostNetworksNetworkIDPrometheusAlertReceiverRoute default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostNetworksNetworkIDPrometheusAlertReceiverRouteDefault) GetPayload() *models.Error {
 	return o.Payload
 }

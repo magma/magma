@@ -46,7 +46,7 @@ func NewPutNetworksNetworkIDGatewaysGatewayIDDeviceNoContent() *PutNetworksNetwo
 	return &PutNetworksNetworkIDGatewaysGatewayIDDeviceNoContent{}
 }
 
-/*PutNetworksNetworkIDGatewaysGatewayIDDeviceNoContent handles this case with default header values.
+/* PutNetworksNetworkIDGatewaysGatewayIDDeviceNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutNetworksNetworkIDGatewaysGatewayIDDeviceDefault(code int) *PutNetwork
 	}
 }
 
-/*PutNetworksNetworkIDGatewaysGatewayIDDeviceDefault handles this case with default header values.
+/* PutNetworksNetworkIDGatewaysGatewayIDDeviceDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutNetworksNetworkIDGatewaysGatewayIDDeviceDefault) Code() int {
 func (o *PutNetworksNetworkIDGatewaysGatewayIDDeviceDefault) Error() string {
 	return fmt.Sprintf("[PUT /networks/{network_id}/gateways/{gateway_id}/device][%d] PutNetworksNetworkIDGatewaysGatewayIDDevice default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutNetworksNetworkIDGatewaysGatewayIDDeviceDefault) GetPayload() *models.Error {
 	return o.Payload
 }

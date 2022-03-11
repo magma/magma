@@ -18,59 +18,73 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostCwfParams creates a new PostCwfParams object
-// with the default values initialized.
+// NewPostCwfParams creates a new PostCwfParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostCwfParams() *PostCwfParams {
-	var ()
 	return &PostCwfParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostCwfParamsWithTimeout creates a new PostCwfParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostCwfParamsWithTimeout(timeout time.Duration) *PostCwfParams {
-	var ()
 	return &PostCwfParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostCwfParamsWithContext creates a new PostCwfParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostCwfParamsWithContext(ctx context.Context) *PostCwfParams {
-	var ()
 	return &PostCwfParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostCwfParamsWithHTTPClient creates a new PostCwfParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostCwfParamsWithHTTPClient(client *http.Client) *PostCwfParams {
-	var ()
 	return &PostCwfParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostCwfParams contains all the parameters to send to the API endpoint
-for the post cwf operation typically these are written to a http.Request
+/* PostCwfParams contains all the parameters to send to the API endpoint
+   for the post cwf operation.
+
+   Typically these are written to a http.Request.
 */
 type PostCwfParams struct {
 
-	/*CwfNetwork
-	  Configuration of the network to create
+	/* CwfNetwork.
 
+	   Configuration of the network to create
 	*/
 	CwfNetwork *models.CwfNetwork
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post cwf params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostCwfParams) WithDefaults() *PostCwfParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post cwf params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostCwfParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post cwf params
@@ -124,7 +138,6 @@ func (o *PostCwfParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Regis
 		return err
 	}
 	var res []error
-
 	if o.CwfNetwork != nil {
 		if err := r.SetBodyParam(o.CwfNetwork); err != nil {
 			return err

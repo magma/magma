@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutNetworksNetworkIDFeaturesParams creates a new PutNetworksNetworkIDFeaturesParams object
-// with the default values initialized.
+// NewPutNetworksNetworkIDFeaturesParams creates a new PutNetworksNetworkIDFeaturesParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutNetworksNetworkIDFeaturesParams() *PutNetworksNetworkIDFeaturesParams {
-	var ()
 	return &PutNetworksNetworkIDFeaturesParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutNetworksNetworkIDFeaturesParamsWithTimeout creates a new PutNetworksNetworkIDFeaturesParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutNetworksNetworkIDFeaturesParamsWithTimeout(timeout time.Duration) *PutNetworksNetworkIDFeaturesParams {
-	var ()
 	return &PutNetworksNetworkIDFeaturesParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutNetworksNetworkIDFeaturesParamsWithContext creates a new PutNetworksNetworkIDFeaturesParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutNetworksNetworkIDFeaturesParamsWithContext(ctx context.Context) *PutNetworksNetworkIDFeaturesParams {
-	var ()
 	return &PutNetworksNetworkIDFeaturesParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutNetworksNetworkIDFeaturesParamsWithHTTPClient creates a new PutNetworksNetworkIDFeaturesParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutNetworksNetworkIDFeaturesParamsWithHTTPClient(client *http.Client) *PutNetworksNetworkIDFeaturesParams {
-	var ()
 	return &PutNetworksNetworkIDFeaturesParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutNetworksNetworkIDFeaturesParams contains all the parameters to send to the API endpoint
-for the put networks network ID features operation typically these are written to a http.Request
+/* PutNetworksNetworkIDFeaturesParams contains all the parameters to send to the API endpoint
+   for the put networks network ID features operation.
+
+   Typically these are written to a http.Request.
 */
 type PutNetworksNetworkIDFeaturesParams struct {
 
-	/*NetworkFeatures
-	  New network features for the network
+	/* NetworkFeatures.
 
+	   New network features for the network
 	*/
 	NetworkFeatures *models.NetworkFeatures
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put networks network ID features params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDFeaturesParams) WithDefaults() *PutNetworksNetworkIDFeaturesParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put networks network ID features params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDFeaturesParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put networks network ID features params
@@ -140,7 +155,6 @@ func (o *PutNetworksNetworkIDFeaturesParams) WriteToRequest(r runtime.ClientRequ
 		return err
 	}
 	var res []error
-
 	if o.NetworkFeatures != nil {
 		if err := r.SetBodyParam(o.NetworkFeatures); err != nil {
 			return err

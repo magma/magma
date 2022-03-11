@@ -46,7 +46,7 @@ func NewPutCwfNetworkIDHaPairsHaPairIDOK() *PutCwfNetworkIDHaPairsHaPairIDOK {
 	return &PutCwfNetworkIDHaPairsHaPairIDOK{}
 }
 
-/*PutCwfNetworkIDHaPairsHaPairIDOK handles this case with default header values.
+/* PutCwfNetworkIDHaPairsHaPairIDOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutCwfNetworkIDHaPairsHaPairIDDefault(code int) *PutCwfNetworkIDHaPairsH
 	}
 }
 
-/*PutCwfNetworkIDHaPairsHaPairIDDefault handles this case with default header values.
+/* PutCwfNetworkIDHaPairsHaPairIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutCwfNetworkIDHaPairsHaPairIDDefault) Code() int {
 func (o *PutCwfNetworkIDHaPairsHaPairIDDefault) Error() string {
 	return fmt.Sprintf("[PUT /cwf/{network_id}/ha_pairs/{ha_pair_id}][%d] PutCwfNetworkIDHaPairsHaPairID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutCwfNetworkIDHaPairsHaPairIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

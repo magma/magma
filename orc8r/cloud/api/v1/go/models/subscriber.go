@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -51,6 +53,7 @@ type Subscriber struct {
 	Msisdn Msisdn `json:"msisdn,omitempty"`
 
 	// Optional name associated with the subscriber
+	// Example: Jane Doe
 	Name string `json:"name,omitempty"`
 
 	// state
@@ -112,7 +115,6 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 }
 
 func (m *Subscriber) validateActiveAPNS(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ActiveAPNS) { // not required
 		return nil
 	}
@@ -120,6 +122,8 @@ func (m *Subscriber) validateActiveAPNS(formats strfmt.Registry) error {
 	if err := m.ActiveAPNS.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("active_apns")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("active_apns")
 		}
 		return err
 	}
@@ -128,7 +132,6 @@ func (m *Subscriber) validateActiveAPNS(formats strfmt.Registry) error {
 }
 
 func (m *Subscriber) validateActiveBaseNames(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ActiveBaseNames) { // not required
 		return nil
 	}
@@ -136,6 +139,8 @@ func (m *Subscriber) validateActiveBaseNames(formats strfmt.Registry) error {
 	if err := m.ActiveBaseNames.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("active_base_names")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("active_base_names")
 		}
 		return err
 	}
@@ -144,7 +149,6 @@ func (m *Subscriber) validateActiveBaseNames(formats strfmt.Registry) error {
 }
 
 func (m *Subscriber) validateActivePolicies(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ActivePolicies) { // not required
 		return nil
 	}
@@ -152,6 +156,8 @@ func (m *Subscriber) validateActivePolicies(formats strfmt.Registry) error {
 	if err := m.ActivePolicies.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("active_policies")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("active_policies")
 		}
 		return err
 	}
@@ -160,16 +166,19 @@ func (m *Subscriber) validateActivePolicies(formats strfmt.Registry) error {
 }
 
 func (m *Subscriber) validateActivePoliciesByAPN(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ActivePoliciesByAPN) { // not required
 		return nil
 	}
 
-	if err := m.ActivePoliciesByAPN.Validate(formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("active_policies_by_apn")
+	if m.ActivePoliciesByAPN != nil {
+		if err := m.ActivePoliciesByAPN.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("active_policies_by_apn")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("active_policies_by_apn")
+			}
+			return err
 		}
-		return err
 	}
 
 	return nil
@@ -185,6 +194,8 @@ func (m *Subscriber) validateConfig(formats strfmt.Registry) error {
 		if err := m.Config.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("config")
 			}
 			return err
 		}
@@ -194,7 +205,6 @@ func (m *Subscriber) validateConfig(formats strfmt.Registry) error {
 }
 
 func (m *Subscriber) validateForbiddenNetworkTypes(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ForbiddenNetworkTypes) { // not required
 		return nil
 	}
@@ -202,6 +212,8 @@ func (m *Subscriber) validateForbiddenNetworkTypes(formats strfmt.Registry) erro
 	if err := m.ForbiddenNetworkTypes.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("forbidden_network_types")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("forbidden_network_types")
 		}
 		return err
 	}
@@ -211,9 +223,15 @@ func (m *Subscriber) validateForbiddenNetworkTypes(formats strfmt.Registry) erro
 
 func (m *Subscriber) validateID(formats strfmt.Registry) error {
 
+	if err := validate.Required("id", "body", SubscriberID(m.ID)); err != nil {
+		return err
+	}
+
 	if err := m.ID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
 		}
 		return err
 	}
@@ -231,6 +249,8 @@ func (m *Subscriber) validateLTE(formats strfmt.Registry) error {
 		if err := m.LTE.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("lte")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("lte")
 			}
 			return err
 		}
@@ -240,7 +260,6 @@ func (m *Subscriber) validateLTE(formats strfmt.Registry) error {
 }
 
 func (m *Subscriber) validateMonitoring(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Monitoring) { // not required
 		return nil
 	}
@@ -249,6 +268,8 @@ func (m *Subscriber) validateMonitoring(formats strfmt.Registry) error {
 		if err := m.Monitoring.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("monitoring")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("monitoring")
 			}
 			return err
 		}
@@ -258,7 +279,6 @@ func (m *Subscriber) validateMonitoring(formats strfmt.Registry) error {
 }
 
 func (m *Subscriber) validateMsisdn(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Msisdn) { // not required
 		return nil
 	}
@@ -266,6 +286,8 @@ func (m *Subscriber) validateMsisdn(formats strfmt.Registry) error {
 	if err := m.Msisdn.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("msisdn")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("msisdn")
 		}
 		return err
 	}
@@ -274,7 +296,6 @@ func (m *Subscriber) validateMsisdn(formats strfmt.Registry) error {
 }
 
 func (m *Subscriber) validateState(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.State) { // not required
 		return nil
 	}
@@ -283,6 +304,224 @@ func (m *Subscriber) validateState(formats strfmt.Registry) error {
 		if err := m.State.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("state")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("state")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this subscriber based on the context it is used
+func (m *Subscriber) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateActiveAPNS(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateActiveBaseNames(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateActivePolicies(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateActivePoliciesByAPN(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateForbiddenNetworkTypes(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateLTE(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateMonitoring(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateMsisdn(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateState(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *Subscriber) contextValidateActiveAPNS(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ActiveAPNS.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("active_apns")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("active_apns")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Subscriber) contextValidateActiveBaseNames(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ActiveBaseNames.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("active_base_names")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("active_base_names")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Subscriber) contextValidateActivePolicies(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ActivePolicies.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("active_policies")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("active_policies")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Subscriber) contextValidateActivePoliciesByAPN(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ActivePoliciesByAPN.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("active_policies_by_apn")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("active_policies_by_apn")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Subscriber) contextValidateConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Config != nil {
+		if err := m.Config.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Subscriber) contextValidateForbiddenNetworkTypes(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ForbiddenNetworkTypes.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("forbidden_network_types")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("forbidden_network_types")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Subscriber) contextValidateID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ID.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Subscriber) contextValidateLTE(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.LTE != nil {
+		if err := m.LTE.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("lte")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("lte")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Subscriber) contextValidateMonitoring(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Monitoring != nil {
+		if err := m.Monitoring.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("monitoring")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("monitoring")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Subscriber) contextValidateMsisdn(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Msisdn.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("msisdn")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("msisdn")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Subscriber) contextValidateState(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.State != nil {
+		if err := m.State.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("state")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("state")
 			}
 			return err
 		}

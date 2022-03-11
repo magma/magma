@@ -46,7 +46,7 @@ func NewGetLTENetworkIDSubscribersOK() *GetLTENetworkIDSubscribersOK {
 	return &GetLTENetworkIDSubscribersOK{}
 }
 
-/*GetLTENetworkIDSubscribersOK handles this case with default header values.
+/* GetLTENetworkIDSubscribersOK describes a response with status code 200, with default header values.
 
 List of subscribers in the network
 */
@@ -57,7 +57,6 @@ type GetLTENetworkIDSubscribersOK struct {
 func (o *GetLTENetworkIDSubscribersOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/subscribers][%d] getLteNetworkIdSubscribersOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDSubscribersOK) GetPayload() *models.PaginatedSubscribers {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetLTENetworkIDSubscribersDefault(code int) *GetLTENetworkIDSubscribersD
 	}
 }
 
-/*GetLTENetworkIDSubscribersDefault handles this case with default header values.
+/* GetLTENetworkIDSubscribersDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetLTENetworkIDSubscribersDefault) Code() int {
 func (o *GetLTENetworkIDSubscribersDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/subscribers][%d] GetLTENetworkIDSubscribers default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDSubscribersDefault) GetPayload() *models.Error {
 	return o.Payload
 }

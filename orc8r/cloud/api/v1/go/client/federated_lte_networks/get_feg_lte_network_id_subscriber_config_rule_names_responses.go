@@ -46,7 +46,7 @@ func NewGetFegLTENetworkIDSubscriberConfigRuleNamesOK() *GetFegLTENetworkIDSubsc
 	return &GetFegLTENetworkIDSubscriberConfigRuleNamesOK{}
 }
 
-/*GetFegLTENetworkIDSubscriberConfigRuleNamesOK handles this case with default header values.
+/* GetFegLTENetworkIDSubscriberConfigRuleNamesOK describes a response with status code 200, with default header values.
 
 Subscriber Config
 */
@@ -57,7 +57,6 @@ type GetFegLTENetworkIDSubscriberConfigRuleNamesOK struct {
 func (o *GetFegLTENetworkIDSubscriberConfigRuleNamesOK) Error() string {
 	return fmt.Sprintf("[GET /feg_lte/{network_id}/subscriber_config/rule_names][%d] getFegLteNetworkIdSubscriberConfigRuleNamesOK  %+v", 200, o.Payload)
 }
-
 func (o *GetFegLTENetworkIDSubscriberConfigRuleNamesOK) GetPayload() models.RuleNames {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetFegLTENetworkIDSubscriberConfigRuleNamesDefault(code int) *GetFegLTEN
 	}
 }
 
-/*GetFegLTENetworkIDSubscriberConfigRuleNamesDefault handles this case with default header values.
+/* GetFegLTENetworkIDSubscriberConfigRuleNamesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetFegLTENetworkIDSubscriberConfigRuleNamesDefault) Code() int {
 func (o *GetFegLTENetworkIDSubscriberConfigRuleNamesDefault) Error() string {
 	return fmt.Sprintf("[GET /feg_lte/{network_id}/subscriber_config/rule_names][%d] GetFegLTENetworkIDSubscriberConfigRuleNames default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetFegLTENetworkIDSubscriberConfigRuleNamesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

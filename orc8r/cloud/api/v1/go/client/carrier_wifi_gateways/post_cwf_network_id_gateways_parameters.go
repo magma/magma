@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostCwfNetworkIDGatewaysParams creates a new PostCwfNetworkIDGatewaysParams object
-// with the default values initialized.
+// NewPostCwfNetworkIDGatewaysParams creates a new PostCwfNetworkIDGatewaysParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostCwfNetworkIDGatewaysParams() *PostCwfNetworkIDGatewaysParams {
-	var ()
 	return &PostCwfNetworkIDGatewaysParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostCwfNetworkIDGatewaysParamsWithTimeout creates a new PostCwfNetworkIDGatewaysParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostCwfNetworkIDGatewaysParamsWithTimeout(timeout time.Duration) *PostCwfNetworkIDGatewaysParams {
-	var ()
 	return &PostCwfNetworkIDGatewaysParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostCwfNetworkIDGatewaysParamsWithContext creates a new PostCwfNetworkIDGatewaysParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostCwfNetworkIDGatewaysParamsWithContext(ctx context.Context) *PostCwfNetworkIDGatewaysParams {
-	var ()
 	return &PostCwfNetworkIDGatewaysParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostCwfNetworkIDGatewaysParamsWithHTTPClient creates a new PostCwfNetworkIDGatewaysParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostCwfNetworkIDGatewaysParamsWithHTTPClient(client *http.Client) *PostCwfNetworkIDGatewaysParams {
-	var ()
 	return &PostCwfNetworkIDGatewaysParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostCwfNetworkIDGatewaysParams contains all the parameters to send to the API endpoint
-for the post cwf network ID gateways operation typically these are written to a http.Request
+/* PostCwfNetworkIDGatewaysParams contains all the parameters to send to the API endpoint
+   for the post cwf network ID gateways operation.
+
+   Typically these are written to a http.Request.
 */
 type PostCwfNetworkIDGatewaysParams struct {
 
-	/*Gateway
-	  Full desired configuration of the gateway
+	/* Gateway.
 
+	   Full desired configuration of the gateway
 	*/
 	Gateway *models.MutableCwfGateway
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post cwf network ID gateways params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostCwfNetworkIDGatewaysParams) WithDefaults() *PostCwfNetworkIDGatewaysParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post cwf network ID gateways params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostCwfNetworkIDGatewaysParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post cwf network ID gateways params
@@ -140,7 +155,6 @@ func (o *PostCwfNetworkIDGatewaysParams) WriteToRequest(r runtime.ClientRequest,
 		return err
 	}
 	var res []error
-
 	if o.Gateway != nil {
 		if err := r.SetBodyParam(o.Gateway); err != nil {
 			return err

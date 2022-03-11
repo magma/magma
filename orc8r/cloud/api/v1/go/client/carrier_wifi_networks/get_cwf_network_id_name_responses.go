@@ -46,7 +46,7 @@ func NewGetCwfNetworkIDNameOK() *GetCwfNetworkIDNameOK {
 	return &GetCwfNetworkIDNameOK{}
 }
 
-/*GetCwfNetworkIDNameOK handles this case with default header values.
+/* GetCwfNetworkIDNameOK describes a response with status code 200, with default header values.
 
 Name of the network
 */
@@ -57,7 +57,6 @@ type GetCwfNetworkIDNameOK struct {
 func (o *GetCwfNetworkIDNameOK) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/name][%d] getCwfNetworkIdNameOK  %+v", 200, o.Payload)
 }
-
 func (o *GetCwfNetworkIDNameOK) GetPayload() models.NetworkName {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetCwfNetworkIDNameDefault(code int) *GetCwfNetworkIDNameDefault {
 	}
 }
 
-/*GetCwfNetworkIDNameDefault handles this case with default header values.
+/* GetCwfNetworkIDNameDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetCwfNetworkIDNameDefault) Code() int {
 func (o *GetCwfNetworkIDNameDefault) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/name][%d] GetCwfNetworkIDName default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetCwfNetworkIDNameDefault) GetPayload() *models.Error {
 	return o.Payload
 }

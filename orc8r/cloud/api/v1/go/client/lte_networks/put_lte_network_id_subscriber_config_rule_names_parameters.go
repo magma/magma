@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutLTENetworkIDSubscriberConfigRuleNamesParams creates a new PutLTENetworkIDSubscriberConfigRuleNamesParams object
-// with the default values initialized.
+// NewPutLTENetworkIDSubscriberConfigRuleNamesParams creates a new PutLTENetworkIDSubscriberConfigRuleNamesParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutLTENetworkIDSubscriberConfigRuleNamesParams() *PutLTENetworkIDSubscriberConfigRuleNamesParams {
-	var ()
 	return &PutLTENetworkIDSubscriberConfigRuleNamesParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutLTENetworkIDSubscriberConfigRuleNamesParamsWithTimeout creates a new PutLTENetworkIDSubscriberConfigRuleNamesParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutLTENetworkIDSubscriberConfigRuleNamesParamsWithTimeout(timeout time.Duration) *PutLTENetworkIDSubscriberConfigRuleNamesParams {
-	var ()
 	return &PutLTENetworkIDSubscriberConfigRuleNamesParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutLTENetworkIDSubscriberConfigRuleNamesParamsWithContext creates a new PutLTENetworkIDSubscriberConfigRuleNamesParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutLTENetworkIDSubscriberConfigRuleNamesParamsWithContext(ctx context.Context) *PutLTENetworkIDSubscriberConfigRuleNamesParams {
-	var ()
 	return &PutLTENetworkIDSubscriberConfigRuleNamesParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutLTENetworkIDSubscriberConfigRuleNamesParamsWithHTTPClient creates a new PutLTENetworkIDSubscriberConfigRuleNamesParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutLTENetworkIDSubscriberConfigRuleNamesParamsWithHTTPClient(client *http.Client) *PutLTENetworkIDSubscriberConfigRuleNamesParams {
-	var ()
 	return &PutLTENetworkIDSubscriberConfigRuleNamesParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutLTENetworkIDSubscriberConfigRuleNamesParams contains all the parameters to send to the API endpoint
-for the put LTE network ID subscriber config rule names operation typically these are written to a http.Request
+/* PutLTENetworkIDSubscriberConfigRuleNamesParams contains all the parameters to send to the API endpoint
+   for the put LTE network ID subscriber config rule names operation.
+
+   Typically these are written to a http.Request.
 */
 type PutLTENetworkIDSubscriberConfigRuleNamesParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*Record
-	  Subscriber Config for the Network
 
+	/* Record.
+
+	   Subscriber Config for the Network
 	*/
 	Record models.RuleNames
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put LTE network ID subscriber config rule names params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDSubscriberConfigRuleNamesParams) WithDefaults() *PutLTENetworkIDSubscriberConfigRuleNamesParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put LTE network ID subscriber config rule names params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDSubscriberConfigRuleNamesParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put LTE network ID subscriber config rule names params
@@ -145,7 +160,6 @@ func (o *PutLTENetworkIDSubscriberConfigRuleNamesParams) WriteToRequest(r runtim
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.Record != nil {
 		if err := r.SetBodyParam(o.Record); err != nil {
 			return err

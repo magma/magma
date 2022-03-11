@@ -46,7 +46,7 @@ func NewGetLTENetworkIDSubscriberConfigRuleNamesOK() *GetLTENetworkIDSubscriberC
 	return &GetLTENetworkIDSubscriberConfigRuleNamesOK{}
 }
 
-/*GetLTENetworkIDSubscriberConfigRuleNamesOK handles this case with default header values.
+/* GetLTENetworkIDSubscriberConfigRuleNamesOK describes a response with status code 200, with default header values.
 
 Subscriber Config
 */
@@ -57,7 +57,6 @@ type GetLTENetworkIDSubscriberConfigRuleNamesOK struct {
 func (o *GetLTENetworkIDSubscriberConfigRuleNamesOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/subscriber_config/rule_names][%d] getLteNetworkIdSubscriberConfigRuleNamesOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDSubscriberConfigRuleNamesOK) GetPayload() models.RuleNames {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetLTENetworkIDSubscriberConfigRuleNamesDefault(code int) *GetLTENetwork
 	}
 }
 
-/*GetLTENetworkIDSubscriberConfigRuleNamesDefault handles this case with default header values.
+/* GetLTENetworkIDSubscriberConfigRuleNamesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetLTENetworkIDSubscriberConfigRuleNamesDefault) Code() int {
 func (o *GetLTENetworkIDSubscriberConfigRuleNamesDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/subscriber_config/rule_names][%d] GetLTENetworkIDSubscriberConfigRuleNames default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDSubscriberConfigRuleNamesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

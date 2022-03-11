@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutLTENetworkIDGatewaysGatewayIDDeviceParams creates a new PutLTENetworkIDGatewaysGatewayIDDeviceParams object
-// with the default values initialized.
+// NewPutLTENetworkIDGatewaysGatewayIDDeviceParams creates a new PutLTENetworkIDGatewaysGatewayIDDeviceParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutLTENetworkIDGatewaysGatewayIDDeviceParams() *PutLTENetworkIDGatewaysGatewayIDDeviceParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDDeviceParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDDeviceParamsWithTimeout creates a new PutLTENetworkIDGatewaysGatewayIDDeviceParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutLTENetworkIDGatewaysGatewayIDDeviceParamsWithTimeout(timeout time.Duration) *PutLTENetworkIDGatewaysGatewayIDDeviceParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDDeviceParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDDeviceParamsWithContext creates a new PutLTENetworkIDGatewaysGatewayIDDeviceParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutLTENetworkIDGatewaysGatewayIDDeviceParamsWithContext(ctx context.Context) *PutLTENetworkIDGatewaysGatewayIDDeviceParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDDeviceParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDDeviceParamsWithHTTPClient creates a new PutLTENetworkIDGatewaysGatewayIDDeviceParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutLTENetworkIDGatewaysGatewayIDDeviceParamsWithHTTPClient(client *http.Client) *PutLTENetworkIDGatewaysGatewayIDDeviceParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDDeviceParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDDeviceParams contains all the parameters to send to the API endpoint
-for the put LTE network ID gateways gateway ID device operation typically these are written to a http.Request
+/* PutLTENetworkIDGatewaysGatewayIDDeviceParams contains all the parameters to send to the API endpoint
+   for the put LTE network ID gateways gateway ID device operation.
+
+   Typically these are written to a http.Request.
 */
 type PutLTENetworkIDGatewaysGatewayIDDeviceParams struct {
 
-	/*Device
-	  New device for the LTE gateway
+	/* Device.
 
+	   New device for the LTE gateway
 	*/
 	Device *models.GatewayDevice
-	/*GatewayID
-	  Gateway ID
 
+	/* GatewayID.
+
+	   Gateway ID
 	*/
 	GatewayID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put LTE network ID gateways gateway ID device params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDGatewaysGatewayIDDeviceParams) WithDefaults() *PutLTENetworkIDGatewaysGatewayIDDeviceParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put LTE network ID gateways gateway ID device params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDGatewaysGatewayIDDeviceParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put LTE network ID gateways gateway ID device params
@@ -156,7 +172,6 @@ func (o *PutLTENetworkIDGatewaysGatewayIDDeviceParams) WriteToRequest(r runtime.
 		return err
 	}
 	var res []error
-
 	if o.Device != nil {
 		if err := r.SetBodyParam(o.Device); err != nil {
 			return err

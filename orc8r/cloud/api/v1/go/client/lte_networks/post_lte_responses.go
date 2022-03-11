@@ -46,7 +46,7 @@ func NewPostLTECreated() *PostLTECreated {
 	return &PostLTECreated{}
 }
 
-/*PostLTECreated handles this case with default header values.
+/* PostLTECreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostLTEDefault(code int) *PostLTEDefault {
 	}
 }
 
-/*PostLTEDefault handles this case with default header values.
+/* PostLTEDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostLTEDefault) Code() int {
 func (o *PostLTEDefault) Error() string {
 	return fmt.Sprintf("[POST /lte][%d] PostLTE default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostLTEDefault) GetPayload() *models.Error {
 	return o.Payload
 }

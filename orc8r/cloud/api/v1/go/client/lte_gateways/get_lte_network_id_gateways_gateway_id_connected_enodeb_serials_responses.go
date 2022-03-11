@@ -46,7 +46,7 @@ func NewGetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsOK() *GetLTENetwor
 	return &GetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsOK{}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsOK handles this case with default header values.
+/* GetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsOK describes a response with status code 200, with default header values.
 
 The SNs of all enodeBs
 */
@@ -57,7 +57,6 @@ type GetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsOK struct {
 func (o *GetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/gateways/{gateway_id}/connected_enodeb_serials][%d] getLteNetworkIdGatewaysGatewayIdConnectedEnodebSerialsOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsOK) GetPayload() models.ENODEBSerials {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault(code int) 
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault handles this case with default header values.
+/* GetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault) Code() i
 func (o *GetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/gateways/{gateway_id}/connected_enodeb_serials][%d] GetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerials default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

@@ -18,59 +18,73 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostNetworksParams creates a new PostNetworksParams object
-// with the default values initialized.
+// NewPostNetworksParams creates a new PostNetworksParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostNetworksParams() *PostNetworksParams {
-	var ()
 	return &PostNetworksParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostNetworksParamsWithTimeout creates a new PostNetworksParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostNetworksParamsWithTimeout(timeout time.Duration) *PostNetworksParams {
-	var ()
 	return &PostNetworksParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostNetworksParamsWithContext creates a new PostNetworksParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostNetworksParamsWithContext(ctx context.Context) *PostNetworksParams {
-	var ()
 	return &PostNetworksParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostNetworksParamsWithHTTPClient creates a new PostNetworksParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostNetworksParamsWithHTTPClient(client *http.Client) *PostNetworksParams {
-	var ()
 	return &PostNetworksParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostNetworksParams contains all the parameters to send to the API endpoint
-for the post networks operation typically these are written to a http.Request
+/* PostNetworksParams contains all the parameters to send to the API endpoint
+   for the post networks operation.
+
+   Typically these are written to a http.Request.
 */
 type PostNetworksParams struct {
 
-	/*Network
-	  Configuration of the network to create
+	/* Network.
 
+	   Configuration of the network to create
 	*/
 	Network *models.Network
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post networks params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksParams) WithDefaults() *PostNetworksParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post networks params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post networks params
@@ -124,7 +138,6 @@ func (o *PostNetworksParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.
 		return err
 	}
 	var res []error
-
 	if o.Network != nil {
 		if err := r.SetBodyParam(o.Network); err != nil {
 			return err

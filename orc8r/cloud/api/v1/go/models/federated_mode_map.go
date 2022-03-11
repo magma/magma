@@ -6,6 +6,7 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -19,6 +20,7 @@ import (
 type FederatedModeMap struct {
 
 	// If Enabled is false, mapping will not be applied
+	// Example: false
 	Enabled bool `json:"enabled,omitempty"`
 
 	// mapping
@@ -40,7 +42,6 @@ func (m *FederatedModeMap) Validate(formats strfmt.Registry) error {
 }
 
 func (m *FederatedModeMap) validateMapping(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Mapping) { // not required
 		return nil
 	}
@@ -54,6 +55,42 @@ func (m *FederatedModeMap) validateMapping(formats strfmt.Registry) error {
 			if err := m.Mapping[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("mapping" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("mapping" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ContextValidate validate this federated mode map based on the context it is used
+func (m *FederatedModeMap) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateMapping(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *FederatedModeMap) contextValidateMapping(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.Mapping); i++ {
+
+		if m.Mapping[i] != nil {
+			if err := m.Mapping[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("mapping" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("mapping" + "." + strconv.Itoa(i))
 				}
 				return err
 			}

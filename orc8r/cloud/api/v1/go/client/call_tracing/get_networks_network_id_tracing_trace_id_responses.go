@@ -46,7 +46,7 @@ func NewGetNetworksNetworkIDTracingTraceIDOK() *GetNetworksNetworkIDTracingTrace
 	return &GetNetworksNetworkIDTracingTraceIDOK{}
 }
 
-/*GetNetworksNetworkIDTracingTraceIDOK handles this case with default header values.
+/* GetNetworksNetworkIDTracingTraceIDOK describes a response with status code 200, with default header values.
 
 Show tracing status
 */
@@ -57,7 +57,6 @@ type GetNetworksNetworkIDTracingTraceIDOK struct {
 func (o *GetNetworksNetworkIDTracingTraceIDOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/tracing/{trace_id}][%d] getNetworksNetworkIdTracingTraceIdOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDTracingTraceIDOK) GetPayload() *models.CallTrace {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetNetworksNetworkIDTracingTraceIDDefault(code int) *GetNetworksNetworkI
 	}
 }
 
-/*GetNetworksNetworkIDTracingTraceIDDefault handles this case with default header values.
+/* GetNetworksNetworkIDTracingTraceIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetNetworksNetworkIDTracingTraceIDDefault) Code() int {
 func (o *GetNetworksNetworkIDTracingTraceIDDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/tracing/{trace_id}][%d] GetNetworksNetworkIDTracingTraceID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDTracingTraceIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

@@ -19,69 +19,87 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutNetworksNetworkIDRatingGroupsRatingGroupIDParams creates a new PutNetworksNetworkIDRatingGroupsRatingGroupIDParams object
-// with the default values initialized.
+// NewPutNetworksNetworkIDRatingGroupsRatingGroupIDParams creates a new PutNetworksNetworkIDRatingGroupsRatingGroupIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutNetworksNetworkIDRatingGroupsRatingGroupIDParams() *PutNetworksNetworkIDRatingGroupsRatingGroupIDParams {
-	var ()
 	return &PutNetworksNetworkIDRatingGroupsRatingGroupIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutNetworksNetworkIDRatingGroupsRatingGroupIDParamsWithTimeout creates a new PutNetworksNetworkIDRatingGroupsRatingGroupIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutNetworksNetworkIDRatingGroupsRatingGroupIDParamsWithTimeout(timeout time.Duration) *PutNetworksNetworkIDRatingGroupsRatingGroupIDParams {
-	var ()
 	return &PutNetworksNetworkIDRatingGroupsRatingGroupIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutNetworksNetworkIDRatingGroupsRatingGroupIDParamsWithContext creates a new PutNetworksNetworkIDRatingGroupsRatingGroupIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutNetworksNetworkIDRatingGroupsRatingGroupIDParamsWithContext(ctx context.Context) *PutNetworksNetworkIDRatingGroupsRatingGroupIDParams {
-	var ()
 	return &PutNetworksNetworkIDRatingGroupsRatingGroupIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutNetworksNetworkIDRatingGroupsRatingGroupIDParamsWithHTTPClient creates a new PutNetworksNetworkIDRatingGroupsRatingGroupIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutNetworksNetworkIDRatingGroupsRatingGroupIDParamsWithHTTPClient(client *http.Client) *PutNetworksNetworkIDRatingGroupsRatingGroupIDParams {
-	var ()
 	return &PutNetworksNetworkIDRatingGroupsRatingGroupIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutNetworksNetworkIDRatingGroupsRatingGroupIDParams contains all the parameters to send to the API endpoint
-for the put networks network ID rating groups rating group ID operation typically these are written to a http.Request
+/* PutNetworksNetworkIDRatingGroupsRatingGroupIDParams contains all the parameters to send to the API endpoint
+   for the put networks network ID rating groups rating group ID operation.
+
+   Typically these are written to a http.Request.
 */
 type PutNetworksNetworkIDRatingGroupsRatingGroupIDParams struct {
 
-	/*RatingGroup
-	  Rating group
+	/* RatingGroup.
 
+	   Rating group
 	*/
 	RatingGroup *models.MutableRatingGroup
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*RatingGroupID
-	  Rating Group Id
 
+	/* RatingGroupID.
+
+	   Rating Group Id
+
+	   Format: uint32
 	*/
 	RatingGroupID uint32
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put networks network ID rating groups rating group ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDRatingGroupsRatingGroupIDParams) WithDefaults() *PutNetworksNetworkIDRatingGroupsRatingGroupIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put networks network ID rating groups rating group ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDRatingGroupsRatingGroupIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put networks network ID rating groups rating group ID params
@@ -157,7 +175,6 @@ func (o *PutNetworksNetworkIDRatingGroupsRatingGroupIDParams) WriteToRequest(r r
 		return err
 	}
 	var res []error
-
 	if o.RatingGroup != nil {
 		if err := r.SetBodyParam(o.RatingGroup); err != nil {
 			return err

@@ -46,7 +46,7 @@ func NewDeleteFegNetworkIDGatewaysGatewayIDFederationNoContent() *DeleteFegNetwo
 	return &DeleteFegNetworkIDGatewaysGatewayIDFederationNoContent{}
 }
 
-/*DeleteFegNetworkIDGatewaysGatewayIDFederationNoContent handles this case with default header values.
+/* DeleteFegNetworkIDGatewaysGatewayIDFederationNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewDeleteFegNetworkIDGatewaysGatewayIDFederationDefault(code int) *DeleteFe
 	}
 }
 
-/*DeleteFegNetworkIDGatewaysGatewayIDFederationDefault handles this case with default header values.
+/* DeleteFegNetworkIDGatewaysGatewayIDFederationDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *DeleteFegNetworkIDGatewaysGatewayIDFederationDefault) Code() int {
 func (o *DeleteFegNetworkIDGatewaysGatewayIDFederationDefault) Error() string {
 	return fmt.Sprintf("[DELETE /feg/{network_id}/gateways/{gateway_id}/federation][%d] DeleteFegNetworkIDGatewaysGatewayIDFederation default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteFegNetworkIDGatewaysGatewayIDFederationDefault) GetPayload() *models.Error {
 	return o.Payload
 }

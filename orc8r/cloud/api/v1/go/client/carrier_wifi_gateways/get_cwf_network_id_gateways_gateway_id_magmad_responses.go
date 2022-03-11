@@ -46,7 +46,7 @@ func NewGetCwfNetworkIDGatewaysGatewayIDMagmadOK() *GetCwfNetworkIDGatewaysGatew
 	return &GetCwfNetworkIDGatewaysGatewayIDMagmadOK{}
 }
 
-/*GetCwfNetworkIDGatewaysGatewayIDMagmadOK handles this case with default header values.
+/* GetCwfNetworkIDGatewaysGatewayIDMagmadOK describes a response with status code 200, with default header values.
 
 Magmad agent configuration
 */
@@ -57,7 +57,6 @@ type GetCwfNetworkIDGatewaysGatewayIDMagmadOK struct {
 func (o *GetCwfNetworkIDGatewaysGatewayIDMagmadOK) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/gateways/{gateway_id}/magmad][%d] getCwfNetworkIdGatewaysGatewayIdMagmadOK  %+v", 200, o.Payload)
 }
-
 func (o *GetCwfNetworkIDGatewaysGatewayIDMagmadOK) GetPayload() *models.MagmadGatewayConfigs {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetCwfNetworkIDGatewaysGatewayIDMagmadDefault(code int) *GetCwfNetworkID
 	}
 }
 
-/*GetCwfNetworkIDGatewaysGatewayIDMagmadDefault handles this case with default header values.
+/* GetCwfNetworkIDGatewaysGatewayIDMagmadDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetCwfNetworkIDGatewaysGatewayIDMagmadDefault) Code() int {
 func (o *GetCwfNetworkIDGatewaysGatewayIDMagmadDefault) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/gateways/{gateway_id}/magmad][%d] GetCwfNetworkIDGatewaysGatewayIDMagmad default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetCwfNetworkIDGatewaysGatewayIDMagmadDefault) GetPayload() *models.Error {
 	return o.Payload
 }

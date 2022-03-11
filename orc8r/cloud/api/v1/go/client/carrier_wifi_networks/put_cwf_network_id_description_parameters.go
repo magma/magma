@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutCwfNetworkIDDescriptionParams creates a new PutCwfNetworkIDDescriptionParams object
-// with the default values initialized.
+// NewPutCwfNetworkIDDescriptionParams creates a new PutCwfNetworkIDDescriptionParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutCwfNetworkIDDescriptionParams() *PutCwfNetworkIDDescriptionParams {
-	var ()
 	return &PutCwfNetworkIDDescriptionParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutCwfNetworkIDDescriptionParamsWithTimeout creates a new PutCwfNetworkIDDescriptionParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutCwfNetworkIDDescriptionParamsWithTimeout(timeout time.Duration) *PutCwfNetworkIDDescriptionParams {
-	var ()
 	return &PutCwfNetworkIDDescriptionParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutCwfNetworkIDDescriptionParamsWithContext creates a new PutCwfNetworkIDDescriptionParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutCwfNetworkIDDescriptionParamsWithContext(ctx context.Context) *PutCwfNetworkIDDescriptionParams {
-	var ()
 	return &PutCwfNetworkIDDescriptionParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutCwfNetworkIDDescriptionParamsWithHTTPClient creates a new PutCwfNetworkIDDescriptionParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutCwfNetworkIDDescriptionParamsWithHTTPClient(client *http.Client) *PutCwfNetworkIDDescriptionParams {
-	var ()
 	return &PutCwfNetworkIDDescriptionParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutCwfNetworkIDDescriptionParams contains all the parameters to send to the API endpoint
-for the put cwf network ID description operation typically these are written to a http.Request
+/* PutCwfNetworkIDDescriptionParams contains all the parameters to send to the API endpoint
+   for the put cwf network ID description operation.
+
+   Typically these are written to a http.Request.
 */
 type PutCwfNetworkIDDescriptionParams struct {
 
-	/*Description
-	  New name for the network
+	/* Description.
 
+	   New name for the network
 	*/
 	Description models.NetworkDescription
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put cwf network ID description params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDDescriptionParams) WithDefaults() *PutCwfNetworkIDDescriptionParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put cwf network ID description params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDDescriptionParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put cwf network ID description params
@@ -140,7 +155,6 @@ func (o *PutCwfNetworkIDDescriptionParams) WriteToRequest(r runtime.ClientReques
 		return err
 	}
 	var res []error
-
 	if err := r.SetBodyParam(o.Description); err != nil {
 		return err
 	}

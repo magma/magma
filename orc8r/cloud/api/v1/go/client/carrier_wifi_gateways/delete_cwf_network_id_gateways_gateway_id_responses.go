@@ -46,7 +46,7 @@ func NewDeleteCwfNetworkIDGatewaysGatewayIDNoContent() *DeleteCwfNetworkIDGatewa
 	return &DeleteCwfNetworkIDGatewaysGatewayIDNoContent{}
 }
 
-/*DeleteCwfNetworkIDGatewaysGatewayIDNoContent handles this case with default header values.
+/* DeleteCwfNetworkIDGatewaysGatewayIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewDeleteCwfNetworkIDGatewaysGatewayIDDefault(code int) *DeleteCwfNetworkID
 	}
 }
 
-/*DeleteCwfNetworkIDGatewaysGatewayIDDefault handles this case with default header values.
+/* DeleteCwfNetworkIDGatewaysGatewayIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *DeleteCwfNetworkIDGatewaysGatewayIDDefault) Code() int {
 func (o *DeleteCwfNetworkIDGatewaysGatewayIDDefault) Error() string {
 	return fmt.Sprintf("[DELETE /cwf/{network_id}/gateways/{gateway_id}][%d] DeleteCwfNetworkIDGatewaysGatewayID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteCwfNetworkIDGatewaysGatewayIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

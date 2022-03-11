@@ -46,7 +46,7 @@ func NewPostFegNetworkIDSubscriberConfigRuleNamesRuleIDCreated() *PostFegNetwork
 	return &PostFegNetworkIDSubscriberConfigRuleNamesRuleIDCreated{}
 }
 
-/*PostFegNetworkIDSubscriberConfigRuleNamesRuleIDCreated handles this case with default header values.
+/* PostFegNetworkIDSubscriberConfigRuleNamesRuleIDCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostFegNetworkIDSubscriberConfigRuleNamesRuleIDDefault(code int) *PostFe
 	}
 }
 
-/*PostFegNetworkIDSubscriberConfigRuleNamesRuleIDDefault handles this case with default header values.
+/* PostFegNetworkIDSubscriberConfigRuleNamesRuleIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostFegNetworkIDSubscriberConfigRuleNamesRuleIDDefault) Code() int {
 func (o *PostFegNetworkIDSubscriberConfigRuleNamesRuleIDDefault) Error() string {
 	return fmt.Sprintf("[POST /feg/{network_id}/subscriber_config/rule_names/{rule_id}][%d] PostFegNetworkIDSubscriberConfigRuleNamesRuleID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostFegNetworkIDSubscriberConfigRuleNamesRuleIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

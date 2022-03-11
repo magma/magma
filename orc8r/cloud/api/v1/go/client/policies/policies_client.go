@@ -23,41 +23,44 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
 // ClientService is the interface for Client methods
 type ClientService interface {
-	DeleteLTENetworkIDPolicyQosProfilesProfileID(params *DeleteLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent, error)
+	DeleteLTENetworkIDPolicyQosProfilesProfileID(params *DeleteLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent, error)
 
-	DeleteNetworksNetworkIDPoliciesBaseNamesBaseName(params *DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error)
+	DeleteNetworksNetworkIDPoliciesBaseNamesBaseName(params *DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error)
 
-	DeleteNetworksNetworkIDPoliciesRulesRuleID(params *DeleteNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDPoliciesRulesRuleIDNoContent, error)
+	DeleteNetworksNetworkIDPoliciesRulesRuleID(params *DeleteNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteNetworksNetworkIDPoliciesRulesRuleIDNoContent, error)
 
-	GetLTENetworkIDPolicyQosProfiles(params *GetLTENetworkIDPolicyQosProfilesParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDPolicyQosProfilesOK, error)
+	GetLTENetworkIDPolicyQosProfiles(params *GetLTENetworkIDPolicyQosProfilesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDPolicyQosProfilesOK, error)
 
-	GetLTENetworkIDPolicyQosProfilesProfileID(params *GetLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDPolicyQosProfilesProfileIDOK, error)
+	GetLTENetworkIDPolicyQosProfilesProfileID(params *GetLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDPolicyQosProfilesProfileIDOK, error)
 
-	GetNetworksNetworkIDPoliciesBaseNames(params *GetNetworksNetworkIDPoliciesBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesBaseNamesOK, error)
+	GetNetworksNetworkIDPoliciesBaseNames(params *GetNetworksNetworkIDPoliciesBaseNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesBaseNamesOK, error)
 
-	GetNetworksNetworkIDPoliciesBaseNamesBaseName(params *GetNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK, error)
+	GetNetworksNetworkIDPoliciesBaseNamesBaseName(params *GetNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK, error)
 
-	GetNetworksNetworkIDPoliciesBaseNamesViewFull(params *GetNetworksNetworkIDPoliciesBaseNamesViewFullParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesBaseNamesViewFullOK, error)
+	GetNetworksNetworkIDPoliciesBaseNamesViewFull(params *GetNetworksNetworkIDPoliciesBaseNamesViewFullParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesBaseNamesViewFullOK, error)
 
-	GetNetworksNetworkIDPoliciesRules(params *GetNetworksNetworkIDPoliciesRulesParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesRulesOK, error)
+	GetNetworksNetworkIDPoliciesRules(params *GetNetworksNetworkIDPoliciesRulesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesRulesOK, error)
 
-	GetNetworksNetworkIDPoliciesRulesRuleID(params *GetNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesRulesRuleIDOK, error)
+	GetNetworksNetworkIDPoliciesRulesRuleID(params *GetNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesRulesRuleIDOK, error)
 
-	GetNetworksNetworkIDPoliciesRulesViewFull(params *GetNetworksNetworkIDPoliciesRulesViewFullParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesRulesViewFullOK, error)
+	GetNetworksNetworkIDPoliciesRulesViewFull(params *GetNetworksNetworkIDPoliciesRulesViewFullParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesRulesViewFullOK, error)
 
-	PostLTENetworkIDPolicyQosProfiles(params *PostLTENetworkIDPolicyQosProfilesParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDPolicyQosProfilesCreated, error)
+	PostLTENetworkIDPolicyQosProfiles(params *PostLTENetworkIDPolicyQosProfilesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostLTENetworkIDPolicyQosProfilesCreated, error)
 
-	PostNetworksNetworkIDPoliciesBaseNames(params *PostNetworksNetworkIDPoliciesBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDPoliciesBaseNamesCreated, error)
+	PostNetworksNetworkIDPoliciesBaseNames(params *PostNetworksNetworkIDPoliciesBaseNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDPoliciesBaseNamesCreated, error)
 
-	PostNetworksNetworkIDPoliciesRules(params *PostNetworksNetworkIDPoliciesRulesParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDPoliciesRulesCreated, error)
+	PostNetworksNetworkIDPoliciesRules(params *PostNetworksNetworkIDPoliciesRulesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDPoliciesRulesCreated, error)
 
-	PutLTENetworkIDPolicyQosProfilesProfileID(params *PutLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDPolicyQosProfilesProfileIDNoContent, error)
+	PutLTENetworkIDPolicyQosProfilesProfileID(params *PutLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDPolicyQosProfilesProfileIDNoContent, error)
 
-	PutNetworksNetworkIDPoliciesBaseNamesBaseName(params *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error)
+	PutNetworksNetworkIDPoliciesBaseNamesBaseName(params *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error)
 
-	PutNetworksNetworkIDPoliciesRulesRuleID(params *PutNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDPoliciesRulesRuleIDNoContent, error)
+	PutNetworksNetworkIDPoliciesRulesRuleID(params *PutNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutNetworksNetworkIDPoliciesRulesRuleIDNoContent, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -65,13 +68,12 @@ type ClientService interface {
 /*
   DeleteLTENetworkIDPolicyQosProfilesProfileID deletes policy qo s profile in LTE network
 */
-func (a *Client) DeleteLTENetworkIDPolicyQosProfilesProfileID(params *DeleteLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent, error) {
+func (a *Client) DeleteLTENetworkIDPolicyQosProfilesProfileID(params *DeleteLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDPolicyQosProfilesProfileIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteLTENetworkIDPolicyQosProfilesProfileID",
 		Method:             "DELETE",
 		PathPattern:        "/lte/{network_id}/policy_qos_profiles/{profile_id}",
@@ -83,7 +85,12 @@ func (a *Client) DeleteLTENetworkIDPolicyQosProfilesProfileID(params *DeleteLTEN
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -99,13 +106,12 @@ func (a *Client) DeleteLTENetworkIDPolicyQosProfilesProfileID(params *DeleteLTEN
 /*
   DeleteNetworksNetworkIDPoliciesBaseNamesBaseName deletes a charging rule base name
 */
-func (a *Client) DeleteNetworksNetworkIDPoliciesBaseNamesBaseName(params *DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDPoliciesBaseNamesBaseName(params *DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDPoliciesBaseNamesBaseNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteNetworksNetworkIDPoliciesBaseNamesBaseName",
 		Method:             "DELETE",
 		PathPattern:        "/networks/{network_id}/policies/base_names/{base_name}",
@@ -117,7 +123,12 @@ func (a *Client) DeleteNetworksNetworkIDPoliciesBaseNamesBaseName(params *Delete
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -133,13 +144,12 @@ func (a *Client) DeleteNetworksNetworkIDPoliciesBaseNamesBaseName(params *Delete
 /*
   DeleteNetworksNetworkIDPoliciesRulesRuleID deletes a policy rule
 */
-func (a *Client) DeleteNetworksNetworkIDPoliciesRulesRuleID(params *DeleteNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDPoliciesRulesRuleIDNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDPoliciesRulesRuleID(params *DeleteNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteNetworksNetworkIDPoliciesRulesRuleIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDPoliciesRulesRuleIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteNetworksNetworkIDPoliciesRulesRuleID",
 		Method:             "DELETE",
 		PathPattern:        "/networks/{network_id}/policies/rules/{rule_id}",
@@ -151,7 +161,12 @@ func (a *Client) DeleteNetworksNetworkIDPoliciesRulesRuleID(params *DeleteNetwor
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -167,13 +182,12 @@ func (a *Client) DeleteNetworksNetworkIDPoliciesRulesRuleID(params *DeleteNetwor
 /*
   GetLTENetworkIDPolicyQosProfiles gets policy qo s profiles in LTE network
 */
-func (a *Client) GetLTENetworkIDPolicyQosProfiles(params *GetLTENetworkIDPolicyQosProfilesParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDPolicyQosProfilesOK, error) {
+func (a *Client) GetLTENetworkIDPolicyQosProfiles(params *GetLTENetworkIDPolicyQosProfilesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDPolicyQosProfilesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDPolicyQosProfilesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDPolicyQosProfiles",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/policy_qos_profiles",
@@ -185,7 +199,12 @@ func (a *Client) GetLTENetworkIDPolicyQosProfiles(params *GetLTENetworkIDPolicyQ
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -201,13 +220,12 @@ func (a *Client) GetLTENetworkIDPolicyQosProfiles(params *GetLTENetworkIDPolicyQ
 /*
   GetLTENetworkIDPolicyQosProfilesProfileID gets policy qo s profile in LTE network
 */
-func (a *Client) GetLTENetworkIDPolicyQosProfilesProfileID(params *GetLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetLTENetworkIDPolicyQosProfilesProfileIDOK, error) {
+func (a *Client) GetLTENetworkIDPolicyQosProfilesProfileID(params *GetLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDPolicyQosProfilesProfileIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDPolicyQosProfilesProfileIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDPolicyQosProfilesProfileID",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/policy_qos_profiles/{profile_id}",
@@ -219,7 +237,12 @@ func (a *Client) GetLTENetworkIDPolicyQosProfilesProfileID(params *GetLTENetwork
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -235,13 +258,12 @@ func (a *Client) GetLTENetworkIDPolicyQosProfilesProfileID(params *GetLTENetwork
 /*
   GetNetworksNetworkIDPoliciesBaseNames lists charging rule base names
 */
-func (a *Client) GetNetworksNetworkIDPoliciesBaseNames(params *GetNetworksNetworkIDPoliciesBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesBaseNamesOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesBaseNames(params *GetNetworksNetworkIDPoliciesBaseNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesBaseNamesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesBaseNamesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDPoliciesBaseNames",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/policies/base_names",
@@ -253,7 +275,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNames(params *GetNetworksNetwor
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -269,13 +296,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNames(params *GetNetworksNetwor
 /*
   GetNetworksNetworkIDPoliciesBaseNamesBaseName gets charging rule base name
 */
-func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesBaseName(params *GetNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesBaseName(params *GetNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesBaseNamesBaseNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDPoliciesBaseNamesBaseName",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/policies/base_names/{base_name}",
@@ -287,7 +313,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesBaseName(params *GetNetwor
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -303,13 +334,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesBaseName(params *GetNetwor
 /*
   GetNetworksNetworkIDPoliciesBaseNamesViewFull gets all base names
 */
-func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesViewFull(params *GetNetworksNetworkIDPoliciesBaseNamesViewFullParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesBaseNamesViewFullOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesViewFull(params *GetNetworksNetworkIDPoliciesBaseNamesViewFullParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesBaseNamesViewFullOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesBaseNamesViewFullParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDPoliciesBaseNamesViewFull",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/policies/base_names?view=full",
@@ -321,7 +351,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesViewFull(params *GetNetwor
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -337,13 +372,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesViewFull(params *GetNetwor
 /*
   GetNetworksNetworkIDPoliciesRules lists policy rules
 */
-func (a *Client) GetNetworksNetworkIDPoliciesRules(params *GetNetworksNetworkIDPoliciesRulesParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesRulesOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesRules(params *GetNetworksNetworkIDPoliciesRulesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesRulesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesRulesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDPoliciesRules",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/policies/rules",
@@ -355,7 +389,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesRules(params *GetNetworksNetworkIDP
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -371,13 +410,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesRules(params *GetNetworksNetworkIDP
 /*
   GetNetworksNetworkIDPoliciesRulesRuleID gets policy rule
 */
-func (a *Client) GetNetworksNetworkIDPoliciesRulesRuleID(params *GetNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesRulesRuleIDOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesRulesRuleID(params *GetNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesRulesRuleIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesRulesRuleIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDPoliciesRulesRuleID",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/policies/rules/{rule_id}",
@@ -389,7 +427,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesRulesRuleID(params *GetNetworksNetw
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -405,13 +448,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesRulesRuleID(params *GetNetworksNetw
 /*
   GetNetworksNetworkIDPoliciesRulesViewFull gets all policy rules
 */
-func (a *Client) GetNetworksNetworkIDPoliciesRulesViewFull(params *GetNetworksNetworkIDPoliciesRulesViewFullParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDPoliciesRulesViewFullOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesRulesViewFull(params *GetNetworksNetworkIDPoliciesRulesViewFullParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesRulesViewFullOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesRulesViewFullParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDPoliciesRulesViewFull",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/policies/rules?view=full",
@@ -423,7 +465,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesRulesViewFull(params *GetNetworksNe
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -439,13 +486,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesRulesViewFull(params *GetNetworksNe
 /*
   PostLTENetworkIDPolicyQosProfiles creates policy qo s profile in LTE network
 */
-func (a *Client) PostLTENetworkIDPolicyQosProfiles(params *PostLTENetworkIDPolicyQosProfilesParams, authInfo runtime.ClientAuthInfoWriter) (*PostLTENetworkIDPolicyQosProfilesCreated, error) {
+func (a *Client) PostLTENetworkIDPolicyQosProfiles(params *PostLTENetworkIDPolicyQosProfilesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostLTENetworkIDPolicyQosProfilesCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTENetworkIDPolicyQosProfilesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostLTENetworkIDPolicyQosProfiles",
 		Method:             "POST",
 		PathPattern:        "/lte/{network_id}/policy_qos_profiles",
@@ -457,7 +503,12 @@ func (a *Client) PostLTENetworkIDPolicyQosProfiles(params *PostLTENetworkIDPolic
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -473,13 +524,12 @@ func (a *Client) PostLTENetworkIDPolicyQosProfiles(params *PostLTENetworkIDPolic
 /*
   PostNetworksNetworkIDPoliciesBaseNames creates charging rule base name
 */
-func (a *Client) PostNetworksNetworkIDPoliciesBaseNames(params *PostNetworksNetworkIDPoliciesBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDPoliciesBaseNamesCreated, error) {
+func (a *Client) PostNetworksNetworkIDPoliciesBaseNames(params *PostNetworksNetworkIDPoliciesBaseNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDPoliciesBaseNamesCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDPoliciesBaseNamesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostNetworksNetworkIDPoliciesBaseNames",
 		Method:             "POST",
 		PathPattern:        "/networks/{network_id}/policies/base_names",
@@ -491,7 +541,12 @@ func (a *Client) PostNetworksNetworkIDPoliciesBaseNames(params *PostNetworksNetw
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -507,13 +562,12 @@ func (a *Client) PostNetworksNetworkIDPoliciesBaseNames(params *PostNetworksNetw
 /*
   PostNetworksNetworkIDPoliciesRules adds a new policy rule
 */
-func (a *Client) PostNetworksNetworkIDPoliciesRules(params *PostNetworksNetworkIDPoliciesRulesParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDPoliciesRulesCreated, error) {
+func (a *Client) PostNetworksNetworkIDPoliciesRules(params *PostNetworksNetworkIDPoliciesRulesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDPoliciesRulesCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDPoliciesRulesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostNetworksNetworkIDPoliciesRules",
 		Method:             "POST",
 		PathPattern:        "/networks/{network_id}/policies/rules",
@@ -525,7 +579,12 @@ func (a *Client) PostNetworksNetworkIDPoliciesRules(params *PostNetworksNetworkI
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -541,13 +600,12 @@ func (a *Client) PostNetworksNetworkIDPoliciesRules(params *PostNetworksNetworkI
 /*
   PutLTENetworkIDPolicyQosProfilesProfileID updates policy qo s profile in LTE network
 */
-func (a *Client) PutLTENetworkIDPolicyQosProfilesProfileID(params *PutLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutLTENetworkIDPolicyQosProfilesProfileIDNoContent, error) {
+func (a *Client) PutLTENetworkIDPolicyQosProfilesProfileID(params *PutLTENetworkIDPolicyQosProfilesProfileIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDPolicyQosProfilesProfileIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDPolicyQosProfilesProfileIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDPolicyQosProfilesProfileID",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/policy_qos_profiles/{profile_id}",
@@ -559,7 +617,12 @@ func (a *Client) PutLTENetworkIDPolicyQosProfilesProfileID(params *PutLTENetwork
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -575,13 +638,12 @@ func (a *Client) PutLTENetworkIDPolicyQosProfilesProfileID(params *PutLTENetwork
 /*
   PutNetworksNetworkIDPoliciesBaseNamesBaseName modifies a charging rule base name
 */
-func (a *Client) PutNetworksNetworkIDPoliciesBaseNamesBaseName(params *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error) {
+func (a *Client) PutNetworksNetworkIDPoliciesBaseNamesBaseName(params *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDPoliciesBaseNamesBaseNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDPoliciesBaseNamesBaseName",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/policies/base_names/{base_name}",
@@ -593,7 +655,12 @@ func (a *Client) PutNetworksNetworkIDPoliciesBaseNamesBaseName(params *PutNetwor
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -609,13 +676,12 @@ func (a *Client) PutNetworksNetworkIDPoliciesBaseNamesBaseName(params *PutNetwor
 /*
   PutNetworksNetworkIDPoliciesRulesRuleID modifies a policy rule
 */
-func (a *Client) PutNetworksNetworkIDPoliciesRulesRuleID(params *PutNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDPoliciesRulesRuleIDNoContent, error) {
+func (a *Client) PutNetworksNetworkIDPoliciesRulesRuleID(params *PutNetworksNetworkIDPoliciesRulesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutNetworksNetworkIDPoliciesRulesRuleIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDPoliciesRulesRuleIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDPoliciesRulesRuleID",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/policies/rules/{rule_id}",
@@ -627,7 +693,12 @@ func (a *Client) PutNetworksNetworkIDPoliciesRulesRuleID(params *PutNetworksNetw
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,7 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/go-openapi/errors"
@@ -64,6 +65,8 @@ func (m *APNConfiguration) validateAmbr(formats strfmt.Registry) error {
 		if err := m.Ambr.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("ambr")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("ambr")
 			}
 			return err
 		}
@@ -86,14 +89,13 @@ func init() {
 
 // prop value enum
 func (m *APNConfiguration) validatePdnTypeEnum(path, location string, value uint32) error {
-	if err := validate.Enum(path, location, value, apnConfigurationTypePdnTypePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, apnConfigurationTypePdnTypePropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *APNConfiguration) validatePdnType(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.PdnType) { // not required
 		return nil
 	}
@@ -116,6 +118,58 @@ func (m *APNConfiguration) validateQosProfile(formats strfmt.Registry) error {
 		if err := m.QosProfile.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("qos_profile")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("qos_profile")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this apn configuration based on the context it is used
+func (m *APNConfiguration) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateAmbr(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateQosProfile(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *APNConfiguration) contextValidateAmbr(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Ambr != nil {
+		if err := m.Ambr.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("ambr")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("ambr")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *APNConfiguration) contextValidateQosProfile(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.QosProfile != nil {
+		if err := m.QosProfile.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("qos_profile")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("qos_profile")
 			}
 			return err
 		}

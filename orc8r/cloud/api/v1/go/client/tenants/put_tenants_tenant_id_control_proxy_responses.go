@@ -46,7 +46,7 @@ func NewPutTenantsTenantIDControlProxyNoContent() *PutTenantsTenantIDControlProx
 	return &PutTenantsTenantIDControlProxyNoContent{}
 }
 
-/*PutTenantsTenantIDControlProxyNoContent handles this case with default header values.
+/* PutTenantsTenantIDControlProxyNoContent describes a response with status code 204, with default header values.
 
 Ok
 */
@@ -69,7 +69,7 @@ func NewPutTenantsTenantIDControlProxyDefault(code int) *PutTenantsTenantIDContr
 	}
 }
 
-/*PutTenantsTenantIDControlProxyDefault handles this case with default header values.
+/* PutTenantsTenantIDControlProxyDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutTenantsTenantIDControlProxyDefault) Code() int {
 func (o *PutTenantsTenantIDControlProxyDefault) Error() string {
 	return fmt.Sprintf("[PUT /tenants/{tenant_id}/control_proxy][%d] PutTenantsTenantIDControlProxy default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutTenantsTenantIDControlProxyDefault) GetPayload() *models.Error {
 	return o.Payload
 }

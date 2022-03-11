@@ -46,7 +46,7 @@ func NewGetNetworksNetworkIDTiersTierIDVersionOK() *GetNetworksNetworkIDTiersTie
 	return &GetNetworksNetworkIDTiersTierIDVersionOK{}
 }
 
-/*GetNetworksNetworkIDTiersTierIDVersionOK handles this case with default header values.
+/* GetNetworksNetworkIDTiersTierIDVersionOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -57,7 +57,6 @@ type GetNetworksNetworkIDTiersTierIDVersionOK struct {
 func (o *GetNetworksNetworkIDTiersTierIDVersionOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/tiers/{tier_id}/version][%d] getNetworksNetworkIdTiersTierIdVersionOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDTiersTierIDVersionOK) GetPayload() models.TierVersion {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetNetworksNetworkIDTiersTierIDVersionDefault(code int) *GetNetworksNetw
 	}
 }
 
-/*GetNetworksNetworkIDTiersTierIDVersionDefault handles this case with default header values.
+/* GetNetworksNetworkIDTiersTierIDVersionDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetNetworksNetworkIDTiersTierIDVersionDefault) Code() int {
 func (o *GetNetworksNetworkIDTiersTierIDVersionDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/tiers/{tier_id}/version][%d] GetNetworksNetworkIDTiersTierIDVersion default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDTiersTierIDVersionDefault) GetPayload() *models.Error {
 	return o.Payload
 }

@@ -23,15 +23,18 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
 // ClientService is the interface for Client methods
 type ClientService interface {
-	PostNetworksNetworkIDGatewaysGatewayIDCommandGeneric(params *PostNetworksNetworkIDGatewaysGatewayIDCommandGenericParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK, error)
+	PostNetworksNetworkIDGatewaysGatewayIDCommandGeneric(params *PostNetworksNetworkIDGatewaysGatewayIDCommandGenericParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK, error)
 
-	PostNetworksNetworkIDGatewaysGatewayIDCommandPing(params *PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysGatewayIDCommandPingOK, error)
+	PostNetworksNetworkIDGatewaysGatewayIDCommandPing(params *PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDGatewaysGatewayIDCommandPingOK, error)
 
-	PostNetworksNetworkIDGatewaysGatewayIDCommandReboot(params *PostNetworksNetworkIDGatewaysGatewayIDCommandRebootParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysGatewayIDCommandRebootOK, error)
+	PostNetworksNetworkIDGatewaysGatewayIDCommandReboot(params *PostNetworksNetworkIDGatewaysGatewayIDCommandRebootParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDGatewaysGatewayIDCommandRebootOK, error)
 
-	PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServices(params *PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesOK, error)
+	PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServices(params *PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -39,13 +42,12 @@ type ClientService interface {
 /*
   PostNetworksNetworkIDGatewaysGatewayIDCommandGeneric executes generic command on gateway
 */
-func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandGeneric(params *PostNetworksNetworkIDGatewaysGatewayIDCommandGenericParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK, error) {
+func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandGeneric(params *PostNetworksNetworkIDGatewaysGatewayIDCommandGenericParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDGatewaysGatewayIDCommandGenericParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostNetworksNetworkIDGatewaysGatewayIDCommandGeneric",
 		Method:             "POST",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}/command/generic",
@@ -57,7 +59,12 @@ func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandGeneric(params *Po
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -73,13 +80,12 @@ func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandGeneric(params *Po
 /*
   PostNetworksNetworkIDGatewaysGatewayIDCommandPing pings host s from gateway
 */
-func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandPing(params *PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysGatewayIDCommandPingOK, error) {
+func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandPing(params *PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDGatewaysGatewayIDCommandPingOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDGatewaysGatewayIDCommandPingParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostNetworksNetworkIDGatewaysGatewayIDCommandPing",
 		Method:             "POST",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}/command/ping",
@@ -91,7 +97,12 @@ func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandPing(params *PostN
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -107,13 +118,12 @@ func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandPing(params *PostN
 /*
   PostNetworksNetworkIDGatewaysGatewayIDCommandReboot reboots gateway device
 */
-func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandReboot(params *PostNetworksNetworkIDGatewaysGatewayIDCommandRebootParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysGatewayIDCommandRebootOK, error) {
+func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandReboot(params *PostNetworksNetworkIDGatewaysGatewayIDCommandRebootParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDGatewaysGatewayIDCommandRebootOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDGatewaysGatewayIDCommandRebootParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostNetworksNetworkIDGatewaysGatewayIDCommandReboot",
 		Method:             "POST",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}/command/reboot",
@@ -125,7 +135,12 @@ func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandReboot(params *Pos
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -141,13 +156,12 @@ func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandReboot(params *Pos
 /*
   PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServices restarts gateway services
 */
-func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServices(params *PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesOK, error) {
+func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServices(params *PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServices",
 		Method:             "POST",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}/command/restart_services",
@@ -159,7 +173,12 @@ func (a *Client) PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServices(pa
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

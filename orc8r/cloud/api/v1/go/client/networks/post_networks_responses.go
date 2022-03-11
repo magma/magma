@@ -46,7 +46,7 @@ func NewPostNetworksCreated() *PostNetworksCreated {
 	return &PostNetworksCreated{}
 }
 
-/*PostNetworksCreated handles this case with default header values.
+/* PostNetworksCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostNetworksDefault(code int) *PostNetworksDefault {
 	}
 }
 
-/*PostNetworksDefault handles this case with default header values.
+/* PostNetworksDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostNetworksDefault) Code() int {
 func (o *PostNetworksDefault) Error() string {
 	return fmt.Sprintf("[POST /networks][%d] PostNetworks default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostNetworksDefault) GetPayload() *models.Error {
 	return o.Payload
 }

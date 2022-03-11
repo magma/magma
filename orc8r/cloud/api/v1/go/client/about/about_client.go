@@ -23,9 +23,12 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
 // ClientService is the interface for Client methods
 type ClientService interface {
-	GetAboutVersion(params *GetAboutVersionParams, authInfo runtime.ClientAuthInfoWriter) (*GetAboutVersionOK, error)
+	GetAboutVersion(params *GetAboutVersionParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAboutVersionOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -33,13 +36,12 @@ type ClientService interface {
 /*
   GetAboutVersion gets version
 */
-func (a *Client) GetAboutVersion(params *GetAboutVersionParams, authInfo runtime.ClientAuthInfoWriter) (*GetAboutVersionOK, error) {
+func (a *Client) GetAboutVersion(params *GetAboutVersionParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAboutVersionOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetAboutVersionParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetAboutVersion",
 		Method:             "GET",
 		PathPattern:        "/about/version",
@@ -51,7 +53,12 @@ func (a *Client) GetAboutVersion(params *GetAboutVersionParams, authInfo runtime
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

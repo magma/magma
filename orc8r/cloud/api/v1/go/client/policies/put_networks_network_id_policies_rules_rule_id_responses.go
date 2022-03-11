@@ -46,7 +46,7 @@ func NewPutNetworksNetworkIDPoliciesRulesRuleIDNoContent() *PutNetworksNetworkID
 	return &PutNetworksNetworkIDPoliciesRulesRuleIDNoContent{}
 }
 
-/*PutNetworksNetworkIDPoliciesRulesRuleIDNoContent handles this case with default header values.
+/* PutNetworksNetworkIDPoliciesRulesRuleIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutNetworksNetworkIDPoliciesRulesRuleIDDefault(code int) *PutNetworksNet
 	}
 }
 
-/*PutNetworksNetworkIDPoliciesRulesRuleIDDefault handles this case with default header values.
+/* PutNetworksNetworkIDPoliciesRulesRuleIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutNetworksNetworkIDPoliciesRulesRuleIDDefault) Code() int {
 func (o *PutNetworksNetworkIDPoliciesRulesRuleIDDefault) Error() string {
 	return fmt.Sprintf("[PUT /networks/{network_id}/policies/rules/{rule_id}][%d] PutNetworksNetworkIDPoliciesRulesRuleID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutNetworksNetworkIDPoliciesRulesRuleIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

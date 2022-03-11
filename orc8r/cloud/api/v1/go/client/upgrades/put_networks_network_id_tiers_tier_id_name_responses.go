@@ -46,7 +46,7 @@ func NewPutNetworksNetworkIDTiersTierIDNameNoContent() *PutNetworksNetworkIDTier
 	return &PutNetworksNetworkIDTiersTierIDNameNoContent{}
 }
 
-/*PutNetworksNetworkIDTiersTierIDNameNoContent handles this case with default header values.
+/* PutNetworksNetworkIDTiersTierIDNameNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutNetworksNetworkIDTiersTierIDNameDefault(code int) *PutNetworksNetwork
 	}
 }
 
-/*PutNetworksNetworkIDTiersTierIDNameDefault handles this case with default header values.
+/* PutNetworksNetworkIDTiersTierIDNameDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutNetworksNetworkIDTiersTierIDNameDefault) Code() int {
 func (o *PutNetworksNetworkIDTiersTierIDNameDefault) Error() string {
 	return fmt.Sprintf("[PUT /networks/{network_id}/tiers/{tier_id}/name][%d] PutNetworksNetworkIDTiersTierIDName default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutNetworksNetworkIDTiersTierIDNameDefault) GetPayload() *models.Error {
 	return o.Payload
 }

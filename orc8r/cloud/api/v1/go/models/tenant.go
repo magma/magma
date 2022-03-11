@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -54,7 +56,7 @@ func (m *Tenant) validateID(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinimumInt("id", "body", int64(*m.ID), 0, false); err != nil {
+	if err := validate.MinimumInt("id", "body", *m.ID, 0, false); err != nil {
 		return err
 	}
 
@@ -67,6 +69,11 @@ func (m *Tenant) validateNetworks(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this tenant based on context it is used
+func (m *Tenant) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

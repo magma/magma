@@ -46,7 +46,7 @@ func NewGetUserUsernameTokensOK() *GetUserUsernameTokensOK {
 	return &GetUserUsernameTokensOK{}
 }
 
-/*GetUserUsernameTokensOK handles this case with default header values.
+/* GetUserUsernameTokensOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -57,7 +57,6 @@ type GetUserUsernameTokensOK struct {
 func (o *GetUserUsernameTokensOK) Error() string {
 	return fmt.Sprintf("[GET /user/{username}/tokens][%d] getUserUsernameTokensOK  %+v", 200, o.Payload)
 }
-
 func (o *GetUserUsernameTokensOK) GetPayload() []*models.PolicyList {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetUserUsernameTokensDefault(code int) *GetUserUsernameTokensDefault {
 	}
 }
 
-/*GetUserUsernameTokensDefault handles this case with default header values.
+/* GetUserUsernameTokensDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetUserUsernameTokensDefault) Code() int {
 func (o *GetUserUsernameTokensDefault) Error() string {
 	return fmt.Sprintf("[GET /user/{username}/tokens][%d] GetUserUsernameTokens default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetUserUsernameTokensDefault) GetPayload() *models.Error {
 	return o.Payload
 }

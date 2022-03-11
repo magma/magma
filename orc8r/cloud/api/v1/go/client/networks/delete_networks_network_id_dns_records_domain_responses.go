@@ -46,7 +46,7 @@ func NewDeleteNetworksNetworkIDDNSRecordsDomainNoContent() *DeleteNetworksNetwor
 	return &DeleteNetworksNetworkIDDNSRecordsDomainNoContent{}
 }
 
-/*DeleteNetworksNetworkIDDNSRecordsDomainNoContent handles this case with default header values.
+/* DeleteNetworksNetworkIDDNSRecordsDomainNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewDeleteNetworksNetworkIDDNSRecordsDomainDefault(code int) *DeleteNetworks
 	}
 }
 
-/*DeleteNetworksNetworkIDDNSRecordsDomainDefault handles this case with default header values.
+/* DeleteNetworksNetworkIDDNSRecordsDomainDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *DeleteNetworksNetworkIDDNSRecordsDomainDefault) Code() int {
 func (o *DeleteNetworksNetworkIDDNSRecordsDomainDefault) Error() string {
 	return fmt.Sprintf("[DELETE /networks/{network_id}/dns/records/{domain}][%d] DeleteNetworksNetworkIDDNSRecordsDomain default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteNetworksNetworkIDDNSRecordsDomainDefault) GetPayload() *models.Error {
 	return o.Payload
 }

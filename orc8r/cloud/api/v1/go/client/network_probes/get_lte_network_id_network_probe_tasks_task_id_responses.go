@@ -46,7 +46,7 @@ func NewGetLTENetworkIDNetworkProbeTasksTaskIDOK() *GetLTENetworkIDNetworkProbeT
 	return &GetLTENetworkIDNetworkProbeTasksTaskIDOK{}
 }
 
-/*GetLTENetworkIDNetworkProbeTasksTaskIDOK handles this case with default header values.
+/* GetLTENetworkIDNetworkProbeTasksTaskIDOK describes a response with status code 200, with default header values.
 
 NetworkProbeTask Info
 */
@@ -57,7 +57,6 @@ type GetLTENetworkIDNetworkProbeTasksTaskIDOK struct {
 func (o *GetLTENetworkIDNetworkProbeTasksTaskIDOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/network_probe/tasks/{task_id}][%d] getLteNetworkIdNetworkProbeTasksTaskIdOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDNetworkProbeTasksTaskIDOK) GetPayload() *models.NetworkProbeTask {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetLTENetworkIDNetworkProbeTasksTaskIDDefault(code int) *GetLTENetworkID
 	}
 }
 
-/*GetLTENetworkIDNetworkProbeTasksTaskIDDefault handles this case with default header values.
+/* GetLTENetworkIDNetworkProbeTasksTaskIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetLTENetworkIDNetworkProbeTasksTaskIDDefault) Code() int {
 func (o *GetLTENetworkIDNetworkProbeTasksTaskIDDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/network_probe/tasks/{task_id}][%d] GetLTENetworkIDNetworkProbeTasksTaskID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDNetworkProbeTasksTaskIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

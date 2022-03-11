@@ -17,69 +17,87 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// NewGetLTENetworkIDEnodebsParams creates a new GetLTENetworkIDEnodebsParams object
-// with the default values initialized.
+// NewGetLTENetworkIDEnodebsParams creates a new GetLTENetworkIDEnodebsParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetLTENetworkIDEnodebsParams() *GetLTENetworkIDEnodebsParams {
-	var ()
 	return &GetLTENetworkIDEnodebsParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetLTENetworkIDEnodebsParamsWithTimeout creates a new GetLTENetworkIDEnodebsParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetLTENetworkIDEnodebsParamsWithTimeout(timeout time.Duration) *GetLTENetworkIDEnodebsParams {
-	var ()
 	return &GetLTENetworkIDEnodebsParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetLTENetworkIDEnodebsParamsWithContext creates a new GetLTENetworkIDEnodebsParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetLTENetworkIDEnodebsParamsWithContext(ctx context.Context) *GetLTENetworkIDEnodebsParams {
-	var ()
 	return &GetLTENetworkIDEnodebsParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetLTENetworkIDEnodebsParamsWithHTTPClient creates a new GetLTENetworkIDEnodebsParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetLTENetworkIDEnodebsParamsWithHTTPClient(client *http.Client) *GetLTENetworkIDEnodebsParams {
-	var ()
 	return &GetLTENetworkIDEnodebsParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetLTENetworkIDEnodebsParams contains all the parameters to send to the API endpoint
-for the get LTE network ID enodebs operation typically these are written to a http.Request
+/* GetLTENetworkIDEnodebsParams contains all the parameters to send to the API endpoint
+   for the get LTE network ID enodebs operation.
+
+   Typically these are written to a http.Request.
 */
 type GetLTENetworkIDEnodebsParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*PageSize
-	  Maximum number of entities to return
 
+	/* PageSize.
+
+	   Maximum number of entities to return
+
+	   Format: uint32
 	*/
 	PageSize *uint32
-	/*PageToken
-	  Opaque page token for paginated requests
 
+	/* PageToken.
+
+	   Opaque page token for paginated requests
 	*/
 	PageToken *string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get LTE network ID enodebs params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDEnodebsParams) WithDefaults() *GetLTENetworkIDEnodebsParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get LTE network ID enodebs params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDEnodebsParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get LTE network ID enodebs params
@@ -165,32 +183,34 @@ func (o *GetLTENetworkIDEnodebsParams) WriteToRequest(r runtime.ClientRequest, r
 
 		// query param page_size
 		var qrPageSize uint32
+
 		if o.PageSize != nil {
 			qrPageSize = *o.PageSize
 		}
 		qPageSize := swag.FormatUint32(qrPageSize)
 		if qPageSize != "" {
+
 			if err := r.SetQueryParam("page_size", qPageSize); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.PageToken != nil {
 
 		// query param page_token
 		var qrPageToken string
+
 		if o.PageToken != nil {
 			qrPageToken = *o.PageToken
 		}
 		qPageToken := qrPageToken
 		if qPageToken != "" {
+
 			if err := r.SetQueryParam("page_token", qPageToken); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if len(res) > 0 {

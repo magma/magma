@@ -46,7 +46,7 @@ func NewPostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent() *Post
 	return &PostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent{}
 }
 
-/*PostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent handles this case with default header values.
+/* PostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault(code int)
 	}
 }
 
-/*PostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault handles this case with default header values.
+/* PostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault) Code() 
 func (o *PostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault) Error() string {
 	return fmt.Sprintf("[POST /lte/{network_id}/gateways/{gateway_id}/connected_enodeb_serials][%d] PostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerials default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

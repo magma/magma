@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams creates a new PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams object
-// with the default values initialized.
+// NewPutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams creates a new PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams() *PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDCellularNonEpsParamsWithTimeout creates a new PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutLTENetworkIDGatewaysGatewayIDCellularNonEpsParamsWithTimeout(timeout time.Duration) *PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDCellularNonEpsParamsWithContext creates a new PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutLTENetworkIDGatewaysGatewayIDCellularNonEpsParamsWithContext(ctx context.Context) *PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDCellularNonEpsParamsWithHTTPClient creates a new PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutLTENetworkIDGatewaysGatewayIDCellularNonEpsParamsWithHTTPClient(client *http.Client) *PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams contains all the parameters to send to the API endpoint
-for the put LTE network ID gateways gateway ID cellular non eps operation typically these are written to a http.Request
+/* PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams contains all the parameters to send to the API endpoint
+   for the put LTE network ID gateways gateway ID cellular non eps operation.
+
+   Typically these are written to a http.Request.
 */
 type PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams struct {
 
-	/*Config
-	  New Non-EPS configuration
+	/* Config.
 
+	   New Non-EPS configuration
 	*/
 	Config *models.GatewayNonEpsConfigs
-	/*GatewayID
-	  Gateway ID
 
+	/* GatewayID.
+
+	   Gateway ID
 	*/
 	GatewayID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put LTE network ID gateways gateway ID cellular non eps params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams) WithDefaults() *PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put LTE network ID gateways gateway ID cellular non eps params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put LTE network ID gateways gateway ID cellular non eps params
@@ -156,7 +172,6 @@ func (o *PutLTENetworkIDGatewaysGatewayIDCellularNonEpsParams) WriteToRequest(r 
 		return err
 	}
 	var res []error
-
 	if o.Config != nil {
 		if err := r.SetBodyParam(o.Config); err != nil {
 			return err

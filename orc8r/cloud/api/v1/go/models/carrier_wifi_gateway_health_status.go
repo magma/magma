@@ -6,6 +6,7 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/go-openapi/errors"
@@ -49,7 +50,7 @@ func (m *CarrierWifiGatewayHealthStatus) Validate(formats strfmt.Registry) error
 
 func (m *CarrierWifiGatewayHealthStatus) validateDescription(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("description", "body", string(m.Description)); err != nil {
+	if err := validate.RequiredString("description", "body", m.Description); err != nil {
 		return err
 	}
 
@@ -79,7 +80,7 @@ const (
 
 // prop value enum
 func (m *CarrierWifiGatewayHealthStatus) validateStatusEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, carrierWifiGatewayHealthStatusTypeStatusPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, carrierWifiGatewayHealthStatusTypeStatusPropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -87,7 +88,7 @@ func (m *CarrierWifiGatewayHealthStatus) validateStatusEnum(path, location strin
 
 func (m *CarrierWifiGatewayHealthStatus) validateStatus(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("status", "body", string(m.Status)); err != nil {
+	if err := validate.RequiredString("status", "body", m.Status); err != nil {
 		return err
 	}
 
@@ -96,6 +97,11 @@ func (m *CarrierWifiGatewayHealthStatus) validateStatus(formats strfmt.Registry)
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this carrier wifi gateway health status based on context it is used
+func (m *CarrierWifiGatewayHealthStatus) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostNetworksNetworkIDPoliciesBaseNamesParams creates a new PostNetworksNetworkIDPoliciesBaseNamesParams object
-// with the default values initialized.
+// NewPostNetworksNetworkIDPoliciesBaseNamesParams creates a new PostNetworksNetworkIDPoliciesBaseNamesParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostNetworksNetworkIDPoliciesBaseNamesParams() *PostNetworksNetworkIDPoliciesBaseNamesParams {
-	var ()
 	return &PostNetworksNetworkIDPoliciesBaseNamesParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostNetworksNetworkIDPoliciesBaseNamesParamsWithTimeout creates a new PostNetworksNetworkIDPoliciesBaseNamesParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostNetworksNetworkIDPoliciesBaseNamesParamsWithTimeout(timeout time.Duration) *PostNetworksNetworkIDPoliciesBaseNamesParams {
-	var ()
 	return &PostNetworksNetworkIDPoliciesBaseNamesParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostNetworksNetworkIDPoliciesBaseNamesParamsWithContext creates a new PostNetworksNetworkIDPoliciesBaseNamesParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostNetworksNetworkIDPoliciesBaseNamesParamsWithContext(ctx context.Context) *PostNetworksNetworkIDPoliciesBaseNamesParams {
-	var ()
 	return &PostNetworksNetworkIDPoliciesBaseNamesParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostNetworksNetworkIDPoliciesBaseNamesParamsWithHTTPClient creates a new PostNetworksNetworkIDPoliciesBaseNamesParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostNetworksNetworkIDPoliciesBaseNamesParamsWithHTTPClient(client *http.Client) *PostNetworksNetworkIDPoliciesBaseNamesParams {
-	var ()
 	return &PostNetworksNetworkIDPoliciesBaseNamesParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostNetworksNetworkIDPoliciesBaseNamesParams contains all the parameters to send to the API endpoint
-for the post networks network ID policies base names operation typically these are written to a http.Request
+/* PostNetworksNetworkIDPoliciesBaseNamesParams contains all the parameters to send to the API endpoint
+   for the post networks network ID policies base names operation.
+
+   Typically these are written to a http.Request.
 */
 type PostNetworksNetworkIDPoliciesBaseNamesParams struct {
 
-	/*BaseNameRecord
-	  Charging Rule Base Name to add
+	/* BaseNameRecord.
 
+	   Charging Rule Base Name to add
 	*/
 	BaseNameRecord *models.BaseNameRecord
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post networks network ID policies base names params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDPoliciesBaseNamesParams) WithDefaults() *PostNetworksNetworkIDPoliciesBaseNamesParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post networks network ID policies base names params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDPoliciesBaseNamesParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post networks network ID policies base names params
@@ -140,7 +155,6 @@ func (o *PostNetworksNetworkIDPoliciesBaseNamesParams) WriteToRequest(r runtime.
 		return err
 	}
 	var res []error
-
 	if o.BaseNameRecord != nil {
 		if err := r.SetBodyParam(o.BaseNameRecord); err != nil {
 			return err

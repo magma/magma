@@ -46,7 +46,7 @@ func NewGetLTENetworkIDOK() *GetLTENetworkIDOK {
 	return &GetLTENetworkIDOK{}
 }
 
-/*GetLTENetworkIDOK handles this case with default header values.
+/* GetLTENetworkIDOK describes a response with status code 200, with default header values.
 
 Full description of an LTE network
 */
@@ -57,7 +57,6 @@ type GetLTENetworkIDOK struct {
 func (o *GetLTENetworkIDOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}][%d] getLteNetworkIdOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDOK) GetPayload() *models.LTENetwork {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetLTENetworkIDDefault(code int) *GetLTENetworkIDDefault {
 	}
 }
 
-/*GetLTENetworkIDDefault handles this case with default header values.
+/* GetLTENetworkIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetLTENetworkIDDefault) Code() int {
 func (o *GetLTENetworkIDDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}][%d] GetLTENetworkID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

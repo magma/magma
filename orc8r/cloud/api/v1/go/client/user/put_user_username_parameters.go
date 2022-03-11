@@ -16,64 +16,79 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
-// NewPutUserUsernameParams creates a new PutUserUsernameParams object
-// with the default values initialized.
+// NewPutUserUsernameParams creates a new PutUserUsernameParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutUserUsernameParams() *PutUserUsernameParams {
-	var ()
 	return &PutUserUsernameParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutUserUsernameParamsWithTimeout creates a new PutUserUsernameParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutUserUsernameParamsWithTimeout(timeout time.Duration) *PutUserUsernameParams {
-	var ()
 	return &PutUserUsernameParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutUserUsernameParamsWithContext creates a new PutUserUsernameParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutUserUsernameParamsWithContext(ctx context.Context) *PutUserUsernameParams {
-	var ()
 	return &PutUserUsernameParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutUserUsernameParamsWithHTTPClient creates a new PutUserUsernameParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutUserUsernameParamsWithHTTPClient(client *http.Client) *PutUserUsernameParams {
-	var ()
 	return &PutUserUsernameParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutUserUsernameParams contains all the parameters to send to the API endpoint
-for the put user username operation typically these are written to a http.Request
+/* PutUserUsernameParams contains all the parameters to send to the API endpoint
+   for the put user username operation.
+
+   Typically these are written to a http.Request.
 */
 type PutUserUsernameParams struct {
 
-	/*Password
-	  New password for user
+	/* Password.
 
+	   New password for user
 	*/
 	Password PutUserUsernameBody
-	/*Username
-	  username
 
+	/* Username.
+
+	   username
 	*/
 	Username string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put user username params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutUserUsernameParams) WithDefaults() *PutUserUsernameParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put user username params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutUserUsernameParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put user username params
@@ -138,7 +153,6 @@ func (o *PutUserUsernameParams) WriteToRequest(r runtime.ClientRequest, reg strf
 		return err
 	}
 	var res []error
-
 	if err := r.SetBodyParam(o.Password); err != nil {
 		return err
 	}

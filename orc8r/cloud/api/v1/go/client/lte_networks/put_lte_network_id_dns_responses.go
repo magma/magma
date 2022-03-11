@@ -46,7 +46,7 @@ func NewPutLTENetworkIDDNSNoContent() *PutLTENetworkIDDNSNoContent {
 	return &PutLTENetworkIDDNSNoContent{}
 }
 
-/*PutLTENetworkIDDNSNoContent handles this case with default header values.
+/* PutLTENetworkIDDNSNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutLTENetworkIDDNSDefault(code int) *PutLTENetworkIDDNSDefault {
 	}
 }
 
-/*PutLTENetworkIDDNSDefault handles this case with default header values.
+/* PutLTENetworkIDDNSDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutLTENetworkIDDNSDefault) Code() int {
 func (o *PutLTENetworkIDDNSDefault) Error() string {
 	return fmt.Sprintf("[PUT /lte/{network_id}/dns][%d] PutLTENetworkIDDNS default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutLTENetworkIDDNSDefault) GetPayload() *models.Error {
 	return o.Payload
 }

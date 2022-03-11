@@ -46,7 +46,7 @@ func NewPostLTENetworkIDAPNSCreated() *PostLTENetworkIDAPNSCreated {
 	return &PostLTENetworkIDAPNSCreated{}
 }
 
-/*PostLTENetworkIDAPNSCreated handles this case with default header values.
+/* PostLTENetworkIDAPNSCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostLTENetworkIDAPNSDefault(code int) *PostLTENetworkIDAPNSDefault {
 	}
 }
 
-/*PostLTENetworkIDAPNSDefault handles this case with default header values.
+/* PostLTENetworkIDAPNSDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostLTENetworkIDAPNSDefault) Code() int {
 func (o *PostLTENetworkIDAPNSDefault) Error() string {
 	return fmt.Sprintf("[POST /lte/{network_id}/apns][%d] PostLTENetworkIDAPNS default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostLTENetworkIDAPNSDefault) GetPayload() *models.Error {
 	return o.Payload
 }

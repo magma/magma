@@ -46,7 +46,7 @@ func NewGetNetworksNetworkIDAlertsSilenceOK() *GetNetworksNetworkIDAlertsSilence
 	return &GetNetworksNetworkIDAlertsSilenceOK{}
 }
 
-/*GetNetworksNetworkIDAlertsSilenceOK handles this case with default header values.
+/* GetNetworksNetworkIDAlertsSilenceOK describes a response with status code 200, with default header values.
 
 List of active alert silencers
 */
@@ -57,7 +57,6 @@ type GetNetworksNetworkIDAlertsSilenceOK struct {
 func (o *GetNetworksNetworkIDAlertsSilenceOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/alerts/silence][%d] getNetworksNetworkIdAlertsSilenceOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDAlertsSilenceOK) GetPayload() []*models.GettableAlertSilencer {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetNetworksNetworkIDAlertsSilenceDefault(code int) *GetNetworksNetworkID
 	}
 }
 
-/*GetNetworksNetworkIDAlertsSilenceDefault handles this case with default header values.
+/* GetNetworksNetworkIDAlertsSilenceDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetNetworksNetworkIDAlertsSilenceDefault) Code() int {
 func (o *GetNetworksNetworkIDAlertsSilenceDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/alerts/silence][%d] GetNetworksNetworkIDAlertsSilence default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDAlertsSilenceDefault) GetPayload() *models.Error {
 	return o.Payload
 }

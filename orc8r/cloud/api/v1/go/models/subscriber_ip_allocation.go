@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -18,11 +20,13 @@ import (
 type SubscriberIPAllocation struct {
 
 	// apn
+	// Example: oai.ipv4
 	// Required: true
 	// Min Length: 1
 	APN string `json:"apn"`
 
 	// ip
+	// Example: 192.168.100.2
 	// Required: true
 	// Min Length: 1
 	// Format: ipv4
@@ -49,11 +53,11 @@ func (m *SubscriberIPAllocation) Validate(formats strfmt.Registry) error {
 
 func (m *SubscriberIPAllocation) validateAPN(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("apn", "body", string(m.APN)); err != nil {
+	if err := validate.RequiredString("apn", "body", m.APN); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("apn", "body", string(m.APN), 1); err != nil {
+	if err := validate.MinLength("apn", "body", m.APN, 1); err != nil {
 		return err
 	}
 
@@ -66,7 +70,7 @@ func (m *SubscriberIPAllocation) validateIP(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("ip", "body", string(m.IP), 1); err != nil {
+	if err := validate.MinLength("ip", "body", m.IP.String(), 1); err != nil {
 		return err
 	}
 
@@ -74,6 +78,11 @@ func (m *SubscriberIPAllocation) validateIP(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this subscriber ip allocation based on context it is used
+func (m *SubscriberIPAllocation) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

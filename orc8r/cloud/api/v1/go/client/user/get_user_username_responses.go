@@ -46,7 +46,7 @@ func NewGetUserUsernameCreated() *GetUserUsernameCreated {
 	return &GetUserUsernameCreated{}
 }
 
-/*GetUserUsernameCreated handles this case with default header values.
+/* GetUserUsernameCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -57,7 +57,6 @@ type GetUserUsernameCreated struct {
 func (o *GetUserUsernameCreated) Error() string {
 	return fmt.Sprintf("[GET /user/{username}][%d] getUserUsernameCreated  %+v", 201, o.Payload)
 }
-
 func (o *GetUserUsernameCreated) GetPayload() string {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetUserUsernameDefault(code int) *GetUserUsernameDefault {
 	}
 }
 
-/*GetUserUsernameDefault handles this case with default header values.
+/* GetUserUsernameDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetUserUsernameDefault) Code() int {
 func (o *GetUserUsernameDefault) Error() string {
 	return fmt.Sprintf("[GET /user/{username}][%d] GetUserUsername default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetUserUsernameDefault) GetPayload() *models.Error {
 	return o.Payload
 }

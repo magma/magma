@@ -18,66 +18,82 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutNetworksNetworkIDGatewaysGatewayIDNameParams creates a new PutNetworksNetworkIDGatewaysGatewayIDNameParams object
-// with the default values initialized.
+// NewPutNetworksNetworkIDGatewaysGatewayIDNameParams creates a new PutNetworksNetworkIDGatewaysGatewayIDNameParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutNetworksNetworkIDGatewaysGatewayIDNameParams() *PutNetworksNetworkIDGatewaysGatewayIDNameParams {
-	var ()
 	return &PutNetworksNetworkIDGatewaysGatewayIDNameParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutNetworksNetworkIDGatewaysGatewayIDNameParamsWithTimeout creates a new PutNetworksNetworkIDGatewaysGatewayIDNameParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutNetworksNetworkIDGatewaysGatewayIDNameParamsWithTimeout(timeout time.Duration) *PutNetworksNetworkIDGatewaysGatewayIDNameParams {
-	var ()
 	return &PutNetworksNetworkIDGatewaysGatewayIDNameParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutNetworksNetworkIDGatewaysGatewayIDNameParamsWithContext creates a new PutNetworksNetworkIDGatewaysGatewayIDNameParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutNetworksNetworkIDGatewaysGatewayIDNameParamsWithContext(ctx context.Context) *PutNetworksNetworkIDGatewaysGatewayIDNameParams {
-	var ()
 	return &PutNetworksNetworkIDGatewaysGatewayIDNameParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutNetworksNetworkIDGatewaysGatewayIDNameParamsWithHTTPClient creates a new PutNetworksNetworkIDGatewaysGatewayIDNameParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutNetworksNetworkIDGatewaysGatewayIDNameParamsWithHTTPClient(client *http.Client) *PutNetworksNetworkIDGatewaysGatewayIDNameParams {
-	var ()
 	return &PutNetworksNetworkIDGatewaysGatewayIDNameParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutNetworksNetworkIDGatewaysGatewayIDNameParams contains all the parameters to send to the API endpoint
-for the put networks network ID gateways gateway ID name operation typically these are written to a http.Request
+/* PutNetworksNetworkIDGatewaysGatewayIDNameParams contains all the parameters to send to the API endpoint
+   for the put networks network ID gateways gateway ID name operation.
+
+   Typically these are written to a http.Request.
 */
 type PutNetworksNetworkIDGatewaysGatewayIDNameParams struct {
 
-	/*GatewayID
-	  Gateway ID
+	/* GatewayID.
 
+	   Gateway ID
 	*/
 	GatewayID string
-	/*Name*/
-	Name models.GatewayName
-	/*NetworkID
-	  Network ID
 
+	// Name.
+	Name models.GatewayName
+
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put networks network ID gateways gateway ID name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDGatewaysGatewayIDNameParams) WithDefaults() *PutNetworksNetworkIDGatewaysGatewayIDNameParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put networks network ID gateways gateway ID name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDGatewaysGatewayIDNameParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put networks network ID gateways gateway ID name params
@@ -158,7 +174,6 @@ func (o *PutNetworksNetworkIDGatewaysGatewayIDNameParams) WriteToRequest(r runti
 	if err := r.SetPathParam("gateway_id", o.GatewayID); err != nil {
 		return err
 	}
-
 	if err := r.SetBodyParam(o.Name); err != nil {
 		return err
 	}

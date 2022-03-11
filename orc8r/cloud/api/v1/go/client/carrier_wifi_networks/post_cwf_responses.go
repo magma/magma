@@ -46,7 +46,7 @@ func NewPostCwfCreated() *PostCwfCreated {
 	return &PostCwfCreated{}
 }
 
-/*PostCwfCreated handles this case with default header values.
+/* PostCwfCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostCwfDefault(code int) *PostCwfDefault {
 	}
 }
 
-/*PostCwfDefault handles this case with default header values.
+/* PostCwfDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostCwfDefault) Code() int {
 func (o *PostCwfDefault) Error() string {
 	return fmt.Sprintf("[POST /cwf][%d] PostCwf default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostCwfDefault) GetPayload() *models.Error {
 	return o.Payload
 }

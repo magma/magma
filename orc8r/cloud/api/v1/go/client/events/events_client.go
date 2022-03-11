@@ -23,13 +23,16 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
 // ClientService is the interface for Client methods
 type ClientService interface {
-	GetEventsNetworkID(params *GetEventsNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetEventsNetworkIDOK, error)
+	GetEventsNetworkID(params *GetEventsNetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetEventsNetworkIDOK, error)
 
-	GetEventsNetworkIDAboutCount(params *GetEventsNetworkIDAboutCountParams, authInfo runtime.ClientAuthInfoWriter) (*GetEventsNetworkIDAboutCountOK, error)
+	GetEventsNetworkIDAboutCount(params *GetEventsNetworkIDAboutCountParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetEventsNetworkIDAboutCountOK, error)
 
-	GetEventsNetworkIDStreamName(params *GetEventsNetworkIDStreamNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetEventsNetworkIDStreamNameOK, error)
+	GetEventsNetworkIDStreamName(params *GetEventsNetworkIDStreamNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetEventsNetworkIDStreamNameOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -37,13 +40,12 @@ type ClientService interface {
 /*
   GetEventsNetworkID queries events
 */
-func (a *Client) GetEventsNetworkID(params *GetEventsNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetEventsNetworkIDOK, error) {
+func (a *Client) GetEventsNetworkID(params *GetEventsNetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetEventsNetworkIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetEventsNetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetEventsNetworkID",
 		Method:             "GET",
 		PathPattern:        "/events/{network_id}",
@@ -55,7 +57,12 @@ func (a *Client) GetEventsNetworkID(params *GetEventsNetworkIDParams, authInfo r
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -71,13 +78,12 @@ func (a *Client) GetEventsNetworkID(params *GetEventsNetworkIDParams, authInfo r
 /*
   GetEventsNetworkIDAboutCount gets a count of events that match the query
 */
-func (a *Client) GetEventsNetworkIDAboutCount(params *GetEventsNetworkIDAboutCountParams, authInfo runtime.ClientAuthInfoWriter) (*GetEventsNetworkIDAboutCountOK, error) {
+func (a *Client) GetEventsNetworkIDAboutCount(params *GetEventsNetworkIDAboutCountParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetEventsNetworkIDAboutCountOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetEventsNetworkIDAboutCountParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetEventsNetworkIDAboutCount",
 		Method:             "GET",
 		PathPattern:        "/events/{network_id}/about/count",
@@ -89,7 +95,12 @@ func (a *Client) GetEventsNetworkIDAboutCount(params *GetEventsNetworkIDAboutCou
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -105,13 +116,12 @@ func (a *Client) GetEventsNetworkIDAboutCount(params *GetEventsNetworkIDAboutCou
 /*
   GetEventsNetworkIDStreamName queries events logged by services
 */
-func (a *Client) GetEventsNetworkIDStreamName(params *GetEventsNetworkIDStreamNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetEventsNetworkIDStreamNameOK, error) {
+func (a *Client) GetEventsNetworkIDStreamName(params *GetEventsNetworkIDStreamNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetEventsNetworkIDStreamNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetEventsNetworkIDStreamNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetEventsNetworkIDStreamName",
 		Method:             "GET",
 		PathPattern:        "/events/{network_id}/{stream_name}",
@@ -123,7 +133,12 @@ func (a *Client) GetEventsNetworkIDStreamName(params *GetEventsNetworkIDStreamNa
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

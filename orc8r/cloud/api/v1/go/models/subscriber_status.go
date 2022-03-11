@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -35,7 +37,6 @@ func (m *SubscriberStatus) Validate(formats strfmt.Registry) error {
 }
 
 func (m *SubscriberStatus) validateIcmp(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Icmp) { // not required
 		return nil
 	}
@@ -44,6 +45,38 @@ func (m *SubscriberStatus) validateIcmp(formats strfmt.Registry) error {
 		if err := m.Icmp.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("icmp")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("icmp")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this subscriber status based on the context it is used
+func (m *SubscriberStatus) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateIcmp(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *SubscriberStatus) contextValidateIcmp(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Icmp != nil {
+		if err := m.Icmp.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("icmp")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("icmp")
 			}
 			return err
 		}

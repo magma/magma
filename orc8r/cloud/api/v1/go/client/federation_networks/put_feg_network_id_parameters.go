@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutFegNetworkIDParams creates a new PutFegNetworkIDParams object
-// with the default values initialized.
+// NewPutFegNetworkIDParams creates a new PutFegNetworkIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutFegNetworkIDParams() *PutFegNetworkIDParams {
-	var ()
 	return &PutFegNetworkIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutFegNetworkIDParamsWithTimeout creates a new PutFegNetworkIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutFegNetworkIDParamsWithTimeout(timeout time.Duration) *PutFegNetworkIDParams {
-	var ()
 	return &PutFegNetworkIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutFegNetworkIDParamsWithContext creates a new PutFegNetworkIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutFegNetworkIDParamsWithContext(ctx context.Context) *PutFegNetworkIDParams {
-	var ()
 	return &PutFegNetworkIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutFegNetworkIDParamsWithHTTPClient creates a new PutFegNetworkIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutFegNetworkIDParamsWithHTTPClient(client *http.Client) *PutFegNetworkIDParams {
-	var ()
 	return &PutFegNetworkIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutFegNetworkIDParams contains all the parameters to send to the API endpoint
-for the put feg network ID operation typically these are written to a http.Request
+/* PutFegNetworkIDParams contains all the parameters to send to the API endpoint
+   for the put feg network ID operation.
+
+   Typically these are written to a http.Request.
 */
 type PutFegNetworkIDParams struct {
 
-	/*FegNetwork
-	  Full desired configuration of the network
+	/* FegNetwork.
 
+	   Full desired configuration of the network
 	*/
 	FegNetwork *models.FegNetwork
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put feg network ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutFegNetworkIDParams) WithDefaults() *PutFegNetworkIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put feg network ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutFegNetworkIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put feg network ID params
@@ -140,7 +155,6 @@ func (o *PutFegNetworkIDParams) WriteToRequest(r runtime.ClientRequest, reg strf
 		return err
 	}
 	var res []error
-
 	if o.FegNetwork != nil {
 		if err := r.SetBodyParam(o.FegNetwork); err != nil {
 			return err

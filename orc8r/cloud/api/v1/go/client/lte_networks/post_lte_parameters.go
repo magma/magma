@@ -18,59 +18,73 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostLTEParams creates a new PostLTEParams object
-// with the default values initialized.
+// NewPostLTEParams creates a new PostLTEParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostLTEParams() *PostLTEParams {
-	var ()
 	return &PostLTEParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostLTEParamsWithTimeout creates a new PostLTEParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostLTEParamsWithTimeout(timeout time.Duration) *PostLTEParams {
-	var ()
 	return &PostLTEParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostLTEParamsWithContext creates a new PostLTEParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostLTEParamsWithContext(ctx context.Context) *PostLTEParams {
-	var ()
 	return &PostLTEParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostLTEParamsWithHTTPClient creates a new PostLTEParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostLTEParamsWithHTTPClient(client *http.Client) *PostLTEParams {
-	var ()
 	return &PostLTEParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostLTEParams contains all the parameters to send to the API endpoint
-for the post LTE operation typically these are written to a http.Request
+/* PostLTEParams contains all the parameters to send to the API endpoint
+   for the post LTE operation.
+
+   Typically these are written to a http.Request.
 */
 type PostLTEParams struct {
 
-	/*LTENetwork
-	  Configuration of the network to create
+	/* LTENetwork.
 
+	   Configuration of the network to create
 	*/
 	LTENetwork *models.LTENetwork
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post LTE params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostLTEParams) WithDefaults() *PostLTEParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post LTE params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostLTEParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post LTE params
@@ -124,7 +138,6 @@ func (o *PostLTEParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Regis
 		return err
 	}
 	var res []error
-
 	if o.LTENetwork != nil {
 		if err := r.SetBodyParam(o.LTENetwork); err != nil {
 			return err

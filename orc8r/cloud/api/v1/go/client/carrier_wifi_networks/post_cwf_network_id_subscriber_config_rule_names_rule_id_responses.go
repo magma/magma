@@ -46,7 +46,7 @@ func NewPostCwfNetworkIDSubscriberConfigRuleNamesRuleIDCreated() *PostCwfNetwork
 	return &PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDCreated{}
 }
 
-/*PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDCreated handles this case with default header values.
+/* PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault(code int) *PostCw
 	}
 }
 
-/*PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault handles this case with default header values.
+/* PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault) Code() int {
 func (o *PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault) Error() string {
 	return fmt.Sprintf("[POST /cwf/{network_id}/subscriber_config/rule_names/{rule_id}][%d] PostCwfNetworkIDSubscriberConfigRuleNamesRuleID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

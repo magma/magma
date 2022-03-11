@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutFegNetworkIDGatewaysGatewayIDFederationParams creates a new PutFegNetworkIDGatewaysGatewayIDFederationParams object
-// with the default values initialized.
+// NewPutFegNetworkIDGatewaysGatewayIDFederationParams creates a new PutFegNetworkIDGatewaysGatewayIDFederationParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutFegNetworkIDGatewaysGatewayIDFederationParams() *PutFegNetworkIDGatewaysGatewayIDFederationParams {
-	var ()
 	return &PutFegNetworkIDGatewaysGatewayIDFederationParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutFegNetworkIDGatewaysGatewayIDFederationParamsWithTimeout creates a new PutFegNetworkIDGatewaysGatewayIDFederationParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutFegNetworkIDGatewaysGatewayIDFederationParamsWithTimeout(timeout time.Duration) *PutFegNetworkIDGatewaysGatewayIDFederationParams {
-	var ()
 	return &PutFegNetworkIDGatewaysGatewayIDFederationParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutFegNetworkIDGatewaysGatewayIDFederationParamsWithContext creates a new PutFegNetworkIDGatewaysGatewayIDFederationParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutFegNetworkIDGatewaysGatewayIDFederationParamsWithContext(ctx context.Context) *PutFegNetworkIDGatewaysGatewayIDFederationParams {
-	var ()
 	return &PutFegNetworkIDGatewaysGatewayIDFederationParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutFegNetworkIDGatewaysGatewayIDFederationParamsWithHTTPClient creates a new PutFegNetworkIDGatewaysGatewayIDFederationParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutFegNetworkIDGatewaysGatewayIDFederationParamsWithHTTPClient(client *http.Client) *PutFegNetworkIDGatewaysGatewayIDFederationParams {
-	var ()
 	return &PutFegNetworkIDGatewaysGatewayIDFederationParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutFegNetworkIDGatewaysGatewayIDFederationParams contains all the parameters to send to the API endpoint
-for the put feg network ID gateways gateway ID federation operation typically these are written to a http.Request
+/* PutFegNetworkIDGatewaysGatewayIDFederationParams contains all the parameters to send to the API endpoint
+   for the put feg network ID gateways gateway ID federation operation.
+
+   Typically these are written to a http.Request.
 */
 type PutFegNetworkIDGatewaysGatewayIDFederationParams struct {
 
-	/*Config
-	  Updated config
+	/* Config.
 
+	   Updated config
 	*/
 	Config *models.GatewayFederationConfigs
-	/*GatewayID
-	  Gateway ID
 
+	/* GatewayID.
+
+	   Gateway ID
 	*/
 	GatewayID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put feg network ID gateways gateway ID federation params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutFegNetworkIDGatewaysGatewayIDFederationParams) WithDefaults() *PutFegNetworkIDGatewaysGatewayIDFederationParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put feg network ID gateways gateway ID federation params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutFegNetworkIDGatewaysGatewayIDFederationParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put feg network ID gateways gateway ID federation params
@@ -156,7 +172,6 @@ func (o *PutFegNetworkIDGatewaysGatewayIDFederationParams) WriteToRequest(r runt
 		return err
 	}
 	var res []error
-
 	if o.Config != nil {
 		if err := r.SetBodyParam(o.Config); err != nil {
 			return err

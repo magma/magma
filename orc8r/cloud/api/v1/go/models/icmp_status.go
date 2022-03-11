@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -18,9 +20,11 @@ import (
 type IcmpStatus struct {
 
 	// Timestamp of last reported status for the subscriber in ms
+	// Example: 1605747300000
 	LastReportedTime int64 `json:"last_reported_time,omitempty"`
 
 	// latency ms
+	// Example: 12.34
 	// Required: true
 	LatencyMs *float32 `json:"latency_ms"`
 }
@@ -45,6 +49,11 @@ func (m *IcmpStatus) validateLatencyMs(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this icmp status based on context it is used
+func (m *IcmpStatus) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

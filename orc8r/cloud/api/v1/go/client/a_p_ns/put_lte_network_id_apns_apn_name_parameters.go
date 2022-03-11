@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutLTENetworkIDAPNSAPNNameParams creates a new PutLTENetworkIDAPNSAPNNameParams object
-// with the default values initialized.
+// NewPutLTENetworkIDAPNSAPNNameParams creates a new PutLTENetworkIDAPNSAPNNameParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutLTENetworkIDAPNSAPNNameParams() *PutLTENetworkIDAPNSAPNNameParams {
-	var ()
 	return &PutLTENetworkIDAPNSAPNNameParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutLTENetworkIDAPNSAPNNameParamsWithTimeout creates a new PutLTENetworkIDAPNSAPNNameParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutLTENetworkIDAPNSAPNNameParamsWithTimeout(timeout time.Duration) *PutLTENetworkIDAPNSAPNNameParams {
-	var ()
 	return &PutLTENetworkIDAPNSAPNNameParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutLTENetworkIDAPNSAPNNameParamsWithContext creates a new PutLTENetworkIDAPNSAPNNameParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutLTENetworkIDAPNSAPNNameParamsWithContext(ctx context.Context) *PutLTENetworkIDAPNSAPNNameParams {
-	var ()
 	return &PutLTENetworkIDAPNSAPNNameParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutLTENetworkIDAPNSAPNNameParamsWithHTTPClient creates a new PutLTENetworkIDAPNSAPNNameParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutLTENetworkIDAPNSAPNNameParamsWithHTTPClient(client *http.Client) *PutLTENetworkIDAPNSAPNNameParams {
-	var ()
 	return &PutLTENetworkIDAPNSAPNNameParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutLTENetworkIDAPNSAPNNameParams contains all the parameters to send to the API endpoint
-for the put LTE network ID APNS APN name operation typically these are written to a http.Request
+/* PutLTENetworkIDAPNSAPNNameParams contains all the parameters to send to the API endpoint
+   for the put LTE network ID APNS APN name operation.
+
+   Typically these are written to a http.Request.
 */
 type PutLTENetworkIDAPNSAPNNameParams struct {
 
-	/*APN
-	  New APN configuration
+	/* APN.
 
+	   New APN configuration
 	*/
 	APN *models.APN
-	/*APNName
-	  Access Point Name
 
+	/* APNName.
+
+	   Access Point Name
 	*/
 	APNName string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put LTE network ID APNS APN name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDAPNSAPNNameParams) WithDefaults() *PutLTENetworkIDAPNSAPNNameParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put LTE network ID APNS APN name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDAPNSAPNNameParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put LTE network ID APNS APN name params
@@ -156,7 +172,6 @@ func (o *PutLTENetworkIDAPNSAPNNameParams) WriteToRequest(r runtime.ClientReques
 		return err
 	}
 	var res []error
-
 	if o.APN != nil {
 		if err := r.SetBodyParam(o.APN); err != nil {
 			return err

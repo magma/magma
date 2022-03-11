@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutLTENetworkIDGatewaysGatewayIDVpnParams creates a new PutLTENetworkIDGatewaysGatewayIDVpnParams object
-// with the default values initialized.
+// NewPutLTENetworkIDGatewaysGatewayIDVpnParams creates a new PutLTENetworkIDGatewaysGatewayIDVpnParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutLTENetworkIDGatewaysGatewayIDVpnParams() *PutLTENetworkIDGatewaysGatewayIDVpnParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDVpnParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDVpnParamsWithTimeout creates a new PutLTENetworkIDGatewaysGatewayIDVpnParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutLTENetworkIDGatewaysGatewayIDVpnParamsWithTimeout(timeout time.Duration) *PutLTENetworkIDGatewaysGatewayIDVpnParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDVpnParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDVpnParamsWithContext creates a new PutLTENetworkIDGatewaysGatewayIDVpnParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutLTENetworkIDGatewaysGatewayIDVpnParamsWithContext(ctx context.Context) *PutLTENetworkIDGatewaysGatewayIDVpnParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDVpnParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDVpnParamsWithHTTPClient creates a new PutLTENetworkIDGatewaysGatewayIDVpnParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutLTENetworkIDGatewaysGatewayIDVpnParamsWithHTTPClient(client *http.Client) *PutLTENetworkIDGatewaysGatewayIDVpnParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDVpnParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDVpnParams contains all the parameters to send to the API endpoint
-for the put LTE network ID gateways gateway ID vpn operation typically these are written to a http.Request
+/* PutLTENetworkIDGatewaysGatewayIDVpnParams contains all the parameters to send to the API endpoint
+   for the put LTE network ID gateways gateway ID vpn operation.
+
+   Typically these are written to a http.Request.
 */
 type PutLTENetworkIDGatewaysGatewayIDVpnParams struct {
 
-	/*Config
-	  New VPN configuration
+	/* Config.
 
+	   New VPN configuration
 	*/
 	Config *models.GatewayVpnConfigs
-	/*GatewayID
-	  Gateway ID
 
+	/* GatewayID.
+
+	   Gateway ID
 	*/
 	GatewayID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put LTE network ID gateways gateway ID vpn params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDGatewaysGatewayIDVpnParams) WithDefaults() *PutLTENetworkIDGatewaysGatewayIDVpnParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put LTE network ID gateways gateway ID vpn params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDGatewaysGatewayIDVpnParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put LTE network ID gateways gateway ID vpn params
@@ -156,7 +172,6 @@ func (o *PutLTENetworkIDGatewaysGatewayIDVpnParams) WriteToRequest(r runtime.Cli
 		return err
 	}
 	var res []error
-
 	if o.Config != nil {
 		if err := r.SetBodyParam(o.Config); err != nil {
 			return err

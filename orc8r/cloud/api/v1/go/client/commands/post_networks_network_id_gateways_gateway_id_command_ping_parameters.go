@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostNetworksNetworkIDGatewaysGatewayIDCommandPingParams creates a new PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams object
-// with the default values initialized.
+// NewPostNetworksNetworkIDGatewaysGatewayIDCommandPingParams creates a new PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostNetworksNetworkIDGatewaysGatewayIDCommandPingParams() *PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams {
-	var ()
 	return &PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostNetworksNetworkIDGatewaysGatewayIDCommandPingParamsWithTimeout creates a new PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostNetworksNetworkIDGatewaysGatewayIDCommandPingParamsWithTimeout(timeout time.Duration) *PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams {
-	var ()
 	return &PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostNetworksNetworkIDGatewaysGatewayIDCommandPingParamsWithContext creates a new PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostNetworksNetworkIDGatewaysGatewayIDCommandPingParamsWithContext(ctx context.Context) *PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams {
-	var ()
 	return &PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostNetworksNetworkIDGatewaysGatewayIDCommandPingParamsWithHTTPClient creates a new PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostNetworksNetworkIDGatewaysGatewayIDCommandPingParamsWithHTTPClient(client *http.Client) *PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams {
-	var ()
 	return &PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams contains all the parameters to send to the API endpoint
-for the post networks network ID gateways gateway ID command ping operation typically these are written to a http.Request
+/* PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams contains all the parameters to send to the API endpoint
+   for the post networks network ID gateways gateway ID command ping operation.
+
+   Typically these are written to a http.Request.
 */
 type PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams struct {
 
-	/*PingRequest
-	  Ping request
+	/* PingRequest.
 
+	   Ping request
 	*/
 	PingRequest *models.PingRequest
-	/*GatewayID
-	  Gateway ID
 
+	/* GatewayID.
+
+	   Gateway ID
 	*/
 	GatewayID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post networks network ID gateways gateway ID command ping params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams) WithDefaults() *PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post networks network ID gateways gateway ID command ping params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post networks network ID gateways gateway ID command ping params
@@ -156,7 +172,6 @@ func (o *PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams) WriteToRequest
 		return err
 	}
 	var res []error
-
 	if o.PingRequest != nil {
 		if err := r.SetBodyParam(o.PingRequest); err != nil {
 			return err

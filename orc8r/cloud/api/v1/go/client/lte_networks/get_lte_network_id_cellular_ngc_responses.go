@@ -46,7 +46,7 @@ func NewGetLTENetworkIDCellularNgcOK() *GetLTENetworkIDCellularNgcOK {
 	return &GetLTENetworkIDCellularNgcOK{}
 }
 
-/*GetLTENetworkIDCellularNgcOK handles this case with default header values.
+/* GetLTENetworkIDCellularNgcOK describes a response with status code 200, with default header values.
 
 NGC configuration of the network
 */
@@ -57,7 +57,6 @@ type GetLTENetworkIDCellularNgcOK struct {
 func (o *GetLTENetworkIDCellularNgcOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/cellular/ngc][%d] getLteNetworkIdCellularNgcOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDCellularNgcOK) GetPayload() *models.NetworkNgcConfigs {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetLTENetworkIDCellularNgcDefault(code int) *GetLTENetworkIDCellularNgcD
 	}
 }
 
-/*GetLTENetworkIDCellularNgcDefault handles this case with default header values.
+/* GetLTENetworkIDCellularNgcDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetLTENetworkIDCellularNgcDefault) Code() int {
 func (o *GetLTENetworkIDCellularNgcDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/cellular/ngc][%d] GetLTENetworkIDCellularNgc default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDCellularNgcDefault) GetPayload() *models.Error {
 	return o.Payload
 }

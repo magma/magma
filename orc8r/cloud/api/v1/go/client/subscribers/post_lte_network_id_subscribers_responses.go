@@ -46,7 +46,7 @@ func NewPostLTENetworkIDSubscribersCreated() *PostLTENetworkIDSubscribersCreated
 	return &PostLTENetworkIDSubscribersCreated{}
 }
 
-/*PostLTENetworkIDSubscribersCreated handles this case with default header values.
+/* PostLTENetworkIDSubscribersCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostLTENetworkIDSubscribersDefault(code int) *PostLTENetworkIDSubscriber
 	}
 }
 
-/*PostLTENetworkIDSubscribersDefault handles this case with default header values.
+/* PostLTENetworkIDSubscribersDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostLTENetworkIDSubscribersDefault) Code() int {
 func (o *PostLTENetworkIDSubscribersDefault) Error() string {
 	return fmt.Sprintf("[POST /lte/{network_id}/subscribers][%d] PostLTENetworkIDSubscribers default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostLTENetworkIDSubscribersDefault) GetPayload() *models.Error {
 	return o.Payload
 }

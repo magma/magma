@@ -6,6 +6,7 @@ package user
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -49,7 +50,7 @@ func NewPutUserUsernameNoContent() *PutUserUsernameNoContent {
 	return &PutUserUsernameNoContent{}
 }
 
-/*PutUserUsernameNoContent handles this case with default header values.
+/* PutUserUsernameNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -72,7 +73,7 @@ func NewPutUserUsernameDefault(code int) *PutUserUsernameDefault {
 	}
 }
 
-/*PutUserUsernameDefault handles this case with default header values.
+/* PutUserUsernameDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -90,7 +91,6 @@ func (o *PutUserUsernameDefault) Code() int {
 func (o *PutUserUsernameDefault) Error() string {
 	return fmt.Sprintf("[PUT /user/{username}][%d] PutUserUsername default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutUserUsernameDefault) GetPayload() *models.Error {
 	return o.Payload
 }
@@ -132,7 +132,6 @@ func (o *PutUserUsernameBody) Validate(formats strfmt.Registry) error {
 }
 
 func (o *PutUserUsernameBody) validatePassword(formats strfmt.Registry) error {
-
 	if swag.IsZero(o.Password) { // not required
 		return nil
 	}
@@ -141,6 +140,11 @@ func (o *PutUserUsernameBody) validatePassword(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this put user username body based on context it is used
+func (o *PutUserUsernameBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

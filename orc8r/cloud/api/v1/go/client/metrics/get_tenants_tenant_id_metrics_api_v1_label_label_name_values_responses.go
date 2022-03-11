@@ -6,6 +6,7 @@ package metrics
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -49,7 +50,7 @@ func NewGetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOK() *GetTenantsTenant
 	return &GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOK{}
 }
 
-/*GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOK handles this case with default header values.
+/* GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOK describes a response with status code 200, with default header values.
 
 List of label values
 */
@@ -60,7 +61,6 @@ type GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOK struct {
 func (o *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOK) Error() string {
 	return fmt.Sprintf("[GET /tenants/{tenant_id}/metrics/api/v1/label/{label_name}/values][%d] getTenantsTenantIdMetricsApiV1LabelLabelNameValuesOK  %+v", 200, o.Payload)
 }
-
 func (o *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOK) GetPayload() *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOKBody {
 	return o.Payload
 }
@@ -84,7 +84,7 @@ func NewGetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesDefault(code int) *Get
 	}
 }
 
-/*GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesDefault handles this case with default header values.
+/* GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -102,7 +102,6 @@ func (o *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesDefault) Code() int {
 func (o *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesDefault) Error() string {
 	return fmt.Sprintf("[GET /tenants/{tenant_id}/metrics/api/v1/label/{label_name}/values][%d] GetTenantsTenantIDMetricsAPIV1LabelLabelNameValues default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesDefault) GetPayload() *models.Error {
 	return o.Payload
 }
@@ -166,6 +165,11 @@ func (o *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOKBody) validateStatu
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this get tenants tenant ID metrics API v1 label label name values o k body based on context it is used
+func (o *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOKBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

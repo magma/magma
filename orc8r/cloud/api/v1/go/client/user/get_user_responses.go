@@ -46,7 +46,7 @@ func NewGetUserOK() *GetUserOK {
 	return &GetUserOK{}
 }
 
-/*GetUserOK handles this case with default header values.
+/* GetUserOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -57,7 +57,6 @@ type GetUserOK struct {
 func (o *GetUserOK) Error() string {
 	return fmt.Sprintf("[GET /user][%d] getUserOK  %+v", 200, o.Payload)
 }
-
 func (o *GetUserOK) GetPayload() []string {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetUserDefault(code int) *GetUserDefault {
 	}
 }
 
-/*GetUserDefault handles this case with default header values.
+/* GetUserDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetUserDefault) Code() int {
 func (o *GetUserDefault) Error() string {
 	return fmt.Sprintf("[GET /user][%d] GetUser default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetUserDefault) GetPayload() *models.Error {
 	return o.Payload
 }

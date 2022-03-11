@@ -46,7 +46,7 @@ func NewPostLTENetworkIDDNSRecordsDomainCreated() *PostLTENetworkIDDNSRecordsDom
 	return &PostLTENetworkIDDNSRecordsDomainCreated{}
 }
 
-/*PostLTENetworkIDDNSRecordsDomainCreated handles this case with default header values.
+/* PostLTENetworkIDDNSRecordsDomainCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostLTENetworkIDDNSRecordsDomainDefault(code int) *PostLTENetworkIDDNSRe
 	}
 }
 
-/*PostLTENetworkIDDNSRecordsDomainDefault handles this case with default header values.
+/* PostLTENetworkIDDNSRecordsDomainDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostLTENetworkIDDNSRecordsDomainDefault) Code() int {
 func (o *PostLTENetworkIDDNSRecordsDomainDefault) Error() string {
 	return fmt.Sprintf("[POST /lte/{network_id}/dns/records/{domain}][%d] PostLTENetworkIDDNSRecordsDomain default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostLTENetworkIDDNSRecordsDomainDefault) GetPayload() *models.Error {
 	return o.Payload
 }

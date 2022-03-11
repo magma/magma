@@ -46,7 +46,7 @@ func NewGetNetworksNetworkIDPoliciesBaseNamesOK() *GetNetworksNetworkIDPoliciesB
 	return &GetNetworksNetworkIDPoliciesBaseNamesOK{}
 }
 
-/*GetNetworksNetworkIDPoliciesBaseNamesOK handles this case with default header values.
+/* GetNetworksNetworkIDPoliciesBaseNamesOK describes a response with status code 200, with default header values.
 
 List of all base names
 */
@@ -57,7 +57,6 @@ type GetNetworksNetworkIDPoliciesBaseNamesOK struct {
 func (o *GetNetworksNetworkIDPoliciesBaseNamesOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/policies/base_names][%d] getNetworksNetworkIdPoliciesBaseNamesOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDPoliciesBaseNamesOK) GetPayload() []models.BaseName {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetNetworksNetworkIDPoliciesBaseNamesDefault(code int) *GetNetworksNetwo
 	}
 }
 
-/*GetNetworksNetworkIDPoliciesBaseNamesDefault handles this case with default header values.
+/* GetNetworksNetworkIDPoliciesBaseNamesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetNetworksNetworkIDPoliciesBaseNamesDefault) Code() int {
 func (o *GetNetworksNetworkIDPoliciesBaseNamesDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/policies/base_names][%d] GetNetworksNetworkIDPoliciesBaseNames default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDPoliciesBaseNamesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

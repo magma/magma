@@ -46,7 +46,7 @@ func NewGetNetworksNetworkIDAlertsOK() *GetNetworksNetworkIDAlertsOK {
 	return &GetNetworksNetworkIDAlertsOK{}
 }
 
-/*GetNetworksNetworkIDAlertsOK handles this case with default header values.
+/* GetNetworksNetworkIDAlertsOK describes a response with status code 200, with default header values.
 
 List of currently firing alerts
 */
@@ -57,7 +57,6 @@ type GetNetworksNetworkIDAlertsOK struct {
 func (o *GetNetworksNetworkIDAlertsOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/alerts][%d] getNetworksNetworkIdAlertsOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDAlertsOK) GetPayload() []*models.PromFiringAlert {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetNetworksNetworkIDAlertsDefault(code int) *GetNetworksNetworkIDAlertsD
 	}
 }
 
-/*GetNetworksNetworkIDAlertsDefault handles this case with default header values.
+/* GetNetworksNetworkIDAlertsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetNetworksNetworkIDAlertsDefault) Code() int {
 func (o *GetNetworksNetworkIDAlertsDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/alerts][%d] GetNetworksNetworkIDAlerts default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDAlertsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

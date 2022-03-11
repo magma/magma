@@ -18,66 +18,82 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutCwfNetworkIDGatewaysGatewayIDNameParams creates a new PutCwfNetworkIDGatewaysGatewayIDNameParams object
-// with the default values initialized.
+// NewPutCwfNetworkIDGatewaysGatewayIDNameParams creates a new PutCwfNetworkIDGatewaysGatewayIDNameParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutCwfNetworkIDGatewaysGatewayIDNameParams() *PutCwfNetworkIDGatewaysGatewayIDNameParams {
-	var ()
 	return &PutCwfNetworkIDGatewaysGatewayIDNameParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutCwfNetworkIDGatewaysGatewayIDNameParamsWithTimeout creates a new PutCwfNetworkIDGatewaysGatewayIDNameParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutCwfNetworkIDGatewaysGatewayIDNameParamsWithTimeout(timeout time.Duration) *PutCwfNetworkIDGatewaysGatewayIDNameParams {
-	var ()
 	return &PutCwfNetworkIDGatewaysGatewayIDNameParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutCwfNetworkIDGatewaysGatewayIDNameParamsWithContext creates a new PutCwfNetworkIDGatewaysGatewayIDNameParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutCwfNetworkIDGatewaysGatewayIDNameParamsWithContext(ctx context.Context) *PutCwfNetworkIDGatewaysGatewayIDNameParams {
-	var ()
 	return &PutCwfNetworkIDGatewaysGatewayIDNameParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutCwfNetworkIDGatewaysGatewayIDNameParamsWithHTTPClient creates a new PutCwfNetworkIDGatewaysGatewayIDNameParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutCwfNetworkIDGatewaysGatewayIDNameParamsWithHTTPClient(client *http.Client) *PutCwfNetworkIDGatewaysGatewayIDNameParams {
-	var ()
 	return &PutCwfNetworkIDGatewaysGatewayIDNameParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutCwfNetworkIDGatewaysGatewayIDNameParams contains all the parameters to send to the API endpoint
-for the put cwf network ID gateways gateway ID name operation typically these are written to a http.Request
+/* PutCwfNetworkIDGatewaysGatewayIDNameParams contains all the parameters to send to the API endpoint
+   for the put cwf network ID gateways gateway ID name operation.
+
+   Typically these are written to a http.Request.
 */
 type PutCwfNetworkIDGatewaysGatewayIDNameParams struct {
 
-	/*GatewayID
-	  Gateway ID
+	/* GatewayID.
 
+	   Gateway ID
 	*/
 	GatewayID string
-	/*Name*/
-	Name models.GatewayName
-	/*NetworkID
-	  Network ID
 
+	// Name.
+	Name models.GatewayName
+
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put cwf network ID gateways gateway ID name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDGatewaysGatewayIDNameParams) WithDefaults() *PutCwfNetworkIDGatewaysGatewayIDNameParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put cwf network ID gateways gateway ID name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDGatewaysGatewayIDNameParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put cwf network ID gateways gateway ID name params
@@ -158,7 +174,6 @@ func (o *PutCwfNetworkIDGatewaysGatewayIDNameParams) WriteToRequest(r runtime.Cl
 	if err := r.SetPathParam("gateway_id", o.GatewayID); err != nil {
 		return err
 	}
-
 	if err := r.SetBodyParam(o.Name); err != nil {
 		return err
 	}

@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -18,6 +20,7 @@ import (
 type CellularGatewayPoolConfigs struct {
 
 	// mme group id
+	// Example: 1
 	// Required: true
 	// Maximum: 65535
 	// Minimum: 0
@@ -44,14 +47,19 @@ func (m *CellularGatewayPoolConfigs) validateMmeGroupID(formats strfmt.Registry)
 		return err
 	}
 
-	if err := validate.MinimumInt("mme_group_id", "body", int64(m.MmeGroupID), 0, false); err != nil {
+	if err := validate.MinimumUint("mme_group_id", "body", uint64(m.MmeGroupID), 0, false); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("mme_group_id", "body", int64(m.MmeGroupID), 65535, false); err != nil {
+	if err := validate.MaximumUint("mme_group_id", "body", uint64(m.MmeGroupID), 65535, false); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this cellular gateway pool configs based on context it is used
+func (m *CellularGatewayPoolConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

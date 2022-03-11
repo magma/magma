@@ -46,7 +46,7 @@ func NewPutLTENetworkIDGatewaysGatewayIDCellularNoContent() *PutLTENetworkIDGate
 	return &PutLTENetworkIDGatewaysGatewayIDCellularNoContent{}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDCellularNoContent handles this case with default header values.
+/* PutLTENetworkIDGatewaysGatewayIDCellularNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutLTENetworkIDGatewaysGatewayIDCellularDefault(code int) *PutLTENetwork
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDCellularDefault handles this case with default header values.
+/* PutLTENetworkIDGatewaysGatewayIDCellularDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutLTENetworkIDGatewaysGatewayIDCellularDefault) Code() int {
 func (o *PutLTENetworkIDGatewaysGatewayIDCellularDefault) Error() string {
 	return fmt.Sprintf("[PUT /lte/{network_id}/gateways/{gateway_id}/cellular][%d] PutLTENetworkIDGatewaysGatewayIDCellular default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutLTENetworkIDGatewaysGatewayIDCellularDefault) GetPayload() *models.Error {
 	return o.Payload
 }

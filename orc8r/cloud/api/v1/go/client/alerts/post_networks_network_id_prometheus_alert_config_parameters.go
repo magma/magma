@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostNetworksNetworkIDPrometheusAlertConfigParams creates a new PostNetworksNetworkIDPrometheusAlertConfigParams object
-// with the default values initialized.
+// NewPostNetworksNetworkIDPrometheusAlertConfigParams creates a new PostNetworksNetworkIDPrometheusAlertConfigParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostNetworksNetworkIDPrometheusAlertConfigParams() *PostNetworksNetworkIDPrometheusAlertConfigParams {
-	var ()
 	return &PostNetworksNetworkIDPrometheusAlertConfigParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostNetworksNetworkIDPrometheusAlertConfigParamsWithTimeout creates a new PostNetworksNetworkIDPrometheusAlertConfigParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostNetworksNetworkIDPrometheusAlertConfigParamsWithTimeout(timeout time.Duration) *PostNetworksNetworkIDPrometheusAlertConfigParams {
-	var ()
 	return &PostNetworksNetworkIDPrometheusAlertConfigParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostNetworksNetworkIDPrometheusAlertConfigParamsWithContext creates a new PostNetworksNetworkIDPrometheusAlertConfigParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostNetworksNetworkIDPrometheusAlertConfigParamsWithContext(ctx context.Context) *PostNetworksNetworkIDPrometheusAlertConfigParams {
-	var ()
 	return &PostNetworksNetworkIDPrometheusAlertConfigParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostNetworksNetworkIDPrometheusAlertConfigParamsWithHTTPClient creates a new PostNetworksNetworkIDPrometheusAlertConfigParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostNetworksNetworkIDPrometheusAlertConfigParamsWithHTTPClient(client *http.Client) *PostNetworksNetworkIDPrometheusAlertConfigParams {
-	var ()
 	return &PostNetworksNetworkIDPrometheusAlertConfigParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostNetworksNetworkIDPrometheusAlertConfigParams contains all the parameters to send to the API endpoint
-for the post networks network ID prometheus alert config operation typically these are written to a http.Request
+/* PostNetworksNetworkIDPrometheusAlertConfigParams contains all the parameters to send to the API endpoint
+   for the post networks network ID prometheus alert config operation.
+
+   Typically these are written to a http.Request.
 */
 type PostNetworksNetworkIDPrometheusAlertConfigParams struct {
 
-	/*AlertConfig
-	  Alerting rule that is to be added
+	/* AlertConfig.
 
+	   Alerting rule that is to be added
 	*/
 	AlertConfig *models.PromAlertConfig
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post networks network ID prometheus alert config params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDPrometheusAlertConfigParams) WithDefaults() *PostNetworksNetworkIDPrometheusAlertConfigParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post networks network ID prometheus alert config params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDPrometheusAlertConfigParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post networks network ID prometheus alert config params
@@ -140,7 +155,6 @@ func (o *PostNetworksNetworkIDPrometheusAlertConfigParams) WriteToRequest(r runt
 		return err
 	}
 	var res []error
-
 	if o.AlertConfig != nil {
 		if err := r.SetBodyParam(o.AlertConfig); err != nil {
 			return err

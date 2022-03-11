@@ -46,7 +46,7 @@ func NewPutFegNetworkIDNoContent() *PutFegNetworkIDNoContent {
 	return &PutFegNetworkIDNoContent{}
 }
 
-/*PutFegNetworkIDNoContent handles this case with default header values.
+/* PutFegNetworkIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutFegNetworkIDDefault(code int) *PutFegNetworkIDDefault {
 	}
 }
 
-/*PutFegNetworkIDDefault handles this case with default header values.
+/* PutFegNetworkIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutFegNetworkIDDefault) Code() int {
 func (o *PutFegNetworkIDDefault) Error() string {
 	return fmt.Sprintf("[PUT /feg/{network_id}][%d] PutFegNetworkID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutFegNetworkIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
@@ -16,20 +18,29 @@ import (
 type GatewayHealthConfigs struct {
 
 	// cpu util threshold pct
+	// Example: 0.9
 	CPUUtilThresholdPct float32 `json:"cpu_util_threshold_pct,omitempty"`
 
 	// gre probe interval secs
+	// Example: 5
 	GreProbeIntervalSecs uint32 `json:"gre_probe_interval_secs,omitempty"`
 
 	// icmp probe pkt count
+	// Example: 3
 	IcmpProbePktCount uint32 `json:"icmp_probe_pkt_count,omitempty"`
 
 	// mem util threshold pct
+	// Example: 0.9
 	MemUtilThresholdPct float32 `json:"mem_util_threshold_pct,omitempty"`
 }
 
 // Validate validates this gateway health configs
 func (m *GatewayHealthConfigs) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this gateway health configs based on context it is used
+func (m *GatewayHealthConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

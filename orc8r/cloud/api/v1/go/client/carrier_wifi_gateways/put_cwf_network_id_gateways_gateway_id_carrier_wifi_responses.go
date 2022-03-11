@@ -46,7 +46,7 @@ func NewPutCwfNetworkIDGatewaysGatewayIDCarrierWifiNoContent() *PutCwfNetworkIDG
 	return &PutCwfNetworkIDGatewaysGatewayIDCarrierWifiNoContent{}
 }
 
-/*PutCwfNetworkIDGatewaysGatewayIDCarrierWifiNoContent handles this case with default header values.
+/* PutCwfNetworkIDGatewaysGatewayIDCarrierWifiNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutCwfNetworkIDGatewaysGatewayIDCarrierWifiDefault(code int) *PutCwfNetw
 	}
 }
 
-/*PutCwfNetworkIDGatewaysGatewayIDCarrierWifiDefault handles this case with default header values.
+/* PutCwfNetworkIDGatewaysGatewayIDCarrierWifiDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutCwfNetworkIDGatewaysGatewayIDCarrierWifiDefault) Code() int {
 func (o *PutCwfNetworkIDGatewaysGatewayIDCarrierWifiDefault) Error() string {
 	return fmt.Sprintf("[PUT /cwf/{network_id}/gateways/{gateway_id}/carrier_wifi][%d] PutCwfNetworkIDGatewaysGatewayIDCarrierWifi default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutCwfNetworkIDGatewaysGatewayIDCarrierWifiDefault) GetPayload() *models.Error {
 	return o.Payload
 }

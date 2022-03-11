@@ -46,7 +46,7 @@ func NewGetTenantsOK() *GetTenantsOK {
 	return &GetTenantsOK{}
 }
 
-/*GetTenantsOK handles this case with default header values.
+/* GetTenantsOK describes a response with status code 200, with default header values.
 
 List of tenants
 */
@@ -57,7 +57,6 @@ type GetTenantsOK struct {
 func (o *GetTenantsOK) Error() string {
 	return fmt.Sprintf("[GET /tenants][%d] getTenantsOK  %+v", 200, o.Payload)
 }
-
 func (o *GetTenantsOK) GetPayload() []*models.Tenant {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetTenantsDefault(code int) *GetTenantsDefault {
 	}
 }
 
-/*GetTenantsDefault handles this case with default header values.
+/* GetTenantsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetTenantsDefault) Code() int {
 func (o *GetTenantsDefault) Error() string {
 	return fmt.Sprintf("[GET /tenants][%d] GetTenants default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetTenantsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

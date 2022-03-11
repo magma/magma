@@ -46,7 +46,7 @@ func NewPutCwfNetworkIDGatewaysGatewayIDTierNoContent() *PutCwfNetworkIDGateways
 	return &PutCwfNetworkIDGatewaysGatewayIDTierNoContent{}
 }
 
-/*PutCwfNetworkIDGatewaysGatewayIDTierNoContent handles this case with default header values.
+/* PutCwfNetworkIDGatewaysGatewayIDTierNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutCwfNetworkIDGatewaysGatewayIDTierDefault(code int) *PutCwfNetworkIDGa
 	}
 }
 
-/*PutCwfNetworkIDGatewaysGatewayIDTierDefault handles this case with default header values.
+/* PutCwfNetworkIDGatewaysGatewayIDTierDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutCwfNetworkIDGatewaysGatewayIDTierDefault) Code() int {
 func (o *PutCwfNetworkIDGatewaysGatewayIDTierDefault) Error() string {
 	return fmt.Sprintf("[PUT /cwf/{network_id}/gateways/{gateway_id}/tier][%d] PutCwfNetworkIDGatewaysGatewayIDTier default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutCwfNetworkIDGatewaysGatewayIDTierDefault) GetPayload() *models.Error {
 	return o.Payload
 }

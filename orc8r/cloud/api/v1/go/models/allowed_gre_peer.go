@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -18,12 +20,14 @@ import (
 type AllowedGrePeer struct {
 
 	// ip
+	// Example: 192.168.128.0/32
 	// Required: true
 	// Max Length: 49
 	// Min Length: 5
 	IP string `json:"ip"`
 
 	// key
+	// Example: 1
 	Key *uint32 `json:"key,omitempty"`
 }
 
@@ -43,18 +47,23 @@ func (m *AllowedGrePeer) Validate(formats strfmt.Registry) error {
 
 func (m *AllowedGrePeer) validateIP(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("ip", "body", string(m.IP)); err != nil {
+	if err := validate.RequiredString("ip", "body", m.IP); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("ip", "body", string(m.IP), 5); err != nil {
+	if err := validate.MinLength("ip", "body", m.IP, 5); err != nil {
 		return err
 	}
 
-	if err := validate.MaxLength("ip", "body", string(m.IP), 49); err != nil {
+	if err := validate.MaxLength("ip", "body", m.IP, 49); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this allowed gre peer based on context it is used
+func (m *AllowedGrePeer) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

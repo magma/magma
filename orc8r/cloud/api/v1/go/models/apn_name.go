@@ -6,15 +6,23 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/strfmt"
 )
 
 // APNName apn name
+// Example: inet
 //
 // swagger:model apn_name
 type APNName string
 
 // Validate validates this apn name
 func (m APNName) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this apn name based on context it is used
+func (m APNName) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

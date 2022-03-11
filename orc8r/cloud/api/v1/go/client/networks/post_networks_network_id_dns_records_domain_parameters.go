@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostNetworksNetworkIDDNSRecordsDomainParams creates a new PostNetworksNetworkIDDNSRecordsDomainParams object
-// with the default values initialized.
+// NewPostNetworksNetworkIDDNSRecordsDomainParams creates a new PostNetworksNetworkIDDNSRecordsDomainParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostNetworksNetworkIDDNSRecordsDomainParams() *PostNetworksNetworkIDDNSRecordsDomainParams {
-	var ()
 	return &PostNetworksNetworkIDDNSRecordsDomainParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostNetworksNetworkIDDNSRecordsDomainParamsWithTimeout creates a new PostNetworksNetworkIDDNSRecordsDomainParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostNetworksNetworkIDDNSRecordsDomainParamsWithTimeout(timeout time.Duration) *PostNetworksNetworkIDDNSRecordsDomainParams {
-	var ()
 	return &PostNetworksNetworkIDDNSRecordsDomainParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostNetworksNetworkIDDNSRecordsDomainParamsWithContext creates a new PostNetworksNetworkIDDNSRecordsDomainParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostNetworksNetworkIDDNSRecordsDomainParamsWithContext(ctx context.Context) *PostNetworksNetworkIDDNSRecordsDomainParams {
-	var ()
 	return &PostNetworksNetworkIDDNSRecordsDomainParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostNetworksNetworkIDDNSRecordsDomainParamsWithHTTPClient creates a new PostNetworksNetworkIDDNSRecordsDomainParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostNetworksNetworkIDDNSRecordsDomainParamsWithHTTPClient(client *http.Client) *PostNetworksNetworkIDDNSRecordsDomainParams {
-	var ()
 	return &PostNetworksNetworkIDDNSRecordsDomainParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostNetworksNetworkIDDNSRecordsDomainParams contains all the parameters to send to the API endpoint
-for the post networks network ID DNS records domain operation typically these are written to a http.Request
+/* PostNetworksNetworkIDDNSRecordsDomainParams contains all the parameters to send to the API endpoint
+   for the post networks network ID DNS records domain operation.
+
+   Typically these are written to a http.Request.
 */
 type PostNetworksNetworkIDDNSRecordsDomainParams struct {
 
-	/*Domain
-	  DNS record domain
+	/* Domain.
 
+	   DNS record domain
 	*/
 	Domain string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*Record
-	  Custom DNS record for the domain
 
+	/* Record.
+
+	   Custom DNS record for the domain
 	*/
 	Record *models.DNSConfigRecord
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post networks network ID DNS records domain params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDDNSRecordsDomainParams) WithDefaults() *PostNetworksNetworkIDDNSRecordsDomainParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post networks network ID DNS records domain params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDDNSRecordsDomainParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post networks network ID DNS records domain params
@@ -166,7 +182,6 @@ func (o *PostNetworksNetworkIDDNSRecordsDomainParams) WriteToRequest(r runtime.C
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.Record != nil {
 		if err := r.SetBodyParam(o.Record); err != nil {
 			return err

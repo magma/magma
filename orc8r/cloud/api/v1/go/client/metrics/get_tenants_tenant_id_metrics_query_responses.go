@@ -46,7 +46,7 @@ func NewGetTenantsTenantIDMetricsQueryOK() *GetTenantsTenantIDMetricsQueryOK {
 	return &GetTenantsTenantIDMetricsQueryOK{}
 }
 
-/*GetTenantsTenantIDMetricsQueryOK handles this case with default header values.
+/* GetTenantsTenantIDMetricsQueryOK describes a response with status code 200, with default header values.
 
 List of PromQL metrics results
 */
@@ -57,7 +57,6 @@ type GetTenantsTenantIDMetricsQueryOK struct {
 func (o *GetTenantsTenantIDMetricsQueryOK) Error() string {
 	return fmt.Sprintf("[GET /tenants/{tenant_id}/metrics/query][%d] getTenantsTenantIdMetricsQueryOK  %+v", 200, o.Payload)
 }
-
 func (o *GetTenantsTenantIDMetricsQueryOK) GetPayload() *models.PromqlReturnObject {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetTenantsTenantIDMetricsQueryDefault(code int) *GetTenantsTenantIDMetri
 	}
 }
 
-/*GetTenantsTenantIDMetricsQueryDefault handles this case with default header values.
+/* GetTenantsTenantIDMetricsQueryDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetTenantsTenantIDMetricsQueryDefault) Code() int {
 func (o *GetTenantsTenantIDMetricsQueryDefault) Error() string {
 	return fmt.Sprintf("[GET /tenants/{tenant_id}/metrics/query][%d] GetTenantsTenantIDMetricsQuery default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetTenantsTenantIDMetricsQueryDefault) GetPayload() *models.Error {
 	return o.Payload
 }

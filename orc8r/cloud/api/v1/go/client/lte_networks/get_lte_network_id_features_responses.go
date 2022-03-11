@@ -46,7 +46,7 @@ func NewGetLTENetworkIDFeaturesOK() *GetLTENetworkIDFeaturesOK {
 	return &GetLTENetworkIDFeaturesOK{}
 }
 
-/*GetLTENetworkIDFeaturesOK handles this case with default header values.
+/* GetLTENetworkIDFeaturesOK describes a response with status code 200, with default header values.
 
 Feature flags of the network
 */
@@ -57,7 +57,6 @@ type GetLTENetworkIDFeaturesOK struct {
 func (o *GetLTENetworkIDFeaturesOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/features][%d] getLteNetworkIdFeaturesOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDFeaturesOK) GetPayload() *models.NetworkFeatures {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetLTENetworkIDFeaturesDefault(code int) *GetLTENetworkIDFeaturesDefault
 	}
 }
 
-/*GetLTENetworkIDFeaturesDefault handles this case with default header values.
+/* GetLTENetworkIDFeaturesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetLTENetworkIDFeaturesDefault) Code() int {
 func (o *GetLTENetworkIDFeaturesDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/features][%d] GetLTENetworkIDFeatures default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDFeaturesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

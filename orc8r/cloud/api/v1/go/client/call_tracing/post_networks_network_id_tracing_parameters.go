@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostNetworksNetworkIDTracingParams creates a new PostNetworksNetworkIDTracingParams object
-// with the default values initialized.
+// NewPostNetworksNetworkIDTracingParams creates a new PostNetworksNetworkIDTracingParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostNetworksNetworkIDTracingParams() *PostNetworksNetworkIDTracingParams {
-	var ()
 	return &PostNetworksNetworkIDTracingParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostNetworksNetworkIDTracingParamsWithTimeout creates a new PostNetworksNetworkIDTracingParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostNetworksNetworkIDTracingParamsWithTimeout(timeout time.Duration) *PostNetworksNetworkIDTracingParams {
-	var ()
 	return &PostNetworksNetworkIDTracingParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostNetworksNetworkIDTracingParamsWithContext creates a new PostNetworksNetworkIDTracingParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostNetworksNetworkIDTracingParamsWithContext(ctx context.Context) *PostNetworksNetworkIDTracingParams {
-	var ()
 	return &PostNetworksNetworkIDTracingParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostNetworksNetworkIDTracingParamsWithHTTPClient creates a new PostNetworksNetworkIDTracingParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostNetworksNetworkIDTracingParamsWithHTTPClient(client *http.Client) *PostNetworksNetworkIDTracingParams {
-	var ()
 	return &PostNetworksNetworkIDTracingParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostNetworksNetworkIDTracingParams contains all the parameters to send to the API endpoint
-for the post networks network ID tracing operation typically these are written to a http.Request
+/* PostNetworksNetworkIDTracingParams contains all the parameters to send to the API endpoint
+   for the post networks network ID tracing operation.
+
+   Typically these are written to a http.Request.
 */
 type PostNetworksNetworkIDTracingParams struct {
 
-	/*CallTraceConfiguration
-	  Configuration of call trace to start
+	/* CallTraceConfiguration.
 
+	   Configuration of call trace to start
 	*/
 	CallTraceConfiguration *models.CallTraceConfig
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post networks network ID tracing params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDTracingParams) WithDefaults() *PostNetworksNetworkIDTracingParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post networks network ID tracing params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDTracingParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post networks network ID tracing params
@@ -140,7 +155,6 @@ func (o *PostNetworksNetworkIDTracingParams) WriteToRequest(r runtime.ClientRequ
 		return err
 	}
 	var res []error
-
 	if o.CallTraceConfiguration != nil {
 		if err := r.SetBodyParam(o.CallTraceConfiguration); err != nil {
 			return err

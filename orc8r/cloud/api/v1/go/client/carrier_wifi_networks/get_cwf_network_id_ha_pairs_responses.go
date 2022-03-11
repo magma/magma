@@ -46,7 +46,7 @@ func NewGetCwfNetworkIDHaPairsOK() *GetCwfNetworkIDHaPairsOK {
 	return &GetCwfNetworkIDHaPairsOK{}
 }
 
-/*GetCwfNetworkIDHaPairsOK handles this case with default header values.
+/* GetCwfNetworkIDHaPairsOK describes a response with status code 200, with default header values.
 
 All high availability gateway pairs in Carrier Wifi network
 */
@@ -57,7 +57,6 @@ type GetCwfNetworkIDHaPairsOK struct {
 func (o *GetCwfNetworkIDHaPairsOK) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/ha_pairs][%d] getCwfNetworkIdHaPairsOK  %+v", 200, o.Payload)
 }
-
 func (o *GetCwfNetworkIDHaPairsOK) GetPayload() map[string]models.CwfHaPair {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetCwfNetworkIDHaPairsDefault(code int) *GetCwfNetworkIDHaPairsDefault {
 	}
 }
 
-/*GetCwfNetworkIDHaPairsDefault handles this case with default header values.
+/* GetCwfNetworkIDHaPairsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetCwfNetworkIDHaPairsDefault) Code() int {
 func (o *GetCwfNetworkIDHaPairsDefault) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/ha_pairs][%d] GetCwfNetworkIDHaPairs default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetCwfNetworkIDHaPairsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

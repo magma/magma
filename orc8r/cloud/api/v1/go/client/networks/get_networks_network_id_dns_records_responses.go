@@ -46,7 +46,7 @@ func NewGetNetworksNetworkIDDNSRecordsOK() *GetNetworksNetworkIDDNSRecordsOK {
 	return &GetNetworksNetworkIDDNSRecordsOK{}
 }
 
-/*GetNetworksNetworkIDDNSRecordsOK handles this case with default header values.
+/* GetNetworksNetworkIDDNSRecordsOK describes a response with status code 200, with default header values.
 
 Custom DNS records for the network
 */
@@ -57,7 +57,6 @@ type GetNetworksNetworkIDDNSRecordsOK struct {
 func (o *GetNetworksNetworkIDDNSRecordsOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/dns/records][%d] getNetworksNetworkIdDnsRecordsOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDDNSRecordsOK) GetPayload() models.NetworkDNSRecords {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetNetworksNetworkIDDNSRecordsDefault(code int) *GetNetworksNetworkIDDNS
 	}
 }
 
-/*GetNetworksNetworkIDDNSRecordsDefault handles this case with default header values.
+/* GetNetworksNetworkIDDNSRecordsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetNetworksNetworkIDDNSRecordsDefault) Code() int {
 func (o *GetNetworksNetworkIDDNSRecordsDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/dns/records][%d] GetNetworksNetworkIDDNSRecords default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDDNSRecordsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

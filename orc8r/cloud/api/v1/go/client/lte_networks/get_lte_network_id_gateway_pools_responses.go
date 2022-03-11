@@ -46,7 +46,7 @@ func NewGetLTENetworkIDGatewayPoolsOK() *GetLTENetworkIDGatewayPoolsOK {
 	return &GetLTENetworkIDGatewayPoolsOK{}
 }
 
-/*GetLTENetworkIDGatewayPoolsOK handles this case with default header values.
+/* GetLTENetworkIDGatewayPoolsOK describes a response with status code 200, with default header values.
 
 All gateway pools in LTE network
 */
@@ -57,7 +57,6 @@ type GetLTENetworkIDGatewayPoolsOK struct {
 func (o *GetLTENetworkIDGatewayPoolsOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/gateway_pools][%d] getLteNetworkIdGatewayPoolsOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDGatewayPoolsOK) GetPayload() map[string]models.CellularGatewayPool {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetLTENetworkIDGatewayPoolsDefault(code int) *GetLTENetworkIDGatewayPool
 	}
 }
 
-/*GetLTENetworkIDGatewayPoolsDefault handles this case with default header values.
+/* GetLTENetworkIDGatewayPoolsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetLTENetworkIDGatewayPoolsDefault) Code() int {
 func (o *GetLTENetworkIDGatewayPoolsDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/gateway_pools][%d] GetLTENetworkIDGatewayPools default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDGatewayPoolsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

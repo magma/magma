@@ -46,7 +46,7 @@ func NewPutNetworksNetworkIDSentryNoContent() *PutNetworksNetworkIDSentryNoConte
 	return &PutNetworksNetworkIDSentryNoContent{}
 }
 
-/*PutNetworksNetworkIDSentryNoContent handles this case with default header values.
+/* PutNetworksNetworkIDSentryNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutNetworksNetworkIDSentryDefault(code int) *PutNetworksNetworkIDSentryD
 	}
 }
 
-/*PutNetworksNetworkIDSentryDefault handles this case with default header values.
+/* PutNetworksNetworkIDSentryDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutNetworksNetworkIDSentryDefault) Code() int {
 func (o *PutNetworksNetworkIDSentryDefault) Error() string {
 	return fmt.Sprintf("[PUT /networks/{network_id}/sentry][%d] PutNetworksNetworkIDSentry default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutNetworksNetworkIDSentryDefault) GetPayload() *models.Error {
 	return o.Payload
 }

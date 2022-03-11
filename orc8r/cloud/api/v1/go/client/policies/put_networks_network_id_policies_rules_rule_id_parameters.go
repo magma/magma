@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutNetworksNetworkIDPoliciesRulesRuleIDParams creates a new PutNetworksNetworkIDPoliciesRulesRuleIDParams object
-// with the default values initialized.
+// NewPutNetworksNetworkIDPoliciesRulesRuleIDParams creates a new PutNetworksNetworkIDPoliciesRulesRuleIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutNetworksNetworkIDPoliciesRulesRuleIDParams() *PutNetworksNetworkIDPoliciesRulesRuleIDParams {
-	var ()
 	return &PutNetworksNetworkIDPoliciesRulesRuleIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutNetworksNetworkIDPoliciesRulesRuleIDParamsWithTimeout creates a new PutNetworksNetworkIDPoliciesRulesRuleIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutNetworksNetworkIDPoliciesRulesRuleIDParamsWithTimeout(timeout time.Duration) *PutNetworksNetworkIDPoliciesRulesRuleIDParams {
-	var ()
 	return &PutNetworksNetworkIDPoliciesRulesRuleIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutNetworksNetworkIDPoliciesRulesRuleIDParamsWithContext creates a new PutNetworksNetworkIDPoliciesRulesRuleIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutNetworksNetworkIDPoliciesRulesRuleIDParamsWithContext(ctx context.Context) *PutNetworksNetworkIDPoliciesRulesRuleIDParams {
-	var ()
 	return &PutNetworksNetworkIDPoliciesRulesRuleIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutNetworksNetworkIDPoliciesRulesRuleIDParamsWithHTTPClient creates a new PutNetworksNetworkIDPoliciesRulesRuleIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutNetworksNetworkIDPoliciesRulesRuleIDParamsWithHTTPClient(client *http.Client) *PutNetworksNetworkIDPoliciesRulesRuleIDParams {
-	var ()
 	return &PutNetworksNetworkIDPoliciesRulesRuleIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutNetworksNetworkIDPoliciesRulesRuleIDParams contains all the parameters to send to the API endpoint
-for the put networks network ID policies rules rule ID operation typically these are written to a http.Request
+/* PutNetworksNetworkIDPoliciesRulesRuleIDParams contains all the parameters to send to the API endpoint
+   for the put networks network ID policies rules rule ID operation.
+
+   Typically these are written to a http.Request.
 */
 type PutNetworksNetworkIDPoliciesRulesRuleIDParams struct {
 
-	/*PolicyRule
-	  Policy rule
+	/* PolicyRule.
 
+	   Policy rule
 	*/
 	PolicyRule *models.PolicyRule
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*RuleID
-	  Rule Id
 
+	/* RuleID.
+
+	   Rule Id
 	*/
 	RuleID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put networks network ID policies rules rule ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDPoliciesRulesRuleIDParams) WithDefaults() *PutNetworksNetworkIDPoliciesRulesRuleIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put networks network ID policies rules rule ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDPoliciesRulesRuleIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put networks network ID policies rules rule ID params
@@ -156,7 +172,6 @@ func (o *PutNetworksNetworkIDPoliciesRulesRuleIDParams) WriteToRequest(r runtime
 		return err
 	}
 	var res []error
-
 	if o.PolicyRule != nil {
 		if err := r.SetBodyParam(o.PolicyRule); err != nil {
 			return err

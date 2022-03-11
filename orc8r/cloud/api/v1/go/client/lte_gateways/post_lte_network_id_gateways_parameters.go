@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostLTENetworkIDGatewaysParams creates a new PostLTENetworkIDGatewaysParams object
-// with the default values initialized.
+// NewPostLTENetworkIDGatewaysParams creates a new PostLTENetworkIDGatewaysParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostLTENetworkIDGatewaysParams() *PostLTENetworkIDGatewaysParams {
-	var ()
 	return &PostLTENetworkIDGatewaysParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostLTENetworkIDGatewaysParamsWithTimeout creates a new PostLTENetworkIDGatewaysParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostLTENetworkIDGatewaysParamsWithTimeout(timeout time.Duration) *PostLTENetworkIDGatewaysParams {
-	var ()
 	return &PostLTENetworkIDGatewaysParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostLTENetworkIDGatewaysParamsWithContext creates a new PostLTENetworkIDGatewaysParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostLTENetworkIDGatewaysParamsWithContext(ctx context.Context) *PostLTENetworkIDGatewaysParams {
-	var ()
 	return &PostLTENetworkIDGatewaysParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostLTENetworkIDGatewaysParamsWithHTTPClient creates a new PostLTENetworkIDGatewaysParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostLTENetworkIDGatewaysParamsWithHTTPClient(client *http.Client) *PostLTENetworkIDGatewaysParams {
-	var ()
 	return &PostLTENetworkIDGatewaysParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostLTENetworkIDGatewaysParams contains all the parameters to send to the API endpoint
-for the post LTE network ID gateways operation typically these are written to a http.Request
+/* PostLTENetworkIDGatewaysParams contains all the parameters to send to the API endpoint
+   for the post LTE network ID gateways operation.
+
+   Typically these are written to a http.Request.
 */
 type PostLTENetworkIDGatewaysParams struct {
 
-	/*Gateway
-	  Full desired configuration of the gateway
+	/* Gateway.
 
+	   Full desired configuration of the gateway
 	*/
 	Gateway *models.MutableLTEGateway
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post LTE network ID gateways params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostLTENetworkIDGatewaysParams) WithDefaults() *PostLTENetworkIDGatewaysParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post LTE network ID gateways params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostLTENetworkIDGatewaysParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post LTE network ID gateways params
@@ -140,7 +155,6 @@ func (o *PostLTENetworkIDGatewaysParams) WriteToRequest(r runtime.ClientRequest,
 		return err
 	}
 	var res []error
-
 	if o.Gateway != nil {
 		if err := r.SetBodyParam(o.Gateway); err != nil {
 			return err

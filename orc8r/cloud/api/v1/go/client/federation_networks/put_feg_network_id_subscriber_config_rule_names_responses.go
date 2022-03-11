@@ -46,7 +46,7 @@ func NewPutFegNetworkIDSubscriberConfigRuleNamesNoContent() *PutFegNetworkIDSubs
 	return &PutFegNetworkIDSubscriberConfigRuleNamesNoContent{}
 }
 
-/*PutFegNetworkIDSubscriberConfigRuleNamesNoContent handles this case with default header values.
+/* PutFegNetworkIDSubscriberConfigRuleNamesNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutFegNetworkIDSubscriberConfigRuleNamesDefault(code int) *PutFegNetwork
 	}
 }
 
-/*PutFegNetworkIDSubscriberConfigRuleNamesDefault handles this case with default header values.
+/* PutFegNetworkIDSubscriberConfigRuleNamesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutFegNetworkIDSubscriberConfigRuleNamesDefault) Code() int {
 func (o *PutFegNetworkIDSubscriberConfigRuleNamesDefault) Error() string {
 	return fmt.Sprintf("[PUT /feg/{network_id}/subscriber_config/rule_names][%d] PutFegNetworkIDSubscriberConfigRuleNames default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutFegNetworkIDSubscriberConfigRuleNamesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

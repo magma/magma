@@ -18,61 +18,76 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutCwfNetworkIDLiUesParams creates a new PutCwfNetworkIDLiUesParams object
-// with the default values initialized.
+// NewPutCwfNetworkIDLiUesParams creates a new PutCwfNetworkIDLiUesParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutCwfNetworkIDLiUesParams() *PutCwfNetworkIDLiUesParams {
-	var ()
 	return &PutCwfNetworkIDLiUesParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutCwfNetworkIDLiUesParamsWithTimeout creates a new PutCwfNetworkIDLiUesParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutCwfNetworkIDLiUesParamsWithTimeout(timeout time.Duration) *PutCwfNetworkIDLiUesParams {
-	var ()
 	return &PutCwfNetworkIDLiUesParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutCwfNetworkIDLiUesParamsWithContext creates a new PutCwfNetworkIDLiUesParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutCwfNetworkIDLiUesParamsWithContext(ctx context.Context) *PutCwfNetworkIDLiUesParams {
-	var ()
 	return &PutCwfNetworkIDLiUesParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutCwfNetworkIDLiUesParamsWithHTTPClient creates a new PutCwfNetworkIDLiUesParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutCwfNetworkIDLiUesParamsWithHTTPClient(client *http.Client) *PutCwfNetworkIDLiUesParams {
-	var ()
 	return &PutCwfNetworkIDLiUesParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutCwfNetworkIDLiUesParams contains all the parameters to send to the API endpoint
-for the put cwf network ID li ues operation typically these are written to a http.Request
+/* PutCwfNetworkIDLiUesParams contains all the parameters to send to the API endpoint
+   for the put cwf network ID li ues operation.
+
+   Typically these are written to a http.Request.
 */
 type PutCwfNetworkIDLiUesParams struct {
 
-	/*Description*/
+	// Description.
 	Description *models.LiUes
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put cwf network ID li ues params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDLiUesParams) WithDefaults() *PutCwfNetworkIDLiUesParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put cwf network ID li ues params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDLiUesParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put cwf network ID li ues params
@@ -137,7 +152,6 @@ func (o *PutCwfNetworkIDLiUesParams) WriteToRequest(r runtime.ClientRequest, reg
 		return err
 	}
 	var res []error
-
 	if o.Description != nil {
 		if err := r.SetBodyParam(o.Description); err != nil {
 			return err

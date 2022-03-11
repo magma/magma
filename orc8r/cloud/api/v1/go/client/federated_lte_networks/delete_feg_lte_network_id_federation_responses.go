@@ -46,7 +46,7 @@ func NewDeleteFegLTENetworkIDFederationNoContent() *DeleteFegLTENetworkIDFederat
 	return &DeleteFegLTENetworkIDFederationNoContent{}
 }
 
-/*DeleteFegLTENetworkIDFederationNoContent handles this case with default header values.
+/* DeleteFegLTENetworkIDFederationNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewDeleteFegLTENetworkIDFederationDefault(code int) *DeleteFegLTENetworkIDF
 	}
 }
 
-/*DeleteFegLTENetworkIDFederationDefault handles this case with default header values.
+/* DeleteFegLTENetworkIDFederationDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *DeleteFegLTENetworkIDFederationDefault) Code() int {
 func (o *DeleteFegLTENetworkIDFederationDefault) Error() string {
 	return fmt.Sprintf("[DELETE /feg_lte/{network_id}/federation][%d] DeleteFegLTENetworkIDFederation default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteFegLTENetworkIDFederationDefault) GetPayload() *models.Error {
 	return o.Payload
 }

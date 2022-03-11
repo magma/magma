@@ -6,12 +6,15 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
 )
 
 // NetworkID network id
+// Example: network_1
 //
 // swagger:model network_id
 type NetworkID string
@@ -31,5 +34,10 @@ func (m NetworkID) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+// ContextValidate validates this network id based on context it is used
+func (m NetworkID) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

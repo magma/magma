@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutLTENetworkIDNetworkProbeTasksTaskIDParams creates a new PutLTENetworkIDNetworkProbeTasksTaskIDParams object
-// with the default values initialized.
+// NewPutLTENetworkIDNetworkProbeTasksTaskIDParams creates a new PutLTENetworkIDNetworkProbeTasksTaskIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutLTENetworkIDNetworkProbeTasksTaskIDParams() *PutLTENetworkIDNetworkProbeTasksTaskIDParams {
-	var ()
 	return &PutLTENetworkIDNetworkProbeTasksTaskIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutLTENetworkIDNetworkProbeTasksTaskIDParamsWithTimeout creates a new PutLTENetworkIDNetworkProbeTasksTaskIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutLTENetworkIDNetworkProbeTasksTaskIDParamsWithTimeout(timeout time.Duration) *PutLTENetworkIDNetworkProbeTasksTaskIDParams {
-	var ()
 	return &PutLTENetworkIDNetworkProbeTasksTaskIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutLTENetworkIDNetworkProbeTasksTaskIDParamsWithContext creates a new PutLTENetworkIDNetworkProbeTasksTaskIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutLTENetworkIDNetworkProbeTasksTaskIDParamsWithContext(ctx context.Context) *PutLTENetworkIDNetworkProbeTasksTaskIDParams {
-	var ()
 	return &PutLTENetworkIDNetworkProbeTasksTaskIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutLTENetworkIDNetworkProbeTasksTaskIDParamsWithHTTPClient creates a new PutLTENetworkIDNetworkProbeTasksTaskIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutLTENetworkIDNetworkProbeTasksTaskIDParamsWithHTTPClient(client *http.Client) *PutLTENetworkIDNetworkProbeTasksTaskIDParams {
-	var ()
 	return &PutLTENetworkIDNetworkProbeTasksTaskIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutLTENetworkIDNetworkProbeTasksTaskIDParams contains all the parameters to send to the API endpoint
-for the put LTE network ID network probe tasks task ID operation typically these are written to a http.Request
+/* PutLTENetworkIDNetworkProbeTasksTaskIDParams contains all the parameters to send to the API endpoint
+   for the put LTE network ID network probe tasks task ID operation.
+
+   Typically these are written to a http.Request.
 */
 type PutLTENetworkIDNetworkProbeTasksTaskIDParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*NetworkProbeTask
-	  New NetworkProbeTask configuration
 
+	/* NetworkProbeTask.
+
+	   New NetworkProbeTask configuration
 	*/
 	NetworkProbeTask *models.NetworkProbeTask
-	/*TaskID
-	  Network Probe Task ID
 
+	/* TaskID.
+
+	   Network Probe Task ID
 	*/
 	TaskID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put LTE network ID network probe tasks task ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDNetworkProbeTasksTaskIDParams) WithDefaults() *PutLTENetworkIDNetworkProbeTasksTaskIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put LTE network ID network probe tasks task ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDNetworkProbeTasksTaskIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put LTE network ID network probe tasks task ID params
@@ -161,7 +177,6 @@ func (o *PutLTENetworkIDNetworkProbeTasksTaskIDParams) WriteToRequest(r runtime.
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.NetworkProbeTask != nil {
 		if err := r.SetBodyParam(o.NetworkProbeTask); err != nil {
 			return err

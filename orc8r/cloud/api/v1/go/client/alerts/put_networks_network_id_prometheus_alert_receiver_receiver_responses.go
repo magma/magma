@@ -46,7 +46,7 @@ func NewPutNetworksNetworkIDPrometheusAlertReceiverReceiverOK() *PutNetworksNetw
 	return &PutNetworksNetworkIDPrometheusAlertReceiverReceiverOK{}
 }
 
-/*PutNetworksNetworkIDPrometheusAlertReceiverReceiverOK handles this case with default header values.
+/* PutNetworksNetworkIDPrometheusAlertReceiverReceiverOK describes a response with status code 200, with default header values.
 
 Updated
 */
@@ -69,7 +69,7 @@ func NewPutNetworksNetworkIDPrometheusAlertReceiverReceiverDefault(code int) *Pu
 	}
 }
 
-/*PutNetworksNetworkIDPrometheusAlertReceiverReceiverDefault handles this case with default header values.
+/* PutNetworksNetworkIDPrometheusAlertReceiverReceiverDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutNetworksNetworkIDPrometheusAlertReceiverReceiverDefault) Code() int 
 func (o *PutNetworksNetworkIDPrometheusAlertReceiverReceiverDefault) Error() string {
 	return fmt.Sprintf("[PUT /networks/{network_id}/prometheus/alert_receiver/{receiver}][%d] PutNetworksNetworkIDPrometheusAlertReceiverReceiver default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutNetworksNetworkIDPrometheusAlertReceiverReceiverDefault) GetPayload() *models.Error {
 	return o.Payload
 }

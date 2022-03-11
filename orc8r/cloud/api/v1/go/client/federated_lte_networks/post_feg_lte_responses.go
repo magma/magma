@@ -46,7 +46,7 @@ func NewPostFegLTECreated() *PostFegLTECreated {
 	return &PostFegLTECreated{}
 }
 
-/*PostFegLTECreated handles this case with default header values.
+/* PostFegLTECreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostFegLTEDefault(code int) *PostFegLTEDefault {
 	}
 }
 
-/*PostFegLTEDefault handles this case with default header values.
+/* PostFegLTEDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostFegLTEDefault) Code() int {
 func (o *PostFegLTEDefault) Error() string {
 	return fmt.Sprintf("[POST /feg_lte][%d] PostFegLTE default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostFegLTEDefault) GetPayload() *models.Error {
 	return o.Payload
 }

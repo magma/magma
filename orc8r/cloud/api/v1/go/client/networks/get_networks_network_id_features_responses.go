@@ -46,7 +46,7 @@ func NewGetNetworksNetworkIDFeaturesOK() *GetNetworksNetworkIDFeaturesOK {
 	return &GetNetworksNetworkIDFeaturesOK{}
 }
 
-/*GetNetworksNetworkIDFeaturesOK handles this case with default header values.
+/* GetNetworksNetworkIDFeaturesOK describes a response with status code 200, with default header values.
 
 Feature flags of the network
 */
@@ -57,7 +57,6 @@ type GetNetworksNetworkIDFeaturesOK struct {
 func (o *GetNetworksNetworkIDFeaturesOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/features][%d] getNetworksNetworkIdFeaturesOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDFeaturesOK) GetPayload() *models.NetworkFeatures {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetNetworksNetworkIDFeaturesDefault(code int) *GetNetworksNetworkIDFeatu
 	}
 }
 
-/*GetNetworksNetworkIDFeaturesDefault handles this case with default header values.
+/* GetNetworksNetworkIDFeaturesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetNetworksNetworkIDFeaturesDefault) Code() int {
 func (o *GetNetworksNetworkIDFeaturesDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/features][%d] GetNetworksNetworkIDFeatures default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDFeaturesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

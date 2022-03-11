@@ -46,7 +46,7 @@ func NewDeleteUserUsernameNoContent() *DeleteUserUsernameNoContent {
 	return &DeleteUserUsernameNoContent{}
 }
 
-/*DeleteUserUsernameNoContent handles this case with default header values.
+/* DeleteUserUsernameNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewDeleteUserUsernameDefault(code int) *DeleteUserUsernameDefault {
 	}
 }
 
-/*DeleteUserUsernameDefault handles this case with default header values.
+/* DeleteUserUsernameDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *DeleteUserUsernameDefault) Code() int {
 func (o *DeleteUserUsernameDefault) Error() string {
 	return fmt.Sprintf("[DELETE /user/{username}][%d] DeleteUserUsername default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteUserUsernameDefault) GetPayload() *models.Error {
 	return o.Payload
 }

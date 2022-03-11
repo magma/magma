@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutCwfNetworkIDSubscriberConfigRuleNamesParams creates a new PutCwfNetworkIDSubscriberConfigRuleNamesParams object
-// with the default values initialized.
+// NewPutCwfNetworkIDSubscriberConfigRuleNamesParams creates a new PutCwfNetworkIDSubscriberConfigRuleNamesParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutCwfNetworkIDSubscriberConfigRuleNamesParams() *PutCwfNetworkIDSubscriberConfigRuleNamesParams {
-	var ()
 	return &PutCwfNetworkIDSubscriberConfigRuleNamesParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutCwfNetworkIDSubscriberConfigRuleNamesParamsWithTimeout creates a new PutCwfNetworkIDSubscriberConfigRuleNamesParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutCwfNetworkIDSubscriberConfigRuleNamesParamsWithTimeout(timeout time.Duration) *PutCwfNetworkIDSubscriberConfigRuleNamesParams {
-	var ()
 	return &PutCwfNetworkIDSubscriberConfigRuleNamesParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutCwfNetworkIDSubscriberConfigRuleNamesParamsWithContext creates a new PutCwfNetworkIDSubscriberConfigRuleNamesParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutCwfNetworkIDSubscriberConfigRuleNamesParamsWithContext(ctx context.Context) *PutCwfNetworkIDSubscriberConfigRuleNamesParams {
-	var ()
 	return &PutCwfNetworkIDSubscriberConfigRuleNamesParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutCwfNetworkIDSubscriberConfigRuleNamesParamsWithHTTPClient creates a new PutCwfNetworkIDSubscriberConfigRuleNamesParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutCwfNetworkIDSubscriberConfigRuleNamesParamsWithHTTPClient(client *http.Client) *PutCwfNetworkIDSubscriberConfigRuleNamesParams {
-	var ()
 	return &PutCwfNetworkIDSubscriberConfigRuleNamesParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutCwfNetworkIDSubscriberConfigRuleNamesParams contains all the parameters to send to the API endpoint
-for the put cwf network ID subscriber config rule names operation typically these are written to a http.Request
+/* PutCwfNetworkIDSubscriberConfigRuleNamesParams contains all the parameters to send to the API endpoint
+   for the put cwf network ID subscriber config rule names operation.
+
+   Typically these are written to a http.Request.
 */
 type PutCwfNetworkIDSubscriberConfigRuleNamesParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*Record
-	  Subscriber Config for the Network
 
+	/* Record.
+
+	   Subscriber Config for the Network
 	*/
 	Record models.RuleNames
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put cwf network ID subscriber config rule names params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDSubscriberConfigRuleNamesParams) WithDefaults() *PutCwfNetworkIDSubscriberConfigRuleNamesParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put cwf network ID subscriber config rule names params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDSubscriberConfigRuleNamesParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put cwf network ID subscriber config rule names params
@@ -145,7 +160,6 @@ func (o *PutCwfNetworkIDSubscriberConfigRuleNamesParams) WriteToRequest(r runtim
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.Record != nil {
 		if err := r.SetBodyParam(o.Record); err != nil {
 			return err

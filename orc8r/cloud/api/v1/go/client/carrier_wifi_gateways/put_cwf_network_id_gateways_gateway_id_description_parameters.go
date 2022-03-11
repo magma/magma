@@ -18,66 +18,82 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutCwfNetworkIDGatewaysGatewayIDDescriptionParams creates a new PutCwfNetworkIDGatewaysGatewayIDDescriptionParams object
-// with the default values initialized.
+// NewPutCwfNetworkIDGatewaysGatewayIDDescriptionParams creates a new PutCwfNetworkIDGatewaysGatewayIDDescriptionParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutCwfNetworkIDGatewaysGatewayIDDescriptionParams() *PutCwfNetworkIDGatewaysGatewayIDDescriptionParams {
-	var ()
 	return &PutCwfNetworkIDGatewaysGatewayIDDescriptionParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutCwfNetworkIDGatewaysGatewayIDDescriptionParamsWithTimeout creates a new PutCwfNetworkIDGatewaysGatewayIDDescriptionParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutCwfNetworkIDGatewaysGatewayIDDescriptionParamsWithTimeout(timeout time.Duration) *PutCwfNetworkIDGatewaysGatewayIDDescriptionParams {
-	var ()
 	return &PutCwfNetworkIDGatewaysGatewayIDDescriptionParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutCwfNetworkIDGatewaysGatewayIDDescriptionParamsWithContext creates a new PutCwfNetworkIDGatewaysGatewayIDDescriptionParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutCwfNetworkIDGatewaysGatewayIDDescriptionParamsWithContext(ctx context.Context) *PutCwfNetworkIDGatewaysGatewayIDDescriptionParams {
-	var ()
 	return &PutCwfNetworkIDGatewaysGatewayIDDescriptionParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutCwfNetworkIDGatewaysGatewayIDDescriptionParamsWithHTTPClient creates a new PutCwfNetworkIDGatewaysGatewayIDDescriptionParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutCwfNetworkIDGatewaysGatewayIDDescriptionParamsWithHTTPClient(client *http.Client) *PutCwfNetworkIDGatewaysGatewayIDDescriptionParams {
-	var ()
 	return &PutCwfNetworkIDGatewaysGatewayIDDescriptionParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutCwfNetworkIDGatewaysGatewayIDDescriptionParams contains all the parameters to send to the API endpoint
-for the put cwf network ID gateways gateway ID description operation typically these are written to a http.Request
+/* PutCwfNetworkIDGatewaysGatewayIDDescriptionParams contains all the parameters to send to the API endpoint
+   for the put cwf network ID gateways gateway ID description operation.
+
+   Typically these are written to a http.Request.
 */
 type PutCwfNetworkIDGatewaysGatewayIDDescriptionParams struct {
 
-	/*Description*/
+	// Description.
 	Description models.GatewayDescription
-	/*GatewayID
-	  Gateway ID
 
+	/* GatewayID.
+
+	   Gateway ID
 	*/
 	GatewayID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put cwf network ID gateways gateway ID description params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDGatewaysGatewayIDDescriptionParams) WithDefaults() *PutCwfNetworkIDGatewaysGatewayIDDescriptionParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put cwf network ID gateways gateway ID description params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDGatewaysGatewayIDDescriptionParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put cwf network ID gateways gateway ID description params
@@ -153,7 +169,6 @@ func (o *PutCwfNetworkIDGatewaysGatewayIDDescriptionParams) WriteToRequest(r run
 		return err
 	}
 	var res []error
-
 	if err := r.SetBodyParam(o.Description); err != nil {
 		return err
 	}

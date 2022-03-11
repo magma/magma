@@ -16,59 +16,73 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
-// NewGetLTENetworkIDCellularNgcParams creates a new GetLTENetworkIDCellularNgcParams object
-// with the default values initialized.
+// NewGetLTENetworkIDCellularNgcParams creates a new GetLTENetworkIDCellularNgcParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetLTENetworkIDCellularNgcParams() *GetLTENetworkIDCellularNgcParams {
-	var ()
 	return &GetLTENetworkIDCellularNgcParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetLTENetworkIDCellularNgcParamsWithTimeout creates a new GetLTENetworkIDCellularNgcParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetLTENetworkIDCellularNgcParamsWithTimeout(timeout time.Duration) *GetLTENetworkIDCellularNgcParams {
-	var ()
 	return &GetLTENetworkIDCellularNgcParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetLTENetworkIDCellularNgcParamsWithContext creates a new GetLTENetworkIDCellularNgcParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetLTENetworkIDCellularNgcParamsWithContext(ctx context.Context) *GetLTENetworkIDCellularNgcParams {
-	var ()
 	return &GetLTENetworkIDCellularNgcParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetLTENetworkIDCellularNgcParamsWithHTTPClient creates a new GetLTENetworkIDCellularNgcParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetLTENetworkIDCellularNgcParamsWithHTTPClient(client *http.Client) *GetLTENetworkIDCellularNgcParams {
-	var ()
 	return &GetLTENetworkIDCellularNgcParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetLTENetworkIDCellularNgcParams contains all the parameters to send to the API endpoint
-for the get LTE network ID cellular ngc operation typically these are written to a http.Request
+/* GetLTENetworkIDCellularNgcParams contains all the parameters to send to the API endpoint
+   for the get LTE network ID cellular ngc operation.
+
+   Typically these are written to a http.Request.
 */
 type GetLTENetworkIDCellularNgcParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get LTE network ID cellular ngc params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDCellularNgcParams) WithDefaults() *GetLTENetworkIDCellularNgcParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get LTE network ID cellular ngc params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDCellularNgcParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get LTE network ID cellular ngc params

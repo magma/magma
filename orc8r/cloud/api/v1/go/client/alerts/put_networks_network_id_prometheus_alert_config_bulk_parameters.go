@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutNetworksNetworkIDPrometheusAlertConfigBulkParams creates a new PutNetworksNetworkIDPrometheusAlertConfigBulkParams object
-// with the default values initialized.
+// NewPutNetworksNetworkIDPrometheusAlertConfigBulkParams creates a new PutNetworksNetworkIDPrometheusAlertConfigBulkParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutNetworksNetworkIDPrometheusAlertConfigBulkParams() *PutNetworksNetworkIDPrometheusAlertConfigBulkParams {
-	var ()
 	return &PutNetworksNetworkIDPrometheusAlertConfigBulkParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutNetworksNetworkIDPrometheusAlertConfigBulkParamsWithTimeout creates a new PutNetworksNetworkIDPrometheusAlertConfigBulkParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutNetworksNetworkIDPrometheusAlertConfigBulkParamsWithTimeout(timeout time.Duration) *PutNetworksNetworkIDPrometheusAlertConfigBulkParams {
-	var ()
 	return &PutNetworksNetworkIDPrometheusAlertConfigBulkParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutNetworksNetworkIDPrometheusAlertConfigBulkParamsWithContext creates a new PutNetworksNetworkIDPrometheusAlertConfigBulkParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutNetworksNetworkIDPrometheusAlertConfigBulkParamsWithContext(ctx context.Context) *PutNetworksNetworkIDPrometheusAlertConfigBulkParams {
-	var ()
 	return &PutNetworksNetworkIDPrometheusAlertConfigBulkParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutNetworksNetworkIDPrometheusAlertConfigBulkParamsWithHTTPClient creates a new PutNetworksNetworkIDPrometheusAlertConfigBulkParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutNetworksNetworkIDPrometheusAlertConfigBulkParamsWithHTTPClient(client *http.Client) *PutNetworksNetworkIDPrometheusAlertConfigBulkParams {
-	var ()
 	return &PutNetworksNetworkIDPrometheusAlertConfigBulkParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutNetworksNetworkIDPrometheusAlertConfigBulkParams contains all the parameters to send to the API endpoint
-for the put networks network ID prometheus alert config bulk operation typically these are written to a http.Request
+/* PutNetworksNetworkIDPrometheusAlertConfigBulkParams contains all the parameters to send to the API endpoint
+   for the put networks network ID prometheus alert config bulk operation.
+
+   Typically these are written to a http.Request.
 */
 type PutNetworksNetworkIDPrometheusAlertConfigBulkParams struct {
 
-	/*AlertConfigs
-	  Alerting rules to be updated or created
+	/* AlertConfigs.
 
+	   Alerting rules to be updated or created
 	*/
 	AlertConfigs models.PromAlertConfigList
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put networks network ID prometheus alert config bulk params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDPrometheusAlertConfigBulkParams) WithDefaults() *PutNetworksNetworkIDPrometheusAlertConfigBulkParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put networks network ID prometheus alert config bulk params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDPrometheusAlertConfigBulkParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put networks network ID prometheus alert config bulk params
@@ -140,7 +155,6 @@ func (o *PutNetworksNetworkIDPrometheusAlertConfigBulkParams) WriteToRequest(r r
 		return err
 	}
 	var res []error
-
 	if o.AlertConfigs != nil {
 		if err := r.SetBodyParam(o.AlertConfigs); err != nil {
 			return err

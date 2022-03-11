@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutLTENetworkIDGatewayPoolsGatewayPoolIDParams creates a new PutLTENetworkIDGatewayPoolsGatewayPoolIDParams object
-// with the default values initialized.
+// NewPutLTENetworkIDGatewayPoolsGatewayPoolIDParams creates a new PutLTENetworkIDGatewayPoolsGatewayPoolIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutLTENetworkIDGatewayPoolsGatewayPoolIDParams() *PutLTENetworkIDGatewayPoolsGatewayPoolIDParams {
-	var ()
 	return &PutLTENetworkIDGatewayPoolsGatewayPoolIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutLTENetworkIDGatewayPoolsGatewayPoolIDParamsWithTimeout creates a new PutLTENetworkIDGatewayPoolsGatewayPoolIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutLTENetworkIDGatewayPoolsGatewayPoolIDParamsWithTimeout(timeout time.Duration) *PutLTENetworkIDGatewayPoolsGatewayPoolIDParams {
-	var ()
 	return &PutLTENetworkIDGatewayPoolsGatewayPoolIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutLTENetworkIDGatewayPoolsGatewayPoolIDParamsWithContext creates a new PutLTENetworkIDGatewayPoolsGatewayPoolIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutLTENetworkIDGatewayPoolsGatewayPoolIDParamsWithContext(ctx context.Context) *PutLTENetworkIDGatewayPoolsGatewayPoolIDParams {
-	var ()
 	return &PutLTENetworkIDGatewayPoolsGatewayPoolIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutLTENetworkIDGatewayPoolsGatewayPoolIDParamsWithHTTPClient creates a new PutLTENetworkIDGatewayPoolsGatewayPoolIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutLTENetworkIDGatewayPoolsGatewayPoolIDParamsWithHTTPClient(client *http.Client) *PutLTENetworkIDGatewayPoolsGatewayPoolIDParams {
-	var ()
 	return &PutLTENetworkIDGatewayPoolsGatewayPoolIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutLTENetworkIDGatewayPoolsGatewayPoolIDParams contains all the parameters to send to the API endpoint
-for the put LTE network ID gateway pools gateway pool ID operation typically these are written to a http.Request
+/* PutLTENetworkIDGatewayPoolsGatewayPoolIDParams contains all the parameters to send to the API endpoint
+   for the put LTE network ID gateway pools gateway pool ID operation.
+
+   Typically these are written to a http.Request.
 */
 type PutLTENetworkIDGatewayPoolsGatewayPoolIDParams struct {
 
-	/*HAGatewayPool
-	  LTE HA gateway pool
+	/* HAGatewayPool.
 
+	   LTE HA gateway pool
 	*/
 	HAGatewayPool *models.MutableCellularGatewayPool
-	/*GatewayPoolID
-	  Gateway Pool ID
 
+	/* GatewayPoolID.
+
+	   Gateway Pool ID
 	*/
 	GatewayPoolID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put LTE network ID gateway pools gateway pool ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDGatewayPoolsGatewayPoolIDParams) WithDefaults() *PutLTENetworkIDGatewayPoolsGatewayPoolIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put LTE network ID gateway pools gateway pool ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDGatewayPoolsGatewayPoolIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put LTE network ID gateway pools gateway pool ID params
@@ -156,7 +172,6 @@ func (o *PutLTENetworkIDGatewayPoolsGatewayPoolIDParams) WriteToRequest(r runtim
 		return err
 	}
 	var res []error
-
 	if o.HAGatewayPool != nil {
 		if err := r.SetBodyParam(o.HAGatewayPool); err != nil {
 			return err

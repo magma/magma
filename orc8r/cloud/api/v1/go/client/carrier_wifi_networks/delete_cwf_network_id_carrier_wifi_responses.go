@@ -46,7 +46,7 @@ func NewDeleteCwfNetworkIDCarrierWifiNoContent() *DeleteCwfNetworkIDCarrierWifiN
 	return &DeleteCwfNetworkIDCarrierWifiNoContent{}
 }
 
-/*DeleteCwfNetworkIDCarrierWifiNoContent handles this case with default header values.
+/* DeleteCwfNetworkIDCarrierWifiNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewDeleteCwfNetworkIDCarrierWifiDefault(code int) *DeleteCwfNetworkIDCarrie
 	}
 }
 
-/*DeleteCwfNetworkIDCarrierWifiDefault handles this case with default header values.
+/* DeleteCwfNetworkIDCarrierWifiDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *DeleteCwfNetworkIDCarrierWifiDefault) Code() int {
 func (o *DeleteCwfNetworkIDCarrierWifiDefault) Error() string {
 	return fmt.Sprintf("[DELETE /cwf/{network_id}/carrier_wifi][%d] DeleteCwfNetworkIDCarrierWifi default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteCwfNetworkIDCarrierWifiDefault) GetPayload() *models.Error {
 	return o.Payload
 }

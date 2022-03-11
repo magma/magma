@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -18,17 +20,21 @@ import (
 type QosProfile struct {
 
 	// class id
+	// Example: 9
 	// Maximum: 255
 	// Minimum: 0
 	ClassID *int32 `json:"class_id,omitempty" magma_alt_name:"QCI"`
 
 	// preemption capability
+	// Example: true
 	PreemptionCapability *bool `json:"preemption_capability,omitempty"`
 
 	// preemption vulnerability
+	// Example: false
 	PreemptionVulnerability *bool `json:"preemption_vulnerability,omitempty"`
 
 	// priority level
+	// Example: 15
 	// Maximum: 15
 	// Minimum: 0
 	PriorityLevel *uint32 `json:"priority_level,omitempty"`
@@ -53,7 +59,6 @@ func (m *QosProfile) Validate(formats strfmt.Registry) error {
 }
 
 func (m *QosProfile) validateClassID(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ClassID) { // not required
 		return nil
 	}
@@ -70,19 +75,23 @@ func (m *QosProfile) validateClassID(formats strfmt.Registry) error {
 }
 
 func (m *QosProfile) validatePriorityLevel(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.PriorityLevel) { // not required
 		return nil
 	}
 
-	if err := validate.MinimumInt("priority_level", "body", int64(*m.PriorityLevel), 0, false); err != nil {
+	if err := validate.MinimumUint("priority_level", "body", uint64(*m.PriorityLevel), 0, false); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("priority_level", "body", int64(*m.PriorityLevel), 15, false); err != nil {
+	if err := validate.MaximumUint("priority_level", "body", uint64(*m.PriorityLevel), 15, false); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this qos profile based on context it is used
+func (m *QosProfile) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

@@ -7,6 +7,7 @@ package events
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -51,7 +52,7 @@ func NewGetEventsNetworkIDStreamNameOK() *GetEventsNetworkIDStreamNameOK {
 	return &GetEventsNetworkIDStreamNameOK{}
 }
 
-/*GetEventsNetworkIDStreamNameOK handles this case with default header values.
+/* GetEventsNetworkIDStreamNameOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -62,7 +63,6 @@ type GetEventsNetworkIDStreamNameOK struct {
 func (o *GetEventsNetworkIDStreamNameOK) Error() string {
 	return fmt.Sprintf("[GET /events/{network_id}/{stream_name}][%d] getEventsNetworkIdStreamNameOK  %+v", 200, o.Payload)
 }
-
 func (o *GetEventsNetworkIDStreamNameOK) GetPayload() *GetEventsNetworkIDStreamNameOKBodyTuple0 {
 	return o.Payload
 }
@@ -86,7 +86,7 @@ func NewGetEventsNetworkIDStreamNameDefault(code int) *GetEventsNetworkIDStreamN
 	}
 }
 
-/*GetEventsNetworkIDStreamNameDefault handles this case with default header values.
+/* GetEventsNetworkIDStreamNameDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -104,7 +104,6 @@ func (o *GetEventsNetworkIDStreamNameDefault) Code() int {
 func (o *GetEventsNetworkIDStreamNameDefault) Error() string {
 	return fmt.Sprintf("[GET /events/{network_id}/{stream_name}][%d] GetEventsNetworkIDStreamName default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetEventsNetworkIDStreamNameDefault) GetPayload() *models.Error {
 	return o.Payload
 }
@@ -193,6 +192,38 @@ func (o *GetEventsNetworkIDStreamNameOKBodyTuple0) validateP0(formats strfmt.Reg
 		if err := o.P0.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("P0")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("P0")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this get events network ID stream name o k body tuple0 based on the context it is used
+func (o *GetEventsNetworkIDStreamNameOKBodyTuple0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.contextValidateP0(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (o *GetEventsNetworkIDStreamNameOKBodyTuple0) contextValidateP0(ctx context.Context, formats strfmt.Registry) error {
+
+	if o.P0 != nil {
+		if err := o.P0.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("P0")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("P0")
 			}
 			return err
 		}

@@ -46,7 +46,7 @@ func NewGetDpNetworkIDLogsOK() *GetDpNetworkIDLogsOK {
 	return &GetDpNetworkIDLogsOK{}
 }
 
-/*GetDpNetworkIDLogsOK handles this case with default header values.
+/* GetDpNetworkIDLogsOK describes a response with status code 200, with default header values.
 
 Messages between DP and SAS
 */
@@ -57,7 +57,6 @@ type GetDpNetworkIDLogsOK struct {
 func (o *GetDpNetworkIDLogsOK) Error() string {
 	return fmt.Sprintf("[GET /dp/{network_id}/logs][%d] getDpNetworkIdLogsOK  %+v", 200, o.Payload)
 }
-
 func (o *GetDpNetworkIDLogsOK) GetPayload() []*models.Message {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetDpNetworkIDLogsDefault(code int) *GetDpNetworkIDLogsDefault {
 	}
 }
 
-/*GetDpNetworkIDLogsDefault handles this case with default header values.
+/* GetDpNetworkIDLogsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetDpNetworkIDLogsDefault) Code() int {
 func (o *GetDpNetworkIDLogsDefault) Error() string {
 	return fmt.Sprintf("[GET /dp/{network_id}/logs][%d] GetDpNetworkIDLogs default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetDpNetworkIDLogsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

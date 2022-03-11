@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostNetworksNetworkIDPoliciesRulesParams creates a new PostNetworksNetworkIDPoliciesRulesParams object
-// with the default values initialized.
+// NewPostNetworksNetworkIDPoliciesRulesParams creates a new PostNetworksNetworkIDPoliciesRulesParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostNetworksNetworkIDPoliciesRulesParams() *PostNetworksNetworkIDPoliciesRulesParams {
-	var ()
 	return &PostNetworksNetworkIDPoliciesRulesParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostNetworksNetworkIDPoliciesRulesParamsWithTimeout creates a new PostNetworksNetworkIDPoliciesRulesParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostNetworksNetworkIDPoliciesRulesParamsWithTimeout(timeout time.Duration) *PostNetworksNetworkIDPoliciesRulesParams {
-	var ()
 	return &PostNetworksNetworkIDPoliciesRulesParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostNetworksNetworkIDPoliciesRulesParamsWithContext creates a new PostNetworksNetworkIDPoliciesRulesParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostNetworksNetworkIDPoliciesRulesParamsWithContext(ctx context.Context) *PostNetworksNetworkIDPoliciesRulesParams {
-	var ()
 	return &PostNetworksNetworkIDPoliciesRulesParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostNetworksNetworkIDPoliciesRulesParamsWithHTTPClient creates a new PostNetworksNetworkIDPoliciesRulesParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostNetworksNetworkIDPoliciesRulesParamsWithHTTPClient(client *http.Client) *PostNetworksNetworkIDPoliciesRulesParams {
-	var ()
 	return &PostNetworksNetworkIDPoliciesRulesParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostNetworksNetworkIDPoliciesRulesParams contains all the parameters to send to the API endpoint
-for the post networks network ID policies rules operation typically these are written to a http.Request
+/* PostNetworksNetworkIDPoliciesRulesParams contains all the parameters to send to the API endpoint
+   for the post networks network ID policies rules operation.
+
+   Typically these are written to a http.Request.
 */
 type PostNetworksNetworkIDPoliciesRulesParams struct {
 
-	/*PolicyRule
-	  Policy rule to add
+	/* PolicyRule.
 
+	   Policy rule to add
 	*/
 	PolicyRule *models.PolicyRule
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post networks network ID policies rules params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDPoliciesRulesParams) WithDefaults() *PostNetworksNetworkIDPoliciesRulesParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post networks network ID policies rules params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDPoliciesRulesParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post networks network ID policies rules params
@@ -140,7 +155,6 @@ func (o *PostNetworksNetworkIDPoliciesRulesParams) WriteToRequest(r runtime.Clie
 		return err
 	}
 	var res []error
-
 	if o.PolicyRule != nil {
 		if err := r.SetBodyParam(o.PolicyRule); err != nil {
 			return err

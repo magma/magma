@@ -46,7 +46,7 @@ func NewGetLTENetworkIDAPNSAPNNameOK() *GetLTENetworkIDAPNSAPNNameOK {
 	return &GetLTENetworkIDAPNSAPNNameOK{}
 }
 
-/*GetLTENetworkIDAPNSAPNNameOK handles this case with default header values.
+/* GetLTENetworkIDAPNSAPNNameOK describes a response with status code 200, with default header values.
 
 APN Info
 */
@@ -57,7 +57,6 @@ type GetLTENetworkIDAPNSAPNNameOK struct {
 func (o *GetLTENetworkIDAPNSAPNNameOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/apns/{apn_name}][%d] getLteNetworkIdApnsApnNameOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDAPNSAPNNameOK) GetPayload() *models.APN {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetLTENetworkIDAPNSAPNNameDefault(code int) *GetLTENetworkIDAPNSAPNNameD
 	}
 }
 
-/*GetLTENetworkIDAPNSAPNNameDefault handles this case with default header values.
+/* GetLTENetworkIDAPNSAPNNameDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetLTENetworkIDAPNSAPNNameDefault) Code() int {
 func (o *GetLTENetworkIDAPNSAPNNameDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/apns/{apn_name}][%d] GetLTENetworkIDAPNSAPNName default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDAPNSAPNNameDefault) GetPayload() *models.Error {
 	return o.Payload
 }

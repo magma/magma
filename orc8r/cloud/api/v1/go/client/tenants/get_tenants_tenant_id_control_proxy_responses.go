@@ -46,7 +46,7 @@ func NewGetTenantsTenantIDControlProxyOK() *GetTenantsTenantIDControlProxyOK {
 	return &GetTenantsTenantIDControlProxyOK{}
 }
 
-/*GetTenantsTenantIDControlProxyOK handles this case with default header values.
+/* GetTenantsTenantIDControlProxyOK describes a response with status code 200, with default header values.
 
 Requested control proxy content
 */
@@ -57,7 +57,6 @@ type GetTenantsTenantIDControlProxyOK struct {
 func (o *GetTenantsTenantIDControlProxyOK) Error() string {
 	return fmt.Sprintf("[GET /tenants/{tenant_id}/control_proxy][%d] getTenantsTenantIdControlProxyOK  %+v", 200, o.Payload)
 }
-
 func (o *GetTenantsTenantIDControlProxyOK) GetPayload() *models.ControlProxy {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetTenantsTenantIDControlProxyDefault(code int) *GetTenantsTenantIDContr
 	}
 }
 
-/*GetTenantsTenantIDControlProxyDefault handles this case with default header values.
+/* GetTenantsTenantIDControlProxyDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetTenantsTenantIDControlProxyDefault) Code() int {
 func (o *GetTenantsTenantIDControlProxyDefault) Error() string {
 	return fmt.Sprintf("[GET /tenants/{tenant_id}/control_proxy][%d] GetTenantsTenantIDControlProxy default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetTenantsTenantIDControlProxyDefault) GetPayload() *models.Error {
 	return o.Payload
 }

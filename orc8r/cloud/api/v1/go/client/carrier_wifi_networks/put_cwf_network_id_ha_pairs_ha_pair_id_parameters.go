@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutCwfNetworkIDHaPairsHaPairIDParams creates a new PutCwfNetworkIDHaPairsHaPairIDParams object
-// with the default values initialized.
+// NewPutCwfNetworkIDHaPairsHaPairIDParams creates a new PutCwfNetworkIDHaPairsHaPairIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutCwfNetworkIDHaPairsHaPairIDParams() *PutCwfNetworkIDHaPairsHaPairIDParams {
-	var ()
 	return &PutCwfNetworkIDHaPairsHaPairIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutCwfNetworkIDHaPairsHaPairIDParamsWithTimeout creates a new PutCwfNetworkIDHaPairsHaPairIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutCwfNetworkIDHaPairsHaPairIDParamsWithTimeout(timeout time.Duration) *PutCwfNetworkIDHaPairsHaPairIDParams {
-	var ()
 	return &PutCwfNetworkIDHaPairsHaPairIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutCwfNetworkIDHaPairsHaPairIDParamsWithContext creates a new PutCwfNetworkIDHaPairsHaPairIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutCwfNetworkIDHaPairsHaPairIDParamsWithContext(ctx context.Context) *PutCwfNetworkIDHaPairsHaPairIDParams {
-	var ()
 	return &PutCwfNetworkIDHaPairsHaPairIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutCwfNetworkIDHaPairsHaPairIDParamsWithHTTPClient creates a new PutCwfNetworkIDHaPairsHaPairIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutCwfNetworkIDHaPairsHaPairIDParamsWithHTTPClient(client *http.Client) *PutCwfNetworkIDHaPairsHaPairIDParams {
-	var ()
 	return &PutCwfNetworkIDHaPairsHaPairIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutCwfNetworkIDHaPairsHaPairIDParams contains all the parameters to send to the API endpoint
-for the put cwf network ID ha pairs ha pair ID operation typically these are written to a http.Request
+/* PutCwfNetworkIDHaPairsHaPairIDParams contains all the parameters to send to the API endpoint
+   for the put cwf network ID ha pairs ha pair ID operation.
+
+   Typically these are written to a http.Request.
 */
 type PutCwfNetworkIDHaPairsHaPairIDParams struct {
 
-	/*HaPair
-	  Carrier Wifi HA gateway pair
+	/* HaPair.
 
+	   Carrier Wifi HA gateway pair
 	*/
 	HaPair *models.MutableCwfHaPair
-	/*HaPairID
-	  HA Gateway Pair ID
 
+	/* HaPairID.
+
+	   HA Gateway Pair ID
 	*/
 	HaPairID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put cwf network ID ha pairs ha pair ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDHaPairsHaPairIDParams) WithDefaults() *PutCwfNetworkIDHaPairsHaPairIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put cwf network ID ha pairs ha pair ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDHaPairsHaPairIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put cwf network ID ha pairs ha pair ID params
@@ -156,7 +172,6 @@ func (o *PutCwfNetworkIDHaPairsHaPairIDParams) WriteToRequest(r runtime.ClientRe
 		return err
 	}
 	var res []error
-
 	if o.HaPair != nil {
 		if err := r.SetBodyParam(o.HaPair); err != nil {
 			return err

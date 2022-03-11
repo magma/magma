@@ -46,7 +46,7 @@ func NewPostCwfNetworkIDHaPairsCreated() *PostCwfNetworkIDHaPairsCreated {
 	return &PostCwfNetworkIDHaPairsCreated{}
 }
 
-/*PostCwfNetworkIDHaPairsCreated handles this case with default header values.
+/* PostCwfNetworkIDHaPairsCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostCwfNetworkIDHaPairsDefault(code int) *PostCwfNetworkIDHaPairsDefault
 	}
 }
 
-/*PostCwfNetworkIDHaPairsDefault handles this case with default header values.
+/* PostCwfNetworkIDHaPairsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostCwfNetworkIDHaPairsDefault) Code() int {
 func (o *PostCwfNetworkIDHaPairsDefault) Error() string {
 	return fmt.Sprintf("[POST /cwf/{network_id}/ha_pairs][%d] PostCwfNetworkIDHaPairs default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostCwfNetworkIDHaPairsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostLTENetworkIDPolicyQosProfilesParams creates a new PostLTENetworkIDPolicyQosProfilesParams object
-// with the default values initialized.
+// NewPostLTENetworkIDPolicyQosProfilesParams creates a new PostLTENetworkIDPolicyQosProfilesParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostLTENetworkIDPolicyQosProfilesParams() *PostLTENetworkIDPolicyQosProfilesParams {
-	var ()
 	return &PostLTENetworkIDPolicyQosProfilesParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostLTENetworkIDPolicyQosProfilesParamsWithTimeout creates a new PostLTENetworkIDPolicyQosProfilesParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostLTENetworkIDPolicyQosProfilesParamsWithTimeout(timeout time.Duration) *PostLTENetworkIDPolicyQosProfilesParams {
-	var ()
 	return &PostLTENetworkIDPolicyQosProfilesParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostLTENetworkIDPolicyQosProfilesParamsWithContext creates a new PostLTENetworkIDPolicyQosProfilesParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostLTENetworkIDPolicyQosProfilesParamsWithContext(ctx context.Context) *PostLTENetworkIDPolicyQosProfilesParams {
-	var ()
 	return &PostLTENetworkIDPolicyQosProfilesParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostLTENetworkIDPolicyQosProfilesParamsWithHTTPClient creates a new PostLTENetworkIDPolicyQosProfilesParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostLTENetworkIDPolicyQosProfilesParamsWithHTTPClient(client *http.Client) *PostLTENetworkIDPolicyQosProfilesParams {
-	var ()
 	return &PostLTENetworkIDPolicyQosProfilesParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostLTENetworkIDPolicyQosProfilesParams contains all the parameters to send to the API endpoint
-for the post LTE network ID policy qos profiles operation typically these are written to a http.Request
+/* PostLTENetworkIDPolicyQosProfilesParams contains all the parameters to send to the API endpoint
+   for the post LTE network ID policy qos profiles operation.
+
+   Typically these are written to a http.Request.
 */
 type PostLTENetworkIDPolicyQosProfilesParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*Policy
-	  Policy QoS profile
 
+	/* Policy.
+
+	   Policy QoS profile
 	*/
 	Policy *models.PolicyQosProfile
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post LTE network ID policy qos profiles params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostLTENetworkIDPolicyQosProfilesParams) WithDefaults() *PostLTENetworkIDPolicyQosProfilesParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post LTE network ID policy qos profiles params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostLTENetworkIDPolicyQosProfilesParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post LTE network ID policy qos profiles params
@@ -145,7 +160,6 @@ func (o *PostLTENetworkIDPolicyQosProfilesParams) WriteToRequest(r runtime.Clien
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.Policy != nil {
 		if err := r.SetBodyParam(o.Policy); err != nil {
 			return err

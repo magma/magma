@@ -23,13 +23,16 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
 // ClientService is the interface for Client methods
 type ClientService interface {
-	GetDpNetworkIDLogs(params *GetDpNetworkIDLogsParams, authInfo runtime.ClientAuthInfoWriter) (*GetDpNetworkIDLogsOK, error)
+	GetDpNetworkIDLogs(params *GetDpNetworkIDLogsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetDpNetworkIDLogsOK, error)
 
-	GetNetworksNetworkIDLogsCount(params *GetNetworksNetworkIDLogsCountParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDLogsCountOK, error)
+	GetNetworksNetworkIDLogsCount(params *GetNetworksNetworkIDLogsCountParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDLogsCountOK, error)
 
-	GetNetworksNetworkIDLogsSearch(params *GetNetworksNetworkIDLogsSearchParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDLogsSearchOK, error)
+	GetNetworksNetworkIDLogsSearch(params *GetNetworksNetworkIDLogsSearchParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDLogsSearchOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -37,13 +40,12 @@ type ClientService interface {
 /*
   GetDpNetworkIDLogs lists messages between d p and s a s ordered by time
 */
-func (a *Client) GetDpNetworkIDLogs(params *GetDpNetworkIDLogsParams, authInfo runtime.ClientAuthInfoWriter) (*GetDpNetworkIDLogsOK, error) {
+func (a *Client) GetDpNetworkIDLogs(params *GetDpNetworkIDLogsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetDpNetworkIDLogsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetDpNetworkIDLogsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetDpNetworkIDLogs",
 		Method:             "GET",
 		PathPattern:        "/dp/{network_id}/logs",
@@ -55,7 +57,12 @@ func (a *Client) GetDpNetworkIDLogs(params *GetDpNetworkIDLogsParams, authInfo r
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -71,13 +78,12 @@ func (a *Client) GetDpNetworkIDLogs(params *GetDpNetworkIDLogsParams, authInfo r
 /*
   GetNetworksNetworkIDLogsCount counts logs
 */
-func (a *Client) GetNetworksNetworkIDLogsCount(params *GetNetworksNetworkIDLogsCountParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDLogsCountOK, error) {
+func (a *Client) GetNetworksNetworkIDLogsCount(params *GetNetworksNetworkIDLogsCountParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDLogsCountOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDLogsCountParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDLogsCount",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/logs/count",
@@ -89,7 +95,12 @@ func (a *Client) GetNetworksNetworkIDLogsCount(params *GetNetworksNetworkIDLogsC
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -105,13 +116,12 @@ func (a *Client) GetNetworksNetworkIDLogsCount(params *GetNetworksNetworkIDLogsC
 /*
   GetNetworksNetworkIDLogsSearch searches logs
 */
-func (a *Client) GetNetworksNetworkIDLogsSearch(params *GetNetworksNetworkIDLogsSearchParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDLogsSearchOK, error) {
+func (a *Client) GetNetworksNetworkIDLogsSearch(params *GetNetworksNetworkIDLogsSearchParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDLogsSearchOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDLogsSearchParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDLogsSearch",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/logs/search",
@@ -123,7 +133,12 @@ func (a *Client) GetNetworksNetworkIDLogsSearch(params *GetNetworksNetworkIDLogs
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

@@ -46,7 +46,7 @@ func NewPostTenantsCreated() *PostTenantsCreated {
 	return &PostTenantsCreated{}
 }
 
-/*PostTenantsCreated handles this case with default header values.
+/* PostTenantsCreated describes a response with status code 201, with default header values.
 
 Successfully created
 */
@@ -69,7 +69,7 @@ func NewPostTenantsDefault(code int) *PostTenantsDefault {
 	}
 }
 
-/*PostTenantsDefault handles this case with default header values.
+/* PostTenantsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostTenantsDefault) Code() int {
 func (o *PostTenantsDefault) Error() string {
 	return fmt.Sprintf("[POST /tenants][%d] PostTenants default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostTenantsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

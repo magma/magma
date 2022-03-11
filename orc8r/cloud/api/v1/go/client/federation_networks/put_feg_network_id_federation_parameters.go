@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutFegNetworkIDFederationParams creates a new PutFegNetworkIDFederationParams object
-// with the default values initialized.
+// NewPutFegNetworkIDFederationParams creates a new PutFegNetworkIDFederationParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutFegNetworkIDFederationParams() *PutFegNetworkIDFederationParams {
-	var ()
 	return &PutFegNetworkIDFederationParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutFegNetworkIDFederationParamsWithTimeout creates a new PutFegNetworkIDFederationParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutFegNetworkIDFederationParamsWithTimeout(timeout time.Duration) *PutFegNetworkIDFederationParams {
-	var ()
 	return &PutFegNetworkIDFederationParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutFegNetworkIDFederationParamsWithContext creates a new PutFegNetworkIDFederationParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutFegNetworkIDFederationParamsWithContext(ctx context.Context) *PutFegNetworkIDFederationParams {
-	var ()
 	return &PutFegNetworkIDFederationParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutFegNetworkIDFederationParamsWithHTTPClient creates a new PutFegNetworkIDFederationParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutFegNetworkIDFederationParamsWithHTTPClient(client *http.Client) *PutFegNetworkIDFederationParams {
-	var ()
 	return &PutFegNetworkIDFederationParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutFegNetworkIDFederationParams contains all the parameters to send to the API endpoint
-for the put feg network ID federation operation typically these are written to a http.Request
+/* PutFegNetworkIDFederationParams contains all the parameters to send to the API endpoint
+   for the put feg network ID federation operation.
+
+   Typically these are written to a http.Request.
 */
 type PutFegNetworkIDFederationParams struct {
 
-	/*Config
-	  Updated config
+	/* Config.
 
+	   Updated config
 	*/
 	Config *models.NetworkFederationConfigs
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put feg network ID federation params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutFegNetworkIDFederationParams) WithDefaults() *PutFegNetworkIDFederationParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put feg network ID federation params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutFegNetworkIDFederationParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put feg network ID federation params
@@ -140,7 +155,6 @@ func (o *PutFegNetworkIDFederationParams) WriteToRequest(r runtime.ClientRequest
 		return err
 	}
 	var res []error
-
 	if o.Config != nil {
 		if err := r.SetBodyParam(o.Config); err != nil {
 			return err

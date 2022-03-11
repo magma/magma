@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutLTENetworkIDCellularRanParams creates a new PutLTENetworkIDCellularRanParams object
-// with the default values initialized.
+// NewPutLTENetworkIDCellularRanParams creates a new PutLTENetworkIDCellularRanParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutLTENetworkIDCellularRanParams() *PutLTENetworkIDCellularRanParams {
-	var ()
 	return &PutLTENetworkIDCellularRanParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutLTENetworkIDCellularRanParamsWithTimeout creates a new PutLTENetworkIDCellularRanParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutLTENetworkIDCellularRanParamsWithTimeout(timeout time.Duration) *PutLTENetworkIDCellularRanParams {
-	var ()
 	return &PutLTENetworkIDCellularRanParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutLTENetworkIDCellularRanParamsWithContext creates a new PutLTENetworkIDCellularRanParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutLTENetworkIDCellularRanParamsWithContext(ctx context.Context) *PutLTENetworkIDCellularRanParams {
-	var ()
 	return &PutLTENetworkIDCellularRanParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutLTENetworkIDCellularRanParamsWithHTTPClient creates a new PutLTENetworkIDCellularRanParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutLTENetworkIDCellularRanParamsWithHTTPClient(client *http.Client) *PutLTENetworkIDCellularRanParams {
-	var ()
 	return &PutLTENetworkIDCellularRanParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutLTENetworkIDCellularRanParams contains all the parameters to send to the API endpoint
-for the put LTE network ID cellular ran operation typically these are written to a http.Request
+/* PutLTENetworkIDCellularRanParams contains all the parameters to send to the API endpoint
+   for the put LTE network ID cellular ran operation.
+
+   Typically these are written to a http.Request.
 */
 type PutLTENetworkIDCellularRanParams struct {
 
-	/*Config
-	  New RAN configuration for the network
+	/* Config.
 
+	   New RAN configuration for the network
 	*/
 	Config *models.NetworkRanConfigs
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put LTE network ID cellular ran params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDCellularRanParams) WithDefaults() *PutLTENetworkIDCellularRanParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put LTE network ID cellular ran params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDCellularRanParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put LTE network ID cellular ran params
@@ -140,7 +155,6 @@ func (o *PutLTENetworkIDCellularRanParams) WriteToRequest(r runtime.ClientReques
 		return err
 	}
 	var res []error
-
 	if o.Config != nil {
 		if err := r.SetBodyParam(o.Config); err != nil {
 			return err

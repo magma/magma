@@ -46,7 +46,7 @@ func NewPostLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated() *PostLTENetwo
 	return &PostLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated{}
 }
 
-/*PostLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated handles this case with default header values.
+/* PostLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault(code int) *Post
 	}
 }
 
-/*PostLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault handles this case with default header values.
+/* PostLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault) Code() int {
 func (o *PostLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault) Error() string {
 	return fmt.Sprintf("[POST /lte/{network_id}/subscriber_config/base_names/{base_name}][%d] PostLTENetworkIDSubscriberConfigBaseNamesBaseName default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault) GetPayload() *models.Error {
 	return o.Payload
 }

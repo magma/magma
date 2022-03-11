@@ -46,7 +46,7 @@ func NewGetLTENetworkIDGatewaysGatewayIDDescriptionOK() *GetLTENetworkIDGateways
 	return &GetLTENetworkIDGatewaysGatewayIDDescriptionOK{}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDDescriptionOK handles this case with default header values.
+/* GetLTENetworkIDGatewaysGatewayIDDescriptionOK describes a response with status code 200, with default header values.
 
 The description of the gateway
 */
@@ -57,7 +57,6 @@ type GetLTENetworkIDGatewaysGatewayIDDescriptionOK struct {
 func (o *GetLTENetworkIDGatewaysGatewayIDDescriptionOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/gateways/{gateway_id}/description][%d] getLteNetworkIdGatewaysGatewayIdDescriptionOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDGatewaysGatewayIDDescriptionOK) GetPayload() models.GatewayDescription {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetLTENetworkIDGatewaysGatewayIDDescriptionDefault(code int) *GetLTENetw
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDDescriptionDefault handles this case with default header values.
+/* GetLTENetworkIDGatewaysGatewayIDDescriptionDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetLTENetworkIDGatewaysGatewayIDDescriptionDefault) Code() int {
 func (o *GetLTENetworkIDGatewaysGatewayIDDescriptionDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/gateways/{gateway_id}/description][%d] GetLTENetworkIDGatewaysGatewayIDDescription default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDGatewaysGatewayIDDescriptionDefault) GetPayload() *models.Error {
 	return o.Payload
 }

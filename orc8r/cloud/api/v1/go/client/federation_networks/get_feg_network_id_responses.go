@@ -46,7 +46,7 @@ func NewGetFegNetworkIDOK() *GetFegNetworkIDOK {
 	return &GetFegNetworkIDOK{}
 }
 
-/*GetFegNetworkIDOK handles this case with default header values.
+/* GetFegNetworkIDOK describes a response with status code 200, with default header values.
 
 Full description of a federated LTE network
 */
@@ -57,7 +57,6 @@ type GetFegNetworkIDOK struct {
 func (o *GetFegNetworkIDOK) Error() string {
 	return fmt.Sprintf("[GET /feg/{network_id}][%d] getFegNetworkIdOK  %+v", 200, o.Payload)
 }
-
 func (o *GetFegNetworkIDOK) GetPayload() *models.FegNetwork {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetFegNetworkIDDefault(code int) *GetFegNetworkIDDefault {
 	}
 }
 
-/*GetFegNetworkIDDefault handles this case with default header values.
+/* GetFegNetworkIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetFegNetworkIDDefault) Code() int {
 func (o *GetFegNetworkIDDefault) Error() string {
 	return fmt.Sprintf("[GET /feg/{network_id}][%d] GetFegNetworkID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetFegNetworkIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

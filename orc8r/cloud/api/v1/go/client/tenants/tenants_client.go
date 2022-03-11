@@ -23,21 +23,24 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
 // ClientService is the interface for Client methods
 type ClientService interface {
-	DeleteTenantsTenantID(params *DeleteTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteTenantsTenantIDNoContent, error)
+	DeleteTenantsTenantID(params *DeleteTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteTenantsTenantIDNoContent, error)
 
-	GetTenants(params *GetTenantsParams, authInfo runtime.ClientAuthInfoWriter) (*GetTenantsOK, error)
+	GetTenants(params *GetTenantsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetTenantsOK, error)
 
-	GetTenantsTenantID(params *GetTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetTenantsTenantIDOK, error)
+	GetTenantsTenantID(params *GetTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetTenantsTenantIDOK, error)
 
-	GetTenantsTenantIDControlProxy(params *GetTenantsTenantIDControlProxyParams, authInfo runtime.ClientAuthInfoWriter) (*GetTenantsTenantIDControlProxyOK, error)
+	GetTenantsTenantIDControlProxy(params *GetTenantsTenantIDControlProxyParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetTenantsTenantIDControlProxyOK, error)
 
-	PostTenants(params *PostTenantsParams, authInfo runtime.ClientAuthInfoWriter) (*PostTenantsCreated, error)
+	PostTenants(params *PostTenantsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostTenantsCreated, error)
 
-	PutTenantsTenantID(params *PutTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutTenantsTenantIDNoContent, error)
+	PutTenantsTenantID(params *PutTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutTenantsTenantIDNoContent, error)
 
-	PutTenantsTenantIDControlProxy(params *PutTenantsTenantIDControlProxyParams, authInfo runtime.ClientAuthInfoWriter) (*PutTenantsTenantIDControlProxyNoContent, error)
+	PutTenantsTenantIDControlProxy(params *PutTenantsTenantIDControlProxyParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutTenantsTenantIDControlProxyNoContent, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -45,13 +48,12 @@ type ClientService interface {
 /*
   DeleteTenantsTenantID deletes tenant
 */
-func (a *Client) DeleteTenantsTenantID(params *DeleteTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteTenantsTenantIDNoContent, error) {
+func (a *Client) DeleteTenantsTenantID(params *DeleteTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteTenantsTenantIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteTenantsTenantIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteTenantsTenantID",
 		Method:             "DELETE",
 		PathPattern:        "/tenants/{tenant_id}",
@@ -63,7 +65,12 @@ func (a *Client) DeleteTenantsTenantID(params *DeleteTenantsTenantIDParams, auth
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -79,13 +86,12 @@ func (a *Client) DeleteTenantsTenantID(params *DeleteTenantsTenantIDParams, auth
 /*
   GetTenants retrieves all tenants
 */
-func (a *Client) GetTenants(params *GetTenantsParams, authInfo runtime.ClientAuthInfoWriter) (*GetTenantsOK, error) {
+func (a *Client) GetTenants(params *GetTenantsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetTenantsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTenantsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetTenants",
 		Method:             "GET",
 		PathPattern:        "/tenants",
@@ -97,7 +103,12 @@ func (a *Client) GetTenants(params *GetTenantsParams, authInfo runtime.ClientAut
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -113,13 +124,12 @@ func (a *Client) GetTenants(params *GetTenantsParams, authInfo runtime.ClientAut
 /*
   GetTenantsTenantID retrieves tenant info by tenant ID
 */
-func (a *Client) GetTenantsTenantID(params *GetTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetTenantsTenantIDOK, error) {
+func (a *Client) GetTenantsTenantID(params *GetTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetTenantsTenantIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTenantsTenantIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetTenantsTenantID",
 		Method:             "GET",
 		PathPattern:        "/tenants/{tenant_id}",
@@ -131,7 +141,12 @@ func (a *Client) GetTenantsTenantID(params *GetTenantsTenantIDParams, authInfo r
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -147,13 +162,12 @@ func (a *Client) GetTenantsTenantID(params *GetTenantsTenantIDParams, authInfo r
 /*
   GetTenantsTenantIDControlProxy retrieves control proxy content by tenant ID
 */
-func (a *Client) GetTenantsTenantIDControlProxy(params *GetTenantsTenantIDControlProxyParams, authInfo runtime.ClientAuthInfoWriter) (*GetTenantsTenantIDControlProxyOK, error) {
+func (a *Client) GetTenantsTenantIDControlProxy(params *GetTenantsTenantIDControlProxyParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetTenantsTenantIDControlProxyOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTenantsTenantIDControlProxyParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetTenantsTenantIDControlProxy",
 		Method:             "GET",
 		PathPattern:        "/tenants/{tenant_id}/control_proxy",
@@ -165,7 +179,12 @@ func (a *Client) GetTenantsTenantIDControlProxy(params *GetTenantsTenantIDContro
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -181,13 +200,12 @@ func (a *Client) GetTenantsTenantIDControlProxy(params *GetTenantsTenantIDContro
 /*
   PostTenants creates an tenant
 */
-func (a *Client) PostTenants(params *PostTenantsParams, authInfo runtime.ClientAuthInfoWriter) (*PostTenantsCreated, error) {
+func (a *Client) PostTenants(params *PostTenantsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostTenantsCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostTenantsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostTenants",
 		Method:             "POST",
 		PathPattern:        "/tenants",
@@ -199,7 +217,12 @@ func (a *Client) PostTenants(params *PostTenantsParams, authInfo runtime.ClientA
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -215,13 +238,12 @@ func (a *Client) PostTenants(params *PostTenantsParams, authInfo runtime.ClientA
 /*
   PutTenantsTenantID sets tenant info
 */
-func (a *Client) PutTenantsTenantID(params *PutTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutTenantsTenantIDNoContent, error) {
+func (a *Client) PutTenantsTenantID(params *PutTenantsTenantIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutTenantsTenantIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutTenantsTenantIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutTenantsTenantID",
 		Method:             "PUT",
 		PathPattern:        "/tenants/{tenant_id}",
@@ -233,7 +255,12 @@ func (a *Client) PutTenantsTenantID(params *PutTenantsTenantIDParams, authInfo r
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -249,13 +276,12 @@ func (a *Client) PutTenantsTenantID(params *PutTenantsTenantIDParams, authInfo r
 /*
   PutTenantsTenantIDControlProxy creates or update control proxy content
 */
-func (a *Client) PutTenantsTenantIDControlProxy(params *PutTenantsTenantIDControlProxyParams, authInfo runtime.ClientAuthInfoWriter) (*PutTenantsTenantIDControlProxyNoContent, error) {
+func (a *Client) PutTenantsTenantIDControlProxy(params *PutTenantsTenantIDControlProxyParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutTenantsTenantIDControlProxyNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutTenantsTenantIDControlProxyParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutTenantsTenantIDControlProxy",
 		Method:             "PUT",
 		PathPattern:        "/tenants/{tenant_id}/control_proxy",
@@ -267,7 +293,12 @@ func (a *Client) PutTenantsTenantIDControlProxy(params *PutTenantsTenantIDContro
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

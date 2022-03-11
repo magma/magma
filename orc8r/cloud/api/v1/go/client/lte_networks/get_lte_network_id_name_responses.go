@@ -46,7 +46,7 @@ func NewGetLTENetworkIDNameOK() *GetLTENetworkIDNameOK {
 	return &GetLTENetworkIDNameOK{}
 }
 
-/*GetLTENetworkIDNameOK handles this case with default header values.
+/* GetLTENetworkIDNameOK describes a response with status code 200, with default header values.
 
 Name of the network
 */
@@ -57,7 +57,6 @@ type GetLTENetworkIDNameOK struct {
 func (o *GetLTENetworkIDNameOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/name][%d] getLteNetworkIdNameOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDNameOK) GetPayload() models.NetworkName {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetLTENetworkIDNameDefault(code int) *GetLTENetworkIDNameDefault {
 	}
 }
 
-/*GetLTENetworkIDNameDefault handles this case with default header values.
+/* GetLTENetworkIDNameDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetLTENetworkIDNameDefault) Code() int {
 func (o *GetLTENetworkIDNameDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/name][%d] GetLTENetworkIDName default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDNameDefault) GetPayload() *models.Error {
 	return o.Payload
 }

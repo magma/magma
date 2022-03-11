@@ -46,7 +46,7 @@ func NewGetNetworksNetworkIDRatingGroupsOK() *GetNetworksNetworkIDRatingGroupsOK
 	return &GetNetworksNetworkIDRatingGroupsOK{}
 }
 
-/*GetNetworksNetworkIDRatingGroupsOK handles this case with default header values.
+/* GetNetworksNetworkIDRatingGroupsOK describes a response with status code 200, with default header values.
 
 List all rating groups
 */
@@ -57,7 +57,6 @@ type GetNetworksNetworkIDRatingGroupsOK struct {
 func (o *GetNetworksNetworkIDRatingGroupsOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/rating_groups][%d] getNetworksNetworkIdRatingGroupsOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDRatingGroupsOK) GetPayload() []*models.RatingGroup {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetNetworksNetworkIDRatingGroupsDefault(code int) *GetNetworksNetworkIDR
 	}
 }
 
-/*GetNetworksNetworkIDRatingGroupsDefault handles this case with default header values.
+/* GetNetworksNetworkIDRatingGroupsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetNetworksNetworkIDRatingGroupsDefault) Code() int {
 func (o *GetNetworksNetworkIDRatingGroupsDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/rating_groups][%d] GetNetworksNetworkIDRatingGroups default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDRatingGroupsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

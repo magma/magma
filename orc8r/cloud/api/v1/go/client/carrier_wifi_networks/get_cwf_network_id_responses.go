@@ -46,7 +46,7 @@ func NewGetCwfNetworkIDOK() *GetCwfNetworkIDOK {
 	return &GetCwfNetworkIDOK{}
 }
 
-/*GetCwfNetworkIDOK handles this case with default header values.
+/* GetCwfNetworkIDOK describes a response with status code 200, with default header values.
 
 Full description of a Carrier Wifi network
 */
@@ -57,7 +57,6 @@ type GetCwfNetworkIDOK struct {
 func (o *GetCwfNetworkIDOK) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}][%d] getCwfNetworkIdOK  %+v", 200, o.Payload)
 }
-
 func (o *GetCwfNetworkIDOK) GetPayload() *models.CwfNetwork {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetCwfNetworkIDDefault(code int) *GetCwfNetworkIDDefault {
 	}
 }
 
-/*GetCwfNetworkIDDefault handles this case with default header values.
+/* GetCwfNetworkIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetCwfNetworkIDDefault) Code() int {
 func (o *GetCwfNetworkIDDefault) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}][%d] GetCwfNetworkID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetCwfNetworkIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

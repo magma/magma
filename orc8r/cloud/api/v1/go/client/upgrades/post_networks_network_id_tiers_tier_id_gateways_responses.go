@@ -46,7 +46,7 @@ func NewPostNetworksNetworkIDTiersTierIDGatewaysNoContent() *PostNetworksNetwork
 	return &PostNetworksNetworkIDTiersTierIDGatewaysNoContent{}
 }
 
-/*PostNetworksNetworkIDTiersTierIDGatewaysNoContent handles this case with default header values.
+/* PostNetworksNetworkIDTiersTierIDGatewaysNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostNetworksNetworkIDTiersTierIDGatewaysDefault(code int) *PostNetworksN
 	}
 }
 
-/*PostNetworksNetworkIDTiersTierIDGatewaysDefault handles this case with default header values.
+/* PostNetworksNetworkIDTiersTierIDGatewaysDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostNetworksNetworkIDTiersTierIDGatewaysDefault) Code() int {
 func (o *PostNetworksNetworkIDTiersTierIDGatewaysDefault) Error() string {
 	return fmt.Sprintf("[POST /networks/{network_id}/tiers/{tier_id}/gateways][%d] PostNetworksNetworkIDTiersTierIDGateways default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostNetworksNetworkIDTiersTierIDGatewaysDefault) GetPayload() *models.Error {
 	return o.Payload
 }

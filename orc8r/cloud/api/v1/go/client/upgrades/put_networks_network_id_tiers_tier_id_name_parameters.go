@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutNetworksNetworkIDTiersTierIDNameParams creates a new PutNetworksNetworkIDTiersTierIDNameParams object
-// with the default values initialized.
+// NewPutNetworksNetworkIDTiersTierIDNameParams creates a new PutNetworksNetworkIDTiersTierIDNameParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutNetworksNetworkIDTiersTierIDNameParams() *PutNetworksNetworkIDTiersTierIDNameParams {
-	var ()
 	return &PutNetworksNetworkIDTiersTierIDNameParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutNetworksNetworkIDTiersTierIDNameParamsWithTimeout creates a new PutNetworksNetworkIDTiersTierIDNameParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutNetworksNetworkIDTiersTierIDNameParamsWithTimeout(timeout time.Duration) *PutNetworksNetworkIDTiersTierIDNameParams {
-	var ()
 	return &PutNetworksNetworkIDTiersTierIDNameParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutNetworksNetworkIDTiersTierIDNameParamsWithContext creates a new PutNetworksNetworkIDTiersTierIDNameParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutNetworksNetworkIDTiersTierIDNameParamsWithContext(ctx context.Context) *PutNetworksNetworkIDTiersTierIDNameParams {
-	var ()
 	return &PutNetworksNetworkIDTiersTierIDNameParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutNetworksNetworkIDTiersTierIDNameParamsWithHTTPClient creates a new PutNetworksNetworkIDTiersTierIDNameParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutNetworksNetworkIDTiersTierIDNameParamsWithHTTPClient(client *http.Client) *PutNetworksNetworkIDTiersTierIDNameParams {
-	var ()
 	return &PutNetworksNetworkIDTiersTierIDNameParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutNetworksNetworkIDTiersTierIDNameParams contains all the parameters to send to the API endpoint
-for the put networks network ID tiers tier ID name operation typically these are written to a http.Request
+/* PutNetworksNetworkIDTiersTierIDNameParams contains all the parameters to send to the API endpoint
+   for the put networks network ID tiers tier ID name operation.
+
+   Typically these are written to a http.Request.
 */
 type PutNetworksNetworkIDTiersTierIDNameParams struct {
 
-	/*Name
-	  New name for the tier
+	/* Name.
 
+	   New name for the tier
 	*/
 	Name models.TierName
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*TierID
-	  Tier ID
 
+	/* TierID.
+
+	   Tier ID
 	*/
 	TierID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put networks network ID tiers tier ID name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDTiersTierIDNameParams) WithDefaults() *PutNetworksNetworkIDTiersTierIDNameParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put networks network ID tiers tier ID name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDTiersTierIDNameParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put networks network ID tiers tier ID name params
@@ -156,7 +172,6 @@ func (o *PutNetworksNetworkIDTiersTierIDNameParams) WriteToRequest(r runtime.Cli
 		return err
 	}
 	var res []error
-
 	if err := r.SetBodyParam(o.Name); err != nil {
 		return err
 	}

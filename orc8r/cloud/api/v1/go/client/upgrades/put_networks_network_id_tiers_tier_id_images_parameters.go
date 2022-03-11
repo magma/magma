@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutNetworksNetworkIDTiersTierIDImagesParams creates a new PutNetworksNetworkIDTiersTierIDImagesParams object
-// with the default values initialized.
+// NewPutNetworksNetworkIDTiersTierIDImagesParams creates a new PutNetworksNetworkIDTiersTierIDImagesParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutNetworksNetworkIDTiersTierIDImagesParams() *PutNetworksNetworkIDTiersTierIDImagesParams {
-	var ()
 	return &PutNetworksNetworkIDTiersTierIDImagesParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutNetworksNetworkIDTiersTierIDImagesParamsWithTimeout creates a new PutNetworksNetworkIDTiersTierIDImagesParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutNetworksNetworkIDTiersTierIDImagesParamsWithTimeout(timeout time.Duration) *PutNetworksNetworkIDTiersTierIDImagesParams {
-	var ()
 	return &PutNetworksNetworkIDTiersTierIDImagesParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutNetworksNetworkIDTiersTierIDImagesParamsWithContext creates a new PutNetworksNetworkIDTiersTierIDImagesParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutNetworksNetworkIDTiersTierIDImagesParamsWithContext(ctx context.Context) *PutNetworksNetworkIDTiersTierIDImagesParams {
-	var ()
 	return &PutNetworksNetworkIDTiersTierIDImagesParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutNetworksNetworkIDTiersTierIDImagesParamsWithHTTPClient creates a new PutNetworksNetworkIDTiersTierIDImagesParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutNetworksNetworkIDTiersTierIDImagesParamsWithHTTPClient(client *http.Client) *PutNetworksNetworkIDTiersTierIDImagesParams {
-	var ()
 	return &PutNetworksNetworkIDTiersTierIDImagesParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutNetworksNetworkIDTiersTierIDImagesParams contains all the parameters to send to the API endpoint
-for the put networks network ID tiers tier ID images operation typically these are written to a http.Request
+/* PutNetworksNetworkIDTiersTierIDImagesParams contains all the parameters to send to the API endpoint
+   for the put networks network ID tiers tier ID images operation.
+
+   Typically these are written to a http.Request.
 */
 type PutNetworksNetworkIDTiersTierIDImagesParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*Tier
-	  New images for the tier
 
+	/* Tier.
+
+	   New images for the tier
 	*/
 	Tier models.TierImages
-	/*TierID
-	  Tier ID
 
+	/* TierID.
+
+	   Tier ID
 	*/
 	TierID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put networks network ID tiers tier ID images params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDTiersTierIDImagesParams) WithDefaults() *PutNetworksNetworkIDTiersTierIDImagesParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put networks network ID tiers tier ID images params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDTiersTierIDImagesParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put networks network ID tiers tier ID images params
@@ -161,7 +177,6 @@ func (o *PutNetworksNetworkIDTiersTierIDImagesParams) WriteToRequest(r runtime.C
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.Tier != nil {
 		if err := r.SetBodyParam(o.Tier); err != nil {
 			return err

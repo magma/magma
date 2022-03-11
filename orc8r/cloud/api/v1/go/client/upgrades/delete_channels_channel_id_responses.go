@@ -46,7 +46,7 @@ func NewDeleteChannelsChannelIDNoContent() *DeleteChannelsChannelIDNoContent {
 	return &DeleteChannelsChannelIDNoContent{}
 }
 
-/*DeleteChannelsChannelIDNoContent handles this case with default header values.
+/* DeleteChannelsChannelIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewDeleteChannelsChannelIDDefault(code int) *DeleteChannelsChannelIDDefault
 	}
 }
 
-/*DeleteChannelsChannelIDDefault handles this case with default header values.
+/* DeleteChannelsChannelIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *DeleteChannelsChannelIDDefault) Code() int {
 func (o *DeleteChannelsChannelIDDefault) Error() string {
 	return fmt.Sprintf("[DELETE /channels/{channel_id}][%d] DeleteChannelsChannelID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteChannelsChannelIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

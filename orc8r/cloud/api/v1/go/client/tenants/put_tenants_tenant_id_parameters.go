@@ -19,64 +19,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutTenantsTenantIDParams creates a new PutTenantsTenantIDParams object
-// with the default values initialized.
+// NewPutTenantsTenantIDParams creates a new PutTenantsTenantIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutTenantsTenantIDParams() *PutTenantsTenantIDParams {
-	var ()
 	return &PutTenantsTenantIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutTenantsTenantIDParamsWithTimeout creates a new PutTenantsTenantIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutTenantsTenantIDParamsWithTimeout(timeout time.Duration) *PutTenantsTenantIDParams {
-	var ()
 	return &PutTenantsTenantIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutTenantsTenantIDParamsWithContext creates a new PutTenantsTenantIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutTenantsTenantIDParamsWithContext(ctx context.Context) *PutTenantsTenantIDParams {
-	var ()
 	return &PutTenantsTenantIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutTenantsTenantIDParamsWithHTTPClient creates a new PutTenantsTenantIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutTenantsTenantIDParamsWithHTTPClient(client *http.Client) *PutTenantsTenantIDParams {
-	var ()
 	return &PutTenantsTenantIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutTenantsTenantIDParams contains all the parameters to send to the API endpoint
-for the put tenants tenant ID operation typically these are written to a http.Request
+/* PutTenantsTenantIDParams contains all the parameters to send to the API endpoint
+   for the put tenants tenant ID operation.
+
+   Typically these are written to a http.Request.
 */
 type PutTenantsTenantIDParams struct {
 
-	/*Tenant
-	  Tenant to be updated
+	/* Tenant.
 
+	   Tenant to be updated
 	*/
 	Tenant *models.Tenant
-	/*TenantID
-	  Tenant ID
 
+	/* TenantID.
+
+	   Tenant ID
 	*/
 	TenantID int64
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put tenants tenant ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutTenantsTenantIDParams) WithDefaults() *PutTenantsTenantIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put tenants tenant ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutTenantsTenantIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put tenants tenant ID params
@@ -141,7 +156,6 @@ func (o *PutTenantsTenantIDParams) WriteToRequest(r runtime.ClientRequest, reg s
 		return err
 	}
 	var res []error
-
 	if o.Tenant != nil {
 		if err := r.SetBodyParam(o.Tenant); err != nil {
 			return err

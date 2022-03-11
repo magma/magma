@@ -46,7 +46,7 @@ func NewGetLTENetworkIDEnodebsENODEBSerialOK() *GetLTENetworkIDEnodebsENODEBSeri
 	return &GetLTENetworkIDEnodebsENODEBSerialOK{}
 }
 
-/*GetLTENetworkIDEnodebsENODEBSerialOK handles this case with default header values.
+/* GetLTENetworkIDEnodebsENODEBSerialOK describes a response with status code 200, with default header values.
 
 The requested enodeB's configuration
 */
@@ -57,7 +57,6 @@ type GetLTENetworkIDEnodebsENODEBSerialOK struct {
 func (o *GetLTENetworkIDEnodebsENODEBSerialOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/enodebs/{enodeb_serial}][%d] getLteNetworkIdEnodebsEnodebSerialOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDEnodebsENODEBSerialOK) GetPayload() *models.ENODEB {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetLTENetworkIDEnodebsENODEBSerialDefault(code int) *GetLTENetworkIDEnod
 	}
 }
 
-/*GetLTENetworkIDEnodebsENODEBSerialDefault handles this case with default header values.
+/* GetLTENetworkIDEnodebsENODEBSerialDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetLTENetworkIDEnodebsENODEBSerialDefault) Code() int {
 func (o *GetLTENetworkIDEnodebsENODEBSerialDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/enodebs/{enodeb_serial}][%d] GetLTENetworkIDEnodebsENODEBSerial default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDEnodebsENODEBSerialDefault) GetPayload() *models.Error {
 	return o.Payload
 }

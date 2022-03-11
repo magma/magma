@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutLTENetworkIDGatewaysGatewayIDCellularParams creates a new PutLTENetworkIDGatewaysGatewayIDCellularParams object
-// with the default values initialized.
+// NewPutLTENetworkIDGatewaysGatewayIDCellularParams creates a new PutLTENetworkIDGatewaysGatewayIDCellularParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutLTENetworkIDGatewaysGatewayIDCellularParams() *PutLTENetworkIDGatewaysGatewayIDCellularParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDCellularParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDCellularParamsWithTimeout creates a new PutLTENetworkIDGatewaysGatewayIDCellularParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutLTENetworkIDGatewaysGatewayIDCellularParamsWithTimeout(timeout time.Duration) *PutLTENetworkIDGatewaysGatewayIDCellularParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDCellularParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDCellularParamsWithContext creates a new PutLTENetworkIDGatewaysGatewayIDCellularParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutLTENetworkIDGatewaysGatewayIDCellularParamsWithContext(ctx context.Context) *PutLTENetworkIDGatewaysGatewayIDCellularParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDCellularParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDCellularParamsWithHTTPClient creates a new PutLTENetworkIDGatewaysGatewayIDCellularParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutLTENetworkIDGatewaysGatewayIDCellularParamsWithHTTPClient(client *http.Client) *PutLTENetworkIDGatewaysGatewayIDCellularParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDCellularParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDCellularParams contains all the parameters to send to the API endpoint
-for the put LTE network ID gateways gateway ID cellular operation typically these are written to a http.Request
+/* PutLTENetworkIDGatewaysGatewayIDCellularParams contains all the parameters to send to the API endpoint
+   for the put LTE network ID gateways gateway ID cellular operation.
+
+   Typically these are written to a http.Request.
 */
 type PutLTENetworkIDGatewaysGatewayIDCellularParams struct {
 
-	/*Config
-	  New cellular configuration
+	/* Config.
 
+	   New cellular configuration
 	*/
 	Config *models.GatewayCellularConfigs
-	/*GatewayID
-	  Gateway ID
 
+	/* GatewayID.
+
+	   Gateway ID
 	*/
 	GatewayID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put LTE network ID gateways gateway ID cellular params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDGatewaysGatewayIDCellularParams) WithDefaults() *PutLTENetworkIDGatewaysGatewayIDCellularParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put LTE network ID gateways gateway ID cellular params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDGatewaysGatewayIDCellularParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put LTE network ID gateways gateway ID cellular params
@@ -156,7 +172,6 @@ func (o *PutLTENetworkIDGatewaysGatewayIDCellularParams) WriteToRequest(r runtim
 		return err
 	}
 	var res []error
-
 	if o.Config != nil {
 		if err := r.SetBodyParam(o.Config); err != nil {
 			return err

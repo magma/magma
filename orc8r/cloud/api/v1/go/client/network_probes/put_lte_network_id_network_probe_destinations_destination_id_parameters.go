@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutLTENetworkIDNetworkProbeDestinationsDestinationIDParams creates a new PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams object
-// with the default values initialized.
+// NewPutLTENetworkIDNetworkProbeDestinationsDestinationIDParams creates a new PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutLTENetworkIDNetworkProbeDestinationsDestinationIDParams() *PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams {
-	var ()
 	return &PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutLTENetworkIDNetworkProbeDestinationsDestinationIDParamsWithTimeout creates a new PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutLTENetworkIDNetworkProbeDestinationsDestinationIDParamsWithTimeout(timeout time.Duration) *PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams {
-	var ()
 	return &PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutLTENetworkIDNetworkProbeDestinationsDestinationIDParamsWithContext creates a new PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutLTENetworkIDNetworkProbeDestinationsDestinationIDParamsWithContext(ctx context.Context) *PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams {
-	var ()
 	return &PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutLTENetworkIDNetworkProbeDestinationsDestinationIDParamsWithHTTPClient creates a new PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutLTENetworkIDNetworkProbeDestinationsDestinationIDParamsWithHTTPClient(client *http.Client) *PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams {
-	var ()
 	return &PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams contains all the parameters to send to the API endpoint
-for the put LTE network ID network probe destinations destination ID operation typically these are written to a http.Request
+/* PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams contains all the parameters to send to the API endpoint
+   for the put LTE network ID network probe destinations destination ID operation.
+
+   Typically these are written to a http.Request.
 */
 type PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams struct {
 
-	/*DestinationID
-	  Network Probe Destination ID
+	/* DestinationID.
 
+	   Network Probe Destination ID
 	*/
 	DestinationID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*NetworkProbeDestination
-	  New NetworkProbeDestination configuration
 
+	/* NetworkProbeDestination.
+
+	   New NetworkProbeDestination configuration
 	*/
 	NetworkProbeDestination *models.NetworkProbeDestination
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put LTE network ID network probe destinations destination ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams) WithDefaults() *PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put LTE network ID network probe destinations destination ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put LTE network ID network probe destinations destination ID params
@@ -166,7 +182,6 @@ func (o *PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams) WriteToRequ
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.NetworkProbeDestination != nil {
 		if err := r.SetBodyParam(o.NetworkProbeDestination); err != nil {
 			return err

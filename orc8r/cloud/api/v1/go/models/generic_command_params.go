@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -18,11 +20,13 @@ import (
 type GenericCommandParams struct {
 
 	// command
+	// Example: bash
 	// Required: true
 	// Min Length: 1
 	Command *string `json:"command"`
 
 	// params
+	// Example: {"shell_params":["-c 'ls -1 .'"]}
 	Params map[string]interface{} `json:"params,omitempty"`
 }
 
@@ -46,10 +50,15 @@ func (m *GenericCommandParams) validateCommand(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("command", "body", string(*m.Command), 1); err != nil {
+	if err := validate.MinLength("command", "body", *m.Command, 1); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this generic command params based on context it is used
+func (m *GenericCommandParams) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

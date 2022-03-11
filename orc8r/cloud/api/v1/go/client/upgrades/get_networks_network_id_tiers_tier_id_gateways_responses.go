@@ -46,7 +46,7 @@ func NewGetNetworksNetworkIDTiersTierIDGatewaysOK() *GetNetworksNetworkIDTiersTi
 	return &GetNetworksNetworkIDTiersTierIDGatewaysOK{}
 }
 
-/*GetNetworksNetworkIDTiersTierIDGatewaysOK handles this case with default header values.
+/* GetNetworksNetworkIDTiersTierIDGatewaysOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -57,7 +57,6 @@ type GetNetworksNetworkIDTiersTierIDGatewaysOK struct {
 func (o *GetNetworksNetworkIDTiersTierIDGatewaysOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/tiers/{tier_id}/gateways][%d] getNetworksNetworkIdTiersTierIdGatewaysOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDTiersTierIDGatewaysOK) GetPayload() models.TierGateways {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetNetworksNetworkIDTiersTierIDGatewaysDefault(code int) *GetNetworksNet
 	}
 }
 
-/*GetNetworksNetworkIDTiersTierIDGatewaysDefault handles this case with default header values.
+/* GetNetworksNetworkIDTiersTierIDGatewaysDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetNetworksNetworkIDTiersTierIDGatewaysDefault) Code() int {
 func (o *GetNetworksNetworkIDTiersTierIDGatewaysDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/tiers/{tier_id}/gateways][%d] GetNetworksNetworkIDTiersTierIDGateways default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDTiersTierIDGatewaysDefault) GetPayload() *models.Error {
 	return o.Payload
 }

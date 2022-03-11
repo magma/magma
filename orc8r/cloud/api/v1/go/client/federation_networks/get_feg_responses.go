@@ -46,7 +46,7 @@ func NewGetFegOK() *GetFegOK {
 	return &GetFegOK{}
 }
 
-/*GetFegOK handles this case with default header values.
+/* GetFegOK describes a response with status code 200, with default header values.
 
 List of federation network IDs
 */
@@ -57,7 +57,6 @@ type GetFegOK struct {
 func (o *GetFegOK) Error() string {
 	return fmt.Sprintf("[GET /feg][%d] getFegOK  %+v", 200, o.Payload)
 }
-
 func (o *GetFegOK) GetPayload() []string {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetFegDefault(code int) *GetFegDefault {
 	}
 }
 
-/*GetFegDefault handles this case with default header values.
+/* GetFegDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetFegDefault) Code() int {
 func (o *GetFegDefault) Error() string {
 	return fmt.Sprintf("[GET /feg][%d] GetFeg default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetFegDefault) GetPayload() *models.Error {
 	return o.Payload
 }

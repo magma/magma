@@ -17,69 +17,85 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// NewGetDpNetworkIDCbsdsParams creates a new GetDpNetworkIDCbsdsParams object
-// with the default values initialized.
+// NewGetDpNetworkIDCbsdsParams creates a new GetDpNetworkIDCbsdsParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetDpNetworkIDCbsdsParams() *GetDpNetworkIDCbsdsParams {
-	var ()
 	return &GetDpNetworkIDCbsdsParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetDpNetworkIDCbsdsParamsWithTimeout creates a new GetDpNetworkIDCbsdsParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetDpNetworkIDCbsdsParamsWithTimeout(timeout time.Duration) *GetDpNetworkIDCbsdsParams {
-	var ()
 	return &GetDpNetworkIDCbsdsParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetDpNetworkIDCbsdsParamsWithContext creates a new GetDpNetworkIDCbsdsParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetDpNetworkIDCbsdsParamsWithContext(ctx context.Context) *GetDpNetworkIDCbsdsParams {
-	var ()
 	return &GetDpNetworkIDCbsdsParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetDpNetworkIDCbsdsParamsWithHTTPClient creates a new GetDpNetworkIDCbsdsParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetDpNetworkIDCbsdsParamsWithHTTPClient(client *http.Client) *GetDpNetworkIDCbsdsParams {
-	var ()
 	return &GetDpNetworkIDCbsdsParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetDpNetworkIDCbsdsParams contains all the parameters to send to the API endpoint
-for the get dp network ID cbsds operation typically these are written to a http.Request
+/* GetDpNetworkIDCbsdsParams contains all the parameters to send to the API endpoint
+   for the get dp network ID cbsds operation.
+
+   Typically these are written to a http.Request.
 */
 type GetDpNetworkIDCbsdsParams struct {
 
-	/*Limit
-	  Number of record to return
+	/* Limit.
 
+	   Number of record to return
 	*/
 	Limit *int64
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*Offset
-	  Start index for pagination
 
+	/* Offset.
+
+	   Start index for pagination
 	*/
 	Offset *int64
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get dp network ID cbsds params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetDpNetworkIDCbsdsParams) WithDefaults() *GetDpNetworkIDCbsdsParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get dp network ID cbsds params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetDpNetworkIDCbsdsParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get dp network ID cbsds params
@@ -160,16 +176,17 @@ func (o *GetDpNetworkIDCbsdsParams) WriteToRequest(r runtime.ClientRequest, reg 
 
 		// query param limit
 		var qrLimit int64
+
 		if o.Limit != nil {
 			qrLimit = *o.Limit
 		}
 		qLimit := swag.FormatInt64(qrLimit)
 		if qLimit != "" {
+
 			if err := r.SetQueryParam("limit", qLimit); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	// path param network_id
@@ -181,16 +198,17 @@ func (o *GetDpNetworkIDCbsdsParams) WriteToRequest(r runtime.ClientRequest, reg 
 
 		// query param offset
 		var qrOffset int64
+
 		if o.Offset != nil {
 			qrOffset = *o.Offset
 		}
 		qOffset := swag.FormatInt64(qrOffset)
 		if qOffset != "" {
+
 			if err := r.SetQueryParam("offset", qOffset); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if len(res) > 0 {

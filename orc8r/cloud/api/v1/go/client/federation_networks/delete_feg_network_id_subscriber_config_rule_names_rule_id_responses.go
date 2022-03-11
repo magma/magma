@@ -46,7 +46,7 @@ func NewDeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDNoContent() *DeleteFegN
 	return &DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDNoContent{}
 }
 
-/*DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDNoContent handles this case with default header values.
+/* DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewDeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDDefault(code int) *Dele
 	}
 }
 
-/*DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDDefault handles this case with default header values.
+/* DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDDefault) Code() int {
 func (o *DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDDefault) Error() string {
 	return fmt.Sprintf("[DELETE /feg/{network_id}/subscriber_config/rule_names/{rule_id}][%d] DeleteFegNetworkIDSubscriberConfigRuleNamesRuleID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

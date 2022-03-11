@@ -46,7 +46,7 @@ func NewGetFegNetworkIDSubscriberConfigBaseNamesOK() *GetFegNetworkIDSubscriberC
 	return &GetFegNetworkIDSubscriberConfigBaseNamesOK{}
 }
 
-/*GetFegNetworkIDSubscriberConfigBaseNamesOK handles this case with default header values.
+/* GetFegNetworkIDSubscriberConfigBaseNamesOK describes a response with status code 200, with default header values.
 
 Subscriber Config
 */
@@ -57,7 +57,6 @@ type GetFegNetworkIDSubscriberConfigBaseNamesOK struct {
 func (o *GetFegNetworkIDSubscriberConfigBaseNamesOK) Error() string {
 	return fmt.Sprintf("[GET /feg/{network_id}/subscriber_config/base_names][%d] getFegNetworkIdSubscriberConfigBaseNamesOK  %+v", 200, o.Payload)
 }
-
 func (o *GetFegNetworkIDSubscriberConfigBaseNamesOK) GetPayload() models.BaseNames {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetFegNetworkIDSubscriberConfigBaseNamesDefault(code int) *GetFegNetwork
 	}
 }
 
-/*GetFegNetworkIDSubscriberConfigBaseNamesDefault handles this case with default header values.
+/* GetFegNetworkIDSubscriberConfigBaseNamesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetFegNetworkIDSubscriberConfigBaseNamesDefault) Code() int {
 func (o *GetFegNetworkIDSubscriberConfigBaseNamesDefault) Error() string {
 	return fmt.Sprintf("[GET /feg/{network_id}/subscriber_config/base_names][%d] GetFegNetworkIDSubscriberConfigBaseNames default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetFegNetworkIDSubscriberConfigBaseNamesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

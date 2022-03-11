@@ -46,7 +46,7 @@ func NewPutLTENetworkIDFeaturesNoContent() *PutLTENetworkIDFeaturesNoContent {
 	return &PutLTENetworkIDFeaturesNoContent{}
 }
 
-/*PutLTENetworkIDFeaturesNoContent handles this case with default header values.
+/* PutLTENetworkIDFeaturesNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutLTENetworkIDFeaturesDefault(code int) *PutLTENetworkIDFeaturesDefault
 	}
 }
 
-/*PutLTENetworkIDFeaturesDefault handles this case with default header values.
+/* PutLTENetworkIDFeaturesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutLTENetworkIDFeaturesDefault) Code() int {
 func (o *PutLTENetworkIDFeaturesDefault) Error() string {
 	return fmt.Sprintf("[PUT /lte/{network_id}/features][%d] PutLTENetworkIDFeatures default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutLTENetworkIDFeaturesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

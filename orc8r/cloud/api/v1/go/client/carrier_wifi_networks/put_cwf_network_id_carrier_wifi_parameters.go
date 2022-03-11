@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutCwfNetworkIDCarrierWifiParams creates a new PutCwfNetworkIDCarrierWifiParams object
-// with the default values initialized.
+// NewPutCwfNetworkIDCarrierWifiParams creates a new PutCwfNetworkIDCarrierWifiParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutCwfNetworkIDCarrierWifiParams() *PutCwfNetworkIDCarrierWifiParams {
-	var ()
 	return &PutCwfNetworkIDCarrierWifiParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutCwfNetworkIDCarrierWifiParamsWithTimeout creates a new PutCwfNetworkIDCarrierWifiParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutCwfNetworkIDCarrierWifiParamsWithTimeout(timeout time.Duration) *PutCwfNetworkIDCarrierWifiParams {
-	var ()
 	return &PutCwfNetworkIDCarrierWifiParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutCwfNetworkIDCarrierWifiParamsWithContext creates a new PutCwfNetworkIDCarrierWifiParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutCwfNetworkIDCarrierWifiParamsWithContext(ctx context.Context) *PutCwfNetworkIDCarrierWifiParams {
-	var ()
 	return &PutCwfNetworkIDCarrierWifiParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutCwfNetworkIDCarrierWifiParamsWithHTTPClient creates a new PutCwfNetworkIDCarrierWifiParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutCwfNetworkIDCarrierWifiParamsWithHTTPClient(client *http.Client) *PutCwfNetworkIDCarrierWifiParams {
-	var ()
 	return &PutCwfNetworkIDCarrierWifiParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutCwfNetworkIDCarrierWifiParams contains all the parameters to send to the API endpoint
-for the put cwf network ID carrier wifi operation typically these are written to a http.Request
+/* PutCwfNetworkIDCarrierWifiParams contains all the parameters to send to the API endpoint
+   for the put cwf network ID carrier wifi operation.
+
+   Typically these are written to a http.Request.
 */
 type PutCwfNetworkIDCarrierWifiParams struct {
 
-	/*Config
-	  Updated config
+	/* Config.
 
+	   Updated config
 	*/
 	Config *models.NetworkCarrierWifiConfigs
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put cwf network ID carrier wifi params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDCarrierWifiParams) WithDefaults() *PutCwfNetworkIDCarrierWifiParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put cwf network ID carrier wifi params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDCarrierWifiParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put cwf network ID carrier wifi params
@@ -140,7 +155,6 @@ func (o *PutCwfNetworkIDCarrierWifiParams) WriteToRequest(r runtime.ClientReques
 		return err
 	}
 	var res []error
-
 	if o.Config != nil {
 		if err := r.SetBodyParam(o.Config); err != nil {
 			return err

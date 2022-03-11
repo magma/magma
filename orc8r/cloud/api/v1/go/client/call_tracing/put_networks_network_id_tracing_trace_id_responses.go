@@ -46,7 +46,7 @@ func NewPutNetworksNetworkIDTracingTraceIDNoContent() *PutNetworksNetworkIDTraci
 	return &PutNetworksNetworkIDTracingTraceIDNoContent{}
 }
 
-/*PutNetworksNetworkIDTracingTraceIDNoContent handles this case with default header values.
+/* PutNetworksNetworkIDTracingTraceIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutNetworksNetworkIDTracingTraceIDDefault(code int) *PutNetworksNetworkI
 	}
 }
 
-/*PutNetworksNetworkIDTracingTraceIDDefault handles this case with default header values.
+/* PutNetworksNetworkIDTracingTraceIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutNetworksNetworkIDTracingTraceIDDefault) Code() int {
 func (o *PutNetworksNetworkIDTracingTraceIDDefault) Error() string {
 	return fmt.Sprintf("[PUT /networks/{network_id}/tracing/{trace_id}][%d] PutNetworksNetworkIDTracingTraceID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutNetworksNetworkIDTracingTraceIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

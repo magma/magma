@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutLTENetworkIDEnodebsENODEBSerialParams creates a new PutLTENetworkIDEnodebsENODEBSerialParams object
-// with the default values initialized.
+// NewPutLTENetworkIDEnodebsENODEBSerialParams creates a new PutLTENetworkIDEnodebsENODEBSerialParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutLTENetworkIDEnodebsENODEBSerialParams() *PutLTENetworkIDEnodebsENODEBSerialParams {
-	var ()
 	return &PutLTENetworkIDEnodebsENODEBSerialParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutLTENetworkIDEnodebsENODEBSerialParamsWithTimeout creates a new PutLTENetworkIDEnodebsENODEBSerialParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutLTENetworkIDEnodebsENODEBSerialParamsWithTimeout(timeout time.Duration) *PutLTENetworkIDEnodebsENODEBSerialParams {
-	var ()
 	return &PutLTENetworkIDEnodebsENODEBSerialParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutLTENetworkIDEnodebsENODEBSerialParamsWithContext creates a new PutLTENetworkIDEnodebsENODEBSerialParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutLTENetworkIDEnodebsENODEBSerialParamsWithContext(ctx context.Context) *PutLTENetworkIDEnodebsENODEBSerialParams {
-	var ()
 	return &PutLTENetworkIDEnodebsENODEBSerialParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutLTENetworkIDEnodebsENODEBSerialParamsWithHTTPClient creates a new PutLTENetworkIDEnodebsENODEBSerialParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutLTENetworkIDEnodebsENODEBSerialParamsWithHTTPClient(client *http.Client) *PutLTENetworkIDEnodebsENODEBSerialParams {
-	var ()
 	return &PutLTENetworkIDEnodebsENODEBSerialParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutLTENetworkIDEnodebsENODEBSerialParams contains all the parameters to send to the API endpoint
-for the put LTE network ID enodebs ENODEB serial operation typically these are written to a http.Request
+/* PutLTENetworkIDEnodebsENODEBSerialParams contains all the parameters to send to the API endpoint
+   for the put LTE network ID enodebs ENODEB serial operation.
+
+   Typically these are written to a http.Request.
 */
 type PutLTENetworkIDEnodebsENODEBSerialParams struct {
 
-	/*ENODEB
-	  Desired configuration of the enodeB
+	/* ENODEB.
 
+	   Desired configuration of the enodeB
 	*/
 	ENODEB *models.ENODEB
-	/*ENODEBSerial
-	  EnodeB serial number
 
+	/* ENODEBSerial.
+
+	   EnodeB serial number
 	*/
 	ENODEBSerial string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put LTE network ID enodebs ENODEB serial params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDEnodebsENODEBSerialParams) WithDefaults() *PutLTENetworkIDEnodebsENODEBSerialParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put LTE network ID enodebs ENODEB serial params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDEnodebsENODEBSerialParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put LTE network ID enodebs ENODEB serial params
@@ -156,7 +172,6 @@ func (o *PutLTENetworkIDEnodebsENODEBSerialParams) WriteToRequest(r runtime.Clie
 		return err
 	}
 	var res []error
-
 	if o.ENODEB != nil {
 		if err := r.SetBodyParam(o.ENODEB); err != nil {
 			return err

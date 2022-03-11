@@ -46,7 +46,7 @@ func NewPutTenantsTenantIDNoContent() *PutTenantsTenantIDNoContent {
 	return &PutTenantsTenantIDNoContent{}
 }
 
-/*PutTenantsTenantIDNoContent handles this case with default header values.
+/* PutTenantsTenantIDNoContent describes a response with status code 204, with default header values.
 
 Ok
 */
@@ -69,7 +69,7 @@ func NewPutTenantsTenantIDDefault(code int) *PutTenantsTenantIDDefault {
 	}
 }
 
-/*PutTenantsTenantIDDefault handles this case with default header values.
+/* PutTenantsTenantIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutTenantsTenantIDDefault) Code() int {
 func (o *PutTenantsTenantIDDefault) Error() string {
 	return fmt.Sprintf("[PUT /tenants/{tenant_id}][%d] PutTenantsTenantID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutTenantsTenantIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

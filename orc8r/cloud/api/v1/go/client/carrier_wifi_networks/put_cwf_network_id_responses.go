@@ -46,7 +46,7 @@ func NewPutCwfNetworkIDNoContent() *PutCwfNetworkIDNoContent {
 	return &PutCwfNetworkIDNoContent{}
 }
 
-/*PutCwfNetworkIDNoContent handles this case with default header values.
+/* PutCwfNetworkIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutCwfNetworkIDDefault(code int) *PutCwfNetworkIDDefault {
 	}
 }
 
-/*PutCwfNetworkIDDefault handles this case with default header values.
+/* PutCwfNetworkIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutCwfNetworkIDDefault) Code() int {
 func (o *PutCwfNetworkIDDefault) Error() string {
 	return fmt.Sprintf("[PUT /cwf/{network_id}][%d] PutCwfNetworkID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutCwfNetworkIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

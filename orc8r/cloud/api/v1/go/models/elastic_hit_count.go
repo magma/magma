@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/strfmt"
 )
 
@@ -16,5 +18,10 @@ type ElasticHitCount float64
 
 // Validate validates this elastic hit count
 func (m ElasticHitCount) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this elastic hit count based on context it is used
+func (m ElasticHitCount) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

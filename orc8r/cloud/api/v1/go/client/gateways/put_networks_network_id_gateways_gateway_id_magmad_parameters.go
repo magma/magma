@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutNetworksNetworkIDGatewaysGatewayIDMagmadParams creates a new PutNetworksNetworkIDGatewaysGatewayIDMagmadParams object
-// with the default values initialized.
+// NewPutNetworksNetworkIDGatewaysGatewayIDMagmadParams creates a new PutNetworksNetworkIDGatewaysGatewayIDMagmadParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutNetworksNetworkIDGatewaysGatewayIDMagmadParams() *PutNetworksNetworkIDGatewaysGatewayIDMagmadParams {
-	var ()
 	return &PutNetworksNetworkIDGatewaysGatewayIDMagmadParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutNetworksNetworkIDGatewaysGatewayIDMagmadParamsWithTimeout creates a new PutNetworksNetworkIDGatewaysGatewayIDMagmadParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutNetworksNetworkIDGatewaysGatewayIDMagmadParamsWithTimeout(timeout time.Duration) *PutNetworksNetworkIDGatewaysGatewayIDMagmadParams {
-	var ()
 	return &PutNetworksNetworkIDGatewaysGatewayIDMagmadParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutNetworksNetworkIDGatewaysGatewayIDMagmadParamsWithContext creates a new PutNetworksNetworkIDGatewaysGatewayIDMagmadParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutNetworksNetworkIDGatewaysGatewayIDMagmadParamsWithContext(ctx context.Context) *PutNetworksNetworkIDGatewaysGatewayIDMagmadParams {
-	var ()
 	return &PutNetworksNetworkIDGatewaysGatewayIDMagmadParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutNetworksNetworkIDGatewaysGatewayIDMagmadParamsWithHTTPClient creates a new PutNetworksNetworkIDGatewaysGatewayIDMagmadParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutNetworksNetworkIDGatewaysGatewayIDMagmadParamsWithHTTPClient(client *http.Client) *PutNetworksNetworkIDGatewaysGatewayIDMagmadParams {
-	var ()
 	return &PutNetworksNetworkIDGatewaysGatewayIDMagmadParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutNetworksNetworkIDGatewaysGatewayIDMagmadParams contains all the parameters to send to the API endpoint
-for the put networks network ID gateways gateway ID magmad operation typically these are written to a http.Request
+/* PutNetworksNetworkIDGatewaysGatewayIDMagmadParams contains all the parameters to send to the API endpoint
+   for the put networks network ID gateways gateway ID magmad operation.
+
+   Typically these are written to a http.Request.
 */
 type PutNetworksNetworkIDGatewaysGatewayIDMagmadParams struct {
 
-	/*GatewayID
-	  Gateway ID
+	/* GatewayID.
 
+	   Gateway ID
 	*/
 	GatewayID string
-	/*Magmad
-	  New magmad configuration
 
+	/* Magmad.
+
+	   New magmad configuration
 	*/
 	Magmad *models.MagmadGatewayConfigs
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put networks network ID gateways gateway ID magmad params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDGatewaysGatewayIDMagmadParams) WithDefaults() *PutNetworksNetworkIDGatewaysGatewayIDMagmadParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put networks network ID gateways gateway ID magmad params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDGatewaysGatewayIDMagmadParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put networks network ID gateways gateway ID magmad params
@@ -161,7 +177,6 @@ func (o *PutNetworksNetworkIDGatewaysGatewayIDMagmadParams) WriteToRequest(r run
 	if err := r.SetPathParam("gateway_id", o.GatewayID); err != nil {
 		return err
 	}
-
 	if o.Magmad != nil {
 		if err := r.SetBodyParam(o.Magmad); err != nil {
 			return err

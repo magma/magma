@@ -23,17 +23,20 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
 // ClientService is the interface for Client methods
 type ClientService interface {
-	DeleteDpNetworkIDCbsdsCbsdID(params *DeleteDpNetworkIDCbsdsCbsdIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteDpNetworkIDCbsdsCbsdIDNoContent, error)
+	DeleteDpNetworkIDCbsdsCbsdID(params *DeleteDpNetworkIDCbsdsCbsdIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteDpNetworkIDCbsdsCbsdIDNoContent, error)
 
-	GetDpNetworkIDCbsds(params *GetDpNetworkIDCbsdsParams, authInfo runtime.ClientAuthInfoWriter) (*GetDpNetworkIDCbsdsOK, error)
+	GetDpNetworkIDCbsds(params *GetDpNetworkIDCbsdsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetDpNetworkIDCbsdsOK, error)
 
-	GetDpNetworkIDCbsdsCbsdID(params *GetDpNetworkIDCbsdsCbsdIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetDpNetworkIDCbsdsCbsdIDOK, error)
+	GetDpNetworkIDCbsdsCbsdID(params *GetDpNetworkIDCbsdsCbsdIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetDpNetworkIDCbsdsCbsdIDOK, error)
 
-	PostDpNetworkIDCbsds(params *PostDpNetworkIDCbsdsParams, authInfo runtime.ClientAuthInfoWriter) (*PostDpNetworkIDCbsdsCreated, error)
+	PostDpNetworkIDCbsds(params *PostDpNetworkIDCbsdsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostDpNetworkIDCbsdsCreated, error)
 
-	PutDpNetworkIDCbsdsCbsdID(params *PutDpNetworkIDCbsdsCbsdIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutDpNetworkIDCbsdsCbsdIDNoContent, error)
+	PutDpNetworkIDCbsdsCbsdID(params *PutDpNetworkIDCbsdsCbsdIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutDpNetworkIDCbsdsCbsdIDNoContent, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -41,13 +44,12 @@ type ClientService interface {
 /*
   DeleteDpNetworkIDCbsdsCbsdID deletes c b s d from LTE network
 */
-func (a *Client) DeleteDpNetworkIDCbsdsCbsdID(params *DeleteDpNetworkIDCbsdsCbsdIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteDpNetworkIDCbsdsCbsdIDNoContent, error) {
+func (a *Client) DeleteDpNetworkIDCbsdsCbsdID(params *DeleteDpNetworkIDCbsdsCbsdIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteDpNetworkIDCbsdsCbsdIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteDpNetworkIDCbsdsCbsdIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteDpNetworkIDCbsdsCbsdID",
 		Method:             "DELETE",
 		PathPattern:        "/dp/{network_id}/cbsds/{cbsd_id}",
@@ -59,7 +61,12 @@ func (a *Client) DeleteDpNetworkIDCbsdsCbsdID(params *DeleteDpNetworkIDCbsdsCbsd
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -75,13 +82,12 @@ func (a *Client) DeleteDpNetworkIDCbsdsCbsdID(params *DeleteDpNetworkIDCbsdsCbsd
 /*
   GetDpNetworkIDCbsds lists all c b s ds in LTE network
 */
-func (a *Client) GetDpNetworkIDCbsds(params *GetDpNetworkIDCbsdsParams, authInfo runtime.ClientAuthInfoWriter) (*GetDpNetworkIDCbsdsOK, error) {
+func (a *Client) GetDpNetworkIDCbsds(params *GetDpNetworkIDCbsdsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetDpNetworkIDCbsdsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetDpNetworkIDCbsdsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetDpNetworkIDCbsds",
 		Method:             "GET",
 		PathPattern:        "/dp/{network_id}/cbsds",
@@ -93,7 +99,12 @@ func (a *Client) GetDpNetworkIDCbsds(params *GetDpNetworkIDCbsdsParams, authInfo
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -109,13 +120,12 @@ func (a *Client) GetDpNetworkIDCbsds(params *GetDpNetworkIDCbsdsParams, authInfo
 /*
   GetDpNetworkIDCbsdsCbsdID retrieves c b s d from LTE network
 */
-func (a *Client) GetDpNetworkIDCbsdsCbsdID(params *GetDpNetworkIDCbsdsCbsdIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetDpNetworkIDCbsdsCbsdIDOK, error) {
+func (a *Client) GetDpNetworkIDCbsdsCbsdID(params *GetDpNetworkIDCbsdsCbsdIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetDpNetworkIDCbsdsCbsdIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetDpNetworkIDCbsdsCbsdIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetDpNetworkIDCbsdsCbsdID",
 		Method:             "GET",
 		PathPattern:        "/dp/{network_id}/cbsds/{cbsd_id}",
@@ -127,7 +137,12 @@ func (a *Client) GetDpNetworkIDCbsdsCbsdID(params *GetDpNetworkIDCbsdsCbsdIDPara
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -143,13 +158,12 @@ func (a *Client) GetDpNetworkIDCbsdsCbsdID(params *GetDpNetworkIDCbsdsCbsdIDPara
 /*
   PostDpNetworkIDCbsds creates new cbsd
 */
-func (a *Client) PostDpNetworkIDCbsds(params *PostDpNetworkIDCbsdsParams, authInfo runtime.ClientAuthInfoWriter) (*PostDpNetworkIDCbsdsCreated, error) {
+func (a *Client) PostDpNetworkIDCbsds(params *PostDpNetworkIDCbsdsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostDpNetworkIDCbsdsCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostDpNetworkIDCbsdsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostDpNetworkIDCbsds",
 		Method:             "POST",
 		PathPattern:        "/dp/{network_id}/cbsds",
@@ -161,7 +175,12 @@ func (a *Client) PostDpNetworkIDCbsds(params *PostDpNetworkIDCbsdsParams, authIn
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -177,13 +196,12 @@ func (a *Client) PostDpNetworkIDCbsds(params *PostDpNetworkIDCbsdsParams, authIn
 /*
   PutDpNetworkIDCbsdsCbsdID updates c b s d in LTE network
 */
-func (a *Client) PutDpNetworkIDCbsdsCbsdID(params *PutDpNetworkIDCbsdsCbsdIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutDpNetworkIDCbsdsCbsdIDNoContent, error) {
+func (a *Client) PutDpNetworkIDCbsdsCbsdID(params *PutDpNetworkIDCbsdsCbsdIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutDpNetworkIDCbsdsCbsdIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutDpNetworkIDCbsdsCbsdIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutDpNetworkIDCbsdsCbsdID",
 		Method:             "PUT",
 		PathPattern:        "/dp/{network_id}/cbsds/{cbsd_id}",
@@ -195,7 +213,12 @@ func (a *Client) PutDpNetworkIDCbsdsCbsdID(params *PutDpNetworkIDCbsdsCbsdIDPara
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

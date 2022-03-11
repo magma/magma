@@ -46,7 +46,7 @@ func NewGetLTENetworkIDCellularRanOK() *GetLTENetworkIDCellularRanOK {
 	return &GetLTENetworkIDCellularRanOK{}
 }
 
-/*GetLTENetworkIDCellularRanOK handles this case with default header values.
+/* GetLTENetworkIDCellularRanOK describes a response with status code 200, with default header values.
 
 RAN configuration of the network
 */
@@ -57,7 +57,6 @@ type GetLTENetworkIDCellularRanOK struct {
 func (o *GetLTENetworkIDCellularRanOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/cellular/ran][%d] getLteNetworkIdCellularRanOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDCellularRanOK) GetPayload() *models.NetworkRanConfigs {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetLTENetworkIDCellularRanDefault(code int) *GetLTENetworkIDCellularRanD
 	}
 }
 
-/*GetLTENetworkIDCellularRanDefault handles this case with default header values.
+/* GetLTENetworkIDCellularRanDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetLTENetworkIDCellularRanDefault) Code() int {
 func (o *GetLTENetworkIDCellularRanDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/cellular/ran][%d] GetLTENetworkIDCellularRan default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDCellularRanDefault) GetPayload() *models.Error {
 	return o.Payload
 }

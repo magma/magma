@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutLTENetworkIDDNSRecordsParams creates a new PutLTENetworkIDDNSRecordsParams object
-// with the default values initialized.
+// NewPutLTENetworkIDDNSRecordsParams creates a new PutLTENetworkIDDNSRecordsParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutLTENetworkIDDNSRecordsParams() *PutLTENetworkIDDNSRecordsParams {
-	var ()
 	return &PutLTENetworkIDDNSRecordsParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutLTENetworkIDDNSRecordsParamsWithTimeout creates a new PutLTENetworkIDDNSRecordsParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutLTENetworkIDDNSRecordsParamsWithTimeout(timeout time.Duration) *PutLTENetworkIDDNSRecordsParams {
-	var ()
 	return &PutLTENetworkIDDNSRecordsParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutLTENetworkIDDNSRecordsParamsWithContext creates a new PutLTENetworkIDDNSRecordsParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutLTENetworkIDDNSRecordsParamsWithContext(ctx context.Context) *PutLTENetworkIDDNSRecordsParams {
-	var ()
 	return &PutLTENetworkIDDNSRecordsParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutLTENetworkIDDNSRecordsParamsWithHTTPClient creates a new PutLTENetworkIDDNSRecordsParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutLTENetworkIDDNSRecordsParamsWithHTTPClient(client *http.Client) *PutLTENetworkIDDNSRecordsParams {
-	var ()
 	return &PutLTENetworkIDDNSRecordsParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutLTENetworkIDDNSRecordsParams contains all the parameters to send to the API endpoint
-for the put LTE network ID DNS records operation typically these are written to a http.Request
+/* PutLTENetworkIDDNSRecordsParams contains all the parameters to send to the API endpoint
+   for the put LTE network ID DNS records operation.
+
+   Typically these are written to a http.Request.
 */
 type PutLTENetworkIDDNSRecordsParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*Records
-	  Custom DNS records for the network
 
+	/* Records.
+
+	   Custom DNS records for the network
 	*/
 	Records []*models.DNSConfigRecord
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put LTE network ID DNS records params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDDNSRecordsParams) WithDefaults() *PutLTENetworkIDDNSRecordsParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put LTE network ID DNS records params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDDNSRecordsParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put LTE network ID DNS records params
@@ -145,7 +160,6 @@ func (o *PutLTENetworkIDDNSRecordsParams) WriteToRequest(r runtime.ClientRequest
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.Records != nil {
 		if err := r.SetBodyParam(o.Records); err != nil {
 			return err

@@ -46,7 +46,7 @@ func NewPostLTENetworkIDEnodebsCreated() *PostLTENetworkIDEnodebsCreated {
 	return &PostLTENetworkIDEnodebsCreated{}
 }
 
-/*PostLTENetworkIDEnodebsCreated handles this case with default header values.
+/* PostLTENetworkIDEnodebsCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostLTENetworkIDEnodebsDefault(code int) *PostLTENetworkIDEnodebsDefault
 	}
 }
 
-/*PostLTENetworkIDEnodebsDefault handles this case with default header values.
+/* PostLTENetworkIDEnodebsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostLTENetworkIDEnodebsDefault) Code() int {
 func (o *PostLTENetworkIDEnodebsDefault) Error() string {
 	return fmt.Sprintf("[POST /lte/{network_id}/enodebs][%d] PostLTENetworkIDEnodebs default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostLTENetworkIDEnodebsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

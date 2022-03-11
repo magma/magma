@@ -16,59 +16,73 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
-// NewGetUserUsernameTokensParams creates a new GetUserUsernameTokensParams object
-// with the default values initialized.
+// NewGetUserUsernameTokensParams creates a new GetUserUsernameTokensParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetUserUsernameTokensParams() *GetUserUsernameTokensParams {
-	var ()
 	return &GetUserUsernameTokensParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetUserUsernameTokensParamsWithTimeout creates a new GetUserUsernameTokensParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetUserUsernameTokensParamsWithTimeout(timeout time.Duration) *GetUserUsernameTokensParams {
-	var ()
 	return &GetUserUsernameTokensParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetUserUsernameTokensParamsWithContext creates a new GetUserUsernameTokensParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetUserUsernameTokensParamsWithContext(ctx context.Context) *GetUserUsernameTokensParams {
-	var ()
 	return &GetUserUsernameTokensParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetUserUsernameTokensParamsWithHTTPClient creates a new GetUserUsernameTokensParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetUserUsernameTokensParamsWithHTTPClient(client *http.Client) *GetUserUsernameTokensParams {
-	var ()
 	return &GetUserUsernameTokensParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetUserUsernameTokensParams contains all the parameters to send to the API endpoint
-for the get user username tokens operation typically these are written to a http.Request
+/* GetUserUsernameTokensParams contains all the parameters to send to the API endpoint
+   for the get user username tokens operation.
+
+   Typically these are written to a http.Request.
 */
 type GetUserUsernameTokensParams struct {
 
-	/*Username
-	  username
+	/* Username.
 
+	   username
 	*/
 	Username string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get user username tokens params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetUserUsernameTokensParams) WithDefaults() *GetUserUsernameTokensParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get user username tokens params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetUserUsernameTokensParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get user username tokens params

@@ -18,66 +18,82 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutCwfNetworkIDGatewaysGatewayIDTierParams creates a new PutCwfNetworkIDGatewaysGatewayIDTierParams object
-// with the default values initialized.
+// NewPutCwfNetworkIDGatewaysGatewayIDTierParams creates a new PutCwfNetworkIDGatewaysGatewayIDTierParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutCwfNetworkIDGatewaysGatewayIDTierParams() *PutCwfNetworkIDGatewaysGatewayIDTierParams {
-	var ()
 	return &PutCwfNetworkIDGatewaysGatewayIDTierParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutCwfNetworkIDGatewaysGatewayIDTierParamsWithTimeout creates a new PutCwfNetworkIDGatewaysGatewayIDTierParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutCwfNetworkIDGatewaysGatewayIDTierParamsWithTimeout(timeout time.Duration) *PutCwfNetworkIDGatewaysGatewayIDTierParams {
-	var ()
 	return &PutCwfNetworkIDGatewaysGatewayIDTierParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutCwfNetworkIDGatewaysGatewayIDTierParamsWithContext creates a new PutCwfNetworkIDGatewaysGatewayIDTierParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutCwfNetworkIDGatewaysGatewayIDTierParamsWithContext(ctx context.Context) *PutCwfNetworkIDGatewaysGatewayIDTierParams {
-	var ()
 	return &PutCwfNetworkIDGatewaysGatewayIDTierParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutCwfNetworkIDGatewaysGatewayIDTierParamsWithHTTPClient creates a new PutCwfNetworkIDGatewaysGatewayIDTierParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutCwfNetworkIDGatewaysGatewayIDTierParamsWithHTTPClient(client *http.Client) *PutCwfNetworkIDGatewaysGatewayIDTierParams {
-	var ()
 	return &PutCwfNetworkIDGatewaysGatewayIDTierParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutCwfNetworkIDGatewaysGatewayIDTierParams contains all the parameters to send to the API endpoint
-for the put cwf network ID gateways gateway ID tier operation typically these are written to a http.Request
+/* PutCwfNetworkIDGatewaysGatewayIDTierParams contains all the parameters to send to the API endpoint
+   for the put cwf network ID gateways gateway ID tier operation.
+
+   Typically these are written to a http.Request.
 */
 type PutCwfNetworkIDGatewaysGatewayIDTierParams struct {
 
-	/*GatewayID
-	  Gateway ID
+	/* GatewayID.
 
+	   Gateway ID
 	*/
 	GatewayID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*TierID*/
+
+	// TierID.
 	TierID models.TierID
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put cwf network ID gateways gateway ID tier params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDGatewaysGatewayIDTierParams) WithDefaults() *PutCwfNetworkIDGatewaysGatewayIDTierParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put cwf network ID gateways gateway ID tier params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDGatewaysGatewayIDTierParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put cwf network ID gateways gateway ID tier params
@@ -163,7 +179,6 @@ func (o *PutCwfNetworkIDGatewaysGatewayIDTierParams) WriteToRequest(r runtime.Cl
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if err := r.SetBodyParam(o.TierID); err != nil {
 		return err
 	}

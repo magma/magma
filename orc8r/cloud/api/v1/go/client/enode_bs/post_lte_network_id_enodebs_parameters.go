@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostLTENetworkIDEnodebsParams creates a new PostLTENetworkIDEnodebsParams object
-// with the default values initialized.
+// NewPostLTENetworkIDEnodebsParams creates a new PostLTENetworkIDEnodebsParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostLTENetworkIDEnodebsParams() *PostLTENetworkIDEnodebsParams {
-	var ()
 	return &PostLTENetworkIDEnodebsParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostLTENetworkIDEnodebsParamsWithTimeout creates a new PostLTENetworkIDEnodebsParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostLTENetworkIDEnodebsParamsWithTimeout(timeout time.Duration) *PostLTENetworkIDEnodebsParams {
-	var ()
 	return &PostLTENetworkIDEnodebsParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostLTENetworkIDEnodebsParamsWithContext creates a new PostLTENetworkIDEnodebsParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostLTENetworkIDEnodebsParamsWithContext(ctx context.Context) *PostLTENetworkIDEnodebsParams {
-	var ()
 	return &PostLTENetworkIDEnodebsParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostLTENetworkIDEnodebsParamsWithHTTPClient creates a new PostLTENetworkIDEnodebsParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostLTENetworkIDEnodebsParamsWithHTTPClient(client *http.Client) *PostLTENetworkIDEnodebsParams {
-	var ()
 	return &PostLTENetworkIDEnodebsParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostLTENetworkIDEnodebsParams contains all the parameters to send to the API endpoint
-for the post LTE network ID enodebs operation typically these are written to a http.Request
+/* PostLTENetworkIDEnodebsParams contains all the parameters to send to the API endpoint
+   for the post LTE network ID enodebs operation.
+
+   Typically these are written to a http.Request.
 */
 type PostLTENetworkIDEnodebsParams struct {
 
-	/*ENODEB
-	  Configuration of the enodeB
+	/* ENODEB.
 
+	   Configuration of the enodeB
 	*/
 	ENODEB *models.ENODEB
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post LTE network ID enodebs params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostLTENetworkIDEnodebsParams) WithDefaults() *PostLTENetworkIDEnodebsParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post LTE network ID enodebs params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostLTENetworkIDEnodebsParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post LTE network ID enodebs params
@@ -140,7 +155,6 @@ func (o *PostLTENetworkIDEnodebsParams) WriteToRequest(r runtime.ClientRequest, 
 		return err
 	}
 	var res []error
-
 	if o.ENODEB != nil {
 		if err := r.SetBodyParam(o.ENODEB); err != nil {
 			return err

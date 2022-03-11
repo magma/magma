@@ -18,66 +18,82 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams creates a new PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams object
-// with the default values initialized.
+// NewPutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams creates a new PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams() *PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParamsWithTimeout creates a new PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParamsWithTimeout(timeout time.Duration) *PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParamsWithContext creates a new PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParamsWithContext(ctx context.Context) *PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParamsWithHTTPClient creates a new PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParamsWithHTTPClient(client *http.Client) *PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams {
-	var ()
 	return &PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams contains all the parameters to send to the API endpoint
-for the put LTE network ID gateways gateway ID connected ENODEB serials operation typically these are written to a http.Request
+/* PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams contains all the parameters to send to the API endpoint
+   for the put LTE network ID gateways gateway ID connected ENODEB serials operation.
+
+   Typically these are written to a http.Request.
 */
 type PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams struct {
 
-	/*GatewayID
-	  Gateway ID
+	/* GatewayID.
 
+	   Gateway ID
 	*/
 	GatewayID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*Serials*/
+
+	// Serials.
 	Serials models.ENODEBSerials
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put LTE network ID gateways gateway ID connected ENODEB serials params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams) WithDefaults() *PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put LTE network ID gateways gateway ID connected ENODEB serials params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put LTE network ID gateways gateway ID connected ENODEB serials params
@@ -163,7 +179,6 @@ func (o *PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams) WriteToRe
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.Serials != nil {
 		if err := r.SetBodyParam(o.Serials); err != nil {
 			return err

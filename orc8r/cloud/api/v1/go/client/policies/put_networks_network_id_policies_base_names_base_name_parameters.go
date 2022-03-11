@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutNetworksNetworkIDPoliciesBaseNamesBaseNameParams creates a new PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams object
-// with the default values initialized.
+// NewPutNetworksNetworkIDPoliciesBaseNamesBaseNameParams creates a new PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutNetworksNetworkIDPoliciesBaseNamesBaseNameParams() *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams {
-	var ()
 	return &PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutNetworksNetworkIDPoliciesBaseNamesBaseNameParamsWithTimeout creates a new PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutNetworksNetworkIDPoliciesBaseNamesBaseNameParamsWithTimeout(timeout time.Duration) *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams {
-	var ()
 	return &PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutNetworksNetworkIDPoliciesBaseNamesBaseNameParamsWithContext creates a new PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutNetworksNetworkIDPoliciesBaseNamesBaseNameParamsWithContext(ctx context.Context) *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams {
-	var ()
 	return &PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutNetworksNetworkIDPoliciesBaseNamesBaseNameParamsWithHTTPClient creates a new PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutNetworksNetworkIDPoliciesBaseNamesBaseNameParamsWithHTTPClient(client *http.Client) *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams {
-	var ()
 	return &PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
-for the put networks network ID policies base names base name operation typically these are written to a http.Request
+/* PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
+   for the put networks network ID policies base names base name operation.
+
+   Typically these are written to a http.Request.
 */
 type PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams struct {
 
-	/*BaseName
-	  Charging Rule Base Name
+	/* BaseName.
 
+	   Charging Rule Base Name
 	*/
 	BaseName string
-	/*BaseNameRecord
-	  Charging Rule Base Name
 
+	/* BaseNameRecord.
+
+	   Charging Rule Base Name
 	*/
 	BaseNameRecord *models.BaseNameRecord
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put networks network ID policies base names base name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams) WithDefaults() *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put networks network ID policies base names base name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put networks network ID policies base names base name params
@@ -161,7 +177,6 @@ func (o *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams) WriteToRequest(r r
 	if err := r.SetPathParam("base_name", o.BaseName); err != nil {
 		return err
 	}
-
 	if o.BaseNameRecord != nil {
 		if err := r.SetBodyParam(o.BaseNameRecord); err != nil {
 			return err

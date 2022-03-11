@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostNetworksNetworkIDTiersParams creates a new PostNetworksNetworkIDTiersParams object
-// with the default values initialized.
+// NewPostNetworksNetworkIDTiersParams creates a new PostNetworksNetworkIDTiersParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostNetworksNetworkIDTiersParams() *PostNetworksNetworkIDTiersParams {
-	var ()
 	return &PostNetworksNetworkIDTiersParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostNetworksNetworkIDTiersParamsWithTimeout creates a new PostNetworksNetworkIDTiersParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostNetworksNetworkIDTiersParamsWithTimeout(timeout time.Duration) *PostNetworksNetworkIDTiersParams {
-	var ()
 	return &PostNetworksNetworkIDTiersParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostNetworksNetworkIDTiersParamsWithContext creates a new PostNetworksNetworkIDTiersParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostNetworksNetworkIDTiersParamsWithContext(ctx context.Context) *PostNetworksNetworkIDTiersParams {
-	var ()
 	return &PostNetworksNetworkIDTiersParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostNetworksNetworkIDTiersParamsWithHTTPClient creates a new PostNetworksNetworkIDTiersParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostNetworksNetworkIDTiersParamsWithHTTPClient(client *http.Client) *PostNetworksNetworkIDTiersParams {
-	var ()
 	return &PostNetworksNetworkIDTiersParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostNetworksNetworkIDTiersParams contains all the parameters to send to the API endpoint
-for the post networks network ID tiers operation typically these are written to a http.Request
+/* PostNetworksNetworkIDTiersParams contains all the parameters to send to the API endpoint
+   for the post networks network ID tiers operation.
+
+   Typically these are written to a http.Request.
 */
 type PostNetworksNetworkIDTiersParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*Tier
-	  Configuration of the tier to create
 
+	/* Tier.
+
+	   Configuration of the tier to create
 	*/
 	Tier *models.Tier
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post networks network ID tiers params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDTiersParams) WithDefaults() *PostNetworksNetworkIDTiersParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post networks network ID tiers params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDTiersParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post networks network ID tiers params
@@ -145,7 +160,6 @@ func (o *PostNetworksNetworkIDTiersParams) WriteToRequest(r runtime.ClientReques
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.Tier != nil {
 		if err := r.SetBodyParam(o.Tier); err != nil {
 			return err

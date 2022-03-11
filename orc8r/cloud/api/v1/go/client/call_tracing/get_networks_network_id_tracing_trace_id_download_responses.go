@@ -45,11 +45,12 @@ func (o *GetNetworksNetworkIDTracingTraceIDDownloadReader) ReadResponse(response
 // NewGetNetworksNetworkIDTracingTraceIDDownloadOK creates a GetNetworksNetworkIDTracingTraceIDDownloadOK with default headers values
 func NewGetNetworksNetworkIDTracingTraceIDDownloadOK(writer io.Writer) *GetNetworksNetworkIDTracingTraceIDDownloadOK {
 	return &GetNetworksNetworkIDTracingTraceIDDownloadOK{
+
 		Payload: writer,
 	}
 }
 
-/*GetNetworksNetworkIDTracingTraceIDDownloadOK handles this case with default header values.
+/* GetNetworksNetworkIDTracingTraceIDDownloadOK describes a response with status code 200, with default header values.
 
 Show tracing status
 */
@@ -62,15 +63,18 @@ type GetNetworksNetworkIDTracingTraceIDDownloadOK struct {
 func (o *GetNetworksNetworkIDTracingTraceIDDownloadOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/tracing/{trace_id}/download][%d] getNetworksNetworkIdTracingTraceIdDownloadOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDTracingTraceIDDownloadOK) GetPayload() io.Writer {
 	return o.Payload
 }
 
 func (o *GetNetworksNetworkIDTracingTraceIDDownloadOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	// response header Content-Disposition
-	o.ContentDisposition = response.GetHeader("Content-Disposition")
+	// hydrates response header Content-Disposition
+	hdrContentDisposition := response.GetHeader("Content-Disposition")
+
+	if hdrContentDisposition != "" {
+		o.ContentDisposition = hdrContentDisposition
+	}
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -87,7 +91,7 @@ func NewGetNetworksNetworkIDTracingTraceIDDownloadDefault(code int) *GetNetworks
 	}
 }
 
-/*GetNetworksNetworkIDTracingTraceIDDownloadDefault handles this case with default header values.
+/* GetNetworksNetworkIDTracingTraceIDDownloadDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -105,7 +109,6 @@ func (o *GetNetworksNetworkIDTracingTraceIDDownloadDefault) Code() int {
 func (o *GetNetworksNetworkIDTracingTraceIDDownloadDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/tracing/{trace_id}/download][%d] GetNetworksNetworkIDTracingTraceIDDownload default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDTracingTraceIDDownloadDefault) GetPayload() *models.Error {
 	return o.Payload
 }

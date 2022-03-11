@@ -46,7 +46,7 @@ func NewGetTenantsTenantIDMetricsAPIV1SeriesOK() *GetTenantsTenantIDMetricsAPIV1
 	return &GetTenantsTenantIDMetricsAPIV1SeriesOK{}
 }
 
-/*GetTenantsTenantIDMetricsAPIV1SeriesOK handles this case with default header values.
+/* GetTenantsTenantIDMetricsAPIV1SeriesOK describes a response with status code 200, with default header values.
 
 List of metric names
 */
@@ -57,7 +57,6 @@ type GetTenantsTenantIDMetricsAPIV1SeriesOK struct {
 func (o *GetTenantsTenantIDMetricsAPIV1SeriesOK) Error() string {
 	return fmt.Sprintf("[GET /tenants/{tenant_id}/metrics/api/v1/series][%d] getTenantsTenantIdMetricsApiV1SeriesOK  %+v", 200, o.Payload)
 }
-
 func (o *GetTenantsTenantIDMetricsAPIV1SeriesOK) GetPayload() []models.PrometheusLabelset {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetTenantsTenantIDMetricsAPIV1SeriesDefault(code int) *GetTenantsTenantI
 	}
 }
 
-/*GetTenantsTenantIDMetricsAPIV1SeriesDefault handles this case with default header values.
+/* GetTenantsTenantIDMetricsAPIV1SeriesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetTenantsTenantIDMetricsAPIV1SeriesDefault) Code() int {
 func (o *GetTenantsTenantIDMetricsAPIV1SeriesDefault) Error() string {
 	return fmt.Sprintf("[GET /tenants/{tenant_id}/metrics/api/v1/series][%d] GetTenantsTenantIDMetricsAPIV1Series default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetTenantsTenantIDMetricsAPIV1SeriesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

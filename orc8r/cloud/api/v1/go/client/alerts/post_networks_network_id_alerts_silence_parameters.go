@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostNetworksNetworkIDAlertsSilenceParams creates a new PostNetworksNetworkIDAlertsSilenceParams object
-// with the default values initialized.
+// NewPostNetworksNetworkIDAlertsSilenceParams creates a new PostNetworksNetworkIDAlertsSilenceParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostNetworksNetworkIDAlertsSilenceParams() *PostNetworksNetworkIDAlertsSilenceParams {
-	var ()
 	return &PostNetworksNetworkIDAlertsSilenceParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostNetworksNetworkIDAlertsSilenceParamsWithTimeout creates a new PostNetworksNetworkIDAlertsSilenceParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostNetworksNetworkIDAlertsSilenceParamsWithTimeout(timeout time.Duration) *PostNetworksNetworkIDAlertsSilenceParams {
-	var ()
 	return &PostNetworksNetworkIDAlertsSilenceParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostNetworksNetworkIDAlertsSilenceParamsWithContext creates a new PostNetworksNetworkIDAlertsSilenceParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostNetworksNetworkIDAlertsSilenceParamsWithContext(ctx context.Context) *PostNetworksNetworkIDAlertsSilenceParams {
-	var ()
 	return &PostNetworksNetworkIDAlertsSilenceParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostNetworksNetworkIDAlertsSilenceParamsWithHTTPClient creates a new PostNetworksNetworkIDAlertsSilenceParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostNetworksNetworkIDAlertsSilenceParamsWithHTTPClient(client *http.Client) *PostNetworksNetworkIDAlertsSilenceParams {
-	var ()
 	return &PostNetworksNetworkIDAlertsSilenceParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostNetworksNetworkIDAlertsSilenceParams contains all the parameters to send to the API endpoint
-for the post networks network ID alerts silence operation typically these are written to a http.Request
+/* PostNetworksNetworkIDAlertsSilenceParams contains all the parameters to send to the API endpoint
+   for the post networks network ID alerts silence operation.
+
+   Typically these are written to a http.Request.
 */
 type PostNetworksNetworkIDAlertsSilenceParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*Silencer
-	  Silencer to be created
 
+	/* Silencer.
+
+	   Silencer to be created
 	*/
 	Silencer *models.AlertSilencer
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post networks network ID alerts silence params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDAlertsSilenceParams) WithDefaults() *PostNetworksNetworkIDAlertsSilenceParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post networks network ID alerts silence params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDAlertsSilenceParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post networks network ID alerts silence params
@@ -145,7 +160,6 @@ func (o *PostNetworksNetworkIDAlertsSilenceParams) WriteToRequest(r runtime.Clie
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.Silencer != nil {
 		if err := r.SetBodyParam(o.Silencer); err != nil {
 			return err

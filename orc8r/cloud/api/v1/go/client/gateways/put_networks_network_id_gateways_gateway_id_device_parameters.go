@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutNetworksNetworkIDGatewaysGatewayIDDeviceParams creates a new PutNetworksNetworkIDGatewaysGatewayIDDeviceParams object
-// with the default values initialized.
+// NewPutNetworksNetworkIDGatewaysGatewayIDDeviceParams creates a new PutNetworksNetworkIDGatewaysGatewayIDDeviceParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutNetworksNetworkIDGatewaysGatewayIDDeviceParams() *PutNetworksNetworkIDGatewaysGatewayIDDeviceParams {
-	var ()
 	return &PutNetworksNetworkIDGatewaysGatewayIDDeviceParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutNetworksNetworkIDGatewaysGatewayIDDeviceParamsWithTimeout creates a new PutNetworksNetworkIDGatewaysGatewayIDDeviceParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutNetworksNetworkIDGatewaysGatewayIDDeviceParamsWithTimeout(timeout time.Duration) *PutNetworksNetworkIDGatewaysGatewayIDDeviceParams {
-	var ()
 	return &PutNetworksNetworkIDGatewaysGatewayIDDeviceParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutNetworksNetworkIDGatewaysGatewayIDDeviceParamsWithContext creates a new PutNetworksNetworkIDGatewaysGatewayIDDeviceParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutNetworksNetworkIDGatewaysGatewayIDDeviceParamsWithContext(ctx context.Context) *PutNetworksNetworkIDGatewaysGatewayIDDeviceParams {
-	var ()
 	return &PutNetworksNetworkIDGatewaysGatewayIDDeviceParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutNetworksNetworkIDGatewaysGatewayIDDeviceParamsWithHTTPClient creates a new PutNetworksNetworkIDGatewaysGatewayIDDeviceParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutNetworksNetworkIDGatewaysGatewayIDDeviceParamsWithHTTPClient(client *http.Client) *PutNetworksNetworkIDGatewaysGatewayIDDeviceParams {
-	var ()
 	return &PutNetworksNetworkIDGatewaysGatewayIDDeviceParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutNetworksNetworkIDGatewaysGatewayIDDeviceParams contains all the parameters to send to the API endpoint
-for the put networks network ID gateways gateway ID device operation typically these are written to a http.Request
+/* PutNetworksNetworkIDGatewaysGatewayIDDeviceParams contains all the parameters to send to the API endpoint
+   for the put networks network ID gateways gateway ID device operation.
+
+   Typically these are written to a http.Request.
 */
 type PutNetworksNetworkIDGatewaysGatewayIDDeviceParams struct {
 
-	/*Device
-	  New device for the gateway
+	/* Device.
 
+	   New device for the gateway
 	*/
 	Device *models.GatewayDevice
-	/*GatewayID
-	  Gateway ID
 
+	/* GatewayID.
+
+	   Gateway ID
 	*/
 	GatewayID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put networks network ID gateways gateway ID device params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDGatewaysGatewayIDDeviceParams) WithDefaults() *PutNetworksNetworkIDGatewaysGatewayIDDeviceParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put networks network ID gateways gateway ID device params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDGatewaysGatewayIDDeviceParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put networks network ID gateways gateway ID device params
@@ -156,7 +172,6 @@ func (o *PutNetworksNetworkIDGatewaysGatewayIDDeviceParams) WriteToRequest(r run
 		return err
 	}
 	var res []error
-
 	if o.Device != nil {
 		if err := r.SetBodyParam(o.Device); err != nil {
 			return err

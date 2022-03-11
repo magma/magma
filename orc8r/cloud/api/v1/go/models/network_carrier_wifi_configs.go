@@ -6,6 +6,7 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 	"strconv"
 
@@ -25,6 +26,7 @@ type NetworkCarrierWifiConfigs struct {
 	AaaServer *AaaServer `json:"aaa_server"`
 
 	// default rule id
+	// Example: default_rule_1
 	// Required: true
 	DefaultRuleID *string `json:"default_rule_id"`
 
@@ -36,12 +38,14 @@ type NetworkCarrierWifiConfigs struct {
 	EapSim *EapSim `json:"eap_sim,omitempty"`
 
 	// is xwfm variant
+	// Example: false
 	IsXwfmVariant bool `json:"is_xwfm_variant,omitempty"`
 
 	// li ues
 	LiUes *LiUes `json:"li_ues,omitempty"`
 
 	// Configuration for network services. Services will be instantiated in the listed order.
+	// Example: ["dpi","policy_enforcement"]
 	// Required: true
 	NetworkServices []string `json:"network_services"`
 }
@@ -90,6 +94,8 @@ func (m *NetworkCarrierWifiConfigs) validateAaaServer(formats strfmt.Registry) e
 		if err := m.AaaServer.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("aaa_server")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("aaa_server")
 			}
 			return err
 		}
@@ -117,6 +123,8 @@ func (m *NetworkCarrierWifiConfigs) validateEapAka(formats strfmt.Registry) erro
 		if err := m.EapAka.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("eap_aka")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("eap_aka")
 			}
 			return err
 		}
@@ -126,7 +134,6 @@ func (m *NetworkCarrierWifiConfigs) validateEapAka(formats strfmt.Registry) erro
 }
 
 func (m *NetworkCarrierWifiConfigs) validateEapSim(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.EapSim) { // not required
 		return nil
 	}
@@ -135,6 +142,8 @@ func (m *NetworkCarrierWifiConfigs) validateEapSim(formats strfmt.Registry) erro
 		if err := m.EapSim.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("eap_sim")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("eap_sim")
 			}
 			return err
 		}
@@ -144,7 +153,6 @@ func (m *NetworkCarrierWifiConfigs) validateEapSim(formats strfmt.Registry) erro
 }
 
 func (m *NetworkCarrierWifiConfigs) validateLiUes(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.LiUes) { // not required
 		return nil
 	}
@@ -153,6 +161,8 @@ func (m *NetworkCarrierWifiConfigs) validateLiUes(formats strfmt.Registry) error
 		if err := m.LiUes.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("li_ues")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("li_ues")
 			}
 			return err
 		}
@@ -174,7 +184,7 @@ func init() {
 }
 
 func (m *NetworkCarrierWifiConfigs) validateNetworkServicesItemsEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, networkCarrierWifiConfigsNetworkServicesItemsEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, networkCarrierWifiConfigsNetworkServicesItemsEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -193,6 +203,96 @@ func (m *NetworkCarrierWifiConfigs) validateNetworkServices(formats strfmt.Regis
 			return err
 		}
 
+	}
+
+	return nil
+}
+
+// ContextValidate validate this network carrier wifi configs based on the context it is used
+func (m *NetworkCarrierWifiConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateAaaServer(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateEapAka(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateEapSim(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateLiUes(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *NetworkCarrierWifiConfigs) contextValidateAaaServer(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.AaaServer != nil {
+		if err := m.AaaServer.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("aaa_server")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("aaa_server")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkCarrierWifiConfigs) contextValidateEapAka(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.EapAka != nil {
+		if err := m.EapAka.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("eap_aka")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("eap_aka")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkCarrierWifiConfigs) contextValidateEapSim(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.EapSim != nil {
+		if err := m.EapSim.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("eap_sim")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("eap_sim")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkCarrierWifiConfigs) contextValidateLiUes(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.LiUes != nil {
+		if err := m.LiUes.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("li_ues")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("li_ues")
+			}
+			return err
+		}
 	}
 
 	return nil

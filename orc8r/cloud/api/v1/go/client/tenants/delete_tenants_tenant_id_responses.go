@@ -46,7 +46,7 @@ func NewDeleteTenantsTenantIDNoContent() *DeleteTenantsTenantIDNoContent {
 	return &DeleteTenantsTenantIDNoContent{}
 }
 
-/*DeleteTenantsTenantIDNoContent handles this case with default header values.
+/* DeleteTenantsTenantIDNoContent describes a response with status code 204, with default header values.
 
 Ok
 */
@@ -69,7 +69,7 @@ func NewDeleteTenantsTenantIDDefault(code int) *DeleteTenantsTenantIDDefault {
 	}
 }
 
-/*DeleteTenantsTenantIDDefault handles this case with default header values.
+/* DeleteTenantsTenantIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *DeleteTenantsTenantIDDefault) Code() int {
 func (o *DeleteTenantsTenantIDDefault) Error() string {
 	return fmt.Sprintf("[DELETE /tenants/{tenant_id}][%d] DeleteTenantsTenantID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteTenantsTenantIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

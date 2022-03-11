@@ -46,7 +46,7 @@ func NewPostNetworksNetworkIDTiersTierIDImagesNoContent() *PostNetworksNetworkID
 	return &PostNetworksNetworkIDTiersTierIDImagesNoContent{}
 }
 
-/*PostNetworksNetworkIDTiersTierIDImagesNoContent handles this case with default header values.
+/* PostNetworksNetworkIDTiersTierIDImagesNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostNetworksNetworkIDTiersTierIDImagesDefault(code int) *PostNetworksNet
 	}
 }
 
-/*PostNetworksNetworkIDTiersTierIDImagesDefault handles this case with default header values.
+/* PostNetworksNetworkIDTiersTierIDImagesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostNetworksNetworkIDTiersTierIDImagesDefault) Code() int {
 func (o *PostNetworksNetworkIDTiersTierIDImagesDefault) Error() string {
 	return fmt.Sprintf("[POST /networks/{network_id}/tiers/{tier_id}/images][%d] PostNetworksNetworkIDTiersTierIDImages default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostNetworksNetworkIDTiersTierIDImagesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

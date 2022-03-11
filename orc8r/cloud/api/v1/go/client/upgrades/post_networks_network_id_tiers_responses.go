@@ -46,7 +46,7 @@ func NewPostNetworksNetworkIDTiersCreated() *PostNetworksNetworkIDTiersCreated {
 	return &PostNetworksNetworkIDTiersCreated{}
 }
 
-/*PostNetworksNetworkIDTiersCreated handles this case with default header values.
+/* PostNetworksNetworkIDTiersCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostNetworksNetworkIDTiersDefault(code int) *PostNetworksNetworkIDTiersD
 	}
 }
 
-/*PostNetworksNetworkIDTiersDefault handles this case with default header values.
+/* PostNetworksNetworkIDTiersDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostNetworksNetworkIDTiersDefault) Code() int {
 func (o *PostNetworksNetworkIDTiersDefault) Error() string {
 	return fmt.Sprintf("[POST /networks/{network_id}/tiers][%d] PostNetworksNetworkIDTiers default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostNetworksNetworkIDTiersDefault) GetPayload() *models.Error {
 	return o.Payload
 }

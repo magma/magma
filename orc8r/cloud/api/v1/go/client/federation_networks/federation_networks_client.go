@@ -23,45 +23,48 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
 // ClientService is the interface for Client methods
 type ClientService interface {
-	DeleteFegNetworkID(params *DeleteFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDNoContent, error)
+	DeleteFegNetworkID(params *DeleteFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegNetworkIDNoContent, error)
 
-	DeleteFegNetworkIDFederation(params *DeleteFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDFederationNoContent, error)
+	DeleteFegNetworkIDFederation(params *DeleteFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegNetworkIDFederationNoContent, error)
 
-	DeleteFegNetworkIDSubscriberConfigBaseNamesBaseName(params *DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameNoContent, error)
+	DeleteFegNetworkIDSubscriberConfigBaseNamesBaseName(params *DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameNoContent, error)
 
-	DeleteFegNetworkIDSubscriberConfigRuleNamesRuleID(params *DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDNoContent, error)
+	DeleteFegNetworkIDSubscriberConfigRuleNamesRuleID(params *DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDNoContent, error)
 
-	GetFeg(params *GetFegParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegOK, error)
+	GetFeg(params *GetFegParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegOK, error)
 
-	GetFegNetworkID(params *GetFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDOK, error)
+	GetFegNetworkID(params *GetFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDOK, error)
 
-	GetFegNetworkIDClusterStatus(params *GetFegNetworkIDClusterStatusParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDClusterStatusOK, error)
+	GetFegNetworkIDClusterStatus(params *GetFegNetworkIDClusterStatusParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDClusterStatusOK, error)
 
-	GetFegNetworkIDFederation(params *GetFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDFederationOK, error)
+	GetFegNetworkIDFederation(params *GetFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDFederationOK, error)
 
-	GetFegNetworkIDSubscriberConfig(params *GetFegNetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDSubscriberConfigOK, error)
+	GetFegNetworkIDSubscriberConfig(params *GetFegNetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDSubscriberConfigOK, error)
 
-	GetFegNetworkIDSubscriberConfigBaseNames(params *GetFegNetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDSubscriberConfigBaseNamesOK, error)
+	GetFegNetworkIDSubscriberConfigBaseNames(params *GetFegNetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDSubscriberConfigBaseNamesOK, error)
 
-	GetFegNetworkIDSubscriberConfigRuleNames(params *GetFegNetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDSubscriberConfigRuleNamesOK, error)
+	GetFegNetworkIDSubscriberConfigRuleNames(params *GetFegNetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDSubscriberConfigRuleNamesOK, error)
 
-	PostFeg(params *PostFegParams, authInfo runtime.ClientAuthInfoWriter) (*PostFegCreated, error)
+	PostFeg(params *PostFegParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFegCreated, error)
 
-	PostFegNetworkIDSubscriberConfigBaseNamesBaseName(params *PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*PostFegNetworkIDSubscriberConfigBaseNamesBaseNameCreated, error)
+	PostFegNetworkIDSubscriberConfigBaseNamesBaseName(params *PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFegNetworkIDSubscriberConfigBaseNamesBaseNameCreated, error)
 
-	PostFegNetworkIDSubscriberConfigRuleNamesRuleID(params *PostFegNetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*PostFegNetworkIDSubscriberConfigRuleNamesRuleIDCreated, error)
+	PostFegNetworkIDSubscriberConfigRuleNamesRuleID(params *PostFegNetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFegNetworkIDSubscriberConfigRuleNamesRuleIDCreated, error)
 
-	PutFegNetworkID(params *PutFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDNoContent, error)
+	PutFegNetworkID(params *PutFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegNetworkIDNoContent, error)
 
-	PutFegNetworkIDFederation(params *PutFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDFederationOK, error)
+	PutFegNetworkIDFederation(params *PutFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegNetworkIDFederationOK, error)
 
-	PutFegNetworkIDSubscriberConfig(params *PutFegNetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDSubscriberConfigNoContent, error)
+	PutFegNetworkIDSubscriberConfig(params *PutFegNetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegNetworkIDSubscriberConfigNoContent, error)
 
-	PutFegNetworkIDSubscriberConfigBaseNames(params *PutFegNetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDSubscriberConfigBaseNamesNoContent, error)
+	PutFegNetworkIDSubscriberConfigBaseNames(params *PutFegNetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegNetworkIDSubscriberConfigBaseNamesNoContent, error)
 
-	PutFegNetworkIDSubscriberConfigRuleNames(params *PutFegNetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDSubscriberConfigRuleNamesNoContent, error)
+	PutFegNetworkIDSubscriberConfigRuleNames(params *PutFegNetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegNetworkIDSubscriberConfigRuleNamesNoContent, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -69,13 +72,12 @@ type ClientService interface {
 /*
   DeleteFegNetworkID deletes a federation network
 */
-func (a *Client) DeleteFegNetworkID(params *DeleteFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDNoContent, error) {
+func (a *Client) DeleteFegNetworkID(params *DeleteFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegNetworkIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteFegNetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteFegNetworkID",
 		Method:             "DELETE",
 		PathPattern:        "/feg/{network_id}",
@@ -87,7 +89,12 @@ func (a *Client) DeleteFegNetworkID(params *DeleteFegNetworkIDParams, authInfo r
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -103,13 +110,12 @@ func (a *Client) DeleteFegNetworkID(params *DeleteFegNetworkIDParams, authInfo r
 /*
   DeleteFegNetworkIDFederation deletes network federation configs
 */
-func (a *Client) DeleteFegNetworkIDFederation(params *DeleteFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDFederationNoContent, error) {
+func (a *Client) DeleteFegNetworkIDFederation(params *DeleteFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegNetworkIDFederationNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteFegNetworkIDFederationParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteFegNetworkIDFederation",
 		Method:             "DELETE",
 		PathPattern:        "/feg/{network_id}/federation",
@@ -121,7 +127,12 @@ func (a *Client) DeleteFegNetworkIDFederation(params *DeleteFegNetworkIDFederati
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -137,13 +148,12 @@ func (a *Client) DeleteFegNetworkIDFederation(params *DeleteFegNetworkIDFederati
 /*
   DeleteFegNetworkIDSubscriberConfigBaseNamesBaseName adds a network wide base name
 */
-func (a *Client) DeleteFegNetworkIDSubscriberConfigBaseNamesBaseName(params *DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameNoContent, error) {
+func (a *Client) DeleteFegNetworkIDSubscriberConfigBaseNamesBaseName(params *DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteFegNetworkIDSubscriberConfigBaseNamesBaseName",
 		Method:             "DELETE",
 		PathPattern:        "/feg/{network_id}/subscriber_config/base_names/{base_name}",
@@ -155,7 +165,12 @@ func (a *Client) DeleteFegNetworkIDSubscriberConfigBaseNamesBaseName(params *Del
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -171,13 +186,12 @@ func (a *Client) DeleteFegNetworkIDSubscriberConfigBaseNamesBaseName(params *Del
 /*
   DeleteFegNetworkIDSubscriberConfigRuleNamesRuleID adds a network wide rule name
 */
-func (a *Client) DeleteFegNetworkIDSubscriberConfigRuleNamesRuleID(params *DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDNoContent, error) {
+func (a *Client) DeleteFegNetworkIDSubscriberConfigRuleNamesRuleID(params *DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteFegNetworkIDSubscriberConfigRuleNamesRuleID",
 		Method:             "DELETE",
 		PathPattern:        "/feg/{network_id}/subscriber_config/rule_names/{rule_id}",
@@ -189,7 +203,12 @@ func (a *Client) DeleteFegNetworkIDSubscriberConfigRuleNamesRuleID(params *Delet
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -205,13 +224,12 @@ func (a *Client) DeleteFegNetworkIDSubscriberConfigRuleNamesRuleID(params *Delet
 /*
   GetFeg lists all federation network i ds
 */
-func (a *Client) GetFeg(params *GetFegParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegOK, error) {
+func (a *Client) GetFeg(params *GetFegParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetFeg",
 		Method:             "GET",
 		PathPattern:        "/feg",
@@ -223,7 +241,12 @@ func (a *Client) GetFeg(params *GetFegParams, authInfo runtime.ClientAuthInfoWri
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -239,13 +262,12 @@ func (a *Client) GetFeg(params *GetFegParams, authInfo runtime.ClientAuthInfoWri
 /*
   GetFegNetworkID describes a federation network
 */
-func (a *Client) GetFegNetworkID(params *GetFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDOK, error) {
+func (a *Client) GetFegNetworkID(params *GetFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetFegNetworkID",
 		Method:             "GET",
 		PathPattern:        "/feg/{network_id}",
@@ -257,7 +279,12 @@ func (a *Client) GetFegNetworkID(params *GetFegNetworkIDParams, authInfo runtime
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -273,13 +300,12 @@ func (a *Client) GetFegNetworkID(params *GetFegNetworkIDParams, authInfo runtime
 /*
   GetFegNetworkIDClusterStatus retrieves h a cluster status of a federation network
 */
-func (a *Client) GetFegNetworkIDClusterStatus(params *GetFegNetworkIDClusterStatusParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDClusterStatusOK, error) {
+func (a *Client) GetFegNetworkIDClusterStatus(params *GetFegNetworkIDClusterStatusParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDClusterStatusOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDClusterStatusParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetFegNetworkIDClusterStatus",
 		Method:             "GET",
 		PathPattern:        "/feg/{network_id}/cluster_status",
@@ -291,7 +317,12 @@ func (a *Client) GetFegNetworkIDClusterStatus(params *GetFegNetworkIDClusterStat
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -307,13 +338,12 @@ func (a *Client) GetFegNetworkIDClusterStatus(params *GetFegNetworkIDClusterStat
 /*
   GetFegNetworkIDFederation retrieves network federation configs
 */
-func (a *Client) GetFegNetworkIDFederation(params *GetFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDFederationOK, error) {
+func (a *Client) GetFegNetworkIDFederation(params *GetFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDFederationOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDFederationParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetFegNetworkIDFederation",
 		Method:             "GET",
 		PathPattern:        "/feg/{network_id}/federation",
@@ -325,7 +355,12 @@ func (a *Client) GetFegNetworkIDFederation(params *GetFegNetworkIDFederationPara
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -341,13 +376,12 @@ func (a *Client) GetFegNetworkIDFederation(params *GetFegNetworkIDFederationPara
 /*
   GetFegNetworkIDSubscriberConfig gets a network wide subscriber config
 */
-func (a *Client) GetFegNetworkIDSubscriberConfig(params *GetFegNetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDSubscriberConfigOK, error) {
+func (a *Client) GetFegNetworkIDSubscriberConfig(params *GetFegNetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDSubscriberConfigOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDSubscriberConfigParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetFegNetworkIDSubscriberConfig",
 		Method:             "GET",
 		PathPattern:        "/feg/{network_id}/subscriber_config",
@@ -359,7 +393,12 @@ func (a *Client) GetFegNetworkIDSubscriberConfig(params *GetFegNetworkIDSubscrib
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -375,13 +414,12 @@ func (a *Client) GetFegNetworkIDSubscriberConfig(params *GetFegNetworkIDSubscrib
 /*
   GetFegNetworkIDSubscriberConfigBaseNames gets network wide base names
 */
-func (a *Client) GetFegNetworkIDSubscriberConfigBaseNames(params *GetFegNetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDSubscriberConfigBaseNamesOK, error) {
+func (a *Client) GetFegNetworkIDSubscriberConfigBaseNames(params *GetFegNetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDSubscriberConfigBaseNamesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDSubscriberConfigBaseNamesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetFegNetworkIDSubscriberConfigBaseNames",
 		Method:             "GET",
 		PathPattern:        "/feg/{network_id}/subscriber_config/base_names",
@@ -393,7 +431,12 @@ func (a *Client) GetFegNetworkIDSubscriberConfigBaseNames(params *GetFegNetworkI
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -409,13 +452,12 @@ func (a *Client) GetFegNetworkIDSubscriberConfigBaseNames(params *GetFegNetworkI
 /*
   GetFegNetworkIDSubscriberConfigRuleNames gets network wide rule names
 */
-func (a *Client) GetFegNetworkIDSubscriberConfigRuleNames(params *GetFegNetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter) (*GetFegNetworkIDSubscriberConfigRuleNamesOK, error) {
+func (a *Client) GetFegNetworkIDSubscriberConfigRuleNames(params *GetFegNetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDSubscriberConfigRuleNamesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDSubscriberConfigRuleNamesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetFegNetworkIDSubscriberConfigRuleNames",
 		Method:             "GET",
 		PathPattern:        "/feg/{network_id}/subscriber_config/rule_names",
@@ -427,7 +469,12 @@ func (a *Client) GetFegNetworkIDSubscriberConfigRuleNames(params *GetFegNetworkI
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -443,13 +490,12 @@ func (a *Client) GetFegNetworkIDSubscriberConfigRuleNames(params *GetFegNetworkI
 /*
   PostFeg creates a new federation network
 */
-func (a *Client) PostFeg(params *PostFegParams, authInfo runtime.ClientAuthInfoWriter) (*PostFegCreated, error) {
+func (a *Client) PostFeg(params *PostFegParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFegCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostFegParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostFeg",
 		Method:             "POST",
 		PathPattern:        "/feg",
@@ -461,7 +507,12 @@ func (a *Client) PostFeg(params *PostFegParams, authInfo runtime.ClientAuthInfoW
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -477,13 +528,12 @@ func (a *Client) PostFeg(params *PostFegParams, authInfo runtime.ClientAuthInfoW
 /*
   PostFegNetworkIDSubscriberConfigBaseNamesBaseName adds a network wide base name
 */
-func (a *Client) PostFegNetworkIDSubscriberConfigBaseNamesBaseName(params *PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter) (*PostFegNetworkIDSubscriberConfigBaseNamesBaseNameCreated, error) {
+func (a *Client) PostFegNetworkIDSubscriberConfigBaseNamesBaseName(params *PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFegNetworkIDSubscriberConfigBaseNamesBaseNameCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostFegNetworkIDSubscriberConfigBaseNamesBaseName",
 		Method:             "POST",
 		PathPattern:        "/feg/{network_id}/subscriber_config/base_names/{base_name}",
@@ -495,7 +545,12 @@ func (a *Client) PostFegNetworkIDSubscriberConfigBaseNamesBaseName(params *PostF
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -511,13 +566,12 @@ func (a *Client) PostFegNetworkIDSubscriberConfigBaseNamesBaseName(params *PostF
 /*
   PostFegNetworkIDSubscriberConfigRuleNamesRuleID adds a network wide rule name
 */
-func (a *Client) PostFegNetworkIDSubscriberConfigRuleNamesRuleID(params *PostFegNetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter) (*PostFegNetworkIDSubscriberConfigRuleNamesRuleIDCreated, error) {
+func (a *Client) PostFegNetworkIDSubscriberConfigRuleNamesRuleID(params *PostFegNetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFegNetworkIDSubscriberConfigRuleNamesRuleIDCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostFegNetworkIDSubscriberConfigRuleNamesRuleIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostFegNetworkIDSubscriberConfigRuleNamesRuleID",
 		Method:             "POST",
 		PathPattern:        "/feg/{network_id}/subscriber_config/rule_names/{rule_id}",
@@ -529,7 +583,12 @@ func (a *Client) PostFegNetworkIDSubscriberConfigRuleNamesRuleID(params *PostFeg
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -545,13 +604,12 @@ func (a *Client) PostFegNetworkIDSubscriberConfigRuleNamesRuleID(params *PostFeg
 /*
   PutFegNetworkID updates an entire federation network
 */
-func (a *Client) PutFegNetworkID(params *PutFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDNoContent, error) {
+func (a *Client) PutFegNetworkID(params *PutFegNetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegNetworkIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegNetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutFegNetworkID",
 		Method:             "PUT",
 		PathPattern:        "/feg/{network_id}",
@@ -563,7 +621,12 @@ func (a *Client) PutFegNetworkID(params *PutFegNetworkIDParams, authInfo runtime
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -579,13 +642,12 @@ func (a *Client) PutFegNetworkID(params *PutFegNetworkIDParams, authInfo runtime
 /*
   PutFegNetworkIDFederation creates or modify network federation configs
 */
-func (a *Client) PutFegNetworkIDFederation(params *PutFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDFederationOK, error) {
+func (a *Client) PutFegNetworkIDFederation(params *PutFegNetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegNetworkIDFederationOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegNetworkIDFederationParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutFegNetworkIDFederation",
 		Method:             "PUT",
 		PathPattern:        "/feg/{network_id}/federation",
@@ -597,7 +659,12 @@ func (a *Client) PutFegNetworkIDFederation(params *PutFegNetworkIDFederationPara
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -613,13 +680,12 @@ func (a *Client) PutFegNetworkIDFederation(params *PutFegNetworkIDFederationPara
 /*
   PutFegNetworkIDSubscriberConfig updates a network wide subscriber config
 */
-func (a *Client) PutFegNetworkIDSubscriberConfig(params *PutFegNetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDSubscriberConfigNoContent, error) {
+func (a *Client) PutFegNetworkIDSubscriberConfig(params *PutFegNetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegNetworkIDSubscriberConfigNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegNetworkIDSubscriberConfigParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutFegNetworkIDSubscriberConfig",
 		Method:             "PUT",
 		PathPattern:        "/feg/{network_id}/subscriber_config",
@@ -631,7 +697,12 @@ func (a *Client) PutFegNetworkIDSubscriberConfig(params *PutFegNetworkIDSubscrib
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -647,13 +718,12 @@ func (a *Client) PutFegNetworkIDSubscriberConfig(params *PutFegNetworkIDSubscrib
 /*
   PutFegNetworkIDSubscriberConfigBaseNames updates network wide base names
 */
-func (a *Client) PutFegNetworkIDSubscriberConfigBaseNames(params *PutFegNetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDSubscriberConfigBaseNamesNoContent, error) {
+func (a *Client) PutFegNetworkIDSubscriberConfigBaseNames(params *PutFegNetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegNetworkIDSubscriberConfigBaseNamesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegNetworkIDSubscriberConfigBaseNamesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutFegNetworkIDSubscriberConfigBaseNames",
 		Method:             "PUT",
 		PathPattern:        "/feg/{network_id}/subscriber_config/base_names",
@@ -665,7 +735,12 @@ func (a *Client) PutFegNetworkIDSubscriberConfigBaseNames(params *PutFegNetworkI
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -681,13 +756,12 @@ func (a *Client) PutFegNetworkIDSubscriberConfigBaseNames(params *PutFegNetworkI
 /*
   PutFegNetworkIDSubscriberConfigRuleNames updates network wide rule names
 */
-func (a *Client) PutFegNetworkIDSubscriberConfigRuleNames(params *PutFegNetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter) (*PutFegNetworkIDSubscriberConfigRuleNamesNoContent, error) {
+func (a *Client) PutFegNetworkIDSubscriberConfigRuleNames(params *PutFegNetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegNetworkIDSubscriberConfigRuleNamesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegNetworkIDSubscriberConfigRuleNamesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutFegNetworkIDSubscriberConfigRuleNames",
 		Method:             "PUT",
 		PathPattern:        "/feg/{network_id}/subscriber_config/rule_names",
@@ -699,7 +773,12 @@ func (a *Client) PutFegNetworkIDSubscriberConfigRuleNames(params *PutFegNetworkI
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

@@ -46,7 +46,7 @@ func NewPutFegLTENetworkIDFederationOK() *PutFegLTENetworkIDFederationOK {
 	return &PutFegLTENetworkIDFederationOK{}
 }
 
-/*PutFegLTENetworkIDFederationOK handles this case with default header values.
+/* PutFegLTENetworkIDFederationOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutFegLTENetworkIDFederationDefault(code int) *PutFegLTENetworkIDFederat
 	}
 }
 
-/*PutFegLTENetworkIDFederationDefault handles this case with default header values.
+/* PutFegLTENetworkIDFederationDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutFegLTENetworkIDFederationDefault) Code() int {
 func (o *PutFegLTENetworkIDFederationDefault) Error() string {
 	return fmt.Sprintf("[PUT /feg_lte/{network_id}/federation][%d] PutFegLTENetworkIDFederation default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutFegLTENetworkIDFederationDefault) GetPayload() *models.Error {
 	return o.Payload
 }

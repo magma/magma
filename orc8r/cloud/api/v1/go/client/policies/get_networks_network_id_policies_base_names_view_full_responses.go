@@ -46,7 +46,7 @@ func NewGetNetworksNetworkIDPoliciesBaseNamesViewFullOK() *GetNetworksNetworkIDP
 	return &GetNetworksNetworkIDPoliciesBaseNamesViewFullOK{}
 }
 
-/*GetNetworksNetworkIDPoliciesBaseNamesViewFullOK handles this case with default header values.
+/* GetNetworksNetworkIDPoliciesBaseNamesViewFullOK describes a response with status code 200, with default header values.
 
 Map of all base names in the network by name
 */
@@ -57,7 +57,6 @@ type GetNetworksNetworkIDPoliciesBaseNamesViewFullOK struct {
 func (o *GetNetworksNetworkIDPoliciesBaseNamesViewFullOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/policies/base_names?view=full][%d] getNetworksNetworkIdPoliciesBaseNamesViewFullOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDPoliciesBaseNamesViewFullOK) GetPayload() map[string]models.BaseNameRecord {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetNetworksNetworkIDPoliciesBaseNamesViewFullDefault(code int) *GetNetwo
 	}
 }
 
-/*GetNetworksNetworkIDPoliciesBaseNamesViewFullDefault handles this case with default header values.
+/* GetNetworksNetworkIDPoliciesBaseNamesViewFullDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetNetworksNetworkIDPoliciesBaseNamesViewFullDefault) Code() int {
 func (o *GetNetworksNetworkIDPoliciesBaseNamesViewFullDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/policies/base_names?view=full][%d] GetNetworksNetworkIDPoliciesBaseNamesViewFull default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDPoliciesBaseNamesViewFullDefault) GetPayload() *models.Error {
 	return o.Payload
 }

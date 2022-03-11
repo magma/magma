@@ -46,7 +46,7 @@ func NewPostFegNetworkIDGatewaysGatewayIDFederationCreated() *PostFegNetworkIDGa
 	return &PostFegNetworkIDGatewaysGatewayIDFederationCreated{}
 }
 
-/*PostFegNetworkIDGatewaysGatewayIDFederationCreated handles this case with default header values.
+/* PostFegNetworkIDGatewaysGatewayIDFederationCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostFegNetworkIDGatewaysGatewayIDFederationDefault(code int) *PostFegNet
 	}
 }
 
-/*PostFegNetworkIDGatewaysGatewayIDFederationDefault handles this case with default header values.
+/* PostFegNetworkIDGatewaysGatewayIDFederationDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostFegNetworkIDGatewaysGatewayIDFederationDefault) Code() int {
 func (o *PostFegNetworkIDGatewaysGatewayIDFederationDefault) Error() string {
 	return fmt.Sprintf("[POST /feg/{network_id}/gateways/{gateway_id}/federation][%d] PostFegNetworkIDGatewaysGatewayIDFederation default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostFegNetworkIDGatewaysGatewayIDFederationDefault) GetPayload() *models.Error {
 	return o.Payload
 }

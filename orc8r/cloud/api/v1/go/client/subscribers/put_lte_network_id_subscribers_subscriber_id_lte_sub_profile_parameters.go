@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams creates a new PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams object
-// with the default values initialized.
+// NewPutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams creates a new PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams() *PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams {
-	var ()
 	return &PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutLTENetworkIDSubscribersSubscriberIDLTESubProfileParamsWithTimeout creates a new PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutLTENetworkIDSubscribersSubscriberIDLTESubProfileParamsWithTimeout(timeout time.Duration) *PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams {
-	var ()
 	return &PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutLTENetworkIDSubscribersSubscriberIDLTESubProfileParamsWithContext creates a new PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutLTENetworkIDSubscribersSubscriberIDLTESubProfileParamsWithContext(ctx context.Context) *PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams {
-	var ()
 	return &PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutLTENetworkIDSubscribersSubscriberIDLTESubProfileParamsWithHTTPClient creates a new PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutLTENetworkIDSubscribersSubscriberIDLTESubProfileParamsWithHTTPClient(client *http.Client) *PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams {
-	var ()
 	return &PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams contains all the parameters to send to the API endpoint
-for the put LTE network ID subscribers subscriber ID LTE sub profile operation typically these are written to a http.Request
+/* PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams contains all the parameters to send to the API endpoint
+   for the put LTE network ID subscribers subscriber ID LTE sub profile operation.
+
+   Typically these are written to a http.Request.
 */
 type PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*ProfileName
-	  New profile name
 
+	/* ProfileName.
+
+	   New profile name
 	*/
 	ProfileName models.SubProfile
-	/*SubscriberID
-	  Subscriber ID
 
+	/* SubscriberID.
+
+	   Subscriber ID
 	*/
 	SubscriberID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put LTE network ID subscribers subscriber ID LTE sub profile params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams) WithDefaults() *PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put LTE network ID subscribers subscriber ID LTE sub profile params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put LTE network ID subscribers subscriber ID LTE sub profile params
@@ -161,7 +177,6 @@ func (o *PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams) WriteToReque
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if err := r.SetBodyParam(o.ProfileName); err != nil {
 		return err
 	}

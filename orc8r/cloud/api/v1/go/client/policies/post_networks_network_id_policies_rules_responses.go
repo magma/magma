@@ -46,7 +46,7 @@ func NewPostNetworksNetworkIDPoliciesRulesCreated() *PostNetworksNetworkIDPolici
 	return &PostNetworksNetworkIDPoliciesRulesCreated{}
 }
 
-/*PostNetworksNetworkIDPoliciesRulesCreated handles this case with default header values.
+/* PostNetworksNetworkIDPoliciesRulesCreated describes a response with status code 201, with default header values.
 
 Rule id
 */
@@ -57,7 +57,6 @@ type PostNetworksNetworkIDPoliciesRulesCreated struct {
 func (o *PostNetworksNetworkIDPoliciesRulesCreated) Error() string {
 	return fmt.Sprintf("[POST /networks/{network_id}/policies/rules][%d] postNetworksNetworkIdPoliciesRulesCreated  %+v", 201, o.Payload)
 }
-
 func (o *PostNetworksNetworkIDPoliciesRulesCreated) GetPayload() models.RuleID {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewPostNetworksNetworkIDPoliciesRulesDefault(code int) *PostNetworksNetwork
 	}
 }
 
-/*PostNetworksNetworkIDPoliciesRulesDefault handles this case with default header values.
+/* PostNetworksNetworkIDPoliciesRulesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *PostNetworksNetworkIDPoliciesRulesDefault) Code() int {
 func (o *PostNetworksNetworkIDPoliciesRulesDefault) Error() string {
 	return fmt.Sprintf("[POST /networks/{network_id}/policies/rules][%d] PostNetworksNetworkIDPoliciesRules default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostNetworksNetworkIDPoliciesRulesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

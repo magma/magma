@@ -19,64 +19,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutTenantsTenantIDControlProxyParams creates a new PutTenantsTenantIDControlProxyParams object
-// with the default values initialized.
+// NewPutTenantsTenantIDControlProxyParams creates a new PutTenantsTenantIDControlProxyParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutTenantsTenantIDControlProxyParams() *PutTenantsTenantIDControlProxyParams {
-	var ()
 	return &PutTenantsTenantIDControlProxyParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutTenantsTenantIDControlProxyParamsWithTimeout creates a new PutTenantsTenantIDControlProxyParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutTenantsTenantIDControlProxyParamsWithTimeout(timeout time.Duration) *PutTenantsTenantIDControlProxyParams {
-	var ()
 	return &PutTenantsTenantIDControlProxyParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutTenantsTenantIDControlProxyParamsWithContext creates a new PutTenantsTenantIDControlProxyParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutTenantsTenantIDControlProxyParamsWithContext(ctx context.Context) *PutTenantsTenantIDControlProxyParams {
-	var ()
 	return &PutTenantsTenantIDControlProxyParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutTenantsTenantIDControlProxyParamsWithHTTPClient creates a new PutTenantsTenantIDControlProxyParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutTenantsTenantIDControlProxyParamsWithHTTPClient(client *http.Client) *PutTenantsTenantIDControlProxyParams {
-	var ()
 	return &PutTenantsTenantIDControlProxyParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutTenantsTenantIDControlProxyParams contains all the parameters to send to the API endpoint
-for the put tenants tenant ID control proxy operation typically these are written to a http.Request
+/* PutTenantsTenantIDControlProxyParams contains all the parameters to send to the API endpoint
+   for the put tenants tenant ID control proxy operation.
+
+   Typically these are written to a http.Request.
 */
 type PutTenantsTenantIDControlProxyParams struct {
 
-	/*ControlProxy
-	  Control proxy content to be updated
+	/* ControlProxy.
 
+	   Control proxy content to be updated
 	*/
 	ControlProxy *models.ControlProxy
-	/*TenantID
-	  Tenant ID
 
+	/* TenantID.
+
+	   Tenant ID
 	*/
 	TenantID int64
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put tenants tenant ID control proxy params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutTenantsTenantIDControlProxyParams) WithDefaults() *PutTenantsTenantIDControlProxyParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put tenants tenant ID control proxy params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutTenantsTenantIDControlProxyParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put tenants tenant ID control proxy params
@@ -141,7 +156,6 @@ func (o *PutTenantsTenantIDControlProxyParams) WriteToRequest(r runtime.ClientRe
 		return err
 	}
 	var res []error
-
 	if o.ControlProxy != nil {
 		if err := r.SetBodyParam(o.ControlProxy); err != nil {
 			return err

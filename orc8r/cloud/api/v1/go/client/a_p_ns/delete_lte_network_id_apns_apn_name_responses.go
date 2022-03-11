@@ -46,7 +46,7 @@ func NewDeleteLTENetworkIDAPNSAPNNameNoContent() *DeleteLTENetworkIDAPNSAPNNameN
 	return &DeleteLTENetworkIDAPNSAPNNameNoContent{}
 }
 
-/*DeleteLTENetworkIDAPNSAPNNameNoContent handles this case with default header values.
+/* DeleteLTENetworkIDAPNSAPNNameNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewDeleteLTENetworkIDAPNSAPNNameDefault(code int) *DeleteLTENetworkIDAPNSAP
 	}
 }
 
-/*DeleteLTENetworkIDAPNSAPNNameDefault handles this case with default header values.
+/* DeleteLTENetworkIDAPNSAPNNameDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *DeleteLTENetworkIDAPNSAPNNameDefault) Code() int {
 func (o *DeleteLTENetworkIDAPNSAPNNameDefault) Error() string {
 	return fmt.Sprintf("[DELETE /lte/{network_id}/apns/{apn_name}][%d] DeleteLTENetworkIDAPNSAPNName default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteLTENetworkIDAPNSAPNNameDefault) GetPayload() *models.Error {
 	return o.Payload
 }

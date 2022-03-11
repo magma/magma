@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -18,11 +20,13 @@ import (
 type PlmnConfig struct {
 
 	// mcc
+	// Example: 001
 	// Required: true
 	// Pattern: ^(\d{3})$
 	Mcc string `json:"mcc"`
 
 	// mnc
+	// Example: 01
 	// Required: true
 	// Pattern: ^(\d{2,3})$
 	Mnc string `json:"mnc"`
@@ -48,11 +52,11 @@ func (m *PlmnConfig) Validate(formats strfmt.Registry) error {
 
 func (m *PlmnConfig) validateMcc(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("mcc", "body", string(m.Mcc)); err != nil {
+	if err := validate.RequiredString("mcc", "body", m.Mcc); err != nil {
 		return err
 	}
 
-	if err := validate.Pattern("mcc", "body", string(m.Mcc), `^(\d{3})$`); err != nil {
+	if err := validate.Pattern("mcc", "body", m.Mcc, `^(\d{3})$`); err != nil {
 		return err
 	}
 
@@ -61,14 +65,19 @@ func (m *PlmnConfig) validateMcc(formats strfmt.Registry) error {
 
 func (m *PlmnConfig) validateMnc(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("mnc", "body", string(m.Mnc)); err != nil {
+	if err := validate.RequiredString("mnc", "body", m.Mnc); err != nil {
 		return err
 	}
 
-	if err := validate.Pattern("mnc", "body", string(m.Mnc), `^(\d{2,3})$`); err != nil {
+	if err := validate.Pattern("mnc", "body", m.Mnc, `^(\d{2,3})$`); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this plmn config based on context it is used
+func (m *PlmnConfig) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

@@ -46,7 +46,7 @@ func NewGetNetworksNetworkIDLogsCountOK() *GetNetworksNetworkIDLogsCountOK {
 	return &GetNetworksNetworkIDLogsCountOK{}
 }
 
-/*GetNetworksNetworkIDLogsCountOK handles this case with default header values.
+/* GetNetworksNetworkIDLogsCountOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -57,7 +57,6 @@ type GetNetworksNetworkIDLogsCountOK struct {
 func (o *GetNetworksNetworkIDLogsCountOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/logs/count][%d] getNetworksNetworkIdLogsCountOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDLogsCountOK) GetPayload() models.ElasticHitCount {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetNetworksNetworkIDLogsCountDefault(code int) *GetNetworksNetworkIDLogs
 	}
 }
 
-/*GetNetworksNetworkIDLogsCountDefault handles this case with default header values.
+/* GetNetworksNetworkIDLogsCountDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetNetworksNetworkIDLogsCountDefault) Code() int {
 func (o *GetNetworksNetworkIDLogsCountDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/logs/count][%d] GetNetworksNetworkIDLogsCount default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDLogsCountDefault) GetPayload() *models.Error {
 	return o.Payload
 }

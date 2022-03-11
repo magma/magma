@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostNetworksNetworkIDMetricsPushParams creates a new PostNetworksNetworkIDMetricsPushParams object
-// with the default values initialized.
+// NewPostNetworksNetworkIDMetricsPushParams creates a new PostNetworksNetworkIDMetricsPushParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostNetworksNetworkIDMetricsPushParams() *PostNetworksNetworkIDMetricsPushParams {
-	var ()
 	return &PostNetworksNetworkIDMetricsPushParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostNetworksNetworkIDMetricsPushParamsWithTimeout creates a new PostNetworksNetworkIDMetricsPushParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostNetworksNetworkIDMetricsPushParamsWithTimeout(timeout time.Duration) *PostNetworksNetworkIDMetricsPushParams {
-	var ()
 	return &PostNetworksNetworkIDMetricsPushParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostNetworksNetworkIDMetricsPushParamsWithContext creates a new PostNetworksNetworkIDMetricsPushParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostNetworksNetworkIDMetricsPushParamsWithContext(ctx context.Context) *PostNetworksNetworkIDMetricsPushParams {
-	var ()
 	return &PostNetworksNetworkIDMetricsPushParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostNetworksNetworkIDMetricsPushParamsWithHTTPClient creates a new PostNetworksNetworkIDMetricsPushParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostNetworksNetworkIDMetricsPushParamsWithHTTPClient(client *http.Client) *PostNetworksNetworkIDMetricsPushParams {
-	var ()
 	return &PostNetworksNetworkIDMetricsPushParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostNetworksNetworkIDMetricsPushParams contains all the parameters to send to the API endpoint
-for the post networks network ID metrics push operation typically these are written to a http.Request
+/* PostNetworksNetworkIDMetricsPushParams contains all the parameters to send to the API endpoint
+   for the post networks network ID metrics push operation.
+
+   Typically these are written to a http.Request.
 */
 type PostNetworksNetworkIDMetricsPushParams struct {
 
-	/*Metrics
-	  Metrics to be submitted
+	/* Metrics.
 
+	   Metrics to be submitted
 	*/
 	Metrics []*models.PushedMetric
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post networks network ID metrics push params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDMetricsPushParams) WithDefaults() *PostNetworksNetworkIDMetricsPushParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post networks network ID metrics push params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDMetricsPushParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post networks network ID metrics push params
@@ -140,7 +155,6 @@ func (o *PostNetworksNetworkIDMetricsPushParams) WriteToRequest(r runtime.Client
 		return err
 	}
 	var res []error
-
 	if o.Metrics != nil {
 		if err := r.SetBodyParam(o.Metrics); err != nil {
 			return err

@@ -46,7 +46,7 @@ func NewPutNetworksNetworkIDDNSRecordsNoContent() *PutNetworksNetworkIDDNSRecord
 	return &PutNetworksNetworkIDDNSRecordsNoContent{}
 }
 
-/*PutNetworksNetworkIDDNSRecordsNoContent handles this case with default header values.
+/* PutNetworksNetworkIDDNSRecordsNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutNetworksNetworkIDDNSRecordsDefault(code int) *PutNetworksNetworkIDDNS
 	}
 }
 
-/*PutNetworksNetworkIDDNSRecordsDefault handles this case with default header values.
+/* PutNetworksNetworkIDDNSRecordsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutNetworksNetworkIDDNSRecordsDefault) Code() int {
 func (o *PutNetworksNetworkIDDNSRecordsDefault) Error() string {
 	return fmt.Sprintf("[PUT /networks/{network_id}/dns/records][%d] PutNetworksNetworkIDDNSRecords default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutNetworksNetworkIDDNSRecordsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

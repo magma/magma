@@ -18,59 +18,73 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostFegParams creates a new PostFegParams object
-// with the default values initialized.
+// NewPostFegParams creates a new PostFegParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostFegParams() *PostFegParams {
-	var ()
 	return &PostFegParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostFegParamsWithTimeout creates a new PostFegParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostFegParamsWithTimeout(timeout time.Duration) *PostFegParams {
-	var ()
 	return &PostFegParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostFegParamsWithContext creates a new PostFegParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostFegParamsWithContext(ctx context.Context) *PostFegParams {
-	var ()
 	return &PostFegParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostFegParamsWithHTTPClient creates a new PostFegParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostFegParamsWithHTTPClient(client *http.Client) *PostFegParams {
-	var ()
 	return &PostFegParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostFegParams contains all the parameters to send to the API endpoint
-for the post feg operation typically these are written to a http.Request
+/* PostFegParams contains all the parameters to send to the API endpoint
+   for the post feg operation.
+
+   Typically these are written to a http.Request.
 */
 type PostFegParams struct {
 
-	/*FegNetwork
-	  Configuration of the network to create
+	/* FegNetwork.
 
+	   Configuration of the network to create
 	*/
 	FegNetwork *models.FegNetwork
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post feg params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostFegParams) WithDefaults() *PostFegParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post feg params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostFegParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post feg params
@@ -124,7 +138,6 @@ func (o *PostFegParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Regis
 		return err
 	}
 	var res []error
-
 	if o.FegNetwork != nil {
 		if err := r.SetBodyParam(o.FegNetwork); err != nil {
 			return err

@@ -46,7 +46,7 @@ func NewGetNetworksNetworkIDPrometheusQueryOK() *GetNetworksNetworkIDPrometheusQ
 	return &GetNetworksNetworkIDPrometheusQueryOK{}
 }
 
-/*GetNetworksNetworkIDPrometheusQueryOK handles this case with default header values.
+/* GetNetworksNetworkIDPrometheusQueryOK describes a response with status code 200, with default header values.
 
 List of PromQL metrics results
 */
@@ -57,7 +57,6 @@ type GetNetworksNetworkIDPrometheusQueryOK struct {
 func (o *GetNetworksNetworkIDPrometheusQueryOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/prometheus/query][%d] getNetworksNetworkIdPrometheusQueryOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDPrometheusQueryOK) GetPayload() *models.PromqlReturnObject {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetNetworksNetworkIDPrometheusQueryDefault(code int) *GetNetworksNetwork
 	}
 }
 
-/*GetNetworksNetworkIDPrometheusQueryDefault handles this case with default header values.
+/* GetNetworksNetworkIDPrometheusQueryDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetNetworksNetworkIDPrometheusQueryDefault) Code() int {
 func (o *GetNetworksNetworkIDPrometheusQueryDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/prometheus/query][%d] GetNetworksNetworkIDPrometheusQuery default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDPrometheusQueryDefault) GetPayload() *models.Error {
 	return o.Payload
 }

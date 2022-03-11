@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostNetworksNetworkIDTiersTierIDGatewaysParams creates a new PostNetworksNetworkIDTiersTierIDGatewaysParams object
-// with the default values initialized.
+// NewPostNetworksNetworkIDTiersTierIDGatewaysParams creates a new PostNetworksNetworkIDTiersTierIDGatewaysParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostNetworksNetworkIDTiersTierIDGatewaysParams() *PostNetworksNetworkIDTiersTierIDGatewaysParams {
-	var ()
 	return &PostNetworksNetworkIDTiersTierIDGatewaysParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostNetworksNetworkIDTiersTierIDGatewaysParamsWithTimeout creates a new PostNetworksNetworkIDTiersTierIDGatewaysParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostNetworksNetworkIDTiersTierIDGatewaysParamsWithTimeout(timeout time.Duration) *PostNetworksNetworkIDTiersTierIDGatewaysParams {
-	var ()
 	return &PostNetworksNetworkIDTiersTierIDGatewaysParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostNetworksNetworkIDTiersTierIDGatewaysParamsWithContext creates a new PostNetworksNetworkIDTiersTierIDGatewaysParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostNetworksNetworkIDTiersTierIDGatewaysParamsWithContext(ctx context.Context) *PostNetworksNetworkIDTiersTierIDGatewaysParams {
-	var ()
 	return &PostNetworksNetworkIDTiersTierIDGatewaysParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostNetworksNetworkIDTiersTierIDGatewaysParamsWithHTTPClient creates a new PostNetworksNetworkIDTiersTierIDGatewaysParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostNetworksNetworkIDTiersTierIDGatewaysParamsWithHTTPClient(client *http.Client) *PostNetworksNetworkIDTiersTierIDGatewaysParams {
-	var ()
 	return &PostNetworksNetworkIDTiersTierIDGatewaysParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostNetworksNetworkIDTiersTierIDGatewaysParams contains all the parameters to send to the API endpoint
-for the post networks network ID tiers tier ID gateways operation typically these are written to a http.Request
+/* PostNetworksNetworkIDTiersTierIDGatewaysParams contains all the parameters to send to the API endpoint
+   for the post networks network ID tiers tier ID gateways operation.
+
+   Typically these are written to a http.Request.
 */
 type PostNetworksNetworkIDTiersTierIDGatewaysParams struct {
 
-	/*Gateway
-	  New gateway for the tier
+	/* Gateway.
 
+	   New gateway for the tier
 	*/
 	Gateway models.GatewayID
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*TierID
-	  Tier ID
 
+	/* TierID.
+
+	   Tier ID
 	*/
 	TierID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post networks network ID tiers tier ID gateways params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDTiersTierIDGatewaysParams) WithDefaults() *PostNetworksNetworkIDTiersTierIDGatewaysParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post networks network ID tiers tier ID gateways params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDTiersTierIDGatewaysParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post networks network ID tiers tier ID gateways params
@@ -156,7 +172,6 @@ func (o *PostNetworksNetworkIDTiersTierIDGatewaysParams) WriteToRequest(r runtim
 		return err
 	}
 	var res []error
-
 	if err := r.SetBodyParam(o.Gateway); err != nil {
 		return err
 	}

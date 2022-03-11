@@ -23,51 +23,54 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
 // ClientService is the interface for Client methods
 type ClientService interface {
-	DeleteChannelsChannelID(params *DeleteChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteChannelsChannelIDNoContent, error)
+	DeleteChannelsChannelID(params *DeleteChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteChannelsChannelIDNoContent, error)
 
-	DeleteNetworksNetworkIDTiersTierID(params *DeleteNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDTiersTierIDNoContent, error)
+	DeleteNetworksNetworkIDTiersTierID(params *DeleteNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteNetworksNetworkIDTiersTierIDNoContent, error)
 
-	DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayID(params *DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDNoContent, error)
+	DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayID(params *DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDNoContent, error)
 
-	DeleteNetworksNetworkIDTiersTierIDImagesImageName(params *DeleteNetworksNetworkIDTiersTierIDImagesImageNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDTiersTierIDImagesImageNameNoContent, error)
+	DeleteNetworksNetworkIDTiersTierIDImagesImageName(params *DeleteNetworksNetworkIDTiersTierIDImagesImageNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteNetworksNetworkIDTiersTierIDImagesImageNameNoContent, error)
 
-	GetChannels(params *GetChannelsParams, authInfo runtime.ClientAuthInfoWriter) (*GetChannelsOK, error)
+	GetChannels(params *GetChannelsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetChannelsOK, error)
 
-	GetChannelsChannelID(params *GetChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetChannelsChannelIDOK, error)
+	GetChannelsChannelID(params *GetChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetChannelsChannelIDOK, error)
 
-	GetNetworksNetworkIDTiers(params *GetNetworksNetworkIDTiersParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersOK, error)
+	GetNetworksNetworkIDTiers(params *GetNetworksNetworkIDTiersParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDTiersOK, error)
 
-	GetNetworksNetworkIDTiersTierID(params *GetNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDOK, error)
+	GetNetworksNetworkIDTiersTierID(params *GetNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDTiersTierIDOK, error)
 
-	GetNetworksNetworkIDTiersTierIDGateways(params *GetNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDGatewaysOK, error)
+	GetNetworksNetworkIDTiersTierIDGateways(params *GetNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDTiersTierIDGatewaysOK, error)
 
-	GetNetworksNetworkIDTiersTierIDImages(params *GetNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDImagesOK, error)
+	GetNetworksNetworkIDTiersTierIDImages(params *GetNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDTiersTierIDImagesOK, error)
 
-	GetNetworksNetworkIDTiersTierIDName(params *GetNetworksNetworkIDTiersTierIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDNameOK, error)
+	GetNetworksNetworkIDTiersTierIDName(params *GetNetworksNetworkIDTiersTierIDNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDTiersTierIDNameOK, error)
 
-	GetNetworksNetworkIDTiersTierIDVersion(params *GetNetworksNetworkIDTiersTierIDVersionParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDVersionOK, error)
+	GetNetworksNetworkIDTiersTierIDVersion(params *GetNetworksNetworkIDTiersTierIDVersionParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDTiersTierIDVersionOK, error)
 
-	PostChannels(params *PostChannelsParams, authInfo runtime.ClientAuthInfoWriter) (*PostChannelsCreated, error)
+	PostChannels(params *PostChannelsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostChannelsCreated, error)
 
-	PostNetworksNetworkIDTiers(params *PostNetworksNetworkIDTiersParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDTiersCreated, error)
+	PostNetworksNetworkIDTiers(params *PostNetworksNetworkIDTiersParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDTiersCreated, error)
 
-	PostNetworksNetworkIDTiersTierIDGateways(params *PostNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDTiersTierIDGatewaysNoContent, error)
+	PostNetworksNetworkIDTiersTierIDGateways(params *PostNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDTiersTierIDGatewaysNoContent, error)
 
-	PostNetworksNetworkIDTiersTierIDImages(params *PostNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDTiersTierIDImagesNoContent, error)
+	PostNetworksNetworkIDTiersTierIDImages(params *PostNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDTiersTierIDImagesNoContent, error)
 
-	PutChannelsChannelID(params *PutChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutChannelsChannelIDNoContent, error)
+	PutChannelsChannelID(params *PutChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutChannelsChannelIDNoContent, error)
 
-	PutNetworksNetworkIDTiersTierID(params *PutNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDNoContent, error)
+	PutNetworksNetworkIDTiersTierID(params *PutNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutNetworksNetworkIDTiersTierIDNoContent, error)
 
-	PutNetworksNetworkIDTiersTierIDGateways(params *PutNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDGatewaysNoContent, error)
+	PutNetworksNetworkIDTiersTierIDGateways(params *PutNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutNetworksNetworkIDTiersTierIDGatewaysNoContent, error)
 
-	PutNetworksNetworkIDTiersTierIDImages(params *PutNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDImagesNoContent, error)
+	PutNetworksNetworkIDTiersTierIDImages(params *PutNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutNetworksNetworkIDTiersTierIDImagesNoContent, error)
 
-	PutNetworksNetworkIDTiersTierIDName(params *PutNetworksNetworkIDTiersTierIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDNameNoContent, error)
+	PutNetworksNetworkIDTiersTierIDName(params *PutNetworksNetworkIDTiersTierIDNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutNetworksNetworkIDTiersTierIDNameNoContent, error)
 
-	PutNetworksNetworkIDTiersTierIDVersion(params *PutNetworksNetworkIDTiersTierIDVersionParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDVersionNoContent, error)
+	PutNetworksNetworkIDTiersTierIDVersion(params *PutNetworksNetworkIDTiersTierIDVersionParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutNetworksNetworkIDTiersTierIDVersionNoContent, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -75,13 +78,12 @@ type ClientService interface {
 /*
   DeleteChannelsChannelID deletes a release channel
 */
-func (a *Client) DeleteChannelsChannelID(params *DeleteChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteChannelsChannelIDNoContent, error) {
+func (a *Client) DeleteChannelsChannelID(params *DeleteChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteChannelsChannelIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteChannelsChannelIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteChannelsChannelID",
 		Method:             "DELETE",
 		PathPattern:        "/channels/{channel_id}",
@@ -93,7 +95,12 @@ func (a *Client) DeleteChannelsChannelID(params *DeleteChannelsChannelIDParams, 
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -109,13 +116,12 @@ func (a *Client) DeleteChannelsChannelID(params *DeleteChannelsChannelIDParams, 
 /*
   DeleteNetworksNetworkIDTiersTierID deletes upgrade tier
 */
-func (a *Client) DeleteNetworksNetworkIDTiersTierID(params *DeleteNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDTiersTierIDNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDTiersTierID(params *DeleteNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteNetworksNetworkIDTiersTierIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDTiersTierIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteNetworksNetworkIDTiersTierID",
 		Method:             "DELETE",
 		PathPattern:        "/networks/{network_id}/tiers/{tier_id}",
@@ -127,7 +133,12 @@ func (a *Client) DeleteNetworksNetworkIDTiersTierID(params *DeleteNetworksNetwor
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -143,13 +154,12 @@ func (a *Client) DeleteNetworksNetworkIDTiersTierID(params *DeleteNetworksNetwor
 /*
   DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayID removes a gateway from tier
 */
-func (a *Client) DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayID(params *DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayID(params *DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayID",
 		Method:             "DELETE",
 		PathPattern:        "/networks/{network_id}/tiers/{tier_id}/gateways/{gateway_id}",
@@ -161,7 +171,12 @@ func (a *Client) DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayID(params *Del
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -177,13 +192,12 @@ func (a *Client) DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayID(params *Del
 /*
   DeleteNetworksNetworkIDTiersTierIDImagesImageName removes an image from tier
 */
-func (a *Client) DeleteNetworksNetworkIDTiersTierIDImagesImageName(params *DeleteNetworksNetworkIDTiersTierIDImagesImageNameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteNetworksNetworkIDTiersTierIDImagesImageNameNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDTiersTierIDImagesImageName(params *DeleteNetworksNetworkIDTiersTierIDImagesImageNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteNetworksNetworkIDTiersTierIDImagesImageNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDTiersTierIDImagesImageNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteNetworksNetworkIDTiersTierIDImagesImageName",
 		Method:             "DELETE",
 		PathPattern:        "/networks/{network_id}/tiers/{tier_id}/images/{image_name}",
@@ -195,7 +209,12 @@ func (a *Client) DeleteNetworksNetworkIDTiersTierIDImagesImageName(params *Delet
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -211,13 +230,12 @@ func (a *Client) DeleteNetworksNetworkIDTiersTierIDImagesImageName(params *Delet
 /*
   GetChannels lists all release channels
 */
-func (a *Client) GetChannels(params *GetChannelsParams, authInfo runtime.ClientAuthInfoWriter) (*GetChannelsOK, error) {
+func (a *Client) GetChannels(params *GetChannelsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetChannelsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetChannelsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetChannels",
 		Method:             "GET",
 		PathPattern:        "/channels",
@@ -229,7 +247,12 @@ func (a *Client) GetChannels(params *GetChannelsParams, authInfo runtime.ClientA
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -245,13 +268,12 @@ func (a *Client) GetChannels(params *GetChannelsParams, authInfo runtime.ClientA
 /*
   GetChannelsChannelID gets release channel by id
 */
-func (a *Client) GetChannelsChannelID(params *GetChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetChannelsChannelIDOK, error) {
+func (a *Client) GetChannelsChannelID(params *GetChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetChannelsChannelIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetChannelsChannelIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetChannelsChannelID",
 		Method:             "GET",
 		PathPattern:        "/channels/{channel_id}",
@@ -263,7 +285,12 @@ func (a *Client) GetChannelsChannelID(params *GetChannelsChannelIDParams, authIn
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -279,13 +306,12 @@ func (a *Client) GetChannelsChannelID(params *GetChannelsChannelIDParams, authIn
 /*
   GetNetworksNetworkIDTiers gets a list of upgrade tiers
 */
-func (a *Client) GetNetworksNetworkIDTiers(params *GetNetworksNetworkIDTiersParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersOK, error) {
+func (a *Client) GetNetworksNetworkIDTiers(params *GetNetworksNetworkIDTiersParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDTiersOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDTiersParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDTiers",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/tiers",
@@ -297,7 +323,12 @@ func (a *Client) GetNetworksNetworkIDTiers(params *GetNetworksNetworkIDTiersPara
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -313,13 +344,12 @@ func (a *Client) GetNetworksNetworkIDTiers(params *GetNetworksNetworkIDTiersPara
 /*
   GetNetworksNetworkIDTiersTierID gets upgrade tier
 */
-func (a *Client) GetNetworksNetworkIDTiersTierID(params *GetNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDOK, error) {
+func (a *Client) GetNetworksNetworkIDTiersTierID(params *GetNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDTiersTierIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDTiersTierIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDTiersTierID",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/tiers/{tier_id}",
@@ -331,7 +361,12 @@ func (a *Client) GetNetworksNetworkIDTiersTierID(params *GetNetworksNetworkIDTie
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -347,13 +382,12 @@ func (a *Client) GetNetworksNetworkIDTiersTierID(params *GetNetworksNetworkIDTie
 /*
   GetNetworksNetworkIDTiersTierIDGateways gets gateways of upgrade tier
 */
-func (a *Client) GetNetworksNetworkIDTiersTierIDGateways(params *GetNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDGatewaysOK, error) {
+func (a *Client) GetNetworksNetworkIDTiersTierIDGateways(params *GetNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDTiersTierIDGatewaysOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDTiersTierIDGatewaysParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDTiersTierIDGateways",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/tiers/{tier_id}/gateways",
@@ -365,7 +399,12 @@ func (a *Client) GetNetworksNetworkIDTiersTierIDGateways(params *GetNetworksNetw
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -381,13 +420,12 @@ func (a *Client) GetNetworksNetworkIDTiersTierIDGateways(params *GetNetworksNetw
 /*
   GetNetworksNetworkIDTiersTierIDImages gets images of upgrade tier
 */
-func (a *Client) GetNetworksNetworkIDTiersTierIDImages(params *GetNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDImagesOK, error) {
+func (a *Client) GetNetworksNetworkIDTiersTierIDImages(params *GetNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDTiersTierIDImagesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDTiersTierIDImagesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDTiersTierIDImages",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/tiers/{tier_id}/images",
@@ -399,7 +437,12 @@ func (a *Client) GetNetworksNetworkIDTiersTierIDImages(params *GetNetworksNetwor
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -415,13 +458,12 @@ func (a *Client) GetNetworksNetworkIDTiersTierIDImages(params *GetNetworksNetwor
 /*
   GetNetworksNetworkIDTiersTierIDName gets name of upgrade tier
 */
-func (a *Client) GetNetworksNetworkIDTiersTierIDName(params *GetNetworksNetworkIDTiersTierIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDNameOK, error) {
+func (a *Client) GetNetworksNetworkIDTiersTierIDName(params *GetNetworksNetworkIDTiersTierIDNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDTiersTierIDNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDTiersTierIDNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDTiersTierIDName",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/tiers/{tier_id}/name",
@@ -433,7 +475,12 @@ func (a *Client) GetNetworksNetworkIDTiersTierIDName(params *GetNetworksNetworkI
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -449,13 +496,12 @@ func (a *Client) GetNetworksNetworkIDTiersTierIDName(params *GetNetworksNetworkI
 /*
   GetNetworksNetworkIDTiersTierIDVersion gets version of upgrade tier
 */
-func (a *Client) GetNetworksNetworkIDTiersTierIDVersion(params *GetNetworksNetworkIDTiersTierIDVersionParams, authInfo runtime.ClientAuthInfoWriter) (*GetNetworksNetworkIDTiersTierIDVersionOK, error) {
+func (a *Client) GetNetworksNetworkIDTiersTierIDVersion(params *GetNetworksNetworkIDTiersTierIDVersionParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDTiersTierIDVersionOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDTiersTierIDVersionParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDTiersTierIDVersion",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/tiers/{tier_id}/version",
@@ -467,7 +513,12 @@ func (a *Client) GetNetworksNetworkIDTiersTierIDVersion(params *GetNetworksNetwo
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -483,13 +534,12 @@ func (a *Client) GetNetworksNetworkIDTiersTierIDVersion(params *GetNetworksNetwo
 /*
   PostChannels creates a new release channel
 */
-func (a *Client) PostChannels(params *PostChannelsParams, authInfo runtime.ClientAuthInfoWriter) (*PostChannelsCreated, error) {
+func (a *Client) PostChannels(params *PostChannelsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostChannelsCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostChannelsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostChannels",
 		Method:             "POST",
 		PathPattern:        "/channels",
@@ -501,7 +551,12 @@ func (a *Client) PostChannels(params *PostChannelsParams, authInfo runtime.Clien
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -517,13 +572,12 @@ func (a *Client) PostChannels(params *PostChannelsParams, authInfo runtime.Clien
 /*
   PostNetworksNetworkIDTiers registers a tier
 */
-func (a *Client) PostNetworksNetworkIDTiers(params *PostNetworksNetworkIDTiersParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDTiersCreated, error) {
+func (a *Client) PostNetworksNetworkIDTiers(params *PostNetworksNetworkIDTiersParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDTiersCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDTiersParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostNetworksNetworkIDTiers",
 		Method:             "POST",
 		PathPattern:        "/networks/{network_id}/tiers",
@@ -535,7 +589,12 @@ func (a *Client) PostNetworksNetworkIDTiers(params *PostNetworksNetworkIDTiersPa
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -551,13 +610,12 @@ func (a *Client) PostNetworksNetworkIDTiers(params *PostNetworksNetworkIDTiersPa
 /*
   PostNetworksNetworkIDTiersTierIDGateways adds a gateway to upgrade tier
 */
-func (a *Client) PostNetworksNetworkIDTiersTierIDGateways(params *PostNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDTiersTierIDGatewaysNoContent, error) {
+func (a *Client) PostNetworksNetworkIDTiersTierIDGateways(params *PostNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDTiersTierIDGatewaysNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDTiersTierIDGatewaysParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostNetworksNetworkIDTiersTierIDGateways",
 		Method:             "POST",
 		PathPattern:        "/networks/{network_id}/tiers/{tier_id}/gateways",
@@ -569,7 +627,12 @@ func (a *Client) PostNetworksNetworkIDTiersTierIDGateways(params *PostNetworksNe
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -585,13 +648,12 @@ func (a *Client) PostNetworksNetworkIDTiersTierIDGateways(params *PostNetworksNe
 /*
   PostNetworksNetworkIDTiersTierIDImages adds an image to upgrade tier
 */
-func (a *Client) PostNetworksNetworkIDTiersTierIDImages(params *PostNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter) (*PostNetworksNetworkIDTiersTierIDImagesNoContent, error) {
+func (a *Client) PostNetworksNetworkIDTiersTierIDImages(params *PostNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDTiersTierIDImagesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDTiersTierIDImagesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostNetworksNetworkIDTiersTierIDImages",
 		Method:             "POST",
 		PathPattern:        "/networks/{network_id}/tiers/{tier_id}/images",
@@ -603,7 +665,12 @@ func (a *Client) PostNetworksNetworkIDTiersTierIDImages(params *PostNetworksNetw
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -619,13 +686,12 @@ func (a *Client) PostNetworksNetworkIDTiersTierIDImages(params *PostNetworksNetw
 /*
   PutChannelsChannelID updates a release channel
 */
-func (a *Client) PutChannelsChannelID(params *PutChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutChannelsChannelIDNoContent, error) {
+func (a *Client) PutChannelsChannelID(params *PutChannelsChannelIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutChannelsChannelIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutChannelsChannelIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutChannelsChannelID",
 		Method:             "PUT",
 		PathPattern:        "/channels/{channel_id}",
@@ -637,7 +703,12 @@ func (a *Client) PutChannelsChannelID(params *PutChannelsChannelIDParams, authIn
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -653,13 +724,12 @@ func (a *Client) PutChannelsChannelID(params *PutChannelsChannelIDParams, authIn
 /*
   PutNetworksNetworkIDTiersTierID updates upgrade tier
 */
-func (a *Client) PutNetworksNetworkIDTiersTierID(params *PutNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDNoContent, error) {
+func (a *Client) PutNetworksNetworkIDTiersTierID(params *PutNetworksNetworkIDTiersTierIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutNetworksNetworkIDTiersTierIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDTiersTierIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDTiersTierID",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/tiers/{tier_id}",
@@ -671,7 +741,12 @@ func (a *Client) PutNetworksNetworkIDTiersTierID(params *PutNetworksNetworkIDTie
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -687,13 +762,12 @@ func (a *Client) PutNetworksNetworkIDTiersTierID(params *PutNetworksNetworkIDTie
 /*
   PutNetworksNetworkIDTiersTierIDGateways updates upgrade tier gateways
 */
-func (a *Client) PutNetworksNetworkIDTiersTierIDGateways(params *PutNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDGatewaysNoContent, error) {
+func (a *Client) PutNetworksNetworkIDTiersTierIDGateways(params *PutNetworksNetworkIDTiersTierIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutNetworksNetworkIDTiersTierIDGatewaysNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDTiersTierIDGatewaysParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDTiersTierIDGateways",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/tiers/{tier_id}/gateways",
@@ -705,7 +779,12 @@ func (a *Client) PutNetworksNetworkIDTiersTierIDGateways(params *PutNetworksNetw
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -721,13 +800,12 @@ func (a *Client) PutNetworksNetworkIDTiersTierIDGateways(params *PutNetworksNetw
 /*
   PutNetworksNetworkIDTiersTierIDImages updates upgrade tier images
 */
-func (a *Client) PutNetworksNetworkIDTiersTierIDImages(params *PutNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDImagesNoContent, error) {
+func (a *Client) PutNetworksNetworkIDTiersTierIDImages(params *PutNetworksNetworkIDTiersTierIDImagesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutNetworksNetworkIDTiersTierIDImagesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDTiersTierIDImagesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDTiersTierIDImages",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/tiers/{tier_id}/images",
@@ -739,7 +817,12 @@ func (a *Client) PutNetworksNetworkIDTiersTierIDImages(params *PutNetworksNetwor
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -755,13 +838,12 @@ func (a *Client) PutNetworksNetworkIDTiersTierIDImages(params *PutNetworksNetwor
 /*
   PutNetworksNetworkIDTiersTierIDName updates upgrade tier name
 */
-func (a *Client) PutNetworksNetworkIDTiersTierIDName(params *PutNetworksNetworkIDTiersTierIDNameParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDNameNoContent, error) {
+func (a *Client) PutNetworksNetworkIDTiersTierIDName(params *PutNetworksNetworkIDTiersTierIDNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutNetworksNetworkIDTiersTierIDNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDTiersTierIDNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDTiersTierIDName",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/tiers/{tier_id}/name",
@@ -773,7 +855,12 @@ func (a *Client) PutNetworksNetworkIDTiersTierIDName(params *PutNetworksNetworkI
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -789,13 +876,12 @@ func (a *Client) PutNetworksNetworkIDTiersTierIDName(params *PutNetworksNetworkI
 /*
   PutNetworksNetworkIDTiersTierIDVersion updates upgrade tier version
 */
-func (a *Client) PutNetworksNetworkIDTiersTierIDVersion(params *PutNetworksNetworkIDTiersTierIDVersionParams, authInfo runtime.ClientAuthInfoWriter) (*PutNetworksNetworkIDTiersTierIDVersionNoContent, error) {
+func (a *Client) PutNetworksNetworkIDTiersTierIDVersion(params *PutNetworksNetworkIDTiersTierIDVersionParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutNetworksNetworkIDTiersTierIDVersionNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDTiersTierIDVersionParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDTiersTierIDVersion",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/tiers/{tier_id}/version",
@@ -807,7 +893,12 @@ func (a *Client) PutNetworksNetworkIDTiersTierIDVersion(params *PutNetworksNetwo
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

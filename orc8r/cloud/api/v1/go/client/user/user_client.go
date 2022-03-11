@@ -23,25 +23,28 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
 // ClientService is the interface for Client methods
 type ClientService interface {
-	DeleteUserUsername(params *DeleteUserUsernameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteUserUsernameNoContent, error)
+	DeleteUserUsername(params *DeleteUserUsernameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteUserUsernameNoContent, error)
 
-	DeleteUserUsernameTokensToken(params *DeleteUserUsernameTokensTokenParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteUserUsernameTokensTokenNoContent, error)
+	DeleteUserUsernameTokensToken(params *DeleteUserUsernameTokensTokenParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteUserUsernameTokensTokenNoContent, error)
 
-	GetUser(params *GetUserParams, authInfo runtime.ClientAuthInfoWriter) (*GetUserOK, error)
+	GetUser(params *GetUserParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetUserOK, error)
 
-	GetUserUsername(params *GetUserUsernameParams, authInfo runtime.ClientAuthInfoWriter) (*GetUserUsernameCreated, error)
+	GetUserUsername(params *GetUserUsernameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetUserUsernameCreated, error)
 
-	GetUserUsernameTokens(params *GetUserUsernameTokensParams, authInfo runtime.ClientAuthInfoWriter) (*GetUserUsernameTokensOK, error)
+	GetUserUsernameTokens(params *GetUserUsernameTokensParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetUserUsernameTokensOK, error)
 
-	PostUser(params *PostUserParams, authInfo runtime.ClientAuthInfoWriter) (*PostUserCreated, error)
+	PostUser(params *PostUserParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostUserCreated, error)
 
-	PostUserLogin(params *PostUserLoginParams) (*PostUserLoginCreated, error)
+	PostUserLogin(params *PostUserLoginParams, opts ...ClientOption) (*PostUserLoginCreated, error)
 
-	PostUserUsernameTokens(params *PostUserUsernameTokensParams, authInfo runtime.ClientAuthInfoWriter) (*PostUserUsernameTokensCreated, error)
+	PostUserUsernameTokens(params *PostUserUsernameTokensParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostUserUsernameTokensCreated, error)
 
-	PutUserUsername(params *PutUserUsernameParams, authInfo runtime.ClientAuthInfoWriter) (*PutUserUsernameNoContent, error)
+	PutUserUsername(params *PutUserUsernameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutUserUsernameNoContent, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -49,13 +52,12 @@ type ClientService interface {
 /*
   DeleteUserUsername removes a user
 */
-func (a *Client) DeleteUserUsername(params *DeleteUserUsernameParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteUserUsernameNoContent, error) {
+func (a *Client) DeleteUserUsername(params *DeleteUserUsernameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteUserUsernameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteUserUsernameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteUserUsername",
 		Method:             "DELETE",
 		PathPattern:        "/user/{username}",
@@ -67,7 +69,12 @@ func (a *Client) DeleteUserUsername(params *DeleteUserUsernameParams, authInfo r
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -83,13 +90,12 @@ func (a *Client) DeleteUserUsername(params *DeleteUserUsernameParams, authInfo r
 /*
   DeleteUserUsernameTokensToken revokes the token and its policy from the user
 */
-func (a *Client) DeleteUserUsernameTokensToken(params *DeleteUserUsernameTokensTokenParams, authInfo runtime.ClientAuthInfoWriter) (*DeleteUserUsernameTokensTokenNoContent, error) {
+func (a *Client) DeleteUserUsernameTokensToken(params *DeleteUserUsernameTokensTokenParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteUserUsernameTokensTokenNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteUserUsernameTokensTokenParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteUserUsernameTokensToken",
 		Method:             "DELETE",
 		PathPattern:        "/user/{username}/tokens/{token}",
@@ -101,7 +107,12 @@ func (a *Client) DeleteUserUsernameTokensToken(params *DeleteUserUsernameTokensT
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -117,13 +128,12 @@ func (a *Client) DeleteUserUsernameTokensToken(params *DeleteUserUsernameTokensT
 /*
   GetUser lists all usernames
 */
-func (a *Client) GetUser(params *GetUserParams, authInfo runtime.ClientAuthInfoWriter) (*GetUserOK, error) {
+func (a *Client) GetUser(params *GetUserParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetUserOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetUserParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetUser",
 		Method:             "GET",
 		PathPattern:        "/user",
@@ -135,7 +145,12 @@ func (a *Client) GetUser(params *GetUserParams, authInfo runtime.ClientAuthInfoW
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -151,13 +166,12 @@ func (a *Client) GetUser(params *GetUserParams, authInfo runtime.ClientAuthInfoW
 /*
   GetUserUsername gets a single user s information
 */
-func (a *Client) GetUserUsername(params *GetUserUsernameParams, authInfo runtime.ClientAuthInfoWriter) (*GetUserUsernameCreated, error) {
+func (a *Client) GetUserUsername(params *GetUserUsernameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetUserUsernameCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetUserUsernameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetUserUsername",
 		Method:             "GET",
 		PathPattern:        "/user/{username}",
@@ -169,7 +183,12 @@ func (a *Client) GetUserUsername(params *GetUserUsernameParams, authInfo runtime
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -185,13 +204,12 @@ func (a *Client) GetUserUsername(params *GetUserUsernameParams, authInfo runtime
 /*
   GetUserUsernameTokens gets a list of a user s tokens and their respective policies
 */
-func (a *Client) GetUserUsernameTokens(params *GetUserUsernameTokensParams, authInfo runtime.ClientAuthInfoWriter) (*GetUserUsernameTokensOK, error) {
+func (a *Client) GetUserUsernameTokens(params *GetUserUsernameTokensParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetUserUsernameTokensOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetUserUsernameTokensParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetUserUsernameTokens",
 		Method:             "GET",
 		PathPattern:        "/user/{username}/tokens",
@@ -203,7 +221,12 @@ func (a *Client) GetUserUsernameTokens(params *GetUserUsernameTokensParams, auth
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -219,13 +242,12 @@ func (a *Client) GetUserUsernameTokens(params *GetUserUsernameTokensParams, auth
 /*
   PostUser creates a user
 */
-func (a *Client) PostUser(params *PostUserParams, authInfo runtime.ClientAuthInfoWriter) (*PostUserCreated, error) {
+func (a *Client) PostUser(params *PostUserParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostUserCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostUserParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostUser",
 		Method:             "POST",
 		PathPattern:        "/user",
@@ -237,7 +259,12 @@ func (a *Client) PostUser(params *PostUserParams, authInfo runtime.ClientAuthInf
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -253,13 +280,12 @@ func (a *Client) PostUser(params *PostUserParams, authInfo runtime.ClientAuthInf
 /*
   PostUserLogin lists all the tokens given a user
 */
-func (a *Client) PostUserLogin(params *PostUserLoginParams) (*PostUserLoginCreated, error) {
+func (a *Client) PostUserLogin(params *PostUserLoginParams, opts ...ClientOption) (*PostUserLoginCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostUserLoginParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostUserLogin",
 		Method:             "POST",
 		PathPattern:        "/user/login",
@@ -270,7 +296,12 @@ func (a *Client) PostUserLogin(params *PostUserLoginParams) (*PostUserLoginCreat
 		Reader:             &PostUserLoginReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -286,13 +317,12 @@ func (a *Client) PostUserLogin(params *PostUserLoginParams) (*PostUserLoginCreat
 /*
   PostUserUsernameTokens adds a token policy to the user s existing permissions
 */
-func (a *Client) PostUserUsernameTokens(params *PostUserUsernameTokensParams, authInfo runtime.ClientAuthInfoWriter) (*PostUserUsernameTokensCreated, error) {
+func (a *Client) PostUserUsernameTokens(params *PostUserUsernameTokensParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostUserUsernameTokensCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostUserUsernameTokensParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostUserUsernameTokens",
 		Method:             "POST",
 		PathPattern:        "/user/{username}/tokens",
@@ -304,7 +334,12 @@ func (a *Client) PostUserUsernameTokens(params *PostUserUsernameTokensParams, au
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -320,13 +355,12 @@ func (a *Client) PostUserUsernameTokens(params *PostUserUsernameTokensParams, au
 /*
   PutUserUsername updates a user s password
 */
-func (a *Client) PutUserUsername(params *PutUserUsernameParams, authInfo runtime.ClientAuthInfoWriter) (*PutUserUsernameNoContent, error) {
+func (a *Client) PutUserUsername(params *PutUserUsernameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutUserUsernameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutUserUsernameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutUserUsername",
 		Method:             "PUT",
 		PathPattern:        "/user/{username}",
@@ -338,7 +372,12 @@ func (a *Client) PutUserUsername(params *PutUserUsernameParams, authInfo runtime
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

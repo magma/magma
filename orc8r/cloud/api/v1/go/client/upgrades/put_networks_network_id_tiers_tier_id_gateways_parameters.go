@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutNetworksNetworkIDTiersTierIDGatewaysParams creates a new PutNetworksNetworkIDTiersTierIDGatewaysParams object
-// with the default values initialized.
+// NewPutNetworksNetworkIDTiersTierIDGatewaysParams creates a new PutNetworksNetworkIDTiersTierIDGatewaysParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutNetworksNetworkIDTiersTierIDGatewaysParams() *PutNetworksNetworkIDTiersTierIDGatewaysParams {
-	var ()
 	return &PutNetworksNetworkIDTiersTierIDGatewaysParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutNetworksNetworkIDTiersTierIDGatewaysParamsWithTimeout creates a new PutNetworksNetworkIDTiersTierIDGatewaysParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutNetworksNetworkIDTiersTierIDGatewaysParamsWithTimeout(timeout time.Duration) *PutNetworksNetworkIDTiersTierIDGatewaysParams {
-	var ()
 	return &PutNetworksNetworkIDTiersTierIDGatewaysParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutNetworksNetworkIDTiersTierIDGatewaysParamsWithContext creates a new PutNetworksNetworkIDTiersTierIDGatewaysParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutNetworksNetworkIDTiersTierIDGatewaysParamsWithContext(ctx context.Context) *PutNetworksNetworkIDTiersTierIDGatewaysParams {
-	var ()
 	return &PutNetworksNetworkIDTiersTierIDGatewaysParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutNetworksNetworkIDTiersTierIDGatewaysParamsWithHTTPClient creates a new PutNetworksNetworkIDTiersTierIDGatewaysParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutNetworksNetworkIDTiersTierIDGatewaysParamsWithHTTPClient(client *http.Client) *PutNetworksNetworkIDTiersTierIDGatewaysParams {
-	var ()
 	return &PutNetworksNetworkIDTiersTierIDGatewaysParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutNetworksNetworkIDTiersTierIDGatewaysParams contains all the parameters to send to the API endpoint
-for the put networks network ID tiers tier ID gateways operation typically these are written to a http.Request
+/* PutNetworksNetworkIDTiersTierIDGatewaysParams contains all the parameters to send to the API endpoint
+   for the put networks network ID tiers tier ID gateways operation.
+
+   Typically these are written to a http.Request.
 */
 type PutNetworksNetworkIDTiersTierIDGatewaysParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*Tier
-	  New images for the tier
 
+	/* Tier.
+
+	   New images for the tier
 	*/
 	Tier models.TierGateways
-	/*TierID
-	  Tier ID
 
+	/* TierID.
+
+	   Tier ID
 	*/
 	TierID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put networks network ID tiers tier ID gateways params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDTiersTierIDGatewaysParams) WithDefaults() *PutNetworksNetworkIDTiersTierIDGatewaysParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put networks network ID tiers tier ID gateways params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDTiersTierIDGatewaysParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put networks network ID tiers tier ID gateways params
@@ -161,7 +177,6 @@ func (o *PutNetworksNetworkIDTiersTierIDGatewaysParams) WriteToRequest(r runtime
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.Tier != nil {
 		if err := r.SetBodyParam(o.Tier); err != nil {
 			return err

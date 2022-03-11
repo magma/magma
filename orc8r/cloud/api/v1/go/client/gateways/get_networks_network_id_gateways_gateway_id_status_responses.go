@@ -46,7 +46,7 @@ func NewGetNetworksNetworkIDGatewaysGatewayIDStatusOK() *GetNetworksNetworkIDGat
 	return &GetNetworksNetworkIDGatewaysGatewayIDStatusOK{}
 }
 
-/*GetNetworksNetworkIDGatewaysGatewayIDStatusOK handles this case with default header values.
+/* GetNetworksNetworkIDGatewaysGatewayIDStatusOK describes a response with status code 200, with default header values.
 
 The status of the gateway
 */
@@ -57,7 +57,6 @@ type GetNetworksNetworkIDGatewaysGatewayIDStatusOK struct {
 func (o *GetNetworksNetworkIDGatewaysGatewayIDStatusOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/gateways/{gateway_id}/status][%d] getNetworksNetworkIdGatewaysGatewayIdStatusOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDGatewaysGatewayIDStatusOK) GetPayload() *models.GatewayStatus {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetNetworksNetworkIDGatewaysGatewayIDStatusDefault(code int) *GetNetwork
 	}
 }
 
-/*GetNetworksNetworkIDGatewaysGatewayIDStatusDefault handles this case with default header values.
+/* GetNetworksNetworkIDGatewaysGatewayIDStatusDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetNetworksNetworkIDGatewaysGatewayIDStatusDefault) Code() int {
 func (o *GetNetworksNetworkIDGatewaysGatewayIDStatusDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/gateways/{gateway_id}/status][%d] GetNetworksNetworkIDGatewaysGatewayIDStatus default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDGatewaysGatewayIDStatusDefault) GetPayload() *models.Error {
 	return o.Payload
 }

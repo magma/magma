@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostLTENetworkIDSMSParams creates a new PostLTENetworkIDSMSParams object
-// with the default values initialized.
+// NewPostLTENetworkIDSMSParams creates a new PostLTENetworkIDSMSParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostLTENetworkIDSMSParams() *PostLTENetworkIDSMSParams {
-	var ()
 	return &PostLTENetworkIDSMSParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostLTENetworkIDSMSParamsWithTimeout creates a new PostLTENetworkIDSMSParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostLTENetworkIDSMSParamsWithTimeout(timeout time.Duration) *PostLTENetworkIDSMSParams {
-	var ()
 	return &PostLTENetworkIDSMSParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostLTENetworkIDSMSParamsWithContext creates a new PostLTENetworkIDSMSParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostLTENetworkIDSMSParamsWithContext(ctx context.Context) *PostLTENetworkIDSMSParams {
-	var ()
 	return &PostLTENetworkIDSMSParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostLTENetworkIDSMSParamsWithHTTPClient creates a new PostLTENetworkIDSMSParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostLTENetworkIDSMSParamsWithHTTPClient(client *http.Client) *PostLTENetworkIDSMSParams {
-	var ()
 	return &PostLTENetworkIDSMSParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostLTENetworkIDSMSParams contains all the parameters to send to the API endpoint
-for the post LTE network ID SMS operation typically these are written to a http.Request
+/* PostLTENetworkIDSMSParams contains all the parameters to send to the API endpoint
+   for the post LTE network ID SMS operation.
+
+   Typically these are written to a http.Request.
 */
 type PostLTENetworkIDSMSParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*SMS
-	  Message to create
 
+	/* SMS.
+
+	   Message to create
 	*/
 	SMS *models.MutableSMSMessage
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post LTE network ID SMS params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostLTENetworkIDSMSParams) WithDefaults() *PostLTENetworkIDSMSParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post LTE network ID SMS params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostLTENetworkIDSMSParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post LTE network ID SMS params
@@ -145,7 +160,6 @@ func (o *PostLTENetworkIDSMSParams) WriteToRequest(r runtime.ClientRequest, reg 
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.SMS != nil {
 		if err := r.SetBodyParam(o.SMS); err != nil {
 			return err

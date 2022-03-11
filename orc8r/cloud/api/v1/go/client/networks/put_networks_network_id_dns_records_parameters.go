@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutNetworksNetworkIDDNSRecordsParams creates a new PutNetworksNetworkIDDNSRecordsParams object
-// with the default values initialized.
+// NewPutNetworksNetworkIDDNSRecordsParams creates a new PutNetworksNetworkIDDNSRecordsParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutNetworksNetworkIDDNSRecordsParams() *PutNetworksNetworkIDDNSRecordsParams {
-	var ()
 	return &PutNetworksNetworkIDDNSRecordsParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutNetworksNetworkIDDNSRecordsParamsWithTimeout creates a new PutNetworksNetworkIDDNSRecordsParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutNetworksNetworkIDDNSRecordsParamsWithTimeout(timeout time.Duration) *PutNetworksNetworkIDDNSRecordsParams {
-	var ()
 	return &PutNetworksNetworkIDDNSRecordsParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutNetworksNetworkIDDNSRecordsParamsWithContext creates a new PutNetworksNetworkIDDNSRecordsParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutNetworksNetworkIDDNSRecordsParamsWithContext(ctx context.Context) *PutNetworksNetworkIDDNSRecordsParams {
-	var ()
 	return &PutNetworksNetworkIDDNSRecordsParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutNetworksNetworkIDDNSRecordsParamsWithHTTPClient creates a new PutNetworksNetworkIDDNSRecordsParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutNetworksNetworkIDDNSRecordsParamsWithHTTPClient(client *http.Client) *PutNetworksNetworkIDDNSRecordsParams {
-	var ()
 	return &PutNetworksNetworkIDDNSRecordsParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutNetworksNetworkIDDNSRecordsParams contains all the parameters to send to the API endpoint
-for the put networks network ID DNS records operation typically these are written to a http.Request
+/* PutNetworksNetworkIDDNSRecordsParams contains all the parameters to send to the API endpoint
+   for the put networks network ID DNS records operation.
+
+   Typically these are written to a http.Request.
 */
 type PutNetworksNetworkIDDNSRecordsParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*Records
-	  Custom DNS records for the network
 
+	/* Records.
+
+	   Custom DNS records for the network
 	*/
 	Records models.NetworkDNSRecords
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put networks network ID DNS records params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDDNSRecordsParams) WithDefaults() *PutNetworksNetworkIDDNSRecordsParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put networks network ID DNS records params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDDNSRecordsParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put networks network ID DNS records params
@@ -145,7 +160,6 @@ func (o *PutNetworksNetworkIDDNSRecordsParams) WriteToRequest(r runtime.ClientRe
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.Records != nil {
 		if err := r.SetBodyParam(o.Records); err != nil {
 			return err

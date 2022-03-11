@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostLTENetworkIDAPNSParams creates a new PostLTENetworkIDAPNSParams object
-// with the default values initialized.
+// NewPostLTENetworkIDAPNSParams creates a new PostLTENetworkIDAPNSParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostLTENetworkIDAPNSParams() *PostLTENetworkIDAPNSParams {
-	var ()
 	return &PostLTENetworkIDAPNSParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostLTENetworkIDAPNSParamsWithTimeout creates a new PostLTENetworkIDAPNSParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostLTENetworkIDAPNSParamsWithTimeout(timeout time.Duration) *PostLTENetworkIDAPNSParams {
-	var ()
 	return &PostLTENetworkIDAPNSParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostLTENetworkIDAPNSParamsWithContext creates a new PostLTENetworkIDAPNSParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostLTENetworkIDAPNSParamsWithContext(ctx context.Context) *PostLTENetworkIDAPNSParams {
-	var ()
 	return &PostLTENetworkIDAPNSParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostLTENetworkIDAPNSParamsWithHTTPClient creates a new PostLTENetworkIDAPNSParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostLTENetworkIDAPNSParamsWithHTTPClient(client *http.Client) *PostLTENetworkIDAPNSParams {
-	var ()
 	return &PostLTENetworkIDAPNSParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostLTENetworkIDAPNSParams contains all the parameters to send to the API endpoint
-for the post LTE network ID APNS operation typically these are written to a http.Request
+/* PostLTENetworkIDAPNSParams contains all the parameters to send to the API endpoint
+   for the post LTE network ID APNS operation.
+
+   Typically these are written to a http.Request.
 */
 type PostLTENetworkIDAPNSParams struct {
 
-	/*APN
-	  New APN configuration
+	/* APN.
 
+	   New APN configuration
 	*/
 	APN *models.APN
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post LTE network ID APNS params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostLTENetworkIDAPNSParams) WithDefaults() *PostLTENetworkIDAPNSParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post LTE network ID APNS params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostLTENetworkIDAPNSParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post LTE network ID APNS params
@@ -140,7 +155,6 @@ func (o *PostLTENetworkIDAPNSParams) WriteToRequest(r runtime.ClientRequest, reg
 		return err
 	}
 	var res []error
-
 	if o.APN != nil {
 		if err := r.SetBodyParam(o.APN); err != nil {
 			return err

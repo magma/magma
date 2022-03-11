@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostNetworksNetworkIDRatingGroupsParams creates a new PostNetworksNetworkIDRatingGroupsParams object
-// with the default values initialized.
+// NewPostNetworksNetworkIDRatingGroupsParams creates a new PostNetworksNetworkIDRatingGroupsParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostNetworksNetworkIDRatingGroupsParams() *PostNetworksNetworkIDRatingGroupsParams {
-	var ()
 	return &PostNetworksNetworkIDRatingGroupsParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostNetworksNetworkIDRatingGroupsParamsWithTimeout creates a new PostNetworksNetworkIDRatingGroupsParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostNetworksNetworkIDRatingGroupsParamsWithTimeout(timeout time.Duration) *PostNetworksNetworkIDRatingGroupsParams {
-	var ()
 	return &PostNetworksNetworkIDRatingGroupsParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostNetworksNetworkIDRatingGroupsParamsWithContext creates a new PostNetworksNetworkIDRatingGroupsParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostNetworksNetworkIDRatingGroupsParamsWithContext(ctx context.Context) *PostNetworksNetworkIDRatingGroupsParams {
-	var ()
 	return &PostNetworksNetworkIDRatingGroupsParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostNetworksNetworkIDRatingGroupsParamsWithHTTPClient creates a new PostNetworksNetworkIDRatingGroupsParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostNetworksNetworkIDRatingGroupsParamsWithHTTPClient(client *http.Client) *PostNetworksNetworkIDRatingGroupsParams {
-	var ()
 	return &PostNetworksNetworkIDRatingGroupsParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostNetworksNetworkIDRatingGroupsParams contains all the parameters to send to the API endpoint
-for the post networks network ID rating groups operation typically these are written to a http.Request
+/* PostNetworksNetworkIDRatingGroupsParams contains all the parameters to send to the API endpoint
+   for the post networks network ID rating groups operation.
+
+   Typically these are written to a http.Request.
 */
 type PostNetworksNetworkIDRatingGroupsParams struct {
 
-	/*RatingGroup
-	  Rating group to add
+	/* RatingGroup.
 
+	   Rating group to add
 	*/
 	RatingGroup *models.RatingGroup
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post networks network ID rating groups params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDRatingGroupsParams) WithDefaults() *PostNetworksNetworkIDRatingGroupsParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post networks network ID rating groups params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostNetworksNetworkIDRatingGroupsParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post networks network ID rating groups params
@@ -140,7 +155,6 @@ func (o *PostNetworksNetworkIDRatingGroupsParams) WriteToRequest(r runtime.Clien
 		return err
 	}
 	var res []error
-
 	if o.RatingGroup != nil {
 		if err := r.SetBodyParam(o.RatingGroup); err != nil {
 			return err

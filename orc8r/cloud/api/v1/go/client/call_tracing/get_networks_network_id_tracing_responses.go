@@ -7,6 +7,7 @@ package call_tracing
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -51,7 +52,7 @@ func NewGetNetworksNetworkIDTracingOK() *GetNetworksNetworkIDTracingOK {
 	return &GetNetworksNetworkIDTracingOK{}
 }
 
-/*GetNetworksNetworkIDTracingOK handles this case with default header values.
+/* GetNetworksNetworkIDTracingOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -62,7 +63,6 @@ type GetNetworksNetworkIDTracingOK struct {
 func (o *GetNetworksNetworkIDTracingOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/tracing][%d] getNetworksNetworkIdTracingOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDTracingOK) GetPayload() *GetNetworksNetworkIDTracingOKBodyTuple0 {
 	return o.Payload
 }
@@ -86,7 +86,7 @@ func NewGetNetworksNetworkIDTracingDefault(code int) *GetNetworksNetworkIDTracin
 	}
 }
 
-/*GetNetworksNetworkIDTracingDefault handles this case with default header values.
+/* GetNetworksNetworkIDTracingDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -104,7 +104,6 @@ func (o *GetNetworksNetworkIDTracingDefault) Code() int {
 func (o *GetNetworksNetworkIDTracingDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/tracing][%d] GetNetworksNetworkIDTracing default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDTracingDefault) GetPayload() *models.Error {
 	return o.Payload
 }
@@ -193,6 +192,38 @@ func (o *GetNetworksNetworkIDTracingOKBodyTuple0) validateP0(formats strfmt.Regi
 		if err := o.P0.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("P0")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("P0")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this get networks network ID tracing o k body tuple0 based on the context it is used
+func (o *GetNetworksNetworkIDTracingOKBodyTuple0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.contextValidateP0(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (o *GetNetworksNetworkIDTracingOKBodyTuple0) contextValidateP0(ctx context.Context, formats strfmt.Registry) error {
+
+	if o.P0 != nil {
+		if err := o.P0.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("P0")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("P0")
 			}
 			return err
 		}

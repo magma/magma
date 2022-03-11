@@ -46,7 +46,7 @@ func NewDeleteLTENetworkIDNetworkProbeTasksTaskIDNoContent() *DeleteLTENetworkID
 	return &DeleteLTENetworkIDNetworkProbeTasksTaskIDNoContent{}
 }
 
-/*DeleteLTENetworkIDNetworkProbeTasksTaskIDNoContent handles this case with default header values.
+/* DeleteLTENetworkIDNetworkProbeTasksTaskIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewDeleteLTENetworkIDNetworkProbeTasksTaskIDDefault(code int) *DeleteLTENet
 	}
 }
 
-/*DeleteLTENetworkIDNetworkProbeTasksTaskIDDefault handles this case with default header values.
+/* DeleteLTENetworkIDNetworkProbeTasksTaskIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *DeleteLTENetworkIDNetworkProbeTasksTaskIDDefault) Code() int {
 func (o *DeleteLTENetworkIDNetworkProbeTasksTaskIDDefault) Error() string {
 	return fmt.Sprintf("[DELETE /lte/{network_id}/network_probe/tasks/{task_id}][%d] DeleteLTENetworkIDNetworkProbeTasksTaskID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteLTENetworkIDNetworkProbeTasksTaskIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

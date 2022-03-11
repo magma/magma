@@ -16,59 +16,73 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
-// NewGetNetworksNetworkIDStateParams creates a new GetNetworksNetworkIDStateParams object
-// with the default values initialized.
+// NewGetNetworksNetworkIDStateParams creates a new GetNetworksNetworkIDStateParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetNetworksNetworkIDStateParams() *GetNetworksNetworkIDStateParams {
-	var ()
 	return &GetNetworksNetworkIDStateParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetNetworksNetworkIDStateParamsWithTimeout creates a new GetNetworksNetworkIDStateParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetNetworksNetworkIDStateParamsWithTimeout(timeout time.Duration) *GetNetworksNetworkIDStateParams {
-	var ()
 	return &GetNetworksNetworkIDStateParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetNetworksNetworkIDStateParamsWithContext creates a new GetNetworksNetworkIDStateParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetNetworksNetworkIDStateParamsWithContext(ctx context.Context) *GetNetworksNetworkIDStateParams {
-	var ()
 	return &GetNetworksNetworkIDStateParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetNetworksNetworkIDStateParamsWithHTTPClient creates a new GetNetworksNetworkIDStateParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetNetworksNetworkIDStateParamsWithHTTPClient(client *http.Client) *GetNetworksNetworkIDStateParams {
-	var ()
 	return &GetNetworksNetworkIDStateParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetNetworksNetworkIDStateParams contains all the parameters to send to the API endpoint
-for the get networks network ID state operation typically these are written to a http.Request
+/* GetNetworksNetworkIDStateParams contains all the parameters to send to the API endpoint
+   for the get networks network ID state operation.
+
+   Typically these are written to a http.Request.
 */
 type GetNetworksNetworkIDStateParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get networks network ID state params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDStateParams) WithDefaults() *GetNetworksNetworkIDStateParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get networks network ID state params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDStateParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get networks network ID state params

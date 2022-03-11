@@ -46,7 +46,7 @@ func NewGetFegNetworkIDGatewaysGatewayIDFederationOK() *GetFegNetworkIDGatewaysG
 	return &GetFegNetworkIDGatewaysGatewayIDFederationOK{}
 }
 
-/*GetFegNetworkIDGatewaysGatewayIDFederationOK handles this case with default header values.
+/* GetFegNetworkIDGatewaysGatewayIDFederationOK describes a response with status code 200, with default header values.
 
 Retrieved Gateway FeG Configs
 */
@@ -57,7 +57,6 @@ type GetFegNetworkIDGatewaysGatewayIDFederationOK struct {
 func (o *GetFegNetworkIDGatewaysGatewayIDFederationOK) Error() string {
 	return fmt.Sprintf("[GET /feg/{network_id}/gateways/{gateway_id}/federation][%d] getFegNetworkIdGatewaysGatewayIdFederationOK  %+v", 200, o.Payload)
 }
-
 func (o *GetFegNetworkIDGatewaysGatewayIDFederationOK) GetPayload() *models.GatewayFederationConfigs {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetFegNetworkIDGatewaysGatewayIDFederationDefault(code int) *GetFegNetwo
 	}
 }
 
-/*GetFegNetworkIDGatewaysGatewayIDFederationDefault handles this case with default header values.
+/* GetFegNetworkIDGatewaysGatewayIDFederationDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetFegNetworkIDGatewaysGatewayIDFederationDefault) Code() int {
 func (o *GetFegNetworkIDGatewaysGatewayIDFederationDefault) Error() string {
 	return fmt.Sprintf("[GET /feg/{network_id}/gateways/{gateway_id}/federation][%d] GetFegNetworkIDGatewaysGatewayIDFederation default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetFegNetworkIDGatewaysGatewayIDFederationDefault) GetPayload() *models.Error {
 	return o.Payload
 }

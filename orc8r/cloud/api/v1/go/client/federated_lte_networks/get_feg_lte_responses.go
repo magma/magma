@@ -46,7 +46,7 @@ func NewGetFegLTEOK() *GetFegLTEOK {
 	return &GetFegLTEOK{}
 }
 
-/*GetFegLTEOK handles this case with default header values.
+/* GetFegLTEOK describes a response with status code 200, with default header values.
 
 List of LTE network IDs
 */
@@ -57,7 +57,6 @@ type GetFegLTEOK struct {
 func (o *GetFegLTEOK) Error() string {
 	return fmt.Sprintf("[GET /feg_lte][%d] getFegLteOK  %+v", 200, o.Payload)
 }
-
 func (o *GetFegLTEOK) GetPayload() []string {
 	return o.Payload
 }
@@ -79,7 +78,7 @@ func NewGetFegLTEDefault(code int) *GetFegLTEDefault {
 	}
 }
 
-/*GetFegLTEDefault handles this case with default header values.
+/* GetFegLTEDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -97,7 +96,6 @@ func (o *GetFegLTEDefault) Code() int {
 func (o *GetFegLTEDefault) Error() string {
 	return fmt.Sprintf("[GET /feg_lte][%d] GetFegLTE default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetFegLTEDefault) GetPayload() *models.Error {
 	return o.Payload
 }

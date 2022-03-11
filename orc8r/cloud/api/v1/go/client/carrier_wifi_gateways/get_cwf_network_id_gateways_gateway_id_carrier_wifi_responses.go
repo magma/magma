@@ -46,7 +46,7 @@ func NewGetCwfNetworkIDGatewaysGatewayIDCarrierWifiOK() *GetCwfNetworkIDGateways
 	return &GetCwfNetworkIDGatewaysGatewayIDCarrierWifiOK{}
 }
 
-/*GetCwfNetworkIDGatewaysGatewayIDCarrierWifiOK handles this case with default header values.
+/* GetCwfNetworkIDGatewaysGatewayIDCarrierWifiOK describes a response with status code 200, with default header values.
 
 Carrier Wifi configuration
 */
@@ -57,7 +57,6 @@ type GetCwfNetworkIDGatewaysGatewayIDCarrierWifiOK struct {
 func (o *GetCwfNetworkIDGatewaysGatewayIDCarrierWifiOK) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/gateways/{gateway_id}/carrier_wifi][%d] getCwfNetworkIdGatewaysGatewayIdCarrierWifiOK  %+v", 200, o.Payload)
 }
-
 func (o *GetCwfNetworkIDGatewaysGatewayIDCarrierWifiOK) GetPayload() *models.GatewayCwfConfigs {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetCwfNetworkIDGatewaysGatewayIDCarrierWifiDefault(code int) *GetCwfNetw
 	}
 }
 
-/*GetCwfNetworkIDGatewaysGatewayIDCarrierWifiDefault handles this case with default header values.
+/* GetCwfNetworkIDGatewaysGatewayIDCarrierWifiDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetCwfNetworkIDGatewaysGatewayIDCarrierWifiDefault) Code() int {
 func (o *GetCwfNetworkIDGatewaysGatewayIDCarrierWifiDefault) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/gateways/{gateway_id}/carrier_wifi][%d] GetCwfNetworkIDGatewaysGatewayIDCarrierWifi default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetCwfNetworkIDGatewaysGatewayIDCarrierWifiDefault) GetPayload() *models.Error {
 	return o.Payload
 }

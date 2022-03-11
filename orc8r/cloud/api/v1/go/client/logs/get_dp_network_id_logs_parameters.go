@@ -17,109 +17,137 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// NewGetDpNetworkIDLogsParams creates a new GetDpNetworkIDLogsParams object
-// with the default values initialized.
+// NewGetDpNetworkIDLogsParams creates a new GetDpNetworkIDLogsParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetDpNetworkIDLogsParams() *GetDpNetworkIDLogsParams {
-	var ()
 	return &GetDpNetworkIDLogsParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetDpNetworkIDLogsParamsWithTimeout creates a new GetDpNetworkIDLogsParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetDpNetworkIDLogsParamsWithTimeout(timeout time.Duration) *GetDpNetworkIDLogsParams {
-	var ()
 	return &GetDpNetworkIDLogsParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetDpNetworkIDLogsParamsWithContext creates a new GetDpNetworkIDLogsParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetDpNetworkIDLogsParamsWithContext(ctx context.Context) *GetDpNetworkIDLogsParams {
-	var ()
 	return &GetDpNetworkIDLogsParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetDpNetworkIDLogsParamsWithHTTPClient creates a new GetDpNetworkIDLogsParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetDpNetworkIDLogsParamsWithHTTPClient(client *http.Client) *GetDpNetworkIDLogsParams {
-	var ()
 	return &GetDpNetworkIDLogsParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetDpNetworkIDLogsParams contains all the parameters to send to the API endpoint
-for the get dp network ID logs operation typically these are written to a http.Request
+/* GetDpNetworkIDLogsParams contains all the parameters to send to the API endpoint
+   for the get dp network ID logs operation.
+
+   Typically these are written to a http.Request.
 */
 type GetDpNetworkIDLogsParams struct {
 
-	/*Begin
-	  start datetime of messages
+	/* Begin.
 
+	   start datetime of messages
+
+	   Format: date-time
 	*/
 	Begin *strfmt.DateTime
-	/*End
-	  end datatime of messages
 
+	/* End.
+
+	   end datatime of messages
+
+	   Format: date-time
 	*/
 	End *strfmt.DateTime
-	/*FccID
-	  fcc id of cbsd
 
+	/* FccID.
+
+	   fcc id of cbsd
 	*/
 	FccID *string
-	/*From
-	  message origin
 
+	/* From.
+
+	   message origin
 	*/
 	From *string
-	/*Limit
-	  Number of record to return
 
+	/* Limit.
+
+	   Number of record to return
 	*/
 	Limit *int64
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*Offset
-	  Start index for pagination
 
+	/* Offset.
+
+	   Start index for pagination
 	*/
 	Offset *int64
-	/*ResponseCode
-	  response code (only applicable for SAS responses)
 
+	/* ResponseCode.
+
+	   response code (only applicable for SAS responses)
 	*/
 	ResponseCode *int64
-	/*SerialNumber
-	  serial number of cbsd
 
+	/* SerialNumber.
+
+	   serial number of cbsd
 	*/
 	SerialNumber *string
-	/*To
-	  message destination
 
+	/* To.
+
+	   message destination
 	*/
 	To *string
-	/*Type
-	  message type
 
+	/* Type.
+
+	   message type
 	*/
 	Type *string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get dp network ID logs params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetDpNetworkIDLogsParams) WithDefaults() *GetDpNetworkIDLogsParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get dp network ID logs params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetDpNetworkIDLogsParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get dp network ID logs params
@@ -288,80 +316,85 @@ func (o *GetDpNetworkIDLogsParams) WriteToRequest(r runtime.ClientRequest, reg s
 
 		// query param begin
 		var qrBegin strfmt.DateTime
+
 		if o.Begin != nil {
 			qrBegin = *o.Begin
 		}
 		qBegin := qrBegin.String()
 		if qBegin != "" {
+
 			if err := r.SetQueryParam("begin", qBegin); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.End != nil {
 
 		// query param end
 		var qrEnd strfmt.DateTime
+
 		if o.End != nil {
 			qrEnd = *o.End
 		}
 		qEnd := qrEnd.String()
 		if qEnd != "" {
+
 			if err := r.SetQueryParam("end", qEnd); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.FccID != nil {
 
 		// query param fcc_id
 		var qrFccID string
+
 		if o.FccID != nil {
 			qrFccID = *o.FccID
 		}
 		qFccID := qrFccID
 		if qFccID != "" {
+
 			if err := r.SetQueryParam("fcc_id", qFccID); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.From != nil {
 
 		// query param from
 		var qrFrom string
+
 		if o.From != nil {
 			qrFrom = *o.From
 		}
 		qFrom := qrFrom
 		if qFrom != "" {
+
 			if err := r.SetQueryParam("from", qFrom); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Limit != nil {
 
 		// query param limit
 		var qrLimit int64
+
 		if o.Limit != nil {
 			qrLimit = *o.Limit
 		}
 		qLimit := swag.FormatInt64(qrLimit)
 		if qLimit != "" {
+
 			if err := r.SetQueryParam("limit", qLimit); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	// path param network_id
@@ -373,80 +406,85 @@ func (o *GetDpNetworkIDLogsParams) WriteToRequest(r runtime.ClientRequest, reg s
 
 		// query param offset
 		var qrOffset int64
+
 		if o.Offset != nil {
 			qrOffset = *o.Offset
 		}
 		qOffset := swag.FormatInt64(qrOffset)
 		if qOffset != "" {
+
 			if err := r.SetQueryParam("offset", qOffset); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.ResponseCode != nil {
 
 		// query param response_code
 		var qrResponseCode int64
+
 		if o.ResponseCode != nil {
 			qrResponseCode = *o.ResponseCode
 		}
 		qResponseCode := swag.FormatInt64(qrResponseCode)
 		if qResponseCode != "" {
+
 			if err := r.SetQueryParam("response_code", qResponseCode); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.SerialNumber != nil {
 
 		// query param serial_number
 		var qrSerialNumber string
+
 		if o.SerialNumber != nil {
 			qrSerialNumber = *o.SerialNumber
 		}
 		qSerialNumber := qrSerialNumber
 		if qSerialNumber != "" {
+
 			if err := r.SetQueryParam("serial_number", qSerialNumber); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.To != nil {
 
 		// query param to
 		var qrTo string
+
 		if o.To != nil {
 			qrTo = *o.To
 		}
 		qTo := qrTo
 		if qTo != "" {
+
 			if err := r.SetQueryParam("to", qTo); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Type != nil {
 
 		// query param type
 		var qrType string
+
 		if o.Type != nil {
 			qrType = *o.Type
 		}
 		qType := qrType
 		if qType != "" {
+
 			if err := r.SetQueryParam("type", qType); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if len(res) > 0 {

@@ -46,7 +46,7 @@ func NewGetDpNetworkIDCbsdsCbsdIDOK() *GetDpNetworkIDCbsdsCbsdIDOK {
 	return &GetDpNetworkIDCbsdsCbsdIDOK{}
 }
 
-/*GetDpNetworkIDCbsdsCbsdIDOK handles this case with default header values.
+/* GetDpNetworkIDCbsdsCbsdIDOK describes a response with status code 200, with default header values.
 
 CBSD
 */
@@ -57,7 +57,6 @@ type GetDpNetworkIDCbsdsCbsdIDOK struct {
 func (o *GetDpNetworkIDCbsdsCbsdIDOK) Error() string {
 	return fmt.Sprintf("[GET /dp/{network_id}/cbsds/{cbsd_id}][%d] getDpNetworkIdCbsdsCbsdIdOK  %+v", 200, o.Payload)
 }
-
 func (o *GetDpNetworkIDCbsdsCbsdIDOK) GetPayload() *models.Cbsd {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetDpNetworkIDCbsdsCbsdIDDefault(code int) *GetDpNetworkIDCbsdsCbsdIDDef
 	}
 }
 
-/*GetDpNetworkIDCbsdsCbsdIDDefault handles this case with default header values.
+/* GetDpNetworkIDCbsdsCbsdIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetDpNetworkIDCbsdsCbsdIDDefault) Code() int {
 func (o *GetDpNetworkIDCbsdsCbsdIDDefault) Error() string {
 	return fmt.Sprintf("[GET /dp/{network_id}/cbsds/{cbsd_id}][%d] GetDpNetworkIDCbsdsCbsdID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetDpNetworkIDCbsdsCbsdIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

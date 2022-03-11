@@ -18,64 +18,79 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutCwfNetworkIDSubscriberConfigParams creates a new PutCwfNetworkIDSubscriberConfigParams object
-// with the default values initialized.
+// NewPutCwfNetworkIDSubscriberConfigParams creates a new PutCwfNetworkIDSubscriberConfigParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutCwfNetworkIDSubscriberConfigParams() *PutCwfNetworkIDSubscriberConfigParams {
-	var ()
 	return &PutCwfNetworkIDSubscriberConfigParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutCwfNetworkIDSubscriberConfigParamsWithTimeout creates a new PutCwfNetworkIDSubscriberConfigParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutCwfNetworkIDSubscriberConfigParamsWithTimeout(timeout time.Duration) *PutCwfNetworkIDSubscriberConfigParams {
-	var ()
 	return &PutCwfNetworkIDSubscriberConfigParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutCwfNetworkIDSubscriberConfigParamsWithContext creates a new PutCwfNetworkIDSubscriberConfigParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutCwfNetworkIDSubscriberConfigParamsWithContext(ctx context.Context) *PutCwfNetworkIDSubscriberConfigParams {
-	var ()
 	return &PutCwfNetworkIDSubscriberConfigParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutCwfNetworkIDSubscriberConfigParamsWithHTTPClient creates a new PutCwfNetworkIDSubscriberConfigParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutCwfNetworkIDSubscriberConfigParamsWithHTTPClient(client *http.Client) *PutCwfNetworkIDSubscriberConfigParams {
-	var ()
 	return &PutCwfNetworkIDSubscriberConfigParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutCwfNetworkIDSubscriberConfigParams contains all the parameters to send to the API endpoint
-for the put cwf network ID subscriber config operation typically these are written to a http.Request
+/* PutCwfNetworkIDSubscriberConfigParams contains all the parameters to send to the API endpoint
+   for the put cwf network ID subscriber config operation.
+
+   Typically these are written to a http.Request.
 */
 type PutCwfNetworkIDSubscriberConfigParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*Record
-	  Subscriber Config for the Network
 
+	/* Record.
+
+	   Subscriber Config for the Network
 	*/
 	Record *models.NetworkSubscriberConfig
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put cwf network ID subscriber config params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDSubscriberConfigParams) WithDefaults() *PutCwfNetworkIDSubscriberConfigParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put cwf network ID subscriber config params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutCwfNetworkIDSubscriberConfigParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put cwf network ID subscriber config params
@@ -145,7 +160,6 @@ func (o *PutCwfNetworkIDSubscriberConfigParams) WriteToRequest(r runtime.ClientR
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.Record != nil {
 		if err := r.SetBodyParam(o.Record); err != nil {
 			return err

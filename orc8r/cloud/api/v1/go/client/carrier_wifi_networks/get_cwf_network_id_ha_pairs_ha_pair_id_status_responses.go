@@ -46,7 +46,7 @@ func NewGetCwfNetworkIDHaPairsHaPairIDStatusOK() *GetCwfNetworkIDHaPairsHaPairID
 	return &GetCwfNetworkIDHaPairsHaPairIDStatusOK{}
 }
 
-/*GetCwfNetworkIDHaPairsHaPairIDStatusOK handles this case with default header values.
+/* GetCwfNetworkIDHaPairsHaPairIDStatusOK describes a response with status code 200, with default header values.
 
 Status of a HA pair
 */
@@ -57,7 +57,6 @@ type GetCwfNetworkIDHaPairsHaPairIDStatusOK struct {
 func (o *GetCwfNetworkIDHaPairsHaPairIDStatusOK) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/ha_pairs/{ha_pair_id}/status][%d] getCwfNetworkIdHaPairsHaPairIdStatusOK  %+v", 200, o.Payload)
 }
-
 func (o *GetCwfNetworkIDHaPairsHaPairIDStatusOK) GetPayload() *models.CarrierWifiHaPairStatus {
 	return o.Payload
 }
@@ -81,7 +80,7 @@ func NewGetCwfNetworkIDHaPairsHaPairIDStatusDefault(code int) *GetCwfNetworkIDHa
 	}
 }
 
-/*GetCwfNetworkIDHaPairsHaPairIDStatusDefault handles this case with default header values.
+/* GetCwfNetworkIDHaPairsHaPairIDStatusDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -99,7 +98,6 @@ func (o *GetCwfNetworkIDHaPairsHaPairIDStatusDefault) Code() int {
 func (o *GetCwfNetworkIDHaPairsHaPairIDStatusDefault) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/ha_pairs/{ha_pair_id}/status][%d] GetCwfNetworkIDHaPairsHaPairIDStatus default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetCwfNetworkIDHaPairsHaPairIDStatusDefault) GetPayload() *models.Error {
 	return o.Payload
 }

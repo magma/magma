@@ -18,61 +18,76 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutNetworksNetworkIDSentryParams creates a new PutNetworksNetworkIDSentryParams object
-// with the default values initialized.
+// NewPutNetworksNetworkIDSentryParams creates a new PutNetworksNetworkIDSentryParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutNetworksNetworkIDSentryParams() *PutNetworksNetworkIDSentryParams {
-	var ()
 	return &PutNetworksNetworkIDSentryParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutNetworksNetworkIDSentryParamsWithTimeout creates a new PutNetworksNetworkIDSentryParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutNetworksNetworkIDSentryParamsWithTimeout(timeout time.Duration) *PutNetworksNetworkIDSentryParams {
-	var ()
 	return &PutNetworksNetworkIDSentryParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutNetworksNetworkIDSentryParamsWithContext creates a new PutNetworksNetworkIDSentryParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutNetworksNetworkIDSentryParamsWithContext(ctx context.Context) *PutNetworksNetworkIDSentryParams {
-	var ()
 	return &PutNetworksNetworkIDSentryParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutNetworksNetworkIDSentryParamsWithHTTPClient creates a new PutNetworksNetworkIDSentryParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutNetworksNetworkIDSentryParamsWithHTTPClient(client *http.Client) *PutNetworksNetworkIDSentryParams {
-	var ()
 	return &PutNetworksNetworkIDSentryParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutNetworksNetworkIDSentryParams contains all the parameters to send to the API endpoint
-for the put networks network ID sentry operation typically these are written to a http.Request
+/* PutNetworksNetworkIDSentryParams contains all the parameters to send to the API endpoint
+   for the put networks network ID sentry operation.
+
+   Typically these are written to a http.Request.
 */
 type PutNetworksNetworkIDSentryParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*NetworkSentryConfig*/
+
+	// NetworkSentryConfig.
 	NetworkSentryConfig *models.NetworkSentryConfig
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put networks network ID sentry params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDSentryParams) WithDefaults() *PutNetworksNetworkIDSentryParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put networks network ID sentry params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutNetworksNetworkIDSentryParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put networks network ID sentry params
@@ -142,7 +157,6 @@ func (o *PutNetworksNetworkIDSentryParams) WriteToRequest(r runtime.ClientReques
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.NetworkSentryConfig != nil {
 		if err := r.SetBodyParam(o.NetworkSentryConfig); err != nil {
 			return err

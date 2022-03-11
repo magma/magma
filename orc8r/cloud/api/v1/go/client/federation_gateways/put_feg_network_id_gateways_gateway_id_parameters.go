@@ -18,69 +18,85 @@ import (
 	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutFegNetworkIDGatewaysGatewayIDParams creates a new PutFegNetworkIDGatewaysGatewayIDParams object
-// with the default values initialized.
+// NewPutFegNetworkIDGatewaysGatewayIDParams creates a new PutFegNetworkIDGatewaysGatewayIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutFegNetworkIDGatewaysGatewayIDParams() *PutFegNetworkIDGatewaysGatewayIDParams {
-	var ()
 	return &PutFegNetworkIDGatewaysGatewayIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutFegNetworkIDGatewaysGatewayIDParamsWithTimeout creates a new PutFegNetworkIDGatewaysGatewayIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutFegNetworkIDGatewaysGatewayIDParamsWithTimeout(timeout time.Duration) *PutFegNetworkIDGatewaysGatewayIDParams {
-	var ()
 	return &PutFegNetworkIDGatewaysGatewayIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutFegNetworkIDGatewaysGatewayIDParamsWithContext creates a new PutFegNetworkIDGatewaysGatewayIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutFegNetworkIDGatewaysGatewayIDParamsWithContext(ctx context.Context) *PutFegNetworkIDGatewaysGatewayIDParams {
-	var ()
 	return &PutFegNetworkIDGatewaysGatewayIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutFegNetworkIDGatewaysGatewayIDParamsWithHTTPClient creates a new PutFegNetworkIDGatewaysGatewayIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutFegNetworkIDGatewaysGatewayIDParamsWithHTTPClient(client *http.Client) *PutFegNetworkIDGatewaysGatewayIDParams {
-	var ()
 	return &PutFegNetworkIDGatewaysGatewayIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutFegNetworkIDGatewaysGatewayIDParams contains all the parameters to send to the API endpoint
-for the put feg network ID gateways gateway ID operation typically these are written to a http.Request
+/* PutFegNetworkIDGatewaysGatewayIDParams contains all the parameters to send to the API endpoint
+   for the put feg network ID gateways gateway ID operation.
+
+   Typically these are written to a http.Request.
 */
 type PutFegNetworkIDGatewaysGatewayIDParams struct {
 
-	/*Gateway
-	  Full desired configuration of the gateway
+	/* Gateway.
 
+	   Full desired configuration of the gateway
 	*/
 	Gateway *models.MutableFederationGateway
-	/*GatewayID
-	  Gateway ID
 
+	/* GatewayID.
+
+	   Gateway ID
 	*/
 	GatewayID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put feg network ID gateways gateway ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutFegNetworkIDGatewaysGatewayIDParams) WithDefaults() *PutFegNetworkIDGatewaysGatewayIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put feg network ID gateways gateway ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutFegNetworkIDGatewaysGatewayIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put feg network ID gateways gateway ID params
@@ -156,7 +172,6 @@ func (o *PutFegNetworkIDGatewaysGatewayIDParams) WriteToRequest(r runtime.Client
 		return err
 	}
 	var res []error
-
 	if o.Gateway != nil {
 		if err := r.SetBodyParam(o.Gateway); err != nil {
 			return err

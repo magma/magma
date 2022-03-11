@@ -46,7 +46,7 @@ func NewDeleteLTENetworkIDGatewayPoolsGatewayPoolIDNoContent() *DeleteLTENetwork
 	return &DeleteLTENetworkIDGatewayPoolsGatewayPoolIDNoContent{}
 }
 
-/*DeleteLTENetworkIDGatewayPoolsGatewayPoolIDNoContent handles this case with default header values.
+/* DeleteLTENetworkIDGatewayPoolsGatewayPoolIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewDeleteLTENetworkIDGatewayPoolsGatewayPoolIDDefault(code int) *DeleteLTEN
 	}
 }
 
-/*DeleteLTENetworkIDGatewayPoolsGatewayPoolIDDefault handles this case with default header values.
+/* DeleteLTENetworkIDGatewayPoolsGatewayPoolIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *DeleteLTENetworkIDGatewayPoolsGatewayPoolIDDefault) Code() int {
 func (o *DeleteLTENetworkIDGatewayPoolsGatewayPoolIDDefault) Error() string {
 	return fmt.Sprintf("[DELETE /lte/{network_id}/gateway_pools/{gateway_pool_id}][%d] DeleteLTENetworkIDGatewayPoolsGatewayPoolID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteLTENetworkIDGatewayPoolsGatewayPoolIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

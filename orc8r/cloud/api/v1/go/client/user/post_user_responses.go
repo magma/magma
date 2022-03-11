@@ -46,7 +46,7 @@ func NewPostUserCreated() *PostUserCreated {
 	return &PostUserCreated{}
 }
 
-/*PostUserCreated handles this case with default header values.
+/* PostUserCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPostUserDefault(code int) *PostUserDefault {
 	}
 }
 
-/*PostUserDefault handles this case with default header values.
+/* PostUserDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PostUserDefault) Code() int {
 func (o *PostUserDefault) Error() string {
 	return fmt.Sprintf("[POST /user][%d] PostUser default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostUserDefault) GetPayload() *models.Error {
 	return o.Payload
 }

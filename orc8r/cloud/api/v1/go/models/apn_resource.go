@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -19,7 +21,7 @@ type APNResource struct {
 
 	// apn name
 	// Required: true
-	APNName APNName `json:"apn_name"`
+	APNName APNName `json:"apn_name" magma_alt_name:"service_selection"`
 
 	// gateway ip
 	// Format: ipv4
@@ -66,9 +68,15 @@ func (m *APNResource) Validate(formats strfmt.Registry) error {
 
 func (m *APNResource) validateAPNName(formats strfmt.Registry) error {
 
+	if err := validate.Required("apn_name", "body", APNName(m.APNName)); err != nil {
+		return err
+	}
+
 	if err := m.APNName.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("apn_name")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("apn_name")
 		}
 		return err
 	}
@@ -77,7 +85,6 @@ func (m *APNResource) validateAPNName(formats strfmt.Registry) error {
 }
 
 func (m *APNResource) validateGatewayIP(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.GatewayIP) { // not required
 		return nil
 	}
@@ -90,7 +97,6 @@ func (m *APNResource) validateGatewayIP(formats strfmt.Registry) error {
 }
 
 func (m *APNResource) validateGatewayMac(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.GatewayMac) { // not required
 		return nil
 	}
@@ -104,11 +110,39 @@ func (m *APNResource) validateGatewayMac(formats strfmt.Registry) error {
 
 func (m *APNResource) validateID(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("id", "body", string(m.ID)); err != nil {
+	if err := validate.RequiredString("id", "body", m.ID); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("id", "body", string(m.ID), 1); err != nil {
+	if err := validate.MinLength("id", "body", m.ID, 1); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this apn resource based on the context it is used
+func (m *APNResource) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateAPNName(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *APNResource) contextValidateAPNName(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.APNName.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("apn_name")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("apn_name")
+		}
 		return err
 	}
 

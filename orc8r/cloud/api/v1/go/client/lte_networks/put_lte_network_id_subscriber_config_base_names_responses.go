@@ -46,7 +46,7 @@ func NewPutLTENetworkIDSubscriberConfigBaseNamesNoContent() *PutLTENetworkIDSubs
 	return &PutLTENetworkIDSubscriberConfigBaseNamesNoContent{}
 }
 
-/*PutLTENetworkIDSubscriberConfigBaseNamesNoContent handles this case with default header values.
+/* PutLTENetworkIDSubscriberConfigBaseNamesNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -69,7 +69,7 @@ func NewPutLTENetworkIDSubscriberConfigBaseNamesDefault(code int) *PutLTENetwork
 	}
 }
 
-/*PutLTENetworkIDSubscriberConfigBaseNamesDefault handles this case with default header values.
+/* PutLTENetworkIDSubscriberConfigBaseNamesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -87,7 +87,6 @@ func (o *PutLTENetworkIDSubscriberConfigBaseNamesDefault) Code() int {
 func (o *PutLTENetworkIDSubscriberConfigBaseNamesDefault) Error() string {
 	return fmt.Sprintf("[PUT /lte/{network_id}/subscriber_config/base_names][%d] PutLTENetworkIDSubscriberConfigBaseNames default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutLTENetworkIDSubscriberConfigBaseNamesDefault) GetPayload() *models.Error {
 	return o.Payload
 }
