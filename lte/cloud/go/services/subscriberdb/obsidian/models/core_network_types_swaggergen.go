@@ -6,6 +6,7 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 	"strconv"
 
@@ -32,7 +33,7 @@ func init() {
 }
 
 func (m *CoreNetworkTypes) validateCoreNetworkTypesItemsEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, coreNetworkTypesItemsEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, coreNetworkTypesItemsEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -54,5 +55,10 @@ func (m CoreNetworkTypes) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+// ContextValidate validates this core network types based on context it is used
+func (m CoreNetworkTypes) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

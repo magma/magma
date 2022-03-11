@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -18,6 +20,7 @@ import (
 type NetworkProbeData struct {
 
 	// The timestamp in ISO 8601 format of last exported record
+	// Example: 2020-03-11T00:36:59.65Z
 	// Required: true
 	// Format: date-time
 	LastExported strfmt.DateTime `json:"last_exported"`
@@ -77,10 +80,15 @@ func (m *NetworkProbeData) validateSequenceNumber(formats strfmt.Registry) error
 
 func (m *NetworkProbeData) validateTargetID(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("target_id", "body", string(m.TargetID)); err != nil {
+	if err := validate.RequiredString("target_id", "body", m.TargetID); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this network probe data based on context it is used
+func (m *NetworkProbeData) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

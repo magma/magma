@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -18,10 +20,12 @@ import (
 type AggregatedMaximumBitrate struct {
 
 	// max bandwidth dl
+	// Example: 20000000
 	// Required: true
 	MaxBandwidthDl *uint32 `json:"max_bandwidth_dl"`
 
 	// max bandwidth ul
+	// Example: 10000000
 	// Required: true
 	MaxBandwidthUl *uint32 `json:"max_bandwidth_ul"`
 }
@@ -59,6 +63,11 @@ func (m *AggregatedMaximumBitrate) validateMaxBandwidthUl(formats strfmt.Registr
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this aggregated maximum bitrate based on context it is used
+func (m *AggregatedMaximumBitrate) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

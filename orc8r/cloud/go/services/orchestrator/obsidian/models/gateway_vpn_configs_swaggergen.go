@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -18,6 +20,7 @@ import (
 type GatewayVpnConfigs struct {
 
 	// enable shell
+	// Example: false
 	// Required: true
 	EnableShell *bool `json:"enable_shell"`
 }
@@ -42,6 +45,11 @@ func (m *GatewayVpnConfigs) validateEnableShell(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this gateway vpn configs based on context it is used
+func (m *GatewayVpnConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

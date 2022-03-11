@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
@@ -16,14 +18,21 @@ import (
 type VersionInfo struct {
 
 	// container image version
+	// Example: 1.6.0
 	ContainerImageVersion string `json:"container_image_version,omitempty"`
 
 	// helm chart version
+	// Example: 1.5.21
 	HelmChartVersion string `json:"helm_chart_version,omitempty"`
 }
 
 // Validate validates this version info
 func (m *VersionInfo) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this version info based on context it is used
+func (m *VersionInfo) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

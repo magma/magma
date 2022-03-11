@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
@@ -16,11 +18,17 @@ import (
 type GenericCommandResponse struct {
 
 	// response
+	// Example: {}
 	Response map[string]interface{} `json:"response,omitempty"`
 }
 
 // Validate validates this generic command response
 func (m *GenericCommandResponse) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this generic command response based on context it is used
+func (m *GenericCommandResponse) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

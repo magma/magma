@@ -6,6 +6,7 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/go-openapi/errors"
@@ -56,16 +57,15 @@ func (m *SuciProfile) Validate(formats strfmt.Registry) error {
 }
 
 func (m *SuciProfile) validateHomeNetworkPublicKeyIdentifier(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.HomeNetworkPublicKeyIdentifier) { // not required
 		return nil
 	}
 
-	if err := validate.MinimumInt("home_network_public_key_identifier", "body", int64(m.HomeNetworkPublicKeyIdentifier), 0, false); err != nil {
+	if err := validate.MinimumUint("home_network_public_key_identifier", "body", uint64(m.HomeNetworkPublicKeyIdentifier), 0, false); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("home_network_public_key_identifier", "body", int64(m.HomeNetworkPublicKeyIdentifier), 255, false); err != nil {
+	if err := validate.MaximumUint("home_network_public_key_identifier", "body", uint64(m.HomeNetworkPublicKeyIdentifier), 255, false); err != nil {
 		return err
 	}
 
@@ -95,14 +95,13 @@ const (
 
 // prop value enum
 func (m *SuciProfile) validateProtectionSchemeEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, suciProfileTypeProtectionSchemePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, suciProfileTypeProtectionSchemePropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *SuciProfile) validateProtectionScheme(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ProtectionScheme) { // not required
 		return nil
 	}
@@ -112,6 +111,11 @@ func (m *SuciProfile) validateProtectionScheme(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this suci profile based on context it is used
+func (m *SuciProfile) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

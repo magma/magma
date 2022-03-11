@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -49,9 +51,15 @@ func (m *ReleaseChannel) Validate(formats strfmt.Registry) error {
 
 func (m *ReleaseChannel) validateID(formats strfmt.Registry) error {
 
+	if err := validate.Required("id", "body", ChannelID(m.ID)); err != nil {
+		return err
+	}
+
 	if err := m.ID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
 		}
 		return err
 	}
@@ -62,6 +70,34 @@ func (m *ReleaseChannel) validateID(formats strfmt.Registry) error {
 func (m *ReleaseChannel) validateSupportedVersions(formats strfmt.Registry) error {
 
 	if err := validate.Required("supported_versions", "body", m.SupportedVersions); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this release channel based on the context it is used
+func (m *ReleaseChannel) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *ReleaseChannel) contextValidateID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ID.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
+		}
 		return err
 	}
 
