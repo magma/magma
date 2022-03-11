@@ -32,6 +32,13 @@ import (
 	mconfig_protos "magma/orc8r/lib/go/protos/mconfig"
 )
 
+func assertMapsEqual(t *testing.T, expected map[string]proto.Message, actual map[string]proto.Message) {
+	assert.Equal(t, len(expected), len(actual))
+	for key := range actual {
+		assert.Equal(t, expected[key].String(), actual[key].String())
+	}
+}
+
 func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 	orchestrator_test_init.StartTestService(t)
 	syncInterval := uint32(500)
@@ -104,7 +111,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		}
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		assertMapsEqual(t, expected, actual)
 	})
 
 	t.Run("no tier", func(t *testing.T) {
@@ -164,7 +171,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		assertMapsEqual(t, expected, actual)
 	})
 
 	// Put a tier in the graph
@@ -244,7 +251,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		assertMapsEqual(t, expected, actual)
 	})
 
 	t.Run("set list of files for log aggregation", func(t *testing.T) {
@@ -342,7 +349,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		assertMapsEqual(t, expected, actual)
 	})
 
 	t.Run("check default values for log throttling", func(t *testing.T) {
@@ -429,7 +436,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		assertMapsEqual(t, expected, actual)
 	})
 
 	// Test sync interval jitter
@@ -508,7 +515,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw2")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		assertMapsEqual(t, expected, actual)
 	})
 }
 
