@@ -1,0 +1,3 @@
+---
+- name: Set {{ magma_namespace }} as default namespace
+  command: kubectl config set-context --current --namespace {{ magma_namespace }}

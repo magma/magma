@@ -1,6 +1,5 @@
 ---
 - name: Install Fbinternal Orc8r
-  when: deploy_fbinternal_orc8r
   kubernetes.core.helm:
     name: fbinternal-orc8r
     chart_ref: orc8r/fbinternal-orc8r

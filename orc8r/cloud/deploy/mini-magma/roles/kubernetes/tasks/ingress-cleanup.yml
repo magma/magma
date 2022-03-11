@@ -1,0 +1,30 @@
+---
+- name: Remove ingress-nginx Namespace
+  kubernetes.core.k8s:
+    state: absent
+    name: ingress-nginx
+    kind: Namespace
+
+- name: Remove ingress-nginx ClusterRole
+  kubernetes.core.k8s:
+    state: absent
+    name: ingress-nginx
+    kind: ClusterRole
+
+- name: Remove ingress-nginx ClusterRoleBinding
+  kubernetes.core.k8s:
+    state: absent
+    name: ingress-nginx
+    kind: ClusterRoleBinding
+
+- name: Remove nginx IngressClass
+  kubernetes.core.k8s:
+    state: absent
+    name: nginx
+    kind: IngressClass
+
+- name: Remove ingress-nginx-admission ValidatingWebhookConfiguration
+  kubernetes.core.k8s:
+    state: absent
+    name: ingress-nginx-admission
+    kind: ValidatingWebhookConfiguration

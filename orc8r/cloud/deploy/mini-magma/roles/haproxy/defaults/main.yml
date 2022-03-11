@@ -1,4 +1,4 @@
 ---
 orc8r_domain: ""
-haproxy_chart_version: "1.10.0"
+haproxy_chart_version: "1.11.0"
 magma_namespace: "orc8r"

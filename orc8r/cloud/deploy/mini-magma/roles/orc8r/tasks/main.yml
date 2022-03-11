@@ -1,4 +1,5 @@
 ---
+- include_tasks: set-namespace.yml
 - include_tasks: volume-claims.yml
 - include_tasks: register-secrets.yml
 - include_tasks: orc8r.yml
@@ -6,5 +7,8 @@
 - include_tasks: feg-orc8r.yml
 - include_tasks: cwf-orc8r.yml
 - include_tasks: wifi-orc8r.yml
+  when: deploy_wifi_orc8r
 - include_tasks: domain-proxy.yml
+  when: deploy_domain_proxy
 - include_tasks: fbinternal-orc8r.yml
+  when: deploy_fbinternal_orc8r

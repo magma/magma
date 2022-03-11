@@ -1,105 +1,23 @@
 ---
-- name: Create Volume Claim for Grafana Dashboard
+- name: Create Volume Claims for Orchestrator
   kubernetes.core.k8s:
     namespace: "{{ magma_namespace }}"
     definition:
       apiVersion: v1
       kind: PersistentVolumeClaim
       metadata:
-        name: grafanadashboards
+        name: "{{ item.name }}"
       spec:
         accessModes:
           - ReadWriteOnce
         resources:
           requests:
-            storage: 2Gi
-
-- name: Create Volume Claim for Grafana Data
-  kubernetes.core.k8s:
-    namespace: "{{ magma_namespace }}"
-    definition:
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: grafanadata
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 2Gi
-
-- name: Create Volume Claim for Grafana Data Source
-  kubernetes.core.k8s:
-    namespace: "{{ magma_namespace }}"
-    definition:
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: grafanadatasources
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 100M
-
-- name: Create Volume Claim for Grafana Provider
-  kubernetes.core.k8s:
-    namespace: "{{ magma_namespace }}"
-    definition:
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: grafanaproviders
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 100M
-
-- name: Create Volume Claim for OpenVPN
-  kubernetes.core.k8s:
-    namespace: "{{ magma_namespace }}"
-    definition:
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: openvpn
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 2M
-
-- name: Create Volume Claim for Prometheus Config
-  kubernetes.core.k8s:
-    namespace: "{{ magma_namespace }}"
-    definition:
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: promcfg
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 1Gi
-
-- name: Create Volume Claim for Prometheus Data
-  kubernetes.core.k8s:
-    namespace: "{{ magma_namespace }}"
-    definition:
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: promdata
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 20Gi
+            storage: "{{ item.storage }}"
+  with_items:
+    - { name: "openvpn", storage: "2M" }
+    - { name: "promcfg", storage: "1Gi" }
+    - { name: "promdata", storage: "20Gi" }
+    - { name: "grafanadata", storage: "2Gi" }
+    - { name: "grafanadashboards", storage: "2Gi" }
+    - { name: "grafanaproviders", storage: "100M" }
+    - { name: "grafanadatasources", storage: "100M" }

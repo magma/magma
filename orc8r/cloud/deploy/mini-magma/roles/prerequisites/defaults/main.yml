@@ -1,6 +1,6 @@
 ---
 rke_version: "1.3.7"
-helm_version: "3.8.0"
+helm_version: "3.8.1"
 kubectl_version: "1.23.4"
 magma_directory: "magma-galaxy"
 orc8r_helm_repo: "https://artifactory.magmacore.org/artifactory/helm"

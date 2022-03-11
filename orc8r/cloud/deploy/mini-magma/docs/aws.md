@@ -12,4 +12,5 @@ Allow following ports in Inbound rules in Security Groups:
 2379
 6443
 10250
+24224
 ```

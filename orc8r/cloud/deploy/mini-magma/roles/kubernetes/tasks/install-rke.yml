@@ -23,12 +23,3 @@
     dest: "{{ ansible_env.HOME }}/.kube/config"
     remote_src: yes
     mode: '0600'
-
-- name: Set {{ magma_namespace }} as default namespace
-  command: kubectl config set-context --current --namespace {{ magma_namespace }}
-
-- name: Remove ingress-nginx namespace
-  kubernetes.core.k8s:
-    state: absent
-    name: ingress-nginx
-    kind: Namespace

@@ -1,3 +1,4 @@
 ---
 - include_tasks: setup-ssh-key.yml
 - include_tasks: install-rke.yml
+- include_tasks: ingress-cleanup.yml

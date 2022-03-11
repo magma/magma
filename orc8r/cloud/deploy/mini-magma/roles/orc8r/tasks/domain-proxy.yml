@@ -1,6 +1,5 @@
 ---
 - name: Install Domain Proxy
-  when: deploy_domain_proxy
   kubernetes.core.helm:
     name: domain-proxy
     chart_ref: orc8r/domain-proxy
