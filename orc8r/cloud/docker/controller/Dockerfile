@@ -26,8 +26,8 @@ RUN apt-get update && apt-get install -y \
 
 # Golang 1.13
 WORKDIR /usr/local
-RUN curl https://go.dev/dl/go1.17.7.linux-amd64.tar.gz --remote-name --location && \
-    tar -xzf go1.17.7.linux-amd64.tar.gz && \
+RUN curl https://go.dev/dl/go1.17.8.linux-amd64.tar.gz --remote-name --location && \
+    tar -xzf go1.17.8.linux-amd64.tar.gz && \
     cp -r go/bin/* /usr/local/bin/
 
 # Install goimports
