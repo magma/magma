@@ -59,9 +59,10 @@ func TestListGateways(t *testing.T) {
 
 	obsidianHandlers := handlers.GetObsidianHandlers()
 	listGateways := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways", obsidian.GET).HandlerFunc
+	token := models.PageToken("")
 	expected := models.PaginatedGateways{
 		Gateways:   map[string]*models.MagmadGateway{},
-		PageToken:  "",
+		PageToken:  &token,
 		TotalCount: 0,
 	}
 
@@ -87,10 +88,10 @@ func TestListGateways(t *testing.T) {
 		"g1": {ID: "g1", Magmad: &models.MagmadGatewayConfigs{}},
 	}
 	models.PopulateRegistrationInfos(context.Background(), gateways, networkID)
-	expectedPageToken := "CgJnMQ=="
+	expectedPageToken := models.PageToken("CgJnMg==")
 	expectedResult := &models.PaginatedGateways{
 		Gateways:   gateways,
-		PageToken:  models.PageToken(expectedPageToken),
+		PageToken:  &expectedPageToken,
 		TotalCount: 2,
 	}
 	tc.ExpectedResult = tests.JSONMarshaler(expectedResult)
@@ -100,9 +101,9 @@ func TestListGateways(t *testing.T) {
 		"g2": {ID: "g2", Magmad: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
 	}
 	models.PopulateRegistrationInfos(context.Background(), gateways, networkID)
-	tc.URL = testURLRoot + "?page_size=1&page_token=" + expectedPageToken
+	tc.URL = testURLRoot + "?page_size=1&page_token=" + string(expectedPageToken)
 	expectedResult.Gateways = gateways
-	expectedResult.PageToken = "CgJnMg=="
+	expectedResult.PageToken = &expectedPageToken
 	tc.ExpectedResult = tests.JSONMarshaler(expectedResult)
 	tests.RunUnitTest(t, e, tc)
 
@@ -123,7 +124,7 @@ func TestListGateways(t *testing.T) {
 		"g2": {ID: "g2", Magmad: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
 	}
 	models.PopulateRegistrationInfos(context.Background(), expectedResult.Gateways, networkID)
-	expectedResult.PageToken = "CgJnMg=="
+	expectedResult.PageToken = &expectedPageToken
 	tc.ExpectedResult = tests.JSONMarshaler(expectedResult)
 	tc.URL = testURLRoot + "?page_size=2&page_token="
 	tests.RunUnitTest(t, e, tc)

@@ -258,12 +258,14 @@ func Test_Tiers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	version := models.TierVersion("1.2.3.4")
+
 	// gateway does not exist
 	tc = tests.Test{
 		Method:         "POST",
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
-		Payload:        &models.Tier{ID: models.TierID("tier1"), Images: []*models.TierImage{}, Gateways: []models1.GatewayID{"g1"}, Version: "1.2.3.4"},
+		Payload:        &models.Tier{ID: models.TierID("tier1"), Images: []*models.TierImage{}, Gateways: []models1.GatewayID{"g1"}, Version: &version},
 		URL:            tiersRoot,
 		Handler:        createTier,
 		ExpectedStatus: 500,
@@ -273,7 +275,7 @@ func Test_Tiers(t *testing.T) {
 
 	// happy case create
 	test_utils.RegisterGateway(t, "n1", "g1", nil)
-	tier := &models.Tier{ID: models.TierID("tier1"), Images: []*models.TierImage{}, Gateways: []models1.GatewayID{"g1"}, Version: "1.2.3.4"}
+	tier := &models.Tier{ID: models.TierID("tier1"), Images: []*models.TierImage{}, Gateways: []models1.GatewayID{"g1"}, Version: &version}
 	tc = tests.Test{
 		Method:         "POST",
 		ParamNames:     []string{"network_id"},
@@ -428,12 +430,14 @@ func TestPartialTierReads(t *testing.T) {
 	// register a network, gateways and a tier
 	test_utils.RegisterNetwork(t, "n1", "network 1")
 	test_utils.RegisterGateway(t, "n1", "g1", nil)
+
+	version := models.TierVersion("1-1-1-1")
 	tier := &models.Tier{
 		Gateways: models.TierGateways([]models1.GatewayID{"g1"}),
 		ID:       models.TierID("tier1"),
 		Images:   models.TierImages{{Name: swag.String("image1"), Order: swag.Int64(0)}},
 		Name:     "tier 1",
-		Version:  "1-1-1-1",
+		Version:  &version,
 	}
 
 	_, err := configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{
@@ -470,7 +474,7 @@ func TestPartialTierReads(t *testing.T) {
 		ParamNames:     []string{"network_id", "tier_id"},
 		ParamValues:    []string{"n1", "tier1"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(models.TierVersion("1-1-1-1")),
+		ExpectedResult: tests.JSONMarshaler(version),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -523,12 +527,14 @@ func TestPartialTierUpdates(t *testing.T) {
 	test_utils.RegisterGateway(t, "n1", "g1", nil)
 	test_utils.RegisterGateway(t, "n1", "g2", nil)
 	test_utils.RegisterGateway(t, "n1", "g3", nil)
+
+	version1 := models.TierVersion("1-1-1-1")
 	tier := &models.Tier{
 		Gateways: models.TierGateways([]models1.GatewayID{"g1"}),
 		ID:       models.TierID("tier1"),
 		Images:   models.TierImages{{Name: swag.String("image1"), Order: swag.Int64(0)}},
 		Name:     "tier 1",
-		Version:  "1-1-1-1",
+		Version:  &version1,
 	}
 
 	_, err := configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{
@@ -586,7 +592,8 @@ func TestPartialTierUpdates(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	tier.Version = "2-2-2-2"
+	version2 := models.TierVersion("2-2-2-2")
+	tier.Version = &version2
 	expectedTier = configurator.NetworkEntity{
 		NetworkID: "n1",
 		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
