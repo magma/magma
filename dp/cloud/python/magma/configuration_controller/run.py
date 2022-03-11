@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json
 import logging
 import time
 from typing import Optional
@@ -20,7 +19,7 @@ import click
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-from magma.configuration_controller.config import get_config, Config
+from magma.configuration_controller.config import get_config
 from magma.configuration_controller.request_consumer.request_db_consumer import (
     RequestDBConsumer,
 )
@@ -39,8 +38,9 @@ from magma.configuration_controller.response_processor.response_db_processor imp
 from magma.configuration_controller.response_processor.strategies.strategies_mapping import (
     processor_strategies,
 )
-from magma.db_service.models import DBRequest
 from magma.db_service.session_manager import SessionManager
+from magma.fluentd_client.client import FluentdClient
+from magma.fluentd_client.dp_logs import make_dp_log
 from magma.mappings.request_mapping import request_mapping
 from magma.mappings.request_response_mapping import request_response
 from magma.mappings.types import RequestTypes
@@ -85,6 +85,7 @@ def run():
         request_mapping=request_mapping,
         ssl_verify=config.SAS_CERT_PATH,
     )
+    fluentd_client = FluentdClient()
     for request_type in RequestTypes:
         req_type = request_type.value
         response_type = request_response[req_type]
@@ -95,11 +96,12 @@ def run():
         processor = ResponseDBProcessor(
             response_type=response_type,
             process_responses_func=processor_strategies[req_type]["process_responses"],
+            fluentd_client=fluentd_client,
         )
 
         scheduler.add_job(
             process_requests,
-            args=[consumer, processor, router, session_manager, config],
+            args=[consumer, processor, router, session_manager, fluentd_client],
             trigger=IntervalTrigger(
                 seconds=config.REQUEST_PROCESSING_INTERVAL_SEC,
             ),
@@ -117,7 +119,7 @@ def process_requests(
         processor: ResponseDBProcessor,
         router: RequestRouter,
         session_manager: SessionManager,
-        config: Config,
+        fluentd_client: FluentdClient,
 ) -> Optional[requests.Response]:
     """
     Process SAS requests
@@ -138,7 +140,7 @@ def process_requests(
         )
         bulked_sas_requests = merge_requests(requests_map)
 
-        _log_requests_map(config, requests_map)
+        _log_requests_map(requests_map, fluentd_client)
         try:
             sas_response = router.post_to_sas(bulked_sas_requests)
             logger.info(
@@ -156,43 +158,14 @@ def process_requests(
         return sas_response
 
 
-def _log_requests_map(config, requests_map):
+def _log_requests_map(requests_map: dict, fluentd_client: FluentdClient):
     requests_type = next(iter(requests_map))
     for request in requests_map[requests_type]:
         try:
-            _log_request(config, request)
-        except (requests.HTTPError, requests.RequestException) as err:
+            log = make_dp_log(request)
+            fluentd_client.send_dp_log(log)
+        except (requests.HTTPError, requests.RequestException, TypeError) as err:
             logging.error(f"Failed to log {requests_type} request. {err}")
-
-
-def _log_request(config: Config, db_request: DBRequest) -> None:
-    logger.debug(f"Logging {db_request=} to ES")
-    network_id = ''
-    fcc_id = ''
-    cbsd_serial_number = ''
-    cbsd = db_request.cbsd
-    if cbsd and cbsd.network_id:
-        network_id = cbsd.network_id
-    if cbsd and cbsd.fcc_id:
-        fcc_id = cbsd.fcc_id
-    if cbsd and cbsd.cbsd_serial_number:
-        cbsd_serial_number = cbsd.cbsd_serial_number
-    log = {
-        'log_from': 'DP',
-        'log_to': 'SAS',
-        'log_name': db_request.type.name,
-        'log_message': f'{db_request.payload}',
-        'cbsd_serial_number': f'{cbsd_serial_number}',
-        'network_id': f'{network_id}',
-        'fcc_id': f'{fcc_id}',
-    }
-    resp = requests.post(
-        url=config.FLUENTD_URL,
-        json=log,
-        verify=config.FLUENTD_TLS_ENABLED,
-        cert=(config.FLUENTD_CERT_PATH, config.FLUENTD_CERT_PATH),
-    )
-    logger.debug(f"Logged {db_request=} to ES. Response code = {resp.status_code}")
 
 
 if __name__ == '__main__':

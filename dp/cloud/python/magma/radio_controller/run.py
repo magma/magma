@@ -23,6 +23,7 @@ from dp.protos.active_mode_pb2_grpc import (
 from dp.protos.enodebd_dp_pb2_grpc import add_DPServiceServicer_to_server
 from dp.protos.requests_pb2_grpc import add_RadioControllerServicer_to_server
 from magma.db_service.session_manager import SessionManager
+from magma.fluentd_client.client import FluentdClient
 from magma.radio_controller.config import get_config
 from magma.radio_controller.services.active_mode_controller.service import (
     ActiveModeControllerService,
@@ -66,6 +67,7 @@ def run():
         DPService(
             session_manager=session_manager,
             now_func=datetime.now,
+            fluentd_client=FluentdClient(),
         ), server,
     )
     server.add_insecure_port(f"[::]:{config.GRPC_PORT}")

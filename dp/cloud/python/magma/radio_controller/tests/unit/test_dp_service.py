@@ -13,6 +13,7 @@ from magma.db_service.models import (
 )
 from magma.db_service.session_manager import SessionManager
 from magma.db_service.tests.local_db_test_case import LocalDBTestCase
+from magma.fluentd_client.client import FluentdClient
 from magma.mappings.cbsd_states import CbsdStates, GrantStates
 from magma.radio_controller.services.dp.service import DPService
 
@@ -35,7 +36,7 @@ SOME_TIMESTAMP = 1234
 class DPTestCase(LocalDBTestCase):
     def setUp(self):
         super().setUp()
-        self.dp_service = DPService(SessionManager(self.engine), self._now)
+        self.dp_service = DPService(SessionManager(self.engine), self._now, FluentdClient())
         DBInitializer(SessionManager(self.engine)).initialize()
 
         self.cbsd_states = {

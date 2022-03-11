@@ -1,12 +1,17 @@
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: fluentd-config
 data:
   fluent.conf: |
+    <system>
+      log_level debug
+    </system>
+
     <source>
       @type http
-      port 24224
+      port 9888
       <parse>
         @type json
       </parse>

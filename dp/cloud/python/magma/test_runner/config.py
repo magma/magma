@@ -46,5 +46,5 @@ class TestConfig(object):
     ELASTICSEARCH_URL = f"http://{ELASTICSEARCH_HOST}:{ELASTICSEARCH_PORT}"
 
     # Test Fluentd
-    FLUENTD_HOST = os.environ.get('FLUENTD_HOST', 'fluentd-service')
-    FLUENTD_PORT = int(os.environ.get('FLUENTD_PORT', 24224))
+    FLUENTD_SERVICE_HOST = os.environ.get('FLUENTD_SERVICE_HOST', 'fluentd-service')
+    FLUENTD_SERVICE_PORT = int(os.environ.get('FLUENTD_SERVICE_PORT', 9888))

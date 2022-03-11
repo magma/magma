@@ -12,7 +12,6 @@ limitations under the License.
 """
 import importlib
 import os
-from distutils.util import strtobool
 
 from magma.db_service import config as conf
 
@@ -53,18 +52,6 @@ class Config(object):
     SAS_CERT_PATH = os.environ.get(
         'SAS_CERT_PATH', '/backend/configuration_controller/certs/ca.crt',
     )
-
-    # Elasticsearch
-    ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX', 'dp')
-
-    # Fluentd
-    FLUENTD_HOST = os.environ.get('FLUENTD_HOST', 'fluentd-service')
-    FLUENTD_PORT = int(os.environ.get('FLUENTD_PORT', 24224))
-    FLUENTD_TLS_ENABLED = strtobool(os.environ.get('FLUENTD_TLS_ENABLED', 'False'))
-    FLUENTD_CERT_PATH = os.environ.get('FLUENTD_CERT_PATH', '')
-    FLUENTD_KEY_PATH = os.environ.get('FLUENTD_KEY_PATH', '')
-    FLUENTD_PROTOCOL = 'https' if FLUENTD_TLS_ENABLED else 'http'
-    FLUENTD_URL = f'{FLUENTD_PROTOCOL}://{FLUENTD_HOST}:{FLUENTD_PORT}/{ELASTICSEARCH_INDEX}'
 
 
 class DevelopmentConfig(Config):

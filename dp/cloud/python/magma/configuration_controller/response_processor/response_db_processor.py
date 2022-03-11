@@ -15,7 +15,7 @@ from json.decoder import JSONDecodeError
 from typing import Callable, List
 
 import requests
-from magma.configuration_controller.config import get_config, Config
+from magma.configuration_controller.config import get_config
 from magma.db_service.models import (
     DBGrantState,
     DBRequest,
@@ -23,7 +23,8 @@ from magma.db_service.models import (
     DBResponse,
 )
 from magma.db_service.session_manager import Session
-from magma.mappings.request_response_mapping import request_response
+from magma.fluentd_client.client import FluentdClient
+from magma.fluentd_client.dp_logs import make_dp_log
 from magma.mappings.types import GrantStates, RequestStates
 
 logger = logging.getLogger(__name__)
@@ -40,13 +41,13 @@ class ResponseDBProcessor(object):
         self,
         response_type: str,
         process_responses_func: Callable,
-        config: Config = conf,
+        fluentd_client: FluentdClient,
     ):
         self.response_type = response_type
         self.process_responses_func = process_responses_func
         self.grant_states_map = {}
         self.request_states_map = {}
-        self.config = config
+        self.fluentd_client = fluentd_client
 
     def process_response(self, db_requests: List[DBRequest], response: requests.Response, session: Session) -> None:
         """
@@ -126,8 +127,9 @@ class ResponseDBProcessor(object):
             )
             session.add(db_response)
             try:
-                self._log_response(db_response)
-            except (requests.HTTPError, requests.RequestException) as err:
+                log = make_dp_log(db_response)
+                self.fluentd_client.send_dp_log(log)
+            except (requests.HTTPError, requests.RequestException, TypeError) as err:
                 logging.error(f"Failed to log {response_type} response. {err}")
             self._process_request(db_request)
             logger.debug(
@@ -143,37 +145,3 @@ class ResponseDBProcessor(object):
             f"[{self.response_type}] Marking request {request} as processed.",
         )
         request.state = self.request_states_map[RequestStates.PROCESSED.value]
-
-    def _log_response(self, response: DBResponse) -> None:
-        logger.debug(f"Logging {response=} to ES")
-        network_id = ''
-        fcc_id = ''
-        cbsd_serial_number = ''
-        cbsd = response.request.cbsd
-        if cbsd and cbsd.network_id:
-            network_id = cbsd.network_id
-        if cbsd and cbsd.fcc_id:
-            fcc_id = cbsd.fcc_id
-        if cbsd and cbsd.cbsd_serial_number:
-            cbsd_serial_number = cbsd.cbsd_serial_number
-        log_name = request_response[response.request.type.name]
-        response_code = response.payload.get(
-            'response', {},
-        ).get('responseCode', None)
-        log = {
-            'log_from': 'SAS',
-            'log_to': 'DP',
-            'log_name': f'{log_name}',
-            'log_message': f'{response.payload}',
-            'cbsd_serial_number': f'{cbsd_serial_number}',
-            'network_id': f'{network_id}',
-            'fcc_id': f'{fcc_id}',
-            'response_code': response_code,
-        }
-        resp = requests.post(
-            url=self.config.FLUENTD_URL,
-            json=log,
-            verify=self.config.FLUENTD_TLS_ENABLED,
-            cert=(self.config.FLUENTD_CERT_PATH, self.config.FLUENTD_CERT_PATH),
-        )
-        logger.debug(f"Logged {response=} to ES. Response code = {resp.status_code}")
