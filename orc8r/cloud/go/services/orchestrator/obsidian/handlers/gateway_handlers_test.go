@@ -88,10 +88,10 @@ func TestListGateways(t *testing.T) {
 		"g1": {ID: "g1", Magmad: &models.MagmadGatewayConfigs{}},
 	}
 	models.PopulateRegistrationInfos(context.Background(), gateways, networkID)
-	expectedPageToken := models.PageToken("CgJnMg==")
+	expectedPageToken1 := models.PageToken("CgJnMQ==")
 	expectedResult := &models.PaginatedGateways{
 		Gateways:   gateways,
-		PageToken:  &expectedPageToken,
+		PageToken:  &expectedPageToken1,
 		TotalCount: 2,
 	}
 	tc.ExpectedResult = tests.JSONMarshaler(expectedResult)
@@ -101,9 +101,11 @@ func TestListGateways(t *testing.T) {
 		"g2": {ID: "g2", Magmad: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
 	}
 	models.PopulateRegistrationInfos(context.Background(), gateways, networkID)
-	tc.URL = testURLRoot + "?page_size=1&page_token=" + string(expectedPageToken)
+	tc.URL = testURLRoot + "?page_size=1&page_token=" + string(expectedPageToken1)
+
+	expectedPageToken2 := models.PageToken("CgJnMg==")
 	expectedResult.Gateways = gateways
-	expectedResult.PageToken = &expectedPageToken
+	expectedResult.PageToken = &expectedPageToken2
 	tc.ExpectedResult = tests.JSONMarshaler(expectedResult)
 	tests.RunUnitTest(t, e, tc)
 
@@ -124,7 +126,7 @@ func TestListGateways(t *testing.T) {
 		"g2": {ID: "g2", Magmad: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
 	}
 	models.PopulateRegistrationInfos(context.Background(), expectedResult.Gateways, networkID)
-	expectedResult.PageToken = &expectedPageToken
+	expectedResult.PageToken = &expectedPageToken2
 	tc.ExpectedResult = tests.JSONMarshaler(expectedResult)
 	tc.URL = testURLRoot + "?page_size=2&page_token="
 	tests.RunUnitTest(t, e, tc)

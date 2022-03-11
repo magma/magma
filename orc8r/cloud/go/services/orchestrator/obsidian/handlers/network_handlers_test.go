@@ -257,8 +257,8 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		Handler:        createNetwork,
 		ExpectedStatus: 400,
 		ExpectedError: "validation failure list:\n" +
-			"description in body should be at least 1 chars long\n" +
-			"name in body should be at least 1 chars long",
+			"description in body is required\n" +
+			"name in body is required",
 	}
 	tests.RunUnitTest(t, e, tc)
 
