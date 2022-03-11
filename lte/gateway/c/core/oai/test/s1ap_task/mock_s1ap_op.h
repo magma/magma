@@ -25,17 +25,6 @@
 #define LENGTH_OF_STR_DECODE_TABLE 64
 #define ENCODER_BLOCK_SIZE 6
 #define DECODER_BLOCK_SIZE 8
-#define A_UPPER_ASCII 65
-#define Z_UPPER_ASCII 90
-#define A_LOWER_ASCII 97
-#define Z_LOWER_ASCII 122
-#define SLASH_ASCII 47
-#define EQUAL_ASCII 61
-#define PLUS_ASCII 43
-#define ZERO_ASCII 48
-#define NINE_ASCII 57
-#define IGNORE 128
-#define MAX_PAD_SIZE 2
 #define PAD_SYMBOL '='
 
 namespace magma {
