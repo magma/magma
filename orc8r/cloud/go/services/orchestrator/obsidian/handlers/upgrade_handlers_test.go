@@ -739,7 +739,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		ParamNames:     []string{"network_id", "tier_id"},
 		ParamValues:    []string{"n1", "tier1"},
 		ExpectedStatus: 500,
-		ExpectedError:  "could not find entities matching [type:\"magmad_gateway\" key:\"g4\" ]",
+		ExpectedError:  "could not find entities matching [type:\"magmad_gateway\"  key:\"g4\"]",
 	}
 	tests.RunUnitTest(t, e, tc)
 
