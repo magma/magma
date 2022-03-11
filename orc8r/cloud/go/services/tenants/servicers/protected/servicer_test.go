@@ -69,7 +69,7 @@ func TestTenantsServicer(t *testing.T) {
 	// Get "test" tenant
 	getResp, err := srv.GetTenant(context.Background(), &tenant_protos.GetTenantRequest{Id: 1})
 	assert.NoError(t, err)
-	assert.Equal(t, &sampleTenant, getResp)
+	assert.Equal(t, sampleTenant.String(), getResp.String())
 
 	// Get "other" tenant
 	_, err = srv.GetTenant(context.Background(), &tenant_protos.GetTenantRequest{Id: 2})
@@ -86,7 +86,7 @@ func TestTenantsServicer(t *testing.T) {
 	// get updated tenant
 	getResp, err = srv.GetTenant(context.Background(), &tenant_protos.GetTenantRequest{Id: 1})
 	assert.NoError(t, err)
-	assert.Equal(t, sampleTenant2, *getResp)
+	assert.Equal(t, sampleTenant2.String(), getResp.String())
 
 	// Update nonexistent tenant
 	_, err = srv.SetTenant(context.Background(), &tenant_protos.IDAndTenant{
