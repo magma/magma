@@ -814,9 +814,8 @@ int amf_nas_proc_authentication_info_answer(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
-int amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
+imsi64_t amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
   imsi64_t imsi64 = INVALID_IMSI64;
-  int rc = RETURNerror;
   amf_context_t* amf_ctxt_p = NULL;
   ue_m5gmm_context_s* ue_context = NULL;
 
@@ -883,6 +882,9 @@ int amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
                                (supi_imsi.plmn.mnc_digit3 & 0xf);
   }
 
+  imsi64 = amf_imsi_to_imsi64(params->imsi);
+  ue_context->amf_context.imsi64 = imsi64;
+
   amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
   amf_ue_context_on_new_guti(ue_context,
                              reinterpret_cast<guti_m5_t*>(&amf_guti));
@@ -896,8 +898,8 @@ int amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
    * Execute the requested new UE registration procedure
    * This will initiate identity req in DL.
    */
-  rc = amf_proc_registration_request(aia->ue_id, is_amf_ctx_new, params);
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  amf_proc_registration_request(aia->ue_id, is_amf_ctx_new, params);
+  return imsi64;
 }
 
 int amf_handle_s6a_update_location_ans(
@@ -941,6 +943,11 @@ int amf_handle_s6a_update_location_ans(
                ula_pP->subscription_data.subscribed_ambr.br_ul,
                ula_pP->subscription_data.subscribed_ambr.br_dl,
                ula_pP->subscription_data.subscribed_ambr.br_unit);
+
+  /* FSM takes care of sending registration accept */
+  ue_state_handle_message_initial(COMMON_PROCEDURE_INITIATED1,
+                                  STATE_EVENT_SEC_MODE_COMPLETE, SESSION_NULL,
+                                  ue_mm_context, amf_ctxt_p);
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
