@@ -69,7 +69,7 @@ func TestServiceRun(t *testing.T) {
 		StartTimeSecs: actualServiceInfo.StartTimeSecs,
 	}
 	assert.NoError(t, err, "err in getting service info after srv started")
-	assert.Equal(t, expectedServiceInfo, *actualServiceInfo)
+	assert.Equal(t, expectedServiceInfo.String(), (*actualServiceInfo).String())
 	assert.InDelta(t, testStartTime, actualServiceInfo.StartTimeSecs, allowedStartRange)
 
 	// check StopService rpc call.

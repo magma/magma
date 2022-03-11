@@ -116,7 +116,7 @@ func Test_CreateReleaseChannel(t *testing.T) {
 		Payload:        tests.JSONMarshaler(&models.ReleaseChannel{ID: "", SupportedVersions: []string{"1-2-3-4"}}),
 		Handler:        createChannel,
 		ExpectedStatus: 400,
-		ExpectedError:  "validation failure list:\nid in body should be at least 1 chars long",
+		ExpectedError:  "validation failure list:\nid in body is required",
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -254,7 +254,7 @@ func Test_Tiers(t *testing.T) {
 			"gateways in body is required\n" +
 			"id in body should match '^[a-z][\\da-z_]+$'\n" +
 			"images in body is required\n" +
-			"version in body should be at least 1 chars long",
+			"version in body is required",
 	}
 	tests.RunUnitTest(t, e, tc)
 
