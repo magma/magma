@@ -112,14 +112,13 @@ class ActiveModeCbsdBuilder:
     def with_channel(
         self,
         low: int, high: int,
-        max_eirp: Optional[float] = None, last_eirp: Optional[float] = None,
+        max_eirp: Optional[float] = None,
     ) -> ActiveModeCbsdBuilder:
         if not self.channels:
             self.channels = []
         channel = Channel(
             frequency_range=FrequencyRange(low=low, high=high),
             max_eirp=self.make_optional_float(max_eirp),
-            last_eirp=self.make_optional_float(last_eirp),
         )
         self.channels.append(channel)
         return self

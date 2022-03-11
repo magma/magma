@@ -212,7 +212,6 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
                 high=channel.high_frequency,
             ),
             max_eirp=_make_optional_float(channel.max_eirp),
-            last_eirp=_make_optional_float(channel.last_used_max_eirp),
         )
 
     def _build_eirp_capabilities(self, cbsd: DBCbsd) -> EirpCapabilities:

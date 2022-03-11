@@ -64,7 +64,6 @@ enum GrantState {
 message Channel {
   FrequencyRange frequency_range = 1;
   google.protobuf.FloatValue max_eirp = 2;
-  google.protobuf.FloatValue last_eirp = 3;
 }
 
 message FrequencyRange {
