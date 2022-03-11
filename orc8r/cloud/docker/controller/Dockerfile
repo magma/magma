@@ -9,7 +9,7 @@ ENV GO111MODULE on
 ENV GOPATH ${USER}/go
 ENV GOBIN /build/bin
 ENV PATH ${PATH}:${GOBIN}:${GOPATH}/bin
-ENV GOFLAGS="-mod=mod"
+# ENV GOFLAGS="-mod=mod"
 
 # Used in Makefiles
 ENV MAGMA_ROOT /src/magma
