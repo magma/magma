@@ -18,11 +18,13 @@ package main
 
 // Put all binary tool dependencies in here so they can be tracked by the go
 // module.
-
+// dependencies listed here should also be listed in TOOL_DEPS in orc8r/cloud/go/Makefile
 import (
 	_ "github.com/go-swagger/go-swagger/cmd/swagger"
 	_ "github.com/golang/protobuf/protoc-gen-go"
 	_ "github.com/ory/go-acc"
 	_ "github.com/vektra/mockery/cmd/mockery"
 	_ "github.com/wadey/gocovmerge"
+	_ "golang.org/x/tools/cmd/goimports"
+	_ "gotest.tools/gotestsum"
 )

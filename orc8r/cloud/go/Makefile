@@ -8,6 +8,7 @@ TOOL_DEPS:= \
 	github.com/wadey/gocovmerge \
 	gotest.tools/gotestsum \
 	golang.org/x/tools/cmd/goimports
+	# dependencies external to the module need to be in sync with orc8r/cloud/go/tools.go
 
 include $(MAGMA_ROOT)/orc8r/cloud/go/module.mk
 
