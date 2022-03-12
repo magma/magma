@@ -16,15 +16,9 @@ limitations under the License.
 
 package main
 
-// Put all binary tool dependencies in here so they can be tracked by the go
-// module.
-// dependencies listed here should also be listed in TOOL_DEPS in ./Makefile
+// Package tools is a convention to ensure `go mod tidy` adds development tool
+// packages to go.mod / go.sum.
+
 import (
-	_ "github.com/go-swagger/go-swagger/cmd/swagger"
-	_ "github.com/golang/protobuf/protoc-gen-go"
-	_ "github.com/ory/go-acc"
-	_ "github.com/vektra/mockery/cmd/mockery"
-	_ "github.com/wadey/gocovmerge"
-	_ "golang.org/x/tools/cmd/goimports"
-	_ "gotest.tools/gotestsum"
+	_ "magma/orc8r/cloud/go/tools/swaggergen"
 )
