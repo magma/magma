@@ -107,6 +107,7 @@ setup(
         "rfc3987>=1.3.0",
         "jsonpointer>=1.14",
         "webcolors>=1.11.1",
+        'typing-extensions>=4.1.1',
     ],
     extras_require={
         'dev': [
