@@ -55,7 +55,7 @@ tags:
   - name: Federated LTE Networks
     description: Endpoints related to Federated LTE networks
   - name: Federation Networks
-    description:
+    description: Endpoints related to Federated networks
   - name: Federation Gateways
     description: Endpoints related to Federated gateway management
 
