@@ -6,16 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // AlertRoutingTree alert routing tree
+//
 // swagger:model alert_routing_tree
 type AlertRoutingTree struct {
 
@@ -75,7 +76,6 @@ func (m *AlertRoutingTree) Validate(formats strfmt.Registry) error {
 }
 
 func (m *AlertRoutingTree) validateMatch(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Match) { // not required
 		return nil
 	}
@@ -84,6 +84,8 @@ func (m *AlertRoutingTree) validateMatch(formats strfmt.Registry) error {
 		if err := m.Match.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("match")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("match")
 			}
 			return err
 		}
@@ -93,7 +95,6 @@ func (m *AlertRoutingTree) validateMatch(formats strfmt.Registry) error {
 }
 
 func (m *AlertRoutingTree) validateMatchRe(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.MatchRe) { // not required
 		return nil
 	}
@@ -102,6 +103,8 @@ func (m *AlertRoutingTree) validateMatchRe(formats strfmt.Registry) error {
 		if err := m.MatchRe.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("match_re")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("match_re")
 			}
 			return err
 		}
@@ -120,7 +123,6 @@ func (m *AlertRoutingTree) validateReceiver(formats strfmt.Registry) error {
 }
 
 func (m *AlertRoutingTree) validateRoutes(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Routes) { // not required
 		return nil
 	}
@@ -134,6 +136,82 @@ func (m *AlertRoutingTree) validateRoutes(formats strfmt.Registry) error {
 			if err := m.Routes[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("routes" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("routes" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ContextValidate validate this alert routing tree based on the context it is used
+func (m *AlertRoutingTree) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateMatch(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateMatchRe(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateRoutes(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *AlertRoutingTree) contextValidateMatch(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Match != nil {
+		if err := m.Match.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("match")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("match")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *AlertRoutingTree) contextValidateMatchRe(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.MatchRe != nil {
+		if err := m.MatchRe.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("match_re")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("match_re")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *AlertRoutingTree) contextValidateRoutes(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.Routes); i++ {
+
+		if m.Routes[i] != nil {
+			if err := m.Routes[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("routes" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("routes" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
@@ -163,6 +241,7 @@ func (m *AlertRoutingTree) UnmarshalBinary(b []byte) error {
 }
 
 // AlertRoutingTreeMatch alert routing tree match
+//
 // swagger:model AlertRoutingTreeMatch
 type AlertRoutingTreeMatch struct {
 
@@ -175,6 +254,11 @@ type AlertRoutingTreeMatch struct {
 
 // Validate validates this alert routing tree match
 func (m *AlertRoutingTreeMatch) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this alert routing tree match based on context it is used
+func (m *AlertRoutingTreeMatch) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
@@ -197,6 +281,7 @@ func (m *AlertRoutingTreeMatch) UnmarshalBinary(b []byte) error {
 }
 
 // AlertRoutingTreeMatchRe alert routing tree match re
+//
 // swagger:model AlertRoutingTreeMatchRe
 type AlertRoutingTreeMatchRe struct {
 
@@ -209,6 +294,11 @@ type AlertRoutingTreeMatchRe struct {
 
 // Validate validates this alert routing tree match re
 func (m *AlertRoutingTreeMatchRe) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this alert routing tree match re based on context it is used
+func (m *AlertRoutingTreeMatchRe) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

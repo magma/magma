@@ -6,17 +6,27 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
 )
 
 // Components components
+//
 // swagger:model components
 type Components string
+
+func NewComponents(value Components) *Components {
+	return &value
+}
+
+// Pointer returns a pointer to a freshly-allocated Components.
+func (m Components) Pointer() *Components {
+	return &m
+}
 
 const (
 
@@ -44,7 +54,7 @@ func init() {
 }
 
 func (m Components) validateComponentsEnum(path, location string, value Components) error {
-	if err := validate.Enum(path, location, value, componentsEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, componentsEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -62,5 +72,10 @@ func (m Components) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+// ContextValidate validates this components based on context it is used
+func (m Components) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

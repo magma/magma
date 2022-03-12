@@ -6,16 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // GatewayLoggingConfigs Configuration for gateway logging (local and aggregation configs)
+//
 // swagger:model gateway_logging_configs
 type GatewayLoggingConfigs struct {
 
@@ -23,6 +24,7 @@ type GatewayLoggingConfigs struct {
 	Aggregation *AggregationLoggingConfigs `json:"aggregation,omitempty"`
 
 	// event verbosity
+	// Example: 0
 	EventVerbosity *int32 `json:"event_verbosity,omitempty"`
 
 	// log level
@@ -50,7 +52,6 @@ func (m *GatewayLoggingConfigs) Validate(formats strfmt.Registry) error {
 }
 
 func (m *GatewayLoggingConfigs) validateAggregation(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Aggregation) { // not required
 		return nil
 	}
@@ -59,6 +60,8 @@ func (m *GatewayLoggingConfigs) validateAggregation(formats strfmt.Registry) err
 		if err := m.Aggregation.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("aggregation")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("aggregation")
 			}
 			return err
 		}
@@ -99,7 +102,7 @@ const (
 
 // prop value enum
 func (m *GatewayLoggingConfigs) validateLogLevelEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, gatewayLoggingConfigsTypeLogLevelPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, gatewayLoggingConfigsTypeLogLevelPropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -114,6 +117,36 @@ func (m *GatewayLoggingConfigs) validateLogLevel(formats strfmt.Registry) error 
 	// value enum
 	if err := m.validateLogLevelEnum("log_level", "body", *m.LogLevel); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this gateway logging configs based on the context it is used
+func (m *GatewayLoggingConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateAggregation(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *GatewayLoggingConfigs) contextValidateAggregation(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Aggregation != nil {
+		if err := m.Aggregation.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("aggregation")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("aggregation")
+			}
+			return err
+		}
 	}
 
 	return nil

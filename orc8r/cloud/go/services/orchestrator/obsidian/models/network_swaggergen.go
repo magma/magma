@@ -6,15 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 	models1 "magma/orc8r/cloud/go/models"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // Network Orchestrator network spec
+//
 // swagger:model network
 type Network struct {
 
@@ -91,9 +93,15 @@ func (m *Network) Validate(formats strfmt.Registry) error {
 
 func (m *Network) validateDescription(formats strfmt.Registry) error {
 
+	if err := validate.Required("description", "body", models1.NetworkDescription(m.Description)); err != nil {
+		return err
+	}
+
 	if err := m.Description.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("description")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("description")
 		}
 		return err
 	}
@@ -111,6 +119,8 @@ func (m *Network) validateDNS(formats strfmt.Registry) error {
 		if err := m.DNS.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("dns")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("dns")
 			}
 			return err
 		}
@@ -120,7 +130,6 @@ func (m *Network) validateDNS(formats strfmt.Registry) error {
 }
 
 func (m *Network) validateFeatures(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Features) { // not required
 		return nil
 	}
@@ -129,6 +138,8 @@ func (m *Network) validateFeatures(formats strfmt.Registry) error {
 		if err := m.Features.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("features")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("features")
 			}
 			return err
 		}
@@ -139,9 +150,15 @@ func (m *Network) validateFeatures(formats strfmt.Registry) error {
 
 func (m *Network) validateID(formats strfmt.Registry) error {
 
+	if err := validate.Required("id", "body", models1.NetworkID(m.ID)); err != nil {
+		return err
+	}
+
 	if err := m.ID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
 		}
 		return err
 	}
@@ -151,9 +168,15 @@ func (m *Network) validateID(formats strfmt.Registry) error {
 
 func (m *Network) validateName(formats strfmt.Registry) error {
 
+	if err := validate.Required("name", "body", models1.NetworkName(m.Name)); err != nil {
+		return err
+	}
+
 	if err := m.Name.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("name")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("name")
 		}
 		return err
 	}
@@ -162,7 +185,6 @@ func (m *Network) validateName(formats strfmt.Registry) error {
 }
 
 func (m *Network) validateSentryConfig(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.SentryConfig) { // not required
 		return nil
 	}
@@ -171,6 +193,8 @@ func (m *Network) validateSentryConfig(formats strfmt.Registry) error {
 		if err := m.SentryConfig.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("sentry_config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("sentry_config")
 			}
 			return err
 		}
@@ -180,7 +204,6 @@ func (m *Network) validateSentryConfig(formats strfmt.Registry) error {
 }
 
 func (m *Network) validateStateConfig(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.StateConfig) { // not required
 		return nil
 	}
@@ -189,6 +212,8 @@ func (m *Network) validateStateConfig(formats strfmt.Registry) error {
 		if err := m.StateConfig.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("state_config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("state_config")
 			}
 			return err
 		}
@@ -198,7 +223,6 @@ func (m *Network) validateStateConfig(formats strfmt.Registry) error {
 }
 
 func (m *Network) validateType(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Type) { // not required
 		return nil
 	}
@@ -206,6 +230,170 @@ func (m *Network) validateType(formats strfmt.Registry) error {
 	if err := m.Type.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("type")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("type")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this network based on the context it is used
+func (m *Network) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateDescription(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateDNS(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateFeatures(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateName(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateSentryConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateStateConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateType(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *Network) contextValidateDescription(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Description.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("description")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("description")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Network) contextValidateDNS(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.DNS != nil {
+		if err := m.DNS.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("dns")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("dns")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Network) contextValidateFeatures(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Features != nil {
+		if err := m.Features.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("features")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("features")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Network) contextValidateID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ID.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Network) contextValidateName(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Name.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("name")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("name")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Network) contextValidateSentryConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.SentryConfig != nil {
+		if err := m.SentryConfig.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("sentry_config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("sentry_config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Network) contextValidateStateConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.StateConfig != nil {
+		if err := m.StateConfig.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("state_config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("state_config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Network) contextValidateType(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Type.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("type")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("type")
 		}
 		return err
 	}

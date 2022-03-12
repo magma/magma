@@ -6,18 +6,21 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // CwfSubscriberDirectoryRecord CWF subscriber directory record
+//
 // swagger:model cwf_subscriber_directory_record
 type CwfSubscriberDirectoryRecord struct {
 
 	// ipv4 addr
+	// Example: 192.168.127.1
 	// Format: ipv4
 	IPV4Addr strfmt.IPv4 `json:"ipv4_addr,omitempty"`
 
@@ -26,6 +29,7 @@ type CwfSubscriberDirectoryRecord struct {
 	LocationHistory []string `json:"location_history"`
 
 	// mac addr
+	// Example: aa:bb:cc:dd:ee:ff
 	MacAddr string `json:"mac_addr,omitempty"`
 }
 
@@ -48,7 +52,6 @@ func (m *CwfSubscriberDirectoryRecord) Validate(formats strfmt.Registry) error {
 }
 
 func (m *CwfSubscriberDirectoryRecord) validateIPV4Addr(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.IPV4Addr) { // not required
 		return nil
 	}
@@ -66,6 +69,11 @@ func (m *CwfSubscriberDirectoryRecord) validateLocationHistory(formats strfmt.Re
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this cwf subscriber directory record based on context it is used
+func (m *CwfSubscriberDirectoryRecord) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

@@ -49,6 +49,7 @@ require (
 	golang.org/x/net v0.0.0-20220121210141-e204ce36a2ba
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa
 	google.golang.org/grpc v1.43.0
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	magma/feg/cloud/go v0.0.0
 	magma/orc8r/cloud/go v0.0.0
@@ -106,7 +107,6 @@ require (
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.8 // indirect
-	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	magma/feg/cloud/go/protos v0.0.0 // indirect

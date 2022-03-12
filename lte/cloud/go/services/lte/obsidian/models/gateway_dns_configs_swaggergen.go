@@ -6,26 +6,31 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // GatewayDNSConfigs DNS configuration for a gateway
+//
 // swagger:model gateway_dns_configs
 type GatewayDNSConfigs struct {
 
 	// dhcp server enabled
+	// Example: true
 	// Required: true
 	DhcpServerEnabled *bool `json:"dhcp_server_enabled"`
 
 	// enable caching
+	// Example: false
 	// Required: true
 	EnableCaching *bool `json:"enable_caching"`
 
 	// local ttl
+	// Example: 0
 	// Required: true
 	LocalTTL *int32 `json:"local_ttl"`
 
@@ -87,7 +92,6 @@ func (m *GatewayDNSConfigs) validateLocalTTL(formats strfmt.Registry) error {
 }
 
 func (m *GatewayDNSConfigs) validateRecords(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Records) { // not required
 		return nil
 	}
@@ -95,6 +99,36 @@ func (m *GatewayDNSConfigs) validateRecords(formats strfmt.Registry) error {
 	if err := m.Records.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("records")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("records")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this gateway dns configs based on the context it is used
+func (m *GatewayDNSConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateRecords(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *GatewayDNSConfigs) contextValidateRecords(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Records.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("records")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("records")
 		}
 		return err
 	}
