@@ -34,7 +34,7 @@ require (
 	github.com/go-openapi/swag v0.19.15
 	github.com/go-openapi/validate v0.19.3
 	github.com/go-sql-driver/mysql v1.4.1
-	github.com/go-swagger/go-swagger v0.21.0
+	github.com/go-swagger/go-swagger v0.29.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
 	github.com/google/go-cmp v0.5.5
