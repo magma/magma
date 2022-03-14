@@ -10,7 +10,7 @@ COPY packages/magmalte/package.json packages/magmalte/
 
 # Install node dependencies
 ENV PUPPETEER_SKIP_DOWNLOAD "true"
-RUN yarn install --mutex network --frozen-lockfile && yarn cache clean
+RUN yarn install --mutex network && yarn cache clean
 
 # Build our static files
 COPY packages packages
