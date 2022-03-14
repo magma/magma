@@ -215,9 +215,7 @@ int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
      coded as std::hexadecimal digits
   */
 
-  int tmp = ielen - decoded;
-  decoded = ielen;
-  return (decoded);
+  return ielen;
 };
 
 // Will be supported POST MVC
@@ -276,10 +274,7 @@ int M5GSMobileIdentityMsg::DecodeTmsiMobileIdentityMsg(
   decoded++;
   memcpy(&tmsi->m5g_tmsi, buffer + decoded, ielen - decoded);
 
-  int tmp = ielen - decoded;
-  decoded = ielen;
-
-  return (decoded);
+  return ielen;
 };
 
 // Decode M5GSMobileIdentity IE

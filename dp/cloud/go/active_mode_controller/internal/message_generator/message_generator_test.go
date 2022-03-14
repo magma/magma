@@ -304,23 +304,6 @@ func TestGenerateMessages(t *testing.T) {
 			},
 		},
 		{
-			name: "Should not delete unregistered cbsd when there are pending requests",
-			state: &active_mode.State{
-				Cbsds: []*active_mode.Cbsd{{
-					DesiredState:      active_mode.CbsdState_Registered,
-					SerialNumber:      "some_serial_number",
-					State:             active_mode.CbsdState_Unregistered,
-					LastSeenTimestamp: now.Unix(),
-					PendingRequests: []*active_mode.Request{{
-						Type: active_mode.RequestsType_RegistrationRequest,
-					}},
-					DbData: &active_mode.DatabaseCbsd{
-						IsDeleted: true,
-					},
-				}},
-			},
-		},
-		{
 			name: "Should deregister updated cbsd",
 			state: &active_mode.State{
 				Cbsds: []*active_mode.Cbsd{{
@@ -364,7 +347,7 @@ func TestGenerateMessages(t *testing.T) {
 	}
 	for _, tt := range data {
 		t.Run(tt.name, func(t *testing.T) {
-			g := message_generator.NewMessageGenerator(0, timeout)
+			g := message_generator.NewMessageGenerator(0, timeout, &stubIndexProvider{})
 			msgs := g.GenerateMessages(tt.state, now)
 			p := &stubProvider{}
 			for _, msg := range msgs {
@@ -410,6 +393,12 @@ func getSpectrumInquiryRequest() []*requests.RequestPayload {
 	]
 }`,
 	}}
+}
+
+type stubIndexProvider struct{}
+
+func (s *stubIndexProvider) Intn(_ int) int {
+	return 0
 }
 
 type stubProvider struct {

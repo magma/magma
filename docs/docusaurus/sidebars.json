@@ -298,6 +298,7 @@
           "lte/openvswitch",
           "lte/pipelined",
           "lte/ebpf_datapath",
+          "lte/ipfix",
           "lte/dev_unit_testing",
           "lte/tr069",
           "lte/s1ap_tests",

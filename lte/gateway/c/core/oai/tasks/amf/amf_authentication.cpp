@@ -35,6 +35,7 @@ extern "C" {
 
 #define AMF_CAUSE_SUCCESS (1)
 #define MAX_5G_AUTH_VECTORS 1
+#define SNNI_FMT "5G:mnc%03d.mcc%03d.3gppnetwork.org"
 
 using magma5g::AMFClientServicer;
 
@@ -489,6 +490,10 @@ int amf_proc_authentication_complete(amf_ue_ngap_id_t ue_id,
   nas_amf_smc_proc_t nas_amf_smc_proc_autn;
   nas_amf_registration_proc_t* registration_proc = NULL;
   nas5g_amf_auth_proc_t* auth_proc = NULL;
+  uint32_t mcc = 0;
+  uint32_t mnc = 0;
+  uint32_t mnc_digit_length = 0;
+  char snni_buffer[sizeof(SNNI_FMT) - 1] = {};
 
   OAILOG_DEBUG(LOG_NAS_AMF,
                "Authentication  procedures complete for "
@@ -544,6 +549,28 @@ int amf_proc_authentication_complete(amf_ue_ngap_id_t ue_id,
       auth_proc->retransmission_count++;
       OAILOG_WARNING(LOG_NAS_AMF,
                      "Authentication failure due to RES,XRES mismatch \n");
+      OAILOG_STREAM_HEX(
+          OAILOG_LEVEL_INFO, LOG_NAS_AMF, "Stored RAND: ",
+          (char*)(amf_ctx->_vector[auth_proc->ksi % MAX_EPS_AUTH_VECTORS].rand),
+          AUTH_RAND_SIZE);
+      OAILOG_STREAM_HEX(
+          OAILOG_LEVEL_INFO, LOG_NAS_AMF, "Stored AUTN: ",
+          (char*)(amf_ctx->_vector[auth_proc->ksi % MAX_EPS_AUTH_VECTORS].autn),
+          AUTH_RAND_SIZE);
+      OAILOG_STREAM_HEX(
+          OAILOG_LEVEL_INFO, LOG_NAS_AMF, "Stored XRES*: ",
+          (char*)(amf_ctx->_vector[auth_proc->ksi % MAX_EPS_AUTH_VECTORS]
+                      .xres_star),
+          AUTH_RAND_SIZE);
+      OAILOG_STREAM_HEX(
+          OAILOG_LEVEL_INFO, LOG_NAS_AMF, "Received RES*in AUTH RSP:",
+          (char*)(msg->autn_response_parameter.response_parameter),
+          AUTH_RAND_SIZE);
+      PLMN_T_TO_MCC_MNC(amf_ctx->originating_tai.plmn, mcc, mnc,
+                        mnc_digit_length);
+      snprintf(snni_buffer, sizeof(snni_buffer), SNNI_FMT, mnc, mcc);
+      OAILOG_INFO(LOG_NAS_AMF, "Serving network name: %s\n", snni_buffer);
+
       if (registration_proc &&
           (amf_ctx->reg_id_type == M5GSMobileIdentityMsg_GUTI)) {
         rc = amf_proc_identification(

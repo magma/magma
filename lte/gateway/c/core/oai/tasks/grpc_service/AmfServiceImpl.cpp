@@ -98,10 +98,6 @@ Status AmfServiceImpl::SetSmfSessionContext(
     ServerContext* context, const SetSMSessionContextAccess* request,
     SmContextVoid* response) {
   struct in_addr ip_addr = {0};
-  char ip_v4_str[INET_ADDRSTRLEN] = {0};
-  char ip_v6_str[INET6_ADDRSTRLEN] = {0};
-
-  uint32_t ip_int = 0;
   OAILOG_INFO(LOG_UTIL,
               "Received GRPC SetSmfSessionContext request from SMF\n");
 
@@ -173,8 +169,6 @@ Status AmfServiceImpl::SetSmfSessionContext(
   if (req_common.ue_ipv4().size() > 0) {
     inet_pton(AF_INET, req_common.ue_ipv4().c_str(),
               &(itti_msg.pdu_address.ipv4_address));
-    uint32_t ip_int = ntohl(ip_addr.s_addr);
-
     itti_msg.pdu_address.pdn_type = IPv4;
   }
 

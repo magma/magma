@@ -13,6 +13,3 @@ limitations under the License.
 
 // Package nprobe provides the network probe service.
 package nprobe
-
-const ServiceName = "nprobe"
-const NProbeTableBlobstore = "nprobe_blobstore"

@@ -68,6 +68,11 @@ bool is_num_s1_bearers_valid(sgw_state_t* sgw_state, imsi64_t imsi64,
 
 ACTION_P(ReturnFromAsyncTask, cv) { cv->notify_all(); }
 
+ACTION_P(ReturnFromAsyncTaskWithReturn, cv) {
+  cv->notify_all();
+  return true;
+}
+
 // Initialize config params
 class SgwS8ConfigAndCreateMock : public ::testing::Test {
  public:

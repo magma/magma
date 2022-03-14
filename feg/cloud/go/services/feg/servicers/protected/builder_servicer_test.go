@@ -105,16 +105,6 @@ func TestBuilder_Build(t *testing.T) {
 			LogLevel: 1,
 			Gx: &feg_mconfig.GxConfig{
 				DisableGx: true,
-				Server: &feg_mconfig.DiamClientConfig{
-					Protocol:         "tcp",
-					Address:          "",
-					Retransmits:      0x3,
-					WatchdogInterval: 0x1,
-					RetryCount:       0x5,
-					ProductName:      "magma",
-					Realm:            "magma.com",
-					Host:             "magma-fedgw.magma.com",
-				},
 				// Expect 2, one coming from server and one from serverS
 				Servers: []*feg_mconfig.DiamClientConfig{
 					{
@@ -128,7 +118,7 @@ func TestBuilder_Build(t *testing.T) {
 						Host:             "magma-fedgw.magma.com",
 					},
 					{
-						Protocol:         "tcp",
+						Protocol:         "stcp",
 						Address:          "",
 						Retransmits:      0x3,
 						WatchdogInterval: 0x1,
@@ -149,16 +139,6 @@ func TestBuilder_Build(t *testing.T) {
 			},
 			Gy: &feg_mconfig.GyConfig{
 				DisableGy: true,
-				Server: &feg_mconfig.DiamClientConfig{
-					Protocol:         "tcp",
-					Address:          "",
-					Retransmits:      0x3,
-					WatchdogInterval: 0x1,
-					RetryCount:       0x5,
-					ProductName:      "magma",
-					Realm:            "magma.com",
-					Host:             "magma-fedgw.magma.com",
-				},
 				// Expect 2, one coming from server and one from serverS
 				Servers: []*feg_mconfig.DiamClientConfig{
 					{
@@ -172,7 +152,7 @@ func TestBuilder_Build(t *testing.T) {
 						Host:             "magma-fedgw.magma.com",
 					},
 					{
-						Protocol:         "tcp",
+						Protocol:         "stcp",
 						Address:          "",
 						Retransmits:      0x3,
 						WatchdogInterval: 0x1,
@@ -197,20 +177,10 @@ func TestBuilder_Build(t *testing.T) {
 		},
 		"swx_proxy": &feg_mconfig.SwxConfig{
 			LogLevel: 1,
-			Server: &feg_mconfig.DiamClientConfig{
-				Protocol:         "sctp",
-				Address:          "",
-				Retransmits:      0x3,
-				WatchdogInterval: 0x1,
-				RetryCount:       0x5,
-				ProductName:      "magma",
-				Realm:            "magma.com",
-				Host:             "magma-fedgw.magma.com",
-			},
 			// Expect 2, one coming from server and one from serverS
 			Servers: []*feg_mconfig.DiamClientConfig{
 				{
-					Protocol:         "sctp",
+					Protocol:         "tcp",
 					Address:          "",
 					Retransmits:      0x3,
 					WatchdogInterval: 0x1,
@@ -334,7 +304,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		},
 		Servers: []*models.DiameterClientConfigs{
 			{
-				Protocol:         "tcp",
+				Protocol:         "stcp",
 				Retransmits:      3,
 				WatchdogInterval: 1,
 				RetryCount:       5,
@@ -365,7 +335,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		},
 		Servers: []*models.DiameterClientConfigs{
 			{
-				Protocol:         "tcp",
+				Protocol:         "stcp",
 				Retransmits:      3,
 				WatchdogInterval: 1,
 				RetryCount:       5,
@@ -401,7 +371,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 	},
 	Swx: &models.Swx{
 		Server: &models.DiameterClientConfigs{
-			Protocol:         "sctp",
+			Protocol:         "tcp",
 			Retransmits:      3,
 			WatchdogInterval: 1,
 			RetryCount:       5,

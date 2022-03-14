@@ -342,19 +342,21 @@ bool SpgwServiceImpl::fillIpv4(packet_filter_contents_t* pf_content,
   if (!ipv4network.success) {
     return false;
   }
-  uint32_t ipv4addrHBO = ipv4network.addr_hbo;
-  for (int i = (TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1); i >= 0; --i) {
-    pf_content->ipv4remoteaddr[i].addr = (unsigned char)ipv4addrHBO & 0xFF;
-    ipv4addrHBO = ipv4addrHBO >> 8;
-  }
+
   uint32_t mask = UINT32_MAX;  // all ones
   mask =
       (mask << (32 -
                 ipv4network.mask_len));  // first mask_len bits are 1s, rest 0s
+  uint32_t ipv4addrHBO = ipv4network.addr_hbo;
+
   for (int i = (TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1); i >= 0; --i) {
     pf_content->ipv4remoteaddr[i].mask = (unsigned char)mask & 0xFF;
+    pf_content->ipv4remoteaddr[i].addr =
+        (unsigned char)ipv4addrHBO & pf_content->ipv4remoteaddr[i].mask;
+    ipv4addrHBO = ipv4addrHBO >> 8;
     mask = mask >> 8;
   }
+
   OAILOG_DEBUG(
       LOG_UTIL,
       "Network Address: %d.%d.%d.%d "

@@ -11,15 +11,16 @@
 # limitations under the License.
 #
 
+git_src="https://github.com/magma/S1APTester.git"
+
 if [ -d "$S1AP_TESTER_SRC" ]; then
     cd "$S1AP_TESTER_SRC" || exit
     echo "Syncing repo"
-    git pull --rebase https://github.com/facebookexperimental/S1APTester.git
+    git pull --rebase $git_src
 else
     # Git clone
     echo "cloning repo"
-    git clone https://github.com/facebookexperimental/S1APTester.git \
-        "$S1AP_TESTER_SRC"
+    git clone $git_src "$S1AP_TESTER_SRC"
 
     cd "$S1AP_TESTER_SRC" || exit
 

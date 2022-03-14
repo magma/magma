@@ -166,10 +166,4 @@ TEST_F(AsyncServiceTest, test_multi_thread) {
   result1.get();
   result2.get();
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

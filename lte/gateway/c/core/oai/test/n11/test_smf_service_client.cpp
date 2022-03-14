@@ -67,25 +67,23 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
       request.mutable_rat_specific_context()->mutable_m5gsm_session_context();
   auto* req_cmn = request.mutable_common_context();
 
-  EXPECT_TRUE(imsi == req_cmn->sid().id().substr(4));
-  EXPECT_TRUE(magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI ==
-              req_cmn->sid().type());
-  EXPECT_TRUE(apn == req_cmn->apn());
-  EXPECT_TRUE(magma::lte::RATType::TGPP_NR == req_cmn->rat_type());
-  EXPECT_TRUE(magma::lte::SMSessionFSMState::CREATING_0 ==
-              req_cmn->sm_session_state());
-  EXPECT_TRUE(0 == req_cmn->sm_session_version());
-  EXPECT_TRUE(pdu_session_id == rat_req->pdu_session_id());
-  EXPECT_TRUE(magma::lte::RequestType::INITIAL_REQUEST ==
-              rat_req->request_type());
+  EXPECT_EQ(imsi, req_cmn->sid().id().substr(4));
+  EXPECT_EQ(magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI,
+            req_cmn->sid().type());
+  EXPECT_EQ(apn, req_cmn->apn());
+  EXPECT_EQ(magma::lte::RATType::TGPP_NR, req_cmn->rat_type());
+  EXPECT_EQ(magma::lte::SMSessionFSMState::CREATING_0,
+            req_cmn->sm_session_state());
+  EXPECT_EQ(0, req_cmn->sm_session_version());
+  EXPECT_EQ(pdu_session_id, rat_req->pdu_session_id());
+  EXPECT_EQ(magma::lte::RequestType::INITIAL_REQUEST, rat_req->request_type());
 
-  EXPECT_TRUE(magma::lte::PduSessionType::IPV4 == rat_req->pdu_session_type());
-  EXPECT_TRUE(1 == rat_req->mutable_gnode_endpoint()->teid());
-  EXPECT_TRUE(gnb_ip_addr ==
-              rat_req->mutable_gnode_endpoint()->end_ipv4_addr());
+  EXPECT_EQ(magma::lte::PduSessionType::IPV4, rat_req->pdu_session_type());
+  EXPECT_EQ(1, rat_req->mutable_gnode_endpoint()->teid());
+  EXPECT_EQ(gnb_ip_addr, rat_req->mutable_gnode_endpoint()->end_ipv4_addr());
   uint8_t* pti_decoded = (uint8_t*)rat_req->procedure_trans_identity().c_str();
-  EXPECT_TRUE(pti == *pti_decoded);
-  EXPECT_TRUE(ue_ipv4_addr == req_cmn->ue_ipv4());
+  EXPECT_EQ(pti, *pti_decoded);
+  EXPECT_EQ(ue_ipv4_addr, req_cmn->ue_ipv4());
 }
 
 int main(int argc, char** argv) {

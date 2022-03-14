@@ -37,7 +37,7 @@ data "aws_iam_policy_document" "yace_policy_doc" {
       "cloudwatch:ListMetrics"
     ]
 
-    resources = [ "*" ]
+    resources = ["*"]
   }
 }
 

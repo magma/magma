@@ -104,6 +104,12 @@ infra:
     Required: false
     ConfigApps:
       - tf
+  orc8r_db_apply_immediately:
+    Description: Flag to immediately upgrade RDS without waiting for a maintenance window
+    Type: bool
+    Required: false
+    ConfigApps:
+      - tf
   orc8r_sns_email:
     Description: Email for notifications
     Type: string

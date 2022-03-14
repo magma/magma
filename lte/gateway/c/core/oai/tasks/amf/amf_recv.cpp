@@ -45,7 +45,6 @@ int amf_handle_service_request(
   amf_sap_t amf_sap;
   tmsi_t tmsi_rcv;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
-  char ip_str[INET_ADDRSTRLEN];
   uint16_t pdu_session_status = 0;
   uint32_t tmsi_stored;
   paging_context_t* paging_ctx = nullptr;
