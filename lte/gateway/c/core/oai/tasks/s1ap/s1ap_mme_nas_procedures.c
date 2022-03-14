@@ -76,8 +76,8 @@
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_common.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 
-#define EXT_UE_AMBR_UL 1000000000
-#define EXT_UE_AMBR_DL 1000000000
+#define EXT_UE_AMBR_UL 10000000000
+#define EXT_UE_AMBR_DL 10000000000
 extern bool s1ap_congestion_control_enabled;
 extern long s1ap_last_msg_latency;
 extern long s1ap_zmq_th;
