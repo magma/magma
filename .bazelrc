@@ -31,14 +31,14 @@ common:devcontainer --repository_cache=/workspaces/magma/.bazel-cache-repo
 build:devcontainer --define=folly_so=1
 
 # TEST CONFIGS
-#  Bazel test runtime default: PATH=/bin:/usr/bin:/usr/local/bin
-#  Some python tests require access to /usr/sbin binaries (e.g. route, ifconfig)
+# Bazel test runtime default: PATH=/bin:/usr/bin:/usr/local/bin
+# Some python tests require access to /usr/sbin binaries (e.g. route, ifconfig)
 build --test_env=PATH=/bin:/usr/bin:/usr/local/bin:/usr/sbin
-#  Use MAGMA_ROOT from the host system in tests.
-#  Needed by python tests (e.g. freedomfi_one_tests in enodebd)
+# Use MAGMA_ROOT from the host system in tests.
+# Needed by python tests (e.g. freedomfi_one_tests in enodebd)
 build --test_env=MAGMA_ROOT
-#  For testing compile mme libraries with unit test flag
-test --copt=-DMME_UNIT_TEST
+# Compile mme libraries with unit test flag
+test --per_file_copt=^lte/gateway/c/core/.*$@-DMME_UNIT_TEST
 
 # CODE COVERAGE CONFIGS
 build --javacopt="-source 8"
