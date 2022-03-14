@@ -131,7 +131,7 @@ setup(
         'ovs>=2.13',
         'prometheus-client>=0.3.1',
         'aioeventlet==0.5.1',  # aioeventlet-build.sh
-        'typing-extensions>=4.1.1',
+        'typing-extensions',
     ],
     extras_require={
         'dev': [
