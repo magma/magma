@@ -39,8 +39,9 @@ message Cbsd {
   repeated Grant grants = 7;
   repeated Channel channels = 8;
   int64 last_seen_timestamp = 9;
-  EirpCapabilities eirp_capabilities = 10;
-  DatabaseCbsd db_data = 11;
+  int32 grant_attempts = 10;
+  EirpCapabilities eirp_capabilities = 11;
+  DatabaseCbsd db_data = 12;
 }
 
 enum CbsdState {
