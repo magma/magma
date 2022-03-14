@@ -127,6 +127,8 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
       .mme_ue_s1ap_id = 1,
       .sctp_assoc_id = assoc_id,
       .comp_s1ap_id = S1AP_GENERATE_COMP_S1AP_ID(assoc_id, 1)};
+  ue_ref_p.s1ap_ue_context_rel_timer.id = -1;
+  ue_ref_p.s1ap_ue_context_rel_timer.msec = 1000;
 
   // State validation
   ASSERT_TRUE(
@@ -142,9 +144,11 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
                           state, &ue_ref_p, S1AP_INITIAL_CONTEXT_SETUP_FAILED,
                           INVALID_IMSI64, assoc_id, stream_id, 33, 10));
 
+  EXPECT_NE(ue_ref_p.s1ap_ue_context_rel_timer.id, S1AP_TIMER_INACTIVE_ID);
+
   // State validation
   ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue - 1));
+      is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
 }
 
 TEST_F(S1apMmeHandlersWithInjectedStatesTest, HandleS1apPathSwitchRequest) {
