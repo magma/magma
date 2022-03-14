@@ -40,21 +40,6 @@ int ngap_amf_decode_pdu(Ngap_NGAP_PDU_t* pdu, const_bstring const raw) {
                         blength(raw), 0, 0);
 
   if (dec_ret.code != RC_OK) {
-    for (int i = 1; i < (blength(raw) - 3); i++) {
-      if ((raw->data[i] == 0x13) && (raw->data[i + 1] == 0xf1) &&
-          (raw->data[i + 2] == 0x84)) {
-        if (raw->data[i - 1] == 0x50) {
-          raw->data[i - 1] = 0x48;
-        }
-      }
-    }
-
-    dec_ret = aper_decode(
-        NULL, &asn_DEF_Ngap_NGAP_PDU, (void**) &pdu, bdata(raw), blength(raw),
-        0, 0);
-    if (dec_ret.code == RC_OK) {
-      return 0;
-    }
     OAILOG_ERROR(LOG_NGAP, "Failed to decode PDU\n");
     return -1;
   }
