@@ -263,7 +263,6 @@ void StateConverter::proto_to_map_uint64_uint64(
     const google::protobuf::Map<uint64_t, uint64_t>& proto_map,
     map_uint64_uint64_t* map) {
   for (auto const& kv : proto_map) {
-    uint64_t id = kv.first;
     uint64_t val = kv.second;
     magma::map_rc_t m_rc = map->insert(kv.first, kv.second);
 

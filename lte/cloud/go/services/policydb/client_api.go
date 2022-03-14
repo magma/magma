@@ -16,4 +16,4 @@ limitations under the License.
 // the RPC implementation.
 package policydb
 
-const ServiceName = "POLICYDB"
+const ServiceName = "policydb"

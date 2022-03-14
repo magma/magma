@@ -69,7 +69,8 @@
 			"//lte/gateway/c/session_manager:sessiond",
 			"//lte/gateway/c/sctpd/src:sctpd",
 			"//lte/gateway/c/li_agent/src:liagentd",
-			"//lte/gateway/c/connection_tracker/src:connectiond"
+			"//lte/gateway/c/connection_tracker/src:connectiond",
+			"//lte/gateway/c/core:oai_mme",
 		],
 		"multiCommand.commands": [
 			{

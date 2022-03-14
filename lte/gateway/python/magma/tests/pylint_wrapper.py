@@ -12,9 +12,10 @@ limitations under the License.
 """
 
 import warnings
+from typing import Union
 
 PYLINT_AVAILABLE = False
-PYLINT_IMPORT_PROBLEM = 'Error importing pylint'
+PYLINT_IMPORT_PROBLEM: Union[str, Exception] = 'Error importing pylint'
 
 try:
     from pylint import lint, reporters

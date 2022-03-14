@@ -16,7 +16,3 @@ limitations under the License.
 // reporting services (lte/cwf/orchestrator) based on a user configurable
 // periodic interval and exports it to the user-configured exporter.
 package analytics
-
-const (
-	ServiceName = "ANALYTICS"
-)

@@ -146,12 +146,4 @@ TEST_F(LocalEnforcerStatsPollerTest, test_poll_stats) {
       .Times(1);
   local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  FLAGS_logtostderr = 1;
-  FLAGS_v = 10;
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

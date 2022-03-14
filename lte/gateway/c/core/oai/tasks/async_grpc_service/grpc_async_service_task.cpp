@@ -42,15 +42,9 @@ magma::S6aProxyResponderAsyncService*
 magma::service303::MagmaService server(S6A_ASYNC_PROXY_SERVICE,
                                        S6A_ASYNC_PROXY_VERSION);
 
-void stop_async_s6a_grpc_server(void) {
-  magma::S6aProxyResponderAsyncService* s6a_proxy_async_instance =
-      magma::S6aProxyResponderAsyncService::getInstance();
-  s6a_proxy_async_instance->stop();  // stop queue after server shuts down
-  free(s6a_proxy_async_instance);
-}
-
 AsyncService::AsyncService(std::unique_ptr<ServerCompletionQueue> cq)
     : cq_(std::move(cq)) {}
+
 void AsyncService::wait_for_requests() {
   init_call_data();
   void* tag;
@@ -86,6 +80,7 @@ S6aProxyResponderAsyncService::S6aProxyResponderAsyncService(
     std::unique_ptr<ServerCompletionQueue> cq,
     std::shared_ptr<S6aProxyAsyncResponderHandler> handler)
     : AsyncService(std::move(cq)), handler_(handler) {}
+
 void S6aProxyResponderAsyncService::init_call_data(void) {
   new CancelLocationCallData(cq_.get(), *this, *handler_);
   new ResetCallData(cq_.get(), *this, *handler_);
@@ -130,7 +125,6 @@ std::function<void(grpc::Status, ResponseType)> AsyncGRPCRequest<
 void S6aProxyAsyncResponderHandler::CancelLocation(
     ServerContext* context, const CancelLocationRequest* request,
     std::function<void(grpc::Status, CancelLocationAnswer)> response_callback) {
-  auto& request_cpy = *request;
   CancelLocationAnswer ans;
   Status status;
   status = Status::OK;
@@ -152,7 +146,6 @@ void S6aProxyAsyncResponderHandler::CancelLocation(
 void S6aProxyAsyncResponderHandler::Reset(
     ServerContext* context, const ResetRequest* request,
     std::function<void(grpc::Status, ResetAnswer)> response_callback) {
-  auto& request_cpy = *request;
   ResetAnswer ans;
   Status status;
   status = Status::OK;
@@ -204,7 +197,9 @@ static void* grpc_async_service_thread(__attribute__((unused)) void* args) {
   OAILOG_INFO(LOG_S6A, "Started async grpc server for s6a interface \n");
   std::thread proxy_thread([&]() {
     s6a_proxy_async_instance
-        ->wait_for_requests();  // block here instead of on server
+        ->wait_for_requests();         // block here instead of on server
+    s6a_proxy_async_instance->stop();  // stop queue after server shuts down
+    free(s6a_proxy_async_instance);
   });
   zloop_start(grpc_async_service_task_zmq_ctx.event_loop);
   proxy_thread.join();
@@ -227,7 +222,6 @@ extern "C" int grpc_async_service_init(void) {
 }
 
 static void grpc_async_service_exit(void) {
-  magma::stop_async_s6a_grpc_server();
   destroy_task_context(&grpc_async_service_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_ASYNC_GRPC_SERVICE terminated\n");
   pthread_exit(NULL);

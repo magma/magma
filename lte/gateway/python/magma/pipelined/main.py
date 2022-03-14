@@ -152,8 +152,10 @@ def main():
     # monitoring related configuration
     mtr_interface = service.config.get('mtr_interface', None)
     if mtr_interface:
-        mtr_ip = get_ip_from_if(mtr_interface)
-        service.config['mtr_ip'] = mtr_ip
+        try:
+            service.config['mtr_ip'] = get_ip_from_if(mtr_interface)
+        except ValueError:
+            logging.warning("Unable to set up mtr interface", exc_info=True)
 
     # Load the ryu apps
     service_manager = ServiceManager(service)

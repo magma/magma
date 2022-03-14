@@ -49,7 +49,19 @@ func NewStateServicer(factory blobstore.StoreFactory) (protos.StateServiceServer
 	return &stateServicer{factory}, nil
 }
 
-func (srv *stateServicer) GetStates(ctx context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
+type cloudStateServicer struct {
+	factory blobstore.StoreFactory
+}
+
+// NewCloudStateServicer returns a state server backed by storage passed in.
+func NewCloudStateServicer(factory blobstore.StoreFactory) (protos.CloudStateServiceServer, error) {
+	if factory == nil {
+		return nil, errors.New("storage factory is nil")
+	}
+	return &cloudStateServicer{factory}, nil
+}
+
+func (srv *cloudStateServicer) GetStates(ctx context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
 	if err := validateGetStatesRequest(req); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -225,7 +237,28 @@ func (srv *stateServicer) getStates(_ context.Context, req *protos.GetStatesRequ
 	return &protos.GetStatesResponse{States: blobsToStates(blobs)}, nil
 }
 
-func (srv *stateServicer) searchStates(_ context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
+func (srv *cloudStateServicer) getStates(_ context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
+	store, err := srv.factory.StartTransaction(nil)
+	if err != nil {
+		return nil, internalErr(err, "GetStates (get) blobstore start transaction")
+	}
+
+	ids := idsToTKs(req.GetIds())
+	blobs, err := store.GetMany(req.GetNetworkID(), ids)
+	if err != nil {
+		_ = store.Rollback()
+		return nil, internalErr(err, "GetStates (get) blobstore get many")
+	}
+
+	err = store.Commit()
+	if err != nil {
+		return nil, internalErr(err, "GetStates (get) blobstore commit transaction")
+	}
+
+	return &protos.GetStatesResponse{States: blobsToStates(blobs)}, nil
+}
+
+func (srv *cloudStateServicer) searchStates(_ context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
 		return nil, internalErr(err, "GetStates (search) blobstore start transaction")

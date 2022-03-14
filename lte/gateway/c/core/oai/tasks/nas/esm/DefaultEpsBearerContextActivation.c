@@ -494,7 +494,7 @@ status_code_e default_eps_bearer_activate_t3485_handler(zloop_t* loop,
   mme_ue_s1ap_id_t ue_id = timer_args.ue_id;
 
   ue_mm_context_t* ue_mm_context = mme_app_get_ue_context_for_timer(
-      ue_id, "EPS BEARER DEACTIVATE T3495 Timer");
+      ue_id, "EPS BEARER ACTIVATE T3485 Timer");
   if (ue_mm_context == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,

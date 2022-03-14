@@ -22,7 +22,7 @@
 # This is because the data property of the k8s secret resources below cannot
 # be conditionally evaluated based on the existence of this null resource and
 # so will error out during the plan if secretsmanager hasn't been seeded.
-resource "null_resource" orc8r_seed_secrets {
+resource "null_resource" "orc8r_seed_secrets" {
   provisioner "local-exec" {
     command = <<EOT
       ${path.module}/scripts/create_orc8r_secrets.py \
@@ -101,7 +101,7 @@ resource "kubernetes_secret" "orc8r_configs" {
     })
 
     "orchestrator.yml" = yamlencode({
-      "useGRPCExporter": true,
+      "useGRPCExporter" : true,
       "prometheusGRPCPushAddress" : format("%s-prometheus-cache:9092", var.helm_deployment_name),
       "prometheusPushAddresses" : [
         format("http://%s-prometheus-cache:9091/metrics", var.helm_deployment_name),
@@ -114,12 +114,12 @@ resource "kubernetes_secret" "orc8r_configs" {
     })
 
     "analytics.yml" = yamlencode({
-      "exportMetrics": var.analytics_export_enabled == null ? false : var.analytics_export_enabled,
-      "metricsPrefix": var.analytics_metrics_prefix == null ? "" : var.analytics_metrics_prefix,
-      "appSecret": var.analytics_app_secret == null ? "" : var.analytics_app_secret,
-      "appID": var.analytics_app_id == null ? "" : var.analytics_app_id,
-      "metricExportURL": var.analytics_metric_export_url == null ? "" : var.analytics_metric_export_url,
-      "categoryName": var.analytics_category_name == null ? "" : var.analytics_category_name,
+      "exportMetrics" : var.analytics_export_enabled == null ? false : var.analytics_export_enabled,
+      "metricsPrefix" : var.analytics_metrics_prefix == null ? "" : var.analytics_metrics_prefix,
+      "appSecret" : var.analytics_app_secret == null ? "" : var.analytics_app_secret,
+      "appID" : var.analytics_app_id == null ? "" : var.analytics_app_id,
+      "metricExportURL" : var.analytics_metric_export_url == null ? "" : var.analytics_metric_export_url,
+      "categoryName" : var.analytics_category_name == null ? "" : var.analytics_category_name,
     })
   }
 }
@@ -146,7 +146,7 @@ resource "kubernetes_secret" "fluentd_certs" {
 
 resource "kubernetes_secret" "dp_sas_certs" {
   count = var.dp_enabled ? 1 : 0
-  type = "kubernetes.io/tls"
+  type  = "kubernetes.io/tls"
   metadata {
     name      = "domain-proxy-cc"
     namespace = kubernetes_namespace.orc8r.metadata[0].name
@@ -159,7 +159,7 @@ resource "kubernetes_secret" "dp_sas_certs" {
 
 resource "kubernetes_secret" "dp_sas_ca" {
   count = var.dp_enabled ? 1 : 0
-  type = "Opaque"
+  type  = "Opaque"
   metadata {
     name      = "domain-proxy-cc-ca"
     namespace = kubernetes_namespace.orc8r.metadata[0].name

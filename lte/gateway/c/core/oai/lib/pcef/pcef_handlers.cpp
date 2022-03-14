@@ -18,14 +18,13 @@
 #include <grpcpp/impl/codegen/status.h>
 #include <cstring>
 #include <string>
-#include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 
 #ifdef __cplusplus
@@ -334,6 +333,10 @@ static int get_uli_from_session_req(
 int get_msisdn_from_session_req(
     const itti_s11_create_session_request_t* saved_req, char* msisdn) {
   int len = saved_req->msisdn.length;
+  if (len == 0) {
+    return len;
+  }
+
   int i, j;
 
   for (i = 0; i < len; ++i) {

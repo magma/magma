@@ -358,3 +358,12 @@ void bstring_to_paa(const bstring bstr, paa_t* paa) {
     }
   }
 }
+
+// Return the hex representation of a char array
+char* bytes_to_hex(char* byte_array, int length, char* hex_array) {
+  int i;
+  for (i = 0; i < length; i++) {
+    snprintf(hex_array + i * 3, 3, " %02x", (unsigned char)byte_array[i]);
+  }
+  return hex_array;
+}

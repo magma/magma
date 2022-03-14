@@ -467,6 +467,10 @@ class S1ApUtil(object):
                     },
                 },
             )
+            print(
+                "OVS DL flows created ", len(total_dl_ovs_flows_created),
+                "expected ", total_num_dl_flows_to_be_verified,
+            )
             assert (
                 len(total_dl_ovs_flows_created)
                 == total_num_dl_flows_to_be_verified

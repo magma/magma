@@ -26,8 +26,6 @@ using namespace fluid_msg;
 
 namespace openflow {
 
-static struct in_addr INADDR_ZERO { .s_addr = 0 };
-
 enum ControllerEventType {
   EVENT_PACKET_IN,
   EVENT_SWITCH_DOWN,

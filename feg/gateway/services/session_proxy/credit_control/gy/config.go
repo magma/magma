@@ -95,7 +95,6 @@ func GetInitMethod() InitMethod {
 	return initMethod
 }
 
-// TODO: refactor those functions to make it more simple
 // GetOCSConfiguration returns the server configuration for the set OCS
 func GetOCSConfiguration() []*diameter.DiameterServerConfig {
 	configsPtr := &mconfig.SessionProxyConfig{}
@@ -118,20 +117,9 @@ func GetOCSConfiguration() []*diameter.DiameterServerConfig {
 	}
 
 	gyConfigs := configsPtr.GetGy().GetServers()
-	//TODO: remove this once backwards compatibility is not needed for the field server
-	if len(gyConfigs) == 0 {
-		server := configsPtr.GetGy().GetServer()
-		if server == nil {
-			log.Print("Server configuration for Gy servers not found!!")
-		} else {
-			gyConfigs = append(gyConfigs, server)
-			log.Print("Gy Server configuration using legacy swagger attribute Server (not Servers)")
-		}
-	}
-
-	// Iterate over the slice of servers. VarEnv will apply only to index 0
-	diamServerConfigs := []*diameter.DiameterServerConfig{}
+	var diamServerConfigs []*diameter.DiameterServerConfig
 	for i, gyCfg := range gyConfigs {
+		// Iterate over the slice of servers. VarEnv will apply only to index 0
 		diamSrvCfg := &diameter.DiameterServerConfig{
 			DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 				Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, OCSAddrEnv, gyCfg.GetAddress(), i),
@@ -169,18 +157,8 @@ func GetGyClientConfiguration() []*diameter.DiameterClientConfig {
 		}
 	}
 
-	diamClientsConfigs := []*diameter.DiameterClientConfig{}
+	var diamClientsConfigs []*diameter.DiameterClientConfig
 	gyConfigs := configsPtr.GetGy().GetServers()
-	//TODO: remove this once backwards compatibility is not needed for the field server
-	if len(gyConfigs) == 0 {
-		server := configsPtr.GetGy().GetServer()
-		if server == nil {
-			log.Print("Client configuration for Gy servers not found!!")
-		} else {
-			gyConfigs = append(gyConfigs, server)
-			log.Print("Gy Client configuration using legacy swagger attribute Server (not Servers)")
-		}
-	}
 	for i, gyCfg := range gyConfigs {
 		retries = gyCfg.GetRetryCount()
 		if retries < 1 {
