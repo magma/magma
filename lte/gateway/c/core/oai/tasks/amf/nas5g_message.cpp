@@ -190,7 +190,7 @@ int nas5g_message_decode(const unsigned char* const buffer,
                get_message_type_str(
                    static_cast<uint8_t>(msg->plain.amf.header.message_type))
                    .c_str(),
-               bytes, uint8_to_hex_string(buffer, bytes).c_str());
+               bytes, uint8_to_hex_string(buffer, length).c_str());
 
   OAILOG_INFO(LOG_AMF_APP, "Decoded msg(nas5g) id: [%x]-name [%s]",
               static_cast<uint8_t>(msg->plain.amf.header.message_type),

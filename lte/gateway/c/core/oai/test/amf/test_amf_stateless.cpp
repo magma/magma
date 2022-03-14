@@ -736,14 +736,9 @@ TEST_F(AMFAppStatelessTest, TestAfterRegistrationComplete) {
 
   // Calling pseudo_amf_restart() and SetUp() simulates a service restart.
   AMFAppStatelessTest::pseudo_amf_restart();
+  EXPECT_TRUE(AmfNasStateManager::getInstance().get_ue_state_map()->isEmpty());
+  EXPECT_EQ(get_amf_nas_state(false), nullptr);
 
-  EXPECT_TRUE(amf_state_ue_id_ht->isEmpty());
-  EXPECT_TRUE(
-      amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.isEmpty());
-
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl.isEmpty());
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.tun11_ue_context_htbl.isEmpty());
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.isEmpty());
   // Internally reads back the state
   AMFAppStatelessTest::SetUp();
   amf_state_ue_id_ht = AmfNasStateManager::getInstance().get_ue_state_map();
@@ -873,13 +868,8 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionEstReq) {
 
   // Calling pseudo_amf_restart() and SetUp() simulates a service restart.
   AMFAppStatelessTest::pseudo_amf_restart();
-
-  EXPECT_TRUE(amf_state_ue_id_ht->isEmpty());
-  EXPECT_TRUE(
-      amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.isEmpty());
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl.isEmpty());
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.tun11_ue_context_htbl.isEmpty());
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.isEmpty());
+  EXPECT_TRUE(AmfNasStateManager::getInstance().get_ue_state_map()->isEmpty());
+  EXPECT_EQ(get_amf_nas_state(false), nullptr);
 
   // Internally reads back the state
   AMFAppStatelessTest::SetUp();
@@ -1034,13 +1024,8 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionReleaseComplete) {
 
   // Calling pseudo_amf_restart() and SetUp() simulates a service restart.
   AMFAppStatelessTest::pseudo_amf_restart();
-
-  EXPECT_TRUE(amf_state_ue_id_ht->isEmpty());
-  EXPECT_TRUE(
-      amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.isEmpty());
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl.isEmpty());
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.tun11_ue_context_htbl.isEmpty());
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.isEmpty());
+  EXPECT_TRUE(AmfNasStateManager::getInstance().get_ue_state_map()->isEmpty());
+  EXPECT_EQ(get_amf_nas_state(false), nullptr);
 
   // Internally reads back the state
   AMFAppStatelessTest::SetUp();
