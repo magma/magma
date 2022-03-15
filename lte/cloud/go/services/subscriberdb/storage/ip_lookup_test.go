@@ -54,7 +54,7 @@ func TestIPLookup(t *testing.T) {
 			{Ip: "ipA", Imsi: "IMSI0", Apn: "apn0"},
 			{Ip: "ipA", Imsi: "IMSI1", Apn: "apn0"},
 		}
-		assert.Equal(t, want, got)
+		assertEqualArrays(t, want, got)
 
 		got, err = s.GetIPs("n0", []string{"ipA", "ipB"})
 		assert.NoError(t, err)
@@ -64,7 +64,7 @@ func TestIPLookup(t *testing.T) {
 			{Ip: "ipB", Imsi: "IMSI1", Apn: "apn1"},
 			{Ip: "ipB", Imsi: "IMSI2", Apn: "apn2"},
 		}
-		assert.Equal(t, want, got)
+		assertEqualArrays(t, want, got)
 	})
 
 	t.Run("upsert", func(t *testing.T) {
@@ -83,7 +83,7 @@ func TestIPLookup(t *testing.T) {
 			{Ip: "ipA", Imsi: "IMSI1", Apn: "apn0"},
 			{Ip: "ipA", Imsi: "IMSI1", Apn: "apn1"},
 		}
-		assert.Equal(t, want, got)
+		assertEqualArrays(t, want, got)
 
 		got, err = s.GetIPs("n0", []string{"ipA", "ipB", "ipC"})
 		assert.NoError(t, err)
@@ -94,7 +94,7 @@ func TestIPLookup(t *testing.T) {
 			{Ip: "ipB", Imsi: "IMSI2", Apn: "apn1"},
 			{Ip: "ipC", Imsi: "IMSI2", Apn: "apn2"},
 		}
-		assert.Equal(t, want, got)
+		assertEqualArrays(t, want, got)
 	})
 
 	t.Run("additional network", func(t *testing.T) {
@@ -113,13 +113,20 @@ func TestIPLookup(t *testing.T) {
 			{Ip: "ipB", Imsi: "IMSI2", Apn: "apn1"},
 			{Ip: "ipC", Imsi: "IMSI2", Apn: "apn2"},
 		}
-		assert.Equal(t, want, got)
+		assertEqualArrays(t, want, got)
 
 		got, err = s.GetIPs("n1", []string{"ipA", "ipB", "ipC", "ipZ"})
 		assert.NoError(t, err)
 		want = []*protos.IPMapping{
 			{Ip: "ipZ", Imsi: "IMSI0", Apn: "apn0"},
 		}
-		assert.Equal(t, want, got)
+		assertEqualArrays(t, want, got)
 	})
+}
+
+func assertEqualArrays(t *testing.T, expected []*protos.IPMapping, actual []*protos.IPMapping) {
+	assert.Equal(t, len(expected), len(actual))
+	for i := range actual {
+		assert.Equal(t, expected[i].String(), actual[i].String())
+	}
 }

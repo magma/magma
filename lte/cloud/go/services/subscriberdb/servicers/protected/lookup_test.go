@@ -230,7 +230,9 @@ func TestLookupServicer_IPs(t *testing.T) {
 			Ips:       []string{"ipA", "ipB", "ipC"},
 		})
 		assert.NoError(t, err)
-		assert.Equal(t, want, got.IpMappings)
+		for i := range want {
+			assert.Equal(t, want[i].String(), got.IpMappings[i].String())
+		}
 	})
 
 	t.Run("validate requests", func(t *testing.T) {
@@ -280,6 +282,8 @@ func TestLookupServicer_IPs(t *testing.T) {
 			{Ip: "ipB", Imsi: "IMSI0", Apn: "apn1"},
 			{Ip: "ipC", Imsi: "IMSI1", Apn: "apn0"},
 		}
-		assert.Equal(t, want, got.IpMappings)
+		for i := range want {
+			assert.Equal(t, want[i].String(), got.IpMappings[i].String())
+		}
 	})
 }
