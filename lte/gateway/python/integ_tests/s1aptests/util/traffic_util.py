@@ -126,9 +126,13 @@ class TrafficUtil(object):
 
     def update_dl_route(self, ue_ip_block):
         """ Update downlink route in TRF server """
+        #ret_code = self.exec_command(
+        #    "sudo ip route flush via 192.168.129.1 && sudo ip route "
+        #    "replace " + ue_ip_block + " via 192.168.129.1 dev eth2",
+        #)
         ret_code = self.exec_command(
-            "sudo ip route flush via 192.168.129.1 && sudo ip route "
-            "replace " + ue_ip_block + " via 192.168.129.1 dev eth2",
+            "sudo ip -6 route flush via fdee:5:6c::1 && sudo ip -6 route "
+            "replace " + ue_ip_block + " via fdee:5:6c::1 dev eth2",
         )
         if ret_code != 0:
             return False
@@ -343,9 +347,13 @@ class TrafficTest(object):
         net_iface_index = TrafficTest._iproute.link_lookup(
             ifname=TrafficTest._net_iface,
         )[0]
+        print("net_iface_index", net_iface_index)
         TrafficTest._iproute.addr(
             'add', index=net_iface_index, address=ip.exploded,
         )
+        os.system(
+                'sudo route -A inet6 add fdee:5:6c::1/64 dev eth2'
+        ),
         #return net_alias
 
     @staticmethod

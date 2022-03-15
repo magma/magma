@@ -591,12 +591,15 @@ class TrafficTestDriver(object):
                 #os.system(
                 #    'sudo route -A inet6 add fdee:5:6c::1/64 dev eth2'
                 #)
-                os.system(
-                    'sudo route -A inet6 add %s/64 dev eth2' % (
-                    instance.ip.exploded,
-                    ),
-                )
+                os.system('sudo /sbin/ip -6 route add fdee:5:6c::1 dev eth2')
+                #os.system(
+                #    'sudo route -A inet6 add %s gw fdee:5:6c::1 dev eth2' % (
+                #    instance.ip.exploded,
+                #    ),
 
+                #os.system('sudo /sbin/ip -6 route add %s dev eth2' %(instance.ip.exploded,)
+                os.system('sudo /sbin/ip -6 route add %s via fdee:5:6c::1 dev eth2' %(instance.ip.exploded,)
+                )
                 iperf.port = TrafficTestDriver._get_port()
             else:
                 iperf = iperf3.Client()

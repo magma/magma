@@ -118,11 +118,13 @@ class TestAttachDetachNonNatDpUlTcp(unittest.TestCase):
             default_ipv6 = ipaddress.ip_address(ipv6_addr)
             self._s1ap_wrapper.s1_util.update_ipv6_address(ue_id, ipv6_addr)
 
+            print("Sleeping for 20 secs")
+            time.sleep(20)
             print(
                 "************************* Running UE uplink (TCP) for UE id ",
                 req.ue_id,
             )
-            with self._s1ap_wrapper.configUplinkTest(req, duration=1) as test:
+            with self._s1ap_wrapper.configUplinkTest(req, duration=10) as test:
                 test.verify()
             print(
                 "************************* Running UE detach for UE id ",
