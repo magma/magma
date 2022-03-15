@@ -239,7 +239,7 @@ class BaseAVP(metaclass=abc.ABCMeta):
         return offset - begin
 
     # pylint:disable=no-self-argument
-    def flag_getter(mask):
+    def flag_getter(mask: int):  # type: ignore[misc]
         """Convenience getter for reading AVP flags"""
 
         def getter(self):
@@ -248,7 +248,7 @@ class BaseAVP(metaclass=abc.ABCMeta):
         return getter
 
     # pylint:disable=no-self-argument
-    def flag_setter(mask):
+    def flag_setter(mask: int):  # type: ignore[misc]
         """Convenience setter for reading AVP flags"""
 
         def setter(self, value):

@@ -14,10 +14,11 @@ const mega = 1e6
 
 func TestGrantRequestGenerator(t *testing.T) {
 	data := []struct {
-		name         string
-		capabilities *active_mode.EirpCapabilities
-		channels     []*active_mode.Channel
-		expected     []*request
+		name          string
+		capabilities  *active_mode.EirpCapabilities
+		channels      []*active_mode.Channel
+		grantAttempts int
+		expected      []*request
 	}{
 		{
 			name:         "Should generate grant request with default max eirp",
@@ -81,6 +82,14 @@ func TestGrantRequestGenerator(t *testing.T) {
 			name:         "Should not generate anything if there are no channels",
 			capabilities: getDefaultCapabilities(),
 		},
+		{
+			name:         "Should not generate anything if there are grant attempts",
+			capabilities: getDefaultCapabilities(),
+			channels: []*active_mode.Channel{{
+				FrequencyRange: getDefaultFrequencyRange(),
+			}},
+			grantAttempts: 1,
+		},
 	}
 	for _, tt := range data {
 		t.Run(tt.name, func(t *testing.T) {
@@ -88,6 +97,7 @@ func TestGrantRequestGenerator(t *testing.T) {
 				Id:               "some_cbsd_id",
 				Channels:         tt.channels,
 				EirpCapabilities: tt.capabilities,
+				GrantAttempts:    int32(tt.grantAttempts),
 			}
 			g := sas.NewGrantRequestGenerator(&stubIndexProvider{})
 			actual := g.GenerateRequests(cbsd)

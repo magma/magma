@@ -57,6 +57,10 @@ class DBCbsdBuilder:
         self.cbsd.last_seen = datetime.fromtimestamp(last_seen)
         return self
 
+    def with_grant_attempts(self, grant_attempts: int) -> DBCbsdBuilder:
+        self.cbsd.grant_attempts = grant_attempts
+        return self
+
     def with_active_mode_config(self, desired_state_id: int) -> DBCbsdBuilder:
         config = DBActiveModeConfig(
             desired_state_id=desired_state_id,
@@ -87,13 +91,12 @@ class DBCbsdBuilder:
     def with_channel(
         self,
         low: int, high: int,
-        max_eirp: float = None, last_eirp: float = None,
+        max_eirp: float = None,
     ) -> DBCbsdBuilder:
         channel = DBChannel(
             low_frequency=low,
             high_frequency=high,
             max_eirp=max_eirp,
-            last_used_max_eirp=last_eirp,
             channel_type='channel_type',
             rule_applied='rule',
         )
