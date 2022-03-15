@@ -1248,7 +1248,7 @@ func TestCreateGateway(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 500,
-		ExpectedError:  "error creating gateway: rpc error: code = Internal desc = could not find entities matching [type:\"cellular_enodeb\" key:\"dne\" ]",
+		ExpectedError:  "error creating gateway: rpc error: code = Internal desc = could not find entities matching [type:\"cellular_enodeb\"  key:\"dne\"]",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2395,9 +2395,10 @@ func TestListAndGetEnodebs(t *testing.T) {
 			Serial:      "vwxyz",
 		},
 	}
+	emptyPageToken := lteModels.PageToken("")
 	expected := &lteModels.PaginatedEnodebs{
 		Enodebs:    enodebs,
-		PageToken:  "",
+		PageToken:  &emptyPageToken,
 		TotalCount: 2,
 	}
 
@@ -2412,10 +2413,10 @@ func TestListAndGetEnodebs(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	expectedPageToken := "CgdhYmNkZWZn"
+	expectedPageToken := lteModels.PageToken("CgdhYmNkZWZn")
 	paginatedExpectation := &lteModels.PaginatedEnodebs{
 		Enodebs:    map[string]*lteModels.Enodeb{"abcdefg": expected.Enodebs["abcdefg"]},
-		PageToken:  lteModels.PageToken(expectedPageToken),
+		PageToken:  &expectedPageToken,
 		TotalCount: 2,
 	}
 	tc = tests.Test{
@@ -2429,11 +2430,11 @@ func TestListAndGetEnodebs(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 	paginatedExpectation.Enodebs = map[string]*lteModels.Enodeb{"vwxyz": expected.Enodebs["vwxyz"]}
-	paginatedExpectation.PageToken = ""
+	paginatedExpectation.PageToken = &emptyPageToken
 
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            testURLRoot + "?page_size=10&page_token=" + expectedPageToken,
+		URL:            testURLRoot + "?page_size=10&page_token=" + string(expectedPageToken),
 		Handler:        listEnodebs,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -3350,7 +3351,7 @@ func TestAPNResource(t *testing.T) {
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // this would actually make more sense as a 400, but it's a non-trivial fix
-		ExpectedErrorSubstring: `could not find entities matching [type:"apn" key:"apn0" ]`,
+		ExpectedErrorSubstring: `could not find entities matching [type:"apn"  key:"apn0"]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -3424,7 +3425,7 @@ func TestAPNResource(t *testing.T) {
 		ParamValues:            []string{"n0", "gw0"},
 		Handler:                putGateway,
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"apn" key:"apnXXX" ]`,
+		ExpectedErrorSubstring: `could not find entities matching [type:"apn"  key:"apnXXX"]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
