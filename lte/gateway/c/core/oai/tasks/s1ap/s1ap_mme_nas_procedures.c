@@ -182,7 +182,6 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
     if (eNB_ref->next_sctp_stream >= eNB_ref->instreams) {
       eNB_ref->next_sctp_stream = 1;
     }
-    s1ap_dump_enb(eNB_ref);
     // TAI mandatory IE
     S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie, container,
                                S1ap_ProtocolIE_ID_id_TAI, true);
