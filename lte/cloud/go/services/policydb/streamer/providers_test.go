@@ -117,13 +117,15 @@ func TestPolicyStreamers(t *testing.T) {
 	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
 	assert.NoError(t, err)
 
+	classID_42 := models.QosClassID(42)
+	classID_420 := models.QosClassID(420)
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		// Attached qos profile (shared)
 		{
 			Type: lte.PolicyQoSProfileEntityType,
 			Key:  "p1",
 			Config: &models.PolicyQosProfile{
-				ClassID: 42,
+				ClassID: &classID_42,
 				ID:      "p1",
 			},
 		},
@@ -132,7 +134,7 @@ func TestPolicyStreamers(t *testing.T) {
 			Type: lte.PolicyQoSProfileEntityType,
 			Key:  "p2",
 			Config: &models.PolicyQosProfile{
-				ClassID: 420,
+				ClassID: &classID_420,
 				ID:      "p2",
 			},
 		},

@@ -15,6 +15,7 @@ package subscriberdb
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
@@ -127,7 +128,7 @@ func getSubscribersDigest(network string) (string, error) {
 		if err != nil {
 			return "", nil
 		}
-		digestsByPage[string(curPage)] = []byte(pageDigest)
+		digestsByPage[fmt.Sprint(curPage)] = []byte(pageDigest)
 
 		foundEmptyToken = nextToken == ""
 		token = nextToken
