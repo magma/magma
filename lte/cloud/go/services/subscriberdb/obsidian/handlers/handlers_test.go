@@ -386,20 +386,18 @@ func TestListSubscribers(t *testing.T) {
 		"IMSI1234567890": {
 			ID: "IMSI1234567890",
 			Lte: &subscriberModels.LteSubscription{
-				AuthAlgo:   "MILENAGE",
-				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				State:      "ACTIVE",
-				SubProfile: &subProfileDefault,
+				AuthAlgo: "MILENAGE",
+				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:    "ACTIVE",
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 			Config: &subscriberModels.SubscriberConfig{
 				Lte: &subscriberModels.LteSubscription{
-					AuthAlgo:   "MILENAGE",
-					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					State:      "ACTIVE",
-					SubProfile: &subProfileDefault,
+					AuthAlgo: "MILENAGE",
+					AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					State:    "ACTIVE",
 				},
 				StaticIps:             subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
 				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
@@ -530,20 +528,18 @@ func TestGetSubscriber(t *testing.T) {
 			ID:   "IMSI1234567890",
 			Name: "Jane Doe",
 			Lte: &subscriberModels.LteSubscription{
-				AuthAlgo:   "MILENAGE",
-				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				State:      "ACTIVE",
-				SubProfile: &subProfileDefault,
+				AuthAlgo: "MILENAGE",
+				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:    "ACTIVE",
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 			Config: &subscriberModels.SubscriberConfig{
 				Lte: &subscriberModels.LteSubscription{
-					AuthAlgo:   "MILENAGE",
-					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					State:      "ACTIVE",
-					SubProfile: &subProfileDefault,
+					AuthAlgo: "MILENAGE",
+					AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					State:    "ACTIVE",
 				},
 				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 				StaticIps:             subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
@@ -596,20 +592,18 @@ func TestGetSubscriber(t *testing.T) {
 			ID:   "IMSI1234567890",
 			Name: "Jane Doe",
 			Lte: &subscriberModels.LteSubscription{
-				AuthAlgo:   "MILENAGE",
-				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				State:      "ACTIVE",
-				SubProfile: &subProfileDefault,
+				AuthAlgo: "MILENAGE",
+				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:    "ACTIVE",
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 			Config: &subscriberModels.SubscriberConfig{
 				Lte: &subscriberModels.LteSubscription{
-					AuthAlgo:   "MILENAGE",
-					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					State:      "ACTIVE",
-					SubProfile: &subProfileDefault,
+					AuthAlgo: "MILENAGE",
+					AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					State:    "ACTIVE",
 				},
 				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 				StaticIps:             subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
@@ -1654,7 +1648,7 @@ func TestSubscriberBasename(t *testing.T) {
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `code=500, message=could not find entities matching [type:"base_name" key:"baseXXX"]`,
+		ExpectedErrorSubstring: `code=500, message=could not find entities matching [type:"base_name"  key:"baseXXX"]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1700,7 +1694,7 @@ func TestSubscriberBasename(t *testing.T) {
 		ParamValues:            []string{"n0", imsi},
 		Handler:                putSubscriber,
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"base_name" key:"baseXXX"]`,
+		ExpectedErrorSubstring: `could not find entities matching [type:"base_name"  key:"baseXXX"]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1772,7 +1766,7 @@ func TestSubscriberPolicy(t *testing.T) {
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `code=500, message=could not find entities matching [type:"policy" key:"ruleXXX"]`,
+		ExpectedErrorSubstring: `code=500, message=could not find entities matching [type:"policy"  key:"ruleXXX"]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1818,7 +1812,7 @@ func TestSubscriberPolicy(t *testing.T) {
 		ParamValues:            []string{"n0", imsi},
 		Handler:                putSubscriber,
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"policy" key:"ruleXXX"]`,
+		ExpectedErrorSubstring: `could not find entities matching [type:"policy"  key:"ruleXXX"]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2004,7 +1998,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"apn" key:"apnXXX"]`,
+		ExpectedErrorSubstring: `could not find entities matching [type:"apn"  key:"apnXXX"]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2018,7 +2012,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"policy" key:"ruleXXX"]`,
+		ExpectedErrorSubstring: `could not find entities matching [type:"policy"  key:"ruleXXX"]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2071,7 +2065,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		ParamValues:            []string{"n0", imsi},
 		Handler:                putSubscriber,
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"apn" key:"apnXXX"]`,
+		ExpectedErrorSubstring: `could not find entities matching [type:"apn"  key:"apnXXX"]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2085,7 +2079,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		ParamValues:            []string{"n0", imsi},
 		Handler:                putSubscriber,
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"policy" key:"ruleXXX"]`,
+		ExpectedErrorSubstring: `could not find entities matching [type:"policy"  key:"ruleXXX"]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 

@@ -328,8 +328,8 @@ func TestUpdateNetwork(t *testing.T) {
 		ExpectedError: "validation failure list:\n" +
 			"validation failure list:\n" +
 			"validation failure list:\n" +
-			"a_record.0 in body must be of type ipv4: \"asdf\"\n" +
-			"aaaa_record.0 in body must be of type ipv6: \"abcd\"",
+			"dns.records.0.a_record.0 in body must be of type ipv4: \"asdf\"\n" +
+			"dns.records.0.aaaa_record.0 in body must be of type ipv6: \"abcd\"",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1248,7 +1248,7 @@ func TestCreateGateway(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 500,
-		ExpectedError:  "error creating gateway: rpc error: code = Internal desc = could not find entities matching [type:\"cellular_enodeb\"  key:\"dne\"]",
+		ExpectedError:  "error creating gateway: rpc error: code = Internal desc = could not find entities matching [type:\"cellular_enodeb\" key:\"dne\"]",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -3351,7 +3351,7 @@ func TestAPNResource(t *testing.T) {
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // this would actually make more sense as a 400, but it's a non-trivial fix
-		ExpectedErrorSubstring: `could not find entities matching [type:"apn"  key:"apn0"]`,
+		ExpectedErrorSubstring: `could not find entities matching [type:"apn" key:"apn0"]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -3425,7 +3425,7 @@ func TestAPNResource(t *testing.T) {
 		ParamValues:            []string{"n0", "gw0"},
 		Handler:                putGateway,
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"apn"  key:"apnXXX"]`,
+		ExpectedErrorSubstring: `could not find entities matching [type:"apn" key:"apnXXX"]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
