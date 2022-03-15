@@ -146,7 +146,6 @@ void S1apStateManager::free_state() {
 }
 
 status_code_e S1apStateManager::read_ue_state_from_db() {
-#if !MME_UNIT_TEST
   if (!persist_state_enabled) {
     return RETURNok;
   }
@@ -181,7 +180,6 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
                    ue_context->mme_ue_s1ap_id);
     }
   }
-#endif
   return RETURNok;
 }
 
