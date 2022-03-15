@@ -91,6 +91,7 @@ TEST_F(NasStateConverterTest, TestEmmContextConversion) {
   ;
   emm_context.new_attach_info->ies->is_initial = true;
   emm_context.new_attach_info->ies->type = EMM_ATTACH_TYPE_EPS;
+  emm_context.t3422_arg = nullptr; // Timer 3422 is not running
 
   oai::EmmContext proto_state;
   NasStateConverter::emm_context_to_proto(&emm_context, &proto_state);
