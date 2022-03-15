@@ -144,7 +144,7 @@ func (m *MutableSubscriber) FromEnt(ent configurator.NetworkEntity, policyProfil
 		model.StaticIps = config.StaticIps
 		// If no profile in backend, return "default"
 		// TODO(8/21/20): enforce this at the API layer (and include data migration)
-		if *model.Lte.SubProfile == "" {
+		if model.Lte.SubProfile != nil && *model.Lte.SubProfile == "" {
 			defaultSubProfile := SubProfile("default")
 			model.Lte.SubProfile = &defaultSubProfile
 		}
