@@ -33,7 +33,7 @@ cc_library(
     deps = [
         "//orc8r/gateway/c/common/logging",
         "@github_nlohmann_json//:json",
-        "@protobuf",
+        "@com_google_protobuf//:protobuf",
     ],
 )
 
