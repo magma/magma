@@ -619,7 +619,6 @@ void free_emm_ctx_memory(emm_context_t* const ctxt,
   }
   nas_delete_all_emm_procedures(ctxt);
   free_esm_context_content(&ctxt->esm_ctx);
-  bdestroy_wrapper(&ctxt->esm_msg);
 }
 
 //------------------------------------------------------------------------------
@@ -746,7 +745,6 @@ void emm_init_context(struct emm_context_s* const emm_ctx,
     esm_init_context(&emm_ctx->esm_ctx);
   }
   emm_ctx->emm_procedures = NULL;
-  emm_ctx->esm_msg = NULL;
 }
 
 //------------------------------------------------------------------------------

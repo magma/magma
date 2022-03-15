@@ -188,10 +188,6 @@ void clear_emm_ctxt(emm_context_t* emm_context) {
   // Stop T3489 timer
   free_esm_context_content(&emm_context->esm_ctx);
 
-  if (emm_context->esm_msg) {
-    bdestroy(emm_context->esm_msg);
-  }
-
   // Change the FSM state to Deregistered
   if (emm_fsm_get_state(emm_context) != EMM_DEREGISTERED) {
     emm_fsm_set_state(ue_id, emm_context, EMM_DEREGISTERED);
