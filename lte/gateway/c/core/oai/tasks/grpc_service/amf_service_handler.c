@@ -46,3 +46,19 @@ int send_n11_notification_received_itti(
   message_p->ittiMsg.n11_notification_received = *itti_msg;
   return send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_AMF_APP, message_p);
 }
+
+status_code_e send_n11_create_pdu_session_failure_itti(
+    itti_n11_create_pdu_session_failure_t* itti_msg) {
+  OAILOG_DEBUG(LOG_UTIL,
+               "Sending itti_n11_create_pdu_session_failure to AMF \n");
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_GRPC_SERVICE, N11_CREATE_PDU_SESSION_FAILURE);
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+        LOG_UTIL,
+        "Failed to allocate memory for N11_CREATE_PDU_SESSION_FAILURE\n");
+    return RETURNerror;
+  }
+  message_p->ittiMsg.n11_create_pdu_session_failure = *itti_msg;
+  return send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_AMF_APP, message_p);
+}

@@ -26,6 +26,15 @@
 
 #include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
 #include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/include/amf_service_handler.h"
+#ifdef __cplusplus
+}
+#endif
+
 using grpc::Status;
 using magma::AsyncLocalResponse;
 using magma::ServiceRegistrySingleton;
@@ -38,7 +47,30 @@ void handle_session_context_response(grpc::Status status,
               << std::endl;
   }
 }
+void handle_session_context_response(grpc::Status status,
+                                     const SetSMSessionContext& request,
+                                     magma::lte::SmContextVoid response) {
+  if (status.ok()) {
+    return;
+  }
 
+  std::cout << "AsyncSetAmfSessionContext fails with code "
+            << status.error_code() << ", msg: " << status.error_message()
+            << std::endl;
+  auto& req_common = request.common_context();
+  itti_n11_create_pdu_session_failure_t itti_msg = {};
+
+  if (!req_common.sid().id().empty()) {
+    strncpy(itti_msg.imsi, req_common.sid().id().c_str() + 4,
+            IMSI_BCD_DIGITS_MAX);
+  }
+  auto& req_rat_specific =
+      request.rat_specific_context().m5gsm_session_context();
+  itti_msg.pdu_session_id = req_rat_specific.pdu_session_id();
+  itti_msg.error_code = static_cast<uint8_t>(status.error_code());
+
+  send_n11_create_pdu_session_failure_itti(&itti_msg);
+}
 using namespace magma::lte;
 namespace magma5g {
 
@@ -149,10 +181,10 @@ int AsyncSmfServiceClient::amf_smf_create_pdu_session(
 }
 
 bool AsyncSmfServiceClient::set_smf_session(SetSMSessionContext& request) {
-  SetSMFSessionRPC(request,
-                   [](const Status& status, const SmContextVoid& response) {
-                     handle_session_context_response(status, response);
-                   });
+  SetSMFSessionRPC(
+      request, [request](const Status& status, const SmContextVoid& response) {
+        handle_session_context_response(status, request, response);
+      });
 
   return true;
 }

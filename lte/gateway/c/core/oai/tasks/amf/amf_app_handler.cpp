@@ -40,6 +40,11 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/include/n11_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
+#include "lte/gateway/c/core/oai/include/map.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
 
 extern amf_config_t amf_config;
 extern amf_config_t amf_config;
@@ -1626,5 +1631,54 @@ void amf_app_handle_initial_context_setup_rsp(
     amf_ue_context_update_ue_sig_connection_state(
         &amf_app_desc_p->amf_ue_contexts, ue_context, M5GCM_CONNECTED);
   }
+}
+using grpc::Status;
+int amf_app_handle_pdu_session_failure(
+    itti_n11_create_pdu_session_failure_t* pdu_session_failure) {
+  if (!pdu_session_failure) {
+    return 0;
+  }
+  ue_m5gmm_context_s* ue_context = nullptr;
+
+  imsi64_t imsi64 = 0;
+  IMSI_STRING_TO_IMSI64(pdu_session_failure->imsi, &imsi64);
+  ue_context = lookup_ue_ctxt_by_imsi(imsi64);
+
+  if (!ue_context) {
+    OAILOG_ERROR(LOG_AMF_APP, "UE context is null\n");
+    return -1;
+  }
+  std::shared_ptr<smf_context_t> smf_context;
+  smf_context = amf_get_smf_context_by_pdu_session_id(
+      ue_context, pdu_session_failure->pdu_session_id);
+
+  if (!smf_context) {
+    OAILOG_WARNING(LOG_AMF_APP, "smfcontext doesnot exist with session id\n");
+    return -1;
+  }
+
+  if (pdu_session_failure->error_code ==
+      static_cast<uint8_t>(grpc::StatusCode::ALREADY_EXISTS)) {
+    OAILOG_DEBUG(
+        LOG_AMF_APP,
+        "failure response due to duplicate PDU session,releasing existing PDU");
+    amf_smf_release_t smf_message = {};
+
+    smf_message.pdu_session_id = smf_context->smf_proc_data.pdu_session_id;
+    smf_message.pti = smf_context->smf_proc_data.pti;
+
+    release_session_gprc_req(&smf_message, pdu_session_failure->imsi);
+
+    if (smf_context->pdu_address.pdn_type == IPv4) {
+      AMFClientServicer::getInstance().release_ipv4_address(
+          pdu_session_failure->imsi, smf_context->dnn.c_str(),
+          &(smf_context->pdu_address.ipv4_address));
+    } else if (smf_context->pdu_address.pdn_type == IPv6) {
+      AMFClientServicer::getInstance().release_ipv6_address(
+          pdu_session_failure->imsi, smf_context->dnn.c_str(),
+          &(smf_context->pdu_address.ipv6_address));
+    }
+  }
+  return 0;
 }
 }  // namespace magma5g
