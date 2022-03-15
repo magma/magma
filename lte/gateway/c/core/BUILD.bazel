@@ -1081,10 +1081,6 @@ cc_library(
         "-DPACKAGE_NAME=\\\"PACKAGE_NAME\\\"",  # TODO(#11591): needs deprecation
         "-DPACKAGE_VERSION=\\\"0.1\\\"",  # TODO(#11591): needs deprecation
         "-DCMAKE_BUILD_TYPE=\\\"CMAKE_BUILD_TYPE\\\"",  # TODO(#11897): needs alternative approach or deprecation
-        "-DS1AP_DEBUG_LIST=false",  # TODO(#11898): Deprecate and remove
-        "-DSCTP_DUMP_LIST=false",  # TODO(#11898): Deprecate and remove
-        "-DTRACE_HASHTABLE=false",  # TODO(#11898): Deprecate and remove
-        "-DTRACE_3GPP_SPEC=true",  # TODO(#11898): Deprecate and remove
     ],
     deps = [
         ":asn1_r15",
