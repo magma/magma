@@ -19,6 +19,8 @@ cc_test(
         "test_nas_converter.cpp",
     ],
     flaky = True,
+    # TODO: This test fails with ASAN and is flaky when run plainly: GH12066, GH11827
+    tags = ["manual"],
     deps = [
         "//lte/gateway/c/core",
         "@com_google_googletest//:gtest_main",
