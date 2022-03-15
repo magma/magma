@@ -284,6 +284,7 @@ class DBCbsd(Base):
     max_power = Column(Float)
     antenna_gain = Column(Float)
     number_of_ports = Column(Integer)
+    grant_attempts = Column(Integer, nullable=False, server_default='0')
     network_id = Column(String)
     is_deleted = Column(Boolean, nullable=False, server_default='false')
     is_updated = Column(Boolean, nullable=False, server_default='false')
