@@ -93,6 +93,14 @@ TEST_F(NasStateConverterTest, TestEmmContextConversion) {
   emm_context.new_attach_info->ies->type = EMM_ATTACH_TYPE_EPS;
   emm_context.t3422_arg = nullptr; // Timer 3422 is not running
 
+  // Initialize flags
+  emm_context.is_dynamic = false;
+  emm_context.is_attached = false;
+  emm_context.is_initial_identity_imsi = true;
+  emm_context.is_guti_based_attach = false;
+  emm_context.is_emergency = false;
+  emm_context.additional_update_type = NO_ADDITIONAL_INFORMATION;
+
   oai::EmmContext proto_state;
   NasStateConverter::emm_context_to_proto(&emm_context, &proto_state);
 
@@ -128,7 +136,6 @@ TEST_F(NasStateConverterTest, TestEmmContextConversion) {
   free_wrapper((void**)&final_state.new_attach_info->ies);
   free_wrapper((void**)&final_state.new_attach_info);
   free_wrapper((void**)&final_state.esm_ctx.esm_proc_data);
-  free_wrapper((void**)&final_state.t3422_arg);
   clear_emm_ctxt(&final_state);
 }
 
