@@ -36,4 +36,4 @@ require (
 	magma/orc8r/lib/go v0.0.0
 )
 
-go 1.13
+go 1.18

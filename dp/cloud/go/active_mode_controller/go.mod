@@ -1,6 +1,6 @@
 module magma/dp/cloud/go/active_mode_controller
 
-go 1.16
+go 1.18
 
 require (
 	github.com/golang/protobuf v1.5.0

@@ -11,7 +11,7 @@
 //
 module magma/dp/cloud/go
 
-go 1.13
+go 1.18
 
 replace (
 	golang.org/x/net => golang.org/x/net v0.0.0-20210520170846-37e1c6afe023

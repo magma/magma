@@ -1,6 +1,6 @@
 module fbc/lib/go/radius
 
-go 1.12
+go 1.18
 
 replace fbc/lib/go/radius => ./
 
