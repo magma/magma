@@ -64,6 +64,6 @@ func runRewriteTestCase(t *testing.T, ymlFile string, outputDir string) {
 		assert.NoError(t, err)
 		actualFileContents, err := ioutil.ReadFile(baseFilename)
 		assert.NoError(t, err)
-		assert.Equal(t, goldenFileContents, actualFileContents)
+		assert.Equal(t, string(goldenFileContents), string(actualFileContents))
 	}
 }

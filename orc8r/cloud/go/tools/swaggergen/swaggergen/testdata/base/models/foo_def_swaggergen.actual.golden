@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // FooDef foo def
+//
 // swagger:model foo_def
 type FooDef struct {
 
@@ -51,7 +53,7 @@ func (m *FooDef) validateBar(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("bar", "body", string(*m.Bar), 1); err != nil {
+	if err := validate.MinLength("bar", "body", *m.Bar, 1); err != nil {
 		return err
 	}
 
@@ -64,6 +66,11 @@ func (m *FooDef) validateBaz(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this foo def based on context it is used
+func (m *FooDef) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
