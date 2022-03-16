@@ -69,7 +69,7 @@ def cpp_repositories():
         commit = "d8326b2bba945a435f299e7526c403d7a1f68c1f",
         remote = "https://github.com/jupp0r/prometheus-cpp.git",
         shallow_since = "1485901529 +0100",
-        repo_mapping = {"@protobuf" : "@com_google_protobuf"},
+        repo_mapping = {"@protobuf": "@com_google_protobuf"},
     )
 
     # cpp_redis dependency
