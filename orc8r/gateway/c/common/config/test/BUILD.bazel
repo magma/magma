@@ -19,7 +19,7 @@ cc_test(
         "//lte/protos:mconfigs_cpp_proto",
         "//orc8r/gateway/c/common/config:mconfig_loader",
         "@com_google_googletest//:gtest_main",
-        "@protobuf",
+        "@com_google_protobuf//:protobuf",
     ],
 )
 
