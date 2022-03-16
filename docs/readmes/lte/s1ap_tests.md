@@ -55,6 +55,10 @@ run is `s1aptests/test_attach_detach.py`.
 - All Sanity tests: `make integ_test`
 - All Non-Sanity tests: `make nonsanity`
 - Minimal set of tests to be executed before committing changes to magma repository: `make precommit`
+- Run with *-i* flag to enable continuous test runs (ignoring the failing test(s), if any):
+<br/> `make -i precommit` or `make -i integ_test`
+- Set *enable-flaky-retry=true* to re-run the failing test(s) to identify flaky behavior:
+<br/>`make precommit enable-flaky-retry=true` or `make integ_test enable-flaky-retry=true`
 
 **Note**: The traffic tests will fail as traffic server is not running in this
 setup. Look at the section below on running traffic tests.
