@@ -422,20 +422,41 @@ static int subs_auth_retry(zloop_t* loop, int timer_id, void* arg) {
   int rc = RETURNerror;
   ue_m5gmm_context_s* ue_mm_context = nullptr;
   if (!amf_pop_timer_arg(timer_id, &ue_id)) {
-    OAILOG_WARNING(
-        LOG_AMF_APP,
-        "auth_retry_timer: Invalid Timer Id expiration, Timer Id: %d \n",
-        timer_id);
+    OAILOG_WARNING(LOG_AMF_APP,
+                   "auth_retry_timer: Invalid Timer Id expiration, Timer Id: "
+                   "%d and UE id: " AMF_UE_NGAP_ID_FMT "\n",
+                   timer_id, ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
   ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (!ue_mm_context) {
+    OAILOG_WARNING(
+        LOG_NAS_AMF,
+        "AMF-PROC - Failed authentication request for UE id " AMF_UE_NGAP_ID_FMT
+        "due to NULL"
+        "ue_context\n",
+        ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
   amf_ctxt_p = &ue_mm_context->amf_context;
+  if (!amf_ctxt_p) {
+    OAILOG_WARNING(LOG_NAS_AMF,
+                   "AMF-PROC - Failed authentication request for UE "
+                   "id= " AMF_UE_NGAP_ID_FMT
+                   "due to NULL"
+                   "amf_ctxt_p\n",
+                   ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
   if (amf_ctxt_p->auth_retry_count < amf_config.auth_retry_max_count) {
     amf_ctxt_p->auth_retry_count++;
     OAILOG_INFO(LOG_AMF_APP,
                 "auth_retry_timer: Incrementing auth_retry_count to %u\n",
                 amf_ctxt_p->auth_retry_count);
     rc = amf_authentication_request_sent(ue_id);
+    if (rc != RETURNok) {
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+    }
     amf_ctxt_p->auth_retry_timer.id =
         amf_app_start_timer(amf_config.auth_retry_interval, TIMER_REPEAT_ONCE,
                             subs_auth_retry, ue_id);
@@ -444,18 +465,21 @@ static int subs_auth_retry(zloop_t* loop, int timer_id, void* arg) {
     OAILOG_ERROR(
         LOG_NAS_AMF,
         "auth_retry_timer is expired . Authentication reject with cause "
-        "AMF_UE_ILLEGAL\n");
+        "AMF_UE_ILLEGAL for ue_id " AMF_UE_NGAP_ID_FMT "\n",
+        ue_id);
     amf_cause = AMF_UE_ILLEGAL;
 
     rc = amf_proc_registration_reject(ue_id, amf_cause);
+    if (rc != RETURNok) {
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+    }
     if (auth_info_proc) {
       nas5g_delete_cn_procedure(amf_ctxt_p, &auth_info_proc->cn_proc);
     }
 
     amf_free_ue_context(ue_mm_context);
   }
-
-  return rc;
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 
 int amf_nas_proc_authentication_info_answer(
@@ -494,7 +518,9 @@ int amf_nas_proc_authentication_info_answer(
   if (aia->auth_info.nb_of_vectors) {
     nas5g_amf_auth_proc_t* auth_proc =
         get_nas5g_common_procedure_authentication(amf_ctxt_p);
-    free_wrapper(reinterpret_cast<void**>(&auth_proc->auts.data));
+    if (auth_proc) {
+      free_wrapper(reinterpret_cast<void**>(&auth_proc->auts.data));
+    }
     if ((NAS5G_TIMER_INACTIVE_ID != amf_ctxt_p->auth_retry_timer.id) &&
         (0 != amf_ctxt_p->auth_retry_timer.id)) {
       OAILOG_DEBUG(LOG_NAS_AMF, "Stopping: Timer auth_retry_timer.\n");
@@ -539,7 +565,7 @@ int amf_nas_proc_authentication_info_answer(
         nas5g_delete_cn_procedure(amf_ctxt_p, &auth_info_proc->cn_proc);
       }
       amf_free_ue_context(ue_5gmm_context_p);
-      return rc;
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
     } else {
       amf_ctxt_p->auth_retry_timer.id =
           amf_app_start_timer(amf_config.auth_retry_interval, TIMER_REPEAT_ONCE,

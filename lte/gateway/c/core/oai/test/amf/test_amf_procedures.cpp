@@ -1720,8 +1720,11 @@ TEST_F(AMFAppProcedureTest, TestAuthFailureFromSubscribeDbLock) {
   rc = amf_nas_proc_authentication_info_answer(&aia_itti_msg);
   EXPECT_TRUE(rc == RETURNok);
   ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  EXPECT_NE(ue_context_p, nullptr);
   amf_ctxt_p = &ue_context_p->amf_context;
+  EXPECT_NE(amf_ctxt_p, nullptr);
   auth_info_proc = get_nas5g_cn_procedure_auth_info(amf_ctxt_p);
+  EXPECT_NE(auth_info_proc, nullptr);
   nas5g_delete_cn_procedure(amf_ctxt_p, &auth_info_proc->cn_proc);
   amf_free_ue_context(ue_context_p);
 }
