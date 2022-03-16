@@ -334,7 +334,9 @@ def _get_amf_name_config(service_mconfig: object) -> str:
 
 
 def _get_default_auth_retry_count(service_mconfig: object) -> str:
-    """Retrieve default_auth_retry_count config value. If it does not exist, it defaults to DEFAULT_AUTH_RETRY_COUNT.
+    """
+    Retrieve default_auth_retry_count config value. If it does not
+    exist, it defaults to DEFAULT_AUTH_RETRY_COUNT.
 
     Args:
         service_mconfig: This is a configuration placeholder for mme.
@@ -353,7 +355,9 @@ def _get_default_auth_retry_count(service_mconfig: object) -> str:
 
 
 def _get_default_auth_timer_expire_msec(service_mconfig: object) -> str:
-    """Retrieve default_auth_retry_timer_expire_msec config value. If it does not exist, it defaults to DEFAULT_AUTH_TIMER_EXPIRE_MSEC.
+    """
+    Retrieve default_auth_retry_timer_expire_msec config value. If it
+    does not exist, it defaults to DEFAULT_AUTH_TIMER_EXPIRE_MSEC.
 
     Args:
         service_mconfig: This is a configuration placeholder for mme.

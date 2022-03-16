@@ -1694,8 +1694,8 @@ TEST_F(AMFAppProcedureTest, ServiceRequestSignalling) {
 
 TEST_F(AMFAppProcedureTest, TestAuthFailureFromSubscribeDbLock) {
   amf_ue_ngap_id_t ue_id = 0;
-  amf_context_t* amf_ctxt_p = NULL;
-  nas5g_auth_info_proc_t* auth_info_proc = NULL;
+  amf_context_t* amf_ctxt_p = nullptr;
+  nas5g_auth_info_proc_t* auth_info_proc = nullptr;
   ue_m5gmm_context_s* ue_context_p = nullptr;
   std::vector<MessagesIds> expected_Ids{
       AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification

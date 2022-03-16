@@ -129,8 +129,8 @@ static int start_authentication_information_procedure(
 }
 
 int amf_authentication_request_sent(amf_ue_ngap_id_t ue_id) {
-  ue_m5gmm_context_s* ue_mm_context = NULL;
-  amf_context_t* amf_context = NULL;
+  ue_m5gmm_context_s* ue_mm_context = nullptr;
+  amf_context_t* amf_context = nullptr;
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   int rc = RETURNerror;
   ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);

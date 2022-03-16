@@ -416,11 +416,11 @@ int amf_nas_proc_auth_param_res(amf_ue_ngap_id_t amf_ue_ngap_id,
 
 static int subs_auth_retry(zloop_t* loop, int timer_id, void* arg) {
   amf_ue_ngap_id_t ue_id = 0;
-  amf_context_t* amf_ctxt_p = NULL;
+  amf_context_t* amf_ctxt_p = nullptr;
   int amf_cause = -1;
-  nas5g_auth_info_proc_t* auth_info_proc = NULL;
+  nas5g_auth_info_proc_t* auth_info_proc = nullptr;
   int rc = RETURNerror;
-  ue_m5gmm_context_s* ue_mm_context = NULL;
+  ue_m5gmm_context_s* ue_mm_context = nullptr;
   if (!amf_pop_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP,
