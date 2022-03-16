@@ -619,7 +619,6 @@ void free_emm_ctx_memory(emm_context_t* const ctxt,
   }
   nas_delete_all_emm_procedures(ctxt);
   free_esm_context_content(&ctxt->esm_ctx);
-  bdestroy_wrapper(&ctxt->esm_msg);
 }
 
 //------------------------------------------------------------------------------
@@ -746,7 +745,16 @@ void emm_init_context(struct emm_context_s* const emm_ctx,
     esm_init_context(&emm_ctx->esm_ctx);
   }
   emm_ctx->emm_procedures = NULL;
-  emm_ctx->esm_msg = NULL;
+  emm_ctx->t3422_arg = NULL;
+
+  // Initialize flags
+  emm_ctx->is_dynamic = false;
+  emm_ctx->is_attached = false;
+  emm_ctx->is_initial_identity_imsi = true;
+  emm_ctx->is_imsi_only_detach = false;
+  emm_ctx->is_guti_based_attach = false;
+  emm_ctx->is_emergency = false;
+  emm_ctx->additional_update_type = NO_ADDITIONAL_INFORMATION;
 }
 
 //------------------------------------------------------------------------------
