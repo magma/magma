@@ -350,6 +350,7 @@
     line: "{{ item }}"
   with_items:
     - export PATH=$PATH:/usr/local/bin/go/
+    - export PATH=$PATH:$(go env GOPATH)/bin/
   when: full_provision
 
 - name: Install dnsmasq
