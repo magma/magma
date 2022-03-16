@@ -632,6 +632,11 @@ class S1ApUtil(object):
         )
         assert len(flows) == 2, "There should only be 2 default table 0 flows"
 
+    def delete_ovs_flow_rules(self):
+        """Delete the UL/DL OVS flow rules"""
+        print("Deleting all the uplink/downlink flows")
+        self.gtpBridgeUtil.delete_flows(self.SPGW_TABLE)
+
     def generate_imsi(self, prefix=None):
         """
         Generate imsi based on index offset and prefix
@@ -1878,6 +1883,14 @@ class GTPBridgeUtils(object):
             "sudo ovs-ofctl dump-flows gtp_br0 table={0}".format(table_id),
         )
         return output.split("\n")
+
+    def delete_flows(self, table_id):
+        """Delete the OVS flow rules"""
+        ret_code = self.magma_utils.exec_command(
+            "sudo ovs-ofctl del-flows gtp_br0 table={0}".format(table_id),
+        )
+        if ret_code != 0:
+            print("Failed to delete OVS flow rules for gtp_br0 table="+str(table_id))
 
 
 class HaUtil(object):

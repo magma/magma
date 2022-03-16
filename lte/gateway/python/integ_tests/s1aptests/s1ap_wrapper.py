@@ -476,6 +476,7 @@ class TestWrapper(object):
         if not is_test_successful:
             print("************************* Cleaning up TFW")
             self._s1_util.issue_cmd(s1ap_types.tfwCmd.TFW_CLEANUP, None)
+            self._s1_util.delete_ovs_flow_rules()
 
         self._s1_util.cleanup()
         self._sub_util.cleanup()
