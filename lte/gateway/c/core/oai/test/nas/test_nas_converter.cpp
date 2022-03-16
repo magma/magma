@@ -30,12 +30,7 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-class NasStateConverterTest : public ::testing::Test {
-  virtual void SetUp() {}
-  virtual void TearDown() {}
-};
-
-TEST_F(NasStateConverterTest, TestEmmContextConversion) {
+TEST(NasStateConverterTest, TestEmmContextConversion) {
   emm_context_t emm_context;
 
   emm_init_context(&emm_context, true);
@@ -130,7 +125,7 @@ TEST_F(NasStateConverterTest, TestEmmContextConversion) {
   clear_emm_ctxt(&final_state);
 }
 
-TEST_F(NasStateConverterTest, TestEsmContextSetInactiveT3489) {
+TEST(NasStateConverterTest, TestEsmContextSetInactiveT3489) {
   oai::EsmContext esm_context_proto;
   esm_context_t state_esm_context;
 
@@ -141,7 +136,7 @@ TEST_F(NasStateConverterTest, TestEsmContextSetInactiveT3489) {
   EXPECT_EQ(state_esm_context.T3489.id, NAS_TIMER_INACTIVE_ID);
 }
 
-TEST_F(NasStateConverterTest, TestEsmEbrContextSetInactiveTimer) {
+TEST(NasStateConverterTest, TestEsmEbrContextSetInactiveTimer) {
   oai::EsmEbrContext esm_context_proto;
   esm_ebr_context_t state_esm_ebr_context;
 
@@ -153,7 +148,7 @@ TEST_F(NasStateConverterTest, TestEsmEbrContextSetInactiveTimer) {
   EXPECT_EQ(state_esm_ebr_context.timer.id, NAS_TIMER_INACTIVE_ID);
 }
 
-TEST_F(NasStateConverterTest, TestNasEmmAttachProcSetInactiveT3450) {
+TEST(NasStateConverterTest, TestNasEmmAttachProcSetInactiveT3450) {
   oai::AttachProc attach_proc_proto;
   nas_emm_attach_proc_t state_nas_emm_attach_proc;
 
@@ -165,7 +160,7 @@ TEST_F(NasStateConverterTest, TestNasEmmAttachProcSetInactiveT3450) {
   EXPECT_EQ(state_nas_emm_attach_proc.T3450.id, NAS_TIMER_INACTIVE_ID);
 }
 
-TEST_F(NasStateConverterTest, TestNasEmmAuthProcSetInactiveT3460) {
+TEST(NasStateConverterTest, TestNasEmmAuthProcSetInactiveT3460) {
   oai::AuthProc auth_proc_proto;
   nas_emm_auth_proc_t state_nas_emm_auth_proc;
 
@@ -175,7 +170,7 @@ TEST_F(NasStateConverterTest, TestNasEmmAuthProcSetInactiveT3460) {
   EXPECT_EQ(state_nas_emm_auth_proc.T3460.id, NAS_TIMER_INACTIVE_ID);
 }
 
-TEST_F(NasStateConverterTest, TestNasEmmSmcProcSetInactiveT3460) {
+TEST(NasStateConverterTest, TestNasEmmSmcProcSetInactiveT3460) {
   oai::SmcProc smc_proc_proto;
   nas_emm_smc_proc_t state_nas_emm_smc_proc;
 
@@ -188,6 +183,8 @@ TEST_F(NasStateConverterTest, TestNasEmmSmcProcSetInactiveT3460) {
 }  // namespace lte
 }  // namespace magma
 
+// Note: This is necessary for setting up a log thread (Might be addressed by
+// #11736)
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   OAILOG_INIT("MME", OAILOG_LEVEL_INFO, MAX_LOG_PROTOS);

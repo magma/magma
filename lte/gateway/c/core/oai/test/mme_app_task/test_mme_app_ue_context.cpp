@@ -272,9 +272,3 @@ TEST(imsi_equal_test, ok) {
   ASSERT_EQ(mme_app_imsi_compare(&imsi_mme_b, &imsi_mme_a), false);
   ASSERT_EQ(mme_app_imsi_compare(&imsi_mme_a, &imsi_mme_a), true);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  OAILOG_INIT("MME", OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS);
-  return RUN_ALL_TESTS();
-}

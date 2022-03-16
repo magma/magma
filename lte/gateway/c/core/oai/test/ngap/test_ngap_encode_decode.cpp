@@ -255,10 +255,4 @@ TEST(test_ngap_pkt_tests, test_ngap_setup_request_sd) {
 
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &init_ue_pdu);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma5g
