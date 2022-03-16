@@ -206,7 +206,7 @@ class IPAllocatorDHCP(IPAllocator):
 
                 if retry_count % DEFAULT_DHCP_REQUEST_RETRY_FREQUENCY == 0:
                     self._dhcp_client.send_dhcp_packet(
-                        mac, str(vlan),
+                        mac, vlan,
                         DHCPState.DISCOVER,
                     )
                 self.dhcp_wait.wait(timeout=DEFAULT_DHCP_REQUEST_RETRY_DELAY)

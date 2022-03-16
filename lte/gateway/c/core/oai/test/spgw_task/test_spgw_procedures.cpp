@@ -342,14 +342,6 @@ void SPGWAppProcedureTest ::deactivate_dedicated_bearer(
       &sample_gx_nw_init_ded_bearer_deactv_req, test_imsi_str,
       DEFAULT_EPS_BEARER_ID, ded_eps_bearer_id);
 
-  // check that MME gets a bearer deactivation request
-  EXPECT_CALL(*mme_app_handler,
-              mme_app_handle_nw_init_bearer_deactv_req(
-                  check_params_in_deactv_bearer_req(
-                      sample_gx_nw_init_ded_bearer_deactv_req.no_of_bearers,
-                      sample_gx_nw_init_ded_bearer_deactv_req.ebi)))
-      .Times(1);
-
   return_code = spgw_handle_nw_initiated_bearer_deactv_req(
       &sample_gx_nw_init_ded_bearer_deactv_req, test_imsi64);
 
@@ -424,8 +416,9 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionIPAllocFailure) {
   status_code_e ip_alloc_rc = sgw_handle_ip_allocation_rsp(
       spgw_state, &test_ip_alloc_resp, test_imsi64);
 
-  // check that IP address is not allocated
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
+  // Verify that UE context was removed in SPGW state after CSR failure
+  ue_context_p = spgw_get_ue_context(test_imsi64);
+  ASSERT_TRUE(ue_context_p == nullptr);
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
@@ -633,6 +626,14 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivation) {
   // Activate dedicated bearer
   ebi_t ded_eps_bearer_id = activate_dedicated_bearer(
       spgw_state, spgw_eps_bearer_ctxt_info_p, ue_sgw_teid);
+
+  // check that MME gets a bearer deactivation request
+  uint32_t expected_no_of_bearers = 1;
+  ebi_t expected_ebi[] = {6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_nw_init_bearer_deactv_req(
+                                    check_params_in_deactv_bearer_req(
+                                        expected_no_of_bearers, expected_ebi)))
+      .Times(1);
 
   // Deactivate dedicated bearer
   deactivate_dedicated_bearer(spgw_state, ue_sgw_teid, ded_eps_bearer_id);

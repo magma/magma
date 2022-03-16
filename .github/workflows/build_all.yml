@@ -12,6 +12,8 @@ on:  # yamllint disable-line rule:truthy
       - 'v1.*'
     types: [opened, reopened, synchronize]
 
+permissions: read-all
+
 jobs:
   build_publish_helm_charts:
     if: github.repository_owner == 'magma'

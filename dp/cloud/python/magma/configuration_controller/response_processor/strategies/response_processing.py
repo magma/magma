@@ -125,6 +125,10 @@ def process_grant_response(obj: ResponseDBProcessor, response: DBResponse, sessi
     Returns:
         None
     """
+    if response.response_code != ResponseCodes.SUCCESS.value:
+        cbsd = response.request.cbsd
+        if cbsd:
+            cbsd.grant_attempts += 1
 
     grant = _get_or_create_grant_from_response(obj, response, session)
     if not grant:
@@ -294,6 +298,8 @@ def _terminate_all_grants_from_response(response: DBResponse, session: Session) 
     if not cbsd_id:
         return
     cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).scalar()
+    if cbsd:
+        cbsd.grant_attempts = 0
     grant_ids = [
         grant.id for grant in session.query(
             DBGrant.id,

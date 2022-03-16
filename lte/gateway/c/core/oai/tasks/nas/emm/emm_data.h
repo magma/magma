@@ -300,8 +300,6 @@ typedef struct emm_context_s {
                                      MME24.301R10_5.5.3.2.4_5*/
   eps_network_feature_support_t _eps_network_feature_support;
 
-  // TODO: DO BETTER  WITH BELOW
-  bstring esm_msg; /* ESM message contained within the initial request*/
 #define EMM_CN_SAP_BUFFER_SIZE 4096
 
 #define IS_EMM_CTXT_PRESENT_IMSI(eMmCtXtPtR) \

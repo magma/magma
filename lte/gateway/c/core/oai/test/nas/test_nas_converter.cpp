@@ -127,7 +127,6 @@ TEST_F(NasStateConverterTest, TestEmmContextConversion) {
   free_wrapper((void**)&final_state.new_attach_info->ies);
   free_wrapper((void**)&final_state.new_attach_info);
   free_wrapper((void**)&final_state.esm_ctx.esm_proc_data);
-  free_wrapper((void**)&final_state.t3422_arg);
   clear_emm_ctxt(&final_state);
 }
 

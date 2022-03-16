@@ -21,6 +21,7 @@ func (g *grantRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Requ
 	operationParam := chooseSuitableChannel(
 		cbsd.GetChannels(),
 		cbsd.GetEirpCapabilities(),
+		int(cbsd.GetGrantAttempts()),
 		g.indexProvider,
 	)
 	if operationParam == nil {
@@ -55,8 +56,14 @@ const (
 func chooseSuitableChannel(
 	channels []*active_mode.Channel,
 	capabilities *active_mode.EirpCapabilities,
+	attempts int,
 	indexProvider ranges.IndexProvider,
 ) *operationParam {
+	// More sophisticated check will be implemented
+	// together with frequency preference
+	if attempts > 0 {
+		return nil
+	}
 	calc := newEirpCalculator(capabilities)
 	rs := toRanges(channels)
 	pts := ranges.Decompose(rs, minSASEirp-1)

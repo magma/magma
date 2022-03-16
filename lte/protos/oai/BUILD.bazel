@@ -80,7 +80,7 @@ proto_library(
         ":nas_state_proto",
         ":spgw_state_proto",
         ":std_3gpp_types_proto",
-        "@protobuf//:timestamp_proto",
+        "@com_google_protobuf//:timestamp_proto",
     ],
 )
 
@@ -142,7 +142,7 @@ proto_library(
     name = "all_proto",
     srcs = glob(["*.proto"]),
     visibility = ["//visibility:private"],
-    deps = ["@protobuf//:timestamp_proto"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
 )
 
 # See comment at :all_proto

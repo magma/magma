@@ -27,6 +27,7 @@ class ActiveModeCbsdBuilder:
         self.channels = None
         self.pending_requests = None
         self.last_seen_timestamp = None
+        self.grant_attempts = None
         self.eirp_capabilities = None
         self.db_id = None
         self.is_deleted = False
@@ -48,6 +49,7 @@ class ActiveModeCbsdBuilder:
             grants=self.grants,
             channels=self.channels,
             last_seen_timestamp=self.last_seen_timestamp,
+            grant_attempts=self.grant_attempts,
             eirp_capabilities=self.eirp_capabilities,
             db_data=db_data,
         )
@@ -129,4 +131,8 @@ class ActiveModeCbsdBuilder:
 
     def with_last_seen(self, last_seen_timestamp: int) -> ActiveModeCbsdBuilder:
         self.last_seen_timestamp = last_seen_timestamp
+        return self
+
+    def with_grant_attempts(self, grant_attempts: int) -> ActiveModeCbsdBuilder:
+        self.grant_attempts = grant_attempts
         return self

@@ -541,7 +541,6 @@ status_code_e emm_proc_attach_request(
      */
     new_emm_ctx = &ue_mm_context->emm_context;
 
-    bdestroy(new_emm_ctx->esm_msg);
     emm_init_context(new_emm_ctx, true);
 
     new_emm_ctx->num_attach_request++;
@@ -2504,7 +2503,6 @@ void proc_new_attach_req(mme_ue_context_t* const mme_ue_context_p,
     OAILOG_FUNC_OUT(LOG_NAS_EMM);
   }
 
-  bdestroy(new_emm_ctx->esm_msg);
   emm_init_context(new_emm_ctx, true);
 
   new_emm_ctx->num_attach_request++;

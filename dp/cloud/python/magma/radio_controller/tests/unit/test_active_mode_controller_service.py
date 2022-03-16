@@ -260,6 +260,21 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
 
+    def test_get_state_with_grant_attempts(self):
+        cbsd = self._prepare_base_cbsd(). \
+            with_grant_attempts(1). \
+            build()
+        self.session.add(cbsd)
+        self.session.commit()
+
+        config = self._prepare_base_active_mode_config(). \
+            with_grant_attempts(1). \
+            build()
+        expected = State(cbsds=[config])
+
+        actual = self.amc_service.GetState(GetStateRequest(), None)
+        self.assertEqual(expected, actual)
+
     def test_get_state_with_pending_requests(self):
         cbsd = self._prepare_base_cbsd(). \
             with_request(self.processed, self.grant, '{"key1":"value1"}'). \
