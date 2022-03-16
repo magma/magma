@@ -26,7 +26,10 @@ cc_library(
         "spgw_test_util.h",
         "state_creators.h",
     ],
-    deps = ["//lte/gateway/c/core"],
+    deps = [
+        "//lte/gateway/c/core",
+        "@com_google_googletest//:gtest",
+    ],
 )
 
 cc_test(
