@@ -131,8 +131,8 @@ class TrafficUtil(object):
         #    "replace " + ue_ip_block + " via 192.168.129.1 dev eth2",
         #)
         ret_code = self.exec_command(
-            "sudo ip -6 route flush via fdee:5:6c::1 && sudo ip -6 route "
-            "replace " + ue_ip_block + " via fdee:5:6c::1 dev eth2",
+            "sudo ip -6 route flush via 3001::1 && sudo ip -6 route "
+            "replace " + ue_ip_block + " via 3001::1 dev eth2",
         )
         if ret_code != 0:
             return False
@@ -352,7 +352,7 @@ class TrafficTest(object):
             'add', index=net_iface_index, address=ip.exploded,
         )
         os.system(
-                'sudo route -A inet6 add fdee:5:6c::1/64 dev eth2'
+                'sudo route -A inet6 add 3001::1/64 dev eth2'
         ),
         #return net_alias
 

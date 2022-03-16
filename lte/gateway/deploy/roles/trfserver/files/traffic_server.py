@@ -586,26 +586,26 @@ class TrafficTestDriver(object):
             if instance.is_uplink:
                 iperf = iperf3.Server()
                 #iperf.bind_address = '192.168.129.42'
-                iperf.bind_address = 'fdee:5:6c::2'
+                iperf.bind_address = '3001::2'
                 print("instance", instance.ip.exploded)
                 #os.system(
                 #    'sudo route -A inet6 add fdee:5:6c::1/64 dev eth2'
                 #)
-                os.system('sudo /sbin/ip -6 route add fdee:5:6c::1 dev eth2')
+                os.system('sudo /sbin/ip -6 route add 3001::10 dev eth2')
                 #os.system(
                 #    'sudo route -A inet6 add %s gw fdee:5:6c::1 dev eth2' % (
                 #    instance.ip.exploded,
                 #    ),
 
                 #os.system('sudo /sbin/ip -6 route add %s dev eth2' %(instance.ip.exploded,)
-                os.system('sudo /sbin/ip -6 route add %s via fdee:5:6c::1 dev eth2' %(instance.ip.exploded,)
+                os.system('sudo /sbin/ip -6 route add %s via 3001::10 dev eth2' %(instance.ip.exploded,)
                 )
                 iperf.port = TrafficTestDriver._get_port()
             else:
                 iperf = iperf3.Client()
                 iperf.bandwidth = 10 ** 7  # 10 Mbps
                 #iperf.bind_address = '192.168.129.42'
-                iperf.bind_address = 'fdee:5:6c::2'
+                iperf.bind_address = '3001::2'
                 iperf.duration = instance.duration
                 iperf.port = instance.port
                 iperf.protocol = 'udp' if instance.is_udp else 'tcp'
