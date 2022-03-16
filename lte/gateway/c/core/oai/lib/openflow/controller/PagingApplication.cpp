@@ -70,14 +70,13 @@ void PagingApplication::handle_paging_message(
     fluid_base::OFConnection* ofconn, uint8_t* data,
     const OpenflowMessenger& messenger) {
   // send paging request to MME
-  struct ip* ip_header = (struct ip*)(data + ETH_HEADER_LENGTH);
-  struct in_addr* dest_ipv4 = NULL;
+  struct ip ip_header;
+  memcpy(&ip_header, data + ETH_HEADER_LENGTH, sizeof(ip_header));
 
-  if ((ip_header->ip_v == 6)) {
+  if (ip_header.ip_v == 6) {
     handle_paging_ipv6_message(ofconn, data, messenger);
-
   } else {
-    dest_ipv4 = &ip_header->ip_dst;
+    struct in_addr* dest_ipv4 = &ip_header.ip_dst;
     char* dest_ip_str = inet_ntoa(*dest_ipv4);
 
     OAILOG_DEBUG(LOG_GTPV1U, "Initiating paging procedure for IP %s\n",
@@ -116,17 +115,16 @@ static void mask_ipv6_address(uint8_t* dst, const uint8_t* src,
 void PagingApplication::handle_paging_ipv6_message(
     fluid_base::OFConnection* ofconn, uint8_t* data,
     const OpenflowMessenger& messenger) {
-  // send paging request to MME
-  struct ip6_hdr* ipv6_header = (struct ip6_hdr*)(data + ETH_HEADER_LENGTH);
-  struct in6_addr* dest_ipv6 = NULL;
-  char ip6_str[INET6_ADDRSTRLEN];
-
-  if (!ipv6_header) {
+  if (!data) {
     OAILOG_ERROR(LOG_GTPV1U, "IPv6 header is NULL\n");
     return;
   }
-  dest_ipv6 = &ipv6_header->ip6_dst;
+  // send paging request to MME
+  struct ip6_hdr ipv6_header;
+  memcpy(&ipv6_header, data + ETH_HEADER_LENGTH, sizeof(ipv6_header));
 
+  char ip6_str[INET6_ADDRSTRLEN];
+  struct in6_addr* dest_ipv6 = &ipv6_header.ip6_dst;
   inet_ntop(AF_INET6, dest_ipv6, ip6_str, INET6_ADDRSTRLEN);
 
   OAILOG_DEBUG(LOG_GTPV1U, "Initiating paging procedure for IPv6 %s\n",

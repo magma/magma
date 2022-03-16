@@ -20,6 +20,7 @@ import sentry_sdk
 import snowflake
 from magma.configuration.service_configs import get_service_config_value
 from orc8r.protos.mconfig import mconfigs_pb2
+from sentry_sdk.integrations.redis import RedisIntegration
 
 Event = Dict[str, Any]
 Hint = Dict[str, Any]
@@ -157,6 +158,9 @@ def sentry_init(service_name: str, sentry_mconfig: mconfigs_pb2.SharedSentryConf
         release=os.getenv(COMMIT_HASH),
         traces_sample_rate=sentry_config.sample_rate,
         before_send=_get_before_send_hook(sentry_config.exclusion_patterns),
+        integrations=[
+            RedisIntegration(),
+        ],
     )
 
     cloud_address = get_service_config_value(

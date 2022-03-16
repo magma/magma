@@ -29,6 +29,7 @@ module magma/cwf/k8s/cwf_operator
 go 1.13
 
 require (
+	github.com/docker/docker v20.10.13+incompatible // indirect
 	github.com/garyburd/redigo v1.6.2 // indirect
 	github.com/go-logr/glogr v0.1.0
 	github.com/go-redis/redis v6.15.8+incompatible // indirect

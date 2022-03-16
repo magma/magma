@@ -1,10 +1,5 @@
 # Override options for MME
 set(BYTE_ORDER=LITTLE_ENDIAN)
-set(S1AP_DEBUG_LIST False)
-set(SCTP_DUMP_LIST False)
-set(TRACE_HASHTABLE False)
-set(TRACE_3GPP_SPEC False)
-
 
 # Dependencies
 pkg_search_module(LIBXML2 libxml-2.0 REQUIRED)

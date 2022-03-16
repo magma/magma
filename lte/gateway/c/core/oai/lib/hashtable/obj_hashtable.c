@@ -44,15 +44,7 @@
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 
-#if TRACE_HASHTABLE
-#define PRINT_HASHTABLE(hTbLe, ...)                                \
-  do {                                                             \
-    if (hTbLe->log_enabled) OAILOG_TRACE(LOG_UTIL, ##__VA_ARGS__); \
-  } while (0)
-#else
 #define PRINT_HASHTABLE(...)
-#endif
-
 //------------------------------------------------------------------------------
 /*
    Default hash function

@@ -35,7 +35,7 @@ services:
       s8_proxy:
         port: 9103
       session_proxy:
-        port: 9079
+        port: 9103
       n7_n40_proxy:
         port: 9103
       swx_proxy:
