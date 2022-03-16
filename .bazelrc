@@ -37,8 +37,16 @@ build --test_env=PATH=/bin:/usr/bin:/usr/local/bin:/usr/sbin
 # Use MAGMA_ROOT from the host system in tests.
 # Needed by python tests (e.g. freedomfi_one_tests in enodebd)
 build --test_env=MAGMA_ROOT
+
+# MME specific compile time defines
 # Compile mme libraries with unit test flag
 test --per_file_copt=^lte/gateway/c/core/.*$@-DMME_UNIT_TEST
+# TODO: deprecate these flags used for logging if possible
+build --per_file_copt=^lte/gateway/c/core/.*$@-DPACKAGE_BUGREPORT=\"TBD\"
+build --per_file_copt=^lte/gateway/c/core/.*$@-DPACKAGE_VERSION=\"0.1\"
+build --per_file_copt=^lte/gateway/c/core/oai/tasks/amf/.*$@-DPACKAGE_NAME=\"AMF\"
+build --per_file_copt=^lte/gateway/c/core/oai/tasks/mme_app/.*$@-DPACKAGE_NAME=\"MME\"
+build --per_file_copt=^lte/gateway/c/core/oai/tasks/sgw/.*$@-DPACKAGE_NAME=\"S/P-GW\"
 
 # CODE COVERAGE CONFIGS
 build --javacopt="-source 8"
