@@ -32,16 +32,16 @@ class TestS1SetupFailureIncorrectPlmn(unittest.TestCase):
 
     def tearDown(self):
         """Cleanup after test case execution"""
-        is_test_passed = s1ap_wrapper.TestWrapper.get_test_status(self)
+        is_test_successful = s1ap_wrapper.TestWrapper.is_test_successful(self)
         print("************************* Sending SCTP SHUTDOWN")
         self._s1_util.issue_cmd(s1ap_types.tfwCmd.SCTP_SHUTDOWN_REQ, None)
 
-        if not is_test_passed:
+        if not is_test_successful:
             print("************************* Cleaning up TFW")
             self._s1_util.issue_cmd(s1ap_types.tfwCmd.TFW_CLEANUP, None)
 
         self._s1_util.cleanup()
-        if not is_test_passed:
+        if not is_test_successful:
             print("The test has failed. Restarting Sctpd for cleanup")
             magmad_client = MagmadServiceGrpc()
             magmad_util = MagmadUtil(magmad_client)

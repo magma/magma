@@ -455,25 +455,25 @@ class TestWrapper(object):
         return self._magmad_util
 
     @classmethod
-    def get_test_status(cls, test):
+    def is_test_successful(cls, test) -> bool:
         """Get current test case execution status"""
         if test is None:
             test = inspect.currentframe().f_back.f_back.f_locals["self"]
         if test is not None and hasattr(test, "_outcome"):
             result = test.defaultTestResult()
             test._feedErrorsToResult(result, test._outcome.errors)
-            error = result.errors and result.errors[-1][0] is test
-            failure = result.failures and result.failures[-1][0] is test
-            return not (error or failure)
+            test_contains_error = result.errors and result.errors[-1][0] is test
+            test_contains_failure = result.failures and result.failures[-1][0] is test
+            return not (test_contains_error or test_contains_failure)
 
     def cleanup(self, test=None):
         """Cleanup test setup after testcase execution"""
-        is_test_passed = self.get_test_status(test)
+        is_test_successful = self.is_test_successful(test)
         time.sleep(0.5)
         print("************************* send SCTP SHUTDOWN")
         self._s1_util.issue_cmd(s1ap_types.tfwCmd.SCTP_SHUTDOWN_REQ, None)
 
-        if not is_test_passed:
+        if not is_test_successful:
             print("************************* Cleaning up TFW")
             self._s1_util.issue_cmd(s1ap_types.tfwCmd.TFW_CLEANUP, None)
 
@@ -483,15 +483,10 @@ class TestWrapper(object):
         self._mobility_util.cleanup()
         self._magmad_util.print_redis_state()
 
-        if not is_test_passed:
+        if not is_test_successful:
             print("The test has failed. Restarting Sctpd for cleanup")
             self.magmad_util.restart_sctpd()
             self.magmad_util.print_redis_state()
-
-        # Cloud cleanup needs to happen after cleanup for
-        # subscriber util and mobility util
-        # if self._test_cloud:
-        #    self._cloud_manager.clean_up()
 
     def multiEnbConfig(self, num_of_enbs, enb_list=None):
         """Configure multiple eNB in S1APTester"""
