@@ -25,7 +25,6 @@ include_directories("/usr/src/googletest/googlemock/include/")
 link_directories(/usr/src/googletest/googlemock/lib/)
 
 set(S6A_TEST_CONFIG_SRC
-    s6a_test.cpp
     s6a_recv_async_grpc_messages.cpp
     )
 
