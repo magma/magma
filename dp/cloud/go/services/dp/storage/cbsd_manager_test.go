@@ -118,6 +118,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 
 		cbsd := getBaseCbsd()
 		cbsd.NetworkId = db.MakeString(someNetwork)
+		cbsd.GrantAttempts = db.MakeInt(0)
 		cbsd.IsDeleted = db.MakeBool(false)
 		cbsd.IsUpdated = db.MakeBool(false)
 		expected := []db.Model{
@@ -173,7 +174,7 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 		actual, err := db.NewQuery().
 			WithBuilder(s.resourceManager.GetBuilder()).
 			From(&storage.DBCbsd{}).
-			Select(db.NewExcludeMask("id", "state_id", "cbsd_id", "is_deleted")).
+			Select(db.NewExcludeMask("id", "state_id", "cbsd_id", "grant_attempts", "is_deleted")).
 			Where(sq.Eq{"id": cbsdId}).
 			Fetch()
 		s.Require().NoError(err)

@@ -70,7 +70,7 @@ COPY bazel/ ${MAGMA_ROOT}/bazel
 RUN bazel build \
   @com_github_grpc_grpc//:grpc++ \
   @com_github_google_glog//:glog \
-  @protobuf//:protobuf \
+  @com_google_protobuf//:protobuf \
   @prometheus_cpp//:prometheus-cpp \
   @yaml-cpp//:yaml-cpp \
   @github_nlohmann_json//:json

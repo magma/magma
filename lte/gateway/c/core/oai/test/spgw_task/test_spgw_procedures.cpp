@@ -424,8 +424,9 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionIPAllocFailure) {
   status_code_e ip_alloc_rc = sgw_handle_ip_allocation_rsp(
       spgw_state, &test_ip_alloc_resp, test_imsi64);
 
-  // check that IP address is not allocated
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
+  // Verify that UE context was removed in SPGW state after CSR failure
+  ue_context_p = spgw_get_ue_context(test_imsi64);
+  ASSERT_TRUE(ue_context_p == nullptr);
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));

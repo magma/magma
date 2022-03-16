@@ -39,7 +39,6 @@ using grpc::Status;
 
 namespace magma {
 
-void stop_async_s6a_grpc_server(void);
 using namespace feg;
 
 /**

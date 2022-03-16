@@ -284,6 +284,7 @@ class DBCbsd(Base):
     max_power = Column(Float)
     antenna_gain = Column(Float)
     number_of_ports = Column(Integer)
+    grant_attempts = Column(Integer, nullable=False, server_default='0')
     network_id = Column(String)
     is_deleted = Column(Boolean, nullable=False, server_default='false')
     is_updated = Column(Boolean, nullable=False, server_default='false')
@@ -345,7 +346,6 @@ class DBChannel(Base):
     channel_type = Column(String, nullable=False)
     rule_applied = Column(String, nullable=False)
     max_eirp = Column(Float)
-    last_used_max_eirp = Column(Float)
     created_date = Column(
         DateTime(timezone=True),
         nullable=False, server_default=now(),

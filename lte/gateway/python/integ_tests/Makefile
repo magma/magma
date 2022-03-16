@@ -50,7 +50,6 @@ integ_test: $(PYTHON_BUILD)/setupinteg_env $(BIN)/nosetests
 ifdef TESTS
 	$(call execute_test,$(TESTS))
 else
-	echo "pass" > $(MAGMA_ROOT)/test_status.txt
 	$(foreach test,$(EXTENDED_TESTS) $(PRECOMMIT_TESTS),$(call execute_test,$(test));)
 endif
 

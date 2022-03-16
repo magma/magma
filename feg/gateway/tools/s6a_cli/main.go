@@ -19,6 +19,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math"
 	"net"
 	"os"
 	"path/filepath"
@@ -317,12 +318,12 @@ func air(cmd *commands.Command, args []string) int {
 func getPlmnID(imsi string, mncLen int) ([3]byte, error) {
 	imsiBytes := [6]byte{}
 	for i := 0; i < 6; i++ {
-		v, err := strconv.Atoi(imsi[i : i+1])
+		v, err := strconv.ParseUint(imsi[i:i+1], 10, 8)
 		if err != nil {
-			return [3]byte{}, fmt.Errorf("Invalid Digit '%s' in IMSI '%s': %v", imsi[i:i+1], imsi, err)
+			return [3]byte{}, fmt.Errorf("invalid Digit '%s' in IMSI '%s': %v", imsi[i:i+1], imsi, err)
 		}
-		if v < 0 || v > 255 {
-			return [3]byte{}, fmt.Errorf("Number %d is outside the boundaries of byte type", v)
+		if v > math.MaxUint8 {
+			return [3]byte{}, fmt.Errorf("number %d is outside the boundaries of byte type", v)
 		}
 		imsiBytes[i] = byte(v)
 	}

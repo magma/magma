@@ -36,7 +36,7 @@ class DHCPState(IntEnum):
 class DHCPDescriptor:
     def __init__(
         self, mac: MacAddress, ip: str,
-        state_requested: DHCPState, vlan: str,
+        state_requested: DHCPState, vlan: int,
         state: DHCPState = DHCPState.UNKNOWN,
         subnet: str = None, server_ip: str = None,
         router_ip: str = None, lease_expiration_time: int = 0,

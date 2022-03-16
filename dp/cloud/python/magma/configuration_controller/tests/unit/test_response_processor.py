@@ -63,6 +63,8 @@ HEARTBEAT_REQ = RequestTypes.HEARTBEAT.value
 GRANT_REQ = RequestTypes.GRANT.value
 SPECTRUM_INQ_REQ = RequestTypes.SPECTRUM_INQUIRY.value
 
+INITIAL_GRANT_ATTEMPTS = 1
+
 
 class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
     def setUp(self):
@@ -164,6 +166,49 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             [expected_grant_state_name] * nr_of_requests,
             [g.state.name for g in self.session.query(DBGrant).all()],
         )
+
+    @parameterized.expand([
+        (0, GRANT_REQ, INITIAL_GRANT_ATTEMPTS),
+        (400, GRANT_REQ, INITIAL_GRANT_ATTEMPTS + 1),
+        (401, GRANT_REQ, INITIAL_GRANT_ATTEMPTS + 1),
+        (0, RELINQUISHMENT_REQ, INITIAL_GRANT_ATTEMPTS),
+        (0, DEREGISTRATION_REQ, 0),
+        (0, SPECTRUM_INQ_REQ, 0),
+    ])
+    @responses.activate
+    def test_grant_attempts_after_response(self, code, message_type, expected):
+        cbsd = DBCbsd(
+            cbsd_id=CBSD_ID,
+            user_id=USER_ID,
+            fcc_id=FCC_ID,
+            cbsd_serial_number=CBSD_SERIAL_NR,
+            grant_attempts=INITIAL_GRANT_ATTEMPTS,
+            state=self._get_db_enum(DBCbsdState, CbsdStates.REGISTERED.value),
+        )
+        request = DBRequest(
+            type=self._get_db_enum(DBRequestType, message_type),
+            state=self._get_db_enum(
+                DBRequestState, RequestStates.PENDING.value,
+            ),
+            cbsd=cbsd,
+            payload={'cbsdId': CBSD_ID},
+        )
+        resp_json = {'response': {}, 'cbsd_id': CBSD_ID}
+        response = self._prepare_response_from_payload(
+            req_type=message_type,
+            response_payload={request_response[message_type]: [resp_json]},
+            response_code=code,
+        )
+        self.session.add(request)
+        self.session.commit()
+
+        self._process_response(
+            request_type_name=message_type,
+            response=response,
+            db_requests=[request],
+        )
+
+        self.assertEqual(expected, cbsd.grant_attempts)
 
     @parameterized.expand([
         (0, CbsdStates.REGISTERED),
@@ -419,7 +464,6 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         cbsd: DBCbsd,
         low_frequency: int,
         high_frequency: int,
-        last_used_max_eirp=None,
     ) -> DBChannel:
         channel = DBChannel(
             cbsd=cbsd,
@@ -427,7 +471,6 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             high_frequency=high_frequency,
             channel_type="some_type",
             rule_applied="some_rule",
-            last_used_max_eirp=last_used_max_eirp,
         )
         self.session.add(channel)
         self.session.commit()
