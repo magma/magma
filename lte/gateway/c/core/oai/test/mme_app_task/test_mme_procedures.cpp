@@ -2442,7 +2442,6 @@ TEST_F(MmeAppProcedureTest, TestS1HandoverSuccess) {
                                  new_enb_id, DEFAULT_eNB_S1AP_UE_ID,
                                  new_enb_ue_s1ap_id, mme_ue_s1ap_id);
 
-
   // Send Handover Notify to mme_app mimicing S1AP
   send_s1ap_handover_notify(new_sctp_assoc_id, DEFAULT_ENB_ID, new_enb_id,
                             DEFAULT_eNB_S1AP_UE_ID, new_enb_ue_s1ap_id,
