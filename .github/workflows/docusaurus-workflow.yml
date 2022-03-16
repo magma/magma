@@ -5,6 +5,9 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
+
+permissions: read-all
+
 jobs:
   docusaurus-build-and-deploy:
     runs-on: ubuntu-latest
