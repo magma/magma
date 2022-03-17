@@ -59,9 +59,12 @@ func GetS6aProxyConfigs() *S6aProxyConfig {
 		log.Printf("%s Managed Configs Load Error: %v", S6aProxyServiceName, err)
 		return &S6aProxyConfig{
 			ClientCfg: &diameter.DiameterClientConfig{
-				Host:        diameter.GetValueOrEnv(diameter.HostFlag, S6aDiamHostEnv, DefaultS6aDiamHost),
-				Realm:       diameter.GetValueOrEnv(diameter.RealmFlag, S6aDiamRealmEnv, DefaultS6aDiamRealm),
-				ProductName: diameter.GetValueOrEnv(diameter.ProductFlag, S6aDiamProductEnv, diameter.DiamProductName),
+				Host:             diameter.GetValueOrEnv(diameter.HostFlag, S6aDiamHostEnv, DefaultS6aDiamHost),
+				Realm:            diameter.GetValueOrEnv(diameter.RealmFlag, S6aDiamRealmEnv, DefaultS6aDiamRealm),
+				ProductName:      diameter.GetValueOrEnv(diameter.ProductFlag, S6aDiamProductEnv, diameter.DiamProductName),
+				WatchdogInterval: diameter.DefaultWatchdogIntervalSeconds,
+				Retransmits:      uint(10),
+				RetryCount:       uint(5),
 			},
 			ServerCfg: &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 				Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, ""),
