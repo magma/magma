@@ -72,3 +72,13 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "spgw_service_impl_test",
+    size = "small",
+    srcs = ["test_spgw_service_impl.cpp"],
+    deps = [
+        "//lte/gateway/c/core",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
