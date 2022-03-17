@@ -110,8 +110,8 @@ cc_test(
     srcs = [
         "test_mme_procedures.cpp",
     ],
-    # TODO: Remove manual tag when fixed: GH11955
-    tags = ["manual"],
+    # TODO: Address flaky test GH12166
+    flaky = True,
     deps = [
         ":mme_app_test_core",
         "//lte/gateway/c/core",
