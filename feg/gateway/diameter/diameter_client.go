@@ -137,6 +137,8 @@ func NewClient(clientCfg *DiameterClientConfig, localAddresses ...string) *Clien
 		AuthApplicationID:           authAppIdAvps,
 		VendorSpecificApplicationID: vendorSpecificApplicationIDs,
 	}
+	cli.MaxRetransmits = 20
+	glog.Infof("diameter client config retries %d", cli.MaxRetransmits)
 	client := &Client{
 		mux:            mux,
 		smClient:       cli,
