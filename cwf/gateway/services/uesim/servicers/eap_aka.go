@@ -205,7 +205,7 @@ func (srv *UESimServer) eapAkaChallengeRequest(ue *protos.UEConfig, req eap.Pack
 		),
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error appending attribute to packet")
+		return nil, errors.Wrap(err, "Error appending RES attribute to packet")
 	}
 
 	// Add the CHECKCODE attribute.
@@ -215,6 +215,9 @@ func (srv *UESimServer) eapAkaChallengeRequest(ue *protos.UEConfig, req eap.Pack
 			[]byte(CheckcodeValue),
 		),
 	)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error appending CHECKCODE attribute to packet")
+	}
 
 	atMacOffset := len(p) + aka.ATT_HDR_LEN
 
@@ -226,7 +229,7 @@ func (srv *UESimServer) eapAkaChallengeRequest(ue *protos.UEConfig, req eap.Pack
 		),
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error appending attribute to packet")
+		return nil, errors.Wrap(err, "Error appending MAC attribute to packet")
 	}
 
 	// Calculate and Copy MAC into packet.
