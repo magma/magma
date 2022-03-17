@@ -487,16 +487,13 @@ int amf_smf_process_pdu_session_packet(amf_ue_ngap_id_t ue_id,
       amf_smf_msg.u.establish.gnb_gtp_teid =
           smf_ctx->gtp_tunnel_id.gnb_gtp_teid;
 
-      // Initialize DNN
-      char* default_dnn = bstr2cstr(amf_config.default_dnn, '?');
-
       int index_dnn = 0;
       bool ue_sent_dnn = true;
       std::string dnn_string;
 
       if (msg->dnn.len <= 1) {
         ue_sent_dnn = false;
-        dnn_string = default_dnn;
+        dnn_string.assign(bdata(amf_config.default_dnn));
       } else {
         dnn_string.assign(reinterpret_cast<char*>(msg->dnn.dnn),
                           msg->dnn.len - 1);
@@ -504,7 +501,6 @@ int amf_smf_process_pdu_session_packet(amf_ue_ngap_id_t ue_id,
 
       int validate = amf_validate_dnn(&ue_context->amf_context, dnn_string,
                                       &index_dnn, ue_sent_dnn);
-      free(default_dnn);
 
       if (validate == RETURNok) {
         smf_dnn_ambr_select(smf_ctx, ue_context, index_dnn);
@@ -591,6 +587,11 @@ void smf_dnn_ambr_select(const std::shared_ptr<smf_context_t>& smf_ctx,
       &ue_context->amf_context.apn_config_profile.apn_configuration[index_dnn]
            .ambr,
       sizeof(ambr_t));
+  memcpy(
+      &smf_ctx->subscribed_qos,
+      &ue_context->amf_context.apn_config_profile.apn_configuration[index_dnn]
+           .subscribed_qos,
+      sizeof(eps_subscribed_qos_profile_t));
 }
 /***************************************************************************
 **                                                                        **
@@ -828,8 +829,8 @@ int amf_smf_handle_ip_address_response(
                                                   response_p->pdu_session_id);
   if (NULL == smf_ctx) {
     OAILOG_ERROR(LOG_AMF_APP,
-                 "Smf Context not found for pdu session id: [%s] \n",
-                 reinterpret_cast<char*>(response_p->pdu_session_id));
+                 "Smf Context not found for pdu session id: [%u] \n",
+                 response_p->pdu_session_id);
     return rc;
   }
 
@@ -848,11 +849,12 @@ int amf_smf_handle_ip_address_response(
 
       inet_ntop(AF_INET, &(response_p->paa.ipv4_address.s_addr), ip_v4_str,
                 INET_ADDRSTRLEN);
+
       rc = amf_smf_create_session_req(
           response_p->imsi, response_p->apn, response_p->pdu_session_id,
           response_p->pdu_session_type, response_p->gnb_gtp_teid,
           response_p->pti, response_p->gnb_gtp_teid_ip_addr, ip_v4_str, NULL,
-          smf_ctx->apn_ambr);
+          smf_ctx->apn_ambr, smf_ctx->subscribed_qos);
 
       if (rc < 0) {
         OAILOG_ERROR(LOG_AMF_APP, "Create IPV4 Session \n");
@@ -868,7 +870,7 @@ int amf_smf_handle_ip_address_response(
           response_p->imsi, response_p->apn, response_p->pdu_session_id,
           response_p->pdu_session_type, response_p->gnb_gtp_teid,
           response_p->pti, response_p->gnb_gtp_teid_ip_addr, NULL, ip_v6_str,
-          smf_ctx->apn_ambr);
+          smf_ctx->apn_ambr, smf_ctx->subscribed_qos);
       if (rc < 0) {
         OAILOG_ERROR(LOG_AMF_APP, "Create IPV6 Session \n");
       }
@@ -888,7 +890,7 @@ int amf_smf_handle_ip_address_response(
           response_p->imsi, response_p->apn, response_p->pdu_session_id,
           response_p->pdu_session_type, response_p->gnb_gtp_teid,
           response_p->pti, response_p->gnb_gtp_teid_ip_addr, ip_v4_str,
-          ip_v6_str, smf_ctx->apn_ambr);
+          ip_v6_str, smf_ctx->apn_ambr, smf_ctx->subscribed_qos);
 
       if (rc < 0) {
         OAILOG_ERROR(LOG_AMF_APP, "Create IPV4V6 Session \n");

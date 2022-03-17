@@ -1,4 +1,4 @@
-FROM nginx:1.17
+FROM nginx:1.21
 
 RUN apt-get update && \
   apt-get install -y python3-pip daemontools

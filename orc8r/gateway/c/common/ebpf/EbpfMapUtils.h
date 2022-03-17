@@ -77,7 +77,6 @@ int bpf_map_update_elem(int fd, void* key, void* value, uint64_t flags) {
 
 int bpf_map_delete_elem(int fd, void* key) {
   union bpf_attr attr;
-  int ret;
 
   memset(&attr, 0, sizeof(attr));
   attr.map_fd = fd;

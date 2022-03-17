@@ -1977,39 +1977,6 @@ void LocalEnforcer::handle_activate_ue_flows_callback(
   });
 }  // namespace magma
 
-void LocalEnforcer::handle_add_ue_mac_flow_callback(
-    const SubscriberID& sid, const std::string& ue_mac_addr,
-    const std::string& msisdn, const std::string& apn_mac_addr,
-    const std::string& apn_name, Status status, FlowResponse resp) {
-  if (status.ok() && resp.result() == resp.SUCCESS) {
-    MLOG(MDEBUG) << "Pipelined add ue mac flow succeeded for " << ue_mac_addr;
-    return;
-  }
-
-  if (!status.ok()) {
-    MLOG(MERROR) << "Could not add ue mac flow, rpc failed with: "
-                 << status.error_message() << ", retrying...";
-  } else if (resp.result() == resp.FAILURE) {
-    MLOG(MWARNING) << "Pipelined add ue mac flow failed, retrying...";
-  }
-
-  evb_->runAfterDelay(
-      [=] {
-        MLOG(MERROR) << "Could not activate ue mac flows for subscriber "
-                     << sid.id() << ": " << status.error_message()
-                     << ", retrying...";
-        pipelined_client_->add_ue_mac_flow(
-            sid, ue_mac_addr, msisdn, apn_mac_addr, apn_name,
-            [ue_mac_addr](Status status, FlowResponse resp) {
-              if (!status.ok()) {
-                MLOG(MERROR) << "Could not activate flows for UE "
-                             << ue_mac_addr << ": " << status.error_message();
-              }
-            });
-      },
-      retry_timeout_.count());
-}
-
 void LocalEnforcer::create_bearer(
     const std::unique_ptr<SessionState>& session,
     const PolicyReAuthRequest& request,

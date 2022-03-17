@@ -12,6 +12,13 @@
 #include <sstream>
 #include <cstring>
 #include <cstdint>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GABBA.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -39,16 +46,12 @@ int ABBAMsg::EncodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer,
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char)iei, abba->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "In EncodeABBAMsg: iei" << std::hex << int(*buffer);
     encoded++;
   }
 
-  MLOG(MDEBUG) << " EncodeABBAMsg : ";
   lenPtr = buffer + encoded;
   encoded++;
   memcpy(buffer + encoded, abba->contents, ABBA_MIN_LEN);
-  MLOG(MDEBUG) << "   ABBA Contents : ";
-  BUFFER_PRINT_LOG(buffer + encoded, ABBA_MIN_LEN);
   encoded = encoded + ABBA_MIN_LEN;
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
 

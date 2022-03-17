@@ -13,7 +13,6 @@ on:  # yamllint disable-line rule:truthy
       - 'docs/**'
       - 'example/**'
       - 'experimental/**'
-      - 'fbinternal/**'
       - 'feg/**'
       - 'lte/**'
       - 'nms/**'
@@ -29,6 +28,8 @@ on:  # yamllint disable-line rule:truthy
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
+
+permissions: read-all
 
 jobs:
   AutoLabelPR:

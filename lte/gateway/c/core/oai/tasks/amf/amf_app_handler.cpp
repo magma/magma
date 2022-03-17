@@ -355,6 +355,7 @@ imsi64_t amf_app_handle_initial_ue_message(
           amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.remove(
               ue_context_p->gnb_ngap_id_key);
           ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
+          ue_context_p->mm_state = DEREGISTERED;
         }
 
         /* remove amf_ngap_ud_id entry from ue context */
@@ -427,6 +428,8 @@ imsi64_t amf_app_handle_initial_ue_message(
       OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
     }
 
+    is_mm_ctx_new = true;
+
     // Allocate new amf_ue_ngap_id
     amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
         &amf_app_desc_p->amf_app_ue_ngap_id_generator);
@@ -470,7 +473,6 @@ imsi64_t amf_app_handle_initial_ue_message(
                  "(" AMF_UE_NGAP_ID_FMT ")",
                  ue_context_p->amf_ue_ngap_id);
   }
-  is_mm_ctx_new = true;
 
   OAILOG_DEBUG(LOG_AMF_APP,
                " Sending NAS Establishment Indication to NAS for ue_id = "
@@ -537,20 +539,6 @@ int amf_app_handle_uplink_nas_message(amf_app_desc_t* amf_app_desc_p,
                    amf_app_desc_p->amf_app_ue_ngap_id_generator);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
-}
-
-static void get_ambr_unit(uint8_t apn_ambr_unit, uint32_t apn_session_ambr,
-                          uint8_t* calc_ambr_unit,
-                          uint16_t* calc_session_ambr) {
-  *calc_ambr_unit = 0;
-
-  while (apn_session_ambr) {
-    *calc_ambr_unit += 1;
-
-    apn_session_ambr >>= 2;
-  }
-
-  *calc_session_ambr = PDU_SESSION_DEFAULT_AMBR;
 }
 
 /* Received the session created response message from SMF. Populate and Send
@@ -736,8 +724,8 @@ void convert_ambr(const uint32_t* pdu_ambr_response_unit,
 }
 
 // Utility function to convert address to buffer
-static int paa_to_address_info(const paa_t* paa, uint8_t* pdu_address_info,
-                               uint8_t* pdu_address_length) {
+int paa_to_address_info(const paa_t* paa, uint8_t* pdu_address_info,
+                        uint8_t* pdu_address_length) {
   uint32_t ip_int = 0;
   if ((paa == nullptr) || (pdu_address_info == nullptr) ||
       (pdu_address_length == nullptr)) {
@@ -944,8 +932,9 @@ int amf_app_handle_pdu_session_accept(
   new_qos_rule_pkt_filter.pkt_filter_id = 0x1;
   new_qos_rule_pkt_filter.len = 0x1;
   uint8_t contents = 0x1;
-  memcpy(new_qos_rule_pkt_filter.contents, &contents,
-         new_qos_rule_pkt_filter.len);
+
+  new_qos_rule_pkt_filter.contents = contents;
+
   memcpy(qos_rule.new_qos_rule_pkt_filter, &new_qos_rule_pkt_filter,
          1 * sizeof(NewQOSRulePktFilter));
   memcpy(smf_msg->msg.pdu_session_estab_accept.qos_rules.qos_rule, &qos_rule,
@@ -977,20 +966,27 @@ int amf_app_handle_pdu_session_accept(
   -------------------------------------- */
   smf_msg->msg.pdu_session_estab_accept.nssai.iei =
       static_cast<uint8_t>(M5GIei::S_NSSAI);
-  if (smf_ctx->requested_nssai.sst) {
-    if (smf_ctx->requested_nssai.sd[0]) {
-      smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH + SD_LENGTH;
-      smf_msg->msg.pdu_session_estab_accept.nssai.sst =
-          smf_ctx->requested_nssai.sst;
-      memcpy(smf_msg->msg.pdu_session_estab_accept.nssai.sd,
-             smf_ctx->requested_nssai.sd, 3);
-    } else {
-      smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH;
-      smf_msg->msg.pdu_session_estab_accept.nssai.sst =
-          smf_ctx->requested_nssai.sst;
-    }
-    buf_len = smf_msg->msg.pdu_session_estab_accept.nssai.len + 2;
+
+  s_nssai_t slice_information = {};
+  amf_smf_get_slice_configuration(smf_ctx, &(slice_information));
+  if (!slice_information.sst) {
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "Slice Configuration does not exist:" AMF_UE_NGAP_ID_FMT,
+                 ue_id);
+
+    return M5G_AS_FAILURE;
   }
+
+  if (slice_information.sd[0]) {
+    smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH + SD_LENGTH;
+    smf_msg->msg.pdu_session_estab_accept.nssai.sst = slice_information.sst;
+    memcpy(smf_msg->msg.pdu_session_estab_accept.nssai.sd, slice_information.sd,
+           SD_LENGTH);
+  } else {
+    smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH;
+    smf_msg->msg.pdu_session_estab_accept.nssai.sst = slice_information.sst;
+  }
+  buf_len = smf_msg->msg.pdu_session_estab_accept.nssai.len + 2;
 
   /* DNN
   -------------------------------------
@@ -1043,11 +1039,15 @@ int amf_app_handle_pdu_session_accept(
     bdestroy_wrapper(&buffer);
   }
 
-  /* Clean up the PCO contents */
+  /* Clean up the pco of smf_ctx as its only filled by establishment request */
+  protocol_configuration_options_t* context_pco = &(smf_ctx->pco);
+  sm_free_protocol_configuration_options(&context_pco);
+
+  /* Clean up the pco of pdu session establishment accept message */
   sm_free_protocol_configuration_options(&msg_accept_pco);
 
   return rc;
-}
+}  // namespace magma5g
 
 /* Handling PDU Session Resource Setup Response sent from gNB*/
 void amf_app_handle_resource_setup_response(

@@ -20,7 +20,7 @@ import (
 	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/sqorc"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 type EnodebStateLookup interface {

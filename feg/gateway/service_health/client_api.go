@@ -22,7 +22,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	orcprotos "magma/orc8r/lib/go/protos"
 )
 
@@ -31,7 +31,7 @@ import (
 func getClient(service string) (protos.ServiceHealthClient, error) {
 	conn, err := registry.GetConnection(service)
 	if err != nil {
-		initErr := errors.NewInitError(err, service)
+		initErr := merrors.NewInitError(err, service)
 		glog.Error(initErr)
 		return nil, initErr
 	}

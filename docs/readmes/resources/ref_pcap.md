@@ -51,3 +51,7 @@ One roaming subscriber begins a S8 session by sending 10 packets and receiving
 **Inbound Roaming IDLE to Connected UE initiated**
 One roaming subscriber begins a S8 session, goes from "Idle" to "Connected"
 followed by sending 10 packets and receiving 10 packets.
+
+[[pcap]](assets/feg/pcaps/nsa_connection.pcap)
+**NSA Connection with a commercial UE**
+Change in FTEID-IP address in Modify Bearer request message before and after the E-RAB Modification Indication messages highlights the connection established with gNB.

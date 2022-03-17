@@ -9,6 +9,8 @@ on:  # yamllint disable-line rule:truthy
 env:
   MAGMA_VERSION: "1.7.0"
 
+permissions: read-all
+
 jobs:
   publish-amis-to-marketplace:
     name: publish-amis-to-marketplace job

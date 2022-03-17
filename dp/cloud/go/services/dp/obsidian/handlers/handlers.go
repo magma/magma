@@ -31,7 +31,7 @@ import (
 	dp_service "magma/dp/cloud/go/services/dp"
 	"magma/dp/cloud/go/services/dp/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -132,9 +132,12 @@ func listCbsds(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	var payload []models.Cbsd
-	for _, cd := range cbsds.Details {
-		payload = append(payload, *models.CbsdFromBackend(cd))
+	payload := &models.PaginatedCbsds{
+		Cbsds:      make([]*models.Cbsd, len(cbsds.Details)),
+		TotalCount: cbsds.TotalCount,
+	}
+	for i, cd := range cbsds.Details {
+		payload.Cbsds[i] = models.CbsdFromBackend(cd)
 	}
 	return c.JSON(http.StatusOK, payload)
 }
@@ -175,7 +178,7 @@ func createCbsd(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	if err := payload.Validate(strfmt.Default); err != nil {
-		return echo.NewHTTPError(http.StatusBadGateway)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	client, err := getCbsdManagerClient()
 	if err != nil {
@@ -227,7 +230,7 @@ func updateCbsd(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	if err := payload.Validate(strfmt.Default); err != nil {
-		return echo.NewHTTPError(http.StatusBadGateway)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	cbsdId, nerr := getCbsdId(c)
 	if nerr != nil {

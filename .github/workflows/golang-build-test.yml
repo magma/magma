@@ -4,11 +4,11 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
-      - v1.*
+      - 'v1.*'
   pull_request:
     branches:
       - master
-      - v1.*
+      - 'v1.*'
     types:
       - opened
       - reopened
@@ -17,6 +17,8 @@ on:  # yamllint disable-line rule:truthy
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
+
+permissions: read-all
 
 jobs:
   pre_job_src_go_determinator:

@@ -110,7 +110,7 @@ proto_library(
         ":apn_proto",
         "//orc8r/protos:common_proto",
         "//orc8r/protos:digest_proto",
-        "@protobuf//:field_mask_proto",
+        "@com_google_protobuf//:field_mask_proto",
     ],
 )
 
@@ -247,7 +247,7 @@ proto_library(
         ":policydb_proto",
         ":subscriberdb_proto",
         "//orc8r/protos:common_proto",
-        "@protobuf//:timestamp_proto",
+        "@com_google_protobuf//:timestamp_proto",
     ],
 )
 
@@ -355,13 +355,25 @@ cpp_grpc_library(
 )
 
 proto_library(
+    name = "diam_errors_proto",
+    srcs = ["diam_errors.proto"],
+)
+
+cpp_proto_library(
+    name = "diam_errors_cpp_proto",
+    protos = [":diam_errors_proto"],
+)
+
+proto_library(
     name = "subscriberauth_proto",
     srcs = ["subscriberauth.proto"],
+    deps = [":diam_errors_proto"],
 )
 
 cpp_proto_library(
     name = "subscriberauth_cpp_proto",
     protos = [":subscriberauth_proto"],
+    deps = [":diam_errors_cpp_proto"],
 )
 
 cpp_grpc_library(
@@ -393,6 +405,11 @@ proto_library(
 
 cpp_proto_library(
     name = "s6a_service_cpp_proto",
+    protos = [":s6a_service_proto"],
+)
+
+python_proto_library(
+    name = "s6a_service_python_proto",
     protos = [":s6a_service_proto"],
 )
 
@@ -438,4 +455,68 @@ cpp_grpc_library(
     name = "ha_service_cpp_grpc",
     protos = [":ha_service_proto"],
     deps = [":ha_service_cpp_proto"],
+)
+
+python_grpc_library(
+    name = "s6a_service_python_grpc",
+    protos = [":s6a_service_proto"],
+)
+
+python_grpc_library(
+    name = "subscriberauth_python_grpc",
+    protos = [":subscriberauth_proto"],
+)
+
+proto_library(
+    name = "enodebd_proto",
+    srcs = ["enodebd.proto"],
+    deps = [
+        "//orc8r/protos:common_proto",
+        "//orc8r/protos:service303_proto",
+    ],
+)
+
+python_proto_library(
+    name = "enodebd_python_proto",
+    protos = [":enodebd_proto"],
+    deps = ["//orc8r/protos:service303_python_proto"],
+)
+
+python_grpc_library(
+    name = "enodebd_python_grpc",
+    protos = [":enodebd_proto"],
+)
+
+python_grpc_library(
+    name = "s1ap_service_python_grpc",
+    protos = [":s1ap_service_proto"],
+)
+
+# This proto library is exclusively meant for the state service.
+# Users can manually add proto libraries to state.yml.
+# This means that all proto libraries need to be available
+# in builds of the state service.
+proto_library(
+    name = "all_proto",
+    srcs = glob(["*.proto"]),
+    visibility = ["//visibility:private"],
+    deps = [
+        "//orc8r/protos:common_proto",
+        "//orc8r/protos:digest_proto",
+        "//orc8r/protos:service303_proto",
+        "@com_google_protobuf//:field_mask_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+# See comment at :all_proto
+python_proto_library(
+    name = "all_python_proto",
+    protos = [":all_proto"],
+    visibility = ["//orc8r/gateway/python/magma/state:__pkg__"],
+    deps = [
+        "//orc8r/protos:common_python_proto",
+        "//orc8r/protos:digest_python_proto",
+        "//orc8r/protos:service303_python_proto",
+    ],
 )

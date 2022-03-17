@@ -175,7 +175,6 @@ class SessionManagerHandlerTest : public ::testing::Test {
     auto cfg = set_session_manager->m5g_build_session_config(*session_ctx_req);
     auto& noti = *req;
     auto ue_event = noti.notify_ue_event();
-    std::function<void(Status, SmContextVoid)> response_callback;
 
     EXPECT_EQ(pdu_id, 0x5);
     EXPECT_EQ(imsi, "IMSI000000000000001");
@@ -185,7 +184,9 @@ class SessionManagerHandlerTest : public ::testing::Test {
 
     EXPECT_EQ(reqcmn->ue_ipv4(), "192.168.128.11");
     EXPECT_EQ(reqcmn->rat_type(), magma::RATType::TGPP_NR);
-    set_session_manager->send_create_session(session_map_, imsi, cfg, pdu_id);
+    set_session_manager->send_create_session(
+        session_map_, imsi, cfg, pdu_id,
+        [this](grpc::Status status, SmContextVoid Void) {});
 
     EXPECT_EQ(reqcmn->sm_session_state(), magma::SMSessionFSMState::CREATING_0);
     EXPECT_EQ(ue_event, magma::NotifyUeEvents::PDU_SESSION_INACTIVE_NOTIFY);
@@ -621,7 +622,9 @@ TEST_F(SessionManagerHandlerTest, test_IPv6PDUSessionEstablishmentContext) {
   uint32_t pdu_id = request.mutable_rat_specific_context()
                         ->mutable_m5gsm_session_context()
                         ->pdu_session_id();
-  set_session_manager->send_create_session(session_map, IMSI1, cfg, pdu_id);
+  set_session_manager->send_create_session(
+      session_map, IMSI1, cfg, pdu_id,
+      [this](grpc::Status status, SmContextVoid Void) {});
 
   auto it = session_map.find(IMSI1);
   EXPECT_FALSE(it == session_map.end());
@@ -787,14 +790,14 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionAmbr) {
   cfg.rat_specific_context = request.rat_specific_context();
 
   cfg.rat_specific_context.mutable_m5gsm_session_context()
-      ->mutable_default_ambr()
-      ->set_br_unit(AggregatedMaximumBitrate::KBPS);
+      ->mutable_subscribed_qos()
+      ->set_br_unit(magma::lte::M5GQosInformationRequest_BitrateUnitsAMBR_KBPS);
   cfg.rat_specific_context.mutable_m5gsm_session_context()
-      ->mutable_default_ambr()
-      ->set_max_bandwidth_ul(10000);
+      ->mutable_subscribed_qos()
+      ->set_apn_ambr_ul(10000);
   cfg.rat_specific_context.mutable_m5gsm_session_context()
-      ->mutable_default_ambr()
-      ->set_max_bandwidth_dl(20000);
+      ->mutable_subscribed_qos()
+      ->set_apn_ambr_dl(20000);
 
   SessionUpdate session_update =
       SessionStore::get_default_session_update(session_map);
@@ -813,9 +816,10 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionAmbr) {
   auto* rsp = expected_response.mutable_rat_specific_context()
                   ->mutable_m5g_session_context_rsp();
 
-  rsp->mutable_session_ambr()->set_br_unit(AggregatedMaximumBitrate::KBPS);
-  rsp->mutable_session_ambr()->set_max_bandwidth_ul(10000);
-  rsp->mutable_session_ambr()->set_max_bandwidth_dl(20000);
+  rsp->mutable_subscribed_qos()->set_br_unit(
+      magma::lte::M5GQosInformationRequest_BitrateUnitsAMBR_KBPS);
+  rsp->mutable_subscribed_qos()->set_apn_ambr_ul(10000);
+  rsp->mutable_subscribed_qos()->set_apn_ambr_dl(20000);
 
   EXPECT_CALL(*amf_srv_client,
               handle_response_to_access(CheckSrvResponse(&expected_response)))
@@ -1127,10 +1131,5 @@ TEST_F(SessionManagerHandlerTest, test_update_session_credits_and_rules_5g) {
                 .rat_specific_context.m5gsm_session_context()
                 .ssc_mode(),
             magma::SscMode::SSC_MODE_2);
-}
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
 }  // namespace magma

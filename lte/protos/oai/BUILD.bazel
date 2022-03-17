@@ -11,6 +11,7 @@
 
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@rules_proto_grpc//cpp:defs.bzl", "cpp_proto_library")
+load("@rules_proto_grpc//python:defs.bzl", "python_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -79,7 +80,7 @@ proto_library(
         ":nas_state_proto",
         ":spgw_state_proto",
         ":std_3gpp_types_proto",
-        "@protobuf//:timestamp_proto",
+        "@com_google_protobuf//:timestamp_proto",
     ],
 )
 
@@ -131,4 +132,22 @@ proto_library(
 cpp_proto_library(
     name = "ngap_state_cpp_proto",
     protos = [":ngap_state_proto"],
+)
+
+# This proto library is exclusively meant for the state service.
+# Users can manually add proto libraries to state.yml.
+# This means that all proto libraries need to be available
+# in builds of the state service.
+proto_library(
+    name = "all_proto",
+    srcs = glob(["*.proto"]),
+    visibility = ["//visibility:private"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+# See comment at :all_proto
+python_proto_library(
+    name = "all_python_proto",
+    protos = [":all_proto"],
+    visibility = ["//orc8r/gateway/python/magma/state:__pkg__"],
 )

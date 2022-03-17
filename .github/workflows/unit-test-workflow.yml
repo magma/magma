@@ -11,6 +11,8 @@ on:  # yamllint disable-line rule:truthy
     types:
       - completed
 
+permissions: read-all
+
 jobs:
   skip_check:
     name: Job to retrieve the value in pr/skipped file

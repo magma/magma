@@ -25,11 +25,11 @@ import (
 	"magma/orc8r/cloud/go/services/directoryd/protos"
 	"magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/state"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/registry"
 )
 
-const ServiceName = "DIRECTORYD"
+const ServiceName = "directoryd"
 
 //-------------------------------
 // Directoryd service client APIs

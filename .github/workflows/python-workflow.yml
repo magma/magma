@@ -4,11 +4,11 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
-      - v1.*
+      - 'v1.*'
   pull_request:
     branches:
       - master
-      - v1.*
+      - 'v1.*'
     types:
       - opened
       - reopened
@@ -17,6 +17,8 @@ on:  # yamllint disable-line rule:truthy
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
+
+permissions: read-all
 
 jobs:
   pre_job:
@@ -84,7 +86,7 @@ jobs:
               echo "Running isort on $file...";
               isort --diff --check-only $file;
               echo "Running autopep8 on $file...";
-              autopep8 --diff --exit-code --select W191,W291,W292,W293,W391,E131,E2,E3 -r $file;
+              autopep8 --diff --exit-code --select W191,W291,W292,W293,W391,E131,E1,E2,E3 -r $file;
               echo "Running add-trailing-comma on $file...";
               add-trailing-comma --py35-plus $file;
             done;

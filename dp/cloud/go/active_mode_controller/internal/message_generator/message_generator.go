@@ -5,22 +5,28 @@ import (
 	"fmt"
 	"time"
 
-	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/crud"
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/message"
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas"
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas_helpers"
+	"magma/dp/cloud/go/active_mode_controller/internal/ranges"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 )
 
 type messageGenerator struct {
 	heartbeatTimeout  time.Duration
 	inactivityTimeout time.Duration
+	indexProvider     ranges.IndexProvider
 }
 
-func NewMessageGenerator(heartbeatTimeout time.Duration, inactivityTimeout time.Duration) *messageGenerator {
+func NewMessageGenerator(
+	heartbeatTimeout time.Duration,
+	inactivityTimeout time.Duration,
+	indexProvider ranges.IndexProvider,
+) *messageGenerator {
 	return &messageGenerator{
 		heartbeatTimeout:  heartbeatTimeout,
 		inactivityTimeout: inactivityTimeout,
+		indexProvider:     indexProvider,
 	}
 }
 
@@ -31,70 +37,51 @@ type Message interface {
 
 func (m *messageGenerator) GenerateMessages(state *active_mode.State, now time.Time) []Message {
 	var requests []*sas.Request
-	var actions []*crud.Action
-	for _, config := range state.ActiveModeConfigs {
-		g := m.getPerCbsdMessageGenerator(config, now)
-		reqs := g.sas.GenerateRequests(config)
-		reqs = sas_helpers.Filter(config.GetCbsd().GetPendingRequests(), reqs)
-		requests = append(requests, reqs...)
-		acts := g.crud.GenerateActions(config)
-		actions = append(actions, acts...)
-	}
 	var msgs []Message
+	for _, cbsd := range state.Cbsds {
+		g := m.getPerCbsdMessageGenerator(cbsd, now)
+		reqs := g.sas.GenerateRequests(cbsd)
+		requests = append(requests, reqs...)
+		msgs = append(msgs, g.crud.generateMessages(cbsd.GetDbData())...)
+	}
 	payloads := sas_helpers.Build(requests)
 	for _, payload := range payloads {
 		msgs = append(msgs, message.NewSasMessage(payload))
 	}
-	for _, action := range actions {
-		msgs = append(msgs, message.NewDeleteMessage(action.SerialNumber))
-	}
 	return msgs
 }
 
-func (m *messageGenerator) getPerCbsdMessageGenerator(config *active_mode.ActiveModeConfig, now time.Time) *perCbsdMessageGenerator {
-	cbsd := config.GetCbsd()
-	if pendingStateChange(cbsd.GetPendingRequests()) {
-		return &perCbsdMessageGenerator{
-			sas:  &noMessageGenerator{},
-			crud: &noActionsGenerator{},
+func (m *messageGenerator) getPerCbsdMessageGenerator(cbsd *active_mode.Cbsd, now time.Time) *perCbsdMessageGenerator {
+	if cbsd.GetState() == active_mode.CbsdState_Unregistered {
+		data := cbsd.GetDbData()
+		if data.GetIsDeleted() {
+			return &perCbsdMessageGenerator{
+				sas:  &noRequestGenerator{},
+				crud: &deleteMessageGenerator{},
+			}
 		}
-	}
-	if cbsd.GetIsDeleted() && cbsd.GetState() == active_mode.CbsdState_Unregistered {
-		return &perCbsdMessageGenerator{
-			sas:  &noMessageGenerator{},
-			crud: &deleteActionGenerator{},
+		if data.GetIsUpdated() {
+			return &perCbsdMessageGenerator{
+				sas:  &noRequestGenerator{},
+				crud: &updateMessageGenerator{},
+			}
 		}
 	}
 	return &perCbsdMessageGenerator{
-		sas:  m.getPerCbsdSasRequestGenerator(config, now),
-		crud: &noActionsGenerator{},
+		sas:  m.getPerCbsdSasRequestGenerator(cbsd, now),
+		crud: &noMessageGenerator{},
 	}
 }
 
-var stateChangeRequestType = map[active_mode.RequestsType]bool{
-	active_mode.RequestsType_RegistrationRequest:   true,
-	active_mode.RequestsType_DeregistrationRequest: true,
-}
-
-func pendingStateChange(requests []*active_mode.Request) bool {
-	for _, r := range requests {
-		if stateChangeRequestType[r.Type] {
-			return true
-		}
-	}
-	return false
-}
-
-func (m *messageGenerator) getPerCbsdSasRequestGenerator(config *active_mode.ActiveModeConfig, now time.Time) sasRequestGenerator {
-	cbsd := config.GetCbsd()
-	if cbsd.GetIsDeleted() && cbsd.GetState() == active_mode.CbsdState_Registered {
+func (m *messageGenerator) getPerCbsdSasRequestGenerator(cbsd *active_mode.Cbsd, now time.Time) sasRequestGenerator {
+	if requiresDeregistration(cbsd.GetDbData()) && cbsd.GetState() == active_mode.CbsdState_Registered {
 		return sas.NewDeregistrationRequestGenerator()
 	}
-	if config.GetDesiredState() == active_mode.CbsdState_Unregistered {
+	if cbsd.GetDesiredState() == active_mode.CbsdState_Unregistered {
 		if cbsd.GetState() == active_mode.CbsdState_Registered {
 			return sas.NewDeregistrationRequestGenerator()
 		}
-		return &noMessageGenerator{}
+		return &noRequestGenerator{}
 	}
 	if cbsd.GetLastSeenTimestamp() < now.Add(-m.inactivityTimeout).Unix() {
 		return sas.NewRelinquishmentRequestGenerator()
@@ -106,38 +93,42 @@ func (m *messageGenerator) getPerCbsdSasRequestGenerator(config *active_mode.Act
 		nextSend := now.Add(m.heartbeatTimeout).Unix()
 		return sas.NewHeartbeatRequestGenerator(nextSend)
 	}
-	return &firstNotNullMessageGenerator{
+	return &firstNotNullRequestGenerator{
 		generators: []sasRequestGenerator{
-			sas.NewGrantRequestGenerator(),
+			sas.NewGrantRequestGenerator(m.indexProvider),
 			sas.NewSpectrumInquiryRequestGenerator(),
 		},
 	}
 }
 
+func requiresDeregistration(data *active_mode.DatabaseCbsd) bool {
+	return data.GetIsDeleted() || data.GetIsUpdated()
+}
+
 type perCbsdMessageGenerator struct {
 	sas  sasRequestGenerator
-	crud crudActionGenerator
+	crud crudMessageGenerator
 }
 
 type sasRequestGenerator interface {
-	GenerateRequests(*active_mode.ActiveModeConfig) []*sas.Request
+	GenerateRequests(cbsd *active_mode.Cbsd) []*sas.Request
 }
 
-type crudActionGenerator interface {
-	GenerateActions(config *active_mode.ActiveModeConfig) []*crud.Action
+type crudMessageGenerator interface {
+	generateMessages(*active_mode.DatabaseCbsd) []Message
 }
 
-type noMessageGenerator struct{}
+type noRequestGenerator struct{}
 
-func (*noMessageGenerator) GenerateRequests(_ *active_mode.ActiveModeConfig) []*sas.Request {
+func (*noRequestGenerator) GenerateRequests(_ *active_mode.Cbsd) []*sas.Request {
 	return nil
 }
 
-type firstNotNullMessageGenerator struct {
+type firstNotNullRequestGenerator struct {
 	generators []sasRequestGenerator
 }
 
-func (f *firstNotNullMessageGenerator) GenerateRequests(config *active_mode.ActiveModeConfig) []*sas.Request {
+func (f *firstNotNullRequestGenerator) GenerateRequests(config *active_mode.Cbsd) []*sas.Request {
 	for _, g := range f.generators {
 		messages := g.GenerateRequests(config)
 		if len(messages) > 0 {
@@ -147,17 +138,20 @@ func (f *firstNotNullMessageGenerator) GenerateRequests(config *active_mode.Acti
 	return nil
 }
 
-type noActionsGenerator struct{}
+type noMessageGenerator struct{}
 
-func (*noActionsGenerator) GenerateActions(_ *active_mode.ActiveModeConfig) []*crud.Action {
+func (*noMessageGenerator) generateMessages(_ *active_mode.DatabaseCbsd) []Message {
 	return nil
 }
 
-type deleteActionGenerator struct{}
+type deleteMessageGenerator struct{}
 
-func (*deleteActionGenerator) GenerateActions(config *active_mode.ActiveModeConfig) []*crud.Action {
-	return []*crud.Action{{
-		Type:         crud.Delete,
-		SerialNumber: config.GetCbsd().GetSerialNumber(),
-	}}
+func (*deleteMessageGenerator) generateMessages(data *active_mode.DatabaseCbsd) []Message {
+	return []Message{message.NewDeleteMessage(data.GetId())}
+}
+
+type updateMessageGenerator struct{}
+
+func (*updateMessageGenerator) generateMessages(data *active_mode.DatabaseCbsd) []Message {
+	return []Message{message.NewUpdateMessage(data.GetId())}
 }

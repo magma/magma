@@ -28,7 +28,7 @@ py_library(
         requirement("redis"),
         requirement("hiredis"),
         requirement("redis_collections"),
-        requirement("redis-lock"),
+        requirement("python-redis-lock"),
         requirement("jsonpickle"),
     ],
 )

@@ -12,6 +12,13 @@
 #include <sstream>
 #include <cstdint>
 #include <cstring>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQOSRules.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -30,16 +37,14 @@ int QOSRulesMsg::DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
 
   if (iei > 0) {
     CHECK_IEI_DECODER((unsigned char)iei, qos_rules->iei);
-    MLOG(MDEBUG) << "In DecodeQOSRulesMsg: iei" << std::hex << int(*buffer);
     decoded++;
   }
 
   IES_DECODE_U16(buffer, decoded, qos_rules->length);
-  MLOG(MDEBUG) << "Length : " << std::hex << int(qos_rules->length);
   uint8_t i = 0;
 
   if (!qos_rules) {
-    MLOG(MDEBUG) << "Decoded ERROR in DecodeQOSRulesMsg ";
+    OAILOG_ERROR(LOG_NAS5G, "No QOS Rules found while Decoding");
     return -1;
   }
 
@@ -65,7 +70,7 @@ int QOSRulesMsg::DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
 
       IES_DECODE_U8(buffer, decoded,
                     qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len);
-      memcpy(qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].contents,
+      memcpy(&(qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].contents),
              buffer + decoded,
              qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len);
       decoded += qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len;
@@ -94,23 +99,18 @@ int QOSRulesMsg::EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char)iei, qos_rules->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "In EncodeQOSRulesMsg: iei" << std::hex << int(*buffer);
     encoded++;
   }
 
   IES_ENCODE_U16(buffer, encoded, qos_rules->length);
-  MLOG(MDEBUG) << "Length : " << std::hex << int(qos_rules->length);
   while (encoded < (qos_rules->length) && i <= 255) {
     *(buffer + encoded) = qos_rules->qos_rule[i].qos_rule_id;
-    MLOG(MDEBUG) << "qos_rule_id: " << std::hex << int(*(buffer + encoded));
     encoded++;
     IES_ENCODE_U16(buffer, encoded, qos_rules->qos_rule[i].len);
     *(buffer + encoded) =
         0x00 | ((qos_rules->qos_rule[i].rule_oper_code & 0x07) << 5) |
         ((qos_rules->qos_rule[i].dqr_bit & 0x01) << 4) |
         (qos_rules->qos_rule[i].no_of_pkt_filters & 0x0f);
-    MLOG(MDEBUG) << "rule_oper_code, dqr_bit, no_of_pkt_filters: " << std::hex
-                 << int(*(buffer + encoded));
     encoded++;
     for (j = 0; j < qos_rules->qos_rule[i].no_of_pkt_filters; j++) {
       *(buffer + encoded) =
@@ -122,30 +122,21 @@ int QOSRulesMsg::EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
            << 4) |
           (qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].pkt_filter_id &
            0x0f);
-      MLOG(MDEBUG) << "pkt_filter_dir, pkt_filter_id: " << std::hex
-                   << int(*(buffer + encoded));
       encoded++;
       *(buffer + encoded) =
           qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len;
-      MLOG(MDEBUG) << "len: " << std::hex << int(*(buffer + encoded));
       encoded++;
       memcpy(buffer + encoded,
-             qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].contents,
+             &(qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].contents),
              qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len);
-      BUFFER_PRINT_LOG(buffer + encoded,
-                       qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len);
       encoded = encoded + qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len;
     }
 
     *(buffer + encoded) = qos_rules->qos_rule[i].qos_rule_precedence;
-    MLOG(MDEBUG) << "qos_rule_precedence: " << std::hex
-                 << int(*(buffer + encoded));
     encoded++;
     *(buffer + encoded) = 0x00 | ((qos_rules->qos_rule[i].spare & 0x01) << 7) |
                           ((qos_rules->qos_rule[i].segregation & 0x01) << 6) |
                           (qos_rules->qos_rule[i].qfi & 0x3f);
-    MLOG(MDEBUG) << "segregation, qfi: " << std::hex
-                 << int(*(buffer + encoded));
     encoded++;
     i++;
   }

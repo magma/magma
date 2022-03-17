@@ -20,6 +20,7 @@
     "babel-plugin-fbt": "^0.20.3",
     "babel-plugin-fbt-runtime": "^0.9.9",
     "babel-plugin-lodash": "^3.3.4",
+    "color-string": "^1.9.0",
     "fbt": "^0.10.6",
     "pug": "^3.0.1"
   },
@@ -54,7 +55,11 @@
     "rimraf": "^3.0.0"
   },
   "resolutions": {
-    "@babel/runtime": "^7.3.4"
+    "@babel/runtime": "^7.3.4",
+    "node-forge": "^1.0.0",
+    "refractor/prismjs": "^1.27.0",
+    "jspdf": "^2.3.1",
+    "cacache/ssri": "6.0.2"
   },
   "scripts": {
     "eslint": "./node_modules/.bin/eslint --ignore-path .eslintignore",

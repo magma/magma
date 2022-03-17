@@ -13,7 +13,7 @@ limitations under the License.
 from datetime import datetime, timezone
 from http import HTTPStatus
 from time import sleep
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import grpc
 import pytest
@@ -31,7 +31,8 @@ config = TestConfig()
 DP_HTTP_PREFIX = 'magma/v1/dp'
 NETWORK = 'some_network'
 SERIAL_NUMBER = "some_serial_number"
-FCC_ID = "some_fcc_id"
+SOME_FCC_ID = "some_fcc_id"
+OTHER_FCC_ID = "other_fcc_id"
 USER_ID = "some_user_id"
 
 
@@ -59,6 +60,21 @@ class DomainProxyOrc8rTestCase(DBTestCase):
 
         filters = self.get_filters_for_request_type('heartbeat')
         self.then_message_is_eventually_sent(filters, keep_alive=True)
+
+        self.delete_cbsd(cbsd_id)
+
+    def test_sas_flow_restarted_for_updated_cbsd(self):
+        cbsd_id = self.given_cbsd_provisioned()
+
+        self.when_cbsd_is_updated(cbsd_id, OTHER_FCC_ID)
+
+        filters = self.get_filters_for_request_type('deregistration')
+        self.then_message_is_eventually_sent(filters, keep_alive=True)
+
+        self.then_state_is_eventually(self.get_state_with_grant())
+
+        cbsd = self.when_cbsd_is_fetched()
+        self.then_cbsd_is(cbsd, self.get_cbsd_data_with_grant(OTHER_FCC_ID))
 
         self.delete_cbsd(cbsd_id)
 
@@ -101,41 +117,33 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         self.then_message_is_eventually_sent(filters, keep_alive=False)
 
     def when_cbsd_is_created(self):
-        r = requests.post(
-            f'{config.HTTP_SERVER}/{DP_HTTP_PREFIX}/{NETWORK}/cbsds',
-            json=self.get_cbsd_post_data(),
-            cert=(config.DP_CERT_PATH, config.DP_SSL_KEY_PATH),
-            verify=False,  # noqa: S501
+        r = send_request_to_backend(
+            'post', 'cbsds', json=self.get_cbsd_post_data(),
         )
         self.assertEqual(r.status_code, HTTPStatus.CREATED)
 
     def when_cbsd_is_fetched(self) -> Dict[str, Any]:
-        r = requests.get(
-            f'{config.HTTP_SERVER}/{DP_HTTP_PREFIX}/{NETWORK}/cbsds',
-            cert=(config.DP_CERT_PATH, config.DP_SSL_KEY_PATH),
-            verify=False,  # noqa: S501
-        )
+        r = send_request_to_backend('get', 'cbsds')
         self.assertEqual(r.status_code, HTTPStatus.OK)
         data = r.json()
-        self.assertEqual(len(data), 1)
-        return data[0]
+        self.assertEqual(data.get('total_count'), 1)
+        cbsds = data.get('cbsds', [])
+        self.assertEqual(len(cbsds), 1)
+        return cbsds[0]
 
     def when_logs_are_fetched(self, params: Dict[str, Any]) -> List[Dict[str, Any]]:
-        r = requests.get(
-            f'{config.HTTP_SERVER}/{DP_HTTP_PREFIX}/{NETWORK}/logs',
-            params=params,
-            cert=(config.DP_CERT_PATH, config.DP_SSL_KEY_PATH),
-            verify=False,  # noqa: S501
-        )
+        r = send_request_to_backend('get', 'logs', params=params)
         self.assertEqual(r.status_code, HTTPStatus.OK)
         data = r.json()
         return data
 
     def when_cbsd_is_deleted(self, cbsd_id: int):
-        r = requests.delete(
-            f'{config.HTTP_SERVER}/{DP_HTTP_PREFIX}/{NETWORK}/cbsds/{cbsd_id}',
-            cert=(config.DP_CERT_PATH, config.DP_SSL_KEY_PATH),
-            verify=False,  # noqa: S501
+        r = send_request_to_backend('delete', f'cbsds/{cbsd_id}')
+        self.assertEqual(r.status_code, HTTPStatus.NO_CONTENT)
+
+    def when_cbsd_is_updated(self, cbsd_id: int, fcc_id: str):
+        r = send_request_to_backend(
+            'put', f'cbsds/{cbsd_id}', json=self.get_cbsd_post_data(fcc_id=fcc_id),
         )
         self.assertEqual(r.status_code, HTTPStatus.NO_CONTENT)
 
@@ -160,14 +168,10 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         self.assertEqual(actual, expected)
 
     def then_cbsd_is_deleted(self):
-        r = requests.get(
-            f'{config.HTTP_SERVER}/{DP_HTTP_PREFIX}/{NETWORK}/cbsds',
-            cert=(config.DP_CERT_PATH, config.DP_SSL_KEY_PATH),
-            verify=False,  # noqa: S501
-        )
+        r = send_request_to_backend('get', 'cbsds')
         self.assertEqual(r.status_code, HTTPStatus.OK)
         data = r.json()
-        self.assertFalse(data)
+        self.assertFalse(data.get('total_count', True))
 
     def then_state_is(self, actual: CBSDStateResult, expected: CBSDStateResult):
         self.assertEqual(actual, expected)
@@ -208,7 +212,7 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         )
 
     @staticmethod
-    def get_cbsd_post_data() -> Dict[str, Any]:
+    def get_cbsd_post_data(fcc_id: str = SOME_FCC_ID) -> Dict[str, Any]:
         return {
             "capabilities": {
                 "antenna_gain": 15,
@@ -216,7 +220,7 @@ class DomainProxyOrc8rTestCase(DBTestCase):
                 "min_power": 0,
                 "number_of_antennas": 2,
             },
-            "fcc_id": FCC_ID,
+            "fcc_id": fcc_id,
             "serial_number": SERIAL_NUMBER,
             "user_id": USER_ID,
         }
@@ -229,17 +233,17 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         })
         return data
 
-    def get_registered_cbsd_data(self) -> Dict[str, Any]:
-        data = self.get_cbsd_post_data()
+    def get_registered_cbsd_data(self, fcc_id: str = SOME_FCC_ID) -> Dict[str, Any]:
+        data = self.get_cbsd_post_data(fcc_id)
         data.update({
-            'cbsd_id': f'{FCC_ID}/{SERIAL_NUMBER}',
+            'cbsd_id': f'{fcc_id}/{SERIAL_NUMBER}',
             'is_active': False,
             'state': 'registered',
         })
         return data
 
-    def get_cbsd_data_with_grant(self) -> Dict[str, Any]:
-        data = self.get_registered_cbsd_data()
+    def get_cbsd_data_with_grant(self, fcc_id: str = SOME_FCC_ID) -> Dict[str, Any]:
+        data = self.get_registered_cbsd_data(fcc_id)
         data.update({
             'is_active': True,
             'grant': {
@@ -274,3 +278,14 @@ class DomainProxyOrc8rTestCase(DBTestCase):
     @staticmethod
     def now():
         return datetime.now(timezone.utc).isoformat()
+
+
+def send_request_to_backend(method: str, url_suffix: str, params: Optional[Dict[str, Any]] = None, json: Optional[Dict[str, Any]] = None) -> requests.Response:
+    return requests.request(
+        method,
+        f'{config.HTTP_SERVER}/{DP_HTTP_PREFIX}/{NETWORK}/{url_suffix}',
+        cert=(config.DP_CERT_PATH, config.DP_SSL_KEY_PATH),
+        verify=False,  # noqa: S501
+        params=params,
+        json=json,
+    )

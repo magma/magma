@@ -36,6 +36,7 @@
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 #include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
@@ -51,18 +52,6 @@
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 
-#if S1AP_DEBUG_LIST
-#define eNB_LIST_OUT(x, args...) \
-  (LOG_S1AP, "[eNB]%*s" x "\n", 4 * indent, "", ##args)
-#define UE_LIST_OUT(x, args...) \
-  OAILOG_DEBUG(LOG_S1AP, "[UE] %*s" x "\n", 4 * indent, "", ##args)
-#else
-#define eNB_LIST_OUT(x, args...)
-#define UE_LIST_OUT(x, args...)
-#endif
-
-bool s1ap_dump_ue_hash_cb(hash_key_t keyP, void* ue_void, void* parameter,
-                          void** unused_res);
 static void start_stats_timer(void);
 static int handle_stats_timer(zloop_t* loop, int id, void* arg);
 static long epc_stats_timer_id;
@@ -294,7 +283,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     default: {
-      OAILOG_ERROR(LOG_S1AP, "Unknown message ID %d:%s\n",
+      OAILOG_DEBUG(LOG_S1AP, "Unknown message ID %d:%s\n",
                    ITTI_MSG_ID(received_message_p),
                    ITTI_MSG_NAME(received_message_p));
     } break;
@@ -334,13 +323,6 @@ static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_S1AP, "Initializing S1AP interface\n");
-
-  if (get_asn1c_environment_version() < ASN1_MINIMUM_VERSION) {
-    OAILOG_ERROR(LOG_S1AP, "ASN1C version %d found, expecting at least %d\n",
-                 get_asn1c_environment_version(), ASN1_MINIMUM_VERSION);
-    return RETURNerror;
-  }
-
   OAILOG_DEBUG(LOG_S1AP, "ASN1C version %d\n", get_asn1c_environment_version());
 
   s1ap_congestion_control_enabled = mme_config_p->enable_congestion_control;
@@ -379,67 +361,6 @@ void s1ap_mme_exit(void) {
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP: DONE\n");
   OAI_FPRINTF_INFO("TASK_S1AP terminated\n");
   pthread_exit(NULL);
-}
-
-//------------------------------------------------------------------------------
-void s1ap_dump_enb(const enb_description_t* const enb_ref) {
-#ifdef S1AP_DEBUG_LIST
-  // Reset indentation
-  indent = 0;
-
-  if (enb_ref == NULL) {
-    return;
-  }
-
-  eNB_LIST_OUT("");
-  eNB_LIST_OUT("eNB name:          %s",
-               enb_ref->enb_name == NULL ? "not present" : enb_ref->enb_name);
-  eNB_LIST_OUT("eNB ID:            %07x", enb_ref->enb_id);
-  eNB_LIST_OUT("SCTP assoc id:     %d", enb_ref->sctp_assoc_id);
-  eNB_LIST_OUT("SCTP instreams:    %d", enb_ref->instreams);
-  eNB_LIST_OUT("SCTP outstreams:   %d", enb_ref->outstreams);
-  eNB_LIST_OUT("UEs attached to eNB: %d", enb_ref->nb_ue_associated);
-  indent++;
-  sctp_assoc_id_t sctp_assoc_id = enb_ref->sctp_assoc_id;
-
-  hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
-  hashtable_ts_apply_callback_on_elements((hash_table_ts_t* const)state_ue_ht,
-                                          s1ap_dump_ue_hash_cb, &sctp_assoc_id,
-                                          NULL);
-  indent--;
-  eNB_LIST_OUT("");
-#else
-  s1ap_dump_ue(NULL);
-#endif
-}
-
-//------------------------------------------------------------------------------
-bool s1ap_dump_ue_hash_cb(__attribute__((unused)) const hash_key_t keyP,
-                          void* const ue_void, void* parameter,
-                          void __attribute__((unused)) * *unused_resultP) {
-  ue_description_t* ue_ref = (ue_description_t*)ue_void;
-  sctp_assoc_id_t* sctp_assoc_id = (sctp_assoc_id_t*)parameter;
-  if (ue_ref == NULL) {
-    return false;
-  }
-
-  if (ue_ref->sctp_assoc_id == *sctp_assoc_id) {
-    s1ap_dump_ue(ue_ref);
-  }
-  return false;
-}
-
-//------------------------------------------------------------------------------
-void s1ap_dump_ue(const ue_description_t* const ue_ref) {
-#ifdef S1AP_DEBUG_LIST
-
-  if (ue_ref == NULL) return;
-
-  UE_LIST_OUT("eNB UE s1ap id:   0x%06x", ue_ref->enb_ue_s1ap_id);
-  UE_LIST_OUT("MME UE s1ap id:   0x%08x", ue_ref->mme_ue_s1ap_id);
-  UE_LIST_OUT("SCTP stream recv: 0x%04x", ue_ref->sctp_stream_recv);
-  UE_LIST_OUT("SCTP stream send: 0x%04x", ue_ref->sctp_stream_send);
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -517,6 +438,10 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
                ue_ref->enb_ue_s1ap_id, ue_ref->mme_ue_s1ap_id, enb_ref->enb_id);
 
   ue_ref->s1_ue_state = S1AP_UE_INVALID_STATE;
+  if (ue_ref->s1ap_ue_context_rel_timer.id != S1AP_TIMER_INACTIVE_ID) {
+    s1ap_stop_timer(ue_ref->s1ap_ue_context_rel_timer.id);
+    ue_ref->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
+  }
 
   hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
   hashtable_ts_free(state_ue_ht, ue_ref->comp_s1ap_id);

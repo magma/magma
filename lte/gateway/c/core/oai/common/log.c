@@ -479,6 +479,7 @@ void log_configure(const log_config_t* const config) {
   if ((MAX_LOG_LEVEL > config->nas_log_level) &&
       (MIN_LOG_LEVEL <= config->nas_log_level)) {
     g_oai_log.log_level[LOG_NAS] = config->nas_log_level;
+    g_oai_log.log_level[LOG_NAS5G] = config->nas_log_level;
     g_oai_log.log_level[LOG_NAS_EMM] = config->nas_log_level;
     g_oai_log.log_level[LOG_NAS_ESM] = config->nas_log_level;
   }
@@ -642,6 +643,8 @@ int log_init(const char* app_name, const log_level_t default_log_levelP,
            "NAS-AMF");
   snprintf(&g_oai_log.log_proto2str[LOG_NAS][0], LOG_MAX_PROTO_NAME_LENGTH,
            "NAS");
+  snprintf(&g_oai_log.log_proto2str[LOG_NAS5G][0], LOG_MAX_PROTO_NAME_LENGTH,
+           "NAS5G");
   snprintf(&g_oai_log.log_proto2str[LOG_NAS_EMM][0], LOG_MAX_PROTO_NAME_LENGTH,
            "NAS-EMM");
   snprintf(&g_oai_log.log_proto2str[LOG_NAS_ESM][0], LOG_MAX_PROTO_NAME_LENGTH,
@@ -1503,15 +1506,4 @@ const char* get_short_file_name(const char* const source_file_nameP) {
   if (!root_startP) return source_file_nameP;  // root pattern not found
 
   return root_startP + strlen(LOG_MAGMA_REPO_ROOT);
-}
-
-// Return the hex representation of a char array
-
-char* bytes_to_hex(char* byte_array, int length, char* hex_array) {
-  int i;
-  for (i = 0; i < length; i++) {
-    sprintf(hex_array + i * 3, " %02x", (unsigned char)byte_array[i]);
-  }
-  hex_array[3 * length + 1] = '\0';
-  return hex_array;
 }

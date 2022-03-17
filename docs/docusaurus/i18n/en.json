@@ -63,6 +63,15 @@
       "docs/docs_overview": {
         "title": "Documentation Overview"
       },
+      "dp/architecture_overview title: Overview hide_title: true": {
+        "title": "dp/architecture_overview title: Overview hide_title: true"
+      },
+      "dp/debug_logs title: View Logs hide_title: true": {
+        "title": "dp/debug_logs title: View Logs hide_title: true"
+      },
+      "dp/deploy_build title: Build DP hide_title: true": {
+        "title": "dp/deploy_build title: Build DP hide_title: true"
+      },
       "faq/faq_magma": {
         "title": "Frequently Asked Questions"
       },
@@ -101,6 +110,9 @@
       },
       "general/upgrade_intro": {
         "title": "Introduction"
+      },
+      "howtos/5g_nsa_support": {
+        "title": "5G NSA Support"
       },
       "howtos/call_tracing": {
         "title": "Call Tracing"
@@ -203,6 +215,9 @@
       },
       "lte/HIL_AGW_tests": {
         "title": "Hardware In Loop Testing"
+      },
+      "lte/ipfix": {
+        "title": "Magma IPFIX Support"
       },
       "lte/pipelined_tests": {
         "title": "Pipelined testing framework"
@@ -360,6 +375,9 @@
       "orc8r/dev_minikube": {
         "title": "Deploy on Minikube"
       },
+      "orc8r/dev_token_security": {
+        "title": "REST API Auth"
+      },
       "orc8r/dev_rest_api": {
         "title": "REST API"
       },
@@ -371,9 +389,6 @@
       },
       "orc8r/dev_testing": {
         "title": "Test Orchestrator"
-      },
-      "orc8r/dev_token_security": {
-        "title": "REST API Auth"
       },
       "orc8r/upgrade_1_1": {
         "title": "Upgrade to v1.1"

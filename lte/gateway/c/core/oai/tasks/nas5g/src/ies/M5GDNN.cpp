@@ -14,6 +14,13 @@
 #include <sstream>
 #include <cstdint>
 #include <cstring>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GDNN.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -27,23 +34,16 @@ int DNNMsg::DecodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
   int decoded = 0;
   uint8_t ielen = 0;
 
-  MLOG(MDEBUG) << "DecodeDNN : ";
-
   if (iei > 0) {
     DECODE_U8(buffer + decoded, dnn_message->iei, decoded);
     CHECK_IEI_DECODER(iei, (unsigned char)*buffer);
-    MLOG(MDEBUG) << "iei : " << std::hex << static_cast<int>(dnn_message->iei);
   }
   DECODE_U8(buffer + decoded, ielen, decoded);
   CHECK_LENGTH_DECODER(len - decoded, ielen);
   dnn_message->len = ielen;
-  MLOG(MDEBUG) << "len : " << static_cast<int>(dnn_message->len);
-
   uint8_t dnn_length = 0;
   uint8_t dnn_len = 0;
   DECODE_U8(buffer + decoded, dnn_len, decoded);
-  MLOG(MDEBUG) << "dnn_len : " << static_cast<int>(dnn_len);
-
   memcpy(dnn_message->dnn, buffer + decoded, dnn_len);
   dnn_length += dnn_len;
   decoded = decoded + dnn_len;
@@ -59,7 +59,6 @@ int DNNMsg::DecodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
     decoded = decoded + dnn_len;
     dnn_length += dnn_len;
   }
-  MLOG(MDEBUG) << "dnn str : " << dnn_message->dnn;
   return decoded;
 }
 
@@ -68,14 +67,12 @@ int DNNMsg::EncodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
                          uint32_t len) {
   uint32_t encoded = 0;
 
-  MLOG(MDEBUG) << "EncodeDNN : ";
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, DNN_MIN_LENGTH, len);
 
   if (iei > 0) {
     CHECK_IEI_ENCODER(iei, (unsigned char)dnn_message->iei);
     ENCODE_U8(buffer, iei, encoded);
-    MLOG(MDEBUG) << "iei : " << std::hex << static_cast<int>(dnn_message->iei);
   }
 
   ENCODE_U8(buffer + encoded, dnn_message->len, encoded);
@@ -96,7 +93,6 @@ int DNNMsg::EncodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
     }
     dnn_length = dnn_length + dnn_len;
 
-    BUFFER_PRINT_LOG(buffer + encoded, dnn_len);
     encoded = encoded + dnn_len;
   }
   return encoded;

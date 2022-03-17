@@ -79,8 +79,8 @@ def stress_test5g(client, args):
     else:
         print("QOS Enabled")
         apn_ambr = AggregatedMaximumBitrate(
-                max_bandwidth_ul=1000000000,
-                max_bandwidth_dl=1000000000,
+            max_bandwidth_ul=1000000000,
+            max_bandwidth_dl=1000000000,
         )
     print("Starting attaches")
     timestamp = datetime.now()

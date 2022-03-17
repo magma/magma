@@ -26,7 +26,7 @@ import (
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/sqorc"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 const (
@@ -381,7 +381,7 @@ func (s *sqlJobQueue) getExistingIncompleteJobs(tx *sql.Tx) (map[string]*reindex
 	return jobs, nil
 }
 
-// If no job available, returns ErrNotFound from magma/orc8r/lib/go/errors.
+// If no job available, returns ErrNotFound from magma/orc8r/lib/go/merrors.
 func (s *sqlJobQueue) claimAvailableJob() (*reindexJob, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		now := clock.Now()
@@ -448,7 +448,7 @@ func (s *sqlJobQueue) selectAll() squirrel.SelectBuilder {
 	return s.builder.Select(idCol, fromCol, toCol, statusCol, attemptsCol, errorCol, lastChangeCol)
 }
 
-// If no job available, returns ErrNotFound from magma/orc8r/lib/go/errors.
+// If no job available, returns ErrNotFound from magma/orc8r/lib/go/merrors.
 func scanJob(rows *sql.Rows) (*reindexJob, error) {
 	jobs, err := scanJobs(rows)
 	if err != nil {

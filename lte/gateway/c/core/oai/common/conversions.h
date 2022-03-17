@@ -754,4 +754,7 @@ void bstring_to_paa(bstring bstr, paa_t* paa);
 void copy_paa(paa_t* paa_dst, paa_t* paa_src);
 bstring paa_to_bstring(const paa_t* paa);
 
+// Return the hex representation of a char array
+char* bytes_to_hex(char* byte_array, int length, char* hex_array);
+
 #endif /* FILE_CONVERSIONS_SEEN */

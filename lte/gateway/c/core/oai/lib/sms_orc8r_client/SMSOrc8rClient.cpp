@@ -31,6 +31,8 @@ class Status;
 
 namespace magma {
 
+using lte::SMOUplinkUnitdata;
+
 SMSOrc8rClient& SMSOrc8rClient::get_instance() {
   static SMSOrc8rClient client_instance;
   return client_instance;

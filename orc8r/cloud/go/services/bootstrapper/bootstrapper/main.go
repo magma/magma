@@ -15,8 +15,10 @@ package main
 
 import (
 	"crypto/rsa"
+	"errors"
 	"flag"
 	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/golang/glog"
@@ -92,9 +94,15 @@ func createRegistrationServicers(srv *service.OrchestratorService) (protos.Cloud
 		glog.Fatalf("failed to get rootCA: %+v", err)
 	}
 
+	domainName, err := getDomainName()
+	if err != nil {
+		glog.Errorf("failed to get domainName: %+v", err)
+	}
+
 	timeoutDurationInMinutes := srv.Config.MustGetInt(bootstrapper_config.TokenTimeoutDurationInMinutes)
 	timeout := time.Duration(timeoutDurationInMinutes) * time.Minute
-	cloudRegistrationServicer, err := registration.NewCloudRegistrationServicer(store, rootCA, timeout, true)
+
+	cloudRegistrationServicer, err := registration.NewCloudRegistrationServicer(store, rootCA, domainName, timeout, true)
 	if err != nil {
 		glog.Fatalf("error creating cloud registration servicer: %+v", err)
 	}
@@ -110,4 +118,12 @@ func getRootCA() (string, error) {
 		return "", err
 	}
 	return string(body), nil
+}
+
+func getDomainName() (string, error) {
+	domainName, ok := os.LookupEnv("ORC8R_DOMAIN_NAME")
+	if !ok {
+		return "", errors.New("failed to get orc8r domain name")
+	}
+	return domainName, nil
 }

@@ -55,12 +55,12 @@ export REGISTRY=registry.hub.docker.com/REGISTRY  # or desired registry
 export MAGMA_TAG=1.6.0-master  # or desired tag
 ```
 
-Checkout the v1.6 release branch
+Checkout the desired Git target, e.g. the v1.6 branch
 
 ```bash
 cd ${MAGMA_ROOT}
 git fetch origin
-git checkout -b v1.6 origin/v1.6
+git checkout -b v1.6 origin/v1.6  # or desired Git target, e.g. master
 ```
 
 Build and publish Orchestrator images

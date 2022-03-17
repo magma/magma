@@ -16,6 +16,7 @@ from collections import defaultdict, namedtuple
 from datetime import datetime, timedelta
 from subprocess import check_output
 
+import grpc
 import ryu.app.ofctl.api as ofctl_api
 from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.policydb_pb2 import FlowDescription
@@ -24,6 +25,7 @@ from lte.protos.session_manager_pb2 import (
     RuleRecordTable,
     UPFSessionState,
 )
+from magma.common.rpc_utils import indicates_connection_error
 from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.pipelined.app.base import (
     ControllerType,
@@ -97,8 +99,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     MAX_DELAY_INTERVALS = 20
 
     ng_config = namedtuple(
-            'ng_config',
-            ['ng_service_enabled', 'sessiond_setinterface'],
+        'ng_config',
+        ['ng_service_enabled', 'sessiond_setinterface'],
     )
     _CONTEXTS = {
         'dpset': dpset.DPSet,
@@ -530,7 +532,13 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         )
         err = future.exception()
         if err:
-            self.logger.error('Couldnt send flow records to sessiond: %s', err)
+            if isinstance(err, grpc.RpcError) and indicates_connection_error(err):
+                self.logger.error(
+                    "Couldn't send flow records to sessiond, connection error",
+                    extra=EXCLUDE_FROM_ERROR_MONITORING,
+                )
+            else:
+                self.logger.error("Couldn't send flow records to sessiond: %s", err)
             return
         try:
             self._delete_old_flows(records)
@@ -635,7 +643,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                 ip_addr = convert_ipv6_str_to_ip_proto(record.ue_ipv6)
 
             current_ver = self._session_rule_version_mapper.get_version(
-                    record.sid, ip_addr, record.rule_id,
+                record.sid, ip_addr, record.rule_id,
             )
             local_f_teid_ng = 0
             if record.teid:
@@ -774,11 +782,11 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     continue
 
                 session_config_dict[local_f_teid_ng] = \
-                                             UPFSessionState(
-                                                 subscriber_id=sid,
-                                                 session_version=rule_version,
-                                                 local_f_teid=local_f_teid_ng,
-                                             )
+                    UPFSessionState(
+                    subscriber_id=sid,
+                    session_version=rule_version,
+                    local_f_teid=local_f_teid_ng,
+                    )
 
         SessionStateManager.report_session_config_state(
             session_config_dict,

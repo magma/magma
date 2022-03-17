@@ -11,6 +11,13 @@
 
 #include <sstream>
 #include <iomanip>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionEstablishmentRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -30,7 +37,6 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
                                        PDU_SESSION_ESTABLISH_REQ_MIN_LEN, len);
 
-  MLOG(MDEBUG) << "DecodePDUSessionEstablishmentRequestMsg : ";
   if ((decoded_result =
            pdu_session_estab_request->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
@@ -162,14 +168,13 @@ int PDUSessionEstablishmentRequestMsg::EncodePDUSessionEstablishmentRequestMsg(
   uint32_t encoded_result = 0;
 
   if (!pdu_session_estab_request || !buffer || (0 == len)) {
-    MLOG(MDEBUG) << "input arguments are not valid";
+    OAILOG_ERROR(LOG_NAS5G, "Input arguments are not valid");
     return -1;
   }
 
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
                                        PDU_SESSION_ESTABLISH_REQ_MIN_LEN, len);
 
-  MLOG(MDEBUG) << "EncodePDUSessionEstablishmentRequestMsg : \n";
   if ((encoded_result =
            pdu_session_estab_request->extended_protocol_discriminator
                .EncodeExtendedProtocolDiscriminatorMsg(

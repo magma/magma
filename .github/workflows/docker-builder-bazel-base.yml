@@ -23,7 +23,10 @@ on:  # yamllint disable-line rule:truthy
 env:
   REGISTRY: ghcr.io
   IMAGE_STREAM: ${{ github.repository }}/bazel-base
+  IMAGE_TAGS: type=sha
   DOCKERFILE: experimental/bazel-base/Dockerfile
+
+permissions: read-all
 
 jobs:
   build_dockerfile:

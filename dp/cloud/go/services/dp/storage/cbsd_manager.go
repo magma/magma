@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package storage
 
 import (
@@ -19,7 +20,7 @@ import (
 
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/sqorc"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 type CbsdManager interface {
@@ -27,13 +28,17 @@ type CbsdManager interface {
 	UpdateCbsd(networkId string, id int64, data *DBCbsd) error
 	DeleteCbsd(networkId string, id int64) error
 	FetchCbsd(networkId string, id int64) (*DetailedCbsd, error)
-	ListCbsd(networkId string, pagination *Pagination) ([]*DetailedCbsd, error)
+	ListCbsd(networkId string, pagination *Pagination) (*DetailedCbsdList, error)
+}
+
+type DetailedCbsdList struct {
+	Cbsds []*DetailedCbsd
+	Count int64
 }
 
 type DetailedCbsd struct {
 	Cbsd       *DBCbsd
 	CbsdState  *DBCbsdState
-	Channel    *DBChannel
 	Grant      *DBGrant
 	GrantState *DBGrantState
 }
@@ -94,7 +99,7 @@ func (c *cbsdManager) FetchCbsd(networkId string, id int64) (*DetailedCbsd, erro
 	return cbsd.(*DetailedCbsd), nil
 }
 
-func (c *cbsdManager) ListCbsd(networkId string, pagination *Pagination) ([]*DetailedCbsd, error) {
+func (c *cbsdManager) ListCbsd(networkId string, pagination *Pagination) (*DetailedCbsdList, error) {
 	cbsds, err := sqorc.ExecInTx(c.db, nil, nil, func(tx *sql.Tx) (interface{}, error) {
 		runner := c.getInTransactionManager(tx)
 		return runner.listDetailedCbsd(networkId, pagination)
@@ -102,7 +107,7 @@ func (c *cbsdManager) ListCbsd(networkId string, pagination *Pagination) ([]*Det
 	if err != nil {
 		return nil, makeError(err)
 	}
-	return cbsds.([]*DetailedCbsd), nil
+	return cbsds.(*DetailedCbsdList), nil
 }
 
 func (c *cbsdManager) getInTransactionManager(tx sq.BaseRunner) *cbsdManagerInTransaction {
@@ -181,10 +186,12 @@ func (c *cbsdManagerInTransaction) updateCbsd(networkId string, id int64, data *
 	if err := c.checkIfCbsdExists(networkId, id); err != nil {
 		return err
 	}
+	data.IsUpdated = db.MakeBool(true)
+	columns := append(getCbsdWriteFields(), "is_updated")
 	return db.NewQuery().
 		WithBuilder(c.builder).
 		From(data).
-		Select(db.NewIncludeMask(getCbsdWriteFields()...)).
+		Select(db.NewIncludeMask(columns...)).
 		Where(sq.Eq{"id": id}).
 		Update()
 }
@@ -225,9 +232,8 @@ func convertToDetails(models []db.Model) *DetailedCbsd {
 	return &DetailedCbsd{
 		Cbsd:       models[0].(*DBCbsd),
 		CbsdState:  models[1].(*DBCbsdState),
-		Channel:    models[2].(*DBChannel),
-		Grant:      models[3].(*DBGrant),
-		GrantState: models[4].(*DBGrantState),
+		Grant:      models[2].(*DBGrant),
+		GrantState: models[3].(*DBGrantState),
 	}
 }
 
@@ -235,24 +241,28 @@ func buildDetailedCbsdQuery(builder sq.StatementBuilderType) *db.Query {
 	return db.NewQuery().
 		WithBuilder(builder).
 		From(&DBCbsd{}).
-		Select(db.NewExcludeMask("network_id", "state_id", "is_deleted")).
+		Select(db.NewExcludeMask("network_id", "state_id",
+			"is_deleted", "is_updated", "grant_attempts")).
 		Join(db.NewQuery().
 			From(&DBCbsdState{}).
 			Select(db.NewIncludeMask("name"))).
 		Join(db.NewQuery().
-			From(&DBChannel{}).
-			Select(db.NewIncludeMask("low_frequency", "high_frequency", "last_used_max_eirp")).
+			From(&DBGrant{}).
+			Select(db.NewIncludeMask(
+				"grant_expire_time", "transmit_expire_time",
+				"low_frequency", "high_frequency", "max_eirp")).
 			Join(db.NewQuery().
-				From(&DBGrant{}).
-				Select(db.NewIncludeMask("grant_expire_time", "transmit_expire_time")).
-				Join(db.NewQuery().
-					From(&DBGrantState{}).
-					Select(db.NewIncludeMask("name")).
-					Where(sq.NotEq{GrantStateTable + ".name": "idle"}))).
+				From(&DBGrantState{}).
+				Select(db.NewIncludeMask("name")).
+				Where(sq.NotEq{GrantStateTable + ".name": "idle"})).
 			Nullable())
 }
 
-func (c *cbsdManagerInTransaction) listDetailedCbsd(networkId string, pagination *Pagination) ([]*DetailedCbsd, error) {
+func (c *cbsdManagerInTransaction) listDetailedCbsd(networkId string, pagination *Pagination) (*DetailedCbsdList, error) {
+	count, err := countCbsds(networkId, c.builder)
+	if err != nil {
+		return nil, err
+	}
 	query := buildDetailedCbsdQuery(c.builder)
 	res, err := buildPagination(query, pagination).
 		Where(getCbsdFilters(networkId)).
@@ -265,7 +275,18 @@ func (c *cbsdManagerInTransaction) listDetailedCbsd(networkId string, pagination
 	for i, models := range res {
 		cbsds[i] = convertToDetails(models)
 	}
-	return cbsds, nil
+	return &DetailedCbsdList{
+		Cbsds: cbsds,
+		Count: count,
+	}, nil
+}
+
+func countCbsds(networkId string, builder sq.StatementBuilderType) (int64, error) {
+	return db.NewQuery().
+		WithBuilder(builder).
+		From(&DBCbsd{}).
+		Where(getCbsdFilters(networkId)).
+		Count()
 }
 
 func makeError(err error) error {

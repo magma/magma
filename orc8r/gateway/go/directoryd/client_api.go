@@ -20,17 +20,18 @@ import (
 	"strings"
 
 	"context"
+
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 	platformregistry "magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/util"
 )
 
 const (
-	ServiceName = "DIRECTORYD"
+	ServiceName = "directoryd"
 	ImsiPrefix  = "IMSI"
 
 	UseCloudDirectordEnv = "USE_CLOUD_DIRECTORYD"
@@ -50,7 +51,7 @@ func GetGatewayDirectorydClient() (protos.GatewayDirectoryServiceClient, error) 
 		conn, err = platformregistry.Get().GetConnection(ServiceName)
 	}
 	if err != nil {
-		initErr := errors.NewInitError(err, ServiceName)
+		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
 		return nil, initErr
 	}

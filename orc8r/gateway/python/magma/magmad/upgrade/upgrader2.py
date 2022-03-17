@@ -150,7 +150,7 @@ class UpgradeIntent(
         available_versions = version_info.all_versions
         preference = [
             version for version in (
-            self.stable, self.canary,
+                self.stable, self.canary,
             ) if version
         ]
         for version in preference:

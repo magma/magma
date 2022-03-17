@@ -4,13 +4,15 @@ startup --output_base=/tmp/bazel
 build --announce_rc
 build --color=yes
 
-build:development --compilation_mode=fastbuild
-build:production --config=lsan --compilation_mode=dbg --strip=never --copt=-O3
+build:production --config=lsan --strip=never --copt=-O3
 
 # C/C++ CONFIGS
 build --cxxopt=-std=c++14
-build --cxxopt=-DLOG_WITH_GLOG=1
 build --experimental_strict_action_env
+build --compilation_mode=dbg
+
+# Default test configuration
+test --test_output=errors
 
 # MAGMA VM CONFIGS
 build:specify_vm_cc --action_env=CC=/usr/bin/gcc
@@ -29,9 +31,22 @@ common:devcontainer --repository_cache=/workspaces/magma/.bazel-cache-repo
 build:devcontainer --define=folly_so=1
 
 # TEST CONFIGS
-#  Bazel test runtime default: PATH=/bin:/usr/bin:/usr/local/bin
-#  Some python tests require access to /usr/sbin binaries (e.g. route, ifconfig)
+# Bazel test runtime default: PATH=/bin:/usr/bin:/usr/local/bin
+# Some python tests require access to /usr/sbin binaries (e.g. route, ifconfig)
 build --test_env=PATH=/bin:/usr/bin:/usr/local/bin:/usr/sbin
+# Use MAGMA_ROOT from the host system in tests.
+# Needed by python tests (e.g. freedomfi_one_tests in enodebd)
+build --test_env=MAGMA_ROOT
+
+# MME specific compile time defines
+# Compile mme libraries with unit test flag
+test --per_file_copt=^lte/gateway/c/core/.*$@-DMME_UNIT_TEST
+# TODO: deprecate these flags used for logging if possible
+build --per_file_copt=^lte/gateway/c/core/.*$@-DPACKAGE_BUGREPORT=\"TBD\"
+build --per_file_copt=^lte/gateway/c/core/.*$@-DPACKAGE_VERSION=\"0.1\"
+build --per_file_copt=^lte/gateway/c/core/oai/tasks/amf/.*$@-DPACKAGE_NAME=\"AMF\"
+build --per_file_copt=^lte/gateway/c/core/oai/tasks/mme_app/.*$@-DPACKAGE_NAME=\"MME\"
+build --per_file_copt=^lte/gateway/c/core/oai/tasks/sgw/.*$@-DPACKAGE_NAME=\"S/P-GW\"
 
 # CODE COVERAGE CONFIGS
 build --javacopt="-source 8"
@@ -46,16 +61,14 @@ build:coverage --combined_report=lcov
 build:coverage --instrumentation_filter="//(orc8r|lte)/gateway/(c|python)[/:],-//(orc8r|lte)/protos[/:],-/*/test[/:]"
 
 # ASAN
-build:asan --copt=-fsanitize=address
-build:asan --copt=-O0
-build:asan --copt=-fno-omit-frame-pointer
 build:asan --linkopt=-fsanitize=address
+build:asan --linkopt=-fsanitize=undefined
 build:asan --action_env=ASAN_OPTIONS=detect_leaks=1:color=always
+build:asan --per_file_copt=^.*/gateway/c/.*$@-fsanitize=address,-fsanitize=undefined,-O0,-fno-omit-frame-pointer
 
 # LSAN
-build:lsan --copt=-fsanitize=leak
-build:lsan --copt=-fno-omit-frame-pointer
 build:lsan --linkopt=-fsanitize=leak
+build:lsan --per_file_copt=^.*/gateway/c/.*$@-fsanitize=leak,-fno-omit-frame-pointer
 
 # system bazelrc should include config specific to different build envs (--config=vm, --config=devcontainer, etc.)
 try-import /etc/bazelrc

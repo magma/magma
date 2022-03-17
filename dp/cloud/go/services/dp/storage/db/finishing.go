@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package db
 
 import (
@@ -46,6 +47,17 @@ func (q *Query) Delete() error {
 		Where(q.arg.filter).
 		Exec()
 	return err
+}
+
+func (q *Query) Count() (int64, error) {
+	var count int64
+	err := q.builder.
+		Select("COUNT(*)").
+		From(q.arg.model.GetMetadata().Table).
+		Where(q.arg.filter).
+		QueryRow().
+		Scan(&count)
+	return count, err
 }
 
 func (q *Query) Fetch() ([]Model, error) {

@@ -80,8 +80,6 @@ static uint32_t _nas5g_message_get_mac(
     const unsigned char* const buffer, uint32_t const length,
     int const direction, amf_security_context_t* const amf_security_context);
 
-std::string get_message_type_str(uint8_t type);
-
 /****************************************************************************
  *                                                                           *
  *   Name:  nas5g_message_decode()                                           *
@@ -1088,6 +1086,42 @@ std::string get_message_type_str(uint8_t type) {
       break;
     case M5GMessageType::DLNASTRANSPORT:
       msgtype_str = "DLNASTRANSPORT";
+      break;
+    case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REQUEST:
+      msgtype_str = "PDU_SESSION_ESTABLISHMENT_REQUEST";
+      break;
+    case M5GMessageType::PDU_SESSION_ESTABLISHMENT_ACCEPT:
+      msgtype_str = "PDU_SESSION_ESTABLISHMENT_ACCEPT";
+      break;
+    case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REJECT:
+      msgtype_str = "PDU_SESSION_ESTABLISHMENT_REJECT";
+      break;
+    case M5GMessageType::PDU_SESSION_MODIFICATION_REQUEST:
+      msgtype_str = "PDU_SESSION_MODIFICATION_REQUEST";
+      break;
+    case M5GMessageType::PDU_SESSION_MODIFICATION_REJECT:
+      msgtype_str = "PDU_SESSION_MODIFICATION_REJECT";
+      break;
+    case M5GMessageType::PDU_SESSION_MODIFICATION_COMPLETE:
+      msgtype_str = "PDU_SESSION_MODIFICATION_COMPLETE";
+      break;
+    case M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND:
+      msgtype_str = "PDU_SESSION_MODIFICATION_COMMAND";
+      break;
+    case M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND_REJECT:
+      msgtype_str = "PDU_SESSION_MODIFICATION_COMMAND_REJECT";
+      break;
+    case M5GMessageType::PDU_SESSION_RELEASE_REQUEST:
+      msgtype_str = "PDU_SESSION_RELEASE_REQUEST";
+      break;
+    case M5GMessageType::PDU_SESSION_RELEASE_REJECT:
+      msgtype_str = "PDU_SESSION_RELEASE_REJECT";
+      break;
+    case M5GMessageType::PDU_SESSION_RELEASE_COMMAND:
+      msgtype_str = "PDU_SESSION_RELEASE_COMMAND";
+      break;
+    case M5GMessageType::PDU_SESSION_RELEASE_COMPLETE:
+      msgtype_str = "PDU_SESSION_RELEASE_COMPLETE";
       break;
     default:
       msgtype_str = "UNKNOWN";

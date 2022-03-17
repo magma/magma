@@ -14,18 +14,28 @@ limitations under the License.
 """
 
 import argparse
+import textwrap
 
 import grpc
+from google.protobuf import text_format
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.policydb_pb2 import (
+    ChargingRuleNameSet,
     DisableStaticRuleRequest,
     EnableStaticRuleRequest,
     FlowDescription,
     FlowMatch,
+    InstalledPolicies,
     PolicyRule,
+    RatingGroup,
+    SubscriberPolicySet,
 )
 from lte.protos.policydb_pb2_grpc import PolicyDBStub
 from magma.common.rpc_utils import grpc_wrapper
+from magma.policydb.apn_rule_map_store import ApnRuleAssignmentsDict
+from magma.policydb.basename_store import BaseNameDict
+from magma.policydb.rating_group_store import RatingGroupsDict
+from magma.policydb.rule_map_store import RuleAssignmentsDict
 from magma.policydb.rule_store import PolicyRuleDict
 
 DEBUG_MSG = 'You may want to check that a connection can be made to ' \
@@ -100,6 +110,70 @@ def uninstall_rules(client: PolicyDBStub, args):
     except grpc.RpcError as err:
         print('Failed to disable static rules and/or base names: %s' % str(err))
         print(DEBUG_MSG)
+
+
+@grpc_wrapper
+def dump_data(_client: PolicyDBStub, args):
+    """
+    Dump data from Redis tables:
+    - policydb:installed
+    - policydb:apn_installed
+    - policydb:basenames
+    - policydb:rating_groups
+    - policydb:rules
+    and formats them to be more human readable.
+
+    Args:
+        _client: gRPC stub to interact with policydb
+        args: Args CLI was called with
+    Returns:
+        None
+    """
+    apn_rules_dict = ApnRuleAssignmentsDict(clear_data=False)
+    assignments_dict = RuleAssignmentsDict(clear_data=False)
+    basenames_dict = BaseNameDict()
+    rating_groups_dict = RatingGroupsDict()
+    policy_dict = PolicyRuleDict()
+
+    print('*' * 80)
+    print("*" + "policydb:installed".center(78) + "*")
+    print('*' * 80)
+    for k, v in assignments_dict.items():
+        formatted_val = textwrap.indent(text_format.MessageToString(v), " " * 4)
+        print(f"{k}:\n{formatted_val}")
+    print('\n')
+
+    print('*' * 80)
+    print("*" + "policydb:apn_installed".center(78) + "*")
+    print('*' * 80)
+    for k, v in apn_rules_dict.items():
+        formatted_val = textwrap.indent(text_format.MessageToString(v), " " * 4)
+        print(f"{k}:\n{formatted_val}")
+    print('\n')
+
+    print('*' * 80)
+    print("*" + "policydb:basenames".center(78) + "*")
+    print('*' * 80)
+    for k, v in basenames_dict.items():
+        formatted_val = textwrap.indent(text_format.MessageToString(v), " " * 4)
+        print(f"{k}:\n{formatted_val}")
+    print('\n')
+
+    print('*' * 80)
+    print("*" + "policydb:rating_groups".center(78) + "*")
+    print('*' * 80)
+    for k, v in rating_groups_dict.items():
+        formatted_val = textwrap.indent(text_format.MessageToString(v), " " * 4)
+        print(f"{k}:\n{formatted_val}")
+    print('\n')
+
+    print('*' * 80)
+    print("*" + "policydb:rules".center(78) + "*")
+    print('*' * 80)
+    for k, v in policy_dict.items():
+        formatted_val = textwrap.indent(text_format.MessageToString(v), " " * 4)
+        print(f"{k}:\n{formatted_val}")
+    print('\n')
 
 
 def create_parser():
@@ -178,10 +252,15 @@ def create_parser():
         help='basenames to install',
     )
 
+    parser_dump = subparsers.add_parser(
+        'dump_data', help='Dumps all Redis data maintained by policydb',
+    )
+
     # Add function callbacks
     parser_add.set_defaults(func=add_rule)
     parser_install.set_defaults(func=install_rules)
     parser_uninstall.set_defaults(func=uninstall_rules)
+    parser_dump.set_defaults(func=dump_data)
 
     return parser
 

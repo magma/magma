@@ -23,12 +23,12 @@ import (
 	"google.golang.org/grpc"
 
 	"magma/feg/cloud/go/protos"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	platformregistry "magma/orc8r/lib/go/registry"
 )
 
 const (
-	ServiceName = "BASE_ACCT"
+	ServiceName = "base_acct"
 )
 
 // Get a thin RPC client to the gateway base_acct service.
@@ -39,7 +39,7 @@ func getBaseAcctClient() (protos.AccountingClient, error) {
 	)
 	conn, err = platformregistry.Get().GetSharedCloudConnection(strings.ToLower(ServiceName))
 	if err != nil {
-		initErr := errors.NewInitError(err, ServiceName)
+		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
 		return nil, initErr
 	}

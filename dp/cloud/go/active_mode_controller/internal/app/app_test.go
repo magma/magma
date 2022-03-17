@@ -71,12 +71,6 @@ func (s *AppTestSuite) TestGetStateAndSendRequests() {
 	s.thenRequestsWereEventuallyReceived(getExpectedRequests("some"))
 }
 
-func (s *AppTestSuite) TestFilterPendingRequests() {
-	s.givenState(withPendingRequests(buildSomeState("some", "other"), "some"))
-	s.whenTickerFired()
-	s.thenRequestsWereEventuallyReceived(getExpectedRequests("other"))
-}
-
 func (s *AppTestSuite) TestCalculateHeartbeatDeadline() {
 	const interval = 50 * time.Second
 	const delta = heartbeatTimeout + pollingTimeout
@@ -117,6 +111,7 @@ func (s *AppTestSuite) givenAppRunning() {
 	a := app.NewApp(
 		app.WithDialer(s.dialer),
 		app.WithClock(s.clock),
+		app.WithIndexProvider(&stubIndexProvider{}),
 		app.WithConfig(&config.Config{
 			DialTimeout:               timeout,
 			HeartbeatSendTimeout:      heartbeatTimeout,
@@ -209,36 +204,19 @@ func (s *AppTestSuite) thenNoOtherRequestWasReceived() {
 	}
 }
 
-func withPendingRequests(state *active_mode.State, name string) *active_mode.State {
-	for _, cfg := range state.ActiveModeConfigs {
-		if cfg.Cbsd.UserId == name {
-			cfg.Cbsd.PendingRequests = []*active_mode.Request{{
-				Type:    active_mode.RequestsType_RegistrationRequest,
-				Payload: getExpectedSingleRequest(name),
-			}}
-			break
-		}
-	}
-	return state
-}
-
 func buildSomeState(names ...string) *active_mode.State {
-	configs := make([]*active_mode.ActiveModeConfig, len(names))
+	cbsds := make([]*active_mode.Cbsd, len(names))
 	for i, name := range names {
-		configs[i] = &active_mode.ActiveModeConfig{
-			DesiredState: active_mode.CbsdState_Registered,
-			Cbsd: &active_mode.Cbsd{
-				UserId:            name,
-				FccId:             name,
-				SerialNumber:      name,
-				State:             active_mode.CbsdState_Unregistered,
-				LastSeenTimestamp: currentTime,
-			},
+		cbsds[i] = &active_mode.Cbsd{
+			DesiredState:      active_mode.CbsdState_Registered,
+			UserId:            name,
+			FccId:             name,
+			SerialNumber:      name,
+			State:             active_mode.CbsdState_Unregistered,
+			LastSeenTimestamp: currentTime,
 		}
 	}
-	return &active_mode.State{
-		ActiveModeConfigs: configs,
-	}
+	return &active_mode.State{Cbsds: cbsds}
 }
 
 func buildStateWithAuthorizedGrants(name string, interval time.Duration, timestamps ...time.Time) *active_mode.State {
@@ -251,18 +229,14 @@ func buildStateWithAuthorizedGrants(name string, interval time.Duration, timesta
 			LastHeartbeatTimestamp: timestamp.Unix(),
 		}
 	}
-	configs := []*active_mode.ActiveModeConfig{{
-		DesiredState: active_mode.CbsdState_Registered,
-		Cbsd: &active_mode.Cbsd{
-			Id:                name,
-			State:             active_mode.CbsdState_Registered,
-			Grants:            grants,
-			LastSeenTimestamp: currentTime,
-		},
+	cbsds := []*active_mode.Cbsd{{
+		DesiredState:      active_mode.CbsdState_Registered,
+		Id:                name,
+		State:             active_mode.CbsdState_Registered,
+		Grants:            grants,
+		LastSeenTimestamp: currentTime,
 	}}
-	return &active_mode.State{
-		ActiveModeConfigs: configs,
-	}
+	return &active_mode.State{Cbsds: cbsds}
 }
 
 func getExpectedRequests(name string) []*requests.RequestPayload {
@@ -292,6 +266,12 @@ func getExpectedHeartbeatRequests(id string, grantIds ...string) []*requests.Req
 func getExpectedHeartbeatRequest(id string, grantId string) string {
 	const template = `{"cbsdId":"%s","grantId":"%s","operationState":"AUTHORIZED"}`
 	return fmt.Sprintf(template, id, grantId)
+}
+
+type stubIndexProvider struct{}
+
+func (s *stubIndexProvider) Intn(_ int) int {
+	return 0
 }
 
 type stubClock struct {

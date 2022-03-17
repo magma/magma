@@ -130,6 +130,7 @@ extern int fd_g_debug_lvl;
 #define LOG_CONFIG_STRING_NGAP_LOG_LEVEL "NGAP_LOG_LEVEL"
 #define LOG_CONFIG_STRING_AMF_APP_LOG_LEVEL "AMF_APP_LOG_LEVEL"
 #define LOG_CONFIG_STRING_NAS_AMF_LOG_LEVEL "NAS_AMF_LOG_LEVEL"
+#define LOG_CONFIG_STRING_NAS5G_LOG_LEVEL "NAS5G_LOG_LEVEL"
 
 typedef enum {
   MIN_LOG_LEVEL = 0,
@@ -237,6 +238,9 @@ typedef struct log_config_s {
   log_level_t
       nas_log_level; /*!< \brief NAS ITTI task log level starting from
                         OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
+  log_level_t
+      nas5g_log_level;  //!< \brief NAS ITTI task log level starting from
+                        //!< OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log)
   log_level_t mme_app_log_level;  /*!< \brief MME-APP ITTI task log level
                                      starting from OAILOG_LEVEL_EMERGENCY up to
                                      MAX_LOG_LEVEL (no log) */
@@ -383,9 +387,6 @@ int append_log_ctx_info_prefix_id(
     time_t* cur_time, const char* short_source_fileP);
 
 const char* get_short_file_name(const char* const source_file_nameP);
-
-// Return the hex representation of a char array
-char* bytes_to_hex(char* byte_array, int length, char* hex_array);
 
 #define OAILOG_LOG_CONFIGURE log_configure
 #define OAILOG_LEVEL_STR2INT log_level_str2int

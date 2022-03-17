@@ -51,7 +51,7 @@ proto_library(
     deps = [
         ":common_proto",
         ":mconfig_orc8r_proto",
-        "@protobuf//:struct_proto",
+        "@com_google_protobuf//:struct_proto",
     ],
 )
 
@@ -69,7 +69,7 @@ proto_library(
     name = "mconfig_orc8r_proto",
     srcs = ["mconfig.proto"],
     deps = [
-        "@protobuf//:any_proto",
+        "@com_google_protobuf//:any_proto",
     ],
 )
 
@@ -86,7 +86,7 @@ python_proto_library(
 proto_library(
     name = "digest_proto",
     srcs = ["digest.proto"],
-    deps = ["@protobuf//:any_proto"],
+    deps = ["@com_google_protobuf//:any_proto"],
 )
 
 cpp_proto_library(
@@ -125,6 +125,11 @@ proto_library(
     name = "directoryd_proto",
     srcs = ["directoryd.proto"],
     deps = [":common_proto"],
+)
+
+python_grpc_library(
+    name = "directoryd_python_grpc",
+    protos = [":directoryd_proto"],
 )
 
 cpp_proto_library(
@@ -240,8 +245,8 @@ proto_library(
     srcs = ["certifier.proto"],
     deps = [
         ":identity_proto",
-        "@protobuf//:duration_proto",
-        "@protobuf//:timestamp_proto",
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:timestamp_proto",
     ],
 )
 
@@ -277,7 +282,7 @@ proto_library(
     deps = [
         ":certifier_proto",
         ":identity_proto",
-        "@protobuf//:timestamp_proto",
+        "@com_google_protobuf//:timestamp_proto",
     ],
 )
 
@@ -329,14 +334,14 @@ proto_library(
     deps = [
         ":common_proto",
         ":metricsd_proto",
-        "@protobuf//:wrappers_proto",
+        "@com_google_protobuf//:wrappers_proto",
     ],
 )
 
 proto_library(
     name = "streamer_proto",
     srcs = ["streamer.proto"],
-    deps = ["@protobuf//:any_proto"],
+    deps = ["@com_google_protobuf//:any_proto"],
 )
 
 python_grpc_library(

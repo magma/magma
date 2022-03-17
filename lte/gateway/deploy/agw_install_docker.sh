@@ -43,6 +43,11 @@ if [ ! -f "$ROOTCA" ]; then
   exit 1
 fi
 
+# Update DNS resolvers
+ln -sf /var/run/systemd/resolve/resolv.conf /etc/resolv.conf
+sed -i 's/#DNS=/DNS=8.8.8.8 208.67.222.222/' /etc/systemd/resolved.conf
+service systemd-resolved restart
+
 echo "Install Magma"
 apt-get update -y
 apt-get install curl zip python3-pip docker.io -y

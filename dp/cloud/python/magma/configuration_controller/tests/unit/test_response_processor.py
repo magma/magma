@@ -14,7 +14,6 @@ from magma.db_service.models import (
     DBCbsdState,
     DBChannel,
     DBGrant,
-    DBGrantState,
     DBRequest,
     DBRequestState,
     DBRequestType,
@@ -63,6 +62,8 @@ RELINQUISHMENT_REQ = RequestTypes.RELINQUISHMENT.value
 HEARTBEAT_REQ = RequestTypes.HEARTBEAT.value
 GRANT_REQ = RequestTypes.GRANT.value
 SPECTRUM_INQ_REQ = RequestTypes.SPECTRUM_INQUIRY.value
+
+INITIAL_GRANT_ATTEMPTS = 1
 
 
 class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
@@ -167,74 +168,47 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         )
 
     @parameterized.expand([
-        (GRANT_REQ, grant_requests, ResponseCodes.SUCCESS.value, 5, 5),
-        (GRANT_REQ, grant_requests, ResponseCodes.INTERFERENCE.value, 5, 5),
-        (GRANT_REQ, grant_requests, ResponseCodes.GRANT_CONFLICT.value, 5, 5),
-        (GRANT_REQ, grant_requests, ResponseCodes.TERMINATED_GRANT.value, 5, 5),
-        (HEARTBEAT_REQ, heartbeat_requests, ResponseCodes.SUCCESS.value, 5, 5),
-        (
-            HEARTBEAT_REQ, heartbeat_requests,
-            ResponseCodes.TERMINATED_GRANT.value, 5, None,
-        ),
-        (
-            HEARTBEAT_REQ, heartbeat_requests,
-            ResponseCodes.SUSPENDED_GRANT.value, 5, 5,
-        ),
-        (
-            HEARTBEAT_REQ, heartbeat_requests,
-            ResponseCodes.UNSYNC_OP_PARAM.value, 5, 5,
-        ),
-        (RELINQUISHMENT_REQ, relinquishment_requests, 0, 5, None),
+        (0, GRANT_REQ, INITIAL_GRANT_ATTEMPTS),
+        (400, GRANT_REQ, INITIAL_GRANT_ATTEMPTS + 1),
+        (401, GRANT_REQ, INITIAL_GRANT_ATTEMPTS + 1),
+        (0, RELINQUISHMENT_REQ, INITIAL_GRANT_ATTEMPTS),
+        (0, DEREGISTRATION_REQ, 0),
+        (0, SPECTRUM_INQ_REQ, 0),
     ])
     @responses.activate
-    def test_last_used_eirp_is_reset(
-            self, request_type_name, requests_fixtures, response_code, last_used_eirp_value, final_last_used_eirp_value,
-    ):
-        """
-        last_used_max_eirp should only be reset for an existing channel when grant goes into IDLE state due to
-        relinquishmentRequest or heartbeatRequest. Grant requests should not affect this value
-        """
-        # Given
-        db_requests = self._create_db_requests(
-            request_type_name, requests_fixtures,
+    def test_grant_attempts_after_response(self, code, message_type, expected):
+        cbsd = DBCbsd(
+            cbsd_id=CBSD_ID,
+            user_id=USER_ID,
+            fcc_id=FCC_ID,
+            cbsd_serial_number=CBSD_SERIAL_NR,
+            grant_attempts=INITIAL_GRANT_ATTEMPTS,
+            state=self._get_db_enum(DBCbsdState, CbsdStates.REGISTERED.value),
         )
-        granted_state = self.session.query(DBGrantState).filter(
-            DBGrantState.name == GrantStates.GRANTED.value,
-        ).one()
-
-        response = self._prepare_response_from_db_requests(
-            db_requests, response_code=response_code,
+        request = DBRequest(
+            type=self._get_db_enum(DBRequestType, message_type),
+            state=self._get_db_enum(
+                DBRequestState, RequestStates.PENDING.value,
+            ),
+            cbsd=cbsd,
+            payload={'cbsdId': CBSD_ID},
         )
-        response_payload = response.json()[request_response[request_type_name]]
+        resp_json = {'response': {}, 'cbsd_id': CBSD_ID}
+        response = self._prepare_response_from_payload(
+            req_type=message_type,
+            response_payload={request_response[message_type]: [resp_json]},
+            response_code=code,
+        )
+        self.session.add(request)
+        self.session.commit()
 
-        for resp in response_payload:
-            cbsd = self.session.query(DBCbsd).filter(
-                DBCbsd.cbsd_id == resp["cbsdId"],
-            ).first()
-            channel = self._create_channel(
-                cbsd, 1, 2, last_used_max_eirp=last_used_eirp_value,
-            )
-            self._create_grant(
-                resp["grantId"], channel=channel, cbsd=cbsd, state=granted_state,
-            )
+        self._process_response(
+            request_type_name=message_type,
+            response=response,
+            db_requests=[request],
+        )
 
-        grants_query = self.session.query(DBGrant)
-
-        for grant in grants_query.all():
-            self.assertEqual(
-                last_used_eirp_value,
-                grant.channel.last_used_max_eirp,
-            )
-
-        # When
-        self._process_response(request_type_name, response, db_requests)
-
-        # Then
-        for grant in grants_query.all():
-            self.assertEqual(
-                final_last_used_eirp_value,
-                grant.channel.last_used_max_eirp,
-            )
+        self.assertEqual(expected, cbsd.grant_attempts)
 
     @parameterized.expand([
         (0, CbsdStates.REGISTERED),
@@ -346,23 +320,31 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         self.assertEqual(0, len(cbsd.channels))
 
     @responses.activate
-    def test_max_eirp_set_on_channel_on_grant_response(self):
+    def test_channel_params_set_on_grant_response(self):
+        # Given
+        cbsd_id = "foo"
+        low_frequency = 1
+        high_frequency = 2
         max_eirp = 3
-        channel = self._setup_channel_and_process_grant_response(max_eirp)
+
+        fixture = self._build_grant_request(
+            cbsd_id, low_frequency, high_frequency, max_eirp,
+        )
+        db_requests = self._create_db_requests(GRANT_REQ, [fixture])
+
+        response = self._prepare_response_from_db_requests(db_requests)
+
+        # When
+        self._process_response(
+            request_type_name=GRANT_REQ,
+            db_requests=db_requests, response=response,
+        )
 
         # Then
-        self.assertEqual(max_eirp, channel.last_used_max_eirp)
-
-    @responses.activate
-    def test_assign_channel_to_grant_on_grant_response(self):
-        # Given / When
-        channel = self._setup_channel_and_process_grant_response()
-
-        # Then
-        count = self.session.query(DBGrant).filter(
-            DBGrant.channel_id == channel.id,
-        ).count()
-        self.assertEqual(1, count)
+        grant = self.session.query(DBGrant).first()
+        self.assertEqual(low_frequency, grant.low_frequency)
+        self.assertEqual(high_frequency, grant.high_frequency)
+        self.assertEqual(max_eirp, grant.max_eirp)
 
     def _process_response(self, request_type_name, response, db_requests):
         processor = self._get_response_processor(request_type_name)
@@ -390,31 +372,6 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             [desired_state] * nr_of_requests,
             [r.state.name for r in self.session.query(DBRequest).all()],
         )
-
-    def _setup_channel_and_process_grant_response(self, max_eirp=None):
-        # Given
-        cbsd_id = "foo"
-        low_frequency = 1
-        high_frequency = 2
-
-        fixture = self._build_grant_request(
-            cbsd_id, low_frequency, high_frequency, max_eirp,
-        )
-        db_requests = self._create_db_requests(GRANT_REQ, [fixture])
-
-        cbsd = self.session.query(DBCbsd).filter(
-            DBCbsd.cbsd_id == cbsd_id,
-        ).first()
-        channel = self._create_channel(cbsd, low_frequency, high_frequency)
-
-        response = self._prepare_response_from_db_requests(db_requests)
-
-        self._process_response(
-            request_type_name=GRANT_REQ,
-            db_requests=db_requests, response=response,
-        )
-
-        return channel
 
     def _set_cbsds_to_state(self, state_name):
         registered_state = self._get_db_enum(DBCbsdState, state_name)
@@ -507,7 +464,6 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         cbsd: DBCbsd,
         low_frequency: int,
         high_frequency: int,
-        last_used_max_eirp=None,
     ) -> DBChannel:
         channel = DBChannel(
             cbsd=cbsd,
@@ -515,7 +471,6 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             high_frequency=high_frequency,
             channel_type="some_type",
             rule_applied="some_rule",
-            last_used_max_eirp=last_used_max_eirp,
         )
         self.session.add(channel)
         self.session.commit()

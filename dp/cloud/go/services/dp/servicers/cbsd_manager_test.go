@@ -28,7 +28,7 @@ import (
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/clock"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 func TestCbsdManager(t *testing.T) {
@@ -165,7 +165,6 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithoutGrant() {
 	s.store.details = &storage.DetailedCbsd{
 		Cbsd:       getDBCbsd(),
 		CbsdState:  &storage.DBCbsdState{},
-		Channel:    &storage.DBChannel{},
 		Grant:      &storage.DBGrant{},
 		GrantState: &storage.DBGrantState{},
 	}
@@ -198,7 +197,7 @@ func (s *CbsdManagerTestSuite) TestFetchNonexistentCbsd() {
 }
 
 func (s *CbsdManagerTestSuite) TestListCbsd() {
-	s.store.details = getDetailedCbsd()
+	s.store.list = getDetailedCbsdList()
 
 	request := &protos.ListCbsdRequest{
 		NetworkId:  networkId,
@@ -209,12 +208,12 @@ func (s *CbsdManagerTestSuite) TestListCbsd() {
 
 	s.Assert().Equal(networkId, s.store.networkId)
 	s.Assert().Equal(&storage.Pagination{}, s.store.pagination)
-	expected := []*protos.CbsdDetails{getProtoDetailedCbsd()}
-	s.Assert().Equal(expected, actual.Details)
+	expected := getProtoDetailedCbsdList()
+	s.Assert().Equal(expected, actual)
 }
 
 func (s *CbsdManagerTestSuite) TestListCbsdWithPagination() {
-	s.store.details = getDetailedCbsd()
+	s.store.list = getDetailedCbsdList()
 
 	request := &protos.ListCbsdRequest{
 		NetworkId: networkId,
@@ -232,8 +231,8 @@ func (s *CbsdManagerTestSuite) TestListCbsdWithPagination() {
 		Offset: db.MakeInt(20),
 	}
 	s.Assert().Equal(expectedPagination, s.store.pagination)
-	expected := []*protos.CbsdDetails{getProtoDetailedCbsd()}
-	s.Assert().Equal(expected, actual.Details)
+	expected := getProtoDetailedCbsdList()
+	s.Assert().Equal(expected, actual)
 }
 
 func getProtoCbsd() *protos.CbsdData {
@@ -268,6 +267,13 @@ func getProtoDetailedCbsd() *protos.CbsdDetails {
 	}
 }
 
+func getProtoDetailedCbsdList() *protos.ListCbsdResponse {
+	return &protos.ListCbsdResponse{
+		Details:    []*protos.CbsdDetails{getProtoDetailedCbsd()},
+		TotalCount: 1,
+	}
+}
+
 func getDBCbsd() *storage.DBCbsd {
 	return &storage.DBCbsd{
 		UserId:           db.MakeString("some_user_id"),
@@ -290,18 +296,23 @@ func getDetailedCbsd() *storage.DetailedCbsd {
 		CbsdState: &storage.DBCbsdState{
 			Name: db.MakeString("registered"),
 		},
-		Channel: &storage.DBChannel{
-			LowFrequency:    db.MakeInt(3600 * 1e6),
-			HighFrequency:   db.MakeInt(3620 * 1e6),
-			LastUsedMaxEirp: db.MakeFloat(35),
-		},
 		Grant: &storage.DBGrant{
 			GrantExpireTime:    db.MakeTime(time.Unix(2e9, 0).UTC()),
 			TransmitExpireTime: db.MakeTime(time.Unix(1e9, 0).UTC()),
+			LowFrequency:       db.MakeInt(3600 * 1e6),
+			HighFrequency:      db.MakeInt(3620 * 1e6),
+			MaxEirp:            db.MakeFloat(35),
 		},
 		GrantState: &storage.DBGrantState{
 			Name: db.MakeString("authorized"),
 		},
+	}
+}
+
+func getDetailedCbsdList() *storage.DetailedCbsdList {
+	return &storage.DetailedCbsdList{
+		Cbsds: []*storage.DetailedCbsd{getDetailedCbsd()},
+		Count: 1,
 	}
 }
 
@@ -310,6 +321,7 @@ type stubCbsdManager struct {
 	id         int64
 	data       *storage.DBCbsd
 	details    *storage.DetailedCbsd
+	list       *storage.DetailedCbsdList
 	pagination *storage.Pagination
 	err        error
 }
@@ -339,8 +351,8 @@ func (s *stubCbsdManager) FetchCbsd(networkId string, id int64) (*storage.Detail
 	return s.details, s.err
 }
 
-func (s *stubCbsdManager) ListCbsd(networkId string, pagination *storage.Pagination) ([]*storage.DetailedCbsd, error) {
+func (s *stubCbsdManager) ListCbsd(networkId string, pagination *storage.Pagination) (*storage.DetailedCbsdList, error) {
 	s.networkId = networkId
 	s.pagination = pagination
-	return []*storage.DetailedCbsd{s.details}, nil
+	return s.list, s.err
 }

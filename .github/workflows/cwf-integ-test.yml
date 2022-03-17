@@ -9,11 +9,13 @@ on:  # yamllint disable-line rule:truthy
       - build-all
     branches:
       - master
-      - v1.*
+      - 'v1.*'
     types:
       - completed
 env:
   SHA: ${{ github.event.workflow_run.head_commit.id || github.sha }}
+
+permissions: read-all
 
 jobs:
   docker-build:

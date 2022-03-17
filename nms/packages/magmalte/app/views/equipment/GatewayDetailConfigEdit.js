@@ -681,6 +681,18 @@ export function EPCEdit(props: Props) {
               onChange={({target}) => handleEPCChange('ip_block', target.value)}
             />
           </AltFormField>
+          <AltFormField label={'IPv6 Block'}>
+            <OutlinedInput
+              data-testid="ipv6Block"
+              placeholder="fdee:5:6c::/48"
+              type="string"
+              fullWidth={true}
+              value={EPCConfig.ipv6_block}
+              onChange={({target}) =>
+                handleEPCChange('ipv6_block', target.value)
+              }
+            />
+          </AltFormField>
           <AltFormField label={'DNS Primary'}>
             <OutlinedInput
               data-testid="dnsPrimary"

@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	servicers "magma/orc8r/cloud/go/services/directoryd/servicers/protected"
-	magmaerrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 type MockStore struct {
@@ -41,13 +41,13 @@ func (m *MockStore) getIDOnDatabaseWithExistingMatch(networkId string, id string
 		m.previous_seen = id
 		return "hw_id_1", nil
 	}
-	return "", magmaerrors.ErrNotFound
+	return "", merrors.ErrNotFound
 }
 
 func (m *MockStore) getIDOnDatabaseNotExistingMatch(networkId string, id string) (string, error) {
 	m.Hits += 1
 	m.previous_seen = id
-	return "", magmaerrors.ErrNotFound
+	return "", merrors.ErrNotFound
 }
 
 func (m *MockStore) getIDOnDatabaseAlwaysError(networkId string, id string) (string, error) {

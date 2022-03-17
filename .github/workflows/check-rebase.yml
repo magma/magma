@@ -5,7 +5,10 @@ on:  # yamllint disable-line rule:truthy
   pull_request:
     branches:
       - master
-      - v1.*
+      - 'v1.*'
+
+permissions:
+  contents: read
 
 jobs:
   checkRebase:

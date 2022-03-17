@@ -74,6 +74,9 @@ func main() {
 	stateServicer := newStateServicer(store)
 	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
 
+	cloudStateServicer := newCloudStateServicer(store)
+	protos.RegisterCloudStateServiceServer(srv.GrpcServer, cloudStateServicer)
+
 	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
 	if !singletonReindex {
 		glog.Info("Running reindexer")
@@ -91,6 +94,14 @@ func main() {
 
 func newStateServicer(store blobstore.StoreFactory) protos.StateServiceServer {
 	servicer, err := servicers.NewStateServicer(store)
+	if err != nil {
+		glog.Fatalf("Error creating state servicer: %v", err)
+	}
+	return servicer
+}
+
+func newCloudStateServicer(store blobstore.StoreFactory) protos.CloudStateServiceServer {
+	servicer, err := servicers.NewCloudStateServicer(store)
 	if err != nil {
 		glog.Fatalf("Error creating state servicer: %v", err)
 	}

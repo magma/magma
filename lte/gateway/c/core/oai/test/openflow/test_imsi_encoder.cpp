@@ -46,10 +46,4 @@ INSTANTIATE_TEST_CASE_P(TestLeadingZeros, IMSIEncoderTest,
 INSTANTIATE_TEST_CASE_P(TestDifferentLengths, IMSIEncoderTest,
                         Values("001010000000013", "01010000000013",
                                "28950000000013"));
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace

@@ -23,7 +23,10 @@ on:  # yamllint disable-line rule:truthy
 env:
   REGISTRY: ghcr.io
   IMAGE_STREAM: ${{ github.repository }}/python-precommit
+  IMAGE_TAGS: type=sha
   DOCKERFILE: lte/gateway/docker/python-precommit/Dockerfile
+
+permissions: read-all
 
 jobs:
   build_dockerfile:

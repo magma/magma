@@ -86,6 +86,14 @@ This section lists some of the commonly asked questions related to Magma operati
 ### Where can I get more information about services running in Magma?
   - https://github.com/magma/magma/tree/master/docs/readmes/lte
 
+### How can I check if a given subscriber is idle or connected?
+  - SSH into the the AGW
+  - Fetch the subscriber's state using its IMSI:
+    - `state_cli.py parse IMSI716770120257790:MME`
+  - Looking at the `ecm_state` configuration, the value:
+    - 0 - Indicates the user is IDLE
+    - 1 - Indicates the user is CONNECTED
+
 ## Orchestrator
 ### How can I check production pods in Orchestrator running on Kubernetes?
   - **For all pods:** `kubectl --namespace orc8r get pods`.

@@ -7,11 +7,13 @@ on:  # yamllint disable-line rule:truthy
       - build-all
     branches:
       - master
-      - v1.*
+      - 'v1.*'
     types:
       - completed
 
 concurrency: ${{ github.workflow }}
+
+permissions: read-all
 
 jobs:
   docker-load-test:

@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package storage
 
 import (
@@ -204,12 +205,14 @@ type DBGrant struct {
 	Id                 sql.NullInt64
 	StateId            sql.NullInt64
 	CbsdId             sql.NullInt64
-	ChannelId          sql.NullInt64
 	GrantId            sql.NullInt64
 	GrantExpireTime    sql.NullTime
 	TransmitExpireTime sql.NullTime
 	HeartbeatInterval  sql.NullInt64
 	ChannelType        sql.NullString
+	LowFrequency       sql.NullInt64
+	HighFrequency      sql.NullInt64
+	MaxEirp            sql.NullFloat64
 }
 
 func (g *DBGrant) Fields() db.FieldMap {
@@ -222,10 +225,6 @@ func (g *DBGrant) Fields() db.FieldMap {
 		},
 		"cbsd_id": &db.Field{
 			BaseType: db.IntType{X: &g.CbsdId},
-			Nullable: true,
-		},
-		"channel_id": &db.Field{
-			BaseType: db.IntType{X: &g.ChannelId},
 			Nullable: true,
 		},
 		"grant_id": &db.Field{
@@ -247,6 +246,15 @@ func (g *DBGrant) Fields() db.FieldMap {
 			BaseType: db.StringType{X: &g.ChannelType},
 			Nullable: true,
 		},
+		"low_frequency": &db.Field{
+			BaseType: db.IntType{X: &g.LowFrequency},
+		},
+		"high_frequency": &db.Field{
+			BaseType: db.IntType{X: &g.HighFrequency},
+		},
+		"max_eirp": &db.Field{
+			BaseType: db.FloatType{X: &g.MaxEirp},
+		},
 	}
 }
 
@@ -256,7 +264,6 @@ func (g *DBGrant) GetMetadata() *db.ModelMetadata {
 		Relations: map[string]string{
 			GrantStateTable: "state_id",
 			CbsdTable:       "cbsd_id",
-			ChannelTable:    "channel_id",
 		},
 		CreateObject: func() db.Model {
 			return &DBGrant{}
@@ -299,11 +306,13 @@ type DBCbsd struct {
 	FccId            sql.NullString
 	CbsdSerialNumber sql.NullString
 	LastSeen         sql.NullTime
+	GrantAttempts    sql.NullInt64
 	MinPower         sql.NullFloat64
 	MaxPower         sql.NullFloat64
 	AntennaGain      sql.NullFloat64
 	NumberOfPorts    sql.NullInt64
 	IsDeleted        sql.NullBool
+	IsUpdated        sql.NullBool
 }
 
 func (c *DBCbsd) Fields() db.FieldMap {
@@ -337,6 +346,11 @@ func (c *DBCbsd) Fields() db.FieldMap {
 			BaseType: db.TimeType{X: &c.LastSeen},
 			Nullable: true,
 		},
+		"grant_attempts": &db.Field{
+			BaseType:     db.IntType{X: &c.GrantAttempts},
+			HasDefault:   true,
+			DefaultValue: 0,
+		},
 		"min_power": &db.Field{
 			BaseType: db.FloatType{X: &c.MinPower},
 			Nullable: true,
@@ -355,6 +369,11 @@ func (c *DBCbsd) Fields() db.FieldMap {
 		},
 		"is_deleted": &db.Field{
 			BaseType:     db.BoolType{X: &c.IsDeleted},
+			HasDefault:   true,
+			DefaultValue: false,
+		},
+		"is_updated": &db.Field{
+			BaseType:     db.BoolType{X: &c.IsUpdated},
 			HasDefault:   true,
 			DefaultValue: false,
 		},
@@ -407,10 +426,6 @@ func (c *DBChannel) Fields() db.FieldMap {
 		},
 		"max_eirp": &db.Field{
 			BaseType: db.FloatType{X: &c.MaxEirp},
-			Nullable: true,
-		},
-		"last_used_max_eirp": &db.Field{
-			BaseType: db.FloatType{X: &c.LastUsedMaxEirp},
 			Nullable: true,
 		},
 	}

@@ -12,13 +12,15 @@
 load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
-ORC8R_ROOT = "../../"
+MAGMA_ROOT = "../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
 py_binary(
     name = "magmad",
     srcs = ["main.py"],
     imports = [ORC8R_ROOT],
-    # legacy_creat_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
+    # legacy_create_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
     legacy_create_init = False,
     main = "main.py",
     python_version = "PY3",
@@ -27,6 +29,7 @@ py_binary(
         ":magmad_lib",
         "//orc8r/gateway/python/magma/common:grpc_client_manager",
         "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
         "//orc8r/gateway/python/magma/magmad/generic_command:command_executor",
         "//orc8r/gateway/python/magma/magmad/upgrade:magma_upgrader",
         "//orc8r/gateway/python/magma/magmad/upgrade:upgrader",
@@ -58,6 +61,7 @@ py_library(
         "//orc8r/gateway/python/magma/common:rpc_utils",
         "//orc8r/gateway/python/magma/common:sdwatchdog",
         "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
         "//orc8r/gateway/python/magma/common:stateless_agw",
         "//orc8r/gateway/python/magma/common:streamer",
         "//orc8r/gateway/python/magma/common/health:service_state_wrapper",
@@ -68,6 +72,7 @@ py_library(
         "//orc8r/protos:bootstrapper_python_grpc",
         "//orc8r/protos:magmad_python_grpc",
         "//orc8r/protos:metricsd_python_grpc",
+        "//orc8r/protos:service303_python_grpc",
         "//orc8r/protos:state_python_grpc",
         "//orc8r/protos:sync_rpc_service_python_grpc",
         "//orc8r/swagger:magmad_events_v1",

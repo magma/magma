@@ -15,9 +15,10 @@ package client
 
 import (
 	"context"
+
 	"github.com/golang/glog"
 
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
@@ -25,7 +26,7 @@ import (
 func getClient(service string) (protos.Service303Client, error) {
 	conn, err := registry.GetConnection(service)
 	if err != nil {
-		initErr := errors.NewInitError(err, "SERVICE303")
+		initErr := merrors.NewInitError(err, "SERVICE303")
 		glog.Error(initErr)
 		return nil, initErr
 	}

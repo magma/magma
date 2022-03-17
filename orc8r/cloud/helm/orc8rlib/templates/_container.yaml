@@ -68,6 +68,8 @@ env:
     value: {{ .Chart.Version | quote }}
   - name: VERSION_TAG
     value: {{ .Values.controller.image.tag | quote }}
+  - name: ORC8R_DOMAIN_NAME
+    value: {{ .Values.controller.image.env.orc8r_domain_name }}
 livenessProbe:
   tcpSocket:
     port: 9180

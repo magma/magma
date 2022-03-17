@@ -31,7 +31,7 @@ include_directories("/usr/src/googletest/googlemock/include/")
 link_directories(/usr/src/googletest/googlemock/lib/)
 
 set(MME_APP_UE_CONTEXT_IMSI_SRC
-    test_mme_app_ue_context.c
+    test_mme_app_ue_context.cpp
     )
 
 set(MME_APP_NAS_ENCODE_DECODE_SRC
@@ -64,7 +64,7 @@ add_executable(mme_app_test ${MME_APP_TEST_SRC})
 
 target_link_libraries(test_mme_app_ue_context_imsi
     TASK_MME_APP ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
-    LIB_BSTR LIB_HASHTABLE
+    LIB_BSTR LIB_HASHTABLE gtest gtest_main
     )
 
 target_link_libraries(test_nas_encode_decode

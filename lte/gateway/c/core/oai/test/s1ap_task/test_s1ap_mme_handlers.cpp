@@ -13,7 +13,7 @@
 #include <gtest/gtest.h>
 #include <thread>
 
-#include "../mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
@@ -424,6 +424,8 @@ TEST_F(S1apMmeHandlersTest, GenerateUEContextReleaseCommand) {
       .sctp_assoc_id = assoc_id,
       .comp_s1ap_id = S1AP_GENERATE_COMP_S1AP_ID(assoc_id, 1)};
 
+  ue_ref_p.s1ap_ue_context_rel_timer.id = -1;
+  ue_ref_p.s1ap_ue_context_rel_timer.msec = 1000;
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(2);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
 
@@ -461,8 +463,7 @@ TEST_F(S1apMmeHandlersTest, GenerateUEContextReleaseCommand) {
                           state, &ue_ref_p, S1AP_INITIAL_CONTEXT_SETUP_FAILED,
                           INVALID_IMSI64, assoc_id, stream_id, 1, 1));
 
-  // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  EXPECT_NE(ue_ref_p.s1ap_ue_context_rel_timer.id, S1AP_TIMER_INACTIVE_ID);
 
   // Freeing pdu and payload data
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);

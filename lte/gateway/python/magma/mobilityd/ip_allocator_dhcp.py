@@ -24,15 +24,17 @@ import logging
 from copy import deepcopy
 from ipaddress import ip_address, ip_network
 from threading import Condition
-from typing import List
+from typing import List, Optional, cast
 
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
+from typing_extensions import TypeGuard
 
 from .dhcp_client import DHCPClient
 from .dhcp_desc import DHCPDescriptor, DHCPState
 from .ip_allocator_base import IPAllocator, NoAvailableIPError
 from .mac import MacAddress, create_mac_from_sid
 from .mobility_store import MobilityStore
+from .utils import IPAddress, IPNetwork
 
 DEFAULT_DHCP_REQUEST_RETRY_FREQUENCY = 10
 DEFAULT_DHCP_REQUEST_RETRY_DELAY = 1
@@ -69,7 +71,7 @@ class IPAllocatorDHCP(IPAllocator):
         self._retry_limit = retry_limit  # default wait for two minutes
         self._dhcp_client.run()
 
-    def add_ip_block(self, ipblock: ip_network):
+    def add_ip_block(self, ipblock: IPNetwork):
         logging.warning(
             "No need to allocate block for DHCP allocator: %s",
             ipblock,
@@ -77,19 +79,19 @@ class IPAllocatorDHCP(IPAllocator):
 
     def remove_ip_blocks(
         self,
-        ipblocks: List[ip_network],
+        ipblocks: List[IPNetwork],
         force: bool = False,
-    ) -> List[ip_network]:
+    ) -> List[IPNetwork]:
         logging.warning(
             "Trying to delete ipblock from DHCP allocator: %s",
             ipblocks,
         )
         return []
 
-    def list_added_ip_blocks(self) -> List[ip_network]:
+    def list_added_ip_blocks(self) -> List[IPNetwork]:
         return list(deepcopy(self._store.assigned_ip_blocks))
 
-    def list_allocated_ips(self, ipblock: ip_network) -> List[ip_address]:
+    def list_allocated_ips(self, ipblock: IPNetwork) -> List[IPAddress]:
         """ List IP addresses allocated from a given IP block
 
         Args:
@@ -213,8 +215,8 @@ class IPAllocatorDHCP(IPAllocator):
 
                 retry_count = retry_count + 1
 
-            return dhcp_desc
+            return cast(DHCPDescriptor, dhcp_desc)
 
 
-def dhcp_allocated_ip(dhcp_desc) -> bool:
+def dhcp_allocated_ip(dhcp_desc: Optional[DHCPDescriptor]) -> TypeGuard[DHCPDescriptor]:
     return dhcp_desc is not None and dhcp_desc.ip_is_allocated()
