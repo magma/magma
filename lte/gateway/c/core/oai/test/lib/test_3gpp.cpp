@@ -323,6 +323,8 @@ TEST_F(m3GppTest, TestPlmnList) {
 }  // namespace lte
 }  // namespace magma
 
+// Note: This is necessary for setting up a log thread (Might be addressed by
+// #11736)
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   OAILOG_INIT("MME", OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS);

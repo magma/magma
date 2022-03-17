@@ -324,11 +324,5 @@ TEST(test_classifier_rpc, test_paging_uev4) {
   EXPECT_TRUE(paging_request.ue_session_state().ue_config_state() ==
               UESessionState::INSTALL_IDLE);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace lte
 }  // namespace magma

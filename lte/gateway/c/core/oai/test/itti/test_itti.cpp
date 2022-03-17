@@ -233,8 +233,3 @@ TEST_F(ITTIApiTest, TestHandoverRequest) {
   itti_free_msg_content(message_p);
   free(message_p);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
