@@ -211,7 +211,7 @@ class IPAllocatorDHCP(IPAllocator):
                     )
                 self.dhcp_wait.wait(timeout=DEFAULT_DHCP_REQUEST_RETRY_DELAY)
 
-                dhcp_desc = self._dhcp_client.get_dhcp_desc(mac, str(vlan))
+                dhcp_desc = self._dhcp_client.get_dhcp_desc(mac, vlan)
 
                 retry_count = retry_count + 1
 
