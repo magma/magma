@@ -10,44 +10,63 @@ import (
 
 func TestSelectPoint(t *testing.T) {
 	rs := []ranges.Range{
-		{Begin: 35500, End: 35600, Value: 4},
-		{Begin: 35700, End: 35900, Value: 6},
-		{Begin: 36000, End: 36000, Value: 8},
+		{Begin: 35499, End: 35601, Value: 4},
+		{Begin: 35800, End: 36000, Value: 6},
+		{Begin: 36200, End: 36250, Value: 8},
 	}
 	testData := []struct {
 		name     string
 		index    int
+		multiply int
 		expected ranges.Point
+		found    bool
 	}{{
-		name:     "Should pick first point in range",
-		index:    101,
-		expected: ranges.Point{Value: 6, Pos: 35700},
+		name:     "Should handle begin of non divisible boundaries",
+		index:    0,
+		multiply: 100,
+		expected: ranges.Point{Value: 4, Pos: 35500},
+		found:    true,
 	}, {
-		name:     "Should pick last point in range",
-		index:    100,
+		name:     "Should handle end of non divisible boundaries",
+		index:    1,
+		multiply: 100,
 		expected: ranges.Point{Value: 4, Pos: 35600},
+		found:    true,
 	}, {
-		name:     "Should pick middle point in range",
-		index:    201,
+		name:     "Should handle begin of divisible boundaries",
+		index:    2,
+		multiply: 100,
 		expected: ranges.Point{Value: 6, Pos: 35800},
+		found:    true,
 	}, {
-		name:     "Should pick point from one point range",
-		index:    302,
-		expected: ranges.Point{Value: 8, Pos: 36000},
+		name:     "Should handle end of divisible boundaries",
+		index:    4,
+		multiply: 100,
+		expected: ranges.Point{Value: 6, Pos: 36000},
+		found:    true,
+	}, {
+		name:     "Should handle only begin visible",
+		index:    5,
+		multiply: 100,
+		expected: ranges.Point{Value: 8, Pos: 36200},
+		found:    true,
+	}, {
+		name:     "Should handle overlap",
+		index:    64,
+		multiply: 100,
+		expected: ranges.Point{Value: 6, Pos: 36000},
+		found:    true,
+	}, {
+		name:     "Should handle not found case",
+		index:    0,
+		multiply: 10000,
+		found:    false,
 	}}
 	for _, tt := range testData {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &stubIndexProvider{index: tt.index}
-			actual := ranges.SelectPoint(rs, r)
+			actual, found := ranges.Select(rs, tt.index, tt.multiply)
 			assert.Equal(t, tt.expected, actual)
+			assert.Equal(t, tt.found, found)
 		})
 	}
-}
-
-type stubIndexProvider struct {
-	index int
-}
-
-func (s *stubIndexProvider) Intn(n int) int {
-	return s.index % n
 }

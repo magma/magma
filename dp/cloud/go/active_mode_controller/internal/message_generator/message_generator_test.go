@@ -347,7 +347,7 @@ func TestGenerateMessages(t *testing.T) {
 	}
 	for _, tt := range data {
 		t.Run(tt.name, func(t *testing.T) {
-			g := message_generator.NewMessageGenerator(0, timeout, &stubIndexProvider{})
+			g := message_generator.NewMessageGenerator(0, timeout, &stubRNG{})
 			msgs := g.GenerateMessages(tt.state, now)
 			p := &stubProvider{}
 			for _, msg := range msgs {
@@ -395,9 +395,9 @@ func getSpectrumInquiryRequest() []*requests.RequestPayload {
 	}}
 }
 
-type stubIndexProvider struct{}
+type stubRNG struct{}
 
-func (s *stubIndexProvider) Intn(_ int) int {
+func (s *stubRNG) Int() int {
 	return 0
 }
 

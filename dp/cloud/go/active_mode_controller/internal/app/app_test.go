@@ -111,7 +111,7 @@ func (s *AppTestSuite) givenAppRunning() {
 	a := app.NewApp(
 		app.WithDialer(s.dialer),
 		app.WithClock(s.clock),
-		app.WithIndexProvider(&stubIndexProvider{}),
+		app.WithRNG(stubRNG{}),
 		app.WithConfig(&config.Config{
 			DialTimeout:               timeout,
 			HeartbeatSendTimeout:      heartbeatTimeout,
@@ -268,9 +268,9 @@ func getExpectedHeartbeatRequest(id string, grantId string) string {
 	return fmt.Sprintf(template, id, grantId)
 }
 
-type stubIndexProvider struct{}
+type stubRNG struct{}
 
-func (s *stubIndexProvider) Intn(_ int) int {
+func (stubRNG) Int() int {
 	return 0
 }
 

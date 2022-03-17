@@ -8,12 +8,16 @@ import (
 )
 
 type grantRequestGenerator struct {
-	indexProvider ranges.IndexProvider
+	rng RNG
 }
 
-func NewGrantRequestGenerator(indexProvider ranges.IndexProvider) *grantRequestGenerator {
+type RNG interface {
+	Int() int
+}
+
+func NewGrantRequestGenerator(rng RNG) *grantRequestGenerator {
 	return &grantRequestGenerator{
-		indexProvider: indexProvider,
+		rng: rng,
 	}
 }
 
@@ -22,7 +26,7 @@ func (g *grantRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Requ
 		cbsd.GetChannels(),
 		cbsd.GetEirpCapabilities(),
 		int(cbsd.GetGrantAttempts()),
-		g.indexProvider,
+		g.rng,
 	)
 	if operationParam == nil {
 		return nil
@@ -44,20 +48,18 @@ type operationParam struct {
 	OperationFrequencyRange *frequencyRange `json:"operationFrequencyRange"`
 }
 
-var bandwidths = [...]int{200, 150, 100, 50}
+var bandwidths = [...]int{20 * 1e6, 15 * 1e6, 10 * 1e6, 5 * 1e6}
 
 const (
 	minSASEirp = -137
 	maxSASEirp = 37
-	tenthMHz   = 1e5
-	deci       = 10
 )
 
 func chooseSuitableChannel(
 	channels []*active_mode.Channel,
 	capabilities *active_mode.EirpCapabilities,
 	attempts int,
-	indexProvider ranges.IndexProvider,
+	rng RNG,
 ) *operationParam {
 	// More sophisticated check will be implemented
 	// together with frequency preference
@@ -66,9 +68,9 @@ func chooseSuitableChannel(
 	}
 	calc := newEirpCalculator(capabilities)
 	rs := toRanges(channels)
-	pts := ranges.Decompose(rs, minSASEirp-1)
+	pts := ranges.DecomposeOverlapping(rs, minSASEirp-1)
 	for _, band := range bandwidths {
-		res := tryToGetChannelForBandwidth(calc, band, pts, indexProvider)
+		res := tryToGetChannelForBandwidth(calc, band, pts, rng)
 		if res != nil {
 			return res
 		}
@@ -84,8 +86,8 @@ func toRanges(channels []*active_mode.Channel) []ranges.Range {
 			val = int(math.Floor(float64(c.MaxEirp.Value)))
 		}
 		res[i] = ranges.Range{
-			Begin: int(c.FrequencyRange.Low / tenthMHz),
-			End:   int(c.FrequencyRange.High / tenthMHz),
+			Begin: int(c.FrequencyRange.Low - lowestFrequencyHz),
+			End:   int(c.FrequencyRange.High - lowestFrequencyHz),
 			Value: val,
 		}
 	}
@@ -96,22 +98,19 @@ func tryToGetChannelForBandwidth(
 	calc *eirpCalculator,
 	band int,
 	pts []ranges.Point,
-	provider ranges.IndexProvider,
+	rng RNG,
 ) *operationParam {
 	low := int(calc.calcLowerBound(band, minSASEirp))
-	if len(pts) <= 1 {
+	midpoints := ranges.ComposeForMidpoints(pts, band, low)
+	p, ok := ranges.Select(midpoints, rng.Int(), 5*1e6)
+	if !ok {
 		return nil
 	}
-	valid := ranges.FindAvailable(pts, band, low)
-	if len(valid) == 0 {
-		return nil
-	}
-	minFreq := ranges.SelectPoint(valid, provider)
 	return &operationParam{
-		MaxEirp: calc.calcUpperBound(band, minFreq.Value),
+		MaxEirp: calc.calcUpperBound(band, p.Value),
 		OperationFrequencyRange: &frequencyRange{
-			LowFrequency:  int64(minFreq.Pos) * tenthMHz,
-			HighFrequency: int64(minFreq.Pos+band) * tenthMHz,
+			LowFrequency:  int64(p.Pos-band/2) + lowestFrequencyHz,
+			HighFrequency: int64(p.Pos+band/2) + lowestFrequencyHz,
 		},
 	}
 }
@@ -143,6 +142,6 @@ func (e eirpCalculator) calcUpperBound(bandwidth int, max int) float64 {
 }
 
 func (e eirpCalculator) calcEirp(power float64, bandwidth int) float64 {
-	bwMHz := float64(bandwidth / deci)
+	bwMHz := float64(bandwidth / 1e6)
 	return power + e.antennaGain - 10*math.Log10(bwMHz/e.noPorts)
 }
