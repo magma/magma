@@ -25,7 +25,7 @@ buildifier_test(
     timeout = "short",
     srcs = ["//:starlark_files"],
     lint_mode = "warn",
-    lint_warnings = ["all"],
+    lint_warnings = ["-unused-variable"],
     verbose = True,
 )
 
