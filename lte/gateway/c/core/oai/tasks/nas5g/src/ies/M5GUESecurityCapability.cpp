@@ -38,6 +38,7 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
   // Checking IEI and pointer
   if (iei > 0) {
     CHECK_IEI_DECODER(iei, (unsigned char)*buffer);
+    ue_sec_capability->iei = iei;
     decoded++;
   }
 
@@ -73,8 +74,7 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
 
   // If any optional buffers are present skip it.
   // 2 = 1 Byte for type + 1 Byte for length
-  type_len = sizeof(uint8_t);
-  length_len = sizeof(uint8_t);
+
   if (ue_sec_capability->length > (decoded - (type_len + length_len))) {
     // 5GS encryption algorithms
     ue_sec_capability->eea0 = (*(buffer + decoded) >> 7) & 0x1;
@@ -98,7 +98,11 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
     ue_sec_capability->eia7 = *(buffer + decoded) & 0x1;
     decoded++;
 
-    // decoded = type_len + length_len + ue_sec_capability->length;
+    // Skipping the remaining bytes as not supported
+    if (ue_sec_capability->length > (decoded - (type_len + length_len))) {
+      decoded +=
+          ue_sec_capability->length - (decoded - (type_len + length_len));
+    }
   }
 
   return (decoded);
