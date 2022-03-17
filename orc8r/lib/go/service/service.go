@@ -68,6 +68,10 @@ type Service struct {
 	// Services can attach different servicers to the GrpcServer.
 	GrpcServer *grpc.Server
 
+	// ProtectedGrpcServer runs on the protected_port specified in the registry.
+	// Services can attach different servicers to the GrpcServer.
+	ProtectedGrpcServer *grpc.Server
+
 	// Version of the service
 	Version string
 
@@ -111,14 +115,16 @@ func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOpti
 	opts = append(opts, serverOptions...) // keepalive is prepended so serverOptions can override if requested
 
 	grpcServer := grpc.NewServer(opts...)
+	protectedGrpcServer := grpc.NewServer(opts...)
 	service := &Service{
-		Type:          serviceName,
-		GrpcServer:    grpcServer,
-		Version:       "0.0.0",
-		State:         protos.ServiceInfo_STARTING,
-		Health:        protos.ServiceInfo_APP_UNHEALTHY,
-		StartTimeSecs: uint64(time.Now().Unix()),
-		Config:        configMap,
+		Type:                serviceName,
+		GrpcServer:          grpcServer,
+		ProtectedGrpcServer: protectedGrpcServer,
+		Version:             "0.0.0",
+		State:               protos.ServiceInfo_STARTING,
+		Health:              protos.ServiceInfo_APP_UNHEALTHY,
+		StartTimeSecs:       uint64(time.Now().Unix()),
+		Config:              configMap,
 	}
 	protos.RegisterService303Server(service.GrpcServer, service)
 
@@ -133,7 +139,75 @@ func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOpti
 // Run the service. This function blocks until its interrupted
 // by a signal or until the gRPC server is stopped.
 func (service *Service) Run() error {
-	port, err := registry.GetServicePort(service.Type)
+	wg := new(sync.WaitGroup)
+	wg.Add(2)
+	errChan := make(chan error)
+	go func() {
+		errChan <- service.run()
+		wg.Done()
+	}()
+	go func() {
+		errChan <- service.runProtected()
+		wg.Done()
+	}()
+	wg.Wait()
+
+	service.State = protos.ServiceInfo_ALIVE
+	service.Health = protos.ServiceInfo_APP_HEALTHY
+
+	err := <-errChan
+
+	return err
+}
+
+// RunTest runs the test service on a given Listener. This function blocks
+// by a signal or until the gRPC server is stopped.
+func (service *Service) RunTest(lis net.Listener, plis net.Listener) {
+	service.State = protos.ServiceInfo_ALIVE
+	service.Health = protos.ServiceInfo_APP_HEALTHY
+	wg := new(sync.WaitGroup)
+	wg.Add(2)
+	go func() {
+		err := service.GrpcServer.Serve(lis)
+		if err != nil {
+			glog.Fatalf("failed to run test service: %v", err)
+		}
+		wg.Done()
+	}()
+	go func() {
+		if plis != nil {
+			err := service.ProtectedGrpcServer.Serve(plis)
+			if err != nil {
+				glog.Fatalf("failed to run test service: %v", err)
+			}
+		}
+		wg.Done()
+	}()
+	wg.Wait()
+}
+
+// GetDefaultKeepaliveParameters returns the default keepalive server parameters.
+func GetDefaultKeepaliveParameters() keepalive.ServerParameters {
+	return defaultKeepaliveParams
+}
+
+func (service *Service) run() error {
+	port, err := registry.GetServicePort(service.Type, protos.ServiceType_SOUTHBOUND)
+	if err != nil || port == 0 {
+		return fmt.Errorf("get service port: %v", err)
+	}
+
+	// Create the server socket for gRPC
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		return fmt.Errorf("listen on port %d: %v", port, err)
+	}
+
+	return service.GrpcServer.Serve(lis)
+}
+
+func (service *Service) runProtected() error {
+	port, err := registry.GetServicePort(service.Type, protos.ServiceType_PROTECTED)
 	if err != nil {
 		return fmt.Errorf("get service port: %v", err)
 	}
@@ -143,23 +217,6 @@ func (service *Service) Run() error {
 	if err != nil {
 		return fmt.Errorf("listen on port %d: %v", port, err)
 	}
-	service.State = protos.ServiceInfo_ALIVE
-	service.Health = protos.ServiceInfo_APP_HEALTHY
-	return service.GrpcServer.Serve(lis)
-}
 
-// RunTest runs the test service on a given Listener. This function blocks
-// by a signal or until the gRPC server is stopped.
-func (service *Service) RunTest(lis net.Listener) {
-	service.State = protos.ServiceInfo_ALIVE
-	service.Health = protos.ServiceInfo_APP_HEALTHY
-	err := service.GrpcServer.Serve(lis)
-	if err != nil {
-		glog.Fatal("Failed to run test service")
-	}
-}
-
-// GetDefaultKeepaliveParameters returns the default keepalive server parameters.
-func GetDefaultKeepaliveParameters() keepalive.ServerParameters {
-	return defaultKeepaliveParams
+	return service.ProtectedGrpcServer.Serve(lis)
 }

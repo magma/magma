@@ -39,7 +39,7 @@ var (
 )
 
 func startServiceQuery(service string, queryMetrics bool, maxMetricsQueueSz int) error {
-	conn, err := service_registry.Get().GetConnection(strings.ToUpper(service))
+	conn, err := service_registry.Get().GetConnection(strings.ToUpper(service), protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		return err
 	}

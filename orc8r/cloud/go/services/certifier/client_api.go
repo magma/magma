@@ -33,7 +33,7 @@ const ServiceName = "certifier"
 
 // Utility function to get a RPC connection to the certifier service
 func getCertifierClient() (certprotos.CertifierClient, error) {
-	conn, err := registry.GetConnection(ServiceName)
+	conn, err := registry.GetConnection(ServiceName, protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		return nil, merrors.NewInitError(err, ServiceName)
 	}

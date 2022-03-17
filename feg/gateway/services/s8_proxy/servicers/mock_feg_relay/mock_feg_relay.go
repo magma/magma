@@ -71,13 +71,12 @@ func (ts *TestS8ProxyResponderServer) DeleteBearerRequest(
 func StartFegRelayTestService(t *testing.T) (*TestS8ProxyResponderServer, string) {
 	labels := map[string]string{}
 	annotations := map[string]string{}
-	srv, lis, tempDir := test_utils.NewTestOrchestratorServiceWithControlProxy(
+	tempDir, lis, srv := test_utils.NewTestOrchestratorServiceWithControlProxy(
 		t, feg.ModuleName, feg_relay.ServiceName, labels, annotations)
 	// responder mocks feg relay service
 	testResponderSrv := NewTestS8ProxyResponderServer()
 	testResponderSrv.ListAddr = lis.Addr().String()
-
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 	protos.RegisterS8ProxyResponderServer(srv.GrpcServer, testResponderSrv)
 	fmt.Printf("Starting Mock Feg Relay service at %s", lis.Addr().String())
 	// Remember to delete tempDir with defer os.RemoveAll(dir) once test is done

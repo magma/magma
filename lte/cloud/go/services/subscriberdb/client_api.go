@@ -22,6 +22,7 @@ import (
 
 	"magma/lte/cloud/go/services/subscriberdb/protos"
 	"magma/orc8r/lib/go/merrors"
+	protos2 "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -168,7 +169,7 @@ func SetIMSIsForIPs(ctx context.Context, networkID string, mappings []*protos.IP
 }
 
 func getClient() (protos.SubscriberLookupClient, error) {
-	conn, err := registry.GetConnection(ServiceName)
+	conn, err := registry.GetConnection(ServiceName, protos2.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

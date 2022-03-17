@@ -37,4 +37,5 @@ require (
 	google.golang.org/protobuf v1.27.1
 	magma/orc8r/cloud/go v0.0.0-00010101000000-000000000000
 	magma/orc8r/lib/go v0.0.0-00010101000000-000000000000
+	magma/orc8r/lib/go/protos v0.0.0
 )

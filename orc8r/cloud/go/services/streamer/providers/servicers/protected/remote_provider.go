@@ -61,7 +61,7 @@ func (r *remoteProvider) GetUpdates(ctx context.Context, gatewayId string, extra
 }
 
 func (r *remoteProvider) getProviderClient() (streamer_protos.StreamProviderClient, error) {
-	conn, err := registry.GetConnection(r.service)
+	conn, err := registry.GetConnection(r.service, protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, r.service)
 		glog.Error(initErr)

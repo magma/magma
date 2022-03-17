@@ -15,6 +15,7 @@ limitations under the License.
 package registry
 
 import (
+	"magma/orc8r/lib/go/protos"
 	"time"
 
 	"context"
@@ -95,8 +96,8 @@ func FindServices(label string) ([]string, error) {
 
 // GetServiceAddress returns the RPC address of the service from global registry
 // The service needs to be added to the registry before this.
-func GetServiceAddress(service string) (string, error) {
-	return globalRegistry.GetServiceAddress(service)
+func GetServiceAddress(service string, serviceType protos.ServiceType) (string, error) {
+	return globalRegistry.GetServiceAddress(service, serviceType)
 }
 
 // GetHttpServerAddress returns the HTTP address of the service from global registry
@@ -113,8 +114,8 @@ func GetServiceProxyAliases(service string) (map[string]int, error) {
 
 // GetServicePort returns the listening port for the RPC service.
 // The service needs to be added to the registry before this.
-func GetServicePort(service string) (int, error) {
-	return globalRegistry.GetServicePort(service)
+func GetServicePort(service string, serviceType protos.ServiceType) (int, error) {
+	return globalRegistry.GetServicePort(service, serviceType)
 }
 
 // GetEchoServerPort returns the listening port for the service's echo server.
@@ -137,16 +138,16 @@ func GetAnnotationList(service, annotationName string) ([]string, error) {
 }
 
 // GetConnection provides a gRPC connection to a service in the registry.
-func GetConnection(service string) (*grpc.ClientConn, error) {
-	return globalRegistry.GetConnection(service)
+func GetConnection(service string, serviceType protos.ServiceType) (*grpc.ClientConn, error) {
+	return globalRegistry.GetConnection(service, serviceType)
 }
 
 // GetConnectionWithTimeout is same as GetConnection, but caller can provide
 // their own timeout.
-func GetConnectionWithTimeout(service string, timeout time.Duration) (*grpc.ClientConn, error) {
-	return globalRegistry.GetConnectionWithTimeout(service, timeout)
+func GetConnectionWithTimeout(service string, timeout time.Duration, serviceType protos.ServiceType) (*grpc.ClientConn, error) {
+	return globalRegistry.GetConnectionWithTimeout(service, serviceType, timeout)
 }
 
-func GetConnectionImpl(ctx context.Context, service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
-	return globalRegistry.GetConnectionImpl(ctx, service, opts...)
+func GetConnectionImpl(ctx context.Context, service string, serviceType protos.ServiceType, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
+	return globalRegistry.GetConnectionImpl(ctx, service, serviceType, opts...)
 }

@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"magma/orc8r/lib/go/protos"
 	"time"
 
 	"google.golang.org/grpc"
@@ -44,6 +45,6 @@ func (m *MockCloudRegistry) GetCloudConnection(service string) (*grpc.ClientConn
 	}
 	return conn, nil
 }
-func (m *MockCloudRegistry) GetConnection(service string) (*grpc.ClientConn, error) {
+func (m *MockCloudRegistry) GetConnection(service string, serviceType protos.ServiceType) (*grpc.ClientConn, error) {
 	return m.GetCloudConnection(service)
 }
