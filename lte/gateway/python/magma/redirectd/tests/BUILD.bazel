@@ -11,11 +11,21 @@
 
 load("//bazel:python_test.bzl", "pytest_test")
 
+MAGMA_ROOT = "../../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
 pytest_test(
     name = "test_redirect",
     srcs = ["test_redirect.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
     deps = [
-        "//lte/gateway/python/magma/redirectd",
+        "//lte/gateway/python/magma/redirectd:redirectd_lib",
         "//lte/protos:policydb_python_proto",
     ],
 )
