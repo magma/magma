@@ -435,7 +435,6 @@ static status_code_e s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
   OAILOG_FUNC_IN(LOG_S1AP);
   unsigned int i = 0;
   unsigned int num_elements = 0;
-  bool unlock = true;
   hash_table_ts_t* hashtblP = get_s1ap_ue_state();
   hash_node_t *node = NULL, *oldnode = NULL;
   if (!hashtblP) {
@@ -447,7 +446,6 @@ static status_code_e s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
     if (hashtblP->nodes[i] != NULL) {
       node = hashtblP->nodes[i];
     }
-    unlock = true;
     while (node) {
       num_elements++;
       oldnode = node;
@@ -455,14 +453,12 @@ static status_code_e s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
       if (oldnode->data &&
           (sctp_assoc_id ==
            ((ue_description_t*)oldnode->data)->sctp_assoc_id)) {
-        unlock = false;
         pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
         s1ap_remove_ue(state, oldnode->data);
+        pthread_mutex_lock(&hashtblP->lock_nodes[i]);
       }
     }
-    if (unlock) {
-      pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-    }
+    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     i++;
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
