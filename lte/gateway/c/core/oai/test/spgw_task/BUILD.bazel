@@ -49,8 +49,6 @@ cc_test(
     srcs = [
         "test_spgw_procedures.cpp",
     ],
-    # TODO: Remove manual tag when fixed: GH11984
-    tags = ["manual"],
     deps = [
         ":spgw_test_core",
         "//lte/gateway/c/core",
