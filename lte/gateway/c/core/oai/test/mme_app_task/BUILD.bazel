@@ -119,3 +119,15 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "mme_app_ue_context_test",
+    size = "small",
+    srcs = [
+        "test_mme_app_ue_context.cpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
