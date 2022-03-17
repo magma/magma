@@ -1001,10 +1001,4 @@ TEST_F(GTPApplicationTest, TestDeleteTunnelS8DlFlowGtpPort) {
 
   controller->dispatch_event(del_tunnel);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace

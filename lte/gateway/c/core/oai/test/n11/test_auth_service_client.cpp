@@ -124,10 +124,5 @@ TEST(test_get_decrypt_imsi_info, get_decrypt_imsi_info) {
   EXPECT_TRUE(ciphertext == req.ue_ciphertext());
   EXPECT_TRUE(mac_tag == req.ue_encrypted_mac());
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
 }  // namespace lte
 }  // namespace magma
