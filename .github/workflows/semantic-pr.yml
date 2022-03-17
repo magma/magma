@@ -52,6 +52,8 @@ jobs:
     needs: reverted-pr-check
     if: ${{ needs.reverted-pr-check.outputs.is_reverted_pr == 'false' }}
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       # Please look up the latest version from
       # https://github.com/amannn/action-semantic-pull-request/releases
