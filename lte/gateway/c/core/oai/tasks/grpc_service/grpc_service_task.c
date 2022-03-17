@@ -62,7 +62,10 @@ static void* grpc_service_thread(__attribute__((unused)) void* args) {
   start_grpc_service(grpc_service_config->server_address);
   zloop_start(grpc_service_task_zmq_ctx.event_loop);
   AssertFatal(
-      0, "Asserting as grpc_service_thread should not be exiting on its own!");
+      0,
+      "Asserting as grpc_service_thread should not be exiting on its own! "
+      "This is likely due to a timer handler function returning -1 "
+      "(RETURNerror) on one of the conditions.");
   return NULL;
 }
 
