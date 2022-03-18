@@ -59,6 +59,9 @@ jobs:
     name: Upload unit test for ${{ github.event.workflow.name }}
     needs: skip_check
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: write
     if: >
       github.event.workflow_run.conclusion != 'skipped' &&
         github.event.workflow_run.head_repository.full_name != github.repository &&

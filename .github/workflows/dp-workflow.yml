@@ -450,6 +450,9 @@ jobs:
     needs: integration_tests
     name: Integration test results
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: write
     if: always()
     steps:
       - name: Download artifact
