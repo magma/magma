@@ -12,6 +12,7 @@ func Build(reqs []*sas.Request) []string {
 		byType[r.Type] = append(byType[r.Type], r.Data)
 	}
 	payloads := make([]string, 0, len(byType))
+	// TODO change this to be deterministic
 	for k, v := range byType {
 		if len(v) != 0 {
 			payloads = append(payloads, toRequest(sas.RequestType(k), v))
