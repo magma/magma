@@ -18,6 +18,7 @@ ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
 pytest_test(
     name = "rpc_servicer_tests",
+    size = "small",
     srcs = ["rpc_servicer_tests.py"],
     imports = [ORC8R_ROOT],
     deps = [

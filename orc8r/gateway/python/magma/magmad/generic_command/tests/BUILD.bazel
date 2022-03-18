@@ -13,12 +13,14 @@ load("//bazel:python_test.bzl", "pytest_test")
 
 pytest_test(
     name = "command_executor_test",
+    size = "small",
     srcs = ["command_executor_test.py"],
     deps = ["//orc8r/gateway/python/magma/magmad/generic_command:command_executor"],
 )
 
 pytest_test(
     name = "shell_command_executor_test",
+    size = "small",
     srcs = ["shell_command_executor_test.py"],
     deps = ["//orc8r/gateway/python/magma/magmad/generic_command:command_executor"],
 )
