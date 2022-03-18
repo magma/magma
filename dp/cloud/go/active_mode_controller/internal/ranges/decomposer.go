@@ -17,7 +17,7 @@ type Point struct {
 	Pos   int
 }
 
-func Decompose(ranges []Range, minValue int) []Point {
+func DecomposeOverlapping(ranges []Range, minValue int) []Point {
 	var res []Point
 	points, values := getEndsAndValues(ranges)
 	pq := &containers.PriorityQueue{}
