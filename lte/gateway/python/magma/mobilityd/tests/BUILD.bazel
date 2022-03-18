@@ -21,6 +21,7 @@ LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 pytest_test(
     name = "ip_alloc_dhcp_test",
+    size = "small",
     srcs = ["ip_alloc_dhcp_test.py"],
     imports = [
         LTE_ROOT,
@@ -37,6 +38,7 @@ pytest_test(
 
 pytest_test(
     name = "ip_allocator_dhcp_mac_addr_test",
+    size = "small",
     srcs = ["ip_allocator_dhcp_mac_addr_test.py"],
     imports = [LTE_ROOT],
     deps = [
@@ -47,6 +49,7 @@ pytest_test(
 
 pytest_test(
     name = "test_dhcp_client",
+    size = "small",
     srcs = ["test_dhcp_client.py"],
     imports = [LTE_ROOT],
     tags = TAG_SUDO_TEST,
@@ -59,6 +62,7 @@ pytest_test(
 
 pytest_test(
     name = "test_ipv6_allocator",
+    size = "small",
     srcs = ["test_ipv6_allocator.py"],
     imports = [
         LTE_ROOT,
@@ -72,6 +76,7 @@ pytest_test(
 
 pytest_test(
     name = "test_multi_apn_ip_alloc",
+    size = "small",
     srcs = ["test_multi_apn_ip_alloc.py"],
     imports = [
         LTE_ROOT,
@@ -85,6 +90,7 @@ pytest_test(
 
 pytest_test(
     name = "test_static_ip_alloc",
+    size = "small",
     srcs = ["test_static_ip_alloc.py"],
     imports = [LTE_ROOT],
     deps = [
@@ -95,6 +101,7 @@ pytest_test(
 
 pytest_test(
     name = "test_static_ipv6_alloc",
+    size = "small",
     srcs = ["test_static_ipv6_alloc.py"],
     imports = [LTE_ROOT],
     deps = [
@@ -105,6 +112,7 @@ pytest_test(
 
 pytest_test(
     name = "test_uplink_gw",
+    size = "small",
     srcs = ["test_uplink_gw.py"],
     imports = [LTE_ROOT],
     deps = ["//lte/gateway/python/magma/mobilityd:mobilityd_lib"],
@@ -112,6 +120,7 @@ pytest_test(
 
 pytest_test(
     name = "ip_allocator_tests",
+    size = "small",
     srcs = ["ip_allocator_tests.py"],
     imports = [
         LTE_ROOT,

@@ -14,12 +14,14 @@ load("//bazel:python_test.bzl", "pytest_test")
 
 pytest_test(
     name = "bootstrap_manager_tests",
+    size = "small",
     srcs = ["bootstrap_manager_tests.py"],
     deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
 )
 
 pytest_test(
     name = "collector_tests",
+    size = "small",
     srcs = ["collector_tests.py"],
     deps = [
         requirement("prometheus_client"),
@@ -29,6 +31,7 @@ pytest_test(
 
 pytest_test(
     name = "config_manager_tests",
+    size = "small",
     srcs = ["config_manager_tests.py"],
     deps = [
         "//orc8r/gateway/python/magma/configuration:mconfig_managers",
@@ -38,30 +41,35 @@ pytest_test(
 
 pytest_test(
     name = "metrics_tests",
+    size = "small",
     srcs = ["metrics_tests.py"],
     deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
 )
 
 pytest_test(
     name = "proxy_client_tests",
+    size = "small",
     srcs = ["proxy_client_tests.py"],
     deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
 )
 
 pytest_test(
     name = "service_manager_tests",
+    size = "small",
     srcs = ["service_manager_tests.py"],
     deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
 )
 
 pytest_test(
     name = "service_poller_tests",
+    size = "small",
     srcs = ["service_poller_tests.py"],
     deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
 )
 
 pytest_test(
     name = "state_reporter_test",
+    size = "small",
     srcs = ["state_reporter_test.py"],
     deps = [
         "//orc8r/gateway/python/magma/common:grpc_client_manager",
@@ -71,6 +79,7 @@ pytest_test(
 
 pytest_test(
     name = "sync_rpc_client_tests",
+    size = "medium",
     srcs = ["sync_rpc_client_tests.py"],
     deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
 )

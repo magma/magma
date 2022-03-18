@@ -21,6 +21,7 @@ LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 pytest_test(
     name = "test_policy_servicer",
+    size = "small",
     srcs = ["test_policy_servicer.py"],
     imports = [
         LTE_ROOT,
@@ -37,6 +38,7 @@ pytest_test(
 
 pytest_test(
     name = "test_reauth_handler",
+    size = "small",
     srcs = ["test_reauth_handler.py"],
     imports = [
         LTE_ROOT,
@@ -51,6 +53,7 @@ pytest_test(
 
 pytest_test(
     name = "test_session_servicer",
+    size = "small",
     srcs = ["test_session_servicer.py"],
     imports = [
         LTE_ROOT,
@@ -66,6 +69,7 @@ pytest_test(
 
 pytest_test(
     name = "test_streamer_callback",
+    size = "small",
     srcs = ["test_streamer_callback.py"],
     imports = [
         LTE_ROOT,

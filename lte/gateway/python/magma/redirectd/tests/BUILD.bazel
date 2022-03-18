@@ -19,6 +19,7 @@ LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 pytest_test(
     name = "test_redirect",
+    size = "small",
     srcs = ["test_redirect.py"],
     imports = [
         LTE_ROOT,

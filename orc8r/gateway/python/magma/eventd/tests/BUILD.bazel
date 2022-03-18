@@ -17,6 +17,7 @@ ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
 pytest_test(
     name = "event_validation_tests",
+    size = "small",
     srcs = ["event_validation_tests.py"],
     imports = [ORC8R_ROOT],
     deps = ["//orc8r/gateway/python/magma/eventd:eventd_lib"],

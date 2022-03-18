@@ -13,6 +13,7 @@ load("//bazel:python_test.bzl", "pytest_test")
 
 pytest_test(
     name = "magma_upgrader_tests",
+    size = "small",
     srcs = ["magma_upgrader_tests.py"],
     deps = [
         "//orc8r/gateway/python/magma/magmad/upgrade:magma_upgrader",
@@ -22,6 +23,7 @@ pytest_test(
 
 pytest_test(
     name = "upgrader2_test",
+    size = "small",
     srcs = ["upgrader2_test.py"],
     deps = ["//orc8r/gateway/python/magma/magmad/upgrade:upgrader2"],
 )

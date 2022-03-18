@@ -20,6 +20,7 @@ LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 pytest_test(
     name = "client_tests",
+    size = "small",
     srcs = ["client_tests.py"],
     imports = [
         LTE_ROOT,
@@ -37,6 +38,7 @@ pytest_test(
 
 pytest_test(
     name = "processor_tests",
+    size = "medium",
     srcs = ["processor_tests.py"],
     imports = [LTE_ROOT],
     deps = [
@@ -49,6 +51,7 @@ pytest_test(
 
 pytest_test(
     name = "rpc_tests",
+    size = "small",
     srcs = ["rpc_tests.py"],
     imports = [
         LTE_ROOT,
@@ -63,6 +66,7 @@ pytest_test(
 
 pytest_test(
     name = "sid_utils_tests",
+    size = "small",
     srcs = ["sid_utils_tests.py"],
     imports = [LTE_ROOT],
     deps = [
