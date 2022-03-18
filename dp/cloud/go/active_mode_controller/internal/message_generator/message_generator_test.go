@@ -2,7 +2,6 @@ package message_generator_test
 
 import (
 	"context"
-	"sort"
 	"testing"
 	"time"
 
@@ -353,28 +352,16 @@ func TestGenerateMessages(t *testing.T) {
 			for _, msg := range msgs {
 				_ = msg.Send(context.Background(), p)
 			}
-			thenRequestsAreEqual(t, tt.expectedRequests, p.requests)
+			require.Len(t, p.requests, len(tt.expectedRequests))
+			for i := range tt.expectedRequests {
+				assert.JSONEq(t, tt.expectedRequests[i].Payload, p.requests[i].Payload)
+			}
 			require.Len(t, p.actions, len(tt.expectedActions))
 			for i := range tt.expectedActions {
 				assert.Equal(t, tt.expectedActions[i], p.actions[i])
 			}
 		})
 	}
-}
-
-func thenRequestsAreEqual(t *testing.T, expected, actual []*requests.RequestPayload) {
-	require.Len(t, actual, len(expected))
-	sortRequests(expected)
-	sortRequests(actual)
-	for i := range expected {
-		assert.JSONEq(t, expected[i].Payload, actual[i].Payload)
-	}
-}
-
-func sortRequests(requests []*requests.RequestPayload) {
-	sort.Slice(requests, func(i, j int) bool {
-		return requests[i].Payload < requests[j].Payload
-	})
 }
 
 func getSpectrumInquiryRequest() []*requests.RequestPayload {

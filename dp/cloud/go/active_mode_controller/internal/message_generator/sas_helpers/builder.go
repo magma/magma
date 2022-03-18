@@ -7,13 +7,15 @@ import (
 )
 
 func Build(reqs []*sas.Request) []string {
-	byType := map[sas.RequestType][]json.RawMessage{}
+	byType := [sas.RequestTypeCount][]json.RawMessage{}
 	for _, r := range reqs {
 		byType[r.Type] = append(byType[r.Type], r.Data)
 	}
 	payloads := make([]string, 0, len(byType))
 	for k, v := range byType {
-		payloads = append(payloads, toRequest(k, v))
+		if len(v) != 0 {
+			payloads = append(payloads, toRequest(sas.RequestType(k), v))
+		}
 	}
 	return payloads
 }
