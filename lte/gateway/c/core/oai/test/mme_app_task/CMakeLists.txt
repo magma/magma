@@ -57,6 +57,8 @@ set(MME_APP_TEST_SRC
     test_mme_procedures.cpp
     test_mme_procedures_mobile_reachability_timer.cpp
     test_mme_procedures_nas_timer.cpp
+    test_mme_procedures_x2_handover.cpp
+    test_mme_procedures_network_initiated.cpp
     test_sgw_config.cpp
     )
 
