@@ -11,3 +11,5 @@
         image:
           repository: "{{ magma_docker_registry }}/controller"
           tag: "{{ magma_docker_tag }}"
+          env:
+            orc8r_domain_name: "{{ orc8r_domain }}"
