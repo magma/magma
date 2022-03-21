@@ -234,7 +234,7 @@ func TestBuilder_Build(t *testing.T) {
 
 	actual, err = build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
-	assert.Equal(t, expected, actual)
+	assertMapsEqual(t, expected, actual)
 
 	// Put a config on the gw, erase the network config
 	nw.Configs = map[string]interface{}{}
@@ -243,7 +243,7 @@ func TestBuilder_Build(t *testing.T) {
 
 	actual, err = build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
-	assert.Equal(t, expected, actual)
+	assertMapsEqual(t, expected, actual)
 }
 
 func build(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
@@ -425,4 +425,11 @@ var defaultConfig = &models.NetworkFederationConfigs{
 			ServerAddress: "",
 		},
 	},
+}
+
+func assertMapsEqual(t *testing.T, expected map[string]proto.Message, actual map[string]proto.Message) {
+	assert.Equal(t, len(expected), len(actual))
+	for key := range actual {
+		assert.Equal(t, expected[key].String(), actual[key].String())
+	}
 }

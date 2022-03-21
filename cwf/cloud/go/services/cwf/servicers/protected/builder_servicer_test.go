@@ -162,7 +162,7 @@ func TestBuilder_Build(t *testing.T) {
 
 		actual, err := build(&nw, &graph, "gw1")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		assertMapsEqual(t, expected, actual)
 	})
 }
 
@@ -224,4 +224,11 @@ var defaultgwConfig = &models.GatewayCwfConfigs{
 		IP:   "192.168.128.88",
 		Port: 2040,
 	},
+}
+
+func assertMapsEqual(t *testing.T, expected map[string]proto.Message, actual map[string]proto.Message) {
+	assert.Equal(t, len(expected), len(actual))
+	for key := range actual {
+		assert.Equal(t, expected[key].String(), actual[key].String())
+	}
 }
