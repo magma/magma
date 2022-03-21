@@ -34,12 +34,7 @@ func NewRegistrationServicer() protos.RegistrationServer {
 }
 
 func (r *RegistrationService) Register(c context.Context, request *protos.RegisterRequest) (*protos.RegisterResponse, error) {
-	nonce, err := NonceFromToken(request.Token)
-	if err != nil {
-		return nil, err
-	}
-
-	deviceInfo, err := r.GetGatewayDeviceInfo(context.Background(), nonce)
+	deviceInfo, err := r.GetGatewayDeviceInfo(context.Background(), request.Token)
 	if err != nil {
 		clientErr := makeErr(fmt.Sprintf("could not get device info from token %v: %v", request.Token, err))
 		return clientErr, nil
