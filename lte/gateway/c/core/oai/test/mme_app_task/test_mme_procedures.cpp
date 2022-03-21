@@ -29,11 +29,6 @@
 extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_app_state.h"
 }
-
-using ::testing::_;
-using ::testing::DoAll;
-using ::testing::SaveArg;
-
 namespace magma {
 namespace lte {
 
@@ -393,81 +388,6 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyUlaFailure) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-}
-
-TEST_F(MmeAppProcedureTest, TestImsiAttachExpiredNasTimers) {
-  mme_app_desc_t* mme_state_p =
-      magma::lte::MmeNasStateManager::getInstance().get_state(false);
-  std::condition_variable cv;
-  std::mutex mx;
-  std::unique_lock<std::mutex> lock(mx);
-
-  MME_APP_EXPECT_CALLS(15, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
-
-  // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
-                              sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
-
-  // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi, true);
-
-  // Wait for DL NAS Transport up to retransmission limit
-  for (int i = 0; i < NAS_RETX_LIMIT; ++i) {
-    cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  }
-  // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_auth_resp, sizeof(nas_msg_auth_resp),
-                               plmn);
-
-  // Wait for DL NAS Transport up to retransmission limit
-  for (int i = 0; i < NAS_RETX_LIMIT; ++i) {
-    cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  }
-  // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_smc_resp, sizeof(nas_msg_smc_resp),
-                               plmn);
-
-  // Sending ULA to mme_app mimicing successful S6A response for ULR
-  send_s6a_ula(imsi, true);
-
-  // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
-
-  // Constructing and sending ICS Response to mme_app mimicing S1AP
-  send_ics_response();
-
-  // Constructing UE Capability Indication message to mme_app
-  // mimicing S1AP with dummy radio capabilities
-  send_ue_capabilities_ind();
-
-  // Wait for DL NAS Transport up to retransmission limit.
-  // The first Attach Accept was piggybacked on ICS Request.
-  for (int i = 1; i < NAS_RETX_LIMIT; ++i) {
-    cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  }
-  // Constructing and sending Attach Complete to mme_app
-  // mimicing S1AP
-  send_mme_app_uplink_data_ind(nas_msg_attach_comp, sizeof(nas_msg_attach_comp),
-                               plmn);
-
-  // Wait for DL NAS Transport for EMM Information
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-
-  // Constructing and sending Modify Bearer Response to mme_app
-  // mimicing SPGW
-  std::vector<int> b_modify = {5};
-  std::vector<int> b_rm = {};
-  send_modify_bearer_resp(b_modify, b_rm);
-
-  // Check MME state after Modify Bearer Response
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachRejectAuthRetxFailure) {
@@ -1683,60 +1603,6 @@ TEST_F(MmeAppProcedureTest, TestFailedPagingForPendingBearers) {
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
 
   detach_ue(cv, lock, mme_state_p, guti, false);
-}
-
-TEST_F(MmeAppProcedureTest, TestMobileReachabilityTimer) {
-  mme_app_desc_t* mme_state_p =
-      magma::lte::MmeNasStateManager::getInstance().get_state(false);
-  std::condition_variable cv;
-  std::mutex mx;
-  std::unique_lock<std::mutex> lock(mx);
-
-  MME_APP_EXPECT_CALLS(3, 1, 2, 1, 1, 1, 1, 1, 1, 1, 3);
-
-  // Attach the UE
-  guti = {0};
-  attach_ue(cv, lock, mme_state_p, &guti);
-
-  // Send context release request mimicing S1AP
-  send_context_release_req(S1AP_RADIO_EUTRAN_GENERATED_REASON, TASK_S1AP);
-
-  // Constructing and sending Release Access Bearer Response to mme_app
-  // mimicing SPGW
-  sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
-  // mimicing S1AP task
-  send_ue_ctx_release_complete();
-
-  // Check MME state after context release request is processed
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 1);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
-
-  // Wait for delete session request
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Constructing and sending Delete Session Response to mme_app
-  // mimicing SPGW task
-  send_delete_session_resp(DEFAULT_LBI);
-
-  // Wait for context release command
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-
-  // Check MME state after implicit detach complete
-  send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
-  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
-  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
 }
 
 TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchSuccess) {
