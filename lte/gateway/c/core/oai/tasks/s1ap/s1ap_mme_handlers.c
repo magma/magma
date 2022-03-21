@@ -5309,14 +5309,16 @@ static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int timer_id,
   if (!s1ap_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(LOG_S1AP, "Invalid Timer Id expiration, Timer Id: %u\n",
                    timer_id);
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    // Timer handlers need to return 0 to avoid triggering ZMQ thread exit
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
   if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
     OAILOG_ERROR(
         LOG_S1AP,
         "Failed to find UE context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    // Timer handlers need to return 0 to avoid triggering ZMQ thread exit
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
 
   state = get_s1ap_state(false);
