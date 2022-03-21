@@ -1110,6 +1110,21 @@ void s1ap_handle_conn_est_cnf(
                                   ue_ref->mme_ue_s1ap_id);
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
+
+void send_dereg_ind_to_mme_app(enb_ue_s1ap_id_t enb_ue_s1ap_id,
+                               mme_ue_s1ap_id_t mme_ue_s1ap_id,
+                               uint32_t enb_id) {
+  OAILOG_FUNC_IN(LOG_S1AP);
+  MessageDef* message_p = NULL;
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_S1AP,
+                                                     S1AP_ENB_DEREGISTERED_IND);
+  S1AP_ENB_DEREGISTERED_IND(message_p).mme_ue_s1ap_id[0] = mme_ue_s1ap_id;
+  S1AP_ENB_DEREGISTERED_IND(message_p).enb_ue_s1ap_id[0] = enb_ue_s1ap_id;
+  S1AP_ENB_DEREGISTERED_IND(message_p).enb_id = enb_id;
+  S1AP_ENB_DEREGISTERED_IND(message_p).nb_ue_to_deregister = 1;
+  send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
+  OAILOG_FUNC_OUT(LOG_S1AP);
+}
 //------------------------------------------------------------------------------
 void s1ap_handle_mme_ue_id_notification(
     s1ap_state_t* state,
@@ -1129,6 +1144,11 @@ void s1ap_handle_mme_ue_id_notification(
     ue_description_t* ue_ref =
         s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id, enb_ue_s1ap_id);
     if (ue_ref) {
+      if (enb_ref->s1_state == S1AP_RESETING) {
+        send_dereg_ind_to_mme_app(enb_ue_s1ap_id, mme_ue_s1ap_id,
+                                  enb_ref->enb_id);
+        return;
+      }
       ue_ref->mme_ue_s1ap_id = mme_ue_s1ap_id;
       hashtable_rc_t h_rc = hashtable_ts_insert(
           &state->mmeid2associd, (const hash_key_t)mme_ue_s1ap_id,
