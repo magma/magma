@@ -90,8 +90,8 @@ void PagingApplication::handle_paging_message(
      * The clamping time is necessary to prevent packets from continually
      * hitting userspace, and as a retry time if paging fails
      */
-    of13::FlowMod fm =
-        messenger.create_default_flow_mod(0, of13::OFPFC_ADD, MID_PRIORITY + 1);
+    of13::FlowMod fm = messenger.create_default_flow_mod(
+        SPGW_TABLE, of13::OFPFC_ADD, MID_PRIORITY + 1);
     fm.hard_timeout(CLAMPING_TIMEOUT);
     of13::EthType type_match(IP_ETH_TYPE);
     fm.add_oxm_field(type_match);
@@ -139,8 +139,8 @@ void PagingApplication::handle_paging_ipv6_message(
    * The clamping time is necessary to prevent packets from continually hitting
    * userspace, and as a retry time if paging fails
    */
-  of13::FlowMod fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, MID_PRIORITY + 1);
+  of13::FlowMod fm = messenger.create_default_flow_mod(
+      SPGW_TABLE, of13::OFPFC_ADD, MID_PRIORITY + 1);
   fm.hard_timeout(CLAMPING_TIMEOUT);
   of13::EthType ip6_type(0x86DD);
   fm.add_oxm_field(ip6_type);
@@ -158,8 +158,8 @@ void PagingApplication::handle_paging_ipv6_message(
 
 void PagingApplication::add_paging_flow(const AddPagingRuleEvent& ev,
                                         const OpenflowMessenger& messenger) {
-  of13::FlowMod fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, MID_PRIORITY);
+  of13::FlowMod fm = messenger.create_default_flow_mod(
+      SPGW_TABLE, of13::OFPFC_ADD, MID_PRIORITY);
   // IP eth type
   of13::EthType type_match(IP_ETH_TYPE);
   fm.add_oxm_field(type_match);
@@ -189,8 +189,8 @@ void PagingApplication::add_paging_flow(const AddPagingRuleEvent& ev,
 
 void PagingApplication::add_paging_flow_ipv6(
     const AddPagingRuleEvent& ev, const OpenflowMessenger& messenger) {
-  of13::FlowMod fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, MID_PRIORITY);
+  of13::FlowMod fm = messenger.create_default_flow_mod(
+      SPGW_TABLE, of13::OFPFC_ADD, MID_PRIORITY);
   // IP eth type
   of13::EthType ip6_type(0x86DD);
   fm.add_oxm_field(ip6_type);
@@ -227,7 +227,7 @@ void PagingApplication::add_paging_flow_ipv6(
 void PagingApplication::delete_paging_flow(const DeletePagingRuleEvent& ev,
                                            const OpenflowMessenger& messenger) {
   of13::FlowMod fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_DELETE, 0);
+      messenger.create_default_flow_mod(SPGW_TABLE, of13::OFPFC_DELETE, 0);
 
   // IP eth type
   of13::EthType type_match(IP_ETH_TYPE);
@@ -259,7 +259,7 @@ void PagingApplication::delete_paging_flow(const DeletePagingRuleEvent& ev,
 void PagingApplication::delete_paging_flow_ipv6(
     const DeletePagingRuleEvent& ev, const OpenflowMessenger& messenger) {
   of13::FlowMod fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_DELETE, 0);
+      messenger.create_default_flow_mod(SPGW_TABLE, of13::OFPFC_DELETE, 0);
 
   // IP eth type
   of13::EthType ip6_type(0x86DD);

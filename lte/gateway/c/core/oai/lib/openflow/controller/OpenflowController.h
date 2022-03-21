@@ -33,6 +33,9 @@ namespace openflow {
 
 class Application {
  public:
+  static const uint8_t SPGW_TABLE = 0;
+
+ public:
   virtual void event_callback(const ControllerEvent& ev,
                               const OpenflowMessenger& messenger) {}
   virtual ~Application() {}
