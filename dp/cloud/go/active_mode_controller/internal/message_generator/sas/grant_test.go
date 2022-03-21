@@ -18,24 +18,38 @@ func TestGrantRequestGenerator(t *testing.T) {
 		capabilities  *active_mode.EirpCapabilities
 		channels      []*active_mode.Channel
 		grantAttempts int
-		expected      []*request
+		expected      *grantParams
 	}{
 		{
 			name:         "Should generate grant request with default max eirp",
 			capabilities: getDefaultCapabilities(),
 			channels: []*active_mode.Channel{{
-				FrequencyRange: getDefaultFrequencyRange(),
+				FrequencyRange: &active_mode.FrequencyRange{
+					Low:  3620 * mega,
+					High: 3630 * mega,
+				},
 			}},
-			expected: newGrantParams().toRequest(),
+			expected: &grantParams{
+				maxEirp:      37,
+				minFrequency: 3620 * mega,
+				maxFrequency: 3630 * mega,
+			},
 		},
 		{
 			name:         "Should generate grant request with max eirp from channels",
 			capabilities: getDefaultCapabilities(),
 			channels: []*active_mode.Channel{{
-				FrequencyRange: getDefaultFrequencyRange(),
-				MaxEirp:        wrapperspb.Float(15),
+				FrequencyRange: &active_mode.FrequencyRange{
+					Low:  3625 * mega,
+					High: 3635 * mega,
+				},
+				MaxEirp: wrapperspb.Float(15),
 			}},
-			expected: newGrantParams(withMaxEirp(15)).toRequest(),
+			expected: &grantParams{
+				maxEirp:      15,
+				minFrequency: 3625 * mega,
+				maxFrequency: 3635 * mega,
+			},
 		},
 		{
 			name: "Should generate grant request based on capabilities and bandwidth",
@@ -45,9 +59,16 @@ func TestGrantRequestGenerator(t *testing.T) {
 				NumberOfPorts: 2,
 			},
 			channels: []*active_mode.Channel{{
-				FrequencyRange: getDefaultFrequencyRange(),
+				FrequencyRange: &active_mode.FrequencyRange{
+					Low:  3625 * mega,
+					High: 3635 * mega,
+				},
 			}},
-			expected: newGrantParams(withMaxEirp(28)).toRequest(),
+			expected: &grantParams{
+				maxEirp:      28,
+				minFrequency: 3625 * mega,
+				maxFrequency: 3635 * mega,
+			},
 		},
 		{
 			name:         "Should use merged channels",
@@ -63,10 +84,11 @@ func TestGrantRequestGenerator(t *testing.T) {
 					High: 3570 * mega,
 				},
 			}},
-			expected: newGrantParams(
-				withMaxEirp(37),
-				withFrequencyMHz(3550*mega, 3570*mega),
-			).toRequest(),
+			expected: &grantParams{
+				maxEirp:      37,
+				minFrequency: 3550 * mega,
+				maxFrequency: 3570 * mega,
+			},
 		},
 		{
 			name:         "Should not generate anything if there are no suitable channels",
@@ -77,16 +99,21 @@ func TestGrantRequestGenerator(t *testing.T) {
 					High: 3553 * mega,
 				},
 			}},
+			expected: nil,
 		},
 		{
 			name:         "Should not generate anything if there are no channels",
 			capabilities: getDefaultCapabilities(),
+			expected:     nil,
 		},
 		{
 			name:         "Should not generate anything if there are grant attempts",
 			capabilities: getDefaultCapabilities(),
 			channels: []*active_mode.Channel{{
-				FrequencyRange: getDefaultFrequencyRange(),
+				FrequencyRange: &active_mode.FrequencyRange{
+					Low:  3550 * mega,
+					High: 3700 * mega,
+				},
 			}},
 			grantAttempts: 1,
 		},
@@ -99,24 +126,18 @@ func TestGrantRequestGenerator(t *testing.T) {
 				EirpCapabilities: tt.capabilities,
 				GrantAttempts:    int32(tt.grantAttempts),
 			}
-			g := sas.NewGrantRequestGenerator(&stubIndexProvider{})
+			g := sas.NewGrantRequestGenerator(stubRNG{})
 			actual := g.GenerateRequests(cbsd)
-			assertRequestsEqual(t, tt.expected, actual)
+			expected := toRequest(tt.expected)
+			assertRequestsEqual(t, expected, actual)
 		})
 	}
 }
 
-type stubIndexProvider struct{}
+type stubRNG struct{}
 
-func (s *stubIndexProvider) Intn(_ int) int {
+func (stubRNG) Int() int {
 	return 0
-}
-
-func getDefaultFrequencyRange() *active_mode.FrequencyRange {
-	return &active_mode.FrequencyRange{
-		Low:  3.62e9,
-		High: 3.63e9,
-	}
 }
 
 func getDefaultCapabilities() *active_mode.EirpCapabilities {
@@ -134,34 +155,10 @@ type grantParams struct {
 	maxFrequency int
 }
 
-type grantOption func(*grantParams)
-
-func withFrequencyMHz(low int, high int) grantOption {
-	return func(g *grantParams) {
-		g.minFrequency = low
-		g.maxFrequency = high
+func toRequest(g *grantParams) []*request {
+	if g == nil {
+		return nil
 	}
-}
-
-func withMaxEirp(eirp float32) grantOption {
-	return func(g *grantParams) {
-		g.maxEirp = eirp
-	}
-}
-
-func newGrantParams(options ...grantOption) *grantParams {
-	g := &grantParams{
-		maxEirp:      37,
-		minFrequency: 3620 * mega,
-		maxFrequency: 3630 * mega,
-	}
-	for _, o := range options {
-		o(g)
-	}
-	return g
-}
-
-func (g *grantParams) toRequest() []*request {
 	const requestTemplate = `{
 	"cbsdId": "some_cbsd_id",
 	"operationParam": {

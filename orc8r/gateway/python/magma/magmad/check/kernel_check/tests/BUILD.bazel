@@ -13,6 +13,7 @@ load("//bazel:python_test.bzl", "pytest_test")
 
 pytest_test(
     name = "kernel_versions_tests",
+    size = "small",
     srcs = ["kernel_versions_tests.py"],
     deps = ["//orc8r/gateway/python/magma/magmad/check/kernel_check:kernel_versions"],
 )

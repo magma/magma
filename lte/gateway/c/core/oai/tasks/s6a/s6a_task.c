@@ -136,7 +136,10 @@ static void* s6a_thread(void* args) {
   }
 
   zloop_start(s6a_task_zmq_ctx.event_loop);
-  AssertFatal(0, "Asserting as s6a_thread should not be exiting on its own!");
+  AssertFatal(0,
+              "Asserting as s6a_thread should not be exiting on its own! "
+              "This is likely due to a timer handler function returning -1 "
+              "(RETURNerror) on one of the conditions.");
   return NULL;
 }
 

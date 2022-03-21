@@ -17,6 +17,7 @@ LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 pytest_test(
     name = "crypto_tests",
+    size = "small",
     srcs = ["crypto_tests.py"],
     imports = [LTE_ROOT],
     deps = ["//lte/gateway/python/magma/subscriberdb/crypto:gsm"],
@@ -24,6 +25,7 @@ pytest_test(
 
 pytest_test(
     name = "milenage_tests",
+    size = "small",
     srcs = ["milenage_tests.py"],
     imports = [LTE_ROOT],
     deps = ["//lte/gateway/python/magma/subscriberdb/crypto:milenage"],
@@ -31,6 +33,7 @@ pytest_test(
 
 pytest_test(
     name = "test_ECIES",
+    size = "small",
     srcs = ["test_ECIES.py"],
     imports = [LTE_ROOT],
     deps = ["//lte/gateway/python/magma/subscriberdb/crypto:ECIES"],

@@ -2,7 +2,10 @@ package ranges
 
 import "magma/dp/cloud/go/active_mode_controller/internal/containers"
 
-func FindAvailable(points []Point, length int, minValue int) []Range {
+func ComposeForMidpoints(points []Point, length int, minValue int) []Range {
+	if len(points) == 0 {
+		return nil
+	}
 	var res []Range
 	i, j := -1, 0
 	last := points[len(points)-1].Pos
@@ -21,8 +24,8 @@ func FindAvailable(points []Point, length int, minValue int) []Range {
 		}
 		if v := mq.Top(); v >= minValue {
 			res = addRange(res, Range{
-				Begin: pos,
-				End:   pos + delta,
+				Begin: pos + length/2,
+				End:   pos + delta + length/2,
 				Value: v,
 			})
 		}
