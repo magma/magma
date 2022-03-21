@@ -13,6 +13,7 @@ load("//bazel:python_test.bzl", "pytest_test")
 
 pytest_test(
     name = "cpu_info_tests",
+    size = "small",
     srcs = ["cpu_info_tests.py"],
     deps = ["//orc8r/gateway/python/magma/magmad/check/machine_check:cpu_info"],
 )

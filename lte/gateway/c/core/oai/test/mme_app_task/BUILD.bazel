@@ -105,6 +105,16 @@ cc_test(
     ],
 )
 
+cc_library(
+    name = "mme_procedure_test_fixture",
+    hdrs = ["mme_procedure_test_fixture.h"],
+    deps = [
+        ":mme_app_test_core",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
 cc_test(
     name = "mme_procedures_test",
     srcs = [
@@ -114,8 +124,21 @@ cc_test(
     tags = ["manual"],
     deps = [
         ":mme_app_test_core",
+        ":mme_procedure_test_fixture",
         "//lte/gateway/c/core",
         "//lte/gateway/c/core/oai/test/mock_tasks",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "mme_app_ue_context_test",
+    size = "small",
+    srcs = [
+        "test_mme_app_ue_context.cpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core",
         "@com_google_googletest//:gtest_main",
     ],
 )

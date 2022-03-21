@@ -15,6 +15,7 @@ const (
 	Heartbeat
 	Relinquishment
 	Deregistration
+	RequestTypeCount
 )
 
 func (r RequestType) String() string {

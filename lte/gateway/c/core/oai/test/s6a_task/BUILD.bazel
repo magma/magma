@@ -9,24 +9,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//bazel:python_test.bzl", "pytest_test")
+load("@rules_cc//cc:defs.bzl", "cc_test")
 
-MAGMA_ROOT = "../../../../../../"
+package(default_visibility = ["//visibility:private"])
 
-ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
-
-LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
-
-pytest_test(
-    name = "test_icmp_monitor",
+cc_test(
+    name = "s6a_recv_async_grpc_messages_test",
     size = "small",
-    srcs = ["test_icmp_monitor.py"],
-    imports = [
-        LTE_ROOT,
-        ORC8R_ROOT,
-    ],
+    srcs = ["s6a_recv_async_grpc_messages.cpp"],
     deps = [
-        "//lte/gateway/python/magma/monitord:monitord_lib",
-        "//lte/protos:mobilityd_python_proto",
+        "//lte/gateway/c/core",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "@com_google_googletest//:gtest_main",
     ],
 )
