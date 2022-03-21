@@ -23,10 +23,9 @@ extern "C" {
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
-
 /****************************************************************************
  **                                                                        **
- ** name:    amf_app_ue_context_release()                             **
+ ** name:    amf_app_itti_ue_context_release()                             **
  **                                                                        **
  ** description: Send itti mesage to ngap task to send UE Context Release  **
  **              Request                                                   **
@@ -34,10 +33,11 @@ extern task_zmq_ctx_t amf_app_task_zmq_ctx;
  ** inputs:  ue_context_p: Pointer to UE context amf_cause: failed cause   **
  **                                                                        **
  ***************************************************************************/
-void amf_app_ue_context_release(ue_m5gmm_context_s* ue_context_p,
-                                ngap_Cause_t cause) {
+void amf_app_itti_ue_context_release(ue_m5gmm_context_s* ue_context_p,
+                                     n2cause n2_cause) {
   MessageDef* message_p;
   OAILOG_FUNC_IN(LOG_AMF_APP);
+
   message_p =
       itti_alloc_new_message(TASK_AMF_APP, NGAP_UE_CONTEXT_RELEASE_COMMAND);
 
@@ -45,16 +45,22 @@ void amf_app_ue_context_release(ue_m5gmm_context_s* ue_context_p,
     OAILOG_ERROR(LOG_AMF_APP, "message is null");
     OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
-  memset(&NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p), 0,
-         sizeof(itti_ngap_ue_context_release_command_t));
+
+  OAILOG_INFO_UE(
+      LOG_AMF_APP, ue_context_p->amf_context.imsi64,
+      "Sending UE Context Release Cmd to NGAP for (ue_id = " AMF_UE_NGAP_ID_FMT
+      ")\n"
+      "UE Context Release Cause = (%d)\n",
+      ue_context_p->amf_ue_ngap_id, n2_cause);
+
   NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).amf_ue_ngap_id =
       ue_context_p->amf_ue_ngap_id;
   NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).gnb_ue_ngap_id =
       ue_context_p->gnb_ue_ngap_id;
-  NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).cause =
-      (Ngcause)cause.ngapCause_u.nas;
+  NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).cause = n2_cause;
   message_p->ittiMsgHeader.imsi = ue_context_p->amf_context.imsi64;
   amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
+
 }  // namespace magma5g

@@ -218,10 +218,10 @@ void AmfNasStateConverter::ue_m5gmm_context_to_proto(
     const ue_m5gmm_context_t* state_ue_m5gmm_context,
     magma::lte::oai::UeContext* ue_context_proto) {
   ue_context_proto->set_amf_ue_ngap_id(state_ue_m5gmm_context->amf_ue_ngap_id);
-  ue_context_proto->set_rel_cause(
-      state_ue_m5gmm_context->ue_context_rel_cause.present);
+  ue_context_proto->set_rel_cause(state_ue_m5gmm_context->ue_context_rel_cause);
+
   ue_context_proto->set_mm_state(state_ue_m5gmm_context->mm_state);
-  ue_context_proto->set_ecm_state(state_ue_m5gmm_context->ecm_state);
+  ue_context_proto->set_ecm_state(state_ue_m5gmm_context->cm_state);
 
   EmmContext* emm_ctx = ue_context_proto->mutable_emm_context();
   AmfNasStateConverter::amf_context_to_proto(
@@ -248,11 +248,12 @@ void AmfNasStateConverter::proto_to_ue_m5gmm_context(
     const magma::lte::oai::UeContext& ue_context_proto,
     ue_m5gmm_context_t* state_ue_m5gmm_context) {
   state_ue_m5gmm_context->amf_ue_ngap_id = ue_context_proto.amf_ue_ngap_id();
-  state_ue_m5gmm_context->ue_context_rel_cause.present =
-      static_cast<ngap_Cause_PR>(ue_context_proto.rel_cause());
+  state_ue_m5gmm_context->ue_context_rel_cause =
+      static_cast<n2cause>(ue_context_proto.rel_cause());
+
   state_ue_m5gmm_context->mm_state =
       static_cast<m5gmm_state_t>(ue_context_proto.mm_state());
-  state_ue_m5gmm_context->ecm_state =
+  state_ue_m5gmm_context->cm_state =
       static_cast<m5gcm_state_t>(ue_context_proto.ecm_state());
 
   AmfNasStateConverter::proto_to_amf_context(
@@ -273,7 +274,7 @@ void AmfNasStateConverter::proto_to_ue_m5gmm_context(
   // Initialize timers to INVALID IDs
   state_ue_m5gmm_context->m5_mobile_reachability_timer.id =
       AMF_APP_TIMER_INACTIVE_ID;
-  state_ue_m5gmm_context->m5_implicit_detach_timer.id =
+  state_ue_m5gmm_context->m5_implicit_deregistration_timer.id =
       AMF_APP_TIMER_INACTIVE_ID;
   state_ue_m5gmm_context->m5_initial_context_setup_rsp_timer =
       (amf_app_timer_t){AMF_APP_TIMER_INACTIVE_ID,
