@@ -14,7 +14,6 @@ from typing import Optional
 
 from magma.pipelined.openflow.registers import (
     DIRECTION_REG,
-    DPI_REG,
     IMSI_REG,
     NG_SESSION_ID_REG,
     PASSTHROUGH_REG,
@@ -75,8 +74,8 @@ class MagmaMatch(object):
             ryu_match[PASSTHROUGH_REG] = self.passthrough
         if self.vlan_tag is not None:
             ryu_match[VLAN_TAG_REG] = self.vlan_tag
-        if self.app_id is not None:
-            ryu_match[DPI_REG] = self.app_id
+        """ if self.app_id is not None:
+            ryu_match[DPI_REG] = self.app_id """
         if self.proxy_tag is not None:
             ryu_match[PROXY_TAG_REG] = self.proxy_tag
         if self.local_f_teid_ng is not None:

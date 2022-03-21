@@ -75,24 +75,3 @@ class PyLintWrapper():
             linter.check(path)
 
             return linter.reporter.messages
-
-    def assertNoLintErrors(self, path):
-        msg = "PyLint found errors:\n"
-
-        problems = self.run_pylint(path)
-        errors_per_module = {}
-        for message in problems:
-            if self.filter(message):
-                group = errors_per_module.setdefault(message.module, [])
-                group.append(message)
-        for module, errors in errors_per_module.items():
-            msgs_for_module = [
-                "{}: {}, {}: {} ({})".format(
-                    message.msg_id, message.line, message.column,
-                    message.msg, message.symbol,
-                ) for message in errors
-            ]
-            msg += "************* Module {}\n".format(module)
-            msg += "\n".join(msgs_for_module) + "\n"
-        if errors_per_module:
-            raise AssertionError(msg)

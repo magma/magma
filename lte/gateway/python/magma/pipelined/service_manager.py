@@ -57,7 +57,6 @@ from magma.pipelined.app.base import ControllerType
 from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.app.classifier import Classifier
 from magma.pipelined.app.conntrack import ConntrackController
-from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.gy import GYController
@@ -347,13 +346,6 @@ class ServiceManager:
                 module=EnforcementStatsController.__module__,
                 type=EnforcementStatsController.APP_TYPE,
                 order_priority=501,
-            ),
-        ],
-        PipelineD.DPI: [
-            App(
-                name=DPIController.APP_NAME, module=DPIController.__module__,
-                type=DPIController.APP_TYPE,
-                order_priority=400,
             ),
         ],
     }

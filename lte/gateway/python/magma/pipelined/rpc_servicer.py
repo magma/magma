@@ -50,7 +50,6 @@ from lte.protos.session_manager_pb2 import RuleRecordTable
 from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.app.classifier import Classifier
-from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.ipfix import IPFIXController
@@ -590,61 +589,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 request.pdp_start_time,
             )
 
-        resp = FlowResponse()
-        return resp
-
-    # --------------------------
-    # DPI App
-    # --------------------------
-
-    def CreateFlow(self, request, context):
-        """
-        Add dpi flow
-        """
-        self._log_grpc_payload(request)
-        if not self._service_manager.is_app_enabled(
-                DPIController.APP_NAME,
-        ):
-            context.set_code(grpc.StatusCode.UNAVAILABLE)
-            context.set_details('Service not enabled!')
-            return None
-        resp = FlowResponse()
-        self._loop.call_soon_threadsafe(
-            self._dpi_app.add_classify_flow,
-            request.match, request.state,
-            request.app_name, request.service_type,
-        )
-        return resp
-
-    def RemoveFlow(self, request, context):
-        """
-        Add dpi flow
-        """
-        self._log_grpc_payload(request)
-        if not self._service_manager.is_app_enabled(
-                DPIController.APP_NAME,
-        ):
-            context.set_code(grpc.StatusCode.UNAVAILABLE)
-            context.set_details('Service not enabled!')
-            return None
-        resp = FlowResponse()
-        self._loop.call_soon_threadsafe(
-            self._dpi_app.remove_classify_flow,
-            request.match,
-        )
-        return resp
-
-    def UpdateFlowStats(self, request, context):
-        """
-        Update stats for a flow
-        """
-        self._log_grpc_payload(request)
-        if not self._service_manager.is_app_enabled(
-                DPIController.APP_NAME,
-        ):
-            context.set_code(grpc.StatusCode.UNAVAILABLE)
-            context.set_details('Service not enabled!')
-            return None
         resp = FlowResponse()
         return resp
 

@@ -16,11 +16,7 @@ from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.policydb_pb2 import FlowMatch
 from magma.pipelined.ipv6_prefix_store import IPV6_PREFIX_LEN, get_ipv6_prefix
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import (
-    DPI_REG,
-    Direction,
-    load_direction,
-)
+from magma.pipelined.openflow.registers import Direction
 from ryu.lib.packet import ether_types
 
 MATCH_ATTRIBUTES = [
@@ -113,8 +109,6 @@ def flow_match_to_magma_match(match, ip_addr=None):
                 elif attrib == 'ip_dst':
                     match_kwargs['ipv6_dst'] = decoded_ip
             continue
-        elif attrib == 'app_name':
-            attrib = DPI_REG
 
         match_kwargs[attrib] = value
 
@@ -140,36 +134,6 @@ def flow_match_to_magma_match(match, ip_addr=None):
         direction=get_direction_for_match(match),
         **match_kwargs,
     )
-
-
-def flow_match_to_actions(datapath, match):
-    '''
-    Convert a FlowMatch to list of actions to get the same packet
-
-    Args:
-        match: FlowMatch
-    '''
-    parser = datapath.ofproto_parser
-    _check_pkt_protocol(match)
-    # Eth type and ip proto are read only, can't set them here (set on pkt init)
-    actions = [
-        parser.OFPActionSetField(ipv4_src=getattr(match, 'ipv4_src', '1.1.1.1')),
-        parser.OFPActionSetField(ipv4_dst=getattr(match, 'ipv4_dst', '1.2.3.4')),
-        load_direction(parser, get_direction_for_match(match)),
-        parser.NXActionRegLoad2(dst=DPI_REG, value=getattr(match, 'app_id', 0)),
-    ]
-    if match.ip_proto == FlowMatch.IPPROTO_TCP:
-        actions.extend([
-            parser.OFPActionSetField(tcp_src=getattr(match, 'tcp_src', 0)),
-            parser.OFPActionSetField(tcp_dst=getattr(match, 'tcp_dst', 0)),
-        ])
-    elif match.ip_proto == FlowMatch.IPPROTO_UDP:
-        actions.extend([
-            parser.OFPActionSetField(udp_src=getattr(match, 'udp_src', 0)),
-            parser.OFPActionSetField(udp_dst=getattr(match, 'udp_dst', 0)),
-        ])
-    return actions
-
 
 def flip_flow_match(match):
     '''

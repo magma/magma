@@ -19,7 +19,6 @@ from magma.pipelined.imsi import encode_imsi
 IMSI_REG = 'metadata'
 DIRECTION_REG = 'reg1'
 RULE_NUM_REG = 'reg2'
-DPI_REG = 'reg10'
 TEST_PACKET_REG = 'reg5'
 PASSTHROUGH_REG = 'reg6'
 VLAN_TAG_REG = 'reg7'

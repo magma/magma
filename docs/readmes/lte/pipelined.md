@@ -116,7 +116,7 @@ Static services include mandatory services (such as OAI and inout) which are alw
 
 Services(controllers) are split into two: Physical and Logical.
 Physical controllers: arpd, access_control.
-Logical controllers: dpi, enforcement.
+Logical controllers: enforcement.
 
 ### Configurable Services
 
@@ -125,15 +125,6 @@ These services can be enabled and ordered from orchestrator cloud. `mconfig` is 
 Table numbers are dynamically assigned to these services and depenedent on the order.
 
 ```text
-    -------------------------------
-    |          Table X            |
-    |            DPI              |
-    |- Assigns App ID to each new |
-    |  IP tuple encountered       |
-    |- Optional, requires separate|
-    |  DPI engine                 |
-    -------------------------------
-
     -------------------------------     -------------------------------
     |          Table X            |     |       Scratch Table 1       |
     |        enforcement          | --->|           redirect          |
@@ -164,7 +155,6 @@ reg0     | Scratch    | Temporary Arithmetic | Any
 reg3     | Scratch    | Temporary Arithmetic | Any
 reg1     | Global     | Direction bit        | Table 1 (inout application)
 reg2     | Local      | Policy number        | Enforcement app
-reg10    | Global     | App ID               | DPI app
 reg4     | Local      | Policy version number| Enforcement app
 reg6     | Global     | Passthrough flag     | Ue Mac app
 reg7     | Local      | Vlan Tag             | Vlan learn app

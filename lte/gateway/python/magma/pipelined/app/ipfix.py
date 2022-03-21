@@ -15,7 +15,6 @@ from typing import Dict, NamedTuple
 
 from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.pipelined.app.base import ControllerType, MagmaController
-from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -198,13 +197,6 @@ class IPFIXController(MagmaController):
             priority=flows.MINIMUM_PRIORITY,
             resubmit_table=self.next_main_table,
         )
-
-        if not self._service_manager.is_app_enabled(DPIController.APP_NAME):
-            flows.add_resubmit_next_service_flow(
-                self._datapath, self._app_set_tbl_num, MagmaMatch(),
-                priority=flows.MINIMUM_PRIORITY, cookie=self.tbl_num,
-                resubmit_table=self._imsi_set_tbl_num,
-            )
 
         flows.add_resubmit_next_service_flow(
             self._datapath, self._imsi_set_tbl_num, MagmaMatch(),

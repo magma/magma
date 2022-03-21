@@ -108,9 +108,6 @@ class PipelinedController(Enum):
     StartupFlows = Controller(
         'magma.pipelined.app.startup_flows', 'startup_flows',
     )
-    DPI = Controller(
-        'magma.pipelined.app.dpi', 'dpi',
-    )
     UplinkBridge = Controller(
         'magma.pipelined.app.uplink_bridge', 'uplink_bridge',
     )
