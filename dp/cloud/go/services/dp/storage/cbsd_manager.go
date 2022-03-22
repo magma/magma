@@ -39,7 +39,6 @@ type DetailedCbsdList struct {
 type DetailedCbsd struct {
 	Cbsd       *DBCbsd
 	CbsdState  *DBCbsdState
-	Channel    *DBChannel
 	Grant      *DBGrant
 	GrantState *DBGrantState
 }
@@ -233,9 +232,8 @@ func convertToDetails(models []db.Model) *DetailedCbsd {
 	return &DetailedCbsd{
 		Cbsd:       models[0].(*DBCbsd),
 		CbsdState:  models[1].(*DBCbsdState),
-		Channel:    models[2].(*DBChannel),
-		Grant:      models[3].(*DBGrant),
-		GrantState: models[4].(*DBGrantState),
+		Grant:      models[2].(*DBGrant),
+		GrantState: models[3].(*DBGrantState),
 	}
 }
 
@@ -243,20 +241,20 @@ func buildDetailedCbsdQuery(builder sq.StatementBuilderType) *db.Query {
 	return db.NewQuery().
 		WithBuilder(builder).
 		From(&DBCbsd{}).
-		Select(db.NewExcludeMask("network_id", "state_id", "is_deleted", "is_updated")).
+		Select(db.NewExcludeMask("network_id", "state_id",
+			"is_deleted", "is_updated", "grant_attempts")).
 		Join(db.NewQuery().
 			From(&DBCbsdState{}).
 			Select(db.NewIncludeMask("name"))).
 		Join(db.NewQuery().
-			From(&DBChannel{}).
-			Select(db.NewIncludeMask("low_frequency", "high_frequency", "last_used_max_eirp")).
+			From(&DBGrant{}).
+			Select(db.NewIncludeMask(
+				"grant_expire_time", "transmit_expire_time",
+				"low_frequency", "high_frequency", "max_eirp")).
 			Join(db.NewQuery().
-				From(&DBGrant{}).
-				Select(db.NewIncludeMask("grant_expire_time", "transmit_expire_time")).
-				Join(db.NewQuery().
-					From(&DBGrantState{}).
-					Select(db.NewIncludeMask("name")).
-					Where(sq.NotEq{GrantStateTable + ".name": "idle"}))).
+				From(&DBGrantState{}).
+				Select(db.NewIncludeMask("name")).
+				Where(sq.NotEq{GrantStateTable + ".name": "idle"})).
 			Nullable())
 }
 

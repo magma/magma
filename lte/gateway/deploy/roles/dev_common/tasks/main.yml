@@ -25,6 +25,17 @@
       - ansible
   retries: 5
 
+- name: Copy over the timesyncd config
+  become: yes
+  copy:
+    src: timesyncd.conf
+    dest: /etc/systemd/timesyncd.conf
+
+- name: Make sure timesyncd is started
+  systemd:
+    name: systemd-timesyncd.service
+    state: started
+
 - name: Copy ssh keepAlive configs
   copy: src={{ item.src }} dest={{ item.dest }}
   become: yes

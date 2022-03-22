@@ -34,7 +34,9 @@ static void* sgw_s8_thread(void* args) {
 
   zloop_start(sgw_s8_task_zmq_ctx.event_loop);
   AssertFatal(0,
-              "Asserting as sgw_s8_thread should not be exiting on its own!");
+              "Asserting as sgw_s8_thread should not be exiting on its own! "
+              "This is likely due to a timer handler function returning -1 "
+              "(RETURNerror) on one of the conditions.");
   return NULL;
 }
 

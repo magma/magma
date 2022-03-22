@@ -55,7 +55,11 @@
     "rimraf": "^3.0.0"
   },
   "resolutions": {
-    "@babel/runtime": "^7.3.4"
+    "@babel/runtime": "^7.3.4",
+    "node-forge": "^1.0.0",
+    "refractor/prismjs": "^1.27.0",
+    "jspdf": "^2.3.1",
+    "cacache/ssri": "6.0.2"
   },
   "scripts": {
     "eslint": "./node_modules/.bin/eslint --ignore-path .eslintignore",

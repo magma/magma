@@ -10,7 +10,7 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("//bazel:third_party_repositories.bzl", "grpc", "protobuf")
+load("//bazel:third_party_repositories.bzl", "grpc")
 
 http_archive(
     name = "rules_python",
@@ -93,12 +93,6 @@ load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies")
 rules_cc_dependencies()
 
 ### PROTO / GRPC DEPENDENCIES ###
-protobuf()
-
-load("@protobuf//:protobuf_deps.bzl", "protobuf_deps")
-
-protobuf_deps()
-
 grpc()
 
 load("@rules_proto_grpc//:repositories.bzl", "rules_proto_grpc_repos", "rules_proto_grpc_toolchains")

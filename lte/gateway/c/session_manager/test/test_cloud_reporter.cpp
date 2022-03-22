@@ -173,10 +173,4 @@ TEST_F(SessionReporterTest, test_multi_call) {
   // wait for callback
   evb->loopForever();
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

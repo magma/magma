@@ -29,13 +29,7 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-class SPGWStateConverterTest : public ::testing::Test {
-  virtual void SetUp() {}
-
-  virtual void TearDown() {}
-};
-
-TEST_F(SPGWStateConverterTest, TestSPGWStateConversion) {
+TEST(SPGWStateConverterTest, TestSPGWStateConversion) {
   std::vector<spgw_state_t> original_states{
       make_spgw_state(4, 8, 12),
       make_spgw_state(500, 900, 1300),
@@ -59,7 +53,7 @@ TEST_F(SPGWStateConverterTest, TestSPGWStateConversion) {
   }
 }
 
-TEST_F(SPGWStateConverterTest, TestUEContextConversion) {
+TEST(SPGWStateConverterTest, TestUEContextConversion) {
   // Init SPGW hashtable
   spgw_config_t* spgw_config_p =
       (spgw_config_t*)calloc(1, sizeof(spgw_config_t));
@@ -126,11 +120,6 @@ TEST_F(SPGWStateConverterTest, TestUEContextConversion) {
                         &got_sgw.last_known_cell_Id,
                         sizeof(want_sgw.last_known_cell_Id)));
   }
-}
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
 }  // namespace lte
 }  // namespace magma

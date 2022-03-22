@@ -276,7 +276,7 @@ func TestPush(t *testing.T) {
 
 	e := &testMetricExporter{}
 	test_init.StartNewTestExporter(t, e)
-	srv := servicers.NewMetricsControllerServer()
+	srv := servicers.NewCloudMetricsControllerServer()
 
 	// Create test network
 	networkID := "metricsd_servicer_test_network"

@@ -29,7 +29,7 @@ import (
 	"magma/orc8r/lib/go/registry"
 )
 
-const ServiceName = "CERTIFIER"
+const ServiceName = "certifier"
 
 // Utility function to get a RPC connection to the certifier service
 func getCertifierClient() (certprotos.CertifierClient, error) {

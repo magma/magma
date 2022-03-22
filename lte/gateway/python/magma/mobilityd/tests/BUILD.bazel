@@ -13,84 +13,121 @@ load("@python_deps//:requirements.bzl", "requirement")
 load("//bazel:python_test.bzl", "pytest_test")
 load("//bazel:test_constants.bzl", "TAG_SUDO_TEST")
 
+MAGMA_ROOT = "../../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
 pytest_test(
     name = "ip_alloc_dhcp_test",
+    size = "small",
     srcs = ["ip_alloc_dhcp_test.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
     tags = TAG_SUDO_TEST,
     deps = [
-        "//lte/gateway/python/magma/mobilityd",
-        requirement("fakeredis"),
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
         "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//orc8r/gateway/python/magma/common/redis:client",
+        requirement("fakeredis"),
     ],
 )
 
 pytest_test(
     name = "ip_allocator_dhcp_mac_addr_test",
+    size = "small",
     srcs = ["ip_allocator_dhcp_mac_addr_test.py"],
+    imports = [LTE_ROOT],
     deps = [
-        "//lte/gateway/python/magma/mobilityd",
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
         requirement("fakeredis"),
     ],
 )
 
 pytest_test(
     name = "test_dhcp_client",
+    size = "small",
     srcs = ["test_dhcp_client.py"],
+    imports = [LTE_ROOT],
     tags = TAG_SUDO_TEST,
     deps = [
-        "//lte/gateway/python/magma/mobilityd",
-        requirement("freezegun"),
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
         "//lte/gateway/python/magma/pipelined:bridge_util",
+        requirement("freezegun"),
     ],
 )
 
 pytest_test(
     name = "test_ipv6_allocator",
+    size = "small",
     srcs = ["test_ipv6_allocator.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
     deps = [
-        "//lte/gateway/python/magma/mobilityd",
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
         requirement("fakeredis"),
     ],
 )
 
 pytest_test(
     name = "test_multi_apn_ip_alloc",
+    size = "small",
     srcs = ["test_multi_apn_ip_alloc.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
     deps = [
-        "//lte/gateway/python/magma/mobilityd",
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
         requirement("fakeredis"),
     ],
 )
 
 pytest_test(
     name = "test_static_ip_alloc",
+    size = "small",
     srcs = ["test_static_ip_alloc.py"],
+    imports = [LTE_ROOT],
     deps = [
         ":test_multi_apn_ip_alloc",
-        "//lte/gateway/python/magma/mobilityd",
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
     ],
 )
 
 pytest_test(
     name = "test_static_ipv6_alloc",
+    size = "small",
     srcs = ["test_static_ipv6_alloc.py"],
+    imports = [LTE_ROOT],
     deps = [
         ":test_multi_apn_ip_alloc",
-        "//lte/gateway/python/magma/mobilityd",
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
     ],
 )
 
 pytest_test(
     name = "test_uplink_gw",
+    size = "small",
     srcs = ["test_uplink_gw.py"],
-    deps = ["//lte/gateway/python/magma/mobilityd"],
+    imports = [LTE_ROOT],
+    deps = ["//lte/gateway/python/magma/mobilityd:mobilityd_lib"],
 )
 
 pytest_test(
     name = "ip_allocator_tests",
+    size = "small",
     srcs = ["ip_allocator_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
     deps = [
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
         requirement("fakeredis"),
-        "//lte/gateway/python/magma/mobilityd",
     ],
 )

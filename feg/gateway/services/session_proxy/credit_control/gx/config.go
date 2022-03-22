@@ -54,7 +54,6 @@ var (
 		DisableEUIIPv6IfNoIPFlag, false, "Don't use MAC based EUI-64 IPv6 address for Gx CCR if IP is not provided")
 )
 
-// TODO: refactor those functions to make it more simple
 // GetPCRFConfiguration returns a slice containing all configuration for all known PCRF
 func GetPCRFConfiguration() []*diameter.DiameterServerConfig {
 	configsPtr := &mconfig.SessionProxyConfig{}
@@ -77,20 +76,9 @@ func GetPCRFConfiguration() []*diameter.DiameterServerConfig {
 	}
 
 	gxConfigs := configsPtr.GetGx().GetServers()
-	//TODO: remove this once backwards compatibility is not needed for the field server
-	if len(gxConfigs) == 0 {
-		server := configsPtr.GetGx().GetServer()
-		if server == nil {
-			log.Print("Server configuration for Gx servers not found!!")
-		} else {
-			gxConfigs = append(gxConfigs, server)
-			log.Print("Gx Server configuration using legacy swagger attribute Server (not Servers)")
-		}
-	}
-
-	// Iterate over the slice of servers. VarEnv will apply only to index 0
-	diamServerConfigs := []*diameter.DiameterServerConfig{}
+	var diamServerConfigs []*diameter.DiameterServerConfig
 	for i, gxCfg := range gxConfigs {
+		// Iterate over the slice of servers. VarEnv will apply only to index 0
 		diamSrvCfg := &diameter.DiameterServerConfig{
 			DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 				Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, PCRFAddrEnv, gxCfg.GetAddress(), i),
@@ -104,14 +92,13 @@ func GetPCRFConfiguration() []*diameter.DiameterServerConfig {
 		}
 		diamServerConfigs = append(diamServerConfigs, diamSrvCfg)
 	}
-
 	return diamServerConfigs
-
 }
 
 // GetGxClientConfiguration returns a slice containing all client diameter configuration
 func GetGxClientConfiguration() []*diameter.DiameterClientConfig {
 	var retries uint32 = 1
+	var retransmits uint32 = 1
 	configsPtr := &mconfig.SessionProxyConfig{}
 	err := managed_configs.GetServiceConfigs(credit_control.SessionProxyServiceName, configsPtr)
 	if err != nil {
@@ -124,29 +111,24 @@ func GetGxClientConfiguration() []*diameter.DiameterClientConfig {
 				AppID:              diam.GX_CHARGING_CONTROL_APP_ID,
 				WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
 				RetryCount:         uint(retries),
+				Retransmits:        uint(retransmits),
 				SupportedVendorIDs: diameter.GetValueOrEnv("", GxSupportedVendorIDsEnv, ""),
 			},
 		}
 	}
 
-	diamClientsConfigs := []*diameter.DiameterClientConfig{}
+	var diamClientsConfigs []*diameter.DiameterClientConfig
 	gxConfigs := configsPtr.GetGx().GetServers()
-	//TODO: remove this once backwards compatibility is not needed for the field server
-	if len(gxConfigs) == 0 {
-		server := configsPtr.GetGx().GetServer()
-		if server == nil {
-			log.Print("Client configuration for Gx servers not found!!")
-		} else {
-			gxConfigs = append(gxConfigs, server)
-			log.Print("Gx Client configuration using legacy swagger attribute Server (not Servers)")
-		}
-	}
-
 	for i, gxCfg := range gxConfigs {
 		retries = gxCfg.GetRetryCount()
 		if retries < 1 {
 			log.Printf("Invalid Gx Server Retry Count for server (%s): %d, must be >0. Will be set to 1", gxCfg.GetAddress(), retries)
 			retries = 1
+		}
+		retransmits = gxCfg.GetRetransmits()
+		if retransmits < 1 {
+			log.Printf("Invalid Gx Retransmit Count for server (%s): %d, must be >0. Will be set to 1", gxCfg.GetAddress(), retransmits)
+			retransmits = 1
 		}
 
 		wdInterval := gxCfg.GetWatchdogInterval()
@@ -160,12 +142,12 @@ func GetGxClientConfiguration() []*diameter.DiameterClientConfig {
 			AppID:              diam.GX_CHARGING_CONTROL_APP_ID,
 			WatchdogInterval:   uint(wdInterval),
 			RetryCount:         uint(retries),
+			Retransmits:        uint(retransmits),
 			SupportedVendorIDs: diameter.GetValueOrEnv("", GxSupportedVendorIDsEnv, "", i),
 		}
 		diamClientsConfigs = append(diamClientsConfigs, diamCliCfg)
 	}
 	return diamClientsConfigs
-
 }
 
 func GetGxGlobalConfig() *GxGlobalConfig {

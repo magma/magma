@@ -11,6 +11,7 @@ import (
 
 	"magma/dp/cloud/go/active_mode_controller/config"
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator"
+	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 	"magma/dp/cloud/go/active_mode_controller/protos/requests"
 )
@@ -18,6 +19,7 @@ import (
 type App struct {
 	additionalGrpcOpts []grpc.DialOption
 	clock              Clock
+	rng                sas.RNG
 	cfg                *config.Config
 }
 
@@ -41,6 +43,12 @@ type Dialer func(context.Context, string) (net.Conn, error)
 func WithDialer(dialer Dialer) Option {
 	return func(a *App) {
 		a.additionalGrpcOpts = append(a.additionalGrpcOpts, grpc.WithContextDialer(dialer))
+	}
+}
+
+func WithRNG(rng sas.RNG) Option {
+	return func(a *App) {
+		a.rng = rng
 	}
 }
 
@@ -68,7 +76,7 @@ func (a *App) Run(ctx context.Context) error {
 	}
 	ticker := a.clock.Tick(a.cfg.PollingInterval)
 	defer ticker.Stop()
-	generator := newGenerator(a.cfg)
+	generator := newGenerator(a.cfg, a.rng)
 	for {
 		select {
 		case <-ctx.Done():
@@ -89,10 +97,11 @@ func (a *App) Run(ctx context.Context) error {
 	}
 }
 
-func newGenerator(cfg *config.Config) messageGenerator {
+func newGenerator(cfg *config.Config, rng sas.RNG) messageGenerator {
 	return message_generator.NewMessageGenerator(
 		cfg.HeartbeatSendTimeout+cfg.PollingInterval+cfg.RequestProcessingInterval,
 		cfg.CbsdInactivityTimeout,
+		rng,
 	)
 }
 

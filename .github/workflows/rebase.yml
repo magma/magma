@@ -3,9 +3,14 @@ name: Automatic Rebase
 on:  # yamllint disable-line rule:truthy
   issue_comment:
     types: [created]
+permissions:
+  contents: read
+
 jobs:
   # This job is based on https://github.com/marketplace/actions/automatic-rebase
   rebase:
+    permissions:
+      contents: none
     name: Rebase
     if: github.event.issue.pull_request != '' && contains(github.event.comment.body, '/rebase')
     runs-on: ubuntu-latest

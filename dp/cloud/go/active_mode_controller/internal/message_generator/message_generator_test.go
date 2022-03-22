@@ -2,7 +2,6 @@ package message_generator_test
 
 import (
 	"context"
-	"sort"
 	"testing"
 	"time"
 
@@ -304,23 +303,6 @@ func TestGenerateMessages(t *testing.T) {
 			},
 		},
 		{
-			name: "Should not delete unregistered cbsd when there are pending requests",
-			state: &active_mode.State{
-				Cbsds: []*active_mode.Cbsd{{
-					DesiredState:      active_mode.CbsdState_Registered,
-					SerialNumber:      "some_serial_number",
-					State:             active_mode.CbsdState_Unregistered,
-					LastSeenTimestamp: now.Unix(),
-					PendingRequests: []*active_mode.Request{{
-						Type: active_mode.RequestsType_RegistrationRequest,
-					}},
-					DbData: &active_mode.DatabaseCbsd{
-						IsDeleted: true,
-					},
-				}},
-			},
-		},
-		{
 			name: "Should deregister updated cbsd",
 			state: &active_mode.State{
 				Cbsds: []*active_mode.Cbsd{{
@@ -364,34 +346,22 @@ func TestGenerateMessages(t *testing.T) {
 	}
 	for _, tt := range data {
 		t.Run(tt.name, func(t *testing.T) {
-			g := message_generator.NewMessageGenerator(0, timeout)
+			g := message_generator.NewMessageGenerator(0, timeout, &stubRNG{})
 			msgs := g.GenerateMessages(tt.state, now)
 			p := &stubProvider{}
 			for _, msg := range msgs {
 				_ = msg.Send(context.Background(), p)
 			}
-			thenRequestsAreEqual(t, tt.expectedRequests, p.requests)
+			require.Len(t, p.requests, len(tt.expectedRequests))
+			for i := range tt.expectedRequests {
+				assert.JSONEq(t, tt.expectedRequests[i].Payload, p.requests[i].Payload)
+			}
 			require.Len(t, p.actions, len(tt.expectedActions))
 			for i := range tt.expectedActions {
 				assert.Equal(t, tt.expectedActions[i], p.actions[i])
 			}
 		})
 	}
-}
-
-func thenRequestsAreEqual(t *testing.T, expected, actual []*requests.RequestPayload) {
-	require.Len(t, actual, len(expected))
-	sortRequests(expected)
-	sortRequests(actual)
-	for i := range expected {
-		assert.JSONEq(t, expected[i].Payload, actual[i].Payload)
-	}
-}
-
-func sortRequests(requests []*requests.RequestPayload) {
-	sort.Slice(requests, func(i, j int) bool {
-		return requests[i].Payload < requests[j].Payload
-	})
 }
 
 func getSpectrumInquiryRequest() []*requests.RequestPayload {
@@ -410,6 +380,12 @@ func getSpectrumInquiryRequest() []*requests.RequestPayload {
 	]
 }`,
 	}}
+}
+
+type stubRNG struct{}
+
+func (s *stubRNG) Int() int {
+	return 0
 }
 
 type stubProvider struct {

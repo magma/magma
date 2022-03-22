@@ -333,6 +333,10 @@ static int get_uli_from_session_req(
 int get_msisdn_from_session_req(
     const itti_s11_create_session_request_t* saved_req, char* msisdn) {
   int len = saved_req->msisdn.length;
+  if (len == 0) {
+    return len;
+  }
+
   int i, j;
 
   for (i = 0; i < len; ++i) {

@@ -26,6 +26,8 @@ env:
   IMAGE_TAGS: type=sha
   DOCKERFILE: .devcontainer/Dockerfile
 
+permissions: read-all
+
 jobs:
   build_dockerfile:
     runs-on: ubuntu-latest

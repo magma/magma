@@ -227,7 +227,12 @@ function GatewayEPC({gwInfo}: {gwInfo: lte_gateway}) {
   const collapse: DataRows[] = [
     [
       {
+        category: 'IP Block',
         value: gwInfo.cellular.epc.ip_block ?? '-',
+      },
+      {
+        category: 'IPv6 Block',
+        value: gwInfo.cellular.epc.ipv6_block ?? '-',
       },
     ],
   ];

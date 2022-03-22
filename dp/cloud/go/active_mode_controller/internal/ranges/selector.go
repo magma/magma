@@ -1,21 +1,28 @@
 package ranges
 
-func SelectPoint(ranges []Range, provider indexProvider) Point {
+func Select(ranges []Range, n int, mod int) (Point, bool) {
 	sum := 0
-	for _, r := range ranges {
-		sum += r.End - r.Begin + 1
+	for i := range ranges {
+		sum += countDivisible(ranges[i].Begin, ranges[i].End, mod)
 	}
-	n := provider.Intn(sum)
+	if sum == 0 {
+		return Point{}, false
+	}
 	i := 0
-	for ; n > ranges[i].End-ranges[i].Begin; i++ {
-		n -= ranges[i].End - ranges[i].Begin + 1
+	for n %= sum; n >= 0; i++ {
+		n -= countDivisible(ranges[i].Begin, ranges[i].End, mod)
 	}
+	i--
 	return Point{
 		Value: ranges[i].Value,
-		Pos:   ranges[i].Begin + n,
-	}
+		Pos:   (ranges[i].End/mod + n + 1) * mod,
+	}, true
 }
 
-type indexProvider interface {
-	Intn(int) int
+func countDivisible(a int, b int, mod int) int {
+	x := b/mod - a/mod
+	if a%mod == 0 {
+		x++
+	}
+	return x
 }

@@ -433,10 +433,4 @@ TEST(test_get_credit_summary, test_session_credit) {
   EXPECT_NE(summary.time_of_last_usage, time_of_first_usage);
   EXPECT_GT(summary.time_of_last_usage, summary.time_of_first_usage);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

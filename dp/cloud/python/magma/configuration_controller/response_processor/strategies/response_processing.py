@@ -125,15 +125,15 @@ def process_grant_response(obj: ResponseDBProcessor, response: DBResponse, sessi
     Returns:
         None
     """
+    if response.response_code != ResponseCodes.SUCCESS.value:
+        cbsd = response.request.cbsd
+        if cbsd:
+            cbsd.grant_attempts += 1
 
     grant = _get_or_create_grant_from_response(obj, response, session)
     if not grant:
         return
     _update_grant_from_response(response, grant)
-    channel = _get_channel_related_to_grant(response, session)
-    if channel:
-        channel.last_used_max_eirp = response.request.payload[OPERATION_PARAM]["maxEirp"]
-        grant.channel = channel
 
     # Grant response codes worth considering here also are:
     # 400 - INTERFERENCE
@@ -147,18 +147,6 @@ def process_grant_response(obj: ResponseDBProcessor, response: DBResponse, sessi
         f'process_grant_responses: Updating grant state from {grant.state} to {new_state}',
     )
     grant.state = new_state
-
-
-def _get_channel_related_to_grant(response: DBResponse, session: Session) -> DBChannel:
-    payload = response.request.payload
-    operation_param = payload[OPERATION_PARAM]
-    frequency_range = operation_param["operationFrequencyRange"]
-    channel = session.query(DBChannel).join(DBCbsd).filter(
-        DBCbsd.cbsd_id == payload["cbsdId"],
-        DBChannel.low_frequency == frequency_range["lowFrequency"],
-        DBChannel.high_frequency == frequency_range["highFrequency"],
-    ).scalar()
-    return channel
 
 
 def process_heartbeat_response(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:
@@ -187,7 +175,6 @@ def process_heartbeat_response(obj: ResponseDBProcessor, response: DBResponse, s
         new_state = obj.grant_states_map[GrantStates.UNSYNC.value]
     elif response.response_code == ResponseCodes.TERMINATED_GRANT.value:
         new_state = obj.grant_states_map[GrantStates.IDLE.value]
-        _reset_last_used_max_eirp(grant)
     elif response.response_code == ResponseCodes.DEREGISTER.value:
         _terminate_all_grants_from_response(response, session)
         return
@@ -220,7 +207,6 @@ def process_relinquishment_response(obj: ResponseDBProcessor, response: DBRespon
 
     if response.response_code == ResponseCodes.SUCCESS.value:
         new_state = obj.grant_states_map[GrantStates.IDLE.value]
-        _reset_last_used_max_eirp(grant)
     elif response.response_code == ResponseCodes.DEREGISTER.value:
         _terminate_all_grants_from_response(response, session)
         return
@@ -249,11 +235,6 @@ def process_deregistration_response(obj: ResponseDBProcessor, response: DBRespon
         _change_cbsd_state(cbsd, session, CbsdStates.UNREGISTERED.value)
 
 
-def _reset_last_used_max_eirp(grant: DBGrant) -> None:
-    if grant and grant.channel:
-        grant.channel.last_used_max_eirp = None
-
-
 def _get_or_create_grant_from_response(
     obj: ResponseDBProcessor,
     response: DBResponse,
@@ -276,9 +257,19 @@ def _get_or_create_grant_from_response(
     if grant_id and not grant:
         grant_idle_state = obj.grant_states_map[GrantStates.IDLE.value]
         grant = DBGrant(cbsd=cbsd, grant_id=grant_id, state=grant_idle_state)
+        _update_grant_from_request(response, grant)
         session.add(grant)
         logger.info(f'Created new grant: {grant}')
     return grant
+
+
+def _update_grant_from_request(response: DBResponse, grant: DBGrant) -> None:
+    payload = response.request.payload
+    operation_param = payload.get(OPERATION_PARAM, {})
+    frequency_range = operation_param.get("operationFrequencyRange", {})
+    grant.max_eirp = operation_param.get("maxEirp", 0)
+    grant.low_frequency = frequency_range.get("lowFrequency", 0)
+    grant.high_frequency = frequency_range.get("highFrequency", 0)
 
 
 def _update_grant_from_response(response: DBResponse, grant: DBGrant) -> None:
@@ -307,6 +298,8 @@ def _terminate_all_grants_from_response(response: DBResponse, session: Session) 
     if not cbsd_id:
         return
     cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).scalar()
+    if cbsd:
+        cbsd.grant_attempts = 0
     grant_ids = [
         grant.id for grant in session.query(
             DBGrant.id,

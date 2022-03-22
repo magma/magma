@@ -18,10 +18,14 @@ env:
   DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:latest"
   BAZEL_CACHE: bazel-cache
   BAZEL_CACHE_REPO: bazel-cache-repo
+  CACHE_SUB_KEY_BUILD_ALL: build-all
+  CACHE_SUB_KEY_TEST_ALL: test-all
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
+
+permissions: read-all
 
 jobs:
   path_filter:
@@ -64,9 +68,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
-          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-build-all-${{ github.sha }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ env.CACHE_SUB_KEY_BUILD_ALL }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ env.CACHE_SUB_KEY_BUILD_ALL }}-
 
       - name: Bazel Cache Repo
         uses: actions/cache@v2
@@ -136,9 +140,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
-          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-test-all-${{ github.sha }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ env.CACHE_SUB_KEY_TEST_ALL }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ env.CACHE_SUB_KEY_TEST_ALL }}-
 
       - name: Bazel Cache Repo
         uses: actions/cache@v2
@@ -181,3 +185,12 @@ jobs:
           run: |
             cd /workspaces/magma
             bazel test //... --test_output=errors --cache_test_results=no
+      - name: Run `bazel run //:check_starlark_format`
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/
+          run: |
+            cd /workspaces/magma
+            bazel run //:check_starlark_format

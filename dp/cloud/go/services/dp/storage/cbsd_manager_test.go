@@ -118,6 +118,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 
 		cbsd := getBaseCbsd()
 		cbsd.NetworkId = db.MakeString(someNetwork)
+		cbsd.GrantAttempts = db.MakeInt(0)
 		cbsd.IsDeleted = db.MakeBool(false)
 		cbsd.IsUpdated = db.MakeBool(false)
 		expected := []db.Model{
@@ -173,7 +174,7 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 		actual, err := db.NewQuery().
 			WithBuilder(s.resourceManager.GetBuilder()).
 			From(&storage.DBCbsd{}).
-			Select(db.NewExcludeMask("id", "state_id", "cbsd_id", "is_deleted")).
+			Select(db.NewExcludeMask("id", "state_id", "cbsd_id", "grant_attempts", "is_deleted")).
 			Where(sq.Eq{"id": cbsdId}).
 			Fetch()
 		s.Require().NoError(err)
@@ -256,7 +257,7 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdFromDifferentNetwork() {
 	s.Assert().ErrorIs(err, merrors.ErrNotFound)
 }
 
-func (s *CbsdManagerTestSuite) TestFetchCbsdWithoutGrantAndChannel() {
+func (s *CbsdManagerTestSuite) TestFetchCbsdWithoutGrant() {
 	var cbsdId int64
 	err := s.resourceManager.InTransaction(func() {
 		state := s.enumMaps[storage.CbsdStateTable]["registered"]
@@ -269,43 +270,19 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithoutGrantAndChannel() {
 	expected := &storage.DetailedCbsd{
 		Cbsd:       getDetailedCbsd(cbsdId),
 		CbsdState:  &storage.DBCbsdState{Name: db.MakeString("registered")},
-		Channel:    &storage.DBChannel{},
 		Grant:      &storage.DBGrant{},
 		GrantState: &storage.DBGrantState{},
 	}
 	s.Assert().Equal(expected, actual)
 }
 
-func (s *CbsdManagerTestSuite) TestFetchCbsdWithoutGrantButWithChannel() {
+func (s *CbsdManagerTestSuite) TestFetchCbsdWithIdleGrant() {
 	var cbsdId int64
 	err := s.resourceManager.InTransaction(func() {
 		state := s.enumMaps[storage.CbsdStateTable]["registered"]
 		cbsdId = s.givenResourceInserted(getCbsd(someNetwork, state))
-		s.givenResourceInserted(getChannel(cbsdId))
-	})
-	s.Require().NoError(err)
-
-	actual, err := s.cbsdManager.FetchCbsd(someNetwork, cbsdId)
-	s.Require().NoError(err)
-
-	expected := &storage.DetailedCbsd{
-		Cbsd:       getDetailedCbsd(cbsdId),
-		CbsdState:  &storage.DBCbsdState{Name: db.MakeString("registered")},
-		Channel:    &storage.DBChannel{},
-		Grant:      &storage.DBGrant{},
-		GrantState: &storage.DBGrantState{},
-	}
-	s.Assert().Equal(expected, actual)
-}
-
-func (s *CbsdManagerTestSuite) TestFetchCbsdWithIdleGrantAndChannel() {
-	var cbsdId int64
-	err := s.resourceManager.InTransaction(func() {
-		state := s.enumMaps[storage.CbsdStateTable]["registered"]
-		cbsdId = s.givenResourceInserted(getCbsd(someNetwork, state))
-		channelId := s.givenResourceInserted(getChannel(cbsdId))
 		grantState := s.enumMaps[storage.GrantStateTable]["idle"]
-		s.givenResourceInserted(getGrant(grantState, channelId))
+		s.givenResourceInserted(getGrant(grantState, cbsdId))
 	})
 	s.Require().NoError(err)
 
@@ -315,21 +292,19 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithIdleGrantAndChannel() {
 	expected := &storage.DetailedCbsd{
 		Cbsd:       getDetailedCbsd(cbsdId),
 		CbsdState:  &storage.DBCbsdState{Name: db.MakeString("registered")},
-		Channel:    &storage.DBChannel{},
 		Grant:      &storage.DBGrant{},
 		GrantState: &storage.DBGrantState{},
 	}
 	s.Assert().Equal(expected, actual)
 }
 
-func (s *CbsdManagerTestSuite) TestFetchCbsdWithGrantAndChannel() {
+func (s *CbsdManagerTestSuite) TestFetchCbsdWithGrant() {
 	var cbsdId int64
 	err := s.resourceManager.InTransaction(func() {
 		state := s.enumMaps[storage.CbsdStateTable]["registered"]
 		cbsdId = s.givenResourceInserted(getCbsd(someNetwork, state))
-		channelId := s.givenResourceInserted(getChannel(cbsdId))
 		grantState := s.enumMaps[storage.GrantStateTable]["authorized"]
-		s.givenResourceInserted(getGrant(grantState, channelId))
+		s.givenResourceInserted(getGrant(grantState, cbsdId))
 	})
 	s.Require().NoError(err)
 
@@ -339,7 +314,6 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithGrantAndChannel() {
 	expected := &storage.DetailedCbsd{
 		Cbsd:       getDetailedCbsd(cbsdId),
 		CbsdState:  &storage.DBCbsdState{Name: db.MakeString("registered")},
-		Channel:    getBaseChannel(),
 		Grant:      getBaseGrant(),
 		GrantState: &storage.DBGrantState{Name: db.MakeString("authorized")},
 	}
@@ -359,32 +333,6 @@ func (s *CbsdManagerTestSuite) TestListCbsdFromDifferentNetwork() {
 	expected := &storage.DetailedCbsdList{
 		Cbsds: []*storage.DetailedCbsd{},
 		Count: 0,
-	}
-	s.Assert().Equal(expected, actual)
-}
-
-func (s *CbsdManagerTestSuite) TestListNotIncludeEmptyChannels() {
-	var cbsdId int64
-	err := s.resourceManager.InTransaction(func() {
-		state := s.enumMaps[storage.CbsdStateTable]["registered"]
-		cbsdId = s.givenResourceInserted(getCbsd(someNetwork, state))
-		s.givenResourceInserted(getChannel(cbsdId))
-		s.givenResourceInserted(getChannel(cbsdId))
-	})
-	s.Require().NoError(err)
-
-	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{})
-	s.Require().NoError(err)
-
-	expected := &storage.DetailedCbsdList{
-		Cbsds: []*storage.DetailedCbsd{{
-			Cbsd:       getDetailedCbsd(cbsdId),
-			CbsdState:  &storage.DBCbsdState{Name: db.MakeString("registered")},
-			Channel:    &storage.DBChannel{},
-			Grant:      &storage.DBGrant{},
-			GrantState: &storage.DBGrantState{},
-		}},
-		Count: 1,
 	}
 	s.Assert().Equal(expected, actual)
 }
@@ -419,7 +367,6 @@ func (s *CbsdManagerTestSuite) TestListWithPagination() {
 		expected.Cbsds[i] = &storage.DetailedCbsd{
 			Cbsd:       &storage.DBCbsd{Id: db.MakeInt(int64(i + 1 + offset))},
 			CbsdState:  &storage.DBCbsdState{Name: db.MakeString("unregistered")},
-			Channel:    &storage.DBChannel{},
 			Grant:      &storage.DBGrant{},
 			GrantState: &storage.DBGrantState{},
 		}
@@ -432,10 +379,9 @@ func (s *CbsdManagerTestSuite) TestListNotIncludeIdleGrants() {
 	err := s.resourceManager.InTransaction(func() {
 		state := s.enumMaps[storage.CbsdStateTable]["registered"]
 		cbsdId = s.givenResourceInserted(getCbsd(someNetwork, state))
-		channelId := s.givenResourceInserted(getChannel(cbsdId))
 		grantState := s.enumMaps[storage.GrantStateTable]["idle"]
-		s.givenResourceInserted(getGrant(grantState, channelId))
-		s.givenResourceInserted(getGrant(grantState, channelId))
+		s.givenResourceInserted(getGrant(grantState, cbsdId))
+		s.givenResourceInserted(getGrant(grantState, cbsdId))
 	})
 	s.Require().NoError(err)
 
@@ -446,7 +392,6 @@ func (s *CbsdManagerTestSuite) TestListNotIncludeIdleGrants() {
 		Cbsds: []*storage.DetailedCbsd{{
 			Cbsd:       getDetailedCbsd(cbsdId),
 			CbsdState:  &storage.DBCbsdState{Name: db.MakeString("registered")},
-			Channel:    &storage.DBChannel{},
 			Grant:      &storage.DBGrant{},
 			GrantState: &storage.DBGrantState{},
 		}},
@@ -516,29 +461,16 @@ func getBaseGrant() *storage.DBGrant {
 	base := &storage.DBGrant{}
 	base.GrantExpireTime = db.MakeTime(time.Unix(123, 0).UTC())
 	base.TransmitExpireTime = db.MakeTime(time.Unix(456, 0).UTC())
-	return base
-}
-
-func getGrant(stateId int64, channelId int64) *storage.DBGrant {
-	base := getBaseGrant()
-	base.StateId = db.MakeInt(stateId)
-	base.ChannelId = db.MakeInt(channelId)
-	return base
-}
-
-func getBaseChannel() *storage.DBChannel {
-	base := &storage.DBChannel{}
 	base.LowFrequency = db.MakeInt(3600 * 1e6)
 	base.HighFrequency = db.MakeInt(3620 * 1e6)
-	base.LastUsedMaxEirp = db.MakeFloat(35)
+	base.MaxEirp = db.MakeFloat(35)
 	return base
 }
 
-func getChannel(cbsdId int64) *storage.DBChannel {
-	base := getBaseChannel()
+func getGrant(stateId int64, cbsdId int64) *storage.DBGrant {
+	base := getBaseGrant()
 	base.CbsdId = db.MakeInt(cbsdId)
-	base.ChannelType = db.MakeString("some_channel_type")
-	base.RuleApplied = db.MakeString("some_rule_applied")
+	base.StateId = db.MakeInt(stateId)
 	return base
 }
 

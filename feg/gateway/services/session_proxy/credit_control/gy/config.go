@@ -95,7 +95,6 @@ func GetInitMethod() InitMethod {
 	return initMethod
 }
 
-// TODO: refactor those functions to make it more simple
 // GetOCSConfiguration returns the server configuration for the set OCS
 func GetOCSConfiguration() []*diameter.DiameterServerConfig {
 	configsPtr := &mconfig.SessionProxyConfig{}
@@ -118,20 +117,9 @@ func GetOCSConfiguration() []*diameter.DiameterServerConfig {
 	}
 
 	gyConfigs := configsPtr.GetGy().GetServers()
-	//TODO: remove this once backwards compatibility is not needed for the field server
-	if len(gyConfigs) == 0 {
-		server := configsPtr.GetGy().GetServer()
-		if server == nil {
-			log.Print("Server configuration for Gy servers not found!!")
-		} else {
-			gyConfigs = append(gyConfigs, server)
-			log.Print("Gy Server configuration using legacy swagger attribute Server (not Servers)")
-		}
-	}
-
-	// Iterate over the slice of servers. VarEnv will apply only to index 0
-	diamServerConfigs := []*diameter.DiameterServerConfig{}
+	var diamServerConfigs []*diameter.DiameterServerConfig
 	for i, gyCfg := range gyConfigs {
+		// Iterate over the slice of servers. VarEnv will apply only to index 0
 		diamSrvCfg := &diameter.DiameterServerConfig{
 			DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 				Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, OCSAddrEnv, gyCfg.GetAddress(), i),
@@ -151,6 +139,7 @@ func GetOCSConfiguration() []*diameter.DiameterServerConfig {
 // GetGyClientConfiguration returns the client diameter configuration
 func GetGyClientConfiguration() []*diameter.DiameterClientConfig {
 	var retries uint32 = 1
+	var retransmits uint32 = 1
 	configsPtr := &mconfig.SessionProxyConfig{}
 	err := managed_configs.GetServiceConfigs(credit_control.SessionProxyServiceName, configsPtr)
 	if err != nil {
@@ -163,29 +152,25 @@ func GetGyClientConfiguration() []*diameter.DiameterClientConfig {
 				AppID:              diam.CHARGING_CONTROL_APP_ID,
 				WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
 				RetryCount:         uint(retries),
+				Retransmits:        uint(retransmits),
 				SupportedVendorIDs: diameter.GetValueOrEnv("", GySupportedVendorIDsEnv, ""),
 				ServiceContextId:   diameter.GetValueOrEnv("", GyServiceContextIdEnv, ""),
 			},
 		}
 	}
 
-	diamClientsConfigs := []*diameter.DiameterClientConfig{}
+	var diamClientsConfigs []*diameter.DiameterClientConfig
 	gyConfigs := configsPtr.GetGy().GetServers()
-	//TODO: remove this once backwards compatibility is not needed for the field server
-	if len(gyConfigs) == 0 {
-		server := configsPtr.GetGy().GetServer()
-		if server == nil {
-			log.Print("Client configuration for Gy servers not found!!")
-		} else {
-			gyConfigs = append(gyConfigs, server)
-			log.Print("Gy Client configuration using legacy swagger attribute Server (not Servers)")
-		}
-	}
 	for i, gyCfg := range gyConfigs {
 		retries = gyCfg.GetRetryCount()
 		if retries < 1 {
 			log.Printf("Invalid Gy Server Retry Count for server (%s): %d, must be >0. Will be set to 1", gyCfg.GetAddress(), retries)
 			retries = 1
+		}
+		retransmits = gyCfg.GetRetransmits()
+		if retransmits < 1 {
+			log.Printf("Invalid Gy Retransmit Count for server (%s): %d, must be >0. Will be set to 1", gyCfg.GetAddress(), retransmits)
+			retransmits = 1
 		}
 
 		wdInterval := gyCfg.GetWatchdogInterval()
@@ -199,6 +184,7 @@ func GetGyClientConfiguration() []*diameter.DiameterClientConfig {
 			AppID:              diam.CHARGING_CONTROL_APP_ID,
 			WatchdogInterval:   uint(wdInterval),
 			RetryCount:         uint(retries),
+			Retransmits:        uint(retransmits),
 			SupportedVendorIDs: diameter.GetValueOrEnv("", GySupportedVendorIDsEnv, "", i),
 			ServiceContextId:   diameter.GetValueOrEnv("", GyServiceContextIdEnv, "", i),
 		}

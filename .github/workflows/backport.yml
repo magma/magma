@@ -6,6 +6,8 @@ on:  # yamllint disable-line rule:truthy
     branches:
       - master
 
+permissions: read-all
+
 jobs:
   backport:
     name: backport

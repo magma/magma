@@ -23,6 +23,9 @@ env:
 
   DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:latest"
 
+permissions:
+  contents: read
+
 jobs:
   bazel-build-magma-vm-and-push-cache:
     runs-on: macos-10.15
@@ -57,14 +60,22 @@ jobs:
         run: |
           cd lte/gateway
           vagrant up magma
-      - name: Build all with Bazel from scratch `bazel build //... --config=production`
+      - name: Build all with production config `bazel build //... --config=production`
         run: |
           cd lte/gateway
           vagrant ssh -c 'cd ~/magma; bazel build //... --config=production' magma
-      - name: Build all with Bazel from scratch `bazel build //...`
+      - name: Build all `bazel build //...`
         run: |
           cd lte/gateway
           vagrant ssh -c 'cd ~/magma; bazel build //...' magma
+      - name: Test all `bazel test //...`
+        run: |
+          cd lte/gateway
+          vagrant ssh -c 'cd ~/magma; bazel test //...' magma
+      - name: Test C/C++ with ASAN `bazel test //orc8r/gateway/c/... //lte/gateway/c/... --config=asan`
+        run: |
+          cd lte/gateway
+          vagrant ssh -c 'cd ~/magma; bazel test //orc8r/gateway/c/... //lte/gateway/c/... --config=asan' magma
       - name: Upload .bazel-cache and .bazel-cache-repo to S3
         run: |
           tar -zcvf ${{ env.BAZEL_CACHE_MAGMA_VM_TAR }} ${{ env.BAZEL_CACHE }}/
@@ -83,18 +94,25 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
           aws-region: us-east-1
-      - name: Build all with Bazel from scratch `bazel build //...`
+      - name: Build all `bazel build //...`
         uses: addnab/docker-run-action@v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma -e ABC=123
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
             cd /workspaces/magma
             bazel build //...
+      - name: Test all  `bazel test //...`
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma
             bazel test //...
-            bazel test //... --config=asan
-            bazel test //... --config=lsan
+      # TODO: It would be good to also populate cache for `bazel test //orc8r/gateway/c/... //lte/gateway/c/... --config=asan` GH12210
       - name: Upload .bazel-cache and .bazel-cache-repo to S3
         run: |
           tar -zcvf ${{ env.BAZEL_CACHE_DEVCONTAINER_TAR }} ${{ env.BAZEL_CACHE }}/

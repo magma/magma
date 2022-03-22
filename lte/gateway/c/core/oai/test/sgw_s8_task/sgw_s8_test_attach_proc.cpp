@@ -122,7 +122,6 @@ TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
   EXPECT_EQ(sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64),
             RETURNok);
   cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
-
   EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) != nullptr);
   sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
       &sgw_pdn_session->pdn_connection, csresp.eps_bearer_id);
@@ -278,7 +277,7 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling) {
               mme_app_handle_delete_sess_rsp(check_cause_in_ds_rsp(
                   REQUEST_ACCEPTED, session_req.sender_fteid_for_cp.teid)))
       .Times(1)
-      .WillOnce(ReturnFromAsyncTask(&cv));
+      .WillOnce(ReturnFromAsyncTaskWithReturn(&cv));
   EXPECT_EQ(sgw_s8_handle_delete_session_response(sgw_state, &ds_rsp, imsi64),
             RETURNok);
   cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
@@ -323,7 +322,7 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling_invalid_teid) {
               mme_app_handle_delete_sess_rsp(check_cause_in_ds_rsp(
                   CONTEXT_NOT_FOUND, session_req.sender_fteid_for_cp.teid)))
       .Times(1)
-      .WillOnce(ReturnFromAsyncTask(&cv));
+      .WillOnce(ReturnFromAsyncTaskWithReturn(&cv));
   EXPECT_EQ(
       sgw_s8_handle_s11_delete_session_request(sgw_state, &ds_req, imsi64),
       RETURNerror);

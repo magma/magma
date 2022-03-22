@@ -17,6 +17,7 @@ LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 pytest_test(
     name = "onready_test",
+    size = "medium",
     srcs = ["onready_test.py"],
     imports = [LTE_ROOT],
     deps = [
@@ -29,6 +30,7 @@ pytest_test(
 
 pytest_test(
     name = "store_tests",
+    size = "medium",
     srcs = ["store_tests.py"],
     imports = [LTE_ROOT],
     deps = [

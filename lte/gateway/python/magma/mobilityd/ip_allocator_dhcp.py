@@ -24,9 +24,10 @@ import logging
 from copy import deepcopy
 from ipaddress import ip_address, ip_network
 from threading import Condition
-from typing import List
+from typing import List, Optional, cast
 
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
+from typing_extensions import TypeGuard
 
 from .dhcp_client import DHCPClient
 from .dhcp_desc import DHCPDescriptor, DHCPState
@@ -214,8 +215,8 @@ class IPAllocatorDHCP(IPAllocator):
 
                 retry_count = retry_count + 1
 
-            return dhcp_desc
+            return cast(DHCPDescriptor, dhcp_desc)
 
 
-def dhcp_allocated_ip(dhcp_desc) -> bool:
+def dhcp_allocated_ip(dhcp_desc: Optional[DHCPDescriptor]) -> TypeGuard[DHCPDescriptor]:
     return dhcp_desc is not None and dhcp_desc.ip_is_allocated()
