@@ -110,7 +110,7 @@ func (cb *callbacks) OnStreamRequest(int64, *discovery.DiscoveryRequest) error {
 	}
 	return nil
 }
-func (cb *callbacks) OnStreamResponse(int64, *discovery.DiscoveryRequest, *discovery.DiscoveryResponse) {
+func (cb *callbacks) OnStreamResponse(context.Context, int64, *discovery.DiscoveryRequest, *discovery.DiscoveryResponse) {
 	glog.V(2).Infof("OnStreamResponse...")
 	cb.Report()
 }
@@ -127,7 +127,32 @@ func (cb *callbacks) OnFetchRequest(ctx context.Context, req *discovery.Discover
 }
 
 func (cb *callbacks) OnFetchResponse(*discovery.DiscoveryRequest, *discovery.DiscoveryResponse) {
-	glog.Infof("OnFetchResponse...")
+	glog.V(2).Infof("OnFetchResponse...")
+}
+
+func (cb *callbacks) OnDeltaStreamOpen(_ context.Context, id int64, typ string) error {
+	glog.V(2).Infof("delta stream %d open for %s\n", id, typ)
+	return nil
+}
+func (cb *callbacks) OnDeltaStreamClosed(id int64) {
+	glog.V(2).Infof("delta stream %d closed\n", id)
+}
+func (cb *callbacks) OnStreamDeltaResponse(id int64, req *discovery.DeltaDiscoveryRequest, res *discovery.DeltaDiscoveryResponse) {
+	glog.V(2).Infof("OnStreamDeltaResponse...")
+	// cb.mu.Lock()
+	// defer cb.mu.Unlock()
+	// cb.DeltaResponses++
+}
+func (cb *callbacks) OnStreamDeltaRequest(id int64, req *discovery.DeltaDiscoveryRequest) error {
+	glog.V(2).Infof("OnStreamDeltaRequest...")
+	// cb.mu.Lock()
+	// defer cb.mu.Unlock()
+	// cb.DeltaRequests++
+	if cb.signal != nil {
+		close(cb.signal)
+		cb.signal = nil
+	}
+	return nil
 }
 
 // ID function
