@@ -53,6 +53,37 @@ type Client struct {
 	originStateID  uint32
 }
 
+// String stringifies diameter client configuration
+func (c *Client) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	var (
+		originHost, originRealm, productName, hostIPAddress, retransmitInterval, watchdogInterval string
+		maxRetransmits, retryCount, appID, authAppID                                              uint
+	)
+	if d := c.cfg; d != nil {
+		originHost, originRealm, productName, appID, authAppID, maxRetransmits, retryCount =
+			d.Host, d.Realm, d.ProductName, uint(d.AppID), uint(d.AuthAppID), d.Retransmits, d.RetryCount
+	}
+	if c.mux != nil && c.mux.Settings() != nil {
+		s := c.mux.Settings()
+		originHost, originRealm, productName = string(s.OriginHost), string(s.OriginRealm), string(s.ProductName)
+		if s.HostIPAddress != nil {
+			hostIPAddress = s.HostIPAddress.String()
+		}
+	}
+	if cl := c.smClient; cl != nil {
+		maxRetransmits, retransmitInterval, watchdogInterval =
+			cl.MaxRetransmits, cl.RetransmitInterval.String(), cl.WatchdogInterval.String()
+	}
+	return fmt.Sprintf(
+		"origin host: %s; origin realm: %s; product name: %s; host IP: %s; appID: %d; authAppID: %d; "+
+			"watchdog interval: %s; max retransmits: %d; retransmit interval: %s; retry count: %d",
+		originHost, originRealm, productName, hostIPAddress, appID, authAppID,
+		watchdogInterval, maxRetransmits, retransmitInterval, retryCount)
+}
+
 // OriginRealm returns client's config Realm
 func (c *Client) OriginRealm() string {
 	if c != nil && c.cfg != nil && len(c.cfg.Realm) > 0 {
@@ -145,6 +176,8 @@ func NewClient(clientCfg *DiameterClientConfig, localAddresses ...string) *Clien
 		cfg:            clientCfg,
 		originStateID:  originStateID,
 	}
+	glog.V(3).Infof("new diam client::\n\t%s", client.String())
+
 	go client.handleErrors(mux.ErrorReports())
 	return client
 }
@@ -299,12 +332,21 @@ func (client *Client) IgnoreAnswer(key interface{}) {
 func (client *Client) RegisterAnswerHandlerForAppID(command uint32, appID uint32, handler AnswerHandler) {
 	index := diam.CommandIndex{AppID: appID, Code: command, Request: false}
 	muxHandler := diam.HandlerFunc(func(c diam.Conn, m *diam.Message) {
+		if m == nil {
+			glog.Error("nil diameter message")
+			return
+		}
 		answerKey := handler(m)
 		if answerKey.Key == nil {
+			glog.Errorf("nil Key found in received diameter message:\n%s\n", m.String())
 			return
 		}
 		doneChan := client.requestTracker.DeregisterRequest(answerKey.Key)
-		doneChan <- answerKey.Answer
+		if doneChan != nil {
+			doneChan <- answerKey.Answer
+		} else {
+			glog.Errorf("no Key/channel registered for message:\n%s\n", m.String())
+		}
 	})
 	client.mux.HandleIdx(index, muxHandler)
 }
