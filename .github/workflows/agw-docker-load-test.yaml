@@ -13,8 +13,6 @@ on:  # yamllint disable-line rule:truthy
 
 concurrency: ${{ github.workflow }}
 
-permissions: read-all
-
 jobs:
   docker-load-test:
     name: agw docker load tests

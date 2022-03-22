@@ -11,8 +11,6 @@ on:  # yamllint disable-line rule:truthy
       - 'v1.*'
     types: [opened, reopened, synchronize]
 
-permissions: read-all
-
 jobs:
   path_filter:
     runs-on: ubuntu-latest
@@ -129,9 +127,6 @@ jobs:
           verbose: true
 
   active_mode_controller_unit_tests:
-    permissions:
-      contents: read  # for actions/checkout to fetch code
-      pull-requests: read  # for golangci/golangci-lint-action to fetch pull requests
     needs: path_filter
     if: ${{ needs.path_filter.outputs.am == 'true' }}
     name: "Active mode controller unit tests"
