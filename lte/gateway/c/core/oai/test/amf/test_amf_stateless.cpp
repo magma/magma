@@ -611,8 +611,8 @@ class AMFAppStatelessTest : public ::testing::Test {
     AMFClientServicer::getInstance().map_imsi_ue_proto_str.clear();
   }
 
-  // This Function mocks AMF task restart.
-  void pseudo_amf_restart() {
+  // This Function mocks AMF task stop.
+  void pseudo_amf_stop() {
     for (auto it = ue_context_map.begin(); it != ue_context_map.end();) {
       delete it->second;
       it = ue_context_map.erase(it);
@@ -734,8 +734,9 @@ TEST_F(AMFAppStatelessTest, TestAfterRegistrationComplete) {
   put_amf_ue_state(amf_app_desc_p, imsi64, false);
   EXPECT_EQ(AMFClientServicer::getInstance().map_imsi_ue_proto_str.size(), 1);
 
-  // Calling pseudo_amf_restart() and SetUp() simulates a service restart.
-  AMFAppStatelessTest::pseudo_amf_restart();
+  // Calling pseudo_amf_stop() and SetUp() simulates a service restart.
+  AMFAppStatelessTest::pseudo_amf_stop();
+  // Check if state data is cleared in AMF after pseudo_amf_stop()
   EXPECT_TRUE(AmfNasStateManager::getInstance().get_ue_state_map()->isEmpty());
   EXPECT_EQ(get_amf_nas_state(false), nullptr);
 
@@ -866,8 +867,9 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionEstReq) {
   put_amf_ue_state(amf_app_desc_p, imsi64, false);
   EXPECT_EQ(AMFClientServicer::getInstance().map_imsi_ue_proto_str.size(), 1);
 
-  // Calling pseudo_amf_restart() and SetUp() simulates a service restart.
-  AMFAppStatelessTest::pseudo_amf_restart();
+  // Calling pseudo_amf_stop() and SetUp() simulates a service restart.
+  AMFAppStatelessTest::pseudo_amf_stop();
+  // Check if state data is cleared in AMF after pseudo_amf_stop()
   EXPECT_TRUE(AmfNasStateManager::getInstance().get_ue_state_map()->isEmpty());
   EXPECT_EQ(get_amf_nas_state(false), nullptr);
 
@@ -1022,8 +1024,9 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionReleaseComplete) {
   put_amf_ue_state(amf_app_desc_p, imsi64, false);
   EXPECT_EQ(AMFClientServicer::getInstance().map_imsi_ue_proto_str.size(), 1);
 
-  // Calling pseudo_amf_restart() and SetUp() simulates a service restart.
-  AMFAppStatelessTest::pseudo_amf_restart();
+  // Calling pseudo_amf_stop() and SetUp() simulates a service restart.
+  AMFAppStatelessTest::pseudo_amf_stop();
+  // Check if state data is cleared in AMF after pseudo_amf_stop()
   EXPECT_TRUE(AmfNasStateManager::getInstance().get_ue_state_map()->isEmpty());
   EXPECT_EQ(get_amf_nas_state(false), nullptr);
 
