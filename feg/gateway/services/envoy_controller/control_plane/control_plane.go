@@ -10,13 +10,18 @@ import (
 	"sync/atomic"
 	"time"
 
-	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	listener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
-	v2route "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-	hcm "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
+	cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
+	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	orig_src "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/listener/original_src/v3"
-	discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2"
+	hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	clusterservice "github.com/envoyproxy/go-control-plane/envoy/service/cluster/v3"
+	discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
+	endpointservice "github.com/envoyproxy/go-control-plane/envoy/service/endpoint/v3"
+	listenerservice "github.com/envoyproxy/go-control-plane/envoy/service/listener/v3"
+	routeservice "github.com/envoyproxy/go-control-plane/envoy/service/route/v3"
+	"github.com/envoyproxy/go-control-plane/pkg/cache/types"
 	"github.com/envoyproxy/go-control-plane/pkg/cache/v3"
 	xds "github.com/envoyproxy/go-control-plane/pkg/server/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
@@ -94,7 +99,7 @@ func (cb *callbacks) OnStreamClosed(id int64) {
 	glog.V(2).Infof("OnStreamClosed %d closed", id)
 }
 
-func (cb *callbacks) OnStreamRequest(int64, *v2.DiscoveryRequest) error {
+func (cb *callbacks) OnStreamRequest(int64, *discovery.DiscoveryRequest) error {
 	glog.V(2).Infof("OnStreamRequest")
 	cb.mu.Lock()
 	defer cb.mu.Unlock()
@@ -105,11 +110,11 @@ func (cb *callbacks) OnStreamRequest(int64, *v2.DiscoveryRequest) error {
 	}
 	return nil
 }
-func (cb *callbacks) OnStreamResponse(int64, *v2.DiscoveryRequest, *v2.DiscoveryResponse) {
+func (cb *callbacks) OnStreamResponse(int64, *discovery.DiscoveryRequest, *discovery.DiscoveryResponse) {
 	glog.V(2).Infof("OnStreamResponse...")
 	cb.Report()
 }
-func (cb *callbacks) OnFetchRequest(ctx context.Context, req *v2.DiscoveryRequest) error {
+func (cb *callbacks) OnFetchRequest(ctx context.Context, req *discovery.DiscoveryRequest) error {
 	glog.V(2).Infof("OnFetchRequest...")
 	cb.mu.Lock()
 	defer cb.mu.Unlock()
@@ -121,7 +126,7 @@ func (cb *callbacks) OnFetchRequest(ctx context.Context, req *v2.DiscoveryReques
 	return nil
 }
 
-func (cb *callbacks) OnFetchResponse(*v2.DiscoveryRequest, *v2.DiscoveryResponse) {
+func (cb *callbacks) OnFetchResponse(*discovery.DiscoveryRequest, *discovery.DiscoveryResponse) {
 	glog.Infof("OnFetchResponse...")
 }
 
@@ -146,10 +151,10 @@ func RunManagementServer(ctx context.Context, server xds.Server, port uint) {
 
 	// register services
 	discovery.RegisterAggregatedDiscoveryServiceServer(grpcServer, server)
-	v2.RegisterEndpointDiscoveryServiceServer(grpcServer, server)
-	v2.RegisterClusterDiscoveryServiceServer(grpcServer, server)
-	v2.RegisterRouteDiscoveryServiceServer(grpcServer, server)
-	v2.RegisterListenerDiscoveryServiceServer(grpcServer, server)
+	endpointservice.RegisterEndpointDiscoveryServiceServer(grpcServer, server)
+	clusterservice.RegisterClusterDiscoveryServiceServer(grpcServer, server)
+	routeservice.RegisterRouteDiscoveryServiceServer(grpcServer, server)
+	listenerservice.RegisterListenerDiscoveryServiceServer(grpcServer, server)
 
 	glog.Infof("Management server listening on port %d", port)
 	go func() {
@@ -202,7 +207,7 @@ func GetControllerClient() *ControllerClient {
 	return &cli
 }
 
-func getHttpConnectionManager(routeConfigName string, virtualHosts []*v2route.VirtualHost) *hcm.HttpConnectionManager {
+func getHttpConnectionManager(routeConfigName string, virtualHosts []*route.VirtualHost) *hcm.HttpConnectionManager {
 	useRemoteAddress := &wrappers.BoolValue{Value: true}
 	commonHttpProtocolOptions := &core.HttpProtocolOptions{
 		IdleTimeout: ptypes.DurationProto(idleTimeout),
@@ -215,7 +220,7 @@ func getHttpConnectionManager(routeConfigName string, virtualHosts []*v2route.Vi
 		InitialConnectionWindowSize: &wrappers.UInt32Value{Value: initialConnectionWindowSize},
 	}
 	routeSpecifier := &hcm.HttpConnectionManager_RouteConfig{
-		RouteConfig: &v2.RouteConfiguration{
+		RouteConfig: &route.RouteConfiguration{
 			Name:         routeConfigName,
 			VirtualHosts: virtualHosts,
 		},
@@ -235,22 +240,22 @@ func getHttpConnectionManager(routeConfigName string, virtualHosts []*v2route.Vi
 	}
 }
 
-func getVirtualHost(virtualHostName string, domains []string, requestHeadersToAdd []*core.HeaderValueOption) *v2route.VirtualHost {
-	routes := []*v2route.Route{{
-		Match: &v2route.RouteMatch{
-			PathSpecifier: &v2route.RouteMatch_Prefix{
+func getVirtualHost(virtualHostName string, domains []string, requestHeadersToAdd []*core.HeaderValueOption) *route.VirtualHost {
+	routes := []*route.Route{{
+		Match: &route.RouteMatch{
+			PathSpecifier: &route.RouteMatch_Prefix{
 				Prefix: targetPrefix,
 			},
 		},
-		Action: &v2route.Route_Route{
-			Route: &v2route.RouteAction{
-				ClusterSpecifier: &v2route.RouteAction_Cluster{
+		Action: &route.Route_Route{
+			Route: &route.RouteAction{
+				ClusterSpecifier: &route.RouteAction_Cluster{
 					Cluster: clusterName,
 				},
 			},
 		},
 	}}
-	return &v2route.VirtualHost{
+	return &route.VirtualHost{
 		Name:                virtualHostName,
 		Domains:             domains,
 		RequestHeadersToAdd: requestHeadersToAdd,
@@ -276,7 +281,7 @@ func getUEFilterChains(ues UEInfoMap) ([]*listener.FilterChain, error) {
 	filterChains := []*listener.FilterChain{}
 	for ue_ip_addr, rule_map := range ues {
 		glog.V(2).Infof("Adding UE - " + ue_ip_addr)
-		virtualHosts := []*v2route.VirtualHost{getVirtualHost(virtualHostName, []string{"*"}, []*core.HeaderValueOption{})}
+		virtualHosts := []*route.VirtualHost{getVirtualHost(virtualHostName, []string{"*"}, []*core.HeaderValueOption{})}
 
 		for _, ueInfo := range rule_map {
 			requestHeadersToAdd := getHeadersToAdd(ueInfo)
@@ -310,7 +315,7 @@ func getUEFilterChains(ues UEInfoMap) ([]*listener.FilterChain, error) {
 	return filterChains, nil
 }
 
-func GetListener(ues UEInfoMap) (*v2.Listener, error) {
+func GetListener(ues UEInfoMap) (*listener.Listener, error) {
 	glog.V(2).Infof("Creating listener " + listenerName)
 	filterChains, err := getUEFilterChains(ues)
 	if err != nil {
@@ -345,7 +350,7 @@ func GetListener(ues UEInfoMap) (*v2.Listener, error) {
 		},
 	}
 
-	var listener = &v2.Listener{
+	var listener = &listener.Listener{
 		Name:            listenerName,
 		Transparent:     &wrappers.BoolValue{Value: true},
 		Address:         address,
@@ -367,12 +372,12 @@ func getDefaultReq() UEInfoMap {
 }
 
 func (cli *ControllerClient) UpdateSnapshot(ues UEInfoMap) {
-	cluster := []cache.Resource{
-		&v2.Cluster{
+	cluster := []types.Resource{
+		&cluster.Cluster{
 			Name:                 clusterName,
-			ClusterDiscoveryType: &v2.Cluster_Type{Type: v2.Cluster_ORIGINAL_DST},
+			ClusterDiscoveryType: &cluster.Cluster_Type{Type: cluster.Cluster_ORIGINAL_DST},
 			ConnectTimeout:       ptypes.DurationProto(connectTimeout),
-			LbPolicy:             v2.Cluster_CLUSTER_PROVIDED,
+			LbPolicy:             cluster.Cluster_CLUSTER_PROVIDED,
 		},
 	}
 
@@ -380,7 +385,7 @@ func (cli *ControllerClient) UpdateSnapshot(ues UEInfoMap) {
 		ues = getDefaultReq()
 	}
 	listener, err := GetListener(ues)
-	listener_resource := []cache.Resource{listener}
+	listener_resource := []types.Resource{listener}
 
 	if err != nil {
 		glog.Errorf("Get Listener error %s", err)
@@ -390,6 +395,6 @@ func (cli *ControllerClient) UpdateSnapshot(ues UEInfoMap) {
 
 	atomic.AddInt32(&cli.version, 1)
 	glog.Infof("Saved snapshot version " + fmt.Sprint(cli.version))
-	snap := cache.NewSnapshot(fmt.Sprint(cli.version), nil, cluster, nil, listener_resource, nil)
+	snap, _ := cache.NewSnapshot(fmt.Sprint(cli.version), nil, cluster, nil, listener_resource, nil)
 	cli.config.SetSnapshot(nodeId, snap)
 }
