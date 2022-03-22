@@ -11,10 +11,15 @@
 
 load("//bazel:python_test.bzl", "pytest_test")
 
+MAGMA_ROOT = "../../../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
 pytest_test(
     name = "magma_upgrader_tests",
     size = "small",
     srcs = ["magma_upgrader_tests.py"],
+    imports = [ORC8R_ROOT],
     deps = [
         "//orc8r/gateway/python/magma/magmad/upgrade:magma_upgrader",
         "//orc8r/gateway/python/magma/magmad/upgrade:upgrader",
@@ -25,5 +30,6 @@ pytest_test(
     name = "upgrader2_test",
     size = "small",
     srcs = ["upgrader2_test.py"],
+    imports = [ORC8R_ROOT],
     deps = ["//orc8r/gateway/python/magma/magmad/upgrade:upgrader2"],
 )
