@@ -49,7 +49,7 @@ RUN apt-get update && \
 
 RUN echo "deb ${EXTRA_REPO} focal-ci main" > /etc/apt/sources.list.d/magma.list
 RUN wget -qO - https://artifactory.magmacore.org/artifactory/api/gpg/key/public | apt-key add -
-RUN apt-add-repository "deb ${EXTRA_REPO} ${OS_RELEASE} focal-ci"
+# RUN apt-add-repository "deb ${EXTRA_REPO} ${OS_RELEASE} focal-ci"
 
 # Install dependencies required for building
 RUN apt-get update && apt-get install -y \
