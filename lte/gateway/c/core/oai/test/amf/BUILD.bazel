@@ -107,8 +107,6 @@ cc_test(
     srcs = [
         "test_amf_encode_decode.cpp",
     ],
-    # TODO: Remove manual tag when fixed: GH12163
-    tags = ["manual"],
     deps = [
         ":amf_app_test_util",
         "//lte/gateway/c/core",
