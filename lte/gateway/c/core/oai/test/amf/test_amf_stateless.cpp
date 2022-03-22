@@ -611,11 +611,6 @@ class AMFAppStatelessTest : public ::testing::Test {
 
   // This Function mocks AMF task stop.
   void pseudo_amf_stop() {
-    for (auto it = ue_context_map.begin(); it != ue_context_map.end();) {
-      delete it->second;
-      it = ue_context_map.erase(it);
-    }
-    amf_supi_guti_map.clear();
     clear_amf_nas_state();
     clear_amf_config(&amf_config);
     destroy_task_context(&amf_app_task_zmq_ctx);

@@ -83,7 +83,7 @@ static int amf_cn_implicit_deregister_ue(const amf_ue_ngap_id_t ue_id) {
                "AMF-PROC Implicit Detach UE" AMF_UE_NGAP_ID_FMT "\n", ue_id);
 
   amf_deregistration_request_ies_t params = {};
-  params.de_reg_type = AMF_NORMAL_DEREGISTRATION;
+  params.de_reg_type = AMF_SWITCHOFF_DEREGISTRATION;
   params.de_reg_access_type = AMF_3GPP_ACCESS;
   params.ksi = 0;
 
