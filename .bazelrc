@@ -13,6 +13,7 @@ build --compilation_mode=dbg
 
 # Default test configuration
 test --test_output=errors
+test --flaky_test_attempts=5
 
 # MAGMA VM CONFIGS
 build:specify_vm_cc --action_env=CC=/usr/bin/gcc

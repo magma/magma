@@ -48,12 +48,17 @@ set(NAS_APN_AMBR
 
 set(MME_APP_TEST_SRC
     mme_procedure_test_fixture.h
+    mme_procedure_test_fixture.cpp
     mme_app_test.cpp
     mme_app_test_util.cpp
     test_mme_app_emm_encode_decode.cpp
     test_mme_app_esm_encode_decode.cpp
     test_mme_app_config.cpp
     test_mme_procedures.cpp
+    test_mme_procedures_mobile_reachability_timer.cpp
+    test_mme_procedures_nas_timer.cpp
+    test_mme_procedures_x2_handover.cpp
+    test_mme_procedures_network_initiated.cpp
     test_sgw_config.cpp
     )
 

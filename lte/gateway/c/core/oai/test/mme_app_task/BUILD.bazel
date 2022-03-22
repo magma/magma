@@ -107,6 +107,7 @@ cc_test(
 
 cc_library(
     name = "mme_procedure_test_fixture",
+    srcs = ["mme_procedure_test_fixture.cpp"],
     hdrs = ["mme_procedure_test_fixture.h"],
     deps = [
         ":mme_app_test_core",
@@ -120,6 +121,7 @@ cc_test(
     srcs = [
         "test_mme_procedures.cpp",
     ],
+    flaky = True,
     # TODO: Remove manual tag when fixed: GH11955
     tags = ["manual"],
     deps = [
@@ -128,6 +130,70 @@ cc_test(
         "//lte/gateway/c/core",
         "//lte/gateway/c/core/oai/test/mock_tasks",
         "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "mme_procedures_mobile_reachability_timer_test",
+    size = "small",
+    srcs = [
+        "test_mme_procedures_mobile_reachability_timer.cpp",
+    ],
+    # TODO: GH12236
+    flaky = True,
+    deps = [
+        ":mme_app_test_core",
+        ":mme_procedure_test_fixture",
+        "//lte/gateway/c/core",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "mme_procedures_nas_timer_test",
+    size = "small",
+    srcs = [
+        "test_mme_procedures_nas_timer.cpp",
+    ],
+    # TODO: GH12237
+    flaky = True,
+    deps = [
+        ":mme_app_test_core",
+        ":mme_procedure_test_fixture",
+        "//lte/gateway/c/core",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "mme_procedures_x2_handover_test",
+    size = "small",
+    srcs = [
+        "test_mme_procedures_x2_handover.cpp",
+    ],
+    # TODO: GH12238
+    flaky = True,
+    deps = [
+        ":mme_app_test_core",
+        ":mme_procedure_test_fixture",
+        "//lte/gateway/c/core",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "mme_procedures_network_initiated_test",
+    size = "medium",
+    srcs = [
+        "test_mme_procedures_network_initiated.cpp",
+    ],
+    # TODO: GH12239
+    flaky = True,
+    deps = [
+        ":mme_app_test_core",
+        ":mme_procedure_test_fixture",
+        "//lte/gateway/c/core",
+        "@com_google_googletest//:gtest",
     ],
 )
 
