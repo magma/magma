@@ -23,9 +23,6 @@ env:
 
   DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:latest"
 
-permissions:
-  contents: read
-
 jobs:
   bazel-build-magma-vm-and-push-cache:
     runs-on: macos-10.15

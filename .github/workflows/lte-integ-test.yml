@@ -13,8 +13,6 @@ on:  # yamllint disable-line rule:truthy
     types:
       - completed
 
-permissions: read-all
-
 jobs:
   lte-integ-test:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
