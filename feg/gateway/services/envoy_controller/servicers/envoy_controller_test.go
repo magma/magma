@@ -18,12 +18,11 @@ import (
 	"testing"
 	"time"
 
-	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	listener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
-	v2route "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-	hcm "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
+	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	orig_src "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/listener/original_src/v3"
+	hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -166,21 +165,21 @@ var (
 	addSuccess        = &protos.AddUEHeaderEnrichmentResult{Result: protos.AddUEHeaderEnrichmentResult_SUCCESS}
 	deactivateSuccess = &protos.DeactivateUEHeaderEnrichmentResult{Result: protos.DeactivateUEHeaderEnrichmentResult_SUCCESS}
 
-	routes = []*v2route.Route{{
-		Match: &v2route.RouteMatch{
-			PathSpecifier: &v2route.RouteMatch_Prefix{
+	routes = []*route.Route{{
+		Match: &route.RouteMatch{
+			PathSpecifier: &route.RouteMatch_Prefix{
 				Prefix: "/",
 			},
 		},
-		Action: &v2route.Route_Route{
-			Route: &v2route.RouteAction{
-				ClusterSpecifier: &v2route.RouteAction_Cluster{
+		Action: &route.Route_Route{
+			Route: &route.RouteAction{
+				ClusterSpecifier: &route.RouteAction_Cluster{
 					Cluster: "cluster1",
 				},
 			},
 		},
 	}}
-	virtualHosts = []*v2route.VirtualHost{
+	virtualHosts = []*route.VirtualHost{
 		{
 			Name:                "local_service",
 			Domains:             []string{"*"},
@@ -210,7 +209,7 @@ var (
 				InitialConnectionWindowSize: &wrappers.UInt32Value{Value: 1048576},
 			},
 			RouteSpecifier: &hcm.HttpConnectionManager_RouteConfig{
-				RouteConfig: &v2.RouteConfiguration{
+				RouteConfig: &route.RouteConfiguration{
 					Name:         "matched_website_route",
 					VirtualHosts: virtualHosts,
 				},
@@ -222,7 +221,7 @@ var (
 	)
 
 	mo_src, _    = ptypes.MarshalAny(&orig_src.OriginalSrc{})
-	retListener1 = &v2.Listener{
+	retListener1 = &listener.Listener{
 		Name: "default_http",
 		Address: &core.Address{
 			Address: &core.Address_SocketAddress{
