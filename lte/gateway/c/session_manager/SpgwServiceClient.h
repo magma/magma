@@ -75,7 +75,8 @@ class SpgwServiceClient {
    */
   virtual bool delete_default_bearer(const std::string& imsi,
                                      const std::string& apn_ip_addr,
-                                     const uint32_t linked_bearer_id) = 0;
+                                     const uint32_t linked_bearer_id,
+				     bool is_s8_meterer) = 0;
 
   /**
    * Delete a dedicated bearer
@@ -112,7 +113,8 @@ class AsyncSpgwServiceClient : public GRPCReceiver, public SpgwServiceClient {
    */
   bool delete_default_bearer(const std::string& imsi,
                              const std::string& apn_ip_addr,
-                             const uint32_t linked_bearer_id);
+                             const uint32_t linked_bearer_id,
+			     bool is_s8_meterer);
 
   /**
    * Delete a dedicated bearer
@@ -135,7 +137,8 @@ class AsyncSpgwServiceClient : public GRPCReceiver, public SpgwServiceClient {
  private:
   bool delete_bearer(const std::string& imsi, const std::string& apn_ip_addr,
                      const uint32_t linked_bearer_id,
-                     const std::vector<uint32_t>& eps_bearer_ids);
+                     const std::vector<uint32_t>& eps_bearer_ids,
+		     bool is_s8_meterer);
 
   void delete_bearer_rpc(
       const DeleteBearerRequest& request,

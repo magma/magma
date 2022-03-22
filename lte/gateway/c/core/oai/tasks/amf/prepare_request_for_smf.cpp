@@ -83,6 +83,8 @@ int create_session_grpc_req_on_gnb_setup_rsp(amf_smf_establish_t* message,
   req_common->set_sm_session_state(magma::lte::SMSessionFSMState::CREATING_0);
   // Version Added
   req_common->set_sm_session_version(version);
+  // Default S5 session
+  req_common->set_is_s8_meterer(false);
   req_rat_specific->set_pdu_session_id((message->pdu_session_id));
   req_rat_specific->set_request_type(magma::lte::RequestType::INITIAL_REQUEST);
 
@@ -219,6 +221,8 @@ int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
 
   req_common->set_sm_session_state(magma::lte::SMSessionFSMState::RELEASED_4);
   req_common->set_sm_session_version(1);  // uint32
+  req_common->set_is_s8_meterer(false);   // Default S5 session
+
   auto* req_rat_specific =
       req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
   req_rat_specific->set_pdu_session_id(message->pdu_session_id);

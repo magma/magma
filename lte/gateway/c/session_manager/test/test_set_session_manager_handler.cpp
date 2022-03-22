@@ -406,6 +406,7 @@ TEST_F(SessionManagerHandlerTest, test_SetPduSessionReleaseContext) {
   req->set_request_type(magma::RequestType::EXISTING_PDU_SESSION);
   reqcmn->set_sm_session_state(magma::SMSessionFSMState::RELEASED_4);
   reqcmn->set_sm_session_version(2);
+  reqcmn->set_is_s8_meterer(false);
 
   set_session_manager->SetAmfSessionContext(
       &server_context, &request,

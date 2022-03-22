@@ -50,6 +50,7 @@ struct pcef_create_session_data {
   uint32_t pvi;
   uint32_t qci;
   uint8_t pdn_type;
+  bool    s8_meterer;
 };
 
 /**
@@ -66,7 +67,7 @@ void pcef_create_session(const char* imsi, const char* ip4, const char* ip6,
  * PCEF and returns true if successful.
  * This may turn asynchronous in the future if it's too long
  */
-bool pcef_end_session(char* imsi, char* apn);
+bool pcef_end_session(const char* imsi, const char* apn);
 
 /**
  * pcef_send_policy2bearer_binding is an asynchronous call that binds policy

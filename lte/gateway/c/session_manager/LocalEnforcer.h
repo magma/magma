@@ -692,12 +692,14 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   void handle_activate_service_action(
+      SessionMap& session_map,
       const std::unique_ptr<ServiceAction>& action_p);
 
   /**
    * Install final action flows through pipelined
    */
   void install_final_unit_action_flows(
+      SessionMap& session_map,
       const std::unique_ptr<ServiceAction>& action);
 
   /**

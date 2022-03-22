@@ -33,11 +33,13 @@ namespace {  // anonymous
 magma::DeleteBearerRequest create_delete_bearer_req(
     const std::string& imsi, const std::string& apn_ip_addr,
     const uint32_t linked_bearer_id,
-    const std::vector<uint32_t>& eps_bearer_ids) {
+    const std::vector<uint32_t>& eps_bearer_ids,
+    bool is_s8_meterer) {
   magma::DeleteBearerRequest req;
   req.mutable_sid()->set_id(imsi);
   req.set_ip_addr(apn_ip_addr);
   req.set_link_bearer_id(linked_bearer_id);
+  req.set_is_s8_meterer(is_s8_meterer);
 
   auto ebis = req.mutable_eps_bearer_ids();
   for (const auto& eps_bearer_id : eps_bearer_ids) {
@@ -62,12 +64,13 @@ AsyncSpgwServiceClient::AsyncSpgwServiceClient()
 
 bool AsyncSpgwServiceClient::delete_default_bearer(
     const std::string& imsi, const std::string& apn_ip_addr,
-    const uint32_t linked_bearer_id) {
+    const uint32_t linked_bearer_id,
+    bool is_s8_meterer) {
   MLOG(MINFO) << "Deleting default bearer and corresponding PDN session for"
               << " IMSI: " << imsi << " APN IP addr " << apn_ip_addr
               << " Bearer ID " << linked_bearer_id;
   std::vector<uint32_t> eps_bearer_ids = {linked_bearer_id};
-  return delete_bearer(imsi, apn_ip_addr, linked_bearer_id, eps_bearer_ids);
+  return delete_bearer(imsi, apn_ip_addr, linked_bearer_id, eps_bearer_ids, is_s8_meterer);
 }
 
 bool AsyncSpgwServiceClient::delete_dedicated_bearer(
@@ -115,9 +118,10 @@ bool AsyncSpgwServiceClient::create_dedicated_bearer(
 bool AsyncSpgwServiceClient::delete_bearer(
     const std::string& imsi, const std::string& apn_ip_addr,
     const uint32_t linked_bearer_id,
-    const std::vector<uint32_t>& eps_bearer_ids) {
+    const std::vector<uint32_t>& eps_bearer_ids,
+    bool is_s8_meterer) {
   auto req = create_delete_bearer_req(imsi, apn_ip_addr, linked_bearer_id,
-                                      eps_bearer_ids);
+                                      eps_bearer_ids, is_s8_meterer);
   delete_bearer_rpc(
       req, [imsi, apn_ip_addr](Status status, DeleteBearerResult resp) {
         if (!status.ok()) {

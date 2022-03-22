@@ -72,6 +72,9 @@ SetSMSessionContext create_sm_pdu_session(
   // Create with Default Version
   req_common->set_sm_session_version(version);
 
+  // Default S5 session
+  req_common->set_is_s8_meterer(false);
+
   if (!ip4.empty()) {
     // Set the IPv4 PDU Address
     req_common->set_ue_ipv4(ip4);

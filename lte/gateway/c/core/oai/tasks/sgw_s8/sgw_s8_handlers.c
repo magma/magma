@@ -325,8 +325,9 @@ status_code_e sgw_s8_handle_s11_create_session_request(
     OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
   }
 
-  send_s8_create_session_request(temporary_create_session_procedure_id,
-                                 session_req_pP, imsi64);
+  bool is_s8_mtr = spgw_config.pgw_config.s8_metering;
+  send_s8_create_session_request(
+      is_s8_mtr, temporary_create_session_procedure_id, session_req_pP, imsi64);
   sgw_display_s11_bearer_context_information(LOG_SGW_S8, new_sgw_eps_context);
   OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNok);
 }
@@ -512,7 +513,9 @@ status_code_e sgw_s8_handle_create_session_response(
     if ((sgw_update_bearer_context_information_on_csrsp(
             sgw_context_p, session_rsp_p, sgw_state)) != RETURNok) {
       send_s8_delete_session_request(
+          spgw_config.pgw_config.s8_metering,
           sgw_context_p->imsi64, sgw_context_p->imsi,
+	  sgw_context_p->pdn_connection.apn_in_use,
           sgw_context_p->s_gw_teid_S11_S4,
           sgw_context_p->pdn_connection.p_gw_teid_S5_S8_cp,
           sgw_context_p->pdn_connection.default_bearer, NULL);
@@ -987,7 +990,9 @@ status_code_e sgw_s8_handle_s11_delete_session_request(
   }
 
   send_s8_delete_session_request(
+      spgw_config.pgw_config.s8_metering,
       sgw_context_p->imsi64, sgw_context_p->imsi,
+      sgw_context_p->pdn_connection.apn_in_use,
       sgw_context_p->s_gw_teid_S11_S4,
       sgw_context_p->pdn_connection.p_gw_teid_S5_S8_cp,
       sgw_context_p->pdn_connection.default_bearer, delete_session_req_p);

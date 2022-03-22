@@ -267,6 +267,8 @@ class SessionState {
 
   std::string get_imsi() const { return config_.common_context.sid().id(); }
 
+  bool is_s8_meterer() const { return config_.common_context.is_s8_meterer(); }
+
   uint16_t get_shard_id() const { return shard_id_; }
 
   void set_shard_id(uint16_t shard_id) { shard_id_ = shard_id; }

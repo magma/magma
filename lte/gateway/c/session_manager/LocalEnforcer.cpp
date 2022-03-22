@@ -126,6 +126,9 @@ void LocalEnforcer::setup(
   bool cwf = false;
   for (auto it = session_map.begin(); it != session_map.end(); it++) {
     for (const auto& session : it->second) {
+      if (session->is_s8_meterer()) {
+	continue;
+      }
       session_infos.push_back(session->get_session_info_for_setup());
       const auto& config = session->get_config();
       msisdns.push_back(config.common_context.msisdn());
@@ -455,6 +458,7 @@ void LocalEnforcer::cleanup_dead_sessions(
     Teids teids;
     teids.set_agw_teid(record.teid());
     const std::vector<Teids> teids_vec{teids};
+    // it's not needed to bracket out session here w.r.t. session->is_s8_meterer()
     pipelined_client_->deactivate_flows_for_rules_for_termination(
         record.sid(), record.ue_ipv4(), record.ue_ipv6(), teids_vec,
         RequestOriginType::WILDCARD);
@@ -499,11 +503,11 @@ void LocalEnforcer::execute_actions(
     auto session_id = action_p->get_session_id();
     switch (action_p->get_type()) {
       case ACTIVATE_SERVICE:
-        handle_activate_service_action(action_p);
+        handle_activate_service_action(session_map, action_p);
         break;
       case REDIRECT:
       case RESTRICT_ACCESS: {
-        install_final_unit_action_flows(action_p);
+        install_final_unit_action_flows(session_map, action_p);
         break;
       }
       case TERMINATE_SERVICE: {
@@ -523,12 +527,25 @@ void LocalEnforcer::execute_actions(
 
 // TODO look into whether we need to re-install all Gx rules on activation
 void LocalEnforcer::handle_activate_service_action(
+    SessionMap& session_map,
     const std::unique_ptr<ServiceAction>& action_p) {
   const std::string imsi = action_p->get_imsi(),
                     msisdn = action_p->get_msisdn(),
                     ip_addr = action_p->get_ip_addr(),
                     ipv6_addr = action_p->get_ipv6_addr(),
                     session_id = action_p->get_session_id();
+
+  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    MLOG(MERROR) << "Could not find session for" << session_id;
+    return;
+  }
+  auto& session = **session_it;
+  if (session->is_s8_meterer()) {
+    return;
+  }
+
   const Teids teids = action_p->get_teids();
   const auto ambr = action_p->get_ambr();
   RulesToProcess to_process = action_p->get_gx_rules_to_install();
@@ -560,7 +577,7 @@ void LocalEnforcer::start_session_termination(
   if (notify_access) {
     notify_termination_to_access_service(session_id, config);
   }
-  if (common_context.rat_type() == TGPP_WLAN) {
+  if (common_context.rat_type() == TGPP_WLAN && !session->is_s8_meterer()) {
     MLOG(MDEBUG) << "Deleting UE MAC flow for subscriber " << imsi;
     pipelined_client_->delete_ue_mac_flow(
         common_context.sid(),
@@ -613,9 +630,11 @@ void LocalEnforcer::remove_all_rules_for_termination(
   const std::string ip_addr = session->get_config().common_context.ue_ipv4();
   const auto ipv6_addr = session->get_config().common_context.ue_ipv6();
   const std::vector<Teids> teids = session->get_active_teids();
-  pipelined_client_->deactivate_flows_for_rules_for_termination(
-      session->get_imsi(), ip_addr, ipv6_addr, teids,
-      RequestOriginType::WILDCARD);
+  if (!session->is_s8_meterer()) {
+    pipelined_client_->deactivate_flows_for_rules_for_termination(
+        session->get_imsi(), ip_addr, ipv6_addr, teids,
+        RequestOriginType::WILDCARD);
+  }
   session->remove_all_rules_for_termination(session_uc);
 }
 
@@ -638,7 +657,8 @@ void LocalEnforcer::notify_termination_to_access_service(
       // deactivation
       const auto& lte_context = config.rat_specific_context.lte_context();
       spgw_client_->delete_default_bearer(imsi, common_context.ue_ipv4(),
-                                          lte_context.bearer_id());
+                                          lte_context.bearer_id(),
+					  config.common_context.is_s8_meterer());
       break;
     }
     default:
@@ -652,6 +672,9 @@ void LocalEnforcer::notify_termination_to_access_service(
 void LocalEnforcer::handle_subscriber_quota_state_change(
     SessionState& session, SubscriberQuotaUpdate_Type new_state,
     SessionStateUpdateCriteria* session_uc) {
+  if (session.is_s8_meterer()) {
+    return;
+  }
   auto config = session.get_config();
   const std::string& imsi = session.get_imsi();
   const std::string& session_id = session.get_session_id();
@@ -667,12 +690,25 @@ void LocalEnforcer::handle_subscriber_quota_state_change(
 }
 
 void LocalEnforcer::install_final_unit_action_flows(
+    SessionMap& session_map,
     const std::unique_ptr<ServiceAction>& action_p) {
   const std::string imsi = action_p->get_imsi(),
                     msisdn = action_p->get_msisdn(),
                     ip_addr = action_p->get_ip_addr(),
                     ipv6_addr = action_p->get_ipv6_addr(),
                     session_id = action_p->get_session_id();
+
+  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    MLOG(MERROR) << "Could not find session for" << session_id;
+    return;
+  }
+  auto& session = **session_it;
+  if (session->is_s8_meterer()) {
+    return;
+  }
+
   const Teids teids = action_p->get_teids();
   const auto fua_type = action_p->get_type();
 
@@ -821,11 +857,12 @@ void LocalEnforcer::schedule_static_rule_activation(
         to_process.push_back(session->activate_static_rule(
             rule_id, session->get_rule_lifetime(rule_id), &uc));
 
-        pipelined_client_->activate_flows_for_rules(
-            imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
-            std::bind(&LocalEnforcer::handle_activate_ue_flows_callback, this,
-                      imsi, session_id, ip_addr, ipv6_addr, teids, _1, _2));
-
+	if (!session->is_s8_meterer()) {
+          pipelined_client_->activate_flows_for_rules(
+              imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
+              std::bind(&LocalEnforcer::handle_activate_ue_flows_callback, this,
+                        imsi, session_id, ip_addr, ipv6_addr, teids, _1, _2));
+	}
         session_store_.update_sessions(session_update);
       },
       delta.count());
@@ -880,10 +917,12 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
         to_process.push_back(session->insert_dynamic_rule(
             rule, session->get_rule_lifetime(rule_id), &session_uc));
 
-        pipelined_client_->activate_flows_for_rules(
-            imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
-            std::bind(&LocalEnforcer::handle_activate_ue_flows_callback, this,
-                      imsi, session_id, ip_addr, ipv6_addr, teids, _1, _2));
+	if (!session->is_s8_meterer()) {
+          pipelined_client_->activate_flows_for_rules(
+              imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
+              std::bind(&LocalEnforcer::handle_activate_ue_flows_callback, this,
+                        imsi, session_id, ip_addr, ipv6_addr, teids, _1, _2));
+	}
 
         session_store_.update_sessions(session_update);
       },
@@ -931,11 +970,12 @@ void LocalEnforcer::schedule_static_rule_deactivation(
           return;
         }
 
-        RulesToProcess to_process;
-        to_process.push_back(*op_rule_info);
-        pipelined_client_->deactivate_flows_for_rules(
-            imsi, ip_addr, ipv6_addr, teids, to_process, RequestOriginType::GX);
-
+	if (!session->is_s8_meterer()) {
+          RulesToProcess to_process;
+          to_process.push_back(*op_rule_info);
+          pipelined_client_->deactivate_flows_for_rules(
+              imsi, ip_addr, ipv6_addr, teids, to_process, RequestOriginType::GX);
+  	}
         session_store_.update_sessions(session_update);
       },
       delta.count());
@@ -971,7 +1011,7 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
         auto& uc = session_update[imsi][session_id];
         optional<RuleToProcess> remove_info =
             session->remove_dynamic_rule(policy.id(), &policy, &uc);
-        if (remove_info) {
+	if (remove_info	&& !session->is_s8_meterer()) {
           RulesToProcess to_process;
           to_process.push_back(*remove_info);
           pipelined_client_->deactivate_flows_for_rules(
@@ -1483,7 +1523,7 @@ void LocalEnforcer::update_charging_credits(
     if (prev_final_action) {
       RulesToProcess gy_rules =
           session->remove_all_final_action_rules(*prev_final_action, &uc);
-      if (!gy_rules.empty()) {
+    if (!gy_rules.empty() && !session->is_s8_meterer()) {
         auto config = session->get_config().common_context;
         // We need to cancel final unit action flows installed in pipelined here
         // following the reception of new charging credit.
@@ -1817,6 +1857,9 @@ void LocalEnforcer::propagate_rule_updates_to_pipelined(
     const std::string& session_id, const SessionConfig& config,
     const RulesToProcess& pending_activation,
     const RulesToProcess& pending_deactivation, bool always_send_activate) {
+  if (config.common_context.is_s8_meterer()) {
+    return;
+  }
   const std::string& imsi = config.get_imsi();
   const auto ip_addr = config.common_context.ue_ipv4();
   const auto ipv6_addr = config.common_context.ue_ipv6();
@@ -2016,7 +2059,7 @@ void LocalEnforcer::create_bearer(
 void LocalEnforcer::update_ipfix_flow(const std::string& imsi,
                                       const SessionConfig& config,
                                       const uint64_t pdp_start_time) {
-  if (!LocalEnforcer::SEND_IPFIX) {
+  if (!LocalEnforcer::SEND_IPFIX || config.common_context.is_s8_meterer()) {
     return;
   }
 

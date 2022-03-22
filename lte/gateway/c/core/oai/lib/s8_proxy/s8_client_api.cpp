@@ -18,12 +18,15 @@ limitations under the License.
 #include "lte/gateway/c/core/oai/lib/s8_proxy/S8Client.h"
 #include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.h"
 #include "lte/gateway/c/core/oai/lib/s8_proxy/s8_itti_proto_conversion.h"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.h" // get_imsi_str
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/s8_messages_types.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 }
 
@@ -425,7 +428,28 @@ static void fill_s8_create_session_req(
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
+static bool extract_ips(const magma::feg::PDNType& proto_pdn_type,
+			const magma::feg::PdnAddressAllocation& proto_paa,
+			std::string& ip4_str, std::string& ip6_str)
+{
+  ip4_str = "";
+  ip6_str = "";
+
+  if (proto_pdn_type == magma::feg::PDNType::IPV4)
+    ip4_str = proto_paa.ipv4_address();
+  else if (proto_pdn_type == magma::feg::PDNType::IPV6)
+    ip6_str = proto_paa.ipv6_address();
+  else if (proto_pdn_type == magma::feg::PDNType::IPV4V6) {
+    ip4_str = proto_paa.ipv4_address();
+    ip6_str = proto_paa.ipv6_address();
+  } else
+    return false;
+
+  return true;
+}
+
 void send_s8_create_session_request(
+    bool is_s8_mtr,
     uint32_t temporary_create_session_procedure_id,
     const itti_s11_create_session_request_t* msg, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
@@ -441,13 +465,52 @@ void send_s8_create_session_request(
   dflt_bearer_qos =
       msg->bearer_contexts_to_be_created.bearer_contexts[0].bearer_level_qos;
 
+  s5_create_session_request_t session_req = {0};
+  session_req.status                      = SGI_STATUS_OK;
+
+  // make sure these are properly filled.
+  session_req.context_teid                = msg->teid;
+  session_req.eps_bearer_id               =
+    msg->bearer_contexts_to_be_created.bearer_contexts[0].eps_bearer_id;
+
+  struct pcef_create_session_data session_data;
+  spgw_state_t* spgw_state = get_spgw_state(false);
+  get_session_req_data(spgw_state, msg, &session_data);
+  session_data.s8_meterer = is_s8_mtr;
+
   magma::S8Client::s8_create_session_request(
       csr_req,
-      [imsi64, temporary_create_session_procedure_id, dflt_bearer_qos](
+      [imsi64, temporary_create_session_procedure_id, dflt_bearer_qos,
+       is_s8_mtr, session_req, session_data](
           grpc::Status status, magma::feg::CreateSessionResponsePgw response) {
-        recv_s8_create_session_response(imsi64,
-                                        temporary_create_session_procedure_id,
-                                        dflt_bearer_qos, status, response);
+	if (!is_s8_mtr || !status.ok()) {
+          recv_s8_create_session_response(
+              imsi64, temporary_create_session_procedure_id, dflt_bearer_qos,
+              status, response);
+	  return;
+	}
+        // It's assumed s5+s8 combination is being used below this line.
+	std::string imsi_str = magma::lte::SgwStateManager::get_imsi_str(imsi64);
+	std::string ip4_str;
+	std::string ip6_str;
+	bool extracted = extract_ips(response.pdn_type(), response.paa(), ip4_str, ip6_str);
+	if (!extracted) {
+	  OAILOG_ERROR(LOG_SGW_S8, "Ivalid IP addresses found %s!\n", imsi_str.c_str());
+	  return;
+          // WARN: this error needs to be processed later in non-happy-path scenarios patch.
+	}
+	pcef_create_session(imsi_str.c_str(),
+			    ip4_str == "" ? NULL : ip4_str.c_str(),
+			    ip6_str == "" ? NULL : ip6_str.c_str(),
+			    &session_data, session_req);
+
+	// WARN: this call doesn't wait for pcef_create_session()
+	// actual completion therefore works for happy-path scenarios
+	// only. More robust code would need a callback introduction
+	// inside pcef_create_session().
+	recv_s8_create_session_response(
+		imsi64, temporary_create_session_procedure_id, dflt_bearer_qos,
+		status, response);
       });
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
@@ -512,7 +575,8 @@ static void convert_proto_msg_to_itti_csr(
 }
 
 void send_s8_delete_session_request(
-    imsi64_t imsi64, Imsi_t imsi, teid_t sgw_s11_teid, teid_t pgw_s5_teid,
+    bool is_s8_mtr,
+    imsi64_t imsi64, Imsi_t imsi, APN_t apn, teid_t sgw_s11_teid, teid_t pgw_s5_teid,
     ebi_t bearer_id,
     const itti_s11_delete_session_request_t* const delete_session_req_p) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
@@ -532,6 +596,11 @@ void send_s8_delete_session_request(
     convert_serving_network_to_proto_msg(dsr_req.mutable_serving_network(),
                                          delete_session_req_p->serving_network);
   }
+
+  if (is_s8_mtr) {
+    pcef_end_session(dsr_req.imsi().c_str(), apn);
+  }
+
   magma::S8Client::s8_delete_session_request(
       dsr_req,
       [imsi64, sgw_s11_teid](grpc::Status status,

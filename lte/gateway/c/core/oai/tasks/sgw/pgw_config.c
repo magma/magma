@@ -438,6 +438,13 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
         config_pP->force_push_pco = false;
       }
     }
+
+    if (config_setting_lookup_string(setting_pgw, PGW_CONFIG_STRING_S8_METERING,
+				     (const char**) &astring)) {
+      config_pP->s8_metering = strcasecmp(astring, "yes") == 0;
+      OAILOG_DEBUG(LOG_SPGW_APP, "S8 metering %s\n", astring);
+    }
+
     if (config_setting_lookup_int(setting_pgw, PGW_CONFIG_STRING_UE_MTU,
                                   &mtu)) {
       config_pP->ue_mtu = mtu;

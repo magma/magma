@@ -82,6 +82,8 @@ message CommonSessionContext {
   string ue_ipv6 = 10;
   // TEIDs corresponding to the default bearer
   Teids teids = 11;
+  // Used in context of S8 traffic metering
+  bool is_s8_meterer = 12;
 }
 
 message RatSpecificContext {

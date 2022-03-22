@@ -210,11 +210,7 @@ class StateManager {
     }
   }
 
-  std::string get_imsi_str(imsi64_t imsi64) {
-    AssertFatal(
-        is_initialized,
-        "StateManager init() function should be called to initialize state");
-
+  static std::string get_imsi_str(imsi64_t imsi64) {
     char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
     IMSI64_TO_STRING(imsi64, (char*)imsi_str, IMSI_BCD_DIGITS_MAX);
     return imsi_str;

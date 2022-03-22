@@ -47,6 +47,7 @@
 #define PGW_CONFIG_STRING_UE_TCP_MSS_CLAMPING "UE_TCP_MSS_CLAMPING"
 #define PGW_CONFIG_STRING_NAS_FORCE_PUSH_PCO \
   "FORCE_PUSH_PROTOCOL_CONFIGURATION_OPTIONS"
+#define PGW_CONFIG_STRING_S8_METERING "S8_METERING"
 
 #define PGW_CONFIG_STRING_IP_ADDRESS_POOL "IP_ADDRESS_POOL"
 #define PGW_CONFIG_STRING_IPV4_ADDRESS_LIST "IPV4_LIST"
@@ -114,6 +115,7 @@ typedef struct pgw_config_s {
   struct in_addr ue_pool_addr[PGW_NUM_UE_POOL_MAX];
 
   bool force_push_pco;
+  bool s8_metering;
   uint16_t ue_mtu;
   bool enable_nat;
 

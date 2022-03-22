@@ -188,12 +188,37 @@ Status SpgwServiceImpl::CreateBearer(ServerContext* context,
   return Status::OK;
 }  // namespace magma
 
-Status SpgwServiceImpl::DeleteBearer(ServerContext* context,
-                                     const DeleteBearerRequest* request,
-                                     DeleteBearerResult* response) {
+// don't see how to export the following function properly due to circular deps in headers...
+// #include "lte/gateway/c/core/oai/lib/s8_proxy/s8_client_api.h"
+extern void send_s8_delete_session_request(
+    bool is_s8_mtr,
+    imsi64_t imsi64, Imsi_t imsi, APN_t apn, teid_t sgw_s11_teid, teid_t pgw_s5_teid,
+    ebi_t bearer_id,
+    const itti_s11_delete_session_request_t* const delete_session_req_p);
+
+
+Status SpgwServiceImpl::DeleteBearer(
+    ServerContext* context, const DeleteBearerRequest* request,
+    DeleteBearerResult* response) {
   OAILOG_INFO(LOG_UTIL, "Received DeleteBearer GRPC request\n");
   itti_gx_nw_init_deactv_bearer_request_t itti_msg;
   std::string imsi = request->sid().id();
+
+  // A special case related to s8 sessions metered over s5 sessions
+  if (request->is_s8_meterer()) {
+    itti_s11_delete_session_request_t req;
+    Imsi_t imsis;
+    send_s8_delete_session_request(true,
+				   -1,
+				   imsis,
+				   "",    //
+				   -1,    // It's not known so far how to fill these values
+				   -1,    // properly in the given call context.
+				   -1,    //
+				   &req); //
+    return Status::OK;
+  }
+
   // If north bound is sessiond itself, IMSI prefix is used;
   // in S1AP tests, IMSI prefix is not used
   // Strip off any IMSI prefix

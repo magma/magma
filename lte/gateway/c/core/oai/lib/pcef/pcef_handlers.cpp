@@ -91,6 +91,9 @@ static void pcef_fill_create_session_req(
   qos_info.set_preemption_vulnerability(session_data->pvi);
   qos_info.set_qos_class_id(session_data->qci);
   lte_context->mutable_qos_info()->CopyFrom(qos_info);
+
+  // S8 metering
+  common_context->set_is_s8_meterer(session_data->s8_meterer);
 }
 
 /**
@@ -151,17 +154,21 @@ void pcef_create_session(const char* imsi, const char* ip4, const char* ip6,
                                &sreq);
 
   auto apn = std::string(session_data->apn);
+  bool is_s8_meterer = sreq.common_context().is_s8_meterer();
+
   // call the `CreateSession` gRPC method and execute the inline function
   magma::PCEFClient::create_session(
-      sreq, [imsi_str, session_request](
+      sreq, [imsi_str, is_s8_meterer, session_request](
                 const grpc::Status& status,
                 const magma::LocalCreateSessionResponse& response) {
-        send_itti_pcef_create_session_response(imsi_str, session_request,
-                                               status);
+	if (!is_s8_meterer) {
+          send_itti_pcef_create_session_response(
+              imsi_str, session_request, status);
+	}
       });
 }
 
-bool pcef_end_session(char* imsi, char* apn) {
+bool pcef_end_session(const char* imsi, const char* apn) {
   magma::LocalEndSessionRequest request;
   request.mutable_sid()->set_id("IMSI" + std::string(imsi));
   request.set_apn(apn);
@@ -421,6 +428,7 @@ void get_session_req_data(spgw_state_t* spgw_state,
   data->pci = qos->pci;
   data->pvi = qos->pvi;
   data->qci = qos->qci;
+  data->s8_meterer = false;
 }
 
 bool pcef_delete_dedicated_bearer(const char* imsi, const ebi_list_t ebi_list) {

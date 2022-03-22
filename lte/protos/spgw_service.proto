@@ -37,6 +37,8 @@ message DeleteBearerRequest {
     uint32 link_bearer_id = 3;
     // dedicated bearer IDs
     repeated uint32 eps_bearer_ids = 4;
+    // is s8 metering session
+    bool is_s8_meterer = 5;
 }
 
 message DeleteBearerResult {}

@@ -491,6 +491,9 @@ void SessionStateEnforcer::m5g_send_session_request_to_upf(
     const std::unique_ptr<SessionState>& session,
     const RulesToProcess& pending_activation,
     const RulesToProcess& pending_deactivation) {
+  if (session->is_s8_meterer()) {
+    return;
+  }
   // Update to UPF
   SessionState::SessionInfo sess_info;
   session->sess_infocopy(&sess_info);
@@ -700,6 +703,8 @@ void SessionStateEnforcer::prepare_response_to_access(
   rsp_cmn->set_apn(config.common_context.apn());
   rsp_cmn->set_sm_session_state(config.common_context.sm_session_state());
   rsp_cmn->set_sm_session_version(config.common_context.sm_session_version());
+  rsp_cmn->set_is_s8_meterer(false);   // Default S5 session
+
   // Send message to AMF gRPC client handler.
   amf_srv_client_->handle_response_to_access(response);
 }
@@ -730,6 +735,8 @@ void SessionStateEnforcer::handle_state_update_to_amf(
   if (event == PDU_SESSION_STATE_NOTIFY) {
     req_cmn->set_sm_session_state(config.common_context.sm_session_state());
     req_cmn->set_sm_session_version(config.common_context.sm_session_version());
+    req_cmn->set_is_s8_meterer(false);
+
     req->set_pdu_session_id(
         config.rat_specific_context.m5gsm_session_context().pdu_session_id());
     req->set_pdu_session_type(
