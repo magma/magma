@@ -8,7 +8,6 @@ from dp.protos.active_mode_pb2 import (
     Channel,
     DatabaseCbsd,
     EirpCapabilities,
-    FrequencyRange,
     Grant,
     GrantState,
 )
@@ -119,7 +118,8 @@ class ActiveModeCbsdBuilder:
         if not self.channels:
             self.channels = []
         channel = Channel(
-            frequency_range=FrequencyRange(low=low, high=high),
+            low_frequency_hz=low,
+            high_frequency_hz=high,
             max_eirp=self.make_optional_float(max_eirp),
         )
         self.channels.append(channel)

@@ -23,7 +23,6 @@ from dp.protos.active_mode_pb2 import (
     DatabaseCbsd,
     DeleteCbsdRequest,
     EirpCapabilities,
-    FrequencyRange,
     GetStateRequest,
     Grant,
     State,
@@ -215,10 +214,8 @@ def _build_grant(grant: DBGrant) -> Grant:
 
 def _build_channel(channel: DBChannel) -> Channel:
     return Channel(
-        frequency_range=FrequencyRange(
-            low=channel.low_frequency,
-            high=channel.high_frequency,
-        ),
+        low_frequency_hz=channel.low_frequency,
+        high_frequency_hz=channel.high_frequency,
         max_eirp=_make_optional_float(channel.max_eirp),
     )
 
