@@ -176,7 +176,7 @@ func NewClient(clientCfg *DiameterClientConfig, localAddresses ...string) *Clien
 		cfg:            clientCfg,
 		originStateID:  originStateID,
 	}
-	glog.V(3).Infof("new diam client::\n\t%s", client.String())
+	glog.V(1).Infof("new diam client::\n\t%s", client.String())
 
 	go client.handleErrors(mux.ErrorReports())
 	return client
