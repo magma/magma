@@ -21,13 +21,13 @@
 #include <netinet/in.h>
 #include <stdlib.h>
 
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_upf.h"
 #include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedClientAPI.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_upf.h"
 
 static const struct gtp_tunnel_ops upf_openflow_ops = {
     .init = openflow_init,

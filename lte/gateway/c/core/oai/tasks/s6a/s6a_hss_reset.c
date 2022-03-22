@@ -24,13 +24,13 @@
 #include <stdio.h>
 
 #include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.h"
 
 struct avp;
 struct msg;

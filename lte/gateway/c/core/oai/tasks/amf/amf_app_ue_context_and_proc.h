@@ -34,16 +34,16 @@ extern "C" {
 #endif
 #include <unordered_map>
 #include <vector>
-#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_data.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/AmfMessage.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
 #include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationRequest.h"
+#include "lte/gateway/c/core/oai/include/map.h"
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/include/map.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_data.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/AmfMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationRequest.h"
 
 // NAS messages
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.h"

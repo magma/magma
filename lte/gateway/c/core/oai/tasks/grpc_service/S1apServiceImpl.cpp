@@ -20,9 +20,9 @@
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/s1ap_state.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 }
 
 using grpc::ServerContext;
