@@ -106,7 +106,18 @@ func (k *KubernetesServiceRegistryServicer) GetServiceAddress(ctx context.Contex
 	if req == nil {
 		return &protos.GetServiceAddressResponse{}, fmt.Errorf("GetServiceAddressRequest was nil")
 	}
-	serviceAddress, err := k.getAddressForPortName(req.GetService(), orc8r.GRPCPortName)
+
+	var serviceAddress string
+	var err error
+	switch req.ServiceType {
+	case protos.ServiceType_PROTECTED:
+		serviceAddress, err = k.getAddressForPortName(req.Service, orc8r.ProtectedGRPCPortName)
+	case protos.ServiceType_SOUTHBOUND:
+		fallthrough
+	default:
+		serviceAddress, err = k.getAddressForPortName(req.Service, orc8r.GRPCPortName)
+	}
+
 	if err != nil {
 		return &protos.GetServiceAddressResponse{}, err
 	}
@@ -156,6 +167,7 @@ func (k *KubernetesServiceRegistryServicer) getAddressForPortName(service string
 	if err != nil {
 		return "", err
 	}
+
 	for _, port := range svc.Spec.Ports {
 		if port.Name == portName {
 			return fmt.Sprintf("%s:%d", svc.Name, port.Port), nil
