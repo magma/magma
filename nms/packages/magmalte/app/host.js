@@ -14,7 +14,7 @@
  * @format
  */
 
-import '@fbcnms/babel-register/polyfill';
+import '../fbc_js_core/babel_register/polyfill';
 
 import Index from './components/host/Index';
 import React from 'react';
@@ -23,7 +23,7 @@ import {BrowserRouter} from 'react-router-dom';
 import {hot} from 'react-hot-loader';
 
 import {} from './common/axiosConfig';
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../fbc_js_core/util/nullthrows';
 
 /* eslint-disable-next-line no-undef */
 const HotIndex = hot(module)(Index);

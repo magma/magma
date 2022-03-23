@@ -14,16 +14,16 @@
  * @format
  */
 
-import type {EditUser} from '@fbcnms/ui/components/auth/EditUserDialog';
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {EditUser} from '../../../../fbc_js_core/ui/components/auth/EditUserDialog';
+import type {WithAlert} from '../../../../fbc_js_core/ui/components/Alert/withAlert';
 
-import AppContext from '@fbcnms/ui/context/AppContext';
-import Button from '@fbcnms/ui/components/design-system/Button';
+import AppContext from '../../../../fbc_js_core/ui/context/AppContext';
+import Button from '../../../../fbc_js_core/ui/components/design-system/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
-import EditUserDialog from '@fbcnms/ui/components/auth/EditUserDialog';
+import EditUserDialog from '../../../../fbc_js_core/ui/components/auth/EditUserDialog';
 import IconButton from '@material-ui/core/IconButton';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../../../fbc_js_core/ui/components/LoadingFiller';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -31,16 +31,16 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../../../fbc_js_core/ui/components/design-system/Text';
 import axios from 'axios';
-import {UserRoles} from '@fbcnms/auth/types';
+import {UserRoles} from '../../../../fbc_js_core/auth/types';
 
-import renderList from '@fbcnms/util/renderList';
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import renderList from '../../../../fbc_js_core/util/renderList';
+import withAlert from '../../../../fbc_js_core/ui/components/Alert/withAlert';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios} from '@fbcnms/ui/hooks';
+import {useAxios} from '../../../../fbc_js_core/ui/hooks';
 import {useCallback, useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../../fbc_js_core/ui/hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({
   header: {

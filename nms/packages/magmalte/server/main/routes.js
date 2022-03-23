@@ -14,26 +14,26 @@
  * @format
  */
 
-import type {AppContextAppData} from '@fbcnms/ui/context/AppContext';
+import type {AppContextAppData} from '../../fbc_js_core/ui/context/AppContext';
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '@fbcnms/auth/access';
+import type {FBCNMSRequest} from '../../fbc_js_core/auth/access';
 
 import MagmaV1API from '../magma/index';
 import adminRoutes from '../admin/routes';
 import apiControllerRoutes from '../apicontroller/routes';
-import asyncHandler from '@fbcnms/util/asyncHandler';
+import asyncHandler from '../../fbc_js_core/util/asyncHandler';
 import express from 'express';
 import networkRoutes from '../network/routes';
 import path from 'path';
-import staticDist from '@fbcnms/webpack-config/staticDist';
-import userMiddleware from '@fbcnms/auth/express';
-import {AccessRoles} from '@fbcnms/auth/roles';
-import {MAPBOX_ACCESS_TOKEN} from '@fbcnms/platform-server/config';
+import staticDist from '../../fbc_js_core/webpack_config/staticDist';
+import userMiddleware from '../../fbc_js_core/auth/express';
+import {AccessRoles} from '../../fbc_js_core/auth/roles';
+import {MAPBOX_ACCESS_TOKEN} from '../../fbc_js_core/platform_server/config';
 
-import {TABS} from '@fbcnms/types/tabs';
-import {access} from '@fbcnms/auth/access';
-import {getEnabledFeatures} from '@fbcnms/platform-server/features';
-import {hostOrgMiddleware} from '@fbcnms/platform-server/host/middleware';
+import {TABS} from '../../fbc_js_core/types/tabs';
+import {access} from '../../fbc_js_core/auth/access';
+import {getEnabledFeatures} from '../../fbc_js_core/platform_server/features';
+import {hostOrgMiddleware} from '../../fbc_js_core/platform_server/host/middleware';
 
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 
@@ -82,8 +82,11 @@ router.use('/nms/apicontroller', apiControllerRoutes);
 router.use('/nms/network', networkRoutes);
 router.use('/nms/static', express.static(path.join(__dirname, '../static')));
 
-router.use('/logger', require('@fbcnms/platform-server/logger/routes'));
-router.use('/test', require('@fbcnms/platform-server/test/routes'));
+router.use(
+  '/logger',
+  require('../../fbc_js_core/platform_server/logger/routes'),
+);
+router.use('/test', require('../../fbc_js_core/platform_server/test/routes'));
 router.use(
   '/user',
   userMiddleware({
@@ -101,7 +104,7 @@ router.get(
   }),
 );
 
-const hostRouter = require('@fbcnms/platform-server/host/routes');
+const hostRouter = require('../../fbc_js_core/platform_server/host/routes');
 router.use('/host', hostOrgMiddleware, hostRouter.default);
 
 async function handleHost(req: FBCNMSRequest, res) {

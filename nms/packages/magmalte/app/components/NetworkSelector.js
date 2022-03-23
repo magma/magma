@@ -13,23 +13,23 @@
  * @flow
  * @format
  */
-import type {NetworkType} from '@fbcnms/types/network';
+import type {NetworkType} from '../../fbc_js_core/types/network';
 
-import AppContext from '@fbcnms/ui/context/AppContext';
+import AppContext from '../../fbc_js_core/ui/context/AppContext';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import MagmaV1API from '../../generated/WebClient';
 import NetworkContext from './context/NetworkContext';
-import Popout from '@fbcnms/ui/components/Popout';
+import Popout from '../../fbc_js_core/ui/components/Popout';
 import React from 'react';
 import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../fbc_js_core/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
 import useMagmaAPI from '../../api/useMagmaAPI';
 
-import {LTE, coalesceNetworkType} from '@fbcnms/types/network';
+import {LTE, coalesceNetworkType} from '../../fbc_js_core/types/network';
 import {NetworkEditDialog} from '../views/network/NetworkEdit';
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';

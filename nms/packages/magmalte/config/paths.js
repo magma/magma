@@ -30,7 +30,7 @@ module.exports = {
   distPath: resolveApp('static/dist'),
   packagesDir: resolveApp('../../packages'),
   fbcnmsDir: path.dirname(
-    path.dirname(require.resolve('@fbcnms/babel-register')),
+    path.dirname(require.resolve('../fbc_js_core/babel_register')),
   ),
   resolveApp,
 };
