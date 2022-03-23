@@ -922,6 +922,9 @@ TEST_F(MmeAppProcedureTest, TestPagingMaxRetx) {
   send_mme_app_initial_ue_msg(nas_msg_service_req, sizeof(nas_msg_service_req),
                               plmn, guti, 1);
 
+  // Wait for ICS request to be sent
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
 
