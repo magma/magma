@@ -22,20 +22,20 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_common.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_encoder.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "Ngap_NGAP-PDU.h"
 #include "Ngap_Criticality.h"
 #include "Ngap_DownlinkNASTransport.h"
 #include "Ngap_InitialContextSetupRequest.h"
-#include "Ngap_Paging.h"
-#include "Ngap_ProcedureCode.h"
+#include "Ngap_NGAP-PDU.h"
 #include "Ngap_NGSetupFailure.h"
 #include "Ngap_NGSetupResponse.h"
+#include "Ngap_Paging.h"
+#include "Ngap_ProcedureCode.h"
 #include "Ngap_UEContextModificationRequest.h"
 #include "Ngap_UEContextReleaseCommand.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_encoder.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_common.h"
 
 static inline int ngap_amf_encode_initiating(Ngap_NGAP_PDU_t* pdu,
                                              uint8_t** buffer,

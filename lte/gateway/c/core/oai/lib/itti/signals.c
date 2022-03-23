@@ -39,11 +39,11 @@
 #include <signal.h>
 #include <ctype.h>
 
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/common/backtrace.h"
 #include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/lib/itti/signals.h"
+#include "lte/gateway/c/core/oai/common/backtrace.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/signals.h"
 
 #ifndef SIG_DEBUG
 #define SIG_DEBUG(x, args...)              \
