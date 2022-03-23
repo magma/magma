@@ -17,9 +17,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Terraform Lint Check
-        run: |
-          if [[ -n "$(terraform fmt -check -recursive -diff)" ]]; then
-            echo "Some terraform files need be formatted, run 'terraform fmt' to fix"
-            exit 1
-          fi
+
+    - name: Terraform Lint
+      uses: ShubhamTatvamasi/terraform-lint-action@v1
