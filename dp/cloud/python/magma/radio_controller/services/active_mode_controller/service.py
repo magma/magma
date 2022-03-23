@@ -23,6 +23,7 @@ from dp.protos.active_mode_pb2 import (
     DatabaseCbsd,
     DeleteCbsdRequest,
     EirpCapabilities,
+    FrequencyPreferences,
     GetStateRequest,
     Grant,
     State,
@@ -185,6 +186,7 @@ def _build_cbsd(cbsd: DBCbsd) -> Cbsd:
 
     last_seen = _to_timestamp(cbsd.last_seen)
     eirp_capabilities = _build_eirp_capabilities(cbsd)
+    preferences = _build_preferences(cbsd)
     db_data = _build_db_data(cbsd)
     return Cbsd(
         id=cbsd.cbsd_id,
@@ -199,6 +201,7 @@ def _build_cbsd(cbsd: DBCbsd) -> Cbsd:
         eirp_capabilities=eirp_capabilities,
         grant_attempts=cbsd.grant_attempts,
         db_data=db_data,
+        preferences=preferences,
     )
 
 
@@ -226,6 +229,13 @@ def _build_eirp_capabilities(cbsd: DBCbsd) -> EirpCapabilities:
         max_power=cbsd.max_power,
         antenna_gain=cbsd.antenna_gain,
         number_of_ports=cbsd.number_of_ports,
+    )
+
+
+def _build_preferences(cbsd: DBCbsd) -> FrequencyPreferences:
+    return FrequencyPreferences(
+        bandwidth_mhz=cbsd.preferred_bandwidth_mhz,
+        frequencies_mhz=cbsd.preferred_frequencies_mhz,
     )
 
 
