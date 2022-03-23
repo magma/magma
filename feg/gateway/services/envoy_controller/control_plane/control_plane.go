@@ -1,3 +1,37 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+/* This file contains modified code from github.com/envoyproxy/go-control-plane
+module which is published under license Apache 2.0. See envoy_controller/README
+for more details.
+*/
+
+/*
+  Copyright 2018 Envoyproxy Authors
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+
 package control_plane
 
 import (
@@ -76,10 +110,12 @@ type ControllerClient struct {
 }
 
 type callbacks struct {
-	signal   chan struct{}
-	fetches  int
-	requests int
-	mu       sync.Mutex
+	signal         chan struct{}
+	fetches        int
+	requests       int
+	deltaRequests  int
+	deltaResponses int
+	mu             sync.Mutex
 }
 
 // Hasher returns node ID as an ID
@@ -90,6 +126,8 @@ func (cb *callbacks) Report() {
 	defer cb.mu.Unlock()
 	glog.V(2).Infof("cb.Report() fetches %d,  callbacks %d", cb.fetches, cb.requests)
 }
+
+// methods below (starting with On...) are included to satisfy the xds.Callbacks interface
 
 func (cb *callbacks) OnStreamOpen(ctx context.Context, id int64, typ string) error {
 	glog.V(2).Infof("OnStreamOpen %d open for %s", id, typ)
@@ -115,7 +153,7 @@ func (cb *callbacks) OnStreamResponse(context.Context, int64, *discovery.Discove
 	glog.V(2).Infof("OnStreamResponse...")
 	cb.Report()
 }
-func (cb *callbacks) OnFetchRequest(ctx context.Context, req *discovery.DiscoveryRequest) error {
+func (cb *callbacks) OnFetchRequest(context.Context, *discovery.DiscoveryRequest) error {
 	glog.V(2).Infof("OnFetchRequest...")
 	cb.mu.Lock()
 	defer cb.mu.Unlock()
@@ -135,20 +173,23 @@ func (cb *callbacks) OnDeltaStreamOpen(_ context.Context, id int64, typ string) 
 	glog.V(2).Infof("delta stream %d open for %s\n", id, typ)
 	return nil
 }
+
 func (cb *callbacks) OnDeltaStreamClosed(id int64) {
 	glog.V(2).Infof("delta stream %d closed\n", id)
 }
-func (cb *callbacks) OnStreamDeltaResponse(id int64, req *discovery.DeltaDiscoveryRequest, res *discovery.DeltaDiscoveryResponse) {
+
+func (cb *callbacks) OnStreamDeltaResponse(int64, *discovery.DeltaDiscoveryRequest, *discovery.DeltaDiscoveryResponse) {
 	glog.V(2).Infof("OnStreamDeltaResponse...")
-	// cb.mu.Lock()
-	// defer cb.mu.Unlock()
-	// cb.DeltaResponses++
+	cb.mu.Lock()
+	defer cb.mu.Unlock()
+	cb.deltaResponses++
 }
-func (cb *callbacks) OnStreamDeltaRequest(id int64, req *discovery.DeltaDiscoveryRequest) error {
+
+func (cb *callbacks) OnStreamDeltaRequest(int64, *discovery.DeltaDiscoveryRequest) error {
 	glog.V(2).Infof("OnStreamDeltaRequest...")
-	// cb.mu.Lock()
-	// defer cb.mu.Unlock()
-	// cb.DeltaRequests++
+	cb.mu.Lock()
+	defer cb.mu.Unlock()
+	cb.deltaRequests++
 	if cb.signal != nil {
 		close(cb.signal)
 		cb.signal = nil
@@ -162,6 +203,11 @@ func (h Hasher) ID(node *core.Node) string {
 		return "unknown"
 	}
 	return node.Id
+}
+
+type HTTPGateway struct {
+	// Server is the underlying gRPC server
+	Server xds.Server
 }
 
 // RunManagementServer starts an xDS server at the given port.
@@ -196,7 +242,7 @@ func RunManagementServer(ctx context.Context, server xds.Server, port uint) {
 // RunManagementGateway starts an HTTP gateway to an xDS server.
 func RunManagementGateway(ctx context.Context, srv xds.Server, port uint) {
 	glog.Infof("Gateway listening HTTP/1.1 on port %d", port)
-	server := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: &xds.HTTPGateway{Server: srv}}
+	server := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: &HTTPGateway{Server: srv}}
 	go func() {
 		if err := server.ListenAndServe(); err != nil {
 			glog.Error(err)
@@ -204,11 +250,32 @@ func RunManagementGateway(ctx context.Context, srv xds.Server, port uint) {
 	}()
 }
 
-func newCallbacks(signal chan struct{}, fetches int, requests int) *callbacks {
+func (h *HTTPGateway) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	gtw := xds.HTTPGateway{Server: h.Server}
+	bytes, code, err := gtw.ServeHTTP(req)
+
+	if err != nil {
+		http.Error(resp, err.Error(), code)
+		return
+	}
+
+	if bytes == nil {
+		resp.WriteHeader(http.StatusNotModified)
+		return
+	}
+
+	if _, err = resp.Write(bytes); err != nil {
+		glog.Errorf("gateway error: %v", err)
+	}
+}
+
+func newCallbacks(signal chan struct{}, fetches int, requests int, deltaRequests int, deltaResponses int) *callbacks {
 	return &callbacks{
-		signal:   signal,
-		fetches:  fetches,
-		requests: requests,
+		signal:         signal,
+		fetches:        fetches,
+		requests:       requests,
+		deltaRequests:  deltaRequests,
+		deltaResponses: deltaResponses,
 	}
 }
 
@@ -219,7 +286,7 @@ func GetControllerClient() *ControllerClient {
 	glog.Infof("Starting Envoy control plane")
 
 	signal := make(chan struct{})
-	cb := newCallbacks(signal, 0, 0)
+	cb := newCallbacks(signal, 0, 0, 0, 0)
 	cli.config = cache.NewSnapshotCache(mode == Ads, Hasher{}, nil)
 
 	srv := xds.NewServer(ctx, cli.config, cb)
