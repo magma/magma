@@ -319,8 +319,9 @@
           "orc8r/dev_security",
           "orc8r/dev_indexers",
           "orc8r/dev_sub_digests",
-          "orc8r/dev_token_security",
+          "orc8r/dev_rest_api_auth",
           "orc8r/dev_dependencies",
+          "orc8r/dev_gateway_registration",
           "orc8r/dev_aws_stack"
         ]
       },

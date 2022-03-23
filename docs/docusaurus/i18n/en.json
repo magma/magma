@@ -372,13 +372,16 @@
       "orc8r/dev_dependencies": {
         "title": "Module Dependencies"
       },
+      "orc8r/dev_gateway_registration": {
+        "title": "Gateway Registration"
+      },
       "orc8r/dev_indexers": {
         "title": "State Indexers"
       },
       "orc8r/dev_minikube": {
         "title": "Deploy on Minikube"
       },
-      "orc8r/dev_token_security": {
+      "orc8r/dev_rest_api_auth": {
         "title": "REST API Auth"
       },
       "orc8r/dev_rest_api": {
