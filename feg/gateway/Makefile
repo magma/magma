@@ -100,6 +100,7 @@ TOOL_DEPS:= \
 	github.com/ory/go-acc \
 	github.com/wadey/gocovmerge \
 	gotest.tools/gotestsum
+	# dependencies external to feg/gateway module need to be in sync with feg/gateway/tools.go
 
 tools:: $(TOOL_DEPS)
 $(TOOL_DEPS): %:
