@@ -45,6 +45,21 @@ void MmeAppProcedureTest ::attach_ue(std::condition_variable& cv,
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
   send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
+  // Wait for ICS request to be sent
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  nas_message_t nas_msg_decoded = {0};
+  emm_security_context_t emm_security_context;
+  nas_message_decode_status_t decode_status;
+  int decoder_rc = 0;
+  decoder_rc = nas_message_decode(
+      nas_msg->data, &nas_msg_decoded, nas_msg->slen,
+      reinterpret_cast<void*>(&emm_security_context), &decode_status);
+  EXPECT_EQ(nas_msg->slen, 67);
+  EXPECT_EQ(decoder_rc, nas_msg->slen);
+  *guti = nas_msg_decoded.plain.emm.attach_accept.guti.guti;
+  bdestroy_wrapper(
+      &nas_msg_decoded.plain.emm.attach_accept.esmmessagecontainer);
+
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
 
@@ -60,18 +75,6 @@ void MmeAppProcedureTest ::attach_ue(std::condition_variable& cv,
   // Wait for DL NAS Transport for EMM Information
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
-  nas_message_t nas_msg_decoded = {0};
-  emm_security_context_t emm_security_context;
-  nas_message_decode_status_t decode_status;
-  int decoder_rc = 0;
-  decoder_rc = nas_message_decode(
-      nas_msg->data, &nas_msg_decoded, nas_msg->slen,
-      reinterpret_cast<void*>(&emm_security_context), &decode_status);
-  EXPECT_EQ(nas_msg->slen, 67);
-  EXPECT_EQ(decoder_rc, nas_msg->slen);
-  *guti = nas_msg_decoded.plain.emm.attach_accept.guti.guti;
-  bdestroy_wrapper(
-      &nas_msg_decoded.plain.emm.attach_accept.esmmessagecontainer);
   // Destruction at tear down is not sufficient as nas_msg might be used
   // again in the TC
   bdestroy_wrapper(&nas_msg);
