@@ -48,7 +48,7 @@ RUN apt-get update && \
     ln -s /usr/sbin/bazelisk-linux-${DEB_PORT} /usr/sbin/bazel
 
 RUN echo "deb ${EXTRA_REPO} focal-ci main" > /etc/apt/sources.list.d/magma.list
-RUN echo "deb ${EXTRA_REPO} focal-1.5.4 main" >> /etc/apt/sources.list.d/magma.list
+RUN echo "deb ${EXTRA_REPO} focal-1.5.0 main" >> /etc/apt/sources.list.d/magma.list
 RUN wget -qO - https://artifactory.magmacore.org/artifactory/api/gpg/key/public | apt-key add -
 
 # Install dependencies required for building
