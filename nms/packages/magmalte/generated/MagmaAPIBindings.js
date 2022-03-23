@@ -352,11 +352,22 @@ export type enodeb_configuration = {
     cell_id: number,
     device_class: "Baicells Nova-233 G2 OD FDD" | "Baicells Nova-243 OD TDD" | "Baicells Neutrino 224 ID FDD" | "Baicells ID TDD/FDD" | "NuRAN Cavium OC-LTE" | "FreedomFi One",
     earfcndl ? : number,
+    ho_algorithm_config ? : ho_algorithm_configuration,
+    managementServer ? : managementServer,
+    mme_pool_1 ? : string,
+    mme_pool_2 ? : string,
+    neighbor_cell_list ? : Array < neighbor_cell >
+        ,
+    neighbor_frequency_list ? : Array < neighbor_frequency >
+        ,
     pci ? : number,
+    power_control ? : power_control,
     special_subframe_pattern ? : number,
     subframe_assignment ? : number,
+    sync_1588 ? : sync_1588,
     tac ? : number,
     transmit_enabled: boolean,
+    x2_enable_disable ? : boolean,
 };
 export type enodeb_serials = Array < string >
 ;
@@ -364,18 +375,24 @@ export type enodeb_state = {
     enodeb_configured: boolean,
     enodeb_connected: boolean,
     fsm_state: string,
+    gps_altitude ? : string,
     gps_connected: boolean,
     gps_latitude: string,
     gps_longitude: string,
     ip_address ? : string,
     mme_connected: boolean,
+    model_name ? : string,
     opstate_enabled: boolean,
     ptp_connected: boolean,
     reporting_gateway_id ? : string,
+    rf_state ? : boolean,
     rf_tx_desired: boolean,
     rf_tx_on: boolean,
+    sw_version ? : string,
     time_reported ? : number,
     ues_connected ? : number,
+    uptime ? : string,
+    vendor ? : string,
 };
 export type error = {
     message: string,
@@ -650,6 +667,35 @@ export type health = {
     update_failure_threshold ? : number,
     update_interval_secs ? : number,
 };
+export type ho_algorithm_configuration = {
+    a1_threshold_rsrp ? : number,
+    a2_threshold_rsrp ? : number,
+    a3_offset ? : number,
+    a3_offset_anr ? : number,
+    a4_threshold_rsrp ? : number,
+    b2_geran_irat_threshold ? : number,
+    b2_threshold1_rsrp ? : number,
+    b2_threshold2_rsrp ? : number,
+    ciphering_algorithm ? : string,
+    hysteresis ? : number,
+    integrity_algorithm ? : string,
+    lte_a1_threshold_rsrq ? : number,
+    lte_a2_threshold_rsrp_irat_volte ? : number,
+    lte_a2_threshold_rsrq ? : number,
+    lte_a2_threshold_rsrq_irat_volte ? : number,
+    lte_inter_anr_a5_threshold_1_rsrp ? : number,
+    lte_inter_anr_a5_threshold_2_rsrp ? : number,
+    lte_intra_a5_threshold_1_rsrp ? : number,
+    lte_intra_a5_threshold_2_rsrp ? : number,
+    qrxlevmin_reselection ? : number,
+    qrxlevmin_selection ? : number,
+    qrxlevminoffset ? : number,
+    reselection_priority ? : number,
+    s_intrasearch ? : number,
+    s_nonintrasearch ? : number,
+    threshservinglow ? : number,
+    time_to_trigger ? : string,
+};
 export type hss = {
     default_sub_profile ? : subscription_profile,
     lte_auth_amf ? : string,
@@ -765,6 +811,11 @@ export type magmad_gateway_configs = {
     logging ? : gateway_logging_configs,
     vpn ? : gateway_vpn_configs,
 };
+export type managementServer = {
+    management_server_host ? : string,
+    management_server_port ? : number,
+    management_server_ssl_enable ? : boolean,
+};
 export type matcher = {
     isRegex: boolean,
     name: string,
@@ -864,6 +915,30 @@ export type mutable_subscriber = {
 };
 export type mutable_subscribers = Array < mutable_subscriber >
 ;
+export type neighbor_cell = {
+    cell_id ? : number,
+    cio ? : -24 | -22,
+    earfcn ? : number,
+    enable ? : boolean,
+    index ? : number,
+    pci ? : number,
+    plmn ? : string,
+    q_offset ? : -24 | -22 | -20,
+    tac ? : number,
+};
+export type neighbor_frequency = {
+    earfcn ? : number,
+    enable ? : boolean,
+    index ? : number,
+    p_max ? : number,
+    q_offset_range ? : -24 | -22,
+    q_rx_lev_min_sib5 ? : number,
+    resel_thresh_high ? : number,
+    resel_thresh_low ? : number,
+    reselection_priority ? : number,
+    t_reselection_eutra ? : number,
+    t_reselection_eutra_sf_medium ? : 25 | 50 | 75 | 100,
+};
 export type network = {
     description: network_description,
     dns: network_dns_config,
@@ -1170,6 +1245,12 @@ export type policyList = {
     policies: policies,
     token: string,
 };
+export type power_control = {
+    pa ? : number,
+    pb ? : 0 | 1 | 2 | 3,
+    power_class ? : number,
+    reference_signal_power ? : number,
+};
 export type prom_alert_config = {
     alert: string,
     annotations ? : prom_alert_labels,
@@ -1426,6 +1507,16 @@ export type swx = {
     servers ? : Array < diameter_client_configs >
         ,
     verify_authorization ? : boolean,
+};
+export type sync_1588 = {
+    sync_1588_asymmetry ? : number,
+    sync_1588_delay_rq_msg_interval ? : number,
+    sync_1588_domain ? : number,
+    sync_1588_holdover ? : number,
+    sync_1588_msg_interval ? : number,
+    sync_1588_switch ? : boolean,
+    sync_1588_unicast_enable ? : boolean,
+    sync_1588_unicast_serverIp ? : string,
 };
 export type system_status = {
     cpu_idle ? : number,

@@ -7587,6 +7587,27 @@ definitions:
         example: 44590
         format: uint32
         type: integer
+      ho_algorithm_config:
+        $ref: '#/definitions/ho_algorithm_configuration'
+        x-nullable: true
+      managementServer:
+        $ref: '#/definitions/managementServer'
+      mme_pool_1:
+        example: ""
+        format: ipv4
+        type: string
+      mme_pool_2:
+        example: ""
+        format: ipv4
+        type: string
+      neighbor_cell_list:
+        items:
+          $ref: '#/definitions/neighbor_cell'
+        type: array
+      neighbor_frequency_list:
+        items:
+          $ref: '#/definitions/neighbor_frequency'
+        type: array
       pci:
         example: 260
         exclusiveMinimum: true
@@ -7594,6 +7615,8 @@ definitions:
         maximum: 503
         minimum: 0
         type: integer
+      power_control:
+        $ref: '#/definitions/power_control'
       special_subframe_pattern:
         example: 7
         format: uint32
@@ -7604,6 +7627,8 @@ definitions:
         format: uint32
         maximum: 6
         type: integer
+      sync_1588:
+        $ref: '#/definitions/sync_1588'
       tac:
         example: 1
         format: uint32
@@ -7612,6 +7637,11 @@ definitions:
         type: integer
       transmit_enabled:
         example: true
+        type: boolean
+      x2_enable_disable:
+        default: false
+        description: X2 status.
+        example: false
         type: boolean
     required:
     - cell_id
@@ -7636,6 +7666,8 @@ definitions:
         type: boolean
       fsm_state:
         type: string
+      gps_altitude:
+        type: string
       gps_connected:
         type: boolean
       gps_latitude:
@@ -7647,6 +7679,8 @@ definitions:
         type: string
       mme_connected:
         type: boolean
+      model_name:
+        type: string
       opstate_enabled:
         type: boolean
       ptp_connected:
@@ -7654,10 +7688,14 @@ definitions:
       reporting_gateway_id:
         description: Gateway ID from which the enodeb state was reported
         type: string
+      rf_state:
+        type: boolean
       rf_tx_desired:
         type: boolean
       rf_tx_on:
         type: boolean
+      sw_version:
+        type: string
       time_reported:
         description: Time at which the state was reported in ms
         format: uint64
@@ -7665,6 +7703,10 @@ definitions:
       ues_connected:
         format: int32
         type: integer
+      uptime:
+        type: string
+      vendor:
+        type: string
     required:
     - enodeb_configured
     - gps_longitude
@@ -8610,6 +8652,149 @@ definitions:
         type: integer
     type: object
     x-go-custom-tag: magma_alt_name:"HEALTH"
+  ho_algorithm_configuration:
+    description: ho algorithm configuration for enodeb configuration.
+    properties:
+      a1_threshold_rsrp:
+        example: 50
+        format: uint32
+        maximum: 97
+        minimum: 0
+        type: integer
+      a2_threshold_rsrp:
+        example: 5
+        format: int32
+        maximum: 97
+        minimum: 0
+        type: integer
+      a3_offset:
+        example: 10
+        format: int32
+        maximum: 30
+        minimum: -30
+        type: integer
+      a3_offset_anr:
+        example: 10
+        format: int32
+        type: integer
+      a4_threshold_rsrp:
+        example: 50
+        format: int32
+        type: integer
+      b2_geran_irat_threshold:
+        example: 8
+        format: uint32
+        maximum: 63
+        minimum: 0
+        type: integer
+      b2_threshold1_rsrp:
+        example: 8
+        format: uint32
+        maximum: 97
+        minimum: 0
+        type: integer
+      b2_threshold2_rsrp:
+        example: 8
+        format: int32
+        maximum: 91
+        minimum: -5
+        type: integer
+      ciphering_algorithm:
+        example: 128-EEA1,128-EEA2
+        type: string
+      hysteresis:
+        example: 3
+        format: int32
+        maximum: 30
+        minimum: 0
+        type: integer
+      integrity_algorithm:
+        example: 128-EIA1,128-EIA2
+        type: string
+      lte_a1_threshold_rsrq:
+        example: 2
+        format: int32
+        type: integer
+      lte_a2_threshold_rsrp_irat_volte:
+        example: 7
+        format: int32
+        type: integer
+      lte_a2_threshold_rsrq:
+        example: 6
+        format: int32
+        type: integer
+      lte_a2_threshold_rsrq_irat_volte:
+        example: 8
+        format: int32
+        type: integer
+      lte_inter_anr_a5_threshold_1_rsrp:
+        example: 55
+        format: int32
+        maximum: 97
+        minimum: 0
+        type: integer
+      lte_inter_anr_a5_threshold_2_rsrp:
+        example: 50
+        format: int32
+        maximum: 97
+        minimum: 0
+        type: integer
+      lte_intra_a5_threshold_1_rsrp:
+        example: 50
+        format: int32
+        maximum: 97
+        minimum: 0
+        type: integer
+      lte_intra_a5_threshold_2_rsrp:
+        example: 51
+        format: int32
+        maximum: 97
+        minimum: 0
+        type: integer
+      qrxlevmin_reselection:
+        example: -23
+        format: int32
+        maximum: -22
+        minimum: -70
+        type: integer
+      qrxlevmin_selection:
+        example: -23
+        format: int32
+        maximum: -22
+        minimum: -70
+        type: integer
+      qrxlevminoffset:
+        example: 8
+        format: uint32
+        maximum: 8
+        minimum: 1
+        type: integer
+      reselection_priority:
+        example: 8
+        format: uint32
+        maximum: 65535
+        minimum: 1
+        type: integer
+      s_intrasearch:
+        example: 8
+        format: uint32
+        maximum: 31
+        minimum: 0
+        type: integer
+      s_nonintrasearch:
+        example: 8
+        format: uint32
+        maximum: 31
+        minimum: 0
+        type: integer
+      threshservinglow:
+        example: 8
+        format: uint32
+        type: integer
+      time_to_trigger:
+        example: ms480
+        type: string
+    type: object
   hss:
     description: HSS configuration
     properties:
@@ -8942,6 +9127,20 @@ definitions:
     - checkin_interval
     - checkin_timeout
     type: object
+  managementServer:
+    description: ManagementServer Configuration for  eNodeb devices.
+    properties:
+      management_server_host:
+        example: baiomc.cloudapp.net
+        type: string
+      management_server_port:
+        example: 48080
+        format: uint32
+        type: integer
+      management_server_ssl_enable:
+        example: false
+        type: boolean
+    type: object
   matcher:
     properties:
       isRegex:
@@ -9264,6 +9463,143 @@ definitions:
     items:
       $ref: '#/definitions/mutable_subscriber'
     type: array
+  neighbor_cell:
+    description: Neighbor Cell Configuration for eNodeb devices.
+    properties:
+      cell_id:
+        description: Cell Identifier that identifies a cell.
+        example: 138777000
+        format: uint32
+        maximum: 268435455
+        type: integer
+      cio:
+        description: Cell individual offset applicable to a specific neighboring cell.
+        enum:
+        - -24
+        - -22
+        example: -24
+        format: int32
+        type: integer
+      earfcn:
+        description: Cell individual offset applicable to a spec neighbor cell.
+        example: 44390
+        format: uint32
+        type: integer
+      enable:
+        description: Neighbor Cell enable and disable.
+        example: true
+        type: boolean
+      index:
+        description: Neighbor Cell Object index, from 1 to 16.
+        example: 1
+        format: uint32
+        maximum: 16
+        minimum: 1
+        type: integer
+      pci:
+        description: Physical Cell ID for Neighbor cell.
+        example: 260
+        exclusiveMinimum: true
+        format: uint32
+        maximum: 503
+        minimum: 0
+        type: integer
+      plmn:
+        description: Enodeb Neighbor Cell PLMN ID Consists of MCC and MNC.
+        example: "00101"
+        pattern: ^(\d{5,6})$
+        type: string
+        x-nullable: false
+      q_offset:
+        description: Enodeb Neighbor Cell Q Offset Parameter.
+        enum:
+        - -24
+        - -22
+        - -20
+        example: -24
+        format: int32
+        type: integer
+      tac:
+        description: Tacking Area Code for LTE FAT as spec in SIB1 message.
+        example: 1
+        format: uint32
+        maximum: 65535
+        minimum: 1
+        type: integer
+    type: object
+  neighbor_frequency:
+    description: Neighbor Freq Configuration for eNodeb devices.
+    properties:
+      earfcn:
+        description: eighbor Freq E-UTRA Absolute Radio Frequency Channel Number.
+        example: 1
+        format: uint32
+        type: integer
+      enable:
+        description: Neighbor Freq enable and disable parameter.
+        example: true
+        type: boolean
+      index:
+        description: Neighbor freq index.
+        example: 1
+        format: uint32
+        maximum: 8
+        minimum: 1
+        type: integer
+      p_max:
+        description: Used to limit the allowed UE uplink tr power on the serving freq.
+        example: 1
+        format: int32
+        type: integer
+      q_offset_range:
+        description: Q offset range for neighbor Freq.
+        enum:
+        - -24
+        - -22
+        example: -24
+        format: int32
+        type: integer
+      q_rx_lev_min_sib5:
+        description: Minimum required quality measure, spec in db. See Section 10.3.2.3.
+        example: 1
+        format: int32
+        maximum: -22
+        minimum: -70
+        type: integer
+      resel_thresh_high:
+        description: Threshold used when re-selecting from a lower priority  E-UTRAN
+          frequency, specified in dB.
+        example: 31
+        format: uint32
+        type: integer
+      resel_thresh_low:
+        description: Threshold used when re-selecting from a lower priority E-UTRAN
+          frequency, specified in dB.
+        example: 31
+        format: uint32
+        type: integer
+      reselection_priority:
+        description: Absolute priority of this E-UTRA frequency carrier.
+        example: 7
+        format: uint32
+        type: integer
+      t_reselection_eutra:
+        description: The E-UTRA parameter for reselection.
+        example: 1
+        format: uint32
+        type: integer
+      t_reselection_eutra_sf_medium:
+        description: Scaling factor for intra-frequency TreselectionEUTRA in Medium-mobility
+          state.
+        enum:
+        - 25
+        - 50
+        - 75
+        - 100
+        example: 25
+        format: uint32
+        type: integer
+    type: object
   network:
     description: Orchestrator network spec
     properties:
@@ -10403,6 +10739,37 @@ definitions:
     - token
     - policies
     type: object
+  power_control:
+    description: Config power control for enodeB.
+    properties:
+      pa:
+        description: the value from -600, -477, -300, -177, 0, 100, 200, or 300.
+        example: 0
+        format: int32
+        type: integer
+      pb:
+        description: the parameter pb will set from 0,1,2,3
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        example: 0
+        format: uint32
+        type: integer
+      power_class:
+        description: the power level.
+        example: 20
+        format: uint32
+        type: integer
+      reference_signal_power:
+        description: specified in dBm, with a numeric range between -60 and 50 inclusive.
+        example: 30
+        format: int32
+        maximum: 50
+        minimum: -60
+        type: integer
+    type: object
   prom_alert_config:
     properties:
       alert:
@@ -11196,6 +11563,40 @@ definitions:
         type: boolean
     type: object
     x-go-custom-tag: magma_alt_name:"SWX"
+  sync_1588:
+    description: sync_1588 Configuration for  eNodeb devices.
+    properties:
+      sync_1588_asymmetry:
+        example: 300
+        format: uint32
+        type: integer
+      sync_1588_delay_rq_msg_interval:
+        example: 60
+        format: int32
+        type: integer
+      sync_1588_domain:
+        example: 0
+        format: int32
+        type: integer
+      sync_1588_holdover:
+        example: 300
+        format: uint32
+        type: integer
+      sync_1588_msg_interval:
+        example: 60
+        format: int32
+        type: integer
+      sync_1588_switch:
+        example: false
+        type: boolean
+      sync_1588_unicast_enable:
+        example: true
+        type: boolean
+      sync_1588_unicast_serverIp:
+        example: 0.0.0.0
+        format: ipv4
+        type: string
+    type: object
   system_status:
     properties:
       cpu_idle:

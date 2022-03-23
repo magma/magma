@@ -20,7 +20,11 @@ from magma.common.misc_utils import get_ip_from_if
 from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.mconfig_managers import load_service_mconfig_as_json
 from magma.enodebd.data_models.data_model import DataModel
-from magma.enodebd.data_models.data_model_parameters import ParameterName
+from magma.enodebd.data_models.data_model_parameters import (
+    BaicellsParameterName,
+    ParameterName,
+)
+from magma.enodebd.data_models.transform_for_enb import unicast_multi_switch
 from magma.enodebd.device_config.enodeb_config_postprocessor import (
     EnodebConfigurationPostProcessor,
 )
@@ -48,6 +52,13 @@ SingleEnodebConfig = namedtuple(
         'bandwidth_mhz', 'cell_id',
         'allow_enodeb_transmit',
         'mme_address', 'mme_port',
+        'x2_enable_disable', 'power_control',
+        'mme_pool_1', 'mme_pool_2',
+        'management_server_config',
+        'sync_1588_config',
+        'ho_algorithm_config',
+        'neighbor_freq_list',
+        'neighbor_cell_list',
     ],
 )
 
@@ -84,8 +95,7 @@ def build_desired_config(
     _set_management_server(cfg_desired)
 
     # Attempt to load device configuration from YANG before service mconfig
-    enb_config = _get_enb_yang_config(device_config) or \
-                 _get_enb_config(mconfig, device_config)
+    enb_config = _get_enb_yang_config(device_config) or _get_enb_config(mconfig, device_config)
 
     _set_earfcn_freq_band_mode(
         device_config, cfg_desired, data_model,
@@ -101,6 +111,27 @@ def build_desired_config(
     _set_plmnids_tac(cfg_desired, enb_config.plmnid_list, enb_config.tac)
     _set_bandwidth(cfg_desired, data_model, enb_config.bandwidth_mhz)
     _set_cell_id(cfg_desired, enb_config.cell_id)
+    _set_power_control_config(cfg_desired, enb_config.power_control)
+    _set_algorithm_x2_enable_disable(cfg_desired, data_model, enb_config.x2_enable_disable)
+    if enb_config.mme_pool_1 is not None:
+        _set_mme_pool_1(cfg_desired, data_model, enb_config.mme_pool_1)
+    if enb_config.mme_pool_2 is not None:
+        _set_mme_pool_2(cfg_desired, data_model, enb_config.mme_pool_2)
+    if enb_config.management_server_config is not None and \
+            enb_config.management_server_config.management_server_host is not None and \
+            enb_config.management_server_config.management_server_port is not None:
+        _set_management_server_config(cfg_desired, enb_config.management_server_config)
+    if enb_config.sync_1588_config is not None:
+        _set_sync_1588_config(cfg_desired, enb_config.sync_1588_config)
+    # add Algorithm parametars
+    if enb_config.ho_algorithm_config is not None:
+        _set_ho_algorithm_config(cfg_desired, enb_config.ho_algorithm_config)
+    if enb_config.cell_id:
+        _set_cell_id(cfg_desired, enb_config.cell_id)
+    if enb_config.neighbor_freq_list is not None:
+        _set_neighbor_freq_list(cfg_desired, enb_config.neighbor_freq_list)
+    if enb_config.neighbor_cell_list is not None:
+        _set_neighbor_cell_list(cfg_desired, enb_config.neighbor_cell_list)
     _set_perf_mgmt(
         cfg_desired,
         get_ip_from_if(service_config['tr069']['interface']),
@@ -186,6 +217,15 @@ def _get_enb_config(
         device_config: EnodebConfiguration,
 ) -> SingleEnodebConfig:
     # For fields that are specified per eNB
+    power_control_config = None
+    x2_enable_disable = None
+    management_server_config = None
+    sync_1588_config = None
+    # algorithm pm config
+    ho_algorithm_config = None
+
+    neighbor_freq_list = None
+    neighbor_cell_list = None
     if mconfig.enb_configs_by_serial is not None and \
             len(mconfig.enb_configs_by_serial) > 0:
         enb_serial = \
@@ -198,6 +238,13 @@ def _get_enb_config(
             tac = enb_config.tac
             bandwidth_mhz = enb_config.bandwidth_mhz
             cell_id = enb_config.cell_id
+            x2_enable_disable = enb_config.x2_enable_disable
+            if enb_config.power_control:
+                power_control_config = enb_config.power_control
+            if enb_config.neighbor_freq_list is not None and len(enb_config.neighbor_freq_list) > 0:
+                neighbor_freq_list = enb_config.neighbor_freq_list
+            if enb_config.neighbor_cell_list is not None and len(enb_config.neighbor_cell_list) > 0:
+                neighbor_cell_list = enb_config.neighbor_cell_list
             duplex_mode = map_earfcndl_to_duplex_mode(earfcndl)
             subframe_assignment = None
             special_subframe_pattern = None
@@ -205,6 +252,16 @@ def _get_enb_config(
                 subframe_assignment = enb_config.subframe_assignment
                 special_subframe_pattern = \
                     enb_config.special_subframe_pattern
+            if enb_config.management_server_config and \
+                    enb_config.management_server_config.management_server_host:
+                management_server_config = enb_config.management_server_config
+            if enb_config.sync_1588_config and \
+                    enb_config.sync_1588_config.sync_1588_switch:
+                sync_1588_config = enb_config.sync_1588_config
+            # add algorithm configuration
+            if enb_config.ho_algorithm_config and \
+               enb_config.ho_algorithm_config.qrxlevminoffset > 0:
+                ho_algorithm_config = enb_config.ho_algorithm_config
         else:
             raise ConfigurationError(
                 'Could not construct desired config '
@@ -245,6 +302,15 @@ def _get_enb_config(
         allow_enodeb_transmit=allow_enodeb_transmit,
         mme_address=None,
         mme_port=None,
+        power_control=power_control_config,
+        x2_enable_disable=x2_enable_disable,
+        mme_pool_1=None,
+        mme_pool_2=None,
+        management_server_config=management_server_config,
+        sync_1588_config=sync_1588_config,
+        ho_algorithm_config=ho_algorithm_config,
+        neighbor_freq_list=neighbor_freq_list,
+        neighbor_cell_list=neighbor_cell_list,
     )
     return single_enodeb_config
 
@@ -260,6 +326,43 @@ def _set_pci(
     if pci not in range(0, 504 + 1):
         raise ConfigurationError('Invalid PCI (%d)' % pci)
     cfg.set_parameter(ParameterName.PCI, pci)
+
+
+def _set_power_control_config(
+        cfg: EnodebConfiguration,
+        power_control_config: mconfigs_pb2.EnodebD.EnodebConfig.PowerControl,
+) -> None:
+    """
+    Set the following pararmeters:
+     - cfg
+     - power_control_config
+    """
+    if power_control_config:
+        if power_control_config.reference_signal_power:
+            cfg.set_parameter(BaicellsParameterName.REFERENCE_SIGNAL_POWER, power_control_config.reference_signal_power)
+        if power_control_config.power_class:
+            cfg.set_parameter(BaicellsParameterName.POWER_CLASS, power_control_config.power_class)
+        if power_control_config.pa:
+            cfg.set_parameter(BaicellsParameterName.PA, power_control_config.pa)
+        if power_control_config.pb:
+            cfg.set_parameter(BaicellsParameterName.PB, power_control_config.pb)
+
+
+def _set_algorithm_x2_enable_disable(
+        cfg: EnodebConfiguration,
+        data_model: DataModel,
+        x2_enable_disable: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - x2_enable_disable
+     - cfg
+    """
+    if x2_enable_disable is not None:
+        _set_param_if_present(
+            cfg, data_model, BaicellsParameterName.X2_ENABLE_DISABLE,
+            x2_enable_disable,
+        )
 
 
 def _set_bandwidth(
@@ -291,6 +394,90 @@ def _set_cell_id(
         'Cell Identity should be from 0 - (2^28 - 1)',
     )
     cfg.set_parameter(ParameterName.CELL_ID, cell_id)
+
+
+def _set_mme_pool_1(
+    cfg: EnodebConfiguration,
+    data_model: DataModel,
+    mme_pool_1: Any,
+) -> None:
+    """
+    Set the following parameters:
+    - mme_pool_1
+    """
+    _set_mme_pool_enable(cfg, data_model, True)
+    _set_param_if_present(cfg, data_model, ParameterName.MME_POOL_1, mme_pool_1)
+
+
+def _set_mme_pool_2(
+    cfg: EnodebConfiguration,
+    data_model: DataModel,
+    mme_pool_2: Any,
+) -> None:
+    """
+    Set the following parameters:
+    - mme_pool_1
+    """
+    _set_mme_pool_enable(cfg, data_model, True)
+    _set_param_if_present(cfg, data_model, ParameterName.MME_POOL_2, mme_pool_2)
+
+
+def _set_sync_1588_config(
+    cfg: EnodebConfiguration,
+    sync_1588_config: mconfigs_pb2.EnodebD.EnodebConfig.Sync1588Config,
+) -> None:
+    """
+    Set the following parameters:
+     - sync_1588_config
+    """
+    cfg.set_parameter(BaicellsParameterName.SYNC_1588_SWITCH, sync_1588_config.syn_1588_switch)
+    if sync_1588_config.syn_1588_switch:
+        if sync_1588_config.sync_1588_domain_num is not None:
+            cfg.set_parameter(BaicellsParameterName.SYNC_1588_DOMAIN, sync_1588_config.sync_1588_domain_num)
+        if sync_1588_config.sync_1588_unicast_multi_switch is not None:
+            cfg.set_parameter(BaicellsParameterName.SYNC_1588_UNICAST_ENABLE, unicast_multi_switch(sync_1588_config.sync_1588_unicast_multi_switch))
+        if sync_1588_config.sync_1588_msg_interval is not None:
+            cfg.set_parameter(BaicellsParameterName.SYNC_1588_SYNC_MSG_INTREVAL, sync_1588_config.sync_1588_msg_interval)
+        if sync_1588_config.sync_1588_delay_rq_msg_interval is not None:
+            cfg.set_parameter(BaicellsParameterName.SYNC_1588_DELAY_REQUEST_MSG_INTERVAL, sync_1588_config.sync_1588_delay_rq_msg_interval)
+        if sync_1588_config.sync_1588_holdover is not None:
+            cfg.set_parameter(BaicellsParameterName.SYNC_1588_HOLDOVER, sync_1588_config.sync_1588_holdover)
+        if sync_1588_config.sync_1588_asymmetry is not None:
+            cfg.set_parameter(BaicellsParameterName.SYNC_1588_ASYMMETRY, sync_1588_config.sync_1588_asymmetry)
+        if sync_1588_config.sync_1588_unicast_serverIp is not None and sync_1588_config.sync_1588_unicast_serverIp != '':
+            cfg.set_parameter(BaicellsParameterName.SYNC_1588_UNICAST_SERVERIP, sync_1588_config.sync_1588_unicast_serverIp)
+
+
+def _set_management_server_config(
+    cfg: EnodebConfiguration,
+    management_server_config: mconfigs_pb2.EnodebD.EnodebConfig.ManagementServerConfig,
+) -> None:
+    """
+    Set the following parameters:
+     - management_server_config
+    """
+
+    cfg.set_parameter(BaicellsParameterName.MANAGEMENT_SERVER_PORT, management_server_config.management_server_port)
+    if management_server_config.management_server_ssl_enable:
+        cfg.set_parameter(BaicellsParameterName.MANAGEMENT_SERVER_SSL_ENABLE, True)
+        cfg.set_parameter(
+            ParameterName.MANAGEMENT_SERVER,
+            'https://%s:%d/' % (management_server_config.management_server_host, management_server_config.management_server_port), )
+    else:
+        cfg.set_parameter(BaicellsParameterName.MANAGEMENT_SERVER_SSL_ENABLE, False)
+        cfg.set_parameter(BaicellsParameterName.MANAGEMENT_SERVER, 'http://%s:%d/' % (management_server_config.management_server_host, management_server_config.management_server_port))
+
+
+def _set_mme_pool_enable(
+    cfg: EnodebConfiguration,
+    data_model: DataModel,
+    mme_pool_enable: Any,
+) -> None:
+    """
+    Set the following parameters:
+    - mme_pool_enable
+    """
+    _set_param_if_present(cfg, data_model, ParameterName.MME_POOL_ENABLE, mme_pool_enable)
 
 
 def _set_tdd_subframe_config(
@@ -332,6 +519,133 @@ def _set_tdd_subframe_config(
     )
 
 
+def _set_neighbor_cell_list(
+        cfg: EnodebConfiguration,
+        neighbor_cell_list: mconfigs_pb2.EnodebD.EnodebConfig.NeighborCellListEntry,
+) -> None:
+    """
+    Set the LTE Neighbor cell Params as following parameters:
+     - cfg
+     - neighbor_cell_list
+     - plmn
+     - cell_id
+     - earfcn
+     - pci
+     - tac
+     - q_offset
+     - cio
+    """
+    if neighbor_cell_list and len(neighbor_cell_list) >= 1:
+        for neighbor_cell_x in neighbor_cell_list.values():
+            if neighbor_cell_x.enable:
+                i = neighbor_cell_x.index
+                desired_object_name = BaicellsParameterName.NEIGHBOR_CELL_LIST_N % i
+                cfg.add_object(desired_object_name)
+                if neighbor_cell_x.plmn:
+                    cfg.set_parameter_for_object(
+                        BaicellsParameterName.NEIGHBOR_CELL_PLMN_N % i, neighbor_cell_x.plmn,
+                        desired_object_name,
+                    )
+                if neighbor_cell_x.cell_id:
+                    cfg.set_parameter_for_object(
+                        BaicellsParameterName.NEIGHBOR_CELL_CELL_ID_N % i,
+                        neighbor_cell_x.cell_id,
+                        desired_object_name,
+                    )
+                if neighbor_cell_x.earfcn:
+                    cfg.set_parameter_for_object(
+                        BaicellsParameterName.NEIGHBOR_CELL_EARFCN_N % i,
+                        neighbor_cell_x.earfcn,
+                        desired_object_name,
+                    )
+                if neighbor_cell_x.pci:
+                    cfg.set_parameter_for_object(
+                        BaicellsParameterName.NEIGHBOR_CELL_PCI_N % i, neighbor_cell_x.pci,
+                        desired_object_name,
+                    )
+                if neighbor_cell_x.tac:
+                    cfg.set_parameter_for_object(
+                        BaicellsParameterName.NEIGHBOR_CELL_TAC_N % i, neighbor_cell_x.tac,
+                        desired_object_name,
+                    )
+                if neighbor_cell_x.q_offset:
+                    cfg.set_parameter_for_object(
+                        BaicellsParameterName.NEIGHBOR_CELL_QOFFSET_N % i,
+                        neighbor_cell_x.q_offset,
+                        desired_object_name,
+                    )
+                if neighbor_cell_x.cio:
+                    cfg.set_parameter_for_object(
+                        BaicellsParameterName.NEIGHBOR_CELL_CIO_N % i, neighbor_cell_x.cio,
+                        desired_object_name,
+                    )
+
+
+def _set_neighbor_freq_list(
+        cfg: EnodebConfiguration,
+        neighbor_freq_list: mconfigs_pb2.EnodebD.EnodebConfig.NeighborFreqListEntry,
+) -> None:
+    """
+    Set the LTE Neighbor Freq Params as following parameters:
+     - cfg
+     - neighbor_freq_list
+     - earfcn
+     - q_offset_range
+     - q_rx_lev_min_sib5
+     - p_max
+     - t_reselection_eutra
+     - resel_thresh_high
+     - resel_thresh_low
+     - reselection_priority
+    """
+    if neighbor_freq_list and len(neighbor_freq_list) >= 1:
+        for neighbor_x in neighbor_freq_list.values():
+            if neighbor_x.enable:
+                i = neighbor_x.index
+                object_name = BaicellsParameterName.NEGIH_FREQ_LIST % i
+                cfg.add_object(object_name)
+                if neighbor_x.earfcn:
+                    cfg.set_parameter_for_object(
+                        BaicellsParameterName.NEIGHBOR_FREQ_EARFCN_N % i, neighbor_x.earfcn,
+                        object_name,
+                    )
+                if neighbor_x.q_offset_range:
+                    cfg.set_parameter_for_object(
+                        BaicellsParameterName.NEIGHBOR_FREQ_Q_OFFSETRANGE_N % i,
+                        neighbor_x.q_offset_range, object_name,
+                    )
+                if neighbor_x.q_rx_lev_min_sib5:
+                    cfg.set_parameter_for_object(
+                        BaicellsParameterName.NEIGHBOR_FREQ_QRXLEVMINSIB5_N % i,
+                        neighbor_x.q_rx_lev_min_sib5, object_name,
+                    )
+                if neighbor_x.p_max:
+                    cfg.set_parameter_for_object(
+                        BaicellsParameterName.NEIGHBOR_FREQ_PMAX_N % i, neighbor_x.p_max,
+                        object_name,
+                    )
+                if neighbor_x.t_reselection_eutra:
+                    cfg.set_parameter_for_object(
+                        BaicellsParameterName.NEIGHBOR_FREQ_TRESELECTIONEUTRA_N % i,
+                        neighbor_x.t_reselection_eutra, object_name,
+                    )
+                if neighbor_x.resel_thresh_high:
+                    cfg.set_parameter_for_object(
+                        BaicellsParameterName.NEIGHBOR_FREQ_RESELTHRESHHIGH_N % i,
+                        neighbor_x.resel_thresh_high, object_name,
+                    )
+                if neighbor_x.resel_thresh_low:
+                    cfg.set_parameter_for_object(
+                        BaicellsParameterName.NEIGHBOR_FREQ_RESELTHRESHLOW_N % i,
+                        neighbor_x.resel_thresh_low, object_name,
+                    )
+                if neighbor_x.reselection_priority:
+                    cfg.set_parameter_for_object(
+                        BaicellsParameterName.NEIGHBOR_FREQ_RESELECTIONPRIORITY_N % i,
+                        neighbor_x.reselection_priority, object_name,
+                    )
+
+
 def _set_management_server(cfg: EnodebConfiguration) -> None:
     """
     Set the following parameters:
@@ -371,8 +685,7 @@ def _set_perf_mgmt(
      - Perf mgmt upload URL
     """
     cfg.set_parameter(ParameterName.PERF_MGMT_ENABLE, True)
-    # Upload interval supported values (in secs):
-    # [60, 300, 900, 1800, 3600]
+    # Upload interval supported values (in secs): [60, 300, 900, 1800, 3600]
     # Note: eNodeB crashes have been experienced with 60-sec interval.
     # Hence using 300sec
     cfg.set_parameter(
@@ -482,6 +795,58 @@ def _set_plmnids_tac(
                 object_name,
             )
     cfg.set_parameter(ParameterName.TAC, tac)
+
+
+def _set_ho_algorithm_config(
+    cfg: EnodebConfiguration,
+    ho_algorithm_config: mconfigs_pb2.EnodebD.EnodebConfig.HoAlgorithmConfig,
+) -> None:
+    """
+    Set the following parameters:
+     - algorithm config pm
+    """
+    if ho_algorithm_config.a1_threshold_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_A1_THRESHOLD_RSRP, ho_algorithm_config.a1_threshold_rsrp)
+    if ho_algorithm_config.a2_threshold_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_A2_THRESHOLD_RSRP, ho_algorithm_config.a2_threshold_rsrp)
+    if ho_algorithm_config.a3_offset is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_A3_OFFSET, ho_algorithm_config.a3_offset)
+    if ho_algorithm_config.a3_offset_anr is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_A3_OFFSET_ANR, ho_algorithm_config.a3_offset_anr)
+    if ho_algorithm_config.a4_threshold_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_A4_THRESHOLD_RSRP, ho_algorithm_config.a4_threshold_rsrp)
+    if ho_algorithm_config.lte_intra_a5_threshold_1_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_LTE_INTRA_A5_THRESHOLD_1_RSRP, ho_algorithm_config.lte_intra_a5_threshold_1_rsrp)
+    if ho_algorithm_config.lte_intra_a5_threshold_2_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_LTE_INTRA_A5_THRESHOLD_2_RSRP, ho_algorithm_config.lte_intra_a5_threshold_2_rsrp)
+    if ho_algorithm_config.lte_inter_anr_a5_threshold_1_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_LTE_INTER_ANR_A5_THRESHOLD_1_RSRP, ho_algorithm_config.lte_inter_anr_a5_threshold_1_rsrp)
+    if ho_algorithm_config.lte_inter_anr_a5_threshold_2_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_LTE_INTER_ANR_A5_THRESHOLD_2_RSRP, ho_algorithm_config.lte_inter_anr_a5_threshold_2_rsrp)
+    if ho_algorithm_config.b2_threshold1_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_B2_THRESHOLD1_RSRP, ho_algorithm_config.b2_threshold1_rsrp)
+    if ho_algorithm_config.b2_threshold2_rsrp is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_B2_THRESHOLD2_RSRP, ho_algorithm_config.b2_threshold2_rsrp)
+    if ho_algorithm_config.b2_geran_irat_threshold is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_B2_GERAN_IRAT_THRESHOLD, ho_algorithm_config.b2_geran_irat_threshold)
+    if ho_algorithm_config.qrxlevmin_selection < 0:
+        cfg.set_parameter(BaicellsParameterName.HO_QRXLEVMIN_SELECTION, ho_algorithm_config.qrxlevmin_selection)
+    if ho_algorithm_config.qrxlevminoffset > 0:
+        cfg.set_parameter(BaicellsParameterName.HO_QRXLEVMINOFFSET, ho_algorithm_config.qrxlevminoffset)
+    if ho_algorithm_config.s_intrasearch is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_S_INTRASEARCH, ho_algorithm_config.s_intrasearch)
+    if ho_algorithm_config.s_nonintrasearch is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_S_NONINTRASEARCH, ho_algorithm_config.s_nonintrasearch)
+    if ho_algorithm_config.qrxlevmin_sib3 < 0:
+        cfg.set_parameter(BaicellsParameterName.HO_QRXLEVMIN_RESELECTION, ho_algorithm_config.qrxlevmin_sib3)
+    if ho_algorithm_config.reselection_priority is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_RESELECTION_PRIORITY, ho_algorithm_config.reselection_priority)
+    if ho_algorithm_config.threshservinglow is not None:
+        cfg.set_parameter(BaicellsParameterName.HO_THRESHSERVINGLOW, ho_algorithm_config.threshservinglow)
+    if len(ho_algorithm_config.ciphering_algorithm) > 0:
+        cfg.set_parameter(BaicellsParameterName.HO_CIPHERING_ALGORITHM, ho_algorithm_config.ciphering_algorithm)
+    if len(ho_algorithm_config.ciphering_algorithm) > 0:
+        cfg.set_parameter(BaicellsParameterName.HO_INTEGRITY_ALGORITHM, ho_algorithm_config.integrity_algorithm)
 
 
 def _set_earfcn_freq_band_mode(

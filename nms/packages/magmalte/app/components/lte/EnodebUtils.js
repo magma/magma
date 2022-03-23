@@ -16,6 +16,7 @@
 
 import type {enodeb, enodeb_state} from '../../../generated/MagmaAPIBindings';
 import type {enodeb_configuration} from '../../../generated/MagmaAPIBindings';
+import type {power_control} from '../../../generated/MagmaAPIBindings';
 
 export const EnodebDeviceClass: {
   [string]: $PropertyType<enodeb_configuration, 'device_class'>,
@@ -36,6 +37,15 @@ export const EnodebBandwidthOption: {
   '10': 10,
   '15': 15,
   '20': 20,
+});
+
+export const EnodebPowerControlPBOption: {
+  [string]: $NonMaybeType<$PropertyType<power_control, 'pb'>>,
+} = Object.freeze({
+  '0': 0,
+  '1': 1,
+  '2': 2,
+  '3': 3,
 });
 
 export type EnodebInfo = {
