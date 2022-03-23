@@ -703,7 +703,7 @@ TEST_F(AMFAppStatelessTest, TestAfterRegistrationComplete) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   send_initial_context_response(amf_app_desc_p, ue_id);
 
@@ -841,7 +841,7 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionEstReq) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   send_initial_context_response(amf_app_desc_p, ue_id);
 
@@ -979,7 +979,7 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionReleaseComplete) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   send_initial_context_response(amf_app_desc_p, ue_id);
 

@@ -439,7 +439,7 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcNoTMSI) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
   rc = send_uplink_nas_registration_complete(
@@ -499,7 +499,7 @@ TEST_F(AMFAppProcedureTest, TestDeRegistration) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
   rc = send_uplink_nas_registration_complete(
@@ -588,7 +588,7 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcGutiBased) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
   rc = send_uplink_nas_registration_complete(
@@ -657,7 +657,7 @@ TEST_F(AMFAppProcedureTest, TestMobileUpdatingRegistrationProcGutiBased) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
   rc = send_uplink_nas_registration_complete(
@@ -715,7 +715,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionSetup) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
   rc = send_uplink_nas_registration_complete(
@@ -936,7 +936,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionSetupNoDnnNoSlice) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
   rc = send_uplink_nas_registration_complete(
@@ -1042,7 +1042,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionFailure_dnn_not_subscribed) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
   rc = send_uplink_nas_registration_complete(
@@ -1119,7 +1119,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_missing_dnn) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
   rc = send_uplink_nas_registration_complete(
@@ -1202,7 +1202,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_unknown_pdu_session_type) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
   rc = send_uplink_nas_registration_complete(
@@ -1292,7 +1292,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_Invalid_PDUSession_Identity) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
   rc = send_uplink_nas_registration_complete(
@@ -1437,7 +1437,7 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcSUCIExt) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   // Send uplink nas message for registration complete response from UE
   rc = send_uplink_nas_registration_complete(
@@ -1541,7 +1541,7 @@ TEST_F(AMFAppProcedureTest, TestPDUv6SessionSetup) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
   rc = send_uplink_nas_registration_complete(
@@ -1648,7 +1648,7 @@ TEST_F(AMFAppProcedureTest, TestPDUv4v6SessionSetup) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
   rc = send_uplink_nas_registration_complete(
@@ -1753,7 +1753,7 @@ TEST_F(AMFAppProcedureTest, ServiceRequestMTWithPDU) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
   rc = send_uplink_nas_registration_complete(
@@ -1884,7 +1884,7 @@ TEST_F(AMFAppProcedureTest, ServiceRequestSignalling) {
 
   s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
   rc = send_uplink_nas_registration_complete(
