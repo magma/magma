@@ -24,14 +24,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_common.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "ANY.h"
-#include "Ngap_NGAP-PDU.h"
 #include "Ngap_InitiatingMessage.h"
+#include "Ngap_NGAP-PDU.h"
 #include "Ngap_SuccessfulOutcome.h"
 #include "Ngap_UnsuccessfulOutcome.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_common.h"
 #include "per_encoder.h"
 #include "xer_encoder.h"
 

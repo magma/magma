@@ -27,13 +27,13 @@
 #include <netinet/in.h>
 #include <string.h>
 
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.h"
 
 static obj_hash_table_t* g_e_dns_entries = NULL;
 
