@@ -12,7 +12,21 @@
 cmake_minimum_required(VERSION 3.7.2)
 
 add_library(redis_utils redis_client.cpp)
-target_link_libraries(redis_utils MAGMA_CONFIG COMMON cpp_redis tacopie protobuf)
+
+file(GLOB ABSL_LIBS "/usr/local/lib/libabsl*.a")
+
+target_link_libraries(redis_utils MAGMA_CONFIG COMMON cpp_redis tacopie 
+    ssl crypto z gpr
+    ${ABSL_LIBS}
+    ${ABSL_LIBS}
+    absl_debugging_internal
+    absl_demangle_internal
+    upb
+    re2
+    cares
+    address_sorting
+	/usr/local/lib/libprotobuf.a
+    )
 
 
 target_include_directories(redis_utils PUBLIC

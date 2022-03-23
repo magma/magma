@@ -26,12 +26,15 @@ add_library(TASK_HA
     ${PROTO_HDRS}
     )
 
+file(GLOB ABSL_LIBS "/usr/local/lib/libabsl*.a")
+
 target_link_libraries(TASK_HA
     COMMON
-    LIB_BSTR LIB_HASHTABLE protobuf
+    LIB_BSTR LIB_HASHTABLE 
     ${PROTOBUF_LIBRARIES}
     TASK_MME_APP
     TASK_S1AP
+    /usr/local/lib/libprotobuf.a
     )
 
 target_include_directories(TASK_HA PUBLIC

@@ -56,5 +56,4 @@ target_link_libraries(amf_app_test
     LIB_BSTR LIB_ITTI MOCK_TASKS gtest gtest_main crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
     ${NETTLE_LIBRARIES}
     )
-
 add_test(NAME test_amf_app COMMAND amf_app_test)

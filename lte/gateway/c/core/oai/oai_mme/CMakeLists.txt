@@ -25,7 +25,6 @@ if ("${LFDS}" STREQUAL "LFDS-NOTFOUND")
 endif ()
 
 add_executable(mme ${PROJECT_SOURCE_DIR}/oai_mme/oai_mme.c)
-
 # compile the needed macros
 
 create_proto_dir("orc8r" ORC8R_CPP_OUT_DIR)
@@ -39,28 +38,42 @@ generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
 
 find_package(MAGMA_LOGGING REQUIRED)
 find_package(MAGMA_SENTRY REQUIRED)
+file(GLOB ABSL_LIBS "/usr/local/lib/libabsl*.a")
 
 target_link_libraries(mme
     -Wl,--start-group
     COMMON
     MAGMA_LOGGING MAGMA_SENTRY
+    TASK_ASYNC_GRPC_SERVICE
     LIB_3GPP LIB_S1AP LIB_NGAP LIB_SECU LIB_DIRECTORYD LIB_SGS_CLIENT LIB_BSTR
     LIB_HASHTABLE LIB_S6A_PROXY
     TASK_S1AP TASK_NGAP TASK_SCTP_SERVER TASK_SGS TASK_SMS_ORC8R
     TASK_S6A TASK_MME_APP TASK_AMF_APP TASK_GRPC_SERVICE TASK_NAS TASK_HA
-    TASK_ASYNC_GRPC_SERVICE
     ${ITTI_LIB} ${GCOV_LIB}
-    -Wl,--end-group
     ${LFDS} pthread m sctp rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
     ${NETTLE_LIBRARIES} ${CONFIG_LIBRARIES} gnutls
-    prometheus-cpp grpc grpc++ yaml-cpp
+    prometheus-cpp grpc++  grpc yaml-cpp
+    ${ABSL_LIBS}
+    ${ABSL_LIBS}
+    absl_debugging_internal
+    absl_demangle_internal
+    z
+    gpr
+    upb
+    re2
+    cares
+    ssl
+    crypto
+    address_sorting
+    -Wl,--end-group
     )
 
 if (NOT EMBEDDED_SGW)
   target_link_libraries(mme
       LIB_GTPV2C TASK_UDP)
 else (EMBEDDED_SGW)
-  target_link_libraries(mme TASK_SGW TASK_SGW_S8)
+  target_link_libraries(mme 
+	  TASK_SGW TASK_SGW_S8)
 endif (NOT EMBEDDED_SGW)
 
 if (NOT S6A_OVER_GRPC)

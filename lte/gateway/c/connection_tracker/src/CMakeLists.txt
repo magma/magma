@@ -69,10 +69,27 @@ add_library(CONNECTION_TRACKER
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 
+file(GLOB ABSL_LIBS "/usr/local/lib/libabsl*.a")
+
 target_link_libraries(CONNECTION_TRACKER
+    -Wl,--start-group
     SERVICE303_LIB SERVICE_REGISTRY MAGMA_LOGGING MAGMA_CONFIG MAGMA_SENTRY
-    glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
+    glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp cpp_redis
     prometheus-cpp tacopie mnl tins
+    ${ABSL_LIBS}
+    ${ABSL_LIBS}
+    absl_debugging_internal
+    absl_demangle_internal
+    z
+    gpr
+    upb
+    re2
+    cares
+    ssl
+    crypto
+    address_sorting
+    /usr/local/lib/libprotobuf.a
+    -Wl,--end-group
     )
 
 target_include_directories(CONNECTION_TRACKER PUBLIC
@@ -94,8 +111,3 @@ add_executable(connectiond
     main.cpp)
 
 target_link_libraries(connectiond CONNECTION_TRACKER)
-
-if (BUILD_TESTS)
-  ENABLE_TESTING()
-  ADD_SUBDIRECTORY(test)
-endif (BUILD_TESTS)

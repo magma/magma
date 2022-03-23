@@ -19,13 +19,31 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 include_directories("/usr/src/googletest/googlemock/include/")
 link_directories("/usr/src/googletest/googlemock/lib/")
 
+file(GLOB ABSL_LIBS "/usr/local/lib/libabsl*.a")
+
 foreach (service303_test magma_service service303 metrics)
   add_executable(${service303_test}_test test_${service303_test}.cpp)
   target_link_libraries(${service303_test}_test
-      SERVICE303_LIB
-      SERVICE_REGISTRY
-      gmock_main gtest gtest_main gmock
-      yaml-cpp pthread rt
-      ${GCOV_LIB})
+    -Wl,--start-group
+    SERVICE303_LIB
+    SERVICE_REGISTRY
+    gmock_main gtest gtest_main gmock
+    yaml-cpp pthread rt
+    ${GCOV_LIB}
+    ${ABSL_LIBS}
+    ${ABSL_LIBS}
+    absl_debugging_internal
+    absl_demangle_internal
+    z
+    gpr
+    upb
+    re2
+    cares
+    ssl
+    crypto
+    address_sorting
+    /usr/local/lib/libprotobuf.a
+    -Wl,--end-group 
+  )
   add_test(test_${service303_test} ${service303_test}_test)
 endforeach (service303_test)

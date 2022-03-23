@@ -37,7 +37,7 @@ add_library(LIB_PIPELINED_CLIENT
 target_link_libraries(LIB_PIPELINED_CLIENT
     COMMON
     TASK_GTPV1U
-    grpc grpc++
+    grpc++ grpc
     MAGMA_CONFIG
     )
 

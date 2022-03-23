@@ -20,11 +20,14 @@ set(SGW_S8_SRC
     )
 add_library(TASK_SGW_S8 ${SGW_S8_SRC})
 
+file(GLOB ABSL_LIBS "/usr/local/lib/libabsl*.a")
+
 target_link_libraries(TASK_SGW_S8
     COMMON
     LIB_BSTR LIB_HASHTABLE LIB_S8_PROXY
     LIB_OPENFLOW_CONTROLLER TASK_SERVICE303
-    cpp_redis tacopie protobuf
+    cpp_redis tacopie
+    /usr/local/lib/libprotobuf.a
     )
 
 target_include_directories(TASK_SGW_S8 PUBLIC

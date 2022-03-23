@@ -202,10 +202,26 @@ add_library(SESSION_MANAGER
 find_package(MAGMA_LOGGING REQUIRED)
 find_package(MAGMA_SENTRY REQUIRED)
 
-target_link_libraries(SESSION_MANAGER
+file(GLOB ABSL_LIBS "/usr/local/lib/libabsl*")
+
+target_link_libraries(SESSION_MANAGER -Wl,--start-group
   SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC MAGMA_CONFIG MAGMA_LOGGING EVENTD MAGMA_SENTRY
-  glog gflags folly pthread ${GCOV_LIB} gpr grpc++ grpc yaml-cpp protobuf cpp_redis
+  glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp cpp_redis
   prometheus-cpp tacopie
+    ${ABSL_LIBS}
+    ${ABSL_LIBS}
+    absl_debugging_internal
+    absl_demangle_internal
+    z
+    gpr
+    upb
+    re2
+    cares
+    ssl
+    crypto
+    address_sorting
+    /usr/local/lib/libprotobuf.a
+    -Wl,--end-group
   )
 
 if (CLANG_FORMAT)

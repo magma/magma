@@ -20,7 +20,7 @@ add_library(LIB_DIRECTORYD
     )
 
 target_link_libraries(LIB_DIRECTORYD
-    grpc grpc++
+    grpc++ grpc
     LIB_MOBILITY_CLIENT ASYNC_GRPC SERVICE_REGISTRY
     MAGMA_CONFIG
     )

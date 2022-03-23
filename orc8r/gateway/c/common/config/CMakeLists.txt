@@ -26,6 +26,7 @@ add_library(MAGMA_CONFIG
     )
 target_link_libraries(MAGMA_CONFIG PRIVATE MAGMA_LOGGING)
 target_link_libraries(MAGMA_CONFIG PRIVATE glog)
+target_link_libraries(MAGMA_CONFIG PRIVATE /usr/local/lib/libprotobuf.a)
 
 if (BUILD_TESTS)
   ENABLE_TESTING()

@@ -25,8 +25,25 @@ add_library(SERVICE_REGISTRY
 find_package(MAGMA_CONFIG REQUIRED)
 find_package(MAGMA_LOGGING REQUIRED)
 
+file(GLOB ABSL_LIBS "/usr/local/lib/libabsl*.a")
+
 target_link_libraries(SERVICE_REGISTRY MAGMA_CONFIG
-    grpc++ dl yaml-cpp
+    -Wl,--start-group
+    grpc++ grpc dl yaml-cpp
+    ${ABSL_LIBS}
+    ${ABSL_LIBS}
+    absl_debugging_internal
+    absl_demangle_internal
+    z
+    gpr
+    upb
+    re2
+    cares
+    ssl
+    crypto
+    address_sorting
+    /usr/local/lib/libprotobuf.a
+    -Wl,--end-group  
     )
 
 # copy headers to build directory so they can be shared with OAI,

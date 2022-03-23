@@ -34,16 +34,33 @@ add_library(TASK_ASYNC_GRPC_SERVICE
     ${PROTO_HDRS}
     )
 
+file(GLOB ABSL_LIBS "/usr/local/lib/libabsl*.a")
+
 target_link_libraries(TASK_ASYNC_GRPC_SERVICE
+    -Wl,--start-group
     COMMON
-    LIB_BSTR protobuf
+    LIB_BSTR /usr/local/lib/libprotobuf.a
     LIB_HASHTABLE
     ${PROTOBUF_LIBRARIES}
     pthread
     gpr
-    grpc
     grpc++
+    grpc
     TASK_S6A
+    ${ABSL_LIBS}
+    ${ABSL_LIBS}
+    absl_debugging_internal
+    absl_demangle_internal
+    z
+    gpr
+    upb
+    re2
+    cares
+    ssl
+    crypto
+    address_sorting
+    /usr/local/lib/libprotobuf.a
+	-Wl,--end-group
     )
 target_include_directories(TASK_ASYNC_GRPC_SERVICE PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

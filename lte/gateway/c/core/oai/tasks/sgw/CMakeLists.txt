@@ -35,12 +35,16 @@ target_compile_definitions(TASK_SGW PRIVATE
     PACKAGE_VERSION=\"0.1\"
     PACKAGE_BUGREPORT=\"TBD\"
     )
+
+file(GLOB ABSL_LIBS "/usr/local/lib/libabsl*.a")
+
 target_link_libraries(TASK_SGW
     COMMON
     ${GTPNL_LIBRARIES}
     LIB_BSTR LIB_HASHTABLE LIB_MOBILITY_CLIENT LIB_PCEF
     TASK_GTPV1U
-    cpp_redis tacopie protobuf
+    cpp_redis tacopie
+    /usr/local/lib/libprotobuf.a
     )
 target_include_directories(TASK_SGW PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

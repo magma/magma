@@ -57,8 +57,25 @@ add_library(SCTPD_LIB
 
 target_compile_definitions(SCTPD_LIB PUBLIC LOG_WITH_GLOG)
 
-target_link_libraries(SCTPD_LIB MAGMA_LOGGING MAGMA_CONFIG MAGMA_SENTRY
-    sctp pthread grpc++ grpc protobuf glog yaml-cpp
+file(GLOB ABSL_LIBS "/usr/local/lib/libabsl*.a")
+
+
+target_link_libraries(SCTPD_LIB -Wl,--start-group MAGMA_LOGGING MAGMA_CONFIG MAGMA_SENTRY
+    sctp pthread grpc++ grpc glog yaml-cpp
+    ${ABSL_LIBS}
+    ${ABSL_LIBS}
+    absl_debugging_internal
+    absl_demangle_internal
+    z
+    gpr
+    upb
+    re2
+    cares
+    ssl
+    crypto
+    address_sorting
+    /usr/local/lib/libprotobuf.a
+    -Wl,--end-group
     )
 
 target_include_directories(SCTPD_LIB PUBLIC

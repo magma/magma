@@ -21,10 +21,28 @@ add_library(TASK_SCTP_SERVER
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )
+
+file(GLOB ABSL_LIBS "/usr/local/lib/libabsl*.a")
+
 target_link_libraries(TASK_SCTP_SERVER
+    -Wl,--start-group
     COMMON
     LIB_BSTR LIB_HASHTABLE
-    grpc++ grpc protobuf
+    grpc++ grpc
+    ${ABSL_LIBS}
+    ${ABSL_LIBS}
+    absl_debugging_internal
+    absl_demangle_internal
+    z
+    gpr
+    upb
+    re2
+    cares
+    ssl
+    crypto
+    address_sorting
+    /usr/local/lib/libprotobuf.a
+	-Wl,--end-group
     )
 target_include_directories(TASK_SCTP_SERVER PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

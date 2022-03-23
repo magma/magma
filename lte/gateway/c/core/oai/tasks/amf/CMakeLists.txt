@@ -67,12 +67,15 @@ target_compile_definitions(TASK_AMF_APP PRIVATE
   PACKAGE_BUGREPORT=\"TBD\"
 )
 
+file(GLOB ABSL_LIBS "/usr/local/lib/libabsl*.a")
+
 target_link_libraries(TASK_AMF_APP 
-  ${CONFIG_LIBRARIES}
-  COMMON
-  LIB_BSTR LIB_HASHTABLE LIB_DIRECTORYD LIB_SECU LIB_EVENT_CLIENT LIB_NAS5G LIB_N11
-  TASK_GRPC_SERVICE TASK_NGAP TASK_SERVICE303 LIB_S6A_PROXY
-  protobuf cpp_redis yaml-cpp redis_utils
+   ${CONFIG_LIBRARIES}
+   COMMON
+   LIB_BSTR LIB_HASHTABLE LIB_DIRECTORYD LIB_SECU LIB_EVENT_CLIENT LIB_NAS5G LIB_N11
+   TASK_GRPC_SERVICE TASK_NGAP TASK_SERVICE303 LIB_S6A_PROXY
+   cpp_redis yaml-cpp redis_utils
+   /usr/local/lib/libprotobuf.a
 )
 
 target_include_directories(TASK_AMF_APP PUBLIC

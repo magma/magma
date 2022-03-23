@@ -21,15 +21,31 @@ add_library(LIB_N11
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )
+file(GLOB ABSL_LIBS "/usr/local/lib/libabsl*.a")
 
 
 target_link_libraries(LIB_N11
+    -Wl,--start-group
     COMMON
     LIB_MOBILITY_CLIENT
     SERVICE_REGISTRY
     LIB_S6A_PROXY
     ASYNC_GRPC
     MAGMA_CONFIG
+    ${ABSL_LIBS}
+    ${ABSL_LIBS}
+    absl_debugging_internal
+    absl_demangle_internal
+    z
+    gpr
+    upb
+    re2
+    cares
+    ssl
+    crypto
+    address_sorting
+    /usr/local/lib/libprotobuf.a
+    -Wl,--end-group
     )
 
 target_include_directories(LIB_N11 PUBLIC

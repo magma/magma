@@ -22,7 +22,7 @@ set -e
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 source "${SCRIPT_DIR}"/../lib/util.sh
 
-GIT_VERSION=1.15.0
+GIT_VERSION=1.43.2
 ITERATION=3
 VERSION="${GIT_VERSION}"-"${ITERATION}"
 PKGNAME=grpc-dev
@@ -52,6 +52,7 @@ if [ -d ${WORK_DIR} ]; then
 fi
 
 mkdir ${WORK_DIR}
+mkdir ${WORK_DIR}/install
 echo /sbin/ldconfig > "${WORK_DIR}"/after_install.sh
 
 cd ${WORK_DIR}
@@ -64,13 +65,16 @@ git submodule update --init
 # change default prefix from /usr/local to /tmp/build-grpc-dev/install/usr/local
 sed -i 's/.usr.local$/\/tmp\/build-grpc-dev\/install\/usr\/local/' Makefile
 
-# build and install grpc
+mkdir -p cmake/build
+pushd cmake/build
+cmake ../.. -DgRPC_INSTALL=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/install/usr/local -DgRPC_ABSL_PROVIDER=module -DgRPC_CARES_PROVIDER=package -DgRPC_PROTOBUF_PROVIDER=module -DgRPC_RE2_PROVIDER=module -DgRPC_SSL_PROVIDER=OpenSSL
 make -j$(nproc)
 make install
+popd
 
 # HACK see https://github.com/grpc/grpc/issues/11868
 # package still links to libgrpc++.so.1 even though libgrpc++.so.6 is needed
-ln -sf ${WORK_DIR}/install/usr/local/lib/libgrpc++.so."${GIT_VERSION}" ${WORK_DIR}/install/usr/local/lib/libgrpc++.so.1
+#ln -sf ${WORK_DIR}/install/usr/local/lib/libgrpc++.so."${GIT_VERSION}" ${WORK_DIR}/install/usr/local/lib/libgrpc++.so.1
 
 # packaging
 PKGFILE="$(pkgfilename)"

@@ -132,15 +132,33 @@ add_library(TASK_GRPC_SERVICE
     )
 endif (EMBEDDED_SGW)
 
+file(GLOB ABSL_LIBS "/usr/local/lib/libabsl*.a")
+
 target_link_libraries(TASK_GRPC_SERVICE
-    COMMON
-    LIB_BSTR protobuf
+    -Wl,--start-group
+	COMMON
+    LIB_BSTR 
     LIB_HASHTABLE
     ${PROTOBUF_LIBRARIES}
     grpc++
+    grpc
     TASK_SGS
     TASK_S6A
     TASK_SMS_ORC8R
+    ${ABSL_LIBS}
+    ${ABSL_LIBS}
+    absl_debugging_internal
+    absl_demangle_internal
+    z
+    gpr
+    upb
+    re2
+    cares
+    ssl
+    crypto
+    address_sorting
+    /usr/local/lib/libprotobuf.a
+    -Wl,--end-group
     )
 target_include_directories(TASK_GRPC_SERVICE PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

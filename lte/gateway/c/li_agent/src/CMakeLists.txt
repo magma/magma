@@ -76,10 +76,27 @@ add_library(LI_AGENT
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 
+file(GLOB ABSL_LIBS "/usr/local/lib/libabsl*.a")
+
 target_link_libraries(LI_AGENT
+    -Wl,--start-group
     SERVICE303_LIB SERVICE_REGISTRY MAGMA_CONFIG ASYNC_GRPC MAGMA_LOGGING MAGMA_SENTRY
-    glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
+    glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp cpp_redis
     prometheus-cpp tacopie mnl tins pcap ssl crypto uuid
+    ${ABSL_LIBS}
+    ${ABSL_LIBS}
+    absl_debugging_internal
+    absl_demangle_internal
+    z
+    gpr
+    upb
+    re2
+    cares
+    ssl
+    crypto
+    address_sorting
+    /usr/local/lib/libprotobuf.a
+    -Wl,--end-group
     )
 
 target_include_directories(LI_AGENT PUBLIC

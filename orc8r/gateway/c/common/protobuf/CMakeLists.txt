@@ -18,6 +18,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 file(GLOB PROTO_SRCS "orc8r/protos/*.pb.*")
 file(GLOB MCONFIG_SRCS "orc8r/protos/mconfig/*.pb.*")
 file(GLOB PROMETHEUS_SRCS "orc8r/protos/prometheus/*.pb.*")
+file(GLOB ABSL_LIBS "/usr/local/lib/libabsl*.a")
 
 include_directories(".")
 
@@ -27,7 +28,22 @@ add_library(MAGMA_PROTOBUF
     ${PROMETHEUS_SRCS}
     )
 target_link_libraries(MAGMA_PROTOBUF
-    protobuf grpc++ grpc dl prometheus-cpp
+    -Wl,--start-group 
+    grpc++ grpc dl prometheus-cpp
+    ${ABSL_LIBS}
+    ${ABSL_LIBS}
+    absl_debugging_internal
+    absl_demangle_internal
+    z
+    gpr
+    upb
+    re2
+    cares
+    ssl
+    crypto
+    address_sorting
+    /usr/local/lib/libprotobuf.a
+    -Wl,--end-group 
     )
 target_include_directories(MAGMA_PROTOBUF SYSTEM PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

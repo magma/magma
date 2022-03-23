@@ -50,7 +50,7 @@ add_library(SERVICE303_LIB
     )
 
 target_link_libraries(SERVICE303_LIB PRIVATE
-    prometheus-cpp protobuf grpc grpc++
+	prometheus-cpp grpc++ grpc
     SERVICE_REGISTRY
     )
 target_link_libraries(SERVICE303_LIB PRIVATE MAGMA_LOGGING)
