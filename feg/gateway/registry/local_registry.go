@@ -15,6 +15,7 @@ package registry
 
 import (
 	"log"
+
 	"magma/orc8r/lib/go/protos"
 
 	"google.golang.org/grpc"

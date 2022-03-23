@@ -39,7 +39,7 @@ func (m *mockStreamProvider) GetUpdates(ctx context.Context, gatewayId string, e
 
 func TestStreamingServer_GetUpdates(t *testing.T) {
 	streamer_test_init.StartTestService(t)
-	conn, err := registry.GetConnection(streamer.ServiceName)
+	conn, err := registry.GetConnection(streamer.ServiceName, protos.ServiceType_SOUTHBOUND)
 	assert.NoError(t, err)
 	grpcClient := protos.NewStreamerClient(conn)
 

@@ -348,13 +348,13 @@ func TestDirectorydUpdateMethods(t *testing.T) {
 }
 
 func getStateServiceClient(t *testing.T) (protos.StateServiceClient, error) {
-	conn, err := registry.GetConnection(state.ServiceName)
+	conn, err := registry.GetConnection(state.ServiceName, protos.ServiceType_SOUTHBOUND)
 	assert.NoError(t, err)
 	return protos.NewStateServiceClient(conn), err
 }
 
 func getDirectorydUpdaterClient(t *testing.T) (protos.GatewayDirectoryServiceClient, error) {
-	conn, err := registry.GetConnection(directoryd.ServiceName)
+	conn, err := registry.GetConnection(directoryd.ServiceName, protos.ServiceType_SOUTHBOUND)
 	assert.NoError(t, err)
 	return protos.NewGatewayDirectoryServiceClient(conn), err
 }

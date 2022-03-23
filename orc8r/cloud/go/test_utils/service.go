@@ -49,32 +49,30 @@ allow_http_proxy: True`
 // NewTestService creates and registers a basic test Magma service on a
 // dynamically selected available local port.
 // Returns the newly created service and listener it was registered with.
-func NewTestService(t *testing.T, moduleName string, serviceType string) (*platform_service.Service, net.Listener) {
+func NewTestService(t *testing.T, moduleName string, serviceType string) (*platform_service.Service, net.Listener, net.Listener) {
 	srvPort, lis, err := getOpenPort()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	registry.AddService(registry.ServiceLocation{Name: serviceType, Host: "localhost", Port: srvPort})
+	pSrvPort, plis, err := getOpenPort()
+	if err != nil {
+		t.Fatal(err)
+	}
+	registry.AddService(registry.ServiceLocation{Name: serviceType, Host: "localhost", Port: srvPort, ProtectedPort: pSrvPort})
 
 	srv, err := cloud_service.NewTestService(t, moduleName, serviceType)
 	if err != nil {
 		t.Fatalf("Error creating service: %s", err)
 	}
-	return srv, lis
+	return srv, lis, plis
 }
 
 // NewTestOrchestratorService creates and registers a test orchestrator service
 // on a dynamically selected available local port for the gRPC server and HTTP
 // echo server. Returns the newly created service and listener it was
 // registered with.
-func NewTestOrchestratorService(
-	t *testing.T,
-	moduleName string,
-	serviceType string,
-	labels map[string]string,
-	annotations map[string]string,
-) (*cloud_service.OrchestratorService, net.Listener) {
+func NewTestOrchestratorService(t *testing.T, moduleName, serviceType string, labels, annotations map[string]string) (*cloud_service.OrchestratorService, net.Listener, net.Listener) {
 	if labels == nil {
 		labels = map[string]string{}
 	}
@@ -83,6 +81,10 @@ func NewTestOrchestratorService(
 	}
 
 	srvPort, lis, err := getOpenPort()
+	if err != nil {
+		t.Fatal(err)
+	}
+	pSrvPort, plis, err := getOpenPort()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,12 +98,13 @@ func NewTestOrchestratorService(
 	}
 
 	location := registry.ServiceLocation{
-		Name:        serviceType,
-		Host:        "localhost",
-		EchoPort:    echoPort,
-		Port:        srvPort,
-		Labels:      labels,
-		Annotations: annotations,
+		Name:          serviceType,
+		Host:          "localhost",
+		EchoPort:      echoPort,
+		Port:          srvPort,
+		ProtectedPort: pSrvPort,
+		Labels:        labels,
+		Annotations:   annotations,
 	}
 	registry.AddService(location)
 
@@ -109,7 +112,7 @@ func NewTestOrchestratorService(
 	if err != nil {
 		t.Fatalf("Error creating service: %s", err)
 	}
-	return srv, lis
+	return srv, lis, plis
 }
 
 // NewTestOrchestratorServiceWithControlProxy create a Orchestrator Service and a
@@ -117,17 +120,11 @@ func NewTestOrchestratorService(
 // a cloud service. This service will configure a custom control_proxy.yml file
 // matching local_port on control proxy with the listener port of the orc8r service.
 // Remember to delete the temporary file once the test it is done os.RemoveAll(dir)
-func NewTestOrchestratorServiceWithControlProxy(
-	t *testing.T,
-	moduleName string,
-	serviceType string,
-	labels map[string]string,
-	annotations map[string]string,
-) (*cloud_service.OrchestratorService, net.Listener, string) {
-	srv, lis := NewTestOrchestratorService(
+func NewTestOrchestratorServiceWithControlProxy(t *testing.T, moduleName string, serviceType string, labels map[string]string, annotations map[string]string) (string, net.Listener, *cloud_service.OrchestratorService) {
+	srv, lis, _ := NewTestOrchestratorService(
 		t, moduleName, serviceType, labels, annotations)
 	tempDir := setControlProxyConfig(t, lis.Addr())
-	return srv, lis, tempDir
+	return tempDir, lis, srv
 }
 
 func getOpenPort() (int, net.Listener, error) {

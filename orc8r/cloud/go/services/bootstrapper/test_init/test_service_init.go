@@ -30,7 +30,7 @@ import (
 // DOES NOT start a bootstrapper servicer
 func StartTestService(t *testing.T) {
 	factory := test_utils.NewSQLBlobstore(t, "bootstrapper_test_service_blobstore")
-	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, bootstrapper.ServiceName)
+	srv, lis, _ := test_utils.NewTestService(t, orc8r.ModuleName, bootstrapper.ServiceName)
 	store := registration.NewBlobstoreStore(factory)
 	cloudRegistrationServicer, err := registration.NewCloudRegistrationServicer(store, "rootCA", "magma.test", 30*time.Minute, false)
 	assert.NoError(t, err)
@@ -38,5 +38,5 @@ func StartTestService(t *testing.T) {
 
 	protos2.RegisterCloudRegistrationServer(srv.GrpcServer, cloudRegistrationServicer)
 	protos2.RegisterRegistrationServer(srv.GrpcServer, registrationServicer)
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 }

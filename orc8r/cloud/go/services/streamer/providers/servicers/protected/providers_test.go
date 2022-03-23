@@ -58,7 +58,7 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "gw1", PhysicalID: "hw1"}, serdes.Entity)
 	assert.NoError(t, err)
 
-	conn, err := registry.GetConnection(streamer.ServiceName)
+	conn, err := registry.GetConnection(streamer.ServiceName, protos.ServiceType_SOUTHBOUND)
 	assert.NoError(t, err)
 	streamerClient := protos.NewStreamerClient(conn)
 

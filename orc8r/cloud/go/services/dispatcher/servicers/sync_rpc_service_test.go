@@ -63,7 +63,7 @@ func TestSyncRPC(t *testing.T) {
 	t.Logf("New Registered Network: %s", testNetworkID)
 	configuratorTestUtils.RegisterGateway(t, testNetworkID, TestSyncRPCAgHwId, &models.GatewayDevice{HardwareID: TestSyncRPCAgHwId})
 
-	conn, err := registry.GetConnection(dispatcher.ServiceName)
+	conn, err := registry.GetConnection(dispatcher.ServiceName, protos.ServiceType_SOUTHBOUND)
 	assert.NoError(t, err)
 	syncRPCClient := protos.NewSyncRPCServiceClient(conn)
 

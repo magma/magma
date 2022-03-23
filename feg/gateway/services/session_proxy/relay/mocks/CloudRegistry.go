@@ -17,11 +17,11 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"magma/orc8r/lib/go/protos"
 	"time"
 
 	"google.golang.org/grpc"
 
+	"magma/orc8r/lib/go/protos"
 	platform_registry "magma/orc8r/lib/go/registry"
 )
 
