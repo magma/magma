@@ -137,6 +137,23 @@ jobs:
           reporter: github-pr-review  # Post code review comments.
           locale: "US"
 
+  mypy:
+    name: mypy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code.
+        uses: actions/checkout@v2
+        with:
+          ref: ${{github.event.pull_request.head.ref}}
+          repository: ${{github.event.pull_request.head.repo.full_name}}
+          fetch-depth: 0
+      - name: Run mypy with reviewdog
+        uses: tsuyoshicho/action-mypy@v3.6.0
+        with:
+          github_token: ${{ secrets.github_token }}
+          filter_mode: added  # Any added or changed content.
+          reporter: github-pr-review  # Post code review comments.
+
   shellcheck:
     name: shellcheck
     runs-on: ubuntu-latest
