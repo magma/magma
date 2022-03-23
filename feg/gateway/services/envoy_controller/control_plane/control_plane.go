@@ -23,6 +23,7 @@ import (
 	routeservice "github.com/envoyproxy/go-control-plane/envoy/service/route/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/cache/types"
 	"github.com/envoyproxy/go-control-plane/pkg/cache/v3"
+	"github.com/envoyproxy/go-control-plane/pkg/resource/v3"
 	xds "github.com/envoyproxy/go-control-plane/pkg/server/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/golang/glog"
@@ -420,6 +421,12 @@ func (cli *ControllerClient) UpdateSnapshot(ues UEInfoMap) {
 
 	atomic.AddInt32(&cli.version, 1)
 	glog.Infof("Saved snapshot version " + fmt.Sprint(cli.version))
-	snap, _ := cache.NewSnapshot(fmt.Sprint(cli.version), nil, cluster, nil, listener_resource, nil)
-	cli.config.SetSnapshot(nodeId, snap)
+	snap, _ := cache.NewSnapshot(
+		fmt.Sprint(cli.version),
+		map[resource.Type][]types.Resource{
+			resource.ClusterType:  cluster,
+			resource.ListenerType: listener_resource,
+		},
+	)
+	cli.config.SetSnapshot(context.Background(), nodeId, snap)
 }
