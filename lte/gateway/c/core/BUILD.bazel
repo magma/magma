@@ -1138,6 +1138,10 @@ cc_binary(
     srcs = [
         "oai/oai_mme/oai_mme.c",
     ],
+    copts = [
+        "-DEMBEDDED_SGW",  # TODO(#11638): Feature flags fixups
+    ],
+    linkstatic = False,
     deps = [
         ":core",
     ],
