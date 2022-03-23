@@ -32,8 +32,6 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-extern task_zmq_ctx_t task_zmq_ctx_main_spgw;
-
 bool is_num_ue_contexts_valid(int expected_num_ue_contexts) {
   hash_table_ts_t* state_ue_ht = get_spgw_ue_state();
   return state_ue_ht->num_elements == expected_num_ue_contexts;
