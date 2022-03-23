@@ -19,6 +19,7 @@
  */
 int send_n11_create_pdu_session_resp_itti(
     itti_n11_create_pdu_session_response_t* itti_msg);
+
 /*
  * Sends N11_NOTIFICATION_RECEIVED message to AMF.
  */
