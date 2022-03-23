@@ -119,7 +119,7 @@ int amf_proc_identification_complete(const amf_ue_ngap_id_t ue_id,
                                      uint32_t* const tmsi,
                                      guti_m5_t* amf_ctx_guti) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
+  int rc = RETURNok;
   amf_sap_t amf_sap = {};
   amf_context_t* amf_ctx = NULL;
 
@@ -136,10 +136,13 @@ int amf_proc_identification_complete(const amf_ue_ngap_id_t ue_id,
     nas_amf_ident_proc_t* ident_proc =
         get_5g_nas_common_procedure_identification(amf_ctx);
 
-    // if (ident_proc) {
-    /*
-     * Stop timer T3570
-     */
+    if (ident_proc == NULL) {
+      OAILOG_ERROR(LOG_AMF_APP,
+                   "Failed to start identity procedure for "
+                   "ue_id " AMF_UE_NGAP_ID_FMT "\n",
+                   ue_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+    }
 
     OAILOG_DEBUG(LOG_AMF_APP, "Timer: Stopping Identity timer with ID %lu\n",
                  ident_proc->T3570.id);

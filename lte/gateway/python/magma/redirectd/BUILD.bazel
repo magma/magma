@@ -10,50 +10,50 @@
 # limitations under the License.
 
 load("@python_deps//:requirements.bzl", "requirement")
-load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
-LTE_ROOT = "../../"
+MAGMA_ROOT = "../../../../../"
 
-ORC8R_ROOT = LTE_ROOT + "../../../orc8r/gateway/python"
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
-DEPS = [
-    "//lte/protos:mconfigs_python_proto",
-    "//lte/protos:policydb_python_proto",
-    "//orc8r/gateway/python/magma/common:sentry",
-    "//orc8r/gateway/python/magma/configuration:service_configs",
-    "//orc8r/protos:mconfigs_python_proto",
-    "//orc8r/gateway/python/magma/common:service",
-    "//orc8r/protos:metricsd_python_proto",
-    "//orc8r/protos:eventd_python_grpc",
-    "//orc8r/protos:mconfig_python_proto",
-    "//orc8r/protos:service303_python_grpc",
-    "//orc8r/gateway/python/magma/common/redis:client",
-    requirement("grpcio"),
-    requirement("wsgiserver"),
-    requirement("flask"),
-]
-
-SRCS = [
-    "main.py",
-    "redirect_server.py",
-    "redirect_store.py",
-]
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 py_binary(
     name = "redirectd",
-    srcs = SRCS,
-    data = [
-        "templates/404.html",
-        "templates/layout.html",
-    ],
+    srcs = ["main.py"],
     imports = [
         LTE_ROOT,
         ORC8R_ROOT,
     ],
-    # legacy_creat_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
+    # legacy_create_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
     legacy_create_init = False,
     main = "main.py",
     python_version = "PY3",
+    visibility = ["//visibility:private"],
+    deps = [
+        ":redirectd_lib",
+        "//lte/protos:mconfigs_python_proto",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+        "//orc8r/gateway/python/magma/configuration:service_configs",
+    ],
+)
+
+py_library(
+    name = "redirectd_lib",
+    srcs = [
+        "redirect_server.py",
+        "redirect_store.py",
+    ],
+    data = [
+        "templates/404.html",
+        "templates/layout.html",
+    ],
     visibility = ["//visibility:public"],
-    deps = DEPS,
+    deps = [
+        "//lte/protos:policydb_python_proto",
+        "//orc8r/gateway/python/magma/common/redis:client",
+        requirement("flask"),
+        requirement("wsgiserver"),
+    ],
 )

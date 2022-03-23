@@ -142,7 +142,7 @@ class TrafficTestServerDispatcher(socketserver.TCPServer):
             if daemon else logging.StreamHandler()
         log_handler.setFormatter(
             logging.Formatter(
-            log_format, log_time_format,
+                log_format, log_time_format,
             ),
         )
 
@@ -395,7 +395,7 @@ class TrafficTestServer(socketserver.StreamRequestHandler):
                     self.log.error(
                         ''.join(
                             traceback.format_exception(
-                            type(e), e, sys.exc_info()[2],
+                                type(e), e, sys.exc_info()[2],
                             ),
                         ),
                     )

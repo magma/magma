@@ -13,6 +13,9 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Needed to determine if build with CMAKE or Bazel
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -DCMAKE_BUILD")
+
 set(SPGW_LIB_DIR $ENV{C_BUILD}/oai/tasks/sgw)
 
 include_directories("/usr/src/googletest/googlemock/include/")
@@ -39,7 +42,7 @@ target_link_libraries(SPGW_TASK_TEST_LIB
 
 set_target_properties(SPGW_TASK_TEST_LIB PROPERTIES LINKER_LANGUAGE CXX)
 
-foreach (sgw_test spgw_state_converter spgw_procedures pgw_pco spgw_procedures_with_injected_state)
+foreach (sgw_test spgw_service_impl spgw_state_converter spgw_procedures pgw_pco spgw_procedures_with_injected_state)
   add_executable(${sgw_test}_test test_${sgw_test}.cpp)
   target_link_libraries(${sgw_test}_test SPGW_TASK_TEST_LIB TASK_GRPC_SERVICE)
   add_test(test_${sgw_test} ${sgw_test}_test)

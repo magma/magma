@@ -28,7 +28,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 )
 
@@ -107,10 +107,6 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 				Servers:         models.ToMultipleServersMconfig(gxc.Server, gxc.Servers),
 				VirtualApnRules: models.ToVirtualApnRuleMconfig(gxc.VirtualApnRules),
 			}
-			// TODO(uri200): 5/7/20 remove this once backwards compatibility is not needed for the field server, remove server from swagger and mconfig
-			if len(mc.Gx.Servers) > 0 {
-				mc.Gx.Server = mc.Gx.Servers[0]
-			}
 		}
 		if gyc != nil {
 			mc.Gy = &feg_mconfig.GyConfig{
@@ -119,10 +115,6 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 				OverwriteApn:    gyc.OverwriteApn,
 				Servers:         models.ToMultipleServersMconfig(gyc.Server, gyc.Servers),
 				VirtualApnRules: models.ToVirtualApnRuleMconfig(gyc.VirtualApnRules),
-			}
-			// TODO(uri200): 5/7/20 remove this once backwards compatibility is not needed for the field server, remove server from swagger and mconfig
-			if len(mc.Gy.Servers) > 0 {
-				mc.Gy.Server = mc.Gy.Servers[0]
 			}
 		}
 		vals["session_proxy"] = mc
@@ -144,8 +136,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	if swxc != nil {
 		mc := &feg_mconfig.SwxConfig{LogLevel: protos.LogLevel_INFO}
 		protos.FillIn(swxc, mc)
-
-		// TODO(uri200): 5/7/20 remove this once backwards compatibility is not needed for the field server, remove server from swagger and mconfig
+		mc.Server = nil
 		mc.Servers = models.ToMultipleServersMconfig(swxc.Server, swxc.Servers)
 		vals["swx_proxy"] = mc
 	}

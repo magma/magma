@@ -10,7 +10,7 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("//bazel:third_party_repositories.bzl", "grpc", "protobuf")
+load("//bazel:third_party_repositories.bzl", "grpc")
 
 http_archive(
     name = "rules_python",
@@ -61,8 +61,9 @@ gazelle_dependencies(go_repository_default_config = "@//:WORKSPACE.bazel")
 
 http_archive(
     name = "com_github_bazelbuild_buildtools",
-    strip_prefix = "buildtools-master",
-    url = "https://github.com/bazelbuild/buildtools/archive/master.zip",
+    sha256 = "7f43df3cca7bb4ea443b4159edd7a204c8d771890a69a50a190dc9543760ca21",
+    strip_prefix = "buildtools-5.0.1",
+    url = "https://github.com/bazelbuild/buildtools/archive/refs/tags/5.0.1.tar.gz",
 )
 ### BUILDIFIER DEPENDENCIES
 
@@ -92,12 +93,6 @@ load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies")
 rules_cc_dependencies()
 
 ### PROTO / GRPC DEPENDENCIES ###
-protobuf()
-
-load("@protobuf//:protobuf_deps.bzl", "protobuf_deps")
-
-protobuf_deps()
-
 grpc()
 
 load("@rules_proto_grpc//:repositories.bzl", "rules_proto_grpc_repos", "rules_proto_grpc_toolchains")

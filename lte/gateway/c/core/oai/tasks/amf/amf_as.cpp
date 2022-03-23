@@ -1379,18 +1379,17 @@ uint16_t amf_as_establish_cnf(const amf_as_establish_t* msg,
 
     if (registration_proc && !(registration_proc->registration_accept_sent) &&
         (state != REGISTERED_CONNECTED)) {
-      /*GNB key, generated in AMF from KAMF and shared with gNB as part of
-       * InitialContextSetupRequest*/
-      derive_5gkey_gnb(amf_security_context->kamf, as_msg->nas_ul_count,
-                       amf_security_context->kgnb);
       registration_proc->registration_accept_sent++;
     }
 
-    if ((ue_mm_context->ue_context_request &&
-         (msg->nas_info == AMF_AS_NAS_INFO_REGISTERED)) ||
-        ((msg->nas_info == AMF_AS_NAS_INFO_SR) &&
-         (msg->pdu_session_status_ie &
-          AMF_AS_PDU_SESSION_REACTIVATION_STATUS))) {
+    // Condition for sending ICS :
+    //  1. Context is request and message is registration
+    //  2. Service Request message (data or signaling)
+    if (ue_mm_context->ue_context_request &&
+        (ue_mm_context->mm_state != REGISTERED_CONNECTED)) {
+      // Every time ICS is sent this kgnb needs to be re-calculated
+      derive_5gkey_gnb(amf_security_context->kamf, as_msg->nas_ul_count,
+                       amf_security_context->kgnb);
       initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
     } else {
       amf_app_handle_nas_dl_req(as_msg->ue_id, as_msg->nas_msg, M5G_AS_SUCCESS);

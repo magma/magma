@@ -2,10 +2,10 @@ package message_generator_test
 
 import (
 	"context"
-	"sort"
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -23,42 +23,36 @@ func TestGenerateMessages(t *testing.T) {
 		name             string
 		state            *active_mode.State
 		expectedRequests []*requests.RequestPayload
-		expectedActions  []*active_mode.DeleteCbsdRequest
+		expectedActions  []interface{}
 	}{
 		{
 			name: "Should do nothing for unregistered non active cbsd",
 			state: &active_mode.State{
-				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
-					DesiredState: active_mode.CbsdState_Unregistered,
-					Cbsd: &active_mode.Cbsd{
-						State:             active_mode.CbsdState_Unregistered,
-						LastSeenTimestamp: now.Unix(),
-					},
+				Cbsds: []*active_mode.Cbsd{{
+					DesiredState:      active_mode.CbsdState_Unregistered,
+					State:             active_mode.CbsdState_Unregistered,
+					LastSeenTimestamp: now.Unix(),
 				}},
 			},
 		},
 		{
 			name: "Should do nothing when inactive cbsd has no grants",
 			state: &active_mode.State{
-				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
-					DesiredState: active_mode.CbsdState_Registered,
-					Cbsd: &active_mode.Cbsd{
-						State:             active_mode.CbsdState_Unregistered,
-						LastSeenTimestamp: 0,
-					},
+				Cbsds: []*active_mode.Cbsd{{
+					DesiredState:      active_mode.CbsdState_Registered,
+					State:             active_mode.CbsdState_Unregistered,
+					LastSeenTimestamp: 0,
 				}},
 			},
 		},
 		{
 			name: "Should generate deregistration request for non active registered cbsd",
 			state: &active_mode.State{
-				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
-					DesiredState: active_mode.CbsdState_Unregistered,
-					Cbsd: &active_mode.Cbsd{
-						Id:                "some_cbsd_id",
-						State:             active_mode.CbsdState_Registered,
-						LastSeenTimestamp: now.Unix(),
-					},
+				Cbsds: []*active_mode.Cbsd{{
+					DesiredState:      active_mode.CbsdState_Unregistered,
+					Id:                "some_cbsd_id",
+					State:             active_mode.CbsdState_Registered,
+					LastSeenTimestamp: now.Unix(),
 				}},
 			},
 			expectedRequests: []*requests.RequestPayload{{
@@ -74,15 +68,13 @@ func TestGenerateMessages(t *testing.T) {
 		{
 			name: "Should generate registration request for active non registered cbsd",
 			state: &active_mode.State{
-				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
-					DesiredState: active_mode.CbsdState_Registered,
-					Cbsd: &active_mode.Cbsd{
-						UserId:            "some_user_id",
-						FccId:             "some_fcc_id",
-						SerialNumber:      "some_serial_number",
-						State:             active_mode.CbsdState_Unregistered,
-						LastSeenTimestamp: now.Unix(),
-					},
+				Cbsds: []*active_mode.Cbsd{{
+					DesiredState:      active_mode.CbsdState_Registered,
+					UserId:            "some_user_id",
+					FccId:             "some_fcc_id",
+					SerialNumber:      "some_serial_number",
+					State:             active_mode.CbsdState_Unregistered,
+					LastSeenTimestamp: now.Unix(),
 				}},
 			},
 			expectedRequests: []*requests.RequestPayload{{
@@ -100,13 +92,11 @@ func TestGenerateMessages(t *testing.T) {
 		{
 			name: "Should generate spectrum inquiry request when there are no available channels",
 			state: &active_mode.State{
-				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
-					DesiredState: active_mode.CbsdState_Registered,
-					Cbsd: &active_mode.Cbsd{
-						Id:                "some_cbsd_id",
-						State:             active_mode.CbsdState_Registered,
-						LastSeenTimestamp: now.Unix(),
-					},
+				Cbsds: []*active_mode.Cbsd{{
+					DesiredState:      active_mode.CbsdState_Registered,
+					Id:                "some_cbsd_id",
+					State:             active_mode.CbsdState_Registered,
+					LastSeenTimestamp: now.Unix(),
 				}},
 			},
 			expectedRequests: getSpectrumInquiryRequest(),
@@ -114,26 +104,22 @@ func TestGenerateMessages(t *testing.T) {
 		{
 			name: "Should generate spectrum inquiry request when all channels are unsuitable",
 			state: &active_mode.State{
-				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
+				Cbsds: []*active_mode.Cbsd{{
 					DesiredState: active_mode.CbsdState_Registered,
-					Cbsd: &active_mode.Cbsd{
-						Id:    "some_cbsd_id",
-						State: active_mode.CbsdState_Registered,
-						Channels: []*active_mode.Channel{{
-							FrequencyRange: &active_mode.FrequencyRange{
-								Low:  3.62e9,
-								High: 3.63e9,
-							},
-							MaxEirp: wrapperspb.Float(4),
-						}},
-						EirpCapabilities: &active_mode.EirpCapabilities{
-							MinPower:      0,
-							MaxPower:      10,
-							AntennaGain:   15,
-							NumberOfPorts: 1,
-						},
-						LastSeenTimestamp: now.Unix(),
+					Id:           "some_cbsd_id",
+					State:        active_mode.CbsdState_Registered,
+					Channels: []*active_mode.Channel{{
+						LowFrequencyHz:  3.62e9,
+						HighFrequencyHz: 3.63e9,
+						MaxEirp:         wrapperspb.Float(4),
+					}},
+					EirpCapabilities: &active_mode.EirpCapabilities{
+						MinPower:      0,
+						MaxPower:      10,
+						AntennaGain:   15,
+						NumberOfPorts: 1,
 					},
+					LastSeenTimestamp: now.Unix(),
 				}},
 			},
 			expectedRequests: getSpectrumInquiryRequest(),
@@ -141,26 +127,22 @@ func TestGenerateMessages(t *testing.T) {
 		{
 			name: "Should generate grant request when there are channels",
 			state: &active_mode.State{
-				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
+				Cbsds: []*active_mode.Cbsd{{
 					DesiredState: active_mode.CbsdState_Registered,
-					Cbsd: &active_mode.Cbsd{
-						Id:    "some_cbsd_id",
-						State: active_mode.CbsdState_Registered,
-						Channels: []*active_mode.Channel{{
-							FrequencyRange: &active_mode.FrequencyRange{
-								Low:  3.62e9,
-								High: 3.63e9,
-							},
-							MaxEirp: wrapperspb.Float(15),
-						}},
-						EirpCapabilities: &active_mode.EirpCapabilities{
-							MinPower:      0,
-							MaxPower:      100,
-							AntennaGain:   0,
-							NumberOfPorts: 1,
-						},
-						LastSeenTimestamp: now.Unix(),
+					Id:           "some_cbsd_id",
+					State:        active_mode.CbsdState_Registered,
+					Channels: []*active_mode.Channel{{
+						LowFrequencyHz:  3.62e9,
+						HighFrequencyHz: 3.63e9,
+						MaxEirp:         wrapperspb.Float(15),
+					}},
+					EirpCapabilities: &active_mode.EirpCapabilities{
+						MinPower:      0,
+						MaxPower:      100,
+						AntennaGain:   0,
+						NumberOfPorts: 1,
 					},
+					LastSeenTimestamp: now.Unix(),
 				}},
 			},
 			expectedRequests: []*requests.RequestPayload{{
@@ -183,17 +165,15 @@ func TestGenerateMessages(t *testing.T) {
 		{
 			name: "Should send heartbeat message for grant in granted state",
 			state: &active_mode.State{
-				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
+				Cbsds: []*active_mode.Cbsd{{
 					DesiredState: active_mode.CbsdState_Registered,
-					Cbsd: &active_mode.Cbsd{
-						Id:    "some_cbsd_id",
-						State: active_mode.CbsdState_Registered,
-						Grants: []*active_mode.Grant{{
-							Id:    "some_grant_id",
-							State: active_mode.GrantState_Granted,
-						}},
-						LastSeenTimestamp: now.Unix(),
-					},
+					Id:           "some_cbsd_id",
+					State:        active_mode.CbsdState_Registered,
+					Grants: []*active_mode.Grant{{
+						Id:    "some_grant_id",
+						State: active_mode.GrantState_Granted,
+					}},
+					LastSeenTimestamp: now.Unix(),
 				}},
 			},
 			expectedRequests: []*requests.RequestPayload{{
@@ -211,23 +191,21 @@ func TestGenerateMessages(t *testing.T) {
 		{
 			name: "Should send both heartbeat and relinquish message for 2 grants when one is in Granted state and the other in Unsync",
 			state: &active_mode.State{
-				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
+				Cbsds: []*active_mode.Cbsd{{
 					DesiredState: active_mode.CbsdState_Registered,
-					Cbsd: &active_mode.Cbsd{
-						Id:    "some_cbsd_id",
-						State: active_mode.CbsdState_Registered,
-						Grants: []*active_mode.Grant{
-							{
-								Id:    "some_grant_id",
-								State: active_mode.GrantState_Granted,
-							},
-							{
-								Id:    "some_other_grant_id",
-								State: active_mode.GrantState_Unsync,
-							},
+					Id:           "some_cbsd_id",
+					State:        active_mode.CbsdState_Registered,
+					Grants: []*active_mode.Grant{
+						{
+							Id:    "some_grant_id",
+							State: active_mode.GrantState_Granted,
 						},
-						LastSeenTimestamp: now.Unix(),
+						{
+							Id:    "some_other_grant_id",
+							State: active_mode.GrantState_Unsync,
+						},
 					},
+					LastSeenTimestamp: now.Unix(),
 				}},
 			},
 			expectedRequests: []*requests.RequestPayload{
@@ -257,17 +235,15 @@ func TestGenerateMessages(t *testing.T) {
 		{
 			name: "Should send relinquish message when inactive for too long",
 			state: &active_mode.State{
-				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
+				Cbsds: []*active_mode.Cbsd{{
 					DesiredState: active_mode.CbsdState_Registered,
-					Cbsd: &active_mode.Cbsd{
-						Id:    "some_cbsd_id",
-						State: active_mode.CbsdState_Registered,
-						Grants: []*active_mode.Grant{{
-							Id:    "some_grant_id",
-							State: active_mode.GrantState_Granted,
-						}},
-						LastSeenTimestamp: 0,
-					},
+					Id:           "some_cbsd_id",
+					State:        active_mode.CbsdState_Registered,
+					Grants: []*active_mode.Grant{{
+						Id:    "some_grant_id",
+						State: active_mode.GrantState_Granted,
+					}},
+					LastSeenTimestamp: 0,
 				}},
 			},
 			expectedRequests: []*requests.RequestPayload{{
@@ -284,13 +260,13 @@ func TestGenerateMessages(t *testing.T) {
 		{
 			name: "Should deregister deleted cbsd",
 			state: &active_mode.State{
-				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
-					DesiredState: active_mode.CbsdState_Registered,
-					Cbsd: &active_mode.Cbsd{
-						Id:                "some_cbsd_id",
-						State:             active_mode.CbsdState_Registered,
-						IsDeleted:         true,
-						LastSeenTimestamp: now.Unix(),
+				Cbsds: []*active_mode.Cbsd{{
+					DesiredState:      active_mode.CbsdState_Registered,
+					Id:                "some_cbsd_id",
+					State:             active_mode.CbsdState_Registered,
+					LastSeenTimestamp: now.Unix(),
+					DbData: &active_mode.DatabaseCbsd{
+						IsDeleted: true,
 					},
 				}},
 			},
@@ -307,68 +283,81 @@ func TestGenerateMessages(t *testing.T) {
 		{
 			name: "Should delete unregistered cbsd marked as deleted",
 			state: &active_mode.State{
-				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
-					DesiredState: active_mode.CbsdState_Registered,
-					Cbsd: &active_mode.Cbsd{
-						SerialNumber:      "some_serial_number",
-						State:             active_mode.CbsdState_Unregistered,
-						LastSeenTimestamp: now.Unix(),
-						IsDeleted:         true,
+				Cbsds: []*active_mode.Cbsd{{
+					DesiredState:      active_mode.CbsdState_Registered,
+					SerialNumber:      "some_serial_number",
+					State:             active_mode.CbsdState_Unregistered,
+					LastSeenTimestamp: now.Unix(),
+					DbData: &active_mode.DatabaseCbsd{
+						Id:        123,
+						IsDeleted: true,
 					},
 				}},
 			},
-			expectedActions: []*active_mode.DeleteCbsdRequest{{
-				SerialNumber: "some_serial_number",
+			expectedActions: []interface{}{
+				&active_mode.DeleteCbsdRequest{Id: 123},
+			},
+		},
+		{
+			name: "Should deregister updated cbsd",
+			state: &active_mode.State{
+				Cbsds: []*active_mode.Cbsd{{
+					DesiredState:      active_mode.CbsdState_Registered,
+					Id:                "some_cbsd_id",
+					State:             active_mode.CbsdState_Registered,
+					LastSeenTimestamp: now.Unix(),
+					DbData: &active_mode.DatabaseCbsd{
+						IsUpdated: true,
+					},
+				}},
+			},
+			expectedRequests: []*requests.RequestPayload{{
+				Payload: `{
+	"deregistrationRequest": [
+		{
+			"cbsdId": "some_cbsd_id"
+		}
+	]
+}`,
 			}},
 		},
 		{
-			name: "Should not delete unregistered cbsd when there are pending requests",
+			name: "Should acknowledge update of unregistered cbsd marked as updated",
 			state: &active_mode.State{
-				ActiveModeConfigs: []*active_mode.ActiveModeConfig{{
-					DesiredState: active_mode.CbsdState_Registered,
-					Cbsd: &active_mode.Cbsd{
-						SerialNumber:      "some_serial_number",
-						State:             active_mode.CbsdState_Unregistered,
-						LastSeenTimestamp: now.Unix(),
-						IsDeleted:         true,
-						PendingRequests: []*active_mode.Request{{
-							Type: active_mode.RequestsType_RegistrationRequest,
-						}},
+				Cbsds: []*active_mode.Cbsd{{
+					DesiredState:      active_mode.CbsdState_Registered,
+					SerialNumber:      "some_serial_number",
+					State:             active_mode.CbsdState_Unregistered,
+					LastSeenTimestamp: now.Unix(),
+					DbData: &active_mode.DatabaseCbsd{
+						Id:        123,
+						IsUpdated: true,
 					},
 				}},
+			},
+			expectedActions: []interface{}{
+				&active_mode.AcknowledgeCbsdUpdateRequest{Id: 123},
 			},
 		},
 	}
 	for _, tt := range data {
 		t.Run(tt.name, func(t *testing.T) {
-			g := message_generator.NewMessageGenerator(0, timeout)
+			g := message_generator.NewMessageGenerator(0, timeout, &stubRNG{})
 			msgs := g.GenerateMessages(tt.state, now)
 			p := &stubProvider{}
 			for _, msg := range msgs {
 				_ = msg.Send(context.Background(), p)
 			}
-			thenRequestsAreEqual(t, tt.expectedRequests, p.requests)
+			require.Len(t, p.requests, len(tt.expectedRequests))
+			for i := range tt.expectedRequests {
+				assert.JSONEq(t, tt.expectedRequests[i].Payload, p.requests[i].Payload)
+			}
 			require.Len(t, p.actions, len(tt.expectedActions))
 			for i := range tt.expectedActions {
 				assert.Equal(t, tt.expectedActions[i], p.actions[i])
 			}
 		})
 	}
-}
-
-func thenRequestsAreEqual(t *testing.T, expected, actual []*requests.RequestPayload) {
-	require.Len(t, actual, len(expected))
-	sortRequests(expected)
-	sortRequests(actual)
-	for i := range expected {
-		assert.JSONEq(t, expected[i].Payload, actual[i].Payload)
-	}
-}
-
-func sortRequests(requests []*requests.RequestPayload) {
-	sort.Slice(requests, func(i, j int) bool {
-		return requests[i].Payload < requests[j].Payload
-	})
 }
 
 func getSpectrumInquiryRequest() []*requests.RequestPayload {
@@ -389,9 +378,15 @@ func getSpectrumInquiryRequest() []*requests.RequestPayload {
 	}}
 }
 
+type stubRNG struct{}
+
+func (s *stubRNG) Int() int {
+	return 0
+}
+
 type stubProvider struct {
 	requests []*requests.RequestPayload
-	actions  []*active_mode.DeleteCbsdRequest
+	actions  []interface{}
 }
 
 func (s *stubProvider) GetRequestsClient() requests.RadioControllerClient {
@@ -403,14 +398,19 @@ func (s *stubProvider) GetActiveModeClient() active_mode.ActiveModeControllerCli
 }
 
 type stubActiveModeControllerClient struct {
-	actions *[]*active_mode.DeleteCbsdRequest
+	actions *[]interface{}
 }
 
 func (s *stubActiveModeControllerClient) GetState(_ context.Context, _ *active_mode.GetStateRequest, _ ...grpc.CallOption) (*active_mode.State, error) {
 	panic("not implemented")
 }
 
-func (s *stubActiveModeControllerClient) DeleteCbsd(_ context.Context, in *active_mode.DeleteCbsdRequest, _ ...grpc.CallOption) (*active_mode.DeleteCbsdResponse, error) {
+func (s *stubActiveModeControllerClient) DeleteCbsd(_ context.Context, in *active_mode.DeleteCbsdRequest, _ ...grpc.CallOption) (*empty.Empty, error) {
+	*s.actions = append(*s.actions, in)
+	return nil, nil
+}
+
+func (s *stubActiveModeControllerClient) AcknowledgeCbsdUpdate(_ context.Context, in *active_mode.AcknowledgeCbsdUpdateRequest, _ ...grpc.CallOption) (*empty.Empty, error) {
 	*s.actions = append(*s.actions, in)
 	return nil, nil
 }

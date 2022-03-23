@@ -11,14 +11,11 @@
 
 load("@rules_python//python:defs.bzl", "py_library")
 
-ORC8R_ROOT = "../../../"
-
 py_library(
     name = "command_executor",
     srcs = [
         "command_executor.py",
         "shell_command_executor.py",
     ],
-    imports = [ORC8R_ROOT],
     visibility = ["//visibility:public"],
 )

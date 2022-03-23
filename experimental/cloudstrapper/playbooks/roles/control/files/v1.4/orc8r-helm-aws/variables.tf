@@ -180,12 +180,6 @@ variable "cwf_orc8r_chart_version" {
   default     = "0.2.2"
 }
 
-variable "fbinternal_orc8r_chart_version" {
-  description = "Version of the orchestrator fbinternal module Helm chart to install."
-  type        = string
-  default     = "0.2.2"
-}
-
 variable "feg_orc8r_chart_version" {
   description = "Version of the orchestrator feg module Helm chart to install."
   type        = string

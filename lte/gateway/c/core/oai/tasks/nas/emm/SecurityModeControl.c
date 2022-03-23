@@ -175,16 +175,15 @@ status_code_e emm_proc_security_mode_control(
   /*
    * Get the UE context
    */
-
-  OAILOG_INFO(LOG_NAS_EMM,
-              "EMM-PROC  - Initiate security mode control procedure, "
-              "KSI = %d\n",
-              ksi);
-
   if (!(emm_ctx)) {
     OAILOG_ERROR(LOG_NAS_EMM, "Emm Context NULL!\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
+
+  OAILOG_INFO_UE(LOG_NAS_EMM, emm_ctx->_imsi64,
+                 "EMM-PROC  - Initiate security mode control procedure, "
+                 "KSI = %d\n",
+                 ksi);
 
   // TODO better than that (quick fixes)
   if (KSI_NO_KEY_AVAILABLE == ksi) {
@@ -237,10 +236,10 @@ status_code_e emm_proc_security_mode_control(
       emm_ctx->_security.selected_algorithms.integrity = mme_eia;
 
       if (rc == RETURNerror) {
-        OAILOG_WARNING(LOG_NAS_EMM,
-                       "EMM-PROC  - Failed to select security "
-                       "algorithms " MME_UE_S1AP_ID_FMT "\n",
-                       ue_id);
+        OAILOG_WARNING_UE(LOG_NAS_EMM, emm_ctx->_imsi64,
+                          "EMM-PROC  - Failed to select security "
+                          "algorithms " MME_UE_S1AP_ID_FMT "\n",
+                          ue_id);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
       }
 
@@ -264,10 +263,10 @@ status_code_e emm_proc_security_mode_control(
       emm_ctx_set_attribute_present(emm_ctx, EMM_CTXT_MEMBER_SECURITY);
     }
   } else {
-    OAILOG_ERROR(LOG_NAS_EMM,
-                 "EMM-PROC  - No EPS security context exists for ue "
-                 "id " MME_UE_S1AP_ID_FMT "\n",
-                 ue_id);
+    OAILOG_ERROR_UE(LOG_NAS_EMM, emm_ctx->_imsi64,
+                    "EMM-PROC  - No EPS security context exists for ue "
+                    "id " MME_UE_S1AP_ID_FMT "\n",
+                    ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
@@ -330,25 +329,26 @@ status_code_e emm_proc_security_mode_control(
     smc_proc->umts_present = emm_ctx->_ue_network_capability.umts_present;
     smc_proc->gprs_present = (gea > 0);
 
-    OAILOG_DEBUG(LOG_NAS_EMM, "EMM-PROC  - SMC gprs_present %d gea bits %02x\n",
-                 smc_proc->gprs_present, smc_proc->gea);
+    OAILOG_DEBUG_UE(LOG_NAS_EMM, emm_ctx->_imsi64,
+                    "EMM-PROC  - SMC gprs_present %d gea bits %02x\n",
+                    smc_proc->gprs_present, smc_proc->gea);
 
     /*
      * Set the EPS encryption algorithms selected to the UE
      */
     smc_proc->selected_eea = emm_ctx->_security.selected_algorithms.encryption;
-    OAILOG_DEBUG(LOG_NAS_EMM,
-                 "EPS encryption algorithm selected is (%d) for UE "
-                 "ID: " MME_UE_S1AP_ID_FMT,
-                 smc_proc->selected_eea, ue_id);
+    OAILOG_DEBUG_UE(LOG_NAS_EMM, emm_ctx->_imsi64,
+                    "EPS encryption algorithm selected is (%d) for UE "
+                    "ID: " MME_UE_S1AP_ID_FMT,
+                    smc_proc->selected_eea, ue_id);
     /*
      * Set the EPS integrity algorithms selected to the UE
      */
     smc_proc->selected_eia = emm_ctx->_security.selected_algorithms.integrity;
-    OAILOG_DEBUG(LOG_NAS_EMM,
-                 "EPS integrity algorithm selected is (%d) for UE "
-                 "ID: " MME_UE_S1AP_ID_FMT,
-                 smc_proc->selected_eia, ue_id);
+    OAILOG_DEBUG_UE(LOG_NAS_EMM, emm_ctx->_imsi64,
+                    "EPS integrity algorithm selected is (%d) for UE "
+                    "ID: " MME_UE_S1AP_ID_FMT,
+                    smc_proc->selected_eia, ue_id);
 
     smc_proc->is_new = security_context_is_new;
 
@@ -463,10 +463,6 @@ status_code_e emm_proc_security_mode_complete(
   emm_context_t* emm_ctx = NULL;
   int rc = RETURNerror;
 
-  OAILOG_INFO(LOG_NAS_EMM,
-              "EMM-PROC  - Security mode complete (ue_id=" MME_UE_S1AP_ID_FMT
-              ")\n",
-              ue_id);
   /*
    * Get the UE context
    */
@@ -476,11 +472,15 @@ status_code_e emm_proc_security_mode_complete(
     if (!emm_ctx) {
       OAILOG_ERROR(
           LOG_NAS_EMM,
-          "EMM-PROC  - emm context is NULL for (ue_id=" MME_UE_S1AP_ID_FMT
-          ")\n",
+          "EMM-PROC  - Security mode complete received but emm context is "
+          "NULL for (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
           ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
     }
+    OAILOG_INFO_UE(
+        LOG_NAS_EMM, emm_ctx->_imsi64,
+        "EMM-PROC  - Security mode complete (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+        ue_id);
   } else {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
@@ -551,8 +551,8 @@ status_code_e emm_proc_security_mode_complete(
 
       int emm_cause = validate_imei(&imeisv);
       if (emm_cause != EMM_CAUSE_SUCCESS) {
-        OAILOG_ERROR(
-            LOG_NAS_EMM,
+        OAILOG_ERROR_UE(
+            LOG_NAS_EMM, emm_ctx->_imsi64,
             "EMMAS-SAP - Sending Attach Reject for ue_id =" MME_UE_S1AP_ID_FMT
             " , emm_cause =(%d)\n",
             ue_id, emm_cause);
@@ -587,8 +587,8 @@ status_code_e emm_proc_security_mode_complete(
     }
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   } else {
-    OAILOG_ERROR(
-        LOG_NAS_EMM,
+    OAILOG_ERROR_UE(
+        LOG_NAS_EMM, emm_ctx->_imsi64,
         "EMM-PROC  - No EPS security context exists. Ignoring the Security "
         "Mode "
         "Complete message for ue id " MME_UE_S1AP_ID_FMT "\n",
@@ -629,10 +629,6 @@ status_code_e emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id) {
   emm_context_t* emm_ctx = NULL;
   int rc = RETURNerror;
 
-  OAILOG_WARNING(LOG_NAS_EMM,
-                 "EMM-PROC  - Security mode command not accepted by the UE"
-                 "(ue_id=" MME_UE_S1AP_ID_FMT ")\n",
-                 ue_id);
   /*
    * Get the UE context
    */
@@ -640,7 +636,15 @@ status_code_e emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id) {
   ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
+    OAILOG_WARNING_UE(LOG_NAS_EMM, emm_ctx->_imsi64,
+                      "EMM-PROC  - Security mode command not accepted by the UE"
+                      "(ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+                      ue_id);
   } else {
+    OAILOG_WARNING(LOG_NAS_EMM,
+                   "EMM-PROC  - Security mode command not accepted by the UE"
+                   "(ue_id=" MME_UE_S1AP_ID_FMT ") UE Context NULL!\n",
+                   ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
@@ -756,7 +760,10 @@ status_code_e mme_app_handle_security_t3460_expiry(zloop_t* loop, int timer_id,
   emm_context_t* emm_ctx = &ue_context_p->emm_context;
 
   if (!(emm_ctx)) {
-    OAILOG_ERROR(LOG_NAS_EMM, "T3460 timer expired No EMM context\n");
+    OAILOG_ERROR(LOG_NAS_EMM,
+                 "T3460 timer expired No EMM context, MME UE S1AP "
+                 "Id: " MME_UE_S1AP_ID_FMT "\n",
+                 mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
   nas_emm_smc_proc_t* smc_proc = get_nas_common_procedure_smc(emm_ctx);
@@ -973,17 +980,17 @@ static int security_abort(emm_context_t* emm_ctx,
   if (emm_ctx && base_proc) {
     nas_emm_smc_proc_t* smc_proc = (nas_emm_smc_proc_t*)base_proc;
     ue_id = smc_proc->ue_id;
-    OAILOG_WARNING(LOG_NAS_EMM,
-                   "EMM-PROC - Abort security mode control\
+    OAILOG_WARNING_UE(LOG_NAS_EMM, emm_ctx->_imsi64,
+                      "EMM-PROC - Abort security mode control\
                     procedure "
-                   "(ue_id=" MME_UE_S1AP_ID_FMT ")\n",
-                   ue_id);
+                      "(ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+                      ue_id);
     /*
      * Stop timer T3460
      */
     if (smc_proc->T3460.id != NAS_TIMER_INACTIVE_ID) {
-      OAILOG_INFO(
-          LOG_NAS_EMM,
+      OAILOG_INFO_UE(
+          LOG_NAS_EMM, emm_ctx->_imsi64,
           "EMM-PROC  - Stop timer T3460 (%ld) for ue id " MME_UE_S1AP_ID_FMT
           "\n",
           smc_proc->T3460.id, ue_id);

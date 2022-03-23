@@ -11,25 +11,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 import grpc
 from dp.protos.active_mode_pb2 import (
-    ActiveModeConfig,
+    AcknowledgeCbsdUpdateRequest,
     Cbsd,
     Channel,
-    DeleteCbsdResponse,
+    DatabaseCbsd,
+    DeleteCbsdRequest,
     EirpCapabilities,
-    FrequencyRange,
     GetStateRequest,
     Grant,
-    Request,
     State,
 )
 from dp.protos.active_mode_pb2_grpc import ActiveModeControllerServicer
+from google.protobuf.empty_pb2 import Empty
 from google.protobuf.wrappers_pb2 import FloatValue
 from magma.db_service.models import (
     DBActiveModeConfig,
@@ -41,13 +40,10 @@ from magma.db_service.models import (
     DBRequestState,
 )
 from magma.db_service.session_manager import Session, SessionManager
-from magma.mappings.cbsd_states import (
-    cbsd_state_mapping,
-    grant_state_mapping,
-    request_type_mapping,
-)
+from magma.mappings.cbsd_states import cbsd_state_mapping, grant_state_mapping
 from magma.mappings.types import GrantStates, RequestStates
-from sqlalchemy.orm import joinedload
+from sqlalchemy import and_
+from sqlalchemy.orm import contains_eager, joinedload
 
 logger = logging.getLogger(__name__)
 
@@ -73,11 +69,13 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
         """
         logger.info("Getting DB state")
         with self.session_manager.session_scope() as session:
-            state = self._build_state(session)
-            logger.info(f"Sending state: {state}")
+            cbsds = _list_cbsds(session)
+            state = _build_state(cbsds)
+            session.commit()
+            logger.debug(f"Sending state: {state}")
             return state
 
-    def DeleteCbsd(self, request, context) -> DeleteCbsdResponse:
+    def DeleteCbsd(self, request: DeleteCbsdRequest, context) -> Empty:
         """
         Delete CBSD from the Database
 
@@ -86,124 +84,161 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
             context: gRPC context
 
         Returns:
-            DeleteCbsdResponse: a gRPC DeleteCbsdResponse message
+            Empty: an empty gRPC message
         """
-        serial_number = request.serial_number
-        logger.info(f"Deleting CBSD {serial_number}")
+        db_id = request.id
+        logger.info(f"Deleting CBSD {db_id}")
         with self.session_manager.session_scope() as session:
             deleted = session.query(DBCbsd).filter(
-                DBCbsd.cbsd_serial_number == serial_number,
+                DBCbsd.id == db_id,
             ).delete()
             session.commit()
             if not deleted:
                 context.set_code(grpc.StatusCode.NOT_FOUND)
-                return DeleteCbsdResponse()
-        return DeleteCbsdResponse()
+        return Empty()
 
-    def _build_state(self, session: Session) -> State:
-        db_grant_idle_state_id = session.query(DBGrantState.id).filter(
-            DBGrantState.name == GrantStates.IDLE.value,
-        ).scalar()
-        db_request_pending_state_id = session.query(DBRequestState.id).filter(
-            DBRequestState.name == RequestStates.PENDING.value,
-        ).scalar()
+    def AcknowledgeCbsdUpdate(self, request: AcknowledgeCbsdUpdateRequest, context) -> Empty:
+        """
+        Mark CBSD in the Database as not updated
 
-        # Selectively load sqlalchemy object relations using a single query to avoid commit races.
-        # We want to have CBSD entity "grants" relation only contain grants in a Non-IDLE state.
-        # We want to have CBSD entity "requests" relation only contain PENDING requests.
-        db_configs = session.query(DBActiveModeConfig).join(DBCbsd).options(
-            joinedload(DBActiveModeConfig.cbsd).options(
-                joinedload(DBCbsd.channels),
-                joinedload(
-                    DBCbsd.grants.and_(
-                        DBGrant.state_id != db_grant_idle_state_id,
-                    ),
-                ),
-                joinedload(
-                    DBCbsd.requests.and_(
-                        DBRequest.state_id == db_request_pending_state_id,
-                    ),
-                ),
+        Parameters:
+            request: a AcknowledgeCbsdUpdateRequest gRPC Message
+            context: gRPC context
+
+        Returns:
+            Empty: an empty gRPC message
+        """
+        db_id = request.id
+        logger.info(f"Acknowledging CBSD update {db_id}")
+        with self.session_manager.session_scope() as session:
+            updated = session.query(DBCbsd).filter(
+                DBCbsd.id == db_id,
+            ).update({'is_updated': False})
+            session.commit()
+            if not updated:
+                context.set_code(grpc.StatusCode.NOT_FOUND)
+        return Empty()
+
+
+def _list_cbsds(session: Session) -> State:
+    # It might be possible to use join instead of nested queries
+    # however it requires some serious investigation on how to use it
+    # with eager_contains and filter (aliases)
+    db_grant_idle_state_id = session.query(DBGrantState.id).filter(
+        DBGrantState.name == GrantStates.IDLE.value,
+    ).scalar_subquery()
+    db_request_pending_state_id = session.query(DBRequestState.id).filter(
+        DBRequestState.name == RequestStates.PENDING.value,
+    ).scalar_subquery()
+
+    not_null = [
+        DBCbsd.fcc_id, DBCbsd.user_id, DBCbsd.number_of_ports,
+        DBCbsd.antenna_gain, DBCbsd.min_power, DBCbsd.max_power,
+    ]
+    query_filter = [field != None for field in not_null] + [DBRequest.id == None]  # noqa: E711
+
+    # Selectively load sqlalchemy object relations using a single query to avoid commit races.
+    # We want to have CBSD entity "grants" relation only contain grants in a Non-IDLE state.
+    # We want to have CBSD entity "requests" relation only contain PENDING requests.
+    return (
+        session.query(DBCbsd).
+        join(DBActiveModeConfig).
+        outerjoin(
+            DBGrant, and_(
+                DBGrant.cbsd_id == DBCbsd.id,
+                DBGrant.state_id != db_grant_idle_state_id,
             ),
-        ).filter(*self._get_filter()).populate_existing()
-        configs = [self._build_config(db_config) for db_config in db_configs]
-        session.commit()
-        return State(active_mode_configs=configs)
-
-    def _get_filter(self):
-        not_null_fields = [
-            DBCbsd.fcc_id, DBCbsd.user_id, DBCbsd.number_of_ports,
-            DBCbsd.antenna_gain, DBCbsd.min_power, DBCbsd.max_power,
-        ]
-        return [field != None for field in not_null_fields]  # noqa: E711
-
-    def _build_config(self, config: DBActiveModeConfig) -> ActiveModeConfig:
-        return ActiveModeConfig(
-            desired_state=cbsd_state_mapping[config.desired_state.name],
-            cbsd=self._build_cbsd(config.cbsd),
-        )
-
-    def _build_cbsd(self, cbsd: DBCbsd) -> Cbsd:
-        # Application may not need those to be sorted.
-        # Applying ordering mostly for easier assertions in testing
-        cbsd_db_grants = sorted(cbsd.grants, key=lambda x: x.id)
-        cbsd_db_channels = sorted(cbsd.channels, key=lambda x: x.id)
-
-        grants = [self._build_grant(x) for x in cbsd_db_grants]
-        channels = [self._build_channel(x) for x in cbsd_db_channels]
-        pending_requests = [self._build_request(x) for x in cbsd.requests]
-
-        last_seen = self._to_timestamp(cbsd.last_seen)
-        eirp_capabilities = self._build_eirp_capabilities(cbsd)
-        return Cbsd(
-            id=cbsd.cbsd_id,
-            user_id=cbsd.user_id,
-            fcc_id=cbsd.fcc_id,
-            serial_number=cbsd.cbsd_serial_number,
-            state=cbsd_state_mapping[cbsd.state.name],
-            grants=grants,
-            channels=channels,
-            pending_requests=pending_requests,
-            last_seen_timestamp=last_seen,
-            eirp_capabilities=eirp_capabilities,
-            is_deleted=cbsd.is_deleted,
-        )
-
-    def _build_grant(self, grant: DBGrant) -> Grant:
-        last_heartbeat = self._to_timestamp(grant.last_heartbeat_request_time)
-        return Grant(
-            id=grant.grant_id,
-            state=grant_state_mapping[grant.state.name],
-            heartbeat_interval_sec=grant.heartbeat_interval,
-            last_heartbeat_timestamp=last_heartbeat,
-        )
-
-    def _build_channel(self, channel: DBChannel) -> Channel:
-        return Channel(
-            frequency_range=FrequencyRange(
-                low=channel.low_frequency,
-                high=channel.high_frequency,
+        ).
+        outerjoin(
+            DBRequest, and_(
+                DBRequest.cbsd_id == DBCbsd.id,
+                DBRequest.state_id == db_request_pending_state_id,
             ),
-            max_eirp=_make_optional_float(channel.max_eirp),
-            last_eirp=_make_optional_float(channel.last_used_max_eirp),
-        )
+        ).
+        options(
+            joinedload(DBCbsd.state),
+            joinedload(DBCbsd.channels),
+            contains_eager(DBCbsd.active_mode_config).
+            joinedload(DBActiveModeConfig.desired_state),
+            contains_eager(DBCbsd.grants).
+            joinedload(DBGrant.state),
+        ).
+        filter(*query_filter).
+        populate_existing()
+    )
 
-    def _build_request(self, request: DBRequest) -> Request:
-        return Request(
-            type=request_type_mapping[request.type.name],
-            payload=json.dumps(request.payload, separators=(',', ':')),
-        )
 
-    def _build_eirp_capabilities(self, cbsd: DBCbsd) -> EirpCapabilities:
-        return EirpCapabilities(
-            min_power=cbsd.min_power,
-            max_power=cbsd.max_power,
-            antenna_gain=cbsd.antenna_gain,
-            number_of_ports=cbsd.number_of_ports,
-        )
+def _build_state(db_cbsds: List[DBCbsd]) -> State:
+    cbsds = [_build_cbsd(db_cbsd) for db_cbsd in db_cbsds]
+    return State(cbsds=cbsds)
 
-    def _to_timestamp(self, t: Optional[datetime]) -> int:
-        return 0 if t is None else int(t.timestamp())
+
+def _build_cbsd(cbsd: DBCbsd) -> Cbsd:
+    # Application may not need those to be sorted.
+    # Applying ordering mostly for easier assertions in testing
+    config = cbsd.active_mode_config[0]
+    cbsd_db_grants = sorted(cbsd.grants, key=lambda x: x.id)
+    cbsd_db_channels = sorted(cbsd.channels, key=lambda x: x.id)
+
+    grants = [_build_grant(x) for x in cbsd_db_grants]
+    channels = [_build_channel(x) for x in cbsd_db_channels]
+
+    last_seen = _to_timestamp(cbsd.last_seen)
+    eirp_capabilities = _build_eirp_capabilities(cbsd)
+    db_data = _build_db_data(cbsd)
+    return Cbsd(
+        id=cbsd.cbsd_id,
+        user_id=cbsd.user_id,
+        fcc_id=cbsd.fcc_id,
+        serial_number=cbsd.cbsd_serial_number,
+        state=cbsd_state_mapping[cbsd.state.name],
+        desired_state=cbsd_state_mapping[config.desired_state.name],
+        grants=grants,
+        channels=channels,
+        last_seen_timestamp=last_seen,
+        eirp_capabilities=eirp_capabilities,
+        grant_attempts=cbsd.grant_attempts,
+        db_data=db_data,
+    )
+
+
+def _build_grant(grant: DBGrant) -> Grant:
+    last_heartbeat = _to_timestamp(grant.last_heartbeat_request_time)
+    return Grant(
+        id=grant.grant_id,
+        state=grant_state_mapping[grant.state.name],
+        heartbeat_interval_sec=grant.heartbeat_interval,
+        last_heartbeat_timestamp=last_heartbeat,
+    )
+
+
+def _build_channel(channel: DBChannel) -> Channel:
+    return Channel(
+        low_frequency_hz=channel.low_frequency,
+        high_frequency_hz=channel.high_frequency,
+        max_eirp=_make_optional_float(channel.max_eirp),
+    )
+
+
+def _build_eirp_capabilities(cbsd: DBCbsd) -> EirpCapabilities:
+    return EirpCapabilities(
+        min_power=cbsd.min_power,
+        max_power=cbsd.max_power,
+        antenna_gain=cbsd.antenna_gain,
+        number_of_ports=cbsd.number_of_ports,
+    )
+
+
+def _build_db_data(cbsd: DBCbsd) -> DatabaseCbsd:
+    return DatabaseCbsd(
+        id=cbsd.id,
+        is_updated=cbsd.is_updated,
+        is_deleted=cbsd.is_deleted,
+    )
+
+
+def _to_timestamp(t: Optional[datetime]) -> int:
+    return 0 if t is None else int(t.timestamp())
 
 
 def _make_optional_float(value: Optional[float]) -> FloatValue:

@@ -43,7 +43,6 @@
     - { name: lte-orc8r, version: "{{service_configs.lte_orc8r_chart_version}}" }
     - { name: feg-orc8r, version: "{{service_configs.feg_orc8r_chart_version}}" }
     - { name: cwf-orc8r, version: "{{service_configs.cwf_orc8r_chart_version}}" }
-    - { name: fbinternal-orc8r, version: "{{service_configs.fbinternal_orc8r_chart_version}}" }
   tags:
     - install_precheck
     - upgrade_precheck
@@ -54,7 +53,7 @@
   with_items:
     - { name: fwa, modules: ['orc8r', 'lte-orc8r']}
     - { name: ffwa, modules: ['orc8r', 'lte-orc8r', 'feg-orc8r'] }
-    - { name: all, modules: ['orc8r', 'lte-orc8r', 'feg-orc8r', 'cwf-orc8r', 'fbinternal-orc8r'] }
+    - { name: all, modules: ['orc8r', 'lte-orc8r', 'feg-orc8r', 'cwf-orc8r'] }
   tags:
     - install_precheck
     - upgrade_precheck

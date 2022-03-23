@@ -28,7 +28,7 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/protos"
 	state_types "magma/orc8r/cloud/go/services/state/types"
-	multierrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 const (
@@ -117,7 +117,7 @@ func setSecondaryStates(ctx context.Context, networkID string, states state_type
 	if len(sessionIDToIMSI) == 0 && len(cTeidToHwId) == 0 {
 		return stateErrors, nil
 	}
-	multiError := multierrors.NewMulti()
+	multiError := merrors.NewMulti()
 	if len(sessionIDToIMSI) != 0 {
 		err := directoryd.MapSessionIDsToIMSIs(ctx, networkID, sessionIDToIMSI)
 		multiError = multiError.AddFmt(err, "failed to update directoryd mapping of session IDs to IMSIs %+v", sessionIDToIMSI)
@@ -138,7 +138,7 @@ func setSecondaryStates(ctx context.Context, networkID string, states state_type
 // unsetSecondaryStates removes {sessionID -> IMSI} and {TEID -> HWID} mappings
 func unsetSecondaryStates(ctx context.Context, networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
 	sessionIDToIMSI, cTeidToHwId, uTeidToHwId, stateErrors := getMappings(states)
-	multiError := multierrors.NewMulti()
+	multiError := merrors.NewMulti()
 
 	err := unsetTeids(ctx, controlPlaneTeid, networkID, cTeidToHwId)
 	multiError = multiError.Add(err)

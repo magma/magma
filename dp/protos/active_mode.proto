@@ -12,29 +12,21 @@ limitations under the License.
 */
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
 option go_package = "magma/dp/cloud/go/active_mode_controller/protos/active_mode";
 
 service ActiveModeController {
   rpc GetState(GetStateRequest) returns (State) {}
-  rpc DeleteCbsd(DeleteCbsdRequest) returns (DeleteCbsdResponse) {}
+  rpc DeleteCbsd(DeleteCbsdRequest) returns (google.protobuf.Empty) {}
+  rpc AcknowledgeCbsdUpdate(AcknowledgeCbsdUpdateRequest) returns (google.protobuf.Empty) {}
 }
 
 message GetStateRequest {}
 
 message State {
-  repeated ActiveModeConfig active_mode_configs = 1;
-}
-
-message ActiveModeConfig {
-  CbsdState desired_state = 1;
-  Cbsd cbsd = 2;
-}
-
-enum CbsdState {
-  Unregistered = 0;
-  Registered = 1;
+  repeated Cbsd cbsds = 1;
 }
 
 message Cbsd {
@@ -43,12 +35,19 @@ message Cbsd {
   string fcc_id = 3;
   string serial_number = 4;
   CbsdState state = 5;
-  repeated Grant grants = 6;
-  repeated Channel channels = 7;
-  repeated Request pending_requests = 8;
+  CbsdState desired_state = 6;
+  repeated Grant grants = 7;
+  repeated Channel channels = 8;
   int64 last_seen_timestamp = 9;
-  EirpCapabilities eirp_capabilities = 10;
-  bool is_deleted = 11;
+  int32 grant_attempts = 10;
+  EirpCapabilities eirp_capabilities = 11;
+  DatabaseCbsd db_data = 12;
+  FrequencyPreferences preferences = 13;
+}
+
+enum CbsdState {
+  Unregistered = 0;
+  Registered = 1;
 }
 
 message Grant {
@@ -65,28 +64,9 @@ enum GrantState {
 }
 
 message Channel {
-  FrequencyRange frequency_range = 1;
-  google.protobuf.FloatValue max_eirp = 2;
-  google.protobuf.FloatValue last_eirp = 3;
-}
-
-message FrequencyRange {
-  int64 low = 1;
-  int64 high = 2;
-}
-
-message Request {
-  RequestsType type = 1;
-  string payload = 2;
-}
-
-enum RequestsType {
-  RegistrationRequest = 0;
-  SpectrumInquiryRequest = 1;
-  GrantRequest = 2;
-  HeartbeatRequest = 3;
-  RelinquishmentRequest = 4;
-  DeregistrationRequest = 5;
+  int64 low_frequency_hz = 1;
+  int64 high_frequency_hz = 2;
+  google.protobuf.FloatValue max_eirp = 3;
 }
 
 message EirpCapabilities {
@@ -96,8 +76,21 @@ message EirpCapabilities {
   int32 number_of_ports = 4;
 }
 
-message DeleteCbsdRequest {
-  string serial_number = 1;
+message DatabaseCbsd {
+  int64 id = 1;
+  bool is_updated = 2;
+  bool is_deleted = 3;
 }
 
-message DeleteCbsdResponse {}
+message FrequencyPreferences {
+  int32 bandwidth_mhz = 1;
+  repeated int32 frequencies_mhz = 2;
+}
+
+message DeleteCbsdRequest {
+  int64 id = 1;
+}
+
+message AcknowledgeCbsdUpdateRequest {
+  int64 id = 1;
+}

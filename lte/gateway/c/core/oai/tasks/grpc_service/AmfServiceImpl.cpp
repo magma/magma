@@ -98,10 +98,6 @@ Status AmfServiceImpl::SetSmfSessionContext(
     ServerContext* context, const SetSMSessionContextAccess* request,
     SmContextVoid* response) {
   struct in_addr ip_addr = {0};
-  char ip_v4_str[INET_ADDRSTRLEN] = {0};
-  char ip_v6_str[INET6_ADDRSTRLEN] = {0};
-
-  uint32_t ip_int = 0;
   OAILOG_INFO(LOG_UTIL,
               "Received GRPC SetSmfSessionContext request from SMF\n");
 
@@ -122,30 +118,30 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.selected_ssc_mode = (ssc_mode_t)req_m5g.selected_ssc_mode();
   itti_msg.m5gsm_cause = (m5g_sm_cause_t)req_m5g.m5gsm_cause();
 
-  itti_msg.session_ambr.uplink_unit_type = req_m5g.session_ambr().br_unit();
-  itti_msg.session_ambr.uplink_units =
-      (uint32_t)req_m5g.session_ambr().max_bandwidth_ul();
+  itti_msg.session_ambr.uplink_unit_type = req_m5g.subscribed_qos().br_unit();
+  itti_msg.session_ambr.uplink_units = req_m5g.subscribed_qos().apn_ambr_ul();
 
-  itti_msg.session_ambr.downlink_unit_type = req_m5g.session_ambr().br_unit();
-  itti_msg.session_ambr.downlink_units =
-      (uint32_t)req_m5g.session_ambr().max_bandwidth_dl();
+  itti_msg.session_ambr.downlink_unit_type = req_m5g.subscribed_qos().br_unit();
+  itti_msg.session_ambr.downlink_units = req_m5g.subscribed_qos().apn_ambr_dl();
 
-  itti_msg.qos_list.qos_flow_req_item.qos_flow_identifier = req_m5g.qos().qci();
+  // authorized qos profile
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_identifier =
+      req_m5g.subscribed_qos().qos_class_id();
 
   itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .qos_characteristic.non_dynamic_5QI_desc.fiveQI =
-      req_m5g.qos().qci();  // enum
+      req_m5g.subscribed_qos().qos_class_id();  // enum
   itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .alloc_reten_priority.priority_level =
-      req_m5g.qos().arp().priority_level();  // uint32
+      req_m5g.subscribed_qos().priority_level();  // uint32
   itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .alloc_reten_priority.pre_emption_cap =
-      (pre_emption_capability)req_m5g.qos().arp().pre_capability();  // enum
+      (pre_emption_capability)req_m5g.subscribed_qos()
+          .preemption_capability();  // enum
   itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .alloc_reten_priority.pre_emption_vul =
-      (pre_emption_vulnerability)req_m5g.qos()
-          .arp()
-          .pre_vulnerability();  // enum
+      (pre_emption_vulnerability)req_m5g.subscribed_qos()
+          .preemption_vulnerability();  // enum
 
   // get the 4 byte UPF TEID and UPF IP message
   uint32_t nteid = req_m5g.upf_endpoint().teid();
@@ -173,8 +169,6 @@ Status AmfServiceImpl::SetSmfSessionContext(
   if (req_common.ue_ipv4().size() > 0) {
     inet_pton(AF_INET, req_common.ue_ipv4().c_str(),
               &(itti_msg.pdu_address.ipv4_address));
-    uint32_t ip_int = ntohl(ip_addr.s_addr);
-
     itti_msg.pdu_address.pdn_type = IPv4;
   }
 

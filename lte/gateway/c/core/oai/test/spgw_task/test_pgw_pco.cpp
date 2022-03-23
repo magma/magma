@@ -83,7 +83,6 @@ class SPGWPcoTest : public ::testing::Test {
     poc_id->id = PCO_PI_IPCP;
     poc_id->length = PCO_PI_IPCP_LEN;
 
-    int poc_idx = 0;
     char poc_content[PCO_PI_IPCP_LEN];
 
     poc_content[0] = 0x01;  // Code = 01 , i.e. Config Request

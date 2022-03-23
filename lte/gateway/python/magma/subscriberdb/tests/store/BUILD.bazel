@@ -11,32 +11,32 @@
 
 load("//bazel:python_test.bzl", "pytest_test")
 
-LTE_ROOT = "../../../../"
+MAGMA_ROOT = "../../../../../../../"
 
-COMMON_TEST_DEPS = [
-    "//lte/gateway/python/magma/subscriberdb:sid",
-    "//lte/gateway/python/magma/subscriberdb/store:base",
-    "//lte/gateway/python/magma/subscriberdb/store:sqlite",
-    "//lte/protos:subscriberdb_python_proto",
-]
-
-pytest_test(
-    name = "cached_store_tests",
-    srcs = ["cached_store_tests.py"],
-    imports = [LTE_ROOT],
-    deps = COMMON_TEST_DEPS + ["//lte/gateway/python/magma/subscriberdb/store:cached_store"],
-)
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 pytest_test(
     name = "onready_test",
+    size = "medium",
     srcs = ["onready_test.py"],
     imports = [LTE_ROOT],
-    deps = COMMON_TEST_DEPS + ["//lte/gateway/python/magma/subscriberdb/store:cached_store"],
+    deps = [
+        "//lte/gateway/python/magma/subscriberdb:sid",
+        "//lte/gateway/python/magma/subscriberdb/store:base",
+        "//lte/gateway/python/magma/subscriberdb/store:sqlite",
+        "//lte/protos:subscriberdb_python_proto",
+    ],
 )
 
 pytest_test(
     name = "store_tests",
+    size = "medium",
     srcs = ["store_tests.py"],
     imports = [LTE_ROOT],
-    deps = COMMON_TEST_DEPS,
+    deps = [
+        "//lte/gateway/python/magma/subscriberdb:sid",
+        "//lte/gateway/python/magma/subscriberdb/store:base",
+        "//lte/gateway/python/magma/subscriberdb/store:sqlite",
+        "//lte/protos:subscriberdb_python_proto",
+    ],
 )

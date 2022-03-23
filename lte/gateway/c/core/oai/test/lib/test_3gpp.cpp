@@ -247,7 +247,7 @@ TEST_F(m3GppTest, TestImsiMobileIdentity) {
 
 TEST_F(m3GppTest, TestMobileStationClassmark2) {
   mobile_station_classmark2_t msclassmark2 = {0};
-  mobile_station_classmark2_t msclassmark2_decoded;
+  mobile_station_classmark2_t msclassmark2_decoded = {0};
 
   msclassmark2.revisionlevel = 3;
   msclassmark2.esind = 1;
@@ -323,6 +323,8 @@ TEST_F(m3GppTest, TestPlmnList) {
 }  // namespace lte
 }  // namespace magma
 
+// Note: This is necessary for setting up a log thread (Might be addressed by
+// #11736)
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   OAILOG_INIT("MME", OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS);

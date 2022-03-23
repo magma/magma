@@ -13,33 +13,78 @@ load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_library")
 load("//bazel:python_test.bzl", "pytest_test")
 
-COMMON_TEST_DEPS = ["//lte/gateway/python/magma/policydb:policydb"]
+MAGMA_ROOT = "../../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 pytest_test(
     name = "test_policy_servicer",
+    size = "small",
     srcs = ["test_policy_servicer.py"],
-    deps = COMMON_TEST_DEPS + [requirement("grpcio")],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/policydb:policydb_lib",
+        "//lte/gateway/python/magma/policydb/servicers:policy_servicer",
+        "//lte/protos:policydb_python_grpc",
+        "//lte/protos:session_manager_python_grpc",
+        requirement("grpcio"),
+    ],
 )
 
 pytest_test(
     name = "test_reauth_handler",
+    size = "small",
     srcs = ["test_reauth_handler.py"],
-    deps = COMMON_TEST_DEPS,
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/policydb:policydb_lib",
+        "//lte/protos:policydb_python_grpc",
+        "//lte/protos:session_manager_python_grpc",
+    ],
 )
 
 pytest_test(
     name = "test_session_servicer",
+    size = "small",
     srcs = ["test_session_servicer.py"],
-    deps = COMMON_TEST_DEPS,
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/policydb:policydb_lib",
+        "//lte/gateway/python/magma/policydb/servicers:session_servicer",
+        "//lte/protos:policydb_python_grpc",
+        "//lte/protos:session_manager_python_grpc",
+    ],
 )
 
 pytest_test(
     name = "test_streamer_callback",
+    size = "small",
     srcs = ["test_streamer_callback.py"],
-    deps = COMMON_TEST_DEPS + [":mock_stubs"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        ":mock_stubs",
+        "//lte/gateway/python/magma/policydb:policydb_lib",
+        "//lte/protos:policydb_python_grpc",
+        "//lte/protos:session_manager_python_grpc",
+    ],
 )
 
 py_library(
     name = "mock_stubs",
+    testonly = True,
     srcs = ["mock_stubs.py"],
 )

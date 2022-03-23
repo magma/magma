@@ -151,8 +151,9 @@ class SPGWAppProcedureTest : public ::testing::Test {
  protected:
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
   std::string test_imsi_str = "001010000000001";
+  std::string invalid_imsi_str = "001010000000002";
   uint64_t test_imsi64 = 1010000000001;
-  uint64_t test_imsi64_test = 1010000000002;
+  uint64_t test_invalid_imsi64 = 1010000000002;
   plmn_t test_plmn = {.mcc_digit2 = 0,
                       .mcc_digit1 = 0,
                       .mnc_digit3 = 0x0f,
@@ -175,12 +176,18 @@ class SPGWAppProcedureTest : public ::testing::Test {
       .qci = 1,
       .gbr = {.br_ul = 200000000, .br_dl = 100000000},
       .mbr = {.br_ul = 200000000, .br_dl = 100000000}};
+
+  teid_t create_default_session(spgw_state_t* spgw_state);
+  ebi_t activate_dedicated_bearer(
+      spgw_state_t* spgw_state,
+      s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p,
+      teid_t ue_sgw_teid);
+  void deactivate_dedicated_bearer(spgw_state_t* spgw_state, teid_t ue_sgw_teid,
+                                   ebi_t ded_eps_bearer_id);
 };
 
-TEST_F(SPGWAppProcedureTest, TestCreateSessionSuccess) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+teid_t SPGWAppProcedureTest ::create_default_session(spgw_state_t* spgw_state) {
   status_code_e return_code = RETURNerror;
-  // expect call to MME create session response
   itti_s11_create_session_request_t sample_session_req_p = {};
   fill_create_session_request(&sample_session_req_p, test_imsi_str,
                               DEFAULT_MME_S11_TEID, DEFAULT_BEARER_INDEX,
@@ -194,10 +201,10 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionSuccess) {
 
   // Verify that a UE context exists in SPGW state after CSR is received
   spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
-  ASSERT_TRUE(ue_context_p != nullptr);
+  EXPECT_TRUE(ue_context_p != nullptr);
 
   // Verify that teid is created
-  ASSERT_FALSE(LIST_EMPTY(&ue_context_p->sgw_s11_teid_list));
+  EXPECT_FALSE(LIST_EMPTY(&ue_context_p->sgw_s11_teid_list));
   teid_t ue_sgw_teid =
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
 
@@ -210,7 +217,7 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionSuccess) {
            .pdn_connection,
       DEFAULT_EPS_BEARER_ID);
 
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
+  EXPECT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
 
   // send an IP alloc response to SPGW
   itti_ip_allocation_response_t test_ip_alloc_resp = {};
@@ -220,10 +227,10 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionSuccess) {
   return_code = sgw_handle_ip_allocation_rsp(spgw_state, &test_ip_alloc_resp,
                                              test_imsi64);
 
-  ASSERT_EQ(return_code, RETURNok);
+  EXPECT_EQ(return_code, RETURNok);
 
   // check if IP address is allocated after this message is done
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == DEFAULT_UE_IP);
+  EXPECT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == DEFAULT_UE_IP);
 
   // send pcef create session response to SPGW
   itti_pcef_create_session_response_t sample_pcef_csr_resp;
@@ -247,14 +254,122 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionSuccess) {
   return_code =
       sgw_handle_modify_bearer_request(&sample_modify_bearer_req, test_imsi64);
 
-  ASSERT_EQ(return_code, RETURNok);
+  EXPECT_EQ(return_code, RETURNok);
 
   // verify that exactly one session exists in SPGW state
-  ASSERT_TRUE(is_num_ue_contexts_valid(1));
-  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
+  EXPECT_TRUE(is_num_ue_contexts_valid(1));
+  EXPECT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
 
   // verify that eNB address information exists
-  ASSERT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
+  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
+
+  return ue_sgw_teid;
+}
+
+ebi_t SPGWAppProcedureTest ::activate_dedicated_bearer(
+    spgw_state_t* spgw_state,
+    s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p,
+    teid_t ue_sgw_teid) {
+  status_code_e return_code = RETURNerror;
+  // send network initiated dedicated bearer activation request from Session
+  // Manager
+  itti_gx_nw_init_actv_bearer_request_t sample_gx_nw_init_ded_bearer_actv_req =
+      {};
+  gtpv2c_cause_value_t failed_cause = REQUEST_ACCEPTED;
+  fill_nw_initiated_activate_bearer_request(
+      &sample_gx_nw_init_ded_bearer_actv_req, test_imsi_str,
+      DEFAULT_EPS_BEARER_ID, sample_dedicated_bearer_qos);
+
+  // check that MME gets a bearer activation request
+  EXPECT_CALL(*mme_app_handler,
+              mme_app_handle_nw_init_ded_bearer_actv_req(
+                  check_params_in_actv_bearer_req(
+                      sample_gx_nw_init_ded_bearer_actv_req.lbi,
+                      sample_gx_nw_init_ded_bearer_actv_req.ul_tft)))
+      .Times(1);
+
+  return_code = spgw_handle_nw_initiated_bearer_actv_req(
+      spgw_state, &sample_gx_nw_init_ded_bearer_actv_req, test_imsi64,
+      &failed_cause);
+
+  EXPECT_EQ(return_code, RETURNok);
+
+  // check number of pending procedures
+  EXPECT_EQ(
+      get_num_pending_create_bearer_procedures(
+          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
+      1);
+
+  // fetch new SGW teid for the pending bearer procedure
+  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(
+      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information);
+  EXPECT_TRUE(pgw_ni_cbr_proc != nullptr);
+  sgw_eps_bearer_entry_wrapper_t* spgw_eps_bearer_entry_p =
+      LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
+  teid_t ue_ded_bearer_sgw_teid =
+      spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up;
+
+  // send bearer activation response from MME
+  ebi_t ded_eps_bearer_id = DEFAULT_EPS_BEARER_ID + 1;
+  itti_s11_nw_init_actv_bearer_rsp_t sample_nw_init_ded_bearer_actv_resp = {};
+  fill_nw_initiated_activate_bearer_response(
+      &sample_nw_init_ded_bearer_actv_resp, DEFAULT_MME_S11_TEID, ue_sgw_teid,
+      ue_ded_bearer_sgw_teid, DEFAULT_ENB_GTP_TEID + 1, ded_eps_bearer_id,
+      REQUEST_ACCEPTED, test_plmn);
+  return_code = sgw_handle_nw_initiated_actv_bearer_rsp(
+      &sample_nw_init_ded_bearer_actv_resp, test_imsi64);
+
+  EXPECT_EQ(return_code, RETURNok);
+
+  // check that bearer is created
+  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
+
+  // check that no pending procedure is left
+  EXPECT_EQ(
+      get_num_pending_create_bearer_procedures(
+          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
+      0);
+  return ded_eps_bearer_id;
+}
+
+void SPGWAppProcedureTest ::deactivate_dedicated_bearer(
+    spgw_state_t* spgw_state, teid_t ue_sgw_teid, ebi_t ded_eps_bearer_id) {
+  status_code_e return_code = RETURNerror;
+  // send deactivate request for dedicated bearer from Session Manager
+  itti_gx_nw_init_deactv_bearer_request_t
+      sample_gx_nw_init_ded_bearer_deactv_req = {};
+  fill_nw_initiated_deactivate_bearer_request(
+      &sample_gx_nw_init_ded_bearer_deactv_req, test_imsi_str,
+      DEFAULT_EPS_BEARER_ID, ded_eps_bearer_id);
+
+  return_code = spgw_handle_nw_initiated_bearer_deactv_req(
+      &sample_gx_nw_init_ded_bearer_deactv_req, test_imsi64);
+
+  EXPECT_EQ(return_code, RETURNok);
+
+  // send a delete dedicated bearer response from MME
+  itti_s11_nw_init_deactv_bearer_rsp_t sample_nw_init_ded_bearer_deactv_resp =
+      {};
+  int num_bearers_to_delete = 1;
+  ebi_t eps_bearer_id_array[] = {ded_eps_bearer_id};
+
+  fill_nw_initiated_deactivate_bearer_response(
+      &sample_nw_init_ded_bearer_deactv_resp, test_imsi64, false,
+      REQUEST_ACCEPTED, eps_bearer_id_array, num_bearers_to_delete,
+      ue_sgw_teid);
+  return_code = sgw_handle_nw_initiated_deactv_bearer_rsp(
+      spgw_state, &sample_nw_init_ded_bearer_deactv_resp, test_imsi64);
+  EXPECT_EQ(return_code, RETURNok);
+
+  // check that bearer is deleted
+  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
+}
+
+TEST_F(SPGWAppProcedureTest, TestCreateSessionSuccess) {
+  spgw_state_t* spgw_state = get_spgw_state(false);
+
+  // Create session
+  teid_t ue_sgw_teid = create_default_session(spgw_state);
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
@@ -301,8 +416,9 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionIPAllocFailure) {
   status_code_e ip_alloc_rc = sgw_handle_ip_allocation_rsp(
       spgw_state, &test_ip_alloc_resp, test_imsi64);
 
-  // check that IP address is not allocated
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
+  // Verify that UE context was removed in SPGW state after CSR failure
+  ue_context_p = spgw_get_ue_context(test_imsi64);
+  ASSERT_TRUE(ue_context_p == nullptr);
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
@@ -400,81 +516,9 @@ TEST_F(SPGWAppProcedureTest, TestModifyBearerFailure) {
 TEST_F(SPGWAppProcedureTest, TestDeleteSessionSuccess) {
   spgw_state_t* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
-  // expect call to MME create session response
-  itti_s11_create_session_request_t sample_session_req_p = {};
-  fill_create_session_request(&sample_session_req_p, test_imsi_str,
-                              DEFAULT_MME_S11_TEID, DEFAULT_BEARER_INDEX,
-                              sample_default_bearer_context, test_plmn);
 
-  // trigger create session req to SPGW
-  return_code = sgw_handle_s11_create_session_request(
-      spgw_state, &sample_session_req_p, test_imsi64);
-
-  ASSERT_EQ(return_code, RETURNok);
-
-  // Verify that a UE context exists in SPGW state after CSR is received
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
-  ASSERT_TRUE(ue_context_p != nullptr);
-
-  // Verify that teid is created
-  ASSERT_FALSE(LIST_EMPTY(&ue_context_p->sgw_s11_teid_list));
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
-
-  // Verify that no IP address is allocated for this UE
-  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
-      sgw_cm_get_spgw_context(ue_sgw_teid);
-
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      DEFAULT_EPS_BEARER_ID);
-
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
-
-  // send an IP alloc response to SPGW
-  itti_ip_allocation_response_t test_ip_alloc_resp = {};
-  fill_ip_allocation_response(&test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid,
-                              DEFAULT_EPS_BEARER_ID, DEFAULT_UE_IP,
-                              DEFAULT_VLAN);
-  return_code = sgw_handle_ip_allocation_rsp(spgw_state, &test_ip_alloc_resp,
-                                             test_imsi64);
-
-  ASSERT_EQ(return_code, RETURNok);
-
-  // check if IP address is allocated after this message is done
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == DEFAULT_UE_IP);
-
-  // send pcef create session response to SPGW
-  itti_pcef_create_session_response_t sample_pcef_csr_resp;
-  fill_pcef_create_session_response(&sample_pcef_csr_resp, PCEF_STATUS_OK,
-                                    ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
-                                    SGI_STATUS_OK);
-
-  // check if MME gets a create session response
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
-
-  spgw_handle_pcef_create_session_response(spgw_state, &sample_pcef_csr_resp,
-                                           test_imsi64);
-
-  // create sample modify default bearer request
-  itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
-  fill_modify_bearer_request(&sample_modify_bearer_req, DEFAULT_MME_S11_TEID,
-                             ue_sgw_teid, DEFAULT_ENB_GTP_TEID,
-                             DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
-
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
-  return_code =
-      sgw_handle_modify_bearer_request(&sample_modify_bearer_req, test_imsi64);
-
-  ASSERT_EQ(return_code, RETURNok);
-
-  // verify that exactly one session exists in SPGW state
-  ASSERT_TRUE(is_num_ue_contexts_valid(1));
-  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
-
-  // verify that eNB address information exists
-  ASSERT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
+  // Create session
+  teid_t ue_sgw_teid = create_default_session(spgw_state);
 
   // create sample delete session request
   itti_s11_delete_session_request_t sample_delete_session_request = {};
@@ -482,10 +526,9 @@ TEST_F(SPGWAppProcedureTest, TestDeleteSessionSuccess) {
                               DEFAULT_MME_S11_TEID, ue_sgw_teid,
                               DEFAULT_EPS_BEARER_ID, test_plmn);
 
-  EXPECT_CALL(
-      *mme_app_handler,
-      mme_app_handle_delete_sess_rsp(check_cause_in_ds_rsp(
-          REQUEST_ACCEPTED, sample_session_req_p.sender_fteid_for_cp.teid)))
+  EXPECT_CALL(*mme_app_handler,
+              mme_app_handle_delete_sess_rsp(check_cause_in_ds_rsp(
+                  REQUEST_ACCEPTED, DEFAULT_MME_S11_TEID)))
       .Times(1);
 
   return_code = sgw_handle_delete_session_request(
@@ -503,81 +546,9 @@ TEST_F(SPGWAppProcedureTest, TestDeleteSessionSuccess) {
 TEST_F(SPGWAppProcedureTest, TestReleaseBearerSuccess) {
   spgw_state_t* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
-  // expect call to MME create session response
-  itti_s11_create_session_request_t sample_session_req_p = {};
-  fill_create_session_request(&sample_session_req_p, test_imsi_str,
-                              DEFAULT_MME_S11_TEID, DEFAULT_BEARER_INDEX,
-                              sample_default_bearer_context, test_plmn);
 
-  // trigger create session req to SPGW
-  return_code = sgw_handle_s11_create_session_request(
-      spgw_state, &sample_session_req_p, test_imsi64);
-
-  ASSERT_EQ(return_code, RETURNok);
-
-  // Verify that a UE context exists in SPGW state after CSR is received
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
-  ASSERT_TRUE(ue_context_p != nullptr);
-
-  // Verify that teid is created
-  ASSERT_FALSE(LIST_EMPTY(&ue_context_p->sgw_s11_teid_list));
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
-
-  // Verify that no IP address is allocated for this UE
-  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
-      sgw_cm_get_spgw_context(ue_sgw_teid);
-
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      DEFAULT_EPS_BEARER_ID);
-
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
-
-  // send an IP alloc response to SPGW
-  itti_ip_allocation_response_t test_ip_alloc_resp = {};
-  fill_ip_allocation_response(&test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid,
-                              DEFAULT_EPS_BEARER_ID, DEFAULT_UE_IP,
-                              DEFAULT_VLAN);
-  return_code = sgw_handle_ip_allocation_rsp(spgw_state, &test_ip_alloc_resp,
-                                             test_imsi64);
-
-  ASSERT_EQ(return_code, RETURNok);
-
-  // check if IP address is allocated after this message is done
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == DEFAULT_UE_IP);
-
-  // send pcef create session response to SPGW
-  itti_pcef_create_session_response_t sample_pcef_csr_resp;
-  fill_pcef_create_session_response(&sample_pcef_csr_resp, PCEF_STATUS_OK,
-                                    ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
-                                    SGI_STATUS_OK);
-
-  // check if MME gets a create session response
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
-
-  spgw_handle_pcef_create_session_response(spgw_state, &sample_pcef_csr_resp,
-                                           test_imsi64);
-
-  // create sample modify default bearer request
-  itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
-  fill_modify_bearer_request(&sample_modify_bearer_req, DEFAULT_MME_S11_TEID,
-                             ue_sgw_teid, DEFAULT_ENB_GTP_TEID,
-                             DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
-
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
-  return_code =
-      sgw_handle_modify_bearer_request(&sample_modify_bearer_req, test_imsi64);
-
-  ASSERT_EQ(return_code, RETURNok);
-
-  // verify that exactly one session exists in SPGW state
-  ASSERT_TRUE(is_num_ue_contexts_valid(1));
-  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
-
-  // verify that eNB address information exists
-  ASSERT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
+  // Create session
+  teid_t ue_sgw_teid = create_default_session(spgw_state);
 
   // send release access bearer request
   itti_s11_release_access_bearers_request_t sample_release_bearer_req = {};
@@ -600,81 +571,9 @@ TEST_F(SPGWAppProcedureTest, TestReleaseBearerSuccess) {
 TEST_F(SPGWAppProcedureTest, TestReleaseBearerWithInvalidImsi64) {
   spgw_state_t* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
-  // expect call to MME create session response
-  itti_s11_create_session_request_t sample_session_req_p = {};
-  fill_create_session_request(&sample_session_req_p, test_imsi_str,
-                              DEFAULT_MME_S11_TEID, DEFAULT_BEARER_INDEX,
-                              sample_default_bearer_context, test_plmn);
 
-  // trigger create session req to SPGW
-  return_code = sgw_handle_s11_create_session_request(
-      spgw_state, &sample_session_req_p, test_imsi64);
-
-  ASSERT_EQ(return_code, RETURNok);
-
-  // Verify that a UE context exists in SPGW state after CSR is received
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
-  ASSERT_TRUE(ue_context_p != nullptr);
-
-  // Verify that teid is created
-  ASSERT_FALSE(LIST_EMPTY(&ue_context_p->sgw_s11_teid_list));
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
-
-  // Verify that no IP address is allocated for this UE
-  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
-      sgw_cm_get_spgw_context(ue_sgw_teid);
-
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      DEFAULT_EPS_BEARER_ID);
-
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
-
-  // send an IP alloc response to SPGW
-  itti_ip_allocation_response_t test_ip_alloc_resp = {};
-  fill_ip_allocation_response(&test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid,
-                              DEFAULT_EPS_BEARER_ID, DEFAULT_UE_IP,
-                              DEFAULT_VLAN);
-  return_code = sgw_handle_ip_allocation_rsp(spgw_state, &test_ip_alloc_resp,
-                                             test_imsi64);
-
-  ASSERT_EQ(return_code, RETURNok);
-
-  // check if IP address is allocated after this message is done
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == DEFAULT_UE_IP);
-
-  // send pcef create session response to SPGW
-  itti_pcef_create_session_response_t sample_pcef_csr_resp;
-  fill_pcef_create_session_response(&sample_pcef_csr_resp, PCEF_STATUS_OK,
-                                    ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
-                                    SGI_STATUS_OK);
-
-  // check if MME gets a create session response
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
-
-  spgw_handle_pcef_create_session_response(spgw_state, &sample_pcef_csr_resp,
-                                           test_imsi64);
-
-  // send modify default bearer request
-  itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
-  fill_modify_bearer_request(&sample_modify_bearer_req, DEFAULT_MME_S11_TEID,
-                             ue_sgw_teid, DEFAULT_ENB_GTP_TEID,
-                             DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
-
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
-  return_code =
-      sgw_handle_modify_bearer_request(&sample_modify_bearer_req, test_imsi64);
-
-  ASSERT_EQ(return_code, RETURNok);
-
-  // verify that exactly one session exists in SPGW state
-  ASSERT_TRUE(is_num_ue_contexts_valid(1));
-  ASSERT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
-
-  // verify that eNB address information exists
-  ASSERT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
+  // Create session
+  teid_t ue_sgw_teid = create_default_session(spgw_state);
 
   // send release access bearer request
   itti_s11_release_access_bearers_request_t sample_release_bearer_req = {};
@@ -687,7 +586,7 @@ TEST_F(SPGWAppProcedureTest, TestReleaseBearerWithInvalidImsi64) {
   // Send wrong IMSI so that spgw will not be able to fetch and delete
   // the context
   sgw_handle_release_access_bearers_request(&sample_release_bearer_req,
-                                            test_imsi64_test);
+                                            test_invalid_imsi64);
 
   // verify that eNB information has not been cleared
   ASSERT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
@@ -699,136 +598,16 @@ TEST_F(SPGWAppProcedureTest, TestReleaseBearerWithInvalidImsi64) {
 TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivation) {
   spgw_state_t* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
-  // expect call to MME create session response
-  itti_s11_create_session_request_t sample_session_req_p = {};
-  fill_create_session_request(&sample_session_req_p, test_imsi_str,
-                              DEFAULT_MME_S11_TEID, DEFAULT_BEARER_INDEX,
-                              sample_default_bearer_context, test_plmn);
 
-  // trigger create session req to SPGW
-  return_code = sgw_handle_s11_create_session_request(
-      spgw_state, &sample_session_req_p, test_imsi64);
+  // Create session
+  teid_t ue_sgw_teid = create_default_session(spgw_state);
 
-  EXPECT_EQ(return_code, RETURNok);
-
-  // Verify that a UE context exists in SPGW state after CSR is received
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
-  EXPECT_TRUE(ue_context_p != nullptr);
-
-  // Verify that teid is created
-  EXPECT_FALSE(LIST_EMPTY(&ue_context_p->sgw_s11_teid_list));
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
-
-  // Verify that no IP address is allocated for this UE
   s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      DEFAULT_EPS_BEARER_ID);
-
-  EXPECT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
-
-  // send an IP alloc response to SPGW
-  itti_ip_allocation_response_t test_ip_alloc_resp = {};
-  fill_ip_allocation_response(&test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid,
-                              DEFAULT_EPS_BEARER_ID, DEFAULT_UE_IP,
-                              DEFAULT_VLAN);
-  return_code = sgw_handle_ip_allocation_rsp(spgw_state, &test_ip_alloc_resp,
-                                             test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check if IP address is allocated after this message is done
-  EXPECT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == DEFAULT_UE_IP);
-
-  // send pcef create session response to SPGW
-  itti_pcef_create_session_response_t sample_pcef_csr_resp;
-  fill_pcef_create_session_response(&sample_pcef_csr_resp, PCEF_STATUS_OK,
-                                    ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
-                                    SGI_STATUS_OK);
-
-  // check if MME gets a create session response
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
-
-  spgw_handle_pcef_create_session_response(spgw_state, &sample_pcef_csr_resp,
-                                           test_imsi64);
-
-  // create sample modify default bearer request
-  itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
-  fill_modify_bearer_request(&sample_modify_bearer_req, DEFAULT_MME_S11_TEID,
-                             ue_sgw_teid, DEFAULT_ENB_GTP_TEID,
-                             DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
-
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
-  return_code =
-      sgw_handle_modify_bearer_request(&sample_modify_bearer_req, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // verify that exactly one session exists in SPGW state
-  EXPECT_TRUE(is_num_ue_contexts_valid(1));
-  EXPECT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
-
-  // send network initiated dedicated bearer activation request from Session
-  // Manager
-  itti_gx_nw_init_actv_bearer_request_t sample_gx_nw_init_ded_bearer_actv_req =
-      {};
-  gtpv2c_cause_value_t failed_cause = REQUEST_ACCEPTED;
-  fill_nw_initiated_activate_bearer_request(
-      &sample_gx_nw_init_ded_bearer_actv_req, test_imsi_str,
-      DEFAULT_EPS_BEARER_ID, sample_dedicated_bearer_qos);
-
-  // check that MME gets a bearer activation request
-  EXPECT_CALL(*mme_app_handler,
-              mme_app_handle_nw_init_ded_bearer_actv_req(
-                  check_params_in_actv_bearer_req(
-                      sample_gx_nw_init_ded_bearer_actv_req.lbi,
-                      sample_gx_nw_init_ded_bearer_actv_req.ul_tft)))
-      .Times(1);
-
-  return_code = spgw_handle_nw_initiated_bearer_actv_req(
-      spgw_state, &sample_gx_nw_init_ded_bearer_actv_req, test_imsi64,
-      &failed_cause);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check number of pending procedures
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      1);
-
-  // fetch new SGW teid for the pending bearer procedure
-  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information);
-  EXPECT_TRUE(pgw_ni_cbr_proc != nullptr);
-  sgw_eps_bearer_entry_wrapper_t* spgw_eps_bearer_entry_p =
-      LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
-  teid_t ue_ded_bearer_sgw_teid =
-      spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up;
-
-  // send bearer activation response from MME
-  itti_s11_nw_init_actv_bearer_rsp_t sample_nw_init_ded_bearer_actv_resp = {};
-  fill_nw_initiated_activate_bearer_response(
-      &sample_nw_init_ded_bearer_actv_resp, DEFAULT_MME_S11_TEID, ue_sgw_teid,
-      ue_ded_bearer_sgw_teid, DEFAULT_ENB_GTP_TEID + 1,
-      DEFAULT_EPS_BEARER_ID + 1, REQUEST_ACCEPTED, test_plmn);
-  return_code = sgw_handle_nw_initiated_actv_bearer_rsp(
-      &sample_nw_init_ded_bearer_actv_resp, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check that bearer is created
-  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
-
-  // check that no pending procedure is left
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      0);
+  // Activate dedicated bearer
+  ebi_t ded_eps_bearer_id = activate_dedicated_bearer(
+      spgw_state, spgw_eps_bearer_ctxt_info_p, ue_sgw_teid);
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
@@ -837,174 +616,27 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivation) {
 TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivation) {
   spgw_state_t* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
-  // expect call to MME create session response
-  itti_s11_create_session_request_t sample_session_req_p = {};
-  fill_create_session_request(&sample_session_req_p, test_imsi_str,
-                              DEFAULT_MME_S11_TEID, DEFAULT_BEARER_INDEX,
-                              sample_default_bearer_context, test_plmn);
 
-  // trigger create session req to SPGW
-  return_code = sgw_handle_s11_create_session_request(
-      spgw_state, &sample_session_req_p, test_imsi64);
+  // Create session
+  teid_t ue_sgw_teid = create_default_session(spgw_state);
 
-  EXPECT_EQ(return_code, RETURNok);
-
-  // Verify that a UE context exists in SPGW state after CSR is received
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
-  EXPECT_TRUE(ue_context_p != nullptr);
-
-  // Verify that teid is created
-  EXPECT_FALSE(LIST_EMPTY(&ue_context_p->sgw_s11_teid_list));
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
-
-  // Verify that no IP address is allocated for this UE
   s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      DEFAULT_EPS_BEARER_ID);
-
-  EXPECT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
-
-  // send an IP alloc response to SPGW
-  itti_ip_allocation_response_t test_ip_alloc_resp = {};
-  fill_ip_allocation_response(&test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid,
-                              DEFAULT_EPS_BEARER_ID, DEFAULT_UE_IP,
-                              DEFAULT_VLAN);
-  return_code = sgw_handle_ip_allocation_rsp(spgw_state, &test_ip_alloc_resp,
-                                             test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check if IP address is allocated after this message is done
-  EXPECT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == DEFAULT_UE_IP);
-
-  // send pcef create session response to SPGW
-  itti_pcef_create_session_response_t sample_pcef_csr_resp;
-  fill_pcef_create_session_response(&sample_pcef_csr_resp, PCEF_STATUS_OK,
-                                    ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
-                                    SGI_STATUS_OK);
-
-  // check if MME gets a create session response
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
-
-  spgw_handle_pcef_create_session_response(spgw_state, &sample_pcef_csr_resp,
-                                           test_imsi64);
-
-  // create sample modify default bearer request
-  itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
-  fill_modify_bearer_request(&sample_modify_bearer_req, DEFAULT_MME_S11_TEID,
-                             ue_sgw_teid, DEFAULT_ENB_GTP_TEID,
-                             DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
-
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
-  return_code =
-      sgw_handle_modify_bearer_request(&sample_modify_bearer_req, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // verify that exactly one session exists in SPGW state
-  EXPECT_TRUE(is_num_ue_contexts_valid(1));
-  EXPECT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
-
-  // send network initiated dedicated bearer activation request from Session
-  // Manager
-  itti_gx_nw_init_actv_bearer_request_t sample_gx_nw_init_ded_bearer_actv_req =
-      {};
-  gtpv2c_cause_value_t failed_cause = REQUEST_ACCEPTED;
-  fill_nw_initiated_activate_bearer_request(
-      &sample_gx_nw_init_ded_bearer_actv_req, test_imsi_str,
-      DEFAULT_EPS_BEARER_ID, sample_dedicated_bearer_qos);
-
-  // check that MME gets a bearer activation request
-  EXPECT_CALL(*mme_app_handler,
-              mme_app_handle_nw_init_ded_bearer_actv_req(
-                  check_params_in_actv_bearer_req(
-                      sample_gx_nw_init_ded_bearer_actv_req.lbi,
-                      sample_gx_nw_init_ded_bearer_actv_req.ul_tft)))
-      .Times(1);
-
-  return_code = spgw_handle_nw_initiated_bearer_actv_req(
-      spgw_state, &sample_gx_nw_init_ded_bearer_actv_req, test_imsi64,
-      &failed_cause);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check number of pending procedures
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      1);
-
-  // fetch new SGW teid for the pending bearer procedure
-  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information);
-  EXPECT_TRUE(pgw_ni_cbr_proc != nullptr);
-  sgw_eps_bearer_entry_wrapper_t* spgw_eps_bearer_entry_p =
-      LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
-  teid_t ue_ded_bearer_sgw_teid =
-      spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up;
-
-  // send bearer activation response from MME
-  ebi_t ded_eps_bearer_id = DEFAULT_EPS_BEARER_ID + 1;
-  itti_s11_nw_init_actv_bearer_rsp_t sample_nw_init_ded_bearer_actv_resp = {};
-  fill_nw_initiated_activate_bearer_response(
-      &sample_nw_init_ded_bearer_actv_resp, DEFAULT_MME_S11_TEID, ue_sgw_teid,
-      ue_ded_bearer_sgw_teid, DEFAULT_ENB_GTP_TEID + 1, ded_eps_bearer_id,
-      REQUEST_ACCEPTED, test_plmn);
-  return_code = sgw_handle_nw_initiated_actv_bearer_rsp(
-      &sample_nw_init_ded_bearer_actv_resp, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check that bearer is created
-  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
-
-  // check that no pending procedure is left
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      0);
-
-  // send deactivate request for dedicated bearer from Session Manager
-  itti_gx_nw_init_deactv_bearer_request_t
-      sample_gx_nw_init_ded_bearer_deactv_req = {};
-  fill_nw_initiated_deactivate_bearer_request(
-      &sample_gx_nw_init_ded_bearer_deactv_req, test_imsi_str,
-      DEFAULT_EPS_BEARER_ID, ded_eps_bearer_id);
+  // Activate dedicated bearer
+  ebi_t ded_eps_bearer_id = activate_dedicated_bearer(
+      spgw_state, spgw_eps_bearer_ctxt_info_p, ue_sgw_teid);
 
   // check that MME gets a bearer deactivation request
-  EXPECT_CALL(*mme_app_handler,
-              mme_app_handle_nw_init_bearer_deactv_req(
-                  check_params_in_deactv_bearer_req(
-                      sample_gx_nw_init_ded_bearer_deactv_req.no_of_bearers,
-                      sample_gx_nw_init_ded_bearer_deactv_req.ebi)))
+  uint32_t expected_no_of_bearers = 1;
+  ebi_t expected_ebi[] = {6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_nw_init_bearer_deactv_req(
+                                    check_params_in_deactv_bearer_req(
+                                        expected_no_of_bearers, expected_ebi)))
       .Times(1);
 
-  return_code = spgw_handle_nw_initiated_bearer_deactv_req(
-      &sample_gx_nw_init_ded_bearer_deactv_req, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // send a delete dedicated bearer response from MME
-  itti_s11_nw_init_deactv_bearer_rsp_t sample_nw_init_ded_bearer_deactv_resp =
-      {};
-  int num_bearers_to_delete = 1;
-  ebi_t eps_bearer_id_array[] = {ded_eps_bearer_id};
-
-  fill_nw_initiated_deactivate_bearer_response(
-      &sample_nw_init_ded_bearer_deactv_resp, test_imsi64, false,
-      REQUEST_ACCEPTED, eps_bearer_id_array, num_bearers_to_delete,
-      ue_sgw_teid);
-  return_code = sgw_handle_nw_initiated_deactv_bearer_rsp(
-      spgw_state, &sample_nw_init_ded_bearer_deactv_resp, test_imsi64);
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check that bearer is deleted
-  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
+  // Deactivate dedicated bearer
+  deactivate_dedicated_bearer(spgw_state, ue_sgw_teid, ded_eps_bearer_id);
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
@@ -1014,28 +646,10 @@ TEST_F(SPGWAppProcedureTest,
        TestDedicatedBearerDeactivationDeleteDefaultBearer) {
   spgw_state_t* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
-  // expect call to MME create session response
-  itti_s11_create_session_request_t sample_session_req_p = {};
-  fill_create_session_request(&sample_session_req_p, test_imsi_str,
-                              DEFAULT_MME_S11_TEID, DEFAULT_BEARER_INDEX,
-                              sample_default_bearer_context, test_plmn);
 
-  // trigger create session req to SPGW
-  return_code = sgw_handle_s11_create_session_request(
-      spgw_state, &sample_session_req_p, test_imsi64);
+  // Create session
+  teid_t ue_sgw_teid = create_default_session(spgw_state);
 
-  EXPECT_EQ(return_code, RETURNok);
-
-  // Verify that a UE context exists in SPGW state after CSR is received
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
-  EXPECT_TRUE(ue_context_p != nullptr);
-
-  // Verify that teid is created
-  EXPECT_FALSE(LIST_EMPTY(&ue_context_p->sgw_s11_teid_list));
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
-
-  // Verify that no IP address is allocated for this UE
   s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
@@ -1044,107 +658,9 @@ TEST_F(SPGWAppProcedureTest,
            .pdn_connection,
       DEFAULT_EPS_BEARER_ID);
 
-  EXPECT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
-
-  // send an IP alloc response to SPGW
-  itti_ip_allocation_response_t test_ip_alloc_resp = {};
-  fill_ip_allocation_response(&test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid,
-                              DEFAULT_EPS_BEARER_ID, DEFAULT_UE_IP,
-                              DEFAULT_VLAN);
-  return_code = sgw_handle_ip_allocation_rsp(spgw_state, &test_ip_alloc_resp,
-                                             test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check if IP address is allocated after this message is done
-  EXPECT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == DEFAULT_UE_IP);
-
-  // send pcef create session response to SPGW
-  itti_pcef_create_session_response_t sample_pcef_csr_resp;
-  fill_pcef_create_session_response(&sample_pcef_csr_resp, PCEF_STATUS_OK,
-                                    ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
-                                    SGI_STATUS_OK);
-
-  // check if MME gets a create session response
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
-
-  spgw_handle_pcef_create_session_response(spgw_state, &sample_pcef_csr_resp,
-                                           test_imsi64);
-
-  // create sample modify default bearer request
-  itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
-  fill_modify_bearer_request(&sample_modify_bearer_req, DEFAULT_MME_S11_TEID,
-                             ue_sgw_teid, DEFAULT_ENB_GTP_TEID,
-                             DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
-
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
-  return_code =
-      sgw_handle_modify_bearer_request(&sample_modify_bearer_req, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // verify that exactly one session exists in SPGW state
-  EXPECT_TRUE(is_num_ue_contexts_valid(1));
-  EXPECT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
-
-  // send network initiated dedicated bearer activation request from Session
-  // Manager
-  itti_gx_nw_init_actv_bearer_request_t sample_gx_nw_init_ded_bearer_actv_req =
-      {};
-  gtpv2c_cause_value_t failed_cause = REQUEST_ACCEPTED;
-  fill_nw_initiated_activate_bearer_request(
-      &sample_gx_nw_init_ded_bearer_actv_req, test_imsi_str,
-      DEFAULT_EPS_BEARER_ID, sample_dedicated_bearer_qos);
-
-  // check that MME gets a bearer activation request
-  EXPECT_CALL(*mme_app_handler,
-              mme_app_handle_nw_init_ded_bearer_actv_req(
-                  check_params_in_actv_bearer_req(
-                      sample_gx_nw_init_ded_bearer_actv_req.lbi,
-                      sample_gx_nw_init_ded_bearer_actv_req.ul_tft)))
-      .Times(1);
-
-  return_code = spgw_handle_nw_initiated_bearer_actv_req(
-      spgw_state, &sample_gx_nw_init_ded_bearer_actv_req, test_imsi64,
-      &failed_cause);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check number of pending procedures
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      1);
-
-  // fetch new SGW teid for the pending bearer procedure
-  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information);
-  EXPECT_TRUE(pgw_ni_cbr_proc != nullptr);
-  sgw_eps_bearer_entry_wrapper_t* spgw_eps_bearer_entry_p =
-      LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
-  teid_t ue_ded_bearer_sgw_teid =
-      spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up;
-
-  // send bearer activation response from MME
-  ebi_t ded_eps_bearer_id = DEFAULT_EPS_BEARER_ID + 1;
-  itti_s11_nw_init_actv_bearer_rsp_t sample_nw_init_ded_bearer_actv_resp = {};
-  fill_nw_initiated_activate_bearer_response(
-      &sample_nw_init_ded_bearer_actv_resp, DEFAULT_MME_S11_TEID, ue_sgw_teid,
-      ue_ded_bearer_sgw_teid, DEFAULT_ENB_GTP_TEID + 1, ded_eps_bearer_id,
-      REQUEST_ACCEPTED, test_plmn);
-  return_code = sgw_handle_nw_initiated_actv_bearer_rsp(
-      &sample_nw_init_ded_bearer_actv_resp, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check that bearer is created
-  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
-
-  // check that no pending procedure is left
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      0);
+  // Activate dedicated bearer
+  ebi_t ded_eps_bearer_id = activate_dedicated_bearer(
+      spgw_state, spgw_eps_bearer_ctxt_info_p, ue_sgw_teid);
 
   // send deactivate request for dedicated bearer from Session Manager
   itti_gx_nw_init_deactv_bearer_request_t
@@ -1194,81 +710,11 @@ TEST_F(SPGWAppProcedureTest, TestSuspendNotification) {
   spgw_state_t* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
-  // expect call to MME create session response
-  itti_s11_create_session_request_t sample_session_req_p = {};
-  fill_create_session_request(&sample_session_req_p, test_imsi_str,
-                              DEFAULT_MME_S11_TEID, DEFAULT_BEARER_INDEX,
-                              sample_default_bearer_context, test_plmn);
+  // Create session
+  teid_t ue_sgw_teid = create_default_session(spgw_state);
 
-  // trigger create session req to SPGW
-  return_code = sgw_handle_s11_create_session_request(
-      spgw_state, &sample_session_req_p, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // Verify that a UE context exists in SPGW state after CSR is received
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
-  EXPECT_TRUE(ue_context_p != nullptr);
-
-  // Verify that teid is created
-  EXPECT_FALSE(LIST_EMPTY(&ue_context_p->sgw_s11_teid_list));
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
-
-  // Verify that no IP address is allocated for this UE
   s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
-
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      DEFAULT_EPS_BEARER_ID);
-
-  EXPECT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
-
-  // send an IP alloc response to SPGW
-  itti_ip_allocation_response_t test_ip_alloc_resp = {};
-  fill_ip_allocation_response(&test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid,
-                              DEFAULT_EPS_BEARER_ID, DEFAULT_UE_IP,
-                              DEFAULT_VLAN);
-  return_code = sgw_handle_ip_allocation_rsp(spgw_state, &test_ip_alloc_resp,
-                                             test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check if IP address is allocated after this message is done
-  EXPECT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == DEFAULT_UE_IP);
-
-  // send pcef create session response to SPGW
-  itti_pcef_create_session_response_t sample_pcef_csr_resp;
-  fill_pcef_create_session_response(&sample_pcef_csr_resp, PCEF_STATUS_OK,
-                                    ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
-                                    SGI_STATUS_OK);
-
-  // check if MME gets a create session response
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
-
-  spgw_handle_pcef_create_session_response(spgw_state, &sample_pcef_csr_resp,
-                                           test_imsi64);
-
-  // create sample modify default bearer request
-  itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
-  fill_modify_bearer_request(&sample_modify_bearer_req, DEFAULT_MME_S11_TEID,
-                             ue_sgw_teid, DEFAULT_ENB_GTP_TEID,
-                             DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
-
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
-  return_code =
-      sgw_handle_modify_bearer_request(&sample_modify_bearer_req, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
-
-  // verify that exactly one session exists in SPGW state
-  EXPECT_TRUE(is_num_ue_contexts_valid(1));
-  EXPECT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
-
-  // verify that eNB address information exists
-  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
 
   // trigger suspend notification to SPGW task
   itti_s11_suspend_notification_t sample_suspend_notification = {};
@@ -1295,28 +741,10 @@ TEST_F(SPGWAppProcedureTest, TestSuspendNotification) {
 TEST_F(SPGWAppProcedureTest, TestDeleteBearerCommand) {
   spgw_state_t* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
-  // expect call to MME create session response
-  itti_s11_create_session_request_t sample_session_req_p = {};
-  fill_create_session_request(&sample_session_req_p, test_imsi_str,
-                              DEFAULT_MME_S11_TEID, DEFAULT_BEARER_INDEX,
-                              sample_default_bearer_context, test_plmn);
 
-  // trigger create session req to SPGW
-  return_code = sgw_handle_s11_create_session_request(
-      spgw_state, &sample_session_req_p, test_imsi64);
+  // Create session
+  teid_t ue_sgw_teid = create_default_session(spgw_state);
 
-  EXPECT_EQ(return_code, RETURNok);
-
-  // Verify that a UE context exists in SPGW state after CSR is received
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
-  EXPECT_TRUE(ue_context_p != nullptr);
-
-  // Verify that teid is created
-  EXPECT_FALSE(LIST_EMPTY(&ue_context_p->sgw_s11_teid_list));
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
-
-  // Verify that no IP address is allocated for this UE
   s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
@@ -1325,48 +753,211 @@ TEST_F(SPGWAppProcedureTest, TestDeleteBearerCommand) {
            .pdn_connection,
       DEFAULT_EPS_BEARER_ID);
 
-  EXPECT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
+  // Activate dedicated bearer
+  ebi_t ded_eps_bearer_id = activate_dedicated_bearer(
+      spgw_state, spgw_eps_bearer_ctxt_info_p, ue_sgw_teid);
 
-  // send an IP alloc response to SPGW
-  itti_ip_allocation_response_t test_ip_alloc_resp = {};
-  fill_ip_allocation_response(&test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid,
-                              DEFAULT_EPS_BEARER_ID, DEFAULT_UE_IP,
-                              DEFAULT_VLAN);
-  return_code = sgw_handle_ip_allocation_rsp(spgw_state, &test_ip_alloc_resp,
-                                             test_imsi64);
+  // create and send delete bearer command to SPGW task
+  itti_s11_delete_bearer_command_t s11_delete_bearer_command = {};
+  fill_s11_delete_bearer_command(&s11_delete_bearer_command, ue_sgw_teid,
+                                 DEFAULT_MME_S11_TEID, ded_eps_bearer_id);
+
+  // check that MME gets a bearer deactivation request
+  EXPECT_CALL(*mme_app_handler,
+              mme_app_handle_nw_init_bearer_deactv_req(
+                  check_params_in_deactv_bearer_req(
+                      1, s11_delete_bearer_command.ebi_list.ebis)))
+      .Times(1);
+
+  // Trigger delete bearer command
+  sgw_handle_delete_bearer_cmd(&s11_delete_bearer_command, test_imsi64);
+
+  // send a delete dedicated bearer response from MME
+  itti_s11_nw_init_deactv_bearer_rsp_t sample_nw_init_ded_bearer_deactv_resp =
+      {};
+  int num_bearers_to_delete = 1;
+  ebi_t eps_bearer_id_array[] = {ded_eps_bearer_id};
+
+  fill_nw_initiated_deactivate_bearer_response(
+      &sample_nw_init_ded_bearer_deactv_resp, test_imsi64, false,
+      REQUEST_ACCEPTED, eps_bearer_id_array, num_bearers_to_delete,
+      ue_sgw_teid);
+  return_code = sgw_handle_nw_initiated_deactv_bearer_rsp(
+      spgw_state, &sample_nw_init_ded_bearer_deactv_resp, test_imsi64);
+  EXPECT_EQ(return_code, RETURNok);
+
+  // check that the dedicated bearer is deleted
+  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
+}
+
+TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivationInvalidImsiLbi) {
+  spgw_state_t* spgw_state = get_spgw_state(false);
+  status_code_e return_code = RETURNerror;
+
+  // Create session
+  teid_t ue_sgw_teid = create_default_session(spgw_state);
+
+  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
+      sgw_cm_get_spgw_context(ue_sgw_teid);
+
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
+      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+           .pdn_connection,
+      DEFAULT_EPS_BEARER_ID);
+
+  // send network initiated dedicated bearer activation request with
+  // invalid imsi
+  itti_gx_nw_init_actv_bearer_request_t sample_gx_nw_init_ded_bearer_actv_req =
+      {};
+  gtpv2c_cause_value_t failed_cause = REQUEST_ACCEPTED;
+  fill_nw_initiated_activate_bearer_request(
+      &sample_gx_nw_init_ded_bearer_actv_req, invalid_imsi_str,
+      DEFAULT_EPS_BEARER_ID, sample_dedicated_bearer_qos);
+
+  // check that MME bearer activation request is not sent to MME
+  EXPECT_CALL(*mme_app_handler,
+              mme_app_handle_nw_init_ded_bearer_actv_req(
+                  check_params_in_actv_bearer_req(
+                      sample_gx_nw_init_ded_bearer_actv_req.lbi,
+                      sample_gx_nw_init_ded_bearer_actv_req.ul_tft)))
+      .Times(0);
+
+  return_code = spgw_handle_nw_initiated_bearer_actv_req(
+      spgw_state, &sample_gx_nw_init_ded_bearer_actv_req, test_imsi64,
+      &failed_cause);
+
+  EXPECT_EQ(return_code, RETURNerror);
+  EXPECT_EQ(failed_cause, REQUEST_REJECTED);
+
+  // check number of pending procedures
+  EXPECT_EQ(
+      get_num_pending_create_bearer_procedures(
+          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
+      0);
+
+  // check that dedicated bearer is not created
+  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
+
+  // send network initiated dedicated bearer activation request from Session
+  // Manager with invalid lbi
+  fill_nw_initiated_activate_bearer_request(
+      &sample_gx_nw_init_ded_bearer_actv_req, test_imsi_str,
+      DEFAULT_EPS_BEARER_ID + 1, sample_dedicated_bearer_qos);
+
+  // check that MME bearer activation request is not sent to MME
+  EXPECT_CALL(*mme_app_handler,
+              mme_app_handle_nw_init_ded_bearer_actv_req(
+                  check_params_in_actv_bearer_req(
+                      sample_gx_nw_init_ded_bearer_actv_req.lbi,
+                      sample_gx_nw_init_ded_bearer_actv_req.ul_tft)))
+      .Times(0);
+
+  return_code = spgw_handle_nw_initiated_bearer_actv_req(
+      spgw_state, &sample_gx_nw_init_ded_bearer_actv_req, test_imsi64,
+      &failed_cause);
+
+  EXPECT_EQ(return_code, RETURNerror);
+  EXPECT_EQ(failed_cause, REQUEST_REJECTED);
+
+  // check number of pending procedures
+  EXPECT_EQ(
+      get_num_pending_create_bearer_procedures(
+          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
+      0);
+
+  // check that dedicated bearer is not created
+  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
+}
+
+TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivationInvalidImsiLbi) {
+  spgw_state_t* spgw_state = get_spgw_state(false);
+  status_code_e return_code = RETURNerror;
+
+  // Create session
+  teid_t ue_sgw_teid = create_default_session(spgw_state);
+
+  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
+      sgw_cm_get_spgw_context(ue_sgw_teid);
+
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
+      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+           .pdn_connection,
+      DEFAULT_EPS_BEARER_ID);
+
+  // Activate dedicated bearer
+  ebi_t ded_eps_bearer_id = activate_dedicated_bearer(
+      spgw_state, spgw_eps_bearer_ctxt_info_p, ue_sgw_teid);
+
+  // send deactivate request for dedicated bearer from Session Manager
+  // with invalid imsi
+  itti_gx_nw_init_deactv_bearer_request_t
+      sample_gx_nw_init_ded_bearer_deactv_req = {};
+  fill_nw_initiated_deactivate_bearer_request(
+      &sample_gx_nw_init_ded_bearer_deactv_req, invalid_imsi_str,
+      DEFAULT_EPS_BEARER_ID, ded_eps_bearer_id);
+
+  // check that MME does not get bearer deactivation request
+  EXPECT_CALL(*mme_app_handler,
+              mme_app_handle_nw_init_bearer_deactv_req(
+                  check_params_in_deactv_bearer_req(
+                      sample_gx_nw_init_ded_bearer_deactv_req.no_of_bearers,
+                      sample_gx_nw_init_ded_bearer_deactv_req.ebi)))
+      .Times(0);
+
+  return_code = spgw_handle_nw_initiated_bearer_deactv_req(
+      &sample_gx_nw_init_ded_bearer_deactv_req, test_imsi64);
 
   EXPECT_EQ(return_code, RETURNok);
 
-  // check if IP address is allocated after this message is done
-  EXPECT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == DEFAULT_UE_IP);
+  // check that there are 2 bearers
+  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
 
-  // send pcef create session response to SPGW
-  itti_pcef_create_session_response_t sample_pcef_csr_resp;
-  fill_pcef_create_session_response(&sample_pcef_csr_resp, PCEF_STATUS_OK,
-                                    ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
-                                    SGI_STATUS_OK);
+  // send deactivate request for dedicated bearer from Session Manager
+  // with invalid bearer id
+  fill_nw_initiated_deactivate_bearer_request(
+      &sample_gx_nw_init_ded_bearer_deactv_req, test_imsi_str,
+      DEFAULT_EPS_BEARER_ID, ded_eps_bearer_id + 1);
 
-  // check if MME gets a create session response
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
+  // check that MME does not get bearer deactivation request
+  EXPECT_CALL(*mme_app_handler,
+              mme_app_handle_nw_init_bearer_deactv_req(
+                  check_params_in_deactv_bearer_req(
+                      sample_gx_nw_init_ded_bearer_deactv_req.no_of_bearers,
+                      sample_gx_nw_init_ded_bearer_deactv_req.ebi)))
+      .Times(0);
 
-  spgw_handle_pcef_create_session_response(spgw_state, &sample_pcef_csr_resp,
-                                           test_imsi64);
-
-  // create sample modify default bearer request
-  itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
-  fill_modify_bearer_request(&sample_modify_bearer_req, DEFAULT_MME_S11_TEID,
-                             ue_sgw_teid, DEFAULT_ENB_GTP_TEID,
-                             DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
-
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
-  return_code =
-      sgw_handle_modify_bearer_request(&sample_modify_bearer_req, test_imsi64);
+  return_code = spgw_handle_nw_initiated_bearer_deactv_req(
+      &sample_gx_nw_init_ded_bearer_deactv_req, test_imsi64);
 
   EXPECT_EQ(return_code, RETURNok);
 
-  // verify that exactly one session exists in SPGW state
-  EXPECT_TRUE(is_num_ue_contexts_valid(1));
-  EXPECT_TRUE(is_num_cp_teids_valid(test_imsi64, 1));
+  // verify that the dedicated bearer is not deleted
+  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
+}
+
+TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivationReject) {
+  spgw_state_t* spgw_state = get_spgw_state(false);
+  status_code_e return_code = RETURNerror;
+
+  // Create session
+  teid_t ue_sgw_teid = create_default_session(spgw_state);
+
+  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
+      sgw_cm_get_spgw_context(ue_sgw_teid);
+
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
+      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+           .pdn_connection,
+      DEFAULT_EPS_BEARER_ID);
 
   // send network initiated dedicated bearer activation request from Session
   // Manager
@@ -1406,58 +997,26 @@ TEST_F(SPGWAppProcedureTest, TestDeleteBearerCommand) {
   teid_t ue_ded_bearer_sgw_teid =
       spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up;
 
-  // send bearer activation response from MME
+  // send bearer activation response from MME with cause=REQUEST_REJECTED
   ebi_t ded_eps_bearer_id = DEFAULT_EPS_BEARER_ID + 1;
   itti_s11_nw_init_actv_bearer_rsp_t sample_nw_init_ded_bearer_actv_resp = {};
   fill_nw_initiated_activate_bearer_response(
       &sample_nw_init_ded_bearer_actv_resp, DEFAULT_MME_S11_TEID, ue_sgw_teid,
       ue_ded_bearer_sgw_teid, DEFAULT_ENB_GTP_TEID + 1, ded_eps_bearer_id,
-      REQUEST_ACCEPTED, test_plmn);
+      REQUEST_REJECTED, test_plmn);
   return_code = sgw_handle_nw_initiated_actv_bearer_rsp(
       &sample_nw_init_ded_bearer_actv_resp, test_imsi64);
 
-  EXPECT_EQ(return_code, RETURNok);
+  EXPECT_EQ(return_code, RETURNerror);
 
-  // check that bearer is created
-  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
+  // check that the dedicated bearer is not created
+  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
 
   // check that no pending procedure is left
   EXPECT_EQ(
       get_num_pending_create_bearer_procedures(
           &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
       0);
-
-  // create and send delete bearer command to SPGW task
-  itti_s11_delete_bearer_command_t s11_delete_bearer_command = {};
-  fill_s11_delete_bearer_command(&s11_delete_bearer_command, ue_sgw_teid,
-                                 DEFAULT_MME_S11_TEID, ded_eps_bearer_id);
-
-  // check that MME gets a bearer deactivation request
-  EXPECT_CALL(*mme_app_handler,
-              mme_app_handle_nw_init_bearer_deactv_req(
-                  check_params_in_deactv_bearer_req(
-                      1, s11_delete_bearer_command.ebi_list.ebis)))
-      .Times(1);
-
-  // Trigger delete bearer command
-  sgw_handle_delete_bearer_cmd(&s11_delete_bearer_command, test_imsi64);
-
-  // send a delete dedicated bearer response from MME
-  itti_s11_nw_init_deactv_bearer_rsp_t sample_nw_init_ded_bearer_deactv_resp =
-      {};
-  int num_bearers_to_delete = 1;
-  ebi_t eps_bearer_id_array[] = {ded_eps_bearer_id};
-
-  fill_nw_initiated_deactivate_bearer_response(
-      &sample_nw_init_ded_bearer_deactv_resp, test_imsi64, false,
-      REQUEST_ACCEPTED, eps_bearer_id_array, num_bearers_to_delete,
-      ue_sgw_teid);
-  return_code = sgw_handle_nw_initiated_deactv_bearer_rsp(
-      spgw_state, &sample_nw_init_ded_bearer_deactv_resp, test_imsi64);
-  EXPECT_EQ(return_code, RETURNok);
-
-  // check that the dedicated bearer is deleted
-  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));

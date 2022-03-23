@@ -21,7 +21,6 @@ from magma.db_service.models import (
     DBActiveModeConfig,
     DBCbsd,
     DBCbsdState,
-    DBChannel,
     DBGrant,
     DBGrantState,
     DBLog,
@@ -251,11 +250,11 @@ class DPService(DPServiceServicer):
         session.add(active_mode_config)
         return active_mode_config
 
-    def _get_channel_with_authorized_grant(self, session: Session, cbsd: DBCbsd) -> DBChannel:
+    def _get_authorized_grant(self, session: Session, cbsd: DBCbsd) -> DBGrant:
         authorized_state = session.query(DBGrantState). \
             filter(DBGrantState.name == GrantStates.AUTHORIZED.value).first()
-        channel = session.query(DBChannel).join(DBGrant).filter(
-            DBChannel.cbsd_id == cbsd.id,
+        grant = session.query(DBGrant).filter(
+            DBGrant.cbsd_id == cbsd.id,
             DBGrant.state_id == authorized_state.id,
             (DBGrant.transmit_expire_time == None) | (  # noqa: WPS465,E711
                 DBGrant.transmit_expire_time > now()
@@ -264,22 +263,20 @@ class DPService(DPServiceServicer):
                 DBGrant.grant_expire_time > now()
             ),
         ).first()
-        return channel
+        return grant
 
     def _build_result(self, cbsd: Optional[DBCbsd] = None, session: Optional[Session] = None):
         if not cbsd:
             return CBSDStateResult(radio_enabled=False)
-        channel = self._get_channel_with_authorized_grant(
-            session, cbsd,
-        )
-        if not channel or cbsd.is_deleted:
+        grant = self._get_authorized_grant(session, cbsd)
+        if not grant or cbsd.is_deleted:
             return CBSDStateResult(radio_enabled=False)
         return CBSDStateResult(
             radio_enabled=True,
             channel=LteChannel(
-                low_frequency_hz=channel.low_frequency,
-                high_frequency_hz=channel.high_frequency,
-                max_eirp_dbm_mhz=channel.last_used_max_eirp,
+                low_frequency_hz=grant.low_frequency,
+                high_frequency_hz=grant.high_frequency,
+                max_eirp_dbm_mhz=grant.max_eirp,
             ),
         )
 

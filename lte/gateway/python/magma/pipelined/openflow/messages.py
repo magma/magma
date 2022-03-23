@@ -318,7 +318,7 @@ class MessageHub(object):
         flow_match = strip_common(match_flow) == strip_common(match_msg)
 
         return flow_match and reg_loads_match and resubmits_match and \
-               outputs_match
+            outputs_match
 
     def _get_msg_index_in_flow_list(self, dp, msg, flow_list):
         for i in range(len(flow_list)):

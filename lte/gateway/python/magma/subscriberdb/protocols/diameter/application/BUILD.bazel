@@ -27,6 +27,6 @@ py_library(
         "//lte/gateway/python/magma/subscriberdb/protocols/diameter",
         "//lte/gateway/python/magma/subscriberdb/store:base",
         "//lte/gateway/python/magma/subscriberdb/subscription:utils",
-        "//orc8r/gateway/python/magma/common:service",
+        "//orc8r/gateway/python/magma/common:service_registry",
     ],
 )

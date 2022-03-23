@@ -25,7 +25,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/gateway/service_registry"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 // getHealthClient is a utility function to get an RPC connection to the
@@ -36,7 +36,7 @@ func getHealthClient(cloudRegistry service_registry.GatewayRegistry) (protos.Hea
 	}
 	conn, err := cloudRegistry.GetCloudConnection("HEALTH")
 	if err != nil {
-		initErr := errors.NewInitError(err, "HEALTH")
+		initErr := merrors.NewInitError(err, "HEALTH")
 		glog.Error(initErr)
 		return nil, nil, initErr
 	}

@@ -11,12 +11,9 @@
 
 load("@rules_python//python:defs.bzl", "py_library")
 
-ORC8R_ROOT = "../../../../"
-
 py_library(
     name = "cpu_info",
     srcs = ["cpu_info.py"],
-    imports = [ORC8R_ROOT],
     visibility = ["//visibility:public"],
     deps = ["//orc8r/gateway/python/magma/magmad/check:subprocess_workflow"],
 )

@@ -34,4 +34,6 @@ std::string uint8_to_hex_string(const uint8_t* v, const size_t s);
 status_code_e amf_send_msg_to_task(task_zmq_ctx_t* task_zmq_ctx_p,
                                    task_id_t destination_task_id,
                                    MessageDef* message);
+int paa_to_address_info(const paa_t* paa, uint8_t* pdu_address_info,
+                        uint8_t* pdu_address_length);
 }  // namespace magma5g

@@ -108,11 +108,4 @@ TEST_F(ControllerTest, TestMultipleApplications) {
   default_message_callback(OFPT_PACKET_IN_TYPE);
   default_connection_callback(OFConnection::EVENT_CLOSED);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  ::testing::InitGoogleMock(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace

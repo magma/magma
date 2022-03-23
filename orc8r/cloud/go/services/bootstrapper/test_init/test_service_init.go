@@ -32,7 +32,7 @@ func StartTestService(t *testing.T) {
 	factory := test_utils.NewSQLBlobstore(t, "bootstrapper_test_service_blobstore")
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, bootstrapper.ServiceName)
 	store := registration.NewBlobstoreStore(factory)
-	cloudRegistrationServicer, err := registration.NewCloudRegistrationServicer(store, "rootCA", 30*time.Minute, false)
+	cloudRegistrationServicer, err := registration.NewCloudRegistrationServicer(store, "rootCA", "magma.test", 30*time.Minute, false)
 	assert.NoError(t, err)
 	registrationServicer := registration.NewRegistrationServicer()
 

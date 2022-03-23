@@ -23,20 +23,20 @@ module "orc8r" {
 
   region = "us-west-2"
 
-  eks_worker_groups =[ {
+  eks_worker_groups = [{
     name                 = "wg-1"
     instance_type        = "t3.small"
     asg_desired_capacity = 8
     asg_min_size         = 1
     asg_max_size         = 8
     autoscaling_enabled  = false
-    kubelet_extra_args = "" // object types must be identical (see thanos_worker_groups)
+    kubelet_extra_args   = "" // object types must be identical (see thanos_worker_groups)
   }]
 
   # If you performing a fresh Orc8r install, choose a recent Postgres version
   # orc8r_db_engine_version     = "12.6"
-  orc8r_db_password = "mypassword" # must be at least 8 characters
-  orc8r_db_instance_class     = "db.t3.micro"
+  orc8r_db_password       = "mypassword" # must be at least 8 characters
+  orc8r_db_instance_class = "db.t3.micro"
 
   secretsmanager_orc8r_secret = "orc8r-secrets"
   orc8r_domain_name           = "orc8r.example.com"
@@ -44,8 +44,8 @@ module "orc8r" {
   orc8r_sns_email             = "admin@example.com"
   enable_aws_db_notifications = true
 
-  vpc_name        = "orc8r"
-  cluster_name    = "orc8r"
+  vpc_name     = "orc8r"
+  cluster_name = "orc8r"
 
   deploy_elasticsearch          = true
   elasticsearch_domain_name     = "orc8r-es"
@@ -85,9 +85,9 @@ module "orc8r-app" {
   docker_pass     = ""
 
   # Note that this can be any Helm chart repo provider
-  helm_repo       = "https://artifactory.magmacore.org/artifactory/helm"
-  helm_user       = ""
-  helm_pass       = ""
+  helm_repo      = "https://artifactory.magmacore.org/artifactory/helm"
+  helm_user      = ""
+  helm_pass      = ""
   eks_cluster_id = module.orc8r.eks_cluster_id
 
   efs_file_system_id       = module.orc8r.efs_file_system_id

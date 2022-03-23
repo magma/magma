@@ -25,7 +25,7 @@ buildifier_test(
     timeout = "short",
     srcs = ["//:starlark_files"],
     lint_mode = "warn",
-    lint_warnings = ["all"],
+    lint_warnings = ["-unused-variable"],
     verbose = True,
 )
 
@@ -66,7 +66,6 @@ filegroup(
 # gazelle:exclude lte/
 # gazelle:exclude feg/
 # gazelle:exclude cwf/
-# gazelle:exclude fbinternal/
 # TODO: Remove when we move proto generation to bazel - this prevents gazelle from causing import issues in the meantime.
 # gazelle:exclude **/*.proto/
 gazelle(name = "gazelle")

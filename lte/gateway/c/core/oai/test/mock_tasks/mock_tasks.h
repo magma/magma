@@ -10,6 +10,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -108,6 +110,7 @@ class MockSpgwHandler {
   MOCK_METHOD0(sgw_handle_modify_bearer_request, void());
   MOCK_METHOD0(sgw_handle_release_access_bearers_request, void());
   MOCK_METHOD0(sgw_handle_nw_initiated_actv_bearer_rsp, void());
+  MOCK_METHOD0(sgw_handle_nw_initiated_deactv_bearer_rsp, void());
 };
 
 class MockService303Handler {

@@ -188,13 +188,15 @@ class DBGrant(Base):
         ), nullable=False,
     )
     cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"))
-    channel_id = Column(Integer, ForeignKey("channels.id", ondelete="CASCADE"))
     grant_id = Column(String, nullable=False)
     grant_expire_time = Column(DateTime(timezone=True))
     transmit_expire_time = Column(DateTime(timezone=True))
     heartbeat_interval = Column(Integer)
     last_heartbeat_request_time = Column(DateTime(timezone=True))
     channel_type = Column(String)
+    low_frequency = Column(BigInteger, nullable=False)
+    high_frequency = Column(BigInteger, nullable=False)
+    max_eirp = Column(Float, nullable=False)
     created_date = Column(
         DateTime(timezone=True),
         nullable=False, server_default=now(),
@@ -214,10 +216,6 @@ class DBGrant(Base):
     )
     cbsd = relationship(
         "DBCbsd", back_populates="grants", cascade="all, delete",
-        passive_deletes=True,
-    )
-    channel = relationship(
-        "DBChannel", back_populates="grants", cascade="all, delete",
         passive_deletes=True,
     )
 
@@ -286,8 +284,10 @@ class DBCbsd(Base):
     max_power = Column(Float)
     antenna_gain = Column(Float)
     number_of_ports = Column(Integer)
+    grant_attempts = Column(Integer, nullable=False, server_default='0')
     network_id = Column(String)
     is_deleted = Column(Boolean, nullable=False, server_default='false')
+    is_updated = Column(Boolean, nullable=False, server_default='false')
     created_date = Column(
         DateTime(timezone=True),
         nullable=False, server_default=now(),
@@ -346,7 +346,6 @@ class DBChannel(Base):
     channel_type = Column(String, nullable=False)
     rule_applied = Column(String, nullable=False)
     max_eirp = Column(Float)
-    last_used_max_eirp = Column(Float)
     created_date = Column(
         DateTime(timezone=True),
         nullable=False, server_default=now(),
@@ -358,10 +357,6 @@ class DBChannel(Base):
 
     cbsd = relationship(
         "DBCbsd", back_populates="channels", cascade="all, delete",
-        passive_deletes=True,
-    )
-    grants = relationship(
-        "DBGrant", back_populates="channel", cascade="all, delete",
         passive_deletes=True,
     )
 

@@ -36,7 +36,7 @@ class DHCPState(IntEnum):
 class DHCPDescriptor:
     def __init__(
         self, mac: MacAddress, ip: str,
-        state_requested: DHCPState, vlan: str,
+        state_requested: DHCPState, vlan: int,
         state: DHCPState = DHCPState.UNKNOWN,
         subnet: str = None, server_ip: str = None,
         router_ip: str = None, lease_expiration_time: int = 0,
@@ -94,6 +94,7 @@ class DHCPDescriptor:
         if self.state == DHCPState.OFFER or self.state == DHCPState.REQUEST \
                 or self.state == DHCPState.ACK:
             return self.ip
+        return None
 
     def ip_is_allocated(self) -> bool:
         """

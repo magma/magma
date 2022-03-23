@@ -69,7 +69,7 @@ generate_grpc_protos("${HASRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
 # AMF
-set(AMFSRV_M5G_CPP_PROTOS apn subscriberdb session_manager subscriberauth)
+set(AMFSRV_M5G_CPP_PROTOS apn subscriberdb session_manager diam_errors subscriberauth)
 set(AMFSRV_M5G_GRPC_PROTOS session_manager subscriberauth)
 generate_cpp_protos("${AMFSRV_M5G_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
@@ -138,7 +138,6 @@ target_link_libraries(TASK_GRPC_SERVICE
     LIB_HASHTABLE
     ${PROTOBUF_LIBRARIES}
     grpc++
-    folly
     TASK_SGS
     TASK_S6A
     TASK_SMS_ORC8R

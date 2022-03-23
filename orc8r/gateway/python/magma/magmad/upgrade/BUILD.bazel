@@ -11,19 +11,15 @@
 
 load("@rules_python//python:defs.bzl", "py_library")
 
-ORC8R_ROOT = "../../../"
-
 py_library(
     name = "upgrader",
     srcs = ["upgrader.py"],
-    imports = [ORC8R_ROOT],
     visibility = ["//visibility:public"],
 )
 
 py_library(
     name = "magma_upgrader",
     srcs = ["magma_upgrader.py"],
-    imports = [ORC8R_ROOT],
     visibility = ["//visibility:public"],
     deps = ["//orc8r/gateway/python/magma/common:misc_utils"],
 )
@@ -31,7 +27,6 @@ py_library(
 py_library(
     name = "upgrader2",
     srcs = ["upgrader2.py"],
-    imports = [ORC8R_ROOT],
     visibility = ["//visibility:public"],
     deps = [
         ":upgrader",

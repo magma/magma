@@ -15,6 +15,7 @@
 #include <gmock/gmock-matchers.h>
 
 extern "C" {
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
@@ -26,6 +27,8 @@ using std::vector;
 
 namespace magma {
 namespace lte {
+
+extern task_zmq_ctx_t task_zmq_ctx_main;
 
 #define MME_APP_TIMER_TO_MSEC 10
 #define STATE_MAX_WAIT_MS 2000
@@ -41,11 +44,11 @@ namespace lte {
   do {                                                                         \
     EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport)           \
         .Times(dlNas)                                                          \
-        .WillRepeatedly(                                                       \
-            DoAll(SaveArg<0>(&msg_nas_dl_data), ReturnFromAsyncTask(&cv)));    \
-    EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf(_))                    \
+        .WillRepeatedly(testing::DoAll(testing::SaveArg<0>(&msg_nas_dl_data),  \
+                                       ReturnFromAsyncTask(&cv)));             \
+    EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf(testing::_))           \
         .Times(connEstConf)                                                    \
-        .WillRepeatedly(SaveArg<0>(&nas_msg));                                 \
+        .WillRepeatedly(testing::SaveArg<0>(&nas_msg));                        \
     EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command())       \
         .Times(ctxRel)                                                         \
         .WillRepeatedly(ReturnFromAsyncTask(&cv));                             \

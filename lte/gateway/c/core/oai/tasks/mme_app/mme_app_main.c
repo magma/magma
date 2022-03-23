@@ -50,6 +50,9 @@
 #include "lte/gateway/c/core/oai/include/mme_app_state.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
+#if MME_BENCHMARK
+#include "lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.h"
+#endif
 
 static void check_mme_healthy_and_notify_service(void);
 static bool is_mme_app_healthy(void);
@@ -459,6 +462,15 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           mme_app_desc_p, &S1AP_REMOVE_STALE_UE_CONTEXT(received_message_p));
     } break;
 
+#if MME_BENCHMARK
+    case MME_APP_TEST_PROTOBUF_SERIALIZATION: {
+      mme_app_test_protobuf_serialization(
+          mme_app_desc_p,
+          MME_APP_TEST_PROTOBUF_SERIALIZATION(received_message_p).num_ues);
+      force_ue_write = false;
+      is_task_state_same = true;
+    } break;
+#endif
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
       free(received_message_p);
@@ -503,7 +515,9 @@ static void* mme_app_thread(__attribute__((unused)) void* args) {
 
   zloop_start(mme_app_task_zmq_ctx.event_loop);
   AssertFatal(0,
-              "Asserting as mme_app_thread should not be exiting on its own!");
+              "Asserting as mme_app_thread should not be exiting on its own! "
+              "This is likely due to a timer handler function returning -1 "
+              "(RETURNerror) on one of the conditions.");
   return NULL;
 }
 

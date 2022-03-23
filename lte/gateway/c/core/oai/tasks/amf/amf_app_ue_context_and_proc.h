@@ -105,7 +105,7 @@ struct amf_procedures_t;
 #define PDU_ADDR_IPV4_LEN 0x4
 #define GNB_IPV4_ADDR_LEN 4
 #define GNB_TEID_LEN 4
-
+#define DIAMETER_TOO_BUSY 3004
 #define NON_AMF_3GPP_ACCESS 2
 #define AMF_3GPP_ACCESS_AND_NON_AMF_3GPP_ACCESS 3
 
@@ -271,6 +271,7 @@ typedef struct smf_context_s {
   session_ambr_t selected_ambr;
   teid_upf_gnb_t gtp_tunnel_id;
   paa_t pdu_address;
+  eps_subscribed_qos_profile_t subscribed_qos;
   ambr_t apn_ambr;
   smf_proc_data_t smf_proc_data;
   struct nas5g_timer_s T3592;  // PDU_SESSION_RELEASE command timer
@@ -350,6 +351,8 @@ typedef struct amf_context_s {
   apn_config_profile_t apn_config_profile;
 
   amf_nas_message_decode_status_t decode_status;
+  nas5g_timer_t auth_retry_timer;
+  uint32_t auth_retry_count = 0;
 } amf_context_t;
 
 // Amf-Map Declarations:

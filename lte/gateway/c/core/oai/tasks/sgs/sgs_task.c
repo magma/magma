@@ -181,7 +181,10 @@ static void* sgs_thread(__attribute__((unused)) void* args_p) {
                     task_zmq_ctx_p);
 
   zloop_start(task_zmq_ctx_p->event_loop);
-  AssertFatal(0, "Asserting as sgs_thread should not be exiting on its own!");
+  AssertFatal(0,
+              "Asserting as sgs_thread should not be exiting on its own! "
+              "This is likely due to a timer handler function returning -1 "
+              "(RETURNerror) on one of the conditions.");
   return NULL;
 }
 

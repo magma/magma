@@ -399,10 +399,4 @@ TEST_F(StoredStateTest, test_policy_stats_map) {
   // Check that the value is empty by default
   EXPECT_FALSE(get_default_update_criteria().policy_version_and_stats);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

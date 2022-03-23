@@ -29,7 +29,7 @@ class TestAttachDetachWithMmeRestart(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach(self):
+    def test_attach_detach_with_mme_restart(self):
         """
         Basic attach/detach test with two UEs,
         where MME restarts between each attach and detach

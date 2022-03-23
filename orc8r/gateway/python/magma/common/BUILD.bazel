@@ -28,7 +28,7 @@ py_library(
 py_library(
     name = "rpc_utils",
     srcs = ["rpc_utils.py"],
-    deps = [":service"],
+    deps = [":service_registry"],
 )
 
 py_library(
@@ -43,27 +43,24 @@ py_library(
 py_library(
     name = "cert_utils",
     srcs = ["cert_utils.py"],
-    deps = [
-        ":service",
-        requirement("cryptography"),
-    ],
+    deps = [requirement("cryptography")],
 )
 
 py_library(
     name = "service",
     srcs = [
-        "job.py",
         "log_count_handler.py",
         "log_counter.py",
         "metrics.py",
         "metrics_export.py",
-        "serialization_utils.py",
         "service.py",
-        "service_registry.py",
     ],
     deps = [
+        ":job",
+        ":serialization_utils",
+        ":service_registry",
         "//orc8r/gateway/python/magma/configuration:mconfig_managers",
-        "//orc8r/gateway/python/magma/configuration:service_configs",
+        "//orc8r/protos:metrics_python_proto",
         "//orc8r/protos:metricsd_python_proto",
         "//orc8r/protos:service303_python_grpc",
         requirement("prometheus_client"),
@@ -72,9 +69,28 @@ py_library(
 )
 
 py_library(
+    name = "job",
+    srcs = ["job.py"],
+)
+
+py_library(
+    name = "service_registry",
+    srcs = ["service_registry.py"],
+    deps = ["//orc8r/gateway/python/magma/configuration:service_configs"],
+)
+
+py_library(
+    name = "serialization_utils",
+    srcs = ["serialization_utils.py"],
+)
+
+py_library(
     name = "streamer",
     srcs = ["streamer.py"],
-    deps = ["//orc8r/protos:streamer_python_grpc"],
+    deps = [
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/protos:streamer_python_grpc",
+    ],
 )
 
 py_library(
@@ -87,7 +103,7 @@ py_library(
     name = "grpc_client_manager",
     srcs = ["grpc_client_manager.py"],
     deps = [
-        ":service",
+        ":service_registry",
         requirement("grpcio"),
         requirement("psutil"),
     ],
@@ -96,7 +112,10 @@ py_library(
 py_library(
     name = "sdwatchdog",
     srcs = ["sdwatchdog.py"],
-    deps = [requirement("systemd")],
+    deps = [
+        requirement("systemd"),
+        ":job",
+    ],
 )
 
 py_library(

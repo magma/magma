@@ -11,11 +11,8 @@
 
 load("@rules_python//python:defs.bzl", "py_library")
 
-ORC8R_ROOT = "../../../"
-
 py_library(
     name = "subprocess_workflow",
     srcs = ["subprocess_workflow.py"],
-    imports = [ORC8R_ROOT],
     visibility = ["//visibility:public"],
 )

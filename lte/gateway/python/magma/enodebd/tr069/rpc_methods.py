@@ -97,7 +97,7 @@ class AutoConfigServer(ServiceBase):
         req = cls._get_tr069_response_from_sm(ctx, message)
 
         # Log outgoing msg
-        logger.debug('Sending TR069 message: %s', str(as_dict(req)))
+        logger.debug('Sending TR069 message: %s %s', req.__class__.__name__, str(as_dict(req)))
 
         # Set header
         ctx.out_header = models.ID(mustUnderstand='1')

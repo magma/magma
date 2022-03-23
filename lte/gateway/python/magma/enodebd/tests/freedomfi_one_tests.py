@@ -12,6 +12,7 @@ limitations under the License.
 """
 import logging
 import os
+from copy import deepcopy
 from unittest import TestCase
 from unittest.mock import Mock, call, patch
 
@@ -36,7 +37,13 @@ from magma.enodebd.devices.freedomfi_one import (
     ff_one_update_desired_config_from_cbsd_state,
 )
 from magma.enodebd.exceptions import ConfigurationError
-from magma.enodebd.state_machines.enb_acs_states import WaitInformMRebootState
+from magma.enodebd.state_machines.acs_state_utils import (
+    get_firmware_upgrade_download_config,
+)
+from magma.enodebd.state_machines.enb_acs_states import (
+    FirmwareUpgradeDownloadState,
+    WaitInformMRebootState,
+)
 from magma.enodebd.tests.test_utils.config_builder import EnodebConfigBuilder
 from magma.enodebd.tests.test_utils.enb_acs_builder import (
     EnodebAcsStateMachineBuilder,
@@ -455,7 +462,9 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
         mock_get_state.return_value = MOCK_CBSD_STATE
 
         logging.root.level = logging.DEBUG
-        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.FREEDOMFI_ONE)
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(
+            EnodebDeviceName.FREEDOMFI_ONE,
+        )
         acs_state_machine._service.config = _get_service_config()
         acs_state_machine.desired_cfg = build_desired_config(
             acs_state_machine.mconfig,
@@ -544,8 +553,12 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
 
         mock_get_state.return_value = MOCK_CBSD_STATE
 
-        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.FREEDOMFI_ONE)
-        acs_state_machine._service.config = _get_service_config(dp_mode=dp_mode)
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(
+            EnodebDeviceName.FREEDOMFI_ONE,
+        )
+        acs_state_machine._service.config = _get_service_config(
+            dp_mode=dp_mode,
+        )
         acs_state_machine.desired_cfg = build_desired_config(
             acs_state_machine.mconfig,
             acs_state_machine.service_config,
@@ -555,12 +568,20 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
         )
 
         # Need to fill these values in the device_cfg if we're going to transition to notify_dp state
-        acs_state_machine.device_cfg.set_parameter(SASParameters.SAS_USER_ID, 'test_user')
-        acs_state_machine.device_cfg.set_parameter(SASParameters.SAS_FCC_ID, 'test_fcc')
-        acs_state_machine.device_cfg.set_parameter(ParameterName.SERIAL_NUMBER, 'test_sn')
+        acs_state_machine.device_cfg.set_parameter(
+            SASParameters.SAS_USER_ID, 'test_user',
+        )
+        acs_state_machine.device_cfg.set_parameter(
+            SASParameters.SAS_FCC_ID, 'test_fcc',
+        )
+        acs_state_machine.device_cfg.set_parameter(
+            ParameterName.SERIAL_NUMBER, 'test_sn',
+        )
         acs_state_machine.transition('check_wait_get_params')
 
-        msg = Tr069MessageBuilder.param_values_qrtb_response([], models.GetParameterValuesResponse)
+        msg = Tr069MessageBuilder.param_values_qrtb_response(
+            [], models.GetParameterValuesResponse,
+        )
 
         # SM should transition from check_wait_get_params to end_session -> notify_dp automatically
         # upon receiving response from the radio
@@ -573,7 +594,10 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
         # SM should go into wait_inform state, respond with Inform response and transition to FreedomFiOneGetInitState
         acs_state_machine.handle_tr069_message(msg)
 
-        self.assertIsInstance(acs_state_machine.state, FreedomFiOneGetInitState)
+        self.assertIsInstance(
+            acs_state_machine.state,
+            FreedomFiOneGetInitState,
+        )
 
     def test_manual_reboot_during_provisioning(self) -> None:
         """
@@ -584,7 +608,9 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
         of a TR-069 provisioning session.
         """
         logging.root.level = logging.DEBUG
-        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.FREEDOMFI_ONE)
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(
+            EnodebDeviceName.FREEDOMFI_ONE,
+        )
 
         # Send an Inform message, wait for an InformResponse
         inform = Tr069MessageBuilder.get_inform(
@@ -631,7 +657,10 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
         )
         resp = acs_state_machine.handle_tr069_message(inform)
         self.assertIsInstance(resp, models.InformResponse)
-        self.assertIsInstance(acs_state_machine.state, FreedomFiOneGetInitState)
+        self.assertIsInstance(
+            acs_state_machine.state,
+            FreedomFiOneGetInitState,
+        )
 
     def test_post_processing_in_dp_mode(self) -> None:
         """ Test FreedomFi One specific post processing functionality in Domain Proxy mode"""
@@ -645,12 +674,24 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
                 param_name=FreedomFiOneMiscParameters.TUNNEL_REF,
                 value='Device.IP.Interface.1.IPv4Address.1.',
             ),
-            call.set_parameter(param_name=FreedomFiOneMiscParameters.CARRIER_AGG_ENABLE, value=True),
-            call.set_parameter(param_name=FreedomFiOneMiscParameters.CARRIER_NUMBER, value=2),
-            call.set_parameter(param_name=FreedomFiOneMiscParameters.CONTIGUOUS_CC, value=0),
-            call.set_parameter(param_name=FreedomFiOneMiscParameters.WEB_UI_ENABLE, value=False),
-            call.set_parameter(param_name=SASParameters.SAS_ENABLE, value=True),
-            call.set_parameter(param_name=SASParameters.SAS_METHOD, value=False),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.CARRIER_AGG_ENABLE, value=True,
+            ),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.CARRIER_NUMBER, value=2,
+            ),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.CONTIGUOUS_CC, value=0,
+            ),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.WEB_UI_ENABLE, value=False,
+            ),
+            call.set_parameter(
+                param_name=SASParameters.SAS_ENABLE, value=True,
+            ),
+            call.set_parameter(
+                param_name=SASParameters.SAS_METHOD, value=False,
+            ),
             call.set_parameter_for_object(
                 param_name='PLMN 1 cell reserved',
                 value=True, object_name='PLMN 1',
@@ -671,12 +712,24 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
                 param_name=FreedomFiOneMiscParameters.TUNNEL_REF,
                 value='Device.IP.Interface.1.IPv4Address.1.',
             ),
-            call.set_parameter(param_name=FreedomFiOneMiscParameters.CARRIER_AGG_ENABLE, value=True),
-            call.set_parameter(param_name=FreedomFiOneMiscParameters.CARRIER_NUMBER, value=2),
-            call.set_parameter(param_name=FreedomFiOneMiscParameters.CONTIGUOUS_CC, value=0),
-            call.set_parameter(param_name=FreedomFiOneMiscParameters.WEB_UI_ENABLE, value=False),
-            call.set_parameter(param_name=SASParameters.SAS_ENABLE, value=True),
-            call.set_parameter(param_name=SASParameters.SAS_METHOD, value=False),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.CARRIER_AGG_ENABLE, value=True,
+            ),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.CARRIER_NUMBER, value=2,
+            ),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.CONTIGUOUS_CC, value=0,
+            ),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.WEB_UI_ENABLE, value=False,
+            ),
+            call.set_parameter(
+                param_name=SASParameters.SAS_ENABLE, value=True,
+            ),
+            call.set_parameter(
+                param_name=SASParameters.SAS_METHOD, value=False,
+            ),
             call.set_parameter_for_object(
                 param_name='PLMN 1 cell reserved',
                 value=True, object_name='PLMN 1',
@@ -721,12 +774,24 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
                 param_name=FreedomFiOneMiscParameters.TUNNEL_REF,
                 value='Device.IP.Interface.1.IPv4Address.1.',
             ),
-            call.set_parameter(param_name=FreedomFiOneMiscParameters.CARRIER_AGG_ENABLE, value=True),
-            call.set_parameter(param_name=FreedomFiOneMiscParameters.CARRIER_NUMBER, value=2),
-            call.set_parameter(param_name=FreedomFiOneMiscParameters.CONTIGUOUS_CC, value=0),
-            call.set_parameter(param_name=FreedomFiOneMiscParameters.WEB_UI_ENABLE, value=False),
-            call.set_parameter(param_name=SASParameters.SAS_ENABLE, value=True),
-            call.set_parameter(param_name=SASParameters.SAS_METHOD, value=False),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.CARRIER_AGG_ENABLE, value=True,
+            ),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.CARRIER_NUMBER, value=2,
+            ),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.CONTIGUOUS_CC, value=0,
+            ),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.WEB_UI_ENABLE, value=False,
+            ),
+            call.set_parameter(
+                param_name=SASParameters.SAS_ENABLE, value=True,
+            ),
+            call.set_parameter(
+                param_name=SASParameters.SAS_METHOD, value=False,
+            ),
             call.set_parameter_for_object(
                 param_name='PLMN 1 cell reserved',
                 value=True, object_name='PLMN 1',
@@ -760,17 +825,31 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
                 param_name=FreedomFiOneMiscParameters.TUNNEL_REF,
                 value='Device.IP.Interface.1.IPv4Address.1.',
             ),
-            call.set_parameter(param_name=FreedomFiOneMiscParameters.CARRIER_AGG_ENABLE, value=True),
-            call.set_parameter(param_name=FreedomFiOneMiscParameters.CARRIER_NUMBER, value=2),
-            call.set_parameter(param_name=FreedomFiOneMiscParameters.CONTIGUOUS_CC, value=0),
-            call.set_parameter(param_name=FreedomFiOneMiscParameters.WEB_UI_ENABLE, value=False),
-            call.set_parameter(param_name=SASParameters.SAS_ENABLE, value=True),
-            call.set_parameter(param_name=SASParameters.SAS_METHOD, value=False),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.CARRIER_AGG_ENABLE, value=True,
+            ),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.CARRIER_NUMBER, value=2,
+            ),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.CONTIGUOUS_CC, value=0,
+            ),
+            call.set_parameter(
+                param_name=FreedomFiOneMiscParameters.WEB_UI_ENABLE, value=False,
+            ),
+            call.set_parameter(
+                param_name=SASParameters.SAS_ENABLE, value=True,
+            ),
+            call.set_parameter(
+                param_name=SASParameters.SAS_METHOD, value=False,
+            ),
             call.set_parameter_for_object(
                 param_name='PLMN 1 cell reserved',
                 value=True, object_name='PLMN 1',
             ),
-            call.set_parameter(FreedomFiOneMiscParameters.WEB_UI_ENABLE, value=True),
+            call.set_parameter(
+                FreedomFiOneMiscParameters.WEB_UI_ENABLE, value=True,
+            ),
             call.set_parameter(SASParameters.SAS_METHOD, value=True),
             call.set_parameter(FreedomFiOneMiscParameters.PRIM_SOURCE, 'GNSS'),
         ]
@@ -779,7 +858,9 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
 
     def _check_postprocessing(self, expected, service_cfg):
         cfg_desired = Mock()
-        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.FREEDOMFI_ONE)
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(
+            EnodebDeviceName.FREEDOMFI_ONE,
+        )
         acs_state_machine.device_cfg.set_parameter(
             ParameterName.SERIAL_NUMBER,
             "2006CW5000023",
@@ -944,6 +1025,278 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
         self.assertEqual(expected, device_config.mock_calls)
 
 
+class FreedomFiOneFirmwareUpgradeDownloadTests(EnodebHandlerTestCase):
+    """
+    Class for testing firmware upgrade download flow.
+
+    Firmware upgrade download request should initiate in certain configurations.
+    When initiated, a sequence of TR069 exchange needs to happen in order to
+    schedule a download on the eNB.
+
+    Firmware upgrade procedure on FreedomFi one eNB starts at any time after
+    eNB reports TransferComplete, at which point the eNB will reboot on its own.
+    So we only test the TR069 message sequencing and configuration interpretation.
+    """
+    # helper variables
+    _enb_serial = "sercomm_serial_123"
+    _enb_sw_version = "sercomm_firmware_v0.0"
+    _new_sw_version = "sercomm_firmware_v1.0"
+    _no_url_sw_version = "sercomm_no_url_firmware"
+    _sw_url = "http://fw_url/fw_file.ffw"
+
+    _firmwares = {
+        _enb_sw_version: {'url': _sw_url},
+        _new_sw_version: {'url': _sw_url},
+        _no_url_sw_version: {},
+    }
+
+    # configs which should not lead to firmware upgrade download flow
+    config_empty = {'firmwares': {}, 'enbs': {}, 'models': {}}
+
+    config_just_firmwares = deepcopy(config_empty)
+    config_just_firmwares['firmwares'] = _firmwares
+
+    config_just_enbs = deepcopy(config_empty)
+    config_just_enbs['enbs'][_enb_serial] = _new_sw_version
+
+    config_just_models = deepcopy(config_empty)
+    config_just_models['models'][EnodebDeviceName.FREEDOMFI_ONE] = _new_sw_version
+
+    config_enb_fw_up_to_date = deepcopy(config_just_firmwares)
+    config_enb_fw_up_to_date['enbs'][_enb_serial] = _enb_sw_version
+
+    config_model_fw_up_to_date = deepcopy(config_just_firmwares)
+    config_model_fw_up_to_date['models'][EnodebDeviceName.FREEDOMFI_ONE] = _enb_sw_version
+
+    config_enb_has_fw_version_without_url = deepcopy(config_just_firmwares)
+    config_enb_has_fw_version_without_url['enbs'][_enb_serial] = _no_url_sw_version
+
+    config_model_has_fw_version_without_url = deepcopy(config_just_firmwares)
+    config_model_has_fw_version_without_url['models'][EnodebDeviceName.FREEDOMFI_ONE] = _no_url_sw_version
+
+    config_enb_fw_up_to_date_but_model_has_upgrade = deepcopy(
+        config_enb_fw_up_to_date,
+    )
+    config_enb_fw_up_to_date_but_model_has_upgrade['models'][
+        EnodebDeviceName.FREEDOMFI_ONE
+    ] = _new_sw_version
+
+    # valid configs which should initiate fw upgrade
+    config_enb_fw_upgrade = deepcopy(config_just_firmwares)
+    config_enb_fw_upgrade['enbs'][_enb_serial] = _new_sw_version
+
+    config_model_fw_upgrade = deepcopy(config_just_firmwares)
+    config_model_fw_upgrade['models'][EnodebDeviceName.FREEDOMFI_ONE] = _new_sw_version
+
+    config_enb_fw_upgrade_but_model_fw_up_to_date = deepcopy(
+        config_enb_fw_upgrade,
+    )
+    config_enb_fw_upgrade_but_model_fw_up_to_date['models'][
+        EnodebDeviceName.FREEDOMFI_ONE
+    ] = _enb_sw_version
+
+    @parameterized.expand([
+        (config_empty,),
+        (config_just_firmwares,),
+        (config_just_enbs,),
+        (config_just_models,),
+        (config_enb_fw_up_to_date,),
+        (config_model_fw_up_to_date,),
+        (config_enb_has_fw_version_without_url,),
+        (config_model_has_fw_version_without_url,),
+        (config_enb_fw_up_to_date_but_model_has_upgrade,),
+    ])
+    def test_firmware_upgrade_download_flow_skip_on_config(self, fw_upgrade_download_config):
+        """
+        Test skipping firmware upgrade download flow.
+        Skip should happen on certain firmware upgrade download configuraion conditions
+        and eNB SW VERSION state.
+        """
+        logging.root.level = logging.DEBUG
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(
+            EnodebDeviceName.FREEDOMFI_ONE,
+        )
+        acs_state_machine._service.config = _get_service_config()
+        acs_state_machine._service.config['firmware_upgrade_download'] = fw_upgrade_download_config
+
+        # eNB sends Inform message, we wait for an InformResponse
+        inform = Tr069MessageBuilder.get_inform(
+            oui="000E8F",
+            sw_version=self._enb_sw_version,
+            enb_serial=self._enb_serial,
+        )
+        resp = acs_state_machine.handle_tr069_message(inform)
+        self.assertTrue(
+            isinstance(resp, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
+
+        # eNB sends an empty http request
+        # State machine should detect that no firmware upgrade config exists and so
+        # should transition to getting param values skipping download flow
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # Expect a request parameter values
+        self.assertTrue(
+            isinstance(resp, models.GetParameterValues),
+            'State machine should be requesting param values',
+        )
+
+        # Firmware upgrade timeout timer should not be started
+        self.assertFalse(acs_state_machine.is_fw_upgrade_in_progress())
+
+    @parameterized.expand([
+        (config_enb_fw_upgrade,),
+        (config_model_fw_upgrade,),
+        (config_enb_fw_upgrade_but_model_fw_up_to_date,),
+    ])
+    def test_firmware_upgrade_download_flow_skip_on_download_fault9017(self, fw_upgrade_download_config):
+        """
+        Test firmware upgrade download flow skip due to TR069 fault on Download request.
+        State machine should resume normal operation when Fault code 9017 is received.
+        """
+        logging.root.level = logging.DEBUG
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(
+            EnodebDeviceName.FREEDOMFI_ONE,
+        )
+        acs_state_machine._service.config = _get_service_config()
+        acs_state_machine._service.config['firmware_upgrade_download'] = fw_upgrade_download_config
+
+        logging.info(f'{fw_upgrade_download_config=}')
+
+        # eNB sends Inform message, we wait for an InformResponse
+        inform = Tr069MessageBuilder.get_inform(
+            oui="000E8F",
+            sw_version=self._enb_sw_version,
+            enb_serial=self._enb_serial,
+        )
+        resp = acs_state_machine.handle_tr069_message(inform)
+        self.assertTrue(
+            isinstance(resp, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
+
+        # eNB sends an empty http request
+        # State machine should detect that firmware upgrade config exists and so
+        # should transition to sending Download message
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self._assert_download_message(
+            acs=acs_state_machine,
+            message=resp,
+        )
+
+        # eNB may reply with a Fault code 9017 which appearts to mean that a Download
+        # is already in progress on the eNB side (for instance the same CommandKey)
+        # In such case, state machine should resume normal operation
+        req = models.Fault()
+        req.FaultCode = 9017
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(
+            isinstance(resp, models.GetParameterValues),
+            'State machine should be requesting param values',
+        )
+
+        # Firmware upgrade timeout timer should not be started
+        self.assertFalse(acs_state_machine.is_fw_upgrade_in_progress())
+
+    @parameterized.expand([
+        (config_enb_fw_upgrade,),
+        (config_model_fw_upgrade,),
+        (config_enb_fw_upgrade_but_model_fw_up_to_date,),
+    ])
+    def test_firmware_upgrade_download_flow(self, fw_upgrade_download_config):
+        """
+        Test firmware upgrade download flow.
+        Download sequence should initiate on certain
+        on
+        """
+        logging.root.level = logging.DEBUG
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(
+            EnodebDeviceName.FREEDOMFI_ONE,
+        )
+        acs_state_machine._service.config = _get_service_config()
+        acs_state_machine._service.config['firmware_upgrade_download'] = fw_upgrade_download_config
+
+        logging.info(f'{fw_upgrade_download_config=}')
+
+        # eNB sends Inform message, we wait for an InformResponse
+        inform = Tr069MessageBuilder.get_inform(
+            oui="000E8F",
+            sw_version=self._enb_sw_version,
+            enb_serial=self._enb_serial,
+        )
+        resp = acs_state_machine.handle_tr069_message(inform)
+        self.assertTrue(
+            isinstance(resp, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
+
+        # eNB sends an empty http request
+        # State machine should detect that firmware upgrade config exists and so
+        # should transition to sending Download message
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self._assert_download_message(
+            acs=acs_state_machine,
+            message=resp,
+        )
+
+        # When eNB replies with a DownloadResponse, all is good.
+        # eNB should transition to get params state and should start the upgrade
+        # timeout timer
+        req = models.DownloadResponse()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(
+            isinstance(resp, models.GetParameterValues),
+            'State machine should be requesting param values',
+        )
+        self.assertTrue(acs_state_machine.is_fw_upgrade_in_progress())
+
+    def _assert_download_message(
+        self,
+        acs,
+        message,
+    ):
+        # Expect a dowload message
+        self.assertTrue(
+            isinstance(message, models.Download),
+            'Expecting Download message',
+        )
+        # eNB firmware upgrade config should be obtainable
+        fw_upgrade_config = get_firmware_upgrade_download_config(acs)
+        self.assertTrue(
+            fw_upgrade_config,
+            'Firmware Upgrade config should not be empty',
+        )
+
+        # Explicitly set params should have correct values
+        self.assertEqual(message.CommandKey, fw_upgrade_config['version'])
+        self.assertEqual(
+            message.FileType,
+            FirmwareUpgradeDownloadState.FIRMWARE_FILE_TYPE,
+        )
+        self.assertEqual(message.URL, fw_upgrade_config['url'])
+
+        # Optional params should have default values
+        self.assertEqual(
+            message.Username,
+            fw_upgrade_config.get('username', ""),
+        )
+        self.assertEqual(
+            message.Password,
+            fw_upgrade_config.get('password', ""),
+        )
+
+        # Constant/Fixed params should have default values
+        self.assertEqual(message.FileSize, 0)
+        self.assertEqual(message.TargetFileName, "")
+        self.assertEqual(message.DelaySeconds, 0)
+        self.assertEqual(message.SuccessURL, "")
+        self.assertEqual(message.FailureURL, "")
+
+
 class TXParamsTests(TestCase):
     """Testing TX parameters calculations"""
     @parameterized.expand([
@@ -1049,7 +1402,11 @@ class TXParamsTests(TestCase):
 
         ff_one_update_desired_config_from_cbsd_state(state, desired_config)
         self.assertEqual(1, len(desired_config.get_parameter_names()))
-        self.assertFalse(desired_config.get_parameter(ParameterName.ADMIN_STATE))
+        self.assertFalse(
+            desired_config.get_parameter(
+                ParameterName.ADMIN_STATE,
+            ),
+        )
 
     def _assert_config_updated(
             self, config: EnodebConfiguration, bandwidth: str, earfcn: int, tx_power: int, radio_enabled: bool,
@@ -1090,5 +1447,10 @@ def _get_service_config(dp_mode: bool = True, prim_src: str = "GNSS"):
             "sas_location": "indoor",
             "sas_height_type": "AMSL",
         },
-        'prim_src': prim_src,
+        "prim_src": prim_src,
+        "firmware_upgrade_download": {
+            "enbs": {},
+            "firmwares": {},
+            "models": {},
+        },
     }

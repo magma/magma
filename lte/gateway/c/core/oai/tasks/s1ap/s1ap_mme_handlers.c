@@ -95,6 +95,15 @@
 #include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 #include "lte/gateway/c/core/oai/include/s1ap_state.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
+
+typedef struct arg_s1ap_send_enb_dereg_ind_s {
+  uint8_t current_ue_index;
+  uint32_t handled_ues;
+  MessageDef* message_p;
+  uint32_t associated_enb_id;
+  uint32_t deregister_ue_count;
+} arg_s1ap_send_enb_dereg_ind_t;
 
 struct S1ap_E_RABItem_s;
 struct S1ap_E_RABSetupItemBearerSURes_s;
@@ -105,7 +114,12 @@ status_code_e s1ap_generate_s1_setup_response(
     s1ap_state_t* state, enb_description_t* enb_association);
 
 bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container);
+static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int id, void* arg);
 
+static bool s1ap_send_enb_deregistered_ind(__attribute__((unused))
+                                           const hash_key_t keyP,
+                                           uint64_t const dataP, void* argP,
+                                           void** resultP);
 /* Handlers matrix. Only mme related procedures present here.
  */
 s1ap_message_handler_t message_handlers[][3] = {
@@ -416,6 +430,40 @@ void clean_stale_enb_state(s1ap_state_t* state,
   OAILOG_DEBUG(LOG_S1AP, "Removed stale eNB and all associated UEs.");
 }
 
+static status_code_e s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
+    s1ap_state_t* state, sctp_assoc_id_t sctp_assoc_id) {
+  OAILOG_FUNC_IN(LOG_S1AP);
+  unsigned int i = 0;
+  unsigned int num_elements = 0;
+  hash_table_ts_t* hashtblP = get_s1ap_ue_state();
+  hash_node_t *node = NULL, *oldnode = NULL;
+  if (!hashtblP) {
+    OAILOG_ERROR(LOG_S1AP, "No UEs found in comp_s1ap_id hash list");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
+    pthread_mutex_lock(&hashtblP->lock_nodes[i]);
+    if (hashtblP->nodes[i] != NULL) {
+      node = hashtblP->nodes[i];
+    }
+    while (node) {
+      num_elements++;
+      oldnode = node;
+      node = node->next;
+      if (oldnode->data &&
+          (sctp_assoc_id ==
+           ((ue_description_t*)oldnode->data)->sctp_assoc_id)) {
+        pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
+        s1ap_remove_ue(state, oldnode->data);
+        pthread_mutex_lock(&hashtblP->lock_nodes[i]);
+      }
+    }
+    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
+    i++;
+  }
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}
+
 status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
                                                const sctp_assoc_id_t assoc_id,
                                                const sctp_stream_id_t stream,
@@ -511,21 +559,26 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
         S1ap_TimeToWait_v20s);
     increment_counter("s1_setup", 1, 2, "result", "failure", "cause",
                       "invalid_state");
-    // Check if the UE counters for eNB are equal.
-    // If not, the eNB will never switch to INIT state, particularly in
-    // stateless mode.
-    // Exit the process so that health checker can clean-up all Redis
-    // state and restart all stateless services.
-    AssertFatal(
-        enb_association->nb_ue_associated ==
-            enb_association->ue_id_coll.num_elements,
-        "Num UEs associated with eNB (%u) is more than the UEs with valid "
-        "mme_ue_s1ap_id (%zu). This is a deadlock state potentially caused by "
-        "misbehaving eNB; restarting MME. In stateless mode, health management "
-        "service will eventually detect multiple MME restarts due to this "
-        "deadlock state and force sctpd and hence all services to restart.",
-        enb_association->nb_ue_associated,
-        enb_association->ue_id_coll.num_elements);
+    /* UE state at s1ap task is created on reception of initial ue message
+     * Hash list, ue_id_coll is updated after mme_app_task assigns and provides
+     * mme_ue_s1ap_id to s1ap task
+     * s1ap task shall clear this UE state if mme_app task has not yet provided
+     * mme_ue_s1ap_id
+     */
+    if (enb_association->ue_id_coll.num_elements == 0) {
+      OAILOG_FUNC_RETURN(LOG_S1AP,
+                         s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
+                             state, enb_association->sctp_assoc_id));
+    }
+    arg_s1ap_send_enb_dereg_ind_t arg = {0};
+    MessageDef* message_p = NULL;
+
+    arg.associated_enb_id = enb_association->enb_id;
+    arg.deregister_ue_count = enb_association->ue_id_coll.num_elements;
+    hashtable_uint64_ts_apply_callback_on_elements(
+        &enb_association->ue_id_coll, s1ap_send_enb_deregistered_ind,
+        (void*)&arg, (void**)&message_p);
+
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
   log_queue_item_t* context = NULL;
@@ -650,7 +703,6 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
   // Clean any stale eNB association (from Redis) for this enb_id
   clean_stale_enb_state(state, enb_association);
 
-  s1ap_dump_enb(enb_association);
   rc = s1ap_generate_s1_setup_response(state, enb_association);
   if (rc == RETURNok) {
     state->num_enbs++;
@@ -1320,6 +1372,10 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
       cause_type = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_load_balancing_tau_required;
       break;
+    case S1AP_INVALID_ENB_ID:
+      cause_type = S1ap_Cause_PR_radioNetwork;
+      cause_value = S1ap_CauseRadioNetwork_unknown_enb_ue_s1ap_id;
+      break;
     default:
       // Freeing ie and pdu data since it will not be encoded
       free_wrapper((void**)&ie);
@@ -1338,10 +1394,22 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
   free(buffer);
   rc = s1ap_mme_itti_send_sctp_request(&b, assoc_id, stream, mme_ue_s1ap_id);
 
-  // Dont remove UE context if UE handed over to another eNB
-  if (ue_ref_p != NULL && ue_ref_p->sctp_assoc_id == assoc_id) {
+  // For handover; release the s1-signaling connection with
+  //  source eNB and retain the UE contexts at mme_app, nas and spgw. Since
+  //  mme_ue_s1ap_id remains same for UE before and after handover, so s1ap
+  //  doesn't send 'ue context release complete' message to mme_app
+
+  if (cause == S1AP_SUCCESSFUL_HANDOVER) {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+  }
+  if (rc == RETURNok) {
+    // Start timer to track UE context release complete from eNB
     ue_ref_p->s1_ue_state = S1AP_UE_WAITING_CRR;
-    // We can safely remove UE context now, no need for timer
+    ue_ref_p->s1ap_ue_context_rel_timer.id = s1ap_start_timer(
+        ue_ref_p->s1ap_ue_context_rel_timer.msec, TIMER_REPEAT_ONCE,
+        handle_ue_context_rel_timer_expiry, mme_ue_s1ap_id);
+  } else {
+    // Remove UE context and inform MME_APP.
     s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
@@ -1497,8 +1565,7 @@ status_code_e s1ap_handle_ue_context_release_command(
      */
 
     if (ue_context_release_command_pP->cause == S1AP_IMPLICIT_CONTEXT_RELEASE ||
-        ue_context_release_command_pP->cause == S1AP_SCTP_SHUTDOWN_OR_RESET ||
-        ue_context_release_command_pP->cause == S1AP_INVALID_ENB_ID) {
+        ue_context_release_command_pP->cause == S1AP_SCTP_SHUTDOWN_OR_RESET) {
       s1ap_remove_ue(state, ue_ref_p);
     } else {
       rc = s1ap_mme_generate_ue_context_release_command(
@@ -1566,11 +1633,6 @@ status_code_e s1ap_mme_handle_ue_context_release_complete(
   }
 
   if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
-    /*
-     * The UE context has already been deleted when the UE context release
-     * command was sent
-     * Ignore this message.
-     */
     OAILOG_DEBUG(
         LOG_S1AP,
         " UE Context Release commplete: S1 context cleared. Ignore message for "
@@ -1579,15 +1641,21 @@ status_code_e s1ap_mme_handle_ue_context_release_complete(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   } else {
     if (ue_ref_p->sctp_assoc_id == assoc_id) {
-      /* This is an error scenario, the S1 UE context should have been deleted
-       * when UE context release command was sent
-       */
-      OAILOG_ERROR(
-          LOG_S1AP,
-          " UE Context Release commplete: S1 context should have been cleared "
-          "for ueid " MME_UE_S1AP_ID_FMT "\n",
-          (uint32_t)mme_ue_s1ap_id);
-      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+      OAILOG_ERROR(LOG_S1AP,
+                   "UE Context Release complete: clearing S1 context for "
+                   "ueid " MME_UE_S1AP_ID_FMT "\n",
+                   (uint32_t)mme_ue_s1ap_id);
+      // Remove UE context only if UE is not handed over to another eNB
+      imsi64_t imsi64 = INVALID_IMSI64;
+      s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+      hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
+                              (const hash_key_t)mme_ue_s1ap_id, &imsi64);
+
+      ue_ref_p->s1_ue_state = S1AP_UE_WAITING_CRR;
+      // We can safely remove UE context now and stop timer
+      s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
+
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
     } else {
       /*
        * UE Context Release commplete received from a different eNB. This could
@@ -3000,6 +3068,7 @@ status_code_e s1ap_mme_handle_handover_notify(s1ap_state_t* state,
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
+  OAILOG_INFO(LOG_S1AP, "handover notify received");
   container = &pdu->choice.initiatingMessage.value.choice.HandoverNotify;
 
   // HandoverNotify means the handover has completed successfully. We can
@@ -3114,7 +3183,7 @@ status_code_e s1ap_mme_handle_handover_notify(s1ap_state_t* state,
 
     // Send context release command to source eNB
     s1ap_mme_generate_ue_context_release_command(
-        state, new_ue_ref_p, S1AP_SUCCESSFUL_HANDOVER, imsi64,
+        state, src_ue_ref_p, S1AP_SUCCESSFUL_HANDOVER, imsi64,
         src_ue_ref_p->sctp_assoc_id,
         src_ue_ref_p->s1ap_handover_state.source_sctp_stream_send,
         mme_ue_s1ap_id,
@@ -3138,8 +3207,6 @@ status_code_e s1ap_mme_handle_handover_notify(s1ap_state_t* state,
         ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
         assoc_id, new_ue_ref_p->enb_ue_s1ap_id, new_ue_ref_p->mme_ue_s1ap_id,
         hashtable_rc_code2string(h_rc));
-
-    s1ap_dump_enb(target_enb);
   }
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
@@ -3388,8 +3455,6 @@ status_code_e s1ap_mme_handle_path_switch_request(
         assoc_id, new_ue_ref_p->enb_ue_s1ap_id, new_ue_ref_p->mme_ue_s1ap_id,
         hashtable_rc_code2string(h_rc));
 
-    s1ap_dump_enb(enb_association);
-
     S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_PathSwitchRequestIEs_t, ie, container,
                                S1ap_ProtocolIE_ID_id_E_RABToBeSwitchedDLList,
                                true);
@@ -3474,19 +3539,11 @@ status_code_e s1ap_mme_handle_path_switch_request(
 }
 
 //------------------------------------------------------------------------------
-typedef struct arg_s1ap_send_enb_dereg_ind_s {
-  uint8_t current_ue_index;
-  uint32_t handled_ues;
-  MessageDef* message_p;
-  uint32_t associated_enb_id;
-  uint32_t deregister_ue_count;
-} arg_s1ap_send_enb_dereg_ind_t;
-
 //------------------------------------------------------------------------------
-bool s1ap_send_enb_deregistered_ind(__attribute__((unused))
-                                    const hash_key_t keyP,
-                                    uint64_t const dataP, void* argP,
-                                    void** resultP) {
+static bool s1ap_send_enb_deregistered_ind(__attribute__((unused))
+                                           const hash_key_t keyP,
+                                           uint64_t const dataP, void* argP,
+                                           void** resultP) {
   arg_s1ap_send_enb_dereg_ind_t* arg = (arg_s1ap_send_enb_dereg_ind_t*)argP;
   ue_description_t* ue_ref_p = NULL;
 
@@ -3626,21 +3683,17 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
   }
 
   if (reset) {
-    // Check if the UE counters for eNB are equal.
-    // If not, the eNB will never switch to INIT state, particularly in
-    // stateless mode.
-    // Exit the process so that health checker can clean-up all Redis
-    // state and restart all stateless services.
-    AssertFatal(
-        enb_association->nb_ue_associated ==
-            enb_association->ue_id_coll.num_elements,
-        "Num UEs associated with eNB (%u) is more than the UEs with valid "
-        "mme_ue_s1ap_id (%zu). This is a deadlock state potentially caused by "
-        "misbehaving eNB; restarting MME. In stateless mode, health management "
-        "service will eventually detect multiple MME restarts due to this "
-        "deadlock state and force sctpd and hence all services to restart.",
-        enb_association->nb_ue_associated,
-        enb_association->ue_id_coll.num_elements);
+    /* UE state at s1ap task is created on reception of initial ue message
+     * Hash list, ue_id_coll is updated after mme_app_task assigns and provides
+     * mme_ue_s1ap_id to s1ap task
+     * s1ap task shall clear this UE state if mme_app task has not yet provided
+     * mme_ue_s1ap_id
+     */
+    if (enb_association->ue_id_coll.num_elements == 0) {
+      OAILOG_FUNC_RETURN(LOG_S1AP,
+                         s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
+                             state, enb_association->sctp_assoc_id));
+    }
   }
   /*
    * Send S1ap deregister indication to MME app in batches of UEs where
@@ -3755,9 +3808,12 @@ void s1ap_mme_release_ue_context(s1ap_state_t* state,
   if (ue_ref_p == NULL) {
     OAILOG_ERROR(LOG_S1AP, "ue_ref_p is NULL\n");
   }
-
+  // Stop the ue context release timer
+  s1ap_stop_timer(ue_ref_p->s1ap_ue_context_rel_timer.id);
+  ue_ref_p->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
   OAILOG_DEBUG_UE(LOG_S1AP, imsi64, "Releasing UE Context for UE id  %d \n",
                   ue_ref_p->mme_ue_s1ap_id);
+
   /*
    * Remove UE context and inform MME_APP.
    */
@@ -5279,4 +5335,42 @@ status_code_e s1ap_send_mme_ue_context_release(s1ap_state_t* state,
 
   message_p->ittiMsgHeader.imsi = imsi64;
   return send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
+}
+
+//------------------------------------------------------------------------------
+static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int timer_id,
+                                              void* arg) {
+  OAILOG_FUNC_IN(LOG_S1AP);
+  ue_description_t* ue_ref_p = NULL;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  imsi64_t imsi64 = INVALID_IMSI64;
+  s1ap_state_t* state = NULL;
+  if (!s1ap_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+    OAILOG_WARNING(LOG_S1AP, "Invalid Timer Id expiration, Timer Id: %u\n",
+                   timer_id);
+    // Timer handlers need to return 0 to avoid triggering ZMQ thread exit
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+  }
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
+    OAILOG_ERROR(
+        LOG_S1AP,
+        "Failed to find UE context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+        mme_ue_s1ap_id);
+    // Timer handlers need to return 0 to avoid triggering ZMQ thread exit
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+  }
+
+  state = get_s1ap_state(false);
+  ue_ref_p->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
+  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
+                          (const hash_key_t)mme_ue_s1ap_id, &imsi64);
+
+  OAILOG_DEBUG_UE(LOG_S1AP, imsi64,
+                  "Expired- UE Context Release Timer for "
+                  "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+                  ue_ref_p->mme_ue_s1ap_id);
+  // Remove UE context and inform MME_APP.
+  s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
+  OAILOG_FUNC_OUT(LOG_S1AP);
 }

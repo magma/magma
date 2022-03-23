@@ -5,11 +5,11 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
-      - v1.*
+      - 'v1.*'
   pull_request:
     branches:
       - master
-      - v1.*
+      - 'v1.*'
     types: [opened, reopened, synchronize]
 
 concurrency:
@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:sha-206a67a"
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:latest"
   BAZEL_CACHE: bazel-cache
   BAZEL_CACHE_REPO: bazel-cache-repo
 
@@ -38,6 +38,9 @@ jobs:
               - '.github/workflows/agw-workflow.yml'
               - 'orc8r/**'
               - 'lte/**'
+              - '.bazelrc'
+              - 'WORKSPACE.bazel'
+              - 'bazel/**'
       - name: Save should_not_skip output
         if: always()
         run: |
@@ -147,9 +150,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
-          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-c-cpp-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-c-cpp-
       - name: Bazel Cache Repo
         uses: actions/cache@v2
         with:
@@ -157,6 +160,16 @@ jobs:
           key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
+      - name: Log cache size
+        run: |
+          du -sh .bazel-cache
+      - name: Ensure cache size (only on master)
+        if: github.event_name == 'push'
+        env:
+          BAZEL_CACHE_DIR: .${{ env.BAZEL_CACHE }}
+          BAZEL_CACHE_CUTOFF_MB: 6000
+        run: |
+          ./.github/workflows/check-bazel-cache-dir-size.sh "$BAZEL_CACHE_DIR" "$BAZEL_CACHE_CUTOFF_MB"
       - name: Setup Devcontainer Image
         uses: addnab/docker-run-action@v2
         with:
@@ -164,16 +177,7 @@ jobs:
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
             echo "Pulled the devontainer image!"
-      - name: Build C / C++ code with Bazel
-        uses: addnab/docker-run-action@v2
-        with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
-          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
-          run: |
-            cd /workspaces/magma
-            bazel build //orc8r/gateway/c/...:* //lte/gateway/c/...:*
-      - name: Test C / C++ code with Bazel
+      - name: Create a directory to store XML test results
         uses: addnab/docker-run-action@v2
         with:
           shell: bash
@@ -182,37 +186,33 @@ jobs:
           options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
             cd /workspaces/magma
-            bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* --test_output=errors
+            mkdir -p c-cpp-test-results/
+            echo "created c-cpp-test-results/ directory"
+      - name: Run `bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* --config=asan`
+        uses: addnab/docker-run-action@v2
+        with:
+          shell: bash
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma
+            bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* --config=asan --test_output=errors --cache_test_results=no
             TEST_RESULT=$?
             # copy out test results
-            mkdir -p c-cpp-test-results/
-            echo "created c-cpp-test-results/ directory, copying out test result XMLs"
-            find bazel-out/k8-dbg/testlogs/ -name "*.xml" | while IFS= read -r f; do cp "$f" "c-cpp-test-results/${f//\//_}"; done
+            echo "Copying out test result XMLs for testing with ASAN"
+            find bazel-out/k8-dbg/testlogs/ -name "*.xml" | while IFS= read -r f; do cp "$f" "c-cpp-test-results/asan_${f//\//_}"; done
             exit $TEST_RESULT
+      - name: Log cache size
+        if: always()
+        run: |
+          du -sh .bazel-cache
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: Unit Test Results
           path: c-cpp-test-results/
-      - name: Extract commit title
-        # yamllint enable
-        if: failure() && github.event_name == 'push'
-        id: commit
-        run: |
-            str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-            echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action c_cpp_unit_tests failed"
-          SLACK_USERNAME: "AGW workflow"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title }}"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
 
   li_agent_test:
     needs: path_filter
@@ -316,74 +316,6 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
 
-  mme-clang-tidy-and-warning:
-    needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
-    name: Upload MME clang-tidy and clang-warning outputs
-    runs-on: ubuntu-latest
-    env:
-      MAGMA_ROOT: "${{ github.workspace }}"
-      BRANCH: "${{ github.base_ref }}"
-      REVISION: "${{ github.sha }}"
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup Devcontainer Image
-        uses: addnab/docker-run-action@v2
-        with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
-          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
-          run: |
-            echo "Pulled the devontainer image!"
-      - name: Run mme-clang-tidy
-        if: always()
-        uses: addnab/docker-run-action@v2
-        with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
-          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: --env BRANCH=${{ env.BRANCH}} --env REVISION=${{ env.REVISION }} -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
-          run: |
-            cd $MAGMA_ROOT/lte/gateway
-            make clang_tidy_oai_upload
-      - name: Run mme-clang-warnings
-        if: always()
-        uses: addnab/docker-run-action@v2
-        with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
-          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: --env BRANCH=${{ env.BRANCH}} --env REVISION=${{ env.REVISION }} -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
-          run: |
-            cd $MAGMA_ROOT/lte/gateway
-            make clang_warning_oai_upload
-      - name: Extract commit title
-        # yamllint enable
-        if: failure() && github.event_name == 'push'
-        id: commit
-        run: |
-            str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-            echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to slack
-        if: steps.mme-clang-warning.outcome=='failure' && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action mme-clang-warnings failed"
-          SLACK_USERNAME: "AGW workflow"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      - name: Notify failure to slack
-        if: steps.mme-clang-tidy.outcome=='failure' && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action mme-clang-tidy failed"
-          SLACK_USERNAME: "AGW workflow"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-
   c-cpp-codecov:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
@@ -438,7 +370,9 @@ jobs:
           run: |
             cd $MAGMA_ROOT
             # Collecting coverage with Bazel can be slow. We can follow this thread to see if this can be improved: https://github.com/bazelbuild/bazel/issues/8178
-            bazel coverage //orc8r/gateway/c/...:* //lte/gateway/c/...:*
+            # Omit OAI coverage until it is tested. We need to determine what the behavior is for doing both CMake and Bazel based coverage at the same time
+            # TODO: GH11936
+            bazel coverage -- //orc8r/gateway/c/...:* //lte/gateway/c/...:* -//lte/gateway/c/core/...:*
             # copy out coverage information into magma so that it's accessible from the CI node
             cp bazel-out/_coverage/_coverage_report.dat $MAGMA_ROOT
       - name: Upload code coverage
@@ -472,18 +406,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: DoozyX/clang-format-lint-action@v0.13
+      - name: Check clang-format for orc8r/gateway/c
+        uses: DoozyX/clang-format-lint-action@v0.13
         with:
           source: 'orc8r/gateway/c'
           extensions: 'h,hpp,c,cpp'
           clangFormatVersion: 11.1.0
-          style: '{BasedOnStyle: Google, IncludeBlocks: Preserve, SortIncludes: false}'
-      - uses: DoozyX/clang-format-lint-action@v0.13
+          # taken from .clang-format
+          style: file
+      - name: Check clang-format for lte/gateway/c
+        uses: DoozyX/clang-format-lint-action@v0.13
         with:
           source: 'lte/gateway/c'
           extensions: 'h,hpp,c,cpp'
           clangFormatVersion: 11.1.0
-          style: '{BasedOnStyle: Google, IncludeBlocks: Preserve, SortIncludes: false}'
+          # taken from .clang-format
+          style: file
 
   session_manager_test:
     needs: path_filter
