@@ -289,7 +289,7 @@ class DBCbsd(Base):
         Integer, nullable=False, server_default='0',
     )
     preferred_frequencies_mhz = Column(
-        JSON, nullable=False, server_default='[]',
+        JSON, nullable=False, server_default=sa_text("'[]'::json"),
     )
     network_id = Column(String)
     is_deleted = Column(Boolean, nullable=False, server_default='false')
