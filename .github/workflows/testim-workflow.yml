@@ -1,0 +1,46 @@
+---
+name: Testim Check
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+  workflow_dispatch:
+
+jobs:
+  testim_check_job:
+    runs-on: ubuntu-latest
+    name: Testim Check
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Node v12
+        uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+      - name: Install Testim CLI
+        run: npm install -g @testim/testim-cli
+      - name: Setup pyenv
+        uses: "gabrielfalcao/pyenv-action@v8"
+        with:
+          default: 3.8.5
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.5'
+      - name: Install Python Dependencies
+        run: |
+          python3 -m pip install junit2html requests xmltodict
+      - name: Run Daily NMS Tests
+        run: testim --token ${{ secrets.TESTIM_TOKEN }} --project ${{ secrets.TESTIM_PROJECT_ID }} --test-plan "Daily Test Plan" --report-file ./tests.xml
+      - name: Post Test Report
+        if: always()
+        run: |
+          ${{ env.MAGMA_ROOT }}/ci-scripts/post_testim_report.py tests.xml "${{ secrets.TESTIM_SLACK_TOKEN }}" C02EU9X4DNV
+      - name: Generate HTML Report
+        if: always()
+        run: |
+          python3 -m junit2htmlreport tests.xml tests.html
+      - name: Post HTML Report File
+        if: always()
+        run: |
+          curl -F file=@tests.html -F "initial_comment=Full Test Results" -F channels=C02EU9X4DNV -H "Authorization: ${{ secrets.TESTIM_SLACK_TOKEN }}" https://slack.com/api/files.upload

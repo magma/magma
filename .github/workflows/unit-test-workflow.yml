@@ -1,0 +1,82 @@
+---
+name: Cloud Unit Test Results
+on:  # yamllint disable-line rule:truthy
+  workflow_run:
+    workflows:
+      - cloud-workflow
+      - feg-workflow
+      - agw-workflow
+      - golang-build-test
+      - nms-workflow
+    types:
+      - completed
+
+jobs:
+  skip_check:
+    name: Job to retrieve the value in pr/skipped file
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - name: 'Download artifact'
+        uses: actions/github-script@v3.1.0
+        with:
+          script: |
+            var artifacts = await github.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{github.event.workflow_run.id }},
+            });
+            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "pr"
+            })[0];
+            var download = await github.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            var fs = require('fs');
+            fs.writeFileSync('${{github.workspace}}/pr.zip', Buffer.from(download.data));
+      - run: unzip pr.zip
+      - name: Check if the workflow is skipped
+        id: skip_check
+        uses: actions/github-script@v3
+        with:
+          script: |
+            var fs = require('fs');
+            var skipFlag = fs.readFileSync('./skipped');
+            if( skipFlag == 'true' ) {
+              core.setOutput('should_skip', 'true');
+            }
+            else  {
+              core.setOutput('should_skip', 'false');
+            }
+
+  unit-test-results:
+    name: Upload unit test for ${{ github.event.workflow.name }}
+    needs: skip_check
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.conclusion != 'skipped' &&
+        github.event.workflow_run.head_repository.full_name != github.repository &&
+          needs.skip_check.outputs.should_skip == 'false'
+    steps:
+      - name: Download and Extract Artifacts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+           mkdir -p artifacts && cd artifacts
+           artifacts_url=${{ github.event.workflow_run.artifacts_url }}
+           gh api "$artifacts_url" -q '.artifacts[] | [.name, .archive_download_url] | @tsv' | while read artifact
+           do
+             IFS=$'\t' read name url <<< "$artifact"
+             gh api $url > "$name.zip"
+             unzip -d "$name" "$name.zip"
+           done
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        with:
+          check_name: ${{ github.event.workflow.name }}
+          commit: ${{ github.event.workflow_run.head_sha }}
+          files: "artifacts/**/*.xml"
