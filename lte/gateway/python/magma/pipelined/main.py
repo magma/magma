@@ -26,7 +26,7 @@ from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.configuration import environment
 from magma.pipelined.app import of_rest_server
-from magma.pipelined.app.he import PROXY_PORT_NAME
+from magma.pipelined.app.he import PROXY_OF_PORT, PROXY_PORT_NAME
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.check_quota_server import run_flask
 from magma.pipelined.datapath_setup import (
@@ -140,6 +140,10 @@ def main():
     he_enabled_flag = False
     if service.mconfig.he_config:
         he_enabled_flag = service.mconfig.he_config.enable_header_enrichment
+        if he_enabled_flag:
+            bridge = service.config.get('bridge_name')
+            BridgeTools.add_ovs_port(bridge, PROXY_PORT_NAME, PROXY_OF_PORT)
+
     he_enabled = service.config.get('he_enabled', he_enabled_flag)
     service.config['he_enabled'] = he_enabled
 
