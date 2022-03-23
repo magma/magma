@@ -46,15 +46,11 @@ from magma.pipelined.tests.pipelined_test_util import (
 )
 from ryu.lib.packet import ether_types
 
-
-class AccessControlTestLTE(unittest.TestCase):
+class AbstractAccessControlTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
     BRIDGE_IP = '192.168.128.1'
-    INBOUND_TEST_IP = '127.0.0.1'
-    OUTBOUND_TEST_IP = '127.1.0.1'
-    BOTH_DIR_TEST_IP = '127.2.0.1'
 
     @classmethod
     def setUpClass(cls):
@@ -65,7 +61,7 @@ class AccessControlTestLTE(unittest.TestCase):
         launch the ryu apps for testing pipelined. Gets the references
         to apps launched by using futures.
         """
-        super(AccessControlTestLTE, cls).setUpClass()
+        super(AbstractAccessControlTest, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager(
             [],
@@ -91,7 +87,47 @@ class AccessControlTestLTE(unittest.TestCase):
                 PipelinedController.StartupFlows:
                     Future(),
             },
-            config={
+            config=cls.getConfig(),
+            mconfig=cls.getMconfig(),
+            loop=None,
+            service_manager=cls.service_manager,
+            integ_test=False,
+        )
+
+        BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
+
+        cls.thread = start_ryu_app_thread(test_setup)
+        cls.access_control_controller = \
+            access_control_controller_reference.result()
+        cls.testing_controller = testing_controller_reference.result()
+
+    @classmethod
+    def getConfig(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def getMconfig(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def tearDownClass(cls):
+        stop_ryu_app_thread(cls.thread)
+        BridgeTools.destroy_bridge(cls.BRIDGE)
+
+    def _setupSubscribers(self):
+        return SubContextConfig(
+            'IMSI001010000000013', '192.168.128.74',
+            default_ambr_config, self._tbl_num,
+        )
+
+class AccessControlTestLTE(AbstractAccessControlTest):
+    INBOUND_TEST_IP = '127.0.0.1'
+    OUTBOUND_TEST_IP = '127.1.0.1'
+    BOTH_DIR_TEST_IP = '127.2.0.1'
+
+    @classmethod
+    def getConfig(cls):
+        config = {
                 'setup_type': 'LTE',
                 'allow_unknown_arps': False,
                 'bridge_name': cls.BRIDGE,
@@ -116,26 +152,14 @@ class AccessControlTestLTE(unittest.TestCase):
                     'block_agw_local_ips': False,
                 },
                 'clean_restart': True,
-            },
-            mconfig=PipelineD(
-                allowed_gre_peers=[{'ip': '1.2.3.4/24', 'key': 123}],
-            ),
-            loop=None,
-            service_manager=cls.service_manager,
-            integ_test=False,
-        )
-
-        BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
-
-        cls.thread = start_ryu_app_thread(test_setup)
-        cls.access_control_controller = \
-            access_control_controller_reference.result()
-        cls.testing_controller = testing_controller_reference.result()
+            }
+        return config
 
     @classmethod
-    def tearDownClass(cls):
-        stop_ryu_app_thread(cls.thread)
-        BridgeTools.destroy_bridge(cls.BRIDGE)
+    def getMconfig(cls):
+        return PipelineD(
+                allowed_gre_peers=[{'ip': '1.2.3.4/24', 'key': 123}],
+            )
 
     def test_inbound_ip_match(self):
         """
@@ -146,11 +170,7 @@ class AccessControlTestLTE(unittest.TestCase):
             Both packets are matched
             Ip match flows are added
         """
-        # Set up subscribers
-        sub = SubContextConfig(
-            'IMSI001010000000013', '192.168.128.74',
-            default_ambr_config, self._tbl_num,
-        )
+        sub = self._setupSubscribers()
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub).build_requests(),
@@ -220,11 +240,7 @@ class AccessControlTestLTE(unittest.TestCase):
             Both packets are matched
             Ip match flows are added
         """
-        # Set up subscribers
-        sub = SubContextConfig(
-            'IMSI001010000000013', '192.168.128.74',
-            default_ambr_config, self._tbl_num,
-        )
+        sub = self._setupSubscribers()
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub).build_requests(),
@@ -294,11 +310,7 @@ class AccessControlTestLTE(unittest.TestCase):
             Both packets are not matched
             Ip match flows are added
         """
-        # Set up subscribers
-        sub = SubContextConfig(
-            'IMSI001010000000013', '192.168.128.74',
-            default_ambr_config, self._tbl_num,
-        )
+        sub = self._setupSubscribers()
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub).build_requests(),
@@ -361,48 +373,14 @@ class AccessControlTestLTE(unittest.TestCase):
         )
 
 
-class AccessControlTestCWF(unittest.TestCase):
-    BRIDGE = 'testing_br'
-    IFACE = 'testing_br'
-    MAC_DEST = "5e:cc:cc:b1:49:4b"
-    BRIDGE_IP = '192.168.128.1'
+class AccessControlTestCWF(AbstractAccessControlTest):
     INBOUND_TEST_IP = '127.0.0.1'
     OUTBOUND_TEST_IP = '127.1.0.1'
     BOTH_DIR_TEST_IP = '127.2.0.1'
 
     @classmethod
-    def setUpClass(cls):
-        """
-        Starts the thread which launches ryu apps
-
-        Create a testing bridge, add a port, setup the port interfaces. Then
-        launch the ryu apps for testing pipelined. Gets the references
-        to apps launched by using futures.
-        """
-        super(AccessControlTestCWF, cls).setUpClass()
-        warnings.simplefilter('ignore')
-        cls.service_manager = create_service_manager([], ['access_control'])
-        cls._tbl_num = cls.service_manager.get_table_num(
-            AccessControlController.APP_NAME,
-        )
-
-        access_control_controller_reference = Future()
-        testing_controller_reference = Future()
-        test_setup = TestSetup(
-            apps=[
-                PipelinedController.AccessControl,
-                PipelinedController.Testing,
-                PipelinedController.StartupFlows,
-            ],
-            references={
-                PipelinedController.AccessControl:
-                    access_control_controller_reference,
-                PipelinedController.Testing:
-                    testing_controller_reference,
-                PipelinedController.StartupFlows:
-                    Future(),
-            },
-            config={
+    def getConfig(cls):
+        config = {
                 'setup_type': 'CWF',
                 'allow_unknown_arps': False,
                 'bridge_name': cls.BRIDGE,
@@ -428,29 +406,17 @@ class AccessControlTestCWF(unittest.TestCase):
                     ],
                     'block_agw_local_ips': False,
                 },
-            },
-            mconfig=PipelineD(
+            }
+        return config
+        
+    @classmethod
+    def getMconfig(cls):
+        return PipelineD(
                 allowed_gre_peers=[
                     {'ip': '2.2.2.2/24'},
                     {'ip': '1.2.3.4/24', 'key': 123},
                 ],
-            ),
-            loop=None,
-            service_manager=cls.service_manager,
-            integ_test=False,
-        )
-
-        BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
-
-        cls.thread = start_ryu_app_thread(test_setup)
-        cls.access_control_controller = \
-            access_control_controller_reference.result()
-        cls.testing_controller = testing_controller_reference.result()
-
-    @classmethod
-    def tearDownClass(cls):
-        stop_ryu_app_thread(cls.thread)
-        BridgeTools.destroy_bridge(cls.BRIDGE)
+            )
 
     def test_gre_peer_rules(self):
         """
@@ -468,51 +434,14 @@ class AccessControlTestCWF(unittest.TestCase):
         )
 
 
-class AccessControlTestLocalIpBlockLTE(unittest.TestCase):
-    BRIDGE = 'testing_br'
-    IFACE = 'testing_br'
-    MAC_DEST = "5e:cc:cc:b1:49:4b"
-    BRIDGE_IP = '192.168.128.1'
+class AccessControlTestLocalIpBlockLTE(AbstractAccessControlTest):
     OUTBOUND_TEST_IP2 = '200.0.0.1'
     OUTBOUND_TEST_IP1 = '127.1.0.1'
     BOTH_DIR_TEST_IP = '127.2.0.1'
 
     @classmethod
-    def setUpClass(cls, *_):
-        """
-        Starts the thread which launches ryu apps
-
-        Create a testing bridge, add a port, setup the port interfaces. Then
-        launch the ryu apps for testing pipelined. Gets the references
-        to apps launched by using futures.
-        """
-        super(AccessControlTestLocalIpBlockLTE, cls).setUpClass()
-        warnings.simplefilter('ignore')
-        cls.service_manager = create_service_manager(
-            [],
-            ['access_control'],
-        )
-        cls._tbl_num = cls.service_manager.get_table_num(
-            AccessControlController.APP_NAME,
-        )
-
-        access_control_controller_reference = Future()
-        testing_controller_reference = Future()
-        test_setup = TestSetup(
-            apps=[
-                PipelinedController.AccessControl,
-                PipelinedController.Testing,
-                PipelinedController.StartupFlows,
-            ],
-            references={
-                PipelinedController.AccessControl:
-                    access_control_controller_reference,
-                PipelinedController.Testing:
-                    testing_controller_reference,
-                PipelinedController.StartupFlows:
-                    Future(),
-            },
-            config={
+    def getConfig(cls):
+        config = {
                 'setup_type': 'LTE',
                 'allow_unknown_arps': False,
                 'bridge_name': cls.BRIDGE,
@@ -526,26 +455,14 @@ class AccessControlTestLocalIpBlockLTE(unittest.TestCase):
                 },
                 'clean_restart': True,
                 'mtr_interface': 'mtr0',
-            },
-            mconfig=PipelineD(
-                allowed_gre_peers=[{'ip': '1.2.3.4/24', 'key': 123}],
-            ),
-            loop=None,
-            service_manager=cls.service_manager,
-            integ_test=False,
-        )
-
-        BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
-
-        cls.thread = start_ryu_app_thread(test_setup)
-        cls.access_control_controller = \
-            access_control_controller_reference.result()
-        cls.testing_controller = testing_controller_reference.result()
+            }
+        return config
 
     @classmethod
-    def tearDownClass(cls):
-        stop_ryu_app_thread(cls.thread)
-        BridgeTools.destroy_bridge(cls.BRIDGE)
+    def getMconfig(cls):
+        return PipelineD(
+                allowed_gre_peers=[{'ip': '1.2.3.4/24', 'key': 123}],
+            )
 
     def test_blocking_ip_match(self):
         """
@@ -556,11 +473,7 @@ class AccessControlTestLocalIpBlockLTE(unittest.TestCase):
             Both packets are matched
             Ip match flows are added
         """
-        # Set up subscribers
-        sub = SubContextConfig(
-            'IMSI001010000000013', '192.168.128.74',
-            default_ambr_config, self._tbl_num,
-        )
+        sub = self._setupSubscribers()
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub).build_requests(),
@@ -591,7 +504,3 @@ def _build_default_ip_packet(mac, dst, src):
         .set_ip_layer(dst, src) \
         .set_ether_layer(mac, "00:00:00:00:00:00") \
         .build()
-
-
-if __name__ == "__main__":
-    unittest.main()
