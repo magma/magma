@@ -128,7 +128,7 @@ DEPENDENCIES
   fluent-plugin-record-modifier (~> 2.0.0)
   fluent-plugin-rewrite-tag-filter (~> 2.2.0)
   fluent-plugin-systemd (~> 1.0.1)
-  fluentd (= 1.7.1)
+  fluentd (= 1.14.2)
   oj (= 3.8.1)
 
 BUNDLED WITH
