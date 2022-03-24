@@ -152,6 +152,6 @@ void send_ue_context_release_complete_message(amf_app_desc_t* amf_app_desc_p,
 bool check_ue_context_state(amf_ue_ngap_id_t ue_id,
                             m5gmm_state_t expected_mm_state,
                             m5gcm_state_t expected_cm_state,
-                            n2cause expected_ue_context_rel_cause);
+                            n2cause_e expected_ue_context_rel_cause);
 
 }  // namespace magma5g

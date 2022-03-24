@@ -189,11 +189,11 @@ typedef enum {
   NGAP_CSFB_TRIGGERED,
   NGAP_NAS_UE_NOT_AVAILABLE_FOR_PS,
   NGAP_USER_INACTIVITY
-} n2cause;
+} n2cause_e;
 typedef struct itti_ngap_ue_context_release_command_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
   gnb_ue_ngap_id_t gnb_ue_ngap_id;
-  n2cause cause;
+  n2cause_e cause;
 } itti_ngap_ue_context_release_command_t;
 
 typedef struct ue_context_pduSession_s {
@@ -206,7 +206,7 @@ typedef struct itti_ngap_ue_context_release_req_s {
   gnb_ue_ngap_id_t gnb_ue_ngap_id;
   ue_context_pduSession_t pduSession;
   uint32_t gnb_id;
-  n2cause relCause;
+  n2cause_e relCause;
 } itti_ngap_ue_context_release_req_t;
 
 typedef struct itti_ngap_dl_nas_data_req_s {

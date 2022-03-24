@@ -104,13 +104,12 @@ void amf_ue_context_update_coll_keys(amf_ue_context_t* const amf_ue_context_p,
                  amf_ue_ngap_id);
   }
 
-  m_rc = amf_ue_context_p->imsi_amf_ue_id_htbl.remove(
-      ue_context_p->amf_context.imsi64);
-
   // Check if ue id is valid and imsi is populated
   if ((INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) &&
       (ue_context_p->amf_context.imsi64)) {
-    m_rc = amf_ue_context_p->imsi_amf_ue_id_htbl.insert(imsi, amf_ue_ngap_id);
+    amf_ue_context_p->imsi_amf_ue_id_htbl.remove(
+        ue_context_p->amf_context.imsi64);
+    amf_ue_context_p->imsi_amf_ue_id_htbl.insert(imsi, amf_ue_ngap_id);
   } else {
     OAILOG_ERROR(LOG_AMF_APP,
                  "Insertion of Hash entry failed for  "
@@ -1168,7 +1167,7 @@ void amf_app_handle_resource_release_response(
  * */
 static void amf_app_handle_ngap_ue_context_release(
     const amf_ue_ngap_id_t amf_ue_ngap_id,
-    const gnb_ue_ngap_id_t gnb_ue_ngap_id, uint32_t gnb_id, n2cause cause) {
+    const gnb_ue_ngap_id_t gnb_ue_ngap_id, uint32_t gnb_id, n2cause_e cause) {
   struct ue_m5gmm_context_s* ue_context_p = NULL;
   gnb_ngap_id_key_t gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
 

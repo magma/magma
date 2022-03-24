@@ -317,20 +317,18 @@ ue_m5gmm_context_s* amf_get_ue_context_from_imsi(char* imsi) {
  ***************************************************************************/
 ue_m5gmm_context_s* amf_ue_context_exists_guti(
     amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p) {
-  magma::map_rc_t m_rc = magma::MAP_OK;
   uint64_t amf_ue_ngap_id64 = 0;
-  ue_m5gmm_context_t* ue_context = NULL;
+  ue_m5gmm_context_t* ue_context_p = NULL;
 
-  m_rc = amf_ue_context_p->guti_ue_context_htbl.get(*guti_p, &amf_ue_ngap_id64);
-
-  if (m_rc == magma::MAP_OK) {
-    ue_context = amf_ue_context_exists_amf_ue_ngap_id(
+  if (amf_ue_context_p->guti_ue_context_htbl.get(*guti_p, &amf_ue_ngap_id64) ==
+      magma::MAP_OK) {
+    ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(
         (amf_ue_ngap_id_t)amf_ue_ngap_id64);
-    if (ue_context) {
-      return ue_context;
+    if (ue_context_p) {
+      return ue_context_p;
     }
   } else {
-    OAILOG_WARNING(LOG_AMF_APP, " No GUTI [%u]hashtable for GUTI \n",
+    OAILOG_WARNING(LOG_AMF_APP, " No GUTI hashtable for GUTI: [%u] \n",
                    guti_p->m_tmsi);
   }
 
@@ -730,7 +728,6 @@ void amf_ue_context_update_ue_sig_connection_state(
     amf_ue_context_t* const amf_ue_context_p,
     struct ue_m5gmm_context_s* ue_context_p, m5gcm_state_t new_cm_state) {
   // Function is used to update UE's Signaling Connection State
-  hashtable_rc_t hash_rc = HASH_TABLE_OK;
 
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (amf_ue_context_p == NULL) {
@@ -833,33 +830,35 @@ static int amf_ue_context_release_complete_timer_handler(zloop_t* loop,
                                                          void* output) {
   amf_context_t* amf_ctx = NULL;
   amf_ue_ngap_id_t ue_id = 0;
+  OAILOG_FUNC_IN(LOG_AMF_APP);
 
   if (!amf_pop_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP,
         "Context Release Timer: Invalid Timer Id expiration, Timer Id: %u\n",
         timer_id);
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
   }
 
   ue_m5gmm_context_s* ue_amf_context =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_amf_context == NULL) {
-    OAILOG_ERROR(LOG_NAS_AMF,
+    OAILOG_ERROR(LOG_AMF_APP,
                  "Ue Context Release Timer: ue_amf_context is NULL for "
                  "ue id: " AMF_UE_NGAP_ID_FMT "\n",
                  ue_id);
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
   }
 
   amf_free_ue_context(ue_amf_context);
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
 // Api for release UE context
 void amf_ctx_release_ue_context(ue_m5gmm_context_s* ue_context_p,
-                                n2cause n2_cause) {
+                                n2cause_e n2_cause) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (!ue_context_p) {
     OAILOG_ERROR(LOG_AMF_APP, "Ue contex is null");
     OAILOG_FUNC_OUT(LOG_AMF_APP);
@@ -871,54 +870,57 @@ void amf_ctx_release_ue_context(ue_m5gmm_context_s* ue_context_p,
   if (ue_context_p->m5_implicit_deregistration_timer.id !=
       NAS5G_TIMER_INACTIVE_ID) {
     amf_app_stop_timer(ue_context_p->m5_implicit_deregistration_timer.id);
-    ue_context_p->m5_implicit_deregistration_timer.id = NAS5G_TIMER_INACTIVE_ID;
   }
   ue_context_p->m5_implicit_deregistration_timer.id = amf_app_start_timer(
       amf_config.nas_config.implicit_dereg_sec, TIMER_REPEAT_ONCE,
       amf_ue_context_release_complete_timer_handler,
       ue_context_p->amf_ue_ngap_id);
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 // Get the ue_context release cause
 status_code_e amf_get_ue_context_rel_cause(amf_ue_ngap_id_t ue_id,
-                                           n2cause* ue_context_rel_cause) {
+                                           n2cause_e* ue_context_rel_cause) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   ue_m5gmm_context_s* ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context_p == NULL) {
-    return RETURNerror;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   *ue_context_rel_cause = ue_context_p->ue_context_rel_cause;
-  return RETURNok;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
 // Get the ue_context mm state
 status_code_e amf_get_ue_context_mm_state(amf_ue_ngap_id_t ue_id,
                                           m5gmm_state_t* mm_state) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   ue_m5gmm_context_s* ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context_p == NULL) {
-    return RETURNerror;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   *mm_state = ue_context_p->mm_state;
-  return RETURNok;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
 // Get the ue_context cm state
 status_code_e amf_get_ue_context_cm_state(amf_ue_ngap_id_t ue_id,
                                           m5gcm_state_t* cm_state) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   ue_m5gmm_context_s* ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context_p == NULL) {
-    return RETURNerror;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   *cm_state = ue_context_p->cm_state;
-  return RETURNok;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
 /* Get the ue id from IMSI */

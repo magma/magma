@@ -645,7 +645,7 @@ int send_uplink_nas_message_service_request_with_pdu(
 bool check_ue_context_state(amf_ue_ngap_id_t ue_id,
                             m5gmm_state_t expected_mm_state,
                             m5gcm_state_t expected_cm_state,
-                            n2cause expected_ue_context_rel_cause) {
+                            n2cause_e expected_ue_context_rel_cause) {
   m5gmm_state_t mm_state;
   int rc = RETURNerror;
 
@@ -668,7 +668,7 @@ bool check_ue_context_state(amf_ue_ngap_id_t ue_id,
     return false;
   }
 
-  n2cause ue_context_rel_cause;
+  n2cause_e ue_context_rel_cause;
   rc = amf_get_ue_context_rel_cause(ue_id, &ue_context_rel_cause);
   if (rc != RETURNok) {
     return false;

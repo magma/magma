@@ -377,8 +377,8 @@ enum m5gcm_state_t {
  * @brief Useful parameters to know in AMF application layer.
  */
 typedef struct ue_m5gmm_context_s {
-  // define require for n2cause in NGAP module
-  n2cause ue_context_rel_cause;
+  // define require for n2cause_e in NGAP module
+  n2cause_e ue_context_rel_cause;
 
   // Mobility Management state
   m5gmm_state_t mm_state;
@@ -490,7 +490,7 @@ typedef struct amf_msg_header_t {
 
 // Release Request routine.
 void amf_app_itti_ue_context_release(ue_m5gmm_context_s* ue_context_p,
-                                     n2cause n2_cause);
+                                     n2cause_e n2_cause);
 
 // 5G Mobility Management Messages
 union mobility_msg_u {
@@ -906,7 +906,7 @@ void ambr_calculation_pdu_session(uint16_t* dl_session_ambr,
 int amf_proc_registration_abort(amf_context_t* amf_ctx,
                                 struct ue_m5gmm_context_s* ue_amf_context);
 
-// Fetch the ue contet from imsi
+// Fetch the ue context from imsi
 struct ue_m5gmm_context_s* amf_ue_context_exists_imsi(
     amf_ue_context_t* const amf_ue_context_p, imsi64_t imsi64);
 
@@ -927,7 +927,7 @@ void amf_ue_context_update_ue_sig_connection_state(
 
 // Handling the UE context release
 void amf_ctx_release_ue_context(ue_m5gmm_context_s* ue_context_p,
-                                n2cause n2_cause);
+                                n2cause_e n2_cause);
 
 // For stored registration information start the registration
 void proc_new_registration_req(amf_ue_context_t* const amf_ue_context_p,
@@ -949,7 +949,7 @@ void create_new_registration_info(amf_context_t* amf_context_p,
                                   bool is_mm_ctx_new);
 
 void amf_app_itti_ue_context_release(ue_m5gmm_context_s* ue_context_p,
-                                     n2cause n2_cause);
+                                     n2cause_e n2_cause);
 
 /* Fetch tmsi from ue id */
 tmsi_t amf_lookup_guti_by_ueid(amf_ue_ngap_id_t ue_id);
@@ -970,7 +970,7 @@ int m5g_security_select_algorithms(const int ue_iaP, const int ue_eaP,
 
 // Get the context release cause
 status_code_e amf_get_ue_context_rel_cause(amf_ue_ngap_id_t ue_id,
-                                           n2cause* ue_context_rel_cause);
+                                           n2cause_e* ue_context_rel_cause);
 
 // Get the context mm state
 status_code_e amf_get_ue_context_mm_state(amf_ue_ngap_id_t ue_id,

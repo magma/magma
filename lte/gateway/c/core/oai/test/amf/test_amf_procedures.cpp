@@ -510,7 +510,7 @@ TEST_F(AMFAppProcedureTest, TestDeRegistration) {
   EXPECT_TRUE(rc == RETURNok);
   EXPECT_TRUE(mm_state == DEREGISTERED);
 
-  n2cause ue_context_rel_cause;
+  n2cause_e ue_context_rel_cause;
   rc = amf_get_ue_context_rel_cause(ue_id, &ue_context_rel_cause);
   EXPECT_TRUE(rc == RETURNok);
 

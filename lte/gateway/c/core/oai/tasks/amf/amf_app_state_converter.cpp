@@ -249,7 +249,7 @@ void AmfNasStateConverter::proto_to_ue_m5gmm_context(
     ue_m5gmm_context_t* state_ue_m5gmm_context) {
   state_ue_m5gmm_context->amf_ue_ngap_id = ue_context_proto.amf_ue_ngap_id();
   state_ue_m5gmm_context->ue_context_rel_cause =
-      static_cast<n2cause>(ue_context_proto.rel_cause());
+      static_cast<n2cause_e>(ue_context_proto.rel_cause());
 
   state_ue_m5gmm_context->mm_state =
       static_cast<m5gmm_state_t>(ue_context_proto.mm_state());

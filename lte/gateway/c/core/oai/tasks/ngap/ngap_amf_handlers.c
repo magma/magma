@@ -82,7 +82,7 @@ status_code_e ngap_generate_ng_setup_response(
     ngap_state_t* state, gnb_description_t* gnb_association);
 
 status_code_e ngap_amf_generate_ue_context_release_command(
-    ngap_state_t* state, m5g_ue_description_t* ue_ref_p, n2cause cause,
+    ngap_state_t* state, m5g_ue_description_t* ue_ref_p, n2cause_e cause,
     imsi64_t imsi64);
 
 /* Handlers matrix. Only amf related procedures present here.
@@ -910,7 +910,7 @@ int ngap_amf_handle_ue_context_release_request(ngap_state_t* state,
   MessageDef* message_p = NULL;
   Ngap_Cause_PR cause_type;
   long cause_value;
-  n2cause ng_release_cause = NGAP_RADIO_NR_GENERATED_REASON;
+  n2cause_e ng_release_cause = NGAP_RADIO_NR_GENERATED_REASON;
   int rc = RETURNok;
   amf_ue_ngap_id_t amf_ue_ngap_id = 0;
   gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
@@ -1064,7 +1064,7 @@ int ngap_amf_handle_ue_context_release_request(ngap_state_t* state,
 
 //------------------------------------------------------------------------------
 status_code_e ngap_amf_generate_ue_context_release_command(
-    ngap_state_t* state, m5g_ue_description_t* ue_ref_p, n2cause cause,
+    ngap_state_t* state, m5g_ue_description_t* ue_ref_p, n2cause_e cause,
     imsi64_t imsi64) {
   uint8_t* buffer = NULL;
   uint32_t length = 0;
