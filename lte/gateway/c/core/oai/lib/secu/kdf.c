@@ -19,7 +19,7 @@
 #include <stdint.h>
 #include <nettle/hmac.h>
 
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 

@@ -16,7 +16,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
 #ifdef __cplusplus

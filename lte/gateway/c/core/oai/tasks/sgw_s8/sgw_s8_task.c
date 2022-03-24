@@ -15,7 +15,7 @@ limitations under the License.
 #define SGW_S8_TASK_C
 
 #include <stdio.h>
-#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/common/log.h"
