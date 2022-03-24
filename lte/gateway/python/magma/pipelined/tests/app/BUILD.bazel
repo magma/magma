@@ -16,7 +16,7 @@ package(default_visibility = ["//visibility:public"])
 
 py_library(
     name = "flow_query",
-    testonly = 1,
+    testonly = True,
     srcs = ["flow_query.py"],
     deps = [
         "//lte/gateway/python/integ_tests/s1aptests/ovs:constants",
@@ -26,21 +26,21 @@ py_library(
 
 py_library(
     name = "packet_builder",
-    testonly = 1,
+    testonly = True,
     srcs = ["packet_builder.py"],
     deps = [requirement("scapy")],
 )
 
 py_library(
     name = "packet_injector",
-    testonly = 1,
+    testonly = True,
     srcs = ["packet_injector.py"],
     deps = [requirement("scapy")],
 )
 
 py_library(
     name = "table_isolation",
-    testonly = 1,
+    testonly = True,
     srcs = ["table_isolation.py"],
     deps = [
         "//lte/gateway/python/integ_tests/s1aptests/ovs:constants",
@@ -50,7 +50,7 @@ py_library(
 
 py_library(
     name = "subscriber",
-    testonly = 1,
+    testonly = True,
     srcs = ["subscriber.py"],
     deps = [
         "//lte/gateway/python/magma/subscriberdb:sid",
@@ -60,7 +60,7 @@ py_library(
 
 py_library(
     name = "start_pipelined",
-    testonly = 1,
+    testonly = True,
     srcs = [
         "exceptions.py",
         "start_pipelined.py",
