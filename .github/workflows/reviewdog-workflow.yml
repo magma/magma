@@ -46,6 +46,21 @@ jobs:
             filesChanged:
               - [".github/workflows/reviewdog-workflow.yml", "lte/gateway/c/**", "orc8r/gateway/c/**"]
 
+  pre_job_python_determinator:
+    runs-on: ubuntu-latest
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - [".github/workflows/reviewdog-workflow.yml", "lte/gateway/python/**", "orc8r/gateway/python/**"]
+
   cpplint:
     needs: pre_job_c_cpp_determinator
     if: ${{ needs.pre_job_c_cpp_determinator.outputs.should_not_skip == 'true' }}
@@ -138,6 +153,8 @@ jobs:
           locale: "US"
 
   mypy:
+    needs: pre_job_python_determinator
+    if: ${{ needs.pre_job_python_determinator.outputs.should_not_skip == 'true' }}
     name: mypy
     runs-on: ubuntu-latest
     steps:
@@ -177,21 +194,17 @@ jobs:
           # - shellcheck_flags
 
   wemake-python-styleguide:
+    needs: pre_job_python_determinator
+    if: ${{ needs.pre_job_python_determinator.outputs.should_not_skip == 'true' }}
     name: wemake-python-styleguide
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0
           ref: ${{github.event.pull_request.head.ref}}
           repository: ${{github.event.pull_request.head.repo.full_name}}
-      - name: Get changed files
-        id: py-changes
-        # Set outputs.py to be a list of modified python files
-        run: |
-          echo "::set-output name=py::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep .py$ | xargs)"
-      - if: ${{ steps.py-changes.outputs.py }}
-        name: wemake-python-styleguide
+          fetch-depth: 0
+      - name: wemake-python-styleguide
         uses: wemake-services/wemake-python-styleguide@0.15.2
         with:
           reporter: 'github-pr-check'
