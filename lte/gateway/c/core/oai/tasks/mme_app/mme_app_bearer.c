@@ -985,7 +985,8 @@ void mme_app_handle_delete_session_rsp(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
-  if (ue_context_p->tau_accept_eps_ber_cntx_status) {
+  if ((ue_context_p->tau_accept_eps_ber_cntx_status) &&
+      (ue_context_p->nb_delete_sessions > 0)) {
     ue_context_p->nb_delete_sessions--;
     OAILOG_DEBUG_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
@@ -4762,7 +4763,9 @@ void mme_app_handle_mme_init_local_deactivation(
       ue_context_p, false, bearer_deactv_req_p->ebi,
       bearer_deactv_req_p->no_of_bearers, pdn_context->s_gw_teid_s11_s4,
       REQUEST_ACCEPTED, pdn_context->route_s11_messages_to_s8_task, true);
-  ue_context_p->nb_delete_bearer_cmd--;
+  if (ue_context_p->nb_delete_bearer_cmd > 0) {
+    ue_context_p->nb_delete_bearer_cmd--;
+  }
   if (ue_context_p->nb_delete_bearer_cmd == 0) {
     // Send TAU accept
     if (send_tau_accept_with_eps_bearer_ctx_status(ue_context_p) != RETURNok) {
