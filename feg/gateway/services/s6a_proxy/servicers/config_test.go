@@ -37,8 +37,8 @@ func TestS6aConfig(t *testing.T) {
 					"product_name": "magma_test",
 					"realm": "local.openair4G.eur",
 					"host": "local.magma-oai.openair4G.eur",
-					"dest_host":"magma-oai.openair4G.eur",
-					"dest_realm":"openair4G.eur"
+					"dest_host": "magma-oai.openair4G.eur",
+					"dest_realm": "openair4G.eur"
 				}
 			}
 		}

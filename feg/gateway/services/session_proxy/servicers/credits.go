@@ -46,7 +46,7 @@ func (srv *CentralSessionController) sendSingleCreditRequest(request *gy.CreditC
 				answer.ResultCode, request.SessionID, request.IMSI)
 		}
 		return answer, nil
-	case <-time.After(srv.cfg.RequestTimeout):
+	case <-time.After(srv.cfg.RequestTimeoutGy):
 		metrics.GyTimeouts.Inc()
 		srv.creditClient.IgnoreAnswer(request)
 		return nil, fmt.Errorf("Did not receive Gy CCA for session: %s, IMSI: %s", request.SessionID, request.IMSI)
@@ -176,7 +176,7 @@ func (srv *CentralSessionController) waitForGyResponses(
 ) []*protos.CreditUpdateResponse {
 	requestMap := createRequestKeyMap(requests)
 	responses := []*protos.CreditUpdateResponse{}
-	timeout := time.After(timeoutDuration) // TODO constant
+	timeout := time.After(timeoutDuration)
 	numResponses := len(requests)
 loop:
 	for i := 0; i < numResponses; i++ {

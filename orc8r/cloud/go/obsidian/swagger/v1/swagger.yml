@@ -7236,6 +7236,11 @@ definitions:
         minLength: 1
         type: string
         x-nullable: false
+      request_timeout:
+        default: 3
+        format: uint32
+        type: integer
+        x-nullable: false
       retransmits:
         default: 3
         format: uint32

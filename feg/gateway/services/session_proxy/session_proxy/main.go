@@ -126,10 +126,11 @@ func generateClientsConfsAndDiameterConnection() (
 		controlParam.Config = &servicers.SessionControllerConfig{
 			OCSConfig:        OCSConfs[i],
 			PCRFConfig:       PCRFConfs[i],
-			RequestTimeout:   3 * time.Second,
 			UseGyForAuthOnly: util.IsTruthyEnv(gy.UseGyForAuthOnlyEnv),
 			DisableGx:        gxGlobalConf.DisableGx,
+			RequestTimeoutGx: time.Duration(gxCliConfs[i].RequestTimeout) * time.Second,
 			DisableGy:        gyGlobalConf.DisableGy,
+			RequestTimeoutGy: time.Duration(gyCliConfs[i].RequestTimeout) * time.Second,
 		}
 		// Fill in gx and gy config for controller i
 		if OCSConfsCopy[i].DiameterServerConnConfig == PCRFConfsCopy[i].DiameterServerConnConfig &&
