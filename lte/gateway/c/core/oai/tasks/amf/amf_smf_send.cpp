@@ -257,7 +257,7 @@ int pdu_session_resource_release_complete(
   if ((smf_ctx->pdu_address.pdn_type == IPv6) ||
       (smf_ctx->pdu_address.pdn_type == IPv4_AND_v6)) {
     // Clean up the Mobility IP Address
-    AsyncM5GMobilityServiceClient::getInstance().release_ipv6_address(
+    AMFClientServicer::getInstance().release_ipv6_address(
         imsi, smf_ctx->dnn.c_str(), &(smf_ctx->pdu_address.ipv6_address));
   }
 
@@ -780,7 +780,7 @@ int amf_smf_notification_send(amf_ue_ngap_id_t ue_id,
                "ue_state_idle is set to true \n",
                imsi);
 
-  AsyncSmfServiceClient::getInstance().set_smf_notification(notify_req);
+  AMFClientServicer::getInstance().set_smf_notification(notify_req);
 
   return RETURNok;
 }
@@ -938,7 +938,7 @@ int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
   // Set regional_subscription flag
   s6a_ulr_p->supportedfeatures.regional_subscription = true;
 
-  rc = AsyncSmfServiceClient::getInstance().n11_update_location_req(s6a_ulr_p);
+  rc = AMFClientServicer::getInstance().n11_update_location_req(s6a_ulr_p);
 
   delete s6a_ulr_p;
 
