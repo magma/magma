@@ -34,7 +34,7 @@ extern "C" {
 extern bool hss_associated;
 
 namespace magma {
-namespace lte {
+namespace lte {  
 
 task_zmq_ctx_t task_zmq_ctx_main_s1ap_with_injected_states;
 
