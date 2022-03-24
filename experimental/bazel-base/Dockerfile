@@ -46,6 +46,8 @@ RUN apt-get update && \
         lld \
         # dependency of python services (e.g. magmad)
         net-tools \
+        # dependency of python services (e.g. pipelined)
+        netbase \
         python3 \
         python-is-python3 \
         # dependency of python services (e.g. magmad)
@@ -56,6 +58,13 @@ RUN apt-get update && \
         vim \
         wget \
         zip
+
+# Install depencies from facebook repository
+COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/
+RUN apt-key add /tmp/jfrog.pub && \
+    echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" > /etc/apt/sources.list.d/fbc.list && \
+    apt-get update -y && \
+    apt-get install -y bcc-tools
 
 # Install bazel
 WORKDIR /usr/sbin
