@@ -24,7 +24,7 @@ import logging
 from copy import deepcopy
 from ipaddress import ip_address, ip_network
 from threading import Condition
-from typing import List, Optional, cast
+from typing import List, cast
 
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 
@@ -123,7 +123,7 @@ class IPAllocatorDHCP(IPAllocator):
         """
         mac = create_mac_from_sid(sid)
 
-        dhcp_desc = self._dhcp_client.get_dhcp_desc(mac, str(vlan_id))
+        dhcp_desc = self._dhcp_client.get_dhcp_desc(mac, vlan_id)
         LOG.debug(
             "allocate IP for %s mac %s dhcp_desc %s", sid, mac,
             dhcp_desc,
