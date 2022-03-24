@@ -161,7 +161,7 @@ RUN wget --progress=dot:giga https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz &&
     rm -rf gnutls*
 
 ##### Useful for logfile modification e.g. pruning all /magma/... prefix from GCC warning logs
-RUN GOBIN="/usr/bin/" go get github.com/ezekg/xo
+RUN GOBIN="/usr/bin/" go install github.com/ezekg/xo@0.3.0
 
 ##### GRPC and it's dependencies
 RUN git clone --recurse-submodules -b v1.35.0 https://github.com/grpc/grpc && \
@@ -319,7 +319,7 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     rm -rf /freediameter /tmp/*
 
 ##### Go language server support for vscode
-RUN go get -v golang.org/x/tools/gopls
+RUN go install golang.org/x/tools/gopls@latest
 
 #### Update shared library configuration
 RUN ldconfig -v
