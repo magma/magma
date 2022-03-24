@@ -28,10 +28,7 @@ import grpc
 import s1ap_types
 from integ_tests.gateway.rpc import get_rpc_channel
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
-from lte.protos.abort_session_pb2 import (
-    AbortSessionRequest,
-    AbortSessionResult,
-)
+from lte.protos.abort_session_pb2 import AbortSessionRequest, AbortSessionResult
 from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
 from lte.protos.ha_service_pb2 import StartAgwOffloadRequest
 from lte.protos.ha_service_pb2_grpc import HaServiceStub
@@ -55,10 +52,7 @@ from lte.protos.session_manager_pb2_grpc import (
     LocalSessionManagerStub,
     SessionProxyResponderStub,
 )
-from lte.protos.spgw_service_pb2 import (
-    CreateBearerRequest,
-    DeleteBearerRequest,
-)
+from lte.protos.spgw_service_pb2 import CreateBearerRequest, DeleteBearerRequest
 from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
 from magma.subscriberdb.sid import SIDUtils
 from orc8r.protos.common_pb2 import Void
