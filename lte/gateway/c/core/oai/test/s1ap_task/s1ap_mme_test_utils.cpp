@@ -31,7 +31,7 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-extern task_zmq_ctx_t task_zmq_ctx_main_s1ap;
+task_zmq_ctx_t task_zmq_ctx_main_s1ap;
 
 status_code_e setup_new_association(s1ap_state_t* state,
                                     sctp_assoc_id_t assoc_id) {

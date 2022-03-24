@@ -26,12 +26,28 @@ cc_test(
 )
 
 cc_test(
-    name = "s1ap_mme_handlers_test",
+    name = "s1ap_mme_handlers_ue_test",
     size = "small",
     srcs = [
-        "test_s1ap_mme_handlers.cpp",
+        "test_s1ap_mme_handlers_ue.cpp",
     ],
     deps = [
+        ":s1ap_mme_handlers_test_fixture",
+        ":s1ap_mme_test_utils",
+        "//lte/gateway/c/core",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "s1ap_mme_handlers_s1_enb_test",
+    size = "small",
+    srcs = [
+        "test_s1ap_mme_handlers_s1_enb.cpp",
+    ],
+    deps = [
+        ":s1ap_mme_handlers_test_fixture",
         ":s1ap_mme_test_utils",
         "//lte/gateway/c/core",
         "//lte/gateway/c/core/oai/test/mock_tasks",
@@ -62,6 +78,47 @@ cc_test(
         "//lte/gateway/c/core",
         "//lte/gateway/c/core/oai/test/mock_tasks",
         "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "s1ap_mme_handlers_test_fixture",
+    srcs = [
+        "s1ap_mme_handlers_test_fixture.cpp",
+    ],
+    hdrs = [
+        "s1ap_mme_handlers_test_fixture.h",
+    ],
+    deps = [
+        ":s1ap_mme_test_utils",
+        "//lte/gateway/c/core",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+    ],
+)
+
+cc_test(
+    name = "s1ap_mme_handlers_handover_test",
+    size = "small",
+    srcs = [
+        "test_s1ap_mme_handlers_handover.cpp",
+    ],
+    deps = [
+        ":s1ap_mme_handlers_test_fixture",
+        ":s1ap_mme_test_utils",
+        "//lte/gateway/c/core",
+    ],
+)
+
+cc_test(
+    name = "s1ap_mme_handlers_erab_test",
+    size = "small",
+    srcs = [
+        "test_s1ap_mme_handlers_erab.cpp",
+    ],
+    deps = [
+        ":s1ap_mme_handlers_test_fixture",
+        ":s1ap_mme_test_utils",
+        "//lte/gateway/c/core",
     ],
 )
 

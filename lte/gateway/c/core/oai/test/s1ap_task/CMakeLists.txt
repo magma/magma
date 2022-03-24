@@ -17,22 +17,56 @@ link_directories(/usr/src/googletest/googlemock/lib/)
 
 include_directories(${PROJECT_SOURCE_DIR})
 
-add_executable(s1ap_test
+set(TEST_SHARED_SRCS 
         s1ap_mme_test_utils.cpp
         s1ap_test.cpp
-        test_s1ap_mme_handlers.cpp
-        test_s1ap_handle_new_association.cpp
-        test_s1ap_state_manager.cpp
-        test_s1ap_state_converter.cpp)
-
-target_link_libraries(s1ap_test
+        s1ap_mme_handlers_test_fixture.cpp
+)
+set(TEST_SHARED_LINKS
         TASK_S1AP MOCK_TASKS TASK_AMF_APP
         gtest gtest_main
-        )
+)
 
-target_include_directories(s1ap_test PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CHECK_INCLUDE_DIRS}
-        )
+add_executable(s1ap_mme_handler_ue_test 
+        test_s1ap_mme_handlers_ue.cpp
+        ${TEST_SHARED_SRCS})
+target_link_libraries(s1ap_mme_handler_ue_test ${TEST_SHARED_LINKS})
+add_test(test_s1ap_mme_handler_ue s1ap_mme_handler_ue_test)
 
-add_test(test_s1ap s1ap_test)
+add_executable(s1ap_mme_handlers_handover_test 
+        test_s1ap_mme_handlers_handover.cpp
+        ${TEST_SHARED_SRCS})
+target_link_libraries(s1ap_mme_handlers_handover_test ${TEST_SHARED_LINKS})
+add_test(test_s1ap_mme_handlers_handover s1ap_mme_handlers_handover_test)
+
+add_executable(s1ap_mme_handlers_erab_test 
+        test_s1ap_mme_handlers_erab.cpp
+        ${TEST_SHARED_SRCS})
+target_link_libraries(s1ap_mme_handlers_erab_test ${TEST_SHARED_LINKS})
+add_test(test_s1ap_mme_handlers_erab s1ap_mme_handlers_erab_test)
+
+add_executable(s1ap_mme_handlers_s1_enb_test 
+        test_s1ap_mme_handlers_s1_enb.cpp
+        ${TEST_SHARED_SRCS})
+target_link_libraries(s1ap_mme_handlers_s1_enb_test ${TEST_SHARED_LINKS})
+add_test(test_s1ap_mme_handlers_s1_enb s1ap_mme_handlers_s1_enb_test)
+
+add_executable(s1ap_handle_new_association_test
+        test_s1ap_handle_new_association.cpp
+        ${TEST_SHARED_SRCS})
+target_link_libraries(s1ap_handle_new_association_test ${TEST_SHARED_LINKS})
+add_test(test_s1ap_handle_new_association s1ap_handle_new_association_test)
+
+add_executable(s1ap_state_manager_test
+        test_s1ap_state_manager.cpp
+        ${TEST_SHARED_SRCS})
+target_link_libraries(s1ap_state_manager_test ${TEST_SHARED_LINKS})
+add_test(test_s1ap_state_manager s1ap_state_manager_test)
+
+add_executable(s1ap_state_converter_test
+        test_s1ap_state_converter.cpp
+        ${TEST_SHARED_SRCS})
+target_link_libraries(s1ap_state_converter_test ${TEST_SHARED_LINKS})
+add_test(test_s1ap_state_converter s1ap_state_converter_test)
+
+
