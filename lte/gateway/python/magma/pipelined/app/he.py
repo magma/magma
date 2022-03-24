@@ -135,9 +135,6 @@ class HeaderEnrichmentController(MagmaController):
         uplink_port = config_dict.get('uplink_port', None)
         proxy_port_name = config_dict.get('proxy_port_name')
 
-        bridge = config_dict.get('bridge_name')
-        BridgeTools.add_ovs_port(bridge, proxy_port_name, PROXY_OF_PORT)
-
         try:
             he_proxy_port = BridgeTools.get_ofport(proxy_port_name)
         except DatapathLookupError:

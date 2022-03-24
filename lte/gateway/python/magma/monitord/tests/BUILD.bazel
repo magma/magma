@@ -19,6 +19,7 @@ LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 pytest_test(
     name = "test_icmp_monitor",
+    size = "small",
     srcs = ["test_icmp_monitor.py"],
     imports = [
         LTE_ROOT,

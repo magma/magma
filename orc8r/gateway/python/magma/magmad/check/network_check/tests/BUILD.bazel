@@ -11,20 +11,30 @@
 
 load("//bazel:python_test.bzl", "pytest_test")
 
+MAGMA_ROOT = "../../../../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
 pytest_test(
     name = "ping_tests",
+    size = "small",
     srcs = ["ping_tests.py"],
+    imports = [ORC8R_ROOT],
     deps = ["//orc8r/gateway/python/magma/magmad/check/network_check:ping"],
 )
 
 pytest_test(
     name = "routing_table_tests",
+    size = "small",
     srcs = ["routing_table_tests.py"],
+    imports = [ORC8R_ROOT],
     deps = ["//orc8r/gateway/python/magma/magmad/check/network_check:routing_table"],
 )
 
 pytest_test(
     name = "traceroute_tests",
+    size = "small",
     srcs = ["traceroute_tests.py"],
+    imports = [ORC8R_ROOT],
     deps = ["//orc8r/gateway/python/magma/magmad/check/network_check:traceroute"],
 )

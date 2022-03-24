@@ -22,7 +22,13 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers/registration"
+	"magma/orc8r/cloud/go/services/configurator"
+	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/tenants"
 	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
 	tenantsTestInit "magma/orc8r/cloud/go/services/tenants/test_init"
@@ -33,7 +39,7 @@ var (
 	registerRequest = &protos.RegisterRequest{
 		Token: registration.NonceToToken(registration.GenerateNonce(registration.NonceLength)),
 		Hwid: &protos.AccessGatewayID{
-			Id: "Id",
+			Id: hardwareID,
 		},
 		ChallengeKey: &protos.ChallengeKey{
 			KeyType: 0,
@@ -42,23 +48,27 @@ var (
 	}
 	controlProxy       = "controlProxy"
 	nextTenantID int64 = 0
+	hardwareID         = "foo-bar-hardware-id"
 )
 
 func TestRegistrationServicer_Register(t *testing.T) {
-	registrationServicer := setupMockRegistrationServicer()
+	registrationServicer := setupMockRegistrationServicer(t)
 
 	res, err := registrationServicer.Register(context.Background(), registerRequest)
 	assert.NoError(t, err)
+
 	expectedRes := &protos.RegisterResponse{
 		Response: &protos.RegisterResponse_ControlProxy{ControlProxy: controlProxy},
 	}
 	assert.Equal(t, expectedRes, res)
+
+	checkRegisteredGateway(t)
 }
 
 func TestRegistrationServicer_Register_BadToken(t *testing.T) {
 	rpcErr := status.Error(codes.NotFound, "errMessage")
 
-	registrationServicer := setupMockRegistrationServicer()
+	registrationServicer := setupMockRegistrationServicer(t)
 	registrationServicer.GetGatewayDeviceInfo = func(ctx context.Context, token string) (*protos.GatewayDeviceInfo, error) {
 		return nil, rpcErr
 	}
@@ -76,7 +86,7 @@ func TestRegistrationServicer_Register_BadToken(t *testing.T) {
 func TestRegistrationServicer_Register_NoControlProxy(t *testing.T) {
 	rpcErr := status.Error(codes.NotFound, "errMessage")
 
-	registrationServicer := setupMockRegistrationServicer()
+	registrationServicer := setupMockRegistrationServicer(t)
 	registrationServicer.GetControlProxy = func(networkID string) (string, error) {
 		return "", rpcErr
 	}
@@ -132,7 +142,7 @@ func TestGetControlProxy(t *testing.T) {
 	assert.Equal(t, controlProxy, res)
 }
 
-func setupMockRegistrationServicer() *registration.RegistrationService {
+func setupMockRegistrationServicer(t *testing.T) *registration.RegistrationService {
 	registrationService := &registration.RegistrationService{
 		GetGatewayDeviceInfo: func(ctx context.Context, token string) (*protos.GatewayDeviceInfo, error) {
 			return gatewayDeviceInfo, nil
@@ -145,7 +155,38 @@ func setupMockRegistrationServicer() *registration.RegistrationService {
 		},
 	}
 
+	stateTestInit.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
+
+	createUnregisteredGateway(t)
+
 	return registrationService
+}
+
+// createUnregisteredGateway creates an unregistered gateway, i.e. a gateway without its device field
+func createUnregisteredGateway(t *testing.T) {
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: networkID}, serdes.Network)
+	assert.NoError(t, err)
+
+	_, err = configurator.CreateEntities(context.Background(), networkID, []configurator.NetworkEntity{
+		{
+			Type:   orc8r.MagmadGatewayType,
+			Key:    logicalID,
+			Config: &models.MagmadGatewayConfigs{},
+		},
+	}, serdes.Entity)
+	assert.NoError(t, err)
+}
+
+func checkRegisteredGateway(t *testing.T) {
+	ent, err := configurator.LoadEntity(
+		context.Background(),
+		networkID, orc8r.MagmadGatewayType, logicalID,
+		configurator.EntityLoadCriteria{},
+		serdes.Entity,
+	)
+	assert.Equal(t, ent.PhysicalID, hardwareID)
+	assert.NoError(t, err)
 }
 
 func setupAddNetworksToTenantsService(t *testing.T) {

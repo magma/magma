@@ -21,14 +21,14 @@
 #include <stddef.h>
 
 #include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/mme_default_values.h"
 #include "lte/gateway/c/core/oai/include/grpc_service.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 
 static grpc_service_data_t* grpc_service_config;
 task_zmq_ctx_t grpc_service_task_zmq_ctx;
@@ -62,7 +62,10 @@ static void* grpc_service_thread(__attribute__((unused)) void* args) {
   start_grpc_service(grpc_service_config->server_address);
   zloop_start(grpc_service_task_zmq_ctx.event_loop);
   AssertFatal(
-      0, "Asserting as grpc_service_thread should not be exiting on its own!");
+      0,
+      "Asserting as grpc_service_thread should not be exiting on its own! "
+      "This is likely due to a timer handler function returning -1 "
+      "(RETURNerror) on one of the conditions.");
   return NULL;
 }
 

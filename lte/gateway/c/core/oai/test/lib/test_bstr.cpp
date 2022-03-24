@@ -13,18 +13,12 @@
 #include <string.h>
 #include <gtest/gtest.h>
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 namespace magma {
 namespace lte {
 
-class BstrTest : public ::testing::Test {
-  virtual void SetUp() {}
-
-  virtual void TearDown() {}
-};
-
-TEST_F(BstrTest, TestBstrchrp) {
+TEST(BstrTest, TestBstrchrp) {
   const char hello[6] = "hello";
   const char h = 'h';
   const char e = 'e';
@@ -44,7 +38,7 @@ TEST_F(BstrTest, TestBstrchrp) {
   bdestroy(hello_bstr);
 }
 
-TEST_F(BstrTest, TestBtrimws) {
+TEST(BstrTest, TestBtrimws) {
   const char hello[10] = "  hello  ";
   const char space[5] = "    ";
 
@@ -64,7 +58,7 @@ TEST_F(BstrTest, TestBtrimws) {
   bdestroy(hello_bstr);
 }
 
-TEST_F(BstrTest, TestBdelete) {
+TEST(BstrTest, TestBdelete) {
   const char habit[6] = "habit";
   const char bit[4] = "bit";
 
@@ -78,7 +72,7 @@ TEST_F(BstrTest, TestBdelete) {
   bdestroy(habit_bstr);
 }
 
-TEST_F(BstrTest, TestBiseqcstrcaseless) {
+TEST(BstrTest, TestBiseqcstrcaseless) {
   const char hello_lower[6] = "hello";
   const char hello_upper[6] = "HELLO";
   const char world_lower[6] = "world";
@@ -100,7 +94,7 @@ TEST_F(BstrTest, TestBiseqcstrcaseless) {
   bdestroy(hello_bstr);
 }
 
-TEST_F(BstrTest, TestBiseqcaselessblk) {
+TEST(BstrTest, TestBiseqcaselessblk) {
   const char hello_lower[6] = "hello";
   const char hello_upper[6] = "HELLO";
   const char world_lower[6] = "world";
@@ -120,11 +114,6 @@ TEST_F(BstrTest, TestBiseqcaselessblk) {
 
   EXPECT_EQ(biseqcaselessblk(hello_bstr, hello_world_lower, 11), BSTR_OK);
   bdestroy(hello_bstr);
-}
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
 }  // namespace lte
 }  // namespace magma

@@ -17,14 +17,17 @@
 
 namespace magma {
 namespace lte {
+void CheckFillIpv4(packet_filter_contents_t* pf_content, int exp_addr[],
+                   int exp_mask[]) {
+  for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; i++) {
+    EXPECT_EQ(pf_content->ipv4remoteaddr[i].mask, exp_mask[i]);
+    EXPECT_EQ(pf_content->ipv4remoteaddr[i].addr, exp_addr[i]);
+    pf_content->ipv4remoteaddr[i].mask = (uint8_t)256;  // reset mask
+    pf_content->ipv4remoteaddr[i].addr = (uint8_t)256;  // reset addr
+  }
+}
 
-class SPGWServiceImplTest : public ::testing::Test {
-  virtual void SetUp() {}
-
-  virtual void TearDown() {}
-};
-
-TEST_F(SPGWServiceImplTest, TestSpgwServiceImpl) {
+TEST(SPGWServiceImplTest, TestParseIpv4Network) {
   SpgwServiceImpl test_service;
 
   // parseIpv4Network calls with valid ip and optional valid subnet masks
@@ -73,9 +76,48 @@ TEST_F(SPGWServiceImplTest, TestSpgwServiceImpl) {
   }
 }
 
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+TEST(SPGWServiceImplTest, TestFillIpv4) {
+  SpgwServiceImpl test_service;
+  packet_filter_contents_t pf_content;
+
+  // Input "192.168.32.118/8", expected output 192.0.0.0 and 255.0.0.0.
+  bool return_val = test_service.fillIpv4(&pf_content, "192.168.32.118/8");
+  EXPECT_TRUE(return_val);
+  CheckFillIpv4(&pf_content, std::array<int, 4>{192, 0, 0, 0}.data(),
+                std::array<int, 4>{255, 0, 0, 0}.data());
+
+  // Input "192.168.32.118/16", expected output 192.168.0.0 and 255.255.0.0.
+  return_val = test_service.fillIpv4(&pf_content, "192.168.32.118/16");
+  EXPECT_TRUE(return_val);
+  CheckFillIpv4(&pf_content, std::array<int, 4>{192, 168, 0, 0}.data(),
+                std::array<int, 4>{255, 255, 0, 0}.data());
+
+  // Input "192.168.32.118/17", expected output 192.168.0.0 and 255.255.128.0.
+  return_val = test_service.fillIpv4(&pf_content, "192.168.32.118/17");
+  EXPECT_TRUE(return_val);
+  CheckFillIpv4(&pf_content, std::array<int, 4>{192, 168, 0, 0}.data(),
+                std::array<int, 4>{255, 255, 128, 0}.data());
+
+  // Input "192.168.32.118/24", expected output 192.168.32.0 and
+  // 255.255.255.0.
+  return_val = test_service.fillIpv4(&pf_content, "192.168.32.118/24");
+  EXPECT_TRUE(return_val);
+  CheckFillIpv4(&pf_content, std::array<int, 4>{192, 168, 32, 0}.data(),
+                std::array<int, 4>{255, 255, 255, 0}.data());
+
+  // Input "192.168.32.118/26", expected output 192.168.32.64 and
+  // 255.255.255.192.
+  return_val = test_service.fillIpv4(&pf_content, "192.168.32.118/26");
+  EXPECT_TRUE(return_val);
+  CheckFillIpv4(&pf_content, std::array<int, 4>{192, 168, 32, 64}.data(),
+                std::array<int, 4>{255, 255, 255, 192}.data());
+
+  // Input "192.168.32.118/32", expected output 192.168.32.118 and
+  // 255.255.255.255.
+  return_val = test_service.fillIpv4(&pf_content, "192.168.32.118/32");
+  EXPECT_TRUE(return_val);
+  CheckFillIpv4(&pf_content, std::array<int, 4>{192, 168, 32, 118}.data(),
+                std::array<int, 4>{255, 255, 255, 255}.data());
 }
 
 }  // namespace lte

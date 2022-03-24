@@ -98,6 +98,7 @@ func GetPCRFConfiguration() []*diameter.DiameterServerConfig {
 // GetGxClientConfiguration returns a slice containing all client diameter configuration
 func GetGxClientConfiguration() []*diameter.DiameterClientConfig {
 	var retries uint32 = 1
+	var retransmits uint32 = 1
 	configsPtr := &mconfig.SessionProxyConfig{}
 	err := managed_configs.GetServiceConfigs(credit_control.SessionProxyServiceName, configsPtr)
 	if err != nil {
@@ -110,6 +111,7 @@ func GetGxClientConfiguration() []*diameter.DiameterClientConfig {
 				AppID:              diam.GX_CHARGING_CONTROL_APP_ID,
 				WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
 				RetryCount:         uint(retries),
+				Retransmits:        uint(retransmits),
 				SupportedVendorIDs: diameter.GetValueOrEnv("", GxSupportedVendorIDsEnv, ""),
 			},
 		}
@@ -123,6 +125,11 @@ func GetGxClientConfiguration() []*diameter.DiameterClientConfig {
 			log.Printf("Invalid Gx Server Retry Count for server (%s): %d, must be >0. Will be set to 1", gxCfg.GetAddress(), retries)
 			retries = 1
 		}
+		retransmits = gxCfg.GetRetransmits()
+		if retransmits < 1 {
+			log.Printf("Invalid Gx Retransmit Count for server (%s): %d, must be >0. Will be set to 1", gxCfg.GetAddress(), retransmits)
+			retransmits = 1
+		}
 
 		wdInterval := gxCfg.GetWatchdogInterval()
 		if wdInterval == 0 {
@@ -135,6 +142,7 @@ func GetGxClientConfiguration() []*diameter.DiameterClientConfig {
 			AppID:              diam.GX_CHARGING_CONTROL_APP_ID,
 			WatchdogInterval:   uint(wdInterval),
 			RetryCount:         uint(retries),
+			Retransmits:        uint(retransmits),
 			SupportedVendorIDs: diameter.GetValueOrEnv("", GxSupportedVendorIDsEnv, "", i),
 		}
 		diamClientsConfigs = append(diamClientsConfigs, diamCliCfg)

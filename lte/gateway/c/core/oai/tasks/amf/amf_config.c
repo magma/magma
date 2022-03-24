@@ -13,13 +13,13 @@
 #include <libconfig.h>
 #include "lte/gateway/c/core/oai/common/log.h"
 #include <errno.h>
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.501.h"
-#include "lte/gateway/c/core/oai/include/amf_config.h"
 #include "lte/gateway/c/core/oai/common/amf_default_values.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.501.h"
 
 void served_tai_config_init(served_tai_t* served_tai);
 void clear_served_tai_config(served_tai_t* served_tai);
@@ -232,6 +232,17 @@ int amf_config_parse_file(amf_config_t* config_pP,
     if (config_setting_lookup_string(setting_amf, CONFIG_DEFAULT_DNN,
                                      (const char**)&astring)) {
       config_pP->default_dnn = bfromcstr(astring);
+    }
+    // DEFAULT AUTH MAX RETRY COUNT
+    if (config_setting_lookup_string(
+            setting_amf, AUTHENTICATION_COUNTER_MAX_RETRY, &astring)) {
+      config_pP->auth_retry_max_count = (uint32_t)atoi(astring);
+    }
+
+    // DEFAULT AUTH RETRY TIMER EXPIRES MSECS
+    if (config_setting_lookup_string(
+            setting_amf, AUTHENTICATION_RETRY_TIMER_EXPIRY_MSECS, &astring)) {
+      config_pP->auth_retry_interval = (uint32_t)atoi(astring);
     }
 
     // AMF_PLMN_SUPPORT SETTING

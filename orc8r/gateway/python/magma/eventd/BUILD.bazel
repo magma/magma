@@ -12,16 +12,6 @@
 load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
-py_library(
-    name = "eventd_client",
-    srcs = ["eventd_client.py"],
-    visibility = ["//visibility:public"],
-    deps = [
-        "//orc8r/gateway/python/magma/common:service_registry",
-        "//orc8r/protos:eventd_python_grpc",
-    ],
-)
-
 MAGMA_ROOT = "../../../../../"
 
 ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
@@ -30,11 +20,7 @@ LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 py_binary(
     name = "eventd",
-    srcs = [
-        "event_validator.py",
-        "main.py",
-        "rpc_servicer.py",
-    ],
+    srcs = ["main.py"],
     imports = [
         LTE_ROOT,
         ORC8R_ROOT,
@@ -43,13 +29,35 @@ py_binary(
     legacy_create_init = False,
     main = "main.py",
     python_version = "PY3",
+    visibility = ["//visibility:private"],
+    deps = [
+        ":eventd_lib",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+    ],
+)
+
+py_library(
+    name = "eventd_lib",
+    srcs = [
+        "event_validator.py",
+        "rpc_servicer.py",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         "//lte/swagger:lte_swagger_specs",
         "//orc8r/gateway/python/magma/common:rpc_utils",
-        "//orc8r/gateway/python/magma/common:sentry",
-        "//orc8r/gateway/python/magma/common:service",
         "//orc8r/swagger:orc8r_swagger_specs",
         requirement("bravado_core"),
+    ],
+)
+
+py_library(
+    name = "eventd_client",
+    srcs = ["eventd_client.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//orc8r/gateway/python/magma/common:service_registry",
+        "//orc8r/protos:eventd_python_grpc",
     ],
 )

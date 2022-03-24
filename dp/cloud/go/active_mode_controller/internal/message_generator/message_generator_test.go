@@ -2,7 +2,6 @@ package message_generator_test
 
 import (
 	"context"
-	"sort"
 	"testing"
 	"time"
 
@@ -110,11 +109,9 @@ func TestGenerateMessages(t *testing.T) {
 					Id:           "some_cbsd_id",
 					State:        active_mode.CbsdState_Registered,
 					Channels: []*active_mode.Channel{{
-						FrequencyRange: &active_mode.FrequencyRange{
-							Low:  3.62e9,
-							High: 3.63e9,
-						},
-						MaxEirp: wrapperspb.Float(4),
+						LowFrequencyHz:  3.62e9,
+						HighFrequencyHz: 3.63e9,
+						MaxEirp:         wrapperspb.Float(4),
 					}},
 					EirpCapabilities: &active_mode.EirpCapabilities{
 						MinPower:      0,
@@ -135,11 +132,9 @@ func TestGenerateMessages(t *testing.T) {
 					Id:           "some_cbsd_id",
 					State:        active_mode.CbsdState_Registered,
 					Channels: []*active_mode.Channel{{
-						FrequencyRange: &active_mode.FrequencyRange{
-							Low:  3.62e9,
-							High: 3.63e9,
-						},
-						MaxEirp: wrapperspb.Float(15),
+						LowFrequencyHz:  3.62e9,
+						HighFrequencyHz: 3.63e9,
+						MaxEirp:         wrapperspb.Float(15),
 					}},
 					EirpCapabilities: &active_mode.EirpCapabilities{
 						MinPower:      0,
@@ -347,34 +342,22 @@ func TestGenerateMessages(t *testing.T) {
 	}
 	for _, tt := range data {
 		t.Run(tt.name, func(t *testing.T) {
-			g := message_generator.NewMessageGenerator(0, timeout, &stubIndexProvider{})
+			g := message_generator.NewMessageGenerator(0, timeout, &stubRNG{})
 			msgs := g.GenerateMessages(tt.state, now)
 			p := &stubProvider{}
 			for _, msg := range msgs {
 				_ = msg.Send(context.Background(), p)
 			}
-			thenRequestsAreEqual(t, tt.expectedRequests, p.requests)
+			require.Len(t, p.requests, len(tt.expectedRequests))
+			for i := range tt.expectedRequests {
+				assert.JSONEq(t, tt.expectedRequests[i].Payload, p.requests[i].Payload)
+			}
 			require.Len(t, p.actions, len(tt.expectedActions))
 			for i := range tt.expectedActions {
 				assert.Equal(t, tt.expectedActions[i], p.actions[i])
 			}
 		})
 	}
-}
-
-func thenRequestsAreEqual(t *testing.T, expected, actual []*requests.RequestPayload) {
-	require.Len(t, actual, len(expected))
-	sortRequests(expected)
-	sortRequests(actual)
-	for i := range expected {
-		assert.JSONEq(t, expected[i].Payload, actual[i].Payload)
-	}
-}
-
-func sortRequests(requests []*requests.RequestPayload) {
-	sort.Slice(requests, func(i, j int) bool {
-		return requests[i].Payload < requests[j].Payload
-	})
 }
 
 func getSpectrumInquiryRequest() []*requests.RequestPayload {
@@ -395,9 +378,9 @@ func getSpectrumInquiryRequest() []*requests.RequestPayload {
 	}}
 }
 
-type stubIndexProvider struct{}
+type stubRNG struct{}
 
-func (s *stubIndexProvider) Intn(_ int) int {
+func (s *stubRNG) Int() int {
 	return 0
 }
 

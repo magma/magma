@@ -109,15 +109,7 @@ jobs:
           run: |
             cd /workspaces/magma
             bazel test //...
-      - name: Test C/C++ with ASAN  `bazel build //...`
-        uses: addnab/docker-run-action@v2
-        with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
-          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
-          run: |
-            cd /workspaces/magma
-            bazel test //lte/gateway/c/... //orc8r/gateway/c/... --config=asan
+      # TODO: It would be good to also populate cache for `bazel test //orc8r/gateway/c/... //lte/gateway/c/... --config=asan` GH12210
       - name: Upload .bazel-cache and .bazel-cache-repo to S3
         run: |
           tar -zcvf ${{ env.BAZEL_CACHE_DEVCONTAINER_TAR }} ${{ env.BAZEL_CACHE }}/
