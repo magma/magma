@@ -304,7 +304,8 @@
           "lte/s1ap_tests",
           "lte/eventd",
           "lte/access_service_restrictions",
-          "lte/dev_teid_allocation"
+          "lte/dev_teid_allocation",
+          "lte/integrated_5G_sa"
         ]
       },
       {
