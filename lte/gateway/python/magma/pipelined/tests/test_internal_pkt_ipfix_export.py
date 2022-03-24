@@ -31,7 +31,6 @@ from magma.pipelined.tests.pipelined_test_util import (
     start_ryu_app_thread,
     stop_ryu_app_thread,
 )
-from nose.tools import nottest
 
 
 class InternalPktIpfixExportTest(unittest.TestCase):
