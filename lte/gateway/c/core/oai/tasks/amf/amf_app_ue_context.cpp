@@ -22,8 +22,8 @@ extern "C" {
 }
 #endif
 #include <unordered_map>
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/map.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"

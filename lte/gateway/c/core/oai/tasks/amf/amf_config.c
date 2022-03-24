@@ -13,9 +13,9 @@
 #include <libconfig.h>
 #include "lte/gateway/c/core/oai/common/log.h"
 #include <errno.h>
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/amf_default_values.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/amf_config.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"

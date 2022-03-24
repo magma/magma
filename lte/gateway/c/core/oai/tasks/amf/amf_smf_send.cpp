@@ -16,8 +16,8 @@
 extern "C" {
 #endif
 #include <string.h>
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/amf_config.h"
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"

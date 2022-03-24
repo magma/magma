@@ -37,7 +37,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
