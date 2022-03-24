@@ -28,7 +28,10 @@ import grpc
 import s1ap_types
 from integ_tests.gateway.rpc import get_rpc_channel
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
-from lte.protos.abort_session_pb2 import AbortSessionRequest, AbortSessionResult
+from lte.protos.abort_session_pb2 import (
+    AbortSessionRequest,
+    AbortSessionResult,
+)
 from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
 from lte.protos.ha_service_pb2 import StartAgwOffloadRequest
 from lte.protos.ha_service_pb2_grpc import HaServiceStub
@@ -52,7 +55,10 @@ from lte.protos.session_manager_pb2_grpc import (
     LocalSessionManagerStub,
     SessionProxyResponderStub,
 )
-from lte.protos.spgw_service_pb2 import CreateBearerRequest, DeleteBearerRequest
+from lte.protos.spgw_service_pb2 import (
+    CreateBearerRequest,
+    DeleteBearerRequest,
+)
 from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
 from magma.subscriberdb.sid import SIDUtils
 from orc8r.protos.common_pb2 import Void
@@ -302,7 +308,9 @@ class S1ApUtil(object):
             proto_cfg_opts_pr.p[0].val[7] = 0x00
             proto_cfg_opts_pr.p[0].val[8] = 0x00
             proto_cfg_opts_pr.p[0].val[9] = 0x00
-            proto_cfg_opts_pr.p[0].val[10] = 0x83  # Options:Secondary DNS IP Addr
+            proto_cfg_opts_pr.p[0].val[
+                10
+            ] = 0x83  # Options:Secondary DNS IP Addr
             proto_cfg_opts_pr.p[0].val[11] = 0x06  # len = 6
             proto_cfg_opts_pr.p[0].val[12] = 0x00  # 00.00.00.00
             proto_cfg_opts_pr.p[0].val[13] = 0x00
@@ -483,8 +491,10 @@ class S1ApUtil(object):
                 },
             )
             print(
-                "OVS DL flows created ", len(total_dl_ovs_flows_created),
-                "expected ", total_num_dl_flows_to_be_verified,
+                "OVS DL flows created ",
+                len(total_dl_ovs_flows_created),
+                "expected ",
+                total_num_dl_flows_to_be_verified,
             )
             assert (
                 len(total_dl_ovs_flows_created)
@@ -769,6 +779,7 @@ class SubscriberUtil(object):
 
 class MagmadUtil(object):
     """Utility class to trigger system commands in Magma"""
+
     stateless_cmds = Enum("stateless_cmds", "CHECK DISABLE ENABLE")
     config_update_cmds = Enum("config_update_cmds", "MODIFY RESTORE")
     apn_correction_cmds = Enum("apn_correction_cmds", "DISABLE ENABLE")
@@ -1671,7 +1682,11 @@ class SessionManagerUtil(object):
             )
 
     def get_policy_rule(
-        self, policy_id, qos=None, flow_match_list=None, he_urls=None,
+        self,
+        policy_id,
+        qos=None,
+        flow_match_list=None,
+        he_urls=None,
     ):
         """Get policy rules"""
         if qos is not None:
@@ -1706,7 +1721,12 @@ class SessionManagerUtil(object):
         return policy_rule
 
     def send_ReAuthRequest(
-        self, imsi, policy_id, flow_list, qos, he_urls=None,
+        self,
+        imsi,
+        policy_id,
+        flow_list,
+        qos,
+        he_urls=None,
     ):
         """
         Send Policy RAR message to session manager
@@ -1717,7 +1737,10 @@ class SessionManagerUtil(object):
         self.get_flow_match(flow_list, flow_match_list)
 
         policy_rule = self.get_policy_rule(
-            policy_id, qos, flow_match_list, he_urls,
+            policy_id,
+            qos,
+            flow_match_list,
+            he_urls,
         )
 
         qos = QoSInformation(qci=qos["qci"])
@@ -1782,7 +1805,8 @@ class SessionManagerUtil(object):
     def _print_directoryd_content(self):
         try:
             all_records_response = self._directorydstub.GetAllDirectoryRecords(
-                Void(), DEFAULT_GRPC_TIMEOUT,
+                Void(),
+                DEFAULT_GRPC_TIMEOUT,
             )
         except grpc.RpcError as e:
             print(
@@ -1894,7 +1918,10 @@ class GTPBridgeUtils(object):
             "sudo ovs-ofctl del-flows gtp_br0 table={0}".format(table_id),
         )
         if ret_code != 0:
-            print("Failed to delete OVS flow rules for gtp_br0 table="+str(table_id))
+            print(
+                "Failed to delete OVS flow rules for gtp_br0 table="
+                + str(table_id)
+            )
 
 
 class HaUtil(object):
