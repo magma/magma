@@ -142,7 +142,7 @@ class DHCPClient:
         dhcp_opts.append("end")  # type: ignore[arg-type]
         dhcp_desc.xid = pkt_xid
         with self._dhcp_notify:
-            self.dhcp_client_state[mac.as_redis_key(str(vlan))] = dhcp_desc
+            self.dhcp_client_state[mac.as_redis_key(vlan)] = dhcp_desc
 
         pkt = Ether(src=str(mac), dst="ff:ff:ff:ff:ff:ff")
         if vlan and vlan != "0":

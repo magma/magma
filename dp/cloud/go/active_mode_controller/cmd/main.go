@@ -23,7 +23,7 @@ func main() {
 	a := app.NewApp(
 		app.WithConfig(cfg),
 		app.WithClock(clock),
-		app.WithIndexProvider(rand.New(seed)),
+		app.WithRNG(rand.New(seed)),
 	)
 	ctx := context.Background()
 	if err := signal.Run(ctx, a); err != nil && err != context.Canceled {

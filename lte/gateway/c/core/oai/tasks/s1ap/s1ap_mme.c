@@ -28,29 +28,29 @@
 #include "config.h"
 #endif
 
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
-#include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "S1ap_TimeToWait.h"
 #include "asn_internal.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/mme_default_values.h"
+#include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 
 static void start_stats_timer(void);
 static int handle_stats_timer(zloop_t* loop, int id, void* arg);
@@ -316,7 +316,9 @@ static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
 
   zloop_start(s1ap_task_zmq_ctx.event_loop);
   AssertFatal(0,
-              "Asserting as s1ap_mme_thread should not be exiting on its own!");
+              "Asserting as s1ap_mme_thread should not be exiting on its own! "
+              "This is likely due to a timer handler function returning -1 "
+              "(RETURNerror) on one of the conditions.");
   return NULL;
 }
 

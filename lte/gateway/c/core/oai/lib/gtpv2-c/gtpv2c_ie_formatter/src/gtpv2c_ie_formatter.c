@@ -32,25 +32,25 @@
 
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/gcc_diag.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
+#include "lte/gateway/c/core/oai/common/security_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cIe.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsgParser.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/TrafficFlowAggregateDescription.h"
-#include "lte/gateway/c/core/oai/common/security_types.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
 
 //------------------------------------------------------------------------------
 nw_rc_t gtpv2c_imsi_ie_get(uint8_t ieType, uint16_t ieLength,

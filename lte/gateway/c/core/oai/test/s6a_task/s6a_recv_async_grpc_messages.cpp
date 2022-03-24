@@ -15,7 +15,7 @@
 #include <thread>
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 #include "feg/protos/s6a_proxy.grpc.pb.h"
-#include "tasks/async_grpc_service/grpc_async_service_task.h"
+#include "lte/gateway/c/core/oai/tasks/async_grpc_service/grpc_async_service_task.h"
 extern "C" {
 #include "lte/gateway/c/core/oai/include/grpc_service.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"

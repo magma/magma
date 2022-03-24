@@ -1,6 +1,21 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+""" Load external go repositories. """
+
 load("@bazel_gazelle//:deps.bzl", "go_repository")
 
 def go_repositories():
+    """ Declares all go dependencies. """
+
     go_repository(
         name = "co_honnef_go_tools",
         importpath = "honnef.co/go/tools",

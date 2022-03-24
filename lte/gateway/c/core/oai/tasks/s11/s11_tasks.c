@@ -32,21 +32,21 @@
 
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwLog.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s11_mme.h"
+#include "lte/gateway/c/core/oai/include/udp_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
-#include "lte/gateway/c/core/oai/include/s11_mme.h"
-#include "lte/gateway/c/core/oai/tasks/s11/s11_mme_session_manager.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwLog.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/tasks/s11/s11_mme_bearer_manager.h"
-#include "lte/gateway/c/core/oai/include/udp_messages_types.h"
-#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/s11/s11_mme_session_manager.h"
 
 static nw_gtpv2c_stack_handle_t s11_mme_stack_handle = 0;
 // Store the GTPv2-C teid handle
@@ -349,7 +349,9 @@ static void* s11_mme_thread(void* args) {
 
   zloop_start(s11_task_zmq_ctx.event_loop);
   AssertFatal(0,
-              "Asserting as s11_mme_thread should not be exiting on its own!");
+              "Asserting as s11_mme_thread should not be exiting on its own! "
+              "This is likely due to a timer handler function returning -1 "
+              "(RETURNerror) on one of the conditions.");
   return NULL;
 }
 

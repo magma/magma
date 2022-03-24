@@ -354,10 +354,5 @@ TEST(test_delete_session_request_pdn1, delete_session_request_pdn1) {
   }
   EXPECT_EQ(NW_OK, nwGtpv2cFinalize(s11_mme_stack_handle));
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
 }  // namespace lte
 }  // namespace magma

@@ -15,9 +15,11 @@ package diameter
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
@@ -33,6 +35,9 @@ type messageTypeEnum uint8
 const (
 	requestMessage messageTypeEnum = 1
 	answerMessage  messageTypeEnum = 2
+
+	connectionRecoveryInterval = time.Second
+	connectionRecoveryattempts = 6
 )
 
 // Connection is representing a diameter connection that you can
@@ -42,8 +47,11 @@ type Connection struct {
 	metadata *smpeer.Metadata
 	server   *DiameterServerConfig
 	client   *sm.Client
+	disabled bool
 	mutex    sync.Mutex
 }
+
+var disabledErr = errors.New("connection disabled")
 
 func newConnection(client *sm.Client, server *DiameterServerConfig) *Connection {
 	conn := &Connection{
@@ -116,6 +124,7 @@ func (c *Connection) sendMessage(
 	// connection. This is handled as an error and the sender can retry
 	_, err = message.WriteTo(conn)
 	if err != nil {
+		glog.Errorf("sendMessage error: %v for connection %s", err, connAddrStr(conn))
 		// write failed, close and cleanup connection
 		c.destroyConnection(conn)
 	}
@@ -127,6 +136,9 @@ func (c *Connection) sendMessage(
 func (c *Connection) getDiamConnection() (diam.Conn, *smpeer.Metadata, error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
+	if c.disabled {
+		return c.conn, c.metadata, disabledErr
+	}
 	if c.conn != nil {
 		return c.conn, c.metadata, nil
 	}
@@ -155,16 +167,39 @@ func (c *Connection) getDiamConnection() (diam.Conn, *smpeer.Metadata, error) {
 		return nil, nil, errors.New("Could not obtain metadata from connection")
 	}
 	c.conn, c.metadata = conn, metadata
+	if cn, ok := conn.(diam.CloseNotifier); ok && cn != nil {
+		go c.connCloseNotify(cn.CloseNotify(), conn)
+	} else {
+		glog.Errorf("new diam conn (%T) %s -> %s is not CloseNotifier", conn, localAddr, c.server.Addr)
+	}
 	return conn, metadata, nil
+}
+
+func (c *Connection) connCloseNotify(cnc <-chan struct{}, conn diam.Conn) {
+	<-cnc // wait for close notifier
+	glog.V(1).Infof("notified of %s connection closure", connAddrStr(conn))
+	if c != nil && conn != nil && c.destroyConnection(conn) {
+		// if connection was closed not by connection management functions, recover it
+		retryWaitTime := connectionRecoveryInterval
+		for i := 0; i < connectionRecoveryattempts; i++ {
+			_, _, err := c.getDiamConnection()
+			if err == nil || err == disabledErr {
+				break
+			}
+			time.Sleep(retryWaitTime)
+			retryWaitTime *= 2
+		}
+	}
 }
 
 // destroyConnection closes a bad connection. If the connection
 // passed is the same as the one stored in the locked connection, it is nullified.
 // If the passed diam connection is not the same, this probably means another go routine
 // already created a new connection - just try to close it and return.
-func (c *Connection) destroyConnection(conn diam.Conn) {
+// destroyConnection returns true if connection matches and was closed
+func (c *Connection) destroyConnection(conn diam.Conn) bool {
 	if conn == nil {
-		return
+		return false
 	}
 	c.mutex.Lock()
 	match := conn == c.conn
@@ -175,39 +210,47 @@ func (c *Connection) destroyConnection(conn diam.Conn) {
 	c.mutex.Unlock()
 
 	if glog.V(2) {
-		localAddress := "nil"
-		remoteAddress := "nil"
-		if conn.LocalAddr() != nil {
-			localAddress = conn.LocalAddr().String()
-		}
-		if conn.LocalAddr() != nil {
-			remoteAddress = conn.RemoteAddr().String()
-		}
 		if match {
-			glog.Infof("destroyed %s->%s connection", localAddress, remoteAddress)
+			glog.Infof("destroyed %s connection", connAddrStr(conn))
 		} else {
 			glog.Infof(
-				"cannot destroy mismatched %s->%s connection", localAddress, remoteAddress)
+				"cannot destroy mismatched %s connection", connAddrStr(conn))
 		}
 	}
 	conn.Close()
+	return match
 }
 
 // cleanupConnection is similar to destroyConnection, but it closes & cleans up connection unconditionally
-func (c *Connection) cleanupConnection() {
+func (c *Connection) cleanupConnection(disabled bool) {
 	c.mutex.Lock()
+	c.disabled = disabled
 	conn := c.conn
 	if conn != nil {
 		c.conn = nil
 		c.metadata = nil
 		c.mutex.Unlock()
 		if glog.V(2) {
-			glog.Infof("cleaned up %s->%s connection", conn.LocalAddr().String(), conn.RemoteAddr().String())
+			glog.Infof("cleaned up %s connection", connAddrStr(conn))
 		}
 		conn.Close()
 	} else {
 		c.mutex.Unlock()
 	}
+}
+
+func connAddrStr(conn diam.Conn) string {
+	if conn == nil {
+		return "<nil>"
+	}
+	remoteAddress, localAddress := "<nil>", "<nil>"
+	if conn.LocalAddr() != nil {
+		localAddress = conn.LocalAddr().String()
+	}
+	if conn.LocalAddr() != nil {
+		remoteAddress = conn.RemoteAddr().String()
+	}
+	return fmt.Sprintf("%s -> %s", localAddress, remoteAddress)
 }
 
 // addDestinationToMessage adds the destination host/realm AVPs to the message

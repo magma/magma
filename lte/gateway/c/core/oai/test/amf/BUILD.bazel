@@ -37,6 +37,48 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "amf_procedures_test",
+    size = "small",
+    srcs = [
+        "test_amf_procedures.cpp",
+    ],
+    # TODO: Remove manual tag when fixed: GH12144
+    tags = ["manual"],
+    deps = [
+        ":amf_app_test_util",
+        "//lte/gateway/c/core",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "amf_stateless_test",
+    size = "small",
+    srcs = [
+        "test_amf_stateless.cpp",
+    ],
+    # TODO: Remove manual tag when fixed: GH11826
+    tags = ["manual"],
+    deps = [
+        ":amf_app_test_util",
+        "//lte/gateway/c/core",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "amf_common_utils_test",
+    size = "small",
+    srcs = ["test_amf_common_utils.cpp"],
+    deps = [
+        "//lte/gateway/c/core",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "amf_app_test_util",
     srcs = [
@@ -56,5 +98,19 @@ cc_library(
     deps = [
         "//lte/gateway/c/core",
         "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "amf_encode_decode_test",
+    size = "small",
+    srcs = [
+        "test_amf_encode_decode.cpp",
+    ],
+    deps = [
+        ":amf_app_test_util",
+        "//lte/gateway/c/core",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "@com_google_googletest//:gtest_main",
     ],
 )

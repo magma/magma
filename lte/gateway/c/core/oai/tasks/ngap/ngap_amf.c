@@ -17,22 +17,22 @@
 #include <pthread.h>
 #include <netinet/in.h>
 
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "Ngap_TimeToWait.h"
+#include "lte/gateway/c/core/oai/common/amf_default_values.h"
 #include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_decoder.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_nas_procedures.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_itti_messaging.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/amf_config.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/common/amf_default_values.h"
-#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
-#include "Ngap_TimeToWait.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_decoder.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_itti_messaging.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 
 #include "asn_internal.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
@@ -220,7 +220,9 @@ static void* ngap_amf_thread(__attribute__((unused)) void* args) {
   }
   zloop_start(ngap_task_zmq_ctx.event_loop);
   AssertFatal(0,
-              "Asserting as ngap_amf_thread should not be exiting on its own!");
+              "Asserting as ngap_amg_thread should not be exiting on its own! "
+              "This is likely due to a timer handler function returning -1 "
+              "(RETURNerror) on one of the conditions.");
   return NULL;
 }
 

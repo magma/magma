@@ -11,8 +11,14 @@
 
 load("//bazel:python_test.bzl", "pytest_test")
 
+MAGMA_ROOT = "../../../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
 pytest_test(
     name = "subprocess_workflow_tests",
+    size = "small",
     srcs = ["subprocess_workflow_tests.py"],
+    imports = [ORC8R_ROOT],
     deps = ["//orc8r/gateway/python/magma/magmad/check:subprocess_workflow"],
 )

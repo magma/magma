@@ -25,7 +25,7 @@ from ryu.lib.packet import ether_types
 
 MATCH_ATTRIBUTES = [
     'metadata', 'reg0', 'reg1', 'reg2', 'reg3', 'reg4', 'reg5',
-    'reg6', 'reg8', 'reg9', 'reg10',
+    'reg6', 'reg8', 'reg9', 'reg10', 'reg12',
     'in_port', 'dl_vlan', 'vlan_tci',
     'eth_type', 'dl_dst', 'dl_src',
     'arp_tpa', 'arp_spa', 'arp_op',
