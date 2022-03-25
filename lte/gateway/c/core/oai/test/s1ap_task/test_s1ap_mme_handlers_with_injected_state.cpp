@@ -34,7 +34,7 @@ extern "C" {
 extern bool hss_associated;
 
 namespace magma {
-namespace lte {  
+namespace lte {
 
 task_zmq_ctx_t task_zmq_ctx_main_s1ap_with_injected_states;
 
@@ -86,7 +86,7 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
     std::string data_list_path =
         magma_root + "/" + DEFAULT_S1AP_CONTEXT_DATA_PATH + "data_list.txt";
     assoc_id = 37;
-    stream_id = 0;
+    stream_id = 1;
     number_attached_ue = 2;
 
     mock_read_s1ap_state_db(state_data_path);
@@ -124,7 +124,7 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
 TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
   ue_description_t ue_ref_p = {
       .enb_ue_s1ap_id = 1,
-      .mme_ue_s1ap_id = 1,
+      .mme_ue_s1ap_id = 99,
       .sctp_assoc_id = assoc_id,
       .comp_s1ap_id = S1AP_GENERATE_COMP_S1AP_ID(assoc_id, 1)};
   ue_ref_p.s1ap_ue_context_rel_timer.id = -1;
@@ -138,11 +138,11 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
   // Invalid S1 Cause returns error
   ASSERT_EQ(RETURNerror, s1ap_mme_generate_ue_context_release_command(
                              state, &ue_ref_p, S1AP_IMPLICIT_CONTEXT_RELEASE,
-                             INVALID_IMSI64, assoc_id, stream_id, 33, 10));
+                             INVALID_IMSI64, assoc_id, stream_id, 99, 1));
   // Valid S1 Causes passess successfully
   ASSERT_EQ(RETURNok, s1ap_mme_generate_ue_context_release_command(
                           state, &ue_ref_p, S1AP_INITIAL_CONTEXT_SETUP_FAILED,
-                          INVALID_IMSI64, assoc_id, stream_id, 33, 10));
+                          INVALID_IMSI64, assoc_id, stream_id, 99, 1));
 
   EXPECT_NE(ue_ref_p.s1ap_ue_context_rel_timer.id, S1AP_TIMER_INACTIVE_ID);
 
