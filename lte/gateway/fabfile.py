@@ -250,7 +250,7 @@ def federated_integ_test(
 
 def integ_test(
     gateway_host=None, test_host=None, trf_host=None,
-    destroy_vm='True', provision_vm='True',
+    destroy_vm='True', provision_vm='True', bazel_build='False',
 ):
     """
     Run the integration tests. This defaults to running on local vagrant
@@ -272,6 +272,7 @@ def integ_test(
 
     destroy_vm = bool(strtobool(destroy_vm))
     provision_vm = bool(strtobool(provision_vm))
+    bazel_build = bool(strtobool(bazel_build))
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
@@ -286,8 +287,17 @@ def integ_test(
         gateway_ip = gateway_host.split('@')[1].split(':')[0]
 
     execute(_dist_upgrade)
+
+    if bazel_build:
+        # Insert the bazel built executable in the service definition
+        # Replace build command with "bazel build"
+        execute(_modify_for_bazel)
+
     execute(_build_magma)
-    execute(_run_sudo_python_unit_tests)
+
+    if not bazel_build:
+        execute(_run_sudo_python_unit_tests)
+
     execute(_start_gateway)
 
     # Run suite of integ tests that are required to be run on the access gateway
@@ -574,6 +584,12 @@ def _build_magma():
     """
     with cd(AGW_ROOT):
         run('make')
+
+
+def _modify_for_bazel():
+    run("sudo sed --in-place -e 's@$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS))@bazel build //lte/gateway/c/core:oai_mme@' /home/vagrant/magma/lte/gateway/Makefile")
+    run("sudo sed --in-place -e s@/usr/local/bin/mme@/home/vagrant/magma/bazel-bin/lte/gateway/c/core/oai_mme@ /etc/systemd/system/magma@mme.service")
+    run("sudo systemctl daemon-reload")
 
 
 def _oai_coverage():

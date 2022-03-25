@@ -1,0 +1,109 @@
+---
+
+name: LTE integ test bazel
+
+on:  # yamllint disable-line rule:truthy
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - build-all
+    branches:
+      - master
+      - 'v1.*'
+    types:
+      - completed
+
+jobs:
+  lte-integ-test:
+    if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-10.15
+    env:
+      SHA: ${{ github.event.workflow_run.head_commit.id || github.sha }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ env.SHA }}
+      - name: Bazel Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.bazel-cache
+          key: magma_vm-${{ github.sha }}
+          restore-keys: |
+            magma_vm-
+      - name: Bazel Cache Repo
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.bazel-cache-repo
+          key: magma_vm-${{ github.sha }}
+          restore-keys: |
+            magma_vm-
+      - name: setup pyenv
+        uses: "gabrielfalcao/pyenv-action@v8"
+        with:
+          default: 3.8.5
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.5'
+      - name: Install pre requisites
+        run: |
+          pip3 install --upgrade pip
+          pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
+          vagrant plugin install vagrant-vbguest vagrant-disksize
+      - name: Open up network interfaces for VM
+        run: |
+          sudo mkdir -p /etc/vbox/
+          sudo touch /etc/vbox/networks.conf
+          sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
+      - name: Run the integ test
+        run: |
+          cd lte/gateway
+          fab integ_test:bazel_build="True"
+      - name: Get test results
+        if: always()
+        run: |
+          cd lte/gateway
+          fab get_test_summaries:dst_path="test-results"
+          ls -R
+      - name: Upload test results
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: test-results
+          path: lte/gateway/test-results/**/*.xml
+      - name: Get test logs
+        if: failure()
+        run: |
+          cd lte/gateway
+          fab get_test_logs:dst_path=./logs.tar.gz
+      - name: Upload test logs
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: test-logs
+          path: lte/gateway/logs.tar.gz
+      - name: Publish Unit Test Results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/composite@v1
+        with:
+          files: lte/gateway/test-results/**/*.xml
+          check_run_annotations: all tests
+      - name: Publish results to Firebase
+        if: always() && github.event.workflow_run.event == 'push'
+        env:
+          FIREBASE_SERVICE_CONFIG: ${{ secrets.FIREBASE_SERVICE_CONFIG }}
+          REPORT_FILENAME: "lte_integ_test_${{ env.SHA }}.html"
+        run: |
+          npm install -g xunit-viewer
+          [ -d "lte/gateway/test-results/" ] && { xunit-viewer -r lte/gateway/test-results/ -o "$REPORT_FILENAME"; }
+          [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
+          [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
+          python ci-scripts/firebase_publish_report.py -id ${{ env.SHA }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} lte --url $URL
+      - name: Notify failure to slack
+        if: failure() && github.event.workflow_run.event == 'push'
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_USERNAME: "LTE integ test"
+          SLACK_AVATAR: ":boom:"
+        uses: Ilshidur/action-slack@2.1.0
+        with:
+          args: "LTE integration test test failed on [${{ env.SHA }}](${{github.event.repository.owner.html_url}}/magma/commit/${{ env.SHA }}): ${{ steps.commit.outputs.title}}"
