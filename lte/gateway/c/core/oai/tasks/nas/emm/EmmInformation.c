@@ -42,7 +42,7 @@
 #include <stdbool.h>
 
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"

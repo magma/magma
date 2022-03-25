@@ -48,7 +48,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"

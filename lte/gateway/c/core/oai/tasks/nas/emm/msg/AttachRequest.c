@@ -24,7 +24,7 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"  // encode_tmsi_status
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 
 int decode_attach_request(attach_request_msg* attach_request, uint8_t* buffer,
                           uint32_t len) {

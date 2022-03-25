@@ -17,7 +17,7 @@ limitations under the License.
 #include "lte/gateway/c/core/oai/include/sgw_s8_state.h"
 #include "lte/protos/oai/sgw_state.pb.h"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_converter.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 
 namespace {
 constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE = 512;

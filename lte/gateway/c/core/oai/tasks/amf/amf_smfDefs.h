@@ -19,7 +19,7 @@
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/amf_config.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 
 #define NAS_MESSAGE_SECURITY_HEADER_SIZE 7
 typedef uint8_t amf_cause_t;

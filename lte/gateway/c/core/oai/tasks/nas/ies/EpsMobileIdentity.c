@@ -22,7 +22,7 @@
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 
 static int decode_guti_eps_mobile_identity(guti_eps_mobile_identity_t* guti,
                                            uint8_t* buffer);

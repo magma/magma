@@ -25,7 +25,7 @@
 #ifndef FILE_S1AP_MME_NAS_PROCEDURES_SEEN
 #define FILE_S1AP_MME_NAS_PROCEDURES_SEEN
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"

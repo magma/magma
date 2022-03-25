@@ -55,7 +55,7 @@ Description Defines functions executed at the EMMAS Service Access
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/EmmInformation.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DownlinkNasTransport.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/CsServiceNotification.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.h"
 
 /****************************************************************************/

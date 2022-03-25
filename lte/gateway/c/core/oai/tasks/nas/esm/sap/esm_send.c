@@ -26,7 +26,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/PdnAddress.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

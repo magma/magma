@@ -22,7 +22,7 @@
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/LinkedEpsBearerIdentity.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnDisconnectRequest.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 
 int decode_pdn_disconnect_request(
     pdn_disconnect_request_msg* pdn_disconnect_request, uint8_t* buffer,

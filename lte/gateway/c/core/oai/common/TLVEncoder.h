@@ -27,7 +27,7 @@
 #include <stdint.h>
 
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 
 #define IES_ENCODE_U8(buffer, encoded, value) \

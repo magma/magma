@@ -18,7 +18,7 @@
 #include <stdlib.h>
 
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/pgw_config.h"

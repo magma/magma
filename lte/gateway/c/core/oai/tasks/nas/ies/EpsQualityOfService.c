@@ -24,7 +24,7 @@
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 
 //------------------------------------------------------------------------------
 static int decode_eps_qos_bit_rates(EpsQoSBitRates* epsqosbitrates,

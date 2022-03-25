@@ -36,7 +36,7 @@ Description Defines functions executed at the ESM Service Access
 #ifndef __ESM_SEND_H__
 #define __ESM_SEND_H__
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmStatus.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnConnectivityReject.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnDisconnectReject.h"

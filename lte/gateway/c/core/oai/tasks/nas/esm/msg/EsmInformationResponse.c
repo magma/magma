@@ -22,7 +22,7 @@
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmInformationResponse.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 
 int decode_esm_information_response(
     esm_information_response_msg* esm_information_response, uint8_t* buffer,

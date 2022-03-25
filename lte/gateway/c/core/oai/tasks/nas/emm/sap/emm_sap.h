@@ -38,7 +38,7 @@ Description Defines the EMM Service Access Points at which the EPS
 #ifndef FILE_EMM_SAP_SEEN
 #define FILE_EMM_SAP_SEEN
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esmDef.h"

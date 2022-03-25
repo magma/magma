@@ -32,7 +32,7 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/state_manager.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_converter.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/include/ngap_client_servicer.h"

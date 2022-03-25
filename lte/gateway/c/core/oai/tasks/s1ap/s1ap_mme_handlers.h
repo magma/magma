@@ -19,7 +19,7 @@
 #define FILE_S1AP_MME_HANDLERS_SEEN
 #include <stdbool.h>
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "S1ap_Cause.h"

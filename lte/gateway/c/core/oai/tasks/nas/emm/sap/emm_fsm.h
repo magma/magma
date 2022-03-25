@@ -60,7 +60,7 @@ typedef enum {
   EMM_STATE_MAX
 } emm_fsm_state_t;
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 

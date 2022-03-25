@@ -38,7 +38,7 @@
 #include <time.h>
 
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/enum_string.h"
@@ -691,7 +691,7 @@ status_code_e mme_insert_ue_context(
         (0 != ue_context_p->emm_context._guti.gummei.plmn.mcc_digit3)) {
       h_rc = obj_hashtable_uint64_ts_insert(
           mme_ue_context_p->guti_ue_context_htbl,
-          (const void* const) & ue_context_p->emm_context._guti,
+          (const void* const)&ue_context_p->emm_context._guti,
           sizeof(ue_context_p->emm_context._guti),
           ue_context_p->mme_ue_s1ap_id);
 
@@ -759,7 +759,7 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
            .mcc_digit3)) {  // MCC 000 does not exist in ITU table
     hash_rc = obj_hashtable_uint64_ts_remove(
         mme_ue_context_p->guti_ue_context_htbl,
-        (const void* const) & ue_context_p->emm_context._guti,
+        (const void* const)&ue_context_p->emm_context._guti,
         sizeof(ue_context_p->emm_context._guti));
     if (HASH_TABLE_OK != hash_rc)
       OAILOG_ERROR(LOG_MME_APP,

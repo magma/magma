@@ -21,7 +21,7 @@
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceAllocationReject.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 
 int decode_bearer_resource_allocation_reject(
     bearer_resource_allocation_reject_msg* bearer_resource_allocation_reject,

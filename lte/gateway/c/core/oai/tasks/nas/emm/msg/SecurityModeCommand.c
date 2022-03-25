@@ -26,7 +26,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/NasSecurityAlgorithms.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/Nonce.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/UeSecurityCapability.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/UeAdditionalSecurityCapability.h"
 
 int decode_security_mode_command(

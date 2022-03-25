@@ -39,7 +39,7 @@ Description Defines functions used to handle state of EPS bearer contexts
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"

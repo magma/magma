@@ -44,3 +44,8 @@ cc_library(
         "//lte/gateway/c/core:asn1_r16",
     ],
 )
+
+cc_library(
+    name = "common_defs",
+    hdrs = ["common_defs.h"],
+)

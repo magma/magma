@@ -22,7 +22,7 @@
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 
 //------------------------------------------------------------------------------
 int decode_esm_message_container(EsmMessageContainer* esmmessagecontainer,
