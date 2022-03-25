@@ -1390,7 +1390,15 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
+  printf("length : %d\n", length); 
+  if (buffer == NULL){
+    printf("buffer is NULL\n");
+  }
+  else{
+    printf("buffer is not NULL\n");
+  }
   bstring b = blk2bstr(buffer, length);
+  printf("Size of b: %zu \n", sizeof(b));
   free(buffer);
   rc = s1ap_mme_itti_send_sctp_request(&b, assoc_id, stream, mme_ue_s1ap_id);
 
