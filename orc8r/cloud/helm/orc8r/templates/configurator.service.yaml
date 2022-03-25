@@ -30,4 +30,7 @@ spec:
     - name: grpc
       port: 9180
       targetPort: 9108
+    - name: grpc-internal
+      port: 9190
+      targetPort: 9208
 {{- end -}}
