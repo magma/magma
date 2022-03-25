@@ -173,7 +173,7 @@ func newTestService(t *testing.T) (tenant_protos.TenantsServiceServer, error) {
 	store := storage.NewBlobstoreStore(factory)
 	servicer, err := servicers.NewTenantsServicer(store)
 	assert.NoError(t, err)
-	tenant_protos.RegisterTenantsServiceServer(srv.GrpcServer, servicer)
+	tenant_protos.RegisterTenantsServiceServer(srv.ProtectedGrpcServer, servicer)
 	go srv.RunTest(lis, nil)
 	return servicer, nil
 }
