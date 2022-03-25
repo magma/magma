@@ -143,6 +143,7 @@ services:
   device:
     host: "localhost"
     port: 9106
+    protected_port: 9306
     proxy_type: "clientcert"
 
   configurator:
