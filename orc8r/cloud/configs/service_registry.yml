@@ -168,6 +168,7 @@ services:
   tenants:
     host: "localhost"
     port: 9110
+    protected_port: 9210
     echo_port: 10110
     proxy_type: "clientcert"
     labels:
