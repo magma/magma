@@ -15,13 +15,13 @@
  *      contact@openairinterface.org
  */
 
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_reg.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esm.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_as.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cn.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esm.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_reg.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

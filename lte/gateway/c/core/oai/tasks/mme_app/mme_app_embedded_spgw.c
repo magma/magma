@@ -17,12 +17,12 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/pgw_config.h"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.h"
 
 char* USAGE_TEXT =
     "==== EURECOM %s version: %s ====\n"  // PACKAGE_NAME, PACKAGE_VERSION

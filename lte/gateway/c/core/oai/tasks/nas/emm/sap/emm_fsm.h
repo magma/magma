@@ -61,8 +61,8 @@ typedef enum {
 } emm_fsm_state_t;
 
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.h"
 
 struct emm_context_s;
 struct emm_reg_s;

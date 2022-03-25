@@ -37,21 +37,21 @@ Description Defines functions executed at the ESM Service Access
 #define __ESM_SEND_H__
 
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmStatus.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnConnectivityReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnDisconnectReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceAllocationReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceModificationReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDefaultEpsBearerContextRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ModifyEpsBearerContextRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/DeactivateEpsBearerContextRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmInformationRequest.h"
+#include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDefaultEpsBearerContextRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceAllocationReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceModificationReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/DeactivateEpsBearerContextRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmInformationRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmStatus.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ModifyEpsBearerContextRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnConnectivityReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnDisconnectReject.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

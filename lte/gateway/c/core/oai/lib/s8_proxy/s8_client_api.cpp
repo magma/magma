@@ -19,11 +19,11 @@ limitations under the License.
 #include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.h"
 #include "lte/gateway/c/core/oai/lib/s8_proxy/s8_itti_proto_conversion.h"
 extern "C" {
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/s8_messages_types.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/s8_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 }
 

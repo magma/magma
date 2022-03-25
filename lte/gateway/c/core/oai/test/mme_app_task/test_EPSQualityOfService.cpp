@@ -18,10 +18,10 @@
 #include <glog/logging.h>
 
 extern "C" {
-#include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
 }
 
 TEST(test_qos_params_to_eps_qos_for_apnambr_test,

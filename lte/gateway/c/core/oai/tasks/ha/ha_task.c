@@ -15,12 +15,12 @@ limitations under the License.
 
 #include <stdio.h>
 
-#include "lte/gateway/c/core/oai/tasks/ha/ha_defs.h"
-#include "lte/gateway/c/core/oai/include/ha_messages_types.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/ha_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/tasks/ha/ha_defs.h"
 
 static void ha_exit(void);
 

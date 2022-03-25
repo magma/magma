@@ -31,8 +31,8 @@
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/gcc_diag.h"
@@ -759,9 +759,9 @@ gtpv2c_bearer_context_to_be_updated_within_update_bearer_request_ie_set(
     gtpv2c_pco_ie_set(msg, &bearer_context->pco);
   }
   gtpv2c_bearer_qos_ie_set(
-      msg, (const bearer_qos_t* const)&bearer_context->bearer_level_qos);
-  gtpv2c_tft_ie_set(msg,
-                    (const traffic_flow_template_t* const)&bearer_context->tft);
+      msg, (const bearer_qos_t* const) & bearer_context->bearer_level_qos);
+  gtpv2c_tft_ie_set(
+      msg, (const traffic_flow_template_t* const) & bearer_context->tft);
 
   // End section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeEnd(*msg);

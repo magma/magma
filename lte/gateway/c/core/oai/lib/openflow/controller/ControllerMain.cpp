@@ -21,9 +21,9 @@
 #include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.h"
 #include "lte/gateway/c/core/oai/lib/openflow/controller/GTPApplication.h"
 extern "C" {
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
-#include "lte/gateway/c/core/common/common_defs.h"
 }
 
 static const int OFP_LOCAL = 65534;

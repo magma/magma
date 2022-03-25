@@ -22,8 +22,8 @@
 #include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.h"
 #include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.h"
 extern "C" {
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 }
 
 using namespace fluid_base;
