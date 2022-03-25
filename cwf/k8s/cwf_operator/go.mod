@@ -202,6 +202,10 @@ require (
 // TODO remove golang.org/x/net line once Go Upgrade (https://github.com/magma/magma/pull/12151) is merged
 replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.2+incompatible // Required by OLM
+
+	github.com/go-openapi/analysis => github.com/go-openapi/analysis v0.19.12
+	github.com/go-openapi/loads => github.com/go-openapi/loads v0.19.7
+	github.com/go-openapi/spec => github.com/go-openapi/spec v0.19.8
 	golang.org/x/net => golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 
 	k8s.io/api => k8s.io/api v0.18.2
