@@ -50,7 +50,7 @@ func main() {
 
 	// Add servicers to the service
 	accessdServer := servicers.NewAccessdServer(store)
-	protos.RegisterAccessControlManagerServer(srv.GrpcServer, accessdServer)
+	protos.RegisterAccessControlManagerServer(srv.ProtectedGrpcServer, accessdServer)
 
 	// Run the service
 	err = srv.Run()

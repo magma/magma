@@ -25,9 +25,9 @@ import (
 )
 
 func StartTestService(t *testing.T) {
-	srv, lis, _ := test_utils.NewTestService(t, orc8r.ModuleName, accessd.ServiceName)
+	srv, lis, plis := test_utils.NewTestService(t, orc8r.ModuleName, accessd.ServiceName)
 	store := test_utils.NewSQLBlobstore(t, storage.AccessdTableBlobstore)
 	accessdStore := storage.NewAccessdBlobstore(store)
-	protos.RegisterAccessControlManagerServer(srv.GrpcServer, servicers.NewAccessdServer(accessdStore))
-	go srv.RunTest(lis, nil)
+	protos.RegisterAccessControlManagerServer(srv.ProtectedGrpcServer, servicers.NewAccessdServer(accessdStore))
+	go srv.RunTest(lis, plis)
 }
