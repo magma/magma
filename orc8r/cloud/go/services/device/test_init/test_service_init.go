@@ -28,9 +28,9 @@ import (
 // StartTestService instantiates a service backed by an in-memory storage
 func StartTestService(t *testing.T) {
 	factory := test_utils.NewSQLBlobstore(t, "device_test_service_blobstore")
-	srv, lis, _ := test_utils.NewTestService(t, orc8r.ModuleName, device.ServiceName)
+	srv, lis, plis := test_utils.NewTestService(t, orc8r.ModuleName, device.ServiceName)
 	server, err := servicers.NewDeviceServicer(factory)
 	assert.NoError(t, err)
-	protos.RegisterDeviceServer(srv.GrpcServer, server)
-	go srv.RunTest(lis, nil)
+	protos.RegisterDeviceServer(srv.ProtectedGrpcServer, server)
+	go srv.RunTest(lis, plis)
 }
