@@ -1413,4 +1413,17 @@ TEST_F(NgapFlowTest, test_ue_notifications_from_amf) {
   bdestroy(ngap_initial_ue_msg);
 }
 
+TEST_F(NgapFlowTest, NgapHandleSctpDisconnection) {
+  // Verify sctp association is successful
+  EXPECT_EQ(ngap_handle_new_association(state, &peerInfo), RETURNok);
+  // Verify number of connected gNB's is 1
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  // To test SCTP Shutdown for NGAP
+  bool reset = false;
+
+  EXPECT_EQ(ngap_handle_sctp_disconnection(state, peerInfo.assoc_id, reset),
+            RETURNok);
+}
+
 }  // namespace magma5g
