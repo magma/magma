@@ -105,7 +105,7 @@ class AMFClientServicerBase {
   virtual int n11_update_location_req(
       const s6a_update_location_req_t* const ulr_p);
 
-  virtual bool set_smf_notification(SetSmNotificationContext& notify);
+  virtual bool set_smf_notification(const SetSmNotificationContext& notify);
 };
 
 class AMFClientServicer : public AMFClientServicerBase {
@@ -204,7 +204,9 @@ class AMFClientServicer : public AMFClientServicerBase {
     return RETURNok;
   }
 
-  bool set_smf_notification(SetSmNotificationContext& notify) { return true; }
+  bool set_smf_notification(const SetSmNotificationContext& notify) {
+    return true;
+  }
 #endif /* MME_UNIT_TEST */
 
  private:

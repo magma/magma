@@ -128,7 +128,7 @@ int AMFClientServicerBase::n11_update_location_req(
 }
 
 bool AMFClientServicerBase::set_smf_notification(
-    SetSmNotificationContext& notify) {
+    const SetSmNotificationContext& notify) {
   return AsyncSmfServiceClient::getInstance().set_smf_notification(notify);
 }
 
