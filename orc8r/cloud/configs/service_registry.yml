@@ -99,6 +99,7 @@ services:
   accessd:
     host: "localhost"
     port: 9091
+    protected_port: 9191
     proxy_type: "clientcert"
 
   eventd:
