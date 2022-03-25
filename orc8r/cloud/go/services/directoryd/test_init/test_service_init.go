@@ -31,7 +31,7 @@ import (
 
 func StartTestService(t *testing.T) {
 	// Create service
-	srv, lis, _ := test_utils.NewTestService(t, orc8r.ModuleName, directoryd.ServiceName)
+	srv, lis, plis := test_utils.NewTestService(t, orc8r.ModuleName, directoryd.ServiceName)
 
 	// Init storage
 	db, err := sqorc.Open("sqlite3", ":memory:")
@@ -44,9 +44,9 @@ func StartTestService(t *testing.T) {
 	// Add servicers
 	directoryServicer, err := servicers.NewDirectoryLookupServicer(store)
 	assert.NoError(t, err)
-	directoryd_protos.RegisterDirectoryLookupServer(srv.GrpcServer, directoryServicer)
+	directoryd_protos.RegisterDirectoryLookupServer(srv.ProtectedGrpcServer, directoryServicer)
 	protos.RegisterGatewayDirectoryServiceServer(srv.GrpcServer, servicers.NewDirectoryUpdateServicer())
 
 	// Run service
-	go srv.RunTest(lis, nil)
+	go srv.RunTest(lis, plis)
 }

@@ -73,7 +73,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating initializing directory servicer: %s", err)
 	}
-	directoryd_protos.RegisterDirectoryLookupServer(srv.GrpcServer, servicer)
+	directoryd_protos.RegisterDirectoryLookupServer(srv.ProtectedGrpcServer, servicer)
 	protos.RegisterGatewayDirectoryServiceServer(srv.GrpcServer, servicers.NewDirectoryUpdateServicer())
 
 	// Run service
