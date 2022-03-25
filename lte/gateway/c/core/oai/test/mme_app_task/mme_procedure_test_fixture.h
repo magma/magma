@@ -107,7 +107,6 @@ class MmeAppProcedureTest : public ::testing::Test {
 
     // initialize mme config
     mme_config_init(&mme_config);
-    nas_config_timer_reinit(&mme_config.nas_config, MME_APP_TIMER_TO_MSEC);
     create_partial_lists(&mme_config);
     mme_config.use_stateless = true;
     mme_config.nas_config.prefered_integrity_algorithm[0] = EIA2_128_ALG_ID;
@@ -118,24 +117,29 @@ class MmeAppProcedureTest : public ::testing::Test {
     init_task_context(TASK_MAIN, task_id_list, 10, handle_message,
                       &task_zmq_ctx_main);
 
-    std::thread task_ha(start_mock_ha_task);
-    std::thread task_s1ap(start_mock_s1ap_task, s1ap_handler);
     std::thread task_s6a(start_mock_s6a_task, s6a_handler);
+    std::thread task_s1ap(start_mock_s1ap_task, s1ap_handler);
+    std::thread task_spgw(start_mock_spgw_task, spgw_handler);
+    std::thread task_ha(start_mock_ha_task);
     std::thread task_s11(start_mock_s11_task);
     std::thread task_service303(start_mock_service303_task, service303_handler);
     std::thread task_sgs(start_mock_sgs_task);
     std::thread task_sgw_s8(start_mock_sgw_s8_task, s8_handler);
     std::thread task_sms_orc8r(start_mock_sms_orc8r_task);
-    std::thread task_spgw(start_mock_spgw_task, spgw_handler);
-    task_ha.detach();
-    task_s1ap.detach();
+
     task_s6a.detach();
+    task_s1ap.detach();
+    task_spgw.detach();
+    task_ha.detach();
     task_s11.detach();
     task_service303.detach();
     task_sgs.detach();
     task_sgw_s8.detach();
     task_sms_orc8r.detach();
-    task_spgw.detach();
+
+    // Sleep for 10 milliseconds to make sure all mock tasks are up before the
+    // test
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     mme_app_init(&mme_config);
     // Fake initialize sctp server.

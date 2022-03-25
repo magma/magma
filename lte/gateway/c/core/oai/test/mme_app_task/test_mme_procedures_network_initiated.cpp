@@ -23,6 +23,10 @@
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_app_test_util.h"
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_procedure_test_fixture.h"
 
+extern "C" {
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+}
+
 namespace magma {
 namespace lte {
 
@@ -214,6 +218,9 @@ TEST_F(MmeAppProcedureTest,
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
+  // Reduce timer durations for testing
+  nas_config_timer_reinit(&mme_config.nas_config, MME_APP_TIMER_TO_MSEC);
+
   MME_APP_EXPECT_CALLS(7, 1, 1, 1, 1, 1, 1, 1, 0, 1, 3);
 
   // Attach the UE
@@ -253,6 +260,9 @@ TEST_F(MmeAppProcedureTest,
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
+
+  // Reduce timer duration for testing
+  nas_config_timer_reinit(&mme_config.nas_config, MME_APP_TIMER_TO_MSEC);
 
   MME_APP_EXPECT_CALLS(3, 1, 1, 1, 1, 1, 1, 1, 0, 1, 4);
 
@@ -385,6 +395,9 @@ TEST_F(
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
+
+  // Reduce timer durations for testing
+  nas_config_timer_reinit(&mme_config.nas_config, MME_APP_TIMER_TO_MSEC);
 
   MME_APP_EXPECT_CALLS(7, 1, 1, 1, 1, 1, 1, 1, 0, 1, 4);
 
