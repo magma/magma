@@ -83,6 +83,9 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedExpiredDetach) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
+  // Reduce timer duration for testing
+  nas_config_timer_reinit(&mme_config.nas_config, MME_APP_TIMER_TO_MSEC);
+
   MME_APP_EXPECT_CALLS(8, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
   // Attach the UE
@@ -130,6 +133,9 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetachRetxFailure) {
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
+
+  // Reduce timer duration for testing
+  nas_config_timer_reinit(&mme_config.nas_config, MME_APP_TIMER_TO_MSEC);
 
   MME_APP_EXPECT_CALLS(8, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
