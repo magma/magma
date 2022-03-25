@@ -66,11 +66,10 @@ systemctl enable networking
 echo "Install Magma"
 apt-get update -y
 apt-get upgrade -y
-apt-get install curl zip python3-pip docker.io net-tools -y
+apt-get install curl zip python3-pip docker.io net-tools sudo -y
 
 echo "Making sure $MAGMA_USER user is sudoers"
 if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
-  apt install -y sudo
   adduser --disabled-password --gecos "" $MAGMA_USER
   adduser $MAGMA_USER sudo
   echo "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
@@ -90,9 +89,9 @@ git checkout "$MAGMA_VERSION"
 sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
 sed -i 's/ens5/eth0/g' /etc/netplan/50-cloud-init.yaml
 # changing interface name
-grub-mkconfig -o /boot/grub/grub.cfg
+update-grub2
 
-cat >  /etc/netplan/70-secondary-itf.yaml << EOF
+cat > /etc/netplan/70-secondary-itf.yaml << EOF
 network:
     ethernets:
         eth1:
