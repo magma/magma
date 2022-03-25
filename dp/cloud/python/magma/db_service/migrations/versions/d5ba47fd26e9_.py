@@ -1,15 +1,15 @@
 """empty message
 
-Revision ID: db5d8e00ddd1
+Revision ID: d5ba47fd26e9
 Revises: d5f1e6f26fd4
-Create Date: 2022-03-22 18:24:08.991313
+Create Date: 2022-03-23 16:38:50.608758
 
 """
 import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'db5d8e00ddd1'
+revision = 'd5ba47fd26e9'
 down_revision = 'd5f1e6f26fd4'
 branch_labels = None
 depends_on = None
@@ -28,8 +28,8 @@ def upgrade():
     )
     op.add_column(
         'cbsds', sa.Column(
-            'preferred_frequencies_mhz',
-            sa.JSON(), server_default='[]', nullable=False,
+            'preferred_frequencies_mhz', sa.JSON(
+            ), server_default=sa.text("'[]'::json"), nullable=False,
         ),
     )
     # ### end Alembic commands ###

@@ -76,9 +76,9 @@ def _deserialize_generic_json(
                 return element
 
     if isinstance(element, dict):
-        keys = element.keys()
+        keys = list(element.keys())
     elif isinstance(element, list):
-        keys = range(len(element))
+        keys = list(range(len(element)))
     else:
         # in case it is neither of the know elements, just return as is
         return element

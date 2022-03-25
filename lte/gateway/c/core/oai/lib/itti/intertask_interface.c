@@ -51,8 +51,8 @@
 
 #undef CHECK_PROTOTYPE_ONLY
 
-#include "lte/gateway/c/core/oai/lib/itti/signals.h"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/itti/signals.h"
 
 /* ITTI DEBUG groups */
 #define ITTI_DEBUG_POLL (1 << 0)

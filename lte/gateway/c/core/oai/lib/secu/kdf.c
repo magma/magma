@@ -19,9 +19,9 @@
 #include <stdint.h>
 #include <nettle/hmac.h>
 
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 
 void kdf(const uint8_t* key, const unsigned key_len, uint8_t* s,
          const unsigned s_len, uint8_t* out, const unsigned out_len) {
