@@ -36,3 +36,11 @@ cc_library(
         "//lte/gateway/c/core/oai/lib/bstr:bstrlib",
     ],
 )
+
+cc_library(
+    name = "asn1_conversions",
+    hdrs = ["asn1_conversions.h"],
+    deps = [
+        "//lte/gateway/c/core:asn1_r16",
+    ],
+)

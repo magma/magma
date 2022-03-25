@@ -18,6 +18,7 @@ PROJECT(LteGatewayCCommon)
 ###############################################################################
 
 set(LTE_GATEWAY_C_COMMON_SRC
+    asn1_conversions.h
     assertions.h
     backtrace.c
     dynamic_memory_check.c
