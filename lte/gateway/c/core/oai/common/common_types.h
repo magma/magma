@@ -44,7 +44,6 @@
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"
-#include "lte/gateway/c/core/oai/common/common_dim.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 

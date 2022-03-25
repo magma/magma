@@ -527,7 +527,6 @@ cc_library(
         "oai/common/asn1_conversions.h",
         "oai/common/async_system.h",
         "oai/common/common_defs.h",
-        "oai/common/common_dim.h",
         "oai/common/common_ies.h",
         "oai/common/common_types.h",
         "oai/common/common_utility_funs.h",
