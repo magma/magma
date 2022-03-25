@@ -134,7 +134,7 @@
   tags:
     - agwc
     - base
- 
+
 - name: replace magmad init system
   ansible.builtin.replace:
     path: /etc/magma/magma.yml

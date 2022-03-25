@@ -51,7 +51,7 @@ APT::Periodic::Unattended-Upgrade "0";
 EOF
 
 apt purge --auto-remove unattended-upgrades -y
-apt-mark hold `uname -r` linux-aws linux-headers-aws linux-image-aws
+apt-mark hold "$(uname -r)" linux-aws linux-headers-aws linux-image-aws
 
 
 # interface config
