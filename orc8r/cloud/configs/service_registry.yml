@@ -149,6 +149,7 @@ services:
   configurator:
     host: "localhost"
     port: 9108
+    protected_port: 9208
     proxy_type: "clientcert"
 
   ctraced:

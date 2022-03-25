@@ -60,7 +60,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to instantiate the user-facing configurator servicer: %v", nbServicer)
 	}
-	protos.RegisterNorthboundConfiguratorServer(srv.GrpcServer, nbServicer)
+	protos.RegisterNorthboundConfiguratorServer(srv.ProtectedGrpcServer, nbServicer)
 
 	sbServicer, err := servicers.NewSouthboundConfiguratorServicer(factory)
 	if err != nil {
