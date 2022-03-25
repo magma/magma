@@ -18,7 +18,6 @@ cc_test(
     srcs = [
         "test_nas_converter.cpp",
     ],
-    flaky = True,
     deps = [
         "//lte/gateway/c/core",
         "@com_google_googletest//:gtest_main",

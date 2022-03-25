@@ -85,10 +85,5 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
   EXPECT_EQ(pti, *pti_decoded);
   EXPECT_EQ(ue_ipv4_addr, req_cmn->ue_ipv4());
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
 }  // namespace lte
 }  // namespace magma

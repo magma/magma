@@ -306,6 +306,7 @@ type DBCbsd struct {
 	FccId            sql.NullString
 	CbsdSerialNumber sql.NullString
 	LastSeen         sql.NullTime
+	GrantAttempts    sql.NullInt64
 	MinPower         sql.NullFloat64
 	MaxPower         sql.NullFloat64
 	AntennaGain      sql.NullFloat64
@@ -344,6 +345,11 @@ func (c *DBCbsd) Fields() db.FieldMap {
 		"last_seen": &db.Field{
 			BaseType: db.TimeType{X: &c.LastSeen},
 			Nullable: true,
+		},
+		"grant_attempts": &db.Field{
+			BaseType:     db.IntType{X: &c.GrantAttempts},
+			HasDefault:   true,
+			DefaultValue: 0,
 		},
 		"min_power": &db.Field{
 			BaseType: db.FloatType{X: &c.MinPower},

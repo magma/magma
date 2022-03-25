@@ -139,6 +139,7 @@ func GetOCSConfiguration() []*diameter.DiameterServerConfig {
 // GetGyClientConfiguration returns the client diameter configuration
 func GetGyClientConfiguration() []*diameter.DiameterClientConfig {
 	var retries uint32 = 1
+	var retransmits uint32 = 1
 	configsPtr := &mconfig.SessionProxyConfig{}
 	err := managed_configs.GetServiceConfigs(credit_control.SessionProxyServiceName, configsPtr)
 	if err != nil {
@@ -151,6 +152,7 @@ func GetGyClientConfiguration() []*diameter.DiameterClientConfig {
 				AppID:              diam.CHARGING_CONTROL_APP_ID,
 				WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
 				RetryCount:         uint(retries),
+				Retransmits:        uint(retransmits),
 				SupportedVendorIDs: diameter.GetValueOrEnv("", GySupportedVendorIDsEnv, ""),
 				ServiceContextId:   diameter.GetValueOrEnv("", GyServiceContextIdEnv, ""),
 			},
@@ -165,6 +167,11 @@ func GetGyClientConfiguration() []*diameter.DiameterClientConfig {
 			log.Printf("Invalid Gy Server Retry Count for server (%s): %d, must be >0. Will be set to 1", gyCfg.GetAddress(), retries)
 			retries = 1
 		}
+		retransmits = gyCfg.GetRetransmits()
+		if retransmits < 1 {
+			log.Printf("Invalid Gy Retransmit Count for server (%s): %d, must be >0. Will be set to 1", gyCfg.GetAddress(), retransmits)
+			retransmits = 1
+		}
 
 		wdInterval := gyCfg.GetWatchdogInterval()
 		if wdInterval == 0 {
@@ -177,6 +184,7 @@ func GetGyClientConfiguration() []*diameter.DiameterClientConfig {
 			AppID:              diam.CHARGING_CONTROL_APP_ID,
 			WatchdogInterval:   uint(wdInterval),
 			RetryCount:         uint(retries),
+			Retransmits:        uint(retransmits),
 			SupportedVendorIDs: diameter.GetValueOrEnv("", GySupportedVendorIDsEnv, "", i),
 			ServiceContextId:   diameter.GetValueOrEnv("", GyServiceContextIdEnv, "", i),
 		}

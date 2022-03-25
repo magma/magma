@@ -15,13 +15,13 @@ limitations under the License.
 #define SGW_S8_TASK_C
 
 #include <stdio.h>
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/sgw_s8_state.h"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_defs.h"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.h"
-#include "lte/gateway/c/core/oai/include/sgw_s8_state.h"
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg);
 static void sgw_s8_exit(void);
@@ -34,7 +34,9 @@ static void* sgw_s8_thread(void* args) {
 
   zloop_start(sgw_s8_task_zmq_ctx.event_loop);
   AssertFatal(0,
-              "Asserting as sgw_s8_thread should not be exiting on its own!");
+              "Asserting as sgw_s8_thread should not be exiting on its own! "
+              "This is likely due to a timer handler function returning -1 "
+              "(RETURNerror) on one of the conditions.");
   return NULL;
 }
 

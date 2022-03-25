@@ -50,22 +50,22 @@
 #include <netinet/in.h>
 
 #include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/amf_config.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/intertask_interface_conf.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/mme_default_values.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/service303.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
-#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-#include "lte/gateway/c/core/oai/common/mme_default_values.h"
-#include "lte/gateway/c/core/oai/include/service303.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
 #if EMBEDDED_SGW
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
 #endif
@@ -1821,14 +1821,6 @@ void mme_config_display(mme_config_t* config_pP) {
                CMAKE_BUILD_TYPE);
   OAILOG_DEBUG(LOG_CONFIG, "Built with PACKAGE_NAME ....................: %s\n",
                PACKAGE_NAME);
-  OAILOG_DEBUG(LOG_CONFIG, "Built with S1AP_DEBUG_LIST .................: %d\n",
-               S1AP_DEBUG_LIST);
-  OAILOG_DEBUG(LOG_CONFIG, "Built with SCTP_DUMP_LIST ..................: %d\n",
-               SCTP_DUMP_LIST);
-  OAILOG_DEBUG(LOG_CONFIG, "Built with TRACE_HASHTABLE .................: %d\n",
-               TRACE_HASHTABLE);
-  OAILOG_DEBUG(LOG_CONFIG, "Built with TRACE_3GPP_SPEC .................: %d\n",
-               TRACE_3GPP_SPEC);
 
   OAILOG_INFO(LOG_CONFIG, "Configuration:\n");
   OAILOG_INFO(LOG_CONFIG, "- File .................................: %s\n",

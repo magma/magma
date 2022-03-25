@@ -77,8 +77,8 @@ func TestFields(t *testing.T) {
 			model: &storage.DBCbsd{},
 			expected: []string{
 				"id", "network_id", "state_id", "cbsd_id", "user_id",
-				"fcc_id", "cbsd_serial_number", "last_seen", "min_power",
-				"max_power", "antenna_gain", "number_of_ports",
+				"fcc_id", "cbsd_serial_number", "last_seen", "grant_attempts",
+				"min_power", "max_power", "antenna_gain", "number_of_ports",
 				"is_deleted", "is_updated",
 			},
 		},

@@ -8,25 +8,24 @@ import (
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/message"
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas"
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas_helpers"
-	"magma/dp/cloud/go/active_mode_controller/internal/ranges"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 )
 
 type messageGenerator struct {
 	heartbeatTimeout  time.Duration
 	inactivityTimeout time.Duration
-	indexProvider     ranges.IndexProvider
+	rng               sas.RNG
 }
 
 func NewMessageGenerator(
 	heartbeatTimeout time.Duration,
 	inactivityTimeout time.Duration,
-	indexProvider ranges.IndexProvider,
+	rng sas.RNG,
 ) *messageGenerator {
 	return &messageGenerator{
 		heartbeatTimeout:  heartbeatTimeout,
 		inactivityTimeout: inactivityTimeout,
-		indexProvider:     indexProvider,
+		rng:               rng,
 	}
 }
 
@@ -95,7 +94,7 @@ func (m *messageGenerator) getPerCbsdSasRequestGenerator(cbsd *active_mode.Cbsd,
 	}
 	return &firstNotNullRequestGenerator{
 		generators: []sasRequestGenerator{
-			sas.NewGrantRequestGenerator(m.indexProvider),
+			sas.NewGrantRequestGenerator(m.rng),
 			sas.NewSpectrumInquiryRequestGenerator(),
 		},
 	}

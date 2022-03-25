@@ -14,12 +14,12 @@
 #include <glog/logging.h>
 
 extern "C" {
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.h"
-#include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.h"
 }
 
 class NASEncodeDecodeTest : public ::testing::Test {
@@ -1051,10 +1051,4 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
   ASSERT_EQ((memcmp(apn_ambr_encoded_buffersize22, apn_ambr_buffersize22,
                     sizeof(apn_ambr_buffersize22))),
             0);
-}
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  OAILOG_INIT("MME", OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS);
-  return RUN_ALL_TESTS();
 }

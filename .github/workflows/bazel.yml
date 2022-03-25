@@ -183,3 +183,12 @@ jobs:
           run: |
             cd /workspaces/magma
             bazel test //... --test_output=errors --cache_test_results=no
+      - name: Run `bazel run //:check_starlark_format`
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/
+          run: |
+            cd /workspaces/magma
+            bazel run //:check_starlark_format

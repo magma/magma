@@ -19,8 +19,8 @@
 extern "C" {
 #include "lte/gateway/c/core/oai/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
 }
 
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.h"

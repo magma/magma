@@ -8,13 +8,17 @@ import (
 	"magma/dp/cloud/go/active_mode_controller/internal/ranges"
 )
 
-func TestDecompose(t *testing.T) {
+func TestDecomposeOverlapping(t *testing.T) {
 	const minValue = -200
 	testData := []struct {
 		name     string
 		ranges   []ranges.Range
 		expected []ranges.Point
 	}{{
+		name:     "Should convert empty list to empty list",
+		ranges:   nil,
+		expected: nil,
+	}, {
 		name: "Should convert single channel to points",
 		ranges: []ranges.Range{
 			{Begin: 35600, End: 35700, Value: 30},
@@ -104,7 +108,7 @@ func TestDecompose(t *testing.T) {
 	}}
 	for _, tt := range testData {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := ranges.Decompose(tt.ranges, minValue)
+			actual := ranges.DecomposeOverlapping(tt.ranges, minValue)
 			assert.Equal(t, tt.expected, actual)
 		})
 	}

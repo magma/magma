@@ -37,16 +37,16 @@
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/s6a_client_api.h"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_c_iface.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.h"
 
 static void s6a_exit(void);
 
@@ -136,7 +136,10 @@ static void* s6a_thread(void* args) {
   }
 
   zloop_start(s6a_task_zmq_ctx.event_loop);
-  AssertFatal(0, "Asserting as s6a_thread should not be exiting on its own!");
+  AssertFatal(0,
+              "Asserting as s6a_thread should not be exiting on its own! "
+              "This is likely due to a timer handler function returning -1 "
+              "(RETURNerror) on one of the conditions.");
   return NULL;
 }
 

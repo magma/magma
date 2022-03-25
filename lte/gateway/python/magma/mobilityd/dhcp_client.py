@@ -89,7 +89,7 @@ class DHCPClient:
         self._monitor_thread_event.set()
 
     def send_dhcp_packet(
-        self, mac: MacAddress, vlan: str,
+        self, mac: MacAddress, vlan: int,
         state: DHCPState,
         dhcp_desc: Optional[DHCPDescriptor] = None,
     ) -> None:
