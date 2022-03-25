@@ -169,4 +169,4 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, HandleS1apPathSwitchRequest) {
 }
 
 }  // namespace lte
-}  // namespace magma
+}  // namespace magma       
