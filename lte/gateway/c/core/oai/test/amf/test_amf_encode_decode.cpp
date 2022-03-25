@@ -14,7 +14,7 @@
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #define CHECK_PROTOTYPE_ONLY
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
 #undef CHECK_PROTOTYPE_ONLY

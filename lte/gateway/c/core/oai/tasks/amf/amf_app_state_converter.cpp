@@ -15,8 +15,8 @@
 #include <vector>
 #include <memory>
 extern "C" {
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/message_utils/bytes_to_ie.h"
 #include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"

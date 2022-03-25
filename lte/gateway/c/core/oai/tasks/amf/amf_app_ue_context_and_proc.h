@@ -34,7 +34,7 @@ extern "C" {
 #endif
 #include <unordered_map>
 #include <vector>
-#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
 #include "lte/gateway/c/core/oai/include/map.h"
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"

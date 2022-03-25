@@ -40,7 +40,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
 

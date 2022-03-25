@@ -24,8 +24,8 @@ extern "C" {
 
 #include <cstdint>
 
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/s1ap_types.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 

@@ -25,7 +25,7 @@
 #include "Ngap_UnsuccessfulOutcome.h"
 #include "asn_codecs.h"
 #include "constr_TYPE.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
