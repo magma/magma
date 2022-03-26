@@ -83,8 +83,8 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedExpiredDetach) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  // Reduce timer duration for testing
-  nas_config_timer_reinit(&mme_config.nas_config, MME_APP_TIMER_TO_MSEC);
+  // Reduce timer 3422 duration for testing
+  mme_config.nas_config.t3422_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(8, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
@@ -134,8 +134,8 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetachRetxFailure) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  // Reduce timer duration for testing
-  nas_config_timer_reinit(&mme_config.nas_config, MME_APP_TIMER_TO_MSEC);
+  // Reduce timer 3422 duration for testing
+  mme_config.nas_config.t3422_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(8, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
@@ -224,8 +224,8 @@ TEST_F(MmeAppProcedureTest,
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  // Reduce timer durations for testing
-  nas_config_timer_reinit(&mme_config.nas_config, MME_APP_TIMER_TO_MSEC);
+  // Reduce timer 3485 durations for testing
+  mme_config.nas_config.t3485_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(7, 1, 1, 1, 1, 1, 1, 1, 0, 1, 3);
 
@@ -267,8 +267,8 @@ TEST_F(MmeAppProcedureTest,
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  // Reduce timer duration for testing
-  nas_config_timer_reinit(&mme_config.nas_config, MME_APP_TIMER_TO_MSEC);
+  // Reduce timer 3495 duration for testing
+  mme_config.nas_config.t3495_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(3, 1, 1, 1, 1, 1, 1, 1, 0, 1, 4);
 
@@ -328,6 +328,7 @@ TEST_F(MmeAppProcedureTest,
 
   detach_ue(cv, lock, mme_state_p, guti, false);
 }
+
 TEST_F(MmeAppProcedureTest,
        TestNwInitiatedActivateDeactivateDedicatedBearerRequest) {
   mme_app_desc_t* mme_state_p =
@@ -402,8 +403,9 @@ TEST_F(
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  // Reduce timer durations for testing
-  nas_config_timer_reinit(&mme_config.nas_config, MME_APP_TIMER_TO_MSEC);
+  // Reduce timer 3485 and 3495 durations for testing
+  mme_config.nas_config.t3485_msec = MME_APP_TIMER_TO_MSEC;
+  mme_config.nas_config.t3495_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(7, 1, 1, 1, 1, 1, 1, 1, 0, 1, 4);
 
