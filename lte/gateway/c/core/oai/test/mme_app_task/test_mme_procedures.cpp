@@ -1842,9 +1842,6 @@ TEST_F(MmeAppProcedureTest, TestCLRNwInitiatedDetach) {
   std::unique_lock<std::mutex> lock(mx);
 
   MME_APP_EXPECT_CALLS(4, 1, 1, 1, 1, 0, 1, 1, 0, 1, 2);
-  // Setting the 3422 and 3460 timers to standard duration
-  mme_config.nas_config.t3422_msec = 8000;
-  mme_config.nas_config.t3460_msec = 8000;
 
   // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
