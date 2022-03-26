@@ -1636,7 +1636,7 @@ using grpc::Status;
 int amf_app_handle_pdu_session_failure(
     itti_n11_create_pdu_session_failure_t* pdu_session_failure) {
   if (!pdu_session_failure) {
-    return 0;
+    return RETURNok;
   }
   ue_m5gmm_context_s* ue_context = nullptr;
 
@@ -1646,7 +1646,7 @@ int amf_app_handle_pdu_session_failure(
 
   if (!ue_context) {
     OAILOG_ERROR(LOG_AMF_APP, "UE context is null\n");
-    return -1;
+    return RETURNerror;
   }
   std::shared_ptr<smf_context_t> smf_context;
   smf_context = amf_get_smf_context_by_pdu_session_id(
@@ -1654,7 +1654,7 @@ int amf_app_handle_pdu_session_failure(
 
   if (!smf_context) {
     OAILOG_WARNING(LOG_AMF_APP, "smfcontext doesnot exist with session id\n");
-    return -1;
+    return RETURNerror;
   }
 
   if (pdu_session_failure->error_code ==
@@ -1679,6 +1679,6 @@ int amf_app_handle_pdu_session_failure(
           &(smf_context->pdu_address.ipv6_address));
     }
   }
-  return 0;
+  return RETURNok;
 }
 }  // namespace magma5g
