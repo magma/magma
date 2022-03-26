@@ -137,8 +137,8 @@ class MmeAppProcedureTest : public ::testing::Test {
     task_sgw_s8.detach();
     task_sms_orc8r.detach();
 
-    // Sleep for 10 milliseconds to make sure all mock tasks are up before the
-    // test
+    // Sleep for 10 milliseconds to make sure all mock tasks
+    // are running before the test starts
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     mme_app_init(&mme_config);
