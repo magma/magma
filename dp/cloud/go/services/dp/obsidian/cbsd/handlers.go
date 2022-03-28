@@ -11,13 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package handlers
+package cbsd
 
 import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/golang/glog"
@@ -42,16 +41,9 @@ const (
 
 	ManageCbsdsPath = ManageNetworkPath + obsidian.UrlSep + "cbsds"
 	ManageCbsdPath  = ManageCbsdsPath + obsidian.UrlSep + ":cbsd_id"
-
-	ManageLogsPath = ManageNetworkPath + obsidian.UrlSep + "logs"
 )
 
-const (
-	baseWrongValMsg = "'%s' is not a proper value for %s"
-	responseCode    = "response_code"
-	beginTimestamp  = "begin"
-	endTimestamp    = "end"
-)
+const baseWrongValMsg = "'%s' is not a proper value for %s"
 
 func GetHandlers() []obsidian.Handler {
 	return []obsidian.Handler{
@@ -60,7 +52,6 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageCbsdPath, Methods: obsidian.GET, HandlerFunc: fetchCbsd},
 		{Path: ManageCbsdPath, Methods: obsidian.DELETE, HandlerFunc: deleteCbsd},
 		{Path: ManageCbsdPath, Methods: obsidian.PUT, HandlerFunc: updateCbsd},
-		{Path: ManageLogsPath, Methods: obsidian.GET, HandlerFunc: listLogs},
 	}
 }
 
@@ -74,40 +65,6 @@ func getCbsdId(c echo.Context) (string, *echo.HTTPError) {
 
 func cbsdIdHTTPError() *echo.HTTPError {
 	return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("missing Cbsd ID"))
-}
-
-func listLogs(c echo.Context) error {
-	networkId, nerr := obsidian.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-	client, err := getLogsManagerClient()
-	if err != nil {
-		return err
-	}
-	filter, err := getLogsFilter(c)
-	if err != nil {
-		return err
-	}
-	pagination, err := GetPagination(c)
-	if err != nil {
-		return err
-	}
-	req := protos.ListLogsRequest{
-		NetworkId:  networkId,
-		Filter:     filter,
-		Pagination: pagination,
-	}
-	ctx := c.Request().Context()
-	resp, err := client.ListLogs(ctx, &req)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
-	var payload []models.Message
-	for _, l := range resp.Logs {
-		payload = append(payload, *models.MessageFromBackend(l))
-	}
-	return c.JSON(http.StatusOK, payload)
 }
 
 func listCbsds(c echo.Context) error {
@@ -263,51 +220,6 @@ func getHttpError(err error) error {
 	}
 }
 
-func getLogsFilter(c echo.Context) (*protos.LogFilter, error) {
-	var p string
-	var respCode *wrapperspb.Int64Value
-	var err error
-	p = c.QueryParam(responseCode)
-	if p != "" {
-		rc, err := strconv.Atoi(p)
-		if err != nil {
-			return nil, newBadRequest(baseWrongValMsg, p, responseCode)
-		}
-		respCode = wrapperspb.Int64(int64(rc))
-	}
-	p = c.QueryParam(beginTimestamp)
-	beginTS, err := getTimeStamp(time.RFC3339, p, beginTimestamp)
-	if err != nil {
-		return nil, err
-	}
-	p = c.QueryParam(endTimestamp)
-	endTS, err := getTimeStamp(time.RFC3339, p, endTimestamp)
-	if err != nil {
-		return nil, err
-	}
-	return &protos.LogFilter{
-		From:                c.QueryParam("from"),
-		To:                  c.QueryParam("to"),
-		Name:                c.QueryParam("type"),
-		SerialNumber:        c.QueryParam("serial_number"),
-		FccId:               c.QueryParam("fcc_id"),
-		ResponseCode:        respCode,
-		BeginTimestampMilli: beginTS,
-		EndTimestampMilli:   endTS,
-	}, nil
-}
-
-func getTimeStamp(dateLayout string, p string, paramName string) (*wrapperspb.Int64Value, error) {
-	if p == "" {
-		return nil, nil
-	}
-	ts, err := time.Parse(dateLayout, p)
-	if err != nil {
-		return nil, newBadRequest(baseWrongValMsg, p, paramName)
-	}
-	return wrapperspb.Int64(ts.UnixNano() / int64(time.Millisecond)), nil
-}
-
 func GetPagination(c echo.Context) (*protos.Pagination, error) {
 	l := c.QueryParam("limit")
 	o := c.QueryParam("offset")
@@ -343,14 +255,6 @@ func getCbsdManagerClient() (protos.CbsdManagementClient, error) {
 		return nil, err
 	}
 	return protos.NewCbsdManagementClient(conn), nil
-}
-
-func getLogsManagerClient() (protos.LogFetcherClient, error) {
-	conn, err := getConn()
-	if err != nil {
-		return nil, err
-	}
-	return protos.NewLogFetcherClient(conn), nil
 }
 
 func getConn() (*grpc.ClientConn, error) {

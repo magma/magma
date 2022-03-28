@@ -1,5 +1,5 @@
 """
-Copyright 2021 The Magma Authors.
+Copyright 2022 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
@@ -10,7 +10,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
 import logging
 from datetime import datetime
 from typing import Callable, Optional
@@ -23,21 +22,26 @@ from magma.db_service.models import (
     DBCbsdState,
     DBGrant,
     DBGrantState,
-    DBLog,
     DBRequest,
     DBRequestState,
     DBRequestType,
 )
 from magma.db_service.session_manager import Session, SessionManager
+from magma.fluentd_client.client import FluentdClient, FluentdClientException
+from magma.fluentd_client.dp_logs import make_dp_log
 from magma.mappings.types import (
     CbsdStates,
     GrantStates,
     RequestStates,
     RequestTypes,
 )
+from magma.radio_controller.config import get_config
 from sqlalchemy.sql.functions import now
 
 logger = logging.getLogger(__name__)
+
+
+config = get_config()
 
 
 class DPService(DPServiceServicer):
@@ -45,9 +49,15 @@ class DPService(DPServiceServicer):
     DP gRPC service class
     """
 
-    def __init__(self, session_manager: SessionManager, now_func: Callable[..., datetime]):
+    def __init__(
+            self,
+            session_manager: SessionManager,
+            now_func: Callable[..., datetime],
+            fluentd_client: FluentdClient,
+    ):
         self.session_manager = session_manager
         self.now = now_func
+        self.fluentd_client = fluentd_client
 
     def GetCBSDState(self, request: CBSDRequest, context) -> CBSDStateResult:
         """
@@ -61,11 +71,12 @@ class DPService(DPServiceServicer):
             CBSDStateResult: State result with RF data
         """
         logger.info(f"Getting CBSD state for {request.serial_number=}")
+        message_type = 'GetCBSDState'
         with self.session_manager.session_scope() as session:
             cbsd = session.query(DBCbsd).filter(
                 DBCbsd.cbsd_serial_number == request.serial_number,
             ).first()
-            self._log_request(session, 'GetCBSDState', request, cbsd)
+            self._log_request(message_type, request, cbsd)
             if not cbsd:
                 logger.warning(
                     f"State request from unknown CBSD: {request.serial_number}",
@@ -74,10 +85,7 @@ class DPService(DPServiceServicer):
             else:
                 cbsd.last_seen = self.now()
                 result = self._build_result(cbsd, session)
-            self._log_result(
-                session, 'GetCBSDState', result,
-                cbsd, request.serial_number,
-            )
+            self._log_result(message_type, result, cbsd, request.serial_number)
             session.commit()
         logger.info(
             f"Returning CBSD state {result=} for {request.serial_number=}",
@@ -97,15 +105,13 @@ class DPService(DPServiceServicer):
         """
 
         logger.info(f"Registering CBSD {request.serial_number=}")
+        message_type = 'CBSDRegister'
         with self.session_manager.session_scope() as session:
             cbsd = self._get_or_create_cbsd(session, request)
-            self._log_request(session, 'CBSDRegister', request, cbsd)
+            self._log_request(message_type, request, cbsd)
             self._create_or_update_active_mode_config(session, cbsd)
             result = self._build_result(cbsd, session)
-            self._log_result(
-                session, 'CBSDRegister', result,
-                cbsd, request.serial_number,
-            )
+            self._log_result(message_type, result, cbsd, request.serial_number)
             session.commit()
         return result
 
@@ -122,11 +128,12 @@ class DPService(DPServiceServicer):
         """
 
         logger.info(f"Deregistering CBSD {request.serial_number=}")
+        message_type = 'CBSDDeregister'
         with self.session_manager.session_scope() as session:
             cbsd = session.query(DBCbsd).filter(
                 DBCbsd.cbsd_serial_number == request.serial_number,
             ).first()
-            self._log_request(session, 'CBSDDeregister', request, cbsd)
+            self._log_request(message_type, request, cbsd)
             if not cbsd:
                 logger.info(
                     f"CBSD with serial number {request.serial_number} does not exist.",
@@ -144,10 +151,7 @@ class DPService(DPServiceServicer):
                     f"{cbsd.active_mode_config=} set for {cbsd.cbsd_serial_number=}.",
                 )
             result = self._build_result()
-            self._log_result(
-                session, 'CBSDDeregister',
-                result, cbsd, request.serial_number,
-            )
+            self._log_result(message_type, result, cbsd, request.serial_number)
             session.commit()
         return result
 
@@ -164,11 +168,12 @@ class DPService(DPServiceServicer):
         """
 
         logger.info(f"Relinquishing grants for CBSD {request.serial_number=}")
+        message_type = 'CBSDRelinquish'
         with self.session_manager.session_scope() as session:
             cbsd = session.query(DBCbsd).filter(
                 DBCbsd.cbsd_serial_number == request.serial_number,
             ).first()
-            self._log_request(session, 'CBSDRelinquish', request, cbsd)
+            self._log_request(message_type, request, cbsd)
             if not cbsd:
                 logger.info(
                     f"CBSD with serial number {request.serial_number} does not exist.",
@@ -180,10 +185,7 @@ class DPService(DPServiceServicer):
             else:
                 self._add_relinquish_requests(session, cbsd)
             result = self._build_result()
-            self._log_result(
-                session, 'CBSDRelinquish',
-                result, cbsd, request.serial_number,
-            )
+            self._log_result(message_type, result, cbsd, request.serial_number)
             session.commit()
 
         return result
@@ -280,37 +282,16 @@ class DPService(DPServiceServicer):
             ),
         )
 
-    def _log_request(self, session: Session, method_name: str, request: CBSDRequest, cbsd: DBCbsd):
-        cbsd_serial_number = request.serial_number
-        network_id = ''
-        fcc_id = ''
-        if cbsd:
-            network_id = cbsd.network_id or ''
-            fcc_id = cbsd.fcc_id or ''
-        log = DBLog(
-            log_from='CBSD',
-            log_to='DP',
-            log_name=method_name + 'Request',
-            log_message=f'{request}',
-            cbsd_serial_number=f'{cbsd_serial_number}',
-            network_id=f'{network_id}',
-            fcc_id=f'{fcc_id}',
-        )
-        session.add(log)
+    def _log_request(self, message_type: str, request: CBSDRequest, cbsd: DBCbsd):
+        try:
+            log = make_dp_log(request, message_type, cbsd)
+            self.fluentd_client.send_dp_log(log)
+        except (FluentdClientException, TypeError) as err:
+            logging.error(f"Failed to log {message_type} request. {err}")
 
-    def _log_result(self, session: Session, method_name: str, result: CBSDStateResult, cbsd: DBCbsd, serial_number: str):
-        network_id = ''
-        fcc_id = ''
-        if cbsd:
-            network_id = cbsd.network_id or ''
-            fcc_id = cbsd.fcc_id or ''
-        log = DBLog(
-            log_from='DP',
-            log_to='CBSD',
-            log_name=method_name + 'Response',
-            log_message=f'{result}',
-            cbsd_serial_number=f'{serial_number}',
-            network_id=f'{network_id}',
-            fcc_id=f'{fcc_id}',
-        )
-        session.add(log)
+    def _log_result(self, message_type: str, result: CBSDStateResult, cbsd: DBCbsd, serial_number: str):
+        try:
+            log = make_dp_log(result, message_type, cbsd, serial_number)
+            self.fluentd_client.send_dp_log(log)
+        except (FluentdClientException, TypeError) as err:
+            logging.error(f"Failed to log {message_type} result. {err}")

@@ -47,6 +47,8 @@ deploy:
             command: ["kubectl", "rollout", "status", "--watch", "--timeout=600s", "statefulset/postgres-database"]
         - host:
             command: ["tools/skaffold_hooks/hooks.sh", "create_secrets"]
+        - host:
+            command: ["kubectl", "apply", "-f", "./tools/deployment/vendor/config/fluent-conf.yml"]
     releases:
       - name: domain-proxy
         createNamespace: true
@@ -72,6 +74,8 @@ deploy:
     defaultNamespace: default
     manifests:
       - "./tools/deployment/vendor/fake_sas.yml"
+      - "./tools/deployment/vendor/elasticsearch.yml"
+      - "./tools/deployment/vendor/fluentd.yml"
 profiles:
   - name: integration-tests-no-orc8
     patches:

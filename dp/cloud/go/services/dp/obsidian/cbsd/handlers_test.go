@@ -11,14 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package handlers_test
+package cbsd_test
 
 import (
 	"bytes"
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"testing"
 
 	"github.com/labstack/echo"
@@ -31,7 +30,7 @@ import (
 	"magma/dp/cloud/go/dp"
 	"magma/dp/cloud/go/protos"
 	dp_service "magma/dp/cloud/go/services/dp"
-	"magma/dp/cloud/go/services/dp/obsidian/handlers"
+	"magma/dp/cloud/go/services/dp/obsidian/cbsd"
 	"magma/dp/cloud/go/services/dp/obsidian/models"
 	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
 	"magma/dp/cloud/go/services/dp/storage/db"
@@ -47,17 +46,13 @@ func TestHandlers(t *testing.T) {
 type HandlersTestSuite struct {
 	suite.Suite
 	cbsdServer *stubCbsdServer
-	logsServer *stubLogsServer
 }
 
 func (s *HandlersTestSuite) SetupTest() {
 	s.cbsdServer = &stubCbsdServer{}
 	s.cbsdServer.t = s.T()
-	s.logsServer = &stubLogsServer{}
-	s.logsServer.t = s.T()
 	srv, lis := test_utils.NewTestService(s.T(), dp.ModuleName, dp_service.ServiceName)
 	protos.RegisterCbsdManagementServer(srv.GrpcServer, s.cbsdServer)
-	protos.RegisterLogFetcherServer(srv.GrpcServer, s.logsServer)
 	go srv.RunTest(lis)
 }
 
@@ -75,203 +70,6 @@ type stubCbsdServer struct {
 	deleteResponse        *protos.DeleteCbsdResponse
 	err                   error
 	t                     *testing.T
-}
-
-type stubLogsServer struct {
-	protos.UnimplementedLogFetcherServer
-	expectedListRequest *protos.ListLogsRequest
-	listResponse        *protos.ListLogsResponse
-	err                 error
-	t                   *testing.T
-}
-
-func (s *HandlersTestSuite) TestListLogs() {
-	testCases := []struct {
-		testName            string
-		paramNames          []string
-		ParamValues         []string
-		model               db.Model
-		expectedStatus      int
-		expectedResult      []*models.Message
-		expectedError       string
-		queryParamsString   url.Values
-		expectedListRequest *protos.ListLogsRequest
-	}{
-		{
-			testName:       "test list logs without query params",
-			paramNames:     []string{"network_id"},
-			ParamValues:    []string{"n1"},
-			expectedStatus: http.StatusOK,
-			expectedResult: []*models.Message{getLog()},
-			expectedError:  "",
-			expectedListRequest: &protos.ListLogsRequest{
-				NetworkId:  "n1",
-				Filter:     &protos.LogFilter{},
-				Pagination: &protos.Pagination{},
-			},
-		},
-		{
-			testName:          "test list logs with limit and offset",
-			paramNames:        []string{"network_id"},
-			ParamValues:       []string{"n1"},
-			expectedStatus:    http.StatusOK,
-			expectedResult:    []*models.Message{getLog()},
-			expectedError:     "",
-			queryParamsString: url.Values{"limit": {"4"}, "offset": {"3"}},
-			expectedListRequest: &protos.ListLogsRequest{
-				NetworkId: "n1",
-				Filter:    &protos.LogFilter{},
-				Pagination: &protos.Pagination{
-					Limit:  wrapperspb.Int64(4),
-					Offset: wrapperspb.Int64(3),
-				},
-			},
-		},
-		{
-			testName:       "test list logs with all query params",
-			paramNames:     []string{"network_id"},
-			ParamValues:    []string{"n1"},
-			expectedStatus: http.StatusOK,
-			expectedResult: []*models.Message{getLog()},
-			expectedError:  "",
-			queryParamsString: url.Values{
-				"from":          {"CBSD"},
-				"to":            {"DP"},
-				"type":          {"someType"},
-				"serial_number": {"abc123"},
-				"fcc_id":        {"some_id"},
-				"response_code": {"0"},
-				"begin":         {"2022-01-14T10:23:49.871036+00:00"},
-				"end":           {"2022-02-14T10:23:49.871036+00:00"},
-			},
-			expectedListRequest: &protos.ListLogsRequest{
-				NetworkId: "n1",
-				Filter: &protos.LogFilter{
-					From:                "CBSD",
-					To:                  "DP",
-					Name:                "someType",
-					SerialNumber:        "abc123",
-					FccId:               "some_id",
-					ResponseCode:        wrapperspb.Int64(0),
-					BeginTimestampMilli: wrapperspb.Int64(1642155829871),
-					EndTimestampMilli:   wrapperspb.Int64(1644834229871),
-				},
-				Pagination: &protos.Pagination{},
-			},
-		},
-		{
-			testName:          "test list logs begin date without offset",
-			paramNames:        []string{"network_id"},
-			ParamValues:       []string{"n1"},
-			expectedStatus:    http.StatusOK,
-			expectedResult:    []*models.Message{getLog()},
-			queryParamsString: url.Values{"begin": {"2022-01-14T10:23:49.871036Z"}},
-			expectedListRequest: &protos.ListLogsRequest{
-				NetworkId: "n1",
-				Filter: &protos.LogFilter{
-					BeginTimestampMilli: wrapperspb.Int64(1642155829871),
-				},
-				Pagination: &protos.Pagination{},
-			},
-		},
-		{
-			testName:          "test list logs end date without offset",
-			paramNames:        []string{"network_id"},
-			ParamValues:       []string{"n1"},
-			expectedStatus:    http.StatusOK,
-			expectedResult:    []*models.Message{getLog()},
-			queryParamsString: url.Values{"end": {"2022-01-14T10:23:49.871036Z"}},
-			expectedListRequest: &protos.ListLogsRequest{
-				NetworkId: "n1",
-				Filter: &protos.LogFilter{
-					EndTimestampMilli: wrapperspb.Int64(1642155829871),
-				},
-				Pagination: &protos.Pagination{},
-			},
-		},
-		{
-			testName:          "test list logs with incorrect begin param",
-			paramNames:        []string{"network_id"},
-			ParamValues:       []string{"n1"},
-			expectedStatus:    http.StatusBadRequest,
-			expectedResult:    []*models.Message{getLog()},
-			expectedError:     "'2334321344-33321' is not a proper value for begin",
-			queryParamsString: url.Values{"begin": {"2334321344-33321"}},
-		},
-		{
-			testName:          "test list logs with incorrect end param",
-			paramNames:        []string{"network_id"},
-			ParamValues:       []string{"n1"},
-			expectedStatus:    http.StatusBadRequest,
-			expectedResult:    []*models.Message{getLog()},
-			expectedError:     "'2334321344-33321' is not a proper value for end",
-			queryParamsString: url.Values{"end": {"2334321344-33321"}},
-		},
-		{
-			testName:          "test list logs with incorrect begin format",
-			paramNames:        []string{"network_id"},
-			ParamValues:       []string{"n1"},
-			expectedStatus:    http.StatusBadRequest,
-			expectedResult:    []*models.Message{getLog()},
-			expectedError:     "'incorrect_date_string' is not a proper value for begin",
-			queryParamsString: url.Values{"begin": {"incorrect_date_string"}},
-		},
-		{
-			testName:          "test list logs with incorrect end format",
-			paramNames:        []string{"network_id"},
-			ParamValues:       []string{"n1"},
-			expectedStatus:    http.StatusBadRequest,
-			expectedResult:    []*models.Message{getLog()},
-			expectedError:     "'incorrect_date_string' is not a proper value for end",
-			queryParamsString: url.Values{"end": {"incorrect_date_string"}},
-		},
-		{
-			testName:          "test list logs with incorrect response_code format",
-			paramNames:        []string{"network_id"},
-			ParamValues:       []string{"n1"},
-			expectedStatus:    http.StatusBadRequest,
-			expectedResult:    []*models.Message{getLog()},
-			expectedError:     "'foo' is not a proper value for response_code",
-			queryParamsString: url.Values{"response_code": {"foo"}},
-		},
-		{
-			testName:          "test list logs with incorrect limit value",
-			paramNames:        []string{"network_id"},
-			ParamValues:       []string{"n1"},
-			expectedStatus:    http.StatusBadRequest,
-			expectedError:     "'incorrect_limit_value' is not a proper value for limit",
-			queryParamsString: url.Values{"limit": {"incorrect_limit_value"}},
-		},
-		{
-			testName:          "test list logs with incorrect offset value",
-			paramNames:        []string{"network_id"},
-			ParamValues:       []string{"n1"},
-			expectedStatus:    http.StatusBadRequest,
-			expectedError:     "'incorrect_offset_value' is not a proper value for offset",
-			queryParamsString: url.Values{"offset": {"incorrect_offset_value"}},
-		},
-	}
-	e := echo.New()
-	obsidianHandlers := handlers.GetHandlers()
-	s.logsServer.listResponse = &protos.ListLogsResponse{Logs: []*protos.Log{getLogDetails()}}
-	listLogs := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageLogsPath, obsidian.GET).HandlerFunc
-	for _, t := range testCases {
-		s.Run(t.testName, func() {
-			s.logsServer.expectedListRequest = t.expectedListRequest
-			tc := tests.Test{
-				Method:         http.MethodGet,
-				URL:            handlers.ManageLogsPath + "?" + t.queryParamsString.Encode(),
-				Payload:        nil,
-				ParamNames:     t.paramNames,
-				ParamValues:    t.ParamValues,
-				Handler:        listLogs,
-				ExpectedStatus: t.expectedStatus,
-				ExpectedResult: tests.JSONMarshaler(t.expectedResult),
-				ExpectedError:  t.expectedError,
-			}
-			tests.RunUnitTest(s.T(), e, tc)
-		})
-	}
 }
 
 func (s *HandlersTestSuite) TestListCbsds() {
@@ -333,18 +131,18 @@ func (s *HandlersTestSuite) TestListCbsds() {
 		},
 	}
 	e := echo.New()
-	obsidianHandlers := handlers.GetHandlers()
+	obsidianHandlers := cbsd.GetHandlers()
 	s.cbsdServer.listResponse = &protos.ListCbsdResponse{
 		Details:    []*protos.CbsdDetails{getCbsdDetails()},
 		TotalCount: 1,
 	}
-	listCbsds := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdsPath, obsidian.GET).HandlerFunc
+	listCbsds := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdsPath, obsidian.GET).HandlerFunc
 	for _, t := range testCases {
 		s.Run(t.testName, func() {
 			s.cbsdServer.expectedListRequest = t.expectedListRequest
 			tc := tests.Test{
 				Method:         http.MethodGet,
-				URL:            handlers.ManageCbsdsPath + t.queryParamsString,
+				URL:            cbsd.ManageCbsdsPath + t.queryParamsString,
 				Payload:        nil,
 				ParamNames:     t.paramNames,
 				ParamValues:    t.ParamValues,
@@ -360,13 +158,13 @@ func (s *HandlersTestSuite) TestListCbsds() {
 
 func (s *HandlersTestSuite) TestFetchCbsd() {
 	e := echo.New()
-	obsidianHandlers := handlers.GetHandlers()
+	obsidianHandlers := cbsd.GetHandlers()
 	s.cbsdServer.fetchResponse = &protos.FetchCbsdResponse{Details: getCbsdDetails()}
 	s.cbsdServer.expectedFetchRequest = &protos.FetchCbsdRequest{
 		NetworkId: "n1",
 		Id:        1,
 	}
-	fetchCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdPath, obsidian.GET).HandlerFunc
+	fetchCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdPath, obsidian.GET).HandlerFunc
 	expectedResult := getCbsd()
 	tc := tests.Test{
 		Method:         http.MethodGet,
@@ -384,14 +182,14 @@ func (s *HandlersTestSuite) TestFetchCbsd() {
 
 func (s *HandlersTestSuite) TestFetchNonexistentCbsd() {
 	e := echo.New()
-	obsidianHandlers := handlers.GetHandlers()
+	obsidianHandlers := cbsd.GetHandlers()
 	const errorMsg = "some msg"
 	s.cbsdServer.err = status.Error(codes.NotFound, errorMsg)
 	s.cbsdServer.expectedFetchRequest = &protos.FetchCbsdRequest{
 		NetworkId: "n1",
 		Id:        1,
 	}
-	fetchCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdPath, obsidian.GET).HandlerFunc
+	fetchCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdPath, obsidian.GET).HandlerFunc
 	tc := tests.Test{
 		Method:                 http.MethodGet,
 		URL:                    "/magma/v1/dp/n1/cbsds/1",
@@ -407,7 +205,7 @@ func (s *HandlersTestSuite) TestFetchNonexistentCbsd() {
 
 func (s *HandlersTestSuite) TestCreateCbsd() {
 	e := echo.New()
-	obsidianHandlers := handlers.GetHandlers()
+	obsidianHandlers := cbsd.GetHandlers()
 	payload := createOrUpdateCbsdPayload()
 	s.cbsdServer.createResponse = &protos.CreateCbsdResponse{}
 	s.cbsdServer.expectedCreateRequest = &protos.CreateCbsdRequest{
@@ -424,7 +222,7 @@ func (s *HandlersTestSuite) TestCreateCbsd() {
 			},
 		},
 	}
-	createCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdsPath, obsidian.POST).HandlerFunc
+	createCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdsPath, obsidian.POST).HandlerFunc
 	tc := tests.Test{
 		Method:         http.MethodPost,
 		URL:            "/magma/v1/dp/n1/cbsds",
@@ -440,11 +238,11 @@ func (s *HandlersTestSuite) TestCreateCbsd() {
 
 func (s *HandlersTestSuite) TestCreateCbsdWithoutAllRequiredParams() {
 	e := echo.New()
-	obsidianHandlers := handlers.GetHandlers()
+	obsidianHandlers := cbsd.GetHandlers()
 	payload := &models.MutableCbsd{
 		Capabilities: &models.Capabilities{
 			AntennaGain:      to_pointer.Float(1),
-			NumberOfAntennas: to_pointer.Int(1),
+			NumberOfAntennas: to_pointer.Int64(1),
 		},
 		SerialNumber: to_pointer.Str("someSerialNumber"),
 	}
@@ -459,7 +257,7 @@ func (s *HandlersTestSuite) TestCreateCbsdWithoutAllRequiredParams() {
 			},
 		},
 	}
-	createCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdsPath, obsidian.POST).HandlerFunc
+	createCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdsPath, obsidian.POST).HandlerFunc
 	tc := tests.Test{
 		Method:                 http.MethodPost,
 		URL:                    "/magma/v1/dp/n1/cbsds",
@@ -475,9 +273,9 @@ func (s *HandlersTestSuite) TestCreateCbsdWithoutAllRequiredParams() {
 
 func (s *HandlersTestSuite) TestDeleteCbsd() {
 	e := echo.New()
-	obsidianHandlers := handlers.GetHandlers()
+	obsidianHandlers := cbsd.GetHandlers()
 	s.cbsdServer.deleteResponse = &protos.DeleteCbsdResponse{}
-	deleteCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdPath, obsidian.DELETE).HandlerFunc
+	deleteCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdPath, obsidian.DELETE).HandlerFunc
 	s.cbsdServer.expectedDeleteRequest = &protos.DeleteCbsdRequest{
 		NetworkId: "n1",
 		Id:        1,
@@ -496,14 +294,14 @@ func (s *HandlersTestSuite) TestDeleteCbsd() {
 
 func (s *HandlersTestSuite) TestDeleteNonexistentCbsd() {
 	e := echo.New()
-	obsidianHandlers := handlers.GetHandlers()
+	obsidianHandlers := cbsd.GetHandlers()
 	const errorMsg = "some msg"
 	s.cbsdServer.err = status.Error(codes.NotFound, errorMsg)
 	s.cbsdServer.expectedDeleteRequest = &protos.DeleteCbsdRequest{
 		NetworkId: "n1",
 		Id:        1,
 	}
-	deleteCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdPath, obsidian.DELETE).HandlerFunc
+	deleteCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdPath, obsidian.DELETE).HandlerFunc
 	tc := tests.Test{
 		Method:                 http.MethodDelete,
 		URL:                    "/magma/v1/dp/n1/cbsds/1",
@@ -519,9 +317,9 @@ func (s *HandlersTestSuite) TestDeleteNonexistentCbsd() {
 
 func (s *HandlersTestSuite) TestUpdateCbsd() {
 	e := echo.New()
-	obsidianHandlers := handlers.GetHandlers()
+	obsidianHandlers := cbsd.GetHandlers()
 	s.cbsdServer.updateResponse = &protos.UpdateCbsdResponse{}
-	updateCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdPath, obsidian.PUT).HandlerFunc
+	updateCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdPath, obsidian.PUT).HandlerFunc
 	payload := createOrUpdateCbsdPayload()
 	s.cbsdServer.expectedUpdateRequest = &protos.UpdateCbsdRequest{
 		NetworkId: "n1",
@@ -552,15 +350,15 @@ func (s *HandlersTestSuite) TestUpdateCbsd() {
 
 func (s *HandlersTestSuite) TestUpdateCbsdWithoutAllRequiredParams() {
 	e := echo.New()
-	obsidianHandlers := handlers.GetHandlers()
+	obsidianHandlers := cbsd.GetHandlers()
 	payload := &models.MutableCbsd{
 		Capabilities: &models.Capabilities{
 			AntennaGain:      to_pointer.Float(1),
-			NumberOfAntennas: to_pointer.Int(1),
+			NumberOfAntennas: to_pointer.Int64(1),
 		},
 		SerialNumber: to_pointer.Str("someSerialNumber"),
 	}
-	updateCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdPath, obsidian.PUT).HandlerFunc
+	updateCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdPath, obsidian.PUT).HandlerFunc
 	tc := tests.Test{
 		Method:                 http.MethodPut,
 		URL:                    "/magma/v1/dp/n1/cbsds",
@@ -576,7 +374,7 @@ func (s *HandlersTestSuite) TestUpdateCbsdWithoutAllRequiredParams() {
 
 func (s *HandlersTestSuite) TestUpdateNonexistentCbsd() {
 	e := echo.New()
-	obsidianHandlers := handlers.GetHandlers()
+	obsidianHandlers := cbsd.GetHandlers()
 	const errorMsg = "some msg"
 	s.cbsdServer.err = status.Error(codes.NotFound, errorMsg)
 	payload := createOrUpdateCbsdPayload()
@@ -594,7 +392,7 @@ func (s *HandlersTestSuite) TestUpdateNonexistentCbsd() {
 			},
 		},
 	}
-	updateCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, handlers.ManageCbsdPath, obsidian.PUT).HandlerFunc
+	updateCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdPath, obsidian.PUT).HandlerFunc
 	tc := tests.Test{
 		Method:                 http.MethodPut,
 		URL:                    "/magma/v1/dp/n1/cbsds/0",
@@ -639,7 +437,7 @@ func (s *HandlersTestSuite) TestGetPagination() {
 			t := tests.Test{}
 			req := *httptest.NewRequest(t.Method, tc.URL, bytes.NewReader(nil))
 			c := echo.New().NewContext(&req, httptest.NewRecorder())
-			pag, _ := handlers.GetPagination(c)
+			pag, _ := cbsd.GetPagination(c)
 			if tc.expectedLimit != nil {
 				assert.Equal(s.T(), tc.expectedLimit, pag.Limit)
 			} else {
@@ -658,7 +456,7 @@ func (s *HandlersTestSuite) TestGetPaginationWithoutLimit() {
 	t := tests.Test{}
 	req := *httptest.NewRequest(t.Method, "/magma/v1/dp/some_network/cbsds?offset=2", bytes.NewReader(nil))
 	c := echo.New().NewContext(&req, httptest.NewRecorder())
-	pag, err := handlers.GetPagination(c)
+	pag, err := cbsd.GetPagination(c)
 	assert.Nil(s.T(), pag)
 	assert.EqualError(s.T(), err, "code=400, message=offset requires a limit")
 }
@@ -689,7 +487,7 @@ func (s *HandlersTestSuite) TestGetPaginationWithIncorrectLimitAndOffset() {
 		t := tests.Test{}
 		req := *httptest.NewRequest(t.Method, tc.URL, bytes.NewReader(nil))
 		c := echo.New().NewContext(&req, httptest.NewRecorder())
-		pag, err := handlers.GetPagination(c)
+		pag, err := cbsd.GetPagination(c)
 		assert.Nil(s.T(), pag)
 		assert.EqualError(s.T(), err, "code=400, message="+tc.expectedError)
 	}
@@ -727,28 +525,6 @@ func (s *stubCbsdServer) ListCbsds(ctx context.Context, request *protos.ListCbsd
 	return s.listResponse, s.err
 }
 
-func (s *stubLogsServer) ListLogs(ctx context.Context, request *protos.ListLogsRequest) (*protos.ListLogsResponse, error) {
-	assert.Equal(s.t, s.expectedListRequest.NetworkId, request.NetworkId)
-	assert.Equal(s.t, s.expectedListRequest.Pagination.Limit, request.Pagination.Limit)
-	assert.Equal(s.t, s.expectedListRequest.Pagination.Offset, request.Pagination.Offset)
-	assert.Equal(s.t, s.expectedListRequest.NetworkId, request.NetworkId)
-	assert.Equal(s.t, s.expectedListRequest.Filter.From, request.Filter.From)
-	assert.Equal(s.t, s.expectedListRequest.Filter.To, request.Filter.To)
-	assert.Equal(s.t, s.expectedListRequest.Filter.Name, request.Filter.Name)
-	assert.Equal(s.t, s.expectedListRequest.Filter.SerialNumber, request.Filter.SerialNumber)
-	if s.expectedListRequest.Filter.BeginTimestampMilli != nil {
-		assert.Equal(s.t, s.expectedListRequest.Filter.BeginTimestampMilli, request.Filter.BeginTimestampMilli)
-	}
-	if s.expectedListRequest.Filter.EndTimestampMilli != nil {
-		assert.Equal(s.t, s.expectedListRequest.Filter.EndTimestampMilli, request.Filter.EndTimestampMilli)
-	}
-	if s.expectedListRequest.Filter.ResponseCode != nil {
-		assert.Equal(s.t, s.expectedListRequest.Filter.ResponseCode, request.Filter.ResponseCode)
-	}
-	assert.Equal(s.t, s.expectedListRequest.Filter.FccId, request.Filter.FccId)
-	return s.listResponse, s.err
-}
-
 func getPaginatedCbsds() *models.PaginatedCbsds {
 	return &models.PaginatedCbsds{
 		Cbsds:      []*models.Cbsd{getCbsd()},
@@ -762,7 +538,7 @@ func getCbsd() *models.Cbsd {
 			AntennaGain:      to_pointer.Float(1),
 			MaxPower:         to_pointer.Float(24),
 			MinPower:         to_pointer.Float(0),
-			NumberOfAntennas: to_pointer.Int(1),
+			NumberOfAntennas: to_pointer.Int64(1),
 		},
 		CbsdID: "someCbsdId",
 		FccID:  to_pointer.Str("someFCCId"),
@@ -788,7 +564,7 @@ func createOrUpdateCbsdPayload() *models.MutableCbsd {
 			AntennaGain:      to_pointer.Float(1),
 			MaxPower:         to_pointer.Float(24),
 			MinPower:         to_pointer.Float(0),
-			NumberOfAntennas: to_pointer.Int(1),
+			NumberOfAntennas: to_pointer.Int64(1),
 		},
 		FccID:        to_pointer.Str("someFCCId"),
 		SerialNumber: to_pointer.Str("someSerialNumber"),
@@ -825,29 +601,5 @@ func getCbsdData() *protos.CbsdData {
 			NumberOfAntennas: 1,
 			AntennaGain:      1,
 		},
-	}
-}
-
-func getLog() *models.Message {
-	return &models.Message{
-		From:         "CBSD",
-		To:           "DP",
-		Body:         "some message",
-		FccID:        "some fcc id",
-		SerialNumber: "12345a",
-		Time:         *to_pointer.TimeMilliToDate(123),
-		Type:         "RegistrationRequest",
-	}
-}
-
-func getLogDetails() *protos.Log {
-	return &protos.Log{
-		From:           "CBSD",
-		To:             "DP",
-		Name:           "RegistrationRequest",
-		Message:        "some message",
-		SerialNumber:   "12345a",
-		FccId:          "some fcc id",
-		TimestampMilli: 123,
 	}
 }

@@ -14,21 +14,11 @@ limitations under the License.
 package models
 
 import (
+	"github.com/go-openapi/strfmt"
+
 	"magma/dp/cloud/go/protos"
 	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
 )
-
-func MessageFromBackend(details *protos.Log) *Message {
-	return &Message{
-		From:         details.From,
-		To:           details.To,
-		Body:         details.Message,
-		FccID:        details.FccId,
-		SerialNumber: details.SerialNumber,
-		Time:         *to_pointer.TimeMilliToDate(details.TimestampMilli),
-		Type:         details.Name,
-	}
-}
 
 func CbsdToBackend(m *MutableCbsd) *protos.CbsdData {
 	return &protos.CbsdData{
@@ -76,5 +66,27 @@ func getGrant(details *protos.CbsdDetails) *Grant {
 		MaxEirp:            &grant.MaxEirp,
 		State:              grant.State,
 		TransmitExpireTime: *to_pointer.TimeToDateTime(grant.TransmitExpireTimestamp),
+	}
+}
+
+type LogInterface struct {
+	Body         string          `json:"log_message"`
+	FccID        string          `json:"fcc_id"`
+	From         string          `json:"log_from"`
+	SerialNumber string          `json:"cbsd_serial_number"`
+	Time         strfmt.DateTime `json:"@timestamp"`
+	To           string          `json:"log_to"`
+	Type         string          `json:"log_name"`
+}
+
+func LogInterfaceToLog(i *LogInterface) *Log {
+	return &Log{
+		Body:         i.Body,
+		FccID:        i.FccID,
+		From:         i.From,
+		SerialNumber: i.SerialNumber,
+		Time:         i.Time,
+		To:           i.To,
+		Type:         i.Type,
 	}
 }

@@ -10,7 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+import importlib
 import os
 
 from magma.db_service import config as conf
@@ -76,3 +76,19 @@ class ProductionConfig(Config):
     """
 
     SQLALCHEMY_ECHO = False
+
+
+def get_config() -> Config:
+    """
+    Get configuration controller configuration
+    """
+    app_config = os.environ.get('APP_CONFIG', 'ProductionConfig')
+    config_module = importlib.import_module(
+        '.'.join(
+            f"magma.configuration_controller.config.{app_config}".split('.')[
+                :-1
+            ],
+        ),
+    )
+    config_class = getattr(config_module, app_config.split('.')[-1])
+    return config_class()
