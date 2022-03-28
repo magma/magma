@@ -33,6 +33,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachExpiredNasTimers) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
+  nas_config_timer_reinit(&mme_config.nas_config, MME_APP_TIMER_TO_MSEC);
+
   MME_APP_EXPECT_CALLS(15, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
   // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
