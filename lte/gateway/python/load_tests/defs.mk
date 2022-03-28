@@ -21,4 +21,6 @@ loadtest_subscriberdb.py:add \
 loadtest_subscriberdb.py:list \
 loadtest_subscriberdb.py:delete \
 loadtest_subscriberdb.py:get \
-loadtest_subscriberdb.py:update
+loadtest_subscriberdb.py:update \
+loadtest_policydb.py:enable_static_rules \
+loadtest_policydb.py:disable_static_rules
