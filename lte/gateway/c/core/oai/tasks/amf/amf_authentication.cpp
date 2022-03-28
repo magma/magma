@@ -24,14 +24,14 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 
 #define AMF_CAUSE_SUCCESS (1)
 #define MAX_5G_AUTH_VECTORS 1

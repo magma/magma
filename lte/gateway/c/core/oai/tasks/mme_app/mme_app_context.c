@@ -37,8 +37,8 @@
 #include <sys/time.h>
 #include <time.h>
 
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/enum_string.h"
