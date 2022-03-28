@@ -142,7 +142,6 @@ static int emm_attach_identification_after_smc_success_cb(
 /*
    Abnormal case attach procedures
 */
-static int emm_attach_release(emm_context_t* emm_context);
 static int emm_attach_abort(struct emm_context_s* emm_context,
                             struct nas_base_proc_s* base_proc);
 static int emm_attach_run_procedure(emm_context_t* emm_context);
@@ -965,24 +964,6 @@ status_code_e mme_app_handle_emm_attach_t3450_expiry(zloop_t* loop,
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
-//------------------------------------------------------------------------------
-static int emm_attach_release(emm_context_t* emm_context) {
-  OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
-
-  if (emm_context) {
-    mme_ue_s1ap_id_t ue_id =
-        PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
-            ->mme_ue_s1ap_id;
-    OAILOG_WARNING(
-        LOG_NAS_EMM,
-        "EMM-PROC  - Release UE context data (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
-        ue_id);
-  }
-
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-}
-
 /*
  *
  * Name:    _emm_attach_reject()
@@ -1183,8 +1164,7 @@ static int emm_attach_success_identification_cb(emm_context_t* emm_context) {
     REQUIREMENT_3GPP_24_301(R10_5_5_1_2_3__1);
     rc = emm_start_attach_proc_authentication(
         emm_context,
-        attach_proc);  //, IDENTITY_TYPE_2_IMSI, _emm_attach_authentified,
-                       //_emm_attach_release);
+        attach_proc);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -1203,7 +1183,22 @@ static int emm_attach_failure_identification_cb(emm_context_t* emm_context) {
 
   OAILOG_ERROR_UE(LOG_NAS_EMM, emm_context->_imsi64,
                   "ATTACH - Identification procedure failed!\n");
+  nas_emm_attach_proc_t* attach_proc =
+      get_nas_specific_procedure_attach(emm_context);
 
+  if (attach_proc) {
+    emm_context->emm_cause = EMM_CAUSE_NETWORK_FAILURE;
+    attach_proc->emm_cause = emm_context->emm_cause;
+
+    emm_sap_t emm_sap = {0};
+    emm_sap.primitive = EMMREG_ATTACH_REJ;
+    emm_sap.u.emm_reg.ue_id = attach_proc->ue_id;
+    emm_sap.u.emm_reg.ctx = emm_context;
+    emm_sap.u.emm_reg.notify = true;
+    emm_sap.u.emm_reg.free_proc = true;
+    emm_sap.u.emm_reg.u.attach.proc = attach_proc;
+    rc = emm_sap_send(&emm_sap);
+  }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -1273,7 +1268,6 @@ static int emm_attach_failure_authentication_cb(emm_context_t* emm_context) {
     emm_sap.u.emm_reg.notify = true;
     emm_sap.u.emm_reg.free_proc = true;
     emm_sap.u.emm_reg.u.attach.proc = attach_proc;
-    // dont' care emm_sap.u.emm_reg.u.attach.is_emergency = false;
     rc = emm_sap_send(&emm_sap);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -1396,7 +1390,17 @@ static int emm_attach_failure_security_cb(emm_context_t* emm_context) {
       get_nas_specific_procedure_attach(emm_context);
 
   if (attach_proc) {
-    emm_attach_release(emm_context);
+    emm_context->emm_cause = EMM_CAUSE_NETWORK_FAILURE;
+    attach_proc->emm_cause = emm_context->emm_cause;
+
+    emm_sap_t emm_sap = {0};
+    emm_sap.primitive = EMMREG_ATTACH_REJ;
+    emm_sap.u.emm_reg.ue_id = attach_proc->ue_id;
+    emm_sap.u.emm_reg.ctx = emm_context;
+    emm_sap.u.emm_reg.notify = true;
+    emm_sap.u.emm_reg.free_proc = true;
+    emm_sap.u.emm_reg.u.attach.proc = attach_proc;
+    rc = emm_sap_send(&emm_sap);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
