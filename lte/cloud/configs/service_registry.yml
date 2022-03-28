@@ -45,6 +45,7 @@ services:
   subscriberdb:
     host: "localhost"
     port: 9083
+    protected_port: 9183
     echo_port: 10083
     proxy_type: "clientcert"
     labels:

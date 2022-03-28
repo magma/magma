@@ -75,7 +75,7 @@ func main() {
 
 	// Attach handlers
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
-	protos.RegisterSubscriberLookupServer(srv.GrpcServer, lookup_servicers.NewLookupServicer(fact, ipStore))
+	protos.RegisterSubscriberLookupServer(srv.ProtectedGrpcServer, lookup_servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, lookup_servicers.NewIndexerServicer())
 	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, subscriberdbcloud_servicer.NewSubscriberdbServicer(serviceConfig, subscriberStore))
 

@@ -36,6 +36,8 @@ args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/subscriberdb", "-run_echo_se
 ports:
   - name: grpc
     containerPort: 9083
+  - name: grpc-internal
+    containerPort: 9183
   - name: http
     containerPort: 10083
 livenessProbe:
