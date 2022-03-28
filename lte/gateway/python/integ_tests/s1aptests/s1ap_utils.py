@@ -92,17 +92,13 @@ class S1ApUtil(object):
     LOCAL_PORT = "LOCAL"
 
     class Msg(object):
-        """Message class to store TFW response messages"""
-
         def __init__(self, msg_type, msg_p, msg_len):
-            """Initialize response message structure"""
             self.msg_type = msg_type
             self.msg_p = ctypes.create_string_buffer(msg_len)
             ctypes.memmove(self.msg_p, msg_p, msg_len)
             self.msg_len = msg_len
 
         def cast(self, msg_class):
-            """Cast ctype response message into python structure"""
             return ctypes.cast(self.msg_p, ctypes.POINTER(msg_class)).contents
 
     @staticmethod
@@ -337,7 +333,6 @@ class S1ApUtil(object):
             pdn_type:1 for IPv4, 2 for IPv6 and 3 for IPv4v6
             pcscf_addr_type:IPv4/IPv6/IPv4v6
             dns_ipv6_addr: True/False flag
-            ipcp: True/False flag
 
         Returns:
             msg: Received Attach Accept message
@@ -354,10 +349,7 @@ class S1ApUtil(object):
         # Populate PCO if pcscf_addr_type/dns_ipv6_addr/ipcp is set
         if pcscf_addr_type or dns_ipv6_addr or ipcp:
             self.populate_pco(
-                attach_req.protCfgOpts_pr,
-                pcscf_addr_type,
-                dns_ipv6_addr,
-                ipcp,
+                attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr, ipcp,
             )
         assert self.issue_cmd(attach_type, attach_req) == 0
 
@@ -449,8 +441,7 @@ class S1ApUtil(object):
             ue_ip_str = str(key)
             if key.version == 6:
                 ue_ip6_str = ipaddress.ip_network(
-                    (ue_ip_str + "/64"),
-                    strict=False,
+                    (ue_ip_str + "/64"), strict=False,
                 ).with_netmask
             ue_ip_addr = ue_ip6_str if key.version == 6 else ue_ip_str
             dst_addr = "nw_dst" if key.version == 4 else "ipv6_dst"
@@ -462,8 +453,8 @@ class S1ApUtil(object):
             for item in value:
                 for flow in item:
                     if (
-                        flow["direction"] == FlowMatch.DOWNLINK
-                        and key_to_be_matched in flow
+                            flow["direction"] == FlowMatch.DOWNLINK
+                            and key_to_be_matched in flow
                     ):
                         total_num_dl_flows_to_be_verified += 1
             total_dl_ovs_flows_created = get_flows(
@@ -478,10 +469,8 @@ class S1ApUtil(object):
                 },
             )
             print(
-                "OVS DL flows created ",
-                len(total_dl_ovs_flows_created),
-                "expected ",
-                total_num_dl_flows_to_be_verified,
+                "OVS DL flows created ", len(total_dl_ovs_flows_created),
+                "expected ", total_num_dl_flows_to_be_verified,
             )
             assert (
                 len(total_dl_ovs_flows_created)
@@ -492,8 +481,8 @@ class S1ApUtil(object):
             for item in value:
                 for flow in item:
                     if (
-                        flow["direction"] == FlowMatch.DOWNLINK
-                        and key_to_be_matched in flow
+                            flow["direction"] == FlowMatch.DOWNLINK
+                            and key_to_be_matched in flow
                     ):
                         ip_src = None
                         ip_src_addr = flow[key_to_be_matched]
@@ -542,8 +531,8 @@ class S1ApUtil(object):
                         assert bool(has_tunnel_action)
 
     def verify_flow_rules(self, num_ul_flows, dl_flow_rules=None):
-        """Verify if UL/DL OVS flow rules are created"""
-        gtp_port = self.gtpBridgeUtil.get_gtp_port_no()
+        GTP_PORT = self.gtpBridgeUtil.get_gtp_port_no()
+        # Check if UL and DL OVS flows are created
         print("************ Verifying flow rules")
         # UPLINK
         print("Checking for uplink flow")
@@ -556,7 +545,7 @@ class S1ApUtil(object):
                 {
                     "table_id": self.SPGW_TABLE,
                     "match": {
-                        "in_port": gtp_port,
+                        "in_port": GTP_PORT,
                     },
                 },
             )
@@ -619,14 +608,14 @@ class S1ApUtil(object):
             assert bool(has_tunnel_action)"""
 
     def verify_flow_rules_deletion(self):
-        """Verify if all the UL/DL OVS flow rules are deleted"""
         print("Checking if all uplink/downlink flows were deleted")
         dpath = get_datapath()
         flows = get_flows(
-            dpath,
-            {"table_id": self.SPGW_TABLE},
+            dpath, {"table_id": self.SPGW_TABLE},
         )
-        assert len(flows) == 2, "There should only be 2 default table 0 flows"
+        assert(
+            len(flows) == 2
+        ), "There should only be 2 default table 0 flows"
 
     def delete_ovs_flow_rules(self):
         """Delete the UL/DL OVS flow rules"""
@@ -637,7 +626,7 @@ class S1ApUtil(object):
         """
         Generate imsi based on index offset and prefix
         """
-        assert prefix is not None, "IMSI prefix is empty"
+        assert (prefix is not None), "IMSI prefix is empty"
         idx = str(self._imsi_idx)
         # Add 0 padding
         padding = self.IMSI_LEN - len(idx) - len(prefix[4:])
@@ -871,11 +860,11 @@ class MagmadUtil(object):
             "sudo service magma@* stop ; sudo service magma@magmad start",
         )
         print("Waiting for all services to restart. Sleeping for 60 seconds..")
-        time_slept = 0
-        while time_slept < 60:
+        timeSlept = 0
+        while timeSlept < 60:
             time.sleep(5)
-            time_slept += 5
-            print("*********** Slept for " + str(time_slept) + " seconds")
+            timeSlept += 5
+            print("*********** Slept for " + str(timeSlept) + " seconds")
 
     def restart_services(self, services):
         """
@@ -1793,9 +1782,7 @@ class SessionManagerUtil(object):
         )
 
 
-class GTPBridgeUtils(object):
-    """Utility class to run OVS related commands"""
-
+class GTPBridgeUtils:
     def __init__(self):
         self.magma_utils = MagmadUtil(None)
         ret = self.magma_utils.exec_command_output(
@@ -1808,7 +1795,6 @@ class GTPBridgeUtils(object):
         self.proxy_port = "proxy_port"
 
     def get_gtp_port_no(self) -> Optional[int]:
-        """Fetch the GTP port number"""
         output = self.magma_utils.exec_command_output(
             "sudo ovsdb-client dump Interface name ofport",
         )
@@ -1818,7 +1804,6 @@ class GTPBridgeUtils(object):
                 return port_info[1]
 
     def get_proxy_port_no(self) -> Optional[int]:
-        """Fetch the proxy port number"""
         output = self.magma_utils.exec_command_output(
             "sudo ovsdb-client dump Interface name ofport",
         )
@@ -1830,9 +1815,8 @@ class GTPBridgeUtils(object):
     # RYU rest API is not able dump flows from non zero table.
     # this adds similar API using `ovs-ofctl` cmd
     def get_flows(self, table_id) -> []:
-        """Fetch the OVS flow rules"""
         output = self.magma_utils.exec_command_output(
-            "sudo ovs-ofctl dump-flows gtp_br0 table={0}".format(table_id),
+            "sudo ovs-ofctl dump-flows gtp_br0 table={}".format(table_id),
         )
         return output.split("\n")
 
@@ -1848,9 +1832,7 @@ class GTPBridgeUtils(object):
             )
 
 
-class HaUtil(object):
-    """Utility class to interact with HA service"""
-
+class HaUtil:
     def __init__(self):
         self._ha_stub = HaServiceStub(get_rpc_channel("spgw_service"))
 
