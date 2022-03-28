@@ -141,3 +141,15 @@ int ngap_amf_handle_pduSession_setup_response(ngap_state_t* state,
                                               const sctp_assoc_id_t assoc_id,
                                               const sctp_stream_id_t stream,
                                               Ngap_NGAP_PDU_t* pdu);
+
+status_code_e ngap_amf_handle_gnb_reset(ngap_state_t* state,
+                                        const sctp_assoc_id_t assoc_id,
+                                        const sctp_stream_id_t stream,
+                                        Ngap_NGAP_PDU_t* message);
+
+status_code_e ngap_handle_gnb_initiated_reset_ack(
+    const itti_ngap_gnb_initiated_reset_ack_t* const gnb_reset_ack_p);
+
+bool construct_ngap_amf_full_reset_req(const hash_key_t keyP,
+                                       const uint64_t dataP, void* argP,
+                                       void** resultP);

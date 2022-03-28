@@ -154,4 +154,7 @@ bool check_ue_context_state(amf_ue_ngap_id_t ue_id,
                             m5gcm_state_t expected_cm_state,
                             n2cause_e expected_ue_context_rel_cause);
 
+// Send GNB Reset Request
+void send_gnb_reset_req();
+
 }  // namespace magma5g

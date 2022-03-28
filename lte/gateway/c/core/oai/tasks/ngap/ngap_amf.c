@@ -186,6 +186,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           state, &NGAP_PDUSESSIONRESOURCE_REL_REQ(received_message_p));
     } break;
 
+    case NGAP_GNB_INITIATED_RESET_ACK: {
+      is_task_state_same = true;  // the following handler does not modify state
+      is_ue_state_same = true;
+      ngap_handle_gnb_initiated_reset_ack(
+          &NGAP_GNB_INITIATED_RESET_ACK(received_message_p));
+    } break;
+
     case NGAP_PAGING_REQUEST: {
       is_task_state_same = true;  // the following handler does not modify state
       is_ue_state_same = true;

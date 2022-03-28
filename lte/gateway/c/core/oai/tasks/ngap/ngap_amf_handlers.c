@@ -113,10 +113,10 @@ ngap_message_handler_t ngap_message_handlers[][3] = {
      0},       /* UEContextReleaseRequest */
     {0, 0, 0}, /* DownlinkNgcdma2000tunneling */
     {0, 0, 0}, /* UplinkNgcdma2000tunneling */
-    {0, /*ngap_amf_handle_ue_context_modification_response*/ 0,
-     /*ngap_amf_handle_ue_context_modification_failure*/
-     0},                                      /* UEContextModification
-                                               */
+               /*  {0, ngap_amf_handle_ue_context_modification_response 0,
+                  ngap_amf_handle_ue_context_modification_failure
+                  0},                                       UEContextModification*/
+    {ngap_amf_handle_gnb_reset, 0, 0},
     {ngap_amf_handle_ng_setup_request, 0, 0}, /* NGSetup */
     {/*ngap_amf_handle_ue_cap_indication*/ 0, 0,
      0},       /* TODO UECapabilityInfoIndication */
@@ -2069,5 +2069,354 @@ status_code_e ngap_handle_paging_request(
     OAILOG_INFO(LOG_NGAP, "Sent paging message over sctp  \n");
   }
 
+  OAILOG_FUNC_RETURN(LOG_NGAP, rc);
+}
+
+bool construct_ngap_amf_full_reset_req(const hash_key_t keyP,
+                                       const uint64_t dataP, void* argP,
+                                       void** resultP) {
+  arg_ngap_construct_gnb_reset_req_t* arg = argP;
+  m5g_ue_description_t* ue_ref = (m5g_ue_description_t*)dataP;
+
+  hash_table_ts_t* ng_ue_state = get_ngap_ue_state();
+  hashtable_ts_get(ng_ue_state, (const hash_key_t)dataP, (void**)&ue_ref);
+  uint32_t i = arg->current_ue_index;
+  if (ue_ref) {
+    NGAP_GNB_INITIATED_RESET_REQ(arg->msg).ue_to_reset_list[i].amf_ue_ngap_id =
+        ue_ref->amf_ue_ngap_id;
+    NGAP_GNB_INITIATED_RESET_REQ(arg->msg).ue_to_reset_list[i].gnb_ue_ngap_id =
+        ue_ref->gnb_ue_ngap_id;
+  } else {
+    OAILOG_TRACE(LOG_NGAP, "No valid UE provided in callback: %p\n", ue_ref);
+    NGAP_GNB_INITIATED_RESET_REQ(arg->msg).ue_to_reset_list[i].amf_ue_ngap_id =
+        INVALID_AMF_UE_NGAP_ID;
+  }
+  arg->current_ue_index++;
+
+  return false;
+}
+
+//------------------------------------------------------------------------------
+status_code_e ngap_amf_handle_gnb_reset(ngap_state_t* state,
+                                        const sctp_assoc_id_t assoc_id,
+                                        const sctp_stream_id_t stream,
+                                        Ngap_NGAP_PDU_t* pdu) {
+  MessageDef* msg = NULL;
+  itti_ngap_gnb_initiated_reset_req_t* reset_req = NULL;
+  m5g_ue_description_t* ue_ref_p = NULL;
+  gnb_description_t* gnb_association = NULL;
+  ngap_reset_type_t ngap_reset_type;
+  Ngap_NGReset_t* container = NULL;
+  Ngap_NGResetIEs_t* ie = NULL;
+  Ngap_UE_associatedLogicalNG_connectionItem_t* ng_sig_conn_id_p = NULL;
+  amf_ue_ngap_id_t amf_ue_ngap_id;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
+  imsi64_t imsi64 = INVALID_IMSI64;
+  arg_ngap_construct_gnb_reset_req_t arg = {0};
+  uint32_t i = 0;
+  int rc = RETURNok;
+
+  OAILOG_FUNC_IN(LOG_NGAP);
+
+  gnb_association = ngap_state_get_gnb(state, assoc_id);
+
+  if (gnb_association == NULL) {
+    OAILOG_ERROR(LOG_NGAP, "No gNB attached to this assoc_id: %d\n", assoc_id);
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
+
+  if (gnb_association->ng_state != NGAP_READY) {
+    // ignore the message if NG not ready
+    OAILOG_INFO(
+        LOG_NGAP,
+        "NG setup is not done.Invalid state.Ignoring ENB Initiated Reset.eNB "
+        "Id "
+        "= %d , NGAP state = %d \n",
+        gnb_association->gnb_id, gnb_association->ng_state);
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
+  }
+
+  if (gnb_association->nb_ue_associated == 0) {
+    // Even if there are no UEs connected, we proceed -- this can happen if we
+    // receive a reset during a handover procedure, for example.
+    OAILOG_INFO(
+        LOG_NGAP,
+        "No UEs connected, still proceeding with GNB Initiated Reset. gNB Id = "
+        "%d\n",
+        gnb_association->gnb_id);
+  }
+
+  // Check the reset type - partial_reset OR reset_all
+  container = &pdu->choice.initiatingMessage.value.choice.NGReset;
+
+  NGAP_FIND_PROTOCOLIE_BY_ID(Ngap_NGResetIEs_t, ie, container,
+                             Ngap_ProtocolIE_ID_id_ResetType, true);
+
+  Ngap_ResetType_t* resetType = &ie->value.choice.ResetType;
+
+  switch (resetType->present) {
+    case Ngap_ResetType_PR_nG_Interface:
+      ngap_reset_type = M5G_RESET_ALL;
+      break;
+    case Ngap_ResetType_PR_partOfNG_Interface:
+      ngap_reset_type = M5G_RESET_PARTIAL;
+      break;
+    default:
+      OAILOG_ERROR(LOG_NGAP,
+                   "NGReset Request from eNB  with Invalid reset_type = %d\n",
+                   resetType->present);
+      // TBD - Here AMF should send Error Indication as it is abnormal scenario.
+      OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
+
+  if (ngap_reset_type == M5G_RESET_PARTIAL) {
+    int reset_count = resetType->choice.partOfNG_Interface.list.count;
+    if (reset_count == 0) {
+      OAILOG_ERROR(
+          LOG_NGAP,
+          "Partial NGReset Request without any NG signaling connection. "
+          "Ignoring "
+          "it \n");
+      // TBD - Here AMF should send Error Indication as it is abnormal scenario.
+      OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+    }
+    if (reset_count > gnb_association->nb_ue_associated) {
+      // We proceed here since we could encounter this situation when we
+      // receive a reset from the target eNB during a handover procedure.
+      OAILOG_WARNING(
+          LOG_NGAP,
+          "Partial NGReset Request. Requested number of UEs %d to be reset is "
+          "more "
+          "than connected UEs %d \n",
+          reset_count, gnb_association->nb_ue_associated);
+    }
+  }
+  msg = DEPRECATEDitti_alloc_new_message_fatal(TASK_NGAP,
+                                               NGAP_GNB_INITIATED_RESET_REQ);
+  reset_req = &NGAP_GNB_INITIATED_RESET_REQ(msg);
+
+  reset_req->ngap_reset_type = ngap_reset_type;
+  reset_req->gnb_id = gnb_association->gnb_id;
+  reset_req->sctp_assoc_id = assoc_id;
+  reset_req->sctp_stream_id = stream;
+
+  switch (ngap_reset_type) {
+    case M5G_RESET_ALL:
+      increment_counter("ngap_reset_from_gnb", 1, 1, "type", "M5G_RESET_ALL");
+
+      reset_req->num_ue = gnb_association->nb_ue_associated;
+
+      reset_req->ue_to_reset_list =
+          calloc(gnb_association->nb_ue_associated,
+                 sizeof(*(reset_req->ue_to_reset_list)));
+
+      if (reset_req->ue_to_reset_list == NULL) {
+        OAILOG_ERROR(LOG_NGAP, "ue_to_reset_list is NULL\n");
+        return RETURNerror;
+      }
+      arg.msg = msg;
+      arg.current_ue_index = 0;
+      uint32_t i = arg.current_ue_index;
+      NGAP_GNB_INITIATED_RESET_REQ(arg.msg).ue_to_reset_list[i].amf_ue_ngap_id =
+          INVALID_AMF_UE_NGAP_ID;
+      hashtable_uint64_ts_apply_callback_on_elements(
+          &gnb_association->ue_id_coll, construct_ngap_amf_full_reset_req, &arg,
+          NULL);
+      // EURECOM LG 2020-07-16 added break here
+      break;
+    case M5G_RESET_PARTIAL:
+      // Partial NGReset
+      increment_counter("ng_reset_from_gnb", 1, 1, "type", "M5G_RESET_PARTIAL");
+      reset_req->num_ue = resetType->choice.partOfNG_Interface.list.count;
+      reset_req->ue_to_reset_list =
+          calloc(resetType->choice.partOfNG_Interface.list.count,
+                 sizeof(*(reset_req->ue_to_reset_list)));
+      // Careful! This struct allocated will be re-used in another itti message.
+      if (reset_req->ue_to_reset_list == NULL) {
+        OAILOG_ERROR(LOG_NGAP, "ue_to_reset_list is NULL\n");
+        return RETURNerror;
+      }
+      for (i = 0; i < resetType->choice.partOfNG_Interface.list.count; i++) {
+        ng_sig_conn_id_p =
+            (Ngap_UE_associatedLogicalNG_connectionItem_t*)
+                resetType->choice.partOfNG_Interface.list.array[i];
+        if (ng_sig_conn_id_p == NULL) {
+          OAILOG_ERROR(LOG_NGAP,
+                       "No logical NG connection item could be found for the "
+                       "partial connection. "
+                       "Ignoring the received partial reset request. \n");
+          return RETURNerror;
+        }
+        if (ng_sig_conn_id_p->aMF_UE_NGAP_ID != NULL) {
+          amf_ue_ngap_id =
+              (amf_ue_ngap_id_t) * (&ng_sig_conn_id_p->aMF_UE_NGAP_ID);
+          ngap_imsi_map_t* imsi_map = get_ngap_imsi_map();
+          hashtable_uint64_ts_get(imsi_map->amf_ue_id_imsi_htbl,
+                                  (const hash_key_t)amf_ue_ngap_id, &imsi64);
+          if ((ue_ref_p = ngap_state_get_ue_amfid(amf_ue_ngap_id)) != NULL) {
+            if (ng_sig_conn_id_p->rAN_UE_NGAP_ID != NULL) {
+              gnb_ue_ngap_id_t gnb_ue_ngap_id =
+                  (gnb_ue_ngap_id_t) * (ng_sig_conn_id_p->rAN_UE_NGAP_ID);
+              if (ue_ref_p->gnb_ue_ngap_id ==
+                  (gnb_ue_ngap_id & GNB_UE_NGAP_ID_MASK)) {
+                reset_req->ue_to_reset_list[i].amf_ue_ngap_id =
+                    ue_ref_p->amf_ue_ngap_id;
+                gnb_ue_ngap_id &= GNB_UE_NGAP_ID_MASK;
+                reset_req->ue_to_reset_list[i].gnb_ue_ngap_id = gnb_ue_ngap_id;
+              } else {
+                // mismatch in gnb_ue_ngap_id sent by gNB and stored in NGAP ue
+                // context. Abnormal case.
+                reset_req->ue_to_reset_list[i].amf_ue_ngap_id =
+                    ue_ref_p->amf_ue_ngap_id;
+                reset_req->ue_to_reset_list[i].gnb_ue_ngap_id =
+                    (gnb_ue_ngap_id_t) * (ng_sig_conn_id_p->rAN_UE_NGAP_ID);
+                OAILOG_ERROR_UE(
+                    LOG_NGAP, imsi64,
+                    "Partial NGReset Request:gnb_ue_ngap_id mismatch between "
+                    "id "
+                    "%ld "
+                    "sent by gNB and id %ld stored in epc for amf_ue_ngap_id "
+                    "%ld "
+                    "\n",
+                    gnb_ue_ngap_id, ue_ref_p->gnb_ue_ngap_id, amf_ue_ngap_id);
+              }
+            } else {
+              reset_req->ue_to_reset_list[i].amf_ue_ngap_id =
+                  ue_ref_p->amf_ue_ngap_id;
+              reset_req->ue_to_reset_list[i].gnb_ue_ngap_id =
+                  INVALID_GNB_UE_NGAP_ID;
+            }
+          } else {
+            OAILOG_ERROR_UE(LOG_NGAP, imsi64,
+                            "Partial NGReset Request - No UE context found for "
+                            "amf_ue_ngap_id "
+                            "%ld "
+                            "\n",
+                            amf_ue_ngap_id);
+            reset_req->ue_to_reset_list[i].amf_ue_ngap_id =
+                (amf_ue_ngap_id_t) * (&ng_sig_conn_id_p->aMF_UE_NGAP_ID);
+            if (ng_sig_conn_id_p->rAN_UE_NGAP_ID != NULL) {
+              reset_req->ue_to_reset_list[i].gnb_ue_ngap_id =
+                  (gnb_ue_ngap_id_t) * (ng_sig_conn_id_p->rAN_UE_NGAP_ID);
+            } else {
+              reset_req->ue_to_reset_list[i].gnb_ue_ngap_id =
+                  INVALID_GNB_UE_NGAP_ID;
+            }
+          }
+          free_wrapper((void**)&ng_sig_conn_id_p->aMF_UE_NGAP_ID);
+          if (ng_sig_conn_id_p->rAN_UE_NGAP_ID != NULL) {
+            free_wrapper((void**)&ng_sig_conn_id_p->rAN_UE_NGAP_ID);
+          }
+        } else {
+          if (ng_sig_conn_id_p->rAN_UE_NGAP_ID != NULL) {
+            gnb_ue_ngap_id =
+                (gnb_ue_ngap_id_t) * (ng_sig_conn_id_p->rAN_UE_NGAP_ID);
+            if ((ue_ref_p = ngap_state_get_ue_gnbid(
+                     gnb_association->sctp_assoc_id, gnb_ue_ngap_id)) != NULL) {
+              gnb_ue_ngap_id &= GNB_UE_NGAP_ID_MASK;
+              reset_req->ue_to_reset_list[i].gnb_ue_ngap_id = gnb_ue_ngap_id;
+            } else {
+              OAILOG_ERROR_UE(
+                  LOG_NGAP, imsi64,
+                  "Partial NGReset Request without any valid Ng signaling "
+                  "connection.Sending NGReset Ack with received signalling "
+                  "connection IDs \n");
+              reset_req->ue_to_reset_list[i].gnb_ue_ngap_id =
+                  (gnb_ue_ngap_id_t) * (ng_sig_conn_id_p->rAN_UE_NGAP_ID);
+            }
+            reset_req->ue_to_reset_list[i].amf_ue_ngap_id =
+                INVALID_AMF_UE_NGAP_ID;
+            free_wrapper((void**)&ng_sig_conn_id_p->rAN_UE_NGAP_ID);
+          } else {
+            OAILOG_ERROR_UE(
+                LOG_NGAP, imsi64,
+                "Partial NGReset Request without any valid NG signaling "
+                "connection.Sending NGReset Ack with received signalling "
+                "connection IDs \n");
+            reset_req->ue_to_reset_list[i].amf_ue_ngap_id =
+                INVALID_AMF_UE_NGAP_ID;
+            reset_req->ue_to_reset_list[i].gnb_ue_ngap_id =
+                INVALID_GNB_UE_NGAP_ID;
+          }
+        }
+      }
+  }
+
+  msg->ittiMsgHeader.imsi = imsi64;
+  rc = ngap_send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, msg);
+  OAILOG_FUNC_RETURN(LOG_NGAP, rc);
+}
+//------------------------------------------------------------------------------
+status_code_e ngap_handle_gnb_initiated_reset_ack(
+    const itti_ngap_gnb_initiated_reset_ack_t* const gnb_reset_ack_p) {
+  uint8_t* buffer = NULL;
+  uint32_t length = 0;
+  Ngap_NGAP_PDU_t pdu;
+  /** NGReset Acknowledgment. */
+  Ngap_NGResetAcknowledge_t* out;
+  Ngap_NGResetAcknowledgeIEs_t* ie = NULL;
+  int rc = RETURNok;
+
+  OAILOG_FUNC_IN(LOG_NGAP);
+
+  memset(&pdu, 0, sizeof(pdu));
+  pdu.present = Ngap_NGAP_PDU_PR_successfulOutcome;
+  pdu.choice.successfulOutcome.procedureCode = Ngap_ProcedureCode_id_NGReset;
+  pdu.choice.successfulOutcome.criticality = Ngap_Criticality_ignore;
+  pdu.choice.successfulOutcome.value.present =
+      Ngap_SuccessfulOutcome__value_PR_NGResetAcknowledge;
+  out = &pdu.choice.successfulOutcome.value.choice.NGResetAcknowledge;
+
+  if (gnb_reset_ack_p->ngap_reset_type == M5G_RESET_PARTIAL) {
+    if (!(gnb_reset_ack_p->num_ue > 0)) {
+      OAILOG_ERROR(LOG_NGAP, "Incorrect number of UEs\n");
+      return RETURNerror;
+    }
+    ie = (Ngap_NGResetAcknowledgeIEs_t*)calloc(
+        1, sizeof(Ngap_NGResetAcknowledgeIEs_t));
+    ie->id = Ngap_ProtocolIE_ID_id_UE_associatedLogicalNG_connectionList;
+    ie->criticality = Ngap_Criticality_ignore;
+    ie->value.present =
+        Ngap_NGResetAcknowledgeIEs__value_PR_UE_associatedLogicalNG_connectionList;
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+    /** AMF UE NGAP ID. */
+    Ngap_UE_associatedLogicalNG_connectionList_t* ie_p =
+        &ie->value.choice.UE_associatedLogicalNG_connectionList;
+    for (uint32_t i = 0; i < gnb_reset_ack_p->num_ue; i++) {
+      Ngap_UE_associatedLogicalNG_connectionItem_t* item =
+          calloc(1, sizeof(Ngap_UE_associatedLogicalNG_connectionItem_t));
+      if (gnb_reset_ack_p->ue_to_reset_list[i].amf_ue_ngap_id !=
+          INVALID_AMF_UE_NGAP_ID) {
+        item->aMF_UE_NGAP_ID = calloc(1, sizeof(Ngap_AMF_UE_NGAP_ID_t));
+        asn_uint642INTEGER(item->aMF_UE_NGAP_ID,
+                           gnb_reset_ack_p->ue_to_reset_list[i].amf_ue_ngap_id);
+      } else {
+        item->aMF_UE_NGAP_ID = NULL;
+      }
+      if (gnb_reset_ack_p->ue_to_reset_list[i].gnb_ue_ngap_id !=
+          INVALID_GNB_UE_NGAP_ID) {
+        item->rAN_UE_NGAP_ID = calloc(1, sizeof(Ngap_RAN_UE_NGAP_ID_t));
+        *item->rAN_UE_NGAP_ID =
+            gnb_reset_ack_p->ue_to_reset_list[i].gnb_ue_ngap_id;
+      } else {
+        item->rAN_UE_NGAP_ID = NULL;
+      }
+      ASN_SEQUENCE_ADD(&ie_p->list, item);
+    }
+  }
+  if (ngap_amf_encode_pdu(&pdu, &buffer, &length) < 0) {
+    OAILOG_ERROR(LOG_NGAP, "Failed to NG NGReset command \n");
+    /** We rely on the handover_notify timeout to remove the UE context. */
+    DevAssert(!buffer);
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
+  increment_counter("NG_reset_from_enb", 1, 1, "action", "reset_ack_sent");
+  if (buffer) {
+    bstring b = blk2bstr(buffer, length);
+    free_wrapper((void**)&buffer);
+    rc = ngap_amf_itti_send_sctp_request(&b, gnb_reset_ack_p->sctp_assoc_id,
+                                         gnb_reset_ack_p->sctp_stream_id,
+                                         INVALID_AMF_UE_NGAP_ID);
+  }
   OAILOG_FUNC_RETURN(LOG_NGAP, rc);
 }

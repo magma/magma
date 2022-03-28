@@ -642,3 +642,25 @@ bool generator_ngap_pdusession_resource_rel_cmd_stream(bstring& stream) {
 
   return (true);
 }
+
+status_code_e send_ngap_gnb_reset_ack() {
+  status_code_e rc = RETURNok;
+  itti_ngap_gnb_initiated_reset_ack_t gnb_reset_ack_msg = {};
+
+  gnb_reset_ack_msg.sctp_assoc_id = 1;
+  gnb_reset_ack_msg.sctp_stream_id = 1;
+  gnb_reset_ack_msg.ngap_reset_type = M5G_RESET_PARTIAL;
+  gnb_reset_ack_msg.num_ue = 2;
+  gnb_reset_ack_msg.ue_to_reset_list =
+      reinterpret_cast<ng_sig_conn_id_t*>(calloc(2, sizeof(ng_sig_conn_id_t)));
+
+  gnb_reset_ack_msg.ue_to_reset_list[0].amf_ue_ngap_id = 1;
+  gnb_reset_ack_msg.ue_to_reset_list[0].gnb_ue_ngap_id = 1;
+  gnb_reset_ack_msg.ue_to_reset_list[1].amf_ue_ngap_id = 2;
+  gnb_reset_ack_msg.ue_to_reset_list[1].gnb_ue_ngap_id = 2;
+
+  rc = ngap_handle_gnb_initiated_reset_ack(&gnb_reset_ack_msg);
+
+  free(gnb_reset_ack_msg.ue_to_reset_list);
+  return rc;
+}

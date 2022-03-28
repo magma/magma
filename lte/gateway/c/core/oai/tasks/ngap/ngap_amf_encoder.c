@@ -119,6 +119,8 @@ static inline int ngap_amf_encode_successful_outcome(Ngap_NGAP_PDU_t* pdu,
 
   switch (pdu->choice.successfulOutcome.procedureCode) {
     case Ngap_ProcedureCode_id_NGSetup:
+    case Ngap_ProcedureCode_id_NGReset:
+
       break;
 
     default:

@@ -173,6 +173,12 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           &received_message_p->ittiMsg.ngap_gNB_deregistered_ind);
       break;
 
+    case NGAP_GNB_INITIATED_RESET_REQ: {
+      amf_app_handle_gnb_reset_req(
+          &NGAP_GNB_INITIATED_RESET_REQ(received_message_p));
+      is_task_state_same = true;
+    } break;
+
     /* Handle Terminate message */
     case TERMINATE_MESSAGE:
       itti_free_msg_content(received_message_p);

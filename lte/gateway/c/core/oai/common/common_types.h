@@ -80,6 +80,7 @@ typedef uint64_t enb_s1ap_id_key_t;
 
 // UE NGAP IDs
 #define INVALID_AMF_UE_NGAP_ID 0x0
+#define GNB_UE_NGAP_ID_MASK 0x00FFFFFF
 #define INVALID_GNB_UE_NGAP_ID_KEY 0xFFFFFFFFFFFFFFFF
 #define GNB_UE_NGAP_ID_FMT "%u"
 #define AMF_UE_NGAP_ID_FMT "%lu"

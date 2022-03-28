@@ -681,4 +681,22 @@ bool check_ue_context_state(amf_ue_ngap_id_t ue_id,
   return (true);
 }
 
+// Send GNB Reset Request
+void send_gnb_reset_req() {
+  itti_ngap_gnb_initiated_reset_req_t reset_req_msg = {};
+  reset_req_msg.ngap_reset_type = M5G_RESET_PARTIAL;
+  reset_req_msg.gnb_id = 1;
+  reset_req_msg.sctp_assoc_id = 1;
+  reset_req_msg.sctp_stream_id = 1;
+  reset_req_msg.num_ue = 1;
+  reset_req_msg.ue_to_reset_list =
+      reinterpret_cast<ng_sig_conn_id_t*>(calloc(1, sizeof(ng_sig_conn_id_t)));
+  reset_req_msg.ue_to_reset_list[0].amf_ue_ngap_id = 1;
+  reset_req_msg.ue_to_reset_list[0].gnb_ue_ngap_id = 1;
+
+  amf_app_handle_gnb_reset_req(&reset_req_msg);
+
+  free(reset_req_msg.ue_to_reset_list);
+}
+
 }  // namespace magma5g
