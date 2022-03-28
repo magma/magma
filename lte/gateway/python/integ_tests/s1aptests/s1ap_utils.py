@@ -92,13 +92,17 @@ class S1ApUtil(object):
     LOCAL_PORT = "LOCAL"
 
     class Msg(object):
+        """Message class to store TFW response messages"""
+
         def __init__(self, msg_type, msg_p, msg_len):
+            """Initialize response message structure"""
             self.msg_type = msg_type
             self.msg_p = ctypes.create_string_buffer(msg_len)
             ctypes.memmove(self.msg_p, msg_p, msg_len)
             self.msg_len = msg_len
 
         def cast(self, msg_class):
+            """Cast ctype response message into python structure"""
             return ctypes.cast(self.msg_p, ctypes.POINTER(msg_class)).contents
 
     @staticmethod
@@ -215,91 +219,92 @@ class S1ApUtil(object):
                 )
 
     def populate_pco(
-        self,
-        proto_cfg_opts_pr,
-        pcscf_addr_type=None,
-        dns_ipv6_addr=False,
-        ipcp=False,
+            self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False,
+            ipcp=False,
     ):
-        """Populate the PCO values
-
+        """
+        Populates the PCO values.
         Args:
-            proto_cfg_opts_pr: PCO structure
+            protCfgOpts_pr: PCO structure
             pcscf_addr_type: ipv4/ipv6/ipv4v6 flag
             dns_ipv6_addr: True/False flag
             ipcp: True/False flag
+        Returns:
+            None
         """
         # PCO parameters
         # Presence mask
-        proto_cfg_opts_pr.pres = 1
+        protCfgOpts_pr.pres = 1
         # Length
-        proto_cfg_opts_pr.len = 4
+        protCfgOpts_pr.len = 4
         # Configuration protocol
-        proto_cfg_opts_pr.cfgProt = 0
+        protCfgOpts_pr.cfgProt = 0
         # Extension bit for the additional parameters
-        proto_cfg_opts_pr.ext = 1
+        protCfgOpts_pr.ext = 1
         # Number of protocol IDs
-        proto_cfg_opts_pr.numProtId = 0
+        protCfgOpts_pr.numProtId = 0
 
         # Fill Number of container IDs and Container ID
         idx = 0
         if pcscf_addr_type == "ipv4":
-            proto_cfg_opts_pr.numContId += 1
-            proto_cfg_opts_pr.c[
+            protCfgOpts_pr.numContId += 1
+            protCfgOpts_pr.c[
                 idx
             ].cid = S1ApUtil.PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST
             idx += 1
 
         elif pcscf_addr_type == "ipv6":
-            proto_cfg_opts_pr.numContId += 1
-            proto_cfg_opts_pr.c[
+            protCfgOpts_pr.numContId += 1
+            protCfgOpts_pr.c[
                 idx
             ].cid = S1ApUtil.PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST
             idx += 1
 
         elif pcscf_addr_type == "ipv4v6":
-            proto_cfg_opts_pr.numContId += 2
-            proto_cfg_opts_pr.c[
+            protCfgOpts_pr.numContId += 2
+            protCfgOpts_pr.c[
                 idx
             ].cid = S1ApUtil.PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST
             idx += 1
-            proto_cfg_opts_pr.c[
+            protCfgOpts_pr.c[
                 idx
             ].cid = S1ApUtil.PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST
             idx += 1
 
         if dns_ipv6_addr:
-            proto_cfg_opts_pr.numContId += 1
-            proto_cfg_opts_pr.c[
+            protCfgOpts_pr.numContId += 1
+            protCfgOpts_pr.c[
                 idx
             ].cid = S1ApUtil.PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST
 
         if ipcp:
-            proto_cfg_opts_pr.numProtId += 1
-            proto_cfg_opts_pr.p[0].pid = S1ApUtil.PROT_CFG_PID_IPCP
-            proto_cfg_opts_pr.p[0].len = 0x10
+            protCfgOpts_pr.numProtId += 1
+            protCfgOpts_pr.p[
+                0
+            ].pid = S1ApUtil.PROT_CFG_PID_IPCP
+            protCfgOpts_pr.p[
+                0
+            ].len = 0x10
 
             # PPP IP Control Protocol packet as per rfc 1877
             # 01 00 00 10 81 06 00 00 00 00 83 06 00 00 00 00
 
-            proto_cfg_opts_pr.p[0].val[0] = 0x01  # code = 01 - Config Request
-            proto_cfg_opts_pr.p[0].val[1] = 0x00  # Identifier : 00
-            proto_cfg_opts_pr.p[0].val[2] = 0x00  # Length : 16
-            proto_cfg_opts_pr.p[0].val[3] = 0x10
-            proto_cfg_opts_pr.p[0].val[4] = 0x81  # Options:Primary DNS IP Addr
-            proto_cfg_opts_pr.p[0].val[5] = 0x06  # len = 6
-            proto_cfg_opts_pr.p[0].val[6] = 0x00  # 00.00.00.00
-            proto_cfg_opts_pr.p[0].val[7] = 0x00
-            proto_cfg_opts_pr.p[0].val[8] = 0x00
-            proto_cfg_opts_pr.p[0].val[9] = 0x00
-            proto_cfg_opts_pr.p[0].val[
-                10
-            ] = 0x83  # Options:Secondary DNS IP Addr
-            proto_cfg_opts_pr.p[0].val[11] = 0x06  # len = 6
-            proto_cfg_opts_pr.p[0].val[12] = 0x00  # 00.00.00.00
-            proto_cfg_opts_pr.p[0].val[13] = 0x00
-            proto_cfg_opts_pr.p[0].val[14] = 0x00
-            proto_cfg_opts_pr.p[0].val[15] = 0x00
+            protCfgOpts_pr.p[0].val[0] = 0x01  # code = 01 - Config Request
+            protCfgOpts_pr.p[0].val[1] = 0x00  # Identifier : 00
+            protCfgOpts_pr.p[0].val[2] = 0x00  # Length : 16
+            protCfgOpts_pr.p[0].val[3] = 0x10
+            protCfgOpts_pr.p[0].val[4] = 0x81  # Options:Primary DNS IP Addr
+            protCfgOpts_pr.p[0].val[5] = 0x06  # len = 6
+            protCfgOpts_pr.p[0].val[6] = 0x00  # 00.00.00.00
+            protCfgOpts_pr.p[0].val[7] = 0x00
+            protCfgOpts_pr.p[0].val[8] = 0x00
+            protCfgOpts_pr.p[0].val[9] = 0x00
+            protCfgOpts_pr.p[0].val[10] = 0x83  # Options:Secondary DNS IP Addr
+            protCfgOpts_pr.p[0].val[11] = 0x06  # len = 6
+            protCfgOpts_pr.p[0].val[12] = 0x00  # 00.00.00.00
+            protCfgOpts_pr.p[0].val[13] = 0x00
+            protCfgOpts_pr.p[0].val[14] = 0x00
+            protCfgOpts_pr.p[0].val[15] = 0x00
 
     def attach(
         self,
@@ -1285,18 +1290,12 @@ class SpgwUtil(object):
         self._stub = SpgwServiceStub(get_rpc_channel("spgw_service"))
 
     def create_default_ipv4_flows(self, port_idx=0):
-        """Create default ipv4 flow rules. 4 for UL and 4 for DL
-
-        Args:
+        """ Creates default ipv4 flow rules. 4 for UL and 4 for DL
             port_idx: idx to generate different tcp_dst_port values
-                so that different DL flows are created
-                in case of multiple dedicated bearers
-
-        Returns:
-            List of flows
-        """
+                      so that different DL flows are created
+                      in case of multiple dedicated bearers"""
         # UL Flow description #1
-        ul_flow1 = {
+        ulFlow1 = {
             "ipv4_dst": "0.0.0.0/0",  # IPv4 destination address
             "tcp_dst_port": 5001,  # TCP dest port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
@@ -1304,7 +1303,7 @@ class SpgwUtil(object):
         }
 
         # UL Flow description #2
-        ul_flow2 = {
+        ulFlow2 = {
             "ipv4_dst": "192.168.129.42/24",  # IPv4 destination address
             "tcp_dst_port": 5002,  # TCP dest port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
@@ -1312,7 +1311,7 @@ class SpgwUtil(object):
         }
 
         # UL Flow description #3
-        ul_flow3 = {
+        ulFlow3 = {
             "ipv4_dst": "192.168.129.42",  # IPv4 destination address
             "tcp_dst_port": 5003,  # TCP dest port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
@@ -1320,7 +1319,7 @@ class SpgwUtil(object):
         }
 
         # UL Flow description #4
-        ul_flow4 = {
+        ulFlow4 = {
             "ipv4_dst": "192.168.129.42",  # IPv4 destination address
             "tcp_dst_port": 5004,  # TCP dest port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
@@ -1328,7 +1327,7 @@ class SpgwUtil(object):
         }
 
         # DL Flow description #1
-        dl_flow1 = {
+        dlFlow1 = {
             "ipv4_src": "192.168.129.42",  # IPv4 source address
             "tcp_src_port": 5001 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
@@ -1336,7 +1335,7 @@ class SpgwUtil(object):
         }
 
         # DL Flow description #2
-        dl_flow2 = {
+        dlFlow2 = {
             "ipv4_src": "",  # IPv4 source address
             "tcp_src_port": 5002 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
@@ -1344,7 +1343,7 @@ class SpgwUtil(object):
         }
 
         # DL Flow description #3
-        dl_flow3 = {
+        dlFlow3 = {
             "ipv4_src": "192.168.129.64/26",  # IPv4 source address
             "tcp_src_port": 5003 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
@@ -1352,7 +1351,7 @@ class SpgwUtil(object):
         }
 
         # DL Flow description #4
-        dl_flow4 = {
+        dlFlow4 = {
             "ipv4_src": "192.168.129.42/16",  # IPv4 source address
             "tcp_src_port": 5004 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
@@ -1361,30 +1360,24 @@ class SpgwUtil(object):
 
         # Flow lists to be configured
         flow_list = [
-            ul_flow1,
-            ul_flow2,
-            ul_flow3,
-            ul_flow4,
-            dl_flow1,
-            dl_flow2,
-            dl_flow3,
-            dl_flow4,
+            ulFlow1,
+            ulFlow2,
+            ulFlow3,
+            ulFlow4,
+            dlFlow1,
+            dlFlow2,
+            dlFlow3,
+            dlFlow4,
         ]
         return flow_list
 
     def create_default_ipv6_flows(self, port_idx=0):
-        """Create ipv6 flow rules
-
-        Args:
+        """ Creates ipv6 flow rules
             port_idx: idx to generate different tcp_dst_port values
-                so that different DL flows are created
-                in case of multiple dedicated bearers
-
-        Returns:
-            List of flows
-        """
+                      so that different DL flows are created
+                      in case of multiple dedicated bearers"""
         # UL Flow description #1
-        ul_flow1 = {
+        ulFlow1 = {
             "ipv6_dst": "5546:222:2259::226",  # IPv6 destination address
             "tcp_dst_port": 5001,  # TCP dest port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
@@ -1392,7 +1385,7 @@ class SpgwUtil(object):
         }
 
         # UL Flow description #2
-        ul_flow2 = {
+        ulFlow2 = {
             "ipv6_dst": "5598:3422:259::456",  # IPv6 destination address
             "tcp_dst_port": 5002,  # TCP dest port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
@@ -1400,7 +1393,7 @@ class SpgwUtil(object):
         }
 
         # DL Flow description #1
-        dl_flow1 = {
+        dlFlow1 = {
             "ipv6_src": "baee:1205:486c:988c::99",  # IPv6 source address
             "tcp_src_port": 5001 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
@@ -1408,7 +1401,7 @@ class SpgwUtil(object):
         }
 
         # DL Flow description #2
-        dl_flow2 = {
+        dlFlow2 = {
             "ipv6_src": "fdee:0005:006c:018c::8c99",  # IPv6 source address
             "tcp_src_port": 5002 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
@@ -1417,26 +1410,20 @@ class SpgwUtil(object):
 
         # Flow lists to be configured
         flow_list = [
-            ul_flow1,
-            dl_flow1,
-            ul_flow2,
-            dl_flow2,
+            ulFlow1,
+            dlFlow1,
+            ulFlow2,
+            dlFlow2,
         ]
         return flow_list
 
     def create_default_ipv4v6_flows(self, port_idx=0):
-        """Create ipv4v6 flow rules
-
-        Args:
+        """ Creates ipv4v6 flow rules
             port_idx: idx to generate different tcp_dst_port values
-                so that different DL flows are created
-                in case of multiple dedicated bearers
-
-        Returns:
-            List of flows
-        """
+                      so that different DL flows are created
+                      in case of multiple dedicated bearers"""
         # UL Flow description #1
-        ul_flow1 = {
+        ulFlow1 = {
             "ipv4_dst": "192.168.129.42/24",  # IPv4 destination address
             "tcp_dst_port": 5001,  # TCP dest port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
@@ -1444,7 +1431,7 @@ class SpgwUtil(object):
         }
 
         # UL Flow description #2
-        ul_flow2 = {
+        ulFlow2 = {
             "ipv6_dst": "5546:222:2259::226",  # IPv6 destination address
             "tcp_dst_port": 5001,  # TCP dest port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
@@ -1452,7 +1439,7 @@ class SpgwUtil(object):
         }
 
         # DL Flow description #1
-        dl_flow1 = {
+        dlFlow1 = {
             "ipv4_src": "192.168.129.42",  # IPv4 source address
             "tcp_src_port": 5001 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
@@ -1460,7 +1447,7 @@ class SpgwUtil(object):
         }
 
         # DL Flow description #2
-        dl_flow2 = {
+        dlFlow2 = {
             "ipv6_src": "fdee:0005:006c:018c::8c99",  # IPv6 source address
             "tcp_src_port": 5002 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
@@ -1469,10 +1456,10 @@ class SpgwUtil(object):
 
         # Flow lists to be configured
         flow_list = [
-            ul_flow1,
-            dl_flow1,
-            ul_flow2,
-            dl_flow2,
+            ulFlow1,
+            dlFlow1,
+            ulFlow2,
+            dlFlow2,
         ]
         return flow_list
 
@@ -1735,7 +1722,7 @@ class SessionManagerUtil(object):
 
     def send_SetSessionRules(self, imsi, policy_id, flow_list, qos):
         """
-        Send Policy SetSessionRules message to session manager
+        Sends Policy SetSessionRules message to session manager
         """
         print("Sending session rules to session manager")
         flow_match_list = []
@@ -1743,21 +1730,19 @@ class SessionManagerUtil(object):
 
         policy_rule = self.get_policy_rule(policy_id, qos, flow_match_list)
 
-        ul_flow1 = {
+        ulFlow1 = {
             "ip_proto": FlowMatch.IPPROTO_IP,
             "direction": FlowMatch.UPLINK,  # Direction
         }
-        dl_flow1 = {
+        dlFlow1 = {
             "ip_proto": FlowMatch.IPPROTO_IP,
             "direction": FlowMatch.DOWNLINK,  # Direction
         }
-        default_flow_rules = [ul_flow1, dl_flow1]
+        default_flow_rules = [ulFlow1, dlFlow1]
         default_flow_match_list = []
         self.get_flow_match(default_flow_rules, default_flow_match_list)
         default_policy_rule = self.get_policy_rule(
-            "allow_list_" + imsi,
-            None,
-            default_flow_match_list,
+            "allow_list_" + imsi, None, default_flow_match_list,
         )
 
         rule_set = RuleSet(
@@ -1782,7 +1767,9 @@ class SessionManagerUtil(object):
         )
 
 
-class GTPBridgeUtils:
+class GTPBridgeUtils(object):
+    """Utility class to run OVS related commands"""
+
     def __init__(self):
         self.magma_utils = MagmadUtil(None)
         ret = self.magma_utils.exec_command_output(
@@ -1795,6 +1782,7 @@ class GTPBridgeUtils:
         self.proxy_port = "proxy_port"
 
     def get_gtp_port_no(self) -> Optional[int]:
+        """Fetch the GTP port number"""
         output = self.magma_utils.exec_command_output(
             "sudo ovsdb-client dump Interface name ofport",
         )
@@ -1804,6 +1792,7 @@ class GTPBridgeUtils:
                 return port_info[1]
 
     def get_proxy_port_no(self) -> Optional[int]:
+        """Fetch the proxy port number"""
         output = self.magma_utils.exec_command_output(
             "sudo ovsdb-client dump Interface name ofport",
         )
@@ -1815,8 +1804,9 @@ class GTPBridgeUtils:
     # RYU rest API is not able dump flows from non zero table.
     # this adds similar API using `ovs-ofctl` cmd
     def get_flows(self, table_id) -> []:
+        """Fetch the OVS flow rules"""
         output = self.magma_utils.exec_command_output(
-            "sudo ovs-ofctl dump-flows gtp_br0 table={}".format(table_id),
+            "sudo ovs-ofctl dump-flows gtp_br0 table={0}".format(table_id),
         )
         return output.split("\n")
 
