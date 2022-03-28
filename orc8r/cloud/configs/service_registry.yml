@@ -64,6 +64,7 @@ services:
   metricsd:
     host: "localhost"
     port: 9084
+    protected_port: 9184
     echo_port: 10084
     proxy_type: "clientcert"
     labels:
