@@ -1470,13 +1470,13 @@
   dependencies:
     core-js "^3.2.1"
 
-"@fbcnms/express-middleware@^0.1.0":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@fbcnms/express-middleware/-/express-middleware-0.1.1.tgz#bf40cbb39b611f10d58fbdc794d633d8d828fb96"
-  integrity sha512-RvXycGTfULrW2uZ+txajAAihh0dtQ1jkTghV3Xu8K9H7VeN6gnYsov0xdnxCdODkRiBzMlaX6u2byY5BBaxbBQ==
+"@fbcnms/express-middleware@0.1.4":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@fbcnms/express-middleware/-/express-middleware-0.1.4.tgz#34271aca3fd96e1d0674a3a651e5537c615914ec"
+  integrity sha512-bMy0uhtDX0B0/hLS9dZUGNfrEQaszNUAZMR14ykpP2uKcFqaWTHKQwbUflNNDgfvEsdRI3HnmF4IYpLafklbAw==
   dependencies:
     "@fbcnms/logging" "^0.1.0"
-    "@fbcnms/sequelize-models" "^0.1.1"
+    "@fbcnms/sequelize-models" "^0.1.9"
     body-parser "^1.18.3"
     compression "^1.7.1"
     cookie-parser "^1.4.3"
@@ -1485,13 +1485,13 @@
     express-session "^1.15.6"
     helmet "^3.13.0"
 
-"@fbcnms/express-middleware@^0.1.3":
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/@fbcnms/express-middleware/-/express-middleware-0.1.3.tgz#4d9213f7bffe462952945c8e7c648442b4305bfd"
-  integrity sha512-pXWD58K5/Ay5aszFPwkK6Taua+OLvDNIFurL/jyJLtG+zlfapXM6sEtfIwQIg99pORmv0TnWCOuv2ZRETX54fg==
+"@fbcnms/express-middleware@^0.1.0":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@fbcnms/express-middleware/-/express-middleware-0.1.1.tgz#bf40cbb39b611f10d58fbdc794d633d8d828fb96"
+  integrity sha512-RvXycGTfULrW2uZ+txajAAihh0dtQ1jkTghV3Xu8K9H7VeN6gnYsov0xdnxCdODkRiBzMlaX6u2byY5BBaxbBQ==
   dependencies:
     "@fbcnms/logging" "^0.1.0"
-    "@fbcnms/sequelize-models" "^0.1.8"
+    "@fbcnms/sequelize-models" "^0.1.1"
     body-parser "^1.18.3"
     compression "^1.7.1"
     cookie-parser "^1.4.3"
@@ -1508,17 +1508,17 @@
     morgan "^1.9.1"
     winston "^3.0.0"
 
-"@fbcnms/platform-server@^0.1.27":
-  version "0.1.27"
-  resolved "https://registry.yarnpkg.com/@fbcnms/platform-server/-/platform-server-0.1.27.tgz#a29f8ae745e2477a000b2ac328c0642d1b277f48"
-  integrity sha512-+DCUcq+SW19wElZqZ2fXonOOafsfxIUGjn3mnIOyI65vIEXuaukMfNtE9HooviEDytcSWYyto8tNoLzR1Y5fNQ==
+"@fbcnms/platform-server@0.1.28":
+  version "0.1.28"
+  resolved "https://registry.yarnpkg.com/@fbcnms/platform-server/-/platform-server-0.1.28.tgz#03545710340155428d8562f956d43c13ca2d0434"
+  integrity sha512-2bm6h6rn+eQPwCJH085+mB5UdxZ7hQqTTi1eFmGi1uQij+GBoGfRe05uX98V0tMJn3v4ot32kbbV+9nzhm+0Lw==
   dependencies:
     "@fbcnms/auth" "^0.1.0"
     "@fbcnms/babel-register" "^0.1.0"
     "@fbcnms/express-middleware" "^0.1.0"
     "@fbcnms/logging" "^0.1.0"
     "@fbcnms/magma-api" "^0.1.0"
-    "@fbcnms/sequelize-models" "^0.1.8"
+    "@fbcnms/sequelize-models" "^0.1.9"
     "@fbcnms/types" "^0.1.10"
     "@fbcnms/util" "^0.1.0"
     add "^2.0.6"
@@ -1548,6 +1548,18 @@
   resolved "https://registry.yarnpkg.com/@fbcnms/projects/-/projects-0.1.0.tgz#7e1d6641e6dbe0f8137560f25c6d89b1d5cd9354"
   integrity sha512-vdP5+Y4XWkdVR3H97NCbZiuMpi2xSelyUFg5AR7vZXWzXLFKVziSQEvvqG442U3PQbuLV15LShfYJhEHDc13fA==
 
+"@fbcnms/sequelize-models@0.1.9":
+  version "0.1.9"
+  resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.9.tgz#f6913ded822aa1c7d0f05c1f6a2572ff73a91411"
+  integrity sha512-jFFEju8f1zcuakPze3F8dnUPxlmht1e10u6Q/La3Boa+kYHXAB64YL1ZzjBN1WGA0BXJGQcHIINFnmD1g+mHEA==
+  dependencies:
+    "@fbcnms/babel-register" "^0.1.0"
+    inquirer "^8.0.0"
+    mariadb "^2.4.2"
+    minimist "^1.2.5"
+    pg "^8.6.0"
+    sequelize "^5.8.5"
+
 "@fbcnms/sequelize-models@^0.1.1":
   version "0.1.6"
   resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.6.tgz#4d4278b9c59469f17e7851f514189cff703173ea"
@@ -1559,17 +1571,17 @@
     minimist "^1.2.5"
     sequelize "^5.8.5"
 
-"@fbcnms/sequelize-models@^0.1.8":
-  version "0.1.8"
-  resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.8.tgz#7c1828153021c4dee41e1c9e9bfeb482fe366a6b"
-  integrity sha512-PuigSaB6T+Cv6Wt0yj9yckvOnt2McW/tZdZOn0JjXwmD8VW4RABzFmfH6urFYcPNfHQoAfeDph78nnNFlpwVuw==
+"@fbcnms/sequelize-models@^0.1.9":
+  version "0.1.13"
+  resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.13.tgz#64bc98f5db5347e1e6dca3681ec4af8e5950539e"
+  integrity sha512-USQxC9EKje8yTskWveiUEZSbo3iPYv0oRe4uyRk5yJr7J1NOXf2CT5yEnNf2KlWM9CQ4IuUggcZAHuasA9qI+g==
   dependencies:
     "@fbcnms/babel-register" "^0.1.0"
     inquirer "^8.0.0"
     mariadb "^2.4.2"
     minimist "^1.2.5"
     pg "^8.6.0"
-    sequelize "^5.8.5"
+    sequelize "^5.22.5"
 
 "@fbcnms/strings@^0.1.0":
   version "0.1.0"
@@ -12641,6 +12653,27 @@ sequelize-pool@^2.3.0:
   resolved "https://registry.yarnpkg.com/sequelize-pool/-/sequelize-pool-2.3.0.tgz#64f1fe8744228172c474f530604b6133be64993d"
   integrity sha512-Ibz08vnXvkZ8LJTiUOxRcj1Ckdn7qafNZ2t59jYHMX1VIebTAOYefWdRYFt6z6+hy52WGthAHAoLc9hvk3onqA==
 
+sequelize@^5.22.5:
+  version "5.22.5"
+  resolved "https://registry.yarnpkg.com/sequelize/-/sequelize-5.22.5.tgz#ff7fdd34980a2d95456a4a57e16153c20d57e96e"
+  integrity sha512-ySIHof18sJbeVG4zjEvsDL490cd9S14/IhkCrZR/g0C/FPlZq1AzEJVeSAo++9/sgJH2eERltAIGqYQNgVqX/A==
+  dependencies:
+    bluebird "^3.5.0"
+    cls-bluebird "^2.1.0"
+    debug "^4.1.1"
+    dottie "^2.0.0"
+    inflection "1.12.0"
+    lodash "^4.17.15"
+    moment "^2.24.0"
+    moment-timezone "^0.5.21"
+    retry-as-promised "^3.2.0"
+    semver "^6.3.0"
+    sequelize-pool "^2.3.0"
+    toposort-class "^1.0.1"
+    uuid "^8.3.2"
+    validator "^13.7.0"
+    wkx "^0.4.8"
+
 sequelize@^5.8.5:
   version "5.22.3"
   resolved "https://registry.yarnpkg.com/sequelize/-/sequelize-5.22.3.tgz#7e7a92ddd355d883c9eb11cdb106d874d0d2636f"
@@ -14198,7 +14231,7 @@ uuid@^3.3.2, uuid@^3.3.3:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.4.0.tgz#b23e4358afa8a202fe7a100af1f5f883f02007ee"
   integrity sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==
 
-uuid@^8.3.0:
+uuid@^8.3.0, uuid@^8.3.2:
   version "8.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
@@ -14241,6 +14274,11 @@ validator@^10.11.0:
   version "10.11.0"
   resolved "https://registry.yarnpkg.com/validator/-/validator-10.11.0.tgz#003108ea6e9a9874d31ccc9e5006856ccd76b228"
   integrity sha512-X/p3UZerAIsbBfN/IwahhYaBbY68EN/UQBWHtsbXGT5bfrH/p4NQzUCG1kF/rtKaNpnJ7jAu6NGTdSNtyNIXMw==
+
+validator@^13.7.0:
+  version "13.7.0"
+  resolved "https://registry.yarnpkg.com/validator/-/validator-13.7.0.tgz#4f9658ba13ba8f3d82ee881d3516489ea85c0857"
+  integrity sha512-nYXQLCBkpJ8X6ltALua9dRrZDHVYxjJ1wgskNt1lH9fzGjs3tgojGSCBjmEPwkWS1y29+DrizMTW19Pr9uB2nw==
 
 value-equal@^1.0.1:
   version "1.0.1"
