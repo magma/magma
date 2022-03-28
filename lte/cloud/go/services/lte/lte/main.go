@@ -66,7 +66,7 @@ func main() {
 	if err := enbStateStore.Initialize(); err != nil {
 		glog.Fatalf("Error initializing enodeb state lookup storage: %v", err)
 	}
-	lte_protos.RegisterEnodebStateLookupServer(srv.GrpcServer, protected_servicers.NewLookupServicer(enbStateStore))
+	lte_protos.RegisterEnodebStateLookupServer(srv.ProtectedGrpcServer, protected_servicers.NewLookupServicer(enbStateStore))
 
 	// Initialize analytics
 	// userStateExpr is a metric which enables us to compute the number of active users using the network
