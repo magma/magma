@@ -12,8 +12,8 @@ limitations under the License.
 */
 
 extern "C" {
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/backtrace.h"
+#include "lte/gateway/c/core/common/backtrace.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 }
 
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.h"

@@ -16,10 +16,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
@@ -65,8 +65,7 @@ int amf_app_handle_nas_dl_req(const amf_ue_ngap_id_t ue_id, bstring nas_msg,
   rc = amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
 
   if (transaction_status != M5G_AS_SUCCESS) {
-    ue_context_release_command(ue_id, ue_context->gnb_ue_ngap_id,
-                               NGAP_NAS_AUTHENTICATION_FAILURE);
+    amf_ctx_release_ue_context(ue_context, NGAP_NAS_AUTHENTICATION_FAILURE);
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }

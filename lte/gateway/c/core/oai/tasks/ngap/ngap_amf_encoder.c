@@ -32,7 +32,7 @@
 #include "Ngap_ProcedureCode.h"
 #include "Ngap_UEContextModificationRequest.h"
 #include "Ngap_UEContextReleaseCommand.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_encoder.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_common.h"

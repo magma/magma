@@ -44,7 +44,6 @@
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"
-#include "lte/gateway/c/core/oai/common/common_dim.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 
@@ -95,7 +94,7 @@ typedef uint64_t enb_s1ap_id_key_t;
 
 #define AMF_APP_GNB_NGAP_ID_KEY(kEy, gNb_Id, gNb_Ue_NgAp_Id)    \
   do {                                                          \
-    kEy = (((gnb_ngap_id_key_t)gNb_Id) << 24) | gNb_Ue_NgAp_Id; \
+    kEy = (((gnb_ngap_id_key_t)gNb_Id) << 32) | gNb_Ue_NgAp_Id; \
   } while (0);
 
 //------------------------------------------------------------------------------

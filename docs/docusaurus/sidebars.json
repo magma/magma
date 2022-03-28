@@ -16,6 +16,7 @@
           "howtos/5g_nsa_support",
           "howtos/call_tracing",
           "howtos/events_monitoring",
+          "howtos/ipv6_agw",
           "howtos/he_api",
           "howtos/inbound_roaming",
           "howtos/pcap",
@@ -304,7 +305,8 @@
           "lte/s1ap_tests",
           "lte/eventd",
           "lte/access_service_restrictions",
-          "lte/dev_teid_allocation"
+          "lte/dev_teid_allocation",
+          "lte/integrated_5G_sa"
         ]
       },
       {

@@ -13,7 +13,7 @@
 magma_pkgrepo_proto: https
 magma_pkgrepo_host: artifactory.magmacore.org/artifactory/debian
 magma_pkgrepo_path: ""
-magma_pkgrepo_dist: focal-1.6.0
+magma_pkgrepo_dist: focal-1.7.0
 magma_pkgrepo_component: main
 magma_pkgrepo_name: "magma"
 
@@ -23,7 +23,7 @@ magma_use_pkgrepo: yes
 
 docker_compose_version: 1.29.2
 
-docker_registry: ""
+docker_registry: "public.ecr.aws/z2g3r6f7/"
 docker_user: ""
 docker_pass: ""
 image_version: "latest"
