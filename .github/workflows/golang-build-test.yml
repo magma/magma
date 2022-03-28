@@ -182,10 +182,13 @@ jobs:
   codecov_src_go:
     needs: pre_job_src_go_determinator
     if: ${{ needs.pre_job_src_go_determinator.outputs.should_not_skip == 'true' }}
+    strategy:
+      matrix:
+        go-version: [1.18.x]
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
