@@ -90,10 +90,13 @@ int amf_handle_security_complete_response(
       }
     }
 
-    // s6a update location request
-    int rc = amf_send_n11_update_location_req(ue_mm_context->amf_ue_ngap_id);
-    if (rc == RETURNerror) {
-      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: n11_update_location_req failure\n");
+    // Send s6a update location request
+    if (amf_send_n11_update_location_req(ue_mm_context->amf_ue_ngap_id) ==
+        RETURNerror) {
+      OAILOG_ERROR(LOG_AMF_APP,
+                   "update location request failed for amf_ue_ngap_id "
+                   ": " AMF_UE_NGAP_ID_FMT,
+                   ue_mm_context->amf_ue_ngap_id);
     }
 
   } else {

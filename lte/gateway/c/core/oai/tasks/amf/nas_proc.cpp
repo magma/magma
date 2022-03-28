@@ -891,7 +891,6 @@ imsi64_t amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
 
   ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
   ue_context->amf_context.m5_guti.guamfi = amf_guti.guamfi;
-  imsi64 = amf_imsi_to_imsi64(params->imsi);
 
   params->decode_status = ue_context->amf_context.decode_status;
   /*
@@ -899,7 +898,7 @@ imsi64_t amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
    * This will initiate identity req in DL.
    */
   amf_proc_registration_request(aia->ue_id, is_amf_ctx_new, params);
-  return imsi64;
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, imsi64);
 }
 
 int amf_handle_s6a_update_location_ans(
