@@ -168,7 +168,7 @@ void AsyncSmfServiceClient::SetSMFSessionRPC(
 }
 
 bool AsyncSmfServiceClient::set_smf_notification(
-    SetSmNotificationContext& notify) {
+    const SetSmNotificationContext& notify) {
   SetSMFNotificationRPC(
       notify, [](const Status& status, const SmContextVoid& response) {
         handle_session_context_response(status, response);
@@ -178,7 +178,7 @@ bool AsyncSmfServiceClient::set_smf_notification(
 }
 
 void AsyncSmfServiceClient::SetSMFNotificationRPC(
-    SetSmNotificationContext& notify,
+    const SetSmNotificationContext& notify,
     const std::function<void(Status, SmContextVoid)>& callback) {
   auto localResp = new AsyncLocalResponse<SmContextVoid>(std::move(callback),
                                                          RESPONSE_TIMEOUT);
