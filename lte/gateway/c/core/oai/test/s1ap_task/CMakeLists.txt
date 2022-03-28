@@ -22,7 +22,7 @@ add_executable(s1ap_test
         mock_s1ap_op.cpp
         s1ap_test.cpp
         test_s1ap_mme_handlers.cpp
-        test_s1ap_mme_handlers_with_injected_state.cpp
+        # test_s1ap_mme_handlers_with_injected_state.cpp
         test_s1ap_handle_new_association.cpp
         test_s1ap_state_manager.cpp
         test_s1ap_state_converter.cpp)
