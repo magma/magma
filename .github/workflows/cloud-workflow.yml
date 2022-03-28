@@ -94,11 +94,11 @@ jobs:
         with:
           name: Unit Test Results
           path: "${{ env.MAGMA_ROOT}}/orc8r/cloud/test-results/*"
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         if: always()
         id: gateway_test_init
         with:
-          go-version: '1.13'
+          go-version: '1.18'
       - name: Download dependencies
         if: always() && steps.gateway_test_init.outcome=='success'
         id: gateway_test_dep
