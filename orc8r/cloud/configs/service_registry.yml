@@ -133,6 +133,7 @@ services:
   state:
     host: "localhost"
     port: 9105
+    protected_port: 9305
     proxy_type: "clientcert"
 
   orc8r_worker:

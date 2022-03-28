@@ -39,7 +39,7 @@ func GetStateClient() (protos.StateServiceClient, error) {
 
 // GetCloudStateClient returns a client to the state service.
 func GetCloudStateClient() (protos.CloudStateServiceClient, error) {
-	conn, err := registry.GetConnection(ServiceName, protos.ServiceType_SOUTHBOUND)
+	conn, err := registry.GetConnection(ServiceName, protos.ServiceType_PROTECTED)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
