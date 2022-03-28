@@ -48,6 +48,7 @@ func Test_GetCombinedSwaggerSpecs(t *testing.T) {
 		{Name: "Tag 1"},
 		{Name: "Tag 2"},
 		{Name: "Tag 3"},
+		{Name: "Tag 4"},
 	}
 	services := []string{"test_spec_service1", "test_spec_service2", "test_spec_service3"}
 
@@ -62,6 +63,7 @@ func Test_GetCombinedSwaggerSpecs(t *testing.T) {
 	for i, s := range services {
 		registerServicer(t, s, tags[i], spec.TagDefinition{})
 	}
+	//registerBadServicer(t, "test_spec_service4", tags[3], spec.TagDefinition{})
 
 	combined, err = swagger.GetCombinedSpec(yamlCommon)
 	assert.NoError(t, err)
@@ -115,16 +117,39 @@ func registerServicer(
 		orc8r.SwaggerSpecLabel: "true",
 	}
 
-	srv, lis, _ := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, service, labels, nil)
+	srv, lis, plis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, service, labels, nil)
 	partialSpec := spec.Spec{Tags: []spec.TagDefinition{partialTag}}
 	standaloneSpec := spec.Spec{Tags: []spec.TagDefinition{standaloneTag}}
 
 	partialYamlSpec := marshalToYAML(t, partialSpec)
 	standaloneYamlSpec := marshalToYAML(t, standaloneSpec)
-	protos.RegisterSwaggerSpecServer(srv.GrpcServer, servicers.NewSpecServicer(partialYamlSpec, standaloneYamlSpec))
+	protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, servicers.NewSpecServicer(partialYamlSpec, standaloneYamlSpec))
 
-	go srv.RunTest(lis, nil)
+	go srv.RunTest(lis, plis)
 }
+
+//// registerBadServicer registers a southbound gRPC server that is not served to the correct port
+//// TODO(christine): do i need dis?
+//func registerBadServicer(
+//	t *testing.T,
+//	service string,
+//	partialTag spec.TagDefinition,
+//	standaloneTag spec.TagDefinition,
+//) {
+//	labels := map[string]string{
+//		orc8r.SwaggerSpecLabel: "true",
+//	}
+//
+//	srv, _, plis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, service, labels, nil)
+//	partialSpec := spec.Spec{Tags: []spec.TagDefinition{partialTag}}
+//	standaloneSpec := spec.Spec{Tags: []spec.TagDefinition{standaloneTag}}
+//
+//	partialYamlSpec := marshalToYAML(t, partialSpec)
+//	standaloneYamlSpec := marshalToYAML(t, standaloneSpec)
+//	protos.RegisterSwaggerSpecServer(srv.GrpcServer, servicers.NewSpecServicer(partialYamlSpec, standaloneYamlSpec))
+//
+//	go srv.RunTest(nil, plis)
+//}
 
 // marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
 func marshalToYAML(t *testing.T, spec spec.Spec) string {

@@ -16,6 +16,7 @@ package swagger
 import (
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
+	"sync"
 
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 )
@@ -28,18 +29,36 @@ func GetCombinedSpec(yamlCommon string) (string, error) {
 		return "", err
 	}
 
-	var yamlSpecs []string
-	// TODO(hcgatewood): parallelize this via goroutines to avoid broken services breaking GetCombinedSpec
+	yamlSpecMap := sync.Map{}
+	var wg sync.WaitGroup
 	for _, s := range servicers {
-		yamlSpec, err := s.GetPartialSpec()
-		if err != nil {
-			// Swallow error because the polling should continue
-			// even if it fails to receive from a single servicer
-			err = errors.Wrapf(err, "get Swagger spec from %s service", s.GetService())
-			glog.Error(err)
-		} else {
-			yamlSpecs = append(yamlSpecs, yamlSpec)
+		wg.Add(1)
+		s := s
+		go func() {
+			defer wg.Done()
+			yamlSpec, err := s.GetPartialSpec()
+			yamlSpecMap.Store(s.GetService(), yamlSpec)
+			if err != nil {
+				// Swallow error because the polling should continue
+				// even if it fails to receive from a single servicer
+				err = errors.Wrapf(err, "get Swagger spec from %s service", s.GetService())
+				glog.Error(err)
+			}
+		}()
+	}
+	wg.Wait()
+
+	var yamlSpecs []string
+	for _, s := range servicers {
+		yaml, ok := yamlSpecMap.Load(s.GetService())
+		if !ok {
+			glog.Errorf("failed to fetch Swagger spec from map for service %s", s.GetService())
 		}
+		yamlStr, ok := yaml.(string)
+		if !ok {
+			glog.Errorf("failed to cast Swagger spec to string for service %s", s.GetService())
+		}
+		yamlSpecs = append(yamlSpecs, yamlStr)
 	}
 
 	combined, warnings, err := spec.Combine(yamlCommon, yamlSpecs)
