@@ -30,7 +30,6 @@ cc_test(
     size = "small",
     srcs = [
         "test_s1ap_mme_handlers.cpp",
-        "test_s1ap_mme_handlers_with_injected_state.cpp",
     ],
     deps = [
         ":s1ap_mme_test_utils",

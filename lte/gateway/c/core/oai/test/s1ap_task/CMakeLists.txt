@@ -16,6 +16,7 @@ include_directories("/usr/src/googletest/googlemock/include/")
 link_directories(/usr/src/googletest/googlemock/lib/)
 
 include_directories(${PROJECT_SOURCE_DIR})
+include_directories("/workspaces/magma/")
 
 add_executable(s1ap_test
         s1ap_mme_test_utils.cpp
