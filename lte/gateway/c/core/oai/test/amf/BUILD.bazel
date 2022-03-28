@@ -43,8 +43,6 @@ cc_test(
     srcs = [
         "test_amf_procedures.cpp",
     ],
-    # TODO: Remove manual tag when fixed: GH12144
-    tags = ["manual"],
     deps = [
         ":amf_app_test_util",
         "//lte/gateway/c/core",
@@ -59,8 +57,6 @@ cc_test(
     srcs = [
         "test_amf_stateless.cpp",
     ],
-    # TODO: Remove manual tag when fixed: GH11826
-    tags = ["manual"],
     deps = [
         ":amf_app_test_util",
         "//lte/gateway/c/core",
