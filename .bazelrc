@@ -31,6 +31,12 @@ build:devcontainer --disk_cache=/workspaces/magma/.bazel-cache
 common:devcontainer --repository_cache=/workspaces/magma/.bazel-cache-repo
 build:devcontainer --define=folly_so=1
 
+# MME FEATURES (default is agw_of)
+build --config=agw_of
+
+build:agw_of --per_file_copt=^lte/gateway/c/core/.*$@-DEMBEDDED_SGW=1,-DS6A_OVER_GRPC=1
+build:mme_oai --per_file_copt=^lte/gateway/c/core/.*$@-DEMBEDDED_SGW=0,-DS6A_OVER_GRPC=0
+
 # TEST CONFIGS
 # Bazel test runtime default: PATH=/bin:/usr/bin:/usr/local/bin
 # Some python tests require access to /usr/sbin binaries (e.g. route, ifconfig)

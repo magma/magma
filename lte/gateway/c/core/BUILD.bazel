@@ -1062,8 +1062,6 @@ cc_library(
         "oai/tasks/sms_orc8r/sms_orc8r_messages.h",
     ],
     copts = [
-        "-DEMBEDDED_SGW",  # TODO(#11638): Feature flags fixups
-        "-DS6A_OVER_GRPC",  # TODO(#11638): Feature flags fixups
         "-DCMAKE_BUILD_TYPE=\\\"CMAKE_BUILD_TYPE\\\"",  # TODO(#11897): needs alternative approach or deprecation
     ],
     deps = [
@@ -1129,9 +1127,6 @@ cc_binary(
     name = "oai_mme",
     srcs = [
         "oai/oai_mme/oai_mme.c",
-    ],
-    copts = [
-        "-DEMBEDDED_SGW",  # TODO(#11638): Feature flags fixups
     ],
     linkstatic = False,
     deps = [
