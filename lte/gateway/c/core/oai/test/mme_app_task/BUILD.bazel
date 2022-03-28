@@ -122,8 +122,6 @@ cc_test(
         "test_mme_procedures.cpp",
     ],
     flaky = True,
-    # TODO: Remove manual tag when fixed: GH11955
-    tags = ["manual"],
     deps = [
         ":mme_app_test_core",
         ":mme_procedure_test_fixture",
