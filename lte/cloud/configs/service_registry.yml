@@ -18,6 +18,7 @@ services:
   lte:
     host: "localhost"
     port: 9113
+    protected_port: 9213
     echo_port: 10113
     proxy_type: "clientcert"
     labels:
