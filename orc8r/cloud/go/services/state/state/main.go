@@ -75,7 +75,7 @@ func main() {
 	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
 
 	cloudStateServicer := newCloudStateServicer(store)
-	protos.RegisterCloudStateServiceServer(srv.GrpcServer, cloudStateServicer)
+	protos.RegisterCloudStateServiceServer(srv.ProtectedGrpcServer, cloudStateServicer)
 
 	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
 	if !singletonReindex {
