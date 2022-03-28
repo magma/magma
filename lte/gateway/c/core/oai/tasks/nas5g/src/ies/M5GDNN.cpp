@@ -44,6 +44,14 @@ int DNNMsg::DecodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
   uint8_t dnn_length = 0;
   uint8_t dnn_len = 0;
   DECODE_U8(buffer + decoded, dnn_len, decoded);
+
+  if (ielen <= dnn_len) {
+    OAILOG_ERROR(LOG_NAS5G,
+                 "Mismatch Length: IE length : %d, DNN String length: %d",
+                 ielen, dnn_len);
+    return -1;
+  }
+
   memcpy(dnn_message->dnn, buffer + decoded, dnn_len);
   dnn_length += dnn_len;
   decoded = decoded + dnn_len;

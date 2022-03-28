@@ -922,6 +922,25 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
   bdestroy(buffer);
 }
 
+TEST(test_optional_dnn_pdu, test_wrong_dnn_length) {
+  // uplink nas transport(pdu session request)
+  uint8_t pdu[32] = {0x7e, 0x00, 0x67, 0x01, 0x00, 0x07, 0x2e, 0x0a,
+                     0x01, 0xc1, 0xff, 0xff, 0x91, 0x12, 0x0a, 0x81,
+                     0x22, 0x04, 0x01, 0x00, 0x00, 0x01, 0x25, 0x08,
+                     0x08, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74};
+
+  uint32_t len = sizeof(pdu) / sizeof(uint8_t);
+
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  ULNASTransportMsg pdu_sess_est_req;
+  bool decode_res = false;
+  memset(&pdu_sess_est_req, 0, sizeof(ULNASTransportMsg));
+
+  decode_res = decode_ul_nas_transport_msg(&pdu_sess_est_req, pdu, len);
+
+  EXPECT_EQ(decode_res, false);
+}
+
 TEST(test_optional_dnn_dotted_pdu, test_pdu_session_establish_optional) {
   uint32_t bytes = 0;
   bstring buffer;
