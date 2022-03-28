@@ -985,7 +985,7 @@ void mme_app_handle_delete_session_rsp(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
-  if ((ue_context_p->tau_accept_eps_ber_cntx_status) &&
+  if (ue_context_p->tau_accept_eps_ber_cntx_status &&
       (ue_context_p->nb_delete_sessions > 0)) {
     ue_context_p->nb_delete_sessions--;
     OAILOG_DEBUG_UE(
