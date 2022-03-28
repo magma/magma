@@ -42,7 +42,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 typedef enum nw_rc_e {
   NW_OK = RETURNok,
   NW_GTPV2C_IE_MISSING,
