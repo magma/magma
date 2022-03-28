@@ -47,6 +47,12 @@ build:remote_caching_ro --remote_upload_local_results=false
 # Try importing the bazel remote caching config (relevant in CI)
 try-import remote-cache.bazelrc
 
+# MME FEATURES (default is agw_of)
+build --config=agw_of
+
+build:agw_of --per_file_copt=^lte/gateway/c/core/.*$@-DEMBEDDED_SGW=1,-DS6A_OVER_GRPC=1
+build:mme_oai --per_file_copt=^lte/gateway/c/core/.*$@-DEMBEDDED_SGW=0,-DS6A_OVER_GRPC=0
+
 # TEST CONFIGS
 # Bazel test runtime default: PATH=/bin:/usr/bin:/usr/local/bin
 # Some python tests require access to /usr/sbin binaries (e.g. route, ifconfig)
