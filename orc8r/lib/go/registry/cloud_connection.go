@@ -20,7 +20,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	protos2 "magma/orc8r/lib/go/protos"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -141,7 +141,7 @@ func (r *ServiceRegistry) getProxyAddress(serviceConfig *config.Map) (string, er
 	if err != nil {
 		return "", err
 	}
-	localAddress, err := r.GetServiceAddress(ControlProxyServiceName, protos2.ServiceType_SOUTHBOUND)
+	localAddress, err := r.GetServiceAddress(ControlProxyServiceName, lib_protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		return "", err
 	}

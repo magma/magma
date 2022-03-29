@@ -23,7 +23,6 @@ import (
 	"magma/orc8r/cloud/go/services/bootstrapper"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers/registration"
 	"magma/orc8r/cloud/go/test_utils"
-	protos2 "magma/orc8r/lib/go/protos"
 )
 
 // StartTestService instantiates a service backed by an in-memory storage

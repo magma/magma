@@ -27,7 +27,7 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/test_utils"
-	protos2 "magma/orc8r/lib/go/protos"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -94,7 +94,7 @@ func TestInterceptorHandlerPanic(t *testing.T) {
 }
 
 func getClient(t *testing.T) protos.TestServiceClient {
-	conn, err := registry.GetConnection("test_service", protos2.ServiceType_SOUTHBOUND)
+	conn, err := registry.GetConnection("test_service", lib_protos.ServiceType_SOUTHBOUND)
 	assert.NoError(t, err)
 	return protos.NewTestServiceClient(conn)
 }

@@ -26,7 +26,7 @@ import (
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/analytics/query_api"
-	protos2 "magma/orc8r/lib/go/protos"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -118,7 +118,7 @@ func getRemoteCollectors() ([]protos.AnalyticsCollectorClient, error) {
 
 	var collectorClientList []protos.AnalyticsCollectorClient
 	for _, s := range services {
-		conn, err := registry.GetConnection(s, protos2.ServiceType_SOUTHBOUND)
+		conn, err := registry.GetConnection(s, lib_protos.ServiceType_SOUTHBOUND)
 		if err != nil {
 			glog.Errorf("Unable to get a remote connection %s error %v", s, err)
 			continue

@@ -60,7 +60,7 @@ enum ServiceType {
 
 message GetServiceAddressRequest {
   string service = 1;
-  ServiceType serviceType = 2;
+  ServiceType service_type = 2;
 }
 
 message GetServiceAddressResponse {

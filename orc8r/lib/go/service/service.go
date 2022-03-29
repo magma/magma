@@ -139,25 +139,20 @@ func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOpti
 // Run the service. This function blocks until its interrupted
 // by a signal or until the gRPC server is stopped.
 func (service *Service) Run() error {
-	wg := new(sync.WaitGroup)
-	wg.Add(2)
 	errChan := make(chan error)
+
 	go func() {
 		errChan <- service.run()
-		wg.Done()
+		service.ProtectedGrpcServer.GracefulStop()
 	}()
 	go func() {
 		errChan <- service.runProtected()
-		wg.Done()
+		service.GrpcServer.GracefulStop()
 	}()
-	wg.Wait()
 
 	service.State = protos.ServiceInfo_ALIVE
 	service.Health = protos.ServiceInfo_APP_HEALTHY
-
-	err := <-errChan
-
-	return err
+	return <-errChan
 }
 
 // RunTest runs the test service on a given Listener. This function blocks
@@ -165,25 +160,21 @@ func (service *Service) Run() error {
 func (service *Service) RunTest(lis net.Listener, plis net.Listener) {
 	service.State = protos.ServiceInfo_ALIVE
 	service.Health = protos.ServiceInfo_APP_HEALTHY
-	wg := new(sync.WaitGroup)
-	wg.Add(2)
+
+	errChan := make(chan error)
+
 	go func() {
-		err := service.GrpcServer.Serve(lis)
-		if err != nil {
-			glog.Fatalf("failed to run test service: %v", err)
-		}
-		wg.Done()
+		errChan <- service.GrpcServer.Serve(lis)
 	}()
 	go func() {
 		if plis != nil {
-			err := service.ProtectedGrpcServer.Serve(plis)
-			if err != nil {
-				glog.Fatalf("failed to run test service: %v", err)
-			}
+			errChan <- service.ProtectedGrpcServer.Serve(plis)
 		}
-		wg.Done()
 	}()
-	wg.Wait()
+
+	err := <-errChan
+
+	glog.Fatal(err)
 }
 
 // GetDefaultKeepaliveParameters returns the default keepalive server parameters.

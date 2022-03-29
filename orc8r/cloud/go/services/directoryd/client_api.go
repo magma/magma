@@ -26,7 +26,7 @@ import (
 	"magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/lib/go/merrors"
-	protos2 "magma/orc8r/lib/go/protos"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -38,7 +38,7 @@ const ServiceName = "directoryd"
 
 // getDirectorydClient returns an RPC connection to the directoryd service.
 func getDirectorydClient() (protos.DirectoryLookupClient, error) {
-	conn, err := registry.GetConnection(ServiceName, protos2.ServiceType_SOUTHBOUND)
+	conn, err := registry.GetConnection(ServiceName, lib_protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

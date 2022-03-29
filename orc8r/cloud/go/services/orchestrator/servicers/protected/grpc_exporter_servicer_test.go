@@ -27,7 +27,7 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/servicers/mocks"
 	servicers "magma/orc8r/cloud/go/services/orchestrator/servicers/protected"
 	"magma/orc8r/cloud/go/test_utils"
-	protos2 "magma/orc8r/lib/go/protos"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -128,7 +128,7 @@ func makeExporter(t *testing.T, mockEdge edge_hub.MetricsControllerServer) expor
 	edge_hub.RegisterMetricsControllerServer(edgeSrv.GrpcServer, mockEdge)
 	go edgeSrv.RunTest(lis, nil)
 
-	edgeAddr, err := registry.GetServiceAddress(edgeControllerServiceName, protos2.ServiceType_SOUTHBOUND)
+	edgeAddr, err := registry.GetServiceAddress(edgeControllerServiceName, lib_protos.ServiceType_SOUTHBOUND)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, edgeAddr)
 

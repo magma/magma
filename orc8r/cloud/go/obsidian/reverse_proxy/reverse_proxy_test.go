@@ -29,7 +29,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/test_utils"
-	protos2 "magma/orc8r/lib/go/protos"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -239,7 +239,7 @@ func sendRequest(method string, url string) (int, error) {
 }
 
 func addPrefixesToExistingService(serviceName string, newPrefixes string) error {
-	port, err := registry.GetServicePort(serviceName, protos2.ServiceType_SOUTHBOUND)
+	port, err := registry.GetServicePort(serviceName, lib_protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		return err
 	}

@@ -24,6 +24,7 @@ import (
 
 	"magma/gateway/config"
 	cloud_service "magma/orc8r/cloud/go/service"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 	platform_service "magma/orc8r/lib/go/service"
 	platform_cfg "magma/orc8r/lib/go/service/config"
@@ -72,7 +73,7 @@ func NewTestService(t *testing.T, moduleName string, serviceType string) (*platf
 // on a dynamically selected available local port for the gRPC server and HTTP
 // echo server. Returns the newly created service and listener it was
 // registered with.
-func NewTestOrchestratorService(t *testing.T, moduleName, serviceType string, labels, annotations map[string]string) (*cloud_service.OrchestratorService, net.Listener, net.Listener) {
+func NewTestOrchestratorService(t *testing.T, moduleName, serviceName string, labels, annotations map[string]string, serviceType ...lib_protos.ServiceType) (*cloud_service.OrchestratorService, net.Listener, net.Listener) {
 	if labels == nil {
 		labels = map[string]string{}
 	}
@@ -84,10 +85,17 @@ func NewTestOrchestratorService(t *testing.T, moduleName, serviceType string, la
 	if err != nil {
 		t.Fatal(err)
 	}
-	pSrvPort, plis, err := getOpenPort()
-	if err != nil {
-		t.Fatal(err)
+
+	// Only add protected service port to service struct if the service is protected
+	pSrvPort := 0
+	var plis net.Listener
+	if len(serviceType) != 0 && serviceType[0] == lib_protos.ServiceType_PROTECTED {
+		pSrvPort, plis, err = getOpenPort()
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
+
 	echoPort, echoLis, err := getOpenPort()
 	if err != nil {
 		t.Fatal(err)
@@ -98,7 +106,7 @@ func NewTestOrchestratorService(t *testing.T, moduleName, serviceType string, la
 	}
 
 	location := registry.ServiceLocation{
-		Name:          serviceType,
+		Name:          serviceName,
 		Host:          "localhost",
 		EchoPort:      echoPort,
 		Port:          srvPort,
@@ -108,7 +116,7 @@ func NewTestOrchestratorService(t *testing.T, moduleName, serviceType string, la
 	}
 	registry.AddService(location)
 
-	srv, err := cloud_service.NewTestOrchestratorService(t, moduleName, serviceType)
+	srv, err := cloud_service.NewTestOrchestratorService(t, moduleName, serviceName)
 	if err != nil {
 		t.Fatalf("Error creating service: %s", err)
 	}
