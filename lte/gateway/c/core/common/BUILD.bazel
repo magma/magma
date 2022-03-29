@@ -41,3 +41,8 @@ cc_library(
     name = "common_defs",
     hdrs = ["common_defs.h"],
 )
+
+cc_library(
+    name = "gcc_diag",
+    hdrs = ["gcc_diag.h"],
+)

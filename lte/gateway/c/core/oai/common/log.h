@@ -40,7 +40,7 @@
 #include <syslog.h>
 #include <stdio.h>
 
-#include "lte/gateway/c/core/oai/common/gcc_diag.h"
+#include "lte/gateway/c/core/common/gcc_diag.h"
 
 /* asn1c debug */
 extern int asn_debug;
