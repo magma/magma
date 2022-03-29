@@ -54,7 +54,7 @@ func main() {
 	controllerServicer := southbound.NewMetricsControllerServer()
 	protos.RegisterMetricsControllerServer(srv.GrpcServer, controllerServicer)
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(metricsd.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger_servicers.NewSpecServicerFromFile(metricsd.ServiceName))
 
 	// Initialize gatherers
 	additionalCollectors := []collection.MetricCollector{

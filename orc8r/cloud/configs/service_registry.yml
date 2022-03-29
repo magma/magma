@@ -35,6 +35,7 @@ services:
   orchestrator:
     host: "localhost"
     port: 9112
+    protected_port: 9212
     echo_port: 10112
     proxy_type: "clientcert"
     labels:
@@ -64,6 +65,7 @@ services:
   metricsd:
     host: "localhost"
     port: 9084
+    protected_port: 9184
     echo_port: 10084
     proxy_type: "clientcert"
     labels:
@@ -104,6 +106,7 @@ services:
   eventd:
     host: "localhost"
     port: 9121
+    protected_port: 9221
     echo_port: 10121
     proxy_type: "clientcert"
     labels:
@@ -152,6 +155,7 @@ services:
   ctraced:
     host: "localhost"
     port: 9118
+    protected_port: 9218
     echo_port: 10118
     proxy_type: "clientcert"
     labels:

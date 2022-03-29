@@ -128,29 +128,6 @@ func registerServicer(
 	go srv.RunTest(lis, plis)
 }
 
-//// registerBadServicer registers a southbound gRPC server that is not served to the correct port
-//// TODO(christine): do i need dis?
-//func registerBadServicer(
-//	t *testing.T,
-//	service string,
-//	partialTag spec.TagDefinition,
-//	standaloneTag spec.TagDefinition,
-//) {
-//	labels := map[string]string{
-//		orc8r.SwaggerSpecLabel: "true",
-//	}
-//
-//	srv, _, plis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, service, labels, nil)
-//	partialSpec := spec.Spec{Tags: []spec.TagDefinition{partialTag}}
-//	standaloneSpec := spec.Spec{Tags: []spec.TagDefinition{standaloneTag}}
-//
-//	partialYamlSpec := marshalToYAML(t, partialSpec)
-//	standaloneYamlSpec := marshalToYAML(t, standaloneSpec)
-//	protos.RegisterSwaggerSpecServer(srv.GrpcServer, servicers.NewSpecServicer(partialYamlSpec, standaloneYamlSpec))
-//
-//	go srv.RunTest(nil, plis)
-//}
-
 // marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
 func marshalToYAML(t *testing.T, spec spec.Spec) string {
 	data, err := spec.MarshalBinary()

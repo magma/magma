@@ -53,7 +53,7 @@ func main() {
 	}
 	protos.RegisterTenantsServiceServer(srv.GrpcServer, server)
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(tenants.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger_servicers.NewSpecServicerFromFile(tenants.ServiceName))
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers())
 

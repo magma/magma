@@ -37,7 +37,7 @@ func main() {
 
 	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, builder_servicers.NewBuilderServicer())
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(feg_service.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger_servicers.NewSpecServicerFromFile(feg_service.ServiceName))
 
 	err = srv.Run()
 	if err != nil {

@@ -74,7 +74,7 @@ func main() {
 	indexer_protos.RegisterIndexerServer(srv.GrpcServer, protected_servicers.NewIndexerServicer())
 	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(orchestrator.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger.NewSpecServicerFromFile(orchestrator.ServiceName))
 
 	collectorServicer := analytics_servicers.NewCollectorServicer(
 		&serviceConfig.Analytics,

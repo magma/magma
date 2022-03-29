@@ -14,6 +14,7 @@ services:
   dp:
     host: "localhost"
     port: 9124
+    protected_port: 9224
     echo_port: 10124
     proxy_type: "clientcert"
     labels:

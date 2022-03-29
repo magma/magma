@@ -80,7 +80,7 @@ func (s *RemoteSpec) GetService() string {
 const specClientDefaultTimeout = 5 * time.Second
 
 func (s *RemoteSpec) getClient() (protos.SwaggerSpecClient, error) {
-	conn, err := registry.GetConnectionWithTimeout(s.service, specClientDefaultTimeout, lib_protos.ServiceType_SOUTHBOUND)
+	conn, err := registry.GetConnectionWithTimeout(s.service, specClientDefaultTimeout, lib_protos.ServiceType_PROTECTED)
 	if err != nil {
 		initErr := merrors.NewInitError(err, s.service)
 		glog.Error(initErr)

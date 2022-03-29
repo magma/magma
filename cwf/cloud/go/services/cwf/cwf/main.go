@@ -43,7 +43,7 @@ func main() {
 
 	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, builder_servicers.NewBuilderServicer())
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(cwf_service.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger_servicers.NewSpecServicerFromFile(cwf_service.ServiceName))
 
 	var serviceConfig cwf_service.Config
 	_, _, err = config.GetStructuredServiceConfig(cwf.ModuleName, cwf_service.ServiceName, &serviceConfig)
