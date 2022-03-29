@@ -27,6 +27,7 @@ import (
 	"magma/feg/gateway/services/eap/providers/sim/metrics"
 	"magma/feg/gateway/services/eap/providers/sim/servicers"
 	"magma/feg/gateway/services/swx_proxy"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 var (
@@ -96,14 +97,15 @@ func getSwxVectors(_ *servicers.EapSimSrv, imsi string) (*tgppAuthResult, error)
 		if ans == nil {
 			return nil, status.Error(codes.Internal, "Error: Nil SWx Response")
 		}
+		ansJSON, _ := orcprotos.MarshalIntern(ans)
 		if len(ans.SipAuthVectors) == 0 {
-			return nil, status.Errorf(codes.Internal, "Error: Missing/empty SWx Auth Vector: %+v", *ans)
+			return nil, status.Errorf(codes.Internal, "Error: Missing/empty SWx Auth Vector: %v", string(ansJSON))
 		}
 		for _, v := range ans.GetSipAuthVectors() {
 			ra := v.GetRandAutn()
 			if len(ra) < sim.RAND_LEN {
 				return nil, status.Errorf(codes.Internal,
-					"Invalid SWx RandAutn len (%d, expected: %d) in Response: %+v", len(ra), sim.RandAutnLen, *ans)
+					"Invalid SWx RandAutn len (%d, expected: %d) in Response: %v", len(ra), sim.RandAutnLen, string(ansJSON))
 			}
 			res.rand[vlen] = ra[:sim.RAND_LEN]
 			res.Kc[vlen], res.sres[vlen] = sim.GsmFromUmts1(v.GetConfidentialityKey(), v.GetIntegrityKey(), v.GetXres())

@@ -24,6 +24,7 @@ import (
 	"magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
 	"magma/gateway/streamer"
+	orcprotos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/service"
 )
 
@@ -68,8 +69,9 @@ func main() {
 	}
 	// Start diameter server
 	startedChan := make(chan string, 1)
+	configJSON, _ := orcprotos.MarshalIntern(servicer.Config)
 	go func() {
-		log.Printf("Starting home subscriber server with configs:\n\t%+v", *servicer.Config)
+		log.Printf("Starting home subscriber server with configs:\n\t%v\n", string(configJSON))
 		err := servicer.Start(startedChan) // blocks
 		log.Fatal(err)
 	}()

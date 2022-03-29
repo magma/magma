@@ -21,6 +21,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/wmnsk/go-gtp/gtpv2"
@@ -623,7 +624,9 @@ func TestS8proxyCreateSessionNoProtocolConfigurationOptions(t *testing.T) {
 
 	// check PCO
 	assert.NoError(t, err)
-	assert.Empty(t, csRes.ProtocolConfigurationOptions)
+	emptyProcConfOpts := &protos.ProtocolConfigurationOptions{ConfigProtocol: 0, ProtoOrContainerId: nil}
+	equal := proto.Equal(emptyProcConfOpts, csRes.ProtocolConfigurationOptions)
+	assert.True(t, equal)
 
 	// Test no PCO at all
 	// ------------------------

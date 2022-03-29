@@ -23,6 +23,7 @@ import (
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/plmn_filter"
 	managed_configs "magma/gateway/mconfig"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 // S6a Environment Variables to overwrite default configs
@@ -79,7 +80,8 @@ func GetS6aProxyConfigs() *S6aProxyConfig {
 		}
 	}
 
-	log.Printf("Loaded %s configs: %+v", S6aProxyServiceName, *configsPtr)
+	configsPtrJSON, _ := orcprotos.MarshalIntern(configsPtr)
+	log.Printf("Loaded %s configs: %v", S6aProxyServiceName, string(configsPtrJSON))
 
 	return &S6aProxyConfig{
 		ClientCfg: &diameter.DiameterClientConfig{

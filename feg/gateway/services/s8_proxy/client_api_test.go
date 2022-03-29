@@ -9,6 +9,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/s8_proxy"
 	"magma/feg/gateway/services/s8_proxy/test_init"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 const (
@@ -49,7 +50,8 @@ func TestS8ProxyClient(t *testing.T) {
 	assert.NotEmpty(t, csRes.BearerContext.UserPlaneFteid.Ipv4Address)
 	assert.Empty(t, csRes.BearerContext.UserPlaneFteid.Ipv6Address)
 
-	t.Logf("Create Session: %#+v", *csRes)
+	csResJSON, _ := orcprotos.MarshalIntern(csRes)
+	t.Logf("Create Session: %v", string(csResJSON))
 
 	//------------------------
 	//---- Delete session ----

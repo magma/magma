@@ -84,7 +84,8 @@ func TestS6aProxyService(t *testing.T) {
 			complChan <- airErr
 			return
 		}
-		t.Logf("GRPC AIA: %#+v", *r)
+		rJSON, _ := orcprotos.MarshalIntern(r)
+		t.Logf("GRPC AIA: %v", string(rJSON))
 		if r.ErrorCode != protos.ErrorCode_UNDEFINED {
 			t.Errorf("Unexpected AIA Error Code: %d", r.ErrorCode)
 		}
@@ -111,7 +112,8 @@ func TestS6aProxyService(t *testing.T) {
 			complChan <- airErr
 			return
 		}
-		t.Logf("GRPC ULA: %#+v", *ulResp)
+		ulRespJSON, _ := orcprotos.MarshalIntern(ulResp)
+		t.Logf("GRPC ULA: %v", string(ulRespJSON))
 		if ulResp.ErrorCode != protos.ErrorCode_UNDEFINED {
 			t.Errorf("Unexpected ULA Error Code: %d", ulResp.ErrorCode)
 		}
@@ -144,7 +146,8 @@ func TestS6aProxyService(t *testing.T) {
 			complChan <- airErr
 			return
 		}
-		t.Logf("GRPC PUA: %#+v", *puResp)
+		puRespJSON, _ := orcprotos.MarshalIntern(puResp)
+		t.Logf("GRPC PUA: %v", string(puRespJSON))
 		if puResp.ErrorCode != protos.ErrorCode_SUCCESS {
 			t.Errorf("Unexpected PUA Error Code: %d", puResp.ErrorCode)
 		}
@@ -206,7 +209,8 @@ func TestS6aProxyService(t *testing.T) {
 		t.Fatalf("GRPC AIR Error: %v", err)
 		return
 	}
-	t.Logf("GRPC AIA: %#+v", *airResp)
+	airRespJSON, _ := orcprotos.MarshalIntern(airResp)
+	t.Logf("GRPC AIA: %v", string(airRespJSON))
 	if airResp.ErrorCode != protos.ErrorCode_UNDEFINED {
 		t.Errorf("Unexpected AIA Error Code: %d", airResp.ErrorCode)
 	}
@@ -242,7 +246,8 @@ func TestS6aProxyServiceWitPLMNlist(t *testing.T) {
 			complChan <- airErr
 			return
 		}
-		t.Logf("GRPC AIA: %#+v", *r)
+		rJSON, _ := orcprotos.MarshalIntern(r)
+		t.Logf("GRPC AIA: %v", string(rJSON))
 		if r.ErrorCode != protos.ErrorCode_UNDEFINED {
 			t.Errorf("Unexpected AIA with PLMN IMSI1 Error Code: %d", r.ErrorCode)
 		}
@@ -258,7 +263,8 @@ func TestS6aProxyServiceWitPLMNlist(t *testing.T) {
 			complChan <- airErr
 			return
 		}
-		t.Logf("GRPC AIA: %#+v", *r)
+		rJSON, _ = orcprotos.MarshalIntern(r)
+		t.Logf("GRPC AIA: %v", string(rJSON))
 		if r.ErrorCode != protos.ErrorCode_AUTHENTICATION_REJECTED {
 			t.Errorf("Authentication Rejected was expected but AIA with PLMN IMSI2 got Error Code: %d", r.ErrorCode)
 		}
@@ -306,7 +312,8 @@ func TestS6aProxyWithHSS_AIA(t *testing.T) {
 			complChan <- err
 			return
 		}
-		t.Logf("GRPC AIA Resp: %#+v", *r)
+		rJSON, _ := orcprotos.MarshalIntern(r)
+		t.Logf("GRPC AIA Resp: %v", string(rJSON))
 		if r.ErrorCode != protos.ErrorCode_UNDEFINED {
 			t.Errorf("Unexpected AIA with PLMN IMSI1 Error Code: %d", r.ErrorCode)
 		}

@@ -27,6 +27,7 @@ import (
 	"magma/feg/gateway/diameter"
 	configs "magma/gateway/mconfig"
 	"magma/lte/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/service/config"
 )
 
@@ -86,7 +87,8 @@ func GetHSSConfig() (*mconfig.HSSConfig, error) {
 		}, err
 	}
 
-	glog.V(2).Infof("Loaded %s configs: %+v\n", hssServiceName, *configsPtr)
+	configsPtrJSON, _ := orcprotos.MarshalIntern(configsPtr)
+	glog.V(2).Infof("Loaded %s configs: %v\n", hssServiceName, string(configsPtrJSON))
 	return &mconfig.HSSConfig{
 		Server: &mconfig.DiamServerConfig{
 			Address:      diameter.GetValue(diameter.AddrFlag, configsPtr.Server.Address),

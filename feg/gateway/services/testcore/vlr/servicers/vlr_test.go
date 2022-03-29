@@ -19,6 +19,7 @@ import (
 	"net"
 	"testing"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
@@ -160,7 +161,8 @@ func TestVLRServer_ConfigServer(t *testing.T) {
 	client := protos.NewMockCoreConfiguratorClient(conn)
 	srvReply, err := client.ConfigServer(context.Background(), &config)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, srvReply)
+	equal := proto.Equal(&orcprotos.Void{}, srvReply)
+	assert.True(t, equal)
 
 	// encoded request
 	encodedEPSDetachIndication, err := message.EncodeSGsAPEPSDetachIndication(

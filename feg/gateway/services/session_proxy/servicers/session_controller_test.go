@@ -19,6 +19,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -338,6 +339,7 @@ func standardUsageTest(
 	}
 	assert.ElementsMatch(t, allRuleIDs, []string{"static_rule_1", "static_rule_2", "base_rule_1", "base_rule_2"})
 
+	emptyRedirect := &protos.RedirectInformation{Support: 0, AddressType: 0, ServerAddress: ""}
 	for _, rule := range createResponse.DynamicRules {
 		if rule.PolicyRule.Id == "dyn_rule_20" {
 			assert.Equal(t, protos.RedirectInformation_ENABLED, rule.PolicyRule.Redirect.Support)
@@ -348,7 +350,8 @@ func standardUsageTest(
 			assert.Equal(t, &timestamp.Timestamp{Seconds: 1}, rule.ActivationTime)
 			assert.Equal(t, &timestamp.Timestamp{Seconds: 2}, rule.DeactivationTime)
 		} else if rule.PolicyRule.Id == "dyn_rule_21" {
-			assert.Empty(t, rule.PolicyRule.Redirect)
+			equal := proto.Equal(emptyRedirect, rule.PolicyRule.Redirect)
+			assert.True(t, equal)
 			assert.Nil(t, rule.PolicyRule.Qos)
 			assert.Equal(t, &timestamp.Timestamp{Seconds: 1}, rule.ActivationTime)
 			assert.Equal(t, &timestamp.Timestamp{Seconds: 2}, rule.DeactivationTime)

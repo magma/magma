@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/golang/protobuf/proto"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas"
@@ -89,12 +90,18 @@ func TestGrantRequestGenerator(t *testing.T) {
 	}}
 	for _, tt := range data {
 		t.Run(tt.name, func(t *testing.T) {
+			capabilities := proto.Clone(tt.capabilities).(*active_mode.EirpCapabilities)
+			preferences := proto.Clone(&tt.preferences).(*active_mode.FrequencyPreferences)
+			var channels []*active_mode.Channel
+			for _, ch := range tt.channels {
+				channels = append(channels, proto.Clone(ch).(*active_mode.Channel))
+			}
 			cbsd := &active_mode.Cbsd{
 				Id:               "some_cbsd_id",
-				Channels:         tt.channels,
-				EirpCapabilities: tt.capabilities,
+				Channels:         channels,
+				EirpCapabilities: capabilities,
 				GrantAttempts:    int32(tt.grantAttempts),
-				Preferences:      &tt.preferences,
+				Preferences:      preferences,
 			}
 			g := sas.NewGrantRequestGenerator(stubRNG{})
 			actual := g.GenerateRequests(cbsd)

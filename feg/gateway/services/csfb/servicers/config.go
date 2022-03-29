@@ -24,6 +24,7 @@ import (
 	utilsDiammeter "magma/feg/gateway/diameter"
 	fegMconfig "magma/gateway/mconfig"
 	"magma/lte/cloud/go/protos/mconfig"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 const (
@@ -43,7 +44,8 @@ func GetCsfbConfig() *mconfProtos.CsfbConfig {
 		glog.V(2).Infof("%s Managed Configs Load Error: %v", CsfbServiceName, err)
 		return envOrDefaultConfig()
 	}
-	glog.V(2).Infof("Loaded %s configs: %+v", CsfbServiceName, *config)
+	configJSON, _ := orcprotos.MarshalIntern(config)
+	glog.V(2).Infof("Loaded %s configs: %v", CsfbServiceName, string(configJSON))
 	return config
 }
 

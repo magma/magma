@@ -18,6 +18,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 
 	"magma/feg/cloud/go/protos"
@@ -71,7 +72,8 @@ func standardSwxProxyTest(t *testing.T) {
 			t.Fatalf("GRPC MAR Error: %v", err)
 			return
 		}
-		t.Logf("GRPC MAA: %#+v", *authRes)
+		authResJSON, _ := orcprotos.MarshalIntern(authRes)
+		t.Logf("GRPC MAA: %v", string(authResJSON))
 		assert.Equal(t, expectedUsername, authRes.GetUserName())
 		assert.Equal(t, 1, len(authRes.GetSipAuthVectors()))
 		v := authRes.SipAuthVectors[0]
@@ -91,8 +93,10 @@ func standardSwxProxyTest(t *testing.T) {
 		t.Fatalf("GRPC SAR Register Error: %v", err)
 		return
 	}
-	assert.Equal(t, &protos.RegistrationAnswer{SessionId: regRes.GetSessionId()}, regRes)
-	t.Logf("GRPC Register SAA: %#+v", *regRes)
+	equal := proto.Equal(&protos.RegistrationAnswer{SessionId: regRes.GetSessionId()}, regRes)
+	assert.True(t, equal)
+	regResJSON, _ := orcprotos.MarshalIntern(regRes)
+	t.Logf("GRPC Register SAA: %v", string(regResJSON))
 
 	regReq.SessionId = regRes.GetSessionId()
 	deregRes, err := swx_proxy.Deregister(regReq)
@@ -100,8 +104,10 @@ func standardSwxProxyTest(t *testing.T) {
 		t.Fatalf("GRPC SAR Deregister Error: %v", err)
 		return
 	}
-	assert.Equal(t, &protos.RegistrationAnswer{SessionId: regRes.GetSessionId()}, deregRes)
-	t.Logf("GRPC Deregister SAA: %#+v", *deregRes)
+	equal = proto.Equal(&protos.RegistrationAnswer{SessionId: regRes.GetSessionId()}, deregRes)
+	assert.True(t, equal)
+	deregResJSON, _ := orcprotos.MarshalIntern(deregRes)
+	t.Logf("GRPC Deregister SAA: %v", string(deregResJSON))
 
 	// Test client error handling
 	authRes, err := swx_proxy.Authenticate(nil)

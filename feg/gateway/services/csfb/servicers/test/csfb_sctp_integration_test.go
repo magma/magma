@@ -18,6 +18,7 @@ import (
 	"testing"
 	"unsafe"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/ishidawataru/sctp"
 	"github.com/stretchr/testify/assert"
 
@@ -82,7 +83,8 @@ func TestCsfbServer_EPSDetach_Integration(t *testing.T) {
 	client := protos.NewCSFBFedGWServiceClient(conn)
 	reply, err := client.EPSDetachInd(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, reply)
+	equal := proto.Equal(&orcprotos.Void{}, reply)
+	assert.True(t, equal)
 
 	msgSentFlag <- true
 	// close the mock listener first before moving on to the next test

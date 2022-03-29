@@ -23,6 +23,7 @@ import (
 	"magma/feg/gateway/plmn_filter"
 	"magma/feg/gateway/services/swx_proxy/cache"
 	"magma/gateway/mconfig"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 const (
@@ -83,7 +84,8 @@ func GetSwxProxyConfig() []*SwxProxyConfig {
 		}
 	}
 
-	glog.V(2).Infof("Loaded %s configs: %+v", SwxProxyServiceName, *configsPtr)
+	configsPtrJSON, _ := orcprotos.MarshalIntern(configsPtr)
+	glog.V(2).Infof("Loaded %s configs: %v", SwxProxyServiceName, string(configsPtrJSON))
 
 	hlrPlmnIds := plmn_filter.GetPlmnVals(configsPtr.HlrPlmnIds, "HLR")
 
