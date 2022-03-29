@@ -10,6 +10,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import annotations
+
 import operator
 from datetime import datetime, timezone
 from http import HTTPStatus
@@ -42,6 +44,10 @@ DATETIME_WAY_BACK = '2010-03-28T09:13:25.407877399+00:00'
 
 @pytest.mark.orc8r
 class DomainProxyOrc8rTestCase(DBTestCase):
+    @classmethod
+    def setUpClass(cls):
+        wait_for_elastic_to_start()
+
     def setUp(self):
         super().setUp()
         DBInitializer(SessionManager(self.engine)).initialize()
@@ -49,13 +55,12 @@ class DomainProxyOrc8rTestCase(DBTestCase):
             f"{config.GRPC_SERVICE}:{config.GRPC_PORT}",
         )
         self.dp_client = DPServiceStub(grpc_channel)
-        # Indexing from previous test may not have been finished yet
-        sleep(5)
-        self._delete_dp_elasticsearch_indices()
+        self.when_elastic_indexes_data(keep_alive=False)
+        _delete_dp_elasticsearch_indices()
 
     def tearDown(self):
         super().tearDown()
-        self._delete_dp_elasticsearch_indices()
+        _delete_dp_elasticsearch_indices()
 
     # retrying is needed because of a possible deadlock
     # with cc locking request table
@@ -64,55 +69,63 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         super().drop_all()
 
     def test_cbsd_sas_flow(self):
-        cbsd_id = self.given_cbsd_provisioned()
-        # Giving ElasticSearch time to index logs
-        sleep(5)
+        cbsd_id = self.given_cbsd_provisioned(CbsdAPIDataBuilder())
+        self.when_elastic_indexes_data(keep_alive=True)
 
-        logs = self.when_logs_are_fetched(self.get_current_sas_filters())
+        logs = self.when_logs_are_fetched(get_current_sas_filters())
         self.then_logs_are(logs, self.get_sas_provision_messages())
 
-        filters = self.get_filters_for_request_type('heartbeat')
+        filters = get_filters_for_request_type('heartbeat')
         self.then_message_is_eventually_sent(filters, keep_alive=True)
 
         self.delete_cbsd(cbsd_id)
 
     def test_sas_flow_restarted_for_updated_cbsd(self):
-        cbsd_id = self.given_cbsd_provisioned()
+        cbsd_id = self.given_cbsd_provisioned(CbsdAPIDataBuilder())
 
-        self.when_cbsd_is_updated(cbsd_id, OTHER_FCC_ID)
+        builder = CbsdAPIDataBuilder().with_fcc_id(OTHER_FCC_ID)
+        self.when_cbsd_is_updated(cbsd_id, builder.build_post_data())
 
-        filters = self.get_filters_for_request_type('deregistration')
+        filters = get_filters_for_request_type('deregistration')
         self.then_message_is_eventually_sent(filters, keep_alive=True)
 
-        self.then_state_is_eventually(self.get_state_with_grant())
+        self.then_state_is_eventually(builder.build_grant_state_data())
 
         cbsd = self.when_cbsd_is_fetched()
-        self.then_cbsd_is(cbsd, self.get_cbsd_data_with_grant(OTHER_FCC_ID))
+        self.then_cbsd_is(cbsd, builder.build_registered_active_data())
 
         self.delete_cbsd(cbsd_id)
 
     def test_activity_status(self):
-        cbsd_id = self.given_cbsd_provisioned()
+        builder = CbsdAPIDataBuilder()
+        cbsd_id = self.given_cbsd_provisioned(builder)
 
         cbsd = self.when_cbsd_is_fetched()
-        self.then_cbsd_is(cbsd, self.get_cbsd_data_with_grant())
+        self.then_cbsd_is(cbsd, builder.build_registered_active_data())
 
         self.when_cbsd_is_inactive()
         cbsd = self.when_cbsd_is_fetched()
-        self.then_cbsd_is(cbsd, self.get_registered_cbsd_data())
+        self.then_cbsd_is(cbsd, builder.build_registered_inactive_data())
+
+        self.delete_cbsd(cbsd_id)
+
+    def test_frequency_preferences(self):
+        builder = CbsdAPIDataBuilder(). \
+            with_frequency_preferences(5, [3625]). \
+            with_expected_grant(5, 3625, 31)
+        cbsd_id = self.given_cbsd_provisioned(builder)
 
         self.delete_cbsd(cbsd_id)
 
     def test_fetching_logs_with_custom_filters(self):
-        self.given_cbsd_provisioned()
-        # Giving ElasticSearch time to index logs
-        sleep(5)
+        self.given_cbsd_provisioned(CbsdAPIDataBuilder())
+        self.when_elastic_indexes_data(keep_alive=False)
 
         sas_to_dp_end_date_only = {
             'serial_number': SERIAL_NUMBER,
             'from': SAS,
             'to': DP,
-            'end': self.now(),
+            'end': now(),
         }
         sas_to_dp_begin_date_only = {
             'serial_number': SERIAL_NUMBER,
@@ -160,36 +173,29 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         for params in scenarios:
             self._verify_logs_count(params)
 
-    def given_cbsd_provisioned(self) -> int:
-        self.when_cbsd_is_created()
+    def given_cbsd_provisioned(self, builder: CbsdAPIDataBuilder) -> int:
+        self.when_cbsd_is_created(builder.build_post_data())
         cbsd = self.when_cbsd_is_fetched()
-        self.then_cbsd_is(cbsd, self.get_unregistered_cbsd_data())
+        self.then_cbsd_is(cbsd, builder.build_unregistered_data())
 
         state = self.when_cbsd_asks_for_state()
-        self.then_state_is(state, self.get_empty_state())
+        self.then_state_is(state, get_empty_state())
 
-        self.then_state_is_eventually(self.get_state_with_grant())
+        self.then_state_is_eventually(builder.build_grant_state_data())
 
         cbsd = self.when_cbsd_is_fetched()
-        self.then_cbsd_is(cbsd, self.get_cbsd_data_with_grant())
+        self.then_cbsd_is(cbsd, builder.build_registered_active_data())
 
         return cbsd['id']
 
-    def delete_cbsd(self, cbsd_id: int):
-        filters = self.get_filters_for_request_type('deregistration')
+    def when_elastic_indexes_data(self, *, keep_alive: bool):
+        for _ in range(5):
+            sleep(1)
+            if keep_alive:
+                self.when_cbsd_asks_for_state()
 
-        self.when_cbsd_is_deleted(cbsd_id)
-        self.then_cbsd_is_deleted()
-
-        state = self.when_cbsd_asks_for_state()
-        self.then_state_is(state, self.get_empty_state())
-
-        self.then_message_is_eventually_sent(filters, keep_alive=False)
-
-    def when_cbsd_is_created(self):
-        r = send_request_to_backend(
-            'post', 'cbsds', json=self.get_cbsd_post_data(),
-        )
+    def when_cbsd_is_created(self, data: Dict[str, Any]):
+        r = send_request_to_backend('post', 'cbsds', json=data)
         self.assertEqual(r.status_code, HTTPStatus.CREATED)
 
     def when_cbsd_is_fetched(self) -> Dict[str, Any]:
@@ -211,14 +217,12 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         r = send_request_to_backend('delete', f'cbsds/{cbsd_id}')
         self.assertEqual(r.status_code, HTTPStatus.NO_CONTENT)
 
-    def when_cbsd_is_updated(self, cbsd_id: int, fcc_id: str):
-        r = send_request_to_backend(
-            'put', f'cbsds/{cbsd_id}', json=self.get_cbsd_post_data(fcc_id=fcc_id),
-        )
+    def when_cbsd_is_updated(self, cbsd_id: int, data: Dict[str, Any]):
+        r = send_request_to_backend('put', f'cbsds/{cbsd_id}', json=data)
         self.assertEqual(r.status_code, HTTPStatus.NO_CONTENT)
 
     def when_cbsd_asks_for_state(self) -> CBSDStateResult:
-        return self.dp_client.GetCBSDState(self.get_cbsd_request())
+        return self.dp_client.GetCBSDState(get_cbsd_request())
 
     @staticmethod
     def when_cbsd_is_inactive():
@@ -256,100 +260,27 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         self.assertEqual(actual, expected)
 
     @retry(stop_max_attempt_number=60, wait_fixed=1000)
-    def then_message_is_eventually_sent(self, filters: Dict[str, Any], keep_alive):
+    def then_message_is_eventually_sent(self, filters: Dict[str, Any], *, keep_alive: bool):
         if keep_alive:
             self.when_cbsd_asks_for_state()
         logs = self.when_logs_are_fetched(filters)
         self.assertEqual(logs["total_count"], 1)
 
-    @staticmethod
-    def get_cbsd_request() -> CBSDRequest:
-        return CBSDRequest(serial_number=SERIAL_NUMBER)
+    def delete_cbsd(self, cbsd_id: int):
+        filters = get_filters_for_request_type('deregistration')
 
-    @staticmethod
-    def get_empty_state() -> CBSDStateResult:
-        return CBSDStateResult(radio_enabled=False)
+        self.when_cbsd_is_deleted(cbsd_id)
+        self.then_cbsd_is_deleted()
 
-    @staticmethod
-    def get_state_with_grant() -> CBSDStateResult:
-        return CBSDStateResult(
-            radio_enabled=True,
-            channel=LteChannel(
-                low_frequency_hz=3620_000_000,
-                high_frequency_hz=3630_000_000,
-                max_eirp_dbm_mhz=28.0,
-            ),
-        )
+        state = self.when_cbsd_asks_for_state()
+        self.then_state_is(state, get_empty_state())
 
-    @staticmethod
-    def get_cbsd_post_data(fcc_id: str = SOME_FCC_ID) -> Dict[str, Any]:
-        return {
-            "capabilities": {
-                "antenna_gain": 15,
-                "max_power": 20,
-                "min_power": 0,
-                "number_of_antennas": 2,
-            },
-            "fcc_id": fcc_id,
-            "serial_number": SERIAL_NUMBER,
-            "user_id": USER_ID,
-        }
-
-    def get_unregistered_cbsd_data(self) -> Dict[str, Any]:
-        data = self.get_cbsd_post_data()
-        data.update({
-            'is_active': False,
-            'state': 'unregistered',
-        })
-        return data
-
-    def get_registered_cbsd_data(self, fcc_id: str = SOME_FCC_ID) -> Dict[str, Any]:
-        data = self.get_cbsd_post_data(fcc_id)
-        data.update({
-            'cbsd_id': f'{fcc_id}/{SERIAL_NUMBER}',
-            'is_active': False,
-            'state': 'registered',
-        })
-        return data
-
-    def get_cbsd_data_with_grant(self, fcc_id: str = SOME_FCC_ID) -> Dict[str, Any]:
-        data = self.get_registered_cbsd_data(fcc_id)
-        data.update({
-            'is_active': True,
-            'grant': {
-                'bandwidth_mhz': 10,
-                'frequency_mhz': 3625,
-                'max_eirp': 28,
-                'state': 'authorized',
-            },
-        })
-        return data
-
-    def get_current_sas_filters(self) -> Dict[str, Any]:
-        return {
-            'serial_number': SERIAL_NUMBER,
-            'from': SAS,
-            'to': DP,
-            'end': self.now(),
-        }
-
-    def get_filters_for_request_type(self, request_type: str) -> Dict[str, Any]:
-        return {
-            'serial_number': SERIAL_NUMBER,
-            'type': f'{request_type}Response',
-            'begin': self.now(),
-        }
+        self.then_message_is_eventually_sent(filters, keep_alive=False)
 
     @staticmethod
     def get_sas_provision_messages() -> List[str]:
         names = ['heartbeat', 'grant', 'spectrumInquiry', 'registration']
         return [f'{x}Response' for x in names]
-
-    def now(self):
-        return datetime.now(timezone.utc).isoformat()
-
-    def _delete_dp_elasticsearch_indices(self):
-        requests.delete(f"{config.ELASTICSEARCH_URL}/{config.ELASTICSEARCH_INDEX}*")
 
     def _verify_logs_count(self, params):
         using_filters, _operator, expected_count, expected_status = params
@@ -357,6 +288,44 @@ class DomainProxyOrc8rTestCase(DBTestCase):
 
         comparison = _operator(len(logs["logs"]), expected_count)
         self.assertTrue(comparison)
+
+
+def get_current_sas_filters() -> Dict[str, Any]:
+    return {
+        'serial_number': SERIAL_NUMBER,
+        'from': SAS,
+        'to': DP,
+        'end': now(),
+    }
+
+
+def get_filters_for_request_type(request_type: str) -> Dict[str, Any]:
+    return {
+        'serial_number': SERIAL_NUMBER,
+        'type': f'{request_type}Response',
+        'begin': now(),
+    }
+
+
+def get_empty_state() -> CBSDStateResult:
+    return CBSDStateResult(radio_enabled=False)
+
+
+def get_cbsd_request() -> CBSDRequest:
+    return CBSDRequest(serial_number=SERIAL_NUMBER)
+
+
+def now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+@retry(stop_max_attempt_number=30, wait_fixed=1000)
+def wait_for_elastic_to_start() -> None:
+    requests.get(f'{config.ELASTICSEARCH_URL}/_status')
+
+
+def _delete_dp_elasticsearch_indices() -> None:
+    requests.delete(f"{config.ELASTICSEARCH_URL}/{config.ELASTICSEARCH_INDEX}*")
 
 
 def send_request_to_backend(
@@ -371,3 +340,87 @@ def send_request_to_backend(
         params=params,
         json=json,
     )
+
+
+class CbsdAPIDataBuilder:
+    def __init__(self):
+        self.fcc_id = SOME_FCC_ID
+        self.preferred_bandwidth_mhz = 20
+        self.preferred_frequencies_mhz = []
+        self.frequency_mhz = 3625
+        self.bandwidth_mhz = 10
+        self.max_eirp = 28
+
+    def with_fcc_id(self, fcc_id: str) -> CbsdAPIDataBuilder:
+        self.fcc_id = fcc_id
+        return self
+
+    def with_frequency_preferences(self, bandwidth_mhz: int, frequencies_mhz: List[int]) -> CbsdAPIDataBuilder:
+        self.preferred_bandwidth_mhz = bandwidth_mhz
+        self.preferred_frequencies_mhz = frequencies_mhz
+        return self
+
+    def with_expected_grant(self, bandwidth_mhz: int, frequency_mhz: int, max_eirp: int) -> CbsdAPIDataBuilder:
+        self.bandwidth_mhz = bandwidth_mhz
+        self.frequency_mhz = frequency_mhz
+        self.max_eirp = max_eirp
+        return self
+
+    def build_post_data(self) -> Dict[str, Any]:
+        return {
+            'capabilities': {
+                'antenna_gain': 15,
+                'max_power': 20,
+                'min_power': 0,
+                'number_of_antennas': 2,
+            },
+            'frequency_preferences': {
+                'bandwidth_mhz': self.preferred_bandwidth_mhz,
+                'frequencies_mhz': self.preferred_frequencies_mhz,
+            },
+            'fcc_id': self.fcc_id,
+            'serial_number': SERIAL_NUMBER,
+            'user_id': USER_ID,
+        }
+
+    def build_unregistered_data(self) -> Dict[str, Any]:
+        data = self.build_post_data()
+        data.update({
+            'is_active': False,
+            'state': 'unregistered',
+        })
+        return data
+
+    def build_registered_inactive_data(self) -> Dict[str, Any]:
+        data = self.build_post_data()
+        data.update({
+            'cbsd_id': f'{self.fcc_id}/{SERIAL_NUMBER}',
+            'is_active': False,
+            'state': 'registered',
+        })
+        return data
+
+    def build_registered_active_data(self) -> Dict[str, Any]:
+        data = self.build_registered_inactive_data()
+        data.update({
+            'is_active': True,
+            'grant': {
+                'bandwidth_mhz': self.bandwidth_mhz,
+                'frequency_mhz': self.frequency_mhz,
+                'max_eirp': self.max_eirp,
+                'state': 'authorized',
+            },
+        })
+        return data
+
+    def build_grant_state_data(self) -> CBSDStateResult:
+        frequency_hz = int(1e6) * self.frequency_mhz
+        half_bandwidth_hz = int(5e5) * self.bandwidth_mhz
+        return CBSDStateResult(
+            radio_enabled=True,
+            channel=LteChannel(
+                low_frequency_hz=frequency_hz - half_bandwidth_hz,
+                high_frequency_hz=frequency_hz + half_bandwidth_hz,
+                max_eirp_dbm_mhz=self.max_eirp,
+            ),
+        )

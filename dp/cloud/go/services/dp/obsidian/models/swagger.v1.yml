@@ -28,62 +28,71 @@ definitions:
         minimum: 1
         example: 2
         type: integer
+        x-nullable: false
       antenna_gain:
         example: 15
         type: number
-    type: object
     required:
       - antenna_gain
       - min_power
       - max_power
       - number_of_antennas
+    type: object
+    x-nullable: false
   cbsd:
     type: object
     properties:
       capabilities:
         $ref: '#/definitions/capabilities'
+      cbsd_id:
+        description: id of cbsd in SAS
+        example: some_cbsd_id
+        type: string
+        x-nullable: false
       fcc_id:
         example: some_fcc_id
         minLength: 1
         type: string
+        x-nullable: false
+      frequency_preferences:
+        $ref: '#/definitions/frequency_preferences'
+      grant:
+        $ref: '#/definitions/grant'
+        x-nullable: false
+      id:
+        description: database id of cbsd
+        type: integer
+        x-nullable: false
+      is_active:
+        description: false if cbsd have not contacted DP for certain amount of time
+        type: boolean
+        x-nullable: false
       serial_number:
         example: some_serial_number
         minLength: 1
         type: string
-      user_id:
-        example: some_user_id
-        minLength: 1
-        type: string
-      cbsd_id:
-        description: id of cbsd in SAS
-        example: some_cbsd_id
-        readOnly: true
-        type: string
-      grant:
-        $ref: '#/definitions/grant'
-      id:
-        description: database id of cbsd
-        readOnly: true
-        type: integer
-      is_active:
-        description: false if cbsd have not contcated DP for certain amount of time
-        readOnly: true
-        type: boolean
+        x-nullable: false
       state:
         description: state of cbsd in SAS
         enum:
           - unregistered
           - registered
-        readOnly: true
         type: string
+        x-nullable: false
+      user_id:
+        example: some_user_id
+        minLength: 1
+        type: string
+        x-nullable: false
     required:
-      - fcc_id
-      - serial_number
-      - user_id
       - capabilities
-      - is_active
+      - fcc_id
+      - frequency_preferences
       - id
+      - is_active
+      - serial_number
       - state
+      - user_id
   mutable_cbsd:
     type: object
     properties:
@@ -93,29 +102,61 @@ definitions:
         example: some_fcc_id
         minLength: 1
         type: string
+        x-nullable: false
+      frequency_preferences:
+        $ref: '#/definitions/frequency_preferences'
       serial_number:
         example: some_serial_number
         minLength: 1
         type: string
+        x-nullable: false
       user_id:
         example: some_user_id
         minLength: 1
         type: string
+        x-nullable: false
     required:
+      - capabilities
       - fcc_id
+      - frequency_preferences
       - serial_number
       - user_id
-      - capabilities
+  frequency_preferences:
+    properties:
+      bandwidth_mhz:
+        description: preferred bandwidth of sas channel
+        enum:
+          - 5
+          - 10
+          - 15
+          - 20
+        type: integer
+        x-nullable: false
+      frequencies_mhz:
+        description: list of preferred frequencies (midpoints) of sas channels
+        items:
+          maximum: 3695
+          minimum: 3555
+          multipleOf: 5
+          type: integer
+        type: array
+    required:
+      - bandwidth_mhz
+      - frequencies_mhz
+    type: object
+    x-nullable: false
   grant:
     properties:
       bandwidth_mhz:
         example: 20
         type: integer
+        x-nullable: false
       frequency_mhz:
         example: 3600
         maximum: 3700
         minimum: 3550
         type: integer
+        x-nullable: false
       grant_expire_time:
         format: date-time
         type: string
@@ -123,15 +164,21 @@ definitions:
         maximum: 37
         minimum: -137
         type: number
+        x-nullable: false
       state:
         enum:
           - granted
           - guthorized
         type: string
+        x-nullable: false
       transmit_expire_time:
         format: date-time
         type: string
-    readOnly: true
+    required:
+      - bandwidth_mhz
+      - frequency_mhz
+      - max_eirp
+      - state
   components:
     enum: &components
       - SAS
@@ -205,13 +252,12 @@ definitions:
       cbsds:
         items:
           $ref: '#/definitions/cbsd'
-        readOnly: true
         type: array
       total_count:
         description: Total number of cbsds
         example: 10
-        readOnly: true
         type: integer
+        x-nullable: false
     required:
       - cbsds
       - total_count

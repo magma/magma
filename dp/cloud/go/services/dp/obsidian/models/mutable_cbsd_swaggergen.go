@@ -19,22 +19,26 @@ type MutableCbsd struct {
 
 	// capabilities
 	// Required: true
-	Capabilities *Capabilities `json:"capabilities"`
+	Capabilities Capabilities `json:"capabilities"`
 
 	// fcc id
 	// Required: true
 	// Min Length: 1
-	FccID *string `json:"fcc_id"`
+	FccID string `json:"fcc_id"`
+
+	// frequency preferences
+	// Required: true
+	FrequencyPreferences FrequencyPreferences `json:"frequency_preferences"`
 
 	// serial number
 	// Required: true
 	// Min Length: 1
-	SerialNumber *string `json:"serial_number"`
+	SerialNumber string `json:"serial_number"`
 
 	// user id
 	// Required: true
 	// Min Length: 1
-	UserID *string `json:"user_id"`
+	UserID string `json:"user_id"`
 }
 
 // Validate validates this mutable cbsd
@@ -46,6 +50,10 @@ func (m *MutableCbsd) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateFccID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateFrequencyPreferences(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -65,17 +73,11 @@ func (m *MutableCbsd) Validate(formats strfmt.Registry) error {
 
 func (m *MutableCbsd) validateCapabilities(formats strfmt.Registry) error {
 
-	if err := validate.Required("capabilities", "body", m.Capabilities); err != nil {
-		return err
-	}
-
-	if m.Capabilities != nil {
-		if err := m.Capabilities.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("capabilities")
-			}
-			return err
+	if err := m.Capabilities.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("capabilities")
 		}
+		return err
 	}
 
 	return nil
@@ -83,11 +85,23 @@ func (m *MutableCbsd) validateCapabilities(formats strfmt.Registry) error {
 
 func (m *MutableCbsd) validateFccID(formats strfmt.Registry) error {
 
-	if err := validate.Required("fcc_id", "body", m.FccID); err != nil {
+	if err := validate.RequiredString("fcc_id", "body", string(m.FccID)); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("fcc_id", "body", string(*m.FccID), 1); err != nil {
+	if err := validate.MinLength("fcc_id", "body", string(m.FccID), 1); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableCbsd) validateFrequencyPreferences(formats strfmt.Registry) error {
+
+	if err := m.FrequencyPreferences.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("frequency_preferences")
+		}
 		return err
 	}
 
@@ -96,11 +110,11 @@ func (m *MutableCbsd) validateFccID(formats strfmt.Registry) error {
 
 func (m *MutableCbsd) validateSerialNumber(formats strfmt.Registry) error {
 
-	if err := validate.Required("serial_number", "body", m.SerialNumber); err != nil {
+	if err := validate.RequiredString("serial_number", "body", string(m.SerialNumber)); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("serial_number", "body", string(*m.SerialNumber), 1); err != nil {
+	if err := validate.MinLength("serial_number", "body", string(m.SerialNumber), 1); err != nil {
 		return err
 	}
 
@@ -109,11 +123,11 @@ func (m *MutableCbsd) validateSerialNumber(formats strfmt.Registry) error {
 
 func (m *MutableCbsd) validateUserID(formats strfmt.Registry) error {
 
-	if err := validate.Required("user_id", "body", m.UserID); err != nil {
+	if err := validate.RequiredString("user_id", "body", string(m.UserID)); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("user_id", "body", string(*m.UserID), 1); err != nil {
+	if err := validate.MinLength("user_id", "body", string(m.UserID), 1); err != nil {
 		return err
 	}
 

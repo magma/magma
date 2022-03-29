@@ -179,6 +179,7 @@ func getCbsdWriteFields() []string {
 	return []string{
 		"fcc_id", "cbsd_serial_number", "user_id",
 		"min_power", "max_power", "antenna_gain", "number_of_ports",
+		"preferred_bandwidth_mhz", "preferred_frequencies_mhz",
 	}
 }
 
