@@ -26,7 +26,7 @@
 //
 module magma/cwf/k8s/cwf_operator
 
-go 1.13
+go 1.17
 
 require (
 	github.com/docker/docker v20.10.13+incompatible // indirect
