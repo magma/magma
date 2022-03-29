@@ -570,17 +570,15 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectIdentRetxFailure) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  // Reduce timer duration for testing
-  nas_config_timer_reinit(&mme_config.nas_config, MME_APP_TIMER_TO_MSEC);
+  // Reduce timer 3470 duration for testing
+  mme_config.nas_config.t3470_msec = MME_APP_TIMER_TO_MSEC;
 
-  MME_APP_EXPECT_CALLS(6, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
+  MME_APP_EXPECT_CALLS(5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1);
 
-  // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
-                              sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
-
-  // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi, true);
+  // Constructing and sending Initial Attach Request with GUTI to
+  // mme_app mimicing S1AP
+  send_mme_app_initial_ue_msg(nas_msg_guti_attach_req,
+                              sizeof(nas_msg_guti_attach_req), plmn, guti, 1);
 
   // Wait for DL NAS Transport to max out retransmission limit
   for (int i = 0; i < NAS_RETX_LIMIT; ++i) {
