@@ -33,7 +33,7 @@ import {MAPBOX_ACCESS_TOKEN} from '@fbcnms/platform-server/config';
 import {TABS} from '@fbcnms/types/tabs';
 import {access} from '@fbcnms/auth/access';
 import {getEnabledFeatures} from '@fbcnms/platform-server/features';
-import {masterOrgMiddleware} from '@fbcnms/platform-server/master/middleware';
+import {hostOrgMiddleware} from '@fbcnms/platform-server/host/middleware';
 
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 
@@ -93,56 +93,47 @@ router.use(
 );
 router.get('/nms*', access(AccessRoles.USER), handleReact('nms'));
 
-// router.get(
-//   '/master/network*',
-//   masterOrgMiddleware,
-//   asyncHandler(async (req: FBCNMSRequest, res) => {
-//     res.send
-//     console.warn('request made to req: ', req);
-//   }),
-// );
-
 router.get(
-  '/master/networks/async',
+  '/host/networks/async',
   asyncHandler(async (_: FBCNMSRequest, res) => {
     const networks = await MagmaV1API.getNetworks();
     res.status(200).send(networks);
   }),
 );
 
-const masterRouter = require('@fbcnms/platform-server/master/routes');
-router.use('/master', masterOrgMiddleware, masterRouter.default);
+const hostRouter = require('@fbcnms/platform-server/host/routes');
+router.use('/host', hostOrgMiddleware, hostRouter.default);
 
-async function handleMaster(req: FBCNMSRequest, res) {
+async function handleHost(req: FBCNMSRequest, res) {
   const appData: AppContextAppData = {
     csrfToken: req.csrfToken(),
     user: {
-      tenant: 'master',
+      tenant: 'host',
       email: req.user.email,
       isSuperUser: req.user.isSuperUser,
       isReadOnlyUser: req.user.isReadOnlyUser,
     },
-    enabledFeatures: await getEnabledFeatures(req, 'master'),
+    enabledFeatures: await getEnabledFeatures(req, 'host'),
     tabs: [],
     ssoEnabled: false,
     ssoSelectedType: 'none',
     csvCharset: null,
   };
-  res.render('master', {
+  res.render('host', {
     staticDist,
     configJson: JSON.stringify({appData}),
   });
 }
 
-router.get('/master*', masterOrgMiddleware, handleMaster);
+router.get('/host*', hostOrgMiddleware, handleHost);
 
 router.get(
   '/*',
   access(AccessRoles.USER),
   asyncHandler(async (req: FBCNMSRequest, res) => {
     const organization = await req.organization();
-    if (organization.isMasterOrg) {
-      res.redirect('/master');
+    if (organization.isHostOrg) {
+      res.redirect('/host');
     } else if (req.user.tabs && req.user.tabs.length > 0) {
       res.redirect(req.user.tabs[0]);
     } else if (organization.tabs && organization.tabs.length > 0) {

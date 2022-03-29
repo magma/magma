@@ -22,7 +22,7 @@ import ReactDOM from 'react-dom';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import {BrowserRouter} from 'react-router-dom';
-import {useHistory} from 'react-router';
+import {useHistory} from 'react-router-dom';
 
 function LoginWrapper() {
   const history = useHistory();

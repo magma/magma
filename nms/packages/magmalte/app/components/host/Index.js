@@ -20,11 +20,11 @@ import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 import ApplicationMain from '../../components/ApplicationMain';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import CloudMetrics from '../../views/metrics/CloudMetrics';
-import Features from '@fbcnms/ui/master/Features';
+import Features from '@fbcnms/ui/host/Features';
 import FlagIcon from '@material-ui/icons/Flag';
 import NavListItem from '@fbcnms/ui/components/NavListItem';
-import OrganizationEdit from '@fbcnms/ui/master/OrganizationEdit';
-import Organizations from '@fbcnms/ui/master/Organizations';
+import OrganizationEdit from '@fbcnms/ui/host/OrganizationEdit';
+import Organizations from '@fbcnms/ui/host/Organizations';
 import Paper from '@material-ui/core/Paper';
 import PeopleIcon from '@material-ui/icons/People';
 import React, {useContext} from 'react';
@@ -77,7 +77,7 @@ function NavItems() {
   );
 }
 
-function Master() {
+function Host() {
   const classes = useStyles();
   const {user, ssoEnabled} = useContext(AppContext);
   const relativeUrl = useRelativeUrl();
@@ -129,10 +129,10 @@ const Index = () => {
   return (
     <ApplicationMain>
       <AppContextProvider>
-        <Master />
+        <Host />
       </AppContextProvider>
     </ApplicationMain>
   );
 };
 
-export default () => <Route path="/master" component={Index} />;
+export default () => <Route path="/host" component={Index} />;
