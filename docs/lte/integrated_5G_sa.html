@@ -1,0 +1,276 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Integrated 5G SA · Magma Documentation</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Integrated 5G SA FWA"/><meta name="docsearch:version" content="1.7.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Integrated 5G SA · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Integrated 5G SA FWA"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.7.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Access Gateway</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Getting Started<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/basics/introduction">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/basics/prerequisites">Prerequisites</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/basics/quick_start_guide">Quick Start Guide</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Usage<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">How-To</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/ue_metering">UE Usage Metering</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/config_agw_bridged">AGW Non-NAT Mode</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/5g_nsa_support">5G NSA Support</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/call_tracing">Call Tracing</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/events_monitoring">Events Monitoring</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/ipv6_agw">(Experimental) Configure IPv6 AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/he_api">Header Enrichment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/inbound_roaming">Inbound Roaming</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/l3_transport">L3 transport for AGW</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/nms/overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/dashboard">Dashboard</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/equipment">Equipment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/network">Network</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/subscriber">Subscriber</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/traffic">Traffic</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/metrics">Metrics</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/alerts">Alerts</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/federation">Federation</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/admin">Admin</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/tips_and_tricks">Tips and Tricks</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Architecture<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/lte/architecture_overview">Overview</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/architecture_overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/architecture_modularity">Modularity</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/architecture_security">Security</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/nms/nms_arch_overview">Overview</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">FeG</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/feg/architecture_overview">Overview</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Deploy<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">General</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/general/aws_cloudstrapper">AWS Cloudstrapper Install</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/lte/deploy_install">Install AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/deploy_config_agw">Configure AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/deploy_config_enodebd">Configure eNodeB</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/deploy_config_apn">Configure an APN</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/build_install_magma_pkg_in_agw">Build and install a magma package in AGW</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/deploy_install">Install Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/deploy_terraform_options">Terraform Options</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/deploy_faq">FAQs</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Federation Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/feg/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/feg/deploy_build">Build FeG</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/feg/deploy_install">Install FeG</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Configure<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/lte/configure_agw_ha">Configure AGW for HA</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/configure_sentry">Sentry Integration</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/configure_thanos">Thanos</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Federation Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/feg/configure_federation">Configure FeG</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/nms/nms_organizations">Multitenancy (Organizations)</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Upgrade<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">General</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/general/upgrade_intro">Introduction</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_debian_to_ubuntu">Migrate AGWs to Ubuntu</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_1_6">Upgrade to v1.6</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_1_5">Upgrade to v1.5</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_1_1">Upgrade to v1.1</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_1_6">Upgrade to v1.6</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_1_5">Upgrade to v1.5</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_1_1">Upgrade to v1.1</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Debug<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">General</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/agw_healthcheck">Perform Access Gateway health check</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/agw_unable_to_checkin">Access Gateway Unable to Check-in to Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/user_unable_to_attach">User is unable to attach to Magma</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/update_certificates">Update rootCA and controller SSL certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/generate_admin_operator_certificates">Generate and update admin_operator certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/analyze_service_crashes_in_agw">Analyze Service crashes in AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/datapath_connectivity">Debugging AGW datapath issues</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/lte/debug_show_tech">Show Tech</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/debug_dp_probe">Datapath Probe CLI</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/debug_user_control_plane">User Control Plane trace CLI</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Federated Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/feg/debug_cli">FeG CLI</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/debug_logs">View Logs</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/nms/alerts_troubleshooting">Alerts</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Contribute<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Contribute</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_onboarding">Developer Onboarding</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_workflow">Development Workflow</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_vscode">Develop Magma With VSCode</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_conventions">Contributing Conventions</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_id_mappings">Magma Codeowners</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_ci_checks">Continuous Integration Checks</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Maintain</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_proposals">Proposals Process</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_codeowners">Codeowners Workflow</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_tsc_norms">TSC Processes</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Technical Reference<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">General</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/resources/ref_pcap">PCAP Collection</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/resources/ref_useful_links">Useful Links</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/resources/ref_magma_metrics">Life of a Magma Metric</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/docs/docs_overview">Documentation Overview</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/lte/dev_notes">Developer Notes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/openvswitch">Magma Datapath</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/pipelined">Pipelined</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/ebpf_datapath">Magma eBPF Datapath</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/ipfix">Magma IPFIX Support</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/dev_unit_testing">Test AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/tr069">Add eNB TR-069 Support</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/s1ap_tests">S1AP Integration Tests</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/eventd">Event Reporting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/access_service_restrictions">Restricting Network Access</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/dev_teid_allocation">TEID Allocation</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/magma/docs/lte/integrated_5G_sa">Integrated 5G SA</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_rest_api">REST API</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_build">Build Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_testing">Test Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_minikube">Deploy on Minikube</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_security">Security</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_indexers">State Indexers</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_sub_digests">Subscriber Digests</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_token_security">REST API Auth</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_dependencies">Module Dependencies</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_aws_stack">AWS Stack</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/nms/dev_spacing">Spacing Guidelines</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/dev_testing">Test NMS</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/dev_themes">Themes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/dev_components">Components</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Federation Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/feg/dev_testing">Test Federation Gateway</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/feg/s1ap_federated_tests">S1AP Federated Integration Tests</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Carrier WiFi</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/cwf/dev_testing">Test CWAG</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Proposals<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">General</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p001_vpn_config_from_api">Configurable VPN from Orchestrator API</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p005_call_tracing">Call Tracing for Troubleshooting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p014_proposal_process">Magma Proposals</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p015_tech_debt_week">Tech Debt Week Processes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p017_apn_refactoring">APN Refactoring Proposal</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p003_qos_enforcement">QoS Policy Configuration</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p007_header_enrichment">Header enrichment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p008_apn_correction">MME APN Correction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p013_Ubuntu_upgrade">AGW Ubuntu upgrade</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p018_control_network_metrics">Export Control Path Network Metrics</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p019_enodeb_cbrs_support">Enodebd CBRS Support</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p020_sgi_tunnel_transport">L3 transport for AGW</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p002_scaled_prometheus_pipeline">Scaled Prometheus Pipeline</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p010_subscriber_scaling">Subscriber Scaling</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p011_victoriametrics">VictoriaMetrics as Magma&#x27;s TSDB</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p009_nms_mariadb_migration">NMS MariaDB Migration</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">FAQ<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/faq/faq_magma">Frequently Asked Questions</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="integrated-5g-sa-fwa"></a><a href="#integrated-5g-sa-fwa" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Integrated 5G SA FWA</h1>
+<p>Magma 5G SA feature enables operators to provide enhanced Mobile BroadBand services and opens up new oppurtunites for business.</p>
+<p>This document gives an overview of the 5G SA functionality present in Magma, its architecture, configuration, feature matrix
+and general debugging techniques.</p>
+<h2><a class="anchor" aria-hidden="true" id="architecture"></a><a href="#architecture" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Architecture</h2>
+<p>Currently, fixed wireless access deployment is targeted as the first milestone for 5G SA.</p>
+<p>AMF included in current MME module and will serve as entry point for all the N1 and N2 messages coming from CPE and GNB.
+Post processing of these messages AMF will connect with existing subscriberdb, mobilityd and sessiond module for realizing the end to end call flow.</p>
+<p>Following diagram gives an overview of the 5G SA components.</p>
+<p><img src="/magma/docs/assets/lte/integrated_5G_sa_architecture_overview.png?raw=true" alt="Integrated 5G SA Architecture Overview" title="Integrated 5G sa architecture overview"></p>
+<h2><a class="anchor" aria-hidden="true" id="prerequisites"></a><a href="#prerequisites" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Prerequisites</h2>
+<p>Before starting to configure 5G SA setup, first you need to bring up a setup to handle your own/local subscribers. So before configuring Inbound Roaming you need:</p>
+<ul>
+<li>Install <a href="https://docs.magmacore.org/docs/orc8r/architecture_overview">Or8cr</a>,</li>
+<li>Install <a href="https://docs.magmacore.org/docs/feg/deploy_intro">Federatetion Gateway</a> and,</li>
+<li>Install <a href="https://docs.magmacoreorg/docs/lte/setup_deb">Access Gateway</a>.</li>
+<li>Make sure your setup is able to serve calls with your local subscribers</li>
+</ul>
+<p>Once you are done you need to enable the 5G feature set from the orchestrator. Also need to ensure that this AGW serves the mapped PLMN.Once done we can connect Magma AGW with GNB and the 5G supported UE.</p>
+<h2><a class="anchor" aria-hidden="true" id="high-level-call-flow"></a><a href="#high-level-call-flow" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>High Level Call Flow</h2>
+<p>Following figure describes the high level call flow in Magma for 5G.</p>
+<p>UE/CPE basic registration Flow</p>
+<div class="mermaid">sequenceDiagram
+    CPE->>RAN: Registration Request
+    RAN->>MME(AMF): Registration Request
+    MME(AMF)->>SUBS_DB: Authentication/Security
+    SUBS_DB->>MME(AMF): Calculated XRES
+    MME(AMF)->>CPE: Authentication Request
+    CPE->>MME(AMF): Authentication Response
+    MME(AMF)->>CPE: Security Mode Command
+    CPE->>MME(AMF): Security Mode Complete
+    MME(AMF)->>RAN: Initial Context Request
+    RAN->>MME(AMF): Initial Context Response
+    MME(AMF)->>CPE: Registration Accept
+    CPE->>MME(AMF): Registration Complete
+</div><p>Basic PDU session establishment call flow</p>
+<div class="mermaid">sequenceDiagram
+    CPE / RAN->>MME(AMF): PDU Session Establishment Request
+    MME(AMF)->>MobilityD: AllocateIPvXAddressAsync
+    MobilityD->>MME(AMF): AsyncAllocateIPAddress
+    MME(AMF)->>SUBS_DB: UpdateLocatoinRequest
+    SUBS_DB->>MME(AMF): UpdateLocationResp
+    MME(AMF)->>SESSIOND: AsyncSetAmfSessionContext
+    SESSIOND->>POLICYDB: FetchPolicyDetails
+    POLICYDB->>SESSIOND: UpdatePolicyDetails
+    SESSIOND->>PIPELINED: SetSMFSession(GTP)
+    PIPELINED->>SESSIOND: SetSMFSessionResp
+    SESSIOND->>MME(AMF): SetSmfSessionContext
+    MME(AMF)->>CPE / RAN: PDUSessionResourceSetupReq
+    MME(AMF)->>CPE / RAN: PDU Session Establishment Accept
+    CPE / RAN->MME(AMF): PDUSessionResourceSetupResp
+    MME(AMF)->>SESSIOND: SetSMFContext
+    SESSIOND->>PIPELINED: SetSMFSession(GTP)
+</div><p>Service Request Procedure (from UE/CPE) call flow</p>
+<div class="mermaid">sequenceDiagram
+    UE/CPE->>RAN: Service Request
+    RAN->>MME(AMF): N2 Message(Service Request)
+    MME(AMF)->>SESSIOND: SetSMFNotification
+    SESSIOND->>PIPELINED: SetSMFSession(SessionAdd)
+    PIPELINED->>SESSIOND: SetSMFSessionResp
+    SESSIOND->>MME(AMF): SetSmfSessionContext
+    MME(AMF)->>RAN: Initial ContextSetup Request
+    RAN->>UE/CPE: Service Request Accept
+    RAN->>MME(AMF): IntialContextSetup Response
+</div><p>Paging procedure call flow</p>
+<div class="mermaid">sequenceDiagram
+    UE/CPE-->RAN: In-Active
+    RAN->>MME(AMF): UE context Release(inactive)
+    MME(AMF)->>SESSIOND: SetSMFNotification
+    SESSIOND->>PIPELINED: SetSMFSession(INACTIVE)
+    PIPELINED->>OVS: Page Entry
+    OVS->>PIPELINED: EventOFPPacketIN
+    PIPELINED->>SESSIOND: Paging Request
+    PIPELINED->>OVS: Drop Flow(timeout)
+    PIPELINED->>SESSIOND: SendPagingRequest
+    SESSIOND->>MME(AMF): SetAmfNotification
+    MME(AMF)->>UE/CPE: Paging
+</div><h2><a class="anchor" aria-hidden="true" id="features-supported-by-5g-sa"></a><a href="#features-supported-by-5g-sa" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Features supported by 5G SA</h2>
+<p>Following are the feature set which are available as part of current release</p>
+<ul>
+<li>Mobile Management Services (Registration, Deregistration, Authentication etc procedures)</li>
+<li>Session Management Services (PDU Session Establishment, Accept etc)</li>
+<li>Service Related procedures via CPE</li>
+<li>Idle Mode and Paging support</li>
+<li>Basic traffic flow</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="configuration-5g-sa-feature"></a><a href="#configuration-5g-sa-feature" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Configuration 5G SA feature</h2>
+<h3><a class="anchor" aria-hidden="true" id="enabling--disabling-the-5g-feature-set"></a><a href="#enabling--disabling-the-5g-feature-set" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Enabling / Disabling the 5G Feature set</h3>
+<p>5G feature can be disabled or enabled using swagger API for an LTE Network under Cellular section
+Swagger API : PUT - /lte/{network_id}/cellular/epc
+Below is the payload</p>
+<p><img src="/magma/docs/assets/lte/integrated_5G_sa_enable_5G_feature_set.png?raw=true" alt="Integrated 5G sa enable 5F Feature set" title="Enable 5G Feature set"></p>
+<p>After a successful configuration gateway.mconfig should looks something like :</p>
+<pre><code class="hljs css language-text">  "mme": {
+    "@type": "type.googleapis.com/magma.mconfig.MME",
+    "amfDefaultSliceDifferentiator": "ffffff",
+    "amfDefaultSliceServiceType": 1,
+    "amfName": "MAGMAAMF1",
+    "amfPointer": "0",
+    "amfRegionId": "1",
+    "amfSetId": "1",
+  ...
+  ...
+  "enable5gFeatures": true,
+  ...
+  }
+  "pipelined": {
+    "@type": "type.googleapis.com/magma.mconfig.PipelineD",
+    "allowedGrePeers": [],
+    "apps": [],
+    "enable5gFeatures": true,
+    ...
+    "upfNodeIdentifier": "192.168.60.142"
+  },
+  "sessiond": {
+    "@type": "type.googleapis.com/magma.mconfig.SessionD",
+    "enable5gFeatures": true,
+    "gxGyRelayEnabled": false,
+    "logLevel": "INFO",
+    "relayEnabled": false
+  },
+  "subscriberdb": {
+    "@type": "type.googleapis.com/magma.mconfig.SubscriberDB",
+    "enable5gFeatures": true,
+    ...
+    ...
+  }
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="subscriberdb-extension"></a><a href="#subscriberdb-extension" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Subscriberdb Extension</h3>
+<p>The basic subscriber configuration remains unchanged and can be added following the <a href="https://github.com/magma/magma/issues/10943?">link</a>. However a small extension was introduced, called core network type restriction in order to give permission flexbility to operators to disable 5G or 4G features for a particular subscriber.</p>
+<p>The sample configuration is shown in the below figure</p>
+<p><img src="/magma/docs/assets/lte/integrated_5G_sa_core_network_type_restrictions.png?raw=true" alt="5G Core network Restriction" title="5G Core Network Type Restrictions"></p>
+<h3><a class="anchor" aria-hidden="true" id="additional-amf-specific-configurations"></a><a href="#additional-amf-specific-configurations" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Additional AMF Specific Configurations</h3>
+<p>AMF Specific Configuration</p>
+<p>The parameters related to AMF like slice configuration, setid, regionid etc can be configured using swagger APIs. Following shows the mechanism to configure it using the swagger APIs</p>
+<pre><code class="hljs css language-text">  PUT/GET - /lte/{network_id}/gateways/{gateway_id}/cellular/ngc (Gateway NGC Configuration)\
+  {
+    "amf_name" : "amf.example.org",
+    "amf_set_id" : "2A1",
+    "amf_pointer" : "1F",
+    "amf_region_id" : "C1",
+    "amf_default_slice_service_type" : 2
+    "amf_default_slice_descriptor" : "AFAF"
+  }
+</code></pre>
+<p>If not configured these parameters have their own default values.</p>
+<h2><a class="anchor" aria-hidden="true" id="test-and-troubleshooting"></a><a href="#test-and-troubleshooting" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Test and troubleshooting</h2>
+<h3><a class="anchor" aria-hidden="true" id="additional-logging"></a><a href="#additional-logging" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Additional Logging</h3>
+<p>It is recommendable that before running the tests, enable some extra logging capabilities in Access Gateway to trace the call.
+For better details in Access Gateway logs:</p>
+<ul>
+<li>Enable <code>log_level: DEBUG</code> in <code>mme.yml</code>, <code>sessiond.yml</code>  and <code>subscriberdb.yml</code></li>
+<li>Enable <code>print_grpc_payload: True</code> on <code>subscriberdb.yml</code>, <code>sessiond.yml</code> &amp; <code>pipelined.yml</code></li>
+<li>Restart magma, so the changes are taken</li>
+<li>See the logs using <code>sudo journalctl -fu magma@mme</code> or sudo <code>journalctl -fu magma@subscriberdb</code> or <code>sudo journalctl -fu magma@sessiond</code></li>
+</ul>
+<p>Restart magma, so the changes are taken
+See the logs using sudo journalctl -fu magma@mme or sudo journalctl -fu magma@subscriberdb or sudo journalctl -fu magma@sessiond</p>
+<h3><a class="anchor" aria-hidden="true" id="common-issues-and-troubleshooting"></a><a href="#common-issues-and-troubleshooting" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Common Issues and Troubleshooting</h3>
+<p>SCTP Connection Failure</p>
+<ul>
+<li><p>Description :-
+NG Setup failure due to SCTP connection (like connection not established)</p></li>
+<li><p>Cause / Solution :-
+One of the common cause for this the 5G Feature is not enabled properly from the swagger
+For checking the same</p></li>
+</ul>
+<pre><code class="hljs css language-text">   vagrant@magma-dev-focal:~/magma/lte/gateway$ cat /proc/net/sctp/eps
+     ENDPT     SOCK   STY SST HBKT LPORT   UID INODE LADDRS
+         0        0 2   10  9    36412     0 465001933 192.168.60.142
+         0        0 2   10  25   38412     0 465001935 192.168.60.142
+</code></pre>
+<p>Entry of port 38412, ensures that the 5G feature is up and related applications are launched.</p>
+<p>NG Setup Failure</p>
+<ul>
+<li><p>Description :-
+NG setup connections are failing within the network, which means that the gNodeb’s are not able to get provisioned
+with this network.</p></li>
+<li><p>Causes / Solution :-
+Common causes are plmn mismatch and nssai mismatch. Please check the mme.log (/var/log/mme.log) to get the exact cause.</p></li>
+</ul>
+<p>UE Attach Failure</p>
+<ul>
+<li><p>Description :-
+Ue is unable to attach to the network.</p></li>
+<li><p>Causes / Solution :-
+Common causes for this failure is authentication failure. Please check the mme.log (/var/log/mme.log) to get the exact
+cause. In case of authentication failure, please verify that authentication parameters (such as key and opc) are the
+same in ue and subscriberdb.</p></li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="enable-the-feature-in-headless-features"></a><a href="#enable-the-feature-in-headless-features" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Enable the feature in Headless features</h2>
+<p>In case if the Magma is installed in a headless mode the following variable needs to be set to true in the files mme.yml, pipelined.yml, sessiond.yml, subscriberdb.yml</p>
+<p>enable5g_features: true</p>
+<h2><a class="anchor" aria-hidden="true" id="3gpp-references"></a><a href="#3gpp-references" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3GPP References</h2>
+<ul>
+<li>N1 Interface is based on 3GPP TS 38.413 version 16.2.0 Release 16</li>
+<li>N2 Interface is based on 3GPP TS 24.501 version 15.3.0 Release 15</li>
+<li>Procedures fo 5G Systems 3GPP TS 24.501 version 15.4.1 Release 15</li>
+<li>N3 Interface is based on 3GPP TS 29.281 version 15.7.0 Release 15</li>
+<li>Security Procedures like key generations based on 3GPP TS 33.501 version 15.4.0 Release 15</li>
+</ul>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/lte/dev_teid_allocation"><span class="arrow-prev">← </span><span>TEID Allocation</span></a><a class="docs-next button" href="/magma/docs/orc8r/dev_rest_api"><span>REST API</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#architecture">Architecture</a></li><li><a href="#prerequisites">Prerequisites</a></li><li><a href="#high-level-call-flow">High Level Call Flow</a></li><li><a href="#features-supported-by-5g-sa">Features supported by 5G SA</a></li><li><a href="#configuration-5g-sa-feature">Configuration 5G SA feature</a><ul class="toc-headings"><li><a href="#enabling--disabling-the-5g-feature-set">Enabling / Disabling the 5G Feature set</a></li><li><a href="#subscriberdb-extension">Subscriberdb Extension</a></li><li><a href="#additional-amf-specific-configurations">Additional AMF Specific Configurations</a></li></ul></li><li><a href="#test-and-troubleshooting">Test and troubleshooting</a><ul class="toc-headings"><li><a href="#additional-logging">Additional Logging</a></li><li><a href="#common-issues-and-troubleshooting">Common Issues and Troubleshooting</a></li></ul></li><li><a href="#enable-the-feature-in-headless-features">Enable the feature in Headless features</a></li><li><a href="#3gpp-references">3GPP References</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2022 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>
