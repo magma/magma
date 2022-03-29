@@ -24,13 +24,13 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
 
 //------------------------------------------------------------------------------
 status_code_e select_pdn_type(struct apn_configuration_s* apn_config,

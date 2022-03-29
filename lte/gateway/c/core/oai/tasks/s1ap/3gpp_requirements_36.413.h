@@ -38,8 +38,8 @@
 #ifndef FILE_3GPP_REQUIREMENTS_36_413_SEEN
 #define FILE_3GPP_REQUIREMENTS_36_413_SEEN
 
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_requirements.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 
 #define REQUIREMENT_3GPP_36_413(rElEaSe_sEcTiOn__OaImark)              \
   REQUIREMENT_3GPP_SPEC(LOG_S1AP,                                      \

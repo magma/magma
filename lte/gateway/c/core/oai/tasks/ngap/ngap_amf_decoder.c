@@ -27,7 +27,7 @@
 #include "constr_TYPE.h"
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_decoder.h"
 #include "per_decoder.h"

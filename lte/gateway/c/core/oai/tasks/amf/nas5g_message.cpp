@@ -10,7 +10,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 #ifdef __cplusplus
 }

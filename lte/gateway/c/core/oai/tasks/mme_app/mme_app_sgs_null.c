@@ -35,7 +35,7 @@
 *****************************************************************************/
 
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
 
 /****************************************************************************/

@@ -37,8 +37,8 @@
 #include <stdint.h>
 #include <ctype.h>
 
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 
 static const char hex_to_ascii_table[16] = {
     '0', '1', '2', '3', '4', '5', '6', '7',

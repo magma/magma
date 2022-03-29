@@ -22,8 +22,8 @@
 #include "lte/protos/spgw_service.pb.h"
 
 extern "C" {
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/include/spgw_service_handler.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 }
 
 namespace grpc {

@@ -35,9 +35,9 @@
 #include <stdint.h>
 
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/common/common_ies.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_msg.h"

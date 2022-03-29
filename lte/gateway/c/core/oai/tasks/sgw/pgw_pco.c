@@ -27,7 +27,7 @@
 #include <netinet/in.h>
 #include <string.h>
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/common/rfc_1332.h"
 #include "lte/gateway/c/core/oai/common/rfc_1877.h"
 #include "lte/gateway/c/core/oai/include/pgw_config.h"

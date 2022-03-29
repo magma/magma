@@ -14,7 +14,7 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/log.h"
 }
 
 // Note: This is necessary for setting up a log thread (Might be addressed by

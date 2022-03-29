@@ -17,14 +17,14 @@
 #include <stdint.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/common/amf_default_values.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/service303.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/service303.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
 
 #define MIN_GUAMI 1
 #define MAX_GUAMI 5

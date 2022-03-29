@@ -19,9 +19,9 @@
 #include <stdbool.h>
 
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"  // encode_tmsi_status
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.h"

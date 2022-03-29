@@ -24,7 +24,7 @@
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 }
 

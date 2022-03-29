@@ -18,7 +18,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/log.h"
 typedef enum {
   UE_SESSION_ACTIVE_STATE,
   UE_SESSION_UNREGISTERED_STATE,

@@ -40,8 +40,8 @@
 #include <openssl/evp.h>
 
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/common/digest.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 
 //------------------------------------------------------------------------------
 // evp_x can be EVP_sha256, ...

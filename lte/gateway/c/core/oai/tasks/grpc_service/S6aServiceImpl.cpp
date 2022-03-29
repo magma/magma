@@ -19,8 +19,8 @@
 #include "lte/protos/s6a_service.pb.h"
 
 extern "C" {
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/include/s6a_service_handler.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 }
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S6aServiceImpl.h"
 

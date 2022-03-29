@@ -17,10 +17,10 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/SupportedCodecList.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 
 int decode_supported_codec_list(SupportedCodecList* supportedcodeclist,
                                 uint8_t iei, uint8_t* buffer, uint32_t len) {

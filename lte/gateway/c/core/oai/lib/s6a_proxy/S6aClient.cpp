@@ -29,7 +29,7 @@
 #include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
 #include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
 extern "C" {
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/log.h"
 }
 
 namespace grpc {

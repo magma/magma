@@ -46,3 +46,11 @@ cc_library(
     name = "gcc_diag",
     hdrs = ["gcc_diag.h"],
 )
+
+cc_library(
+    name = "log_interface",
+    hdrs = [
+        "log.h",
+        "shared_ts_log.h",
+    ],
+)

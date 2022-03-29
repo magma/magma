@@ -17,7 +17,7 @@
 #define SERVICE303
 
 #include <stddef.h>
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/include/service303.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 

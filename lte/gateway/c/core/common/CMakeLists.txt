@@ -24,6 +24,8 @@ set(LTE_GATEWAY_C_COMMON_SRC
     dynamic_memory_check.c
     dynamic_memory_check.h
     gcc_diag.h
+    log.h
+    shared_ts_log.h
     )
 
 add_library(LTE_GATEWAY_C_COMMON ${LTE_GATEWAY_C_COMMON_SRC})

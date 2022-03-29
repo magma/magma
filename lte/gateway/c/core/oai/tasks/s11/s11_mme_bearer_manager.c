@@ -31,7 +31,7 @@
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"

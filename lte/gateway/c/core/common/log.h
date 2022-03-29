@@ -508,7 +508,7 @@ const char* get_short_file_name(const char* const source_file_nameP);
     return rEtUrNcOdE;                                       \
   } while (0) /*!< \brief informational */
 #endif
-#include "lte/gateway/c/core/oai/common/shared_ts_log.h"
+#include "lte/gateway/c/core/common/shared_ts_log.h"
 
 #if !defined(OAILOG_DEBUG)
 #define OAILOG_DEBUG(...) NOP(__VA_ARGS__)

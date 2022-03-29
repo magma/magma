@@ -19,7 +19,7 @@ limitations under the License.
 #include "lte/protos/ha_service.grpc.pb.h"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 }
 

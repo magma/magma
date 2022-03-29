@@ -16,7 +16,7 @@
  */
 
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_as.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cn.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esm.h"

@@ -15,15 +15,15 @@ limitations under the License.
 #include <sys/types.h>
 
 extern "C" {
+#include "S1ap_CauseRadioNetwork.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/tasks/ha/ha_defs.h"
 #include "lte/gateway/c/core/oai/include/ha_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s1ap_state.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/s1ap_state.h"
-#include "S1ap_CauseRadioNetwork.h"
+#include "lte/gateway/c/core/oai/tasks/ha/ha_defs.h"
 }
 
 #include "lte/gateway/c/core/oai/tasks/ha/HaClient.h"

@@ -18,9 +18,9 @@
 #include <stdint.h>
 
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateAccept.h"
 
 int decode_tracking_area_update_accept(

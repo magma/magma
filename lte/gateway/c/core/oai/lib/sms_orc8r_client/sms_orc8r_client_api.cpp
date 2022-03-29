@@ -24,7 +24,7 @@
 #include "orc8r/protos/common.pb.h"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/log.h"
 }
 
 void void_callback(grpc::Status status, magma::orc8r::Void void_response) {

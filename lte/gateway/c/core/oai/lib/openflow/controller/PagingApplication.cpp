@@ -23,7 +23,7 @@
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_paging.h"
 }
 

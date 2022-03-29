@@ -13,8 +13,8 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "S1ap_S1AP-PDU.h"
+#include "lte/gateway/c/core/common/log.h"
 #include "lte/gateway/c/core/oai/include/amf_config.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
 }
