@@ -6,28 +6,34 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // AggregationLoggingConfigs Configuration for log aggregation
+//
 // swagger:model aggregation_logging_configs
 type AggregationLoggingConfigs struct {
 
 	// target files by tag
+	// Example: {"enodebd":"/var/log/enodebd.log","mme":"/var/log/mme.log","otherlog":"/var/log/otherlog.log"}
 	TargetFilesByTag map[string]string `json:"target_files_by_tag,omitempty"`
 
 	// throttle interval
+	// Example: 1m
 	// Pattern: ^\d+(.\d+)?(s|m|h)$
 	ThrottleInterval *string `json:"throttle_interval,omitempty"`
 
 	// throttle rate
+	// Example: 1000
 	ThrottleRate *uint32 `json:"throttle_rate,omitempty"`
 
 	// throttle window
+	// Example: 5
 	ThrottleWindow *uint32 `json:"throttle_window,omitempty"`
 }
 
@@ -46,15 +52,19 @@ func (m *AggregationLoggingConfigs) Validate(formats strfmt.Registry) error {
 }
 
 func (m *AggregationLoggingConfigs) validateThrottleInterval(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ThrottleInterval) { // not required
 		return nil
 	}
 
-	if err := validate.Pattern("throttle_interval", "body", string(*m.ThrottleInterval), `^\d+(.\d+)?(s|m|h)$`); err != nil {
+	if err := validate.Pattern("throttle_interval", "body", *m.ThrottleInterval, `^\d+(.\d+)?(s|m|h)$`); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this aggregation logging configs based on context it is used
+func (m *AggregationLoggingConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // NetworkCellularConfigs Cellular configuration for a network
+//
 // swagger:model network_cellular_configs
 type NetworkCellularConfigs struct {
 
@@ -68,6 +70,8 @@ func (m *NetworkCellularConfigs) validateEpc(formats strfmt.Registry) error {
 		if err := m.Epc.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("epc")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("epc")
 			}
 			return err
 		}
@@ -77,7 +81,6 @@ func (m *NetworkCellularConfigs) validateEpc(formats strfmt.Registry) error {
 }
 
 func (m *NetworkCellularConfigs) validateFegNetworkID(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.FegNetworkID) { // not required
 		return nil
 	}
@@ -85,6 +88,8 @@ func (m *NetworkCellularConfigs) validateFegNetworkID(formats strfmt.Registry) e
 	if err := m.FegNetworkID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("feg_network_id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("feg_network_id")
 		}
 		return err
 	}
@@ -93,7 +98,6 @@ func (m *NetworkCellularConfigs) validateFegNetworkID(formats strfmt.Registry) e
 }
 
 func (m *NetworkCellularConfigs) validateNgc(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Ngc) { // not required
 		return nil
 	}
@@ -102,6 +106,8 @@ func (m *NetworkCellularConfigs) validateNgc(formats strfmt.Registry) error {
 		if err := m.Ngc.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("ngc")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("ngc")
 			}
 			return err
 		}
@@ -120,6 +126,96 @@ func (m *NetworkCellularConfigs) validateRan(formats strfmt.Registry) error {
 		if err := m.Ran.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("ran")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("ran")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this network cellular configs based on the context it is used
+func (m *NetworkCellularConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateEpc(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateFegNetworkID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateNgc(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateRan(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *NetworkCellularConfigs) contextValidateEpc(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Epc != nil {
+		if err := m.Epc.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("epc")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("epc")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkCellularConfigs) contextValidateFegNetworkID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.FegNetworkID.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("feg_network_id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("feg_network_id")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkCellularConfigs) contextValidateNgc(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Ngc != nil {
+		if err := m.Ngc.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("ngc")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("ngc")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkCellularConfigs) contextValidateRan(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Ran != nil {
+		if err := m.Ran.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("ran")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("ran")
 			}
 			return err
 		}

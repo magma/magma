@@ -34,7 +34,7 @@ require (
 	github.com/prometheus/client_golang v1.5.1
 	github.com/stretchr/testify v1.7.0
 	google.golang.org/grpc v1.43.0
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/protobuf v1.28.0
 	magma/feg/cloud/go/protos v0.0.0
 	magma/lte/cloud/go v0.0.0
 	magma/orc8r/cloud/go v0.0.0

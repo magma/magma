@@ -6,24 +6,27 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // Message message
+//
 // swagger:model message
 type Message struct {
 
 	// Body of message
+	// Example: {[{\"registrationRequest\":{\"cbsdSerialNumber\":\"some_serial_number\"}}]}
 	// Read Only: true
 	Body string `json:"body,omitempty"`
 
 	// Fcc Id of cbsd involved in message
+	// Example: some_fcc_id
 	// Read Only: true
 	FccID string `json:"fcc_id,omitempty"`
 
@@ -33,6 +36,7 @@ type Message struct {
 	From string `json:"from,omitempty"`
 
 	// Serial number of cbsd involved in message
+	// Example: some_serial_number
 	// Read Only: true
 	SerialNumber string `json:"serial_number,omitempty"`
 
@@ -99,14 +103,13 @@ const (
 
 // prop value enum
 func (m *Message) validateFromEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, messageTypeFromPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, messageTypeFromPropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *Message) validateFrom(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.From) { // not required
 		return nil
 	}
@@ -120,7 +123,6 @@ func (m *Message) validateFrom(formats strfmt.Registry) error {
 }
 
 func (m *Message) validateTime(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Time) { // not required
 		return nil
 	}
@@ -158,20 +160,120 @@ const (
 
 // prop value enum
 func (m *Message) validateToEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, messageTypeToPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, messageTypeToPropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *Message) validateTo(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.To) { // not required
 		return nil
 	}
 
 	// value enum
 	if err := m.validateToEnum("to", "body", m.To); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this message based on the context it is used
+func (m *Message) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateBody(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateFccID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateFrom(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateSerialNumber(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateTime(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateTo(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateType(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *Message) contextValidateBody(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := validate.ReadOnly(ctx, "body", "body", string(m.Body)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Message) contextValidateFccID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := validate.ReadOnly(ctx, "fcc_id", "body", string(m.FccID)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Message) contextValidateFrom(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := validate.ReadOnly(ctx, "from", "body", string(m.From)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Message) contextValidateSerialNumber(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := validate.ReadOnly(ctx, "serial_number", "body", string(m.SerialNumber)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Message) contextValidateTime(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := validate.ReadOnly(ctx, "time", "body", strfmt.DateTime(m.Time)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Message) contextValidateTo(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := validate.ReadOnly(ctx, "to", "body", string(m.To)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Message) contextValidateType(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := validate.ReadOnly(ctx, "type", "body", string(m.Type)); err != nil {
 		return err
 	}
 

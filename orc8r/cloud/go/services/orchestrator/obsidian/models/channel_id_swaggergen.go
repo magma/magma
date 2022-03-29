@@ -6,13 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
 )
 
 // ChannelID channel id
+// Example: stable
+//
 // swagger:model channel_id
 type ChannelID string
 
@@ -31,5 +34,10 @@ func (m ChannelID) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+// ContextValidate validates this channel id based on context it is used
+func (m ChannelID) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

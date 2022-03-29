@@ -6,15 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
 )
 
 // QosClassID qos class id
+// Example: 9
+//
 // swagger:model qos_class_id
 type QosClassID int32
 
@@ -32,7 +34,7 @@ func init() {
 }
 
 func (m QosClassID) validateQosClassIDEnum(path, location string, value QosClassID) error {
-	if err := validate.Enum(path, location, value, qosClassIdEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, qosClassIdEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -50,5 +52,10 @@ func (m QosClassID) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+// ContextValidate validates this qos class id based on context it is used
+func (m QosClassID) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

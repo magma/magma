@@ -6,21 +6,23 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // Gy gy
+//
 // swagger:model gy
 type Gy struct {
 
 	// disable gy
+	// Example: false
 	DisableGy *bool `json:"disableGy,omitempty"`
 
 	// init method
@@ -80,14 +82,13 @@ func init() {
 
 // prop value enum
 func (m *Gy) validateInitMethodEnum(path, location string, value uint32) error {
-	if err := validate.Enum(path, location, value, gyTypeInitMethodPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, gyTypeInitMethodPropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *Gy) validateInitMethod(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.InitMethod) { // not required
 		return nil
 	}
@@ -101,7 +102,6 @@ func (m *Gy) validateInitMethod(formats strfmt.Registry) error {
 }
 
 func (m *Gy) validateServer(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Server) { // not required
 		return nil
 	}
@@ -110,6 +110,8 @@ func (m *Gy) validateServer(formats strfmt.Registry) error {
 		if err := m.Server.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("server")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("server")
 			}
 			return err
 		}
@@ -119,7 +121,6 @@ func (m *Gy) validateServer(formats strfmt.Registry) error {
 }
 
 func (m *Gy) validateServers(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Servers) { // not required
 		return nil
 	}
@@ -133,6 +134,8 @@ func (m *Gy) validateServers(formats strfmt.Registry) error {
 			if err := m.Servers[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("servers" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("servers" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
@@ -144,7 +147,6 @@ func (m *Gy) validateServers(formats strfmt.Registry) error {
 }
 
 func (m *Gy) validateVirtualApnRules(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.VirtualApnRules) { // not required
 		return nil
 	}
@@ -158,6 +160,86 @@ func (m *Gy) validateVirtualApnRules(formats strfmt.Registry) error {
 			if err := m.VirtualApnRules[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("virtual_apn_rules" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("virtual_apn_rules" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ContextValidate validate this gy based on the context it is used
+func (m *Gy) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateServer(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateServers(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateVirtualApnRules(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *Gy) contextValidateServer(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Server != nil {
+		if err := m.Server.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("server")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("server")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Gy) contextValidateServers(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.Servers); i++ {
+
+		if m.Servers[i] != nil {
+			if err := m.Servers[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("servers" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("servers" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *Gy) contextValidateVirtualApnRules(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.VirtualApnRules); i++ {
+
+		if m.VirtualApnRules[i] != nil {
+			if err := m.VirtualApnRules[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("virtual_apn_rules" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("virtual_apn_rules" + "." + strconv.Itoa(i))
 				}
 				return err
 			}

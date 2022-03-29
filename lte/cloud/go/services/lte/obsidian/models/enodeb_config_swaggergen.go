@@ -6,20 +6,22 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // EnodebConfig Configuration for managed / unmanaged eNodeb
+//
 // swagger:model enodeb_config
 type EnodebConfig struct {
 
 	// config type
+	// Example: MANAGED
 	// Required: true
 	// Enum: [MANAGED UNMANAGED]
 	ConfigType string `json:"config_type"`
@@ -76,7 +78,7 @@ const (
 
 // prop value enum
 func (m *EnodebConfig) validateConfigTypeEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, enodebConfigTypeConfigTypePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, enodebConfigTypeConfigTypePropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -84,7 +86,7 @@ func (m *EnodebConfig) validateConfigTypeEnum(path, location string, value strin
 
 func (m *EnodebConfig) validateConfigType(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("config_type", "body", string(m.ConfigType)); err != nil {
+	if err := validate.RequiredString("config_type", "body", m.ConfigType); err != nil {
 		return err
 	}
 
@@ -97,7 +99,6 @@ func (m *EnodebConfig) validateConfigType(formats strfmt.Registry) error {
 }
 
 func (m *EnodebConfig) validateManagedConfig(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ManagedConfig) { // not required
 		return nil
 	}
@@ -106,6 +107,8 @@ func (m *EnodebConfig) validateManagedConfig(formats strfmt.Registry) error {
 		if err := m.ManagedConfig.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("managed_config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("managed_config")
 			}
 			return err
 		}
@@ -115,7 +118,6 @@ func (m *EnodebConfig) validateManagedConfig(formats strfmt.Registry) error {
 }
 
 func (m *EnodebConfig) validateUnmanagedConfig(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.UnmanagedConfig) { // not required
 		return nil
 	}
@@ -124,6 +126,58 @@ func (m *EnodebConfig) validateUnmanagedConfig(formats strfmt.Registry) error {
 		if err := m.UnmanagedConfig.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("unmanaged_config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("unmanaged_config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this enodeb config based on the context it is used
+func (m *EnodebConfig) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateManagedConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateUnmanagedConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *EnodebConfig) contextValidateManagedConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.ManagedConfig != nil {
+		if err := m.ManagedConfig.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("managed_config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("managed_config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *EnodebConfig) contextValidateUnmanagedConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.UnmanagedConfig != nil {
+		if err := m.UnmanagedConfig.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("unmanaged_config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("unmanaged_config")
 			}
 			return err
 		}

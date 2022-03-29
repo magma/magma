@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // Tier tier
+//
 // swagger:model tier
 type Tier struct {
 
@@ -34,7 +36,7 @@ type Tier struct {
 
 	// version
 	// Required: true
-	Version TierVersion `json:"version"`
+	Version *TierVersion `json:"version"`
 }
 
 // Validate validates this tier
@@ -76,6 +78,8 @@ func (m *Tier) validateGateways(formats strfmt.Registry) error {
 	if err := m.Gateways.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("gateways")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("gateways")
 		}
 		return err
 	}
@@ -85,9 +89,15 @@ func (m *Tier) validateGateways(formats strfmt.Registry) error {
 
 func (m *Tier) validateID(formats strfmt.Registry) error {
 
+	if err := validate.Required("id", "body", TierID(m.ID)); err != nil {
+		return err
+	}
+
 	if err := m.ID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
 		}
 		return err
 	}
@@ -104,6 +114,8 @@ func (m *Tier) validateImages(formats strfmt.Registry) error {
 	if err := m.Images.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("images")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("images")
 		}
 		return err
 	}
@@ -112,7 +124,6 @@ func (m *Tier) validateImages(formats strfmt.Registry) error {
 }
 
 func (m *Tier) validateName(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Name) { // not required
 		return nil
 	}
@@ -120,6 +131,8 @@ func (m *Tier) validateName(formats strfmt.Registry) error {
 	if err := m.Name.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("name")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("name")
 		}
 		return err
 	}
@@ -129,11 +142,125 @@ func (m *Tier) validateName(formats strfmt.Registry) error {
 
 func (m *Tier) validateVersion(formats strfmt.Registry) error {
 
-	if err := m.Version.Validate(formats); err != nil {
+	if err := validate.Required("version", "body", m.Version); err != nil {
+		return err
+	}
+
+	if err := validate.Required("version", "body", m.Version); err != nil {
+		return err
+	}
+
+	if m.Version != nil {
+		if err := m.Version.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("version")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("version")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this tier based on the context it is used
+func (m *Tier) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateGateways(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateImages(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateName(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateVersion(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *Tier) contextValidateGateways(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Gateways.ContextValidate(ctx, formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("version")
+			return ve.ValidateName("gateways")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("gateways")
 		}
 		return err
+	}
+
+	return nil
+}
+
+func (m *Tier) contextValidateID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ID.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Tier) contextValidateImages(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Images.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("images")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("images")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Tier) contextValidateName(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Name.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("name")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("name")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Tier) contextValidateVersion(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Version != nil {
+		if err := m.Version.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("version")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("version")
+			}
+			return err
+		}
 	}
 
 	return nil

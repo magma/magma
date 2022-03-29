@@ -6,17 +6,18 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // PolicyRule policy rule
+//
 // swagger:model policy_rule
 type PolicyRule struct {
 
@@ -29,6 +30,7 @@ type PolicyRule struct {
 	AppServiceType string `json:"app_service_type,omitempty"`
 
 	// Subscribers which have been assigned this policy not as part of a base name
+	// Example: ["IMSI1234567890","IMSI0987654321"]
 	AssignedSubscribers []SubscriberID `json:"assigned_subscribers,omitempty"`
 
 	// flow list
@@ -40,9 +42,10 @@ type PolicyRule struct {
 
 	// id
 	// Required: true
-	ID PolicyID `json:"id"`
+	ID *PolicyID `json:"id"`
 
 	// monitoring key
+	// Example: SGVsbG8gV29ybGQ=
 	MonitoringKey string `json:"monitoring_key,omitempty"`
 
 	// priority
@@ -50,6 +53,7 @@ type PolicyRule struct {
 	Priority *uint32 `json:"priority"`
 
 	// ID of the QoS profile associated with this policy
+	// Example: profile0
 	QosProfile string `json:"qos_profile,omitempty"`
 
 	// rating group
@@ -194,14 +198,13 @@ const (
 
 // prop value enum
 func (m *PolicyRule) validateAppNameEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, policyRuleTypeAppNamePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, policyRuleTypeAppNamePropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *PolicyRule) validateAppName(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.AppName) { // not required
 		return nil
 	}
@@ -243,14 +246,13 @@ const (
 
 // prop value enum
 func (m *PolicyRule) validateAppServiceTypeEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, policyRuleTypeAppServiceTypePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, policyRuleTypeAppServiceTypePropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *PolicyRule) validateAppServiceType(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.AppServiceType) { // not required
 		return nil
 	}
@@ -264,7 +266,6 @@ func (m *PolicyRule) validateAppServiceType(formats strfmt.Registry) error {
 }
 
 func (m *PolicyRule) validateAssignedSubscribers(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.AssignedSubscribers) { // not required
 		return nil
 	}
@@ -274,6 +275,8 @@ func (m *PolicyRule) validateAssignedSubscribers(formats strfmt.Registry) error 
 		if err := m.AssignedSubscribers[i].Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("assigned_subscribers" + "." + strconv.Itoa(i))
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("assigned_subscribers" + "." + strconv.Itoa(i))
 			}
 			return err
 		}
@@ -298,6 +301,8 @@ func (m *PolicyRule) validateFlowList(formats strfmt.Registry) error {
 			if err := m.FlowList[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("flow_list" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("flow_list" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
@@ -310,11 +315,23 @@ func (m *PolicyRule) validateFlowList(formats strfmt.Registry) error {
 
 func (m *PolicyRule) validateID(formats strfmt.Registry) error {
 
-	if err := m.ID.Validate(formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("id")
-		}
+	if err := validate.Required("id", "body", m.ID); err != nil {
 		return err
+	}
+
+	if err := validate.Required("id", "body", m.ID); err != nil {
+		return err
+	}
+
+	if m.ID != nil {
+		if err := m.ID.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("id")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("id")
+			}
+			return err
+		}
 	}
 
 	return nil
@@ -330,7 +347,6 @@ func (m *PolicyRule) validatePriority(formats strfmt.Registry) error {
 }
 
 func (m *PolicyRule) validateRedirect(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Redirect) { // not required
 		return nil
 	}
@@ -339,6 +355,8 @@ func (m *PolicyRule) validateRedirect(formats strfmt.Registry) error {
 		if err := m.Redirect.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("redirect")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("redirect")
 			}
 			return err
 		}
@@ -376,14 +394,13 @@ const (
 
 // prop value enum
 func (m *PolicyRule) validateTrackingTypeEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, policyRuleTypeTrackingTypePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, policyRuleTypeTrackingTypePropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *PolicyRule) validateTrackingType(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.TrackingType) { // not required
 		return nil
 	}
@@ -391,6 +408,102 @@ func (m *PolicyRule) validateTrackingType(formats strfmt.Registry) error {
 	// value enum
 	if err := m.validateTrackingTypeEnum("tracking_type", "body", m.TrackingType); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this policy rule based on the context it is used
+func (m *PolicyRule) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateAssignedSubscribers(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateFlowList(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateRedirect(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *PolicyRule) contextValidateAssignedSubscribers(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.AssignedSubscribers); i++ {
+
+		if err := m.AssignedSubscribers[i].ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("assigned_subscribers" + "." + strconv.Itoa(i))
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("assigned_subscribers" + "." + strconv.Itoa(i))
+			}
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+func (m *PolicyRule) contextValidateFlowList(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.FlowList); i++ {
+
+		if m.FlowList[i] != nil {
+			if err := m.FlowList[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("flow_list" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("flow_list" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *PolicyRule) contextValidateID(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.ID != nil {
+		if err := m.ID.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("id")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("id")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *PolicyRule) contextValidateRedirect(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Redirect != nil {
+		if err := m.Redirect.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("redirect")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("redirect")
+			}
+			return err
+		}
 	}
 
 	return nil
