@@ -19,6 +19,26 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.8.0.tar.gz",
 )
 
+load("//bazel:python_toolchain.bzl", "configure_python_toolchain")
+
+configure_python_toolchain()
+
+load("//bazel:python_dependencies.bzl", "configure_python_dependencies")
+
+configure_python_dependencies()
+
+load("@python_deps//:requirements.bzl", "install_deps")
+
+install_deps()
+
+load("//bazel:python_swagger.bzl", "load_swagger_repositories")
+
+load_swagger_repositories()
+
+load("//bazel:python_repositories.bzl", "python_repositories")
+
+python_repositories()
+
 ### BUILDIFIER DEPENDENCIES
 # See https://github.com/bazelbuild/buildtools/blob/master/buildifier/README.md
 # buildifier is written in Go and hence needs rules_go to be built.
@@ -128,19 +148,3 @@ new_local_repository(
     build_file = "//bazel/external:system_libraries.BUILD",
     path = "/",
 )
-
-load("//bazel:python_dependencies.bzl", "configure_python_dependencies")
-
-configure_python_dependencies()
-
-load("@python_deps//:requirements.bzl", "install_deps")
-
-install_deps()
-
-load("//bazel:python_swagger.bzl", "load_swagger_repositories")
-
-load_swagger_repositories()
-
-load("//bazel:python_repositories.bzl", "python_repositories")
-
-python_repositories()
