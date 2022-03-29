@@ -40,7 +40,7 @@ func main() {
 	}
 	obsidian.AttachHandlers(srv.EchoServer, cbsd.GetHandlers())
 	obsidian.AttachHandlers(srv.EchoServer, dp_log.NewHandlersGetter(dp_log.GetElasticClient, "").GetHandlers())
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(dp_service.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger_servicers.NewSpecServicerFromFile(dp_service.ServiceName))
 
 	var serviceConfig dp_service.Config
 	config.MustGetStructuredServiceConfig(dp.ModuleName, dp_service.ServiceName, &serviceConfig)

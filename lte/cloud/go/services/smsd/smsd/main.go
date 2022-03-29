@@ -52,7 +52,7 @@ func main() {
 	obsidian.AttachHandlers(srv.EchoServer, restServicer.GetHandlers())
 	protos.RegisterSmsDServer(srv.GrpcServer, smsd_servicer.NewSMSDServicer(store, &sms_ll.DefaultSMSSerde{}))
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(smsd.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger_servicers.NewSpecServicerFromFile(smsd.ServiceName))
 
 	err = srv.Run()
 	if err != nil {

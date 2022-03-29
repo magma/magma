@@ -113,7 +113,7 @@ func main() {
 	certprotos.RegisterCertifierServer(srv.ProtectedGrpcServer, servicer)
 
 	// Add handlers that manages users to Swagger
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(certifier.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger_servicers.NewSpecServicerFromFile(certifier.ServiceName))
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 
 	// Start Garbage Collector Ticker

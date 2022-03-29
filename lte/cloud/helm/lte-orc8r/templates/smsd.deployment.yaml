@@ -36,6 +36,8 @@ args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/smsd", "-run_echo_server=tru
 ports:
   - name: grpc
     containerPort: 9120
+  - name: grpc-internal
+    containerPort: 9220
   - name: http
     containerPort: 10086
 livenessProbe:

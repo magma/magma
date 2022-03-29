@@ -14,6 +14,7 @@ services:
   cwf:
     host: "localhost"
     port: 9115
+    protected_port: 9215
     echo_port: 10115
     proxy_type: "clientcert"
     labels:

@@ -52,7 +52,7 @@ func main() {
 
 	// Init gRPC servicer
 	protos.RegisterCallTraceControllerServer(srv.GrpcServer, servicers.NewCallTraceServicer(ctracedBlobstore))
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(ctraced.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger_servicers.NewSpecServicerFromFile(ctraced.ServiceName))
 
 	gwClient := handlers.NewGwCtracedClient()
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers(gwClient, ctracedBlobstore))
