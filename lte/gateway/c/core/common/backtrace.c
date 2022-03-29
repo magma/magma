@@ -28,14 +28,30 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
-/*! \file common_dim.h
-  \brief
-  \author Sebastien ROUX, Lionel Gauthier
-  \company Eurecom
-  \email: lionel.gauthier@eurecom.fr
-*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <execinfo.h>
 
-#ifndef FILE_COMMON_DIM_SEEN
-#define FILE_COMMON_DIM_SEEN
+#include "lte/gateway/c/core/common/backtrace.h"
 
-#endif /* FILE_COMMON_DIM_SEEN */
+/* Obtain a backtrace and print it to stdout. */
+void display_backtrace(void) {
+  void* array[10];
+  size_t size;
+  char** strings;
+  size_t i;
+
+  size = backtrace(array, 10);
+  strings = backtrace_symbols(array, size);
+  printf("Obtained %zd stack frames.\n", size);
+
+  for (i = 0; i < size; i++) printf("%s\n", strings[i]);
+
+  free(strings);
+}
+
+void backtrace_handle_signal(siginfo_t* info) {
+  display_backtrace();
+  // exit(EXIT_FAILURE);
+}

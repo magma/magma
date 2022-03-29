@@ -19,9 +19,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark3.h"
 
 int decode_mobile_station_classmark_3(

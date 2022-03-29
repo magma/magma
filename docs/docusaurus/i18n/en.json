@@ -126,6 +126,9 @@
       "howtos/inbound_roaming": {
         "title": "Inbound Roaming"
       },
+      "howtos/ipv6_agw": {
+        "title": "(Experimental) Configure IPv6 AGW"
+      },
       "howtos/l3_transport": {
         "title": "L3 transport for AGW"
       },
@@ -500,6 +503,9 @@
       },
       "proposals/p024_magma_settlement_service": {
         "title": "proposals/p024_magma_settlement_service"
+      },
+      "proposals/p025_magma_cdr_availability": {
+        "title": "proposals/p025_magma_cdr_availability"
       },
       "proposals/p026_magma_inbound_roaming_extentions": {
         "title": "proposals/p026_magma_inbound_roaming_extentions"

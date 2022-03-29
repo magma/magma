@@ -13,7 +13,7 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachAccept.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.h"

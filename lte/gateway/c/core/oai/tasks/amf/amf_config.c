@@ -13,9 +13,9 @@
 #include <libconfig.h>
 #include "lte/gateway/c/core/oai/common/log.h"
 #include <errno.h>
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/amf_default_values.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/amf_config.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
@@ -59,6 +59,7 @@ void nas5g_config_init(nas5g_config_t* nas_conf) {
   nas_conf->t3586_sec = T3586_DEFAULT_VALUE;
   nas_conf->t3589_sec = T3589_DEFAULT_VALUE;
   nas_conf->t3595_sec = T3595_DEFAULT_VALUE;
+  nas_conf->implicit_dereg_sec = IMPLICIT_DEREG_TIMER;
   nas_conf->force_reject_tau = true;
   nas_conf->force_reject_sr = true;
   nas_conf->disable_esm_information = false;

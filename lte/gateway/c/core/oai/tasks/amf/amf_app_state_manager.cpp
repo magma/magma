@@ -14,15 +14,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/map.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
 
 using magma::lte::oai::MmeNasState;
 namespace magma5g {
@@ -113,8 +113,6 @@ int AmfNasStateManager::initialize_state(const amf_config_t* amf_config_p) {
 #endif
   read_state_from_db();
   read_ue_state_from_db();
-  // TODO(panyogesh): This should be removed as part of fixing global tables
-  amf_sync_app_maps_from_db();
   is_initialized = true;
   return rc;
 }
@@ -167,8 +165,6 @@ amf_app_desc_t* AmfNasStateManager::get_state(bool read_from_redis) {
   if (persist_state_enabled && read_from_redis) {
     read_state_from_db();
     read_ue_state_from_db();
-    // TODO(panyogesh): This should be removed as part of fixing global tables
-    amf_sync_app_maps_from_db();
   }
   return state_cache_p;
 }

@@ -1,7 +1,6 @@
 {{- if .Values.dp.create -}}
 {{- $fullName := include "domain-proxy.fullname" . -}}
 {{- $secret := printf "%s-%s" $fullName "cc-ca" -}}
-{{- if not (lookup "v1" "Secret" .Release.Namespace $secret) -}}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -11,5 +10,4 @@ data:
 {{- $pathca := printf "%s" .Values.dp.configuration_controller.tlsConfig.paths.ca }}
   ca.crt: |
 {{ (.Files.Get $pathca) | b64enc | indent 4 }}
-{{- end -}}
 {{- end }}

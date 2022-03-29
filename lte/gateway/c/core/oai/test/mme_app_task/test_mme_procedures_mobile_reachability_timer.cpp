@@ -32,6 +32,12 @@ TEST_F(MmeAppProcedureTest, TestMobileReachabilityTimer) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
+  // Reduce timer 3412 duration for testing since mobile reachability
+  // and implicit detach timers are calculated from that
+  mme_config.nas_config.t3412_min = 1;
+  mme_config.nas_config.t3412_msec =
+      50 * MME_APP_TIMER_TO_MSEC;  // implicit detach after 2x of this value
+
   MME_APP_EXPECT_CALLS(3, 1, 2, 1, 1, 1, 1, 1, 1, 1, 3);
 
   // Attach the UE

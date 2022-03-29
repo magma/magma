@@ -16,6 +16,7 @@
           "howtos/5g_nsa_support",
           "howtos/call_tracing",
           "howtos/events_monitoring",
+          "howtos/ipv6_agw",
           "howtos/he_api",
           "howtos/inbound_roaming",
           "howtos/pcap",

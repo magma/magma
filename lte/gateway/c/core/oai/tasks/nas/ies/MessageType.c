@@ -17,7 +17,7 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
 
 //------------------------------------------------------------------------------
