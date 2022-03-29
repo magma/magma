@@ -478,7 +478,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         # This is done primarily for CWF integration tests, TODO rm
         self.total_usage = current_usage
         # Report only if their is no change in version
-        if self.ng_config.ng_service_enabled == True:
+        if self.ng_config.ng_service_enabled:
             self._prepare_session_config_report(stats_msgs)
 
     def deactivate_default_flow(self, imsi, ip_addr, local_f_teid_ng=0):
@@ -786,7 +786,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     subscriber_id=sid,
                     session_version=rule_version,
                     local_f_teid=local_f_teid_ng,
-                    )
+                )
 
         SessionStateManager.report_session_config_state(
             session_config_dict,

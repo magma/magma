@@ -16,6 +16,7 @@ limitations under the License.
 import argparse
 
 from lte.protos.enodebd_pb2 import (
+    DownloadRequest,
     EnodebIdentity,
     GetParameterRequest,
     SetParameterRequest,
@@ -75,6 +76,27 @@ def reboot_enodeb(client, args):
 @grpc_wrapper
 def reboot_all_enodeb(client, args):
     client.RebootAll(Void())
+
+
+@grpc_wrapper
+def download_enodeb(client, args):
+    req = DownloadRequest()
+    req.device_serial = args.device_serial
+    req.url = args.url
+    req.user_name = args.user_name
+    req.password = args.password
+    req.file_size = args.file_size
+    req.md5 = args.md5
+    req.target_file_name = args.target_file_name
+    client.Download(req)
+
+
+@grpc_wrapper
+def factory_reset_enodeb(client, args):
+    """ impl the command line method Send FactoryReset requeset to CPE """
+    req = EnodebIdentity()
+    req.device_serial = args.device_serial
+    client.FactoryReset(req)
 
 
 @grpc_wrapper
@@ -167,6 +189,12 @@ def get_enb_status(client, args):
     _print_str_status_line('GPS Longitude', enb_status.gps_longitude)
     _print_str_status_line('GPS Latitude', enb_status.gps_latitude)
     _print_str_status_line('FSM State', enb_status.fsm_state)
+    _print_str_status_line('GPS Aititude', enb_status.gps_altitude)
+    _print_str_status_line('Vendor', enb_status.vendor)
+    _print_str_status_line('Model Name', enb_status.model_name)
+    _print_prop_status_line('RF State', enb_status.rf_state)
+    _print_str_status_line('SW Version', enb_status.sw_version)
+    _print_str_status_line('Uptime', enb_status.uptime)
 
 
 def _print_prop_status_line(header: str, value: int) -> None:
@@ -264,6 +292,39 @@ def create_parser():
     parser_get_enb_status.add_argument(
         'device_serial', help='eNodeB Serial ID',
     )
+    parser_download_enodeb = subparsers.add_parser(
+        'download_enodeb', help='eNodeb Download',
+    )
+    parser_download_enodeb.add_argument(
+        '-device_serial', help='eNodeB Serial ID',
+    )
+    parser_download_enodeb.add_argument(
+        '--file_type', default='1 Firmware Upgrade Image', help='the file type',
+    )
+    parser_download_enodeb.add_argument(
+        '-url', help='download from the http server url',
+    )
+    parser_download_enodeb.add_argument(
+        '-user_name', help='download user account',
+    )
+    parser_download_enodeb.add_argument(
+        '-password', help='download user password',
+    )
+    parser_download_enodeb.add_argument(
+        '-file_size', help='download file size',
+    )
+    parser_download_enodeb.add_argument(
+        '-target_file_name', help='download target file name',
+    )
+    parser_download_enodeb.add_argument(
+        '-md5', help='download file MD5',
+    )
+    parser_factory_reset_enodeb = subparsers.add_parser(
+        'factory_reset_enodeb', help='Factory Reset eNodeb',
+    )
+    parser_factory_reset_enodeb.add_argument(
+        'device_serial', help='eNodeB Serial ID',
+    )
 
     # Add function callbacks
     parser_get_parameter.set_defaults(func=get_parameter)
@@ -274,6 +335,8 @@ def create_parser():
     parser_get_status.set_defaults(func=get_status)
     parser_get_all_status.set_defaults(func=get_all_status)
     parser_get_enb_status.set_defaults(func=get_enb_status)
+    parser_download_enodeb.set_defaults(func=download_enodeb)
+    parser_factory_reset_enodeb.set_defaults(func=factory_reset_enodeb)
     return parser
 
 

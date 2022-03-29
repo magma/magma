@@ -30,9 +30,7 @@ class BaicellsQAFBHandlerTests(EnodebHandlerTestCase):
         This checks the scenario where the command is not sent in the middle
         of a TR-069 provisioning session.
         """
-        acs_state_machine = \
-            EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
 
         # User uses the CLI tool to get eNodeB to reboot
         acs_state_machine.reboot_asap()
@@ -74,9 +72,7 @@ class BaicellsQAFBHandlerTests(EnodebHandlerTestCase):
         This checks the scenario where the command is sent in the middle
         of a TR-069 provisioning session.
         """
-        acs_state_machine = \
-            EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = \
@@ -118,6 +114,47 @@ class BaicellsQAFBHandlerTests(EnodebHandlerTestCase):
             isinstance(resp, models.DummyInput),
             'State machine should end TR-069 session after '
             'receiving a RebootResponse',
+        )
+
+    def test_manual_factory_reset(self) -> None:
+        """
+        Test a scenario where a Magma user goes through the enodebd CLI to
+        reboot the BAICELLS_RTS eNodeB.
+        This checks the scenario where the command is not sent in the middle
+        of a TR-069 provisioning session.
+        """
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
+
+        # User uses the CLI tool to get eNodeB to reboot
+        acs_state_machine.factory_reset_asap()
+
+        # And now the Inform message arrives from the eNodeB
+        inform_msg = \
+            Tr069MessageBuilder.get_qafb_inform(
+                '48BF74',
+                'BaiBS_QAFBv123',
+                '1202000181186TB0006',
+                ['2 PERIODIC'],
+            )
+        resp = acs_state_machine.handle_tr069_message(inform_msg)
+        self.assertTrue(
+            isinstance(resp, models.InformResponse),
+            'In FactoryReset sequence, state machine should still '
+            'respond to an Inform with InformResponse.',
+        )
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(
+            isinstance(resp, models.FactoryReset),
+            'In FactoryReset sequence, state machine should send a '
+            'FactoryReset message.',
+        )
+        req = Tr069MessageBuilder.get_factory_reset_response()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(
+            isinstance(resp, models.DummyInput),
+            'State machine should end TR-069 session after '
+            'receiving a FactoryResetResponse',
         )
 
     def test_provision(self) -> None:
@@ -193,9 +230,7 @@ class BaicellsQAFBHandlerTests(EnodebHandlerTestCase):
 
         Verifies that the ACS will continue into provisioning
         """
-        acs_state_machine = \
-            EnodebAcsStateMachineBuilder\
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = \

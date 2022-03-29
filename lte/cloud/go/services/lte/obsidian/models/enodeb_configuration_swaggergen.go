@@ -7,6 +7,7 @@ package models
 
 import (
 	"encoding/json"
+	"strconv"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -30,16 +31,39 @@ type EnodebConfiguration struct {
 
 	// device class
 	// Required: true
-	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells Neutrino 224 ID FDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE FreedomFi One]
+	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells Nova-246 OD FDD Baicells Neutrino 224 ID FDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE FreedomFi One]
 	DeviceClass string `json:"device_class"`
 
 	// earfcndl
 	Earfcndl uint32 `json:"earfcndl,omitempty"`
 
+	// ho algorithm config
+	HoAlgorithmConfig *HoAlgorithmConfiguration `json:"ho_algorithm_config,omitempty"`
+
+	// management server
+	ManagementServer *ManagementServer `json:"managementServer,omitempty"`
+
+	// mme pool 1
+	// Format: ipv4
+	MmePool1 strfmt.IPv4 `json:"mme_pool_1,omitempty"`
+
+	// mme pool 2
+	// Format: ipv4
+	MmePool2 strfmt.IPv4 `json:"mme_pool_2,omitempty"`
+
+	// neighbor cell list
+	NeighborCellList []*NeighborCell `json:"neighbor_cell_list"`
+
+	// neighbor frequency list
+	NeighborFrequencyList []*NeighborFrequency `json:"neighbor_frequency_list"`
+
 	// pci
 	// Maximum: 503
 	// Minimum: > 0
 	Pci uint32 `json:"pci,omitempty"`
+
+	// power control
+	PowerControl *PowerControl `json:"power_control,omitempty"`
 
 	// special subframe pattern
 	// Maximum: 9
@@ -49,6 +73,9 @@ type EnodebConfiguration struct {
 	// Maximum: 6
 	SubframeAssignment uint32 `json:"subframe_assignment,omitempty"`
 
+	// sync 1588
+	Sync1588 *Sync1588 `json:"sync_1588,omitempty"`
+
 	// tac
 	// Maximum: 65535
 	// Minimum: 1
@@ -57,6 +84,9 @@ type EnodebConfiguration struct {
 	// transmit enabled
 	// Required: true
 	TransmitEnabled *bool `json:"transmit_enabled"`
+
+	// X2 status.
+	X2EnableDisable *bool `json:"x2_enable_disable,omitempty"`
 }
 
 // Validate validates this enodeb configuration
@@ -75,7 +105,35 @@ func (m *EnodebConfiguration) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateHoAlgorithmConfig(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateManagementServer(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMmePool1(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMmePool2(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateNeighborCellList(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateNeighborFrequencyList(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validatePci(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validatePowerControl(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -84,6 +142,10 @@ func (m *EnodebConfiguration) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateSubframeAssignment(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSync1588(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -152,7 +214,7 @@ var enodebConfigurationTypeDeviceClassPropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["Baicells Nova-233 G2 OD FDD","Baicells Nova-243 OD TDD","Baicells Neutrino 224 ID FDD","Baicells ID TDD/FDD","NuRAN Cavium OC-LTE","FreedomFi One"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["Baicells Nova-233 G2 OD FDD","Baicells Nova-243 OD TDD","Baicells Nova-246 OD FDD","Baicells Neutrino 224 ID FDD","Baicells ID TDD/FDD","NuRAN Cavium OC-LTE","FreedomFi One"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -167,6 +229,9 @@ const (
 
 	// EnodebConfigurationDeviceClassBaicellsNova243ODTDD captures enum value "Baicells Nova-243 OD TDD"
 	EnodebConfigurationDeviceClassBaicellsNova243ODTDD string = "Baicells Nova-243 OD TDD"
+
+	// EnodebConfigurationDeviceClassBaicellsNova246ODFDD captures enum value "Baicells Nova-246 OD FDD"
+	EnodebConfigurationDeviceClassBaicellsNova246ODFDD string = "Baicells Nova-246 OD FDD"
 
 	// EnodebConfigurationDeviceClassBaicellsNeutrino224IDFDD captures enum value "Baicells Neutrino 224 ID FDD"
 	EnodebConfigurationDeviceClassBaicellsNeutrino224IDFDD string = "Baicells Neutrino 224 ID FDD"
@@ -203,6 +268,118 @@ func (m *EnodebConfiguration) validateDeviceClass(formats strfmt.Registry) error
 	return nil
 }
 
+func (m *EnodebConfiguration) validateHoAlgorithmConfig(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.HoAlgorithmConfig) { // not required
+		return nil
+	}
+
+	if m.HoAlgorithmConfig != nil {
+		if err := m.HoAlgorithmConfig.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("ho_algorithm_config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *EnodebConfiguration) validateManagementServer(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ManagementServer) { // not required
+		return nil
+	}
+
+	if m.ManagementServer != nil {
+		if err := m.ManagementServer.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("managementServer")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *EnodebConfiguration) validateMmePool1(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.MmePool1) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("mme_pool_1", "body", "ipv4", m.MmePool1.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *EnodebConfiguration) validateMmePool2(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.MmePool2) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("mme_pool_2", "body", "ipv4", m.MmePool2.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *EnodebConfiguration) validateNeighborCellList(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.NeighborCellList) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.NeighborCellList); i++ {
+		if swag.IsZero(m.NeighborCellList[i]) { // not required
+			continue
+		}
+
+		if m.NeighborCellList[i] != nil {
+			if err := m.NeighborCellList[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("neighbor_cell_list" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *EnodebConfiguration) validateNeighborFrequencyList(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.NeighborFrequencyList) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.NeighborFrequencyList); i++ {
+		if swag.IsZero(m.NeighborFrequencyList[i]) { // not required
+			continue
+		}
+
+		if m.NeighborFrequencyList[i] != nil {
+			if err := m.NeighborFrequencyList[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("neighbor_frequency_list" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
 func (m *EnodebConfiguration) validatePci(formats strfmt.Registry) error {
 
 	if swag.IsZero(m.Pci) { // not required
@@ -215,6 +392,24 @@ func (m *EnodebConfiguration) validatePci(formats strfmt.Registry) error {
 
 	if err := validate.MaximumInt("pci", "body", int64(m.Pci), 503, false); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *EnodebConfiguration) validatePowerControl(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.PowerControl) { // not required
+		return nil
+	}
+
+	if m.PowerControl != nil {
+		if err := m.PowerControl.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("power_control")
+			}
+			return err
+		}
 	}
 
 	return nil
@@ -241,6 +436,24 @@ func (m *EnodebConfiguration) validateSubframeAssignment(formats strfmt.Registry
 
 	if err := validate.MaximumInt("subframe_assignment", "body", int64(m.SubframeAssignment), 6, false); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *EnodebConfiguration) validateSync1588(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Sync1588) { // not required
+		return nil
+	}
+
+	if m.Sync1588 != nil {
+		if err := m.Sync1588.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("sync_1588")
+			}
+			return err
+		}
 	}
 
 	return nil

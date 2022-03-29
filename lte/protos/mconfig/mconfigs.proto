@@ -39,7 +39,7 @@ message SentryConfig {
     float sample_rate = 4;
     // message patterns that are excluded from Sentry (regex substring match)
     repeated string exclusion_patterns = 5;
-    // number_of_lines_in_log defines the number of lines from the 
+    // number_of_lines_in_log defines the number of lines from the
     // journal log that is uploaded with every crash report
     uint32 number_of_lines_in_log = 6;
 }
@@ -77,6 +77,132 @@ message EnodebD {
         int32 tac = 8;
         int32 cell_id = 9;
         string ip_address = 10;
+        message PowerControl {
+          // Comma-separated list (maximum list length 512) (at least 1 items)
+          // of strings. Each item is a downlink reference-signal transmit
+          // power, specified in dBm, with a numeric range between -60 and
+          // 50 inclusive.
+          int32 reference_signal_power = 1;
+          // Power level
+          uint32 power_class = 2;
+          // Comma-separated list (maximum list length 32) (at least 1 items)
+          // of strings.
+          uint32 pb = 3;
+          // Comma-separated list (maximum list length 64) (at least 1 items)
+          // of integers (value -600, -477, -300, -177, 0, 100, 200, or 300)
+          int32 pa = 4;
+        }
+        PowerControl power_control = 11;
+        // X2 Status
+        bool x2_enable_disable = 12;
+        string mme_ip = 13;
+        message HoAlgorithmConfig {
+            // ho algorithm config
+            uint32 a1_threshold_rsrp = 1;
+            int32 lte_a1_threshold_rsrq = 2;
+            int32 hysteresis = 3;
+            string time_to_trigger = 4;
+            int32 a2_threshold_rsrp = 5;
+            int32 lte_a2_threshold_rsrq = 6;
+            int32 lte_a2_threshold_rsrp_irat_volte = 7;
+            int32 lte_a2_threshold_rsrq_irat_volte = 8;
+            int32 a3_offset = 9;
+            int32 a3_offset_anr = 10;
+            int32 a4_threshold_rsrp = 11;
+            int32 lte_intra_a5_threshold_1_rsrp = 12;
+            int32 lte_intra_a5_threshold_2_rsrp = 13;
+            uint32 b2_threshold1_rsrp = 14;
+            int32 b2_threshold2_rsrp = 15;
+            uint32 b2_geran_irat_threshold = 16;
+            int32 qrxlevmin_selection = 17;
+            uint32 qrxlevminoffset = 18;
+            uint32 s_intrasearch = 19;
+            uint32 s_nonintrasearch = 20;
+            int32 qrxlevmin_reselection = 21;
+            uint32 reselection_priority = 22;
+            uint32 threshservinglow = 23;
+            string ciphering_algorithm = 24;
+            string integrity_algorithm = 25;
+            int32 lte_inter_anr_a5_threshold_1_rsrp = 26;
+            int32 lte_inter_anr_a5_threshold_2_rsrp = 27;
+        }
+        HoAlgorithmConfig ho_algorithm_config = 14;
+        string mme_pool_1 = 15;
+        string mme_pool_2 = 16;
+        //management server config
+        message ManagementServerConfig {
+            string management_server_host = 1;
+            uint32 management_server_port = 2;
+            bool management_server_ssl_enable = 3;
+        }
+        ManagementServerConfig management_server_config = 17;
+        //sync 1588 config
+        message Sync1588Config {
+            bool sync_1588_switch = 1;
+            int32 sync_1588_domain = 2;
+            int32 sync_1588_msg_interval = 3;
+            int32 sync_1588_delay_rq_msg_interval = 4;
+            uint32 sync_1588_holdover = 5;
+            uint32 sync_1588_asymmetry = 6;
+            bool sync_1588_unicast_enable = 7;
+            string sync_1588_unicast_serverIp = 8;
+        }
+        Sync1588Config sync_1588_config = 18;
+        // EnodeB Device Neighbor Freq parameters.
+        message neighbor_freq_table {
+          // Neighbor freq index
+          uint32 index = 1;
+          // Neighbor Freq E-UTRA Absolute Radio Frequency Channel Number
+          uint32 earfcn = 2;
+          // Q offset range for neighbor cell.
+          int32 q_offset_range = 3;
+          // Minimum required quality measure, spec in db. See Section 10.3.2.3
+          int32 q_rx_lev_min_sib5 = 4;
+          // Used to limit the allowed UE uplink tr power on the serving freq.
+          int32 p_max = 5;
+          // The E-UTRA parameter.
+          uint32 t_reselection_eutra = 6;
+          // Scaling factor for intra-frequency TreselectionEUTRA in
+          // Medium-mobility state. The value of TReselectionEUTRASFMedium
+          // divided by 100 yields the actual SF value.
+          uint32 t_reselection_eutra_sf_medium = 7;
+          // Threshold used when re-selecting from a lower priority
+          // E-UTRAN frequency, specified in dB
+          uint32 resel_thresh_high = 8;
+          // Threshold used when re-selecting from a higher priority
+          // E-UTRAN frequency, specified in dB
+          uint32 resel_thresh_low = 9;
+          // Absolute priority of this E-UTRA frequency carrier, as used
+          // by the inter-frequency cell re-selection procedure.
+          uint32 reselection_priority = 10;
+          // Neighbor enable and disable parameter.
+          bool enable = 11;
+        }
+        map <string, neighbor_freq_table> neighbor_freq_list = 19;
+        // EnodeB Device Neighbor Cell parameters.
+        // https://usp-data-models.broadband-forum.org/tr-196-2-1-1-usp.html#D.
+        // FAPService:2.FAPService.{i}.CellConfig.UMTS.RAN.NeighborList.
+        message neighbor_cell_table {
+          // Neighbor Cell Object index.
+          uint32 index = 1;
+          // Enodeb Neighbor Cell PLMN ID Consists of MCC and MNC.
+          string plmn = 2;
+          // Enodeb Neighbor Cell Identifier that identifies a cell.
+          uint32 cell_id = 3;
+          // Cell individual offset applicable to a spec neighbor cell.
+          uint32 earfcn = 4;
+          // Physical Cell ID for Neighbor cell.
+          uint32 pci = 5;
+          // Tacking Area Code for LTE FAT as spec in SIB1 message.
+          uint32 tac = 6;
+          // Enodeb Neighbor Cell Q Offset Parameter..
+          int32 q_offset = 7;
+          // Cell individual offset applicable to a specific neighboring cell.
+          int32 cio = 8;
+          // Enodeb Neighbor Cell enable and disable.
+          bool enable = 9;
+        }
+        map <string, neighbor_cell_table> neighbor_cell_list = 20;
     }
 
     orc8r.LogLevel log_level = 1;

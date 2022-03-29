@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from collections import namedtuple
+from datetime import datetime
 from typing import Any, List, Optional
 
 from magma.enodebd.tr069 import models
@@ -533,6 +534,10 @@ class Tr069MessageBuilder:
         return msg
 
     @classmethod
+    def get_factory_reset_response(cls) -> models.FactoryResetResponse:
+        return models.FactoryResetResponse()
+
+    @classmethod
     def get_regular_param_values_response(
         cls,
         admin_state: bool = False,
@@ -1053,3 +1058,11 @@ class Tr069MessageBuilder:
     @classmethod
     def get_reboot_response(cls) -> models.RebootResponse:
         return models.RebootResponse()
+
+    @classmethod
+    def get_download_response(cls) -> models.DownloadResponse:
+        msg = models.DownloadResponse()
+        msg.Status = 0
+        msg.StartTime = datetime.now()
+        msg.CompleteTime = datetime.now()
+        return msg
