@@ -1422,8 +1422,19 @@ TEST_F(NgapFlowTest, NgapHandleSctpDisconnection) {
   // To test SCTP Shutdown for NGAP
   bool reset = false;
 
+  gnb_description_t* gnb_association = NULL;
+  gnb_association = ngap_state_get_gnb(state, peerInfo.assoc_id);
+  ASSERT_TRUE(gnb_association != NULL);
+  EXPECT_EQ(gnb_association->ng_state, NGAP_INIT);
+  gnb_association->nb_ue_associated = 1;
+
   EXPECT_EQ(ngap_handle_sctp_disconnection(state, peerInfo.assoc_id, reset),
             RETURNok);
+
+  gnb_description_t* gnb_association_sd = NULL;
+  gnb_association_sd = ngap_state_get_gnb(state, peerInfo.assoc_id);
+  ASSERT_TRUE(gnb_association_sd != NULL);
+  EXPECT_EQ(gnb_association_sd->ng_state, NGAP_SHUTDOWN);
 }
 
 }  // namespace magma5g
