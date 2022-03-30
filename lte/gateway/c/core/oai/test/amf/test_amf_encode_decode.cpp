@@ -193,8 +193,6 @@ TEST_F(AmfNas5GTest, test_amf_ue_register_req_msg) {
   // UE security capabilities
   EXPECT_EQ(reg_request.ue_sec_capability.iei, 0x2e);
 
-  EXPECT_EQ(reg_request.ue_sec_capability.length, 0x08);
-
   EXPECT_EQ(reg_request.ue_sec_capability.ea, 0x80);
 
   EXPECT_EQ(reg_request.ue_sec_capability.ia, 0x20);
