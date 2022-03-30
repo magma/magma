@@ -103,7 +103,7 @@ func main() {
 		analytics_service.GetAnalyticsCalculations(&serviceConfig),
 		nil,
 	)
-	analytics_protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
+	analytics_protos.RegisterAnalyticsCollectorServer(srv.ProtectedGrpcServer, collectorServicer)
 
 	// Register servicer
 	servicer, err := servicers.NewCertifierServer(store, caMap)

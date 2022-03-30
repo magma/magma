@@ -82,7 +82,7 @@ func main() {
 		analytics_service.GetAnalyticsCalculations(&serviceConfig.Analytics),
 		nil,
 	)
-	analytics_protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
+	analytics_protos.RegisterAnalyticsCollectorServer(srv.ProtectedGrpcServer, collectorServicer)
 
 	err = srv.Run()
 	if err != nil {

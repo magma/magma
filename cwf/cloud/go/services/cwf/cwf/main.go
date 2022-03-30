@@ -55,7 +55,7 @@ func main() {
 	calcs := cwf_analytics.GetAnalyticsCalculations(&serviceConfig.Analytics)
 	userStateManager := calculations.NewUserStateManager(promQLClient, "active_sessions")
 	collectorServicer := analytics_servicer.NewCollectorServicer(&serviceConfig.Analytics, promQLClient, calcs, userStateManager)
-	protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
+	protos.RegisterAnalyticsCollectorServer(srv.ProtectedGrpcServer, collectorServicer)
 
 	err = srv.Run()
 	if err != nil {

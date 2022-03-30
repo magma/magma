@@ -118,7 +118,7 @@ func getRemoteCollectors() ([]protos.AnalyticsCollectorClient, error) {
 
 	var collectorClientList []protos.AnalyticsCollectorClient
 	for _, s := range services {
-		conn, err := registry.GetConnection(s, lib_protos.ServiceType_SOUTHBOUND)
+		conn, err := registry.GetConnection(s, lib_protos.ServiceType_PROTECTED)
 		if err != nil {
 			glog.Errorf("Unable to get a remote connection %s error %v", s, err)
 			continue
