@@ -35,7 +35,7 @@ service HSSConfigurator {
   // Updates an existing subscriber.
   // Throws NOT_FOUND if the subscriber is missing.
   //
-  rpc UpdateSubscriber (lte.SubscriberData) returns (orc8r.Void) {}
+  rpc UpdateSubscriber (lte.SubscriberUpdate) returns (orc8r.Void) {}
 
   // Returns the SubscriberData for a subscriber.
   // Throws NOT_FOUND if the subscriber is missing.

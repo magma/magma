@@ -15,6 +15,7 @@ package servicers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/emakeev/milenage"
@@ -92,8 +93,12 @@ func (srv *HomeSubscriberServer) GetSubscriberData(ctx context.Context, req *lte
 // UpdateSubscriber changes the data stored for an existing subscriber.
 // If the subscriber cannot be found, an error is returned instead.
 // Input: The new subscriber data to store
-func (srv *HomeSubscriberServer) UpdateSubscriber(ctx context.Context, req *lteprotos.SubscriberData) (*protos.Void, error) {
-	err := srv.store.UpdateSubscriber(req)
+func (srv *HomeSubscriberServer) UpdateSubscriber(ctx context.Context, req *lteprotos.SubscriberUpdate) (*protos.Void, error) {
+	if req == nil {
+		return &protos.Void{}, fmt.Errorf("UpdateSubscriber got a nil request")
+	}
+	sub := req.Data
+	err := srv.store.UpdateSubscriber(sub)
 	err = storage.ConvertStorageErrorToGrpcStatus(err)
 	return &protos.Void{}, err
 }

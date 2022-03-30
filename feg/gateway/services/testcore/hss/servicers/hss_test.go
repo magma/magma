@@ -96,15 +96,15 @@ func TestHomeSubscriberServer_UpdateSubscriber(t *testing.T) {
 	server := test_utils.NewTestHomeSubscriberServer(t)
 
 	_, err := server.UpdateSubscriber(context.Background(), nil)
-	assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = Subscriber data cannot be nil")
+	assert.EqualError(t, err, "UpdateSubscriber got a nil request")
 
 	sub := &protos.SubscriberData{}
-	_, err = server.UpdateSubscriber(context.Background(), sub)
+	_, err = server.UpdateSubscriber(context.Background(), &protos.SubscriberUpdate{Data: sub})
 	assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = Subscriber data must contain a subscriber id")
 
 	id := &protos.SubscriberID{Id: "1"}
 	sub = &protos.SubscriberData{Sid: id}
-	_, err = server.UpdateSubscriber(context.Background(), sub)
+	_, err = server.UpdateSubscriber(context.Background(), &protos.SubscriberUpdate{Data: sub})
 	assert.EqualError(t, err, "rpc error: code = NotFound desc = Subscriber '1' not found")
 
 	_, err = server.AddSubscriber(context.Background(), sub)
@@ -114,7 +114,7 @@ func TestHomeSubscriberServer_UpdateSubscriber(t *testing.T) {
 		Sid:        id,
 		SubProfile: "test",
 	}
-	_, err = server.UpdateSubscriber(context.Background(), updatedSub)
+	_, err = server.UpdateSubscriber(context.Background(), &protos.SubscriberUpdate{Data: updatedSub})
 	assert.NoError(t, err)
 
 	retreivedSub, err := server.GetSubscriberData(context.Background(), id)

@@ -21,14 +21,13 @@ import (
 	"errors"
 	"fmt"
 
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	lteprotos "magma/lte/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 )
 
 // Wrapper for GRPC Client functionality
@@ -112,7 +111,10 @@ func UpdateSubscriber(sub *lteprotos.SubscriberData) error {
 	if err != nil {
 		return err
 	}
-	_, err = cli.UpdateSubscriber(context.Background(), sub)
+	subUpdate := &lteprotos.SubscriberUpdate{
+		Data: sub,
+	}
+	_, err = cli.UpdateSubscriber(context.Background(), subUpdate)
 	return err
 }
 
