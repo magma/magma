@@ -70,15 +70,14 @@ int send_uplink_nas_message_service_request_with_pdu(
     const plmn_t& plmn, const uint8_t* nas_msg, uint8_t nas_msg_length);
 
 /* API for creating subscriberdb auth answer */
-int send_proc_authentication_info_answer(const std::string& imsi,
-                                         amf_ue_ngap_id_t ue_id, bool success);
+status_code_e send_proc_authentication_info_answer(const std::string& imsi,
+                                                   amf_ue_ngap_id_t ue_id,
+                                                   bool success);
 
 /* API for creating uplink nas message for Auth Response */
-int send_uplink_nas_message_ue_auth_response(amf_app_desc_t* amf_app_desc_p,
-                                             amf_ue_ngap_id_t amf_ue_ngap_id,
-                                             const plmn_t& plmn,
-                                             const uint8_t* nas_msg,
-                                             uint8_t nas_msg_length);
+status_code_e send_uplink_nas_message_ue_auth_response(
+    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t amf_ue_ngap_id,
+    const plmn_t& plmn, const uint8_t* nas_msg, uint8_t nas_msg_length);
 
 /* API for creating uplink nas message for security mode complete response */
 int send_uplink_nas_message_ue_smc_response(amf_app_desc_t* amf_app_desc_p,

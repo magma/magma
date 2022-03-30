@@ -45,13 +45,13 @@ amf_as_data_t amf_data_sec;
 nas_amf_smc_proc_t smc_proc;
 static int amf_registration_failure_authentication_cb(
     amf_context_t* amf_context);
-static int amf_start_registration_proc_security(
+static status_code_e amf_start_registration_proc_security(
     amf_context_t* amf_context, nas_amf_registration_proc_t* registration_proc);
 static int amf_registration(amf_context_t* amf_context);
 static int amf_registration_failure_security_cb(amf_context_t* amf_context);
 
-static int amf_registration_reject(amf_context_t* amf_context,
-                                   nas_amf_registration_proc_t* nas_base_proc);
+static status_code_e amf_registration_reject(
+    amf_context_t* amf_context, nas_amf_registration_proc_t* nas_base_proc);
 static int registration_accept_t3550_handler(zloop_t* loop, int timer_id,
                                              void* arg);
 
@@ -84,11 +84,11 @@ int amf_registration_success_authentication_cb(amf_context_t* amf_context) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_start_registration_proc_authentication(
+status_code_e amf_start_registration_proc_authentication(
     amf_context_t* amf_context,
     nas_amf_registration_proc_t* registration_proc) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   if ((amf_context) && (registration_proc)) {
     rc = amf_proc_authentication(amf_context, &registration_proc->amf_spec_proc,
                                  amf_registration_success_authentication_cb,
@@ -164,11 +164,11 @@ void amf_proc_create_procedure_registration_request(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_proc_registration_request(amf_ue_ngap_id_t ue_id,
-                                  const bool is_mm_ctx_new,
-                                  amf_registration_request_ies_t* ies) {
+status_code_e amf_proc_registration_request(
+    amf_ue_ngap_id_t ue_id, const bool is_mm_ctx_new,
+    amf_registration_request_ies_t* ies) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   ue_m5gmm_context_s ue_ctx;
   amf_ue_ngap_id_t old_ue_id = 0;
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -243,7 +243,7 @@ int amf_proc_registration_request(amf_ue_ngap_id_t ue_id,
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
-  rc = ue_state_handle_message_initial(
+  rc = (status_code_e)ue_state_handle_message_initial(
       ue_m5gmm_context->mm_state, STATE_EVENT_REG_REQUEST, SESSION_NULL,
       ue_m5gmm_context, &ue_m5gmm_context->amf_context);
 
@@ -258,10 +258,10 @@ int amf_proc_registration_request(amf_ue_ngap_id_t ue_id,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_proc_registration_reject(amf_ue_ngap_id_t ue_id,
-                                 amf_cause_t amf_cause) {
+status_code_e amf_proc_registration_reject(amf_ue_ngap_id_t ue_id,
+                                           amf_cause_t amf_cause) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   amf_context_t* amf_ctx = amf_context_get(ue_id);
 
   if (amf_ctx) {
@@ -298,10 +298,10 @@ int amf_proc_registration_reject(amf_ue_ngap_id_t ue_id,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-static int amf_registration_reject(amf_context_t* amf_context,
-                                   nas_amf_registration_proc_t* nas_base_proc) {
+static status_code_e amf_registration_reject(
+    amf_context_t* amf_context, nas_amf_registration_proc_t* nas_base_proc) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   amf_sap_t amf_sap = {};
   nas_amf_registration_proc_t* registration_proc =
       (nas_amf_registration_proc_t*)nas_base_proc;
@@ -522,11 +522,11 @@ int amf_registration_success_security_cb(amf_context_t* amf_context) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-static int amf_start_registration_proc_security(
+static status_code_e amf_start_registration_proc_security(
     amf_context_t* amf_context,
     nas_amf_registration_proc_t* registration_proc) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   if ((amf_context) && (registration_proc)) {
     /*
@@ -834,11 +834,11 @@ int amf_proc_registration_complete(amf_context_t* amf_ctx) {
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int amf_handle_registration_complete_response(
+status_code_e amf_handle_registration_complete_response(
     amf_ue_ngap_id_t ue_id, RegistrationCompleteMsg* msg, int amf_cause,
     amf_nas_message_decode_status_t status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   ue_m5gmm_context_s* ue_m5gmm_context = NULL;
 
   OAILOG_DEBUG(LOG_NAS_AMF,
@@ -917,9 +917,9 @@ int amf_proc_amf_information(ue_m5gmm_context_s* ue_amf_ctx) {
  **      Others:    None                                              **
  **                                                                   **
  ***********************************************************************/
-int amf_reg_send(amf_sap_t* const msg) {
+status_code_e amf_reg_send(amf_sap_t* const msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   // TODO in future it will be implemented based on request of
   // PDU session establishment with initial registration
   amf_primitive_t primitive = msg->primitive;

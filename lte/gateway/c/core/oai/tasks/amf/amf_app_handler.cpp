@@ -497,12 +497,13 @@ imsi64_t amf_app_handle_initial_ue_message(
 **      Return:    RETURNok, RETURNerror                                  **
 **                                                                        **
 ***************************************************************************/
-int amf_app_handle_uplink_nas_message(amf_app_desc_t* amf_app_desc_p,
-                                      bstring msg, amf_ue_ngap_id_t ue_id,
-                                      const tai_t originating_tai) {
+status_code_e amf_app_handle_uplink_nas_message(amf_app_desc_t* amf_app_desc_p,
+                                                bstring msg,
+                                                amf_ue_ngap_id_t ue_id,
+                                                const tai_t originating_tai) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
 
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   if (msg) {
     amf_sap_t amf_sap = {};
     /*

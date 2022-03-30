@@ -148,8 +148,9 @@ int send_uplink_nas_identity_response_message(amf_app_desc_t* amf_app_desc_p,
 }
 
 /* Create authentication answer from subscriberdb */
-int send_proc_authentication_info_answer(const std::string& imsi,
-                                         amf_ue_ngap_id_t ue_id, bool success) {
+status_code_e send_proc_authentication_info_answer(const std::string& imsi,
+                                                   amf_ue_ngap_id_t ue_id,
+                                                   bool success) {
   itti_amf_subs_auth_info_ans_t aia_itti_msg = {};
 
   strncpy(aia_itti_msg.imsi, imsi.c_str(), imsi.size());
@@ -187,18 +188,16 @@ int send_proc_authentication_info_answer(const std::string& imsi,
     aia_itti_msg.result = DIAMETER_UNABLE_TO_COMPLY;
   }
 
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   rc = amf_nas_proc_authentication_info_answer(&aia_itti_msg);
 
   return (rc);
 }
 
 /* Create authentication response from ue */
-int send_uplink_nas_message_ue_auth_response(amf_app_desc_t* amf_app_desc_p,
-                                             amf_ue_ngap_id_t ue_id,
-                                             const plmn_t& plmn,
-                                             const uint8_t* nas_msg,
-                                             uint8_t nas_msg_length) {
+status_code_e send_uplink_nas_message_ue_auth_response(
+    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
+    const uint8_t* nas_msg, uint8_t nas_msg_length) {
   bstring uplink_nas_auth_response;
   tai_t originating_tai = {};
 
@@ -207,7 +206,7 @@ int send_uplink_nas_message_ue_auth_response(amf_app_desc_t* amf_app_desc_p,
   originating_tai.plmn = plmn;
   originating_tai.tac = 1;
 
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   rc = amf_app_handle_uplink_nas_message(
       amf_app_desc_p, uplink_nas_auth_response, ue_id, originating_tai);
 
