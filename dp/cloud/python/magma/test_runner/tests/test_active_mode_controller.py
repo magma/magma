@@ -40,6 +40,8 @@ class ActiveModeControllerTestCase(DBTestCase):
         )
         self.dp_client = DPServiceStub(grpc_channel)
         DBInitializer(SessionManager(self.engine)).initialize()
+        # Indexing from previous test may not have been finished yet
+        sleep(5)
         self._delete_dp_elasticsearch_indices()
 
     # retrying is needed because of a possible deadlock
@@ -58,7 +60,7 @@ class ActiveModeControllerTestCase(DBTestCase):
     def test_logs_are_written_to_elasticsearch(self):
         self.given_cbsd_provisioned()
         # Giving ElasticSearch time to index logs
-        sleep(3)
+        sleep(5)
         self.then_elasticsearch_contains_logs()
 
     def test_grant_relinquished_after_inactivity(self):

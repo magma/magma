@@ -26,8 +26,8 @@ class Config(object):
     ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX', 'dp')
 
     # Fluentd
-    FLUENTD_SERVICE_HOST = os.environ.get('FLUENTD_SERVICE_SERVICE_HOST', 'fluentd-service')
-    FLUENTD_SERVICE_PORT = int(os.environ.get('FLUENTD_SERVICE_SERVICE_PORT', 9888))
+    FLUENTD_SERVICE_HOST = os.environ.get('DOMAIN_PROXY_FLUENTD_SERVICE_HOST', 'fluentd-service')
+    FLUENTD_SERVICE_PORT = int(os.environ.get('DOMAIN_PROXY_FLUENTD_SERVICE_PORT', 9888))
     FLUENTD_TLS_ENABLED = strtobool(os.environ.get('FLUENTD_TLS_ENABLED', 'False'))
     FLUENTD_CERT_PATH = os.environ.get('FLUENTD_CERT_PATH', '')
     FLUENTD_KEY_PATH = os.environ.get('FLUENTD_KEY_PATH', '')

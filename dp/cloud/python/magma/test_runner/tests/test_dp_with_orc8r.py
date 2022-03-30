@@ -50,6 +50,8 @@ class DomainProxyOrc8rTestCase(DBTestCase):
             f"{config.GRPC_SERVICE}:{config.GRPC_PORT}",
         )
         self.dp_client = DPServiceStub(grpc_channel)
+        # Indexing from previous test may not have been finished yet
+        sleep(5)
         self._delete_dp_elasticsearch_indices()
 
     def tearDown(self):
@@ -105,7 +107,7 @@ class DomainProxyOrc8rTestCase(DBTestCase):
     def test_fetching_logs_with_custom_filters(self):
         self.given_cbsd_provisioned()
         # Giving ElasticSearch time to index logs
-        sleep(3)
+        sleep(5)
 
         sas_to_dp_end_date_only = {
             'serial_number': SERIAL_NUMBER,

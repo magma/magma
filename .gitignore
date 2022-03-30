@@ -73,6 +73,7 @@ kubeconfig_orc8r
 
 # Helm
 orc8r/cloud/helm/**/.secrets/
+orc8r/cloud/helm/**/secrets/
 
 # Certs for accessing the cloud
 .certs
@@ -119,3 +120,4 @@ compile_commands.json
 
 # Domain Proxy
 dp/cloud/helm/dp/charts/domain-proxy/certificates/**/*
+orc8r/cloud/helm/orc8r/charts/secrets

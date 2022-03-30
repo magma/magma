@@ -16,7 +16,7 @@ spec:
       containers:
         - name: elasticsearch
           imagePullPolicy: IfNotPresent
-          image: docker.elastic.co/elasticsearch/elasticsearch:7.7.0
+          image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
           ports:
             - containerPort: 9200
               name: http
@@ -24,8 +24,6 @@ spec:
           env:
             - name: discovery.type
               value: single-node
-            - name: logger.org.elasticsearch.discovery
-              value: DEBUG
 
 ---
 apiVersion: v1
