@@ -81,7 +81,7 @@ func main() {
 	if !singletonReindex {
 		glog.Info("Running reindexer")
 		indexerManagerServer := newIndexerManagerServicer(srv.Config, db, store)
-		indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
+		indexer_protos.RegisterIndexerManagerServer(srv.ProtectedGrpcServer, indexerManagerServer)
 	}
 
 	go metrics.PeriodicallyReportGatewayStatus(gatewayStatusReportInterval)

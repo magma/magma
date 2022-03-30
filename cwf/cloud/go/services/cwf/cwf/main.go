@@ -41,7 +41,7 @@ func main() {
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, builder_servicers.NewBuilderServicer())
+	builder_protos.RegisterMconfigBuilderServer(srv.ProtectedGrpcServer, builder_servicers.NewBuilderServicer())
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger_servicers.NewSpecServicerFromFile(cwf_service.ServiceName))
 

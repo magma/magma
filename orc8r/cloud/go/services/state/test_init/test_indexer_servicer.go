@@ -38,10 +38,10 @@ func StartNewTestIndexer(t *testing.T, idx indexer.Indexer) {
 		orc8r.StateIndexerVersionAnnotation: strconv.Itoa(int(idx.GetVersion())),
 		orc8r.StateIndexerTypesAnnotation:   strings.Join(idx.GetTypes(), orc8r.AnnotationFieldSeparator),
 	}
-	srv, lis, _ := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, idx.GetID(), labels, annotations)
+	srv, lis, plis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, idx.GetID(), labels, annotations)
 	servicer := &indexerServicer{idx: idx}
-	protos.RegisterIndexerServer(srv.GrpcServer, servicer)
-	go srv.RunTest(lis, nil)
+	protos.RegisterIndexerServer(srv.ProtectedGrpcServer, servicer)
+	go srv.RunTest(lis, plis)
 }
 
 func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (*protos.IndexResponse, error) {
