@@ -74,7 +74,7 @@ func main() {
 	userStateManager := calculations.NewUserStateManager(promQLClient, "ue_connected")
 	calcs := lte_analytics.GetAnalyticsCalculations(&serviceConfig.Analytics)
 	collectorServicer := analytics_servicer.NewCollectorServicer(&serviceConfig.Analytics, promQLClient, calcs, userStateManager)
-	protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
+	protos.RegisterAnalyticsCollectorServer(srv.ProtectedGrpcServer, collectorServicer)
 
 	err = srv.Run()
 	if err != nil {
