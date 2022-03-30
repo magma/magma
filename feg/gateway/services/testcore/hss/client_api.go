@@ -21,6 +21,8 @@ import (
 	"errors"
 	"fmt"
 
+	"magma/orc8r/lib/go/protos"
+
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 
@@ -86,6 +88,15 @@ func GetSubscriberData(id string) (*lteprotos.SubscriberData, error) {
 		Id: id,
 	}
 	return cli.GetSubscriberData(context.Background(), subID)
+}
+
+// ListSubscribers list all available subscribers by IMSI.
+func ListSubscribers() (*lteprotos.SubscriberIDSet, error) {
+	cli, err := getHSSClient()
+	if err != nil {
+		return nil, err
+	}
+	return cli.ListSubscribers(context.Background(), &protos.Void{})
 }
 
 // UpdateSubscriber changes the data stored for an existing subscriber.

@@ -107,6 +107,13 @@ func (srv *HomeSubscriberServer) DeleteSubscriber(ctx context.Context, req *ltep
 	return &protos.Void{}, err
 }
 
+// ListSubscribers list all available subscribers by IMSI.
+func (srv *HomeSubscriberServer) ListSubscribers(_ context.Context, _ *protos.Void) (*lteprotos.SubscriberIDSet, error) {
+	data, err := srv.store.GetAllSubscribers()
+	err = storage.ConvertStorageErrorToGrpcStatus(err)
+	return data, err
+}
+
 // DeRegisterSubscriber de-registers a subscriber by their Id.
 // If the subscriber is not found, an error is returned instead.
 // Input: The id of the subscriber to be deregistered.

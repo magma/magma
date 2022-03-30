@@ -63,6 +63,35 @@ func TestHomeSubscriberServer_GetSubscriberData(t *testing.T) {
 	assert.Equal(t, sub1.String(), result.String())
 }
 
+func TestHomeSubscriberServer_ListSubscribers(t *testing.T) {
+	// Create EMPTY TestHomeSubscriberServer
+	server := test_utils.NewEmptyTestHomeSubscriberServer(t)
+
+	id1 := protos.SubscriberID{Id: "1"}
+	sub1 := protos.SubscriberData{Sid: &id1}
+
+	id2 := protos.SubscriberID{Id: "2"}
+	sub2 := protos.SubscriberData{Sid: &id2}
+
+	res, err := server.ListSubscribers(context.Background(), &orcprotos.Void{})
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(res.Sids))
+
+	_, err = server.AddSubscriber(context.Background(), &sub1)
+	assert.NoError(t, err)
+	res, err = server.ListSubscribers(context.Background(), &orcprotos.Void{})
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(res.Sids))
+	assert.Equal(t, id1.Id, res.Sids[0].Id)
+
+	_, err = server.AddSubscriber(context.Background(), &sub2)
+	assert.NoError(t, err)
+
+	res, err = server.ListSubscribers(context.Background(), &orcprotos.Void{})
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(res.Sids))
+}
+
 func TestHomeSubscriberServer_UpdateSubscriber(t *testing.T) {
 	server := test_utils.NewTestHomeSubscriberServer(t)
 
@@ -113,26 +142,6 @@ func TestHomeSubscriberServer_DeleteSubscriber(t *testing.T) {
 	assert.EqualError(t, err, "rpc error: code = NotFound desc = Subscriber '1' not found")
 }
 
-func getConnToTestHomeSubscriberServer(t *testing.T) *grpc.ClientConn {
-	srv := test_utils.NewTestHomeSubscriberServer(t)
-
-	s := grpc.NewServer()
-	fegprotos.RegisterHSSConfiguratorServer(s, srv)
-
-	lis, err := net.Listen("tcp", "")
-	assert.NoError(t, err)
-
-	go func() {
-		err = s.Serve(lis)
-		assert.NoError(t, err)
-	}()
-
-	addr := lis.Addr()
-	conn, err := grpc.Dial(addr.String(), grpc.WithInsecure())
-	assert.NoError(t, err)
-	return conn
-}
-
 func TestHomeSubscriberServer_GetSubscriberDataGrpc(t *testing.T) {
 	conn := getConnToTestHomeSubscriberServer(t)
 	defer conn.Close()
@@ -152,4 +161,24 @@ func TestHomeSubscriberServer_GetSubscriberDataGrpc(t *testing.T) {
 	data, err = client.GetSubscriberData(context.Background(), &id)
 	assert.Equal(t, sub.Sid.Id, data.Sid.Id)
 	assert.NoError(t, err)
+}
+
+func getConnToTestHomeSubscriberServer(t *testing.T) *grpc.ClientConn {
+	srv := test_utils.NewTestHomeSubscriberServer(t)
+
+	s := grpc.NewServer()
+	fegprotos.RegisterHSSConfiguratorServer(s, srv)
+
+	lis, err := net.Listen("tcp", "")
+	assert.NoError(t, err)
+
+	go func() {
+		err = s.Serve(lis)
+		assert.NoError(t, err)
+	}()
+
+	addr := lis.Addr()
+	conn, err := grpc.Dial(addr.String(), grpc.WithInsecure())
+	assert.NoError(t, err)
+	return conn
 }

@@ -42,6 +42,10 @@ service HSSConfigurator {
   //
   rpc GetSubscriberData (lte.SubscriberID) returns (lte.SubscriberData) {}
 
+  // List the subscribers in the store.
+  //
+  rpc ListSubscribers (orc8r.Void) returns (lte.SubscriberIDSet) {}
+
   // De-register an authenticated subscriber
   rpc DeregisterSubscriber (lte.SubscriberID) returns (orc8r.Void) {}
 }
