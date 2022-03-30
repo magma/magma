@@ -123,7 +123,6 @@ cc_test(
     srcs = [
         "test_mme_procedures.cpp",
     ],
-    flaky = True,
     deps = [
         ":mme_app_test_core",
         ":mme_procedure_test_fixture",
@@ -139,8 +138,6 @@ cc_test(
     srcs = [
         "test_mme_procedures_mobile_reachability_timer.cpp",
     ],
-    # TODO: GH12236
-    flaky = True,
     deps = [
         ":mme_app_test_core",
         ":mme_procedure_test_fixture",
@@ -155,8 +152,6 @@ cc_test(
     srcs = [
         "test_mme_procedures_nas_timer.cpp",
     ],
-    # TODO: GH12237
-    flaky = True,
     deps = [
         ":mme_app_test_core",
         ":mme_procedure_test_fixture",
@@ -171,8 +166,6 @@ cc_test(
     srcs = [
         "test_mme_procedures_x2_handover.cpp",
     ],
-    # TODO: GH12238
-    flaky = True,
     deps = [
         ":mme_app_test_core",
         ":mme_procedure_test_fixture",
@@ -187,8 +180,6 @@ cc_test(
     srcs = [
         "test_mme_procedures_network_initiated.cpp",
     ],
-    # TODO: GH12239
-    flaky = True,
     deps = [
         ":mme_app_test_core",
         ":mme_procedure_test_fixture",
