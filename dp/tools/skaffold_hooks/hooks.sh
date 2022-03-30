@@ -104,6 +104,7 @@ apply_secrets() {
 
 deploy_fluentd_forwarder() {
   cd "$MAGMA_ROOT/orc8r/cloud/helm/orc8r" || exit 1
+  helm dependency build
   helm template . \
     -s charts/logging/templates/fluentd-forward.deployment.yaml \
     -s charts/logging/templates/fluentd-forward.service.yaml \

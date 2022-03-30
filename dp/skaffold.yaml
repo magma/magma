@@ -42,7 +42,7 @@ build:
     - image: fluentd_forward
       context: ..
       docker:
-        dockerfile: ../orc8r/cloud/docker/fluentd_forward/Dockerfile
+        dockerfile: orc8r/cloud/docker/fluentd_forward/Dockerfile
 
 deploy:
   kubeContext: minikube
@@ -261,7 +261,5 @@ profiles:
                 - "sh"
                 - "-c"
                 - "/var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator || exit 0"
-  - name: remote-push
-    patches:
       - op: remove
-        path: /build/artifacts/5  # remove fake sas image
+        path: /deploy/helm/hooks/before/3
