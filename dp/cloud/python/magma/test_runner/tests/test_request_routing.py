@@ -40,7 +40,7 @@ incorrect_request_payload = {"incorrect": ["payload"]}
 config = TestConfig()
 
 
-@pytest.mark.local
+@pytest.mark.disabled
 class RequestRoutingTestCase(DBTestCase):
     def setUp(self):
         super().setUp()

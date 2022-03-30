@@ -15,9 +15,7 @@ from magma.db_service.models import (
     DBChannel,
     DBGrant,
     DBRequest,
-    DBRequestState,
     DBRequestType,
-    DBResponse,
 )
 from magma.db_service.session_manager import SessionManager
 from magma.db_service.tests.local_db_test_case import LocalDBTestCase
@@ -45,7 +43,6 @@ from magma.mappings.request_response_mapping import request_response
 from magma.mappings.types import (
     CbsdStates,
     GrantStates,
-    RequestStates,
     RequestTypes,
     ResponseCodes,
 )
@@ -94,11 +91,9 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         self._process_response(
             request_type_name=request_type_name, response=response, db_requests=db_requests,
         )
-        nr_of_requests = len(db_requests)
 
         # Then
-        self._verify_requests_number_and_state(db_requests, nr_of_requests)
-        self.assertEqual(2, self.session.query(DBRequestState).count())
+        self._verify_processed_requests_were_deleted()
         self.assertEqual(
             1, self.session.query(DBRequestType).filter(
                 DBRequestType.name == request_type_name,
@@ -162,7 +157,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         nr_of_requests = len(db_requests)
 
         # Then
-        self._verify_requests_number_and_state(db_requests, nr_of_requests)
+        self._verify_processed_requests_were_deleted()
         self.assertListEqual(
             [expected_grant_state_name] * nr_of_requests,
             [g.state.name for g in self.session.query(DBGrant).all()],
@@ -188,9 +183,6 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         )
         request = DBRequest(
             type=self._get_db_enum(DBRequestType, message_type),
-            state=self._get_db_enum(
-                DBRequestState, RequestStates.PENDING.value,
-            ),
             cbsd=cbsd,
             payload={'cbsdId': CBSD_ID},
         )
@@ -391,19 +383,8 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             fluentd_client=FluentdClient(),
         )
 
-    def _verify_requests_number_and_state(self, db_requests, nr_of_requests, desired_state="processed"):
-        self.assertEqual(nr_of_requests, self.session.query(DBRequest).count())
-        self.assertListEqual(
-            [r.id for r in db_requests], [
-                _id for (
-                    _id,
-                ) in self.session.query(DBResponse.id).all()
-            ],
-        )
-        self.assertListEqual(
-            [desired_state] * nr_of_requests,
-            [r.state.name for r in self.session.query(DBRequest).all()],
-        )
+    def _verify_processed_requests_were_deleted(self):
+        self.assertEqual(0, self.session.query(DBRequest).count())
 
     def _set_cbsds_to_state(self, state_name):
         registered_state = self._get_db_enum(DBCbsdState, state_name)
@@ -417,10 +398,8 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             request_type_name,
             requests_fixtures,
             cbsd_state=CbsdStates.UNREGISTERED.value,
-            request_state=RequestStates.PENDING.value,
     ):
         db_requests = self._create_db_requests_from_fixture(
-            request_state=request_state,
             request_type=request_type_name,
             fixture=requests_fixtures,
             cbsd_state=cbsd_state,
@@ -519,7 +498,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         self.session.commit()
         return grant
 
-    def _create_db_requests_from_fixture(self, request_state, request_type, fixture, cbsd_state):
+    def _create_db_requests_from_fixture(self, request_type, fixture, cbsd_state):
         db_requests = []
         for reqs in fixture:
             for req in reqs[request_type]:
@@ -528,7 +507,6 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
                         cbsd=self._generate_cbsd_from_request_json(
                             req, self._get_db_enum(DBCbsdState, cbsd_state),
                         ),
-                        state=self._get_db_enum(DBRequestState, request_state),
                         type=self._get_db_enum(DBRequestType, request_type),
                         payload=req,
                     ),

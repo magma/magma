@@ -423,7 +423,3 @@ func (s *stubRadioControllerClient) UploadRequests(_ context.Context, in *reques
 	*s.requests = append(*s.requests, in)
 	return nil, nil
 }
-
-func (s *stubRadioControllerClient) GetResponse(_ context.Context, _ *requests.RequestDbId, _ ...grpc.CallOption) (*requests.ResponsePayload, error) {
-	panic("not implemented")
-}
