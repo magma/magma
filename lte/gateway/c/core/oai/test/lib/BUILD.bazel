@@ -20,6 +20,7 @@ cc_test(
     ],
     deps = [
         "//lte/gateway/c/core",
+        "//lte/gateway/c/core/common:common_defs",
         "@com_google_googletest//:gtest_main",
     ],
 )

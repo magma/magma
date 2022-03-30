@@ -1,5 +1,8 @@
 FROM fluent/fluentd:v1.7-1
 USER root
-RUN ["gem", "install", "fluent-plugin-elasticsearch", "--no-document", "--version", "3.5.5"]
-RUN ["fluent-gem", "install", "fluent-plugin-multi-format-parser"]
+RUN gem install \
+    elasticsearch:7.13.0 \
+    fluent-plugin-elasticsearch:5.2.1 \
+    fluent-plugin-multi-format-parser:1.0.0 \
+    --no-document
 USER fluent

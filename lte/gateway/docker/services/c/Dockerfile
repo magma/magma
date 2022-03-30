@@ -214,6 +214,7 @@ COPY --from=builder /usr/lib/x86_64-linux-gnu/libkeyutils* /usr/lib/x86_64-linux
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libcurl.so.* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/librtmp.so.* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libssh.so.* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libtspi.so.* /usr/lib/x86_64-linux-gnu/
 
 
 COPY --from=builder /usr/local/lib/liblfds710.so /usr/local/lib/
