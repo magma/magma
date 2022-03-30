@@ -74,7 +74,7 @@ jobs:
           files: lte/gateway/test-results/**/*.xml
           check_run_annotations: all tests
       - name: Publish results to Firebase
-        if: always() && github.event.workflow_run.event == 'push'
+        if: always()
         env:
           FIREBASE_SERVICE_CONFIG: ${{ secrets.FIREBASE_SERVICE_CONFIG }}
           REPORT_FILENAME: "lte_integ_test_${{ env.SHA }}.html"
