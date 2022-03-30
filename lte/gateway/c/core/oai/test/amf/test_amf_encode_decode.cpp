@@ -929,16 +929,11 @@ TEST(test_optional_dnn_pdu, test_wrong_dnn_length) {
                      0x22, 0x04, 0x01, 0x00, 0x00, 0x01, 0x25, 0x08,
                      0x08, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74};
 
-  uint32_t len = sizeof(pdu) / sizeof(uint8_t);
+  uint32_t len = sizeof(pdu);
 
-  NAS5GPktSnapShot nas5g_pkt_snap;
-  ULNASTransportMsg pdu_sess_est_req;
-  bool decode_res = false;
-  memset(&pdu_sess_est_req, 0, sizeof(ULNASTransportMsg));
+  ULNASTransportMsg pdu_sess_est_req = {};
 
-  decode_res = decode_ul_nas_transport_msg(&pdu_sess_est_req, pdu, len);
-
-  EXPECT_EQ(decode_res, false);
+  EXPECT_EQ(decode_ul_nas_transport_msg(&pdu_sess_est_req, pdu, len), false);
 }
 
 TEST(test_optional_dnn_dotted_pdu, test_pdu_session_establish_optional) {

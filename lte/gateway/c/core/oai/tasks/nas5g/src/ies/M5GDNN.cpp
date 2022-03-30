@@ -45,9 +45,10 @@ int DNNMsg::DecodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
   uint8_t dnn_len = 0;
   DECODE_U8(buffer + decoded, dnn_len, decoded);
 
-  if (ielen <= dnn_len) {
+  if ((ielen <= dnn_len) || (dnn_len < DNN_MIN_LENGTH) ||
+      (dnn_len > MAX_DNN_LENGTH)) {
     OAILOG_ERROR(LOG_NAS5G,
-                 "Mismatch Length: IE length : %d, DNN String length: %d",
+                 "Mismatch Length: IE length : %u, DNN String length: %u",
                  ielen, dnn_len);
     return -1;
   }
