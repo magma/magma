@@ -86,14 +86,9 @@ func NewTestOrchestratorService(t *testing.T, moduleName, serviceName string, la
 		t.Fatal(err)
 	}
 
-	// Only add protected service port to service struct if the service is protected
-	pSrvPort := 0
-	var plis net.Listener
-	if len(serviceType) != 0 && serviceType[0] == lib_protos.ServiceType_PROTECTED {
-		pSrvPort, plis, err = getOpenPort()
-		if err != nil {
-			t.Fatal(err)
-		}
+	pSrvPort, plis, err := getOpenPort()
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	echoPort, echoLis, err := getOpenPort()

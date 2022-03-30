@@ -67,7 +67,7 @@ func StartTestService(t *testing.T) {
 
 	// Add servicers
 	protos.RegisterSubscriberLookupServer(srv.ProtectedGrpcServer, lookup_servicers.NewLookupServicer(fact, ipStore))
-	state_protos.RegisterIndexerServer(srv.GrpcServer, lookup_servicers.NewIndexerServicer())
+	state_protos.RegisterIndexerServer(srv.ProtectedGrpcServer, lookup_servicers.NewIndexerServicer())
 	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, subscriberdbcloud_servicer.NewSubscriberdbServicer(serviceConfig, subscriberStore))
 
 	// Run service

@@ -58,18 +58,18 @@ func StartTestServiceInternal(
 		annotations[orc8r.StreamProviderStreamsAnnotation] = definitions.MconfigStreamName
 	}
 
-	srv, lis, _ := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, orchestrator.ServiceName, labels, annotations)
+	srv, lis, plis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, orchestrator.ServiceName, labels, annotations)
 	protos.RegisterStreamerServer(srv.GrpcServer, &testStreamerServer{})
 
 	if builder != nil {
-		builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, builder)
+		builder_protos.RegisterMconfigBuilderServer(srv.ProtectedGrpcServer, builder)
 	}
 	if indexer != nil {
-		indexer_protos.RegisterIndexerServer(srv.GrpcServer, indexer)
+		indexer_protos.RegisterIndexerServer(srv.ProtectedGrpcServer, indexer)
 	}
 	if provider != nil {
-		streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, provider)
+		streamer_protos.RegisterStreamProviderServer(srv.ProtectedGrpcServer, provider)
 	}
 
-	go srv.RunTest(lis, nil)
+	go srv.RunTest(lis, plis)
 }

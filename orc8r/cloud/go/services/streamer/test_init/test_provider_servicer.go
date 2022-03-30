@@ -37,10 +37,10 @@ func StartNewTestProvider(t *testing.T, provider stream_provider.StreamProvider,
 	annotations := map[string]string{
 		orc8r.StreamProviderStreamsAnnotation: streamName,
 	}
-	srv, lis, _ := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, streamName, labels, annotations)
+	srv, lis, plis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, streamName, labels, annotations)
 	servicer := &providerServicer{provider: provider}
-	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicer)
-	go srv.RunTest(lis, nil)
+	streamer_protos.RegisterStreamProviderServer(srv.ProtectedGrpcServer, servicer)
+	go srv.RunTest(lis, plis)
 }
 
 func (p *providerServicer) GetUpdates(ctx context.Context, req *protos.StreamRequest) (*protos.DataUpdateBatch, error) {

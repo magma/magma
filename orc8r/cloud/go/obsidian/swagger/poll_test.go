@@ -121,7 +121,7 @@ func registerServicer(
 
 	partialYamlSpec := marshalToYAML(t, partialSpec)
 	standaloneYamlSpec := marshalToYAML(t, standaloneSpec)
-	protos.RegisterSwaggerSpecServer(srv.GrpcServer, servicers.NewSpecServicer(partialYamlSpec, standaloneYamlSpec))
+	protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, servicers.NewSpecServicer(partialYamlSpec, standaloneYamlSpec))
 
 	go srv.RunTest(lis, nil)
 }
