@@ -65,6 +65,7 @@ func GetS6aProxyConfigs() *S6aProxyConfig {
 				WatchdogInterval: diameter.DefaultWatchdogIntervalSeconds,
 				Retransmits:      uint(10),
 				RetryCount:       uint(5),
+				RequestTimeout:   uint(diameter.DefaultRequestTimeoutSeconds),
 			},
 			ServerCfg: &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 				Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, ""),
@@ -89,6 +90,7 @@ func GetS6aProxyConfigs() *S6aProxyConfig {
 			Retransmits:      uint(configsPtr.Server.Retransmits),
 			WatchdogInterval: uint(configsPtr.Server.WatchdogInterval),
 			RetryCount:       uint(configsPtr.Server.RetryCount),
+			RequestTimeout:   uint(configsPtr.Server.RequestTimeout),
 		},
 		ServerCfg: &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 			Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, configsPtr.Server.Address),
