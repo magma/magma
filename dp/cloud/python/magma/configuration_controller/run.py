@@ -76,6 +76,8 @@ def run():
         encoding=config.SQLALCHEMY_DB_ENCODING,
         echo=config.SQLALCHEMY_ECHO,
         future=config.SQLALCHEMY_FUTURE,
+        pool_size=config.SQLALCHEMY_ENGINE_POOL_SIZE,
+        max_overflow=config.SQLALCHEMY_ENGINE_MAX_OVERFLOW,
     )
     session_manager = SessionManager(db_engine=db_engine)
     router = RequestRouter(
