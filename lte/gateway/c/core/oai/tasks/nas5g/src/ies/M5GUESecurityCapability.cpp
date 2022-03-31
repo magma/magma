@@ -101,11 +101,10 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
     // Skipping the remaining bytes as not supported
     if (ue_sec_capability->length > (decoded - (type_len + length_len))) {
       // The length of the bytes skipped
-      uint8_t add_ue_sec_cap_length =
+      uint8_t additional_ue_sec_cap_length =
           ue_sec_capability->length - (decoded - (type_len + length_len));
-      decoded +=
-          ue_sec_capability->length - (decoded - (type_len + length_len));
-      ue_sec_capability->length -= add_ue_sec_cap_length;
+      decoded += additional_ue_sec_cap_length;
+      ue_sec_capability->length -= additional_ue_sec_cap_length;
     }
   }
 
