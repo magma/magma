@@ -62,15 +62,15 @@ class ActiveModeControllerTestCase(DBTestCase):
 
     def given_cbsd_provisioned(self):
         self.given_cbsd_with_transmission_parameters()
-        self.dp_client.GetCBSDState(
-            self._build_cbsd_request(), wait_for_ready=True,
-        )
+        self.dp_client.GetCBSDState(self._build_cbsd_request())
 
         self.then_cbsd_is_eventually_provisioned_in_sas(self.dp_client)
 
     # TODO change this when some API for domain proxy is introduced
     def given_cbsd_with_transmission_parameters(self):
-        state = self.dp_client.CBSDRegister(self._build_cbsd_request())
+        state = self.dp_client.CBSDRegister(
+            self._build_cbsd_request(), wait_for_ready=True,
+        )
         self.session.commit()
         self.assertEqual(self._build_empty_state_result(), state)
 
