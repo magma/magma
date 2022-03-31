@@ -47,14 +47,6 @@ pytest_test(
 )
 
 pytest_test(
-    name = "metrics_tests",
-    size = "small",
-    srcs = ["metrics_tests.py"],
-    imports = [ORC8R_ROOT],
-    deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
-)
-
-pytest_test(
     name = "proxy_client_tests",
     size = "small",
     srcs = ["proxy_client_tests.py"],

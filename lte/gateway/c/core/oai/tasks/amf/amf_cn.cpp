@@ -24,15 +24,15 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
-#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
 
 namespace magma5g {
 

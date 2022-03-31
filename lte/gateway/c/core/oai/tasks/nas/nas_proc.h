@@ -37,20 +37,20 @@ Description NAS procedure call manager
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/security_types.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.h"
+#include "lte/gateway/c/core/oai/include/nas/as_message.h"
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
-#include "lte/gateway/c/core/oai/include/nas/as_message.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
-#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
-#include "lte/gateway/c/core/oai/common/security_types.h"
-#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

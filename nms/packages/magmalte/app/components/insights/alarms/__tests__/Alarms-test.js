@@ -59,14 +59,14 @@ afterEach(() => {
 
 describe('react router tests', () => {
   test('/alerts renders the no alerts icon', () => {
-    const {getByTestId} = render(
+    const {queryByText} = render(
       <Wrapper route={'/alarms'}>
         <AlarmsWrapper />
       </Wrapper>,
     );
 
     // assert that the 'no alerts' icon is visible
-    expect(getByTestId('no-alerts-icon')).toBeInTheDocument();
+    expect(queryByText('Severity')).toBeNull();
   });
 });
 
@@ -81,14 +81,14 @@ describe('Firing Alerts', () => {
       ],
     });
 
-    const {getByTestId, getByText} = render(
+    const {getByText} = render(
       <Wrapper route={'/alerts'}>
         <AlarmsWrapper />
       </Wrapper>,
     );
 
     // assert that the top level firing alerts header is visible
-    expect(getByTestId('firing-alerts')).toBeInTheDocument();
+    expect(getByText('Severity')).toBeInTheDocument();
     expect(getByText('<<TEST ALERT>>')).toBeInTheDocument();
     // TODO(andreilee): This has been removed
     // expect(getByText('<<TEST DESCRIPTION>>')).toBeInTheDocument();
