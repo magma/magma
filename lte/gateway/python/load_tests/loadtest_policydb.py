@@ -24,14 +24,15 @@ from load_tests.common import (
     make_output_file_path,
 )
 from lte.protos.policydb_pb2 import (
-    EnableStaticRuleRequest,
     DisableStaticRuleRequest,
+    EnableStaticRuleRequest,
 )
 
 POLICYDB_SERVICE_NAME = 'policydb'
 POLICYDB_SERVICE_RPC_PATH = 'magma.lte.PolicyDB'
 POLICYDB_PORT = '0.0.0.0:50068'
 PROTO_PATH = PROTO_DIR + '/policydb.proto'
+
 
 def _gen_imsi(num_of_ues):
     imsi = 123000000
@@ -46,9 +47,9 @@ def _build_enable_static_rules_data(imsi_list: list, input_file: str):
     enable_static_rule_reqs = []
 
     rule_list = ["p1", "p2", "p3"]
-    for index,imsi in enumerate(imsi_list):
+    for index, imsi in enumerate(imsi_list):
         request = EnableStaticRuleRequest(
-                imsi=imsi,
+            imsi=imsi,
             rule_ids=rule_list,
             base_names=["bn1"],
         )
@@ -63,9 +64,9 @@ def _build_disable_static_rules_data(imsi_list: list, input_file: str):
     disable_static_rule_reqs = []
 
     rule_list = ["p1", "p2", "p3"]
-    for index,imsi in enumerate(imsi_list):
+    for index, imsi in enumerate(imsi_list):
         request = DisableStaticRuleRequest(
-                imsi=imsi,
+            imsi=imsi,
             rule_ids=rule_list,
             base_names=["bn1"],
         )
@@ -108,6 +109,7 @@ def disable_static_rules_test(args):
         num_reqs=args.num_of_ues, address=POLICYDB_PORT,
         import_path=args.import_path,
     )
+
 
 def create_parser():
     """
