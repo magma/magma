@@ -42,13 +42,14 @@ def _gen_imsi(num_of_ues):
     return imsi_list
 
 
-def _build_enable_static_rules_data(imsi_list, input_file: str):
+def _build_enable_static_rules_data(imsi_list: list, input_file: str):
     enable_static_rule_reqs = []
 
+    rule_list = ["p1", "p2", "p3"]
     for index,imsi in enumerate(imsi_list):
         request = EnableStaticRuleRequest(
                 imsi=imsi,
-            rule_ids=["p1", "p2", "p3"],
+            rule_ids=rule_list,
             base_names=["bn1"],
         )
         request_dict = json_format.MessageToDict(request)
@@ -58,13 +59,14 @@ def _build_enable_static_rules_data(imsi_list, input_file: str):
         json.dump(enable_static_rule_reqs, file, separators=(',', ':'))
 
 
-def _build_disable_static_rules_data(imsi_list, input_file: str):
+def _build_disable_static_rules_data(imsi_list: list, input_file: str):
     disable_static_rule_reqs = []
 
+    rule_list = ["p1", "p2", "p3"]
     for index,imsi in enumerate(imsi_list):
         request = DisableStaticRuleRequest(
                 imsi=imsi,
-            rule_ids=["p1", "p2", "p3"],
+            rule_ids=rule_list,
             base_names=["bn1"],
         )
         request_dict = json_format.MessageToDict(request)
@@ -130,7 +132,7 @@ def create_parser():
     ]:
         subcmd.add_argument(
             '--num_of_ues', help='Number of total UEs to atach',
-            type=int, default=600,
+            type=int, default=2000,
         )
         subcmd.add_argument(
             '--import_path', default=None, help='Protobuf import path directory',
