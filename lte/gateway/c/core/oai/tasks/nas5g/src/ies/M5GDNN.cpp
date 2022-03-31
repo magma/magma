@@ -58,7 +58,7 @@ int DNNMsg::DecodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
   decoded = decoded + dnn_len;
 
   while (dnn_length + 1 < ielen) {
-    uint8_t dnn_len = 0;
+    dnn_len = 0;
     memcpy(dnn_message->dnn + dnn_length, ".", 1);
     DECODE_U8(buffer + decoded, dnn_len, decoded);
     dnn_length = dnn_length + 1;
