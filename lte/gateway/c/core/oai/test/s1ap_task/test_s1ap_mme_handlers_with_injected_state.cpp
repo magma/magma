@@ -108,7 +108,7 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
     free_mme_config(&mme_config);
 
     // Sleep to ensure that messages are received and contexts are released
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
 
  protected:
