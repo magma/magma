@@ -12,13 +12,16 @@ limitations under the License.
 """
 
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
-from parameterized import parameterized
-
-from magma.db_service.models import DBRequestType, DBRequestState, DBCbsd, DBCbsdState
+from magma.db_service.models import (
+    DBCbsd,
+    DBCbsdState,
+    DBRequestState,
+    DBRequestType,
+)
 from magma.db_service.tests.local_db_test_case import LocalDBTestCase
 from magma.fluentd_client.client import DPLog
 from magma.fluentd_client.dp_logs import make_dp_log
-
+from parameterized import parameterized
 
 DP = 'DP'
 CBSD = 'CBSD'
@@ -97,7 +100,7 @@ class DPLogsTestCase(LocalDBTestCase):
         )
         message = CBSDStateResult(
             channel=channel,
-            radio_enabled=True
+            radio_enabled=True,
         )
 
         # When

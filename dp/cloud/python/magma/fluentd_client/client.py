@@ -29,7 +29,8 @@ logger = logging.getLogger("configuration_controller.run")
 
 
 class FluentdClientException(Exception):
-    ...
+    """Generic Fluentd Client Exception"""
+    pass  # noqa:WPS604
 
 
 @dataclass
@@ -51,6 +52,7 @@ class FluentdClient(object):
     """
     Client class for Fluentd communication.
     """
+
     def __init__(self, config: Optional[Config] = None):
         self.config = config or get_config()
 
@@ -60,6 +62,9 @@ class FluentdClient(object):
 
         Args:
             log (DPLog): DP Log
+
+        Raises:
+            FluentdClientException: Generic Fluentd Client Exception
         """
         logger.debug(f"Sending {log.log_name=} to Fluentd")
         try:

@@ -11,12 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Union, Optional
+from typing import Optional, Union
 
 from magma.db_service.utils import get_cbsd_basic_params
 from magma.fluentd_client.client import DPLog
 from magma.mappings.request_response_mapping import request_response
-
 
 Message = Union['DBRequest', 'DBResponse', 'CBSDRequest', 'CBSDStateResult']
 
@@ -41,8 +40,8 @@ def make_dp_log(
     """
 
     mapping = {
-        'DBRequest': (_make_log_from_db_request, [message, ]),
-        'DBResponse': (_make_log_from_db_response, [message, ]),
+        'DBRequest': (_make_log_from_db_request, [message]),
+        'DBResponse': (_make_log_from_db_response, [message]),
         'CBSDRequest': (_make_dp_log_from_grpc_request, [method_name, message, cbsd]),
         'CBSDStateResult': (_make_dp_log_from_grpc_response, [method_name, message, cbsd, serial_number]),
     }

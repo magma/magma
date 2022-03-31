@@ -15,13 +15,12 @@ package main
 import (
 	"time"
 
-	"magma/dp/cloud/go/services/dp/obsidian/cbsd"
-
 	"github.com/golang/glog"
 
 	"magma/dp/cloud/go/dp"
 	"magma/dp/cloud/go/protos"
 	dp_service "magma/dp/cloud/go/services/dp"
+	"magma/dp/cloud/go/services/dp/obsidian/cbsd"
 	dp_log "magma/dp/cloud/go/services/dp/obsidian/log"
 	"magma/dp/cloud/go/services/dp/servicers"
 	dp_storage "magma/dp/cloud/go/services/dp/storage"

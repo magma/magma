@@ -28,7 +28,7 @@ fluentd_forward:
   create: false
 
   # Domain-proxy output
-  dp_output: true 
+  dp_output: true
 
   replicas: 1
 

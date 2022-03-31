@@ -21,12 +21,11 @@ import pytest
 import requests
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
 from dp.protos.enodebd_dp_pb2_grpc import DPServiceStub
-from retrying import retry
-
 from magma.db_service.db_initialize import DBInitializer
 from magma.db_service.session_manager import SessionManager
 from magma.db_service.tests.db_testcase import DBTestCase
 from magma.test_runner.config import TestConfig
+from retrying import retry
 
 config = TestConfig()
 
@@ -67,7 +66,7 @@ class DomainProxyOrc8rTestCase(DBTestCase):
     def test_cbsd_sas_flow(self):
         cbsd_id = self.given_cbsd_provisioned()
         # Giving ElasticSearch time to index logs
-        sleep(2)
+        sleep(5)
 
         logs = self.when_logs_are_fetched(self.get_current_sas_filters())
         self.then_logs_are(logs, self.get_sas_provision_messages())
@@ -125,7 +124,7 @@ class DomainProxyOrc8rTestCase(DBTestCase):
             'serial_number': SERIAL_NUMBER,
             'from': SAS,
             'to': DP,
-            'end': DATETIME_WAY_BACK
+            'end': DATETIME_WAY_BACK,
         }
         dp_to_sas = {
             'serial_number': SERIAL_NUMBER,
@@ -360,8 +359,10 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         self.assertTrue(comparison)
 
 
-def send_request_to_backend(method: str, url_suffix: str, params: Optional[Dict[str, Any]] = None,
-                            json: Optional[Dict[str, Any]] = None) -> requests.Response:
+def send_request_to_backend(
+    method: str, url_suffix: str, params: Optional[Dict[str, Any]] = None,
+    json: Optional[Dict[str, Any]] = None,
+) -> requests.Response:
     return requests.request(
         method,
         f'{config.HTTP_SERVER}/{DP_HTTP_PREFIX}/{NETWORK}/{url_suffix}',
