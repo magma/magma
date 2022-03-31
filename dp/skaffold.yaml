@@ -248,3 +248,7 @@ profiles:
                 - "sh"
                 - "-c"
                 - "/var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator || exit 0"
+  - name: remote-push
+    patches:
+      - op: remove
+        path: /build/artifacts/5  # remove fake sas image
