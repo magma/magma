@@ -19,7 +19,7 @@ cc_test(
         "test_auth_service_client.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -30,7 +30,7 @@ cc_test(
         "test_smf_service_client.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )

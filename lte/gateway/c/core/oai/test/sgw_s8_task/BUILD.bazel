@@ -20,7 +20,7 @@ cc_test(
     ],
     deps = [
         ":sgw_s8_utility",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -34,7 +34,7 @@ cc_library(
         "sgw_s8_utility.h",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "//lte/gateway/c/core/oai/test/mock_tasks",
     ],
 )
@@ -45,7 +45,7 @@ cc_test(
         "sgw_s8_recv_grpc_messages.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "//lte/gateway/c/core/oai/test/mock_tasks",
         "@com_google_googletest//:gtest_main",
     ],
@@ -58,7 +58,7 @@ cc_test(
     ],
     deps = [
         ":sgw_s8_utility",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "//lte/gateway/c/core/oai/test/mock_tasks",
         "@com_google_googletest//:gtest_main",
     ],

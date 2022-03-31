@@ -20,7 +20,7 @@ cc_test(
         "test_amf_algorithm_selection.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -32,7 +32,7 @@ cc_test(
         "test_amf_map.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -45,7 +45,7 @@ cc_test(
     ],
     deps = [
         ":amf_app_test_util",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "//lte/gateway/c/core/oai/test/mock_tasks",
         "@com_google_googletest//:gtest_main",
     ],
@@ -59,7 +59,7 @@ cc_test(
     ],
     deps = [
         ":amf_app_test_util",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "//lte/gateway/c/core/oai/test/mock_tasks",
         "@com_google_googletest//:gtest_main",
     ],
@@ -70,7 +70,7 @@ cc_test(
     size = "small",
     srcs = ["test_amf_common_utils.cpp"],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -92,7 +92,7 @@ cc_library(
         "util_s6a_update_location.h",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest",
     ],
 )
@@ -105,7 +105,7 @@ cc_test(
     ],
     deps = [
         ":amf_app_test_util",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "//lte/gateway/c/core/oai/test/mock_tasks",
         "@com_google_googletest//:gtest_main",
     ],

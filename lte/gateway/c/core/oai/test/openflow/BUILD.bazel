@@ -27,7 +27,7 @@ cc_test(
     ],
     deps = [
         ":openflow_mocks",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "//lte/gateway/c/core/oai/test/mock_tasks",
         "@com_google_googletest//:gtest_main",
     ],
@@ -39,7 +39,7 @@ cc_test(
         "test_imsi_encoder.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -51,7 +51,7 @@ cc_test(
     ],
     deps = [
         ":openflow_mocks",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "//lte/gateway/c/core/oai/test/mock_tasks",
         "@com_google_googletest//:gtest_main",
     ],

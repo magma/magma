@@ -19,7 +19,7 @@ cc_test(
         "test_3gpp.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "//lte/gateway/c/core/common:common_defs",
         "@com_google_googletest//:gtest_main",
     ],
@@ -31,7 +31,7 @@ cc_test(
         "test_bstr.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )

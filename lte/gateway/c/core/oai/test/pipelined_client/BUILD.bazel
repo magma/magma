@@ -20,7 +20,7 @@ cc_test(
     ],
     deps = [
         ":utility_protobuf",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )

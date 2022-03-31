@@ -21,7 +21,7 @@ cc_test(
     ],
     deps = [
         ":ngap_utils",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -38,7 +38,7 @@ cc_library(
         "util_ngap_pkt.h",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "//lte/gateway/c/core/common:common_defs",
     ],
 )
@@ -51,7 +51,7 @@ cc_test(
     ],
     deps = [
         ":ngap_utils",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -64,7 +64,7 @@ cc_test(
     ],
     deps = [
         ":ngap_utils",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -77,7 +77,7 @@ cc_test(
     ],
     deps = [
         ":ngap_utils",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )
