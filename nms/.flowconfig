@@ -40,11 +40,17 @@
 .*/test/build/downstream-flow-fixture/.*
 .*/_batfish_site/.*
 
+; fbc-js-core
+;.*/packages/magmalte/fbc_js_core/.*
+
 [untyped]
 // TODO - fix flow error in core packages
 .*/node_modules/@fbcnms/ui/insights/Alarms/AlarmApi.js
 .*/node_modules/@fbcnms/platform-server/network/routes.js
 .*/node_modules/@fbcnms/babel-register
+.*/packages/magmalte/fbc_js_core/ui/insights/Alarms/AlarmApi.js
+.*/packages/magmalte/fbc_js_core/platform_server/network/routes.js
+.*/packages/magmalte/fbc_js_core/babel_register
 
 [options]
 esproposal.optional_chaining=enable
@@ -59,9 +65,13 @@ node_modules/mapbox-gl/dist/mapbox-gl.js.flow
 .*/flow-typed/npm/@testing-library/.*
 .*/node_modules/react-beautiful-dnd/.*
 .*/node_modules/mapbox-gl/src/.*
+.*/node_modules/express/.*
 .*/node_modules/@fbcnms/express-middleware/.*
 .*/node_modules/@fbcnms/ui/.*
 .*/node_modules/@fbcnms/util/.*
+.*/packages/magmalte/fbc_js_core/express-middleware/.*
+.*/packages/magmalte/fbc_js_core/ui/.*
+.*/packages/magmalte/fbc_js_core/util/.*
 
 [lints]
 all=warn

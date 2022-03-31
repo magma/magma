@@ -25,7 +25,7 @@ import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
 import React from 'react';
 import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../../fbc_js_core/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 
 import {makeStyles} from '@material-ui/styles';

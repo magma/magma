@@ -29,11 +29,11 @@ import LteNetworkContext from '../../components/context/LteNetworkContext';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import type {UpdateNetworkContextProps} from '../../components/context/LteNetworkContext';
 
 import {

@@ -19,7 +19,7 @@ import {isEqual, sortBy} from 'lodash';
 import MagmaV1API from '../server/magma/index';
 import Sequelize from 'sequelize';
 import {AnalyticsDBData} from './dashboards/AnalyticsDashboards';
-import {CWF} from '@fbcnms/types/network';
+import {CWF} from '../fbc_js_core/types/network';
 import {
   CWFAccessPointDBData,
   CWFGatewayDBData,
@@ -35,22 +35,22 @@ import {
   createDashboard,
 } from './dashboards/Dashboards';
 
-import {Organization} from '@fbcnms/sequelize-models';
+import {Organization} from '../fbc_js_core/sequelize_models';
 import {XWFMDBData} from './dashboards/XWFMDashboards';
-import {apiCredentials} from '@fbcnms/platform-server/config';
+import {apiCredentials} from '../fbc_js_core/platform_server/config';
 
 import type {
   CreateDashboardResponse,
   Datasource,
   PostDatasource,
 } from './GrafanaAPIType';
-import type {FBCNMSRequest} from '@fbcnms/auth/access';
+import type {FBCNMSRequest} from '../fbc_js_core/auth/access';
 import type {GrafanaClient, GrafanaResponse} from './GrafanaAPI';
-import type {OrganizationType} from '@fbcnms/sequelize-models/models/organization';
-import type {UserType} from '@fbcnms/sequelize-models/models/user';
+import type {OrganizationType} from '../fbc_js_core/sequelize_models/models/organization';
+import type {UserType} from '../fbc_js_core/sequelize_models/models/user';
 import type {network_type, tenant} from '../generated/MagmaAPIBindings';
 
-const logger = require('@fbcnms/logging').getLogger(module);
+const logger = require('../fbc_js_core/logging').getLogger(module);
 
 export type Task = {name: string, status: number, message: string};
 

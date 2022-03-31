@@ -27,7 +27,7 @@ import {cleanup, render} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
+jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
 
 afterEach(cleanup);
 

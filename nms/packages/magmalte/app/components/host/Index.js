@@ -15,27 +15,29 @@
  */
 
 import AppContent from '../layout/AppContent';
-import AppContext, {AppContextProvider} from '@fbcnms/ui/context/AppContext';
-import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
+import AppContext, {
+  AppContextProvider,
+} from '../../../fbc_js_core/ui/context/AppContext';
+import AppSideBar from '../../../fbc_js_core/ui/components/layout/AppSideBar';
 import ApplicationMain from '../../components/ApplicationMain';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import CloudMetrics from '../../views/metrics/CloudMetrics';
-import Features from '@fbcnms/ui/host/Features';
+import Features from '../../../fbc_js_core/ui/host/Features';
 import FlagIcon from '@material-ui/icons/Flag';
-import NavListItem from '@fbcnms/ui/components/NavListItem';
-import OrganizationEdit from '@fbcnms/ui/host/OrganizationEdit';
-import Organizations from '@fbcnms/ui/host/Organizations';
+import NavListItem from '../../../fbc_js_core/ui/components/NavListItem';
+import OrganizationEdit from '../../../fbc_js_core/ui/host/OrganizationEdit';
+import Organizations from '../../../fbc_js_core/ui/host/Organizations';
 import Paper from '@material-ui/core/Paper';
 import PeopleIcon from '@material-ui/icons/People';
 import React, {useContext} from 'react';
 import SecuritySettings from '../SecuritySettings';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import UsersSettings from '../admin/userManagement/UsersSettings';
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {getProjectTabs as getAllProjectTabs} from '@fbcnms/projects/projects';
+import {getProjectTabs as getAllProjectTabs} from '../../../fbc_js_core/projects/projects';
 import {makeStyles} from '@material-ui/styles';
-import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
+import {useRelativeUrl} from '../../../fbc_js_core/ui/hooks/useRouter';
 
 const useStyles = makeStyles(theme => ({
   root: {

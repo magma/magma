@@ -18,7 +18,7 @@ import * as React from 'react';
 import FEGGatewayContext from '../context/FEGGatewayContext';
 import FEGNetworkContext from '../context/FEGNetworkContext';
 import FEGSubscriberContext from '../context/FEGSubscriberContext';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 
@@ -39,7 +39,7 @@ import {
 } from '../../state/feg/EquipmentState';
 import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';
 import {useCallback, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 
 type Props = {
   networkId: network_id,

@@ -38,7 +38,7 @@ import {PolicyJsonConfig} from './PolicyOverview';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import {withStyles} from '@material-ui/core/styles';
 
 const useStyles = makeStyles(_ => ({

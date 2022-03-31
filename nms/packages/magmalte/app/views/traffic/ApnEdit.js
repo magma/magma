@@ -40,7 +40,7 @@ import Text from '../../theme/design-system/Text';
 
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {useContext, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 
 const DEFAULT_APN_CONFIG = {
   apn_configuration: {

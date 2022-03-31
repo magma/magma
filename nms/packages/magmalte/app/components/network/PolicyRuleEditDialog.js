@@ -14,14 +14,14 @@
  * @format
  */
 
-import type {NetworkType} from '@fbcnms/types/network';
+import type {NetworkType} from '../../../fbc_js_core/types/network';
 import type {
   policy_qos_profile,
   policy_rule,
 } from '../../../generated/MagmaAPIBindings';
 
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
-import Button from '@fbcnms/ui/components/design-system/Button';
+import Button from '../../../fbc_js_core/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -35,17 +35,17 @@ import PolicyFlowFields from './PolicyFlowFields';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-import TypedSelect from '@fbcnms/ui/components/TypedSelect';
+import TypedSelect from '../../../fbc_js_core/ui/components/TypedSelect';
 import Typography from '@material-ui/core/Typography';
 
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
-import {CWF, FEG, LTE} from '@fbcnms/types/network';
-import {base64ToHex, decodeBase64} from '@fbcnms/util/strings';
-import {coalesceNetworkType} from '@fbcnms/types/network';
+import {CWF, FEG, LTE} from '../../../fbc_js_core/types/network';
+import {base64ToHex, decodeBase64} from '../../../fbc_js_core/util/strings';
+import {coalesceNetworkType} from '../../../fbc_js_core/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(() => ({
   input: {width: '100%'},

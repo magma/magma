@@ -31,7 +31,7 @@ import TopBar from '../../components/TopBar';
 import UpgradeButton from './UpgradeTiersDialog';
 
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 function EquipmentDashboard() {
   const {relativePath, relativeUrl} = useRouter();
