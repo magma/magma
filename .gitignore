@@ -13,14 +13,16 @@ Session.vim
 # Python: byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+.mypy_cache/
 
 # Python: virtual environments
 .env/
 .coverage
 .python-version
 
-# C extensions
+# C/C++ extensions
 *.so
+.clangd/
 
 # Distribution / packaging
 .Python
