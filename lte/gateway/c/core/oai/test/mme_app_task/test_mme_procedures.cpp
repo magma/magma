@@ -28,6 +28,7 @@
 
 extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
 }
 namespace magma {
 namespace lte {
@@ -119,6 +120,9 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
   send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
+  // Wait for ICS Request to be sent
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
 
@@ -195,6 +199,9 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirTimeout) {
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
+
+  // Reduce the S6a timer duration for testing
+  mme_config.nas_config.ts6a_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
 
@@ -397,6 +404,9 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectAuthRetxFailure) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
+  // Reduce timer 3460 duration for testing
+  mme_config.nas_config.t3460_msec = MME_APP_TIMER_TO_MSEC;
+
   MME_APP_EXPECT_CALLS(6, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
 
   // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
@@ -434,6 +444,9 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectSmcRetxFailure) {
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
+
+  // Reduce timer 3460 duration for testing
+  mme_config.nas_config.t3460_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(6, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
 
@@ -477,6 +490,9 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
+  // Reduce timer 3470 duration for testing
+  mme_config.nas_config.t3470_msec = MME_APP_TIMER_TO_MSEC;
+
   MME_APP_EXPECT_CALLS(8, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
   // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
@@ -511,6 +527,9 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
   send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
+
+  // Wait for ICS Request to be sent
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -551,14 +570,15 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectIdentRetxFailure) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  MME_APP_EXPECT_CALLS(6, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
+  // Reduce timer 3470 duration for testing
+  mme_config.nas_config.t3470_msec = MME_APP_TIMER_TO_MSEC;
 
-  // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
-                              sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
+  MME_APP_EXPECT_CALLS(5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1);
 
-  // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi, true);
+  // Constructing and sending Initial Attach Request with GUTI to
+  // mme_app mimicing S1AP
+  send_mme_app_initial_ue_msg(nas_msg_guti_attach_req,
+                              sizeof(nas_msg_guti_attach_req), plmn, guti, 1);
 
   // Wait for DL NAS Transport to max out retransmission limit
   for (int i = 0; i < NAS_RETX_LIMIT; ++i) {
@@ -585,9 +605,13 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectIdentRetxFailure) {
 TEST_F(MmeAppProcedureTest, TestIcsRequestTimeout) {
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
+
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
+
+  // Reduce the ICS timeout for testing
+  mme_config.nas_config.tics_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(2, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1);
 
@@ -615,6 +639,9 @@ TEST_F(MmeAppProcedureTest, TestIcsRequestTimeout) {
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
   send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
+
+  // Wait for ICS Request to be sent
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Wait for ICS Request timeout
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -671,6 +698,9 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachIcsFailure) {
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
   send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
+
+  // Wait for ICS Request to be sent
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Send ICS failure to mme_app mimicing S1AP
   send_ics_failure();
@@ -838,6 +868,9 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleServiceReqDetach) {
   send_mme_app_initial_ue_msg(nas_msg_service_req, sizeof(nas_msg_service_req),
                               plmn, guti, 1);
 
+  // Wait for ICS Request to be sent
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
 
@@ -865,6 +898,9 @@ TEST_F(MmeAppProcedureTest, TestPagingMaxRetx) {
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
+
+  // Reduce paging retransmission timer duration for testing
+  mme_config.nas_config.tpaging_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(3, 2, 2, 1, 1, 1, 1, 2, 1, 1, 4);
 
@@ -906,6 +942,9 @@ TEST_F(MmeAppProcedureTest, TestPagingMaxRetx) {
   // Constructing and sending Service Request
   send_mme_app_initial_ue_msg(nas_msg_service_req, sizeof(nas_msg_service_req),
                               plmn, guti, 1);
+
+  // Wait for ICS request to be sent
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -967,6 +1006,9 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithActiveFlag) {
   send_mme_app_initial_ue_msg(nas_msg_periodic_tau_req_with_actv_flag,
                               sizeof(nas_msg_periodic_tau_req_with_actv_flag),
                               plmn, guti, 1);
+
+  // Wait for ICS Request to be sent
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -1086,6 +1128,9 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithActiveFlag) {
   send_mme_app_initial_ue_msg(nas_msg_normal_tau_req_with_actv_flag,
                               sizeof(nas_msg_normal_tau_req_with_actv_flag),
                               plmn, guti, 1);
+
+  // Wait for ICS Request to be sent
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -1263,6 +1308,9 @@ TEST_F(MmeAppProcedureTest, TestFailedPagingForPendingBearers) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
+  // Reduce the paging retransmission timer duration for testing
+  mme_config.nas_config.tpaging_msec = MME_APP_TIMER_TO_MSEC;
+
   MME_APP_EXPECT_CALLS(3, 1, 2, 1, 1, 1, 1, 1, 1, 1, 4);
 
   // Attach the UE
@@ -1401,6 +1449,9 @@ TEST_F(MmeAppProcedureTest,
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   send_delete_session_resp(DEFAULT_LBI + ebi_idx);
 
+  // Wait for ICS Request to be sent
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
 
@@ -1503,6 +1554,9 @@ TEST_F(MmeAppProcedureTest,
   // Constructing and sending deactivate bearer request
   uint8_t ebi_to_be_deactivated = 7;
   send_s11_deactivate_bearer_req(1, &ebi_to_be_deactivated, false);
+
+  // Wait for ICS Request to be sent
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -1650,6 +1704,9 @@ TEST_F(MmeAppProcedureTest, TestDuplicateAttach) {
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
   send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
+  // Wait for ICS Request to be sent
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
 
@@ -1740,6 +1797,9 @@ TEST_F(MmeAppProcedureTest, TestDuplicateAttach) {
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
   send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
+  // Wait for ICS Request to be sent
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
 
@@ -1780,9 +1840,6 @@ TEST_F(MmeAppProcedureTest, TestCLRNwInitiatedDetach) {
   std::unique_lock<std::mutex> lock(mx);
 
   MME_APP_EXPECT_CALLS(4, 1, 1, 1, 1, 0, 1, 1, 0, 1, 2);
-  // Setting the 3422 and 3460 timers to standard duration
-  mme_config.nas_config.t3422_msec = 8000;
-  mme_config.nas_config.t3460_msec = 8000;
 
   // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
@@ -1808,6 +1865,9 @@ TEST_F(MmeAppProcedureTest, TestCLRNwInitiatedDetach) {
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
   send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
+
+  // Wait for ICS Request to be sent
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -1905,6 +1965,9 @@ TEST_F(MmeAppProcedureTest, TestS6aReset) {
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
   send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
+
+  // Wait for ICS Request to be sent
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();

@@ -23,9 +23,9 @@
 
 #include <fluid/OFServer.hh>
 
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerEvents.h"
 #include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowMessenger.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 namespace openflow {
 
@@ -33,7 +33,7 @@ namespace openflow {
 
 class Application {
  public:
-  static const uint8_t SPGW_TABLE = 0;
+  static const uint8_t SPGW_OVS_TABLE_ID = 0;
 
  public:
   virtual void event_callback(const ControllerEvent& ev,

@@ -36,7 +36,7 @@ extern task_zmq_ctx_t task_zmq_ctx_main;
 #define DEFAULT_LBI 5
 
 #define DEFAULT_eNB_S1AP_UE_ID 0
-#define DEFAULT_SCTP_ASSOC_ID 0
+#define DEFAULT_SCTP_ASSOC_ID 0U
 #define DEFAULT_ENB_ID 0
 
 #define MME_APP_EXPECT_CALLS(dlNas, connEstConf, ctxRel, air, ulr, purgeReq,   \
@@ -48,7 +48,8 @@ extern task_zmq_ctx_t task_zmq_ctx_main;
                                        ReturnFromAsyncTask(&cv)));             \
     EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf(testing::_))           \
         .Times(connEstConf)                                                    \
-        .WillRepeatedly(testing::SaveArg<0>(&nas_msg));                        \
+        .WillRepeatedly(                                                       \
+            DoAll(testing::SaveArg<0>(&nas_msg), ReturnFromAsyncTask(&cv)));   \
     EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command())       \
         .Times(ctxRel)                                                         \
         .WillRepeatedly(ReturnFromAsyncTask(&cv));                             \

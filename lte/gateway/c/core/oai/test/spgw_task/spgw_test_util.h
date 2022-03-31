@@ -10,6 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#pragma once
+
 #include <string>
 
 extern "C" {
@@ -23,6 +26,8 @@ extern "C" {
 namespace magma {
 namespace lte {
 
+extern task_zmq_ctx_t task_zmq_ctx_main_spgw;
+
 #define END_OF_TEST_SLEEP_MS 1000
 #define STATE_MAX_WAIT_MS 1000
 
@@ -32,7 +37,6 @@ namespace lte {
 #define UNASSIGNED_UE_IP 0
 #define DEFAULT_UE_IP 0xc0a8800a  // 192.168.128.10
 #define DEFAULT_VLAN 0
-#define DEFAULT_ENB_IP 0xc0a88129  // 192.168.129.41
 #define DEFAULT_ENB_GTP_TEID 1
 #define ERROR_SGW_S11_TEID 100
 #define DEFAULT_EDNS_IP 0x7f000001  // localhost

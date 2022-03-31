@@ -19,44 +19,24 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/include/amf_config.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_common.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_encoder.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_nas_procedures.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_itti_messaging.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_ta.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
-#include "lte/gateway/c/core/oai/common/asn1_conversions.h"
 #include "BIT_STRING.h"
 #include "INTEGER.h"
-#include "Ngap_NGAP-PDU.h"
+#include "Ngap_AMF-UE-NGAP-ID.h"
 #include "Ngap_CauseMisc.h"
 #include "Ngap_CauseNas.h"
 #include "Ngap_CauseProtocol.h"
 #include "Ngap_CauseRadioNetwork.h"
 #include "Ngap_CauseTransport.h"
+#include "Ngap_FiveG-S-TMSI.h"
 #include "Ngap_GNB-ID.h"
-#include "Ngap_RAN-UE-NGAP-ID.h"
-#include "Ngap_RANNodeName.h"
 #include "Ngap_GTP-TEID.h"
 #include "Ngap_GlobalGNB-ID.h"
-#include "Ngap_AMF-UE-NGAP-ID.h"
+#include "Ngap_NGAP-PDU.h"
 #include "Ngap_PLMNIdentity.h"
 #include "Ngap_ProcedureCode.h"
+#include "Ngap_RAN-UE-NGAP-ID.h"
+#include "Ngap_RANNodeName.h"
 #include "Ngap_ResetType.h"
-#include "Ngap_FiveG-S-TMSI.h"
 #include "Ngap_ServedGUAMIItem.h"
 #include "Ngap_TAI.h"
 #include "Ngap_TimeToWait.h"
@@ -69,12 +49,32 @@
 #include "Ngap_UEPagingIdentity.h"
 #include "Ngap_UERadioCapability.h"
 #include "asn_SEQUENCE_OF.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/asn1_conversions.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_encoder.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_itti_messaging.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_ta.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_common.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 
 struct Ngap_IE;
 
@@ -82,7 +82,7 @@ status_code_e ngap_generate_ng_setup_response(
     ngap_state_t* state, gnb_description_t* gnb_association);
 
 status_code_e ngap_amf_generate_ue_context_release_command(
-    ngap_state_t* state, m5g_ue_description_t* ue_ref_p, enum Ngcause,
+    ngap_state_t* state, m5g_ue_description_t* ue_ref_p, n2cause_e cause,
     imsi64_t imsi64);
 
 /* Handlers matrix. Only amf related procedures present here.
@@ -910,7 +910,7 @@ int ngap_amf_handle_ue_context_release_request(ngap_state_t* state,
   MessageDef* message_p = NULL;
   Ngap_Cause_PR cause_type;
   long cause_value;
-  enum Ngcause ng_release_cause = NGAP_RADIO_NR_GENERATED_REASON;
+  n2cause_e ng_release_cause = NGAP_RADIO_NR_GENERATED_REASON;
   int rc = RETURNok;
   amf_ue_ngap_id_t amf_ue_ngap_id = 0;
   gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
@@ -1064,7 +1064,7 @@ int ngap_amf_handle_ue_context_release_request(ngap_state_t* state,
 
 //------------------------------------------------------------------------------
 status_code_e ngap_amf_generate_ue_context_release_command(
-    ngap_state_t* state, m5g_ue_description_t* ue_ref_p, enum Ngcause cause,
+    ngap_state_t* state, m5g_ue_description_t* ue_ref_p, n2cause_e cause,
     imsi64_t imsi64) {
   uint8_t* buffer = NULL;
   uint32_t length = 0;
@@ -1590,6 +1590,8 @@ void ngap_amf_handle_ue_context_rel_comp_timer_expiry(
          sizeof(itti_ngap_ue_context_release_complete_t));
   NGAP_UE_CONTEXT_RELEASE_COMPLETE(message_p).amf_ue_ngap_id =
       ue_ref_p->amf_ue_ngap_id;
+  NGAP_UE_CONTEXT_RELEASE_COMPLETE(message_p).gnb_ue_ngap_id =
+      ue_ref_p->gnb_ue_ngap_id;
 
   message_p->ittiMsgHeader.imsi = imsi64;
   ngap_send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);

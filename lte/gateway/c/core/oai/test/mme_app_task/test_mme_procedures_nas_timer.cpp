@@ -33,6 +33,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachExpiredNasTimers) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
+  nas_config_timer_reinit(&mme_config.nas_config, MME_APP_TIMER_TO_MSEC);
+
   MME_APP_EXPECT_CALLS(15, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
   // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
@@ -63,6 +65,9 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachExpiredNasTimers) {
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
   send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
+
+  // Wait for ICS request to be sent
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();

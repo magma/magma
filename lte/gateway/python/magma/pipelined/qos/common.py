@@ -201,7 +201,7 @@ class QosManager(object):
     def debug(cls, _, __, ___):
         config = load_service_config('pipelined')
         qos_impl_type = QosImplType(config["qos"]["impl"])
-        qos_store = QosStore(cls.__name__)
+        qos_store = QosStore(cls.__name__, client=get_default_client())
         for k, v in qos_store.items():
             _, imsi, ip_addr, rule_num, d = get_key(k)
             _, qid, ambr, leaf = get_data(v)

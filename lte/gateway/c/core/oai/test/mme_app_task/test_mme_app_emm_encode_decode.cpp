@@ -13,23 +13,23 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachAccept.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationResponse.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/CsServiceNotification.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/EmmInformation.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ExtendedServiceRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateAccept.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeCommand.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeComplete.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateAccept.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/UplinkNasTransport.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 }
 
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_app_test_util.h"

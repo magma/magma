@@ -45,7 +45,7 @@ void BaseApplication::event_callback(const ControllerEvent& ev,
 void BaseApplication::install_default_flow(fluid_base::OFConnection* ofconn,
                                            const OpenflowMessenger& messenger) {
   of13::FlowMod fm = messenger.create_default_flow_mod(
-      SPGW_TABLE, of13::OFPFC_ADD, LOW_PRIORITY);
+      SPGW_OVS_TABLE_ID, of13::OFPFC_ADD, LOW_PRIORITY);
   // Output to next table
   of13::GoToTable inst(NEXT_TABLE);
   fm.add_instruction(inst);
@@ -55,8 +55,8 @@ void BaseApplication::install_default_flow(fluid_base::OFConnection* ofconn,
 
 void BaseApplication::remove_all_flows(fluid_base::OFConnection* ofconn,
                                        const OpenflowMessenger& messenger) {
-  of13::FlowMod fm =
-      messenger.create_default_flow_mod(SPGW_TABLE, of13::OFPFC_DELETE, 0);
+  of13::FlowMod fm = messenger.create_default_flow_mod(SPGW_OVS_TABLE_ID,
+                                                       of13::OFPFC_DELETE, 0);
   // match all
   fm.out_port(of13::OFPP_ANY);
   fm.out_group(of13::OFPG_ANY);

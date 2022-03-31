@@ -38,6 +38,8 @@ int amf_app_handle_uplink_nas_message(amf_app_desc_t* amf_app_desc_p,
                                       const tai_t originating_tai);
 int amf_app_handle_pdu_session_response(
     itti_n11_create_pdu_session_response_t* pdu_session_resp);
+int amf_app_handle_pdu_session_failure(
+    itti_n11_create_pdu_session_failure_t* pdu_session_failure);
 int amf_app_handle_notification_received(
     itti_n11_received_notification_t* notification);
 int amf_app_handle_pdu_session_accept(
@@ -52,4 +54,14 @@ void amf_app_handle_initial_context_setup_rsp(
     itti_amf_app_initial_context_setup_rsp_t* initial_context_rsp);
 int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id);
 std::string get_message_type_str(uint8_t type);
+
+// Handling ue context release complete
+void amf_app_handle_ngap_ue_context_release_complete(
+    amf_app_desc_t* amf_app_desc_p,
+    const itti_ngap_ue_context_release_complete_t* const
+        ngap_ue_context_release_complete);
+
+// Handling of SCTP shutdown
+void amf_app_handle_gnb_deregister_ind(
+    const itti_ngap_gNB_deregistered_ind_t* const gNB_deregistered_ind);
 }  // namespace magma5g
