@@ -25,7 +25,7 @@
 #ifndef FILE_SGW_HANDLERS_SEEN
 #define FILE_SGW_HANDLERS_SEEN
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/gtpv1_u_messages_types.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"

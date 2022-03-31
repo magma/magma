@@ -22,7 +22,7 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 
 #ifndef FILE_S11_IE_FORMATTER_SEEN

@@ -41,7 +41,7 @@ class SmfServiceClient {
  public:
   virtual ~SmfServiceClient() {}
   virtual bool set_smf_session(SetSMSessionContext& request) = 0;
-  virtual bool set_smf_notification(SetSmNotificationContext& notify) = 0;
+  virtual bool set_smf_notification(const SetSmNotificationContext& notify) = 0;
 };
 
 /**
@@ -60,7 +60,7 @@ class AsyncSmfServiceClient : public magma::GRPCReceiver,
       const std::function<void(Status, SmContextVoid)>& callback);
 
   void SetSMFNotificationRPC(
-      SetSmNotificationContext& notify,
+      const SetSmNotificationContext& notify,
       const std::function<void(Status, SmContextVoid)>& callback);
 
  public:
@@ -78,7 +78,7 @@ class AsyncSmfServiceClient : public magma::GRPCReceiver,
 
   bool set_smf_session(SetSMSessionContext& request);
 
-  bool set_smf_notification(SetSmNotificationContext& notify);
+  bool set_smf_notification(const SetSmNotificationContext& notify);
 
   bool n11_update_location_req(const s6a_update_location_req_t* const ulr_p);
 };

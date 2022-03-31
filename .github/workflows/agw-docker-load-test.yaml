@@ -23,7 +23,7 @@ jobs:
       CODE_DIR: "${{ github.workspace }}/experimental/cloudstrapper"
       VARS_DIR: "${{ github.workspace }}/experimental/cloudstrapper/playbooks/roles/vars"
       WORK_DIR: "${{ github.workspace }}/experimental/cloudstrapper/playbooks"
-      AGW_DOCKER_AMI: "ami-0d32d65347d4c036a"
+      AGW_DOCKER_AMI: "ami-0150e153a94c122b5"
     steps:
       - uses: actions/checkout@v2
       - name: Run apt

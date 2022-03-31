@@ -101,6 +101,11 @@ class AMFClientServicerBase {
                                      const std::string& ciphertext,
                                      const std::string& mac_tag,
                                      amf_ue_ngap_id_t ue_id);
+
+  virtual int n11_update_location_req(
+      const s6a_update_location_req_t* const ulr_p);
+
+  virtual bool set_smf_notification(const SetSmNotificationContext& notify);
 };
 
 class AMFClientServicer : public AMFClientServicerBase {
@@ -192,6 +197,14 @@ class AMFClientServicer : public AMFClientServicerBase {
                              const std::string& ciphertext,
                              const std::string& mac_tag,
                              amf_ue_ngap_id_t ue_id) override {
+    return true;
+  }
+
+  int n11_update_location_req(const s6a_update_location_req_t* const ulr_p) {
+    return RETURNok;
+  }
+
+  bool set_smf_notification(const SetSmNotificationContext& notify) {
     return true;
   }
 #endif /* MME_UNIT_TEST */

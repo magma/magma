@@ -26,16 +26,16 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_data.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_data.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 namespace magma5g {
 task_zmq_ctx_t amf_app_task_zmq_ctx;
@@ -92,10 +92,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           &N11_CREATE_PDU_SESSION_RESPONSE(received_message_p));
       is_task_state_same = true;
       break;
+    case N11_CREATE_PDU_SESSION_FAILURE:
+      amf_app_handle_pdu_session_failure(
+          &N11_CREATE_PDU_SESSION_FAILURE(received_message_p));
+      break;
     case AMF_APP_SUBS_AUTH_INFO_RESP:
       amf_nas_proc_authentication_info_answer(
           &AMF_APP_AUTH_RESPONSE_DATA(received_message_p));
-      is_task_state_same = true;
       force_ue_write = true;
       break;
 
@@ -154,9 +157,22 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       /* This is non-nas message and handled directly from NGAP sent to AMF
        * on RRC-Inactive mode to change UE's CM-connected to CM-idle state.
        */
-      amf_app_handle_cm_idle_on_ue_context_release(
-          NGAP_UE_CONTEXT_RELEASE_REQ(received_message_p));
+      amf_app_handle_ngap_ue_context_release_req(
+          &NGAP_UE_CONTEXT_RELEASE_REQ(received_message_p));
       break;
+
+    /* Handle UE context release complete */
+    case NGAP_UE_CONTEXT_RELEASE_COMPLETE:
+      amf_app_handle_ngap_ue_context_release_complete(
+          amf_app_desc_p,
+          &NGAP_UE_CONTEXT_RELEASE_COMPLETE(received_message_p));
+      break;
+
+    case NGAP_GNB_DEREGISTERED_IND:
+      amf_app_handle_gnb_deregister_ind(
+          &received_message_p->ittiMsg.ngap_gNB_deregistered_ind);
+      break;
+
     /* Handle Terminate message */
     case TERMINATE_MESSAGE:
       itti_free_msg_content(received_message_p);
@@ -165,6 +181,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       break;
     default:
       OAILOG_DEBUG(LOG_AMF_APP, "default message received");
+      is_task_state_same = true;
       break;
   }
   put_amf_ue_state(amf_app_desc_p, imsi64, force_ue_write);

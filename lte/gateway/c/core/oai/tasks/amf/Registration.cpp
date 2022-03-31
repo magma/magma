@@ -23,17 +23,18 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "include/amf_client_servicer.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
-#include "include/amf_client_servicer.h"
 
 #define M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH 1
 #define INVALID_IMSI64 (imsi64_t)0
@@ -166,6 +167,7 @@ int amf_proc_registration_request(amf_ue_ngap_id_t ue_id,
                                   amf_registration_request_ies_t* ies) {
   int rc = RETURNerror;
   ue_m5gmm_context_s ue_ctx;
+  amf_ue_ngap_id_t old_ue_id = 0;
   imsi64_t imsi64 = INVALID_IMSI64;
   ue_m5gmm_context_s* ue_m5gmm_context = NULL;
   if (ies->imsi) {
@@ -195,6 +197,25 @@ int amf_proc_registration_request(amf_ue_ngap_id_t ue_id,
   ue_m5gmm_context->amf_context.amf_procedures = NULL;
   ue_m5gmm_context->amf_context.is_dynamic = false;
   ue_m5gmm_context->amf_ue_ngap_id = ue_id;
+
+  if (ies->imsi) {
+    imsi64 = amf_imsi_to_imsi64(ies->imsi);
+    amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+    ue_m5gmm_context_s* imsi_ue_mm5g_ctx = NULL;
+
+    imsi_ue_mm5g_ctx =
+        amf_ue_context_exists_imsi(&amf_app_desc_p->amf_ue_contexts, imsi64);
+    if (imsi_ue_mm5g_ctx) {
+      old_ue_id = imsi_ue_mm5g_ctx->amf_ue_ngap_id;
+      if ((imsi_ue_mm5g_ctx->mm_state == REGISTERED_CONNECTED) ||
+          (imsi_ue_mm5g_ctx->mm_state == REGISTERED_IDLE)) {
+        create_new_registration_info(&imsi_ue_mm5g_ctx->amf_context, ue_id, ies,
+                                     is_mm_ctx_new);
+        amf_nas_proc_implicit_deregister_ue_ind(old_ue_id);
+        OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+      }
+    }
+  }
 
   if (!(is_nas_specific_procedure_registration_running(
           &ue_m5gmm_context->amf_context))) {
@@ -358,8 +379,11 @@ int amf_registration_run_procedure(amf_context_t* amf_context) {
         amf_ctx_set_valid_imsi(amf_context, registration_proc->ies->imsi,
                                imsi64);
 
+        amf_context_upsert_imsi(amf_context);
+
         rc = amf_start_registration_proc_authentication(amf_context,
                                                         registration_proc);
+
         if (rc != RETURNok) {
           OAILOG_ERROR(
               LOG_NAS_AMF,
@@ -1005,107 +1029,6 @@ void amf_delete_registration_ies(amf_registration_request_ies_t** ies) {
   delete_wrapper(ies);
 }
 
-/***********************************************************************
- ** Name:    amf_delete_child_procedures()                            **
- **                                                                   **
- ** Description: deletes the nas registration specific child          **
- **              child procedures                                     **
- **                                                                   **
- ** Inputs:  amf_ctx:   The amf context                               **
- **          parent_proc: nas 5g base proc                            **
- **                                                                   **
- **                                                                   **
- ** Outputs:     None                                                 **
- **      Return:    void                                              **
- **      Others:    None                                              **
- **                                                                   **
- ***********************************************************************/
-void amf_delete_child_procedures(amf_context_t* amf_ctx,
-                                 struct nas5g_base_proc_t* const parent_proc) {
-  if (amf_ctx && amf_ctx->amf_procedures) {
-    nas_amf_common_procedure_t* p1 =
-        LIST_FIRST(&amf_ctx->amf_procedures->amf_common_procs);
-    nas_amf_common_procedure_t* p2 = NULL;
-    while (p1) {
-      p2 = LIST_NEXT(p1, entries);
-      if (((nas5g_base_proc_t*)p1->proc)->parent == parent_proc) {
-        amf_delete_common_procedure(amf_ctx, &p1->proc);
-      }
-      p1 = p2;
-    }
-  }
-}
-
-static void delete_common_proc_by_type(nas_amf_common_proc_t* proc) {
-  if (proc) {
-    switch (proc->type) {
-      case AMF_COMM_PROC_AUTH: {
-        delete (reinterpret_cast<nas5g_amf_auth_proc_t*>(proc));
-      } break;
-      case AMF_COMM_PROC_SMC: {
-        delete (reinterpret_cast<nas_amf_smc_proc_t*>(proc));
-      } break;
-      case AMF_COMM_PROC_IDENT: {
-        delete (reinterpret_cast<nas_amf_ident_proc_t*>(proc));
-      } break;
-      default: {
-      }
-    }
-  }
-}
-
-/***********************************************************************
- ** Name:    amf_delete_common_procedure()                            **
- **                                                                   **
- ** Description: deletes the nas registration specific common         **
- **              procedures                                           **
- **                                                                   **
- ** Inputs:  proc: nas amf common proc                                **
- **                                                                   **
- **                                                                   **
- ** Outputs:     None                                                 **
- **      Return:    void                                              **
- **      Others:    None                                              **
- **                                                                   **
- ***********************************************************************/
-void amf_delete_common_procedure(amf_context_t* amf_ctx,
-                                 nas_amf_common_proc_t** proc) {
-  if (proc && *proc) {
-    switch ((*proc)->type) {
-      case AMF_COMM_PROC_AUTH: {
-      } break;
-      case AMF_COMM_PROC_SMC: {
-      } break;
-      case AMF_COMM_PROC_IDENT: {
-      } break;
-      default: {
-      }
-    }
-  }
-
-  // remove proc from list
-  if (amf_ctx->amf_procedures) {
-    nas_amf_common_procedure_t* p1 =
-        LIST_FIRST(&amf_ctx->amf_procedures->amf_common_procs);
-    nas_amf_common_procedure_t* p2 = NULL;
-
-    // 2 methods: this one, the other: use parent struct macro and LIST_REMOVE
-    // without searching matching element in the list
-    while (p1) {
-      p2 = LIST_NEXT(p1, entries);
-      if (p1->proc == (nas_amf_common_proc_t*)(*proc)) {
-        LIST_REMOVE(p1, entries);
-        delete_common_proc_by_type(p1->proc);
-        delete (p1);
-        return;
-      }
-      p1 = p2;
-    }
-    nas_amf_procedure_gc(amf_ctx);
-  }
-
-  return;
-}
 /****************************************************************************
 **                                                                        **
 ** Name:    amf_proc_registration_abort()                                 **
@@ -1124,31 +1047,13 @@ void amf_delete_common_procedure(amf_context_t* amf_ctx,
 **                                                                        **
 ***************************************************************************/
 int amf_proc_registration_abort(amf_context_t* amf_ctx,
-                                struct ue_m5gmm_context_s* ue_amf_context) {
+                                struct ue_m5gmm_context_s* ue_context_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   int rc = RETURNerror;
-  if ((ue_amf_context) && (amf_ctx)) {
-    MessageDef* message_p = nullptr;
-    message_p =
-        itti_alloc_new_message(TASK_AMF_APP, NGAP_UE_CONTEXT_RELEASE_COMMAND);
-
-    if (message_p == NULL) {
-      OAILOG_ERROR(LOG_AMF_APP, "message is NULL");
-      OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
-    }
-    memset(&NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p), 0,
-           sizeof(itti_ngap_ue_context_release_command_t));
-
-    NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).amf_ue_ngap_id =
-        ue_amf_context->amf_ue_ngap_id;
-    NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).gnb_ue_ngap_id =
-        ue_amf_context->gnb_ue_ngap_id;
-    NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).cause =
-        (Ngcause)ngap_CauseNas_deregister;
-    message_p->ittiMsgHeader.imsi = ue_amf_context->amf_context.imsi64;
-    send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
-    amf_delete_registration_proc(amf_ctx);
-    amf_free_ue_context(ue_amf_context);
+  if (ue_context_p) {
+    amf_app_itti_ue_context_release(ue_context_p, NGAP_NAS_DEREGISTER);
+    amf_delete_registration_proc(&ue_context_p->amf_context);
+    amf_free_ue_context(ue_context_p);
     rc = RETURNok;
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
@@ -1183,6 +1088,26 @@ int get_decrypt_imsi_suci_extension(amf_context_t* amf_context,
       ue_pubkey_identifier, ue_pubkey, ciphertext, mac_tag, ue_id);
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+}
+
+/***************************************************************************
+ **                                                                       **
+ ** Name:    create_new_registration_info                                 **
+ **                                                                       **
+ ** Description: Store new registration information received and process  **
+ **              once old ue getting de-registered                        **
+ **                                                                       **
+ ***************************************************************************/
+void create_new_registration_info(amf_context_t* amf_context_p,
+                                  amf_ue_ngap_id_t amf_ue_ngap_id,
+                                  struct amf_registration_request_ies_s* ies,
+                                  bool is_mm_ctx_new) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+  amf_context_p->new_registration_info = new (new_registration_info_t)();
+  amf_context_p->new_registration_info->amf_ue_ngap_id = amf_ue_ngap_id;
+  amf_context_p->new_registration_info->ies = ies;
+  amf_context_p->new_registration_info->is_mm_ctx_new = is_mm_ctx_new;
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 }  // namespace magma5g

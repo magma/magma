@@ -346,6 +346,36 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         self.assertEqual(high_frequency, grant.high_frequency)
         self.assertEqual(max_eirp, grant.max_eirp)
 
+    @parameterized.expand([
+        (REGISTRATION_REQ, registration_requests),
+        (SPECTRUM_INQ_REQ, spectrum_inquiry_requests),
+        (GRANT_REQ, grant_requests),
+        (HEARTBEAT_REQ, heartbeat_requests),
+        (RELINQUISHMENT_REQ, relinquishment_requests),
+        (DEREGISTRATION_REQ, deregistration_requests),
+    ])
+    @responses.activate
+    def test_cbsd_unregistered_after_105_response_code(self, request_type, request_fixture):
+        # Given
+        db_requests = self._create_db_requests(
+            request_type, request_fixture,
+        )
+        response = self._prepare_response_from_db_requests(
+            db_requests, ResponseCodes.DEREGISTER.value,
+        )
+
+        # When
+        self._process_response(
+            request_type_name=request_type, response=response, db_requests=db_requests,
+        )
+        states = [req.cbsd.state for req in db_requests]
+
+        # Then
+        [
+            self.assertTrue(state.name == CbsdStates.UNREGISTERED.value)
+            for state in states
+        ]
+
     def _process_response(self, request_type_name, response, db_requests):
         processor = self._get_response_processor(request_type_name)
 

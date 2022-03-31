@@ -11,21 +11,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
 import time
+from typing import List
 
 import metrics_pb2
-from orc8r.protos import metricsd_pb2
-from prometheus_client import REGISTRY
+from prometheus_client import REGISTRY, CollectorRegistry
 
 
-def get_metrics(registry=REGISTRY, verbose=False):
+def get_metrics(registry: CollectorRegistry = REGISTRY, verbose: bool = False):
     """
     Collects timeseries samples from prometheus metric collector registry
     adds a common timestamp, and encodes them to protobuf
 
     Arguments:
-        regsitry: a prometheus CollectorRegistry instance
+        registry: a prometheus CollectorRegistry instance
         verbose: whether to optimize for bandwidth and ignore metric name/help
 
     Returns:
@@ -40,16 +39,10 @@ def get_metrics(registry=REGISTRY, verbose=False):
         elif metric_family.type == 'histogram':
             family_proto = encode_histogram(metric_family, timestamp_ms)
 
+        family_proto.name = metric_family.name
         if verbose:
             family_proto.help = metric_family.documentation
-            family_proto.name = metric_family.name
-        else:
-            try:
-                family_proto.name = \
-                    str(metricsd_pb2.MetricName.Value(metric_family.name))
-            except ValueError as e:
-                logging.debug(e)  # If enum is not defined
-                family_proto.name = metric_family.name
+
         yield family_proto
 
 
@@ -65,8 +58,6 @@ def encode_counter_gauge(family, timestamp_ms):
     Arguments:
         family: a prometheus gauge metric family
         timestamp_ms: the timestamp to attach to the samples
-    Raises:
-        ValueError if metric name is not defined in MetricNames protobuf
     Returns:
         A Counter or Gauge prometheus MetricFamily protobuf
     """
@@ -81,7 +72,7 @@ def encode_counter_gauge(family, timestamp_ms):
             metric_proto.gauge.value = sample[2]
         # Add meta-data to the timeseries
         metric_proto.timestamp_ms = timestamp_ms
-        metric_proto.label.extend(_convert_labels_to_enums(sample[1].items()))
+        metric_proto.label.extend(_convert_labels_to_pb_pairs(sample[1].items()))
         # Append metric sample to family
         family_proto.metric.extend([metric_proto])
     return family_proto
@@ -101,8 +92,6 @@ def encode_summary(family, timestamp_ms):
     Arguments:
         family: a prometheus summary metric family
         timestamp_ms: the timestamp to attach to the samples
-    Raises:
-        ValueError if metric name is not defined in MetricNames protobuf
     Returns:
         a Summary prometheus MetricFamily protobuf
     """
@@ -129,7 +118,7 @@ def encode_summary(family, timestamp_ms):
     # Go back and add meta-data to the timeseries
     for labels, metric_proto in metric_protos.items():
         metric_proto.timestamp_ms = timestamp_ms
-        metric_proto.label.extend(_convert_labels_to_enums(labels))
+        metric_proto.label.extend(_convert_labels_to_pb_pairs(labels))
         # Add it to the family
         family_proto.metric.extend([metric_proto])
     return family_proto
@@ -150,8 +139,6 @@ def encode_histogram(family, timestamp_ms):
     Arguments:
         family: a prometheus histogram metric family
         timestamp_ms: the timestamp to attach to the samples
-    Raises:
-        ValueError if metric name is not defined in MetricNames protobuf
     Returns:
         a Histogram prometheus MetricFamily protobuf
     """
@@ -176,7 +163,7 @@ def encode_histogram(family, timestamp_ms):
     # Go back and add meta-data to the timeseries
     for labels, metric_proto in metric_protos.items():
         metric_proto.timestamp_ms = timestamp_ms
-        metric_proto.label.extend(_convert_labels_to_enums(labels))
+        metric_proto.label.extend(_convert_labels_to_pb_pairs(labels))
         # Add it to the family
         family_proto.metric.extend([metric_proto])
     return family_proto
@@ -193,20 +180,13 @@ def _goStringToFloat(s):
         return float(s)
 
 
-def _convert_labels_to_enums(labels):
+def _convert_labels_to_pb_pairs(labels: List) -> List[metrics_pb2.LabelPair]:
     """
-    Try to convert both the label names and label values to enum values.
+    Try to convert both the label names and label values to LabelPair protobuf objects.
     Defaults to the given name and value if it fails to convert.
     Arguments:
-        labels: an array of label pairs that may contain enum names
+        labels: an array of label pairs with name and value properties
     Returns:
-        an array of label pairs with enum names converted to enum values
+        an array of protobuf LabelPair objects with name and value properties 
     """
-    new_labels = []
-    for name, value in labels:
-        try:
-            name = str(metricsd_pb2.MetricLabelName.Value(name))
-        except ValueError as e:
-            logging.debug(e)
-        new_labels.append(metrics_pb2.LabelPair(name=name, value=value))
-    return new_labels
+    return [metrics_pb2.LabelPair(name=name, value=value) for name, value in labels]

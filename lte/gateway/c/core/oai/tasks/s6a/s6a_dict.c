@@ -28,7 +28,7 @@
 #include <errno.h>
 
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.h"
 

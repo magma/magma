@@ -28,6 +28,7 @@
 
 extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
 }
 namespace magma {
 namespace lte {
@@ -198,6 +199,9 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirTimeout) {
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
+
+  // Reduce the S6a timer duration for testing
+  mme_config.nas_config.ts6a_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
 
@@ -400,6 +404,9 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectAuthRetxFailure) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
+  // Reduce timer 3460 duration for testing
+  mme_config.nas_config.t3460_msec = MME_APP_TIMER_TO_MSEC;
+
   MME_APP_EXPECT_CALLS(6, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
 
   // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
@@ -437,6 +444,9 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectSmcRetxFailure) {
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
+
+  // Reduce timer 3460 duration for testing
+  mme_config.nas_config.t3460_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(6, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
 
@@ -479,6 +489,9 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
+
+  // Reduce timer 3470 duration for testing
+  mme_config.nas_config.t3470_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(8, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
@@ -557,14 +570,15 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectIdentRetxFailure) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  MME_APP_EXPECT_CALLS(6, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
+  // Reduce timer 3470 duration for testing
+  mme_config.nas_config.t3470_msec = MME_APP_TIMER_TO_MSEC;
 
-  // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
-                              sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
+  MME_APP_EXPECT_CALLS(5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1);
 
-  // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi, true);
+  // Constructing and sending Initial Attach Request with GUTI to
+  // mme_app mimicing S1AP
+  send_mme_app_initial_ue_msg(nas_msg_guti_attach_req,
+                              sizeof(nas_msg_guti_attach_req), plmn, guti, 1);
 
   // Wait for DL NAS Transport to max out retransmission limit
   for (int i = 0; i < NAS_RETX_LIMIT; ++i) {
@@ -591,9 +605,13 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectIdentRetxFailure) {
 TEST_F(MmeAppProcedureTest, TestIcsRequestTimeout) {
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
+
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
+
+  // Reduce the ICS timeout for testing
+  mme_config.nas_config.tics_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(2, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1);
 
@@ -880,6 +898,9 @@ TEST_F(MmeAppProcedureTest, TestPagingMaxRetx) {
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
+
+  // Reduce paging retransmission timer duration for testing
+  mme_config.nas_config.tpaging_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(3, 2, 2, 1, 1, 1, 1, 2, 1, 1, 4);
 
@@ -1286,6 +1307,9 @@ TEST_F(MmeAppProcedureTest, TestFailedPagingForPendingBearers) {
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
+
+  // Reduce the paging retransmission timer duration for testing
+  mme_config.nas_config.tpaging_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(3, 1, 2, 1, 1, 1, 1, 1, 1, 1, 4);
 
@@ -1816,9 +1840,6 @@ TEST_F(MmeAppProcedureTest, TestCLRNwInitiatedDetach) {
   std::unique_lock<std::mutex> lock(mx);
 
   MME_APP_EXPECT_CALLS(4, 1, 1, 1, 1, 0, 1, 1, 0, 1, 2);
-  // Setting the 3422 and 3460 timers to standard duration
-  mme_config.nas_config.t3422_msec = 8000;
-  mme_config.nas_config.t3460_msec = 8000;
 
   // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,

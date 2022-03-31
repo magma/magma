@@ -48,14 +48,12 @@ task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 namespace magma5g {
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
-extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
-extern std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*> ue_context_map;
 
-uint8_t NAS5GPktSnapShot::reg_req_buffer[38] = {
-    0x7e, 0x00, 0x41, 0x79, 0x00, 0x0d, 0x01, 0x09, 0xf1, 0x07,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x10,
-    0x01, 0x00, 0x2e, 0x04, 0xf0, 0xf0, 0xf0, 0xf0, 0x2f, 0x05,
-    0x04, 0x01, 0x00, 0x00, 0x01, 0x53, 0x01, 0x00};
+uint8_t NAS5GPktSnapShot::reg_req_buffer[42] = {
+    0x7e, 0x00, 0x41, 0x79, 0x00, 0x0d, 0x01, 0x09, 0xf1, 0x07, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x10, 0x01, 0x00,
+    0x2e, 0x08, 0x80, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2f,
+    0x05, 0x04, 0x01, 0x00, 0x00, 0x01, 0x53, 0x01, 0x00};
 
 uint8_t NAS5GPktSnapShot::reg_resync_buffer[20] = {
     0x7e, 0x00, 0x59, 0x15, 0x30, 0x0e, 0xdc, 0xd5, 0xbb, 0x86,
@@ -191,6 +189,13 @@ TEST_F(AmfNas5GTest, test_amf_ue_register_req_msg) {
 
   EXPECT_EQ(reg_request.m5gs_mobile_identity.mobile_identity.imsi.mcc_digit2,
             0x0);
+
+  // UE security capabilities
+  EXPECT_EQ(reg_request.ue_sec_capability.iei, 0x2e);
+
+  EXPECT_EQ(reg_request.ue_sec_capability.ea, 0x80);
+
+  EXPECT_EQ(reg_request.ue_sec_capability.ia, 0x20);
 }
 
 TEST_F(AmfNas5GTest, test_amf_ue_suci_ext_register_req_msg) {
@@ -917,6 +922,18 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
   bdestroy(buffer);
 }
 
+TEST(test_optional_dnn_pdu, test_wrong_dnn_length) {
+  // uplink nas transport(pdu session request)
+  uint8_t pdu[32] = {0x7e, 0x00, 0x67, 0x01, 0x00, 0x07, 0x2e, 0x0a,
+                     0x01, 0xc1, 0xff, 0xff, 0x91, 0x12, 0x0a, 0x81,
+                     0x22, 0x04, 0x01, 0x00, 0x00, 0x01, 0x25, 0x08,
+                     0x08, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74};
+  uint32_t len = sizeof(pdu);
+  ULNASTransportMsg pdu_sess_est_req = {};
+
+  EXPECT_EQ(decode_ul_nas_transport_msg(&pdu_sess_est_req, pdu, len), false);
+}
+
 TEST(test_optional_dnn_dotted_pdu, test_pdu_session_establish_optional) {
   uint32_t bytes = 0;
   bstring buffer;
@@ -958,36 +975,6 @@ TEST(test_optional_dnn_dotted_pdu, test_pdu_session_establish_optional) {
   EXPECT_EQ(decode_pdu_sess_est_req.nssai.sst, 1);
   EXPECT_EQ(memcmp(pdu_sess_est_req.dnn.dnn, dnn, pdu_sess_est_req.dnn.len), 0);
   bdestroy(buffer);
-}
-
-TEST(test_dnn, test_amf_handle_s6a_update_location_ans) {
-  // creating ue_context
-  ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
-
-  // Building s6a_update_location_ans_t
-  std::string imsi = "901700000000001";
-  s6a_update_location_ans_t ula_ans;
-  ula_ans = util_amf_send_s6a_ula(imsi);
-
-  // Building key value pair for amf_supi_guti_map and ue_context_map
-  uint64_t imsi_64 = 901700000000001;
-  guti_and_amf_id_t guti_amf;
-  guti_amf.amf_guti.m_tmsi = 0x2bfb815f;
-  guti_amf.amf_ue_ngap_id = 0x01;
-
-  // Inserting into amf_supi_guti_map, ue_context_map
-  amf_supi_guti_map.insert(
-      std::pair<imsi64_t, guti_and_amf_id_t>(imsi_64, guti_amf));
-  ue_context_map.insert(std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(
-      guti_amf.amf_ue_ngap_id, ue_context));
-
-  int rc = amf_handle_s6a_update_location_ans(&ula_ans);
-  EXPECT_TRUE(rc == RETURNok);
-
-  // Clearing the map and deleting ue_context
-  amf_supi_guti_map.clear();
-  ue_context_map.clear();
-  delete ue_context;
 }
 
 TEST(test_dnn, test_amf_validate_dnn) {
@@ -1033,6 +1020,7 @@ class AmfUeContextTestServiceRequestProc : public ::testing::Test {
 #define MNC_DIGIT2 5
 #define MNC_DIGIT3 6
 #define IMSI64 222456000000101
+#define IMSI_STR "222456000000101"
 #define M_TMSI 0X212e5025
 #define AMF_SET_ID 1
 #define AMF_POINTER 0
@@ -1053,12 +1041,17 @@ class AmfUeContextTestServiceRequestProc : public ::testing::Test {
     amf_config_init(&amf_config);
     amf_nas_state_init(&amf_config);
 
+    memset(&guti, 0, sizeof(guti_m5_t));
+
     ue_context = amf_create_new_ue_context();
+
     amf_app_desc_p = get_amf_nas_state(false);
 
     // insert ue context
     if (ue_context) {
-      amf_insert_ue_context(AMF_UE_NGAP_ID, ue_context);
+      ue_context->amf_ue_ngap_id = AMF_UE_NGAP_ID;
+      ue_context->amf_context.m5_guti.m_tmsi = INVALID_TMSI;
+      amf_insert_ue_context(&amf_app_desc_p->amf_ue_contexts, ue_context);
     }
 
     // imsi64
@@ -1068,7 +1061,7 @@ class AmfUeContextTestServiceRequestProc : public ::testing::Test {
     // ueContextReq
     ue_context->ue_context_request = M5G_UEContextRequest_requested;
     // ue state
-    ue_context->mm_state = REGISTERED_IDLE;
+    ue_context->mm_state = REGISTERED_CONNECTED;
     // 5G TMSI
     ue_context->amf_context.m5_guti.m_tmsi = M_TMSI;
     guti.m_tmsi = ue_context->amf_context.m5_guti.m_tmsi;
@@ -1091,12 +1084,18 @@ class AmfUeContextTestServiceRequestProc : public ::testing::Test {
     ue_context->amf_ue_ngap_id = AMF_UE_NGAP_ID;
     // insert ue context based on new guti
     amf_ue_context_on_new_guti(ue_context, &guti);
+
+    unsigned long amf_ue_ngap_id64;
+
+    amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.get(guti,
+                                                             &amf_ue_ngap_id64);
+
     // tai
     tai.plmn = guti.guamfi.plmn;
     tai.tac = AMF_TAC;
   }
   virtual void TearDown() {
-    delete ue_context;
+    amf_remove_ue_context(&amf_app_desc_p->amf_ue_contexts, ue_context);
     clear_amf_nas_state();
     itti_free_desc_threads();
     amf_config_free(&amf_config);
@@ -1170,10 +1169,9 @@ TEST_F(AmfUeContextTestServiceRequestProc,
   // Verify service request is handled
   EXPECT_EQ(RETURNok, amf_handle_service_request(
                           AMF_UE_NGAP_ID, &service_request, decode_status));
+
   // Verify UE moved to REGISTERED
   EXPECT_EQ(REGISTERED_CONNECTED, ue_context->mm_state);
-  // Forcing UE state IDLE to handle initial ue message
-  ue_context->mm_state = REGISTERED_IDLE;
 
   // Allocate initial UE message
   message_p = itti_alloc_new_message(TASK_NGAP, NGAP_INITIAL_UE_MESSAGE);
@@ -1236,7 +1234,7 @@ TEST_F(AmfUeContextTestServiceRequestProc,
   EXPECT_EQ(RETURNok, amf_handle_service_request(
                           AMF_UE_NGAP_ID, &service_request, decode_status));
   // Verify UE still remains in IDLE state
-  EXPECT_EQ(REGISTERED_IDLE, ue_context->mm_state);
+  EXPECT_EQ(REGISTERED_CONNECTED, ue_context->mm_state);
 }
 
 /* Test for Initial Ue message in connected mode */
@@ -1374,10 +1372,20 @@ TEST_F(AmfUeContextTestServiceRequestProc,
                           AMF_UE_NGAP_ID, &service_request, decode_status));
 
   // Verify UE still in CONNECTED MODE though initial ue message is received
-  EXPECT_EQ(REGISTERED_IDLE, ue_context->mm_state);
+  EXPECT_EQ(REGISTERED_CONNECTED, ue_context->mm_state);
 }
 
-TEST(test_pdu_negative, test_unknown_pdu_session_type) {
+TEST_F(AmfUeContextTestServiceRequestProc,
+       test_amf_handle_s6a_update_location_ans) {
+  // Building s6a_update_location_ans_t
+  s6a_update_location_ans_t ula_ans;
+  ula_ans = util_amf_send_s6a_ula(IMSI_STR);
+
+  int rc = amf_handle_s6a_update_location_ans(&ula_ans);
+  EXPECT_TRUE(rc == RETURNok);
+}
+
+TEST_F(AmfUeContextTestServiceRequestProc, test_unknown_pdu_session_type) {
   amf_nas_message_t msg = {};
 
   // build uplinknastransport //
@@ -1398,21 +1406,11 @@ TEST(test_pdu_negative, test_unknown_pdu_session_type) {
 
   EXPECT_EQ(decode_res, true);
 
-  amf_ue_ngap_id_t ue_id = 1;
-
-  // creating ue_context
-  ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
-  ue_context_map.insert(
-      std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context));
-
-  M5GSmCause cause = amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
+  M5GSmCause cause = amf_smf_get_smcause(AMF_UE_NGAP_ID, &pdu_sess_est_req);
   EXPECT_EQ(cause, M5GSmCause::UNKNOWN_PDU_SESSION_TYPE);
-
-  ue_context_map.clear();
-  delete ue_context;
 }
 
-TEST(test_pdu_negative, test_pdu_unknown_dnn_missing_dnn) {
+TEST_F(AmfUeContextTestServiceRequestProc, test_pdu_unknown_dnn_missing_dnn) {
   amf_nas_message_t msg = {};
 
   // build uplinknastransport //
@@ -1431,19 +1429,11 @@ TEST(test_pdu_negative, test_pdu_unknown_dnn_missing_dnn) {
 
   EXPECT_EQ(decode_res, true);
 
-  amf_ue_ngap_id_t ue_id = 1;
-
-  ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
-  ue_context_map.insert(
-      std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context));
-  M5GSmCause cause = amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
+  M5GSmCause cause = amf_smf_get_smcause(AMF_UE_NGAP_ID, &pdu_sess_est_req);
   EXPECT_EQ(cause, M5GSmCause::MISSING_OR_UNKNOWN_DNN);
-
-  ue_context_map.clear();
-  delete ue_context;
 }
 
-TEST(test_pdu_negative, test_pdu_invalid_pdu_identity) {
+TEST_F(AmfUeContextTestServiceRequestProc, test_pdu_invalid_pdu_identity) {
   amf_nas_message_t msg = {};
 
   // build uplinknastransport //
@@ -1464,13 +1454,8 @@ TEST(test_pdu_negative, test_pdu_invalid_pdu_identity) {
 
   EXPECT_EQ(decode_res, true);
 
-  amf_ue_ngap_id_t ue_id = 1;
   uint8_t pdu_session_id = 1;
 
-  // creating ue_context
-  ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
-  ue_context_map.insert(
-      std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context));
   std::shared_ptr<smf_context_t> smf_ctx =
       amf_insert_smf_context(ue_context, pdu_session_id);
   smf_ctx->pdu_session_state = ACTIVE;
@@ -1478,13 +1463,10 @@ TEST(test_pdu_negative, test_pdu_invalid_pdu_identity) {
   for (int req_cnt = 0;
        req_cnt < MAX_UE_INITIAL_PDU_SESSION_ESTABLISHMENT_REQ_ALLOWED;
        req_cnt++) {
-    amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
+    amf_smf_get_smcause(AMF_UE_NGAP_ID, &pdu_sess_est_req);
   }
-  M5GSmCause cause_dup = amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
+  M5GSmCause cause_dup = amf_smf_get_smcause(AMF_UE_NGAP_ID, &pdu_sess_est_req);
   EXPECT_EQ(cause_dup, M5GSmCause::INVALID_PDU_SESSION_IDENTITY);
-
-  ue_context_map.clear();
-  delete ue_context;
 }
 
 TEST(test_optional_pdu, test_pdu_session_accept_optional) {
