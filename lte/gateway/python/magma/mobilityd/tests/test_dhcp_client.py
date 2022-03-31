@@ -90,7 +90,7 @@ class DhcpClient(unittest.TestCase):
 
     @unittest.skipIf(os.getuid(), reason="needs root user")
     def test_dhcp_vlan(self):
-        vlan1 = "2"
+        vlan1: int = 2
         mac1 = MacAddress("11:22:33:44:55:66")
 
         self._setup_vlan_network()
@@ -104,11 +104,11 @@ class DhcpClient(unittest.TestCase):
     def test_dhcp_vlan_multi(self):
         self._setup_vlan_network()
 
-        vlan1 = "51"
+        vlan1 = 51
         mac1 = MacAddress("11:22:33:44:55:66")
-        vlan2 = "52"
+        vlan2 = 52
         mac2 = MacAddress("22:22:33:44:55:66")
-        vlan3 = "53"
+        vlan3 = 53
         mac3 = MacAddress("11:22:33:44:55:66")
 
         self._setup_dhcp_on_vlan(vlan1)
@@ -127,7 +127,7 @@ class DhcpClient(unittest.TestCase):
         self._release_ip(mac2, vlan2)
         self._release_ip(mac3, vlan3)
 
-    def _validate_dhcp_alloc_renew(self, mac1: MacAddress, vlan: str):
+    def _validate_dhcp_alloc_renew(self, mac1: MacAddress, vlan: int):
         self._alloc_ip_address_from_dhcp(mac1, vlan)
         self._validate_req_state(mac1, DHCPState.REQUEST, vlan)
         self._validate_state_as_current(mac1, vlan)
@@ -195,13 +195,13 @@ class DhcpClient(unittest.TestCase):
         )
         self._dhcp_client.run()
 
-    def _setup_dhcp_on_vlan(self, vlan: str):
+    def _setup_dhcp_on_vlan(self, vlan: int):
         setup_vlan_switch = SCRIPT_PATH + "scripts/setup-uplink-vlan-srv.sh"
-        subprocess.check_call([setup_vlan_switch, self.vlan_sw, vlan])
+        subprocess.check_call([setup_vlan_switch, self.vlan_sw, str(vlan)])
 
     def _validate_req_state(
         self, mac: MacAddress,
-        state: DHCPState, vlan: str,
+        state: DHCPState, vlan: int,
     ):
         for x in range(RETRY_LIMIT):
             LOG.debug("wait for state: %d" % x)
@@ -215,12 +215,12 @@ class DhcpClient(unittest.TestCase):
 
         assert 0
 
-    def _get_state_xid(self, mac: MacAddress, vlan: str):
+    def _get_state_xid(self, mac: MacAddress, vlan: int):
         with self.dhcp_wait:
             dhcp1 = self.dhcp_store.get(mac.as_redis_key(vlan))
             return dhcp1.xid
 
-    def _validate_state_as_current(self, mac: MacAddress, vlan: str):
+    def _validate_state_as_current(self, mac: MacAddress, vlan: int):
         with self.dhcp_wait:
             dhcp1 = self.dhcp_store.get(mac.as_redis_key(vlan))
             self.assert_(
@@ -228,7 +228,7 @@ class DhcpClient(unittest.TestCase):
             )
 
     def _alloc_ip_address_from_dhcp(
-            self, mac: MacAddress, vlan: str,
+            self, mac: MacAddress, vlan: int,
     ) -> DHCPDescriptor:
         retry_count = 0
         with self.dhcp_wait:
@@ -251,7 +251,7 @@ class DhcpClient(unittest.TestCase):
 
             return dhcp_desc
 
-    def _validate_ip_subnet(self, mac: MacAddress, vlan: str):
+    def _validate_ip_subnet(self, mac: MacAddress, vlan: int):
         # vlan is configured with subnet : 10.200.x.1
         # router IP is 10.200.x.211
         # x is vlan id
@@ -263,7 +263,7 @@ class DhcpClient(unittest.TestCase):
             self.assertEqual(dhcp1.router_ip, exptected_router_ip)
             self.assert_(ipaddress.ip_address(dhcp1.ip) in exptected_subnet)
 
-    def _release_ip(self, mac: MacAddress, vlan: str):
+    def _release_ip(self, mac: MacAddress, vlan: int):
         self._dhcp_client.release_ip_address(mac, vlan)
         time.sleep(PKT_CAPTURE_WAIT)
         self._validate_req_state(mac, DHCPState.RELEASE, vlan)
@@ -295,7 +295,7 @@ class DhcpClient(unittest.TestCase):
         LOG.debug("sniffer started")
         time.sleep(PKT_CAPTURE_WAIT)
 
-    def _stop_sniffer_and_check(self, state: DHCPState, mac: MacAddress, vlan):
+    def _stop_sniffer_and_check(self, state: DHCPState, mac: MacAddress, vlan: int):
         LOG.debug("delete drop flow")
         subprocess.check_call([
             "ovs-ofctl", "del-flows", self._br,
@@ -311,7 +311,7 @@ class DhcpClient(unittest.TestCase):
                     if DHCP in pkt:
                         if vlan and (
                             Dot1Q not in pkt
-                            or vlan != str(pkt[Dot1Q].vlan)
+                            or vlan != pkt[Dot1Q].vlan
                         ):
                             continue
 
