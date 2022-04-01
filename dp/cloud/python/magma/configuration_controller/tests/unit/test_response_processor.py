@@ -63,6 +63,15 @@ SPECTRUM_INQ_REQ = RequestTypes.SPECTRUM_INQUIRY.value
 
 INITIAL_GRANT_ATTEMPTS = 1
 
+_fake_requests_map = {
+    REGISTRATION_REQ: registration_requests,
+    SPECTRUM_INQ_REQ: spectrum_inquiry_requests,
+    GRANT_REQ: grant_requests,
+    HEARTBEAT_REQ: heartbeat_requests,
+    RELINQUISHMENT_REQ: relinquishment_requests,
+    DEREGISTRATION_REQ: deregistration_requests,
+}
+
 
 class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
     def setUp(self):
@@ -70,22 +79,23 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         DBInitializer(SessionManager(self.engine)).initialize()
 
     @parameterized.expand([
-        (REGISTRATION_REQ, registration_requests),
-        (SPECTRUM_INQ_REQ, spectrum_inquiry_requests),
-        (GRANT_REQ, grant_requests),
-        (HEARTBEAT_REQ, heartbeat_requests),
-        (RELINQUISHMENT_REQ, relinquishment_requests),
-        (DEREGISTRATION_REQ, deregistration_requests),
+        (REGISTRATION_REQ,),
+        (SPECTRUM_INQ_REQ,),
+        (GRANT_REQ,),
+        (HEARTBEAT_REQ,),
+        (RELINQUISHMENT_REQ,),
+        (DEREGISTRATION_REQ,),
     ])
     @responses.activate
     def test_processor_splits_sas_response_into_separate_db_objects_and_links_them_with_requests(
-            self, request_type_name, requests_fixtures,
+            self, request_type_name,
     ):
         # Given
+        requests_fixtures = _fake_requests_map[request_type_name]
         db_requests = self._create_db_requests(
             request_type_name, requests_fixtures,
         )
-        response = self._prepare_response_from_db_requests(db_requests)
+        response = self._prepare_response_from_db_requests(db_requests=db_requests)
 
         # When
         self._process_response(
@@ -102,52 +112,53 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
 
     @parameterized.expand([
         (
-            GRANT_REQ, grant_requests, ResponseCodes.SUCCESS.value,
+            GRANT_REQ, ResponseCodes.SUCCESS.value,
             GrantStates.GRANTED.value,
         ),
         (
-            GRANT_REQ, grant_requests,
-            ResponseCodes.INTERFERENCE.value, GrantStates.IDLE.value,
+            GRANT_REQ, ResponseCodes.INTERFERENCE.value,
+            GrantStates.IDLE.value,
         ),
         (
-            GRANT_REQ, grant_requests,
-            ResponseCodes.GRANT_CONFLICT.value, GrantStates.IDLE.value,
+            GRANT_REQ, ResponseCodes.GRANT_CONFLICT.value,
+            GrantStates.IDLE.value,
         ),
         (
-            GRANT_REQ, grant_requests,
+            GRANT_REQ, ResponseCodes.TERMINATED_GRANT.value,
+            GrantStates.IDLE.value,
+        ),
+        (
+            HEARTBEAT_REQ, ResponseCodes.SUCCESS.value,
+            GrantStates.AUTHORIZED.value,
+        ),
+        (
+            HEARTBEAT_REQ,
             ResponseCodes.TERMINATED_GRANT.value, GrantStates.IDLE.value,
         ),
         (
-            HEARTBEAT_REQ, heartbeat_requests,
-            ResponseCodes.SUCCESS.value, GrantStates.AUTHORIZED.value,
+            HEARTBEAT_REQ, ResponseCodes.SUSPENDED_GRANT.value,
+            GrantStates.GRANTED.value,
         ),
         (
-            HEARTBEAT_REQ, heartbeat_requests,
-            ResponseCodes.TERMINATED_GRANT.value, GrantStates.IDLE.value,
+            HEARTBEAT_REQ, ResponseCodes.UNSYNC_OP_PARAM.value,
+            GrantStates.UNSYNC.value,
         ),
         (
-            HEARTBEAT_REQ, heartbeat_requests,
-            ResponseCodes.SUSPENDED_GRANT.value, GrantStates.GRANTED.value,
-        ),
-        (
-            HEARTBEAT_REQ, heartbeat_requests,
-            ResponseCodes.UNSYNC_OP_PARAM.value, GrantStates.UNSYNC.value,
-        ),
-        (
-            RELINQUISHMENT_REQ, relinquishment_requests,
-            ResponseCodes.SUCCESS.value, GrantStates.IDLE.value,
+            RELINQUISHMENT_REQ, ResponseCodes.SUCCESS.value,
+            GrantStates.IDLE.value,
         ),
     ])
     @responses.activate
     def test_grant_state_after_response(
-            self, request_type_name, requests_fixtures, response_code, expected_grant_state_name,
+            self, request_type_name, response_code, expected_grant_state_name,
     ):
         # Given
+        requests_fixtures = _fake_requests_map[request_type_name]
         db_requests = self._create_db_requests(
             request_type_name, requests_fixtures,
         )
         response = self._prepare_response_from_db_requests(
-            db_requests, response_code=response_code,
+            db_requests=db_requests, response_code=response_code,
         )
 
         # When
@@ -186,12 +197,12 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             cbsd=cbsd,
             payload={'cbsdId': CBSD_ID},
         )
-        resp_json = {'response': {}, 'cbsd_id': CBSD_ID}
-        response = self._prepare_response_from_payload(
-            req_type=message_type,
-            response_payload={request_response[message_type]: [resp_json]},
+
+        response = self._prepare_response_from_db_requests(
+            db_requests=[request],
             response_code=code,
         )
+
         self.session.add(request)
         self.session.commit()
 
@@ -220,7 +231,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             REGISTRATION_REQ, registration_requests,
         )
         response = self._prepare_response_from_db_requests(
-            db_requests, sas_response_code,
+            db_requests=db_requests, response_code=sas_response_code,
         )
 
         # When
@@ -248,7 +259,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         )
         self._set_cbsds_to_state(CbsdStates.REGISTERED.value)
         response = self._prepare_response_from_db_requests(
-            db_requests, sas_response_code,
+            db_requests=db_requests, response_code=sas_response_code,
         )
 
         # When
@@ -275,7 +286,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             SPECTRUM_INQ_REQ, spectrum_inquiry_requests,
         )
         response = self._prepare_response_from_payload(
-            SPECTRUM_INQ_REQ, response_fixture_payload,
+            response_fixture_payload,
         )
 
         # When
@@ -303,7 +314,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         self.assertEqual(1, len(cbsd.channels))
 
         response = self._prepare_response_from_payload(
-            SPECTRUM_INQ_REQ, zero_channels_for_one_cbsd,
+            zero_channels_for_one_cbsd,
         )
 
         # When
@@ -325,7 +336,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         )
         db_requests = self._create_db_requests(GRANT_REQ, [fixture])
 
-        response = self._prepare_response_from_db_requests(db_requests)
+        response = self._prepare_response_from_db_requests(db_requests=db_requests)
 
         # When
         self._process_response(
@@ -340,21 +351,32 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         self.assertEqual(max_eirp, grant.max_eirp)
 
     @parameterized.expand([
-        (REGISTRATION_REQ, registration_requests),
-        (SPECTRUM_INQ_REQ, spectrum_inquiry_requests),
-        (GRANT_REQ, grant_requests),
-        (HEARTBEAT_REQ, heartbeat_requests),
-        (RELINQUISHMENT_REQ, relinquishment_requests),
-        (DEREGISTRATION_REQ, deregistration_requests),
+        (REGISTRATION_REQ, ResponseCodes.DEREGISTER.value, None, CbsdStates.UNREGISTERED.value),
+        (SPECTRUM_INQ_REQ, ResponseCodes.DEREGISTER.value, None, CbsdStates.UNREGISTERED.value),
+        (GRANT_REQ, ResponseCodes.DEREGISTER.value, None, CbsdStates.UNREGISTERED.value),
+        (HEARTBEAT_REQ, ResponseCodes.DEREGISTER.value, None, CbsdStates.UNREGISTERED.value),
+        (RELINQUISHMENT_REQ, ResponseCodes.DEREGISTER.value, None, CbsdStates.UNREGISTERED.value),
+        (DEREGISTRATION_REQ, ResponseCodes.DEREGISTER.value, None, CbsdStates.UNREGISTERED.value),
+        (SPECTRUM_INQ_REQ, ResponseCodes.INVALID_VALUE.value, [CBSD_ID], CbsdStates.UNREGISTERED.value),
+        (GRANT_REQ, ResponseCodes.INVALID_VALUE.value, [CBSD_ID], CbsdStates.UNREGISTERED.value),
+        (HEARTBEAT_REQ, ResponseCodes.INVALID_VALUE.value, [CBSD_ID], CbsdStates.UNREGISTERED.value),
+        (RELINQUISHMENT_REQ, ResponseCodes.INVALID_VALUE.value, [CBSD_ID], CbsdStates.UNREGISTERED.value),
+        (DEREGISTRATION_REQ, ResponseCodes.INVALID_VALUE.value, [CBSD_ID], CbsdStates.UNREGISTERED.value),
+        (SPECTRUM_INQ_REQ, ResponseCodes.INVALID_VALUE.value, None, CbsdStates.REGISTERED.value),
+        (GRANT_REQ, ResponseCodes.INVALID_VALUE.value, None, CbsdStates.REGISTERED.value),
+        (HEARTBEAT_REQ, ResponseCodes.INVALID_VALUE.value, None, CbsdStates.REGISTERED.value),
+        (RELINQUISHMENT_REQ, ResponseCodes.INVALID_VALUE.value, None, CbsdStates.REGISTERED.value),
     ])
     @responses.activate
-    def test_cbsd_unregistered_after_105_response_code(self, request_type, request_fixture):
+    def test_cbsd_state_after_unsuccessful_response_code(self, request_type, response_code, response_data, expected_cbsd_sate):
         # Given
+        request_fixture = _fake_requests_map[request_type]
         db_requests = self._create_db_requests(
             request_type, request_fixture,
         )
+        self._set_cbsds_to_state(CbsdStates.REGISTERED.value)
         response = self._prepare_response_from_db_requests(
-            db_requests, ResponseCodes.DEREGISTER.value,
+            db_requests, response_code=response_code, response_data=response_data,
         )
 
         # When
@@ -365,7 +387,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
 
         # Then
         [
-            self.assertTrue(state.name == CbsdStates.UNREGISTERED.value)
+            self.assertTrue(state.name == expected_cbsd_sate)
             for state in states
         ]
 
@@ -413,19 +435,18 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
     def _get_db_enum(self, data_type, name):
         return self.session.query(data_type).filter(data_type.name == name).first()
 
-    def _prepare_response_from_db_requests(self, db_requests, response_code=None):
+    def _prepare_response_from_db_requests(self, db_requests, response_code=ResponseCodes.SUCCESS.value, response_data=None):
         req_type = db_requests[0].type.name
         response_payload = self._create_response_payload_from_db_requests(
             response_type_name=request_response[req_type],
             db_requests=db_requests,
+            sas_response_code=response_code,
+            sas_response_data=response_data,
         )
-        return self._prepare_response_from_payload(req_type, response_payload, response_code)
+        return self._prepare_response_from_payload(response_payload)
 
     @staticmethod
-    def _prepare_response_from_payload(req_type, response_payload, response_code=None):
-        if response_code is not None:
-            for response_json in response_payload[request_response[req_type]]:
-                response_json["response"]["responseCode"] = response_code
+    def _prepare_response_from_payload(response_payload):
         any_url = 'https://foo.com/foobar'
         responses.add(
             responses.GET, any_url,
@@ -514,7 +535,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         return db_requests
 
     @staticmethod
-    def _create_response_payload_from_db_requests(response_type_name, db_requests, sas_response_code=0):
+    def _create_response_payload_from_db_requests(response_type_name, db_requests, sas_response_code=0, sas_response_data=None):
         response_payload = {response_type_name: []}
         for i, db_request in enumerate(db_requests):
             cbsd_id = db_request.cbsd.cbsd_id or str(i)
@@ -523,6 +544,8 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
                     "responseCode": sas_response_code,
                 }, "cbsdId": cbsd_id,
             }
+            if sas_response_data:
+                response_json["response"]["responseData"] = sas_response_data
             if db_request.payload.get(GRANT_ID, ""):
                 response_json[GRANT_ID] = db_request.payload.get(GRANT_ID)
             elif response_type_name == request_response[GRANT_REQ]:
