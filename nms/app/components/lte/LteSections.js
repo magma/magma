@@ -81,12 +81,6 @@ export function getLteSections(alertsEnabled: boolean): SectionsConfigs {
         icon: <ShowChartIcon />,
         component: LteMetrics,
       },
-      {
-        path: 'configure',
-        label: 'Configure',
-        icon: <SettingsCellIcon />,
-        component: LteConfigure,
-      },
     ],
   ];
   if (alertsEnabled) {
