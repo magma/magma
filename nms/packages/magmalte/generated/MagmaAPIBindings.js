@@ -699,6 +699,15 @@ export type li_ues = {
     msisdns: Array < string >
         ,
 };
+export type log = {
+    body: string,
+    fcc_id: string,
+    from: "SAS" | "DP" | "CBSD",
+    serial_number: string,
+    time: string,
+    to: "SAS" | "DP" | "CBSD",
+    type: string,
+};
 export type lte_gateway = {
     apn_resources ? : apn_resources,
     cellular: gateway_cellular_configs,
@@ -769,15 +778,6 @@ export type matcher = {
     isRegex: boolean,
     name: string,
     value: string,
-};
-export type message = {
-    body ? : string,
-    fcc_id ? : string,
-    from ? : "SAS" | "DP" | "CBSD",
-    serial_number ? : string,
-    time ? : string,
-    to ? : "SAS" | "DP" | "CBSD",
-    type ? : string,
 };
 export type metric_datapoint = Array < string >
 ;
@@ -1065,6 +1065,11 @@ export type paginated_gateways = {
         [string]: magmad_gateway,
     },
     page_token: page_token,
+    total_count: number,
+};
+export type paginated_logs = {
+    logs: Array < log >
+        ,
     total_count: number,
 };
 export type paginated_subscriber_ids = {
@@ -2915,7 +2920,7 @@ export default class MagmaAPIBindings {
                 'from' ? : "SAS" | "DP" | "CBSD",
                 'to' ? : "SAS" | "DP" | "CBSD",
             }
-        ): Promise < Array < message >
+        ): Promise < Array < log >
         >
         {
             let path = '/dp/{network_id}/logs';

@@ -23,33 +23,13 @@ import (
 	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
 )
 
-func TestMessageFromBackend(t *testing.T) {
-	details := &protos.Log{
-		From:           "CBSD",
-		To:             "DP",
-		Name:           "some log",
-		Message:        "some msg",
-		SerialNumber:   "123456",
-		FccId:          "some fcc id",
-		TimestampMilli: 123,
-	}
-	data := models.MessageFromBackend(details)
-	assert.Equal(t, data.From, details.From)
-	assert.Equal(t, data.To, details.To)
-	assert.Equal(t, data.Type, details.Name)
-	assert.Equal(t, data.Body, details.Message)
-	assert.Equal(t, data.SerialNumber, details.SerialNumber)
-	assert.Equal(t, data.FccID, details.FccId)
-	assert.Equal(t, data.Time, *to_pointer.TimeMilliToDate(details.TimestampMilli))
-}
-
 func TestCbsdToBackend(t *testing.T) {
 	cbsd := models.MutableCbsd{
 		Capabilities: &models.Capabilities{
 			AntennaGain:      to_pointer.Float(5),
 			MaxPower:         to_pointer.Float(24),
 			MinPower:         to_pointer.Float(0),
-			NumberOfAntennas: to_pointer.Int(1),
+			NumberOfAntennas: to_pointer.Int64(1),
 		},
 		FccID:        to_pointer.Str("barID"),
 		SerialNumber: to_pointer.Str("12345"),

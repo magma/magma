@@ -54,6 +54,14 @@ openssl genrsa -out certifier.key 2048
 openssl req -x509 -new -nodes -key certifier.key -sha256 -days 3650 -out certifier.pem -subj "/C=US/CN=certifier.$domain"
 
 echo ""
+echo "###################################"
+echo "Creating domain-proxy fluentd certs"
+echo "###################################"
+openssl genrsa -out dp_fluentd.key 2048
+openssl req -new -key dp_fluentd.key -out dp_fluentd.csr -subj "/C=US/CN=dp-fluentd.$domain"
+openssl x509 -req -in dp_fluentd.csr -CA certifier.pem -CAkey certifier.key -CAcreateserial -out dp_fluentd.pem -days 3650 -sha256
+
+echo ""
 echo "######################"
 echo "Creating fluentd certs"
 echo "######################"

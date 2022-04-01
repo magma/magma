@@ -12,9 +12,9 @@ limitations under the License.
 */
 syntax = "proto3";
 
-package magma.dp;
+import "google/protobuf/wrappers.proto";
 
-import "dp/protos/pagination.proto";
+package magma.dp;
 
 option go_package = "magma/dp/cloud/go/protos";
 
@@ -97,4 +97,9 @@ message GrantDetails {
   string state = 4;
   int64 transmit_expire_timestamp = 5;
   int64 grant_expire_timestamp = 6;
+}
+
+message Pagination {
+  google.protobuf.Int64Value limit = 1;
+  google.protobuf.Int64Value offset = 2;
 }

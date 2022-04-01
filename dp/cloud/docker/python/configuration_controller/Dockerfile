@@ -3,7 +3,7 @@ FROM python:3.9.2-slim-buster as standard-version
 
 ENV CC_DIRECTORY=dp/cloud/python/magma/configuration_controller
 ENV DB_DIRECTORY=dp/cloud/python/magma/db_service
-
+ENV FC_DIRECTORY=dp/cloud/python/magma/fluentd_client
 COPY $CC_DIRECTORY/requirements.txt \
      /$CC_DIRECTORY/requirements.txt
 WORKDIR /$CC_DIRECTORY
@@ -18,6 +18,7 @@ RUN pip3 install --upgrade pip --no-cache-dir -r requirements.txt
 FROM ${ENV}-version as final
 COPY $CC_DIRECTORY /$CC_DIRECTORY/
 COPY $DB_DIRECTORY /$DB_DIRECTORY/
+COPY $FC_DIRECTORY /$FC_DIRECTORY/
 COPY dp/cloud/python/magma/mappings /dp/cloud/python/magma/mappings/
 ENV PYTHONPATH=/:/dp/cloud/python
 ENTRYPOINT ["python"]

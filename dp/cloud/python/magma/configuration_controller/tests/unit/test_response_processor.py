@@ -40,6 +40,7 @@ from magma.fixtures.fake_responses.spectrum_inquiry_responses import (
     two_channels_for_one_cbsd,
     zero_channels_for_one_cbsd,
 )
+from magma.fluentd_client.client import FluentdClient
 from magma.mappings.request_response_mapping import request_response
 from magma.mappings.types import (
     CbsdStates,
@@ -387,6 +388,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         return ResponseDBProcessor(
             request_response[req_type],
             process_responses_func=processor_strategies[req_type]["process_responses"],
+            fluentd_client=FluentdClient(),
         )
 
     def _verify_requests_number_and_state(self, db_requests, nr_of_requests, desired_state="processed"):

@@ -23,15 +23,15 @@ func Float(x float64) *float64 {
 	return &x
 }
 
-func Int(x int64) *int64 {
+func Int64(x int64) *int64 {
+	return &x
+}
+
+func Int(x int) *int {
 	return &x
 }
 
 func Str(x string) *string {
-	return &x
-}
-
-func Bool(x bool) *bool {
 	return &x
 }
 
