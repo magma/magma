@@ -1416,6 +1416,7 @@ TEST_F(NgapFlowTest, test_ue_notifications_from_amf) {
 }
 
 TEST_F(NgapFlowTest, NgapHandleSctpDisconnection) {
+  MessageDef* amf_message_p = NULL;
   MessageDef* sctp_message_p = NULL;
   m5g_ue_description_t* ue_ref = NULL;
   Ngap_InitialUEMessage_t* container;
@@ -1429,14 +1430,22 @@ TEST_F(NgapFlowTest, NgapHandleSctpDisconnection) {
       0x00, 0x22, 0x42, 0x65, 0x00, 0x00, 0x01, 0xe4, 0xf7, 0x04, 0x44,
       0x00, 0x5a, 0x40, 0x01, 0x18, 0x00, 0x70, 0x40, 0x01, 0x00};
 
-  std::vector<MessagesIds> expected_Ids{NGAP_INITIAL_UE_MESSAGE,
-                                        NGAP_GNB_DEREGISTERED_IND};
+  std::vector<MessagesIds> expected_Ids{
+      NGAP_INITIAL_UE_MESSAGE, NGAP_GNB_DEREGISTERED_IND, SCTP_DATA_REQ,
+      NGAP_UE_CONTEXT_RELEASE_COMPLETE};
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &peerInfo), RETURNok);
   // Verify number of connected gNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
+  gnb_description_t* gnb_association = NULL;
+  gnb_association = ngap_state_get_gnb(state, peerInfo.assoc_id);
+  ASSERT_TRUE(gnb_association != NULL);
+  EXPECT_EQ(gnb_association->ng_state, NGAP_INIT);
+  EXPECT_EQ(gnb_association->nb_ue_associated, 0);
+
+  // Handling initial UE message
   Ngap_NGAP_PDU_t decoded_pdu = {};
   uint16_t length = sizeof(initial_ue_message_hexbuf) / sizeof(unsigned char);
   bstring ngap_initial_ue_msg = blk2bstr(initial_ue_message_hexbuf, length);
@@ -1444,15 +1453,11 @@ TEST_F(NgapFlowTest, NgapHandleSctpDisconnection) {
   // Check if the pdu can be decoded
   ASSERT_EQ(ngap_amf_decode_pdu(&decoded_pdu, ngap_initial_ue_msg), RETURNok);
 
-  // check if initial UE message is handled successfully
+  // Mocking the sending of Initial UE message to AMF
   EXPECT_EQ(ngap_amf_handle_message(state, peerInfo.assoc_id,
                                     peerInfo.instreams, &decoded_pdu),
             RETURNok);
-
-  gnb_description_t* gnb_association = NULL;
-  gnb_association = ngap_state_get_gnb(state, peerInfo.assoc_id);
-  ASSERT_TRUE(gnb_association != NULL);
-  EXPECT_EQ(gnb_association->ng_state, NGAP_INIT);
+  // Checking that UE is connected after Initial UE message
   EXPECT_EQ(gnb_association->nb_ue_associated, 1);
 
   container =
@@ -1468,9 +1473,7 @@ TEST_F(NgapFlowTest, NgapHandleSctpDisconnection) {
   gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
 
   // Mocking the AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION from AMF
-  itti_amf_app_ngap_amf_ue_id_notification_t notification_p;
-  memset(&notification_p, 0,
-         sizeof(itti_amf_app_ngap_amf_ue_id_notification_t));
+  itti_amf_app_ngap_amf_ue_id_notification_t notification_p = {};
   notification_p.gnb_ue_ngap_id = gnb_ue_ngap_id;
   notification_p.amf_ue_ngap_id = 1;
   notification_p.sctp_assoc_id = gnb_association->sctp_assoc_id;
@@ -1493,12 +1496,47 @@ TEST_F(NgapFlowTest, NgapHandleSctpDisconnection) {
   gnb_association_sd = ngap_state_get_gnb(state, peerInfo.assoc_id);
   ASSERT_TRUE(gnb_association_sd != NULL);
   EXPECT_EQ(gnb_association_sd->ng_state, NGAP_SHUTDOWN);
-  EXPECT_EQ(gnb_association->nb_ue_associated, 1);
+  EXPECT_EQ(gnb_association_sd->nb_ue_associated, 1);
+
+  // Mocking the UE_CONTEXT_RELEASE_COMMAND from AMF
+  amf_message_p =
+      itti_alloc_new_message(TASK_AMF_APP, NGAP_UE_CONTEXT_RELEASE_COMMAND);
+  ASSERT_TRUE(amf_message_p != NULL);
+
+  // Check if UE is associated with gnb
+  ue_ref =
+      ngap_state_get_ue_gnbid(gnb_association->sctp_assoc_id, gnb_ue_ngap_id);
+  ASSERT_TRUE(ue_ref != NULL);
+
+  amf_message_p->ittiMsgHeader.imsi = 0x311480000000001;
+  NGAP_UE_CONTEXT_RELEASE_COMMAND(amf_message_p).amf_ue_ngap_id =
+      ue_ref->amf_ue_ngap_id;
+  NGAP_UE_CONTEXT_RELEASE_COMMAND(amf_message_p).gnb_ue_ngap_id =
+      ue_ref->gnb_ue_ngap_id;
+  NGAP_UE_CONTEXT_RELEASE_COMMAND(amf_message_p).cause = NGAP_USER_INACTIVITY;
+
+  EXPECT_EQ(state->num_gnbs, 1);
+
+  // verify ue_context_release_command is encoded correctly
+  EXPECT_EQ(ngap_handle_ue_context_release_command(
+                state, &NGAP_UE_CONTEXT_RELEASE_COMMAND(amf_message_p),
+                amf_message_p->ittiMsgHeader.imsi),
+            RETURNok);
+
+  // Checking the number of gnbs after ue context release in NGAP.
+  EXPECT_EQ(state->num_gnbs, 0);
+
+  // Checking that gnb description should be null after ue context release.
+  gnb_description_t* gnb_association_ue = NULL;
+  gnb_association_ue = ngap_state_get_gnb(state, peerInfo.assoc_id);
+  ASSERT_TRUE(gnb_association_ue == NULL);
 
   EXPECT_TRUE(expected_Ids == NGAPClientServicer::getInstance().msgtype_stack);
 
   itti_free_msg_content(sctp_message_p);
   free(sctp_message_p);
+  itti_free_msg_content(amf_message_p);
+  free(amf_message_p);
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
   bdestroy(ngap_initial_ue_msg);
 }
