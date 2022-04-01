@@ -591,7 +591,7 @@ class TrafficTestDriver(object):
                 #os.system(
                 #    'sudo route -A inet6 add fdee:5:6c::1/64 dev eth2'
                 #)
-                os.system('sudo /sbin/ip -6 route add 3001::10 dev eth2')
+                os.system('sudo /sbin/ip -6 route add 3001::10/64 dev eth2')
                 #os.system(
                 #    'sudo route -A inet6 add %s gw fdee:5:6c::1 dev eth2' % (
                 #    instance.ip.exploded,

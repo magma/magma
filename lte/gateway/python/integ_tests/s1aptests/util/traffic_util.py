@@ -352,7 +352,7 @@ class TrafficTest(object):
             'add', index=net_iface_index, address=ip.exploded,
         )
         os.system(
-                'sudo route -A inet6 add 3001::1/64 dev eth2'
+                'sudo route -A inet6 add 3001::10/64 dev eth2'
         ),
         #return net_alias
 

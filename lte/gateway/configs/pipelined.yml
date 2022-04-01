@@ -175,7 +175,7 @@ uplink_eth_port_name: eth2
 uplink_gw_mac: 'ff:ff:ff:ff:ff:ff'
 dp_router_enabled: true
 sgi_management_iface_ip_addr: '192.168.129.1/24'
-sgi_management_iface_ipv6_addr: '3001::10'
+sgi_management_iface_ipv6_addr: '3001::10/64'
 sgi_management_iface_ipv6_gw: '3001::2'
 ovs_gtp_stats_polling_interval: 180
 
