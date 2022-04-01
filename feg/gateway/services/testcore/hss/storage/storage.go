@@ -38,7 +38,7 @@ type SubscriberStore interface {
 	// UpdateSubscriber changes the data stored for an existing subscriber.
 	// If the subscriber cannot be found, an error is returned instead.
 	// Input: The new subscriber data to store
-	UpdateSubscriber(data *protos.SubscriberData) error
+	UpdateSubscriber(data *protos.SubscriberUpdate) error
 
 	// DeleteSubscriber deletes a subscriber by their Id.
 	// If the subscriber is not found, then this call is ignored.
