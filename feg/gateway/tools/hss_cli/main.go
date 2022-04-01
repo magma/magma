@@ -138,7 +138,8 @@ func updateSubscriber(_ *commands.Command, _ []string) int {
 		return 1
 	}
 
-	_, err = client.UpdateSubscriber(context.Background(), getSubscriberData())
+	subUpdate := &lteprotos.SubscriberUpdate{Data: getSubscriberData()}
+	_, err = client.UpdateSubscriber(context.Background(), subUpdate)
 	if err != nil {
 		fmt.Printf("Failed to update subscriber: %v\n", err)
 		return 1
