@@ -12,6 +12,8 @@ limitations under the License.
 """
 
 # pylint: disable=protected-access
+import logging
+from copy import deepcopy
 from time import sleep
 from unittest import TestCase, mock
 
@@ -28,7 +30,11 @@ from magma.enodebd.devices.baicells_qrtb import (
 )
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.exceptions import ConfigurationError
+from magma.enodebd.state_machines.acs_state_utils import (
+    get_firmware_upgrade_download_config,
+)
 from magma.enodebd.state_machines.enb_acs_states import (
+    FirmwareUpgradeDownloadState,
     WaitEmptyMessageState,
     WaitInformState,
 )
@@ -41,6 +47,7 @@ from magma.enodebd.tests.test_utils.tr069_msg_builder import (
     Tr069MessageBuilder,
 )
 from magma.enodebd.tr069 import models
+from parameterized import parameterized
 
 DEFAULT_INFORM_PARAMS = [
     Param('Device.DeviceInfo.HardwareVersion', 'string', 'E01'),
@@ -704,6 +711,279 @@ class BaicellsQRTBConfigTests(EnodebHandlerTestCase):
         self.assertEqual(1, acs_state_machine.desired_cfg.get_parameter(ParameterName.SAS_ENABLED))
 
 
+class BaicellsQRTBFirmwareUpgradeDownloadTests(EnodebHandlerTestCase):
+    """
+    Class for testing firmware upgrade download flow.
+
+    Firmware upgrade download request should initiate in certain configurations.
+    When initiated, a sequence of TR069 exchange needs to happen in order to
+    schedule a download on the eNB.
+
+    Firmware upgrade procedure on Baicells QRTB eNB starts at any time after
+    eNB reports TransferComplete, at which point the eNB will reboot on its own.
+    So we only test the TR069 message sequencing and configuration interpretation.
+    TransferComplete message should appear after eNB reboot.
+    """
+    # helper variables
+    _enb_serial = "baicells_serial_123"
+    _enb_sw_version = "baicells_firmware_v0.0"
+    _new_sw_version = "baicells_firmware_v1.0"
+    _no_url_sw_version = "baicells_no_url_firmware"
+    _sw_url = "http://fw_url/fw_file.ffw"
+
+    _firmwares = {
+        _enb_sw_version: {'url': _sw_url, 'md5': "12345678901234567890123456789012", 'rawmode': False},
+        _new_sw_version: {'url': _sw_url, 'md5': "12345678901234567890123456789013", 'rawmode': False},
+        _no_url_sw_version: {},
+    }
+
+    # configs which should not lead to firmware upgrade download flow
+    config_empty = {'firmwares': {}, 'enbs': {}, 'models': {}}
+
+    config_just_firmwares = deepcopy(config_empty)
+    config_just_firmwares['firmwares'] = _firmwares
+
+    config_just_enbs = deepcopy(config_empty)
+    config_just_enbs['enbs'][_enb_serial] = _new_sw_version
+
+    config_just_models = deepcopy(config_empty)
+    config_just_models['models'][EnodebDeviceName.BAICELLS_QRTB] = _new_sw_version
+
+    config_enb_fw_up_to_date = deepcopy(config_just_firmwares)
+    config_enb_fw_up_to_date['enbs'][_enb_serial] = _enb_sw_version
+
+    config_model_fw_up_to_date = deepcopy(config_just_firmwares)
+    config_model_fw_up_to_date['models'][EnodebDeviceName.BAICELLS_QRTB] = _enb_sw_version
+
+    config_enb_has_fw_version_without_url = deepcopy(config_just_firmwares)
+    config_enb_has_fw_version_without_url['enbs'][_enb_serial] = _no_url_sw_version
+
+    config_model_has_fw_version_without_url = deepcopy(config_just_firmwares)
+    config_model_has_fw_version_without_url['models'][EnodebDeviceName.BAICELLS_QRTB] = _no_url_sw_version
+
+    config_enb_fw_up_to_date_but_model_has_upgrade = deepcopy(
+        config_enb_fw_up_to_date,
+    )
+    config_enb_fw_up_to_date_but_model_has_upgrade['models'][
+        EnodebDeviceName.BAICELLS_QRTB
+    ] = _new_sw_version
+
+    # valid configs which should initiate fw upgrade
+    config_enb_fw_upgrade = deepcopy(config_just_firmwares)
+    config_enb_fw_upgrade['enbs'][_enb_serial] = _new_sw_version
+
+    config_model_fw_upgrade = deepcopy(config_just_firmwares)
+    config_model_fw_upgrade['models'][EnodebDeviceName.BAICELLS_QRTB] = _new_sw_version
+
+    config_enb_fw_upgrade_but_model_fw_up_to_date = deepcopy(
+        config_enb_fw_upgrade,
+    )
+    config_enb_fw_upgrade_but_model_fw_up_to_date['models'][
+        EnodebDeviceName.BAICELLS_QRTB
+    ] = _enb_sw_version
+
+    @parameterized.expand([
+        (config_empty,),
+        (config_just_firmwares,),
+        (config_just_enbs,),
+        (config_just_models,),
+        (config_enb_fw_up_to_date,),
+        (config_model_fw_up_to_date,),
+        (config_enb_has_fw_version_without_url,),
+        (config_model_has_fw_version_without_url,),
+        (config_enb_fw_up_to_date_but_model_has_upgrade,),
+    ])
+    def test_firmware_upgrade_download_flow_skip_on_config(self, fw_upgrade_download_config):
+        """
+        Test skipping firmware upgrade download flow.
+        Skip should happen on certain firmware upgrade download configuraion conditions
+        and eNB SW VERSION state.
+        """
+        logging.root.level = logging.DEBUG
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(
+            EnodebDeviceName.BAICELLS_QRTB,
+        )
+        acs_state_machine._service.config = _get_service_config()
+        acs_state_machine._service.config['firmware_upgrade_download'] = fw_upgrade_download_config
+
+        # eNB sends Inform message, we wait for an InformResponse
+        inform = Tr069MessageBuilder.get_inform(
+            oui="48BF74",
+            sw_version=self._enb_sw_version,
+            enb_serial=self._enb_serial,
+        )
+        resp = acs_state_machine.handle_tr069_message(inform)
+        self.assertTrue(
+            isinstance(resp, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
+
+        # eNB sends an empty http request
+        # State machine should detect that no firmware upgrade config exists and so
+        # should transition to getting param values skipping download flow
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # Expect a request parameter values
+        self.assertTrue(
+            isinstance(resp, models.GetParameterValues),
+            'State machine should be requesting param values',
+        )
+
+        # Firmware upgrade timeout timer should not be started
+        self.assertFalse(acs_state_machine.is_fw_upgrade_in_progress())
+
+    @parameterized.expand([
+        (config_enb_fw_upgrade,),
+        (config_model_fw_upgrade,),
+        (config_enb_fw_upgrade_but_model_fw_up_to_date,),
+    ])
+    def test_firmware_upgrade_download_flow_skip_on_download_fault9017(self, fw_upgrade_download_config):
+        """
+        Test firmware upgrade download flow skip due to TR069 fault on Download request.
+        State machine should resume normal operation when Fault code 9017 is received.
+        """
+        logging.root.level = logging.DEBUG
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(
+            EnodebDeviceName.BAICELLS_QRTB,
+        )
+        acs_state_machine._service.config = _get_service_config()
+        acs_state_machine._service.config['firmware_upgrade_download'] = fw_upgrade_download_config
+
+        logging.info(f'{fw_upgrade_download_config=}')
+
+        # eNB sends Inform message, we wait for an InformResponse
+        inform = Tr069MessageBuilder.get_inform(
+            oui="48BF74",
+            sw_version=self._enb_sw_version,
+            enb_serial=self._enb_serial,
+        )
+        resp = acs_state_machine.handle_tr069_message(inform)
+        self.assertTrue(
+            isinstance(resp, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
+
+        # eNB sends an empty http request
+        # State machine should detect that firmware upgrade config exists and so
+        # should transition to sending Download message
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self._assert_download_message(
+            acs=acs_state_machine,
+            message=resp,
+        )
+
+        # eNB may reply with a Fault code 9017 which appearts to mean that a Download
+        # is already in progress on the eNB side (for instance the same CommandKey)
+        # In such case, state machine should resume normal operation
+        req = models.Fault()
+        req.FaultCode = 9017
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(
+            isinstance(resp, models.GetParameterValues),
+            'State machine should be requesting param values',
+        )
+
+        # Firmware upgrade timeout timer should not be started
+        self.assertFalse(acs_state_machine.is_fw_upgrade_in_progress())
+
+    @parameterized.expand([
+        (config_enb_fw_upgrade,),
+        (config_model_fw_upgrade,),
+        (config_enb_fw_upgrade_but_model_fw_up_to_date,),
+    ])
+    def test_firmware_upgrade_download_flow(self, fw_upgrade_download_config):
+        """
+        Test firmware upgrade download flow.
+        Download sequence should initiate on certain
+        on
+        """
+        logging.root.level = logging.DEBUG
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(
+            EnodebDeviceName.BAICELLS_QRTB,
+        )
+        acs_state_machine._service.config = _get_service_config()
+        acs_state_machine._service.config['firmware_upgrade_download'] = fw_upgrade_download_config
+
+        logging.info(f'{fw_upgrade_download_config=}')
+
+        # eNB sends Inform message, we wait for an InformResponse
+        inform = Tr069MessageBuilder.get_inform(
+            oui="48BF74",
+            sw_version=self._enb_sw_version,
+            enb_serial=self._enb_serial,
+        )
+        resp = acs_state_machine.handle_tr069_message(inform)
+        self.assertTrue(
+            isinstance(resp, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
+
+        # eNB sends an empty http request
+        # State machine should detect that firmware upgrade config exists and so
+        # should transition to sending Download message
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self._assert_download_message(
+            acs=acs_state_machine,
+            message=resp,
+        )
+
+        # When eNB replies with a DownloadResponse, all is good.
+        # eNB should transition to get params state and should start the upgrade
+        # timeout timer
+        req = models.DownloadResponse()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(
+            isinstance(resp, models.GetParameterValues),
+            'State machine should be requesting param values',
+        )
+        self.assertTrue(acs_state_machine.is_fw_upgrade_in_progress())
+
+    def _assert_download_message(
+        self,
+        acs,
+        message,
+    ):
+        # Expect a dowload message
+        self.assertTrue(
+            isinstance(message, models.Download),
+            'Expecting Download message',
+        )
+        # eNB firmware upgrade config should be obtainable
+        fw_upgrade_config = get_firmware_upgrade_download_config(acs)
+        self.assertTrue(
+            fw_upgrade_config,
+            'Firmware Upgrade config should not be empty',
+        )
+
+        # Explicitly set params should have correct values
+        self.assertEqual(message.CommandKey, fw_upgrade_config['version'])
+        self.assertEqual(
+            message.FileType,
+            FirmwareUpgradeDownloadState.FIRMWARE_FILE_TYPE,
+        )
+        self.assertEqual(message.URL, fw_upgrade_config['url'])
+
+        # Optional params should have default values
+        self.assertEqual(
+            message.Username,
+            fw_upgrade_config.get('username', ""),
+        )
+        self.assertEqual(
+            message.Password,
+            fw_upgrade_config.get('password', ""),
+        )
+
+        # Constant/Fixed params should have default values
+        self.assertEqual(message.FileSize, 0)
+        self.assertEqual(message.TargetFileName, "")
+        self.assertEqual(message.DelaySeconds, 0)
+        self.assertEqual(message.SuccessURL, "")
+        self.assertEqual(message.FailureURL, "")
+
+
 def prepare_device_cfg_same_as_desired_cfg(acs_state_machine):
     # Setting all regular params in the device_cfg to the same values as those in desired_cfg
     for param in acs_state_machine.desired_cfg.get_parameter_names():
@@ -725,3 +1005,13 @@ def provision_clean_sm(state=None):
     if state is not None:
         acs_state_machine.transition(state)
     return acs_state_machine
+
+
+def _get_service_config():
+    return {
+        "firmware_upgrade_download": {
+            "enbs": {},
+            "firmwares": {},
+            "models": {},
+        },
+    }
