@@ -1,6 +1,6 @@
-FROM node:12.18-alpine as builder
+FROM node:14.19-alpine as builder
 
-RUN apk add python g++ make libx11 glew-dev libxi-dev ca-certificates
+RUN apk add --no-cache --virtual python g++ make libx11 glew-dev libxi-dev ca-certificates
 
 WORKDIR /usr/src/
 
