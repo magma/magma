@@ -34,6 +34,8 @@ cd $MAGMA/lte/gateway/python
 ./precommit.py --format--diff
 ```
 
+Note: Python version >= 3.7 is needed to run the above precommit.py script
+
 ## How to add/update Python dependencies via `requirements.in`
 `requirements.in` is the file that manages most `Python` package dependencies for this Dockerfile.
 If you need to add or update dependencies in `requirements.in`, always run the following commands.
