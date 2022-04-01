@@ -299,3 +299,20 @@ dp:
       # The name of the service account to use.
       # If not set and create is true, a name is generated using the fullname template
       name: ""
+
+  fluentd:
+    image:
+      repository: fluentd
+      tag: ""
+      pullPolicy: IfNotPresent
+
+    env:
+      output_host: orc8r-fluentd-forward
+      output_flush_interval: 1s
+
+    output_conf:
+      tls_allow_self_signed_cert: true
+      tls_verify_hostname: false
+
+secret:
+  certs: orc8r-secrets-certs

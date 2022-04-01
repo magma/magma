@@ -18,7 +18,7 @@ import type {$AxiosError} from 'axios';
 
 import React from 'react';
 
-import {useSnackbar} from '@fbcnms/ui/hooks';
+import {useSnackbar} from '../../../fbc_js_core/ui/hooks';
 
 export default function NetworkError({error}: {error: $AxiosError<string>}) {
   let errorMessage = error.message;

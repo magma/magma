@@ -994,13 +994,13 @@ paths:
       - $ref: '#/parameters/network_id'
       - $ref: '#/parameters/offset'
       - $ref: '#/parameters/limit'
-      - description: start datetime of messages
+      - description: start datetime of log
         format: date-time
         in: query
         name: begin
         required: false
         type: string
-      - description: end datatime of messages
+      - description: end datatime of log
         format: date-time
         in: query
         name: end
@@ -1020,7 +1020,7 @@ paths:
         name: fcc_id
         required: false
         type: string
-      - description: message type
+      - description: log type
         in: query
         name: type
         required: false
@@ -1030,7 +1030,7 @@ paths:
         name: response_code
         required: false
         type: integer
-      - description: message origin
+      - description: log origin
         enum:
         - SAS
         - DP
@@ -1039,7 +1039,7 @@ paths:
         name: from
         required: false
         type: string
-      - description: message destination
+      - description: log destination
         enum:
         - SAS
         - DP
@@ -1050,14 +1050,14 @@ paths:
         type: string
       responses:
         "200":
-          description: Messages between DP and SAS
+          description: logs between DP and SAS
           schema:
             items:
-              $ref: '#/definitions/message'
+              $ref: '#/definitions/log'
             type: array
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: List messages between DP and SAS ordered by time
+      summary: List logs between DP and SAS ordered by time
       tags:
       - logs
   /events/{network_id}:
@@ -8747,6 +8747,57 @@ definitions:
     - macs
     - ips
     type: object
+  log:
+    properties:
+      body:
+        description: Body of log
+        example: '{[{"registrationRequest":{"cbsdSerialNumber":"some_serial_number"}}]}'
+        type: string
+        x-nullable: false
+      fcc_id:
+        description: Fcc Id of cbsd involved in log
+        example: some_fcc_id
+        type: string
+        x-nullable: false
+      from:
+        description: log origin
+        enum:
+        - SAS
+        - DP
+        - CBSD
+        type: string
+        x-nullable: false
+      serial_number:
+        description: Serial number of cbsd involved in log
+        example: some_serial_number
+        type: string
+        x-nullable: false
+      time:
+        description: Datetime of log
+        format: date-time
+        type: string
+        x-nullable: false
+      to:
+        description: log destination
+        enum:
+        - SAS
+        - DP
+        - CBSD
+        type: string
+        x-nullable: false
+      type:
+        description: Type of log
+        type: string
+        x-nullable: false
+    required:
+    - body
+    - fcc_id
+    - serial_number
+    - time
+    - type
+    - from
+    - to
+    type: object
   lte_gateway:
     description: Full description of an LTE gateway
     properties:
@@ -8954,49 +9005,6 @@ definitions:
     - isRegex
     - name
     - value
-    type: object
-  message:
-    properties:
-      body:
-        description: Body of message
-        example: '{[{"registrationRequest":{"cbsdSerialNumber":"some_serial_number"}}]}'
-        readOnly: true
-        type: string
-      fcc_id:
-        description: Fcc Id of cbsd involved in message
-        example: some_fcc_id
-        readOnly: true
-        type: string
-      from:
-        description: message origin
-        enum:
-        - SAS
-        - DP
-        - CBSD
-        readOnly: true
-        type: string
-      serial_number:
-        description: Serial number of cbsd involved in message
-        example: some_serial_number
-        readOnly: true
-        type: string
-      time:
-        description: Datetime of message
-        format: date-time
-        readOnly: true
-        type: string
-      to:
-        description: message destination
-        enum:
-        - SAS
-        - DP
-        - CBSD
-        readOnly: true
-        type: string
-      type:
-        description: Type of message
-        readOnly: true
-        type: string
     type: object
   metric_datapoint:
     example:
@@ -9975,6 +9983,22 @@ definitions:
     - gateways
     - total_count
     type: object
+  paginated_logs:
+    description: Page of logs
+    properties:
+      logs:
+        items:
+          $ref: '#/definitions/log'
+        readOnly: true
+        type: array
+      total_count:
+        description: Total number of logs
+        example: 10
+        readOnly: true
+        type: integer
+    required:
+    - logs
+    - total_count
   paginated_subscriber_ids:
     description: Page of subscriber IDs
     properties:

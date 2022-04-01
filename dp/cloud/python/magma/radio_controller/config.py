@@ -10,7 +10,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+import importlib
+import logging
 import os
 
 from magma.db_service import config as conf
@@ -55,3 +56,19 @@ class ProductionConfig(Config):
     """
 
     pass  # noqa: WPS604
+
+
+def get_config() -> Config:
+    """
+    Get Configuration object for radio controller
+    """
+    app_config = os.environ.get('APP_CONFIG', 'ProductionConfig')
+    config_module = importlib.import_module(
+        '.'.join(
+            f"magma.radio_controller.config.{app_config}".split('.')[:-1],
+        ),
+    )
+    config_class = getattr(config_module, app_config.split('.')[-1])
+    logging.info(str(config_class))
+
+    return config_class()

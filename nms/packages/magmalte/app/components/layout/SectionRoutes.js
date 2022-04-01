@@ -14,13 +14,13 @@
  * @format
  */
 
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import React from 'react';
 import Settings from '../Settings';
 
 import useSections from './useSections';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 export default function SectionRoutes() {
   const {relativePath, match} = useRouter();

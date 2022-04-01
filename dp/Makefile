@@ -106,6 +106,11 @@ endif
 _ci_init: _generate_certificates _generate_harness_config
 	kubectl delete secret certificates --ignore-not-found
 	kubectl create secret generic certificates --from-file=tools/deployment/certificates/certs
+	kubectl delete \
+		service/orc8r-fluentd-forward \
+		deployment.apps/orc8r-fluentd-forward \
+		configmap/orc8r-fluentd-forward-configs \
+		--ignore-not-found
 	#kubectl apply -f ./tools/deployment/vendor/postgresql.yml
 	#kubectl rollout status --watch --timeout=600s statefulset/postgres-database
 

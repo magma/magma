@@ -26,16 +26,16 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_data.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_data.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 namespace magma5g {
 task_zmq_ctx_t amf_app_task_zmq_ctx;
@@ -91,6 +91,10 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       amf_app_handle_pdu_session_response(
           &N11_CREATE_PDU_SESSION_RESPONSE(received_message_p));
       is_task_state_same = true;
+      break;
+    case N11_CREATE_PDU_SESSION_FAILURE:
+      amf_app_handle_pdu_session_failure(
+          &N11_CREATE_PDU_SESSION_FAILURE(received_message_p));
       break;
     case AMF_APP_SUBS_AUTH_INFO_RESP:
       amf_nas_proc_authentication_info_answer(

@@ -18,8 +18,8 @@
 import Sequelize from 'sequelize';
 import https from 'https';
 
-import {API_HOST, apiCredentials} from '@fbcnms/platform-server/config';
-import {Organization} from '@fbcnms/sequelize-models';
+import {API_HOST, apiCredentials} from '../fbc_js_core/platform_server/config';
+import {Organization} from '../fbc_js_core/sequelize_models';
 
 async function enableNetworks(
   organizationName: string,

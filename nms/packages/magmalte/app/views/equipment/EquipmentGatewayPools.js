@@ -14,7 +14,7 @@
  * @format
  */
 import type {GatewayPoolRecordsType} from '../../components/context/GatewayPoolsContext';
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
 import ActionTable from '../../components/ActionTable';
 import CardTitleRow from '../../components/layout/CardTitleRow';
@@ -25,14 +25,14 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
 import {GatewayPoolEditDialog} from './GatewayPoolEdit';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {

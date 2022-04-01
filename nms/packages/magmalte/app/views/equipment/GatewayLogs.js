@@ -26,16 +26,16 @@ import LogChart from './GatewayLogChart';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import {CsvBuilder} from 'filefy';
 import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
 import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 import {useMemo, useRef, useState} from 'react';
 import {useRefreshingDateRange} from '../../components/AutorefreshCheckbox';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 // elastic search pagination through 'from' mechanism has a 10000 row limit
 // we have to use a different mechanism in case we want to go higher, we should
