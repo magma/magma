@@ -1551,8 +1551,8 @@ status_code_e ngap_handle_sctp_disconnection(ngap_state_t* state,
       (void**)&message_p);
 
   /*
-   * Mark the eNB's s1 state as appropriate, the eNB will be deleted or
-   * moved to init state when the last UE's s1 state is cleaned up
+   * Mark the gNB's ng state as appropriate, the gNB will be deleted or
+   * moved to init state when the last UE's ng state is cleaned up
    */
   gnb_association->ng_state = reset ? NGAP_RESETING : NGAP_SHUTDOWN;
   OAILOG_INFO(LOG_NGAP,
