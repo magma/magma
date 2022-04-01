@@ -26,12 +26,12 @@ cd $MAGMA/lte/gateway/python
 # to run the flake8 linter by specifying paths
 ./precommit.py --lint -p PATH1 PATH2
 # to run the flake8 linter on all modified files in the current commit
-./precommit.py --lint--diff
+./precommit.py --lint --diff
 
 # to run all available formatters by specifying paths
 ./precommit.py --format -p PATH1 PATH2
 # to run all available formatters on all modified files in the current commit
-./precommit.py --format--diff
+./precommit.py --format --diff
 ```
 
 Note: Python version >= 3.7 is needed to run the above precommit.py script
