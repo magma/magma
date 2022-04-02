@@ -20,7 +20,7 @@ import AdminMain from './AdminMain';
 import ApplicationMain from '../ApplicationMain';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import AuditLog from './AuditLog';
-import NavListItem from '@fbcnms/ui/components/NavListItem';
+import NavListItem from '../../../fbc_js_core/ui/components/NavListItem';
 import Networks from './Networks';
 import Paper from '@material-ui/core/Paper';
 import PeopleIcon from '@material-ui/icons/People';
@@ -29,7 +29,7 @@ import SignalCellularAlt from '@material-ui/icons/SignalCellularAlt';
 import UsersSettings from '../UsersSettings';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   paper: {

@@ -19,7 +19,7 @@ import NetworkContext from '../../context/NetworkContext';
 import React from 'react';
 import useSections from '../useSections';
 
-import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
+import {AppContextProvider} from '../../../../fbc_js_core/ui/context/AppContext';
 import {act, renderHook} from '@testing-library/react-hooks';
 
 const enqueueSnackbarMock = jest.fn();
@@ -27,10 +27,19 @@ jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('mapbox-gl', () => {});
 jest.mock('../../insights/map/MapView', () => {});
 jest
-  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .spyOn(
+    require('../../../../fbc_js_core/ui/hooks/useSnackbar'),
+    'useEnqueueSnackbar',
+  )
   .mockReturnValue(enqueueSnackbarMock);
 
-import {CWF, FEG, FEG_LTE, LTE, XWFM} from '@fbcnms/types/network';
+import {
+  CWF,
+  FEG,
+  FEG_LTE,
+  LTE,
+  XWFM,
+} from '../../../../fbc_js_core/types/network';
 
 global.CONFIG = {
   appData: {

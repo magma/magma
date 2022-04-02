@@ -29,7 +29,7 @@
 #include "S1ap_PLMNidentity.h"
 #include "S1ap_SupportedTAs-Item.h"
 #include "S1ap_TAC.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"

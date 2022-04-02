@@ -69,6 +69,7 @@ typedef enum amf_cn_primitive_s {
   _AMFCN_DEACTIVATE_PDUSESSION_REQ,
   _AMFCN_IDENTITY_PARAM_RES,
   _AMFCN_SMC_PARAM_RES,
+  _AMFCN_IMPLICIT_DEREGISTER_UE,
   _AMFCN_END
 } amf_cn_primitive_t;
 

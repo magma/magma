@@ -17,31 +17,31 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/lib/n11/M5GAuthenticationServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.h"
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.h"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/proto_msg_to_itti_msg.h"
-#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
-#include "lte/gateway/c/core/oai/lib/n11/M5GAuthenticationServiceClient.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/proto_msg_to_itti_msg.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.h"
 
 using magma5g::AsyncM5GAuthenticationServiceClient;
 
@@ -1386,15 +1386,17 @@ uint16_t amf_as_establish_cnf(const amf_as_establish_t* msg,
     //  1. Context is request and message is registration
     //  2. Service Request message (data or signaling)
     if (ue_mm_context->ue_context_request &&
-        (ue_mm_context->mm_state != REGISTERED_CONNECTED)) {
+        (ue_mm_context->cm_state == M5GCM_IDLE)) {
       // Every time ICS is sent this kgnb needs to be re-calculated
       derive_5gkey_gnb(amf_security_context->kamf, as_msg->nas_ul_count,
                        amf_security_context->kgnb);
       initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
     } else {
       amf_app_handle_nas_dl_req(as_msg->ue_id, as_msg->nas_msg, M5G_AS_SUCCESS);
-      ue_mm_context->mm_state = REGISTERED_CONNECTED;
     }
+
+    /* Registration accept can go as part of ICS or pure DL message. */
+    ue_mm_context->mm_state = REGISTERED_CONNECTED;
 
     as_msg->err_code = M5G_AS_SUCCESS;
     ret_val = AS_NAS_ESTABLISH_CNF_;

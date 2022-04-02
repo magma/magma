@@ -18,11 +18,11 @@
 #include <cstring>
 #include <string>
 
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/service303.h"
 #include "lte/gateway/c/core/oai/include/spgw_types.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
 
 #include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedServiceClient.h"
 
@@ -43,8 +43,14 @@ int upf_classifier_add_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6,
                               uint32_t o_tei, const char* imsi,
                               struct ip_flow_dl* flow_dl,
                               uint32_t flow_precedence_dl, const char* apn) {
-  std::string imsi_str = std::string(imsi);
-  std::string apn_str = std::string(apn);
+  std::string imsi_str = "";
+  std::string apn_str = "";
+  if (imsi) {
+    imsi_str = std::string(imsi);
+  }
+  if (apn) {
+    apn_str = std::string(apn);
+  }
 
   if (ue_ipv6 == nullptr) {
     if (flow_dl == nullptr) {

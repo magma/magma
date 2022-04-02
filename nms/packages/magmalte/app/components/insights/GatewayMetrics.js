@@ -16,15 +16,15 @@
 
 import type {MetricGraphConfig} from './Metrics';
 
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import Metrics from './Metrics';
 import React from 'react';
 import {Route} from 'react-router-dom';
 
 import useMagmaAPI from '../../../api/useMagmaAPI';
-import {useRouter} from '@fbcnms/ui/hooks';
-import {useSnackbar} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useSnackbar} from '../../../fbc_js_core/ui/hooks';
 
 export default function (props: {configs: MetricGraphConfig[]}) {
   const {history, relativePath, relativeUrl, match} = useRouter();

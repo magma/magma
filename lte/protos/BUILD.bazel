@@ -359,6 +359,11 @@ proto_library(
     srcs = ["diam_errors.proto"],
 )
 
+python_proto_library(
+    name = "diam_errors_python_proto",
+    protos = [":diam_errors_proto"],
+)
+
 cpp_proto_library(
     name = "diam_errors_cpp_proto",
     protos = [":diam_errors_proto"],

@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import operator
 from datetime import datetime, timezone
 from http import HTTPStatus
 from time import sleep
@@ -34,6 +35,9 @@ SERIAL_NUMBER = "some_serial_number"
 SOME_FCC_ID = "some_fcc_id"
 OTHER_FCC_ID = "other_fcc_id"
 USER_ID = "some_user_id"
+SAS = 'SAS'
+DP = 'DP'
+DATETIME_WAY_BACK = '2010-03-28T09:13:25.407877399+00:00'
 
 
 @pytest.mark.orc8r
@@ -45,6 +49,13 @@ class DomainProxyOrc8rTestCase(DBTestCase):
             f"{config.GRPC_SERVICE}:{config.GRPC_PORT}",
         )
         self.dp_client = DPServiceStub(grpc_channel)
+        # Indexing from previous test may not have been finished yet
+        sleep(5)
+        self._delete_dp_elasticsearch_indices()
+
+    def tearDown(self):
+        super().tearDown()
+        self._delete_dp_elasticsearch_indices()
 
     # retrying is needed because of a possible deadlock
     # with cc locking request table
@@ -54,6 +65,8 @@ class DomainProxyOrc8rTestCase(DBTestCase):
 
     def test_cbsd_sas_flow(self):
         cbsd_id = self.given_cbsd_provisioned()
+        # Giving ElasticSearch time to index logs
+        sleep(5)
 
         logs = self.when_logs_are_fetched(self.get_current_sas_filters())
         self.then_logs_are(logs, self.get_sas_provision_messages())
@@ -89,6 +102,63 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         self.then_cbsd_is(cbsd, self.get_registered_cbsd_data())
 
         self.delete_cbsd(cbsd_id)
+
+    def test_fetching_logs_with_custom_filters(self):
+        self.given_cbsd_provisioned()
+        # Giving ElasticSearch time to index logs
+        sleep(5)
+
+        sas_to_dp_end_date_only = {
+            'serial_number': SERIAL_NUMBER,
+            'from': SAS,
+            'to': DP,
+            'end': self.now(),
+        }
+        sas_to_dp_begin_date_only = {
+            'serial_number': SERIAL_NUMBER,
+            'from': SAS,
+            'to': DP,
+            'begin': DATETIME_WAY_BACK,
+        }
+        sas_to_dp_end_date_too_early = {
+            'serial_number': SERIAL_NUMBER,
+            'from': SAS,
+            'to': DP,
+            'end': DATETIME_WAY_BACK,
+        }
+        dp_to_sas = {
+            'serial_number': SERIAL_NUMBER,
+            'from': DP,
+            'to': SAS,
+        }
+        dp_to_sas_incorrect_serial_number = {
+            'serial_number': 'incorrect_serial_number',
+            'from': DP,
+            'to': SAS,
+        }
+        sas_to_dp_with_limit = {
+            'limit': '100',
+            'from': SAS,
+            'to': DP,
+        }
+        sas_to_dp_with_limit_and_too_large_offset = {
+            'limit': '100',
+            'offset': '100',
+            'from': SAS,
+            'to': DP,
+        }
+        scenarios = [
+            (sas_to_dp_end_date_only, operator.eq, 4, HTTPStatus.OK),
+            (sas_to_dp_begin_date_only, operator.eq, 4, HTTPStatus.OK),
+            (sas_to_dp_end_date_too_early, operator.eq, 0, HTTPStatus.OK),
+            (dp_to_sas, operator.gt, 0, HTTPStatus.OK),
+            (dp_to_sas_incorrect_serial_number, operator.eq, 0, HTTPStatus.OK),
+            (sas_to_dp_with_limit, operator.eq, 4, HTTPStatus.OK),
+            (sas_to_dp_with_limit_and_too_large_offset, operator.eq, 0, HTTPStatus.OK),
+        ]
+
+        for params in scenarios:
+            self._verify_logs_count(params)
 
     def given_cbsd_provisioned(self) -> int:
         self.when_cbsd_is_created()
@@ -131,7 +201,7 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         self.assertEqual(len(cbsds), 1)
         return cbsds[0]
 
-    def when_logs_are_fetched(self, params: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def when_logs_are_fetched(self, params: Dict[str, Any]) -> Dict[str, Any]:
         r = send_request_to_backend('get', 'logs', params=params)
         self.assertEqual(r.status_code, HTTPStatus.OK)
         data = r.json()
@@ -181,8 +251,8 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         actual = self.when_cbsd_asks_for_state()
         self.then_state_is(actual, expected)
 
-    def then_logs_are(self, actual: List[Dict[str, Any]], expected: List[str]):
-        actual = [x['type'] for x in actual]
+    def then_logs_are(self, actual: Dict[str, Any], expected: List[str]):
+        actual = [x['type'] for x in actual['logs']]
         self.assertEqual(actual, expected)
 
     @retry(stop_max_attempt_number=60, wait_fixed=1000)
@@ -190,7 +260,7 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         if keep_alive:
             self.when_cbsd_asks_for_state()
         logs = self.when_logs_are_fetched(filters)
-        self.assertEqual(len(logs), 1)
+        self.assertEqual(logs["total_count"], 1)
 
     @staticmethod
     def get_cbsd_request() -> CBSDRequest:
@@ -258,8 +328,8 @@ class DomainProxyOrc8rTestCase(DBTestCase):
     def get_current_sas_filters(self) -> Dict[str, Any]:
         return {
             'serial_number': SERIAL_NUMBER,
-            'from': 'SAS',
-            'to': 'DP',
+            'from': SAS,
+            'to': DP,
             'end': self.now(),
         }
 
@@ -275,12 +345,24 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         names = ['heartbeat', 'grant', 'spectrumInquiry', 'registration']
         return [f'{x}Response' for x in names]
 
-    @staticmethod
-    def now():
+    def now(self):
         return datetime.now(timezone.utc).isoformat()
 
+    def _delete_dp_elasticsearch_indices(self):
+        requests.delete(f"{config.ELASTICSEARCH_URL}/{config.ELASTICSEARCH_INDEX}*")
 
-def send_request_to_backend(method: str, url_suffix: str, params: Optional[Dict[str, Any]] = None, json: Optional[Dict[str, Any]] = None) -> requests.Response:
+    def _verify_logs_count(self, params):
+        using_filters, _operator, expected_count, expected_status = params
+        logs = self.when_logs_are_fetched(using_filters)
+
+        comparison = _operator(len(logs["logs"]), expected_count)
+        self.assertTrue(comparison)
+
+
+def send_request_to_backend(
+    method: str, url_suffix: str, params: Optional[Dict[str, Any]] = None,
+    json: Optional[Dict[str, Any]] = None,
+) -> requests.Response:
     return requests.request(
         method,
         f'{config.HTTP_SERVER}/{DP_HTTP_PREFIX}/{NETWORK}/{url_suffix}',

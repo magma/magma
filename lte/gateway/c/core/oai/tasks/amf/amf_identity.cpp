@@ -15,7 +15,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/amf_config.h"
@@ -24,7 +24,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include <unordered_map>
 #include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
@@ -33,9 +33,6 @@ extern "C" {
 
 extern amf_config_t amf_config;
 namespace magma5g {
-
-// Global map of supi to guti along with amf_ue_ngap_id
-std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
 
 /***************************************************************************
 **                                                                        **

@@ -23,6 +23,10 @@
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_app_test_util.h"
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_procedure_test_fixture.h"
 
+extern "C" {
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+}
+
 namespace magma {
 namespace lte {
 
@@ -79,6 +83,9 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedExpiredDetach) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
+  // Reduce timer 3422 duration for testing
+  mme_config.nas_config.t3422_msec = MME_APP_TIMER_TO_MSEC;
+
   MME_APP_EXPECT_CALLS(8, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
   // Attach the UE
@@ -126,6 +133,9 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetachRetxFailure) {
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
+
+  // Reduce timer 3422 duration for testing
+  mme_config.nas_config.t3422_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(8, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
@@ -214,6 +224,9 @@ TEST_F(MmeAppProcedureTest,
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
+  // Reduce timer 3485 durations for testing
+  mme_config.nas_config.t3485_msec = MME_APP_TIMER_TO_MSEC;
+
   MME_APP_EXPECT_CALLS(7, 1, 1, 1, 1, 1, 1, 1, 0, 1, 3);
 
   // Attach the UE
@@ -253,6 +266,9 @@ TEST_F(MmeAppProcedureTest,
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
+
+  // Reduce timer 3495 duration for testing
+  mme_config.nas_config.t3495_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(3, 1, 1, 1, 1, 1, 1, 1, 0, 1, 4);
 
@@ -312,6 +328,7 @@ TEST_F(MmeAppProcedureTest,
 
   detach_ue(cv, lock, mme_state_p, guti, false);
 }
+
 TEST_F(MmeAppProcedureTest,
        TestNwInitiatedActivateDeactivateDedicatedBearerRequest) {
   mme_app_desc_t* mme_state_p =
@@ -385,6 +402,10 @@ TEST_F(
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
+
+  // Reduce timer 3485 and 3495 durations for testing
+  mme_config.nas_config.t3485_msec = MME_APP_TIMER_TO_MSEC;
+  mme_config.nas_config.t3495_msec = MME_APP_TIMER_TO_MSEC;
 
   MME_APP_EXPECT_CALLS(7, 1, 1, 1, 1, 1, 1, 1, 0, 1, 4);
 

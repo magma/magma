@@ -27,6 +27,9 @@ fluentd_daemon:
 fluentd_forward:
   create: false
 
+  # Domain-proxy output
+  dp_output: true
+
   replicas: 1
 
   nodeSelector: {}
@@ -42,6 +45,7 @@ fluentd_forward:
     elastic_host: "elasticsearch-logging"
     elastic_port: "9200"
     elastic_scheme: "http"
+    elastic_flush_interval: 5s
 
   resources: {}
 

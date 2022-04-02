@@ -14,7 +14,7 @@
  * @format
  */
 
-import AppContext from '@fbcnms/ui/context/AppContext';
+import AppContext from '../../../fbc_js_core/ui/context/AppContext';
 import Grid from '@material-ui/core/Grid';
 import LteMetrics from '../lte/LteMetrics';
 import Paper from '@material-ui/core/Paper';

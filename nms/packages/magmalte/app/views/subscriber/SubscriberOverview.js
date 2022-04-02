@@ -33,7 +33,7 @@ import type {
 
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {useContext} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const TITLE = 'Subscribers';
 

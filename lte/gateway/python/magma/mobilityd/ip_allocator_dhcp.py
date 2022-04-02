@@ -24,7 +24,7 @@ import logging
 from copy import deepcopy
 from ipaddress import ip_address, ip_network
 from threading import Condition
-from typing import List, Optional, cast
+from typing import List, cast
 
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 
@@ -123,16 +123,16 @@ class IPAllocatorDHCP(IPAllocator):
         """
         mac = create_mac_from_sid(sid)
 
-        dhcp_desc = self._dhcp_client.get_dhcp_desc(mac, str(vlan_id))
+        dhcp_desc = self._dhcp_client.get_dhcp_desc(mac, vlan_id)
         LOG.debug(
             "allocate IP for %s mac %s dhcp_desc %s", sid, mac,
             dhcp_desc,
         )
 
-        if dhcp_allocated_ip(dhcp_desc) is not True:
+        if not dhcp_desc or not dhcp_allocated_ip(dhcp_desc):
             dhcp_desc = self._alloc_ip_address_from_dhcp(mac, vlan_id)
 
-        if dhcp_allocated_ip(dhcp_desc):
+        if dhcp_desc and dhcp_allocated_ip(dhcp_desc):
             ip_block = ip_network(dhcp_desc.subnet)
             ip_desc = IPDesc(
                 ip=ip_address(dhcp_desc.ip),
@@ -200,7 +200,9 @@ class IPAllocatorDHCP(IPAllocator):
             dhcp_desc = None
             while (
                 retry_count < self._retry_limit
-                and dhcp_allocated_ip(dhcp_desc) is not True
+                and (
+                    (dhcp_desc is None) or not dhcp_allocated_ip(dhcp_desc)
+                )
             ):
 
                 if retry_count % DEFAULT_DHCP_REQUEST_RETRY_FREQUENCY == 0:
@@ -217,5 +219,5 @@ class IPAllocatorDHCP(IPAllocator):
             return cast(DHCPDescriptor, dhcp_desc)
 
 
-def dhcp_allocated_ip(dhcp_desc: Optional[DHCPDescriptor]) -> bool:
-    return dhcp_desc is not None and dhcp_desc.ip_is_allocated()
+def dhcp_allocated_ip(dhcp_desc: DHCPDescriptor) -> bool:
+    return dhcp_desc.ip_is_allocated()

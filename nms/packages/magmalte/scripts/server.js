@@ -22,7 +22,7 @@ if (!process.env.NODE_ENV) {
 }
 
 import app from '../server/app';
-import logging from '@fbcnms/logging';
+import logging from '../fbc_js_core/logging';
 import {runMigrations} from './runMigrations';
 
 const logger = logging.getLogger(module);

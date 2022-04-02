@@ -15,6 +15,7 @@ package servicers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/emakeev/milenage"
@@ -92,8 +93,12 @@ func (srv *HomeSubscriberServer) GetSubscriberData(ctx context.Context, req *lte
 // UpdateSubscriber changes the data stored for an existing subscriber.
 // If the subscriber cannot be found, an error is returned instead.
 // Input: The new subscriber data to store
-func (srv *HomeSubscriberServer) UpdateSubscriber(ctx context.Context, req *lteprotos.SubscriberData) (*protos.Void, error) {
-	err := srv.store.UpdateSubscriber(req)
+func (srv *HomeSubscriberServer) UpdateSubscriber(ctx context.Context, req *lteprotos.SubscriberUpdate) (*protos.Void, error) {
+	if req == nil {
+		return &protos.Void{}, fmt.Errorf("UpdateSubscriber got a nil request")
+	}
+	sub := req.Data
+	err := srv.store.UpdateSubscriber(sub)
 	err = storage.ConvertStorageErrorToGrpcStatus(err)
 	return &protos.Void{}, err
 }
@@ -105,6 +110,13 @@ func (srv *HomeSubscriberServer) DeleteSubscriber(ctx context.Context, req *ltep
 	err := srv.store.DeleteSubscriber(req.Id)
 	err = storage.ConvertStorageErrorToGrpcStatus(err)
 	return &protos.Void{}, err
+}
+
+// ListSubscribers list all available subscribers by IMSI.
+func (srv *HomeSubscriberServer) ListSubscribers(_ context.Context, _ *protos.Void) (*lteprotos.SubscriberIDSet, error) {
+	data, err := srv.store.GetAllSubscribers()
+	err = storage.ConvertStorageErrorToGrpcStatus(err)
+	return data, err
 }
 
 // DeRegisterSubscriber de-registers a subscriber by their Id.

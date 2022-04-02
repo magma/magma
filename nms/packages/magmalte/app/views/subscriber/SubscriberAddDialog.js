@@ -40,7 +40,7 @@ import Select from '@material-ui/core/Select';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 
 import {CoreNetworkTypes, validateSubscribers} from './SubscriberUtils';
 import {PasswordInput} from '../../components/FormField';
@@ -51,7 +51,7 @@ import {forwardRef} from 'react';
 import {handleSubscriberQuery} from '../../state/lte/SubscriberState';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(() => ({
   dialogTitle: {

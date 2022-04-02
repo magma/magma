@@ -34,18 +34,33 @@ cc_library(
 
 cc_test(
     name = "pgw_pco_test",
+    size = "small",
     srcs = [
         "test_pgw_pco.cpp",
     ],
     deps = [
         ":spgw_test_core",
         "//lte/gateway/c/core",
-        "@com_google_googletest//:gtest_main",
+        "//lte/gateway/c/core/common:common_defs",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_library(
+    name = "spgw_procedures_test_fixture",
+    srcs = ["spgw_procedures_test_fixture.cpp"],
+    hdrs = ["spgw_procedures_test_fixture.h"],
+    deps = [
+        ":spgw_test_core",
+        "//lte/gateway/c/core/common:common_defs",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "@com_google_googletest//:gtest",
     ],
 )
 
 cc_test(
     name = "spgw_procedures_test",
+    size = "small",
     srcs = [
         "test_spgw_procedures.cpp",
     ],
@@ -53,12 +68,46 @@ cc_test(
         ":spgw_test_core",
         "//lte/gateway/c/core",
         "//lte/gateway/c/core/oai/test/mock_tasks",
-        "@com_google_googletest//:gtest_main",
+        "//lte/gateway/c/core/oai/test/spgw_task:spgw_procedures_test_fixture",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "spgw_procedures_session_test",
+    size = "small",
+    srcs = [
+        "test_spgw_procedures_session.cpp",
+    ],
+    deps = [
+        ":spgw_test_core",
+        "//lte/gateway/c/core",
+        "//lte/gateway/c/core/common:common_defs",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "//lte/gateway/c/core/oai/test/spgw_task:spgw_procedures_test_fixture",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "spgw_procedures_dedicated_bearer_test",
+    size = "small",
+    srcs = [
+        "test_spgw_procedures_dedicated_bearer.cpp",
+    ],
+    deps = [
+        ":spgw_test_core",
+        "//lte/gateway/c/core",
+        "//lte/gateway/c/core/common:common_defs",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "//lte/gateway/c/core/oai/test/spgw_task:spgw_procedures_test_fixture",
+        "@com_google_googletest//:gtest",
     ],
 )
 
 cc_test(
     name = "spgw_procedures_with_injected_state_test",
+    size = "small",
     srcs = [
         "test_spgw_procedures_with_injected_state.cpp",
     ],
@@ -67,7 +116,7 @@ cc_test(
         ":spgw_test_core",
         "//lte/gateway/c/core",
         "//lte/gateway/c/core/oai/test/mock_tasks",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_googletest//:gtest",
     ],
 )
 
@@ -92,6 +141,6 @@ cc_test(
     deps = [
         ":spgw_test_core",
         "//lte/gateway/c/core",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_googletest//:gtest",
     ],
 )

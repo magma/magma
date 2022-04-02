@@ -742,6 +742,7 @@ class MagmadUtil(object):
     stateless_cmds = Enum("stateless_cmds", "CHECK DISABLE ENABLE")
     config_update_cmds = Enum("config_update_cmds", "MODIFY RESTORE")
     apn_correction_cmds = Enum("apn_correction_cmds", "DISABLE ENABLE")
+    pipelined_managed_tbl0_cmds = Enum("pipelined_managed_tbl0_cmds", "DISABLE ENABLE")
     health_service_cmds = Enum("health_service_cmds", "DISABLE ENABLE")
     ha_service_cmds = Enum("ha_service_cmds", "DISABLE ENABLE")
 
@@ -1018,6 +1019,36 @@ class MagmadUtil(object):
             print("APN Correction configured")
         else:
             print("APN Correction failed")
+
+    def config_pipelined_managed_tbl0(self, cmd):
+        """
+        Configure the flag to control ovs table=0 using pipelined
+
+        Args:
+          cmd: Specify how to configure pipelined_managed_tbl0 on AGW,
+          should be one of
+            enable: Enable pipelined_managed_tbl0 feature, do nothing if already enabled
+            disable: Disable pipelined_managed_tbl0 feature, do nothing if already disabled
+
+        """
+        pipelined_managed_tbl0_cmd = ""
+        if cmd.name == MagmadUtil.pipelined_managed_tbl0_cmds.ENABLE.name:
+            pipelined_managed_tbl0_cmd = "sed -i \'s/pipelined_managed_tbl0: false/pipelined_managed_tbl0: true/g\' /etc/magma/spgw.yml"
+            ret_code = self.exec_command(
+                "sudo " + pipelined_managed_tbl0_cmd,
+            )
+
+            if ret_code == 0:
+                print("pipelined_managed_tbl0 enabled")
+
+        else:
+            pipelined_managed_tbl0_cmd = "sed -i \'s/pipelined_managed_tbl0: true/pipelined_managed_tbl0: false/g\' /etc/magma/spgw.yml"
+            ret_code = self.exec_command(
+                "sudo " + pipelined_managed_tbl0_cmd,
+            )
+
+            if ret_code == 0:
+                print("pipelined_managed_tbl0 disabled")
 
     def config_health_service(self, cmd: health_service_cmds):
         """
