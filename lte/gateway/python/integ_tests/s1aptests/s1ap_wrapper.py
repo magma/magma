@@ -57,6 +57,7 @@ class TestWrapper(object):
         self,
         stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         apn_correction=MagmadUtil.apn_correction_cmds.DISABLE,
+        pipelined_managed_tbl0=MagmadUtil.pipelined_managed_tbl0_cmds.DISABLE,
         health_service=MagmadUtil.health_service_cmds.DISABLE,
     ):
         """
