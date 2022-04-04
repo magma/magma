@@ -239,6 +239,7 @@ void itti_free_msg_content(MessageDef* const message_p) {
 
     case SCTP_DATA_REQ:
       bdestroy_wrapper(&message_p->ittiMsg.sctp_data_req.payload);
+      printf("-------RELEASE PAYLOAD BSTRING -------------");
       break;
 
     case SCTP_DATA_IND:

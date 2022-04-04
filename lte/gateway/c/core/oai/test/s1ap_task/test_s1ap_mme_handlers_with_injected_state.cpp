@@ -99,7 +99,7 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
 
   virtual void TearDown() {
     // Sleep to ensure that messages are received and contexts are released
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
     send_terminate_message_fatal(&task_zmq_ctx_main_s1ap_with_injected_states);
     destroy_task_context(&task_zmq_ctx_main_s1ap_with_injected_states);
@@ -108,7 +108,7 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
     free_mme_config(&mme_config);
 
     // Sleep to ensure that messages are received and contexts are released
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
   }
 
  protected:
