@@ -102,6 +102,19 @@ func (store *MemorySubscriberStore) GetSubscriberData(id string) (*protos.Subscr
 	return nil, NewUnknownSubscriberError(id)
 }
 
+// GetAllSubscribers provides a list of all IMSIS registered
+// Output: list with all subscribers
+func (store *MemorySubscriberStore) GetAllSubscribers() (*protos.SubscriberIDSet, error) {
+	store.mutex.RLock()
+	defer store.mutex.RUnlock()
+
+	var sids []*protos.SubscriberID
+	for _, subscriber := range store.accounts {
+		sids = append(sids, subscriber.Sid)
+	}
+	return &protos.SubscriberIDSet{Sids: sids}, nil
+}
+
 // DeleteSubscriber deletes a subscriber by their id.
 // If the subscriber is not found, then this call is ignored.
 // Input: The id of the subscriber to be deleted.

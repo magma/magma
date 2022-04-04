@@ -246,6 +246,10 @@ func getProtoCbsd() *protos.CbsdData {
 			NumberOfAntennas: 2,
 			AntennaGain:      15,
 		},
+		Preferences: &protos.FrequencyPreferences{
+			BandwidthMhz:   20,
+			FrequenciesMhz: []int64{3600},
+		},
 	}
 }
 
@@ -276,13 +280,15 @@ func getProtoDetailedCbsdList() *protos.ListCbsdResponse {
 
 func getDBCbsd() *storage.DBCbsd {
 	return &storage.DBCbsd{
-		UserId:           db.MakeString("some_user_id"),
-		FccId:            db.MakeString("some_fcc_id"),
-		CbsdSerialNumber: db.MakeString("some_serial_number"),
-		MinPower:         db.MakeFloat(10),
-		MaxPower:         db.MakeFloat(20),
-		AntennaGain:      db.MakeFloat(15),
-		NumberOfPorts:    db.MakeInt(2),
+		UserId:                  db.MakeString("some_user_id"),
+		FccId:                   db.MakeString("some_fcc_id"),
+		CbsdSerialNumber:        db.MakeString("some_serial_number"),
+		PreferredBandwidthMHz:   db.MakeInt(20),
+		PreferredFrequenciesMHz: db.MakeString("[3600]"),
+		MinPower:                db.MakeFloat(10),
+		MaxPower:                db.MakeFloat(20),
+		AntennaGain:             db.MakeFloat(15),
+		NumberOfPorts:           db.MakeInt(2),
 	}
 }
 

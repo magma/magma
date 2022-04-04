@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import Button from '@fbcnms/ui/components/design-system/Button';
+import Button from '../../../fbc_js_core/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -28,7 +28,10 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 
-import {AllNetworkTypes, V1NetworkTypes} from '@fbcnms/types/network';
+import {
+  AllNetworkTypes,
+  V1NetworkTypes,
+} from '../../../fbc_js_core/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 

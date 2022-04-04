@@ -52,19 +52,26 @@ py_library(
         "log_count_handler.py",
         "log_counter.py",
         "metrics.py",
-        "metrics_export.py",
         "service.py",
     ],
     deps = [
         ":job",
+        ":metrics_export",
         ":serialization_utils",
         ":service_registry",
         "//orc8r/gateway/python/magma/configuration:mconfig_managers",
         "//orc8r/protos:metrics_python_proto",
-        "//orc8r/protos:metricsd_python_proto",
         "//orc8r/protos:service303_python_grpc",
-        requirement("prometheus_client"),
         requirement("setuptools"),
+    ],
+)
+
+py_library(
+    name = "metrics_export",
+    srcs = ["metrics_export.py"],
+    deps = [
+        "//orc8r/protos:metricsd_python_proto",
+        requirement("prometheus_client"),
     ],
 )
 

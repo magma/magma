@@ -24,11 +24,11 @@ import GatewayContext from '../../components/context/GatewayContext';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import isGatewayHealthy from '../../components/GatewayUtils';
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 
 import {useContext} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 export function getLatency(
   resp: ?promql_return_object,

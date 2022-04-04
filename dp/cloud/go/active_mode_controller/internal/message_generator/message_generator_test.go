@@ -109,11 +109,9 @@ func TestGenerateMessages(t *testing.T) {
 					Id:           "some_cbsd_id",
 					State:        active_mode.CbsdState_Registered,
 					Channels: []*active_mode.Channel{{
-						FrequencyRange: &active_mode.FrequencyRange{
-							Low:  3.62e9,
-							High: 3.63e9,
-						},
-						MaxEirp: wrapperspb.Float(4),
+						LowFrequencyHz:  3.62e9,
+						HighFrequencyHz: 3.63e9,
+						MaxEirp:         wrapperspb.Float(4),
 					}},
 					EirpCapabilities: &active_mode.EirpCapabilities{
 						MinPower:      0,
@@ -134,11 +132,9 @@ func TestGenerateMessages(t *testing.T) {
 					Id:           "some_cbsd_id",
 					State:        active_mode.CbsdState_Registered,
 					Channels: []*active_mode.Channel{{
-						FrequencyRange: &active_mode.FrequencyRange{
-							Low:  3.62e9,
-							High: 3.63e9,
-						},
-						MaxEirp: wrapperspb.Float(15),
+						LowFrequencyHz:  3.62e9,
+						HighFrequencyHz: 3.63e9,
+						MaxEirp:         wrapperspb.Float(15),
 					}},
 					EirpCapabilities: &active_mode.EirpCapabilities{
 						MinPower:      0,

@@ -28,7 +28,7 @@ import MyLocationIcon from '@material-ui/icons/MyLocation';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import moment from 'moment';
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 
 import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
@@ -36,7 +36,7 @@ import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {useRefreshingDateRange} from '../../components/AutorefreshCheckbox';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   eventDetailTable: {

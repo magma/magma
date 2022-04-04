@@ -259,24 +259,20 @@ TEST_F(Service303Test, test_histograms) {
 TEST_F(Service303Test, test_timing_metrics) {
   MetricsContainer metrics_container;
   EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
-  double start_time = Service303Test::findGauge(
-      metrics_container,
-      std::to_string(magma::orc8r::MetricName::process_start_time_seconds));
-  double uptime = Service303Test::findGauge(
-      metrics_container,
-      std::to_string(magma::orc8r::MetricName::process_cpu_seconds_total));
+  double start_time = Service303Test::findGauge(metrics_container,
+                                                "process_start_time_seconds");
+  double uptime =
+      Service303Test::findGauge(metrics_container, "process_cpu_seconds_total");
 
   EXPECT_GT(start_time, 0);
   EXPECT_GE(uptime, 0);
 
   sleep(1);
   EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
-  double new_start = Service303Test::findGauge(
-      metrics_container,
-      std::to_string(magma::orc8r::MetricName::process_start_time_seconds));
-  double new_uptime = Service303Test::findGauge(
-      metrics_container,
-      std::to_string(magma::orc8r::MetricName::process_cpu_seconds_total));
+  double new_start = Service303Test::findGauge(metrics_container,
+                                               "process_start_time_seconds");
+  double new_uptime =
+      Service303Test::findGauge(metrics_container, "process_cpu_seconds_total");
 
   EXPECT_DOUBLE_EQ(start_time, new_start);
   EXPECT_GT(new_uptime, uptime);
@@ -286,40 +282,33 @@ TEST_F(Service303Test, test_memory_metrics) {
   MetricsContainer metrics_container;
   EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   double physical_mem = Service303Test::findGauge(
-      metrics_container,
-      std::to_string(magma::orc8r::MetricName::process_resident_memory_bytes));
+      metrics_container, "process_resident_memory_bytes");
   double virtual_mem = Service303Test::findGauge(
-      metrics_container,
-      std::to_string(magma::orc8r::MetricName::process_virtual_memory_bytes));
+      metrics_container, "process_virtual_memory_bytes");
 
   // Sanity check memory metrics
   EXPECT_GT(physical_mem, 0);
   EXPECT_GT(virtual_mem, 0);
 }
 
-// test that metric names and labels can be converted to their enum form
-TEST_F(Service303Test, test_enum_conversions) {
-  // enum values (from metricsd.proto):
-  // s1_setup => 500, result => 0
+TEST_F(Service303Test, test_metric_sample) {
   increment_counter("mme_new_association", 3, 2, "result", "success", "gateway",
                     "1234");
 
   MetricsContainer metrics_container;
   EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   const MetricFamily& family =
-      Service303Test::findFamily(metrics_container, "500");
+      Service303Test::findFamily(metrics_container, "mme_new_association");
   const io::prometheus::client::Counter& counter =
       family.metric().Get(0).counter();
   EXPECT_EQ(counter.value(), 3);
 
   const LabelPair& first_label = family.metric().Get(0).label().Get(0);
-  // test converted enum
-  EXPECT_EQ(first_label.name(), "0");
-  EXPECT_EQ(first_label.value(), "success");
+  EXPECT_EQ(first_label.name(), "gateway");
+  EXPECT_EQ(first_label.value(), "1234");
 
   const LabelPair& second_label = family.metric().Get(0).label().Get(1);
-  // test non converted enum
-  EXPECT_EQ(second_label.name(), "gateway");
-  EXPECT_EQ(second_label.value(), "1234");
+  EXPECT_EQ(second_label.name(), "result");
+  EXPECT_EQ(second_label.value(), "success");
 }
 }  // namespace magma

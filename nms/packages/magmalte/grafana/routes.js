@@ -33,7 +33,7 @@ import {
 import type {Task} from './handlers';
 
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '@fbcnms/auth/access';
+import type {FBCNMSRequest} from '../fbc_js_core/auth/access';
 import type {GrafanaClient} from './GrafanaAPI';
 
 const GRAFANA_PROTOCOL = 'http';

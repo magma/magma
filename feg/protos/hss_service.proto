@@ -35,12 +35,16 @@ service HSSConfigurator {
   // Updates an existing subscriber.
   // Throws NOT_FOUND if the subscriber is missing.
   //
-  rpc UpdateSubscriber (lte.SubscriberData) returns (orc8r.Void) {}
+  rpc UpdateSubscriber (lte.SubscriberUpdate) returns (orc8r.Void) {}
 
   // Returns the SubscriberData for a subscriber.
   // Throws NOT_FOUND if the subscriber is missing.
   //
   rpc GetSubscriberData (lte.SubscriberID) returns (lte.SubscriberData) {}
+
+  // List the subscribers in the store.
+  //
+  rpc ListSubscribers (orc8r.Void) returns (lte.SubscriberIDSet) {}
 
   // De-register an authenticated subscriber
   rpc DeregisterSubscriber (lte.SubscriberID) returns (orc8r.Void) {}

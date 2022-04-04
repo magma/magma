@@ -21,8 +21,6 @@ env:
   BAZEL_CACHE: bazel-cache
   BAZEL_CACHE_REPO: bazel-cache-repo
 
-permissions: read-all
-
 jobs:
   path_filter:
     runs-on: ubuntu-latest

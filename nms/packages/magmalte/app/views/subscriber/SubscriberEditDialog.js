@@ -36,17 +36,21 @@ import Select from '@material-ui/core/Select';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import TypedSelect from '@fbcnms/ui/components/TypedSelect';
-import nullthrows from '@fbcnms/util/nullthrows';
+import TypedSelect from '../../../fbc_js_core/ui/components/TypedSelect';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 
 import {AltFormField, PasswordInput} from '../../components/FormField';
 import {CoreNetworkTypes} from './SubscriberUtils';
-import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
+import {
+  base64ToHex,
+  hexToBase64,
+  isValidHex,
+} from '../../../fbc_js_core/util/strings';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(() => ({
   tabBar: {

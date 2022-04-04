@@ -13,6 +13,7 @@ build --compilation_mode=dbg
 
 # Default test configuration
 test --test_output=errors
+test --flaky_test_attempts=5
 
 # MAGMA VM CONFIGS
 build:specify_vm_cc --action_env=CC=/usr/bin/gcc
@@ -69,6 +70,9 @@ build:asan --per_file_copt=^.*/gateway/c/.*$@-fsanitize=address,-fsanitize=undef
 # LSAN
 build:lsan --linkopt=-fsanitize=leak
 build:lsan --per_file_copt=^.*/gateway/c/.*$@-fsanitize=leak,-fno-omit-frame-pointer
+
+# Config for turning up more GCC warnings
+build:max_gcc_warnings --per_file_copt=^.*/gateway/c/.*$@-Wextra,-Wshadow,-Wimplicit-fallthrough,-Wduplicated-cond,-Wduplicated-branches,-Wlogical-op,-Wnull-dereference,-Wformat=2,-Wstrict-overflow=4,-Wuninitialized,-Wshift-overflow=2
 
 # system bazelrc should include config specific to different build envs (--config=vm, --config=devcontainer, etc.)
 try-import /etc/bazelrc

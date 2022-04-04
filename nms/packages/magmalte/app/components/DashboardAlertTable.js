@@ -26,7 +26,7 @@ import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import Grid from '@material-ui/core/Grid';
 import InfoIcon from '@material-ui/icons/Info';
 import Link from '@material-ui/core/Link';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../fbc_js_core/ui/components/LoadingFiller';
 import MagmaV1API from '../../generated/WebClient';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
@@ -34,7 +34,7 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../theme/design-system/Text';
 import WarningIcon from '@material-ui/icons/Warning';
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 
 import {Alarm} from '@material-ui/icons';
@@ -43,7 +43,7 @@ import {colors, typography} from '../theme/default';
 import {intersection} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../fbc_js_core/ui/hooks';
 import {withStyles} from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({

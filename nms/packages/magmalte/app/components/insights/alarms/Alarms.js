@@ -15,10 +15,10 @@
  */
 
 import * as React from 'react';
-import AppContext from '@fbcnms/ui/context/AppContext';
-import FBCAlarms from '@fbcnms/alarms/components/Alarms';
-import type {ApiUtil} from '@fbcnms/alarms/components/AlarmsApi';
-import type {Labels} from '@fbcnms/alarms/components/AlarmAPIType';
+import AppContext from '../../../../fbc_js_core/ui/context/AppContext';
+import FBCAlarms from '../../../../fbc_js_core/alarms/components/Alarms';
+import type {ApiUtil} from '../../../../fbc_js_core/alarms/components/AlarmsApi';
+import type {Labels} from '../../../../fbc_js_core/alarms/components/AlarmAPIType';
 
 type Props = {
   apiUtil: ApiUtil,

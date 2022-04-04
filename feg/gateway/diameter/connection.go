@@ -15,6 +15,7 @@ package diameter
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"strings"
 	"sync"
@@ -123,6 +124,7 @@ func (c *Connection) sendMessage(
 	// connection. This is handled as an error and the sender can retry
 	_, err = message.WriteTo(conn)
 	if err != nil {
+		glog.Errorf("sendMessage error: %v for connection %s", err, connAddrStr(conn))
 		// write failed, close and cleanup connection
 		c.destroyConnection(conn)
 	}
@@ -175,18 +177,7 @@ func (c *Connection) getDiamConnection() (diam.Conn, *smpeer.Metadata, error) {
 
 func (c *Connection) connCloseNotify(cnc <-chan struct{}, conn diam.Conn) {
 	<-cnc // wait for close notifier
-	if glog.V(2) {
-		remoteAddress, localAddress := "nil", "nil"
-		if conn != nil {
-			if conn.LocalAddr() != nil {
-				localAddress = conn.LocalAddr().String()
-			}
-			if conn.LocalAddr() != nil {
-				remoteAddress = conn.RemoteAddr().String()
-			}
-		}
-		glog.Infof("notified of %s->%s connection closure", localAddress, remoteAddress)
-	}
+	glog.V(1).Infof("notified of %s connection closure", connAddrStr(conn))
 	if c != nil && conn != nil && c.destroyConnection(conn) {
 		// if connection was closed not by connection management functions, recover it
 		retryWaitTime := connectionRecoveryInterval
@@ -219,19 +210,11 @@ func (c *Connection) destroyConnection(conn diam.Conn) bool {
 	c.mutex.Unlock()
 
 	if glog.V(2) {
-		localAddress := "nil"
-		remoteAddress := "nil"
-		if conn.LocalAddr() != nil {
-			localAddress = conn.LocalAddr().String()
-		}
-		if conn.LocalAddr() != nil {
-			remoteAddress = conn.RemoteAddr().String()
-		}
 		if match {
-			glog.Infof("destroyed %s->%s connection", localAddress, remoteAddress)
+			glog.Infof("destroyed %s connection", connAddrStr(conn))
 		} else {
 			glog.Infof(
-				"cannot destroy mismatched %s->%s connection", localAddress, remoteAddress)
+				"cannot destroy mismatched %s connection", connAddrStr(conn))
 		}
 	}
 	conn.Close()
@@ -248,12 +231,26 @@ func (c *Connection) cleanupConnection(disabled bool) {
 		c.metadata = nil
 		c.mutex.Unlock()
 		if glog.V(2) {
-			glog.Infof("cleaned up %s->%s connection", conn.LocalAddr().String(), conn.RemoteAddr().String())
+			glog.Infof("cleaned up %s connection", connAddrStr(conn))
 		}
 		conn.Close()
 	} else {
 		c.mutex.Unlock()
 	}
+}
+
+func connAddrStr(conn diam.Conn) string {
+	if conn == nil {
+		return "<nil>"
+	}
+	remoteAddress, localAddress := "<nil>", "<nil>"
+	if conn.LocalAddr() != nil {
+		localAddress = conn.LocalAddr().String()
+	}
+	if conn.LocalAddr() != nil {
+		remoteAddress = conn.RemoteAddr().String()
+	}
+	return fmt.Sprintf("%s -> %s", localAddress, remoteAddress)
 }
 
 // addDestinationToMessage adds the destination host/realm AVPs to the message

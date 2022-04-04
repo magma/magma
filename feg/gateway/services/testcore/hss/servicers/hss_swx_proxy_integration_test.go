@@ -42,7 +42,7 @@ func testMARSuccessful(t *testing.T, verifyAuthorization bool, clearAAAserver bo
 	if clearAAAserver {
 		subscriber.State.TgppAaaServerName = ""
 	}
-	_, err = hss.UpdateSubscriber(context.Background(), subscriber)
+	_, err = hss.UpdateSubscriber(context.Background(), &lteprotos.SubscriberUpdate{Data: subscriber})
 	assert.NoError(t, err)
 
 	swxProxy := getTestSwxProxy(t, hss, verifyAuthorization, false, true)
@@ -70,7 +70,7 @@ func TestMAR_AuthRejected(t *testing.T) {
 	subscriber, err := hss.GetSubscriberData(context.Background(), &lteprotos.SubscriberID{Id: "sub1"})
 	assert.NoError(t, err)
 	subscriber.Non_3Gpp.Non_3GppIpAccess = lteprotos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_BARRED
-	_, err = hss.UpdateSubscriber(context.Background(), subscriber)
+	_, err = hss.UpdateSubscriber(context.Background(), &lteprotos.SubscriberUpdate{Data: subscriber})
 	assert.NoError(t, err)
 
 	swxProxy := getTestSwxProxy(t, hss, true, true, true)

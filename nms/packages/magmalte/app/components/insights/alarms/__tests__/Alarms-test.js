@@ -18,15 +18,15 @@ import 'jest-dom/extend-expect';
 import * as React from 'react';
 import Alarms from '../Alarms';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-import defaultTheme from '@fbcnms/ui/theme/default';
+import defaultTheme from '../../../../../fbc_js_core/ui/theme/default';
 import {MagmaAlarmsApiUtil} from '../../../../state/AlarmsApiUtil';
 import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 import {cleanup, render} from '@testing-library/react';
 
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
-const useSnackbar = require('@fbcnms/ui/hooks/useSnackbar');
+jest.mock('../../../../../fbc_js_core/ui/hooks/useSnackbar');
+const useSnackbar = require('../../../../../fbc_js_core/ui/hooks/useSnackbar');
 const snackbarsMock = {error: jest.fn(), success: jest.fn()};
 jest
   .spyOn(useSnackbar, 'useSnackbars')
@@ -34,7 +34,10 @@ jest
 
 const useSnackbarsMock = jest.fn();
 jest
-  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useSnackbars')
+  .spyOn(
+    require('../../../../../fbc_js_core/ui/hooks/useSnackbar'),
+    'useSnackbars',
+  )
   .mockReturnValue(useSnackbarsMock);
 const useMagmaAPIMock = jest
   .spyOn(require('../../../../../api/useMagmaAPI'), 'default')
@@ -59,14 +62,14 @@ afterEach(() => {
 
 describe('react router tests', () => {
   test('/alerts renders the no alerts icon', () => {
-    const {getByTestId} = render(
+    const {queryByText} = render(
       <Wrapper route={'/alarms'}>
         <AlarmsWrapper />
       </Wrapper>,
     );
 
     // assert that the 'no alerts' icon is visible
-    expect(getByTestId('no-alerts-icon')).toBeInTheDocument();
+    expect(queryByText('Severity')).toBeNull();
   });
 });
 
@@ -81,14 +84,14 @@ describe('Firing Alerts', () => {
       ],
     });
 
-    const {getByTestId, getByText} = render(
+    const {getByText} = render(
       <Wrapper route={'/alerts'}>
         <AlarmsWrapper />
       </Wrapper>,
     );
 
     // assert that the top level firing alerts header is visible
-    expect(getByTestId('firing-alerts')).toBeInTheDocument();
+    expect(getByText('Severity')).toBeInTheDocument();
     expect(getByText('<<TEST ALERT>>')).toBeInTheDocument();
     // TODO(andreilee): This has been removed
     // expect(getByText('<<TEST DESCRIPTION>>')).toBeInTheDocument();

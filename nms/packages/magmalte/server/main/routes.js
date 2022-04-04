@@ -14,26 +14,26 @@
  * @format
  */
 
-import type {AppContextAppData} from '@fbcnms/ui/context/AppContext';
+import type {AppContextAppData} from '../../fbc_js_core/ui/context/AppContext';
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '@fbcnms/auth/access';
+import type {FBCNMSRequest} from '../../fbc_js_core/auth/access';
 
 import MagmaV1API from '../magma/index';
 import adminRoutes from '../admin/routes';
 import apiControllerRoutes from '../apicontroller/routes';
-import asyncHandler from '@fbcnms/util/asyncHandler';
+import asyncHandler from '../../fbc_js_core/util/asyncHandler';
 import express from 'express';
 import networkRoutes from '../network/routes';
 import path from 'path';
-import staticDist from '@fbcnms/webpack-config/staticDist';
-import userMiddleware from '@fbcnms/auth/express';
-import {AccessRoles} from '@fbcnms/auth/roles';
-import {MAPBOX_ACCESS_TOKEN} from '@fbcnms/platform-server/config';
+import staticDist from '../../fbc_js_core/webpack_config/staticDist';
+import userMiddleware from '../../fbc_js_core/auth/express';
+import {AccessRoles} from '../../fbc_js_core/auth/roles';
+import {MAPBOX_ACCESS_TOKEN} from '../../fbc_js_core/platform_server/config';
 
-import {TABS} from '@fbcnms/types/tabs';
-import {access} from '@fbcnms/auth/access';
-import {getEnabledFeatures} from '@fbcnms/platform-server/features';
-import {masterOrgMiddleware} from '@fbcnms/platform-server/master/middleware';
+import {TABS} from '../../fbc_js_core/types/tabs';
+import {access} from '../../fbc_js_core/auth/access';
+import {getEnabledFeatures} from '../../fbc_js_core/platform_server/features';
+import {hostOrgMiddleware} from '../../fbc_js_core/platform_server/host/middleware';
 
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 
@@ -82,8 +82,11 @@ router.use('/nms/apicontroller', apiControllerRoutes);
 router.use('/nms/network', networkRoutes);
 router.use('/nms/static', express.static(path.join(__dirname, '../static')));
 
-router.use('/logger', require('@fbcnms/platform-server/logger/routes'));
-router.use('/test', require('@fbcnms/platform-server/test/routes'));
+router.use(
+  '/logger',
+  require('../../fbc_js_core/platform_server/logger/routes'),
+);
+router.use('/test', require('../../fbc_js_core/platform_server/test/routes'));
 router.use(
   '/user',
   userMiddleware({
@@ -93,56 +96,47 @@ router.use(
 );
 router.get('/nms*', access(AccessRoles.USER), handleReact('nms'));
 
-// router.get(
-//   '/master/network*',
-//   masterOrgMiddleware,
-//   asyncHandler(async (req: FBCNMSRequest, res) => {
-//     res.send
-//     console.warn('request made to req: ', req);
-//   }),
-// );
-
 router.get(
-  '/master/networks/async',
+  '/host/networks/async',
   asyncHandler(async (_: FBCNMSRequest, res) => {
     const networks = await MagmaV1API.getNetworks();
     res.status(200).send(networks);
   }),
 );
 
-const masterRouter = require('@fbcnms/platform-server/master/routes');
-router.use('/master', masterOrgMiddleware, masterRouter.default);
+const hostRouter = require('../../fbc_js_core/platform_server/host/routes');
+router.use('/host', hostOrgMiddleware, hostRouter.default);
 
-async function handleMaster(req: FBCNMSRequest, res) {
+async function handleHost(req: FBCNMSRequest, res) {
   const appData: AppContextAppData = {
     csrfToken: req.csrfToken(),
     user: {
-      tenant: 'master',
+      tenant: 'host',
       email: req.user.email,
       isSuperUser: req.user.isSuperUser,
       isReadOnlyUser: req.user.isReadOnlyUser,
     },
-    enabledFeatures: await getEnabledFeatures(req, 'master'),
+    enabledFeatures: await getEnabledFeatures(req, 'host'),
     tabs: [],
     ssoEnabled: false,
     ssoSelectedType: 'none',
     csvCharset: null,
   };
-  res.render('master', {
+  res.render('host', {
     staticDist,
     configJson: JSON.stringify({appData}),
   });
 }
 
-router.get('/master*', masterOrgMiddleware, handleMaster);
+router.get('/host*', hostOrgMiddleware, handleHost);
 
 router.get(
   '/*',
   access(AccessRoles.USER),
   asyncHandler(async (req: FBCNMSRequest, res) => {
     const organization = await req.organization();
-    if (organization.isMasterOrg) {
-      res.redirect('/master');
+    if (organization.isHostOrg) {
+      res.redirect('/host');
     } else if (req.user.tabs && req.user.tabs.length > 0) {
       res.redirect(req.user.tabs[0]);
     } else if (organization.tabs && organization.tabs.length > 0) {

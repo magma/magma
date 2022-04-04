@@ -16,11 +16,11 @@
 
 import * as React from 'react';
 import AppContent from '../layout/AppContent';
-import AppContext from '@fbcnms/ui/context/AppContext';
-import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
+import AppContext from '../../../fbc_js_core/ui/context/AppContext';
+import AppSideBar from '../../../fbc_js_core/ui/components/layout/AppSideBar';
 
-import nullthrows from '@fbcnms/util/nullthrows';
-import {getProjectLinks} from '@fbcnms/projects/projects';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import {getProjectLinks} from '../../../fbc_js_core/projects/projects';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
 

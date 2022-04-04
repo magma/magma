@@ -22,19 +22,19 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/include/amf_config.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_ta.h"
-#include "Ngap_BroadcastPLMNList.h"
 #include "Ngap_BroadcastPLMNItem.h"
+#include "Ngap_BroadcastPLMNList.h"
 #include "Ngap_PLMNIdentity.h"
+#include "Ngap_S-NSSAI.h"
+#include "Ngap_SliceSupportItem.h"
 #include "Ngap_SupportedTAItem.h"
 #include "Ngap_TAC.h"
-#include "Ngap_SliceSupportItem.h"
-#include "Ngap_S-NSSAI.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_ta.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
 
 static int32_t ngap_tai_item_slice_compare(

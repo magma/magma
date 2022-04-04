@@ -27,23 +27,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/common/asn1_conversions.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_encoder.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.h"
-#include "lte/gateway/c/core/oai/include/service303.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "INTEGER.h"
 #include "OCTET_STRING.h"
-#include "S1ap_S1AP-PDU.h"
 #include "S1ap_AllocationAndRetentionPriority.h"
+#include "S1ap_CauseMisc.h"
+#include "S1ap_CauseNas.h"
+#include "S1ap_CauseProtocol.h"
+#include "S1ap_CauseRadioNetwork.h"
+#include "S1ap_CauseTransport.h"
+#include "S1ap_E-RABItem.h"
 #include "S1ap_E-RABLevelQoSParameters.h"
 #include "S1ap_E-RABToBeSetupItemBearerSUReq.h"
 #include "S1ap_E-RABToBeSetupItemCtxtSUReq.h"
@@ -55,27 +47,37 @@
 #include "S1ap_NAS-PDU.h"
 #include "S1ap_PLMNidentity.h"
 #include "S1ap_ProcedureCode.h"
+#include "S1ap_ProtocolIE-Field.h"
 #include "S1ap_S-TMSI.h"
+#include "S1ap_S1AP-PDU.h"
 #include "S1ap_SecurityKey.h"
 #include "S1ap_TAI.h"
 #include "S1ap_TransportLayerAddress.h"
 #include "S1ap_UEAggregateMaximumBitrate.h"
 #include "S1ap_UESecurityCapabilities.h"
-#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "asn_SEQUENCE_OF.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/asn1_conversions.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/nas/securityDef.h"
 #include "lte/gateway/c/core/oai/include/s1ap_state.h"
-#include "S1ap_CauseMisc.h"
-#include "S1ap_CauseNas.h"
-#include "S1ap_CauseProtocol.h"
-#include "S1ap_CauseRadioNetwork.h"
-#include "S1ap_CauseTransport.h"
-#include "S1ap_E-RABItem.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
-#include "S1ap_ProtocolIE-Field.h"
+#include "lte/gateway/c/core/oai/include/service303.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_common.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_encoder.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 
+#define EXT_UE_AMBR_UL 10000000000
+#define EXT_UE_AMBR_DL 10000000000
 extern bool s1ap_congestion_control_enabled;
 extern long s1ap_last_msg_latency;
 extern long s1ap_zmq_th;
@@ -846,7 +848,9 @@ void s1ap_handle_conn_est_cnf(
   ue_description_t* ue_ref = NULL;
   S1ap_InitialContextSetupRequest_t* out;
   S1ap_InitialContextSetupRequestIEs_t* ie = NULL;
+  S1ap_UEAggregate_MaximumBitrates_ExtIEs_t* ie_ambrext = NULL;
   S1ap_S1AP_PDU_t pdu = {0};  // yes, alloc on stack
+  S1ap_ProtocolExtensionContainer_7327P134_t* extension = NULL;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   if (conn_est_cnf_pP == NULL) {
@@ -902,6 +906,7 @@ void s1ap_handle_conn_est_cnf(
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
+
   ie = (S1ap_InitialContextSetupRequestIEs_t*)calloc(
       1, sizeof(S1ap_InitialContextSetupRequestIEs_t));
   ie->id = S1ap_ProtocolIE_ID_id_uEaggregateMaximumBitrate;
@@ -914,7 +919,45 @@ void s1ap_handle_conn_est_cnf(
   asn_uint642INTEGER(
       &ie->value.choice.UEAggregateMaximumBitrate.uEaggregateMaximumBitRateUL,
       conn_est_cnf_pP->ue_ambr.br_ul);
+
+  if (conn_est_cnf_pP->ue_ambr.br_dl > EXT_UE_AMBR_DL ||
+      conn_est_cnf_pP->ue_ambr.br_ul > EXT_UE_AMBR_UL) {
+    extension = calloc(1, sizeof(S1ap_ProtocolExtensionContainer_7327P134_t));
+    ie->value.choice.UEAggregateMaximumBitrate.iE_Extensions =
+        (struct S1AP_ProtocolExtensionContainer*)extension;
+  }
+
+  if (conn_est_cnf_pP->ue_ambr.br_dl > EXT_UE_AMBR_DL) {
+    ie_ambrext = (S1ap_UEAggregate_MaximumBitrates_ExtIEs_t*)calloc(
+        1, sizeof(S1ap_UEAggregate_MaximumBitrates_ExtIEs_t));
+    ie_ambrext->id = S1ap_ProtocolIE_ID_id_extended_uEaggregateMaximumBitRateDL;
+    ie_ambrext->criticality = S1ap_Criticality_ignore;
+    ie_ambrext->extensionValue.present =
+        S1ap_UEAggregate_MaximumBitrates_ExtIEs__extensionValue_PR_ExtendedBitRate;
+    asn_uint642INTEGER(
+        &ie->value.choice.UEAggregateMaximumBitrate.uEaggregateMaximumBitRateDL,
+        EXT_UE_AMBR_DL);
+    asn_uint642INTEGER(&ie_ambrext->extensionValue.choice.ExtendedBitRate,
+                       conn_est_cnf_pP->ue_ambr.br_dl);
+    ASN_SEQUENCE_ADD(&extension->list, ie_ambrext);
+  }
+
+  if (conn_est_cnf_pP->ue_ambr.br_ul > EXT_UE_AMBR_UL) {
+    ie_ambrext = (S1ap_UEAggregate_MaximumBitrates_ExtIEs_t*)calloc(
+        1, sizeof(S1ap_UEAggregate_MaximumBitrates_ExtIEs_t));
+    ie_ambrext->id = S1ap_ProtocolIE_ID_id_extended_uEaggregateMaximumBitRateUL;
+    ie_ambrext->criticality = S1ap_Criticality_ignore;
+    ie_ambrext->extensionValue.present =
+        S1ap_UEAggregate_MaximumBitrates_ExtIEs__extensionValue_PR_ExtendedBitRate;
+    asn_uint642INTEGER(
+        &ie->value.choice.UEAggregateMaximumBitrate.uEaggregateMaximumBitRateUL,
+        EXT_UE_AMBR_UL);
+    asn_uint642INTEGER(&ie_ambrext->extensionValue.choice.ExtendedBitRate,
+                       conn_est_cnf_pP->ue_ambr.br_ul);
+    ASN_SEQUENCE_ADD(&extension->list, ie_ambrext);
+  }
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
   /* mandatory */
   ie = (S1ap_InitialContextSetupRequestIEs_t*)calloc(
       1, sizeof(S1ap_InitialContextSetupRequestIEs_t));
@@ -1110,6 +1153,21 @@ void s1ap_handle_conn_est_cnf(
                                   ue_ref->mme_ue_s1ap_id);
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
+
+void send_dereg_ind_to_mme_app(enb_ue_s1ap_id_t enb_ue_s1ap_id,
+                               mme_ue_s1ap_id_t mme_ue_s1ap_id,
+                               uint32_t enb_id) {
+  OAILOG_FUNC_IN(LOG_S1AP);
+  MessageDef* message_p = NULL;
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_S1AP,
+                                                     S1AP_ENB_DEREGISTERED_IND);
+  S1AP_ENB_DEREGISTERED_IND(message_p).mme_ue_s1ap_id[0] = mme_ue_s1ap_id;
+  S1AP_ENB_DEREGISTERED_IND(message_p).enb_ue_s1ap_id[0] = enb_ue_s1ap_id;
+  S1AP_ENB_DEREGISTERED_IND(message_p).enb_id = enb_id;
+  S1AP_ENB_DEREGISTERED_IND(message_p).nb_ue_to_deregister = 1;
+  send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
+  OAILOG_FUNC_OUT(LOG_S1AP);
+}
 //------------------------------------------------------------------------------
 void s1ap_handle_mme_ue_id_notification(
     s1ap_state_t* state,
@@ -1129,6 +1187,11 @@ void s1ap_handle_mme_ue_id_notification(
     ue_description_t* ue_ref =
         s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id, enb_ue_s1ap_id);
     if (ue_ref) {
+      if (enb_ref->s1_state == S1AP_RESETING) {
+        send_dereg_ind_to_mme_app(enb_ue_s1ap_id, mme_ue_s1ap_id,
+                                  enb_ref->enb_id);
+        return;
+      }
       ue_ref->mme_ue_s1ap_id = mme_ue_s1ap_id;
       hashtable_rc_t h_rc = hashtable_ts_insert(
           &state->mmeid2associd, (const hash_key_t)mme_ue_s1ap_id,

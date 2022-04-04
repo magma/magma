@@ -16,11 +16,8 @@ ENABLE_ASAN ?= 0
 
 # Default is agw with OpenFlow, gRPC over S6a , (no freeDiameter over s6a).
 FEATURES ?= agw_of
-# EXCLUSIVE_FEATURE_LIST : list of primary features that cannot be requested
-# together.
-EXCLUSIVE_FEATURE_LIST = agw_of mme_oai
 # AVAILABLE_FEATURE_LIST : every feature not in this list will trigger an error.
-AVAILABLE_FEATURE_LIST = s6a_fd agw_of mme_oai
+AVAILABLE_FEATURE_LIST = agw_of mme_oai
 REQUESTED_FEATURE_LIST = $(sort $(FEATURES))
 
 ifeq ($(BUILD_TYPE),Debug)
@@ -33,34 +30,27 @@ else
 endif
 $(info BAZEL_FLAGS $(BAZEL_FLAGS))
 
+# First, check that nothing outside of AVAILABLE_FEATURE_LIST is requested
 ifneq ($(words $(strip $(filter-out $(AVAILABLE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))), 0)
   $(error Non allowed flags: "$(filter-out $(AVAILABLE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST))")
 endif
 
-ifneq ($(words $(strip $(filter $(EXCLUSIVE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))), 0)
-  ifneq ($(words $(strip $(filter $(EXCLUSIVE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))), 1)
-    $(error Exclusive flags: "$(filter $(EXCLUSIVE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST))")
-  endif
+# Then check that only one of the available options are selected
+ifneq ($(words $(strip $(filter $(AVAILABLE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))), 1)
+	$(error Exclusive flags: "$(filter $(AVAILABLE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST))")
 endif
 
-MAIN_FEATURE = $(strip $(filter $(EXCLUSIVE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))
+MAIN_FEATURE = $(strip $(filter $(AVAILABLE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))
 $(info MAIN_FEATURE $(MAIN_FEATURE))
-
-ifneq ($(words $(strip $(filter $(REQUESTED_FEATURE_LIST),s6a_fd))), 0)
-S6A_FLAGS = -DS6A_OVER_GRPC=False
-else
-#default
-S6A_FLAGS = -DS6A_OVER_GRPC=True
-endif
 
 ifeq ($(MAIN_FEATURE),mme_oai)
 # Set DS6A_OVER_GRPC=False if using OAI-HSS
-OAI_FLAGS = -DS6A_OVER_GRPC=False
+OAI_FLAGS = -DS6A_OVER_GRPC=False -DEMBEDDED_SGW=False
 else ifeq ($(MAIN_FEATURE),agw_of)
-OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True
+OAI_FLAGS = -DS6A_OVER_GRPC=True -DEMBEDDED_SGW=True
 else
-# default
-OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True
+# Error if nothing is specified
+$(error No feature is specified! This should not happen)
 endif
 
 # debian stretch build uses older cc not recognizing options needed on ubuntu focal

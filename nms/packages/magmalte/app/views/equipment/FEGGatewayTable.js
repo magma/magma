@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
 import type {
   federation_gateway,
   gateway_id,
@@ -25,13 +25,13 @@ import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import CheckIcon from '@material-ui/icons/Check';
-import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
+import DeviceStatusCircle from '../../../fbc_js_core/ui/components/icons/DeviceStatusCircle';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import React, {useContext, useEffect, useState} from 'react';
-import nullthrows from '@fbcnms/util/nullthrows';
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
 import {GatewayTypeEnum, HEALTHY_STATUS} from '../../components/GatewayUtils';
 import {
@@ -39,8 +39,8 @@ import {
   RefreshTypeEnum,
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 type EquipmentFegGatewayRowType = {
   name: string,

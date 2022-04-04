@@ -31,8 +31,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
-permissions: read-all
-
 # See [Example Sharing Container Between Jobs](https://github.com/docker/build-push-action/issues/225)
 jobs:
   path_filter:
@@ -58,9 +56,6 @@ jobs:
       - path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: Build all Bazelified C/C++ targets
-    env:
-      C_CPP_FLAGS: "-Wextra -Wshadow -Wimplicit-fallthrough -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wformat=2 -Wstrict-overflow=4 -Wuninitialized -Wshift-overflow=2"
-      C_ONLY_FLAGS: "-Wjump-misses-init"
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Repo
@@ -110,7 +105,7 @@ jobs:
           options: -v ${{ github.workspace }}:/workspaces/magma
           run: |
             cd /workspaces/magma
-            ./.github/workflows/generate-gcc-warnings.sh "${{ steps.changed_files.outputs.all }}" "$C_CPP_FLAGS" "$C_ONLY_FLAGS"
+            ./.github/workflows/generate-gcc-warnings.sh "${{ steps.changed_files.outputs.all }}"
       - name: Load problem matcher
         # If needed https://github.com/microsoft/vscode-cpptools/issues/2266 for path fixups
         #

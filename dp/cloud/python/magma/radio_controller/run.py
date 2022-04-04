@@ -11,9 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import importlib
 import logging
-import os
 from concurrent import futures
 from datetime import datetime
 from signal import SIGTERM, signal
@@ -25,7 +23,8 @@ from dp.protos.active_mode_pb2_grpc import (
 from dp.protos.enodebd_dp_pb2_grpc import add_DPServiceServicer_to_server
 from dp.protos.requests_pb2_grpc import add_RadioControllerServicer_to_server
 from magma.db_service.session_manager import SessionManager
-from magma.radio_controller.config import Config
+from magma.fluentd_client.client import FluentdClient
+from magma.radio_controller.config import get_config
 from magma.radio_controller.services.active_mode_controller.service import (
     ActiveModeControllerService,
 )
@@ -55,6 +54,8 @@ def run():
         encoding=config.SQLALCHEMY_DB_ENCODING,
         echo=config.SQLALCHEMY_ECHO,
         future=config.SQLALCHEMY_FUTURE,
+        pool_size=config.SQLALCHEMY_ENGINE_POOL_SIZE,
+        max_overflow=config.SQLALCHEMY_ENGINE_MAX_OVERFLOW,
     )
     session_manager = SessionManager(db_engine)
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
@@ -68,6 +69,7 @@ def run():
         DPService(
             session_manager=session_manager,
             now_func=datetime.now,
+            fluentd_client=FluentdClient(),
         ), server,
     )
     server.add_insecure_port(f"[::]:{config.GRPC_PORT}")
@@ -82,22 +84,6 @@ def run():
 
     signal(SIGTERM, handle_sigterm)
     server.wait_for_termination()
-
-
-def get_config() -> Config:
-    """
-    Get Configuration object for radio controller
-    """
-    app_config = os.environ.get('APP_CONFIG', 'ProductionConfig')
-    config_module = importlib.import_module(
-        '.'.join(
-            f"magma.radio_controller.config.{app_config}".split('.')[:-1],
-        ),
-    )
-    config_class = getattr(config_module, app_config.split('.')[-1])
-    logger.info(str(config_class))
-
-    return config_class()
 
 
 if __name__ == "__main__":

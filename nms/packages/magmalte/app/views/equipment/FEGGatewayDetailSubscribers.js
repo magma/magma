@@ -22,9 +22,9 @@ import type {
 import ActionTable from '../../components/ActionTable';
 import FEGSubscriberContext from '../../components/context/FEGSubscriberContext';
 import Link from '@material-ui/core/Link';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import React from 'react';
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 
 import {FetchSubscribers} from '../../state/lte/SubscriberState';
 import {
@@ -33,7 +33,7 @@ import {
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
 import {useEffect, useState} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 /**
  * @property {federation_gateway} gwInfo The Federation gateway being looked at
