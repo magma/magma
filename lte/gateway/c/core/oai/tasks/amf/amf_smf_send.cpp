@@ -885,8 +885,8 @@ int amf_smf_notification_send(amf_ue_ngap_id_t ue_id,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_update_smf_context_pdu_ip(const std::shared_ptr<smf_context_t>& smf_ctx,
-                                  paa_t* address_info) {
+status_code_e amf_update_smf_context_pdu_ip(
+    const std::shared_ptr<smf_context_t>& smf_ctx, paa_t* address_info) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   OAILOG_INFO(LOG_AMF_APP, "SMF context PDU address updated\n");
   memcpy(&(smf_ctx->pdu_address), address_info, sizeof(paa_t));
@@ -902,13 +902,13 @@ int amf_update_smf_context_pdu_ip(const std::shared_ptr<smf_context_t>& smf_ctx,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_smf_handle_ip_address_response(
+status_code_e amf_smf_handle_ip_address_response(
     itti_amf_ip_allocation_response_t* response_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   ue_m5gmm_context_s* ue_context;
   std::shared_ptr<smf_context_t> smf_ctx;
   imsi64_t imsi64;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   IMSI_STRING_TO_IMSI64(response_p->imsi, &imsi64);
   ue_context = lookup_ue_ctxt_by_imsi(imsi64);

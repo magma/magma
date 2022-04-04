@@ -37,7 +37,7 @@ status_code_e amf_app_handle_uplink_nas_message(amf_app_desc_t* amf_app_desc_p,
                                                 bstring msg,
                                                 amf_ue_ngap_id_t ue_id,
                                                 const tai_t originating_tai);
-int amf_app_handle_pdu_session_response(
+status_code_e amf_app_handle_pdu_session_response(
     itti_n11_create_pdu_session_response_t* pdu_session_resp);
 int amf_app_handle_pdu_session_failure(
     itti_n11_create_pdu_session_failure_t* pdu_session_failure);
@@ -48,7 +48,7 @@ int amf_app_handle_pdu_session_accept(
 void convert_ambr(const uint32_t* pdu_ambr_response_unit,
                   const uint32_t* pdu_ambr_response_value,
                   M5GSessionAmbrUnit* ambr_unit, uint16_t* ambr_value);
-int amf_smf_handle_ip_address_response(
+status_code_e amf_smf_handle_ip_address_response(
     itti_amf_ip_allocation_response_t* response_p);
 void amf_app_handle_initial_context_setup_rsp(
     amf_app_desc_t* amf_app_desc_p,

@@ -1184,8 +1184,9 @@ static int amf_as_security_rej(const amf_as_security_t* msg,
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, 0);
 }
 
-int initial_context_setup_request(amf_ue_ngap_id_t ue_id,
-                                  amf_context_t* amf_ctx, bstring nas_msg) {
+status_code_e initial_context_setup_request(amf_ue_ngap_id_t ue_id,
+                                            amf_context_t* amf_ctx,
+                                            bstring nas_msg) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   /*This message is sent by the AMF to NG-RAN node to request the setup of a UE
    * context before Registration Accept is sent to UE*/

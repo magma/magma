@@ -548,7 +548,7 @@ static int amf_smf_session_update_pti_proc(
 /* Received the session created response message from SMF. Populate and Send
  * PDU Session Resource Setup Request message to gNB and  PDU Session
  * Establishment Accept Message to UE*/
-int amf_app_handle_pdu_session_response(
+status_code_e amf_app_handle_pdu_session_response(
     itti_n11_create_pdu_session_response_t* pdu_session_resp) {
   DLNASTransportMsg encode_msg;
   memset(&encode_msg, 0, sizeof(encode_msg));
@@ -558,7 +558,7 @@ int amf_app_handle_pdu_session_response(
   memset(&amf_smf_msg, 0, sizeof(amf_smf_msg));
   // TODO: hardcoded for now, addressed in the upcoming multi-UE PR
   uint64_t ue_id = 0;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   uint32_t event;
 
   imsi64_t imsi64 = 0;

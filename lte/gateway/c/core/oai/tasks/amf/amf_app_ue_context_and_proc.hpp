@@ -861,7 +861,7 @@ void amf_remove_ue_context(amf_ue_context_t* const amf_ue_context_p,
 void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context);
 
 // PDU session related communication to gNB
-int pdu_session_resource_setup_request(
+status_code_e pdu_session_resource_setup_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
     std::shared_ptr<smf_context_t> smf_context, bstring nas_msg);
 void amf_app_handle_resource_setup_response(
