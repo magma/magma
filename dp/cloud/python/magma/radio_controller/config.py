@@ -27,11 +27,23 @@ class Config(object):
     # gRPC
     GRPC_PORT = int(os.environ.get('GRPC_PORT', 50053))
 
-    # SQLAlchemy DB URI (scheme + url)
+    # SQLAlchemy
     SQLALCHEMY_DB_URI = conf.Config().SQLALCHEMY_DB_URI
     SQLALCHEMY_DB_ENCODING = conf.Config().SQLALCHEMY_DB_ENCODING
     SQLALCHEMY_ECHO = conf.Config().SQLALCHEMY_ECHO
     SQLALCHEMY_FUTURE = conf.Config().SQLALCHEMY_FUTURE
+    SQLALCHEMY_ENGINE_POOL_SIZE = int(
+        os.environ.get(
+            'SQLALCHEMY_ENGINE_POOL_SIZE',
+            conf.Config().SQLALCHEMY_ENGINE_POOL_SIZE,
+        ),
+    )
+    SQLALCHEMY_ENGINE_MAX_OVERFLOW = int(
+        os.environ.get(
+            'SQLALCHEMY_ENGINE_MAX_OVERFLOW',
+            conf.Config().SQLALCHEMY_ENGINE_MAX_OVERFLOW,
+        ),
+    )
 
 
 class DevelopmentConfig(Config):
