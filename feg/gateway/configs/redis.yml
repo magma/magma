@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-port: 6380
+port: 6381
 bind: 127.0.0.1
 redis_loglevel: notice
 dir: /var/opt/magma

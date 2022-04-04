@@ -80,7 +80,7 @@ var fegRegistry = Get()
 func init() {
 
 	// Add default Local Service Locations
-	addLocalService(REDIS, 6380)
+	addLocalService(REDIS, 6381)
 
 	addLocalService(FEG_HELLO, 9093)
 	addLocalService(SESSION_PROXY, 9097)
