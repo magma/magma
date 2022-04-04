@@ -130,6 +130,10 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
   ue_ref_p.s1ap_ue_context_rel_timer.id = -1;
   ue_ref_p.s1ap_ue_context_rel_timer.msec = 1000;
 
+  S1ap_S1AP_PDU_t pdu_s1;
+  memset(&pdu_s1, 0, sizeof(pdu_s1));
+  ASSERT_EQ(RETURNok, generate_s1_setup_request_pdu(&pdu_s1));
+
   // State validation
   ASSERT_TRUE(
       is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
@@ -149,6 +153,10 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
   // State validation
   ASSERT_TRUE(
       is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
+  
+  // Freeing pdu and payload data
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
+
 }
 
 TEST_F(S1apMmeHandlersWithInjectedStatesTest, HandleS1apPathSwitchRequest) {
