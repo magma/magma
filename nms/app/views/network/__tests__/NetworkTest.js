@@ -317,6 +317,7 @@ describe('<NetworkDashboard />', () => {
     const subscriberCtx = {
       state: subscribers,
       forbidden_network_types: subscribers,
+      totalCount: 1,
       forbiddenNetworkTypes: {},
       gwSubscriberMap: {},
       sessionState: {},
