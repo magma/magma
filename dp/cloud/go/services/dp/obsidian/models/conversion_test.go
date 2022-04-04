@@ -25,55 +25,71 @@ import (
 
 func TestCbsdToBackend(t *testing.T) {
 	cbsd := models.MutableCbsd{
-		Capabilities: &models.Capabilities{
+		Capabilities: models.Capabilities{
 			AntennaGain:      to_pointer.Float(5),
 			MaxPower:         to_pointer.Float(24),
 			MinPower:         to_pointer.Float(0),
-			NumberOfAntennas: to_pointer.Int64(1),
+			NumberOfAntennas: 1,
 		},
-		FccID:        to_pointer.Str("barID"),
-		SerialNumber: to_pointer.Str("12345"),
-		UserID:       to_pointer.Str("fooUser"),
+		FrequencyPreferences: models.FrequencyPreferences{
+			BandwidthMhz:   10,
+			FrequenciesMhz: []int64{3600},
+		},
+		FccID:        "barID",
+		SerialNumber: "12345",
+		UserID:       "fooUser",
 	}
 	data := models.CbsdToBackend(&cbsd)
-	assert.Equal(t, data.UserId, *cbsd.UserID)
-	assert.Equal(t, data.FccId, *cbsd.FccID)
-	assert.Equal(t, data.SerialNumber, *cbsd.SerialNumber)
+	assert.Equal(t, data.UserId, cbsd.UserID)
+	assert.Equal(t, data.FccId, cbsd.FccID)
+	assert.Equal(t, data.SerialNumber, cbsd.SerialNumber)
 	assert.Equal(t, data.Capabilities.AntennaGain, *cbsd.Capabilities.AntennaGain)
 	assert.Equal(t, data.Capabilities.MaxPower, *cbsd.Capabilities.MaxPower)
 	assert.Equal(t, data.Capabilities.MinPower, *cbsd.Capabilities.MinPower)
-	assert.Equal(t, data.Capabilities.NumberOfAntennas, *cbsd.Capabilities.NumberOfAntennas)
+	assert.Equal(t, data.Capabilities.NumberOfAntennas, cbsd.Capabilities.NumberOfAntennas)
+	assert.Equal(t, data.Preferences.BandwidthMhz, cbsd.FrequencyPreferences.BandwidthMhz)
+	assert.Equal(t, data.Preferences.FrequenciesMhz, cbsd.FrequencyPreferences.FrequenciesMhz)
 }
 
 func TestCbsdFromBackendWithoutGrant(t *testing.T) {
-	details := getCbsdDetails(false)
+	details := getCbsdDetails()
 	data := models.CbsdFromBackend(details)
 	assert.Nil(t, data.Grant)
 	assert.Equal(t, data.ID, details.Id)
 	assert.Equal(t, data.IsActive, details.IsActive)
 	assert.Equal(t, data.CbsdID, details.CbsdId)
-	assert.Equal(t, *data.UserID, details.Data.UserId)
-	assert.Equal(t, *data.FccID, details.Data.FccId)
-	assert.Equal(t, *data.SerialNumber, details.Data.SerialNumber)
+	assert.Equal(t, data.UserID, details.Data.UserId)
+	assert.Equal(t, data.FccID, details.Data.FccId)
+	assert.Equal(t, data.SerialNumber, details.Data.SerialNumber)
 	assert.Equal(t, *data.Capabilities.MinPower, details.Data.Capabilities.MinPower)
 	assert.Equal(t, *data.Capabilities.MaxPower, details.Data.Capabilities.MaxPower)
-	assert.Equal(t, *data.Capabilities.NumberOfAntennas, details.Data.Capabilities.NumberOfAntennas)
+	assert.Equal(t, data.Capabilities.NumberOfAntennas, details.Data.Capabilities.NumberOfAntennas)
 	assert.Equal(t, *data.Capabilities.AntennaGain, details.Data.Capabilities.AntennaGain)
+	assert.Equal(t, data.FrequencyPreferences.BandwidthMhz, details.Data.Preferences.BandwidthMhz)
+	assert.Equal(t, data.FrequencyPreferences.FrequenciesMhz, details.Data.Preferences.FrequenciesMhz)
 }
 
 func TestCbsdFromBackendWithGrant(t *testing.T) {
-	details := getCbsdDetails(true)
+	details := getCbsdDetails()
+	details.Grant = getGrant()
 	data := models.CbsdFromBackend(details)
 	assert.Equal(t, data.Grant.BandwidthMhz, details.Grant.BandwidthMhz)
 	assert.Equal(t, data.Grant.FrequencyMhz, details.Grant.FrequencyMhz)
-	assert.Equal(t, data.Grant.GrantExpireTime, *to_pointer.TimeToDateTime(details.Grant.GrantExpireTimestamp))
-	assert.Equal(t, data.Grant.TransmitExpireTime, *to_pointer.TimeToDateTime(details.Grant.TransmitExpireTimestamp))
-	assert.Equal(t, *data.Grant.MaxEirp, details.Grant.MaxEirp)
+	assert.Equal(t, data.Grant.GrantExpireTime, to_pointer.TimeToDateTime(details.Grant.GrantExpireTimestamp))
+	assert.Equal(t, data.Grant.TransmitExpireTime, to_pointer.TimeToDateTime(details.Grant.TransmitExpireTimestamp))
+	assert.Equal(t, data.Grant.MaxEirp, details.Grant.MaxEirp)
 	assert.Equal(t, data.Grant.State, details.Grant.State)
 }
 
-func getCbsdDetails(withGrant bool) *protos.CbsdDetails {
-	details := protos.CbsdDetails{
+func TestCbsdFromBackendWithEmptyFrequencies(t *testing.T) {
+	details := getCbsdDetails()
+	details.Data.Preferences.FrequenciesMhz = nil
+	data := models.CbsdFromBackend(details)
+	assert.Equal(t, []int64{}, data.FrequencyPreferences.FrequenciesMhz)
+}
+
+func getCbsdDetails() *protos.CbsdDetails {
+	return &protos.CbsdDetails{
 		Id:       1,
 		IsActive: false,
 		Data: &protos.CbsdData{
@@ -86,18 +102,22 @@ func getCbsdDetails(withGrant bool) *protos.CbsdDetails {
 				NumberOfAntennas: 1,
 				AntennaGain:      5,
 			},
+			Preferences: &protos.FrequencyPreferences{
+				BandwidthMhz:   20,
+				FrequenciesMhz: []int64{3600},
+			},
 		},
 		CbsdId: "someCbsdId",
 	}
-	if withGrant {
-		details.Grant = &protos.GrantDetails{
-			BandwidthMhz:            10,
-			FrequencyMhz:            12345,
-			MaxEirp:                 123,
-			State:                   "someState",
-			TransmitExpireTimestamp: 12345678,
-			GrantExpireTimestamp:    12345678,
-		}
+}
+
+func getGrant() *protos.GrantDetails {
+	return &protos.GrantDetails{
+		BandwidthMhz:            10,
+		FrequencyMhz:            12345,
+		MaxEirp:                 123,
+		State:                   "someState",
+		TransmitExpireTimestamp: 12345678,
+		GrantExpireTimestamp:    12345678,
 	}
-	return &details
 }

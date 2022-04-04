@@ -162,6 +162,7 @@ export type cbsd = {
     capabilities: capabilities,
     cbsd_id ? : string,
     fcc_id: string,
+    frequency_preferences: frequency_preferences,
     grant ? : grant,
     id: number,
     is_active: boolean,
@@ -457,6 +458,11 @@ export type flow_qos = {
     max_req_bw_dl: number,
     max_req_bw_ul: number,
 };
+export type frequency_preferences = {
+    bandwidth_mhz: 5 | 10 | 15 | 20,
+    frequencies_mhz: Array < number >
+        ,
+};
 export type gateway_cellular_configs = {
     dns ? : gateway_dns_configs,
     epc: gateway_epc_configs,
@@ -612,11 +618,11 @@ export type gettable_alert_silencer = {
     updatedAt: string,
 };
 export type grant = {
-    bandwidth_mhz ? : number,
-    frequency_mhz ? : number,
+    bandwidth_mhz: number,
+    frequency_mhz: number,
     grant_expire_time ? : string,
-    max_eirp ? : number,
-    state ? : "granted" | "guthorized",
+    max_eirp: number,
+    state: "granted" | "guthorized",
     transmit_expire_time ? : string,
 };
 export type gx = {
@@ -800,6 +806,7 @@ export type mutable_call_trace = {
 export type mutable_cbsd = {
     capabilities: capabilities,
     fcc_id: string,
+    frequency_preferences: frequency_preferences,
     serial_number: string,
     user_id: string,
 };

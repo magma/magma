@@ -103,7 +103,7 @@ profiles:
               extraEnv:
                 POLLING_INTERVAL_SEC: "'1'"
                 REQUEST_PROCESSING_INTERVAL_SEC: "'1'"
-                CBSD_INACTIVITY_TIMEOUT_SEC: "'4'"
+                CBSD_INACTIVITY_TIMEOUT_SEC: "'3'"
             configuration_controller:
               extraEnv:
                 APP_CONFIG: "TestConfig"
