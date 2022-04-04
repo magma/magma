@@ -921,13 +921,13 @@ void ngap_handle_amf_ue_id_notification(
           ", amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT ":%s \n",
           sctp_assoc_id, gnb_ue_ngap_id, amf_ue_ngap_id,
           hashtable_rc_code2string(h_rc));
-      return;
+      OAILOG_FUNC_OUT(LOG_AMF_APP);
     }
     OAILOG_DEBUG(LOG_NGAP,
                  "Could not find  ue  with gnb_ue_ngap_id " GNB_UE_NGAP_ID_FMT
                  "\n",
                  gnb_ue_ngap_id);
-    return;
+    OAILOG_FUNC_OUT(LOG_NGAP);
   }
   OAILOG_DEBUG(LOG_NGAP, "Could not find  gNB with sctp_assoc_id %d \n",
                sctp_assoc_id);
@@ -944,6 +944,7 @@ static int get_ue_ref(ngap_state_t* state,
 
   hashtable_ts_get(&state->amfid2associd, (const hash_key_t)amf_ue_ngap_id,
                    (void**)&id);
+  OAILOG_FUNC_IN(LOG_NGAP);
   if (id) {
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t)id;
     gnb_description_t* gnb_ref = ngap_state_get_gnb(state, sctp_assoc_id);
