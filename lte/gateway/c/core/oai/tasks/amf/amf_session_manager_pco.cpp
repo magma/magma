@@ -23,6 +23,7 @@ namespace magma5g {
 
 void sm_clear_protocol_configuration_options(
     protocol_configuration_options_t* const pco) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (pco) {
     for (int i = 0; i < PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID; i++) {
       if (pco->protocol_or_container_ids[i].contents) {
@@ -31,10 +32,12 @@ void sm_clear_protocol_configuration_options(
     }
     memset(pco, 0, sizeof(protocol_configuration_options_t));
   }
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 void sm_free_protocol_configuration_options(
     protocol_configuration_options_t** const protocol_configuration_options) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   protocol_configuration_options_t* pco = *protocol_configuration_options;
   if (pco) {
     for (int i = 0; i < pco->num_protocol_or_container_id; i++) {
@@ -44,11 +47,13 @@ void sm_free_protocol_configuration_options(
       }
     }
   }
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 void sm_copy_protocol_configuration_options(
     protocol_configuration_options_t* const pco_dst,
     const protocol_configuration_options_t* const pco_src) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if ((pco_dst) && (pco_src)) {
     memset(pco_dst, 0, sizeof(protocol_configuration_options_t));
 
@@ -69,11 +74,13 @@ void sm_copy_protocol_configuration_options(
       }
     }
   }
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 static void sm_pco_push_protocol_or_container_id(
     protocol_configuration_options_t* const pco,
     pco_protocol_or_container_id_t* const poc_id) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   pco->protocol_or_container_ids[pco->num_protocol_or_container_id].id =
       poc_id->id;
   pco->protocol_or_container_ids[pco->num_protocol_or_container_id].length =
@@ -82,10 +89,12 @@ static void sm_pco_push_protocol_or_container_id(
       poc_id->contents;
   poc_id->contents = NULL;
   pco->num_protocol_or_container_id += 1;
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 uint16_t sm_process_pco_dns_server_request(
     protocol_configuration_options_t* const pco_resp) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   in_addr_t ipcp_out_dns_prim_ipv4_addr = INADDR_NONE;
   pco_protocol_or_container_id_t poc_id_resp = {0};
   uint8_t dns_array[4];
@@ -104,12 +113,14 @@ uint16_t sm_process_pco_dns_server_request(
 
   sm_pco_push_protocol_or_container_id(pco_resp, &poc_id_resp);
 
-  return (poc_id_resp.length + SM_PCO_IPCP_HDR_LENGTH);
+  OAILOG_FUNC_RETURN(LOG_AMF_APP,
+                     (poc_id_resp.length + SM_PCO_IPCP_HDR_LENGTH));
 }
 
 uint16_t sm_process_pco_request_ipcp(
     protocol_configuration_options_t* pco_resp,
     const pco_protocol_or_container_id_t* const poc_id) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   pco_protocol_or_container_id_t poc_id_resp = {0};
   in_addr_t ipcp_out_dns_prim_ipv4_addr = INADDR_NONE;
   in_addr_t ipcp_out_dns_sec_ipv4_addr = INADDR_NONE;
@@ -139,7 +150,7 @@ uint16_t sm_process_pco_request_ipcp(
   }
 
   if (dns_req == false) {
-    return 0;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, 0);
   }
 
   /* Fetch the DNS entries */
@@ -191,13 +202,13 @@ uint16_t sm_process_pco_request_ipcp(
 
   sm_pco_push_protocol_or_container_id(pco_resp, &poc_id_resp);
 
-  return (ipcp_out_length + SM_PCO_IPCP_HDR_LENGTH);
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, ipcp_out_length + SM_PCO_IPCP_HDR_LENGTH);
 }
 
 uint16_t sm_process_pco_request(protocol_configuration_options_t* pco_req,
                                 protocol_configuration_options_t* pco_resp) {
   auto length = 0;
-
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   for (auto id = 0; id < pco_req->num_protocol_or_container_id; id++) {
     switch (pco_req->protocol_or_container_ids[id].id) {
       case PCO_PI_IPCP:
@@ -214,7 +225,7 @@ uint16_t sm_process_pco_request(protocol_configuration_options_t* pco_req,
     }
   }
 
-  return (length);
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, length);
 }
 
 }  // namespace magma5g

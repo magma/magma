@@ -248,7 +248,7 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
 void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
   amf_smf_release_t smf_message;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
-
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   memset(&smf_message, 0, sizeof(amf_smf_release_t));
 
   for (auto& it : ue_context->amf_context.smf_ctxt_map) {
@@ -280,10 +280,12 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
   }
 
   ue_context->amf_context.smf_ctxt_map.clear();
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 //------------------------------------------------------------------------------
 void amf_app_ue_context_free_content(ue_m5gmm_context_s* const ue_context_p) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   // Stop Mobile reachability timer,if running
 
   // Stop Implicit deregistration timer,if running
@@ -293,6 +295,7 @@ void amf_app_ue_context_free_content(ue_m5gmm_context_s* const ue_context_p) {
   ue_context_p->ue_context_rel_cause = NGAP_INVALID_CAUSE;
 
   amf_smf_context_cleanup_pdu_session(ue_context_p);
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 void clear_amf_ctxt(amf_context_t* amf_context) {
