@@ -16,7 +16,6 @@ package main
 import (
 	"os"
 
-	"github.com/docker/docker/client"
 	"github.com/golang/glog"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -41,16 +40,7 @@ func main() {
 		glog.Fatalf("Error creating service registry service %s", err)
 	}
 	registryModeEnvValue := os.Getenv(registry.ServiceRegistryModeEnvVar)
-	switch registryModeEnvValue {
-	case registry.DockerRegistryMode:
-		glog.Infof("Registry Mode set to %s. Creating Docker service registry", registry.DockerRegistryMode)
-		dockerCli, err := client.NewEnvClient()
-		if err != nil {
-			glog.Fatalf("Error creating docker client for service registry servicer: %s", err)
-		}
-		servicer := servicers.NewDockerServiceRegistryServicer(dockerCli)
-		protos.RegisterServiceRegistryServer(srv.GrpcServer, servicer)
-	case registry.K8sRegistryMode:
+	if registryModeEnvValue == registry.K8sRegistryMode {
 		glog.Infof("Registry Mode set to %s. Creating k8s service registry", registry.K8sRegistryMode)
 		config, err := rest.InClusterConfig()
 		if err != nil {
@@ -65,9 +55,10 @@ func main() {
 			glog.Fatal(err)
 		}
 		protos.RegisterServiceRegistryServer(srv.GrpcServer, servicer)
-	default:
+	} else {
 		glog.Infof("Registry Mode set to %s. Not creating service registry servicer", registryModeEnvValue)
 	}
+
 	err = srv.Run()
 	if err != nil {
 		glog.Fatalf("Error while running service: %s", err)
