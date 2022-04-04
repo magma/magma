@@ -12,15 +12,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-import xml.etree.ElementTree as ET
-from pprint import pprint
-from pathlib import Path
 import argparse
-import os
 import glob
+import os
+from pathlib import Path
+import xml.etree.ElementTree as ET
 
 def parsing_and_display(report_list):
+    """ 
+    Reading the XML report from google test, parsing the information and
+    displaying it in the desired format to determine the test takes the most time.  
+    """
     header = ['Testsuites', 'Testsuite', 'Testcase', 'Failed', 'Runtime']
     reformatted_report = [header,]
     for report_file_name in report_list:
@@ -61,4 +63,3 @@ if __name__ == "__main__":
         print("No report is generated")
     else:
         parsing_and_display(files)
-    # parsing_and_display(args.xml_report)
