@@ -69,7 +69,11 @@ export default function GatewayTable() {
         icon={CellWifiIcon}
         label={`Federation Gateways (${Object.keys(ctx.state).length})`}
         filter={() => (
-          <Grid container justify="flex-end" alignItems="center" spacing={1}>
+          <Grid
+            container
+            justifyContent="flex-end"
+            alignItems="center"
+            spacing={1}>
             <Grid item>
               <AutorefreshCheckbox
                 autorefreshEnabled={refresh}

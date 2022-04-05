@@ -80,7 +80,7 @@ export default function AlertDetailsPane({alert, onClose}: Props) {
     <Paper elevation={1} data-testid="alert-details-pane">
       <Grid container direction="column" spacing={2} className={classes.root}>
         <Grid item container direction="column" spacing={1}>
-          <Grid item container justify="space-between">
+          <Grid item container justifyContent="space-between">
             <Grid item>
               <SeverityIndicator severity={severity} chip={true} />
             </Grid>

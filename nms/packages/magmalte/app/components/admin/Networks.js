@@ -75,7 +75,11 @@ function DialogWithConfirmationPhrase(props: DialogConfirmationProps) {
   const {title, message, label, onClose, onConfirm} = props;
 
   return (
-    <Dialog open={true} onClose={onClose} onExited={onClose} maxWidth="sm">
+    <Dialog
+      open={true}
+      onClose={onClose}
+      TransitionProps={{onExited: onClose}}
+      maxWidth="sm">
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
         <DialogContentText>

@@ -39,7 +39,7 @@ export default function FEGGateway() {
 
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container justify="space-between" spacing={4}>
+      <Grid container justifyContent="space-between" spacing={4}>
         <Grid item xs={12}>
           <GatewayCheckinChart />
         </Grid>

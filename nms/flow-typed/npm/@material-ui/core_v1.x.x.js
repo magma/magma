@@ -430,13 +430,31 @@ declare module "@material-ui/core/colors/yellow" {
 }
 
 declare module "@material-ui/core/Dialog/Dialog" {
-  import type {ComponentType, Node} from "react";
+  import type {ComponentType, CSSProperties, Node} from "react";
 
   import type {
     TransitionCallback,
     TransitionDuration
   } from "@material-ui/core/internal/transition";
   declare type MaxWidth = "xs" | "sm" | "md" | "lg" | "xl" | false;
+
+  declare type TransitionProps = {|
+    style?: CSSProperties,
+    appear?: boolean,
+    enter?: boolean,
+    exit?: boolean,
+    timeout?: number | {appear?: number, enter?: number, exit?: number},
+    addEndListener?: (node: HTMLElement, done: () => void) => void,
+    in?: boolean,
+    mountOnEnter?: boolean,
+    unmountOnExit?: boolean,
+    onEnter?: (node: HTMLElement, isAppearing: boolean) => void,
+    onEntering?: (node: HTMLElement, isAppearing: boolean) => void,
+    onEntered?: (node: HTMLElement, isAppearing: boolean) => void,
+    onExit?: (node: HTMLElement) => void,
+    onExiting?: (node: HTMLElement) => void,
+    onExited?: (node: HTMLElement) => void
+  |}
 
   declare module.exports: ComponentType<{
     children?: Node,
@@ -458,7 +476,8 @@ declare module "@material-ui/core/Dialog/Dialog" {
     onExiting?: TransitionCallback,
     open?: boolean,
     transition?: ComponentType<*>,
-    transitionDuration?: TransitionDuration
+    transitionDuration?: TransitionDuration,
+    TransitionProps?: TransitionProps
   }>;
 }
 
@@ -2081,7 +2100,7 @@ declare module "@material-ui/core/styles/createMixins" {
   ) => Mixins;
 }
 
-declare module "@material-ui/core/styles/createMuiTheme" {
+declare module "@material-ui/core/styles/createTheme" {
   import type {Palette, PaletteOptions} from "@material-ui/core/styles/createPalette";
   import type {Typography, TypographyOptions} from "@material-ui/core/styles/createTypography";
   import type {Mixins, MixinsOptions} from "@material-ui/core/styles/createMixins";
@@ -2391,7 +2410,7 @@ declare module "@material-ui/core/styles/transitions" {
 declare module "@material-ui/core/styles/withStyles" {
   import type {ComponentType, ElementConfig, ElementRef, ElementType, Ref} from "react";
 
-  import type {Theme} from "@material-ui/core/styles/createMuiTheme"
+  import type {Theme} from "@material-ui/core/styles/createTheme"
 
   // import type {StandardProperties as CSSProperties} from "csstype";
 
@@ -2450,7 +2469,7 @@ declare module "@material-ui/core/styles/withStyles" {
 declare module "@material-ui/core/styles/withTheme" {
   import type {ComponentType, ElementConfig, ElementRef, ElementType, Ref} from "react";
 
-  import type {Theme} from "@material-ui/core/styles/createMuiTheme";
+  import type {Theme} from "@material-ui/core/styles/createTheme";
 
   declare export type WithTheme = {
     theme: Theme,
@@ -2483,7 +2502,7 @@ declare module "@material-ui/core/styles/zIndex" {
 }
 
 declare module "@material-ui/core/styles" {
-  import type {Theme as MuiTheme} from "@material-ui/core/styles/createMuiTheme";
+  import type {Theme as MuiTheme} from "@material-ui/core/styles/createTheme";
   import type {WithStyles as MuiWithStyles} from "@material-ui/core/styles/withStyles";
   import type {WithTheme as MuiWithTheme} from "@material-ui/core/styles/withTheme";
 
@@ -2496,7 +2515,7 @@ declare module "@material-ui/core/styles" {
     withStyles: $Exports<"@material-ui/core/styles/withStyles">,
     withTheme: $Exports<"@material-ui/core/styles/withTheme">,
     createGenerateClassName: $Exports<"@material-ui/core/styles/createGenerateClassName">,
-    createMuiTheme: $Exports<"@material-ui/core/styles/createMuiTheme">,
+    createTheme: $Exports<"@material-ui/core/styles/createTheme">,
     jssPreset: $Exports<"@material-ui/core/styles/jssPreset">
   };
 }
@@ -3916,8 +3935,8 @@ declare module "@material-ui/core/styles/createGenerateClassName.js" {
 declare module "@material-ui/core/styles/createMixins.js" {
   declare module.exports: $Exports<"@material-ui/core/styles/createMixins">;
 }
-declare module "@material-ui/core/styles/createMuiTheme.js" {
-  declare module.exports: $Exports<"@material-ui/core/styles/createMuiTheme">;
+declare module "@material-ui/core/styles/createTheme.js" {
+  declare module.exports: $Exports<"@material-ui/core/styles/createTheme">;
 }
 declare module "@material-ui/core/styles/createPalette.js" {
   declare module.exports: $Exports<"@material-ui/core/styles/createPalette">;
@@ -4348,8 +4367,8 @@ declare module "@material-ui/core" {
     "@material-ui/core/styles/withStyles"
   >;
   declare export var withTheme: $Exports<"@material-ui/core/styles/withTheme">;
-  declare export var createMuiTheme: $Exports<
-    "@material-ui/core/styles/createMuiTheme"
+  declare export var createTheme: $Exports<
+    "@material-ui/core/styles/createTheme"
   >;
   declare export var jssPreset: $Exports<"@material-ui/core/styles/jssPreset">;
   declare export var SvgIcon: $Exports<"@material-ui/core/SvgIcon/SvgIcon">;

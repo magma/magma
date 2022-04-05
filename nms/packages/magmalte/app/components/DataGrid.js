@@ -295,7 +295,7 @@ export default function DataGrid(props: Props) {
       <Grid
         container
         alignItems="center"
-        justify="center"
+        justifyContent="center"
         data-testid={props.testID ?? null}>
         {dataGrid}
       </Grid>

@@ -53,7 +53,7 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
 
   function Filter() {
     return (
-      <Grid container justify="flex-end" alignItems="center" spacing={1}>
+      <Grid container justifyContent="flex-end" alignItems="center" spacing={1}>
         <Grid item>
           <Text variant="body3" className={classes.dateTimeText}>
             Filter By Date

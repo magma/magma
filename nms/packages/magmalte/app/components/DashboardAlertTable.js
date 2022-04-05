@@ -230,7 +230,7 @@ function TabPanel(props: TabPanelProps) {
         <Grid
           container
           alignItems="center"
-          justify="center"
+          justifyContent="center"
           className={classes.emptyTable}>
           <Grid item xs={12} className={classes.emptyTableContent}>
             <Text variant="body2">You have 0 {props.label} Alerts</Text>

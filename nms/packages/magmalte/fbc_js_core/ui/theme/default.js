@@ -33,9 +33,9 @@ import {
   redwood,
   white,
 } from './colors';
-import {createMuiTheme} from '@material-ui/core/styles';
+import {createTheme} from '@material-ui/core/styles';
 
-export default createMuiTheme({
+export default createTheme({
   symphony: SymphonyTheme,
   palette: {
     primary: {
@@ -112,13 +112,6 @@ export default createMuiTheme({
       marginDense: {
         marginTop: '0px',
         marginBottom: '0px',
-      },
-    },
-    MuiToggleButtonGroup: {
-      '&$selected': {
-        boxShadow: 'none',
-        borderRadius: 4,
-        border: `1px solid ${blue60}`,
       },
     },
     MuiToggleButton: {
