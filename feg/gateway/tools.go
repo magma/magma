@@ -23,4 +23,6 @@ import (
 	_ "github.com/ory/go-acc"
 	_ "github.com/wadey/gocovmerge"
 	_ "gotest.tools/gotestsum"
+
+	_ "magma/gateway/services/magmad"
 )
