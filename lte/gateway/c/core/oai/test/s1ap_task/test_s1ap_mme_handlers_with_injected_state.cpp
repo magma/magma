@@ -153,10 +153,9 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
   // State validation
   ASSERT_TRUE(
       is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
-  
+
   // Freeing pdu and payload data
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
-
 }
 
 TEST_F(S1apMmeHandlersWithInjectedStatesTest, HandleS1apPathSwitchRequest) {
@@ -177,4 +176,4 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, HandleS1apPathSwitchRequest) {
 }
 
 }  // namespace lte
-}  // namespace magma       
+}  // namespace magma
