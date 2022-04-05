@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 
 // define statements are used to decode the encoded message of s1ap task state
 #define STR_DECODE_TABLE \
