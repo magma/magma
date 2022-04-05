@@ -77,11 +77,7 @@ static void add_tunnel_helper(
 
 static teid_t sgw_generate_new_s11_cp_teid(void);
 
-#if EMBEDDED_SGW
 #define TASK_MME TASK_MME_APP
-#else
-#define TASK_MME TASK_S11
-#endif
 
 //------------------------------------------------------------------------------
 uint32_t spgw_get_new_s1u_teid(spgw_state_t* state) {

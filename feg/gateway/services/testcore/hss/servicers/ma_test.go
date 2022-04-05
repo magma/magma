@@ -264,7 +264,7 @@ func set3GPPAAAServerName(t *testing.T, server *hss.HomeSubscriberServer, imsi s
 	subscriber, err := server.GetSubscriberData(context.Background(), id)
 	assert.NoError(t, err)
 	subscriber.State.TgppAaaServerName = serverName
-	_, err = server.UpdateSubscriber(context.Background(), subscriber)
+	_, err = server.UpdateSubscriber(context.Background(), &lteprotos.SubscriberUpdate{Data: subscriber})
 	assert.NoError(t, err)
 }
 

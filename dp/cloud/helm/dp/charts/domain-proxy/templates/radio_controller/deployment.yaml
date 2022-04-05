@@ -65,6 +65,8 @@ spec:
           envFrom:
           - secretRef:
               name: {{ include "domain-proxy.radio_controller.fullname" . }}
+          - configMapRef:
+              name: {{ include "domain-proxy.radio_controller.fullname" . }}
       {{- with .Values.dp.radio_controller.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

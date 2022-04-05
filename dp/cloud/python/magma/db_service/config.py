@@ -28,6 +28,12 @@ class Config(object):
     SQLALCHEMY_DB_ENCODING = os.environ.get('SQLALCHEMY_DB_ENCODING', 'utf8')
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_FUTURE = False
+    SQLALCHEMY_ENGINE_POOL_SIZE = os.environ.get(
+        'SQLALCHEMY_ENGINE_POOL_SIZE', 6,
+    )
+    SQLALCHEMY_ENGINE_MAX_OVERFLOW = os.environ.get(
+        'SQLALCHEMY_ENGINE_MAX_OVERFLOW', 10,
+    )
 
 
 class DevelopmentConfig(Config):
