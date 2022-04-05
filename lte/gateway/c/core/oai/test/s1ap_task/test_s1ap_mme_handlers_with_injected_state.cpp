@@ -13,14 +13,14 @@
 #include <gtest/gtest.h>
 #include <thread>
 
-#include "../mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/include/s1ap_state.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
@@ -86,7 +86,7 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
     std::string data_list_path =
         magma_root + "/" + DEFAULT_S1AP_CONTEXT_DATA_PATH + "data_list.txt";
     assoc_id = 37;
-    stream_id = 0;
+    stream_id = 1;
     number_attached_ue = 2;
 
     mock_read_s1ap_state_db(state_data_path);
@@ -99,7 +99,7 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
 
   virtual void TearDown() {
     // Sleep to ensure that messages are received and contexts are released
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
     send_terminate_message_fatal(&task_zmq_ctx_main_s1ap_with_injected_states);
     destroy_task_context(&task_zmq_ctx_main_s1ap_with_injected_states);
@@ -108,7 +108,7 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
     free_mme_config(&mme_config);
 
     // Sleep to ensure that messages are received and contexts are released
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1500));
   }
 
  protected:
@@ -124,11 +124,15 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
 TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
   ue_description_t ue_ref_p = {
       .enb_ue_s1ap_id = 1,
-      .mme_ue_s1ap_id = 1,
+      .mme_ue_s1ap_id = 99,
       .sctp_assoc_id = assoc_id,
       .comp_s1ap_id = S1AP_GENERATE_COMP_S1AP_ID(assoc_id, 1)};
   ue_ref_p.s1ap_ue_context_rel_timer.id = -1;
   ue_ref_p.s1ap_ue_context_rel_timer.msec = 1000;
+
+  S1ap_S1AP_PDU_t pdu_s1;
+  memset(&pdu_s1, 0, sizeof(pdu_s1));
+  ASSERT_EQ(RETURNok, generate_s1_setup_request_pdu(&pdu_s1));
 
   // State validation
   ASSERT_TRUE(
@@ -138,17 +142,21 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
   // Invalid S1 Cause returns error
   ASSERT_EQ(RETURNerror, s1ap_mme_generate_ue_context_release_command(
                              state, &ue_ref_p, S1AP_IMPLICIT_CONTEXT_RELEASE,
-                             INVALID_IMSI64, assoc_id, stream_id, 33, 10));
+                             INVALID_IMSI64, assoc_id, stream_id, 99, 1));
   // Valid S1 Causes passess successfully
   ASSERT_EQ(RETURNok, s1ap_mme_generate_ue_context_release_command(
                           state, &ue_ref_p, S1AP_INITIAL_CONTEXT_SETUP_FAILED,
-                          INVALID_IMSI64, assoc_id, stream_id, 33, 10));
+                          INVALID_IMSI64, assoc_id, stream_id, 99, 1));
 
   EXPECT_NE(ue_ref_p.s1ap_ue_context_rel_timer.id, S1AP_TIMER_INACTIVE_ID);
 
   // State validation
   ASSERT_TRUE(
       is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
+  
+  // Freeing pdu and payload data
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
+
 }
 
 TEST_F(S1apMmeHandlersWithInjectedStatesTest, HandleS1apPathSwitchRequest) {
@@ -169,4 +177,4 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, HandleS1apPathSwitchRequest) {
 }
 
 }  // namespace lte
-}  // namespace magma
+}  // namespace magma       
