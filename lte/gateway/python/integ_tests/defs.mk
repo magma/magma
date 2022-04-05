@@ -128,7 +128,8 @@ s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
 s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
 s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
 s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
-s1aptests/test_attach_detach_setsessionrules_tcp_data.py
+s1aptests/test_attach_detach_setsessionrules_tcp_data.py \
+s1aptests/test_attach_detach_rar_tcp_he.py
 
 EXTENDED_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
 s1aptests/test_attach_detach_multi_ue_looped.py \
