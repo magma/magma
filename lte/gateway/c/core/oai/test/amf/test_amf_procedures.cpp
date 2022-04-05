@@ -2472,8 +2472,8 @@ TEST_F(AMFAppProcedureTest, TestAuthFailureFromSubscribeDbLock) {
   amf_free_ue_context(ue_context_p);
 }
 
-TEST_F(AMFAppProcedureTest, GnbInitiatedNGReset){
-  int rc                 = RETURNerror;
+TEST_F(AMFAppProcedureTest, GnbInitiatedNGReset) {
+  int rc = RETURNerror;
   amf_ue_ngap_id_t ue_id = 0;
   std::vector<MessagesIds> expected_Ids{AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,
                                         NGAP_NAS_DL_DATA_REQ,
@@ -2492,9 +2492,9 @@ TEST_F(AMFAppProcedureTest, GnbInitiatedNGReset){
   /* UE-1-Registration */
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
-  imsi64          = send_initial_ue_message_no_tmsi(
-      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
-      sizeof(initial_ue_message_hexbuf));
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
 
   /* Check if UE Context is created with correct imsi */
   EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
@@ -2510,9 +2510,9 @@ TEST_F(AMFAppProcedureTest, GnbInitiatedNGReset){
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send uplink nas message for security mode complete response from UE */
-  rc = send_uplink_nas_message_ue_smc_response(
-      amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
-      sizeof(ue_smc_response_hexbuf));
+  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
+                                               ue_smc_response_hexbuf,
+                                               sizeof(ue_smc_response_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
@@ -2525,14 +2525,14 @@ TEST_F(AMFAppProcedureTest, GnbInitiatedNGReset){
 
   /* UE-2-Registration */
   const uint8_t initial_ue_message_hexbuf_temp[25] = {
-    0x7e, 0x00, 0x41, 0x79, 0x00, 0x0d, 0x01, 0x22, 0x62,
-    0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x02, 0x2e, 0x04, 0xf0, 0xf0, 0xf0, 0xf0};
+      0x7e, 0x00, 0x41, 0x79, 0x00, 0x0d, 0x01, 0x22, 0x62,
+      0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x02, 0x2e, 0x04, 0xf0, 0xf0, 0xf0, 0xf0};
 
   amf_ue_ngap_id_t ue_id_temp = 0;
 
   imsi64_t imsi64_temp = 0;
-  imsi64_temp          = send_initial_ue_message_no_tmsi(
+  imsi64_temp = send_initial_ue_message_no_tmsi(
       amf_app_desc_p, 36, 1, 2, 0, plmn, initial_ue_message_hexbuf_temp,
       sizeof(initial_ue_message_hexbuf_temp));
 
@@ -2551,9 +2551,9 @@ TEST_F(AMFAppProcedureTest, GnbInitiatedNGReset){
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send uplink nas message for security mode complete response from UE */
-  rc = send_uplink_nas_message_ue_smc_response(
-      amf_app_desc_p, ue_id_temp, plmn, ue_smc_response_hexbuf,
-      sizeof(ue_smc_response_hexbuf));
+  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id_temp, plmn,
+                                               ue_smc_response_hexbuf,
+                                               sizeof(ue_smc_response_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
@@ -2564,9 +2564,10 @@ TEST_F(AMFAppProcedureTest, GnbInitiatedNGReset){
 
   send_initial_context_response(amf_app_desc_p, ue_id_temp);
 
-   /* Send GNB reset request */
-   send_gnb_reset_req();
-   EXPECT_EQ(amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.size(),1);
+  /* Send GNB reset request */
+  send_gnb_reset_req();
+  EXPECT_EQ(
+      amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.size(), 1);
 
   /* UE-1-Deregistration */
   /* Send uplink nas message for deregistration complete response from UE */
@@ -2588,6 +2589,5 @@ TEST_F(AMFAppProcedureTest, GnbInitiatedNGReset){
   send_ue_context_release_complete_message(amf_app_desc_p, 2, 2, ue_id_temp);
 
   EXPECT_TRUE(expected_Ids == AMFClientServicer::getInstance().msgtype_stack);
-
 }
 }  // namespace magma5g

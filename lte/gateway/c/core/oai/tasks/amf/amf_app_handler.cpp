@@ -1726,5 +1726,5 @@ void amf_app_handle_gnb_reset_req(
 
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
-	  
+
 }  // namespace magma5g
