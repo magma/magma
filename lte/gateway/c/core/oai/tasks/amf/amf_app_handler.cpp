@@ -45,6 +45,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/include/map.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
+#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
 
 extern amf_config_t amf_config;
 extern amf_config_t amf_config;
@@ -1682,4 +1683,48 @@ int amf_app_handle_pdu_session_failure(
   }
   return RETURNok;
 }
+
+//------------------------------------------------------------------------------
+void amf_app_handle_gnb_reset_req(
+    const itti_ngap_gnb_initiated_reset_req_t* const gnb_reset_req) {
+  MessageDef* msg;
+  itti_ngap_gnb_initiated_reset_ack_t* reset_ack;
+
+  OAILOG_INFO(LOG_AMF_APP,
+              " eNB Reset request received. eNB id = %d, reset_type  %d \n ",
+              gnb_reset_req->gnb_id, gnb_reset_req->ngap_reset_type);
+  if (gnb_reset_req->ue_to_reset_list == NULL) {
+    OAILOG_ERROR(LOG_MME_APP,
+                 "Invalid UE list received in eNB Reset Request\n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+
+  for (int i = 0; i < gnb_reset_req->num_ue; i++) {
+    amf_app_handle_ngap_ue_context_release(
+        gnb_reset_req->ue_to_reset_list[i].amf_ue_ngap_id,
+        gnb_reset_req->ue_to_reset_list[i].gnb_ue_ngap_id,
+        gnb_reset_req->gnb_id, NGAP_SCTP_SHUTDOWN_OR_RESET);
+  }
+
+  // Send Reset Ack to NGAP module
+  msg = DEPRECATEDitti_alloc_new_message_fatal(TASK_AMF_APP,
+                                               NGAP_GNB_INITIATED_RESET_ACK);
+  reset_ack = &NGAP_GNB_INITIATED_RESET_ACK(msg);
+
+  // ue_to_reset_list needs to be freed by NGAP module
+  reset_ack->ue_to_reset_list = gnb_reset_req->ue_to_reset_list;
+  reset_ack->ngap_reset_type = gnb_reset_req->ngap_reset_type;
+  reset_ack->sctp_assoc_id = gnb_reset_req->sctp_assoc_id;
+  reset_ack->sctp_stream_id = gnb_reset_req->sctp_stream_id;
+  reset_ack->num_ue = gnb_reset_req->num_ue;
+
+  amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, msg);
+
+  OAILOG_INFO(LOG_AMF_APP,
+              " Reset Ack sent to NGAP. gNB id = %d, reset_type  %d \n ",
+              gnb_reset_req->gnb_id, gnb_reset_req->ngap_reset_type);
+
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
+}
+	  
 }  // namespace magma5g

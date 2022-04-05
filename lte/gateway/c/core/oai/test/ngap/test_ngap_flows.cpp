@@ -1541,4 +1541,130 @@ TEST_F(NgapFlowTest, NgapHandleSctpDisconnection) {
   bdestroy(ngap_initial_ue_msg);
 }
 
+TEST_F(NgapFlowTest, TestNgapReset) {
+  unsigned char initial_ue_message_hexbuf[] = {
+      0x00, 0x0f, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x55, 0x00, 0x02,
+      0x00, 0x01, 0x00, 0x26, 0x00, 0x1a, 0x19, 0x7e, 0x00, 0x41, 0x79,
+      0x00, 0x0d, 0x01, 0x22, 0x62, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01, 0x2e, 0x04, 0xf0, 0xf0, 0xf0, 0xf0, 0x00,
+      0x79, 0x00, 0x13, 0x48, 0x22, 0x42, 0x65, 0x00, 0x00, 0x00, 0x01,
+      0x00, 0x22, 0x42, 0x65, 0x00, 0x00, 0x01, 0xe4, 0xf7, 0x04, 0x44,
+      0x00, 0x5a, 0x40, 0x01, 0x18, 0x00, 0x70, 0x40, 0x01, 0x00};
+
+  unsigned char ng_reset_hexbuf[] = {0x00, 0x14, 0x00, 0x0e, 0x00, 0x00,
+                                     0x02, 0x00, 0x0f, 0x40, 0x02, 0x00,
+                                     0x00, 0x00, 0x58, 0x00, 0x01, 0x00};
+
+  EXPECT_EQ(ngap_handle_new_association(state, &peerInfo), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  Ngap_NGAP_PDU_t decoded_pdu = {};
+  uint16_t length = sizeof(initial_ue_message_hexbuf) / sizeof(unsigned char);
+  bstring ngap_initial_ue_msg = blk2bstr(initial_ue_message_hexbuf, length);
+
+  // Check if the pdu can be decoded
+  ASSERT_EQ(ngap_amf_decode_pdu(&decoded_pdu, ngap_initial_ue_msg), RETURNok);
+
+  // check if initial UE message is handled successfully
+  EXPECT_EQ(ngap_amf_handle_message(state, peerInfo.assoc_id,
+                                    peerInfo.instreams, &decoded_pdu),
+            RETURNok);
+
+  Ngap_NGAP_PDU_t pdu = {};
+  uint16_t length_reset = sizeof(ng_reset_hexbuf) / sizeof(unsigned char);
+  bstring ng_reset_msg = blk2bstr(ng_reset_hexbuf, length_reset);
+
+  //   Check if the pdu can be decoded
+  ASSERT_EQ(ngap_amf_decode_pdu(&pdu, ng_reset_msg), RETURNok);
+
+  int rc = ngap_amf_handle_message(state, peerInfo.assoc_id, peerInfo.instreams,
+                                   &pdu);
+  EXPECT_EQ(rc, RETURNok);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &pdu);
+  bdestroy(ngap_initial_ue_msg);
+  bdestroy(ng_reset_msg);
+}
+
+TEST_F(NgapFlowTest, TestNgapResetPart) {
+  unsigned char initial_ue_message_hexbuf[] = {
+      0x00, 0x0f, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x55, 0x00, 0x02,
+      0x00, 0x01, 0x00, 0x26, 0x00, 0x1a, 0x19, 0x7e, 0x00, 0x41, 0x79,
+      0x00, 0x0d, 0x01, 0x22, 0x62, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01, 0x2e, 0x04, 0xf0, 0xf0, 0xf0, 0xf0, 0x00,
+      0x79, 0x00, 0x13, 0x48, 0x22, 0x42, 0x65, 0x00, 0x00, 0x00, 0x01,
+      0x00, 0x22, 0x42, 0x65, 0x00, 0x00, 0x01, 0xe4, 0xf7, 0x04, 0x44,
+      0x00, 0x5a, 0x40, 0x01, 0x18, 0x00, 0x70, 0x40, 0x01, 0x00};
+
+  unsigned char ng_reset_hexbuf[] = {
+      0x00, 0x14, 0x00, 0x14, 0x00, 0x00, 0x02, 0x00, 0x0f, 0x40, 0x02, 0x00,
+      0x00, 0x00, 0x58, 0x00, 0x07, 0x40, 0x01, 0x60, 0x01, 0x40, 0x05, 0xc9};
+
+  EXPECT_EQ(ngap_handle_new_association(state, &peerInfo), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  Ngap_NGAP_PDU_t decoded_pdu = {};
+  uint16_t length = sizeof(initial_ue_message_hexbuf) / sizeof(unsigned char);
+  bstring ngap_initial_ue_msg = blk2bstr(initial_ue_message_hexbuf, length);
+
+  // Check if the pdu can be decoded
+  ASSERT_EQ(ngap_amf_decode_pdu(&decoded_pdu, ngap_initial_ue_msg), RETURNok);
+
+  // check if initial UE message is handled successfully
+  EXPECT_EQ(ngap_amf_handle_message(state, peerInfo.assoc_id,
+                                    peerInfo.instreams, &decoded_pdu),
+            RETURNok);
+
+  Ngap_NGAP_PDU_t pdu = {};
+  uint16_t length_reset = sizeof(ng_reset_hexbuf) / sizeof(unsigned char);
+  bstring ng_reset_msg = blk2bstr(ng_reset_hexbuf, length_reset);
+
+  //   Check if the pdu can be decoded
+  ASSERT_EQ(ngap_amf_decode_pdu(&pdu, ng_reset_msg), RETURNok);
+
+  int rc = ngap_amf_handle_message(state, peerInfo.assoc_id, peerInfo.instreams,
+                                   &pdu);
+  EXPECT_EQ(rc, RETURNok);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &pdu);
+  bdestroy(ngap_initial_ue_msg);
+  bdestroy(ng_reset_msg);
+}
+
+TEST_F(NgapFlowTest, test_gNB_reset_ack) {
+  unsigned char initial_ue_message_hexbuf[] = {
+      0x00, 0x0f, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x55, 0x00, 0x02,
+      0x00, 0x01, 0x00, 0x26, 0x00, 0x1a, 0x19, 0x7e, 0x00, 0x41, 0x79,
+      0x00, 0x0d, 0x01, 0x22, 0x62, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01, 0x2e, 0x04, 0xf0, 0xf0, 0xf0, 0xf0, 0x00,
+      0x79, 0x00, 0x13, 0x48, 0x22, 0x42, 0x65, 0x00, 0x00, 0x00, 0x01,
+      0x00, 0x22, 0x42, 0x65, 0x00, 0x00, 0x01, 0xe4, 0xf7, 0x04, 0x44,
+      0x00, 0x5a, 0x40, 0x01, 0x18, 0x00, 0x70, 0x40, 0x01, 0x00};
+
+  // Verify sctp association is successful
+  EXPECT_EQ(ngap_handle_new_association(state, &peerInfo), RETURNok);
+
+  // Verify number of connected gNB's is 1
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  Ngap_NGAP_PDU_t decoded_pdu = {};
+  uint16_t length = sizeof(initial_ue_message_hexbuf) / sizeof(unsigned char);
+  bstring ngap_initial_ue_msg = blk2bstr(initial_ue_message_hexbuf, length);
+
+  // Check if the pdu can be decoded
+  ASSERT_EQ(ngap_amf_decode_pdu(&decoded_pdu, ngap_initial_ue_msg), RETURNok);
+
+  // check if initial UE message is handled successfully
+  EXPECT_EQ(ngap_amf_handle_message(state, peerInfo.assoc_id,
+                                    peerInfo.instreams, &decoded_pdu),
+            RETURNok);
+
+  // Send NGAP GNB Reset Acknowledgement
+  EXPECT_EQ(send_ngap_gnb_reset_ack(), RETURNok);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
+  bdestroy(ngap_initial_ue_msg);
+}
 }  // namespace magma5g
