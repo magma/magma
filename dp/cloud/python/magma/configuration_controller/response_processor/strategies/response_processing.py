@@ -15,16 +15,11 @@ import logging
 from datetime import datetime
 from typing import Dict, Optional
 
+from magma.configuration_controller.custom_types.custom_types import DBResponse
 from magma.configuration_controller.response_processor.response_db_processor import (
     ResponseDBProcessor,
 )
-from magma.db_service.models import (
-    DBCbsd,
-    DBCbsdState,
-    DBChannel,
-    DBGrant,
-    DBResponse,
-)
+from magma.db_service.models import DBCbsd, DBCbsdState, DBChannel, DBGrant
 from magma.db_service.session_manager import Session
 from magma.mappings.types import CbsdStates, GrantStates, ResponseCodes
 
@@ -305,7 +300,6 @@ def _update_grant_from_response(response: DBResponse, grant: DBGrant) -> None:
         grant.transmit_expire_time = transmit_expire_time
     if channel_type:
         grant.channel_type = channel_type
-    grant.responses.append(response)
     logger.info(f'Updated grant: {grant}')
 
 
@@ -318,18 +312,6 @@ def _terminate_all_grants_from_response(response: DBResponse, session: Session) 
     cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).scalar()
     if cbsd:
         cbsd.grant_attempts = 0
-    grant_ids = [
-        grant.id for grant in session.query(
-            DBGrant.id,
-        ).filter(DBGrant.cbsd == cbsd).all()
-    ]
-    if grant_ids:
-        logger.info(f'Disconnecting responses from grants for {cbsd_id=}')
-        session.query(DBResponse).filter(
-            DBResponse.grant_id.in_(
-                grant_ids,
-            ),
-        ).update({DBResponse.grant_id: None})
     logger.info(f'Terminating all grants for {cbsd_id=}')
     session.query(DBGrant).filter(DBGrant.cbsd == cbsd).delete()
     logger.info(f"Deleting all channels for {cbsd_id=}")
