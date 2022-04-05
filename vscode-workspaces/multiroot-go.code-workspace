@@ -41,9 +41,9 @@
 			"name": "src"
 		},
 		{
-			"path": "../wifi/cloud/go",
-			"name": "wifi/cloud",
-		},
+			"path": "../feg/gateway",
+			"name": "feg/gateway"
+		}
 	],
 	"extensions": {
 		"recommendations": [

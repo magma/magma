@@ -177,6 +177,11 @@ func GetGyClientConfiguration() []*diameter.DiameterClientConfig {
 		if wdInterval == 0 {
 			wdInterval = diameter.DefaultWatchdogIntervalSeconds
 		}
+
+		requestTimeout := gyCfg.GetRequestTimeout()
+		if requestTimeout == 0 {
+			requestTimeout = diameter.DefaultRequestTimeoutSeconds
+		}
 		diamCliCfg := &diameter.DiameterClientConfig{
 			Host:               diameter.GetValueOrEnv(diameter.HostFlag, GyDiamHostEnv, gyCfg.GetHost(), i),
 			Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GyDiamRealmEnv, gyCfg.GetRealm(), i),
@@ -185,6 +190,7 @@ func GetGyClientConfiguration() []*diameter.DiameterClientConfig {
 			WatchdogInterval:   uint(wdInterval),
 			RetryCount:         uint(retries),
 			Retransmits:        uint(retransmits),
+			RequestTimeout:     uint(requestTimeout),
 			SupportedVendorIDs: diameter.GetValueOrEnv("", GySupportedVendorIDsEnv, "", i),
 			ServiceContextId:   diameter.GetValueOrEnv("", GyServiceContextIdEnv, "", i),
 		}

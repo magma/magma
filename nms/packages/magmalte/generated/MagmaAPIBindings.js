@@ -252,6 +252,7 @@ export type diameter_client_configs = {
     product_name ? : string,
     protocol ? : "tcp" | "tcp4" | "tcp6" | "sctp" | "sctp4" | "sctp6",
     realm ? : string,
+    request_timeout ? : number,
     retransmits ? : number,
     retry_count ? : number,
     watchdog_interval ? : number,
