@@ -64,7 +64,7 @@ func testTestcoreStorageImpl(t *testing.T, store storage.SubscriberStore) {
 	assert.True(t, proto.Equal(dataRecvd, data0))
 
 	// Update, get data
-	err = store.UpdateSubscriber(data0Updated)
+	err = store.UpdateSubscriber(&protos.SubscriberUpdate{Data: data0Updated})
 	assert.NoError(t, err)
 	dataRecvd, err = store.GetSubscriberData(sub0)
 	assert.NoError(t, err)
