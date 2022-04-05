@@ -27,7 +27,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_identity.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
-#include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.h"
+#include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.hpp"
 
 using ::testing::Test;
 

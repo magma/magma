@@ -816,6 +816,7 @@ int amf_nas_proc_authentication_info_answer(
 
 imsi64_t amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
   imsi64_t imsi64 = INVALID_IMSI64;
+  int rc = RETURNerror;
   amf_context_t* amf_ctxt_p = NULL;
   ue_m5gmm_context_s* ue_context = NULL;
 
@@ -897,8 +898,15 @@ imsi64_t amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
    * Execute the requested new UE registration procedure
    * This will initiate identity req in DL.
    */
-  amf_proc_registration_request(aia->ue_id, is_amf_ctx_new, params);
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, imsi64);
+  rc = amf_proc_registration_request(aia->ue_id, is_amf_ctx_new, params);
+  if (rc == RETURNerror) {
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "processing registration request failed for ue-id "
+                 ": " AMF_UE_NGAP_ID_FMT,
+                 aia->ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+  }
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
 }
 
 int amf_handle_s6a_update_location_ans(
