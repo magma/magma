@@ -89,7 +89,7 @@ class DHCPClient:
         self._monitor_thread_event.set()
 
     def send_dhcp_packet(
-        self, mac: MacAddress, vlan: str,
+        self, mac: MacAddress, vlan: int,
         state: DHCPState,
         dhcp_desc: Optional[DHCPDescriptor] = None,
     ) -> None:
@@ -145,8 +145,8 @@ class DHCPClient:
             self.dhcp_client_state[mac.as_redis_key(vlan)] = dhcp_desc
 
         pkt = Ether(src=str(mac), dst="ff:ff:ff:ff:ff:ff")
-        if vlan and vlan != "0":
-            pkt /= Dot1Q(vlan=int(vlan))
+        if vlan and vlan != 0:
+            pkt /= Dot1Q(vlan=vlan)
         pkt /= IP(src="0.0.0.0", dst="255.255.255.255")
         pkt /= UDP(sport=68, dport=67)
         pkt /= BOOTP(op=1, chaddr=mac.as_hex(), xid=pkt_xid, ciaddr=ciaddr)
@@ -157,7 +157,7 @@ class DHCPClient:
 
     def get_dhcp_desc(
         self, mac: MacAddress,
-        vlan: str,
+        vlan: int,
     ) -> Optional[DHCPDescriptor]:
         """
                 Get DHCP description for given MAC.
@@ -175,7 +175,7 @@ class DHCPClient:
         LOG.debug("lookup error for %s", str(key))
         return None
 
-    def release_ip_address(self, mac: MacAddress, vlan: str):
+    def release_ip_address(self, mac: MacAddress, vlan: int):
         """
                 Release DHCP allocated IP.
         Args:
@@ -249,9 +249,9 @@ class DHCPClient:
         LOG.debug("DHCP pkt recv %s", packet.show(dump=True))
 
         mac_addr = MacAddress(hex_to_mac(packet[BOOTP].chaddr.hex()[0:12]))
-        vlan = ""
+        vlan: int = 0
         if Dot1Q in packet:
-            vlan = str(packet[Dot1Q].vlan)
+            vlan = packet[Dot1Q].vlan
         mac_addr_key = mac_addr.as_redis_key(vlan)
 
         with self._dhcp_notify:

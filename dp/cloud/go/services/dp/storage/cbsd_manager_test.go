@@ -118,6 +118,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 
 		cbsd := getBaseCbsd()
 		cbsd.NetworkId = db.MakeString(someNetwork)
+		cbsd.GrantAttempts = db.MakeInt(0)
 		cbsd.IsDeleted = db.MakeBool(false)
 		cbsd.IsUpdated = db.MakeBool(false)
 		expected := []db.Model{
@@ -173,7 +174,7 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 		actual, err := db.NewQuery().
 			WithBuilder(s.resourceManager.GetBuilder()).
 			From(&storage.DBCbsd{}).
-			Select(db.NewExcludeMask("id", "state_id", "cbsd_id", "is_deleted")).
+			Select(db.NewExcludeMask("id", "state_id", "cbsd_id", "grant_attempts", "is_deleted")).
 			Where(sq.Eq{"id": cbsdId}).
 			Fetch()
 		s.Require().NoError(err)
@@ -339,12 +340,11 @@ func (s *CbsdManagerTestSuite) TestListCbsdFromDifferentNetwork() {
 func (s *CbsdManagerTestSuite) TestListWithPagination() {
 	const count = 4
 	models := make([]db.Model, count)
+	stateId := s.enumMaps[storage.CbsdStateTable]["unregistered"]
 	for i := range models {
-		models[i] = &storage.DBCbsd{
-			Id:        db.MakeInt(int64(i + 1)),
-			NetworkId: db.MakeString(someNetwork),
-			StateId:   db.MakeInt(s.enumMaps[storage.CbsdStateTable]["unregistered"]),
-		}
+		cbsd := getCbsd(someNetwork, stateId)
+		cbsd.Id = db.MakeInt(int64(i + 1))
+		models[i] = cbsd
 	}
 	err := s.resourceManager.InsertResources(db.NewExcludeMask(), models...)
 	s.Require().NoError(err)
@@ -364,7 +364,7 @@ func (s *CbsdManagerTestSuite) TestListWithPagination() {
 	}
 	for i := range expected.Cbsds {
 		expected.Cbsds[i] = &storage.DetailedCbsd{
-			Cbsd:       &storage.DBCbsd{Id: db.MakeInt(int64(i + 1 + offset))},
+			Cbsd:       getDetailedCbsd(int64(i + 1 + offset)),
 			CbsdState:  &storage.DBCbsdState{Name: db.MakeString("unregistered")},
 			Grant:      &storage.DBGrant{},
 			GrantState: &storage.DBGrantState{},
@@ -493,6 +493,8 @@ func getBaseCbsd() *storage.DBCbsd {
 	base.UserId = db.MakeString("some_user_id")
 	base.FccId = db.MakeString("some_fcc_id")
 	base.CbsdSerialNumber = db.MakeString("some_serial_number")
+	base.PreferredBandwidthMHz = db.MakeInt(20)
+	base.PreferredFrequenciesMHz = db.MakeString("[3600]")
 	base.MinPower = db.MakeFloat(10)
 	base.MaxPower = db.MakeFloat(20)
 	base.AntennaGain = db.MakeFloat(15)

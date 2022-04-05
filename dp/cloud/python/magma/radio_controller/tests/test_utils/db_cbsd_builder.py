@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
+from typing import List
 
 from magma.db_service.models import (
     DBActiveModeConfig,
@@ -57,11 +58,20 @@ class DBCbsdBuilder:
         self.cbsd.last_seen = datetime.fromtimestamp(last_seen)
         return self
 
+    def with_grant_attempts(self, grant_attempts: int) -> DBCbsdBuilder:
+        self.cbsd.grant_attempts = grant_attempts
+        return self
+
     def with_active_mode_config(self, desired_state_id: int) -> DBCbsdBuilder:
         config = DBActiveModeConfig(
             desired_state_id=desired_state_id,
         )
         self.cbsd.active_mode_config.append(config)
+        return self
+
+    def with_preferences(self, bandwidth_mhz: int, frequencies_mhz: List[int]) -> DBCbsdBuilder:
+        self.cbsd.preferred_bandwidth_mhz = bandwidth_mhz
+        self.cbsd.preferred_frequencies_mhz = frequencies_mhz
         return self
 
     def with_grant(

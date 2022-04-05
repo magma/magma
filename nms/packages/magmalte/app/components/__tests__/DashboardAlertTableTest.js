@@ -51,7 +51,7 @@ const mockAlertSt: Array<prom_firing_alert> = [
       alertname: 'TestAlert1',
       instance: '192.168.0.124:2112',
       job: 'myapp',
-      monitor: 'master',
+      monitor: 'host',
       networkID: 'test',
       severity: 'critical',
     },
@@ -73,7 +73,7 @@ const mockAlertSt: Array<prom_firing_alert> = [
       alertname: 'TestAlert2',
       instance: '192.168.0.124:2112',
       job: 'myapp',
-      monitor: 'master',
+      monitor: 'host',
       networkID: 'test',
       severity: 'major',
     },
@@ -95,7 +95,7 @@ const mockAlertSt: Array<prom_firing_alert> = [
       alertname: 'TestAlert3',
       instance: '192.168.0.124:2112',
       job: 'myapp',
-      monitor: 'master',
+      monitor: 'host',
       networkID: 'test',
       severity: 'minor',
     },
@@ -117,7 +117,7 @@ const mockAlertSt: Array<prom_firing_alert> = [
       alertname: 'TestAlert4',
       instance: '192.168.0.124:2112',
       job: 'myapp',
-      monitor: 'master',
+      monitor: 'host',
       networkID: 'test',
       severity: 'normal',
     },
@@ -126,7 +126,7 @@ const mockAlertSt: Array<prom_firing_alert> = [
 
 jest.mock('axios');
 jest.mock('../../../generated/MagmaAPIBindings');
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
+jest.mock('../../../fbc_js_core/ui/hooks/useSnackbar');
 
 describe('<DashboardAlertTable />', () => {
   beforeEach(() => {

@@ -59,6 +59,17 @@ jobs:
     name: Bazel Build Job `bazel build //...`
     runs-on: ubuntu-latest
     steps:
+      - name: Maximize build space
+        shell: bash
+        run: |
+          echo "Available storage before:"
+          df -h
+          echo "Removing /usr/share/dotnet, /usr/local/lib/android, /opt/ghc"
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          echo "Available storage after:"
+          df -h
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
         uses: actions/checkout@v2
@@ -105,14 +116,15 @@ jobs:
         run: |
           ./.github/workflows/check-bazel-cache-dir-size.sh "$BAZEL_CACHE_REPO_DIR" "$BAZEL_CACHE_REPO_CUTOFF_MB"
       - name: Setup Devcontainer Image
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
+          options: --pull always
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
             echo "Pulled the devontainer image!"
       - name: Run `bazel build //...`
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -120,6 +132,11 @@ jobs:
           run: |
             cd /workspaces/magma
             bazel build //...
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h
 
   bazel_test:
     needs: path_filter
@@ -131,6 +148,17 @@ jobs:
     name: Bazel Test Job `bazel test //...`
     runs-on: ubuntu-latest
     steps:
+      - name: Maximize build space
+        shell: bash
+        run: |
+          echo "Available storage before:"
+          df -h
+          echo "Removing /usr/share/dotnet, /usr/local/lib/android, /opt/ghc"
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          echo "Available storage after:"
+          df -h
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
         uses: actions/checkout@v2
@@ -168,14 +196,15 @@ jobs:
           ./.github/workflows/check-bazel-cache-dir-size.sh "$BAZEL_CACHE_DIR" "$BAZEL_CACHE_CUTOFF_MB"
       # Letting the Build job above handle cache clean up for bazel-cache-repo
       - name: Setup Devcontainer Image
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
+          options: --pull always
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
             echo "Pulled the devontainer image!"
       - name: Run `bazel test //...`
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -183,3 +212,17 @@ jobs:
           run: |
             cd /workspaces/magma
             bazel test //... --test_output=errors --cache_test_results=no
+      - name: Run `bazel run //:check_starlark_format`
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/
+          run: |
+            cd /workspaces/magma
+            bazel run //:check_starlark_format
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h

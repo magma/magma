@@ -60,13 +60,10 @@ def lte_integ_test(args):
     report = url_to_html_redirect(args.run_id, args.url)
     # Possible args.verdict values are success, failure, or canceled
     verdict = 'inconclusive'
-
-    # As per the recent change, CI process runs all integ tests ignoring the
-    # failing test cases, because of which CI report always shows lte integ
-    # test as success. Here we read the CI status from file for more accurate
-    # lte integ test execution status
-    with open('test_status.txt', 'r') as file:
-        verdict = file.read().rstrip()
+    if args.verdict.lower() == 'success':
+        verdict = 'pass'
+    elif args.verdict.lower() == 'failure':
+        verdict = 'fail'
     publish_report('lte_integ_test', args.build_id, verdict, report)
 
 

@@ -10,7 +10,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+import importlib
+import logging
 import os
 
 from magma.db_service import config as conf
@@ -26,11 +27,23 @@ class Config(object):
     # gRPC
     GRPC_PORT = int(os.environ.get('GRPC_PORT', 50053))
 
-    # SQLAlchemy DB URI (scheme + url)
+    # SQLAlchemy
     SQLALCHEMY_DB_URI = conf.Config().SQLALCHEMY_DB_URI
     SQLALCHEMY_DB_ENCODING = conf.Config().SQLALCHEMY_DB_ENCODING
     SQLALCHEMY_ECHO = conf.Config().SQLALCHEMY_ECHO
     SQLALCHEMY_FUTURE = conf.Config().SQLALCHEMY_FUTURE
+    SQLALCHEMY_ENGINE_POOL_SIZE = int(
+        os.environ.get(
+            'SQLALCHEMY_ENGINE_POOL_SIZE',
+            conf.Config().SQLALCHEMY_ENGINE_POOL_SIZE,
+        ),
+    )
+    SQLALCHEMY_ENGINE_MAX_OVERFLOW = int(
+        os.environ.get(
+            'SQLALCHEMY_ENGINE_MAX_OVERFLOW',
+            conf.Config().SQLALCHEMY_ENGINE_MAX_OVERFLOW,
+        ),
+    )
 
 
 class DevelopmentConfig(Config):
@@ -55,3 +68,19 @@ class ProductionConfig(Config):
     """
 
     pass  # noqa: WPS604
+
+
+def get_config() -> Config:
+    """
+    Get Configuration object for radio controller
+    """
+    app_config = os.environ.get('APP_CONFIG', 'ProductionConfig')
+    config_module = importlib.import_module(
+        '.'.join(
+            f"magma.radio_controller.config.{app_config}".split('.')[:-1],
+        ),
+    )
+    config_class = getattr(config_module, app_config.split('.')[-1])
+    logging.info(str(config_class))
+
+    return config_class()

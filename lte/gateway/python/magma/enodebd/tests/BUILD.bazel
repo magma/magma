@@ -20,6 +20,7 @@ LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 pytest_test(
     name = "baicells_old_tests",
+    size = "small",
     srcs = ["baicells_old_tests.py"],
     imports = [
         LTE_ROOT,
@@ -35,6 +36,7 @@ pytest_test(
 
 pytest_test(
     name = "baicells_qafb_tests",
+    size = "small",
     srcs = ["baicells_qafb_tests.py"],
     imports = [
         LTE_ROOT,
@@ -50,6 +52,7 @@ pytest_test(
 
 pytest_test(
     name = "baicells_qrtb_tests",
+    size = "small",
     srcs = ["baicells_qrtb_tests.py"],
     imports = [
         LTE_ROOT,
@@ -68,6 +71,7 @@ pytest_test(
 
 pytest_test(
     name = "baicells_tests",
+    size = "small",
     srcs = ["baicells_tests.py"],
     imports = [
         LTE_ROOT,
@@ -84,6 +88,7 @@ pytest_test(
 
 pytest_test(
     name = "cavium_tests",
+    size = "small",
     srcs = ["cavium_tests.py"],
     imports = [
         LTE_ROOT,
@@ -100,6 +105,7 @@ pytest_test(
 
 pytest_test(
     name = "configuration_init_tests",
+    size = "small",
     srcs = ["configuration_init_tests.py"],
     imports = [
         LTE_ROOT,
@@ -115,6 +121,7 @@ pytest_test(
 
 pytest_test(
     name = "data_model_tests",
+    size = "small",
     srcs = ["data_model_tests.py"],
     imports = [
         LTE_ROOT,
@@ -128,6 +135,7 @@ pytest_test(
 
 pytest_test(
     name = "device_utils_tests",
+    size = "small",
     srcs = ["device_utils_tests.py"],
     imports = [LTE_ROOT],
     deps = [
@@ -138,6 +146,7 @@ pytest_test(
 
 pytest_test(
     name = "enb_acs_manager_tests",
+    size = "small",
     srcs = ["enb_acs_manager_tests.py"],
     imports = [
         LTE_ROOT,
@@ -153,6 +162,7 @@ pytest_test(
 
 pytest_test(
     name = "enodeb_acs_states_tests",
+    size = "small",
     srcs = ["enodeb_acs_states_tests.py"],
     imports = [
         LTE_ROOT,
@@ -169,6 +179,7 @@ pytest_test(
 
 pytest_test(
     name = "enodeb_configuration_tests",
+    size = "small",
     srcs = ["enodeb_configuration_tests.py"],
     imports = [
         LTE_ROOT,
@@ -183,6 +194,7 @@ pytest_test(
 
 pytest_test(
     name = "enodeb_status_tests",
+    size = "small",
     srcs = ["enodeb_status_tests.py"],
     imports = [
         LTE_ROOT,
@@ -200,6 +212,7 @@ pytest_test(
 
 pytest_test(
     name = "freedomfi_one_tests",
+    size = "small",
     srcs = ["freedomfi_one_tests.py"],
     imports = [
         LTE_ROOT,
@@ -225,6 +238,7 @@ pytest_test(
 
 pytest_test(
     name = "get_params_tests",
+    size = "small",
     srcs = ["get_params_tests.py"],
     imports = [
         LTE_ROOT,
@@ -242,6 +256,7 @@ pytest_test(
 
 pytest_test(
     name = "spyne_mods_tests",
+    size = "small",
     srcs = ["spyne_mods_tests.py"],
     imports = [LTE_ROOT],
     deps = ["//lte/gateway/python/magma/enodebd/tr069:models"],
@@ -249,6 +264,7 @@ pytest_test(
 
 pytest_test(
     name = "stats_manager_tests",
+    size = "small",
     srcs = ["stats_manager_tests.py"],
     data = ["pm_file_example.xml"],
     imports = [
@@ -268,6 +284,7 @@ pytest_test(
 
 pytest_test(
     name = "timer_tests",
+    size = "small",
     srcs = ["timer_tests.py"],
     imports = [LTE_ROOT],
     deps = ["//lte/gateway/python/magma/enodebd/state_machines:timer"],
@@ -275,6 +292,7 @@ pytest_test(
 
 pytest_test(
     name = "tr069_tests",
+    size = "small",
     srcs = ["tr069_tests.py"],
     imports = [
         LTE_ROOT,
@@ -289,6 +307,7 @@ pytest_test(
 
 pytest_test(
     name = "transform_for_enb_tests",
+    size = "small",
     srcs = ["transform_for_enb_tests.py"],
     imports = [LTE_ROOT],
     deps = ["//lte/gateway/python/magma/enodebd/data_models:transform_for"],
@@ -296,6 +315,7 @@ pytest_test(
 
 pytest_test(
     name = "transform_for_magma_tests",
+    size = "small",
     srcs = ["transform_for_magma_tests.py"],
     imports = [LTE_ROOT],
     deps = ["//lte/gateway/python/magma/enodebd/data_models:transform_for"],

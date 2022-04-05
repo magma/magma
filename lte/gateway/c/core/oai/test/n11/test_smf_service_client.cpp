@@ -20,6 +20,7 @@
 using ::testing::Test;
 
 struct mme_config_s mme_config;
+task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 namespace magma {
 namespace lte {
@@ -84,11 +85,6 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
   uint8_t* pti_decoded = (uint8_t*)rat_req->procedure_trans_identity().c_str();
   EXPECT_EQ(pti, *pti_decoded);
   EXPECT_EQ(ue_ipv4_addr, req_cmn->ue_ipv4());
-}
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
 }  // namespace lte
 }  // namespace magma

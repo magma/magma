@@ -39,18 +39,11 @@
 #include <inttypes.h>
 #include <pthread.h>
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
-#if TRACE_HASHTABLE
-#define PRINT_HASHTABLE(hTbLe, ...)                                \
-  do {                                                             \
-    if (hTbLe->log_enabled) OAILOG_TRACE(LOG_UTIL, ##__VA_ARGS__); \
-  } while (0)
-#else
 #define PRINT_HASHTABLE(...)
-#endif
 
 //------------------------------------------------------------------------------
 /*

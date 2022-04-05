@@ -180,6 +180,21 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
 
+    def test_get_state_with_frequency_preferences(self):
+        cbsd = self._prepare_base_cbsd(). \
+            with_preferences(15, [3600, 3580, 3620]). \
+            build()
+        self.session.add(cbsd)
+        self.session.commit()
+
+        config = self._prepare_base_active_mode_config(). \
+            with_preferences(15, [3600, 3580, 3620]). \
+            build()
+
+        expected = State(cbsds=[config])
+        actual = self.amc_service.GetState(GetStateRequest(), None)
+        self.assertEqual(actual, expected)
+
     def test_get_state_with_grants(self):
         cbsd = self._prepare_base_cbsd(). \
             with_grant("idle_grant", self.idle, 1, 2). \
@@ -254,6 +269,21 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
 
         config = self._prepare_base_active_mode_config(). \
             with_last_seen(1). \
+            build()
+        expected = State(cbsds=[config])
+
+        actual = self.amc_service.GetState(GetStateRequest(), None)
+        self.assertEqual(expected, actual)
+
+    def test_get_state_with_grant_attempts(self):
+        cbsd = self._prepare_base_cbsd(). \
+            with_grant_attempts(1). \
+            build()
+        self.session.add(cbsd)
+        self.session.commit()
+
+        config = self._prepare_base_active_mode_config(). \
+            with_grant_attempts(1). \
             build()
         expected = State(cbsds=[config])
 

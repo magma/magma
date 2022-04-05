@@ -29,7 +29,7 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #endif
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/s1ap_state.h"
 #include "lte/gateway/c/core/oai/include/s1ap_types.h"
 
@@ -46,17 +46,6 @@ status_code_e s1ap_mme_init(const mme_config_t* mme_config);
 /** \brief S1AP layer top exit
  **/
 void s1ap_mme_exit(void);
-
-/** \brief Dump eNB related information.
- * Calls dump_ue for each UE in list
- * \param enb_ref eNB structure reference to dump
- **/
-void s1ap_dump_enb(const enb_description_t* enb_ref);
-
-/** \brief Dump UE related information.
- * \param ue_ref ue structure reference to dump
- **/
-void s1ap_dump_ue(const ue_description_t* ue_ref);
 
 /** \brief Allocate and add to the list a new eNB descriptor
  * @returns Reference to the new eNB element in list

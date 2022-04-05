@@ -21,12 +21,10 @@ type PaginatedCbsds struct {
 
 	// cbsds
 	// Required: true
-	// Read Only: true
 	Cbsds []*Cbsd `json:"cbsds"`
 
 	// Total number of cbsds
 	// Required: true
-	// Read Only: true
 	TotalCount int64 `json:"total_count"`
 }
 

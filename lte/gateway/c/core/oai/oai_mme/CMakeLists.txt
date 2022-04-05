@@ -1,10 +1,5 @@
 # Override options for MME
 set(BYTE_ORDER=LITTLE_ENDIAN)
-set(S1AP_DEBUG_LIST False)
-set(SCTP_DUMP_LIST False)
-set(TRACE_HASHTABLE False)
-set(TRACE_3GPP_SPEC False)
-
 
 # Dependencies
 pkg_search_module(LIBXML2 libxml-2.0 REQUIRED)
@@ -44,10 +39,12 @@ generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
 
 find_package(MAGMA_LOGGING REQUIRED)
 find_package(MAGMA_SENTRY REQUIRED)
+find_package(LTE_GATEWAY_C_COMMON REQUIRED)
 
 target_link_libraries(mme
     -Wl,--start-group
     COMMON
+    LTE_GATEWAY_C_COMMON
     MAGMA_LOGGING MAGMA_SENTRY
     LIB_3GPP LIB_S1AP LIB_NGAP LIB_SECU LIB_DIRECTORYD LIB_SGS_CLIENT LIB_BSTR
     LIB_HASHTABLE LIB_S6A_PROXY

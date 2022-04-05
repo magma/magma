@@ -994,13 +994,13 @@ paths:
       - $ref: '#/parameters/network_id'
       - $ref: '#/parameters/offset'
       - $ref: '#/parameters/limit'
-      - description: start datetime of messages
+      - description: start datetime of log
         format: date-time
         in: query
         name: begin
         required: false
         type: string
-      - description: end datatime of messages
+      - description: end datatime of log
         format: date-time
         in: query
         name: end
@@ -1020,7 +1020,7 @@ paths:
         name: fcc_id
         required: false
         type: string
-      - description: message type
+      - description: log type
         in: query
         name: type
         required: false
@@ -1030,7 +1030,7 @@ paths:
         name: response_code
         required: false
         type: integer
-      - description: message origin
+      - description: log origin
         enum:
         - SAS
         - DP
@@ -1039,7 +1039,7 @@ paths:
         name: from
         required: false
         type: string
-      - description: message destination
+      - description: log destination
         enum:
         - SAS
         - DP
@@ -1050,14 +1050,14 @@ paths:
         type: string
       responses:
         "200":
-          description: Messages between DP and SAS
+          description: logs between DP and SAS
           schema:
             items:
-              $ref: '#/definitions/message'
+              $ref: '#/definitions/log'
             type: array
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: List messages between DP and SAS ordered by time
+      summary: List logs between DP and SAS ordered by time
       tags:
       - logs
   /events/{network_id}:
@@ -6841,12 +6841,14 @@ definitions:
         example: 2
         minimum: 1
         type: integer
+        x-nullable: false
     required:
     - antenna_gain
     - min_power
     - max_power
     - number_of_antennas
     type: object
+    x-nullable: false
   carrier_wifi_gateway_health_status:
     description: Health status of a Carrier Wifi Gateway
     properties:
@@ -6890,45 +6892,52 @@ definitions:
       cbsd_id:
         description: id of cbsd in SAS
         example: some_cbsd_id
-        readOnly: true
         type: string
+        x-nullable: false
       fcc_id:
         example: some_fcc_id
         minLength: 1
         type: string
+        x-nullable: false
+      frequency_preferences:
+        $ref: '#/definitions/frequency_preferences'
       grant:
         $ref: '#/definitions/grant'
+        x-nullable: false
       id:
         description: database id of cbsd
-        readOnly: true
         type: integer
+        x-nullable: false
       is_active:
-        description: false if cbsd have not contcated DP for certain amount of time
-        readOnly: true
+        description: false if cbsd have not contacted DP for certain amount of time
         type: boolean
+        x-nullable: false
       serial_number:
         example: some_serial_number
         minLength: 1
         type: string
+        x-nullable: false
       state:
         description: state of cbsd in SAS
         enum:
         - unregistered
         - registered
-        readOnly: true
         type: string
+        x-nullable: false
       user_id:
         example: some_user_id
         minLength: 1
         type: string
+        x-nullable: false
     required:
-    - fcc_id
-    - serial_number
-    - user_id
     - capabilities
-    - is_active
+    - fcc_id
+    - frequency_preferences
     - id
+    - is_active
+    - serial_number
     - state
+    - user_id
     type: object
   cellular_gateway_pool:
     description: Highly available gateway pool in an LTE network
@@ -7940,6 +7949,30 @@ definitions:
     - max_req_bw_ul
     - max_req_bw_dl
     type: object
+  frequency_preferences:
+    properties:
+      bandwidth_mhz:
+        description: preferred bandwidth of sas channel
+        enum:
+        - 5
+        - 10
+        - 15
+        - 20
+        type: integer
+        x-nullable: false
+      frequencies_mhz:
+        description: list of preferred frequencies (midpoints) of sas channels
+        items:
+          maximum: 3695
+          minimum: 3555
+          multipleOf: 5
+          type: integer
+        type: array
+    required:
+    - bandwidth_mhz
+    - frequencies_mhz
+    type: object
+    x-nullable: false
   gateway_cellular_configs:
     description: Cellular configuration for LTE gateway
     properties:
@@ -8488,11 +8521,13 @@ definitions:
       bandwidth_mhz:
         example: 20
         type: integer
+        x-nullable: false
       frequency_mhz:
         example: 3600
         maximum: 3700
         minimum: 3550
         type: integer
+        x-nullable: false
       grant_expire_time:
         format: date-time
         type: string
@@ -8500,15 +8535,21 @@ definitions:
         maximum: 37
         minimum: -137
         type: number
+        x-nullable: false
       state:
         enum:
         - granted
         - guthorized
         type: string
+        x-nullable: false
       transmit_expire_time:
         format: date-time
         type: string
-    readOnly: true
+    required:
+    - bandwidth_mhz
+    - frequency_mhz
+    - max_eirp
+    - state
   gx:
     description: gx configuration
     properties:
@@ -8747,6 +8788,57 @@ definitions:
     - macs
     - ips
     type: object
+  log:
+    properties:
+      body:
+        description: Body of log
+        example: '{[{"registrationRequest":{"cbsdSerialNumber":"some_serial_number"}}]}'
+        type: string
+        x-nullable: false
+      fcc_id:
+        description: Fcc Id of cbsd involved in log
+        example: some_fcc_id
+        type: string
+        x-nullable: false
+      from:
+        description: log origin
+        enum:
+        - SAS
+        - DP
+        - CBSD
+        type: string
+        x-nullable: false
+      serial_number:
+        description: Serial number of cbsd involved in log
+        example: some_serial_number
+        type: string
+        x-nullable: false
+      time:
+        description: Datetime of log
+        format: date-time
+        type: string
+        x-nullable: false
+      to:
+        description: log destination
+        enum:
+        - SAS
+        - DP
+        - CBSD
+        type: string
+        x-nullable: false
+      type:
+        description: Type of log
+        type: string
+        x-nullable: false
+    required:
+    - body
+    - fcc_id
+    - serial_number
+    - time
+    - type
+    - from
+    - to
+    type: object
   lte_gateway:
     description: Full description of an LTE gateway
     properties:
@@ -8955,49 +9047,6 @@ definitions:
     - name
     - value
     type: object
-  message:
-    properties:
-      body:
-        description: Body of message
-        example: '{[{"registrationRequest":{"cbsdSerialNumber":"some_serial_number"}}]}'
-        readOnly: true
-        type: string
-      fcc_id:
-        description: Fcc Id of cbsd involved in message
-        example: some_fcc_id
-        readOnly: true
-        type: string
-      from:
-        description: message origin
-        enum:
-        - SAS
-        - DP
-        - CBSD
-        readOnly: true
-        type: string
-      serial_number:
-        description: Serial number of cbsd involved in message
-        example: some_serial_number
-        readOnly: true
-        type: string
-      time:
-        description: Datetime of message
-        format: date-time
-        readOnly: true
-        type: string
-      to:
-        description: message destination
-        enum:
-        - SAS
-        - DP
-        - CBSD
-        readOnly: true
-        type: string
-      type:
-        description: Type of message
-        readOnly: true
-        type: string
-    type: object
   metric_datapoint:
     example:
     - 1.548439790115e+09
@@ -9070,19 +9119,25 @@ definitions:
         example: some_fcc_id
         minLength: 1
         type: string
+        x-nullable: false
+      frequency_preferences:
+        $ref: '#/definitions/frequency_preferences'
       serial_number:
         example: some_serial_number
         minLength: 1
         type: string
+        x-nullable: false
       user_id:
         example: some_user_id
         minLength: 1
         type: string
+        x-nullable: false
     required:
+    - capabilities
     - fcc_id
+    - frequency_preferences
     - serial_number
     - user_id
-    - capabilities
     type: object
   mutable_cellular_gateway_pool:
     description: Mutable version of the cellular gateway pool
@@ -9923,13 +9978,12 @@ definitions:
       cbsds:
         items:
           $ref: '#/definitions/cbsd'
-        readOnly: true
         type: array
       total_count:
         description: Total number of cbsds
         example: 10
-        readOnly: true
         type: integer
+        x-nullable: false
     required:
     - cbsds
     - total_count
@@ -9975,6 +10029,22 @@ definitions:
     - gateways
     - total_count
     type: object
+  paginated_logs:
+    description: Page of logs
+    properties:
+      logs:
+        items:
+          $ref: '#/definitions/log'
+        readOnly: true
+        type: array
+      total_count:
+        description: Total number of logs
+        example: 10
+        readOnly: true
+        type: integer
+    required:
+    - logs
+    - total_count
   paginated_subscriber_ids:
     description: Page of subscriber IDs
     properties:

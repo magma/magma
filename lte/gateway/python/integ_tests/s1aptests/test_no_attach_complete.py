@@ -13,7 +13,6 @@ limitations under the License.
 
 import unittest
 
-import orc8r.protos.metricsd_pb2 as metricsd
 import s1ap_types
 import s1ap_wrapper
 from python.integ_tests.common.service303_utils import (
@@ -28,46 +27,46 @@ from python.integ_tests.common.service303_utils import (
 # triggers UE context release command.
 
 
-class NoAttachComplete(unittest.TestCase):
+class TestNoAttachComplete(unittest.TestCase):
 
     TEST_METRICS = [
         MetricValue(
             service="mme",
-            name=str(metricsd.ue_attach),
+            name="ue_attach",
             labels={
-                str(metricsd.result): "failure",
-                str(metricsd.cause): "no_response_for_attach_accept",
+                "result": "failure",
+                "cause": "no_response_for_attach_accept",
             },
             value=1,
         ),
         MetricValue(
             service="mme",
-            name=str(metricsd.ue_attach),
-            labels={str(metricsd.action): "attach_accept_sent"},
+            name="ue_attach",
+            labels={"action": "attach_accept_sent"},
             value=1,
         ),
         MetricValue(
             service="mme",
-            name=str(metricsd.ue_detach),
-            labels={str(metricsd.cause): "implicit_detach"},
+            name="ue_detach",
+            labels={"cause": "implicit_detach"},
             value=1,
         ),
         MetricValue(
             service="mme",
-            name=str(metricsd.nas_attach_accept_timer_expired),
+            name="nas_attach_accept_timer_expired",
             labels={},
             value=1,
         ),
         MetricValue(
             service="mme",
-            name=str(metricsd.mme_spgw_create_session_req),
+            name="mme_spgw_create_session_req",
             labels={},
             value=1,
         ),
         MetricValue(
             service="mme",
-            name=str(metricsd.mme_spgw_create_session_rsp),
-            labels={str(metricsd.result): "success"},
+            name="mme_spgw_create_session_rsp",
+            labels={"result": "success"},
             value=1,
         ),
     ]

@@ -16,7 +16,7 @@
 
 import React from 'react';
 
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../fbc_js_core/ui/components/LoadingFiller';
 
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';

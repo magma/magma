@@ -17,32 +17,32 @@
 #include <pthread.h>
 #include <netinet/in.h>
 
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_decoder.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_nas_procedures.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_itti_messaging.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/include/amf_config.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "Ngap_TimeToWait.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/amf_default_values.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
-#include "Ngap_TimeToWait.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_decoder.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_itti_messaging.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 
 #include "asn_internal.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/amf_default_values.h"
+#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
-#include "lte/gateway/c/core/oai/common/amf_default_values.h"
 
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
@@ -119,6 +119,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       // Free received PDU array
       bdestroy_wrapper(&SCTP_DATA_IND(received_message_p).payload);
 
+    } break;
+
+    // SCTP layer notifies NGAP of disconnection of a peer.
+    case SCTP_CLOSE_ASSOCIATION: {
+      is_ue_state_same = true;
+      ngap_handle_sctp_disconnection(
+          state, SCTP_CLOSE_ASSOCIATION(received_message_p).assoc_id,
+          SCTP_CLOSE_ASSOCIATION(received_message_p).reset);
     } break;
 
     case SCTP_NEW_ASSOCIATION: {
@@ -220,7 +228,9 @@ static void* ngap_amf_thread(__attribute__((unused)) void* args) {
   }
   zloop_start(ngap_task_zmq_ctx.event_loop);
   AssertFatal(0,
-              "Asserting as ngap_amf_thread should not be exiting on its own!");
+              "Asserting as ngap_amg_thread should not be exiting on its own! "
+              "This is likely due to a timer handler function returning -1 "
+              "(RETURNerror) on one of the conditions.");
   return NULL;
 }
 

@@ -59,8 +59,8 @@ import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import Text from '@fbcnms/ui/components/design-system/Text';
-import nullthrows from '@fbcnms/util/nullthrows';
+import Text from '../../../fbc_js_core/ui/components/design-system/Text';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 
 import {AltFormField} from '../../components/FormField';
 import {
@@ -72,8 +72,8 @@ import {
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const GATEWAY_TITLE = 'Gateway';
 const RAN_TITLE = 'Ran';
@@ -679,6 +679,18 @@ export function EPCEdit(props: Props) {
               fullWidth={true}
               value={EPCConfig.ip_block}
               onChange={({target}) => handleEPCChange('ip_block', target.value)}
+            />
+          </AltFormField>
+          <AltFormField label={'IPv6 Block'}>
+            <OutlinedInput
+              data-testid="ipv6Block"
+              placeholder="fdee:5:6c::/48"
+              type="string"
+              fullWidth={true}
+              value={EPCConfig.ipv6_block}
+              onChange={({target}) =>
+                handleEPCChange('ipv6_block', target.value)
+              }
             />
           </AltFormField>
           <AltFormField label={'DNS Primary'}>

@@ -110,7 +110,7 @@ proto_library(
         ":apn_proto",
         "//orc8r/protos:common_proto",
         "//orc8r/protos:digest_proto",
-        "@protobuf//:field_mask_proto",
+        "@com_google_protobuf//:field_mask_proto",
     ],
 )
 
@@ -247,7 +247,7 @@ proto_library(
         ":policydb_proto",
         ":subscriberdb_proto",
         "//orc8r/protos:common_proto",
-        "@protobuf//:timestamp_proto",
+        "@com_google_protobuf//:timestamp_proto",
     ],
 )
 
@@ -357,6 +357,11 @@ cpp_grpc_library(
 proto_library(
     name = "diam_errors_proto",
     srcs = ["diam_errors.proto"],
+)
+
+python_proto_library(
+    name = "diam_errors_python_proto",
+    protos = [":diam_errors_proto"],
 )
 
 cpp_proto_library(
@@ -504,8 +509,8 @@ proto_library(
         "//orc8r/protos:common_proto",
         "//orc8r/protos:digest_proto",
         "//orc8r/protos:service303_proto",
-        "@protobuf//:field_mask_proto",
-        "@protobuf//:timestamp_proto",
+        "@com_google_protobuf//:field_mask_proto",
+        "@com_google_protobuf//:timestamp_proto",
     ],
 )
 

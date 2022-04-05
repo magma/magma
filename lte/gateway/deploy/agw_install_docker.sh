@@ -29,13 +29,6 @@ if ! grep -q 'Ubuntu' /etc/issue; then
   exit 1
 fi
 
-echo "Making sure $MAGMA_USER user is sudoers"
-if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
-  apt install -y sudo
-  adduser --disabled-password --gecos "" $MAGMA_USER
-  adduser $MAGMA_USER sudo
-  echo "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-fi
 
 ROOTCA="/var/opt/magma/certs/rootCA.pem"
 if [ ! -f "$ROOTCA" ]; then
@@ -43,9 +36,45 @@ if [ ! -f "$ROOTCA" ]; then
   exit 1
 fi
 
+# Update DNS resolvers
+ln -sf /var/run/systemd/resolve/resolv.conf /etc/resolv.conf
+sed -i 's/#DNS=/DNS=8.8.8.8 208.67.222.222/' /etc/systemd/resolved.conf
+service systemd-resolved restart
+
+echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+
+cat > /etc/apt/apt.conf.d/20auto-upgrades << EOF
+APT::Periodic::Update-Package-Lists "0";
+APT::Periodic::Download-Upgradeable-Packages "0";
+APT::Periodic::AutocleanInterval "0";
+APT::Periodic::Unattended-Upgrade "0";
+EOF
+
+apt purge --auto-remove unattended-upgrades -y
+apt-mark hold "$(uname -r)" linux-aws linux-headers-aws linux-image-aws
+
+
+# interface config
+INTERFACE_DIR="/etc/network/interfaces.d"
+mkdir -p "$INTERFACE_DIR"
+echo "source-directory $INTERFACE_DIR" > /etc/network/interfaces
+
+# get rid of netplan
+systemctl unmask networking
+systemctl enable networking
+
 echo "Install Magma"
 apt-get update -y
-apt-get install curl zip python3-pip docker.io -y
+apt-get upgrade -y
+apt-get install curl zip python3-pip docker.io net-tools sudo -y
+
+echo "Making sure $MAGMA_USER user is sudoers"
+if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
+  adduser --disabled-password --gecos "" $MAGMA_USER
+  adduser $MAGMA_USER sudo
+  echo "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+fi
+
 adduser $MAGMA_USER docker
 
 alias python=python3
@@ -56,6 +85,22 @@ git clone "${GIT_URL}" /opt/magma
 cd /opt/magma || exit
 git checkout "$MAGMA_VERSION"
 
+# changing intefaces name
+sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
+sed -i 's/ens5/eth0/g' /etc/netplan/50-cloud-init.yaml
+# changing interface name
+update-grub2
+
+cat > /etc/netplan/70-secondary-itf.yaml << EOF
+network:
+    ethernets:
+        eth1:
+            dhcp4: true
+            dhcp6: false
+    version: 2
+EOF
+
+netplan apply
 
 echo "Generating localhost hostfile for Ansible"
 echo "[agw_docker]
@@ -67,4 +112,5 @@ else
   # install magma and its dependencies including OVS.
   su - $MAGMA_USER -c "sudo ansible-playbook -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags agwc $DEPLOY_PATH/magma_docker.yml"
 fi
-cd /root || exit
+
+reboot

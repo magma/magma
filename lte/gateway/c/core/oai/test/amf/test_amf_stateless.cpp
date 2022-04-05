@@ -33,8 +33,6 @@ using ::testing::Test;
 namespace magma5g {
 
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
-extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
-extern std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*> ue_context_map;
 
 TEST(TestAMFStateConverter, TestGutiToString) {
   guti_m5_t guti1, guti2;
@@ -125,8 +123,8 @@ TEST(TestAMFStateConverter, TestUEm5gmmContextToProto) {
   ue_m5gmm_context_t ue_m5gmm_context1 = {}, ue_m5gmm_context2 = {};
   magma::lte::oai::UeContext ue_context_proto = magma::lte::oai::UeContext();
 
-  ue_m5gmm_context1.ue_context_rel_cause.present = ngap_Cause_PR_NOTHING;
-  ue_m5gmm_context1.ecm_state = M5GCM_CONNECTED;
+  ue_m5gmm_context1.ue_context_rel_cause = NGAP_INVALID_CAUSE;
+  ue_m5gmm_context1.cm_state = M5GCM_CONNECTED;
   ue_m5gmm_context1.mm_state = REGISTERED_IDLE;
 
   ue_m5gmm_context1.sctp_assoc_id_key = 1;
@@ -154,9 +152,9 @@ TEST(TestAMFStateConverter, TestUEm5gmmContextToProto) {
   AmfNasStateConverter::proto_to_ue_m5gmm_context(ue_context_proto,
                                                   &ue_m5gmm_context2);
 
-  EXPECT_EQ(ue_m5gmm_context1.ue_context_rel_cause.present,
-            ue_m5gmm_context2.ue_context_rel_cause.present);
-  EXPECT_EQ(ue_m5gmm_context1.ecm_state, ue_m5gmm_context2.ecm_state);
+  EXPECT_EQ(ue_m5gmm_context1.ue_context_rel_cause,
+            ue_m5gmm_context2.ue_context_rel_cause);
+  EXPECT_EQ(ue_m5gmm_context1.cm_state, ue_m5gmm_context2.cm_state);
   EXPECT_EQ(ue_m5gmm_context1.mm_state, ue_m5gmm_context2.mm_state);
 
   EXPECT_EQ(ue_m5gmm_context1.sctp_assoc_id_key,
@@ -611,13 +609,8 @@ class AMFAppStatelessTest : public ::testing::Test {
     AMFClientServicer::getInstance().map_imsi_ue_proto_str.clear();
   }
 
-  // This Function mocks AMF task restart.
-  void pseudo_amf_restart() {
-    for (auto it = ue_context_map.begin(); it != ue_context_map.end();) {
-      delete it->second;
-      it = ue_context_map.erase(it);
-    }
-    amf_supi_guti_map.clear();
+  // This Function mocks AMF task stop.
+  void pseudo_amf_stop() {
     clear_amf_nas_state();
     clear_amf_config(&amf_config);
     destroy_task_context(&amf_app_task_zmq_ctx);
@@ -674,7 +667,6 @@ class AMFAppStatelessTest : public ::testing::Test {
 TEST_F(AMFAppStatelessTest, TestAfterRegistrationComplete) {
   int rc = RETURNerror;
   amf_ue_ngap_id_t ue_id = 0;
-  amf_supi_guti_map.clear();
 
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
@@ -719,8 +711,6 @@ TEST_F(AMFAppStatelessTest, TestAfterRegistrationComplete) {
   ue_m5gmm_context_t* ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id((amf_ue_ngap_id_t)ue_id);
   ASSERT_NE(ue_context_p, nullptr);
-  EXPECT_EQ(ue_context_map.size(), 1);
-  EXPECT_EQ(amf_supi_guti_map.size(), 1);
 
   map_uint64_ue_context_t* amf_state_ue_id_ht =
       AmfNasStateManager::getInstance().get_ue_state_map();
@@ -734,16 +724,12 @@ TEST_F(AMFAppStatelessTest, TestAfterRegistrationComplete) {
   put_amf_ue_state(amf_app_desc_p, imsi64, false);
   EXPECT_EQ(AMFClientServicer::getInstance().map_imsi_ue_proto_str.size(), 1);
 
-  // Calling pseudo_amf_restart() and SetUp() simulates a service restart.
-  AMFAppStatelessTest::pseudo_amf_restart();
+  // Calling pseudo_amf_stop() and SetUp() simulates a service restart.
+  AMFAppStatelessTest::pseudo_amf_stop();
+  // Check if state data is cleared in AMF after pseudo_amf_stop()
+  EXPECT_TRUE(AmfNasStateManager::getInstance().get_ue_state_map()->isEmpty());
+  EXPECT_EQ(get_amf_nas_state(false), nullptr);
 
-  EXPECT_TRUE(amf_state_ue_id_ht->isEmpty());
-  EXPECT_TRUE(
-      amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.isEmpty());
-
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl.isEmpty());
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.tun11_ue_context_htbl.isEmpty());
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.isEmpty());
   // Internally reads back the state
   AMFAppStatelessTest::SetUp();
   amf_state_ue_id_ht = AmfNasStateManager::getInstance().get_ue_state_map();
@@ -753,8 +739,6 @@ TEST_F(AMFAppStatelessTest, TestAfterRegistrationComplete) {
   EXPECT_EQ(amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl.size(), 1);
   EXPECT_EQ(amf_app_desc_p->amf_ue_contexts.tun11_ue_context_htbl.size(), 1);
   EXPECT_EQ(amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.size(), 1);
-  EXPECT_EQ(ue_context_map.size(), 1);
-  EXPECT_EQ(amf_supi_guti_map.size(), 1);
 
   /* Send uplink nas message for pdu session establishment request from UE */
   rc = send_uplink_nas_pdu_session_establishment_request(
@@ -798,20 +782,31 @@ TEST_F(AMFAppStatelessTest, TestAfterRegistrationComplete) {
       sizeof(ue_initiated_dereg_hexbuf));
 
   EXPECT_EQ(rc, RETURNok);
-  EXPECT_TRUE(AMFClientServicer::getInstance().map_imsi_ue_proto_str.isEmpty());
+
+  // Following cleanup is for ue_context after pseudo restart
+  send_ue_context_release_complete_message(amf_app_desc_p, 1, 1, ue_id);
+
+  // Following clean up is for stored ue_context before restart.
+  delete ue_context_p;
+
+  // TODO : CLEANUP_STATELESS do we need map_imsi_ue_proto_str
+  // EXPECT_TRUE(AMFClientServicer::getInstance().map_imsi_ue_proto_str.isEmpty());
 }
 
 // 2.Stateless triggered after PDU Session Establishment Request
 TEST_F(AMFAppStatelessTest, TestAfterPDUSessionEstReq) {
   int rc = RETURNerror;
   amf_ue_ngap_id_t ue_id = 0;
-  amf_supi_guti_map.clear();
 
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
+
   imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
                                            initial_ue_message_hexbuf,
                                            sizeof(initial_ue_message_hexbuf));
+
+  send_ue_context_release_complete_message(amf_app_desc_p, 1, 1, ue_id);
+
   AMFClientServicer::getInstance().map_table_key_proto_str.clear();
   EXPECT_TRUE(
       AMFClientServicer::getInstance().map_table_key_proto_str.isEmpty());
@@ -855,8 +850,6 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionEstReq) {
   ue_m5gmm_context_t* ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id((amf_ue_ngap_id_t)ue_id);
   ASSERT_NE(ue_context_p, nullptr);
-  EXPECT_EQ(ue_context_map.size(), 1);
-  EXPECT_EQ(amf_supi_guti_map.size(), 1);
 
   map_uint64_ue_context_t* amf_state_ue_id_ht =
       AmfNasStateManager::getInstance().get_ue_state_map();
@@ -871,15 +864,11 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionEstReq) {
   put_amf_ue_state(amf_app_desc_p, imsi64, false);
   EXPECT_EQ(AMFClientServicer::getInstance().map_imsi_ue_proto_str.size(), 1);
 
-  // Calling pseudo_amf_restart() and SetUp() simulates a service restart.
-  AMFAppStatelessTest::pseudo_amf_restart();
-
-  EXPECT_TRUE(amf_state_ue_id_ht->isEmpty());
-  EXPECT_TRUE(
-      amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.isEmpty());
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl.isEmpty());
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.tun11_ue_context_htbl.isEmpty());
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.isEmpty());
+  // Calling pseudo_amf_stop() and SetUp() simulates a service restart.
+  AMFAppStatelessTest::pseudo_amf_stop();
+  // Check if state data is cleared in AMF after pseudo_amf_stop()
+  EXPECT_TRUE(AmfNasStateManager::getInstance().get_ue_state_map()->isEmpty());
+  EXPECT_EQ(get_amf_nas_state(false), nullptr);
 
   // Internally reads back the state
   AMFAppStatelessTest::SetUp();
@@ -891,10 +880,9 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionEstReq) {
   EXPECT_EQ(amf_app_desc_p->amf_ue_contexts.tun11_ue_context_htbl.size(), 1);
   EXPECT_EQ(amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.size(), 1);
 
-  ue_context_p = amf_ue_context_exists_amf_ue_ngap_id((amf_ue_ngap_id_t)ue_id);
-  EXPECT_EQ(ue_context_p->amf_context.smf_ctxt_map.size(), 1);
-  EXPECT_EQ(ue_context_map.size(), 1);
-  EXPECT_EQ(amf_supi_guti_map.size(), 1);
+  ue_m5gmm_context_t* new_ue_context_p =
+      amf_ue_context_exists_amf_ue_ngap_id((amf_ue_ngap_id_t)ue_id);
+  EXPECT_EQ(new_ue_context_p->amf_context.smf_ctxt_map.size(), 1);
 
   /* Send ip address response  from pipelined */
   rc = send_ip_address_response_itti(IPv4);
@@ -932,14 +920,21 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionEstReq) {
       sizeof(ue_initiated_dereg_hexbuf));
 
   EXPECT_EQ(rc, RETURNok);
-  EXPECT_TRUE(AMFClientServicer::getInstance().map_imsi_ue_proto_str.isEmpty());
+
+  // Following cleanup is for ue_context after pseudo restart
+  send_ue_context_release_complete_message(amf_app_desc_p, 1, 1, ue_id);
+
+  // Following clean up is for stored ue_context before restart.
+  delete ue_context_p;
+
+  // TODO : CLEANUP_STATELESS do we need map_imsi_ue_proto_str
+  // EXPECT_TRUE(AMFClientServicer::getInstance().map_imsi_ue_proto_str.isEmpty());
 }
 
 // 3.Stateless triggered after pdu session release complete
 TEST_F(AMFAppStatelessTest, TestAfterPDUSessionReleaseComplete) {
   int rc = RETURNerror;
   amf_ue_ngap_id_t ue_id = 0;
-  amf_supi_guti_map.clear();
 
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
@@ -1017,8 +1012,6 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionReleaseComplete) {
   ue_m5gmm_context_t* ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id((amf_ue_ngap_id_t)ue_id);
   ASSERT_NE(ue_context_p, nullptr);
-  EXPECT_EQ(ue_context_map.size(), 1);
-  EXPECT_EQ(amf_supi_guti_map.size(), 1);
 
   map_uint64_ue_context_t* amf_state_ue_id_ht =
       AmfNasStateManager::getInstance().get_ue_state_map();
@@ -1032,15 +1025,11 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionReleaseComplete) {
   put_amf_ue_state(amf_app_desc_p, imsi64, false);
   EXPECT_EQ(AMFClientServicer::getInstance().map_imsi_ue_proto_str.size(), 1);
 
-  // Calling pseudo_amf_restart() and SetUp() simulates a service restart.
-  AMFAppStatelessTest::pseudo_amf_restart();
-
-  EXPECT_TRUE(amf_state_ue_id_ht->isEmpty());
-  EXPECT_TRUE(
-      amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.isEmpty());
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl.isEmpty());
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.tun11_ue_context_htbl.isEmpty());
-  EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.isEmpty());
+  // Calling pseudo_amf_stop() and SetUp() simulates a service restart.
+  AMFAppStatelessTest::pseudo_amf_stop();
+  // Check if state data is cleared in AMF after pseudo_amf_stop()
+  EXPECT_TRUE(AmfNasStateManager::getInstance().get_ue_state_map()->isEmpty());
+  EXPECT_EQ(get_amf_nas_state(false), nullptr);
 
   // Internally reads back the state
   AMFAppStatelessTest::SetUp();
@@ -1051,8 +1040,6 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionReleaseComplete) {
   EXPECT_EQ(amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl.size(), 1);
   EXPECT_EQ(amf_app_desc_p->amf_ue_contexts.tun11_ue_context_htbl.size(), 1);
   EXPECT_EQ(amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.size(), 1);
-  EXPECT_EQ(ue_context_map.size(), 1);
-  EXPECT_EQ(amf_supi_guti_map.size(), 1);
 
   rc = send_pdu_notification_response();
   EXPECT_EQ(rc, RETURNok);
@@ -1063,6 +1050,14 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionReleaseComplete) {
       sizeof(ue_initiated_dereg_hexbuf));
 
   EXPECT_EQ(rc, RETURNok);
-  EXPECT_TRUE(AMFClientServicer::getInstance().map_imsi_ue_proto_str.isEmpty());
+
+  // Following cleanup is for ue_context after pseudo restart
+  send_ue_context_release_complete_message(amf_app_desc_p, 1, 1, ue_id);
+
+  // Following clean up is for stored ue_context before restart.
+  delete ue_context_p;
+
+  // TODO : CLEANUP_STATELESS do we need map_imsi_ue_proto_str
+  // EXPECT_TRUE(AMFClientServicer::getInstance().map_imsi_ue_proto_str.isEmpty());
 }
 }  // namespace magma5g

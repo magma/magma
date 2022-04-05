@@ -14,7 +14,7 @@
  * @format
  */
 import type {Match} from 'react-router-dom';
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../fbc_js_core/ui/components/Alert/withAlert';
 import type {subscriber} from '../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
@@ -28,11 +28,11 @@ import FormLabel from '@material-ui/core/FormLabel';
 import MagmaV1API from '../../generated/WebClient';
 import React from 'react';
 
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {hexToBase64, isValidHex} from '@fbcnms/util/strings';
+import withAlert from '../../fbc_js_core/ui/components/Alert/withAlert';
+import {hexToBase64, isValidHex} from '../../fbc_js_core/util/strings';
 import {last} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../fbc_js_core/ui/hooks';
 import {useState} from 'react';
 
 const useStyles = makeStyles(() => ({

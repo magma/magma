@@ -16,11 +16,11 @@
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/include/s1ap_state.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
@@ -543,6 +543,7 @@ TEST_F(S1apMmeHandlersTest, HandleUEContextRelease) {
 
 TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnf) {
   ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
+  itti_mme_app_connection_establishment_cnf_t* establishment_cnf_p = NULL;
 
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(2);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
@@ -579,9 +580,52 @@ TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnf) {
 
   // Send UE connection establishment cnf mimicing MME_APP
 
-  ASSERT_EQ(send_conn_establishment_cnf(7, true, true), RETURNok);
+  ASSERT_EQ(send_conn_establishment_cnf(7, false, true, true), RETURNok);
 
   // Freeing pdu and payload data
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
+}
+
+TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnfExtUEAMBR) {
+  ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
+
+  EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(2);
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_s1ap_ue_context_release_req())
+      .Times(0);
+  EXPECT_CALL(*mme_app_handler, nas_proc_dl_transfer_rej()).Times(0);
+
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+
+  S1ap_S1AP_PDU_t pdu_s1;
+  memset(&pdu_s1, 0, sizeof(pdu_s1));
+  ASSERT_EQ(RETURNok, generate_s1_setup_request_pdu(&pdu_s1));
+  ASSERT_EQ(RETURNok,
+            s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
+
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+
+  uint8_t initial_ue_bytes[] = {
+      0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
+      0x00, 0x01, 0x00, 0x1a, 0x00, 0x20, 0x1f, 0x07, 0x41, 0x71, 0x08,
+      0x09, 0x10, 0x10, 0x00, 0x00, 0x00, 0x00, 0x10, 0x02, 0xe0, 0xe0,
+      0x00, 0x04, 0x02, 0x01, 0xd0, 0x11, 0x40, 0x08, 0x04, 0x02, 0x60,
+      0x04, 0x00, 0x02, 0x1c, 0x00, 0x00, 0x43, 0x00, 0x06, 0x00, 0x00,
+      0xf1, 0x10, 0x00, 0x01, 0x00, 0x64, 0x40, 0x08, 0x00, 0x00, 0xf1,
+      0x10, 0x00, 0x00, 0x00, 0xa0, 0x00, 0x86, 0x40, 0x01, 0x30};
+
+  ASSERT_EQ(simulate_pdu_s1_message(initial_ue_bytes, sizeof(initial_ue_bytes),
+                                    state, assoc_id, stream_id),
+            RETURNok);
+
+  handle_mme_ue_id_notification(state, assoc_id);
+
+  ASSERT_EQ(state->mmeid2associd.num_elements, 1);
+
+  // Send UE connection establishment cnf mimicing MME_APP
+
+  ASSERT_EQ(send_conn_establishment_cnf(7, true, true, true), RETURNok);
+
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
 }
 

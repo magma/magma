@@ -125,12 +125,27 @@
     - base
 
 - name: copy docker compose config file
-  shell: cp -r  /opt/magma/lte/gateway/docker/docker-compose.yaml /var/opt/magma/docker/
+  shell: cp -r /opt/magma/lte/gateway/docker/docker-compose.yaml /var/opt/magma/docker/
   tags:
     - agwc
 
 - name: update nat interface
   shell: cp -f /etc/magma/pipelined.yml_prod /etc/magma/pipelined.yml
+  tags:
+    - agwc
+    - base
+
+- name: replace magmad init system
+  ansible.builtin.replace:
+    path: /etc/magma/magma.yml
+    regexp: 'init_system: systemd'
+    replace: 'init_system: docker'
+  tags:
+    - agwc
+    - base
+
+- name: copy the python scripts
+  shell: cp -r /opt/magma/lte/gateway/python/scripts/* /usr/local/bin/
   tags:
     - agwc
     - base

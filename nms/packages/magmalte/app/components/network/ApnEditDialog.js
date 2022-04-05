@@ -19,7 +19,7 @@ import type {
   apn,
 } from '../../../generated/MagmaAPIBindings';
 
-import Button from '@fbcnms/ui/components/design-system/Button';
+import Button from '../../../fbc_js_core/ui/components/design-system/Button';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import {
@@ -32,9 +32,9 @@ import {
   TextField,
 } from '@material-ui/core';
 
-import nullthrows from '@fbcnms/util/nullthrows';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import {useState} from 'react';
 
 import {BITRATE_MULTIPLIER, DATA_PLAN_UNLIMITED_RATES} from './ApnConst';

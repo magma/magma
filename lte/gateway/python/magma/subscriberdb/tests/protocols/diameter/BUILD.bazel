@@ -21,6 +21,7 @@ LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 pytest_test(
     name = "avp_tests",
+    size = "small",
     srcs = ["avp_tests.py"],
     imports = [LTE_ROOT],
     deps = ["//lte/gateway/python/magma/subscriberdb/protocols/diameter"],
@@ -28,6 +29,7 @@ pytest_test(
 
 pytest_test(
     name = "base_application_tests",
+    size = "small",
     srcs = ["base_application_tests.py"],
     imports = [
         LTE_ROOT,
@@ -42,6 +44,7 @@ pytest_test(
 
 pytest_test(
     name = "message_tests",
+    size = "small",
     srcs = ["message_tests.py"],
     imports = [LTE_ROOT],
     deps = ["//lte/gateway/python/magma/subscriberdb/protocols/diameter"],
@@ -49,6 +52,7 @@ pytest_test(
 
 pytest_test(
     name = "s6a_application_tests",
+    size = "small",
     srcs = ["s6a_application_tests.py"],
     imports = [
         LTE_ROOT,
@@ -66,6 +70,7 @@ pytest_test(
 
 pytest_test(
     name = "s6a_relay_tests",
+    size = "small",
     srcs = ["s6a_relay_tests.py"],
     imports = [
         LTE_ROOT,
@@ -83,6 +88,7 @@ pytest_test(
 
 pytest_test(
     name = "server_tests",
+    size = "small",
     srcs = ["server_tests.py"],
     imports = [LTE_ROOT],
     deps = [

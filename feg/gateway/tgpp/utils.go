@@ -13,6 +13,7 @@ limitations under the License.
 package tgpp
 
 import (
+	"math"
 	"strconv"
 
 	"github.com/golang/glog"
@@ -33,12 +34,14 @@ func GetPlmnID(imsi string, mncLen int) []byte {
 	}
 	imsiBytes := [6]byte{}
 	for i := 0; i < 6; i++ {
-		v, err := strconv.Atoi(imsi[i : i+1])
+		v, err := strconv.ParseUint(imsi[i:i+1], 10, 8)
 		if err != nil {
-			glog.Errorf("Invalid Digit '%s' in IMSI '%s': %v", imsi[i:i+1], imsi, err)
+			glog.Errorf("invalid Digit '%s' in IMSI '%s': %v", imsi[i:i+1], imsi, err)
+			return []byte{}
 		}
-		if v < 0 || v > 255 {
-			glog.Errorf("Digit '%d' in IMSI '%s' is outside the bounds of byte type", v, imsi)
+		if v > math.MaxUint8 {
+			glog.Errorf("digit '%d' in IMSI '%s' is outside the bounds of byte type", v, imsi)
+			return []byte{}
 		}
 		imsiBytes[i] = byte(v)
 	}

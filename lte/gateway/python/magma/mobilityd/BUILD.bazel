@@ -10,7 +10,7 @@
 # limitations under the License.
 
 load("@python_deps//:requirements.bzl", "requirement")
-load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
 MAGMA_ROOT = "../../../../../"
 
@@ -20,6 +20,28 @@ LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 py_binary(
     name = "mobilityd",
+    srcs = ["main.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    # legacy_create_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
+    legacy_create_init = False,
+    main = "main.py",
+    python_version = "PY3",
+    visibility = ["//visibility:private"],
+    deps = [
+        ":mobilityd_lib",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:subscriberdb_python_grpc",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+        "//orc8r/gateway/python/magma/common/redis:client",
+    ],
+)
+
+py_library(
+    name = "mobilityd_lib",
     srcs = [
         "dhcp_client.py",
         "dhcp_desc.py",
@@ -33,7 +55,6 @@ py_binary(
         "ip_descriptor_map.py",
         "ipv6_allocator_pool.py",
         "mac.py",
-        "main.py",
         "metrics.py",
         "mobility_store.py",
         "rpc_servicer.py",
@@ -42,26 +63,18 @@ py_binary(
         "uplink_gw.py",
         "utils.py",
     ],
-    imports = [
-        LTE_ROOT,
-        ORC8R_ROOT,
-    ],
-    # legacy_create_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
-    legacy_create_init = False,
-    main = "main.py",
-    python_version = "PY3",
     visibility = ["//visibility:public"],
     deps = [
         "//lte/gateway/python/magma/subscriberdb:sid",
         "//lte/protos:keyval_python_proto",
-        "//lte/protos:mconfigs_python_proto",
         "//lte/protos:mobilityd_python_grpc",
+        "//lte/protos:mobilityd_python_proto",
         "//lte/protos:subscriberdb_python_grpc",
         "//orc8r/gateway/python/magma/common:rpc_utils",
-        "//orc8r/gateway/python/magma/common:sentry",
-        "//orc8r/gateway/python/magma/common:service",
         "//orc8r/gateway/python/magma/common/redis:client",
         requirement("netifaces"),
         requirement("scapy"),
+        requirement("typing_extensions"),
+        requirement("prometheus_client"),
     ],
 )

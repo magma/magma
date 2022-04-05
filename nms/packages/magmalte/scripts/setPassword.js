@@ -15,13 +15,13 @@
  */
 'use strict';
 
-import type {OrganizationType} from '@fbcnms/sequelize-models/models/organization';
+import type {OrganizationType} from '../fbc_js_core/sequelize_models/models/organization';
 
 import Sequelize from 'sequelize';
 import bcrypt from 'bcryptjs';
 
-import {AccessRoles} from '@fbcnms/auth/roles';
-import {Organization, User} from '@fbcnms/sequelize-models';
+import {AccessRoles} from '../fbc_js_core/auth/roles';
+import {Organization, User} from '../fbc_js_core/sequelize_models';
 
 const SALT_GEN_ROUNDS = 10;
 

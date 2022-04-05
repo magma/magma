@@ -37,7 +37,7 @@ Description Defines the EMMESM Service Access Point that provides
 #ifndef FILE_EMM_ESM_SEEN
 #define FILE_EMM_ESM_SEEN
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esmDef.h"
 
 /****************************************************************************/

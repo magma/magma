@@ -153,7 +153,7 @@ func (cm *ConnectionManager) cleanupConnections() {
 	glog.V(2).Info("ConnectionManager: removing all existing connections")
 	for _, c := range cm.connMap {
 		if c != nil {
-			c.cleanupConnection()
+			c.cleanupConnection(true)
 		}
 	}
 	cm.connMap = map[DiameterServerConnConfig]*Connection{}

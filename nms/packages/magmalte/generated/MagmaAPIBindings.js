@@ -162,6 +162,7 @@ export type cbsd = {
     capabilities: capabilities,
     cbsd_id ? : string,
     fcc_id: string,
+    frequency_preferences: frequency_preferences,
     grant ? : grant,
     id: number,
     is_active: boolean,
@@ -457,6 +458,11 @@ export type flow_qos = {
     max_req_bw_dl: number,
     max_req_bw_ul: number,
 };
+export type frequency_preferences = {
+    bandwidth_mhz: 5 | 10 | 15 | 20,
+    frequencies_mhz: Array < number >
+        ,
+};
 export type gateway_cellular_configs = {
     dns ? : gateway_dns_configs,
     epc: gateway_epc_configs,
@@ -612,11 +618,11 @@ export type gettable_alert_silencer = {
     updatedAt: string,
 };
 export type grant = {
-    bandwidth_mhz ? : number,
-    frequency_mhz ? : number,
+    bandwidth_mhz: number,
+    frequency_mhz: number,
     grant_expire_time ? : string,
-    max_eirp ? : number,
-    state ? : "granted" | "guthorized",
+    max_eirp: number,
+    state: "granted" | "guthorized",
     transmit_expire_time ? : string,
 };
 export type gx = {
@@ -699,6 +705,15 @@ export type li_ues = {
     msisdns: Array < string >
         ,
 };
+export type log = {
+    body: string,
+    fcc_id: string,
+    from: "SAS" | "DP" | "CBSD",
+    serial_number: string,
+    time: string,
+    to: "SAS" | "DP" | "CBSD",
+    type: string,
+};
 export type lte_gateway = {
     apn_resources ? : apn_resources,
     cellular: gateway_cellular_configs,
@@ -770,15 +785,6 @@ export type matcher = {
     name: string,
     value: string,
 };
-export type message = {
-    body ? : string,
-    fcc_id ? : string,
-    from ? : "SAS" | "DP" | "CBSD",
-    serial_number ? : string,
-    time ? : string,
-    to ? : "SAS" | "DP" | "CBSD",
-    type ? : string,
-};
 export type metric_datapoint = Array < string >
 ;
 export type metric_datapoints = Array < metric_datapoint >
@@ -800,6 +806,7 @@ export type mutable_call_trace = {
 export type mutable_cbsd = {
     capabilities: capabilities,
     fcc_id: string,
+    frequency_preferences: frequency_preferences,
     serial_number: string,
     user_id: string,
 };
@@ -1065,6 +1072,11 @@ export type paginated_gateways = {
         [string]: magmad_gateway,
     },
     page_token: page_token,
+    total_count: number,
+};
+export type paginated_logs = {
+    logs: Array < log >
+        ,
     total_count: number,
 };
 export type paginated_subscriber_ids = {
@@ -2915,7 +2927,7 @@ export default class MagmaAPIBindings {
                 'from' ? : "SAS" | "DP" | "CBSD",
                 'to' ? : "SAS" | "DP" | "CBSD",
             }
-        ): Promise < Array < message >
+        ): Promise < Array < log >
         >
         {
             let path = '/dp/{network_id}/logs';

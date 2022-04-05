@@ -18,6 +18,7 @@ ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
 pytest_test(
     name = "garbage_collector_test",
+    size = "small",
     srcs = ["garbage_collector_test.py"],
     imports = [ORC8R_ROOT],
     deps = [
@@ -32,6 +33,7 @@ pytest_test(
 
 pytest_test(
     name = "state_replicator_test",
+    size = "small",
     srcs = ["state_replicator_test.py"],
     imports = [ORC8R_ROOT],
     deps = [

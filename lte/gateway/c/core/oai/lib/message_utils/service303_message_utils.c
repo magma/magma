@@ -19,10 +19,10 @@
 
 #include <stddef.h>
 
-#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 
 int send_app_health_to_service303(task_zmq_ctx_t* task_zmq_ctx_p,
                                   task_id_t origin_id, bool healthy) {

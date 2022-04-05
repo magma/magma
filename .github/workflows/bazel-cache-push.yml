@@ -84,6 +84,17 @@ jobs:
   bazel-build-devcontainer-and-push-cache:
     runs-on: ubuntu-latest
     steps:
+      - name: Maximize build space
+        shell: bash
+        run: |
+          echo "Available storage before:"
+          df -h
+          echo "Removing /usr/share/dotnet, /usr/local/lib/android, /opt/ghc"
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          echo "Available storage after:"
+          df -h
       - uses: actions/checkout@v2
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -109,15 +120,7 @@ jobs:
           run: |
             cd /workspaces/magma
             bazel test //...
-      - name: Test C/C++ with ASAN  `bazel build //...`
-        uses: addnab/docker-run-action@v2
-        with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
-          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
-          run: |
-            cd /workspaces/magma
-            bazel test //lte/gateway/c/... //orc8r/gateway/c/... --config=asan
+      # TODO: It would be good to also populate cache for `bazel test //orc8r/gateway/c/... //lte/gateway/c/... --config=asan` GH12210
       - name: Upload .bazel-cache and .bazel-cache-repo to S3
         run: |
           tar -zcvf ${{ env.BAZEL_CACHE_DEVCONTAINER_TAR }} ${{ env.BAZEL_CACHE }}/
@@ -125,3 +128,8 @@ jobs:
 
           aws s3 cp ${{ env.BAZEL_CACHE_DEVCONTAINER_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_DEVCONTAINER_TAR}}
           aws s3 cp ${{ env.BAZEL_CACHE_REPO_DEVCONTAINER_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_REPO_DEVCONTAINER_TAR}}
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h

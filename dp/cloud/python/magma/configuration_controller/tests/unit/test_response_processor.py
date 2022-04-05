@@ -40,6 +40,7 @@ from magma.fixtures.fake_responses.spectrum_inquiry_responses import (
     two_channels_for_one_cbsd,
     zero_channels_for_one_cbsd,
 )
+from magma.fluentd_client.client import FluentdClient
 from magma.mappings.request_response_mapping import request_response
 from magma.mappings.types import (
     CbsdStates,
@@ -62,6 +63,8 @@ RELINQUISHMENT_REQ = RequestTypes.RELINQUISHMENT.value
 HEARTBEAT_REQ = RequestTypes.HEARTBEAT.value
 GRANT_REQ = RequestTypes.GRANT.value
 SPECTRUM_INQ_REQ = RequestTypes.SPECTRUM_INQUIRY.value
+
+INITIAL_GRANT_ATTEMPTS = 1
 
 
 class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
@@ -164,6 +167,49 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             [expected_grant_state_name] * nr_of_requests,
             [g.state.name for g in self.session.query(DBGrant).all()],
         )
+
+    @parameterized.expand([
+        (0, GRANT_REQ, INITIAL_GRANT_ATTEMPTS),
+        (400, GRANT_REQ, INITIAL_GRANT_ATTEMPTS + 1),
+        (401, GRANT_REQ, INITIAL_GRANT_ATTEMPTS + 1),
+        (0, RELINQUISHMENT_REQ, INITIAL_GRANT_ATTEMPTS),
+        (0, DEREGISTRATION_REQ, 0),
+        (0, SPECTRUM_INQ_REQ, 0),
+    ])
+    @responses.activate
+    def test_grant_attempts_after_response(self, code, message_type, expected):
+        cbsd = DBCbsd(
+            cbsd_id=CBSD_ID,
+            user_id=USER_ID,
+            fcc_id=FCC_ID,
+            cbsd_serial_number=CBSD_SERIAL_NR,
+            grant_attempts=INITIAL_GRANT_ATTEMPTS,
+            state=self._get_db_enum(DBCbsdState, CbsdStates.REGISTERED.value),
+        )
+        request = DBRequest(
+            type=self._get_db_enum(DBRequestType, message_type),
+            state=self._get_db_enum(
+                DBRequestState, RequestStates.PENDING.value,
+            ),
+            cbsd=cbsd,
+            payload={'cbsdId': CBSD_ID},
+        )
+        resp_json = {'response': {}, 'cbsd_id': CBSD_ID}
+        response = self._prepare_response_from_payload(
+            req_type=message_type,
+            response_payload={request_response[message_type]: [resp_json]},
+            response_code=code,
+        )
+        self.session.add(request)
+        self.session.commit()
+
+        self._process_response(
+            request_type_name=message_type,
+            response=response,
+            db_requests=[request],
+        )
+
+        self.assertEqual(expected, cbsd.grant_attempts)
 
     @parameterized.expand([
         (0, CbsdStates.REGISTERED),
@@ -301,6 +347,36 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         self.assertEqual(high_frequency, grant.high_frequency)
         self.assertEqual(max_eirp, grant.max_eirp)
 
+    @parameterized.expand([
+        (REGISTRATION_REQ, registration_requests),
+        (SPECTRUM_INQ_REQ, spectrum_inquiry_requests),
+        (GRANT_REQ, grant_requests),
+        (HEARTBEAT_REQ, heartbeat_requests),
+        (RELINQUISHMENT_REQ, relinquishment_requests),
+        (DEREGISTRATION_REQ, deregistration_requests),
+    ])
+    @responses.activate
+    def test_cbsd_unregistered_after_105_response_code(self, request_type, request_fixture):
+        # Given
+        db_requests = self._create_db_requests(
+            request_type, request_fixture,
+        )
+        response = self._prepare_response_from_db_requests(
+            db_requests, ResponseCodes.DEREGISTER.value,
+        )
+
+        # When
+        self._process_response(
+            request_type_name=request_type, response=response, db_requests=db_requests,
+        )
+        states = [req.cbsd.state for req in db_requests]
+
+        # Then
+        [
+            self.assertTrue(state.name == CbsdStates.UNREGISTERED.value)
+            for state in states
+        ]
+
     def _process_response(self, request_type_name, response, db_requests):
         processor = self._get_response_processor(request_type_name)
 
@@ -312,6 +388,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         return ResponseDBProcessor(
             request_response[req_type],
             process_responses_func=processor_strategies[req_type]["process_responses"],
+            fluentd_client=FluentdClient(),
         )
 
     def _verify_requests_number_and_state(self, db_requests, nr_of_requests, desired_state="processed"):

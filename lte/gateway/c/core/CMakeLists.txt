@@ -47,3 +47,9 @@ ExternalProject_Add(MagmaCore
     DEPENDS MagmaCommon
     CMAKE_ARGS ${CL_ARGS})
 
+ExternalProject_Add(LteGatewayCCommon
+    SOURCE_DIR "$ENV{MAGMA_ROOT}/lte/gateway/c/core/common"
+    BUILD_ALWAYS 1
+    BINARY_DIR "${CMAKE_BINARY_DIR}/lte/gateway/c/core/common"
+    INSTALL_COMMAND ""
+    CMAKE_ARGS ${CL_ARGS})

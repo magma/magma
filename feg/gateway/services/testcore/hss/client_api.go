@@ -27,6 +27,7 @@ import (
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	lteprotos "magma/lte/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 )
 
 // Wrapper for GRPC Client functionality
@@ -88,6 +89,15 @@ func GetSubscriberData(id string) (*lteprotos.SubscriberData, error) {
 	return cli.GetSubscriberData(context.Background(), subID)
 }
 
+// ListSubscribers list all available subscribers by IMSI.
+func ListSubscribers() (*lteprotos.SubscriberIDSet, error) {
+	cli, err := getHSSClient()
+	if err != nil {
+		return nil, err
+	}
+	return cli.ListSubscribers(context.Background(), &protos.Void{})
+}
+
 // UpdateSubscriber changes the data stored for an existing subscriber.
 // If the subscriber cannot be found, an error is returned instead.
 // Input: The new subscriber data to store.
@@ -101,7 +111,10 @@ func UpdateSubscriber(sub *lteprotos.SubscriberData) error {
 	if err != nil {
 		return err
 	}
-	_, err = cli.UpdateSubscriber(context.Background(), sub)
+	subUpdate := &lteprotos.SubscriberUpdate{
+		Data: sub,
+	}
+	_, err = cli.UpdateSubscriber(context.Background(), subUpdate)
 	return err
 }
 

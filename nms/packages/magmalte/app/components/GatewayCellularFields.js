@@ -16,7 +16,7 @@
 
 import type {GatewayV1} from './GatewayUtils';
 
-import Button from '@fbcnms/ui/components/design-system/Button';
+import Button from '../../fbc_js_core/ui/components/design-system/Button';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import Divider from '@material-ui/core/Divider';
@@ -26,13 +26,13 @@ import MagmaV1API from '../../generated/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React, {useState} from 'react';
 import Select from '@material-ui/core/Select';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../fbc_js_core/ui/components/design-system/Text';
 
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../fbc_js_core/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {toString} from './GatewayUtils';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(() => ({
   input: {

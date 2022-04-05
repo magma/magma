@@ -20,7 +20,8 @@ import (
 	"magma/dp/cloud/go/dp"
 	"magma/dp/cloud/go/protos"
 	dp_service "magma/dp/cloud/go/services/dp"
-	"magma/dp/cloud/go/services/dp/obsidian/handlers"
+	"magma/dp/cloud/go/services/dp/obsidian/cbsd"
+	dp_log "magma/dp/cloud/go/services/dp/obsidian/log"
 	"magma/dp/cloud/go/services/dp/servicers"
 	dp_storage "magma/dp/cloud/go/services/dp/storage"
 	"magma/orc8r/cloud/go/obsidian"
@@ -37,7 +38,8 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating %s service: %s", dp_service.ServiceName, err)
 	}
-	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
+	obsidian.AttachHandlers(srv.EchoServer, cbsd.GetHandlers())
+	obsidian.AttachHandlers(srv.EchoServer, dp_log.NewHandlersGetter(dp_log.GetElasticClient, "").GetHandlers())
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(dp_service.ServiceName))
 
 	var serviceConfig dp_service.Config
@@ -48,11 +50,9 @@ func main() {
 		glog.Fatalf("Error opening db connection: %s", err)
 	}
 	cbsdStore := dp_storage.NewCbsdManager(db, sqorc.GetSqlBuilder())
-	logStore := dp_storage.NewLogFetcher(db, sqorc.GetSqlBuilder())
 
 	interval := time.Second * time.Duration(serviceConfig.CbsdInactivityIntervalSec)
 	protos.RegisterCbsdManagementServer(srv.GrpcServer, servicers.NewCbsdManager(cbsdStore, interval))
-	protos.RegisterLogFetcherServer(srv.GrpcServer, servicers.NewLogFetcher(logStore))
 
 	err = srv.Run()
 	if err != nil {

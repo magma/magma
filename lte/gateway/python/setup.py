@@ -18,7 +18,7 @@ from setuptools import setup
 # We can use an environment variable to pass in the package version during
 # build. Since we don't distribute this on its own, we don't really care what
 # version this represents. 'None' defaults to 0.0.0.
-VERSION = os.environ.get('PKG_VERSION', None)
+VERSION = os.environ.get('PKG_VERSION', '0.0.0')
 
 setup(
     name='lte',
@@ -131,7 +131,6 @@ setup(
         'ovs>=2.13',
         'prometheus-client>=0.3.1',
         'aioeventlet==0.5.1',  # aioeventlet-build.sh
-        'typing-extensions>=4.1.1',
     ],
     extras_require={
         'dev': [

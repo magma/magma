@@ -29,7 +29,7 @@ module.exports = {
   entry: {
     main: [paths.appIndexJs],
     login: [paths.loginJs],
-    master: [paths.masterJs],
+    host: [paths.hostJs],
   },
   externals: [
     {

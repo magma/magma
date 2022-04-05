@@ -20,11 +20,11 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 #include "lte/gateway/c/core/oai/lib/secu/snow3g.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 
 int nas_stream_encrypt_eea1(nas_stream_cipher_t* const stream_cipher,
                             uint8_t* const out) {

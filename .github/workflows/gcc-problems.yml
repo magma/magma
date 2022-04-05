@@ -56,11 +56,19 @@ jobs:
       - path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: Build all Bazelified C/C++ targets
-    env:
-      C_CPP_FLAGS: "-Wextra -Wshadow -Wimplicit-fallthrough -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wformat=2 -Wstrict-overflow=4 -Wuninitialized -Wshift-overflow=2"
-      C_ONLY_FLAGS: "-Wjump-misses-init"
     runs-on: ubuntu-latest
     steps:
+      - name: Maximize build space
+        shell: bash
+        run: |
+          echo "Available storage before:"
+          df -h
+          echo "Removing /usr/share/dotnet, /usr/local/lib/android, /opt/ghc"
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          echo "Available storage after:"
+          df -h
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
         uses: actions/checkout@v2
@@ -108,7 +116,7 @@ jobs:
           options: -v ${{ github.workspace }}:/workspaces/magma
           run: |
             cd /workspaces/magma
-            ./.github/workflows/generate-gcc-warnings.sh "${{ steps.changed_files.outputs.all }}" "$C_CPP_FLAGS" "$C_ONLY_FLAGS"
+            ./.github/workflows/generate-gcc-warnings.sh "${{ steps.changed_files.outputs.all }}"
       - name: Load problem matcher
         # If needed https://github.com/microsoft/vscode-cpptools/issues/2266 for path fixups
         #
@@ -136,3 +144,8 @@ jobs:
         with:
           name: build_logs_c_filtered_log
           path: ${{ github.workspace }}/filtered-compile.log
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h

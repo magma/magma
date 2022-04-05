@@ -54,22 +54,22 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/common_ies.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/common_ies.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/mme_app_state.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/include/mme_events.h"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 
@@ -541,7 +541,6 @@ status_code_e emm_proc_attach_request(
      */
     new_emm_ctx = &ue_mm_context->emm_context;
 
-    bdestroy(new_emm_ctx->esm_msg);
     emm_init_context(new_emm_ctx, true);
 
     new_emm_ctx->num_attach_request++;
@@ -2504,7 +2503,6 @@ void proc_new_attach_req(mme_ue_context_t* const mme_ue_context_p,
     OAILOG_FUNC_OUT(LOG_NAS_EMM);
   }
 
-  bdestroy(new_emm_ctx->esm_msg);
   emm_init_context(new_emm_ctx, true);
 
   new_emm_ctx->num_attach_request++;

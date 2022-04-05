@@ -381,9 +381,3 @@ TEST(test_bit_rate_value_to_eps_qos_for_apnambr_extended2_test,
   ASSERT_EQ(apn_testing.apnambrforuplink_extended2, 255);
   ASSERT_EQ(apn_testing.apnambrfordownlink_extended2, 255);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  OAILOG_INIT("MME", OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS);
-  return RUN_ALL_TESTS();
-}

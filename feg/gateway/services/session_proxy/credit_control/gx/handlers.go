@@ -32,7 +32,7 @@ import (
 // `KeyAndAnswer` packed inside the CCA message.
 func ccaHandler(message *diam.Message) diameter.KeyAndAnswer {
 	var cca CCADiameterMessage
-	glog.V(2).Infof("Received Gx CCA message:\n%s\n", message)
+	glog.V(3).Infof("Received Gx CCA message:\n%s\n", message)
 	if err := message.Unmarshal(&cca); err != nil {
 		metrics.GxUnparseableMsg.Inc()
 		glog.Errorf("Received unparseable CCA over Gx: %s", err)

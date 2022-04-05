@@ -19,16 +19,7 @@ LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 py_binary(
     name = "policydb",
-    srcs = [
-        "apn_rule_map_store.py",
-        "basename_store.py",
-        "main.py",
-        "rating_group_store.py",
-        "reauth_handler.py",
-        "rule_map_store.py",
-        "rule_store.py",
-        "streamer_callback.py",
-    ],
+    srcs = ["main.py"],
     imports = [
         LTE_ROOT,
         ORC8R_ROOT,
@@ -37,15 +28,37 @@ py_binary(
     legacy_create_init = False,
     main = "main.py",
     python_version = "PY3",
-    visibility = ["//visibility:public"],
+    visibility = ["//visibility:private"],
     deps = [
+        ":policydb_lib",
         "//lte/gateway/python/magma/policydb/servicers:policy_servicer",
         "//lte/gateway/python/magma/policydb/servicers:session_servicer",
         "//lte/protos:mconfigs_python_proto",
         "//lte/protos:policydb_python_grpc",
         "//lte/protos:session_manager_python_grpc",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+        "//orc8r/gateway/python/magma/common:streamer",
+    ],
+)
+
+py_library(
+    name = "policydb_lib",
+    srcs = [
+        "apn_rule_map_store.py",
+        "basename_store.py",
+        "rating_group_store.py",
+        "reauth_handler.py",
+        "rule_map_store.py",
+        "rule_store.py",
+        "streamer_callback.py",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":default_rules",
         "//orc8r/gateway/python/magma/common:rpc_utils",
         "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:serialization_utils",
         "//orc8r/gateway/python/magma/common:service",
         "//orc8r/gateway/python/magma/common:streamer",
         "//orc8r/gateway/python/magma/common/redis:client",

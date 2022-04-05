@@ -31,6 +31,8 @@
 #define MAX_APN_CORRECTION_MAP_LIST 10
 #define AMF_S_NSSAI_ST_DEFAULT_VALUE 1
 #define AMF_S_NSSAI_SD_INVALID_VALUE 0xffffff
+#define AUTHENTICATION_COUNTER_MAX_RETRY "AUTHENTICATION_MAX_RETRY"
+#define AUTHENTICATION_RETRY_TIMER_EXPIRY_MSECS "AUTHENTICATION_TIMER_EXPIRY"
 
 #define AMF_CONFIG_STRING_AMF_CONFIG "AMF"
 #define AMF_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS "DEFAULT_DNS_IPV4_ADDRESS"
@@ -62,6 +64,8 @@ typedef struct nas5g_config_s {
   uint32_t t3586_sec;
   uint32_t t3589_sec;
   uint32_t t3595_sec;
+  uint32_t implicit_dereg_sec;
+
   // non standard features
   bool force_reject_tau;
   bool force_reject_sr;
@@ -179,6 +183,8 @@ typedef struct amf_config_s {
   } ipv4;
   bstring amf_name;
   bstring default_dnn;
+  uint32_t auth_retry_interval;
+  uint32_t auth_retry_max_count;
 } amf_config_t;
 
 int amf_app_init(amf_config_t*);

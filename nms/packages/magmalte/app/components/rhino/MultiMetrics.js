@@ -25,12 +25,12 @@ import FormControl from '@material-ui/core/FormControl';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import InputLabel from '@material-ui/core/InputLabel';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../../fbc_js_core/ui/components/design-system/Text';
 import TimeRangeSelector from '../insights/TimeRangeSelector';
 import {Route} from 'react-router-dom';
 
@@ -38,7 +38,7 @@ import useMagmaAPI from '../../../api/useMagmaAPI';
 import {find, map} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {resolveQuery} from '../insights/Metrics';
-import {useRouter, useSnackbar} from '@fbcnms/ui/hooks';
+import {useRouter, useSnackbar} from '../../../fbc_js_core/ui/hooks';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({

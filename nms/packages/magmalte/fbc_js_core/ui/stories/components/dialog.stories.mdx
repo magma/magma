@@ -1,0 +1,136 @@
+import BaseDialog from '../../components/design-system/Dialog/BaseDialog';
+import Button from '../../components/design-system/Button';
+import MessageDialog from '../../components/design-system/Dialog/MessageDialog';
+import StoryFrame from '../StoryFrame';
+import Text from '../../components/design-system/Text';
+import {Meta, Preview, Story} from '@storybook/addon-docs/blocks';
+import {POSITION} from '../../components/design-system/Dialog/DialogFrame';
+import {STORY_CATEGORIES} from '../storybookUtils';
+import {makeStyles} from '@material-ui/styles';
+import {useState} from 'react';
+
+export const useStyles = makeStyles(() => ({
+  root: {
+    width: '100%',
+  },
+  menuContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    '& > *': {
+      marginBottom: '16px',
+    },
+  },
+  content: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  pageContent: {
+    height: 'calc(100vh - 400px)',
+    background: 'white',
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+}));
+
+<Meta title={`${STORY_CATEGORIES.COMPONENTS}/Dialog`} />
+
+# Dialog
+
+Dialogs are built using two components - `MessageDialog` and `BaseDialog`.
+
+### MessageDialog
+
+`MessageDialog` supports displaying a title, a message and an optional confirmation checkbox.
+
+<Preview>
+  <Story name="MessageDialog">
+    {() => {
+      const classes = useStyles();
+      const [isMessageDialogShown, setIsMessageDialogShown] = useState(false);
+      const closeDialog = () => setIsMessageDialogShown(false);
+      return (
+        <React.Fragment>
+          <Button onClick={() => setIsMessageDialogShown(true)}>
+            Open Dialog
+          </Button>
+          <MessageDialog
+            title="Message Dialog"
+            message={
+              <div className={classes.content}>
+                <Text>This is the message of the popup.</Text>
+                <Text>Click Save to approve it or cancel to cancel.</Text>
+              </div>
+            }
+            onClose={closeDialog}
+            verificationCheckbox={{label: 'I understand', isMandatory: true}}
+            cancelLabel="Cancel"
+            confirmLabel="Save"
+            onCancel={closeDialog}
+            onConfirm={closeDialog}
+            hidden={!isMessageDialogShown}
+          />
+        </React.Fragment>
+      );
+    }}
+  </Story>
+</Preview>
+
+### BaseDialog
+
+`BaseDialog` allows you to start from a bare dialog skeleton.
+
+Use the `position` prop to render a right dialog (with and without a mask).
+
+<Preview>
+  <Story name="BaseDialog">
+    {() => {
+      const classes = useStyles();
+      const [isDialogShown, setIsDialogShown] = useState(false);
+      const [isRightDialogShown, setIsRightDialogShown] = useState(false);
+      const [isNoMaskDialogShown, setIsNoMaskDialogShown] = useState(false);
+      const closeDialog = () => {
+        setIsDialogShown(false);
+        setIsRightDialogShown(false);
+        setIsNoMaskDialogShown(false);
+      };
+      return (
+        <StoryFrame>
+          <Button onClick={() => setIsDialogShown(true)}>Open Dialog</Button>
+          <Button onClick={() => setIsRightDialogShown(true)}>
+            Open Right Dialog
+          </Button>
+          <Button onClick={() => setIsNoMaskDialogShown(true)}>
+            Open Dialog with No Mask
+          </Button>
+          <BaseDialog
+            title="Base Dialog"
+            onClose={closeDialog}
+            hidden={!isDialogShown}>
+            <Text>This is the dialog content.</Text>
+          </BaseDialog>
+          <BaseDialog
+            title="Base Dialog - on side!"
+            position={POSITION.right}
+            onClose={closeDialog}
+            hidden={!isRightDialogShown}>
+            <Text>This is the dialog content.</Text>
+          </BaseDialog>
+          <BaseDialog
+            title="Base Dialog - no masked background"
+            position={POSITION.right}
+            isModal={false}
+            onClose={closeDialog}
+            hidden={!isNoMaskDialogShown}>
+            <div className={classes.content}>
+              <Text>This is the dialog content.</Text>
+              <Text>Clicking outside of the panel will not close it.</Text>
+            </div>
+          </BaseDialog>
+        </StoryFrame>
+      );
+    }}
+  </Story>
+</Preview>

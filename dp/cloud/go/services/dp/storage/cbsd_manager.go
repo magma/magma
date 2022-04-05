@@ -179,6 +179,7 @@ func getCbsdWriteFields() []string {
 	return []string{
 		"fcc_id", "cbsd_serial_number", "user_id",
 		"min_power", "max_power", "antenna_gain", "number_of_ports",
+		"preferred_bandwidth_mhz", "preferred_frequencies_mhz",
 	}
 }
 
@@ -241,7 +242,8 @@ func buildDetailedCbsdQuery(builder sq.StatementBuilderType) *db.Query {
 	return db.NewQuery().
 		WithBuilder(builder).
 		From(&DBCbsd{}).
-		Select(db.NewExcludeMask("network_id", "state_id", "is_deleted", "is_updated")).
+		Select(db.NewExcludeMask("network_id", "state_id",
+			"is_deleted", "is_updated", "grant_attempts")).
 		Join(db.NewQuery().
 			From(&DBCbsdState{}).
 			Select(db.NewIncludeMask("name"))).

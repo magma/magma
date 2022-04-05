@@ -298,20 +298,23 @@ func (cs *DBCbsdState) GetMetadata() *db.ModelMetadata {
 }
 
 type DBCbsd struct {
-	Id               sql.NullInt64
-	NetworkId        sql.NullString
-	StateId          sql.NullInt64
-	CbsdId           sql.NullString
-	UserId           sql.NullString
-	FccId            sql.NullString
-	CbsdSerialNumber sql.NullString
-	LastSeen         sql.NullTime
-	MinPower         sql.NullFloat64
-	MaxPower         sql.NullFloat64
-	AntennaGain      sql.NullFloat64
-	NumberOfPorts    sql.NullInt64
-	IsDeleted        sql.NullBool
-	IsUpdated        sql.NullBool
+	Id                      sql.NullInt64
+	NetworkId               sql.NullString
+	StateId                 sql.NullInt64
+	CbsdId                  sql.NullString
+	UserId                  sql.NullString
+	FccId                   sql.NullString
+	CbsdSerialNumber        sql.NullString
+	LastSeen                sql.NullTime
+	GrantAttempts           sql.NullInt64
+	PreferredBandwidthMHz   sql.NullInt64
+	PreferredFrequenciesMHz sql.NullString
+	MinPower                sql.NullFloat64
+	MaxPower                sql.NullFloat64
+	AntennaGain             sql.NullFloat64
+	NumberOfPorts           sql.NullInt64
+	IsDeleted               sql.NullBool
+	IsUpdated               sql.NullBool
 }
 
 func (c *DBCbsd) Fields() db.FieldMap {
@@ -344,6 +347,17 @@ func (c *DBCbsd) Fields() db.FieldMap {
 		"last_seen": &db.Field{
 			BaseType: db.TimeType{X: &c.LastSeen},
 			Nullable: true,
+		},
+		"grant_attempts": &db.Field{
+			BaseType:     db.IntType{X: &c.GrantAttempts},
+			HasDefault:   true,
+			DefaultValue: 0,
+		},
+		"preferred_bandwidth_mhz": &db.Field{
+			BaseType: db.IntType{X: &c.PreferredBandwidthMHz},
+		},
+		"preferred_frequencies_mhz": &db.Field{
+			BaseType: db.StringType{X: &c.PreferredFrequenciesMHz},
 		},
 		"min_power": &db.Field{
 			BaseType: db.FloatType{X: &c.MinPower},
