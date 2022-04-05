@@ -18,7 +18,12 @@ import subprocess
 import time
 
 import grpc
-from integ_tests.gateway.rpc import get_gateway_hw_id, get_rpc_channel
+from feg.protos.hss_service_pb2_grpc import HSSConfiguratorStub
+from integ_tests.gateway.rpc import (
+    get_gateway_hw_id,
+    get_hss_rpc_channel,
+    get_rpc_channel,
+)
 from lte.protos.subscriberdb_pb2 import (
     LTESubscription,
     SubscriberData,
@@ -87,18 +92,16 @@ class SubscriberDbClient(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
 
-class SubscriberDbGrpc(SubscriberDbClient):
+class GenericSubscriberGrpcClient(SubscriberDbClient):
     """
-    Handle subscriber actions by making calls over gRPC directly to the
-    gateway.
+    Generic implementation to handle subscriber actions by making calls
+    over gRPC
     """
 
-    def __init__(self):
+    def __init__(self, grpc_stub):
         """ Init the gRPC stub.  """
         self._added_sids = set()
-        self._subscriber_stub = SubscriberDBStub(
-            get_rpc_channel("subscriberdb"),
-        )
+        self._subscriber_stub = grpc_stub
 
     @staticmethod
     def _try_to_call(grpc_call):
@@ -180,21 +183,20 @@ class SubscriberDbGrpc(SubscriberDbClient):
         logging.info("Adding subscriber : %s", sid)
         self._added_sids.add(sid)
         sub_data = self._get_subscriberdb_data(sid)
-        SubscriberDbGrpc._try_to_call(
+        GenericSubscriberGrpcClient._try_to_call(
             lambda: self._subscriber_stub.AddSubscriber(sub_data),
         )
-        self._check_invariants()
 
     def delete_subscriber(self, sid):
         logging.info("Deleting subscriber : %s", sid)
         self._added_sids.discard(sid)
         sid_pb = SubscriberID(id=sid[4:])
-        SubscriberDbGrpc._try_to_call(
+        GenericSubscriberGrpcClient._try_to_call(
             lambda: self._subscriber_stub.DeleteSubscriber(sid_pb),
         )
 
     def list_subscriber_sids(self):
-        sids_pb = SubscriberDbGrpc._try_to_call(
+        sids_pb = GenericSubscriberGrpcClient._try_to_call(
             lambda: self._subscriber_stub.ListSubscribers(Void()).sids,
         )
         sids = ['IMSI' + sid.id for sid in sids_pb]
@@ -205,9 +207,11 @@ class SubscriberDbGrpc(SubscriberDbClient):
         update_sub = self._get_apn_data(sid, apn_list)
         fields = update_sub.mask.paths
         fields.append('non_3gpp')
-        SubscriberDbGrpc._try_to_call(
+
+        GenericSubscriberGrpcClient._try_to_call(
             lambda: self._subscriber_stub.UpdateSubscriber(update_sub),
         )
+        self._check_invariants()
 
     def clean_up(self):
         # Remove all sids
@@ -219,6 +223,28 @@ class SubscriberDbGrpc(SubscriberDbClient):
     def wait_for_changes(self):
         # On gateway, changes propagate immediately
         return
+
+
+class SubscriberDbGrpc(GenericSubscriberGrpcClient):
+    """
+    Handle mock HSS actions by making calls over gRPC directly to the
+    hss service on the feg.
+    """
+
+    def __init__(self):
+        """ Init the gRPC stub to connect to subscriberDb. """
+        super().__init__(SubscriberDBStub(get_rpc_channel("subscriberdb")))
+
+
+class HSSGrpc(GenericSubscriberGrpcClient):
+    """
+    Handle mock HSS actions by making calls over gRPC directly to the
+    hss service on the feg.
+    """
+
+    def __init__(self):
+        """ Init the gRPC stub to connect to mock HSS. """
+        super().__init__(HSSConfiguratorStub(get_hss_rpc_channel()))
 
 
 class SubscriberDbCassandra(SubscriberDbClient):
