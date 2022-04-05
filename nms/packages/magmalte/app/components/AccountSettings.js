@@ -16,14 +16,19 @@
 
 import Button from '../../fbc_js_core/ui/components/design-system/Button';
 import FormGroup from '@material-ui/core/FormGroup';
-import React from 'react';
+import Paper from '@material-ui/core/Paper';
+import React, {useContext} from 'react';
 import Text from '../../fbc_js_core/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
+import AppContext from '../../fbc_js_core/ui/context/AppContext';
+import TopBar from './TopBar';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
 import {useState} from 'react';
+
+const TITLE = 'Account Settings';
 
 const useStyles = makeStyles(theme => ({
   input: {},
@@ -32,19 +37,21 @@ const useStyles = makeStyles(theme => ({
     paddingBottom: theme.spacing(2),
   },
   paper: {
-    margin: '10px',
+    margin: theme.spacing(3),
+    padding: theme.spacing(),
   },
   formGroup: {
     marginBottom: theme.spacing(2),
   },
 }));
 
-export default function SecuritySettings() {
+export default function AccountSettings() {
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const {isOrganizations} = useContext(AppContext);
 
   const onSave = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -73,45 +80,50 @@ export default function SecuritySettings() {
   };
 
   return (
-    <div className={classes.formContainer}>
-      <Text data-testid="change-password-title" variant="h5">
-        Change Password
-      </Text>
-      <FormGroup row className={classes.formGroup}>
-        <TextField
-          required
-          label="Current Password"
-          type="password"
-          value={currentPassword}
-          onChange={({target}) => setCurrentPassword(target.value)}
-          className={classes.input}
-        />
-      </FormGroup>
-      <FormGroup row className={classes.formGroup}>
-        <TextField
-          required
-          autoComplete="off"
-          label="New Password"
-          type="password"
-          value={newPassword}
-          onChange={({target}) => setNewPassword(target.value)}
-          className={classes.input}
-        />
-      </FormGroup>
-      <FormGroup row className={classes.formGroup}>
-        <TextField
-          required
-          autoComplete="off"
-          label="Confirm Password"
-          type="password"
-          value={confirmPassword}
-          onChange={({target}) => setConfirmPassword(target.value)}
-          className={classes.input}
-        />
-      </FormGroup>
-      <FormGroup row className={classes.formGroup}>
-        <Button onClick={onSave}>Save</Button>
-      </FormGroup>
-    </div>
+    <>
+      {!isOrganizations && <TopBar header={TITLE} tabs={[]} />}
+      <Paper className={classes.paper}>
+        <div className={classes.formContainer}>
+          <Text data-testid="change-password-title" variant="h5">
+            Change Password
+          </Text>
+          <FormGroup row className={classes.formGroup}>
+            <TextField
+              required
+              label="Current Password"
+              type="password"
+              value={currentPassword}
+              onChange={({target}) => setCurrentPassword(target.value)}
+              className={classes.input}
+            />
+          </FormGroup>
+          <FormGroup row className={classes.formGroup}>
+            <TextField
+              required
+              autoComplete="off"
+              label="New Password"
+              type="password"
+              value={newPassword}
+              onChange={({target}) => setNewPassword(target.value)}
+              className={classes.input}
+            />
+          </FormGroup>
+          <FormGroup row className={classes.formGroup}>
+            <TextField
+              required
+              autoComplete="off"
+              label="Confirm Password"
+              type="password"
+              value={confirmPassword}
+              onChange={({target}) => setConfirmPassword(target.value)}
+              className={classes.input}
+            />
+          </FormGroup>
+          <FormGroup row className={classes.formGroup}>
+            <Button onClick={onSave}>Save</Button>
+          </FormGroup>
+        </div>
+      </Paper>
+    </>
   );
 }

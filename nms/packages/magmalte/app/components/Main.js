@@ -14,10 +14,10 @@
  * @format
  */
 
-import Admin from './admin/Admin';
 import ApplicationMain from './ApplicationMain';
 import ErrorLayout from './main/ErrorLayout';
 import Index, {ROOT_PATHS} from './main/Index';
+import IndexWithoutNetwork from './IndexWithoutNetwork';
 import MagmaV1API from '../../generated/WebClient';
 import NetworkError from './main/NetworkError';
 import NoNetworksMessage from '../../fbc_js_core/ui/components/NoNetworksMessage';
@@ -82,12 +82,20 @@ function Main() {
   );
 }
 
+function NoNetworkFallback() {
+  return (
+    <AppContextProvider>
+      <IndexWithoutNetwork />
+    </AppContextProvider>
+  );
+}
+
 export default () => (
   <ApplicationMain>
     <Switch>
       <Route path="/nms/:networkId" component={Main} />
       <Route path="/nms" component={Main} />
-      <Route path="/admin" component={Admin} />
+      <Route component={NoNetworkFallback} />
     </Switch>
   </ApplicationMain>
 );

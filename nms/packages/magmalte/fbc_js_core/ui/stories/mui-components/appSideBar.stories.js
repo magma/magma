@@ -28,9 +28,6 @@ const ExpandablePanel = () => {
   return (
     <div style={{display: 'flex'}}>
       <AppSideBar
-        showSettings={true}
-        user={{email: 'user@fb.com', isSuperUser: false}}
-        projects={[]}
         mainItems={[
           <AssignmentIcon color="primary" style={{margin: '8px'}} />,
           <ListIcon color="primary" style={{margin: '8px'}} />,
@@ -58,22 +55,6 @@ const ExpandablePanel = () => {
 storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/AppSideBar`, module)
   .add('default', () => (
     <AppSideBar
-      showSettings={true}
-      user={{email: 'user@fb.com', isSuperUser: true}}
-      projects={[
-        {
-          id: 'inventory',
-          name: 'Inventory',
-          secondary: 'Inventory Management',
-          url: '/',
-        },
-        {
-          id: 'nms',
-          name: 'NMS',
-          secondary: 'Network Management',
-          url: '/nms',
-        },
-      ]}
       mainItems={[
         <AssignmentIcon color="primary" style={{margin: '8px'}} />,
         <ListIcon color="primary" style={{margin: '8px'}} />,
@@ -85,34 +66,6 @@ storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/AppSideBar`, module)
   ))
   .add('Not super user', () => (
     <AppSideBar
-      showSettings={true}
-      user={{email: 'user@fb.com', isSuperUser: false}}
-      projects={[
-        {
-          id: 'inventory',
-          name: 'Inventory',
-          secondary: 'Inventory Management',
-          url: '/',
-        },
-        {
-          id: 'nms',
-          name: 'NMS',
-          secondary: 'Network Management',
-          url: '/nms',
-        },
-      ]}
-      mainItems={[
-        <AssignmentIcon color="primary" style={{margin: '8px'}} />,
-        <ListIcon color="primary" style={{margin: '8px'}} />,
-      ]}
-      secondaryItems={[]}
-    />
-  ))
-  .add('No projects', () => (
-    <AppSideBar
-      showSettings={true}
-      user={{email: 'user@fb.com', isSuperUser: false}}
-      projects={[]}
       mainItems={[
         <AssignmentIcon color="primary" style={{margin: '8px'}} />,
         <ListIcon color="primary" style={{margin: '8px'}} />,

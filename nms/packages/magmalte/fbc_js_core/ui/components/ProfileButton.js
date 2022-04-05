@@ -17,6 +17,7 @@
 import AppContext from '../../../fbc_js_core/ui/context/AppContext';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import NetworkContext from '../../../app/components/context/NetworkContext';
 import Popout from '../../../fbc_js_core/ui/components/Popout';
 import ProfileIcon from '../icons/ProfileIcon';
 import React, {useContext, useState} from 'react';
@@ -24,7 +25,7 @@ import Text from './design-system/Text';
 import classNames from 'classnames';
 import {Events, GeneralLogger} from '../../../fbc_js_core/ui/utils/Logging';
 import {makeStyles} from '@material-ui/styles';
-import {useHistory} from 'react-router-dom';
+import {useRouter} from '../hooks';
 
 const useStyles = makeStyles(theme => ({
   accountButton: {
@@ -50,6 +51,11 @@ const useStyles = makeStyles(theme => ({
       fontSize: '19px',
     },
   },
+  accountButtonIconSelected: {
+    '&&': {
+      fill: theme.palette.primary.main,
+    },
+  },
   itemGutters: {
     '&&': {
       minWidth: '170px',
@@ -69,46 +75,76 @@ const useStyles = makeStyles(theme => ({
     fontSize: '12px',
     lineHeight: '16px',
   },
+  selected: {
+    backgroundColor: theme.palette.primary.main,
+  },
+  sidebarEntry: {
+    display: 'flex',
+    padding: '9px',
+    justifyContent: 'center',
+    width: '100%',
+  },
 }));
 
-type Props = {
-  showSettings: boolean,
-  user: {
-    email: string,
-    isSuperUser: boolean,
-  },
-};
-
-const ProfileButton = (props: Props) => {
-  const {user} = props;
-  const {email} = user;
-  const history = useHistory();
+const ProfileButton = () => {
+  const {relativeUrl, history, location} = useRouter();
   const classes = useStyles();
   const [isProfileMenuOpen, toggleProfileMenu] = useState(false);
-  const showDocs = useContext(AppContext).isFeatureEnabled('documents_site');
+  const {networkId: selectedNetworkId} = useContext(NetworkContext);
+  const {user, ssoEnabled, isFeatureEnabled, isOrganizations} = useContext(
+    AppContext,
+  );
+  const {email} = user;
+
+  const getUrl = (path: string) =>
+    (selectedNetworkId != undefined || isOrganizations) ? relativeUrl(path) : path;
+
+  const adminUrl = getUrl('/admin');
+  const settingsUrl = getUrl('/settings');
+
+  const isSelected =
+    location.pathname.includes(adminUrl) ||
+    location.pathname.includes(settingsUrl);
 
   return (
     <Popout
+      className={classNames({
+        [classes.sidebarEntry]: true,
+        [classes.selected]: isSelected,
+      })}
       open={isProfileMenuOpen}
       content={
         <List component="nav" className={classes.profileList}>
           <ListItem classes={{gutters: classes.itemGutters}} disabled={true}>
             <Text className={classes.profileItemText}>{email}</Text>
           </ListItem>
-          {props.showSettings && (
+          {!ssoEnabled && (
             <ListItem
               classes={{gutters: classes.itemGutters}}
               button
               onClick={() => {
                 GeneralLogger.info(Events.SETTINGS_CLICKED);
                 toggleProfileMenu(false);
-                history.push('/admin/settings');
+                history.push(settingsUrl);
               }}
               component="a">
-              <Text className={classes.profileItemText}>Settings</Text>
+              <Text className={classes.profileItemText}>Account Settings</Text>
             </ListItem>
           )}
-          {showDocs && (
+          {user.isSuperUser && !isOrganizations && (
+            <ListItem
+              classes={{gutters: classes.itemGutters}}
+              button
+              onClick={() => {
+                GeneralLogger.info(Events.ADMINISTRATION_CLICKED);
+                toggleProfileMenu(false);
+                history.push(adminUrl);
+              }}
+              component="a">
+              <Text className={classes.profileItemText}>Administration</Text>
+            </ListItem>
+          )}
+          {isFeatureEnabled('documents_site') && (
             <ListItem
               classes={{gutters: classes.itemGutters}}
               button
@@ -132,11 +168,17 @@ const ProfileButton = (props: Props) => {
       onOpen={() => toggleProfileMenu(true)}
       onClose={() => toggleProfileMenu(false)}>
       <div
+        data-testid="profileButton"
         className={classNames({
           [classes.accountButton]: true,
           [classes.openButton]: isProfileMenuOpen,
         })}>
-        <ProfileIcon className={classes.accountButtonIcon} />
+        <ProfileIcon
+          className={classNames({
+            [classes.accountButtonIcon]: true,
+            [classes.accountButtonIconSelected]: isSelected,
+          })}
+        />
       </div>
     </Popout>
   );

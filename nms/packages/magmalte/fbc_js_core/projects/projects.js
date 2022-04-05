@@ -50,24 +50,6 @@ const allTabs: $ReadOnlyArray<ProjectLink> = [
   },
 ];
 
-const ADMIN: ProjectLink = {
-  id: 'admin',
-  name: 'Admin',
-  secondary: 'Administrative Tools',
-  url: '/admin',
-};
-
-export function getProjectLinks(
-  enabledTabs: $ReadOnlyArray<Tab>,
-  user: ?{isSuperUser: boolean},
-): ProjectLink[] {
-  const links = allTabs.filter(tab => enabledTabs.includes(tab.id));
-  if (user && user.isSuperUser) {
-    links.push(ADMIN);
-  }
-  return links;
-}
-
 export function getProjectTabs(): {id: Tab, name: string}[] {
   return allTabs.map(tab => tab);
 }
