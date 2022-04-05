@@ -31,20 +31,7 @@ func Int(x int) *int {
 	return &x
 }
 
-func Str(x string) *string {
-	return &x
-}
-
-func TimeToDateTime(t int64) *strfmt.DateTime {
+func TimeToDateTime(t int64) strfmt.DateTime {
 	tm := time.Unix(t, 0)
-	dt := strfmt.DateTime(tm)
-	return &dt
-}
-
-func TimeMilliToDate(t int64) *strfmt.DateTime {
-	const milli = 1000
-	sec, msec := t/milli, t%milli
-	tm := time.Unix(sec, msec/int64(time.Millisecond))
-	dt := strfmt.DateTime(tm)
-	return &dt
+	return strfmt.DateTime(tm)
 }

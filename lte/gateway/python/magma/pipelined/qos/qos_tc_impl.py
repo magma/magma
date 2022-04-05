@@ -100,6 +100,7 @@ class TrafficClass:
             qdisc_cmd = "tc qdisc add dev {intf} root handle 1: htb".format(intf=intf)
             cmd_list.append(qdisc_cmd)
             LOG.info("Created root qdisc")
+            LOG.info("Created root qdisc---->%s", qdisc_cmd)
 
         parent_q_cmd = "tc class replace dev {intf} parent 1: classid 1:{root_qid} htb "
         parent_q_cmd += "rate {speed}Mbit ceil {speed}Mbit"
@@ -230,7 +231,7 @@ class TCManager(object):
     ) -> None:
         self._datapath = datapath
         self._uplink = config['nat_iface']
-        self._downlink = config['enodeb_iface']
+        self._downlink = 'gtpu_sys_2152'
         self._max_rate = config["qos"]["max_rate"]
         self._gbr_rate = config["qos"].get("gbr_rate", DEFAULT_RATE)
 
@@ -243,7 +244,7 @@ class TCManager(object):
         self._initialized = True
         LOG.info(
             "Init LinuxTC module uplink:%s downlink:%s",
-            config['nat_iface'], config['enodeb_iface'],
+            config['nat_iface'], self._downlink,
         )
 
     def destroy(self):

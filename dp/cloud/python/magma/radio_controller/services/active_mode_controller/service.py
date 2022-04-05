@@ -38,11 +38,10 @@ from magma.db_service.models import (
     DBGrant,
     DBGrantState,
     DBRequest,
-    DBRequestState,
 )
 from magma.db_service.session_manager import Session, SessionManager
 from magma.mappings.cbsd_states import cbsd_state_mapping, grant_state_mapping
-from magma.mappings.types import GrantStates, RequestStates
+from magma.mappings.types import GrantStates
 from sqlalchemy import and_
 from sqlalchemy.orm import contains_eager, joinedload
 
@@ -128,9 +127,6 @@ def _list_cbsds(session: Session) -> State:
     db_grant_idle_state_id = session.query(DBGrantState.id).filter(
         DBGrantState.name == GrantStates.IDLE.value,
     ).scalar_subquery()
-    db_request_pending_state_id = session.query(DBRequestState.id).filter(
-        DBRequestState.name == RequestStates.PENDING.value,
-    ).scalar_subquery()
 
     not_null = [
         DBCbsd.fcc_id, DBCbsd.user_id, DBCbsd.number_of_ports,
@@ -150,12 +146,7 @@ def _list_cbsds(session: Session) -> State:
                 DBGrant.state_id != db_grant_idle_state_id,
             ),
         ).
-        outerjoin(
-            DBRequest, and_(
-                DBRequest.cbsd_id == DBCbsd.id,
-                DBRequest.state_id == db_request_pending_state_id,
-            ),
-        ).
+        outerjoin(DBRequest).
         options(
             joinedload(DBCbsd.state),
             joinedload(DBCbsd.channels),

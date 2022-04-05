@@ -53,7 +53,3 @@ func (s *stubRequestsClient) UploadRequests(_ context.Context, in *requests.Requ
 	s.req = in
 	return &requests.RequestDbIds{}, nil
 }
-
-func (s *stubRequestsClient) GetResponse(_ context.Context, _ *requests.RequestDbId, _ ...grpc.CallOption) (*requests.ResponsePayload, error) {
-	panic("not implemented")
-}

@@ -22,17 +22,11 @@ from magma.db_service.models import (
     DBCbsd,
     DBCbsdState,
     DBGrantState,
-    DBRequestState,
     DBRequestType,
 )
 from magma.db_service.session_manager import SessionManager
 from magma.db_service.tests.local_db_test_case import LocalDBTestCase
-from magma.mappings.types import (
-    CbsdStates,
-    GrantStates,
-    RequestStates,
-    RequestTypes,
-)
+from magma.mappings.types import CbsdStates, GrantStates, RequestTypes
 from magma.radio_controller.services.active_mode_controller.service import (
     ActiveModeControllerService,
 )
@@ -61,9 +55,6 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
         cbsd_states = {
             x.name: x.id for x in self.session.query(DBCbsdState).all()
         }
-        request_states = {
-            x.name: x.id for x in self.session.query(DBRequestState).all()
-        }
         request_types = {
             x.name: x.id for x in self.session.query(DBRequestType).all()
         }
@@ -74,9 +65,6 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
         self.idle = grant_states[GrantStates.IDLE.value]
         self.granted = grant_states[GrantStates.GRANTED.value]
         self.authorized = grant_states[GrantStates.AUTHORIZED.value]
-
-        self.pending = request_states[RequestStates.PENDING.value]
-        self.processed = request_states[RequestStates.PROCESSED.value]
 
         self.grant = request_types[RequestTypes.GRANT.value]
 
@@ -292,26 +280,12 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
 
     def test_get_state_with_pending_requests(self):
         cbsd = self._prepare_base_cbsd(). \
-            with_request(self.processed, self.grant, '{"key1":"value1"}'). \
-            with_request(self.pending, self.grant, '{"key2":"value2"}'). \
+            with_request(self.grant, '{"key2":"value2"}'). \
             build()
         self.session.add(cbsd)
         self.session.commit()
 
         expected = State()
-
-        actual = self.amc_service.GetState(GetStateRequest(), None)
-        self.assertEqual(expected, actual)
-
-    def test_get_state_with_processed_requests(self):
-        cbsd = self._prepare_base_cbsd(). \
-            with_request(self.processed, self.grant, '{"key1":"value1"}'). \
-            build()
-        self.session.add(cbsd)
-        self.session.commit()
-
-        config = self._prepare_base_active_mode_config().build()
-        expected = State(cbsds=[config])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)

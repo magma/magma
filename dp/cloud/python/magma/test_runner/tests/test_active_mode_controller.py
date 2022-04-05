@@ -33,6 +33,10 @@ USER_ID = "some_user_id"
 
 @pytest.mark.local
 class ActiveModeControllerTestCase(DBTestCase):
+    @classmethod
+    def setUpClass(cls):
+        wait_for_elastic_to_start()
+
     def setUp(self):
         super().setUp()
         grpc_channel = grpc.insecure_channel(
@@ -167,3 +171,8 @@ class ActiveModeControllerTestCase(DBTestCase):
 
     def _delete_dp_elasticsearch_indices(self):
         requests.delete(f"{config.ELASTICSEARCH_URL}/{config.ELASTICSEARCH_INDEX}*")
+
+
+@retry(stop_max_attempt_number=30, wait_fixed=1000)
+def wait_for_elastic_to_start() -> None:
+    requests.get(f'{config.ELASTICSEARCH_URL}/_status')

@@ -21,7 +21,7 @@ import (
 
 const (
 	bufferSize       = 16
-	timeout          = time.Millisecond * 20
+	timeout          = time.Millisecond * 50
 	heartbeatTimeout = time.Second * 10
 	pollingTimeout   = time.Second * 20
 	currentTime      = 10000
@@ -305,8 +305,4 @@ type stubRadioControllerService struct {
 func (s *stubRadioControllerService) UploadRequests(_ context.Context, in *requests.RequestPayload) (*requests.RequestDbIds, error) {
 	s.requests <- in
 	return &requests.RequestDbIds{}, s.err
-}
-
-func (s *stubRadioControllerService) GetResponse(_ context.Context, _ *requests.RequestDbId) (*requests.ResponsePayload, error) {
-	return nil, errors.New("not implemented")
 }

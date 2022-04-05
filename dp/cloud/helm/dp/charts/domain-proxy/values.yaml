@@ -12,6 +12,8 @@ dp:
 
     sasEndpointUrl: ""  # Endpoint where sas request should be send.
     requestProcessingInterval: "10" # How often configuration controller will send requests to SAS. In seconds.
+    dbConnectionPoolSize: "6"  # How many database connections are made and maintained
+    dbConnectionPoolMaxOverflow: "10"  # How many extra database connections can be made when necessary
 
     database: {} # Database configuration.
       #driver: postgres      # postgres
@@ -253,6 +255,17 @@ dp:
 
   radio_controller:
 
+    dbConnectionPoolSize: "40"  # Size of database connection pool
+    # This value should be adjusted based on the expected number of active eNBs.
+    # Good estimate would be: (number of eNBs) / (average eNB TR069 periodic inform interval)
+    # However this also should not exceed the max number of connections allowed by the underlying Database.
+    # A good default guestimate value here would be 40 - Radio Controller will still only
+    # use just as many as it needs in case of low concurrency.
+    # 40 should suffice for 200 simultaneous eNBs on a Magma deployment (200 eNBs with 5sec TR069 periodic inform intervals)
+
+    dbConnectionPoolMaxOverflow: "10"  # How many temporary extra database connections can be made
+    # Used when default pool size is exceeded and extra connections are required
+
     database: {}
       #driver: postgres      # postgres
       #db: dp          # DB Name
@@ -337,6 +350,7 @@ dp:
     tolerations: []  # Allow the pods to schedule onto nodes with matching taints.
 
     affinity: {}  # Constrain which nodes your pod is eligible to be scheduled on.
+
   active_mode_controller:
 
     nameOverride: ""  # Replaces service part of the dp component deployment name.
@@ -417,6 +431,9 @@ dp:
     affinity: {}  # Constrain which nodes your pod is eligible to be scheduled on.
 
   db_service:
+
+    dbConnectionPoolSize: "6"  # How many database connections are made and maintained
+    dbConnectionPoolMaxOverflow: "10"  # How many extra database connections can be made when necessary
 
     database: {}
       #driver: postgres      # postgres

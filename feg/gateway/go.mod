@@ -45,6 +45,7 @@ require (
 	github.com/thoas/go-funk v0.7.0
 	github.com/wmnsk/go-gtp v0.8.0
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
+	google.golang.org/genproto v0.0.0-20200527145253-8367513e4ece // envoyproxy/go-control-plane forces us to pin genproto is pinned to this version
 	google.golang.org/grpc v1.33.2
 	google.golang.org/protobuf v1.27.1
 	gotest.tools/gotestsum v1.7.0 // indirect
