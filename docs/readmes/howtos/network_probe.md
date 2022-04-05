@@ -12,7 +12,6 @@ Network Probe solution allows a Magma operator to provide standardized lawful in
 
 Standarized X1 interface is provided through an external solution.
 
-
 ## Architecture
 
 Current architecture leverages both AGW and Orc8r to deliver the magma LI feature. It aims at providing a 3GPP complaint solution and smooth integration with different Lawful Interception Management System (LIMS).
@@ -82,7 +81,6 @@ Before starting to configure the LI feature, first you need to prepare the follo
 - A remote TLS server to collect records and corresponding certificates.
 - TLS Client certificates for X2 and X3 Interfaces
 
-
 ## NetworkProbe Configuration
 
 The following instructions use Orc8r Swagger API to configure Network Probe feature. We will mainly use GET and POST methods to read and write from Swagger.
@@ -135,10 +133,12 @@ Go to **Swagger API**:
   "task_id": "29f28e1c-f230-486a-a860-f5a784ab9177"
 }
 ```
+
 *Note that timestamp, correlation ID, domain ID and duration are optional and can be skipped. Task ID must be a valid uuid v4.*
 
 - Similarly, go to `nprobe` POST method `Add a new NetworkProbeDestination to the network` and set the content.
 - Run the GET method again to see the applied changes.
+
 ```json
 {
   "destination_details": {
