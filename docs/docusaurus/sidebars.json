@@ -21,6 +21,7 @@
           "howtos/inbound_roaming",
           "howtos/pcap",
           "howtos/l3_transport"
+          "howtos/network_probe"
         ]
       },
       {
