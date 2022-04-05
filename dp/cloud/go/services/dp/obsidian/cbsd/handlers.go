@@ -146,7 +146,7 @@ func createCbsd(c echo.Context) error {
 	ctx := c.Request().Context()
 	_, err = client.CreateCbsd(ctx, &req)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return getHttpError(err)
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -215,6 +215,8 @@ func getHttpError(err error) error {
 	switch s, _ := status.FromError(err); s.Code() {
 	case codes.NotFound:
 		return echo.NewHTTPError(http.StatusNotFound, err)
+	case codes.AlreadyExists:
+		return echo.NewHTTPError(http.StatusConflict, err)
 	default:
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}

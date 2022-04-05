@@ -122,6 +122,27 @@ class DomainProxyOrc8rTestCase(DBTestCase):
 
         self.delete_cbsd(cbsd_id)
 
+    def test_creating_cbsd_with_the_same_unique_fields_returns_409(self):
+        builder = CbsdAPIDataBuilder()
+
+        self.when_cbsd_is_created(builder.build_post_data())
+        self.when_cbsd_is_created(builder.build_post_data(), expected_status=HTTPStatus.CONFLICT)
+
+    def test_updating_cbsd_returns_409_when_setting_existing_serial_num(self):
+        builder = CbsdAPIDataBuilder()
+
+        cbsd1_payload = builder.build_post_data()
+        cbsd2_payload = builder.build_post_data()
+        cbsd1_payload["serial_number"] = "foo"
+        cbsd2_payload["serial_number"] = "bar"
+        self.when_cbsd_is_created(cbsd1_payload)  # cbsd_id = 1
+        self.when_cbsd_is_created(cbsd2_payload)  # cbsd_id = 2
+        self.when_cbsd_is_updated(
+            cbsd_id=2,
+            data=cbsd1_payload,
+            expected_status=HTTPStatus.CONFLICT,
+        )
+
     def test_fetching_logs_with_custom_filters(self):
         self.given_cbsd_provisioned(CbsdAPIDataBuilder())
         when_elastic_indexes_data()
@@ -195,7 +216,7 @@ class DomainProxyOrc8rTestCase(DBTestCase):
 
     def when_cbsd_is_created(self, data: Dict[str, Any]):
         r = send_request_to_backend('post', 'cbsds', json=data)
-        self.assertEqual(r.status_code, HTTPStatus.CREATED)
+        self.assertEqual(r.status_code, expected_status)
 
     def when_cbsd_is_fetched(self) -> Dict[str, Any]:
         r = send_request_to_backend('get', 'cbsds')
@@ -216,9 +237,9 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         r = send_request_to_backend('delete', f'cbsds/{cbsd_id}')
         self.assertEqual(r.status_code, HTTPStatus.NO_CONTENT)
 
-    def when_cbsd_is_updated(self, cbsd_id: int, data: Dict[str, Any]):
+    def when_cbsd_is_updated(self, cbsd_id: int, data: Dict[str, Any], expected_status: int = HTTPStatus.NO_CONTENT):
         r = send_request_to_backend('put', f'cbsds/{cbsd_id}', json=data)
-        self.assertEqual(r.status_code, HTTPStatus.NO_CONTENT)
+        self.assertEqual(r.status_code, expected_status)
 
     def when_cbsd_asks_for_state(self) -> CBSDStateResult:
         return self.dp_client.GetCBSDState(get_cbsd_request())

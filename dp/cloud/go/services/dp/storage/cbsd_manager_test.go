@@ -14,6 +14,7 @@ limitations under the License.
 package storage_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -40,9 +41,10 @@ type CbsdManagerTestSuite struct {
 
 func (s *CbsdManagerTestSuite) SetupSuite() {
 	builder := sqorc.GetSqlBuilder()
+	errorChecker := sqorc.SQLiteErrorChecker{}
 	database, err := sqorc.Open("sqlite3", ":memory:")
 	s.Require().NoError(err)
-	s.cbsdManager = storage.NewCbsdManager(database, builder)
+	s.cbsdManager = storage.NewCbsdManager(database, builder, errorChecker)
 	s.resourceManager = dbtest.NewResourceManager(s.T(), database, builder)
 	err = s.resourceManager.CreateTables(
 		&storage.DBCbsdState{},
@@ -135,6 +137,30 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 		s.Assert().Equal(expected, actual)
 	})
 	s.Require().NoError(err)
+}
+
+func (s *CbsdManagerTestSuite) TestCreateCbsdWithExistingSerialNumber() {
+	err := s.cbsdManager.CreateCbsd(someNetwork, getBaseCbsd())
+	s.Require().NoError(err)
+	err = s.cbsdManager.CreateCbsd(someNetwork, getBaseCbsd())
+	s.Assert().ErrorIs(err, merrors.ErrAlreadyExists)
+}
+
+func (s *CbsdManagerTestSuite) TestUpdateCbsdWithSerialNumberOfExistingCbsd() {
+	cbsd1 := getBaseCbsd()
+	cbsd1.Id = db.MakeInt(1)
+	cbsd2 := getBaseCbsd()
+	cbsd2.Id = db.MakeInt(2)
+	cbsd2.CbsdSerialNumber = db.MakeString("cbsd_serial_number2")
+	err := s.cbsdManager.CreateCbsd(someNetwork, cbsd1)
+	s.Require().NoError(err)
+	err = s.cbsdManager.CreateCbsd(someNetwork, cbsd2)
+	s.Require().NoError(err)
+
+	cbsd2.CbsdSerialNumber = cbsd1.CbsdSerialNumber
+
+	err = s.cbsdManager.UpdateCbsd(someNetwork, cbsd2.Id.Int64, cbsd2)
+	s.Assert().ErrorIs(err, merrors.ErrAlreadyExists)
 }
 
 func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
@@ -330,6 +356,8 @@ func (s *CbsdManagerTestSuite) TestListWithPagination() {
 	for i := range models {
 		cbsd := getCbsd(someNetwork, stateId)
 		cbsd.Id = db.MakeInt(int64(i + 1))
+
+		cbsd.CbsdSerialNumber = db.MakeString(fmt.Sprintf("some_serial_number%d", i+1))
 		models[i] = cbsd
 	}
 	err := s.resourceManager.InsertResources(db.NewExcludeMask(), models...)
@@ -349,8 +377,10 @@ func (s *CbsdManagerTestSuite) TestListWithPagination() {
 		Cbsds: make([]*storage.DetailedCbsd, limit),
 	}
 	for i := range expected.Cbsds {
+		cbsd := getDetailedCbsd(int64(i + 1 + offset))
+		cbsd.CbsdSerialNumber = db.MakeString(fmt.Sprintf("some_serial_number%d", i+1+offset))
 		expected.Cbsds[i] = &storage.DetailedCbsd{
-			Cbsd:       getDetailedCbsd(int64(i + 1 + offset)),
+			Cbsd:       cbsd,
 			CbsdState:  &storage.DBCbsdState{Name: db.MakeString("unregistered")},
 			Grant:      &storage.DBGrant{},
 			GrantState: &storage.DBGrantState{},

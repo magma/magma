@@ -27,14 +27,16 @@ import (
 )
 
 const (
+	SQLDialectEnv   = "SQL_DIALECT"
 	PostgresDialect = "psql"
 	MariaDialect    = "maria"
+	SQLiteDialect   = "sqlite"
 )
 
 // GetSqlBuilder returns a squirrel Builder for the configured SQL dialect as
 // found in the SQL_DIALECT env var.
 func GetSqlBuilder() StatementBuilder {
-	dialect, envFound := os.LookupEnv("SQL_DIALECT")
+	dialect, envFound := os.LookupEnv(SQLDialectEnv)
 	// Default to postgresql
 	if !envFound {
 		return NewPostgresStatementBuilder()
@@ -45,6 +47,25 @@ func GetSqlBuilder() StatementBuilder {
 		return NewPostgresStatementBuilder()
 	case MariaDialect:
 		return NewMariaDBStatementBuilder()
+	default:
+		panic(fmt.Sprintf("unsupported sql dialect %s", dialect))
+	}
+}
+
+// GetErrorChecker returns a squirrel Builder for the configured SQL dialect as
+// found in the SQL_DIALECT env var.
+func GetErrorChecker() ErrorChecker {
+	dialect, envFound := os.LookupEnv(SQLDialectEnv)
+	// Default to postgresql
+	if !envFound {
+		return PostgresErrorChecker{}
+	}
+
+	switch strings.ToLower(dialect) {
+	case PostgresDialect:
+		return PostgresErrorChecker{}
+	case SQLiteDialect:
+		return SQLiteErrorChecker{}
 	default:
 		panic(fmt.Sprintf("unsupported sql dialect %s", dialect))
 	}

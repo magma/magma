@@ -195,6 +195,7 @@ func (c *DBCbsd) Fields() db.FieldMap {
 		"cbsd_serial_number": &db.Field{
 			BaseType: db.StringType{X: &c.CbsdSerialNumber},
 			Nullable: true,
+			Unique:   true,
 		},
 		"last_seen": &db.Field{
 			BaseType: db.TimeType{X: &c.LastSeen},
