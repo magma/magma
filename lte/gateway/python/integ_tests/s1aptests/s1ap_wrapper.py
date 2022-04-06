@@ -1,4 +1,4 @@
-""""
+"""
 Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import ctypes
+import inspect
 import os
 import time
 
@@ -52,6 +53,7 @@ class TestWrapper(object):
     # IP address pool
     TEST_IP_BLOCK = "192.168.128.0/24"
     MSX_S1_RETRY = 2
+    IS_TEST_RUNNING_FIRST_TIME = True
 
     def __init__(
         self,
@@ -62,6 +64,10 @@ class TestWrapper(object):
         """
         Initialize the various classes required by the tests and setup.
         """
+        if not TestWrapper.IS_TEST_RUNNING_FIRST_TIME:
+            print("\n**Running the test case again to identify flaky behavior")
+
+        TestWrapper.IS_TEST_RUNNING_FIRST_TIME = False
         t = time.localtime()
         current_time = time.strftime("%H:%M:%S", t)
         print("Start time", current_time)
@@ -118,7 +124,7 @@ class TestWrapper(object):
         return os.getenv("TEST_OAI_UPSTREAM") is not None
 
     def _enBConfig(self):
-        """Helper to configure the eNB"""
+        """Configure the eNB in S1APTester"""
         # Using exaggerated prints makes the stdout easier to read.
         print("************************* Enb tester config")
         req = s1ap_types.FwNbConfigReq_t()
@@ -142,7 +148,7 @@ class TestWrapper(object):
         return response.cast(s1ap_types.FwNbS1setupRsp_t)
 
     def _s1setup(self):
-        """Helper to setup s1 to the EPC"""
+        """Perform S1 setup to the EPC"""
         print("************************* S1 setup")
         res = self._issue_s1setup_req()
 
@@ -187,15 +193,16 @@ class TestWrapper(object):
         doesn't have a cached IP (e.g. the UE has not yet been attached)
 
         Args:
-            ues (list(s1ap_types.ueAppConfig_t)): the UEs whose IPs we want
+            ues: (list(s1ap_types.ueAppConfig_t)): the UEs whose IPs we want
 
-        Returns a list of ipaddress.ip_address objects, corresponding in order
+        Returns:
+            A list of ipaddress.ip_address objects, corresponding in order
             with the input UE parameters
         """
         return [self._s1_util.get_ip(ue.ue_id) for ue in ues]
 
     def configIpBlock(self):
-        """ Removes any existing allocated blocks, then adds the ones used for
+        """ Remove any existing allocated blocks, then adds the ones used for
         testing """
         print("************************* Configuring IP block")
         self._mobility_util.remove_all_ip_blocks()
@@ -203,33 +210,35 @@ class TestWrapper(object):
         print("************************* Waiting for IP changes to propagate")
         self._mobility_util.wait_for_changes()
 
-    def configUEDevice(self, num_ues, reqData=None, static_ips=[]):
-        if reqData is None:
-            reqData = []
+    def configUEDevice(self, num_ues, req_data=None, static_ips=None):
         """ Configure the device on the UE side """
+        if req_data is None:
+            req_data = []
+        if static_ips is None:
+            static_ips = []
         reqs = self._sub_util.add_sub(num_ues=num_ues)
         for i in range(num_ues):
             print(
                 "************************* UE device config for ue_id ",
                 reqs[i].ue_id,
             )
-            if reqData and bool(reqData[i]):
-                if reqData[i].ueNwCap_pr.pres:
-                    reqs[i].ueNwCap_pr.pres = reqData[i].ueNwCap_pr.pres
-                    reqs[i].ueNwCap_pr.eea2_128 = reqData[
+            if req_data and bool(req_data[i]):
+                if req_data[i].ueNwCap_pr.pres:
+                    reqs[i].ueNwCap_pr.pres = req_data[i].ueNwCap_pr.pres
+                    reqs[i].ueNwCap_pr.eea2_128 = req_data[
                         i
                     ].ueNwCap_pr.eea2_128
-                    reqs[i].ueNwCap_pr.eea1_128 = reqData[
+                    reqs[i].ueNwCap_pr.eea1_128 = req_data[
                         i
                     ].ueNwCap_pr.eea1_128
-                    reqs[i].ueNwCap_pr.eea0 = reqData[i].ueNwCap_pr.eea0
-                    reqs[i].ueNwCap_pr.eia2_128 = reqData[
+                    reqs[i].ueNwCap_pr.eea0 = req_data[i].ueNwCap_pr.eea0
+                    reqs[i].ueNwCap_pr.eia2_128 = req_data[
                         i
                     ].ueNwCap_pr.eia2_128
-                    reqs[i].ueNwCap_pr.eia1_128 = reqData[
+                    reqs[i].ueNwCap_pr.eia1_128 = req_data[
                         i
                     ].ueNwCap_pr.eia1_128
-                    reqs[i].ueNwCap_pr.eia0 = reqData[i].ueNwCap_pr.eia0
+                    reqs[i].ueNwCap_pr.eia0 = req_data[i].ueNwCap_pr.eia0
 
             assert (
                 self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_CONFIG, reqs[i])
@@ -247,7 +256,10 @@ class TestWrapper(object):
             else:
                 ue_ip = None
             self.configAPN(
-                imsi="IMSI" + "".join([str(j) for j in reqs[i].imsi]), apn_list=None, default=True, static_ip=ue_ip,
+                imsi="IMSI" + "".join([str(j) for j in reqs[i].imsi]),
+                apn_list=None,
+                default=True,
+                static_ip=ue_ip,
             )
             self._configuredUes.append(reqs[i])
 
@@ -255,7 +267,11 @@ class TestWrapper(object):
 
     def configUEDevice_ues_same_imsi(self, num_ues):
         """ Configure the device on the UE side with same IMSI and
-        having different ue-id"""
+        having different ue-id
+
+        Args:
+            num_ues: Count of UEs to be configured
+        """
         reqs = self._sub_util.add_sub(num_ues=num_ues)
         for i in range(num_ues):
             print(
@@ -274,7 +290,8 @@ class TestWrapper(object):
             # APN configuration below can be overwritten in the test case
             # after configuring UE device.
             self.configAPN(
-                "IMSI" + "".join([str(j) for j in reqs[i].imsi]), None,
+                "IMSI" + "".join([str(j) for j in reqs[i].imsi]),
+                None,
             )
             self._configuredUes.append(reqs[i])
         for i in range(num_ues):
@@ -316,7 +333,8 @@ class TestWrapper(object):
             # APN configuration below can be overwritten in the test case
             # after configuring UE device.
             self.configAPN(
-                "IMSI" + "".join([str(j) for j in reqs[i].imsi]), None,
+                "IMSI" + "".join([str(j) for j in reqs[i].imsi]),
+                None,
             )
             self._configuredUes.append(reqs[i])
 
@@ -355,8 +373,12 @@ class TestWrapper(object):
             ues (s1ap_types.ueConfig_t): the UEs to test
             kwargs: the keyword args to pass into generate_downlink_test
 
-        Returns: a TrafficTest object, the traffic test generated based on the
+        Returns:
+            A TrafficTest object, the traffic test generated based on the
             given UEs
+
+        Raises:
+            ValueError: If no valid IP is found
         """
         # Configure downlink route in TRF server
         assert self._trf_util.update_dl_route(self.TEST_IP_BLOCK)
@@ -369,7 +391,9 @@ class TestWrapper(object):
                     " Are you sure the UE is attached?" % ue,
                 )
         return self._trf_util.generate_traffic_test(
-            ips, is_uplink=False, **kwargs,
+            ips,
+            is_uplink=False,
+            **kwargs,
         )
 
     def configUplinkTest(self, *ues, **kwargs):
@@ -379,8 +403,12 @@ class TestWrapper(object):
             ues (s1ap_types.ueConfig_t): the UEs to test
             kwargs: the keyword args to pass into generate_uplink_test
 
-        Returns: a TrafficTest object, the traffic test generated based on the
+        Returns:
+            A TrafficTest object, the traffic test generated based on the
             given UEs
+
+        Raises:
+            ValueError: If no valid IP is found
         """
         ips = self._getAddresses(*ues)
         for ip, ue in zip(ips, ues):
@@ -390,7 +418,9 @@ class TestWrapper(object):
                     " Are you sure the UE is attached?" % ue,
                 )
         return self._trf_util.generate_traffic_test(
-            ips, is_uplink=True, **kwargs,
+            ips,
+            is_uplink=True,
+            **kwargs,
         )
 
     def get_gateway_services_util(self):
@@ -406,24 +436,47 @@ class TestWrapper(object):
 
     @property
     def s1_util(self):
+        """Get s1_util instance"""
         return self._s1_util
 
     @property
     def mobility_util(self):
+        """Get mobility_util instance"""
         return self._mobility_util
 
     @property
     def traffic_util(self):
+        """Get traffic_util instance"""
         return self._trf_util
 
     @property
     def magmad_util(self):
+        """Get magmad_util instance"""
         return self._magmad_util
 
-    def cleanup(self):
+    @classmethod
+    def is_test_successful(cls, test) -> bool:
+        """Get current test case execution status"""
+        if test is None:
+            test = inspect.currentframe().f_back.f_back.f_locals["self"]
+        if test is not None and hasattr(test, "_outcome"):
+            result = test.defaultTestResult()
+            test._feedErrorsToResult(result, test._outcome.errors)
+            test_contains_error = result.errors and result.errors[-1][0] is test
+            test_contains_failure = result.failures and result.failures[-1][0] is test
+            return not (test_contains_error or test_contains_failure)
+
+    def cleanup(self, test=None):
+        """Cleanup test setup after testcase execution"""
+        is_test_successful = self.is_test_successful(test)
         time.sleep(0.5)
         print("************************* send SCTP SHUTDOWN")
         self._s1_util.issue_cmd(s1ap_types.tfwCmd.SCTP_SHUTDOWN_REQ, None)
+
+        if not is_test_successful:
+            print("************************* Cleaning up TFW")
+            self._s1_util.issue_cmd(s1ap_types.tfwCmd.TFW_CLEANUP, None)
+            self._s1_util.delete_ovs_flow_rules()
 
         self._s1_util.cleanup()
         self._sub_util.cleanup()
@@ -431,68 +484,80 @@ class TestWrapper(object):
         self._mobility_util.cleanup()
         self._magmad_util.print_redis_state()
 
-        # Cloud cleanup needs to happen after cleanup for
-        # subscriber util and mobility util
-        # if self._test_cloud:
-        #    self._cloud_manager.clean_up()
+        if not is_test_successful:
+            print("The test has failed. Restarting Sctpd for cleanup")
+            self.magmad_util.restart_sctpd()
+            self.magmad_util.print_redis_state()
 
     def multiEnbConfig(self, num_of_enbs, enb_list=None):
+        """Configure multiple eNB in S1APTester"""
         if enb_list is None:
             enb_list = []
         req = s1ap_types.multiEnbConfigReq_t()
         req.numOfEnbs = num_of_enbs
         # ENB Parameter column index initialization
-        CELLID_COL_IDX = 0
-        TAC_COL_IDX = 1
-        ENBTYPE_COL_IDX = 2
-        PLMNID_COL_IDX = 3
-        PLMN_LENGTH_IDX = 4
+        cellid_col_idx = 0
+        tac_col_idx = 1
+        enbtype_col_idx = 2
+        plmnid_col_idx = 3
+        plmn_length_idx = 4
 
         for idx1 in range(num_of_enbs):
-            req.multiEnbCfgParam[idx1].cell_id = enb_list[idx1][CELLID_COL_IDX]
-            req.multiEnbCfgParam[idx1].tac = enb_list[idx1][TAC_COL_IDX]
+            req.multiEnbCfgParam[idx1].cell_id = enb_list[idx1][cellid_col_idx]
+            req.multiEnbCfgParam[idx1].tac = enb_list[idx1][tac_col_idx]
             req.multiEnbCfgParam[idx1].enbType = enb_list[idx1][
-                ENBTYPE_COL_IDX
+                enbtype_col_idx
             ]
             req.multiEnbCfgParam[idx1].plmn_length = enb_list[idx1][
-                PLMN_LENGTH_IDX
+                plmn_length_idx
             ]
             for idx2 in range(req.multiEnbCfgParam[idx1].plmn_length):
-                val = enb_list[idx1][PLMNID_COL_IDX][idx2]
+                val = enb_list[idx1][plmnid_col_idx][idx2]
                 req.multiEnbCfgParam[idx1].plmn_id[idx2] = int(val)
 
         print("***************** Sending Multiple Enb Config Request\n")
         assert (
             self._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.MULTIPLE_ENB_CONFIG_REQ, req,
+                s1ap_types.tfwCmd.MULTIPLE_ENB_CONFIG_REQ,
+                req,
             )
             == 0
         )
 
-    def sendActDedicatedBearerAccept(self, ue_id, bearerId):
+    def sendActDedicatedBearerAccept(self, ue_id, bearer_id):
+        """Send Activate Dedicated Bearer Accept message"""
         act_ded_bearer_acc = s1ap_types.UeActDedBearCtxtAcc_t()
         act_ded_bearer_acc.ue_Id = ue_id
-        act_ded_bearer_acc.bearerId = bearerId
+        act_ded_bearer_acc.bearerId = bearer_id
         self._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ACT_DED_BER_ACC, act_ded_bearer_acc,
+            s1ap_types.tfwCmd.UE_ACT_DED_BER_ACC,
+            act_ded_bearer_acc,
         )
         print(
             "************** Sending activate dedicated EPS bearer "
             "context accept\n",
         )
 
-    def sendDeactDedicatedBearerAccept(self, ue_id, bearerId):
+    def sendDeactDedicatedBearerAccept(self, ue_id, bearer_id):
+        """Send Deactivate Dedicated Bearer Accept message"""
         deact_ded_bearer_acc = s1ap_types.UeDeActvBearCtxtAcc_t()
         deact_ded_bearer_acc.ue_Id = ue_id
-        deact_ded_bearer_acc.bearerId = bearerId
+        deact_ded_bearer_acc.bearerId = bearer_id
         self._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_DEACTIVATE_BER_ACC, deact_ded_bearer_acc,
+            s1ap_types.tfwCmd.UE_DEACTIVATE_BER_ACC,
+            deact_ded_bearer_acc,
         )
         print("************* Sending deactivate EPS bearer context accept\n")
 
     def sendPdnConnectivityReq(
-        self, ue_id, apn, pdn_type=1, pcscf_addr_type=None, dns_ipv6_addr=False,
+        self,
+        ue_id,
+        apn,
+        pdn_type=1,
+        pcscf_addr_type=None,
+        dns_ipv6_addr=False,
     ):
+        """Send PDN Connectivity Request message"""
         req = s1ap_types.uepdnConReq_t()
         req.ue_Id = ue_id
         # Initial Request
@@ -509,7 +574,9 @@ class TestWrapper(object):
         # Populate PCO if pcscf_addr_type is set
         if pcscf_addr_type or dns_ipv6_addr:
             self._s1_util.populate_pco(
-                req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr,
+                req.protCfgOpts_pr,
+                pcscf_addr_type,
+                dns_ipv6_addr,
             )
 
         self.s1_util.issue_cmd(s1ap_types.tfwCmd.UE_PDN_CONN_REQ, req)
@@ -517,6 +584,7 @@ class TestWrapper(object):
         print("************* Sending Standalone PDN Connectivity Request\n")
 
     def flush_arp(self):
+        """Flush all ARP entries"""
         self._magmad_util.exec_command_output(
             "sudo ip neigh flush all",
         )
