@@ -15,10 +15,10 @@ import subprocess
 import sys
 from distutils.util import strtobool
 
-from fabric.api import execute
+from fabric.api import cd, execute, run
 
 sys.path.append('../../../../../orc8r')
-
+from tools.fab.hosts import vagrant_setup
 
 magma_path = "../../../../../"
 orc8_docker_path = magma_path + "orc8r/cloud/docker/"
@@ -26,6 +26,8 @@ agw_path = magma_path + "lte/gateway/"
 feg_path = magma_path + "feg/gateway/"
 feg_docker_path = feg_path + "docker/"
 feg_docker_integ_test_path = agw_path + "python/integ_tests/federated_tests/docker/"
+agw_path_vagrant_path = "magma/lte/gateway/"
+feg_docker_integ_test_path_vagrant = agw_path_vagrant_path + "python/integ_tests/federated_tests/docker/"
 
 vagrant_agw_path = "~/lte/gateway"
 
@@ -166,6 +168,19 @@ def stop_agw():
 
 def build_feg():
     """
+    build FEG on magma Vagrant vm using docker running in Vagrant
+    """
+    print('#### Building FEG on Magma Vagrant VM ####')
+    vagrant_setup('magma', destroy_vm=False)
+
+    with cd(feg_docker_integ_test_path_vagrant):
+        run('docker-compose down')
+        run('docker-compose build')
+        run('docker-compose up -d')
+
+
+def _build_feg_on_host():
+    """
     build FEG on current Host using local docker
     """
     print('#### Building FEG ####')
@@ -185,6 +200,15 @@ def build_feg():
 
 def start_feg():
     """
+    start FEG on magma Vagrant vm using docker running in Vagrant
+    """
+    vagrant_setup('magma', destroy_vm=False)
+    with cd(feg_docker_integ_test_path_vagrant):
+        run('docker-compose up -d')
+
+
+def _start_feg_on_host():
+    """
     start FEG locally on Docker
     """
     subprocess.check_call(
@@ -194,6 +218,15 @@ def start_feg():
 
 
 def stop_feg():
+    """
+    stop FEG on magma Vagrant vm using docker running in Vagrant
+    """
+    vagrant_setup('magma', destroy_vm=False)
+    with cd(feg_docker_integ_test_path_vagrant):
+        run('docker-compose down')
+
+
+def _stop_feg_on_host():
     """
     stop FEG locally on Docker
     """
@@ -228,8 +261,8 @@ def start_all(provision_vm='False'):
         provision_vm: forces the provision of the magma VM
     """
     start_orc8r()
-    start_feg()
     start_agw(provision_vm)
+    start_feg()
 
 
 def stop_all():
@@ -237,8 +270,8 @@ def stop_all():
     stop AGW, FEG and Orc8r
     """
     stop_orc8r()
-    stop_feg()
     stop_agw()
+    stop_feg()
 
 
 def test_connectivity(timeout=10):
@@ -257,10 +290,10 @@ def test_connectivity(timeout=10):
 
     # check FEG-cloud connectivity
     print("\n### Checking FEG-Cloud connectivity ###")
-    subprocess.check_call(
-        f'fab check_feg_cloud_connectivity:timeout={timeout}',
-        shell=True, cwd=feg_path,
-    )
+    vagrant_setup('magma', destroy_vm=False)
+    with cd(feg_docker_integ_test_path_vagrant):
+        run('docker-compose exec magmad checkin_cli.py')
+
     # check AGW-FEG connectivity
     print("\n### Checking AGW-FEG connectivity ###")
     subprocess.check_call(
