@@ -23,30 +23,41 @@ import (
 	"magma/gateway/mconfig"
 )
 
-func TestGyClientConfig(t *testing.T) {
-	// Create tmp mconfig test file & load configs from it
-	fegConfigFmt := `{
-		"configsByKey": {
-			"session_proxy": {
-				"@type": "type.googleapis.com/magma.mconfig.SessionProxyConfig",
-				"gy": {
-					"servers": [{
-						"protocol": "sctp",
-						"address": "1.1.1.1:9999",
-						"retransmits": 5,
-						"watchdog_interval": 1,
-						"retry_count": 5,
-						"product_name": "magma_test",
-						"realm": "local.openair4G.eur",
-						"host": "local.magma-oai.openair4G.eur",
-						"dest_host": "magma-oai.openair4G.eur",
-						"dest_realm": "openair4G.eur",
-						"request_timeout": 10
-					}]
-				}
+// Create tmp mconfig test file & load configs from it
+var fegConfigFmt = `{
+	"configsByKey": {
+		"session_proxy": {
+			"@type": "type.googleapis.com/magma.mconfig.SessionProxyConfig",
+			"gy": {
+				"DisableGy": false,
+				"OverwriteApn": "apn.magma.com",
+				"servers": [{
+					"protocol": "sctp",
+					"address": "1.1.1.1:9999",
+					"retransmits": 5,
+					"watchdog_interval": 1,
+					"retry_count": 5,
+					"local_address": "2.2.2.2:9999",
+					"product_name": "magma_test",
+					"realm": "local.openair4G.eur",
+					"host": "local.magma-oai.openair4G.eur",
+					"dest_host": "magma-oai.openair4G.eur",
+					"dest_realm": "openair4G.eur",
+					"disable_dest_host": true,
+					"overwrite_dest_host": false,
+					"request_timeout": 10
+				}],
+				"virtual_apn_rules": [{
+					"apn_filter": ".*",
+					"charging_characteristics_filter": "1*",
+					"apn_overwrite": "vApnGy.magma-fedgw.magma.com"
+				}]
 			}
 		}
-	}`
+	}
+}`
+
+func TestGyClientConfig(t *testing.T) {
 
 	os.Setenv(GySupportedVendorIDsEnv, "example-supported-vendor-id")
 	defer os.Unsetenv(GySupportedVendorIDsEnv)
@@ -68,4 +79,31 @@ func TestGyClientConfig(t *testing.T) {
 	assert.Equal(t, uint(5), cliConfig.RetryCount)
 	assert.Equal(t, uint(5), cliConfig.Retransmits)
 	assert.Equal(t, uint(10), cliConfig.RequestTimeout)
+
+	ocsConfig := GetOCSConfiguration()[0]
+	assert.Equal(t, "1.1.1.1:9999", ocsConfig.Addr)
+	assert.Equal(t, "sctp", ocsConfig.Protocol)
+	assert.Equal(t, "2.2.2.2:9999", ocsConfig.LocalAddr)
+	assert.Equal(t, "magma-oai.openair4G.eur", ocsConfig.DestHost)
+	assert.Equal(t, "openair4G.eur", ocsConfig.DestRealm)
+	assert.Equal(t, bool(true), ocsConfig.DisableDestHost)
+	assert.Equal(t, bool(false), ocsConfig.OverwriteDestHost)
+
+	os.Setenv(OCSServiceIdentifierEnv, "example-service-id")
+	defer os.Unsetenv(OCSServiceIdentifierEnv)
+
+	os.Setenv(DisableRequestedGrantedUnitsAVPEnv, "false")
+	defer os.Unsetenv(DisableRequestedGrantedUnitsAVPEnv)
+
+	globalConfig := GetGyGlobalConfig()
+	vApnRules := globalConfig.VirtualApnRules[0]
+
+	assert.Equal(t, "apn.magma.com", globalConfig.OCSOverwriteApn)
+	assert.Equal(t, "example-service-id", globalConfig.OCSServiceIdentifier)
+	assert.Equal(t, bool(false), globalConfig.DisableGy)
+	assert.Regexp(t, ".*", vApnRules.ApnFilter)
+	assert.Regexp(t, "1*", vApnRules.ChargingCharacteristicsFilter)
+	assert.Equal(t, "vApnGy.magma-fedgw.magma.com", vApnRules.ApnOverwrite)
+	assert.Equal(t, bool(false), globalConfig.DisableServiceGrantedUnitsAVP)
+
 }
