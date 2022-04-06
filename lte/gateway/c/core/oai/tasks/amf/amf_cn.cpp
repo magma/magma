@@ -93,9 +93,11 @@ static int amf_cn_implicit_deregister_ue(const amf_ue_ngap_id_t ue_id) {
     rc = amf_proc_deregistration_request(ue_id, &params);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   } else {
-    OAILOG_ERROR(LOG_NAS_AMF, "Error: amf_ctx does not exits");
-    rc = RETURNerror;
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+    OAILOG_ERROR(LOG_NAS_AMF,
+                 "Error: amf_ctx does not exits, ue_id: " AMF_UE_NGAP_ID_FMT
+                 "\n",
+                 ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
 }
 
