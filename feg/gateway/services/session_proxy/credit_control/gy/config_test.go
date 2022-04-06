@@ -79,8 +79,14 @@ func TestGyClientConfig(t *testing.T) {
 	assert.Equal(t, uint(5), cliConfig.RetryCount)
 	assert.Equal(t, uint(5), cliConfig.Retransmits)
 	assert.Equal(t, uint(10), cliConfig.RequestTimeout)
+}
 
+func TestGetGyOCSConfig(t *testing.T) {
+
+	err := mconfig.CreateLoadTempConfig(fegConfigFmt)
+	assert.NoError(t, err)
 	ocsConfig := GetOCSConfiguration()[0]
+
 	assert.Equal(t, "1.1.1.1:9999", ocsConfig.Addr)
 	assert.Equal(t, "sctp", ocsConfig.Protocol)
 	assert.Equal(t, "2.2.2.2:9999", ocsConfig.LocalAddr)
@@ -88,6 +94,9 @@ func TestGyClientConfig(t *testing.T) {
 	assert.Equal(t, "openair4G.eur", ocsConfig.DestRealm)
 	assert.Equal(t, bool(true), ocsConfig.DisableDestHost)
 	assert.Equal(t, bool(false), ocsConfig.OverwriteDestHost)
+}
+
+func TestGyGlobalConfig(t *testing.T) {
 
 	os.Setenv(OCSServiceIdentifierEnv, "example-service-id")
 	defer os.Unsetenv(OCSServiceIdentifierEnv)
@@ -95,6 +104,8 @@ func TestGyClientConfig(t *testing.T) {
 	os.Setenv(DisableRequestedGrantedUnitsAVPEnv, "false")
 	defer os.Unsetenv(DisableRequestedGrantedUnitsAVPEnv)
 
+	err := mconfig.CreateLoadTempConfig(fegConfigFmt)
+	assert.NoError(t, err)
 	globalConfig := GetGyGlobalConfig()
 	vApnRules := globalConfig.VirtualApnRules[0]
 
@@ -105,5 +116,4 @@ func TestGyClientConfig(t *testing.T) {
 	assert.Regexp(t, "1*", vApnRules.ChargingCharacteristicsFilter)
 	assert.Equal(t, "vApnGy.magma-fedgw.magma.com", vApnRules.ApnOverwrite)
 	assert.Equal(t, bool(false), globalConfig.DisableServiceGrantedUnitsAVP)
-
 }

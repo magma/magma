@@ -75,8 +75,14 @@ func TestGxClientConfig(t *testing.T) {
 	assert.Equal(t, uint(5), cliConfig.RetryCount)
 	assert.Equal(t, uint(5), cliConfig.Retransmits)
 	assert.Equal(t, uint(10), cliConfig.RequestTimeout)
+}
 
+func TestGxPCRFConfig(t *testing.T) {
+
+	err := mconfig.CreateLoadTempConfig(fegConfigFmt)
+	assert.NoError(t, err)
 	pcrfConfig := GetPCRFConfiguration()[0]
+
 	assert.Equal(t, "1.1.1.1:9999", pcrfConfig.Addr)
 	assert.Equal(t, "sctp", pcrfConfig.Protocol)
 	assert.Equal(t, "2.2.2.2:9999", pcrfConfig.LocalAddr)
@@ -84,7 +90,12 @@ func TestGxClientConfig(t *testing.T) {
 	assert.Equal(t, "openair4G.eur", pcrfConfig.DestRealm)
 	assert.Equal(t, bool(true), pcrfConfig.DisableDestHost)
 	assert.Equal(t, bool(false), pcrfConfig.OverwriteDestHost)
+}
 
+func TestGxGlobalConfig(t *testing.T) {
+
+	err := mconfig.CreateLoadTempConfig(fegConfigFmt)
+	assert.NoError(t, err)
 	globalConfig := GetGxGlobalConfig()
 	vApnRules := globalConfig.VirtualApnRules[0]
 
@@ -93,5 +104,4 @@ func TestGxClientConfig(t *testing.T) {
 	assert.Regexp(t, ".*", vApnRules.ApnFilter)
 	assert.Regexp(t, "1*", vApnRules.ChargingCharacteristicsFilter)
 	assert.Equal(t, "vApnGy.magma-fedgw.magma.com", vApnRules.ApnOverwrite)
-
 }
