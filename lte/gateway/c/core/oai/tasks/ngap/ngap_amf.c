@@ -37,12 +37,12 @@
 #include "asn_internal.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/amf_default_values.h"
+#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
-#include "lte/gateway/c/core/oai/common/amf_default_values.h"
 
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
@@ -119,6 +119,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       // Free received PDU array
       bdestroy_wrapper(&SCTP_DATA_IND(received_message_p).payload);
 
+    } break;
+
+    // SCTP layer notifies NGAP of disconnection of a peer.
+    case SCTP_CLOSE_ASSOCIATION: {
+      is_ue_state_same = true;
+      ngap_handle_sctp_disconnection(
+          state, SCTP_CLOSE_ASSOCIATION(received_message_p).assoc_id,
+          SCTP_CLOSE_ASSOCIATION(received_message_p).reset);
     } break;
 
     case SCTP_NEW_ASSOCIATION: {

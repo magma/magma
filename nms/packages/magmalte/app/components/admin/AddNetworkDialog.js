@@ -14,7 +14,7 @@
  * @format
  */
 
-import Button from '@fbcnms/ui/components/design-system/Button';
+import Button from '../../../fbc_js_core/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -30,12 +30,12 @@ import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
-import nullthrows from '@fbcnms/util/nullthrows';
-import {AllNetworkTypes, XWFM} from '@fbcnms/types/network';
-import {CWF, FEG, FEG_LTE} from '@fbcnms/types/network';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import {AllNetworkTypes, XWFM} from '../../../fbc_js_core/types/network';
+import {CWF, FEG, FEG_LTE} from '../../../fbc_js_core/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {triggerAlertSync} from '../../state/SyncAlerts';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 import {useState} from 'react';
 
 const useStyles = makeStyles(() => ({

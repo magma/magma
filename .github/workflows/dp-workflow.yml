@@ -74,7 +74,7 @@ jobs:
             db:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/cloud/python/magma/db_service/**'
-            
+
 
   configuration_controller_unit_tests:
     needs: path_filter
@@ -332,6 +332,51 @@ jobs:
           name: codecov-protocol-controller
           fail_ci_if_error: false
           verbose: true
+
+  db_migration_check:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.db == 'true' }}
+    name: "Domain proxy db migration test"
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    defaults:
+      run:
+        working-directory: dp/cloud/python/magma/db_service
+    env:
+      SQLALCHEMY_DB_URI: postgresql://postgres:postgres@localhost:5432/dp
+      PYTHONPATH: ${{ github.workspace }}/dp/cloud/python
+    strategy:
+      matrix:
+        python-version: [3.8]
+    services:
+      postgres:
+        image: postgres:13.3
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: dp
+          POSTGRES_PASSWORD: postgres
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install alembic-autogen-check
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Database migration check
+        working-directory: "${{ github.workspace }}/dp/cloud/python/magma/db_service/migrations"
+        run: |
+          alembic history
+          alembic upgrade head
+          alembic-autogen-check
 
   db_service_unit_tests:
     needs: path_filter

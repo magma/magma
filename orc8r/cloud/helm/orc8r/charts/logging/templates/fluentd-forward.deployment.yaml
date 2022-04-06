@@ -74,6 +74,8 @@ spec:
               value: {{ .Values.fluentd_forward.env.elastic_port | quote }}
             - name: FLUENT_ELASTICSEARCH_SCHEME
               value: {{ .Values.fluentd_forward.env.elastic_scheme | quote }}
+            - name: FLUENT_ELASTICSEARCH_BUFFER_FLUSH_INTERVAL
+              value: {{ .Values.fluentd_forward.env.elastic_flush_interval | quote }}
 
           ports:
             - containerPort: {{ .Values.fluentd_forward.service.targetPort }}

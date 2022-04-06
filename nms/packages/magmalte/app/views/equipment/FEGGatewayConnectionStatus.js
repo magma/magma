@@ -19,7 +19,7 @@ import type {DataRows} from '../../components/DataGrid';
 import DataGrid from '../../components/DataGrid';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import React from 'react';
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 
 import {
   AVAILABLE_STATUS,
@@ -27,7 +27,7 @@ import {
   ServiceTypeEnum,
 } from '../../components/GatewayUtils';
 import {useContext} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 /**
  * Displays the Connection status of the Gx/Gy servers, S6a server

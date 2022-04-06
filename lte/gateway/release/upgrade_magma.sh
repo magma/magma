@@ -1,7 +1,7 @@
 #!/bin/bash
 
 WHOAMI=$(whoami)
-MAGMA_VERSION="1.6.1"
+MAGMA_VERSION="1.7.0"
 # Default is focal
 OS_VERSION="focal"
 

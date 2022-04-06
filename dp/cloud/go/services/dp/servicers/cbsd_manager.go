@@ -15,6 +15,7 @@ package servicers
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/pkg/errors"
@@ -103,14 +104,18 @@ func dbPagination(pagination *protos.Pagination) *storage.Pagination {
 
 func cbsdToDatabase(data *protos.CbsdData) *storage.DBCbsd {
 	capabilities := data.Capabilities
+	preferences := data.Preferences
+	b, _ := json.Marshal(preferences.FrequenciesMhz)
 	return &storage.DBCbsd{
-		UserId:           db.MakeString(data.UserId),
-		FccId:            db.MakeString(data.FccId),
-		CbsdSerialNumber: db.MakeString(data.SerialNumber),
-		MinPower:         db.MakeFloat(capabilities.MinPower),
-		MaxPower:         db.MakeFloat(capabilities.MaxPower),
-		AntennaGain:      db.MakeFloat(capabilities.AntennaGain),
-		NumberOfPorts:    db.MakeInt(capabilities.NumberOfAntennas),
+		UserId:                  db.MakeString(data.UserId),
+		FccId:                   db.MakeString(data.FccId),
+		CbsdSerialNumber:        db.MakeString(data.SerialNumber),
+		MinPower:                db.MakeFloat(capabilities.MinPower),
+		MaxPower:                db.MakeFloat(capabilities.MaxPower),
+		AntennaGain:             db.MakeFloat(capabilities.AntennaGain),
+		NumberOfPorts:           db.MakeInt(capabilities.NumberOfAntennas),
+		PreferredBandwidthMHz:   db.MakeInt(preferences.BandwidthMhz),
+		PreferredFrequenciesMHz: db.MakeString(string(b)),
 	}
 }
 
@@ -130,6 +135,8 @@ func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Durati
 		}
 	}
 	isActive := clock.Since(data.Cbsd.LastSeen.Time) < inactivityInterval
+	var frequencies []int64
+	_ = json.Unmarshal([]byte(data.Cbsd.PreferredFrequenciesMHz.String), &frequencies)
 	return &protos.CbsdDetails{
 		Id: data.Cbsd.Id.Int64,
 		Data: &protos.CbsdData{
@@ -141,6 +148,10 @@ func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Durati
 				MaxPower:         data.Cbsd.MaxPower.Float64,
 				NumberOfAntennas: data.Cbsd.NumberOfPorts.Int64,
 				AntennaGain:      data.Cbsd.AntennaGain.Float64,
+			},
+			Preferences: &protos.FrequencyPreferences{
+				BandwidthMhz:   data.Cbsd.PreferredBandwidthMHz.Int64,
+				FrequenciesMhz: frequencies,
 			},
 		},
 		CbsdId:   data.Cbsd.CbsdId.String,

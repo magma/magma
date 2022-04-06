@@ -546,8 +546,10 @@ func TestSessionControllerTimeouts(t *testing.T) {
 	mockConfig := getTestConfig()
 
 	// set small timeouts for this test to force timeout quicker
-	mockConfig[0].RequestTimeout = time.Millisecond
-	mockConfig[1].RequestTimeout = time.Millisecond
+	mockConfig[0].RequestTimeoutGx = time.Millisecond
+	mockConfig[0].RequestTimeoutGy = time.Millisecond
+	mockConfig[1].RequestTimeoutGx = time.Millisecond
+	mockConfig[1].RequestTimeoutGy = time.Millisecond
 
 	mockControlParams := getMockControllerParams(mockConfig)
 	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
@@ -1178,7 +1180,8 @@ func getTestConfig() []*servicers.SessionControllerConfig {
 				Addr:     fmt.Sprintf("127.0.0.1:%s", pcrf_port),
 				Protocol: "tcp"},
 			},
-			RequestTimeout: 3 * time.Second,
+			RequestTimeoutGx: 3 * time.Second,
+			RequestTimeoutGy: 3 * time.Second,
 		}
 		serverCfg[i] = srv
 	}

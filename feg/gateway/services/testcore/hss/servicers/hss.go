@@ -15,6 +15,7 @@ package servicers
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/emakeev/milenage"
@@ -74,6 +75,7 @@ func NewHomeSubscriberServer(store storage.SubscriberStore, config *mconfig.HSSC
 // been added.
 // Input: The subscriber data which will be added.
 func (srv *HomeSubscriberServer) AddSubscriber(ctx context.Context, req *lteprotos.SubscriberData) (*protos.Void, error) {
+	log.Println("Received AddSubscriber")
 	err := srv.store.AddSubscriber(req)
 	err = storage.ConvertStorageErrorToGrpcStatus(err)
 	return &protos.Void{}, err
@@ -84,6 +86,7 @@ func (srv *HomeSubscriberServer) AddSubscriber(ctx context.Context, req *lteprot
 // Input: The id of the subscriber to be looked up.
 // Output: The data of the corresponding subscriber.
 func (srv *HomeSubscriberServer) GetSubscriberData(ctx context.Context, req *lteprotos.SubscriberID) (*lteprotos.SubscriberData, error) {
+	log.Println("Received GetSubscriberData")
 	data, err := srv.store.GetSubscriberData(req.Id)
 	err = storage.ConvertStorageErrorToGrpcStatus(err)
 	return data, err
@@ -92,7 +95,8 @@ func (srv *HomeSubscriberServer) GetSubscriberData(ctx context.Context, req *lte
 // UpdateSubscriber changes the data stored for an existing subscriber.
 // If the subscriber cannot be found, an error is returned instead.
 // Input: The new subscriber data to store
-func (srv *HomeSubscriberServer) UpdateSubscriber(ctx context.Context, req *lteprotos.SubscriberData) (*protos.Void, error) {
+func (srv *HomeSubscriberServer) UpdateSubscriber(ctx context.Context, req *lteprotos.SubscriberUpdate) (*protos.Void, error) {
+	log.Println("Received UpdateSubscriber")
 	err := srv.store.UpdateSubscriber(req)
 	err = storage.ConvertStorageErrorToGrpcStatus(err)
 	return &protos.Void{}, err
@@ -102,15 +106,25 @@ func (srv *HomeSubscriberServer) UpdateSubscriber(ctx context.Context, req *ltep
 // If the subscriber is not found, then this call is ignored.
 // Input: The id of the subscriber to be deleted.
 func (srv *HomeSubscriberServer) DeleteSubscriber(ctx context.Context, req *lteprotos.SubscriberID) (*protos.Void, error) {
+	log.Println("Received DeleteSubscriber")
 	err := srv.store.DeleteSubscriber(req.Id)
 	err = storage.ConvertStorageErrorToGrpcStatus(err)
 	return &protos.Void{}, err
+}
+
+// ListSubscribers list all available subscribers by IMSI.
+func (srv *HomeSubscriberServer) ListSubscribers(_ context.Context, _ *protos.Void) (*lteprotos.SubscriberIDSet, error) {
+	log.Println("Received ListSubscribers")
+	data, err := srv.store.GetAllSubscribers()
+	err = storage.ConvertStorageErrorToGrpcStatus(err)
+	return data, err
 }
 
 // DeRegisterSubscriber de-registers a subscriber by their Id.
 // If the subscriber is not found, an error is returned instead.
 // Input: The id of the subscriber to be deregistered.
 func (srv *HomeSubscriberServer) DeregisterSubscriber(ctx context.Context, req *lteprotos.SubscriberID) (*protos.Void, error) {
+	log.Println("Received DeregisterSubscriber")
 	sub, err := srv.store.GetSubscriberData(req.Id)
 	if err != nil {
 		return &protos.Void{}, storage.ConvertStorageErrorToGrpcStatus(err)

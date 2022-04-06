@@ -49,6 +49,8 @@ The following table lists the configurable parameters of the Domain-proxy chart 
 | `nameOverride` | Replaces the name of the chart in the `Chart.yaml` file. | `""` |
 | `fullnameOverride` | Completely replaces the helm release generated name. | `""` |
 | `configuration_controller.sasEndpointUrl` | Endpoint where sas request should be send. | `""` |
+| `configuration_controller.dbConnectionPoolSize` | How many database connections are made and maintained | `"6"` |
+| `configuration_controller.dbConnectionPoolMaxOverflow` | How many extra database connections can be made when necessary | `"10"` |
 | `configuration_controller.requestProcessingInterval` | How often configuration controller will send requests to SAS. In seconds. | `"10"` |
 | `configuration_controller.database` | Database configuration. | `{}` |
 | `configuration_controller.nameOverride` | Replaces service part of the dp component deployment name. | `""` |
@@ -128,6 +130,8 @@ The following table lists the configurable parameters of the Domain-proxy chart 
 | `radio_controller.database` |  | `{}` |
 | `radio_controller.nameOverride` | Replaces service part of the dp component deployment name. | `""` |
 | `radio_controller.fullnameOverride` | Completely replaces dp component deployment name. | `""` |
+| `radio_controller.dbConnectionPoolSize` | How many database connections are made and maintained | `"40"` |
+| `radio_controller.dbConnectionPoolMaxOverflow` | How many extra database connections can be made when necessary | `"10"` |
 | `radio_controller.enabled` | Enables deployment of the given dp component. | `true` |
 | `radio_controller.name` | Domain proxy component name. | `"radio-controller"` |
 | `radio_controller.image.repository` | Docker image repository. | `"radio-controller"` |
@@ -186,6 +190,8 @@ The following table lists the configurable parameters of the Domain-proxy chart 
 | `db_service.enabled` | Enables deployment of the given service. | `true` |
 | `db_service.nameOverride` | Replaces service part of the dp component deployment name. | `""` |
 | `db_service.fullnameOverride` | Completely replaces dp component deployment name. | `""` |
+| `db_service.dbConnectionPoolSize` | How many database connections are made and maintained | `"6"` |
+| `db_service.dbConnectionPoolMaxOverflow` | How many extra database connections can be made when necessary | `"10"` |
 | `db_service.name` | Domain proxy component name. | `"db-service"` |
 | `db_service.image.repository` | Docker image repository. | `"db-service"` |
 | `db_service.image.pullPolicy` | Default the pull policy of all containers in that pod. | `"IfNotPresent"` |

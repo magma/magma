@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
 import ActionTable from '../../components/ActionTable';
 import CardTitleRow from '../../components/layout/CardTitleRow';
@@ -22,13 +22,13 @@ import DataPlanEditDialog from './DataPlanEdit';
 import Link from '@material-ui/core/Link';
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import React from 'react';
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import type {UpdateNetworkContextProps} from '../../components/context/LteNetworkContext';
 
 import {

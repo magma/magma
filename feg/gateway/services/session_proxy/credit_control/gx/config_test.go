@@ -14,60 +14,54 @@ limitations under the License.
 package gx
 
 import (
+	"os"
 	"testing"
 
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/stretchr/testify/assert"
 
-	"magma/feg/cloud/go/protos/mconfig"
-
-	"magma/feg/gateway/services/session_proxy/credit_control"
-
-	managed_configs "magma/gateway/mconfig"
+	"magma/gateway/mconfig"
 )
 
-func TestGxConfig(t *testing.T) {
+func TestGxClientConfig(t *testing.T) {
 	// Create tmp mconfig test file & load configs from it
 	fegConfigFmt := `{
 		"configsByKey": {
 			"session_proxy": {
 				"@type": "type.googleapis.com/magma.mconfig.SessionProxyConfig",
-				"logLevel": "INFO",
 				"gx": {
-                                         "disableGx": false,
-                                         "server": {
-                                                  "protocol": "tcp",
-                                                  "address": "1.1.1.1:9999",
-                                                  "retransmits": 3,
-                                                  "watchdogInterval": 1,
-                                                  "retryCount": 5,
-                                                  "productName": "magma",
-                                                  "realm": "magma.com",
-                                                  "host": "magma-fedgw.magma.com"
-                                         }
-                                 },
-                                 "requestFailureThreshold": 0.5,
-                                 "minimumRequestThreshold": 1
-                         }
+					"servers": [{
+						"protocol": "sctp",
+						"address": "1.1.1.1:9999",
+						"retransmits": 5,
+						"watchdog_interval": 1,
+						"retry_count": 5,
+						"product_name": "magma_test",
+						"realm": "local.openair4G.eur",
+						"host": "local.magma-oai.openair4G.eur",
+						"dest_host": "magma-oai.openair4G.eur",
+						"dest_realm": "openair4G.eur",
+						"request_timeout": 10
+					}]
+				}
+			}
 		}
 	}`
 
-	err := managed_configs.CreateLoadTempConfig(fegConfigFmt)
+	os.Setenv(GxSupportedVendorIDsEnv, "example-vendor-id")
+	defer os.Unsetenv(GxSupportedVendorIDsEnv)
+
+	err := mconfig.CreateLoadTempConfig(fegConfigFmt)
 	assert.NoError(t, err)
+	cliConfig := GetGxClientConfiguration()[0]
 
-	configsPtr := &mconfig.SessionProxyConfig{}
-	managed_configs.GetServiceConfigs(credit_control.SessionProxyServiceName, configsPtr)
-
-	gxConfig := configsPtr.GetGx()
-
-	assert.Equal(t, false, gxConfig.DisableGx)
-	assert.Equal(t, "tcp", gxConfig.Server.Protocol)
-	assert.Equal(t, "1.1.1.1:9999", gxConfig.Server.Address)
-	assert.Equal(t, uint32(3), gxConfig.Server.Retransmits)
-	assert.Equal(t, uint32(1), gxConfig.Server.WatchdogInterval)
-	assert.Equal(t, uint32(5), gxConfig.Server.RetryCount)
-	assert.Equal(t, "magma", gxConfig.Server.ProductName)
-	assert.Equal(t, "magma.com", gxConfig.Server.Realm)
-	assert.Equal(t, "magma-fedgw.magma.com", gxConfig.Server.Host)
-	assert.Equal(t, float32(0.5), configsPtr.GetRequestFailureThreshold())
-	assert.Equal(t, uint32(1), configsPtr.GetMinimumRequestThreshold())
+	assert.Equal(t, uint32(diam.GX_CHARGING_CONTROL_APP_ID), cliConfig.AppID)
+	assert.Equal(t, "example-vendor-id", cliConfig.SupportedVendorIDs)
+	assert.Equal(t, "local.magma-oai.openair4G.eur", cliConfig.Host)
+	assert.Equal(t, "local.openair4G.eur", cliConfig.Realm)
+	assert.Equal(t, "magma_test", cliConfig.ProductName)
+	assert.Equal(t, uint(1), cliConfig.WatchdogInterval)
+	assert.Equal(t, uint(5), cliConfig.RetryCount)
+	assert.Equal(t, uint(5), cliConfig.Retransmits)
+	assert.Equal(t, uint(10), cliConfig.RequestTimeout)
 }

@@ -16,10 +16,10 @@
 
 import * as React from 'react';
 import AppContent from '../layout/AppContent';
-import AppContext from '@fbcnms/ui/context/AppContext';
-import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
+import AppContext from '../../../fbc_js_core/ui/context/AppContext';
+import AppSideBar from '../../../fbc_js_core/ui/components/layout/AppSideBar';
 
-import {getProjectLinks} from '@fbcnms/projects/projects';
+import {getProjectLinks} from '../../../fbc_js_core/projects/projects';
 import {makeStyles} from '@material-ui/styles';
 import {shouldShowSettings} from '../Settings';
 

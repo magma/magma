@@ -23,7 +23,7 @@
 #include "lte/gateway/c/core/oai/test/spgw_task/spgw_procedures_test_fixture.h"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/queue.h"
 #include "lte/gateway/c/core/oai/include/gx_messages_types.h"

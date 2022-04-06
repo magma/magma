@@ -33,8 +33,8 @@
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
 
 #include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
@@ -77,11 +77,7 @@ static void add_tunnel_helper(
 
 static teid_t sgw_generate_new_s11_cp_teid(void);
 
-#if EMBEDDED_SGW
 #define TASK_MME TASK_MME_APP
-#else
-#define TASK_MME TASK_S11
-#endif
 
 //------------------------------------------------------------------------------
 uint32_t spgw_get_new_s1u_teid(spgw_state_t* state) {

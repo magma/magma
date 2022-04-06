@@ -15,19 +15,9 @@ import importlib
 import os
 
 from magma.db_service.config import Config
-from magma.db_service.models import (
-    DBCbsdState,
-    DBGrantState,
-    DBRequestState,
-    DBRequestType,
-)
+from magma.db_service.models import DBCbsdState, DBGrantState, DBRequestType
 from magma.db_service.session_manager import SessionManager
-from magma.mappings.types import (
-    CbsdStates,
-    GrantStates,
-    RequestStates,
-    RequestTypes,
-)
+from magma.mappings.types import CbsdStates, GrantStates, RequestTypes
 from sqlalchemy import create_engine
 
 
@@ -48,10 +38,6 @@ class DBInitializer(object):
                 if not s.query(DBRequestType).filter(DBRequestType.name == request_type.value).first():
                     db_request_type = DBRequestType(name=request_type.value)
                     s.add(db_request_type)
-            for state in RequestStates:
-                if not s.query(DBRequestState).filter(DBRequestState.name == state.value).first():
-                    request_state = DBRequestState(name=state.value)
-                    s.add(request_state)
             for state in GrantStates:
                 if not s.query(DBGrantState).filter(DBGrantState.name == state.value).first():
                     grant_state = DBGrantState(name=state.value)
@@ -76,14 +62,20 @@ def get_config() -> Config:
     return config_class()
 
 
-if __name__ == '__main__':
+def main():
     config = get_config()
     db_engine = create_engine(
         url=config.SQLALCHEMY_DB_URI,
         encoding=config.SQLALCHEMY_DB_ENCODING,
         echo=config.SQLALCHEMY_ECHO,
         future=config.SQLALCHEMY_FUTURE,
+        pool_size=config.SQLALCHEMY_ENGINE_POOL_SIZE,
+        max_overflow=config.SQLALCHEMY_ENGINE_MAX_OVERFLOW,
     )
     session_manager = SessionManager(db_engine=db_engine)
     initializer = DBInitializer(session_manager)
     initializer.initialize()
+
+
+if __name__ == '__main__':
+    main()

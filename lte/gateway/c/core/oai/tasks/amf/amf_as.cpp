@@ -25,23 +25,23 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/lib/n11/M5GAuthenticationServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.h"
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.h"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/proto_msg_to_itti_msg.h"
-#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
-#include "lte/gateway/c/core/oai/lib/n11/M5GAuthenticationServiceClient.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/proto_msg_to_itti_msg.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.h"
 
 using magma5g::AsyncM5GAuthenticationServiceClient;
 

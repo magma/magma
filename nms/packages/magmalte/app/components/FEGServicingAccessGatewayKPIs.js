@@ -16,10 +16,10 @@
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataGrid from './DataGrid';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../fbc_js_core/ui/components/LoadingFiller';
 import MagmaV1API from '../../generated/WebClient';
 import React from 'react';
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../fbc_js_core/util/nullthrows';
 import type {DataRows} from './DataGrid';
 import type {EnqueueSnackbarOptions} from 'notistack';
 import type {
@@ -29,8 +29,8 @@ import type {
 
 import {FetchGateways} from '../state/lte/EquipmentState';
 import {useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../fbc_js_core/ui/hooks';
 
 /**
  * Returns the list of federated lte networks serviced by the federation

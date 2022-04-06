@@ -16,19 +16,19 @@
 
 import type {MetricGraphConfig} from '../insights/Metrics';
 
-import AppContext from '@fbcnms/ui/context/AppContext';
+import AppContext from '../../../fbc_js_core/ui/context/AppContext';
 import AssessmentIcon from '@material-ui/icons/Assessment';
 import ExploreIcon from '@material-ui/icons/Explore';
 import Explorer from '../../views/metrics/Explorer';
 import GatewayMetrics from '../insights/GatewayMetrics';
 import Grafana from '../Grafana';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
+import NestedRouteLink from '../../../fbc_js_core/ui/components/NestedRouteLink';
 import NetworkKPIs from './NetworkKPIs';
 import React, {useContext} from 'react';
 import TopBar from '../../components/TopBar';
 
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const CONFIGS: Array<MetricGraphConfig> = [
   {

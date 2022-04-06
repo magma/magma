@@ -20,7 +20,7 @@ import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings.js';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
-import defaultTheme from '@fbcnms/ui/theme/default';
+import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
 import moment from 'moment';
 import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
 import {MemoryRouter, Route} from 'react-router-dom';
@@ -40,11 +40,14 @@ import type {
 
 const enqueueSnackbarMock = jest.fn();
 jest
-  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .spyOn(
+    require('../../../../fbc_js_core/ui/hooks/useSnackbar'),
+    'useEnqueueSnackbar',
+  )
   .mockReturnValue(enqueueSnackbarMock);
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings');
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
+jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
 afterEach(cleanup);
 
 const mockGx: gx = {

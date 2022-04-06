@@ -20,14 +20,14 @@ import ErrorLayout from './main/ErrorLayout';
 import Index, {ROOT_PATHS} from './main/Index';
 import MagmaV1API from '../../generated/WebClient';
 import NetworkError from './main/NetworkError';
-import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage';
+import NoNetworksMessage from '../../fbc_js_core/ui/components/NoNetworksMessage';
 import React from 'react';
-import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
+import {AppContextProvider} from '../../fbc_js_core/ui/context/AppContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 
 import useMagmaAPI from '../../api/useMagmaAPI';
 import {sortBy} from 'lodash';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../fbc_js_core/ui/hooks';
 
 function Main() {
   const {match} = useRouter();

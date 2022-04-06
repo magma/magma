@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Note: Python version >= 3.7 is needed to run this script
 """
 Copyright 2020 The Magma Authors.
 

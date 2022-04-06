@@ -143,6 +143,17 @@ jobs:
     name: C/C++ unit tests with Bazel
     runs-on: ubuntu-latest
     steps:
+      - name: Maximize build space
+        shell: bash
+        run: |
+          echo "Available storage before:"
+          df -h
+          echo "Removing /usr/share/dotnet, /usr/local/lib/android, /opt/ghc"
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          echo "Available storage after:"
+          df -h
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
         uses: actions/checkout@v2
@@ -213,6 +224,11 @@ jobs:
         with:
           name: Unit Test Results
           path: c-cpp-test-results/
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h
 
   li_agent_test:
     needs: path_filter
@@ -326,6 +342,17 @@ jobs:
       BRANCH: "${{ github.base_ref }}"
       REVISION: "${{ github.sha }}"
     steps:
+      - name: Maximize build space
+        shell: bash
+        run: |
+          echo "Available storage before:"
+          df -h
+          echo "Removing /usr/share/dotnet, /usr/local/lib/android, /opt/ghc"
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          echo "Available storage after:"
+          df -h
       - uses: actions/checkout@v2
       - name: Bazel Cache
         uses: actions/cache@v2
@@ -399,6 +426,11 @@ jobs:
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h
 
   lint-clang-format:
     needs: path_filter

@@ -47,10 +47,9 @@ type CentralSessionController struct {
 // SessionControllerConfig stores all the needed configuration for running
 // gx and gy clients
 type SessionControllerConfig struct {
-	OCSConfig      *diameter.DiameterServerConfig
-	PCRFConfig     *diameter.DiameterServerConfig
-	RequestTimeout time.Duration
-	InitMethod     gy.InitMethod
+	OCSConfig  *diameter.DiameterServerConfig
+	PCRFConfig *diameter.DiameterServerConfig
+	InitMethod gy.InitMethod
 	// This flag enables a specific type of behavior.
 	// 1. Ensures a Gy CCR-I is called in CreateSession when Gx CCR-I succeeds,
 	// even if there is no rating group returned by Gx CCR-A.
@@ -58,7 +57,9 @@ type SessionControllerConfig struct {
 	// code for CreateSession to succeed.
 	UseGyForAuthOnly bool
 	DisableGx        bool
+	RequestTimeoutGx time.Duration
 	DisableGy        bool
+	RequestTimeoutGy time.Duration
 }
 
 // NewCentralSessionController constructs a CentralSessionController
@@ -223,7 +224,7 @@ func (srv *CentralSessionController) UpdateSession(
 			return
 		}
 		requests := gx.FromUsageMonitorUpdates(request.UsageMonitors)
-		gxUpdateResponses = srv.sendMultipleGxRequestsWithTimeout(requests, srv.cfg.RequestTimeout)
+		gxUpdateResponses = srv.sendMultipleGxRequestsWithTimeout(requests, srv.cfg.RequestTimeoutGx)
 		for _, mur := range gxUpdateResponses {
 			if mur != nil {
 				if mur.TgppCtx != nil {
@@ -241,7 +242,7 @@ func (srv *CentralSessionController) UpdateSession(
 			return
 		}
 		requests := gy.FromCreditUsageUpdates(request.Updates)
-		gyUpdateResponses = srv.sendMultipleGyRequestsWithTimeout(requests, srv.cfg.RequestTimeout)
+		gyUpdateResponses = srv.sendMultipleGyRequestsWithTimeout(requests, srv.cfg.RequestTimeoutGy)
 		for _, cur := range gyUpdateResponses {
 			if cur != nil {
 				if cur.TgppCtx != nil {

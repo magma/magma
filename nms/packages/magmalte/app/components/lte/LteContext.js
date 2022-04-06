@@ -20,7 +20,7 @@ import GatewayContext from '../context/GatewayContext';
 import GatewayPoolsContext from '../context/GatewayPoolsContext';
 import GatewayTierContext from '../context/GatewayTierContext';
 import InitSubscriberState from '../../state/lte/SubscriberState';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import LteNetworkContext from '../context/LteNetworkContext';
 import MagmaV1API from '../../../generated/WebClient';
 import NetworkContext from '../../components/context/NetworkContext';
@@ -53,7 +53,7 @@ import type {
 } from '../../../generated/MagmaAPIBindings';
 import type {gatewayPoolsStateType} from '../context/GatewayPoolsContext';
 
-import {FEG_LTE, LTE} from '@fbcnms/types/network';
+import {FEG_LTE, LTE} from '../../../fbc_js_core/types/network';
 import {
   InitEnodeState,
   InitGatewayPoolState,
@@ -81,7 +81,7 @@ import {
   setSubscriberState,
 } from '../../state/lte/SubscriberState';
 import {useContext, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 
 type Props = {
   networkId: network_id,

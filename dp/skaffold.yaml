@@ -35,6 +35,14 @@ build:
       context: tools/fake_sas
       docker:
         dockerfile: Dockerfile
+    - image: fluentd
+      context: ..
+      docker:
+        dockerfile: dp/cloud/docker/fluentd/Dockerfile
+    - image: fluentd_forward
+      context: ..
+      docker:
+        dockerfile: orc8r/cloud/docker/fluentd_forward/Dockerfile
 
 deploy:
   kubeContext: minikube
@@ -47,6 +55,8 @@ deploy:
             command: ["kubectl", "rollout", "status", "--watch", "--timeout=600s", "statefulset/postgres-database"]
         - host:
             command: ["tools/skaffold_hooks/hooks.sh", "create_secrets"]
+        - host:
+            command: ["tools/skaffold_hooks/hooks.sh", "deploy_fluentd_forwarder"]
     releases:
       - name: domain-proxy
         createNamespace: true
@@ -66,12 +76,15 @@ deploy:
             image: radio-controller
           dp.db_service:
             image: db-service
+          dp.fluentd:
+            image: fluentd
         imageStrategy:
           helm: {}
   kubectl:
     defaultNamespace: default
     manifests:
       - "./tools/deployment/vendor/fake_sas.yml"
+      - "./tools/deployment/vendor/elasticsearch.yml"
 profiles:
   - name: integration-tests-no-orc8
     patches:
@@ -248,3 +261,9 @@ profiles:
                 - "sh"
                 - "-c"
                 - "/var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator || exit 0"
+      - op: remove
+        path: /deploy/helm/hooks/before/3
+  - name: remote-push
+    patches:
+      - op: remove
+        path: /build/artifacts/5  # remove fake sas image

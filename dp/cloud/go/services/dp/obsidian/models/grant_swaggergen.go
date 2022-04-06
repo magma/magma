@@ -20,25 +20,29 @@ import (
 type Grant struct {
 
 	// bandwidth mhz
-	BandwidthMhz int64 `json:"bandwidth_mhz,omitempty"`
+	// Required: true
+	BandwidthMhz int64 `json:"bandwidth_mhz"`
 
 	// frequency mhz
+	// Required: true
 	// Maximum: 3700
 	// Minimum: 3550
-	FrequencyMhz int64 `json:"frequency_mhz,omitempty"`
+	FrequencyMhz int64 `json:"frequency_mhz"`
 
 	// grant expire time
 	// Format: date-time
 	GrantExpireTime strfmt.DateTime `json:"grant_expire_time,omitempty"`
 
 	// max eirp
+	// Required: true
 	// Maximum: 37
 	// Minimum: -137
-	MaxEirp *float64 `json:"max_eirp,omitempty"`
+	MaxEirp float64 `json:"max_eirp"`
 
 	// state
+	// Required: true
 	// Enum: [granted guthorized]
-	State string `json:"state,omitempty"`
+	State string `json:"state"`
 
 	// transmit expire time
 	// Format: date-time
@@ -48,6 +52,10 @@ type Grant struct {
 // Validate validates this grant
 func (m *Grant) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateBandwidthMhz(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateFrequencyMhz(formats); err != nil {
 		res = append(res, err)
@@ -75,10 +83,19 @@ func (m *Grant) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *Grant) validateBandwidthMhz(formats strfmt.Registry) error {
+
+	if err := validate.Required("bandwidth_mhz", "body", int64(m.BandwidthMhz)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *Grant) validateFrequencyMhz(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.FrequencyMhz) { // not required
-		return nil
+	if err := validate.Required("frequency_mhz", "body", int64(m.FrequencyMhz)); err != nil {
+		return err
 	}
 
 	if err := validate.MinimumInt("frequency_mhz", "body", int64(m.FrequencyMhz), 3550, false); err != nil {
@@ -107,15 +124,15 @@ func (m *Grant) validateGrantExpireTime(formats strfmt.Registry) error {
 
 func (m *Grant) validateMaxEirp(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.MaxEirp) { // not required
-		return nil
-	}
-
-	if err := validate.Minimum("max_eirp", "body", float64(*m.MaxEirp), -137, false); err != nil {
+	if err := validate.Required("max_eirp", "body", float64(m.MaxEirp)); err != nil {
 		return err
 	}
 
-	if err := validate.Maximum("max_eirp", "body", float64(*m.MaxEirp), 37, false); err != nil {
+	if err := validate.Minimum("max_eirp", "body", float64(m.MaxEirp), -137, false); err != nil {
+		return err
+	}
+
+	if err := validate.Maximum("max_eirp", "body", float64(m.MaxEirp), 37, false); err != nil {
 		return err
 	}
 
@@ -153,8 +170,8 @@ func (m *Grant) validateStateEnum(path, location string, value string) error {
 
 func (m *Grant) validateState(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.State) { // not required
-		return nil
+	if err := validate.RequiredString("state", "body", string(m.State)); err != nil {
+		return err
 	}
 
 	// value enum

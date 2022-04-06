@@ -1,0 +1,18 @@
+import InfoTooltip from '../../components/design-system/Tooltip/InfoTooltip';
+import StoryFrame from '../StoryFrame';
+import {Meta, Preview, Story} from '@storybook/addon-docs/blocks';
+import {STORY_CATEGORIES} from '../storybookUtils';
+
+<Meta title={`${STORY_CATEGORIES.COMPONENTS}/InfoTooltip`} />
+
+# InfoTooltip
+
+Allows to display short explanatory messages using a small tooltip icon.
+
+<Preview>
+  <Story name="InfoTooltip">
+    <StoryFrame>
+      <InfoTooltip description="This is a tooltip with extra information about the section" />
+    </StoryFrame>
+  </Story>
+</Preview>

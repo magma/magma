@@ -18,7 +18,6 @@ from datetime import datetime, timedelta
 from time import sleep
 from typing import Dict, Optional, Type
 
-from dp.protos.requests_pb2 import RequestDbId
 from flask import Request, current_app
 from grpc import RpcError
 from magma.protocol_controller.grpc_client.grpc_client import GrpcClient
@@ -75,25 +74,12 @@ def _collect_rc_responses(client: GrpcClient, req_db_ids) -> Dict[int, Dict]:
 
 
 def _check_response_for_id(client: GrpcClient, req_id: int, timeout: int, interval: int) -> Optional[Dict]:
-    req = RequestDbId(id=req_id)
     start = datetime.now()
     while datetime.now() < start + timedelta(seconds=timeout):
-        try:
-            grpc_response = client.GetResponse(req)
-        except RpcError as e:
-            logging.error(
-                f"Unable to get response from Radio Controller for request {req_id}. Reason: {e}",
-            )
-            return {}
-
-        payload_json = json.loads(grpc_response.payload)
-        if payload_json:
-            logging.info(
-                f"Checked response for request id={req_id}, returning payload: <{grpc_response.payload}>",
-            )
-            return payload_json
-        else:
-            sleep(interval)
+        logging.error(
+            f"Unable to get response from Radio Controller for request {req_id}",
+        )
+        return {}
 
     logging.error(
         f"Timed out while waiting for SAS response for request: {req_id}",

@@ -41,6 +41,7 @@ cc_test(
     deps = [
         ":spgw_test_core",
         "//lte/gateway/c/core",
+        "//lte/gateway/c/core/common:common_defs",
         "@com_google_googletest//:gtest",
     ],
 )
@@ -51,6 +52,7 @@ cc_library(
     hdrs = ["spgw_procedures_test_fixture.h"],
     deps = [
         ":spgw_test_core",
+        "//lte/gateway/c/core/common:common_defs",
         "//lte/gateway/c/core/oai/test/mock_tasks",
         "@com_google_googletest//:gtest",
     ],
@@ -80,6 +82,7 @@ cc_test(
     deps = [
         ":spgw_test_core",
         "//lte/gateway/c/core",
+        "//lte/gateway/c/core/common:common_defs",
         "//lte/gateway/c/core/oai/test/mock_tasks",
         "//lte/gateway/c/core/oai/test/spgw_task:spgw_procedures_test_fixture",
         "@com_google_googletest//:gtest",
@@ -95,6 +98,7 @@ cc_test(
     deps = [
         ":spgw_test_core",
         "//lte/gateway/c/core",
+        "//lte/gateway/c/core/common:common_defs",
         "//lte/gateway/c/core/oai/test/mock_tasks",
         "//lte/gateway/c/core/oai/test/spgw_task:spgw_procedures_test_fixture",
         "@com_google_googletest//:gtest",

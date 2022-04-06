@@ -17,11 +17,11 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachAccept.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.h"
 
 int decode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,

@@ -54,24 +54,6 @@ class DBRequestType(Base):
         return f"<{class_name}(id='{self.id}', name='{self.name}')>"
 
 
-class DBRequestState(Base):
-    """
-    SAS DB Request state class
-    """
-    __tablename__ = "request_states"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String, nullable=False, unique=True)
-
-    requests = relationship("DBRequest", back_populates="state")
-
-    def __repr__(self):
-        """
-        Return string representation of DB object
-        """
-        class_name = self.__class__.__name__
-        return f"<{class_name}(id='{self.id}', name='{self.name}')>"
-
-
 class DBRequest(Base):
     """
     SAS DB Request class
@@ -81,11 +63,6 @@ class DBRequest(Base):
     type_id = Column(
         Integer, ForeignKey(
             "request_types.id", ondelete="CASCADE",
-        ),
-    )
-    state_id = Column(
-        Integer, ForeignKey(
-            "request_states.id", ondelete="CASCADE",
         ),
     )
     cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"))
@@ -99,9 +76,7 @@ class DBRequest(Base):
     )
     payload = Column(JSON)
 
-    state = relationship("DBRequestState", back_populates="requests")
     type = relationship("DBRequestType", back_populates="requests")
-    response = relationship("DBResponse", back_populates="request")
     cbsd = relationship("DBCbsd", back_populates="requests")
 
     def __repr__(self):
@@ -110,47 +85,11 @@ class DBRequest(Base):
         """
         class_name = self.__class__.__name__
         type_name = self.type.name
-        state_name = self.state.name
         return f"<{class_name}(id='{self.id}', " \
             f"type='{type_name}', " \
-            f"state='{state_name}', " \
             f"cbsd_id='{self.cbsd_id}' " \
             f"created_date='{self.created_date}' " \
             f"updated_date='{self.updated_date}' " \
-            f"payload='{self.payload}')>"
-
-
-class DBResponse(Base):
-    """
-    SAS DB Response class
-    """
-    __tablename__ = "responses"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    request_id = Column(Integer, ForeignKey("requests.id", ondelete="CASCADE"))
-    grant_id = Column(
-        Integer, ForeignKey(
-            "grants.id", ondelete="CASCADE",
-        ), nullable=True,
-    )
-    response_code = Column(Integer, nullable=False)
-    created_date = Column(
-        DateTime(timezone=True),
-        nullable=False, server_default=now(),
-    )
-    payload = Column(JSON)
-
-    request = relationship("DBRequest", back_populates="response")
-    grant = relationship("DBGrant", back_populates="responses")
-
-    def __repr__(self):
-        """
-        Return string representation of DB object
-        """
-        class_name = self.__class__.__name__
-        return f"<{class_name}(id='{self.id}', " \
-            f"request_id='{self.request_id}', " \
-            f"response_code='{self.response_code}', " \
-            f"created_date='{self.created_date}' " \
             f"payload='{self.payload}')>"
 
 
@@ -208,10 +147,6 @@ class DBGrant(Base):
 
     state = relationship(
         "DBGrantState", back_populates="grants", cascade="all, delete",
-        passive_deletes=True,
-    )
-    responses = relationship(
-        "DBResponse", back_populates="grant", cascade="all, delete",
         passive_deletes=True,
     )
     cbsd = relationship(
@@ -417,40 +352,3 @@ class DBActiveModeConfig(Base):
                f"desired_state='{self.desired_state}', " \
                f"created_date='{self.created_date}', " \
                f"updated_date='{self.updated_date}')>"
-
-
-class DBLog(Base):
-    """
-    Domain Proxy DB request/response log class
-    """
-    __tablename__ = "domain_proxy_logs"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    log_from = Column(String)
-    log_to = Column(String)
-    log_name = Column(String)
-    log_message = Column(String)
-    cbsd_serial_number = Column(String, index=True)
-    network_id = Column(String)
-    fcc_id = Column(String, index=True)
-    response_code = Column(Integer, index=True)
-    created_date = Column(
-        DateTime(timezone=True),
-        nullable=False,
-        server_default=now(),
-        index=True,
-    )
-
-    def __repr__(self):
-        """
-        Return string representation of DB object
-        """
-        class_name = self.__class__.__name__
-        return f"<{class_name}(id='{self.id}', " \
-               f"log_from='{self.log_from}', " \
-               f"log_to='{self.log_to}', " \
-               f"log_name='{self.log_name}', " \
-               f"log_message='{self.log_message}', " \
-               f"cbsd_serial_number='{self.cbsd_serial_number}', " \
-               f"network_id='{self.network_id}', " \
-               f"fcc_id='{self.fcc_id}', " \
-               f"created_date='{self.created_date}')>"

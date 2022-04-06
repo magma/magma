@@ -16,17 +16,17 @@
 
 import type {ContextRouter} from 'react-router-dom';
 import type {Theme} from '@material-ui/core';
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
 import ApnEditDialog from './ApnEditDialog';
-import Button from '@fbcnms/ui/components/design-system/Button';
+import Button from '../../../fbc_js_core/ui/components/design-system/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
+import NestedRouteLink from '../../../fbc_js_core/ui/components/NestedRouteLink';
 import React from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -35,11 +35,11 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import {Route, withRouter} from 'react-router-dom';
 
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import {useState} from 'react';
 import {withStyles} from '@material-ui/core/styles';
 

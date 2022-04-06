@@ -34,6 +34,8 @@ require (
 	github.com/google/uuid v1.1.2
 	github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07
 	github.com/labstack/echo/v4 v4.2.1
+
+	github.com/mennanov/fieldmask-utils v0.3.0
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
@@ -45,8 +47,10 @@ require (
 	github.com/thoas/go-funk v0.7.0
 	github.com/wmnsk/go-gtp v0.8.0
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
+	google.golang.org/genproto v0.0.0-20200527145253-8367513e4ece // envoyproxy/go-control-plane forces us to pin genproto is pinned to this version
 	google.golang.org/grpc v1.33.2
 	google.golang.org/protobuf v1.27.1
+	gotest.tools/gotestsum v1.7.0 // indirect
 	layeh.com/radius v0.0.0-20201203135236-838e26d0c9be
 	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0

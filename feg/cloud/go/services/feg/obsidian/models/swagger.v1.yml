@@ -1344,6 +1344,11 @@ definitions:
         x-nullable: false
         example: false
         default: false
+      request_timeout:
+        type: integer
+        format: uint32
+        default: 3
+        x-nullable: false
 
   diameter_server_configs:
     description: Diameter Configuration of The Server
