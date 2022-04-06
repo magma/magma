@@ -8,7 +8,7 @@ hide_title: true
 
 ## Overview
 
-Network Probe solution allows a Magma operator to provide standardized lawful interception X2 and X3 interfaces as described in ETSI TS 103 221-2. This feature takes advantage of the rest API (swagger) to provide the X1 interface.
+The Network Probe solution allows a Magma operator to provide standardized lawful interception X2 and X3 interfaces as described in ETSI TS 103 221-2 (https://www.etsi.org/deliver/etsi_ts/103200_103299/10322102/01.04.01_60/ts_10322102v010401p.pdf). This feature takes advantage of the rest API (swagger) to provide the X1 interface.
 
 Standarized X1 interface is provided through an external solution.
 
@@ -24,7 +24,7 @@ The LI feature can be summarized as follow,
 
 ### X1 Interface
 
-It relies on the Orc8r Swagger API to configure intercept tasks and destinations. This interface uses Json content and thus is not 3GPP complaint. An external solution (nprobe-proxy) can handle the translation 3GPP (XML based) <-> Orc8r Swagger when required.
+The X1 interface relies on the Orc8r Swagger API to configure intercept tasks and destinations. This interface uses Json content and thus is not 3GPP complaint. An external solution (nprobe-proxy) can handle the translation between the 3GPP (XML based) and Orc8r Swagger when required.
 
 *Note that nprobe-proxy is provided outside magma project and will be described separately.*
 
@@ -43,7 +43,7 @@ Network Probe Tasks represent an interception warrant and must be configured by 
 - domain_id : domain identifier
 - duration : specifies the lifetime of the task. If set to 0, the task will not expire until deleted through APIs.
 
-Each configured task in swagger will be propagated to the appropriate services (nprobe, liagentd, pipelined)
+Each configured task in swagger will be propagated to the appropriate services (nprobe, liagentd, pipelined).
 
 #### 2. Destinations management
 
@@ -55,12 +55,17 @@ Network Probe Destinations represent the configuration of the remote server in c
 - certificate : TLS certificate to connect to the delivery address
 - skip_verify_server : skip client verification when self-signed certificates are provided.
 
-*Note The orc8r nprobe service (X2 Interface) processes the first destination only. Subsequent destinations are ignored.*
+*Note: The orc8r nprobe service (X2 Interface) processes the first destination only. Subsequent destinations are ignored.*
 
 ### X2 Interface
 
-It is provided by the nprobe service in Orc8r. This service collects all the relevant events for targeted subscriber from fluentd through elastic search. Then, it parses them to create X2 records (aka Intercept Related Information - IRI) as specified ETSI TS 103 221-2 before exporting them to a remote server over TLS.
-Current records are supported: BearerActivation, BearerModification, BearerDeactivation, EutranAttach.
+The X2 interface is provided by the nprobe service in Orc8r. This service collects all the relevant events for targeted subscriber from fluentd through elastic search. Then, it parses them to create X2 records (aka Intercept Related Information - IRI) as specified ETSI TS 103 221-2 before exporting them to a remote server over TLS.
+The current list of supported records are:
+
+- BearerActivation
+- BearerModification
+- BearerDeactivation
+- EutranAttach.
 
 ### X3 Interface
 
@@ -99,7 +104,7 @@ Edit /etc/magma/pipelined.yml
 
 ### 2. Enable LiAgentD service in AGW
 
-Copy nprobe.{pem,key} to /var/opt/magma/certs/, then edit /etc/magma/liagentd.yml
+Copy `nprobe.{pem,key}` to `/var/opt/magma/certs/`, then edit /etc/magma/liagentd.yml
 
 - Enable the service
 - Set the following remote TLS server information
@@ -154,7 +159,7 @@ Go to **Swagger API**:
 
 ## Test and Troubleshooting
 
-It is recommendable that before running the tests, you enable some extra logging capabilities in both Access Gateway and Orc8r
+It is recommendable that before running the tests, you enable some extra logging capabilities in both Access Gateway and Orc8r.
 
 For better details in Access Gateway logs:
 
