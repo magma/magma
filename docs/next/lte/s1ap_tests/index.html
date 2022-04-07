@@ -99,6 +99,10 @@ run is <code>s1aptests/test_attach_detach.py</code>.</p>
 <li>All Sanity tests: <code>make integ_test</code></li>
 <li>All Non-Sanity tests: <code>make nonsanity</code></li>
 <li>Minimal set of tests to be executed before committing changes to magma repository: <code>make precommit</code></li>
+<li>Run with <em>-i</em> flag to enable continuous test runs (ignoring the failing test(s), if any):<br>
+<code>make -i precommit</code> or <code>make -i integ_test</code></li>
+<li>Set <em>enable-flaky-retry=true</em> to re-run the failing test(s) to identify flaky behavior:<br>
+<code>make precommit enable-flaky-retry=true</code> or <code>make integ_test enable-flaky-retry=true</code></li>
 </ul>
 <p><strong>Note</strong>: The traffic tests will fail as traffic server is not running in this
 setup. Look at the section below on running traffic tests.</p>
@@ -125,44 +129,17 @@ Setup described above.</p>
 <p>This section describes how to test whether MME service is persisting state to Redis.</p>
 <p>On gateway VM:</p>
 <ol>
-<li>Disable Pipelined, Mobilityd, Sctpd and Sessiond from restarting when MME
-restarts.</li>
-</ol>
-<p><code>cd /etc/systemd/system</code></p>
-<p>comment out the line <code>PartOf=magma@mme.service</code> from the following files
-(you will need sudo privileges):</p>
-<p>magma@mobilityd.service, magma@pipelined.service, magma@sessiond.service and
-sctpd.service</p>
-<p><code>sudo systemctl daemon-reload</code></p>
+<li><p>Disable Pipelined, Mobilityd, Sctpd and Sessiond from restarting when MME
+restarts.</p>
 <ol>
-<li>In <code>/etc/magma/mme.yml</code>, set <code>use_stateless</code> to true</li>
-<li>Clean up all the state in redis: <code>redis-cli -p 6380 FLUSHALL</code>. This might
-throw a &quot;Could not connect&quot; error if magma@redis service is not running. Start
-the redis service with <code>sudo service magma@redis start</code> and then try again.</li>
-<li><code>cd $MAGMA_ROOT/lte/gateway; make restart</code></li>
-</ol>
-<p>On test VM:</p>
-<ol>
-<li>Basic attach/detach test where MME is restarted mid-way:</li>
-</ol>
-<p><code>make integ_test TESTS=s1aptests/test_attach_detach_with_mme_restart.py</code></p>
-<ol>
-<li>Attach with uplink UDP traffic, where MME is restarted while UDP traffic is
-flowing:</li>
-</ol>
-<p><code>make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_mme_restart.py</code></p>
-<p>, make sure traffic server VM is running (as described in traffic tests above) and
-TCP checksum is disabled on all VMs.</p>
-<h4><a class="anchor" aria-hidden="true" id="stateless-mobilityd"></a><a href="#stateless-mobilityd" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Stateless Mobilityd</h4>
-<p>This section describes how to test whether Mobilityd service is persisting state to Redis.</p>
-<p>On gateway VM:</p>
-<ol>
-<li>Disable MME from restarting when Mobilityd restarts.</li>
-</ol>
-<p>comment out the line <code>PartOf=magma@mobilityd.service</code> from the MME system
-service file <code>/etc/systemd/system/magma@mme.service</code> (you will need sudo privileges):</p>
-<p><code>sudo systemctl daemon-reload</code></p>
-<ol>
+<li><code>cd /etc/systemd/system</code></li>
+<li>comment out the line <code>PartOf=magma@mme.service</code> from the following files
+(you will need sudo privileges):<br>
+magma@mobilityd.service, magma@pipelined.service, magma@sessiond.service and
+sctpd.service</li>
+<li><code>sudo systemctl daemon-reload</code></li>
+</ol></li>
+<li><p>In <code>/etc/magma/mme.yml</code>, set <code>use_stateless</code> to true</p></li>
 <li><p>Clean up all the state in redis: <code>redis-cli -p 6380 FLUSHALL</code>. This might
 throw a &quot;Could not connect&quot; error if magma@redis service is not running. Start
 the redis service with <code>sudo service magma@redis start</code> and then try again.</p></li>
@@ -170,25 +147,48 @@ the redis service with <code>sudo service magma@redis start</code> and then try 
 </ol>
 <p>On test VM:</p>
 <ol>
-<li><code>cd $MAGMA_ROOT/lte/gateway/python &amp;&amp; make</code></li>
-<li><code>cd integ_tests &amp;&amp; make</code></li>
-<li>Basic attach/detach test where Mobilityd is restarted mid-way:</li>
+<li><p>Basic attach/detach test where MME is restarted mid-way:<br>
+<code>make integ_test TESTS=s1aptests/test_attach_detach_with_mme_restart.py</code></p></li>
+<li><p>Attach with uplink UDP traffic, where MME is restarted while UDP traffic is
+flowing:<br>
+<code>make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_mme_restart.py</code><br>
+, make sure traffic server VM is running (as described in traffic tests above) and
+TCP checksum is disabled on all VMs.</p></li>
 </ol>
-<p><code>make integ_test TESTS=s1aptests/test_attach_detach_with_mobilityd_restart.py</code></p>
+<h4><a class="anchor" aria-hidden="true" id="stateless-mobilityd"></a><a href="#stateless-mobilityd" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Stateless Mobilityd</h4>
+<p>This section describes how to test whether Mobilityd service is persisting state to Redis.</p>
+<p>On gateway VM:</p>
 <ol>
-<li>Test IP blocks are maintained across service restart</li>
+<li><p>Disable MME from restarting when Mobilityd restarts.</p>
+<ol>
+<li>comment out the line <code>PartOf=magma@mobilityd.service</code> from the MME system
+service file <code>/etc/systemd/system/magma@mme.service</code> (you will need sudo privileges)</li>
+<li><code>sudo systemctl daemon-reload</code></li>
+</ol></li>
+<li><p>Clean up all the state in redis: <code>redis-cli -p 6380 FLUSHALL</code>. This might
+throw a &quot;Could not connect&quot; error if magma@redis service is not running. Start
+the redis service with <code>sudo service magma@redis start</code> and then try again.</p></li>
+<li><p><code>cd $MAGMA_ROOT/lte/gateway; make restart</code></p></li>
 </ol>
-<p><code>make integ_test TESTS=s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py</code></p>
+<p>On test VM:</p>
+<ol>
+<li><p><code>cd $MAGMA_ROOT/lte/gateway/python &amp;&amp; make</code></p></li>
+<li><p><code>cd integ_tests &amp;&amp; make</code></p></li>
+<li><p>Basic attach/detach test where Mobilityd is restarted mid-way:<br>
+<code>make integ_test TESTS=s1aptests/test_attach_detach_with_mobilityd_restart.py</code></p></li>
+<li><p>Test IP blocks are maintained across service restart<br>
+<code>make integ_test TESTS=s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py</code></p></li>
+</ol>
 <h4><a class="anchor" aria-hidden="true" id="stateless-pipelined"></a><a href="#stateless-pipelined" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Stateless Pipelined</h4>
 <p>This section describes how to test whether Pipelined service is persisting state to Redis.</p>
 <p>On gateway VM:</p>
 <ol>
-<li>Disable MME from restarting when Pipelined restarts.</li>
-</ol>
-<p>comment out the line <code>PartOf=magma@pipelined.service</code> from the MME system
-service file <code>/etc/systemd/system/magma@mme.service</code> (you will need sudo privileges):</p>
-<p><code>sudo systemctl daemon-reload</code></p>
+<li><p>Disable MME from restarting when Pipelined restarts.</p>
 <ol>
+<li>comment out the line <code>PartOf=magma@pipelined.service</code> from the MME system
+service file <code>/etc/systemd/system/magma@mme.service</code> (you will need sudo privileges)</li>
+<li><code>sudo systemctl daemon-reload</code></li>
+</ol></li>
 <li><p>In <code>/etc/magma/pipelined.yml</code>, set <code>clean_restart</code> to <code>false</code></p></li>
 <li><p>Clean up all the state in redis: <code>redis-cli -p 6380 FLUSHALL</code>. This might
 throw a &quot;Could not connect&quot; error if magma@redis service is not running. Start
@@ -199,9 +199,9 @@ the redis service with <code>sudo service magma@redis start</code> and then try 
 <ol>
 <li><code>cd $MAGMA_ROOT/lte/gateway/python &amp;&amp; make</code></li>
 <li><code>cd integ_tests &amp;&amp; make</code></li>
-<li>UDP traffic test where Pipelined is restarted mid-way:</li>
+<li>UDP traffic test where Pipelined is restarted mid-way:
+<code>make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py</code></li>
 </ol>
-<p><code>make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py</code></p>
 <h3><a class="anchor" aria-hidden="true" id="testing-stateless-gateway-with-all-services"></a><a href="#testing-stateless-gateway-with-all-services" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Testing stateless gateway with all services</h3>
 <p>To test the gateway with all services being stateless,</p>
 <ol>
@@ -209,11 +209,11 @@ the redis service with <code>sudo service magma@redis start</code> and then try 
 listed above</p></li>
 <li><p>On test VM, you can run any of the test cases for individual service restarts
 listed above. Further, you can test attach with uplink UDP traffic, where
-multiple services are restarted while UDP traffic is flowing:</p></li>
+multiple services are restarted while UDP traffic is flowing:<br>
+<code>make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py</code><br>
+, make sure traffic server VM is running (as described in traffic tests above) and
+TCP checksum is disabled on all VMs.</p></li>
 </ol>
-<p><code>make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py</code></p>
-<p>, make sure traffic server VM is running (as described in traffic tests above) and
-TCP checksum is disabled on all VMs.</p>
 <h2><a class="anchor" aria-hidden="true" id="notes"></a><a href="#notes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Notes</h2>
 <ul>
 <li>Restart the <em>magma</em> VM (<code>vagrant reload magma</code>) on an assertion error involving <code>ENB_S1_SETUP_RESP.</code> This is a known issue.</li>
