@@ -354,6 +354,12 @@ cpp_grpc_library(
     deps = [":sms_orc8r_cpp_proto"],
 )
 
+python_grpc_library(
+    name = "sms_orc8r_python_grpc",
+    protos = [":sms_orc8r_proto"],
+    deps = ["//orc8r/protos:common_python_proto"],
+)
+
 proto_library(
     name = "diam_errors_proto",
     srcs = ["diam_errors.proto"],
