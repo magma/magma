@@ -134,7 +134,6 @@ func createCbsd(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	// models.FillDefaults(payload)
 	if err := payload.Validate(strfmt.Default); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
@@ -187,7 +186,6 @@ func updateCbsd(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	// models.FillDefaults(payload)
 	if err := payload.Validate(strfmt.Default); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
