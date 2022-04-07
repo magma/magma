@@ -58,7 +58,7 @@ require (
 	github.com/spf13/cobra v1.3.0
 	github.com/stretchr/testify v1.7.0
 	github.com/thoas/go-funk v0.7.0
-	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
+	github.com/vektra/mockery/v2 v2.10.4
 	github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad
 	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
@@ -125,6 +125,7 @@ require (
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
+	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
@@ -138,6 +139,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/tsdb v0.10.0 // indirect
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
+	github.com/rs/zerolog v1.26.1 // indirect
 	github.com/spf13/afero v1.8.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -153,7 +155,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
-	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1 // indirect
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect

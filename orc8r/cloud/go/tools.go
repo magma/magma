@@ -23,7 +23,7 @@ import (
 	_ "github.com/go-swagger/go-swagger/cmd/swagger"
 	_ "github.com/golang/protobuf/protoc-gen-go"
 	_ "github.com/ory/go-acc"
-	_ "github.com/vektra/mockery/cmd/mockery"
+	_ "github.com/vektra/mockery/v2"
 	_ "github.com/wadey/gocovmerge"
 	_ "golang.org/x/tools/cmd/goimports"
 	_ "gotest.tools/gotestsum"
