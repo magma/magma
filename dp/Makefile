@@ -2,12 +2,13 @@ SHELL := /bin/bash
 export MINIKUBE_HOME ?= $(shell echo ~/.minikube)
 export KUBECONFIG ?= $(shell echo ~/.kube/config)
 export CERTS := $(shell mktemp -d /tmp/certs.XXXXXXXXXX)
-export DP_MODULES:= active_mode_controller configuration_controller db_service protocol_controller radio_controller  test_runner
+export DP_MODULES:= active_mode_controller configuration_controller db_service radio_controller  test_runner
 export PROTO_LIST = orc8r_protos lte_protos feg_protos cwf_protos dp_protos
 export MAGMA_ROOT ?= $(shell cd .. && pwd)
 export PYTHON_BUILD ?= $(MAGMA_ROOT)/build
 export BIN := $(PYTHON_BUILD)/bin
 export SRC := $(MAGMA_ROOT)
+export KUBERNETES_VERSION := 1.20.7
 
 
 dev: export DATE := $(shell date +%F-%T)
@@ -31,10 +32,10 @@ orc8r: init_orc8r dev_orc8r
 remote: _remote_init dev
 
 .PHONY: init
-init: start_minikube _ci_init _contour_install
+init: start_minikube _ci_init
 
 .PHONY: init_orc8r
-init_orc8r: start_minikube_orc8r _ci_init _contour_install
+init_orc8r: start_minikube_orc8r _ci_init
 
 .PHONY: _remote_init
 _remote_init: _ci_init
@@ -48,11 +49,11 @@ endif
 
 .PHONY: start_minikube
 start_minikube:
-	minikube start --addons=metrics-server
+	minikube start --addons=metrics-server --kubernetes-version=$(KUBERNETES_VERSION)
 
 .PHONY: start_minikube_orc8r
 start_minikube_orc8r:
-	minikube start --addons=metrics-server --memory='8g'
+	minikube start --addons=metrics-server --memory='8g' --kubernetes-version=$(KUBERNETES_VERSION)
 	minikube ssh sudo ip link set docker0 promisc on
 
 .PHONY: clean
@@ -114,34 +115,9 @@ _ci_init: _generate_certificates _generate_harness_config
 	#kubectl apply -f ./tools/deployment/vendor/postgresql.yml
 	#kubectl rollout status --watch --timeout=600s statefulset/postgres-database
 
-.PHONY: _contour_install
-_contour_install:
-	helm repo add bitnami https://charts.bitnami.com/bitnami
-	helm repo update
-	helm upgrade --install \
-	--set envoy.service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-internal"=0.0.0.0/0 \
-	contour bitnami/contour --version 4.3.2
-	kubectl wait --for=condition=Available --timeout=600s Deployment/contour-contour
-
-.PHONY: _nginx_install
-_nginx_install:
-	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-	helm repo update
-	helm upgrade --install \
-	--set controller.extraEnvs[0].name="GODEBUG",controller.extraEnvs[0].value="x509ignoreCN=0" \
-	nginx-ingress ingress-nginx/ingress-nginx --version 3.34.0
-	kubectl wait --for=condition=Available --timeout=600s Deployment/nginx-ingress-ingress-nginx-controller
-	#--set controller.service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-internal"=true
-
 .PHONY: _generate_certificates
 _generate_certificates:
 	tools/deployment/certificates/generate_fake_certs.sh
-	ln -s -f ../../../../../../../tools/deployment/certificates/certs/domain_proxy_bundle.cert \
-	cloud/helm/dp/charts/domain-proxy/certificates/protocol_controller/domain_proxy_bundle.cert
-	ln -s -f ../../../../../../../tools/deployment/certificates/certs/domain_proxy_server.key \
-	cloud/helm/dp/charts/domain-proxy/certificates/protocol_controller/domain_proxy_server.key
-	ln -s -f ../../../../../../../tools/deployment/certificates/certs/ca.cert \
-	cloud/helm/dp/charts/domain-proxy/certificates/protocol_controller/ca.cert
 	ln -s -f ../../../../../../../tools/deployment/certificates/certs/device_c.cert \
 	cloud/helm/dp/charts/domain-proxy/certificates/configuration_controller/device_c.cert
 	ln -s -f ../../../../../../../tools/deployment/certificates/certs/device_c.key \
@@ -162,7 +138,7 @@ _generate_harness_config:
 	--from-file=tools/deployment/vendor/sas.cfg;
 
 .PHONY: _ci_integration_tests_no_orc8r
-_ci_integration_tests_no_orc8r: _install_skaffold_ci _contour_install
+_ci_integration_tests_no_orc8r: _install_skaffold_ci
 	kubectl delete --ignore-not-found=true job test-runner-job
 	skaffold run -p integration-tests-no-orc8
 	kubectl wait --for=condition=complete --timeout=10m job/test-runner-job & \
@@ -175,7 +151,7 @@ _ci_integration_tests_no_orc8r: _install_skaffold_ci _contour_install
 	if [[ $$SUCCESS != '1' ]]; then exit 1; fi
 
 .PHONY: _ci_integration_tests_orc8r
-_ci_integration_tests_orc8r: _install_skaffold_ci _contour_install
+_ci_integration_tests_orc8r: _install_skaffold_ci
 	kubectl delete --ignore-not-found=true job test-runner-job-orc8r
 	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only
 	kubectl wait --for=condition=complete --timeout=10m job/test-runner-job-orc8r & \
@@ -203,33 +179,9 @@ _postgres_db_delete:
 	kubectl delete pvc -l app=postgres-database
 
 .PHONY: _ci_chart_smoke_tests
-_ci_chart_smoke_tests: _install_skaffold_ci _contour_install
+_ci_chart_smoke_tests: _install_skaffold_ci
 	skaffold run
 	helm test --timeout 10m domain-proxy
-
-.PHONY: _ci_ingress_tests_contour
-_ci_ingress_tests_contour: _install_skaffold_ci _contour_install _generate_ci_certificates
-	sudo --preserve-env=MINIKUBE_HOME,KUBECONFIG minikube tunnel > /dev/null &
-	skaffold run
-	sleep 10
-	cd tools/deployment/certificates/certs; \
-	curl --key device_b.key --cert device_b.cert \
-	--cacert ca.cert \
-	--resolve "domain-proxy:443:$$(kubectl get svc \
-	contour-envoy --output jsonpath='{.status.loadBalancer.ingress[0].ip}')" \
-	https://domain-proxy/sas/v1/registration
-
-.PHONY: _ci_ingress_tests_nginx
-_ci_ingress_tests_nginx: _install_skaffold_ci _nginx_install _generate_ci_certificates
-	sudo --preserve-env=MINIKUBE_HOME,KUBECONFIG minikube tunnel > /dev/null &
-	skaffold run --profile nginx-ingress
-	sleep 10
-	cd tools/deployment/certificates/certs; \
-	curl --key device_b.key --cert device_b.cert \
-	--cacert ca.cert \
-	--resolve "domain-proxy:443:$$(kubectl get svc \
-	nginx-ingress-ingress-nginx-controller --output jsonpath='{.status.loadBalancer.ingress[0].ip}')" \
-	https://domain-proxy/sas/v1/registration
 
 .PHONY: migration
 migration:
