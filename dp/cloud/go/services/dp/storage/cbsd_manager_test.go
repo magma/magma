@@ -48,12 +48,8 @@ func (s *CbsdManagerTestSuite) SetupSuite() {
 		&storage.DBCbsdState{},
 		&storage.DBCbsd{},
 		&storage.DBActiveModeConfig{},
-		&storage.DBChannel{},
 		&storage.DBGrantState{},
 		&storage.DBGrant{},
-		&storage.DBRequestState{},
-		&storage.DBRequestType{},
-		&storage.DBRequest{},
 	)
 	s.Require().NoError(err)
 	err = s.resourceManager.InsertResources(
@@ -63,14 +59,6 @@ func (s *CbsdManagerTestSuite) SetupSuite() {
 		&storage.DBGrantState{Name: db.MakeString("idle")},
 		&storage.DBGrantState{Name: db.MakeString("granted")},
 		&storage.DBGrantState{Name: db.MakeString("authorized")},
-		&storage.DBRequestState{Name: db.MakeString("pending")},
-		&storage.DBRequestState{Name: db.MakeString("processed")},
-		&storage.DBRequestType{Name: db.MakeString("registrationRequest")},
-		&storage.DBRequestType{Name: db.MakeString("spectrumInquiryRequest")},
-		&storage.DBRequestType{Name: db.MakeString("grantRequest")},
-		&storage.DBRequestType{Name: db.MakeString("heartbeatRequest")},
-		&storage.DBRequestType{Name: db.MakeString("relinquishmentRequest")},
-		&storage.DBRequestType{Name: db.MakeString("deregistrationRequest")},
 	)
 	s.Require().NoError(err)
 	s.enumMaps = map[string]map[string]int64{}
@@ -88,9 +76,7 @@ func (s *CbsdManagerTestSuite) TearDownTest() {
 	err := s.resourceManager.DropResources(
 		&storage.DBCbsd{},
 		&storage.DBActiveModeConfig{},
-		&storage.DBChannel{},
 		&storage.DBGrant{},
-		&storage.DBRequest{},
 	)
 	s.Require().NoError(err)
 }
