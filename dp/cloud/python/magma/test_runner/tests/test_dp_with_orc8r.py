@@ -13,8 +13,10 @@ limitations under the License.
 from __future__ import annotations
 
 import operator
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from http import HTTPStatus
+from threading import Event, Thread
 from time import sleep
 from typing import Any, Dict, List, Optional
 
@@ -55,7 +57,7 @@ class DomainProxyOrc8rTestCase(DBTestCase):
             f"{config.GRPC_SERVICE}:{config.GRPC_PORT}",
         )
         self.dp_client = DPServiceStub(grpc_channel)
-        self.when_elastic_indexes_data(keep_alive=False)
+        when_elastic_indexes_data()
         _delete_dp_elasticsearch_indices()
 
     def tearDown(self):
@@ -70,29 +72,32 @@ class DomainProxyOrc8rTestCase(DBTestCase):
 
     def test_cbsd_sas_flow(self):
         cbsd_id = self.given_cbsd_provisioned(CbsdAPIDataBuilder())
-        self.when_elastic_indexes_data(keep_alive=True)
 
-        logs = self.when_logs_are_fetched(get_current_sas_filters())
-        self.then_logs_are(logs, self.get_sas_provision_messages())
+        with self.while_cbsd_is_active():
+            when_elastic_indexes_data()
 
-        filters = get_filters_for_request_type('heartbeat')
-        self.then_message_is_eventually_sent(filters, keep_alive=True)
+            logs = self.when_logs_are_fetched(get_current_sas_filters())
+            self.then_logs_are(logs, self.get_sas_provision_messages())
+
+            filters = get_filters_for_request_type('heartbeat')
+            self.then_message_is_eventually_sent(filters)
 
         self.delete_cbsd(cbsd_id)
 
     def test_sas_flow_restarted_for_updated_cbsd(self):
         cbsd_id = self.given_cbsd_provisioned(CbsdAPIDataBuilder())
 
-        builder = CbsdAPIDataBuilder().with_fcc_id(OTHER_FCC_ID)
-        self.when_cbsd_is_updated(cbsd_id, builder.build_post_data())
+        with self.while_cbsd_is_active():
+            builder = CbsdAPIDataBuilder().with_fcc_id(OTHER_FCC_ID)
+            self.when_cbsd_is_updated(cbsd_id, builder.build_post_data())
 
-        filters = get_filters_for_request_type('deregistration')
-        self.then_message_is_eventually_sent(filters, keep_alive=True)
+            filters = get_filters_for_request_type('deregistration')
+            self.then_message_is_eventually_sent(filters)
 
-        self.then_state_is_eventually(builder.build_grant_state_data())
+            self.then_state_is_eventually(builder.build_grant_state_data())
 
-        cbsd = self.when_cbsd_is_fetched()
-        self.then_cbsd_is(cbsd, builder.build_registered_active_data())
+            cbsd = self.when_cbsd_is_fetched()
+            self.then_cbsd_is(cbsd, builder.build_registered_active_data())
 
         self.delete_cbsd(cbsd_id)
 
@@ -119,7 +124,7 @@ class DomainProxyOrc8rTestCase(DBTestCase):
 
     def test_fetching_logs_with_custom_filters(self):
         self.given_cbsd_provisioned(CbsdAPIDataBuilder())
-        self.when_elastic_indexes_data(keep_alive=False)
+        when_elastic_indexes_data()
 
         sas_to_dp_end_date_only = {
             'serial_number': SERIAL_NUMBER,
@@ -188,12 +193,6 @@ class DomainProxyOrc8rTestCase(DBTestCase):
 
         return cbsd['id']
 
-    def when_elastic_indexes_data(self, *, keep_alive: bool):
-        for _ in range(5):
-            sleep(1)
-            if keep_alive:
-                self.when_cbsd_asks_for_state()
-
     def when_cbsd_is_created(self, data: Dict[str, Any]):
         r = send_request_to_backend('post', 'cbsds', json=data)
         self.assertEqual(r.status_code, HTTPStatus.CREATED)
@@ -232,6 +231,22 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         total_wait_time = inactivity + 2 * polling + delta
         sleep(total_wait_time)
 
+    @contextmanager
+    def while_cbsd_is_active(self):
+        done = Event()
+
+        def keep_asking_for_state():
+            while not done.wait(timeout=1):
+                self.when_cbsd_asks_for_state()
+
+        t = Thread(target=keep_asking_for_state)
+        try:
+            t.start()
+            yield
+        finally:
+            done.set()
+            t.join()
+
     def then_cbsd_is(self, actual: Dict[str, Any], expected: Dict[str, Any]):
         actual = actual.copy()
         del actual['id']
@@ -260,9 +275,7 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         self.assertEqual(actual, expected)
 
     @retry(stop_max_attempt_number=60, wait_fixed=1000)
-    def then_message_is_eventually_sent(self, filters: Dict[str, Any], *, keep_alive: bool):
-        if keep_alive:
-            self.when_cbsd_asks_for_state()
+    def then_message_is_eventually_sent(self, filters: Dict[str, Any]):
         logs = self.when_logs_are_fetched(filters)
         self.assertEqual(logs["total_count"], 1)
 
@@ -275,7 +288,7 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         state = self.when_cbsd_asks_for_state()
         self.then_state_is(state, get_empty_state())
 
-        self.then_message_is_eventually_sent(filters, keep_alive=False)
+        self.then_message_is_eventually_sent(filters)
 
     @staticmethod
     def get_sas_provision_messages() -> List[str]:
@@ -322,6 +335,11 @@ def now() -> str:
 @retry(stop_max_attempt_number=30, wait_fixed=1000)
 def wait_for_elastic_to_start() -> None:
     requests.get(f'{config.ELASTICSEARCH_URL}/_status')
+
+
+def when_elastic_indexes_data():
+    # TODO use retrying instead
+    sleep(5)
 
 
 def _delete_dp_elasticsearch_indices() -> None:
