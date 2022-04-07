@@ -52,25 +52,6 @@ func GetSqlBuilder() StatementBuilder {
 	}
 }
 
-// GetErrorChecker returns a squirrel Builder for the configured SQL dialect as
-// found in the SQL_DIALECT env var.
-func GetErrorChecker() ErrorChecker {
-	dialect, envFound := os.LookupEnv(SQLDialectEnv)
-	// Default to postgresql
-	if !envFound {
-		return PostgresErrorChecker{}
-	}
-
-	switch strings.ToLower(dialect) {
-	case PostgresDialect:
-		return PostgresErrorChecker{}
-	case SQLiteDialect:
-		return SQLiteErrorChecker{}
-	default:
-		panic(fmt.Sprintf("unsupported sql dialect %s", dialect))
-	}
-}
-
 // StatementBuilder is an interface which tracks squirrel's
 // StatementBuilderType with the difference that Insert returns this package's
 // InsertBuilder interface type.

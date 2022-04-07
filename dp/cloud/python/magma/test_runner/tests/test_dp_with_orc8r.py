@@ -131,10 +131,8 @@ class DomainProxyOrc8rTestCase(DBTestCase):
     def test_updating_cbsd_returns_409_when_setting_existing_serial_num(self):
         builder = CbsdAPIDataBuilder()
 
-        cbsd1_payload = builder.build_post_data()
-        cbsd2_payload = builder.build_post_data()
-        cbsd1_payload["serial_number"] = "foo"
-        cbsd2_payload["serial_number"] = "bar"
+        cbsd1_payload = builder.build_post_data_with_serial_number("foo")
+        cbsd2_payload = builder.build_post_data_with_serial_number("bar")
         self.when_cbsd_is_created(cbsd1_payload)  # cbsd_id = 1
         self.when_cbsd_is_created(cbsd2_payload)  # cbsd_id = 2
         self.when_cbsd_is_updated(
@@ -421,6 +419,11 @@ class CbsdAPIDataBuilder:
             'serial_number': SERIAL_NUMBER,
             'user_id': USER_ID,
         }
+
+    def build_post_data_with_serial_number(self, serial_number) -> Dict[str, Any]:
+        data = self.build_post_data()
+        data["serial_number"] = serial_number
+        return data
 
     def build_unregistered_data(self) -> Dict[str, Any]:
         data = self.build_post_data()

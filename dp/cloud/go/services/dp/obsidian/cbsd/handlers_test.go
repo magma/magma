@@ -240,6 +240,30 @@ func (s *HandlersTestSuite) TestCreateCbsd() {
 	tests.RunUnitTest(s.T(), e, tc)
 }
 
+func (s *HandlersTestSuite) TestCreateWithDuplicateUniqueFieldsReturnsConflict() {
+	e := echo.New()
+	obsidianHandlers := cbsd.GetHandlers()
+	payload := createOrUpdateCbsdPayload()
+	const errMsg = "some error"
+	s.cbsdServer.err = status.Error(codes.AlreadyExists, errMsg)
+	s.cbsdServer.expectedCreateRequest = &protos.CreateCbsdRequest{
+		NetworkId: "n1",
+		Data:      models.CbsdToBackend(payload),
+	}
+	createCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdsPath, obsidian.POST).HandlerFunc
+	tc := tests.Test{
+		Method:                 http.MethodPost,
+		URL:                    "/magma/v1/dp/n1/cbsds",
+		Payload:                payload,
+		ParamNames:             []string{"network_id"},
+		ParamValues:            []string{"n1"},
+		Handler:                createCbsd,
+		ExpectedStatus:         http.StatusConflict,
+		ExpectedErrorSubstring: errMsg,
+	}
+	tests.RunUnitTest(s.T(), e, tc)
+}
+
 func (s *HandlersTestSuite) TestCreateCbsdWithoutAllRequiredParams() {
 	e := echo.New()
 	obsidianHandlers := cbsd.GetHandlers()
@@ -403,6 +427,31 @@ func (s *HandlersTestSuite) TestUpdateNonexistentCbsd() {
 		Handler:                updateCbsd,
 		ExpectedStatus:         http.StatusNotFound,
 		ExpectedErrorSubstring: errorMsg,
+	}
+	tests.RunUnitTest(s.T(), e, tc)
+}
+
+func (s *HandlersTestSuite) TestUpdateCbsdWithDuplicateUniqueFieldsReturnsConflict() {
+	e := echo.New()
+	obsidianHandlers := cbsd.GetHandlers()
+	payload := createOrUpdateCbsdPayload()
+	const errMsg = "some error"
+	s.cbsdServer.err = status.Error(codes.AlreadyExists, errMsg)
+	s.cbsdServer.expectedUpdateRequest = &protos.UpdateCbsdRequest{
+		NetworkId: "n1",
+		Id:        1,
+		Data:      models.CbsdToBackend(payload),
+	}
+	updateCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdPath, obsidian.PUT).HandlerFunc
+	tc := tests.Test{
+		Method:                 http.MethodPost,
+		URL:                    "/magma/v1/dp/n1/cbsds/1",
+		Payload:                payload,
+		ParamNames:             []string{"network_id", "cbsd_id"},
+		ParamValues:            []string{"n1", "1"},
+		Handler:                updateCbsd,
+		ExpectedStatus:         http.StatusConflict,
+		ExpectedErrorSubstring: errMsg,
 	}
 	tests.RunUnitTest(s.T(), e, tc)
 }
