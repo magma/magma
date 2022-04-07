@@ -6,7 +6,7 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/mattn/go-sqlite3"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 
 	"magma/orc8r/lib/go/merrors"
 )
@@ -15,6 +15,23 @@ const (
 	uniqueViolationNum = "23505"
 	otherPsqlErrorNum  = "22011"
 )
+
+func TestErrorChecker(t *testing.T) {
+	suite.Run(t, &ErrorCheckerTestSuite{})
+}
+
+type ErrorCheckerTestSuite struct {
+	suite.Suite
+	prevDialect string
+}
+
+func (s *ErrorCheckerTestSuite) SetupSuite() {
+	s.prevDialect = os.Getenv(SQLDialectEnv)
+}
+
+func (s *ErrorCheckerTestSuite) TearDownTest() {
+	_ = os.Setenv(SQLDialectEnv, s.prevDialect)
+}
 
 type customError struct{}
 
@@ -38,29 +55,29 @@ type psqlGetErrorTestCase struct {
 	expectedError error
 }
 
-func TestSQLiteErrorCheckerCreation(t *testing.T) {
+func (s *ErrorCheckerTestSuite) TestSQLiteErrorCheckerCreation() {
 	_ = os.Setenv(SQLDialectEnv, SQLiteDialect)
 	c := GetErrorChecker()
-	assert.IsType(t, SQLiteErrorChecker{}, c)
+	s.Assert().IsType(SQLiteErrorChecker{}, c)
 }
 
-func TestPostgresErrorCheckerCreation(t *testing.T) {
+func (s *ErrorCheckerTestSuite) TestPostgresErrorCheckerCreation() {
 	_ = os.Setenv(SQLDialectEnv, PostgresDialect)
 	c := GetErrorChecker()
-	assert.IsType(t, PostgresErrorChecker{}, c)
+	s.Assert().IsType(PostgresErrorChecker{}, c)
 }
 
-func TestErrorCheckerNotCreatedWithUnknownDialect(t *testing.T) {
+func (s *ErrorCheckerTestSuite) TestErrorCheckerNotCreatedWithUnknownDialect() {
 	_ = os.Setenv(SQLDialectEnv, "someOtherDialect")
-	assert.Panics(t, func() { GetErrorChecker() })
+	s.Assert().Panics(func() { GetErrorChecker() })
 }
 
-func TestErrorCheckerDefaultsToPostgres(t *testing.T) {
+func (s *ErrorCheckerTestSuite) TestErrorCheckerDefaultsToPostgres() {
 	c := GetErrorChecker()
-	assert.IsType(t, PostgresErrorChecker{}, c)
+	s.Assert().IsType(PostgresErrorChecker{}, c)
 }
 
-func TestSQLiteGetError(t *testing.T) {
+func (s *ErrorCheckerTestSuite) TestSQLiteGetError() {
 	testCases := []sqliteGetErrorTestCase{
 		{
 			name:    "test sqlite constraint error with SQLiteErrorChecker",
@@ -86,14 +103,14 @@ func TestSQLiteGetError(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		s.Run(tc.name, func() {
 			err := tc.checker.GetError(tc.err)
-			assert.IsType(t, tc.expectedError, err)
+			s.Assert().IsType(tc.expectedError, err)
 		})
 	}
 }
 
-func TestPostgresGetError(t *testing.T) {
+func (s *ErrorCheckerTestSuite) TestPostgresGetError() {
 	testCases := []psqlGetErrorTestCase{
 		{
 			name:    "test postgres constraint error with PostgresErrorChecker",
@@ -119,9 +136,9 @@ func TestPostgresGetError(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		s.Run(tc.name, func() {
 			err := tc.checker.GetError(tc.err)
-			assert.IsType(t, tc.expectedError, err)
+			s.Assert().IsType(tc.expectedError, err)
 		})
 	}
 }
