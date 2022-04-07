@@ -6,16 +6,18 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 	models3 "magma/orc8r/cloud/go/models"
 	models4 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // LteGateway Full description of an LTE gateway
+//
 // swagger:model lte_gateway
 type LteGateway struct {
 
@@ -115,16 +117,19 @@ func (m *LteGateway) Validate(formats strfmt.Registry) error {
 }
 
 func (m *LteGateway) validateApnResources(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ApnResources) { // not required
 		return nil
 	}
 
-	if err := m.ApnResources.Validate(formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("apn_resources")
+	if m.ApnResources != nil {
+		if err := m.ApnResources.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("apn_resources")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("apn_resources")
+			}
+			return err
 		}
-		return err
 	}
 
 	return nil
@@ -140,6 +145,8 @@ func (m *LteGateway) validateCellular(formats strfmt.Registry) error {
 		if err := m.Cellular.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("cellular")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("cellular")
 			}
 			return err
 		}
@@ -157,6 +164,8 @@ func (m *LteGateway) validateConnectedEnodebSerials(formats strfmt.Registry) err
 	if err := m.ConnectedEnodebSerials.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("connected_enodeb_serials")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("connected_enodeb_serials")
 		}
 		return err
 	}
@@ -166,9 +175,15 @@ func (m *LteGateway) validateConnectedEnodebSerials(formats strfmt.Registry) err
 
 func (m *LteGateway) validateDescription(formats strfmt.Registry) error {
 
+	if err := validate.Required("description", "body", models3.GatewayDescription(m.Description)); err != nil {
+		return err
+	}
+
 	if err := m.Description.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("description")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("description")
 		}
 		return err
 	}
@@ -177,7 +192,6 @@ func (m *LteGateway) validateDescription(formats strfmt.Registry) error {
 }
 
 func (m *LteGateway) validateDevice(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Device) { // not required
 		return nil
 	}
@@ -186,6 +200,8 @@ func (m *LteGateway) validateDevice(formats strfmt.Registry) error {
 		if err := m.Device.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("device")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("device")
 			}
 			return err
 		}
@@ -196,9 +212,15 @@ func (m *LteGateway) validateDevice(formats strfmt.Registry) error {
 
 func (m *LteGateway) validateID(formats strfmt.Registry) error {
 
+	if err := validate.Required("id", "body", models3.GatewayID(m.ID)); err != nil {
+		return err
+	}
+
 	if err := m.ID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
 		}
 		return err
 	}
@@ -216,6 +238,8 @@ func (m *LteGateway) validateMagmad(formats strfmt.Registry) error {
 		if err := m.Magmad.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("magmad")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("magmad")
 			}
 			return err
 		}
@@ -226,9 +250,15 @@ func (m *LteGateway) validateMagmad(formats strfmt.Registry) error {
 
 func (m *LteGateway) validateName(formats strfmt.Registry) error {
 
+	if err := validate.Required("name", "body", models3.GatewayName(m.Name)); err != nil {
+		return err
+	}
+
 	if err := m.Name.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("name")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("name")
 		}
 		return err
 	}
@@ -237,7 +267,6 @@ func (m *LteGateway) validateName(formats strfmt.Registry) error {
 }
 
 func (m *LteGateway) validateRegistrationInfo(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.RegistrationInfo) { // not required
 		return nil
 	}
@@ -246,6 +275,8 @@ func (m *LteGateway) validateRegistrationInfo(formats strfmt.Registry) error {
 		if err := m.RegistrationInfo.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("registration_info")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("registration_info")
 			}
 			return err
 		}
@@ -255,7 +286,6 @@ func (m *LteGateway) validateRegistrationInfo(formats strfmt.Registry) error {
 }
 
 func (m *LteGateway) validateStatus(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Status) { // not required
 		return nil
 	}
@@ -264,6 +294,8 @@ func (m *LteGateway) validateStatus(formats strfmt.Registry) error {
 		if err := m.Status.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("status")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("status")
 			}
 			return err
 		}
@@ -274,9 +306,233 @@ func (m *LteGateway) validateStatus(formats strfmt.Registry) error {
 
 func (m *LteGateway) validateTier(formats strfmt.Registry) error {
 
+	if err := validate.Required("tier", "body", models4.TierID(m.Tier)); err != nil {
+		return err
+	}
+
 	if err := m.Tier.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("tier")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("tier")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this lte gateway based on the context it is used
+func (m *LteGateway) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateApnResources(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateCellular(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateConnectedEnodebSerials(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateDescription(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateDevice(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateMagmad(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateName(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateRegistrationInfo(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateStatus(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateTier(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *LteGateway) contextValidateApnResources(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ApnResources.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("apn_resources")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("apn_resources")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *LteGateway) contextValidateCellular(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Cellular != nil {
+		if err := m.Cellular.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("cellular")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("cellular")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *LteGateway) contextValidateConnectedEnodebSerials(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ConnectedEnodebSerials.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("connected_enodeb_serials")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("connected_enodeb_serials")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *LteGateway) contextValidateDescription(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Description.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("description")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("description")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *LteGateway) contextValidateDevice(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Device != nil {
+		if err := m.Device.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("device")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("device")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *LteGateway) contextValidateID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ID.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *LteGateway) contextValidateMagmad(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Magmad != nil {
+		if err := m.Magmad.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("magmad")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("magmad")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *LteGateway) contextValidateName(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Name.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("name")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("name")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *LteGateway) contextValidateRegistrationInfo(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.RegistrationInfo != nil {
+		if err := m.RegistrationInfo.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("registration_info")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("registration_info")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *LteGateway) contextValidateStatus(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Status != nil {
+		if err := m.Status.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("status")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("status")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *LteGateway) contextValidateTier(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Tier.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("tier")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("tier")
 		}
 		return err
 	}

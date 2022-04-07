@@ -6,5 +6,6 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 // UntypedSubscriberState Arbitrary untyped JSON object that represents replicated subscriber-related state
+//
 // swagger:model untyped_subscriber_state
 type UntypedSubscriberState interface{}

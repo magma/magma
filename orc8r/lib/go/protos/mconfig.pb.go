@@ -19,7 +19,7 @@
 package protos
 
 import (
-	any "github.com/golang/protobuf/ptypes/any"
+	any1 "github.com/golang/protobuf/ptypes/any"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -45,7 +45,7 @@ type GatewayConfigs struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ConfigsByKey map[string]*any.Any     `protobuf:"bytes,10,rep,name=configs_by_key,json=configsByKey,proto3" json:"configs_by_key,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	ConfigsByKey map[string]*any1.Any    `protobuf:"bytes,10,rep,name=configs_by_key,json=configsByKey,proto3" json:"configs_by_key,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	Metadata     *GatewayConfigsMetadata `protobuf:"bytes,11,opt,name=metadata,proto3" json:"metadata,omitempty"`
 }
 
@@ -81,7 +81,7 @@ func (*GatewayConfigs) Descriptor() ([]byte, []int) {
 	return file_orc8r_protos_mconfig_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *GatewayConfigs) GetConfigsByKey() map[string]*any.Any {
+func (x *GatewayConfigs) GetConfigsByKey() map[string]*any1.Any {
 	if x != nil {
 		return x.ConfigsByKey
 	}
@@ -377,7 +377,7 @@ var file_orc8r_protos_mconfig_proto_goTypes = []interface{}{
 	(*OffsetGatewayConfigs)(nil),   // 3: magma.orc8r.OffsetGatewayConfigs
 	(*MconfigStreamRequest)(nil),   // 4: magma.orc8r.MconfigStreamRequest
 	nil,                            // 5: magma.orc8r.GatewayConfigs.ConfigsByKeyEntry
-	(*any.Any)(nil),                // 6: google.protobuf.Any
+	(*any1.Any)(nil),               // 6: google.protobuf.Any
 }
 var file_orc8r_protos_mconfig_proto_depIdxs = []int32{
 	5, // 0: magma.orc8r.GatewayConfigs.configs_by_key:type_name -> magma.orc8r.GatewayConfigs.ConfigsByKeyEntry
