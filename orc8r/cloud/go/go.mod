@@ -46,7 +46,7 @@ require (
 	github.com/lib/pq v1.2.0
 	github.com/mattn/go-sqlite3 v1.14.9
 	github.com/olivere/elastic/v7 v7.0.6
-	github.com/ory/go-acc v0.2.6
+	github.com/ory/go-acc v0.2.8
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/alertmanager v0.17.0
 	github.com/prometheus/client_golang v1.5.1
@@ -154,7 +154,7 @@ require (
 	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
+	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
