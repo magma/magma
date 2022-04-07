@@ -329,19 +329,28 @@
     - gmock
   when: preburn
 
+- name: Remove existing golang installation
+  # TODO: make golang installation preburn and delete this step
+  # it is necessary because the old golang installation has to be removed
+  # before installing the new one (https://go.dev/doc/install)
+  shell: rm -rf /usr/local/go
+  when: full_provision
+
 - name: Download golang tar
+  # TODO: make this preburn again
   get_url:
     url: "https://storage.googleapis.com/golang/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
     dest: "{{ all_vars.WORK_DIR }}"
     mode: 0440
-  when: preburn
+  when: full_provision
 
 - name: Extract Go tarball
+  # TODO: make this preburn again
   unarchive:
     src: "{{all_vars.WORK_DIR}}/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
     dest: /usr/local
     copy: no
-  when: preburn
+  when: full_provision
 
 - name: Set Go environment vars in profile
   lineinfile:
@@ -350,6 +359,7 @@
     line: "{{ item }}"
   with_items:
     - export PATH=$PATH:/usr/local/bin/go/
+    - export PATH=$PATH:$(go env GOPATH)/bin/
   when: full_provision
 
 - name: Install dnsmasq
