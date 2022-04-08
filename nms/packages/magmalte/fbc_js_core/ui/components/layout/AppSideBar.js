@@ -18,18 +18,19 @@ import ExpandButton from './ExpandButton';
 import ProfileButton from '../ProfileButton';
 import React, {useState} from 'react';
 import {makeStyles} from '@material-ui/styles';
+import {colors} from '../../../../app/theme/default';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   root: {
     alignItems: 'center',
-    backgroundColor: theme.palette.blueGrayDark,
+    backgroundColor: colors.primary.brightGray,
     boxShadow: '1px 0px 0px 0px rgba(0, 0, 0, 0.1)',
     display: 'flex',
     flexDirection: 'column',
     height: '100vh',
     width: '80px',
     minWidth: '80px',
-    padding: '20px 0px 20px 0px',
+    padding: '20px 0px 36px 0px',
     position: 'relative',
   },
   mainItems: {

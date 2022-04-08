@@ -18,14 +18,14 @@ import React, {useCallback, useState} from 'react';
 import Text from './design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
-import symphony from '../theme/symphony';
 import {Link} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {colors} from "../../../app/theme/default";
 
 const useStyles = makeStyles(() => ({
   icon: {
-    color: symphony.palette.D300,
+    color: colors.primary.gullGray,
     display: 'flex',
   },
   link: {
@@ -37,17 +37,17 @@ const useStyles = makeStyles(() => ({
     width: '100%',
     padding: '15px 0px',
     '&:hover $icon, &$selected $icon': {
-      color: symphony.palette.white,
+      color: colors.primary.white,
     },
   },
   selected: {
-    backgroundColor: symphony.palette.primary,
+    backgroundColor: colors.secondary.dodgerBlue,
   },
   tooltip: {
     position: 'relative',
     '&&': {
       padding: '8px 12px',
-      backgroundColor: symphony.palette.D900,
+      backgroundColor: colors.primary.brightGray,
     },
   },
   arrow: {
@@ -56,7 +56,7 @@ const useStyles = makeStyles(() => ({
     '&:before': {
       borderBottom: '4px solid transparent',
       borderLeft: '4px solid transparent',
-      borderRight: `4px solid ${symphony.palette.D900}`,
+      borderRight: `4px solid ${colors.primary.brightGray}`,
       borderTop: '4px solid transparent',
       top: '-5px',
       content: '""',
@@ -71,7 +71,7 @@ const useStyles = makeStyles(() => ({
     '&&': {
       fontSize: '12px',
       lineHeight: '16px',
-      color: symphony.palette.white,
+      color: colors.primary.white,
       fontWeight: 'bold',
     },
   },

@@ -30,38 +30,30 @@ type Props = {
 
 const useClasses = makeStyles(theme => ({
   menuPaper: {
+    '&.MuiPopover-paper': {
+      borderRadius: 0,
+    },
     outline: 'none',
     overflowX: 'visible',
     overflowY: 'visible',
-    position: 'absolute',
-    '&:before, &:after': {
+    '&:after': {
       content: '""',
       display: 'block',
       height: 0,
-      left: '11px',
-      position: 'absolute',
       width: 0,
-    },
-    '&:before': {
-      borderLeft: '5px solid transparent',
-      borderRight: '5px solid transparent',
-      borderTop: `6px solid ${theme.palette.grey[100]}`,
-      marginLeft: '-3px',
-      bottom: '-6px',
-      zIndex: 4,
-    },
-    '&:after': {
-      borderLeft: '5px solid transparent',
-      borderRight: '5px solid transparent',
-      borderTop: '7px solid #fff',
-      marginLeft: '-3px',
-      bottom: '-5px',
+      position: 'absolute',
+      left: '-14px',
+      bottom: '30px',
       zIndex: 5,
+
+      borderTop: '11px solid transparent',
+      borderRight: '14px solid #fff',
+      borderBottom: '11px solid transparent',
     },
   },
   popover: {
     '& $menuPaper': {
-      boxShadow: '0px 0px 4px 0px rgba(0, 0, 0, 0.15)',
+      boxShadow: '0px 8px 16px 0px rgba(0, 0, 0, 0.3)',
     },
   },
 }));
@@ -94,14 +86,12 @@ export default function Popout(props: Props) {
         className={classes.popover}
         anchorReference="anchorPosition"
         anchorOrigin={{
-          vertical: 'top',
+          vertical: 'bottom',
           horizontal: 'left',
         }}
         anchorPosition={{
-          top: relativeRefPosition?.y ?? 0,
-          left: relativeRefPosition
-            ? relativeRefPosition.x + relativeRefPosition.width / 2 - 14
-            : 0,
+          top: relativeRefPosition ? relativeRefPosition.bottom + 15 : 0,
+          left: relativeRefPosition?.right ?? 0,
         }}
         transformOrigin={{
           vertical: 'bottom',

@@ -14,75 +14,62 @@
  * @format
  */
 
-import AppContext from '../../../fbc_js_core/ui/context/AppContext';
+import AppContext from '../context/AppContext';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import NetworkContext from '../../../app/components/context/NetworkContext';
-import Popout from '../../../fbc_js_core/ui/components/Popout';
-import ProfileIcon from '../icons/ProfileIcon';
+import Popout from './Popout';
+import PersonIcon from '@material-ui/icons/Person';
 import React, {useContext, useState} from 'react';
 import Text from './design-system/Text';
 import classNames from 'classnames';
-import {Events, GeneralLogger} from '../../../fbc_js_core/ui/utils/Logging';
+import {Events, GeneralLogger} from '../utils/Logging';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '../hooks';
+import {colors} from '../../../app/theme/default';
+import Divider from '@material-ui/core/Divider';
 
 const useStyles = makeStyles(theme => ({
-  accountButton: {
-    backgroundColor: theme.palette.common.white,
-    width: '36px',
-    height: '36px',
-    fontSize: '36px',
-    cursor: 'pointer',
-    borderRadius: '100%',
+  button: {
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
-    '&:hover, &$openButton': {
-      '& $accountButtonIcon': {
-        fill: theme.palette.primary.main,
-      },
+    width: '100%',
+    padding: '15px 0px',
+    cursor: 'pointer',
+    '&:hover $icon': {
+      color: colors.primary.white,
     },
   },
-  openButton: {},
-  accountButtonIcon: {
-    '&&': {
-      fill: theme.palette.blueGrayDark,
-      fontSize: '19px',
+  selected: {
+    backgroundColor: colors.secondary.dodgerBlue,
+
+    '& $icon': {
+      color: colors.primary.white,
     },
   },
-  accountButtonIconSelected: {
-    '&&': {
-      fill: theme.palette.primary.main,
-    },
+  icon: {
+    color: colors.primary.gullGray,
   },
   itemGutters: {
     '&&': {
-      minWidth: '170px',
-      borderRadius: '4px',
-      padding: '8px 10px',
+      minWidth: '200px',
+      padding: '6px 17px',
       '&:hover': {
-        backgroundColor: 'rgba(145, 145, 145, 0.1)',
+        backgroundColor: colors.primary.concrete,
       },
     },
   },
+  divider: {
+    margin: '6px 17px',
+  },
   profileList: {
     '&&': {
-      padding: '10px 5px',
+      padding: '10px 0',
     },
   },
   profileItemText: {
-    fontSize: '12px',
-    lineHeight: '16px',
-  },
-  selected: {
-    backgroundColor: theme.palette.primary.main,
-  },
-  sidebarEntry: {
-    display: 'flex',
-    padding: '9px',
-    justifyContent: 'center',
-    width: '100%',
+    fontSize: '14px',
+    lineHeight: '20px',
   },
 }));
 
@@ -91,13 +78,18 @@ const ProfileButton = () => {
   const classes = useStyles();
   const [isProfileMenuOpen, toggleProfileMenu] = useState(false);
   const {networkId: selectedNetworkId} = useContext(NetworkContext);
-  const {user, ssoEnabled, isFeatureEnabled, isOrganizations} = useContext(
-    AppContext,
-  );
+  const {
+    user,
+    hasAccountSettings,
+    isFeatureEnabled,
+    isOrganizations,
+  } = useContext(AppContext);
   const {email} = user;
 
   const getUrl = (path: string) =>
-    (selectedNetworkId != undefined || isOrganizations) ? relativeUrl(path) : path;
+    selectedNetworkId != undefined || isOrganizations
+      ? relativeUrl(path)
+      : path;
 
   const adminUrl = getUrl('/admin');
   const settingsUrl = getUrl('/settings');
@@ -106,10 +98,13 @@ const ProfileButton = () => {
     location.pathname.includes(adminUrl) ||
     location.pathname.includes(settingsUrl);
 
+  const hasAdministration = user.isSuperUser && !isOrganizations;
+  const hasDocumentation = isFeatureEnabled('documents_site');
+
   return (
     <Popout
       className={classNames({
-        [classes.sidebarEntry]: true,
+        [classes.button]: true,
         [classes.selected]: isSelected,
       })}
       open={isProfileMenuOpen}
@@ -118,7 +113,8 @@ const ProfileButton = () => {
           <ListItem classes={{gutters: classes.itemGutters}} disabled={true}>
             <Text className={classes.profileItemText}>{email}</Text>
           </ListItem>
-          {!ssoEnabled && (
+          <Divider className={classes.divider} />
+          {hasAccountSettings && (
             <ListItem
               classes={{gutters: classes.itemGutters}}
               button
@@ -131,7 +127,7 @@ const ProfileButton = () => {
               <Text className={classes.profileItemText}>Account Settings</Text>
             </ListItem>
           )}
-          {user.isSuperUser && !isOrganizations && (
+          {hasAdministration && (
             <ListItem
               classes={{gutters: classes.itemGutters}}
               button
@@ -144,7 +140,7 @@ const ProfileButton = () => {
               <Text className={classes.profileItemText}>Administration</Text>
             </ListItem>
           )}
-          {isFeatureEnabled('documents_site') && (
+          {hasDocumentation && (
             <ListItem
               classes={{gutters: classes.itemGutters}}
               button
@@ -155,6 +151,9 @@ const ProfileButton = () => {
               component="a">
               <Text className={classes.profileItemText}>Documentation</Text>
             </ListItem>
+          )}
+          {(hasAccountSettings || hasAdministration || hasDocumentation) && (
+            <Divider className={classes.divider} />
           )}
           <ListItem
             classes={{gutters: classes.itemGutters}}
@@ -167,19 +166,7 @@ const ProfileButton = () => {
       }
       onOpen={() => toggleProfileMenu(true)}
       onClose={() => toggleProfileMenu(false)}>
-      <div
-        data-testid="profileButton"
-        className={classNames({
-          [classes.accountButton]: true,
-          [classes.openButton]: isProfileMenuOpen,
-        })}>
-        <ProfileIcon
-          className={classNames({
-            [classes.accountButtonIcon]: true,
-            [classes.accountButtonIconSelected]: isSelected,
-          })}
-        />
-      </div>
+      <PersonIcon data-testid="profileButton" className={classes.icon} />
     </Popout>
   );
 };

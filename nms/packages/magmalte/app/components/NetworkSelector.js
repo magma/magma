@@ -26,7 +26,6 @@ import React from 'react';
 import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
 import Text from '../../fbc_js_core/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
-import classNames from 'classnames';
 import useMagmaAPI from '../../api/useMagmaAPI';
 
 import {LTE, coalesceNetworkType} from '../../fbc_js_core/types/network';
@@ -37,46 +36,40 @@ import {useCallback, useContext, useEffect, useState} from 'react';
 
 const useStyles = makeStyles(_ => ({
   button: {
-    backgroundColor: colors.primary.white,
-    width: '28px',
-    height: '28px',
-    fontSize: '28px',
-    cursor: 'pointer',
-    borderRadius: '100%',
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: '2px',
-    border: `1px solid ${colors.primary.white}`,
-    '&:hover, &$openButton': {
-      border: `1px solid ${colors.secondary.dodgerBlue}`,
+    width: '100%',
+    padding: '15px 0px',
+    cursor: 'pointer',
+    '&:hover $icon': {
+      color: colors.primary.white,
     },
   },
-  openButton: {},
+  icon: {
+    color: colors.primary.gullGray,
+  },
   itemGutters: {
     '&&': {
-      minWidth: '170px',
-      borderRadius: '4px',
-      padding: '8px 10px',
+      minWidth: '200px',
+      padding: '6px 17px',
       '&:hover': {
-        backgroundColor: 'rgba(145, 145, 145, 0.1)',
+        backgroundColor: colors.primary.concrete,
       },
     },
+  },
+  divider: {
+    margin: '6px 17px',
   },
   networksList: {
     '&&': {
       maxHeight: '400px',
       overflowY: 'auto',
-      padding: '10px 5px',
+      padding: '10px 0',
     },
   },
   networkItemText: {
-    fontSize: '12px',
-    lineHeight: '16px',
-  },
-  selectedNetwork: {
-    color: colors.secondary.dodgerBlue,
-    fontSize: '20px',
+    fontSize: '14px',
+    lineHeight: '20px',
   },
   selectedListItem: {
     '& $networkItemText': {
@@ -87,15 +80,6 @@ const useStyles = makeStyles(_ => ({
     '&$selectedListItem': {
       backgroundColor: colors.primary.concrete,
     },
-    '&:not(:last-child)': {
-      marginBottom: '8px',
-    },
-  },
-  sidebarEntry: {
-    display: 'flex',
-    padding: '9px',
-    justifyContent: 'center',
-    width: '100%',
   },
 }));
 
@@ -143,7 +127,7 @@ const NetworkSelector = () => {
         }}
       />
       <Popout
-        className={classes.sidebarEntry}
+        className={classes.button}
         open={isMenuOpen}
         content={
           <List component="nav" className={classes.networksList}>
@@ -164,7 +148,7 @@ const NetworkSelector = () => {
             ))}
             {appContext.user.isSuperUser && networkType === LTE && (
               <>
-                <Divider />
+                <Divider className={classes.divider} />
                 <ListItem
                   key="create_network"
                   classes={{
@@ -184,14 +168,11 @@ const NetworkSelector = () => {
         }
         onOpen={() => setIsMenuOpen(true)}
         onClose={() => setIsMenuOpen(false)}>
-        <Tooltip title={networkId} placement="right">
-          <div
-            className={classNames({
-              [classes.button]: true,
-              [classes.openButton]: isMenuOpen,
-            })}>
-            <SettingsEthernetIcon className={classes.selectedNetwork} />
-          </div>
+        <Tooltip
+          title={networkId}
+          placement="right"
+          data-testid="networkSelector">
+          <SettingsEthernetIcon className={classes.icon} />
         </Tooltip>
       </Popout>
     </>
