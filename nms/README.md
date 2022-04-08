@@ -181,6 +181,16 @@ yarn test:e2e
 
 Run `yarn test --coverage`
 
+### Component Visual Inspection
+
+We allow integration with [React Styleguidist](https://react-styleguidist.js.org/)
+for isolated React component development.
+Component documentation, props, methods, and examples of usage are provided
+for components with a matching `.md` file, containing valid `jsx`.
+
+To bring up the Styleguidist server, navigate to `packages/magmalte`,
+and run `npx styleguidist server`
+
 ---
 ## Updating NMS for API Changes
 

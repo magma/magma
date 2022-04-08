@@ -19,15 +19,26 @@ import * as React from 'react';
 import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import NavListItem from '../../../fbc_js_core/ui/components/NavListItem';
 import NetworkContext from '../context/NetworkContext';
+import type {SectionsConfigs} from './Section';
 
 import useSections from './useSections';
 import {useContext} from 'react';
 import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
-export default function SectionLinks(): React.Node {
-  const [_landingPath, sections] = useSections();
+type Props = {
+  sections: ?SectionsConfigs,
+};
+
+/**
+ * SectionLinks is the vertical navigation panel for a network
+ */
+export default function SectionLinks(props: Props): React.Node {
+  let [_landingPath, sections] = useSections();
   const {relativeUrl} = useRouter();
   const {networkId} = useContext(NetworkContext);
+  if (props.sections) {
+    sections = props.sections;
+  }
 
   if (!sections) {
     return <LoadingFiller />;
@@ -36,6 +47,8 @@ export default function SectionLinks(): React.Node {
   if (!networkId) {
     return null;
   }
+
+  console.log('SectionLinks, sections: ', sections);
 
   return (
     <>

@@ -17,7 +17,6 @@ import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 
 import AddCircleOutlined from '@material-ui/icons/AddCircleOutlined';
 import ArrowDownward from '@material-ui/icons/ArrowDownward';
-import Autocomplete from '@material-ui/lab/Autocomplete';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from './layout/CardTitleRow';
 import Check from '@material-ui/icons/Check';
@@ -28,33 +27,20 @@ import DeleteOutline from '@material-ui/icons/DeleteOutline';
 import Edit from '@material-ui/icons/Edit';
 import FilterList from '@material-ui/icons/FilterList';
 import FirstPage from '@material-ui/icons/FirstPage';
-import FormControl from '@material-ui/core/FormControl';
 import LastPage from '@material-ui/icons/LastPage';
 import MaterialTable from 'material-table';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
-import Select from '@material-ui/core/Select';
-import TextField from '@material-ui/core/TextField';
 
 import {forwardRef} from 'react';
-import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
-
-const useStyles = makeStyles(_ => ({
-  inputRoot: {
-    '&.MuiOutlinedInput-root': {
-      padding: 0,
-    },
-  },
-}));
 
 const tableIcons = {
   Add: forwardRef((props, ref) => (
@@ -135,11 +121,13 @@ export type ActionQuery = {
 };
 
 export type ActionTableProps<T> = {
+  /** Icon provided for title of table */
   titleIcon?: SvgIcon,
   tableRef?: {},
   toolbar?: {},
   editable?: {},
   localization?: {},
+  /** Title of table */
   title?: string,
   handleCurrRow?: T => void,
   columns: Array<ActionTableColumn>,
@@ -151,11 +139,11 @@ export type ActionTableProps<T> = {
   onSelectionChange?: (Array<T>) => void,
 };
 
-export function PaperComponent(props: {}) {
+function PaperComponent(props: {}) {
   return <Paper {...props} elevation={0} />;
 }
 
-type SelectProps = {
+export type SelectProps = {
   content: Array<string>,
   defaultValue?: string,
   value: string,
@@ -163,54 +151,13 @@ type SelectProps = {
   testId?: string,
 };
 
-export function SelectEditComponent(props: SelectProps) {
-  if (props.value === undefined || props.value === null) {
-    if (props.defaultValue !== undefined) {
-      props.onChange(props.defaultValue);
-      return null;
-    }
-  }
-  return (
-    <FormControl>
-      <Select
-        data-testid={props.testId ?? ''}
-        value={props.value}
-        onChange={({target}) => props.onChange(target.value)}
-        input={<OutlinedInput />}>
-        {props.content.map((k: string, idx: number) => (
-          <MenuItem key={idx} value={k}>
-            {k}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  );
-}
-
-export function AutoCompleteEditComponent(props: SelectProps) {
-  const classes = useStyles();
-
-  return (
-    <Autocomplete
-      disableClearable
-      options={props.content}
-      freeSolo
-      value={props.value}
-      classes={{
-        inputRoot: classes.inputRoot,
-      }}
-      onChange={(_, newValue) => {
-        props.onChange(newValue);
-      }}
-      inputValue={props.value}
-      onInputChange={(_, newInputValue) => {
-        props.onChange(newInputValue);
-      }}
-      renderInput={(params: {}) => <TextField {...params} variant="outlined" />}
-    />
-  );
-}
-
+/**
+ * ActionTable is a shared table component for displaying data,
+ * and allowing the option to provide actions that can be performed
+ * on each element represented by a row in the table.
+ *
+ * NOTE: This is a wrapper around material-table
+ */
 export default function ActionTable<T>(props: ActionTableProps<T>) {
   const actionTableJSX = [];
   const [anchorEl, setAnchorEl] = useState(null);

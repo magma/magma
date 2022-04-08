@@ -17,7 +17,7 @@
 const paths = require('./paths');
 const webpack = require('webpack');
 
-function entry(value: string[]) {
+function entry(value /*: string[] */) {
   return ['webpack-hot-middleware/client', ...value];
 }
 

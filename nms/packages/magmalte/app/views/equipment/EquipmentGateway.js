@@ -43,7 +43,7 @@ import {
   REFRESH_INTERVAL,
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
-import {SelectEditComponent} from '../../components/ActionTable';
+import {SelectEdit} from '../../components/SelectEdit';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
@@ -251,7 +251,7 @@ function UpgradeTable() {
           field: 'tier',
           width: 100,
           editComponent: props => (
-            <SelectEditComponent
+            <SelectEdit
               {...props}
               defaultValue={props.value}
               value={props.value}

@@ -23,7 +23,7 @@ import DashboardIcon from '@material-ui/icons/Dashboard';
 import Enodebs from './Enodebs';
 import EquipmentDashboard from '../../views/equipment/EquipmentDashboard';
 import Gateways from '../Gateways';
-import Insights from '../insights/Insights';
+// import Insights from '../insights/Insights';
 import LineStyleIcon from '@material-ui/icons/LineStyle';
 import ListIcon from '@material-ui/icons/List';
 import Logs from '../insights/logs/Logs';
@@ -33,7 +33,7 @@ import LteMetrics from './LteMetrics';
 import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
 import NetworkDashboard from '../../views/network/NetworkDashboard';
 import PeopleIcon from '@material-ui/icons/People';
-import PublicIcon from '@material-ui/icons/Public';
+// import PublicIcon from '@material-ui/icons/Public';
 import RouterIcon from '@material-ui/icons/Router';
 import SettingsCellIcon from '@material-ui/icons/SettingsCell';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
@@ -51,12 +51,12 @@ export function getLteSections(
   const sections = [
     'map', // landing path
     [
-      {
-        path: 'map',
-        label: 'Map',
-        icon: <PublicIcon />,
-        component: Insights,
-      },
+      // {
+      //   path: 'map',
+      //   label: 'Map',
+      //   icon: <PublicIcon />,
+      //   component: Insights,
+      // },
       {
         path: 'metrics',
         label: 'Metrics',

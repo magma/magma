@@ -77,6 +77,11 @@ type Props<T> = {
   onSave: T => Promise<void>,
 };
 
+/**
+ * JsonEditor is used to edit JSON.
+ * This is used to temporarily replace the need for a proper configuration
+ * interface.
+ */
 export default function JsonEditor<T>(props: Props<T>) {
   const classes = useStyles();
   const [error, setError] = useState<string>(props.error);

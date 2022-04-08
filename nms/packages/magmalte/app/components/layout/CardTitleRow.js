@@ -34,11 +34,17 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type CardTitleRowProps = {
+  // Icon for the title
   icon?: SvgIcon,
+  // Label for the title
   label: string,
+  // Components to be placed under the title row
   filter?: () => React$Node,
 };
 
+/**
+ * CardTitleRow is a generic title row to be used in tables, grids, etc.
+ */
 export default function CardTitleRow(props: CardTitleRowProps) {
   const classes = useStyles();
   const Filters = props.filter;

@@ -44,7 +44,7 @@ import nullthrows from '../../../fbc_js_core/util/nullthrows';
 
 import {CoreNetworkTypes, validateSubscribers} from './SubscriberUtils';
 import {PasswordInput} from '../../components/FormField';
-import {SelectEditComponent} from '../../components/ActionTable';
+import {SelectEdit} from '../../components/SelectEdit';
 import {SubscriberDetailsUpload} from './SubscriberUpload';
 import {colors} from '../../theme/default';
 import {forwardRef} from 'react';
@@ -336,7 +336,7 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
       field: 'state',
       editComponent: props => {
         return (
-          <SelectEditComponent
+          <SelectEdit
             {...props}
             testId="service"
             defaultValue={'ACTIVE'}
@@ -384,7 +384,7 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
       title: 'Data Plan',
       field: 'dataPlan',
       editComponent: props => (
-        <SelectEditComponent
+        <SelectEdit
           {...props}
           testId="dataPlan"
           defaultValue={'default'}
