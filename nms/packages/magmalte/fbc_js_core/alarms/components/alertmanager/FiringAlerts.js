@@ -123,7 +123,7 @@ export default function FiringAlerts(props: Props) {
         spacing={2}
         direction="column"
         alignItems="center"
-        justify="center"
+        justifyContent="center"
         data-testid="no-alerts-icon"
         style={{minHeight: '60vh'}}>
         {!(props.emptyAlerts ?? false) ? (

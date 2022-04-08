@@ -74,7 +74,7 @@ export default function Editor({
                 item
                 spacing={1}
                 xs={6}
-                justify="flex-end"
+                justifyContent="flex-end"
                 alignItems="center">
                 <Grid item>
                   <Button variant="outlined" onClick={() => onExit()}>

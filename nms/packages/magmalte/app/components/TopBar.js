@@ -97,7 +97,7 @@ export default function TopBar(props: Props) {
         <Grid
           container
           direction="row"
-          justify="space-between"
+          justifyContent="space-between"
           alignItems="center">
           <Grid item xs>
             <Text variant="body2">{props.header}</Text>
@@ -120,7 +120,7 @@ export default function TopBar(props: Props) {
         <Grid
           container
           direction="row"
-          justify="space-between"
+          justifyContent="space-between"
           alignItems="center">
           <Grid item xs>
             <Tabs

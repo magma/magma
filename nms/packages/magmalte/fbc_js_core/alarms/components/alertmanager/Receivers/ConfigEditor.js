@@ -88,7 +88,7 @@ export default function ConfigEditor({
       className={classes.configEditor}
       container
       item
-      justify="space-between"
+      justifyContent="space-between"
       xs={12}
       alignItems="flex-start">
       <Grid item container spacing={2} direction="column" wrap="nowrap" xs={11}>
@@ -115,7 +115,7 @@ export default function ConfigEditor({
           </>
         )}
       </Grid>
-      <Grid item xs={1} container justify="flex-end">
+      <Grid item xs={1} container justifyContent="flex-end">
         <Grid item>
           <EditorMenuButton
             onReset={onReset}

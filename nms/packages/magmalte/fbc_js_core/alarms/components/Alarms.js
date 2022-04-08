@@ -140,7 +140,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
         ruleMap: mergedRuleMap,
         getAlertType: getAlertType,
       }}>
-      <Grid container spacing={2} justify="space-between">
+      <Grid container spacing={2} justifyContent="space-between">
         <Grid item xs={12}>
           <Tabs
             value={currentTabMatch?.params?.tabName || DEFAULT_TAB_NAME}

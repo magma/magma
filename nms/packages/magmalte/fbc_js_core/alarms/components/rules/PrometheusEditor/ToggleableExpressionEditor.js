@@ -268,7 +268,7 @@ function ThresholdExpressionEditor({
         container
         spacing={1}
         alignItems="flex-end"
-        justify="space-between">
+        justifyContent="space-between">
         <Grid item xs={7}>
           <MetricSelector
             expression={expression}
@@ -449,7 +449,7 @@ function LabelFilter(props: {
           />
         </Grid>
       </Grid>
-      <Grid item xs={1} container alignItems="center" justify="flex-end">
+      <Grid item xs={1} container alignItems="center" justifyContent="flex-end">
         <IconButton onClick={() => props.onRemove(props.filterIdx)} edge="end">
           <RemoveCircleIcon />
         </IconButton>
