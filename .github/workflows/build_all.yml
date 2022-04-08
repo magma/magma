@@ -978,7 +978,7 @@ jobs:
           SLACK_FOOTER: ' '
       # Notify ci channel when push succeeds
       - name: Notify success to Slack
-        if: failure() && github.event_name == 'push'
+        if: success() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
