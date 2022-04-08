@@ -228,8 +228,6 @@ func (r *ServiceRegistry) GetServiceAddress(service string, serviceType protos.S
 				return location.Host, nil
 			}
 			return fmt.Sprintf("%s:%d", location.Host, location.ProtectedPort), nil
-		case protos.ServiceType_SOUTHBOUND:
-			fallthrough
 		default:
 			if location.Port == 0 {
 				return location.Host, nil
@@ -304,8 +302,6 @@ func (r *ServiceRegistry) GetServicePort(service string, serviceType protos.Serv
 				return 0, fmt.Errorf("service %s not available", service)
 			}
 			return location.ProtectedPort, nil
-		case protos.ServiceType_SOUTHBOUND:
-			fallthrough
 		default:
 			if location.Port == 0 {
 				return 0, fmt.Errorf("service %s not available", service)
@@ -313,6 +309,7 @@ func (r *ServiceRegistry) GetServicePort(service string, serviceType protos.Serv
 			return location.Port, nil
 		}
 	}
+	return 0, fmt.Errorf("service %s not available", service)
 }
 
 // GetEchoServerPort returns the listening port for the service's echo server.
@@ -421,8 +418,6 @@ func (r *ServiceRegistry) GetConnectionImpl(ctx context.Context, service string,
 	switch serviceType {
 	case protos.ServiceType_PROTECTED:
 		serviceConnection = r.ProtectedServiceConnections
-	case protos.ServiceType_SOUTHBOUND:
-		fallthrough
 	default:
 		serviceConnection = r.ServiceConnections
 	}

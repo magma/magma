@@ -23,6 +23,7 @@ import (
 	"magma/orc8r/cloud/go/services/bootstrapper"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers/registration"
 	"magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/protos"
 )
 
 // StartTestService instantiates a service backed by an in-memory storage
@@ -35,7 +36,7 @@ func StartTestService(t *testing.T) {
 	assert.NoError(t, err)
 	registrationServicer := registration.NewRegistrationServicer()
 
-	protos2.RegisterCloudRegistrationServer(srv.GrpcServer, cloudRegistrationServicer)
-	protos2.RegisterRegistrationServer(srv.GrpcServer, registrationServicer)
+	protos.RegisterCloudRegistrationServer(srv.GrpcServer, cloudRegistrationServicer)
+	protos.RegisterRegistrationServer(srv.GrpcServer, registrationServicer)
 	go srv.RunTest(lis, nil)
 }

@@ -112,8 +112,6 @@ func (k *KubernetesServiceRegistryServicer) GetServiceAddress(ctx context.Contex
 	switch req.ServiceType {
 	case protos.ServiceType_PROTECTED:
 		serviceAddress, err = k.getAddressForPortName(req.Service, orc8r.ProtectedGRPCPortName)
-	case protos.ServiceType_SOUTHBOUND:
-		fallthrough
 	default:
 		serviceAddress, err = k.getAddressForPortName(req.Service, orc8r.GRPCPortName)
 	}

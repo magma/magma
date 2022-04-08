@@ -80,6 +80,7 @@ services:
   certifier:
     host: "localhost"
     port: 9086
+    protected_port: 9186
     echo_port: 10089
     proxy_type: "internal"
     labels:

@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 
@@ -215,7 +216,7 @@ func startTestServer(handler *ReverseProxyHandler) (*echo.Echo, error) {
 }
 
 func startTestService(t *testing.T, srv *service.OrchestratorService, lis net.Listener, plis net.Listener) {
-	go srv.RunTest(lis, nil)
+	go srv.RunTest(lis, plis)
 	tests.WaitForTestServer(t, srv.EchoServer)
 }
 
@@ -243,6 +244,12 @@ func addPrefixesToExistingService(serviceName string, newPrefixes string) error 
 	if err != nil {
 		return err
 	}
+
+	pport, err := registry.GetServicePort(serviceName, lib_protos.ServiceType_PROTECTED)
+	if err != nil {
+		glog.Infof("service does not have a protected port")
+	}
+
 	echoPort, err := registry.GetEchoServerPort(serviceName)
 	if err != nil {
 		return err
@@ -259,12 +266,13 @@ func addPrefixesToExistingService(serviceName string, newPrefixes string) error 
 		orc8r.ObsidianHandlersPathPrefixesAnnotation: updatedPrefixes,
 	}
 	registry.AddService(registry.ServiceLocation{
-		Name:        serviceName,
-		Host:        "localhost",
-		Port:        port,
-		EchoPort:    echoPort,
-		Labels:      obsidianLabels,
-		Annotations: newAnnotations,
+		Name:          serviceName,
+		Host:          "localhost",
+		Port:          port,
+		ProtectedPort: pport,
+		EchoPort:      echoPort,
+		Labels:        obsidianLabels,
+		Annotations:   newAnnotations,
 	})
 	return nil
 }

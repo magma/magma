@@ -71,7 +71,7 @@ func (ts *TestS8ProxyResponderServer) DeleteBearerRequest(
 func StartFegRelayTestService(t *testing.T) (*TestS8ProxyResponderServer, string) {
 	labels := map[string]string{}
 	annotations := map[string]string{}
-	tempDir, lis, srv := test_utils.NewTestOrchestratorServiceWithControlProxy(
+	srv, lis, tempDir := test_utils.NewTestOrchestratorServiceWithControlProxy(
 		t, feg.ModuleName, feg_relay.ServiceName, labels, annotations)
 	// responder mocks feg relay service
 	testResponderSrv := NewTestS8ProxyResponderServer()

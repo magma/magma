@@ -128,11 +128,11 @@ func NewTestOrchestratorService(t *testing.T, moduleName, serviceName string, la
 // a cloud service. This service will configure a custom control_proxy.yml file
 // matching local_port on control proxy with the listener port of the orc8r service.
 // Remember to delete the temporary file once the test it is done os.RemoveAll(dir)
-func NewTestOrchestratorServiceWithControlProxy(t *testing.T, moduleName string, serviceType string, labels map[string]string, annotations map[string]string) (string, net.Listener, *cloud_service.OrchestratorService) {
+func NewTestOrchestratorServiceWithControlProxy(t *testing.T, moduleName string, serviceType string, labels map[string]string, annotations map[string]string) (*cloud_service.OrchestratorService, net.Listener, string) {
 	srv, lis, _ := NewTestOrchestratorService(
 		t, moduleName, serviceType, labels, annotations)
 	tempDir := setControlProxyConfig(t, lis.Addr())
-	return tempDir, lis, srv
+	return srv, lis, tempDir
 }
 
 func getOpenPort() (int, net.Listener, error) {

@@ -19,6 +19,7 @@ package service
 import (
 	"flag"
 	"fmt"
+	"github.com/pkg/errors"
 	"net"
 	"sync"
 	"time"
@@ -143,16 +144,18 @@ func (service *Service) Run() error {
 
 	go func() {
 		errChan <- service.run()
-		service.ProtectedGrpcServer.GracefulStop()
-	}()
-	go func() {
-		errChan <- service.runProtected()
-		service.GrpcServer.GracefulStop()
 	}()
 
+	perr := service.runProtected()
+
+	err := <-errChan
 	service.State = protos.ServiceInfo_ALIVE
 	service.Health = protos.ServiceInfo_APP_HEALTHY
-	return <-errChan
+	if err != nil || perr != nil {
+		return errors.Errorf("error running grpc server: %v; error running proteced grpc server: %v", err, perr)
+	} else {
+		return nil
+	}
 }
 
 // RunTest runs the test service on a given Listener. This function blocks
@@ -162,19 +165,21 @@ func (service *Service) RunTest(lis net.Listener, plis net.Listener) {
 	service.Health = protos.ServiceInfo_APP_HEALTHY
 
 	errChan := make(chan error)
+	if lis != nil {
+		go func() {
+			errChan <- service.GrpcServer.Serve(lis)
+		}()
+	}
 
-	go func() {
-		errChan <- service.GrpcServer.Serve(lis)
-	}()
-	go func() {
-		if plis != nil {
-			errChan <- service.ProtectedGrpcServer.Serve(plis)
-		}
-	}()
+	var perr error
+	if plis != nil {
+		perr = service.ProtectedGrpcServer.Serve(plis)
+	}
 
 	err := <-errChan
-
-	glog.Fatal(err)
+	if err != nil || perr != nil {
+		glog.Fatalf("error running grpc server: %v; error running protected grpc server: %v", err, perr)
+	}
 }
 
 // GetDefaultKeepaliveParameters returns the default keepalive server parameters.
@@ -200,7 +205,7 @@ func (service *Service) run() error {
 func (service *Service) runProtected() error {
 	port, err := registry.GetServicePort(service.Type, protos.ServiceType_PROTECTED)
 	if err != nil {
-		return fmt.Errorf("get service port: %v", err)
+		return fmt.Errorf("get protected service port: %v", err)
 	}
 
 	// Create the server socket for gRPC

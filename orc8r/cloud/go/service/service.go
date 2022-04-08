@@ -137,30 +137,27 @@ func (s *OrchestratorService) Run() error {
 func (s *OrchestratorService) RunTest(lis net.Listener, plis net.Listener) {
 	s.State = protos.ServiceInfo_ALIVE
 	s.Health = protos.ServiceInfo_APP_HEALTHY
-
-	errChan := make(chan error)
-	protectedErrChan := make(chan error)
-
-	go func() {
-		errChan <- s.GrpcServer.Serve(lis)
-	}()
-	go func() {
-		if plis != nil {
-			protectedErrChan <- s.ProtectedGrpcServer.Serve(plis)
-		}
-	}()
-
-	var retErr error
-	err := <-errChan
+	serverErr := make(chan error)
+	if lis != nil {
+		go func() {
+			serverErr <- s.GrpcServer.Serve(lis)
+		}()
+	}
+	if plis != nil {
+		go func() {
+			serverErr <- s.ProtectedGrpcServer.Serve(plis)
+		}()
+	}
+	if s.EchoServer != nil {
+		go func() {
+			err := s.EchoServer.StartServer(s.EchoServer.Server)
+			serverErr <- err
+		}()
+	}
+	err := <-serverErr
 	if err != nil {
-		retErr = errors.Wrap(err, "error running service")
+		glog.Fatal(err)
 	}
-	protectedErr := <-protectedErrChan
-	if protectedErr != nil {
-		retErr = errors.Errorf("%s; error running protected service: %s", retErr.Error(), protectedErr)
-	}
-
-	glog.Fatal(retErr)
 }
 
 func getEchoServerForOrchestratorService(serviceName string) (*echo.Echo, error) {
