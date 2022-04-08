@@ -15,52 +15,11 @@
 #include <pthread.h>
 
 #include <iostream>
-#include <unordered_map>
+#include <google/protobuf/map.h>
 #include <string>
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 
-namespace std {
-typedef size_t hash_size_t;
-/*Default hash function*/
-static hash_size_t def_hashfunc(const void* const keyP, const int key_sizeP) {
-  hash_size_t hash = 0;
-  int key_size = key_sizeP;
-
-  // may use MD4 ?
-  while (key_size > 0) {
-    uint32_t val = 0;
-    int size = sizeof(val);
-    while ((size > 0) && (key_size > 0)) {
-      val = val << 8;
-      val |= (reinterpret_cast<const uint8_t*>(keyP))[key_size - 1];
-      size--;
-      key_size--;
-    }
-    hash ^= val;
-  }
-
-  return hash;
-}
-// specialise std::equal_to function for type guti_m5_t
-template <>
-struct equal_to<guti_m5_t> {
-  bool operator()(const guti_m5_t& guti1, const guti_m5_t& guti2) const {
-    return (guti1.m_tmsi == guti2.m_tmsi);
-  }
-};
-
-/*specialise std::hash function for type guti_m5_t
-  HashFunction for Guti as key and unit64 data
-  Note: This HashFunc in turn calls the def_hashfunc which supports hashing
-  only for unit64*/
-template <>
-struct hash<guti_m5_t> {
-  size_t operator()(const guti_m5_t& k) const {
-    return def_hashfunc(&k, sizeof(k));
-  }
-};
-}  // namespace std
 namespace magma {
 
 /*Enum for Map Return code
@@ -133,25 +92,18 @@ static std::string map_rc_code2string(map_rc_t rc) {
 **                                                                        **
 ** Parameters:  keyT     - data type of key                               **
 **              valueT   - data type of value                             **
-**              Hash     - used to pass a custom hash function.           **
-**                         Default: std::hash<keyT>                       **
-**              KeyEqual - it is used to overload the EqualTo operator.   **
-**                         When using a userdefined struct as key,        **
-**                         pass a suitable EqualTo method.                **
-**                            Default: std::equal_to<keyT>                **
-**                                                                        **
 ** APIs:       set_name() , get_name(), get(), insert(), delete()         **
 **                                                                        **
 ***************************************************************************/
-template <typename keyT, typename valueT, class Hash = std::hash<keyT>,
-          class KeyEqual = std::equal_to<keyT>>
+
+template <typename keyT, typename valueT>
 struct map_s {
-  std::unordered_map<keyT, valueT, Hash, KeyEqual> umap;
+  google::protobuf::Map<keyT, valueT>* map;
   std::string name;
+  bool log_enabled = false;
 
   void set_name(std::string umap_name) { name = umap_name; }
   std::string get_name() { return name; }
-
   /***************************************************************************
   **                                                                        **
   ** Name:    get()                                                         **
@@ -161,15 +113,16 @@ struct map_s {
   **              else returns error.                                       **
   **                                                                        **
   ***************************************************************************/
+
   map_rc_t get(const keyT key, valueT* valueP) {
-    if (umap.empty()) {
+    if (map->empty()) {
       return MAP_EMPTY;
     }
     if (valueP == nullptr) {
       return MAP_BAD_PARAMETER_VALUE;
     }
-    auto search_result = umap.find(key);
-    if (search_result != umap.end()) {
+    auto search_result = map->find(key);
+    if (search_result != map->end()) {
       *valueP = search_result->second;
       return MAP_OK;
     } else {
@@ -187,9 +140,9 @@ struct map_s {
   **                                                                        **
   ***************************************************************************/
   map_rc_t insert(const keyT key, const valueT value) {
-    typedef typename std::unordered_map<keyT, valueT>::iterator itr;
+    typedef typename google::protobuf::Map<keyT, valueT>::iterator itr;
     std::pair<itr, bool> insert_response =
-        umap.insert(std::make_pair(key, value));
+        map->insert(google::protobuf::MapPair<keyT, valueT>(key, value));
     if (insert_response.second) {
       return MAP_OK;
     } else {
@@ -206,11 +159,11 @@ struct map_s {
   **                                                                        **
   ***************************************************************************/
   map_rc_t remove(const keyT key) {
-    if (umap.empty()) {
+    if (map->empty()) {
       return MAP_EMPTY;
     }
 
-    if (umap.erase(key)) {
+    if (map->erase(key)) {
       return MAP_OK;
     } else {
       return MAP_KEY_NOT_EXISTS;
@@ -224,7 +177,7 @@ struct map_s {
   ** Description: Returns true if map is empty, else returns false          **
   **                                                                        **
   ***************************************************************************/
-  bool isEmpty() { return umap.empty(); }
+  bool isEmpty() { return map->empty(); }
 
   /***************************************************************************
   **                                                                        **
@@ -234,7 +187,7 @@ struct map_s {
   **                                                                        **
   ***************************************************************************/
   void clear() {
-    umap.clear();
+    map->clear();
     name.clear();
   }
   /***************************************************************************
@@ -244,13 +197,12 @@ struct map_s {
   ** Description: size the contents of the map                              **
   **                                                                        **
   ***************************************************************************/
-  size_t size() { return umap.size(); }
+  size_t size() { return map->size(); }
 };
 
-// Amf-Map Declarations:
-// Map- Key: uint64_t , Data: uint64_t
+// Map- Key: uint64_t, Data: uint64_t
 typedef magma::map_s<uint64_t, uint64_t> map_uint64_uint64_t;
-// Map- Key: string , Data: string
-typedef magma::map_s<std::string, std::string> map_string_string_t;
+// Map- Key: string, Data: uint64_t
+typedef magma::map_s<std::string, uint64_t> map_string_uint64_t;
 
 }  // namespace magma
