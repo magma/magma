@@ -212,7 +212,7 @@ class DomainProxyOrc8rTestCase(DBTestCase):
 
         return cbsd['id']
 
-    def when_cbsd_is_created(self, data: Dict[str, Any]):
+    def when_cbsd_is_created(self, data: Dict[str, Any], expected_status: int = HTTPStatus.CREATED):
         r = send_request_to_backend('post', 'cbsds', json=data)
         self.assertEqual(r.status_code, expected_status)
 
