@@ -13,11 +13,12 @@
 
 #include "lte/gateway/c/core/oai/test/s1ap_task/mock_s1ap_op.h"
 
+#include <google/protobuf/text_format.h>
+
 #include <fstream>
 #include <algorithm>
 #include <sstream>
 
-#include <google/protobuf/text_format.h>
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.h"
 
 using magma::lte::oai::S1apState;
@@ -68,7 +69,7 @@ status_code_e mock_read_s1ap_ue_state_db(
     S1apStateConverter::proto_to_ue(ue_proto, ue_context_p);
 
     hashtable_rc_t h_rc = hashtable_ts_insert(
-        state_ue_ht, ue_context_p->comp_s1ap_id, (void*)ue_context_p);
+        state_ue_ht, ue_context_p->comp_s1ap_id, reinterpret_cast<void*>(ue_context_p));
 
     if (HASH_TABLE_OK != h_rc) {
       std::cerr << "Failed to insert UE state :" << name_of_sample_file
