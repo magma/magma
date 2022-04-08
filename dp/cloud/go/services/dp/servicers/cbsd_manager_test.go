@@ -72,6 +72,20 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 	s.Assert().Equal(getDBCbsd(), s.store.data)
 }
 
+func (s *CbsdManagerTestSuite) TestCreateWithDuplicateData() {
+	s.store.err = merrors.ErrAlreadyExists
+
+	request := &protos.CreateCbsdRequest{
+		NetworkId: networkId,
+		Data:      getProtoCbsd(),
+	}
+	_, err := s.manager.CreateCbsd(context.Background(), request)
+	s.Require().Error(err)
+
+	errStatus, _ := status.FromError(err)
+	s.Assert().Equal(codes.AlreadyExists, errStatus.Code())
+}
+
 func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 	request := &protos.UpdateCbsdRequest{
 		NetworkId: networkId,
@@ -99,6 +113,21 @@ func (s *CbsdManagerTestSuite) TestUpdateNonexistentCbsd() {
 
 	errStatus, _ := status.FromError(err)
 	s.Assert().Equal(codes.NotFound, errStatus.Code())
+}
+
+func (s *CbsdManagerTestSuite) TestUpdateWithDuplicateData() {
+	s.store.err = merrors.ErrAlreadyExists
+
+	request := &protos.UpdateCbsdRequest{
+		NetworkId: networkId,
+		Id:        cbsdId,
+		Data:      getProtoCbsd(),
+	}
+	_, err := s.manager.UpdateCbsd(context.Background(), request)
+	s.Require().Error(err)
+
+	errStatus, _ := status.FromError(err)
+	s.Assert().Equal(codes.AlreadyExists, errStatus.Code())
 }
 
 func (s *CbsdManagerTestSuite) TestDeleteCbsd() {

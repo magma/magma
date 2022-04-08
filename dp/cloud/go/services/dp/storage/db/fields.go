@@ -20,6 +20,7 @@ type Field struct {
 	Nullable     bool
 	HasDefault   bool
 	DefaultValue interface{}
+	Unique       bool
 }
 
 func (f *Field) GetValue() interface{} {

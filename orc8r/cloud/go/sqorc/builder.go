@@ -27,14 +27,16 @@ import (
 )
 
 const (
+	SQLDialectEnv   = "SQL_DIALECT"
 	PostgresDialect = "psql"
 	MariaDialect    = "maria"
+	SQLiteDialect   = "sqlite"
 )
 
 // GetSqlBuilder returns a squirrel Builder for the configured SQL dialect as
 // found in the SQL_DIALECT env var.
 func GetSqlBuilder() StatementBuilder {
-	dialect, envFound := os.LookupEnv("SQL_DIALECT")
+	dialect, envFound := os.LookupEnv(SQLDialectEnv)
 	// Default to postgresql
 	if !envFound {
 		return NewPostgresStatementBuilder()

@@ -43,18 +43,20 @@ type DetailedCbsd struct {
 	GrantState *DBGrantState
 }
 
-func NewCbsdManager(db *sql.DB, builder sqorc.StatementBuilder) *cbsdManager {
+func NewCbsdManager(db *sql.DB, builder sqorc.StatementBuilder, errorChecker sqorc.ErrorChecker) *cbsdManager {
 	return &cbsdManager{
-		db:      db,
-		builder: builder,
-		cache:   &enumCache{cache: map[string]map[string]int64{}},
+		db:           db,
+		builder:      builder,
+		cache:        &enumCache{cache: map[string]map[string]int64{}},
+		errorChecker: errorChecker,
 	}
 }
 
 type cbsdManager struct {
-	db      *sql.DB
-	builder sqorc.StatementBuilder
-	cache   *enumCache
+	db           *sql.DB
+	builder      sqorc.StatementBuilder
+	cache        *enumCache
+	errorChecker sqorc.ErrorChecker
 }
 
 type enumCache struct {
@@ -67,7 +69,7 @@ func (c *cbsdManager) CreateCbsd(networkId string, data *DBCbsd) error {
 		err := runner.createCbsdWithActiveModeConfig(networkId, data)
 		return nil, err
 	})
-	return makeError(err)
+	return makeError(err, c.errorChecker)
 }
 
 func (c *cbsdManager) UpdateCbsd(networkId string, id int64, data *DBCbsd) error {
@@ -76,7 +78,7 @@ func (c *cbsdManager) UpdateCbsd(networkId string, id int64, data *DBCbsd) error
 		err := runner.updateCbsd(networkId, id, data)
 		return nil, err
 	})
-	return makeError(err)
+	return makeError(err, c.errorChecker)
 }
 
 func (c *cbsdManager) DeleteCbsd(networkId string, id int64) error {
@@ -85,7 +87,7 @@ func (c *cbsdManager) DeleteCbsd(networkId string, id int64) error {
 		err := runner.markCbsdAsDeleted(networkId, id)
 		return nil, err
 	})
-	return makeError(err)
+	return makeError(err, c.errorChecker)
 }
 
 func (c *cbsdManager) FetchCbsd(networkId string, id int64) (*DetailedCbsd, error) {
@@ -94,7 +96,7 @@ func (c *cbsdManager) FetchCbsd(networkId string, id int64) (*DetailedCbsd, erro
 		return runner.fetchDetailedCbsd(networkId, id)
 	})
 	if err != nil {
-		return nil, makeError(err)
+		return nil, makeError(err, c.errorChecker)
 	}
 	return cbsd.(*DetailedCbsd), nil
 }
@@ -105,7 +107,7 @@ func (c *cbsdManager) ListCbsd(networkId string, pagination *Pagination) (*Detai
 		return runner.listDetailedCbsd(networkId, pagination)
 	})
 	if err != nil {
-		return nil, makeError(err)
+		return nil, makeError(err, c.errorChecker)
 	}
 	return cbsds.(*DetailedCbsdList), nil
 }
@@ -290,11 +292,11 @@ func countCbsds(networkId string, builder sq.StatementBuilderType) (int64, error
 		Count()
 }
 
-func makeError(err error) error {
+func makeError(err error, checker sqorc.ErrorChecker) error {
 	if err == sql.ErrNoRows {
 		return merrors.ErrNotFound
 	}
-	return err
+	return checker.GetError(err)
 }
 
 func getCbsdFiltersWithId(networkId string, id int64) sq.Eq {

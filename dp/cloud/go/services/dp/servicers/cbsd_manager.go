@@ -166,6 +166,8 @@ func makeErr(err error, wrap string) error {
 	code := codes.Internal
 	if err == merrors.ErrNotFound {
 		code = codes.NotFound
+	} else if err == merrors.ErrAlreadyExists {
+		code = codes.AlreadyExists
 	}
 	return status.Error(code, e.Error())
 }
