@@ -1497,7 +1497,6 @@ status_code_e ngap_handle_sctp_disconnection(ngap_state_t* state,
                                              const sctp_assoc_id_t assoc_id,
                                              bool reset) {
   arg_ngap_send_gnb_dereg_ind_t arg = {0};
-  int i = 0;
   MessageDef* message_p = NULL;
   gnb_description_t* gnb_association = NULL;
 
@@ -1551,14 +1550,14 @@ status_code_e ngap_handle_sctp_disconnection(ngap_state_t* state,
       &gnb_association->ue_id_coll, ngap_send_gnb_deregistered_ind, (void*)&arg,
       (void**)&message_p);
 
-  for (i = arg.current_ue_index; i < NGAP_ITTI_UE_PER_DEREGISTER_MESSAGE; i++) {
-    NGAP_GNB_DEREGISTERED_IND(message_p).amf_ue_ngap_id[arg.current_ue_index] =
-        0;
-    NGAP_GNB_DEREGISTERED_IND(message_p).gnb_ue_ngap_id[arg.current_ue_index] =
-        0;
-  }
-  NGAP_GNB_DEREGISTERED_IND(message_p).gnb_id = gnb_association->gnb_id;
-  message_p = NULL;
+  /*
+   * Mark the gNB's ng state as appropriate, the gNB will be deleted or
+   * moved to init state when the last UE's ng state is cleaned up
+   */
+  gnb_association->ng_state = reset ? NGAP_RESETING : NGAP_SHUTDOWN;
+  OAILOG_INFO(LOG_NGAP,
+              "Marked gnb ng status to %s, attached to assoc_id: %d\n",
+              reset ? "Reset" : "Shutdown", assoc_id);
 
   OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
 }

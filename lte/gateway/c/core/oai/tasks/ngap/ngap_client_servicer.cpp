@@ -38,6 +38,7 @@ status_code_e NGAPClientServicer::send_message_to_amf(
   ret = send_msg_to_task(task_zmq_ctx_p, destination_task_id, message);
 #else  /* !MME_UNIT_TEST */
   OAILOG_DEBUG(LOG_NGAP, " Mock is Enabled \n");
+  msgtype_stack.push_back(ITTI_MSG_ID(message));
   itti_free_msg_content(message);
   free(message);
 #endif /* !MME_UNIT_TEST */
