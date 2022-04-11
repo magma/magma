@@ -779,7 +779,7 @@ int amf_smf_notification_send(amf_ue_ngap_id_t ue_id,
                "ue_state_idle is set to true \n",
                imsi);
 
-  AsyncSmfServiceClient::getInstance().set_smf_notification(notify_req);
+  AMFClientServicer::getInstance().set_smf_notification(notify_req);
 
   return RETURNok;
 }
@@ -937,7 +937,7 @@ int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
   // Set regional_subscription flag
   s6a_ulr_p->supportedfeatures.regional_subscription = true;
 
-  rc = AsyncSmfServiceClient::getInstance().n11_update_location_req(s6a_ulr_p);
+  rc = AMFClientServicer::getInstance().n11_update_location_req(s6a_ulr_p);
 
   delete s6a_ulr_p;
 
