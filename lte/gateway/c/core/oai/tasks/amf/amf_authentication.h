@@ -33,6 +33,7 @@ typedef struct nas5g_amf_auth_proc_s {
   int amf_cause;
   int retry_sync_failure;
 #define MAX_SYNC_FAILURES 2
+  struct tagbstring auts;
 } nas5g_amf_auth_proc_t;
 
 typedef struct nas5g_auth_info_proc_s {
@@ -77,7 +78,7 @@ int amf_send_authentication_request(amf_context_t* amf_context,
 
 // To be called when authentication is successful from subscriberdb
 int amf_authentication_proc_success(amf_context_t* amf_context);
-
+status_code_e amf_authentication_request_sent(amf_ue_ngap_id_t ue_id);
 int amf_nas_proc_authentication_info_answer(itti_amf_subs_auth_info_ans_t* aia);
 nas5g_amf_auth_proc_t* get_nas5g_common_procedure_authentication(
     const amf_context_t* const ctxt);
