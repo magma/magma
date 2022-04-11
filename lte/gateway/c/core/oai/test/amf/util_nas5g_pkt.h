@@ -28,7 +28,7 @@ namespace magma5g {
 
 class NAS5GPktSnapShot {
  public:
-  static uint8_t reg_req_buffer[38];
+  static uint8_t reg_req_buffer[42];
   static uint8_t reg_resync_buffer[20];
   static uint8_t guti_based_registration[91];
   static uint8_t pdu_session_est_req_type1[131];
