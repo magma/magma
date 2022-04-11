@@ -1050,14 +1050,14 @@ paths:
         type: string
       responses:
         "200":
-          description: logs between DP and SAS
+          description: List of messages between ENODEBD and DP and between DP and
+            SAS
           schema:
-            items:
-              $ref: '#/definitions/log'
-            type: array
+            $ref: '#/definitions/paginated_logs'
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: List logs between DP and SAS ordered by time
+      summary: List messages between ENODEBD and DP and between DP and SAS ordered
+        by time
       tags:
       - logs
   /events/{network_id}:
@@ -10040,13 +10040,12 @@ definitions:
       logs:
         items:
           $ref: '#/definitions/log'
-        readOnly: true
         type: array
       total_count:
         description: Total number of logs
         example: 10
-        readOnly: true
         type: integer
+        x-nullable: false
     required:
     - logs
     - total_count

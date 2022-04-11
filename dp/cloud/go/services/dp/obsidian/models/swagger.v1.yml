@@ -93,34 +93,6 @@ definitions:
       - serial_number
       - state
       - user_id
-  mutable_cbsd:
-    type: object
-    properties:
-      capabilities:
-        $ref: '#/definitions/capabilities'
-      fcc_id:
-        example: some_fcc_id
-        minLength: 1
-        type: string
-        x-nullable: false
-      frequency_preferences:
-        $ref: '#/definitions/frequency_preferences'
-      serial_number:
-        example: some_serial_number
-        minLength: 1
-        type: string
-        x-nullable: false
-      user_id:
-        example: some_user_id
-        minLength: 1
-        type: string
-        x-nullable: false
-    required:
-      - capabilities
-      - fcc_id
-      - frequency_preferences
-      - serial_number
-      - user_id
   frequency_preferences:
     properties:
       bandwidth_mhz:
@@ -230,22 +202,34 @@ definitions:
       - from
       - to
     type: object
-  paginated_logs:
-    description: Page of logs
+  mutable_cbsd:
+    type: object
     properties:
-      logs:
-        items:
-          $ref: '#/definitions/log'
-        readOnly: true
-        type: array
-      total_count:
-        description: Total number of logs
-        example: 10
-        readOnly: true
-        type: integer
+      capabilities:
+        $ref: '#/definitions/capabilities'
+      fcc_id:
+        example: some_fcc_id
+        minLength: 1
+        type: string
+        x-nullable: false
+      frequency_preferences:
+        $ref: '#/definitions/frequency_preferences'
+      serial_number:
+        example: some_serial_number
+        minLength: 1
+        type: string
+        x-nullable: false
+      user_id:
+        example: some_user_id
+        minLength: 1
+        type: string
+        x-nullable: false
     required:
-      - logs
-      - total_count
+      - capabilities
+      - fcc_id
+      - frequency_preferences
+      - serial_number
+      - user_id
   paginated_cbsds:
     description: Page of cbsds
     properties:
@@ -261,78 +245,27 @@ definitions:
     required:
       - cbsds
       - total_count
+  paginated_logs:
+    description: Page of logs
+    properties:
+      logs:
+        items:
+          $ref: '#/definitions/log'
+        type: array
+      total_count:
+        description: Total number of logs
+        example: 10
+        x-nullable: false
+        type: integer
+    required:
+      - logs
+      - total_count
 tags:
-  - description: API for retrieving logs
-    name: logs
   - description: API for CBSDs
     name: cbsds
+  - description: API for retrieving logs
+    name: logs
 paths:
-  /dp/{network_id}/logs:
-    get:
-      parameters:
-        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-        - $ref: '#/parameters/offset'
-        - $ref: '#/parameters/limit'
-        - description: start datetime of log
-          format: date-time
-          in: query
-          name: begin
-          required: false
-          type: string
-        - description: end datatime of log
-          format: date-time
-          in: query
-          name: end
-          required: false
-          type: string
-        - description: serial number of cbsd
-          in: query
-          minLength: 1
-          maxLength: 64
-          name: serial_number
-          required: false
-          type: string
-        - description: fcc id of cbsd
-          in: query
-          minLength: 1
-          maxLength: 19
-          name: fcc_id
-          required: false
-          type: string
-        - description: log type
-          in: query
-          name: type
-          required: false
-          type: string
-        - description: response code (only applicable for SAS responses)
-          in: query
-          name: response_code
-          required: false
-          type: integer
-        - description: log origin
-          in: query
-          name: from
-          required: false
-          type: string
-          enum: *components
-        - description: log destination
-          in: query
-          name: to
-          required: false
-          type: string
-          enum: *components
-      responses:
-        '200':
-          description: logs between DP and SAS
-          schema:
-            items:
-              $ref: '#/definitions/log'
-            type: array
-        default:
-          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-      summary: List logs between DP and SAS ordered by time
-      tags:
-        - logs
   /dp/{network_id}/cbsds:
     get:
       parameters:
@@ -411,6 +344,70 @@ paths:
       summary: Delete CBSD from LTE network
       tags:
         - cbsds
+  /dp/{network_id}/logs:
+    get:
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+        - description: start datetime of log
+          format: date-time
+          in: query
+          name: begin
+          required: false
+          type: string
+        - description: end datatime of log
+          format: date-time
+          in: query
+          name: end
+          required: false
+          type: string
+        - description: serial number of cbsd
+          in: query
+          minLength: 1
+          maxLength: 64
+          name: serial_number
+          required: false
+          type: string
+        - description: fcc id of cbsd
+          in: query
+          minLength: 1
+          maxLength: 19
+          name: fcc_id
+          required: false
+          type: string
+        - description: log type
+          in: query
+          name: type
+          required: false
+          type: string
+        - description: response code (only applicable for SAS responses)
+          in: query
+          name: response_code
+          required: false
+          type: integer
+        - description: log origin
+          in: query
+          name: from
+          required: false
+          type: string
+          enum: *components
+        - description: log destination
+          in: query
+          name: to
+          required: false
+          type: string
+          enum: *components
+      responses:
+        '200':
+          description: List of messages between ENODEBD and DP and between DP and SAS
+          schema:
+            $ref: '#/definitions/paginated_logs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      summary: List messages between ENODEBD and DP and between DP and SAS ordered by time
+      tags:
+        - logs
 
 parameters:
   cbsd_id:

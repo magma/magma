@@ -2928,8 +2928,7 @@ export default class MagmaAPIBindings {
                 'from' ? : "SAS" | "DP" | "CBSD",
                 'to' ? : "SAS" | "DP" | "CBSD",
             }
-        ): Promise < Array < log >
-        >
+        ): Promise < paginated_logs >
         {
             let path = '/dp/{network_id}/logs';
             let body;
