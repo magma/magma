@@ -38,6 +38,7 @@ namespace lte {
 
 task_zmq_ctx_t task_zmq_ctx_main_s1ap_with_injected_states;
 
+// this function is for mocking the ITTI 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
