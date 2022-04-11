@@ -236,7 +236,7 @@ def _copy_module(module: MagmaModule) -> None:
         )
 
     if module.name == 'nms':
-        copy_to_ctx('packages/magmalte/scripts')
+        copy_to_ctx('scripts')
     else:
         copy_to_ctx('cloud')
 

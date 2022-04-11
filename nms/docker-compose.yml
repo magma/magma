@@ -21,35 +21,21 @@ services:
     depends_on:
       - magmalte
 
-  mock_server:
-    build:
-      context: ../..
-      dockerfile: packages/magmalte/mock/Dockerfile
-    command: "yarn run mockserver"
-    ports:
-      - "3001:3001"
-    environment:
-      API_CERT_FILENAME: /run/secrets/api_cert
-      API_PRIVATE_KEY_FILENAME: /run/secrets/api_key
-      PUPPETEER_SKIP_DOWNLOAD: "true"
-    secrets:
-      - api_cert
-      - api_key
-
   magmalte:
-    build:
-      context: ../..
-      dockerfile: packages/magmalte/Dockerfile
+    build: .
     command: "/usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 -- yarn run start:dev"
     volumes:
-      - ../../packages/magmalte/app:/usr/src/packages/magmalte/app
-      - ../../packages/magmalte/fbc_js_core:/usr/src/packages/magmalte/fbc_js_core
-      - ../../packages/magmalte/scripts:/usr/src/packages/magmalte/scripts
-      - ../../packages/magmalte/server:/usr/src/packages/magmalte/server
+      - ./app:/usr/src/app
+      - ./fbc_js_core:/usr/src/fbc_js_core
+      - ./scripts:/usr/src/scripts
+      - ./server:/usr/src/server
+      - ./grafana:/usr/src/grafana
+      - ./alerts:/usr/src/alerts
     depends_on:
       - postgres
     networks:
       - default
+      - orc8r_default
     ports:
       - "8081:8081"
     environment:
@@ -67,7 +53,7 @@ services:
       MYSQL_DIALECT: postgres
       # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
       PUPPETEER_SKIP_DOWNLOAD: "true"
-      VERSION_TAG: DEV
+      VERSION_TAG: LOCAL-DEV
     healthcheck:
       test: curl -If localhost:8081/healthz
     restart: on-failure
@@ -77,9 +63,13 @@ services:
 
 secrets:
   api_cert:
-    file: ${API_CERT_FILENAME:-../../../.cache/test_certs/admin_operator.pem}
+    file: ${API_CERT_FILENAME:-../.cache/test_certs/admin_operator.pem}
   api_key:
-    file: ${API_PRIVATE_KEY_FILENAME:-../../../.cache/test_certs/admin_operator.key.pem}
+    file: ${API_PRIVATE_KEY_FILENAME:-../.cache/test_certs/admin_operator.key.pem}
+
+networks:
+  orc8r_default:
+    external: true
 
 volumes:
   nms-db:
