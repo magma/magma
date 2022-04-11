@@ -372,6 +372,10 @@ class TestWrapper(object):
             ips, is_uplink=False, **kwargs,
         )
 
+    def configMtuSize(self, set_mtu=False):
+        """ Config MTU size for DL ipv6 data """
+        assert self._trf_util.update_mtu_size(set_mtu)
+
     def configUplinkTest(self, *ues, **kwargs):
         """ Set up an uplink test, returning a TrafficTest object
 

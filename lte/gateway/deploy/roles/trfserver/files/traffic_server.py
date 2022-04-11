@@ -25,6 +25,7 @@ import subprocess
 import sys
 import threading
 import traceback
+import time
 
 import iperf3
 import pyroute2
@@ -563,6 +564,7 @@ class TrafficTestDriver(object):
         if 'c' == iperf.role:
             params = ('-c', iperf.server_hostname) + params
             params += ('-b', str(iperf.bandwidth), '-t', str(iperf.duration))
+            time.sleep(5)
             if 'udp' == iperf.protocol:
                 params += ('-u',)
         else:
@@ -611,6 +613,8 @@ class TrafficTestDriver(object):
                 iperf.protocol = 'udp' if instance.is_udp else 'tcp'
                 iperf.server_hostname = instance.ip.exploded
                 print("iperf.server_hostname", iperf.server_hostname)
+                os.system('sudo /sbin/ip -6 route add 3001::10/64 dev eth2')
+                os.system('sudo /sbin/ip -6 route add %s via 3001::10 dev eth2' %(instance.ip.exploded,))
             self._iperfs += (iperf,)
 
     @property

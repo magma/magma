@@ -131,10 +131,23 @@ class TrafficUtil(object):
         #    "replace " + ue_ip_block + " via 192.168.129.1 dev eth2",
         #)
         ret_code = self.exec_command(
-            "sudo ip -6 route flush via 3001::1 && sudo ip -6 route "
-            "replace " + ue_ip_block + " via 3001::1 dev eth2",
+            "sudo ip -6 route flush via 3001::10 && sudo ip -6 route "
+            "replace " + "fdee:0005:006c::/64" + " via 3001::10 dev eth2",
         )
         if ret_code != 0:
+            return False
+        return True
+
+    def update_mtu_size(self, set_mtu=False):
+        """ Update MTU size in TRF server """
+        # Set MTU size to 1400 for ipv6
+        if set_mtu == True:
+          ret_code = self.exec_command("sudo ifconfig eth2 mtu 1400")
+          if ret_code != 0:
+            return False
+        else :
+          ret_code = self.exec_command("sudo ifconfig eth2 mtu 1500")
+          if ret_code != 0:
             return False
         return True
 
