@@ -35,13 +35,12 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
-
-using magma5g::AsyncM5GMobilityServiceClient;
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
 
 namespace magma5g {
 amf_as_data_t amf_data_de_reg_sec;
-extern std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*> ue_context_map;
 
 /*
  * name : amf_handle_deregistration_ue_origin_req()
@@ -171,7 +170,7 @@ int amf_proc_deregistration_request(amf_ue_ngap_id_t ue_id,
     /* Handle releasing all context related resources
      */
 
-    ue_context->ue_context_rel_cause.ngapCause_u.nas = ngap_CauseNas_deregister;
+    ue_context->ue_context_rel_cause = NGAP_NAS_DEREGISTER;
     rc = ue_state_handle_message_dereg(ue_context->mm_state,
                                        STATE_EVENT_DEREGISTER, SESSION_NULL,
                                        ue_context, ue_id);
@@ -190,32 +189,50 @@ int amf_proc_deregistration_request(amf_ue_ngap_id_t ue_id,
 int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-  if (!ue_context) {
+  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  ue_m5gmm_context_s* ue_context_p =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (!ue_context_p) {
     OAILOG_ERROR(LOG_AMF_APP,
                  "ue context not found for the "
                  "ue_id = " AMF_UE_NGAP_ID_FMT "\n",
                  ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
-  // TODO: will be taken care later as PDU session related info not stored
-  // but proceeding to release all the resources and notify NGAP
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
-  if (!amf_app_desc_p) {
-    OAILOG_ERROR(LOG_AMF_APP, "Failed to fetch amf_app_desc_p \n");
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
-  }
-  // UE context release notification to NGAP
-  if (ue_context->ue_context_rel_cause.ngapCause_u.nas ==
-      ngap_CauseNas_normal_release) {
-    ue_context->ue_context_rel_cause.ngapCause_u.nas = ngap_CauseNas_deregister;
-  }
-  amf_app_ue_context_release(ue_context, ue_context->ue_context_rel_cause);
 
   // Clean up all the sessions.
-  amf_smf_context_cleanup_pdu_session(ue_context);
+  amf_smf_context_cleanup_pdu_session(ue_context_p);
 
-  amf_free_ue_context(ue_context);
+  if (ue_context_p->amf_context.new_registration_info) {
+    nas_delete_all_amf_procedures(&ue_context_p->amf_context);
+    proc_new_registration_req(&amf_app_desc_p->amf_ue_contexts, ue_context_p);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+  }
+
+  // UE context release notification to NGAP
+  ue_context_p->mm_state = DEREGISTERED;
+
+  if (M5GCM_IDLE == ue_context_p->cm_state) {
+    ue_context_p->ue_context_rel_cause = NGAP_IMPLICIT_CONTEXT_RELEASE;
+    // Notify NGAP to release NGAP UE context locally.
+    amf_app_itti_ue_context_release(ue_context_p,
+                                    ue_context_p->ue_context_rel_cause);
+
+    amf_remove_ue_context(&amf_app_desc_p->amf_ue_contexts, ue_context_p);
+  } else {
+    if (ue_context_p->ue_context_rel_cause == NGAP_INVALID_CAUSE) {
+      ue_context_p->ue_context_rel_cause = NGAP_NAS_DEREGISTER;
+    }
+
+    // Notify NGAP to send UE Context Release Command to eNB.
+    amf_app_itti_ue_context_release(ue_context_p,
+                                    ue_context_p->ue_context_rel_cause);
+    if (ue_context_p->ue_context_rel_cause == NGAP_SCTP_SHUTDOWN_OR_RESET) {
+      amf_remove_ue_context(&amf_app_desc_p->amf_ue_contexts, ue_context_p);
+    } else {
+      ue_context_p->ue_context_rel_cause = NGAP_INVALID_CAUSE;
+    }
+  }
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
@@ -244,11 +261,57 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
 
     release_session_gprc_req(&smf_message, imsi);
 
-    if (i->pdu_address.pdn_type == IPv4) {
-      AsyncM5GMobilityServiceClient::getInstance().release_ipv4_address(
+    if ((i->pdu_address.pdn_type == IPv4) ||
+        (i->pdu_address.pdn_type == IPv4_AND_v6)) {
+      AMFClientServicer::getInstance().release_ipv4_address(
           imsi, i->dnn.c_str(), &(i->pdu_address.ipv4_address));
     }
+
+    if ((i->pdu_address.pdn_type == IPv6) ||
+        (i->pdu_address.pdn_type == IPv4_AND_v6)) {
+      AMFClientServicer::getInstance().release_ipv6_address(
+          imsi, i->dnn.c_str(), &(i->pdu_address.ipv6_address));
+    }
+
+    OAILOG_INFO(LOG_AMF_APP,
+                "Deleting Pdu Session id = %d for ue_id = " AMF_UE_NGAP_ID_FMT
+                "\n",
+                smf_message.pdu_session_id, ue_context->amf_ue_ngap_id);
   }
+
+  ue_context->amf_context.smf_ctxt_map.clear();
+}
+
+//------------------------------------------------------------------------------
+void amf_app_ue_context_free_content(ue_m5gmm_context_s* const ue_context_p) {
+  // Stop Mobile reachability timer,if running
+
+  // Stop Implicit deregistration timer,if running
+
+  // Stop Initial context setup process guard timer,if running
+
+  ue_context_p->ue_context_rel_cause = NGAP_INVALID_CAUSE;
+
+  amf_smf_context_cleanup_pdu_session(ue_context_p);
+}
+
+void clear_amf_ctxt(amf_context_t* amf_context) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+  if (!amf_context) {
+    return;
+  }
+  amf_ue_ngap_id_t ue_id =
+      PARENT_STRUCT(amf_context, struct ue_m5gmm_context_s, amf_context)
+          ->amf_ue_ngap_id;
+
+  nas_delete_all_amf_procedures(amf_context);
+
+  ue_m5gmm_context_s* ue_context_p =
+      PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context);
+
+  ue_context_p->mm_state = DEREGISTERED;
+  amf_ctx_clear_auth_vectors(amf_context);
+  OAILOG_FUNC_OUT(LOG_NAS_AMF);
 }
 
 /***************************************************************************
@@ -259,18 +322,86 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void amf_remove_ue_context(ue_m5gmm_context_s* ue_context_p) {
-  std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*>::iterator
-      found_ue_id = ue_context_map.find(ue_context_p->amf_ue_ngap_id);
-  delete_amf_ue_state(ue_context_p->amf_context.imsi64);
+void amf_remove_ue_context(amf_ue_context_t* const amf_ue_context_p,
+                           ue_m5gmm_context_s* ue_context_p) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
 
-  if (found_ue_id != ue_context_map.end()) {
-    OAILOG_DEBUG(LOG_AMF_APP,
-                 "Removed ue id = " AMF_UE_NGAP_ID_FMT
-                 " entry from the ue context map\n",
-                 ue_context_p->amf_ue_ngap_id);
-    ue_context_map.erase(found_ue_id);
+  magma::map_rc_t m_rc = magma::MAP_OK;
+  map_uint64_ue_context_t* amf_state_ue_id_ht = get_amf_ue_state();
+
+  if (!amf_ue_context_p) {
+    OAILOG_ERROR(LOG_AMF_APP, "Invalid AMF UE context received\n");
+    OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
+  if (!ue_context_p) {
+    OAILOG_ERROR(LOG_AMF_APP, "Invalid UE context received\n");
+    OAILOG_FUNC_OUT(LOG_AMF_APP);
+  }
+
+  // TODO: Need clean up in redis database
+
+  delete_amf_ue_state(ue_context_p->amf_context.imsi64);
+  amf_app_ue_context_free_content(ue_context_p);
+
+  // IMSI
+  if (ue_context_p->amf_context.imsi64) {
+    m_rc = amf_ue_context_p->imsi_amf_ue_id_htbl.remove(
+        ue_context_p->amf_context.imsi64);
+
+    if (m_rc != magma::MAP_OK) {
+      OAILOG_ERROR_UE(
+          LOG_AMF_APP, ue_context_p->amf_context.imsi64,
+          "UE context not found!\n"
+          " gnb_ue_ngap_ue_id " GNB_UE_NGAP_ID_FMT
+          " amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT " not in IMSI collection\n",
+          ue_context_p->gnb_ue_ngap_id, ue_context_p->amf_ue_ngap_id);
+    }
+  }
+
+  // filled guti
+  if ((ue_context_p->amf_context.m5_guti.guamfi.amf_regionid) ||
+      (ue_context_p->amf_context.m5_guti.guamfi.amf_set_id) ||
+      (ue_context_p->amf_context.m5_guti.guamfi.amf_pointer) ||
+      (ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit1) ||
+      (ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||
+      (ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3)) {
+    m_rc = amf_ue_context_p->guti_ue_context_htbl.remove(
+        ue_context_p->amf_context.m5_guti);
+    if (m_rc != magma::MAP_OK)
+      OAILOG_ERROR(LOG_AMF_APP,
+                   "UE Context not found!\n"
+                   " gnb_ue_ngap_ue_id " GNB_UE_NGAP_ID_FMT
+                   " amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT
+                   ", GUTI  not in GUTI collection\n",
+                   ue_context_p->gnb_ue_ngap_id, ue_context_p->amf_ue_ngap_id);
+  }
+
+  clear_amf_ctxt(&ue_context_p->amf_context);
+
+  // gNB UE NGAP UE ID
+  m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.remove(
+      ue_context_p->gnb_ngap_id_key);
+  if (m_rc != magma::MAP_OK)
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "UE context not found!\n"
+                 " gnb_ue_ngap_ue_id " GNB_UE_NGAP_ID_FMT
+                 " amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT,
+                 ue_context_p->gnb_ue_ngap_id, ue_context_p->amf_ue_ngap_id);
+
+  m_rc = amf_ue_context_p->tun11_ue_context_htbl.remove(
+      ue_context_p->amf_teid_n11);
+
+  // filled NAS UE ID/ MME UE S1AP ID
+  if (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
+    m_rc = amf_state_ue_id_ht->remove(ue_context_p->amf_ue_ngap_id);
+    if (m_rc != magma::MAP_OK)
+      OAILOG_TRACE(LOG_AMF_APP, "Error Could not remove this ue context \n");
+    ue_context_p->amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
+  }
+
+  delete ue_context_p;
+  ue_context_p = NULL;
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 }  // end  namespace magma5g
 #endif

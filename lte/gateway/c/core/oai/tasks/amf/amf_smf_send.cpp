@@ -42,7 +42,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
 
-using magma5g::AsyncM5GMobilityServiceClient;
 using magma5g::AsyncSmfServiceClient;
 
 extern amf_config_t amf_config;
@@ -257,7 +256,7 @@ int pdu_session_resource_release_complete(
   if ((smf_ctx->pdu_address.pdn_type == IPv6) ||
       (smf_ctx->pdu_address.pdn_type == IPv4_AND_v6)) {
     // Clean up the Mobility IP Address
-    AsyncM5GMobilityServiceClient::getInstance().release_ipv6_address(
+    AMFClientServicer::getInstance().release_ipv6_address(
         imsi, smf_ctx->dnn.c_str(), &(smf_ctx->pdu_address.ipv6_address));
   }
 
