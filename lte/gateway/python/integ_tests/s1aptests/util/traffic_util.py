@@ -142,11 +142,11 @@ class TrafficUtil(object):
         """ Update MTU size in TRF server """
         # Set MTU size to 1400 for ipv6
         if set_mtu == True:
-          ret_code = self.exec_command("sudo ifconfig eth2 mtu 1400")
+          ret_code = self.exec_command("sudo /sbin/ifconfig eth2 mtu 1400")
           if ret_code != 0:
             return False
         else :
-          ret_code = self.exec_command("sudo ifconfig eth2 mtu 1500")
+          ret_code = self.exec_command("sudo /sbin/ifconfig eth2 mtu 1500")
           if ret_code != 0:
             return False
         return True
