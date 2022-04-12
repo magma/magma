@@ -24,8 +24,5 @@ type Field struct {
 }
 
 func (f *Field) GetValue() interface{} {
-	if f.Nullable {
-		return f.BaseType.nullableValue()
-	}
 	return f.BaseType.baseValue()
 }

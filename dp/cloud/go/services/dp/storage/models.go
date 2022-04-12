@@ -27,6 +27,11 @@ const (
 	ActiveModeConfigTable = "active_mode_configs"
 )
 
+type EnumModel interface {
+	GetId() int64
+	GetName() string
+}
+
 type DBGrantState struct {
 	Id   sql.NullInt64
 	Name sql.NullString
@@ -53,11 +58,19 @@ func (gs *DBGrantState) GetMetadata() *db.ModelMetadata {
 	}
 }
 
+func (gs *DBGrantState) GetId() int64 {
+	return gs.Id.Int64
+}
+
+func (gs *DBGrantState) GetName() string {
+	return gs.Name.String
+}
+
 type DBGrant struct {
 	Id                 sql.NullInt64
 	StateId            sql.NullInt64
 	CbsdId             sql.NullInt64
-	GrantId            sql.NullInt64
+	GrantId            sql.NullString
 	GrantExpireTime    sql.NullTime
 	TransmitExpireTime sql.NullTime
 	HeartbeatInterval  sql.NullInt64
@@ -80,7 +93,7 @@ func (g *DBGrant) Fields() db.FieldMap {
 			Nullable: true,
 		},
 		"grant_id": &db.Field{
-			BaseType: db.IntType{X: &g.GrantId},
+			BaseType: db.StringType{X: &g.GrantId},
 		},
 		"grant_expire_time": &db.Field{
 			BaseType: db.TimeType{X: &g.GrantExpireTime},
@@ -147,6 +160,14 @@ func (cs *DBCbsdState) GetMetadata() *db.ModelMetadata {
 			return &DBCbsdState{}
 		},
 	}
+}
+
+func (cs *DBCbsdState) GetId() int64 {
+	return cs.Id.Int64
+}
+
+func (cs *DBCbsdState) GetName() string {
+	return cs.Name.String
 }
 
 type DBCbsd struct {

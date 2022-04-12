@@ -173,7 +173,7 @@ func (e *enumCache) getValue(builder sq.StatementBuilderType, model db.Model, na
 	if err != nil {
 		return 0, err
 	}
-	e.cache[meta.Table][name] = r[0].Fields()["id"].GetValue().(int64)
+	e.cache[meta.Table][name] = r[0].(EnumModel).GetId()
 	return e.cache[meta.Table][name], nil
 }
 
