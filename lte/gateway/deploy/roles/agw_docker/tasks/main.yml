@@ -85,6 +85,7 @@
     - "/etc/magma"
     - "/etc/magma/templates/"
     - "/var/opt/magma/docker"
+    - "/var/opt/magma/docker/s1ap"
 
 - name: Enable IP forwarding
   become: true
@@ -150,6 +151,17 @@
     mode: '0755'
   tags:
     - agwc
+
+- name: copy the s1ap files
+  copy:
+    src: "/opt/magma/lte/gateway/docker/s1ap/{{ item }}"
+    dest: /var/opt/magma/docker/s1ap/
+  tags:
+    - agwc
+  loop:
+    - docker-compose.s1ap.yaml
+    - start-s1ap.sh
+    - stop-s1ap.sh
 
 - name: bring up the containers.
   script: agw_upgrade.sh

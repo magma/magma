@@ -1,0 +1,113 @@
+---
+version: "3.7"
+
+services:
+
+  s1aptester:
+    image: ${DOCKER_REGISTRY}agw_s1aptester:${IMAGE_VERSION}
+    container_name: s1aptester
+    command: /bin/bash
+    stdin_open: true
+    tty: true
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: lte/gateway/docker/services/s1aptester/Dockerfile
+
+  trfgen:
+    image: ${DOCKER_REGISTRY}agw_trfgen:${IMAGE_VERSION}
+    container_name: trfgen
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: lte/gateway/docker/services/trfgen/Dockerfile
+
+  magmad:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  redis:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  directoryd:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  subscriberdb:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  enodebd:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  state:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  policydb:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  eventd:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  health:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  monitord:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  redirectd:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  smsd:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  control_proxy:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  ctraced:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  sctpd:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  oai_config:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  oai_mme:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  pipelined:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  sessiond:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  mobilityd:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  connectiond:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  liagentd:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  td-agent-bit:
+    environment:
+      - MAGMA_DEV_MODE=1
