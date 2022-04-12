@@ -28,6 +28,7 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
+#include <bits/types/siginfo_t.h>
 #include <signal.h>
 
 #ifndef BACKTRACE_H_

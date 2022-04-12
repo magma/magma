@@ -28,12 +28,11 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
+#include "lte/gateway/c/core/common/backtrace.h"
+
+#include <execinfo.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <signal.h>
-#include <execinfo.h>
-
-#include "lte/gateway/c/core/common/backtrace.h"
 
 /* Obtain a backtrace and print it to stdout. */
 void display_backtrace(void) {
