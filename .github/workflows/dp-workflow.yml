@@ -377,6 +377,7 @@ jobs:
           alembic history
           alembic upgrade head
           alembic-autogen-check
+          alembic downgrade base
 
   db_service_unit_tests:
     needs: path_filter
