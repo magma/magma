@@ -110,10 +110,10 @@ echo "[agw_docker]
 127.0.0.1 ansible_connection=local" > $DEPLOY_PATH/agw_hosts
 
 if [ "$MODE" == "base" ]; then
-  su - $MAGMA_USER -c "sudo ansible-playbook -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags base $DEPLOY_PATH/magma_docker.yml"
+  su - $MAGMA_USER -c "sudo ansible-playbook -v -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags base $DEPLOY_PATH/magma_docker.yml"
 else
   # install magma and its dependencies including OVS.
-  su - $MAGMA_USER -c "sudo ansible-playbook -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags agwc $DEPLOY_PATH/magma_docker.yml"
+  su - $MAGMA_USER -c "sudo ansible-playbook -v -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags agwc $DEPLOY_PATH/magma_docker.yml"
 fi
 
 [[ $RERUN -eq 1 ]] || echo "Reboot this VM to apply kernel settings"

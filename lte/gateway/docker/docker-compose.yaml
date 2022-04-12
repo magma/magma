@@ -18,6 +18,7 @@ x-standard-volumes: &volumes_anchor
   - ./:/var/opt/magma/docker
   - /var/run:/var/run
   - /tmp:/tmp
+  - /var/log:/var/log
 
 x-generic-service: &service
   volumes: *volumes_anchor
