@@ -2788,6 +2788,7 @@ export default class MagmaAPIBindings {
                 'networkId': string,
                 'offset' ? : number,
                 'limit' ? : number,
+                'serialNumber' ? : string,
             }
         ): Promise < paginated_cbsds >
         {
@@ -2806,6 +2807,10 @@ export default class MagmaAPIBindings {
 
             if (parameters['limit'] !== undefined) {
                 query['limit'] = parameters['limit'];
+            }
+
+            if (parameters['serialNumber'] !== undefined) {
+                query['serial_number'] = parameters['serialNumber'];
             }
 
             return await this.request(path, 'GET', query, body);
