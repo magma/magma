@@ -49,6 +49,14 @@ def process_inform_message(
     for name, val in name_to_val.items():
         device_cfg.set_parameter(name, val)
 
+    # In case the SerialNumber does not come in the inform ParameterList
+    # it can still be present in the Inform structure, fill it in.
+    if (
+        hasattr(inform, 'DeviceId')
+        and hasattr(inform.DeviceId, 'SerialNumber')
+    ):
+        device_cfg.set_parameter(ParameterName.SERIAL_NUMBER, inform.DeviceId.SerialNumber)
+
 
 def get_device_name_from_inform(
     inform: models.Inform,
