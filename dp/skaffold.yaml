@@ -15,10 +15,6 @@ build:
       context: ..
       docker:
         dockerfile: dp/cloud/docker/go/active_mode_controller/Dockerfile
-    - image: protocol-controller
-      context: ..
-      docker:
-        dockerfile: dp/cloud/docker/python/protocol_controller/Dockerfile
     - image: configuration-controller
       context: ..
       docker:
@@ -70,8 +66,6 @@ deploy:
             image: active-mode-controller
           dp.configuration_controller:
             image: configuration-controller
-          dp.protocol_controller:
-            image: protocol-controller
           dp.radio_controller:
             image: radio-controller
           dp.db_service:
@@ -266,4 +260,4 @@ profiles:
   - name: remote-push
     patches:
       - op: remove
-        path: /build/artifacts/5  # remove fake sas image
+        path: /build/artifacts/4  # remove fake sas image

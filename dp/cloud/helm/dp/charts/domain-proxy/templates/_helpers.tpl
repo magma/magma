@@ -64,22 +64,6 @@ Active mode controller labels
 {{- end -}}
 
 {{/*
-Protocol controller match labels
-*/}}
-{{- define "domain-proxy.protocol_controller.matchLabels" -}}
-component: {{ .Values.dp.protocol_controller.name | quote }}
-{{ include "domain-proxy.common.matchLabels" . }}
-{{- end -}}
-
-{{/*
-Protocol controller labels
-*/}}
-{{- define "domain-proxy.protocol_controller.labels" -}}
-{{ include "domain-proxy.protocol_controller.matchLabels" . }}
-{{ include "domain-proxy.common.metaLabels" . }}
-{{- end -}}
-
-{{/*
 Radio controller match labels
 */}}
 {{- define "domain-proxy.radio_controller.matchLabels" -}}
@@ -151,24 +135,6 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- printf "%s-%s" .Release.Name .Values.dp.configuration_controller.name | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
 {{- printf "%s-%s-%s" .Release.Name $name .Values.dp.configuration_controller.name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Create a fully qualified protocol_controller name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-*/}}
-
-{{- define "domain-proxy.protocol_controller.fullname" -}}
-{{- if .Values.dp.protocol_controller.fullnameOverride -}}
-{{- .Values.dp.protocol_controller.fullnameOverride | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- $name := default .Chart.Name .Values.dp.nameOverride -}}
-{{- if contains $name .Release.Name -}}
-{{- printf "%s-%s" .Release.Name .Values.dp.protocol_controller.name | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- printf "%s-%s-%s" .Release.Name $name .Values.dp.protocol_controller.name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
@@ -288,17 +254,6 @@ Create the name of the service account to use for configuration controller
 {{- default (include "domain-proxy.fullname" .) .Values.dp.configuration_controller.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.dp.configuration_controller.serviceAccount.name }}
-{{- end }}
-{{- end }}
-
-{{/*
-Create the name of the service account to use for protocol controller
-*/}}
-{{- define "domain-proxy.protocol_controller.serviceAccountName" -}}
-{{- if .Values.dp.protocol_controller.serviceAccount.create }}
-{{- default (include "domain-proxy.fullname" .) .Values.dp.protocol_controller.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.dp.protocol_controller.serviceAccount.name }}
 {{- end }}
 {{- end }}
 

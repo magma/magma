@@ -109,12 +109,11 @@ The related request is also marked as processed.
 #### *Protocol Controller
 
 **NOTE**: This is a historical name for a component that is no longer an independent part of Domain Proxy, but still
-needs to be mentioned.
+needs to be mentioned. It was removed by that [GitHub PR](https://github.com/magma/magma/pull/12420)
 
 `Protocol Controller` is used to handle incoming requests from an eNB or another domain proxy. It is meant to handle
 messages sent using a specific protocol. Currently, the only eNBs connected to DP speak `TR069` protocol (Sercomm
-Englewood and Baicells 430 Nova) and, although an HTTP Protocol Controller service is available and tested, it is not
-used at the moment and is not a part of Domain Proxy's deployment.
+Englewood and Baicells 430 Nova).
 
 Instead, the component treated by Domain Proxy as the only `Protocol Controller` is currently
 AGW's [Enodebd](lte/README_AGW.md#enodebd)
