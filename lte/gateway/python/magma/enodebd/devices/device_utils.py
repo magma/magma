@@ -82,6 +82,8 @@ def get_device_name(
         elif sw_version.startswith('BaiBS_QRTB_') and (  # noqa: WPS222
             hw_version == 'E01' and 'mBS31001' in product_class
             or hw_version == 'A01' and 'pBS3101S' in product_class
+            or hw_version == 'A01' and 'pBS31010' in product_class
+            or hw_version == 'D01' and 'mBS31001' in product_class
         ):
             return EnodebDeviceName.BAICELLS_QRTB
         raise UnrecognizedEnodebError(
