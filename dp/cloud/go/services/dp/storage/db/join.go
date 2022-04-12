@@ -93,7 +93,7 @@ func (f *fieldPointersCollector) preVisit(q *Query) {
 	fields := model.Fields()
 	f.models = append(f.models, model)
 	for _, col := range f.columns[metadata.Table] {
-		f.pointers = append(f.pointers, fields[col].BaseType.ptr())
+		f.pointers = append(f.pointers, fields[col].Item.ptr())
 	}
 }
 
