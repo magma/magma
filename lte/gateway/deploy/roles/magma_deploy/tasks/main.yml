@@ -178,6 +178,7 @@
     - { src: 'magma_ifaces_gtp', dest: '/etc/network/interfaces.d/gtp' }
     - { src: 'magma_modules_load', dest: '/etc/modules-load.d/magma.conf' }
     - { src: 'ovs-kmod-upgrade.sh', dest: '/usr/local/bin/' }
+    - { src: 'magma-bridge-reset.sh', dest: '/usr/local/bin/' }
   tags:
     - never
     - agwc

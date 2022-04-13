@@ -31,18 +31,18 @@ cd /var/opt/magma/docker || exit
 # Validate docker-compose file
 CONFIG=$(docker-compose -f docker-compose.yaml config)
 if [ -z "$CONFIG" ]; then
-  echo "docker-compose.yml is not valid"
+  echo "docker-compose.yaml is not valid"
   exit
 fi
 
 # Pull all images
-/usr/local/bin/docker-compose pull
+[[ -z "$DOCKER_REGISTRY" ]] || docker-compose pull
 
 CONTAINERS=$(docker ps -a -q)
 [[ -z "$CONTAINERS" ]] || docker stop "$CONTAINERS"
 
 # Bring containers up
-/usr/local/bin/docker-compose up -d
+docker-compose up -d
 
 # Remove all stopped containers and dangling images
 docker system prune -af

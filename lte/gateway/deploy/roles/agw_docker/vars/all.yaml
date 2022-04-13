@@ -21,9 +21,7 @@ magma_pkgrepo_key: "https://artifactory.magmacore.org:443/artifactory/api/gpg/ke
 magma_pkgrepo_key_fingerprint: ""
 magma_use_pkgrepo: yes
 
-docker_compose_version: 1.29.2
-
-docker_registry: "public.ecr.aws/z2g3r6f7/"
+docker_registry: ""
 docker_user: ""
 docker_pass: ""
 image_version: "latest"
