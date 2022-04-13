@@ -15,14 +15,12 @@
  */
 
 import * as React from 'react';
-import AppContent from '../layout/AppContent';
-import AppContext from '../../../fbc_js_core/ui/context/AppContext';
-import AppSideBar from '../../../fbc_js_core/ui/components/layout/AppSideBar';
-
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
-import {getProjectLinks} from '../../../fbc_js_core/projects/projects';
+import AccountSettings from './AccountSettings';
+import Admin from './admin/Admin';
+import AppContent from './layout/AppContent';
+import AppSideBar from '../../fbc_js_core/ui/components/layout/AppSideBar';
+import {Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
-import {useContext} from 'react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -30,24 +28,18 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-type Props = {
-  navItems: () => React.Node,
-  navRoutes: () => React.Node,
-};
-
-export default function AdminMain(props: Props) {
+export default function IndexWithoutNetwork() {
   const classes = useStyles();
-  const {tabs, user, ssoEnabled} = useContext(AppContext);
 
   return (
     <div className={classes.root}>
-      <AppSideBar
-        mainItems={props.navItems()}
-        projects={getProjectLinks(tabs, user)}
-        user={nullthrows(user)}
-        showSettings={!ssoEnabled}
-      />
-      <AppContent>{props.navRoutes()}</AppContent>
+      <AppSideBar mainItems={[]} />
+      <AppContent>
+        <Switch>
+          <Route path="/admin" component={Admin} />
+          <Route path="/settings" component={AccountSettings} />
+        </Switch>
+      </AppContent>
     </div>
   );
 }

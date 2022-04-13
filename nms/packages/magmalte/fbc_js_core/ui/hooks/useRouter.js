@@ -23,12 +23,19 @@ import {__RouterContext as RouterContext} from 'react-router-dom';
 
 export const useRelativeUrl = () => {
   const {url} = useRouteMatch();
-  return useCallback((path: string) => `${url}${path}`, [url]);
+  return useCallback(
+    (path: string) => (url === '/' && path ? path : `${url}${path}`),
+    [url],
+  );
 };
 
 export const useRelativePath = () => {
   const match = useRouteMatch();
-  return useCallback((path: string) => `${match.path}${path}`, [match.path]);
+  return useCallback(
+    (path: string) =>
+      match.path === '/' && path ? path : `${match.path}${path}`,
+    [match.path],
+  );
 };
 
 const useRouter = () => {
