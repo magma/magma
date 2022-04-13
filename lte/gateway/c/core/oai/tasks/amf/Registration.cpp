@@ -23,7 +23,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "include/amf_client_servicer.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.hpp"

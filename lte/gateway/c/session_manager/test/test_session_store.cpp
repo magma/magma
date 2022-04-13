@@ -18,7 +18,7 @@
 
 #include "Consts.h"
 #include "magma_logging.h"
-#include "includes/MagmaService.h"
+#include "includes/MagmaService.hpp"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
 #include "SessionID.h"

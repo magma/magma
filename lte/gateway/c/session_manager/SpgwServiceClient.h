@@ -19,7 +19,7 @@
 #include <string>                             // for string
 #include <vector>                             // for vector
 
-#include "includes/GRPCReceiver.h"  // for GRPCReceiver
+#include "includes/GRPCReceiver.hpp"  // for GRPCReceiver
 #include "lte/protos/apn.pb.h"
 #include "lte/protos/subscriberdb.pb.h"  // for lte
 

@@ -38,7 +38,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.hpp"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/proto_msg_to_itti_msg.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/proto_msg_to_itti_msg.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.hpp"
