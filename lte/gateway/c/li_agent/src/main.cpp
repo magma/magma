@@ -11,20 +11,29 @@
  * limitations under the License.
  */
 
+#include <lte/protos/mconfig/mconfigs.pb.h>
+#include <signal.h>
+#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <yaml-cpp/yaml.h>
+#include <glog/logging.h>
+#include <memory>
+#include <ostream>
+#include <string>
 #include <thread>
-
-#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include <utility>
 
 #include "lte/gateway/c/li_agent/src/InterfaceMonitor.h"
+#include "lte/gateway/c/li_agent/src/MobilitydClient.h"
 #include "lte/gateway/c/li_agent/src/PDUGenerator.h"
 #include "lte/gateway/c/li_agent/src/ProxyConnector.h"
 #include "lte/gateway/c/li_agent/src/Utilities.h"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 #include "orc8r/gateway/c/common/logging/magma_logging_init.h"
 #include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
 
 static uint32_t get_log_verbosity(const YAML::Node& config,
                                   magma::mconfig::LIAgentD mconfig) {

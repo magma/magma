@@ -12,10 +12,13 @@
  */
 #pragma once
 
+#include <memory>
+
 #include "lte/gateway/c/connection_tracker/src/PacketGenerator.h"
 
 namespace magma {
 namespace lte {
+class PacketGenerator;
 
 class EventTracker {
  public:

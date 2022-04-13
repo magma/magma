@@ -11,12 +11,20 @@
  * limitations under the License.
  */
 
-#include <netinet/in.h>
-#include <thread>
-
 #include "lte/gateway/c/li_agent/src/MobilitydClient.h"
+
+#include <grpcpp/channel.h>
+#include <lte/protos/mobilityd.grpc.pb.h>
+#include <lte/protos/mobilityd.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
+#include <netinet/in.h>
+#include <utility>
+
 #include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
+
+namespace grpc {
+class Status;
+}  // namespace grpc
 
 using grpc::Status;
 

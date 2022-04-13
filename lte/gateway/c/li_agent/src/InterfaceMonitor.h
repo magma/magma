@@ -13,9 +13,9 @@
 #pragma once
 
 #include <pcap.h>
-
-#include <string>
+#include <pcap/pcap.h>
 #include <memory>
+#include <string>
 
 #include "lte/gateway/c/li_agent/src/PDUGenerator.h"
 
