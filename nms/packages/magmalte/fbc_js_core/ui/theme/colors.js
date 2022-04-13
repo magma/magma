@@ -57,6 +57,7 @@ export const green30 = '#00af5b';
 export const green = '#66bb6a';
 export const gullGray = '#9DA7BB';
 export const lightBlue = '#42a5f5';
+export const mirage = '#171B25';
 export const orange = '#f9a825';
 export const pink = '#f48fb1';
 export const primaryText = '#1c1e21';

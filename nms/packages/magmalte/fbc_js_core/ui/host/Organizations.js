@@ -19,18 +19,20 @@ import type {UserType} from '../../../fbc_js_core/sequelize_models/models/user.j
 import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
 import ActionTable from '../components/ActionTable';
-import Button from '@material-ui/core/Button';
+import BusinessIcon from '@material-ui/icons/Business';
+import Button from '../../../fbc_js_core/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import Grid from '@material-ui/core/Grid';
+import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
-import NestedRouteLink from '../../../fbc_js_core/ui/components/NestedRouteLink';
 import OrganizationDialog from './OrganizationDialog';
 import PersonAdd from '@material-ui/icons/PersonAdd';
 import PersonIcon from '@material-ui/icons/Person';
@@ -39,13 +41,12 @@ import Text from '../components/design-system/Text';
 import axios from 'axios';
 import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
-import {Route} from 'react-router-dom';
-import {comet, concrete} from '../../../fbc_js_core/ui/theme/colors';
+import {comet, concrete, gullGray} from '../../../fbc_js_core/ui/theme/colors';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios, useRouter} from '../../../fbc_js_core/ui/hooks';
 import {useCallback, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRelativePath, useRelativeUrl} from '../../../fbc_js_core/ui/hooks/useRouter';
+import {useRelativeUrl} from '../../../fbc_js_core/ui/hooks/useRouter';
 
 export type Organization = OrganizationPlainAttributes;
 
@@ -54,6 +55,9 @@ const ORGANIZATION_DESCRIPTION =
   'As a host user, you can create and manage organizations here. You can also create users for these organizations.';
 
 const useStyles = makeStyles(_ => ({
+  addButton: {
+    minWidth: '150px',
+  },
   description: {
     margin: '20px 0',
   },
@@ -65,71 +69,74 @@ const useStyles = makeStyles(_ => ({
   paper: {
     margin: '40px 32px',
   },
-  dialogTitle: {
+  onBoardingDialog: {
+    padding: '24px 0',
+  },
+  onBoardingDialogTitle: {
+    padding: '0 24px',
     fontSize: '24px',
     color: comet,
     backgroundColor: concrete,
   },
-  dialog: {
+  onBoardingDialogContent: {
     minHeight: '200px',
-    padding: '24px',
+    padding: '16px 24px',
   },
-  dialogActions: {
+  onBoardingDialogActions: {
+    padding: '0 24px',
     backgroundColor: concrete,
     boxShadow: 'none',
   },
-  dialogButton: {
-    backgroundColor: comet,
-    color: concrete,
-    '&:hover': {
-      backgroundColor: concrete,
-      color: comet,
-    },
+  onBoardingDialogButton: {
+    minWidth: '120px',
   },
-
   subtitle: {
     margin: '16px 0',
   },
+  index: {
+    color: gullGray,
+  },
 }));
 
-type Props = {...WithAlert};
+type Props = {...WithAlert, hideAdvancedFields: boolean};
 
 function OnboardingDialog() {
   const classes = useStyles();
   const [open, setOpen] = useState(true);
   return (
     <Dialog
+      classes={{paper: classes.onBoardingDialog}}
       maxWidth={'sm'}
       fullWidth={true}
       open={open}
       keepMounted
       onClose={() => setOpen(false)}
       aria-describedby="alert-dialog-slide-description">
-      <DialogTitle classes={{root: classes.dialogTitle}}>
+      <DialogTitle classes={{root: classes.onBoardingDialogTitle}}>
         {'Welcome to Magma Host Portal'}
       </DialogTitle>
-      <DialogContent classes={{root: classes.dialog}}>
+      <DialogContent classes={{root: classes.onBoardingDialogContent}}>
         <DialogContentText id="alert-dialog-slide-description">
           <Text variant="subtitle1">
             In this portal, you can add and edit organizations and its user.
             Follow these steps to get started:
           </Text>
           <List dense={true}>
-            <ListItem disableGutters>
+            <ListItem disablegutters="true">
               <ListItemIcon>
-                <PersonIcon />
+                <BusinessIcon />
               </ListItemIcon>
               <Text variant="subtitle1">Add an organization</Text>
             </ListItem>
-            <ListItem disableGutters>
+            <ListItem disablegutters="true">
               <ListItemIcon>
                 <PersonIcon />
               </ListItemIcon>
               <Text variant="subtitle1">Add a user for the organization</Text>
             </ListItem>
-            <ListItem disableGutters>
+            <ListItem disablegutters="true">
               <ListItemIcon>
-                <PersonIcon />
+                <ExitToAppIcon />
               </ListItemIcon>
               <Text variant="subtitle1">
                 Log in to the organization portal with the user account you
@@ -139,9 +146,10 @@ function OnboardingDialog() {
           </List>
         </DialogContentText>
       </DialogContent>
-      <DialogActions classes={{root: classes.dialogActions}}>
+      <DialogActions classes={{root: classes.onBoardingDialogActions}}>
         <Button
-          classes={{root: classes.dialogButton}}
+          className={classes.onBoardingDialogButton}
+          skin="comet"
           onClick={() => setOpen(false)}>
           Get Started
         </Button>
@@ -153,6 +161,10 @@ function OnboardingDialog() {
 async function getUsers(
   organizations: Organization[],
   setUsers: (Array<?UserType>) => void,
+  enqueueSnackbar: (
+    msg: string,
+    cfg: EnqueueSnackbarOptions,
+  ) => ?(string | number),
 ) {
   const requests = organizations.map(async organization => {
     try {
@@ -160,7 +172,11 @@ async function getUsers(
         `/host/organization/async/${organization.name}/users`,
       );
       return response.data;
-    } catch (error) {}
+    } catch (error) {
+      enqueueSnackbar(error.message, {
+        variant: 'error',
+      });
+    }
   });
   const organizationUsers = await Promise.all(requests);
   if (organizationUsers) {
@@ -171,14 +187,13 @@ async function getUsers(
 function Organizations(props: Props) {
   const classes = useStyles();
   const relativeUrl = useRelativeUrl();
-  const relativePath = useRelativePath();
   const {history} = useRouter();
   const [organizations, setOrganizations] = useState<?(Organization[])>(null);
   const [addingUserFor, setAddingUserFor] = useState<?Organization>(null);
   const [currRow, setCurrRow] = useState<OrganizationRowType>({});
   const [users, setUsers] = useState<Array<?UserType>>([]);
   const [showOnboardingDialog, setShowOnboardingDialog] = useState(false);
-  const [addUser, setAddUser] = useState(false);
+  const [showOrganizationDialog, setShowOrganizationDialog] = useState(false);
   const enqueueSnackbar = useEnqueueSnackbar();
   const {error, isLoading} = useAxios({
     url: '/host/organization/async',
@@ -191,9 +206,38 @@ function Organizations(props: Props) {
   });
   useEffect(() => {
     if (organizations?.length) {
-      getUsers(organizations, setUsers);
+      getUsers(organizations, setUsers, enqueueSnackbar);
     }
-  }, [organizations, addingUserFor]);
+  }, [organizations, addingUserFor, enqueueSnackbar]);
+
+  const renderNetworksColumn = useCallback(rowData => {
+    // only display 3 networks if more
+    if (rowData.networks.length > 3) {
+      return `${rowData.networks.slice(0, 3).join(', ')} + ${
+        rowData.networks.length - 3
+      } more`;
+    }
+    return rowData.networks.length ? rowData.networks.join(', ') : '-';
+  }, []);
+
+  const renderIndexColumn = useCallback(
+    rowData => {
+      return (
+        <Text className={classes.index} variant="caption">
+          {rowData.tableData?.index + 1 || ''}
+        </Text>
+      );
+    },
+    [classes.index],
+  );
+
+  const renderLinkColumn = useCallback(rowData => {
+    return (
+      <Link href={rowData.portalLink}>
+        {`Visit ${rowData.name} Organization Portal`}
+      </Link>
+    );
+  }, []);
 
   if (error || isLoading || !organizations) {
     return <LoadingFiller />;
@@ -201,7 +245,7 @@ function Organizations(props: Props) {
 
   const onDelete = org => {
     props
-      .confirm('Are you sure you want to delete this org?')
+      .confirm('Are you sure you want to delete this organization?')
       .then(async confirm => {
         if (!confirm) return;
         await axios.delete(`/host/organization/async/${org.id}`);
@@ -220,34 +264,46 @@ function Organizations(props: Props) {
     id: number,
   };
 
+  const orgName = window.CONFIG.appData.user.tenant;
   const organizationRows: Array<OrganizationRowType> = organizations.map(
     row => {
       return {
         name: row.name,
-        networks: row.networkIDs,
-        portalLink: `${row.name}`,
+        networks: Array.from(row.networkIDs || {}),
+        portalLink: `${window.location.origin.replace(orgName, row.name)}`,
         userNumber: users?.filter(user => user?.organization === row.name)
           .length,
         id: row.id,
       };
     },
   );
+
+  const menuItems = [
+    {
+      name: 'View',
+      handleFunc: () => {
+        history.push(relativeUrl(`/detail/${currRow.name}`));
+      },
+    },
+  ];
   return (
     <div className={classes.paper}>
       <Grid container>
         <Grid container justifyContent="space-between">
           <Text variant="h3">Organizations</Text>
-          <NestedRouteLink to="/new">
-            <Button color="primary" variant="contained">
-              Add Organization
-            </Button>
-          </NestedRouteLink>
+          <Button
+            skin="comet"
+            className={classes.addButton}
+            variant="contained"
+            onClick={() => setShowOrganizationDialog(true)}>
+            Add Organization
+          </Button>
         </Grid>
-        <Grid xs={12} className={classes.description}>
+        <Grid item xs={12} className={classes.description}>
           <Text variant="body2">{ORGANIZATION_DESCRIPTION}</Text>
         </Grid>
         <>{showOnboardingDialog && <OnboardingDialog />}</>
-        <Grid xs={12}>
+        <Grid item xs={12}>
           <ActionTable
             data={organizationRows}
             columns={[
@@ -256,15 +312,19 @@ function Organizations(props: Props) {
                 field: '',
                 width: '40px',
                 editable: 'never',
-                render: rowData => (
-                  <Text variant="subtitle3">
-                    {rowData.tableData?.id + 1 || ''}
-                  </Text>
-                ),
+                render: renderIndexColumn,
               },
               {title: 'Name', field: 'name'},
-              {title: 'Accessible Networks', field: 'networks'},
-              {title: 'Link to Organization Portal', field: 'portalLink'},
+              {
+                title: 'Accessible Networks',
+                field: 'networks',
+                render: renderNetworksColumn,
+              },
+              {
+                title: 'Link to Organization Portal',
+                field: 'portalLink',
+                render: renderLinkColumn,
+              },
               {title: 'Number of Users', field: 'userNumber'},
             ]}
             handleCurrRow={(row: OrganizationRowType) => {
@@ -276,23 +336,23 @@ function Organizations(props: Props) {
                 tooltip: 'Add User',
                 onClick: (event, row) => {
                   setAddingUserFor(row);
+                  setShowOrganizationDialog(true);
                 },
               },
             ]}
-            menuItems={[
-              {
-                name: 'View',
-                handleFunc: () => {
-                  history.push(relativeUrl(`/detail/${currRow.name}`));
-                },
-              },
-              {
-                name: 'Delete',
-                handleFunc: () => {
-                  onDelete(currRow);
-                },
-              },
-            ]}
+            menuItems={
+              currRow.name === 'host'
+                ? menuItems
+                : [
+                    ...menuItems,
+                    {
+                      name: 'Delete',
+                      handleFunc: () => {
+                        onDelete(currRow);
+                      },
+                    },
+                  ]
+            }
             options={{
               actionsColumnIndex: -1,
               pageSizeOptions: [5, 10],
@@ -300,65 +360,55 @@ function Organizations(props: Props) {
             }}
           />
         </Grid>
-        <Route
-          path={relativePath('/new')}
-          render={() => (
-            <OrganizationDialog
-              addUser={addUser}
-              setAddUser={() => setAddUser(true)}
-              onClose={() => {
-                setAddUser(false);
-                history.push(relativeUrl(''));
-              }}
-              onCreateOrg={org => {
-                let newOrg = null;
-                axios
-                  .post('/host/organization/async', org)
-                  .then(() => {
-                    enqueueSnackbar('Organization added successfully', {
-                      variant: 'success',
-                    });
-                    axios
-                      .get(`/host/organization/async/${org.name}`)
-                      .then(resp => {
-                        newOrg = resp.data.organization;
-                        if (newOrg) {
-                          setOrganizations([...organizations, newOrg]);
-                          setAddingUserFor(newOrg);
-                        }
-                      });
-                  })
-                  .catch(error => {
-                    setAddUser(false);
-                    history.push(relativeUrl(''));
-                    enqueueSnackbar(error?.response?.data?.error || error, {
-                      variant: 'error',
-                    });
-                  });
-              }}
-              onCreateUser={user => {
-                axios
-                  .post(
-                    `/host/organization/async/${
-                      addingUserFor?.name || ''
-                    }/add_user`,
-                    user,
-                  )
-                  .then(() => {
-                    enqueueSnackbar('User added successfully', {
-                      variant: 'success',
-                    });
-                    setAddingUserFor(null);
-                    history.push(relativeUrl(''));
-                  })
-                  .catch(error => {
-                    enqueueSnackbar(error?.response?.data?.error || error, {
-                      variant: 'error',
-                    });
-                  });
-              }}
-            />
-          )}
+        <OrganizationDialog
+          edit={false}
+          hideAdvancedFields={props.hideAdvancedFields}
+          organization={null}
+          user={null}
+          open={showOrganizationDialog}
+          addingUserFor={addingUserFor}
+          onClose={() => {
+            setShowOrganizationDialog(false);
+            setAddingUserFor(null);
+          }}
+          onCreateOrg={org => {
+            axios
+              .post('/host/organization/async', org)
+              .then(response => {
+                enqueueSnackbar('Organization added successfully', {
+                  variant: 'success',
+                });
+                const newOrganization = response.data.organization;
+                setOrganizations([...organizations, newOrganization]);
+                setAddingUserFor(newOrganization);
+              })
+              .catch(error => {
+                enqueueSnackbar(error.message, {
+                  variant: 'error',
+                });
+              });
+          }}
+          onCreateUser={user => {
+            axios
+              .post(
+                `/host/organization/async/${
+                  addingUserFor?.name || ''
+                }/add_user`,
+                user,
+              )
+              .then(() => {
+                enqueueSnackbar('User added successfully', {
+                  variant: 'success',
+                });
+                setAddingUserFor(null);
+                setShowOrganizationDialog(false);
+              })
+              .catch(error => {
+                enqueueSnackbar(error.message, {
+                  variant: 'error',
+                });
+              });
+          }}
         />
       </Grid>
     </div>

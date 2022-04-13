@@ -46,11 +46,6 @@ import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
-  inputRoot: {
-    '&.MuiOutlinedInput-root': {
-      padding: 0,
-    },
-  },
   cardTitleRow: {
     marginBottom: theme.spacing(1),
     minHeight: '36px',
