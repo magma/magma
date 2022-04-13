@@ -464,10 +464,8 @@ func (s *CbsdManagerTestSuite) getNameIdMapping(model db.Model) map[string]int64
 	s.Require().NoError(err)
 	m := make(map[string]int64, len(resources))
 	for _, r := range resources {
-		fields := r[0].Fields()
-		key := fields["name"].GetValue().(string)
-		value := fields["id"].GetValue().(int64)
-		m[key] = value
+		enum := r[0].(storage.EnumModel)
+		m[enum.GetName()] = enum.GetId()
 	}
 	return m
 }
@@ -486,6 +484,7 @@ func getGrant(stateId int64, cbsdId int64) *storage.DBGrant {
 	base := getBaseGrant()
 	base.CbsdId = db.MakeInt(cbsdId)
 	base.StateId = db.MakeInt(stateId)
+	base.GrantId = db.MakeString("some_grant_id")
 	return base
 }
 
@@ -494,6 +493,9 @@ func getCbsd(networkId string, stateId int64) *storage.DBCbsd {
 	base.NetworkId = db.MakeString(networkId)
 	base.StateId = db.MakeInt(stateId)
 	base.CbsdId = db.MakeString("some_cbsd_id")
+	base.IsUpdated = db.MakeBool(false)
+	base.IsDeleted = db.MakeBool(false)
+	base.GrantAttempts = db.MakeInt(0)
 	return base
 }
 
