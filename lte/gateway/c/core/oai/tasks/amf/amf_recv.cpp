@@ -233,8 +233,8 @@ void amf_copy_plmn_to_supi(const ImsiM5GSMobileIdentity& imsi,
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
-int amf_copy_plmn_to_context(const ImsiM5GSMobileIdentity& imsi,
-                             ue_m5gmm_context_s* ue_context) {
+status_code_e amf_copy_plmn_to_context(const ImsiM5GSMobileIdentity& imsi,
+                                       ue_m5gmm_context_s* ue_context) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (ue_context == NULL) {
     OAILOG_ERROR(LOG_AMF_APP, "UE context is null");

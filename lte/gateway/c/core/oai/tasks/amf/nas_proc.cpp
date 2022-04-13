@@ -630,8 +630,8 @@ status_code_e amf_proc_identification(amf_context_t* const amf_context,
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-int amf_nas_proc_implicit_deregister_ue_ind(amf_ue_ngap_id_t ue_id) {
-  int rc = RETURNerror;
+status_code_e amf_nas_proc_implicit_deregister_ue_ind(amf_ue_ngap_id_t ue_id) {
+  status_code_e rc = RETURNerror;
   amf_sap_t amf_sap = {};
 
   OAILOG_FUNC_IN(LOG_AMF_APP);
@@ -651,7 +651,8 @@ int amf_nas_proc_implicit_deregister_ue_ind(amf_ue_ngap_id_t ue_id) {
  **                                                                        **
  ***************************************************************************/
 status_code_e amf_nas_proc_auth_param_res(amf_ue_ngap_id_t amf_ue_ngap_id,
-                                uint8_t nb_vectors, m5gauth_vector_t* vectors) {
+                                          uint8_t nb_vectors,
+                                          m5gauth_vector_t* vectors) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
   status_code_e rc = RETURNerror;
@@ -836,7 +837,7 @@ status_code_e amf_nas_proc_authentication_info_answer(
 
 int amf_decrypt_msin_info_answer(itti_amf_decrypted_msin_info_ans_t* aia) {
   imsi64_t imsi64 = INVALID_IMSI64;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   amf_context_t* amf_ctxt_p = NULL;
   ue_m5gmm_context_s* ue_context = NULL;
 
@@ -934,7 +935,7 @@ int amf_decrypt_msin_info_answer(itti_amf_decrypted_msin_info_ans_t* aia) {
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
 
-int amf_handle_s6a_update_location_ans(
+status_code_e amf_handle_s6a_update_location_ans(
     const s6a_update_location_ans_t* ula_pP) {
   imsi64_t imsi64 = INVALID_IMSI64;
   amf_context_t* amf_ctxt_p = NULL;

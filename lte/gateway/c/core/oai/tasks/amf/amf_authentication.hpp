@@ -91,7 +91,8 @@ void amf_proc_stop_t3560_timer(nas5g_amf_auth_proc_t* auth_proc);
 status_code_e amf_start_registration_proc_authentication(
     amf_context_t* amf_context, nas_amf_registration_proc_t* registration_proc);
 
-int amf_handle_s6a_update_location_ans(const s6a_update_location_ans_t* ula_pP);
+status_code_e amf_handle_s6a_update_location_ans(
+    const s6a_update_location_ans_t* ula_pP);
 
 nas_amf_registration_proc_t* nas_new_registration_procedure(
     ue_m5gmm_context_s* ue_ctxt);

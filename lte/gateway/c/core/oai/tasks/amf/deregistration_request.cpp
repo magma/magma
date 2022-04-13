@@ -171,9 +171,9 @@ status_code_e amf_proc_deregistration_request(
      */
 
     ue_context->ue_context_rel_cause = NGAP_NAS_DEREGISTER;
-    rc = (status_code_e)ue_state_handle_message_dereg(ue_context->mm_state,
-                                       STATE_EVENT_DEREGISTER, SESSION_NULL,
-                                       ue_context, ue_id);
+    rc = (status_code_e)ue_state_handle_message_dereg(
+        ue_context->mm_state, STATE_EVENT_DEREGISTER, SESSION_NULL, ue_context,
+        ue_id);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
@@ -186,9 +186,9 @@ status_code_e amf_proc_deregistration_request(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
+status_code_e amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
   ue_m5gmm_context_s* ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);

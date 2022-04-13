@@ -53,11 +53,9 @@ uint64_t send_initial_ue_message_with_tmsi(
     const uint8_t* nas_msg, uint8_t nas_msg_length);
 
 /* For generating the identity response message */
-int send_uplink_nas_identity_response_message(amf_app_desc_t* amf_app_desc_p,
-                                              amf_ue_ngap_id_t ue_id,
-                                              const plmn_t& plmn,
-                                              const uint8_t* nas_msg,
-                                              uint8_t nas_msg_length);
+status_code_e send_uplink_nas_identity_response_message(
+    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
+    const uint8_t* nas_msg, uint8_t nas_msg_length);
 
 imsi64_t send_initial_ue_message_service_request(
     amf_app_desc_t* amf_app_desc_p, sctp_assoc_id_t sctp_assoc_id,
@@ -65,7 +63,7 @@ imsi64_t send_initial_ue_message_service_request(
     amf_ue_ngap_id_t amf_ue_ngap_id, const plmn_t& plmn, const uint8_t* nas_msg,
     uint8_t nas_msg_length, uint8_t tmsi_offset);
 
-int send_uplink_nas_message_service_request_with_pdu(
+status_code_e send_uplink_nas_message_service_request_with_pdu(
     amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t amf_ue_ngap_id,
     const plmn_t& plmn, const uint8_t* nas_msg, uint8_t nas_msg_length);
 
@@ -89,11 +87,9 @@ void send_initial_context_response(amf_app_desc_t* amf_app_desc_p,
                                    amf_ue_ngap_id_t ue_id);
 
 /* API for creating uplink nas message for registration complete response */
-int send_uplink_nas_registration_complete(amf_app_desc_t* amf_app_desc_p,
-                                          amf_ue_ngap_id_t ue_id,
-                                          const plmn_t& plmn,
-                                          const uint8_t* nas_msg,
-                                          uint8_t nas_msg_length);
+status_code_e send_uplink_nas_registration_complete(
+    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
+    const uint8_t* nas_msg, uint8_t nas_msg_length);
 
 /* Create pdu session establishment  request from ue */
 status_code_e send_uplink_nas_pdu_session_establishment_request(
@@ -124,7 +120,7 @@ status_code_e send_pdu_resource_setup_response(amf_ue_ngap_id_t ue_id);
 void create_pdu_notification_response_itti(
     itti_n11_received_notification_t* response);
 
-int send_pdu_notification_response();
+status_code_e send_pdu_notification_response();
 
 /* Create pdu session  release from ue */
 status_code_e send_uplink_nas_pdu_session_release_message(

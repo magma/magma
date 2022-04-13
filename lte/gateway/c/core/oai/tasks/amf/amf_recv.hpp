@@ -28,7 +28,7 @@ status_code_e amf_handle_registration_request(
 status_code_e amf_handle_service_request(
     amf_ue_ngap_id_t ue_id, ServiceRequestMsg* msg,
     const amf_nas_message_decode_status_t decode_status);
-int amf_registration_run_procedure(amf_context_t* amf_context);
+status_code_e amf_registration_run_procedure(amf_context_t* amf_context);
 status_code_e amf_handle_identity_response(
     amf_ue_ngap_id_t ue_id, M5GSMobileIdentityMsg* msg, int amf_cause,
     amf_nas_message_decode_status_t decode_status);
@@ -49,17 +49,18 @@ status_code_e amf_handle_registration_complete_response(
 status_code_e amf_handle_deregistration_ue_origin_req(
     amf_ue_ngap_id_t ue_id, DeRegistrationRequestUEInitMsg* msg, int amf_cause,
     amf_nas_message_decode_status_t decode_status);
-int amf_validate_dnn(const amf_context_s* amf_ctxt_p, std::string dnn_string,
-                     int* index, bool ue_sent_dnn);
+status_code_e amf_validate_dnn(const amf_context_s* amf_ctxt_p,
+                               std::string dnn_string, int* index,
+                               bool ue_sent_dnn);
 void smf_dnn_ambr_select(const std::shared_ptr<smf_context_t>& smf_ctx,
                          ue_m5gmm_context_s* ue_context, int index_dnn);
 status_code_e amf_smf_process_pdu_session_packet(amf_ue_ngap_id_t ueid,
                                                  ULNASTransportMsg* msg,
                                                  int amf_cause);
-int amf_smf_notification_send(amf_ue_ngap_id_t ueid,
-                              ue_m5gmm_context_s* ue_context,
-                              notify_ue_event notify_event_type,
-                              uint16_t session_id);
+status_code_e amf_smf_notification_send(amf_ue_ngap_id_t ueid,
+                                        ue_m5gmm_context_s* ue_context,
+                                        notify_ue_event notify_event_type,
+                                        uint16_t session_id);
 status_code_e amf_proc_registration_request(
     amf_ue_ngap_id_t ue_id, const bool is_mm_ctx_new,
     amf_registration_request_ies_t* ies);
@@ -78,6 +79,6 @@ int get_decrypt_imsi_suci_extension(amf_context_t* amf_context,
 int amf_decrypt_msin_info_answer(itti_amf_decrypted_msin_info_ans_t* aia);
 void amf_copy_plmn_to_supi(const ImsiM5GSMobileIdentity& imsi,
                            supi_as_imsi_t& supi_imsi);
-int amf_copy_plmn_to_context(const ImsiM5GSMobileIdentity& imsi,
-                             ue_m5gmm_context_s* ue_context);
+status_code_e amf_copy_plmn_to_context(const ImsiM5GSMobileIdentity& imsi,
+                                       ue_m5gmm_context_s* ue_context);
 }  // namespace magma5g

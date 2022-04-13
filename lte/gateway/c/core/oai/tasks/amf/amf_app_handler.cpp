@@ -1558,14 +1558,14 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
 
 // Doing Paging Request handling received from SMF in AMF CORE
 // int amf_app_defs::amf_app_handle_notification_received(
-int amf_app_handle_notification_received(
+status_code_e amf_app_handle_notification_received(
     itti_n11_received_notification_t* notification) {
   ue_m5gmm_context_s* ue_context = nullptr;
   amf_context_t* amf_ctx = nullptr;
   paging_context_t* paging_ctx = nullptr;
   MessageDef* message_p = nullptr;
   itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   imsi64_t imsi64;
   IMSI_STRING_TO_IMSI64(notification->imsi, &imsi64);
@@ -1576,7 +1576,7 @@ int amf_app_handle_notification_received(
 
   if (!ue_context) {
     OAILOG_ERROR(LOG_AMF_APP, "UE context is null\n");
-    return -1;
+    return RETURNerror;
   }
 
   switch (notification->notify_ue_evnt) {
@@ -1722,7 +1722,7 @@ void amf_app_handle_initial_context_setup_rsp(
   }
 }
 using grpc::Status;
-int amf_app_handle_pdu_session_failure(
+status_code_e amf_app_handle_pdu_session_failure(
     itti_n11_create_pdu_session_failure_t* pdu_session_failure) {
   if (!pdu_session_failure) {
     return RETURNok;

@@ -793,8 +793,9 @@ M5GMmCause amf_smf_validate_context(amf_ue_ngap_id_t ue_id,
 ** This function validates the DNN string received from UE or from        **
 ** mme.yml againt apn stored in amf_context for a particular imsi.        **
 ***************************************************************************/
-int amf_validate_dnn(const amf_context_s* amf_ctxt_p, std::string dnn_string,
-                     int* index, bool ue_sent_dnn) {
+status_code_e amf_validate_dnn(const amf_context_s* amf_ctxt_p,
+                               std::string dnn_string, int* index,
+                               bool ue_sent_dnn) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   // Validating apn_configuration_s
   if (dnn_string.empty()) {
@@ -825,10 +826,10 @@ int amf_validate_dnn(const amf_context_s* amf_ctxt_p, std::string dnn_string,
 ** UE_PERIODIC_REG_ACTIVE_MODE_NOTIFY                                     **
 **                                                                        **
 ***************************************************************************/
-int amf_smf_notification_send(amf_ue_ngap_id_t ue_id,
-                              ue_m5gmm_context_s* ue_context,
-                              notify_ue_event notify_event_type,
-                              uint16_t session_id) {
+status_code_e amf_smf_notification_send(amf_ue_ngap_id_t ue_id,
+                                        ue_m5gmm_context_s* ue_context,
+                                        notify_ue_event notify_event_type,
+                                        uint16_t session_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   /* Get gRPC structure of notification to be filled common and
    * rat type elements.

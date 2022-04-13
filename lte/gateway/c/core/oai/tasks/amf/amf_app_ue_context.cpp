@@ -514,7 +514,7 @@ tmsi_t amf_lookup_guti_by_ueid(amf_ue_ngap_id_t ue_id) {
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
+status_code_e amf_idle_mode_procedure(amf_context_t* amf_ctx) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   ue_m5gmm_context_s* ue_context_p =
       PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context);

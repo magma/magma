@@ -846,13 +846,13 @@ void amf_proc_create_procedure_registration_request(
 amf_procedures_t* nas_new_amf_procedures(amf_context_t* amf_context);
 void amf_nas_proc_clean_up(ue_m5gmm_context_s* ue_context_p);
 
-int amf_proc_amf_information(ue_m5gmm_context_s* ue_amf_ctx);
+status_code_e amf_proc_amf_information(ue_m5gmm_context_s* ue_amf_ctx);
 int amf_send_registration_accept(amf_context_t* amf_context);
 
 // UE originated deregistration procedures
 status_code_e amf_proc_deregistration_request(
     amf_ue_ngap_id_t ue_id, amf_deregistration_request_ies_t* params);
-int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id);
+status_code_e amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id);
 
 // Remove ue context
 void amf_remove_ue_context(amf_ue_context_t* const amf_ue_context_p,
@@ -889,8 +889,8 @@ int nas5g_message_encode(unsigned char* buffer,
                          const amf_nas_message_t* const msg, uint32_t length,
                          void* security);
 
-int amf_registration_run_procedure(amf_context_t* amf_context);
-int amf_proc_registration_complete(amf_context_t* amf_context);
+status_code_e amf_registration_run_procedure(amf_context_t* amf_context);
+status_code_e amf_proc_registration_complete(amf_context_t* amf_context);
 
 // Finite state machine handlers
 int ue_state_handle_message_initial(m5gmm_state_t cur_state, int event,
@@ -926,8 +926,8 @@ void ambr_calculation_pdu_session(uint16_t* dl_session_ambr,
                                   uint16_t* ul_session_ambr,
                                   M5GSessionAmbrUnit ul_ambr_unit,
                                   uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr);
-int amf_proc_registration_abort(amf_context_t* amf_ctx,
-                                struct ue_m5gmm_context_s* ue_amf_context);
+status_code_e amf_proc_registration_abort(
+    amf_context_t* amf_ctx, struct ue_m5gmm_context_s* ue_amf_context);
 
 // Fetch the ue context from imsi
 struct ue_m5gmm_context_s* amf_ue_context_exists_imsi(
@@ -941,7 +941,7 @@ ue_m5gmm_context_s* amf_ue_context_exists_gnb_ue_ngap_id(
     amf_ue_context_t* const amf_ue_context_p, const gnb_ngap_id_key_t gnb_key);
 
 // Implicitly detach the ue
-int amf_nas_proc_implicit_deregister_ue_ind(amf_ue_ngap_id_t ue_id);
+status_code_e amf_nas_proc_implicit_deregister_ue_ind(amf_ue_ngap_id_t ue_id);
 
 // Handling the CM connection for UE
 void amf_ue_context_update_ue_sig_connection_state(
@@ -986,7 +986,7 @@ void amf_ctx_clear_auth_vectors(amf_context_t* const);
 /* Delete all amf procedures */
 void nas_delete_all_amf_procedures(amf_context_t* const amf_context);
 
-int amf_idle_mode_procedure(amf_context_t* amf_ctx);
+status_code_e amf_idle_mode_procedure(amf_context_t* amf_ctx);
 void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p);
 status_code_e m5g_security_select_algorithms(const int ue_iaP, const int ue_eaP,
                                              int* const amf_iaP,

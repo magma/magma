@@ -39,9 +39,9 @@ status_code_e amf_app_handle_uplink_nas_message(amf_app_desc_t* amf_app_desc_p,
                                                 const tai_t originating_tai);
 status_code_e amf_app_handle_pdu_session_response(
     itti_n11_create_pdu_session_response_t* pdu_session_resp);
-int amf_app_handle_pdu_session_failure(
+status_code_e amf_app_handle_pdu_session_failure(
     itti_n11_create_pdu_session_failure_t* pdu_session_failure);
-int amf_app_handle_notification_received(
+status_code_e amf_app_handle_notification_received(
     itti_n11_received_notification_t* notification);
 int amf_app_handle_pdu_session_accept(
     itti_n11_create_pdu_session_response_t* pdu_session_resp, uint64_t ue_id);

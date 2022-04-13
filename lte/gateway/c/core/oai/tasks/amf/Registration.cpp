@@ -349,9 +349,9 @@ static status_code_e amf_registration_reject(
 **                                                                        **
 ***************************************************************************/
 
-int amf_registration_run_procedure(amf_context_t* amf_context) {
+status_code_e amf_registration_run_procedure(amf_context_t* amf_context) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   nas_amf_registration_proc_t* registration_proc =
       get_nas_specific_procedure_registration(amf_context);
   if (registration_proc == NULL) {
@@ -759,10 +759,10 @@ static int registration_accept_t3550_handler(zloop_t* loop, int timer_id,
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int amf_proc_registration_complete(amf_context_t* amf_ctx) {
+status_code_e amf_proc_registration_complete(amf_context_t* amf_ctx) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   nas_amf_registration_proc_t* registration_proc = NULL;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   amf_sap_t amf_sap = {};
   amf_ue_ngap_id_t ue_id =
       PARENT_STRUCT(amf_ctx, struct ue_m5gmm_context_s, amf_context)
@@ -875,8 +875,8 @@ status_code_e amf_handle_registration_complete_response(
  **                                                                        **
  ***************************************************************************/
 
-int amf_proc_amf_information(ue_m5gmm_context_s* ue_amf_ctx) {
-  int rc = RETURNerror;
+status_code_e amf_proc_amf_information(ue_m5gmm_context_s* ue_amf_ctx) {
+  status_code_e rc = RETURNerror;
   amf_sap_t amf_sap = {};
   amf_as_data_t* amf_as = &amf_sap.u.amf_as.u.data;
   amf_context_t* amf_ctx = &(ue_amf_ctx->amf_context);
@@ -1046,10 +1046,10 @@ void amf_delete_registration_ies(amf_registration_request_ies_t** ies) {
 **      Others:    None                                                   **
 **                                                                        **
 ***************************************************************************/
-int amf_proc_registration_abort(amf_context_t* amf_ctx,
-                                struct ue_m5gmm_context_s* ue_context_p) {
-  OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
+status_code_e amf_proc_registration_abort(
+    amf_context_t* amf_ctx, struct ue_m5gmm_context_s* ue_context_p) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+  status_code_e rc = RETURNerror;
   if (ue_context_p) {
     amf_app_itti_ue_context_release(ue_context_p, NGAP_NAS_DEREGISTER);
     amf_delete_registration_proc(&ue_context_p->amf_context);
@@ -1067,11 +1067,11 @@ int amf_proc_registration_abort(amf_context_t* amf_ctx,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int get_decrypt_imsi_suci_extension(amf_context_t* amf_context,
-                                    uint8_t ue_pubkey_identifier,
-                                    const std::string& ue_pubkey,
-                                    const std::string& ciphertext,
-                                    const std::string& mac_tag) {
+status_code_e get_decrypt_imsi_suci_extension(amf_context_t* amf_context,
+                                              uint8_t ue_pubkey_identifier,
+                                              const std::string& ue_pubkey,
+                                              const std::string& ciphertext,
+                                              const std::string& mac_tag) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
 
   amf_ue_ngap_id_t ue_id =

@@ -123,11 +123,9 @@ uint64_t send_initial_ue_message_with_tmsi(
 }
 
 /* Create the identiy response message */
-int send_uplink_nas_identity_response_message(amf_app_desc_t* amf_app_desc_p,
-                                              amf_ue_ngap_id_t ue_id,
-                                              const plmn_t& plmn,
-                                              const uint8_t* nas_msg,
-                                              uint8_t nas_msg_length) {
+status_code_e send_uplink_nas_identity_response_message(
+    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
+    const uint8_t* nas_msg, uint8_t nas_msg_length) {
   bstring pdu_session_req;
   tai_t originating_tai = {};
 
@@ -140,11 +138,11 @@ int send_uplink_nas_identity_response_message(amf_app_desc_t* amf_app_desc_p,
   originating_tai.plmn = plmn;
   originating_tai.tac = 1;
 
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   rc = amf_app_handle_uplink_nas_message(amf_app_desc_p, pdu_session_req, ue_id,
                                          originating_tai);
 
-  return (rc);
+  return rc;
 }
 
 /* Create authentication answer from subscriberdb */
@@ -253,11 +251,9 @@ void send_initial_context_response(amf_app_desc_t* amf_app_desc_p,
 }
 
 /* Create registration mode complete response from ue */
-int send_uplink_nas_registration_complete(amf_app_desc_t* amf_app_desc_p,
-                                          amf_ue_ngap_id_t ue_id,
-                                          const plmn_t& plmn,
-                                          const uint8_t* nas_msg,
-                                          uint8_t nas_msg_length) {
+status_code_e send_uplink_nas_registration_complete(
+    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
+    const uint8_t* nas_msg, uint8_t nas_msg_length) {
   bstring ue_registration_complete;
   tai_t originating_tai = {};
 
@@ -266,11 +262,11 @@ int send_uplink_nas_registration_complete(amf_app_desc_t* amf_app_desc_p,
   originating_tai.plmn = plmn;
   originating_tai.tac = 1;
 
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   rc = amf_app_handle_uplink_nas_message(
       amf_app_desc_p, ue_registration_complete, ue_id, originating_tai);
 
-  return (rc);
+  return rc;
 }
 
 /* Create pdu session establishment request from ue */
@@ -620,8 +616,8 @@ void create_pdu_notification_response_itti(
   response->notify_ue_evnt = PDU_SESSION_STATE_NOTIFY;
 }
 
-int send_pdu_notification_response() {
-  int rc = RETURNerror;
+status_code_e send_pdu_notification_response() {
+  status_code_e rc = RETURNerror;
   itti_n11_received_notification_t response = {};
   create_pdu_notification_response_itti(&response);
 
@@ -738,15 +734,13 @@ status_code_e send_uplink_nas_pdu_session_release_message(
   rc = amf_app_handle_uplink_nas_message(amf_app_desc_p, pdu_session_req, ue_id,
                                          originating_tai);
 
-  return (rc);
+  return rc;
 }
 
 /* Create ue deregistration request */
-status_code_e send_uplink_nas_ue_deregistration_request(amf_app_desc_t* amf_app_desc_p,
-                                              amf_ue_ngap_id_t ue_id,
-                                              const plmn_t& plmn,
-                                              uint8_t* nas_msg,
-                                              uint8_t nas_msg_length) {
+status_code_e send_uplink_nas_ue_deregistration_request(
+    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
+    uint8_t* nas_msg, uint8_t nas_msg_length) {
   bstring uplink_nas_ue_dereg_req;
   tai_t originating_tai = {};
   status_code_e rc = RETURNerror;
@@ -856,15 +850,15 @@ imsi64_t send_initial_ue_message_service_request(
   return imsi64;
 }
 
-int send_uplink_nas_message_service_request_with_pdu(
+status_code_e send_uplink_nas_message_service_request_with_pdu(
     amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t amf_ue_ngap_id,
     const plmn_t& plmn, const uint8_t* nas_msg, uint8_t nas_msg_length) {
   bstring uplink_nas_service_request;
   tai_t originating_tai = {.plmn = plmn, .tac = 1};
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   tmsi_t ue_tmsi = amf_lookup_guti_by_ueid(amf_ue_ngap_id);
   if (ue_tmsi == 0) {
-    return (rc);
+    return rc;
   }
 
   uplink_nas_service_request = blk2bstr(nas_msg, nas_msg_length);
@@ -879,7 +873,7 @@ int send_uplink_nas_message_service_request_with_pdu(
   rc = amf_app_handle_uplink_nas_message(amf_app_desc_p,
                                          uplink_nas_service_request,
                                          amf_ue_ngap_id, originating_tai);
-  return (rc);
+  return rc;
 }
 
 // Check the ue context state

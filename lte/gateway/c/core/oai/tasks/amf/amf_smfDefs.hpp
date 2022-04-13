@@ -83,8 +83,8 @@ typedef struct amf_smf_s {
 int amf_smf_handle_pdu_establishment_request(SmfMsg* msg,
                                              amf_smf_t* amf_smf_msg);
 int amf_smf_handle_pdu_release_request(SmfMsg* msg, amf_smf_t* amf_smf_msg);
-int amf_smf_initiate_pdu_session_creation(amf_smf_establish_t* message,
-                                          char* imsi, uint32_t version);
+status_code_e amf_smf_initiate_pdu_session_creation(
+    amf_smf_establish_t* message, char* imsi, uint32_t version);
 
 status_code_e amf_smf_create_session_req(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,

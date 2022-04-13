@@ -73,8 +73,9 @@ static status_code_e amf_cn_authentication_res(amf_cn_auth_res_t* const msg) {
 }
 
 //------------------------------------------------------------------------------
-static int amf_cn_implicit_deregister_ue(const amf_ue_ngap_id_t ue_id) {
-  int rc = RETURNok;
+static status_code_e amf_cn_implicit_deregister_ue(
+    const amf_ue_ngap_id_t ue_id) {
+  status_code_e rc = RETURNok;
   struct amf_context_s* amf_ctx_p = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_AMF);

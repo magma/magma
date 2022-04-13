@@ -231,8 +231,8 @@ status_code_e amf_smf_create_session_req(
  * **                                                                        **
  * **                                                                        **
  * ***************************************************************************/
-int amf_smf_initiate_pdu_session_creation(amf_smf_establish_t* message,
-                                          char* imsi, uint32_t version) {
+status_code_e amf_smf_initiate_pdu_session_creation(
+    amf_smf_establish_t* message, char* imsi, uint32_t version) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   imsi64_t imsi64 = INVALID_IMSI64;
   amf_context_t* amf_ctxt_p = NULL;
