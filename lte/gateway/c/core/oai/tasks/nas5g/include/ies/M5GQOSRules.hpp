@@ -22,7 +22,8 @@ class NewQOSRulePktFilter {
   uint8_t pkt_filter_dir : 2;
   uint8_t pkt_filter_id : 4;
   uint8_t len;
-  uint8_t contents;
+  int8_t contents[1 * ONE_K];  // need to revisit if the QOS rules occupy more
+                               // space than 4k.
   NewQOSRulePktFilter();
   ~NewQOSRulePktFilter();
 };
@@ -53,11 +54,16 @@ class QOSRulesMsg {
   uint16_t length;
   //  QOSRule qos_rule[32];  // need to revisit based on max num of QOS rules
   // exchanged btw UE and core.
-  QOSRule qos_rule[1];
+  QOSRule qos_rule[4];
   QOSRulesMsg();
   ~QOSRulesMsg();
+
+  uint16_t EncodeQOSRulesMsgData(QOSRulesMsg* qos_rules, uint8_t* buffer,
+                                 uint32_t len);
   int EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei, uint8_t* buffer,
                         uint32_t len);
+  uint8_t DecodeQOSRulesMsgData(QOSRulesMsg* qos_rules, uint8_t* buffer,
+                                uint32_t len);
   int DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei, uint8_t* buffer,
                         uint32_t len);
 };
