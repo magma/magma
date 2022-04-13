@@ -22,9 +22,9 @@ cc_library(
         "state_creators.cpp",
     ],
     hdrs = [
-        "mock_spgw_op.h",
+        "mock_spgw_op.hpp",
         "spgw_test_util.h",
-        "state_creators.h",
+        "state_creators.hpp",
     ],
     deps = [
         "//lte/gateway/c/core",

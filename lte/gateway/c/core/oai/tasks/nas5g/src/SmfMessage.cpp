@@ -18,10 +18,10 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.hpp"
 
 namespace magma5g {
 SMsg_u::SMsg_u(){};

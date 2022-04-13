@@ -66,7 +66,7 @@
 #include "lte/protos/policydb.pb.h"
 #include "magma_logging.h"
 #include "magma_logging_init.h"
-#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
+#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.hpp"
 #include "orc8r/protos/common.pb.h"
 
 namespace grpc {

@@ -53,7 +53,7 @@ extern int fd_g_debug_lvl;
 #include <pthread.h>
 
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/common/glogwrapper/glog_logging.h"
+#include "lte/gateway/c/core/oai/common/glogwrapper/glog_logging.hpp"
 
 struct shared_log_queue_item_s;
 

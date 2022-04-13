@@ -13,7 +13,7 @@
 
 #include <gtest/gtest.h>
 
-#include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.hpp"
 
 namespace magma {
 namespace lte {

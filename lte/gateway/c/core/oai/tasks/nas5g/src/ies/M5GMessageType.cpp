@@ -12,7 +12,7 @@
 #include <iostream>
 #include <sstream>
 #include <cstdint>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
