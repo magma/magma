@@ -302,15 +302,15 @@ MATCHER_P(CheckSrvResponse, expected_response, "") {
   auto actual_response = static_cast<const SetSMSessionContextAccess>(arg);
 
   auto expected_subscribed_qos = &(expected_response->rat_specific_context()
-                                       .m5g_session_context_rsp()
-                                       .subscribed_qos());
-
-  auto actual_subscribed_qos = &(actual_response.rat_specific_context()
                                      .m5g_session_context_rsp()
                                      .subscribed_qos());
 
+  auto actual_subscribed_qos = &(actual_response.rat_specific_context()
+                                    .m5g_session_context_rsp()
+                                    .subscribed_qos());
+
   auto unit_res =
-      (expected_subscribed_qos->br_unit() == actual_subscribed_qos->br_unit());
+	(expected_subscribed_qos->br_unit() == actual_subscribed_qos->br_unit());
 
   auto ul_ambr_res = (expected_subscribed_qos->apn_ambr_ul() ==
                       actual_subscribed_qos->apn_ambr_ul());

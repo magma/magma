@@ -321,6 +321,11 @@ int AmfMsg::AmfMsgEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
       encode_result = msg->msg.svc_rej.EncodeServiceRejectMsg(&msg->msg.svc_rej,
                                                               buffer, len);
       break;
+    case M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND:
+      encode_result =
+          msg->msg.pdu_sess_mod_cmd.EncodePDUSessionModificationCommand(
+              &msg->msg.pdu_sess_mod_cmd, buffer, len);
+      break;
     default:
       encode_result = TLV_WRONG_MESSAGE_TYPE;
   }

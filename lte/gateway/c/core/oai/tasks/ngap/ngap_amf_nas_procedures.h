@@ -101,9 +101,18 @@ status_code_e ngap_amf_nas_pdusession_resource_setup_stream(
         pdusession_resource_setup_req,
     m5g_ue_description_t* ue_ref, bstring* stream);
 
+status_code_e ngap_amf_nas_pdusession_resource_modify_stream(
+    itti_ngap_pdu_session_resource_modify_request_t* const
+        pdu_session_resource_modify_req,
+    m5g_ue_description_t* ue_ref, bstring* stream);
+
 status_code_e ngap_generate_ngap_pdusession_resource_setup_req(
     ngap_state_t* state, itti_ngap_pdusession_resource_setup_req_t* const
                              pdusession_resource_setup_req);
+
+status_code_e ngap_generate_ngap_pdusession_resource_modify_req(
+    ngap_state_t* state, itti_ngap_pdu_session_resource_modify_request_t* const
+                             pdusession_resource_modify_req);
 
 status_code_e ngap_generate_ngap_pdusession_resource_rel_cmd(
     ngap_state_t* state,

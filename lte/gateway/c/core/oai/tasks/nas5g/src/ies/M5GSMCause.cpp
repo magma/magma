@@ -24,8 +24,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-M5GSMCauseMsg::M5GSMCauseMsg(){};
-M5GSMCauseMsg::~M5GSMCauseMsg(){};
+M5GSMCauseMsg::M5GSMCauseMsg() {}
+M5GSMCauseMsg::~M5GSMCauseMsg() {}
 
 // Decode M5GSMCause IE
 int M5GSMCauseMsg::DecodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
@@ -42,7 +42,7 @@ int M5GSMCauseMsg::DecodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
   decoded++;
 
   return (decoded);
-};
+}
 
 // Encode M5GSMCause IE
 int M5GSMCauseMsg::EncodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
@@ -60,5 +60,5 @@ int M5GSMCauseMsg::EncodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
   encoded++;
 
   return (encoded);
-};
+}
 }  // namespace magma5g

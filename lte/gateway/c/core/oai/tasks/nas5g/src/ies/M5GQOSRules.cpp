@@ -23,12 +23,12 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-NewQOSRulePktFilter::NewQOSRulePktFilter(){};
-NewQOSRulePktFilter::~NewQOSRulePktFilter(){};
-QOSRule::QOSRule(){};
-QOSRule::~QOSRule(){};
-QOSRulesMsg::QOSRulesMsg(){};
-QOSRulesMsg::~QOSRulesMsg(){};
+NewQOSRulePktFilter::NewQOSRulePktFilter() {}
+NewQOSRulePktFilter::~NewQOSRulePktFilter() {}
+QOSRule::QOSRule() {}
+QOSRule::~QOSRule() {}
+QOSRulesMsg::QOSRulesMsg() {}
+QOSRulesMsg::~QOSRulesMsg() {}
 
 // Decode QOSRules IE
 int QOSRulesMsg::DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
@@ -70,7 +70,7 @@ int QOSRulesMsg::DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
 
       IES_DECODE_U8(buffer, decoded,
                     qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len);
-      memcpy(&(qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].contents),
+      memcpy(qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].contents,
              buffer + decoded,
              qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len);
       decoded += qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len;
@@ -84,7 +84,7 @@ int QOSRulesMsg::DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
     qos_rules->qos_rule[i].qfi = (data & 0x3f);
   }
   return (decoded);
-};
+}
 
 // Encode QOSRules IE
 int QOSRulesMsg::EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
@@ -127,7 +127,7 @@ int QOSRulesMsg::EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
           qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len;
       encoded++;
       memcpy(buffer + encoded,
-             &(qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].contents),
+             qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].contents,
              qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len);
       encoded = encoded + qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len;
     }
@@ -142,5 +142,5 @@ int QOSRulesMsg::EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
   }
 
   return (encoded);
-};
+}
 }  // namespace magma5g
