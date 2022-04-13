@@ -560,11 +560,16 @@ class TrafficTestDriver(object):
             iperf (iperf3.IPerf3): the iperf3 object to run
         '''
         # Constructing the subprocess call
-        params = ('-6', '-B', iperf.bind_address, '-p', str(iperf.port), '-J')
+        params = ('-B', iperf.bind_address, '-p', str(iperf.port), '-J')
+        if ipaddress.ip_address(instance.ip).key == 6
+            params += ('-6',)
         if 'c' == iperf.role:
             params = ('-c', iperf.server_hostname) + params
             params += ('-b', str(iperf.bandwidth), '-t', str(iperf.duration))
-            time.sleep(5)
+            # For ipv6 there is delay in configuring ipv6 address on eth2
+            # interface of test vm, so sleep for 5 secs
+            if ipaddress.ip_address(instance.ip).key == 6
+                time.sleep(5)
             if 'udp' == iperf.protocol:
                 params += ('-u',)
         else:
@@ -587,34 +592,36 @@ class TrafficTestDriver(object):
         for instance in self._instances:
             if instance.is_uplink:
                 iperf = iperf3.Server()
-                #iperf.bind_address = '192.168.129.42'
-                iperf.bind_address = '3001::2'
+                ip_str = ipaddress.ip_address(instance.ip)
+                if ip_str.version == 4:
+                  print("Running ipv4")
+                  iperf.bind_address = '192.168.129.42'
+                  os.system(
+                      'sudo route -A inet6 add fdee:5:6c::1/64 dev eth2'
+                  )
+                else:
+                  print("Running ipv6")
+                  iperf.bind_address = '3001::2'
+                  os.system('sudo /sbin/ip -6 route add 3001::10/64 dev eth2')
+                  os.system('sudo /sbin/ip -6 route add %s via 3001::10 dev eth2' %(instance.ip.exploded,)
                 print("instance", instance.ip.exploded)
-                #os.system(
-                #    'sudo route -A inet6 add fdee:5:6c::1/64 dev eth2'
-                #)
-                os.system('sudo /sbin/ip -6 route add 3001::10/64 dev eth2')
-                #os.system(
-                #    'sudo route -A inet6 add %s gw fdee:5:6c::1 dev eth2' % (
-                #    instance.ip.exploded,
-                #    ),
-
-                #os.system('sudo /sbin/ip -6 route add %s dev eth2' %(instance.ip.exploded,)
-                os.system('sudo /sbin/ip -6 route add %s via 3001::10 dev eth2' %(instance.ip.exploded,)
                 )
                 iperf.port = TrafficTestDriver._get_port()
             else:
                 iperf = iperf3.Client()
                 iperf.bandwidth = 10 ** 7  # 10 Mbps
-                #iperf.bind_address = '192.168.129.42'
-                iperf.bind_address = '3001::2'
+                ip_str = ipaddress.ip_address(instance.ip)
+                if ip_str.version == 4:
+                  iperf.bind_address = '192.168.129.42'
+                else:
+                  iperf.bind_address = '3001::2'
+                  os.system('sudo /sbin/ip -6 route add 3001::10/64 dev eth2')
+                  os.system('sudo /sbin/ip -6 route add %s via 3001::10 dev eth2' %(instance.ip.exploded,))
                 iperf.duration = instance.duration
                 iperf.port = instance.port
                 iperf.protocol = 'udp' if instance.is_udp else 'tcp'
                 iperf.server_hostname = instance.ip.exploded
                 print("iperf.server_hostname", iperf.server_hostname)
-                os.system('sudo /sbin/ip -6 route add 3001::10/64 dev eth2')
-                os.system('sudo /sbin/ip -6 route add %s via 3001::10 dev eth2' %(instance.ip.exploded,))
             self._iperfs += (iperf,)
 
     @property

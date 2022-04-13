@@ -338,22 +338,43 @@ class TrafficTest(object):
             return TrafficTest._port
 
     @staticmethod
-    def _iface_up(ip):
-        ''' Brings up an iface for the given IP
+    def _iface_up_ipv4(ip):
+        ''' Brings up an iface for the given IPv4
 
         Args:
-            ip (ipaddress.ip_address): the IP address to use for bringing up
+            ip (ipaddress.ip_address): the IPv4 address to use for bringing up
                 the iface
 
         Returns the iface name with alias that was brought up
         '''
         # Generate a unique alias
         #with TrafficTest._alias_lock:
-        #    TrafficTest._alias_counter += 1
-        #    net_iface = TrafficTest._net_iface
-        #    alias = TrafficTest._alias_counter
-        #net_alias = '%s:UE%d' % (net_iface, alias)
+            TrafficTest._alias_counter += 1
+            net_iface = TrafficTest._net_iface
+            alias = TrafficTest._alias_counter
+        net_alias = '%s:UE%d' % (net_iface, alias)
 
+        print("ip in _iface_up", ip)
+        print("._net_iface in _iface_up", TrafficTest._net_iface)
+        # Bring up the iface alias
+        net_iface_index = TrafficTest._iproute.link_lookup(
+            ifname=TrafficTest._net_iface,
+        )[0]
+        print("net_iface_index", net_iface_index)
+        TrafficTest._iproute.addr(
+            'add', index=net_iface_index, address=ip.exploded,
+        )
+        return net_alias
+
+    @staticmethod
+    def _iface_up_ipv6(ip):
+        ''' Brings up an iface for the given IPv6
+
+        Args:
+            ip (ipaddress.ip_address): the IPv6 address to use for bringing up
+                the iface
+
+        '''
         print("ip in _iface_up", ip)
         print("._net_iface in _iface_up", TrafficTest._net_iface)
         # Bring up the iface alias
@@ -367,7 +388,6 @@ class TrafficTest(object):
         os.system(
                 'sudo route -A inet6 add 3001::10/64 dev eth2'
         ),
-        #return net_alias
 
     @staticmethod
     def _network_from_ip(ip, mask_len):
@@ -423,10 +443,13 @@ class TrafficTest(object):
                 )
 
             # Set up network ifaces and get UL port assignments for DL
-            #aliases = ()
+            if instance.ip.version == 4:
+              aliases = ()
             for instance in instances:
-                #aliases += (TrafficTest._iface_up(instance.ip),)
-                (TrafficTest._iface_up(instance.ip),)
+                if instance.ip.version == 4:
+                  aliases += (TrafficTest._iface_up_ipv4(instance.ip),)
+                else :
+                  (TrafficTest._iface_up_ipv6(instance.ip),)
                 print("instance.ip",instance.ip)
                 if not instance.is_uplink:
                     # Assign a local port for the downlink UE server
@@ -466,16 +489,18 @@ class TrafficTest(object):
                 print("After _iproute.route\n")
 
                 # Add arp table entry
-                #os.system(
-                #    '/usr/sbin/arp -s %s %s' % (
-                #    server_instance.ip.exploded, server_instance.mac,
-                #    ),
-                #)
-                os.system(
+                if server_instance.ip.key == 4:
+                  os.system(
+                    '/usr/sbin/arp -s %s %s' % (
+                    server_instance.ip.exploded, server_instance.mac,
+                    ),
+                  )
+                else:
+                  os.system(
                     'ip -6 neigh add %s lladdr %s dev eth2' % (
                     server_instance.ip.exploded, server_instance.mac,
                     ),
-                )
+                  )
 
                 print("After Add arp table entry server_instance=%s, mac=%s\n"%(server_instance.ip.exploded, server_instance.mac))
                 if instance.is_uplink:
