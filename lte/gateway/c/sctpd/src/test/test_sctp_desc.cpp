@@ -101,10 +101,3 @@ TEST_F(SctpdDescTest, test_sctpd_desc) {
 
 }  // namespace sctpd
 }  // namespace magma
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  FLAGS_logtostderr = 1;
-  FLAGS_v = 10;
-  return RUN_ALL_TESTS();
-}

@@ -24,6 +24,7 @@
 #include "lte/gateway/c/li_agent/src/ProxyConnector.h"
 #include "lte/gateway/c/li_agent/src/Utilities.h"
 #include "orc8r/gateway/c/common/logging/magma_logging_init.h"
+#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
 
 static uint32_t get_log_verbosity(const YAML::Node& config,
                                   magma::mconfig::LIAgentD mconfig) {
@@ -66,6 +67,9 @@ int main(void) {
     MLOG(MINFO) << "LI Agent service disabled";
     return 0;
   }
+
+  sentry_config_t sentry_config = construct_sentry_config_from_mconfig();
+  initialize_sentry(SENTRY_TAG_LI_AGENTD, &sentry_config);
 
   MLOG(MINFO) << "Starting LI Agent service " << config;
 
@@ -111,5 +115,6 @@ int main(void) {
     return -1;
   }
 
+  shutdown_sentry();
   return 0;
 }

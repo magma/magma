@@ -342,3 +342,103 @@ def get_optional_param_to_check(
         except KeyError:
             return param
     return None
+
+
+def should_transition_to_firmware_upgrade_download(acs):
+    device_sw_version = ""
+    device_serial_number = ""
+    if acs.device_cfg.has_parameter(ParameterName.SW_VERSION):
+        device_sw_version = acs.device_cfg.get_parameter(
+            ParameterName.SW_VERSION,
+        )
+    if acs.device_cfg.has_parameter(ParameterName.SERIAL_NUMBER):
+        device_serial_number = acs.device_cfg.get_parameter(
+            ParameterName.SERIAL_NUMBER,
+        )
+    if acs.is_fw_upgrade_in_progress():
+        logger.debug(
+            'Skipping FW Download for eNB [%s], firmware upgrade in progress.',
+            device_serial_number,
+        )
+        return False
+    fw_upgrade_config = get_firmware_upgrade_download_config(acs)
+    if not fw_upgrade_config:
+        logger.debug(
+            'Skipping FW Download for eNB [%s], missing firmware upgrade config in enodebd.yml.',
+            device_serial_number,
+        )
+        return False
+    target_software_version = fw_upgrade_config.get('version', '')
+    if device_sw_version == target_software_version:
+        logger.debug(
+            'Skipping FW Download for eNB [%s], eNB Software Version [%s] up to date with firmware upgrade config.',
+            device_serial_number,
+            target_software_version,
+        )
+        acs.stop_fw_upgrade_timeout()
+        return False
+    logger.info(
+        'Initiate FW Download for eNB [%s], eNB SW Version [%s], target SW Version [%s]',
+        device_serial_number, device_sw_version, target_software_version,
+    )
+    return True
+
+
+def get_firmware_upgrade_download_config(acs):
+    device_serial_number = ''
+    if acs.device_cfg.has_parameter(ParameterName.SERIAL_NUMBER):
+        device_serial_number = acs.device_cfg.get_parameter(
+            ParameterName.SERIAL_NUMBER,
+        )
+    fw_upgrade_config = _get_firmware_upgrade_download_config_for_serial(
+        acs, device_serial_number,
+    )
+    if fw_upgrade_config:
+        logger.info(f'Found {fw_upgrade_config=} for {device_serial_number=}')
+        return fw_upgrade_config
+    device_model = acs.device_name
+    fw_upgrade_config = _get_firmware_upgrade_download_config_for_model(
+        acs, device_model,
+    )
+    if fw_upgrade_config:
+        logger.info(f'Found {fw_upgrade_config=} for {device_model=}')
+    return fw_upgrade_config
+
+
+def _get_firmware_upgrade_download_config_for_serial(acs, serial: str):
+    enbs = acs.service_config.get(
+        'firmware_upgrade_download', {},
+    ).get('enbs', {})
+    fw_version = enbs.get(serial, '')
+    return _get_firmware_upgrade_download_config(acs, fw_version)
+
+
+def _get_firmware_upgrade_download_config_for_model(acs, model: str):
+    ouis = acs.service_config.get(
+        'firmware_upgrade_download', {},
+    ).get('models', {})
+    fw_version = ouis.get(model, '')
+    return _get_firmware_upgrade_download_config(acs, fw_version)
+
+
+def _get_firmware_upgrade_download_config(acs, fw_version: str):
+    if not fw_version:
+        return {}
+    firmware_cfg = acs.service_config.get('firmware_upgrade_download', {}).get(
+        'firmwares', {},
+    ).get(fw_version, {})
+    if not firmware_cfg:
+        logger.debug(
+            f'Could not find Firmware Upgrade download version {fw_version} in config.',
+        )
+        return {}
+
+    if not firmware_cfg.get('url', ''):
+        logger.debug(
+            f'Firmware Upgrade download config for {fw_version} does not have a valid url.',
+        )
+        return {}
+
+    # add a 'version' key for easy extraction later
+    firmware_cfg['version'] = fw_version
+    return firmware_cfg

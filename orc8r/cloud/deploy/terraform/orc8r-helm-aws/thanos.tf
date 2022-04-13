@@ -15,7 +15,6 @@ resource "aws_s3_bucket" "thanos_object_store_bucket" {
   count = var.thanos_enabled ? 1 : 0
 
   bucket = var.thanos_object_store_bucket_name
-  acl = "private"
   tags = {
     Name = "Thanos Object Store"
   }

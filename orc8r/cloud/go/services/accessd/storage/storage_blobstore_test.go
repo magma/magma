@@ -27,7 +27,7 @@ import (
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
 	astorage "magma/orc8r/cloud/go/services/accessd/storage"
 	"magma/orc8r/cloud/go/storage"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 )
 

@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"magma/dp/cloud/go/active_mode_controller/internal/signal"
-
 	"github.com/stretchr/testify/assert"
+
+	"magma/dp/cloud/go/active_mode_controller/internal/signal"
 )
 
 const (

@@ -18,27 +18,26 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_decoder.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "Ngap_NGAP-PDU.h"
 #include "Ngap_InitiatingMessage.h"
+#include "Ngap_NGAP-PDU.h"
 #include "Ngap_ProcedureCode.h"
 #include "Ngap_SuccessfulOutcome.h"
 #include "Ngap_UnsuccessfulOutcome.h"
 #include "asn_codecs.h"
 #include "constr_TYPE.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_decoder.h"
 #include "per_decoder.h"
 
 int ngap_amf_decode_pdu(Ngap_NGAP_PDU_t* pdu, const_bstring const raw) {
   asn_dec_rval_t dec_ret;
   DevAssert(pdu != NULL);
   DevAssert(blength(raw) != 0);
-  dec_ret = aper_decode(
-      NULL, &asn_DEF_Ngap_NGAP_PDU, (void**) &pdu, bdata(raw), blength(raw), 0,
-      0);
+  dec_ret = aper_decode(NULL, &asn_DEF_Ngap_NGAP_PDU, (void**)&pdu, bdata(raw),
+                        blength(raw), 0, 0);
 
   if (dec_ret.code != RC_OK) {
     OAILOG_ERROR(LOG_NGAP, "Failed to decode PDU\n");

@@ -5,7 +5,6 @@ from magma.db_service.models import (
     DBCbsd,
     DBCbsdState,
     DBRequest,
-    DBRequestState,
     DBRequestType,
 )
 from magma.db_service.session_manager import Session
@@ -35,7 +34,7 @@ class RegistrationDBConsumerTestCase(LocalDBTestCase):
             "someRequest", request_processing_limit=REQUEST_PROCESSING_LIMIT,
         )
 
-        self._prepare_two_pending_and_one_processed_request()
+        self._prepare_two_pending_requests()
 
         # When
         reqs = consumer.get_pending_requests(self.session)
@@ -65,7 +64,7 @@ class RegistrationDBConsumerTestCase(LocalDBTestCase):
         consumer = RequestDBConsumer(
             "someRequest", request_processing_limit=config.REQUEST_PROCESSING_LIMIT,
         )
-        self._prepare_two_pending_and_one_processed_request()
+        self._prepare_two_pending_requests()
 
         # When
         reqs1 = consumer.get_pending_requests(session1)
@@ -87,10 +86,10 @@ class RegistrationDBConsumerTestCase(LocalDBTestCase):
         session1.close()
         session2.close()
 
-    def _prepare_two_pending_and_one_processed_request(self):
+    def _prepare_two_pending_requests(self):
         test_state = DBCbsdState(name="test_state")
         cbsds = []
-        for i in range(1, 4):
+        for i in range(1, 3):
             cbsds.append(
                 DBCbsd(
                     id=int(i),
@@ -102,22 +101,15 @@ class RegistrationDBConsumerTestCase(LocalDBTestCase):
                 ),
             )
         req_type = DBRequestType(name="someRequest")
-        pending_status = DBRequestState(name="pending")
-        processed_status = DBRequestState(name="processed")
         req1 = DBRequest(
-            cbsd=cbsds[0], type=req_type, state=pending_status, payload={
+            cbsd=cbsds[0], type=req_type, payload={
                 "some": "payload1",
             },
         )
         req2 = DBRequest(
-            cbsd=cbsds[1], type=req_type, state=pending_status, payload={
+            cbsd=cbsds[1], type=req_type, payload={
                 "some": "payload2",
             },
         )
-        req3 = DBRequest(
-            cbsd=cbsds[2], type=req_type, state=processed_status, payload={
-                "some": "payload3",
-            },
-        )
-        self.session.add_all([req1, req2, req3])
+        self.session.add_all([req1, req2])
         self.session.commit()

@@ -104,7 +104,7 @@ def set_streamer_status(_, args):
     if invalid_keys:
         print(
             '%s does not have the following streamer config keys: %s' % (
-            service, invalid_keys,
+                service, invalid_keys,
             ),
         )
         return

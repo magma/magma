@@ -69,6 +69,7 @@ typedef enum amf_cn_primitive_s {
   _AMFCN_DEACTIVATE_PDUSESSION_REQ,
   _AMFCN_IDENTITY_PARAM_RES,
   _AMFCN_SMC_PARAM_RES,
+  _AMFCN_IMPLICIT_DEREGISTER_UE,
   _AMFCN_END
 } amf_cn_primitive_t;
 
@@ -86,9 +87,9 @@ class amf_as_data_t {
 #define AMF_AS_NAS_DL_NAS_TRANSPORT 0x09            // Downlink Nas Transport
   uint8_t nas_info;     // Type of NAS information to transfer
   std::string nas_msg;  // NAS message to be transferred
-  void amf_as_set_security_data(
-      amf_as_security_data_t* data, const void* context, bool is_new,
-      bool is_ciphered);
+  void amf_as_set_security_data(amf_as_security_data_t* data,
+                                const void* context, bool is_new,
+                                bool is_ciphered);
 };
 
 // Structure to handle UL/DL NAS message in AMF
@@ -172,6 +173,6 @@ typedef struct amf_as_s {
   as_primitive_t u;
 } amf_as_t;
 
-int amf_service_acceptmsg(
-    const amf_as_establish_t* msg, amf_nas_message_t* nas_msg);
+int amf_service_acceptmsg(const amf_as_establish_t* msg,
+                          amf_nas_message_t* nas_msg);
 }  // namespace magma5g

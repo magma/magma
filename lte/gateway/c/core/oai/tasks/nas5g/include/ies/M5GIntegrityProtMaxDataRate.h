@@ -30,7 +30,7 @@ class IntegrityProtMaxDataRateMsg {
       uint8_t* buffer, uint32_t len);
 
   void copy(const IntegrityProtMaxDataRateMsg& i) {
-    max_uplink   = i.max_uplink;
+    max_uplink = i.max_uplink;
     max_downlink = i.max_downlink;
   }
   bool isEqual(const IntegrityProtMaxDataRateMsg& i) {

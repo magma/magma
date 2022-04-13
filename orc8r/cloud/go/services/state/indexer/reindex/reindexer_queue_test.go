@@ -113,7 +113,7 @@ var (
 
 func init() {
 	// TODO(hcgatewood) after resolving racy CI issue, revert most changes from #6329
-	_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+	_ = flag.Set("logtostderr", "true") // uncomment to view logs during test
 }
 
 func TestRun(t *testing.T) {

@@ -33,9 +33,9 @@ def check_service_running():
         output = output.decode('utf-8')
         g = state_map[service]
         if output == "active\n":
-          g.set(1)
+            g.set(1)
         else:
-          g.set(0)
+            g.set(0)
 
 
 if __name__ == '__main__':

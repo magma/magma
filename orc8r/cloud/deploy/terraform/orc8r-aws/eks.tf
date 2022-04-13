@@ -35,8 +35,8 @@ module "eks" {
   cluster_name    = var.cluster_name
   cluster_version = var.cluster_version
 
-  vpc_id       = module.vpc.vpc_id
-  subnets      = length(module.vpc.private_subnets) > 0 ? module.vpc.private_subnets : module.vpc.public_subnets
+  vpc_id  = module.vpc.vpc_id
+  subnets = length(module.vpc.private_subnets) > 0 ? module.vpc.private_subnets : module.vpc.public_subnets
 
   cluster_enabled_log_types = [
     "api",
@@ -46,7 +46,7 @@ module "eks" {
     "scheduler",
   ]
 
-  cluster_create_timeout   = "30m"
+  cluster_create_timeout = "30m"
 
   workers_group_defaults = {
     key_name = var.eks_worker_group_key == null ? aws_key_pair.eks_workers[0].key_name : var.eks_worker_group_key

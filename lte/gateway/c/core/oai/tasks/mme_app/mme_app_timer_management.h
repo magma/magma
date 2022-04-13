@@ -45,9 +45,8 @@ class MmeUeContext {
   MmeUeContext(MmeUeContext const&) = delete;
   void operator=(MmeUeContext const&) = delete;
 
-  int StartTimer(
-      size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-      const TimerArgType& arg);
+  int StartTimer(size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
+                 const TimerArgType& arg);
   void StopTimer(int timer_id);
 
   /**

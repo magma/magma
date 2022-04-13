@@ -36,10 +36,10 @@ class SecurityModeCommandMsg {
 
   SecurityModeCommandMsg();
   ~SecurityModeCommandMsg();
-  int DecodeSecurityModeCommandMsg(
-      SecurityModeCommandMsg* sec_mode_command, uint8_t* buffer, uint32_t len);
-  int EncodeSecurityModeCommandMsg(
-      SecurityModeCommandMsg* sec_mode_command, uint8_t* buffer, uint32_t len);
+  int DecodeSecurityModeCommandMsg(SecurityModeCommandMsg* sec_mode_command,
+                                   uint8_t* buffer, uint32_t len);
+  int EncodeSecurityModeCommandMsg(SecurityModeCommandMsg* sec_mode_command,
+                                   uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

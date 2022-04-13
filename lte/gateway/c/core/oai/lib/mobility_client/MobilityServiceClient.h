@@ -52,8 +52,8 @@ class MobilityServiceClient : public GRPCReceiver {
    * @return -RPC_STATUS_INVALID_ARGUMENT if IPBlock is invalid
    * @return -RPC_STATUS_FAILED_PRECONDITION if IPBlock overlaps
    */
-  int GetAssignedIPv4Block(
-      int index, struct in_addr* netaddr, uint32_t* netmask);
+  int GetAssignedIPv4Block(int index, struct in_addr* netaddr,
+                           uint32_t* netmask);
 
   /**
    * Allocate an IPv4 address from the free IP pool (non-blocking)
@@ -99,9 +99,8 @@ class MobilityServiceClient : public GRPCReceiver {
    * @param apn:  APN string
    * @param addr: IP address to release in "network byte order"
    */
-  void ReleaseIPv4Address(
-      const std::string& imsi, const std::string& apn,
-      const struct in_addr& addr);
+  void ReleaseIPv4Address(const std::string& imsi, const std::string& apn,
+                          const struct in_addr& addr);
 
   /**
    * Release an allocated IPv6 address. (non-blocking)
@@ -113,9 +112,8 @@ class MobilityServiceClient : public GRPCReceiver {
    * @param apn:  APN string
    * @param addr: IPv6 address to release
    */
-  void ReleaseIPv6Address(
-      const std::string& imsi, const std::string& apn,
-      const struct in6_addr& addr);
+  void ReleaseIPv6Address(const std::string& imsi, const std::string& apn,
+                          const struct in6_addr& addr);
 
   /**
    * Release an allocated IPv4v6 address. (non-blocking)
@@ -128,9 +126,9 @@ class MobilityServiceClient : public GRPCReceiver {
    * @param ipv4_addr: IPv4 address to release in "network byte order"
    * @param ipv6_addr: IPv6 address to release
    */
-  void ReleaseIPv4v6Address(
-      const std::string& imsi, const std::string& apn,
-      const struct in_addr& ipv4_addr, const struct in6_addr& ipv6_addr);
+  void ReleaseIPv4v6Address(const std::string& imsi, const std::string& apn,
+                            const struct in_addr& ipv4_addr,
+                            const struct in6_addr& ipv6_addr);
 
   /*
    * Get the allocated IPv4 address for a subscriber
@@ -139,8 +137,8 @@ class MobilityServiceClient : public GRPCReceiver {
    * @return 0 on success
    * @return -RPC_STATUS_NOT_FOUND if the SID is not found
    */
-  int GetIPv4AddressForSubscriber(
-      const std::string& imsi, const std::string& apn, struct in_addr* addr);
+  int GetIPv4AddressForSubscriber(const std::string& imsi,
+                                  const std::string& apn, struct in_addr* addr);
 
   /*
    * Get the subscriber id given its allocated IPv4 address. If the address

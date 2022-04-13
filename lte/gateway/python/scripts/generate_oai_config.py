@@ -40,13 +40,15 @@ DEFAULT_DNS_IP_SECONDARY_ADDR = "8.8.4.4"
 DEFAULT_DNS_IPV6_ADDR = "2001:4860:4860:0:0:0:0:8888"
 DEFAULT_P_CSCF_IPV4_ADDR = "172.27.23.150"
 DEFAULT_P_CSCF_IPV6_ADDR = "2a12:577:9941:f99c:0002:0001:c731:f114"
-DEFAULT_NGAP_S_NSSAI_SST = 1
+DEFAULT_NGAP_S_NSSAI_SST = "1"
 DEFAULT_NGAP_S_NSSAI_SD = "ffffff"
 DEFAULT_NGAP_AMF_NAME = "MAGMAAMF1"
 DEFAULT_NGAP_AMF_REGION_ID = "1"
 DEFAULT_NGAP_SET_ID = "1"
 DEFAULT_NGAP_AMF_POINTER = "0"
 DEFAULT_DEFAULT_DNN = ""
+DEFAULT_AUTH_RETRY_COUNT = 1
+DEFAULT_AUTH_TIMER_EXPIRE_MSEC = 1000
 
 
 def _get_iface_ip(service, iface_config):
@@ -331,6 +333,34 @@ def _get_amf_name_config(service_mconfig: object) -> str:
     return service_mconfig.amf_name or DEFAULT_NGAP_AMF_NAME
 
 
+def _get_default_auth_retry_count() -> str:
+    """
+    Retrieve default_auth_retry_count config
+    value. If it does not exist, it defaults
+    to DEFAULT_AUTH_RETRY_COUNT.
+
+    Returns:
+        default auth retry count.
+    """
+    return get_service_config_value(
+        'mme', 'auth_retry_max_count', DEFAULT_AUTH_RETRY_COUNT,
+    )
+
+
+def _get_default_auth_timer_expire_msec() -> str:
+    """
+    Retrieve default_auth_retry_timer_expire_msec
+    config value. If it does not exist, it defaults
+    to DEFAULT_AUTH_TIMER_EXPIRE_MSEC.
+
+    Returns:
+        default auth timer expire msec.
+    """
+    return get_service_config_value(
+        'mme', 'auth_retry_interval', DEFAULT_AUTH_TIMER_EXPIRE_MSEC,
+    )
+
+
 def _get_default_dnn_config(service_mconfig: object) -> str:
     """Retrieve default_dnn config value. If it does not exist, it defaults to DEFAULT_DEFAULT_DNN.
 
@@ -469,6 +499,8 @@ def _get_context():
         "amf_set_id": _get_amf_set_id(mme_service_config),
         "amf_pointer": _get_amf_pointer(mme_service_config),
         "default_dnn": _get_default_dnn_config(mme_service_config),
+        "auth_retry_max_count": _get_default_auth_retry_count(),
+        "auth_retry_interval": _get_default_auth_timer_expire_msec(),
     }
 
     context["s1u_ip"] = mme_service_config.ipv4_sgw_s1u_addr or _get_iface_ip(

@@ -22,13 +22,12 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachResult.h"
 
 //------------------------------------------------------------------------------
-int decode_eps_attach_result(
-    eps_attach_result_t* epsattachresult, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int decode_eps_attach_result(eps_attach_result_t* epsattachresult, uint8_t iei,
+                             uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, EPS_ATTACH_RESULT_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, EPS_ATTACH_RESULT_MINIMUM_LENGTH,
+                                       len);
 
   if (iei > 0) {
     CHECK_IEI_DECODER((*buffer & 0xf0), iei);
@@ -40,10 +39,9 @@ int decode_eps_attach_result(
 }
 
 //------------------------------------------------------------------------------
-int decode_u8_eps_attach_result(
-    eps_attach_result_t* epsattachresult, uint8_t iei, uint8_t value,
-    uint32_t len) {
-  int decoded     = 0;
+int decode_u8_eps_attach_result(eps_attach_result_t* epsattachresult,
+                                uint8_t iei, uint8_t value, uint32_t len) {
+  int decoded = 0;
   uint8_t* buffer = &value;
 
   *epsattachresult = *buffer & 0x7;
@@ -52,16 +50,15 @@ int decode_u8_eps_attach_result(
 }
 
 //------------------------------------------------------------------------------
-int encode_eps_attach_result(
-    eps_attach_result_t* epsattachresult, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int encode_eps_attach_result(eps_attach_result_t* epsattachresult, uint8_t iei,
+                             uint8_t* buffer, uint32_t len) {
   uint8_t encoded = 0;
 
   /*
    * Checking length and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, EPS_ATTACH_RESULT_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, EPS_ATTACH_RESULT_MINIMUM_LENGTH,
+                                       len);
   *(buffer + encoded) = 0x00 | (iei & 0xf0) | (*epsattachresult & 0x7);
   encoded++;
   return encoded;
@@ -72,7 +69,7 @@ uint8_t encode_u8_eps_attach_result(eps_attach_result_t* epsattachresult) {
   uint8_t bufferReturn;
   uint8_t* buffer = &bufferReturn;
   uint8_t encoded = 0;
-  uint8_t iei     = 0;
+  uint8_t iei = 0;
 
   *(buffer + encoded) = 0x00 | (iei & 0xf0) | (*epsattachresult & 0x7);
   encoded++;

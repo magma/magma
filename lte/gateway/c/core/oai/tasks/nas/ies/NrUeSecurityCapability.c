@@ -27,7 +27,7 @@
 int decode_nr_ue_security_capability(
     nr_ue_security_capability_t* nruesecuritycapability, uint8_t iei,
     uint8_t* buffer, uint32_t len) {
-  int decoded   = 0;
+  int decoded = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -46,7 +46,7 @@ int decode_nr_ue_security_capability(
 
   if (len >= (decoded + 2)) {
     nruesecuritycapability->nr_present = 1;
-    nruesecuritycapability->nea        = *(buffer + decoded);
+    nruesecuritycapability->nea = *(buffer + decoded);
     decoded++;
     nruesecuritycapability->nia = *(buffer + decoded) & 0x7f;
     decoded++;

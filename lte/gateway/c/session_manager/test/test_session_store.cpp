@@ -631,10 +631,4 @@ TEST_F(SessionStoreTest, test_get_session) {
   auto optional_it7 = session_store->find_session(session_map, id7_success_sid);
   EXPECT_FALSE(optional_it7);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

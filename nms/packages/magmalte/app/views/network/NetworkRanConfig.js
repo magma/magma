@@ -33,7 +33,7 @@ import TddConfig from './NetworkRanTddConfig';
 
 import {AltFormField, FormDivider} from '../../components/FormField';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 
 type Props = {
   lteRanConfigs: network_ran_configs,

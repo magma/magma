@@ -27,3 +27,24 @@ class TestConfig(object):
         'GRPC_SERVICE', 'domain-proxy-radio-controller',
     )
     GRPC_PORT = int(os.environ.get('GRPC_PORT', 50053))
+    HTTP_SERVER = os.environ.get(
+        'HTTP_SERVER', 'https://orc8r-nginx-proxy',
+    )
+
+    # Security
+    DP_CERT_PATH = os.environ.get(
+        'DP_CERT_PATH', '/backend/test_runner/certs/admin_operator.pem',
+    )
+    DP_SSL_KEY_PATH = os.environ.get(
+        'DP_SSL_KEY_PATH', '/backend/test_runner/certs/admin_operator.key.pem',
+    )
+
+    # Test Elasticsearch
+    ELASTICSEARCH_SERVICE_HOST = os.environ.get('ELASTICSEARCH_SERVICE_HOST', '')
+    ELASTICSEARCH_SERVICE_PORT = int(os.environ.get('ELASTICSEARCH_SERVICE_PORT', 9200))
+    ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX', 'dp')
+    ELASTICSEARCH_URL = f"http://{ELASTICSEARCH_SERVICE_HOST}:{ELASTICSEARCH_SERVICE_PORT}"
+
+    # Test Fluentd
+    FLUENTD_SERVICE_HOST = os.environ.get('DOMAIN_PROXY_FLUENTD_SERVICE_HOST', '')
+    FLUENTD_SERVICE_PORT = int(os.environ.get('DOMAIN_PROXY_FLUENTD_SERVICE_PORT', 9888))

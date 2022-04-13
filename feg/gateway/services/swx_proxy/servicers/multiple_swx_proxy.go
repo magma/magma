@@ -19,7 +19,7 @@ import (
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/multiplex"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	orcprotos "magma/orc8r/lib/go/protos"
 )
 
@@ -129,7 +129,7 @@ func (s *SwxProxies) Disable(ctx context.Context, req *fegprotos.DisableMessage)
 
 // Calls Enable on each swx proxy
 func (s *SwxProxies) Enable(ctx context.Context, req *orcprotos.Void) (*orcprotos.Void, error) {
-	multiError := errors.NewMulti()
+	multiError := merrors.NewMulti()
 	for i, proxy := range s.proxies {
 		proxy.connMan.Enable()
 		_, err := proxy.connMan.GetConnection(proxy.smClient, proxy.config.ServerCfg)

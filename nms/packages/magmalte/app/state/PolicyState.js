@@ -15,6 +15,7 @@
  */
 
 import type {
+  base_name_record,
   network_id,
   policy_id,
   policy_qos_profile,
@@ -47,6 +48,7 @@ export async function SetPolicyState(props: Props) {
         policyRule: value,
       });
     }
+    // eslint-disable-next-line max-len
     const policyRule = await MagmaV1API.getNetworksByNetworkIdPoliciesRulesByRuleId(
       {
         networkId: networkId,
@@ -66,6 +68,52 @@ export async function SetPolicyState(props: Props) {
     const newPolicies = {...policies};
     delete newPolicies[key];
     setPolicies(newPolicies);
+  }
+}
+
+type BaseNameProps = {
+  networkId: network_id,
+  baseNames: {[string]: base_name_record},
+  setBaseNames: ({[string]: base_name_record}) => void,
+  key: string, // base name id
+  value?: base_name_record,
+};
+
+export async function SetBaseNameState(props: BaseNameProps) {
+  const {networkId, baseNames, setBaseNames, key, value} = props;
+  if (value != null) {
+    if (!(key in baseNames)) {
+      await MagmaV1API.postNetworksByNetworkIdPoliciesBaseNames({
+        networkId: networkId,
+        baseNameRecord: value,
+      });
+    } else {
+      await MagmaV1API.putNetworksByNetworkIdPoliciesBaseNamesByBaseName({
+        networkId: networkId,
+        baseName: key,
+        baseNameRecord: value,
+      });
+    }
+    // eslint-disable-next-line max-len
+    const baseName = await MagmaV1API.getNetworksByNetworkIdPoliciesBaseNamesByBaseName(
+      {
+        networkId: networkId,
+        baseName: key,
+      },
+    );
+
+    if (baseName) {
+      const newBaseNames = {...baseNames, [key]: baseName};
+      setBaseNames(newBaseNames);
+    }
+  } else {
+    await MagmaV1API.deleteNetworksByNetworkIdPoliciesBaseNamesByBaseName({
+      networkId: networkId,
+      baseName: key,
+    });
+    const newBaseNames = {...baseNames};
+    delete newBaseNames[key];
+    setBaseNames(newBaseNames);
   }
 }
 
@@ -99,6 +147,7 @@ export async function SetQosProfileState(props: QosProfileProps) {
         profile: value,
       });
     }
+    // eslint-disable-next-line max-len
     const qosProfile = await MagmaV1API.getLteByNetworkIdPolicyQosProfilesByProfileId(
       {
         networkId: networkId,
@@ -129,8 +178,8 @@ type RatingGroupProps = {
   value?: rating_group,
 };
 
-/* SetQosProfileState
-SetQosProfileState
+/* SetRatingGroupState
+SetRatingGroupState
 if key and value are passed in,
 if key is not present, a new profile is created (POST)
 if key is present, existing profile is updated (PUT)
@@ -151,6 +200,7 @@ export async function SetRatingGroupState(props: RatingGroupProps) {
         ratingGroup: value,
       });
     }
+    // eslint-disable-next-line max-len
     const ratingGroup = await MagmaV1API.getNetworksByNetworkIdRatingGroupsByRatingGroupId(
       {
         networkId: networkId,

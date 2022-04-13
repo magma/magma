@@ -19,12 +19,12 @@ class RequestType {
 
   RequestType();
   ~RequestType();
-  int EncodeRequestType(
-      RequestType* reqest_type, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeRequestType(
-      RequestType* reqest_type, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeRequestType(RequestType* reqest_type, uint8_t iei, uint8_t* buffer,
+                        uint32_t len);
+  int DecodeRequestType(RequestType* reqest_type, uint8_t iei, uint8_t* buffer,
+                        uint32_t len);
   void copy(const RequestType& p) {
-    iei      = p.iei;
+    iei = p.iei;
     type_val = p.type_val;
   }
   bool isEqual(const RequestType& p) {

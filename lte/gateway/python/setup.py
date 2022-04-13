@@ -18,7 +18,7 @@ from setuptools import setup
 # We can use an environment variable to pass in the package version during
 # build. Since we don't distribute this on its own, we don't really care what
 # version this represents. 'None' defaults to 0.0.0.
-VERSION = os.environ.get('PKG_VERSION', None)
+VERSION = os.environ.get('PKG_VERSION', '0.0.0')
 
 setup(
     name='lte',
@@ -126,7 +126,7 @@ setup(
         'freezegun>=0.3.15',
         'pycryptodome>=3.9.9',
         'pyroute2==0.5.14',
-        'aiohttp==3.6.2',
+        'aiohttp',
         'jsonpointer>=1.14',
         'ovs>=2.13',
         'prometheus-client>=0.3.1',

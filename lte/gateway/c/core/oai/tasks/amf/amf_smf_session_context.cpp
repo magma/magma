@@ -14,6 +14,16 @@
 #include <sstream>
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+
+#ifdef __cplusplus
+}
+#endif
+
 namespace magma5g {
 status_code_e amf_smf_context_ue_aggregate_max_bit_rate_set(
     amf_context_s* amf_ctxt_p, ambr_t subscribed_ue_ambr) {
@@ -33,6 +43,58 @@ status_code_e amf_smf_context_ue_aggregate_max_bit_rate_get(
   *subscriber_ambr_ul = amf_ctxt_p->subscribed_ue_ambr.br_ul;
 
   return RETURNok;
+}
+
+/***************************************************************************
+**                                                                        **
+** Name:    amf_config_get_default_sst_config()                           **
+**                                                                        **
+** Description: Get default sst value from amf config                     **
+**                                                                        **
+**                                                                        **
+***************************************************************************/
+void amf_config_get_default_slice_config(uint8_t* slice_type,
+                                         uint8_t* slice_differentiator) {
+  amf_config_read_lock(&amf_config);
+
+  /* Validate the input parameter */
+  if ((slice_type == NULL) || (slice_differentiator == NULL)) {
+    return;
+  }
+
+  /* Get the default ST value */
+  *slice_type = amf_config.plmn_support_list.plmn_support[0].s_nssai.sst;
+
+  /* Get the default SD value */
+  if (amf_config.plmn_support_list.plmn_support[0].s_nssai.sd.v !=
+      AMF_S_NSSAI_SD_INVALID_VALUE) {
+    INT24_TO_BUFFER(amf_config.plmn_support_list.plmn_support[0].s_nssai.sd.v,
+                    slice_differentiator);
+  }
+
+  amf_config_unlock(&amf_config);
+}
+
+// Function to fill the slice information in pdu session establishment
+// accept message
+void amf_smf_get_slice_configuration(std::shared_ptr<smf_context_t> smf_ctx,
+                                     s_nssai_t* slice_config) {
+  if (slice_config == NULL) {
+    return;
+  }
+
+  // Check if there is an requested slice value
+  if (smf_ctx->requested_nssai.sst) {
+    slice_config->sst = smf_ctx->requested_nssai.sst;
+
+    // Check if slice descriptor is found
+    if (smf_ctx->requested_nssai.sd[0]) {
+      memcpy(slice_config->sd, smf_ctx->requested_nssai.sd, SD_LENGTH);
+    }
+  } else {
+    // Fill in the default if requested slice information is not found
+    amf_config_get_default_slice_config(&(slice_config->sst), slice_config->sd);
+  }
 }
 
 }  // namespace magma5g

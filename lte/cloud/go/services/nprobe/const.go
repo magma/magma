@@ -24,6 +24,9 @@ const (
 	SessionTerminated    = "session_terminated"
 	S1SetupSuccess       = "s1_setup_success"
 	SessionCreateFailure = "session_create_failure"
+
+	ServiceName          = "nprobe"
+	NProbeTableBlobstore = "nprobe_blobstore"
 )
 
 // GetESStreams returns the list of Intercepted streams

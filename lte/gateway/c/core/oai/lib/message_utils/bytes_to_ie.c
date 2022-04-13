@@ -46,7 +46,7 @@ void bytes_to_lai(const char* bytes, lai_t* lai) {
 
   unsigned char lac_1 = bytes[3];
   unsigned char lac_2 = bytes[4];
-  uint16_t lac        = (lac_1 << 8) | lac_2;
+  uint16_t lac = (lac_1 << 8) | lac_2;
 
   //  lai->plmn = plmn;
   lai->lac = lac;
@@ -60,15 +60,14 @@ void bytes_to_tmsi(const char* bytes, tmsi_t* tmsi) {
   unsigned char tmsi_3 = bytes[2];
   unsigned char tmsi_4 = bytes[3];
 
-  *tmsi = (((uint32_t) tmsi_1) << 24) | (((uint32_t) tmsi_2) << 16) |
-          (((uint32_t) tmsi_3) << 8) | ((uint32_t) tmsi_4);
+  *tmsi = (((uint32_t)tmsi_1) << 24) | (((uint32_t)tmsi_2) << 16) |
+          (((uint32_t)tmsi_3) << 8) | ((uint32_t)tmsi_4);
 
   return;
 }
 
-void bytes_to_mobile_identity(
-    const char* bytes, uint8_t mobile_identity_len, bool is_imsi,
-    MobileIdentity_t* mobile_identity) {
+void bytes_to_mobile_identity(const char* bytes, uint8_t mobile_identity_len,
+                              bool is_imsi, MobileIdentity_t* mobile_identity) {
   uint8_t typeofidentity;
 
   if (is_imsi) {
@@ -83,7 +82,7 @@ void bytes_to_mobile_identity(
     }
   }
 
-  mobile_identity->length         = mobile_identity_len;
+  mobile_identity->length = mobile_identity_len;
   mobile_identity->typeofidentity = typeofidentity;
 
   return;

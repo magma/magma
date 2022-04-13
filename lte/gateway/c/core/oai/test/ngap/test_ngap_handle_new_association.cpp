@@ -28,10 +28,10 @@ TEST(test_ngap_handle_new_association, empty_initial_state) {
   ngap_state_t* state = create_ngap_state(2, 2);
 
   bstring ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
-  sctp_new_peer_t p     = {
-      .instreams     = 1,
-      .outstreams    = 2,
-      .assoc_id      = 3,
+  sctp_new_peer_t p = {
+      .instreams = 1,
+      .outstreams = 2,
+      .assoc_id = 3,
       .ran_cp_ipaddr = ran_cp_ipaddr,
   };
 
@@ -39,11 +39,9 @@ TEST(test_ngap_handle_new_association, empty_initial_state) {
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   gnb_description_t* gnbd = nullptr;
-  EXPECT_EQ(
-      hashtable_ts_get(
-          &state->gnbs, (const hash_key_t) p.assoc_id,
-          reinterpret_cast<void**>(&gnbd)),
-      HASH_TABLE_OK);
+  EXPECT_EQ(hashtable_ts_get(&state->gnbs, (const hash_key_t)p.assoc_id,
+                             reinterpret_cast<void**>(&gnbd)),
+            HASH_TABLE_OK);
   EXPECT_EQ(gnbd->sctp_assoc_id, 3);
   EXPECT_EQ(gnbd->instreams, 1);
   EXPECT_EQ(gnbd->outstreams, 2);

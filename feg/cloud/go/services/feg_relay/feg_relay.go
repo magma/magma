@@ -13,4 +13,4 @@ limitations under the License.
 
 package feg_relay
 
-const ServiceName = "FEG_RELAY"
+const ServiceName = "feg_relay"

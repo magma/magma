@@ -22,12 +22,12 @@ class SSCModeMsg {
 
   SSCModeMsg();
   ~SSCModeMsg();
-  int EncodeSSCModeMsg(
-      SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeSSCModeMsg(
-      SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer,
+                       uint32_t len);
+  int DecodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer,
+                       uint32_t len);
   void copy(const SSCModeMsg& s) {
-    iei      = s.iei;
+    iei = s.iei;
     mode_val = s.mode_val;
   }
   bool isEqual(const SSCModeMsg& s) {

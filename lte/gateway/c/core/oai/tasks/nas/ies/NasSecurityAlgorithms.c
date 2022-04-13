@@ -22,9 +22,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/NasSecurityAlgorithms.h"
 
 //------------------------------------------------------------------------------
-int decode_nas_security_algorithms(
-    NasSecurityAlgorithms* nassecurityalgorithms, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int decode_nas_security_algorithms(NasSecurityAlgorithms* nassecurityalgorithms,
+                                   uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -40,9 +39,8 @@ int decode_nas_security_algorithms(
 }
 
 //------------------------------------------------------------------------------
-int encode_nas_security_algorithms(
-    NasSecurityAlgorithms* nassecurityalgorithms, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int encode_nas_security_algorithms(NasSecurityAlgorithms* nassecurityalgorithms,
+                                   uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   /*

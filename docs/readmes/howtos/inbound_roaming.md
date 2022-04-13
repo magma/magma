@@ -17,6 +17,10 @@ those roaming services but is out of scope of Magma.
 At the bottom of this document you have
 [configuration example](#configuration-example)
 
+TEID allocation is described on
+[Technical Reference](https://docs.magmacoreorg/docs/lte/dev_teid_allocation)
+section.
+
 ## Architecture
 
 Currently, we support two Architectures:

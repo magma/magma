@@ -23,6 +23,9 @@ type NetworkSentryConfig struct {
 	// Min Items: 0
 	ExclusionPatterns []string `json:"exclusion_patterns"`
 
+	// number of lines in log
+	NumberOfLinesInLog uint32 `json:"number_of_lines_in_log,omitempty"`
+
 	// sample rate
 	// Maximum: 1
 	// Minimum: 0
@@ -45,7 +48,7 @@ type NetworkSentryConfig struct {
 func (m *NetworkSentryConfig) UnmarshalJSON(b []byte) error {
 	type NetworkSentryConfigAlias NetworkSentryConfig
 	var t NetworkSentryConfigAlias
-	if err := json.Unmarshal([]byte("{\"exclusion_patterns\":[\"GetServiceInfo\",\"GetOperationalStates\",\"ConnectionError\",\"CheckinError\",\"Checkin Error\",\"GetChallenge error!\",\"Connection to FluentBit\",\"\\\\[SyncRPC\\\\]\",\"Metrics upload error\",\"Streaming from the cloud failed!\",\"Fetch subscribers error!\",\"GRPC call failed for state replication\"],\"sample_rate\":1,\"upload_mme_log\":false}"), &t); err != nil {
+	if err := json.Unmarshal([]byte("{\"exclusion_patterns\":[],\"number_of_lines_in_log\":0,\"sample_rate\":1,\"upload_mme_log\":false}"), &t); err != nil {
 		return err
 	}
 	if err := json.Unmarshal(b, &t); err != nil {

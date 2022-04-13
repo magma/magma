@@ -47,6 +47,7 @@ from lte.protos.pipelined_pb2 import (
     VersionedPolicyID,
 )
 from lte.protos.session_manager_pb2 import RuleRecordTable
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.app.classifier import Classifier
 from magma.pipelined.app.dpi import DPIController
@@ -224,7 +225,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         try:
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
-            logging.error("ActivateFlows request processing timed out")
+            logging.error(
+                "ActivateFlows request processing timed out",
+                extra=EXCLUDE_FROM_ERROR_MONITORING,
+            )
             context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
             context.set_details('ActivateFlows processing timed out')
             deactivate_req = get_deactivate_req(request)
@@ -544,7 +548,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
-              Classifier.APP_NAME,
+            Classifier.APP_NAME,
         ):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details('Service not enabled!')
@@ -552,7 +556,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         fut = Future()
         self._loop.call_soon_threadsafe(\
-                      self._setup_pg_tunnel_update, request, fut,
+            self._setup_pg_tunnel_update, request, fut,
         )
         try:
             return fut.result(timeout=self._call_timeout)
@@ -904,7 +908,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         fut = Future()
         self._loop.call_soon_threadsafe(\
-                      self.ng_update_session_flows, request, fut,
+            self.ng_update_session_flows, request, fut,
         )
         try:
             return fut.result(timeout=self._call_timeout)
@@ -943,14 +947,14 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 if ret:
                     # Install the Rules
                     failed_policy_rule_results =\
-                            self._ng_qer_update(request, pdr_entries)
+                        self._ng_qer_update(request, pdr_entries)
 
                 if (not ret or failed_policy_rule_results):
                     offending_ie = OffendingIE(
                         identifier=pdr_entries.pdr_id,
                         version=pdr_entries.pdr_version,
                         qos_enforce_rule_results=ActivateFlowsResult(\
-                                               policy_results=[failed_policy_rule_results],
+                            policy_results=[failed_policy_rule_results],
                         ),
                     )
 
@@ -1044,20 +1048,20 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 ipv4 = convert_ip_str_to_ip_proto(qos_enforce_rule.ip_addr)
 
                 enforcement_res = \
-                      self._ng_activate_qer_flow(
-                          ipv4, local_f_teid_ng,
-                          qos_enforce_rule,
-                      )
+                    self._ng_activate_qer_flow(
+                        ipv4, local_f_teid_ng,
+                        qos_enforce_rule,
+                    )
                 failed_policy_rules_results = \
                     _retrieve_failed_results(enforcement_res)
 
             if qos_enforce_rule.ipv6_addr:
                 ipv6 = convert_ipv6_bytes_to_ip_proto(qos_enforce_rule.ipv6_addr)
                 enforcement_res = \
-                      self._ng_activate_qer_flow(
-                          ipv6, local_f_teid_ng,
-                          qos_enforce_rule,
-                      )
+                    self._ng_activate_qer_flow(
+                        ipv6, local_f_teid_ng,
+                        qos_enforce_rule,
+                    )
                 failed_policy_rules_results = \
                     _retrieve_failed_results(enforcement_res)
 

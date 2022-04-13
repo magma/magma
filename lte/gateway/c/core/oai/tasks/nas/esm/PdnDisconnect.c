@@ -18,22 +18,22 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_pt.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esmDef.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_pt.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -88,19 +88,19 @@ static int pdn_disconnect_get_pid(emm_context_t* emm_context, proc_tid_t pti);
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_proc_pdn_disconnect_request(
-    emm_context_t* emm_context, proc_tid_t pti, esm_cause_t* esm_cause) {
+status_code_e esm_proc_pdn_disconnect_request(emm_context_t* emm_context,
+                                              proc_tid_t pti,
+                                              esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   pdn_cid_t pid = RETURNerror;
   ue_mm_context_t* ue_context_p =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
-  mme_ue_s1ap_id_t ue_id     = ue_context_p->mme_ue_s1ap_id;
+  mme_ue_s1ap_id_t ue_id = ue_context_p->mme_ue_s1ap_id;
   int nb_active_pdn_contexts = ue_context_p->nb_active_pdn_contexts;
-  OAILOG_INFO_UE(
-      LOG_NAS_ESM, ue_context_p->emm_context._imsi64,
-      "ESM-PROC  - PDN disconnect requested by the UE "
-      "(ue_id=" MME_UE_S1AP_ID_FMT ", pti=%d)\n",
-      ue_id, pti);
+  OAILOG_INFO_UE(LOG_NAS_ESM, ue_context_p->emm_context._imsi64,
+                 "ESM-PROC  - PDN disconnect requested by the UE "
+                 "(ue_id=" MME_UE_S1AP_ID_FMT ", pti=%d)\n",
+                 ue_id, pti);
 
   /*
    * Get UE's ESM context
@@ -113,11 +113,10 @@ status_code_e esm_proc_pdn_disconnect_request(
     pid = pdn_disconnect_get_pid(emm_context, pti);
 
     if (pid >= MAX_APN_PER_UE) {
-      OAILOG_ERROR_UE(
-          LOG_NAS_ESM, ue_context_p->emm_context._imsi64,
-          "ESM-PROC  - No PDN connection found (pti=%d) for ue "
-          "id " MME_UE_S1AP_ID_FMT "\n",
-          pti, ue_id);
+      OAILOG_ERROR_UE(LOG_NAS_ESM, ue_context_p->emm_context._imsi64,
+                      "ESM-PROC  - No PDN connection found (pti=%d) for ue "
+                      "id " MME_UE_S1AP_ID_FMT "\n",
+                      pti, ue_id);
       *esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
     }
@@ -154,17 +153,17 @@ status_code_e esm_proc_pdn_disconnect_request(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_proc_pdn_disconnect_accept(
-    emm_context_t* emm_context, pdn_cid_t pid, esm_cause_t* esm_cause) {
+status_code_e esm_proc_pdn_disconnect_accept(emm_context_t* emm_context,
+                                             pdn_cid_t pid,
+                                             esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
-  OAILOG_INFO_UE(
-      LOG_NAS_ESM, emm_context->_imsi64,
-      "ESM-PROC  - PDN disconnect accepted by the UE "
-      "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d)\n",
-      ue_id, pid);
+  OAILOG_INFO_UE(LOG_NAS_ESM, emm_context->_imsi64,
+                 "ESM-PROC  - PDN disconnect accepted by the UE "
+                 "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d)\n",
+                 ue_id, pid);
   /*
    * Release the connectivity with the requested PDN
    */
@@ -210,9 +209,10 @@ status_code_e esm_proc_pdn_disconnect_accept(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_proc_pdn_disconnect_reject(
-    const bool is_standalone, emm_context_t* emm_context, ebi_t ebi,
-    STOLEN_REF bstring* msg, const bool ue_triggered) {
+status_code_e esm_proc_pdn_disconnect_reject(const bool is_standalone,
+                                             emm_context_t* emm_context,
+                                             ebi_t ebi, STOLEN_REF bstring* msg,
+                                             const bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
   emm_sap_t emm_sap = {0};
@@ -220,19 +220,18 @@ status_code_e esm_proc_pdn_disconnect_reject(
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
 
-  OAILOG_WARNING_UE(
-      LOG_NAS_ESM, emm_context->_imsi64,
-      "ESM-PROC  - PDN disconnect not accepted by the network "
-      "(ue_id=" MME_UE_S1AP_ID_FMT ")\n",
-      ue_id);
+  OAILOG_WARNING_UE(LOG_NAS_ESM, emm_context->_imsi64,
+                    "ESM-PROC  - PDN disconnect not accepted by the network "
+                    "(ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+                    ue_id);
   /*
    * Notity EMM that ESM PDU has to be forwarded to lower layers
    */
-  emm_sap.primitive            = EMMESM_UNITDATA_REQ;
-  emm_sap.u.emm_esm.ue_id      = ue_id;
-  emm_sap.u.emm_esm.ctx        = emm_context;
+  emm_sap.primitive = EMMESM_UNITDATA_REQ;
+  emm_sap.u.emm_esm.ue_id = ue_id;
+  emm_sap.u.emm_esm.ctx = emm_context;
   emm_sap.u.emm_esm.u.data.msg = *msg;
-  rc                           = emm_sap_send(&emm_sap);
+  rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
 
@@ -270,8 +269,8 @@ status_code_e esm_proc_pdn_disconnect_reject(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static pdn_cid_t pdn_disconnect_get_pid(
-    emm_context_t* emm_context, proc_tid_t pti) {
+static pdn_cid_t pdn_disconnect_get_pid(emm_context_t* emm_context,
+                                        proc_tid_t pti) {
   pdn_cid_t i = MAX_APN_PER_UE;
 
   if (emm_context) {

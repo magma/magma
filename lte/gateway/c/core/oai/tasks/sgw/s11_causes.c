@@ -68,8 +68,8 @@ static const SGWCauseMapping_t causes[] = {
 };
 
 static int compare_cause_id(const void* m1, const void* m2) {
-  struct SGWCauseMapping_e* scm1 = (struct SGWCauseMapping_e*) m1;
-  struct SGWCauseMapping_e* scm2 = (struct SGWCauseMapping_e*) m2;
+  struct SGWCauseMapping_e* scm1 = (struct SGWCauseMapping_e*)m1;
+  struct SGWCauseMapping_e* scm2 = (struct SGWCauseMapping_e*)m2;
 
   return (scm1->value - scm2->value);
 }
@@ -78,9 +78,8 @@ char* sgw_cause_2_string(uint8_t cause_value) {
   SGWCauseMapping_t *res, key;
 
   key.value = cause_value;
-  res       = bsearch(
-      &key, causes, sizeof(causes), sizeof(SGWCauseMapping_t),
-      compare_cause_id);
+  res = bsearch(&key, causes, sizeof(causes), sizeof(SGWCauseMapping_t),
+                compare_cause_id);
 
   if (res == NULL) {
     return "Unknown cause";

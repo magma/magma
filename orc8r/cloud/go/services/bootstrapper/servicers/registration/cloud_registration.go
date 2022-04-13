@@ -26,23 +26,21 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
-// NotImplementedWarning is pulled out of getDomainName for ease of testing
-const NotImplementedWarning = "warning: not implemented"
-
 type cloudRegistrationServicer struct {
-	store   Store
-	rootCA  string
-	timeout time.Duration
+	store      Store
+	domainName string
+	rootCA     string
+	timeout    time.Duration
 	// refreshOnRequest is whether we will refresh while token is valid regardless of the request's refresh
 	// This should only be false while testing code
 	refreshOnRequest bool
 }
 
-func NewCloudRegistrationServicer(store Store, rootCA string, timeout time.Duration, refreshOnRequest bool) (protos.CloudRegistrationServer, error) {
+func NewCloudRegistrationServicer(store Store, rootCA string, domainName string, timeout time.Duration, refreshOnRequest bool) (protos.CloudRegistrationServer, error) {
 	if store == nil {
 		return nil, fmt.Errorf("storage store is nil")
 	}
-	return &cloudRegistrationServicer{store: store, rootCA: rootCA, timeout: timeout, refreshOnRequest: refreshOnRequest}, nil
+	return &cloudRegistrationServicer{store: store, rootCA: rootCA, domainName: domainName, timeout: timeout, refreshOnRequest: refreshOnRequest}, nil
 }
 
 func (c *cloudRegistrationServicer) GetToken(ctx context.Context, request *protos.GetTokenRequest) (*protos.GetTokenResponse, error) {
@@ -70,10 +68,9 @@ func (c *cloudRegistrationServicer) GetToken(ctx context.Context, request *proto
 }
 
 func (c *cloudRegistrationServicer) GetGatewayRegistrationInfo(ctx context.Context, request *protos.GetGatewayRegistrationInfoRequest) (*protos.GetGatewayRegistrationInfoResponse, error) {
-	domainName := getDomainName()
 	res := &protos.GetGatewayRegistrationInfoResponse{
 		RootCa:     c.rootCA,
-		DomainName: domainName,
+		DomainName: c.domainName,
 	}
 	return res, nil
 }
@@ -137,9 +134,4 @@ func (c *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string, l
 	}
 
 	return tokenInfo, nil
-}
-
-// TODO(#10437)
-func getDomainName() string {
-	return NotImplementedWarning
 }

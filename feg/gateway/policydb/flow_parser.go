@@ -15,6 +15,7 @@ package policydb
 
 import (
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -168,13 +169,13 @@ func parseAddress(addr string) (*address, error) {
 		return &address{ip: ipAddr, version: version, port: 0}, nil
 	}
 
-	// Don't support port ranges for now
-	portInt, err := strconv.Atoi(matches[1])
+	portInt, err := strconv.ParseUint(matches[1], 10, 32)
 	if err != nil {
 		return nil, err
 	}
-	if portInt < 0 || portInt > 4294967295 {
-		return nil, fmt.Errorf("Number %d is outside the boundaries of unit32 type", portInt)
+	if portInt > math.MaxUint32 {
+		return nil, fmt.Errorf("number %d is outside the boundaries of unit32 type", portInt)
 	}
+
 	return &address{ip: ipAddr, version: version, port: uint32(portInt)}, nil
 }

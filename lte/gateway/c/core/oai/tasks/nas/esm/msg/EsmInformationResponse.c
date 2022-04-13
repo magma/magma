@@ -18,17 +18,17 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmInformationResponse.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 int decode_esm_information_response(
     esm_information_response_msg* esm_information_response, uint8_t* buffer,
     uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
@@ -92,7 +92,7 @@ int encode_esm_information_response(
     esm_information_response_msg* esm_information_response, uint8_t* buffer,
     uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int encoded       = 0;
+  int encoded = 0;
   int encode_result = 0;
 
   /*

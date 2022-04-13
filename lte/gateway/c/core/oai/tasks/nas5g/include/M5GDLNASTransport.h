@@ -37,10 +37,10 @@ class DLNASTransportMsg {
 
   DLNASTransportMsg();
   ~DLNASTransportMsg();
-  int DecodeDLNASTransportMsg(
-      DLNASTransportMsg* dl_nas_transport, uint8_t* buffer, uint32_t len);
-  int EncodeDLNASTransportMsg(
-      DLNASTransportMsg* dl_nas_transport, uint8_t* buffer, uint32_t len);
+  int DecodeDLNASTransportMsg(DLNASTransportMsg* dl_nas_transport,
+                              uint8_t* buffer, uint32_t len);
+  int EncodeDLNASTransportMsg(DLNASTransportMsg* dl_nas_transport,
+                              uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

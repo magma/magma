@@ -29,11 +29,11 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #endif
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/s1ap_state.h"
 #include "lte/gateway/c/core/oai/include/s1ap_types.h"
 
-#define S1AP_ZMQ_LATENCY_TH                                                    \
+#define S1AP_ZMQ_LATENCY_TH \
   s1ap_zmq_th  // absolute threshold to be used for initial UE messages
 
 extern bool hss_associated;
@@ -47,17 +47,6 @@ status_code_e s1ap_mme_init(const mme_config_t* mme_config);
  **/
 void s1ap_mme_exit(void);
 
-/** \brief Dump eNB related information.
- * Calls dump_ue for each UE in list
- * \param enb_ref eNB structure reference to dump
- **/
-void s1ap_dump_enb(const enb_description_t* enb_ref);
-
-/** \brief Dump UE related information.
- * \param ue_ref ue structure reference to dump
- **/
-void s1ap_dump_ue(const ue_description_t* ue_ref);
-
 /** \brief Allocate and add to the list a new eNB descriptor
  * @returns Reference to the new eNB element in list
  **/
@@ -68,9 +57,9 @@ enb_description_t* s1ap_new_enb(void);
  * \param enb_ue_s1ap_id ue ID over S1AP
  * @returns Reference to the new UE element in list
  **/
-ue_description_t* s1ap_new_ue(
-    s1ap_state_t* state, sctp_assoc_id_t sctp_assoc_id,
-    enb_ue_s1ap_id_t enb_ue_s1ap_id);
+ue_description_t* s1ap_new_ue(s1ap_state_t* state,
+                              sctp_assoc_id_t sctp_assoc_id,
+                              enb_ue_s1ap_id_t enb_ue_s1ap_id);
 
 /** \brief Remove target UE from the list
  * \param ue_ref UE structure reference to remove

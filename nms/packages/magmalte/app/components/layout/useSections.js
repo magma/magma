@@ -14,13 +14,18 @@
  * @format
  */
 import type {NetworkContextType} from '../context/NetworkContext';
-import type {NetworkType} from '@fbcnms/types/network';
+import type {NetworkType} from '../../../fbc_js_core/types/network';
 import type {SectionsConfigs} from '../layout/Section';
 
-import AppContext from '@fbcnms/ui/context/AppContext';
+import AppContext from '../../../fbc_js_core/ui/context/AppContext';
 import MagmaV1API from '../../../generated/WebClient';
 import NetworkContext from '../context/NetworkContext';
-import {CWF, FEG, LTE, coalesceNetworkType} from '@fbcnms/types/network';
+import {
+  CWF,
+  FEG,
+  LTE,
+  coalesceNetworkType,
+} from '../../../fbc_js_core/types/network';
 
 import {getCWFSections} from '../cwf/CWFSections';
 import {getFEGSections} from '../feg/FEGSections';

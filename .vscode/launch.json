@@ -4,8 +4,8 @@
         {
             "type": "by-gdb",
             "request": "launch",
-            "name": "(Bazel) Run SessionD test with GDB",
-            "program": "${workspaceFolder}/bazel-bin/lte/gateway/c/session_manager/test/${input:pickSessionDUnitTest}",
+            "name": "(Bazel) Run C/C++ test with GDB",
+            "program": "${workspaceFolder}/bazel-bin/${input:pickCcTest}",
             "cwd": "${workspaceRoot}",
             "commandsBeforeExec": [
                 "enable pretty-printer"
@@ -14,12 +14,16 @@
     ],
     "inputs": [
         {
-            "id": "pickSessionDUnitTest",
+            "id": "pickCcTest",
             "type": "command",
             "command": "shellCommand.execute",
             "args": {
-                // Use bazel query to find all test targets. This will automatically pick up any new tests added.
-                "command": "bazel query 'tests(//lte/gateway/c/session_manager/test/...)' | cut -d ':' -f2",
+                "description": "Pick a Bazel cc_test target",
+                // Use bazel query to find all test targets. This will automatically pick up any new cc_test added
+                // We need to massage the query output to get the output path
+                // 1. remove the initial // (ex: //orc8r/gateway/c/common/config/test:yaml_utils_test -> orc8r/gateway/c/common/config/test:yaml_utils_test)
+                // 2. replace : -> / (ex: orc8r/gateway/c/common/config/test:yaml_utils_test -> orc8r/gateway/c/common/config/test/yaml_utils_test)
+                "command": "bazel query \"kind('cc_test', //...)\" --output=label | sed 's/\\/\\///' | sed 's/:/\\//'",
             },
         }
     ]

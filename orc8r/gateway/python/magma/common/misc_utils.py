@@ -159,7 +159,7 @@ def get_ip_from_if(iface_name, preference=IpPreference.IPV4_PREFERRED):
 def get_ipv6_from_if(iface_name):
     """
     Get ipv6 address from interface name and return as string.
-    Extract only ipv6 address from (ipv6, netmask)
+    Extract only ipv6 address
     """
     ip6_addresses = netifaces.ifaddresses(iface_name)[netifaces.AF_INET6]
     ret = None
@@ -173,6 +173,21 @@ def get_ipv6_from_if(iface_name):
     if ret:
         return ret["addr"].split("%")[0]
     return "::"
+
+
+def get_link_local_ipv6_from_if(iface_name):
+    """
+    Get Link local ipv6 address from interface name and return as string.
+    """
+    ip6_addresses = netifaces.ifaddresses(iface_name)[netifaces.AF_INET6]
+    for ip_rec in ip6_addresses:
+        if "addr" in ip_rec:
+            ip = ip_rec["addr"].split("%")[0]
+            # lower priority of link local address.
+            if ip.startswith('fe80'):
+                return ip
+
+    return None
 
 
 def get_all_ips_from_if(iface_name, preference=IpPreference.IPV4_PREFERRED):
@@ -270,8 +285,8 @@ def call_process(cmd, callback, loop):
     loop = loop or asyncio.get_event_loop()
     loop.create_task(
         loop.subprocess_shell(
-        lambda: SubprocessProtocol(callback), "nohup " + cmd,
-        preexec_fn=os.setsid,
+            lambda: SubprocessProtocol(callback), "nohup " + cmd,
+            preexec_fn=os.setsid,
         ),
     )
 

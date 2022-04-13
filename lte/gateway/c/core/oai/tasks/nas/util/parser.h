@@ -34,7 +34,7 @@ Description Usefull command line parser
 #ifndef FILE_PARSER_SEEN
 #define FILE_PARSER_SEEN
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -81,7 +81,7 @@ typedef struct {
 /****************************************************************************/
 
 void parser_print_usage(const parser_command_line_t* commamd_line);
-status_code_e parser_get_options(
-    int argc, const char** argv, parser_command_line_t* commamd_line);
+status_code_e parser_get_options(int argc, const char** argv,
+                                 parser_command_line_t* commamd_line);
 
 #endif /* FILE_PARSER_SEEN*/

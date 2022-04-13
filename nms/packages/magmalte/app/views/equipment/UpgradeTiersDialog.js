@@ -32,7 +32,7 @@ import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../../fbc_js_core/ui/components/design-system/Text';
 import {AutoCompleteEditComponent} from '../../components/ActionTable';
 
 import {colors, typography} from '../../theme/default';

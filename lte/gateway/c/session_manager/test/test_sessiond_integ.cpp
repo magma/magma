@@ -424,7 +424,8 @@ TEST_F(SessiondTest, end_to_end_success) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(IMSI1, ipv4_addrs, "rule1", 512, 512, record_list->Add());
-  create_rule_record(IMSI1, ipv6_addrs, "rule2", 512, 0, record_list->Add());
+  create_rule_record_ipv6(IMSI1, ipv6_addrs, "rule2", 512, 0,
+                          record_list->Add());
   create_rule_record(IMSI1, ipv4_addrs, "rule3", 32, 32, record_list->Add());
   send_update_pipelined_table(stub, table);
 
@@ -571,13 +572,4 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
   set_timeout(5000, end_promise);
   end_promise->get_future().get();
 }
-
-int main(int argc, char** argv) {
-  google::InitGoogleLogging(argv[0]);
-  FLAGS_logtostderr = 1;
-  FLAGS_v = 10;
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

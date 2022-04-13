@@ -32,7 +32,7 @@ class TestAttachDetachDedicatedLooped(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach(self):
+    def test_attach_detach_dedicated_looped(self):
         """attach/detach + dedicated bearer test in loop with a single UE"""
         num_ues = 1
         loop = 3

@@ -22,4 +22,5 @@ const (
 	AlertmanagerApiURL           = "alertmanagerApiURL"
 
 	UseSeriesCache = "useSeriesCache"
+	ServiceName    = "metricsd"
 )

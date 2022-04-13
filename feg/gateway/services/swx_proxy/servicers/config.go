@@ -58,9 +58,12 @@ func GetSwxProxyConfig() []*SwxProxyConfig {
 		return []*SwxProxyConfig{
 			{
 				ClientCfg: &diameter.DiameterClientConfig{
-					Host:        diameter.GetValueOrEnv(diameter.HostFlag, SwxDiamHostEnv, DefaultSwxDiamHost),
-					Realm:       diameter.GetValueOrEnv(diameter.RealmFlag, SwxDiamRealmEnv, DefaultSwxDiamRealm),
-					ProductName: diameter.GetValueOrEnv(diameter.ProductFlag, SwxDiamProductEnv, diameter.DiamProductName),
+					Host:             diameter.GetValueOrEnv(diameter.HostFlag, SwxDiamHostEnv, DefaultSwxDiamHost),
+					Realm:            diameter.GetValueOrEnv(diameter.RealmFlag, SwxDiamRealmEnv, DefaultSwxDiamRealm),
+					ProductName:      diameter.GetValueOrEnv(diameter.ProductFlag, SwxDiamProductEnv, diameter.DiamProductName),
+					WatchdogInterval: diameter.DefaultWatchdogIntervalSeconds,
+					Retransmits:      uint(10),
+					RetryCount:       uint(5),
 				},
 				ServerCfg: &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 					Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, ""),
@@ -88,22 +91,11 @@ func GetSwxProxyConfig() []*SwxProxyConfig {
 	if ttl < uint32(cache.DefaultGcInterval.Seconds()) {
 		ttl = uint32(cache.DefaultTtl.Seconds())
 	}
+
 	swxConfigs := configsPtr.GetServers()
-
-	//TODO: remove this once backwards compatibility is not needed for the field server
-	if len(swxConfigs) == 0 {
-		server := configsPtr.GetServer()
-		if server == nil {
-			glog.V(2).Infof("Server configuration for Swx servers not found!!")
-		} else {
-			swxConfigs = append(swxConfigs, server)
-			glog.V(2).Infof("Swx Server configuration using legacy swagger attribute Server (not Servers)")
-		}
-	}
-
-	// Iterate over the slice of servers. VarEnv will apply only to index 0
-	diamServerConfigs := []*SwxProxyConfig{}
+	var diamServerConfigs []*SwxProxyConfig
 	for i, swxConfig := range swxConfigs {
+		// Iterate over the slice of servers. VarEnv will apply only to index 0
 		diamSrvCfg := &SwxProxyConfig{
 			ClientCfg: &diameter.DiameterClientConfig{
 				Host:             diameter.GetValueOrEnv(diameter.HostFlag, SwxDiamHostEnv, swxConfig.GetHost(), i),

@@ -19,8 +19,8 @@ void get_pco_from_proto_msg(
     const magma::feg::ProtocolConfigurationOptions& proto_pco,
     protocol_configuration_options_t* s8_pco);
 
-void get_qos_from_proto_msg(
-    const magma::feg::QosInformation& proto_qos, bearer_qos_t* bearer_qos);
+void get_qos_from_proto_msg(const magma::feg::QosInformation& proto_qos,
+                            bearer_qos_t* bearer_qos);
 
-void get_fteid_from_proto_msg(
-    const magma::feg::Fteid& proto_fteid, fteid_t* pgw_fteid);
+void get_fteid_from_proto_msg(const magma::feg::Fteid& proto_fteid,
+                              fteid_t* pgw_fteid);

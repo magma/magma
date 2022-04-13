@@ -1,4 +1,4 @@
-# Copyright 2021 The Magma Authors.
+# Copyright 2022 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
@@ -25,10 +25,8 @@ cc_library(
         "hashtable.h",
         "obj_hashtable.h",
     ],
-    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
-    strip_include_prefix = "/lte/gateway/c/core/oai/lib/hashtable",
     deps = [
-        "//lte/gateway/c/core/oai/common:dynamic_memory_check",
+        "//lte/gateway/c/core/common:dynamic_memory_check",
         "//lte/gateway/c/core/oai/lib/bstr:bstrlib",
     ],
 )

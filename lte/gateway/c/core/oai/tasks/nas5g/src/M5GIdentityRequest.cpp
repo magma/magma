@@ -10,6 +10,13 @@
  */
 
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GIdentityRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -20,14 +27,13 @@ IdentityRequestMsg::~IdentityRequestMsg(){};
 // Decode IdentityRequest Message and its IEs
 int IdentityRequestMsg::DecodeIdentityRequestMsg(
     IdentityRequestMsg* identity_request, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Checking Pointer
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, IDENTITY_REQUEST_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, IDENTITY_REQUEST_MINIMUM_LENGTH,
+                                       len);
 
-  MLOG(MDEBUG) << "DecodeIdentityRequestMsg : \n";
   if ((decoded_result =
            identity_request->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
@@ -79,13 +85,12 @@ int IdentityRequestMsg::EncodeIdentityRequestMsg(
     IdentityRequestMsg* identity_request, uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
-  MLOG(MDEBUG) << "EncodeIdentityRequestMsg:";
   int encoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
   // expected for the message.
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, IDENTITY_REQUEST_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, IDENTITY_REQUEST_MINIMUM_LENGTH,
+                                       len);
 
   if ((encoded_result =
            identity_request->extended_protocol_discriminator

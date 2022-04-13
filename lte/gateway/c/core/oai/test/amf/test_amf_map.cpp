@@ -31,48 +31,39 @@ TEST(test_map, test_map) {
   uint64_t gutiData;
 
   state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.set_name("IMSI HASHTABLE");
-  EXPECT_EQ(
-      state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.get_name(),
-      "IMSI HASHTABLE");
+  EXPECT_EQ(state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.get_name(),
+            "IMSI HASHTABLE");
 
   // Trying to get from an empty map
-  EXPECT_EQ(
-      state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.get(2, &data),
-      magma::MAP_EMPTY);
+  EXPECT_EQ(state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.get(2, &data),
+            magma::MAP_EMPTY);
 
   // Inserting new <key,value> pair
-  EXPECT_EQ(
-      state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.insert(1, 10),
-      magma::MAP_OK);
-  EXPECT_EQ(
-      state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.insert(2, 20),
-      magma::MAP_OK);
+  EXPECT_EQ(state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.insert(1, 10),
+            magma::MAP_OK);
+  EXPECT_EQ(state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.insert(2, 20),
+            magma::MAP_OK);
 
   // Inserting already existing key.Expected: failure.
-  EXPECT_EQ(
-      state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.insert(1, 20),
-      magma::MAP_KEY_ALREADY_EXISTS);
+  EXPECT_EQ(state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.insert(1, 20),
+            magma::MAP_KEY_ALREADY_EXISTS);
 
   // //Getting data from map
-  EXPECT_EQ(
-      state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.get(1, &data),
-      magma::MAP_OK);
+  EXPECT_EQ(state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.get(1, &data),
+            magma::MAP_OK);
   EXPECT_EQ(data, 10);
 
   // Getting with invalid key
-  EXPECT_EQ(
-      state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.get(5, &data),
-      magma::MAP_KEY_NOT_EXISTS);
+  EXPECT_EQ(state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.get(5, &data),
+            magma::MAP_KEY_NOT_EXISTS);
 
   // Removing entry from table
-  EXPECT_EQ(
-      state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.remove(1),
-      magma::MAP_OK);
+  EXPECT_EQ(state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.remove(1),
+            magma::MAP_OK);
 
   // Trying to remove from invalid key
-  EXPECT_EQ(
-      state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.remove(5),
-      magma::MAP_KEY_NOT_EXISTS);
+  EXPECT_EQ(state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.remove(5),
+            magma::MAP_KEY_NOT_EXISTS);
   // Test for clear() and isEmpty()
   state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.clear();
   EXPECT_TRUE(state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.isEmpty());
@@ -89,26 +80,23 @@ TEST(test_map, test_map) {
       state_cache_p->amf_ue_contexts.guti_ue_context_htbl.insert(guti_2, 200),
       magma::MAP_OK);
 
-  EXPECT_EQ(
-      state_cache_p->amf_ue_contexts.guti_ue_context_htbl.get(
-          guti_1, &gutiData),
-      magma::MAP_OK);
+  EXPECT_EQ(state_cache_p->amf_ue_contexts.guti_ue_context_htbl.get(guti_1,
+                                                                    &gutiData),
+            magma::MAP_OK);
   EXPECT_EQ(gutiData, 100);
 
-  EXPECT_EQ(
-      state_cache_p->amf_ue_contexts.guti_ue_context_htbl.remove(guti_1),
-      magma::MAP_OK);
-  EXPECT_EQ(
-      state_cache_p->amf_ue_contexts.guti_ue_context_htbl.get(
-          guti_1, &gutiData),
-      magma::MAP_KEY_NOT_EXISTS);
+  EXPECT_EQ(state_cache_p->amf_ue_contexts.guti_ue_context_htbl.remove(guti_1),
+            magma::MAP_OK);
+  EXPECT_EQ(state_cache_p->amf_ue_contexts.guti_ue_context_htbl.get(guti_1,
+                                                                    &gutiData),
+            magma::MAP_KEY_NOT_EXISTS);
 
   delete state_cache_p;
 }
 
 TEST(test_map, test_amf_state_ue_ht) {
   // Initializations for Map: Key-uint64_t Data-void*
-  amf_ue_ngap_id_t ue_id         = 1;
+  amf_ue_ngap_id_t ue_id = 1;
   ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
   map_uint64_ue_context_t state_ue_ht;
 

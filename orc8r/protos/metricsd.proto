@@ -244,6 +244,9 @@ service MetricsController {
   // Report a collection of metrics from a service
   rpc Collect(MetricsContainer) returns (Void) {}
 
+}
+
+service CloudMetricsController {
   // Push a collection of metrics to metricsd
   rpc Push(PushedMetricsContainer) returns (Void) {}
 }

@@ -54,8 +54,8 @@ extern "C" int match_fed_mode_map(const char* imsi, log_proto_t module) {
   OAILOG_INFO_UE(
       module, imsi64,
       "PLMN is not configured. Selecting default mode: SPGW_SUBSCRIBER \n");
-  OAILOG_FUNC_RETURN(
-      module, magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER);
+  OAILOG_FUNC_RETURN(module,
+                     magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER);
 }
 
 // Verify that tac is included in registered subscription areas
@@ -66,7 +66,7 @@ extern "C" int verify_service_area_restriction(
   for (uint8_t itr = 0; itr < num_reg_sub; itr++) {
     hashtable_rc_t htbl = obj_hashtable_get(
         mme_config.sac_to_tacs_map.sac_to_tacs_map_htbl, reg_sub[itr].zone_code,
-        ZONE_CODE_LEN, (void**) &tac_list);
+        ZONE_CODE_LEN, (void**)&tac_list);
     if (htbl == HASH_TABLE_OK) {
       for (uint8_t idx = 0; idx < tac_list->num_tac_entries; idx++) {
         if (tac_list->tacs[idx] == tac) {

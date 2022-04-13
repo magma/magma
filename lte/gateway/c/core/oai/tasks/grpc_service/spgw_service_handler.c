@@ -34,7 +34,7 @@ int send_activate_bearer_request_itti(
       TASK_GRPC_SERVICE, GX_NW_INITIATED_ACTIVATE_BEARER_REQ);
   message_p->ittiMsg.gx_nw_init_actv_bearer_request = *itti_msg;
 
-  IMSI_STRING_TO_IMSI64((char*) itti_msg->imsi, &message_p->ittiMsgHeader.imsi);
+  IMSI_STRING_TO_IMSI64((char*)itti_msg->imsi, &message_p->ittiMsgHeader.imsi);
 
   return send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
 }
@@ -46,7 +46,7 @@ int send_deactivate_bearer_request_itti(
       TASK_GRPC_SERVICE, GX_NW_INITIATED_DEACTIVATE_BEARER_REQ);
   message_p->ittiMsg.gx_nw_init_deactv_bearer_request = *itti_msg;
 
-  IMSI_STRING_TO_IMSI64((char*) itti_msg->imsi, &message_p->ittiMsgHeader.imsi);
+  IMSI_STRING_TO_IMSI64((char*)itti_msg->imsi, &message_p->ittiMsgHeader.imsi);
 
   return send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
 }

@@ -64,10 +64,9 @@ void mme_app_send_delete_session_request(
     const pdn_cid_t cid, const bool no_delete_gtpv2c_tunnel) {
   MessageDef* message_p = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
-  OAILOG_INFO_UE(
-      LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "Handle Delete session request for mme_s11_teid :%d\n",
-      ue_context_p->mme_teid_s11);
+  OAILOG_INFO_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
+                 "Handle Delete session request for mme_s11_teid :%d\n",
+                 ue_context_p->mme_teid_s11);
   message_p = itti_alloc_new_message(TASK_MME_APP, S11_DELETE_SESSION_REQUEST);
   if (message_p == NULL) {
     OAILOG_ERROR(
@@ -85,14 +84,14 @@ void mme_app_send_delete_session_request(
   S11_DELETE_SESSION_REQUEST(message_p).teid =
       ue_context_p->pdn_contexts[cid]->s_gw_teid_s11_s4;
   S11_DELETE_SESSION_REQUEST(message_p).noDelete = no_delete_gtpv2c_tunnel;
-  S11_DELETE_SESSION_REQUEST(message_p).lbi      = ebi;  // default bearer
+  S11_DELETE_SESSION_REQUEST(message_p).lbi = ebi;  // default bearer
   S11_DELETE_SESSION_REQUEST(message_p).edns_peer_ip.addr_v4.sin_addr =
       ue_context_p->pdn_contexts[cid]->s_gw_address_s11_s4.address.ipv4_address;
   S11_DELETE_SESSION_REQUEST(message_p).edns_peer_ip.addr_v4.sin_family =
       AF_INET;
   OAI_GCC_DIAG_OFF("-Wpointer-to-int-cast");
   S11_DELETE_SESSION_REQUEST(message_p).sender_fteid_for_cp.teid =
-      (teid_t) ue_context_p->mme_teid_s11;
+      (teid_t)ue_context_p->mme_teid_s11;
   OAI_GCC_DIAG_ON("-Wpointer-to-int-cast");
   S11_DELETE_SESSION_REQUEST(message_p).sender_fteid_for_cp.interface_type =
       S11_MME_GTP_C;
@@ -101,7 +100,7 @@ void mme_app_send_delete_session_request(
       mme_config.ip.s11_mme_v4;
   mme_config_unlock(&mme_config);
   S11_DELETE_SESSION_REQUEST(message_p).sender_fteid_for_cp.ipv4 = 1;
-  S11_DELETE_SESSION_REQUEST(message_p).indication_flags.oi      = 1;
+  S11_DELETE_SESSION_REQUEST(message_p).indication_flags.oi = 1;
 
   /*
    * S11 stack specific parameter. Not used in standalone epc mode
@@ -123,16 +122,16 @@ void mme_app_send_delete_session_request(
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
   if (ue_context_p->pdn_contexts[cid]->route_s11_messages_to_s8_task) {
-    OAILOG_INFO_UE(
-        LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Send delete session Req for teid to sgw_s8 task " TEID_FMT "\n",
-        ue_context_p->mme_teid_s11);
+    OAILOG_INFO_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
+                   "Send delete session Req for teid to sgw_s8 task " TEID_FMT
+                   "\n",
+                   ue_context_p->mme_teid_s11);
     send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGW_S8, message_p);
   } else {
-    OAILOG_INFO_UE(
-        LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Send delete session Req for teid to spgw task " TEID_FMT "\n",
-        ue_context_p->mme_teid_s11);
+    OAILOG_INFO_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
+                   "Send delete session Req for teid to spgw task " TEID_FMT
+                   "\n",
+                   ue_context_p->mme_teid_s11);
     send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
   }
 
@@ -146,15 +145,14 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "UE context doesn't exist -> Nothing to do :-) \n");
+    OAILOG_ERROR(LOG_MME_APP,
+                 "UE context doesn't exist -> Nothing to do :-) \n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  OAILOG_INFO(
-      LOG_MME_APP,
-      "Handle Detach Req at MME app for ue-id: " MME_UE_S1AP_ID_FMT
-      " with mme_s11_teid " TEID_FMT "\n",
-      ue_id, ue_context_p->mme_teid_s11);
+  OAILOG_INFO(LOG_MME_APP,
+              "Handle Detach Req at MME app for ue-id: " MME_UE_S1AP_ID_FMT
+              " with mme_s11_teid " TEID_FMT "\n",
+              ue_id, ue_context_p->mme_teid_s11);
   if (!ue_context_p->nb_active_pdn_contexts) {
     /* No Session.
      * If UE is already in idle state, skip asking eNB to release UE context and
@@ -175,8 +173,8 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
     if (ECM_IDLE == ue_context_p->ecm_state) {
       ue_context_p->ue_context_rel_cause = S1AP_IMPLICIT_CONTEXT_RELEASE;
       // Notify S1AP to release S1AP UE context locally.
-      mme_app_itti_ue_context_release(
-          ue_context_p, ue_context_p->ue_context_rel_cause);
+      mme_app_itti_ue_context_release(ue_context_p,
+                                      ue_context_p->ue_context_rel_cause);
       // Send PUR,before removal of ue contexts
       if ((ue_context_p->send_ue_purge_request == true) &&
           (ue_context_p->hss_initiated_detach == false)) {
@@ -188,8 +186,8 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
         ue_context_p->ue_context_rel_cause = S1AP_NAS_DETACH;
       }
       // Notify S1AP to send UE Context Release Command to eNB.
-      mme_app_itti_ue_context_release(
-          ue_context_p, ue_context_p->ue_context_rel_cause);
+      mme_app_itti_ue_context_release(ue_context_p,
+                                      ue_context_p->ue_context_rel_cause);
       if (ue_context_p->ue_context_rel_cause == S1AP_SCTP_SHUTDOWN_OR_RESET) {
         // Send PUR,before removal of ue contexts
         if ((ue_context_p->send_ue_purge_request == true) &&
@@ -234,12 +232,12 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
  **          Return:    RETURNok, RETURNerror                               **
  **                                                                         **
  ******************************************************************************/
-status_code_e mme_app_handle_nw_initiated_detach_request(
-    mme_ue_s1ap_id_t ue_id, uint8_t detach_type) {
+status_code_e mme_app_handle_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
+                                                         uint8_t detach_type) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   emm_cn_nw_initiated_detach_ue_t emm_cn_nw_initiated_detach = {0};
 
-  emm_cn_nw_initiated_detach.ue_id       = ue_id;
+  emm_cn_nw_initiated_detach.ue_id = ue_id;
   emm_cn_nw_initiated_detach.detach_type = detach_type;
 
   int ret =

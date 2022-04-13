@@ -27,6 +27,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S6A_CANCEL_LOCATION_REQ: {
+      mme_app_handler_->mme_app_handle_s6a_cancel_location_req();
     } break;
 
     case MME_APP_UPLINK_DATA_IND: {
@@ -36,6 +37,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S6A_RESET_REQ: {
+      mme_app_handler_->mme_app_handle_s6a_reset_req();
     } break;
 
     case S11_CREATE_SESSION_RESPONSE: {
@@ -80,7 +82,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case S1AP_ENB_INITIATED_RESET_REQ: {
       mme_app_handler_->mme_app_handle_enb_reset_req();
-      free_wrapper((void**) &S1AP_ENB_INITIATED_RESET_REQ(received_message_p)
+      free_wrapper((void**)&S1AP_ENB_INITIATED_RESET_REQ(received_message_p)
                        .ue_to_reset_list);
     } break;
 
@@ -206,7 +208,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       stop_mock_mme_app_task();
     } break;
 
-    default: { } break; }
+    default: {
+    } break;
+  }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);
@@ -222,7 +226,7 @@ void stop_mock_mme_app_task() {
 void start_mock_mme_app_task(
     std::shared_ptr<MockMmeAppHandler> mme_app_handler) {
   mme_app_handler_ = mme_app_handler;
-  init_task_context(
-      TASK_MME_APP, nullptr, 0, handle_message, &task_zmq_ctx_mme);
+  init_task_context(TASK_MME_APP, nullptr, 0, handle_message,
+                    &task_zmq_ctx_mme);
   zloop_start(task_zmq_ctx_mme.event_loop);
 }

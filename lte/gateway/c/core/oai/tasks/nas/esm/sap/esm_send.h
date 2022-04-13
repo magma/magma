@@ -36,22 +36,22 @@ Description Defines functions executed at the ESM Service Access
 #ifndef __ESM_SEND_H__
 #define __ESM_SEND_H__
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmStatus.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnConnectivityReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnDisconnectReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceAllocationReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceModificationReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDefaultEpsBearerContextRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ModifyEpsBearerContextRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/DeactivateEpsBearerContextRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmInformationRequest.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDefaultEpsBearerContextRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceAllocationReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceModificationReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/DeactivateEpsBearerContextRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmInformationRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmStatus.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ModifyEpsBearerContextRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnConnectivityReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnDisconnectReject.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -77,18 +77,20 @@ Description Defines functions executed at the ESM Service Access
 status_code_e esm_send_esm_information_request(
     pti_t pti, ebi_t ebi, esm_information_request_msg* msg);
 
-status_code_e esm_send_status(
-    pti_t pti, ebi_t ebi, esm_status_msg* msg, int esm_cause);
+status_code_e esm_send_status(pti_t pti, ebi_t ebi, esm_status_msg* msg,
+                              int esm_cause);
 
 /*
  * Transaction related messages
  * ----------------------------
  */
-status_code_e esm_send_pdn_connectivity_reject(
-    pti_t pti, pdn_connectivity_reject_msg* msg, int esm_cause);
+status_code_e esm_send_pdn_connectivity_reject(pti_t pti,
+                                               pdn_connectivity_reject_msg* msg,
+                                               int esm_cause);
 
-status_code_e esm_send_pdn_disconnect_reject(
-    pti_t pti, pdn_disconnect_reject_msg* msg, int esm_cause);
+status_code_e esm_send_pdn_disconnect_reject(pti_t pti,
+                                             pdn_disconnect_reject_msg* msg,
+                                             int esm_cause);
 
 /*
  * Messages related to EPS bearer contexts

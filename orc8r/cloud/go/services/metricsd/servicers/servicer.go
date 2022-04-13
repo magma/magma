@@ -40,7 +40,18 @@ func NewMetricsControllerServer() *MetricsControllerServer {
 	return &MetricsControllerServer{}
 }
 
-func (srv *MetricsControllerServer) Push(ctx context.Context, in *protos.PushedMetricsContainer) (*protos.Void, error) {
+// CloudMetricsControllerServer implements a handler to the gRPC server run by the
+// Metrics Controller. It can register instances of the Exporter interface for
+// writing to storage
+type CloudMetricsControllerServer struct {
+	exporters []exporters.Exporter
+}
+
+func NewCloudMetricsControllerServer() *CloudMetricsControllerServer {
+	return &CloudMetricsControllerServer{}
+}
+
+func (srv *CloudMetricsControllerServer) Push(ctx context.Context, in *protos.PushedMetricsContainer) (*protos.Void, error) {
 	if in.Metrics == nil || len(in.Metrics) == 0 {
 		return new(protos.Void), nil
 	}

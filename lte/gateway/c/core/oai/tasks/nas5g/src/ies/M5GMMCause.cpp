@@ -11,6 +11,13 @@
 
 #include <sstream>
 #include <cstdint>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -19,41 +26,33 @@ M5GMMCauseMsg::M5GMMCauseMsg(){};
 M5GMMCauseMsg::~M5GMMCauseMsg(){};
 
 // Decode 5GMMCause IE
-int M5GMMCauseMsg::DecodeM5GMMCauseMsg(
-    M5GMMCauseMsg* m5gmm_cause, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int M5GMMCauseMsg::DecodeM5GMMCauseMsg(M5GMMCauseMsg* m5gmm_cause, uint8_t iei,
+                                       uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
 
   if (iei > 0) {
     m5gmm_cause->iei = *(buffer + decoded);
-    CHECK_IEI_DECODER((unsigned char) iei, m5gmm_cause->iei);
-    MLOG(MDEBUG) << "In DecodeM5GMMCauseMsg: iei = " << std::dec
-                 << int(m5gmm_cause->iei) << std::endl;
+    CHECK_IEI_DECODER((unsigned char)iei, m5gmm_cause->iei);
     decoded++;
   }
 
-  MLOG(MDEBUG) << "   DecodeM5GMMCauseMsg : ";
   m5gmm_cause->m5gmm_cause = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << " CauseValue = " << std::hex << int(m5gmm_cause->m5gmm_cause);
   return (decoded);
 };
 
 // Encode 5GMMCause IE
-int M5GMMCauseMsg::EncodeM5GMMCauseMsg(
-    M5GMMCauseMsg* m5gmm_cause, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int M5GMMCauseMsg::EncodeM5GMMCauseMsg(M5GMMCauseMsg* m5gmm_cause, uint8_t iei,
+                                       uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
   if (iei > 0) {
     *(buffer + encoded) = m5gmm_cause->iei;
-    CHECK_IEI_ENCODER((unsigned char) iei, m5gmm_cause->iei);
-    MLOG(MDEBUG) << "In EncodeM5GMMCauseMsg: iei = " << std::hex
-                 << int(*(buffer + encoded)) << std::endl;
+    CHECK_IEI_ENCODER((unsigned char)iei, m5gmm_cause->iei);
     encoded++;
   }
 
-  MLOG(MDEBUG) << " EncodeM5GMMCauseMsg : ";
   *(buffer + encoded) = m5gmm_cause->m5gmm_cause;
-  MLOG(MDEBUG) << "CauseValue = 0x" << std::hex << int(*(buffer + encoded));
   encoded++;
   return (encoded);
 };

@@ -29,7 +29,7 @@
 #define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT_MINIMUM_LENGTH (0)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT_MAXIMUM_LENGTH            \
+#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT_MAXIMUM_LENGTH \
   (PROTOCOL_CONFIGURATION_OPTIONS_IE_MAX_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding

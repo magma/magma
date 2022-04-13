@@ -113,7 +113,7 @@ variable "eks_worker_groups" {
       asg_min_size         = 1
       asg_max_size         = 3
       autoscaling_enabled  = false
-      kubelet_extra_args = "" // object types must be identical (see thanos_worker_groups)
+      kubelet_extra_args   = "" // object types must be identical (see thanos_worker_groups)
     },
   ]
 }
@@ -135,7 +135,7 @@ variable "thanos_worker_groups" {
       asg_min_size         = 1
       asg_max_size         = 1
       autoscaling_enabled  = false
-      kubelet_extra_args = "--node-labels=compute-type=thanos"
+      kubelet_extra_args   = "--node-labels=compute-type=thanos"
     },
   ]
 
@@ -156,7 +156,7 @@ variable "blue_green_worker_groups" {
       asg_min_size         = 1
       asg_max_size         = 8
       autoscaling_enabled  = false
-      kubelet_extra_args = "" // object types must be identical (see thanos_worker_groups)
+      kubelet_extra_args   = "" // object types must be identical (see thanos_worker_groups)
     },
   ]
 }
@@ -309,10 +309,10 @@ variable "orc8r_db_event_subscription" {
   default     = "orc8r-rds-events"
 }
 
-variable "orc8r_db_apply_immediately"{
+variable "orc8r_db_apply_immediately" {
   description = "Flag to immediately upgrade RDS without waiting for a maintenance window"
-  type = bool
-  default = false
+  type        = bool
+  default     = false
 }
 
 
@@ -429,7 +429,7 @@ variable "orc8r_sns_name" {
   description = "SNS for Orc8r to redirect alerts and notifications"
   type        = string
   default     = "orc8r-sns"
-  }
+}
 
 variable "orc8r_sns_email" {
   description = "SNS email endpoint to send notifications"

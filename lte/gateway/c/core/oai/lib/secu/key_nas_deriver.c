@@ -35,10 +35,9 @@
    @param[out] knas Pointer to reference where output of KDF will be stored.
    NOTE: knas is dynamically allocated by the KDF function
 */
-int derive_key_nas(
-    algorithm_type_dist_t nas_alg_type, uint8_t nas_enc_alg_id,
-    const uint8_t* kasme_32, uint8_t* knas) {
-  uint8_t s[7]    = {0};
+int derive_key_nas(algorithm_type_dist_t nas_alg_type, uint8_t nas_enc_alg_id,
+                   const uint8_t* kasme_32, uint8_t* knas) {
+  uint8_t s[7] = {0};
   uint8_t out[32] = {0};
 
   /*
@@ -73,7 +72,7 @@ int derive_key_nas(
 }
 
 int derive_5gkey_gnb(const uint8_t* kamf, uint32_t ul_count, uint8_t* kgnb) {
-  uint8_t s[10]   = {0};
+  uint8_t s[10] = {0};
   uint8_t out[32] = {0};
 
   /*
@@ -107,12 +106,11 @@ int derive_5gkey_gnb(const uint8_t* kamf, uint32_t ul_count, uint8_t* kgnb) {
   return 0;
 }
 
-int derive_5gkey_amf(
-    const uint8_t* imsi, uint8_t imsi_length, const uint8_t* kseaf,
-    uint8_t* kamf) {
-  uint8_t s[22]   = {0};
+int derive_5gkey_amf(const uint8_t* imsi, uint8_t imsi_length,
+                     const uint8_t* kseaf, uint8_t* kamf) {
+  uint8_t s[22] = {0};
   uint8_t out[32] = {0};
-  uint32_t i      = 0;
+  uint32_t i = 0;
   /*
    * FC
    */
@@ -152,10 +150,9 @@ int derive_5gkey_amf(
   return 0;
 }
 
-int derive_5gkey_nas(
-    algorithm_type_dist_t nas_alg_type, uint8_t nas_enc_alg_id,
-    const uint8_t* kasme_32, uint8_t* knas) {
-  uint8_t s[7]    = {0};
+int derive_5gkey_nas(algorithm_type_dist_t nas_alg_type, uint8_t nas_enc_alg_id,
+                     const uint8_t* kasme_32, uint8_t* knas) {
+  uint8_t s[7] = {0};
   uint8_t out[32] = {0};
 
   /*

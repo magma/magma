@@ -8,3 +8,5 @@
 /nms/packages/magmalte/generated/MagmaAPIBindings.js linguist-generated
 # SBI openapi interface generated files
 /feg/gateway/sbi/specs/** linguist-generated
+# requirements.txt for bazel builds is generated from requirements.in
+/bazel/external/requirements.txt linguist-generated

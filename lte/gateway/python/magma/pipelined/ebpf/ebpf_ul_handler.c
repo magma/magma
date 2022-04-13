@@ -6,39 +6,16 @@
  * modify it under the terms of version 2 of the GNU General Public
  * License as published by the Free Software Foundation.
  */
+
+#include "EbpfMap.h"
+
 #include <bcc/proto.h>
-#include <linux/if_ether.h>
 #include <linux/if_packet.h>
 #include <linux/ip.h>
-#include <linux/types.h>
 #include <linux/socket.h>
 #include <linux/pkt_cls.h>
 #include <linux/erspan.h>
 #include <linux/udp.h>
-
-// GTP protocol definitions
-// TODO: Move this into header file
-struct gtp1_header { /* According to 3GPP TS 29.060. */
-  __u8 flags;
-  __u8 type;
-  __be16 length;
-  __be32 tid;
-} __attribute__((packed));
-
-static const int GTP_PORT_NO  = 2152;
-static const int gtp_hdr_size = 8;
-
-// UE sessions map definitions.
-struct ul_map_key {
-  u32 ue_ip;
-};
-
-struct ul_map_info {
-  u32 mark;
-  u32 e_if_index;
-  u8 mac_src[ETH_ALEN];
-  u8 mac_dst[ETH_ALEN];
-};
 
 // The map is pinned so that it can be accessed by pipelined or debugging tool
 // to examine datapath state.
@@ -116,6 +93,11 @@ int gtpu_ingress_handler(struct __sk_buff* skb) {
 
   // 2.3 skb mark for qos
   skb->mark = fwd->mark;
+
+  // 2.4 increment bytes
+  // TODO: Add lock for accessing bytes
+  fwd->bytes += len;
+
   bpf_trace_printk(
       "INFO: UL-fwd: tid %d egress: %d mark: %d\n", tid, fwd->e_if_index,
       fwd->mark);

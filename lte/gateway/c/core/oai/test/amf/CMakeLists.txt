@@ -33,7 +33,6 @@ include_directories("/usr/src/googletest/googlemock/include/")
 link_directories(/usr/src/googletest/googlemock/lib/)
 
 set(AMF_APP_TEST_SRC
-    amf_app_test.cpp
     util_nas5g_registration_pkt.cpp
     util_nas5g_auth_fail_pkt.cpp
     util_nas5g_ul_nas_pdu_decode.cpp

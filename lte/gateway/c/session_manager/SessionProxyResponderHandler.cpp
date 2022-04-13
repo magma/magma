@@ -46,7 +46,6 @@ SessionProxyResponderHandlerImpl::SessionProxyResponderHandlerImpl(
 void SessionProxyResponderHandlerImpl::ChargingReAuth(
     ServerContext* context, const ChargingReAuthRequest* request,
     std::function<void(Status, ChargingReAuthAnswer)> response_callback) {
-  set_sentry_transaction("ChargingReAuth");
   auto& request_cpy = *request;
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   MLOG(MDEBUG) << "Received a Gy (Charging) ReAuthRequest for "
@@ -87,8 +86,6 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
 void SessionProxyResponderHandlerImpl::PolicyReAuth(
     ServerContext* context, const PolicyReAuthRequest* request,
     std::function<void(Status, PolicyReAuthAnswer)> response_callback) {
-  set_sentry_transaction("PolicyReAuth");
-
   auto& request_cpy = *request;
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   MLOG(MDEBUG) << "Received a Gx (Policy) ReAuthRequest for session_id "

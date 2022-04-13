@@ -16,22 +16,22 @@
 
 import AddAlertIcon from '@material-ui/icons/AddAlert';
 import AlarmIcon from '@material-ui/icons/Alarm';
-import Alarms from '@fbcnms/alarms/components/Alarms';
-import AppContext from '@fbcnms/ui/context/AppContext';
+import Alarms from '../../../fbc_js_core/alarms/components/Alarms';
+import AppContext from '../../../fbc_js_core/ui/context/AppContext';
 import Button from '@material-ui/core/Button';
 import ContactMailIcon from '@material-ui/icons/ContactMail';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import {MagmaAlarmsApiUtil} from '../../state/AlarmsApiUtil';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {triggerAlertSync} from '../../state/SyncAlerts';
 import {useContext} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import type {Match} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({

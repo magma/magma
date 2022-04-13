@@ -53,6 +53,37 @@ type Client struct {
 	originStateID  uint32
 }
 
+// String stringifies diameter client configuration
+func (c *Client) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	var (
+		originHost, originRealm, productName, hostIPAddress, retransmitInterval, watchdogInterval string
+		maxRetransmits, retryCount, appID, authAppID                                              uint
+	)
+	if d := c.cfg; d != nil {
+		originHost, originRealm, productName, appID, authAppID, maxRetransmits, retryCount =
+			d.Host, d.Realm, d.ProductName, uint(d.AppID), uint(d.AuthAppID), d.Retransmits, d.RetryCount
+	}
+	if c.mux != nil && c.mux.Settings() != nil {
+		s := c.mux.Settings()
+		originHost, originRealm, productName = string(s.OriginHost), string(s.OriginRealm), string(s.ProductName)
+		if s.HostIPAddress != nil {
+			hostIPAddress = s.HostIPAddress.String()
+		}
+	}
+	if cl := c.smClient; cl != nil {
+		maxRetransmits, retransmitInterval, watchdogInterval =
+			cl.MaxRetransmits, cl.RetransmitInterval.String(), cl.WatchdogInterval.String()
+	}
+	return fmt.Sprintf(
+		"origin host: %s; origin realm: %s; product name: %s; host IP: %s; appID: %d; authAppID: %d; "+
+			"watchdog interval: %s; max retransmits: %d; retransmit interval: %s; retry count: %d",
+		originHost, originRealm, productName, hostIPAddress, appID, authAppID,
+		watchdogInterval, maxRetransmits, retransmitInterval, retryCount)
+}
+
 // OriginRealm returns client's config Realm
 func (c *Client) OriginRealm() string {
 	if c != nil && c.cfg != nil && len(c.cfg.Realm) > 0 {
@@ -86,9 +117,13 @@ func (c *Client) ServiceContextId() string {
 }
 
 // NewClient creates a new client based on the config passed.
-// Input: clientCfg containing relevant diameter settings
-func NewClient(clientCfg *DiameterClientConfig) *Client {
+// Input:
+// 		- clientCfg containing relevant diameter settings.
+//		- localAddresses must have format of IP:Port. These values will represents
+//		Host-IP-Address AVP sent in CER message. If empty 127.0.0.1 will be used.
+func NewClient(clientCfg *DiameterClientConfig, localAddresses ...string) *Client {
 	originStateID := uint32(time.Now().Unix())
+
 	mux := sm.New(&sm.Settings{
 		OriginHost:       datatype.DiameterIdentity(clientCfg.Host),
 		OriginRealm:      datatype.DiameterIdentity(clientCfg.Realm),
@@ -96,7 +131,7 @@ func NewClient(clientCfg *DiameterClientConfig) *Client {
 		ProductName:      datatype.UTF8String(clientCfg.ProductName),
 		OriginStateID:    datatype.Unsigned32(originStateID),
 		FirmwareRevision: 1,
-		HostIPAddress:    datatype.Address(net.ParseIP("127.0.0.1")),
+		HostIPAddresses:  getHostIPAddresses(localAddresses), // Set Host-IP-Address AVP on CER
 	})
 
 	appIdAvp := diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(clientCfg.AppID))
@@ -141,6 +176,8 @@ func NewClient(clientCfg *DiameterClientConfig) *Client {
 		cfg:            clientCfg,
 		originStateID:  originStateID,
 	}
+	glog.V(1).Infof("new diam client::\n\t%s", client.String())
+
 	go client.handleErrors(mux.ErrorReports())
 	return client
 }
@@ -295,12 +332,21 @@ func (client *Client) IgnoreAnswer(key interface{}) {
 func (client *Client) RegisterAnswerHandlerForAppID(command uint32, appID uint32, handler AnswerHandler) {
 	index := diam.CommandIndex{AppID: appID, Code: command, Request: false}
 	muxHandler := diam.HandlerFunc(func(c diam.Conn, m *diam.Message) {
+		if m == nil {
+			glog.Error("nil diameter message")
+			return
+		}
 		answerKey := handler(m)
 		if answerKey.Key == nil {
+			glog.Errorf("nil Key found in received diameter message:\n%s\n", m.String())
 			return
 		}
 		doneChan := client.requestTracker.DeregisterRequest(answerKey.Key)
-		doneChan <- answerKey.Answer
+		if doneChan != nil {
+			doneChan <- answerKey.Answer
+		} else {
+			glog.Errorf("no Key/channel registered for message:\n%s\n", m.String())
+		}
 	})
 	client.mux.HandleIdx(index, muxHandler)
 }
@@ -503,4 +549,33 @@ func getVendorSpecificApplicationIDAVPs(clientCfg *DiameterClientConfig,
 	}
 	return vendorSpecificApplicationIDs
 
+}
+
+// getHostIPAddresses gets all the IPs from a list of Ip:Port
+// Returns 127.0.0.1 if no address is passed or if address is invalid
+// Those addresses will be used at Host-IP-Address AVP on CER
+// localAddresses must have IP:Port format
+func getHostIPAddresses(localAddresses []string) []datatype.Address {
+	var localAddressesIP []datatype.Address
+	for _, localAddress := range localAddresses {
+		host, _, err := net.SplitHostPort(localAddress)
+		if err != nil {
+			glog.Warningf("Could not parse '%s' as a valid IP:port/. Error: %s", localAddress, err)
+			host = strings.TrimSpace(host)
+		}
+		if host == "" {
+			// only port, no ip. Skipping, localhost will be added at the end if necessary
+			continue
+		}
+		localAddressesIP = append(localAddressesIP, datatype.Address(net.ParseIP(host)))
+	}
+
+	// Use localhost in case no ip was defined (only port), or ip was not parseable
+	if len(localAddresses) == 0 {
+		host := "127.0.0.1"
+		localAddressesIP = append(localAddressesIP, datatype.Address(net.ParseIP(host)))
+		glog.Warningf(
+			"No local address defined. Diameter client will use %v as Host-IP-Address AVP on CER", host)
+	}
+	return localAddressesIP
 }

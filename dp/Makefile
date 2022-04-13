@@ -2,12 +2,13 @@ SHELL := /bin/bash
 export MINIKUBE_HOME ?= $(shell echo ~/.minikube)
 export KUBECONFIG ?= $(shell echo ~/.kube/config)
 export CERTS := $(shell mktemp -d /tmp/certs.XXXXXXXXXX)
-export DP_MODULES:= active_mode_controller configuration_controller db_service protocol_controller radio_controller  test_runner
+export DP_MODULES:= active_mode_controller configuration_controller db_service radio_controller  test_runner
 export PROTO_LIST = orc8r_protos lte_protos feg_protos cwf_protos dp_protos
 export MAGMA_ROOT ?= $(shell cd .. && pwd)
 export PYTHON_BUILD ?= $(MAGMA_ROOT)/build
 export BIN := $(PYTHON_BUILD)/bin
 export SRC := $(MAGMA_ROOT)
+export KUBERNETES_VERSION := 1.20.7
 
 
 dev: export DATE := $(shell date +%F-%T)
@@ -21,11 +22,20 @@ endif
 .PHONY: local
 local: init dev
 
+.PHONY: orc8r_integration_tests
+orc8r_integration_tests: init_orc8r dev_orc8r_integration_test
+
+.PHONY: orc8r
+orc8r: init_orc8r dev_orc8r
+
 .PHONY: remote
 remote: _remote_init dev
 
 .PHONY: init
-init: start_minikube _ci_init _contour_install
+init: start_minikube _ci_init
+
+.PHONY: init_orc8r
+init_orc8r: start_minikube_orc8r _ci_init
 
 .PHONY: _remote_init
 _remote_init: _ci_init
@@ -39,11 +49,28 @@ endif
 
 .PHONY: start_minikube
 start_minikube:
-	minikube start --addons=metrics-server
+	minikube start --addons=metrics-server --kubernetes-version=$(KUBERNETES_VERSION)
+
+.PHONY: start_minikube_orc8r
+start_minikube_orc8r:
+	minikube start --addons=metrics-server --memory='8g' --kubernetes-version=$(KUBERNETES_VERSION)
+	minikube ssh sudo ip link set docker0 promisc on
 
 .PHONY: clean
 clean:
 	minikube delete
+
+.PHONY: dev_orc8r
+dev_orc8r:
+	skaffold dev -p orc8r-deployment --trigger=manual
+
+.PHONY: dev_orc8r_integration_test
+dev_orc8r_integration_test:
+	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only --trigger=manual
+
+.PHONY: dev_integration_test
+dev_integration_test:
+	skaffold dev -p integration-tests-no-orc8 --trigger=manual
 
 .PHONY: dev
 dev:
@@ -80,37 +107,17 @@ endif
 _ci_init: _generate_certificates _generate_harness_config
 	kubectl delete secret certificates --ignore-not-found
 	kubectl create secret generic certificates --from-file=tools/deployment/certificates/certs
+	kubectl delete \
+		service/orc8r-fluentd-forward \
+		deployment.apps/orc8r-fluentd-forward \
+		configmap/orc8r-fluentd-forward-configs \
+		--ignore-not-found
 	#kubectl apply -f ./tools/deployment/vendor/postgresql.yml
 	#kubectl rollout status --watch --timeout=600s statefulset/postgres-database
-
-.PHONY: _contour_install
-_contour_install:
-	helm repo add bitnami https://charts.bitnami.com/bitnami
-	helm repo update
-	helm upgrade --install \
-	--set envoy.service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-internal"=0.0.0.0/0 \
-	contour bitnami/contour --version 4.3.2
-	kubectl wait --for=condition=Available --timeout=600s Deployment/contour-contour
-
-.PHONY: _nginx_install
-_nginx_install:
-	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-	helm repo update
-	helm upgrade --install \
-	--set controller.extraEnvs[0].name="GODEBUG",controller.extraEnvs[0].value="x509ignoreCN=0" \
-	nginx-ingress ingress-nginx/ingress-nginx --version 3.34.0
-	kubectl wait --for=condition=Available --timeout=600s Deployment/nginx-ingress-ingress-nginx-controller
-	#--set controller.service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-internal"=true
 
 .PHONY: _generate_certificates
 _generate_certificates:
 	tools/deployment/certificates/generate_fake_certs.sh
-	ln -s -f ../../../../../../../tools/deployment/certificates/certs/domain_proxy_bundle.cert \
-	cloud/helm/dp/charts/domain-proxy/certificates/protocol_controller/domain_proxy_bundle.cert
-	ln -s -f ../../../../../../../tools/deployment/certificates/certs/domain_proxy_server.key \
-	cloud/helm/dp/charts/domain-proxy/certificates/protocol_controller/domain_proxy_server.key
-	ln -s -f ../../../../../../../tools/deployment/certificates/certs/ca.cert \
-	cloud/helm/dp/charts/domain-proxy/certificates/protocol_controller/ca.cert
 	ln -s -f ../../../../../../../tools/deployment/certificates/certs/device_c.cert \
 	cloud/helm/dp/charts/domain-proxy/certificates/configuration_controller/device_c.cert
 	ln -s -f ../../../../../../../tools/deployment/certificates/certs/device_c.key \
@@ -130,16 +137,29 @@ _generate_harness_config:
 	kubectl create configmap harness-config \
 	--from-file=tools/deployment/vendor/sas.cfg;
 
-.PHONY: _ci_integration_tests
-_ci_integration_tests: _install_skaffold_ci _contour_install
+.PHONY: _ci_integration_tests_no_orc8r
+_ci_integration_tests_no_orc8r: _install_skaffold_ci
 	kubectl delete --ignore-not-found=true job test-runner-job
-	skaffold run
+	skaffold run -p integration-tests-no-orc8
 	kubectl wait --for=condition=complete --timeout=10m job/test-runner-job & \
 	kubectl wait --for=condition=failed --timeout=10m job/test-runner-job & \
 	wait -n 1 2
-	kubectl logs -l type=integration-tests
+	kubectl logs -l type=integration-tests | tee /tmp/$@.txt
 	@set -e;\
 	SUCCESS=$$(kubectl get jobs test-runner-job -o jsonpath='{.status.succeeded}');\
+	if [[ -z $$SUCCESS ]]; then SUCCESS=0; fi; \
+	if [[ $$SUCCESS != '1' ]]; then exit 1; fi
+
+.PHONY: _ci_integration_tests_orc8r
+_ci_integration_tests_orc8r: _install_skaffold_ci
+	kubectl delete --ignore-not-found=true job test-runner-job-orc8r
+	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only
+	kubectl wait --for=condition=complete --timeout=10m job/test-runner-job-orc8r & \
+	kubectl wait --for=condition=failed --timeout=10m job/test-runner-job-orc8r & \
+	wait -n 1 2
+	kubectl logs -l type=integration-tests | tee /tmp/$@.txt
+	@set -e;\
+	SUCCESS=$$(kubectl get jobs test-runner-job-orc8r -o jsonpath='{.status.succeeded}');\
 	if [[ -z $$SUCCESS ]]; then SUCCESS=0; fi; \
 	if [[ $$SUCCESS != '1' ]]; then exit 1; fi
 
@@ -159,33 +179,9 @@ _postgres_db_delete:
 	kubectl delete pvc -l app=postgres-database
 
 .PHONY: _ci_chart_smoke_tests
-_ci_chart_smoke_tests: _install_skaffold_ci _contour_install
+_ci_chart_smoke_tests: _install_skaffold_ci
 	skaffold run
 	helm test --timeout 10m domain-proxy
-
-.PHONY: _ci_ingress_tests_contour
-_ci_ingress_tests_contour: _install_skaffold_ci _contour_install _generate_ci_certificates
-	sudo --preserve-env=MINIKUBE_HOME,KUBECONFIG minikube tunnel > /dev/null &
-	skaffold run
-	sleep 10
-	cd tools/deployment/certificates/certs; \
-	curl --key device_b.key --cert device_b.cert \
-	--cacert ca.cert \
-	--resolve "domain-proxy:443:$$(kubectl get svc \
-	contour-envoy --output jsonpath='{.status.loadBalancer.ingress[0].ip}')" \
-	https://domain-proxy/sas/v1/registration 
-
-.PHONY: _ci_ingress_tests_nginx
-_ci_ingress_tests_nginx: _install_skaffold_ci _nginx_install _generate_ci_certificates
-	sudo --preserve-env=MINIKUBE_HOME,KUBECONFIG minikube tunnel > /dev/null &
-	skaffold run --profile nginx-ingress
-	sleep 10
-	cd tools/deployment/certificates/certs; \
-	curl --key device_b.key --cert device_b.cert \
-	--cacert ca.cert \
-	--resolve "domain-proxy:443:$$(kubectl get svc \
-	nginx-ingress-ingress-nginx-controller --output jsonpath='{.status.loadBalancer.ingress[0].ip}')" \
-	https://domain-proxy/sas/v1/registration 
 
 .PHONY: migration
 migration:
@@ -199,6 +195,50 @@ migration:
 	alembic -c ./alembic.ini upgrade head; \
 	alembic -c ./alembic.ini revision --autogenerate
 	docker rm -f db
+
+.PHONY: build_db
+build_db:
+	docker rm -f db
+	@docker run -d -p 5532:5432 --name db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=dp postgres \
+	2> /dev/null || true
+	@sleep 5
+	export SQLALCHEMY_DB_URI=postgresql+psycopg2://postgres:postgres@localhost:5532/dp; \
+	export PYTHONPATH=$(SRC)/dp/cloud/python; \
+	cd cloud/python/magma/db_service/migrations; \
+	alembic -c ./alembic.ini upgrade head; \
+	cd ..; \
+	python3 db_initialize.py; \
+
+LOGS_COUNT ?= 1000
+CBSDS_COUNT ?= 1000
+LOG_FILE ?= performance_tests.log
+.PHONY: prepare_performance_test_data
+prepare_performance_test_data:
+	@docker run -d -p 5532:5432 --name db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=dp postgres \
+	2> /dev/null || true
+	@sleep 5
+	export LOG_FILE=$(LOG_FILE); \
+	export SQLALCHEMY_DB_URI=postgresql+psycopg2://postgres:postgres@localhost:5532/dp; \
+	export PYTHONPATH=$(SRC)/dp/cloud/python; \
+	cd tools/performance_tests; \
+	python3 performance_test_setup.py -c=$(CBSDS_COUNT) -l=$(LOGS_COUNT); \
+
+.PHONY: setup_performance_tests
+setup_performance_tests: build_db prepare_performance_test_data
+
+LIMIT ?= 100
+OFFSET ?= 0
+.PHONY: run_performance_tests
+run_performance_tests:
+	export LOG_FILE=$(LOG_FILE); \
+	export DB_HOST=localhost; \
+	export DB_USER=postgres; \
+	export DB_PASSWORD=postgres; \
+	export DB_PORT=5532; \
+	export DB_NAME=dp; \
+	export PYTHONPATH=$(SRC)/dp/cloud/python; \
+	cd tools/performance_tests; \
+	python3 run_performance_tests.py -l=$(LIMIT) -o=$(OFFSET); \
 
 .PHONY: protos
 protos:: $(PROTO_LIST) prometheus_proto

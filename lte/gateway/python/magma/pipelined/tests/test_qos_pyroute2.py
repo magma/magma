@@ -53,7 +53,7 @@ class TcSetypTest(unittest.TestCase):
             # print(ln)
             tokens = ln.split(" ")
 
-            if len(tokens) > 10 and tokens[9] == qid:
+            if len(tokens) > 11 and tokens[11] == qid:
                 found = True
 
         return found

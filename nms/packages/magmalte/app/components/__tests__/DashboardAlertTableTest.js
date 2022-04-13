@@ -51,7 +51,7 @@ const mockAlertSt: Array<prom_firing_alert> = [
       alertname: 'TestAlert1',
       instance: '192.168.0.124:2112',
       job: 'myapp',
-      monitor: 'master',
+      monitor: 'host',
       networkID: 'test',
       severity: 'critical',
     },
@@ -73,7 +73,7 @@ const mockAlertSt: Array<prom_firing_alert> = [
       alertname: 'TestAlert2',
       instance: '192.168.0.124:2112',
       job: 'myapp',
-      monitor: 'master',
+      monitor: 'host',
       networkID: 'test',
       severity: 'major',
     },
@@ -95,7 +95,7 @@ const mockAlertSt: Array<prom_firing_alert> = [
       alertname: 'TestAlert3',
       instance: '192.168.0.124:2112',
       job: 'myapp',
-      monitor: 'master',
+      monitor: 'host',
       networkID: 'test',
       severity: 'minor',
     },
@@ -117,7 +117,7 @@ const mockAlertSt: Array<prom_firing_alert> = [
       alertname: 'TestAlert4',
       instance: '192.168.0.124:2112',
       job: 'myapp',
-      monitor: 'master',
+      monitor: 'host',
       networkID: 'test',
       severity: 'normal',
     },
@@ -126,7 +126,7 @@ const mockAlertSt: Array<prom_firing_alert> = [
 
 jest.mock('axios');
 jest.mock('../../../generated/MagmaAPIBindings');
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
+jest.mock('../../../fbc_js_core/ui/hooks/useSnackbar');
 
 describe('<DashboardAlertTable />', () => {
   beforeEach(() => {
@@ -158,20 +158,22 @@ describe('<DashboardAlertTable />', () => {
 
     // get all rows
     const rowItems = await getAllByRole('row');
-
     // check if the default is critical alert sections
     expect(rowItems[1]).toHaveTextContent('TestAlert1');
     fireEvent.click(getByText('Critical(1)'));
     expect(rowItems[1]).toHaveTextContent('TestAlert1');
 
     fireEvent.click(getByText('Major(1)'));
-    expect(rowItems[1]).toHaveTextContent('TestAlert2');
+    const rowItems2 = await getAllByRole('row');
+    expect(rowItems2[1]).toHaveTextContent('TestAlert2');
 
     fireEvent.click(getByText('Minor(1)'));
-    expect(rowItems[1]).toHaveTextContent('TestAlert3');
+    const rowItems3 = await getAllByRole('row');
+    expect(rowItems3[1]).toHaveTextContent('TestAlert3');
 
     fireEvent.click(getByText('Other(1)'));
-    expect(rowItems[1]).toHaveTextContent('TestAlert4');
+    const rowItems4 = await getAllByRole('row');
+    expect(rowItems4[1]).toHaveTextContent('TestAlert4');
 
     expect(getByText('Alerts (4)')).toBeInTheDocument();
   });

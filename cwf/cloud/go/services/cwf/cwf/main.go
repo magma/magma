@@ -20,14 +20,15 @@ import (
 	cwf_service "magma/cwf/cloud/go/services/cwf"
 	cwf_analytics "magma/cwf/cloud/go/services/cwf/analytics"
 	"magma/cwf/cloud/go/services/cwf/obsidian/handlers"
-	"magma/cwf/cloud/go/services/cwf/servicers"
+	builder_servicers "magma/cwf/cloud/go/services/cwf/servicers/protected"
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/obsidian/swagger"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
+	swagger_servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/analytics"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
+	analytics_servicer "magma/orc8r/cloud/go/services/analytics/servicers/protected"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	"magma/orc8r/lib/go/service/config"
 )
@@ -40,9 +41,9 @@ func main() {
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, builder_servicers.NewBuilderServicer())
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(cwf_service.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(cwf_service.ServiceName))
 
 	var serviceConfig cwf_service.Config
 	_, _, err = config.GetStructuredServiceConfig(cwf.ModuleName, cwf_service.ServiceName, &serviceConfig)
@@ -53,7 +54,7 @@ func main() {
 	promQLClient := analytics.GetPrometheusClient()
 	calcs := cwf_analytics.GetAnalyticsCalculations(&serviceConfig.Analytics)
 	userStateManager := calculations.NewUserStateManager(promQLClient, "active_sessions")
-	collectorServicer := analytics.NewCollectorServicer(&serviceConfig.Analytics, promQLClient, calcs, userStateManager)
+	collectorServicer := analytics_servicer.NewCollectorServicer(&serviceConfig.Analytics, promQLClient, calcs, userStateManager)
 	protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
 
 	err = srv.Run()

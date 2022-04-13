@@ -342,10 +342,4 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   // Since this is the final grant, we should not report anything
   EXPECT_FALSE(grant.get_update_type(&update_type));
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

@@ -47,8 +47,8 @@ status_code_e mock_read_spgw_ue_state_db(
     const std::vector<std::string>& ue_samples) {
   for (const auto& name_of_sample_file : ue_samples) {
     oai::SpgwUeContext ue_proto = oai::SpgwUeContext();
-    std::fstream input(
-        name_of_sample_file.c_str(), std::ios::in | std::ios::binary);
+    std::fstream input(name_of_sample_file.c_str(),
+                       std::ios::in | std::ios::binary);
     if (!ue_proto.ParseFromIstream(&input)) {
       std::cerr << "Failed to parse the sample: " << name_of_sample_file
                 << std::endl;
@@ -56,7 +56,7 @@ status_code_e mock_read_spgw_ue_state_db(
     }
 
     spgw_ue_context_t* ue_context_p =
-        (spgw_ue_context_t*) calloc(1, sizeof(spgw_ue_context_t));
+        (spgw_ue_context_t*)calloc(1, sizeof(spgw_ue_context_t));
     SpgwStateConverter::proto_to_ue(ue_proto, ue_context_p);
   }
   return RETURNok;

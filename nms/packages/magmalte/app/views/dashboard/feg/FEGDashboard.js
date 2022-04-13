@@ -30,7 +30,7 @@ import {NetworkCheck} from '@material-ui/icons';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors} from '../../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -136,7 +136,7 @@ function FEGNetworkTab(props) {
   const {startDate, endDate, setStartDate, setEndDate} = props;
   const classes = useStyles();
   return (
-    <Grid container justify="flex-end" alignItems="center" spacing={2}>
+    <Grid container justifyContent="flex-end" alignItems="center" spacing={2}>
       <Grid item>
         <Text variant="body3" className={classes.dateTimeText}>
           Filter By Date

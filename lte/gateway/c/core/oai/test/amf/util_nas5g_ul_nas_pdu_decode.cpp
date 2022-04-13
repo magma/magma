@@ -17,14 +17,14 @@
 namespace magma5g {
 
 //  API for testing decode UL NAS Transport request
-bool decode_ul_nas_transport_msg(
-    ULNASTransportMsg* ul_nas_pdu, const uint8_t* buffer, uint32_t len) {
+bool decode_ul_nas_transport_msg(ULNASTransportMsg* ul_nas_pdu,
+                                 const uint8_t* buffer, uint32_t len) {
   bool decode_success = true;
   uint8_t* decode_ul_nas_pdu_buffer =
       const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(buffer));
 
-  if (ul_nas_pdu->DecodeULNASTransportMsg(
-          ul_nas_pdu, decode_ul_nas_pdu_buffer, len) < 0) {
+  if (ul_nas_pdu->DecodeULNASTransportMsg(ul_nas_pdu, decode_ul_nas_pdu_buffer,
+                                          len) < 0) {
     decode_success = false;
   }
 

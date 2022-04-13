@@ -23,7 +23,8 @@ import (
 	certifier_test_init "magma/orc8r/cloud/go/services/certifier/test_init"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/protos"
-	"magma/orc8r/cloud/go/services/configurator/servicers"
+	servicers "magma/orc8r/cloud/go/services/configurator/servicers"
+	protected_servicers "magma/orc8r/cloud/go/services/configurator/servicers/protected"
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
@@ -49,7 +50,7 @@ func StartTestService(t *testing.T) {
 	certifier_test_init.StartTestService(t)
 
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, configurator.ServiceName)
-	nb, err := servicers.NewNorthboundConfiguratorServicer(storageFactory)
+	nb, err := protected_servicers.NewNorthboundConfiguratorServicer(storageFactory)
 	if err != nil {
 		t.Fatalf("Failed to create NB configurator servicer: %s", err)
 	}

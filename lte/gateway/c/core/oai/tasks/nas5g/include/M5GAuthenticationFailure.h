@@ -34,10 +34,10 @@ class AuthenticationFailureMsg {
 
   AuthenticationFailureMsg();
   ~AuthenticationFailureMsg();
-  int DecodeAuthenticationFailureMsg(
-      AuthenticationFailureMsg* auth_failure, uint8_t* buffer, uint32_t len);
-  int EncodeAuthenticationFailureMsg(
-      AuthenticationFailureMsg* auth_failure, uint8_t* buffer, uint32_t len);
+  int DecodeAuthenticationFailureMsg(AuthenticationFailureMsg* auth_failure,
+                                     uint8_t* buffer, uint32_t len);
+  int EncodeAuthenticationFailureMsg(AuthenticationFailureMsg* auth_failure,
+                                     uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

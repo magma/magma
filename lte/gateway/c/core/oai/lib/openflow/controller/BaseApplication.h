@@ -32,9 +32,9 @@ class BaseApplication : public Application {
   BaseApplication(bool persist_state);
 
  private:
-  bool persist_state_                = false;
+  bool persist_state_ = false;
   static const uint32_t LOW_PRIORITY = 0;
-  static const uint16_t NEXT_TABLE   = 1;
+  static const uint16_t NEXT_TABLE = 1;
   /**
    * Main callback event required by inherited Application class. Whenever
    * the controller gets an event like packet in or switch up, it will pass
@@ -42,17 +42,17 @@ class BaseApplication : public Application {
    *
    * @param ev (in) - some subclass of ControllerEvent that occurred
    */
-  virtual void event_callback(
-      const ControllerEvent& ev, const OpenflowMessenger& messenger);
+  virtual void event_callback(const ControllerEvent& ev,
+                              const OpenflowMessenger& messenger);
 
   /**
    * Creates the default table 0 flow, which resubmits to table 1
    */
-  void install_default_flow(
-      fluid_base::OFConnection* ofconn, const OpenflowMessenger& messenger);
+  void install_default_flow(fluid_base::OFConnection* ofconn,
+                            const OpenflowMessenger& messenger);
 
-  void remove_all_flows(
-      fluid_base::OFConnection* ofconn, const OpenflowMessenger& messenger);
+  void remove_all_flows(fluid_base::OFConnection* ofconn,
+                        const OpenflowMessenger& messenger);
 
   /**
    * Log all error messages sent to the controller. These can be rejected flows

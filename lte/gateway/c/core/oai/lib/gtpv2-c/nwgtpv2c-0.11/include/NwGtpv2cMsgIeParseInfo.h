@@ -76,9 +76,9 @@ nw_gtpv2c_msg_ie_parse_info_t* nwGtpv2cMsgIeParseInfoNew(
 
 nw_rc_t nwGtpv2cMsgIeParseInfoDelete(nw_gtpv2c_msg_ie_parse_info_t* thiz);
 
-nw_rc_t nwGtpv2cMsgIeParse(
-    NW_IN nw_gtpv2c_msg_ie_parse_info_t* thiz,
-    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_INOUT nw_gtpv2c_error_t* pError);
+nw_rc_t nwGtpv2cMsgIeParse(NW_IN nw_gtpv2c_msg_ie_parse_info_t* thiz,
+                           NW_IN nw_gtpv2c_msg_handle_t hMsg,
+                           NW_INOUT nw_gtpv2c_error_t* pError);
 
 #ifdef __cplusplus
 }

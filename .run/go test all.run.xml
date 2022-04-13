@@ -5,7 +5,6 @@
     <runConfiguration name="go test lte" type="Go Test" />
     <runConfiguration name="go test feg" type="Go Test" />
     <runConfiguration name="go test cwf" type="Go Test" />
-    <runConfiguration name="go test fbinternal" type="Go Test" />
     <method v="2" />
   </configuration>
 </component>

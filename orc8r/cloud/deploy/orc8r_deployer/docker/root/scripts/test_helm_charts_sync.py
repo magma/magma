@@ -23,7 +23,6 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 charts_fn_map = {
     'orc8r': 'orc8r/cloud/helm/orc8r/Chart.yaml',
-    'fbinternal-orc8r': 'fbinternal/cloud/helm/fbinternal-orc8r/Chart.yaml',
     'feg-orc8r': 'feg/cloud/helm/feg-orc8r/Chart.yaml',
     'lte-orc8r': 'lte/cloud/helm/lte-orc8r/Chart.yaml',
     'cwf-orc8r': 'cwf/cloud/helm/cwf-orc8r/Chart.yaml',

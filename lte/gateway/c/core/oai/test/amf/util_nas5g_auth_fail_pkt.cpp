@@ -17,9 +17,8 @@
 namespace magma5g {
 
 //  API for testing decode registration request
-bool decode_auth_failure_decode_msg(
-    AuthenticationFailureMsg* auth_fail_request, const uint8_t* buffer,
-    uint32_t len) {
+bool decode_auth_failure_decode_msg(AuthenticationFailureMsg* auth_fail_request,
+                                    const uint8_t* buffer, uint32_t len) {
   bool decode_success = true;
   uint8_t* decode_auth_fail_buffer =
       const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(buffer));

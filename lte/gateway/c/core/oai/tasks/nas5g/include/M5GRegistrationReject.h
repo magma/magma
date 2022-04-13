@@ -29,10 +29,10 @@ class RegistrationRejectMsg {
 
   RegistrationRejectMsg();
   ~RegistrationRejectMsg();
-  int DecodeRegistrationRejectMsg(
-      RegistrationRejectMsg* reg_reject, uint8_t* buffer, uint32_t len);
-  int EncodeRegistrationRejectMsg(
-      RegistrationRejectMsg* reg_reject, uint8_t* buffer, uint32_t len);
+  int DecodeRegistrationRejectMsg(RegistrationRejectMsg* reg_reject,
+                                  uint8_t* buffer, uint32_t len);
+  int EncodeRegistrationRejectMsg(RegistrationRejectMsg* reg_reject,
+                                  uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

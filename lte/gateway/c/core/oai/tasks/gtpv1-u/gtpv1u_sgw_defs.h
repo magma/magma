@@ -21,8 +21,8 @@
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 #include "lte/gateway/c/core/oai/include/spgw_state.h"
 
-int gtpv1u_init(
-    spgw_state_t* spgw_state_p, spgw_config_t* spgw_config, bool persist_state);
+int gtpv1u_init(spgw_state_t* spgw_state_p, spgw_config_t* spgw_config,
+                bool persist_state);
 
 void gtpv1u_exit(void);
 

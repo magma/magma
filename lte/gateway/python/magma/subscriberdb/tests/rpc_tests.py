@@ -49,13 +49,21 @@ class RpcTests(unittest.TestCase):
         port = self._rpc_server.add_insecure_port('0.0.0.0:0')
 
         # Add the servicer
-        self._servicer = SubscriberDBRpcServicer(store=store, lte_processor=MagicMock())
+        self._servicer = SubscriberDBRpcServicer(store=store, lte_processor=self._create_lte_processor_mock())
         self._servicer.add_to_server(self._rpc_server)
         self._rpc_server.start()
 
         # Create a rpc stub
         channel = grpc.insecure_channel('0.0.0.0:{}'.format(port))
         self._stub = SubscriberDBStub(channel)
+
+    def _create_lte_processor_mock(self):
+        lte_processor_mock = MagicMock()
+        sub_profile_mock = MagicMock()
+        lte_processor_mock.get_sub_profile.return_value = sub_profile_mock
+        sub_profile_mock.max_ul_bit_rate = 23
+        sub_profile_mock.max_dl_bit_rate = 42
+        return lte_processor_mock
 
     def tearDown(self):
         self._tmpfile.cleanup()

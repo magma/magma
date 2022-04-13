@@ -34,7 +34,7 @@ class TestAttachDetachDedicatedInvalidImsi(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach(self):
+    def test_attach_detach_dedicated_bearer_activation_invalid_imsi(self):
         """attach/detach + invalid IMSI in dedicated bearer test with a
         single UE
         """

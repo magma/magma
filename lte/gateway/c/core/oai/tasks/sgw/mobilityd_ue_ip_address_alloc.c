@@ -24,20 +24,18 @@
 
 struct in_addr;
 
-void release_ue_ipv4_address(
-    const char* imsi, const char* apn, struct in_addr* addr) {
-  increment_counter(
-      "ue_pdn_connection", 1, 2, "pdn_type", "ipv4", "result",
-      "ip_address_released");
+void release_ue_ipv4_address(const char* imsi, const char* apn,
+                             struct in_addr* addr) {
+  increment_counter("ue_pdn_connection", 1, 2, "pdn_type", "ipv4", "result",
+                    "ip_address_released");
   // Release IP address back to PGW IP Address allocator
   release_ipv4_address(imsi, apn, addr);
 }
 
-void release_ue_ipv6_address(
-    const char* imsi, const char* apn, struct in6_addr* addr) {
-  increment_counter(
-      "ue_pdn_connection", 1, 2, "pdn_type", "ipv6", "result",
-      "ip_address_released");
+void release_ue_ipv6_address(const char* imsi, const char* apn,
+                             struct in6_addr* addr) {
+  increment_counter("ue_pdn_connection", 1, 2, "pdn_type", "ipv6", "result",
+                    "ip_address_released");
   // Release IP address back to PGW IP Address allocator
   release_ipv6_address(imsi, apn, addr);
 }
@@ -47,8 +45,8 @@ int get_ip_block(struct in_addr* netaddr, uint32_t* netmask) {
 
   rv = get_assigned_ipv4_block(0, netaddr, netmask);
   if (rv != 0) {
-    OAILOG_CRITICAL(
-        LOG_GTPV1U, "ERROR in getting assigned IP block from mobilityd\n");
+    OAILOG_CRITICAL(LOG_GTPV1U,
+                    "ERROR in getting assigned IP block from mobilityd\n");
     return -1;
   }
   return rv;

@@ -20,15 +20,15 @@
 
 #include <stddef.h>
 
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/mme_default_values.h"
 #include "lte/gateway/c/core/oai/include/grpc_service.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 
 static grpc_service_data_t* grpc_service_config;
 task_zmq_ctx_t grpc_service_task_zmq_ctx;
@@ -42,9 +42,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       grpc_service_exit();
       break;
     default:
-      OAILOG_DEBUG(
-          LOG_UTIL, "Unknown message ID %d: %s\n",
-          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
+      OAILOG_DEBUG(LOG_UTIL, "Unknown message ID %d: %s\n",
+                   ITTI_MSG_ID(received_message_p),
+                   ITTI_MSG_NAME(received_message_p));
       break;
   }
 
@@ -62,13 +62,16 @@ static void* grpc_service_thread(__attribute__((unused)) void* args) {
   start_grpc_service(grpc_service_config->server_address);
   zloop_start(grpc_service_task_zmq_ctx.event_loop);
   AssertFatal(
-      0, "Asserting as grpc_service_thread should not be exiting on its own!");
+      0,
+      "Asserting as grpc_service_thread should not be exiting on its own! "
+      "This is likely due to a timer handler function returning -1 "
+      "(RETURNerror) on one of the conditions.");
   return NULL;
 }
 
 status_code_e grpc_service_init(const char* grpc_server_ip) {
   OAILOG_DEBUG(LOG_UTIL, "Initializing grpc_service task interface\n");
-  grpc_service_config                 = calloc(1, sizeof(grpc_service_data_t));
+  grpc_service_config = calloc(1, sizeof(grpc_service_data_t));
   grpc_service_config->server_address = bfromcstr(grpc_server_ip);
 
   if (itti_create_task(TASK_GRPC_SERVICE, &grpc_service_thread, NULL) < 0) {
@@ -80,7 +83,7 @@ status_code_e grpc_service_init(const char* grpc_server_ip) {
 
 void grpc_service_exit(void) {
   bdestroy_wrapper(&grpc_service_config->server_address);
-  free_wrapper((void**) &grpc_service_config);
+  free_wrapper((void**)&grpc_service_config);
   stop_grpc_service();
   destroy_task_context(&grpc_service_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_GRPC_SERVICE terminated\n");

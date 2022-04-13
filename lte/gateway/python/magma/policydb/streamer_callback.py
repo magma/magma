@@ -30,6 +30,8 @@ from lte.protos.session_manager_pb2 import (
     StaticRuleInstall,
 )
 from lte.protos.session_manager_pb2_grpc import LocalSessionManagerStub
+from magma.common.rpc_utils import indicates_connection_error
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.common.streamer import StreamerClient
 from magma.policydb.apn_rule_map_store import ApnRuleAssignmentsDict
 from magma.policydb.basename_store import BaseNameDict
@@ -163,7 +165,15 @@ class ApnRuleMappingsStreamerCallback(StreamerClient.Callback):
         try:
             self._session_mgr_stub.SetSessionRules(update, timeout=5)
         except grpc.RpcError as e:
-            logging.error('Unable to apply apn->policy updates %s', str(e))
+            error_extra = (
+                EXCLUDE_FROM_ERROR_MONITORING if indicates_connection_error(e)
+                else None
+            )
+            logging.error(
+                "Unable to apply apn->policy updates %s",
+                str(e),
+                extra=error_extra,
+            )
 
     def _are_sub_policies_updated(
         self,

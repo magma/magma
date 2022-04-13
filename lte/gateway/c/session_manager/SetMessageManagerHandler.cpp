@@ -162,8 +162,7 @@ void SetMessageManagerHandler::SetAmfSessionContext(
          * context
          */
         auto session_map = session_store_.read_sessions({imsi});
-        send_create_session(session_map, imsi, cfg, pdu_id);
-        response_callback(Status::OK, SmContextVoid());
+        send_create_session(session_map, imsi, cfg, pdu_id, response_callback);
         return;
       }
       MLOG(MERROR)
@@ -230,10 +229,10 @@ static CreateSessionRequest make_create_session_request(
 }
 
 /* Creeate respective SessionState and context*/
-void SetMessageManagerHandler::send_create_session(SessionMap& session_map,
-                                                   const std::string& imsi,
-                                                   SessionConfig& new_cfg,
-                                                   uint32_t& pdu_id) {
+void SetMessageManagerHandler::send_create_session(
+    SessionMap& session_map, const std::string& imsi, SessionConfig& new_cfg,
+    uint32_t& pdu_id,
+    std::function<void(Status, SmContextVoid)> response_callback) {
   /* If it is new session to be created, check for same PDU_ID exists
    * for same IMSI, i.e if IMSI found and respective PDU_ID found in
    * SessionStore, then return from here and nothing to do
@@ -271,6 +270,8 @@ void SetMessageManagerHandler::send_create_session(SessionMap& session_map,
       if (!success) {
         MLOG(MERROR) << "Failed to update  SessionStore for 5G session "
                      << session->get_session_id();
+        Status status(grpc::INTERNAL, "Failed to update SessionStore");
+        response_callback(status, SmContextVoid());
         return;
       }
       /* update the session changes back to sessionsotre
@@ -279,15 +280,21 @@ void SetMessageManagerHandler::send_create_session(SessionMap& session_map,
       if (!update_success) {
         MLOG(MERROR) << "Failed to update the session, re-get gnode teid and ip"
                      << imsi;
+        Status status(grpc::INTERNAL, "Failed to update the Session");
+        response_callback(status, SmContextVoid());
         return;
       }
       MLOG(MDEBUG) << " Successfully updated SessionStore of subscriber: "
                    << imsi;
+      Status status(grpc::OK, "Successfully updated SessionStore");
+      response_callback(status, SmContextVoid());
       return;
     }
     // PDU ID found and return from here
     MLOG(MERROR) << "Duplicate request of same PDU_id " << pdu_id << " of IMSI "
                  << imsi << " nothing to do";
+    Status status(grpc::ALREADY_EXISTS, "Duplicate request");
+    response_callback(status, SmContextVoid());
     return;
   }
   std::string session_id = id_gen_.gen_session_id(imsi);
@@ -305,6 +312,8 @@ void SetMessageManagerHandler::send_create_session(SessionMap& session_map,
     std::string failure_msg = failure_stream.str();
     MLOG(MERROR) << failure_msg;
     events_reporter_->session_create_failure(new_cfg, failure_msg);
+    Status status(grpc::INTERNAL, "Failed to initialize SessionStore");
+    response_callback(status, SmContextVoid());
     return;
   } else {
     /* writing of SessionMap in memory through SessionStore object*/
@@ -327,7 +336,7 @@ void SetMessageManagerHandler::send_create_session(SessionMap& session_map,
   auto create_req = make_create_session_request(
       new_cfg, session_id, m5g_enforcer_->get_access_timezone());
   reporter_->report_create_session(
-      create_req, [this, imsi, new_cfg, session_id](
+      create_req, [this, imsi, new_cfg, session_id, response_callback](
                       Status status, CreateSessionResponse response) mutable {
         if (status.ok()) {
           MLOG(MINFO) << "Processing a CreateSessionResponse for "
@@ -342,6 +351,7 @@ void SetMessageManagerHandler::send_create_session(SessionMap& session_map,
           if (!session_it) {
             MLOG(MWARNING) << "Could not find session " << session_id;
             status = Status(grpc::ABORTED, "Session not found");
+            response_callback(status, SmContextVoid());
             return;
           }
           auto& session = **session_it;
@@ -358,8 +368,11 @@ void SetMessageManagerHandler::send_create_session(SessionMap& session_map,
                           "Failed to write session to SessionD storage");
           events_reporter_->session_create_failure(
               new_cfg, "Failed to initialize session in SessionProxy/PolicyDB");
+          response_callback(status, SmContextVoid());
+          return;
         }
       });
+  response_callback(Status::OK, SmContextVoid());
 }
 
 /* This starts releasing the session in main session enforcer thread context

@@ -15,9 +15,10 @@ import logging
 from typing import Any, Optional
 
 from lte.protos.mconfig import mconfigs_pb2
+from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 from magma.common.redis.client import get_default_client
-from magma.common.sentry import sentry_init
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING, sentry_init
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.mobilityd.ip_address_man import IPAddressManager
@@ -29,6 +30,7 @@ from magma.mobilityd.ip_allocator_static import IPAllocatorStaticWrapper
 from magma.mobilityd.ipv6_allocator_pool import IPv6AllocatorPool
 from magma.mobilityd.mobility_store import MobilityStore
 from magma.mobilityd.rpc_servicer import MobilityServiceRpcServicer
+from magma.mobilityd.utils import IPNetwork
 
 DEFAULT_IPV6_PREFIX_ALLOC_MODE = 'RANDOM'
 RETRY_LIMIT = 300
@@ -80,8 +82,8 @@ def _get_ipv4_allocator(
 
 def _get_ipv6_allocator(
         store: MobilityStore, allocator_type: int,
-        static_ip_enabled: bool, mconfig: any,
-        ipv6_prefixlen: int,
+        static_ip_enabled: bool, mconfig: MobilityD,
+        ipv6_prefixlen: Optional[int],
         subscriberdb_rpc_stub: SubscriberDBStub = None,
 ):
 
@@ -112,7 +114,7 @@ def _get_ipv6_allocator(
 def _get_ip_block(
     ip_block_str: str,
     ip_type: str,
-) -> Optional[ipaddress.ip_network]:
+) -> Optional[IPNetwork]:
     """Convert string into ipaddress.ip_network
 
     Support both IPv4 or IPv6 addresses
@@ -132,7 +134,11 @@ def _get_ip_block(
     try:
         ip_block = ipaddress.ip_network(ip_block_str)
     except ValueError:
-        logging.error("Invalid IP block format: %s", ip_block_str)
+        logging.error(
+            "Invalid IP block format: %s",
+            ip_block_str,
+            extra=EXCLUDE_FROM_ERROR_MONITORING,
+        )
         return None
     return ip_block
 

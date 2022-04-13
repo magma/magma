@@ -47,7 +47,7 @@ func TestCloudRegistrationServicer_GetGatewayRegistrationInfo(t *testing.T) {
 	getGatewayRegistrationInfoRes, err := cloudRegistration.GetGatewayRegistrationInfo(ctx, &protos.GetGatewayRegistrationInfoRequest{})
 	expectedRes := &protos.GetGatewayRegistrationInfoResponse{
 		RootCa:     rootCA,
-		DomainName: registration.NotImplementedWarning,
+		DomainName: "magma.test",
 	}
 	assert.NoError(t, err)
 	assert.Equal(t, expectedRes, getGatewayRegistrationInfoRes)
@@ -118,8 +118,8 @@ func TestCloudRegistrationServicer_Registration(t *testing.T) {
 func cloudRegistrationTestSetup(t *testing.T) (context.Context, protos.CloudRegistrationServer) {
 	factory := test_utils.NewSQLBlobstore(t, bootstrapper.BlobstoreTableName)
 	store := registration.NewBlobstoreStore(factory)
+	cloudRegistration, err := registration.NewCloudRegistrationServicer(store, rootCA, "magma.test", timeoutDuration, true)
 
-	cloudRegistration, err := registration.NewCloudRegistrationServicer(store, rootCA, timeoutDuration, true)
 	assert.NoError(t, err)
 
 	return context.Background(), cloudRegistration

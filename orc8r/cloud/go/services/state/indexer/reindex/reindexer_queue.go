@@ -23,7 +23,7 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/indexer/metrics"
 	state_types "magma/orc8r/cloud/go/services/state/types"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/util"
 )
 
@@ -90,7 +90,7 @@ func (r *reindexerQueue) GetIndexerVersions() ([]*indexer.Versions, error) {
 	return r.queue.GetIndexerVersions()
 }
 
-// If no job available, returns ErrNotFound from magma/orc8r/lib/go/errors.
+// If no job available, returns ErrNotFound from magma/orc8r/lib/go/merrors.
 func (r *reindexerQueue) claimAndReindexOne(ctx context.Context, batches []reindexBatch) error {
 	defer TestHookReindexDone()
 

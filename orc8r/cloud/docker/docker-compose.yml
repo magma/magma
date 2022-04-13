@@ -17,6 +17,7 @@ services:
 #      DATABASE_SOURCE: "magma_dev:magma_dev@(maria)/magma_dev"
       SQL_DIALECT: psql
       SERVICE_REGISTRY_MODE: yaml
+      ORC8R_DOMAIN_NAME: magma.test
       VERSION_TAG: LOCAL-DEV
       HELM_VERSION_TAG: LOCAL-DEV
       MAGMA_PRINT_GRPC_PAYLOAD: 0

@@ -32,7 +32,7 @@ class TestAttachDetachDedicatedMultiUe(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach(self):
+    def test_attach_detach_dedicated_multi_ue(self):
         """attach/detach + dedicated bearer test with 4 UEs"""
         num_ues = 4
         ue_ids = []

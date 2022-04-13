@@ -31,10 +31,14 @@ type SubscriberStore interface {
 	// Output: The data of the corresponding subscriber or an error.
 	GetSubscriberData(id string) (*protos.SubscriberData, error)
 
+	// GetAllSubscribers provides a list of all IMSIS registered
+	// Output: list with all subscribers
+	GetAllSubscribers() (*protos.SubscriberIDSet, error)
+
 	// UpdateSubscriber changes the data stored for an existing subscriber.
 	// If the subscriber cannot be found, an error is returned instead.
 	// Input: The new subscriber data to store
-	UpdateSubscriber(data *protos.SubscriberData) error
+	UpdateSubscriber(data *protos.SubscriberUpdate) error
 
 	// DeleteSubscriber deletes a subscriber by their Id.
 	// If the subscriber is not found, then this call is ignored.

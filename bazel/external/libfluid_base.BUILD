@@ -45,6 +45,7 @@ cc_library(
     includes = [""],
     linkopts = [
         "-lssl",
+        "-lcrypto",
         "-levent",
         "-levent_pthreads",
         "-levent_openssl",

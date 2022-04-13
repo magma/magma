@@ -17,19 +17,19 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
 
 //------------------------------------------------------------------------------
-int decode_message_type(
-    message_type_t* messagetype, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_message_type(message_type_t* messagetype, uint8_t iei,
+                        uint8_t* buffer, uint32_t len) {
   Fatal("TODO Implement decode_message_type");
   return -1;
 }
 
 //------------------------------------------------------------------------------
-int encode_message_type(
-    message_type_t* messagetype, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_message_type(message_type_t* messagetype, uint8_t iei,
+                        uint8_t* buffer, uint32_t len) {
   Fatal("TODO Implement encode_message_type");
   return -1;
 }

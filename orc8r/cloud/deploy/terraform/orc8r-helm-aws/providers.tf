@@ -12,7 +12,7 @@
 ################################################################################
 
 provider "aws" {
-  region  = var.region
+  region = var.region
 }
 
 data "aws_eks_cluster" "cluster" {
@@ -63,13 +63,13 @@ terraform {
     }
 
     template = {
-      source = "hashicorp/template"
+      source  = "hashicorp/template"
       version = "~> 2.0"
     }
 
     helm = {
-        source  = "hashicorp/helm"
-        version = "~> 1.0"
+      source  = "hashicorp/helm"
+      version = "~> 1.0"
     }
   }
 }

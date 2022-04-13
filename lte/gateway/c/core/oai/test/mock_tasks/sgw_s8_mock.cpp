@@ -30,7 +30,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S8_CREATE_BEARER_REQ: {
       sgw_s8_handler_->sgw_s8_handle_create_bearer_request(
           received_message_p->ittiMsg.s8_create_bearer_req);
-      free_wrapper((void**) &received_message_p->ittiMsg.s8_create_bearer_req
+      free_wrapper((void**)&received_message_p->ittiMsg.s8_create_bearer_req
                        .pgw_cp_address);
     } break;
     case S8_DELETE_BEARER_REQ: {
@@ -38,7 +38,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           received_message_p->ittiMsg.s8_delete_bearer_req);
     } break;
 
-    default: { } break; }
+    default: {
+    } break;
+  }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
 
@@ -52,7 +54,7 @@ void stop_mock_sgw_s8_task() {
 
 void start_mock_sgw_s8_task(std::shared_ptr<MockS8Handler> sgw_s8_handler) {
   sgw_s8_handler_ = sgw_s8_handler;
-  init_task_context(
-      TASK_SGW_S8, nullptr, 0, handle_message, &task_zmq_ctx_sgw_s8);
+  init_task_context(TASK_SGW_S8, nullptr, 0, handle_message,
+                    &task_zmq_ctx_sgw_s8);
   zloop_start(task_zmq_ctx_sgw_s8.event_loop);
 }

@@ -11,6 +11,13 @@
 
 #include <iostream>
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -29,7 +36,7 @@ int AuthenticationRequestMsg::DecodeAuthenticationRequestMsg(
 // Encode AuthenticationRequest Messsage
 int AuthenticationRequestMsg::EncodeAuthenticationRequestMsg(
     AuthenticationRequestMsg* auth_request, uint8_t* buffer, uint32_t len) {
-  uint32_t encoded   = 0;
+  uint32_t encoded = 0;
   int encoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length

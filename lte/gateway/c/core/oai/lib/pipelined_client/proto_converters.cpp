@@ -57,23 +57,23 @@ IPFlowDL to_proto_ip_flow_dl(struct ip_flow_dl flow_dl) {
   return ue_flow_dl;
 }
 
-void set_ue_ipv4_addr(
-    const struct in_addr& ue_ipv4_addr, UESessionSet& request) {
+void set_ue_ipv4_addr(const struct in_addr& ue_ipv4_addr,
+                      UESessionSet& request) {
   IPAddress* encode_ue_ipv4_addr = request.mutable_ue_ipv4_address();
   encode_ue_ipv4_addr->set_version(IPAddress::IPV4);
   encode_ue_ipv4_addr->set_address(&ue_ipv4_addr, sizeof(struct in_addr));
 }
 
-void set_ue_ipv6_addr(
-    const struct in6_addr& ue_ipv6_addr, UESessionSet& request) {
+void set_ue_ipv6_addr(const struct in6_addr& ue_ipv6_addr,
+                      UESessionSet& request) {
   IPAddress* encode_ue_ipv6_addr = request.mutable_ue_ipv6_address();
   encode_ue_ipv6_addr->set_version(IPAddress::IPV6);
   encode_ue_ipv6_addr->set_address(&ue_ipv6_addr, sizeof(struct in6_addr));
 }
 
 // Set the GNB IPv4 address
-void set_gnb_ipv4_addr(
-    const struct in_addr& gnb_ipv4_addr, UESessionSet& request) {
+void set_gnb_ipv4_addr(const struct in_addr& gnb_ipv4_addr,
+                       UESessionSet& request) {
   IPAddress* encode_gnb_ipv4_addr = request.mutable_enb_ip_address();
   encode_gnb_ipv4_addr->set_version(IPAddress::IPV4);
   encode_gnb_ipv4_addr->set_address(&gnb_ipv4_addr, sizeof(struct in_addr));
@@ -99,9 +99,10 @@ void config_ue_session_state(uint32_t& ue_state, UESessionSet& request) {
 }
 
 // Utility : IPv4 tunnel create generic request
-UESessionSet create_update_request_ipv4(
-    struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
-    uint32_t in_teid, uint32_t out_teid, int vlan, uint32_t ue_state) {
+UESessionSet create_update_request_ipv4(struct in_addr& enb_ipv4_addr,
+                                        const struct in_addr& ue_ipv4_addr,
+                                        uint32_t in_teid, uint32_t out_teid,
+                                        int vlan, uint32_t ue_state) {
   UESessionSet request = UESessionSet();
 
   // Set the enb IPv4 address
@@ -177,9 +178,10 @@ UESessionSet create_add_update_request_ipv4_flow_dl(
 //---------- TUNNEL IPV4 ONLY DEL FUNCTION ----------
 
 // IPv4 tunnel del request
-UESessionSet create_del_update_request_ipv4(
-    struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
-    uint32_t in_teid, uint32_t out_teid, uint32_t ue_state) {
+UESessionSet create_del_update_request_ipv4(struct in_addr& enb_ipv4_addr,
+                                            const struct in_addr& ue_ipv4_addr,
+                                            uint32_t in_teid, uint32_t out_teid,
+                                            uint32_t ue_state) {
   // For deletion vlan=0
   UESessionSet request = create_update_request_ipv4(
       enb_ipv4_addr, ue_ipv4_addr, in_teid, out_teid, 0, ue_state);

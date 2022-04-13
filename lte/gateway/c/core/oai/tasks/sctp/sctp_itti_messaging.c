@@ -39,11 +39,11 @@ status_code_e sctp_itti_send_lower_layer_conf(
   MessageDef* msg =
       DEPRECATEDitti_alloc_new_message_fatal(TASK_SCTP, SCTP_DATA_CNF);
 
-  SCTP_DATA_CNF(msg).ppid          = ppid;
-  SCTP_DATA_CNF(msg).assoc_id      = assoc_id;
-  SCTP_DATA_CNF(msg).stream        = stream;
+  SCTP_DATA_CNF(msg).ppid = ppid;
+  SCTP_DATA_CNF(msg).assoc_id = assoc_id;
+  SCTP_DATA_CNF(msg).stream = stream;
   SCTP_DATA_CNF(msg).agw_ue_xap_id = xap_id;
-  SCTP_DATA_CNF(msg).is_success    = is_success;
+  SCTP_DATA_CNF(msg).is_success = is_success;
 
   return send_msg_to_task(&sctp_task_zmq_ctx, origin_task_id, msg);
 }
@@ -55,8 +55,8 @@ status_code_e sctp_itti_send_new_association(
   MessageDef* msg =
       DEPRECATEDitti_alloc_new_message_fatal(TASK_SCTP, SCTP_NEW_ASSOCIATION);
 
-  SCTP_NEW_ASSOCIATION(msg).assoc_id   = assoc_id;
-  SCTP_NEW_ASSOCIATION(msg).instreams  = instreams;
+  SCTP_NEW_ASSOCIATION(msg).assoc_id = assoc_id;
+  SCTP_NEW_ASSOCIATION(msg).instreams = instreams;
   SCTP_NEW_ASSOCIATION(msg).outstreams = outstreams;
 
   switch (ppid) {
@@ -70,23 +70,24 @@ status_code_e sctp_itti_send_new_association(
       return send_msg_to_task(&sctp_task_zmq_ctx, TASK_NGAP, msg);
     } break;
     default:
-      OAILOG_ERROR(
-          LOG_SCTP, "Ppid: %d not matching in sctp_itti_send_new_association ",
-          ppid);
+      OAILOG_ERROR(LOG_SCTP,
+                   "Ppid: %d not matching in sctp_itti_send_new_association ",
+                   ppid);
       itti_free_msg_content(msg);
       return RETURNerror;
   }
 }
 
 //------------------------------------------------------------------------------
-status_code_e sctp_itti_send_new_message_ind(
-    STOLEN_REF bstring* payload, sctp_ppid_t ppid, sctp_assoc_id_t assoc_id,
-    sctp_stream_id_t stream) {
+status_code_e sctp_itti_send_new_message_ind(STOLEN_REF bstring* payload,
+                                             sctp_ppid_t ppid,
+                                             sctp_assoc_id_t assoc_id,
+                                             sctp_stream_id_t stream) {
   MessageDef* msg =
       DEPRECATEDitti_alloc_new_message_fatal(TASK_SCTP, SCTP_DATA_IND);
 
-  SCTP_DATA_IND(msg).payload  = *payload;
-  SCTP_DATA_IND(msg).stream   = stream;
+  SCTP_DATA_IND(msg).payload = *payload;
+  SCTP_DATA_IND(msg).stream = stream;
   SCTP_DATA_IND(msg).assoc_id = assoc_id;
 
   STOLEN_REF* payload = NULL;
@@ -100,22 +101,23 @@ status_code_e sctp_itti_send_new_message_ind(
       return send_msg_to_task(&sctp_task_zmq_ctx, TASK_NGAP, msg);
     } break;
     default:
-      OAILOG_ERROR(
-          LOG_SCTP, "Ppid: %d not matching in sctp_itti_send_new_message_ind ",
-          ppid);
+      OAILOG_ERROR(LOG_SCTP,
+                   "Ppid: %d not matching in sctp_itti_send_new_message_ind ",
+                   ppid);
       itti_free_msg_content(msg);
       return RETURNok;
   }
 }
 
 //------------------------------------------------------------------------------
-status_code_e sctp_itti_send_com_down_ind(
-    sctp_ppid_t ppid, sctp_assoc_id_t assoc_id, bool reset) {
+status_code_e sctp_itti_send_com_down_ind(sctp_ppid_t ppid,
+                                          sctp_assoc_id_t assoc_id,
+                                          bool reset) {
   MessageDef* msg =
       DEPRECATEDitti_alloc_new_message_fatal(TASK_SCTP, SCTP_CLOSE_ASSOCIATION);
 
   SCTP_CLOSE_ASSOCIATION(msg).assoc_id = assoc_id;
-  SCTP_CLOSE_ASSOCIATION(msg).reset    = reset;
+  SCTP_CLOSE_ASSOCIATION(msg).reset = reset;
 
   switch (ppid) {
     case S1AP: {
@@ -127,9 +129,9 @@ status_code_e sctp_itti_send_com_down_ind(
       return send_msg_to_task(&sctp_task_zmq_ctx, TASK_NGAP, msg);
     } break;
     default:
-      OAILOG_ERROR(
-          LOG_SCTP, "Ppid: %d not matching in sctp_itti_send_com_down_ind ",
-          ppid);
+      OAILOG_ERROR(LOG_SCTP,
+                   "Ppid: %d not matching in sctp_itti_send_com_down_ind ",
+                   ppid);
       itti_free_msg_content(msg);
       return RETURNerror;
   }

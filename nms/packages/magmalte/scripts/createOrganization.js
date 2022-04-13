@@ -15,15 +15,15 @@
  */
 'use strict';
 
-import type {OrganizationType} from '@fbcnms/sequelize-models/models/organization';
-import type {Tab} from '@fbcnms/types/tabs';
+import type {OrganizationType} from '../fbc_js_core/sequelize_models/models/organization';
+import type {Tab} from '../fbc_js_core/types/tabs';
 
 import Sequelize from 'sequelize';
 
-import {Organization} from '@fbcnms/sequelize-models';
-import {coerceToTab} from '@fbcnms/types/tabs';
+import {Organization} from '../fbc_js_core/sequelize_models';
+import {coerceToTab} from '../fbc_js_core/types/tabs';
 import {difference} from 'lodash';
-import {getProjectTabs} from '@fbcnms/projects/projects';
+import {getProjectTabs} from '../fbc_js_core/projects/projects';
 import {union} from 'lodash';
 
 type OrganizationObject = {

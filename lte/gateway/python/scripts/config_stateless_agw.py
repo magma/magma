@@ -173,10 +173,10 @@ def ovs_reset_bridges():
     else:
         non_nat_sgi_interface = service_config['nat_iface']
         sgi_management_iface_ip_addr = service_config.get(
-           'sgi_management_iface_ip_addr', mconfig.sgi_management_iface_ip_addr,
+            'sgi_management_iface_ip_addr', mconfig.sgi_management_iface_ip_addr,
         )
         sgi_management_iface_gw = service_config.get(
-           'sgi_management_iface_gw', mconfig.sgi_management_iface_gw,
+            'sgi_management_iface_gw', mconfig.sgi_management_iface_gw,
         )
 
     sgi_bridge_name = service_config.get('uplink_bridge', "uplink_br0")

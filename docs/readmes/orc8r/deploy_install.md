@@ -128,7 +128,6 @@ new `main.tf` file. Follow the example Terraform root module at
 `orc8r/cloud/deploy/terraform/orc8r-helm-aws/examples/basic` but make sure to
 override the following parameters
 
-- `nms_db_password` must be at least 8 characters
 - `orc8r_db_password` must be at least 8 characters
 - `orc8r_domain_name` your registered domain name
 - `seed_certs_dir` local certs directory (e.g. `"~/secrets/certs"`)

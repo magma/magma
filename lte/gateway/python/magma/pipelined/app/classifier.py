@@ -15,6 +15,7 @@ import socket
 import subprocess
 from collections import namedtuple
 
+import grpc
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.pipelined_pb2 import (
     CauseIE,
@@ -26,6 +27,8 @@ from lte.protos.pipelined_pb2 import (
 )
 from lte.protos.session_manager_pb2 import UPFPagingInfo
 from lte.protos.subscriberdb_pb2 import SubscriberID
+from magma.common.rpc_utils import indicates_connection_error
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.app.inout import INGRESS
 from magma.pipelined.imsi import encode_imsi
@@ -64,12 +67,12 @@ class Classifier(MagmaController):
     APP_TYPE = ControllerType.SPECIAL
     SESSIOND_RPC_TIMEOUT = 5
     ClassifierConfig = namedtuple(
-            'ClassifierConfig',
-            [
-                'gtp_port', 'mtr_ip', 'mtr_port', 'internal_sampling_port',
-                'internal_sampling_fwd_tbl', 'multi_tunnel_flag',
-                'internal_conntrack_port', 'internal_conntrack_fwd_tbl', 'paging_timeout', 'classifier_controller_id',
-            ],
+        'ClassifierConfig',
+        [
+            'gtp_port', 'mtr_ip', 'mtr_port', 'internal_sampling_port',
+            'internal_sampling_fwd_tbl', 'multi_tunnel_flag',
+            'internal_conntrack_port', 'internal_conntrack_fwd_tbl', 'paging_timeout', 'classifier_controller_id',
+        ],
     )
 
     def __init__(self, *args, **kwargs):
@@ -82,7 +85,7 @@ class Classifier(MagmaController):
         self._datapath = None
         self._clean_restart = kwargs['config']['clean_restart']
         self._sessiond_setinterface = \
-                   kwargs['rpc_stubs']['sessiond_setinterface']
+            kwargs['rpc_stubs']['sessiond_setinterface']
         if self.config.multi_tunnel_flag:
             self._ovs_multi_tunnel_init()
         self.paging_flag = 0
@@ -234,12 +237,12 @@ class Classifier(MagmaController):
         """
         paging_message = UPFPagingInfo(local_f_teid=local_f_teid, ue_ip_addr=ue_ip_add)
         future = self._sessiond_setinterface.SendPagingRequest.future(
-                            paging_message, self.SESSIOND_RPC_TIMEOUT,
+            paging_message, self.SESSIOND_RPC_TIMEOUT,
         )
         future.add_done_callback(
-                              lambda future: self.loop.call_soon_threadsafe(
-                                  self._paging_msg_sent_callback, future,
-                              ),
+            lambda future: self.loop.call_soon_threadsafe(
+                self._paging_msg_sent_callback, future,
+            ),
         )
 
     def _paging_msg_sent_callback(self, future):
@@ -248,7 +251,14 @@ class Classifier(MagmaController):
         """
         err = future.exception()
         if err:
-            self.logger.error('Couldnt send flow records to sessiond: %s', err)
+            if isinstance(err, grpc.RpcError) and indicates_connection_error(err):
+                self.logger.error(
+                    "Couldn't send flow records to sessiond, connection error",
+                    extra=EXCLUDE_FROM_ERROR_MONITORING,
+                )
+            else:
+                self.logger.error("Couldn't send flow records to sessiond: %s", err)
+            return
 
     def _install_uplink_tunnel_flows(
         self, priority: int, i_teid: int,
@@ -711,8 +721,8 @@ class Classifier(MagmaController):
 
         if ip_flow_dl.dest_ip.address:
             addr_str = socket.inet_ntop(
-               socket.AF_INET,
-               ip_flow_dl.dest_ip.address,
+                socket.AF_INET,
+                ip_flow_dl.dest_ip.address,
             )
             dest_ip = IPAddress(
                 version=IPAddress.IPV4,
@@ -721,8 +731,8 @@ class Classifier(MagmaController):
 
         if ip_flow_dl.src_ip.address:
             addr_str = socket.inet_ntop(
-                  socket.AF_INET,
-                  ip_flow_dl.src_ip.address,
+                socket.AF_INET,
+                ip_flow_dl.src_ip.address,
             )
             src_ip = IPAddress(
                 version=IPAddress.IPV4,
@@ -953,8 +963,8 @@ class Classifier(MagmaController):
 
         if request.ue_ipv4_address.address:
             addr_str = socket.inet_ntop(
-               socket.AF_INET,
-               request.ue_ipv4_address.address,
+                socket.AF_INET,
+                request.ue_ipv4_address.address,
             )
             ue_ipv4_address = IPAddress(
                 version=IPAddress.IPV4,
@@ -963,7 +973,7 @@ class Classifier(MagmaController):
 
         if request.ue_ipv6_address.address:
             addr_str6 = socket.inet_ntop(
-                       socket.AF_INET6, request.ue_ipv6_address.address,
+                socket.AF_INET6, request.ue_ipv6_address.address,
             )
             ue_ipv6_address = IPAddress(
                 version=IPAddress.IPV6,
@@ -1057,7 +1067,7 @@ class Classifier(MagmaController):
             return False
 
         if ((tunnel_msg.ue_ipv4_address is None) and \
-              (tunnel_msg.ue_ipv6_address is None)):
+                (tunnel_msg.ue_ipv6_address is None)):
             return False
 
         if tunnel_msg.enb_ip_address is None:

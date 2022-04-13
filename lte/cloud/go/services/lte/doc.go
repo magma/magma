@@ -13,7 +13,3 @@ limitations under the License.
 
 // Package lte provides the LTE service mesh service.
 package lte
-
-const (
-	ServiceName = "LTE"
-)

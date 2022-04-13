@@ -11,6 +11,13 @@ limitations under the License.
 #include <sstream>
 #include <cstdint>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GTAIList.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 namespace magma5g {
@@ -18,13 +25,13 @@ TAIListMsg::TAIListMsg(){};
 
 TAIListMsg::~TAIListMsg(){};
 
-int TAIListMsg::EncodeTAIListMsg(
-    TAIListMsg* TAIList, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int TAIListMsg::EncodeTAIListMsg(TAIListMsg* TAIList, uint8_t iei,
+                                 uint8_t* buffer, uint32_t len) {
   uint8_t encoded = 0;
+
   if (iei > 0) {
-    CHECK_IEI_ENCODER(iei, (unsigned char) TAIList->iei);
+    CHECK_IEI_ENCODER(iei, (unsigned char)TAIList->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "iei = " << std::hex << int(*(buffer + encoded));
     encoded++;
   }
   *(buffer + encoded) = TAIList->len;
@@ -35,18 +42,12 @@ int TAIListMsg::EncodeTAIListMsg(
   encoded++;
   *(buffer + encoded) =
       0x00 | ((TAIList->mcc_digit2 & 0x0f) << 4) | (TAIList->mcc_digit1 & 0x0f);
-  MLOG(MDEBUG) << "mcc_digit2 >mcc_digit1 type_of_identity = " << std::hex
-               << int(*(buffer + encoded));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((TAIList->mnc_digit3 & 0x0f) << 4) | (TAIList->mcc_digit3 & 0x0f);
-  MLOG(MDEBUG) << "mnc_digit3 >mcc_digit3 type_of_identity = " << std::hex
-               << int(*(buffer + encoded));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((TAIList->mnc_digit2 & 0x0f) << 4) | (TAIList->mnc_digit1 & 0x0f);
-  MLOG(MDEBUG) << "mnc_digit2 >mcc_digit1 type_of_identity = " << std::hex
-               << int(*(buffer + encoded));
   encoded++;
 
   *(buffer + encoded) = TAIList->tac[0];
@@ -58,8 +59,9 @@ int TAIListMsg::EncodeTAIListMsg(
 
   return (encoded);
 }
-int TAIListMsg::DecodeTAIListMsg(
-    TAIListMsg* TAIList, uint8_t iei, uint8_t* buffer, uint32_t len) {
+
+int TAIListMsg::DecodeTAIListMsg(TAIListMsg* TAIList, uint8_t iei,
+                                 uint8_t* buffer, uint32_t len) {
   return 0;
 }
 

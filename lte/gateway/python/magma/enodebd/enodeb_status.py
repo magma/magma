@@ -360,6 +360,7 @@ def get_single_enb_status(
 def get_operational_states(
     enb_acs_manager: StateMachineManager,
     mconfig: mconfigs_pb2.EnodebD,
+    print_grpc_payload: bool = False,
 ) -> List[State]:
     """
     Returns: A list of State with EnodebStatus encoded as JSON
@@ -369,7 +370,7 @@ def get_operational_states(
     enb_status_by_serial = get_all_enb_status(enb_acs_manager)
 
     # Get S1 connected eNBs
-    enb_statuses = get_all_enb_state()
+    enb_statuses = get_all_enb_state(print_grpc_payload)
 
     for serial_id in enb_status_by_serial:
         enb_status_dict = enb_status_by_serial[serial_id]._asdict()

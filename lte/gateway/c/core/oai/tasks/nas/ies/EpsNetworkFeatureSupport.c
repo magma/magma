@@ -25,7 +25,7 @@
 int decode_eps_network_feature_support(
     eps_network_feature_support_t* epsnetworkfeaturesupport, uint8_t iei,
     uint8_t* buffer, uint32_t len) {
-  int decoded   = 0;
+  int decoded = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {

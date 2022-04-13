@@ -1,0 +1,35 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_python//python:defs.bzl", "py_library")
+
+py_library(
+    name = "sqlite",
+    srcs = ["sqlite.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":base",
+        ":onready",
+        "//lte/gateway/python/magma/subscriberdb:sid",
+    ],
+)
+
+py_library(
+    name = "base",
+    srcs = ["base.py"],
+    visibility = ["//visibility:public"],
+)
+
+py_library(
+    name = "onready",
+    srcs = ["onready.py"],
+    visibility = ["//visibility:private"],
+)

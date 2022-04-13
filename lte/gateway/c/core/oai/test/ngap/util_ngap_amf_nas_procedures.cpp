@@ -16,10 +16,10 @@
 
 bool generator_ngap_pdusession_resource_setup_req(bstring& stream) {
   uint8_t* buffer_p = NULL;
-  uint32_t length   = 0;
+  uint32_t length = 0;
   Ngap_NGAP_PDU_t pdu;
-  Ngap_PDUSessionResourceSetupRequest_t* out              = NULL;
-  Ngap_PDUSessionResourceSetupRequestIEs_t* ie            = NULL;
+  Ngap_PDUSessionResourceSetupRequest_t* out = NULL;
+  Ngap_PDUSessionResourceSetupRequestIEs_t* ie = NULL;
   Ngap_PDUSessionResourceSetupRequestTransferIEs_t* tx_ie = NULL;
 
   memset(&pdu, 0, sizeof(pdu));
@@ -27,7 +27,7 @@ bool generator_ngap_pdusession_resource_setup_req(bstring& stream) {
   pdu.choice.initiatingMessage.procedureCode =
       Ngap_ProcedureCode_id_PDUSessionResourceSetup;
   pdu.choice.initiatingMessage.criticality = Ngap_Criticality_reject;
-  pdu.present                              = Ngap_NGAP_PDU_PR_initiatingMessage;
+  pdu.present = Ngap_NGAP_PDU_PR_initiatingMessage;
   pdu.choice.initiatingMessage.value.present =
       Ngap_InitiatingMessage__value_PR_PDUSessionResourceSetupRequest;
   out =
@@ -36,9 +36,9 @@ bool generator_ngap_pdusession_resource_setup_req(bstring& stream) {
   /*
    * Setting UE information with the ones found in ue_ref
    */
-  ie = (Ngap_PDUSessionResourceSetupRequestIEs_t*) calloc(
+  ie = (Ngap_PDUSessionResourceSetupRequestIEs_t*)calloc(
       1, sizeof(Ngap_PDUSessionResourceSetupRequestIEs_t));
-  ie->id          = Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID;
+  ie->id = Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID;
   ie->criticality = Ngap_Criticality_reject;
   ie->value.present =
       Ngap_PDUSessionResourceSetupRequestIEs__value_PR_AMF_UE_NGAP_ID;
@@ -46,9 +46,9 @@ bool generator_ngap_pdusession_resource_setup_req(bstring& stream) {
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
-  ie = (Ngap_PDUSessionResourceSetupRequestIEs_t*) calloc(
+  ie = (Ngap_PDUSessionResourceSetupRequestIEs_t*)calloc(
       1, sizeof(Ngap_PDUSessionResourceSetupRequestIEs_t));
-  ie->id          = Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID;
+  ie->id = Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID;
   ie->criticality = Ngap_Criticality_reject;
   ie->value.present =
       Ngap_PDUSessionResourceSetupRequestIEs__value_PR_RAN_UE_NGAP_ID;
@@ -56,9 +56,9 @@ bool generator_ngap_pdusession_resource_setup_req(bstring& stream) {
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
-  ie = (Ngap_PDUSessionResourceSetupRequestIEs_t*) calloc(
+  ie = (Ngap_PDUSessionResourceSetupRequestIEs_t*)calloc(
       1, sizeof(Ngap_PDUSessionResourceSetupRequestIEs_t));
-  ie->id          = Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListSUReq;
+  ie->id = Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListSUReq;
   ie->criticality = Ngap_Criticality_reject;
   ie->value.present =
       Ngap_PDUSessionResourceSetupRequestIEs__value_PR_PDUSessionResourceSetupListSUReq;
@@ -66,7 +66,7 @@ bool generator_ngap_pdusession_resource_setup_req(bstring& stream) {
 
   // Resource Setup Request
   Ngap_PDUSessionResourceSetupItemSUReq_t* ngap_pdusession_setup_item_ies =
-      (Ngap_PDUSessionResourceSetupItemSUReq_t*) calloc(
+      (Ngap_PDUSessionResourceSetupItemSUReq_t*)calloc(
           1, sizeof(Ngap_PDUSessionResourceSetupItemSUReq_t));
 
   ngap_pdusession_setup_item_ies->pDUSessionID = 100;
@@ -74,18 +74,18 @@ bool generator_ngap_pdusession_resource_setup_req(bstring& stream) {
   // NSSAI
   ngap_pdusession_setup_item_ies->s_NSSAI.sST.size = 1;
   ngap_pdusession_setup_item_ies->s_NSSAI.sST.buf =
-      (uint8_t*) calloc(1, sizeof(uint8_t));
+      (uint8_t*)calloc(1, sizeof(uint8_t));
   ngap_pdusession_setup_item_ies->s_NSSAI.sST.buf[0] = 0x11;
 
   // Filling PDU TX Structure
   Ngap_PDUSessionResourceSetupRequestTransfer_t*
       pduSessionResourceSetupRequestTransferIEs =
-          (Ngap_PDUSessionResourceSetupRequestTransfer_t*) calloc(
+          (Ngap_PDUSessionResourceSetupRequestTransfer_t*)calloc(
               1, sizeof(Ngap_PDUSessionResourceSetupRequestTransfer_t));
 
-  tx_ie = (Ngap_PDUSessionResourceSetupRequestTransferIEs_t*) calloc(
+  tx_ie = (Ngap_PDUSessionResourceSetupRequestTransferIEs_t*)calloc(
       1, sizeof(Ngap_PDUSessionResourceSetupRequestTransferIEs_t));
-  tx_ie->id          = Ngap_ProtocolIE_ID_id_UL_NGU_UP_TNLInformation;
+  tx_ie->id = Ngap_ProtocolIE_ID_id_UL_NGU_UP_TNLInformation;
   tx_ie->criticality = Ngap_Criticality_reject;
   tx_ie->value.present =
       Ngap_PDUSessionResourceSetupRequestTransferIEs__value_PR_UPTransportLayerInformation;
@@ -98,9 +98,9 @@ bool generator_ngap_pdusession_resource_setup_req(bstring& stream) {
   tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel
       .transportLayerAddress.bits_unused = 0;
   tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel
-      .transportLayerAddress.buf = (uint8_t*) calloc(
-      1, tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel
-             .transportLayerAddress.size);
+      .transportLayerAddress.buf =
+      (uint8_t*)calloc(1, tx_ie->value.choice.UPTransportLayerInformation.choice
+                              .gTPTunnel.transportLayerAddress.size);
   tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel
       .transportLayerAddress.buf[0] = 0xc0;
   tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel
@@ -113,9 +113,8 @@ bool generator_ngap_pdusession_resource_setup_req(bstring& stream) {
   tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel.gTP_TEID
       .size = sizeof(uint32_t);
   tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel.gTP_TEID
-      .buf = (uint8_t*) calloc(
-      1, tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel
-             .gTP_TEID.size);
+      .buf = (uint8_t*)calloc(1, tx_ie->value.choice.UPTransportLayerInformation
+                                     .choice.gTPTunnel.gTP_TEID.size);
   tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel.gTP_TEID
       .buf[0] = 0x0;
   tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel.gTP_TEID
@@ -129,27 +128,27 @@ bool generator_ngap_pdusession_resource_setup_req(bstring& stream) {
       &pduSessionResourceSetupRequestTransferIEs->protocolIEs.list, tx_ie);
 
   /*PDUSessionType*/
-  tx_ie = (Ngap_PDUSessionResourceSetupRequestTransferIEs_t*) calloc(
+  tx_ie = (Ngap_PDUSessionResourceSetupRequestTransferIEs_t*)calloc(
       1, sizeof(Ngap_PDUSessionResourceSetupRequestTransferIEs_t));
-  tx_ie->id          = Ngap_ProtocolIE_ID_id_PDUSessionType;
+  tx_ie->id = Ngap_ProtocolIE_ID_id_PDUSessionType;
   tx_ie->criticality = Ngap_Criticality_reject;
   tx_ie->value.present =
       Ngap_PDUSessionResourceSetupRequestTransferIEs__value_PR_PDUSessionType;
   tx_ie->value.choice.PDUSessionType = Ngap_PDUSessionType_ipv4;
-  ret                                = ASN_SEQUENCE_ADD(
+  ret = ASN_SEQUENCE_ADD(
       &pduSessionResourceSetupRequestTransferIEs->protocolIEs.list, tx_ie);
   assert(ret == 0);
 
   /*Qos*/
-  tx_ie = (Ngap_PDUSessionResourceSetupRequestTransferIEs_t*) calloc(
+  tx_ie = (Ngap_PDUSessionResourceSetupRequestTransferIEs_t*)calloc(
       1, sizeof(Ngap_PDUSessionResourceSetupRequestTransferIEs_t));
-  tx_ie->id          = Ngap_ProtocolIE_ID_id_QosFlowSetupRequestList;
+  tx_ie->id = Ngap_ProtocolIE_ID_id_QosFlowSetupRequestList;
   tx_ie->criticality = Ngap_Criticality_reject;
   tx_ie->value.present =
       Ngap_PDUSessionResourceSetupRequestTransferIEs__value_PR_QosFlowSetupRequestList;
 
   Ngap_QosFlowSetupRequestItem_t* qos_item =
-      (Ngap_QosFlowSetupRequestItem_t*) calloc(
+      (Ngap_QosFlowSetupRequestItem_t*)calloc(
           1, sizeof(Ngap_QosFlowSetupRequestItem_t));
   qos_item->qosFlowIdentifier = 1;
   qos_item->qosFlowLevelQosParameters.qosCharacteristics.present =
@@ -182,18 +181,16 @@ bool generator_ngap_pdusession_resource_setup_req(bstring& stream) {
   ngap_pdusession_setup_item_ies->pDUSessionResourceSetupRequestTransfer.size =
       blength(transfer);
   ngap_pdusession_setup_item_ies->pDUSessionResourceSetupRequestTransfer.buf =
-      (uint8_t*) calloc(er.encoded, sizeof(uint8_t));
+      (uint8_t*)calloc(er.encoded, sizeof(uint8_t));
 
-  memcpy(
-      (void*) ngap_pdusession_setup_item_ies
-          ->pDUSessionResourceSetupRequestTransfer.buf,
-      (void*) transfer->data, er.encoded);
+  memcpy((void*)ngap_pdusession_setup_item_ies
+             ->pDUSessionResourceSetupRequestTransfer.buf,
+         (void*)transfer->data, er.encoded);
 
   bdestroy(transfer);
 
-  ASN_SEQUENCE_ADD(
-      &ie->value.choice.PDUSessionResourceSetupListSUReq.list,
-      ngap_pdusession_setup_item_ies);
+  ASN_SEQUENCE_ADD(&ie->value.choice.PDUSessionResourceSetupListSUReq.list,
+                   ngap_pdusession_setup_item_ies);
 
   if (ngap_amf_encode_pdu(&pdu, &buffer_p, &length) < 0) {
     assert(0);
@@ -215,7 +212,7 @@ static int _pdusession_resource_setup_stream(
         pdusession_resource_setup_req,
     m5g_ue_description_t* ue_ref, bstring* stream) {
   uint8_t* buffer_p = NULL;
-  uint32_t length   = 0;
+  uint32_t length = 0;
   pdu_session_resource_setup_request_transfer_t amf_pdu_ses_setup_transfer_req;
 
   /*
@@ -223,8 +220,8 @@ static int _pdusession_resource_setup_stream(
    * Create new IE list message and encode it.
    */
   Ngap_NGAP_PDU_t pdu;
-  Ngap_PDUSessionResourceSetupRequest_t* out              = NULL;
-  Ngap_PDUSessionResourceSetupRequestIEs_t* ie            = NULL;
+  Ngap_PDUSessionResourceSetupRequest_t* out = NULL;
+  Ngap_PDUSessionResourceSetupRequestIEs_t* ie = NULL;
   Ngap_PDUSessionResourceSetupRequestTransferIEs_t* tx_ie = NULL;
 
   memset(&pdu, 0, sizeof(pdu));
@@ -232,7 +229,7 @@ static int _pdusession_resource_setup_stream(
   pdu.choice.initiatingMessage.procedureCode =
       Ngap_ProcedureCode_id_PDUSessionResourceSetup;
   pdu.choice.initiatingMessage.criticality = Ngap_Criticality_reject;
-  pdu.present                              = Ngap_NGAP_PDU_PR_initiatingMessage;
+  pdu.present = Ngap_NGAP_PDU_PR_initiatingMessage;
   pdu.choice.initiatingMessage.value.present =
       Ngap_InitiatingMessage__value_PR_PDUSessionResourceSetupRequest;
   out =
@@ -241,9 +238,9 @@ static int _pdusession_resource_setup_stream(
   /*
    * Setting UE information with the ones found in ue_ref
    */
-  ie = (Ngap_PDUSessionResourceSetupRequestIEs_t*) calloc(
+  ie = (Ngap_PDUSessionResourceSetupRequestIEs_t*)calloc(
       1, sizeof(Ngap_PDUSessionResourceSetupRequestIEs_t));
-  ie->id          = Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID;
+  ie->id = Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID;
   ie->criticality = Ngap_Criticality_reject;
   ie->value.present =
       Ngap_PDUSessionResourceSetupRequestIEs__value_PR_AMF_UE_NGAP_ID;
@@ -251,9 +248,9 @@ static int _pdusession_resource_setup_stream(
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
-  ie = (Ngap_PDUSessionResourceSetupRequestIEs_t*) calloc(
+  ie = (Ngap_PDUSessionResourceSetupRequestIEs_t*)calloc(
       1, sizeof(Ngap_PDUSessionResourceSetupRequestIEs_t));
-  ie->id          = Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID;
+  ie->id = Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID;
   ie->criticality = Ngap_Criticality_reject;
   ie->value.present =
       Ngap_PDUSessionResourceSetupRequestIEs__value_PR_RAN_UE_NGAP_ID;
@@ -261,9 +258,9 @@ static int _pdusession_resource_setup_stream(
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
-  ie = (Ngap_PDUSessionResourceSetupRequestIEs_t*) calloc(
+  ie = (Ngap_PDUSessionResourceSetupRequestIEs_t*)calloc(
       1, sizeof(Ngap_PDUSessionResourceSetupRequestIEs_t));
-  ie->id          = Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListSUReq;
+  ie->id = Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListSUReq;
   ie->criticality = Ngap_Criticality_reject;
   ie->value.present =
       Ngap_PDUSessionResourceSetupRequestIEs__value_PR_PDUSessionResourceSetupListSUReq;
@@ -277,7 +274,7 @@ static int _pdusession_resource_setup_stream(
         pdusession_resource_setup_req->pduSessionResource_setup_list.item[i];
 
     Ngap_PDUSessionResourceSetupItemSUReq_t* ngap_pdusession_setup_item_ies =
-        (Ngap_PDUSessionResourceSetupItemSUReq_t*) calloc(
+        (Ngap_PDUSessionResourceSetupItemSUReq_t*)calloc(
             1, sizeof(Ngap_PDUSessionResourceSetupItemSUReq_t));
 
     ngap_pdusession_setup_item_ies->pDUSessionID = session_item.Pdu_Session_ID;
@@ -285,7 +282,7 @@ static int _pdusession_resource_setup_stream(
     /*NSSAI*/
     ngap_pdusession_setup_item_ies->s_NSSAI.sST.size = 1;
     ngap_pdusession_setup_item_ies->s_NSSAI.sST.buf =
-        (uint8_t*) calloc(1, sizeof(uint8_t));
+        (uint8_t*)calloc(1, sizeof(uint8_t));
     ngap_pdusession_setup_item_ies->s_NSSAI.sST.buf[0] = 0x11;
 
     // filling PDU TX Structure
@@ -295,12 +292,12 @@ static int _pdusession_resource_setup_stream(
     /*tx_out*/
     Ngap_PDUSessionResourceSetupRequestTransfer_t*
         pduSessionResourceSetupRequestTransferIEs =
-            (Ngap_PDUSessionResourceSetupRequestTransfer_t*) calloc(
+            (Ngap_PDUSessionResourceSetupRequestTransfer_t*)calloc(
                 1, sizeof(Ngap_PDUSessionResourceSetupRequestTransfer_t));
 
-    tx_ie = (Ngap_PDUSessionResourceSetupRequestTransferIEs_t*) calloc(
+    tx_ie = (Ngap_PDUSessionResourceSetupRequestTransferIEs_t*)calloc(
         1, sizeof(Ngap_PDUSessionResourceSetupRequestTransferIEs_t));
-    tx_ie->id          = Ngap_ProtocolIE_ID_id_UL_NGU_UP_TNLInformation;
+    tx_ie->id = Ngap_ProtocolIE_ID_id_UL_NGU_UP_TNLInformation;
     tx_ie->criticality = Ngap_Criticality_reject;
     tx_ie->value.present =
         Ngap_PDUSessionResourceSetupRequestTransferIEs__value_PR_UPTransportLayerInformation;
@@ -317,19 +314,18 @@ static int _pdusession_resource_setup_stream(
     gtp_tunnel_info->transportLayerAddress.size =
         blength(amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl
                     .endpoint_ip_address);
-    gtp_tunnel_info->transportLayerAddress.buf = (uint8_t*) calloc(
+    gtp_tunnel_info->transportLayerAddress.buf = (uint8_t*)calloc(
         gtp_tunnel_info->transportLayerAddress.size, sizeof(uint8_t));
 
-    memcpy(
-        gtp_tunnel_info->transportLayerAddress.buf,
-        amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl
-            .endpoint_ip_address->data,
-        gtp_tunnel_info->transportLayerAddress.size);
+    memcpy(gtp_tunnel_info->transportLayerAddress.buf,
+           amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl
+               .endpoint_ip_address->data,
+           gtp_tunnel_info->transportLayerAddress.size);
 
     /* TEID Information */
     gtp_tunnel_info->gTP_TEID.size = sizeof(uint32_t);
     gtp_tunnel_info->gTP_TEID.buf =
-        (uint8_t*) calloc(gtp_tunnel_info->gTP_TEID.size, sizeof(uint8_t));
+        (uint8_t*)calloc(gtp_tunnel_info->gTP_TEID.size, sizeof(uint8_t));
     memcpy(
         gtp_tunnel_info->gTP_TEID.buf,
         amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.gtp_tied,
@@ -343,9 +339,9 @@ static int _pdusession_resource_setup_stream(
     }
 
     /*PDUSessionType*/
-    tx_ie = (Ngap_PDUSessionResourceSetupRequestTransferIEs_t*) calloc(
+    tx_ie = (Ngap_PDUSessionResourceSetupRequestTransferIEs_t*)calloc(
         1, sizeof(Ngap_PDUSessionResourceSetupRequestTransferIEs_t));
-    tx_ie->id          = Ngap_ProtocolIE_ID_id_PDUSessionType;
+    tx_ie->id = Ngap_ProtocolIE_ID_id_PDUSessionType;
     tx_ie->criticality = Ngap_Criticality_reject;
     tx_ie->value.present =
         Ngap_PDUSessionResourceSetupRequestTransferIEs__value_PR_PDUSessionType;
@@ -361,16 +357,16 @@ static int _pdusession_resource_setup_stream(
     }
 
     /*Qos*/
-    tx_ie = (Ngap_PDUSessionResourceSetupRequestTransferIEs_t*) calloc(
+    tx_ie = (Ngap_PDUSessionResourceSetupRequestTransferIEs_t*)calloc(
         1, sizeof(Ngap_PDUSessionResourceSetupRequestTransferIEs_t));
-    tx_ie->id          = Ngap_ProtocolIE_ID_id_QosFlowSetupRequestList;
+    tx_ie->id = Ngap_ProtocolIE_ID_id_QosFlowSetupRequestList;
     tx_ie->criticality = Ngap_Criticality_reject;
     tx_ie->value.present =
         Ngap_PDUSessionResourceSetupRequestTransferIEs__value_PR_QosFlowSetupRequestList;
 
     for (int i = 0; i < /*no_of_qos_items*/ 1; i++) {
       Ngap_QosFlowSetupRequestItem_t* qos_item =
-          (Ngap_QosFlowSetupRequestItem_t*) calloc(
+          (Ngap_QosFlowSetupRequestItem_t*)calloc(
               1, sizeof(Ngap_QosFlowSetupRequestItem_t));
 
       qos_item->qosFlowIdentifier =
@@ -405,8 +401,8 @@ static int _pdusession_resource_setup_stream(
               .pre_emption_vul;
 
       asn_set_empty(&tx_ie->value.choice.QosFlowSetupRequestList.list);
-      ASN_SEQUENCE_ADD(
-          &tx_ie->value.choice.QosFlowSetupRequestList.list, qos_item);
+      ASN_SEQUENCE_ADD(&tx_ie->value.choice.QosFlowSetupRequestList.list,
+                       qos_item);
     }
 
     ret = ASN_SEQUENCE_ADD(
@@ -417,7 +413,7 @@ static int _pdusession_resource_setup_stream(
     }
 
     uint32_t buffer_size = 1024;
-    char* buffer         = (char*) calloc(1, buffer_size);
+    char* buffer = (char*)calloc(1, buffer_size);
 
     asn_enc_rval_t er = aper_encode_to_buffer(
         &asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer, NULL,
@@ -428,25 +424,22 @@ static int _pdusession_resource_setup_stream(
       return (RETURNerror);
     }
 
-    asn_fprint(
-        stderr, &asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer,
-        pduSessionResourceSetupRequestTransferIEs);
+    asn_fprint(stderr, &asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer,
+               pduSessionResourceSetupRequestTransferIEs);
 
     bstring transfer = blk2bstr(buffer, er.encoded);
     ngap_pdusession_setup_item_ies->pDUSessionResourceSetupRequestTransfer.buf =
-        (uint8_t*) calloc(er.encoded, sizeof(uint8_t));
+        (uint8_t*)calloc(er.encoded, sizeof(uint8_t));
 
-    memcpy(
-        (void*) ngap_pdusession_setup_item_ies
-            ->pDUSessionResourceSetupRequestTransfer.buf,
-        (void*) transfer->data, er.encoded);
+    memcpy((void*)ngap_pdusession_setup_item_ies
+               ->pDUSessionResourceSetupRequestTransfer.buf,
+           (void*)transfer->data, er.encoded);
 
     ngap_pdusession_setup_item_ies->pDUSessionResourceSetupRequestTransfer
         .size = blength(transfer);
 
-    ASN_SEQUENCE_ADD(
-        &ie->value.choice.PDUSessionResourceSetupListSUReq.list,
-        ngap_pdusession_setup_item_ies);
+    ASN_SEQUENCE_ADD(&ie->value.choice.PDUSessionResourceSetupListSUReq.list,
+                     ngap_pdusession_setup_item_ies);
 
     free(buffer);
     bdestroy(transfer);
@@ -474,9 +467,8 @@ bool generator_itti_ngap_pdusession_resource_setup_req(bstring& stream) {
   m5g_ue_description_t ue_ref;
   int ret = RETURNok;
 
-  memset(
-      &resource_setup_req, 0,
-      sizeof(itti_ngap_pdusession_resource_setup_req_t));
+  memset(&resource_setup_req, 0,
+         sizeof(itti_ngap_pdusession_resource_setup_req_t));
   memset(&ue_ref, 0, sizeof(m5g_ue_description_t));
 
   resource_setup_req.gnb_ue_ngap_id = 10;
@@ -509,14 +501,14 @@ bool generator_itti_ngap_pdusession_resource_setup_req(bstring& stream) {
   transfer_req->up_transport_layer_info.gtp_tnl.gtp_tied[1] = 0x0;
   transfer_req->up_transport_layer_info.gtp_tnl.gtp_tied[2] = 0xa;
   transfer_req->up_transport_layer_info.gtp_tnl.gtp_tied[3] = 0x0;
-  transfer_req->pdu_ip_type.pdn_type                        = IPv4;
+  transfer_req->pdu_ip_type.pdn_type = IPv4;
 
   /* QoS */
   qos_flow_setup_request_item* qos_flow =
       &(transfer_req->qos_flow_setup_request_list.qos_flow_req_item);
   qos_flow->qos_flow_identifier = 1;
   qos_flow->qos_flow_level_qos_param.qos_characteristic.non_dynamic_5QI_desc
-      .fiveQI                                                            = 9;
+      .fiveQI = 9;
   qos_flow->qos_flow_level_qos_param.alloc_reten_priority.priority_level = 8;
   qos_flow->qos_flow_level_qos_param.alloc_reten_priority.pre_emption_cap =
       SHALL_NOT_TRIGGER_PRE_EMPTION;
@@ -540,9 +532,9 @@ bool generator_itti_ngap_pdusession_resource_setup_req(bstring& stream) {
 
 bool generator_ngap_pdusession_resource_rel_cmd_stream(bstring& stream) {
   uint8_t* buffer_p = NULL;
-  uint32_t length   = 0;
+  uint32_t length = 0;
   Ngap_NGAP_PDU_t pdu;
-  Ngap_PDUSessionResourceReleaseCommand_t* out   = NULL;
+  Ngap_PDUSessionResourceReleaseCommand_t* out = NULL;
   Ngap_PDUSessionResourceReleaseCommandIEs_t* ie = NULL;
   int hexbuf[] = {0x7e, 0x03, 0x00, 0x00, 0x00, 0x00, 0x03, 0x7e, 0x00, 0x68,
                   0x01, 0x00, 0x05, 0x2e, 0x01, 0x01, 0xd3, 0x24, 0x12, 0x01};
@@ -558,9 +550,9 @@ bool generator_ngap_pdusession_resource_rel_cmd_stream(bstring& stream) {
              .PDUSessionResourceReleaseCommand;
 
   /* mandatory */
-  ie = (Ngap_PDUSessionResourceReleaseCommandIEs_t*) calloc(
+  ie = (Ngap_PDUSessionResourceReleaseCommandIEs_t*)calloc(
       1, sizeof(Ngap_PDUSessionResourceReleaseCommandIEs_t));
-  ie->id          = Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID;
+  ie->id = Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID;
   ie->criticality = Ngap_Criticality_reject;
   ie->value.present =
       Ngap_PDUSessionResourceReleaseCommandIEs__value_PR_AMF_UE_NGAP_ID;
@@ -568,9 +560,9 @@ bool generator_ngap_pdusession_resource_rel_cmd_stream(bstring& stream) {
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
-  ie = (Ngap_PDUSessionResourceReleaseCommandIEs_t*) calloc(
+  ie = (Ngap_PDUSessionResourceReleaseCommandIEs_t*)calloc(
       1, sizeof(Ngap_PDUSessionResourceReleaseCommandIEs_t));
-  ie->id          = Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID;
+  ie->id = Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID;
   ie->criticality = Ngap_Criticality_reject;
   ie->value.present =
       Ngap_PDUSessionResourceReleaseCommandIEs__value_PR_RAN_UE_NGAP_ID;
@@ -578,41 +570,40 @@ bool generator_ngap_pdusession_resource_rel_cmd_stream(bstring& stream) {
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* optional NAS pdu */
-  ie = (Ngap_PDUSessionResourceReleaseCommandIEs_t*) calloc(
+  ie = (Ngap_PDUSessionResourceReleaseCommandIEs_t*)calloc(
       1, sizeof(Ngap_PDUSessionResourceReleaseCommandIEs_t));
-  ie->id          = Ngap_ProtocolIE_ID_id_NAS_PDU;
+  ie->id = Ngap_ProtocolIE_ID_id_NAS_PDU;
   ie->criticality = Ngap_Criticality_reject;
   ie->value.present =
       Ngap_PDUSessionResourceReleaseCommandIEs__value_PR_NAS_PDU;
 
   ie->value.choice.NAS_PDU.size = 20;
   ie->value.choice.NAS_PDU.buf =
-      (uint8_t*) calloc(1, ie->value.choice.NAS_PDU.size * sizeof(uint8_t));
-  memset(
-      ie->value.choice.NAS_PDU.buf, 0,
-      sizeof(ie->value.choice.NAS_PDU.size * sizeof(uint8_t)));
+      (uint8_t*)calloc(1, ie->value.choice.NAS_PDU.size * sizeof(uint8_t));
+  memset(ie->value.choice.NAS_PDU.buf, 0,
+         sizeof(ie->value.choice.NAS_PDU.size * sizeof(uint8_t)));
 
   for (uint32_t i = 0; i < ie->value.choice.NAS_PDU.size; i++) {
     ie->value.choice.NAS_PDU.buf[i] = hexbuf[i];
   }
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
-  ie = (Ngap_PDUSessionResourceReleaseCommandIEs_t*) calloc(
+  ie = (Ngap_PDUSessionResourceReleaseCommandIEs_t*)calloc(
       1, sizeof(Ngap_PDUSessionResourceReleaseCommandIEs_t));
-  ie->id          = Ngap_ProtocolIE_ID_id_PDUSessionResourceToReleaseListRelCmd;
+  ie->id = Ngap_ProtocolIE_ID_id_PDUSessionResourceToReleaseListRelCmd;
   ie->criticality = Ngap_Criticality_reject;
   ie->value.present =
       Ngap_PDUSessionResourceReleaseCommandIEs__value_PR_PDUSessionResourceToReleaseListRelCmd;
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   Ngap_PDUSessionResourceToReleaseItemRelCmd_t* RelItem =
-      (Ngap_PDUSessionResourceToReleaseItemRelCmd_t*) calloc(
+      (Ngap_PDUSessionResourceToReleaseItemRelCmd_t*)calloc(
           1, sizeof(Ngap_PDUSessionResourceToReleaseItemRelCmd_t));
   RelItem->pDUSessionID = 1;
 
   Ngap_PDUSessionResourceReleaseCommandTransfer_t*
       PDUSessionResourceReleaseCommandTransferIEs =
-          (Ngap_PDUSessionResourceReleaseCommandTransfer_t*) calloc(
+          (Ngap_PDUSessionResourceReleaseCommandTransfer_t*)calloc(
               1, sizeof(Ngap_PDUSessionResourceReleaseCommandTransfer_t));
 
   PDUSessionResourceReleaseCommandTransferIEs->cause.present =
@@ -625,18 +616,17 @@ bool generator_ngap_pdusession_resource_rel_cmd_stream(bstring& stream) {
 
   ssize_t encoded_size = aper_encode_to_new_buffer(
       &asn_DEF_Ngap_PDUSessionResourceReleaseCommandTransfer, NULL,
-      PDUSessionResourceReleaseCommandTransferIEs, (void**) &buffer);
+      PDUSessionResourceReleaseCommandTransferIEs, (void**)&buffer);
 
   RelItem->pDUSessionResourceReleaseCommandTransfer.size = encoded_size;
-  RelItem->pDUSessionResourceReleaseCommandTransfer.buf  = (uint8_t*) calloc(
+  RelItem->pDUSessionResourceReleaseCommandTransfer.buf = (uint8_t*)calloc(
       1,
       RelItem->pDUSessionResourceReleaseCommandTransfer.size * sizeof(uint8_t));
-  memcpy(
-      (void*) RelItem->pDUSessionResourceReleaseCommandTransfer.buf,
-      (void*) buffer, encoded_size);
+  memcpy((void*)RelItem->pDUSessionResourceReleaseCommandTransfer.buf,
+         (void*)buffer, encoded_size);
 
-  ASN_SEQUENCE_ADD(
-      &ie->value.choice.PDUSessionResourceToReleaseListRelCmd.list, RelItem);
+  ASN_SEQUENCE_ADD(&ie->value.choice.PDUSessionResourceToReleaseListRelCmd.list,
+                   RelItem);
   free(buffer);
 
   if (ngap_amf_encode_pdu(&pdu, &buffer_p, &length) < 0) {

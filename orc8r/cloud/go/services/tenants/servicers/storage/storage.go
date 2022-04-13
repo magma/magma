@@ -8,6 +8,7 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/tenants"
+	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 )
@@ -15,10 +16,10 @@ import (
 const networkWildcard = "*"
 
 type Store interface {
-	CreateTenant(tenantID int64, tenant protos.Tenant) error
-	GetTenant(tenantID int64) (*protos.Tenant, error)
-	GetAllTenants() (*protos.TenantList, error)
-	SetTenant(tenantID int64, tenant protos.Tenant) error
+	CreateTenant(tenantID int64, tenant tenant_protos.Tenant) error
+	GetTenant(tenantID int64) (*tenant_protos.Tenant, error)
+	GetAllTenants() (*tenant_protos.TenantList, error)
+	SetTenant(tenantID int64, tenant tenant_protos.Tenant) error
 	DeleteTenant(tenantID int64) error
 	GetControlProxy(tenantID int64) (string, error)
 	CreateOrUpdateControlProxy(tenantID int64, controlProxy string) error
@@ -32,11 +33,11 @@ func NewBlobstoreStore(factory blobstore.StoreFactory) Store {
 	return &blobstoreStore{factory}
 }
 
-func (b *blobstoreStore) CreateTenant(tenantID int64, tenant protos.Tenant) error {
+func (b *blobstoreStore) CreateTenant(tenantID int64, tenant tenant_protos.Tenant) error {
 	return b.SetTenant(tenantID, tenant)
 }
 
-func (b *blobstoreStore) GetTenant(tenantID int64) (*protos.Tenant, error) {
+func (b *blobstoreStore) GetTenant(tenantID int64) (*tenant_protos.Tenant, error) {
 	store, err := b.factory.StartTransaction(nil)
 	if err != nil {
 		return nil, err
@@ -58,7 +59,7 @@ func (b *blobstoreStore) GetTenant(tenantID int64) (*protos.Tenant, error) {
 	return &retTenant, store.Commit()
 }
 
-func (b *blobstoreStore) GetAllTenants() (*protos.TenantList, error) {
+func (b *blobstoreStore) GetAllTenants() (*tenant_protos.TenantList, error) {
 	store, err := b.factory.StartTransaction(nil)
 	if err != nil {
 		return nil, err
@@ -80,7 +81,7 @@ func (b *blobstoreStore) GetAllTenants() (*protos.TenantList, error) {
 		return nil, err
 	}
 
-	retTenants := &protos.TenantList{}
+	retTenants := &tenant_protos.TenantList{}
 	for _, blob := range tenantBlobs {
 		tenant, err := tenantFromBlob(blob)
 		if err != nil {
@@ -90,7 +91,7 @@ func (b *blobstoreStore) GetAllTenants() (*protos.TenantList, error) {
 		if err != nil {
 			return nil, fmt.Errorf("non-integer key: %v", err)
 		}
-		idAndTenant := &protos.IDAndTenant{
+		idAndTenant := &tenant_protos.IDAndTenant{
 			Id:     intID,
 			Tenant: &tenant,
 		}
@@ -99,7 +100,7 @@ func (b *blobstoreStore) GetAllTenants() (*protos.TenantList, error) {
 	return retTenants, nil
 }
 
-func (b *blobstoreStore) SetTenant(tenantID int64, tenant protos.Tenant) error {
+func (b *blobstoreStore) SetTenant(tenantID int64, tenant tenant_protos.Tenant) error {
 	store, err := b.factory.StartTransaction(nil)
 	if err != nil {
 		return err
@@ -166,7 +167,6 @@ func (b *blobstoreStore) CreateOrUpdateControlProxy(tenantID int64, controlProxy
 		Key:   strconv.FormatInt(tenantID, 10),
 		Value: []byte(controlProxy),
 	}
-
 	err = store.Write(networkWildcard, blobstore.Blobs{controlProxyBlob})
 	if err != nil {
 		return err
@@ -175,7 +175,7 @@ func (b *blobstoreStore) CreateOrUpdateControlProxy(tenantID int64, controlProxy
 	return store.Commit()
 }
 
-func tenantToBlob(tenantID int64, tenant protos.Tenant) (blobstore.Blob, error) {
+func tenantToBlob(tenantID int64, tenant tenant_protos.Tenant) (blobstore.Blob, error) {
 	marshaledTenant, err := protos.Marshal(&tenant)
 	if err != nil {
 		return blobstore.Blob{}, errors.Wrap(err, "Error marshaling protobuf")
@@ -187,11 +187,11 @@ func tenantToBlob(tenantID int64, tenant protos.Tenant) (blobstore.Blob, error) 
 	}, nil
 }
 
-func tenantFromBlob(blob blobstore.Blob) (protos.Tenant, error) {
-	tenant := protos.Tenant{}
+func tenantFromBlob(blob blobstore.Blob) (tenant_protos.Tenant, error) {
+	tenant := tenant_protos.Tenant{}
 	err := protos.Unmarshal(blob.Value, &tenant)
 	if err != nil {
-		return protos.Tenant{}, errors.Wrap(err, "Error unmarshaling protobuf")
+		return tenant_protos.Tenant{}, errors.Wrap(err, "Error unmarshaling protobuf")
 	}
 	return tenant, nil
 }

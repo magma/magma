@@ -10,10 +10,7 @@ This section walks through installing a production Orchestrator deployment.
 
 We assume you will use the versioned artifacts provided by the project's official artifactory at [artifactory.magmacore.org](https://artifactory.magmacore.org/). If you would like to build and host your own artifacts, see the [Build Orchestrator](./dev_build.md) page.
 
-There are two principal ways to deploy an Orc8r instance
-
-- [Manual installation](./deploy_install.md) (default)
-- [Managed installation via `orcl` CLI](./deploy_orcl.md)
+To deploy orc8r, see the [Manual installation](./deploy_install.md) page.
 
 ## Prerequisites
 

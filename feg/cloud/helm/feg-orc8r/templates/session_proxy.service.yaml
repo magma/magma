@@ -30,5 +30,5 @@ spec:
   ports:
     - name: grpc
       port: 9180
-      targetPort: 9079
+      targetPort: 9103
 {{- end -}}

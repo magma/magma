@@ -24,17 +24,17 @@
 
 typedef uint8_t ImeisvRequest;
 
-int encode_imeisv_request(
-    ImeisvRequest* imeisvrequest, uint8_t iei, uint8_t* buffer, uint32_t len);
+int encode_imeisv_request(ImeisvRequest* imeisvrequest, uint8_t iei,
+                          uint8_t* buffer, uint32_t len);
 
 void dump_imeisv_request_xml(ImeisvRequest* imeisvrequest, uint8_t iei);
 
 uint8_t encode_u8_imeisv_request(ImeisvRequest* imeisvrequest);
 
-int decode_imeisv_request(
-    ImeisvRequest* imeisvrequest, uint8_t iei, uint8_t* buffer, uint32_t len);
+int decode_imeisv_request(ImeisvRequest* imeisvrequest, uint8_t iei,
+                          uint8_t* buffer, uint32_t len);
 
-int decode_u8_imeisv_request(
-    ImeisvRequest* imeisvrequest, uint8_t iei, uint8_t value, uint32_t len);
+int decode_u8_imeisv_request(ImeisvRequest* imeisvrequest, uint8_t iei,
+                             uint8_t value, uint32_t len);
 
 #endif /* IMEISV REQUEST_H_ */

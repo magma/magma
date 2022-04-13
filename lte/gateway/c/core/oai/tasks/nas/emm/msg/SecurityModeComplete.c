@@ -17,16 +17,16 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeComplete.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeComplete.h"
 
 int decode_security_mode_complete(
     security_mode_complete_msg* security_mode_complete, uint8_t* buffer,
     uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
@@ -76,7 +76,7 @@ int decode_security_mode_complete(
 int encode_security_mode_complete(
     security_mode_complete_msg* security_mode_complete, uint8_t* buffer,
     uint32_t len) {
-  int encoded       = 0;
+  int encoded = 0;
   int encode_result = 0;
 
   /*

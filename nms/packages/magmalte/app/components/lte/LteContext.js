@@ -20,7 +20,7 @@ import GatewayContext from '../context/GatewayContext';
 import GatewayPoolsContext from '../context/GatewayPoolsContext';
 import GatewayTierContext from '../context/GatewayTierContext';
 import InitSubscriberState from '../../state/lte/SubscriberState';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import LteNetworkContext from '../context/LteNetworkContext';
 import MagmaV1API from '../../../generated/WebClient';
 import NetworkContext from '../../components/context/NetworkContext';
@@ -31,6 +31,8 @@ import type {EnodebInfo} from '../lte/EnodebUtils';
 import type {EnodebState} from '../context/EnodebContext';
 import type {
   apn,
+  base_name,
+  base_name_record,
   call_trace,
   call_trace_config,
   feg_lte_network,
@@ -51,7 +53,7 @@ import type {
 } from '../../../generated/MagmaAPIBindings';
 import type {gatewayPoolsStateType} from '../context/GatewayPoolsContext';
 
-import {FEG_LTE, LTE} from '@fbcnms/types/network';
+import {FEG_LTE, LTE} from '../../../fbc_js_core/types/network';
 import {
   InitEnodeState,
   InitGatewayPoolState,
@@ -66,6 +68,7 @@ import {
 import {InitTraceState, SetCallTraceState} from '../../state/TraceState';
 import {SetApnState} from '../../state/lte/ApnState';
 import {
+  SetBaseNameState,
   SetPolicyState,
   SetQosProfileState,
   SetRatingGroupState,
@@ -78,7 +81,7 @@ import {
   setSubscriberState,
 } from '../../state/lte/SubscriberState';
 import {useContext, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 
 type Props = {
   networkId: network_id,
@@ -409,6 +412,9 @@ export function PolicyProvider(props: Props) {
   const networkCtx = useContext(NetworkContext);
   const lteNetworkCtx = useContext(LteNetworkContext);
   const [policies, setPolicies] = useState<{[string]: policy_rule}>({});
+  const [baseNames, setBaseNames] = useState<{
+    [string]: base_name_record,
+  }>({});
   const [qosProfiles, setQosProfiles] = useState<{
     [string]: policy_qos_profile,
   }>({});
@@ -433,6 +439,27 @@ export function PolicyProvider(props: Props) {
             networkId,
           }),
         );
+        // Base Names
+        // eslint-disable-next-line max-len
+        const baseNameIDs: Array<base_name> = await MagmaV1API.getNetworksByNetworkIdPoliciesBaseNames(
+          {
+            networkId,
+          },
+        );
+        const baseNameRecords: Array<base_name_record> = await Promise.all(
+          baseNameIDs.map(baseNameID =>
+            MagmaV1API.getNetworksByNetworkIdPoliciesBaseNamesByBaseName({
+              networkId,
+              baseName: baseNameID,
+            }),
+          ),
+        );
+        const newBaseNames: {[string]: base_name_record} = {};
+        baseNameRecords.map(record => {
+          newBaseNames[record.name] = record;
+        });
+        setBaseNames(newBaseNames);
+
         setRatingGroups(
           // $FlowIgnore
           await MagmaV1API.getNetworksByNetworkIdRatingGroups({networkId}),
@@ -473,6 +500,17 @@ export function PolicyProvider(props: Props) {
             networkId,
             ratingGroups,
             setRatingGroups,
+            key,
+            value,
+          });
+        },
+
+        baseNames: baseNames,
+        setBaseNames: async (key, value) => {
+          await SetBaseNameState({
+            networkId,
+            baseNames,
+            setBaseNames,
             key,
             value,
           });

@@ -39,10 +39,10 @@ class RegistrationAcceptMsg {
 
   RegistrationAcceptMsg();
   ~RegistrationAcceptMsg();
-  int DecodeRegistrationAcceptMsg(
-      RegistrationAcceptMsg* reg_accept, uint8_t* buffer, uint32_t len);
-  int EncodeRegistrationAcceptMsg(
-      RegistrationAcceptMsg* reg_accept, uint8_t* buffer, uint32_t len);
+  int DecodeRegistrationAcceptMsg(RegistrationAcceptMsg* reg_accept,
+                                  uint8_t* buffer, uint32_t len);
+  int EncodeRegistrationAcceptMsg(RegistrationAcceptMsg* reg_accept,
+                                  uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

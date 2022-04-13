@@ -88,10 +88,12 @@ message SyncStatesResponse {
     repeated IDAndVersion unsyncedStates = 1;
 }
 
-service StateService {
+service CloudStateService {
     // GetStates retrieves states from blobstorage.
     rpc GetStates (GetStatesRequest) returns (GetStatesResponse) {}
+}
 
+service StateService {
     // ReportStates saves states into blobstorage.
     rpc ReportStates(ReportStatesRequest) returns (ReportStatesResponse) {}
 

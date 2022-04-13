@@ -67,7 +67,7 @@ class UEMacAddressController(MagmaController):
             self._li_port = \
                 BridgeTools.get_ofport(kwargs['config']['li_local_iface'])
         self._dpi_port = \
-                BridgeTools.get_ofport(kwargs['config']['dpi']['mon_port'])
+            BridgeTools.get_ofport(kwargs['config']['dpi']['mon_port'])
 
     def initialize_on_connect(self, datapath):
         self.delete_all_flows(datapath)

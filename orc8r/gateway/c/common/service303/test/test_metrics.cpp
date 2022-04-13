@@ -49,9 +49,4 @@ TEST_F(Test, test_metrics_registry) {
   EXPECT_EQ(registry.SizeFamilies(), 2);
   EXPECT_EQ(registry.SizeMetrics(), 4);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
 }  // namespace magma

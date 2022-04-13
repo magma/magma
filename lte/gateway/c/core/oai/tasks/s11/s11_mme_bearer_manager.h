@@ -25,7 +25,7 @@
 #ifndef FILE_S11_MME_BEARER_MANAGER_SEEN
 #define FILE_S11_MME_BEARER_MANAGER_SEEN
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 
 /* @brief Create a new Release Access Bearers Request and send it to provided
  * S-GW. */
@@ -55,12 +55,12 @@ status_code_e s11_mme_create_bearer_response(
     itti_s11_create_bearer_response_t* rsp_p);
 
 /* @brief Handle a DeleteBearer Request received from S-GW. */
-int s11_mme_handle_delete_bearer_request(
-    nw_gtpv2c_stack_handle_t* stack_p, nw_gtpv2c_ulp_api_t* pUlpApi);
+int s11_mme_handle_delete_bearer_request(nw_gtpv2c_stack_handle_t* stack_p,
+                                         nw_gtpv2c_ulp_api_t* pUlpApi);
 
 /* @brief Handle a Downlink Data Notification received from S-GW. */
-int s11_mme_handle_downlink_data_notification(
-    nw_gtpv2c_stack_handle_t* stack_p, nw_gtpv2c_ulp_api_t* pUlpApi);
+int s11_mme_handle_downlink_data_notification(nw_gtpv2c_stack_handle_t* stack_p,
+                                              nw_gtpv2c_ulp_api_t* pUlpApi);
 
 /* @brief Handle a Downlink Data Notification acknowledge received from S-GW. */
 status_code_e s11_mme_downlink_data_notification_acknowledge(

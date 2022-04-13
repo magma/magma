@@ -5,11 +5,11 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
-      - v1.*
+      - 'v1.*'
   pull_request:
     branches:
       - master
-      - v1.*
+      - 'v1.*'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -36,7 +36,7 @@ jobs:
       - name: Run fossa analyze script
         run: |
             echo "Running fossa-analyze-go.sh"
-            sudo ${MAGMA_ROOT}/circleci/fossa-analyze-go.sh
+            sudo ${MAGMA_ROOT}/.github/workflows/scripts/fossa-analyze-go.sh
       - name: Extract commit title
         id: commit
         if: failure() && github.event_name == 'push'

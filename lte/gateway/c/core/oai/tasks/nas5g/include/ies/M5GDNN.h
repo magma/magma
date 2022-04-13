@@ -26,9 +26,9 @@ class DNNMsg {
 
   DNNMsg();
   ~DNNMsg();
-  int EncodeDNNMsg(
-      DNNMsg* eap_message, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeDNNMsg(
-      DNNMsg* eap_message, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeDNNMsg(DNNMsg* eap_message, uint8_t iei, uint8_t* buffer,
+                   uint32_t len);
+  int DecodeDNNMsg(DNNMsg* eap_message, uint8_t iei, uint8_t* buffer,
+                   uint32_t len);
 };
 }  // namespace magma5g

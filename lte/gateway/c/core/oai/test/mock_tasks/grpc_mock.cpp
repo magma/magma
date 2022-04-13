@@ -13,9 +13,9 @@
 
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/security/server_credentials.h>
-#include "mock_tasks.h"
-#include "grpc_service.h"
+#include "lte/gateway/c/core/oai/include/grpc_service.h"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 
 task_zmq_ctx_t task_zmq_ctx_grpc;
 grpc_service_data_t grpc_service_config = {0};
@@ -37,7 +37,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       stop_mock_grpc_task();
     } break;
 
-    default: { } break; }
+    default: {
+    } break;
+  }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
 
@@ -54,8 +56,8 @@ static void stop_mock_grpc_task() {
 
 static void start_grpc_s8_service(bstring server_address) {
   ServerBuilder builder;
-  builder.AddListeningPort(
-      bdata(server_address), grpc::InsecureServerCredentials());
+  builder.AddListeningPort(bdata(server_address),
+                           grpc::InsecureServerCredentials());
   builder.RegisterService(&s8_service);
   server = builder.BuildAndStart();
 }
@@ -64,8 +66,8 @@ void start_mock_grpc_task() {
   grpc_service_config.server_address =
       bfromcstr(TEST_GRPCSERVICES_SERVER_ADDRESS);
 
-  init_task_context(
-      TASK_GRPC_SERVICE, nullptr, 0, handle_message, &task_zmq_ctx_grpc);
+  init_task_context(TASK_GRPC_SERVICE, nullptr, 0, handle_message,
+                    &task_zmq_ctx_grpc);
   start_grpc_s8_service(grpc_service_config.server_address);
   zloop_start(task_zmq_ctx_grpc.event_loop);
 }

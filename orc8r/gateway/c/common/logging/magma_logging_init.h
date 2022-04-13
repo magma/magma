@@ -16,8 +16,6 @@
 
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 
-// GLOG LOGGING
-#ifdef LOG_WITH_GLOG
 #include <glog/logging.h>
 
 namespace magma {
@@ -43,24 +41,3 @@ static void init_logging(const char* service_name) {
   FLAGS_logtostderr = 1;
 }
 }  // namespace magma
-#endif
-
-// NON GLOG LOGGING
-#ifndef LOG_WITH_GLOG
-#include <iostream>
-
-namespace magma {
-static void set_verbosity(__attribute__((unused)) uint32_t verbosity) {
-  (void)set_verbosity;  // casting to void to suppress unused reference warning
-}
-// get_verbosity gets the the global logging verbosity
-static uint32_t get_verbosity() {
-  (void)get_verbosity;  // casting to void to suppress unused reference warning
-  return 0;
-}
-static void init_logging(__attribute__((unused)) const char* service_name) {
-  (void)init_logging;  // casting to void to suppress unused reference warning
-}
-
-}  // namespace magma
-#endif

@@ -16,6 +16,8 @@ package test_utils
 import (
 	"testing"
 
+	"magma/lte/cloud/go/protos"
+
 	"github.com/stretchr/testify/assert"
 
 	"magma/feg/cloud/go/protos/mconfig"
@@ -40,9 +42,18 @@ var (
 // NewTestHomeSubscriberServer creates a HSS with test users so its functionality
 // can be tested.
 func NewTestHomeSubscriberServer(t *testing.T) *servicers.HomeSubscriberServer {
+	subs := GetTestSubscribers()
+	return newTestHomeSubscriberServerImpl(t, subs)
+}
+
+// NewEmptyTestHomeSubscriberServer creates a HSS with no subscribers
+func NewEmptyTestHomeSubscriberServer(t *testing.T) *servicers.HomeSubscriberServer {
+	return newTestHomeSubscriberServerImpl(t, nil)
+}
+
+func newTestHomeSubscriberServerImpl(t *testing.T, subs []*protos.SubscriberData) *servicers.HomeSubscriberServer {
 	store := storage.NewMemorySubscriberStore()
 
-	subs := GetTestSubscribers()
 	for _, sub := range subs {
 		err := store.AddSubscriber(sub)
 		assert.NoError(t, err)

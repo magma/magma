@@ -22,14 +22,12 @@ class PDUSessionTypeMsg {
 
   PDUSessionTypeMsg();
   ~PDUSessionTypeMsg();
-  int EncodePDUSessionTypeMsg(
-      PDUSessionTypeMsg* pdu_session_type, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
-  int DecodePDUSessionTypeMsg(
-      PDUSessionTypeMsg* pdu_session_type, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
+  int EncodePDUSessionTypeMsg(PDUSessionTypeMsg* pdu_session_type, uint8_t iei,
+                              uint8_t* buffer, uint32_t len);
+  int DecodePDUSessionTypeMsg(PDUSessionTypeMsg* pdu_session_type, uint8_t iei,
+                              uint8_t* buffer, uint32_t len);
   void copy(const PDUSessionTypeMsg& p) {
-    iei      = p.iei;
+    iei = p.iei;
     type_val = p.type_val;
   }
   bool isEqual(const PDUSessionTypeMsg& p) {

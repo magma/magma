@@ -15,18 +15,18 @@
  */
 import ActionTable from '../ActionTable';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
+import DeviceStatusCircle from '../../../fbc_js_core/ui/components/icons/DeviceStatusCircle';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Grid from '@material-ui/core/Grid';
 import ListAltIcon from '@material-ui/icons/ListAlt';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import React from 'react';
 import ReactJson from 'react-json-view';
 
 import {makeStyles} from '@material-ui/styles';
-import {useAxios} from '@fbcnms/ui/hooks';
+import {useAxios} from '../../../fbc_js_core/ui/hooks';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({

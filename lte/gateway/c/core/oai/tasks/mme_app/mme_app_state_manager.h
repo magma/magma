@@ -34,9 +34,8 @@ namespace lte {
  */
 
 class MmeNasStateManager
-    : public StateManager<
-          mme_app_desc_t, ue_mm_context_t, oai::MmeNasState, oai::UeContext,
-          MmeNasStateConverter> {
+    : public StateManager<mme_app_desc_t, ue_mm_context_t, oai::MmeNasState,
+                          oai::UeContext, MmeNasStateConverter> {
  public:
   /**
    * Returns an instance of MmeNasStateManager, guaranteed to be thread safe and

@@ -16,7 +16,7 @@ limitations under the License.
 namespace magma5g {
 class NSSAIMsg {
  public:
-  const int NSSAI_VAL_MAX    = 74;
+  const int NSSAI_VAL_MAX = 74;
   const int NSSAI_MIN_LENGTH = 4;
   uint8_t iei;
   uint8_t len;
@@ -27,10 +27,10 @@ class NSSAIMsg {
 
   NSSAIMsg();
   ~NSSAIMsg();
-  int EncodeNSSAIMsg(
-      NSSAIMsg* nssai, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeNSSAIMsg(
-      NSSAIMsg* nssai, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeNSSAIMsg(NSSAIMsg* nssai, uint8_t iei, uint8_t* buffer,
+                     uint32_t len);
+  int DecodeNSSAIMsg(NSSAIMsg* nssai, uint8_t iei, uint8_t* buffer,
+                     uint32_t len);
 };
 
 class NSSAIMsgList {
@@ -41,7 +41,7 @@ class NSSAIMsgList {
 
   NSSAIMsgList();
   ~NSSAIMsgList();
-  int EncodeNSSAIMsgList(
-      NSSAIMsgList* allowed_nssai, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeNSSAIMsgList(NSSAIMsgList* allowed_nssai, uint8_t iei,
+                         uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

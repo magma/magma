@@ -65,7 +65,7 @@ lint_tools:
 	else \
 		echo "-> installing golangci " && \
 			curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-			| sudo sh -s -- -b /usr/sbin/ v1.35.2; \
+			| sudo sh -s -- -b /usr/sbin/ v1.45.0; \
 	fi
 
 build_only:

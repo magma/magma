@@ -81,17 +81,17 @@ def get_standard_update_response(
         for update in args[0].updates:
             charging_responses.append(
                 create_update_response(
-                update.sid, update.usage.charging_key, quota,
-                is_final=is_final, success=success,
+                    update.sid, update.usage.charging_key, quota,
+                    is_final=is_final, success=success,
                 ),
             )
             update_complete.put(update)
         for monitor in args[0].usage_monitors:
             monitor_responses.append(
                 create_monitor_response(
-                monitor.sid, monitor.update.monitoring_key, quota,
-                monitor.update.level, action=monitor_action,
-                success=success,
+                    monitor.sid, monitor.update.monitoring_key, quota,
+                    monitor.update.level, action=monitor_action,
+                    success=success,
                 ),
             )
             monitor_complete.put(monitor)

@@ -16,13 +16,11 @@ package(default_visibility = ["//lte/gateway/c/li_agent/src:__subpackages__"])
 cc_binary(
     name = "liagentd",
     srcs = ["main.cpp"],
-    copts = [
-        "-DLOG_WITH_GLOG",
-    ],
     deps = [
         ":interface_monitor",
         "//orc8r/gateway/c/common/config:mconfig_loader",
         "//orc8r/gateway/c/common/logging",
+        "//orc8r/gateway/c/common/sentry:sentry_wrapper",
         "//orc8r/gateway/c/common/service303",
     ],
 )

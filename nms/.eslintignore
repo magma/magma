@@ -7,3 +7,4 @@ dist/**/*.js
 flow-typed/npm/**/*.js
 config/webpack.*.js
 packages/magmalte/generated/*.js
+packages/magmalte/fbc_js_core/**

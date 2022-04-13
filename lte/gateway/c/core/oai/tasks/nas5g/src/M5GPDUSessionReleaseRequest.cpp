@@ -10,6 +10,13 @@
  */
 
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionReleaseRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -21,12 +28,11 @@ PDUSessionReleaseRequestMsg::~PDUSessionReleaseRequestMsg(){};
 int PDUSessionReleaseRequestMsg::DecodePDUSessionReleaseRequestMsg(
     PDUSessionReleaseRequestMsg* pdu_session_release_request, uint8_t* buffer,
     uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, PDU_SESSION_RELEASE_REQ_MIN_LEN, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, PDU_SESSION_RELEASE_REQ_MIN_LEN,
+                                       len);
 
-  MLOG(MDEBUG) << "DecodePDUSessionReleaseRequestMsg\n";
   if ((decoded_result =
            pdu_session_release_request->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
@@ -65,7 +71,6 @@ int PDUSessionReleaseRequestMsg::DecodePDUSessionReleaseRequestMsg(
 int PDUSessionReleaseRequestMsg::EncodePDUSessionReleaseRequestMsg(
     PDUSessionReleaseRequestMsg* pdu_session_release_request, uint8_t* buffer,
     uint32_t len) {
-  MLOG(MDEBUG) << "EncodePDUSessionReleaseRequestMsg\n";
   return 0;
 }
 }  // namespace magma5g

@@ -25,7 +25,7 @@ namespace magma {
 
 gtpv1u_data_t make_gtpv1u_data(int fd0, int fd1u) {
   gtpv1u_data_t data;
-  data.fd0  = fd0;
+  data.fd0 = fd0;
   data.fd1u = fd1u;
   return data;
 }
@@ -38,8 +38,8 @@ spgw_state_t make_spgw_state(uint32_t gtpv1u_teid, int fd0, int fd1u) {
 }
 
 // make_bearer_context creates a test bearer context with default values.
-s_plus_p_gw_eps_bearer_context_information_t* make_bearer_context(
-    imsi64_t imsi, teid_t teid) {
+s_plus_p_gw_eps_bearer_context_information_t* make_bearer_context(imsi64_t imsi,
+                                                                  teid_t teid) {
   // Insert into hashtable
   spgw_create_or_get_ue_context(imsi);
   spgw_update_teid_in_ue_context(imsi, teid);
@@ -52,16 +52,16 @@ s_plus_p_gw_eps_bearer_context_information_t* make_bearer_context(
   auto msisdn = "some msisdn";
 
   // Set PGW context values
-  IMSI64_TO_STRING(imsi, (char*) (&pgw->imsi.digit), IMSI_BCD_DIGITS_MAX);
+  IMSI64_TO_STRING(imsi, (char*)(&pgw->imsi.digit), IMSI_BCD_DIGITS_MAX);
   pgw->imsi_unauthenticated_indicator = 100;
   strncpy(pgw->msisdn, msisdn, strlen(msisdn));
 
   // Set SGW context values
   sgw->imsi64 = imsi;
-  IMSI64_TO_STRING(imsi, (char*) (&sgw->imsi.digit), IMSI_BCD_DIGITS_MAX);
+  IMSI64_TO_STRING(imsi, (char*)(&sgw->imsi.digit), IMSI_BCD_DIGITS_MAX);
   sgw->imsi_unauthenticated_indicator = 20;
   strncpy(pgw->msisdn, msisdn, strlen(msisdn));
-  sgw->mme_teid_S11     = 300;
+  sgw->mme_teid_S11 = 300;
   sgw->s_gw_teid_S11_S4 = 400;
 
   std::string ip_str = "191.1.3.0";
@@ -75,10 +75,10 @@ s_plus_p_gw_eps_bearer_context_information_t* make_bearer_context(
   bstring_to_ip_address(ip_bstr, &sgw->s_gw_ip_address_S11_S4);
   bdestroy(ip_bstr);
 
-  strncpy((char*) &sgw->last_known_cell_Id.plmn, "\x01\x02\x03\x04\x05\x06", 6);
-  sgw->last_known_cell_Id.cell_identity.enb_id  = 500;
+  strncpy((char*)&sgw->last_known_cell_Id.plmn, "\x01\x02\x03\x04\x05\x06", 6);
+  sgw->last_known_cell_Id.cell_identity.enb_id = 500;
   sgw->last_known_cell_Id.cell_identity.cell_id = 60;
-  sgw->last_known_cell_Id.cell_identity.empty   = 7;
+  sgw->last_known_cell_Id.cell_identity.empty = 7;
 
   return ctx;
 }

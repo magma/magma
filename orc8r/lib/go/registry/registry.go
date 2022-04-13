@@ -33,7 +33,6 @@ import (
 const (
 	ServiceRegistryServiceName = "service_registry"
 	ServiceRegistryModeEnvVar  = "SERVICE_REGISTRY_MODE"
-	DockerRegistryMode         = "docker"
 	K8sRegistryMode            = "k8s"
 	YamlRegistryMode           = "yaml"
 
@@ -143,7 +142,7 @@ func (r *ServiceRegistry) RemoveServicesWithLabel(label string) {
 // ListAllServices lists the names of all registered services.
 func (r *ServiceRegistry) ListAllServices() ([]string, error) {
 	switch r.serviceRegistryMode {
-	case DockerRegistryMode, K8sRegistryMode:
+	case K8sRegistryMode:
 		client, err := r.getServiceRegistryServiceClient()
 		if err != nil {
 			return []string{}, err
@@ -166,7 +165,7 @@ func (r *ServiceRegistry) ListAllServices() ([]string, error) {
 // the passed label.
 func (r *ServiceRegistry) FindServices(label string) ([]string, error) {
 	switch r.serviceRegistryMode {
-	case DockerRegistryMode, K8sRegistryMode:
+	case K8sRegistryMode:
 		client, err := r.getServiceRegistryServiceClient()
 		if err != nil {
 			return []string{}, err
@@ -193,7 +192,7 @@ func (r *ServiceRegistry) GetServiceAddress(service string) (string, error) {
 	service = strings.ToLower(service)
 
 	switch r.serviceRegistryMode {
-	case DockerRegistryMode, K8sRegistryMode:
+	case K8sRegistryMode:
 		// Fetching the service registry service address is a special case
 		// given that we cannot use the service registry service for discovering
 		// it's own address
@@ -231,7 +230,7 @@ func (r *ServiceRegistry) GetHttpServerAddress(service string) (string, error) {
 	service = strings.ToLower(service)
 
 	switch r.serviceRegistryMode {
-	case DockerRegistryMode, K8sRegistryMode:
+	case K8sRegistryMode:
 		client, err := r.getServiceRegistryServiceClient()
 		if err != nil {
 			return "", err
@@ -274,10 +273,10 @@ func (r *ServiceRegistry) GetServicePort(service string) (int, error) {
 	defer r.RUnlock()
 	service = strings.ToLower(service)
 
-	// TODO: Update Docker/K8s service registry to return standard gRPC port
+	// TODO: Update K8s service registry to return standard gRPC port
 	// once controller image is split
 	switch r.serviceRegistryMode {
-	case DockerRegistryMode, K8sRegistryMode, YamlRegistryMode:
+	case K8sRegistryMode, YamlRegistryMode:
 		fallthrough
 	default:
 		location, ok := r.ServiceLocations[service]
@@ -301,7 +300,7 @@ func (r *ServiceRegistry) GetEchoServerPort(service string) (int, error) {
 	// TODO: Update Docker/K8s service registry to return standard HTTP port
 	// once controller image is split
 	switch r.serviceRegistryMode {
-	case DockerRegistryMode, K8sRegistryMode, YamlRegistryMode:
+	case K8sRegistryMode, YamlRegistryMode:
 		fallthrough
 	default:
 		location, ok := r.ServiceLocations[service]
@@ -320,7 +319,7 @@ func (r *ServiceRegistry) GetAnnotation(service, annotationName string) (string,
 	service = strings.ToLower(service)
 
 	switch r.serviceRegistryMode {
-	case DockerRegistryMode, K8sRegistryMode:
+	case K8sRegistryMode:
 		client, err := r.getServiceRegistryServiceClient()
 		if err != nil {
 			return "", err
@@ -445,7 +444,7 @@ func (r *ServiceRegistry) getGRPCDialOptions() []grpc.DialOption {
 		opts = append(opts, grpc.WithKeepaliveParams(localKeepaliveParams))
 	}
 	var timeoutInterceptor = TimeoutInterceptor
-	if r.serviceRegistryMode == K8sRegistryMode || r.serviceRegistryMode == DockerRegistryMode {
+	if r.serviceRegistryMode == K8sRegistryMode {
 		timeoutInterceptor = CloudClientTimeoutInterceptor
 	}
 	opts = append(opts, grpc.WithUnaryInterceptor(timeoutInterceptor))

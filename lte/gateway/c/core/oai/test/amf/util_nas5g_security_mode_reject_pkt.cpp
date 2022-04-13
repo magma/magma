@@ -12,13 +12,13 @@
  */
 
 #include <iostream>
-#include "./util_nas5g_pkt.h"
+#include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.h"
 
 namespace magma5g {
 
 //  API for testing decode security mode reject
-bool decode_security_mode_reject_msg(
-    SecurityModeRejectMsg* sm_reject, const uint8_t* buffer, uint32_t len) {
+bool decode_security_mode_reject_msg(SecurityModeRejectMsg* sm_reject,
+                                     const uint8_t* buffer, uint32_t len) {
   bool decode_success = true;
   uint8_t* decode_security_mode_reject =
       const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(buffer));

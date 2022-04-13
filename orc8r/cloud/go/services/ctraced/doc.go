@@ -12,6 +12,3 @@ limitations under the License.
 */
 
 package ctraced
-
-const ServiceName = "CTRACED"
-const LookupTableBlobstore = "ctraced_blobstore"

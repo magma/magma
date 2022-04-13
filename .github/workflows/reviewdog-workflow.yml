@@ -13,7 +13,7 @@ concurrency:
 # Applies on all review jobs below
 # See Reviewdog doc provided at https://github.com/reviewdog/reviewdog
 # github-pr-check: Adds lint as annotations in the PR that can be toggled by pressing 'a'
-# github-pr-review: Adds lint as GitHub comments 
+# github-pr-review: Adds lint as GitHub comments
 
 jobs:
   pre_job_go_determinator:
@@ -136,7 +136,7 @@ jobs:
           filter_mode: added  # Any added or changed content.
           reporter: github-pr-review  # Post code review comments.
           locale: "US"
-  
+
   shellcheck:
     name: shellcheck
     runs-on: ubuntu-latest

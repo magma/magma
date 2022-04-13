@@ -20,6 +20,7 @@ from enum import Enum
 
 from magma.pipelined.app.base import MagmaController
 from magma.pipelined.internal_ip_allocator import InternalIPAllocator
+from magma.pipelined.qos.common import QosManager
 from magma.pipelined.tests.app.exceptions import ServiceRunningError
 from ryu.base.app_manager import AppManager
 from ryu.lib import hub
@@ -219,6 +220,7 @@ class StartThread(object):
         contexts['rpc_stubs'] = self._test_setup.rpc_stubs
         contexts['service_manager'] = self._test_setup.service_manager
         contexts['ebpf_manager'] = None
+        contexts['qos_manager'] = QosManager(self._test_setup.loop, self._test_setup.config)
 
         logging.basicConfig(
             level=logging.INFO,

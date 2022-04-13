@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
 import type {call_trace} from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
@@ -26,10 +26,10 @@ import NetworkContext from '../../components/context/NetworkContext';
 import React from 'react';
 import TopBar from '../../components/TopBar';
 import TraceContext from '../../components/context/TraceContext';
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {

@@ -22,7 +22,14 @@
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.501.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 
 #include <google/protobuf/util/time_util.h>
 #include <grpcpp/impl/codegen/client_context.h>
@@ -32,7 +39,6 @@
 #include "lte/protos/subscriberdb.pb.h"
 #include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
 #include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
 
 using grpc::Channel;
@@ -53,10 +59,11 @@ static void handle_decrypted_imsi_info_ans(
   MessageDef* message_p;
 
   if (!status.ok() || (response.ue_msin_recv().length() == 0)) {
-    std::cout << "get_decrypt_imsi_info fails with code " << status.error_code()
-              << ", msg: " << status.error_message() << std::endl;
-    MLOG(MERROR)
-        << "   Error : Deconcealing IMSI Failed, sending Registration Reject";
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "get_decrypt_imsi_info fails with code %d, Message : %s",
+                 status.error_code(), status.error_message().c_str());
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "Deconcealing IMSI Failed, sending Registration Reject");
     int amf_cause = AMF_UE_ILLEGAL;
     amf_proc_registration_reject(ue_id, amf_cause);
     return;
@@ -68,9 +75,8 @@ static void handle_decrypted_imsi_info_ans(
   itti_amf_decrypted_imsi_info_ans_t* amf_app_decrypted_imsi_info_resp;
   amf_app_decrypted_imsi_info_resp =
       &message_p->ittiMsg.amf_app_decrypt_info_resp;
-  memset(
-      amf_app_decrypted_imsi_info_resp, 0,
-      sizeof(itti_amf_decrypted_imsi_info_ans_t));
+  memset(amf_app_decrypted_imsi_info_resp, 0,
+         sizeof(itti_amf_decrypted_imsi_info_ans_t));
 
   magma5g::convert_proto_msg_to_itti_amf_decrypted_imsi_info_ans(
       response, amf_app_decrypted_imsi_info_resp);
@@ -117,11 +123,10 @@ bool AsyncM5GSUCIRegistrationServiceClient::get_decrypt_imsi_info(
   M5GSUCIRegistrationRequest request = create_decrypt_imsi_request(
       ue_pubkey_identifier, ue_pubkey, ciphertext, mac_tag);
 
-  GetSuciInfoRPC(
-      request,
-      [ue_id](const Status& status, const M5GSUCIRegistrationAnswer& response) {
-        handle_decrypted_imsi_info_ans(status, response, ue_id);
-      });
+  GetSuciInfoRPC(request, [ue_id](const Status& status,
+                                  const M5GSUCIRegistrationAnswer& response) {
+    handle_decrypted_imsi_info_ans(status, response, ue_id);
+  });
   return true;
 }
 

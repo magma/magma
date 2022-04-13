@@ -23,7 +23,7 @@ from __future__ import (
 )
 
 import logging
-from ipaddress import ip_address, ip_network
+from ipaddress import ip_network
 from typing import List, Optional
 
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
@@ -34,7 +34,7 @@ from magma.mobilityd.ip_allocator_base import (
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 from magma.mobilityd.mobility_store import MobilityStore
 from magma.mobilityd.subscriberdb_client import SubscriberDbClient
-from magma.mobilityd.utils import log_error_and_raise
+from magma.mobilityd.utils import IPAddress, IPNetwork, log_error_and_raise
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 
@@ -60,27 +60,27 @@ class IPAllocatorStaticWrapper(IPAllocator):
         else:
             self._ip_version = 4
 
-    def add_ip_block(self, ipblock: ip_network):
+    def add_ip_block(self, ipblock: IPNetwork):
         """ Add a block of IP addresses to the free IP list
         """
         self._ip_allocator.add_ip_block(ipblock)
 
     def remove_ip_blocks(
-        self, ipblocks: List[ip_network],
+        self, ipblocks: List[IPNetwork],
         force: bool = False,
-    ) -> List[ip_network]:
+    ) -> List[IPNetwork]:
         """ Remove allocated IP blocks.
         """
         return self._ip_allocator.remove_ip_blocks(ipblocks, force)
 
-    def list_added_ip_blocks(self) -> List[ip_network]:
+    def list_added_ip_blocks(self) -> List[IPNetwork]:
         """ List IP blocks added to the IP allocator
         Return:
              copy of the list of assigned IP blocks
         """
         return self._ip_allocator.list_added_ip_blocks()
 
-    def list_allocated_ips(self, ipblock: ip_network) -> List[ip_address]:
+    def list_allocated_ips(self, ipblock: IPNetwork) -> List[IPAddress]:
         """ List IP addresses allocated from a given IP block
         """
         return self._ip_allocator.list_allocated_ips(ipblock)

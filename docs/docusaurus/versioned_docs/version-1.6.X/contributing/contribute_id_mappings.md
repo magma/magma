@@ -10,7 +10,7 @@ Here are the Github to Slack ID mappings for all [Magma maintainers](https://git
 Instructions on joining our Slack workspace is provided in the [Magma community page](https://www.magmacore.org/community/).
 
 | GitHub           | Slack (email)                          | Slack (displayname)     |
-| ---------------- | -------------------------------------- | ----------------------- |
+|------------------|----------------------------------------|-------------------------|
 | 119Vik           | vitalii@freedomfi.com                  | VitaliiKostenko         |
 | aharonnovo       |                                        |
 | amarpad          | amarpad@gmail.com                      | AmarPadmanabhan         |
@@ -25,9 +25,11 @@ Instructions on joining our Slack workspace is provided in the [Magma community 
 | koolzz           | koolzz@fb.com                          | NickYurchenko           |
 | lionelgo         | lionel.gauthier@eurecom.fr             | LionelGauthier(Eurecom) |
 | mattymo          | matt@freedomfi.com                     | MatthewMosesohn         |
+| nstng            | nils.semmelrock@tngtech.com            | NilsSemmelrock          |
 | pshelar          | pbshelar@fb.com                        | pravin                  |
 | quentinDERORY    | derory.quentin@gmail.com               | QuentinDerory           |
 | rdefosse         | raphael.defosseux@openairinterface.org | RaphaelDefosseux(OSA)   |
+| sebathomas       | sebastian.thomas@tngtech.com           | SebastianThomas         |
 | ssanadhya        | ssanadhya@fb.com                       | Shruti                  |
 | themarwhal       | marwhal@fb.com                         | MarieBremner            |
 | tmdzk            | timdzik@fb.com                         | Tim                     |

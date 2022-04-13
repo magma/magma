@@ -21,11 +21,9 @@ class SecurityHeaderTypeMsg {
 
   SecurityHeaderTypeMsg();
   ~SecurityHeaderTypeMsg();
-  int EncodeSecurityHeaderTypeMsg(
-      SecurityHeaderTypeMsg* sec_header_type, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
-  int DecodeSecurityHeaderTypeMsg(
-      SecurityHeaderTypeMsg* sec_header_type, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
+  int EncodeSecurityHeaderTypeMsg(SecurityHeaderTypeMsg* sec_header_type,
+                                  uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodeSecurityHeaderTypeMsg(SecurityHeaderTypeMsg* sec_header_type,
+                                  uint8_t iei, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

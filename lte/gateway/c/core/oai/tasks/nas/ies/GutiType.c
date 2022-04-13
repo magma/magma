@@ -22,8 +22,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/GutiType.h"
 
 //------------------------------------------------------------------------------
-int decode_guti_type(
-    guti_type_t* gutitype, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_guti_type(guti_type_t* gutitype, uint8_t iei, uint8_t* buffer,
+                     uint32_t len) {
   int decoded = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, GUTI_TYPE_MINIMUM_LENGTH, len);
@@ -38,9 +38,9 @@ int decode_guti_type(
 }
 
 //------------------------------------------------------------------------------
-int decode_u8_guti_type(
-    guti_type_t* gutitype, uint8_t iei, uint8_t value, uint32_t len) {
-  int decoded     = 0;
+int decode_u8_guti_type(guti_type_t* gutitype, uint8_t iei, uint8_t value,
+                        uint32_t len) {
+  int decoded = 0;
   uint8_t* buffer = &value;
 
   *gutitype = *buffer & 0x7;
@@ -49,8 +49,8 @@ int decode_u8_guti_type(
 }
 
 //------------------------------------------------------------------------------
-int encode_guti_type(
-    guti_type_t* gutitype, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_guti_type(guti_type_t* gutitype, uint8_t iei, uint8_t* buffer,
+                     uint32_t len) {
   uint8_t encoded = 0;
 
   /*
@@ -67,7 +67,7 @@ uint8_t encode_u8_guti_type(guti_type_t* gutitype) {
   uint8_t bufferReturn;
   uint8_t* buffer = &bufferReturn;
   uint8_t encoded = 0;
-  uint8_t iei     = 0;
+  uint8_t iei = 0;
 
   *(buffer + encoded) = 0x00 | (iei & 0xf0) | (*gutitype & 0x7);
   encoded++;

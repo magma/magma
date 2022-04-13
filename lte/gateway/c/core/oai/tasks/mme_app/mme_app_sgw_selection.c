@@ -27,30 +27,29 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgw_selection.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgw_selection.h"
 
 //------------------------------------------------------------------------------
-void mme_app_select_sgw(
-    const tai_t* const tai, struct sockaddr* const sgw_in_addr) {
+void mme_app_select_sgw(const tai_t* const tai,
+                        struct sockaddr* const sgw_in_addr) {
   extern mme_config_t mme_config;
 
-  ((struct sockaddr_in*) sgw_in_addr)->sin_addr.s_addr =
+  ((struct sockaddr_in*)sgw_in_addr)->sin_addr.s_addr =
       mme_config.e_dns_emulation.sgw_ip_addr[0].s_addr;
-  ((struct sockaddr_in*) sgw_in_addr)->sin_family = AF_INET;
+  ((struct sockaddr_in*)sgw_in_addr)->sin_family = AF_INET;
 
-  OAILOG_DEBUG(
-      LOG_MME_APP, "SGW  returned %s\n",
-      inet_ntoa(((struct sockaddr_in*) sgw_in_addr)->sin_addr));
+  OAILOG_DEBUG(LOG_MME_APP, "SGW  returned %s\n",
+               inet_ntoa(((struct sockaddr_in*)sgw_in_addr)->sin_addr));
   return;
 
-  OAILOG_WARNING(
-      LOG_MME_APP, "Failed SGW lookup for TAI " TAI_FMT "\n", TAI_ARG(tai));
-  ((struct sockaddr_in*) sgw_in_addr)->sin_addr.s_addr = 0;
+  OAILOG_WARNING(LOG_MME_APP, "Failed SGW lookup for TAI " TAI_FMT "\n",
+                 TAI_ARG(tai));
+  ((struct sockaddr_in*)sgw_in_addr)->sin_addr.s_addr = 0;
   return;
 }

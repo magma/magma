@@ -15,13 +15,13 @@
  */
 
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '@fbcnms/auth/access';
+import type {FBCNMSRequest} from '../../fbc_js_core/auth/access';
 
 const url = require('url');
 import pathToRegexp from 'path-to-regexp';
 
-import {AuditLogEntry} from '@fbcnms/sequelize-models';
-const logger = require('@fbcnms/logging').getLogger(module);
+import {AuditLogEntry} from '../../fbc_js_core/sequelize_models';
+const logger = require('../../fbc_js_core/logging').getLogger(module);
 
 const defaultResolver = (req: FBCNMSRequest, type: string) => {
   const {search} = url.parse(req.originalUrl);

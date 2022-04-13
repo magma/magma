@@ -12,12 +12,12 @@
  */
 
 #include <iostream>
-#include "util_nas5g_pkt.h"
-#include "include/s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
 
 namespace magma5g {
 // api to mock handling s6a_update_location_ans
 
-s6a_update_location_ans_t amf_send_s6a_ula(const std::string& imsi);
+s6a_update_location_ans_t util_amf_send_s6a_ula(const std::string& imsi);
 
 }  // namespace magma5g

@@ -30,3 +30,9 @@ definitions:
         type: string
       enb_id:
         type: integer
+  attach_reject:
+    type: object
+    description: Used to track when UE fails to attach
+    properties:
+      imsi:
+        type: string

@@ -12,5 +12,3 @@ limitations under the License.
 */
 
 package eventd
-
-const ServiceName = "EVENTD"

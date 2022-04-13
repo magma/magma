@@ -12,9 +12,9 @@
  */
 #pragma once
 
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 
 #define PDU_SESSION_DEFAULT_AMBR 1
 
@@ -27,4 +27,7 @@ status_code_e amf_smf_context_ue_aggregate_max_bit_rate_set(
 status_code_e amf_smf_context_ue_aggregate_max_bit_rate_get(
     const amf_context_s* amf_ctxt_p, bit_rate_t* subscriber_ambr_dl,
     bit_rate_t* subscriber_ambr_ul);
+
+void amf_smf_get_slice_configuration(std::shared_ptr<smf_context_t> smf_ctx,
+                                     s_nssai_t* slice_config);
 }  // namespace magma5g

@@ -6,7 +6,7 @@ import (
 	"github.com/golang/glog"
 
 	fbprotos "magma/fbinternal/cloud/go/protos"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
@@ -17,7 +17,7 @@ const ServiceName = "VPNSERVICE"
 func getVPNServiceClient() (fbprotos.VPNServiceClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
-		initErr := errors.NewInitError(err, ServiceName)
+		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
 		return nil, initErr
 	}

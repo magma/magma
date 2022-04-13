@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Note: Python version >= 3.7 is needed to run this script
 """
 Copyright 2020 The Magma Authors.
 
@@ -16,7 +17,11 @@ import os
 import subprocess  # noqa: S404 ignore security warning about subprocess
 from typing import List
 
-MAGMA_ROOT = os.getenv('MAGMA_ROOT')
+if os.getenv('MAGMA_ROOT'):
+    MAGMA_ROOT = os.environ["MAGMA_ROOT"]
+else:
+    raise Exception("'MAGMA_ROOT' needs to be set and point to the Magma root directory!")
+
 LINT_DOCKER_PATH = os.path.join(
     MAGMA_ROOT,
     'lte/gateway/docker/python-precommit/',
@@ -29,9 +34,6 @@ GITHUB_IMAGE_NAME = 'ghcr.io/magma/magma/python-precommit:sha-b22d512'
 
 def main() -> None:
     """Provide command-line options to format/lint Magma's Python codebase"""
-    if MAGMA_ROOT is None:
-        print("Please set the 'MAGMA_ROOT' environment variable to point to the root directory")
-        return
     print("Magma root is " + MAGMA_ROOT)
     args = _parse_args()
 
@@ -70,7 +72,8 @@ def _format_diff(paths: List[str], use_local_image: bool):
         # make sure to change the corresponding github action
         _run_docker_cmd(['isort', path], use_local_image)
         _run_add_trailing_comma(path, use_local_image)
-        autopep8_checks = 'W191,W291,W292,W293,W391,E131,E2,E3'
+        # This should be consistent with .github/workflows/python-workflow.yml
+        autopep8_checks = 'W191,W291,W292,W293,W391,E131,E1,E2,E3'
         _run_docker_cmd(['autopep8', '--select', autopep8_checks, '-r', '--in-place', path], use_local_image)
 
 

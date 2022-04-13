@@ -22,6 +22,8 @@ from ryu.lib import hub
 
 UPLINK_OVS_BRIDGE_NAME = 'uplink_br0'
 
+SOLICITED_NODE_MULTICAST = 'ff02::1:ff00:0/104'
+
 
 class UplinkBridgeController(MagmaController):
     """
@@ -253,6 +255,15 @@ class UplinkBridgeController(MagmaController):
             )
             actions = "output:LOCAL"
             self._install_flow(flows.MEDIUM_PRIORITY + 1, match, actions)
+
+        # forward the node solicite msg to host and UE
+        addr = SOLICITED_NODE_MULTICAST
+        match = "in_port=%s,ipv6,ipv6_dst=%s" % (
+                self.config.uplink_eth_port_name,
+                addr,
+        )
+        actions = "output:%s,output:LOCAL" % self.config.uplink_patch
+        self._install_flow(flows.MEDIUM_PRIORITY + 1, match, actions)
 
     def _delete_all_flows(self):
         if self.config.uplink_bridge is None:

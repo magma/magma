@@ -11,9 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Dict, List
+from typing import Any, Dict, List, NamedTuple
 
 from magma.db_service.models import DBRequest
 
 MergedRequests = Dict[str, List[Dict]]
 RequestsMap = Dict[str, List[DBRequest]]
+
+
+class DBResponse(NamedTuple):
+    response_code: int
+    payload: Dict[str, Any]
+    request: DBRequest

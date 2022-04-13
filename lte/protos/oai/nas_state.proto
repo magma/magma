@@ -462,7 +462,7 @@ message Smf_Proc_Data {
 
 message SNssai {
   uint32 sst = 1;
-  uint32 sd = 2;
+  bytes  sd = 2;
 }
 
 message QosFlowParameters {
@@ -486,7 +486,7 @@ message SmfContext {
   Ambr   selected_ambr = 5;
   uint32 gnb_gtp_teid = 6; 
   string gnb_gtp_teid_ip_addr= 7;
-  uint32 upf_gtp_teid = 8; 
+  bytes  upf_gtp_teid = 8; 
   string upf_gtp_teid_ip_addr= 9;
   bytes  paa = 10;
   Ambr   apn_ambr = 11;

@@ -28,11 +28,11 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define DOWNLINK_NAS_TRANSPORT_MINIMUM_LENGTH                                  \
+#define DOWNLINK_NAS_TRANSPORT_MINIMUM_LENGTH \
   (NAS_MESSAGE_CONTAINER_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define DOWNLINK_NAS_TRANSPORT_MAXIMUM_LENGTH                                  \
+#define DOWNLINK_NAS_TRANSPORT_MAXIMUM_LENGTH \
   (NAS_MESSAGE_CONTAINER_MAXIMUM_LENGTH)
 
 /*

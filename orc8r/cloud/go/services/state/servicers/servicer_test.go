@@ -58,7 +58,7 @@ func TestStateServicer_GetStates(t *testing.T) {
 	fact := &mocks.StoreFactory{}
 	fact.On("StartTransaction", mock.Anything).Return(mockStore, nil)
 
-	srv, err := servicers.NewStateServicer(fact)
+	srv, err := servicers.NewCloudStateServicer(fact)
 	assert.NoError(t, err)
 
 	actual, err := srv.GetStates(ctx, &protos.GetStatesRequest{

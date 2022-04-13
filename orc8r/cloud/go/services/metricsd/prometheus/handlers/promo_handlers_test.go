@@ -31,8 +31,8 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/handlers/mocks"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/restrictor"
 	"magma/orc8r/cloud/go/services/tenants"
+	"magma/orc8r/cloud/go/services/tenants/protos"
 	tenants_test_init "magma/orc8r/cloud/go/services/tenants/test_init"
-	"magma/orc8r/lib/go/protos"
 )
 
 type prometheusAPITestCase struct {

@@ -32,17 +32,16 @@ class SmfMsgHeader {
 
   void copy(const SmfMsgHeader& s) {
     extended_protocol_discriminator = s.extended_protocol_discriminator;
-    pdu_session_id                  = s.pdu_session_id;
-    procedure_transaction_id        = s.procedure_transaction_id;
-    message_type                    = s.message_type;
+    pdu_session_id = s.pdu_session_id;
+    procedure_transaction_id = s.procedure_transaction_id;
+    message_type = s.message_type;
   }
   bool isEqual(const SmfMsgHeader& s) {
-    return (
-        (extended_protocol_discriminator ==
-         s.extended_protocol_discriminator) &&
-        (pdu_session_id == s.pdu_session_id) &&
-        (procedure_transaction_id == s.procedure_transaction_id) &&
-        (message_type == s.message_type));
+    return ((extended_protocol_discriminator ==
+             s.extended_protocol_discriminator) &&
+            (pdu_session_id == s.pdu_session_id) &&
+            (procedure_transaction_id == s.procedure_transaction_id) &&
+            (message_type == s.message_type));
   }
 };
 

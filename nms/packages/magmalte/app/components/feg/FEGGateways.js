@@ -14,17 +14,17 @@
  * @format
  */
 
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
 import type {federation_gateway} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
-import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
+import DeviceStatusCircle from '../../../fbc_js_core/ui/components/icons/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';
 import FEGGatewayContext from '../context/FEGGatewayContext';
 import FEGGatewayDialog from './FEGGatewayDialog';
 import IconButton from '@material-ui/core/IconButton';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
+import NestedRouteLink from '../../../fbc_js_core/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import StarIcon from '@material-ui/icons/Star';
@@ -35,8 +35,8 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Text from '../../theme/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
-import nullthrows from '@fbcnms/util/nullthrows';
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
 import {HEALTHY_STATUS} from '../GatewayUtils';
 import {Route} from 'react-router-dom';
@@ -44,7 +44,7 @@ import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   header: {

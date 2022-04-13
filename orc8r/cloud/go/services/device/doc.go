@@ -15,15 +15,3 @@ limitations under the License.
 // The device service is a simple blob-storage service for tracking
 // physical device.
 package device
-
-// SerdeDomain is the domain for all Serde implementations for the device
-// service
-const (
-	SerdeDomain = "device"
-
-	// ServiceName is the name of this service
-	ServiceName = "DEVICE"
-
-	// DBTableName is the name of the sql table used for this service
-	DBTableName = "device"
-)

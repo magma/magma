@@ -28,7 +28,7 @@ import {NetworkCheck} from '@material-ui/icons';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors} from '../../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -60,7 +60,7 @@ function LteDashboard() {
             filters: (
               <Grid
                 container
-                justify="flex-end"
+                justifyContent="flex-end"
                 alignItems="center"
                 spacing={2}>
                 <Grid item>

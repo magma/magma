@@ -11,6 +11,13 @@
 
 #include <sstream>
 #include <cstdint>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASSecurityAlgorithms.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -30,14 +37,9 @@ int NASSecurityAlgorithmsMsg::DecodeNASSecurityAlgorithmsMsg(
     decoded++;
   }
 
-  MLOG(MDEBUG) << " DecodeNASSecurityAlgorithmsMsg : ";
   nas_sec_algorithms->tca = (*(buffer + decoded) >> 4) & 0x7;
   nas_sec_algorithms->tia = *(buffer + decoded) & 0x7;
   decoded++;
-  MLOG(MDEBUG) << " Type of ciphering algorithm  = " << std::hex
-               << int(nas_sec_algorithms->tca);
-  MLOG(MDEBUG) << " Type of integrity protection algorithm  = " << std::hex
-               << int(nas_sec_algorithms->tia);
   return (decoded);
 };
 
@@ -56,14 +58,9 @@ int NASSecurityAlgorithmsMsg::EncodeNASSecurityAlgorithmsMsg(
     encoded++;
   }
 
-  MLOG(MDEBUG) << " EncodeNASSecurityAlgorithmsMsg : ";
   *(buffer + encoded) = 0x00 | ((nas_sec_algorithms->tca & 0x7) << 4) |
                         (nas_sec_algorithms->tia & 0x7);
 
-  MLOG(MDEBUG) << " Type of ciphering algorithm  = " << std::hex
-               << int(nas_sec_algorithms->tca);
-  MLOG(MDEBUG) << " Type of integrity protection algorithm  = " << std::hex
-               << int(nas_sec_algorithms->tia);
   encoded++;
   return (encoded);
 };

@@ -76,9 +76,8 @@ Description Defines functions executed at the ESM Service Access
  * --------------------------------------------------------------------------
  */
 
-esm_cause_t esm_recv_status(
-    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
-    const esm_status_msg* msg);
+esm_cause_t esm_recv_status(emm_context_t* emm_context, proc_tid_t pti,
+                            ebi_t ebi, const esm_status_msg* msg);
 
 /*
  * --------------------------------------------------------------------------

@@ -23,11 +23,9 @@ class ImeisvRequestMsg {
 
   ImeisvRequestMsg();
   ~ImeisvRequestMsg();
-  int EncodeImeisvRequestMsg(
-      ImeisvRequestMsg* imeisv_request, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
-  int DecodeImeisvRequestMsg(
-      ImeisvRequestMsg* imeisv_request, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
+  int EncodeImeisvRequestMsg(ImeisvRequestMsg* imeisv_request, uint8_t iei,
+                             uint8_t* buffer, uint32_t len);
+  int DecodeImeisvRequestMsg(ImeisvRequestMsg* imeisv_request, uint8_t iei,
+                             uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

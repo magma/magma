@@ -29,7 +29,7 @@ import (
 )
 
 func init() {
-	// _ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+	// _ = flag.Set("logtostderr", "true") // uncomment to view logs during test
 
 	_ = flag.Set("run_echo_server", "true")
 }
@@ -62,7 +62,7 @@ func TestServiceRun(t *testing.T) {
 	assert.NoError(t, err)
 
 	expectedServiceInfo := protos.ServiceInfo{
-		Name:          "STATE",
+		Name:          "state",
 		Version:       "0.0.0",
 		State:         protos.ServiceInfo_ALIVE,
 		Health:        protos.ServiceInfo_APP_HEALTHY,

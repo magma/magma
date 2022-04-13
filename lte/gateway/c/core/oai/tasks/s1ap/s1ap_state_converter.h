@@ -24,10 +24,10 @@ extern "C" {
 
 #include <cstdint>
 
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/s1ap_types.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
 #ifdef __cplusplus
 }
@@ -49,14 +49,14 @@ class S1apStateConverter : StateConverter {
   /**
    * Serializes s1ap_imsi_map_t to S1apImsiMap proto
    */
-  static void s1ap_imsi_map_to_proto(
-      const s1ap_imsi_map_t* s1ap_imsi_map, oai::S1apImsiMap* s1ap_imsi_proto);
+  static void s1ap_imsi_map_to_proto(const s1ap_imsi_map_t* s1ap_imsi_map,
+                                     oai::S1apImsiMap* s1ap_imsi_proto);
 
   /**
    * Deserializes s1ap_imsi_map_t from S1apImsiMap proto
    */
-  static void proto_to_s1ap_imsi_map(
-      const oai::S1apImsiMap& s1ap_imsi_proto, s1ap_imsi_map_t* s1ap_imsi_map);
+  static void proto_to_s1ap_imsi_map(const oai::S1apImsiMap& s1ap_imsi_proto,
+                                     s1ap_imsi_map_t* s1ap_imsi_map);
 
   /**
    * Serializes supported_ta_list_t to SupportedTaList proto
@@ -82,14 +82,14 @@ class S1apStateConverter : StateConverter {
 
   static void enb_to_proto(enb_description_t* enb, oai::EnbDescription* proto);
 
-  static void proto_to_enb(
-      const oai::EnbDescription& proto, enb_description_t* enb);
+  static void proto_to_enb(const oai::EnbDescription& proto,
+                           enb_description_t* enb);
 
-  static void ue_to_proto(
-      const ue_description_t* ue, oai::UeDescription* proto);
+  static void ue_to_proto(const ue_description_t* ue,
+                          oai::UeDescription* proto);
 
-  static void proto_to_ue(
-      const oai::UeDescription& proto, ue_description_t* ue);
+  static void proto_to_ue(const oai::UeDescription& proto,
+                          ue_description_t* ue);
 
  private:
   S1apStateConverter();

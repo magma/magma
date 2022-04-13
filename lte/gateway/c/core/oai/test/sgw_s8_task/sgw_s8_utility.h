@@ -15,33 +15,32 @@
 #include <string>
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.h"
 #include "lte/gateway/c/core/oai/include/sgw_s8_state.h"
-#include "../mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
-#include "lte/gateway/c/core/oai/include/spgw_types.h"
-#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.h"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_defs.h"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.h"
 }
 
 void fill_imsi(char* imsi);
-void fill_itti_csreq(
-    itti_s11_create_session_request_t* session_req_pP,
-    uint8_t default_eps_bearer_id);
-void fill_itti_csrsp(
-    s8_create_session_response_t* csr_resp,
-    uint32_t temporary_create_session_procedure_id, uint32_t sgw_s8_up_teid);
+void fill_itti_csreq(itti_s11_create_session_request_t* session_req_pP,
+                     uint8_t default_eps_bearer_id);
+void fill_itti_csrsp(s8_create_session_response_t* csr_resp,
+                     uint32_t temporary_create_session_procedure_id,
+                     uint32_t sgw_s8_up_teid);
 
-void fill_create_bearer_request(
-    s8_create_bearer_request_t* cb_req, uint32_t teid,
-    uint8_t default_eps_bearer_id, uint32_t sgw_s8_up_teid);
+void fill_create_bearer_request(s8_create_bearer_request_t* cb_req,
+                                uint32_t teid, uint8_t default_eps_bearer_id,
+                                uint32_t sgw_s8_up_teid);
 
 void fill_create_bearer_response(
     itti_s11_nw_init_actv_bearer_rsp_t* cb_response, uint32_t teid,
@@ -52,23 +51,26 @@ void fill_delete_bearer_response(
     uint32_t s_gw_teid_s11_s4, uint8_t eps_bearer_id,
     gtpv2c_cause_value_t cause);
 
-void fill_delete_bearer_request(
-    s8_delete_bearer_request_t* db_req, uint32_t teid, uint8_t eps_bearer_id);
+void fill_delete_bearer_request(s8_delete_bearer_request_t* db_req,
+                                uint32_t teid, uint8_t eps_bearer_id);
 
-void fill_delete_session_request(
-    itti_s11_delete_session_request_t* ds_req_p, uint32_t teid, uint8_t lbi);
+void fill_delete_session_request(itti_s11_delete_session_request_t* ds_req_p,
+                                 uint32_t teid, uint8_t lbi);
 
-void fill_delete_session_response(
-    s8_delete_session_response_t* ds_rsp_p, uint32_t teid, uint8_t cause);
+void fill_delete_session_response(s8_delete_session_response_t* ds_rsp_p,
+                                  uint32_t teid, uint8_t cause);
 
-void fill_modify_bearer_request(
-    itti_s11_modify_bearer_request_t* mb_req_p, uint32_t teid, uint8_t ebi);
+void fill_modify_bearer_request(itti_s11_modify_bearer_request_t* mb_req_p,
+                                uint32_t teid, uint8_t ebi);
 
-bool is_num_s1_bearers_valid(
-    sgw_state_t* sgw_state, imsi64_t imsi64, int expected_num_active_bearers);
+bool is_num_s1_bearers_valid(sgw_state_t* sgw_state, imsi64_t imsi64,
+                             int expected_num_active_bearers);
 
-ACTION_P(ReturnFromAsyncTask, cv) {
+ACTION_P(ReturnFromAsyncTask, cv) { cv->notify_all(); }
+
+ACTION_P(ReturnFromAsyncTaskWithReturn, cv) {
   cv->notify_all();
+  return true;
 }
 
 // Initialize config params
@@ -82,8 +84,8 @@ class SgwS8ConfigAndCreateMock : public ::testing::Test {
  protected:
   sgw_config_t* config =
       reinterpret_cast<sgw_config_t*>(calloc(1, sizeof(sgw_config_t)));
-  uint64_t imsi64               = 1010000000001;
-  uint32_t sgw_s8_up_teid       = 10;
+  uint64_t imsi64 = 1010000000001;
+  uint32_t sgw_s8_up_teid = 10;
   uint8_t default_eps_bearer_id = 5;
   virtual void SetUp();
   void sgw_s8_config_init();

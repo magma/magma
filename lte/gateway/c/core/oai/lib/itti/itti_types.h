@@ -38,21 +38,21 @@
 
 #include <stdint.h>
 
-#define CHARS_TO_UINT32(c1, c2, c3, c4)                                        \
-  ((((uint32_t) c4) << 24) | (((uint32_t) c3) << 16) |                         \
-   (((uint32_t) c2) << 8) | ((uint32_t) c1))
+#define CHARS_TO_UINT32(c1, c2, c3, c4)                                      \
+  ((((uint32_t)c4) << 24) | (((uint32_t)c3) << 16) | (((uint32_t)c2) << 8) | \
+   ((uint32_t)c1))
 
 #define MESSAGE_NUMBER_CHAR_FORMAT "%11u"
 
 /* Intertask message types */
 enum itti_message_types_e {
-  ITTI_DUMP_XML_DEFINITION     = CHARS_TO_UINT32('\n', 'I', 'x', 'd'),
+  ITTI_DUMP_XML_DEFINITION = CHARS_TO_UINT32('\n', 'I', 'x', 'd'),
   ITTI_DUMP_XML_DEFINITION_END = CHARS_TO_UINT32('i', 'X', 'D', '\n'),
 
-  ITTI_DUMP_MESSAGE_TYPE     = CHARS_TO_UINT32('\n', 'I', 'm', 's'),
+  ITTI_DUMP_MESSAGE_TYPE = CHARS_TO_UINT32('\n', 'I', 'm', 's'),
   ITTI_DUMP_MESSAGE_TYPE_END = CHARS_TO_UINT32('i', 'M', 'S', '\n'),
 
-  ITTI_STATISTIC_MESSAGE_TYPE     = CHARS_TO_UINT32('\n', 'I', 's', 't'),
+  ITTI_STATISTIC_MESSAGE_TYPE = CHARS_TO_UINT32('\n', 'I', 's', 't'),
   ITTI_STATISTIC_MESSAGE_TYPE_END = CHARS_TO_UINT32('i', 'S', 'T', '\n'),
 
   /* This signal is not meant to be used by remote analyzer */

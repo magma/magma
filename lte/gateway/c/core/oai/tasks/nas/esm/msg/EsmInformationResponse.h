@@ -29,8 +29,8 @@
 #define ESM_INFORMATION_RESPONSE_MINIMUM_LENGTH (0)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define ESM_INFORMATION_RESPONSE_MAXIMUM_LENGTH                                \
-  (ACCESS_POINT_NAME_MAXIMUM_LENGTH +                                          \
+#define ESM_INFORMATION_RESPONSE_MAXIMUM_LENGTH \
+  (ACCESS_POINT_NAME_MAXIMUM_LENGTH +           \
    PROTOCOL_CONFIGURATION_OPTIONS_MAXIMUM_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding

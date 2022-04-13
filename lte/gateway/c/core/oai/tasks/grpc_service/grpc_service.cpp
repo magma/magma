@@ -23,7 +23,6 @@
 #include "lte/gateway/c/core/oai/tasks/grpc_service/CSFBGatewayServiceImpl.h"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/SMSOrc8rGatewayServiceImpl.h"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S1apServiceImpl.h"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/S6aGatewayImpl.h"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S6aServiceImpl.h"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.h"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/AmfServiceImpl.h"
@@ -42,7 +41,6 @@ using magma::AmfServiceImpl;
 using magma::CSFBGatewayServiceImpl;
 using magma::HaServiceImpl;
 using magma::S1apServiceImpl;
-using magma::S6aGatewayImpl;
 using magma::S6aServiceImpl;
 using magma::S8ServiceImpl;
 using magma::SMSOrc8rGatewayServiceImpl;
@@ -50,7 +48,6 @@ using magma::SpgwServiceImpl;
 
 static AmfServiceImpl amf_service;
 static S6aServiceImpl s6a_service;
-static S6aGatewayImpl s6a_proxy;
 static CSFBGatewayServiceImpl sgs_service;
 static SMSOrc8rGatewayServiceImpl sms_orc8r_service;
 static S1apServiceImpl s1ap_service;
@@ -65,11 +62,11 @@ static std::unique_ptr<Server> server;
 // MagmaService, which implements Service303::Service as the
 // base service and can add other services on top.
 void start_grpc_service(bstring server_address) {
-  OAILOG_INFO(
-      LOG_SPGW_APP, "Starting service at : %s\n ", bdata(server_address));
+  OAILOG_INFO(LOG_SPGW_APP, "Starting service at : %s\n ",
+              bdata(server_address));
   ServerBuilder builder;
-  builder.AddListeningPort(
-      bdata(server_address), grpc::InsecureServerCredentials());
+  builder.AddListeningPort(bdata(server_address),
+                           grpc::InsecureServerCredentials());
   builder.RegisterService(&amf_service);
   builder.RegisterService(&s6a_service);
   // Start the SGS service only if non_eps_service_control is not set to OFF

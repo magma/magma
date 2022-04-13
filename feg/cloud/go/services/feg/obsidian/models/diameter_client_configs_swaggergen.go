@@ -55,6 +55,9 @@ type DiameterClientConfigs struct {
 	// Min Length: 1
 	Realm string `json:"realm,omitempty"`
 
+	// request timeout
+	RequestTimeout uint32 `json:"request_timeout,omitempty"`
+
 	// retransmits
 	Retransmits uint32 `json:"retransmits,omitempty"`
 

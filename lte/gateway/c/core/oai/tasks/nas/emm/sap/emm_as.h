@@ -36,14 +36,14 @@ Description Defines the EMMAS Service Access Point that provides
 #ifndef FILE_EMM_AS_SEEN
 #define FILE_EMM_AS_SEEN
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/
 #define QUADLET 4
-#define EMM_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
+#define EMM_GET_BYTE_ALIGNED_LENGTH(LENGTH) \
   LENGTH += QUADLET - (LENGTH % QUADLET)
 /****************************************************************************/
 /************************  G L O B A L    T Y P E S  ************************/

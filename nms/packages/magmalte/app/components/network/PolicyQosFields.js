@@ -72,7 +72,7 @@ export default function PolicyQosFields(props: Props) {
         />
       </ExpansionPanelSummary>
       <ExpansionPanelDetails>
-        <Grid container spacing={2} justify="center">
+        <Grid container spacing={2} justifyContent="center">
           <Grid item xs={12}>
             <TextField
               className={classes.input}

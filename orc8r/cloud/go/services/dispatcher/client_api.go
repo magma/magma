@@ -13,4 +13,4 @@ limitations under the License.
 
 package dispatcher
 
-const ServiceName = "DISPATCHER"
+const ServiceName = "dispatcher"

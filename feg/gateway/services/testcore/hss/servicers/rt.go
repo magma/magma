@@ -31,7 +31,7 @@ import (
 	"magma/lte/cloud/go/protos"
 )
 
-//Permanently terminate the non-3gpp subscription
+// Permanently terminate the non-3gpp subscription
 const PermanentTermination = 0
 
 func (srv *HomeSubscriberServer) TerminateRegistration(sub *protos.SubscriberData) error {
@@ -124,7 +124,7 @@ func (srv *HomeSubscriberServer) createRTR(sessionID string, username string) *d
 func (srv *HomeSubscriberServer) deregisterSubscriber(subscriber *protos.SubscriberData) error {
 	subscriber.State.TgppAaaServerRegistered = false
 	subscriber.State.TgppAaaServerName = ""
-	return srv.store.UpdateSubscriber(subscriber)
+	return srv.store.UpdateSubscriber(&protos.SubscriberUpdate{Data: subscriber})
 }
 
 func (srv *HomeSubscriberServer) genAAAServerConfig(serverName string) (*diameter.DiameterServerConfig, error) {

@@ -41,9 +41,4 @@ TEST(TestServiceRegistry, test_get_local_channel_args) {
   EXPECT_EQ(args.port, "60051");
   EXPECT_EQ(args.authority, "mobilityd.local");
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
 }  // namespace magma

@@ -69,6 +69,14 @@
     virtualenv: /tmp/virtualenv
   when: full_provision
 
+- name: Install flaky
+  pip:
+    name: flaky
+    extra_args: --cache-dir $PIP_CACHE_HOME
+    virtualenv_python: python3.5
+    virtualenv: /tmp/virtualenv
+  when: full_provision
+
 - name: Generate python types from C headers
   command: "/tmp/virtualenv/bin/python3.5 {{ test_scripts }}/c_parser.py"
   environment:

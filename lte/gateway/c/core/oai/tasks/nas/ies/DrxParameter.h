@@ -29,12 +29,12 @@ typedef struct DrxParameter_tag {
   uint8_t nondrxtimer : 3;
 } DrxParameter;
 
-int encode_drx_parameter(
-    DrxParameter* drxparameter, uint8_t iei, uint8_t* buffer, uint32_t len);
+int encode_drx_parameter(DrxParameter* drxparameter, uint8_t iei,
+                         uint8_t* buffer, uint32_t len);
 
 void dump_drx_parameter_xml(DrxParameter* drxparameter, uint8_t iei);
 
-int decode_drx_parameter(
-    DrxParameter* drxparameter, uint8_t iei, uint8_t* buffer, uint32_t len);
+int decode_drx_parameter(DrxParameter* drxparameter, uint8_t iei,
+                         uint8_t* buffer, uint32_t len);
 
 #endif /* DRX PARAMETER_H_ */

@@ -32,7 +32,7 @@
 #define ATTACH_REJECT_MINIMUM_LENGTH (EMM_CAUSE_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define ATTACH_REJECT_MAXIMUM_LENGTH                                           \
+#define ATTACH_REJECT_MAXIMUM_LENGTH \
   (EMM_CAUSE_MAXIMUM_LENGTH + ESM_MESSAGE_CONTAINER_MAXIMUM_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -63,10 +63,10 @@ typedef struct attach_reject_msg_tag {
   EsmMessageContainer esmmessagecontainer;
 } attach_reject_msg;
 
-int decode_attach_reject(
-    attach_reject_msg* attachreject, uint8_t* buffer, uint32_t len);
+int decode_attach_reject(attach_reject_msg* attachreject, uint8_t* buffer,
+                         uint32_t len);
 
-int encode_attach_reject(
-    attach_reject_msg* attachreject, uint8_t* buffer, uint32_t len);
+int encode_attach_reject(attach_reject_msg* attachreject, uint8_t* buffer,
+                         uint32_t len);
 
 #endif /* ! defined(FILE_ATTACH_REJECT_SEEN) */

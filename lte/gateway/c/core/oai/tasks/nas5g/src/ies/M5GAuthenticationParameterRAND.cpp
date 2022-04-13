@@ -12,6 +12,13 @@
 #include <sstream>
 #include <cstring>
 #include <cstdint>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationParameterRAND.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
@@ -38,15 +45,12 @@ int AuthenticationParameterRANDMsg::EncodeAuthenticationParameterRANDMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, RAND_MIN_LEN, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char) iei, rand->iei);
+    CHECK_IEI_ENCODER((unsigned char)iei, rand->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "In EncodeAuthenticationParameterRANDMsg: iei" << std::hex
-                 << int(*buffer) << std::endl;
     encoded++;
   }
 
   memcpy(buffer + encoded, rand->rand_val, RAND_MAX_LEN);
-  BUFFER_PRINT_LOG(buffer + encoded, RAND_MAX_LEN);
   encoded = encoded + RAND_MAX_LEN;
 
   return (encoded);

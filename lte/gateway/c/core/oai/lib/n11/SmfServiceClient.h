@@ -30,17 +30,18 @@ using magma::lte::SmContextVoid;
 
 namespace magma5g {
 
-SetSMSessionContext create_sm_pdu_session_v4(
-    std::string& imsi, uint8_t* apn, uint32_t pdu_session_id,
+SetSMSessionContext create_sm_pdu_session(
+    std::string&, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
-    const ambr_t& state_ambr);
+    uint8_t* gnb_gtp_teid_ip_addr, std::string& ipv4_addr,
+    std::string& ipv6_addr, const ambr_t& state_ambr, uint32_t version,
+    const eps_subscribed_qos_profile_t& qos_profile);
 
 class SmfServiceClient {
  public:
   virtual ~SmfServiceClient() {}
-  virtual bool set_smf_session(SetSMSessionContext& request)          = 0;
-  virtual bool set_smf_notification(SetSmNotificationContext& notify) = 0;
+  virtual bool set_smf_session(SetSMSessionContext& request) = 0;
+  virtual bool set_smf_notification(const SetSmNotificationContext& notify) = 0;
 };
 
 /**
@@ -59,7 +60,7 @@ class AsyncSmfServiceClient : public magma::GRPCReceiver,
       const std::function<void(Status, SmContextVoid)>& callback);
 
   void SetSMFNotificationRPC(
-      SetSmNotificationContext& notify,
+      const SetSmNotificationContext& notify,
       const std::function<void(Status, SmContextVoid)>& callback);
 
  public:
@@ -68,15 +69,16 @@ class AsyncSmfServiceClient : public magma::GRPCReceiver,
   AsyncSmfServiceClient(AsyncSmfServiceClient const&) = delete;
   void operator=(AsyncSmfServiceClient const&) = delete;
 
-  int amf_smf_create_pdu_session_ipv4(
+  int amf_smf_create_pdu_session(
       char* imsi, uint8_t* apn, uint32_t pdu_session_id,
       uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-      uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
-      const ambr_t& state_ambr);
+      uint8_t* gnb_gtp_teid_ip_addr, char* ue_ipv4_addr, char* ue_ipv6_addr,
+      const ambr_t& state_ambr, uint32_t version,
+      const eps_subscribed_qos_profile_t& qos_profile);
 
   bool set_smf_session(SetSMSessionContext& request);
 
-  bool set_smf_notification(SetSmNotificationContext& notify);
+  bool set_smf_notification(const SetSmNotificationContext& notify);
 
   bool n11_update_location_req(const s6a_update_location_req_t* const ulr_p);
 };

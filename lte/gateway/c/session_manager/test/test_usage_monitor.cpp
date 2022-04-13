@@ -84,10 +84,4 @@ TEST_F(SessionStateTest, test_remove_monitor) {
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 0);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 0);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

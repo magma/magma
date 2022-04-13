@@ -20,6 +20,8 @@ from lte.protos.session_manager_pb2 import (
     UPFSessionConfigState,
 )
 from lte.protos.session_manager_pb2_grpc import SetInterfaceForUserPlaneStub
+from magma.common.rpc_utils import indicates_connection_error
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 
 DEFAULT_GRPC_TIMEOUT = 5
 
@@ -59,6 +61,7 @@ def send_periodic_session_update(
             "send_periodic_session_update error[%s] %s",
             err.code(),
             err.details(),
+            extra=EXCLUDE_FROM_ERROR_MONITORING if indicates_connection_error(err) else None,
         )
         return False
 
@@ -68,7 +71,7 @@ def send_paging_intiated_notification(
     setinterface_stub: SetInterfaceForUserPlaneStub,
 ):
     """
-	Make RPC call to send paging initiated notification to sessionD
+        Make RPC call to send paging initiated notification to sessionD
     """
     try:
         setinterface_stub.SetPagingInitiated(paging_info, DEFAULT_GRPC_TIMEOUT)

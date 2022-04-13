@@ -52,8 +52,8 @@ Description Contains global security definitions
 #define AUTH_AK_SIZE 6  /* Anonymity key:            48 bits  */
 #define AUTH_AMF_SIZE 2 /* Authentication Management Field:  16 bits  */
 #define AUTH_MAC_SIZE 8 /* Message Authentication Code:  64 bits  */
-#define AUTH_AUTN_SIZE                                                         \
-  16                          /* Authentication token:     128 bits            \
+#define AUTH_AUTN_SIZE                                              \
+  16                          /* Authentication token:     128 bits \
                 AUTN = (SQN ⊕ AK) || AMF || MAC        */
 #define AUTH_MACS_SIZE 8      /* Re-synchronization MAC:       64 bits  */
 #define AUTH_AUTS_SIZE 16     /* Re-synchronization AUT:       128 bits */
@@ -72,7 +72,7 @@ Description Contains global security definitions
 #define AUTH_KGNB_SIZE AUTH_KASME_SIZE /* gNodeB security key   */
 
 /* "Separation bit" of AMF field */
-#define AUTH_AMF_SEPARATION_BIT(a) ((a) &0x80)
+#define AUTH_AMF_SEPARATION_BIT(a) ((a)&0x80)
 /*
  * --------------------------------------------------------------------------
  * EPS NAS security context handled by EPS Mobility Management sublayer in

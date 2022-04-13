@@ -37,8 +37,9 @@ void sm_free_protocol_configuration_options(
     protocol_configuration_options_t** const protocol_configuration_options) {
   protocol_configuration_options_t* pco = *protocol_configuration_options;
   if (pco) {
-    for (int i = 0; i < PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID; i++) {
-      if (pco->protocol_or_container_ids[i].contents) {
+    for (int i = 0; i < pco->num_protocol_or_container_id; i++) {
+      if (pco->protocol_or_container_ids[i].contents &&
+          pco->protocol_or_container_ids[i].length) {
         bdestroy_wrapper(&pco->protocol_or_container_ids[i].contents);
       }
     }
@@ -49,8 +50,10 @@ void sm_copy_protocol_configuration_options(
     protocol_configuration_options_t* const pco_dst,
     const protocol_configuration_options_t* const pco_src) {
   if ((pco_dst) && (pco_src)) {
-    pco_dst->ext                    = pco_src->ext;
-    pco_dst->spare                  = pco_src->spare;
+    memset(pco_dst, 0, sizeof(protocol_configuration_options_t));
+
+    pco_dst->ext = pco_src->ext;
+    pco_dst->spare = pco_src->spare;
     pco_dst->configuration_protocol = pco_src->configuration_protocol;
     pco_dst->num_protocol_or_container_id =
         pco_src->num_protocol_or_container_id;
@@ -60,8 +63,10 @@ void sm_copy_protocol_configuration_options(
           pco_src->protocol_or_container_ids[i].id;
       pco_dst->protocol_or_container_ids[i].length =
           pco_src->protocol_or_container_ids[i].length;
-      pco_dst->protocol_or_container_ids[i].contents =
-          bstrcpy(pco_src->protocol_or_container_ids[i].contents);
+      if (pco_src->protocol_or_container_ids[i].length) {
+        pco_dst->protocol_or_container_ids[i].contents =
+            bstrcpy(pco_src->protocol_or_container_ids[i].contents);
+      }
     }
   }
 }
@@ -81,7 +86,7 @@ static void sm_pco_push_protocol_or_container_id(
 
 uint16_t sm_process_pco_dns_server_request(
     protocol_configuration_options_t* const pco_resp) {
-  in_addr_t ipcp_out_dns_prim_ipv4_addr      = INADDR_NONE;
+  in_addr_t ipcp_out_dns_prim_ipv4_addr = INADDR_NONE;
   pco_protocol_or_container_id_t poc_id_resp = {0};
   uint8_t dns_array[4];
 
@@ -89,9 +94,9 @@ uint16_t sm_process_pco_dns_server_request(
   ipcp_out_dns_prim_ipv4_addr = amf_config.ipv4.default_dns.s_addr;
   amf_config_unlock(&amf_config);
 
-  poc_id_resp.id     = PCO_CI_DNS_SERVER_IPV4_ADDRESS;
+  poc_id_resp.id = PCO_CI_DNS_SERVER_IPV4_ADDRESS;
   poc_id_resp.length = 4;
-  dns_array[0]       = (uint8_t)(ipcp_out_dns_prim_ipv4_addr & 0x000000FF);
+  dns_array[0] = (uint8_t)(ipcp_out_dns_prim_ipv4_addr & 0x000000FF);
   dns_array[1] = (uint8_t)((ipcp_out_dns_prim_ipv4_addr >> 8) & 0x000000FF);
   dns_array[2] = (uint8_t)((ipcp_out_dns_prim_ipv4_addr >> 16) & 0x000000FF);
   dns_array[3] = (uint8_t)((ipcp_out_dns_prim_ipv4_addr >> 24) & 0x000000FF);
@@ -106,22 +111,22 @@ uint16_t sm_process_pco_request_ipcp(
     protocol_configuration_options_t* pco_resp,
     const pco_protocol_or_container_id_t* const poc_id) {
   pco_protocol_or_container_id_t poc_id_resp = {0};
-  in_addr_t ipcp_out_dns_prim_ipv4_addr      = INADDR_NONE;
-  in_addr_t ipcp_out_dns_sec_ipv4_addr       = INADDR_NONE;
-  int16_t ipcp_req_remaining_length          = poc_id->length;
-  size_t pco_in_index                        = 4;
+  in_addr_t ipcp_out_dns_prim_ipv4_addr = INADDR_NONE;
+  in_addr_t ipcp_out_dns_sec_ipv4_addr = INADDR_NONE;
+  int16_t ipcp_req_remaining_length = poc_id->length;
+  size_t pco_in_index = 4;
 
-  uint8_t idp[6]          = {0};
-  uint8_t ids[6]          = {0};
+  uint8_t idp[6] = {0};
+  uint8_t ids[6] = {0};
   int16_t ipcp_out_length = 0;
 
-  uint8_t ipcp_req_option       = 0;
+  uint8_t ipcp_req_option = 0;
   int8_t ipcp_req_option_length = 0;
 
   bool dns_req = false;
 
   while (ipcp_req_remaining_length >= 2) {
-    ipcp_req_option        = poc_id->contents->data[pco_in_index];
+    ipcp_req_option = poc_id->contents->data[pco_in_index];
     ipcp_req_option_length = poc_id->contents->data[pco_in_index + 1];
     ipcp_req_remaining_length =
         ipcp_req_remaining_length - ipcp_req_option_length;
@@ -141,21 +146,21 @@ uint16_t sm_process_pco_request_ipcp(
   amf_config_read_lock(&amf_config);
 
   ipcp_out_dns_prim_ipv4_addr = amf_config.ipv4.default_dns.s_addr;
-  ipcp_out_dns_sec_ipv4_addr  = amf_config.ipv4.default_dns_sec.s_addr;
+  ipcp_out_dns_sec_ipv4_addr = amf_config.ipv4.default_dns_sec.s_addr;
 
   amf_config_unlock(&amf_config);
 
   /* Code + Identifier + Length */
   ipcp_out_length = IPCP_CODE_BYTES + IPCP_IDENTIFIER_BYTES + IPC_LENGTH_BYTES;
-  poc_id_resp.id  = PCO_PI_IPCP;
-  poc_id_resp.length   = 0;
-  uint8_t cil[4]       = {0};
+  poc_id_resp.id = PCO_PI_IPCP;
+  poc_id_resp.length = 0;
+  uint8_t cil[4] = {0};
   poc_id_resp.contents = blk2bstr(cil, 4);
 
-  pco_resp->ext                          = 1;
-  pco_resp->spare                        = 0;
+  pco_resp->ext = 1;
+  pco_resp->spare = 0;
   pco_resp->num_protocol_or_container_id = 0;
-  pco_resp->configuration_protocol       = 0;
+  pco_resp->configuration_protocol = 0;
 
   /* Primary DNS Server IP Address */
   idp[0] = IPCP_OPTION_PRIMARY_DNS_SERVER_IP_ADDRESS;
@@ -189,20 +194,19 @@ uint16_t sm_process_pco_request_ipcp(
   return (ipcp_out_length + SM_PCO_IPCP_HDR_LENGTH);
 }
 
-uint16_t sm_process_pco_request(
-    protocol_configuration_options_t* pco_req,
-    protocol_configuration_options_t* pco_resp) {
-  auto rc = 0;
+uint16_t sm_process_pco_request(protocol_configuration_options_t* pco_req,
+                                protocol_configuration_options_t* pco_resp) {
+  auto length = 0;
 
   for (auto id = 0; id < pco_req->num_protocol_or_container_id; id++) {
     switch (pco_req->protocol_or_container_ids[id].id) {
       case PCO_PI_IPCP:
-        rc = sm_process_pco_request_ipcp(
+        length += sm_process_pco_request_ipcp(
             pco_resp, &pco_req->protocol_or_container_ids[id]);
         break;
 
       case PCO_CI_DNS_SERVER_IPV4_ADDRESS_REQUEST:
-        rc = sm_process_pco_dns_server_request(pco_resp);
+        length += sm_process_pco_dns_server_request(pco_resp);
         break;
 
       default:
@@ -210,7 +214,7 @@ uint16_t sm_process_pco_request(
     }
   }
 
-  return (rc);
+  return (length);
 }
 
 }  // namespace magma5g

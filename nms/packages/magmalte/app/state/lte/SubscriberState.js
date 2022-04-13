@@ -289,6 +289,7 @@ export type SubscriberQueryType = {
   setTokenList: (Array<string>) => void,
   ctx: SubscriberContextType,
   subscriberMetrics?: {[string]: Metrics},
+  deleteTable: boolean,
 };
 /**
  * Used with material-table remote data feature to get paginated subscribers.
@@ -301,6 +302,7 @@ export type SubscriberQueryType = {
  * @param {(Array<string>) => void} setTokenList Set token list.
  * @param {SubscriberContextType} ctx Subscriber context to set subscriber state.
  * @param {{[string]: Metrics}} subscriberMetrics Metrics used for subscriber Current Usage and Daily Average.
+ * @param {boolean} deleteTable Add more fields to subscriber if set to true
  * @return Promise holding subscriber rows data, the current page and the totalCount.
  */
 export async function handleSubscriberQuery(props: SubscriberQueryType) {
@@ -314,6 +316,7 @@ export async function handleSubscriberQuery(props: SubscriberQueryType) {
     setTokenList,
     ctx,
     subscriberMetrics,
+    deleteTable,
   } = props;
   return new Promise(async (resolve, reject) => {
     try {
@@ -364,13 +367,29 @@ export async function handleSubscriberQuery(props: SubscriberQueryType) {
         setMaxPageRowCount(totalCount);
         setTokenList([...newTokenList]);
         // set subscriber state with current subscriber rows.
-        ctx.setState?.('', undefined, subscriberResponse.subscribers);
+        if (!deleteTable) {
+          ctx.setState?.('', undefined, subscriberResponse.subscribers);
+        }
       }
       const tableData: Array<SubscriberRowType> = subscriberResponse
         ? Object.keys(subscriberResponse.subscribers).map((imsi: string) => {
             const subscriberInfo = subscriberResponse.subscribers[imsi] || {};
             const metrics = subscriberMetrics?.[`${imsi}`];
-            return {
+            // Additional fields displayed in subscriber delete dialog
+            const deleteSubscriber = !deleteTable
+              ? {}
+              : {
+                  authKey: subscriberInfo.lte.auth_key,
+                  authOpc: subscriberInfo.lte.auth_opc,
+                  dataPlan: subscriberInfo.lte.sub_profile,
+                  apns: subscriberInfo.active_apns,
+                  policies: subscriberInfo.active_policies,
+                  state:
+                    subscriberInfo.lte?.state === 'ACTIVE'
+                      ? 'ACTIVE'
+                      : 'INACTIVE',
+                };
+            const subscriber = {
               name: subscriberInfo.name ?? imsi,
               imsi: imsi,
               service: subscriberInfo.lte?.state || '',
@@ -383,6 +402,7 @@ export async function handleSubscriberQuery(props: SubscriberQueryType) {
                     )
                   : '-',
             };
+            return {...subscriber, ...deleteSubscriber};
           })
         : [];
       resolve({

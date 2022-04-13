@@ -99,12 +99,24 @@ class SentryTests(unittest.TestCase):
     def test_get_before_send_hook_returns_exclusion_and_filter_hook(self):
         """Test that the returned hook excludes marked events and applies the filter"""
         hook = _get_before_send_hook(["message to exclude"])
+        self.assertEqual(hook.__name__, 'filter_excluded_and_marked_messages')
 
         excluded_event = {"key": "value", "extra": {"exclude_from_error_monitoring": True}}
         self.assertIsNone(hook(excluded_event, {}))
 
         filtered_event = _event_with_log_message("some message to exclude")
         self.assertIsNone(hook(filtered_event, {}))
+
+        unfiltered_event = _event_with_log_message("another message")
+        self.assertEqual(unfiltered_event, hook(unfiltered_event, {}))
+
+    def test_get_before_send_hook_handles_missing_filters_correctly(self):
+        """Test that the returned hook excludes only marked events if there's no filter"""
+        hook = _get_before_send_hook([])
+        self.assertEqual(hook.__name__, 'filter_marked_messages')
+
+        excluded_event = {"key": "value", "extra": {"exclude_from_error_monitoring": True}}
+        self.assertIsNone(hook(excluded_event, {}))
 
         unfiltered_event = _event_with_log_message("another message")
         self.assertEqual(unfiltered_event, hook(unfiltered_event, {}))

@@ -14,7 +14,7 @@ limitations under the License.
 package bootstrapper
 
 const (
-	ServiceName        = "BOOTSTRAPPER"
+	ServiceName        = "bootstrapper"
 	BlobstoreTableName = "bootstrapper"
 	TokenPrefix        = "reg_"
 )

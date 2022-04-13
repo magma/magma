@@ -38,14 +38,6 @@ class ResponseTypes(enum.Enum):
     DEREGISTRATION = "deregistrationResponse"
 
 
-class RequestStates(enum.Enum):
-    """
-    Request state class
-    """
-    PENDING = "pending"
-    PROCESSED = "processed"
-
-
 class CbsdStates(enum.Enum):
     """
     CBSD SAS registration state class
@@ -61,6 +53,7 @@ class GrantStates(enum.Enum):
     IDLE = "idle"
     GRANTED = "granted"
     AUTHORIZED = "authorized"
+    UNSYNC = "unsync"
 
 
 class ResponseCodes(enum.Enum):

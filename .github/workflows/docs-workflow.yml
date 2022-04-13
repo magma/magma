@@ -60,3 +60,24 @@ jobs:
         run: |
             cd ${MAGMA_ROOT}/docs
             make precommit
+
+  markdown-insync:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: Markdown insync check
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - name: Run docs `make`
+        run: |
+            cd ${MAGMA_ROOT}/docs
+            make
+      - name: Check all generated files are checked in after running `make -C $MAGMA_ROOT/docs`
+        run: |
+          git status
+          git diff-index --quiet HEAD

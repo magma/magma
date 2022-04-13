@@ -29,10 +29,10 @@ TEST(test_s1ap_handle_new_association, empty_initial_state) {
   s1ap_state_t* s = create_s1ap_state(2, 2);
   // 192.168.60.141 as network bytes
   bstring ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
-  sctp_new_peer_t p     = {
-      .instreams     = 1,
-      .outstreams    = 2,
-      .assoc_id      = 3,
+  sctp_new_peer_t p = {
+      .instreams = 1,
+      .outstreams = 2,
+      .assoc_id = 3,
       .ran_cp_ipaddr = ran_cp_ipaddr,
   };
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNok);
@@ -40,11 +40,9 @@ TEST(test_s1ap_handle_new_association, empty_initial_state) {
   EXPECT_EQ(s->enbs.num_elements, 1);
 
   enb_description_t* enbd = nullptr;
-  EXPECT_EQ(
-      hashtable_ts_get(
-          &s->enbs, (const hash_key_t) p.assoc_id,
-          reinterpret_cast<void**>(&enbd)),
-      HASH_TABLE_OK);
+  EXPECT_EQ(hashtable_ts_get(&s->enbs, (const hash_key_t)p.assoc_id,
+                             reinterpret_cast<void**>(&enbd)),
+            HASH_TABLE_OK);
   EXPECT_EQ(enbd->sctp_assoc_id, 3);
   EXPECT_EQ(enbd->instreams, 1);
   EXPECT_EQ(enbd->outstreams, 2);
@@ -62,17 +60,15 @@ TEST(test_s1ap_handle_new_association, empty_initial_state) {
 }
 
 TEST(test_s1ap_handle_new_association, shutdown) {
-  s1ap_state_t* s   = create_s1ap_state(2, 2);
+  s1ap_state_t* s = create_s1ap_state(2, 2);
   sctp_new_peer_t p = {.assoc_id = 1};
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNok);
 
   // set enb to shutdown state
   enb_description_t* enbd = nullptr;
-  EXPECT_EQ(
-      hashtable_ts_get(
-          &s->enbs, (const hash_key_t) p.assoc_id,
-          reinterpret_cast<void**>(&enbd)),
-      HASH_TABLE_OK);
+  EXPECT_EQ(hashtable_ts_get(&s->enbs, (const hash_key_t)p.assoc_id,
+                             reinterpret_cast<void**>(&enbd)),
+            HASH_TABLE_OK);
   enbd->s1_state = S1AP_SHUTDOWN;
 
   // expect error
@@ -82,17 +78,15 @@ TEST(test_s1ap_handle_new_association, shutdown) {
 }
 
 TEST(test_s1ap_handle_new_association, resetting) {
-  s1ap_state_t* s   = create_s1ap_state(2, 2);
+  s1ap_state_t* s = create_s1ap_state(2, 2);
   sctp_new_peer_t p = {.assoc_id = 1};
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNok);
 
   // set enb to shutdown state
   enb_description_t* enbd = nullptr;
-  EXPECT_EQ(
-      hashtable_ts_get(
-          &s->enbs, (const hash_key_t) p.assoc_id,
-          reinterpret_cast<void**>(&enbd)),
-      HASH_TABLE_OK);
+  EXPECT_EQ(hashtable_ts_get(&s->enbs, (const hash_key_t)p.assoc_id,
+                             reinterpret_cast<void**>(&enbd)),
+            HASH_TABLE_OK);
   enbd->s1_state = S1AP_RESETING;
 
   // expect error
@@ -102,17 +96,15 @@ TEST(test_s1ap_handle_new_association, resetting) {
 }
 
 TEST(test_s1ap_handle_new_association, reassociate) {
-  s1ap_state_t* s   = create_s1ap_state(2, 2);
+  s1ap_state_t* s = create_s1ap_state(2, 2);
   sctp_new_peer_t p = {.assoc_id = 1};
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNok);
 
   // make sure first association worked
   enb_description_t* enbd = nullptr;
-  EXPECT_EQ(
-      hashtable_ts_get(
-          &s->enbs, (const hash_key_t) p.assoc_id,
-          reinterpret_cast<void**>(&enbd)),
-      HASH_TABLE_OK);
+  EXPECT_EQ(hashtable_ts_get(&s->enbs, (const hash_key_t)p.assoc_id,
+                             reinterpret_cast<void**>(&enbd)),
+            HASH_TABLE_OK);
   EXPECT_EQ(enbd->sctp_assoc_id, 1);
   EXPECT_EQ(enbd->instreams, 0);
   EXPECT_EQ(enbd->outstreams, 0);
@@ -123,10 +115,10 @@ TEST(test_s1ap_handle_new_association, reassociate) {
 
   // new assoc with same id should overwrite
   bstring ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
-  sctp_new_peer_t p2    = {
-      .instreams     = 10,
-      .outstreams    = 20,
-      .assoc_id      = 1,
+  sctp_new_peer_t p2 = {
+      .instreams = 10,
+      .outstreams = 20,
+      .assoc_id = 1,
       .ran_cp_ipaddr = ran_cp_ipaddr,
   };
   EXPECT_EQ(s1ap_handle_new_association(s, &p2), RETURNok);
@@ -146,10 +138,10 @@ TEST(test_s1ap_handle_new_association, clean_stale_association) {
   s1ap_state_t* s = create_s1ap_state(2, 2);
   // 192.168.60.141 as network bytes
   bstring ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
-  sctp_new_peer_t p     = {
-      .instreams     = 1,
-      .outstreams    = 2,
-      .assoc_id      = 3,
+  sctp_new_peer_t p = {
+      .instreams = 1,
+      .outstreams = 2,
+      .assoc_id = 3,
       .ran_cp_ipaddr = ran_cp_ipaddr,
   };
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNok);
@@ -157,19 +149,18 @@ TEST(test_s1ap_handle_new_association, clean_stale_association) {
   EXPECT_EQ(s->enbs.num_elements, 1);
 
   enb_description_t* enb_ref =
-      (enb_description_t*) calloc(1, sizeof(enb_description_t));
+      (enb_description_t*)calloc(1, sizeof(enb_description_t));
 
   enb_description_t* enb_associated = NULL;
-  hashtable_ts_get(
-      &s->enbs, (const hash_key_t) p.assoc_id,
-      reinterpret_cast<void**>(&enb_associated));
+  hashtable_ts_get(&s->enbs, (const hash_key_t)p.assoc_id,
+                   reinterpret_cast<void**>(&enb_associated));
 
   enb_ref->enb_id = enb_associated->enb_id;
   clean_stale_enb_state(s, enb_ref);
   EXPECT_EQ(s->enbs.num_elements, 0);
 
   bdestroy(ran_cp_ipaddr);
-  free_wrapper((void**) &enb_ref);
+  free_wrapper((void**)&enb_ref);
   free_s1ap_state(s);
 }
 

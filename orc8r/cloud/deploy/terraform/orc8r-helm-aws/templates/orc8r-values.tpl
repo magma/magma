@@ -66,6 +66,7 @@ controller:
     repository: ${docker_registry}/controller
     tag: "${docker_tag}"
     env:
+      orc8r_domain_name: "${orc8r_domain_name}"
       version_tag: "${docker_tag}"
       helm_version_tag: "${orc8r_chart_version}"
   replicas: ${controller_replicas}

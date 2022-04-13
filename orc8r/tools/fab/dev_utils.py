@@ -336,8 +336,8 @@ def cloud_get(
     """
     url = url or PORTAL_URL
     admin_cert = admin_cert or types.ClientCert(
-            cert='./../../.cache/test_certs/admin_operator.pem',
-            key='./../../.cache/test_certs/admin_operator.key.pem',
+        cert='./../../.cache/test_certs/admin_operator.pem',
+        key='./../../.cache/test_certs/admin_operator.key.pem',
     )
 
     if resource.startswith("/"):
@@ -370,8 +370,8 @@ def cloud_post(
     """
     url = url or PORTAL_URL
     admin_cert = admin_cert or types.ClientCert(
-            cert='./../../.cache/test_certs/admin_operator.pem',
-            key='./../../.cache/test_certs/admin_operator.key.pem',
+        cert='./../../.cache/test_certs/admin_operator.pem',
+        key='./../../.cache/test_certs/admin_operator.key.pem',
     )
     resp = requests.post(
         url + resource,

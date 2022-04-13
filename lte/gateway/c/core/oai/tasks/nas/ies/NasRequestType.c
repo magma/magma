@@ -22,12 +22,12 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/NasRequestType.h"
 
 //------------------------------------------------------------------------------
-int decode_request_type(
-    request_type_t* requesttype, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_request_type(request_type_t* requesttype, uint8_t iei,
+                        uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, REQUEST_TYPE_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, REQUEST_TYPE_MINIMUM_LENGTH,
+                                       len);
 
   if (iei > 0) {
     CHECK_IEI_DECODER((*buffer & 0xf0), iei);
@@ -39,9 +39,9 @@ int decode_request_type(
 }
 
 //------------------------------------------------------------------------------
-int decode_u8_request_type(
-    request_type_t* requesttype, uint8_t iei, uint8_t value, uint32_t len) {
-  int decoded     = 0;
+int decode_u8_request_type(request_type_t* requesttype, uint8_t iei,
+                           uint8_t value, uint32_t len) {
+  int decoded = 0;
   uint8_t* buffer = &value;
 
   *requesttype = *buffer & 0x7;
@@ -50,15 +50,15 @@ int decode_u8_request_type(
 }
 
 //------------------------------------------------------------------------------
-int encode_request_type(
-    request_type_t* requesttype, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_request_type(request_type_t* requesttype, uint8_t iei,
+                        uint8_t* buffer, uint32_t len) {
   uint8_t encoded = 0;
 
   /*
    * Checking length and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, REQUEST_TYPE_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, REQUEST_TYPE_MINIMUM_LENGTH,
+                                       len);
   *(buffer + encoded) = 0x00 | (iei & 0xf0) | (*requesttype & 0x7);
   encoded++;
   return encoded;
@@ -69,7 +69,7 @@ uint8_t encode_u8_request_type(request_type_t* requesttype) {
   uint8_t bufferReturn;
   uint8_t* buffer = &bufferReturn;
   uint8_t encoded = 0;
-  uint8_t iei     = 0;
+  uint8_t iei = 0;
 
   *(buffer + encoded) = 0x00 | (iei & 0xf0) | (*requesttype & 0x7);
   encoded++;

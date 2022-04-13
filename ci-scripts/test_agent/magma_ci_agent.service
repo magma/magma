@@ -1,0 +1,15 @@
+[Unit]
+Description=Magma CI Agent
+
+[Service]
+Type=simple
+WorkingDirectory=<path to magma /magma/ci-scripts/test_agent>
+ExecStart=/usr/bin/python3 main.py
+Restart=on-failure
+RestartSec=1
+User=magma
+Group=magma
+
+
+[Install]
+WantedBy=multi-user.target

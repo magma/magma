@@ -23,10 +23,9 @@
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/QualityOfService.h"
 
-int decode_quality_of_service(
-    QualityOfService* qualityofservice, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
-  int decoded   = 0;
+int decode_quality_of_service(QualityOfService* qualityofservice, uint8_t iei,
+                              uint8_t* buffer, uint32_t len) {
+  int decoded = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -37,16 +36,16 @@ int decode_quality_of_service(
   ielen = *(buffer + decoded);
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
-  qualityofservice->delayclass       = (*(buffer + decoded) >> 3) & 0x7;
+  qualityofservice->delayclass = (*(buffer + decoded) >> 3) & 0x7;
   qualityofservice->reliabilityclass = *(buffer + decoded) & 0x7;
   decoded++;
-  qualityofservice->peakthroughput  = (*(buffer + decoded) >> 4) & 0xf;
+  qualityofservice->peakthroughput = (*(buffer + decoded) >> 4) & 0xf;
   qualityofservice->precedenceclass = *(buffer + decoded) & 0x7;
   decoded++;
   qualityofservice->meanthroughput = *(buffer + decoded) & 0x1f;
   decoded++;
-  qualityofservice->trafficclass           = (*(buffer + decoded) >> 5) & 0x7;
-  qualityofservice->deliveryorder          = (*(buffer + decoded) >> 3) & 0x3;
+  qualityofservice->trafficclass = (*(buffer + decoded) >> 5) & 0x7;
+  qualityofservice->deliveryorder = (*(buffer + decoded) >> 3) & 0x3;
   qualityofservice->deliveryoferroneoussdu = *(buffer + decoded) & 0x7;
   decoded++;
   qualityofservice->maximumsdusize = *(buffer + decoded);
@@ -55,10 +54,10 @@ int decode_quality_of_service(
   decoded++;
   qualityofservice->maximumbitratedownlink = *(buffer + decoded);
   decoded++;
-  qualityofservice->residualber   = (*(buffer + decoded) >> 4) & 0xf;
+  qualityofservice->residualber = (*(buffer + decoded) >> 4) & 0xf;
   qualityofservice->sduratioerror = *(buffer + decoded) & 0xf;
   decoded++;
-  qualityofservice->transferdelay           = (*(buffer + decoded) >> 2) & 0x3f;
+  qualityofservice->transferdelay = (*(buffer + decoded) >> 2) & 0x3f;
   qualityofservice->traffichandlingpriority = *(buffer + decoded) & 0x3;
   decoded++;
   qualityofservice->guaranteedbitrateuplink = *(buffer + decoded);
@@ -74,17 +73,16 @@ int decode_quality_of_service(
   return decoded;
 }
 
-int encode_quality_of_service(
-    QualityOfService* qualityofservice, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int encode_quality_of_service(QualityOfService* qualityofservice, uint8_t iei,
+                              uint8_t* buffer, uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, QUALITY_OF_SERVICE_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
+                                       QUALITY_OF_SERVICE_MINIMUM_LENGTH, len);
 #if NAS_DEBUG
   dump_quality_of_service_xml(qualityofservice, iei);
 #endif
@@ -132,8 +130,8 @@ int encode_quality_of_service(
   return encoded;
 }
 
-void dump_quality_of_service_xml(
-    QualityOfService* qualityofservice, uint8_t iei) {
+void dump_quality_of_service_xml(QualityOfService* qualityofservice,
+                                 uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Quality Of Service>\n");
 
   if (iei > 0)
@@ -142,50 +140,39 @@ void dump_quality_of_service_xml(
      */
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
-  OAILOG_DEBUG(
-      LOG_NAS, "    <Delay class>%u</Delay class>\n",
-      qualityofservice->delayclass);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <Reliability class>%u</Reliability class>\n",
-      qualityofservice->reliabilityclass);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <Peak throughput>%u</Peak throughput>\n",
-      qualityofservice->peakthroughput);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <Precedence class>%u</Precedence class>\n",
-      qualityofservice->precedenceclass);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <Mean throughput>%u</Mean throughput>\n",
-      qualityofservice->meanthroughput);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <Traffic class>%u</Traffic class>\n",
-      qualityofservice->trafficclass);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <Delivery order>%u</Delivery order>\n",
-      qualityofservice->deliveryorder);
+  OAILOG_DEBUG(LOG_NAS, "    <Delay class>%u</Delay class>\n",
+               qualityofservice->delayclass);
+  OAILOG_DEBUG(LOG_NAS, "    <Reliability class>%u</Reliability class>\n",
+               qualityofservice->reliabilityclass);
+  OAILOG_DEBUG(LOG_NAS, "    <Peak throughput>%u</Peak throughput>\n",
+               qualityofservice->peakthroughput);
+  OAILOG_DEBUG(LOG_NAS, "    <Precedence class>%u</Precedence class>\n",
+               qualityofservice->precedenceclass);
+  OAILOG_DEBUG(LOG_NAS, "    <Mean throughput>%u</Mean throughput>\n",
+               qualityofservice->meanthroughput);
+  OAILOG_DEBUG(LOG_NAS, "    <Traffic class>%u</Traffic class>\n",
+               qualityofservice->trafficclass);
+  OAILOG_DEBUG(LOG_NAS, "    <Delivery order>%u</Delivery order>\n",
+               qualityofservice->deliveryorder);
   OAILOG_DEBUG(
       LOG_NAS,
       "    <Delivery of erroneous SDU>%u</Delivery of erroneous SDU>\n",
       qualityofservice->deliveryoferroneoussdu);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <Maximum SDU size>%u</Maximum SDU size>\n",
-      qualityofservice->maximumsdusize);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <Maximum bit rate uplink>%u</Maximum bit rate uplink>\n",
-      qualityofservice->maximumbitrateuplink);
+  OAILOG_DEBUG(LOG_NAS, "    <Maximum SDU size>%u</Maximum SDU size>\n",
+               qualityofservice->maximumsdusize);
+  OAILOG_DEBUG(LOG_NAS,
+               "    <Maximum bit rate uplink>%u</Maximum bit rate uplink>\n",
+               qualityofservice->maximumbitrateuplink);
   OAILOG_DEBUG(
       LOG_NAS,
       "    <Maximum bit rate downlink>%u</Maximum bit rate downlink>\n",
       qualityofservice->maximumbitratedownlink);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <Residual BER>%u</Residual BER>\n",
-      qualityofservice->residualber);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <SDU ratio error>%u</SDU ratio error>\n",
-      qualityofservice->sduratioerror);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <Transfer delay>%u</Transfer delay>\n",
-      qualityofservice->transferdelay);
+  OAILOG_DEBUG(LOG_NAS, "    <Residual BER>%u</Residual BER>\n",
+               qualityofservice->residualber);
+  OAILOG_DEBUG(LOG_NAS, "    <SDU ratio error>%u</SDU ratio error>\n",
+               qualityofservice->sduratioerror);
+  OAILOG_DEBUG(LOG_NAS, "    <Transfer delay>%u</Transfer delay>\n",
+               qualityofservice->transferdelay);
   OAILOG_DEBUG(
       LOG_NAS,
       "    <Traffic handling priority>%u</Traffic handling priority>\n",
@@ -198,9 +185,8 @@ void dump_quality_of_service_xml(
       LOG_NAS,
       "    <Guaranteed bit rate downlink>%u</Guaranteed bit rate downlink>\n",
       qualityofservice->guaranteedbitratedownlink);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <Signaling indication>%u</Signaling indication>\n",
-      qualityofservice->signalingindication);
+  OAILOG_DEBUG(LOG_NAS, "    <Signaling indication>%u</Signaling indication>\n",
+               qualityofservice->signalingindication);
   OAILOG_DEBUG(
       LOG_NAS,
       "    <Source statistics descriptor>%u</Source statistics descriptor>\n",

@@ -499,10 +499,4 @@ TEST_F(SessionManagerHandlerTest, test_end_session) {
   session_map = session_store->read_sessions({IMSI1});
   EXPECT_EQ(session_map[IMSI1].size(), 0);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

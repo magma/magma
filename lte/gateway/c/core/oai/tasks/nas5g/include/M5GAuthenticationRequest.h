@@ -39,10 +39,10 @@ class AuthenticationRequestMsg {
 
   AuthenticationRequestMsg();
   ~AuthenticationRequestMsg();
-  int DecodeAuthenticationRequestMsg(
-      AuthenticationRequestMsg* auth_request, uint8_t* buffer, uint32_t len);
-  int EncodeAuthenticationRequestMsg(
-      AuthenticationRequestMsg* auth_request, uint8_t* buffer, uint32_t len);
+  int DecodeAuthenticationRequestMsg(AuthenticationRequestMsg* auth_request,
+                                     uint8_t* buffer, uint32_t len);
+  int EncodeAuthenticationRequestMsg(AuthenticationRequestMsg* auth_request,
+                                     uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 
