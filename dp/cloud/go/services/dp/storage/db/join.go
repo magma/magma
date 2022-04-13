@@ -66,8 +66,8 @@ func (c *columnNamesCollector) preVisit(q *Query) {
 	table := metadata.Table
 	c.order = append(c.order, table)
 
-	fields := metadata.CreateObject().Fields()
-	cols := getColumns(applyMask(fields, q.arg.mask))
+	fields := metadata.Properties
+	cols := getColumns(applyMaskToMetadata(fields, q.arg.mask))
 	c.columns[table] = cols
 }
 
@@ -93,7 +93,7 @@ func (f *fieldPointersCollector) preVisit(q *Query) {
 	fields := model.Fields()
 	f.models = append(f.models, model)
 	for _, col := range f.columns[metadata.Table] {
-		f.pointers = append(f.pointers, fields[col].Item.ptr())
+		f.pointers = append(f.pointers, fields[col].ptr())
 	}
 }
 
