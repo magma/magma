@@ -27,25 +27,23 @@
 
 # approvers-cwf
 /cwf/ @magma/approvers-cwf
+/openwrt/ @magma/approvers-cwf
 
-# approvers-openwrt
-/openwrt/ @magma/approvers-openwrt
-
-# approvers-agw / approvers-agw-python / approvers-agw-c
+# approvers-agw
 /lte/gateway @magma/approvers-agw
 /lte/protos @magma/approvers-agw
-/lte/gateway/python @magma/approvers-agw-python
-/lte/gateway/c @magma/approvers-agw-c
+/lte/gateway/python @magma/approvers-agw
+/lte/gateway/c @magma/approvers-agw
+/show-tech/ @magma/approvers-agw
 
 # agw code related to orc8r
-/orc8r/gateway/c/ @magma/approvers-agw-c
-/orc8r/gateway/python @magma/approvers-agw-python @magma/approvers-orc8r
+/orc8r/gateway/c/ @magma/approvers-agw
+/orc8r/gateway/python @magma/approvers-agw @magma/approvers-orc8r
 
 # approvers-agw-<subsection>
 /lte/gateway/c/session_manager @magma/approvers-agw-sessiond
 /lte/gateway/c/core/oai @magma/approvers-agw-mme
 /lte/gateway/c/sctpd @magma/approvers-agw-mme
-/lte/gateway/c/connection_tracker @koolzz @magma/approvers-agw-c
 /lte/gateway/python/integ_tests @magma/approvers-agw-integtests
 /lte/gateway/docker @magma/approvers-agw-containers @magma/approvers-ci
 
@@ -60,9 +58,6 @@
 /src/go/ @markjen
 
 /dp/ @magma/approvers-domain-proxy
-
-# approvers-showtech
-/show-tech/ @magma/approvers-showtech
 
 /docs/ @magma/approvers-docs
 /docs/readmes/proposals @electronjoe
