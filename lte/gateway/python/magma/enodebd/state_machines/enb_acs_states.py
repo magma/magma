@@ -237,12 +237,16 @@ class FirmwareUpgradeDownloadState(EnodebAcsState):
         target_software_version_url = fw_upgrade_config.get('url', "")
         username = fw_upgrade_config.get('username', "")
         password = fw_upgrade_config.get('password', "")
+        md5 = fw_upgrade_config.get('md5', None)
+        rawmode = fw_upgrade_config.get('rawmode', None)
 
         download_params_dict = {
             "target_software_version": target_software_version,
             "target_software_version_url": target_software_version_url,
             "username": username,
             "password": password,
+            "md5": md5,
+            "rawmode": rawmode,
         }
 
         return download_params_dict
@@ -264,6 +268,12 @@ class FirmwareUpgradeDownloadState(EnodebAcsState):
         request.DelaySeconds = 0
         request.SuccessURL = ""
         request.FailureURL = ""
+
+        # Baicells specific settings
+        if download_params_dict['md5'] is not None:
+            request.Md5 = download_params_dict['md5']
+        if download_params_dict['rawmode'] is not None:
+            request.RawMode = bool(download_params_dict['rawmode'])
         return request
 
 
