@@ -116,6 +116,9 @@ int send_pdu_session_response_itti(pdn_type_value_t type);
 void create_pdu_resource_setup_response_itti(
     itti_ngap_pdusessionresource_setup_rsp_t* response, amf_ue_ngap_id_t ue_id);
 
+void create_pdu_session_modify_request_itti(
+    itti_n11_create_pdu_session_response_t* response);
+
 int send_pdu_resource_setup_response(amf_ue_ngap_id_t ue_id);
 
 void create_pdu_notification_response_itti(
@@ -154,4 +157,15 @@ bool check_ue_context_state(amf_ue_ngap_id_t ue_id,
                             m5gcm_state_t expected_cm_state,
                             n2cause_e expected_ue_context_rel_cause);
 
+void create_pdu_resource_modify_response_itti(
+    itti_ngap_pdu_session_resource_modify_response_t* response,
+    amf_ue_ngap_id_t ue_id);
+
+int send_uplink_nas_pdu_session_modification_complete(
+    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
+    const uint8_t* nas_msg, uint8_t nas_msg_length);
+
+int send_pdu_resource_modify_response(amf_ue_ngap_id_t ue_id);
+
+int send_pdu_session_modification_itti();
 }  // namespace magma5g
