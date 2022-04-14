@@ -20,9 +20,11 @@
     { include: ["<folly/dynamic-inl.h>", "private", "<folly/dynamic.h>", "public"] },
     { include: ["<folly/lang/Assume-inl.h>", "private", "<folly/lang/Assume.h>", "public"] },
 
-    # Google test / mock 
+    # Google test / mock / flags / log
     { include: ["@<gtest/.*>", "private", "<gtest/gtest.h>", "public"] },
     { include: ["@<gmock/.*>", "private", "<gmock/gmock.h>", "public"] },
+    { include: ["@\"gflags/.*\"", "private", "<gflags/gflags.h>", "public"] },
+    { include: ["@\"glog/.*\"", "private", "<glog/logging.h>", "public"] },
 
     # magma
     { include: ["@\"lte/gateway/c/core/oai/include/.*.messages_types.h\"", "private", "\"lte/gateway/c/core/oai/include/messages_types.h\"", "public"] },

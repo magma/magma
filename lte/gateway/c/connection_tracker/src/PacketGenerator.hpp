@@ -12,7 +12,10 @@
  */
 #pragma once
 
+#include <stdint.h>
+#include <tins/network_interface.h>
 #include <tins/tins.h>
+#include <string>
 
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 

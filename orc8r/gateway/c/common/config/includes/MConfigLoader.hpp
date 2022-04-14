@@ -13,8 +13,9 @@
 #pragma once
 
 #include <google/protobuf/message.h>  // for Message
-#include <istream>                    // for istream
-#include <string>                     // for string
+#include <stdint.h>
+#include <istream>  // for istream
+#include <string>   // for string
 
 namespace google {
 namespace protobuf {

@@ -11,18 +11,23 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <glog/logging.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
-
-#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
+#include <orc8r/protos/common.pb.h>
+#include <stdint.h>
+#include <yaml-cpp/yaml.h>
+#include <memory>
+#include <ostream>
+#include <string>
 
 #include "lte/gateway/c/connection_tracker/src/EventTracker.hpp"
 #include "lte/gateway/c/connection_tracker/src/PacketGenerator.hpp"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 #include "orc8r/gateway/c/common/logging/magma_logging_init.h"
 #include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.hpp"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
 
 #define CONNECTION_SERVICE "connectiond"
 #define CONNECTIOND_VERSION "1.0"

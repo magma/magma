@@ -13,6 +13,7 @@
 #pragma once
 
 #include <lte/protos/mconfig/mconfigs.pb.h>
+#include <stdint.h>
 
 namespace magma {
 namespace lte {
