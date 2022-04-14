@@ -23,10 +23,10 @@
 #include "Consts.h"
 #include "LocalEnforcer.h"
 #include "magma_logging.h"
-#include "includes/MagmaService.h"
+#include "includes/MagmaService.hpp"
 #include "Matchers.h"
 #include "ProtobufCreators.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.hpp"
 #include "SessiondMocks.h"
 #include "SessionStore.h"
 

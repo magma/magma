@@ -62,8 +62,8 @@
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/nas/securityDef.h"
-#include "lte/gateway/c/core/oai/include/s1ap_state.h"
-#include "lte/gateway/c/core/oai/include/service303.h"
+#include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
+#include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
@@ -74,7 +74,7 @@
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 #define EXT_UE_AMBR_UL 10000000000
 #define EXT_UE_AMBR_DL 10000000000

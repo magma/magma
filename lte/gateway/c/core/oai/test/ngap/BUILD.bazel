@@ -35,7 +35,7 @@ cc_library(
     ],
     hdrs = [
         "mock_utils.h",
-        "util_ngap_pkt.h",
+        "util_ngap_pkt.hpp",
     ],
     deps = [
         "//lte/gateway/c/core",

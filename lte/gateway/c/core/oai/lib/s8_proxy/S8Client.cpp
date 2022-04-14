@@ -15,8 +15,8 @@ limitations under the License.
 #include <thread>  // std::thread
 #include <utility>
 
-#include "lte/gateway/c/core/oai/lib/s8_proxy/S8Client.h"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "lte/gateway/c/core/oai/lib/s8_proxy/S8Client.hpp"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 #include "feg/protos/s8_proxy.pb.h"
 #include "orc8r/protos/common.pb.h"
 

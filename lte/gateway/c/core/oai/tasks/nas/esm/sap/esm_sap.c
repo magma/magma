@@ -40,7 +40,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sap.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_send.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

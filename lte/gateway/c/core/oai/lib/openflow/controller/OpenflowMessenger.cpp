@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowMessenger.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowMessenger.hpp"
 
 namespace openflow {
 

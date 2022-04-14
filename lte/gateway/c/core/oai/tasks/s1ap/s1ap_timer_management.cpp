@@ -22,7 +22,7 @@ extern "C" {
 }
 
 // --C++ includes
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer_management.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer_management.hpp"
 // ---------------------------------------------------------------
 // --Other includes
 // -------------------------------------------------------------

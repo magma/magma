@@ -50,7 +50,7 @@
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 static void start_stats_timer(void);
 static int handle_stats_timer(zloop_t* loop, int id, void* arg);

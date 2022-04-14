@@ -18,7 +18,7 @@ list(APPEND MME_BENCHMARK_SRCS "")
 if (MME_BENCHMARK)
   list(APPEND MME_BENCHMARK_SRCS
         "experimental/mme_app_serialization.cpp"
-        "experimental/mme_app_serialization.h"
+        "experimental/mme_app_serialization.hpp"
       )
 endif (MME_BENCHMARK)
 
