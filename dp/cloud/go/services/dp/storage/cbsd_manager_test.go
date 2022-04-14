@@ -108,7 +108,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 		cbsd.NetworkId = db.MakeString(someNetwork)
 		cbsd.GrantAttempts = db.MakeInt(0)
 		cbsd.IsDeleted = db.MakeBool(false)
-		cbsd.IsUpdated = db.MakeBool(false)
+		cbsd.ShouldDeregister = db.MakeBool(false)
 		expected := []db.Model{
 			cbsd,
 			&storage.DBCbsdState{Name: db.MakeString("unregistered")},
@@ -191,7 +191,7 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 			Fetch()
 		s.Require().NoError(err)
 		cbsd.NetworkId = db.MakeString(someNetwork)
-		cbsd.IsUpdated = db.MakeBool(true)
+		cbsd.ShouldDeregister = db.MakeBool(true)
 		expected := []db.Model{cbsd}
 		s.Assert().Equal(expected, actual)
 	})
@@ -493,7 +493,7 @@ func getCbsd(networkId string, stateId int64) *storage.DBCbsd {
 	base.NetworkId = db.MakeString(networkId)
 	base.StateId = db.MakeInt(stateId)
 	base.CbsdId = db.MakeString("some_cbsd_id")
-	base.IsUpdated = db.MakeBool(false)
+	base.ShouldDeregister = db.MakeBool(false)
 	base.IsDeleted = db.MakeBool(false)
 	base.GrantAttempts = db.MakeInt(0)
 	return base

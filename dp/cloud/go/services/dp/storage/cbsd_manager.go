@@ -189,8 +189,8 @@ func (c *cbsdManagerInTransaction) updateCbsd(networkId string, id int64, data *
 	if err := c.checkIfCbsdExists(networkId, id); err != nil {
 		return err
 	}
-	data.IsUpdated = db.MakeBool(true)
-	columns := append(getCbsdWriteFields(), "is_updated")
+	data.ShouldDeregister = db.MakeBool(true)
+	columns := append(getCbsdWriteFields(), "should_deregister")
 	return db.NewQuery().
 		WithBuilder(c.builder).
 		From(data).
@@ -245,7 +245,7 @@ func buildDetailedCbsdQuery(builder sq.StatementBuilderType) *db.Query {
 		WithBuilder(builder).
 		From(&DBCbsd{}).
 		Select(db.NewExcludeMask("network_id", "state_id",
-			"is_deleted", "is_updated", "grant_attempts")).
+			"is_deleted", "should_deregister", "grant_attempts")).
 		Join(db.NewQuery().
 			From(&DBCbsdState{}).
 			Select(db.NewIncludeMask("name"))).

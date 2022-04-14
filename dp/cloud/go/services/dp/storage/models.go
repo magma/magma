@@ -203,7 +203,7 @@ type DBCbsd struct {
 	AntennaGain             sql.NullFloat64
 	NumberOfPorts           sql.NullInt64
 	IsDeleted               sql.NullBool
-	IsUpdated               sql.NullBool
+	ShouldDeregister        sql.NullBool
 }
 
 func (c *DBCbsd) Fields() db.FieldMap {
@@ -286,8 +286,8 @@ func (c *DBCbsd) Fields() db.FieldMap {
 			HasDefault:   true,
 			DefaultValue: false,
 		},
-		"is_updated": &db.Field{
-			Item:         db.BoolType{X: &c.IsUpdated},
+		"should_deregister": &db.Field{
+			Item:         db.BoolType{X: &c.ShouldDeregister},
 			SqlType:      sqorc.ColumnTypeBool,
 			HasDefault:   true,
 			DefaultValue: false,
