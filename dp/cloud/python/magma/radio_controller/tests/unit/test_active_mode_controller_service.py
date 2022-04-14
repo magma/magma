@@ -145,7 +145,7 @@ class ActiveModeControllerClientServerTestCase(ActiveModeControllerTestCase):
             AcknowledgeCbsdUpdateRequest(id=SOME_ID),
         )
 
-        self.assertFalse(cbsd.is_updated)
+        self.assertFalse(cbsd.should_deregister)
 
     def test_acknowledge_non_existent_cbsd_update(self):
         with self.assertRaises(grpc.RpcError) as err:

@@ -113,7 +113,7 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
         with self.session_manager.session_scope() as session:
             updated = session.query(DBCbsd).filter(
                 DBCbsd.id == db_id,
-            ).update({'is_updated': False})
+            ).update({'should_deregister': False})
             session.commit()
             if not updated:
                 context.set_code(grpc.StatusCode.NOT_FOUND)
@@ -233,7 +233,7 @@ def _build_preferences(cbsd: DBCbsd) -> FrequencyPreferences:
 def _build_db_data(cbsd: DBCbsd) -> DatabaseCbsd:
     return DatabaseCbsd(
         id=cbsd.id,
-        is_updated=cbsd.is_updated,
+        should_deregister=cbsd.should_deregister,
         is_deleted=cbsd.is_deleted,
     )
 
