@@ -144,14 +144,14 @@ class DomainProxyOrc8rTestCase(DBTestCase):
     def test_fetch_cbsds_filtered_by_serial_number(self):
         builder = CbsdAPIDataBuilder()
 
-        cbsd1_payload = builder.with_serial_number("foo").build_post_data()
-        cbsd2_payload = builder.with_serial_number("bar").build_post_data()
+        cbsd1_payload = builder.with_serial_number("foo").build_unregistered_data()
+        cbsd2_payload = builder.with_serial_number("bar").build_unregistered_data()
         self.when_cbsd_is_created(cbsd1_payload)
         self.when_cbsd_is_created(cbsd2_payload)
 
         cbsds = self.when_cbsds_are_fetched(2, 1, {"serial_number": "foo"})
 
-        self.then_cbsd_is(cbsds[0], builder.with_serial_number("foo").build_post_data())
+        self.then_cbsd_is(cbsds[0], builder.with_serial_number("foo").build_unregistered_data())
 
     def test_fetching_logs_with_custom_filters(self):
         self.given_cbsd_provisioned(CbsdAPIDataBuilder())
