@@ -50,7 +50,7 @@
     GOPATH: "{{ gopath }}"
     GOBIN: "{{ gobin }}"
     PATH: "{{ ansible_env.PATH }}:{{ go_bin_path }}"
-  command: go get -u github.com/golang/protobuf/protoc-gen-go
+  command: go install github.com/golang/protobuf/protoc-gen-go@v1.5.2
   when: full_provision
 
 - name: Install golint
@@ -60,7 +60,7 @@
     GOPATH: "{{ gopath }}"
     GOBIN: "{{ gobin }}"
     PATH: "{{ ansible_env.PATH }}:{{ go_bin_path }}"
-  command: go get -u golang.org/x/lint/golint
+  command: go install golang.org/x/lint/golint@6edffad5e616
   when: full_provision
 
 - name: Install gotestsum
@@ -70,7 +70,7 @@
     GOPATH: "{{ gopath }}"
     GOBIN: "{{ gobin }}"
     PATH: "{{ ansible_env.PATH }}:{{ go_bin_path }}"
-  command: go get -u gotest.tools/gotestsum
+  command: go install gotest.tools/gotestsum@v1.8.0
   when: full_provision
 
 - name: Install buildifier
@@ -80,5 +80,5 @@
     GOPATH: "{{ gopath }}"
     GOBIN: "{{ gobin }}"
     PATH: "{{ ansible_env.PATH }}:{{ go_bin_path }}"
-  command: go get -u github.com/bazelbuild/buildtools/buildifier
+  command: go install github.com/bazelbuild/buildtools/buildifier@c802c3b06ba6
   when: full_provision
