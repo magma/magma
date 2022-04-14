@@ -109,8 +109,9 @@ class MagmaController(app_manager.RyuApp):
             if ev.enter:
                 self.initialize_on_connect(datapath)
                 # set a barrier to ensure things are applied
-                if self.APP_NAME in self._app_futures:
-                    self._app_futures[self.APP_NAME].set_result(self)
+                app_future = self._app_futures.get(self.APP_NAME)
+                if app_future and not app_future.done():
+                    app_future.set_result(self)
             else:
                 self.cleanup_on_disconnect(datapath)
         except MagmaOFError as e:

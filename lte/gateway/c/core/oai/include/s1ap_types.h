@@ -49,12 +49,6 @@ enum s1_timer_class_s {
   S1AP_UE_TIMER
 };
 
-/* S1AP Timer argument */
-typedef struct s1ap_timer_arg_s {
-  enum s1_timer_class_s timer_class;
-  uint32_t instance_id;
-} s1ap_timer_arg_t;
-
 /* Timer structure */
 struct s1ap_timer_t {
   long id;   /* The timer identifier                 */

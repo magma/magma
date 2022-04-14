@@ -39,7 +39,7 @@ var (
 )
 
 func init() {
-	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+	//_ = flag.Set("logtostderr", "true") // uncomment to view logs during test
 }
 
 func getNProbeBlobstore(t *testing.T) storage.NProbeStorage {

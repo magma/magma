@@ -13,7 +13,7 @@
 #include <sstream>
 #include <cstdint>
 #include <cstring>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainerType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainerType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
@@ -28,8 +28,6 @@ int PayloadContainerTypeMsg::DecodePayloadContainerTypeMsg(
 
   payload_container_type->type_val = (*buffer & 0x0f);
   decoded++;
-  MLOG(MDEBUG) << "DecodePayloadContainerTypeMsg__: type_val = " << std::hex
-               << int(payload_container_type->type_val) << std::endl;
 
   return (decoded);
 };
@@ -41,8 +39,6 @@ int PayloadContainerTypeMsg::EncodePayloadContainerTypeMsg(
   int encoded = 0;
 
   *buffer = payload_container_type->type_val & 0x0f;
-  MLOG(MDEBUG) << "DecodePayloadContainerTypeMsg__: type_val = " << std::hex
-               << int(*buffer) << std::endl;
   encoded++;
 
   return (encoded);

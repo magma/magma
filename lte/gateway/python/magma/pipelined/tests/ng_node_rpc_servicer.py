@@ -28,17 +28,17 @@ from ryu.lib import hub
 
 class SMFAssociationServerTest(session_manager_pb2_grpc.SetInterfaceForUserPlaneServicer):
 
-     def __init__(self, loop):
-         self._loop = loop
+    def __init__(self, loop):
+        self._loop = loop
 
-     def add_to_server(self, server):
+    def add_to_server(self, server):
         """
         Add the servicer to a gRPC server
         """
         session_manager_pb2_grpc.add_SetInterfaceForUserPlaneServicer_to_server(self, server)
 
-     def SetUPFNodeState(self, request, context):
-         return (Void())
+    def SetUPFNodeState(self, request, context):
+        return (Void())
 
 
 class RpcTests(unittest.TestCase):
@@ -75,11 +75,11 @@ class RpcTests(unittest.TestCase):
         sessiod_interface_stub = SetInterfaceForUserPlaneStub(channel)
 
         config_mock = {
-                   'enodeb_iface': 'eth1',
-                   'clean_restart': True,
-                   'enable5g_features': True,
-                   'upf_node_identifier': '192.168.220.1',
-                   'bridge_name': self.BRIDGE,
+            'enodeb_iface': 'eth1',
+            'clean_restart': True,
+            'enable5g_features': True,
+            'upf_node_identifier': '192.168.220.1',
+            'bridge_name': self.BRIDGE,
         }
 
         self._ng_node_mgr = NodeStateManager(loop_mock, sessiod_interface_stub, config_mock)

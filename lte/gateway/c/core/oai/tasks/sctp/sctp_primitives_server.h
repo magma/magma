@@ -25,9 +25,6 @@
  */
 
 #include <stdint.h>
-#if !defined(HAVE_LIBSCTP)
-#error "You must install libsctp-dev"
-#endif
 
 #ifndef FILE_SCTP_PRIMITIVES_SERVER_SEEN
 #define FILE_SCTP_PRIMITIVES_SERVER_SEEN
@@ -38,7 +35,7 @@
 #include <netinet/sctp.h>
 
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 
 /** \brief SCTP Init function. Initialize SCTP layer
  \param mme_config The global MME configuration structure

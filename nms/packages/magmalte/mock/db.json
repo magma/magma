@@ -1789,7 +1789,7 @@
     }
   },
   "subscribers": {
-    "subscribers": 
+    "subscribers":
       {
         "IMSI001010002220018": {
           "name": "IMSI001010002220018",
@@ -1924,14 +1924,14 @@
                     "action": "PERMIT",
                     "match":{
                       "direction":"UPLINK",
-                      "ip_proto": "IPPROTO_IP" 
+                      "ip_proto": "IPPROTO_IP"
                     }
                   },
                   {
                     "action": "PERMIT",
                     "match": {
                       "direction":"DOWNLINK",
-                      "ip_proto": "IPPROTO_IP" 
+                      "ip_proto": "IPPROTO_IP"
                     }
                   }
                 ],
@@ -1977,14 +1977,14 @@
                     "action": "PERMIT",
                     "match":{
                       "direction":"UPLINK",
-                      "ip_proto": "IPPROTO_IP" 
+                      "ip_proto": "IPPROTO_IP"
                     }
                   },
                   {
                     "action": "PERMIT",
                     "match": {
                       "direction":"DOWNLINK",
-                      "ip_proto": "IPPROTO_IP" 
+                      "ip_proto": "IPPROTO_IP"
                     }
                   }
                 ],
@@ -2030,14 +2030,14 @@
                     "action": "PERMIT",
                     "match":{
                       "direction":"UPLINK",
-                      "ip_proto": "IPPROTO_IP" 
+                      "ip_proto": "IPPROTO_IP"
                     }
                   },
                   {
                     "action": "PERMIT",
                     "match": {
                       "direction":"DOWNLINK",
-                      "ip_proto": "IPPROTO_IP" 
+                      "ip_proto": "IPPROTO_IP"
                     }
                   }
                 ],
@@ -2083,14 +2083,14 @@
                     "action": "PERMIT",
                     "match":{
                       "direction":"UPLINK",
-                      "ip_proto": "IPPROTO_IP" 
+                      "ip_proto": "IPPROTO_IP"
                     }
                   },
                   {
                     "action": "PERMIT",
                     "match": {
                       "direction":"DOWNLINK",
-                      "ip_proto": "IPPROTO_IP" 
+                      "ip_proto": "IPPROTO_IP"
                     }
                   }
                 ],
@@ -2135,7 +2135,7 @@
       "generatorURL": "http://orc8r-prometheus-77f497dcc8-wpf7x:9090/graph?g0.expr=vector%280%29&g0.tab=1",
       "labels": {
         "alertname": "time test",
-        "monitor": "master",
+        "monitor": "host",
         "networkID": "mpk_dogfooding",
         "severity": "INFO"
       }

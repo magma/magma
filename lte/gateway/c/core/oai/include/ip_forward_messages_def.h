@@ -27,24 +27,17 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
-MESSAGE_DEF(
-    SGI_CREATE_ENDPOINT_REQUEST, itti_sgi_create_end_point_request_t,
-    sgi_create_end_point_request)
-MESSAGE_DEF(
-    SGI_CREATE_ENDPOINT_RESPONSE, itti_sgi_create_end_point_response_t,
-    sgi_create_end_point_response)
-MESSAGE_DEF(
-    SGI_UPDATE_ENDPOINT_REQUEST, itti_sgi_update_end_point_request_t,
-    sgi_update_end_point_request)
-MESSAGE_DEF(
-    SGI_UPDATE_ENDPOINT_RESPONSE, itti_sgi_update_end_point_response_t,
-    sgi_update_end_point_response)
-MESSAGE_DEF(
-    SGI_DELETE_ENDPOINT_REQUEST, itti_sgi_delete_end_point_request_t,
-    sgi_delete_end_point_request)
-MESSAGE_DEF(
-    SGI_DELETE_ENDPOINT_RESPONSE, itti_sgi_delete_end_point_response_t,
-    sgi_delete_end_point_response)
-MESSAGE_DEF(
-    IP_ALLOCATION_RESPONSE, itti_ip_allocation_response_t,
-    ip_allocation_response)
+MESSAGE_DEF(SGI_CREATE_ENDPOINT_REQUEST, itti_sgi_create_end_point_request_t,
+            sgi_create_end_point_request)
+MESSAGE_DEF(SGI_CREATE_ENDPOINT_RESPONSE, itti_sgi_create_end_point_response_t,
+            sgi_create_end_point_response)
+MESSAGE_DEF(SGI_UPDATE_ENDPOINT_REQUEST, itti_sgi_update_end_point_request_t,
+            sgi_update_end_point_request)
+MESSAGE_DEF(SGI_UPDATE_ENDPOINT_RESPONSE, itti_sgi_update_end_point_response_t,
+            sgi_update_end_point_response)
+MESSAGE_DEF(SGI_DELETE_ENDPOINT_REQUEST, itti_sgi_delete_end_point_request_t,
+            sgi_delete_end_point_request)
+MESSAGE_DEF(SGI_DELETE_ENDPOINT_RESPONSE, itti_sgi_delete_end_point_response_t,
+            sgi_delete_end_point_response)
+MESSAGE_DEF(IP_ALLOCATION_RESPONSE, itti_ip_allocation_response_t,
+            ip_allocation_response)

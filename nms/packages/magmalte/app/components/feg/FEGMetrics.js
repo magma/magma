@@ -14,7 +14,7 @@
  * @format
  */
 
-import AppContext from '@fbcnms/ui/context/AppContext';
+import AppContext from '../../../fbc_js_core/ui/context/AppContext';
 import Grid from '@material-ui/core/Grid';
 import LteMetrics from '../lte/LteMetrics';
 import Paper from '@material-ui/core/Paper';
@@ -65,7 +65,7 @@ export default function () {
           <Grid
             container
             alignItems="center"
-            justify="center"
+            justifyContent="center"
             className={classes.emptyTable}>
             <Grid item xs={12} className={classes.emptyTableContent}>
               <Text variant="body2">

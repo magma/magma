@@ -49,6 +49,20 @@ func NewHealthServer(factory blobstore.StoreFactory) (*HealthServer, error) {
 	}, err
 }
 
+type CloudHealthServer struct {
+	store storage.HealthBlobstore
+}
+
+func NewCloudHealthServer(factory blobstore.StoreFactory) (*CloudHealthServer, error) {
+	if factory == nil {
+		return nil, fmt.Errorf("Storage factory is nil")
+	}
+	store, err := storage.NewHealthBlobstore(factory)
+	return &CloudHealthServer{
+		store,
+	}, err
+}
+
 type healthConfig struct {
 	services              []string
 	cpuUtilThreshold      float32
@@ -58,7 +72,7 @@ type healthConfig struct {
 
 // GetHealth fetches the health stats for a given gateway
 // represented by a (networkID, logicalId)
-func (srv *HealthServer) GetHealth(ctx context.Context, req *fegprotos.GatewayStatusRequest) (*fegprotos.HealthStats, error) {
+func (srv *CloudHealthServer) GetHealth(ctx context.Context, req *fegprotos.GatewayStatusRequest) (*fegprotos.HealthStats, error) {
 	if req == nil {
 		return nil, fmt.Errorf("Nil GatewayHealthRequest")
 	}
@@ -154,7 +168,7 @@ func (srv *HealthServer) UpdateHealth(ctx context.Context, req *fegprotos.Health
 
 // GetClusterState takes a ClusterStateRequest containing a networkID and clusterID
 // and returns the ClusterState or an error
-func (srv *HealthServer) GetClusterState(ctx context.Context, req *fegprotos.ClusterStateRequest) (*fegprotos.ClusterState, error) {
+func (srv *CloudHealthServer) GetClusterState(ctx context.Context, req *fegprotos.ClusterStateRequest) (*fegprotos.ClusterState, error) {
 	if req == nil {
 		return nil, fmt.Errorf("Nil ClusterStateRequest")
 	}

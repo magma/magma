@@ -18,10 +18,10 @@
 
 #include "UpfMsgManageHandler.h"
 #include "SessionStateEnforcer.h"
-#include "includes/MagmaService.h"
+#include "includes/MagmaService.hpp"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.hpp"
 #include "SessionState.h"
 #include "SessionStore.h"
 #include "SessiondMocks.h"
@@ -145,10 +145,4 @@ TEST_F(SetUPFNodeState, test_upf_session_config) {
   // Validating UPF periodic report config missmatch session
   EXPECT_EQ(ses_config.upf_session_state_size(), count);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

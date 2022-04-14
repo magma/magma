@@ -65,13 +65,15 @@ status_code_e sgw_s8_handle_s11_delete_bearer_response(
         s11_delete_bearer_response_p,
     imsi64_t imsi64);
 
-void sgw_s8_send_failed_create_bearer_response(
-    sgw_state_t* sgw_state, uint32_t sequence_number, char* pgw_cp_address,
-    gtpv2c_cause_value_t cause_value, Imsi_t imsi, teid_t pgw_s8_teid);
+void sgw_s8_send_failed_create_bearer_response(sgw_state_t* sgw_state,
+                                               uint32_t sequence_number,
+                                               char* pgw_cp_address,
+                                               gtpv2c_cause_value_t cause_value,
+                                               Imsi_t imsi, teid_t pgw_s8_teid);
 teid_t sgw_s8_generate_new_cp_teid(void);
 
-status_code_e sgw_update_teid_in_ue_context(
-    sgw_state_t* sgw_state, imsi64_t imsi64, teid_t teid);
+status_code_e sgw_update_teid_in_ue_context(sgw_state_t* sgw_state,
+                                            imsi64_t imsi64, teid_t teid);
 
 sgw_eps_bearer_context_information_t*
 sgw_create_bearer_context_information_in_collection(

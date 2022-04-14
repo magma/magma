@@ -18,16 +18,16 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -61,14 +61,14 @@
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_proc_status_ind(
-    mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause) {
+status_code_e emm_proc_status_ind(mme_ue_s1ap_id_t ue_id,
+                                  emm_cause_t emm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
 
-  OAILOG_INFO(
-      LOG_NAS_EMM, "EMM-PROC  - EMM status procedure requested (cause=%d)",
-      emm_cause);
+  OAILOG_INFO(LOG_NAS_EMM,
+              "EMM-PROC  - EMM status procedure requested (cause=%d)",
+              emm_cause);
   OAILOG_DEBUG(LOG_NAS_EMM, "EMM-PROC  - To be implemented");
   increment_counter("emm_status_rcvd", 1, NO_LABELS);
 
@@ -97,24 +97,27 @@ int emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   increment_counter("emm_status_sent", 1, NO_LABELS);
   int rc;
-  emm_sap_t emm_sap            = {0};
+  emm_sap_t emm_sap = {0};
   emm_security_context_t* sctx = NULL;
-  struct emm_context_s* ctx    = NULL;
+  struct emm_context_s* ctx = NULL;
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMM-PROC  - EMM status procedure requested\n");
   /*
    * Notity EMM that EMM status indication has to be sent to lower layers
    */
-  emm_sap.primitive                   = EMMAS_STATUS_IND;
+  emm_sap.primitive = EMMAS_STATUS_IND;
   emm_sap.u.emm_as.u.status.emm_cause = emm_cause;
-  emm_sap.u.emm_as.u.status.ue_id     = ue_id;
-  emm_sap.u.emm_as.u.status.guti      = NULL;
+  emm_sap.u.emm_as.u.status.ue_id = ue_id;
+  emm_sap.u.emm_as.u.status.guti = NULL;
   ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_mm_context) {
     ctx = &ue_mm_context->emm_context;
     if (ctx) {
       sctx = &ctx->_security;
     }
+    OAILOG_INFO_UE(LOG_NAS_EMM, ctx->_imsi64,
+                   "EMM-PROC  - EMM status procedure requested\n");
+  } else {
+    OAILOG_INFO(LOG_NAS_EMM, "EMM-PROC  - EMM status procedure requested\n");
   }
 
   /*

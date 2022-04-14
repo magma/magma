@@ -13,10 +13,10 @@
 
 #pragma once
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
-#include "lte/gateway/c/core/oai/include/amf_config.h"
 
 extern bool hss_associated;
 
@@ -46,9 +46,9 @@ gnb_description_t* ngap_new_gnb(ngap_state_t* state);
  * @returns Reference to the new UE element in list
  **/
 
-m5g_ue_description_t* ngap_new_ue(
-    ngap_state_t* state, const sctp_assoc_id_t sctp_assoc_id,
-    gnb_ue_ngap_id_t gnb_ue_ngap_id);
+m5g_ue_description_t* ngap_new_ue(ngap_state_t* state,
+                                  const sctp_assoc_id_t sctp_assoc_id,
+                                  gnb_ue_ngap_id_t gnb_ue_ngap_id);
 
 /** \brief Remove target UE from the list
  * \param ue_ref UE structure reference to remove

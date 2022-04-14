@@ -12,6 +12,9 @@ limitations under the License.
 """
 
 import abc
+from typing import List
+
+from magma.subscriberdb.protocols.diameter.avp import AVP
 
 
 class Application(metaclass=abc.ABCMeta):
@@ -24,7 +27,7 @@ class Application(metaclass=abc.ABCMeta):
     APP_ID = 0
     # Vendor-Specific-Application-Id and VendorId AVPs that
     # this application should advertise in the Capabilities Exchange
-    CAPABILITIES_EXCHANGE_AVPS = []
+    CAPABILITIES_EXCHANGE_AVPS: List[AVP] = []
 
     def __init__(self, realm, host, host_ip, loop=None):
         """Each application has access to a write stream and a collection of

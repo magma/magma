@@ -92,8 +92,8 @@ def execute_cmd(cmd):
 def check_pre_requisite():
     # Setting logging basic configurations like severity level=DEBUG, timestamp, function name, line numner
     logging.basicConfig(
-            format='[%(asctime)s %(levelname)s %(name)s:%(funcName)s:%(lineno)d] %(message)s',
-            level=logging.DEBUG,
+        format='[%(asctime)s %(levelname)s %(name)s:%(funcName)s:%(lineno)d] %(message)s',
+        level=logging.DEBUG,
     )
     uname = platform.uname()
     logging.debug('Operating System : %s' % uname[0])
@@ -218,15 +218,15 @@ def del_vms():
     MAGMA_DEV_VM_IP = get_magmadev_vm_ip()
     os.chdir(TEMPLATES_DIR)
     for line in fileinput.input("endpoint.yml", inplace=True):
-         if "ip" in line:
-               print(line.replace(MAGMA_DEV_VM_IP, "YOUR_MAGMA_DEV_VM_IP"))
-         else:
-              print(line)
+        if "ip" in line:
+            print(line.replace(MAGMA_DEV_VM_IP, "YOUR_MAGMA_DEV_VM_IP"))
+        else:
+            print(line)
     for line in fileinput.input("service.yml", inplace=True):
         if "externalName:" in line:
-               print(line.replace(MAGMA_DEV_VM_IP, "YOUR_MAGMA_DEV_VM_IP"))
+            print(line.replace(MAGMA_DEV_VM_IP, "YOUR_MAGMA_DEV_VM_IP"))
         else:
-              print(line)
+            print(line)
     os.chdir(CWD)
     myprint("BLUE", "*****Deleting 3 VMs magmatraffic, magmatest, magmadev*****")
     execute_cmd("kubectl delete -f $PWD/../helm/templates/magma_traffic.yaml")
@@ -441,15 +441,15 @@ def configure_alert_manager():
     MAGMA_DEV_VM_IP = get_magmadev_vm_ip()
     os.chdir(TEMPLATES_DIR)
     for line in fileinput.input("endpoint.yml", inplace=True):
-         if "ip" in line:
-               print(line.replace("YOUR_MAGMA_DEV_VM_IP", MAGMA_DEV_VM_IP))
-         else:
-              print(line)
+        if "ip" in line:
+            print(line.replace("YOUR_MAGMA_DEV_VM_IP", MAGMA_DEV_VM_IP))
+        else:
+            print(line)
     for line in fileinput.input("service.yml", inplace=True):
         if "externalName:" in line:
-               print(line.replace("YOUR_MAGMA_DEV_VM_IP", MAGMA_DEV_VM_IP))
+            print(line.replace("YOUR_MAGMA_DEV_VM_IP", MAGMA_DEV_VM_IP))
         else:
-              print(line)
+            print(line)
     os.chdir(CWD)
     myprint("BLUE", "*****Applying the yaml files required to get the alerts from magmadev VM*****")
     execute_cmd("kubectl apply -f $PWD/../helm/templates/endpoint.yml")

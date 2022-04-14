@@ -40,29 +40,29 @@ Description Contains global common definitions
 /*
  * A list of PLMNs
  */
-#define PLMN_LIST_T(SIZE)                                                      \
-  struct {                                                                     \
-    uint8_t n_plmns;                                                           \
-    plmn_t plmn[SIZE];                                                         \
+#define PLMN_LIST_T(SIZE) \
+  struct {                \
+    uint8_t n_plmns;      \
+    plmn_t plmn[SIZE];    \
   }
 
 /*
  * A list of TACs
  */
-#define TAC_LIST_T(SIZE)                                                       \
-  struct {                                                                     \
-    uint8_t n_tacs;                                                            \
-    TAC_t tac[SIZE];                                                           \
+#define TAC_LIST_T(SIZE) \
+  struct {               \
+    uint8_t n_tacs;      \
+    TAC_t tac[SIZE];     \
   }
 
 /*
  * A list of TAIs
  */
-#define TAI_LIST_T(SIZE)                                                       \
-  struct {                                                                     \
-    uint8_t list_type;                                                         \
-    uint8_t n_tais;                                                            \
-    tai_t tai[SIZE];                                                           \
+#define TAI_LIST_T(SIZE) \
+  struct {               \
+    uint8_t list_type;   \
+    uint8_t n_tais;      \
+    tai_t tai[SIZE];     \
   }
 
 #endif /* FILE_COMMONDEF_SEEN*/

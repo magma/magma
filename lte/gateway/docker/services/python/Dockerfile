@@ -12,7 +12,7 @@
 ################################################################################
 
 # -----------------------------------------------------------------------------
-# Builder image for C binaries and Magma proto files
+# Builder image for Python binaries and Magma proto files
 # -----------------------------------------------------------------------------
 ARG OS_DIST=ubuntu
 ARG OS_RELEASE=focal
@@ -39,6 +39,7 @@ RUN apt-get update && apt-get install -y \
   ruby \
   sudo \
   ruby-dev \
+  docker.io \
   python3-pip \
   python3-dev \
   python3-eventlet \
@@ -106,7 +107,7 @@ RUN apt-get update && apt-get install -y \
   redis-server \
   wget \
   ethtool \
-  linux-headers-`uname -r` \
+  linux-headers-generic \
   iptables \
   iproute2
 
@@ -126,7 +127,9 @@ RUN apt-get update && apt-get install -y \
   libopenvswitch \
   openvswitch-datapath-dkms \
   openvswitch-common \
-  openvswitch-switch
+  openvswitch-switch \
+  bcc-tools \
+  wireguard
 
 COPY --from=builder /build /build
 COPY --from=builder /magma /magma

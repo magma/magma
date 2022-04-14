@@ -44,6 +44,7 @@ var (
 	federatedLteNetworkID = "federated_lte"
 	nhImsi                = "123456000000101"
 	nhPlmnId              = nhImsi[:6]
+	nhImsi2               = "123456000000201"
 	agwHwId               = "lte_gw_hw_id"
 	agwId                 = "lte_gw_id"
 	fegHwId               = "feg_hw_id"

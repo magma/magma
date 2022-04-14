@@ -19,7 +19,7 @@
 #include <gtest/gtest-test-part.h>   // for TestPartResult
 #include <gtest/gtest.h>             // for InitGoogleTest, RUN_ALL_TESTS
 #include <string>                    // for basic_string, string
-#include "lte/gateway/c/core/oai/lib/openflow/controller/IMSIEncoder.h"  // for IMSIEncoder, openflow
+#include "lte/gateway/c/core/oai/lib/openflow/controller/IMSIEncoder.hpp"  // for IMSIEncoder, openflow
 
 using ::testing::Test;
 using ::testing::Values;
@@ -39,17 +39,11 @@ TEST_P(IMSIEncoderTest, TestCompactExpand) {
   ASSERT_STREQ(GetParam().c_str(), imsi_test.c_str());
 }
 
-INSTANTIATE_TEST_CASE_P(
-    TestLeadingZeros, IMSIEncoderTest,
-    Values("001010000000013", "011010000000013", "111010000000013"));
+INSTANTIATE_TEST_CASE_P(TestLeadingZeros, IMSIEncoderTest,
+                        Values("001010000000013", "011010000000013",
+                               "111010000000013"));
 
-INSTANTIATE_TEST_CASE_P(
-    TestDifferentLengths, IMSIEncoderTest,
-    Values("001010000000013", "01010000000013", "28950000000013"));
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
+INSTANTIATE_TEST_CASE_P(TestDifferentLengths, IMSIEncoderTest,
+                        Values("001010000000013", "01010000000013",
+                               "28950000000013"));
 }  // namespace

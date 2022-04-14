@@ -399,16 +399,17 @@ void LocalEnforcer::aggregate_records(SessionMap& session_map,
   RuleRecordSet dead_sessions_to_cleanup;
 
   for (const RuleRecord& record : records.records()) {
-    const std::string &imsi = record.sid(), &ip = record.ue_ipv4();
+    const std::string& imsi = record.sid();
+    const std::string& ip_v4 = record.ue_ipv4();
+    const std::string& ip_v6 = record.ue_ipv6();
     const uint32_t teid = record.teid();
-    // TODO IPv6 add ipv6 to search criteria
     SessionSearchCriteria criteria(imsi, IMSI_AND_UE_IPV4_OR_IPV6_OR_UPF_TEID,
-                                   ip, teid);
+                                   ip_v4, ip_v6, teid);
     auto session_it = session_store_.find_session(session_map, criteria);
     if (!session_it) {
-      MLOG(MERROR) << "Could not find an 4G and 5G active session for " << imsi
-                   << " and " << ip << " or " << teid
-                   << " during record aggregation";
+      MLOG(MERROR) << "Could not find a 4G and 5G active session for " << imsi
+                   << " and ip" << ip_v4 << "or ipv6" << ip_v6 << " or teid "
+                   << teid << " during record aggregation";
       dead_sessions_to_cleanup.insert(record);
       continue;
     }
@@ -1975,39 +1976,6 @@ void LocalEnforcer::handle_activate_ue_flows_callback(
     session_store_.update_sessions(update);
   });
 }  // namespace magma
-
-void LocalEnforcer::handle_add_ue_mac_flow_callback(
-    const SubscriberID& sid, const std::string& ue_mac_addr,
-    const std::string& msisdn, const std::string& apn_mac_addr,
-    const std::string& apn_name, Status status, FlowResponse resp) {
-  if (status.ok() && resp.result() == resp.SUCCESS) {
-    MLOG(MDEBUG) << "Pipelined add ue mac flow succeeded for " << ue_mac_addr;
-    return;
-  }
-
-  if (!status.ok()) {
-    MLOG(MERROR) << "Could not add ue mac flow, rpc failed with: "
-                 << status.error_message() << ", retrying...";
-  } else if (resp.result() == resp.FAILURE) {
-    MLOG(MWARNING) << "Pipelined add ue mac flow failed, retrying...";
-  }
-
-  evb_->runAfterDelay(
-      [=] {
-        MLOG(MERROR) << "Could not activate ue mac flows for subscriber "
-                     << sid.id() << ": " << status.error_message()
-                     << ", retrying...";
-        pipelined_client_->add_ue_mac_flow(
-            sid, ue_mac_addr, msisdn, apn_mac_addr, apn_name,
-            [ue_mac_addr](Status status, FlowResponse resp) {
-              if (!status.ok()) {
-                MLOG(MERROR) << "Could not activate flows for UE "
-                             << ue_mac_addr << ": " << status.error_message();
-              }
-            });
-      },
-      retry_timeout_.count());
-}
 
 void LocalEnforcer::create_bearer(
     const std::unique_ptr<SessionState>& session,

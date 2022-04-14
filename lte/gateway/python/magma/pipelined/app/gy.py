@@ -21,7 +21,6 @@ from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub
 from magma.pipelined.policy_converters import FlowMatchError
-from magma.pipelined.qos.common import QosManager
 from magma.pipelined.qos.qos_meter_impl import MeterManager
 from magma.pipelined.redirect import RedirectException, RedirectionManager
 from magma.pipelined.utils import Utils
@@ -61,7 +60,7 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
             self._service_manager.INTERNAL_MAC_IP_REWRITE_TBL_NUM
         self._bridge_ip_address = kwargs['config']['bridge_ip_address']
         self._clean_restart = kwargs['config']['clean_restart']
-        self._qos_mgr = None
+        self._qos_mgr = kwargs['qos_manager']
         self._setup_type = self._config['setup_type']
         self._redirect_manager = \
             RedirectionManager(
@@ -90,7 +89,7 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
             datapath: ryu datapath struct
         """
         self._datapath = datapath
-        self._qos_mgr = QosManager.get_qos_manager(datapath, self.loop, self._config)
+        self._qos_mgr.init_impl(datapath)
 
     def deactivate_rules(self, imsi, ip_addr, rule_ids):
         """

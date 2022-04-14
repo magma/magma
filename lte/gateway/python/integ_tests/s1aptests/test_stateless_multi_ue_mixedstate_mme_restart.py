@@ -24,7 +24,7 @@ from s1ap_utils import MagmadUtil
 class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-           stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
         self.dl_flow_rules = {}
 

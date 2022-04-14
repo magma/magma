@@ -19,7 +19,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/streamer"
-	"magma/orc8r/cloud/go/services/streamer/servicers"
+	streamer_servicers "magma/orc8r/cloud/go/services/streamer/servicers/southbound"
 	"magma/orc8r/lib/go/protos"
 )
 
@@ -29,7 +29,7 @@ func main() {
 		glog.Fatalf("Error creating streamer service: %s", err)
 	}
 
-	servicer := servicers.NewStreamerServicer()
+	servicer := streamer_servicers.NewStreamerServicer()
 	protos.RegisterStreamerServer(srv.GrpcServer, servicer)
 
 	err = srv.Run()

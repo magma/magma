@@ -14,7 +14,7 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include "lte/gateway/c/core/oai/lib/directoryd/GatewayDirectorydClient.h"
+#include "lte/gateway/c/core/oai/lib/directoryd/GatewayDirectorydClient.hpp"
 
 #include <memory>
 #include <thread>
@@ -24,7 +24,7 @@
 #include <google/protobuf/map.h>
 
 #include "orc8r/protos/common.pb.h"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 
 namespace grpc {
 class Channel;
@@ -103,7 +103,7 @@ bool GatewayDirectoryServiceClient::DeleteRecord(
   auto local_response =
       new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
   GatewayDirectoryServiceClient& client = get_instance();
-  auto response_reader                  = client.stub_->AsyncDeleteRecord(
+  auto response_reader = client.stub_->AsyncDeleteRecord(
       local_response->get_context(), request, &client.queue_);
   local_response->set_response_reader(std::move(response_reader));
   return true;

@@ -12,7 +12,14 @@
 #include <sstream>
 #include <cstring>
 #include <cstdint>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationParameterAUTN.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationParameterAUTN.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
@@ -39,17 +46,14 @@ int AuthenticationParameterAUTNMsg::EncodeAuthenticationParameterAUTNMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, AUTN_MIN_LEN, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char) iei, autn->iei);
+    CHECK_IEI_ENCODER((unsigned char)iei, autn->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "In EncodeAuthenticationParameterAUTNMsg: iei" << std::hex
-                 << int(*buffer);
     encoded++;
   }
 
-  lenPtr = (uint8_t*) (buffer + encoded);
+  lenPtr = (uint8_t*)(buffer + encoded);
   encoded++;
   memcpy(buffer + encoded, autn->AUTN, AUTN_MAX_LEN);
-  BUFFER_PRINT_LOG(buffer + encoded, AUTN_MAX_LEN);
   encoded = encoded + AUTN_MAX_LEN;
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
 

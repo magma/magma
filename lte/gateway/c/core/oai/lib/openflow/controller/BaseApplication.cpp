@@ -17,8 +17,8 @@
 
 #include <stdio.h>
 
-#include "lte/gateway/c/core/oai/lib/openflow/controller/BaseApplication.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/BaseApplication.hpp"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
@@ -30,8 +30,8 @@ namespace openflow {
 BaseApplication::BaseApplication(bool persist_state)
     : persist_state_(persist_state) {}
 
-void BaseApplication::event_callback(
-    const ControllerEvent& ev, const OpenflowMessenger& messenger) {
+void BaseApplication::event_callback(const ControllerEvent& ev,
+                                     const OpenflowMessenger& messenger) {
   if (ev.get_type() == EVENT_SWITCH_UP) {
     if (!persist_state_) {
       remove_all_flows(ev.get_connection(), messenger);
@@ -42,10 +42,10 @@ void BaseApplication::event_callback(
   }
 }
 
-void BaseApplication::install_default_flow(
-    fluid_base::OFConnection* ofconn, const OpenflowMessenger& messenger) {
-  of13::FlowMod fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, LOW_PRIORITY);
+void BaseApplication::install_default_flow(fluid_base::OFConnection* ofconn,
+                                           const OpenflowMessenger& messenger) {
+  of13::FlowMod fm = messenger.create_default_flow_mod(
+      SPGW_OVS_TABLE_ID, of13::OFPFC_ADD, LOW_PRIORITY);
   // Output to next table
   of13::GoToTable inst(NEXT_TABLE);
   fm.add_instruction(inst);
@@ -53,10 +53,10 @@ void BaseApplication::install_default_flow(
   OAILOG_DEBUG(LOG_GTPV1U, "Default table 0 flow added\n");
 }
 
-void BaseApplication::remove_all_flows(
-    fluid_base::OFConnection* ofconn, const OpenflowMessenger& messenger) {
-  of13::FlowMod fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_DELETE, 0);
+void BaseApplication::remove_all_flows(fluid_base::OFConnection* ofconn,
+                                       const OpenflowMessenger& messenger) {
+  of13::FlowMod fm = messenger.create_default_flow_mod(SPGW_OVS_TABLE_ID,
+                                                       of13::OFPFC_DELETE, 0);
   // match all
   fm.out_port(of13::OFPP_ANY);
   fm.out_group(of13::OFPG_ANY);
@@ -66,16 +66,15 @@ void BaseApplication::remove_all_flows(
 
 void BaseApplication::handle_error_message(const ErrorEvent& ev) {
   // First 16 bits of error message are the type, second 16 bits are the code
-  OAILOG_ERROR(
-      LOG_GTPV1U, "Openflow error received - type: 0x%02x, code: 0x%02x\n",
-      ev.get_error_type(), ev.get_error_code());
+  OAILOG_ERROR(LOG_GTPV1U,
+               "Openflow error received - type: 0x%02x, code: 0x%02x\n",
+               ev.get_error_type(), ev.get_error_code());
   char type_str[50];
   char code_str[50];
   snprintf(type_str, sizeof(type_str), "0x%02x", ev.get_error_type());
   snprintf(code_str, sizeof(code_str), "0x%02x", ev.get_error_code());
-  increment_counter(
-      "openflow_error_msg", 1, 2, "error_type", type_str, "error_code",
-      code_str);
+  increment_counter("openflow_error_msg", 1, 2, "error_type", type_str,
+                    "error_code", code_str);
 }
 
 }  // namespace openflow

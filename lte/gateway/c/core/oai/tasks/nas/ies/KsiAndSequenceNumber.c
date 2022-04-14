@@ -22,9 +22,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/KsiAndSequenceNumber.h"
 
 //------------------------------------------------------------------------------
-int decode_ksi_and_sequence_number(
-    KsiAndSequenceNumber* ksiandsequencenumber, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int decode_ksi_and_sequence_number(KsiAndSequenceNumber* ksiandsequencenumber,
+                                   uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -32,16 +31,15 @@ int decode_ksi_and_sequence_number(
     decoded++;
   }
 
-  ksiandsequencenumber->ksi            = (*(buffer + decoded) >> 5) & 0x7;
+  ksiandsequencenumber->ksi = (*(buffer + decoded) >> 5) & 0x7;
   ksiandsequencenumber->sequencenumber = *(buffer + decoded) & 0x1f;
   decoded++;
   return decoded;
 }
 
 //------------------------------------------------------------------------------
-int encode_ksi_and_sequence_number(
-    KsiAndSequenceNumber* ksiandsequencenumber, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int encode_ksi_and_sequence_number(KsiAndSequenceNumber* ksiandsequencenumber,
+                                   uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   /*

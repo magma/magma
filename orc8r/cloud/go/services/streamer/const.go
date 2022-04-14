@@ -16,5 +16,6 @@ package streamer
 import "syscall"
 
 const (
-	EAGAIN = syscall.EAGAIN
+	EAGAIN      = syscall.EAGAIN
+	ServiceName = "streamer"
 )

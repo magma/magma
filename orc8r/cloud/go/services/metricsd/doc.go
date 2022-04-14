@@ -39,7 +39,3 @@ limitations under the License.
 	as view, configure, and silence alerts.
 */
 package metricsd
-
-const (
-	ServiceName = "METRICSD"
-)

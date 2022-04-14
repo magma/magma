@@ -45,8 +45,10 @@ var postgresColumnTypeMap = map[ColumnType]string{
 	ColumnTypeInt:    "INTEGER",
 	ColumnTypeBigInt: "BIGINT",
 	// BYTEA is effectively limited to 1GB
-	ColumnTypeBytes: "BYTEA",
-	ColumnTypeBool:  "BOOLEAN",
+	ColumnTypeBytes:    "BYTEA",
+	ColumnTypeBool:     "BOOLEAN",
+	ColumnTypeReal:     "REAL",
+	ColumnTypeDatetime: "DATETIME",
 }
 
 var mariaColumnTypeMap = map[ColumnType]string{
@@ -56,8 +58,10 @@ var mariaColumnTypeMap = map[ColumnType]string{
 	ColumnTypeBigInt: "BIGINT",
 	// LONGBLOB stores up to 4GB and the cost is a flat extra 2 bytes of
 	// storage over BLOB, which is limited to 64KB
-	ColumnTypeBytes: "LONGBLOB",
-	ColumnTypeBool:  "BOOLEAN",
+	ColumnTypeBytes:    "LONGBLOB",
+	ColumnTypeBool:     "BOOLEAN",
+	ColumnTypeReal:     "DOUBLE",
+	ColumnTypeDatetime: "DATETIME",
 }
 
 // ColumnOnDeleteOption is an enum type to specify ON DELETE behavior for
@@ -79,6 +83,8 @@ const (
 	ColumnTypeBigInt
 	ColumnTypeBytes
 	ColumnTypeBool
+	ColumnTypeReal
+	ColumnTypeDatetime
 	// Fill in other types as needed
 )
 

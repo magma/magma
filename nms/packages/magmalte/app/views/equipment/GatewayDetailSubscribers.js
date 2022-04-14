@@ -19,14 +19,14 @@ import ActionTable from '../../components/ActionTable';
 import Link from '@material-ui/core/Link';
 import React from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 
 import {
   REFRESH_INTERVAL,
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
 import {useContext} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 type SubscriberRowType = {
   id: string,
@@ -45,10 +45,11 @@ export default function GatewayDetailSubscribers(props: GatewayDetailType) {
     refresh: props.refresh,
   });
   const subscriberCtx = useContext(SubscriberContext);
-  const gwSubscriberMap = props.gwInfo?.device
-    ? subscriberCtx.gwSubscriberMap[props.gwInfo?.device?.hardware_id]
-    : [];
+  const gwSubscriberMap =
+    // $FlowIgnore
+    subscriberCtx.gwSubscriberMap[props.gwInfo?.device?.hardware_id] || [];
 
+  console.log('gwSubscriberMap: ', gwSubscriberMap);
   const subscriberRows: Array<SubscriberRowType> = gwSubscriberMap.map(
     (serialNum: string) => {
       // $FlowIgnore

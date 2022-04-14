@@ -19,7 +19,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/accessd"
 	"magma/orc8r/cloud/go/services/accessd/protos"
-	"magma/orc8r/cloud/go/services/accessd/servicers"
+	servicers "magma/orc8r/cloud/go/services/accessd/servicers/protected"
 	"magma/orc8r/cloud/go/services/accessd/storage"
 	"magma/orc8r/cloud/go/test_utils"
 )

@@ -26,7 +26,7 @@ import (
 
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
-	magmaerrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 const (
@@ -129,7 +129,7 @@ func (store *sqlStore) Get(networkID string, id storage.TK) (Blob, error) {
 		return Blob{}, err
 	}
 	if len(multiRet) == 0 {
-		return Blob{}, magmaerrors.ErrNotFound
+		return Blob{}, merrors.ErrNotFound
 	}
 	return multiRet[0], nil
 }

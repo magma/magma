@@ -15,9 +15,9 @@
 #include <chrono>
 #include <thread>
 
-#include "includes/MagmaService.h"
+#include "includes/MagmaService.hpp"
 #include "MeteringReporter.h"
-#include "includes/MetricsSingleton.h"
+#include "includes/MetricsSingleton.hpp"
 
 using magma::orc8r::MetricsContainer;
 using ::testing::Test;
@@ -86,10 +86,4 @@ TEST_F(MeteringReporterTest, test_reporting) {
     }
   }
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

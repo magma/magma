@@ -14,10 +14,3 @@
 // Package health contains the health service, a feg-orchestrator microservice which
 // manages feg health and HA clusters
 package health
-
-const (
-	ServiceName       = "HEALTH"
-	DBTableName       = "health"
-	HealthStatusType  = "health_status"
-	ClusterStatusType = "cluster_status"
-)

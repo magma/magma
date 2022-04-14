@@ -13,10 +13,6 @@
 			"name": "cwf/gateway"
 		},
 		{
-			"path": "../fbinternal/cloud",
-			"name": "fbinternal/cloud"
-		},
-		{
 			"path": "../feg/cloud/go",
 			"name": "feg/cloud"
 		},
@@ -45,9 +41,9 @@
 			"name": "src"
 		},
 		{
-			"path": "../wifi/cloud/go",
-			"name": "wifi/cloud",
-		},
+			"path": "../feg/gateway",
+			"name": "feg/gateway"
+		}
 	],
 	"extensions": {
 		"recommendations": [

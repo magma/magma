@@ -67,17 +67,15 @@ void parser_print_usage(const parser_command_line_t* command_line) {
   fprintf(stderr, "Usage: %s", command_line->name);
 
   for (int i = 0; i < command_line->nb_options; i++) {
-    fprintf(
-        stderr, " [%s %s]", command_line->options[i].name,
-        command_line->options[i].argument);
+    fprintf(stderr, " [%s %s]", command_line->options[i].name,
+            command_line->options[i].argument);
   }
 
   fprintf(stderr, "\n");
 
   for (int i = 0; i < command_line->nb_options; i++) {
-    fprintf(
-        stderr, "\t%s\t%s\t(%s)\n", command_line->options[i].argument,
-        command_line->options[i].usage, command_line->options[i].value);
+    fprintf(stderr, "\t%s\t%s\t(%s)\n", command_line->options[i].argument,
+            command_line->options[i].usage, command_line->options[i].value);
   }
 }
 
@@ -97,8 +95,8 @@ void parser_print_usage(const parser_command_line_t* command_line) {
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e parser_get_options(
-    int argc, const char** argv, parser_command_line_t* command_line) {
+status_code_e parser_get_options(int argc, const char** argv,
+                                 parser_command_line_t* command_line) {
   int argument_not_found, option_not_found = 1;
   int option_length;
 
@@ -125,7 +123,7 @@ status_code_e parser_get_options(
    */
   while (*++argv && **argv == '-') {
     argument_not_found = 1;
-    option_not_found   = 1;
+    option_not_found = 1;
 
     for (int i = 0; i < command_line->nb_options; i++) {
       if (!strcmp(command_line->options[i].name, *argv)) {
@@ -133,14 +131,13 @@ status_code_e parser_get_options(
 
         if (argv[1] && *argv[1] != '-') {
           argument_not_found = 0;
-          option_length      = (int) strlen(*++argv);
+          option_length = (int)strlen(*++argv);
 
           if (option_length >= PARSER_OPTION_VALUE_SIZE) {
-            fprintf(
-                stderr,
-                "%s: option name too long (%d), should be less than %d "
-                "characters\n",
-                *argv, option_length, PARSER_OPTION_VALUE_SIZE);
+            fprintf(stderr,
+                    "%s: option name too long (%d), should be less than %d "
+                    "characters\n",
+                    *argv, option_length, PARSER_OPTION_VALUE_SIZE);
             return RETURNerror;
           }
 
@@ -162,9 +159,8 @@ status_code_e parser_get_options(
         return RETURNerror;
       }
     } else if (argument_not_found) {
-      fprintf(
-          stderr, "%s: option %s requires an argument\n", command_line->name,
-          *argv);
+      fprintf(stderr, "%s: option %s requires an argument\n",
+              command_line->name, *argv);
       return RETURNerror;
     }
   }

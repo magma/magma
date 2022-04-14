@@ -2,7 +2,6 @@
 id: configure_sentry
 title: Sentry Integration
 hide_title: true
-original_id: configure_sentry
 ---
 
 # Sentry + Magma AGW
@@ -13,7 +12,7 @@ As part of v1.5, we have integrated Sentry's [Native](https://docs.sentry.io/pla
 
 ## Connect to the Linux Foundation Sentry Account
 
-The first step to setting up your account is to request access to Linux Foundation [Sentry.io](http://Sentry.io) instance by submitting your email address and company through the [community form](https://docs.google.com/forms/d/e/1FAIpQLSeJMWecw9An5-aYv0US8Fc_PDO7kUMx4Pky13S_3LhFJkge_g/viewform). You should also create a team for your company on the Sentry site. This team name should match your company and will be used to enable group access to your project. Once you are granted access, you will need to login and navigate to the “Projects” tab and locate your team’s project name. You will need this information to update the CircleCI config.yml file on the Magma Github.
+The first step to setting up your account is to request access to Linux Foundation [Sentry.io](http://Sentry.io) instance by submitting your email address and company through the [community form](https://docs.google.com/forms/d/e/1FAIpQLSeJMWecw9An5-aYv0US8Fc_PDO7kUMx4Pky13S_3LhFJkge_g/viewform). You should also create a team for your company on the Sentry site. This team name should match your company and will be used to enable group access to your project. Once you are granted access, you will need to login and navigate to the “Projects” tab and locate your team’s project name. You will need this information to update a CI job in the next section.
 
 ## Configuration
 
@@ -64,9 +63,26 @@ Example payload for `/networks/{network_id}/sentry`:
     "Streaming from the cloud failed!"
   ],
   "sample_rate": 1,
-  "upload_mme_log": false
+  "upload_mme_log": false,
+  "number_of_lines_in_log": 0
 }
 ```
+
+## Log file support
+
+There are two configuration options for sending log files to Sentry after a C++ service crash occurs. Both can be activated and deactivated via the Swagger UI. The first option is `upload_mme_log`. In the case it is set to `true` like the following example, the MME service log file located in `/var/log/mme.log` will be submitted within the crash report.
+
+```json
+"upload_mme_log": true,
+```
+
+The second option `number_of_lines_in_log` supports the transmission of the journal syslog file `/var/log/syslog`. It selects the last `n` entries in the file and sends them to Sentry attached to the crash report. The sent file considers log entries of all services marked with `magma@` and additionally of the service `sctpd`. In the subsequent example, `n` is 1000. If `n` is set to 0, `number_of_lines_in_log` is disabled, and no log history will be sent.
+
+```json
+"number_of_lines_in_log": 1000, 
+```
+
+Note: Only `upload_mme_log` can be overridden in the `control_proxy.yml`.
 
 ## Monitoring
 

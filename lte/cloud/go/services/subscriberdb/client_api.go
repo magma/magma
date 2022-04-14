@@ -21,7 +21,7 @@ import (
 	"github.com/thoas/go-funk"
 
 	"magma/lte/cloud/go/services/subscriberdb/protos"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -49,7 +49,7 @@ func ListMSISDNs(ctx context.Context, networkID string) (map[string]string, erro
 }
 
 // GetIMSIForMSISDN returns the IMSI associated with the passed MSISDN.
-// If not found, returns ErrNotFound from magma/orc8r/lib/go/errors.
+// If not found, returns ErrNotFound from magma/orc8r/lib/go/merrors.
 func GetIMSIForMSISDN(ctx context.Context, networkID, msisdn string) (string, error) {
 	client, err := getClient()
 	if err != nil {

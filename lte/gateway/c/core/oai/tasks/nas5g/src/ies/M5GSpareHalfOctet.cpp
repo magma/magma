@@ -12,7 +12,7 @@
 #include <iostream>
 #include <sstream>
 #include <cstdint>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
@@ -25,9 +25,7 @@ int SpareHalfOctetMsg::DecodeSpareHalfOctetMsg(
     uint32_t len) {
   int decoded = 0;
 
-  MLOG(MDEBUG) << "   DecodeSpareHalfOctetMsg : ";
   spare_half_octet->spare = (*buffer & 0xf0) >> 4;
-  MLOG(MDEBUG) << "Spare = 0x" << std::hex << int(spare_half_octet->spare);
   return (decoded);
 };
 
@@ -37,9 +35,7 @@ int SpareHalfOctetMsg::EncodeSpareHalfOctetMsg(
     uint32_t len) {
   int encoded = 0;
 
-  MLOG(MDEBUG) << " EncodeSpareHalfOctetMsg : ";
   *(buffer) = 0x00 | (spare_half_octet->spare & 0xf) << 4;
-  MLOG(MDEBUG) << "   Spare = 0x" << std::hex << int(*(buffer));
   return (encoded);
 };
 }  // namespace magma5g

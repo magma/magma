@@ -16,6 +16,8 @@ from typing import List
 import grpc
 from lte.protos.mobilityd_pb2 import GWInfo, IPAddress
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
+from magma.common.rpc_utils import indicates_connection_error
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.common.service_registry import ServiceRegistry
 from orc8r.protos.common_pb2 import Void
 
@@ -44,6 +46,7 @@ def get_mobilityd_gw_info() -> List[GWInfo]:
             "ListGatewayInfo error[%s] %s",
             err.code(),
             err.details(),
+            extra=EXCLUDE_FROM_ERROR_MONITORING if indicates_connection_error(err) else None,
         )
         return []
 

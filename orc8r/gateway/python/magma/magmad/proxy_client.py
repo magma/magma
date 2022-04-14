@@ -15,6 +15,7 @@ import logging
 
 import aioh2
 import h2.events
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.common.service_registry import ServiceRegistry
 from orc8r.protos.sync_rpc_service_pb2 import GatewayResponse, SyncRPCResponse
 
@@ -64,9 +65,9 @@ class ControlProxyHttpClient(object):
         # pylint: enable=protected-access
 
         if req_id in self._connection_table:
-            logging.error(
-                "[SyncRPC] proxy_client is already handling "
-                "request ID %s", req_id,
+            logging.warning(
+                "[SyncRPC] proxy_client is already handling request ID %s",
+                req_id,
             )
             sync_rpc_response_queue.put(
                 SyncRPCResponse(
@@ -100,12 +101,14 @@ class ControlProxyHttpClient(object):
             )
         except ConnectionAbortedError:
             logging.error(
-                "[SyncRPC] proxy_client connection "
-                "terminated by cloud",
+                "[SyncRPC] proxy_client connection terminated by cloud",
+                extra=EXCLUDE_FROM_ERROR_MONITORING,
             )
         except Exception as e:  # pylint: disable=broad-except
             logging.error(
-                "[SyncRPC] Exception in proxy_client: %s", e,
+                "[SyncRPC] Exception in proxy_client: %s",
+                e,
+                extra=EXCLUDE_FROM_ERROR_MONITORING,
             )
             sync_rpc_response_queue.put(
                 SyncRPCResponse(
@@ -121,6 +124,7 @@ class ControlProxyHttpClient(object):
                 logging.error(
                     '[SyncRPC] Error while trying to close conn: %s',
                     str(e),
+                    extra=EXCLUDE_FROM_ERROR_MONITORING,
                 )
 
     def close_all_connections(self):
@@ -132,6 +136,7 @@ class ControlProxyHttpClient(object):
                 logging.error(
                     '[SyncRPC] Error while trying to close conn: %s',
                     str(e),
+                    extra=EXCLUDE_FROM_ERROR_MONITORING,
                 )
         self._connection_table.clear()
 

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/sctpd/src/sctpd.h"
+#include "lte/gateway/c/sctpd/src/sctpd.hpp"
 
 #include <lte/protos/mconfig/mconfigs.pb.h>
 #include <orc8r/protos/mconfig/mconfigs.pb.h>
@@ -20,14 +20,14 @@
 #include <grpcpp/grpcpp.h>
 #include <signal.h>
 
-#include "lte/gateway/c/sctpd/src/sctpd_downlink_impl.h"
-#include "lte/gateway/c/sctpd/src/sctpd_event_handler.h"
-#include "lte/gateway/c/sctpd/src/sctpd_uplink_client.h"
-#include "lte/gateway/c/sctpd/src/util.h"
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
+#include "lte/gateway/c/sctpd/src/sctpd_downlink_impl.hpp"
+#include "lte/gateway/c/sctpd/src/sctpd_event_handler.hpp"
+#include "lte/gateway/c/sctpd/src/sctpd_uplink_client.hpp"
+#include "lte/gateway/c/sctpd/src/util.hpp"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging_init.h"
-#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.hpp"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 
 #define SCTPD_SERVICE "sctpd"
 #define SHARED_MCONFIG "shared_mconfig"
@@ -85,12 +85,6 @@ static magma::mconfig::SctpD load_sctpd_mconfig() {
   return mconfig;
 }
 
-static magma::mconfig::SharedMconfig load_shared_mconfig() {
-  magma::mconfig::SharedMconfig mconfig;
-  magma::load_service_mconfig_from_file(SHARED_MCONFIG, &mconfig);
-  return mconfig;
-}
-
 static uint32_t get_log_verbosity(const YAML::Node& config,
                                   magma::mconfig::SctpD mconfig) {
   if (!config["log_level"].IsDefined()) {
@@ -122,12 +116,7 @@ int main() {
   magma::init_logging(SCTPD_SERVICE);
   magma::set_verbosity(get_log_verbosity(config, sctpd_mconfig));
 
-  auto sentry_mconfig = load_shared_mconfig().sentry_config();
-  sentry_config_t sentry_config;
-  sentry_config.sample_rate = sentry_mconfig.sample_rate();
-  strncpy(sentry_config.url_native, sentry_mconfig.dsn_native().c_str(),
-          MAX_URL_LENGTH - 1);
-  sentry_config.url_native[MAX_URL_LENGTH - 1] = '\0';
+  sentry_config_t sentry_config = construct_sentry_config_from_mconfig();
   initialize_sentry(SENTRY_TAG_SCTPD, &sentry_config);
 
   auto channel =

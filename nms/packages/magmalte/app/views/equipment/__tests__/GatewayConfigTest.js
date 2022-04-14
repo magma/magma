@@ -43,11 +43,14 @@ import {useState} from 'react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
+jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
 afterEach(cleanup);
 const enqueueSnackbarMock = jest.fn();
 jest
-  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .spyOn(
+    require('../../../../fbc_js_core/ui/hooks/useSnackbar'),
+    'useEnqueueSnackbar',
+  )
   .mockReturnValue(enqueueSnackbarMock);
 
 const mockGw0: lte_gateway = {
@@ -450,11 +453,26 @@ describe('<AddEditGatewayButton />', () => {
 
     // Verify EPC Edit
     const natEnabled = getByTestId('natEnabled').firstChild;
+    const gwSgiIpv6 = getByTestId('gwSgiIpv6').firstChild;
+    const sgiStaticIpv6 = getByTestId('sgiStaticIpv6').firstChild;
+    const ipv6Block = getByTestId('ipv6Block').firstChild;
     if (
       natEnabled instanceof HTMLElement &&
-      natEnabled.firstChild instanceof HTMLElement
+      natEnabled.firstChild instanceof HTMLElement &&
+      gwSgiIpv6 instanceof HTMLInputElement &&
+      sgiStaticIpv6 instanceof HTMLInputElement &&
+      ipv6Block instanceof HTMLInputElement
     ) {
       fireEvent.click(natEnabled.firstChild);
+      fireEvent.change(gwSgiIpv6, {
+        target: {value: '2001:4860:4860:0:0:0:0:1'},
+      });
+      fireEvent.change(sgiStaticIpv6, {
+        target: {value: '2001:4860:4860:0:0:0:0:8888'},
+      });
+      fireEvent.change(ipv6Block, {
+        target: {value: 'fdee:5:6c::/48'},
+      });
     } else {
       throw 'invalid type';
     }
@@ -468,12 +486,15 @@ describe('<AddEditGatewayButton />', () => {
       networkId: 'test',
       config: {
         ip_block: '192.168.128.0/24',
+        ipv6_block: 'fdee:5:6c::/48',
         nat_enabled: false,
         dns_primary: '',
         dns_secondary: '',
         sgi_management_iface_gw: '',
         sgi_management_iface_static_ip: '',
         sgi_management_iface_vlan: '',
+        sgi_management_iface_ipv6_gw: '2001:4860:4860:0:0:0:0:1',
+        sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888',
       },
     });
 
@@ -578,12 +599,15 @@ describe('<AddEditGatewayButton />', () => {
           },
           epc: {
             ip_block: '192.168.128.0/24',
+            ipv6_block: 'fdee:5:6c::/48',
             nat_enabled: false,
             dns_primary: '',
             dns_secondary: '',
             sgi_management_iface_gw: '',
             sgi_management_iface_static_ip: '',
             sgi_management_iface_vlan: '',
+            sgi_management_iface_ipv6_gw: '2001:4860:4860:0:0:0:0:1',
+            sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888',
           },
           ran: {pci: 260, transmit_enabled: true},
         },
@@ -674,12 +698,15 @@ describe('<AddEditGatewayButton />', () => {
         },
         epc: {
           ip_block: '192.168.128.0/24',
+          ipv6_block: 'fdee:5:6c::/48',
           nat_enabled: false,
           dns_primary: '',
           dns_secondary: '',
           sgi_management_iface_gw: '',
           sgi_management_iface_static_ip: '',
           sgi_management_iface_vlan: '',
+          sgi_management_iface_ipv6_gw: '2001:4860:4860:0:0:0:0:1',
+          sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888',
         },
         ran: {
           pci: 260,

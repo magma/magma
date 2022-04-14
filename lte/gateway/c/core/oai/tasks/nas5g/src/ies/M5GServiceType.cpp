@@ -13,7 +13,7 @@
 #include <sstream>
 #include <cstdint>
 #include <cstring>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GServiceType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GServiceType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
@@ -21,25 +21,21 @@ ServiceTypeMsg::ServiceTypeMsg(){};
 ServiceTypeMsg::~ServiceTypeMsg(){};
 
 // Decode ServiceType IE
-int ServiceTypeMsg::DecodeServiceTypeMsg(
-    ServiceTypeMsg* svc_type, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int ServiceTypeMsg::DecodeServiceTypeMsg(ServiceTypeMsg* svc_type, uint8_t iei,
+                                         uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   svc_type->service_type_value = ((*buffer & 0xf0) >> 4);
-  MLOG(MDEBUG) << "DecodeServiceTypeMsg__: service_type_value = " << std::hex
-               << int(svc_type->service_type_value) << std::endl;
 
   return (decoded);
 };
 
 // Encode ServiceType IE
-int ServiceTypeMsg::EncodeServiceTypeMsg(
-    ServiceTypeMsg* svc_type, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int ServiceTypeMsg::EncodeServiceTypeMsg(ServiceTypeMsg* svc_type, uint8_t iei,
+                                         uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
   *buffer = svc_type->service_type_value & 0x0f;
-  MLOG(MDEBUG) << "DecodeServiceTypeMsg__: service_type_value = " << std::hex
-               << int(*buffer) << std::endl;
   encoded++;
 
   return (encoded);

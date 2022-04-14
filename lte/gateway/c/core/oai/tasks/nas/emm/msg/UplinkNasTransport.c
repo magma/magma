@@ -21,10 +21,9 @@
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/UplinkNasTransport.h"
 
-int decode_uplink_nas_transport(
-    uplink_nas_transport_msg* uplink_nas_transport, uint8_t* buffer,
-    uint32_t len) {
-  uint32_t decoded   = 0;
+int decode_uplink_nas_transport(uplink_nas_transport_msg* uplink_nas_transport,
+                                uint8_t* buffer, uint32_t len) {
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
@@ -45,10 +44,9 @@ int decode_uplink_nas_transport(
   return decoded;
 }
 
-int encode_uplink_nas_transport(
-    uplink_nas_transport_msg* uplink_nas_transport, uint8_t* buffer,
-    uint32_t len) {
-  int encoded       = 0;
+int encode_uplink_nas_transport(uplink_nas_transport_msg* uplink_nas_transport,
+                                uint8_t* buffer, uint32_t len) {
+  int encoded = 0;
   int encode_result = 0;
 
   /*

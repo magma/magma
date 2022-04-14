@@ -21,7 +21,7 @@ import (
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
-	magmaerrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 func TestBlobstoreImplMigrations(t *testing.T) {
@@ -135,7 +135,7 @@ func checkWriteBlobs(
 	err = store.Delete(networkID, storage.TKs{expectedBlobs[1].TK()})
 	assert.NoError(t, err)
 	_, err = store.Get(networkID, expectedBlobs[1].TK())
-	assert.Equal(t, magmaerrors.ErrNotFound, err)
+	assert.Equal(t, merrors.ErrNotFound, err)
 
 	err = store.Write(networkID, blobstore.Blobs{
 		expectedBlobs[1],
@@ -149,7 +149,7 @@ func checkWriteBlobs(
 	err = store.Delete(networkID, storage.TKs{blobNotInFact.TK()})
 	assert.NoError(t, err)
 	_, err = store.Get(networkID, blobNotInFact.TK())
-	assert.Equal(t, magmaerrors.ErrNotFound, err)
+	assert.Equal(t, merrors.ErrNotFound, err)
 
 	err = store.Commit()
 	assert.NoError(t, err)

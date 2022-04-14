@@ -24,7 +24,7 @@
 #ifndef S6A_MESSAGES_H_
 #define S6A_MESSAGES_H_
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
 
 #include <freeDiameter/freeDiameter-host.h>
@@ -35,23 +35,21 @@ status_code_e s6a_generate_authentication_info_req(s6a_auth_info_req_t* uar_p);
 int s6a_send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP);
 status_code_e s6a_generate_purge_ue_req(const char* imsi);
 
-status_code_e s6a_ula_cb(
-    struct msg** msg, struct avp* paramavp, struct session* sess, void* opaque,
-    enum disp_action* act);
-status_code_e s6a_aia_cb(
-    struct msg** msg, struct avp* paramavp, struct session* sess, void* opaque,
-    enum disp_action* act);
+status_code_e s6a_ula_cb(struct msg** msg, struct avp* paramavp,
+                         struct session* sess, void* opaque,
+                         enum disp_action* act);
+status_code_e s6a_aia_cb(struct msg** msg, struct avp* paramavp,
+                         struct session* sess, void* opaque,
+                         enum disp_action* act);
 
-int s6a_clr_cb(
-    struct msg** msg, struct avp* paramavp, struct session* sess, void* opaque,
-    enum disp_action* act);
+int s6a_clr_cb(struct msg** msg, struct avp* paramavp, struct session* sess,
+               void* opaque, enum disp_action* act);
 
-status_code_e s6a_pua_cb(
-    struct msg** msg, struct avp* paramavp, struct session* sess, void* opaque,
-    enum disp_action* act);
-int s6a_rsr_cb(
-    struct msg** msg, struct avp* paramavp, struct session* sess, void* opaque,
-    enum disp_action* act);
+status_code_e s6a_pua_cb(struct msg** msg, struct avp* paramavp,
+                         struct session* sess, void* opaque,
+                         enum disp_action* act);
+int s6a_rsr_cb(struct msg** msg, struct avp* paramavp, struct session* sess,
+               void* opaque, enum disp_action* act);
 
 status_code_e s6a_parse_subscription_data(
     struct avp* avp_subscription_data, subscription_data_t* subscription_data);

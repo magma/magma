@@ -20,12 +20,12 @@
 #include "Consts.h"
 #include "LocalEnforcer.h"
 #include "magma_logging.h"
-#include "includes/MagmaService.h"
+#include "includes/MagmaService.hpp"
 #include "Matchers.h"
 #include "MeteringReporter.h"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.hpp"
 #include "SessiondMocks.h"
 #include "SessionState.h"
 #include "SessionStore.h"
@@ -499,10 +499,4 @@ TEST_F(SessionManagerHandlerTest, test_end_session) {
   session_map = session_store->read_sessions({IMSI1});
   EXPECT_EQ(session_map[IMSI1].size(), 0);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

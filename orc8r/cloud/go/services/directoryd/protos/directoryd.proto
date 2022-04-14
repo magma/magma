@@ -1,0 +1,164 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+
+package magma.orc8r.directoryd;
+
+option go_package = "magma/orc8r/cloud/go/services/directoryd/protos";
+
+// --------------------------------------------------------------------------
+// Directory service -- controller
+// --------------------------------------------------------------------------
+
+message GetHostnameForHWIDRequest {
+  string hwid = 1;
+}
+
+message GetHostnameForHWIDResponse {
+  string hostname = 1;
+}
+
+message MapHWIDToHostnameRequest {
+  map<string, string> hwidToHostname = 1;
+}
+
+message UnmapHWIDToHostnameRequest {
+  repeated string hwids = 1;
+}
+
+message GetIMSIForSessionIDRequest {
+  string networkID = 1;
+  string sessionID = 2;
+}
+
+message GetIMSIForSessionIDResponse {
+  string imsi = 1;
+}
+
+message MapSessionIDToIMSIRequest {
+  string networkID = 1;
+  map<string, string> sessionIDToIMSI = 2;
+}
+
+message UnmapSessionIDToIMSIRequest {
+  string networkID = 1;
+  repeated string sessionIDs = 2;
+}
+
+// CTeid
+message GetHWIDForSgwCTeidRequest {
+  string networkID = 1;
+  string teid = 2;
+}
+
+message GetHWIDForSgwCTeidResponse {
+  string hwid = 1;
+}
+
+message MapSgwCTeidToHWIDRequest {
+  string networkID = 1;
+  map<string, string>  teidToHwid = 2;
+}
+
+message UnmapSgwCTeidToHWIDRequest {
+  string networkID = 1;
+  repeated string teids= 2;
+}
+
+message GetNewSgwCTeidRequest {
+  string networkID = 1;
+}
+
+message GetNewSgwCTeidResponse{
+  string teid = 1;
+}
+
+// UTeid
+message GetHWIDForSgwUTeidRequest {
+  string networkID = 1;
+  string teid = 2;
+}
+
+message GetHWIDForSgwUTeidResponse {
+  string hwid = 1;
+}
+
+message MapSgwUTeidToHWIDRequest {
+  string networkID = 1;
+  map<string, string>  teidToHwid = 2;
+}
+
+message UnmapSgwUTeidToHWIDRequest {
+  string networkID = 1;
+  repeated string teids= 2;
+}
+
+message GetNewSgwUTeidRequest {
+  string networkID = 1;
+}
+
+message GetNewSgwUTeidResponse{
+  string teid = 1;
+}
+
+// DirectoryLookup service associates various identities and locations.
+// This service runs in the controller, generating and consuming mostly derived state.
+service DirectoryLookup {
+  // HWIDsToHostname
+  // GetHostnameForHWID returns the hostname mapped to by hardware ID.
+  rpc GetHostnameForHWID(GetHostnameForHWIDRequest) returns (GetHostnameForHWIDResponse) {};
+
+  // MapHWIDsToHostnames maps {hwid -> hostname}.
+  rpc MapHWIDsToHostnames(MapHWIDToHostnameRequest) returns (Void) {};
+
+  // UnmapHWIDsToHostnames removes {hwid -> hostname} for an specific hwid.
+  rpc UnmapHWIDsToHostnames(UnmapHWIDToHostnameRequest) returns (Void) {};
+
+  // IDsToIMSI
+  // GetIMSIForSessionID returns the IMSI mapped to by session ID.
+  rpc GetIMSIForSessionID(GetIMSIForSessionIDRequest) returns (GetIMSIForSessionIDResponse) {};
+
+  // MapSessionIDsToIMSIs maps {session ID -> IMSI}.
+  rpc MapSessionIDsToIMSIs(MapSessionIDToIMSIRequest) returns (Void) {};
+
+  // UnmapSessionIDsToIMSIs removes {session ID -> IMSI} for an specific session ID.
+  rpc UnmapSessionIDsToIMSIs(UnmapSessionIDToIMSIRequest) returns (Void) {};
+
+  // CTeid
+  // GetHWIDForSgwCTeid returns the HwId mapped to by sgw control plane Sgw Teid
+  rpc GetHWIDForSgwCTeid(GetHWIDForSgwCTeidRequest) returns (GetHWIDForSgwCTeidResponse) {};
+
+  // MapSgwCTeidToHWID maps {teid -> HwId}.
+  rpc MapSgwCTeidToHWID(MapSgwCTeidToHWIDRequest) returns (Void) {};
+
+  // UnmapSgwCTeidToHWID removes {teid -> HwId} for an specific Teid.
+  rpc UnmapSgwCTeidToHWID(UnmapSgwCTeidToHWIDRequest) returns (Void) {};
+
+  // GetNewSgwCTeid get an available teid
+  rpc GetNewSgwCTeid(GetNewSgwCTeidRequest) returns (GetNewSgwCTeidResponse) {};
+
+  // UTeid
+  // GetHWIDForSgwUTeid returns the HwId mapped to by sgw control plane Sgw Teid
+  rpc GetHWIDForSgwUTeid(GetHWIDForSgwUTeidRequest) returns (GetHWIDForSgwUTeidResponse) {};
+
+  // MapSgwUTeidToHWID maps {teid -> HwId}.
+  rpc MapSgwUTeidToHWID(MapSgwUTeidToHWIDRequest) returns (Void) {};
+
+  // UnmapSgwUTeidToHWID removes {teid -> HwId} for an specific Teid.
+  rpc UnmapSgwUTeidToHWID(UnmapSgwUTeidToHWIDRequest) returns (Void) {};
+
+  // GetNewSgwUTeid get an available teid
+  rpc GetNewSgwUTeid(GetNewSgwUTeidRequest) returns (GetNewSgwUTeidResponse) {};
+}

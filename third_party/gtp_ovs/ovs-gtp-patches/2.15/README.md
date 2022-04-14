@@ -6,11 +6,20 @@ There are couple of difference from existing GTP module:
    to insert gtp.ko
 2. GTP tunnel type is changed to 'gtpu'
 
-These patches should work on following kernel version:
-1. 4.9.214
-2. 4.14.171
-3. 4.19.110
-4. 5.4.50
-5. 5.6.19
+These patches works on ubuntu 20.04 kernels.
 
-Use build.sh to build OVS debian packages.
+
+1. Use build.sh to build OVS debian packages.
+
+2. To setup DEV environment run following command on magma dev VM
+`sudo bash ~/magma/third_party/gtp_ovs/ovs-gtp-patches/2.15/dev.sh setup`
+
+3. To Run OVS GTP tests on OVS kernel datapath:
+`sudo bash ~/magma/third_party/gtp_ovs/ovs-gtp-patches/2.15/dev.sh build_test`
+
+4. For OVS development, use following ovs sources
+```
+sudo su -
+cd ovs-build/ovs/
+bash /home/vagrant/magma/third_party/gtp_ovs/ovs-gtp-patches/2.15/dev.sh build_test
+```

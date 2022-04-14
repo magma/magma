@@ -148,8 +148,8 @@ def add_flow(
     if actions is None:
         actions = []
     reset_scratch_reg_actions = [
-             parser.NXActionRegLoad2(dst=reg, value=REG_ZERO_VAL)
-             for reg in SCRATCH_REGS
+        parser.NXActionRegLoad2(dst=reg, value=REG_ZERO_VAL)
+        for reg in SCRATCH_REGS
     ]
     actions = actions + reset_scratch_reg_actions
 

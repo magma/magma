@@ -29,9 +29,9 @@ extern "C" {
 
 #include <stdint.h>
 
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/include/spgw_state.h"
 
 #define INITIAL_SGW_S8_S1U_TEID 0x7FFFFFFF
 void sgw_display_sgw_eps_bearer_context(
@@ -41,8 +41,8 @@ void sgw_display_s11_bearer_context_information(
     sgw_eps_bearer_context_information_t* sgw_context_information);
 void pgw_lite_cm_free_apn(pgw_apn_t** apnP);
 
-mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(
-    teid_t remote_teid, teid_t local_teid);
+mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(teid_t remote_teid,
+                                           teid_t local_teid);
 s_plus_p_gw_eps_bearer_context_information_t*
 sgw_cm_create_bearer_context_information_in_collection(teid_t teid);
 int sgw_cm_remove_bearer_context_information(teid_t teid, imsi64_t imsi64);

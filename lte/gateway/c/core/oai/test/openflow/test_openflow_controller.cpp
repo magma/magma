@@ -25,8 +25,8 @@
 // TODO: Once #5146 is resolved this can be re-ordered above <memory>
 #include <fluid/OFConnection.hh>  // for OFConnection, OFConnection::E...
 #include <stdexcept>              // for runtime_error
-#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerEvents.h"  // for EVENT_PACKET_IN, EVENT_SWITCH...
-#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.h"  // for OpenflowController, OFPT_PACK...
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerEvents.hpp"  // for EVENT_PACKET_IN, EVENT_SWITCH...
+#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp"  // for OpenflowController, OFPT_PACK...
 #include "gmock/gmock-matchers.h"       // for AnythingMatcher, _
 #include "gmock/gmock-spec-builders.h"  // for EXPECT_CALL, TypedExpectation
 #include "gmock/gmock.h"                // for InitGoogleMock
@@ -47,11 +47,10 @@ namespace {
 class ControllerTest : public ::testing::Test {
  public:
   void default_message_callback(uint8_t type) {
-    controller->message_callback(
-        NULL,  // no connection
-        type,
-        NULL,  // no data
-        0);    // no length
+    controller->message_callback(NULL,  // no connection
+                                 type,
+                                 NULL,  // no data
+                                 0);    // no length
   }
 
   void default_connection_callback(OFConnection::Event type) {
@@ -74,16 +73,15 @@ TEST_F(ControllerTest, TestRegistration) {
   MockApplication app;
   EXPECT_CALL(app, event_callback(_, _)).Times(1);
 
-  controller->register_for_event((Application*) &app, EVENT_PACKET_IN);
+  controller->register_for_event((Application*)&app, EVENT_PACKET_IN);
   default_message_callback(OFPT_PACKET_IN_TYPE);
 }
 
 // Ensure controller can only handle events if it's running
 TEST_F(ControllerTest, TestRunningAssertion) {
   controller->stop();
-  EXPECT_THROW(
-      controller->message_callback(NULL, OFPT_PACKET_IN_TYPE, NULL, 0),
-      std::runtime_error);
+  EXPECT_THROW(controller->message_callback(NULL, OFPT_PACKET_IN_TYPE, NULL, 0),
+               std::runtime_error);
 }
 
 // Ensure controller closes lastest OF connection
@@ -110,11 +108,4 @@ TEST_F(ControllerTest, TestMultipleApplications) {
   default_message_callback(OFPT_PACKET_IN_TYPE);
   default_connection_callback(OFConnection::EVENT_CLOSED);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  ::testing::InitGoogleMock(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace

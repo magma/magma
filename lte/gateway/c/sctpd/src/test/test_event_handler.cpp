@@ -20,8 +20,8 @@
 
 #include <lte/protos/sctpd.grpc.pb.h>
 
-#include "lte/gateway/c/sctpd/src/sctpd_event_handler.h"
-#include "lte/gateway/c/sctpd/src/sctpd_uplink_client.h"
+#include "lte/gateway/c/sctpd/src/sctpd_event_handler.hpp"
+#include "lte/gateway/c/sctpd/src/sctpd_uplink_client.hpp"
 
 using ::testing::_;
 using ::testing::AllOf;
@@ -138,10 +138,3 @@ TEST_F(EventHandlerTest, test_event_handler_send_ul) {
 
 }  // namespace sctpd
 }  // namespace magma
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  FLAGS_logtostderr = 1;
-  FLAGS_v = 10;
-  return RUN_ALL_TESTS();
-}

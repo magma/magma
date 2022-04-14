@@ -37,5 +37,5 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-MESSAGE_DEF(
-    ASYNC_SYSTEM_COMMAND, itti_async_system_command_t, async_system_command)
+MESSAGE_DEF(ASYNC_SYSTEM_COMMAND, itti_async_system_command_t,
+            async_system_command)

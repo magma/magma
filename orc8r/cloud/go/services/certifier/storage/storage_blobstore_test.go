@@ -28,7 +28,7 @@ import (
 	"magma/orc8r/cloud/go/services/certifier/protos"
 	cstorage "magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/cloud/go/storage"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 func TestCertifierBlobstore_GetCertInfo(t *testing.T) {

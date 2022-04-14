@@ -23,10 +23,9 @@
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/AccessPointName.h"
 
-int decode_access_point_name(
-    AccessPointName* accesspointname, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
-  int decoded   = 0;
+int decode_access_point_name(AccessPointName* accesspointname, uint8_t iei,
+                             uint8_t* buffer, uint32_t len) {
+  int decoded = 0;
   uint8_t ielen = 0;
   int decode_result;
 
@@ -39,8 +38,8 @@ int decode_access_point_name(
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
 
-  if ((decode_result = decode_bstring(
-           accesspointname, ielen, buffer + decoded, len - decoded)) < 0)
+  if ((decode_result = decode_bstring(accesspointname, ielen, buffer + decoded,
+                                      len - decoded)) < 0)
     return decode_result;
   else
     decoded += decode_result;
@@ -48,22 +47,21 @@ int decode_access_point_name(
   return decoded;
 }
 
-int encode_access_point_name(
-    AccessPointName accesspointname, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
-  uint8_t* lenPtr                                       = NULL;
-  uint32_t encoded                                      = 0;
-  int encode_result                                     = 0;
-  uint32_t length_index                                 = 0;
-  uint32_t index                                        = 0;
-  uint32_t index_copy                                   = 0;
+int encode_access_point_name(AccessPointName accesspointname, uint8_t iei,
+                             uint8_t* buffer, uint32_t len) {
+  uint8_t* lenPtr = NULL;
+  uint32_t encoded = 0;
+  int encode_result = 0;
+  uint32_t length_index = 0;
+  uint32_t index = 0;
+  uint32_t index_copy = 0;
   uint8_t apn_encoded[ACCESS_POINT_NAME_MAXIMUM_LENGTH] = {0};
 
   /*
    * Checking IEI and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, ACCESS_POINT_NAME_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, ACCESS_POINT_NAME_MINIMUM_LENGTH,
+                                       len);
 
   if (iei > 0) {
     *buffer = iei;
@@ -72,16 +70,16 @@ int encode_access_point_name(
 
   lenPtr = (buffer + encoded);
   encoded++;
-  index        = 0;  // index on original APN string
+  index = 0;         // index on original APN string
   length_index = 0;  // marker where to write partial length
-  index_copy   = 1;
+  index_copy = 1;
 
   while ((accesspointname->data[index] != 0) &&
          (index < accesspointname->slen)) {
     if (accesspointname->data[index] == '.') {
       apn_encoded[length_index] = index_copy - length_index - 1;
-      length_index              = index_copy;
-      index_copy                = length_index + 1;
+      length_index = index_copy;
+      index_copy = length_index + 1;
     } else {
       apn_encoded[index_copy] = accesspointname->data[index];
       index_copy++;
@@ -91,7 +89,7 @@ int encode_access_point_name(
   }
 
   apn_encoded[length_index] = index_copy - length_index - 1;
-  bstring bapn              = blk2bstr(apn_encoded, index_copy);
+  bstring bapn = blk2bstr(apn_encoded, index_copy);
 
   if ((encode_result = encode_bstring(bapn, buffer + encoded, len - encoded)) <
       0) {

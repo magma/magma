@@ -18,7 +18,7 @@ import 'jest-dom/extend-expect';
 import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import Main from '../Main';
 import React from 'react';
-import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
+import {AppContextProvider} from '../../../fbc_js_core/ui/context/AppContext';
 import {MemoryRouter} from 'react-router-dom';
 import {cleanup, render, wait} from '@testing-library/react';
 
@@ -33,6 +33,11 @@ jest.mock('../main/Index', () => ({
   default: () => <div>Index</div>,
 }));
 
+jest.mock('../IndexWithoutNetwork', () => ({
+  __esModule: true,
+  default: () => <div>IndexWithoutNetwork</div>,
+}));
+
 const Wrapper = props => (
   <MemoryRouter initialEntries={[props.path]} initialIndex={0}>
     <AppContextProvider>{props.children}</AppContextProvider>
@@ -41,29 +46,21 @@ const Wrapper = props => (
 
 afterEach(cleanup);
 
-const testCases = [
-  {
-    section: 'nms',
-    path: '/nms/mynetwork',
-    text: 'Index',
-  },
-  {
-    section: 'admin',
-    path: '/admin/settings',
-    testId: 'change-password-title',
-  },
-];
-
-testCases.forEach(testCase => {
+describe.each`
+  path                | text                     | networks
+  ${'/nms/mynetwork'} | ${'Index'}               | ${['mynetwork']}
+  ${'/admin'}         | ${'IndexWithoutNetwork'} | ${[]}
+  ${'/settings'}      | ${'IndexWithoutNetwork'} | ${[]}
+`('renders $path', ({path, text, networks}) => {
   beforeEach(() => {
-    MagmaAPIBindings.getNetworks.mockResolvedValueOnce(['mynetwork']);
+    MagmaAPIBindings.getNetworks.mockResolvedValueOnce(networks);
   });
 
   afterEach(() => {
     jest.resetAllMocks();
   });
 
-  it(`renders for ${testCase.path} path`, async () => {
+  it(`renders for ${path} path`, async () => {
     global.CONFIG = {
       appData: {
         enabledFeatures: [],
@@ -75,18 +72,14 @@ testCases.forEach(testCase => {
       MAPBOX_ACCESS_TOKEN: '',
     };
 
-    const {getByTestId, getByText} = render(
-      <Wrapper path={testCase.path}>
+    const {getByText} = render(
+      <Wrapper path={path}>
         <Main />
       </Wrapper>,
     );
 
     await wait();
 
-    if (testCase.text) {
-      expect(getByText(testCase.text)).toBeInTheDocument();
-    } else {
-      expect(getByTestId(testCase.testId)).toBeInTheDocument();
-    }
+    expect(getByText(text)).toBeInTheDocument();
   });
 });

@@ -11,6 +11,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/bootstrapper"
+	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/tenants"
@@ -33,14 +34,15 @@ func NewRegistrationServicer() protos.RegistrationServer {
 }
 
 func (r *RegistrationService) Register(c context.Context, request *protos.RegisterRequest) (*protos.RegisterResponse, error) {
-	nonce, err := NonceFromToken(request.Token)
-	if err != nil {
-		return nil, err
-	}
-
-	deviceInfo, err := r.GetGatewayDeviceInfo(context.Background(), nonce)
+	deviceInfo, err := r.GetGatewayDeviceInfo(context.Background(), request.Token)
 	if err != nil {
 		clientErr := makeErr(fmt.Sprintf("could not get device info from token %v: %v", request.Token, err))
+		return clientErr, nil
+	}
+
+	err = updateGatewayDevice(c, deviceInfo, request.Hwid, request.ChallengeKey)
+	if err != nil {
+		clientErr := makeErr(fmt.Sprintf("error updating gateway: %v", err))
 		return clientErr, nil
 	}
 
@@ -65,11 +67,7 @@ func (r *RegistrationService) Register(c context.Context, request *protos.Regist
 }
 
 func RegisterDevice(deviceInfo protos.GatewayDeviceInfo, hwid *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) error {
-	challengeKeyBase64 := strfmt.Base64(challengeKey.Key)
-	gatewayRecord := &models.GatewayDevice{
-		HardwareID: hwid.Id,
-		Key:        &models.ChallengeKey{KeyType: challengeKey.KeyType.String(), Key: &challengeKeyBase64},
-	}
+	gatewayRecord := createGatewayDevice(hwid, challengeKey)
 	err := device.RegisterDevice(context.Background(), deviceInfo.NetworkId, orc8r.AccessGatewayRecordType, hwid.Id, gatewayRecord, serdes.Device)
 	return err
 }
@@ -113,4 +111,40 @@ func makeErr(errString string) *protos.RegisterResponse {
 		},
 	}
 	return errRes
+}
+
+// createGatewayDevice creates the gateway device model
+func createGatewayDevice(hwID *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) *models.GatewayDevice {
+	challengeKeyBase64 := strfmt.Base64(challengeKey.Key)
+	return &models.GatewayDevice{
+		HardwareID: hwID.Id,
+		Key:        &models.ChallengeKey{KeyType: challengeKey.KeyType.String(), Key: &challengeKeyBase64},
+	}
+}
+
+// updateGatewayDevice writes to the device information to the gateway entity
+func updateGatewayDevice(ctx context.Context, deviceInfo *protos.GatewayDeviceInfo, hwID *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) error {
+	networkID := deviceInfo.NetworkId
+	gatewayID := deviceInfo.LogicalId
+
+	ent, err := configurator.LoadEntity(
+		ctx,
+		networkID, orc8r.MagmadGatewayType, gatewayID,
+		configurator.EntityLoadCriteria{},
+		serdes.Entity,
+	)
+	if err != nil {
+		return err
+	}
+
+	device := createGatewayDevice(hwID, challengeKey)
+
+	gw := (&models.MagmadGateway{}).FromBackendModels(ent, device, nil)
+
+	_, err = configurator.UpdateEntities(ctx, networkID, gw.ToEntityUpdateCriteria(ent), serdes.Entity)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

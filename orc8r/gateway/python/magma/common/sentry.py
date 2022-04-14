@@ -20,6 +20,7 @@ import sentry_sdk
 import snowflake
 from magma.configuration.service_configs import get_service_config_value
 from orc8r.protos.mconfig import mconfigs_pb2
+from sentry_sdk.integrations.redis import RedisIntegration
 
 Event = Dict[str, Any]
 Hint = Dict[str, Any]
@@ -119,17 +120,24 @@ def _filter_excluded_messages(event: Event, hint: Hint, patterns_to_exclude: Lis
     return event
 
 
-def _get_before_send_hook(patterns_to_exclude: List[str]) -> Optional[SentryHook]:
+def _get_before_send_hook(patterns_to_exclude: List[str]) -> SentryHook:
 
     def filter_excluded_and_marked_messages(
             event: Event, hint: Hint,
     ) -> Optional[Event]:
         event = _ignore_if_marked(event)
-        if event and patterns_to_exclude:
+        if event:
             return _filter_excluded_messages(event, hint, patterns_to_exclude)
         return None
 
-    return filter_excluded_and_marked_messages
+    def filter_marked_messages(
+            event: Event, _: Hint,
+    ) -> Optional[Event]:
+        return _ignore_if_marked(event)
+
+    if patterns_to_exclude:
+        return filter_excluded_and_marked_messages
+    return filter_marked_messages
 
 
 def sentry_init(service_name: str, sentry_mconfig: mconfigs_pb2.SharedSentryConfig) -> None:
@@ -150,6 +158,9 @@ def sentry_init(service_name: str, sentry_mconfig: mconfigs_pb2.SharedSentryConf
         release=os.getenv(COMMIT_HASH),
         traces_sample_rate=sentry_config.sample_rate,
         before_send=_get_before_send_hook(sentry_config.exclusion_patterns),
+        integrations=[
+            RedisIntegration(),
+        ],
     )
 
     cloud_address = get_service_config_value(

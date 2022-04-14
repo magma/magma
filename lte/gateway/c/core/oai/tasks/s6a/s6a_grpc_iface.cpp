@@ -19,16 +19,16 @@
 extern "C" {
 #endif
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
 
 #ifdef __cplusplus
 }
 #endif
 
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/s6a_client_api.h"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_grpc_iface.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/s6a_client_api.hpp"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_grpc_iface.hpp"
 
 //------------------------------------------------------------------------------
 S6aGrpcIface::S6aGrpcIface(void) {
@@ -48,6 +48,4 @@ bool S6aGrpcIface::send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP) {
   return false;
 }
 //------------------------------------------------------------------------------
-bool S6aGrpcIface::purge_ue(const char* imsi) {
-  return s6a_purge_ue(imsi);
-}
+bool S6aGrpcIface::purge_ue(const char* imsi) { return s6a_purge_ue(imsi); }

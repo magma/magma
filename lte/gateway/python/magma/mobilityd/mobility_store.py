@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from collections import defaultdict
+from typing import Callable, Dict
 
 import redis
 from magma.common.redis.containers import RedisFlatDict, RedisHashDict, RedisSet
@@ -20,6 +21,7 @@ from magma.common.redis.serializers import (
     get_json_serializer,
 )
 from magma.mobilityd import serialize_utils
+from magma.mobilityd.ip_descriptor import IPDesc, IPState
 from magma.mobilityd.ip_descriptor_map import IpDescriptorMap
 from magma.mobilityd.uplink_gw import UplinkGatewayInfo
 
@@ -41,11 +43,12 @@ class MobilityStore(object):
     def init_store(
         self, client: redis.Redis,
     ):
+        get_ip_states: Callable[[IPState], Dict[str, IPDesc]] = lambda key: ip_states(client, key)
         self.ip_state_map = IpDescriptorMap(
-            defaultdict_key(lambda key: ip_states(client, key)),
+            defaultdict_key(get_ip_states),  # type: ignore[arg-type]
         )
         self.ipv6_state_map = IpDescriptorMap(
-            defaultdict_key(lambda key: ip_states(client, key)),
+            defaultdict_key(get_ip_states),  # type: ignore[arg-type]
         )
         self.assigned_ip_blocks = AssignedIpBlocksSet(client)
         self.sid_ips_map = IPDescDict(client)

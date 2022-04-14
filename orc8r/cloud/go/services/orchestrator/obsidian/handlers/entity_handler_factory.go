@@ -22,7 +22,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 // PartialEntityModel describe models that represents a portion of network
@@ -74,7 +74,7 @@ func GetPartialReadEntityHandler(path string, paramName string, model PartialEnt
 			}
 
 			err := model.FromBackendModels(c.Request().Context(), networkID, key)
-			if err == errors.ErrNotFound {
+			if err == merrors.ErrNotFound {
 				return obsidian.MakeHTTPError(err, http.StatusNotFound)
 			} else if err != nil {
 				return obsidian.MakeHTTPError(err, http.StatusInternalServerError)

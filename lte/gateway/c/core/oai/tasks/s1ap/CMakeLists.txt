@@ -10,7 +10,6 @@
 # limitations under the License.
 
 add_list1_option(S1AP_VERSION R15 "S1AP Asn.1 grammar version" R15)
-add_definitions(-DASN1_MINIMUM_VERSION=923)
 set(ASN1RELDIR r15)
 set(S1AP_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(asn1_generated_dir ${CMAKE_CURRENT_BINARY_DIR})
@@ -76,6 +75,7 @@ add_library(TASK_S1AP
     ${S1AP_DIR}/s1ap_state.cpp
     ${S1AP_DIR}/s1ap_state_manager.cpp
     ${S1AP_DIR}/s1ap_state_converter.cpp
+    ${S1AP_DIR}/s1ap_timer_management.cpp
     )
 target_link_libraries(TASK_S1AP
     MAGMA_CONFIG

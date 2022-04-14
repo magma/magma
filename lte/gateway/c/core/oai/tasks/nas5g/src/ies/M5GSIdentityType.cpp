@@ -11,7 +11,7 @@
 
 #include <sstream>
 #include <cstdint>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSIdentityType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSIdentityType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
@@ -24,11 +24,8 @@ int M5GSIdentityTypeMsg::DecodeM5GSIdentityTypeMsg(
     uint32_t len) {
   uint8_t decoded = 0;
 
-  MLOG(MDEBUG) << "   DecodeM5GSIdentityTypeMsg : ";
   m5gs_identity_type->toi = *(buffer + decoded) & 0x7;
   decoded++;
-  MLOG(MDEBUG) << " Type of Identity = " << std::dec
-               << int(m5gs_identity_type->toi);
   return (decoded);
 };
 
@@ -38,10 +35,7 @@ int M5GSIdentityTypeMsg::EncodeM5GSIdentityTypeMsg(
     uint32_t len) {
   int encoded = 0;
 
-  MLOG(MDEBUG) << " EncodeM5GSIdentityTypeMsg : ";
   *(buffer + encoded) = (m5gs_identity_type->toi) & 0x7;
-  MLOG(MDEBUG) << " Type of identity = 0x" << std::hex
-               << int(*(buffer + encoded));
   encoded++;
   return (encoded);
 };

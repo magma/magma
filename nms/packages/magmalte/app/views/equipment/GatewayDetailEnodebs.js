@@ -20,14 +20,14 @@ import ActionTable from '../../components/ActionTable';
 import EnodebContext from '../../components/context/EnodebContext';
 import Link from '@material-ui/core/Link';
 import React from 'react';
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 
 import {
   REFRESH_INTERVAL,
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import {useState} from 'react';
 
 type EnodebRowType = {

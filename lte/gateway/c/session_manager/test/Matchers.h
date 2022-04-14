@@ -301,24 +301,37 @@ MATCHER_P(CheckDeactivateFlows, imsi, "") {
 MATCHER_P(CheckSrvResponse, expected_response, "") {
   auto actual_response = static_cast<const SetSMSessionContextAccess>(arg);
 
-  auto expected_session_ambr = &(expected_response->rat_specific_context()
-                                     .m5g_session_context_rsp()
-                                     .session_ambr());
+  auto expected_subscribed_qos = &(expected_response->rat_specific_context()
+                                       .m5g_session_context_rsp()
+                                       .subscribed_qos());
 
-  auto actual_response_ambr = &(actual_response.rat_specific_context()
-                                    .m5g_session_context_rsp()
-                                    .session_ambr());
+  auto actual_subscribed_qos = &(actual_response.rat_specific_context()
+                                     .m5g_session_context_rsp()
+                                     .subscribed_qos());
 
   auto unit_res =
-      (expected_session_ambr->br_unit() == actual_response_ambr->br_unit());
+      (expected_subscribed_qos->br_unit() == actual_subscribed_qos->br_unit());
 
-  auto ul_ambr_res = (expected_session_ambr->max_bandwidth_ul() ==
-                      actual_response_ambr->max_bandwidth_ul());
+  auto ul_ambr_res = (expected_subscribed_qos->apn_ambr_ul() ==
+                      actual_subscribed_qos->apn_ambr_ul());
 
-  auto dl_ambr_res = (expected_session_ambr->max_bandwidth_dl() ==
-                      actual_response_ambr->max_bandwidth_dl());
+  auto dl_ambr_res = (expected_subscribed_qos->apn_ambr_dl() ==
+                      actual_subscribed_qos->apn_ambr_dl());
 
-  return (unit_res && ul_ambr_res && dl_ambr_res);
+  auto priority_lev_res = (expected_subscribed_qos->priority_level() ==
+                           actual_subscribed_qos->priority_level());
+
+  auto pre_cap_res = (expected_subscribed_qos->preemption_capability() ==
+                      actual_subscribed_qos->preemption_capability());
+
+  auto pre_vuln_res = (expected_subscribed_qos->preemption_vulnerability() ==
+                       actual_subscribed_qos->preemption_vulnerability());
+
+  auto qos_class_id_res = (expected_subscribed_qos->qos_class_id() ==
+                           actual_subscribed_qos->qos_class_id());
+
+  return (unit_res && ul_ambr_res && dl_ambr_res && priority_lev_res &&
+          pre_cap_res && pre_vuln_res && qos_class_id_res);
 }
 
 MATCHER_P(CheckSendRequest, expected_request, "") {

@@ -22,7 +22,7 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
-	magmaerrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 func integration(t *testing.T, fact blobstore.StoreFactory) {
@@ -36,7 +36,7 @@ func integration(t *testing.T, fact blobstore.StoreFactory) {
 	assert.Empty(t, listActual)
 
 	getActual, err := store.Get("network", storage.TK{Type: "t", Key: "k"})
-	assert.True(t, err == magmaerrors.ErrNotFound)
+	assert.True(t, err == merrors.ErrNotFound)
 	assert.Equal(t, blobstore.Blob{}, getActual)
 
 	getManyActual, err := store.GetMany(

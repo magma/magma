@@ -85,8 +85,8 @@ class GenericHealthChecker:
         }
         res = {
             service_name: Errors(
-            log_level=configs[service_name].get('logLevel', 'INFO'),
-            error_count=0,
+                log_level=configs[service_name].get('logLevel', 'INFO'),
+                error_count=0,
             )
             for service_name in service_names
         }

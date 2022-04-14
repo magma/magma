@@ -26,16 +26,16 @@ import type {
 
 import ActionTable from '../../components/ActionTable';
 import Link from '@material-ui/core/Link';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import React, {useEffect, useState} from 'react';
 import isGatewayHealthy from '../../components/GatewayUtils';
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 
 import {FetchGateways} from '../../state/lte/EquipmentState';
 import {GatewayTypeEnum} from '../../components/GatewayUtils';
 import {getServicedAccessNetworks} from '../../components/FEGServicingAccessGatewayKPIs';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 type ServicingAccessGatewayRowType = {
   networkId: network_id,

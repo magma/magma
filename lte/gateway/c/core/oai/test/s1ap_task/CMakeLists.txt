@@ -26,7 +26,7 @@ add_executable(s1ap_test
         test_s1ap_state_converter.cpp)
 
 target_link_libraries(s1ap_test
-        TASK_S1AP MOCK_TASKS
+        TASK_S1AP MOCK_TASKS TASK_AMF_APP
         gtest gtest_main
         )
 

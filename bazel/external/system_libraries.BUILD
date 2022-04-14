@@ -67,6 +67,40 @@ cc_library(
     linkopts = ["-lsctp"],
 )
 
+cc_library(
+    name = "czmq",
+    linkopts = ["-lczmq"],
+)
+
+cc_library(
+    name = "libconfig",
+    linkopts = ["-lconfig"],
+)
+
+cc_library(
+    name = "libfd",
+    srcs = [
+        "usr/local/lib/libfdcore.so",
+        "usr/local/lib/libfdproto.so",
+    ],
+    linkopts = [
+        "-lfdcore",
+        "-lfdproto",
+    ],
+)
+
+cc_library(
+    name = "libnettle",
+    srcs = ["usr/lib/libnettle.so"],
+    linkopts = ["-lnettle"],
+)
+
+cc_library(
+    name = "libgnutls",
+    srcs = ["usr/lib/libgnutls.so"],
+    linkopts = ["-lgnutls"],
+)
+
 # TODO(GH9710): Generate asn1c with Bazel
 native_binary(
     name = "asn1c",

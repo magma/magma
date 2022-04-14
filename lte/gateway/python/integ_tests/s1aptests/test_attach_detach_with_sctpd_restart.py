@@ -28,7 +28,7 @@ class TestAttachDetachWithSctpdRestart(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach(self):
+    def test_attach_detach_with_sctpd_restart(self):
         """
         Attach/detach test with two UEs and Sctpd restarting after each attach.
         A new attach has to happen after Sctpd restarts before UE can detach.

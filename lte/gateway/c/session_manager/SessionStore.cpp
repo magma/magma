@@ -329,12 +329,12 @@ optional<SessionVector::iterator> SessionStore::find_session(
             break;
           case RATType::TGPP_LTE:
             if (context.ue_ipv4() == criteria.secondary_key ||
-                context.ue_ipv6() == criteria.secondary_key) {
+                context.ue_ipv6() == criteria.tertiary_key) {
               return it;
             }
             break;
           case RATType::TGPP_NR:
-            if ((*it)->get_upf_local_teid() == criteria.tertiary_key_unit32) {
+            if ((*it)->get_upf_local_teid() == criteria.quaternary_key_unit32) {
               return it;
             }
             break;

@@ -22,8 +22,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/SsCode.h"
 
 //------------------------------------------------------------------------------
-int decode_ss_code(
-    ss_code_t* sscode, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_ss_code(ss_code_t* sscode, uint8_t iei, uint8_t* buffer,
+                   uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -37,8 +37,8 @@ int decode_ss_code(
 }
 
 //------------------------------------------------------------------------------
-int encode_ss_code(
-    ss_code_t* sscode, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_ss_code(ss_code_t* sscode, uint8_t iei, uint8_t* buffer,
+                   uint32_t len) {
   uint32_t encoded = 0;
 
   /*

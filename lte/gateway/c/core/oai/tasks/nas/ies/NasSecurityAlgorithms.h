@@ -43,12 +43,10 @@ typedef struct NasSecurityAlgorithms_tag {
   uint8_t typeofintegrityalgorithm : 3;
 } NasSecurityAlgorithms;
 
-int encode_nas_security_algorithms(
-    NasSecurityAlgorithms* nassecurityalgorithms, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int encode_nas_security_algorithms(NasSecurityAlgorithms* nassecurityalgorithms,
+                                   uint8_t iei, uint8_t* buffer, uint32_t len);
 
-int decode_nas_security_algorithms(
-    NasSecurityAlgorithms* nassecurityalgorithms, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int decode_nas_security_algorithms(NasSecurityAlgorithms* nassecurityalgorithms,
+                                   uint8_t iei, uint8_t* buffer, uint32_t len);
 
 #endif /* NAS SECURITY ALGORITHMS_SEEN */

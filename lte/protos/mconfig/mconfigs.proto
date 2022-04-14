@@ -39,6 +39,9 @@ message SentryConfig {
     float sample_rate = 4;
     // message patterns that are excluded from Sentry (regex substring match)
     repeated string exclusion_patterns = 5;
+    // number_of_lines_in_log defines the number of lines from the 
+    // journal log that is uploaded with every crash report
+    uint32 number_of_lines_in_log = 6;
 }
 
 //------------------------------------------------------------------------------
@@ -368,8 +371,9 @@ message MME {
     // MME congestion control configs
     bool congestion_control_enabled = 40;
 
+    // DEPRECATED: now configured in "shared_mconfig"
     // sentry_config stores the Sentry.io configuration for this service
-    SentryConfig sentry_config = 45;
+    SentryConfig sentry_config = 45 [deprecated = true];
 
     // Enables 5G Standalone (SA) at a network level
     bool enable5g_features = 46;

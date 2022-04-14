@@ -18,6 +18,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -37,7 +38,14 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	code, _ := strconv.Atoi(flag.Arg(1))
+	code, err := strconv.ParseUint(flag.Arg(1), 10, 32)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if code > math.MaxUint32 {
+		log.Fatal(fmt.Errorf("code %d is outside the bounds of unit32 type", code))
+	}
+
 	conn, err := registry.Get().GetCloudConnection(strings.ToLower(registry.FEG_HELLO))
 	if err != nil {
 		log.Fatal(err)
@@ -45,9 +53,6 @@ func main() {
 	defer conn.Close()
 	cl := protos.NewHelloClient(conn)
 	fmt.Printf("Sending  Greeting: '%s', Code: %d\n", msg, code)
-	if code < 0 || code > 4294967295 {
-		log.Fatal(fmt.Errorf("Code %d is outside the bounds of unit32 type", code))
-	}
 	res, err := cl.SayHello(context.Background(), &protos.HelloRequest{Greeting: msg, GrpcErrCode: uint32(code)})
 	if err != nil {
 		log.Fatal(err)

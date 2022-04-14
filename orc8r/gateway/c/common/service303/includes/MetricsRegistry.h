@@ -13,7 +13,6 @@
 #pragma once
 
 #include <orc8r/protos/common.pb.h>
-#include <orc8r/protos/metricsd.pb.h>
 #include <prometheus/counter.h>
 #include <prometheus/family.h>
 #include <prometheus/gauge.h>
@@ -79,9 +78,7 @@ class MetricsRegistry {
   static std::size_t hash_name_and_labels(
       const std::string& name,
       const std::map<std::string, std::string>& labels);
-  // Convert labels to enums if applicable
-  static void parse_labels(const std::map<std::string, std::string>& labels,
-                           std::map<std::string, std::string>& parsed_labels);
+
   std::unordered_map<std::size_t, Family<T>*> families_;
   std::unordered_map<std::size_t, T*> metrics_;
   const std::shared_ptr<prometheus::Registry>& registry_;
@@ -106,12 +103,8 @@ T& MetricsRegistry<T, MetricFamilyFactory>::Get(
   if (family_it != families_.end()) {
     family = family_it->second;
   } else {
-    // If the name is a defined MetricName, use the enum value instead
-    MetricName name_value;
-    const std::string& proto_name =
-        MetricName_Parse(name, &name_value) ? std::to_string(name_value) : name;
     // Factory constructs the metric on the heap and adds it to registry_
-    family = &factory_().Name(proto_name).Register(*registry_);
+    family = &factory_().Name(name).Register(*registry_);
     families_.insert({{name_hash, family}});
   }
 
@@ -122,9 +115,7 @@ T& MetricsRegistry<T, MetricFamilyFactory>::Get(
   if (metric_it != metrics_.end()) {
     metric = metric_it->second;
   } else {
-    std::map<std::string, std::string> converted_labels;
-    parse_labels(labels, converted_labels);
-    metric = &family->Add(converted_labels, std::forward<Args>(args)...);
+    metric = &family->Add(labels, std::forward<Args>(args)...);
     metrics_.insert({{metric_hash, metric}});
   }
   return *metric;
@@ -162,22 +153,6 @@ std::size_t MetricsRegistry<T, MetricFamilyFactory>::hash_name_and_labels(
         return acc + label_pair.first + label_pair.second;
       });
   return std::hash<std::string>{}(combined);
-}
-
-template <typename T, typename MetricFamilyFactory>
-void MetricsRegistry<T, MetricFamilyFactory>::parse_labels(
-    const std::map<std::string, std::string>& labels,
-    std::map<std::string, std::string>& parsed_labels) {
-  for (const auto& label_pair : labels) {
-    // convert label name
-    MetricLabelName label_name_enum;
-    const std::string& label_name =
-        MetricLabelName_Parse(label_pair.first, &label_name_enum)
-            ? std::to_string(label_name_enum)
-            : label_pair.first;
-    // insert into new map
-    parsed_labels.insert({{label_name, label_pair.second}});
-  }
 }
 
 }  // namespace service303

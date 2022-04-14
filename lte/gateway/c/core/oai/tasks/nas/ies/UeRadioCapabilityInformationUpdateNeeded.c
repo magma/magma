@@ -46,7 +46,7 @@ int decode_u8_ue_radio_capability_information_update_needed(
     ue_radio_capability_information_update_needed_t*
         ueradiocapabilityinformationupdateneeded,
     uint8_t iei, uint8_t value, uint32_t len) {
-  int decoded     = 0;
+  int decoded = 0;
   uint8_t* buffer = &value;
 
   *ueradiocapabilityinformationupdateneeded = *buffer & 0x1;
@@ -80,7 +80,7 @@ uint8_t encode_u8_ue_radio_capability_information_update_needed(
   uint8_t bufferReturn;
   uint8_t* buffer = &bufferReturn;
   uint8_t encoded = 0;
-  uint8_t iei     = 0;
+  uint8_t iei = 0;
 
   *(buffer + encoded) =
       0x00 | (iei & 0xf0) | (*ueradiocapabilityinformationupdateneeded & 0x1);

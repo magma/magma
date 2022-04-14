@@ -18,18 +18,20 @@ import (
 	"google.golang.org/grpc"
 
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/obsidian/swagger"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
+	swagger "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/analytics"
 	analytics_protos "magma/orc8r/cloud/go/services/analytics/protos"
+	analytics_servicers "magma/orc8r/cloud/go/services/analytics/servicers/protected"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	exporter_protos "magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/cloud/go/services/orchestrator"
 	analytics_service "magma/orc8r/cloud/go/services/orchestrator/analytics"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/orchestrator/servicers"
+	protected_servicers "magma/orc8r/cloud/go/services/orchestrator/servicers/protected"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
 	streamer_protos "magma/orc8r/cloud/go/services/streamer/protos"
 	"magma/orc8r/lib/go/service/config"
@@ -63,19 +65,19 @@ func main() {
 
 	if serviceConfig.UseGRPCExporter {
 		grpcAddress := serviceConfig.PrometheusGRPCPushAddress
-		exporterServicer = servicers.NewGRPCPushExporterServicer(grpcAddress)
+		exporterServicer = protected_servicers.NewGRPCPushExporterServicer(grpcAddress)
 	} else {
-		exporterServicer = servicers.NewPushExporterServicer(serviceConfig.PrometheusPushAddresses)
+		exporterServicer = protected_servicers.NewPushExporterServicer(serviceConfig.PrometheusPushAddresses)
 	}
 
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, protected_servicers.NewBuilderServicer())
 	exporter_protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
-	indexer_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
+	indexer_protos.RegisterIndexerServer(srv.GrpcServer, protected_servicers.NewIndexerServicer())
 	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(orchestrator.ServiceName))
 
-	collectorServicer := analytics.NewCollectorServicer(
+	collectorServicer := analytics_servicers.NewCollectorServicer(
 		&serviceConfig.Analytics,
 		analytics.GetPrometheusClient(),
 		analytics_service.GetAnalyticsCalculations(&serviceConfig.Analytics),

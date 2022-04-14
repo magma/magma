@@ -26,7 +26,7 @@ import {cleanup, render, wait} from '@testing-library/react';
 
 afterEach(cleanup);
 jest.mock('../../../generated/MagmaAPIBindings');
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
+jest.mock('../../../fbc_js_core/ui/hooks/useSnackbar');
 
 const Wrapper = () => (
   <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>

@@ -41,7 +41,7 @@ export async function UpdateNetworkState(props: UpdateNetworkProps) {
   const requests = [];
   if (props.lteNetwork) {
     requests.push(
-      await MagmaV1API.putLteByNetworkId({
+      MagmaV1API.putLteByNetworkId({
         networkId: networkId,
         lteNetwork: {
           ...props.lteNetwork,
@@ -52,15 +52,15 @@ export async function UpdateNetworkState(props: UpdateNetworkProps) {
 
   if (props.epcConfigs) {
     requests.push(
-      await MagmaV1API.putLteByNetworkIdCellularEpc({
+      MagmaV1API.putLteByNetworkIdCellularEpc({
         networkId: props.networkId,
-        config: props.epcConfigs,
+        config: props.epcConfigs, // $FlowIgnore
       }),
     );
   }
   if (props.lteRanConfigs) {
     requests.push(
-      await MagmaV1API.putLteByNetworkIdCellularRan({
+      MagmaV1API.putLteByNetworkIdCellularRan({
         networkId: props.networkId,
         config: props.lteRanConfigs,
       }),
@@ -68,7 +68,7 @@ export async function UpdateNetworkState(props: UpdateNetworkProps) {
   }
   if (props.lteDnsConfig) {
     requests.push(
-      await MagmaV1API.putLteByNetworkIdDns({
+      MagmaV1API.putLteByNetworkIdDns({
         networkId: props.networkId,
         config: props.lteDnsConfig,
       }),
@@ -76,12 +76,13 @@ export async function UpdateNetworkState(props: UpdateNetworkProps) {
   }
   if (props.subscriberConfig) {
     requests.push(
-      await MagmaV1API.putLteByNetworkIdSubscriberConfig({
+      MagmaV1API.putLteByNetworkIdSubscriberConfig({
         networkId: props.networkId,
         record: props.subscriberConfig,
       }),
     );
   }
+  // TODO(andreilee): Provide a way to handle errors here
   await Promise.all(requests);
   if (props.refreshState) {
     setLteNetwork(await MagmaV1API.getLteByNetworkId({networkId}));

@@ -17,6 +17,7 @@ limitations under the License.
 package indexer
 
 import (
+	"math"
 	"strconv"
 	"testing"
 
@@ -79,9 +80,12 @@ func getIndexer(serviceName string) (Indexer, error) {
 	if err != nil {
 		return nil, err
 	}
-	versionInt, err := strconv.ParseInt(versionVal, 10, 64)
+	versionInt, err := strconv.ParseInt(versionVal, 10, 32)
 	if err != nil {
 		return nil, errors.Wrapf(err, "convert indexer version %v to int for service %s", versionVal, serviceName)
+	}
+	if versionInt < 0 || versionInt > math.MaxUint32 {
+		return nil, errors.Wrapf(err, "number %d is outside the boundaries of uint32 type", versionInt)
 	}
 	version, err := NewIndexerVersion(versionInt)
 	if err != nil {

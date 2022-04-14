@@ -24,7 +24,7 @@ import logging
 from copy import deepcopy
 from ipaddress import ip_address, ip_network
 from threading import Condition
-from typing import List
+from typing import List, cast
 
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 
@@ -33,6 +33,7 @@ from .dhcp_desc import DHCPDescriptor, DHCPState
 from .ip_allocator_base import IPAllocator, NoAvailableIPError
 from .mac import MacAddress, create_mac_from_sid
 from .mobility_store import MobilityStore
+from .utils import IPAddress, IPNetwork
 
 DEFAULT_DHCP_REQUEST_RETRY_FREQUENCY = 10
 DEFAULT_DHCP_REQUEST_RETRY_DELAY = 1
@@ -69,7 +70,7 @@ class IPAllocatorDHCP(IPAllocator):
         self._retry_limit = retry_limit  # default wait for two minutes
         self._dhcp_client.run()
 
-    def add_ip_block(self, ipblock: ip_network):
+    def add_ip_block(self, ipblock: IPNetwork):
         logging.warning(
             "No need to allocate block for DHCP allocator: %s",
             ipblock,
@@ -77,19 +78,19 @@ class IPAllocatorDHCP(IPAllocator):
 
     def remove_ip_blocks(
         self,
-        ipblocks: List[ip_network],
+        ipblocks: List[IPNetwork],
         force: bool = False,
-    ) -> List[ip_network]:
+    ) -> List[IPNetwork]:
         logging.warning(
             "Trying to delete ipblock from DHCP allocator: %s",
             ipblocks,
         )
         return []
 
-    def list_added_ip_blocks(self) -> List[ip_network]:
+    def list_added_ip_blocks(self) -> List[IPNetwork]:
         return list(deepcopy(self._store.assigned_ip_blocks))
 
-    def list_allocated_ips(self, ipblock: ip_network) -> List[ip_address]:
+    def list_allocated_ips(self, ipblock: IPNetwork) -> List[IPAddress]:
         """ List IP addresses allocated from a given IP block
 
         Args:
@@ -122,16 +123,16 @@ class IPAllocatorDHCP(IPAllocator):
         """
         mac = create_mac_from_sid(sid)
 
-        dhcp_desc = self._dhcp_client.get_dhcp_desc(mac, str(vlan_id))
+        dhcp_desc = self._dhcp_client.get_dhcp_desc(mac, vlan_id)
         LOG.debug(
             "allocate IP for %s mac %s dhcp_desc %s", sid, mac,
             dhcp_desc,
         )
 
-        if dhcp_allocated_ip(dhcp_desc) is not True:
+        if not dhcp_desc or not dhcp_allocated_ip(dhcp_desc):
             dhcp_desc = self._alloc_ip_address_from_dhcp(mac, vlan_id)
 
-        if dhcp_allocated_ip(dhcp_desc):
+        if dhcp_desc and dhcp_allocated_ip(dhcp_desc):
             ip_block = ip_network(dhcp_desc.subnet)
             ip_desc = IPDesc(
                 ip=ip_address(dhcp_desc.ip),
@@ -199,7 +200,9 @@ class IPAllocatorDHCP(IPAllocator):
             dhcp_desc = None
             while (
                 retry_count < self._retry_limit
-                and dhcp_allocated_ip(dhcp_desc) is not True
+                and (
+                    (dhcp_desc is None) or not dhcp_allocated_ip(dhcp_desc)
+                )
             ):
 
                 if retry_count % DEFAULT_DHCP_REQUEST_RETRY_FREQUENCY == 0:
@@ -213,8 +216,8 @@ class IPAllocatorDHCP(IPAllocator):
 
                 retry_count = retry_count + 1
 
-            return dhcp_desc
+            return cast(DHCPDescriptor, dhcp_desc)
 
 
-def dhcp_allocated_ip(dhcp_desc) -> bool:
-    return dhcp_desc is not None and dhcp_desc.ip_is_allocated()
+def dhcp_allocated_ip(dhcp_desc: DHCPDescriptor) -> bool:
+    return dhcp_desc.ip_is_allocated()

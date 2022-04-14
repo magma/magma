@@ -18,9 +18,9 @@ import puppeteer from 'puppeteer';
 import {ARTIFACTS_DIR, SimulateNMSLogin} from '../LoginUtils';
 import {addFegLteNetwork, addFegNetwork} from '../NetworkUtils';
 
-const ADMIN_SELECTOR = `//span[text()='Administrative Tools']`;
-const ADMIN_NW_SELECTOR = `//a[starts-with(@href, '/admin/networks')]`;
-const NAV_SELECTOR = `//body/div[1]/div/div/div[last()]`;
+const ADMIN_SELECTOR = `//span[text()='Administration']`;
+const ADMIN_NW_SELECTOR = `//a[starts-with(@href, '/nms/test/admin/networks')]`;
+const NAV_SELECTOR = `//div[@data-testid='profileButton']`;
 
 let browser;
 beforeEach(async () => {
@@ -54,9 +54,10 @@ describe('Admin component', () => {
       const adminSelector = await page.$x(ADMIN_SELECTOR);
       await adminSelector[0].click();
 
-      // wait for 'admin network page'
-      await page.waitForNavigation();
       await page.waitForXPath(ADMIN_NW_SELECTOR);
+
+      // It seems to take a while until the button becomes responsive
+      await page.waitForTimeout(500);
       const adminNwSelector = await page.$x(ADMIN_NW_SELECTOR);
       await adminNwSelector[0].click();
 

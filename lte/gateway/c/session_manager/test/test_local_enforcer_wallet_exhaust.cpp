@@ -23,10 +23,10 @@
 #include "Consts.h"
 #include "LocalEnforcer.h"
 #include "magma_logging.h"
-#include "includes/MagmaService.h"
+#include "includes/MagmaService.hpp"
 #include "Matchers.h"
 #include "ProtobufCreators.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.hpp"
 #include "SessiondMocks.h"
 #include "SessionStore.h"
 
@@ -295,12 +295,4 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_update) {
   local_enforcer->update_session_credits_and_rules(session_map, update_response,
                                                    update);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  FLAGS_logtostderr = 1;
-  FLAGS_v = 10;
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

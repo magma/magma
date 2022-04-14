@@ -13,7 +13,7 @@
 #include <gtest/gtest.h>
 #include "yaml-cpp/yaml.h"
 
-#include "orc8r/gateway/c/common/config/YAMLUtils.h"
+#include "orc8r/gateway/c/common/config/YAMLUtils.hpp"
 
 using ::testing::Test;
 using YAML::Node;
@@ -64,10 +64,5 @@ TEST(test_nested_overrides, test_yaml_utils) {
   EXPECT_EQ("other", merge["foo"]["new_nest"].as<std::string>());
   EXPECT_EQ("e", merge["nest"]["a"].as<std::string>());
   EXPECT_EQ("d", merge["nest"]["c"].as<std::string>());
-}
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
 }  // namespace magma

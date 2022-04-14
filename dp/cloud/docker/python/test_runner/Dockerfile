@@ -2,7 +2,7 @@ ARG ENV=standard
 FROM python:3.9.2-slim-buster as protos-generator
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl=7.64.0-4+deb10u2 zip=3.0-11+b1 make=4.2.1-1.2 unzip=6.0-23+deb10u2
-RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.18.0/protoc-3.18.0-linux-x86_64.zip \
+RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.10.0/protoc-3.10.0-linux-x86_64.zip \
     -o protoc3.zip
 RUN unzip protoc3.zip -d protoc3 &&\
     mv protoc3/bin/protoc /bin/protoc &&\

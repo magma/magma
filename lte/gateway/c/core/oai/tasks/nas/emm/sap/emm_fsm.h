@@ -52,7 +52,7 @@ Description Defines the EPS Mobility Management procedures executed at
  */
 typedef enum {
   EMM_STATE_MIN = 0,
-  EMM_INVALID   = EMM_STATE_MIN,
+  EMM_INVALID = EMM_STATE_MIN,
   EMM_DEREGISTERED,
   EMM_REGISTERED,
   EMM_DEREGISTERED_INITIATED,
@@ -60,9 +60,9 @@ typedef enum {
   EMM_STATE_MAX
 } emm_fsm_state_t;
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.h"
 
 struct emm_context_s;
 struct emm_reg_s;
@@ -79,9 +79,9 @@ void emm_fsm_initialize(void);
 struct emm_context_s;
 struct emm_reg_s;
 
-status_code_e emm_fsm_set_state(
-    const mme_ue_s1ap_id_t ueid, struct emm_context_s* const emm_context,
-    const emm_fsm_state_t status);
+status_code_e emm_fsm_set_state(const mme_ue_s1ap_id_t ueid,
+                                struct emm_context_s* const emm_context,
+                                const emm_fsm_state_t status);
 emm_fsm_state_t emm_fsm_get_state(
     const struct emm_context_s* const emm_context);
 const char* emm_fsm_get_state_str(

@@ -39,22 +39,22 @@
 #include <signal.h>
 #include <ctype.h>
 
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/backtrace.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/common/backtrace.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/lib/itti/signals.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/signals.h"
 
 #ifndef SIG_DEBUG
-#define SIG_DEBUG(x, args...)                                                  \
-  do {                                                                         \
-    fprintf(stdout, "[SIG][D]" x, ##args);                                     \
+#define SIG_DEBUG(x, args...)              \
+  do {                                     \
+    fprintf(stdout, "[SIG][D]" x, ##args); \
   } while (0)
 #endif
 #ifndef SIG_ERROR
-#define SIG_ERROR(x, args...)                                                  \
-  do {                                                                         \
-    fprintf(stdout, "[SIG][E]" x, ##args);                                     \
+#define SIG_ERROR(x, args...)              \
+  do {                                     \
+    fprintf(stdout, "[SIG][E]" x, ##args); \
   } while (0)
 #endif
 
@@ -80,7 +80,7 @@ void gcov_flush(void);
 // Threads: 1
 //
 static const char THREADS_STR[] = "Threads:";
-static const char PROC_PATH[]   = "/proc/%d/status";
+static const char PROC_PATH[] = "/proc/%d/status";
 
 static int get_thread_count(pid_t pid) {
   char path[40], line[100], *p;

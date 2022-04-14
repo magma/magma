@@ -18,8 +18,8 @@
 #include <memory>
 #include <thread>
 
-#include "includes/MagmaService.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "includes/MagmaService.hpp"
+#include "includes/ServiceRegistrySingleton.hpp"
 #include "SessiondMocks.h"
 #include "SessionManagerServer.h"
 
@@ -166,10 +166,4 @@ TEST_F(AsyncServiceTest, test_multi_thread) {
   result1.get();
   result2.get();
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

@@ -24,4 +24,6 @@ const (
 
 	// UseGRPCExporter is a flag to determine which exporter to use
 	UseGRPCExporter = "useGRPCExporter"
+
+	ServiceName = "orchestrator"
 )

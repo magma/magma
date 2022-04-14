@@ -29,17 +29,15 @@
 
 typedef uint8_t eps_attach_type_t;
 
-int encode_eps_attach_type(
-    eps_attach_type_t* epsattachtype, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int encode_eps_attach_type(eps_attach_type_t* epsattachtype, uint8_t iei,
+                           uint8_t* buffer, uint32_t len);
 
 uint8_t encode_u8_eps_attach_type(eps_attach_type_t* epsattachtype);
 
-int decode_eps_attach_type(
-    eps_attach_type_t* epsattachtype, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int decode_eps_attach_type(eps_attach_type_t* epsattachtype, uint8_t iei,
+                           uint8_t* buffer, uint32_t len);
 
-int decode_u8_eps_attach_type(
-    eps_attach_type_t* epsattachtype, uint8_t iei, uint8_t value, uint32_t len);
+int decode_u8_eps_attach_type(eps_attach_type_t* epsattachtype, uint8_t iei,
+                              uint8_t value, uint32_t len);
 
 #endif /* EPS_ATTACH_TYPE_SEEN */

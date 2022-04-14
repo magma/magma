@@ -26,6 +26,7 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/services/state/servicers"
+	indexermgr_servicers "magma/orc8r/cloud/go/services/state/servicers/protected"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
@@ -55,14 +56,19 @@ func startService(t *testing.T, db *sql.DB) (reindex.Reindexer, reindex.JobQueue
 
 	factory := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 	require.NoError(t, factory.InitializeFactory())
+
 	stateServicer, err := servicers.NewStateServicer(factory)
 	require.NoError(t, err)
 	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
 
+	cloudStateServicer, err := servicers.NewCloudStateServicer(factory)
+	require.NoError(t, err)
+	protos.RegisterCloudStateServiceServer(srv.GrpcServer, cloudStateServicer)
+
 	queue := reindex.NewSQLJobQueue(singleAttempt, db, sqorc.GetSqlBuilder())
 	require.NoError(t, queue.Initialize())
 	reindexer := reindex.NewReindexerQueue(queue, reindex.NewStore(factory))
-	indexerServicer := servicers.NewIndexerManagerServicer(reindexer, false)
+	indexerServicer := indexermgr_servicers.NewIndexerManagerServicer(reindexer, false)
 	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
 
 	go srv.RunTest(lis)
@@ -83,14 +89,19 @@ func startSingletonService(t *testing.T, db *sql.DB) reindex.Reindexer {
 
 	factory := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 	require.NoError(t, factory.InitializeFactory())
+
 	stateServicer, err := servicers.NewStateServicer(factory)
 	require.NoError(t, err)
 	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
 
+	cloudStateServicer, err := servicers.NewCloudStateServicer(factory)
+	require.NoError(t, err)
+	protos.RegisterCloudStateServiceServer(srv.GrpcServer, cloudStateServicer)
+
 	versioner := reindex.NewVersioner(db, sqorc.GetSqlBuilder())
 	versioner.Initialize()
 	reindexer := reindex.NewReindexerSingleton(reindex.NewStore(factory), versioner)
-	indexerServicer := servicers.NewIndexerManagerServicer(reindexer, false)
+	indexerServicer := indexermgr_servicers.NewIndexerManagerServicer(reindexer, false)
 	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
 
 	go srv.RunTest(lis)

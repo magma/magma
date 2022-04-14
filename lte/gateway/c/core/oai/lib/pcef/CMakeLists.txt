@@ -1,7 +1,6 @@
 add_compile_options(-std=c++14)
 
 set(CMAKE_CXX_FLAGS "-Wno-write-strings -Wno-literal-suffix")
-add_definitions(-DDEBUG_IS_ON=1)
 
 # compile the needed protos
 set(PCEF_ORC8R_CPP_PROTOS mconfig/mconfigs)

@@ -28,7 +28,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 type (
@@ -238,7 +238,7 @@ func TestGetDeleteNetworkConfigHandler(t *testing.T) {
 	tests.RunUnitTest(t, e, deleteTestConfig)
 
 	_, err := configurator.LoadNetworkConfig(context.Background(), networkID, "test", networkSerdes)
-	assert.EqualError(t, err, errors.ErrNotFound.Error())
+	assert.EqualError(t, err, merrors.ErrNotFound.Error())
 }
 
 func (m *ID) Validate(_ strfmt.Registry) error {

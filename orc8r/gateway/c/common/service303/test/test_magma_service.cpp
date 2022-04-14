@@ -12,7 +12,7 @@
  */
 #include <gtest/gtest.h>
 
-#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
 
 using ::testing::Test;
 
@@ -105,11 +105,6 @@ TEST(test_magma_service, test_ReloadServiceConfig) {
   magma_service.ClearConfigReloadCallback();
   magma_service.ReloadServiceConfig(nullptr, nullptr, &response);
   EXPECT_EQ(response.result(), ReloadConfigResponse::RELOAD_UNSUPPORTED);
-}
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
 }  // namespace service303
 }  // namespace magma

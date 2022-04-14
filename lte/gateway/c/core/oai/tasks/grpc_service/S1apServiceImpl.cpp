@@ -14,15 +14,15 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include "lte/gateway/c/core/oai/tasks/grpc_service/S1apServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S1apServiceImpl.hpp"
 
 #include <string>
 
 extern "C" {
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/s1ap_state.h"
+#include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 }
 
 using grpc::ServerContext;
@@ -36,8 +36,8 @@ using namespace orc8r;
 
 S1apServiceImpl::S1apServiceImpl() {}
 
-Status S1apServiceImpl::GetENBState(
-    ServerContext* context, const Void* request, EnbStateResult* response) {
+Status S1apServiceImpl::GetENBState(ServerContext* context, const Void* request,
+                                    EnbStateResult* response) {
   OAILOG_DEBUG(LOG_UTIL, "Received GetENBState GRPC request\n");
 
   // Get state from S1APStateManager
@@ -53,8 +53,8 @@ Status S1apServiceImpl::GetENBState(
 
     for (uint32_t i = 0; i < ht_keys->num_keys; i++) {
       enb_description_t* enb_ref;
-      ht_rc = hashtable_ts_get(
-          &s1ap_state->enbs, (hash_key_t) ht_keys->keys[i], (void**) &enb_ref);
+      ht_rc = hashtable_ts_get(&s1ap_state->enbs, (hash_key_t)ht_keys->keys[i],
+                               (void**)&enb_ref);
       if (ht_rc == HASH_TABLE_OK) {
         (*response->mutable_enb_state_map())[enb_ref->enb_id] =
             enb_ref->nb_ue_associated;

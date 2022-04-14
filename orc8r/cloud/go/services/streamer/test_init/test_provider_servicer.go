@@ -19,18 +19,18 @@ import (
 
 	"magma/orc8r/cloud/go/orc8r"
 	streamer_protos "magma/orc8r/cloud/go/services/streamer/protos"
-	"magma/orc8r/cloud/go/services/streamer/providers"
+	stream_provider "magma/orc8r/cloud/go/services/streamer/providers/servicers/protected"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 )
 
 type providerServicer struct {
-	provider providers.StreamProvider
+	provider stream_provider.StreamProvider
 }
 
 // StartNewTestProvider starts a new stream provider service which forwards
 // calls to the passed provider.
-func StartNewTestProvider(t *testing.T, provider providers.StreamProvider, streamName string) {
+func StartNewTestProvider(t *testing.T, provider stream_provider.StreamProvider, streamName string) {
 	labels := map[string]string{
 		orc8r.StreamProviderLabel: "true",
 	}

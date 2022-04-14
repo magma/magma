@@ -606,13 +606,6 @@ class LocalEnforcer {
       const google::protobuf::Timestamp& revalidation_time,
       SessionStateUpdateCriteria* session_uc);
 
-  void handle_add_ue_mac_flow_callback(const SubscriberID& sid,
-                                       const std::string& ue_mac_addr,
-                                       const std::string& msisdn,
-                                       const std::string& ap_mac_addr,
-                                       const std::string& ap_name,
-                                       Status status, FlowResponse resp);
-
   void handle_activate_ue_flows_callback(const std::string& imsi,
                                          const std::string& session_id,
                                          const std::string& ip_addr,

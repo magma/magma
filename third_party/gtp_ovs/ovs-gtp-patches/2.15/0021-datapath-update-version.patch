@@ -13,7 +13,7 @@ index 83eec2410..0ed655123 100644
 +++ b/debian/changelog
 @@ -1,4 +1,4 @@
 -openvswitch (2.15.4-1) unstable; urgency=low
-+openvswitch (2.15.4-7) unstable; urgency=low
++openvswitch (2.15.4-8) unstable; urgency=low
     [ Open vSwitch team ]
     * New upstream version
  

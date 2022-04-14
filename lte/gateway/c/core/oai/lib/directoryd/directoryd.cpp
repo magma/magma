@@ -19,8 +19,8 @@
 #include <string>
 #include <iostream>
 
-#include "lte/gateway/c/core/oai/lib/directoryd/GatewayDirectorydClient.h"
-#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.h"
+#include "lte/gateway/c/core/oai/lib/directoryd/GatewayDirectorydClient.hpp"
+#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.hpp"
 #include "orc8r/protos/common.pb.h"
 #include "orc8r/protos/directoryd.pb.h"
 
@@ -65,7 +65,7 @@ bool directoryd_update_record_field(char* imsi, char* key, char* value) {
 }
 
 void directoryd_rpc_call_done(const grpc::Status& status) {
-  if (!status.ok()) {
+  if (!status.ok() || !grpc::StatusCode::NOT_FOUND) {
     std::cerr << "Directoryd RPC failed with code " << status.error_code()
               << ", msg: " << status.error_message() << std::endl;
   }

@@ -23,7 +23,7 @@ import (
 	"magma/fbinternal/cloud/go/services/testcontroller/statemachines"
 	"magma/fbinternal/cloud/go/services/testcontroller/storage"
 	"magma/orc8r/cloud/go/serde"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/registry"
 )
 

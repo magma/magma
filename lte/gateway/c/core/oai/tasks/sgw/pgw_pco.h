@@ -26,7 +26,7 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
 /**
@@ -43,7 +43,7 @@ typedef struct protocol_configuration_options_ids_s {
 
   // Container identifiers (from additional parameters list)
   uint8_t ci_dns_server_ipv4_address_request : 1;
-  uint8_t ci_ip_address_allocation_via_nas_signalling : 1;
+  uint8_t ci_ip_address_allocation_via_nas_signaling : 1;
   uint8_t ci_ipv4_address_allocation_via_dhcpv4 : 1;
   uint8_t ci_ipv4_link_mtu_request : 1;
 } protocol_configuration_options_ids_t;

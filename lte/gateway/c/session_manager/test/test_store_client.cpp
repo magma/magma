@@ -165,10 +165,4 @@ TEST_F(StoreClientTest, test_lambdas) {
       };
   callback();
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

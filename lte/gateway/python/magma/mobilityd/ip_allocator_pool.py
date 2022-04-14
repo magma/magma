@@ -24,7 +24,6 @@ from __future__ import (
 
 import logging
 from copy import deepcopy
-from ipaddress import ip_address, ip_network
 from typing import List
 
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
@@ -36,6 +35,7 @@ from .ip_allocator_base import (
     OverlappedIPBlocksError,
 )
 from .mobility_store import MobilityStore
+from .utils import IPAddress, IPNetwork
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 
@@ -47,7 +47,7 @@ class IpAllocatorPool(IPAllocator):
         """
         self._store = store  # mobilityd storage instance
 
-    def add_ip_block(self, ipblock: ip_network):
+    def add_ip_block(self, ipblock: IPNetwork):
         """ Add a block of IP addresses to the free IP list
 
         IP blocks should not overlap.
@@ -81,9 +81,9 @@ class IpAllocatorPool(IPAllocator):
                 num_reserved_addresses -= 1
 
     def remove_ip_blocks(
-        self, ipblocks: List[ip_network],
+        self, ipblocks: List[IPNetwork],
         force: bool = False,
-    ) -> List[ip_network]:
+    ) -> List[IPNetwork]:
         """ Makes the indicated block(s) unavailable for allocation
 
         If force is False, blocks that have any addresses currently allocated
@@ -169,7 +169,7 @@ class IpAllocatorPool(IPAllocator):
             logging.info('Removed IP block %s from IPv4 address pool', block)
         return list(remove_blocks)
 
-    def list_added_ip_blocks(self) -> List[ip_network]:
+    def list_added_ip_blocks(self) -> List[IPNetwork]:
         """ List IP blocks added to the IP allocator
 
         Return:
@@ -181,7 +181,7 @@ class IpAllocatorPool(IPAllocator):
                 ret.append(ipblock)
         return list(deepcopy(ret))
 
-    def list_allocated_ips(self, ipblock: ip_network) -> List[ip_address]:
+    def list_allocated_ips(self, ipblock: IPNetwork) -> List[IPAddress]:
         """ List IP addresses allocated from a given IP block
 
         Args:

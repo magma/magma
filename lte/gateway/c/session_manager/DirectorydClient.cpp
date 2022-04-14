@@ -16,7 +16,7 @@
 #include <utility>
 
 #include "DirectorydClient.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.hpp"
 #include "orc8r/protos/common.pb.h"
 #include "orc8r/protos/directoryd.grpc.pb.h"
 #include "orc8r/protos/directoryd.pb.h"

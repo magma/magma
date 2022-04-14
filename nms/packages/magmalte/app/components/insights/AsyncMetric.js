@@ -17,14 +17,14 @@
 import CircularProgress from '@material-ui/core/CircularProgress';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../../fbc_js_core/ui/components/design-system/Text';
 import moment from 'moment';
 import {Line} from 'react-chartjs-2';
 
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 type AxesOptions = {
   gridLines: {

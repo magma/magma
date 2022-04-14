@@ -48,6 +48,7 @@
 #define DEFAULT_UP_LINK_PDR_ID 1
 #define DEFAULT_DOWN_LINK_PDR_ID 2
 #define DEFAULT_RULE_COUNT 2
+#define DEFAULT_PRIORITY_LEVEL 1
 
 std::shared_ptr<magma::SessionStateEnforcer> conv_session_enforcer;
 namespace magma {
@@ -583,6 +584,28 @@ void SessionStateEnforcer::m5g_process_response_from_upf(
   }
 }
 
+void SessionStateEnforcer::set_subscribed_qos(
+    const SessionState& session_state,
+    magma::SetSMSessionContextAccess* response) {
+  const auto& config = session_state.get_config();
+  auto* rsp = response->mutable_rat_specific_context()
+                  ->mutable_m5g_session_context_rsp();
+
+  const auto& subscribed_qos =
+      config.rat_specific_context.m5gsm_session_context().subscribed_qos();
+  rsp->mutable_subscribed_qos()->set_br_unit(subscribed_qos.br_unit());
+  rsp->mutable_subscribed_qos()->set_apn_ambr_ul(subscribed_qos.apn_ambr_ul());
+  rsp->mutable_subscribed_qos()->set_apn_ambr_dl(subscribed_qos.apn_ambr_dl());
+  rsp->mutable_subscribed_qos()->set_priority_level(
+      subscribed_qos.priority_level());
+  rsp->mutable_subscribed_qos()->set_preemption_capability(
+      subscribed_qos.preemption_capability());
+  rsp->mutable_subscribed_qos()->set_preemption_vulnerability(
+      subscribed_qos.preemption_vulnerability());
+  rsp->mutable_subscribed_qos()->set_qos_class_id(
+      subscribed_qos.qos_class_id());
+}
+
 /* To prepare response back to AMF
  * Fill the response structure from session context message
  * and call rpc of AmfServiceClient.
@@ -633,46 +656,29 @@ void SessionStateEnforcer::prepare_response_to_access(
       config.rat_specific_context.m5gsm_session_context()
           .procedure_trans_identity());
 
-  /* AMBR value need to compared from AMF and PCF, then fill the required
-   * values and sent to AMF.
+  /* If there are any static rules configured from Orc8r via NMS it's
+   * corresponding qos info will be send to AMF.
    */
-  // For now its default QOS, AMBR has default values
-  rsp->mutable_session_ambr()->set_br_unit(
-      config.rat_specific_context.m5gsm_session_context()
-          .default_ambr()
-          .br_unit());
-  rsp->mutable_session_ambr()->set_max_bandwidth_ul(
-      config.rat_specific_context.m5gsm_session_context()
-          .default_ambr()
-          .max_bandwidth_ul());
-  rsp->mutable_session_ambr()->set_max_bandwidth_dl(
-      config.rat_specific_context.m5gsm_session_context()
-          .default_ambr()
-          .max_bandwidth_dl());
-  /* This flag is used for sending defult qos value or getting from policy
-   *  value to AMF.
-   */
-  bool flag_set = false;
   for (auto& val : pending_activation) {
-    if (val.rule.qos().max_req_bw_dl() && val.rule.qos().max_req_bw_ul()) {
+    if (val.rule.has_qos()) {
       MLOG(MDEBUG) << "value set for pending_activation"
                    << val.rule.qos().max_req_bw_ul();
-      rsp->mutable_session_ambr()->set_max_bandwidth_dl(
-          val.rule.qos().max_req_bw_dl());
-      rsp->mutable_session_ambr()->set_max_bandwidth_ul(
-          val.rule.qos().max_req_bw_ul());
       rsp->mutable_qos()->CopyFrom(val.rule.qos());
-      flag_set = true;
-      break;
     }
   }
-  if (!flag_set) {
-    auto* convg_qos = rsp->mutable_qos();
-    convg_qos->set_qci(FlowQos_Qci_QCI_9);
-    convg_qos->mutable_arp()->set_pre_vulnerability(
-        QosArp_PreVul_PRE_VUL_ENABLED);
-    convg_qos->mutable_arp()->set_pre_capability(QosArp_PreCap_PRE_CAP_ENABLED);
-    convg_qos->mutable_arp()->set_priority_level(1);
+  /* AMF fetches the mandatory subscriberd_qos information from subscriberdb
+   * and send to sessiond. If there are any subscriberd_qos information sessiond
+   * will send back to AMF, Otherwise sessiond will set default AMBR info.
+   */
+  if (config.rat_specific_context.m5gsm_session_context()
+          .has_subscribed_qos()) {
+    set_subscribed_qos(session_state, &response);
+  } else {
+    auto* convg_subscribed_qos = rsp->mutable_subscribed_qos();
+    convg_subscribed_qos->set_qos_class_id(QCI_9);
+    convg_subscribed_qos->set_preemption_vulnerability(PRE_EMPTABLE);
+    convg_subscribed_qos->set_preemption_capability(MAY_TRIGGER_PRE_EMPTION);
+    convg_subscribed_qos->set_priority_level(DEFAULT_PRIORITY_LEVEL);
   }
   rsp->mutable_upf_endpoint()->set_teid(
       config.rat_specific_context.m5gsm_session_context()
@@ -908,12 +914,12 @@ void SessionStateEnforcer::set_pdr_attributes(
       config.common_context.ue_ipv6());
   rule->mutable_activate_flow_req()->mutable_apn_ambr()->set_max_bandwidth_ul(
       config.rat_specific_context.m5gsm_session_context()
-          .default_ambr()
-          .max_bandwidth_ul());
+          .subscribed_qos()
+          .apn_ambr_ul());
   rule->mutable_activate_flow_req()->mutable_apn_ambr()->set_max_bandwidth_dl(
       config.rat_specific_context.m5gsm_session_context()
-          .default_ambr()
-          .max_bandwidth_dl());
+          .subscribed_qos()
+          .apn_ambr_dl());
   rule->mutable_deactivate_flow_req()->set_ip_addr(
       config.common_context.ue_ipv4());
   rule->mutable_deactivate_flow_req()->set_ipv6_addr(

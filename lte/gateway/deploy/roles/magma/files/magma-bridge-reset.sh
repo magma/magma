@@ -14,6 +14,7 @@ GTP_BR="gtp_br0"
 # ARG 1
 # -f: force reload kmod and OVS restart
 # -y: reload kmod and restart OVS in case uplink-br is not configured
+# -n: no kmod reload / no OVS restart
 # any other value: restart OVS in case uplink-br is not configured
 
 KMOD_RELOAD=${1:-""}
@@ -89,7 +90,10 @@ ovs-vsctl --all destroy Flow_Sample_Collector_Set
 ifdown "$SGI_BR"
 ifdown "$GTP_BR"
 ifdown patch-up
-if [ "$KMOD_RELOAD" != '-y' ] && [ "$KMOD_RELOAD" != '-f' ];
+if [ "$KMOD_RELOAD" == '-n' ];
+then
+  :
+elif [ "$KMOD_RELOAD" != '-y' ] && [ "$KMOD_RELOAD" != '-f' ];
 then
   service openvswitch-switch restart
 else

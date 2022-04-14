@@ -12,7 +12,3 @@
  */
 
 package cwf
-
-const (
-	ServiceName = "cwf"
-)

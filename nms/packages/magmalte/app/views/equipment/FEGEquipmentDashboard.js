@@ -21,7 +21,7 @@ import React from 'react';
 import TopBar from '../../components/TopBar';
 
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 /**
  * Returns the full equipment dashboard of the federation network.

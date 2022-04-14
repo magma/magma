@@ -14,7 +14,6 @@ limitations under the License.
 import logging
 from collections import deque
 
-from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisHashDict
 from magma.common.redis.serializers import (
     get_json_deserializer,
@@ -73,8 +72,8 @@ class IdManager(object):
 
 
 class QosStore(RedisHashDict):
-    def __init__(self, redis_type):
-        self.client = get_default_client()
+    def __init__(self, redis_type, client):
+        self.client = client
         super().__init__(
             self.client, redis_type,
             get_json_serializer(), get_json_deserializer(),

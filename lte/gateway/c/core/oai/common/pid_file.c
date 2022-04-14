@@ -49,7 +49,7 @@
 #define PID_DEC_BUF_SIZE 64 /* should be big enough */
 
 int g_fd_pid_file = -1;
-__pid_t g_pid     = -1;
+__pid_t g_pid = -1;
 
 //------------------------------------------------------------------------------
 char* get_pid_file_name(bstring pid_dir) {
@@ -63,8 +63,8 @@ char* get_pid_file_name(bstring pid_dir) {
 //------------------------------------------------------------------------------
 char* get_exe_absolute_path(char const* basepath) {
   char pid_file_name[256] = {0};
-  char* exe_basename      = NULL;
-  int len                 = 0;
+  char* exe_basename = NULL;
+  int len = 0;
 
   // get executable name
   len = readlink("/proc/self/exe", pid_file_name, sizeof(pid_file_name));
@@ -72,11 +72,10 @@ char* get_exe_absolute_path(char const* basepath) {
     return NULL;
   }
   pid_file_name[len] = '\0';
-  exe_basename       = basename(pid_file_name);
+  exe_basename = basename(pid_file_name);
 
-  snprintf(
-      pid_file_name, sizeof(pid_file_name), "%s/%s.pid", basepath,
-      exe_basename);
+  snprintf(pid_file_name, sizeof(pid_file_name), "%s/%s.pid", basepath,
+           exe_basename);
 
   return strdup(pid_file_name);
 }
@@ -92,10 +91,10 @@ int lockfile(int fd, int lock_type) {
 bool pid_file_lock(char const* pid_file_name) {
   char pid_dec[PID_DEC_BUF_SIZE] = {0};
 
-  g_fd_pid_file = open(
-      pid_file_name, O_RDWR | O_CREAT,
-      S_IRUSR | S_IWUSR | S_IRGRP |
-          S_IROTH); /* Read/write by owner, read by grp, others */
+  g_fd_pid_file =
+      open(pid_file_name, O_RDWR | O_CREAT,
+           S_IRUSR | S_IWUSR | S_IRGRP |
+               S_IROTH); /* Read/write by owner, read by grp, others */
   if (0 > g_fd_pid_file) {
     printf("filename %s failed %d:%s\n", pid_file_name, errno, strerror(errno));
     return false;
@@ -103,8 +102,8 @@ bool pid_file_lock(char const* pid_file_name) {
 
   if (0 > lockfile(g_fd_pid_file, F_TLOCK)) {
     if (EACCES == errno || EAGAIN == errno) {
-      printf(
-          "filename %s failed %d:%s\n", pid_file_name, errno, strerror(errno));
+      printf("filename %s failed %d:%s\n", pid_file_name, errno,
+             strerror(errno));
       close(g_fd_pid_file);
     }
     printf("filename %s failed %d:%s\n", pid_file_name, errno, strerror(errno));
@@ -116,7 +115,7 @@ bool pid_file_lock(char const* pid_file_name) {
   }
   // write PID in file
   g_pid = getpid();
-  snprintf(pid_dec, sizeof(pid_dec), "%ld", (long) g_pid);
+  snprintf(pid_dec, sizeof(pid_dec), "%ld", (long)g_pid);
   if (write(g_fd_pid_file, pid_dec, strlen(pid_dec)) != 0) {
     printf("filename %s failed to be written\n", pid_file_name);
   }

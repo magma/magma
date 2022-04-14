@@ -36,10 +36,10 @@ Description Timer utilities
 
 #include <czmq.h>
 
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/
@@ -84,9 +84,8 @@ typedef struct nas_itti_timer_arg_s {
 
 status_code_e nas_timer_init(void);
 void nas_timer_cleanup(void);
-void nas_timer_start(
-    nas_timer_t* const timer, time_out_t time_out_cb,
-    timer_arg_t* time_out_cb_args);
+void nas_timer_start(nas_timer_t* const timer, time_out_t time_out_cb,
+                     timer_arg_t* time_out_cb_args);
 void nas_timer_stop(nas_timer_t* const timer);
 
 #endif /* FILE_NAS_TIMER_SEEN */

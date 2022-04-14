@@ -23,8 +23,8 @@
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/DrxParameter.h"
 
-int decode_drx_parameter(
-    DrxParameter* drxparameter, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_drx_parameter(DrxParameter* drxparameter, uint8_t iei,
+                         uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -42,15 +42,15 @@ int decode_drx_parameter(
   return decoded;
 }
 
-int encode_drx_parameter(
-    DrxParameter* drxparameter, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_drx_parameter(DrxParameter* drxparameter, uint8_t iei,
+                         uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, DRX_PARAMETER_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, DRX_PARAMETER_MINIMUM_LENGTH,
+                                       len);
 
   if (iei > 0) {
     *buffer = iei;
@@ -79,20 +79,17 @@ void dump_drx_parameter_xml(DrxParameter* drxparameter, uint8_t iei) {
      */
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
-  OAILOG_DEBUG(
-      LOG_NAS, "    <SPLIT PG CYCLE CODE>%u</SPLIT PG CYCLE CODE>\n",
-      drxparameter->splitpgcyclecode);
+  OAILOG_DEBUG(LOG_NAS, "    <SPLIT PG CYCLE CODE>%u</SPLIT PG CYCLE CODE>\n",
+               drxparameter->splitpgcyclecode);
   OAILOG_DEBUG(
       LOG_NAS,
       "    <CN specific DRX cycle length coefficient and DRX value for S1 "
       "mode>%u</CN specific DRX cycle length coefficient and DRX value for S1 "
       "mode>\n",
       drxparameter->cnspecificdrxcyclelengthcoefficientanddrxvaluefors1mode);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <SPLIT on CCCH>%u</SPLIT on CCCH>\n",
-      drxparameter->splitonccch);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <non DRX timer>%u</non DRX timer>\n",
-      drxparameter->nondrxtimer);
+  OAILOG_DEBUG(LOG_NAS, "    <SPLIT on CCCH>%u</SPLIT on CCCH>\n",
+               drxparameter->splitonccch);
+  OAILOG_DEBUG(LOG_NAS, "    <non DRX timer>%u</non DRX timer>\n",
+               drxparameter->nondrxtimer);
   OAILOG_DEBUG(LOG_NAS, "</Drx Parameter>\n");
 }

@@ -34,10 +34,10 @@
 
 *****************************************************************************/
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -69,11 +69,10 @@ status_code_e sgs_la_update_requested_handler(const sgs_fsm_t* evt) {
   int rc = RETURNerror;
 
   if (sgs_fsm_get_status(evt->ue_id, evt->ctx) != SGS_LA_UPDATE_REQUESTED) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "SGS not in the SGS_LA_UPDATE_REQUESTED state for UE "
-        "Id: " MME_UE_S1AP_ID_FMT "\n",
-        evt->ue_id);
+    OAILOG_ERROR(LOG_MME_APP,
+                 "SGS not in the SGS_LA_UPDATE_REQUESTED state for UE "
+                 "Id: " MME_UE_S1AP_ID_FMT "\n",
+                 evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -114,19 +113,17 @@ status_code_e sgs_la_update_requested_handler(const sgs_fsm_t* evt) {
     case _SGS_RESET_INDICATION: {
       /* No handling required, if Reset indication received in
        * La-Update-Requested state */
-      OAILOG_DEBUG(
-          LOG_MME_APP,
-          " Received Reset Indication while SGS context is in "
-          "La-Update-Requested state for ue_id"
-          " :%d \n",
-          evt->ue_id);
+      OAILOG_DEBUG(LOG_MME_APP,
+                   " Received Reset Indication while SGS context is in "
+                   "La-Update-Requested state for ue_id"
+                   " :%d \n",
+                   evt->ue_id);
       rc = RETURNok;
     } break;
 
     default:
-      OAILOG_ERROR(
-          LOG_MME_APP, "SGS-FSM   - Primitive is not valid (%d)\n",
-          evt->primitive);
+      OAILOG_ERROR(LOG_MME_APP, "SGS-FSM   - Primitive is not valid (%d)\n",
+                   evt->primitive);
       break;
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);

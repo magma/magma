@@ -39,6 +39,7 @@ Description Defines the EMM primitives available at the EMMAS Service
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 #include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
@@ -268,7 +269,7 @@ typedef struct emm_as_data_s {
 #define EMM_AS_NAS_DATA_ATTACH_ACCEPT 0x04 /* Attach Accept            */
 #define EMM_AS_NAS_EMM_INFORMATION 0x05    /* Emm information          */
 #define EMM_AS_NAS_DATA_DETACH_ACCEPT 0x06 /* Detach Accept            */
-#define EMM_AS_NAS_DATA_CS_SERVICE_NOTIFICATION                                \
+#define EMM_AS_NAS_DATA_CS_SERVICE_NOTIFICATION \
   0x07                                   /* CS Service Notification  */
 #define EMM_AS_NAS_DATA_INFO_SR 0x08     /* Service Reject in DL NAS */
 #define EMM_AS_NAS_DL_NAS_TRANSPORT 0x09 /* Downlink Nas Transport */
@@ -374,8 +375,7 @@ typedef struct emm_as_s {
  * Defined in LowerLayer.c
  * Setup security data according to the given EPS security context
  */
-void emm_as_set_security_data(
-    emm_as_security_data_t* data, const void* context, bool is_new,
-    bool is_ciphered);
+void emm_as_set_security_data(emm_as_security_data_t* data, const void* context,
+                              bool is_new, bool is_ciphered);
 
 #endif /* FILE_EMM_ASDEF_SEEN*/

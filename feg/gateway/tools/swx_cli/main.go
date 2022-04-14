@@ -236,10 +236,6 @@ func sendSar(addr string, client swxClient) int {
 }
 
 func sendMar(addr string, client swxClient) int {
-	if numVectors > math.MaxUint32 {
-		fmt.Printf("numVectors %d is outside the bounds of unit32 type", numVectors)
-		return 2
-	}
 	req := &protos.AuthenticationRequest{
 		UserName:             imsi,
 		SipNumAuthVectors:    uint32(numVectors),
@@ -392,10 +388,15 @@ func getInteractiveRequestParameters(reader *bufio.Reader, requestType string) e
 			return err
 		}
 		if vectorsStr != "" {
-			numVectors, err = strconv.ParseUint(vectorsStr, 10, 64)
+			numVectors, err = strconv.ParseUint(vectorsStr, 10, 32)
 			if err != nil {
 				fmt.Println(err.Error())
 				return err
+			}
+			if numVectors > math.MaxUint32 {
+				strErrMsg := fmt.Sprintf("number %d is outside the boundaries of uint32 type", numVectors)
+				fmt.Println(strErrMsg)
+				return fmt.Errorf(strErrMsg)
 			}
 		}
 		return nil

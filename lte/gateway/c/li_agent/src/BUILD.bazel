@@ -16,13 +16,11 @@ package(default_visibility = ["//lte/gateway/c/li_agent/src:__subpackages__"])
 cc_binary(
     name = "liagentd",
     srcs = ["main.cpp"],
-    copts = [
-        "-DLOG_WITH_GLOG",
-    ],
     deps = [
         ":interface_monitor",
         "//orc8r/gateway/c/common/config:mconfig_loader",
         "//orc8r/gateway/c/common/logging",
+        "//orc8r/gateway/c/common/sentry:sentry_wrapper",
         "//orc8r/gateway/c/common/service303",
     ],
 )
@@ -30,7 +28,7 @@ cc_binary(
 cc_library(
     name = "interface_monitor",
     srcs = ["InterfaceMonitor.cpp"],
-    hdrs = ["InterfaceMonitor.h"],
+    hdrs = ["InterfaceMonitor.hpp"],
     deps = [
         ":pdu_generator",
         "@system_libraries//:libpcap",
@@ -40,7 +38,7 @@ cc_library(
 cc_library(
     name = "pdu_generator",
     srcs = ["PDUGenerator.cpp"],
-    hdrs = ["PDUGenerator.h"],
+    hdrs = ["PDUGenerator.hpp"],
     deps = [
         ":mobilityd_client",
         ":proxy_connector",
@@ -55,7 +53,7 @@ cc_library(
 cc_library(
     name = "proxy_connector",
     srcs = ["ProxyConnector.cpp"],
-    hdrs = ["ProxyConnector.h"],
+    hdrs = ["ProxyConnector.hpp"],
     deps = [
         "//orc8r/gateway/c/common/logging",
     ],
@@ -64,7 +62,7 @@ cc_library(
 cc_library(
     name = "mobilityd_client",
     srcs = ["MobilitydClient.cpp"],
-    hdrs = ["MobilitydClient.h"],
+    hdrs = ["MobilitydClient.hpp"],
     deps = [
         "//lte/protos:mobilityd_cpp_grpc",
         "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
@@ -75,7 +73,7 @@ cc_library(
 cc_library(
     name = "utilities",
     srcs = ["Utilities.cpp"],
-    hdrs = ["Utilities.h"],
+    hdrs = ["Utilities.hpp"],
     deps = [
         "//lte/protos:mconfigs_cpp_proto",
         "//orc8r/gateway/c/common/config:mconfig_loader",

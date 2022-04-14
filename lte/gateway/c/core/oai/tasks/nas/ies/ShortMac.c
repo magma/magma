@@ -22,8 +22,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/ShortMac.h"
 
 //------------------------------------------------------------------------------
-int decode_short_mac(
-    short_mac_t* shortmac, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_short_mac(short_mac_t* shortmac, uint8_t iei, uint8_t* buffer,
+                     uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -36,8 +36,8 @@ int decode_short_mac(
 }
 
 //------------------------------------------------------------------------------
-int encode_short_mac(
-    short_mac_t* shortmac, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_short_mac(short_mac_t* shortmac, uint8_t iei, uint8_t* buffer,
+                     uint32_t len) {
   uint32_t encoded = 0;
 
   /*

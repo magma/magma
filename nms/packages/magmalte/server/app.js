@@ -18,11 +18,11 @@ const {
   DEV_MODE,
   LOG_FORMAT,
   LOG_LEVEL,
-} = require('@fbcnms/platform-server/config');
+} = require('../fbc_js_core/platform_server/config');
 
 // This must be done before any module imports to configure
 // logging correctly
-const logging = require('@fbcnms/logging');
+const logging = require('../fbc_js_core/logging');
 logging.configure({
   LOG_FORMAT,
   LOG_LEVEL,
@@ -34,26 +34,26 @@ const {
   organizationMiddleware,
   sessionMiddleware,
   webpackSmartMiddleware,
-} = require('@fbcnms/express-middleware');
+} = require('../fbc_js_core/express_middleware');
 const connectSession = require('connect-session-sequelize');
 const express = require('express');
 const passport = require('passport');
 const path = require('path');
-const fbcPassport = require('@fbcnms/auth/passport').default;
+const fbcPassport = require('../fbc_js_core/auth/passport').default;
 const session = require('express-session');
-const {sequelize} = require('@fbcnms/sequelize-models');
-const OrganizationLocalStrategy = require('@fbcnms/auth/strategies/OrganizationLocalStrategy')
+const {sequelize} = require('../fbc_js_core/sequelize_models');
+const OrganizationLocalStrategy = require('../fbc_js_core/auth/strategies/OrganizationLocalStrategy')
   .default;
-const OrganizationSamlStrategy = require('@fbcnms/auth/strategies/OrganizationSamlStrategy')
+const OrganizationSamlStrategy = require('../fbc_js_core/auth/strategies/OrganizationSamlStrategy')
   .default;
 
-const {access, configureAccess} = require('@fbcnms/auth/access');
+const {access, configureAccess} = require('../fbc_js_core/auth/access');
 const {
   AccessRoles: {SUPERUSER, USER},
-} = require('@fbcnms/auth/roles');
+} = require('../fbc_js_core/auth/roles');
 
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '@fbcnms/auth/access';
+import type {FBCNMSRequest} from '../fbc_js_core/auth/access';
 
 // Create Sequelize Store
 const SessionStore = connectSession(session.Store);
@@ -97,7 +97,10 @@ app.use(
     distPath: require('../config/paths').distPath,
   }),
 );
-app.use('/user', require('@fbcnms/auth/express').unprotectedUserRoutes());
+app.use(
+  '/user',
+  require('../fbc_js_core/auth/express').unprotectedUserRoutes(),
+);
 
 app.use(configureAccess({loginUrl: '/user/login'}));
 

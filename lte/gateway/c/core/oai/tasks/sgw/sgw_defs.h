@@ -25,9 +25,9 @@
 #ifndef FILE_SGW_DEFS_SEEN
 #define FILE_SGW_DEFS_SEEN
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
 extern task_zmq_ctx_t spgw_app_task_zmq_ctx;
 

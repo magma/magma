@@ -36,8 +36,8 @@ int decode_llc_service_access_point_identifier(
   *llcserviceaccesspointidentifier = *buffer & 0xf;
   decoded++;
 #if NAS_DEBUG
-  dump_llc_service_access_point_identifier_xml(
-      llcserviceaccesspointidentifier, iei);
+  dump_llc_service_access_point_identifier_xml(llcserviceaccesspointidentifier,
+                                               iei);
 #endif
   return decoded;
 }
@@ -53,8 +53,8 @@ int encode_llc_service_access_point_identifier(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, LLC_SERVICE_ACCESS_POINT_IDENTIFIER_MINIMUM_LENGTH, len);
 #if NAS_DEBUG
-  dump_llc_service_access_point_identifier_xml(
-      llcserviceaccesspointidentifier, iei);
+  dump_llc_service_access_point_identifier_xml(llcserviceaccesspointidentifier,
+                                               iei);
 #endif
 
   if (iei > 0) {
@@ -78,8 +78,7 @@ void dump_llc_service_access_point_identifier_xml(
      */
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
-  OAILOG_DEBUG(
-      LOG_NAS, "    <LLC SAPI value>%u</LLC SAPI value>\n",
-      *llcserviceaccesspointidentifier);
+  OAILOG_DEBUG(LOG_NAS, "    <LLC SAPI value>%u</LLC SAPI value>\n",
+               *llcserviceaccesspointidentifier);
   OAILOG_DEBUG(LOG_NAS, "</Llc Service Access Point Identifier>\n");
 }

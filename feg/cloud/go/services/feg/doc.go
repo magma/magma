@@ -12,7 +12,3 @@
  */
 
 package feg
-
-const (
-	ServiceName = "feg"
-)

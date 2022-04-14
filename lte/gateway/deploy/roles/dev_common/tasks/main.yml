@@ -25,6 +25,17 @@
       - ansible
   retries: 5
 
+- name: Copy over the timesyncd config
+  become: yes
+  copy:
+    src: timesyncd.conf
+    dest: /etc/systemd/timesyncd.conf
+
+- name: Make sure timesyncd is started
+  systemd:
+    name: systemd-timesyncd.service
+    state: started
+
 - name: Copy ssh keepAlive configs
   copy: src={{ item.src }} dest={{ item.dest }}
   become: yes
@@ -157,7 +168,6 @@
       - autoconf
       - build-essential
       - ccache
-      - clang-format-7
       - ninja-build
       - git
       - libtool
@@ -397,11 +407,6 @@
     grub-mkconfig -o /boot/grub/grub.cfg
   when: preburn
 
-- name: Create links for clang-format
-  become: yes
-  command: "update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-7 1000"
-  when: preburn
-
 - file:
     path: /var/tmp/test_results
     state: directory
@@ -454,3 +459,12 @@
     purge: yes
     pkg:
       - unattended-upgrades
+
+- name: Install LLDB debugger
+  # TODO: Make this preburn
+  apt:
+    pkg: lldb
+    state: present
+    update_cache: no
+  retries: 5
+  when: full_provision

@@ -43,7 +43,7 @@ int decode_esm_information_transfer_flag(
 int decode_u8_esm_information_transfer_flag(
     esm_information_transfer_flag_t* esminformationtransferflag, uint8_t iei,
     uint8_t value, uint32_t len) {
-  int decoded     = 0;
+  int decoded = 0;
   uint8_t* buffer = &value;
 
   *esminformationtransferflag = *buffer & 0x1;
@@ -74,7 +74,7 @@ uint8_t encode_u8_esm_information_transfer_flag(
   uint8_t bufferReturn;
   uint8_t* buffer = &bufferReturn;
   uint8_t encoded = 0;
-  uint8_t iei     = 0;
+  uint8_t iei = 0;
 
   *(buffer + encoded) =
       0x00 | (iei & 0xf0) | (*esminformationtransferflag & 0x1);

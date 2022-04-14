@@ -1,0 +1,105 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library")
+load("//bazel:python_test.bzl", "pytest_test")
+
+MAGMA_ROOT = "../../../../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
+pytest_test(
+    name = "avp_tests",
+    size = "small",
+    srcs = ["avp_tests.py"],
+    imports = [LTE_ROOT],
+    deps = ["//lte/gateway/python/magma/subscriberdb/protocols/diameter"],
+)
+
+pytest_test(
+    name = "base_application_tests",
+    size = "small",
+    srcs = ["base_application_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        ":common",
+        "//lte/gateway/python/magma/subscriberdb/protocols/diameter",
+        "//lte/gateway/python/magma/subscriberdb/protocols/diameter:server",
+    ],
+)
+
+pytest_test(
+    name = "message_tests",
+    size = "small",
+    srcs = ["message_tests.py"],
+    imports = [LTE_ROOT],
+    deps = ["//lte/gateway/python/magma/subscriberdb/protocols/diameter"],
+)
+
+pytest_test(
+    name = "s6a_application_tests",
+    size = "small",
+    srcs = ["s6a_application_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        ":common",
+        "//lte/gateway/python/magma/subscriberdb:processor",
+        "//lte/gateway/python/magma/subscriberdb/crypto:utils",
+        "//lte/gateway/python/magma/subscriberdb/protocols/diameter",
+        "//lte/gateway/python/magma/subscriberdb/protocols/diameter:server",
+        "//lte/protos:mconfigs_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "s6a_relay_tests",
+    size = "small",
+    srcs = ["s6a_relay_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        ":common",
+        "//feg/protos:s6a_proxy_grpc_proto",
+        "//lte/gateway/python/magma/subscriberdb/protocols/diameter",
+        "//lte/gateway/python/magma/subscriberdb/protocols/diameter:server",
+        "//orc8r/gateway/python/magma/common:service_registry",
+        requirement("grpcio"),
+    ],
+)
+
+pytest_test(
+    name = "server_tests",
+    size = "small",
+    srcs = ["server_tests.py"],
+    imports = [LTE_ROOT],
+    deps = [
+        ":common",
+        "//lte/gateway/python/magma/subscriberdb/protocols/diameter",
+        "//lte/gateway/python/magma/subscriberdb/protocols/diameter:server",
+    ],
+)
+
+py_library(
+    name = "common",
+    testonly = True,
+    srcs = ["common.py"],
+)

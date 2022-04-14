@@ -135,17 +135,24 @@ npm install --global yarn
 
 Run the following command from `magma/nms` to install these dependencies:
 ```
-yarn
+yarn install --frozen-lockfile
+```
+
+And also install additional dependencies from `magma/nms/packages/magmalte`:
+```
+yarn install --frozen-lockfile
 ```
 
 ### Eslint
-Run from `magma/nms`
+Run from `magma/nms`.
+Version `7.3.2` of `eslint` is used currently.
 ```
 yarn run eslint ./
 ```
 
 ### Flow
-Run from `magma/nms`
+Run from `magma/nms`.
+Version `0.132.0` of `flow` is used currently.
 ```
 flow
 ```
@@ -154,6 +161,20 @@ flow
 Run from `magma/nms`
 ```
 yarn run test
+```
+
+### E2E Tests
+Run from `magma/nms/packages/magmalte`
+```
+./e2e_test_setup.sh
+```
+This brings up the NMS docker containers, as well as a mock Orc8r API server.
+Tests are run using puppeteer to control a headless Chrome.
+
+These tests can also be triggered without the mocked API.
+Run the following in `magma/nms` in the `magmalte` docker container:
+```
+yarn test:e2e
 ```
 
 ### Testing Coverage
@@ -181,7 +202,7 @@ This re-generates various files, including `MagmaAPIBindings.js` for NMS.
 ### Multitenancy and Organizations
 
 Multitenancy is supported in the Magma NMS. Each tenant is called an "organization".
-Each organization owns a subset of the networks provisioned on Orchestrator, and the special `master` organization administrates organizations in the system.
+Each organization owns a subset of the networks provisioned on Orchestrator, and the special `host` organization administrates organizations in the system.
 
 Users in organizations log into the NMS using a subdomain that matches their organization name.
 For example, users of a *NewOrg* organization in the NMS would access the NMS using http://<NEWORG>.localhost:8081/nms
@@ -189,30 +210,30 @@ For example, users of a *NewOrg* organization in the NMS would access the NMS us
 Note that any NMS user can only access the organization it was created under.
 
 ### First-time Setup
-When you deploy the NMS for the first time, you'll need to create a user that has access to the master organization.
+When you deploy the NMS for the first time, you'll need to create a user that has access to the host organization.
 
 Run the following command from `magma/nms/packages/magmalte` and make sure to substitute `ADMIN_USER_EMAIL` and `ADMIN_USER_PASSWORD` with your desired email and password.
 ```
-docker-compose exec magmalte yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
+docker-compose exec magmalte yarn setAdminPassword host ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
 ```
 
-Access the `master` (http://master.localhost:8081/master) portal to create your first organization.
+Access the `host` (http://host.localhost:8081/host) portal to create your first organization.
 Create a new super user for that organization, and then you can login as that user for your new organization.
 
 For example, if you created an organization called `magma-test`, you can access the NMS at http://magma-test.localhost:8081/nms
 
 ### First-time Setup (Fast)
 
-Run the following from `magma/nms/packages/magmalte` to create two users, one for `master` organization, and another for `magma-test`.
+Run the following from `magma/nms/packages/magmalte` to create two users, one for `host` organization, and another for `magma-test`.
 The username and password for both will be `admin@magma.test` and `password1234`
 ```
 ./scripts/dev_setup.sh
 ```
 
-### Master Portal
-The master portal allows management of organizations.
+### Host Portal
+The host portal allows management of organizations.
 
-http://master.localhost:8081/master
+http://host.localhost:8081/host
 
 ### Admin Portal
 The admin portal allows management for users of an organization.

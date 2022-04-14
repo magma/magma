@@ -110,7 +110,7 @@ class Upgrader2Test(unittest.TestCase):
             {self.version_a},
             upgrader2.VersionInfo(
                 self.version_none, {
-                self.version_a,
+                    self.version_a,
                 },
             ).all_versions,
         )

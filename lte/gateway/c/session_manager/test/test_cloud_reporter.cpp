@@ -18,8 +18,8 @@
 #include <memory>
 #include <thread>
 
-#include "includes/MagmaService.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "includes/MagmaService.hpp"
+#include "includes/ServiceRegistrySingleton.hpp"
 #include "SessiondMocks.h"
 #include "SessionReporter.h"
 
@@ -173,10 +173,4 @@ TEST_F(SessionReporterTest, test_multi_call) {
   // wait for callback
   evb->loopForever();
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma

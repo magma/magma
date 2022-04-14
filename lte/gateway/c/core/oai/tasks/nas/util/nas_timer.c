@@ -35,38 +35,35 @@
 #include <string.h>  // memset
 #include <stdlib.h>  // malloc, free
 
-#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 
 //------------------------------------------------------------------------------
-status_code_e nas_timer_init(void) {
-  return (RETURNok);
-}
+status_code_e nas_timer_init(void) { return (RETURNok); }
 
 //------------------------------------------------------------------------------
 void nas_timer_cleanup(void) {}
 
 //------------------------------------------------------------------------------
-void nas_timer_start(
-    struct nas_timer_s* const timer, time_out_t time_out_cb,
-    timer_arg_t* time_out_cb_args) {
+void nas_timer_start(struct nas_timer_s* const timer, time_out_t time_out_cb,
+                     timer_arg_t* time_out_cb_args) {
   if ((timer) && (timer->id == NAS_TIMER_INACTIVE_ID)) {
-    timer->id = mme_app_start_timer_arg(
-        timer->msec, TIMER_REPEAT_ONCE, time_out_cb, time_out_cb_args);
+    timer->id = mme_app_start_timer_arg(timer->msec, TIMER_REPEAT_ONCE,
+                                        time_out_cb, time_out_cb_args);
     if (NAS_TIMER_INACTIVE_ID != timer->id) {
-      OAILOG_DEBUG(
-          LOG_NAS_EMM, "NAS EBR Timer started UE " MME_UE_S1AP_ID_FMT "\n",
-          time_out_cb_args->ue_id);
+      OAILOG_DEBUG(LOG_NAS_EMM,
+                   "NAS EBR Timer started UE " MME_UE_S1AP_ID_FMT "\n",
+                   time_out_cb_args->ue_id);
     } else {
-      OAILOG_ERROR(
-          LOG_NAS_EMM,
-          "Could not start NAS EBR Timer for UE " MME_UE_S1AP_ID_FMT " ",
-          time_out_cb_args->ue_id);
+      OAILOG_ERROR(LOG_NAS_EMM,
+                   "Could not start NAS EBR Timer for UE " MME_UE_S1AP_ID_FMT
+                   " ",
+                   time_out_cb_args->ue_id);
     }
   }
 }

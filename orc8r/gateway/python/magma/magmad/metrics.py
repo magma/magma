@@ -24,7 +24,7 @@ from magma.magmad.check.network_check import ping
 from orc8r.protos.mconfig import mconfigs_pb2
 from prometheus_client import Counter, Gauge
 
-POLL_INTERVAL_SECONDS = 10
+POLL_INTERVAL_SECONDS = 100
 
 MAGMAD_PING_STATS = Gauge(
     'magmad_ping_rtt_ms',
@@ -287,13 +287,18 @@ def _collect_service_metrics():
         memory_limit = properties[3]
 
         if pid != 0:
-            p = psutil.Process(pid=pid)
-            cpu_percentage = p.cpu_percent(interval=1)
-            _counter_set(
-                SERVICE_CPU_PERCENTAGE.labels(
-                    service_name=service,
-                ), cpu_percentage,
-            )
+            try:
+                p = psutil.Process(pid=pid)
+                cpu_percentage = p.cpu_percent(interval=1)
+            except psutil.NoSuchProcess:
+                logging.warning("When collecting CPU usage for service %s: Process with PID %d no longer exists.", service, pid)
+                continue
+            else:
+                _counter_set(
+                    SERVICE_CPU_PERCENTAGE.labels(
+                        service_name=service,
+                    ), cpu_percentage,
+                )
 
         if not memory.isnumeric():
             continue

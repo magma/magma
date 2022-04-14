@@ -19,6 +19,8 @@ extern "C" {
 
 task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
+// Note: This is necessary for setting up a log thread (Might be addressed by
+// #11736)
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   OAILOG_INIT("MME", OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS);

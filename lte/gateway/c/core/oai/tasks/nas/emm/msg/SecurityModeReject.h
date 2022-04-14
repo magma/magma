@@ -47,12 +47,10 @@ typedef struct security_mode_reject_msg_tag {
   emm_cause_t emmcause;
 } security_mode_reject_msg;
 
-int decode_security_mode_reject(
-    security_mode_reject_msg* securitymodereject, uint8_t* buffer,
-    uint32_t len);
+int decode_security_mode_reject(security_mode_reject_msg* securitymodereject,
+                                uint8_t* buffer, uint32_t len);
 
-int encode_security_mode_reject(
-    security_mode_reject_msg* securitymodereject, uint8_t* buffer,
-    uint32_t len);
+int encode_security_mode_reject(security_mode_reject_msg* securitymodereject,
+                                uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(FILE_SECURITY_MODE_REJECT_SEEN) */

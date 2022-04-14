@@ -38,7 +38,7 @@ from orc8r.protos.streamer_pb2 import DataUpdate
 
 def get_SetSessionRules_side_effect(
     called_with: List[SessionRules],
-) -> Callable[[SessionRules], Void]:
+) -> Callable[[SessionRules, float], Void]:
     def side_effect(session_rules: SessionRules, timeout: float) -> Void:
         called_with.append(session_rules)
         return Void()

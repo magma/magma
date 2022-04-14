@@ -12,16 +12,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer3.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer3.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
 GPRSTimer3Msg::GPRSTimer3Msg(){};
 GPRSTimer3Msg::~GPRSTimer3Msg(){};
 
-int GPRSTimer3Msg::DecodeGPRSTimer3Msg(
-    GPRSTimer3Msg* gprstimer, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int GPRSTimer3Msg::DecodeGPRSTimer3Msg(GPRSTimer3Msg* gprstimer, uint8_t iei,
+                                       uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -29,14 +35,14 @@ int GPRSTimer3Msg::DecodeGPRSTimer3Msg(
     decoded++;
   }
 
-  gprstimer->unit       = (*(buffer + decoded) >> 5) & 0x7;
+  gprstimer->unit = (*(buffer + decoded) >> 5) & 0x7;
   gprstimer->timervalue = *(buffer + decoded) & 0x1f;
   decoded++;
   return decoded;
 };
 
-int GPRSTimer3Msg::EncodeGPRSTimer3Msg(
-    GPRSTimer3Msg* gprstimer, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int GPRSTimer3Msg::EncodeGPRSTimer3Msg(GPRSTimer3Msg* gprstimer, uint8_t iei,
+                                       uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   /*

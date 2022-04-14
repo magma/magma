@@ -10,7 +10,14 @@
  */
 
 #include <sstream>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationFailure.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationFailure.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
@@ -20,7 +27,7 @@ AuthenticationFailureMsg::~AuthenticationFailureMsg(){};
 // Decoding Authentication Failure Message and its IEs
 int AuthenticationFailureMsg::DecodeAuthenticationFailureMsg(
     AuthenticationFailureMsg* auth_failure, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, AUTHENTICATION_FAILURE_MINIMUM_LENGTH, len);
@@ -83,7 +90,7 @@ int AuthenticationFailureMsg::DecodeAuthenticationFailureMsg(
 // Encoding Authentication Failure Message and its IEs
 int AuthenticationFailureMsg::EncodeAuthenticationFailureMsg(
     AuthenticationFailureMsg* auth_failure, uint8_t* buffer, uint32_t len) {
-  uint32_t encoded  = 0;
+  uint32_t encoded = 0;
   int encodedresult = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, AUTHENTICATION_FAILURE_MINIMUM_LENGTH, len);

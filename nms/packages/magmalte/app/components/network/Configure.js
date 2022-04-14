@@ -17,7 +17,7 @@
 import type {ComponentType} from 'react';
 
 import AppBar from '@material-ui/core/AppBar';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
+import NestedRouteLink from '../../../fbc_js_core/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
@@ -26,7 +26,7 @@ import Tabs from '@material-ui/core/Tabs';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({

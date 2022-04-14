@@ -46,10 +46,10 @@ typedef struct detach_accept_msg_tag {
   message_type_t messagetype;
 } detach_accept_msg;
 
-int decode_detach_accept(
-    detach_accept_msg* detachaccept, uint8_t* buffer, uint32_t len);
+int decode_detach_accept(detach_accept_msg* detachaccept, uint8_t* buffer,
+                         uint32_t len);
 
-int encode_detach_accept(
-    detach_accept_msg* detachaccept, uint8_t* buffer, uint32_t len);
+int encode_detach_accept(detach_accept_msg* detachaccept, uint8_t* buffer,
+                         uint32_t len);
 
 #endif /* ! defined(FILE_DETACH_ACCEPT_SEEN) */

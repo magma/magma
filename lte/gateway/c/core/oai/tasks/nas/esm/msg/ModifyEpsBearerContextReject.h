@@ -26,11 +26,11 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define MODIFY_EPS_BEARER_CONTEXT_REJECT_MINIMUM_LENGTH                        \
+#define MODIFY_EPS_BEARER_CONTEXT_REJECT_MINIMUM_LENGTH \
   (ESM_CAUSE_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define MODIFY_EPS_BEARER_CONTEXT_REJECT_MAXIMUM_LENGTH                        \
+#define MODIFY_EPS_BEARER_CONTEXT_REJECT_MAXIMUM_LENGTH \
   (ESM_CAUSE_MAXIMUM_LENGTH + PROTOCOL_CONFIGURATION_OPTIONS_MAXIMUM_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding

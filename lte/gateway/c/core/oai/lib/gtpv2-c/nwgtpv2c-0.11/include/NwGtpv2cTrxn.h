@@ -55,8 +55,8 @@ nw_gtpv2c_trxn_t* nwGtpv2cTrxnNew(NW_IN nw_gtpv2c_stack_t* pStack);
 /**
  * Overloaded Constructotr
  */
-nw_gtpv2c_trxn_t* nwGtpv2cTrxnWithSeqNumNew(
-    NW_IN nw_gtpv2c_stack_t* pStack, NW_IN uint32_t seqNum);
+nw_gtpv2c_trxn_t* nwGtpv2cTrxnWithSeqNumNew(NW_IN nw_gtpv2c_stack_t* pStack,
+                                            NW_IN uint32_t seqNum);
 
 /**
  * Another overloaded constructor. Create transaction as outstanding
@@ -70,10 +70,11 @@ nw_gtpv2c_trxn_t* nwGtpv2cTrxnWithSeqNumNew(
  * @return NW_OK on success.
  */
 
-nw_gtpv2c_trxn_t* nwGtpv2cTrxnOutstandingRxNew(
-    NW_IN nw_gtpv2c_stack_t* pStack, NW_IN uint32_t teidLocal,
-    NW_IN struct sockaddr* peerIp, NW_IN uint32_t peerPort,
-    NW_IN uint32_t seqNum);
+nw_gtpv2c_trxn_t* nwGtpv2cTrxnOutstandingRxNew(NW_IN nw_gtpv2c_stack_t* pStack,
+                                               NW_IN uint32_t teidLocal,
+                                               NW_IN struct sockaddr* peerIp,
+                                               NW_IN uint32_t peerPort,
+                                               NW_IN uint32_t seqNum);
 
 nw_rc_t nwGtpv2cTrxnDelete(NW_INOUT nw_gtpv2c_trxn_t** ppTrxn);
 

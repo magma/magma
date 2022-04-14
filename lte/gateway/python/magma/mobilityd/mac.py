@@ -20,7 +20,7 @@ class MacAddress:
     def __init__(self, mac: str):
         self.mac_address = mac
 
-    def as_hex(self) -> str:
+    def as_hex(self) -> bytes:
         """
         Covert Mac address string to binary number format.
         Returns: packed binary number.
@@ -28,7 +28,7 @@ class MacAddress:
 
         return bytes.fromhex(self.mac_address.replace(':', ''))
 
-    def as_redis_key(self, vlan: str) -> str:
+    def as_redis_key(self, vlan: int) -> str:
         """
         Convert MAC address string to redis key. Redis does not
         allow ':' in the key, so use '_' instead

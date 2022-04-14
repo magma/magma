@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 
 task_zmq_ctx_t task_zmq_ctx_sms_orc8r;
 
@@ -26,7 +26,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       stop_mock_sms_orc8r_task();
     } break;
 
-    default: { } break; }
+    default: {
+    } break;
+  }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
 
@@ -39,7 +41,7 @@ void stop_mock_sms_orc8r_task() {
 }
 
 void start_mock_sms_orc8r_task() {
-  init_task_context(
-      TASK_SMS_ORC8R, nullptr, 0, handle_message, &task_zmq_ctx_sms_orc8r);
+  init_task_context(TASK_SMS_ORC8R, nullptr, 0, handle_message,
+                    &task_zmq_ctx_sms_orc8r);
   zloop_start(task_zmq_ctx_sms_orc8r.event_loop);
 }

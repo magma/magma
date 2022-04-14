@@ -34,10 +34,10 @@
 
 *****************************************************************************/
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -114,9 +114,8 @@ status_code_e sgs_associated_handler(const sgs_fsm_t* evt) {
     } break;
 
     default: {
-      OAILOG_ERROR(
-          LOG_MME_APP, "SGS-FSM   - Primitive is not valid (%d)\n",
-          evt->primitive);
+      OAILOG_ERROR(LOG_MME_APP, "SGS-FSM   - Primitive is not valid (%d)\n",
+                   evt->primitive);
     } break;
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/sctpd/src/sctp_connection.h"
+#include "lte/gateway/c/sctpd/src/sctp_connection.hpp"
 
 #include <arpa/inet.h>
 #include <assert.h>
@@ -24,8 +24,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "lte/gateway/c/sctpd/src/sctpd.h"
-#include "lte/gateway/c/sctpd/src/util.h"
+#include "lte/gateway/c/sctpd/src/sctpd.hpp"
+#include "lte/gateway/c/sctpd/src/util.hpp"
 
 namespace magma {
 namespace sctpd {

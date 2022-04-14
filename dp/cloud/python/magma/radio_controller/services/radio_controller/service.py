@@ -15,23 +15,16 @@ import json
 import logging
 from typing import Dict, List, Optional
 
-from dp.protos.requests_pb2 import (
-    RequestDbId,
-    RequestDbIds,
-    RequestPayload,
-    ResponsePayload,
-)
+from dp.protos.requests_pb2 import RequestDbIds, RequestPayload
 from dp.protos.requests_pb2_grpc import RadioControllerServicer
 from magma.db_service.models import (
     DBCbsd,
     DBCbsdState,
     DBRequest,
-    DBRequestState,
     DBRequestType,
-    DBResponse,
 )
 from magma.db_service.session_manager import Session, SessionManager
-from magma.mappings.types import CbsdStates, RequestStates
+from magma.mappings.types import CbsdStates
 from magma.radio_controller.services.radio_controller.strategies.strategies_mapping import (
     get_cbsd_filter_strategies,
 )
@@ -65,33 +58,10 @@ class RadioControllerService(RadioControllerServicer):
         db_request_ids = self._store_requests_from_map_in_db(requests_map)
         return RequestDbIds(ids=db_request_ids)
 
-    def GetResponse(self, pb2_message: RequestDbId, context) -> ResponsePayload:
-        """
-        Return response for given request id
-
-        Parameters:
-            pb2_message: gRPC RequestDbId message
-            context: gRPC context
-
-        Returns:
-            ResponsePayload: a gRPC ResponsePayload message
-        """
-        logger.info(f"Getting SAS response for request {pb2_message.id}")
-        response = self._get_request_response(pb2_message.id)
-        if response.payload:
-            logger.info(
-                f"Returning response {response.payload} for request id: {pb2_message.id}.",
-            )
-
-        return response
-
     def _store_requests_from_map_in_db(self, request_map: Dict[str, List[Dict]]) -> List[int]:
         request_db_ids = []
         request_type = next(iter(request_map))
         with self.session_manager.session_scope() as session:
-            request_pending_state = session.query(DBRequestState).filter(
-                DBRequestState.name == RequestStates.PENDING.value,
-            ).scalar()
             req_type = session.query(DBRequestType).filter(
                 DBRequestType.name == request_type,
             ).first()
@@ -106,7 +76,6 @@ class RadioControllerService(RadioControllerServicer):
                     continue
                 db_request = DBRequest(
                     type=req_type,
-                    state=request_pending_state,
                     cbsd=cbsd,
                     payload=request_json,
                 )
@@ -117,20 +86,6 @@ class RadioControllerService(RadioControllerServicer):
                     request_db_ids.append(db_request.id)
             session.commit()
         return request_db_ids
-
-    def _get_request_response(self, request_db_id: int) -> ResponsePayload:
-        with self.session_manager.session_scope() as session:
-            logger.info(
-                f"Trying to fetch DB response for request id: {request_db_id}",
-            )
-            response = session.query(DBResponse).filter(
-                DBResponse.request_id == request_db_id,
-            ).first()
-            session.commit()
-            if not response:
-                payload = str({})
-                return ResponsePayload(payload=payload)
-            return ResponsePayload(payload=json.dumps(response.payload))
 
     def _get_or_create_cbsd(self, session: Session, request_type: str, request_json: Dict) -> Optional[DBCbsd]:
         filters = self._get_cbsd_filters(request_type, request_json)

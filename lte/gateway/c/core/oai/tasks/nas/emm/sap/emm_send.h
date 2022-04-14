@@ -39,23 +39,23 @@ Description Defines functions executed at the EMMAS Service Access
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/EmmStatus.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachAccept.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachAccept.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateAccept.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/GutiReallocationCommand.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/CsServiceNotification.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachAccept.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DownlinkNasTransport.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/EmmInformation.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/EmmStatus.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/GutiReallocationCommand.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/IdentityRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeCommand.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/EmmInformation.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DownlinkNasTransport.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/CsServiceNotification.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateAccept.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateReject.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.h"
 
 /****************************************************************************/
@@ -83,12 +83,12 @@ status_code_e emm_send_status(const emm_as_status_t*, emm_status_msg*);
 
 status_code_e emm_send_detach_accept(const emm_as_data_t*, detach_accept_msg*);
 
-status_code_e emm_send_attach_accept(
-    const emm_as_establish_t*, attach_accept_msg*);
-status_code_e emm_send_attach_accept_dl_nas(
-    const emm_as_data_t* msg, attach_accept_msg*);
-status_code_e emm_send_attach_reject(
-    const emm_as_establish_t*, attach_reject_msg*);
+status_code_e emm_send_attach_accept(const emm_as_establish_t*,
+                                     attach_accept_msg*);
+status_code_e emm_send_attach_accept_dl_nas(const emm_as_data_t* msg,
+                                            attach_accept_msg*);
+status_code_e emm_send_attach_reject(const emm_as_establish_t*,
+                                     attach_reject_msg*);
 
 status_code_e emm_send_tracking_area_update_reject(
     const emm_as_establish_t* msg, tracking_area_update_reject_msg* emm_msg);
@@ -98,30 +98,30 @@ status_code_e emm_send_tracking_area_update_accept(
 status_code_e emm_send_tracking_area_update_accept_dl_nas(
     const emm_as_data_t* msg, tracking_area_update_accept_msg* emm_msg);
 
-status_code_e emm_send_service_reject(
-    const uint8_t emm_cause, service_reject_msg* emm_msg);
+status_code_e emm_send_service_reject(const uint8_t emm_cause,
+                                      service_reject_msg* emm_msg);
 
-status_code_e emm_send_identity_request(
-    const emm_as_security_t*, identity_request_msg*);
-status_code_e emm_send_authentication_request(
-    const emm_as_security_t*, authentication_request_msg*);
+status_code_e emm_send_identity_request(const emm_as_security_t*,
+                                        identity_request_msg*);
+status_code_e emm_send_authentication_request(const emm_as_security_t*,
+                                              authentication_request_msg*);
 void emm_free_send_authentication_request(authentication_request_msg*);
 status_code_e emm_send_authentication_reject(authentication_reject_msg*);
-status_code_e emm_send_security_mode_command(
-    const emm_as_security_t*, security_mode_command_msg*);
-status_code_e emm_send_emm_information(
-    const emm_as_data_t* msg, emm_information_msg* emm_msg);
+status_code_e emm_send_security_mode_command(const emm_as_security_t*,
+                                             security_mode_command_msg*);
+status_code_e emm_send_emm_information(const emm_as_data_t* msg,
+                                       emm_information_msg* emm_msg);
 void emm_free_send_emm_information(emm_information_msg* emm_msg);
 
-status_code_e emm_send_nw_detach_request(
-    const emm_as_data_t*, nw_detach_request_msg*);
+status_code_e emm_send_nw_detach_request(const emm_as_data_t*,
+                                         nw_detach_request_msg*);
 
-status_code_e emm_send_dl_nas_transport(
-    const emm_as_data_t*, downlink_nas_transport_msg*);
+status_code_e emm_send_dl_nas_transport(const emm_as_data_t*,
+                                        downlink_nas_transport_msg*);
 void emm_free_send_dl_nas_transport(downlink_nas_transport_msg* emm_msg);
 
-int emm_send_cs_service_notification(
-    const emm_as_data_t* msg, cs_service_notification_msg* emm_msg);
+int emm_send_cs_service_notification(const emm_as_data_t* msg,
+                                     cs_service_notification_msg* emm_msg);
 void emm_free_send_cs_service_notification(
     cs_service_notification_msg* emm_msg);
 #endif /* FILE_EMM_SEND_SEEN*/

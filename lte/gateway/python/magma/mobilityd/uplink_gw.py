@@ -68,8 +68,9 @@ class UplinkGatewayInfo:
         vlan_key = _get_vlan_key(vlan_id, version)
         if vlan_key in self._backing_map:
             gw_info = self._backing_map.get(vlan_key)
-            ip = ipaddress.ip_address(gw_info.ip.address)
-            return str(ip)
+            if gw_info:
+                return str(ipaddress.ip_address(gw_info.ip.address))
+        return None
 
     def read_default_gw(self):
         self._do_read_default_gw()
@@ -159,10 +160,10 @@ class UplinkGatewayInfo:
             vlan_id: vlan of the gw, None if GW is not in a vlan.
         """
         vlan_key = _get_vlan_key(vlan_id, version)
-        if vlan_key in self._backing_map:
-            return self._backing_map.get(vlan_key).mac
-        else:
-            return None
+        gw_info = self._backing_map.get(vlan_key)
+        if gw_info:
+            return gw_info.mac
+        return None
 
     def update_mac(
         self, ip: Optional[str], mac: Optional[str], vlan_id=None,

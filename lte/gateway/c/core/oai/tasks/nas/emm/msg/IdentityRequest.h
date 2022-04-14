@@ -47,10 +47,10 @@ typedef struct identity_request_msg_tag {
   identity_type2_t identitytype;
 } identity_request_msg;
 
-int decode_identity_request(
-    identity_request_msg* identityrequest, uint8_t* buffer, uint32_t len);
+int decode_identity_request(identity_request_msg* identityrequest,
+                            uint8_t* buffer, uint32_t len);
 
-int encode_identity_request(
-    identity_request_msg* identityrequest, uint8_t* buffer, uint32_t len);
+int encode_identity_request(identity_request_msg* identityrequest,
+                            uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(FILE_IDENTITY_REQUEST_SEEN) */

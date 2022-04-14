@@ -87,7 +87,7 @@ def generate_template_config(service, template, out_dirname, context):
     out_filename = _get_template_out_filename(template, out_dirname)
     logging.info(
         "Generating config file: [%s] using template: [%s]" % (
-        out_filename, template_filename,
+            out_filename, template_filename,
         ),
     )
     template_context = {}

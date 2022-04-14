@@ -19,6 +19,7 @@ from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.service_configs import load_service_config
 
 GRPC_KEEPALIVE_MS = 30 * 1000
+ROOTCA_PATH = '/var/opt/magma/certs/rootCA.pem'
 
 
 class ServiceRegistry:
@@ -84,6 +85,31 @@ class ServiceRegistry:
         Removes all the entries in the registry
         """
         ServiceRegistry.get_registry()["services"] = {}
+
+    @staticmethod
+    def get_bare_bootstrap_rpc_channel(domain_name, port, rootca_path=None):
+        """
+        Return an RPC channel to bootstrap service in CLOUD, without referencing a
+        control proxy config.
+
+        Returns:
+            grpc channel
+        """
+        rootca_path = rootca_path or ROOTCA_PATH
+        with open(rootca_path, 'rb') as rootca_f:
+            rootca = rootca_f.read()
+            ssl_creds = grpc.ssl_channel_credentials(
+                root_certificates=rootca,
+            )
+
+        authority = 'bootstrapper-controller.%s' % domain_name
+        grpc_options = [('grpc.default_authority', authority)]
+        channel = grpc.secure_channel(
+            target='%s:%s' % (authority, port),
+            credentials=ssl_creds,
+            options=grpc_options,
+        )
+        return channel
 
     @staticmethod
     def get_bootstrap_rpc_channel():

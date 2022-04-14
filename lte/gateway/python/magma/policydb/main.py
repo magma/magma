@@ -30,9 +30,9 @@ from magma.policydb.reauth_handler import ReAuthHandler
 from magma.policydb.rule_map_store import RuleAssignmentsDict
 from magma.policydb.servicers.policy_servicer import PolicyRpcServicer
 from magma.policydb.servicers.session_servicer import SessionRpcServicer
-
-from .streamer_callback import (
+from magma.policydb.streamer_callback import (
     ApnRuleMappingsStreamerCallback,
+    BaseNamesStreamerCallback,
     PolicyDBStreamerCallback,
     RatingGroupsStreamerCallback,
 )
@@ -42,7 +42,10 @@ def main():
     service = MagmaService('policydb', mconfigs_pb2.PolicyDB())
 
     # Optionally pipe errors to Sentry
-    sentry_init(service_name=service.name, sentry_mconfig=service.shared_mconfig.sentry_config)
+    sentry_init(
+        service_name=service.name,
+        sentry_mconfig=service.shared_mconfig.sentry_config,
+    )
 
     apn_rules_dict = ApnRuleAssignmentsDict()
     assignments_dict = RuleAssignmentsDict()
@@ -81,6 +84,7 @@ def main():
         stream = StreamerClient(
             {
                 'policydb': PolicyDBStreamerCallback(),
+                'base_names': BaseNamesStreamerCallback(basenames_dict),
                 'apn_rule_mappings': ApnRuleMappingsStreamerCallback(
                     session_mgr_stub,
                     basenames_dict,
@@ -89,7 +93,6 @@ def main():
                 'rating_groups': RatingGroupsStreamerCallback(
                     rating_groups_dict,
                 ),
-
             },
             service.loop,
         )

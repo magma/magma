@@ -38,7 +38,8 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/directoryd"
-	"magma/orc8r/cloud/go/services/directoryd/servicers"
+	directoryd_protos "magma/orc8r/cloud/go/services/directoryd/protos"
+	servicers "magma/orc8r/cloud/go/services/directoryd/servicers/protected"
 	dstorage "magma/orc8r/cloud/go/services/directoryd/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -72,7 +73,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating initializing directory servicer: %s", err)
 	}
-	protos.RegisterDirectoryLookupServer(srv.GrpcServer, servicer)
+	directoryd_protos.RegisterDirectoryLookupServer(srv.GrpcServer, servicer)
 	protos.RegisterGatewayDirectoryServiceServer(srv.GrpcServer, servicers.NewDirectoryUpdateServicer())
 
 	// Run service

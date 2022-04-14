@@ -12,6 +12,7 @@ limitations under the License.
 """
 from collections import namedtuple
 
+from magma.common.misc_utils import get_link_local_ipv6_from_if
 from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.ipv6_prefix_store import get_ipv6_interface_id
 from magma.pipelined.openflow import flows
@@ -25,6 +26,12 @@ from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib.packet import ether_types, ethernet, icmpv6, in_proto, ipv6, packet
 from ryu.ofproto.inet import IPPROTO_ICMPV6
+
+MAX_ROUTE_LIFE_TIME = int(hex(0xffffffff), 16)
+MAX_ROUTE_ADVT_LIFE_TIME = int(hex(0xffff), 16)
+MAX_HOP_LIMIT = 255
+ROUTE_PREFIX_HDR_FLAG_L = 0x4
+ROUTE_PREFIX_HDR_FLAG_A = 0x2
 
 
 class IPV6SolicitationController(MagmaController):
@@ -52,8 +59,10 @@ class IPV6SolicitationController(MagmaController):
     MAC_MULTICAST = '33:33:00:00:00:01'
     DEVICE_MULTICAST = 'ff02::1'
     LINK_LOCAL_PREFIX = 'fe80::/10'
+
     SOLICITED_NODE_MULTICAST = 'ff02::1:ff00:0/104'
     DEFAULT_PREFIX_LEN = 64
+    DEFAULT_LINK_LOCAL_ADDR = 'fe80::100'
 
     IPv6RouterConfig = namedtuple(
         'IPv6RouterConfig',
@@ -75,8 +84,15 @@ class IPV6SolicitationController(MagmaController):
         )
 
     def _get_config(self, config_dict):
+        ipv6_src = config_dict.get('ipv6_router_addr', None)
+        if ipv6_src is None:
+            s1_interface = config_dict['enodeb_iface']
+            ipv6_src = get_link_local_ipv6_from_if(s1_interface)
+            if ipv6_src is None:
+                ipv6_src = self.DEFAULT_LINK_LOCAL_ADDR
+
         return self.IPv6RouterConfig(
-            ipv6_src=config_dict['ipv6_router_addr'],
+            ipv6_src=ipv6_src,
             ll_addr=config_dict['virtual_mac'],
             prefix_len=self.DEFAULT_PREFIX_LEN,
         )
@@ -181,7 +197,7 @@ class IPV6SolicitationController(MagmaController):
         )
         pkt.add_protocol(
             ipv6.ipv6(
-                dst=self.DEVICE_MULTICAST,
+                dst=ipv6_src,
                 src=self.config.ipv6_src,
                 nxt=in_proto.IPPROTO_ICMPV6,
             ),
@@ -190,13 +206,19 @@ class IPV6SolicitationController(MagmaController):
             icmpv6.icmpv6(
                 type_=icmpv6.ND_ROUTER_ADVERT,
                 data=icmpv6.nd_router_advert(
+                    ch_l=MAX_HOP_LIMIT,
+                    rou_l=MAX_ROUTE_ADVT_LIFE_TIME,
                     options=[
                         icmpv6.nd_option_sla(
                             hw_src=self.config.ll_addr,
+
                         ),
                         icmpv6.nd_option_pi(
                             pl=self.config.prefix_len,
                             prefix=prefix,
+                            val_l=MAX_ROUTE_LIFE_TIME,
+                            pre_l=MAX_ROUTE_LIFE_TIME,
+                            res1=int(hex(ROUTE_PREFIX_HDR_FLAG_L | ROUTE_PREFIX_HDR_FLAG_A), 16),
                         ),
                     ],
                 ),

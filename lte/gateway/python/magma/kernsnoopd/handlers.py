@@ -17,6 +17,7 @@ from ctypes import c_ulong
 from functools import lru_cache
 from socket import AF_INET, AF_INET6, inet_ntop
 from struct import pack
+from typing import Tuple
 
 import psutil
 from magma.kernsnoopd import metrics
@@ -92,7 +93,7 @@ class ByteCounter(EBPFHandler):
         return psutil.Process(pid=pid).cmdline()
 
     @lru_cache(maxsize=1024)
-    def _ip_addr_to_str(self, family: int, daddr: (int, int)) -> str:
+    def _ip_addr_to_str(self, family: int, daddr: Tuple[int, int]) -> str:
         """
         _ip_addr_to_str returns a string representation of an IPv4 or IPv6
         address. It caches results in an LRU cache to reduce cost of conversion
@@ -110,6 +111,8 @@ class ByteCounter(EBPFHandler):
         elif family == AF_INET6:
             # noinspection PyTypeChecker
             return inet_ntop(AF_INET6, self.Addr(*daddr))
+        else:
+            raise Exception("No valid socket family given!")
 
     def handle(self, bpf):
         """

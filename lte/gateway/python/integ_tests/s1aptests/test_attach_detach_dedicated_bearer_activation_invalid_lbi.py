@@ -32,7 +32,7 @@ class TestAttachDetachDedicatedInvalidlbi(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach(self):
+    def test_attach_detach_dedicated_bearer_activation_invalid_lbi(self):
         """attach/detach + invalid lbi in dedicated bearer test with
         a single UE
         """

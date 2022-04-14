@@ -21,7 +21,7 @@ import (
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/basic_acct"
-	"magma/feg/cloud/go/services/basic_acct/servicers"
+	acct_servicer "magma/feg/cloud/go/services/basic_acct/servicers/southbound"
 	"magma/orc8r/cloud/go/service"
 )
 
@@ -34,10 +34,10 @@ func main() {
 		glog.Fatalf("Error creating Basic Accounting service: %s", err)
 	}
 
-	bas := servicers.NewBaseAcctService()
+	bas := acct_servicer.NewBaseAcctService()
 	cfg := bas.GetConfig()
 	if cfg == nil {
-		cfg = &servicers.Config{}
+		cfg = &acct_servicer.Config{}
 	}
 	glog.Infof("Starting %s service with configs: %+v", basic_acct.ServiceName, *cfg)
 	protos.RegisterAccountingServer(srv.GrpcServer, bas)

@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 
 task_zmq_ctx_t task_zmq_ctx_s6a;
 static std::shared_ptr<MockS6aHandler> s6a_handler_;
@@ -35,8 +35,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
     case S6A_PURGE_UE_REQ: {
       s6a_handler_->s6a_viface_purge_ue();
-    }
-    default: { } break; }
+    } break;
+    case S6A_CANCEL_LOCATION_ANS: {
+      s6a_handler_->s6a_cancel_location_ans();
+    } break;
+    default: {
+    } break;
+  }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
 

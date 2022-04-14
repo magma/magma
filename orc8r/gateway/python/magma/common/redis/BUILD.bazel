@@ -18,18 +18,24 @@ py_library(
     name = "client",
     srcs = ["client.py"],
     deps = [
-        requirement("redis"),
-        requirement("hiredis"),
+        ":containers",
         "//feg/protos:mconfigs_python_proto",
+        "//orc8r/gateway/python/magma/configuration:service_configs",
+        requirement("hiredis"),
+        requirement("redis"),
     ],
 )
 
 py_library(
     name = "containers",
-    srcs = ["containers.py"],
-)
-
-py_library(
-    name = "serializers",
-    srcs = ["serializers.py"],
+    srcs = [
+        "containers.py",
+        "serializers.py",
+    ],
+    deps = [
+        "//orc8r/protos:redis_python_proto",
+        requirement("jsonpickle"),
+        requirement("python-redis-lock"),
+        requirement("redis_collections"),
+    ],
 )

@@ -29,7 +29,3 @@ The service then sends back the ENB ID -> offload state
 for all of these.
 */
 package ha
-
-const (
-	ServiceName = "ha"
-)

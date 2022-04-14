@@ -1,0 +1,27 @@
+{{/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+{{- if and .Values.dp.create .Values.dp.configuration_controller.service.enable -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "domain-proxy.fluentd.fullname" . }}
+  labels:
+    {{- include "domain-proxy.fluentd.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: {{ .Values.dp.fluentd.service.port }}
+      targetPort: {{ .Values.dp.fluentd.service.port }}
+      protocol: TCP
+  selector:
+    {{- include "domain-proxy.fluentd.matchLabels" . | nindent 4 }}
+{{- end }}

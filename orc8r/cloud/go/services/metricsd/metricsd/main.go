@@ -21,8 +21,8 @@ import (
 	"google.golang.org/grpc"
 
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/obsidian/swagger"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
+	swagger_servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -50,7 +50,7 @@ func main() {
 	controllerServicer := servicers.NewMetricsControllerServer()
 	protos.RegisterMetricsControllerServer(srv.GrpcServer, controllerServicer)
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(metricsd.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(metricsd.ServiceName))
 
 	// Initialize gatherers
 	additionalCollectors := []collection.MetricCollector{

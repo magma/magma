@@ -33,9 +33,9 @@
 #include "lte/gateway/c/core/oai/common/conversions.h"
 
 //------------------------------------------------------------------------------
-status_code_e select_pdn_type(
-    struct apn_configuration_s* apn_config,
-    esm_proc_pdn_type_t ue_selected_pdn_type, esm_cause_t* esm_cause) {
+status_code_e select_pdn_type(struct apn_configuration_s* apn_config,
+                              esm_proc_pdn_type_t ue_selected_pdn_type,
+                              esm_cause_t* esm_cause) {
   /* Overwrite apn_config->pdn_type based on the PDN type sent by UE and the PDN
    * Type received in subscription profile
    */
@@ -50,12 +50,11 @@ status_code_e select_pdn_type(
          * subscribed, the MME sets the PDN type as requested. Otherwise the PDN
          * connection request is rejected
          */
-        OAILOG_ERROR(
-            LOG_MME_APP,
-            " Sending PDN Connectivity Reject with cause "
-            "ESM_CAUSE_UNKNOWN_PDN_TYPE,"
-            " UE requested PDN Type %d, subscribed PDN Type %d \n",
-            ue_selected_pdn_type, apn_config->pdn_type);
+        OAILOG_ERROR(LOG_MME_APP,
+                     " Sending PDN Connectivity Reject with cause "
+                     "ESM_CAUSE_UNKNOWN_PDN_TYPE,"
+                     " UE requested PDN Type %d, subscribed PDN Type %d \n",
+                     ue_selected_pdn_type, apn_config->pdn_type);
 
         *esm_cause = ESM_CAUSE_UNKNOWN_PDN_TYPE;
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
@@ -72,12 +71,11 @@ status_code_e select_pdn_type(
          * subscribed, the MME sets the PDN type as requested. Otherwise the PDN
          * connection request is rejected
          */
-        OAILOG_ERROR(
-            LOG_MME_APP,
-            " Sending PDN Connectivity Reject with cause "
-            "ESM_CAUSE_UNKNOWN_PDN_TYPE,"
-            " UE requested PDN Type %d, subscribed PDN Type %d \n",
-            ue_selected_pdn_type, apn_config->pdn_type);
+        OAILOG_ERROR(LOG_MME_APP,
+                     " Sending PDN Connectivity Reject with cause "
+                     "ESM_CAUSE_UNKNOWN_PDN_TYPE,"
+                     " UE requested PDN Type %d, subscribed PDN Type %d \n",
+                     ue_selected_pdn_type, apn_config->pdn_type);
 
         *esm_cause = ESM_CAUSE_UNKNOWN_PDN_TYPE;
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
@@ -95,12 +93,11 @@ status_code_e select_pdn_type(
       break;
 
     default:
-      OAILOG_ERROR(
-          LOG_MME_APP,
-          " Sending PDN Connectivity Reject with cause "
-          "ESM_CAUSE_UNKNOWN_PDN_TYPE,"
-          " UE requested PDN Type %d, subscribed PDN Type %d \n",
-          ue_selected_pdn_type, apn_config->pdn_type);
+      OAILOG_ERROR(LOG_MME_APP,
+                   " Sending PDN Connectivity Reject with cause "
+                   "ESM_CAUSE_UNKNOWN_PDN_TYPE,"
+                   " UE requested PDN Type %d, subscribed PDN Type %d \n",
+                   ue_selected_pdn_type, apn_config->pdn_type);
 
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       break;
@@ -200,7 +197,7 @@ bstring mme_app_process_apn_correction(imsi_t* imsi, bstring accesspointname) {
   IMSI_TO_STRING(imsi, imsi_str, IMSI_BCD_DIGITS_MAX + 1);
   for (i = 0; i < config.nb; i++) {
     const char* imsi_prefix = bdata(config.apn_map[i].imsi_prefix);
-    int imsi_prefix_len     = strlen(imsi_prefix);
+    int imsi_prefix_len = strlen(imsi_prefix);
     if ((imsi_prefix_len <= IMSI_BCD_DIGITS_MAX) &&
         !strncmp(imsi_prefix, imsi_str, imsi_prefix_len)) {
       return config.apn_map[i].apn_override;

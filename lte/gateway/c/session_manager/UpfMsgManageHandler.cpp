@@ -152,12 +152,6 @@ void UpfMsgManageHandler::SetUPFSessionsConfig(
         count++;
       }
     }
-#if 0
-    if (ses_config.upf_session_state_size() != count) {
-      MLOG(MINFO) << "UPF periodic report config missmatch session:"
-                  << (ses_config.upf_session_state_size() - count);
-    }
-#endif
   });
   response_callback(Status::OK, SmContextVoid());
   return;

@@ -342,7 +342,7 @@ class InOutController(RestartMixin, MagmaController):
         if mac_addr == "":
             mac_addr = self._current_upstream_mac_map.get(vlan, "")
         if mac_addr == "" and self.config.enable_nat is False and \
-            self.config.setup_type == 'LTE':
+                self.config.setup_type == 'LTE':
             mac_addr = self.config.uplink_gw_mac
 
         if mac_addr != "":

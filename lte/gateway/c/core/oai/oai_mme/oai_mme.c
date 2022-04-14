@@ -21,20 +21,20 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "lte/gateway/c/core/oai/include/mme_events.h"
+#include "lte/gateway/c/core/oai/include/mme_events.hpp"
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/amf_config.h"
 #include "lte/gateway/c/core/oai/common/shared_ts_log.h"
-#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.hpp"
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
 #include "lte/gateway/c/core/oai/tasks/sctp/sctp_primitives_server.h"
@@ -45,7 +45,7 @@
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
 #include "lte/gateway/c/core/oai/tasks/sgs/sgs_defs.h"
 #include "lte/gateway/c/core/oai/tasks/sms_orc8r/sms_orc8r_defs.h"
-#include "lte/gateway/c/core/oai/tasks/ha/ha_defs.h"
+#include "lte/gateway/c/core/oai/tasks/ha/ha_defs.hpp"
 #include "lte/gateway/c/core/oai/oai_mme/oai_mme.h"
 #include "lte/gateway/c/core/oai/common/pid_file.h"
 #include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
@@ -60,9 +60,12 @@
 #endif
 #include "lte/gateway/c/core/oai/include/udp_primitives_server.h"
 #include "lte/gateway/c/core/oai/include/s11_mme.h"
-#include "lte/gateway/c/core/oai/include/service303.h"
+#include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/common/shared_ts_log.h"
-#include "lte/gateway/c/core/oai/include/grpc_service.h"
+#include "lte/gateway/c/core/oai/include/grpc_service.hpp"
+#if MME_BENCHMARK
+#include "lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.hpp"
+#endif
 
 static void send_timer_recovery_message(void);
 
@@ -78,26 +81,24 @@ static int main_init(void) {
       TASK_MAIN,
       (task_id_t[]){TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER,
                     TASK_S6A, TASK_S1AP, TASK_SCTP, TASK_SPGW_APP, TASK_SGW_S8,
-                    TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG},
-      11, NULL, &main_zmq_ctx);
+                    TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG,
+                    TASK_ASYNC_GRPC_SERVICE},
+      12, NULL, &main_zmq_ctx);
 
   return RETURNok;
 }
 
-static void main_exit(void) {
-  destroy_task_context(&main_zmq_ctx);
-}
+static void main_exit(void) { destroy_task_context(&main_zmq_ctx); }
 
 int main(int argc, char* argv[]) {
   srand(time(NULL));
   char* pid_file_name;
 
-  CHECK_INIT_RETURN(OAILOG_INIT(
-      MME_CONFIG_STRING_MME_CONFIG, OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS));
+  CHECK_INIT_RETURN(OAILOG_INIT(MME_CONFIG_STRING_MME_CONFIG,
+                                OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS));
   CHECK_INIT_RETURN(shared_log_init(MAX_LOG_PROTOS));
-  CHECK_INIT_RETURN(itti_init(
-      TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
-      NULL));
+  CHECK_INIT_RETURN(itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info,
+                              messages_info, NULL, NULL));
 
   /*
    * Parse the command line for options and set the mme_config accordingly.
@@ -111,7 +112,8 @@ int main(int argc, char* argv[]) {
   // Initialize Sentry error collection
   // We have to initialize here for now since itti_init asserts on there being
   // only 1 thread
-  initialize_sentry(SENTRY_TAG_MME, &mme_config.sentry_config);
+  sentry_config_t sentry_config = construct_sentry_config_from_mconfig();
+  initialize_sentry(SENTRY_TAG_MME, &sentry_config);
 
   // Could not be launched before ITTI initialization
   shared_log_itti_connect();
@@ -123,7 +125,7 @@ int main(int argc, char* argv[]) {
   if (!pid_file_lock(pid_file_name)) {
     exit(-EDEADLK);
   }
-  free_wrapper((void**) &pid_file_name);
+  free_wrapper((void**)&pid_file_name);
 
   /*
    * Calling each layer init function
@@ -167,6 +169,7 @@ int main(int argc, char* argv[]) {
   if (mme_config.use_ha) {
     CHECK_INIT_RETURN(ha_init(&mme_config));
   }
+  CHECK_INIT_RETURN(grpc_async_service_init());
   OAILOG_DEBUG(LOG_MME_APP, "MME app initialization complete\n");
 
 #if EMBEDDED_SGW
@@ -179,6 +182,15 @@ int main(int argc, char* argv[]) {
   if (mme_config.use_stateless) {
     send_timer_recovery_message();
   }
+
+#if MME_BENCHMARK
+  if (mme_config.run_mode == RUN_MODE_TEST) {
+    if (mme_config.test_type == TEST_SERIALIZATION_PROTOBUF) {
+      mme_app_schedule_test_protobuf_serialization(mme_config.test_param);
+    }
+  }
+#endif
+
   /*
    * Handle signals here
    */

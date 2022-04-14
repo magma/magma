@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 
 task_zmq_ctx_t task_zmq_ctx_ha;
 
@@ -26,7 +26,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       stop_mock_ha_task();
     } break;
 
-    default: { } break; }
+    default: {
+    } break;
+  }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
 

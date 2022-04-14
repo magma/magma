@@ -36,19 +36,19 @@
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 
 #include "lte/gateway/c/core/oai/common/amf_default_values.h"
 #include "lte/gateway/c/core/oai/common/mme_default_values.h"
-#include "lte/gateway/c/core/oai/include/service303.h"
+#include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/tasks/sctp/sctp_itti_messaging.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/sctp/sctpd_downlink_client.h"
-#include "lte/gateway/c/core/oai/tasks/sctp/sctpd_uplink_server.h"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctpd_downlink_client.hpp"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctpd_uplink_server.hpp"
 
 static void sctp_exit(void);
 
@@ -56,7 +56,7 @@ sctp_config_t sctp_conf;
 task_zmq_ctx_t sctp_task_zmq_ctx;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  MessageDef* received_message_p    = receive_msg(reader);
+  MessageDef* received_message_p = receive_msg(reader);
   static bool UPLINK_SERVER_STARTED = false;
 
   switch (ITTI_MSG_ID(received_message_p)) {
@@ -86,9 +86,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
         SCTP_AMF_SERVER_INITIALIZED(msg).successful = true;
         send_msg_to_task(&sctp_task_zmq_ctx, TASK_AMF_APP, msg);
       } else {
-        OAILOG_ERROR(
-            LOG_SCTP, "Invalid Ppid: %d",
-            received_message_p->ittiMsg.sctpInit.ppid);
+        OAILOG_ERROR(LOG_SCTP, "Invalid Ppid: %d",
+                     received_message_p->ittiMsg.sctpInit.ppid);
       }
     } break;
 
@@ -96,10 +95,10 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case SCTP_DATA_REQ: {
-      uint32_t ppid     = SCTP_DATA_REQ(received_message_p).ppid;
+      uint32_t ppid = SCTP_DATA_REQ(received_message_p).ppid;
       uint32_t assoc_id = SCTP_DATA_REQ(received_message_p).assoc_id;
-      uint16_t stream   = SCTP_DATA_REQ(received_message_p).stream;
-      bstring payload   = SCTP_DATA_REQ(received_message_p).payload;
+      uint16_t stream = SCTP_DATA_REQ(received_message_p).stream;
+      bstring payload = SCTP_DATA_REQ(received_message_p).payload;
 
       if (sctpd_send_dl(ppid, assoc_id, stream, payload) < 0) {
         sctp_itti_send_lower_layer_conf(
@@ -118,9 +117,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     default: {
-      OAILOG_DEBUG(
-          LOG_SCTP, "Unknown message ID %d:%s\n",
-          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
+      OAILOG_DEBUG(LOG_SCTP, "Unknown message ID %d:%s\n",
+                   ITTI_MSG_ID(received_message_p),
+                   ITTI_MSG_NAME(received_message_p));
     } break;
   }
 
@@ -149,8 +148,8 @@ int sctp_init(const mme_config_t* mme_config_p) {
     OAILOG_ERROR(LOG_SCTP, "failed to init sctpd downlink client\n");
   }
 
-  if (itti_create_task(
-          TASK_SCTP, &sctp_thread, (void*) &mme_config_p->sctp_config) < 0) {
+  if (itti_create_task(TASK_SCTP, &sctp_thread,
+                       (void*)&mme_config_p->sctp_config) < 0) {
     OAILOG_ERROR(LOG_SCTP, "create task failed\n");
     OAILOG_DEBUG(LOG_SCTP, "Initializing SCTP task interface: FAILED\n");
     return -1;

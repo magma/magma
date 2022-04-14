@@ -24,7 +24,7 @@ import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
-import defaultTheme from '@fbcnms/ui/theme/default';
+import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
 
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
@@ -35,7 +35,10 @@ const enqueueSnackbarMock = jest.fn();
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest
-  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .spyOn(
+    require('../../../../fbc_js_core/ui/hooks/useSnackbar'),
+    'useEnqueueSnackbar',
+  )
   .mockReturnValue(enqueueSnackbarMock);
 afterEach(cleanup);
 

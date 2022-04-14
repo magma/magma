@@ -20,7 +20,7 @@
 #include <utility>
 
 #include "lte/gateway/c/li_agent/src/test/Consts.h"
-#include "lte/gateway/c/li_agent/src/PDUGenerator.h"
+#include "lte/gateway/c/li_agent/src/PDUGenerator.hpp"
 #include "lte/gateway/c/li_agent/src/test/LIAgentdMocks.h"
 
 using grpc::Status;
@@ -127,11 +127,5 @@ TEST_F(PDUGeneratorTest, test_generator_non_ip_packet) {
   free(pdata);
   free(phdr);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace lte
 }  // namespace magma

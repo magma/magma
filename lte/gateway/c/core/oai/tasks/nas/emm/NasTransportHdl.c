@@ -38,20 +38,20 @@
         the nas message from ue to msc/vlr and vice versa
 
 *****************************************************************************/
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -97,11 +97,11 @@
  **      Others:    _emm_data                                  **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_proc_uplink_nas_transport(
-    mme_ue_s1ap_id_t ue_id, bstring nas_msg_pP) {
-  int rc                                     = RETURNok;
-  emm_context_t* emm_ctxt_p                  = NULL;
-  imeisv_t* p_imeisv                         = NULL;
+status_code_e emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id,
+                                            bstring nas_msg_pP) {
+  int rc = RETURNok;
+  emm_context_t* emm_ctxt_p = NULL;
+  imeisv_t* p_imeisv = NULL;
   MobileStationClassmark2* p_mob_st_clsMark2 = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -141,23 +141,22 @@ status_code_e emm_proc_uplink_nas_transport(
             _esm_data.conf.features & MME_API_SMS_ORC8R_SUPPORTED);
       } else {
         if (emm_ctxt_p->is_imsi_only_detach == true) {
-          OAILOG_DEBUG(
-              LOG_NAS_EMM,
-              "Already triggred Detach Request for the UE "
-              "(ue_id=" MME_UE_S1AP_ID_FMT ") \n",
-              ue_id);
+          OAILOG_DEBUG(LOG_NAS_EMM,
+                       "Already triggred Detach Request for the UE "
+                       "(ue_id=" MME_UE_S1AP_ID_FMT ") \n",
+                       ue_id);
         } else {
           // NAS trigger UE to re-attach for non-EPS services.
-          emm_proc_nw_initiated_detach_request(
-              ue_id, NW_DETACH_TYPE_IMSI_DETACH);
+          emm_proc_nw_initiated_detach_request(ue_id,
+                                               NW_DETACH_TYPE_IMSI_DETACH);
         }
       }
     }
   } else {
-    OAILOG_WARNING(
-        LOG_NAS_EMM,
-        "No EMM context exists for the UE (ue_id=" MME_UE_S1AP_ID_FMT ") \n",
-        ue_id);
+    OAILOG_WARNING(LOG_NAS_EMM,
+                   "No EMM context exists for the UE (ue_id=" MME_UE_S1AP_ID_FMT
+                   ") \n",
+                   ue_id);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);

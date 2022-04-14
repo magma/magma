@@ -15,9 +15,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #ifdef __cplusplus
 };
 #endif
@@ -36,7 +36,6 @@ void sm_copy_protocol_configuration_options(
     protocol_configuration_options_t* const pco_dst,
     const protocol_configuration_options_t* const pco_src);
 
-uint16_t sm_process_pco_request(
-    protocol_configuration_options_t* pco_req,
-    protocol_configuration_options_t* pco_resp);
+uint16_t sm_process_pco_request(protocol_configuration_options_t* pco_req,
+                                protocol_configuration_options_t* pco_resp);
 }  // namespace magma5g

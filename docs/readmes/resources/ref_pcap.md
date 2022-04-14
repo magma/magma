@@ -42,12 +42,16 @@ One subscriber creates session, receives a monitor quota from the PCRF, uses up
 all the quota available, and stops reporting. In this case, the session is not
 terminated since this is Gx monitoring.
 
-[[pcap]](assets/feg/pcaps/inbound_roaming_01_210505_130828-1.pcap)
+[[pcap]](assets/feg/pcaps/inbound_roaming_01_210505_130828-1.pcapng)
 **Inbound Roaming Basic Session Cycle**
 One roaming subscriber begins a S8 session by sending 10 packets and receiving
 10 packets.
 
-[[pcap]](assets/feg/pcaps/inbound_roaming_05_210504_215514-1.pacp)
+[[pcap]](assets/feg/pcaps/inbound_roaming_05_210504_215514-1.pacpng)
 **Inbound Roaming IDLE to Connected UE initiated**
 One roaming subscriber begins a S8 session, goes from "Idle" to "Connected"
 followed by sending 10 packets and receiving 10 packets.
+
+[[pcap]](assets/feg/pcaps/nsa_connection.pcap)
+**NSA Connection with a commercial UE**
+Change in FTEID-IP address in Modify Bearer request message before and after the E-RAB Modification Indication messages highlights the connection established with gNB.

@@ -15,9 +15,9 @@ limitations under the License.
 
 import argparse
 
-from lte.protos.apn_pb2 import AggregatedMaximumBitrate
 from lte.protos.session_manager_pb2 import (
     CommonSessionContext,
+    M5GQosInformationRequest,
     M5GSMSessionContext,
     PduSessionType,
     RatSpecificContext,
@@ -59,9 +59,14 @@ class CreateAmfSession(object):
                     ),
                     pdu_session_type=PduSessionType.Name(0),
                     ssc_mode=SscMode.Name(2),
-                    default_ambr=AggregatedMaximumBitrate(
-                        max_bandwidth_ul=750000,
-                        max_bandwidth_dl=1000000,
+                    subscribed_qos=M5GQosInformationRequest(
+                        apn_ambr_ul=750000,
+                        apn_ambr_dl=1000000,
+                        priority_level=1,
+                        preemption_capability=1,
+                        preemption_vulnerability=1,
+                        qos_class_id=9,
+                        br_unit=M5GQosInformationRequest.BitrateUnitsAMBR.Name(1),
                     ),
                 ),
             ),

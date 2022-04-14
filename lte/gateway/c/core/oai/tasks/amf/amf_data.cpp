@@ -20,7 +20,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_as.hpp"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
@@ -38,11 +38,17 @@ nas_amf_smc_proc_t smc_data;
 **                                                                        **
 ***************************************************************************/
 
-void amf_ctx_set_valid_imsi(
-    amf_context_t* ctxt, imsi_t* imsi, const imsi64_t imsi64) {
-  ctxt->imsi                     = *imsi;
-  ctxt->imsi64                   = imsi64;
+void amf_ctx_set_valid_imsi(amf_context_t* ctxt, imsi_t* imsi,
+                            const imsi64_t imsi64) {
+  ctxt->imsi = *imsi;
+  ctxt->imsi64 = imsi64;
   ctxt->is_initial_identity_imsi = true;
+
+  amf_ue_ngap_id_t ue_id =
+      PARENT_STRUCT(ctxt, struct ue_m5gmm_context_s, amf_context)
+          ->amf_ue_ngap_id;
+
+  amf_api_notify_imsi(ue_id, imsi64);
 }
 
 /***************************************************************************
@@ -53,10 +59,10 @@ void amf_ctx_set_valid_imsi(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void nas_amf_smc_proc_t::amf_ctx_set_security_eksi(
-    amf_context_t* ctxt, ksi_t eksi) {
+void nas_amf_smc_proc_t::amf_ctx_set_security_eksi(amf_context_t* ctxt,
+                                                   ksi_t eksi) {
   ctxt->_security.eksi = eksi;
-  ctxt->ksi            = eksi;
+  ctxt->ksi = eksi;
 
   OAILOG_TRACE(
       LOG_NAS_AMF,
@@ -73,8 +79,8 @@ void nas_amf_smc_proc_t::amf_ctx_set_security_eksi(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void nas_amf_smc_proc_t::amf_ctx_set_security_type(
-    amf_context_t* ctxt, amf_sc_type_t sc_type) {
+void nas_amf_smc_proc_t::amf_ctx_set_security_type(amf_context_t* ctxt,
+                                                   amf_sc_type_t sc_type) {
   ctxt->_security.sc_type = sc_type;
   OAILOG_TRACE(
       LOG_NAS_AMF,

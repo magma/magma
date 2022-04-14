@@ -12,6 +12,11 @@ limitations under the License.
 """
 
 import logging
+from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
+from typing import Union
+
+IPAddress = Union[IPv4Address, IPv6Address]
+IPNetwork = Union[IPv4Network, IPv6Network]
 
 
 def log_error_and_raise(exception_class: type, message_template: str, *args):

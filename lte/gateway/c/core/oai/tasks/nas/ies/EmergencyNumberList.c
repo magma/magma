@@ -23,10 +23,9 @@
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EmergencyNumberList.h"
 
-int decode_emergency_number_list(
-    EmergencyNumberList* emergencynumberlist, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
-  int decoded   = 0;
+int decode_emergency_number_list(EmergencyNumberList* emergencynumberlist,
+                                 uint8_t iei, uint8_t* buffer, uint32_t len) {
+  int decoded = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -45,9 +44,8 @@ int decode_emergency_number_list(
   return decoded;
 }
 
-int encode_emergency_number_list(
-    EmergencyNumberList* emergencynumberlist, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int encode_emergency_number_list(EmergencyNumberList* emergencynumberlist,
+                                 uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
 
@@ -73,8 +71,8 @@ int encode_emergency_number_list(
   return encoded;
 }
 
-void dump_emergency_number_list_xml(
-    EmergencyNumberList* emergencynumberlist, uint8_t iei) {
+void dump_emergency_number_list_xml(EmergencyNumberList* emergencynumberlist,
+                                    uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Emergency Number List>\n");
 
   if (iei > 0)
@@ -83,9 +81,8 @@ void dump_emergency_number_list_xml(
      */
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
-  OAILOG_DEBUG(
-      LOG_NAS, "    <Length of emergency>%u</Length of emergency>\n",
-      emergencynumberlist->lengthofemergency);
+  OAILOG_DEBUG(LOG_NAS, "    <Length of emergency>%u</Length of emergency>\n",
+               emergencynumberlist->lengthofemergency);
   OAILOG_DEBUG(
       LOG_NAS,
       "    <Emergency service category value>%u</Emergency service category "

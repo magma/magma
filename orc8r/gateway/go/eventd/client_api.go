@@ -20,7 +20,7 @@ import (
 	"github.com/golang/glog"
 
 	"magma/gateway/mconfig"
-	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 	mcfgprotos "magma/orc8r/lib/go/protos/mconfig"
 	platformregistry "magma/orc8r/lib/go/registry"
@@ -63,7 +63,7 @@ func (v Verbosity) Log(request *protos.Event) error {
 func getEventdClient() (protos.EventServiceClient, error) {
 	conn, err := platformregistry.GetConnection(ServiceName)
 	if err != nil {
-		initErr := errors.NewInitError(err, ServiceName)
+		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
 		return nil, initErr
 	}
