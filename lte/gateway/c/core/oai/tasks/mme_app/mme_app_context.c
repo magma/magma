@@ -43,7 +43,7 @@
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/enum_string.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_statistics.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
@@ -53,7 +53,7 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.h"
+#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.hpp"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
@@ -70,7 +70,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr_context.h"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 
 extern task_zmq_ctx_t mme_app_task_zmq_ctx;

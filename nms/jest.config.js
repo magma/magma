@@ -30,8 +30,6 @@ module.exports = {
       testMatch: [
         '<rootDir>/__tests__/*.js',
         '<rootDir>/packages/**/server/**/__tests__/*.js',
-        // run app/server shared tests in both node and jsdom environments
-        '<rootDir>/packages/**/shared/**/__tests__/*.js',
       ],
       transform: {
         '^.+\\.js$': 'babel-jest',
@@ -49,8 +47,7 @@ module.exports = {
       testEnvironment: 'jsdom',
       testMatch: [
         '<rootDir>/packages/**/app/**/__tests__/*.js',
-        // run app/server shared tests in both node and jsdom environments
-        '<rootDir>/packages/**/shared/**/__tests__/*.js',
+        '<rootDir>/packages/**/fbc_js_core/**/__tests__/*.js',
       ],
       transform: {
         '^.+\\.js$': 'babel-jest',

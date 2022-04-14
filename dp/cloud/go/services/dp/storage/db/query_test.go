@@ -505,19 +505,24 @@ func (s *someModel) GetMetadata() *db.ModelMetadata {
 func (s *someModel) Fields() db.FieldMap {
 	return db.FieldMap{
 		"id": &db.Field{
-			BaseType: db.IntType{X: &s.id},
+			Item:    db.IntType{X: &s.id},
+			SqlType: sqorc.ColumnTypeInt,
 		},
 		"value": &db.Field{
-			BaseType: db.FloatType{X: &s.value},
+			Item:    db.FloatType{X: &s.value},
+			SqlType: sqorc.ColumnTypeReal,
 		},
 		"name": &db.Field{
-			BaseType: db.StringType{X: &s.name},
+			Item:    db.StringType{X: &s.name},
+			SqlType: sqorc.ColumnTypeText,
 		},
 		"flag": &db.Field{
-			BaseType: db.BoolType{X: &s.flag},
+			Item:    db.BoolType{X: &s.flag},
+			SqlType: sqorc.ColumnTypeBool,
 		},
 		"date": &db.Field{
-			BaseType: db.TimeType{X: &s.date},
+			Item:    db.TimeType{X: &s.date},
+			SqlType: sqorc.ColumnTypeDatetime,
 		},
 	}
 }
@@ -555,26 +560,32 @@ func (o *otherModel) GetMetadata() *db.ModelMetadata {
 func (o *otherModel) Fields() db.FieldMap {
 	return db.FieldMap{
 		"id": &db.Field{
-			BaseType: db.IntType{X: &o.id},
+			Item:    db.IntType{X: &o.id},
+			SqlType: sqorc.ColumnTypeInt,
 		},
 		"some_id": &db.Field{
-			BaseType: db.IntType{X: &o.someId},
+			Item:     db.IntType{X: &o.someId},
+			SqlType:  sqorc.ColumnTypeInt,
 			Nullable: true,
 		},
 		"value": &db.Field{
-			BaseType: db.FloatType{X: &o.value},
+			Item:     db.FloatType{X: &o.value},
+			SqlType:  sqorc.ColumnTypeReal,
 			Nullable: true,
 		},
 		"name": &db.Field{
-			BaseType: db.StringType{X: &o.name},
+			Item:     db.StringType{X: &o.name},
+			SqlType:  sqorc.ColumnTypeText,
 			Nullable: true,
 		},
 		"flag": &db.Field{
-			BaseType: db.BoolType{X: &o.flag},
+			Item:     db.BoolType{X: &o.flag},
+			SqlType:  sqorc.ColumnTypeBool,
 			Nullable: true,
 		},
 		"date": &db.Field{
-			BaseType: db.TimeType{X: &o.date},
+			Item:     db.TimeType{X: &o.date},
+			SqlType:  sqorc.ColumnTypeDatetime,
 			Nullable: true,
 		},
 	}
@@ -607,14 +618,17 @@ func (a *anotherModel) GetMetadata() *db.ModelMetadata {
 func (a *anotherModel) Fields() db.FieldMap {
 	return db.FieldMap{
 		"id": &db.Field{
-			BaseType: db.IntType{X: &a.id},
+			Item:    db.IntType{X: &a.id},
+			SqlType: sqorc.ColumnTypeInt,
 		},
 		"other_id": &db.Field{
-			BaseType: db.IntType{X: &a.otherId},
+			Item:     db.IntType{X: &a.otherId},
+			SqlType:  sqorc.ColumnTypeInt,
 			Nullable: true,
 		},
 		"default_value": &db.Field{
-			BaseType:     db.IntType{X: &a.defaultValue},
+			Item:         db.IntType{X: &a.defaultValue},
+			SqlType:      sqorc.ColumnTypeInt,
 			HasDefault:   true,
 			DefaultValue: defaultValue,
 		},
@@ -647,15 +661,18 @@ func (m *modelWithUniqueFields) GetMetadata() *db.ModelMetadata {
 func (m *modelWithUniqueFields) Fields() db.FieldMap {
 	return db.FieldMap{
 		"id": &db.Field{
-			BaseType: db.IntType{X: &m.id},
+			Item:    db.IntType{X: &m.id},
+			SqlType: sqorc.ColumnTypeInt,
 		},
 		"unique_field": &db.Field{
-			BaseType: db.IntType{X: &m.uniqueField},
-			Unique:   true,
+			Item:    db.IntType{X: &m.uniqueField},
+			SqlType: sqorc.ColumnTypeInt,
+			Unique:  true,
 		},
 		"another_unique_fied": &db.Field{
-			BaseType: db.IntType{X: &m.anotherUniqueFied},
-			Unique:   true,
+			Item:    db.IntType{X: &m.anotherUniqueFied},
+			SqlType: sqorc.ColumnTypeInt,
+			Unique:  true,
 		},
 	}
 }

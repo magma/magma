@@ -20,7 +20,7 @@
 #include <iostream>
 #include <string>
 
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "feg/protos/s6a_proxy.pb.h"

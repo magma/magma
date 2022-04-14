@@ -28,7 +28,7 @@
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/3gpp_requirements_24.301.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
-#include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/include/nas/as_message.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
@@ -51,9 +51,9 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_as.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_recv.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_send.h"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

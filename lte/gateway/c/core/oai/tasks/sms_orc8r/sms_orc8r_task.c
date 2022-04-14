@@ -33,7 +33,7 @@
 #include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/sms_orc8r_client_api.h"
+#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/sms_orc8r_client_api.hpp"
 
 static void sms_orc8r_exit(void);
 

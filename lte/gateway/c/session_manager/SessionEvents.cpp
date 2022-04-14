@@ -27,7 +27,7 @@
 #include "SessionState.h"
 #include "Types.h"
 #include "Utilities.h"
-#include "includes/EventdClient.h"
+#include "includes/EventdClient.hpp"
 #include "lte/protos/policydb.pb.h"
 #include "lte/protos/session_manager.pb.h"
 #include "magma_logging.h"

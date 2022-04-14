@@ -22,7 +22,7 @@
 #include <unordered_map>
 
 #include "SessionState.h"
-#include "includes/GRPCReceiver.h"
+#include "includes/GRPCReceiver.hpp"
 
 namespace grpc {
 class Channel;

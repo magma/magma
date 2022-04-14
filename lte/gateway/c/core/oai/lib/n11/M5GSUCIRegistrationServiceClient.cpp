@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/core/oai/lib/n11/M5GSUCIRegistrationServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/n11/M5GSUCIRegistrationServiceClient.hpp"
 
 #include <cstring>
 #include <iostream>
@@ -37,9 +37,9 @@ extern "C" {
 
 #include "lte/protos/subscriberdb.grpc.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
-#include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
+#include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 
 using grpc::Channel;
 using grpc::ClientContext;

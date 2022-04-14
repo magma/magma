@@ -294,6 +294,9 @@ class Download(Tr069ComplexModel):
     _type_info["DelaySeconds"] = UnsignedInteger
     _type_info["SuccessURL"] = String(max_length=256)
     _type_info["FailureURL"] = String(max_length=256)
+    # The following are extra aditions introduced for Baicells
+    _type_info["Md5"] = String(max_length=32)
+    _type_info["RawMode"] = Boolean
 
 
 class DownloadResponse(Tr069ComplexModel):
@@ -421,6 +424,9 @@ class AcsToCpeRequests(Tr069ComplexModel):
     _type_info["DelaySeconds"] = UnsignedInteger
     _type_info["SuccessURL"] = String(max_length=256)
     _type_info["FailureURL"] = String(max_length=256)
+    # Optional Baicells specific Download fields
+    _type_info["Md5"] = String(max_length=32)
+    _type_info["RawMode"] = Boolean
 
     # Fields for Reboot
     # _type_info["CommandKey"] = CommandKeyType - Already covered above

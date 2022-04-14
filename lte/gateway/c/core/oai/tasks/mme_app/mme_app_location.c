@@ -32,7 +32,7 @@
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/common/common_utility_funs.h"
+#include "lte/gateway/c/core/oai/common/common_utility_funs.hpp"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
@@ -53,8 +53,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 //------------------------------------------------------------------------------
 status_code_e mme_app_send_s6a_update_location_req(

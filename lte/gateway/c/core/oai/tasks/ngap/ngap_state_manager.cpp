@@ -19,7 +19,7 @@
 
 *****************************************************************************/
 
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_manager.hpp"
 extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"

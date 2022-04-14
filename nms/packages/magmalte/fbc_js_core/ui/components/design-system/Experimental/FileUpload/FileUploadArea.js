@@ -17,7 +17,10 @@
 import * as React from 'react';
 import classNames from 'classnames';
 import symphony from '../../../../../fbc_js_core/ui/theme/symphony';
-import {PlusIcon, UploadIcon} from '../../../../../fbc_js_core/ui/components/design-system/Icons';
+import {
+  PlusIcon,
+  UploadIcon,
+} from '../../../../../fbc_js_core/ui/components/design-system/Icons';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 

@@ -30,7 +30,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <netinet/in.h>
-#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
 
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
@@ -39,12 +39,12 @@
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/pgw_config.h"
-#include "lte/gateway/c/core/oai/include/service303.h"
+#include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
-#include "lte/gateway/c/core/oai/include/spgw_state.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
@@ -56,7 +56,7 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.h"
+#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.h"
@@ -65,7 +65,7 @@
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 extern spgw_config_t spgw_config;

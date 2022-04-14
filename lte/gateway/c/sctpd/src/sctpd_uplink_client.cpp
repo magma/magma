@@ -12,8 +12,8 @@
  */
 #include <chrono>
 
-#include "lte/gateway/c/sctpd/src/sctpd_uplink_client.h"
-#include "lte/gateway/c/sctpd/src/util.h"
+#include "lte/gateway/c/sctpd/src/sctpd_uplink_client.hpp"
+#include "lte/gateway/c/sctpd/src/util.hpp"
 
 namespace magma {
 namespace sctpd {

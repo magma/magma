@@ -19,15 +19,15 @@
 #include <stdio.h>
 
 #include "feg/protos/s6a_proxy.pb.h"
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ip_imsi.h"
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ip_imsi.hpp"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.hpp"
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_app_test_util.h"
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_procedure_test_fixture.h"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 }
 namespace magma {

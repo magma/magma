@@ -103,7 +103,7 @@ func applyMask(fields FieldMap, mask FieldMask) FieldMap {
 func toValues(fields FieldMap) map[string]interface{} {
 	m := make(map[string]interface{}, len(fields))
 	for k, v := range fields {
-		m[k] = v.GetValue()
+		m[k] = v.Item.value()
 	}
 	return m
 }

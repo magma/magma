@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.hpp"
 
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/impl/codegen/status.h>
@@ -33,7 +33,7 @@
 #include "lte/protos/mobilityd.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
 #include "orc8r/protos/common.pb.h"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 
 using grpc::Channel;
 using grpc::ChannelCredentials;

@@ -44,11 +44,11 @@
 
 #include "lte/gateway/c/core/oai/common/amf_default_values.h"
 #include "lte/gateway/c/core/oai/common/mme_default_values.h"
-#include "lte/gateway/c/core/oai/include/service303.h"
+#include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/tasks/sctp/sctp_itti_messaging.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/sctp/sctpd_downlink_client.h"
-#include "lte/gateway/c/core/oai/tasks/sctp/sctpd_uplink_server.h"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctpd_downlink_client.hpp"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctpd_uplink_server.hpp"
 
 static void sctp_exit(void);
 

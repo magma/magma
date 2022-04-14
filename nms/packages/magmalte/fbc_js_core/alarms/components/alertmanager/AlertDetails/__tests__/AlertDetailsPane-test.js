@@ -14,6 +14,7 @@
  * @format
  */
 
+import 'jest-dom/extend-expect';
 import * as React from 'react';
 import AlertDetailsPane from '../AlertDetailsPane';
 import {act, fireEvent, render} from '@testing-library/react';

@@ -25,7 +25,7 @@ class DBCbsdBuilder:
         return self
 
     def updated(self):
-        self.cbsd.is_updated = True
+        self.cbsd.should_deregister = True
         return self
 
     def with_id(self, db_id: int) -> DBCbsdBuilder:

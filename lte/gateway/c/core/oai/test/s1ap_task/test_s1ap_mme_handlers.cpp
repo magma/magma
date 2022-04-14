@@ -13,13 +13,13 @@
 #include <gtest/gtest.h>
 #include <thread>
 
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/s1ap_state.h"
+#include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.h"
@@ -28,7 +28,7 @@ extern "C" {
 }
 
 #include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 
 extern bool hss_associated;
 

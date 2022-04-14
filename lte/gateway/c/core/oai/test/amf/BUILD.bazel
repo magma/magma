@@ -88,8 +88,8 @@ cc_library(
     ],
     hdrs = [
         "amf_app_test_util.h",
-        "util_nas5g_pkt.h",
-        "util_s6a_update_location.h",
+        "util_nas5g_pkt.hpp",
+        "util_s6a_update_location.hpp",
     ],
     deps = [
         "//lte/gateway/c/core",

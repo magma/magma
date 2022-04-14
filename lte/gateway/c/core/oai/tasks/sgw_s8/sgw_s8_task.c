@@ -19,7 +19,7 @@ limitations under the License.
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/sgw_s8_state.h"
+#include "lte/gateway/c/core/oai/include/sgw_s8_state.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_defs.h"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.h"
 

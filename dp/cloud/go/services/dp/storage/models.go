@@ -17,6 +17,7 @@ import (
 	"database/sql"
 
 	"magma/dp/cloud/go/services/dp/storage/db"
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 const (
@@ -27,6 +28,11 @@ const (
 	ActiveModeConfigTable = "active_mode_configs"
 )
 
+type EnumModel interface {
+	GetId() int64
+	GetName() string
+}
+
 type DBGrantState struct {
 	Id   sql.NullInt64
 	Name sql.NullString
@@ -35,10 +41,12 @@ type DBGrantState struct {
 func (gs *DBGrantState) Fields() db.FieldMap {
 	return db.FieldMap{
 		"id": &db.Field{
-			BaseType: db.IntType{X: &gs.Id},
+			Item:    db.IntType{X: &gs.Id},
+			SqlType: sqorc.ColumnTypeInt,
 		},
 		"name": &db.Field{
-			BaseType: db.StringType{X: &gs.Name},
+			Item:    db.StringType{X: &gs.Name},
+			SqlType: sqorc.ColumnTypeText,
 		},
 	}
 }
@@ -53,11 +61,19 @@ func (gs *DBGrantState) GetMetadata() *db.ModelMetadata {
 	}
 }
 
+func (gs *DBGrantState) GetId() int64 {
+	return gs.Id.Int64
+}
+
+func (gs *DBGrantState) GetName() string {
+	return gs.Name.String
+}
+
 type DBGrant struct {
 	Id                 sql.NullInt64
 	StateId            sql.NullInt64
 	CbsdId             sql.NullInt64
-	GrantId            sql.NullInt64
+	GrantId            sql.NullString
 	GrantExpireTime    sql.NullTime
 	TransmitExpireTime sql.NullTime
 	HeartbeatInterval  sql.NullInt64
@@ -70,42 +86,53 @@ type DBGrant struct {
 func (g *DBGrant) Fields() db.FieldMap {
 	return db.FieldMap{
 		"id": &db.Field{
-			BaseType: db.IntType{X: &g.Id},
+			Item:    db.IntType{X: &g.Id},
+			SqlType: sqorc.ColumnTypeInt,
 		},
 		"state_id": &db.Field{
-			BaseType: db.IntType{X: &g.StateId},
+			Item:    db.IntType{X: &g.StateId},
+			SqlType: sqorc.ColumnTypeInt,
 		},
 		"cbsd_id": &db.Field{
-			BaseType: db.IntType{X: &g.CbsdId},
+			Item:     db.IntType{X: &g.CbsdId},
+			SqlType:  sqorc.ColumnTypeInt,
 			Nullable: true,
 		},
 		"grant_id": &db.Field{
-			BaseType: db.IntType{X: &g.GrantId},
+			Item:    db.StringType{X: &g.GrantId},
+			SqlType: sqorc.ColumnTypeText,
 		},
 		"grant_expire_time": &db.Field{
-			BaseType: db.TimeType{X: &g.GrantExpireTime},
+			Item:     db.TimeType{X: &g.GrantExpireTime},
+			SqlType:  sqorc.ColumnTypeDatetime,
 			Nullable: true,
 		},
 		"transmit_expire_time": &db.Field{
-			BaseType: db.TimeType{X: &g.TransmitExpireTime},
+			Item:     db.TimeType{X: &g.TransmitExpireTime},
+			SqlType:  sqorc.ColumnTypeDatetime,
 			Nullable: true,
 		},
 		"heartbeat_interval": &db.Field{
-			BaseType: db.IntType{X: &g.HeartbeatInterval},
+			Item:     db.IntType{X: &g.HeartbeatInterval},
+			SqlType:  sqorc.ColumnTypeInt,
 			Nullable: true,
 		},
 		"channel_type": &db.Field{
-			BaseType: db.StringType{X: &g.ChannelType},
+			Item:     db.StringType{X: &g.ChannelType},
+			SqlType:  sqorc.ColumnTypeText,
 			Nullable: true,
 		},
 		"low_frequency": &db.Field{
-			BaseType: db.IntType{X: &g.LowFrequency},
+			Item:    db.IntType{X: &g.LowFrequency},
+			SqlType: sqorc.ColumnTypeInt,
 		},
 		"high_frequency": &db.Field{
-			BaseType: db.IntType{X: &g.HighFrequency},
+			Item:    db.IntType{X: &g.HighFrequency},
+			SqlType: sqorc.ColumnTypeInt,
 		},
 		"max_eirp": &db.Field{
-			BaseType: db.FloatType{X: &g.MaxEirp},
+			Item:    db.FloatType{X: &g.MaxEirp},
+			SqlType: sqorc.ColumnTypeReal,
 		},
 	}
 }
@@ -131,10 +158,12 @@ type DBCbsdState struct {
 func (cs *DBCbsdState) Fields() db.FieldMap {
 	return db.FieldMap{
 		"id": &db.Field{
-			BaseType: db.IntType{X: &cs.Id},
+			Item:    db.IntType{X: &cs.Id},
+			SqlType: sqorc.ColumnTypeInt,
 		},
 		"name": &db.Field{
-			BaseType: db.StringType{X: &cs.Name},
+			Item:    db.StringType{X: &cs.Name},
+			SqlType: sqorc.ColumnTypeText,
 		},
 	}
 }
@@ -147,6 +176,14 @@ func (cs *DBCbsdState) GetMetadata() *db.ModelMetadata {
 			return &DBCbsdState{}
 		},
 	}
+}
+
+func (cs *DBCbsdState) GetId() int64 {
+	return cs.Id.Int64
+}
+
+func (cs *DBCbsdState) GetName() string {
+	return cs.Name.String
 }
 
 type DBCbsd struct {
@@ -166,75 +203,92 @@ type DBCbsd struct {
 	AntennaGain             sql.NullFloat64
 	NumberOfPorts           sql.NullInt64
 	IsDeleted               sql.NullBool
-	IsUpdated               sql.NullBool
+	ShouldDeregister        sql.NullBool
 }
 
 func (c *DBCbsd) Fields() db.FieldMap {
 	return db.FieldMap{
 		"id": &db.Field{
-			BaseType: db.IntType{X: &c.Id},
+			Item:    db.IntType{X: &c.Id},
+			SqlType: sqorc.ColumnTypeInt,
 		},
 		"network_id": &db.Field{
-			BaseType: db.StringType{X: &c.NetworkId},
+			Item:    db.StringType{X: &c.NetworkId},
+			SqlType: sqorc.ColumnTypeText,
 		},
 		"state_id": &db.Field{
-			BaseType: db.IntType{X: &c.StateId},
+			Item:    db.IntType{X: &c.StateId},
+			SqlType: sqorc.ColumnTypeInt,
 		},
 		"cbsd_id": &db.Field{
-			BaseType: db.StringType{X: &c.CbsdId},
+			Item:     db.StringType{X: &c.CbsdId},
+			SqlType:  sqorc.ColumnTypeText,
 			Nullable: true,
 		},
 		"user_id": &db.Field{
-			BaseType: db.StringType{X: &c.UserId},
+			Item:     db.StringType{X: &c.UserId},
+			SqlType:  sqorc.ColumnTypeText,
 			Nullable: true,
 		},
 		"fcc_id": &db.Field{
-			BaseType: db.StringType{X: &c.FccId},
+			Item:     db.StringType{X: &c.FccId},
+			SqlType:  sqorc.ColumnTypeText,
 			Nullable: true,
 		},
 		"cbsd_serial_number": &db.Field{
-			BaseType: db.StringType{X: &c.CbsdSerialNumber},
+			Item:     db.StringType{X: &c.CbsdSerialNumber},
+			SqlType:  sqorc.ColumnTypeText,
 			Nullable: true,
 			Unique:   true,
 		},
 		"last_seen": &db.Field{
-			BaseType: db.TimeType{X: &c.LastSeen},
+			Item:     db.TimeType{X: &c.LastSeen},
+			SqlType:  sqorc.ColumnTypeDatetime,
 			Nullable: true,
 		},
 		"grant_attempts": &db.Field{
-			BaseType:     db.IntType{X: &c.GrantAttempts},
+			Item:         db.IntType{X: &c.GrantAttempts},
+			SqlType:      sqorc.ColumnTypeInt,
 			HasDefault:   true,
 			DefaultValue: 0,
 		},
 		"preferred_bandwidth_mhz": &db.Field{
-			BaseType: db.IntType{X: &c.PreferredBandwidthMHz},
+			Item:    db.IntType{X: &c.PreferredBandwidthMHz},
+			SqlType: sqorc.ColumnTypeInt,
 		},
 		"preferred_frequencies_mhz": &db.Field{
-			BaseType: db.StringType{X: &c.PreferredFrequenciesMHz},
+			Item:    db.StringType{X: &c.PreferredFrequenciesMHz},
+			SqlType: sqorc.ColumnTypeText,
 		},
 		"min_power": &db.Field{
-			BaseType: db.FloatType{X: &c.MinPower},
+			Item:     db.FloatType{X: &c.MinPower},
+			SqlType:  sqorc.ColumnTypeReal,
 			Nullable: true,
 		},
 		"max_power": &db.Field{
-			BaseType: db.FloatType{X: &c.MaxPower},
+			Item:     db.FloatType{X: &c.MaxPower},
+			SqlType:  sqorc.ColumnTypeReal,
 			Nullable: true,
 		},
 		"antenna_gain": &db.Field{
-			BaseType: db.FloatType{X: &c.AntennaGain},
+			Item:     db.FloatType{X: &c.AntennaGain},
+			SqlType:  sqorc.ColumnTypeReal,
 			Nullable: true,
 		},
 		"number_of_ports": &db.Field{
-			BaseType: db.IntType{X: &c.NumberOfPorts},
+			Item:     db.IntType{X: &c.NumberOfPorts},
+			SqlType:  sqorc.ColumnTypeInt,
 			Nullable: true,
 		},
 		"is_deleted": &db.Field{
-			BaseType:     db.BoolType{X: &c.IsDeleted},
+			Item:         db.BoolType{X: &c.IsDeleted},
+			SqlType:      sqorc.ColumnTypeBool,
 			HasDefault:   true,
 			DefaultValue: false,
 		},
-		"is_updated": &db.Field{
-			BaseType:     db.BoolType{X: &c.IsUpdated},
+		"should_deregister": &db.Field{
+			Item:         db.BoolType{X: &c.ShouldDeregister},
+			SqlType:      sqorc.ColumnTypeBool,
 			HasDefault:   true,
 			DefaultValue: false,
 		},
@@ -262,13 +316,16 @@ type DBActiveModeConfig struct {
 func (amc *DBActiveModeConfig) Fields() db.FieldMap {
 	return db.FieldMap{
 		"id": &db.Field{
-			BaseType: db.IntType{X: &amc.Id},
+			Item:    db.IntType{X: &amc.Id},
+			SqlType: sqorc.ColumnTypeInt,
 		},
 		"cbsd_id": &db.Field{
-			BaseType: db.IntType{X: &amc.CbsdId},
+			Item:    db.IntType{X: &amc.CbsdId},
+			SqlType: sqorc.ColumnTypeInt,
 		},
 		"desired_state_id": &db.Field{
-			BaseType: db.IntType{X: &amc.DesiredStateId},
+			Item:    db.IntType{X: &amc.DesiredStateId},
+			SqlType: sqorc.ColumnTypeInt,
 		},
 	}
 }

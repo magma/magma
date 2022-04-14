@@ -19,6 +19,7 @@ import Popover from '@material-ui/core/Popover';
 import {makeStyles} from '@material-ui/styles';
 
 type Props = {
+  className?: string,
   content: React.Element<any> | string,
   children: React.Element<any> | string,
   onOpen?: () => void,
@@ -28,10 +29,6 @@ type Props = {
 };
 
 const useClasses = makeStyles(theme => ({
-  root: {
-    position: 'relative',
-    display: 'inline-block',
-  },
   menuPaper: {
     outline: 'none',
     overflowX: 'visible',
@@ -67,27 +64,15 @@ const useClasses = makeStyles(theme => ({
       boxShadow: '0px 0px 4px 0px rgba(0, 0, 0, 0.15)',
     },
   },
-  buttonContainer: {
-    display: 'inline-block',
-    position: 'relative',
-  },
-  buttonRelative: {
-    display: 'inline-block',
-    position: 'absolute',
-    left: 0,
-    top: '-14px',
-    width: '100%',
-  },
 }));
 
 export default function Popout(props: Props) {
-  const {content, children, onOpen, onClose} = props;
   const classes = useClasses();
   const relativeRef = React.useRef();
   const [open, togglePopout] = React.useState(false);
   const handleClose = React.useCallback(
-    () => (onClose ? onClose() : togglePopout(false)),
-    [onClose, togglePopout],
+    () => (props.onClose ? props.onClose() : togglePopout(false)),
+    [props.onClose, togglePopout],
   );
 
   const relativeRefPosition = relativeRef.current
@@ -95,16 +80,16 @@ export default function Popout(props: Props) {
     : null;
 
   return (
-    <div className={classes.root}>
-      <div
-        className={classes.buttonContainer}
-        onClick={() => {
-          onOpen ? onOpen() : togglePopout(true);
-        }}>
-        {children}
-      </div>
+    <>
       {/* $FlowFixMe - Flow ref type definition is not up to date */}
-      <div className={classes.buttonRelative} ref={relativeRef} />
+      <div
+        className={props.className}
+        ref={relativeRef}
+        onClick={() => {
+          props.onOpen ? props.onOpen() : togglePopout(true);
+        }}>
+        {props.children}
+      </div>
       <Popover
         className={classes.popover}
         anchorReference="anchorPosition"
@@ -127,8 +112,8 @@ export default function Popout(props: Props) {
         open={props.open !== undefined ? props.open : open}
         onClose={handleClose}
         onClick={props.contentClickTriggerClose && handleClose}>
-        {content}
+        {props.content}
       </Popover>
-    </div>
+    </>
   );
 }

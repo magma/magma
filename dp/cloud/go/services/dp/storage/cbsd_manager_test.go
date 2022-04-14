@@ -108,7 +108,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 		cbsd.NetworkId = db.MakeString(someNetwork)
 		cbsd.GrantAttempts = db.MakeInt(0)
 		cbsd.IsDeleted = db.MakeBool(false)
-		cbsd.IsUpdated = db.MakeBool(false)
+		cbsd.ShouldDeregister = db.MakeBool(false)
 		expected := []db.Model{
 			cbsd,
 			&storage.DBCbsdState{Name: db.MakeString("unregistered")},
@@ -191,7 +191,7 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 			Fetch()
 		s.Require().NoError(err)
 		cbsd.NetworkId = db.MakeString(someNetwork)
-		cbsd.IsUpdated = db.MakeBool(true)
+		cbsd.ShouldDeregister = db.MakeBool(true)
 		expected := []db.Model{cbsd}
 		s.Assert().Equal(expected, actual)
 	})
@@ -339,7 +339,7 @@ func (s *CbsdManagerTestSuite) TestListCbsdFromDifferentNetwork() {
 	})
 	s.Require().NoError(err)
 
-	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{})
+	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{}, nil)
 	s.Require().NoError(err)
 
 	expected := &storage.DetailedCbsdList{
@@ -369,7 +369,7 @@ func (s *CbsdManagerTestSuite) TestListWithPagination() {
 		Limit:  db.MakeInt(limit),
 		Offset: db.MakeInt(offset),
 	}
-	actual, err := s.cbsdManager.ListCbsd(someNetwork, pagination)
+	actual, err := s.cbsdManager.ListCbsd(someNetwork, pagination, nil)
 	s.Require().NoError(err)
 
 	expected := &storage.DetailedCbsdList{
@@ -379,6 +379,42 @@ func (s *CbsdManagerTestSuite) TestListWithPagination() {
 	for i := range expected.Cbsds {
 		cbsd := getDetailedCbsd(int64(i + 1 + offset))
 		cbsd.CbsdSerialNumber = db.MakeString(fmt.Sprintf("some_serial_number%d", i+1+offset))
+		expected.Cbsds[i] = &storage.DetailedCbsd{
+			Cbsd:       cbsd,
+			CbsdState:  &storage.DBCbsdState{Name: db.MakeString("unregistered")},
+			Grant:      &storage.DBGrant{},
+			GrantState: &storage.DBGrantState{},
+		}
+	}
+	s.Assert().Equal(expected, actual)
+}
+
+func (s *CbsdManagerTestSuite) TestListWithFilter() {
+	const count = 2
+	models := make([]db.Model, count)
+	stateId := s.enumMaps[storage.CbsdStateTable]["unregistered"]
+	for i := range models {
+		cbsd := getCbsd(someNetwork, stateId)
+		cbsd.Id = db.MakeInt(int64(i + 1))
+
+		cbsd.CbsdSerialNumber = db.MakeString(fmt.Sprintf("some_serial_number%d", i+1))
+		models[i] = cbsd
+	}
+	err := s.resourceManager.InsertResources(db.NewExcludeMask(), models...)
+	s.Require().NoError(err)
+
+	pagination := &storage.Pagination{}
+	filter := &storage.CbsdFilter{SerialNumber: "some_serial_number1"}
+	actual, err := s.cbsdManager.ListCbsd(someNetwork, pagination, filter)
+	s.Require().NoError(err)
+
+	expected := &storage.DetailedCbsdList{
+		Count: count,
+		Cbsds: make([]*storage.DetailedCbsd, 1),
+	}
+	for i := range expected.Cbsds {
+		cbsd := getDetailedCbsd(int64(i + 1))
+		cbsd.CbsdSerialNumber = db.MakeString(fmt.Sprintf("some_serial_number%d", i+1))
 		expected.Cbsds[i] = &storage.DetailedCbsd{
 			Cbsd:       cbsd,
 			CbsdState:  &storage.DBCbsdState{Name: db.MakeString("unregistered")},
@@ -400,7 +436,7 @@ func (s *CbsdManagerTestSuite) TestListNotIncludeIdleGrants() {
 	})
 	s.Require().NoError(err)
 
-	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{})
+	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{}, nil)
 	s.Require().NoError(err)
 
 	expected := &storage.DetailedCbsdList{
@@ -418,7 +454,7 @@ func (s *CbsdManagerTestSuite) TestListNotIncludeIdleGrants() {
 func (s *CbsdManagerTestSuite) TestListDeletedCbsd() {
 	s.givenDeletedCbsd()
 
-	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{})
+	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{}, nil)
 	s.Require().NoError(err)
 
 	expected := &storage.DetailedCbsdList{
@@ -464,10 +500,8 @@ func (s *CbsdManagerTestSuite) getNameIdMapping(model db.Model) map[string]int64
 	s.Require().NoError(err)
 	m := make(map[string]int64, len(resources))
 	for _, r := range resources {
-		fields := r[0].Fields()
-		key := fields["name"].GetValue().(string)
-		value := fields["id"].GetValue().(int64)
-		m[key] = value
+		enum := r[0].(storage.EnumModel)
+		m[enum.GetName()] = enum.GetId()
 	}
 	return m
 }
@@ -486,6 +520,7 @@ func getGrant(stateId int64, cbsdId int64) *storage.DBGrant {
 	base := getBaseGrant()
 	base.CbsdId = db.MakeInt(cbsdId)
 	base.StateId = db.MakeInt(stateId)
+	base.GrantId = db.MakeString("some_grant_id")
 	return base
 }
 
@@ -494,6 +529,9 @@ func getCbsd(networkId string, stateId int64) *storage.DBCbsd {
 	base.NetworkId = db.MakeString(networkId)
 	base.StateId = db.MakeInt(stateId)
 	base.CbsdId = db.MakeString("some_cbsd_id")
+	base.ShouldDeregister = db.MakeBool(false)
+	base.IsDeleted = db.MakeBool(false)
+	base.GrantAttempts = db.MakeInt(0)
 	return base
 }
 
