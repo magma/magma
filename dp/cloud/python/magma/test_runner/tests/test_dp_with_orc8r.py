@@ -141,6 +141,18 @@ class DomainProxyOrc8rTestCase(DBTestCase):
             expected_status=HTTPStatus.CONFLICT,
         )
 
+    def test_fetch_cbsds_filtered_by_serial_number(self):
+        builder = CbsdAPIDataBuilder()
+
+        cbsd1_payload = builder.build_post_data_with_serial_number("foo")
+        cbsd2_payload = builder.build_post_data_with_serial_number("bar")
+        self.when_cbsd_is_created(cbsd1_payload)
+        self.when_cbsd_is_created(cbsd2_payload)
+
+        cbsds = self.when_cbsds_are_fetched(2, 1, {"serial_number": "foo"})
+
+        self.then_cbsd_is(cbsds[0], builder.build_post_data_with_serial_number("foo"))
+
     def test_fetching_logs_with_custom_filters(self):
         self.given_cbsd_provisioned(CbsdAPIDataBuilder())
         when_elastic_indexes_data()
@@ -217,13 +229,22 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         self.assertEqual(r.status_code, expected_status)
 
     def when_cbsd_is_fetched(self) -> Dict[str, Any]:
-        r = send_request_to_backend('get', 'cbsds')
+        cbsds = self.when_cbsds_are_fetched(1, 1)
+        return cbsds[0]
+
+    def when_cbsds_are_fetched(
+            self,
+            expected_total_count: int,
+            expected_cbsds_num: int,
+            params: Optional[Dict[str, Any]] = None
+    ) -> List[Dict[str, Any]]:
+        r = send_request_to_backend('get', 'cbsds', params=params)
         self.assertEqual(r.status_code, HTTPStatus.OK)
         data = r.json()
-        self.assertEqual(data.get('total_count'), 1)
+        self.assertEqual(data.get('total_count'), expected_total_count)
         cbsds = data.get('cbsds', [])
-        self.assertEqual(len(cbsds), 1)
-        return cbsds[0]
+        self.assertEqual(len(cbsds), expected_cbsds_num)
+        return cbsds
 
     def when_logs_are_fetched(self, params: Dict[str, Any]) -> Dict[str, Any]:
         r = send_request_to_backend('get', 'logs', params=params)
@@ -421,7 +442,7 @@ class CbsdAPIDataBuilder:
         }
 
     def build_post_data_with_serial_number(self, serial_number) -> Dict[str, Any]:
-        data = self.build_post_data()
+        data = self.build_unregistered_data()
         data["serial_number"] = serial_number
         return data
 

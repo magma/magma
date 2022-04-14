@@ -28,7 +28,7 @@ type CbsdManager interface {
 	UpdateCbsd(networkId string, id int64, data *DBCbsd) error
 	DeleteCbsd(networkId string, id int64) error
 	FetchCbsd(networkId string, id int64) (*DetailedCbsd, error)
-	ListCbsd(networkId string, pagination *Pagination) (*DetailedCbsdList, error)
+	ListCbsd(networkId string, pagination *Pagination, filter *CbsdFilter) (*DetailedCbsdList, error)
 }
 
 type DetailedCbsdList struct {
@@ -101,10 +101,10 @@ func (c *cbsdManager) FetchCbsd(networkId string, id int64) (*DetailedCbsd, erro
 	return cbsd.(*DetailedCbsd), nil
 }
 
-func (c *cbsdManager) ListCbsd(networkId string, pagination *Pagination) (*DetailedCbsdList, error) {
+func (c *cbsdManager) ListCbsd(networkId string, pagination *Pagination, filter *CbsdFilter) (*DetailedCbsdList, error) {
 	cbsds, err := sqorc.ExecInTx(c.db, nil, nil, func(tx *sql.Tx) (interface{}, error) {
 		runner := c.getInTransactionManager(tx)
-		return runner.listDetailedCbsd(networkId, pagination)
+		return runner.listDetailedCbsd(networkId, pagination, filter)
 	})
 	if err != nil {
 		return nil, makeError(err, c.errorChecker)
@@ -261,14 +261,14 @@ func buildDetailedCbsdQuery(builder sq.StatementBuilderType) *db.Query {
 			Nullable())
 }
 
-func (c *cbsdManagerInTransaction) listDetailedCbsd(networkId string, pagination *Pagination) (*DetailedCbsdList, error) {
+func (c *cbsdManagerInTransaction) listDetailedCbsd(networkId string, pagination *Pagination, filter *CbsdFilter) (*DetailedCbsdList, error) {
 	count, err := countCbsds(networkId, c.builder)
 	if err != nil {
 		return nil, err
 	}
 	query := buildDetailedCbsdQuery(c.builder)
 	res, err := buildPagination(query, pagination).
-		Where(getCbsdFilters(networkId)).
+		Where(GetCbsdFilters(networkId, filter)).
 		OrderBy(CbsdTable+".id", db.OrderAsc).
 		List()
 	if err != nil {
@@ -288,7 +288,7 @@ func countCbsds(networkId string, builder sq.StatementBuilderType) (int64, error
 	return db.NewQuery().
 		WithBuilder(builder).
 		From(&DBCbsd{}).
-		Where(getCbsdFilters(networkId)).
+		Where(GetCbsdFilters(networkId, nil)).
 		Count()
 }
 
@@ -300,14 +300,20 @@ func makeError(err error, checker sqorc.ErrorChecker) error {
 }
 
 func getCbsdFiltersWithId(networkId string, id int64) sq.Eq {
-	filters := getCbsdFilters(networkId)
+	filters := GetCbsdFilters(networkId, nil)
 	filters[CbsdTable+".id"] = id
 	return filters
 }
 
-func getCbsdFilters(networkId string) sq.Eq {
-	return sq.Eq{
+func GetCbsdFilters(networkId string, filter *CbsdFilter) sq.Eq {
+	filters := sq.Eq{
 		CbsdTable + ".network_id": networkId,
 		CbsdTable + ".is_deleted": false,
 	}
+	if filter != nil {
+		if filter.SerialNumber != "" {
+			filters[CbsdTable+".cbsd_serial_number"] = filter.SerialNumber
+		}
+	}
+	return filters
 }
