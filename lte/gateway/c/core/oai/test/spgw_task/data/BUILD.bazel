@@ -13,6 +13,6 @@ package(default_visibility = ["//lte/gateway/c/core/oai/test/spgw_task:__pkg__"]
 
 filegroup(
     name = "data",
-    testonly = 1,
+    testonly = True,
     srcs = glob(["*"]),
 )

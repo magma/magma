@@ -272,6 +272,11 @@ paths:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - $ref: '#/parameters/offset'
         - $ref: '#/parameters/limit'
+        - description: serial number of cbsd
+          in: query
+          name: serial_number
+          required: false
+          type: string
       responses:
         '200':
           description: All CBSDs in LTE network

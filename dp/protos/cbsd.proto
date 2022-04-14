@@ -60,6 +60,7 @@ message FetchCbsdResponse {
 message ListCbsdRequest {
   string network_id = 1;
   Pagination pagination = 2;
+  CbsdFilter filter = 3;
 }
 
 message ListCbsdResponse {
@@ -108,4 +109,8 @@ message GrantDetails {
 message Pagination {
   google.protobuf.Int64Value limit = 1;
   google.protobuf.Int64Value offset = 2;
+}
+
+message CbsdFilter {
+  string serial_number = 1;
 }
