@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from collections import namedtuple
+from datetime import datetime
 from typing import Any, List, Optional
 
 from magma.enodebd.tr069 import models
@@ -533,6 +534,10 @@ class Tr069MessageBuilder:
         return msg
 
     @classmethod
+    def get_factory_reset_response(cls) -> models.FactoryResetResponse:
+        return models.FactoryResetResponse()
+
+    @classmethod
     def get_regular_param_values_response(
         cls,
         admin_state: bool = False,
@@ -1008,6 +1013,134 @@ class Tr069MessageBuilder:
                 data=enable,
             ),
         )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.NeighborList.LTECell.1.CID',
+                val_type='int',
+                data='13575222',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.NeighborList.LTECell.1.PLMNID',
+                val_type='string',
+                data='00101',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.NeighborList.LTECell.1.EUTRACarrierARFCN',
+                val_type='int',
+                data='44321',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.NeighborList.LTECell.1.PhyCellID',
+                val_type='int',
+                data='76',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.NeighborList.LTECell.1.X_COM_TAC',
+                val_type='int',
+                data='1',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.NeighborList.LTECell.1.QOffset',
+                val_type='int',
+                data='-24',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.NeighborList.LTECell.1.CIO',
+                val_type='int',
+                data='-24',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.NeighborList.LTECell.1.Enable',
+                val_type='boolean',
+                data='true',
+            ),
+        )
+
+        # freq config parameter for response
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.Enable',
+                val_type='boolean',
+                data='true',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.EUTRACarrierARFCN',
+                val_type='int',
+                data='44290',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.QRxLevMinSIB5',
+                val_type='int',
+                data='-30',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.QOffsetFreq',
+                val_type='int',
+                data='-24',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.TReselectionEUTRA',
+                val_type='int',
+                data='1',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.CellReselectionPriority',
+                val_type='int',
+                data='1',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.ThreshXHigh',
+                val_type='int',
+                data='6',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.ThreshXLow',
+                val_type='int',
+                data='5',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.PMax',
+                val_type='int',
+                data='6',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.TReselectionEUTRASFMedium',
+                val_type='int',
+                data='1',
+            ),
+        )
         msg.ParameterList = models.ParameterValueList()
         msg.ParameterList.ParameterValueStruct = param_val_list
         return msg
@@ -1053,3 +1186,11 @@ class Tr069MessageBuilder:
     @classmethod
     def get_reboot_response(cls) -> models.RebootResponse:
         return models.RebootResponse()
+
+    @classmethod
+    def get_download_response(cls) -> models.DownloadResponse:
+        msg = models.DownloadResponse()
+        msg.Status = 0
+        msg.StartTime = datetime.now()
+        msg.CompleteTime = datetime.now()
+        return msg

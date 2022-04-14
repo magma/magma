@@ -272,7 +272,7 @@ class WaitForFirmwareUpgradeDownloadResponse(EnodebAcsState):
     This state reacts to a reply from the eNB after a Download request has been sent.
 
     When a DownloadReponse object is received, that means the Download request was accepted
-    and a firmware download is in progress. 
+    and a firmware download is in progress.
     However, if there is already a download requested pending on the eNB, issuing a Download request
     may cause the eNB to return a Fault code 9017. It is a generic download failure code that
     seemed to indicate on FreedomFi One/Sercomm eNBs that a download of the same CommandKey is already
@@ -1374,6 +1374,158 @@ class WaitInformMRebootState(EnodebAcsState):
 
     def state_description(self) -> str:
         return 'Waiting for M Reboot code from Inform'
+
+
+class EnbSendDownloadState(EnodebAcsState):
+    UPGRADE_FILE_TYPE = '1 Firmware Upgrade Image'
+
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+        self.prev_msg_was_inform = False
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        """
+        This state can be transitioned into through user command.
+        All messages received by enodebd will be ignored in this state.
+        """
+        if self.prev_msg_was_inform \
+                and not isinstance(message, models.DummyInput):
+            return AcsReadMsgResult(False, None)
+        elif isinstance(message, models.Inform):
+            self.prev_msg_was_inform = True
+            process_inform_message(
+                message, self.acs.data_model,
+                self.acs.device_cfg,
+            )
+            return AcsReadMsgResult(True, None)
+        self.prev_msg_was_inform = False
+        return AcsReadMsgResult(True, None)
+
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        if self.prev_msg_was_inform:
+            response = models.InformResponse()
+            # Set maxEnvelopes to 1, as per TR-069 spec
+            response.MaxEnvelopes = 1
+            return AcsMsgAndTransition(response, None)
+        logger.info('Sending download request to eNB')
+        request = models.Download()
+        request.CommandKey = ''
+        request.FileType = self.UPGRADE_FILE_TYPE
+        request.URL = self.acs.desired_cfg.get_parameter(ParameterName.DOWNLOAD_URL)
+        request.Username = self.acs.desired_cfg.get_parameter(ParameterName.DOWNLOAD_USER)
+        request.Password = self.acs.desired_cfg.get_parameter(ParameterName.DOWNLOAD_PASSWORD)
+        request.FileSize = self.acs.desired_cfg.get_parameter(ParameterName.DOWNLOAD_FILESIZE)
+        request.TargetFileName = self.acs.desired_cfg.get_parameter(ParameterName.DOWNLOAD_FILENAME)
+        request.Md5 = self.acs.desired_cfg.get_parameter(ParameterName.DOWNLOAD_MD5)
+        request.DelaySeconds = 0
+        request.SuccessURL = ''
+        request.FailureURL = ''
+        self.acs.desired_cfg.delete_parameter(ParameterName.DOWNLOAD_URL)
+        self.acs.desired_cfg.delete_parameter(ParameterName.DOWNLOAD_USER)
+        self.acs.desired_cfg.delete_parameter(ParameterName.DOWNLOAD_PASSWORD)
+        self.acs.desired_cfg.delete_parameter(ParameterName.DOWNLOAD_FILESIZE)
+        self.acs.desired_cfg.delete_parameter(ParameterName.DOWNLOAD_FILENAME)
+        self.acs.desired_cfg.delete_parameter(ParameterName.DOWNLOAD_MD5)
+        return AcsMsgAndTransition(request, self.done_transition)
+
+    def state_description(self) -> str:
+        return 'download file to eNB'
+
+
+class WaitDownloadResponseState(EnodebAcsState):
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        if not isinstance(message, models.DownloadResponse):
+            return AcsReadMsgResult(False, None)
+        return AcsReadMsgResult(True, None)
+
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        """ Reply with empty message """
+        return AcsMsgAndTransition(models.DummyInput(), self.done_transition)
+
+    def state_description(self) -> str:
+        return 'download the file to eNB'
+
+
+class SendFactoryResetState(EnodebAcsState):
+    """
+    Send the factory state and get the message.
+    """
+
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+        self.prev_msg_was_inform = False
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        """
+        This state can be transitioned into through user command.
+        All messages received by enodebd will be ignored in this state.
+        - message
+        """
+        if self.prev_msg_was_inform \
+                and not isinstance(message, models.DummyInput):
+            return AcsReadMsgResult(False, None)
+        elif isinstance(message, models.Inform):
+            self.prev_msg_was_inform = True
+            process_inform_message(
+                message, self.acs.data_model,
+                self.acs.device_cfg,
+            )
+            return AcsReadMsgResult(True, None)
+        self.prev_msg_was_inform = False
+        return AcsReadMsgResult(True, None)
+
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        """
+        Get the ACS message in and deal with.
+        - message
+        """
+        if self.prev_msg_was_inform:
+            response = models.InformResponse()
+            # Set maxEnvelopes to 1, as per TR-069 spec
+            response.MaxEnvelopes = 1
+            return AcsMsgAndTransition(response, None)
+        logger.info('Sending factory reset request to eNB')
+        request = models.FactoryReset()
+        return AcsMsgAndTransition(request, self.done_transition)
+
+    def state_description(self) -> str:
+        """
+        Pint the ACS current state.
+        """
+        return 'Running Factory Reset eNB'
+
+
+class WaitFactoryResetResponseState(EnodebAcsState):
+    """
+    Wait the factoryreset Response from cpe device.
+    """
+
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        if not isinstance(message, models.FactoryResetResponse):
+            return AcsReadMsgResult(False, None)
+        return AcsReadMsgResult(True, None)
+
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        """ Reply with empty message """
+        return AcsMsgAndTransition(models.DummyInput(), self.done_transition)
+
+    def state_description(self) -> str:
+        """ Print the current state message """
+        return 'Running FactoryReset eNB'
 
 
 class WaitRebootDelayState(EnodebAcsState):

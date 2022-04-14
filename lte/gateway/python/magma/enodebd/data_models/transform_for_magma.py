@@ -32,6 +32,11 @@ BANDWIDTH_RBS_TO_MHZ_MAP = {
 
 BANDWIDTH_MHZ_LIST = {1.4, 3, 5, 10, 15, 20}
 
+CELL_RESERVED_MAP = {
+    'reserved': True,
+    'notReserved': False,
+}
+
 
 def duplex_mode(value: str) -> Optional[str]:
     return DUPLEX_MAP.get(value)
@@ -55,7 +60,7 @@ def gps_tr181(value: str) -> str:
     try:
         return str(float(value) / 1e6)
     except Exception:  # pylint: disable=broad-except
-        return value
+        return ''
 
 
 def bandwidth(bandwidth_rbs: Union[str, int, float]) -> float:
@@ -87,3 +92,7 @@ def bandwidth(bandwidth_rbs: Union[str, int, float]) -> float:
         'Unknown bandwidth specification (%s)' %
         str(bandwidth_rbs),
     )
+
+
+def cell_reserved(value):
+    return CELL_RESERVED_MAP.get(value)

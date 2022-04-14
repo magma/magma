@@ -100,6 +100,12 @@ eNodeB detail comprises of the following sections
 - Information (eNodeB name, serial and description of eNodeB)
 - RAN section
 
+#### Upgrade eNodeB Dialog
+
+![upgrade_enodeb1](assets/nms/userguide/equipment/upgrade_enodeb1.png)
+
+- All form values here are attributes of the image file for upgrading eNodeB.
+
 ## Gateway Pool Dashboard
 
 ### Gateway Pool overview

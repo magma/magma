@@ -82,7 +82,10 @@ class EnodebAcsStateMachine(ABC):
             return False
         desired = self.desired_cfg.get_parameter_names()
 
+        ignored_names = [ParameterName.DOWNLOAD_URL, ParameterName.DOWNLOAD_USER, ParameterName.DOWNLOAD_PASSWORD, ParameterName.DOWNLOAD_FILENAME, ParameterName.DOWNLOAD_FILESIZE, ParameterName.DOWNLOAD_MD5]
         for name in desired:
+            if name in ignored_names:
+                continue
             val1 = self.desired_cfg.get_parameter(name)
             val2 = self.device_cfg.get_parameter(name)
             type_ = self.data_model.get_parameter(name).type
@@ -215,6 +218,19 @@ class EnodebAcsStateMachine(ABC):
     def is_enodeb_connected(self) -> bool:
         pass
 
+    def factory_reset_asap(self) -> None:
+        """
+        Impl to send a request to factoryRest the eNodeB ASAP
+        The eNB will factory reset from this method.
+        """
+        self.transition('factory_reset')
+
     @abstractmethod
     def stop_state_machine(self) -> None:
+        pass
+
+    def download_asap(self, url: str, user_name: str, password: str, target_file_name: str, file_size: int, md5: str) -> None:
+        """
+        Send a request to download&upgrade the eNodeB ASAP
+        """
         pass

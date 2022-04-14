@@ -294,6 +294,7 @@ class Download(Tr069ComplexModel):
     _type_info["DelaySeconds"] = UnsignedInteger
     _type_info["SuccessURL"] = String(max_length=256)
     _type_info["FailureURL"] = String(max_length=256)
+    _type_info["Md5"] = CommandKeyType
 
 
 class DownloadResponse(Tr069ComplexModel):
@@ -311,6 +312,17 @@ class Reboot(Tr069ComplexModel):
 class RebootResponse(Tr069ComplexModel):
     # Dummy field required because spyne does not allow 'bare' RPC function with
     # no input parameters. This field is never sent by CPE.
+    _type_info = odict()
+    _type_info["DummyField"] = UnsignedInteger
+
+
+class FactoryReset(Tr069ComplexModel):
+    """ no input parameters. This field is never sent by CPE """
+    pass
+
+
+class FactoryResetResponse(Tr069ComplexModel):
+    """ no input parameters. This field is never sent by CPE """
     _type_info = odict()
     _type_info["DummyField"] = UnsignedInteger
 
@@ -421,6 +433,7 @@ class AcsToCpeRequests(Tr069ComplexModel):
     _type_info["DelaySeconds"] = UnsignedInteger
     _type_info["SuccessURL"] = String(max_length=256)
     _type_info["FailureURL"] = String(max_length=256)
+    _type_info["Md5"] = CommandKeyType
 
     # Fields for Reboot
     # _type_info["CommandKey"] = CommandKeyType - Already covered above

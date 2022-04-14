@@ -29,6 +29,9 @@ type EnodebState struct {
 	// Required: true
 	FsmState *string `json:"fsm_state"`
 
+	// gps altitude
+	GpsAltitude string `json:"gps_altitude,omitempty"`
+
 	// gps connected
 	// Required: true
 	GpsConnected *bool `json:"gps_connected"`
@@ -49,6 +52,9 @@ type EnodebState struct {
 	// Required: true
 	MmeConnected *bool `json:"mme_connected"`
 
+	// model name
+	ModelName string `json:"model_name,omitempty"`
+
 	// opstate enabled
 	// Required: true
 	OpstateEnabled *bool `json:"opstate_enabled"`
@@ -60,6 +66,9 @@ type EnodebState struct {
 	// Gateway ID from which the enodeb state was reported
 	ReportingGatewayID string `json:"reporting_gateway_id,omitempty"`
 
+	// rf state
+	RfState bool `json:"rf_state,omitempty"`
+
 	// rf tx desired
 	// Required: true
 	RfTxDesired *bool `json:"rf_tx_desired"`
@@ -68,11 +77,20 @@ type EnodebState struct {
 	// Required: true
 	RfTxOn *bool `json:"rf_tx_on"`
 
+	// sw version
+	SwVersion string `json:"sw_version,omitempty"`
+
 	// Time at which the state was reported in ms
 	TimeReported uint64 `json:"time_reported,omitempty"`
 
 	// ues connected
 	UesConnected int32 `json:"ues_connected,omitempty"`
+
+	// uptime
+	Uptime string `json:"uptime,omitempty"`
+
+	// vendor
+	Vendor string `json:"vendor,omitempty"`
 }
 
 // Validate validates this enodeb state

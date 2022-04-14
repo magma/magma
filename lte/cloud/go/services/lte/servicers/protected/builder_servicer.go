@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strconv"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -426,7 +427,26 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			enbMconfig.BandwidthMhz = int32(cellularEnbConfig.BandwidthMhz)
 			enbMconfig.Tac = int32(cellularEnbConfig.Tac)
 			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
+			enbMconfig.X2EnableDisable = swag.BoolValue(cellularEnbConfig.X2EnableDisable)
 
+			// config power control in Radio models
+			powerConfig := &lte_mconfig.EnodebD_EnodebConfig_PowerControl{}
+			cellularPowerConfig := cellularEnbConfig.PowerControl
+			if cellularPowerConfig != nil {
+				powerConfig.ReferenceSignalPower = swag.Int32Value(cellularPowerConfig.ReferenceSignalPower)
+				powerConfig.PowerClass = cellularPowerConfig.PowerClass
+				powerConfig.Pa = cellularPowerConfig.Pa
+				powerConfig.Pb = cellularPowerConfig.Pb
+				enbMconfig.PowerControl = powerConfig
+			}
+			enbMconfig.MmeIp = gwConfig.Epc.IPV4SgwS1uAddr
+			enbMconfig.MmePool_1 = string(cellularEnbConfig.MmePool1)
+			enbMconfig.MmePool_2 = string(cellularEnbConfig.MmePool2)
+			getManagementSeverConfig(enbMconfig, cellularEnbConfig)
+			getSysc1158Config(enbMconfig, cellularEnbConfig)
+			getHoAlgorithmConfig(enbMconfig, cellularEnbConfig)
+			enbMconfig.NeighborCellList = getNeighborCell(enodebConfig)
+			enbMconfig.NeighborFreqList = getNeighborFreq(enodebConfig)
 			// override zero values with network/gateway configs
 			if enbMconfig.Earfcndl == 0 {
 				enbMconfig.Earfcndl = int32(nwConfig.GetEarfcndl())
@@ -463,6 +483,48 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 		}
 
 		ret[serial] = enbMconfig
+	}
+	return ret
+}
+
+func getNeighborCell(enbConfig *lte_models.EnodebConfig) map[string]*lte_mconfig.EnodebD_EnodebConfigNeighborCellTable {
+	cellularNeighborCell := enbConfig.ManagedConfig.NeighborCellList
+	ret := make(map[string]*lte_mconfig.EnodebD_EnodebConfigNeighborCellTable, len(cellularNeighborCell))
+	for _, neighbor := range cellularNeighborCell {
+		enbNeighborCell := &lte_mconfig.EnodebD_EnodebConfigNeighborCellTable{}
+		enbNeighborCell.Index = neighbor.Index
+		enbNeighborCell.CellId = neighbor.CellID
+		enbNeighborCell.Earfcn = neighbor.Earfcn
+		enbNeighborCell.Pci = neighbor.Pci
+		enbNeighborCell.Tac = neighbor.Tac
+		enbNeighborCell.QOffset = neighbor.QOffset
+		enbNeighborCell.Cio = neighbor.Cio
+		enbNeighborCell.Enable = neighbor.Enable
+		enbNeighborCell.Plmn = neighbor.Plmn
+		index := strconv.Itoa(int(neighbor.Index))
+		ret[index] = enbNeighborCell
+	}
+	return ret
+}
+
+func getNeighborFreq(enbConfig *lte_models.EnodebConfig) map[string]*lte_mconfig.EnodebD_EnodebConfigNeighborFreqTable {
+	cellularNeighborFreq := enbConfig.ManagedConfig.NeighborFrequencyList
+	ret := make(map[string]*lte_mconfig.EnodebD_EnodebConfigNeighborFreqTable, len(cellularNeighborFreq))
+	for _, neighbor := range cellularNeighborFreq {
+		enbNeighborFreq := &lte_mconfig.EnodebD_EnodebConfigNeighborFreqTable{}
+		enbNeighborFreq.Index = neighbor.Index
+		enbNeighborFreq.Enable = neighbor.Enable
+		enbNeighborFreq.Earfcn = neighbor.Earfcn
+		enbNeighborFreq.QOffsetRange = neighbor.QOffsetRange
+		enbNeighborFreq.QRxLevMinSib5 = neighbor.QRxLevMinSib5
+		enbNeighborFreq.PMax = neighbor.PMax
+		enbNeighborFreq.TReselectionEutra = neighbor.TReselectionEutra
+		enbNeighborFreq.TReselectionEutraSfMedium = neighbor.TReselectionEutraSfMedium
+		enbNeighborFreq.ReselThreshHigh = neighbor.ReselThreshHigh
+		enbNeighborFreq.ReselThreshLow = neighbor.ReselThreshLow
+		enbNeighborFreq.ReselectionPriority = neighbor.ReselectionPriority
+		index := strconv.Itoa(int(neighbor.Index))
+		ret[index] = enbNeighborFreq
 	}
 	return ret
 }
@@ -701,4 +763,67 @@ func (s *builderServicer) getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, g
 func (s *builderServicer) getRandomizedSyncInterval(gwKey string, nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
 	syncInterval := s.getSyncInterval(nwEpc, gwEpc)
 	return math.JitterUint32(syncInterval, gwKey, 0.2)
+}
+
+// Management Server
+func getManagementSeverConfig(enbMconfig *lte_mconfig.EnodebD_EnodebConfig, cellularEnbConfig *lte_models.EnodebConfiguration) {
+	cellManagementSeverConfig := cellularEnbConfig.ManagementServer
+	if cellManagementSeverConfig != nil {
+		enbManagementSeverConfig := &lte_mconfig.EnodebD_EnodebConfig_ManagementServerConfig{}
+		enbManagementSeverConfig.ManagementServerHost = cellManagementSeverConfig.ManagementServerHost
+		enbManagementSeverConfig.ManagementServerPort = cellManagementSeverConfig.ManagementServerPort
+		enbManagementSeverConfig.ManagementServerSslEnable = cellManagementSeverConfig.ManagementServerSslEnable
+		enbMconfig.ManagementServerConfig = enbManagementSeverConfig
+	}
+}
+
+// sysc 1158 config
+func getSysc1158Config(enbMconfig *lte_mconfig.EnodebD_EnodebConfig, cellularEnbConfig *lte_models.EnodebConfiguration) {
+	cellSyscConfig := cellularEnbConfig.Sync1588
+	if cellSyscConfig != nil {
+		enbSyscConfig := &lte_mconfig.EnodebD_EnodebConfig_Sync1588Config{}
+		enbSyscConfig.Sync_1588Switch = cellSyscConfig.Sync1588Switch
+		enbSyscConfig.Sync_1588Domain = cellSyscConfig.Sync1588Domain
+		enbSyscConfig.Sync_1588MsgInterval = cellSyscConfig.Sync1588MsgInterval
+		enbSyscConfig.Sync_1588DelayRqMsgInterval = cellSyscConfig.Sync1588DelayRqMsgInterval
+		enbSyscConfig.Sync_1588Holdover = cellSyscConfig.Sync1588Holdover
+		enbSyscConfig.Sync_1588Asymmetry = cellSyscConfig.Sync1588Asymmetry
+		enbSyscConfig.Sync_1588UnicastEnable = cellSyscConfig.Sync1588UnicastEnable
+		enbSyscConfig.Sync_1588UnicastServerIp = string(cellSyscConfig.Sync1588UnicastServerIP)
+		enbMconfig.Sync_1588Config = enbSyscConfig
+	}
+}
+
+// get Ho HoAlgorithm parameters
+func getHoAlgorithmConfig(enbMconfig *lte_mconfig.EnodebD_EnodebConfig, cellularEnbConfig *lte_models.EnodebConfiguration) {
+	cellHoAlgorithmConfig := cellularEnbConfig.HoAlgorithmConfig
+	if cellHoAlgorithmConfig != nil {
+		enbHoAlgorithmConfig := &lte_mconfig.EnodebD_EnodebConfig_HoAlgorithmConfig{}
+		enbHoAlgorithmConfig.A1ThresholdRsrp = swag.Uint32Value(cellHoAlgorithmConfig.A1ThresholdRsrp)
+		enbHoAlgorithmConfig.LteA1ThresholdRsrq = cellHoAlgorithmConfig.LteA1ThresholdRsrq
+		enbHoAlgorithmConfig.Hysteresis = swag.Int32Value(cellHoAlgorithmConfig.Hysteresis)
+		enbHoAlgorithmConfig.TimeToTrigger = cellHoAlgorithmConfig.TimeToTrigger
+		enbHoAlgorithmConfig.A2ThresholdRsrp = swag.Int32Value(cellHoAlgorithmConfig.A2ThresholdRsrp)
+		enbHoAlgorithmConfig.LteA2ThresholdRsrq = cellHoAlgorithmConfig.LteA2ThresholdRsrq
+		enbHoAlgorithmConfig.A3Offset = swag.Int32Value(cellHoAlgorithmConfig.A3Offset)
+		enbHoAlgorithmConfig.A3OffsetAnr = cellHoAlgorithmConfig.A3OffsetAnr
+		enbHoAlgorithmConfig.A4ThresholdRsrp = cellHoAlgorithmConfig.A4ThresholdRsrp
+		enbHoAlgorithmConfig.LteIntraA5Threshold_1Rsrp = swag.Int32Value(cellHoAlgorithmConfig.LteIntraA5Threshold1Rsrp)
+		enbHoAlgorithmConfig.LteIntraA5Threshold_2Rsrp = swag.Int32Value(cellHoAlgorithmConfig.LteIntraA5Threshold2Rsrp)
+		enbHoAlgorithmConfig.LteInterAnrA5Threshold_1Rsrp = swag.Int32Value(cellHoAlgorithmConfig.LteInterAnrA5Threshold1Rsrp)
+		enbHoAlgorithmConfig.LteInterAnrA5Threshold_2Rsrp = swag.Int32Value(cellHoAlgorithmConfig.LteInterAnrA5Threshold2Rsrp)
+		enbHoAlgorithmConfig.B2Threshold1Rsrp = swag.Uint32Value(cellHoAlgorithmConfig.B2Threshold1Rsrp)
+		enbHoAlgorithmConfig.B2Threshold2Rsrp = swag.Int32Value(cellHoAlgorithmConfig.B2Threshold2Rsrp)
+		enbHoAlgorithmConfig.B2GeranIratThreshold = swag.Uint32Value(cellHoAlgorithmConfig.B2GeranIratThreshold)
+		enbHoAlgorithmConfig.QrxlevminSelection = cellHoAlgorithmConfig.QrxlevminSelection
+		enbHoAlgorithmConfig.Qrxlevminoffset = cellHoAlgorithmConfig.Qrxlevminoffset
+		enbHoAlgorithmConfig.SIntrasearch = swag.Uint32Value(cellHoAlgorithmConfig.SIntrasearch)
+		enbHoAlgorithmConfig.SNonintrasearch = swag.Uint32Value(cellHoAlgorithmConfig.SNonintrasearch)
+		enbHoAlgorithmConfig.QrxlevminReselection = cellHoAlgorithmConfig.QrxlevminReselection
+		enbHoAlgorithmConfig.ReselectionPriority = cellHoAlgorithmConfig.ReselectionPriority
+		enbHoAlgorithmConfig.Threshservinglow = cellHoAlgorithmConfig.Threshservinglow
+		enbHoAlgorithmConfig.CipheringAlgorithm = cellHoAlgorithmConfig.CipheringAlgorithm
+		enbHoAlgorithmConfig.IntegrityAlgorithm = cellHoAlgorithmConfig.IntegrityAlgorithm
+		enbMconfig.HoAlgorithmConfig = enbHoAlgorithmConfig
+	}
 }
