@@ -16,6 +16,7 @@ syntax = "proto3";
 import "orc8r/protos/common.proto";
 import "lte/protos/policydb.proto";
 import "lte/protos/subscriberdb.proto";
+import "lte/protos/apn.proto";
 import "google/protobuf/timestamp.proto";
 
 package magma.lte;
@@ -802,6 +803,23 @@ message QosRules {
    uint32 qos_flow_identifier = 7;
 }
 
+message QosPolicy {
+   enum PolicyState {
+	INSTALL=0;
+	PENDING=1;
+	REJECT=2;
+ }
+ PolicyState policy_state=1;
+ uint32 version=2;
+ enum PolicyAction {
+        ADD=0;
+        DEL=1;
+        MOD=2;
+ }
+ PolicyAction policy_action=3;
+ PolicyRule  qos =4;
+}
+
 enum prem_capab {
   SHALL_NOT_TRIGGER_PRE_EMPTION = 0;
   MAY_TRIGGER_PRE_EMPTION = 1;
@@ -914,6 +932,7 @@ message M5GSMSessionContext {
   // Procedure transaction identity
   bytes procedure_trans_identity = 25;
   M5GQosInformationRequest subscribed_qos = 26;
+  repeated QosPolicy qos_policy = 27;
 }
 
 message SetSMSessionContext {
@@ -973,7 +992,8 @@ message M5GSMSessionContextAccess{
     TeidSet upf_endpoint = 15;
     // Procedure transaction identity One byte TS-24501 9.6
     bytes procedure_trans_identity = 16;
-    FlowQos  qos =17;
+    // Mutiple Qos policy support
+    repeated QosPolicy qos_policy = 17;
 }
 
 message SetSMSessionContextAccess {
@@ -981,8 +1001,6 @@ message SetSMSessionContextAccess {
   CommonSessionContext common_context = 1;
   RatSpecificContextAccess   rat_specific_context = 2;
 }
-
-
 
 // Node Level Messages from UPF. Purely Event Based.
 message UPFNodeState {
@@ -1155,4 +1173,5 @@ service SmfPduSessionSmContext {
  rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}
  rpc SetSmfSessionContext(SetSMSessionContextAccess) returns (SmContextVoid);
 }
+
 
