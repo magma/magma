@@ -7,6 +7,8 @@ services:
     image: ${DOCKER_REGISTRY}agw_s1aptester:${IMAGE_VERSION}
     container_name: s1aptester
     command: /bin/bash
+    network_mode: "host"
+    privileged: true
     stdin_open: true
     tty: true
     build:
@@ -16,6 +18,8 @@ services:
   trfgen:
     image: ${DOCKER_REGISTRY}agw_trfgen:${IMAGE_VERSION}
     container_name: trfgen
+    network_mode: "host"
+    privileged: true
     build:
       context: ${BUILD_CONTEXT}
       dockerfile: lte/gateway/docker/services/trfgen/Dockerfile
@@ -91,6 +95,16 @@ services:
   pipelined:
     environment:
       - MAGMA_DEV_MODE=1
+    command: >
+      bash -c "/usr/bin/ovs-vsctl --all destroy Flow_Sample_Collector_Set &&
+        /usr/bin/ovs-vsctl set bridge gtp_br0 protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true &&
+        /usr/bin/ovs-vsctl set-controller gtp_br0 tcp:127.0.0.1:6633 tcp:127.0.0.1:6654 &&
+        /usr/bin/ovsdb-client dump Controller _uuid|tail -n +4 | while read id ; do \
+          /usr/bin/ovs-vsctl set Controller $${id} inactivity_probe=300 ; done &&
+        /usr/bin/ovs-vsctl set-fail-mode gtp_br0 secure &&
+        /usr/bin/ovs-vsctl set-manager ptcp:6640 &&
+        sed -i "s/static_services: \[/static_services: \[ \'ryu_rest_service\',/g" /etc/magma/pipelined.yml &&
+        /usr/bin/env python3 -m magma.pipelined.main "
 
   sessiond:
     environment:

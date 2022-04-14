@@ -25,7 +25,7 @@ s1ap/start-s1ap.sh
 ```
 root@472f8708ec12:/magma/lte/gateway/python/integ_tests#
 # Run individual test(s)
-make integ_test TESTS=test_attach_detach.py
+make integ_test TESTS=s1aptests/test_attach_detach.py
 # Run full suite
 make integ_test
 ```

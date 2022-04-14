@@ -20,15 +20,22 @@ ARG DEBIAN_FRONTEND=noninteractive
 ARG S1_IP=192.168.60.144
 ARG S1_PORT=62462
 
+ARG GIT_VERSION=2.25.1-1ubuntu3.2
+ARG PYTHON3_PIP_VERSION=20.0.2-5ubuntu1.6
+ARG PYTHON3_VENV_VERSION=3.8.2-0ubuntu2
+ARG VIRTUALENV_VERSION=20.0.17-1ubuntu0.4
+ARG ETHTOOL_VERSION=5.4-1
+ARG IPERF3_VERSION=3.7-3
+
 ENV MAGMA_ROOT=/magma
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  git \
-  python3-pip \
-  python3-venv \
-  virtualenv \
-  ethtool \
-  iperf3 \
+  git=GIT_VERSION \
+  python3-pip=PYTHON3_PIP_VERSION \
+  python3-venv=PYTHON3_VENV_VERSION \
+  virtualenv=VIRTUALENV_VERSION \
+  ethtool=ETHTOOL_VERSION \
+  iperf3=IPERF3_VERSION \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
