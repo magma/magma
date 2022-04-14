@@ -287,28 +287,6 @@ func (s *CbsdManagerTestSuite) TestListCbsdWithFilter() {
 	s.Assert().Equal(expected, actual)
 }
 
-func (s *CbsdManagerTestSuite) TestDbFilterWithSerialNumber() {
-	filter := &protos.CbsdFilter{
-		SerialNumber: someSerialNumber,
-	}
-	actual := servicers.DbFilter(filter)
-	expected := &storage.CbsdFilter{SerialNumber: someSerialNumber}
-	s.Assert().Equal(expected, actual)
-}
-
-func (s *CbsdManagerTestSuite) TestDbFilterWithoutSerialNumber() {
-	filter := &protos.CbsdFilter{}
-	actual := servicers.DbFilter(filter)
-	expected := &storage.CbsdFilter{}
-	s.Assert().Equal(expected, actual)
-}
-
-func (s *CbsdManagerTestSuite) TestDbFilterWithNilFilter() {
-	actual := servicers.DbFilter(nil)
-	expected := &storage.CbsdFilter{}
-	s.Assert().Equal(expected, actual)
-}
-
 func getProtoCbsd() *protos.CbsdData {
 	return &protos.CbsdData{
 		UserId:       "some_user_id",

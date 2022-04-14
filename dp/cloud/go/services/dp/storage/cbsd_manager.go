@@ -23,6 +23,10 @@ import (
 	"magma/orc8r/lib/go/merrors"
 )
 
+type CbsdFilter struct {
+	SerialNumber string
+}
+
 type CbsdManager interface {
 	CreateCbsd(networkId string, data *DBCbsd) error
 	UpdateCbsd(networkId string, id int64, data *DBCbsd) error
@@ -268,7 +272,7 @@ func (c *cbsdManagerInTransaction) listDetailedCbsd(networkId string, pagination
 	}
 	query := buildDetailedCbsdQuery(c.builder)
 	res, err := buildPagination(query, pagination).
-		Where(GetCbsdFilters(networkId, filter)).
+		Where(getCbsdFilters(networkId, filter)).
 		OrderBy(CbsdTable+".id", db.OrderAsc).
 		List()
 	if err != nil {
@@ -288,7 +292,7 @@ func countCbsds(networkId string, builder sq.StatementBuilderType) (int64, error
 	return db.NewQuery().
 		WithBuilder(builder).
 		From(&DBCbsd{}).
-		Where(GetCbsdFilters(networkId, nil)).
+		Where(getCbsdFilters(networkId, nil)).
 		Count()
 }
 
@@ -300,12 +304,12 @@ func makeError(err error, checker sqorc.ErrorChecker) error {
 }
 
 func getCbsdFiltersWithId(networkId string, id int64) sq.Eq {
-	filters := GetCbsdFilters(networkId, nil)
+	filters := getCbsdFilters(networkId, nil)
 	filters[CbsdTable+".id"] = id
 	return filters
 }
 
-func GetCbsdFilters(networkId string, filter *CbsdFilter) sq.Eq {
+func getCbsdFilters(networkId string, filter *CbsdFilter) sq.Eq {
 	filters := sq.Eq{
 		CbsdTable + ".network_id": networkId,
 		CbsdTable + ".is_deleted": false,

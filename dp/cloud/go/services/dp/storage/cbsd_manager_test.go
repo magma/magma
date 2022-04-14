@@ -464,29 +464,6 @@ func (s *CbsdManagerTestSuite) TestListDeletedCbsd() {
 	s.Assert().Equal(expected, actual)
 }
 
-func (s *CbsdManagerTestSuite) TestGetCbsdFilterWithSerialNumber() {
-	f := storage.CbsdFilter{SerialNumber: "foo"}
-	actual := storage.GetCbsdFilters("some_network_id", &f)
-
-	expected := sq.Eq{
-		"cbsds.network_id":         "some_network_id",
-		"cbsds.is_deleted":         false,
-		"cbsds.cbsd_serial_number": "foo",
-	}
-	s.Assert().Equal(expected, actual)
-}
-
-func (s *CbsdManagerTestSuite) TestGetCbsdFilterWithoutSerialNumber() {
-	actual := storage.GetCbsdFilters("some_network_id", nil)
-
-	expected := sq.Eq{
-		"cbsds.network_id": "some_network_id",
-		"cbsds.is_deleted": false,
-	}
-
-	s.Assert().Equal(expected, actual)
-}
-
 func (s *CbsdManagerTestSuite) givenResourceInserted(model db.Model) int64 {
 	id, err := db.NewQuery().
 		WithBuilder(s.resourceManager.GetBuilder()).

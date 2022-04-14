@@ -77,7 +77,7 @@ func (c *cbsdManager) FetchCbsd(_ context.Context, request *protos.FetchCbsdRequ
 
 func (c *cbsdManager) ListCbsds(_ context.Context, request *protos.ListCbsdRequest) (*protos.ListCbsdResponse, error) {
 	pagination := dbPagination(request.Pagination)
-	filter := DbFilter(request.Filter)
+	filter := dbFilter(request.Filter)
 	result, err := c.store.ListCbsd(request.NetworkId, pagination, filter)
 	if err != nil {
 		return nil, makeErr(err, "list cbsds")
@@ -103,7 +103,7 @@ func dbPagination(pagination *protos.Pagination) *storage.Pagination {
 	return p
 }
 
-func DbFilter(filter *protos.CbsdFilter) *storage.CbsdFilter {
+func dbFilter(filter *protos.CbsdFilter) *storage.CbsdFilter {
 	p := &storage.CbsdFilter{}
 	if filter != nil && filter.SerialNumber != "" {
 		p.SerialNumber = filter.GetSerialNumber()
