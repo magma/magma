@@ -80,9 +80,11 @@ func listCbsds(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	filter := GetCbsdFilter(c)
 	req := protos.ListCbsdRequest{
 		NetworkId:  networkId,
 		Pagination: pagination,
+		Filter:     filter,
 	}
 	ctx := c.Request().Context()
 	cbsds, err := client.ListCbsds(ctx, &req)
@@ -209,6 +211,12 @@ func updateCbsd(c echo.Context) error {
 		return getHttpError(ierr)
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func GetCbsdFilter(c echo.Context) *protos.CbsdFilter {
+	return &protos.CbsdFilter{
+		SerialNumber: c.QueryParam("serial_number"),
+	}
 }
 
 func getHttpError(err error) error {
