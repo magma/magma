@@ -26,7 +26,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_converter.hpp"
-#include "lte/gateway/c/core/oai/include/state_manager.h"
+#include "lte/gateway/c/core/oai/include/state_manager.hpp"
 
 using magma::lte::oai::MmeNasState;
 namespace magma5g {

@@ -617,7 +617,7 @@ cc_library(
         "oai/include/spgw_state.hpp",
         "oai/include/spgw_types.h",
         "oai/include/state_converter.hpp",
-        "oai/include/state_manager.h",
+        "oai/include/state_manager.hpp",
         "oai/include/tasks_def.h",
         "oai/include/udp_messages_def.h",
         "oai/include/udp_messages_types.h",

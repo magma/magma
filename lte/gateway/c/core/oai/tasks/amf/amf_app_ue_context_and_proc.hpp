@@ -42,7 +42,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/AmfMessage.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationRequest.hpp"
 
 // NAS messages
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.hpp"
@@ -55,12 +54,9 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeCommand.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeComplete.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeReject.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationRequestUEInit.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationAcceptUEInit.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationRequestUEInit.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationAcceptUEInit.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GULNASTransport.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceReject.hpp"
 
 namespace magma5g {
