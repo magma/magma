@@ -15,42 +15,34 @@ package db
 
 import (
 	"database/sql"
-
-	"magma/orc8r/cloud/go/sqorc"
 )
 
 type BaseType interface {
-	baseValue() interface{}
+	value() interface{}
 	ptr() interface{}
-	sqlType() sqorc.ColumnType
 }
 
 type IntType struct{ X *sql.NullInt64 }
 
-func (x IntType) baseValue() interface{}    { return *x.X }
-func (x IntType) ptr() interface{}          { return x.X }
-func (x IntType) sqlType() sqorc.ColumnType { return sqorc.ColumnTypeInt }
+func (x IntType) value() interface{} { return *x.X }
+func (x IntType) ptr() interface{}   { return x.X }
 
 type FloatType struct{ X *sql.NullFloat64 }
 
-func (x FloatType) baseValue() interface{}    { return *x.X }
-func (x FloatType) ptr() interface{}          { return x.X }
-func (x FloatType) sqlType() sqorc.ColumnType { return sqorc.ColumnTypeReal }
+func (x FloatType) value() interface{} { return *x.X }
+func (x FloatType) ptr() interface{}   { return x.X }
 
 type StringType struct{ X *sql.NullString }
 
-func (x StringType) baseValue() interface{}    { return *x.X }
-func (x StringType) ptr() interface{}          { return x.X }
-func (x StringType) sqlType() sqorc.ColumnType { return sqorc.ColumnTypeText }
+func (x StringType) value() interface{} { return *x.X }
+func (x StringType) ptr() interface{}   { return x.X }
 
 type BoolType struct{ X *sql.NullBool }
 
-func (x BoolType) baseValue() interface{}    { return *x.X }
-func (x BoolType) ptr() interface{}          { return x.X }
-func (x BoolType) sqlType() sqorc.ColumnType { return sqorc.ColumnTypeBool }
+func (x BoolType) value() interface{} { return *x.X }
+func (x BoolType) ptr() interface{}   { return x.X }
 
 type TimeType struct{ X *sql.NullTime }
 
-func (x TimeType) baseValue() interface{}    { return *x.X }
-func (x TimeType) ptr() interface{}          { return x.X }
-func (x TimeType) sqlType() sqorc.ColumnType { return sqorc.ColumnTypeDatetime }
+func (x TimeType) value() interface{} { return *x.X }
+func (x TimeType) ptr() interface{}   { return x.X }

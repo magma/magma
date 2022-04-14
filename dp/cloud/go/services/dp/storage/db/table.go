@@ -35,7 +35,7 @@ func addColumns(builder sqorc.CreateTableBuilder, fields FieldMap) sqorc.CreateT
 	for column, field := range fields {
 		colBuilder := builder.
 			Column(column).
-			Type(field.BaseType.sqlType())
+			Type(field.SqlType)
 		if !field.Nullable {
 			colBuilder = colBuilder.NotNull()
 		}
