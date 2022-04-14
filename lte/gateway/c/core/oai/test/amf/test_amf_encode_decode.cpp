@@ -42,6 +42,9 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQosFlowParam.hpp"
 
 using ::testing::Test;
 task_zmq_ctx_t grpc_service_task_zmq_ctx;
@@ -1561,4 +1564,754 @@ TEST(test_PDUAddressMsg, test_pdu_session_accept_optional_addressinfo) {
   EXPECT_TRUE(msg.address_info[0] == 0xc0);
   EXPECT_TRUE(msg.address_info[1] == 0xa8);
 }
+
+// pdu session modification request message
+TEST(test_pdu_session_modification, test_pdu_session_modification_request_msg) {
+  uint8_t buffer[1024] = {0};
+  uint8_t len = 56;
+  PDUSessionModificationRequestMsg pdu_sess_mod_req = {};
+  PDUSessionModificationRequestMsg decode_pdu_sess_mod_req = {};
+
+  // extended protocol descriminator
+  pdu_sess_mod_req.extended_protocol_discriminator
+      .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
+
+  // pdu session identity
+  pdu_sess_mod_req.pdu_session_identity.pdu_session_id = 5;
+  // pti
+  pdu_sess_mod_req.pti.pti = 0x01;
+  // message type
+  pdu_sess_mod_req.message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_MODIFICATION_REQUEST);
+
+  // qos rules
+  QOSRulesMsg qosrules;
+  qosrules.iei = PDU_SESSION_QOS_RULES_IE_TYPE;
+  qosrules.length = 20;
+  qosrules.qos_rule[0].qos_rule_id = 2;
+  qosrules.qos_rule[0].len = 17;
+  qosrules.qos_rule[0].rule_oper_code = 2;
+  qosrules.qos_rule[0].dqr_bit = 0;
+  qosrules.qos_rule[0].no_of_pkt_filters = 1;
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].pkt_filter_dir = 3;
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].pkt_filter_id = 1;
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].len = 12;
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[0] = {0x10};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[1] = {0x0a};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[2] = {0x0a};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[3] = {0x02};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[4] = {0x02};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[5] = {0x0f};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[6] = {0x0f};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[7] = {0x0f};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[8] = {0x0f};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[9] = {0x50};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[10] = {0x57};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[11] = {0x3e};
+  qosrules.qos_rule[0].qos_rule_precedence = 254;
+  qosrules.qos_rule[0].qfi = 3;
+  pdu_sess_mod_req.authqosrules.push_back(qosrules);
+
+  //  auth qos flow descriptors
+  M5GQosFlowDescription authqosFlows;
+  authqosFlows.iei = PDU_SESSION_QOS_FLOW_DESC_IE_TYPE;
+  authqosFlows.length = 26;
+  authqosFlows.qfi = 3;
+  authqosFlows.operationCode = 0x20;
+  authqosFlows.Ebit = 1;
+  authqosFlows.numOfParams = 0x05;
+  authqosFlows.paramList[0].iei = M5GQosFlowParam::param_id_5qi;
+  authqosFlows.paramList[0].length = 1;
+  authqosFlows.paramList[0].element = 3;
+  authqosFlows.paramList[1].iei = M5GQosFlowParam::param_id_gfbr_uplink;
+  authqosFlows.paramList[1].length = 1;
+  authqosFlows.paramList[1].units = 1;
+  authqosFlows.paramList[1].element = 4;
+  authqosFlows.paramList[2].iei = M5GQosFlowParam::param_id_gfbr_downlink;
+  authqosFlows.paramList[2].length = 1;
+  authqosFlows.paramList[2].units = 1;
+  authqosFlows.paramList[2].element = 4;
+  authqosFlows.paramList[3].iei = M5GQosFlowParam::param_id_mfbr_uplink;
+  authqosFlows.paramList[3].length = 1;
+  authqosFlows.paramList[3].units = 1;
+  authqosFlows.paramList[3].element = 4;
+  authqosFlows.paramList[4].iei = M5GQosFlowParam::param_id_mfbr_downlink;
+  authqosFlows.paramList[4].length = 1;
+  authqosFlows.paramList[4].units = 1;
+  authqosFlows.paramList[4].element = 4;
+  pdu_sess_mod_req.authqosflowdescriptors.push_back(authqosFlows);
+
+  // verify encoding is successful
+  EXPECT_EQ(pdu_sess_mod_req.EncodePDUSessionModificationRequestMsg(
+                &pdu_sess_mod_req, buffer, len),
+            len);
+  // verify decoding is successful
+  EXPECT_EQ(decode_pdu_sess_mod_req.DecodePDUSessionModificationRequestMsg(
+                &decode_pdu_sess_mod_req, buffer, len),
+            len);
+
+  // verify encoded and decoded IE's having same values are not
+  EXPECT_EQ(pdu_sess_mod_req.extended_protocol_discriminator
+                .extended_proto_discriminator,
+            decode_pdu_sess_mod_req.extended_protocol_discriminator
+                .extended_proto_discriminator);
+
+  EXPECT_EQ(pdu_sess_mod_req.pdu_session_identity.pdu_session_id,
+            decode_pdu_sess_mod_req.pdu_session_identity.pdu_session_id);
+  EXPECT_EQ(pdu_sess_mod_req.pti.pti, decode_pdu_sess_mod_req.pti.pti);
+
+  EXPECT_EQ(pdu_sess_mod_req.message_type.msg_type,
+            decode_pdu_sess_mod_req.message_type.msg_type);
+
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0].iei,
+            decode_pdu_sess_mod_req.authqosrules[0].iei);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0].length,
+            decode_pdu_sess_mod_req.authqosrules[0].length);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0].qos_rule[0].qos_rule_id,
+            decode_pdu_sess_mod_req.authqosrules[0].qos_rule[0].qos_rule_id);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0].qos_rule[0].len,
+            decode_pdu_sess_mod_req.authqosrules[0].qos_rule[0].len);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0].qos_rule[0].rule_oper_code,
+            decode_pdu_sess_mod_req.authqosrules[0].qos_rule[0].rule_oper_code);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0].qos_rule[0].dqr_bit,
+            decode_pdu_sess_mod_req.authqosrules[0].qos_rule[0].dqr_bit);
+  EXPECT_EQ(
+      pdu_sess_mod_req.authqosrules[0].qos_rule[0].no_of_pkt_filters,
+      decode_pdu_sess_mod_req.authqosrules[0].qos_rule[0].no_of_pkt_filters);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .pkt_filter_dir,
+            decode_pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .pkt_filter_dir);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .pkt_filter_id,
+            decode_pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .pkt_filter_id);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .len,
+            decode_pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .len);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[0],
+            decode_pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[0]);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[1],
+            decode_pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[1]);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[2],
+            decode_pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[2]);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[3],
+            decode_pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[3]);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[4],
+            decode_pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[4]);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[5],
+            decode_pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[5]);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[6],
+            decode_pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[6]);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[7],
+            decode_pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[7]);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[8],
+            decode_pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[8]);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[9],
+            decode_pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[9]);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[10],
+            decode_pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[10]);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[11],
+            decode_pdu_sess_mod_req.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[11]);
+  EXPECT_EQ(
+      pdu_sess_mod_req.authqosrules[0].qos_rule[0].qos_rule_precedence,
+      decode_pdu_sess_mod_req.authqosrules[0].qos_rule[0].qos_rule_precedence);
+  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0].qos_rule[0].qfi,
+            decode_pdu_sess_mod_req.authqosrules[0].qos_rule[0].qfi);
+
+  EXPECT_EQ(pdu_sess_mod_req.authqosflowdescriptors[0].qfi,
+            decode_pdu_sess_mod_req.authqosflowdescriptors[0].qfi);
+  EXPECT_EQ(pdu_sess_mod_req.authqosflowdescriptors[0].operationCode,
+            decode_pdu_sess_mod_req.authqosflowdescriptors[0].operationCode);
+  EXPECT_EQ(pdu_sess_mod_req.authqosflowdescriptors[0].numOfParams,
+            decode_pdu_sess_mod_req.authqosflowdescriptors[0].numOfParams);
+  EXPECT_EQ(pdu_sess_mod_req.authqosflowdescriptors[0].Ebit,
+            decode_pdu_sess_mod_req.authqosflowdescriptors[0].Ebit);
+  EXPECT_EQ(pdu_sess_mod_req.authqosflowdescriptors[0].paramList[0].iei,
+            decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[0].iei);
+  EXPECT_EQ(
+      pdu_sess_mod_req.authqosflowdescriptors[0].paramList[0].length,
+      decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[0].length);
+  EXPECT_EQ(
+      pdu_sess_mod_req.authqosflowdescriptors[0].paramList[0].element,
+      decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[0].element);
+  EXPECT_EQ(pdu_sess_mod_req.authqosflowdescriptors[0].paramList[1].iei,
+            decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[1].iei);
+  EXPECT_EQ(
+      pdu_sess_mod_req.authqosflowdescriptors[0].paramList[1].length,
+      decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[1].length);
+  EXPECT_EQ(
+      pdu_sess_mod_req.authqosflowdescriptors[0].paramList[1].units,
+      decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[1].units);
+  EXPECT_EQ(
+      pdu_sess_mod_req.authqosflowdescriptors[0].paramList[1].element,
+      decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[1].element);
+  EXPECT_EQ(pdu_sess_mod_req.authqosflowdescriptors[0].paramList[2].iei,
+            decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[2].iei);
+  EXPECT_EQ(
+      pdu_sess_mod_req.authqosflowdescriptors[0].paramList[2].length,
+      decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[2].length);
+  EXPECT_EQ(
+      pdu_sess_mod_req.authqosflowdescriptors[0].paramList[2].units,
+      decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[2].units);
+  EXPECT_EQ(
+      pdu_sess_mod_req.authqosflowdescriptors[0].paramList[2].element,
+      decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[2].element);
+  EXPECT_EQ(pdu_sess_mod_req.authqosflowdescriptors[0].paramList[3].iei,
+            decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[3].iei);
+  EXPECT_EQ(
+      pdu_sess_mod_req.authqosflowdescriptors[0].paramList[3].length,
+      decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[3].length);
+  EXPECT_EQ(
+      pdu_sess_mod_req.authqosflowdescriptors[0].paramList[3].units,
+      decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[3].units);
+  EXPECT_EQ(
+      pdu_sess_mod_req.authqosflowdescriptors[0].paramList[3].element,
+      decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[3].element);
+  EXPECT_EQ(pdu_sess_mod_req.authqosflowdescriptors[0].paramList[4].iei,
+            decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[4].iei);
+  EXPECT_EQ(
+      pdu_sess_mod_req.authqosflowdescriptors[0].paramList[4].length,
+      decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[4].length);
+  EXPECT_EQ(
+      pdu_sess_mod_req.authqosflowdescriptors[0].paramList[4].units,
+      decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[4].units);
+  EXPECT_EQ(
+      pdu_sess_mod_req.authqosflowdescriptors[0].paramList[4].element,
+      decode_pdu_sess_mod_req.authqosflowdescriptors[0].paramList[4].element);
+}
+
+// pdu session modification command message
+TEST(test_pdu_session_modification, test_pdu_session_modification_command_msg) {
+  uint8_t buffer[1024] = {0};
+  uint8_t len = 64;
+  PDUSessionModificationCommand pdu_sess_mod_cmd = {};
+  PDUSessionModificationCommand decode_pdu_sess_mod_cmd = {};
+
+  // extended protocol descriminator
+  pdu_sess_mod_cmd.extended_protocol_discriminator
+      .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
+
+  // pdu session identity
+  pdu_sess_mod_cmd.pdu_session_identity.pdu_session_id = 5;
+  // pti
+  pdu_sess_mod_cmd.pti.pti = 0x01;
+  // message type
+  pdu_sess_mod_cmd.message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND);
+  // session amr
+  pdu_sess_mod_cmd.sessionambr.iei = 0x2a;
+  pdu_sess_mod_cmd.sessionambr.length = 6;
+  pdu_sess_mod_cmd.sessionambr.dl_unit = 4;
+  pdu_sess_mod_cmd.sessionambr.dl_session_ambr = 64;
+  pdu_sess_mod_cmd.sessionambr.ul_unit = 4;
+  pdu_sess_mod_cmd.sessionambr.ul_session_ambr = 64;
+
+  // qos rules
+  QOSRulesMsg qosrules;
+  qosrules.iei = PDU_SESSION_QOS_RULES_IE_TYPE;
+  qosrules.length = 20;
+  qosrules.qos_rule[0].qos_rule_id = 2;
+  qosrules.qos_rule[0].len = 17;
+  qosrules.qos_rule[0].rule_oper_code = 2;
+  qosrules.qos_rule[0].dqr_bit = 0;
+  qosrules.qos_rule[0].no_of_pkt_filters = 1;
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].pkt_filter_dir = 3;
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].pkt_filter_id = 1;
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].len = 12;
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[0] = {0x10};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[1] = {0x0a};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[2] = {0x0a};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[3] = {0x02};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[4] = {0x02};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[5] = {0x0f};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[6] = {0x0f};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[7] = {0x0f};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[8] = {0x0f};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[9] = {0x50};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[10] = {0x57};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[11] = {0x3e};
+  qosrules.qos_rule[0].qos_rule_precedence = 254;
+  qosrules.qos_rule[0].qfi = 3;
+  pdu_sess_mod_cmd.authqosrules.push_back(qosrules);
+
+  //  auth qos flow descriptors
+  M5GQosFlowDescription authqosFlows;
+  authqosFlows.iei = PDU_SESSION_QOS_FLOW_DESC_IE_TYPE;
+  authqosFlows.length = 26;
+  authqosFlows.qfi = 3;
+  authqosFlows.operationCode = 0x20;
+  authqosFlows.Ebit = 1;
+  authqosFlows.numOfParams = 0x05;
+  authqosFlows.paramList[0].iei = M5GQosFlowParam::param_id_5qi;
+  authqosFlows.paramList[0].length = 1;
+  authqosFlows.paramList[0].element = 3;
+  authqosFlows.paramList[1].iei = M5GQosFlowParam::param_id_gfbr_uplink;
+  authqosFlows.paramList[1].length = 1;
+  authqosFlows.paramList[1].units = 1;
+  authqosFlows.paramList[1].element = 4;
+  authqosFlows.paramList[2].iei = M5GQosFlowParam::param_id_gfbr_downlink;
+  authqosFlows.paramList[2].length = 1;
+  authqosFlows.paramList[2].units = 1;
+  authqosFlows.paramList[2].element = 4;
+  authqosFlows.paramList[3].iei = M5GQosFlowParam::param_id_mfbr_uplink;
+  authqosFlows.paramList[3].length = 1;
+  authqosFlows.paramList[3].units = 1;
+  authqosFlows.paramList[3].element = 4;
+  authqosFlows.paramList[4].iei = M5GQosFlowParam::param_id_mfbr_downlink;
+  authqosFlows.paramList[4].length = 1;
+  authqosFlows.paramList[4].units = 1;
+  authqosFlows.paramList[4].element = 4;
+  pdu_sess_mod_cmd.authqosflowdescriptors.push_back(authqosFlows);
+
+  // verify encoding is successful
+  EXPECT_EQ(pdu_sess_mod_cmd.EncodePDUSessionModificationCommand(
+                &pdu_sess_mod_cmd, buffer, len),
+            len);
+  // verify decoding is successful
+  EXPECT_EQ(decode_pdu_sess_mod_cmd.DecodePDUSessionModificationCommand(
+                &decode_pdu_sess_mod_cmd, buffer, len),
+            len);
+
+  // verify encoded and decoded IE's having same values are not
+  EXPECT_EQ(pdu_sess_mod_cmd.extended_protocol_discriminator
+                .extended_proto_discriminator,
+            decode_pdu_sess_mod_cmd.extended_protocol_discriminator
+                .extended_proto_discriminator);
+
+  EXPECT_EQ(pdu_sess_mod_cmd.pdu_session_identity.pdu_session_id,
+            decode_pdu_sess_mod_cmd.pdu_session_identity.pdu_session_id);
+  EXPECT_EQ(pdu_sess_mod_cmd.pti.pti, decode_pdu_sess_mod_cmd.pti.pti);
+
+  EXPECT_EQ(pdu_sess_mod_cmd.message_type.msg_type,
+            decode_pdu_sess_mod_cmd.message_type.msg_type);
+
+  EXPECT_EQ(pdu_sess_mod_cmd.sessionambr.iei,
+            decode_pdu_sess_mod_cmd.sessionambr.iei);
+  EXPECT_EQ(pdu_sess_mod_cmd.sessionambr.length,
+            decode_pdu_sess_mod_cmd.sessionambr.length);
+  EXPECT_EQ(pdu_sess_mod_cmd.sessionambr.dl_unit,
+            decode_pdu_sess_mod_cmd.sessionambr.dl_unit);
+  EXPECT_EQ(pdu_sess_mod_cmd.sessionambr.dl_session_ambr,
+            decode_pdu_sess_mod_cmd.sessionambr.dl_session_ambr);
+  EXPECT_EQ(pdu_sess_mod_cmd.sessionambr.ul_unit,
+            decode_pdu_sess_mod_cmd.sessionambr.ul_unit);
+  EXPECT_EQ(pdu_sess_mod_cmd.sessionambr.ul_session_ambr,
+            decode_pdu_sess_mod_cmd.sessionambr.ul_session_ambr);
+
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0].iei,
+            decode_pdu_sess_mod_cmd.authqosrules[0].iei);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0].length,
+            decode_pdu_sess_mod_cmd.authqosrules[0].length);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].qos_rule_id,
+            decode_pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].qos_rule_id);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].len,
+            decode_pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].len);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].rule_oper_code,
+            decode_pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].rule_oper_code);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].dqr_bit,
+            decode_pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].dqr_bit);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].no_of_pkt_filters,
+      decode_pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].no_of_pkt_filters);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .pkt_filter_dir,
+            decode_pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .pkt_filter_dir);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .pkt_filter_id,
+            decode_pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .pkt_filter_id);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .len,
+            decode_pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .len);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[0],
+            decode_pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[0]);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[1],
+            decode_pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[1]);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[2],
+            decode_pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[2]);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[3],
+            decode_pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[3]);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[4],
+            decode_pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[4]);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[5],
+            decode_pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[5]);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[6],
+            decode_pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[6]);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[7],
+            decode_pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[7]);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[8],
+            decode_pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[8]);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[9],
+            decode_pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[9]);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[10],
+            decode_pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[10]);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[11],
+            decode_pdu_sess_mod_cmd.authqosrules[0]
+                .qos_rule[0]
+                .new_qos_rule_pkt_filter[0]
+                .contents[11]);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].qos_rule_precedence,
+      decode_pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].qos_rule_precedence);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].qfi,
+            decode_pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].qfi);
+
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosflowdescriptors[0].qfi,
+            decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].qfi);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosflowdescriptors[0].operationCode,
+            decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].operationCode);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosflowdescriptors[0].numOfParams,
+            decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].numOfParams);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosflowdescriptors[0].Ebit,
+            decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].Ebit);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[0].iei,
+            decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[0].iei);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[0].length,
+      decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[0].length);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[0].element,
+      decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[0].element);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[1].iei,
+            decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[1].iei);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[1].length,
+      decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[1].length);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[1].units,
+      decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[1].units);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[1].element,
+      decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[1].element);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[2].iei,
+            decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[2].iei);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[2].length,
+      decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[2].length);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[2].units,
+      decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[2].units);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[2].element,
+      decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[2].element);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[3].iei,
+            decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[3].iei);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[3].length,
+      decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[3].length);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[3].units,
+      decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[3].units);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[3].element,
+      decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[3].element);
+  EXPECT_EQ(pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[4].iei,
+            decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[4].iei);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[4].length,
+      decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[4].length);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[4].units,
+      decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[4].units);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[4].element,
+      decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[4].element);
+}
+
+// pdu session modification complete
+TEST(test_pdu_session_modification,
+     test_pdu_session_modification_complete_msg) {
+  uint8_t buffer[1024] = {0};
+  uint32_t len = 4;
+  PDUSessionModificationComplete pdu_sess_mod_com_encoded = {};
+  PDUSessionModificationComplete pdu_sess_mod_com_decoded = {};
+  pdu_sess_mod_com_encoded.extended_protocol_discriminator
+      .extended_proto_discriminator = 0x2e;
+
+  // pdu session identity
+  pdu_sess_mod_com_encoded.pdu_session_identity.pdu_session_id = 5;
+  // pti
+  pdu_sess_mod_com_encoded.pti.pti = 0x01;
+  // message type
+  pdu_sess_mod_com_encoded.message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_MODIFICATION_COMPLETE);
+
+  // verify pdu session modification complete message is encoded
+  EXPECT_EQ(pdu_sess_mod_com_encoded.EncodePDUSessionModificationComplete(
+                &pdu_sess_mod_com_encoded, buffer, len),
+            len);
+  // verify pdu session modification complete message is decoded
+  EXPECT_EQ(pdu_sess_mod_com_decoded.DecodePDUSessionModificationComplete(
+                &pdu_sess_mod_com_decoded, buffer, len),
+            len);
+
+  // verify IE's
+  EXPECT_EQ(pdu_sess_mod_com_encoded.extended_protocol_discriminator
+                .extended_proto_discriminator,
+            pdu_sess_mod_com_decoded.extended_protocol_discriminator
+                .extended_proto_discriminator);
+  EXPECT_EQ(pdu_sess_mod_com_encoded.pti.pti, pdu_sess_mod_com_decoded.pti.pti);
+  EXPECT_EQ(pdu_sess_mod_com_encoded.pdu_session_identity.pdu_session_id,
+            pdu_sess_mod_com_decoded.pdu_session_identity.pdu_session_id);
+  EXPECT_EQ(pdu_sess_mod_com_encoded.message_type.msg_type,
+            pdu_sess_mod_com_decoded.message_type.msg_type);
+}
+
+// pdu session modification reject message
+TEST(test_pdu_session_modification, test_pdu_session_modification_rej_msg) {
+  uint8_t buffer[1024] = {0};
+  uint32_t len = 5;
+  PDUSessionModificationRejectMsg pdu_sess_mod_rej_encoded = {};
+  PDUSessionModificationRejectMsg pdu_sess_mod_rej_decoded = {};
+  pdu_sess_mod_rej_encoded.extended_protocol_discriminator
+      .extended_proto_discriminator = 0x2e;
+
+  // pdu session identity
+  pdu_sess_mod_rej_encoded.pdu_session_identity.pdu_session_id = 5;
+  // pti
+  pdu_sess_mod_rej_encoded.pti.pti = 0x01;
+  // message type
+  pdu_sess_mod_rej_encoded.message_type.msg_type = static_cast<uint8_t>(
+      M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND_REJECT);
+  pdu_sess_mod_rej_encoded.m5gsm_cause.cause_value = M5GSM_CAUSE;
+
+  // verify pdu session modification complete message is encoded
+  EXPECT_EQ(pdu_sess_mod_rej_encoded.EncodePDUSessionModificationRejectMsg(
+                &pdu_sess_mod_rej_encoded, buffer, len),
+            len);
+  // verify pdu session modification complete message is decoded
+  EXPECT_EQ(pdu_sess_mod_rej_decoded.DecodePDUSessionModificationRejectMsg(
+                &pdu_sess_mod_rej_decoded, buffer, len),
+            len);
+
+  // verify IE's
+  EXPECT_EQ(pdu_sess_mod_rej_encoded.extended_protocol_discriminator
+                .extended_proto_discriminator,
+            pdu_sess_mod_rej_decoded.extended_protocol_discriminator
+                .extended_proto_discriminator);
+  EXPECT_EQ(pdu_sess_mod_rej_encoded.pti.pti, pdu_sess_mod_rej_decoded.pti.pti);
+  EXPECT_EQ(pdu_sess_mod_rej_encoded.pdu_session_identity.pdu_session_id,
+            pdu_sess_mod_rej_decoded.pdu_session_identity.pdu_session_id);
+  EXPECT_EQ(pdu_sess_mod_rej_encoded.message_type.msg_type,
+            pdu_sess_mod_rej_decoded.message_type.msg_type);
+  EXPECT_EQ(pdu_sess_mod_rej_encoded.m5gsm_cause.cause_value,
+            pdu_sess_mod_rej_decoded.m5gsm_cause.cause_value);
+}
+
+// pdu session modification command reject
+TEST(test_pdu_session_modification, test_pdu_session_modification_command_rej) {
+  uint8_t buffer[1024] = {0};
+  uint32_t len = 6;
+  PDUSessionModificationCommandReject pdu_sess_mod_com_rej_encoded = {};
+  PDUSessionModificationCommandReject pdu_sess_mod_com_rej_decoded = {};
+  pdu_sess_mod_com_rej_encoded.extended_protocol_discriminator
+      .extended_proto_discriminator = 0x2e;
+
+  // pdu session identity
+  pdu_sess_mod_com_rej_encoded.pdu_session_identity.pdu_session_id = 5;
+  // pti
+  pdu_sess_mod_com_rej_encoded.pti.pti = 0x01;
+  // message type
+  pdu_sess_mod_com_rej_encoded.message_type.msg_type = static_cast<uint8_t>(
+      M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND_REJECT);
+  pdu_sess_mod_com_rej_encoded.cause.iei = M5GSM_CAUSE;
+  pdu_sess_mod_com_rej_encoded.cause.cause_value = M5GSM_CAUSE;
+
+  // verify pdu session modification complete message is encoded
+  EXPECT_EQ(
+      pdu_sess_mod_com_rej_encoded.EncodePDUSessionModificationCommandReject(
+          &pdu_sess_mod_com_rej_encoded, buffer, len),
+      len);
+  // verify pdu session modification complete message is decoded
+  EXPECT_EQ(
+      pdu_sess_mod_com_rej_decoded.DecodePDUSessionModificationCommandReject(
+          &pdu_sess_mod_com_rej_decoded, buffer, len),
+      len);
+
+  // verify IE's
+  EXPECT_EQ(pdu_sess_mod_com_rej_encoded.extended_protocol_discriminator
+                .extended_proto_discriminator,
+            pdu_sess_mod_com_rej_decoded.extended_protocol_discriminator
+                .extended_proto_discriminator);
+  EXPECT_EQ(pdu_sess_mod_com_rej_encoded.pti.pti,
+            pdu_sess_mod_com_rej_decoded.pti.pti);
+  EXPECT_EQ(pdu_sess_mod_com_rej_encoded.pdu_session_identity.pdu_session_id,
+            pdu_sess_mod_com_rej_decoded.pdu_session_identity.pdu_session_id);
+  EXPECT_EQ(pdu_sess_mod_com_rej_encoded.message_type.msg_type,
+            pdu_sess_mod_com_rej_decoded.message_type.msg_type);
+  EXPECT_EQ(pdu_sess_mod_com_rej_encoded.cause.iei,
+            pdu_sess_mod_com_rej_decoded.cause.iei);
+  EXPECT_EQ(pdu_sess_mod_com_rej_encoded.cause.cause_value,
+            pdu_sess_mod_com_rej_decoded.cause.cause_value);
+}
+
 }  // namespace magma5g
