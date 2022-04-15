@@ -252,16 +252,21 @@ func buildDetailedCbsdQuery(builder sq.StatementBuilderType) *db.Query {
 			"is_deleted", "should_deregister", "grant_attempts")).
 		Join(db.NewQuery().
 			From(&DBCbsdState{}).
+			On(db.On(CbsdTable, "state_id", CbsdStateTable, "id")).
 			Select(db.NewIncludeMask("name"))).
 		Join(db.NewQuery().
 			From(&DBGrant{}).
+			On(db.On(CbsdTable, "id", GrantTable, "cbsd_id")).
 			Select(db.NewIncludeMask(
 				"grant_expire_time", "transmit_expire_time",
 				"low_frequency", "high_frequency", "max_eirp")).
 			Join(db.NewQuery().
 				From(&DBGrantState{}).
-				Select(db.NewIncludeMask("name")).
-				Where(sq.NotEq{GrantStateTable + ".name": "idle"})).
+				On(sq.And{
+					db.On(GrantTable, "state_id", GrantStateTable, "id"),
+					sq.NotEq{GrantStateTable + ".name": "idle"},
+				}).
+				Select(db.NewIncludeMask("name"))).
 			Nullable())
 }
 

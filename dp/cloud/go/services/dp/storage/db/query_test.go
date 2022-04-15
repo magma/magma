@@ -245,6 +245,7 @@ func (s *QueryTestSuite) TestFetch() {
 			Where(sq.Eq{someTable + ".id": id}).
 			Join(db.NewQuery().
 				From(&otherModel{}).
+				On(db.On(someTable, "id", otherTable, "some_id")).
 				Select(db.NewExcludeMask())),
 		expected: []db.Model{
 			getSomeModel(),
@@ -258,6 +259,7 @@ func (s *QueryTestSuite) TestFetch() {
 			Where(sq.Eq{someTable + ".id": 2 * id}).
 			Join(db.NewQuery().
 				From(&otherModel{}).
+				On(db.On(someTable, "id", otherTable, "some_id")).
 				Select(db.NewExcludeMask()).
 				Nullable()),
 		expected: []db.Model{
@@ -265,15 +267,18 @@ func (s *QueryTestSuite) TestFetch() {
 			&otherModel{},
 		},
 	}, {
-		name: "Should use filter as join condition",
+		name: "Should use complex join condition",
 		query: db.NewQuery().
 			From(&someModel{}).
 			Select(db.NewExcludeMask()).
 			Where(sq.Eq{someTable + ".id": id}).
 			Join(db.NewQuery().
 				From(&otherModel{}).
+				On(sq.And{
+					db.On(someTable, "id", otherTable, "some_id"),
+					sq.Eq{otherTable + ".id": id - 1},
+				}).
 				Select(db.NewExcludeMask()).
-				Where(sq.Eq{otherTable + ".id": id - 1}).
 				Nullable()),
 		expected: []db.Model{
 			getSomeModel(),
@@ -287,9 +292,11 @@ func (s *QueryTestSuite) TestFetch() {
 			Where(sq.Eq{someTable + ".id": id}).
 			Join(db.NewQuery().
 				From(&otherModel{}).
+				On(db.On(someTable, "id", otherTable, "some_id")).
 				Select(db.NewExcludeMask()).
 				Join(db.NewQuery().
 					From(&anotherModel{}).
+					On(db.On(otherTable, "id", anotherTable, "other_id")).
 					Select(db.NewExcludeMask()))),
 		expected: []db.Model{
 			getSomeModel(),
@@ -304,11 +311,15 @@ func (s *QueryTestSuite) TestFetch() {
 			Where(sq.Eq{someTable + ".id": id}).
 			Join(db.NewQuery().
 				From(&otherModel{}).
+				On(db.On(someTable, "id", otherTable, "some_id")).
 				Select(db.NewExcludeMask()).
 				Join(db.NewQuery().
 					From(&anotherModel{}).
-					Select(db.NewExcludeMask()).
-					Where(sq.Eq{anotherTable + ".id": id - 1})).
+					On(sq.And{
+						db.On(otherTable, "id", anotherTable, "other_id"),
+						sq.Eq{anotherTable + ".id": id - 1},
+					}).
+					Select(db.NewExcludeMask())).
 				Nullable()),
 		expected: []db.Model{
 			getSomeModel(),
@@ -323,11 +334,15 @@ func (s *QueryTestSuite) TestFetch() {
 			Where(sq.Eq{someTable + ".id": id}).
 			Join(db.NewQuery().
 				From(&otherModel{}).
+				On(db.On(someTable, "id", otherTable, "some_id")).
 				Select(db.NewExcludeMask()).
 				Join(db.NewQuery().
 					From(&anotherModel{}).
+					On(sq.And{
+						db.On(otherTable, "id", anotherTable, "other_id"),
+						sq.Eq{anotherTable + ".id": id - 1},
+					}).
 					Select(db.NewExcludeMask()).
-					Where(sq.Eq{anotherTable + ".id": id - 1}).
 					Nullable()).
 				Nullable()),
 		expected: []db.Model{

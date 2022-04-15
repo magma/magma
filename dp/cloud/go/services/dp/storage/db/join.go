@@ -20,6 +20,11 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
+func On(lhsTable, lhsField, rhsTable, rhsField string) sq.Sqlizer {
+	e := fmt.Sprintf("%s.%s = %s.%s", lhsTable, lhsField, rhsTable, rhsField)
+	return sq.Expr(e)
+}
+
 func dfs(q *Query, v queryVisitor) {
 	v.preVisit(q)
 	for _, x := range q.join {
@@ -105,34 +110,29 @@ type joinClause struct {
 
 func (j *joinClause) ToSql() (string, []interface{}, error) {
 	b := &joinBuilder{
-		parent: map[*Query]*Query{},
-		sql:    strings.Builder{},
+		sql: strings.Builder{},
 	}
 	dfs(j.query, b)
 	return b.sql.String(), b.args, b.err
 }
 
 type joinBuilder struct {
-	parent map[*Query]*Query
-	sql    strings.Builder
-	args   []interface{}
-	err    error
+	sql  strings.Builder
+	args []interface{}
+	err  error
 }
 
 func (j *joinBuilder) preVisit(q *Query) {
 	if j.err != nil {
 		return
 	}
-	if j.parent[q] != nil {
+	if q.parent != nil {
 		j.sql.WriteString(getJoinType(q.arg.nullable))
 		j.sql.WriteString(" JOIN ")
 		if len(q.join) > 0 {
 			j.sql.WriteString("(")
 		}
 		j.sql.WriteString(q.arg.model.GetMetadata().Table)
-	}
-	for _, x := range q.join {
-		j.parent[x] = q
 	}
 }
 
@@ -147,31 +147,15 @@ func (j *joinBuilder) postVisit(q *Query) {
 	if j.err != nil {
 		return
 	}
-	parent, ok := j.parent[q]
-	if !ok {
+	if q.parent == nil {
 		return
 	}
 	if len(q.join) > 0 {
 		j.sql.WriteString(")")
 	}
 	j.sql.WriteString(" ON ")
-	on := buildOn(q.arg.model.GetMetadata(), parent.arg.model.GetMetadata())
-	var expr sq.Sqlizer = sq.Expr(on)
-	if q.arg.filter != nil {
-		expr = sq.And{expr, q.arg.filter}
-	}
-	sql, args, err := expr.ToSql()
+	sql, args, err := q.arg.on.ToSql()
 	j.sql.WriteString(sql)
 	j.args = append(j.args, args...)
 	j.err = err
-}
-
-func buildOn(first, second *ModelMetadata) string {
-	if _, ok := second.Relations[first.Table]; !ok {
-		first, second = second, first
-	}
-	return fmt.Sprintf(
-		"%s.id = %s.%s",
-		first.Table, second.Table, second.Relations[first.Table],
-	)
 }
