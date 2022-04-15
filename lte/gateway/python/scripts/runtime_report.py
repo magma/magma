@@ -85,8 +85,3 @@ if __name__ == "__main__":
         merge_all_report(args.input, output_path)
     print(f"Final report is generated at: {output_path}")
     
-
-
-
-
-    
