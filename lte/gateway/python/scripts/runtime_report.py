@@ -15,9 +15,11 @@ limitations under the License.
 import argparse
 import glob
 import os
-from pathlib import Path
+
 from datetime import datetime
+from pathlib import Path
 from pprint import pprint
+
 import xml.etree.ElementTree as ET
 
 
