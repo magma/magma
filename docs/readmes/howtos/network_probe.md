@@ -8,9 +8,7 @@ hide_title: true
 
 ## Overview
 
-The Network Probe solution allows a Magma operator to provide standardized lawful interception X2 and X3 interfaces as described in ETSI TS 103 221-2 (https://www.etsi.org/deliver/etsi_ts/103200_103299/10322102/01.04.01_60/ts_10322102v010401p.pdf). This feature takes advantage of the rest API (swagger) to provide the X1 interface.
-
-Standarized X1 interface is provided through an external solution.
+The Network Probe solution allows a Magma operator to provide standardized lawful interception X2 and X3 interfaces as described in [ETSI TS 103 221-2] (https://www.etsi.org/deliver/etsi_ts/103200_103299/10322102/01.04.01_60/ts_10322102v010401p.pdf). This feature takes advantage of the rest API (swagger) to provide the X1 interface.
 
 ## Architecture
 
@@ -24,9 +22,7 @@ The LI feature can be summarized as follow,
 
 ### X1 Interface
 
-The X1 interface relies on the Orc8r Swagger API to configure intercept tasks and destinations. This interface uses Json content and thus is not 3GPP complaint. An external solution (nprobe-proxy) can handle the translation between the 3GPP (XML based) and Orc8r Swagger when required.
-
-*Note that nprobe-proxy is provided outside magma project and will be described separately.*
+The X1 interface relies on the Orc8r Swagger API to configure intercept tasks and destinations. This interface uses Json content and thus is not 3GPP complaint. An external solution is needed to handle the translation between the 3GPP (XML based) and Orc8r Swagger when required.
 
 Swagger nprobe endpoints allow the following,
 
@@ -104,7 +100,7 @@ Edit /etc/magma/pipelined.yml
 
 ### 2. Enable LiAgentD service in AGW
 
-Copy `nprobe.{pem,key}` to `/var/opt/magma/certs/`, then edit /etc/magma/liagentd.yml
+Copy `nprobe.{pem,key}` to `/var/opt/magma/certs/`, then edit `/etc/magma/liagentd.yml`
 
 - Enable the service
 - Set the following remote TLS server information
