@@ -126,9 +126,12 @@ bool AMFClientServicerBase::get_decrypt_imsi_info(
                                      ciphertext, mac_tag, ue_id));
 }
 
-int AMFClientServicerBase::n11_update_location_req(
+status_code_e AMFClientServicerBase::n11_update_location_req(
     const s6a_update_location_req_t* const ulr_p) {
-  return AsyncSmfServiceClient::getInstance().n11_update_location_req(ulr_p);
+  if (AsyncSmfServiceClient::getInstance().n11_update_location_req(ulr_p))
+    return RETURNok;
+  else
+    return RETURNerror;
 }
 
 bool AMFClientServicerBase::set_smf_notification(

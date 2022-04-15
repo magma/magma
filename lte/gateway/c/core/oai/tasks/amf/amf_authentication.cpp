@@ -644,8 +644,10 @@ status_code_e amf_proc_authentication_complete(amf_ue_ngap_id_t ue_id,
           (amf_ctx->reg_id_type == M5GSMobileIdentityMsg_GUTI)) {
         rc = amf_proc_identification(
             amf_ctx, (nas_amf_proc_t*)registration_proc, IDENTITY_TYPE_2_IMSI,
-            amf_registration_success_identification_cb,
-            amf_registration_failure_identification_cb);
+            reinterpret_cast<int (*)(amf_context_t*)>(
+                amf_registration_success_identification_cb),
+            reinterpret_cast<int (*)(amf_context_t*)>(
+                amf_registration_failure_identification_cb));
       } else {
         rc = RETURNerror;
       }
@@ -814,8 +816,10 @@ status_code_e amf_proc_authentication_failure(amf_ue_ngap_id_t ue_id,
           (amf_ctx->reg_id_type == M5GSMobileIdentityMsg_GUTI)) {
         rc = amf_proc_identification(
             amf_ctx, (nas_amf_proc_t*)registration_proc, IDENTITY_TYPE_2_IMSI,
-            amf_registration_success_identification_cb,
-            amf_registration_failure_identification_cb);
+            reinterpret_cast<int (*)(amf_context_t*)>(
+                amf_registration_success_identification_cb),
+            reinterpret_cast<int (*)(amf_context_t*)>(
+                amf_registration_failure_identification_cb));
       } else {
         /*
          * in case of SUCI BASED REGISTRATION Send AUTH_REJECT */

@@ -847,7 +847,7 @@ amf_procedures_t* nas_new_amf_procedures(amf_context_t* amf_context);
 void amf_nas_proc_clean_up(ue_m5gmm_context_s* ue_context_p);
 
 status_code_e amf_proc_amf_information(ue_m5gmm_context_s* ue_amf_ctx);
-int amf_send_registration_accept(amf_context_t* amf_context);
+status_code_e amf_send_registration_accept(amf_context_t* amf_context);
 
 // UE originated deregistration procedures
 status_code_e amf_proc_deregistration_request(

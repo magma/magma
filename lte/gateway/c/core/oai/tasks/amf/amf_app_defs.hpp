@@ -53,7 +53,7 @@ status_code_e amf_smf_handle_ip_address_response(
 void amf_app_handle_initial_context_setup_rsp(
     amf_app_desc_t* amf_app_desc_p,
     itti_amf_app_initial_context_setup_rsp_t* initial_context_rsp);
-int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id);
+status_code_e amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id);
 int amf_app_pdu_session_modification_request(
     itti_n11_create_pdu_session_response_t* pdu_sess_mod_req,
     amf_ue_ngap_id_t ue_id);

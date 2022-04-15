@@ -996,10 +996,10 @@ status_code_e amf_smf_handle_ip_address_response(
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
 
-int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
+status_code_e amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   ue_m5gmm_context_s* ue_context_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_INFO(
       LOG_AMF_APP,

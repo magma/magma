@@ -102,7 +102,7 @@ class AMFClientServicerBase {
                                      const std::string& mac_tag,
                                      amf_ue_ngap_id_t ue_id);
 
-  virtual int n11_update_location_req(
+  virtual status_code_e n11_update_location_req(
       const s6a_update_location_req_t* const ulr_p);
 
   virtual bool set_smf_notification(const SetSmNotificationContext& notify);
@@ -200,7 +200,8 @@ class AMFClientServicer : public AMFClientServicerBase {
     return true;
   }
 
-  int n11_update_location_req(const s6a_update_location_req_t* const ulr_p) {
+  status_code_e n11_update_location_req(
+      const s6a_update_location_req_t* const ulr_p) {
     return RETURNok;
   }
 
