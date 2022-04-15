@@ -21,6 +21,7 @@ extern "C" {
 // C++ includes ------------------------------------------------------------
 #include <czmq.h>
 #include <map>
+#include <mutex>
 #include <utility>
 #include <stddef.h>
 #include <stdint.h>
@@ -34,6 +35,7 @@ typedef timer_arg_t TimerArgType;
 class MmeUeContext {
  private:
   std::map<int, TimerArgType> mme_app_timers;
+  std::mutex mme_app_timers_lock;
   MmeUeContext() : mme_app_timers(){};
 
  public:

@@ -114,6 +114,7 @@ int MmeUeContext::StartTimer(size_t msec, timer_repeat_t repeat,
   int timer_id = -1;
   if ((timer_id = start_timer(&mme_app_task_zmq_ctx, msec, repeat, handler,
                               nullptr)) != -1) {
+    std::lock_guard<std::mutex> lock(mme_app_timers_lock);
     mme_app_timers.insert(std::pair<int, TimerArgType>(timer_id, arg));
   }
   return timer_id;
@@ -121,11 +122,15 @@ int MmeUeContext::StartTimer(size_t msec, timer_repeat_t repeat,
 //------------------------------------------------------------------------------
 void MmeUeContext::StopTimer(int timer_id) {
   stop_timer(&mme_app_task_zmq_ctx, timer_id);
-  mme_app_timers.erase(timer_id);
+  {
+    std::lock_guard<std::mutex> lock(mme_app_timers_lock);
+    mme_app_timers.erase(timer_id);
+  }
 }
 //------------------------------------------------------------------------------
 bool MmeUeContext::PopTimerById(const int timer_id, TimerArgType* arg) {
   try {
+    std::lock_guard<std::mutex> lock(mme_app_timers_lock);
     *arg = mme_app_timers.at(timer_id);
     mme_app_timers.erase(timer_id);
     return true;
