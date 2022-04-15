@@ -108,7 +108,9 @@ profiles:
               extraEnv:
                 APP_CONFIG: "TestConfig"
             db_service:
-              enabled: false
+              enabled: true
+              extraEnv:
+                APP_CONFIG: "TestConfig"
       - op: add
         path: /deploy/kubectl/flags
         value:

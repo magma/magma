@@ -64,12 +64,17 @@ clean:
 dev_orc8r:
 	skaffold dev -p orc8r-deployment --trigger=manual
 
+
 .PHONY: dev_orc8r_integration_test
-dev_orc8r_integration_test:
+dev_orc8r_integration_test: cleanup_test_db
+	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
+	kubectl delete pods test-runner-orc8r --ignore-not-found=true
 	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only --trigger=manual
 
 .PHONY: dev_integration_test
-dev_integration_test:
+dev_integration_test: cleanup_test_db
+	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
+	kubectl delete pods test-runner --ignore-not-found=true
 	skaffold dev -p integration-tests-no-orc8 --trigger=manual
 
 .PHONY: dev
@@ -138,30 +143,24 @@ _generate_harness_config:
 	--from-file=tools/deployment/vendor/sas.cfg;
 
 .PHONY: _ci_integration_tests_no_orc8r
-_ci_integration_tests_no_orc8r: _install_skaffold_ci
-	kubectl delete --ignore-not-found=true job test-runner-job
+_ci_integration_tests_no_orc8r: _install_skaffold_ci cleanup_test_db
+	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
+	kubectl delete pods test-runner --ignore-not-found=true
 	skaffold run -p integration-tests-no-orc8
-	kubectl wait --for=condition=complete --timeout=10m job/test-runner-job & \
-	kubectl wait --for=condition=failed --timeout=10m job/test-runner-job & \
-	wait -n 1 2
-	kubectl logs -l type=integration-tests | tee /tmp/$@.txt
+	kubectl logs test-runner -f | tee /tmp/$@.txt
 	@set -e;\
-	SUCCESS=$$(kubectl get jobs test-runner-job -o jsonpath='{.status.succeeded}');\
-	if [[ -z $$SUCCESS ]]; then SUCCESS=0; fi; \
-	if [[ $$SUCCESS != '1' ]]; then exit 1; fi
+	SUCCESS=$$(kubectl get pods test-runner -o jsonpath='{.status.phase}');\
+	if [[ $$SUCCESS != 'Succeeded' ]]; then exit 1; fi
 
 .PHONY: _ci_integration_tests_orc8r
-_ci_integration_tests_orc8r: _install_skaffold_ci
-	kubectl delete --ignore-not-found=true job test-runner-job-orc8r
+_ci_integration_tests_orc8r: _install_skaffold_ci cleanup_test_db
+	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
+	kubectl delete pods test-runner-orc8r --ignore-not-found=true
 	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only
-	kubectl wait --for=condition=complete --timeout=10m job/test-runner-job-orc8r & \
-	kubectl wait --for=condition=failed --timeout=10m job/test-runner-job-orc8r & \
-	wait -n 1 2
-	kubectl logs -l type=integration-tests | tee /tmp/$@.txt
+	kubectl logs test-runner-orc8r -f | tee /tmp/$@.txt
 	@set -e;\
-	SUCCESS=$$(kubectl get jobs test-runner-job-orc8r -o jsonpath='{.status.succeeded}');\
-	if [[ -z $$SUCCESS ]]; then SUCCESS=0; fi; \
-	if [[ $$SUCCESS != '1' ]]; then exit 1; fi
+	SUCCESS=$$(kubectl get pods test-runner-orc8r -o jsonpath='{.status.phase}');\
+	if [[ $$SUCCESS != 'Succeeded' ]]; then exit 1; fi
 
 .PHONY: _setup_db
 _setup_db: _postgres_db_setup
@@ -208,6 +207,17 @@ build_db:
 	alembic -c ./alembic.ini upgrade head; \
 	cd ..; \
 	python3 db_initialize.py; \
+
+.PHONY: cleanup_test_db
+cleanup_test_db:
+	kubectl exec -it postgres-database-0 \
+		--container postgres-test -- \
+		psql -p 5433 -U postgres -c \
+		"drop database dp_test with (force);" || true ;\
+	kubectl exec -it postgres-database-0 \
+		--container postgres-test -- \
+		psql -p 5433 -U postgres -c \
+		"create database dp_test;" || true;
 
 LOGS_COUNT ?= 1000
 CBSDS_COUNT ?= 1000
