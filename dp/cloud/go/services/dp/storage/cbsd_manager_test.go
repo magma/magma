@@ -99,6 +99,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 			Select(db.NewExcludeMask("id", "state_id")).
 			Join(db.NewQuery().
 				From(&storage.DBCbsdState{}).
+				On(db.On(storage.CbsdTable, "state_id", storage.CbsdStateTable, "id")).
 				Select(db.NewIncludeMask("name"))).
 			Where(sq.Eq{"cbsd_serial_number": "some_serial_number"}).
 			Fetch()
@@ -121,9 +122,11 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 			Select(db.NewIncludeMask()).
 			Join(db.NewQuery().
 				From(&storage.DBCbsdState{}).
+				On(db.On(storage.CbsdStateTable, "id", storage.ActiveModeConfigTable, "desired_state_id")).
 				Select(db.NewIncludeMask("name"))).
 			Join(db.NewQuery().
 				From(&storage.DBCbsd{}).
+				On(db.On(storage.CbsdTable, "id", storage.ActiveModeConfigTable, "cbsd_id")).
 				Select(db.NewIncludeMask())).
 			Where(sq.Eq{"cbsd_serial_number": "some_serial_number"}).
 			Fetch()
