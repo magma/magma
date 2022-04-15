@@ -494,7 +494,24 @@ func (s *someModel) withId(id int64) *someModel {
 
 func (s *someModel) GetMetadata() *db.ModelMetadata {
 	return &db.ModelMetadata{
-		Table:     "some",
+		Table: "some",
+		Properties: map[string]*db.Field{
+			"id": {
+				SqlType: sqorc.ColumnTypeInt,
+			},
+			"value": {
+				SqlType: sqorc.ColumnTypeReal,
+			},
+			"name": {
+				SqlType: sqorc.ColumnTypeText,
+			},
+			"flag": {
+				SqlType: sqorc.ColumnTypeBool,
+			},
+			"date": {
+				SqlType: sqorc.ColumnTypeDatetime,
+			},
+		},
 		Relations: nil,
 		CreateObject: func() db.Model {
 			return &someModel{}
@@ -502,28 +519,13 @@ func (s *someModel) GetMetadata() *db.ModelMetadata {
 	}
 }
 
-func (s *someModel) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			Item:    db.IntType{X: &s.id},
-			SqlType: sqorc.ColumnTypeInt,
-		},
-		"value": &db.Field{
-			Item:    db.FloatType{X: &s.value},
-			SqlType: sqorc.ColumnTypeReal,
-		},
-		"name": &db.Field{
-			Item:    db.StringType{X: &s.name},
-			SqlType: sqorc.ColumnTypeText,
-		},
-		"flag": &db.Field{
-			Item:    db.BoolType{X: &s.flag},
-			SqlType: sqorc.ColumnTypeBool,
-		},
-		"date": &db.Field{
-			Item:    db.TimeType{X: &s.date},
-			SqlType: sqorc.ColumnTypeDatetime,
-		},
+func (s *someModel) Fields() map[string]db.BaseType {
+	return map[string]db.BaseType{
+		"id":    db.IntType{X: &s.id},
+		"value": db.FloatType{X: &s.value},
+		"name":  db.StringType{X: &s.name},
+		"flag":  db.BoolType{X: &s.flag},
+		"date":  db.TimeType{X: &s.date},
 	}
 }
 
@@ -549,7 +551,32 @@ type otherModel struct {
 
 func (o *otherModel) GetMetadata() *db.ModelMetadata {
 	return &db.ModelMetadata{
-		Table:     "other",
+		Table: "other",
+		Properties: map[string]*db.Field{
+			"id": {
+				SqlType: sqorc.ColumnTypeInt,
+			},
+			"some_id": {
+				SqlType:  sqorc.ColumnTypeInt,
+				Nullable: true,
+			},
+			"value": {
+				SqlType:  sqorc.ColumnTypeReal,
+				Nullable: true,
+			},
+			"name": {
+				SqlType:  sqorc.ColumnTypeText,
+				Nullable: true,
+			},
+			"flag": {
+				SqlType:  sqorc.ColumnTypeBool,
+				Nullable: true,
+			},
+			"date": {
+				SqlType:  sqorc.ColumnTypeDatetime,
+				Nullable: true,
+			},
+		},
 		Relations: makeRelationsMap(someTable),
 		CreateObject: func() db.Model {
 			return &otherModel{}
@@ -557,37 +584,14 @@ func (o *otherModel) GetMetadata() *db.ModelMetadata {
 	}
 }
 
-func (o *otherModel) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			Item:    db.IntType{X: &o.id},
-			SqlType: sqorc.ColumnTypeInt,
-		},
-		"some_id": &db.Field{
-			Item:     db.IntType{X: &o.someId},
-			SqlType:  sqorc.ColumnTypeInt,
-			Nullable: true,
-		},
-		"value": &db.Field{
-			Item:     db.FloatType{X: &o.value},
-			SqlType:  sqorc.ColumnTypeReal,
-			Nullable: true,
-		},
-		"name": &db.Field{
-			Item:     db.StringType{X: &o.name},
-			SqlType:  sqorc.ColumnTypeText,
-			Nullable: true,
-		},
-		"flag": &db.Field{
-			Item:     db.BoolType{X: &o.flag},
-			SqlType:  sqorc.ColumnTypeBool,
-			Nullable: true,
-		},
-		"date": &db.Field{
-			Item:     db.TimeType{X: &o.date},
-			SqlType:  sqorc.ColumnTypeDatetime,
-			Nullable: true,
-		},
+func (o *otherModel) Fields() map[string]db.BaseType {
+	return map[string]db.BaseType{
+		"id":      db.IntType{X: &o.id},
+		"some_id": db.IntType{X: &o.someId},
+		"value":   db.FloatType{X: &o.value},
+		"name":    db.StringType{X: &o.name},
+		"flag":    db.BoolType{X: &o.flag},
+		"date":    db.TimeType{X: &o.date},
 	}
 }
 
@@ -607,7 +611,21 @@ type anotherModel struct {
 
 func (a *anotherModel) GetMetadata() *db.ModelMetadata {
 	return &db.ModelMetadata{
-		Table:     "another",
+		Table: "another",
+		Properties: map[string]*db.Field{
+			"id": {
+				SqlType: sqorc.ColumnTypeInt,
+			},
+			"other_id": {
+				SqlType:  sqorc.ColumnTypeInt,
+				Nullable: true,
+			},
+			"default_value": {
+				SqlType:      sqorc.ColumnTypeInt,
+				HasDefault:   true,
+				DefaultValue: defaultValue,
+			},
+		},
 		Relations: makeRelationsMap(otherTable),
 		CreateObject: func() db.Model {
 			return &anotherModel{}
@@ -615,23 +633,11 @@ func (a *anotherModel) GetMetadata() *db.ModelMetadata {
 	}
 }
 
-func (a *anotherModel) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			Item:    db.IntType{X: &a.id},
-			SqlType: sqorc.ColumnTypeInt,
-		},
-		"other_id": &db.Field{
-			Item:     db.IntType{X: &a.otherId},
-			SqlType:  sqorc.ColumnTypeInt,
-			Nullable: true,
-		},
-		"default_value": &db.Field{
-			Item:         db.IntType{X: &a.defaultValue},
-			SqlType:      sqorc.ColumnTypeInt,
-			HasDefault:   true,
-			DefaultValue: defaultValue,
-		},
+func (a *anotherModel) Fields() map[string]db.BaseType {
+	return map[string]db.BaseType{
+		"id":            db.IntType{X: &a.id},
+		"other_id":      db.IntType{X: &a.otherId},
+		"default_value": db.IntType{X: &a.defaultValue},
 	}
 }
 
@@ -652,28 +658,30 @@ type modelWithUniqueFields struct {
 func (m *modelWithUniqueFields) GetMetadata() *db.ModelMetadata {
 	return &db.ModelMetadata{
 		Table: "unique_table",
+		Properties: map[string]*db.Field{
+			"id": {
+				SqlType: sqorc.ColumnTypeInt,
+			},
+			"unique_field": {
+				SqlType: sqorc.ColumnTypeInt,
+				Unique:  true,
+			},
+			"another_unique_fied": {
+				SqlType: sqorc.ColumnTypeInt,
+				Unique:  true,
+			},
+		},
 		CreateObject: func() db.Model {
 			return &modelWithUniqueFields{}
 		},
 	}
 }
 
-func (m *modelWithUniqueFields) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			Item:    db.IntType{X: &m.id},
-			SqlType: sqorc.ColumnTypeInt,
-		},
-		"unique_field": &db.Field{
-			Item:    db.IntType{X: &m.uniqueField},
-			SqlType: sqorc.ColumnTypeInt,
-			Unique:  true,
-		},
-		"another_unique_fied": &db.Field{
-			Item:    db.IntType{X: &m.anotherUniqueFied},
-			SqlType: sqorc.ColumnTypeInt,
-			Unique:  true,
-		},
+func (m *modelWithUniqueFields) Fields() map[string]db.BaseType {
+	return map[string]db.BaseType{
+		"id":                  db.IntType{X: &m.id},
+		"unique_field":        db.IntType{X: &m.uniqueField},
+		"another_unique_fied": db.IntType{X: &m.anotherUniqueFied},
 	}
 }
 

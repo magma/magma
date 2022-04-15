@@ -24,7 +24,7 @@ func CreateTable(tx sq.BaseRunner, builder sqorc.StatementBuilder, metadata *Mod
 		IfNotExists().
 		RunWith(tx).
 		PrimaryKey("id")
-	fields := metadata.CreateObject().Fields()
+	fields := metadata.Properties
 	tableBuilder = addColumns(tableBuilder, fields)
 	tableBuilder = addRelations(tableBuilder, metadata)
 	_, err := tableBuilder.Exec()
