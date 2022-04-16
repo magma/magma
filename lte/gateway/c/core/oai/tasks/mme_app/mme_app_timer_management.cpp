@@ -108,31 +108,9 @@ bool mme_pop_timer_arg_ue_id(int timer_id, mme_ue_s1ap_id_t* ue_id) {
 
 namespace magma {
 namespace lte {
-//------------------------------------------------------------------------------
-int MmeUeContext::StartTimer(size_t msec, timer_repeat_t repeat,
-                             zloop_timer_fn handler, const TimerArgType& arg) {
-  int timer_id = -1;
-  if ((timer_id = start_timer(&mme_app_task_zmq_ctx, msec, repeat, handler,
-                              nullptr)) != -1) {
-    mme_app_timers.insert(std::pair<int, TimerArgType>(timer_id, arg));
-  }
-  return timer_id;
+MmeUeContext& MmeUeContext::Instance() {
+  static MmeUeContext instance{&mme_app_task_zmq_ctx};
+  return instance;
 }
-//------------------------------------------------------------------------------
-void MmeUeContext::StopTimer(int timer_id) {
-  stop_timer(&mme_app_task_zmq_ctx, timer_id);
-  mme_app_timers.erase(timer_id);
-}
-//------------------------------------------------------------------------------
-bool MmeUeContext::PopTimerById(const int timer_id, TimerArgType* arg) {
-  try {
-    *arg = mme_app_timers.at(timer_id);
-    mme_app_timers.erase(timer_id);
-    return true;
-  } catch (std::out_of_range& e) {
-    return false;
-  }
-}
-
 }  // namespace lte
 }  // namespace magma

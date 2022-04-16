@@ -12,51 +12,15 @@ limitations under the License.
 */
 #ifndef FILE_MME_UE_CONTEXT_H_SEEN
 #define FILE_MME_UE_CONTEXT_H_SEEN
-// C includes --------------------------------------------------------------
-extern "C" {
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
-}
-// C++ includes ------------------------------------------------------------
-#include <czmq.h>
-#include <map>
-#include <utility>
-#include <stddef.h>
-#include <stdint.h>
-// Other includes ----------------------------------------------------------
+#include "lte/gateway/c/core/oai/common/common_utility_funs.hpp"
 
 namespace magma {
 namespace lte {
 
-typedef timer_arg_t TimerArgType;
-
-class MmeUeContext {
- private:
-  std::map<int, TimerArgType> mme_app_timers;
-  MmeUeContext() : mme_app_timers(){};
-
- public:
-  static MmeUeContext& Instance() {
-    static MmeUeContext instance;
-    return instance;
-  }
-
-  MmeUeContext(MmeUeContext const&) = delete;
-  void operator=(MmeUeContext const&) = delete;
-
-  int StartTimer(size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-                 const TimerArgType& arg);
-  void StopTimer(int timer_id);
-
-  /**
-   * Pop timer, save arguments and return existence.
-   *
-   * @param timer_id Unique timer id for active timers
-   * @param arg Timer arguments to be stored in this parameter
-   * @return True if timer_id exists, False otherwise.
-   */
-  bool PopTimerById(const int timer_id, TimerArgType* arg);
+struct MmeUeContext : public magma::utils::AppTimerUeContext<timer_arg_t> {
+  static MmeUeContext& Instance();
+  explicit MmeUeContext(task_zmq_ctx_s* zctx)
+      : magma::utils::AppTimerUeContext<timer_arg_t>{zctx} {}
 };
 
 }  // namespace lte

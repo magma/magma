@@ -19,6 +19,7 @@ extern "C" {
 }
 ////--C++ includes
 ///---------------------------------------------------------------
+#include "lte/gateway/c/core/oai/common/common_utility_funs.hpp"
 ////--Other includes
 ///-------------------------------------------------------------
 #include <czmq.h>
@@ -58,38 +59,16 @@ void amf_pdu_stop_timer(int timer_id);
 bool amf_pop_timer_arg(int timer_id, timer_arg_t* arg);
 bool amf_pop_pdu_timer_arg(int timer_id, ue_pdu_id_t* arg);
 
-class AmfUeContext {
- private:
-  std::map<int, timer_arg_t> amf_app_timers;
-  std::map<int, ue_pdu_id_t> amf_pdu_timers;
-  AmfUeContext() : amf_app_timers(), amf_pdu_timers(){};
+struct AmfUeContext : public magma::utils::AppTimerUeContext<timer_arg_t> {
+  static AmfUeContext& Instance();
+  explicit AmfUeContext(task_zmq_ctx_s* zctx)
+      : magma::utils::AppTimerUeContext<timer_arg_t>{zctx} {}
+};
 
- public:
-  static AmfUeContext& Instance() {
-    static AmfUeContext instance;
-    return instance;
-  }
-
-  AmfUeContext(AmfUeContext const&) = delete;
-  void operator=(AmfUeContext const&) = delete;
-
-  int StartTimer(size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-                 timer_arg_t id);
-  void StopTimer(int timer_id);
-
-  int StartPduTimer(size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-                    ue_pdu_id_t id);
-  void StopPduTimer(int timer_id);
-
-  /**
-   * Pop timer, save arguments and return existence.
-   *
-   * @param timer_id Unique timer id for active timers
-   * @param arg Timer arguments to be stored in this parameter
-   * @return True if timer_id exists, False otherwise.
-   */
-  bool PopTimerArgById(const int timer_id, timer_arg_t* arg);
-  bool PopPduTimerArgById(const int timer_id, ue_pdu_id_t* arg);
+struct AmfPduUeContext : public magma::utils::AppTimerUeContext<ue_pdu_id_t> {
+  static AmfPduUeContext& Instance();
+  explicit AmfPduUeContext(task_zmq_ctx_s* zctx)
+      : magma::utils::AppTimerUeContext<ue_pdu_id_t>{zctx} {}
 };
 
 }  // namespace magma5g
