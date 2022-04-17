@@ -52,7 +52,9 @@ class RPCServicerTest(unittest.TestCase):
         self._vlan_learn_app = MagicMock()
         self._tunnel_learn_app = MagicMock()
         self._classifier_app = MagicMock()
-        self._inout_app = MagicMock()
+        self._ingress_app = MagicMock()
+        self._middle_app = MagicMock()
+        self._egress_app = MagicMock()
         self._ng_servicer_app = MagicMock()
         self._service_config = MagicMock()
         self._service_manager = MagicMock()
@@ -77,7 +79,9 @@ class RPCServicerTest(unittest.TestCase):
             self._vlan_learn_app,
             self._tunnel_learn_app,
             self._classifier_app,
-            self._inout_app,
+            self._ingress_app,
+            self._middle_app,
+            self._egress_app,
             self._ng_servicer_app,
             self._service_config,
             self._service_manager,
