@@ -23,7 +23,7 @@ from magma.pipelined.tests.app.start_pipelined import (
 from magma.pipelined.tests.pipelined_test_util import (
     assert_bridge_snapshot_match,
     create_service_manager,
-    fake_inout_setup,
+    fake_mandatory_controller_setup,
     start_ryu_app_thread,
     stop_ryu_app_thread,
 )
@@ -54,19 +54,27 @@ class LIMirrorTest(unittest.TestCase):
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([], ['li_mirror'])
 
-        inout_controller_reference = Future()
+        ingress_controller_reference = Future()
+        middle_controller_reference = Future()
+        egress_controller_reference = Future()
         li_mirror_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
             apps=[
-                PipelinedController.InOut,
+                PipelinedController.Ingress,
+                PipelinedController.Middle,
+                PipelinedController.Egress,
                 PipelinedController.LIMirror,
                 PipelinedController.Testing,
                 PipelinedController.StartupFlows,
             ],
             references={
-                PipelinedController.InOut:
-                    inout_controller_reference,
+                PipelinedController.Ingress:
+                    ingress_controller_reference,
+                PipelinedController.Middle:
+                    middle_controller_reference,
+                PipelinedController.Egress:
+                    egress_controller_reference,
                 PipelinedController.LIMirror:
                     li_mirror_reference,
                 PipelinedController.Testing:
@@ -103,7 +111,9 @@ class LIMirrorTest(unittest.TestCase):
         )
 
         cls.thread = start_ryu_app_thread(test_setup)
-        cls.inout_controller = inout_controller_reference.result()
+        cls.ingress_controller = ingress_controller_reference.result()
+        cls.middle_controller = middle_controller_reference.result()
+        cls.egress_controller = egress_controller_reference.result()
         cls.li_controller = li_mirror_reference.result()
         cls.testing_controller = testing_controller_reference.result()
 
@@ -113,10 +123,8 @@ class LIMirrorTest(unittest.TestCase):
         BridgeTools.destroy_bridge(cls.BRIDGE)
 
     def testFlowSnapshotMatch(self):
-        fake_inout_setup(self.inout_controller)
+        fake_mandatory_controller_setup(self.ingress_controller)
+        fake_mandatory_controller_setup(self.middle_controller)
+        fake_mandatory_controller_setup(self.egress_controller)
         hub.sleep(3)
         assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
-
-
-if __name__ == "__main__":
-    unittest.main()
