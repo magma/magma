@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from magma.pipelined.app.base import ControllerType, MagmaController
-from magma.pipelined.app.inout import INGRESS
+from magma.pipelined.app.ingress import INGRESS
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 

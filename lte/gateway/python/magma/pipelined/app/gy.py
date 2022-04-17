@@ -12,8 +12,8 @@ limitations under the License.
 """
 from lte.protos.pipelined_pb2 import RuleModResult
 from magma.pipelined.app.base import ControllerType, MagmaController
+from magma.pipelined.app.egress import EGRESS
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
-from magma.pipelined.app.inout import EGRESS
 from magma.pipelined.app.policy_mixin import PolicyMixin
 from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
 from magma.pipelined.imsi import encode_imsi

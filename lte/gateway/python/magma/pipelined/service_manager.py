@@ -58,19 +58,16 @@ from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.app.classifier import Classifier
 from magma.pipelined.app.conntrack import ConntrackController
 from magma.pipelined.app.dpi import DPIController
+from magma.pipelined.app.egress import EGRESS, EgressController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.gy import GYController
 from magma.pipelined.app.he import HeaderEnrichmentController
-from magma.pipelined.app.inout import (
-    EGRESS,
-    INGRESS,
-    PHYSICAL_TO_LOGICAL,
-    InOutController,
-)
+from magma.pipelined.app.ingress import INGRESS, IngressController
 from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.app.ipv6_solicitation import IPV6SolicitationController
 from magma.pipelined.app.li_mirror import LIMirrorController
+from magma.pipelined.app.middle import PHYSICAL_TO_LOGICAL, MiddleController
 from magma.pipelined.app.ng_services import NGServiceController
 from magma.pipelined.app.startup_flows import StartupFlows
 from magma.pipelined.app.tunnel_learn import TunnelLearnController
@@ -174,11 +171,10 @@ class _TableManager:
                 self.INGRESS_TABLE_NUM + 1,
                 self.PHYSICAL_TO_LOGICAL_TABLE_NUM,
             ),
-            ControllerType.LOGICAL:
-                TableRange(
-                    self.PHYSICAL_TO_LOGICAL_TABLE_NUM + 1,
-                    self.EGRESS_TABLE_NUM,
-                ),
+            ControllerType.LOGICAL: TableRange(
+                self.PHYSICAL_TO_LOGICAL_TABLE_NUM + 1,
+                self.EGRESS_TABLE_NUM,
+            ),
         }
         self._scratch_range = TableRange(
             self.SCRATCH_TABLE_START_NUM,
@@ -253,8 +249,7 @@ class _TableManager:
         return self._table_ranges[app.type].get_next_table(app.main_table)
 
     def is_app_enabled(self, app_name: str) -> bool:
-        return app_name in self._tables_by_app or \
-            app_name == InOutController.APP_NAME
+        return app_name in self._tables_by_app
 
     def is_ng_app_enabled(self, app_name: str) -> bool:
         return app_name in self._tables_by_app or \
@@ -516,14 +511,26 @@ class ServiceManager:
         else:
             self._5G_flag_enable = magma_service.config.get('enable5g_features')
 
-        # inout is a mandatory app and it occupies:
-        #   table 1(for ingress)
-        #   table 10(for middle)
-        #   table 20(for egress)
+        # ingress, middle and egress are mandatory apps and occupy:
+        #   table 1 (for ingress)
+        #   table 10 (for middle)
+        #   table 20 (for egress)
         self._apps = [
             App(
-                name=InOutController.APP_NAME,
-                module=InOutController.__module__,
+                name=IngressController.APP_NAME,
+                module=IngressController.__module__,
+                type=None,
+                order_priority=0,
+            ),
+            App(
+                name=MiddleController.APP_NAME,
+                module=MiddleController.__module__,
+                type=None,
+                order_priority=0,
+            ),
+            App(
+                name=EgressController.APP_NAME,
+                module=EgressController.__module__,
                 type=None,
                 order_priority=0,
             ),
