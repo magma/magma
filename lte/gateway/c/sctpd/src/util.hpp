@@ -15,16 +15,17 @@
 
 #include <arpa/inet.h>
 #include <errno.h>
-#include <stdint.h>
-
-#include <string>
-
 #include <lte/protos/sctpd.grpc.pb.h>
+#include <stdint.h>
+#include <string.h>
+#include <ostream>
+#include <string>
 
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {
 namespace sctpd {
+class InitReq;
 
 #define MLOG_perror(fname)                                       \
   do {                                                           \

@@ -10,13 +10,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <chrono>
-
 #include "lte/gateway/c/sctpd/src/sctpd_uplink_client.hpp"
+
+#include <assert.h>
+#include <glog/logging.h>
+#include <grpcpp/impl/codegen/client_context.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <chrono>
+#include <ostream>
+
 #include "lte/gateway/c/sctpd/src/util.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+
+namespace grpc {
+class Channel;
+}  // namespace grpc
 
 namespace magma {
 namespace sctpd {
+class CloseAssocReq;
+class CloseAssocRes;
+class NewAssocReq;
+class NewAssocRes;
+class SendUlReq;
+class SendUlRes;
 
 using grpc::ClientContext;
 

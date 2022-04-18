@@ -13,7 +13,9 @@
 
 #include "lte/gateway/c/sctpd/src/sctpd_event_handler.hpp"
 
-#include <lte/protos/sctpd.grpc.pb.h>
+#include <lte/protos/sctpd.pb.h>
+
+#include "lte/gateway/c/sctpd/src/sctpd_uplink_client.hpp"
 
 namespace magma {
 namespace sctpd {

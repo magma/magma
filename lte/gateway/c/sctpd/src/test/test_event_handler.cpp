@@ -11,17 +11,20 @@
  * limitations under the License.
  */
 
-#include <memory>
-
-#include <glog/logging.h>
 #include <gmock/gmock.h>
-#include <grpc++/grpc++.h>
+#include <grpcpp/create_channel.h>
+#include <grpcpp/security/credentials.h>
 #include <gtest/gtest.h>
-
-#include <lte/protos/sctpd.grpc.pb.h>
+#include <lte/protos/sctpd.pb.h>
+#include <memory>
+#include <string>
 
 #include "lte/gateway/c/sctpd/src/sctpd_event_handler.hpp"
 #include "lte/gateway/c/sctpd/src/sctpd_uplink_client.hpp"
+
+namespace grpc {
+class Channel;
+}  // namespace grpc
 
 using ::testing::_;
 using ::testing::AllOf;

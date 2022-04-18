@@ -13,12 +13,17 @@
 
 #include "lte/gateway/c/sctpd/src/sctpd_downlink_impl.hpp"
 
-#include <arpa/inet.h>
-#include <assert.h>
-#include <netinet/sctp.h>
-#include <unistd.h>
-#include "lte/gateway/c/sctpd/src/sctpd.hpp"
-#include "lte/gateway/c/sctpd/src/util.hpp"
+#include <glog/logging.h>
+#include <lte/protos/sctpd.pb.h>
+#include <ostream>
+#include <string>
+#include <utility>
+
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
 
 namespace magma {
 namespace sctpd {

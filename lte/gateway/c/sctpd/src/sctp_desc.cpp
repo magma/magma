@@ -13,6 +13,8 @@
 
 #include "lte/gateway/c/sctpd/src/sctp_desc.hpp"
 
+#include <utility>
+
 #include "assert.h"
 
 namespace magma {
