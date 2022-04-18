@@ -12,16 +12,16 @@
  */
 
 #include "lte/gateway/c/li_agent/src/PDUGenerator.hpp"
-#include "lte/gateway/c/li_agent/src/Utilities.hpp"
 
 #include <uuid/uuid.h>
 #include <netinet/ip.h>
 #include <net/ethernet.h>
-
 #include <future>
 #include <string>
 #include <memory>
 #include <utility>
+
+#include "lte/gateway/c/li_agent/src/Utilities.hpp"
 
 namespace magma {
 namespace lte {

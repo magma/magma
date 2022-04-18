@@ -12,6 +12,7 @@
  */
 
 #include <gmock/gmock.h>
+#include <google/protobuf/stubs/port.h>
 #include <grpcpp/create_channel.h>
 #include <grpcpp/security/credentials.h>
 #include <gtest/gtest.h>

@@ -13,9 +13,10 @@
 
 #include "lte/gateway/c/sctpd/src/util.hpp"
 
+// IWYU pragma: no_include <linux/sctp.h>
+
 #include <arpa/inet.h>
 #include <glog/logging.h>
-#include <linux/sctp.h>
 #include <lte/protos/sctpd.pb.h>
 #include <netinet/in.h>
 #include <netinet/sctp.h>

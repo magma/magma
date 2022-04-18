@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
+#include "lte/gateway/c/connection_tracker/src/EventTracker.hpp"
+
 #include <arpa/inet.h>
 #include <glog/logging.h>
 #include <libmnl/libmnl.h>
@@ -22,9 +24,6 @@
 #include <iostream>
 #include <linux/netfilter/nfnetlink.h>
 #include <linux/netfilter/nfnetlink_conntrack.h>
-
-#include "lte/gateway/c/connection_tracker/src/EventTracker.hpp"
-
 #include <memory>
 
 #include "lte/gateway/c/connection_tracker/src/PacketGenerator.hpp"

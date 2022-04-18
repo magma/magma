@@ -14,12 +14,11 @@
 
 #include <uuid/uuid.h>
 #include <tins/tins.h>
-
+#include <lte/protos/mconfig/mconfigs.pb.h>
 #include <unordered_map>
 #include <string>
 
 #include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
-#include <lte/protos/mconfig/mconfigs.pb.h>
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 #include "lte/gateway/c/li_agent/src/ProxyConnector.hpp"
 #include "lte/gateway/c/li_agent/src/MobilitydClient.hpp"
