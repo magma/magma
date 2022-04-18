@@ -171,9 +171,9 @@ status_code_e amf_proc_deregistration_request(
      */
 
     ue_context->ue_context_rel_cause = NGAP_NAS_DEREGISTER;
-    rc = (status_code_e)ue_state_handle_message_dereg(
-        ue_context->mm_state, STATE_EVENT_DEREGISTER, SESSION_NULL, ue_context,
-        ue_id);
+    rc = ue_state_handle_message_dereg(ue_context->mm_state,
+                                       STATE_EVENT_DEREGISTER, SESSION_NULL,
+                                       ue_context, ue_id);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }

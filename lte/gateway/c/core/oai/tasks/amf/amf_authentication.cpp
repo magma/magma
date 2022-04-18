@@ -684,7 +684,7 @@ status_code_e amf_proc_authentication_complete(amf_ue_ngap_id_t ue_id,
   /* Completing Authentication response and invoking Security Request
    * Invoking success directly to handle security mode command
    * */
-  rc = (status_code_e)amf_registration_success_authentication_cb(amf_ctx);
+  rc = amf_registration_success_authentication_cb(amf_ctx);
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 

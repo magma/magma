@@ -575,7 +575,7 @@ status_code_e amf_smf_process_pdu_session_packet(amf_ue_ngap_id_t ue_id,
       /*
        * Execute the Grpc Send call of PDU establishment Request from AMF to SMF
        */
-      rc = (status_code_e)pdu_state_handle_message(
+      rc = pdu_state_handle_message(
           // ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_REQUEST,
           REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_REQUEST,
           // smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL,

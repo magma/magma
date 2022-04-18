@@ -893,20 +893,23 @@ status_code_e amf_registration_run_procedure(amf_context_t* amf_context);
 status_code_e amf_proc_registration_complete(amf_context_t* amf_context);
 
 // Finite state machine handlers
-int ue_state_handle_message_initial(m5gmm_state_t cur_state, int event,
-                                    SMSessionFSMState session_state,
-                                    ue_m5gmm_context_s* ue_m5gmm_context,
-                                    amf_context_t* amf_context);
-int ue_state_handle_message_reg_conn(m5gmm_state_t, int, SMSessionFSMState,
-                                     ue_m5gmm_context_s*, amf_ue_ngap_id_t,
-                                     bstring, int,
-                                     amf_nas_message_decode_status_t);
-int ue_state_handle_message_dereg(m5gmm_state_t, int event, SMSessionFSMState,
-                                  ue_m5gmm_context_s*, amf_ue_ngap_id_t);
-int pdu_state_handle_message(m5gmm_state_t, int event,
-                             SMSessionFSMState session_state,
-                             ue_m5gmm_context_s*, amf_smf_t, char*,
-                             itti_n11_create_pdu_session_response_t*, uint32_t);
+status_code_e ue_state_handle_message_initial(
+    m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
+    ue_m5gmm_context_s* ue_m5gmm_context, amf_context_t* amf_context);
+status_code_e ue_state_handle_message_reg_conn(m5gmm_state_t, int,
+                                               SMSessionFSMState,
+                                               ue_m5gmm_context_s*,
+                                               amf_ue_ngap_id_t, bstring, int,
+                                               amf_nas_message_decode_status_t);
+status_code_e ue_state_handle_message_dereg(m5gmm_state_t, int event,
+                                            SMSessionFSMState,
+                                            ue_m5gmm_context_s*,
+                                            amf_ue_ngap_id_t);
+status_code_e pdu_state_handle_message(m5gmm_state_t, int event,
+                                       SMSessionFSMState session_state,
+                                       ue_m5gmm_context_s*, amf_smf_t, char*,
+                                       itti_n11_create_pdu_session_response_t*,
+                                       uint32_t);
 nas_amf_ident_proc_t* get_5g_nas_common_procedure_identification(
     const amf_context_t* ctxt);
 void amf_delete_registration_proc(amf_context_t* amf_txt);

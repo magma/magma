@@ -248,7 +248,7 @@ status_code_e amf_proc_registration_request(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
-  rc = (status_code_e)ue_state_handle_message_initial(
+  rc = ue_state_handle_message_initial(
       ue_m5gmm_context->mm_state, STATE_EVENT_REG_REQUEST, SESSION_NULL,
       ue_m5gmm_context, &ue_m5gmm_context->amf_context);
 

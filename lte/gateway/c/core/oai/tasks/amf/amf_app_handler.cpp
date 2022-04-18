@@ -795,10 +795,8 @@ int paa_to_address_info(const paa_t* paa, uint8_t* pdu_address_info,
 **      Return:    RETURNok, RETURNerror                                  **
 **                                                                        **
 ***************************************************************************/
-int amf_app_handle_pdu_session_accept(
+status_code_e amf_app_handle_pdu_session_accept(
     itti_n11_create_pdu_session_response_t* pdu_session_resp, uint64_t ue_id) {
-  nas5g_error_code_t rc = M5G_AS_SUCCESS;
-
   DLNASTransportMsg* encode_msg;
   amf_nas_message_t msg = {};
   uint32_t bytes = 0;
@@ -817,7 +815,7 @@ int amf_app_handle_pdu_session_accept(
     OAILOG_ERROR(LOG_AMF_APP,
                  "ue context not found for the ue_id:" AMF_UE_NGAP_ID_FMT,
                  ue_id);
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, M5G_AS_FAILURE);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   smf_ctx = amf_get_smf_context_by_pdu_session_id(
@@ -825,7 +823,7 @@ int amf_app_handle_pdu_session_accept(
   if (!smf_ctx) {
     OAILOG_ERROR(LOG_AMF_APP,
                  "Smf context is not exist UE ID:" AMF_UE_NGAP_ID_FMT, ue_id);
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, M5G_AS_FAILURE);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
   // updating session state
   smf_ctx->pdu_session_state = ACTIVE;
@@ -976,7 +974,7 @@ int amf_app_handle_pdu_session_accept(
                  "Slice Configuration does not exist:" AMF_UE_NGAP_ID_FMT,
                  ue_id);
 
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, M5G_AS_FAILURE);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   if (slice_information.sd[0]) {
@@ -1052,7 +1050,7 @@ int amf_app_handle_pdu_session_accept(
   bdestroy(smf_msg->msg.pdu_session_estab_accept.authorized_qosrules);
   bdestroy(smf_msg->msg.pdu_session_estab_accept.authorized_qosflowdescriptors);
 
-  return rc;
+  return RETURNok;
 }  // namespace magma5g
 
 /* Handling PDU Session Resource Setup Response sent from gNB*/
