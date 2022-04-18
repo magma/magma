@@ -506,11 +506,13 @@ int amf_smf_process_pdu_session_packet(amf_ue_ngap_id_t ue_id,
       } else {
         OAILOG_INFO(
             LOG_AMF_APP,
-            "DNN is not Supported or not Subscribed, reject with a cause: 91 "
+            "DNN is not Supported or not Subscribed, reject with a cause: 27 "
             "\n");
-        M5GMmCause cause_dnn_reject =
-            M5GMmCause::DNN_NOT_SUPPORTED_OR_NOT_SUBSCRIBED;
-        rc = handle_sm_message_routing_failure(ue_id, msg, cause_dnn_reject);
+        rc = amf_pdu_session_establishment_reject(
+            ue_id, msg->payload_container.smf_msg.header.pdu_session_id,
+            msg->payload_container.smf_msg.header.procedure_transaction_id,
+            static_cast<uint8_t>(M5GSmCause::MISSING_OR_UNKNOWN_DNN));
+
         ue_context->amf_context.smf_ctxt_map.erase(
             msg->payload_container.smf_msg.header.pdu_session_id);
         return rc;
