@@ -39,70 +39,53 @@ type queryVisitor interface {
 }
 
 type columnNamesCollector struct {
-	order   []string
-	columns map[string][]string
+	args  []*arg
+	masks []indexMask
 }
 
 func collectColumns(q *Query) *columnNamesCollector {
-	colsCollector := &columnNamesCollector{columns: map[string][]string{}}
+	colsCollector := &columnNamesCollector{}
 	dfs(q, colsCollector)
 	return colsCollector
 }
 
-func collectFields(q *Query, columns map[string][]string) *fieldPointersCollector {
-	fieldsCollector := &fieldPointersCollector{columns: columns}
-	dfs(q, fieldsCollector)
-	return fieldsCollector
-}
-
 func (c *columnNamesCollector) getColumnNames() []string {
 	var columns []string
-	for _, table := range c.order {
-		for _, col := range c.columns[table] {
-			name := fmt.Sprintf("%s.%s", table, col)
+	for i, arg := range c.args {
+		fields := c.masks[i].filterColumns(arg.metadata)
+		table := getTableName(arg)
+		for _, field := range fields {
+			name := fmt.Sprintf("%s.%s", table, field)
 			columns = append(columns, name)
 		}
 	}
 	return columns
 }
 
-func (c *columnNamesCollector) preVisit(q *Query) {
-	metadata := q.arg.model.GetMetadata()
-	table := metadata.Table
-	c.order = append(c.order, table)
+func getTableName(arg *arg) string {
+	if arg.alias != "" {
+		return arg.alias
+	}
+	return arg.metadata.Table
+}
 
-	fields := metadata.Properties
-	cols := getColumns(applyMaskToMetadata(fields, q.arg.mask))
-	c.columns[table] = cols
+func (c *columnNamesCollector) getPointers() ([]Model, []interface{}) {
+	models := make([]Model, len(c.args))
+	var pointers []interface{}
+	for i, arg := range c.args {
+		models[i] = arg.metadata.CreateObject()
+		fields := c.masks[i].filterPointers(models[i])
+		pointers = append(pointers, fields...)
+	}
+	return models, pointers
+}
+
+func (c *columnNamesCollector) preVisit(q *Query) {
+	c.args = append(c.args, q.arg)
+	c.masks = append(c.masks, makeIndexMask(q.arg.metadata, q.arg.mask))
 }
 
 func (*columnNamesCollector) postVisit(_ *Query) {}
-
-func getColumns(fields FieldMap) []string {
-	cols := make([]string, 0, len(fields))
-	for k := range fields {
-		cols = append(cols, k)
-	}
-	return cols
-}
-
-type fieldPointersCollector struct {
-	columns  map[string][]string
-	models   []Model
-	pointers []interface{}
-}
-
-func (f *fieldPointersCollector) preVisit(q *Query) {
-	metadata := q.arg.model.GetMetadata()
-	model := metadata.CreateObject()
-	fields := model.Fields()
-	f.models = append(f.models, model)
-	for _, col := range f.columns[metadata.Table] {
-		f.pointers = append(f.pointers, fields[col].ptr())
-	}
-}
-
-func (*fieldPointersCollector) postVisit(_ *Query) {}
 
 type joinClause struct {
 	query *Query
@@ -132,7 +115,7 @@ func (j *joinBuilder) preVisit(q *Query) {
 		if len(q.join) > 0 {
 			j.sql.WriteString("(")
 		}
-		j.sql.WriteString(q.arg.model.GetMetadata().Table)
+		j.sql.WriteString(buildFrom(q.arg))
 	}
 }
 
@@ -158,4 +141,33 @@ func (j *joinBuilder) postVisit(q *Query) {
 	j.sql.WriteString(sql)
 	j.args = append(j.args, args...)
 	j.err = err
+}
+
+func makeIndexMask(metadata *ModelMetadata, mask FieldMask) indexMask {
+	var indices indexMask
+	for i, field := range metadata.Properties {
+		if mask.ShouldInclude(field.Name) {
+			indices = append(indices, i)
+		}
+	}
+	return indices
+}
+
+type indexMask []int
+
+func (im indexMask) filterColumns(metadata *ModelMetadata) []string {
+	columns := make([]string, len(im))
+	for i, j := range im {
+		columns[i] = metadata.Properties[j].Name
+	}
+	return columns
+}
+
+func (im indexMask) filterPointers(model Model) []interface{} {
+	fields := model.Fields()
+	pointers := make([]interface{}, len(im))
+	for i, j := range im {
+		pointers[i] = fields[j].ptr()
+	}
+	return pointers
 }

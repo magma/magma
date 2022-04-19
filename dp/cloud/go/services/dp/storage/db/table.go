@@ -31,10 +31,10 @@ func CreateTable(tx sq.BaseRunner, builder sqorc.StatementBuilder, metadata *Mod
 	return err
 }
 
-func addColumns(builder sqorc.CreateTableBuilder, fields FieldMap) sqorc.CreateTableBuilder {
-	for column, field := range fields {
+func addColumns(builder sqorc.CreateTableBuilder, fields []*Field) sqorc.CreateTableBuilder {
+	for _, field := range fields {
 		colBuilder := builder.
-			Column(column).
+			Column(field.Name).
 			Type(field.SqlType)
 		if !field.Nullable {
 			colBuilder = colBuilder.NotNull()
@@ -45,7 +45,7 @@ func addColumns(builder sqorc.CreateTableBuilder, fields FieldMap) sqorc.CreateT
 		builder = colBuilder.EndColumn()
 
 		if field.Unique {
-			builder = builder.Unique(column)
+			builder = builder.Unique(field.Name)
 		}
 	}
 	return builder
