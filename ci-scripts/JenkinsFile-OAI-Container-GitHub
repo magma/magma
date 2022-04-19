@@ -121,7 +121,7 @@ pipeline {
                     branch = 'master'
                     u18_image_tag = 'master'
                     u18_docker_file = 'lte/gateway/docker/mme/Dockerfile.ubuntu18.04'
-                    u18_options = ' --build-arg GIT_PROXY="http://proxy.eurecom.fr:8080"'
+                    u18_options = ''
                   } else {
                     branch = sha1
                     u18_docker_file = 'ci-scripts/docker/Dockerfile.mme.ci.ubuntu18'
@@ -240,7 +240,7 @@ pipeline {
                     branch = 'master'
                     rhel8_image_tag = 'master'
                     rhel8_docker_file = 'lte/gateway/docker/mme/Dockerfile.rhel8'
-                    rhel8_options = ' --build-arg GIT_PROXY="http://proxy.eurecom.fr:8080"'
+                    rhel8_options = ''
                   } else {
                     branch = sha1
                     rhel8_docker_file = 'ci-scripts/docker/Dockerfile.mme.ci.rhel8'
