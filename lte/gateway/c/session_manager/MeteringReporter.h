@@ -14,8 +14,8 @@
 
 #include <string>
 
-#include "SessionCredit.h"
-#include "StoredState.h"
+#include "lte/gateway/c/session_manager/SessionCredit.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
 
 namespace magma {
 struct SessionStateUpdateCriteria;

@@ -14,7 +14,6 @@
 #include <google/protobuf/util/message_differencer.h>
 #include <gtest/gtest.h>
 #include <stdio.h>
-
 #include <future>
 #include <memory>
 #include <string>

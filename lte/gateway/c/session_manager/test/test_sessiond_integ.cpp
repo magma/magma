@@ -11,27 +11,43 @@
  * limitations under the License.
  */
 
+#include <folly/io/async/EventBase.h>
+#include <folly/io/async/EventBaseManager.h>
 #include <gmock/gmock.h>
-#include <grpc++/grpc++.h>
+#include <grpcpp/impl/codegen/client_context.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <grpcpp/impl/codegen/status_code_enum.h>
 #include <gtest/gtest.h>
-#include <string.h>
-
+#include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/session_manager.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
+#include <orc8r/protos/common.pb.h>
 #include <chrono>
+#include <cstdint>
 #include <future>
 #include <iostream>
+#include <memory>
+#include <string>
 #include <thread>
+#include <vector>
 
-#include "Consts.h"
-#include "LocalEnforcer.h"
-#include "includes/MagmaService.hpp"
-#include "Matchers.h"
-#include "ProtobufCreators.h"
-#include "includes/ServiceRegistrySingleton.hpp"
-#include "SessiondMocks.h"
-#include "SessionManagerServer.h"
-#include "SessionReporter.h"
-#include "SessionStore.h"
-#include "ShardTracker.h"
+#include "lte/gateway/c/session_manager/LocalEnforcer.h"
+#include "lte/gateway/c/session_manager/LocalSessionManagerHandler.h"
+#include "lte/gateway/c/session_manager/MeteringReporter.h"
+#include "lte/gateway/c/session_manager/PipelinedClient.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/SessionManagerServer.h"
+#include "lte/gateway/c/session_manager/SessionProxyResponderHandler.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/ShardTracker.h"
+#include "lte/gateway/c/session_manager/StoreClient.h"
+#include "lte/gateway/c/session_manager/test/Consts.h"
+#include "lte/gateway/c/session_manager/test/Matchers.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 
 #define SESSION_TERMINATION_TIMEOUT_MS 100
 #define DEFAULT_PIPELINED_EPOCH 1

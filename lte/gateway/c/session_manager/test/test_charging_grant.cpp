@@ -11,12 +11,21 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+#include <lte/protos/session_manager.pb.h>
+#include <time.h>
+#include <algorithm>
+#include <cstdint>
+#include <limits>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
-#include <chrono>
-#include <thread>
-
-#include "ChargingGrant.h"
-#include "ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/ChargingGrant.h"
+#include "lte/gateway/c/session_manager/ServiceAction.h"
+#include "lte/gateway/c/session_manager/SessionCredit.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/Types.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
 
 using ::testing::Test;
 

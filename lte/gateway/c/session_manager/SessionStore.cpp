@@ -11,21 +11,22 @@
  * limitations under the License.
  */
 
+#include "lte/gateway/c/session_manager/SessionStore.h"
+
 #include <glog/logging.h>
+#include <lte/protos/session_manager.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
 #include <ostream>
 #include <utility>
 #include <vector>
 
-#include "CreditKey.h"
-#include "MemoryStoreClient.h"
-#include "MeteringReporter.h"
-#include "SessionState.h"
-#include "SessionStore.h"
-#include "StoredState.h"
-#include "Types.h"
-#include "lte/protos/session_manager.pb.h"
-#include "lte/protos/subscriberdb.pb.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/session_manager/CreditKey.h"
+#include "lte/gateway/c/session_manager/MemoryStoreClient.h"
+#include "lte/gateway/c/session_manager/MeteringReporter.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/Types.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {
 class StaticRuleStore;

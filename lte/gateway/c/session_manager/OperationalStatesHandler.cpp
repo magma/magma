@@ -10,12 +10,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "lte/gateway/c/session_manager/OperationalStatesHandler.h"
+
 #include <folly/dynamic.h>
 #include <folly/json.h>
 #include <glog/logging.h>
 #include <google/protobuf/stubs/status.h>
 #include <google/protobuf/stubs/stringpiece.h>
 #include <google/protobuf/util/json_util.h>
+#include <lte/protos/policydb.pb.h>
+#include <lte/protos/session_manager.pb.h>
 #include <list>
 #include <map>
 #include <memory>
@@ -25,14 +29,11 @@
 #include <utility>
 #include <vector>
 
-#include "EnumToString.h"
-#include "OperationalStatesHandler.h"
-#include "SessionState.h"
-#include "SessionStore.h"
-#include "Types.h"
-#include "lte/protos/policydb.pb.h"
-#include "lte/protos/session_manager.pb.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/session_manager/EnumToString.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/Types.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {
 

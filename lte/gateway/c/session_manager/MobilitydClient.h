@@ -12,6 +12,7 @@
  */
 #pragma once
 
+#include <lte/protos/apn.pb.h>
 #include <lte/protos/mobilityd.grpc.pb.h>
 #include <stdint.h>
 #include <functional>
@@ -19,10 +20,9 @@
 #include <mutex>
 #include <unordered_map>
 
-#include "SessionState.h"
-#include "Types.h"
-#include "includes/GRPCReceiver.hpp"
-#include "lte/protos/apn.pb.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/Types.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 
 namespace grpc {
 class Channel;

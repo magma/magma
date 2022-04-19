@@ -13,14 +13,14 @@
 #pragma once
 
 #include <grpc++/grpc++.h>
+#include <lte/protos/apn.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/session_manager.pb.h>
 #include <stdint.h>
 #include <memory>
 #include <mutex>
 
-#include "includes/GRPCReceiver.hpp"
-#include "lte/protos/apn.pb.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 
 namespace grpc {
 class Channel;

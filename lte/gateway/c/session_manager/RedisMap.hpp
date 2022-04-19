@@ -12,10 +12,21 @@
  */
 #pragma once
 
-#include "ObjectMap.h"
-#include "magma_logging.h"
 #include <orc8r/protos/redis.pb.h>
+#include <stdint.h>
 #include <cpp_redis/cpp_redis>
+#include <functional>
+#include <future>
+#include <memory>
+#include <ostream>
+#include <string>
+#include <vector>
+
+#include "cpp_redis/core/client.hpp"
+#include "cpp_redis/core/reply.hpp"
+#include "glog/logging.h"
+#include "lte/gateway/c/session_manager/ObjectMap.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 using magma::orc8r::RedisState;
 

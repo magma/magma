@@ -12,9 +12,10 @@
  */
 #pragma once
 
-#include <stdint.h>    // for uint64_t
-#include <functional>  // for function
-#include <string>      // for string
+#include <stdint.h>
+#include <functional>
+#include <string>
+
 namespace google {
 namespace protobuf {
 class Message;

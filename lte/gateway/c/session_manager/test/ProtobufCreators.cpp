@@ -11,12 +11,19 @@
  * limitations under the License.
  */
 
-#include <vector>
-#include <string>
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
 
-#include "Consts.h"
-#include "ProtobufCreators.h"
+#include <google/protobuf/timestamp.pb.h>
 #include <gtest/gtest.h>
+#include <lte/protos/subscriberdb.pb.h>
+#include <orc8r/protos/common.pb.h>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "lte/gateway/c/session_manager/SessionState.h"
+
 namespace magma {
 
 CommonSessionContext build_common_context(

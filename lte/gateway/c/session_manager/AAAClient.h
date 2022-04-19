@@ -12,16 +12,17 @@
  */
 #pragma once
 
+// IWYU pragma: no_include <context.pb.h>
 #include <feg/gateway/services/aaa/protos/accounting.grpc.pb.h>
 #include <stdint.h>
 #include <functional>
 #include <memory>
 #include <string>
 
-#include "SessionState.h"
-#include "SessionStore.h"
-#include "StoreClient.h"
-#include "includes/GRPCReceiver.hpp"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/StoreClient.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 
 namespace aaa {
 namespace protos {

@@ -1,16 +1,16 @@
-#include "AmfServiceClient.h"
+#include "lte/gateway/c/session_manager/AmfServiceClient.h"
 
 #include <glog/logging.h>
 #include <grpcpp/channel.h>
 #include <grpcpp/impl/codegen/status.h>
+#include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/session_manager.pb.h>
 #include <functional>
 #include <ostream>
 #include <utility>
 
-#include "includes/ServiceRegistrySingleton.hpp"
-#include "lte/protos/session_manager.grpc.pb.h"
-#include "lte/protos/session_manager.pb.h"
-#include "magma_logging.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 using grpc::Status;
 

@@ -11,20 +11,34 @@
  * limitations under the License.
  */
 
-#include <glog/logging.h>
 #include <gtest/gtest.h>
-
+#include <lte/protos/pipelined.pb.h>
+#include <lte/protos/policydb.pb.h>
+#include <lte/protos/session_manager.pb.h>
+#include <metrics.pb.h>
+#include <orc8r/protos/metricsd.pb.h>
+#include <algorithm>
+#include <cstdint>
+#include <experimental/optional>
 #include <memory>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include "Consts.h"
-#include "magma_logging.h"
-#include "includes/MagmaService.hpp"
-#include "ProtobufCreators.h"
-#include "RuleStore.h"
-#include "SessionID.h"
-#include "SessionState.h"
-#include "SessionStore.h"
-#include "StoredState.h"
+#include "lte/gateway/c/session_manager/MeteringReporter.h"
+#include "lte/gateway/c/session_manager/Monitor.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/SessionID.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/StoreClient.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/Types.h"
+#include "lte/gateway/c/session_manager/test/Consts.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
 
 using magma::orc8r::MetricsContainer;
 using ::testing::Test;

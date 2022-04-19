@@ -16,8 +16,10 @@
 #include <folly/hash/Hash.h>
 #include <folly/io/async/EventBaseManager.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
+#include <lte/protos/pipelined.pb.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/session_manager.pb.h>
 #include <stdint.h>
 #include <chrono>
 #include <ctime>
@@ -32,21 +34,19 @@
 #include <utility>
 #include <vector>
 
-#include "AAAClient.h"
-#include "CreditKey.h"
-#include "DirectorydClient.h"
-#include "PipelinedClient.h"
-#include "RuleStore.h"
-#include "SessionEvents.h"
-#include "SessionReporter.h"
-#include "SessionState.h"
-#include "SessionStore.h"
-#include "ShardTracker.h"
-#include "SpgwServiceClient.h"
-#include "StoreClient.h"
-#include "Types.h"
-#include "lte/protos/pipelined.pb.h"
-#include "lte/protos/session_manager.pb.h"
+#include "lte/gateway/c/session_manager/AAAClient.h"
+#include "lte/gateway/c/session_manager/CreditKey.h"
+#include "lte/gateway/c/session_manager/DirectorydClient.h"
+#include "lte/gateway/c/session_manager/PipelinedClient.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/SessionEvents.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/ShardTracker.h"
+#include "lte/gateway/c/session_manager/SpgwServiceClient.h"
+#include "lte/gateway/c/session_manager/StoreClient.h"
+#include "lte/gateway/c/session_manager/Types.h"
 
 namespace aaa {
 class AAAClient;
@@ -70,11 +70,15 @@ class SessionReporter;
 class ShardTracker;
 class SpgwServiceClient;
 class StaticRuleStore;
+
 namespace lte {
 class EventsReporter;
 class SubscriberID;
 }  // namespace lte
+class SessionState;
+struct BearerUpdate;
 struct SessionStateUpdateCriteria;
+struct UpdateRequests;
 
 using ImsiAndSessionID = std::pair<std::string, std::string>;
 

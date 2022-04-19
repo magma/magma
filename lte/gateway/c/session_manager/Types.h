@@ -12,15 +12,14 @@
  */
 #pragma once
 
-#include <experimental/optional>
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-
+#include <experimental/optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include "CreditKey.h"
+#include "lte/gateway/c/session_manager/CreditKey.h"
 
 // NOTE:
 // This file is intended for declaring types that are shared across classes.

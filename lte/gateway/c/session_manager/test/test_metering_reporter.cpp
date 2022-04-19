@@ -11,13 +11,17 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+#include <metrics.pb.h>
+#include <orc8r/protos/metricsd.pb.h>
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <unordered_map>
 
-#include <chrono>
-#include <thread>
-
-#include "includes/MagmaService.hpp"
-#include "MeteringReporter.h"
-#include "includes/MetricsSingleton.hpp"
+#include "lte/gateway/c/session_manager/MeteringReporter.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/Types.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
 
 using magma::orc8r::MetricsContainer;
 using ::testing::Test;

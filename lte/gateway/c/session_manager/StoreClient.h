@@ -13,16 +13,17 @@
 #pragma once
 
 #include <lte/protos/session_manager.grpc.pb.h>
-
 #include <memory>
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include "SessionState.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
 
 namespace magma {
+class SessionState;
+
 namespace lte {
 
 using SessionVector = std::vector<std::unique_ptr<SessionState>>;

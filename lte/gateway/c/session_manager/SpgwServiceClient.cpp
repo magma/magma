@@ -11,20 +11,22 @@
  * limitations under the License.
  */
 
-#include <glog/logging.h>                // for COMPACT_GOOGLE_LOG...
-#include <grpcpp/channel.h>              // for Channel
-#include <grpcpp/impl/codegen/status.h>  // for Status
-#include <cstdint>                       // for uint32_t
-#include <ostream>                       // for operator<<, basic_...
-#include <utility>                       // for move
+#include "lte/gateway/c/session_manager/SpgwServiceClient.h"
 
-#include "SpgwServiceClient.h"
-#include "includes/ServiceRegistrySingleton.hpp"  // for ServiceRegistrySin...
-#include "lte/protos/policydb.pb.h"               // for RepeatedField, Rep...
-#include "lte/protos/spgw_service.grpc.pb.h"      // for SpgwService::Stub
-#include "lte/protos/spgw_service.pb.h"           // for DeleteBearerRequest
-#include "lte/protos/subscriberdb.pb.h"
-#include "magma_logging.h"  // for MLOG, MERROR, MINFO
+#include <glog/logging.h>
+#include <grpcpp/channel.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <lte/protos/policydb.pb.h>
+#include <lte/protos/spgw_service.grpc.pb.h>
+#include <lte/protos/spgw_service.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
+#include <algorithm>
+#include <cstdint>
+#include <ostream>
+#include <utility>
+
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 
 using grpc::Status;
 

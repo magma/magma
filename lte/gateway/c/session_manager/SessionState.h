@@ -13,8 +13,14 @@
 #pragma once
 
 #include <google/protobuf/timestamp.pb.h>
+#include <lte/protos/apn.pb.h>
+#include <lte/protos/pipelined.pb.h>
+#include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/session_manager.pb.h>
 #include <lte/protos/spgw_service.grpc.pb.h>
+#include <lte/protos/spgw_service.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
 #include <stdint.h>
 #include <sys/types.h>
 #include <experimental/optional>
@@ -27,23 +33,24 @@
 #include <utility>
 #include <vector>
 
-#include "ChargingGrant.h"
-#include "CreditKey.h"
-#include "Monitor.h"
-#include "RuleStore.h"
-#include "ServiceAction.h"
-#include "SessionCredit.h"
-#include "SessionReporter.h"
-#include "StoredState.h"
-#include "Types.h"
-#include "lte/protos/apn.pb.h"
-#include "lte/protos/pipelined.pb.h"
-#include "lte/protos/policydb.pb.h"
-#include "lte/protos/session_manager.pb.h"
-#include "lte/protos/spgw_service.pb.h"
-#include "lte/protos/subscriberdb.pb.h"
+#include "lte/gateway/c/session_manager/ChargingGrant.h"
+#include "lte/gateway/c/session_manager/CreditKey.h"
+#include "lte/gateway/c/session_manager/Monitor.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/ServiceAction.h"
+#include "lte/gateway/c/session_manager/SessionCredit.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/Types.h"
 
 namespace magma {
+namespace lte {
+class AggregatedMaximumBitrate;
+class PolicyRule;
+}  // namespace lte
+struct ChargingGrant;
+struct Monitor;
+
 using std::experimental::optional;
 typedef std::unordered_map<CreditKey, std::unique_ptr<ChargingGrant>,
                            decltype(&ccHash), decltype(&ccEqual)>

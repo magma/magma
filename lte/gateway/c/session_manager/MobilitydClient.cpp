@@ -11,14 +11,15 @@
  * limitations under the License.
  */
 
+#include "lte/gateway/c/session_manager/MobilitydClient.h"
+
 #include <grpcpp/channel.h>
+#include <lte/protos/mobilityd.grpc.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
 #include <memory>
 #include <utility>
 
-#include "MobilitydClient.h"
-#include "includes/ServiceRegistrySingleton.hpp"
-#include "lte/protos/mobilityd.grpc.pb.h"
-#include "lte/protos/subscriberdb.pb.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 
 namespace grpc {
 class Status;

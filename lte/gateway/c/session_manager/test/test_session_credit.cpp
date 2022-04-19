@@ -11,12 +11,17 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+#include <lte/protos/session_manager.pb.h>
+#include <stddef.h>
+#include <unistd.h>
+#include <cstdint>
+#include <string>
+#include <unordered_map>
 
-#include <chrono>
-#include <thread>
-
-#include "ProtobufCreators.h"
-#include "SessionCredit.h"
+#include "lte/gateway/c/session_manager/SessionCredit.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/Types.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
 
 using ::testing::Test;
 

@@ -14,17 +14,17 @@
 
 #include <grpc++/grpc++.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <orc8r/protos/common.pb.h>
 #include <stdint.h>
 #include <functional>
 #include <memory>
 #include <string>
 
-#include "MobilitydClient.h"
-#include "SessionID.h"
-#include "SessionReporter.h"
-#include "SessionStateEnforcer.h"
-#include "SessionStore.h"
-#include "orc8r/protos/common.pb.h"
+#include "lte/gateway/c/session_manager/MobilitydClient.h"
+#include "lte/gateway/c/session_manager/SessionID.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
+#include "lte/gateway/c/session_manager/SessionStateEnforcer.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
 
 namespace grpc {
 class Server;
@@ -34,6 +34,7 @@ class Status;
 namespace magma {
 class MobilitydClient;
 class SessionStateEnforcer;
+
 namespace lte {
 class SessionStore;
 class SmContextVoid;

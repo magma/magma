@@ -14,13 +14,13 @@
 
 #include <folly/io/async/EventBase.h>
 #include <grpc++/grpc++.h>
+#include <lte/protos/apn.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <stdint.h>
 #include <functional>
 #include <memory>
 
-#include "includes/GRPCReceiver.hpp"
-#include "lte/protos/apn.pb.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 
 namespace folly {
 class EventBase;

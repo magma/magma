@@ -14,7 +14,7 @@
 #include <atomic>
 #include <memory>
 
-#include "LocalEnforcer.h"
+#include "lte/gateway/c/session_manager/LocalEnforcer.h"
 
 namespace magma {
 class LocalEnforcer;

@@ -10,10 +10,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "lte/gateway/c/session_manager/RestartHandler.h"
+
 #include <cxxabi.h>
 #include <glog/logging.h>
 #include <google/protobuf/stubs/common.h>
 #include <grpcpp/impl/codegen/status.h>
+#include <lte/protos/session_manager.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
+#include <orc8r/protos/directoryd.pb.h>
 #include <chrono>
 #include <future>
 #include <memory>
@@ -25,15 +30,11 @@
 #include <utility>
 #include <vector>
 
-#include "AAAClient.h"
-#include "DirectorydClient.h"
-#include "RestartHandler.h"
-#include "SessionReporter.h"
-#include "SessionStore.h"
-#include "lte/protos/session_manager.pb.h"
-#include "lte/protos/subscriberdb.pb.h"
-#include "magma_logging.h"
-#include "orc8r/protos/directoryd.pb.h"
+#include "lte/gateway/c/session_manager/AAAClient.h"
+#include "lte/gateway/c/session_manager/DirectorydClient.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {
 class LocalEnforcer;

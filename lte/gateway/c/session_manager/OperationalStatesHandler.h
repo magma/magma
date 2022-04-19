@@ -18,10 +18,11 @@
 #include <memory>
 #include <string>
 
-#include "SessionStore.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
 
 namespace magma {
 class SessionState;
+
 namespace lte {
 class SessionStore;
 }  // namespace lte

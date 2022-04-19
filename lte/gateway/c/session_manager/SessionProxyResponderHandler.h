@@ -18,8 +18,8 @@
 #include <functional>
 #include <memory>
 
-#include "LocalEnforcer.h"
-#include "SessionStore.h"
+#include "lte/gateway/c/session_manager/LocalEnforcer.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
 
 namespace grpc {
 class ServerContext;
@@ -27,6 +27,7 @@ class Status;
 }  // namespace grpc
 namespace magma {
 class LocalEnforcer;
+
 namespace lte {
 class AbortSessionRequest;
 class AbortSessionResult;

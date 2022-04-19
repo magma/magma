@@ -17,7 +17,10 @@
 #include <folly/json.h>
 #include <google/protobuf/timestamp.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
+#include <lte/protos/pipelined.pb.h>
+#include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/session_manager.pb.h>
 #include <sys/types.h>
 #include <cstdint>
 #include <experimental/optional>
@@ -27,11 +30,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "CreditKey.h"
-#include "Types.h"
-#include "lte/protos/pipelined.pb.h"
-#include "lte/protos/policydb.pb.h"
-#include "lte/protos/session_manager.pb.h"
+#include "lte/gateway/c/session_manager/CreditKey.h"
+#include "lte/gateway/c/session_manager/Types.h"
 
 namespace magma {
 using std::experimental::optional;

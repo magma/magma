@@ -12,17 +12,16 @@
  */
 #include <glog/logging.h>
 #include <gtest/gtest.h>
-
 #include <future>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include "Consts.h"
-#include "ProtobufCreators.h"
-#include "SessiondMocks.h"
-#include "SessionState.h"
+#include "lte/gateway/c/session_manager/test/Consts.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
 
 using ::testing::Test;
 
