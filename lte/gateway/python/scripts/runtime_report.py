@@ -16,12 +16,11 @@ limitations under the License.
 import argparse
 import glob
 import os
+import xml.etree.ElementTree as ET
 
 from datetime import datetime
 from pathlib import Path
 from pprint import pprint
-
-import xml.etree.ElementTree as ET
 
 
 def merge_all_report(list_xml_report_paths, output_path):
@@ -39,21 +38,21 @@ def merge_all_report(list_xml_report_paths, output_path):
     num_all_errors = 0
     total_time = 0
     num_all_tests = 0
-    init_time = datetime.max 
+    init_time = datetime.max
     c = 0
 
-    ## iterate through files
+    # iterate through files
     for xml_file_path in list_xml_report_paths:
         test_result = ET.parse(xml_file_path)
         test_suites_data = test_result.getroot()
 
         num_all_failures += int(test_suites_data.attrib['failures'])
-        num_all_tests+=int(test_suites_data.attrib['tests'])
-        total_time+=float(test_suites_data.attrib['time'])
-        num_all_errors+=int(test_suites_data.attrib['errors'])
-        num_all_disabled+=int(test_suites_data.attrib['disabled'])
+        num_all_tests += int(test_suites_data.attrib['tests'])
+        total_time += float(test_suites_data.attrib['time'])
+        num_all_errors += int(test_suites_data.attrib['errors'])
+        num_all_disabled += int(test_suites_data.attrib['disabled'])
         init_time = min(init_time, datetime.fromisoformat(test_suites_data.attrib['timestamp']))
-        
+
         for single_test_suite_data in test_suites_data:
             testsuites_node.append(single_test_suite_data)
 
@@ -69,11 +68,12 @@ def merge_all_report(list_xml_report_paths, output_path):
     tree._setroot(testsuites_node)
     tree.write(output_path)
 
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Merging all the .xml unittest reports into a single file")
-    parser.add_argument('-i','--input', nargs='+', help='<Required> List of xml files', required=True)
-    parser.add_argument('-o','--output', help='Output of xml report', required=False)    
+    parser.add_argument('-i', '--input', nargs='+', help='<Required> List of xml files', required=True)
+    parser.add_argument('-o', '--output', help='Output of xml report', required=False)
     args = parser.parse_args()
 
     print(f"Value of env variable GTEST_OUTPUT = {os.environ['GTEST_OUTPUT']}")
@@ -87,4 +87,3 @@ if __name__ == "__main__":
     else:
         merge_all_report(args.input, output_path)
     print(f"Final report is generated at: {output_path}")
-    
