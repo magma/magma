@@ -13,8 +13,6 @@ limitations under the License.
 
 import ctypes
 import unittest
-import time
-import os
 
 import s1ap_types
 from integ_tests.s1aptests.s1ap_utils import S1ApUtil
