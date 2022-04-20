@@ -32,13 +32,6 @@ const (
 
 var defaultServices = []string{"SWX_PROXY", "SESSION_PROXY"}
 
-type healthConfig struct {
-	services              []string
-	cpuUtilThreshold      float32
-	memAvailableThreshold float32
-	staleUpdateThreshold  uint32
-}
-
 func GetHealthConfigForNetwork(ctx context.Context, networkID string) *healthConfig {
 	defaultConfig := &healthConfig{
 		services:              defaultServices,

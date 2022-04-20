@@ -22,8 +22,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health"
 	"magma/feg/cloud/go/services/health/reporter"
-	protected_servicers "magma/feg/cloud/go/services/health/servicers/protected"
-	servicers "magma/feg/cloud/go/services/health/servicers/southbound"
+	"magma/feg/cloud/go/services/health/servicers"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
@@ -56,12 +55,6 @@ func main() {
 	}
 	protos.RegisterHealthServer(srv.GrpcServer, healthServer)
 	cloudHealthServer, err := servicers.NewCloudHealthServer(store)
-	if err != nil {
-		glog.Fatalf("Error creating cloud health servicer: %+v", err)
-	}
-	protos.RegisterCloudHealthServer(srv.GrpcServer, cloudHealthServer)
-
-	cloudHealthServer, err := protected_servicers.NewCloudHealthServer(store)
 	if err != nil {
 		glog.Fatalf("Error creating cloud health servicer: %+v", err)
 	}

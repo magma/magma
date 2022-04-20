@@ -25,7 +25,7 @@ import (
 	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/health"
 	"magma/feg/cloud/go/services/health/metrics"
-	servicers "magma/feg/cloud/go/services/health/servicers/southbound"
+	"magma/feg/cloud/go/services/health/servicers"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 )
