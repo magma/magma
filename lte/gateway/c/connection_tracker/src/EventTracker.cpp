@@ -11,28 +11,22 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <iostream>
-
-#include <libmnl/libmnl.h>
-#include <linux/netfilter/nfnetlink.h>
-#include <linux/netfilter/nfnetlink_conntrack.h>
-
-#include <linux/if_packet.h>
-#include <string.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <net/if.h>
-#include <netinet/ether.h>
-#include <linux/ip.h>
-#include <memory>
-
 #include "lte/gateway/c/connection_tracker/src/EventTracker.hpp"
 
+#include <arpa/inet.h>
+#include <glog/logging.h>
+#include <libmnl/libmnl.h>
+#include <linux/netfilter/nfnetlink_compat.h>
+#include <linux/netlink.h>
+#include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <linux/netfilter/nfnetlink.h>
+#include <linux/netfilter/nfnetlink_conntrack.h>
+#include <memory>
+
+#include "lte/gateway/c/connection_tracker/src/PacketGenerator.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 static int data_cb(const struct nlmsghdr* nlh, void* data);

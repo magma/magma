@@ -12,8 +12,10 @@
  */
 #pragma once
 
-#include <string>
+#include <openssl/ossl_typ.h>
 #include <openssl/ssl.h>
+#include <stdint.h>
+#include <string>
 
 namespace magma {
 namespace lte {

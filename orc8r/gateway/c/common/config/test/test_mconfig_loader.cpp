@@ -11,14 +11,12 @@
  * limitations under the License.
  */
 
-#include <google/protobuf/message.h>
 #include <gtest/gtest.h>
-
 #include <sstream>
 
+#include "lte/protos/mconfig/mconfigs.pb.h"
 #include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
-#include "lte/protos/mconfig/mconfigs.pb.h"
 
 namespace {
 

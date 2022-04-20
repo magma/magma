@@ -13,7 +13,6 @@
 #pragma once
 
 #include <pcap.h>
-
 #include <string>
 #include <memory>
 

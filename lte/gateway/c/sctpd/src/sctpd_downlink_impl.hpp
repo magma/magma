@@ -13,15 +13,26 @@
 
 #pragma once
 
+#include <grpc/grpc.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <grpcpp/server_context.h>
+#include <lte/protos/sctpd.grpc.pb.h>
 #include <memory>
 #include <thread>
 
-#include <grpc/grpc.h>
-#include <grpcpp/server_context.h>
-
-#include <lte/protos/sctpd.grpc.pb.h>
-
 #include "lte/gateway/c/sctpd/src/sctp_connection.hpp"
+
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
+namespace magma {
+namespace sctpd {
+class InitReq;
+class InitRes;
+class SendDlReq;
+class SendDlRes;
+}  // namespace sctpd
+}  // namespace magma
 
 #define S1AP 18
 #define NGAP 60

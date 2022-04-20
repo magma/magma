@@ -11,13 +11,19 @@
  * limitations under the License.
  */
 
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <unistd.h>
-
 #include "lte/gateway/c/li_agent/src/ProxyConnector.hpp"
+
+#include <arpa/inet.h>
+#include <glog/logging.h>
+#include <netinet/in.h>
+#include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/ssl3.h>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <ostream>
+
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {

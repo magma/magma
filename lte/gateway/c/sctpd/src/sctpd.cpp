@@ -13,21 +13,29 @@
 
 #include "lte/gateway/c/sctpd/src/sctpd.hpp"
 
-#include <lte/protos/mconfig/mconfigs.pb.h>
-#include <orc8r/protos/mconfig/mconfigs.pb.h>
-
-#include <memory>
+#include <bits/types/siginfo_t.h>
+#include <glog/logging.h>
 #include <grpcpp/grpcpp.h>
+#include <grpcpp/security/credentials.h>
+#include <grpcpp/security/server_credentials.h>
+#include <lte/protos/mconfig/mconfigs.pb.h>
+#include <orc8r/protos/common.pb.h>
 #include <signal.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <yaml-cpp/yaml.h>
+#include <memory>
+#include <ostream>
+#include <string>
 
 #include "lte/gateway/c/sctpd/src/sctpd_downlink_impl.hpp"
 #include "lte/gateway/c/sctpd/src/sctpd_event_handler.hpp"
 #include "lte/gateway/c/sctpd/src/sctpd_uplink_client.hpp"
-#include "lte/gateway/c/sctpd/src/util.hpp"
 #include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 #include "orc8r/gateway/c/common/logging/magma_logging_init.h"
 #include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.hpp"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 
 #define SCTPD_SERVICE "sctpd"
 #define SHARED_MCONFIG "shared_mconfig"

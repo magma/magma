@@ -15,7 +15,6 @@
 #include <net/ethernet.h>
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
-
 #include <limits>
 #include <utility>
 

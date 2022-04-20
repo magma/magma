@@ -12,8 +12,23 @@
  */
 
 #include <gtest/gtest.h>
-#include "orc8r/gateway/c/common/service303/includes/MetricsRegistry.h"
 #include <prometheus/registry.h>
+#include <memory>
+#include <string>
+
+#include "orc8r/gateway/c/common/service303/includes/MetricsRegistry.h"
+#include "prometheus/counter_builder.h"
+
+namespace io {
+namespace prometheus {
+namespace client {
+class MetricFamily;
+}  // namespace client
+}  // namespace prometheus
+}  // namespace io
+namespace prometheus {
+class Counter;
+}  // namespace prometheus
 
 using io::prometheus::client::MetricFamily;
 using magma::service303::MetricsRegistry;

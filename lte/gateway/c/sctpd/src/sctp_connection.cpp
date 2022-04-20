@@ -13,19 +13,29 @@
 
 #include "lte/gateway/c/sctpd/src/sctp_connection.hpp"
 
-#include <arpa/inet.h>
+// IWYU pragma: no_include <linux/sctp.h>
+
 #include <assert.h>
+#include <bits/exception.h>
 #include <errno.h>
+#include <glog/logging.h>
+#include <lte/protos/sctpd.pb.h>
+#include <netinet/in.h>
 #include <netinet/sctp.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/epoll.h>
-#include <sys/select.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <exception>
+#include <map>
+#include <ostream>
+#include <stdexcept>
+#include <utility>
 
+#include "lte/gateway/c/sctpd/src/sctp_assoc.hpp"
 #include "lte/gateway/c/sctpd/src/sctpd.hpp"
 #include "lte/gateway/c/sctpd/src/util.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {
 namespace sctpd {
