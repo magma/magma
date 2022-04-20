@@ -17,7 +17,6 @@ import argparse
 import glob
 import os
 import xml.etree.ElementTree as ET
-
 from datetime import datetime
 from pathlib import Path
 from pprint import pprint
