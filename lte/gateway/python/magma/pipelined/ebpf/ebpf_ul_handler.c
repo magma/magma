@@ -7,7 +7,7 @@
  * License as published by the Free Software Foundation.
  */
 
-#include "EbpfMap.h"
+#include "orc8r/gateway/c/common/ebpf/EbpfMap.h"
 
 #include <bcc/proto.h>
 #include <linux/if_packet.h>
