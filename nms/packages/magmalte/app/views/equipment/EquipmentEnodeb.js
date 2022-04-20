@@ -86,7 +86,7 @@ export default function Enodeb() {
   const classes = useStyles();
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container justify="space-between" spacing={3}>
+      <Grid container justifyContent="space-between" spacing={3}>
         <Grid item xs={12}>
           <DateTimeMetricChart
             unit={'Throughput(mb/s)'}
@@ -173,7 +173,11 @@ function EnodebTableRaw(props: WithAlert) {
         icon={SettingsInputAntennaIcon}
         label={`Enodebs (${Object.keys(state?.enbInfo || {}).length})`}
         filter={() => (
-          <Grid container justify="flex-end" alignItems="center" spacing={1}>
+          <Grid
+            container
+            justifyContent="flex-end"
+            alignItems="center"
+            spacing={1}>
             <Grid item>
               <AutorefreshCheckbox
                 autorefreshEnabled={refresh}

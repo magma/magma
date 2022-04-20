@@ -18,6 +18,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
+	fieldmask_utils "github.com/mennanov/fieldmask-utils"
 
 	"magma/lte/cloud/go/protos"
 )
@@ -62,23 +63,41 @@ func (store *MemorySubscriberStore) AddSubscriber(data *protos.SubscriberData) e
 
 // UpdateSubscriber changes the data stored for an existing subscriber.
 // If the subscriber cannot be found, an error is returned instead.
+// Update will update the fields mentioned on the mask. If no mask is provided
+// it will update all the fields, overwriting old ones.
 // Input: The new subscriber data to store
-func (store *MemorySubscriberStore) UpdateSubscriber(data *protos.SubscriberData) error {
-	if err := validateSubscriberData(data); err != nil {
+func (store *MemorySubscriberStore) UpdateSubscriber(req *protos.SubscriberUpdate) error {
+	if req == nil {
+		return NewInvalidArgumentError("Update request cannot be nil")
+	}
+	if err := validateSubscriberData(req.Data); err != nil {
 		return err
 	}
 
 	store.mutex.Lock()
 	defer store.mutex.Unlock()
 
-	id := data.Sid.Id
+	id := req.Data.Sid.Id
 	_, exists := store.accounts[id]
 	if !exists {
 		glog.Errorf("Subscriber '%s' not found", id)
 		return NewUnknownSubscriberError(id)
 	}
 
-	store.accounts[id] = data
+	if req.Mask == nil {
+		store.accounts[id] = req.Data
+	} else {
+		naming := func(s string) string {
+			return s
+		}
+		mask, _ := fieldmask_utils.MaskFromPaths(req.Mask.Paths, naming)
+		res := store.accounts[id]
+		fieldmask_utils.StructToStruct(mask, req.Data, res)
+		store.accounts[id] = res
+	}
+	// store.accounts[id] = req.Data
+	// orc8rprotos.FillIn(req.Data, store.accounts[id])
+
 	return nil
 }
 

@@ -17,7 +17,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionEstablishmentAccept.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionEstablishmentAccept.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 

@@ -62,8 +62,8 @@ s1aptests/test_enb_partial_reset_con_dereg.py \
 s1aptests/test_enb_partial_reset.py \
 s1aptests/test_nas_non_delivery_for_auth.py \
 s1aptests/test_outoforder_attach_complete_ICSR.py \
-s1aptests/test_s1setup_incorrect_plmn.py \
-s1aptests/test_s1setup_incorrect_tac.py \
+s1aptests/test_s1setup_failure_incorrect_plmn.py \
+s1aptests/test_s1setup_failure_incorrect_tac.py \
 s1aptests/test_sctp_abort_after_auth_req.py \
 s1aptests/test_sctp_abort_after_identity_req.py \
 s1aptests/test_sctp_abort_after_smc.py \
@@ -169,10 +169,7 @@ s1aptests/test_attach_mobile_reachability_timer_expiry.py \
 s1aptests/test_attach_implicit_detach_timer_expiry.py \
 s1aptests/test_mobile_reachability_tmr_with_mme_restart.py \
 s1aptests/test_implicit_detach_timer_with_mme_restart.py \
-s1aptests/test_restore_mme_config_after_sanity.py \
-s1aptests/test_attach_detach_attach_ul_tcp_data_pipelined_tbl0.py \
-s1aptests/test_attach_detach_attach_dl_tcp_data_pipelined_tbl0.py
-
+s1aptests/test_restore_mme_config_after_sanity.py
 
 NON_SANITY_TESTS = s1aptests/test_modify_config_for_non_sanity.py \
 s1aptests/test_attach_detach_non_nat_dp_ul_tcp.py \

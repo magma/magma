@@ -215,21 +215,21 @@ class QosManager(object):
             if qos_impl_type == QosImplType.OVS_METER:
                 MeterManager.dump_meter_state(v)
             else:
-                intf = 'nat_iface' if d == FlowMatch.UPLINK else 'enodeb_iface'
-                print("Dev: ", config[intf])
-                TrafficClass.dump_class_state(config[intf], qid)
+                dev = config['nat_iface'] if d == FlowMatch.UPLINK else 'gtpu_sys_2152'
+                print("Dev: ", dev)
+                TrafficClass.dump_class_state(dev, qid)
                 if leaf and leaf != qid:
                     print("Leaf:")
-                    TrafficClass.dump_class_state(config[intf], leaf)
+                    TrafficClass.dump_class_state(dev, leaf)
                 if ambr:
                     print("AMBR (parent):")
-                    TrafficClass.dump_class_state(config[intf], ambr)
+                    TrafficClass.dump_class_state(dev, ambr)
 
         if qos_impl_type == QosImplType.LINUX_TC:
             dev = config['nat_iface']
             print("Root stats for: ", dev)
             TrafficClass.dump_root_class_stats(dev)
-            dev = config['enodeb_iface']
+            dev = 'gtpu_sys_2152'
             print("Root stats for: ", dev)
             TrafficClass.dump_root_class_stats(dev)
 

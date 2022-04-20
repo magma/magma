@@ -43,6 +43,7 @@ services:
     command: "/usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 -- yarn run start:dev"
     volumes:
       - ../../packages/magmalte/app:/usr/src/packages/magmalte/app
+      - ../../packages/magmalte/fbc_js_core:/usr/src/packages/magmalte/fbc_js_core
       - ../../packages/magmalte/scripts:/usr/src/packages/magmalte/scripts
       - ../../packages/magmalte/server:/usr/src/packages/magmalte/server
     depends_on:

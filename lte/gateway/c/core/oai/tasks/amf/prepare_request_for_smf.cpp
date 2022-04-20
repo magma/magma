@@ -25,16 +25,16 @@ extern "C" {
 #include <cstdint>
 #include <cstring>
 #include <string>
-#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.hpp"
 #include <unistd.h>
 #include <thread>
-#include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.h"
+#include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.hpp"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/protos/session_manager.pb.h"
-#include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
+#include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
 
 #define VERSION_0 0
 

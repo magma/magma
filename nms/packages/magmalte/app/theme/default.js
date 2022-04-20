@@ -16,7 +16,7 @@
 
 //  NOTE: Color Names generated from hex code at http://chir.ag/projects/name-that-color/
 
-import {createMuiTheme} from '@material-ui/core/styles';
+import {createTheme} from '@material-ui/core/styles';
 
 export const colors = {
   primary: {
@@ -214,7 +214,7 @@ export const shadows = {
     '0px 24px 38px 0px rgba(0, 0, 0, 0.14), 0px 9px 46px 0px rgba(0, 0, 0, 0.12), 0px 11px 15px 0px rgba(0, 0, 0, 0.20)',
 };
 
-export default createMuiTheme({
+export default createTheme({
   palette: {
     primary: {
       light: colors.secondary.malibu,
@@ -349,13 +349,6 @@ export default createMuiTheme({
           ...typography.overline,
           color: colors.state.error,
         },
-      },
-    },
-    MuiToggleButtonGroup: {
-      '&$selected': {
-        boxShadow: 'none',
-        borderRadius: 4,
-        border: `1px solid ${colors.secondary.dodgerBlue}`,
       },
     },
     MuiToggleButton: {

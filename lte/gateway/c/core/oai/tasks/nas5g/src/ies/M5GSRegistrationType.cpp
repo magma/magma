@@ -19,7 +19,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSRegistrationType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSRegistrationType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include <bitset>
 

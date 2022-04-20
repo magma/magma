@@ -16,8 +16,6 @@ RUN apt-get update && \
         apt-utils \
         build-essential \
         ca-certificates \
-        # needed to build pip dependencies (e.g. systemd) 
-        clang-11 \
         curl \
         gcc \
         git \
@@ -59,8 +57,7 @@ RUN apt-get update && \
         uuid-dev \
         vim \
         wget \
-        zip && \
-    update-alternatives --install /usr/bin/clang clang /usr/lib/llvm-11/bin/clang 10
+        zip
 
 # Install depencies from facebook repository
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/

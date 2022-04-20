@@ -49,7 +49,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error opening db connection: %s", err)
 	}
-	cbsdStore := dp_storage.NewCbsdManager(db, sqorc.GetSqlBuilder())
+	cbsdStore := dp_storage.NewCbsdManager(db, sqorc.GetSqlBuilder(), sqorc.GetErrorChecker())
 
 	interval := time.Second * time.Duration(serviceConfig.CbsdInactivityIntervalSec)
 	protos.RegisterCbsdManagementServer(srv.GrpcServer, servicers.NewCbsdManager(cbsdStore, interval))

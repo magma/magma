@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/sctpd/src/sctpd.h"
+#include "lte/gateway/c/sctpd/src/sctpd.hpp"
 
 #include <lte/protos/mconfig/mconfigs.pb.h>
 #include <orc8r/protos/mconfig/mconfigs.pb.h>
@@ -20,14 +20,14 @@
 #include <grpcpp/grpcpp.h>
 #include <signal.h>
 
-#include "lte/gateway/c/sctpd/src/sctpd_downlink_impl.h"
-#include "lte/gateway/c/sctpd/src/sctpd_event_handler.h"
-#include "lte/gateway/c/sctpd/src/sctpd_uplink_client.h"
-#include "lte/gateway/c/sctpd/src/util.h"
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
+#include "lte/gateway/c/sctpd/src/sctpd_downlink_impl.hpp"
+#include "lte/gateway/c/sctpd/src/sctpd_event_handler.hpp"
+#include "lte/gateway/c/sctpd/src/sctpd_uplink_client.hpp"
+#include "lte/gateway/c/sctpd/src/util.hpp"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging_init.h"
-#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.hpp"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 
 #define SCTPD_SERVICE "sctpd"
 #define SHARED_MCONFIG "shared_mconfig"

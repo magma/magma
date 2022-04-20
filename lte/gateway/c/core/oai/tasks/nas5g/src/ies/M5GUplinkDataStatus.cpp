@@ -14,7 +14,7 @@ limitations under the License.
 #include <cstdint>
 #include <cstring>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUplinkDataStatus.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUplinkDataStatus.hpp"
 
 namespace magma5g {
 M5GUplinkDataStatus::M5GUplinkDataStatus(){};

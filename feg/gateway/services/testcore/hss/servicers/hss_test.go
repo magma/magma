@@ -96,7 +96,7 @@ func TestHomeSubscriberServer_UpdateSubscriber(t *testing.T) {
 	server := test_utils.NewTestHomeSubscriberServer(t)
 
 	_, err := server.UpdateSubscriber(context.Background(), nil)
-	assert.EqualError(t, err, "UpdateSubscriber got a nil request")
+	assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = Update request cannot be nil")
 
 	sub := &protos.SubscriberData{}
 	_, err = server.UpdateSubscriber(context.Background(), &protos.SubscriberUpdate{Data: sub})

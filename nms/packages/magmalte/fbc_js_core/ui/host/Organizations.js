@@ -235,7 +235,7 @@ function Organizations(props: Props) {
   return (
     <div className={classes.paper}>
       <Grid container>
-        <Grid container justify="space-between">
+        <Grid container justifyContent="space-between">
           <Text variant="h3">Organizations</Text>
           <NestedRouteLink to="/new">
             <Button color="primary" variant="contained">

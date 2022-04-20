@@ -27,7 +27,7 @@
 #include "GrpcMagmaUtils.h"
 #include "PipelinedClient.h"
 #include "Types.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.hpp"
 #include "lte/protos/apn.pb.h"
 #include "lte/protos/pipelined.grpc.pb.h"
 #include "lte/protos/pipelined.pb.h"

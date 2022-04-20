@@ -14,7 +14,7 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.hpp"
 
 #include <string>
 #include <arpa/inet.h>

@@ -26,7 +26,7 @@ sentry_deps = [
 cc_library(
     name = "sentry_wrapper",
     srcs = ["SentryWrapper.cpp"],
-    hdrs = ["includes/SentryWrapper.h"],
+    hdrs = ["includes/SentryWrapper.hpp"],
     # TODO(@themarwhal): Enable Sentry by default - GH9302
     copts = select({
         ":disable_sentry_native": [],

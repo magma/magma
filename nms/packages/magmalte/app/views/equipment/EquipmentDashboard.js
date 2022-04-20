@@ -72,7 +72,7 @@ function EquipmentDashboardInternal() {
             filters: (
               <Grid
                 container
-                justify="flex-end"
+                justifyContent="flex-end"
                 alignItems="center"
                 spacing={2}>
                 <Grid item>

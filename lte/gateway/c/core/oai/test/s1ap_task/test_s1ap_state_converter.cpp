@@ -15,13 +15,13 @@
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "S1ap_S1AP-PDU.h"
-#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
 }
 
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.h"
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 
 using ::testing::Test;
 

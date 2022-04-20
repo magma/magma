@@ -11,9 +11,9 @@
  * limitations under the License.
  */
 
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 #include <stdarg.h>  // for va_end, va_list, va_start
-#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.h"  // for MetricsSingleton
+#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.hpp"  // for MetricsSingleton
 
 using magma::service303::MetricsSingleton;
 

@@ -14,9 +14,6 @@
  * @format
  */
 
-import type {ProjectLink} from './AppDrawerProjectNavigation';
-
-import AppSideBarProjectNavigation from './AppSideBarProjectNavigation';
 import ExpandButton from './ExpandButton';
 import ProfileButton from '../ProfileButton';
 import React, {useState} from 'react';
@@ -70,12 +67,6 @@ const useStyles = makeStyles(theme => ({
 type Props = {
   mainItems: any,
   secondaryItems?: any,
-  showSettings: boolean,
-  user: {
-    email: string,
-    isSuperUser: boolean,
-  },
-  projects?: ProjectLink[],
   useExpandButton: boolean,
   showExpandButton: boolean,
   expanded: boolean,
@@ -84,7 +75,6 @@ type Props = {
 
 const AppSideBar = (props: Props) => {
   const {
-    user,
     expanded,
     showExpandButton,
     useExpandButton,
@@ -93,7 +83,6 @@ const AppSideBar = (props: Props) => {
     secondaryItems,
   } = props;
   const classes = useStyles();
-  const projects = props.projects || [];
   const [hovered, setIsHovered] = useState(false);
   return (
     <div
@@ -118,9 +107,8 @@ const AppSideBar = (props: Props) => {
       )}
       <div className={classes.secondaryItems}>
         {secondaryItems}
-        <ProfileButton showSettings={props.showSettings} user={user} />
+        <ProfileButton />
       </div>
-      <AppSideBarProjectNavigation projects={projects} />
     </div>
   );
 };

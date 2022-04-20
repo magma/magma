@@ -252,6 +252,7 @@ export type diameter_client_configs = {
     product_name ? : string,
     protocol ? : "tcp" | "tcp4" | "tcp6" | "sctp" | "sctp4" | "sctp6",
     realm ? : string,
+    request_timeout ? : number,
     retransmits ? : number,
     retry_count ? : number,
     watchdog_interval ? : number,
@@ -2787,6 +2788,7 @@ export default class MagmaAPIBindings {
                 'networkId': string,
                 'offset' ? : number,
                 'limit' ? : number,
+                'serialNumber' ? : string,
             }
         ): Promise < paginated_cbsds >
         {
@@ -2805,6 +2807,10 @@ export default class MagmaAPIBindings {
 
             if (parameters['limit'] !== undefined) {
                 query['limit'] = parameters['limit'];
+            }
+
+            if (parameters['serialNumber'] !== undefined) {
+                query['serial_number'] = parameters['serialNumber'];
             }
 
             return await this.request(path, 'GET', query, body);
@@ -2927,8 +2933,7 @@ export default class MagmaAPIBindings {
                 'from' ? : "SAS" | "DP" | "CBSD",
                 'to' ? : "SAS" | "DP" | "CBSD",
             }
-        ): Promise < Array < log >
-        >
+        ): Promise < paginated_logs >
         {
             let path = '/dp/{network_id}/logs';
             let body;

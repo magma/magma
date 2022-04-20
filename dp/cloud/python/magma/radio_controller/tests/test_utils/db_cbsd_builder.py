@@ -25,7 +25,7 @@ class DBCbsdBuilder:
         return self
 
     def updated(self):
-        self.cbsd.is_updated = True
+        self.cbsd.should_deregister = True
         return self
 
     def with_id(self, db_id: int) -> DBCbsdBuilder:
@@ -109,9 +109,8 @@ class DBCbsdBuilder:
         self.cbsd.channels.append(channel)
         return self
 
-    def with_request(self, state_id: int, type_id: int, payload: str) -> DBCbsdBuilder:
+    def with_request(self, type_id: int, payload: str) -> DBCbsdBuilder:
         request = DBRequest(
-            state_id=state_id,
             type_id=type_id,
             payload=json.loads(payload),
         )

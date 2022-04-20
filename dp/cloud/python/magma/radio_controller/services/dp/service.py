@@ -23,18 +23,12 @@ from magma.db_service.models import (
     DBGrant,
     DBGrantState,
     DBRequest,
-    DBRequestState,
     DBRequestType,
 )
 from magma.db_service.session_manager import Session, SessionManager
 from magma.fluentd_client.client import FluentdClient, FluentdClientException
 from magma.fluentd_client.dp_logs import make_dp_log
-from magma.mappings.types import (
-    CbsdStates,
-    GrantStates,
-    RequestStates,
-    RequestTypes,
-)
+from magma.mappings.types import CbsdStates, GrantStates, RequestTypes
 from magma.radio_controller.config import get_config
 from sqlalchemy.sql.functions import now
 
@@ -191,9 +185,6 @@ class DPService(DPServiceServicer):
         return result
 
     def _add_relinquish_requests(self, session: Session, cbsd: DBCbsd) -> None:
-        request_pending_state = session.query(DBRequestState).filter(
-            DBRequestState.name == RequestStates.PENDING.value,
-        ).scalar()
         deregister_request_type = session.query(DBRequestType).filter(
             DBRequestType.name == RequestTypes.RELINQUISHMENT.value,
         ).scalar()
@@ -204,7 +195,6 @@ class DPService(DPServiceServicer):
             request_dict = {"cbsdId": cbsd.cbsd_id, "grantId": grant.grant_id}
             db_request = DBRequest(
                 type=deregister_request_type,
-                state=request_pending_state,
                 cbsd=cbsd,
                 payload=request_dict,
             )

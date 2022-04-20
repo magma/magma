@@ -31,7 +31,7 @@ cc_library(
         "sgw_s8_utility.cpp",
     ],
     hdrs = [
-        "sgw_s8_utility.h",
+        "sgw_s8_utility.hpp",
     ],
     deps = [
         "//lte/gateway/c/core",

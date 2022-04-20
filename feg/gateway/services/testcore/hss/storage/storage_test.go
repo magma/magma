@@ -16,8 +16,10 @@ package storage
 import (
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/suite"
+	"google.golang.org/genproto/protobuf/field_mask"
 
 	"magma/lte/cloud/go/protos"
+	orc8rprotos "magma/orc8r/lib/go/protos"
 )
 
 // SubscriberStoreTestSuite is a test suite which can be run against any implementation
@@ -79,29 +81,115 @@ func (suite *SubscriberStoreTestSuite) TestUpdateSubscriberData() {
 	store := suite.store
 
 	err := store.UpdateSubscriber(nil)
-	suite.Exactly(NewInvalidArgumentError("Subscriber data cannot be nil"), err)
+	suite.Exactly(NewInvalidArgumentError("Update request cannot be nil"), err)
 
-	sub := &protos.SubscriberData{}
-	err = store.UpdateSubscriber(sub)
+	subUpdt := &protos.SubscriberUpdate{Data: &protos.SubscriberData{}}
+	err = store.UpdateSubscriber(subUpdt)
 	suite.Exactly(NewInvalidArgumentError("Subscriber data must contain a subscriber id"), err)
 
-	sub = &protos.SubscriberData{Sid: &protos.SubscriberID{Id: "1"}}
-	err = store.UpdateSubscriber(sub)
+	sub := &protos.SubscriberData{Sid: &protos.SubscriberID{Id: "1"}}
+	subUpdt = &protos.SubscriberUpdate{Data: sub}
+
+	err = store.UpdateSubscriber(subUpdt)
 	suite.Exactly(NewUnknownSubscriberError("1"), err)
 
 	err = store.AddSubscriber(sub)
 	suite.NoError(err)
 
-	updatedSub := &protos.SubscriberData{
-		Sid:        &protos.SubscriberID{Id: "1"},
-		SubProfile: "test",
+	updatedSub := &protos.SubscriberUpdate{
+		Data: &protos.SubscriberData{
+			Sid:        &protos.SubscriberID{Id: "1"},
+			SubProfile: "test",
+		},
 	}
 	err = store.UpdateSubscriber(updatedSub)
 	suite.NoError(err)
 
 	retrievedSub, err := store.GetSubscriberData("1")
 	suite.NoError(err)
-	suite.True(proto.Equal(updatedSub, retrievedSub))
+	suite.True(proto.Equal(updatedSub.Data, retrievedSub))
+}
+
+func (suite *SubscriberStoreTestSuite) TestPartialUpdateSubscriberData() {
+	store := suite.store
+
+	// initial subscriber
+	sub := &protos.SubscriberData{
+		Sid: &protos.SubscriberID{Id: "1"},
+		Gsm: &protos.GSMSubscription{
+			State:      1,
+			AuthAlgo:   1,
+			AuthKey:    []byte{1, 1, 1},
+			AuthTuples: nil,
+		},
+		Lte: &protos.LTESubscription{
+			State:             protos.LTESubscription_ACTIVE,
+			AuthAlgo:          1,
+			AuthKey:           []byte{1, 1, 1},
+			AuthOpc:           []byte{9, 9, 9},
+			AssignedBaseNames: nil,
+			AssignedPolicies:  nil,
+		},
+	}
+
+	// update request with mask (only update fields in mask)
+	updatedSub := &protos.SubscriberUpdate{
+		// Mask indicates the fields that should be updated
+		Mask: &field_mask.FieldMask{
+			Paths: []string{"SubProfile", "Lte.AuthAlgo", "Non_3Gpp"},
+		},
+		Data: &protos.SubscriberData{
+			Sid:        &protos.SubscriberID{Id: "1"},
+			SubProfile: "test",
+			Lte: &protos.LTESubscription{
+				AuthAlgo: 0,
+				AuthKey:  []byte{2, 2, 2},
+			},
+			Non_3Gpp: &protos.Non3GPPUserProfile{
+				Msisdn:              "12345",
+				Non_3GppIpAccess:    10,
+				Non_3GppIpAccessApn: 11,
+			},
+			// NetworkId should not be updated since it is not in Mask
+			NetworkId: &orc8rprotos.NetworkID{Id: "test"},
+		},
+	}
+
+	// expected result after update with mask
+	expectedRes := &protos.SubscriberData{
+		Sid:        &protos.SubscriberID{Id: "1"},
+		SubProfile: "test", // Modified (new)
+		Gsm: &protos.GSMSubscription{
+			State:      1,
+			AuthAlgo:   1,
+			AuthKey:    []byte{1, 1, 1},
+			AuthTuples: nil,
+		},
+		Lte: &protos.LTESubscription{
+			State:             protos.LTESubscription_ACTIVE,
+			AuthAlgo:          0,               // Modified
+			AuthKey:           []byte{1, 1, 1}, // Not Modified
+			AuthOpc:           []byte{9, 9, 9},
+			AssignedBaseNames: nil,
+			AssignedPolicies:  nil,
+		},
+		Non_3Gpp: &protos.Non3GPPUserProfile{ // Modified (new)
+			Msisdn:              "12345",
+			Non_3GppIpAccess:    10,
+			Non_3GppIpAccessApn: 11,
+		},
+	}
+
+	err := store.AddSubscriber(sub)
+	suite.NoError(err)
+
+	err = store.UpdateSubscriber(updatedSub)
+	suite.NoError(err)
+
+	retrievedSub, err := store.GetSubscriberData("1")
+	suite.NoError(err)
+
+	suite.True(proto.Equal(expectedRes, retrievedSub))
 }
 
 func (suite *SubscriberStoreTestSuite) TestDeleteSubscriber() {
@@ -158,7 +246,7 @@ func (suite *SubscriberStoreTestSuite) TestRaceCondition() {
 		localSub.State.LteAuthNextSeq = i
 
 		go func() {
-			err := store.UpdateSubscriber(localSub)
+			err := store.UpdateSubscriber(&protos.SubscriberUpdate{Data: localSub})
 			suite.NoError(err)
 			doneSignal <- struct{}{}
 		}()

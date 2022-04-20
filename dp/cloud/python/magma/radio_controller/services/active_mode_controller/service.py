@@ -38,11 +38,10 @@ from magma.db_service.models import (
     DBGrant,
     DBGrantState,
     DBRequest,
-    DBRequestState,
 )
 from magma.db_service.session_manager import Session, SessionManager
 from magma.mappings.cbsd_states import cbsd_state_mapping, grant_state_mapping
-from magma.mappings.types import GrantStates, RequestStates
+from magma.mappings.types import GrantStates
 from sqlalchemy import and_
 from sqlalchemy.orm import contains_eager, joinedload
 
@@ -114,7 +113,7 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
         with self.session_manager.session_scope() as session:
             updated = session.query(DBCbsd).filter(
                 DBCbsd.id == db_id,
-            ).update({'is_updated': False})
+            ).update({'should_deregister': False})
             session.commit()
             if not updated:
                 context.set_code(grpc.StatusCode.NOT_FOUND)
@@ -127,9 +126,6 @@ def _list_cbsds(session: Session) -> State:
     # with eager_contains and filter (aliases)
     db_grant_idle_state_id = session.query(DBGrantState.id).filter(
         DBGrantState.name == GrantStates.IDLE.value,
-    ).scalar_subquery()
-    db_request_pending_state_id = session.query(DBRequestState.id).filter(
-        DBRequestState.name == RequestStates.PENDING.value,
     ).scalar_subquery()
 
     not_null = [
@@ -150,12 +146,7 @@ def _list_cbsds(session: Session) -> State:
                 DBGrant.state_id != db_grant_idle_state_id,
             ),
         ).
-        outerjoin(
-            DBRequest, and_(
-                DBRequest.cbsd_id == DBCbsd.id,
-                DBRequest.state_id == db_request_pending_state_id,
-            ),
-        ).
+        outerjoin(DBRequest).
         options(
             joinedload(DBCbsd.state),
             joinedload(DBCbsd.channels),
@@ -242,7 +233,7 @@ def _build_preferences(cbsd: DBCbsd) -> FrequencyPreferences:
 def _build_db_data(cbsd: DBCbsd) -> DatabaseCbsd:
     return DatabaseCbsd(
         id=cbsd.id,
-        is_updated=cbsd.is_updated,
+        should_deregister=cbsd.should_deregister,
         is_deleted=cbsd.is_deleted,
     )
 

@@ -6,7 +6,7 @@ If you believe you have found a security vulnerability in any Magma Core Foundat
 
 ## Reporting Security Issues
 
-Report vulnerabilities by sending email to [security@magmacore.org](mailto:security@magmacore.org). _Please **do not report security vulnerabilities using Github Issues**._  While the Magma Core Foundation is committed to operating openly and transparently, reporting security vulnerabilities publicly could place users of the Foundation's software at risk of having their systems exploited.
+Report vulnerabilities by sending email to [security@lists.magmacore.org](mailto:security@lists.magmacore.org). _Please **do not report security vulnerabilities using Github Issues**._  While the Magma Core Foundation is committed to operating openly and transparently, reporting security vulnerabilities publicly could place users of the Foundation's software at risk of having their systems exploited.
 
 In order to help us understand the scope of the issue and to triage your report more quickly please include the information listed below (as much as you can provide):
 
@@ -22,9 +22,9 @@ We prefer all communications to be in English.
 
 ## Response Process
 
-Certain members of the Magma team have been designated as the "vulnerability management team" and will receive any e-mails sent to `security@magmacore.org`. When receiving such an e-mail, they will:
+Certain members of the Magma team have been designated as the "vulnerability management team" and will receive any e-mails sent to `security@lists.magmacore.org`. When receiving such an e-mail, they will:
 
-1. Reply to the e-mail acknowledging its receipt, cc'ing `security@magmacore.org` so that the other members of the team are aware that they are handling the issue.  
+1. Reply to the e-mail acknowledging its receipt, cc'ing `security@lists.magmacore.org` so that the other members of the team are aware that they are handling the issue.  
 
     - If you are a submitter and do not receive a response within 72 hours, please follow up via email to ensure we received your original message.
 

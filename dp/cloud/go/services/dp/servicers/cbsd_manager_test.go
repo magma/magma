@@ -46,6 +46,7 @@ const (
 	cbsdId            int64 = 123
 	interval                = time.Hour
 	lastSeenTimestamp       = 1234567
+	someSerialNumber        = "some_serial_number"
 )
 
 func (s *CbsdManagerTestSuite) SetupTest() {
@@ -70,6 +71,20 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 
 	s.Assert().Equal(networkId, s.store.networkId)
 	s.Assert().Equal(getDBCbsd(), s.store.data)
+}
+
+func (s *CbsdManagerTestSuite) TestCreateWithDuplicateData() {
+	s.store.err = merrors.ErrAlreadyExists
+
+	request := &protos.CreateCbsdRequest{
+		NetworkId: networkId,
+		Data:      getProtoCbsd(),
+	}
+	_, err := s.manager.CreateCbsd(context.Background(), request)
+	s.Require().Error(err)
+
+	errStatus, _ := status.FromError(err)
+	s.Assert().Equal(codes.AlreadyExists, errStatus.Code())
 }
 
 func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
@@ -99,6 +114,21 @@ func (s *CbsdManagerTestSuite) TestUpdateNonexistentCbsd() {
 
 	errStatus, _ := status.FromError(err)
 	s.Assert().Equal(codes.NotFound, errStatus.Code())
+}
+
+func (s *CbsdManagerTestSuite) TestUpdateWithDuplicateData() {
+	s.store.err = merrors.ErrAlreadyExists
+
+	request := &protos.UpdateCbsdRequest{
+		NetworkId: networkId,
+		Id:        cbsdId,
+		Data:      getProtoCbsd(),
+	}
+	_, err := s.manager.UpdateCbsd(context.Background(), request)
+	s.Require().Error(err)
+
+	errStatus, _ := status.FromError(err)
+	s.Assert().Equal(codes.AlreadyExists, errStatus.Code())
 }
 
 func (s *CbsdManagerTestSuite) TestDeleteCbsd() {
@@ -235,11 +265,33 @@ func (s *CbsdManagerTestSuite) TestListCbsdWithPagination() {
 	s.Assert().Equal(expected, actual)
 }
 
+func (s *CbsdManagerTestSuite) TestListCbsdWithFilter() {
+	s.store.list = getDetailedCbsdList()
+
+	request := &protos.ListCbsdRequest{
+		NetworkId:  networkId,
+		Pagination: &protos.Pagination{},
+		Filter: &protos.CbsdFilter{
+			SerialNumber: someSerialNumber,
+		},
+	}
+	actual, err := s.manager.ListCbsds(context.Background(), request)
+	s.Require().NoError(err)
+
+	s.Assert().Equal(networkId, s.store.networkId)
+	expectedFilter := &storage.CbsdFilter{
+		SerialNumber: someSerialNumber,
+	}
+	s.Assert().Equal(expectedFilter, s.store.filter)
+	expected := getProtoDetailedCbsdList()
+	s.Assert().Equal(expected, actual)
+}
+
 func getProtoCbsd() *protos.CbsdData {
 	return &protos.CbsdData{
 		UserId:       "some_user_id",
 		FccId:        "some_fcc_id",
-		SerialNumber: "some_serial_number",
+		SerialNumber: someSerialNumber,
 		Capabilities: &protos.Capabilities{
 			MinPower:         10,
 			MaxPower:         20,
@@ -282,7 +334,7 @@ func getDBCbsd() *storage.DBCbsd {
 	return &storage.DBCbsd{
 		UserId:                  db.MakeString("some_user_id"),
 		FccId:                   db.MakeString("some_fcc_id"),
-		CbsdSerialNumber:        db.MakeString("some_serial_number"),
+		CbsdSerialNumber:        db.MakeString(someSerialNumber),
 		PreferredBandwidthMHz:   db.MakeInt(20),
 		PreferredFrequenciesMHz: db.MakeString("[3600]"),
 		MinPower:                db.MakeFloat(10),
@@ -329,6 +381,7 @@ type stubCbsdManager struct {
 	details    *storage.DetailedCbsd
 	list       *storage.DetailedCbsdList
 	pagination *storage.Pagination
+	filter     *storage.CbsdFilter
 	err        error
 }
 
@@ -357,8 +410,9 @@ func (s *stubCbsdManager) FetchCbsd(networkId string, id int64) (*storage.Detail
 	return s.details, s.err
 }
 
-func (s *stubCbsdManager) ListCbsd(networkId string, pagination *storage.Pagination) (*storage.DetailedCbsdList, error) {
+func (s *stubCbsdManager) ListCbsd(networkId string, pagination *storage.Pagination, filter *storage.CbsdFilter) (*storage.DetailedCbsdList, error) {
 	s.networkId = networkId
 	s.pagination = pagination
+	s.filter = filter
 	return s.list, s.err
 }

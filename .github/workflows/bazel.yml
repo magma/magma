@@ -59,6 +59,17 @@ jobs:
     name: Bazel Build Job `bazel build //...`
     runs-on: ubuntu-latest
     steps:
+      - name: Maximize build space
+        shell: bash
+        run: |
+          echo "Available storage before:"
+          df -h
+          echo "Removing /usr/share/dotnet, /usr/local/lib/android, /opt/ghc"
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          echo "Available storage after:"
+          df -h
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
         uses: actions/checkout@v2
@@ -121,6 +132,11 @@ jobs:
           run: |
             cd /workspaces/magma
             bazel build //...
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h
 
   bazel_test:
     needs: path_filter
@@ -132,6 +148,17 @@ jobs:
     name: Bazel Test Job `bazel test //...`
     runs-on: ubuntu-latest
     steps:
+      - name: Maximize build space
+        shell: bash
+        run: |
+          echo "Available storage before:"
+          df -h
+          echo "Removing /usr/share/dotnet, /usr/local/lib/android, /opt/ghc"
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          echo "Available storage after:"
+          df -h
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
         uses: actions/checkout@v2
@@ -194,3 +221,8 @@ jobs:
           run: |
             cd /workspaces/magma
             bazel run //:check_starlark_format
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h

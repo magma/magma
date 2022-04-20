@@ -68,7 +68,7 @@ const Alert = ({
       classes={{paper: classes.paper}}
       open={open}
       onClose={onCancel}
-      onExited={onClose}
+      TransitionProps={{ onExited: onClose }}
       maxWidth="sm">
       {title && <DialogTitle>{title}</DialogTitle>}
       <DialogContent>

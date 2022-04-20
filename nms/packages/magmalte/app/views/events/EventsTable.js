@@ -343,7 +343,7 @@ export default function EventsTable(props: EventTableProps) {
               <>
                 <Grid
                   container
-                  justify="flex-end"
+                  justifyContent="flex-end"
                   alignItems="center"
                   spacing={1}>
                   <Grid item>
@@ -386,7 +386,7 @@ export default function EventsTable(props: EventTableProps) {
                 </Grid>
                 <Grid
                   container
-                  justify="flex-end"
+                  justifyContent="flex-end"
                   alignItems="center"
                   spacing={1}>
                   <Grid item>

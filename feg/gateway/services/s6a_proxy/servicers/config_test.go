@@ -34,11 +34,12 @@ func TestS6aConfig(t *testing.T) {
 					"retransmits": 3,
 					"watchdog_interval": 1,
 					"retry_count": 5,
+					"request_timeout": 15,
 					"product_name": "magma_test",
 					"realm": "local.openair4G.eur",
 					"host": "local.magma-oai.openair4G.eur",
-					"dest_host":"magma-oai.openair4G.eur",
-					"dest_realm":"openair4G.eur"
+					"dest_host": "magma-oai.openair4G.eur",
+					"dest_realm": "openair4G.eur"
 				}
 			}
 		}
@@ -57,5 +58,6 @@ func TestS6aConfig(t *testing.T) {
 	assert.Equal(t, "local.magma-oai.openair4G.eur", cliConfig.Host)
 	assert.Equal(t, "local.openair4G.eur", cliConfig.Realm)
 	assert.Equal(t, uint(1), cliConfig.WatchdogInterval)
+	assert.Equal(t, uint(15), cliConfig.RequestTimeout)
 	assert.Equal(t, "magma_test", cliConfig.ProductName)
 }

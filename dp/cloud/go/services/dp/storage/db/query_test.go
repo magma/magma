@@ -40,7 +40,7 @@ func (s *QueryTestSuite) SetupSuite() {
 	database, err := sqorc.Open("sqlite3", ":memory:")
 	s.Require().NoError(err)
 	s.resourceManager = dbtest.NewResourceManager(s.T(), database, builder)
-	err = s.resourceManager.CreateTables(&someModel{}, &otherModel{}, &anotherModel{})
+	err = s.resourceManager.CreateTables(&someModel{}, &otherModel{}, &anotherModel{}, &modelWithUniqueFields{})
 	s.Require().NoError(err)
 }
 
@@ -75,6 +75,11 @@ func (s *QueryTestSuite) TestCreate() {
 		fieldMask: db.NewExcludeMask("default_value"),
 		input:     &anotherModel{id: db.MakeInt(id * 3)},
 		expected:  &anotherModel{id: db.MakeInt(id * 3), defaultValue: db.MakeInt(defaultValue)},
+	}, {
+		name:      "Should create resource with unique fields",
+		fieldMask: db.NewExcludeMask(),
+		input:     getModelWithUniqueFields(),
+		expected:  getModelWithUniqueFields(),
 	}}
 	for _, tt := range testCases {
 		s.Run(tt.name, s.inTransaction(func() {
@@ -240,6 +245,7 @@ func (s *QueryTestSuite) TestFetch() {
 			Where(sq.Eq{someTable + ".id": id}).
 			Join(db.NewQuery().
 				From(&otherModel{}).
+				On(db.On(someTable, "id", otherTable, "some_id")).
 				Select(db.NewExcludeMask())),
 		expected: []db.Model{
 			getSomeModel(),
@@ -253,6 +259,7 @@ func (s *QueryTestSuite) TestFetch() {
 			Where(sq.Eq{someTable + ".id": 2 * id}).
 			Join(db.NewQuery().
 				From(&otherModel{}).
+				On(db.On(someTable, "id", otherTable, "some_id")).
 				Select(db.NewExcludeMask()).
 				Nullable()),
 		expected: []db.Model{
@@ -260,15 +267,18 @@ func (s *QueryTestSuite) TestFetch() {
 			&otherModel{},
 		},
 	}, {
-		name: "Should use filter as join condition",
+		name: "Should use complex join condition",
 		query: db.NewQuery().
 			From(&someModel{}).
 			Select(db.NewExcludeMask()).
 			Where(sq.Eq{someTable + ".id": id}).
 			Join(db.NewQuery().
 				From(&otherModel{}).
+				On(sq.And{
+					db.On(someTable, "id", otherTable, "some_id"),
+					sq.Eq{otherTable + ".id": id - 1},
+				}).
 				Select(db.NewExcludeMask()).
-				Where(sq.Eq{otherTable + ".id": id - 1}).
 				Nullable()),
 		expected: []db.Model{
 			getSomeModel(),
@@ -282,9 +292,11 @@ func (s *QueryTestSuite) TestFetch() {
 			Where(sq.Eq{someTable + ".id": id}).
 			Join(db.NewQuery().
 				From(&otherModel{}).
+				On(db.On(someTable, "id", otherTable, "some_id")).
 				Select(db.NewExcludeMask()).
 				Join(db.NewQuery().
 					From(&anotherModel{}).
+					On(db.On(otherTable, "id", anotherTable, "other_id")).
 					Select(db.NewExcludeMask()))),
 		expected: []db.Model{
 			getSomeModel(),
@@ -299,11 +311,15 @@ func (s *QueryTestSuite) TestFetch() {
 			Where(sq.Eq{someTable + ".id": id}).
 			Join(db.NewQuery().
 				From(&otherModel{}).
+				On(db.On(someTable, "id", otherTable, "some_id")).
 				Select(db.NewExcludeMask()).
 				Join(db.NewQuery().
 					From(&anotherModel{}).
-					Select(db.NewExcludeMask()).
-					Where(sq.Eq{anotherTable + ".id": id - 1})).
+					On(sq.And{
+						db.On(otherTable, "id", anotherTable, "other_id"),
+						sq.Eq{anotherTable + ".id": id - 1},
+					}).
+					Select(db.NewExcludeMask())).
 				Nullable()),
 		expected: []db.Model{
 			getSomeModel(),
@@ -318,11 +334,15 @@ func (s *QueryTestSuite) TestFetch() {
 			Where(sq.Eq{someTable + ".id": id}).
 			Join(db.NewQuery().
 				From(&otherModel{}).
+				On(db.On(someTable, "id", otherTable, "some_id")).
 				Select(db.NewExcludeMask()).
 				Join(db.NewQuery().
 					From(&anotherModel{}).
+					On(sq.And{
+						db.On(otherTable, "id", anotherTable, "other_id"),
+						sq.Eq{anotherTable + ".id": id - 1},
+					}).
 					Select(db.NewExcludeMask()).
-					Where(sq.Eq{anotherTable + ".id": id - 1}).
 					Nullable()).
 				Nullable()),
 		expected: []db.Model{
@@ -489,7 +509,24 @@ func (s *someModel) withId(id int64) *someModel {
 
 func (s *someModel) GetMetadata() *db.ModelMetadata {
 	return &db.ModelMetadata{
-		Table:     "some",
+		Table: "some",
+		Properties: map[string]*db.Field{
+			"id": {
+				SqlType: sqorc.ColumnTypeInt,
+			},
+			"value": {
+				SqlType: sqorc.ColumnTypeReal,
+			},
+			"name": {
+				SqlType: sqorc.ColumnTypeText,
+			},
+			"flag": {
+				SqlType: sqorc.ColumnTypeBool,
+			},
+			"date": {
+				SqlType: sqorc.ColumnTypeDatetime,
+			},
+		},
 		Relations: nil,
 		CreateObject: func() db.Model {
 			return &someModel{}
@@ -497,23 +534,13 @@ func (s *someModel) GetMetadata() *db.ModelMetadata {
 	}
 }
 
-func (s *someModel) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			BaseType: db.IntType{X: &s.id},
-		},
-		"value": &db.Field{
-			BaseType: db.FloatType{X: &s.value},
-		},
-		"name": &db.Field{
-			BaseType: db.StringType{X: &s.name},
-		},
-		"flag": &db.Field{
-			BaseType: db.BoolType{X: &s.flag},
-		},
-		"date": &db.Field{
-			BaseType: db.TimeType{X: &s.date},
-		},
+func (s *someModel) Fields() map[string]db.BaseType {
+	return map[string]db.BaseType{
+		"id":    db.IntType{X: &s.id},
+		"value": db.FloatType{X: &s.value},
+		"name":  db.StringType{X: &s.name},
+		"flag":  db.BoolType{X: &s.flag},
+		"date":  db.TimeType{X: &s.date},
 	}
 }
 
@@ -539,7 +566,32 @@ type otherModel struct {
 
 func (o *otherModel) GetMetadata() *db.ModelMetadata {
 	return &db.ModelMetadata{
-		Table:     "other",
+		Table: "other",
+		Properties: map[string]*db.Field{
+			"id": {
+				SqlType: sqorc.ColumnTypeInt,
+			},
+			"some_id": {
+				SqlType:  sqorc.ColumnTypeInt,
+				Nullable: true,
+			},
+			"value": {
+				SqlType:  sqorc.ColumnTypeReal,
+				Nullable: true,
+			},
+			"name": {
+				SqlType:  sqorc.ColumnTypeText,
+				Nullable: true,
+			},
+			"flag": {
+				SqlType:  sqorc.ColumnTypeBool,
+				Nullable: true,
+			},
+			"date": {
+				SqlType:  sqorc.ColumnTypeDatetime,
+				Nullable: true,
+			},
+		},
 		Relations: makeRelationsMap(someTable),
 		CreateObject: func() db.Model {
 			return &otherModel{}
@@ -547,31 +599,14 @@ func (o *otherModel) GetMetadata() *db.ModelMetadata {
 	}
 }
 
-func (o *otherModel) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			BaseType: db.IntType{X: &o.id},
-		},
-		"some_id": &db.Field{
-			BaseType: db.IntType{X: &o.someId},
-			Nullable: true,
-		},
-		"value": &db.Field{
-			BaseType: db.FloatType{X: &o.value},
-			Nullable: true,
-		},
-		"name": &db.Field{
-			BaseType: db.StringType{X: &o.name},
-			Nullable: true,
-		},
-		"flag": &db.Field{
-			BaseType: db.BoolType{X: &o.flag},
-			Nullable: true,
-		},
-		"date": &db.Field{
-			BaseType: db.TimeType{X: &o.date},
-			Nullable: true,
-		},
+func (o *otherModel) Fields() map[string]db.BaseType {
+	return map[string]db.BaseType{
+		"id":      db.IntType{X: &o.id},
+		"some_id": db.IntType{X: &o.someId},
+		"value":   db.FloatType{X: &o.value},
+		"name":    db.StringType{X: &o.name},
+		"flag":    db.BoolType{X: &o.flag},
+		"date":    db.TimeType{X: &o.date},
 	}
 }
 
@@ -591,7 +626,21 @@ type anotherModel struct {
 
 func (a *anotherModel) GetMetadata() *db.ModelMetadata {
 	return &db.ModelMetadata{
-		Table:     "another",
+		Table: "another",
+		Properties: map[string]*db.Field{
+			"id": {
+				SqlType: sqorc.ColumnTypeInt,
+			},
+			"other_id": {
+				SqlType:  sqorc.ColumnTypeInt,
+				Nullable: true,
+			},
+			"default_value": {
+				SqlType:      sqorc.ColumnTypeInt,
+				HasDefault:   true,
+				DefaultValue: defaultValue,
+			},
+		},
 		Relations: makeRelationsMap(otherTable),
 		CreateObject: func() db.Model {
 			return &anotherModel{}
@@ -599,20 +648,55 @@ func (a *anotherModel) GetMetadata() *db.ModelMetadata {
 	}
 }
 
-func (a *anotherModel) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			BaseType: db.IntType{X: &a.id},
+func (a *anotherModel) Fields() map[string]db.BaseType {
+	return map[string]db.BaseType{
+		"id":            db.IntType{X: &a.id},
+		"other_id":      db.IntType{X: &a.otherId},
+		"default_value": db.IntType{X: &a.defaultValue},
+	}
+}
+
+func getModelWithUniqueFields() *modelWithUniqueFields {
+	return &modelWithUniqueFields{
+		id:                db.MakeInt(id),
+		uniqueField:       db.MakeInt(id + 1),
+		anotherUniqueFied: db.MakeInt(id + 2),
+	}
+}
+
+type modelWithUniqueFields struct {
+	id                sql.NullInt64
+	uniqueField       sql.NullInt64
+	anotherUniqueFied sql.NullInt64
+}
+
+func (m *modelWithUniqueFields) GetMetadata() *db.ModelMetadata {
+	return &db.ModelMetadata{
+		Table: "unique_table",
+		Properties: map[string]*db.Field{
+			"id": {
+				SqlType: sqorc.ColumnTypeInt,
+			},
+			"unique_field": {
+				SqlType: sqorc.ColumnTypeInt,
+				Unique:  true,
+			},
+			"another_unique_fied": {
+				SqlType: sqorc.ColumnTypeInt,
+				Unique:  true,
+			},
 		},
-		"other_id": &db.Field{
-			BaseType: db.IntType{X: &a.otherId},
-			Nullable: true,
+		CreateObject: func() db.Model {
+			return &modelWithUniqueFields{}
 		},
-		"default_value": &db.Field{
-			BaseType:     db.IntType{X: &a.defaultValue},
-			HasDefault:   true,
-			DefaultValue: defaultValue,
-		},
+	}
+}
+
+func (m *modelWithUniqueFields) Fields() map[string]db.BaseType {
+	return map[string]db.BaseType{
+		"id":                  db.IntType{X: &m.id},
+		"unique_field":        db.IntType{X: &m.uniqueField},
+		"another_unique_fied": db.IntType{X: &m.anotherUniqueFied},
 	}
 }
 

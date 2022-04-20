@@ -26,13 +26,13 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_as.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
 
 namespace magma5g {
 

@@ -110,6 +110,7 @@ func GetGxClientConfiguration() []*diameter.DiameterClientConfig {
 				ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GxDiamProductEnv, diameter.DiamProductName),
 				AppID:              diam.GX_CHARGING_CONTROL_APP_ID,
 				WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
+				RequestTimeout:     diameter.DefaultRequestTimeoutSeconds,
 				RetryCount:         uint(retries),
 				Retransmits:        uint(retransmits),
 				SupportedVendorIDs: diameter.GetValueOrEnv("", GxSupportedVendorIDsEnv, ""),
@@ -135,12 +136,18 @@ func GetGxClientConfiguration() []*diameter.DiameterClientConfig {
 		if wdInterval == 0 {
 			wdInterval = diameter.DefaultWatchdogIntervalSeconds
 		}
+
+		requestTimeout := gxCfg.GetRequestTimeout()
+		if requestTimeout == 0 {
+			requestTimeout = diameter.DefaultRequestTimeoutSeconds
+		}
 		diamCliCfg := &diameter.DiameterClientConfig{
 			Host:               diameter.GetValueOrEnv(diameter.HostFlag, GxDiamHostEnv, gxCfg.GetHost(), i),
 			Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GxDiamRealmEnv, gxCfg.GetRealm(), i),
 			ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GxDiamProductEnv, gxCfg.GetProductName(), i),
 			AppID:              diam.GX_CHARGING_CONTROL_APP_ID,
 			WatchdogInterval:   uint(wdInterval),
+			RequestTimeout:     uint(requestTimeout),
 			RetryCount:         uint(retries),
 			Retransmits:        uint(retransmits),
 			SupportedVendorIDs: diameter.GetValueOrEnv("", GxSupportedVendorIDsEnv, "", i),

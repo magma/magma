@@ -10,9 +10,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import os
 import os.path
 
-from fabric.api import env, local
+from fabric.api import cd, env, local
 
 
 def __ensure_in_vagrant_dir():
@@ -21,9 +22,11 @@ def __ensure_in_vagrant_dir():
     """
     pwd = local('pwd', capture=True)
     if not os.path.isfile(pwd + '/Vagrantfile'):
-        print("Error: Vagrantfile not found. Try executing from fbcode/magma")
-        exit(1)
-
+        # check if we are on a vagrant subdirectory
+        with cd(pwd):
+            if not local('Vagrant validate', capture=True):
+                print("Error: Vagrantfile not found")
+                exit(1)
     return
 
 

@@ -28,14 +28,17 @@ graph LR;
 
 The services will run either on Vagrant VM or on Docker:
 
-| Services          |  Vagrant VM       |  Docker   |
-|-------------------|:-----------------:|:----------:|
-| AGW               | magma             |           |
-| FeG               |                   | &check;   |
-| Orc8r             |                   | &check;   |
-| Traffic server    | magma_trfserver   |           |
-| S1AP tester       | magma_test        |           |
-| HSS               |                   | &check;   |
+| Services          |   Vagrant VM    |  Docker   |
+|-------------------|:---------------:|:---------:|
+| AGW               |      magma      |           |
+| FeG               |     &check;     |  &check;  |
+| Orc8r             |                 |  &check;  |
+| Traffic server    | magma_trfserver |           |
+| S1AP tester       |   magma_test    |           |
+| HSS               |                 |  &check;  |
+
+Note FEG runs on docker inside Magma Vagrant VM. The reason is to guarantee
+docker host mode is supported by the host (not supported by MAC)
 
 ## Running the tests
 
@@ -137,6 +140,11 @@ exit
 - FEG:
 
 ```bash
+cd magma/lte/gateway
+vagrant up magma
+vagrant ssh magma
+
+# inside vagrant vm
 cd magma/lte/gateway/python/integ_tests/federated_tests/docker
 docker-compose build
 docker-compose up -d

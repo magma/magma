@@ -41,6 +41,7 @@ const (
 	OverwriteDestHostFlag = "overwrite_dest_host"
 
 	DefaultWatchdogIntervalSeconds = 3
+	DefaultRequestTimeoutSeconds   = 3
 )
 
 // Diameter flags
@@ -81,6 +82,7 @@ type DiameterClientConfig struct {
 	Retransmits        uint
 	WatchdogInterval   uint
 	RetryCount         uint // number of times to reconnect after connection lost
+	RequestTimeout     uint
 	SupportedVendorIDs string
 	ServiceContextId   string
 }
@@ -132,6 +134,9 @@ func (srcCfg *DiameterClientConfig) FillInDefaults() *DiameterClientConfig {
 	}
 	if cfg.Retransmits == 0 {
 		cfg.Retransmits = 3
+	}
+	if cfg.RequestTimeout == 0 {
+		cfg.RequestTimeout = DefaultRequestTimeoutSeconds
 	}
 	return &cfg
 }

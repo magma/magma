@@ -16,16 +16,12 @@ from typing import Callable, List
 
 import requests
 from magma.configuration_controller.config import get_config
-from magma.db_service.models import (
-    DBGrantState,
-    DBRequest,
-    DBRequestState,
-    DBResponse,
-)
+from magma.configuration_controller.custom_types.custom_types import DBResponse
+from magma.db_service.models import DBGrantState, DBRequest
 from magma.db_service.session_manager import Session
 from magma.fluentd_client.client import FluentdClient, FluentdClientException
 from magma.fluentd_client.dp_logs import make_dp_log
-from magma.mappings.types import GrantStates, RequestStates
+from magma.mappings.types import GrantStates
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +62,6 @@ class ResponseDBProcessor(object):
                 f"[{self.response_type}] Processing requests: {db_requests} using response {response.json()}",
             )
             self._populate_grant_states_map(session)
-            self._populate_request_states_map(session)
             self._process_responses(db_requests, response, session)
         except JSONDecodeError:
             logger.warning(
@@ -87,13 +82,6 @@ class ResponseDBProcessor(object):
             ).scalar(),
             GrantStates.UNSYNC.value: session.query(DBGrantState).filter(
                 DBGrantState.name == GrantStates.UNSYNC.value,
-            ).scalar(),
-        }
-
-    def _populate_request_states_map(self, session):
-        self.request_states_map = {
-            RequestStates.PROCESSED.value: session.query(DBRequestState).filter(
-                DBRequestState.name == RequestStates.PROCESSED.value,
             ).scalar(),
         }
 
@@ -125,13 +113,12 @@ class ResponseDBProcessor(object):
             logger.info(
                 f"[{self.response_type}] Adding Response: {db_response} for Request {db_request}",
             )
-            session.add(db_response)
             self._log_response(response_type, db_response)
-            self._process_request(db_request)
             logger.debug(
                 f'[{self.response_type}] About to process Response: {db_response}',
             )
             self._process_response(db_response, session)
+            self._process_request(session, db_request)
 
     def _log_response(self, response_type: str, db_response: DBResponse):
         try:
@@ -143,8 +130,8 @@ class ResponseDBProcessor(object):
     def _process_response(self, response: DBResponse, session: Session) -> None:
         self.process_responses_func(self, response, session)
 
-    def _process_request(self, request: DBRequest) -> None:
+    def _process_request(self, session: Session, request: DBRequest) -> None:
         logger.info(
-            f"[{self.response_type}] Marking request {request} as processed.",
+            f"[{self.response_type}] Deleting processed request {request}",
         )
-        request.state = self.request_states_map[RequestStates.PROCESSED.value]
+        session.delete(request)

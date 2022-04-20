@@ -97,7 +97,7 @@ export default function TopBar(props: Props) {
         <Grid
           container
           direction="row"
-          justify="space-between"
+          justifyContent="space-between"
           alignItems="center">
           <Grid item xs>
             <Text variant="body2">{props.header}</Text>
@@ -116,42 +116,44 @@ export default function TopBar(props: Props) {
           </Grid>
         </Grid>
       </div>
-      <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid
-          container
-          direction="row"
-          justify="space-between"
-          alignItems="center">
-          <Grid item xs>
-            <Tabs
-              value={currentTab}
-              indicatorColor="primary"
-              TabIndicatorProps={{style: {height: '5px'}}}
-              textColor="inherit"
-              className={classes.tabs}>
-              {props.tabs.map(tab => (
-                <Tab
-                  key={tab.key ?? tab.label}
-                  component={NestedRouteLink}
-                  label={tabLabel(tab.label, tab.icon)}
-                  to={tab.to}
-                  className={classes.tab}
-                  data-testid={tab.label}
-                />
-              ))}
-            </Tabs>
+      {props.tabs.length > 0 && (
+        <AppBar position="static" color="default" className={classes.tabBar}>
+          <Grid
+            container
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center">
+            <Grid item xs>
+              <Tabs
+                value={currentTab}
+                indicatorColor="primary"
+                TabIndicatorProps={{style: {height: '5px'}}}
+                textColor="inherit"
+                className={classes.tabs}>
+                {props.tabs.map(tab => (
+                  <Tab
+                    key={tab.key ?? tab.label}
+                    component={NestedRouteLink}
+                    label={tabLabel(tab.label, tab.icon)}
+                    to={tab.to}
+                    className={classes.tab}
+                    data-testid={tab.label}
+                  />
+                ))}
+              </Tabs>
+            </Grid>
+            {props.tabs.map((tab, i) => (
+              <React.Fragment key={`fragment-${i}`}>
+                {currentTab === i ? (
+                  <Grid key={i} item>
+                    {tab.filters}
+                  </Grid>
+                ) : null}
+              </React.Fragment>
+            ))}
           </Grid>
-          {props.tabs.map((tab, i) => (
-            <React.Fragment key={`fragment-${i}`}>
-              {currentTab === i ? (
-                <Grid key={i} item>
-                  {tab.filters}
-                </Grid>
-              ) : null}
-            </React.Fragment>
-          ))}
-        </Grid>
-      </AppBar>
+        </AppBar>
+      )}
     </>
   );
 }

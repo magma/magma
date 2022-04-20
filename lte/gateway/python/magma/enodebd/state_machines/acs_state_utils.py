@@ -49,6 +49,14 @@ def process_inform_message(
     for name, val in name_to_val.items():
         device_cfg.set_parameter(name, val)
 
+    # In case the SerialNumber does not come in the inform ParameterList
+    # it can still be present in the Inform structure, fill it in.
+    if (
+        hasattr(inform, 'DeviceId')
+        and hasattr(inform.DeviceId, 'SerialNumber')
+    ):
+        device_cfg.set_parameter(ParameterName.SERIAL_NUMBER, inform.DeviceId.SerialNumber)
+
 
 def get_device_name_from_inform(
     inform: models.Inform,
@@ -355,6 +363,11 @@ def should_transition_to_firmware_upgrade_download(acs):
         device_serial_number = acs.device_cfg.get_parameter(
             ParameterName.SERIAL_NUMBER,
         )
+    if not device_sw_version or not device_serial_number:
+        logger.debug(
+            f'Skipping FW Download for eNB, missing device config: {device_sw_version=}, {device_serial_number=}.',
+        )
+        return False
     if acs.is_fw_upgrade_in_progress():
         logger.debug(
             'Skipping FW Download for eNB [%s], firmware upgrade in progress.',
@@ -394,14 +407,14 @@ def get_firmware_upgrade_download_config(acs):
         acs, device_serial_number,
     )
     if fw_upgrade_config:
-        logger.info(f'Found {fw_upgrade_config=} for {device_serial_number=}')
+        logger.debug(f'Found {fw_upgrade_config=} for {device_serial_number=}')
         return fw_upgrade_config
     device_model = acs.device_name
     fw_upgrade_config = _get_firmware_upgrade_download_config_for_model(
         acs, device_model,
     )
     if fw_upgrade_config:
-        logger.info(f'Found {fw_upgrade_config=} for {device_model=}')
+        logger.debug(f'Found {fw_upgrade_config=} for {device_model=}')
     return fw_upgrade_config
 
 

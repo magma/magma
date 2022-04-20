@@ -136,7 +136,7 @@ function FEGNetworkTab(props) {
   const {startDate, endDate, setStartDate, setEndDate} = props;
   const classes = useStyles();
   return (
-    <Grid container justify="flex-end" alignItems="center" spacing={2}>
+    <Grid container justifyContent="flex-end" alignItems="center" spacing={2}>
       <Grid item>
         <Text variant="body3" className={classes.dateTimeText}>
           Filter By Date

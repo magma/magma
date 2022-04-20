@@ -601,7 +601,7 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
         />
       </DialogContent>
       <DialogActions>
-        <Grid container justify="space-between">
+        <Grid container justifyContent="space-between">
           <Grid item>
             <Button
               disabled={!(subscribers.length > 0) || rowAdd}

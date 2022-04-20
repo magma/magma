@@ -34,7 +34,7 @@
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
-#include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_statistics.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
@@ -47,11 +47,11 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ha.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ha.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_network.h"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 #if MME_BENCHMARK
-#include "lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.hpp"
 #endif
 
 static void check_mme_healthy_and_notify_service(void);

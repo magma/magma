@@ -63,7 +63,7 @@ func (listener *subscriberListener) Update(batch *orc8rprotos.DataUpdateBatch) b
 			if oldSub.State != nil {
 				subscriber.State = oldSub.State
 			}
-			err = store.UpdateSubscriber(subscriber)
+			err = store.UpdateSubscriber(&lteprotos.SubscriberUpdate{Data: subscriber})
 			glog.Errorf("failed to update subscriber(%s): %s", id, err.Error())
 		} else {
 			err = store.AddSubscriber(subscriber)

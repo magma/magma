@@ -20,6 +20,7 @@ import (
 
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 func TestFields(t *testing.T) {
@@ -28,30 +29,6 @@ func TestFields(t *testing.T) {
 		model    db.Model
 		expected []string
 	}{
-		{
-			name:     "check field names for DBRequestType",
-			model:    &storage.DBRequestType{},
-			expected: []string{"id", "name"},
-		},
-		{
-			name:     "check field names for DBRequestState",
-			model:    &storage.DBRequestState{},
-			expected: []string{"id", "name"},
-		},
-		{
-			name:  "check field names for DBRequest",
-			model: &storage.DBRequest{},
-			expected: []string{
-				"id", "type_id", "state_id", "cbsd_id", "payload",
-			},
-		},
-		{
-			name:  "check field names for DBResponse",
-			model: &storage.DBResponse{},
-			expected: []string{
-				"id", "request_id", "grant_id", "response_code", "payload",
-			},
-		},
 		{
 			name:     "check field names for DBGrantState",
 			model:    &storage.DBGrantState{},
@@ -80,30 +57,13 @@ func TestFields(t *testing.T) {
 				"fcc_id", "cbsd_serial_number", "last_seen", "grant_attempts",
 				"preferred_bandwidth_mhz", "preferred_frequencies_mhz",
 				"min_power", "max_power", "antenna_gain", "number_of_ports",
-				"is_deleted", "is_updated",
-			},
-		},
-		{
-			name:  "check field names for DBChannel",
-			model: &storage.DBChannel{},
-			expected: []string{
-				"id", "cbsd_id", "low_frequency", "high_frequency",
-				"channel_type", "rule_applied", "max_eirp",
+				"is_deleted", "should_deregister",
 			},
 		},
 		{
 			name:     "check field names for DBActiveModeConfig",
 			model:    &storage.DBActiveModeConfig{},
 			expected: []string{"id", "cbsd_id", "desired_state_id"},
-		},
-		{
-			name:  "check field names for DBLog",
-			model: &storage.DBLog{},
-			expected: []string{
-				"id", "network_id", "log_from", "log_to", "log_name",
-				"log_message", "cbsd_serial_number", "fcc_id",
-				"response_code", "created_date",
-			},
 		},
 	}
 	for _, tc := range testCases {
@@ -126,49 +86,18 @@ func TestGetMetadata(t *testing.T) {
 		expected db.ModelMetadata
 	}{
 		{
-			name:  "check ModelMetadata structure for DBRequestType",
-			model: &storage.DBRequestType{},
-			expected: db.ModelMetadata{
-				Table:     storage.RequestTypeTable,
-				Relations: map[string]string{},
-			},
-		},
-		{
-			name:  "check ModelMetadata structure for DBRequestState",
-			model: &storage.DBRequestState{},
-			expected: db.ModelMetadata{
-				Table:     storage.RequestStateTable,
-				Relations: map[string]string{},
-			},
-		},
-		{
-			name:  "check ModelMetadata structure for DBRequest",
-			model: &storage.DBRequest{},
-			expected: db.ModelMetadata{
-				Table: storage.RequestTable,
-				Relations: map[string]string{
-					storage.RequestStateTable: "state_id",
-					storage.RequestTypeTable:  "type_id",
-					storage.CbsdTable:         "cbsd_id",
-				},
-			},
-		},
-		{
-			name:  "check ModelMetadata structure for DBResponse",
-			model: &storage.DBResponse{},
-			expected: db.ModelMetadata{
-				Table: storage.ResponseTable,
-				Relations: map[string]string{
-					storage.RequestTable: "request_id",
-					storage.GrantTable:   "grant_id",
-				},
-			},
-		},
-		{
 			name:  "check ModelMetadata structure for DBGrantState",
 			model: &storage.DBGrantState{},
 			expected: db.ModelMetadata{
-				Table:     storage.GrantStateTable,
+				Table: storage.GrantStateTable,
+				Properties: map[string]*db.Field{
+					"id": {
+						SqlType: sqorc.ColumnTypeInt,
+					},
+					"name": {
+						SqlType: sqorc.ColumnTypeText,
+					},
+				},
 				Relations: map[string]string{},
 			},
 		},
@@ -177,6 +106,46 @@ func TestGetMetadata(t *testing.T) {
 			model: &storage.DBGrant{},
 			expected: db.ModelMetadata{
 				Table: storage.GrantTable,
+				Properties: map[string]*db.Field{
+					"id": {
+						SqlType: sqorc.ColumnTypeInt,
+					},
+					"state_id": {
+						SqlType: sqorc.ColumnTypeInt,
+					},
+					"cbsd_id": {
+						SqlType:  sqorc.ColumnTypeInt,
+						Nullable: true,
+					},
+					"grant_id": {
+						SqlType: sqorc.ColumnTypeText,
+					},
+					"grant_expire_time": {
+						SqlType:  sqorc.ColumnTypeDatetime,
+						Nullable: true,
+					},
+					"transmit_expire_time": {
+						SqlType:  sqorc.ColumnTypeDatetime,
+						Nullable: true,
+					},
+					"heartbeat_interval": {
+						SqlType:  sqorc.ColumnTypeInt,
+						Nullable: true,
+					},
+					"channel_type": {
+						SqlType:  sqorc.ColumnTypeText,
+						Nullable: true,
+					},
+					"low_frequency": {
+						SqlType: sqorc.ColumnTypeInt,
+					},
+					"high_frequency": {
+						SqlType: sqorc.ColumnTypeInt,
+					},
+					"max_eirp": {
+						SqlType: sqorc.ColumnTypeReal,
+					},
+				},
 				Relations: map[string]string{
 					storage.CbsdTable:       "cbsd_id",
 					storage.GrantStateTable: "state_id",
@@ -187,7 +156,15 @@ func TestGetMetadata(t *testing.T) {
 			name:  "check ModelMetadata structure for DBCbsdState",
 			model: &storage.DBCbsdState{},
 			expected: db.ModelMetadata{
-				Table:     storage.CbsdStateTable,
+				Table: storage.CbsdStateTable,
+				Properties: map[string]*db.Field{
+					"id": {
+						SqlType: sqorc.ColumnTypeInt,
+					},
+					"name": {
+						SqlType: sqorc.ColumnTypeText,
+					},
+				},
 				Relations: map[string]string{},
 			},
 		},
@@ -196,18 +173,77 @@ func TestGetMetadata(t *testing.T) {
 			model: &storage.DBCbsd{},
 			expected: db.ModelMetadata{
 				Table: storage.CbsdTable,
+				Properties: map[string]*db.Field{
+					"id": {
+						SqlType: sqorc.ColumnTypeInt,
+					},
+					"network_id": {
+						SqlType: sqorc.ColumnTypeText,
+					},
+					"state_id": {
+						SqlType: sqorc.ColumnTypeInt,
+					},
+					"cbsd_id": {
+						SqlType:  sqorc.ColumnTypeText,
+						Nullable: true,
+					},
+					"user_id": {
+						SqlType:  sqorc.ColumnTypeText,
+						Nullable: true,
+					},
+					"fcc_id": {
+						SqlType:  sqorc.ColumnTypeText,
+						Nullable: true,
+					},
+					"cbsd_serial_number": {
+						SqlType:  sqorc.ColumnTypeText,
+						Nullable: true,
+						Unique:   true,
+					},
+					"last_seen": {
+						SqlType:  sqorc.ColumnTypeDatetime,
+						Nullable: true,
+					},
+					"grant_attempts": {
+						SqlType:      sqorc.ColumnTypeInt,
+						HasDefault:   true,
+						DefaultValue: 0,
+					},
+					"preferred_bandwidth_mhz": {
+						SqlType: sqorc.ColumnTypeInt,
+					},
+					"preferred_frequencies_mhz": {
+						SqlType: sqorc.ColumnTypeText,
+					},
+					"min_power": {
+						SqlType:  sqorc.ColumnTypeReal,
+						Nullable: true,
+					},
+					"max_power": {
+						SqlType:  sqorc.ColumnTypeReal,
+						Nullable: true,
+					},
+					"antenna_gain": {
+						SqlType:  sqorc.ColumnTypeReal,
+						Nullable: true,
+					},
+					"number_of_ports": {
+						SqlType:  sqorc.ColumnTypeInt,
+						Nullable: true,
+					},
+					"is_deleted": {
+						SqlType:      sqorc.ColumnTypeBool,
+						HasDefault:   true,
+						DefaultValue: false,
+					},
+					"should_deregister": {
+						SqlType:      sqorc.ColumnTypeBool,
+						HasDefault:   true,
+						DefaultValue: false,
+					},
+				},
 				Relations: map[string]string{
 					storage.CbsdStateTable: "state_id",
-				},
-			},
-		},
-		{
-			name:  "check ModelMetadata structure for DBChannel",
-			model: &storage.DBChannel{},
-			expected: db.ModelMetadata{
-				Table: storage.ChannelTable,
-				Relations: map[string]string{
-					storage.CbsdTable: "cbsd_id",
 				},
 			},
 		},
@@ -216,17 +252,21 @@ func TestGetMetadata(t *testing.T) {
 			model: &storage.DBActiveModeConfig{},
 			expected: db.ModelMetadata{
 				Table: storage.ActiveModeConfigTable,
+				Properties: map[string]*db.Field{
+					"id": {
+						SqlType: sqorc.ColumnTypeInt,
+					},
+					"cbsd_id": {
+						SqlType: sqorc.ColumnTypeInt,
+					},
+					"desired_state_id": {
+						SqlType: sqorc.ColumnTypeInt,
+					},
+				},
 				Relations: map[string]string{
 					storage.CbsdTable:      "cbsd_id",
 					storage.CbsdStateTable: "desired_state_id",
 				},
-			},
-		},
-		{
-			name:  "check ModelMetadata structure for DBLog",
-			model: &storage.DBLog{},
-			expected: db.ModelMetadata{
-				Table: storage.LogTable,
 			},
 		},
 	}
@@ -236,6 +276,7 @@ func TestGetMetadata(t *testing.T) {
 			obj := actual.CreateObject()
 
 			assert.Equal(t, tc.expected.Relations, actual.Relations)
+			assert.Equal(t, tc.expected.Properties, actual.Properties)
 			assert.Equal(t, tc.expected.Table, actual.Table)
 			assert.Equal(t, tc.model, obj)
 		})

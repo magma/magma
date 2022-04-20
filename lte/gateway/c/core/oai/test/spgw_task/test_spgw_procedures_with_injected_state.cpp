@@ -20,9 +20,9 @@
 #include <thread>
 #include <cstdlib>
 
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 #include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
-#include "lte/gateway/c/core/oai/test/spgw_task/mock_spgw_op.h"
+#include "lte/gateway/c/core/oai/test/spgw_task/mock_spgw_op.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_config.h"
@@ -33,8 +33,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 }
 
-#include "lte/gateway/c/core/oai/include/spgw_state.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.hpp"
 
 extern bool hss_associated;
 
