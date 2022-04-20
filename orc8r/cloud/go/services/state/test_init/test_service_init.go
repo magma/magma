@@ -25,8 +25,8 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
-	"magma/orc8r/cloud/go/services/state/servicers"
-	indexermgr_servicers "magma/orc8r/cloud/go/services/state/servicers/protected"
+	protected_servicers "magma/orc8r/cloud/go/services/state/servicers/protected"
+	servicers "magma/orc8r/cloud/go/services/state/servicers/southbound"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
@@ -61,14 +61,14 @@ func startService(t *testing.T, db *sql.DB) (reindex.Reindexer, reindex.JobQueue
 	require.NoError(t, err)
 	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
 
-	cloudStateServicer, err := servicers.NewCloudStateServicer(factory)
+	cloudStateServicer, err := protected_servicers.NewCloudStateServicer(factory)
 	require.NoError(t, err)
 	protos.RegisterCloudStateServiceServer(srv.GrpcServer, cloudStateServicer)
 
 	queue := reindex.NewSQLJobQueue(singleAttempt, db, sqorc.GetSqlBuilder())
 	require.NoError(t, queue.Initialize())
 	reindexer := reindex.NewReindexerQueue(queue, reindex.NewStore(factory))
-	indexerServicer := indexermgr_servicers.NewIndexerManagerServicer(reindexer, false)
+	indexerServicer := protected_servicers.NewIndexerManagerServicer(reindexer, false)
 	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
 
 	go srv.RunTest(lis)
@@ -94,14 +94,14 @@ func startSingletonService(t *testing.T, db *sql.DB) reindex.Reindexer {
 	require.NoError(t, err)
 	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
 
-	cloudStateServicer, err := servicers.NewCloudStateServicer(factory)
+	cloudStateServicer, err := protected_servicers.NewCloudStateServicer(factory)
 	require.NoError(t, err)
 	protos.RegisterCloudStateServiceServer(srv.GrpcServer, cloudStateServicer)
 
 	versioner := reindex.NewVersioner(db, sqorc.GetSqlBuilder())
 	versioner.Initialize()
 	reindexer := reindex.NewReindexerSingleton(reindex.NewStore(factory), versioner)
-	indexerServicer := indexermgr_servicers.NewIndexerManagerServicer(reindexer, false)
+	indexerServicer := protected_servicers.NewIndexerManagerServicer(reindexer, false)
 	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
 
 	go srv.RunTest(lis)

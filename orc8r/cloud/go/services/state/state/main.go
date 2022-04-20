@@ -28,8 +28,8 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
 	"magma/orc8r/cloud/go/services/state/metrics"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
-	"magma/orc8r/cloud/go/services/state/servicers"
-	indexermgr_servicers "magma/orc8r/cloud/go/services/state/servicers/protected"
+	protected_servicers "magma/orc8r/cloud/go/services/state/servicers/protected"
+	servicers "magma/orc8r/cloud/go/services/state/servicers/southbound"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
@@ -101,7 +101,7 @@ func newStateServicer(store blobstore.StoreFactory) protos.StateServiceServer {
 }
 
 func newCloudStateServicer(store blobstore.StoreFactory) protos.CloudStateServiceServer {
-	servicer, err := servicers.NewCloudStateServicer(store)
+	servicer, err := protected_servicers.NewCloudStateServicer(store)
 	if err != nil {
 		glog.Fatalf("Error creating state servicer: %v", err)
 	}
@@ -121,7 +121,7 @@ func newIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.Stor
 
 	autoReindex := cfg.MustGetBool(state_config.EnableAutomaticReindexing)
 	reindexer := reindex.NewReindexerQueue(queue, reindex.NewStore(store))
-	servicer := indexermgr_servicers.NewIndexerManagerServicer(reindexer, autoReindex)
+	servicer := protected_servicers.NewIndexerManagerServicer(reindexer, autoReindex)
 
 	if autoReindex && storage.GetSQLDriver() != sqorc.PostgresDriver {
 		glog.Warning(nonPostgresDriverMessage)
