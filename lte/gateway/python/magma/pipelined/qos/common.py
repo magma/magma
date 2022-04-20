@@ -201,7 +201,7 @@ class QosManager(object):
     def debug(cls, _, __, ___):
         config = load_service_config('pipelined')
         qos_impl_type = QosImplType(config["qos"]["impl"])
-        qos_store = QosStore(cls.__name__)
+        qos_store = QosStore(cls.__name__, client=get_default_client())
         for k, v in qos_store.items():
             _, imsi, ip_addr, rule_num, d = get_key(k)
             _, qid, ambr, leaf = get_data(v)
@@ -215,21 +215,21 @@ class QosManager(object):
             if qos_impl_type == QosImplType.OVS_METER:
                 MeterManager.dump_meter_state(v)
             else:
-                intf = 'nat_iface' if d == FlowMatch.UPLINK else 'enodeb_iface'
-                print("Dev: ", config[intf])
-                TrafficClass.dump_class_state(config[intf], qid)
+                dev = config['nat_iface'] if d == FlowMatch.UPLINK else 'gtpu_sys_2152'
+                print("Dev: ", dev)
+                TrafficClass.dump_class_state(dev, qid)
                 if leaf and leaf != qid:
                     print("Leaf:")
-                    TrafficClass.dump_class_state(config[intf], leaf)
+                    TrafficClass.dump_class_state(dev, leaf)
                 if ambr:
                     print("AMBR (parent):")
-                    TrafficClass.dump_class_state(config[intf], ambr)
+                    TrafficClass.dump_class_state(dev, ambr)
 
         if qos_impl_type == QosImplType.LINUX_TC:
             dev = config['nat_iface']
             print("Root stats for: ", dev)
             TrafficClass.dump_root_class_stats(dev)
-            dev = config['enodeb_iface']
+            dev = 'gtpu_sys_2152'
             print("Root stats for: ", dev)
             TrafficClass.dump_root_class_stats(dev)
 

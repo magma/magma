@@ -71,6 +71,7 @@ RUN echo "Install general purpose packages" && \
         lld \
         lldb \
         make \
+        netbase \
         ninja-build \
         openjdk-8-jdk \
         perl \
@@ -334,12 +335,12 @@ ENV PYTHON_VENV_EXECUTABLE=${PYTHON_VENV}/bin/python${PYTHON_VERSION}
 RUN virtualenv --system-site-packages --python=/usr/bin/python${PYTHON_VERSION} ${PYTHON_VENV}
 RUN ${PYTHON_VENV_EXECUTABLE} -m pip install --quiet --upgrade --no-cache-dir "setuptools==49.6.0"
 
-### install python3-aioeventlet from the magma apt repo
+### install python3-aioeventlet and bcc-tools from the magma apt repo
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/
 RUN apt-key add /tmp/jfrog.pub && \
     echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" > /etc/apt/sources.list.d/fbc.list && \
     apt-get update -y && \
-    apt-get install -y python3-aioeventlet && \
+    apt-get install -y python3-aioeventlet bcc-tools && \
     rm -f /tmp/* && \
     rm -rf /var/lib/apt/lists/*  # delete lists that are downloaded by apt-get update
 

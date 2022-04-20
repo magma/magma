@@ -36,7 +36,7 @@ Description Defines the EMMAS Service Access Point that provides
 #ifndef FILE_EMM_AS_SEEN
 #define FILE_EMM_AS_SEEN
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.h"
 
 /****************************************************************************/

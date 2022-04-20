@@ -14,15 +14,15 @@
  * @format
  */
 
-import Button from '@fbcnms/ui/components/design-system/Button';
+import Button from '../../fbc_js_core/ui/components/design-system/Button';
 import FormGroup from '@material-ui/core/FormGroup';
 import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../fbc_js_core/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({

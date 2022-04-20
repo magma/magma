@@ -29,7 +29,7 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #endif
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/s1ap_state.h"
 #include "lte/gateway/c/core/oai/include/s1ap_types.h"
 

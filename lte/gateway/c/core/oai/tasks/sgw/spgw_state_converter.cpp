@@ -18,8 +18,8 @@
 #include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.h"
 
 extern "C" {
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 }
 

@@ -54,6 +54,16 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
     # Check the MME connection status every 15 seconds
     MME_CHECK_TIMER = 15
 
+    # When a FW upgrade download is initiated, we should wait for eNB to apply
+    # the FW image. Currently for Sercomm (FreedomFi One), the eNB accepts Download,
+    # eventually reports TransferComplete, but will reboot in a random time after that.
+    # When DownloadResponse is a success, the state should start the fw upgrade timer.
+    # When FW Upgrade check indentifies that eNB Software Version matches desired
+    # SW version, the timer should be stopped.
+    # Otherwise, keep the timer (even during state reset) and attempt new fw upgrade download
+    # flow once the timer finishes
+    FW_UPGRADE_TIMEOUT = 5 * 60
+
     def __init__(
             self,
             service: MagmaService,
@@ -64,6 +74,7 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         self.timeout_handler = None
         self.mme_timeout_handler = None
         self.mme_timer = None
+        self.fw_upgrade_timeout_handler = None
         self._start_state_machine(service)
 
     def get_state(self) -> str:
@@ -98,7 +109,10 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
             return self._get_tr069_msg(message)
 
     def transition(self, next_state: str) -> Any:
-        logger.debug('State transition to <%s>', next_state)
+        logger.debug(
+            'State transition from <%s> to <%s>',
+            self.state.__class__.__name__, next_state,
+        )
         self.state.exit()
         self.state = self.state_map[next_state]
         self.state.enter()
@@ -118,6 +132,48 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         self._data_model = None
 
         self.mme_timer = None
+        self.fw_upgrade_timeout_handler = None
+
+    def start_fw_upgrade_timeout(self) -> None:
+        """
+        Start a firmware upgrade timeout timer.
+
+        When initialing a firmware upgrade download, the eNB can take
+        an unknown amount of time for the download to finish. This process
+        is indicated by a TransferComplete TR069 message, but the enB
+        can still operate and can apply the firmware at any time and reboot.
+
+        Since we do not want to re-issue a download request (eNB hasn't updated,
+        its SW version is still 'old' and the firmware version check will still detect
+        and older FW version still present on the eNB) we want to hold with the download
+        flow for some time - which is what this timer is for.
+        """
+        if self.fw_upgrade_timeout_handler is not None:
+            return
+
+        logger.debug(
+            'ACS starting fw upgrade timeout for %d seconds',
+            self.FW_UPGRADE_TIMEOUT,
+        )
+        self.fw_upgrade_timeout_handler = self.event_loop.call_later(
+            self.FW_UPGRADE_TIMEOUT,
+            self.stop_fw_upgrade_timeout,
+        )
+
+    def stop_fw_upgrade_timeout(self) -> None:
+        """
+        Stop firmware upgrade timeout timer.
+
+        Invoking this method will re-enable firmware software version checking
+        in the Download states.
+        """
+        if self.fw_upgrade_timeout_handler is not None:
+            logger.debug('ACS stopping fw upgrade timeout.')
+            self.fw_upgrade_timeout_handler.cancel()
+            self.fw_upgrade_timeout_handler = None
+
+    def is_fw_upgrade_in_progress(self) -> bool:
+        return self.fw_upgrade_timeout_handler != None
 
     def _start_state_machine(
             self,
@@ -247,7 +303,9 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
                     'within %s seconds - rebooting!',
                     self.MME_DISCONNECT_ENODEB_REBOOT_TIMER,
                 )
-                metrics.STAT_ENODEB_REBOOTS.labels(cause='MME disconnect').inc()
+                metrics.STAT_ENODEB_REBOOTS.labels(
+                    cause='MME disconnect',
+                ).inc()
                 metrics.STAT_ENODEB_REBOOT_TIMER_ACTIVE.set(0)
                 self.mme_timer = None
                 self.reboot_asap()

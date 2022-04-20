@@ -29,14 +29,14 @@ import Link from '@material-ui/core/Link';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberContext from '../../components/context/SubscriberContext';
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 
 import {EditSubscriberButton} from './SubscriberEditDialog';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {

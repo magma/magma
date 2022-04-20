@@ -31,8 +31,8 @@ import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
-import nullthrows from '@fbcnms/util/nullthrows';
-import {useRouter} from '@fbcnms/ui/hooks';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 import {JsonDialog} from './SubscriberOverview';
 import {
@@ -43,7 +43,7 @@ import {RenderLink} from './SubscriberOverview';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),

@@ -36,7 +36,10 @@
 /lte/protos @magma/approvers-agw
 /lte/gateway/python @magma/approvers-agw-python
 /lte/gateway/c @magma/approvers-agw-c
+
+# agw code related to orc8r
 /orc8r/gateway/c/ @magma/approvers-agw-c
+/orc8r/gateway/python @magma/approvers-agw-python @magma/approvers-orc8r
 
 # approvers-agw-<subsection>
 /lte/gateway/c/session_manager @magma/approvers-agw-sessiond

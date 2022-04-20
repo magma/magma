@@ -53,14 +53,17 @@ from magma.enodebd.state_machines.enb_acs_states import (
     AcsMsgAndTransition,
     AcsReadMsgResult,
     AddObjectsState,
+    CheckFirmwareUpgradeDownloadState,
     DeleteObjectsState,
     EnbSendRebootState,
     EndSessionState,
     EnodebAcsState,
     ErrorState,
+    FirmwareUpgradeDownloadState,
     GetParametersState,
     NotifyDPState,
     SetParameterValuesState,
+    WaitForFirmwareUpgradeDownloadResponse,
     WaitGetParametersState,
     WaitInformMRebootState,
     WaitInformState,
@@ -488,11 +491,28 @@ class FreedomFiOneHandler(BasicEnodebAcsStateMachine):
             # Inform comes in -> Respond with InformResponse
             'wait_inform': WaitInformState(self, when_done='get_rpc_methods'),
             # If first inform after boot -> GetRpc request comes in, if not
-            # empty request comes in => Transition to get_transient_params
+            # empty request comes in => Transition
             'get_rpc_methods': FreedomFiOneGetInitState(
                 self,
-                when_done='get_transient_params',
+                when_done='check_fw_upgrade_download',
             ),
+
+            # Download flow
+            'check_fw_upgrade_download': CheckFirmwareUpgradeDownloadState(
+                self,
+                when_download='fw_upgrade_download',
+                when_skip='get_transient_params',
+            ),
+            'fw_upgrade_download': FirmwareUpgradeDownloadState(
+                self,
+                when_done='wait_fw_upgrade_download_response',
+            ),
+            'wait_fw_upgrade_download_response': WaitForFirmwareUpgradeDownloadResponse(
+                self,
+                when_done='get_transient_params',
+                when_skip='get_transient_params',
+            ),
+            # Download flow ends
 
             # Read transient readonly params.
             'get_transient_params': FreedomFiOneSendGetTransientParametersState(
@@ -1370,7 +1390,7 @@ class FreedomFiOneEndSessionState(EndSessionState):
             AcsMsgAndTransition
         """
         request = models.DummyInput()
-        if self.acs.desired_cfg.get_parameter(SASParameters.SAS_METHOD):
+        if self.acs.desired_cfg and self.acs.desired_cfg.get_parameter(SASParameters.SAS_METHOD):
             return AcsMsgAndTransition(request, self.notify_dp)
         return AcsMsgAndTransition(request, None)
 
@@ -1382,7 +1402,7 @@ class FreedomFiOneEndSessionState(EndSessionState):
             str
         """
         description = 'Completed provisioning eNB. Awaiting new Inform'
-        if self.acs.desired_cfg.get_parameter(SASParameters.SAS_METHOD):
+        if self.acs.desired_cfg and self.acs.desired_cfg.get_parameter(SASParameters.SAS_METHOD):
             description = 'Completed initial provisioning of the eNB. Awaiting update from DProxy'
         return description
 
@@ -1397,10 +1417,14 @@ class FreedomFiOneNotifyDPState(NotifyDPState):
         Enter the state
         """
         request = CBSDRequest(
-            serial_number=self.acs.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER),
+            serial_number=self.acs.device_cfg.get_parameter(
+                ParameterName.SERIAL_NUMBER,
+            ),
         )
         state = get_cbsd_state(request)
-        ff_one_update_desired_config_from_cbsd_state(state, self.acs.desired_cfg)
+        ff_one_update_desired_config_from_cbsd_state(
+            state, self.acs.desired_cfg,
+        )
 
 
 def ff_one_update_desired_config_from_cbsd_state(state: CBSDStateResult, config: EnodebConfiguration) -> None:
@@ -1416,8 +1440,13 @@ def ff_one_update_desired_config_from_cbsd_state(state: CBSDStateResult, config:
     if not state.radio_enabled:
         return
 
-    earfcn = calc_earfcn(state.channel.low_frequency_hz, state.channel.high_frequency_hz)
-    bandwidth_mhz = calc_bandwidth_mhz(state.channel.low_frequency_hz, state.channel.high_frequency_hz)
+    earfcn = calc_earfcn(
+        state.channel.low_frequency_hz,
+        state.channel.high_frequency_hz,
+    )
+    bandwidth_mhz = calc_bandwidth_mhz(
+        state.channel.low_frequency_hz, state.channel.high_frequency_hz,
+    )
     bandwidth_rbs = calc_bandwidth_rbs(bandwidth_mhz)
     tx_power = _calc_tx_power(state.channel.max_eirp_dbm_mhz, bandwidth_mhz)
 

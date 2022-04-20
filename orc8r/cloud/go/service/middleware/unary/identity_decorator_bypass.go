@@ -19,4 +19,5 @@ package unary
 var identityDecoratorBypassList = map[string]struct{}{
 	"/magma.orc8r.Bootstrapper/GetChallenge": {},
 	"/magma.orc8r.Bootstrapper/RequestSign":  {},
+	"/magma.orc8r.Registration/Register":     {},
 }

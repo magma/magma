@@ -24,7 +24,7 @@
 
 #ifndef FILE_PGW_HANDLERS_SEEN
 #define FILE_PGW_HANDLERS_SEEN
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/gx_messages_types.h"
 #include "lte/gateway/c/core/oai/include/spgw_state.h"
 

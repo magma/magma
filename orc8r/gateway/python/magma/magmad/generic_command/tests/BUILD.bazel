@@ -11,10 +11,15 @@
 
 load("//bazel:python_test.bzl", "pytest_test")
 
+MAGMA_ROOT = "../../../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
 pytest_test(
     name = "command_executor_test",
     size = "small",
     srcs = ["command_executor_test.py"],
+    imports = [ORC8R_ROOT],
     deps = ["//orc8r/gateway/python/magma/magmad/generic_command:command_executor"],
 )
 
@@ -22,5 +27,6 @@ pytest_test(
     name = "shell_command_executor_test",
     size = "small",
     srcs = ["shell_command_executor_test.py"],
+    imports = [ORC8R_ROOT],
     deps = ["//orc8r/gateway/python/magma/magmad/generic_command:command_executor"],
 )

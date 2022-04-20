@@ -16,19 +16,26 @@ package(default_visibility = ["//visibility:public"])
 
 py_library(
     name = "client",
+    srcs = ["client.py"],
+    deps = [
+        ":containers",
+        "//feg/protos:mconfigs_python_proto",
+        "//orc8r/gateway/python/magma/configuration:service_configs",
+        requirement("hiredis"),
+        requirement("redis"),
+    ],
+)
+
+py_library(
+    name = "containers",
     srcs = [
-        "client.py",
         "containers.py",
         "serializers.py",
     ],
     deps = [
-        "//feg/protos:mconfigs_python_proto",
-        "//orc8r/gateway/python/magma/configuration:service_configs",
         "//orc8r/protos:redis_python_proto",
-        requirement("redis"),
-        requirement("hiredis"),
-        requirement("redis_collections"),
-        requirement("python-redis-lock"),
         requirement("jsonpickle"),
+        requirement("python-redis-lock"),
+        requirement("redis_collections"),
     ],
 )

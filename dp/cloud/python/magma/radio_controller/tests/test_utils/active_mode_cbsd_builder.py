@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import List, Optional
 
 from dp.protos.active_mode_pb2 import (
     Cbsd,
@@ -8,7 +8,7 @@ from dp.protos.active_mode_pb2 import (
     Channel,
     DatabaseCbsd,
     EirpCapabilities,
-    FrequencyRange,
+    FrequencyPreferences,
     Grant,
     GrantState,
 )
@@ -29,6 +29,7 @@ class ActiveModeCbsdBuilder:
         self.last_seen_timestamp = None
         self.grant_attempts = None
         self.eirp_capabilities = None
+        self.preferences = FrequencyPreferences()
         self.db_id = None
         self.is_deleted = False
         self.is_updated = False
@@ -52,6 +53,7 @@ class ActiveModeCbsdBuilder:
             grant_attempts=self.grant_attempts,
             eirp_capabilities=self.eirp_capabilities,
             db_data=db_data,
+            preferences=self.preferences,
         )
 
     def deleted(self) -> ActiveModeCbsdBuilder:
@@ -111,6 +113,13 @@ class ActiveModeCbsdBuilder:
         self.grants.append(grant)
         return self
 
+    def with_preferences(self, bandwidth_mhz: int, frequencies_mhz: List[int]) -> ActiveModeCbsdBuilder:
+        self.preferences = FrequencyPreferences(
+            bandwidth_mhz=bandwidth_mhz,
+            frequencies_mhz=frequencies_mhz,
+        )
+        return self
+
     def with_channel(
         self,
         low: int, high: int,
@@ -119,7 +128,8 @@ class ActiveModeCbsdBuilder:
         if not self.channels:
             self.channels = []
         channel = Channel(
-            frequency_range=FrequencyRange(low=low, high=high),
+            low_frequency_hz=low,
+            high_frequency_hz=high,
             max_eirp=self.make_optional_float(max_eirp),
         )
         self.channels.append(channel)

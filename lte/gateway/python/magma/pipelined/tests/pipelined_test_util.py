@@ -433,19 +433,22 @@ def create_service_manager(
     return service_manager
 
 
-def _parse_flow(flow):
+def _parse_flow(flow, ipv6_prefix_only=False):
     fields_to_remove = [
         r'duration=[\d\w\.]*, ',
         r'idle_age=[\d]*, ',
     ]
     for field in fields_to_remove:
         flow = re.sub(field, '', flow)
+    if ipv6_prefix_only:
+        flow = re.sub(r'ipv6_dst=fe80::[0-9,a-f,:]+ ', 'ipv6_dst=fe80::linkLocalSuffix ', flow)
     return flow
 
 
 def _get_current_bridge_snapshot(
     bridge_name, service_manager,
     include_stats=True,
+    ipv6_prefix_only=False,
 ) -> List[str]:
     table_assignments = service_manager.get_all_table_assignments()
     # Currently, the unit test setup library does not set up the ryu api app.
@@ -457,7 +460,7 @@ def _get_current_bridge_snapshot(
         table_assignments,
         include_stats=include_stats,
     )
-    return [_parse_flow(flow) for flow in flows]
+    return [_parse_flow(flow, ipv6_prefix_only) for flow in flows]
 
 
 def fail(
@@ -518,6 +521,7 @@ def assert_bridge_snapshot_match(
     service_manager: ServiceManager,
     snapshot_name: Optional[str] = None,
     include_stats: bool = True,
+    ipv6_prefix_only: bool = False,
 ):
     """
     Verifies the current bridge snapshot matches the snapshot saved in file for
@@ -536,6 +540,7 @@ def assert_bridge_snapshot_match(
         bridge_name,
         service_manager,
         include_stats,
+        ipv6_prefix_only,
     )
 
     snapshot_file, expected = expected_snapshot(

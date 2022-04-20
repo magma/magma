@@ -26,8 +26,6 @@ env:
   IMAGE_TAGS: type=sha
   DOCKERFILE: lte/gateway/docker/python-precommit/Dockerfile
 
-permissions: read-all
-
 jobs:
   build_dockerfile:
     runs-on: ubuntu-latest

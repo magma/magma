@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
 import type {lte_gateway} from '../../../generated/MagmaAPIBindings';
 
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
@@ -50,8 +50,8 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
-import nullthrows from '@fbcnms/util/nullthrows';
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 import {GatewayJsonConfig} from './GatewayDetailConfig';
 import {
   GenericCommandControls,
@@ -63,8 +63,8 @@ import {RunGatewayCommands} from '../../state/lte/EquipmentState';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import {withStyles} from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({

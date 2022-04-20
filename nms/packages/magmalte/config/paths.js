@@ -25,12 +25,12 @@ const resolveApp = (relativePath: string) =>
 module.exports = {
   appIndexJs: resolveApp('app/main.js'),
   loginJs: resolveApp('app/login.js'),
-  masterJs: resolveApp('app/master.js'),
+  hostJs: resolveApp('app/host.js'),
   appSrc: resolveApp('app'),
   distPath: resolveApp('static/dist'),
   packagesDir: resolveApp('../../packages'),
   fbcnmsDir: path.dirname(
-    path.dirname(require.resolve('@fbcnms/babel-register')),
+    path.dirname(require.resolve('../fbc_js_core/babel_register')),
   ),
   resolveApp,
 };

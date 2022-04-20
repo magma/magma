@@ -16,8 +16,8 @@
 
 import React from 'react';
 
-import AppContext from '@fbcnms/ui/context/AppContext';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import AppContext from '../../fbc_js_core/ui/context/AppContext';
+import Text from '../../fbc_js_core/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import {makeStyles} from '@material-ui/styles';
 

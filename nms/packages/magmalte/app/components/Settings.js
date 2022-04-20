@@ -15,8 +15,8 @@
  */
 
 import AppBar from '@material-ui/core/AppBar';
-import AppContext from '@fbcnms/ui/context/AppContext';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
+import AppContext from '../../fbc_js_core/ui/context/AppContext';
+import NestedRouteLink from '../../fbc_js_core/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React, {useContext} from 'react';
 import SecuritySettings from './SecuritySettings';
@@ -26,7 +26,7 @@ import Tabs from '@material-ui/core/Tabs';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   tabs: {

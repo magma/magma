@@ -1,10 +1,5 @@
 from magma.db_service.db_initialize import DBInitializer
-from magma.db_service.models import (
-    DBCbsdState,
-    DBGrantState,
-    DBRequestState,
-    DBRequestType,
-)
+from magma.db_service.models import DBCbsdState, DBGrantState, DBRequestType
 from magma.db_service.session_manager import SessionManager
 from magma.db_service.tests.local_db_test_case import LocalDBTestCase
 from parameterized import parameterized
@@ -18,7 +13,6 @@ class DBInitializationTestCase(LocalDBTestCase):
 
     @parameterized.expand([
         (DBRequestType, 6),
-        (DBRequestState, 2),
         (DBGrantState, 4),
         (DBCbsdState, 2),
     ])
@@ -40,7 +34,6 @@ class DBInitializationTestCase(LocalDBTestCase):
 
     @parameterized.expand([
         (DBRequestType,),
-        (DBRequestState,),
         (DBGrantState,),
         (DBCbsdState,),
     ])

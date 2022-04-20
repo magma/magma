@@ -139,7 +139,7 @@ func (gxClient *GxClient) SendCreditControlRequest(
 		return err
 	}
 
-	glog.V(2).Infof("Sending Gx CCR message\n%s\n", message)
+	glog.V(3).Infof("Sending Gx CCR message\n%s\n", message)
 	key := credit_control.GetRequestKey(credit_control.Gx, request.SessionID, request.RequestNumber)
 	return gxClient.diamClient.SendRequest(server, done, message, key)
 }

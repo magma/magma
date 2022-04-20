@@ -22,7 +22,7 @@
     "babel-plugin-lodash": "^3.3.4",
     "color-string": "^1.9.0",
     "fbt": "^0.10.6",
-    "pug": "^3.0.1"
+    "pug": "^3.0.2"
   },
   "devDependencies": {
     "babel-eslint": "^10.1.0",

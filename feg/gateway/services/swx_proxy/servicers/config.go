@@ -58,9 +58,12 @@ func GetSwxProxyConfig() []*SwxProxyConfig {
 		return []*SwxProxyConfig{
 			{
 				ClientCfg: &diameter.DiameterClientConfig{
-					Host:        diameter.GetValueOrEnv(diameter.HostFlag, SwxDiamHostEnv, DefaultSwxDiamHost),
-					Realm:       diameter.GetValueOrEnv(diameter.RealmFlag, SwxDiamRealmEnv, DefaultSwxDiamRealm),
-					ProductName: diameter.GetValueOrEnv(diameter.ProductFlag, SwxDiamProductEnv, diameter.DiamProductName),
+					Host:             diameter.GetValueOrEnv(diameter.HostFlag, SwxDiamHostEnv, DefaultSwxDiamHost),
+					Realm:            diameter.GetValueOrEnv(diameter.RealmFlag, SwxDiamRealmEnv, DefaultSwxDiamRealm),
+					ProductName:      diameter.GetValueOrEnv(diameter.ProductFlag, SwxDiamProductEnv, diameter.DiamProductName),
+					WatchdogInterval: diameter.DefaultWatchdogIntervalSeconds,
+					Retransmits:      uint(10),
+					RetryCount:       uint(5),
 				},
 				ServerCfg: &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 					Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, ""),

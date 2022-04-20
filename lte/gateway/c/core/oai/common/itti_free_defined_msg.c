@@ -24,16 +24,16 @@
 
 #include <stdlib.h>
 
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/include/async_system_messages_types.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
 //------------------------------------------------------------------------------
 void itti_free_msg_content(MessageDef* const message_p) {

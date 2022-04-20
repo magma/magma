@@ -97,7 +97,7 @@ class TestQosCommon(unittest.TestCase):
 
 class TestQosManager(unittest.TestCase):
     def setUp(self):
-        self.dl_intf = "eth0"
+        self.dl_intf = "gtpu_sys_2152"
         self.ul_intf = "eth1"
 
         self.config = {

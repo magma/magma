@@ -82,7 +82,8 @@ enum amf_primitive_t {
   AMFAS_DATA_REQ = _AMFAS_DATA_REQ,
   AMFCN_CS_RESPONSE = _AMFCN_SMC_PARAM_RES,
   AMFCN_AUTHENTICATION_PARAM_RES = _AMFCN_AUTHENTICATION_PARAM_RES,
-  AMFCN_AUTHENTICATION_PARAM_FAIL = _AMFCN_AUTHENTICATION_PARAM_FAIL
+  AMFCN_AUTHENTICATION_PARAM_FAIL = _AMFCN_AUTHENTICATION_PARAM_FAIL,
+  AMFCN_IMPLICIT_DEREGISTER_UE = _AMFCN_IMPLICIT_DEREGISTER_UE
 };
 
 /*
@@ -135,11 +136,16 @@ typedef struct amf_cn_auth_res_s {
   m5gauth_vector_t* vector[MAX_EPS_AUTH_VECTORS];
 } amf_cn_auth_res_t;
 
+typedef struct amf_cn_implicit_detach_ue_s {
+  amf_ue_ngap_id_t ue_id;
+} amf_cn_implicit_deregister_ue_t;
+
 // typedef struct amf_ul_s {
 typedef struct amf_cn_s {
   amf_cn_primitive_t primitive;
   union {
     amf_cn_auth_res_t* auth_res;
+    amf_cn_implicit_deregister_ue_t amf_cn_implicit_deregister;
   } u;
 } amf_cn_t;
 

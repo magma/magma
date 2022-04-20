@@ -59,9 +59,13 @@ func GetS6aProxyConfigs() *S6aProxyConfig {
 		log.Printf("%s Managed Configs Load Error: %v", S6aProxyServiceName, err)
 		return &S6aProxyConfig{
 			ClientCfg: &diameter.DiameterClientConfig{
-				Host:        diameter.GetValueOrEnv(diameter.HostFlag, S6aDiamHostEnv, DefaultS6aDiamHost),
-				Realm:       diameter.GetValueOrEnv(diameter.RealmFlag, S6aDiamRealmEnv, DefaultS6aDiamRealm),
-				ProductName: diameter.GetValueOrEnv(diameter.ProductFlag, S6aDiamProductEnv, diameter.DiamProductName),
+				Host:             diameter.GetValueOrEnv(diameter.HostFlag, S6aDiamHostEnv, DefaultS6aDiamHost),
+				Realm:            diameter.GetValueOrEnv(diameter.RealmFlag, S6aDiamRealmEnv, DefaultS6aDiamRealm),
+				ProductName:      diameter.GetValueOrEnv(diameter.ProductFlag, S6aDiamProductEnv, diameter.DiamProductName),
+				WatchdogInterval: diameter.DefaultWatchdogIntervalSeconds,
+				Retransmits:      uint(10),
+				RetryCount:       uint(5),
+				RequestTimeout:   uint(diameter.DefaultRequestTimeoutSeconds),
 			},
 			ServerCfg: &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 				Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, ""),
@@ -86,6 +90,7 @@ func GetS6aProxyConfigs() *S6aProxyConfig {
 			Retransmits:      uint(configsPtr.Server.Retransmits),
 			WatchdogInterval: uint(configsPtr.Server.WatchdogInterval),
 			RetryCount:       uint(configsPtr.Server.RetryCount),
+			RequestTimeout:   uint(configsPtr.Server.RequestTimeout),
 		},
 		ServerCfg: &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 			Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, configsPtr.Server.Address),

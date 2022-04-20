@@ -40,7 +40,7 @@ func (s *QueryTestSuite) SetupSuite() {
 	database, err := sqorc.Open("sqlite3", ":memory:")
 	s.Require().NoError(err)
 	s.resourceManager = dbtest.NewResourceManager(s.T(), database, builder)
-	err = s.resourceManager.CreateTables(&someModel{}, &otherModel{}, &anotherModel{})
+	err = s.resourceManager.CreateTables(&someModel{}, &otherModel{}, &anotherModel{}, &modelWithUniqueFields{})
 	s.Require().NoError(err)
 }
 
@@ -75,6 +75,11 @@ func (s *QueryTestSuite) TestCreate() {
 		fieldMask: db.NewExcludeMask("default_value"),
 		input:     &anotherModel{id: db.MakeInt(id * 3)},
 		expected:  &anotherModel{id: db.MakeInt(id * 3), defaultValue: db.MakeInt(defaultValue)},
+	}, {
+		name:      "Should create resource with unique fields",
+		fieldMask: db.NewExcludeMask(),
+		input:     getModelWithUniqueFields(),
+		expected:  getModelWithUniqueFields(),
 	}}
 	for _, tt := range testCases {
 		s.Run(tt.name, s.inTransaction(func() {
@@ -612,6 +617,45 @@ func (a *anotherModel) Fields() db.FieldMap {
 			BaseType:     db.IntType{X: &a.defaultValue},
 			HasDefault:   true,
 			DefaultValue: defaultValue,
+		},
+	}
+}
+
+func getModelWithUniqueFields() *modelWithUniqueFields {
+	return &modelWithUniqueFields{
+		id:                db.MakeInt(id),
+		uniqueField:       db.MakeInt(id + 1),
+		anotherUniqueFied: db.MakeInt(id + 2),
+	}
+}
+
+type modelWithUniqueFields struct {
+	id                sql.NullInt64
+	uniqueField       sql.NullInt64
+	anotherUniqueFied sql.NullInt64
+}
+
+func (m *modelWithUniqueFields) GetMetadata() *db.ModelMetadata {
+	return &db.ModelMetadata{
+		Table: "unique_table",
+		CreateObject: func() db.Model {
+			return &modelWithUniqueFields{}
+		},
+	}
+}
+
+func (m *modelWithUniqueFields) Fields() db.FieldMap {
+	return db.FieldMap{
+		"id": &db.Field{
+			BaseType: db.IntType{X: &m.id},
+		},
+		"unique_field": &db.Field{
+			BaseType: db.IntType{X: &m.uniqueField},
+			Unique:   true,
+		},
+		"another_unique_fied": &db.Field{
+			BaseType: db.IntType{X: &m.anotherUniqueFied},
+			Unique:   true,
 		},
 	}
 }

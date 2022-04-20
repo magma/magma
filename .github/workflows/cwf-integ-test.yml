@@ -15,8 +15,6 @@ on:  # yamllint disable-line rule:truthy
 env:
   SHA: ${{ github.event.workflow_run.head_commit.id || github.sha }}
 
-permissions: read-all
-
 jobs:
   docker-build:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'

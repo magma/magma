@@ -376,6 +376,9 @@ typedef struct M5GSMCapability_received_s {
 #define N11_CREATE_PDU_SESSION_RESPONSE(mSGpTR) \
   (mSGpTR)->ittiMsg.n11_create_pdu_session_response
 
+#define N11_CREATE_PDU_SESSION_FAILURE(mSGpTR) \
+  (mSGpTR)->ittiMsg.n11_create_pdu_session_failure
+
 typedef enum {
   PDU_SESSION_INACTIVE_NOTIFY,         // AMF <=> SMF
   UE_IDLE_MODE_NOTIFY,                 // AMF  => SMF
@@ -400,3 +403,10 @@ typedef struct itti_n11_received_notification_s {
   // Idle/paging/periodic_reg events and UE state notification
   notify_ue_event notify_ue_evnt;
 } itti_n11_received_notification_t;
+
+typedef struct itti_n11_pdu_failure_t {
+  // common context
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+  uint32_t pdu_session_id;
+  uint8_t error_code;
+} itti_n11_create_pdu_session_failure_t;

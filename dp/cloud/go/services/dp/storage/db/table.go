@@ -43,6 +43,10 @@ func addColumns(builder sqorc.CreateTableBuilder, fields FieldMap) sqorc.CreateT
 			colBuilder = colBuilder.Default(field.DefaultValue)
 		}
 		builder = colBuilder.EndColumn()
+
+		if field.Unique {
+			builder = builder.Unique(column)
+		}
 	}
 	return builder
 }

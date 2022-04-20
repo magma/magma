@@ -15,8 +15,6 @@ concurrency:
 # github-pr-check: Adds lint as annotations in the PR that can be toggled by pressing 'a'
 # github-pr-review: Adds lint as GitHub comments
 
-permissions: read-all
-
 jobs:
   pre_job_go_determinator:
     runs-on: ubuntu-latest
@@ -49,10 +47,6 @@ jobs:
               - [".github/workflows/reviewdog-workflow.yml", "lte/gateway/c/**", "orc8r/gateway/c/**"]
 
   cpplint:
-    permissions:
-      checks: write  # for reviewdog
-      contents: read  # for actions/checkout to fetch code
-      pull-requests: write  # for reviewdog
     needs: pre_job_c_cpp_determinator
     if: ${{ needs.pre_job_c_cpp_determinator.outputs.should_not_skip == 'true' }}
     ##
@@ -89,9 +83,6 @@ jobs:
             | ./reviewdog -efm="%f:%l: %m" -name="cpplint" -reporter="github-pr-check" -level="warning"
 
   golangci-lint:
-    permissions:
-      contents: read  # for actions/checkout to fetch code
-      pull-requests: write  # for reviewdog/action-golangci-lint to report issues using PR comments
     needs: pre_job_go_determinator
     if: ${{ needs.pre_job_go_determinator.outputs.should_not_skip == 'true' }}
     runs-on: ubuntu-latest

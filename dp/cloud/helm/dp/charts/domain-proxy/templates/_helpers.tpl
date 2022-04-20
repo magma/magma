@@ -64,22 +64,6 @@ Active mode controller labels
 {{- end -}}
 
 {{/*
-Protocol controller match labels
-*/}}
-{{- define "domain-proxy.protocol_controller.matchLabels" -}}
-component: {{ .Values.dp.protocol_controller.name | quote }}
-{{ include "domain-proxy.common.matchLabels" . }}
-{{- end -}}
-
-{{/*
-Protocol controller labels
-*/}}
-{{- define "domain-proxy.protocol_controller.labels" -}}
-{{ include "domain-proxy.protocol_controller.matchLabels" . }}
-{{ include "domain-proxy.common.metaLabels" . }}
-{{- end -}}
-
-{{/*
 Radio controller match labels
 */}}
 {{- define "domain-proxy.radio_controller.matchLabels" -}}
@@ -102,6 +86,23 @@ DB service labels
 {{ include "domain-proxy.common.metaLabels" . }}
 {{- end -}}
 
+{{/*
+fluentd match labels
+*/}}
+{{- define "domain-proxy.fluentd.matchLabels" -}}
+component: {{ .Values.dp.fluentd.name | quote }}
+{{ include "domain-proxy.common.matchLabels" . }}
+{{- end -}}
+
+{{/*
+fluentd labels
+*/}}
+{{- define "domain-proxy.fluentd.labels" -}}
+{{ include "domain-proxy.fluentd.matchLabels" . }}
+{{ include "domain-proxy.common.metaLabels" . }}
+{{- end -}}
+
+{{/*
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
@@ -134,24 +135,6 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- printf "%s-%s" .Release.Name .Values.dp.configuration_controller.name | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
 {{- printf "%s-%s-%s" .Release.Name $name .Values.dp.configuration_controller.name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Create a fully qualified protocol_controller name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-*/}}
-
-{{- define "domain-proxy.protocol_controller.fullname" -}}
-{{- if .Values.dp.protocol_controller.fullnameOverride -}}
-{{- .Values.dp.protocol_controller.fullnameOverride | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- $name := default .Chart.Name .Values.dp.nameOverride -}}
-{{- if contains $name .Release.Name -}}
-{{- printf "%s-%s" .Release.Name .Values.dp.protocol_controller.name | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- printf "%s-%s-%s" .Release.Name $name .Values.dp.protocol_controller.name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
@@ -211,6 +194,24 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- end -}}
 
 {{/*
+Create a fully qualified fluentd name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+*/}}
+
+{{- define "domain-proxy.fluentd.fullname" -}}
+{{- if .Values.dp.fluentd.fullnameOverride -}}
+{{- .Values.dp.fluentd.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.dp.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- printf "%s-%s" .Release.Name .Values.dp.fluentd.name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s-%s" .Release.Name $name .Values.dp.fluentd.name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the appropriate apiVersion for deployment.
 */}}
 {{- define "domain-proxy.deployment.apiVersion" -}}
@@ -257,17 +258,6 @@ Create the name of the service account to use for configuration controller
 {{- end }}
 
 {{/*
-Create the name of the service account to use for protocol controller
-*/}}
-{{- define "domain-proxy.protocol_controller.serviceAccountName" -}}
-{{- if .Values.dp.protocol_controller.serviceAccount.create }}
-{{- default (include "domain-proxy.fullname" .) .Values.dp.protocol_controller.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.dp.protocol_controller.serviceAccount.name }}
-{{- end }}
-{{- end }}
-
-{{/*
 Create the name of the service account to use for radio controller
 */}}
 {{- define "domain-proxy.radio_controller.serviceAccountName" -}}
@@ -300,6 +290,16 @@ Create the name of the service account to use for active mode controller
 {{- end }}
 {{- end }}
 
+{{/*
+Create the name of the service account to use for fluentd
+*/}}
+{{- define "domain-proxy.fluentd.serviceAccountName" -}}
+{{- if .Values.dp.fluentd.serviceAccount.create }}
+{{- default (include "domain-proxy.fullname" .) .Values.dp.fluentd.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.dp.fluentd.serviceAccount.name }}
+{{- end }}
+{{- end }}
 
 {{/*
 Define the domain-proxy.namespace template

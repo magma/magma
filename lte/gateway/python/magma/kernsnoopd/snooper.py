@@ -12,11 +12,12 @@ limitations under the License.
 """
 import logging
 import os
+from typing import List
 
 from bcc import BPF  # pylint:disable=import-error
 from jinja2 import Template
 from magma.common.job import Job
-from magma.kernsnoopd.handlers import ebpf_handlers
+from magma.kernsnoopd.handlers import ByteCounter, ebpf_handlers
 
 EBPF_SRC_DIR = "/var/opt/magma/ebpf/kernsnoopd/"
 if not os.path.isdir(EBPF_SRC_DIR):
@@ -65,7 +66,7 @@ class Snooper(Job):
 
         super().__init__(interval=collect_interval, loop=service_loop)
         self._bpf = None
-        self._handlers = []
+        self._handlers: List[ByteCounter] = []
         self._loop = service_loop
         self._ebpf_programs = programs
         self._service_registry = service_registry

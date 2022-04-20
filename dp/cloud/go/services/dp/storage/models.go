@@ -20,159 +20,16 @@ import (
 )
 
 const (
-	RequestTypeTable      = "request_types"
-	RequestStateTable     = "request_states"
-	RequestTable          = "requests"
-	ResponseTable         = "responses"
 	GrantStateTable       = "grant_states"
 	GrantTable            = "grants"
 	CbsdStateTable        = "cbsd_states"
 	CbsdTable             = "cbsds"
-	ChannelTable          = "channels"
 	ActiveModeConfigTable = "active_mode_configs"
-	LogTable              = "domain_proxy_logs"
 )
 
-type DBRequestType struct {
-	Id   sql.NullInt64
-	Name sql.NullString
-}
-
-func (rt *DBRequestType) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			BaseType: db.IntType{X: &rt.Id},
-		},
-		"name": &db.Field{
-			BaseType: db.StringType{X: &rt.Name},
-		},
-	}
-}
-
-func (rt *DBRequestType) GetMetadata() *db.ModelMetadata {
-	return &db.ModelMetadata{
-		Table:     RequestTypeTable,
-		Relations: map[string]string{},
-		CreateObject: func() db.Model {
-			return &DBRequestType{}
-		},
-	}
-}
-
-type DBRequestState struct {
-	Id   sql.NullInt64
-	Name sql.NullString
-}
-
-func (rs *DBRequestState) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			BaseType: db.IntType{X: &rs.Id},
-		},
-		"name": &db.Field{
-			BaseType: db.StringType{X: &rs.Name},
-		},
-	}
-}
-
-func (rs *DBRequestState) GetMetadata() *db.ModelMetadata {
-	return &db.ModelMetadata{
-		Table:     RequestStateTable,
-		Relations: map[string]string{},
-		CreateObject: func() db.Model {
-			return &DBRequestState{}
-		},
-	}
-}
-
-type DBRequest struct {
-	Id      sql.NullInt64
-	TypeId  sql.NullInt64
-	StateId sql.NullInt64
-	CbsdId  sql.NullInt64
-	Payload sql.NullString
-}
-
-func (r *DBRequest) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			BaseType: db.IntType{X: &r.Id},
-		},
-		"type_id": &db.Field{
-			BaseType: db.IntType{X: &r.TypeId},
-			Nullable: true,
-		},
-		"state_id": &db.Field{
-			BaseType: db.IntType{X: &r.StateId},
-			Nullable: true,
-		},
-		"cbsd_id": &db.Field{
-			BaseType: db.IntType{X: &r.CbsdId},
-			Nullable: true,
-		},
-		"payload": &db.Field{
-			BaseType: db.StringType{X: &r.Payload},
-			Nullable: true,
-		},
-	}
-}
-
-func (r *DBRequest) GetMetadata() *db.ModelMetadata {
-	return &db.ModelMetadata{
-		Table: RequestTable,
-		Relations: map[string]string{
-			RequestTypeTable:  "type_id",
-			RequestStateTable: "state_id",
-			CbsdTable:         "cbsd_id",
-		},
-		CreateObject: func() db.Model {
-			return &DBRequest{}
-		},
-	}
-}
-
-type DBResponse struct {
-	Id           sql.NullInt64
-	RequestId    sql.NullInt64
-	GrantId      sql.NullInt64
-	ResponseCode sql.NullInt64
-	Payload      sql.NullString
-}
-
-func (r *DBResponse) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			BaseType: db.IntType{X: &r.Id},
-		},
-		"request_id": &db.Field{
-			BaseType: db.IntType{X: &r.RequestId},
-			Nullable: true,
-		},
-		"grant_id": &db.Field{
-			BaseType: db.IntType{X: &r.GrantId},
-			Nullable: true,
-		},
-		"response_code": &db.Field{
-			BaseType: db.IntType{X: &r.Id},
-		},
-		"payload": &db.Field{
-			BaseType: db.StringType{X: &r.Payload},
-			Nullable: true,
-		},
-	}
-}
-
-func (r *DBResponse) GetMetadata() *db.ModelMetadata {
-	return &db.ModelMetadata{
-		Table: ResponseTable,
-		Relations: map[string]string{
-			RequestTable: "request_id",
-			GrantTable:   "grant_id",
-		},
-		CreateObject: func() db.Model {
-			return &DBResponse{}
-		},
-	}
+type EnumModel interface {
+	GetId() int64
+	GetName() string
 }
 
 type DBGrantState struct {
@@ -201,11 +58,19 @@ func (gs *DBGrantState) GetMetadata() *db.ModelMetadata {
 	}
 }
 
+func (gs *DBGrantState) GetId() int64 {
+	return gs.Id.Int64
+}
+
+func (gs *DBGrantState) GetName() string {
+	return gs.Name.String
+}
+
 type DBGrant struct {
 	Id                 sql.NullInt64
 	StateId            sql.NullInt64
 	CbsdId             sql.NullInt64
-	GrantId            sql.NullInt64
+	GrantId            sql.NullString
 	GrantExpireTime    sql.NullTime
 	TransmitExpireTime sql.NullTime
 	HeartbeatInterval  sql.NullInt64
@@ -228,7 +93,7 @@ func (g *DBGrant) Fields() db.FieldMap {
 			Nullable: true,
 		},
 		"grant_id": &db.Field{
-			BaseType: db.IntType{X: &g.GrantId},
+			BaseType: db.StringType{X: &g.GrantId},
 		},
 		"grant_expire_time": &db.Field{
 			BaseType: db.TimeType{X: &g.GrantExpireTime},
@@ -297,22 +162,32 @@ func (cs *DBCbsdState) GetMetadata() *db.ModelMetadata {
 	}
 }
 
+func (cs *DBCbsdState) GetId() int64 {
+	return cs.Id.Int64
+}
+
+func (cs *DBCbsdState) GetName() string {
+	return cs.Name.String
+}
+
 type DBCbsd struct {
-	Id               sql.NullInt64
-	NetworkId        sql.NullString
-	StateId          sql.NullInt64
-	CbsdId           sql.NullString
-	UserId           sql.NullString
-	FccId            sql.NullString
-	CbsdSerialNumber sql.NullString
-	LastSeen         sql.NullTime
-	GrantAttempts    sql.NullInt64
-	MinPower         sql.NullFloat64
-	MaxPower         sql.NullFloat64
-	AntennaGain      sql.NullFloat64
-	NumberOfPorts    sql.NullInt64
-	IsDeleted        sql.NullBool
-	IsUpdated        sql.NullBool
+	Id                      sql.NullInt64
+	NetworkId               sql.NullString
+	StateId                 sql.NullInt64
+	CbsdId                  sql.NullString
+	UserId                  sql.NullString
+	FccId                   sql.NullString
+	CbsdSerialNumber        sql.NullString
+	LastSeen                sql.NullTime
+	GrantAttempts           sql.NullInt64
+	PreferredBandwidthMHz   sql.NullInt64
+	PreferredFrequenciesMHz sql.NullString
+	MinPower                sql.NullFloat64
+	MaxPower                sql.NullFloat64
+	AntennaGain             sql.NullFloat64
+	NumberOfPorts           sql.NullInt64
+	IsDeleted               sql.NullBool
+	IsUpdated               sql.NullBool
 }
 
 func (c *DBCbsd) Fields() db.FieldMap {
@@ -341,6 +216,7 @@ func (c *DBCbsd) Fields() db.FieldMap {
 		"cbsd_serial_number": &db.Field{
 			BaseType: db.StringType{X: &c.CbsdSerialNumber},
 			Nullable: true,
+			Unique:   true,
 		},
 		"last_seen": &db.Field{
 			BaseType: db.TimeType{X: &c.LastSeen},
@@ -350,6 +226,12 @@ func (c *DBCbsd) Fields() db.FieldMap {
 			BaseType:     db.IntType{X: &c.GrantAttempts},
 			HasDefault:   true,
 			DefaultValue: 0,
+		},
+		"preferred_bandwidth_mhz": &db.Field{
+			BaseType: db.IntType{X: &c.PreferredBandwidthMHz},
+		},
+		"preferred_frequencies_mhz": &db.Field{
+			BaseType: db.StringType{X: &c.PreferredFrequenciesMHz},
 		},
 		"min_power": &db.Field{
 			BaseType: db.FloatType{X: &c.MinPower},
@@ -392,57 +274,6 @@ func (c *DBCbsd) GetMetadata() *db.ModelMetadata {
 	}
 }
 
-type DBChannel struct {
-	Id              sql.NullInt64
-	CbsdId          sql.NullInt64
-	LowFrequency    sql.NullInt64
-	HighFrequency   sql.NullInt64
-	ChannelType     sql.NullString
-	RuleApplied     sql.NullString
-	MaxEirp         sql.NullFloat64
-	LastUsedMaxEirp sql.NullFloat64
-}
-
-func (c *DBChannel) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			BaseType: db.IntType{X: &c.Id},
-		},
-		"cbsd_id": &db.Field{
-			BaseType: db.IntType{X: &c.CbsdId},
-			Nullable: true,
-		},
-		"low_frequency": &db.Field{
-			BaseType: db.IntType{X: &c.LowFrequency},
-		},
-		"high_frequency": &db.Field{
-			BaseType: db.IntType{X: &c.HighFrequency},
-		},
-		"channel_type": &db.Field{
-			BaseType: db.StringType{X: &c.ChannelType},
-		},
-		"rule_applied": &db.Field{
-			BaseType: db.StringType{X: &c.RuleApplied},
-		},
-		"max_eirp": &db.Field{
-			BaseType: db.FloatType{X: &c.MaxEirp},
-			Nullable: true,
-		},
-	}
-}
-
-func (c *DBChannel) GetMetadata() *db.ModelMetadata {
-	return &db.ModelMetadata{
-		Table: ChannelTable,
-		Relations: map[string]string{
-			CbsdTable: "cbsd_id",
-		},
-		CreateObject: func() db.Model {
-			return &DBChannel{}
-		},
-	}
-}
-
 type DBActiveModeConfig struct {
 	Id             sql.NullInt64
 	CbsdId         sql.NullInt64
@@ -472,64 +303,6 @@ func (amc *DBActiveModeConfig) GetMetadata() *db.ModelMetadata {
 		},
 		CreateObject: func() db.Model {
 			return &DBActiveModeConfig{}
-		},
-	}
-}
-
-type DBLog struct {
-	Id           sql.NullInt64
-	NetworkId    sql.NullString
-	From         sql.NullString
-	To           sql.NullString
-	Name         sql.NullString
-	Message      sql.NullString
-	SerialNumber sql.NullString
-	FccId        sql.NullString
-	ResponseCode sql.NullInt64
-	CreatedDate  sql.NullTime
-}
-
-func (l *DBLog) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			BaseType: db.IntType{X: &l.Id},
-		},
-		"network_id": &db.Field{
-			BaseType: db.StringType{X: &l.NetworkId},
-		},
-		"log_from": &db.Field{
-			BaseType: db.StringType{X: &l.From},
-		},
-		"log_to": &db.Field{
-			BaseType: db.StringType{X: &l.To},
-		},
-		"log_name": &db.Field{
-			BaseType: db.StringType{X: &l.Name},
-		},
-		"log_message": &db.Field{
-			BaseType: db.StringType{X: &l.Message},
-		},
-		"cbsd_serial_number": &db.Field{
-			BaseType: db.StringType{X: &l.SerialNumber},
-		},
-		"fcc_id": &db.Field{
-			BaseType: db.StringType{X: &l.FccId},
-		},
-		"response_code": &db.Field{
-			BaseType: db.IntType{X: &l.ResponseCode},
-			Nullable: true,
-		},
-		"created_date": &db.Field{
-			BaseType: db.TimeType{X: &l.CreatedDate},
-		},
-	}
-}
-
-func (l *DBLog) GetMetadata() *db.ModelMetadata {
-	return &db.ModelMetadata{
-		Table: LogTable,
-		CreateObject: func() db.Model {
-			return &DBLog{}
 		},
 	}
 }

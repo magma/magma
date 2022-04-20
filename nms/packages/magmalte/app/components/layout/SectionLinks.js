@@ -16,13 +16,13 @@
 
 import * as React from 'react';
 
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import NavListItem from '@fbcnms/ui/components/NavListItem';
+import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import NavListItem from '../../../fbc_js_core/ui/components/NavListItem';
 import NetworkContext from '../context/NetworkContext';
 
 import useSections from './useSections';
 import {useContext} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 export default function SectionLinks(): React.Node {
   const [_landingPath, sections] = useSections();

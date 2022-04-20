@@ -11,14 +11,9 @@
 
 load("@rules_python//python:defs.bzl", "py_library")
 
-MAGMA_ROOT = "../../../../../../../"
-
-ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
-
 py_library(
     name = "ping",
     srcs = ["ping.py"],
-    imports = [ORC8R_ROOT],
     visibility = ["//visibility:public"],
     deps = [
         ":traceroute",
@@ -29,7 +24,6 @@ py_library(
 py_library(
     name = "routing_table",
     srcs = ["routing_table.py"],
-    imports = [ORC8R_ROOT],
     visibility = ["//visibility:public"],
     deps = ["//orc8r/gateway/python/magma/magmad/check:subprocess_workflow"],
 )
@@ -37,7 +31,6 @@ py_library(
 py_library(
     name = "traceroute",
     srcs = ["traceroute.py"],
-    imports = [ORC8R_ROOT],
     visibility = ["//visibility:public"],
     deps = ["//orc8r/gateway/python/magma/magmad/check:subprocess_workflow"],
 )

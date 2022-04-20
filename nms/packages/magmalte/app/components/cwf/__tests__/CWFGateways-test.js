@@ -26,7 +26,7 @@ import type {cwf_ha_pair} from '../../../../generated/MagmaAPIBindings';
 import 'jest-dom/extend-expect';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import axiosMock from 'axios';
-import defaultTheme from '@fbcnms/ui/theme/default';
+import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
 
 import {cleanup, render, wait} from '@testing-library/react';
 

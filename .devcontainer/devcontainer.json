@@ -29,6 +29,7 @@
 		"ryuta46.multi-command",
 		"coolchyni.beyond-debug",
 	],
+	"initializeCommand": "docker pull ghcr.io/magma/magma/devcontainer:latest",
 	"image": "ghcr.io/magma/magma/devcontainer:latest",
 	"settings": {
 		"search.followSymlinks": false,
@@ -66,11 +67,8 @@
 		"editor.formatOnSave": true,
 		// Update this field with any new Bazel targets that need compilation database generation
 		"bsv.cc.compdb.targets": [
-			"//lte/gateway/c/session_manager:sessiond",
-			"//lte/gateway/c/sctpd/src:sctpd",
-			"//lte/gateway/c/li_agent/src:liagentd",
-			"//lte/gateway/c/connection_tracker/src:connectiond",
-			"//lte/gateway/c/core:oai_mme",
+			"//orc8r/gateway/c/...",
+			"//lte/gateway/c/...",
 		],
 		"multiCommand.commands": [
 			{

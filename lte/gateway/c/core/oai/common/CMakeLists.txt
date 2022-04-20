@@ -51,10 +51,8 @@ set(COMMON_SRC
     TLVDecoder.c
     TLVEncoder.c
     async_system.c
-    backtrace.c
     conversions.c
     digest.c
-    dynamic_memory_check.c
     enum_string.c
     itti_free_defined_msg.c
     pid_file.c
@@ -84,14 +82,18 @@ if (EXISTS "/etc/os-release")
   endif ()
 endif ()
 
+find_package(LTE_GATEWAY_C_COMMON REQUIRED)
+
 message("os_name" ${os_name})
 if ("${os_name}" STREQUAL "\"rhel\"")
   target_link_libraries(COMMON
+      LTE_GATEWAY_C_COMMON
       lfds710
       LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI glogwrapper MAGMA_SENTRY SERVICE303_LIB
       )
 else()
 target_link_libraries(COMMON
+      LTE_GATEWAY_C_COMMON
       lfds710
       ${OPENSSL_LIBRARIES}
       LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI glogwrapper MAGMA_SENTRY SERVICE303_LIB

@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.h"
 

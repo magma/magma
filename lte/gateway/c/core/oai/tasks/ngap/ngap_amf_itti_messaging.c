@@ -14,20 +14,20 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "Ngap_CauseRadioNetwork.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_common.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/amf_default_values.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
 #include "lte/gateway/c/core/oai/include/nas/as_message.h"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_common.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
-#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
-#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
-#include "lte/gateway/c/core/oai/common/amf_default_values.h"
 
 task_zmq_ctx_t ngap_task_zmq_ctx;
 //------------------------------------------------------------------------------

@@ -32,7 +32,7 @@ type Capabilities struct {
 	// number of antennas
 	// Required: true
 	// Minimum: 1
-	NumberOfAntennas *int64 `json:"number_of_antennas"`
+	NumberOfAntennas int64 `json:"number_of_antennas"`
 }
 
 // Validate validates this capabilities
@@ -90,11 +90,11 @@ func (m *Capabilities) validateMinPower(formats strfmt.Registry) error {
 
 func (m *Capabilities) validateNumberOfAntennas(formats strfmt.Registry) error {
 
-	if err := validate.Required("number_of_antennas", "body", m.NumberOfAntennas); err != nil {
+	if err := validate.Required("number_of_antennas", "body", int64(m.NumberOfAntennas)); err != nil {
 		return err
 	}
 
-	if err := validate.MinimumInt("number_of_antennas", "body", int64(*m.NumberOfAntennas), 1, false); err != nil {
+	if err := validate.MinimumInt("number_of_antennas", "body", int64(m.NumberOfAntennas), 1, false); err != nil {
 		return err
 	}
 

@@ -35,11 +35,11 @@ Description Defines the EPS Session Management procedures executed at
 #ifndef __ESM_PROC_H__
 #define __ESM_PROC_H__
 
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/NasRequestType.h"
 
 /****************************************************************************/

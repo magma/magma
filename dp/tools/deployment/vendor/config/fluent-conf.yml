@@ -1,0 +1,52 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-config
+data:
+  fluent.conf: |
+    <system>
+      log_level debug
+    </system>
+
+    <source>
+      @type http
+      port 9888
+      <parse>
+        @type json
+      </parse>
+    </source>
+
+    <match dp>
+      @type copy
+      <store>
+        @type elasticsearch
+        host elasticsearch
+        port 9200
+        logstash_format true
+        logstash_prefix dp
+        include_tag_key true
+        tag_key tag
+        flush_interval 1s
+      </store>
+      <store>
+        @type stdout
+      </store>
+    </match>
+
+    <match *.**>
+      @type copy
+      <store>
+        @type elasticsearch
+        host elasticsearch
+        port 9200
+        logstash_format true
+        logstash_prefix fluentd
+        include_tag_key true
+        tag_key tag
+        flush_interval 1s
+      </store>
+      <store>
+        @type stdout
+      </store>
+    </match>

@@ -13,18 +13,13 @@ limitations under the License.
 
 import logging
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Callable, Dict, Optional
 
+from magma.configuration_controller.custom_types.custom_types import DBResponse
 from magma.configuration_controller.response_processor.response_db_processor import (
     ResponseDBProcessor,
 )
-from magma.db_service.models import (
-    DBCbsd,
-    DBCbsdState,
-    DBChannel,
-    DBGrant,
-    DBResponse,
-)
+from magma.db_service.models import DBCbsd, DBCbsdState, DBChannel, DBGrant
 from magma.db_service.session_manager import Session
 from magma.mappings.types import CbsdStates, GrantStates, ResponseCodes
 
@@ -40,6 +35,39 @@ CHANNEL_TYPE = "channelType"
 OPERATION_PARAM = "operationParam"
 
 
+def unregister_cbsd_on_response_condition(process_response_func) -> Callable:
+    """
+    Unregister a CBSD on specific SAS response code conditions.
+
+    This decorator is applied to any process response functions
+    which should react to response codes that require Domain Proxy
+    to internally unregister the CBSD.
+
+    Currently a CBSD should be marked as unregistered on Domain Proxy if:
+    * SAS returns a response with responseCode 105 (ResponseCodes.DEREGISTER)
+    * SAS returns a response with responseCode 103 (ResponseCodes.INVALID_VALUE)
+      and responseData has "cbsdId" listed as the INVALID_VALUE parameter
+
+    Parameters:
+        process_response_func: Response processing function
+
+    Returns:
+        response processing function wrapper
+    """
+    def process_response_wrapper(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:
+        if any([
+            response.response_code == ResponseCodes.DEREGISTER.value,
+            _is_response_invalid_value_cbsd_id(response),
+        ]):
+            logger.info(f'SAS {response.payload} implies CBSD immedaite unregistration')
+            _unregister_cbsd(response, session)
+            return
+        process_response_func(obj, response, session)
+
+    return process_response_wrapper
+
+
+@unregister_cbsd_on_response_condition
 def process_registration_response(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:
     """
     Process registration response
@@ -51,28 +79,38 @@ def process_registration_response(obj: ResponseDBProcessor, response: DBResponse
     """
 
     cbsd_id = response.payload.get("cbsdId", None)
-    if response.response_code == ResponseCodes.DEREGISTER.value:
-        _terminate_all_grants_from_response(response, session)
-    elif response.response_code == ResponseCodes.SUCCESS.value and cbsd_id:
+    if response.response_code == ResponseCodes.SUCCESS.value and cbsd_id:
         payload = response.request.payload
-        cbsd = _find_cbsd_from_registration_request(session, payload)
+        cbsd = _find_cbsd_from_request(session, payload)
+        if not cbsd:
+            return
         cbsd.cbsd_id = cbsd_id
         _change_cbsd_state(cbsd, session, CbsdStates.REGISTERED.value)
 
 
-def _find_cbsd_from_registration_request(session: Session, payload: Dict) -> DBCbsd:
-    return session.query(DBCbsd).filter(
-        DBCbsd.cbsd_serial_number == payload["cbsdSerialNumber"],
-    ).scalar()
+def _find_cbsd_from_request(session: Session, payload: Dict) -> DBCbsd:
+    if "cbsdSerialNumber" in payload:
+        return session.query(DBCbsd).filter(
+            DBCbsd.cbsd_serial_number == payload.get("cbsdSerialNumber"),
+        ).scalar()
+    if "cbsdId" in payload:
+        return session.query(DBCbsd).filter(
+            DBCbsd.cbsd_id == payload.get("cbsdId"),
+        ).scalar()
+    logger.warning(f'Could not find CBSD in Database matching {payload=}.')
 
 
 def _change_cbsd_state(cbsd: DBCbsd, session: Session, new_state: str) -> None:
+    if not cbsd:
+        return
     state = session.query(DBCbsdState).filter(
         DBCbsdState.name == new_state,
     ).scalar()
+    print(f"Changing {cbsd=} {cbsd.state=} to {new_state=}")
     cbsd.state = state
 
 
+@unregister_cbsd_on_response_condition
 def process_spectrum_inquiry_response(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:
     """
     Process spectrum inquiry response
@@ -83,10 +121,10 @@ def process_spectrum_inquiry_response(obj: ResponseDBProcessor, response: DBResp
         session: Database session
     """
 
-    if response.response_code == ResponseCodes.DEREGISTER.value:
-        _terminate_all_grants_from_response(response, session)
-    elif response.response_code == ResponseCodes.SUCCESS.value:
+    if response.response_code == ResponseCodes.SUCCESS.value:
         _create_channels(response, session)
+        return
+    logger.warning(f'process_spectrum_inquiry_response: Received an unsuccessful SAS response, {response.payload}=')
 
 
 def _create_channels(response: DBResponse, session: Session):
@@ -113,6 +151,7 @@ def _create_channels(response: DBResponse, session: Session):
         session.add(channel)
 
 
+@unregister_cbsd_on_response_condition
 def process_grant_response(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:
     """
     Process grant response
@@ -125,6 +164,7 @@ def process_grant_response(obj: ResponseDBProcessor, response: DBResponse, sessi
     Returns:
         None
     """
+
     if response.response_code != ResponseCodes.SUCCESS.value:
         cbsd = response.request.cbsd
         if cbsd:
@@ -149,6 +189,7 @@ def process_grant_response(obj: ResponseDBProcessor, response: DBResponse, sessi
     grant.state = new_state
 
 
+@unregister_cbsd_on_response_condition
 def process_heartbeat_response(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:
     """
     Process heartbeat response
@@ -187,6 +228,7 @@ def process_heartbeat_response(obj: ResponseDBProcessor, response: DBResponse, s
     grant.last_heartbeat_request_time = datetime.now()
 
 
+@unregister_cbsd_on_response_condition
 def process_relinquishment_response(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:
     """
     Process relinquishment response
@@ -207,9 +249,6 @@ def process_relinquishment_response(obj: ResponseDBProcessor, response: DBRespon
 
     if response.response_code == ResponseCodes.SUCCESS.value:
         new_state = obj.grant_states_map[GrantStates.IDLE.value]
-    elif response.response_code == ResponseCodes.DEREGISTER.value:
-        _terminate_all_grants_from_response(response, session)
-        return
     else:
         new_state = grant.state
     logger.info(
@@ -228,11 +267,10 @@ def process_deregistration_response(obj: ResponseDBProcessor, response: DBRespon
         session: Database session
     """
 
-    _terminate_all_grants_from_response(response, session)
-    cbsd_id = response.payload.get("cbsdId", None)
-    if cbsd_id:
-        cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).scalar()
-        _change_cbsd_state(cbsd, session, CbsdStates.UNREGISTERED.value)
+    logger.info(
+        f'process_deregistration_response: Unregistering {response.payload}',
+    )
+    _unregister_cbsd(response, session)
 
 
 def _get_or_create_grant_from_response(
@@ -287,7 +325,6 @@ def _update_grant_from_response(response: DBResponse, grant: DBGrant) -> None:
         grant.transmit_expire_time = transmit_expire_time
     if channel_type:
         grant.channel_type = channel_type
-    grant.responses.append(response)
     logger.info(f'Updated grant: {grant}')
 
 
@@ -300,19 +337,26 @@ def _terminate_all_grants_from_response(response: DBResponse, session: Session) 
     cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).scalar()
     if cbsd:
         cbsd.grant_attempts = 0
-    grant_ids = [
-        grant.id for grant in session.query(
-            DBGrant.id,
-        ).filter(DBGrant.cbsd == cbsd).all()
-    ]
-    if grant_ids:
-        logger.info(f'Disconnecting responses from grants for {cbsd_id=}')
-        session.query(DBResponse).filter(
-            DBResponse.grant_id.in_(
-                grant_ids,
-            ),
-        ).update({DBResponse.grant_id: None})
     logger.info(f'Terminating all grants for {cbsd_id=}')
     session.query(DBGrant).filter(DBGrant.cbsd == cbsd).delete()
     logger.info(f"Deleting all channels for {cbsd_id=}")
     session.query(DBChannel).filter(DBChannel.cbsd == cbsd).delete()
+
+
+def _unregister_cbsd(response: DBResponse, session: Session) -> None:
+    payload = response.request.payload
+    cbsd = _find_cbsd_from_request(session, payload)
+    if not cbsd:
+        return
+    _terminate_all_grants_from_response(response, session)
+    _change_cbsd_state(cbsd, session, CbsdStates.UNREGISTERED.value)
+
+
+def _is_response_invalid_value_cbsd_id(response: DBResponse) -> bool:
+    if response.response_code != ResponseCodes.INVALID_VALUE.value:
+        return False
+
+    response_data = response.payload.get(
+        "response", {},
+    ).get("responseData", [])
+    return CBSD_ID in response_data

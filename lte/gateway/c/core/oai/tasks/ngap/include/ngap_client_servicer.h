@@ -24,6 +24,7 @@ extern "C" {
 #endif
 #include <memory.h>
 #include <string.h>
+#include <vector>
 #include "lte/gateway/c/core/oai/include/map.h"
 
 namespace magma5g {
@@ -39,7 +40,8 @@ class NGAPClientServicerBase {
 class NGAPClientServicer : public NGAPClientServicerBase {
  public:
   NGAPClientServicer();
-
+  std::vector<MessagesIds>
+      msgtype_stack;  // stack maintains type of msgs sent to amf
   static NGAPClientServicer& getInstance();
 
   NGAPClientServicer(NGAPClientServicer const&) = delete;

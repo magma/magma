@@ -35,7 +35,7 @@ Description Defines the EPS Mobility Management procedures executed at
 #ifndef FILE_EMM_PROC_SEEN
 #define FILE_EMM_PROC_SEEN
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"

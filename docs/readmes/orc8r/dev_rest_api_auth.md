@@ -1,5 +1,5 @@
 ---
-id: dev_token_security
+id: dev_rest_api_auth
 title: REST API Auth
 hide_title: true
 ---

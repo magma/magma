@@ -15,7 +15,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -98,7 +97,7 @@ func parsePrecommitTestsFromMakefile(path string) []string {
 	prefix := "s1aptests/test_"
 	suffix := " \\"
 
-	fileb, err := ioutil.ReadFile(path)
+	fileb, err := os.ReadFile(path)
 	if err != nil {
 		println("failed to read in makefile")
 		panic(err)
@@ -152,7 +151,7 @@ func runAndCaptureTests(ctx context.Context, dir, outputPathFmt string, captureC
 		// Write out golden file.
 		goldenfilename := fmt.Sprintf(outputPathFmt, test)
 		println(goldenfilename)
-		err = ioutil.WriteFile(goldenfilename, []byte(resp.Recording.String()), 0666)
+		err = os.WriteFile(goldenfilename, []byte(resp.Recording.String()), 0666)
 		if err != nil {
 			println("failed to write golden")
 			panic(err)

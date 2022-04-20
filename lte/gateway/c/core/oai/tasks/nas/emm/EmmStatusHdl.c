@@ -18,16 +18,16 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

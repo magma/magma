@@ -17,14 +17,14 @@
 
 #include <string.h>
 
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/tasks/sms_orc8r/sms_orc8r_messages.h"
-#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 
 status_code_e handle_sms_orc8r_downlink_unitdata(
     const itti_sgsap_downlink_unitdata_t* sgs_dl_unitdata_p) {

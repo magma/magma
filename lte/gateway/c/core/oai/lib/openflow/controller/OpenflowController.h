@@ -23,15 +23,18 @@
 
 #include <fluid/OFServer.hh>
 
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerEvents.h"
 #include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowMessenger.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 namespace openflow {
 
 #define IP_ETH_TYPE 0x0800
 
 class Application {
+ public:
+  static const uint8_t SPGW_OVS_TABLE_ID = 0;
+
  public:
   virtual void event_callback(const ControllerEvent& ev,
                               const OpenflowMessenger& messenger) {}

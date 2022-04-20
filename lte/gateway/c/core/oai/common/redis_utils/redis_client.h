@@ -22,7 +22,7 @@
 #include <cpp_redis/cpp_redis>
 #include <google/protobuf/message.h>
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "orc8r/protos/redis.pb.h"
 
 namespace magma {

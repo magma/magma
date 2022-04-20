@@ -95,7 +95,7 @@ func TestAuthMiddleware(t *testing.T) {
 	})
 
 	tenants.CreateTenant(context.Background(), test_utils.TestTenantId, &tenant_protos.Tenant{
-		Name:     string(test_utils.TestTenantId),
+		Name:     fmt.Sprint(test_utils.TestTenantId),
 		Networks: []string{test_utils.TestTenantNetworkId},
 	})
 	tenantUserToken := test_utils.CreateTestUser(t, store, test_utils.TestTenantUsername, test_utils.TestPassword, []*certprotos.Policy{

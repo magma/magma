@@ -39,7 +39,7 @@ import {AltFormField} from '../../components/FormField';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 const DEFAULT_POLICY_RULE = {
   qos_profile: undefined,
   id: '',

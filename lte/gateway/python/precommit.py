@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Note: Python version >= 3.7 is needed to run this script
 """
 Copyright 2020 The Magma Authors.
 
@@ -16,7 +17,11 @@ import os
 import subprocess  # noqa: S404 ignore security warning about subprocess
 from typing import List
 
-MAGMA_ROOT = os.getenv('MAGMA_ROOT')
+if os.getenv('MAGMA_ROOT'):
+    MAGMA_ROOT = os.environ["MAGMA_ROOT"]
+else:
+    raise Exception("'MAGMA_ROOT' needs to be set and point to the Magma root directory!")
+
 LINT_DOCKER_PATH = os.path.join(
     MAGMA_ROOT,
     'lte/gateway/docker/python-precommit/',
@@ -29,9 +34,6 @@ GITHUB_IMAGE_NAME = 'ghcr.io/magma/magma/python-precommit:sha-b22d512'
 
 def main() -> None:
     """Provide command-line options to format/lint Magma's Python codebase"""
-    if MAGMA_ROOT is None:
-        print("Please set the 'MAGMA_ROOT' environment variable to point to the root directory")
-        return
     print("Magma root is " + MAGMA_ROOT)
     args = _parse_args()
 

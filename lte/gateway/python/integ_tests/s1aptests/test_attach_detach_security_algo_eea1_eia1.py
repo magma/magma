@@ -18,10 +18,14 @@ from integ_tests.s1aptests import s1ap_wrapper
 
 
 class TestAttachDetachSecurityAlgoEea1Eia1(unittest.TestCase):
+    """Integration Test: TestAttachDetachSecurityAlgoEea1Eia1"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach_security_algo_eea1_eia1(self):
@@ -42,17 +46,17 @@ class TestAttachDetachSecurityAlgoEea1Eia1(unittest.TestCase):
         wait_for_s1 = [True, False]
 
         # Configure Encryption/Integrity algorithms for UE Network Capabilities
-        configList = []
+        config_list = []
         for i in range(num_ues):
-            configList.append(s1ap_types.ueConfig_t())
-            configList[i].ueNwCap_pr.pres = 1
-            configList[i].ueNwCap_pr.eea2_128 = 0
-            configList[i].ueNwCap_pr.eea1_128 = 1
-            configList[i].ueNwCap_pr.eea0 = 0
-            configList[i].ueNwCap_pr.eia2_128 = 0
-            configList[i].ueNwCap_pr.eia1_128 = 1
-            configList[i].ueNwCap_pr.eia0 = 0
-        self._s1ap_wrapper.configUEDevice(num_ues, reqData=configList)
+            config_list.append(s1ap_types.ueConfig_t())
+            config_list[i].ueNwCap_pr.pres = 1
+            config_list[i].ueNwCap_pr.eea2_128 = 0
+            config_list[i].ueNwCap_pr.eea1_128 = 1
+            config_list[i].ueNwCap_pr.eea0 = 0
+            config_list[i].ueNwCap_pr.eia2_128 = 0
+            config_list[i].ueNwCap_pr.eia1_128 = 1
+            config_list[i].ueNwCap_pr.eia0 = 0
+        self._s1ap_wrapper.configUEDevice(num_ues, req_data=config_list)
 
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
@@ -77,7 +81,9 @@ class TestAttachDetachSecurityAlgoEea1Eia1(unittest.TestCase):
             )
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
-                req.ue_id, detach_type[i], wait_for_s1[i],
+                req.ue_id,
+                detach_type[i],
+                wait_for_s1[i],
             )
 
 

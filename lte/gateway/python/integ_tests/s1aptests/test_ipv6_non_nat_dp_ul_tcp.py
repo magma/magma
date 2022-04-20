@@ -30,8 +30,8 @@ class TestAttachDetachNonNatDpUlTcp(unittest.TestCase):
 
     def setUp(self):
         """Initialize before test case execution"""
-        self.magma_utils.disable_nat()
-        self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
+        self.magma_utils.disable_nat(ipv6=True)
+        self._s1ap_wrapper = s1ap_wrapper.TestWrapper(ip_version=6)
 
     def tearDown(self):
         """Cleanup after test case execution"""

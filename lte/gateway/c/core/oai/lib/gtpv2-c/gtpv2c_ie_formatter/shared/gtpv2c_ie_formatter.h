@@ -27,12 +27,12 @@
 
 #include <stdbool.h>
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
-#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/TrafficFlowAggregateDescription.h"
 //#include "mme_ie_defs.h"
 

@@ -21,11 +21,11 @@ import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardTitleRow from './layout/CardTitleRow';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../fbc_js_core/ui/components/LoadingFiller';
 import MagmaV1API from '../../generated/WebClient';
 import React from 'react';
 import moment from 'moment';
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../fbc_js_core/util/nullthrows';
 
 import {
   CustomLineChart,
@@ -35,8 +35,8 @@ import {
 } from './CustomMetrics';
 import {colors} from '../theme/default';
 import {useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../fbc_js_core/ui/hooks';
 
 type Props = {
   startEnd: [moment, moment],

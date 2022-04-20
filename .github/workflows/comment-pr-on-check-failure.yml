@@ -14,8 +14,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{ github.event.workflow.name }}
   cancel-in-progress: true
 
-permissions: read-all
-
 jobs:
   skip_check:
     name: Job to check if the workflow ${{ github.event.workflow.name }} can be skipped

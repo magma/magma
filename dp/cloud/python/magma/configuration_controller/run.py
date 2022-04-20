@@ -11,16 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import importlib
 import logging
-import os
 import time
 from typing import Optional
 
 import click
+import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-from magma.configuration_controller.config import Config
+from magma.configuration_controller.config import get_config
 from magma.configuration_controller.request_consumer.request_db_consumer import (
     RequestDBConsumer,
 )
@@ -39,12 +38,12 @@ from magma.configuration_controller.response_processor.response_db_processor imp
 from magma.configuration_controller.response_processor.strategies.strategies_mapping import (
     processor_strategies,
 )
-from magma.db_service.models import DBLog
 from magma.db_service.session_manager import SessionManager
+from magma.fluentd_client.client import FluentdClient, FluentdClientException
+from magma.fluentd_client.dp_logs import make_dp_log
 from magma.mappings.request_mapping import request_mapping
 from magma.mappings.request_response_mapping import request_response
 from magma.mappings.types import RequestTypes
-from requests import Response
 from sqlalchemy import create_engine
 
 logging.basicConfig(
@@ -76,6 +75,8 @@ def run():
         encoding=config.SQLALCHEMY_DB_ENCODING,
         echo=config.SQLALCHEMY_ECHO,
         future=config.SQLALCHEMY_FUTURE,
+        pool_size=config.SQLALCHEMY_ENGINE_POOL_SIZE,
+        max_overflow=config.SQLALCHEMY_ENGINE_MAX_OVERFLOW,
     )
     session_manager = SessionManager(db_engine=db_engine)
     router = RequestRouter(
@@ -86,6 +87,7 @@ def run():
         request_mapping=request_mapping,
         ssl_verify=config.SAS_CERT_PATH,
     )
+    fluentd_client = FluentdClient()
     for request_type in RequestTypes:
         req_type = request_type.value
         response_type = request_response[req_type]
@@ -96,10 +98,12 @@ def run():
         processor = ResponseDBProcessor(
             response_type=response_type,
             process_responses_func=processor_strategies[req_type]["process_responses"],
+            fluentd_client=fluentd_client,
         )
+
         scheduler.add_job(
             process_requests,
-            args=[consumer, processor, router, session_manager],
+            args=[consumer, processor, router, session_manager, fluentd_client],
             trigger=IntervalTrigger(
                 seconds=config.REQUEST_PROCESSING_INTERVAL_SEC,
             ),
@@ -112,28 +116,13 @@ def run():
         time.sleep(1)
 
 
-def get_config() -> Config:
-    """
-    Get configuration controller configuration
-    """
-    app_config = os.environ.get('APP_CONFIG', 'ProductionConfig')
-    config_module = importlib.import_module(
-        '.'.join(
-            f"magma.configuration_controller.config.{app_config}".split('.')[
-                :-1
-            ],
-        ),
-    )
-    config_class = getattr(config_module, app_config.split('.')[-1])
-    return config_class()
-
-
 def process_requests(
         consumer: RequestDBConsumer,
         processor: ResponseDBProcessor,
         router: RequestRouter,
         session_manager: SessionManager,
-) -> Optional[Response]:
+        fluentd_client: FluentdClient,
+) -> Optional[requests.Response]:
     """
     Process SAS requests
     """
@@ -153,7 +142,7 @@ def process_requests(
         )
         bulked_sas_requests = merge_requests(requests_map)
 
-        _log_requests_map(session_manager, requests_map)
+        _log_requests_map(requests_map, fluentd_client)
         try:
             sas_response = router.post_to_sas(bulked_sas_requests)
             logger.info(
@@ -171,35 +160,14 @@ def process_requests(
         return sas_response
 
 
-def _log_requests_map(session_manager, requests_map):
-    with session_manager.session_scope() as session:
-        requests_type = next(iter(requests_map))
-        for request in requests_map[requests_type]:
-            _log_request(session, request)
-        session.commit()
-
-
-def _log_request(session, request):
-    network_id = ''
-    fcc_id = ''
-    cbsd_serial_number = ''
-    cbsd = request.cbsd
-    if cbsd and cbsd.network_id:
-        network_id = cbsd.network_id
-    if cbsd and cbsd.fcc_id:
-        fcc_id = cbsd.fcc_id
-    if cbsd and cbsd.cbsd_serial_number:
-        cbsd_serial_number = cbsd.cbsd_serial_number
-    log = DBLog(
-        log_from='DP',
-        log_to='SAS',
-        log_name=request.type.name,
-        log_message=f'{request.payload}',
-        cbsd_serial_number=f'{cbsd_serial_number}',
-        network_id=f'{network_id}',
-        fcc_id=f'{fcc_id}',
-    )
-    session.add(log)
+def _log_requests_map(requests_map: dict, fluentd_client: FluentdClient):
+    requests_type = next(iter(requests_map))
+    for request in requests_map[requests_type]:
+        try:
+            log = make_dp_log(request)
+            fluentd_client.send_dp_log(log)
+        except (FluentdClientException, TypeError) as err:
+            logging.error(f"Failed to log {requests_type} request. {err}")
 
 
 if __name__ == '__main__':

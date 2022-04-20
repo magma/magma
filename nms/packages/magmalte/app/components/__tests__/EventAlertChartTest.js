@@ -44,7 +44,7 @@ const mockMetricSt: promql_return_object = {
 
 jest.mock('axios');
 jest.mock('../../../generated/MagmaAPIBindings');
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
+jest.mock('../../../fbc_js_core/ui/hooks/useSnackbar');
 
 // chart component was failing here so mocking this out
 // this shouldn't affect the prop verification part in the react

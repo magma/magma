@@ -16,7 +16,10 @@
 import '@fbcnms/babel-register/polyfill';
 import path from 'path';
 import {merge, omit} from 'lodash';
-import {readManifest, resolveWorkspaces} from '@fbcnms/util/yarn';
+import {
+  readManifest,
+  resolveWorkspaces,
+} from '../packages/magmalte/fbc_js_core/util/yarn';
 
 // Packages that can have duplicate versions (keep this to a minimum)
 const PACKAGE_BLACKLIST = ['core-js'];

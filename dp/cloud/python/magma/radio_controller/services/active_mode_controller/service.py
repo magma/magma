@@ -23,7 +23,7 @@ from dp.protos.active_mode_pb2 import (
     DatabaseCbsd,
     DeleteCbsdRequest,
     EirpCapabilities,
-    FrequencyRange,
+    FrequencyPreferences,
     GetStateRequest,
     Grant,
     State,
@@ -38,11 +38,10 @@ from magma.db_service.models import (
     DBGrant,
     DBGrantState,
     DBRequest,
-    DBRequestState,
 )
 from magma.db_service.session_manager import Session, SessionManager
 from magma.mappings.cbsd_states import cbsd_state_mapping, grant_state_mapping
-from magma.mappings.types import GrantStates, RequestStates
+from magma.mappings.types import GrantStates
 from sqlalchemy import and_
 from sqlalchemy.orm import contains_eager, joinedload
 
@@ -128,9 +127,6 @@ def _list_cbsds(session: Session) -> State:
     db_grant_idle_state_id = session.query(DBGrantState.id).filter(
         DBGrantState.name == GrantStates.IDLE.value,
     ).scalar_subquery()
-    db_request_pending_state_id = session.query(DBRequestState.id).filter(
-        DBRequestState.name == RequestStates.PENDING.value,
-    ).scalar_subquery()
 
     not_null = [
         DBCbsd.fcc_id, DBCbsd.user_id, DBCbsd.number_of_ports,
@@ -150,12 +146,7 @@ def _list_cbsds(session: Session) -> State:
                 DBGrant.state_id != db_grant_idle_state_id,
             ),
         ).
-        outerjoin(
-            DBRequest, and_(
-                DBRequest.cbsd_id == DBCbsd.id,
-                DBRequest.state_id == db_request_pending_state_id,
-            ),
-        ).
+        outerjoin(DBRequest).
         options(
             joinedload(DBCbsd.state),
             joinedload(DBCbsd.channels),
@@ -186,6 +177,7 @@ def _build_cbsd(cbsd: DBCbsd) -> Cbsd:
 
     last_seen = _to_timestamp(cbsd.last_seen)
     eirp_capabilities = _build_eirp_capabilities(cbsd)
+    preferences = _build_preferences(cbsd)
     db_data = _build_db_data(cbsd)
     return Cbsd(
         id=cbsd.cbsd_id,
@@ -200,6 +192,7 @@ def _build_cbsd(cbsd: DBCbsd) -> Cbsd:
         eirp_capabilities=eirp_capabilities,
         grant_attempts=cbsd.grant_attempts,
         db_data=db_data,
+        preferences=preferences,
     )
 
 
@@ -215,10 +208,8 @@ def _build_grant(grant: DBGrant) -> Grant:
 
 def _build_channel(channel: DBChannel) -> Channel:
     return Channel(
-        frequency_range=FrequencyRange(
-            low=channel.low_frequency,
-            high=channel.high_frequency,
-        ),
+        low_frequency_hz=channel.low_frequency,
+        high_frequency_hz=channel.high_frequency,
         max_eirp=_make_optional_float(channel.max_eirp),
     )
 
@@ -229,6 +220,13 @@ def _build_eirp_capabilities(cbsd: DBCbsd) -> EirpCapabilities:
         max_power=cbsd.max_power,
         antenna_gain=cbsd.antenna_gain,
         number_of_ports=cbsd.number_of_ports,
+    )
+
+
+def _build_preferences(cbsd: DBCbsd) -> FrequencyPreferences:
+    return FrequencyPreferences(
+        bandwidth_mhz=cbsd.preferred_bandwidth_mhz,
+        frequencies_mhz=cbsd.preferred_frequencies_mhz,
     )
 
 

@@ -17,9 +17,9 @@
 import type {MagmaFeatureCollection} from './map/GeoJSON';
 import type {magmad_gateway} from '../../../generated/MagmaAPIBindings';
 
-import Alert from '@fbcnms/ui/components/Alert/Alert';
+import Alert from '../../../fbc_js_core/ui/components/Alert/Alert';
 import GatewayMapMarker from './GatewayMapMarker';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import MapView from './map/MapView';
 import Paper from '@material-ui/core/Paper';
@@ -27,7 +27,7 @@ import React from 'react';
 
 import {map} from 'lodash';
 import {useEffect, useState} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 function buildGeoJson(gateways: Array<magmad_gateway>): MagmaFeatureCollection {
   const features = (gateways || [])

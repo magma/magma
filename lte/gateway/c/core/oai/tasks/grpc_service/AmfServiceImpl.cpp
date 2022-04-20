@@ -97,7 +97,6 @@ Status AmfServiceImpl::SetAmfNotification(ServerContext* context,
 Status AmfServiceImpl::SetSmfSessionContext(
     ServerContext* context, const SetSMSessionContextAccess* request,
     SmContextVoid* response) {
-  struct in_addr ip_addr = {0};
   OAILOG_INFO(LOG_UTIL,
               "Received GRPC SetSmfSessionContext request from SMF\n");
 
@@ -119,14 +118,23 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.m5gsm_cause = (m5g_sm_cause_t)req_m5g.m5gsm_cause();
 
   itti_msg.session_ambr.uplink_unit_type = req_m5g.subscribed_qos().br_unit();
-  itti_msg.session_ambr.uplink_units = req_m5g.subscribed_qos().apn_ambr_ul();
-
   itti_msg.session_ambr.downlink_unit_type = req_m5g.subscribed_qos().br_unit();
-  itti_msg.session_ambr.downlink_units = req_m5g.subscribed_qos().apn_ambr_dl();
 
-  // authorized qos profile
-  itti_msg.qos_list.qos_flow_req_item.qos_flow_identifier =
-      req_m5g.subscribed_qos().qos_class_id();
+  if (!req_m5g.qos().max_req_bw_ul() && !req_m5g.qos().max_req_bw_dl()) {
+    // APN ambr value if policy is not attached
+    itti_msg.session_ambr.uplink_units = req_m5g.subscribed_qos().apn_ambr_ul();
+    itti_msg.session_ambr.downlink_units =
+        req_m5g.subscribed_qos().apn_ambr_dl();
+    itti_msg.qos_list.qos_flow_req_item.qos_flow_identifier =
+        req_m5g.subscribed_qos().qos_class_id();
+  } else {
+    // Policy ambr value if policy attached  by adding
+    // an active policy through nms
+    itti_msg.session_ambr.uplink_units = req_m5g.qos().max_req_bw_ul();
+    itti_msg.session_ambr.downlink_units = req_m5g.qos().max_req_bw_dl();
+    itti_msg.qos_list.qos_flow_req_item.qos_flow_identifier =
+        req_m5g.qos().qci();
+  }
 
   itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .qos_characteristic.non_dynamic_5QI_desc.fiveQI =

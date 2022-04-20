@@ -30,7 +30,7 @@ import {AltFormField} from '../../components/FormField';
 import {DEFAULT_GW_POOL_CONFIG} from '../../components/GatewayUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 
 const useStyles = makeStyles(_ => ({
   input: {

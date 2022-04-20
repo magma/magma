@@ -15,13 +15,16 @@
  */
 
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '@fbcnms/auth/access';
+import type {FBCNMSRequest} from '../../fbc_js_core/auth/access';
 
 const express = require('express');
 const proxy = require('express-http-proxy');
 const HttpsProxyAgent = require('https-proxy-agent');
 const url = require('url');
-const {apiCredentials, API_HOST} = require('@fbcnms/platform-server/config');
+const {
+  apiCredentials,
+  API_HOST,
+} = require('../../fbc_js_core/platform_server/config');
 import auditLoggingDecorator from './auditLoggingDecorator';
 
 import {intersection} from 'lodash';

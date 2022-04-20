@@ -34,7 +34,7 @@ import Select from '@material-ui/core/Select';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import {AltFormField} from '../../components/FormField';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 
 /**
  * A prop passed to DataPlanEditDialog

@@ -18,13 +18,13 @@ import * as React from 'react';
 import CWFNetworkDialog from './CWFNetworkDialog';
 import FEGNetworkDialog from './FEGNetworkDialog';
 import GenericNetworkDialog from './GenericNetworkDialog';
-import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
+import LoadingFillerBackdrop from '../../../fbc_js_core/ui/components/LoadingFillerBackdrop';
 import MagmaV1API from '../../../generated/WebClient';
 
 import useMagmaAPI from '../../../api/useMagmaAPI';
-import {CWF, FEG} from '@fbcnms/types/network';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {CWF, FEG} from '../../../fbc_js_core/types/network';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 type Props = {
   onClose: () => void,

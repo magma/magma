@@ -16,23 +16,23 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
-#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
 
 namespace magma5g {
 
@@ -73,6 +73,33 @@ static int amf_cn_authentication_res(amf_cn_auth_res_t* const msg) {
 }
 
 //------------------------------------------------------------------------------
+static int amf_cn_implicit_deregister_ue(const amf_ue_ngap_id_t ue_id) {
+  int rc = RETURNok;
+  struct amf_context_s* amf_ctx_p = NULL;
+
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+
+  OAILOG_DEBUG(LOG_NAS_AMF,
+               "AMF-PROC Implicit Detach UE" AMF_UE_NGAP_ID_FMT "\n", ue_id);
+
+  amf_deregistration_request_ies_t params = {};
+  params.de_reg_type = AMF_SWITCHOFF_DEREGISTRATION;
+  params.de_reg_access_type = AMF_3GPP_ACCESS;
+  params.ksi = 0;
+
+  amf_ctx_p = amf_context_get(ue_id);
+
+  if (amf_ctx_p) {
+    rc = amf_proc_deregistration_request(ue_id, &params);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  } else {
+    OAILOG_ERROR(LOG_NAS_AMF, "Error: amf_ctx does not exits");
+    rc = RETURNerror;
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  }
+}
+
+//------------------------------------------------------------------------------
 int amf_cn_send(const amf_cn_t* msg) {
   int rc = RETURNerror;
   amf_cn_primitive_t primitive = msg->primitive;
@@ -82,6 +109,11 @@ int amf_cn_send(const amf_cn_t* msg) {
   switch (primitive) {
     case _AMFCN_AUTHENTICATION_PARAM_RES:
       rc = amf_cn_authentication_res(msg->u.auth_res);
+      break;
+
+    case _AMFCN_IMPLICIT_DEREGISTER_UE:
+      rc = amf_cn_implicit_deregister_ue(
+          msg->u.amf_cn_implicit_deregister.ue_id);
       break;
 
     default:

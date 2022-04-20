@@ -36,7 +36,7 @@ import VisibilityOff from '@material-ui/icons/VisibilityOff';
 
 import {AltFormField} from '../../components/FormField';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 
 type Props = {
   epcConfigs: network_epc_configs,

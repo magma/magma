@@ -28,7 +28,7 @@ import {CoreNetworkTypes} from './SubscriberUtils';
 import {DropzoneArea} from 'material-ui-dropzone';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 import {useMemo, useState} from 'react';
 import {validateSubscribers} from './SubscriberUtils';
 
@@ -208,7 +208,7 @@ export function SubscriberDetailsUpload(props: SubscribersDialogDetailProps) {
         </Grid>
       </DialogContent>
       <DialogActions>
-        <Grid container justify="space-between">
+        <Grid container justifyContent="space-between">
           <Grid item>
             {upload && (
               <Button

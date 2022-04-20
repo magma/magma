@@ -36,14 +36,17 @@ import {useState} from 'react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
+jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
 afterEach(cleanup);
 const enqueueSnackbarMock = jest.fn();
 const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
   key => CoreNetworkTypes[key],
 );
 jest
-  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .spyOn(
+    require('../../../../fbc_js_core/ui/hooks/useSnackbar'),
+    'useEnqueueSnackbar',
+  )
   .mockReturnValue(enqueueSnackbarMock);
 
 const subscribersMock = {

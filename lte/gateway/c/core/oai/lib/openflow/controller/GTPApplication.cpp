@@ -117,8 +117,8 @@ void GTPApplication::event_callback(const ControllerEvent& ev,
 void GTPApplication::install_internal_pkt_fwd_flow(
     fluid_base::OFConnection* ofconn, const OpenflowMessenger& messenger,
     uint32_t port, uint32_t next_table) {
-  of13::FlowMod fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, DEFAULT_PRIORITY);
+  of13::FlowMod fm = messenger.create_default_flow_mod(
+      SPGW_OVS_TABLE_ID, of13::OFPFC_ADD, DEFAULT_PRIORITY);
 
   // Set match on the internal pkt sampling port
   of13::InPort port_match(port);
@@ -160,8 +160,8 @@ void GTPApplication::add_uplink_tunnel_flow(
   auto imsi = IMSIEncoder::compact_imsi(ev.get_imsi());
   uint32_t flow_priority =
       convert_precedence_to_priority(ev.get_dl_flow_precedence());
-  of13::FlowMod uplink_fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
+  of13::FlowMod uplink_fm = messenger.create_default_flow_mod(
+      SPGW_OVS_TABLE_ID, of13::OFPFC_ADD, flow_priority);
   add_tunnel_match(uplink_fm, ev.get_enb_gtp_portno(), ev.get_in_tei());
 
   // Set eth src and dst
@@ -207,8 +207,8 @@ void GTPApplication::add_uplink_s8_tunnel_flow(
     const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger) {
   uint32_t flow_priority =
       convert_precedence_to_priority(ev.get_dl_flow_precedence());
-  of13::FlowMod uplink_fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
+  of13::FlowMod uplink_fm = messenger.create_default_flow_mod(
+      SPGW_OVS_TABLE_ID, of13::OFPFC_ADD, flow_priority);
   add_tunnel_match(uplink_fm, ev.get_enb_gtp_portno(), ev.get_in_tei());
 
   add_tunnel_flow_action(ev.get_pgw_out_tei(), ev.get_in_tei(), ev.get_imsi(),
@@ -221,8 +221,8 @@ void GTPApplication::add_down_link_s8_tunnel_flow(
     const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger) {
   uint32_t flow_priority =
       convert_precedence_to_priority(ev.get_dl_flow_precedence());
-  of13::FlowMod downlinklink_fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
+  of13::FlowMod downlinklink_fm = messenger.create_default_flow_mod(
+      SPGW_OVS_TABLE_ID, of13::OFPFC_ADD, flow_priority);
   add_tunnel_match(downlinklink_fm, ev.get_pgw_gtp_portno(),
                    ev.get_pgw_in_tei());
 
@@ -234,8 +234,8 @@ void GTPApplication::add_down_link_s8_tunnel_flow(
 
 void GTPApplication::delete_down_link_s8_tunnel_flow(
     const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger) {
-  of13::FlowMod uplink_fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_DELETE, 0);
+  of13::FlowMod uplink_fm = messenger.create_default_flow_mod(
+      SPGW_OVS_TABLE_ID, of13::OFPFC_DELETE, 0);
   // match all ports and groups
   uplink_fm.out_port(of13::OFPP_ANY);
   uplink_fm.out_group(of13::OFPG_ANY);
@@ -247,8 +247,8 @@ void GTPApplication::delete_down_link_s8_tunnel_flow(
 
 void GTPApplication::delete_uplink_tunnel_flow(
     const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger) {
-  of13::FlowMod uplink_fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_DELETE, 0);
+  of13::FlowMod uplink_fm = messenger.create_default_flow_mod(
+      SPGW_OVS_TABLE_ID, of13::OFPFC_DELETE, 0);
   // match all ports and groups
   uplink_fm.out_port(of13::OFPP_ANY);
   uplink_fm.out_group(of13::OFPG_ANY);
@@ -472,8 +472,8 @@ void GTPApplication::add_downlink_tunnel_flow_ipv4(
     uint32_t ingress_port, bool passthrough, bool from_pgw) {
   uint32_t flow_priority =
       convert_precedence_to_priority(ev.get_dl_flow_precedence());
-  of13::FlowMod downlink_fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
+  of13::FlowMod downlink_fm = messenger.create_default_flow_mod(
+      SPGW_OVS_TABLE_ID, of13::OFPFC_ADD, flow_priority);
 
   add_downlink_match(downlink_fm, ev.get_ue_ip(), ingress_port);
   add_downlink_tunnel_flow_action(ev, messenger, downlink_fm, passthrough,
@@ -485,8 +485,8 @@ void GTPApplication::add_downlink_tunnel_flow_ipv6(
     uint32_t ingress_port, bool passthrough, bool from_pgw) {
   uint32_t flow_priority =
       convert_precedence_to_priority(ev.get_dl_flow_precedence());
-  of13::FlowMod downlink_fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
+  of13::FlowMod downlink_fm = messenger.create_default_flow_mod(
+      SPGW_OVS_TABLE_ID, of13::OFPFC_ADD, flow_priority);
 
   add_downlink_match_ipv6(downlink_fm, ev.get_ue_info().get_ipv6(),
                           ingress_port);
@@ -499,8 +499,8 @@ void GTPApplication::add_downlink_tunnel_flow_ded_brr(
     uint32_t ingress_port, bool passthrough, bool from_pgw) {
   uint32_t flow_priority =
       convert_precedence_to_priority(ev.get_dl_flow_precedence());
-  of13::FlowMod downlink_fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
+  of13::FlowMod downlink_fm = messenger.create_default_flow_mod(
+      SPGW_OVS_TABLE_ID, of13::OFPFC_ADD, flow_priority);
 
   add_ded_brr_dl_match(downlink_fm, ev.get_dl_flow(), ingress_port);
   add_downlink_tunnel_flow_action(ev, messenger, downlink_fm, passthrough,
@@ -557,8 +557,8 @@ void GTPApplication::add_downlink_arp_flow_(fluid_base::OFConnection* conn,
                                             const OpenflowMessenger& messenger,
                                             uint32_t ingress_port) {
   uint32_t flow_priority = convert_precedence_to_priority(precedence);
-  of13::FlowMod downlink_fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
+  of13::FlowMod downlink_fm = messenger.create_default_flow_mod(
+      SPGW_OVS_TABLE_ID, of13::OFPFC_ADD, flow_priority);
 
   add_downlink_arp_match(downlink_fm, ue_ip, ingress_port);
 
@@ -584,8 +584,8 @@ void GTPApplication::add_downlink_arp_flow_paging_event(
 void GTPApplication::delete_downlink_tunnel_flow_ipv4(
     const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
     uint32_t ingress_port) {
-  of13::FlowMod downlink_fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_DELETE, 0);
+  of13::FlowMod downlink_fm = messenger.create_default_flow_mod(
+      SPGW_OVS_TABLE_ID, of13::OFPFC_DELETE, 0);
   // match all ports and groups
   downlink_fm.out_port(of13::OFPP_ANY);
   downlink_fm.out_group(of13::OFPG_ANY);
@@ -597,8 +597,8 @@ void GTPApplication::delete_downlink_tunnel_flow_ipv4(
 void GTPApplication::delete_downlink_tunnel_flow_ded_brr(
     const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
     uint32_t ingress_port) {
-  of13::FlowMod downlink_fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_DELETE, 0);
+  of13::FlowMod downlink_fm = messenger.create_default_flow_mod(
+      SPGW_OVS_TABLE_ID, of13::OFPFC_DELETE, 0);
   // match all ports and groups
   downlink_fm.out_port(of13::OFPP_ANY);
   downlink_fm.out_group(of13::OFPG_ANY);
@@ -610,8 +610,8 @@ void GTPApplication::delete_downlink_tunnel_flow_ded_brr(
 void GTPApplication::delete_downlink_tunnel_flow_ipv6(
     const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
     uint32_t ingress_port) {
-  of13::FlowMod downlink_fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_DELETE, 0);
+  of13::FlowMod downlink_fm = messenger.create_default_flow_mod(
+      SPGW_OVS_TABLE_ID, of13::OFPFC_DELETE, 0);
   // match all ports and groups
   downlink_fm.out_port(of13::OFPP_ANY);
   downlink_fm.out_group(of13::OFPG_ANY);
@@ -641,8 +641,8 @@ void GTPApplication::delete_downlink_tunnel_flow(
 void GTPApplication::delete_downlink_arp_flow(
     const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
     uint32_t ingress_port) {
-  of13::FlowMod downlink_fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_DELETE, 0);
+  of13::FlowMod downlink_fm = messenger.create_default_flow_mod(
+      SPGW_OVS_TABLE_ID, of13::OFPFC_DELETE, 0);
   // match all ports and groups
   downlink_fm.out_port(of13::OFPP_ANY);
   downlink_fm.out_group(of13::OFPG_ANY);
@@ -655,7 +655,7 @@ void GTPApplication::delete_downlink_arp_flow(
 void GTPApplication::discard_uplink_tunnel_flow(
     const HandleDataOnGTPTunnelEvent& ev, const OpenflowMessenger& messenger) {
   of13::FlowMod uplink_fm = messenger.create_default_flow_mod(
-      0, of13::OFPFC_ADD, DEFAULT_PRIORITY + 1);
+      SPGW_OVS_TABLE_ID, of13::OFPFC_ADD, DEFAULT_PRIORITY + 1);
   // match all ports and groups
   uplink_fm.out_port(of13::OFPP_ANY);
   uplink_fm.out_group(of13::OFPG_ANY);
@@ -671,7 +671,7 @@ void GTPApplication::discard_downlink_tunnel_flow(
     const HandleDataOnGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
     uint32_t ingress_port) {
   of13::FlowMod downlink_fm = messenger.create_default_flow_mod(
-      0, of13::OFPFC_ADD, DEFAULT_PRIORITY + 1);
+      SPGW_OVS_TABLE_ID, of13::OFPFC_ADD, DEFAULT_PRIORITY + 1);
   // match all ports and groups
   downlink_fm.out_port(of13::OFPP_ANY);
   downlink_fm.out_group(of13::OFPG_ANY);
@@ -692,7 +692,7 @@ void GTPApplication::forward_uplink_tunnel_flow(
   uint32_t flow_priority =
       convert_precedence_to_priority(ev.get_dl_flow_precedence());
   of13::FlowMod uplink_fm = messenger.create_default_flow_mod(
-      0, of13::OFPFC_DELETE, flow_priority + 1);
+      SPGW_OVS_TABLE_ID, of13::OFPFC_DELETE, flow_priority + 1);
   // match all ports and groups
   uplink_fm.out_port(of13::OFPP_ANY);
   uplink_fm.out_group(of13::OFPG_ANY);
@@ -710,7 +710,7 @@ void GTPApplication::forward_downlink_tunnel_flow(
   uint32_t flow_priority =
       convert_precedence_to_priority(ev.get_dl_flow_precedence());
   of13::FlowMod downlink_fm = messenger.create_default_flow_mod(
-      0, of13::OFPFC_DELETE, flow_priority + 1);
+      SPGW_OVS_TABLE_ID, of13::OFPFC_DELETE, flow_priority + 1);
   // match all ports and groups
   downlink_fm.out_port(of13::OFPP_ANY);
   downlink_fm.out_group(of13::OFPG_ANY);

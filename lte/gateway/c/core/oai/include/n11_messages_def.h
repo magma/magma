@@ -17,3 +17,7 @@ MESSAGE_DEF(N11_CREATE_PDU_SESSION_RESPONSE,
 
 MESSAGE_DEF(N11_NOTIFICATION_RECEIVED, itti_n11_received_notification_t,
             n11_notification_received)
+
+MESSAGE_DEF(N11_CREATE_PDU_SESSION_FAILURE,
+            itti_n11_create_pdu_session_failure_t,
+            n11_create_pdu_session_failure)

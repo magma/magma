@@ -74,7 +74,7 @@ func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *pro
 		glog.Warning("No RatSpecificContext is specified")
 	}
 
-	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
+	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeoutGx)
 }
 
 // generateGxLessCCAInit generates a creditControlAnswer for the case Gx is disabled.
@@ -113,7 +113,7 @@ func (srv *CentralSessionController) sendTerminationGxRequest(pRequest *protos.S
 		TgppCtx:                 pRequest.GetTgppCtx(),
 		ChargingCharacteristics: pRequest.ChargingCharacteristics,
 	}
-	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
+	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeoutGx)
 }
 
 func getGxAnswerOrError(

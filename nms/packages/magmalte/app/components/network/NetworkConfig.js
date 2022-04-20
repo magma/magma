@@ -16,7 +16,7 @@
 
 import type {network_ran_configs} from '../../../generated/MagmaAPIBindings';
 
-import Button from '@fbcnms/ui/components/design-system/Button';
+import Button from '../../../fbc_js_core/ui/components/design-system/Button';
 import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormHelperText from '@material-ui/core/FormHelperText';
@@ -24,7 +24,7 @@ import IconButton from '@material-ui/core/IconButton';
 import Input from '@material-ui/core/Input';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import InputLabel from '@material-ui/core/InputLabel';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
@@ -33,13 +33,17 @@ import TextField from '@material-ui/core/TextField';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
-import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
+import {
+  base64ToHex,
+  hexToBase64,
+  isValidHex,
+} from '../../../fbc_js_core/util/strings';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   formContainer: {

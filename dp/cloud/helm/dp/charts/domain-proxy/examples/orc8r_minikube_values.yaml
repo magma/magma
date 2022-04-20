@@ -37,7 +37,19 @@ controller:
       mode: k8s
 
 logging:
-  enabled: false
+  enabled: true
+
+  fluentd_forward:
+    create: true
+    image:
+      repository: fluentd_forward
+      tag: latest
+    dp_output: true
+
+    env:
+      elastic_host: elasticsearch
+      elastic_flush_interval: 1s
+
 #
 ## Metrics
 metrics:

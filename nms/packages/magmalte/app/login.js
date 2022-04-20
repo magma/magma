@@ -16,13 +16,13 @@
 'use strict';
 
 import {} from './common/axiosConfig';
-import LoginForm from '@fbcnms/ui/components/auth/LoginForm.js';
+import LoginForm from '../fbc_js_core/ui/components/auth/LoginForm.js';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import nullthrows from '@fbcnms/util/nullthrows';
-import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
+import nullthrows from '../fbc_js_core/util/nullthrows';
+import {AppContextProvider} from '../fbc_js_core/ui/context/AppContext';
 import {BrowserRouter} from 'react-router-dom';
-import {useHistory} from 'react-router';
+import {useHistory} from 'react-router-dom';
 
 function LoginWrapper() {
   const history = useHistory();

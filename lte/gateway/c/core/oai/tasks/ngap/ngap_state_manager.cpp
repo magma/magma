@@ -20,9 +20,12 @@
 *****************************************************************************/
 
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_manager.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+extern "C" {
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+}
+
 typedef unsigned int uint32_t;
 namespace {
 constexpr char NGAP_GNB_COLL[] = "ngap_gNB_coll";

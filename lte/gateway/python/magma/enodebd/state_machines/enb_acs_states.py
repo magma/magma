@@ -24,6 +24,7 @@ from magma.enodebd.state_machines.acs_state_utils import (
     get_all_objects_to_add,
     get_all_objects_to_delete,
     get_all_param_values_to_set,
+    get_firmware_upgrade_download_config,
     get_obj_param_values_to_set,
     get_object_params_to_get,
     get_optional_param_to_check,
@@ -31,6 +32,7 @@ from magma.enodebd.state_machines.acs_state_utils import (
     get_params_to_get,
     parse_get_parameter_values_response,
     process_inform_message,
+    should_transition_to_firmware_upgrade_download,
 )
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.timer import StateMachineTimer
@@ -145,6 +147,7 @@ class WaitInformState(EnodebAcsState):
         )
         if does_inform_have_event(message, '1 BOOT'):
             return AcsReadMsgResult(True, self.boot_transition)
+
         return AcsReadMsgResult(True, None)
 
     def get_msg(self, message: Any) -> AcsMsgAndTransition:
@@ -156,6 +159,159 @@ class WaitInformState(EnodebAcsState):
 
     def state_description(self) -> str:
         return 'Waiting for an Inform'
+
+
+class CheckFirmwareUpgradeDownloadState(EnodebAcsState):
+    """
+    This state is a purely transition state that acts as a decision block in the state machine graph.
+    It detects whether or not a download request should be initiated for a given eNB
+    based on the eNB software version reported and enodebd firmware upgrade configuration.
+    """
+
+    def __init__(
+        self,
+        acs: EnodebAcsStateMachine,
+        when_download: str,
+        when_skip: str,
+    ):
+        super().__init__()
+        self.acs = acs
+        self.download_transition = when_download
+        self.skip_transition = when_skip
+
+    def state_description(self) -> str:
+        return 'Checking for Firmware Download'
+
+    def enter(self):
+        if should_transition_to_firmware_upgrade_download(self.acs):
+            self.acs.transition(self.download_transition)
+        else:
+            self.acs.transition(self.skip_transition)
+
+
+class FirmwareUpgradeDownloadState(EnodebAcsState):
+    """
+    This state initiates the Firmware Upgrade download flow.
+
+    A Download request is being sent with Firmware Upgrade data to the eNB.
+    """
+
+    FIRMWARE_FILE_TYPE = "1 Firmware Upgrade Image"
+
+    def __init__(
+        self,
+        acs: EnodebAcsStateMachine,
+        when_done: str,
+    ):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+
+    def state_description(self) -> str:
+        return 'Expect Empty HTTP POST and request Firmware Download'
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        """
+        Expect Dummy Input.
+        """
+        if not isinstance(message, models.DummyInput):
+            return AcsReadMsgResult(False, None)
+        return AcsReadMsgResult(True, None)
+
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        """ Reply with Download Request """
+        download_params_dict = self._get_download_parameters()
+        request = self._build_download_request(download_params_dict)
+
+        return AcsMsgAndTransition(request, self.done_transition)
+
+    def _get_download_parameters(self):
+        """
+        Get download request parameters.
+
+        We take them now from the service config yaml. But in the future this function could
+        be rewritten to use per eNB config (mconfig).
+        """
+        fw_upgrade_config = get_firmware_upgrade_download_config(self.acs)
+        target_software_version = fw_upgrade_config.get('version', "")
+        target_software_version_url = fw_upgrade_config.get('url', "")
+        username = fw_upgrade_config.get('username', "")
+        password = fw_upgrade_config.get('password', "")
+
+        download_params_dict = {
+            "target_software_version": target_software_version,
+            "target_software_version_url": target_software_version_url,
+            "username": username,
+            "password": password,
+        }
+
+        return download_params_dict
+
+    def _build_download_request(self, download_params_dict: dict):
+        request = models.Download()
+        request.CommandKey = download_params_dict['target_software_version']
+        request.FileType = self.FIRMWARE_FILE_TYPE
+        request.URL = download_params_dict['target_software_version_url']
+        request.Username = download_params_dict['username']
+        request.Password = download_params_dict['password']
+        # The ACS MAY set this value to zero. The CPE MUST interpret a zero value to
+        # mean that that the ACS has provided no information about the file size. In this
+        # case, the CPE MUST attempt to proceed with the download under the
+        # presumption that sufficient space is available, though during the course of
+        # download, the CPE might determine otherwise.
+        request.FileSize = 0
+        request.TargetFileName = ""
+        request.DelaySeconds = 0
+        request.SuccessURL = ""
+        request.FailureURL = ""
+        return request
+
+
+class WaitForFirmwareUpgradeDownloadResponse(EnodebAcsState):
+    """
+    This state reacts to a reply from the eNB after a Download request has been sent.
+
+    When a DownloadReponse object is received, that means the Download request was accepted
+    and a firmware download is in progress. 
+    However, if there is already a download requested pending on the eNB, issuing a Download request
+    may cause the eNB to return a Fault code 9017. It is a generic download failure code that
+    seemed to indicate on FreedomFi One/Sercomm eNBs that a download of the same CommandKey is already
+    in progress.
+
+    In such a case, we can proceed to a skip state.
+    """
+
+    def __init__(
+        self,
+        acs: EnodebAcsStateMachine,
+        when_done: str,
+        when_skip: str,
+    ):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+        self.skip_transition = when_skip
+
+    def state_description(self) -> str:
+        return 'Wait for DownloadResponse and send HTTP OK'
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        """
+        Expect DownloadResponse.
+
+        If a download is already in progress, eNB may return 9017 Fault code.
+        It seems to indicate that a download of the same file/commandkey is already
+        in progress, so eNB cannot process new download requests.
+        """
+        if isinstance(message, models.Fault) and message.FaultCode == 9017:
+            logger.warning(
+                "<WaitForDownloadResponse> Received Fault <%s>, ignoring and skipping", message,
+            )
+            return AcsReadMsgResult(True, self.skip_transition)
+        if not isinstance(message, models.DownloadResponse):
+            return AcsReadMsgResult(False, None)
+        self.acs.start_fw_upgrade_timeout()
+        return AcsReadMsgResult(True, self.done_transition)
 
 
 class GetRPCMethodsState(EnodebAcsState):
@@ -183,7 +339,7 @@ class GetRPCMethodsState(EnodebAcsState):
         resp.MethodList = models.MethodList()
         RPC_METHODS = ['Inform', 'GetRPCMethods', 'TransferComplete']
         resp.MethodList.arrayType = 'xsd:string[%d]' \
-                                          % len(RPC_METHODS)
+            % len(RPC_METHODS)
         resp.MethodList.string = RPC_METHODS
         return AcsMsgAndTransition(resp, self.done_transition)
 
@@ -641,7 +797,9 @@ class WaitGetObjectParametersState(EnodebAcsState):
                 )
                 break
             param_name_list = obj_to_params[obj_name]
-            obj_path = self.acs.data_model.get_parameter(param_name_list[0]).path
+            obj_path = self.acs.data_model.get_parameter(
+                param_name_list[0],
+            ).path
             if obj_path not in path_to_val:
                 break
             if not self.acs.device_cfg.has_object(obj_name):
@@ -657,7 +815,7 @@ class WaitGetObjectParametersState(EnodebAcsState):
                     obj_name,
                 )
         num_plmns_reported = \
-                int(self.acs.device_cfg.get_parameter(ParameterName.NUM_PLMNS))
+            int(self.acs.device_cfg.get_parameter(ParameterName.NUM_PLMNS))
         if num_plmns != num_plmns_reported:
             logger.warning(
                 "eNB reported %d PLMNs but found %d",
@@ -842,7 +1000,7 @@ class SetParameterValuesState(EnodebAcsState):
             self.acs.data_model,
         )
         request.ParameterList.arrayType = 'cwmp:ParameterValueStruct[%d]' \
-                                           % len(param_values)
+            % len(param_values)
         request.ParameterList.ParameterValueStruct = []
         logger.debug(
             'Sending TR069 request to set CPE parameter values: %s',

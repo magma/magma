@@ -14,17 +14,17 @@
  * @format
  */
 
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
-import Button from '@fbcnms/ui/components/design-system/Button';
+import Button from '../../../fbc_js_core/ui/components/design-system/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
+import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFillerBackdrop from '../../../fbc_js_core/ui/components/LoadingFillerBackdrop';
 import MagmaV1API from '../../../generated/WebClient';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
+import NestedRouteLink from '../../../fbc_js_core/ui/components/NestedRouteLink';
 import PolicyBaseNameDialog from './PolicyBaseNameDialog';
 import PolicyRuleEditDialog from './PolicyRuleEditDialog';
 import React from 'react';
@@ -33,16 +33,16 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../../fbc_js_core/ui/components/design-system/Text';
 import Toolbar from '@material-ui/core/Toolbar';
 
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 import {Route} from 'react-router-dom';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import {useState} from 'react';
 
 const useStyles = makeStyles(() => ({

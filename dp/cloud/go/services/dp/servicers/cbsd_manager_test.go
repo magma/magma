@@ -72,6 +72,20 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 	s.Assert().Equal(getDBCbsd(), s.store.data)
 }
 
+func (s *CbsdManagerTestSuite) TestCreateWithDuplicateData() {
+	s.store.err = merrors.ErrAlreadyExists
+
+	request := &protos.CreateCbsdRequest{
+		NetworkId: networkId,
+		Data:      getProtoCbsd(),
+	}
+	_, err := s.manager.CreateCbsd(context.Background(), request)
+	s.Require().Error(err)
+
+	errStatus, _ := status.FromError(err)
+	s.Assert().Equal(codes.AlreadyExists, errStatus.Code())
+}
+
 func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 	request := &protos.UpdateCbsdRequest{
 		NetworkId: networkId,
@@ -99,6 +113,21 @@ func (s *CbsdManagerTestSuite) TestUpdateNonexistentCbsd() {
 
 	errStatus, _ := status.FromError(err)
 	s.Assert().Equal(codes.NotFound, errStatus.Code())
+}
+
+func (s *CbsdManagerTestSuite) TestUpdateWithDuplicateData() {
+	s.store.err = merrors.ErrAlreadyExists
+
+	request := &protos.UpdateCbsdRequest{
+		NetworkId: networkId,
+		Id:        cbsdId,
+		Data:      getProtoCbsd(),
+	}
+	_, err := s.manager.UpdateCbsd(context.Background(), request)
+	s.Require().Error(err)
+
+	errStatus, _ := status.FromError(err)
+	s.Assert().Equal(codes.AlreadyExists, errStatus.Code())
 }
 
 func (s *CbsdManagerTestSuite) TestDeleteCbsd() {
@@ -246,6 +275,10 @@ func getProtoCbsd() *protos.CbsdData {
 			NumberOfAntennas: 2,
 			AntennaGain:      15,
 		},
+		Preferences: &protos.FrequencyPreferences{
+			BandwidthMhz:   20,
+			FrequenciesMhz: []int64{3600},
+		},
 	}
 }
 
@@ -276,13 +309,15 @@ func getProtoDetailedCbsdList() *protos.ListCbsdResponse {
 
 func getDBCbsd() *storage.DBCbsd {
 	return &storage.DBCbsd{
-		UserId:           db.MakeString("some_user_id"),
-		FccId:            db.MakeString("some_fcc_id"),
-		CbsdSerialNumber: db.MakeString("some_serial_number"),
-		MinPower:         db.MakeFloat(10),
-		MaxPower:         db.MakeFloat(20),
-		AntennaGain:      db.MakeFloat(15),
-		NumberOfPorts:    db.MakeInt(2),
+		UserId:                  db.MakeString("some_user_id"),
+		FccId:                   db.MakeString("some_fcc_id"),
+		CbsdSerialNumber:        db.MakeString("some_serial_number"),
+		PreferredBandwidthMHz:   db.MakeInt(20),
+		PreferredFrequenciesMHz: db.MakeString("[3600]"),
+		MinPower:                db.MakeFloat(10),
+		MaxPower:                db.MakeFloat(20),
+		AntennaGain:             db.MakeFloat(15),
+		NumberOfPorts:           db.MakeInt(2),
 	}
 }
 

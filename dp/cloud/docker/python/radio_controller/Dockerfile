@@ -27,6 +27,7 @@ FROM python:3.9.2-slim-buster as standard-version
 
 ENV RC_DIRECTORY=dp/cloud/python/magma/radio_controller
 ENV DB_DIRECTORY=dp/cloud/python/magma/db_service
+ENV FC_DIRECTORY=dp/cloud/python/magma/fluentd_client
 COPY $RC_DIRECTORY/requirements.txt \
      /$RC_DIRECTORY/requirements.txt
 RUN pip3 install --upgrade pip --no-cache-dir -r /$RC_DIRECTORY/requirements.txt
@@ -44,6 +45,7 @@ FROM ${ENV}-version as final
 ENV PYTHONPATH=/magma/build/gen:/dp/cloud/python
 COPY $RC_DIRECTORY /$RC_DIRECTORY/
 COPY $DB_DIRECTORY /$DB_DIRECTORY/
+COPY $FC_DIRECTORY /$FC_DIRECTORY/
 COPY dp/cloud/python/magma/mappings /dp/cloud/python/magma/mappings/
 COPY --from=protos-generator /magma/build/gen /magma/build/gen
 WORKDIR /$RC_DIRECTORY

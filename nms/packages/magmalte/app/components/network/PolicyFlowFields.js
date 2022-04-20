@@ -26,9 +26,9 @@ import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import React from 'react';
 import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../../fbc_js_core/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
-import TypedSelect from '@fbcnms/ui/components/TypedSelect';
+import TypedSelect from '../../../fbc_js_core/ui/components/TypedSelect';
 
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
 import {makeStyles} from '@material-ui/styles';

@@ -39,6 +39,7 @@ Description Defines the EMM primitives available at the EMMAS Service
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 #include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"

@@ -24,7 +24,7 @@
 #ifndef S6A_MESSAGES_H_
 #define S6A_MESSAGES_H_
 
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
 
 #include <freeDiameter/freeDiameter-host.h>

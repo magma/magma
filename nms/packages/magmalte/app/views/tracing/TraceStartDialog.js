@@ -26,14 +26,14 @@ import List from '@material-ui/core/List';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import TraceContext from '../../components/context/TraceContext';
-import TypedSelect from '@fbcnms/ui/components/TypedSelect';
+import TypedSelect from '../../../fbc_js_core/ui/components/TypedSelect';
 import Typography from '@material-ui/core/Typography';
 
 import {AltFormField} from '../../components/FormField';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 import {useState} from 'react';
 
 const DEFAULT_TRACE_CONFIG: call_trace_config = {

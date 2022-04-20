@@ -94,13 +94,13 @@ typedef uint32_t teid_t;
 
 // NOT a ITTI message
 typedef struct ngap_initial_ue_message_s {
-  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
   ecgi_t e_utran_cgi;
 } ngap_initial_ue_message_t;
 
 typedef struct itti_ngap_ue_context_mod_req_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
-  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
 /* Use presence mask to identify presence of optional fields */
 #define NGAP_UE_CONTEXT_MOD_LAI_PRESENT (1 << 0)
 #define NGAP_UE_CONTEXT_MOD_CSFB_INDICATOR_PRESENT (1 << 1)
@@ -113,18 +113,18 @@ typedef struct itti_ngap_ue_context_mod_req_s {
 
 typedef struct itti_ngap_ue_context_mod_resp_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
-  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
 } itti_ngap_ue_context_mod_resp_t;
 
 typedef struct itti_ngap_ue_context_mod_resp_fail_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
-  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
   int64_t cause;
 } itti_ngap_ue_context_mod_resp_fail_t;
 
 typedef struct itti_ngap_initial_ctxt_setup_req_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
-  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
 
   /* Key gNB */
   uint8_t kgnb[32];
@@ -141,18 +141,10 @@ typedef struct itti_ngap_initial_ctxt_setup_req_s {
 
 typedef struct itti_ngap_ue_cap_ind_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
-  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
   uint8_t* radio_capabilities;
   size_t radio_capabilities_length;
 } itti_ngap_ue_cap_ind_t;
-
-#define NGAP_ITTI_UE_PER_DEREGISTER_MESSAGE 128
-typedef struct itti_ngap_eNB_deregistered_ind_s {
-  uint16_t nb_ue_to_deregister;
-  gnb_ue_ngap_id_t gnb_ue_ngap_id[NGAP_ITTI_UE_PER_DEREGISTER_MESSAGE];
-  amf_ue_ngap_id_t amf_ue_ngap_id[NGAP_ITTI_UE_PER_DEREGISTER_MESSAGE];
-  uint32_t gnb_id;
-} itti_ngap_eNB_deregistered_ind_t;
 
 typedef enum ngap_reset_type_e {
   M5G_RESET_ALL = 0,
@@ -183,7 +175,7 @@ typedef struct itti_ngap_gnb_initiated_reset_ack_s {
 
 // List of possible causes for AMF generated UE context release command towards
 // gNB
-enum Ngcause {
+typedef enum {
   NGAP_INVALID_CAUSE = 0,
   NGAP_NAS_NORMAL_RELEASE,
   NGAP_NAS_AUTHENTICATION_FAILURE,
@@ -197,11 +189,11 @@ enum Ngcause {
   NGAP_CSFB_TRIGGERED,
   NGAP_NAS_UE_NOT_AVAILABLE_FOR_PS,
   NGAP_USER_INACTIVITY
-};
+} n2cause_e;
 typedef struct itti_ngap_ue_context_release_command_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
-  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
-  enum Ngcause cause;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
+  n2cause_e cause;
 } itti_ngap_ue_context_release_command_t;
 
 typedef struct ue_context_pduSession_s {
@@ -211,21 +203,22 @@ typedef struct ue_context_pduSession_s {
 
 typedef struct itti_ngap_ue_context_release_req_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
-  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
   ue_context_pduSession_t pduSession;
   uint32_t gnb_id;
-  enum Ngcause relCause;
+  n2cause_e relCause;
 } itti_ngap_ue_context_release_req_t;
 
 typedef struct itti_ngap_dl_nas_data_req_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
-  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
   bstring nas_msg; /* Downlink NAS message             */
 } itti_ngap_nas_dl_data_req_t;
 
 typedef struct itti_ngap_ue_context_release_complete_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
-  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
+  uint32_t gnb_id;
 } itti_ngap_ue_context_release_complete_t;
 
 typedef enum ngap_cn_domain_e {
@@ -312,7 +305,7 @@ typedef struct itti_ngap_gNB_deregistered_ind_s {
 typedef struct itti_ngap_path_switch_request_s {
   uint32_t sctp_assoc_id;
   uint32_t gnb_id;
-  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
   amf_ue_ngap_id_t amf_ue_ngap_id;
   tai_t tai;
   ecgi_t ecgi;
@@ -322,13 +315,13 @@ typedef struct itti_ngap_path_switch_request_s {
 
 typedef struct itti_ngap_path_switch_request_ack_s {
   uint32_t sctp_assoc_id;
-  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
   amf_ue_ngap_id_t amf_ue_ngap_id;
   uint8_t ncc; /* next hop chaining count */
 } itti_ngap_path_switch_request_ack_t;
 
 typedef struct itti_ngap_path_switch_request_failure_s {
   uint32_t sctp_assoc_id;
-  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
   amf_ue_ngap_id_t amf_ue_ngap_id;
 } itti_ngap_path_switch_request_failure_t;

@@ -16,17 +16,17 @@
 
 import type {MetricGraphConfig} from '../insights/Metrics';
 
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import Metrics from '../insights/Metrics';
 import React from 'react';
 import {Route} from 'react-router-dom';
 
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 import {useCallback, useState} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
-import {useSnackbar} from '@fbcnms/ui/hooks';
+import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useSnackbar} from '../../../fbc_js_core/ui/hooks';
 
 export default function (props: {
   configs: MetricGraphConfig[],

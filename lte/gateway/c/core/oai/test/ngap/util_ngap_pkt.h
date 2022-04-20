@@ -24,11 +24,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_encoder.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_decoder.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_encoder.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_nas_procedures.h"
 #ifdef __cplusplus
 }

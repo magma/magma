@@ -19,7 +19,7 @@ import FEGGateways from '../FEGGateways';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-import defaultTheme from '@fbcnms/ui/theme/default';
+import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
 import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
@@ -32,7 +32,7 @@ import type {
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
+jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
 afterEach(cleanup);
 
 const mockGw0: federation_gateway = {

@@ -28,62 +28,180 @@ definitions:
         minimum: 1
         example: 2
         type: integer
+        x-nullable: false
       antenna_gain:
         example: 15
         type: number
-    type: object
     required:
       - antenna_gain
       - min_power
       - max_power
       - number_of_antennas
+    type: object
+    x-nullable: false
   cbsd:
     type: object
     properties:
       capabilities:
         $ref: '#/definitions/capabilities'
+      cbsd_id:
+        description: id of cbsd in SAS
+        example: some_cbsd_id
+        type: string
+        x-nullable: false
       fcc_id:
         example: some_fcc_id
         minLength: 1
         type: string
+        x-nullable: false
+      frequency_preferences:
+        $ref: '#/definitions/frequency_preferences'
+      grant:
+        $ref: '#/definitions/grant'
+        x-nullable: false
+      id:
+        description: database id of cbsd
+        type: integer
+        x-nullable: false
+      is_active:
+        description: false if cbsd have not contacted DP for certain amount of time
+        type: boolean
+        x-nullable: false
       serial_number:
         example: some_serial_number
         minLength: 1
         type: string
-      user_id:
-        example: some_user_id
-        minLength: 1
-        type: string
-      cbsd_id:
-        description: id of cbsd in SAS
-        example: some_cbsd_id
-        readOnly: true
-        type: string
-      grant:
-        $ref: '#/definitions/grant'
-      id:
-        description: database id of cbsd
-        readOnly: true
-        type: integer
-      is_active:
-        description: false if cbsd have not contcated DP for certain amount of time
-        readOnly: true
-        type: boolean
+        x-nullable: false
       state:
         description: state of cbsd in SAS
         enum:
           - unregistered
           - registered
-        readOnly: true
+        type: string
+        x-nullable: false
+      user_id:
+        example: some_user_id
+        minLength: 1
+        type: string
+        x-nullable: false
+    required:
+      - capabilities
+      - fcc_id
+      - frequency_preferences
+      - id
+      - is_active
+      - serial_number
+      - state
+      - user_id
+  frequency_preferences:
+    properties:
+      bandwidth_mhz:
+        description: preferred bandwidth of sas channel
+        enum:
+          - 5
+          - 10
+          - 15
+          - 20
+        type: integer
+        x-nullable: false
+      frequencies_mhz:
+        description: list of preferred frequencies (midpoints) of sas channels
+        items:
+          maximum: 3695
+          minimum: 3555
+          multipleOf: 5
+          type: integer
+        type: array
+    required:
+      - bandwidth_mhz
+      - frequencies_mhz
+    type: object
+    x-nullable: false
+  grant:
+    properties:
+      bandwidth_mhz:
+        example: 20
+        type: integer
+        x-nullable: false
+      frequency_mhz:
+        example: 3600
+        maximum: 3700
+        minimum: 3550
+        type: integer
+        x-nullable: false
+      grant_expire_time:
+        format: date-time
+        type: string
+      max_eirp:
+        maximum: 37
+        minimum: -137
+        type: number
+        x-nullable: false
+      state:
+        enum:
+          - granted
+          - guthorized
+        type: string
+        x-nullable: false
+      transmit_expire_time:
+        format: date-time
         type: string
     required:
+      - bandwidth_mhz
+      - frequency_mhz
+      - max_eirp
+      - state
+  components:
+    enum: &components
+      - SAS
+      - DP
+      - CBSD
+    type: string
+  log:
+    properties:
+      body:
+        description: Body of log
+        example: '{[{"registrationRequest":{"cbsdSerialNumber":"some_serial_number"}}]}'
+        x-nullable: false
+        type: string
+      fcc_id:
+        description: Fcc Id of cbsd involved in log
+        example: some_fcc_id
+        x-nullable: false
+        type: string
+      serial_number:
+        description: Serial number of cbsd involved in log
+        example: some_serial_number
+        x-nullable: false
+        type: string
+      time:
+        description: Datetime of log
+        format: date-time
+        x-nullable: false
+        type: string
+      type:
+        description: Type of log
+        x-nullable: false
+        type: string
+      from:
+        description: log origin
+        x-nullable: false
+        enum: *components
+        type: string
+      to:
+        description: log destination
+        x-nullable: false
+        enum: *components
+        type: string
+    required:
+      - body
       - fcc_id
       - serial_number
-      - user_id
-      - capabilities
-      - is_active
-      - id
-      - state
+      - time
+      - type
+      - from
+      - to
+    type: object
   mutable_cbsd:
     type: object
     properties:
@@ -93,176 +211,61 @@ definitions:
         example: some_fcc_id
         minLength: 1
         type: string
+        x-nullable: false
+      frequency_preferences:
+        $ref: '#/definitions/frequency_preferences'
       serial_number:
         example: some_serial_number
         minLength: 1
         type: string
+        x-nullable: false
       user_id:
         example: some_user_id
         minLength: 1
         type: string
+        x-nullable: false
     required:
+      - capabilities
       - fcc_id
+      - frequency_preferences
       - serial_number
       - user_id
-      - capabilities
-  grant:
-    properties:
-      bandwidth_mhz:
-        example: 20
-        type: integer
-      frequency_mhz:
-        example: 3600
-        maximum: 3700
-        minimum: 3550
-        type: integer
-      grant_expire_time:
-        format: date-time
-        type: string
-      max_eirp:
-        maximum: 37
-        minimum: -137
-        type: number
-      state:
-        enum:
-          - granted
-          - guthorized
-        type: string
-      transmit_expire_time:
-        format: date-time
-        type: string
-    readOnly: true
-  components:
-    enum: &components
-      - SAS
-      - DP
-      - CBSD
-    type: string
-  message:
-    properties:
-      body:
-        description: Body of message
-        example: '{[{"registrationRequest":{"cbsdSerialNumber":"some_serial_number"}}]}'
-        readOnly: true
-        type: string
-      fcc_id:
-        description: Fcc Id of cbsd involved in message
-        example: some_fcc_id
-        readOnly: true
-        type: string
-      serial_number:
-        description: Serial number of cbsd involved in message
-        example: some_serial_number
-        readOnly: true
-        type: string
-      time:
-        description: Datetime of message
-        format: date-time
-        readOnly: true
-        type: string
-      type:
-        description: Type of message
-        readOnly: true
-        type: string
-      from:
-        description: message origin
-        readOnly: true
-        enum: *components
-        type: string
-      to:
-        description: message destination
-        readOnly: true
-        enum: *components
-        type: string
-    type: object
   paginated_cbsds:
     description: Page of cbsds
     properties:
       cbsds:
         items:
           $ref: '#/definitions/cbsd'
-        readOnly: true
         type: array
       total_count:
         description: Total number of cbsds
         example: 10
-        readOnly: true
         type: integer
+        x-nullable: false
     required:
       - cbsds
       - total_count
+  paginated_logs:
+    description: Page of logs
+    properties:
+      logs:
+        items:
+          $ref: '#/definitions/log'
+        type: array
+      total_count:
+        description: Total number of logs
+        example: 10
+        x-nullable: false
+        type: integer
+    required:
+      - logs
+      - total_count
 tags:
-  - description: API for retrieving logs
-    name: logs
   - description: API for CBSDs
     name: cbsds
+  - description: API for retrieving logs
+    name: logs
 paths:
-  /dp/{network_id}/logs:
-    get:
-      parameters:
-        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-        - $ref: '#/parameters/offset'
-        - $ref: '#/parameters/limit'
-        - description: start datetime of messages
-          format: date-time
-          in: query
-          name: begin
-          required: false
-          type: string
-        - description: end datatime of messages
-          format: date-time
-          in: query
-          name: end
-          required: false
-          type: string
-        - description: serial number of cbsd
-          in: query
-          minLength: 1
-          maxLength: 64
-          name: serial_number
-          required: false
-          type: string
-        - description: fcc id of cbsd
-          in: query
-          minLength: 1
-          maxLength: 19
-          name: fcc_id
-          required: false
-          type: string
-        - description: message type
-          in: query
-          name: type
-          required: false
-          type: string
-        - description: response code (only applicable for SAS responses)
-          in: query
-          name: response_code
-          required: false
-          type: integer
-        - description: message origin
-          in: query
-          name: from
-          required: false
-          type: string
-          enum: *components
-        - description: message destination
-          in: query
-          name: to
-          required: false
-          type: string
-          enum: *components
-      responses:
-        '200':
-          description: Messages between DP and SAS
-          schema:
-            items:
-              $ref: '#/definitions/message'
-            type: array
-        default:
-          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-      summary: List messages between DP and SAS ordered by time
-      tags:
-        - logs
   /dp/{network_id}/cbsds:
     get:
       parameters:
@@ -341,6 +344,70 @@ paths:
       summary: Delete CBSD from LTE network
       tags:
         - cbsds
+  /dp/{network_id}/logs:
+    get:
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+        - description: start datetime of log
+          format: date-time
+          in: query
+          name: begin
+          required: false
+          type: string
+        - description: end datatime of log
+          format: date-time
+          in: query
+          name: end
+          required: false
+          type: string
+        - description: serial number of cbsd
+          in: query
+          minLength: 1
+          maxLength: 64
+          name: serial_number
+          required: false
+          type: string
+        - description: fcc id of cbsd
+          in: query
+          minLength: 1
+          maxLength: 19
+          name: fcc_id
+          required: false
+          type: string
+        - description: log type
+          in: query
+          name: type
+          required: false
+          type: string
+        - description: response code (only applicable for SAS responses)
+          in: query
+          name: response_code
+          required: false
+          type: integer
+        - description: log origin
+          in: query
+          name: from
+          required: false
+          type: string
+          enum: *components
+        - description: log destination
+          in: query
+          name: to
+          required: false
+          type: string
+          enum: *components
+      responses:
+        '200':
+          description: List of messages between ENODEBD and DP and between DP and SAS
+          schema:
+            $ref: '#/definitions/paginated_logs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      summary: List messages between ENODEBD and DP and between DP and SAS ordered by time
+      tags:
+        - logs
 
 parameters:
   cbsd_id:

@@ -1,6 +1,6 @@
 #pragma once
 #include <arpa/inet.h>
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/glogwrapper/glog_logging.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
 

@@ -17,6 +17,7 @@ py_library(
     visibility = ["//visibility:public"],
     deps = [
         "//lte/gateway/python/magma/subscriberdb/crypto:ECIES",
+        "//lte/protos:diam_errors_python_proto",
         "//lte/protos:subscriberauth_python_grpc",
     ],
 )

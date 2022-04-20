@@ -17,11 +17,11 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeComplete.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeComplete.h"
 
 int decode_security_mode_complete(
     security_mode_complete_msg* security_mode_complete, uint8_t* buffer,

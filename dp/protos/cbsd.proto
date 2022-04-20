@@ -12,9 +12,9 @@ limitations under the License.
 */
 syntax = "proto3";
 
-package magma.dp;
+import "google/protobuf/wrappers.proto";
 
-import "dp/protos/pagination.proto";
+package magma.dp;
 
 option go_package = "magma/dp/cloud/go/protos";
 
@@ -72,6 +72,7 @@ message CbsdData {
   string fcc_id = 2;
   string serial_number = 3;
   Capabilities capabilities = 4;
+  FrequencyPreferences preferences = 5;
 }
 
 message Capabilities {
@@ -79,6 +80,11 @@ message Capabilities {
   double max_power = 2;
   int64 number_of_antennas = 3;
   double antenna_gain = 4;
+}
+
+message FrequencyPreferences {
+  int64 bandwidth_mhz = 1;
+  repeated int64 frequencies_mhz = 2;
 }
 
 message CbsdDetails {
@@ -97,4 +103,9 @@ message GrantDetails {
   string state = 4;
   int64 transmit_expire_timestamp = 5;
   int64 grant_expire_timestamp = 6;
+}
+
+message Pagination {
+  google.protobuf.Int64Value limit = 1;
+  google.protobuf.Int64Value offset = 2;
 }

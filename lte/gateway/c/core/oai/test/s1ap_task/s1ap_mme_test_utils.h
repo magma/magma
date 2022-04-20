@@ -12,9 +12,9 @@
  */
 #include "lte/gateway/c/core/oai/common/common_types.h"
 extern "C" {
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/s1ap_types.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
@@ -42,6 +42,7 @@ status_code_e send_s1ap_erab_setup_req(s1ap_state_t* state,
 // TODO: Migrate pending ITTI sending functions to call handlers directly
 // instead
 status_code_e send_conn_establishment_cnf(mme_ue_s1ap_id_t ue_id,
+                                          bool trigger_ext_ue_ambr,
                                           bool sec_capabilities_present,
                                           bool ue_radio_capability);
 

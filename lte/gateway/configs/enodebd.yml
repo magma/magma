@@ -38,6 +38,50 @@ sas:
   sas_location: "indoor"
   sas_height_type: "AMSL"
 
+# TODO: @xbend TR069 Firmware Upgrade config (TR069 download flow)
+# This config section emulates a per eNB firmware upgrade mechanism
+# Eventually we would want this to be passed from Orchestrator as part
+# of mconfig
+# Currently only supported/used by FreedomFi One eNB
+
+# Main config section for TR069 Download request for FW Upgrade
+# `firmwares` is a dictionary of available firmwares with download details
+#   key is the firmware version signature. Value is an object with:
+#     "url": full url to the firmware file
+#     "username": [optional] auth credentials
+#     "password": [optional] auth credentials
+# `enbs` is a dictionary with serial-level eNB specific firmware upgrade configuration.
+#   key is the eNB serial number.
+#   value is a string matching firmware version listed in the `firmwares` section.
+#   Takes priority over model-level definition.
+#   Currently only works if serial number is part of eNB's data model.
+# `models` is a dictionary with model-level eNB firmware upgrade configuration.
+#   key is the device model name as stated in enodebd device_utils.py.
+#   value is a string matching firmware version listed in the `firmwares` section.
+#   If specified, applies to all eNBs for that device model that do not
+#   have individual firmware upgrade config in `enbs` section
+# Example:
+# firmware_upgrade_download:
+#   firmwares:
+#     "some_version":
+#       url: "http://some_url/some_fw_file.ffw"
+#       username: "user"
+#       password: "password"
+#     "some_other_version":
+#       url: "http://some_other_url/some_other_fw_file.ffw"
+#     "some_yet_unused_version":
+#       url: "some_url"
+#   enbs:
+#     "some_serial": "some_version"
+#     "some_other_serial": "some_other_version"
+#   models:
+#     "some_model": "some_version"
+
+firmware_upgrade_download:
+  firmwares: {}
+  enbs: {}
+  models: {}
+
 # primSync determines the primary source for synchronization.
 # Used by FreedomFi One eNB.
 # "GNSS" - When using SAS client in eNB, GPS is used.

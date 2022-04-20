@@ -74,6 +74,7 @@
 #define T3586_DEFAULT_VALUE 0  // TODO-RECHECK
 #define T3589_DEFAULT_VALUE 0  // TODO-RECHECK
 #define T3595_DEFAULT_VALUE 0
+#define IMPLICIT_DEREG_TIMER 30
 
 /*
  Registration request

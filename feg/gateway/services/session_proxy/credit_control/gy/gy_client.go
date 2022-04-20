@@ -144,7 +144,7 @@ func (gyClient *GyClient) SendCreditControlRequest(
 		return err
 	}
 
-	glog.V(2).Infof("Sending Gy CCR message:\n%s\n", message)
+	glog.V(3).Infof("Sending Gy CCR message:\n%s\n", message)
 	key := credit_control.GetRequestKey(credit_control.Gy, request.SessionID, request.RequestNumber)
 	return gyClient.diamClient.SendRequest(server, done, message, key)
 }
@@ -184,7 +184,7 @@ func (gyClient *GyClient) DisableConnections(period time.Duration) {
 // messages received from the OCS
 func registerReAuthHandler(reAuthHandler ChargingReAuthHandler, diamClient *diameter.Client) {
 	reqHandler := func(conn diam.Conn, message *diam.Message) {
-		glog.V(2).Infof("Received Gy reauth message:\n%s\n", message)
+		glog.V(3).Infof("Received Gy reauth message:\n%s\n", message)
 		rar := &ChargingReAuthRequest{}
 		if err := message.Unmarshal(rar); err != nil {
 			glog.Errorf("Received unparseable RAR over Gy %s\n%s", message, err)
@@ -399,7 +399,7 @@ func getMSCCAVP(requestType credit_control.CreditRequestType, credits *UsedCredi
 		avpGroup = append(avpGroup, diam.NewAVP(avp.RequestedServiceUnit, avp.Mbit, 0, &diam.GroupedAVP{AVP: usuGrp}))
 	}
 
-	if serviceIdentifier >= 0 && serviceIdentifier <= 4294967295 { //check if is in bounds of Unsigned32 type
+	if serviceIdentifier >= 0 && serviceIdentifier <= 4294967295 { // check if is in bounds of Unsigned32 type
 		avpGroup = append(
 			avpGroup,
 			diam.NewAVP(avp.ServiceIdentifier, avp.Mbit, 0, datatype.Unsigned32(serviceIdentifier)))
@@ -466,7 +466,7 @@ func getReceivedCredits(cca *CCADiameterMessage) []*ReceivedCredits {
 // Output: diam.HandlerFunc
 func getCCAHandler() diameter.AnswerHandler {
 	return func(message *diam.Message) diameter.KeyAndAnswer {
-		glog.V(2).Infof("Received Gy CCA message:\n%s\n", message)
+		glog.V(3).Infof("Received Gy CCA message:\n%s\n", message)
 		var cca CCADiameterMessage
 		if err := message.Unmarshal(&cca); err != nil {
 			metrics.GyUnparseableMsg.Inc()

@@ -20,6 +20,7 @@
 using ::testing::Test;
 
 struct mme_config_s mme_config;
+task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 namespace magma {
 namespace lte {

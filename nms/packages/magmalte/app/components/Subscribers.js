@@ -14,18 +14,18 @@
  * @format
  */
 
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../fbc_js_core/ui/components/Alert/withAlert';
 import type {subscriber} from '../../generated/MagmaAPIBindings';
 
 import AddEditSubscriberDialog from './lte/AddEditSubscriberDialog';
-import Button from '@fbcnms/ui/components/design-system/Button';
+import Button from '../../fbc_js_core/ui/components/design-system/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import ImportSubscribersDialog from './ImportSubscribersDialog';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFiller from '../../fbc_js_core/ui/components/LoadingFiller';
 import MagmaV1API from '../../generated/WebClient';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
+import NestedRouteLink from '../../fbc_js_core/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
 import Table from '@material-ui/core/Table';
@@ -34,17 +34,17 @@ import TableCell from '@material-ui/core/TableCell';
 import TableFooter from '@material-ui/core/TableFooter';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../fbc_js_core/ui/components/design-system/Text';
 
-import nullthrows from '@fbcnms/util/nullthrows';
+import nullthrows from '../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import withAlert from '../../fbc_js_core/ui/components/Alert/withAlert';
 import {CoreNetworkTypes} from '../views/subscriber/SubscriberUtils';
 import {Route} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {map} from 'lodash';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
+import {useRouter} from '../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   header: {
