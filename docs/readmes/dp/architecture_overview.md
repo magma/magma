@@ -37,11 +37,11 @@ NMS UI page for Domain Proxy management is currently under development.
 
 The picture below gives a very general look at the Domain Proxy as a proxy service between radios and SAS
 
-![dp](assets/dp/dp_high_level_overview.png)
+![dp](../assets/dp/dp_high_level_overview.png)
 
 ### Domain Proxy in Magma's Context
 
-![dp](assets/dp/dp_in_context.png)
+![dp](../assets/dp/dp_in_context.png)
 
 If we take a closer look, Domain Proxy as part of Magma is situated next to Orc8r,
 (typically on the same Kubernetes cluster) and uses the same database as the Orc8r.
@@ -73,7 +73,7 @@ radio. This is achieved mainly by
 
 In the picture we see three components that comprise Domain Proxy
 
-![dp](assets/dp/dp_architecture.png)
+![dp](../assets/dp/dp_architecture.png)
 
 #### Radio Controller
 
