@@ -221,6 +221,15 @@ jobs:
           run: |
             cd /workspaces/magma
             bazel run //:check_starlark_format
+      - name: Test python services for missing modules
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/
+          run: |
+            cd /workspaces/magma
+            bazel/scripts/test_python_service_imports.sh
       - name: Build space left after run
         shell: bash
         run: |
