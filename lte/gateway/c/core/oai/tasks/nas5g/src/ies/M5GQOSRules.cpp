@@ -31,23 +31,10 @@ QOSRulesMsg::QOSRulesMsg() {}
 QOSRulesMsg::~QOSRulesMsg() {}
 
 // Decode QOSRules IE
-int QOSRulesMsg::DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
-                                   uint8_t* buffer, uint32_t len) {
+uint8_t QOSRulesMsg::DecodeQOSRulesMsgData(QOSRulesMsg* qos_rules,
+                                           uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
-
-  if (iei > 0) {
-    qos_rules->iei = *buffer;
-    CHECK_IEI_DECODER((unsigned char)iei, qos_rules->iei);
-    decoded++;
-  }
-
-  IES_DECODE_U16(buffer, decoded, qos_rules->length);
   uint8_t i = 0;
-
-  if (!qos_rules) {
-    OAILOG_ERROR(LOG_NAS5G, "No QOS Rules found while Decoding");
-    return -1;
-  }
 
   while (decoded < qos_rules->length) {
     IES_DECODE_U8(buffer, decoded, qos_rules->qos_rule[i].qos_rule_id);
@@ -84,26 +71,39 @@ int QOSRulesMsg::DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
     qos_rules->qos_rule[i].segregation = (data >> 6) & 0x01;
     qos_rules->qos_rule[i].qfi = (data & 0x3f);
   }
+
+  return (decoded);
+}
+
+// Decode QOSRules IE
+int QOSRulesMsg::DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
+                                   uint8_t* buffer, uint32_t len) {
+  uint8_t decoded = 0;
+
+  if (iei > 0) {
+    qos_rules->iei = *buffer;
+    CHECK_IEI_DECODER((unsigned char)iei, qos_rules->iei);
+    decoded++;
+  }
+
+  IES_DECODE_U16(buffer, decoded, qos_rules->length);
+
+  if (!qos_rules) {
+    OAILOG_ERROR(LOG_NAS5G, "No QOS Rules found while Decoding");
+    return -1;
+  }
+
+  decoded += DecodeQOSRulesMsgData(qos_rules, buffer+decoded, len);
+
   return decoded;
 }
 
-// Encode QOSRules IE
-int QOSRulesMsg::EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
-                                   uint8_t* buffer, uint32_t len) {
+uint16_t QOSRulesMsg::EncodeQOSRulesMsgData(QOSRulesMsg* qos_rules,
+                                       uint8_t* buffer, uint32_t len) {
   uint16_t encoded = 0;
   uint8_t i = 0;
   uint8_t j = 0;
 
-  // Checking IEI and pointer
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, QOSRULE_MIN_LEN, len);
-
-  if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char)iei, qos_rules->iei);
-    *buffer = iei;
-    encoded++;
-  }
-
-  IES_ENCODE_U16(buffer, encoded, qos_rules->length);
   while (encoded < (qos_rules->length) && i <= 255) {
     *(buffer + encoded) = qos_rules->qos_rule[i].qos_rule_id;
     encoded++;
@@ -141,6 +141,29 @@ int QOSRulesMsg::EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
     encoded++;
     i++;
   }
+
+  return (encoded);
+}
+
+// Encode QOSRules IE
+int QOSRulesMsg::EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
+                                   uint8_t* buffer, uint32_t len) {
+  uint16_t encoded = 0;
+  uint8_t i = 0;
+  uint8_t j = 0;
+
+  // Checking IEI and pointer
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, QOSRULE_MIN_LEN, len);
+
+  if (iei > 0) {
+    CHECK_IEI_ENCODER((unsigned char)iei, qos_rules->iei);
+    *buffer = iei;
+    encoded++;
+  }
+
+  IES_ENCODE_U16(buffer, encoded, qos_rules->length);
+
+  encoded += EncodeQOSRulesMsgData(qos_rules, buffer+encoded, len);
 
   return encoded;
 }

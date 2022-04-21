@@ -1819,6 +1819,9 @@ int amf_app_pdu_session_modification_request(
   msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd.message_type.msg_type =
       static_cast<uint8_t>(M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND);
 
+  uint8_t qos_rules_buffer[4096];
+  uint16_t qos_rules_buf_len = 0;
+
   for (int i = 0; i < smf_ctx->qos_flow_list.maxNumOfQosFlows; i++) {
     if (smf_ctx->qos_flow_list.item[i]
             .qos_flow_req_item.ul_tft.tftoperationcode) {
@@ -1871,9 +1874,21 @@ int amf_app_pdu_session_modification_request(
         qosRuleMsg.qos_rule[i] = qos_rule;
       }
       qosRuleMsg.length += qos_rule.len + 3;
-      msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd.authqosrules
-          .push_back(qosRuleMsg);
+
+      // Convert Authorized qos into bstring
+      int encoded_result =
+      qosRuleMsg.EncodeQOSRulesMsgData(&qosRuleMsg, qos_rules_buffer, 4096);
+
+      if (encoded_result < 0) {
+        OAILOG_ERROR(LOG_AMF_APP,
+                     "Qos Rule parameters invalid or un-aligned \n");
+        return M5G_AS_FAILURE;
+      }
+      qos_rules_buf_len += encoded_result;
     }
+
+    msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd.authorized_qosrules =
+       blk2bstr(qos_rules_buffer, qos_rules_buf_len);
 
     // authorized qos flow descriptors
     if (smf_ctx->qos_flow_list.item[i]
@@ -1991,6 +2006,9 @@ int amf_app_pdu_session_modification_request(
     OAILOG_WARNING(LOG_AMF_APP, "NAS encode failed \n");
     bdestroy_wrapper(&buffer);
   }
+
+  bdestroy(msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd
+           .authorized_qosrules);
 
   return rc;
 }
