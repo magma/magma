@@ -128,7 +128,6 @@ func TestGetMetadata(t *testing.T) {
 						SqlType: sqorc.ColumnTypeText,
 					},
 				},
-				Relations: map[string]string{},
 			},
 		},
 		{
@@ -142,13 +141,15 @@ func TestGetMetadata(t *testing.T) {
 						SqlType: sqorc.ColumnTypeInt,
 					},
 					{
-						Name:    "state_id",
-						SqlType: sqorc.ColumnTypeInt,
+						Name:     "state_id",
+						SqlType:  sqorc.ColumnTypeInt,
+						Relation: storage.GrantStateTable,
 					},
 					{
 						Name:     "cbsd_id",
 						SqlType:  sqorc.ColumnTypeInt,
 						Nullable: true,
+						Relation: storage.CbsdTable,
 					},
 					{
 						Name:    "grant_id",
@@ -187,10 +188,6 @@ func TestGetMetadata(t *testing.T) {
 						SqlType: sqorc.ColumnTypeReal,
 					},
 				},
-				Relations: map[string]string{
-					storage.CbsdTable:       "cbsd_id",
-					storage.GrantStateTable: "state_id",
-				},
 			},
 		},
 		{
@@ -208,7 +205,6 @@ func TestGetMetadata(t *testing.T) {
 						SqlType: sqorc.ColumnTypeText,
 					},
 				},
-				Relations: map[string]string{},
 			},
 		},
 		{
@@ -226,8 +222,9 @@ func TestGetMetadata(t *testing.T) {
 						SqlType: sqorc.ColumnTypeText,
 					},
 					{
-						Name:    "state_id",
-						SqlType: sqorc.ColumnTypeInt,
+						Name:     "state_id",
+						SqlType:  sqorc.ColumnTypeInt,
+						Relation: storage.CbsdStateTable,
 					},
 					{
 						Name:     "cbsd_id",
@@ -302,9 +299,6 @@ func TestGetMetadata(t *testing.T) {
 						DefaultValue: false,
 					},
 				},
-				Relations: map[string]string{
-					storage.CbsdStateTable: "state_id",
-				},
 			},
 		},
 		{
@@ -318,17 +312,15 @@ func TestGetMetadata(t *testing.T) {
 						SqlType: sqorc.ColumnTypeInt,
 					},
 					{
-						Name:    "cbsd_id",
-						SqlType: sqorc.ColumnTypeInt,
+						Name:     "cbsd_id",
+						SqlType:  sqorc.ColumnTypeInt,
+						Relation: storage.CbsdTable,
 					},
 					{
-						Name:    "desired_state_id",
-						SqlType: sqorc.ColumnTypeInt,
+						Name:     "desired_state_id",
+						SqlType:  sqorc.ColumnTypeInt,
+						Relation: storage.CbsdStateTable,
 					},
-				},
-				Relations: map[string]string{
-					storage.CbsdTable:      "cbsd_id",
-					storage.CbsdStateTable: "desired_state_id",
 				},
 			},
 		},
@@ -338,7 +330,6 @@ func TestGetMetadata(t *testing.T) {
 			actual := tc.model.GetMetadata()
 			obj := actual.CreateObject()
 
-			assert.Equal(t, tc.expected.Relations, actual.Relations)
 			assert.Equal(t, tc.expected.Properties, actual.Properties)
 			assert.Equal(t, tc.expected.Table, actual.Table)
 			assert.Equal(t, tc.model, obj)

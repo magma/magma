@@ -558,7 +558,6 @@ func (s *someModel) GetMetadata() *db.ModelMetadata {
 				SqlType: sqorc.ColumnTypeDatetime,
 			},
 		},
-		Relations: nil,
 		CreateObject: func() db.Model {
 			return &someModel{}
 		},
@@ -607,6 +606,7 @@ func (o *otherModel) GetMetadata() *db.ModelMetadata {
 				Name:     "some_id",
 				SqlType:  sqorc.ColumnTypeInt,
 				Nullable: true,
+				Relation: someTable,
 			},
 			{
 				Name:     "value",
@@ -629,7 +629,6 @@ func (o *otherModel) GetMetadata() *db.ModelMetadata {
 				Nullable: true,
 			},
 		},
-		Relations: makeRelationsMap(someTable),
 		CreateObject: func() db.Model {
 			return &otherModel{}
 		},
@@ -673,6 +672,7 @@ func (a *anotherModel) GetMetadata() *db.ModelMetadata {
 				Name:     "other_id",
 				SqlType:  sqorc.ColumnTypeInt,
 				Nullable: true,
+				Relation: otherTable,
 			},
 			{
 				Name:         "default_value",
@@ -681,7 +681,6 @@ func (a *anotherModel) GetMetadata() *db.ModelMetadata {
 				DefaultValue: defaultValue,
 			},
 		},
-		Relations: makeRelationsMap(otherTable),
 		CreateObject: func() db.Model {
 			return &anotherModel{}
 		},
@@ -741,8 +740,4 @@ func (m *modelWithUniqueFields) Fields() []db.BaseType {
 		db.IntType{X: &m.uniqueField},
 		db.IntType{X: &m.anotherUniqueFied},
 	}
-}
-
-func makeRelationsMap(table string) map[string]string {
-	return map[string]string{table: table + "_id"}
 }
