@@ -1663,147 +1663,6 @@ TEST(test_pdu_session_modification, test_pdu_session_modification_request_msg) {
   EXPECT_EQ(pdu_sess_mod_req.message_type.msg_type,
             decode_pdu_sess_mod_req.message_type.msg_type);
 
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0].iei,
-            decode_pdu_sess_mod_req.authqosrules[0].iei);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0].length,
-            decode_pdu_sess_mod_req.authqosrules[0].length);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0].qos_rule[0].qos_rule_id,
-            decode_pdu_sess_mod_req.authqosrules[0].qos_rule[0].qos_rule_id);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0].qos_rule[0].len,
-            decode_pdu_sess_mod_req.authqosrules[0].qos_rule[0].len);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0].qos_rule[0].rule_oper_code,
-            decode_pdu_sess_mod_req.authqosrules[0].qos_rule[0].rule_oper_code);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0].qos_rule[0].dqr_bit,
-            decode_pdu_sess_mod_req.authqosrules[0].qos_rule[0].dqr_bit);
-  EXPECT_EQ(
-      pdu_sess_mod_req.authqosrules[0].qos_rule[0].no_of_pkt_filters,
-      decode_pdu_sess_mod_req.authqosrules[0].qos_rule[0].no_of_pkt_filters);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .pkt_filter_dir,
-            decode_pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .pkt_filter_dir);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .pkt_filter_id,
-            decode_pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .pkt_filter_id);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .len,
-            decode_pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .len);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[0],
-            decode_pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[0]);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[1],
-            decode_pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[1]);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[2],
-            decode_pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[2]);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[3],
-            decode_pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[3]);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[4],
-            decode_pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[4]);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[5],
-            decode_pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[5]);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[6],
-            decode_pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[6]);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[7],
-            decode_pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[7]);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[8],
-            decode_pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[8]);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[9],
-            decode_pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[9]);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[10],
-            decode_pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[10]);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[11],
-            decode_pdu_sess_mod_req.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[11]);
-  EXPECT_EQ(
-      pdu_sess_mod_req.authqosrules[0].qos_rule[0].qos_rule_precedence,
-      decode_pdu_sess_mod_req.authqosrules[0].qos_rule[0].qos_rule_precedence);
-  EXPECT_EQ(pdu_sess_mod_req.authqosrules[0].qos_rule[0].qfi,
-            decode_pdu_sess_mod_req.authqosrules[0].qos_rule[0].qfi);
-
   EXPECT_EQ(pdu_sess_mod_req.authqosflowdescriptors[0].qfi,
             decode_pdu_sess_mod_req.authqosflowdescriptors[0].qfi);
   EXPECT_EQ(pdu_sess_mod_req.authqosflowdescriptors[0].operationCode,
@@ -1869,7 +1728,7 @@ TEST(test_pdu_session_modification, test_pdu_session_modification_request_msg) {
 // pdu session modification command message
 TEST(test_pdu_session_modification, test_pdu_session_modification_command_msg) {
   uint8_t buffer[1024] = {0};
-  uint8_t len = 64;
+  uint8_t len = 61;
   PDUSessionModificationCommand pdu_sess_mod_cmd = {};
   PDUSessionModificationCommand decode_pdu_sess_mod_cmd = {};
 
@@ -1895,30 +1754,43 @@ TEST(test_pdu_session_modification, test_pdu_session_modification_command_msg) {
   // qos rules
   QOSRulesMsg qosrules;
   qosrules.iei = PDU_SESSION_QOS_RULES_IE_TYPE;
-  qosrules.length = 20;
-  qosrules.qos_rule[0].qos_rule_id = 2;
-  qosrules.qos_rule[0].len = 17;
-  qosrules.qos_rule[0].rule_oper_code = 2;
-  qosrules.qos_rule[0].dqr_bit = 0;
+
+
+  // Preparing packet filter
   qosrules.qos_rule[0].no_of_pkt_filters = 1;
   qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].pkt_filter_dir = 3;
   qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].pkt_filter_id = 1;
-  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].len = 12;
-  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[0] = {0x10};
-  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[1] = {0x0a};
-  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[2] = {0x0a};
-  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[3] = {0x02};
-  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[4] = {0x02};
-  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[5] = {0x0f};
-  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[6] = {0x0f};
-  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[7] = {0x0f};
-  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[8] = {0x0f};
-  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[9] = {0x50};
-  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[10] = {0x57};
-  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[11] = {0x3e};
+
+  inet_pton(AF_INET, "192.168.200.1",
+            qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents);
+
+  inet_pton(AF_INET, "255.255.255.255",
+            qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents + 4);
+
+  //Packet filter header + sizeof ipv4 address + sizeof of ipv4 mask
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].len  = 1 + 4 + 4;
+  int filter_len = 1 + 1 + qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].len;
+
+  // Preparing qos rule precedence
   qosrules.qos_rule[0].qos_rule_precedence = 254;
   qosrules.qos_rule[0].qfi = 3;
-  pdu_sess_mod_cmd.authqosrules.push_back(qosrules);
+  int rule_precedence = 1 + 1; //precedence + identifier
+
+  // Preparing qos rule
+  qosrules.qos_rule[0].len = 1 + filter_len + rule_precedence;
+  qosrules.qos_rule[0].qos_rule_id = 2;
+  qosrules.qos_rule[0].rule_oper_code = 2;
+  qosrules.qos_rule[0].dqr_bit = 0;
+
+  qosrules.length = 1 + 2 + qosrules.qos_rule[0].len;
+
+  uint8_t qos_rules_buffer[4096];
+
+  int encoded_result =
+  qosrules.EncodeQOSRulesMsgData(&qosrules, qos_rules_buffer, 4096);
+
+  pdu_sess_mod_cmd.authorized_qosrules =
+                               blk2bstr(qos_rules_buffer, encoded_result);
 
   //  auth qos flow descriptors
   M5GQosFlowDescription authqosFlows;
@@ -1984,146 +1856,10 @@ TEST(test_pdu_session_modification, test_pdu_session_modification_command_msg) {
   EXPECT_EQ(pdu_sess_mod_cmd.sessionambr.ul_session_ambr,
             decode_pdu_sess_mod_cmd.sessionambr.ul_session_ambr);
 
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0].iei,
-            decode_pdu_sess_mod_cmd.authqosrules[0].iei);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0].length,
-            decode_pdu_sess_mod_cmd.authqosrules[0].length);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].qos_rule_id,
-            decode_pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].qos_rule_id);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].len,
-            decode_pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].len);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].rule_oper_code,
-            decode_pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].rule_oper_code);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].dqr_bit,
-            decode_pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].dqr_bit);
-  EXPECT_EQ(
-      pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].no_of_pkt_filters,
-      decode_pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].no_of_pkt_filters);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .pkt_filter_dir,
-            decode_pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .pkt_filter_dir);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .pkt_filter_id,
-            decode_pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .pkt_filter_id);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .len,
-            decode_pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .len);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[0],
-            decode_pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[0]);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[1],
-            decode_pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[1]);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[2],
-            decode_pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[2]);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[3],
-            decode_pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[3]);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[4],
-            decode_pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[4]);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[5],
-            decode_pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[5]);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[6],
-            decode_pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[6]);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[7],
-            decode_pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[7]);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[8],
-            decode_pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[8]);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[9],
-            decode_pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[9]);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[10],
-            decode_pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[10]);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[11],
-            decode_pdu_sess_mod_cmd.authqosrules[0]
-                .qos_rule[0]
-                .new_qos_rule_pkt_filter[0]
-                .contents[11]);
-  EXPECT_EQ(
-      pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].qos_rule_precedence,
-      decode_pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].qos_rule_precedence);
-  EXPECT_EQ(pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].qfi,
-            decode_pdu_sess_mod_cmd.authqosrules[0].qos_rule[0].qfi);
+  EXPECT_EQ(0,
+     memcmp(pdu_sess_mod_cmd.authorized_qosrules->data,
+            decode_pdu_sess_mod_cmd.authorized_qosrules->data,
+	    blength(pdu_sess_mod_cmd.authorized_qosrules)));
 
   EXPECT_EQ(pdu_sess_mod_cmd.authqosflowdescriptors[0].qfi,
             decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].qfi);
@@ -2185,6 +1921,9 @@ TEST(test_pdu_session_modification, test_pdu_session_modification_command_msg) {
   EXPECT_EQ(
       pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[4].element,
       decode_pdu_sess_mod_cmd.authqosflowdescriptors[0].paramList[4].element);
+
+  bdestroy(pdu_sess_mod_cmd.authorized_qosrules);
+  bdestroy(decode_pdu_sess_mod_cmd.authorized_qosrules);
 }
 
 // pdu session modification complete

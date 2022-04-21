@@ -57,8 +57,16 @@ class QOSRulesMsg {
   QOSRule qos_rule[4];
   QOSRulesMsg();
   ~QOSRulesMsg();
+
+  uint16_t EncodeQOSRulesMsgData(QOSRulesMsg* qos_rules,
+                                       uint8_t* buffer, uint32_t len);
+
   int EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei, uint8_t* buffer,
                         uint32_t len);
+
+  uint8_t DecodeQOSRulesMsgData(QOSRulesMsg* qos_rules,
+                                           uint8_t* buffer, uint32_t len);
+
   int DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei, uint8_t* buffer,
                         uint32_t len);
 };

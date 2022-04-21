@@ -38,7 +38,7 @@ class PDUSessionModificationCommand {
   MessageTypeMsg message_type;
   M5GSMCauseMsg cause;
   SessionAMBRMsg sessionambr;
-  std::vector<QOSRulesMsg> authqosrules;
+  bstring authorized_qosrules;
   std::vector<M5GQosFlowDescription> authqosflowdescriptors;
   ProtocolConfigurationOptions extprotocolconfigurationoptions;
   PDUSessionModificationCommand();
