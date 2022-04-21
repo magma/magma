@@ -740,6 +740,11 @@ class SessionState {
       const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
       RulesToProcess* pending_activation, RulesToProcess* pending_deactivation);
 
+  void process_get_mod_rule_installs(const std::vector<QosPolicy>& qospolicy,
+                                     RulesToProcess* pending_activation,
+                                     RulesToProcess* pending_deactivation);
+  void m5g_remove_dynamic_rule(const std::vector<QosPolicy>& qospolicy);
+
  private:
   std::string imsi_;
   std::string session_id_;

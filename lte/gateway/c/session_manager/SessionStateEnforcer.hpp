@@ -228,6 +228,22 @@ class SessionStateEnforcer {
       const google::protobuf::RepeatedPtrField<magma::lte::DynamicRuleInstall>
           dynamic_rule_installs);
 
+  void init_policy_reauth(const std::string& imsi, SessionMap& session_map,
+                          PolicyReAuthRequest request,
+                          PolicyReAuthAnswer& answer_out,
+                          SessionUpdate& session_update);
+
+  void init_policy_reauth_for_session(
+      const std::string& imsi, const PolicyReAuthRequest& request,
+      const std::unique_ptr<SessionState>& session,
+      SessionUpdate& session_update);
+
+  bool m5g_modification_session(SessionMap& session_map,
+                                const std::string& imsi,
+                                std::unique_ptr<SessionState>& session_state,
+                                SessionConfig& new_cfg,
+                                SessionUpdate& session_update);
+
  private:
   ConvergedRuleStore GlobalRuleList;
   std::shared_ptr<StaticRuleStore> rule_store_;

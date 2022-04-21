@@ -140,8 +140,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       /* This is non-nas message and can be handled directly to check if failure
        * or success messages are coming from NGAP
        */
-      amf_app_handle_resource_modify_response(
-          NGAP_PDU_SESSION_RESOURCE_MODIFY_RSP(received_message_p));
+     /* amf_app_handle_resource_modify_response(
+          NGAP_PDU_SESSION_RESOURCE_MODIFY_RSP(received_message_p));*/
       break;
     /* Handle PDU session resource release response */
     case NGAP_PDUSESSIONRESOURCE_REL_RSP:

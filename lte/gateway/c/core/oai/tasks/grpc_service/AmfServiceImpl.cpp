@@ -98,19 +98,18 @@ Status AmfServiceImpl::SetAmfNotification(ServerContext* context,
 Status AmfServiceImpl::SetSmfSessionContext(
     ServerContext* context, const SetSMSessionContextAccess* request,
     SmContextVoid* response) {
-
-  struct in_addr ip_addr          = {0};
-  char ip_str[INET_ADDRSTRLEN]    = {0};
-  uint32_t ip_int                 = 0;
-  uint32_t i	                  = 0;
-  uint32_t index1                 = 0;
-  uint32_t index2                 = 0;
+  struct in_addr ip_addr = {0};
+  char ip_str[INET_ADDRSTRLEN] = {0};
+  uint32_t ip_int = 0;
+  uint32_t i = 0;
+  uint32_t index1 = 0;
+  uint32_t index2 = 0;
   traffic_flow_template_t* ul_tft = NULL;
   traffic_flow_template_t* dl_tft = NULL;
-  int ul_count_packetfilters      = 0;
-  int dl_count_packetfilters      = 0;
-  OAILOG_INFO(
-      LOG_UTIL, "Received GRPC SetSmfSessionContext request from SMF\n");
+  int ul_count_packetfilters = 0;
+  int dl_count_packetfilters = 0;
+  OAILOG_INFO(LOG_UTIL,
+              "Received GRPC SetSmfSessionContext request from SMF\n");
 
   itti_n11_create_pdu_session_response_t itti_msg;
   memset(&itti_msg, 0, sizeof(itti_n11_create_pdu_session_response_t));
@@ -125,12 +124,12 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.sm_session_version = req_common.sm_session_version();
 
   // RatSpecificContextAccess
-  itti_msg.pdu_session_id    = req_m5g.pdu_session_id();
-  itti_msg.pdu_session_type  = (pdu_session_type_t) req_m5g.pdu_session_type();
-  itti_msg.selected_ssc_mode = (ssc_mode_t) req_m5g.selected_ssc_mode();
-  itti_msg.m5gsm_cause       = (m5g_sm_cause_t) req_m5g.m5gsm_cause();
+  itti_msg.pdu_session_id = req_m5g.pdu_session_id();
+  itti_msg.pdu_session_type = (pdu_session_type_t)req_m5g.pdu_session_type();
+  itti_msg.selected_ssc_mode = (ssc_mode_t)req_m5g.selected_ssc_mode();
+  itti_msg.m5gsm_cause = (m5g_sm_cause_t)req_m5g.m5gsm_cause();
 
-  if (req_m5g.has_subscribed_qos()) {
+  if (!(req_m5g.qos_policy_size()) && req_m5g.has_subscribed_qos()) {
     itti_msg.session_ambr.uplink_unit_type = req_m5g.subscribed_qos().br_unit();
     itti_msg.session_ambr.uplink_units = req_m5g.subscribed_qos().apn_ambr_ul();
 
@@ -152,11 +151,11 @@ Status AmfServiceImpl::SetSmfSessionContext(
         .priority_level = req_m5g.subscribed_qos().priority_level();  // uint32
     itti_msg.qos_flow_list.item[i]
         .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
-        .pre_emption_cap = (pre_emption_capability) req_m5g.subscribed_qos()
+        .pre_emption_cap = (pre_emption_capability)req_m5g.subscribed_qos()
                                .preemption_capability();  // enum
     itti_msg.qos_flow_list.item[i]
         .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
-        .pre_emption_vul = (pre_emption_vulnerability) req_m5g.subscribed_qos()
+        .pre_emption_vul = (pre_emption_vulnerability)req_m5g.subscribed_qos()
                                .preemption_vulnerability();  // enum
     i++;
   }
@@ -177,24 +176,23 @@ Status AmfServiceImpl::SetSmfSessionContext(
         qos_rule.qos().qos().arp().priority_level();  // uint32
     itti_msg.qos_flow_list.item[i]
         .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
-        .pre_emption_cap = (pre_emption_capability) qos_rule.qos()
+        .pre_emption_cap = (pre_emption_capability)qos_rule.qos()
                                .qos()
                                .arp()
                                .pre_capability();  // enum
     itti_msg.qos_flow_list.item[i]
         .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
-        .pre_emption_vul = (pre_emption_vulnerability) qos_rule.qos()
+        .pre_emption_vul = (pre_emption_vulnerability)qos_rule.qos()
                                .qos()
                                .arp()
                                .pre_vulnerability();  // enum
     itti_msg.qos_flow_list.item[i].qos_flow_req_item.qos_flow_action =
-        (qos_flow_action_t) qos_rule.policy_action();  // enum
+        (qos_flow_action_t)qos_rule.policy_action();  // enum
     itti_msg.qos_flow_list.item[i].qos_flow_req_item.qos_flow_version =
         qos_rule.version();  // uint32
-    strcpy(
-        reinterpret_cast<char*>(
-            itti_msg.qos_flow_list.item[i].qos_flow_req_item.rule_id),
-        qos_rule.qos().id().c_str());
+    strncpy(reinterpret_cast<char*>(
+                itti_msg.qos_flow_list.item[i].qos_flow_req_item.rule_id),
+            qos_rule.qos().id().c_str(), strlen(qos_rule.qos().id().c_str()));
 
     // flow descriptor
     if (qos_rule.qos().has_qos()) {
@@ -239,13 +237,29 @@ Status AmfServiceImpl::SetSmfSessionContext(
             OAILOG_ERROR(
                 LOG_UTIL,
                 "The uplink packet filter contents are not formatted correctly."
-                "Cancelling qos flow creation request. \n");
+                "Canceling qos flow creation request. \n");
             return Status::CANCELLED;
           }
           ++ul_count_packetfilters;
           ul_tft->numberofpacketfilters++;
         }
       } else if (qos_rule.policy_action() == QosPolicy::DEL) {
+	  /*ul_tft->tftoperationcode =
+              TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_PACKET_FILTERS_FROM_EXISTING_TFT;
+          ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
+              .direction = TRAFFIC_FLOW_TEMPLATE_UPLINK_ONLY;
+          ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
+              .eval_precedence = qos_rule.qos().priority();
+          if (!fillUpPacketFilterContents(
+                  &ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
+                       .packetfiltercontents,
+                  &flow.match())) {
+            OAILOG_ERROR(
+                LOG_UTIL,
+                "The uplink packet filter contents are not formatted correctly."
+                "Canceling qos flow creation request. \n");
+            return Status::CANCELLED;*/
+     
       }
     }
   }
@@ -263,9 +277,9 @@ Status AmfServiceImpl::SetSmfSessionContext(
               itti_msg.upf_endpoint.end_ipv4_addr);
   }
 
-  strcpy(
-      reinterpret_cast<char*>(itti_msg.procedure_trans_identity),
-      req_m5g.procedure_trans_identity().c_str());  // pdu_change
+  strncpy(reinterpret_cast<char*>(itti_msg.procedure_trans_identity),
+          req_m5g.procedure_trans_identity().c_str(),
+          strlen(req_m5g.procedure_trans_identity().c_str()));  // pdu_change
   itti_msg.always_on_pdu_session_indication =
       req_m5g.always_on_pdu_session_indication();
   itti_msg.allowed_ssc_mode = (ssc_mode_t)req_m5g.allowed_ssc_mode();
@@ -301,7 +315,7 @@ Status AmfServiceImpl::SetSmfSessionContext(
 
 bool AmfServiceImpl::fillUpPacketFilterContents(
     packet_filter_contents_t* pf_content, const FlowMatch* flow_match_rule) {
-  uint16_t flags                            = 0;
+  uint16_t flags = 0;
   pf_content->protocolidentifier_nextheader = flow_match_rule->ip_proto();
   if (pf_content->protocolidentifier_nextheader) {
     flags |= TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG;
@@ -381,8 +395,8 @@ bool AmfServiceImpl::fillUpPacketFilterContents(
 // ANY and it is equivalent to 0.0.0.0/0
 // But this function is called only for non-empty ipv4 string
 
-bool AmfServiceImpl::fillIpv4(
-    packet_filter_contents_t* pf_content, const std::string ipv4addr) {
+bool AmfServiceImpl::fillIpv4(packet_filter_contents_t* pf_content,
+                              const std::string ipv4addr) {
   const auto cidrNetworkExpect = folly::IPAddress::tryCreateNetwork(ipv4addr);
   if (cidrNetworkExpect.hasError()) {
     OAILOG_ERROR(LOG_UTIL, "Invalid address string %s \n", ipv4addr.c_str());
@@ -391,19 +405,19 @@ bool AmfServiceImpl::fillIpv4(
   // Host Byte Order
   uint32_t ipv4addrHBO = cidrNetworkExpect.value().first.asV4().toLongHBO();
   for (int i = (TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1); i >= 0; --i) {
-    pf_content->ipv4remoteaddr[i].addr = (unsigned char) ipv4addrHBO & 0xFF;
-    ipv4addrHBO                        = ipv4addrHBO >> 8;
+    pf_content->ipv4remoteaddr[i].addr = (unsigned char)ipv4addrHBO & 0xFF;
+    ipv4addrHBO = ipv4addrHBO >> 8;
   }
 
   // Get the mask length:
   // folly takes care of absence of mask_len by defaulting to 32
   // i.e., 255.255.255.255.
-  int mask_len  = cidrNetworkExpect.value().second;
+  int mask_len = cidrNetworkExpect.value().second;
   uint32_t mask = UINT32_MAX;        // all ones
   mask = (mask << (32 - mask_len));  // first mask_len bits are 1s, rest 0s
   for (int i = (TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1); i >= 0; --i) {
-    pf_content->ipv4remoteaddr[i].mask = (unsigned char) mask & 0xFF;
-    mask                               = mask >> 8;
+    pf_content->ipv4remoteaddr[i].mask = (unsigned char)mask & 0xFF;
+    mask = mask >> 8;
   }
 
   OAILOG_DEBUG(
@@ -417,9 +431,8 @@ bool AmfServiceImpl::fillIpv4(
   return true;
 }
 
-
-bool AmfServiceImpl::fillIpv6(
-    packet_filter_contents_t* pf_content, const std::string ipv6addr) {
+bool AmfServiceImpl::fillIpv6(packet_filter_contents_t* pf_content,
+                              const std::string ipv6addr) {
   struct in6_addr in6addr;
   if (inet_pton(AF_INET6, ipv6addr.c_str(), &in6addr) != 1) {
     OAILOG_ERROR(LOG_UTIL, "Invalid address string %s \n", ipv6addr.c_str());

@@ -72,7 +72,7 @@ uint8_t QOSRulesMsg::DecodeQOSRulesMsgData(QOSRulesMsg* qos_rules,
     qos_rules->qos_rule[i].qfi = (data & 0x3f);
   }
 
-  return (decoded);
+  return decoded;
 }
 
 // Decode QOSRules IE
@@ -93,13 +93,12 @@ int QOSRulesMsg::DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
     return -1;
   }
 
-  decoded += DecodeQOSRulesMsgData(qos_rules, buffer+decoded, len);
-
+  decoded += DecodeQOSRulesMsgData(qos_rules, buffer + decoded, len);
   return decoded;
 }
 
 uint16_t QOSRulesMsg::EncodeQOSRulesMsgData(QOSRulesMsg* qos_rules,
-                                       uint8_t* buffer, uint32_t len) {
+                                            uint8_t* buffer, uint32_t len) {
   uint16_t encoded = 0;
   uint8_t i = 0;
   uint8_t j = 0;
@@ -142,15 +141,13 @@ uint16_t QOSRulesMsg::EncodeQOSRulesMsgData(QOSRulesMsg* qos_rules,
     i++;
   }
 
-  return (encoded);
+  return encoded;
 }
 
 // Encode QOSRules IE
 int QOSRulesMsg::EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
                                    uint8_t* buffer, uint32_t len) {
   uint16_t encoded = 0;
-  uint8_t i = 0;
-  uint8_t j = 0;
 
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, QOSRULE_MIN_LEN, len);
@@ -163,8 +160,7 @@ int QOSRulesMsg::EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
 
   IES_ENCODE_U16(buffer, encoded, qos_rules->length);
 
-  encoded += EncodeQOSRulesMsgData(qos_rules, buffer+encoded, len);
-
+  encoded += EncodeQOSRulesMsgData(qos_rules, buffer + encoded, len);
   return encoded;
 }
 }  // namespace magma5g

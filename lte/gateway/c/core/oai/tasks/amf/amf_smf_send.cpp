@@ -191,8 +191,8 @@ void set_amf_smf_context(PDUSessionEstablishmentRequestMsg* message,
 **                                                                        **
 ***************************************************************************/
 void clear_amf_smf_context(amf_context_t& amf_context, uint8_t pdu_session_id) {
-  OAILOG_DEBUG(
-      LOG_AMF_APP, "clearing saved context associated with the pdu session\n");
+  OAILOG_DEBUG(LOG_AMF_APP,
+               "clearing saved context associated with the pdu session\n");
   auto it = amf_context.smf_ctxt_map.find(pdu_session_id);
   if (it != amf_context.smf_ctxt_map.end()) {
     amf_context.smf_ctxt_map.erase(it);
@@ -201,12 +201,13 @@ void clear_amf_smf_context(amf_context_t& amf_context, uint8_t pdu_session_id) {
   }
 }
 
-int pdu_session_release_request_process(
-    ue_m5gmm_context_s* ue_context, std::shared_ptr<smf_context_t> smf_ctx,
-    amf_ue_ngap_id_t amf_ue_ngap_id, bool retransmit) {
+int pdu_session_release_request_process(ue_m5gmm_context_s* ue_context,
+                                        std::shared_ptr<smf_context_t> smf_ctx,
+                                        amf_ue_ngap_id_t amf_ue_ngap_id,
+                                        bool retransmit) {
   int rc = RETURNerror;
-  OAILOG_DEBUG(
-      LOG_AMF_APP, "sending PDU session resource release request to gNB \n");
+  OAILOG_DEBUG(LOG_AMF_APP,
+               "sending PDU session resource release request to gNB \n");
 
   rc = pdu_session_resource_release_request(ue_context, amf_ue_ngap_id, smf_ctx,
                                             retransmit);
@@ -251,7 +252,7 @@ int pdu_session_resource_release_complete(
     AMFClientServicer::getInstance().release_ipv4_address(
         imsi, smf_ctx->dnn.c_str(), &(smf_ctx->pdu_address.ipv4_address));
   }
-  
+
   if ((smf_ctx->pdu_address.pdn_type == IPv6) ||
       (smf_ctx->pdu_address.pdn_type == IPv4_AND_v6)) {
     // Clean up the Mobility IP Address
@@ -259,8 +260,8 @@ int pdu_session_resource_release_complete(
         imsi, smf_ctx->dnn.c_str(), &(smf_ctx->pdu_address.ipv6_address));
   }
 
-  OAILOG_DEBUG(
-      LOG_AMF_APP, "clear saved context associated with the PDU session\n");
+  OAILOG_DEBUG(LOG_AMF_APP,
+               "clear saved context associated with the PDU session\n");
   clear_amf_smf_context(ue_context->amf_context, amf_smf_msg.pdu_session_id);
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
@@ -315,10 +316,10 @@ int t3592_abort_handler(ue_m5gmm_context_t* ue_context,
   rc = pdu_session_resource_release_complete(ue_context, amf_smf_msg, smf_ctx);
   return rc;
 }
-static int pdu_session_resource_release_t3592_handler(
-    zloop_t* loop, int timer_id, void* arg) {
-  OAILOG_INFO(
-      LOG_AMF_APP, "T3592: pdu_session_resource_release_t3592_handler\n");
+static int pdu_session_resource_release_t3592_handler(zloop_t* loop,
+                                                      int timer_id, void* arg) {
+  OAILOG_INFO(LOG_AMF_APP,
+              "T3592: pdu_session_resource_release_t3592_handler\n");
 
   amf_ue_ngap_id_t amf_ue_ngap_id = 0;
   uint8_t pdu_session_id = 0;
@@ -327,9 +328,9 @@ static int pdu_session_resource_release_t3592_handler(
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   int rc = 0;
   if (!amf_pop_pdu_timer_arg(timer_id, &uepdu_id)) {
-    OAILOG_WARNING(
-        LOG_AMF_APP, "T3550: Invalid Timer Id expiration, Timer Id: %u\n",
-        timer_id);
+    OAILOG_WARNING(LOG_AMF_APP,
+                   "T3550: Invalid Timer Id expiration, Timer Id: %u\n",
+                   timer_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
@@ -399,12 +400,12 @@ static int pdu_session_resource_release_t3592_handler(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_smf_process_pdu_session_packet(
-    amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg, int amf_cause) {
-  int rc                = RETURNok;
+int amf_smf_process_pdu_session_packet(amf_ue_ngap_id_t ue_id,
+                                       ULNASTransportMsg* msg, int amf_cause) {
+  int rc = RETURNok;
   amf_smf_t amf_smf_msg = {};
   std::shared_ptr<smf_context_t> smf_ctx;
-  char imsi[IMSI_BCD_DIGITS_MAX + 1]        = {0};
+  char imsi[IMSI_BCD_DIGITS_MAX + 1] = {0};
   protocol_configuration_options_t* msg_pco = nullptr;
 
   if (!msg) {
@@ -422,9 +423,9 @@ int amf_smf_process_pdu_session_packet(
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (!ue_context) {
-    OAILOG_ERROR(
-        LOG_AMF_APP, "ue context not found for the ue_id :" AMF_UE_NGAP_ID_FMT,
-        ue_id);
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "ue context not found for the ue_id :" AMF_UE_NGAP_ID_FMT,
+                 ue_id);
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
@@ -433,10 +434,9 @@ int amf_smf_process_pdu_session_packet(
     M5GSmCause cause = amf_smf_get_smcause(ue_id, msg);
 
     if (cause != M5GSmCause::INVALID_CAUSE) {
-      OAILOG_DEBUG(
-          LOG_AMF_APP,
-          "PDU Session establishment request rejecting with cause %u",
-          static_cast<uint8_t>(cause));
+      OAILOG_DEBUG(LOG_AMF_APP,
+                   "PDU Session establishment request rejecting with cause %u",
+                   static_cast<uint8_t>(cause));
       rc = amf_pdu_session_establishment_reject(
           ue_id, msg->payload_container.smf_msg.header.pdu_session_id,
           msg->payload_container.smf_msg.header.procedure_transaction_id,
@@ -458,8 +458,8 @@ int amf_smf_process_pdu_session_packet(
         ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
 
     if (smf_ctx && smf_ctx->duplicate_pdu_session_est_req_count > 0) {
-      OAILOG_DEBUG(
-          LOG_AMF_APP, "Duplicate PDU Session Establishment Request, Dropped");
+      OAILOG_DEBUG(LOG_AMF_APP,
+                   "Duplicate PDU Session Establishment Request, Dropped");
       return rc;
     }
   }
@@ -474,9 +474,8 @@ int amf_smf_process_pdu_session_packet(
   }
 
   if (smf_ctx == NULL) {
-    OAILOG_ERROR(
-        LOG_AMF_APP, "pdu session  not found for session_id = %u\n",
-        msg->payload_container.smf_msg.header.pdu_session_id);
+    OAILOG_ERROR(LOG_AMF_APP, "pdu session  not found for session_id = %u\n",
+                 msg->payload_container.smf_msg.header.pdu_session_id);
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
@@ -612,8 +611,8 @@ int amf_smf_process_pdu_session_packet(
       }
       amf_smf_msg.pdu_session_id =
           msg->payload_container.smf_msg.header.pdu_session_id;
-      rc = pdu_session_resource_modification_complete(
-          ue_context, amf_smf_msg, smf_ctx);
+      rc = pdu_session_resource_modification_complete(ue_context, amf_smf_msg,
+                                                      smf_ctx);
     } break;
     case M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND_REJECT: {
       if (smf_ctx->T3591.id != NAS5G_TIMER_INACTIVE_ID) {
@@ -629,8 +628,8 @@ int amf_smf_process_pdu_session_packet(
       }
       amf_smf_msg.pdu_session_id =
           msg->payload_container.smf_msg.header.pdu_session_id;
-      pdu_session_resource_modification_command_reject(
-          ue_context, amf_smf_msg, smf_ctx);
+      pdu_session_resource_modification_command_reject(ue_context, amf_smf_msg,
+                                                       smf_ctx);
     } break;
     default:
       break;
@@ -645,9 +644,8 @@ int amf_smf_process_pdu_session_packet(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void smf_dnn_ambr_select(
-    const std::shared_ptr<smf_context_t>& smf_ctx,
-    ue_m5gmm_context_s* ue_context, int index_dnn) {
+void smf_dnn_ambr_select(const std::shared_ptr<smf_context_t>& smf_ctx,
+                         ue_m5gmm_context_s* ue_context, int index_dnn) {
   smf_ctx->dnn.assign(
       reinterpret_cast<char*>(ue_context->amf_context.apn_config_profile
                                   .apn_configuration[index_dnn]
@@ -843,9 +841,8 @@ int amf_smf_notification_send(amf_ue_ngap_id_t ue_id,
     if (smf_context->pdu_address.pdn_type == IPv4) {
       char ip_str[INET_ADDRSTRLEN];
 
-      inet_ntop(
-          AF_INET, &(smf_context->pdu_address.ipv4_address.s_addr), ip_str,
-          INET_ADDRSTRLEN);
+      inet_ntop(AF_INET, &(smf_context->pdu_address.ipv4_address.s_addr),
+                ip_str, INET_ADDRSTRLEN);
       req_common->set_ue_ipv4(reinterpret_cast<char*>(ip_str));
     }
   }
@@ -896,18 +893,17 @@ int amf_smf_handle_ip_address_response(
   ue_context = lookup_ue_ctxt_by_imsi(imsi64);
 
   if (ue_context == NULL) {
-    OAILOG_ERROR(
-        LOG_AMF_APP, "UE Context for [%s] not found \n",
-        reinterpret_cast<char*>(response_p->imsi));
+    OAILOG_ERROR(LOG_AMF_APP, "UE Context for [%s] not found \n",
+                 reinterpret_cast<char*>(response_p->imsi));
     return rc;
   }
 
-  smf_ctx = amf_get_smf_context_by_pdu_session_id(
-      ue_context, response_p->pdu_session_id);
+  smf_ctx = amf_get_smf_context_by_pdu_session_id(ue_context,
+                                                  response_p->pdu_session_id);
   if (NULL == smf_ctx) {
-    OAILOG_ERROR(
-        LOG_AMF_APP, "Smf Context not found for pdu session id: [%s] \n",
-        reinterpret_cast<char*>(response_p->pdu_session_id));
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "Smf Context not found for pdu session id: [%s] \n",
+                 reinterpret_cast<char*>(response_p->pdu_session_id));
     return rc;
   }
 
@@ -981,7 +977,7 @@ int amf_smf_handle_ip_address_response(
 int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   ue_m5gmm_context_s* ue_context_p = NULL;
-  int rc                           = RETURNok;
+  int rc = RETURNok;
 
   OAILOG_INFO(
       LOG_AMF_APP,
@@ -1034,12 +1030,13 @@ int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
  **  Return     :  RETURNok, RETURNerror                                   **
  **                                                                        **
  ***************************************************************************/
-int handle_sm_message_routing_failure(
-    amf_ue_ngap_id_t ue_id, ULNASTransportMsg* ulmsg, M5GMmCause m5gmmcause) {
-  int rc                   = RETURNok;
+int handle_sm_message_routing_failure(amf_ue_ngap_id_t ue_id,
+                                      ULNASTransportMsg* ulmsg,
+                                      M5GMmCause m5gmmcause) {
+  int rc = RETURNok;
   DLNASTransportMsg* dlmsg = nullptr;
-  uint32_t bytes           = 0;
-  uint32_t len             = 0;
+  uint32_t bytes = 0;
+  uint32_t len = 0;
   bstring buffer;
   ue_m5gmm_context_s* ue_context = nullptr;
   amf_nas_message_t msg = {};
@@ -1054,9 +1051,8 @@ int handle_sm_message_routing_failure(
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (!ue_context) {
-    OAILOG_ERROR(
-        LOG_AMF_APP, "UE Context not found for UE ID: " AMF_UE_NGAP_ID_FMT,
-        ue_id);
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "UE Context not found for UE ID: " AMF_UE_NGAP_ID_FMT, ue_id);
     return RETURNerror;
   }
 
@@ -1129,7 +1125,7 @@ int handle_sm_message_routing_failure(
                                &ue_context->amf_context._security);
   if (bytes > 0) {
     buffer->slen = bytes;
-    rc           = amf_app_handle_nas_dl_req(ue_id, buffer, M5G_AS_SUCCESS);
+    rc = amf_app_handle_nas_dl_req(ue_id, buffer, M5G_AS_SUCCESS);
 
   } else {
     OAILOG_WARNING(LOG_AMF_APP, "NAS encode failed \n");
@@ -1277,11 +1273,12 @@ int construct_pdu_session_reject_dl_req(uint8_t sequence_number,
  **  Return     :  RETURNok, RETURNerror                                   **
  **                                                                        **
  ***************************************************************************/
-int amf_pdu_session_establishment_reject(
-    amf_ue_ngap_id_t ue_id, uint8_t session_id, uint8_t pti, uint8_t cause) {
-  int rc         = RETURNok;
+int amf_pdu_session_establishment_reject(amf_ue_ngap_id_t ue_id,
+                                         uint8_t session_id, uint8_t pti,
+                                         uint8_t cause) {
+  int rc = RETURNok;
   uint32_t bytes = 0;
-  uint32_t len   = 0;
+  uint32_t len = 0;
   bstring buffer;
   ue_m5gmm_context_s* ue_context = nullptr;
   amf_nas_message_t msg = {};
@@ -1289,9 +1286,8 @@ int amf_pdu_session_establishment_reject(
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (!ue_context) {
-    OAILOG_ERROR(
-        LOG_AMF_APP, "UE Context not found for UE ID: " AMF_UE_NGAP_ID_FMT,
-        ue_id);
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "UE Context not found for UE ID: " AMF_UE_NGAP_ID_FMT, ue_id);
     return RETURNerror;
   }
 
@@ -1309,7 +1305,7 @@ int amf_pdu_session_establishment_reject(
 
   if (bytes > 0) {
     buffer->slen = bytes;
-    rc           = amf_app_handle_nas_dl_req(ue_id, buffer, M5G_AS_SUCCESS);
+    rc = amf_app_handle_nas_dl_req(ue_id, buffer, M5G_AS_SUCCESS);
 
   } else {
     OAILOG_WARNING(LOG_AMF_APP, "NAS encode failed \n");

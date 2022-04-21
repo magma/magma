@@ -179,7 +179,6 @@ void amf_ue_context_on_new_guti(ue_m5gmm_context_t* const ue_context_p,
         ue_context_p->gnb_ngap_id_key, ue_context_p->amf_ue_ngap_id,
         ue_context_p->amf_context.imsi64, ue_context_p->amf_teid_n11, guti_p);
   }
-
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
@@ -1776,11 +1775,8 @@ int amf_app_pdu_session_modification_request(
   uint32_t bytes = 0;
   uint32_t len = 0;
   bstring buffer;
-  imsi64_t imsi64 = INVALID_IMSI64;
-  amf_context_t* amf_ctxt_p = NULL;
   ue_m5gmm_context_s* ue_context = NULL;
   std::shared_ptr<smf_context_t> smf_ctx;
-  uint32_t buf_len = 0;
 
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
@@ -1821,6 +1817,9 @@ int amf_app_pdu_session_modification_request(
 
   uint8_t qos_rules_buffer[4096];
   uint16_t qos_rules_buf_len = 0;
+
+  uint8_t qos_flowdesc_buffer[4096];
+  uint16_t qos_flowdesc_buf_len = 0;
 
   for (int i = 0; i < smf_ctx->qos_flow_list.maxNumOfQosFlows; i++) {
     if (smf_ctx->qos_flow_list.item[i]
@@ -1877,7 +1876,7 @@ int amf_app_pdu_session_modification_request(
 
       // Convert Authorized qos into bstring
       int encoded_result =
-      qosRuleMsg.EncodeQOSRulesMsgData(&qosRuleMsg, qos_rules_buffer, 4096);
+          qosRuleMsg.EncodeQOSRulesMsgData(&qosRuleMsg, qos_rules_buffer, 4096);
 
       if (encoded_result < 0) {
         OAILOG_ERROR(LOG_AMF_APP,
@@ -1886,9 +1885,6 @@ int amf_app_pdu_session_modification_request(
       }
       qos_rules_buf_len += encoded_result;
     }
-
-    msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd.authorized_qosrules =
-       blk2bstr(qos_rules_buffer, qos_rules_buf_len);
 
     // authorized qos flow descriptors
     if (smf_ctx->qos_flow_list.item[i]
@@ -1947,12 +1943,26 @@ int amf_app_pdu_session_modification_request(
       }
 
       if (flow_des.numOfParams) {
-        flow_des.iei = PDU_SESSION_QOS_FLOW_DESC_IE_TYPE;
-        msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd
-            .authqosflowdescriptors.push_back(flow_des);
+        // Convert Authorized qos into bstring
+        int encoded_result = flow_des.EncodeM5GQosFlowDescription(
+            &flow_des, qos_flowdesc_buffer, 4096);
+
+        if (encoded_result < 0) {
+          OAILOG_ERROR(LOG_AMF_APP,
+                       "qos flow Description invalid or un-aligned \n");
+          return M5G_AS_FAILURE;
+        }
+        qos_flowdesc_buf_len += encoded_result;
       }
     }
   }
+
+  msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd.authorized_qosrules =
+      blk2bstr(qos_rules_buffer, qos_rules_buf_len);
+
+  msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd
+      .authorized_qosflowdescriptors =
+      blk2bstr(qos_flowdesc_buffer, qos_flowdesc_buf_len);
 
   // session ambr
   if (pdu_sess_mod_req->session_ambr.downlink_units &&
@@ -2008,7 +2018,10 @@ int amf_app_pdu_session_modification_request(
   }
 
   bdestroy(msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd
-           .authorized_qosrules);
+               .authorized_qosrules);
+
+  bdestroy(msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd
+               .authorized_qosflowdescriptors);
 
   return rc;
 }

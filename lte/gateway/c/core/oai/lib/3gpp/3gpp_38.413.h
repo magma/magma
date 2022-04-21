@@ -20,7 +20,7 @@
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 
 #define MAX_NO_OF_PDUSESSIONS 16
-#define MAX_QosFlow 64
+#define MAX_QosFlow 16
 
 typedef enum Type_of_Message_s {
   initiating_message = 1,
