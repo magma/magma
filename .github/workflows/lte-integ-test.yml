@@ -43,8 +43,6 @@ jobs:
       - name: Run the integ test
         run: |
           cd lte/gateway
-          export MAGMA_DEV_CPUS=${{ github.event.inputs.virtual_cpus }}
-          export MAGMA_DEV_MEMORY_MB=$(( 1024 * ${{ github.event.inputs.virtual_memory_gb }}))
           fab integ_test
       - name: Get test results
         if: always()
