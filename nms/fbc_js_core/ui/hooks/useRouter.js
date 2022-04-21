@@ -24,7 +24,15 @@ import {__RouterContext as RouterContext} from 'react-router-dom';
 export const useRelativeUrl = () => {
   const {url} = useRouteMatch();
   return useCallback(
-    (path: string) => (url === '/' && path ? path : `${url}${path}`),
+    (path: string) => {
+      if (!path) {
+        return url;
+      }
+      if (path[0] !== '/') {
+        path = `/${path}`
+      }
+      return url === '/' ? path : `${url}${path}`;
+    },
     [url],
   );
 };
@@ -32,8 +40,15 @@ export const useRelativeUrl = () => {
 export const useRelativePath = () => {
   const match = useRouteMatch();
   return useCallback(
-    (path: string) =>
-      match.path === '/' && path ? path : `${match.path}${path}`,
+    (path: string) => {
+      if (!path) {
+        return match.path;
+      }
+      if (path[0] !== '/') {
+        path = `/${path}`
+      }
+      return match.path === '/' ? path : `${match.path}${path}`
+    },
     [match.path],
   );
 };

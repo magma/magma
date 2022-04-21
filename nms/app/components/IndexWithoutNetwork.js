@@ -33,7 +33,7 @@ export default function IndexWithoutNetwork() {
 
   return (
     <div className={classes.root}>
-      <AppSideBar mainItems={[]} />
+      <AppSideBar items={[]} />
       <AppContent>
         <Switch>
           <Route path="/admin" component={Admin} />

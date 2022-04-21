@@ -28,25 +28,25 @@ import ShowChartIcon from '@material-ui/icons/ShowChart';
 export function getCWFSections(dashboardV2Enabled: boolean): SectionsConfigs {
   const sections = [
     {
-      path: 'gateways',
+      path: '/gateways',
       label: 'Gateways',
       icon: <CellWifiIcon />,
       component: CWFGateways,
     },
     {
-      path: 'configure',
+      path: '/configure',
       label: 'Configure',
       icon: <SettingsCellIcon />,
       component: CWFConfigure,
     },
     {
-      path: 'metrics',
+      path: '/metrics',
       label: 'Metrics',
       icon: <ShowChartIcon />,
       component: CWFMetrics,
     },
     {
-      path: 'alerts',
+      path: '/alerts',
       label: 'Alerts',
       icon: <AlarmIcon />,
       component: Alarms,

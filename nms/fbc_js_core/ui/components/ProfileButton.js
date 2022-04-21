@@ -20,8 +20,8 @@ import ListItem from '@material-ui/core/ListItem';
 import NetworkContext from '../../../app/components/context/NetworkContext';
 import Popout from './Popout';
 import PersonIcon from '@material-ui/icons/Person';
-import React, {useContext, useState} from 'react';
-import Text from './design-system/Text';
+import React, {useContext, useEffect, useState} from 'react';
+import Text from '../../../app/theme/design-system/Text';
 import classNames from 'classnames';
 import {Events, GeneralLogger} from '../utils/Logging';
 import {makeStyles} from '@material-ui/styles';
@@ -32,12 +32,20 @@ import Divider from '@material-ui/core/Divider';
 const useStyles = makeStyles(theme => ({
   button: {
     display: 'flex',
-    justifyContent: 'center',
+    alignItems: 'center',
     width: '100%',
-    padding: '15px 0px',
+    padding: '15px 28px',
     cursor: 'pointer',
-    '&:hover $icon': {
+    outline: 'none',
+    '&:hover $icon, &:hover $label, &$selected $icon, &$selected $label': {
       color: colors.primary.white,
+    },
+  },
+  label: {
+    '&&': {
+      color: colors.primary.gullGray,
+      whiteSpace: 'nowrap',
+      paddingLeft: '16px',
     },
   },
   selected: {
@@ -49,6 +57,8 @@ const useStyles = makeStyles(theme => ({
   },
   icon: {
     color: colors.primary.gullGray,
+    display: 'flex',
+    justifyContent: 'center',
   },
   itemGutters: {
     '&&': {
@@ -73,10 +83,15 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const ProfileButton = () => {
+type Props = {
+  isMenuOpen: boolean,
+  setMenuOpen: (isOpen: boolean) => void,
+  expanded: boolean,
+};
+
+const ProfileButton = (props: Props) => {
   const {relativeUrl, history, location} = useRouter();
   const classes = useStyles();
-  const [isProfileMenuOpen, toggleProfileMenu] = useState(false);
   const {networkId: selectedNetworkId} = useContext(NetworkContext);
   const {
     user,
@@ -84,7 +99,6 @@ const ProfileButton = () => {
     isFeatureEnabled,
     isOrganizations,
   } = useContext(AppContext);
-  const {email} = user;
 
   const getUrl = (path: string) =>
     selectedNetworkId != undefined || isOrganizations
@@ -107,11 +121,11 @@ const ProfileButton = () => {
         [classes.button]: true,
         [classes.selected]: isSelected,
       })}
-      open={isProfileMenuOpen}
+      open={props.isMenuOpen}
       content={
         <List component="nav" className={classes.profileList}>
           <ListItem classes={{gutters: classes.itemGutters}} disabled={true}>
-            <Text className={classes.profileItemText}>{email}</Text>
+            <Text className={classes.profileItemText}>{user.email}</Text>
           </ListItem>
           <Divider className={classes.divider} />
           {hasAccountSettings && (
@@ -120,7 +134,7 @@ const ProfileButton = () => {
               button
               onClick={() => {
                 GeneralLogger.info(Events.SETTINGS_CLICKED);
-                toggleProfileMenu(false);
+                props.setMenuOpen(false);
                 history.push(settingsUrl);
               }}
               component="a">
@@ -133,7 +147,7 @@ const ProfileButton = () => {
               button
               onClick={() => {
                 GeneralLogger.info(Events.ADMINISTRATION_CLICKED);
-                toggleProfileMenu(false);
+                props.setMenuOpen(false);
                 history.push(adminUrl);
               }}
               component="a">
@@ -164,9 +178,14 @@ const ProfileButton = () => {
           </ListItem>
         </List>
       }
-      onOpen={() => toggleProfileMenu(true)}
-      onClose={() => toggleProfileMenu(false)}>
+      onOpen={() => props.setMenuOpen(true)}
+      onClose={() => props.setMenuOpen(false)}>
       <PersonIcon data-testid="profileButton" className={classes.icon} />
+      {props.expanded && (
+        <Text className={classes.label} variant="body3">
+          Account & Settings
+        </Text>
+      )}
     </Popout>
   );
 };

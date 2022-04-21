@@ -33,7 +33,7 @@ export default function SectionRoutes() {
       {sections.map(section => (
         <Route
           key={section.path}
-          path={relativePath(`/${section.path}`)}
+          path={relativePath(section.path)}
           component={section.component}
         />
       ))}

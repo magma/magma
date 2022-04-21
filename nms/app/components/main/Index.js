@@ -31,13 +31,11 @@ import * as React from 'react';
 import AppContent from '../layout/AppContent';
 import AppSideBar from '../../../fbc_js_core/ui/components/layout/AppSideBar';
 import NetworkContext from '../context/NetworkContext';
-import NetworkSelector from '../NetworkSelector';
-import SectionLinks from '../layout/SectionLinks';
 import SectionRoutes from '../layout/SectionRoutes';
-import VersionTooltip from '../VersionTooltip';
 import {useEffect, useState} from 'react';
 
 import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import useSections from '../layout/useSections';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
@@ -63,10 +61,16 @@ type Props = {
   children: React.Node,
 };
 
+function Sidebar() {
+  const [_landingPath, sections] = useSections();
+  return <AppSideBar items={[...sections]} showNetworkSwitch={true} />;
+}
+
 export default function Index() {
   const classes = useStyles();
   const {match} = useRouter();
   const [networkType, setNetworkType] = useState<?NetworkType>(null);
+
   const networkId = ROOT_PATHS.has(match.params.networkId)
     ? null
     : match.params.networkId;
@@ -91,10 +95,7 @@ export default function Index() {
   return (
     <NetworkContextProvider {...{networkId, networkType}}>
       <div className={classes.root}>
-        <AppSideBar
-          mainItems={[<SectionLinks key={1} />, <VersionTooltip key={2} />]}
-          secondaryItems={[<NetworkSelector key={1} />]}
-        />
+        <Sidebar />
         <AppContent>
           <SectionRoutes />
         </AppContent>
