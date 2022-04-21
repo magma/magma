@@ -11,18 +11,12 @@ services:
     privileged: true
     stdin_open: true
     tty: true
-    build:
-      context: ${BUILD_CONTEXT}
-      dockerfile: lte/gateway/docker/services/s1aptester/Dockerfile
 
   trfgen:
     image: ${DOCKER_REGISTRY}agw_trfgen:${IMAGE_VERSION}
     container_name: trfgen
     network_mode: "host"
     privileged: true
-    build:
-      context: ${BUILD_CONTEXT}
-      dockerfile: lte/gateway/docker/services/trfgen/Dockerfile
 
   magmad:
     environment:
@@ -103,7 +97,7 @@ services:
           /usr/bin/ovs-vsctl set Controller $${id} inactivity_probe=300 ; done &&
         /usr/bin/ovs-vsctl set-fail-mode gtp_br0 secure &&
         /usr/bin/ovs-vsctl set-manager ptcp:6640 &&
-        sed -i "s/static_services: \[/static_services: \[ \'ryu_rest_service\',/g" /etc/magma/pipelined.yml &&
+        sed -i \"s/static_services: \[/static_services: \[ \'ryu_rest_service\',/g\" /etc/magma/pipelined.yml &&
         /usr/bin/env python3 -m magma.pipelined.main "
 
   sessiond:

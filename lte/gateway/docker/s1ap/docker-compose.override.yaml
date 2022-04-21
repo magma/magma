@@ -1,0 +1,13 @@
+---
+version: "3.7"
+
+services:
+  s1aptester:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: lte/gateway/docker/services/s1aptester/Dockerfile
+
+  trfgen:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: lte/gateway/docker/services/trfgen/Dockerfile

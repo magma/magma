@@ -42,6 +42,7 @@ ARG PKG_CONFIG_VERSION=0.29.1-0ubuntu4
 ARG LIBMYSQL_VERSION=8.0.28-0ubuntu0.20.04.3
 ARG RSYNC_VERSION=3.1.3-8ubuntu0.1
 ARG BINUTILS_VERSION=2.34-6ubuntu1.3
+ARG SSHPASS_VERSION=1.06-1
 
 ENV VIRTUAL_ENV=/build/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
@@ -79,6 +80,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libmysqlclient-dev=$LIBMYSQL_VERSION \
   rsync=$RSYNC_VERSION \
   binutils=$BINUTILS_VERSION \
+  sshpass=$SSHPASS_VERSION \
   && apt-get clean \
   && gem install fpm
 
@@ -98,6 +100,4 @@ WORKDIR $MAGMA_ROOT/lte/gateway/python/integ_tests
 RUN make && rm -rf /var/lib/apt/lists/* && $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/clone_s1_tester.sh && \
   touch /usr/include/stropts.h && $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/build_s1_tester.sh
 RUN pip3 install --cache-dir $PIP_CACHE_HOME pyparsing && python3 $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/c_parser.py
-
-# sudo sed -i 's/"vagrant"/"magma"/g' /home/vagrant/magma/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py
-# sudo sed -i 's/magtivate_cmd + " && " + //g' /home/vagrant/magma/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py
+RUN sed -i 's/magtivate_cmd + " && " + //g' $MAGMA_ROOT/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py
