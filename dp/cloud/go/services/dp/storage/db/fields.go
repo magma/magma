@@ -22,4 +22,5 @@ type Field struct {
 	HasDefault   bool
 	DefaultValue interface{}
 	Unique       bool
+	Relation     string
 }

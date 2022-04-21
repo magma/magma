@@ -58,7 +58,6 @@ func (gs *DBGrantState) GetMetadata() *db.ModelMetadata {
 				SqlType: sqorc.ColumnTypeText,
 			},
 		},
-		Relations: map[string]string{},
 		CreateObject: func() db.Model {
 			return &DBGrantState{}
 		},
@@ -112,13 +111,15 @@ func (g *DBGrant) GetMetadata() *db.ModelMetadata {
 				SqlType: sqorc.ColumnTypeInt,
 			},
 			{
-				Name:    "state_id",
-				SqlType: sqorc.ColumnTypeInt,
+				Name:     "state_id",
+				SqlType:  sqorc.ColumnTypeInt,
+				Relation: GrantStateTable,
 			},
 			{
 				Name:     "cbsd_id",
 				SqlType:  sqorc.ColumnTypeInt,
 				Nullable: true,
+				Relation: CbsdTable,
 			},
 			{
 				Name:    "grant_id",
@@ -157,10 +158,6 @@ func (g *DBGrant) GetMetadata() *db.ModelMetadata {
 				SqlType: sqorc.ColumnTypeReal,
 			},
 		},
-		Relations: map[string]string{
-			GrantStateTable: "state_id",
-			CbsdTable:       "cbsd_id",
-		},
 		CreateObject: func() db.Model {
 			return &DBGrant{}
 		},
@@ -192,7 +189,6 @@ func (cs *DBCbsdState) GetMetadata() *db.ModelMetadata {
 				SqlType: sqorc.ColumnTypeText,
 			},
 		},
-		Relations: map[string]string{},
 		CreateObject: func() db.Model {
 			return &DBCbsdState{}
 		},
@@ -262,8 +258,9 @@ func (c *DBCbsd) GetMetadata() *db.ModelMetadata {
 				SqlType: sqorc.ColumnTypeText,
 			},
 			{
-				Name:    "state_id",
-				SqlType: sqorc.ColumnTypeInt,
+				Name:     "state_id",
+				SqlType:  sqorc.ColumnTypeInt,
+				Relation: CbsdStateTable,
 			},
 			{
 				Name:     "cbsd_id",
@@ -338,9 +335,6 @@ func (c *DBCbsd) GetMetadata() *db.ModelMetadata {
 				DefaultValue: false,
 			},
 		},
-		Relations: map[string]string{
-			CbsdStateTable: "state_id",
-		},
 		CreateObject: func() db.Model {
 			return &DBCbsd{}
 		},
@@ -370,17 +364,15 @@ func (amc *DBActiveModeConfig) GetMetadata() *db.ModelMetadata {
 				SqlType: sqorc.ColumnTypeInt,
 			},
 			{
-				Name:    "cbsd_id",
-				SqlType: sqorc.ColumnTypeInt,
+				Name:     "cbsd_id",
+				SqlType:  sqorc.ColumnTypeInt,
+				Relation: CbsdTable,
 			},
 			{
-				Name:    "desired_state_id",
-				SqlType: sqorc.ColumnTypeInt,
+				Name:     "desired_state_id",
+				SqlType:  sqorc.ColumnTypeInt,
+				Relation: CbsdStateTable,
 			},
-		},
-		Relations: map[string]string{
-			CbsdTable:      "cbsd_id",
-			CbsdStateTable: "desired_state_id",
 		},
 		CreateObject: func() db.Model {
 			return &DBActiveModeConfig{}

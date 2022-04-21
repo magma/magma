@@ -20,7 +20,6 @@ type Model interface {
 
 type ModelMetadata struct {
 	Table        string
-	Relations    map[string]string
 	Properties   []*Field
 	CreateObject func() Model
 }
