@@ -9,24 +9,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//bazel:python_test.bzl", "pytest_test")
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library")
 
-MAGMA_ROOT = "../../../../../../"
+package(default_visibility = ["//visibility:public"])
 
-ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
-
-LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
-
-pytest_test(
-    name = "test_redirect",
-    size = "small",
-    srcs = ["test_redirect.py"],
-    imports = [
-        LTE_ROOT,
-        ORC8R_ROOT,
-    ],
+py_library(
+    name = "ebpf_manager",
+    srcs = ["ebpf_manager.py"],
     deps = [
-        "//lte/gateway/python/magma/redirectd:redirect_server",
-        "//lte/protos:policydb_python_proto",
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined:mobilityd_client",
+        "@bcc_repo//:bcc",
+        requirement("netifaces"),
+        requirement("pyroute2"),
+        requirement("scapy"),
     ],
 )

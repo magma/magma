@@ -9,24 +9,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//bazel:python_test.bzl", "pytest_test")
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library")
 
-MAGMA_ROOT = "../../../../../../"
-
-ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
-
-LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
-
-pytest_test(
-    name = "test_redirect",
-    size = "small",
-    srcs = ["test_redirect.py"],
-    imports = [
-        LTE_ROOT,
-        ORC8R_ROOT,
-    ],
+py_library(
+    name = "ryu_patched",
+    srcs = glob(
+        ["ryu/**/*.py"],
+        exclude = ["**/tests/**"],
+    ),
+    visibility = ["//visibility:public"],
     deps = [
-        "//lte/gateway/python/magma/redirectd:redirect_server",
-        "//lte/protos:policydb_python_proto",
+        requirement("oslo-config"),
+        requirement("routes"),
+        requirement("tinyrpc"),
+        requirement("webob"),
+        requirement("ovs"),
+        requirement("eventlet"),
     ],
 )

@@ -11,22 +11,19 @@
 
 load("//bazel:python_test.bzl", "pytest_test")
 
-MAGMA_ROOT = "../../../../../../"
+MAGMA_ROOT = "../../../../../../../"
 
 ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
 LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 pytest_test(
-    name = "test_redirect",
+    name = "test_msg_hub",
     size = "small",
-    srcs = ["test_redirect.py"],
+    srcs = ["test_msg_hub.py"],
     imports = [
         LTE_ROOT,
         ORC8R_ROOT,
     ],
-    deps = [
-        "//lte/gateway/python/magma/redirectd:redirect_server",
-        "//lte/protos:policydb_python_proto",
-    ],
+    deps = ["//lte/gateway/python/magma/pipelined/openflow:messages"],
 )
