@@ -30,12 +30,12 @@ ARG IPERF3_VERSION=3.7-3
 ENV MAGMA_ROOT=/magma
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  git=GIT_VERSION \
-  python3-pip=PYTHON3_PIP_VERSION \
-  python3-venv=PYTHON3_VENV_VERSION \
-  virtualenv=VIRTUALENV_VERSION \
-  ethtool=ETHTOOL_VERSION \
-  iperf3=IPERF3_VERSION \
+  git=$GIT_VERSION \
+  python3-pip=$PYTHON3_PIP_VERSION \
+  python3-venv=$PYTHON3_VENV_VERSION \
+  virtualenv=$VIRTUALENV_VERSION \
+  ethtool=$ETHTOOL_VERSION \
+  iperf3=$IPERF3_VERSION \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
