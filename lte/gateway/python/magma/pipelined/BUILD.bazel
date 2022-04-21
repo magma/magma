@@ -228,3 +228,8 @@ py_library(
     srcs = ["tunnel_id_store.py"],
     deps = ["//orc8r/gateway/python/magma/common/redis:client"],
 )
+
+py_library(
+    name = "vlan_utils",
+    srcs = ["vlan_utils.py"],
+)
