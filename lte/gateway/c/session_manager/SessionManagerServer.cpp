@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/session_manager/SessionManagerServer.h"
+#include "lte/gateway/c/session_manager/SessionManagerServer.hpp"
 
 #include <glog/logging.h>
 #include <grpc/impl/codegen/log.h>

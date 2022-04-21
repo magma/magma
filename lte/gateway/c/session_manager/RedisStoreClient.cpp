@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/session_manager/RedisStoreClient.h"
+#include "lte/gateway/c/session_manager/RedisStoreClient.hpp"
 
 #include <cpp_redis/core/client.hpp>
 #include <cpp_redis/core/reply.hpp>
@@ -29,8 +29,8 @@
 #include <utility>
 #include <vector>
 
-#include "lte/gateway/c/session_manager/SessionState.h"
-#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
 #include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 

@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/session_manager/OperationalStatesHandler.h"
+#include "lte/gateway/c/session_manager/OperationalStatesHandler.hpp"
 
 #include <folly/dynamic.h>
 #include <folly/json.h>
@@ -29,10 +29,10 @@
 #include <utility>
 #include <vector>
 
-#include "lte/gateway/c/session_manager/EnumToString.h"
-#include "lte/gateway/c/session_manager/SessionState.h"
-#include "lte/gateway/c/session_manager/SessionStore.h"
-#include "lte/gateway/c/session_manager/Types.h"
+#include "lte/gateway/c/session_manager/EnumToString.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/SessionStore.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {

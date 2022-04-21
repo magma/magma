@@ -20,16 +20,16 @@
 #include <unordered_map>
 #include <utility>
 
-#include "lte/gateway/c/session_manager/LocalEnforcer.h"
-#include "lte/gateway/c/session_manager/MeteringReporter.h"
-#include "lte/gateway/c/session_manager/RuleStore.h"
-#include "lte/gateway/c/session_manager/SessionStore.h"
-#include "lte/gateway/c/session_manager/ShardTracker.h"
-#include "lte/gateway/c/session_manager/StoreClient.h"
-#include "lte/gateway/c/session_manager/Types.h"
-#include "lte/gateway/c/session_manager/test/Consts.h"
-#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
-#include "lte/gateway/c/session_manager/test/SessiondMocks.h"
+#include "lte/gateway/c/session_manager/LocalEnforcer.hpp"
+#include "lte/gateway/c/session_manager/MeteringReporter.hpp"
+#include "lte/gateway/c/session_manager/RuleStore.hpp"
+#include "lte/gateway/c/session_manager/SessionStore.hpp"
+#include "lte/gateway/c/session_manager/ShardTracker.hpp"
+#include "lte/gateway/c/session_manager/StoreClient.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
+#include "lte/gateway/c/session_manager/test/Consts.hpp"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.hpp"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.hpp"
 
 namespace grpc {
 class ServerContext;

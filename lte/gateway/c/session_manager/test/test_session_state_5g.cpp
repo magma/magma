@@ -16,12 +16,12 @@
 #include <memory>
 #include <utility>
 
-#include "lte/gateway/c/session_manager/test/Consts.h"
+#include "lte/gateway/c/session_manager/test/Consts.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
-#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
-#include "lte/gateway/c/session_manager/test/SessiondMocks.h"
-#include "lte/gateway/c/session_manager/SessionState.h"
-#include "lte/gateway/c/session_manager/test/SessionStateTester5g.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.hpp"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/test/SessionStateTester5g.hpp"
 
 using ::testing::Test;
 

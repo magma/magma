@@ -23,8 +23,8 @@
 #include <thread>
 #include <vector>
 
-#include "lte/gateway/c/session_manager/SessionReporter.h"
-#include "lte/gateway/c/session_manager/test/SessiondMocks.h"
+#include "lte/gateway/c/session_manager/SessionReporter.hpp"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.hpp"
 #include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
 #include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 

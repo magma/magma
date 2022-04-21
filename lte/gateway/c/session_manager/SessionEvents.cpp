@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/session_manager/SessionEvents.h"
+#include "lte/gateway/c/session_manager/SessionEvents.hpp"
 
 #include <folly/json.h>
 #include <glog/logging.h>
@@ -26,12 +26,12 @@
 #include <utility>
 #include <vector>
 
-#include "lte/gateway/c/session_manager/CreditKey.h"
-#include "lte/gateway/c/session_manager/EnumToString.h"
-#include "lte/gateway/c/session_manager/SessionCredit.h"
-#include "lte/gateway/c/session_manager/SessionState.h"
-#include "lte/gateway/c/session_manager/Types.h"
-#include "lte/gateway/c/session_manager/Utilities.h"
+#include "lte/gateway/c/session_manager/CreditKey.hpp"
+#include "lte/gateway/c/session_manager/EnumToString.hpp"
+#include "lte/gateway/c/session_manager/SessionCredit.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
+#include "lte/gateway/c/session_manager/Utilities.hpp"
 #include "orc8r/gateway/c/common/eventd/includes/EventdClient.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 

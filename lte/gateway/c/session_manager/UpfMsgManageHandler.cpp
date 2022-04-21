@@ -8,7 +8,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/session_manager/UpfMsgManageHandler.h"
+#include "lte/gateway/c/session_manager/UpfMsgManageHandler.hpp"
 
 #include <arpa/inet.h>
 #include <folly/io/async/EventBase.h>
@@ -25,14 +25,14 @@
 #include <string>
 #include <vector>
 
-#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
-#include "lte/gateway/c/session_manager/MobilitydClient.h"
-#include "lte/gateway/c/session_manager/SessionState.h"
-#include "lte/gateway/c/session_manager/SessionStateEnforcer.h"
-#include "lte/gateway/c/session_manager/SessionStore.h"
-#include "lte/gateway/c/session_manager/Types.h"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
+#include "lte/gateway/c/session_manager/MobilitydClient.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/SessionStateEnforcer.hpp"
+#include "lte/gateway/c/session_manager/SessionStore.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
-#include "lte/gateway/c/session_manager/Utilities.h"
+#include "lte/gateway/c/session_manager/Utilities.hpp"
 
 namespace google {
 namespace protobuf {

@@ -20,11 +20,11 @@
 #include <unordered_map>
 #include <vector>
 
-#include "lte/gateway/c/session_manager/ServiceAction.h"
-#include "lte/gateway/c/session_manager/SessionState.h"
-#include "lte/gateway/c/session_manager/StoredState.h"
-#include "lte/gateway/c/session_manager/Types.h"
-#include "lte/gateway/c/session_manager/test/SessionStateTester.h"
+#include "lte/gateway/c/session_manager/ServiceAction.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
+#include "lte/gateway/c/session_manager/test/SessionStateTester.hpp"
 
 using ::testing::Test;
 

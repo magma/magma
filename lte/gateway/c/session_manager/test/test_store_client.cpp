@@ -20,15 +20,15 @@
 #include <unordered_map>
 #include <utility>
 
-#include "lte/gateway/c/session_manager/MemoryStoreClient.h"
-#include "lte/gateway/c/session_manager/RuleStore.h"
-#include "lte/gateway/c/session_manager/SessionID.h"
-#include "lte/gateway/c/session_manager/SessionState.h"
-#include "lte/gateway/c/session_manager/StoreClient.h"
-#include "lte/gateway/c/session_manager/StoredState.h"
-#include "lte/gateway/c/session_manager/Types.h"
-#include "lte/gateway/c/session_manager/test/Consts.h"
-#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/MemoryStoreClient.hpp"
+#include "lte/gateway/c/session_manager/RuleStore.hpp"
+#include "lte/gateway/c/session_manager/SessionID.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/StoreClient.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
+#include "lte/gateway/c/session_manager/test/Consts.hpp"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.hpp"
 
 using ::testing::Test;
 

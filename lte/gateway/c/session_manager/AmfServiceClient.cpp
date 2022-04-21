@@ -1,4 +1,4 @@
-#include "lte/gateway/c/session_manager/AmfServiceClient.h"
+#include "lte/gateway/c/session_manager/AmfServiceClient.hpp"
 
 #include <glog/logging.h>
 #include <grpcpp/channel.h>

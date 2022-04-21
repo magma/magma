@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.hpp"
 
 #include <google/protobuf/timestamp.pb.h>
 #include <gtest/gtest.h>
@@ -22,7 +22,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
 
 namespace magma {
 

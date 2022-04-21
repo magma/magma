@@ -19,8 +19,8 @@
 
 #include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
 #include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
-#include "lte/gateway/c/session_manager/test/SessiondMocks.h"
-#include "lte/gateway/c/session_manager/SessionManagerServer.h"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.hpp"
+#include "lte/gateway/c/session_manager/SessionManagerServer.hpp"
 
 using grpc::Status;
 using ::testing::Test;

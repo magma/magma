@@ -18,10 +18,10 @@
 #include <string>
 #include <unordered_map>
 
-#include "lte/gateway/c/session_manager/SessionCredit.h"
-#include "lte/gateway/c/session_manager/StoredState.h"
-#include "lte/gateway/c/session_manager/Types.h"
-#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/SessionCredit.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.hpp"
 
 using ::testing::Test;
 

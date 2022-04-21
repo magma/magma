@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/RuleStore.hpp"
 
 #include <stddef.h>
 #include <lte/protos/pipelined.pb.h>

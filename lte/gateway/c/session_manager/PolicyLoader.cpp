@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/session_manager/PolicyLoader.h"
+#include "lte/gateway/c/session_manager/PolicyLoader.hpp"
 
 #include <cpp_redis/core/client.hpp>
 #include <cpp_redis/misc/error.hpp>
@@ -24,9 +24,9 @@
 #include <string>
 #include <thread>
 
-#include "lte/gateway/c/session_manager/ObjectMap.h"
+#include "lte/gateway/c/session_manager/ObjectMap.hpp"
 #include "RedisMap.hpp"
-#include "lte/gateway/c/session_manager/Serializers.h"
+#include "lte/gateway/c/session_manager/Serializers.hpp"
 #include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 

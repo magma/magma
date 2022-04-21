@@ -27,17 +27,17 @@
 #include <utility>
 #include <vector>
 
-#include "lte/gateway/c/session_manager/MeteringReporter.h"
-#include "lte/gateway/c/session_manager/Monitor.h"
-#include "lte/gateway/c/session_manager/RuleStore.h"
-#include "lte/gateway/c/session_manager/SessionID.h"
-#include "lte/gateway/c/session_manager/SessionState.h"
-#include "lte/gateway/c/session_manager/SessionStore.h"
-#include "lte/gateway/c/session_manager/StoreClient.h"
-#include "lte/gateway/c/session_manager/StoredState.h"
-#include "lte/gateway/c/session_manager/Types.h"
-#include "lte/gateway/c/session_manager/test/Consts.h"
-#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/MeteringReporter.hpp"
+#include "lte/gateway/c/session_manager/Monitor.hpp"
+#include "lte/gateway/c/session_manager/RuleStore.hpp"
+#include "lte/gateway/c/session_manager/SessionID.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/SessionStore.hpp"
+#include "lte/gateway/c/session_manager/StoreClient.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
+#include "lte/gateway/c/session_manager/test/Consts.hpp"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.hpp"
 #include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
 
 using magma::orc8r::MetricsContainer;

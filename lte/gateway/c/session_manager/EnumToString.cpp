@@ -11,14 +11,14 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/session_manager/EnumToString.h"
+#include "lte/gateway/c/session_manager/EnumToString.hpp"
 
 #include <lte/protos/abort_session.pb.h>
 #include <lte/protos/session_manager.pb.h>
 #include <sstream>
 #include <string>
 
-#include "lte/gateway/c/session_manager/ChargingGrant.h"
+#include "lte/gateway/c/session_manager/ChargingGrant.hpp"
 
 namespace magma {
 std::string reauth_state_to_str(ReAuthState state) {
