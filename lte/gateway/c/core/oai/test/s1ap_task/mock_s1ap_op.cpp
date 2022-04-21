@@ -53,7 +53,7 @@ std::vector<std::string> load_file_into_vector_of_line_content(
 status_code_e mock_read_s1ap_ue_state_db(
     const std::vector<std::string>& ue_samples) {
   hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
-  if (!state_ue_ht){
+  if (!state_ue_ht) {
     std::cerr << "Cannot get S1AP UE State" << std::endl;
     return RETURNerror;
   }
