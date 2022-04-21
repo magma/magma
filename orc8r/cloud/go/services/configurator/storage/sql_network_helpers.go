@@ -26,7 +26,7 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 )
 
-func getNetworkQueryColumns(criteria NetworkLoadCriteria) []string {
+func getNetworkQueryColumns(criteria *NetworkLoadCriteria) []string {
 	ret := []string{
 		fmt.Sprintf("%s.%s", networksTable, nwIDCol),
 		fmt.Sprintf("%s.%s", networksTable, nwTypeCol),
@@ -49,7 +49,7 @@ func getNetworkQueryColumns(criteria NetworkLoadCriteria) []string {
 	return ret
 }
 
-func (store *sqlConfiguratorStorage) getLoadNetworksSelectBuilder(filter NetworkLoadFilter, criteria NetworkLoadCriteria) sq.SelectBuilder {
+func (store *sqlConfiguratorStorage) getLoadNetworksSelectBuilder(filter *NetworkLoadFilter, criteria *NetworkLoadCriteria) sq.SelectBuilder {
 	selectBuilder := store.builder.Select(getNetworkQueryColumns(criteria)...).From(networksTable)
 	if funk.NotEmpty(filter.Ids) {
 		selectBuilder = selectBuilder.Where(sq.Eq{
@@ -61,7 +61,7 @@ func (store *sqlConfiguratorStorage) getLoadNetworksSelectBuilder(filter Network
 	return selectBuilder
 }
 
-func scanNetworkRows(rows *sql.Rows, loadCriteria NetworkLoadCriteria) (map[string]*Network, []string, error) {
+func scanNetworkRows(rows *sql.Rows, loadCriteria *NetworkLoadCriteria) (map[string]*Network, []string, error) {
 	// Pointer values because we're modifying .Config in-place
 	loadedNetworksByID := map[string]*Network{}
 	for rows.Next() {
@@ -76,7 +76,7 @@ func scanNetworkRows(rows *sql.Rows, loadCriteria NetworkLoadCriteria) (map[stri
 				existingNetwork.Configs[k] = v
 			}
 		} else {
-			loadedNetworksByID[nwResult.ID] = &nwResult
+			loadedNetworksByID[nwResult.ID] = nwResult
 		}
 	}
 
@@ -86,7 +86,7 @@ func scanNetworkRows(rows *sql.Rows, loadCriteria NetworkLoadCriteria) (map[stri
 	return loadedNetworksByID, loadedNetworkIDs, nil
 }
 
-func scanNextNetworkRow(rows *sql.Rows, criteria NetworkLoadCriteria) (Network, error) {
+func scanNextNetworkRow(rows *sql.Rows, criteria *NetworkLoadCriteria) (*Network, error) {
 	var id string
 	var networkType, name, description sql.NullString
 	var cfgType sql.NullString
@@ -107,10 +107,10 @@ func scanNextNetworkRow(rows *sql.Rows, criteria NetworkLoadCriteria) (Network, 
 
 	err := rows.Scan(scanArgs...)
 	if err != nil {
-		return Network{}, fmt.Errorf("error while scanning network row: %s", err)
+		return &Network{}, fmt.Errorf("error while scanning network row: %s", err)
 	}
 
-	ret := Network{ID: id, Type: nullStringToValue(networkType), Name: nullStringToValue(name), Description: nullStringToValue(description), Configs: map[string][]byte{}, Version: version}
+	ret := &Network{ID: id, Type: nullStringToValue(networkType), Name: nullStringToValue(name), Description: nullStringToValue(description), Configs: map[string][]byte{}, Version: version}
 	if criteria.LoadConfigs && cfgType.Valid {
 		ret.Configs[cfgType.String] = cfgValue
 	}
@@ -143,15 +143,15 @@ func (store *sqlConfiguratorStorage) doesNetworkExist(id string) (bool, error) {
 	return count > 0, nil
 }
 
-func validateNetworkUpdates(updates []NetworkUpdateCriteria) error {
-	updatesByID := funk.ToMap(updates, "ID").(map[string]NetworkUpdateCriteria)
+func validateNetworkUpdates(updates []*NetworkUpdateCriteria) error {
+	updatesByID := funk.ToMap(updates, "ID").(map[string]*NetworkUpdateCriteria)
 	if len(updatesByID) < len(updates) {
 		return errors.New("multiple updates for a single network are not allowed")
 	}
 	return nil
 }
 
-func (store *sqlConfiguratorStorage) updateNetwork(update NetworkUpdateCriteria, stmtCache *sq.StmtCache) error {
+func (store *sqlConfiguratorStorage) updateNetwork(update *NetworkUpdateCriteria, stmtCache *sq.StmtCache) error {
 	// Update the network table first
 	updateBuilder := store.builder.Update(networksTable).Where(sq.Eq{nwIDCol: update.ID})
 	if update.NewName != nil {

@@ -472,7 +472,7 @@ func TestGetSubscriber(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
-	//preseed 2 apns
+	// preseed 2 apns
 	apn1, apn2 := "foo", "bar"
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.APNEntityType, Key: apn1},
@@ -1227,7 +1227,7 @@ func TestUpdateSubscriber(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	updateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
-	//preseed 2 apns
+	// preseed 2 apns
 	apn1, apn2 := "foo", "bar"
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.APNEntityType, Key: apn1},
@@ -1352,7 +1352,7 @@ func TestDeleteSubscriber(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	deleteSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
-	//preseed 2 apns
+	// preseed 2 apns
 	apn1, apn2 := "foo", "bar"
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.APNEntityType, Key: apn1},
@@ -1400,7 +1400,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	activateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot+"/activate", obsidian.POST).HandlerFunc
 	deactivateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot+"/deactivate", obsidian.POST).HandlerFunc
 
-	//preseed 2 apns
+	// preseed 2 apns
 	apn1, apn2 := "foo", "bar"
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.APNEntityType, Key: apn1},
@@ -1489,7 +1489,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	}, serdes.Network)
 	assert.NoError(t, err)
 
-	//preseed 2 apns
+	// preseed 2 apns
 	apn1, apn2 := "foo", "bar"
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.APNEntityType, Key: apn1},
@@ -1644,7 +1644,7 @@ func TestSubscriberBasename(t *testing.T) {
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `code=500, message=could not find entities matching [type:"base_name" key:"baseXXX" ]`,
+		ExpectedErrorSubstring: `code=500, message=could not find entities matching [type:"base_name" key:"baseXXX"]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 

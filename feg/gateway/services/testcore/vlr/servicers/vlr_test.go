@@ -29,6 +29,7 @@ import (
 	"magma/feg/gateway/services/csfb/servicers/encode/message"
 	"magma/feg/gateway/services/csfb/servicers/mocks"
 	orcprotos "magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/util/test_util"
 )
 
 func TestVLRServer_GetNextRequestReplyPair(t *testing.T) {
@@ -72,7 +73,7 @@ func TestVLRServer_Reset(t *testing.T) {
 	client := protos.NewMockCoreConfiguratorClient(conn)
 	reply, err := client.Reset(context.Background(), &orcprotos.Void{})
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, reply)
+	test_util.AssertEqual(t, &orcprotos.Void{}, reply)
 
 	assert.Equal(t, []*RequestReply{}, srv.requestReplyQueue)
 	assert.Equal(t, 0, srv.queueIndex)
@@ -160,7 +161,7 @@ func TestVLRServer_ConfigServer(t *testing.T) {
 	client := protos.NewMockCoreConfiguratorClient(conn)
 	srvReply, err := client.ConfigServer(context.Background(), &config)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, srvReply)
+	test_util.AssertEqual(t, &orcprotos.Void{}, srvReply)
 
 	// encoded request
 	encodedEPSDetachIndication, err := message.EncodeSGsAPEPSDetachIndication(

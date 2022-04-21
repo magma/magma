@@ -15,7 +15,6 @@ require (
 	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/donovanhide/eventsource v0.0.0-20171031113327-3ed64d21fb0b
 	github.com/go-redis/redis v6.15.5+incompatible
-	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/uuid v1.1.2
 	github.com/mitchellh/mapstructure v1.1.2
@@ -29,9 +28,8 @@ require (
 	go.opencensus.io v0.21.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.18.1
-	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
-	golang.org/x/sys v0.0.0-20191002091554-b397fe3ad8ed // indirect
-	google.golang.org/grpc v1.33.2
+	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
+	google.golang.org/grpc v1.43.0
 	google.golang.org/protobuf v1.26.0
 	magma/orc8r/lib/go v0.0.0
 )

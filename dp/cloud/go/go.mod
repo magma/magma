@@ -28,13 +28,13 @@ require (
 	github.com/go-openapi/swag v0.19.15
 	github.com/go-openapi/validate v0.20.3
 	github.com/golang/glog v1.0.0
-	github.com/golang/protobuf v1.5.0
+	github.com/golang/protobuf v1.5.2
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/olivere/elastic/v7 v7.0.6
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
-	google.golang.org/grpc v1.42.0
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/grpc v1.43.0
+	google.golang.org/protobuf v1.26.0
 	magma/orc8r/cloud/go v0.0.0-00010101000000-000000000000
 	magma/orc8r/lib/go v0.0.0-00010101000000-000000000000
 )

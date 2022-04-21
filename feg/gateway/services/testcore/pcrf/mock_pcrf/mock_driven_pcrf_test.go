@@ -32,6 +32,7 @@ import (
 	"magma/feg/gateway/services/testcore/pcrf/mock_pcrf"
 	lteprotos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/util/test_util"
 )
 
 // TestGxClient tests CCR init and terminate messages using a fake PCRF
@@ -212,10 +213,10 @@ func assertCCAIsEqualToExpectedAnswer(t *testing.T, actual *gx.CreditControlAnsw
 	ruleNames, ruleBaseNames, ruleDefinitions := getRuleInstallsFromCCA(actual)
 	assert.ElementsMatch(t, expectation.GetRuleInstalls().GetRuleNames(), ruleNames)
 	assert.ElementsMatch(t, expectation.GetRuleInstalls().GetRuleBaseNames(), ruleBaseNames)
-	assert.ElementsMatch(t, expectation.GetRuleInstalls().GetRuleDefinitions(), ruleDefinitions)
+	test_util.AssertListsEqual(t, expectation.GetRuleInstalls().GetRuleDefinitions(), ruleDefinitions)
 	assertRuleInstallTimeStampsMatch(t, expectation.GetRuleInstalls(), actual.RuleInstallAVP)
 	usageMonitors := getUsageMonitorsFromCCA(actual)
-	assert.ElementsMatch(t, expectation.GetUsageMonitoringInfos(), usageMonitors)
+	test_util.AssertListsEqual(t, expectation.GetUsageMonitoringInfos(), usageMonitors)
 }
 
 func getRuleInstallsFromCCA(cca *gx.CreditControlAnswer) ([]string, []string, []*fegprotos.RuleDefinition) {

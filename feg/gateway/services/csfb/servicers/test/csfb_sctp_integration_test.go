@@ -25,7 +25,6 @@ import (
 	"magma/feg/gateway/services/csfb/servicers"
 	"magma/feg/gateway/services/csfb/servicers/encode/message"
 	"magma/feg/gateway/services/csfb/test_init"
-	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 func TestCsfbServer_EPSDetach_Integration(t *testing.T) {
@@ -82,7 +81,7 @@ func TestCsfbServer_EPSDetach_Integration(t *testing.T) {
 	client := protos.NewCSFBFedGWServiceClient(conn)
 	reply, err := client.EPSDetachInd(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, reply)
+	assert.Equal(t, expectedVoidStr, reply.String())
 
 	msgSentFlag <- true
 	// close the mock listener first before moving on to the next test

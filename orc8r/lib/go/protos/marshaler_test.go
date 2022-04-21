@@ -23,7 +23,30 @@ import (
 	"magma/orc8r/lib/go/protos/mconfig"
 )
 
-var marshaledSrc = `{
+var marshaledSrc = "{\n \"configsByKey\": {\n  \"aaa_server\": {\"@type\":\"type.googleapis.com/magma.mconfig.AAAConfig\"," +
+	"\"IdleSessionTimeoutMs\":21600000,\"logLevel\":\"INFO\"},\n  \"control_proxy\": {\n   \"@type\": " +
+	"\"type.googleapis.com/magma.mconfig.ControlProxy\",\n   \"logLevel\": \"INFO\"\n  },\n  \"directoryd\": " +
+	"{\n   \"@type\": \"type.googleapis.com/magma.mconfig.DirectoryD\",\n   \"logLevel\": \"INFO\"\n  },\n  " +
+	"\"dnsd\": {\"@type\":\"type.googleapis.com/magma.mconfig.DnsD\",\"dhcpServerEnabled\":true," +
+	"\"enableCaching\":false,\"localTTL\":0,\"logLevel\":\"INFO\",\"records\":[]},\n  \"eap_aka\": " +
+	"{\"@type\":\"type.googleapis.com/magma.mconfig.EapAkaConfig\",\"logLevel\":\"INFO\",\"timeout\":" +
+	"{\"ChallengeMs\":20000,\"ErrorNotificationMs\":10000,\"SessionMs\":43200000,\"SessionAuthenticatedMs\"" +
+	":5000}},\n  \"magmad\": {\n   \"@type\": \"type.googleapis.com/magma.mconfig.MagmaD\",\n   " +
+	"\"logLevel\": \"INFO\",\n   \"checkinInterval\": 60,\n   \"checkinTimeout\": 10,\n   " +
+	"\"autoupgradeEnabled\": false,\n   \"autoupgradePollInterval\": 3000,\n   \"packageVersion\": " +
+	"\"1.0.2-1580416046-abae140c\",\n   \"images\": [\n    {\n     \"name\": \"string\",\n     \"order\": " +
+	"\"0\"\n    }\n   ],\n   \"tierId\": \"\",\n   \"featureFlags\": {\n   },\n   \"dynamicServices\": " +
+	"[\n   ],\n   \"orc8rVersion\": \"\"\n  },\n  \"metricsd\": {\n   \"@type\": \"type.googleapis.com/magma.mconfig.MetricsD" +
+	"\",\n   \"logLevel\": \"INFO\"\n  },\n  \"pipelined\": {\"@type\":\"type.googleapis.com/magma.mconfig.PipelineD\"," +
+	"\"defaultRuleId\":\"default_rule_1\",\"logLevel\":\"INFO\",\"relayEnabled\":true,\"services\":[\"ENFORCEMENT\"],\"ueIpBlock\":" +
+	"\"192.168.128.0/24\"},\n  \"redirectd\": {\"@type\":\"type.googleapis.com/magma.mconfig.RedirectD\",\"logLevel\":\"INFO\"}," +
+	"\n  \"sessiond\": {\"@type\":\"type.googleapis.com/magma.mconfig.SessionD\",\"logLevel\":\"INFO\",\"relayEnabled\":true},\n" +
+	"  \"td-agent-bit\": {\n   \"@type\": \"type.googleapis.com/magma.mconfig.FluentBit\",\n   \"extraTags\": {\n    \"gateway_id\":" +
+	" \"mwc_cwf_test\",\n    \"network_id\": \"mwc_cwf_net\"\n   },\n   \"throttleRate\": 1000,\n   \"throttleWindow\": 5,\n" +
+	"   \"throttleInterval\": \"1m\",\n   \"filesByTag\": {\n   }\n  }\n },\n \"metadata\": {\n  \"createdAt\": \"1587114828\",\n" +
+	"  \"digest\": {\n   \"md5HexDigest\": \"894065bf04e6e3423976eb32db15706a\"\n  }\n }\n}"
+
+/*`{
  "configsByKey": {
   "aaa_server": {
    "@type": "type.googleapis.com/magma.mconfig.AAAConfig",
@@ -120,8 +143,10 @@ var marshaledSrc = `{
   }
  }
 }`
+*/
+var pipelinedExpectedVal = "{\"@type\":\"type.googleapis.com/magma.mconfig.PipelineD\",\"defaultRuleId\":\"default_rule_1\",\"logLevel\":\"INFO\",\"relayEnabled\":true,\"services\":[\"ENFORCEMENT\"],\"ueIpBlock\":\"192.168.128.0/24\"}"
 
-var pipelinedExpectedVal = `{
+/*`{
  "@type": "type.googleapis.com/magma.mconfig.PipelineD",
  "defaultRuleId": "default_rule_1",
  "logLevel": "INFO",
@@ -131,7 +156,7 @@ var pipelinedExpectedVal = `{
  ],
  "ueIpBlock": "192.168.128.0/24"
 }`
-
+*/
 func TestMconfigMarshal(t *testing.T) {
 	cfg := &protos.GatewayConfigs{}
 	err := protos.UnmarshalMconfig([]byte(marshaledSrc), cfg)

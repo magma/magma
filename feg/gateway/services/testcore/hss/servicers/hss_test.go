@@ -25,6 +25,7 @@ import (
 	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 	"magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/util/test_util"
 )
 
 func TestHomeSubscriberServer_AddSubscriber(t *testing.T) {
@@ -60,7 +61,7 @@ func TestHomeSubscriberServer_GetSubscriberData(t *testing.T) {
 
 	result, err := server.GetSubscriberData(context.Background(), &id1)
 	assert.NoError(t, err)
-	assert.Equal(t, sub1.String(), result.String())
+	test_util.AssertEqual(t, &sub1, result)
 }
 
 func TestHomeSubscriberServer_ListSubscribers(t *testing.T) {
@@ -119,7 +120,7 @@ func TestHomeSubscriberServer_UpdateSubscriber(t *testing.T) {
 
 	retreivedSub, err := server.GetSubscriberData(context.Background(), id)
 	assert.NoError(t, err)
-	assert.Equal(t, updatedSub, retreivedSub)
+	test_util.AssertEqual(t, updatedSub, retreivedSub)
 }
 
 func TestHomeSubscriberServer_DeleteSubscriber(t *testing.T) {
@@ -133,7 +134,7 @@ func TestHomeSubscriberServer_DeleteSubscriber(t *testing.T) {
 
 	result, err := server.GetSubscriberData(context.Background(), &id)
 	assert.NoError(t, err)
-	assert.Equal(t, sub.String(), result.String())
+	test_util.AssertEqual(t, &sub, result)
 
 	_, err = server.DeleteSubscriber(context.Background(), &id)
 	assert.NoError(t, err)
@@ -155,7 +156,7 @@ func TestHomeSubscriberServer_GetSubscriberDataGrpc(t *testing.T) {
 	assert.EqualError(t, err, "rpc error: code = NotFound desc = Subscriber '100' not found")
 
 	reply, err := client.AddSubscriber(context.Background(), &sub)
-	assert.Equal(t, orcprotos.Void{}, *reply)
+	test_util.AssertEqual(t, &orcprotos.Void{}, reply)
 	assert.NoError(t, err)
 
 	data, err = client.GetSubscriberData(context.Background(), &id)

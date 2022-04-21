@@ -36,7 +36,7 @@ import (
 
 const (
 	GtpTimeoutForTest = gtp.DefaultGtpTimeout // use the same the default value defined in s8_proxy
-	//port 0 means golang will choose the port. Selected port will be injected on getDefaultConfig
+	// port 0 means golang will choose the port. Selected port will be injected on getDefaultConfig
 	s8proxyAddrs        = ":0" // equivalent to sgwAddrs
 	pgwAddrs            = "127.0.0.1:0"
 	IMSI1               = "123456789012345"
@@ -623,7 +623,9 @@ func TestS8proxyCreateSessionNoProtocolConfigurationOptions(t *testing.T) {
 
 	// check PCO
 	assert.NoError(t, err)
-	assert.Empty(t, csRes.ProtocolConfigurationOptions)
+	if csRes != nil {
+		assert.Empty(t, csRes.ProtocolConfigurationOptions.String())
+	}
 
 	// Test no PCO at all
 	// ------------------------
@@ -871,14 +873,14 @@ func TestS8proxyEcho(t *testing.T) {
 	s8p, mockPgw := startSgwAndPgw(t, 3*time.Second)
 	defer mockPgw.Close()
 
-	//------------------------------------
-	//---- Echo Request from s8_proxy ----
+	// ------------------------------------
+	// ---- Echo Request from s8_proxy ----
 	eReq := &protos.EchoRequest{PgwAddrs: mockPgw.LocalAddr().String()}
 	_, err := s8p.SendEcho(context.Background(), eReq)
 	assert.NoError(t, err)
 
-	//-------------------------------
-	//---- Echo Request from pgw ----
+	// -------------------------------
+	// ---- Echo Request from pgw ----
 	s8LocalAddress := s8p.gtpClient.LocalAddr().(*net.UDPAddr)
 	s8LocalAddress.IP = net.IP{127, 0, 0, 1} // fix IP to use localhost
 	echoResp := mockPgw.SendEchoRequest(s8LocalAddress)

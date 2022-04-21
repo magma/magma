@@ -31,8 +31,8 @@ func TestS8ProxyClient(t *testing.T) {
 	// sure we use the right address (this only happens in testing)
 	actualPgwAddress := mockPgw.LocalAddr().String()
 
-	//------------------------
-	//---- Create Session ----
+	// ------------------------
+	// ---- Create Session ----
 	csReq := getCreateSessionRequest(actualPgwAddress, AGWTeidC)
 
 	csRes, err := s8_proxy.CreateSession(csReq)
@@ -49,10 +49,10 @@ func TestS8ProxyClient(t *testing.T) {
 	assert.NotEmpty(t, csRes.BearerContext.UserPlaneFteid.Ipv4Address)
 	assert.Empty(t, csRes.BearerContext.UserPlaneFteid.Ipv6Address)
 
-	t.Logf("Create Session: %#+v", *csRes)
+	t.Logf("Create Session: %+v", csRes)
 
-	//------------------------
-	//---- Delete session ----
+	// ------------------------
+	// ---- Delete session ----
 	dsReq := &protos.DeleteSessionRequestPgw{
 		PgwAddrs: actualPgwAddress,
 		Imsi:     IMSI1,
@@ -71,8 +71,8 @@ func TestS8ProxyClient(t *testing.T) {
 	_, err = s8_proxy.DeleteSession(dsReq)
 	assert.NoError(t, err)
 
-	//------------------------
-	//---- Echo Request ----
+	// ------------------------
+	// ---- Echo Request ----
 	eReq := &protos.EchoRequest{PgwAddrs: actualPgwAddress}
 	_, err = s8_proxy.SendEcho(eReq)
 	assert.NoError(t, err)

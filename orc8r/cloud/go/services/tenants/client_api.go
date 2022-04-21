@@ -85,7 +85,7 @@ func GetTenant(ctx context.Context, tenantID int64) (*tenant_protos.Tenant, erro
 	return tenant, nil
 }
 
-func SetTenant(ctx context.Context, tenantID int64, tenant tenant_protos.Tenant) error {
+func SetTenant(ctx context.Context, tenantID int64, tenant *tenant_protos.Tenant) error {
 	oc, err := getTenantsClient()
 	if err != nil {
 		return err
@@ -95,7 +95,7 @@ func SetTenant(ctx context.Context, tenantID int64, tenant tenant_protos.Tenant)
 		ctx,
 		&tenant_protos.IDAndTenant{
 			Id:     tenantID,
-			Tenant: &tenant,
+			Tenant: tenant,
 		},
 	)
 	if err != nil {
@@ -133,13 +133,13 @@ func GetControlProxy(ctx context.Context, tenantID int64) (*tenant_protos.GetCon
 	return controlProxy, nil
 }
 
-func CreateOrUpdateControlProxy(ctx context.Context, controlProxy tenant_protos.CreateOrUpdateControlProxyRequest) error {
+func CreateOrUpdateControlProxy(ctx context.Context, controlProxy *tenant_protos.CreateOrUpdateControlProxyRequest) error {
 	oc, err := getTenantsClient()
 	if err != nil {
 		return err
 	}
 
-	_, err = oc.CreateOrUpdateControlProxy(ctx, &controlProxy)
+	_, err = oc.CreateOrUpdateControlProxy(ctx, controlProxy)
 	if err != nil {
 		return mapErr(err)
 	}

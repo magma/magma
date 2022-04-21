@@ -348,7 +348,9 @@ func standardUsageTest(
 			assert.Equal(t, &timestamp.Timestamp{Seconds: 1}, rule.ActivationTime)
 			assert.Equal(t, &timestamp.Timestamp{Seconds: 2}, rule.DeactivationTime)
 		} else if rule.PolicyRule.Id == "dyn_rule_21" {
-			assert.Empty(t, rule.PolicyRule.Redirect)
+			if rule.PolicyRule.Redirect != nil {
+				assert.Empty(t, rule.PolicyRule.Redirect.String())
+			}
 			assert.Nil(t, rule.PolicyRule.Qos)
 			assert.Equal(t, &timestamp.Timestamp{Seconds: 1}, rule.ActivationTime)
 			assert.Equal(t, &timestamp.Timestamp{Seconds: 2}, rule.DeactivationTime)
@@ -507,7 +509,7 @@ func TestSessionCreateWithOmnipresentRulesGxDisabled(t *testing.T) {
 	mocksGy := mockControlParams[idx].CreditClient.(*mockGy.CreditClient)
 
 	mockPolicyDBClient.On("GetRuleIDsForBaseNames", []string{"omnipresent_base_1"}).Return([]string{"omnipresent_rule_2"})
-	//mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return([]policydb.ChargingKey{}, nil).Once()
+	// mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return([]policydb.ChargingKey{}, nil).Once()
 	mockPolicyDBClient.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{{RatingGroup: 1}}, nil).Once()
 	mockPolicyDBClient.On("GetOmnipresentRules").Return([]string{"omnipresent_rule_1"}, []string{"omnipresent_base_1"})
@@ -1407,7 +1409,7 @@ func returnDynamicRuleInstallGxUpdateResponse(ruleName string) func(args mock.Ar
 					RuleDefinitions: []*gx.RuleDefinition{
 						{
 							RuleName: ruleName,
-							//RatingGroup: swag.Uint32(20),
+							// RatingGroup: swag.Uint32(20),
 						},
 					},
 					RuleActivationTime:   &activationTime,

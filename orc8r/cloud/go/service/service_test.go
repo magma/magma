@@ -26,6 +26,7 @@ import (
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/util/test_util"
 )
 
 func init() {
@@ -61,7 +62,7 @@ func TestServiceRun(t *testing.T) {
 	actualServiceInfo, err := client.GetServiceInfo(context.Background(), new(protos.Void))
 	assert.NoError(t, err)
 
-	expectedServiceInfo := protos.ServiceInfo{
+	expectedServiceInfo := &protos.ServiceInfo{
 		Name:          "state",
 		Version:       "0.0.0",
 		State:         protos.ServiceInfo_ALIVE,
@@ -69,7 +70,7 @@ func TestServiceRun(t *testing.T) {
 		StartTimeSecs: actualServiceInfo.StartTimeSecs,
 	}
 	assert.NoError(t, err, "err in getting service info after srv started")
-	assert.Equal(t, expectedServiceInfo, *actualServiceInfo)
+	test_util.AssertEqual(t, expectedServiceInfo, actualServiceInfo)
 	assert.InDelta(t, testStartTime, actualServiceInfo.StartTimeSecs, allowedStartRange)
 
 	// check StopService rpc call.

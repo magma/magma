@@ -21,6 +21,7 @@ import (
 
 	"magma/orc8r/cloud/go/services/dispatcher/broker/memstore"
 	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/util/test_util"
 )
 
 func TestSyncRPCReqQueuesMap_EnqueueRequest(t *testing.T) {
@@ -53,7 +54,9 @@ func TestRequestQueueImpl_EnqueueFullQueue(t *testing.T) {
 	err := queue.Enqueue(&req)
 	assert.NoError(t, err)
 	err = queue.Enqueue(&req)
-	assert.EqualError(t, err, "Failed to enqueue reqId:3 reqBody:<gwId:\"gwId1\" >  because queue for gwId gwId1 is full\n")
+	test_util.AssertErrorsEqual(
+		t, "Failed to enqueue<>reqId:3<>reqBody:{gwId:\"gwId1\"}<>because queue for gwId<>gwId1<>is full\n",
+		err.Error(), "<>")
 	// should still be able to enqueue for other gateways
 	req = protos.SyncRPCRequest{ReqId: 4, ReqBody: &protos.GatewayRequest{GwId: "gwId2"}}
 	err = queue.Enqueue(&req)

@@ -34,6 +34,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/util/test_util"
 )
 
 // Ensure provider servicer properly forwards update requests
@@ -63,7 +64,7 @@ func TestLTEStreamProviderServicer_GetUpdates(t *testing.T) {
 		assert.NoError(t, err)
 		want, err := subscriberStreamer.GetUpdates(context.Background(), hwID, nil)
 		assert.NoError(t, err)
-		assert.Equal(t, &protos.DataUpdateBatch{Updates: want}, got)
+		test_util.AssertEqual(t, &protos.DataUpdateBatch{Updates: want}, got)
 	})
 }
 

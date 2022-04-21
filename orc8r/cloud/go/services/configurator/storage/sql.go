@@ -244,8 +244,8 @@ func (store *sqlConfiguratorStorage) Rollback() error {
 	return store.tx.Rollback()
 }
 
-func (store *sqlConfiguratorStorage) LoadNetworks(filter NetworkLoadFilter, loadCriteria NetworkLoadCriteria) (NetworkLoadResult, error) {
-	emptyRet := NetworkLoadResult{NetworkIDsNotFound: []string{}, Networks: []*Network{}}
+func (store *sqlConfiguratorStorage) LoadNetworks(filter *NetworkLoadFilter, loadCriteria *NetworkLoadCriteria) (*NetworkLoadResult, error) {
+	emptyRet := &NetworkLoadResult{NetworkIDsNotFound: []string{}, Networks: []*Network{}}
 	if funk.IsEmpty(filter.Ids) && funk.IsEmpty(filter.TypeFilter) {
 		return emptyRet, nil
 	}
@@ -270,7 +270,7 @@ func (store *sqlConfiguratorStorage) LoadNetworks(filter NetworkLoadFilter, load
 		return emptyRet, err
 	}
 
-	ret := NetworkLoadResult{
+	ret := &NetworkLoadResult{
 		NetworkIDsNotFound: getNetworkIDsNotFound(loadedNetworksByID, filter.Ids),
 		Networks:           make([]*Network, 0, len(loadedNetworksByID)),
 	}
@@ -280,8 +280,8 @@ func (store *sqlConfiguratorStorage) LoadNetworks(filter NetworkLoadFilter, load
 	return ret, nil
 }
 
-func (store *sqlConfiguratorStorage) LoadAllNetworks(loadCriteria NetworkLoadCriteria) ([]Network, error) {
-	emptyNetworks := []Network{}
+func (store *sqlConfiguratorStorage) LoadAllNetworks(loadCriteria *NetworkLoadCriteria) ([]*Network, error) {
+	emptyNetworks := []*Network{}
 	idsToExclude := []string{InternalNetworkID}
 
 	selectBuilder := store.builder.Select(getNetworkQueryColumns(loadCriteria)...).
@@ -308,20 +308,20 @@ func (store *sqlConfiguratorStorage) LoadAllNetworks(loadCriteria NetworkLoadCri
 		return emptyNetworks, err
 	}
 
-	networks := make([]Network, 0, len(loadedNetworksByID))
+	networks := make([]*Network, 0, len(loadedNetworksByID))
 	for _, nid := range loadedNetworkIDs {
-		networks = append(networks, *loadedNetworksByID[nid])
+		networks = append(networks, loadedNetworksByID[nid])
 	}
 	return networks, nil
 }
 
-func (store *sqlConfiguratorStorage) CreateNetwork(network Network) (Network, error) {
+func (store *sqlConfiguratorStorage) CreateNetwork(network *Network) (*Network, error) {
 	exists, err := store.doesNetworkExist(network.ID)
 	if err != nil {
-		return Network{}, err
+		return &Network{}, err
 	}
 	if exists {
-		return Network{}, fmt.Errorf("a network with ID %s already exists", network.ID)
+		return &Network{}, fmt.Errorf("a network with ID %s already exists", network.ID)
 	}
 
 	_, err = store.builder.Insert(networksTable).
@@ -330,7 +330,7 @@ func (store *sqlConfiguratorStorage) CreateNetwork(network Network) (Network, er
 		RunWith(store.tx).
 		Exec()
 	if err != nil {
-		return Network{}, fmt.Errorf("error inserting network: %s", err)
+		return &Network{}, fmt.Errorf("error inserting network: %s", err)
 	}
 
 	if funk.IsEmpty(network.Configs) {
@@ -347,19 +347,19 @@ func (store *sqlConfiguratorStorage) CreateNetwork(network Network) (Network, er
 	}
 	_, err = insertBuilder.RunWith(store.tx).Exec()
 	if err != nil {
-		return Network{}, errors.Wrap(err, "error inserting network configs")
+		return &Network{}, errors.Wrap(err, "error inserting network configs")
 	}
 
 	return network, nil
 }
 
-func (store *sqlConfiguratorStorage) UpdateNetworks(updates []NetworkUpdateCriteria) error {
+func (store *sqlConfiguratorStorage) UpdateNetworks(updates []*NetworkUpdateCriteria) error {
 	if err := validateNetworkUpdates(updates); err != nil {
 		return err
 	}
 
 	networksToDelete := []string{}
-	networksToUpdate := []NetworkUpdateCriteria{}
+	networksToUpdate := []*NetworkUpdateCriteria{}
 	for _, update := range updates {
 		if update.DeleteNetwork {
 			networksToDelete = append(networksToDelete, update.ID)
@@ -394,8 +394,8 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []NetworkUpdateCrite
 	return nil
 }
 
-func (store *sqlConfiguratorStorage) CountEntities(networkID string, filter EntityLoadFilter) (EntityCountResult, error) {
-	ret := EntityCountResult{Count: 0}
+func (store *sqlConfiguratorStorage) CountEntities(networkID string, filter *EntityLoadFilter) (*EntityCountResult, error) {
+	ret := &EntityCountResult{Count: 0}
 	count, err := store.countEntities(networkID, filter)
 	if err != nil {
 		return ret, err
@@ -404,20 +404,20 @@ func (store *sqlConfiguratorStorage) CountEntities(networkID string, filter Enti
 	return ret, nil
 }
 
-func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) (EntityLoadResult, error) {
+func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter *EntityLoadFilter, criteria *EntityLoadCriteria) (*EntityLoadResult, error) {
 	if err := validatePaginatedLoadParameters(filter, criteria); err != nil {
-		return EntityLoadResult{}, err
+		return &EntityLoadResult{}, err
 	}
 
 	entsByTK, err := store.loadEntities(networkID, filter, criteria)
 	if err != nil {
-		return EntityLoadResult{}, err
+		return &EntityLoadResult{}, err
 	}
 
 	if criteria.LoadAssocsFromThis {
 		assocs, err := store.loadAssocs(networkID, filter, criteria, loadChildren)
 		if err != nil {
-			return EntityLoadResult{}, err
+			return &EntityLoadResult{}, err
 		}
 		for _, assoc := range assocs {
 			// Assoc may be from a not-loaded ent
@@ -434,7 +434,7 @@ func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter Entit
 	if criteria.LoadAssocsToThis {
 		parentAssocs, err := store.loadAssocs(networkID, filter, criteria, loadParents)
 		if err != nil {
-			return EntityLoadResult{}, err
+			return &EntityLoadResult{}, err
 		}
 		for _, parentAssoc := range parentAssocs {
 			// Assoc may be to a not-loaded ent
@@ -448,7 +448,7 @@ func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter Entit
 		}
 	}
 
-	res := EntityLoadResult{}
+	res := &EntityLoadResult{}
 
 	for _, ent := range entsByTK {
 		res.Entities = append(res.Entities, ent)
@@ -460,30 +460,30 @@ func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter Entit
 	if len(res.Entities) == store.getEntityLoadPageSize(criteria) {
 		res.NextPageToken, err = getNextPageToken(res.Entities)
 		if err != nil {
-			return EntityLoadResult{}, err
+			return &EntityLoadResult{}, err
 		}
 	}
 
 	return res, nil
 }
 
-func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity NetworkEntity) (NetworkEntity, error) {
+func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity *NetworkEntity) (*NetworkEntity, error) {
 	exists, err := store.doesEntExist(networkID, entity.GetTK())
 	if err != nil {
-		return NetworkEntity{}, err
+		return &NetworkEntity{}, err
 	}
 	if exists {
-		return NetworkEntity{}, errors.Errorf("an entity '%s' already exists", entity.GetTK())
+		return &NetworkEntity{}, errors.Errorf("an entity '%s' already exists", entity.GetTK())
 	}
 
 	// Physical ID must be unique across all networks, since we use a gateway's
 	// physical ID to search for its network (and ent)
 	physicalIDExists, err := store.doesPhysicalIDExist(entity.GetPhysicalID())
 	if err != nil {
-		return NetworkEntity{}, err
+		return &NetworkEntity{}, err
 	}
 	if physicalIDExists {
-		return NetworkEntity{}, errors.Errorf("an entity with physical ID '%s' already exists", entity.GetPhysicalID())
+		return &NetworkEntity{}, errors.Errorf("an entity with physical ID '%s' already exists", entity.GetPhysicalID())
 	}
 
 	// First insert the associations as graph edges. This step involves a
@@ -497,17 +497,17 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity Netwo
 
 	createdEnt, err := store.insertIntoEntityTable(networkID, entity)
 	if err != nil {
-		return NetworkEntity{}, err
+		return &NetworkEntity{}, err
 	}
 
 	allAssociatedEntsByTk, err := store.createEdges(networkID, createdEnt)
 	if err != nil {
-		return NetworkEntity{}, err
+		return &NetworkEntity{}, err
 	}
 
 	newGraphID, err := store.mergeGraphs(createdEnt, allAssociatedEntsByTk)
 	if err != nil {
-		return NetworkEntity{}, err
+		return &NetworkEntity{}, err
 	}
 	createdEnt.GraphID = newGraphID
 
@@ -524,8 +524,8 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity Netwo
 	return createdEnt, nil
 }
 
-func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update EntityUpdateCriteria) (NetworkEntity, error) {
-	emptyRet := NetworkEntity{Type: update.Type, Key: update.Key}
+func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update *EntityUpdateCriteria) (*NetworkEntity, error) {
+	emptyRet := &NetworkEntity{Type: update.Type, Key: update.Key}
 	entToUpdate, err := store.loadEntToUpdate(networkID, update)
 	if err != nil && !update.DeleteEntity {
 		return emptyRet, errors.Wrap(err, "failed to load entity being updated")
@@ -561,24 +561,24 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update Entit
 	entToUpdate.NetworkID = networkID
 	err = store.processEntityFieldsUpdate(entToUpdate.Pk, update, entToUpdate)
 	if err != nil {
-		return *entToUpdate, errors.WithStack(err)
+		return entToUpdate, errors.WithStack(err)
 	}
 
 	// Finally, process edge updates for the graph
 	err = store.processEdgeUpdates(networkID, update, entToUpdate)
 	if err != nil {
-		return *entToUpdate, errors.WithStack(err)
+		return entToUpdate, errors.WithStack(err)
 	}
 
-	return *entToUpdate, nil
+	return entToUpdate, nil
 }
 
-func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entityID EntityID, loadCriteria EntityLoadCriteria) (EntityGraph, error) {
+func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entityID *EntityID, loadCriteria *EntityLoadCriteria) (*EntityGraph, error) {
 	// We just care about getting the graph ID off this entity so use an empty
 	// load criteria
-	singleEnt, err := store.loadEntities(networkID, EntityLoadFilter{IDs: []*EntityID{&entityID}}, EntityLoadCriteria{})
+	singleEnt, err := store.loadEntities(networkID, &EntityLoadFilter{IDs: []*EntityID{entityID}}, &EntityLoadCriteria{})
 	if err != nil {
-		return EntityGraph{}, errors.Wrap(err, "failed to load entity for graph query")
+		return &EntityGraph{}, errors.Wrap(err, "failed to load entity for graph query")
 	}
 
 	var ent *NetworkEntity
@@ -586,22 +586,22 @@ func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entity
 		ent = e
 	}
 	if ent == nil {
-		return EntityGraph{}, errors.Errorf("could not find requested entity (%s) for graph query", entityID.String())
+		return &EntityGraph{}, errors.Errorf("could not find requested entity (%s) for graph query", entityID.String())
 	}
 
 	internalGraph, err := store.loadGraphInternal(networkID, ent.GraphID, loadCriteria)
 	if err != nil {
-		return EntityGraph{}, errors.WithStack(err)
+		return &EntityGraph{}, errors.WithStack(err)
 	}
 
 	rootPKs := findRootNodes(internalGraph)
 	if funk.IsEmpty(rootPKs) {
-		return EntityGraph{}, errors.Errorf("graph does not have root nodes")
+		return &EntityGraph{}, errors.Errorf("graph does not have root nodes")
 	}
 
 	edges, err := updateEntitiesWithAssocs(internalGraph.entsByTK, internalGraph.edges)
 	if err != nil {
-		return EntityGraph{}, errors.Wrap(err, "failed to construct graph after loading")
+		return &EntityGraph{}, errors.Wrap(err, "failed to construct graph after loading")
 	}
 
 	// To make testing easier, we'll order the returned entities by TK
@@ -611,7 +611,7 @@ func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entity
 	SortEntities(retEnts)
 	SortIDs(retRoots)
 
-	return EntityGraph{
+	return &EntityGraph{
 		Entities:     retEnts,
 		RootEntities: retRoots,
 		Edges:        edges,

@@ -59,7 +59,11 @@ func recoveryInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryS
 	defer func() {
 		if r := recover(); r != nil || panicked {
 			err = status.Errorf(codes.Unknown, "handler panic: %s; stack trace: %s", r, debug.Stack())
-			uncaughtCounterVec.WithLabelValues(info.FullMethod).Inc()
+			methodName := "Unknown Method"
+			if info != nil {
+				methodName = info.FullMethod
+			}
+			uncaughtCounterVec.WithLabelValues(methodName).Inc()
 		}
 	}()
 	res, err = handler(ctx, req)
@@ -71,7 +75,11 @@ func recoveryInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryS
 func errlogInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 	res, err := handler(ctx, req)
 	if err != nil {
-		glog.Errorf("[ERROR %s]: %+v", info.FullMethod, err)
+		methodName := "Unknown Error Log Interceptor Method"
+		if info != nil {
+			methodName = info.FullMethod
+		}
+		glog.Errorf("[ERROR %s]: %+v", methodName, err)
 	}
 	return res, err
 }

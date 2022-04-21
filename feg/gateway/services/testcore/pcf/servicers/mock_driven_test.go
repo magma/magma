@@ -28,6 +28,7 @@ import (
 	"magma/feg/gateway/sbi"
 	"magma/feg/gateway/services/testcore/pcf/servicers"
 	orcprotos "magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/util/test_util"
 )
 
 const (
@@ -135,7 +136,7 @@ func TestPCRFExpectations(t *testing.T) {
 	}
 	result, err := mockPcf.AssertExpectations(context.Background(), &orcprotos.Void{})
 	assert.Nil(t, err)
-	assert.ElementsMatch(t, expectedResult, result.Results)
+	test_util.AssertListsEqual(t, expectedResult, result.Results)
 }
 
 func startServerWithExpectations(

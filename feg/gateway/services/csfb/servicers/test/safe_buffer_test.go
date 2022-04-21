@@ -25,6 +25,7 @@ import (
 	"magma/feg/gateway/services/csfb/servicers"
 	"magma/feg/gateway/services/csfb/servicers/decode"
 	"magma/feg/gateway/services/csfb/servicers/decode/test_utils"
+	"magma/orc8r/lib/go/util/test_util"
 )
 
 func TestSuccessfulReadAndWrite(t *testing.T) {
@@ -42,7 +43,7 @@ func TestSuccessfulReadAndWrite(t *testing.T) {
 	expectedMsg, _ := ptypes.MarshalAny(&protos.IMSIDetachAck{
 		Imsi: "111111",
 	})
-	assert.Equal(t, expectedMsg, message)
+	test_util.AssertEqual(t, expectedMsg, message)
 }
 
 func TestReadSuccessWithWait(t *testing.T) {
@@ -56,7 +57,7 @@ func TestReadSuccessWithWait(t *testing.T) {
 		expectedMsg, _ := ptypes.MarshalAny(&protos.IMSIDetachAck{
 			Imsi: "111111",
 		})
-		assert.Equal(t, expectedMsg, message)
+		test_util.AssertEqual(t, expectedMsg, message)
 	}()
 	time.Sleep(time.Millisecond * 500)
 	imsi, _ := test_utils.ConstructIMSI("111111")
@@ -72,7 +73,7 @@ func TestReadFailWithWaitTimeout(t *testing.T) {
 		messageType, message, err := safeBuffer.GetNextMessage(1)
 		assert.EqualError(t, err, "buffer read timeout")
 		assert.Equal(t, decode.SGsMessageType(0x00), messageType)
-		assert.Equal(t, &any.Any{}, message)
+		test_util.AssertEqual(t, &any.Any{}, message)
 	}()
 	time.Sleep(time.Second * 2)
 	imsi, _ := test_utils.ConstructIMSI("111111")
@@ -97,7 +98,7 @@ func TestSuccessfulConsecutiveReadWrite(t *testing.T) {
 	expectedMsg, _ := ptypes.MarshalAny(&protos.IMSIDetachAck{
 		Imsi: "111111",
 	})
-	assert.Equal(t, expectedMsg, message)
+	test_util.AssertEqual(t, expectedMsg, message)
 
 	messageType, message, err = safeBuffer.GetNextMessage(1)
 	assert.NoError(t, err)
@@ -105,14 +106,14 @@ func TestSuccessfulConsecutiveReadWrite(t *testing.T) {
 	expectedMsg, _ = ptypes.MarshalAny(&protos.IMSIDetachAck{
 		Imsi: "111111",
 	})
-	assert.Equal(t, expectedMsg, message)
+	test_util.AssertEqual(t, expectedMsg, message)
 	messageType, message, err = safeBuffer.GetNextMessage(1)
 	assert.NoError(t, err)
 	assert.Equal(t, decode.SGsAPIMSIDetachAck, messageType)
 	expectedMsg, _ = ptypes.MarshalAny(&protos.IMSIDetachAck{
 		Imsi: "111111",
 	})
-	assert.Equal(t, expectedMsg, message)
+	test_util.AssertEqual(t, expectedMsg, message)
 }
 
 func TestSuccessfulConsecutiveReadWriteWithWait(t *testing.T) {
@@ -126,7 +127,7 @@ func TestSuccessfulConsecutiveReadWriteWithWait(t *testing.T) {
 		expectedMsg, _ := ptypes.MarshalAny(&protos.IMSIDetachAck{
 			Imsi: "111111",
 		})
-		assert.Equal(t, expectedMsg, message)
+		test_util.AssertEqual(t, expectedMsg, message)
 	}()
 	go func() {
 		messageType, message, err := safeBuffer.GetNextMessage(1)
@@ -135,7 +136,7 @@ func TestSuccessfulConsecutiveReadWriteWithWait(t *testing.T) {
 		expectedMsg, _ := ptypes.MarshalAny(&protos.IMSIDetachAck{
 			Imsi: "111111",
 		})
-		assert.Equal(t, expectedMsg, message)
+		test_util.AssertEqual(t, expectedMsg, message)
 	}()
 	go func() {
 		messageType, message, err := safeBuffer.GetNextMessage(1)
@@ -144,7 +145,7 @@ func TestSuccessfulConsecutiveReadWriteWithWait(t *testing.T) {
 		expectedMsg, _ := ptypes.MarshalAny(&protos.IMSIDetachAck{
 			Imsi: "111111",
 		})
-		assert.Equal(t, expectedMsg, message)
+		test_util.AssertEqual(t, expectedMsg, message)
 	}()
 	time.Sleep(time.Millisecond * 500)
 	imsi, _ := test_utils.ConstructIMSI("111111")

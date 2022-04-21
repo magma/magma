@@ -29,8 +29,8 @@ type internalEntityGraph struct {
 
 // loadGraphInternal will load all loadEntities and assocs for a given graph ID.
 // This function will NOT fill loadEntities with associations.
-func (store *sqlConfiguratorStorage) loadGraphInternal(networkID string, graphID string, criteria EntityLoadCriteria) (internalEntityGraph, error) {
-	loadFilter := EntityLoadFilter{GraphID: &wrappers.StringValue{Value: graphID}}
+func (store *sqlConfiguratorStorage) loadGraphInternal(networkID string, graphID string, criteria *EntityLoadCriteria) (internalEntityGraph, error) {
+	loadFilter := &EntityLoadFilter{GraphID: &wrappers.StringValue{Value: graphID}}
 	ents, err := store.loadEntities(networkID, loadFilter, criteria)
 	if err != nil {
 		return internalEntityGraph{}, errors.Wrap(err, "failed to load entities for graph")
@@ -53,7 +53,7 @@ func (store *sqlConfiguratorStorage) loadGraphInternal(networkID string, graphID
 // component search on it, and relabel components if a partition is detected.
 // entToUpdateOut is an output parameter
 func (store *sqlConfiguratorStorage) fixGraph(networkID string, graphID string, entToUpdateOut *NetworkEntity) error {
-	internalGraph, err := store.loadGraphInternal(networkID, graphID, EntityLoadCriteria{})
+	internalGraph, err := store.loadGraphInternal(networkID, graphID, &EntityLoadCriteria{})
 	if err != nil {
 		return errors.Wrap(err, "failed to load graph of updated entity")
 	}

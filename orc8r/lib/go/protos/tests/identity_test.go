@@ -80,7 +80,7 @@ func TestIdentities(t *testing.T) {
 	id.SetGateway(&idgw)
 	idgw_out := id.GetGateway()
 	assert.NotNil(t, idgw_out)
-	assert.Equal(t, idgw, *idgw_out)
+	assert.Equal(t, idgw.String(), idgw_out.String())
 
 	cn = id.ToCommonName()
 	assert.NotNil(t, cn)

@@ -129,7 +129,7 @@ func SetTenantHandler(c echo.Context) error {
 		return terr
 	}
 
-	var tenantInfo = protos.Tenant{}
+	var tenantInfo = &protos.Tenant{}
 	err := json.NewDecoder(c.Request().Body).Decode(&tenantInfo)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("error decoding request: %v", err))
@@ -198,7 +198,7 @@ func CreateOrUpdateControlProxyHandler(c echo.Context) error {
 
 	req.ControlProxy = *data.ControlProxy
 
-	err = tenants.CreateOrUpdateControlProxy(c.Request().Context(), req)
+	err = tenants.CreateOrUpdateControlProxy(c.Request().Context(), &req)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error setting control_proxy contents: %v", err))
 	}
