@@ -326,6 +326,7 @@ class TrafficTest(object):
         self._runner = test_runner
         self._test_ids = tuple(test_ids)
         self._test_lock = threading.RLock()  # Provide mutex between tests
+        self.is_trf_server_connection_refused = False
 
     def __enter__(self):
         """Start execution of the test"""
@@ -531,6 +532,9 @@ class TrafficTest(object):
             with self._test_lock:
                 self._results = results
 
+        except ConnectionRefusedError as e:
+            print("Running iperf data failed. Error: " + str(e))
+            self.is_trf_server_connection_refused = True
         except socket.timeout:
             print("Running iperf data failed with timeout")
             TrafficUtil.need_to_close_iperf3_server = True
@@ -620,6 +624,9 @@ class TrafficTest(object):
         """
         self.wait()
         with self._test_lock:
+            if self.is_trf_server_connection_refused:
+                raise RuntimeError("Failed to connect to TRF Server")
+
             if not isinstance(self.results, tuple):
                 if not self._done.is_set():
                     TrafficUtil.need_to_close_iperf3_server = True
