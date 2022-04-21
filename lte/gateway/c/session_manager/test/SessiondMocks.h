@@ -14,24 +14,57 @@
 
 #include <gmock/gmock.h>
 #include <grpc++/grpc++.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <gtest/gtest.h>
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/pipelined.pb.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/session_manager.pb.h>
 #include <orc8r/protos/eventd.pb.h>
-
+#include <cstdint>
+#include <experimental/optional>
+#include <functional>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
-#include "LocalSessionManagerHandler.h"
-#include "UpfMsgManageHandler.h"
-#include "PipelinedClient.h"
-#include "RuleStore.h"
-#include "SessionReporter.h"
-#include "SessionState.h"
-#include "SpgwServiceClient.h"
+#include "lte/gateway/c/session_manager/AAAClient.h"
+#include "lte/gateway/c/session_manager/AmfServiceClient.h"
+#include "lte/gateway/c/session_manager/DirectorydClient.h"
+#include "lte/gateway/c/session_manager/LocalSessionManagerHandler.h"
+#include "lte/gateway/c/session_manager/MobilitydClient.h"
+#include "lte/gateway/c/session_manager/PipelinedClient.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/SessionEvents.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SpgwServiceClient.h"
+#include "lte/gateway/c/session_manager/StoreClient.h"
+#include "lte/gateway/c/session_manager/Types.h"
+#include "lte/gateway/c/session_manager/UpfMsgManageHandler.h"
+#include "orc8r/gateway/c/common/eventd/includes/EventdClient.hpp"
+
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
+namespace magma {
+namespace lte {
+class AggregatedMaximumBitrate;
+class CreateBearerRequest;
+class DeleteBearerRequest;
+class IPAddress;
+class SubscriberID;
+}  // namespace lte
+namespace orc8r {
+class AllDirectoryRecords;
+class DeleteRecordRequest;
+class Event;
+class UpdateRecordRequest;
+class Void;
+}  // namespace orc8r
+}  // namespace magma
 
 using grpc::Status;
 using ::testing::_;

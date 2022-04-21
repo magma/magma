@@ -19,8 +19,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "StoreClient.h"
-#include "StoredState.h"
+#include "lte/gateway/c/session_manager/StoreClient.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
 
 namespace magma {
 class StaticRuleStore;

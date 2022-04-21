@@ -10,6 +10,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "lte/gateway/c/session_manager/SessionManagerServer.h"
+
 #include <glog/logging.h>
 #include <grpc/impl/codegen/log.h>
 #include <grpcpp/impl/codegen/status.h>
@@ -18,8 +20,7 @@
 #include <ostream>
 #include <utility>
 
-#include "SessionManagerServer.h"
-#include "magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 using grpc::Status;
 

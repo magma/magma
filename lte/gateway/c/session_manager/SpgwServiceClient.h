@@ -12,16 +12,16 @@
  */
 #pragma once
 
-#include <lte/protos/spgw_service.grpc.pb.h>  // for SpgwService::Stub, Spgw...
-#include <stdint.h>                           // for uint32_t
-#include <functional>                         // for function
-#include <memory>                             // for shared_ptr, unique_ptr
-#include <string>                             // for string
-#include <vector>                             // for vector
+#include <lte/protos/apn.pb.h>
+#include <lte/protos/spgw_service.grpc.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
+#include <stdint.h>
+#include <functional>
+#include <memory>
+#include <string>
+#include <vector>
 
-#include "includes/GRPCReceiver.hpp"  // for GRPCReceiver
-#include "lte/protos/apn.pb.h"
-#include "lte/protos/subscriberdb.pb.h"  // for lte
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 
 namespace grpc {
 class Channel;

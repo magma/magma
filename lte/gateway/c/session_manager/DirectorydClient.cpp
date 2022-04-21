@@ -11,15 +11,16 @@
  * limitations under the License.
  */
 
+#include "lte/gateway/c/session_manager/DirectorydClient.h"
+
 #include <grpcpp/channel.h>
+#include <orc8r/protos/common.pb.h>
+#include <orc8r/protos/directoryd.grpc.pb.h>
+#include <orc8r/protos/directoryd.pb.h>
 #include <memory>
 #include <utility>
 
-#include "DirectorydClient.h"
-#include "includes/ServiceRegistrySingleton.hpp"
-#include "orc8r/protos/common.pb.h"
-#include "orc8r/protos/directoryd.grpc.pb.h"
-#include "orc8r/protos/directoryd.pb.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 
 namespace grpc {
 class Status;

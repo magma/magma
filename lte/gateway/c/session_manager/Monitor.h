@@ -12,8 +12,11 @@
  */
 #pragma once
 
-#include "SessionCredit.h"
-#include "StoredState.h"
+#include <lte/protos/session_manager.pb.h>
+
+#include "lte/gateway/c/session_manager/SessionCredit.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/Types.h"
 
 namespace magma {
 // Monitor is a structure to keep track of grants of bytes given used for

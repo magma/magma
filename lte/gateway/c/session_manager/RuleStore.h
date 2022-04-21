@@ -12,6 +12,7 @@
  */
 #pragma once
 
+#include <lte/protos/apn.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/policydb.pb.h>
 #include <stdint.h>
@@ -22,9 +23,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "CreditKey.h"
-#include "includes/GRPCReceiver.hpp"
-#include "lte/protos/apn.pb.h"
+#include "lte/gateway/c/session_manager/CreditKey.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 
 namespace magma {
 namespace lte {

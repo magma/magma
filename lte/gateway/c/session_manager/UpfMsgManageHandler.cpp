@@ -8,7 +8,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "UpfMsgManageHandler.h"
+#include "lte/gateway/c/session_manager/UpfMsgManageHandler.h"
 
 #include <arpa/inet.h>
 #include <folly/io/async/EventBase.h>
@@ -16,23 +16,23 @@
 #include <grpcpp/impl/codegen/status.h>
 #include <grpcpp/impl/codegen/status_code_enum.h>
 #include <netinet/in.h>
+#include <lte/protos/mobilityd.pb.h>
+#include <lte/protos/session_manager.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
 #include <experimental/optional>
 #include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
 
-#include "GrpcMagmaUtils.h"
-#include "MobilitydClient.h"
-#include "SessionState.h"
-#include "SessionStateEnforcer.h"
-#include "SessionStore.h"
-#include "Types.h"
-#include "lte/protos/mobilityd.pb.h"
-#include "lte/protos/session_manager.pb.h"
-#include "lte/protos/subscriberdb.pb.h"
-#include "magma_logging.h"
-#include "Utilities.h"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
+#include "lte/gateway/c/session_manager/MobilitydClient.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SessionStateEnforcer.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/Types.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "lte/gateway/c/session_manager/Utilities.h"
 
 namespace google {
 namespace protobuf {

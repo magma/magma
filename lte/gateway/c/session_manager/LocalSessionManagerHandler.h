@@ -15,6 +15,7 @@
 #include <grpc++/grpc++.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <orc8r/protos/common.pb.h>
 #include <stdint.h>
 #include <chrono>
 #include <experimental/optional>
@@ -22,12 +23,11 @@
 #include <memory>
 #include <string>
 
-#include "LocalEnforcer.h"
-#include "SessionID.h"
-#include "SessionReporter.h"
-#include "SessionStore.h"
-#include "StoreClient.h"
-#include "orc8r/protos/common.pb.h"
+#include "lte/gateway/c/session_manager/LocalEnforcer.h"
+#include "lte/gateway/c/session_manager/SessionID.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/StoreClient.h"
 
 namespace grpc {
 class ServerContext;
@@ -37,6 +37,7 @@ class DirectorydClient;
 class LocalEnforcer;
 class SessionReporter;
 class SessionState;
+
 namespace lte {
 class EventsReporter;
 class LocalCreateSessionRequest;

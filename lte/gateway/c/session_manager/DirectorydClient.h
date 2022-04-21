@@ -21,8 +21,8 @@
 #include <mutex>
 #include <unordered_map>
 
-#include "SessionState.h"
-#include "includes/GRPCReceiver.hpp"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 
 namespace grpc {
 class Channel;

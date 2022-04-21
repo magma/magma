@@ -17,11 +17,11 @@
 #include <cpp_redis/core/client.hpp>
 #include <cpp_redis/cpp_redis>
 #include <exception>  // IWYU pragma: keep
-#include <memory>     // for shared_ptr
-#include <set>        // for set
-#include <string>     // for string
+#include <memory>
+#include <set>
+#include <string>
 
-#include "StoreClient.h"  // for SessionMap, SessionVector, StoreClient
+#include "lte/gateway/c/session_manager/StoreClient.h"
 
 namespace magma {
 class StaticRuleStore;

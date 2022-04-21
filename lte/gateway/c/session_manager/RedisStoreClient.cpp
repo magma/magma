@@ -11,28 +11,28 @@
  * limitations under the License.
  */
 
-#include "RedisStoreClient.h"
+#include "lte/gateway/c/session_manager/RedisStoreClient.h"
 
-#include <cpp_redis/core/client.hpp>  // for client, client::connect_state
-#include <cpp_redis/core/reply.hpp>   // for reply
-#include <cpp_redis/misc/error.hpp>   // for redis_error
-#include <folly/Range.h>              // for operator<<, StringPiece
-#include <folly/dynamic.h>            // for dynamic
-#include <folly/json.h>               // for parseJson, toJson
-#include <glog/logging.h>             // for COMPACT_GOOGLE_LOG_INFO, LogMes...
-#include <stddef.h>                   // for size_t
-#include <stdint.h>                   // for uint32_t
-#include <yaml-cpp/yaml.h>            // IWYU pragma: keep
-#include <future>                     // for future
-#include <ostream>                    // for operator<<, basic_ostream, size_t
-#include <unordered_map>              // for _Node_iterator, unordered_map
-#include <utility>                    // for move, pair
-#include <vector>                     // for vector
+#include <cpp_redis/core/client.hpp>
+#include <cpp_redis/core/reply.hpp>
+#include <cpp_redis/misc/error.hpp>
+#include <folly/Range.h>
+#include <folly/dynamic.h>
+#include <folly/json.h>
+#include <glog/logging.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
+#include <future>
+#include <ostream>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include "SessionState.h"  // for SessionState
-#include "StoredState.h"   // for deserialize_stored_session, ser...
-#include "includes/ServiceConfigLoader.hpp"  // for ServiceConfigLoader
-#include "magma_logging.h"                   // for MERROR, MLOG
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {
 class StaticRuleStore;

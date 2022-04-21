@@ -12,6 +12,8 @@
  */
 #pragma once
 
+#include <lte/protos/abort_session.pb.h>
+#include <lte/protos/apn.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/pipelined.pb.h>
 #include <lte/protos/policydb.pb.h>
@@ -25,10 +27,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "SessionState.h"
-#include "Types.h"
-#include "includes/GRPCReceiver.hpp"
-#include "lte/protos/abort_session.pb.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/Types.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 
 namespace grpc {
 class Channel;

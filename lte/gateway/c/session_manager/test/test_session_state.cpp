@@ -10,19 +10,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <glog/logging.h>
 #include <gtest/gtest.h>
-
-#include <future>
+#include <lte/protos/policydb.pb.h>
+#include <lte/protos/session_manager.pb.h>
+#include <sys/types.h>
+#include <algorithm>
+#include <cstdint>
+#include <experimental/optional>
 #include <memory>
-#include <utility>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
-#include "Consts.h"
-#include "magma_logging.h"
-#include "ProtobufCreators.h"
-#include "SessiondMocks.h"
-#include "SessionState.h"
-#include "SessionStateTester.h"
+#include "lte/gateway/c/session_manager/CreditKey.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/ServiceAction.h"
+#include "lte/gateway/c/session_manager/SessionCredit.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/Types.h"
+#include "lte/gateway/c/session_manager/test/Consts.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/test/SessionStateTester.h"
 
 using ::testing::Test;
 

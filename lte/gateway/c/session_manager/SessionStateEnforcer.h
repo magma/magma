@@ -24,7 +24,9 @@ limitations under the License.
 
 #include <folly/io/async/EventBaseManager.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
+#include <lte/protos/pipelined.pb.h>
 #include <lte/protos/policydb.pb.h>
+#include <lte/protos/session_manager.pb.h>
 #include <stdint.h>
 #include <chrono>
 #include <map>
@@ -34,16 +36,14 @@ limitations under the License.
 #include <unordered_set>
 #include <vector>
 
-#include "AmfServiceClient.h"
-#include "PipelinedClient.h"
-#include "RuleStore.h"
-#include "SessionState.h"
-#include "SessionStore.h"
-#include "StoreClient.h"
-#include "SessionEvents.h"
-#include "Types.h"
-#include "lte/protos/pipelined.pb.h"
-#include "lte/protos/session_manager.pb.h"
+#include "lte/gateway/c/session_manager/AmfServiceClient.h"
+#include "lte/gateway/c/session_manager/PipelinedClient.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/SessionEvents.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/StoreClient.h"
+#include "lte/gateway/c/session_manager/Types.h"
 
 namespace folly {
 class EventBase;
@@ -51,7 +51,11 @@ class EventBase;
 namespace magma {
 class AmfServiceClient;
 class PipelinedClient;
+class SessionReporter;
 class SessionState;
+namespace lte {
+class EventsReporter;
+}  // namespace lte
 struct SessionStateUpdateCriteria;
 }  // namespace magma
 

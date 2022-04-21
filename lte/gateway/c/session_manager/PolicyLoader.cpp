@@ -10,25 +10,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "PolicyLoader.h"
+#include "lte/gateway/c/session_manager/PolicyLoader.h"
 
-#include <cpp_redis/core/client.hpp>  // for client, client::connect_state
-#include <cpp_redis/misc/error.hpp>   // for redis_error
+#include <cpp_redis/core/client.hpp>
+#include <cpp_redis/misc/error.hpp>
 #include <glog/logging.h>
 #include <yaml-cpp/yaml.h>  // IWYU pragma: keep
+#include <lte/protos/policydb.pb.h>
 #include <algorithm>
-#include <chrono>   // for seconds
-#include <memory>   // for make_shared, __shared_ptr, ...
-#include <ostream>  // for operator<<, basic_ostream, ...
-#include <string>   // for string, char_traits, operator<<
-#include <thread>   // for sleep_for
+#include <chrono>
+#include <memory>
+#include <ostream>
+#include <string>
+#include <thread>
 
-#include "ObjectMap.h"    // for SUCCESS
-#include "RedisMap.hpp"   // for RedisMap
-#include "Serializers.h"  // for get_proto_deserializer, get_pro
-#include "includes/ServiceConfigLoader.hpp"  // for ServiceConfigLoader
-#include "lte/protos/policydb.pb.h"          // for PolicyRule
-#include "magma_logging.h"                   // for MLOG, MERROR, MDEBUG, MINFO
+#include "lte/gateway/c/session_manager/ObjectMap.h"
+#include "RedisMap.hpp"
+#include "lte/gateway/c/session_manager/Serializers.h"
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {
 

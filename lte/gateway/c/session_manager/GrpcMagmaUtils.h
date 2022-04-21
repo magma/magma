@@ -12,7 +12,7 @@
  */
 #pragma once
 
-#include <string>  // for string
+#include <string>
 
 namespace google {
 namespace protobuf {

@@ -10,18 +10,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "lte/gateway/c/session_manager/SessionReporter.h"
+
 #include <glog/logging.h>
 #include <grpcpp/channel.h>
 #include <grpcpp/impl/codegen/status.h>
+#include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/session_manager.pb.h>
 #include <iostream>
 #include <string>
 #include <utility>
 
-#include "GrpcMagmaUtils.h"
-#include "SessionReporter.h"
-#include "lte/protos/session_manager.grpc.pb.h"
-#include "lte/protos/session_manager.pb.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace folly {
 class EventBase;

@@ -10,18 +10,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <folly/io/async/EventBase.h>
 #include <gmock/gmock.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <gtest/gtest.h>
-
+#include <lte/protos/session_manager.pb.h>
+#include <stdint.h>
 #include <chrono>
 #include <future>
+#include <iostream>
 #include <memory>
 #include <thread>
+#include <vector>
 
-#include "includes/MagmaService.hpp"
-#include "includes/ServiceRegistrySingleton.hpp"
-#include "SessiondMocks.h"
-#include "SessionReporter.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 
 using grpc::Status;
 using ::testing::_;

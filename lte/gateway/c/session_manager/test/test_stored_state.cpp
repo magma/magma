@@ -11,14 +11,20 @@
  * limitations under the License.
  */
 
-#include <glog/logging.h>
+#include <google/protobuf/timestamp.pb.h>
 #include <gtest/gtest.h>
+#include <lte/protos/pipelined.pb.h>
+#include <lte/protos/session_manager.pb.h>
+#include <algorithm>
+#include <cstdint>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
-#include <memory>
-
-#include "magma_logging.h"
-#include "ProtobufCreators.h"
-#include "StoredState.h"
+#include "lte/gateway/c/session_manager/CreditKey.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/Types.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
 
 using ::testing::Test;
 

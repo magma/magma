@@ -11,16 +11,16 @@
  * limitations under the License.
  */
 
-#include <glog/logging.h>                // for COMPACT_GOOGLE_LOG_INFO, Log...
-#include <google/protobuf/descriptor.h>  // for Descriptor
-#include <google/protobuf/message.h>     // for Message
-#include <stdlib.h>                      // for getenv, NULL
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
 
-#include <sstream>  // for operator<<, basic_ostream
-#include <string>   // for string, operator<<, operator==
+#include <glog/logging.h>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/message.h>
+#include <stdlib.h>
+#include <sstream>
+#include <string>
 
-#include "GrpcMagmaUtils.h"
-#include "magma_logging.h"  // for MINFO, MLOG
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 #define MAGMA_PRINT_GRPC_PAYLOAD "MAGMA_PRINT_GRPC_PAYLOAD"
 

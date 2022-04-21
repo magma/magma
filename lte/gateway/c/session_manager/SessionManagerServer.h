@@ -16,19 +16,19 @@
 #include <grpcpp/impl/codegen/completion_queue.h>
 #include <grpcpp/impl/codegen/server_context.h>
 #include <lte/protos/abort_session.grpc.pb.h>
+#include <lte/protos/abort_session.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/session_manager.pb.h>
 #include <atomic>
 #include <functional>
 #include <iosfwd>
 #include <memory>
 #include <utility>
 
-#include "LocalSessionManagerHandler.h"
-#include "SessionProxyResponderHandler.h"
-#include "SetMessageManagerHandler.h"
-#include "UpfMsgManageHandler.h"
-#include "lte/protos/abort_session.pb.h"
-#include "lte/protos/session_manager.pb.h"
+#include "lte/gateway/c/session_manager/LocalSessionManagerHandler.h"
+#include "lte/gateway/c/session_manager/SessionProxyResponderHandler.h"
+#include "lte/gateway/c/session_manager/SetMessageManagerHandler.h"
+#include "lte/gateway/c/session_manager/UpfMsgManageHandler.h"
 
 namespace grpc {
 class Status;

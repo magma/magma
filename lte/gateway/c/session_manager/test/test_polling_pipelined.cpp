@@ -10,14 +10,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/session_manager.pb.h>
+#include <stdint.h>
+#include <functional>
 #include <memory>
-#include "Consts.h"
-#include "LocalEnforcer.h"
-#include "ProtobufCreators.h"
-#include "SessiondMocks.h"
-#include "SessionStore.h"
+#include <string>
+#include <unordered_map>
+#include <utility>
+
+#include "lte/gateway/c/session_manager/LocalEnforcer.h"
+#include "lte/gateway/c/session_manager/MeteringReporter.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/ShardTracker.h"
+#include "lte/gateway/c/session_manager/StoreClient.h"
+#include "lte/gateway/c/session_manager/Types.h"
+#include "lte/gateway/c/session_manager/test/Consts.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.h"
+
+namespace grpc {
+class ServerContext;
+class Status;
+}  // namespace grpc
 
 using grpc::ServerContext;
 using grpc::Status;

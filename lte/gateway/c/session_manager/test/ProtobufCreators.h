@@ -12,16 +12,23 @@
  */
 #pragma once
 
+#include <lte/protos/apn.pb.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
+#include <lte/protos/pipelined.pb.h>
+#include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-
+#include <lte/protos/session_manager.pb.h>
+#include <stdint.h>
 #include <string>
+#include <utility>
 #include <vector>
 
-#include "DiameterCodes.h"
-#include "StoredState.h"
-#include "SessionStore.h"
+#include "lte/gateway/c/session_manager/DiameterCodes.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/StoreClient.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/Types.h"
 
 namespace magma {
 using namespace lte;

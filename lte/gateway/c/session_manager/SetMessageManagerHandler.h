@@ -20,18 +20,18 @@
 #pragma once
 #include <grpc++/grpc++.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <orc8r/protos/common.pb.h>
 #include <stdint.h>
 #include <functional>
 #include <memory>
 #include <string>
 
-#include "SessionID.h"
-#include "SessionReporter.h"
-#include "SessionStateEnforcer.h"
-#include "SessionStore.h"
-#include "StoreClient.h"
-#include "Types.h"
-#include "orc8r/protos/common.pb.h"
+#include "lte/gateway/c/session_manager/SessionID.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
+#include "lte/gateway/c/session_manager/SessionStateEnforcer.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/StoreClient.h"
+#include "lte/gateway/c/session_manager/Types.h"
 
 namespace grpc {
 class ServerContext;
@@ -40,7 +40,9 @@ class Status;
 namespace magma {
 class SessionReporter;
 class SessionStateEnforcer;
+
 namespace lte {
+class EventsReporter;
 class SessionStore;
 class SetSMSessionContext;
 class SetSmNotificationContext;

@@ -10,10 +10,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "lte/gateway/c/session_manager/SessionID.h"
+
 #include <sstream>
 #include <string>
-
-#include "SessionID.h"
 
 SessionIDGenerator::SessionIDGenerator() {
   std::random_device rseed;

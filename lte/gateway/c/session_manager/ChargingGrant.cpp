@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
+#include "lte/gateway/c/session_manager/ChargingGrant.h"
+
 #include <glog/logging.h>
 #include <algorithm>
 #include <ctime>
@@ -19,11 +21,10 @@
 #include <string>
 #include <vector>
 
-#include "ChargingGrant.h"
-#include "CreditKey.h"
-#include "DiameterCodes.h"
-#include "EnumToString.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/session_manager/CreditKey.h"
+#include "lte/gateway/c/session_manager/DiameterCodes.h"
+#include "lte/gateway/c/session_manager/EnumToString.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {
 ChargingGrant::ChargingGrant(const StoredChargingGrant& marshaled) {

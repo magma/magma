@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
+#include "lte/gateway/c/session_manager/SessionCredit.h"
+
 #include <glog/logging.h>
 #include <stdlib.h>
 #include <cstdint>
@@ -19,12 +21,11 @@
 #include <unordered_map>
 #include <utility>
 
-#include "DiameterCodes.h"
-#include "EnumToString.h"
-#include "SessionCredit.h"
-#include "Utilities.h"
-#include "magma_logging.h"
-#include "magma_logging_init.h"
+#include "lte/gateway/c/session_manager/DiameterCodes.h"
+#include "lte/gateway/c/session_manager/EnumToString.h"
+#include "lte/gateway/c/session_manager/Utilities.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging_init.h"
 
 namespace magma {
 

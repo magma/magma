@@ -11,12 +11,15 @@
  * limitations under the License.
  */
 
+#include "lte/gateway/c/session_manager/StoredState.h"
+
 #include <folly/Range.h>
 #include <folly/dynamic.h>
 #include <folly/json.h>
 #include <glog/logging.h>
 #include <google/protobuf/timestamp.pb.h>
 #include <google/protobuf/util/time_util.h>
+#include <lte/protos/apn.pb.h>
 #include <algorithm>
 #include <ostream>
 #include <stdexcept>
@@ -24,10 +27,8 @@
 #include <unordered_map>
 #include <utility>
 
-#include "CreditKey.h"
-#include "StoredState.h"
-#include "lte/protos/apn.pb.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/session_manager/CreditKey.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {
 using google::protobuf::util::TimeUtil;

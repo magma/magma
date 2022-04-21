@@ -12,9 +12,11 @@
  */
 #pragma once
 
+#include <lte/protos/apn.pb.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.pb.h>
-
+#include <stddef.h>
+#include <stdint.h>
 #include <functional>
 #include <ostream>
 

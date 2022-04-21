@@ -10,25 +10,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <lte/protos/session_manager.grpc.pb.h>
-#include <string.h>
+#include <lte/protos/mconfig/mconfigs.pb.h>
+#include <lte/protos/pipelined.pb.h>
+#include <lte/protos/session_manager.pb.h>
+#include <orc8r/protos/common.pb.h>
+#include <stdint.h>
 #include <time.h>
-
-#include <chrono>
-#include <future>
+#include <algorithm>
+#include <iostream>
 #include <memory>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include "Consts.h"
-#include "LocalEnforcer.h"
-#include "magma_logging.h"
-#include "includes/MagmaService.hpp"
-#include "Matchers.h"
-#include "ProtobufCreators.h"
-#include "includes/ServiceRegistrySingleton.hpp"
-#include "SessiondMocks.h"
-#include "SessionStore.h"
+#include "lte/gateway/c/session_manager/LocalEnforcer.h"
+#include "lte/gateway/c/session_manager/MeteringReporter.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/ShardTracker.h"
+#include "lte/gateway/c/session_manager/StoreClient.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/Types.h"
+#include "lte/gateway/c/session_manager/test/Consts.h"
+#include "lte/gateway/c/session_manager/test/Matchers.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.h"
+
+namespace grpc {
+class ServerContext;
+class Status;
+}  // namespace grpc
 
 #define SECONDS_A_DAY 86400
 

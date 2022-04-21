@@ -11,26 +11,39 @@
  * limitations under the License.
  */
 
+#include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
-#include <glog/logging.h>
+#include <gmock/gmock.h>
+#include <grpcpp/impl/codegen/server_context.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <gtest/gtest.h>
-
+#include <lte/protos/abort_session.pb.h>
+#include <lte/protos/pipelined.pb.h>
+#include <lte/protos/session_manager.pb.h>
+#include <stdint.h>
+#include <iostream>
 #include <memory>
+#include <string>
+#include <thread>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include "Consts.h"
-#include "LocalEnforcer.h"
-#include "magma_logging.h"
-#include "includes/MagmaService.hpp"
-#include "Matchers.h"
-#include "ProtobufCreators.h"
-#include "RuleStore.h"
-#include "includes/ServiceRegistrySingleton.hpp"
-#include "SessiondMocks.h"
-#include "SessionID.h"
-#include "SessionProxyResponderHandler.h"
-#include "SessionState.h"
-#include "SessionStore.h"
-#include "StoredState.h"
+#include "lte/gateway/c/session_manager/LocalEnforcer.h"
+#include "lte/gateway/c/session_manager/MeteringReporter.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/SessionID.h"
+#include "lte/gateway/c/session_manager/SessionProxyResponderHandler.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/ShardTracker.h"
+#include "lte/gateway/c/session_manager/StoreClient.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/Types.h"
+#include "lte/gateway/c/session_manager/test/Consts.h"
+#include "lte/gateway/c/session_manager/test/Matchers.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.h"
 
 using ::testing::Test;
 

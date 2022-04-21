@@ -11,9 +11,17 @@
  * limitations under the License.
  */
 
+#include "lte/gateway/c/session_manager/PipelinedClient.h"
+
 #include <glog/logging.h>
 #include <grpcpp/channel.h>
 #include <grpcpp/impl/codegen/status.h>
+#include <lte/protos/apn.pb.h>
+#include <lte/protos/pipelined.grpc.pb.h>
+#include <lte/protos/pipelined.pb.h>
+#include <lte/protos/policydb.pb.h>
+#include <lte/protos/session_manager.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
 #include <algorithm>
 #include <cstdint>
 #include <memory>
@@ -23,18 +31,11 @@
 #include <utility>
 #include <vector>
 
-#include "EnumToString.h"
-#include "GrpcMagmaUtils.h"
-#include "PipelinedClient.h"
-#include "Types.h"
-#include "includes/ServiceRegistrySingleton.hpp"
-#include "lte/protos/apn.pb.h"
-#include "lte/protos/pipelined.grpc.pb.h"
-#include "lte/protos/pipelined.pb.h"
-#include "lte/protos/policydb.pb.h"
-#include "lte/protos/session_manager.pb.h"
-#include "lte/protos/subscriberdb.pb.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/session_manager/EnumToString.h"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
+#include "lte/gateway/c/session_manager/Types.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace google {
 namespace protobuf {
