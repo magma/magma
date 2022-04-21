@@ -96,7 +96,7 @@ class RadioControllerService(RadioControllerServicer):
     def _get_cbsd_filters(self, request_name: str, request_payload: Dict) -> List:
         return get_cbsd_filter_strategies[request_name](request_payload)
 
-    # TODO extract this so it can be used by other grpc services
+    # TODO remove this (cbsds should not be created implicitly)
     def _create_cbsd(self, session: Session, request_payload: Dict, cbsd_id: Optional[str]):
         cbsd_state = session.query(DBCbsdState).filter(
             DBCbsdState.name == CbsdStates.UNREGISTERED.value,
@@ -107,6 +107,7 @@ class RadioControllerService(RadioControllerServicer):
         cbsd = DBCbsd(
             cbsd_id=cbsd_id,
             state=cbsd_state,
+            desired_state=cbsd_state,
             user_id=user_id,
             fcc_id=fcc_id,
             cbsd_serial_number=cbsd_serial_number,

@@ -207,6 +207,7 @@ type DBCbsd struct {
 	Id                      sql.NullInt64
 	NetworkId               sql.NullString
 	StateId                 sql.NullInt64
+	DesiredStateId          sql.NullInt64
 	CbsdId                  sql.NullString
 	UserId                  sql.NullString
 	FccId                   sql.NullString
@@ -228,6 +229,7 @@ func (c *DBCbsd) Fields() []db.BaseType {
 		db.IntType{X: &c.Id},
 		db.StringType{X: &c.NetworkId},
 		db.IntType{X: &c.StateId},
+		db.IntType{X: &c.DesiredStateId},
 		db.StringType{X: &c.CbsdId},
 		db.StringType{X: &c.UserId},
 		db.StringType{X: &c.FccId},
@@ -259,6 +261,11 @@ func (c *DBCbsd) GetMetadata() *db.ModelMetadata {
 			},
 			{
 				Name:     "state_id",
+				SqlType:  sqorc.ColumnTypeInt,
+				Relation: CbsdStateTable,
+			},
+			{
+				Name:     "desired_state_id",
 				SqlType:  sqorc.ColumnTypeInt,
 				Relation: CbsdStateTable,
 			},
@@ -337,45 +344,6 @@ func (c *DBCbsd) GetMetadata() *db.ModelMetadata {
 		},
 		CreateObject: func() db.Model {
 			return &DBCbsd{}
-		},
-	}
-}
-
-type DBActiveModeConfig struct {
-	Id             sql.NullInt64
-	CbsdId         sql.NullInt64
-	DesiredStateId sql.NullInt64
-}
-
-func (amc *DBActiveModeConfig) Fields() []db.BaseType {
-	return []db.BaseType{
-		db.IntType{X: &amc.Id},
-		db.IntType{X: &amc.CbsdId},
-		db.IntType{X: &amc.DesiredStateId},
-	}
-}
-
-func (amc *DBActiveModeConfig) GetMetadata() *db.ModelMetadata {
-	return &db.ModelMetadata{
-		Table: ActiveModeConfigTable,
-		Properties: []*db.Field{
-			{
-				Name:    "id",
-				SqlType: sqorc.ColumnTypeInt,
-			},
-			{
-				Name:     "cbsd_id",
-				SqlType:  sqorc.ColumnTypeInt,
-				Relation: CbsdTable,
-			},
-			{
-				Name:     "desired_state_id",
-				SqlType:  sqorc.ColumnTypeInt,
-				Relation: CbsdStateTable,
-			},
-		},
-		CreateObject: func() db.Model {
-			return &DBActiveModeConfig{}
 		},
 	}
 }

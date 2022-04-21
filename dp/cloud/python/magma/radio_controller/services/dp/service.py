@@ -17,7 +17,6 @@ from typing import Callable, Optional
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
 from dp.protos.enodebd_dp_pb2_grpc import DPServiceServicer
 from magma.db_service.models import (
-    DBActiveModeConfig,
     DBCbsd,
     DBCbsdState,
     DBGrant,
@@ -103,7 +102,7 @@ class DPService(DPServiceServicer):
         with self.session_manager.session_scope() as session:
             cbsd = self._get_or_create_cbsd(session, request)
             self._log_request(message_type, request, cbsd)
-            self._create_or_update_active_mode_config(session, cbsd)
+            self._set_desired_state_to_registered(session, cbsd)
             result = self._build_result(cbsd, session)
             self._log_result(message_type, result, cbsd, request.serial_number)
             session.commit()
@@ -214,6 +213,7 @@ class DPService(DPServiceServicer):
         cbsd = DBCbsd(
             cbsd_serial_number=request.serial_number,
             state=unregistered_state,
+            desired_state=unregistered_state,
         )
         self._update_fields_from_request(cbsd, request)
         session.add(cbsd)
@@ -227,20 +227,10 @@ class DPService(DPServiceServicer):
         cbsd.antenna_gain = request.antenna_gain
         cbsd.number_of_ports = request.number_of_ports
 
-    def _create_or_update_active_mode_config(self, session: Session, cbsd: DBCbsd) -> DBActiveModeConfig:
+    def _set_desired_state_to_registered(self, session: Session, cbsd: DBCbsd) -> None:
         registered_state = session.query(DBCbsdState). \
             filter(DBCbsdState.name == CbsdStates.REGISTERED.value).first()
-        active_mode_config = session.query(DBActiveModeConfig). \
-            filter(DBActiveModeConfig.cbsd_id == cbsd.id).first()
-        if active_mode_config:
-            active_mode_config.desired_state = registered_state
-            return None
-        active_mode_config = DBActiveModeConfig(
-            desired_state=registered_state,
-            cbsd=cbsd,
-        )
-        session.add(active_mode_config)
-        return active_mode_config
+        cbsd.desired_state = registered_state
 
     def _get_authorized_grant(self, session: Session, cbsd: DBCbsd) -> DBGrant:
         authorized_state = session.query(DBGrantState). \
