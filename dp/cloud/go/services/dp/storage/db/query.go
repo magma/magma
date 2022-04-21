@@ -33,7 +33,9 @@ type Query struct {
 }
 
 type arg struct {
+	alias    string
 	model    Model
+	metadata *ModelMetadata
 	mask     FieldMask
 	nullable bool
 	filter   sq.Sqlizer
@@ -52,6 +54,12 @@ func (q *Query) Select(mask FieldMask) *Query {
 
 func (q *Query) From(model Model) *Query {
 	q.arg.model = model
+	q.arg.metadata = model.GetMetadata()
+	return q
+}
+
+func (q *Query) As(alias string) *Query {
+	q.arg.alias = alias
 	return q
 }
 
