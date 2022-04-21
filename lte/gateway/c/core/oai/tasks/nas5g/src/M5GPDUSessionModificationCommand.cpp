@@ -82,16 +82,21 @@ int PDUSessionModificationCommand::EncodePDUSessionModificationCommand(
       encoded += encoded_result;
     }
   }
-  for (uint8_t i = 0; i < pdu_sess_mod_comd->authqosrules.size(); i++) {
-    if ((encoded_result = pdu_sess_mod_comd->authqosrules[i].EncodeQOSRulesMsg(
-             &pdu_sess_mod_comd->authqosrules[i], PDU_SESSION_QOS_RULES_IE_TYPE,
-             buffer + encoded, len - encoded)) < 0) {
-      return encoded_result;
-    } else {
-      encoded += encoded_result;
-    }
+
+  if (blength(pdu_sess_mod_comd->authorized_qosrules)) {
+    // Encode the IE of Authorized QoS Rules
+    buffer[encoded++] = PDU_SESSION_QOS_RULES_IE_TYPE;
+
+    // Encode the length if the IE
+    IES_ENCODE_U16(buffer, encoded,
+                   blength(pdu_sess_mod_comd->authorized_qosrules));
+
+    memcpy(buffer + encoded, pdu_sess_mod_comd->authorized_qosrules->data,
+           blength(pdu_sess_mod_comd->authorized_qosrules));
+
+    encoded += blength(pdu_sess_mod_comd->authorized_qosrules);
   }
-  pdu_sess_mod_comd->authqosrules.clear();
+
   for (uint8_t i = 0; i < pdu_sess_mod_comd->authqosflowdescriptors.size();
        i++) {
     if ((encoded_result = pdu_sess_mod_comd->authqosflowdescriptors[i]
@@ -180,15 +185,17 @@ int PDUSessionModificationCommand::DecodePDUSessionModificationCommand(
         }
       } break;
       case PDU_SESSION_QOS_RULES_IE_TYPE: {
-        QOSRulesMsg qosRules;
-        if ((decoded_result = qosRules.DecodeQOSRulesMsg(
-                 &qosRules, PDU_SESSION_QOS_RULES_IE_TYPE, buffer + decoded,
-                 len - decoded)) < 0) {
-          return decoded_result;
-        } else {
-          pdu_sess_mod_comd->authqosrules.push_back(qosRules);
-          decoded += decoded_result;
-        }
+        // on the IE
+        decoded += sizeof(ie_type);
+
+        // Tracking the data length
+        uint16_t qos_rules_buf_len = 0;
+        IES_DECODE_U16(buffer, decoded, qos_rules_buf_len);
+
+        // Store the information in Bstring
+        pdu_sess_mod_comd->authorized_qosrules = blk2bstr(buffer + decoded,
+                                                          qos_rules_buf_len);
+        decoded += qos_rules_buf_len;
       } break;
       case PDU_SESSION_QOS_FLOW_DESC_IE_TYPE: {
         // iei + length
