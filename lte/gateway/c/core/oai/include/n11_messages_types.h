@@ -17,7 +17,7 @@
 #define MAX_NO_OF_MULTI_CONN 4
 
 #include "lte/gateway/c/core/oai/common/common_types.h"
-//#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
+// #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 //-----------------------------------------------------------------------------
 /** @struct itti_n11_create_pdu_session_response_t
@@ -70,7 +70,7 @@ typedef enum qos_flow_action_s {
 typedef enum qos_policy_state_s {
   policy_state_install = 0,
   policy_state_pending = 1,
-  ploicy_state_reject  = 2
+  ploicy_state_reject = 2
 } qos_policy_state_t;
 
 typedef struct qos_flow_descriptor_s {
@@ -404,7 +404,7 @@ typedef struct pdu_session_resource_release_command_transfer_s {
 
 typedef pdu_session_resource_release_command_transfer
     pdu_session_resource_modify_unsuccessful_transfer_t;
-#define N11_NOTIFICATION_RECEIVED(mSGpTR)                                      \
+#define N11_NOTIFICATION_RECEIVED(mSGpTR) \
   (mSGpTR)->ittiMsg.n11_notification_received
 
 // RequestType

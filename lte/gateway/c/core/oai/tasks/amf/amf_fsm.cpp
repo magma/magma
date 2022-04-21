@@ -145,20 +145,20 @@ void create_state_matrix() {
                          "Common_procedure_Initiated_step1");
 
   /* PDU session State Transitions*/
-  Update_ue_state_matrix(
-      REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_REQUEST,
-      SESSION_NULL, REGISTERED_CONNECTED, CREATING, "PDU_Creating");
+  Update_ue_state_matrix(REGISTERED_CONNECTED,
+                         STATE_PDU_SESSION_ESTABLISHMENT_REQUEST, SESSION_NULL,
+                         REGISTERED_CONNECTED, CREATING, "PDU_Creating");
 
-  Update_ue_state_matrix(
-      REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT, CREATING,
-      REGISTERED_CONNECTED, ACTIVE, "PDU_Created");
-  Update_ue_state_matrix(
-      REGISTERED_CONNECTED, STATE_PDU_SESSION_RELEASE_COMPLETE, ACTIVE,
-      REGISTERED_CONNECTED, RELEASED, "PDU_Release");
+  Update_ue_state_matrix(REGISTERED_CONNECTED,
+                         STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT, CREATING,
+                         REGISTERED_CONNECTED, ACTIVE, "PDU_Created");
+  Update_ue_state_matrix(REGISTERED_CONNECTED,
+                         STATE_PDU_SESSION_RELEASE_COMPLETE, ACTIVE,
+                         REGISTERED_CONNECTED, RELEASED, "PDU_Release");
 
-  Update_ue_state_matrix(
-      REGISTERED_CONNECTED, STATE_PDU_SESSION_RELEASE_COMPLETE, SESSION_NULL,
-      DEREGISTERED, SESSION_NULL, "PDU_Release");
+  Update_ue_state_matrix(REGISTERED_CONNECTED,
+                         STATE_PDU_SESSION_RELEASE_COMPLETE, SESSION_NULL,
+                         DEREGISTERED, SESSION_NULL, "PDU_Release");
 
   Update_ue_state_matrix(DEREGISTERED, STATE_PDU_SESSION_RELEASE_COMPLETE,
                          SESSION_NULL, DEREGISTERED, SESSION_NULL,
@@ -168,20 +168,20 @@ void create_state_matrix() {
                          STATE_PDU_SESSION_RELEASE_COMPLETE, INACTIVE,
                          REGISTERED_CONNECTED, RELEASED, "PDU_Release");
 
-  Update_ue_state_matrix(
-      REGISTERED_CONNECTED, STATE_PDU_SESSION_MODIFICATION_REQUEST, ACTIVE,
-      REGISTERED_CONNECTED, SESSION_MODIFICATION,
-      "PDU_Session_Modification_Request");
+  Update_ue_state_matrix(REGISTERED_CONNECTED,
+                         STATE_PDU_SESSION_MODIFICATION_REQUEST, ACTIVE,
+                         REGISTERED_CONNECTED, SESSION_MODIFICATION,
+                         "PDU_Session_Modification_Request");
 
-  Update_ue_state_matrix(
-      REGISTERED_CONNECTED, STATE_PDU_SESSION_MODIFICATION_COMPLETE,
-      SESSION_MODIFICATION, REGISTERED_CONNECTED, ACTIVE,
-      "PDU_Session_Modification_Complete");
+  Update_ue_state_matrix(REGISTERED_CONNECTED,
+                         STATE_PDU_SESSION_MODIFICATION_COMPLETE,
+                         SESSION_MODIFICATION, REGISTERED_CONNECTED, ACTIVE,
+                         "PDU_Session_Modification_Complete");
 
-  Update_ue_state_matrix(
-      REGISTERED_CONNECTED, STATE_PDU_SESSION_MODIFICATION_COMMAND_REJECT,
-      SESSION_MODIFICATION, REGISTERED_CONNECTED, ACTIVE,
-      "PDU_Session_Modification_Reject");
+  Update_ue_state_matrix(REGISTERED_CONNECTED,
+                         STATE_PDU_SESSION_MODIFICATION_COMMAND_REJECT,
+                         SESSION_MODIFICATION, REGISTERED_CONNECTED, ACTIVE,
+                         "PDU_Session_Modification_Reject");
 }
 
 /*
@@ -324,8 +324,8 @@ int pdu_state_handle_message(
       case STATE_PDU_SESSION_MODIFICATION_REQUEST:
         smf_ctx->pdu_session_state =
             ue_state_matrix[cur_state][event][session_state].next_sess_state;
-        return reinterpret_cast<int (*)(
-            itti_n11_create_pdu_session_response_t*, uint32_t)>(
+        return reinterpret_cast<int (*)(itti_n11_create_pdu_session_response_t*,
+                                        uint32_t)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             pdu_session_resp, ue_id);
         break;

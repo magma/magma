@@ -1341,8 +1341,8 @@ TEST_F(NgapFlowTest, pdu_session_resource_setup_resp_rainy_day) {
 
 // Pdu Session Resource Modify Request
 TEST_F(NgapFlowTest, pdu_sess_resource_modify_req_sunny_day) {
-  MessageDef* message_p        = NULL;
-  uint8_t ip_buff[4]           = {0xc0, 0xa8, 0x3c, 0x8e};
+  MessageDef* message_p = NULL;
+  uint8_t ip_buff[4] = {0xc0, 0xa8, 0x3c, 0x8e};
   m5g_ue_description_t* ue_ref = NULL;
   itti_ngap_pdu_session_resource_modify_request_t* ngap_pdu_ses_modify_req =
       nullptr;
@@ -1354,15 +1354,14 @@ TEST_F(NgapFlowTest, pdu_sess_resource_modify_req_sunny_day) {
   // Verify number of connected gNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
-  message_p = itti_alloc_new_message(
-      TASK_AMF_APP, NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ);
+  message_p = itti_alloc_new_message(TASK_AMF_APP,
+                                     NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ);
   message_p->ittiMsgHeader.imsi = 0x311480000000001;
 
   ngap_pdu_ses_modify_req =
       &message_p->ittiMsg.ngap_pdu_session_resource_modify_req;
-  memset(
-      ngap_pdu_ses_modify_req, 0,
-      sizeof(itti_ngap_pdu_session_resource_modify_request_t));
+  memset(ngap_pdu_ses_modify_req, 0,
+         sizeof(itti_ngap_pdu_session_resource_modify_request_t));
 
   ngap_pdu_ses_modify_req->gnb_ue_ngap_id = gNB_UE_NGAP_ID;
   ngap_pdu_ses_modify_req->amf_ue_ngap_id = AMF_UE_NGAP_ID;
@@ -1371,17 +1370,17 @@ TEST_F(NgapFlowTest, pdu_sess_resource_modify_req_sunny_day) {
   ngap_pdu_ses_modify_req->pduSessResourceModReqList.item[0].Pdu_Session_ID =
       0x05;
 
-  amf_pdu_ses_modify_transfer_req.pdu_sess_aggregate_max_bit_rate.dl    = 1024;
-  amf_pdu_ses_modify_transfer_req.pdu_sess_aggregate_max_bit_rate.ul    = 1024;
+  amf_pdu_ses_modify_transfer_req.pdu_sess_aggregate_max_bit_rate.dl = 1024;
+  amf_pdu_ses_modify_transfer_req.pdu_sess_aggregate_max_bit_rate.ul = 1024;
   amf_pdu_ses_modify_transfer_req.ul_ng_u_up_tnl_modify_list.numOfItems = 1;
   up_transport_layer_information_t* ul_ng_u_up_tnl_item =
       &amf_pdu_ses_modify_transfer_req.ul_ng_u_up_tnl_modify_list
            .ul_ng_u_up_tnl_modfy_item[0];
 
-  ul_ng_u_up_tnl_item->gtp_tnl.gtp_tied[0]         = 0x80;
-  ul_ng_u_up_tnl_item->gtp_tnl.gtp_tied[1]         = 0x00;
-  ul_ng_u_up_tnl_item->gtp_tnl.gtp_tied[2]         = 0x00;
-  ul_ng_u_up_tnl_item->gtp_tnl.gtp_tied[3]         = 0x01;
+  ul_ng_u_up_tnl_item->gtp_tnl.gtp_tied[0] = 0x80;
+  ul_ng_u_up_tnl_item->gtp_tnl.gtp_tied[1] = 0x00;
+  ul_ng_u_up_tnl_item->gtp_tnl.gtp_tied[2] = 0x00;
+  ul_ng_u_up_tnl_item->gtp_tnl.gtp_tied[3] = 0x01;
   ul_ng_u_up_tnl_item->gtp_tnl.endpoint_ip_address = blk2bstr(ip_buff, 4);
 
   amf_pdu_ses_modify_transfer_req.qos_flow_add_or_mod_request_list
@@ -1404,14 +1403,14 @@ TEST_F(NgapFlowTest, pdu_sess_resource_modify_req_sunny_day) {
   // verify new ue is associated with gnb
   ue_ref = ngap_new_ue(state, peerInfo.assoc_id, gNB_UE_NGAP_ID);
   ASSERT_TRUE(ue_ref != NULL);
-  ue_ref->ng_ue_state    = NGAP_UE_CONNECTED;
+  ue_ref->ng_ue_state = NGAP_UE_CONNECTED;
   ue_ref->gnb_ue_ngap_id = gNB_UE_NGAP_ID;
   ue_ref->amf_ue_ngap_id = AMF_UE_NGAP_ID;
 
   // verify pdu_session_resource_setup_request is encoded correctly
-  EXPECT_EQ(
-      RETURNok, ngap_generate_ngap_pdusession_resource_modify_req(
-                    state, &NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ(message_p)));
+  EXPECT_EQ(RETURNok,
+            ngap_generate_ngap_pdusession_resource_modify_req(
+                state, &NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ(message_p)));
   itti_free_msg_content(message_p);
   free(message_p);
 }
@@ -1419,10 +1418,10 @@ TEST_F(NgapFlowTest, pdu_sess_resource_modify_req_sunny_day) {
 // Pdu Session Resource Modify Response
 TEST_F(NgapFlowTest, pdu_session_resource_modify_resp_sunny_day) {
   Ngap_PDUSessionResourceModifyResponse_t* container = NULL;
-  gnb_description_t* gNB_ref                         = NULL;
-  m5g_ue_description_t* ue_ref                       = NULL;
-  Ngap_NGAP_PDU_t decoded_pdu                        = {};
-  uint8_t pdu_ss_resource_modify_resp_hex_buff[]     = {
+  gnb_description_t* gNB_ref = NULL;
+  m5g_ue_description_t* ue_ref = NULL;
+  Ngap_NGAP_PDU_t decoded_pdu = {};
+  uint8_t pdu_ss_resource_modify_resp_hex_buff[] = {
       0x20, 0x1a, 0x00, 0x1e, 0x00, 0x00, 0x03, 0x00, 0x0a, 0x40, 0x04, 0x40,
       0x01, 0x00, 0x01, 0x00, 0x55, 0x40, 0x04, 0x80, 0x01, 0x00, 0x01, 0x00,
       0x41, 0x40, 0x07, 0x00, 0x00, 0x05, 0x03, 0x10, 0x00, 0x0c};
@@ -1437,9 +1436,8 @@ TEST_F(NgapFlowTest, pdu_session_resource_modify_resp_sunny_day) {
       blk2bstr(pdu_ss_resource_modify_resp_hex_buff, len);
 
   // Check if the pdu_session_resource_modify_response decoded successfully
-  ASSERT_EQ(
-      ngap_amf_decode_pdu(&decoded_pdu, pdu_ss_modify_response_succ_msg),
-      RETURNok);
+  ASSERT_EQ(ngap_amf_decode_pdu(&decoded_pdu, pdu_ss_modify_response_succ_msg),
+            RETURNok);
   container = &(decoded_pdu.choice.successfulOutcome.value.choice
                     .PDUSessionResourceModifyResponse);
   Ngap_PDUSessionResourceModifyResponseIEs_t* ie = NULL;
@@ -1470,9 +1468,8 @@ TEST_F(NgapFlowTest, pdu_session_resource_modify_resp_sunny_day) {
 
   // Check if AMF_UE_NGAP_ID present
   ASSERT_TRUE(ie != NULL);
-  asn_INTEGER2ulong(
-      &ie->value.choice.AMF_UE_NGAP_ID,
-      reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
+  asn_INTEGER2ulong(&ie->value.choice.AMF_UE_NGAP_ID,
+                    reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
   NGAP_FIND_PROTOCOLIE_BY_ID(
@@ -1482,10 +1479,9 @@ TEST_F(NgapFlowTest, pdu_session_resource_modify_resp_sunny_day) {
   ASSERT_TRUE(ie != NULL);
 
   // verify pdu_session_resource_modify_response is handled_correctly
-  EXPECT_EQ(
-      ngap_amf_handle_message(
-          state, peerInfo.assoc_id, peerInfo.instreams, &decoded_pdu),
-      RETURNok);
+  EXPECT_EQ(ngap_amf_handle_message(state, peerInfo.assoc_id,
+                                    peerInfo.instreams, &decoded_pdu),
+            RETURNok);
 
   // Check if UE is not invalid ID
   EXPECT_NE(ue_ref->amf_ue_ngap_id, INVALID_AMF_UE_NGAP_ID);

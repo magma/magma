@@ -43,6 +43,14 @@ SessionProxyResponderHandlerImpl::SessionProxyResponderHandlerImpl(
     std::shared_ptr<LocalEnforcer> enforcer, SessionStore& session_store)
     : enforcer_(enforcer), session_store_(session_store) {}
 
+SessionProxyResponderHandlerImpl::SessionProxyResponderHandlerImpl(
+    std::shared_ptr<LocalEnforcer> enforcer,
+    std::shared_ptr<SessionStateEnforcer> m5genforcer,
+    SessionStore& session_store)
+    : enforcer_(enforcer),
+      m5genforcer_(m5genforcer),
+      session_store_(session_store) {}
+
 void SessionProxyResponderHandlerImpl::ChargingReAuth(
     ServerContext* context, const ChargingReAuthRequest* request,
     std::function<void(Status, ChargingReAuthAnswer)> response_callback) {
@@ -93,10 +101,25 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy,
                                                     response_callback]() {
     PolicyReAuthAnswer ans;
-    auto session_map = session_store_.read_sessions({request_cpy.imsi()});
+    const std::string& imsi = request_cpy.imsi();
+    const std::string& session_id = request_cpy.session_id();
+    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+    auto session_map = session_store_.read_sessions({imsi});
+    auto session_it = session_store_.find_session(session_map, criteria);
+    auto& session = **session_it;
+
+    const auto& config = session->get_config();
+    const auto& common_context = config.common_context;
+
     SessionUpdate update =
         SessionStore::get_default_session_update(session_map);
-    enforcer_->init_policy_reauth(session_map, request_cpy, ans, update);
+    if (common_context.rat_type() == TGPP_NR) {
+      MLOG(MDEBUG) << "(Policy) ReAuthRequest for 5G from PCF";
+      m5genforcer_->init_policy_reauth(imsi, session_map, request_cpy, ans,
+                                       update);
+    } else {
+      enforcer_->init_policy_reauth(session_map, request_cpy, ans, update);
+    }
     MLOG(MDEBUG) << "Result of Gx (Policy) ReAuthRequest "
                  << raa_result_to_str(ans.result());
     bool update_success = session_store_.update_sessions(update);

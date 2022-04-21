@@ -2077,54 +2077,52 @@ status_code_e ngap_amf_handle_pduSession_modify_response(
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* pdu) {
   OAILOG_FUNC_IN(LOG_NGAP);
   Ngap_PDUSessionResourceModifyResponse_t* container = NULL;
-  Ngap_PDUSessionResourceModifyResponseIEs_t* ie     = NULL;
-  m5g_ue_description_t* ue_ref_p                     = NULL;
-  MessageDef* message_p                              = NULL;
-  gnb_ue_ngap_id_t gnb_ue_ngap_id                    = 0;
-  amf_ue_ngap_id_t amf_ue_ngap_id                    = 0;
-  int rc                                             = RETURNok;
-  imsi64_t imsi64                                    = INVALID_IMSI64;
+  Ngap_PDUSessionResourceModifyResponseIEs_t* ie = NULL;
+  m5g_ue_description_t* ue_ref_p = NULL;
+  MessageDef* message_p = NULL;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
+  amf_ue_ngap_id_t amf_ue_ngap_id = 0;
+  int rc = RETURNok;
+  imsi64_t imsi64 = INVALID_IMSI64;
   container = &pdu->choice.successfulOutcome.value.choice
                    .PDUSessionResourceModifyResponse;
-  NGAP_FIND_PROTOCOLIE_BY_ID(
-      Ngap_PDUSessionResourceModifyResponseIEs_t, ie, container,
-      Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
+  NGAP_FIND_PROTOCOLIE_BY_ID(Ngap_PDUSessionResourceModifyResponseIEs_t, ie,
+                             container, Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID,
+                             true);
   if (ie) {
-    asn_INTEGER2ulong(
-        &ie->value.choice.AMF_UE_NGAP_ID, (uint64_t*) &amf_ue_ngap_id);
+    asn_INTEGER2ulong(&ie->value.choice.AMF_UE_NGAP_ID,
+                      (uint64_t*)&amf_ue_ngap_id);
 
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
-  NGAP_FIND_PROTOCOLIE_BY_ID(
-      Ngap_PDUSessionResourceModifyResponseIEs_t, ie, container,
-      Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID, true);
+  NGAP_FIND_PROTOCOLIE_BY_ID(Ngap_PDUSessionResourceModifyResponseIEs_t, ie,
+                             container, Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID,
+                             true);
   if (ie) {
     // gNB UE NGAP ID is limited to 24 bits
     gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
-  if ((ue_ref_p = ngap_state_get_ue_amfid((uint32_t) amf_ue_ngap_id)) == NULL) {
-    OAILOG_DEBUG(
-        LOG_NGAP,
-        "No UE is attached to this amf UE ngap id: " AMF_UE_NGAP_ID_FMT "\n",
-        amf_ue_ngap_id);
+  if ((ue_ref_p = ngap_state_get_ue_amfid((uint32_t)amf_ue_ngap_id)) == NULL) {
+    OAILOG_DEBUG(LOG_NGAP,
+                 "No UE is attached to this amf UE ngap id: " AMF_UE_NGAP_ID_FMT
+                 "\n",
+                 amf_ue_ngap_id);
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
 
   if (ue_ref_p->gnb_ue_ngap_id != gnb_ue_ngap_id) {
-    OAILOG_DEBUG(
-        LOG_NGAP,
-        "Mismatch in gNB UE NGAP ID, known: " GNB_UE_NGAP_ID_FMT
-        ", received: " GNB_UE_NGAP_ID_FMT "\n",
-        ue_ref_p->gnb_ue_ngap_id, gnb_ue_ngap_id);
+    OAILOG_DEBUG(LOG_NGAP,
+                 "Mismatch in gNB UE NGAP ID, known: " GNB_UE_NGAP_ID_FMT
+                 ", received: " GNB_UE_NGAP_ID_FMT "\n",
+                 ue_ref_p->gnb_ue_ngap_id, gnb_ue_ngap_id);
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
   ngap_imsi_map_t* imsi_map = get_ngap_imsi_map();
-  hashtable_uint64_ts_get(
-      imsi_map->amf_ue_id_imsi_htbl,
-      (const hash_key_t) ue_ref_p->amf_ue_ngap_id, &imsi64);
+  hashtable_uint64_ts_get(imsi_map->amf_ue_id_imsi_htbl,
+                          (const hash_key_t)ue_ref_p->amf_ue_ngap_id, &imsi64);
 
   message_p =
       itti_alloc_new_message(TASK_NGAP, NGAP_PDU_SESSION_RESOURCE_MODIFY_RSP);
@@ -2149,7 +2147,7 @@ status_code_e ngap_amf_handle_pduSession_modify_response(
 
     for (int index = 0; index < pduSessionResource; index++) {
       Ngap_PDUSessionResourceModifyItemModRes_t* pduSession_modify_item =
-          (Ngap_PDUSessionResourceModifyItemModRes_t*) ie->value.choice
+          (Ngap_PDUSessionResourceModifyItemModRes_t*)ie->value.choice
               .PDUSessionResourceModifyListModRes.list.array[index];
 
       NGAP_PDU_SESSION_RESOURCE_MODIFY_RSP(message_p)
@@ -2162,7 +2160,7 @@ status_code_e ngap_amf_handle_pduSession_modify_response(
 
       decode_result = aper_decode_complete(
           NULL, &asn_DEF_Ngap_PDUSessionResourceModifyResponseTransfer,
-          (void**) &pDUSessionResourceModifyResponseTransfer,
+          (void**)&pDUSessionResourceModifyResponseTransfer,
           pduSession_modify_item->pDUSessionResourceModifyResponseTransfer.buf,
           pduSession_modify_item->pDUSessionResourceModifyResponseTransfer
               .size);

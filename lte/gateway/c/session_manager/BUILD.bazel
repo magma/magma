@@ -282,6 +282,7 @@ cc_library(
     srcs = ["AmfServiceClient.cpp"],
     hdrs = ["AmfServiceClient.hpp"],
     deps = [
+	":grpc_magma_utils",	    
         "//lte/protos:session_manager_cpp_grpc",
         "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
         "//orc8r/gateway/c/common/service_registry",
@@ -360,6 +361,7 @@ cc_library(
     srcs = ["SessionProxyResponderHandler.cpp"],
     hdrs = ["SessionProxyResponderHandler.hpp"],
     deps = [
+	":session_state_enforcer",	    
         ":local_enforcer",
         "//lte/protos:abort_session_cpp_grpc",
         "//orc8r/gateway/c/common/sentry:sentry_wrapper",

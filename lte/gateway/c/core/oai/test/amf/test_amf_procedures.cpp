@@ -2477,18 +2477,18 @@ TEST_F(AMFAppProcedureTest, TestAuthFailureFromSubscribeDbLock) {
 }
 
 TEST_F(AMFAppProcedureTest, TestPDUSessionResourceModify) {
-  int rc                 = RETURNerror;
+  int rc = RETURNerror;
   amf_ue_ngap_id_t ue_id = 0;
 
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
-  imsi64          = send_initial_ue_message_no_tmsi(
-      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
-      sizeof(initial_ue_message_hexbuf));
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
 
   /* Check if UE Context is created with correct imsi */
   bool res = false;
-  res      = get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id);
+  res = get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id);
   EXPECT_TRUE(res == true);
 
   /* Send the authentication response message from subscriberdb */
@@ -2502,9 +2502,9 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionResourceModify) {
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send uplink nas message for security mode complete response from UE */
-  rc = send_uplink_nas_message_ue_smc_response(
-      amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
-      sizeof(ue_smc_response_hexbuf));
+  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
+                                               ue_smc_response_hexbuf,
+                                               sizeof(ue_smc_response_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
   send_initial_context_response(amf_app_desc_p, ue_id);

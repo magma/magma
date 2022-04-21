@@ -16,7 +16,6 @@ syntax = "proto3";
 import "orc8r/protos/common.proto";
 import "lte/protos/policydb.proto";
 import "lte/protos/subscriberdb.proto";
-import "lte/protos/apn.proto";
 import "google/protobuf/timestamp.proto";
 
 package magma.lte;
@@ -808,16 +807,16 @@ message QosPolicy {
 	INSTALL=0;
 	PENDING=1;
 	REJECT=2;
- }
- PolicyState policy_state=1;
- uint32 version=2;
- enum PolicyAction {
+   }
+   PolicyState policy_state=1;
+   uint32 version=2;
+   enum PolicyAction {
         ADD=0;
         DEL=1;
         MOD=2;
- }
- PolicyAction policy_action=3;
- PolicyRule  qos =4;
+  }
+  PolicyAction policy_action=3;
+  PolicyRule qos =4;
 }
 
 enum prem_capab {
@@ -1002,6 +1001,8 @@ message SetSMSessionContextAccess {
   RatSpecificContextAccess   rat_specific_context = 2;
 }
 
+
+
 // Node Level Messages from UPF. Purely Event Based.
 message UPFNodeState {
     string upf_id = 1;
@@ -1173,5 +1174,4 @@ service SmfPduSessionSmContext {
  rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}
  rpc SetSmfSessionContext(SetSMSessionContextAccess) returns (SmContextVoid);
 }
-
 

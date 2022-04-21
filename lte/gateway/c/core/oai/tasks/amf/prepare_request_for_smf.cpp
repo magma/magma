@@ -99,13 +99,13 @@ int create_session_grpc_req_on_gnb_setup_rsp(
     qosPolicy->set_policy_state(QosPolicy::INSTALL);
     magma::lte::PolicyRule* rule = qosPolicy->mutable_qos();
     rule->set_id(
-        (const char*) smf_ctx->qos_flow_list.item[i].qos_flow_req_item.rule_id);
+        (const char*)smf_ctx->qos_flow_list.item[i].qos_flow_req_item.rule_id);
   }
 
   OAILOG_DEBUG(LOG_AMF_APP, "Sending PDU session Setup Response to SMF");
 
-  OAILOG_INFO(
-      LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s]\n", imsi);
+  OAILOG_INFO(LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s]\n",
+              imsi);
 
   AMFClientServicer::getInstance().set_smf_session(req);
 
@@ -164,7 +164,7 @@ int amf_send_grpc_req_on_gnb_pdu_sess_mod_rsp(
     }
     magma::lte::PolicyRule* rule = qosPolicy->mutable_qos();
     rule->set_id(
-        (const char*) smf_ctx->qos_flow_list.item[i].qos_flow_req_item.rule_id);
+        (const char*)smf_ctx->qos_flow_list.item[i].qos_flow_req_item.rule_id);
   }
 
   OAILOG_DEBUG(LOG_AMF_APP, "Sending PDU Session Modification Response to SMF");
@@ -192,7 +192,7 @@ int amf_smf_create_session_req(
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
     uint8_t* gnb_gtp_teid_ip_addr, char* ue_ipv4_addr, char* ue_ipv6_addr,
     const ambr_t& state_ambr, const eps_subscribed_qos_profile_t& qos_profile) {
-  imsi64_t imsi64                   = INVALID_IMSI64;
+  imsi64_t imsi64 = INVALID_IMSI64;
   ue_m5gmm_context_s* ue_mm_context = NULL;
   amf_context_t* amf_ctxt_p = NULL;
 
@@ -320,18 +320,18 @@ int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
  * **                                                                        **
  * **                                                                        **
  * ***************************************************************************/
-int amf_app_pdu_session_modification_complete(
-    amf_smf_establish_t* message, char* imsi, uint32_t version) {
-  imsi64_t imsi64                   = INVALID_IMSI64;
-  amf_context_t* amf_ctxt_p         = NULL;
+int amf_app_pdu_session_modification_complete(amf_smf_establish_t* message,
+                                              char* imsi, uint32_t version) {
+  imsi64_t imsi64 = INVALID_IMSI64;
+  amf_context_t* amf_ctxt_p = NULL;
   ue_m5gmm_context_s* ue_mm_context = NULL;
   std::shared_ptr<smf_context_t> smf_ctx;
   amf_smf_establish_t amf_smf_grpc_ies;
 
-  IMSI_STRING_TO_IMSI64((char*) imsi, &imsi64);
+  IMSI_STRING_TO_IMSI64((char*)imsi, &imsi64);
   ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
-  smf_ctx       = amf_get_smf_context_by_pdu_session_id(
-      ue_mm_context, message->pdu_session_id);
+  smf_ctx = amf_get_smf_context_by_pdu_session_id(ue_mm_context,
+                                                  message->pdu_session_id);
 
   if (ue_mm_context) {
     amf_ctxt_p = &ue_mm_context->amf_context;
@@ -343,14 +343,14 @@ int amf_app_pdu_session_modification_complete(
   }
 
   if (!smf_ctx) {
-    OAILOG_ERROR(
-        LOG_NAS_AMF, "session context not found using session id [%u]\n",
-        message->pdu_session_id);
+    OAILOG_ERROR(LOG_NAS_AMF,
+                 "session context not found using session id [%u]\n",
+                 message->pdu_session_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
 
-  OAILOG_INFO(
-      LOG_AMF_APP, "Received PDU Session Modification Complete [%s] \n", imsi);
+  OAILOG_INFO(LOG_AMF_APP, "Received PDU Session Modification Complete [%s] \n",
+              imsi);
 
   // Incrementing the  pdu session version
   smf_ctx->pdu_session_version++;
@@ -358,19 +358,15 @@ int amf_app_pdu_session_modification_complete(
   amf_smf_grpc_ies.pdu_session_id = message->pdu_session_id;
   amf_smf_grpc_ies.cause_value = SMF_CAUSE_SUCCESS;
 
-  //gnb tunnel info
-  memset(
-        &amf_smf_grpc_ies.gnb_gtp_teid_ip_addr, '\0',
-        sizeof(amf_smf_grpc_ies.gnb_gtp_teid_ip_addr));
-  memset(
-        &amf_smf_grpc_ies.gnb_gtp_teid, '\0',
-        sizeof(amf_smf_grpc_ies.gnb_gtp_teid));
-  memcpy(
-        &amf_smf_grpc_ies.gnb_gtp_teid_ip_addr,
-        &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, 4);
-  memcpy(
-        &amf_smf_grpc_ies.gnb_gtp_teid, &smf_ctx->gtp_tunnel_id.gnb_gtp_teid,
-        4);
+  // gnb tunnel info
+  memset(&amf_smf_grpc_ies.gnb_gtp_teid_ip_addr, '\0',
+         sizeof(amf_smf_grpc_ies.gnb_gtp_teid_ip_addr));
+  memset(&amf_smf_grpc_ies.gnb_gtp_teid, '\0',
+         sizeof(amf_smf_grpc_ies.gnb_gtp_teid));
+  memcpy(&amf_smf_grpc_ies.gnb_gtp_teid_ip_addr,
+         &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, 4);
+  memcpy(&amf_smf_grpc_ies.gnb_gtp_teid, &smf_ctx->gtp_tunnel_id.gnb_gtp_teid,
+         4);
 
   IMSI64_TO_STRING(ue_mm_context->amf_context.imsi64, imsi, 15);
   // Prepare and send modify setup response message to SMF through gRPC
@@ -390,16 +386,16 @@ int amf_app_pdu_session_modification_complete(
  * ***************************************************************************/
 int amf_app_pdu_session_modification_command_reject(
     amf_smf_establish_t* message, char* imsi, uint32_t version) {
-  imsi64_t imsi64                   = INVALID_IMSI64;
-  amf_context_t* amf_ctxt_p         = NULL;
+  imsi64_t imsi64 = INVALID_IMSI64;
+  amf_context_t* amf_ctxt_p = NULL;
   ue_m5gmm_context_s* ue_mm_context = NULL;
   std::shared_ptr<smf_context_t> smf_ctx;
   amf_smf_establish_t amf_smf_grpc_ies;
 
-  IMSI_STRING_TO_IMSI64((char*) imsi, &imsi64);
+  IMSI_STRING_TO_IMSI64((char*)imsi, &imsi64);
   ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
-  smf_ctx       = amf_get_smf_context_by_pdu_session_id(
-      ue_mm_context, message->pdu_session_id);
+  smf_ctx = amf_get_smf_context_by_pdu_session_id(ue_mm_context,
+                                                  message->pdu_session_id);
 
   if (ue_mm_context) {
     amf_ctxt_p = &ue_mm_context->amf_context;

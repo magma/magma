@@ -91,9 +91,9 @@ typedef uint32_t teid_t;
   (mSGpTR)->ittiMsg.ngap_path_switch_request_ack
 #define NGAP_PATH_SWITCH_REQUEST_FAILURE(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_path_switch_request_failure
-#define NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ(mSGpTR)                           \
+#define NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_pdu_session_resource_modify_req
-#define NGAP_PDU_SESSION_RESOURCE_MODIFY_RSP(mSGpTR)                           \
+#define NGAP_PDU_SESSION_RESOURCE_MODIFY_RSP(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_pdu_sessionresource_modify_rsp
 
 // NOT a ITTI message
