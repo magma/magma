@@ -63,9 +63,11 @@ pytest_test(
         "//lte/gateway/python/magma/enodebd/data_models:data_model",
         "//lte/gateway/python/magma/enodebd/device_config:configuration_init",
         "//lte/gateway/python/magma/enodebd/devices:baicells_qrtb",
+        "//lte/gateway/python/magma/enodebd/devices:device_utils",
         "//lte/gateway/python/magma/enodebd/tests/test_utils:enb_acs_builder",
         "//lte/gateway/python/magma/enodebd/tests/test_utils:enodeb_handler",
         "//lte/gateway/python/magma/enodebd/tests/test_utils:tr069_msg_builder",
+        requirement("parameterized"),
     ],
 )
 

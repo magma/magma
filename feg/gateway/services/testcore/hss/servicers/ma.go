@@ -202,5 +202,5 @@ func (srv *HomeSubscriberServer) set3GPPAAAServerName(subscriber *lteprotos.Subs
 	}
 	subscriber.State.TgppAaaServerName = string(serverName)
 	subscriber.State.TgppAaaServerRegistered = false
-	return srv.store.UpdateSubscriber(subscriber)
+	return srv.store.UpdateSubscriber(&lteprotos.SubscriberUpdate{Data: subscriber})
 }

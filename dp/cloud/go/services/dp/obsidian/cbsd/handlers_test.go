@@ -98,7 +98,7 @@ func (s *HandlersTestSuite) TestListCbsds() {
 			},
 		},
 		{
-			testName:          "test list cbsds without limit and offset",
+			testName:          "test list cbsds with limit and offset",
 			paramNames:        []string{"network_id"},
 			ParamValues:       []string{"n1"},
 			expectedStatus:    http.StatusOK,
@@ -110,6 +110,25 @@ func (s *HandlersTestSuite) TestListCbsds() {
 				Pagination: &protos.Pagination{
 					Limit:  wrapperspb.Int64(4),
 					Offset: wrapperspb.Int64(3),
+				},
+			},
+		},
+		{
+			testName:          "test list cbsds with all params",
+			paramNames:        []string{"network_id"},
+			ParamValues:       []string{"n1"},
+			expectedStatus:    http.StatusOK,
+			expectedResult:    getPaginatedCbsds(),
+			expectedError:     "",
+			queryParamsString: "?limit=4&offset=3&serial_number=foo123",
+			expectedListRequest: &protos.ListCbsdRequest{
+				NetworkId: "n1",
+				Pagination: &protos.Pagination{
+					Limit:  wrapperspb.Int64(4),
+					Offset: wrapperspb.Int64(3),
+				},
+				Filter: &protos.CbsdFilter{
+					SerialNumber: "foo123",
 				},
 			},
 		},
@@ -236,6 +255,30 @@ func (s *HandlersTestSuite) TestCreateCbsd() {
 		Handler:        createCbsd,
 		ExpectedStatus: http.StatusCreated,
 		ExpectedError:  "",
+	}
+	tests.RunUnitTest(s.T(), e, tc)
+}
+
+func (s *HandlersTestSuite) TestCreateWithDuplicateUniqueFieldsReturnsConflict() {
+	e := echo.New()
+	obsidianHandlers := cbsd.GetHandlers()
+	payload := createOrUpdateCbsdPayload()
+	const errMsg = "some error"
+	s.cbsdServer.err = status.Error(codes.AlreadyExists, errMsg)
+	s.cbsdServer.expectedCreateRequest = &protos.CreateCbsdRequest{
+		NetworkId: "n1",
+		Data:      models.CbsdToBackend(payload),
+	}
+	createCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdsPath, obsidian.POST).HandlerFunc
+	tc := tests.Test{
+		Method:                 http.MethodPost,
+		URL:                    "/magma/v1/dp/n1/cbsds",
+		Payload:                payload,
+		ParamNames:             []string{"network_id"},
+		ParamValues:            []string{"n1"},
+		Handler:                createCbsd,
+		ExpectedStatus:         http.StatusConflict,
+		ExpectedErrorSubstring: errMsg,
 	}
 	tests.RunUnitTest(s.T(), e, tc)
 }
@@ -407,6 +450,31 @@ func (s *HandlersTestSuite) TestUpdateNonexistentCbsd() {
 	tests.RunUnitTest(s.T(), e, tc)
 }
 
+func (s *HandlersTestSuite) TestUpdateCbsdWithDuplicateUniqueFieldsReturnsConflict() {
+	e := echo.New()
+	obsidianHandlers := cbsd.GetHandlers()
+	payload := createOrUpdateCbsdPayload()
+	const errMsg = "some error"
+	s.cbsdServer.err = status.Error(codes.AlreadyExists, errMsg)
+	s.cbsdServer.expectedUpdateRequest = &protos.UpdateCbsdRequest{
+		NetworkId: "n1",
+		Id:        1,
+		Data:      models.CbsdToBackend(payload),
+	}
+	updateCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdPath, obsidian.PUT).HandlerFunc
+	tc := tests.Test{
+		Method:                 http.MethodPost,
+		URL:                    "/magma/v1/dp/n1/cbsds/1",
+		Payload:                payload,
+		ParamNames:             []string{"network_id", "cbsd_id"},
+		ParamValues:            []string{"n1", "1"},
+		Handler:                updateCbsd,
+		ExpectedStatus:         http.StatusConflict,
+		ExpectedErrorSubstring: errMsg,
+	}
+	tests.RunUnitTest(s.T(), e, tc)
+}
+
 func (s *HandlersTestSuite) TestGetPagination() {
 	testCases := []struct {
 		testName       string
@@ -491,6 +559,35 @@ func (s *HandlersTestSuite) TestGetPaginationWithIncorrectLimitAndOffset() {
 		pag, err := cbsd.GetPagination(c)
 		assert.Nil(s.T(), pag)
 		assert.EqualError(s.T(), err, "code=400, message="+tc.expectedError)
+	}
+}
+
+func (s *HandlersTestSuite) TestGetCbsdFilter() {
+	testCases := []struct {
+		testName             string
+		URL                  string
+		expectedSerialNumber string
+		expectedError        string
+	}{
+		{
+			testName:             "test filter with serial_number",
+			URL:                  "/some/url?serial_number=some_serial_number",
+			expectedSerialNumber: "some_serial_number",
+		},
+		{
+			testName:             "test filter without params",
+			URL:                  "/some/url",
+			expectedSerialNumber: "",
+		},
+	}
+	for _, tc := range testCases {
+		s.Run(tc.testName, func() {
+			t := tests.Test{}
+			req := *httptest.NewRequest(t.Method, tc.URL, bytes.NewReader(nil))
+			c := echo.New().NewContext(&req, httptest.NewRecorder())
+			f := cbsd.GetCbsdFilter(c)
+			s.Equal(tc.expectedSerialNumber, f.SerialNumber)
+		})
 	}
 }
 

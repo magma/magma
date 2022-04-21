@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
 
 #include <grpcpp/security/credentials.h>
 
@@ -29,8 +29,8 @@
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/spgw_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.hpp"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 using grpc::Channel;
 using grpc::ChannelCredentials;

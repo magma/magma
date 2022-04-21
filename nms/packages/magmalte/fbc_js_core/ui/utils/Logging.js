@@ -20,6 +20,7 @@ import axios from 'axios';
 export const Events = {
   DOCUMENTATION_LINK_CLICKED: 'documentation_link_clicked',
   SETTINGS_CLICKED: 'settings_clicked',
+  ADMINISTRATION_CLICKED: 'administration_clicked',
 };
 
 export const ServerLog = (topic: string) =>

@@ -1,3 +1,3 @@
-See the [Contribute section](https://docs.magmacore.org/docs/contributing/contribute_onboarding)
-of Magma documentation for information on developer onboarding, workflow, 
-contribution convention, and presubmit checks.
+See the [Contributor Guide](https://github.com/magma/magma/wiki/Contributor-Guide/)
+for information on developer onboarding, workflow, contribution conventions,
+presubmit checks and more.

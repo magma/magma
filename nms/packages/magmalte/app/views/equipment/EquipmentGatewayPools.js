@@ -67,7 +67,7 @@ export default function GatewayPools() {
   const classes = useStyles();
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container justify="space-between" spacing={3}>
+      <Grid container justifyContent="space-between" spacing={3}>
         <Grid item xs={12}>
           <GatewayPoolsTable />
         </Grid>

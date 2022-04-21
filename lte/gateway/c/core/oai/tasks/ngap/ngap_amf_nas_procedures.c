@@ -56,8 +56,8 @@
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_nas_procedures.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_ta.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_common.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.hpp"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 //------------------------------------------------------------------------------
 status_code_e ngap_amf_handle_initial_ue_message(ngap_state_t* state,

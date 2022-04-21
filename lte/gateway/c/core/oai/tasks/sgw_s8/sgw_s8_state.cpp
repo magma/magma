@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "lte/gateway/c/core/oai/include/sgw_s8_state.h"
+#include "lte/gateway/c/core/oai/include/sgw_s8_state.hpp"
 
 #include <cstdlib>
 #include "lte/gateway/c/core/oai/common/conversions.h"
@@ -24,7 +24,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
 }
 
-#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.hpp"
 
 using magma::lte::SgwStateManager;
 

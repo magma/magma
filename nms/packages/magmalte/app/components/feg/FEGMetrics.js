@@ -65,7 +65,7 @@ export default function () {
           <Grid
             container
             alignItems="center"
-            justify="center"
+            justifyContent="center"
             className={classes.emptyTable}>
             <Grid item xs={12} className={classes.emptyTableContent}>
               <Text variant="body2">

@@ -80,9 +80,11 @@ func listCbsds(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	filter := GetCbsdFilter(c)
 	req := protos.ListCbsdRequest{
 		NetworkId:  networkId,
 		Pagination: pagination,
+		Filter:     filter,
 	}
 	ctx := c.Request().Context()
 	cbsds, err := client.ListCbsds(ctx, &req)
@@ -134,7 +136,6 @@ func createCbsd(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	// models.FillDefaults(payload)
 	if err := payload.Validate(strfmt.Default); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
@@ -147,7 +148,7 @@ func createCbsd(c echo.Context) error {
 	ctx := c.Request().Context()
 	_, err = client.CreateCbsd(ctx, &req)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return getHttpError(err)
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -187,7 +188,6 @@ func updateCbsd(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	// models.FillDefaults(payload)
 	if err := payload.Validate(strfmt.Default); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
@@ -213,10 +213,18 @@ func updateCbsd(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+func GetCbsdFilter(c echo.Context) *protos.CbsdFilter {
+	return &protos.CbsdFilter{
+		SerialNumber: c.QueryParam("serial_number"),
+	}
+}
+
 func getHttpError(err error) error {
 	switch s, _ := status.FromError(err); s.Code() {
 	case codes.NotFound:
 		return echo.NewHTTPError(http.StatusNotFound, err)
+	case codes.AlreadyExists:
+		return echo.NewHTTPError(http.StatusConflict, err)
 	default:
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}

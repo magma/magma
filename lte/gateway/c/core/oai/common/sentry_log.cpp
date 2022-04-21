@@ -11,13 +11,13 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/core/oai/common/sentry_log.h"
+#include "lte/gateway/c/core/oai/common/sentry_log.hpp"
 
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
+#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.hpp"
 
 extern "C" void sentry_error(const char* fmt, ...) {
   va_list args;

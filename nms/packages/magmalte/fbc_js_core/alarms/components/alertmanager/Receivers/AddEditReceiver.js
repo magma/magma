@@ -219,7 +219,7 @@ function ConfigSection({
               container
               item
               xs={12}
-              justify="space-between"
+              justifyContent="space-between"
               alignItems="center">
               <Grid item>
                 <Typography>{title}</Typography>

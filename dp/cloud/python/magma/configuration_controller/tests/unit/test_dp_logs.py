@@ -11,13 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from magma.configuration_controller.custom_types.custom_types import DBResponse
 from magma.db_service.models import (
     DBCbsd,
     DBCbsdState,
     DBRequest,
-    DBRequestState,
     DBRequestType,
-    DBResponse,
 )
 from magma.db_service.tests.local_db_test_case import LocalDBTestCase
 from magma.fluentd_client.client import DPLog
@@ -50,8 +49,7 @@ class DPLogsTestCase(LocalDBTestCase):
             network_id=SOME_NETWORK_ID,
         )
         req_type = DBRequestType(name=HEARTBEAT_REQUEST)
-        req_state = DBRequestState(name='some_req_state')
-        self.session.add_all([cbsd, req_type, req_state])
+        self.session.add_all([cbsd, req_type])
         self.session.commit()
 
     @parameterized.expand([
@@ -61,11 +59,10 @@ class DPLogsTestCase(LocalDBTestCase):
     def test_dp_log_created_from_db_request(self, with_cbsd, serial_num, fcc_id, network_id):
         # Given
         req_type = self.session.query(DBRequestType).first()
-        req_state = self.session.query(DBRequestState).first()
         cbsd = None
         if with_cbsd:
             cbsd = self.session.query(DBCbsd).first()
-        request = DBRequest(type=req_type, state=req_state, cbsd=cbsd, payload=SOME_MESSAGE)
+        request = DBRequest(type=req_type, cbsd=cbsd, payload=SOME_MESSAGE)
 
         # When
         actual_log = make_dp_log(request)
@@ -90,11 +87,10 @@ class DPLogsTestCase(LocalDBTestCase):
     def test_dp_log_created_from_db_response(self, with_cbsd, serial_num, fcc_id, network_id):
         # Given
         req_type = self.session.query(DBRequestType).first()
-        req_state = self.session.query(DBRequestState).first()
         cbsd = None
         if with_cbsd:
             cbsd = self.session.query(DBCbsd).first()
-        request = DBRequest(type=req_type, state=req_state, cbsd=cbsd, payload='some_request_message')
+        request = DBRequest(type=req_type, cbsd=cbsd, payload='some_request_message')
         resp_payload = {"response": {"responseCode": "0"}}
         response = DBResponse(request=request, response_code=200, payload=resp_payload)
 

@@ -12,12 +12,7 @@ limitations under the License.
 """
 
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
-from magma.db_service.models import (
-    DBCbsd,
-    DBCbsdState,
-    DBRequestState,
-    DBRequestType,
-)
+from magma.db_service.models import DBCbsd, DBCbsdState
 from magma.db_service.tests.local_db_test_case import LocalDBTestCase
 from magma.fluentd_client.client import DPLog
 from magma.fluentd_client.dp_logs import make_dp_log
@@ -44,9 +39,7 @@ class DPLogsTestCase(LocalDBTestCase):
             cbsd_serial_number=SOME_SERIAL_NUMBER,
             network_id=SOME_NETWORK_ID,
         )
-        req_type = DBRequestType(name=HEARTBEAT_REQUEST)
-        req_state = DBRequestState(name='some_req_state')
-        self.session.add_all([cbsd, req_type, req_state])
+        self.session.add(cbsd)
         self.session.commit()
 
     @parameterized.expand([

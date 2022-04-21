@@ -101,7 +101,7 @@ export default function Gateway() {
 
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container justify="space-between" spacing={3}>
+      <Grid container justifyContent="space-between" spacing={3}>
         <Grid item xs={12}>
           <GatewayCheckinChart />
         </Grid>
@@ -155,7 +155,11 @@ function GatewayTable() {
         icon={CellWifiIcon}
         label={`Gateways (${Object.keys(ctx.state).length})`}
         filter={() => (
-          <Grid container justify="flex-end" alignItems="center" spacing={1}>
+          <Grid
+            container
+            justifyContent="flex-end"
+            alignItems="center"
+            spacing={1}>
             {currentView !== UPGRADE_VIEW && (
               <Grid item>
                 <AutorefreshCheckbox

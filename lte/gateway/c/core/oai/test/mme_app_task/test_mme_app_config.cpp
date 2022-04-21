@@ -15,7 +15,7 @@
 
 extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 }
 
 namespace magma {

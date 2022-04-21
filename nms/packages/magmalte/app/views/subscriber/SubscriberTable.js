@@ -468,7 +468,11 @@ function SubscribersTable(props: WithAlert) {
           icon={SettingsIcon}
           label={'Subscribers'}
           filter={() => (
-            <Grid container justify="flex-end" alignItems="center" spacing={2}>
+            <Grid
+              container
+              justifyContent="flex-end"
+              alignItems="center"
+              spacing={2}>
               <Grid item>
                 <ExportSubscribersButton />
               </Grid>

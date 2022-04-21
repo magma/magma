@@ -45,16 +45,19 @@ from magma.enodebd.state_machines.enb_acs_states import (
     AcsMsgAndTransition,
     AcsReadMsgResult,
     AddObjectsState,
+    CheckFirmwareUpgradeDownloadState,
     DeleteObjectsState,
     EnbSendRebootState,
     EnodebAcsState,
     ErrorState,
+    FirmwareUpgradeDownloadState,
     GetObjectParametersState,
     GetParametersState,
     NotifyDPState,
     SendGetTransientParametersState,
     SetParameterValuesState,
     WaitEmptyMessageState,
+    WaitForFirmwareUpgradeDownloadResponse,
     WaitGetObjectParametersState,
     WaitGetParametersState,
     WaitGetTransientParametersState,
@@ -100,7 +103,25 @@ class BaicellsQRTBHandler(BasicEnodebAcsStateMachine):
         self._state_map = {
             # RemWait state seems not needed for QRTB
             'wait_inform': WaitInformState(self, when_done='wait_empty', when_boot=None),
-            'wait_empty': WaitEmptyMessageState(self, when_done='get_transient_params'),
+            'wait_empty': WaitEmptyMessageState(self, when_done='check_fw_upgrade_download'),
+
+            # Download flow
+            'check_fw_upgrade_download': CheckFirmwareUpgradeDownloadState(
+                self,
+                when_download='fw_upgrade_download',
+                when_skip='get_transient_params',
+            ),
+            'fw_upgrade_download': FirmwareUpgradeDownloadState(
+                self,
+                when_done='wait_fw_upgrade_download_response',
+            ),
+            'wait_fw_upgrade_download_response': WaitForFirmwareUpgradeDownloadResponse(
+                self,
+                when_done='get_transient_params',
+                when_skip='get_transient_params',
+            ),
+            # Download flow ends
+
             'get_transient_params': SendGetTransientParametersState(self, when_done='wait_get_transient_params'),
             'wait_get_transient_params': WaitGetTransientParametersState(
                 self,

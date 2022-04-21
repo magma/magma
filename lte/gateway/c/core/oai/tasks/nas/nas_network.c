@@ -19,7 +19,7 @@
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_network.h"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

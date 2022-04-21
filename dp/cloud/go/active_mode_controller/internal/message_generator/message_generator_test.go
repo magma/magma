@@ -307,7 +307,7 @@ func TestGenerateMessages(t *testing.T) {
 					State:             active_mode.CbsdState_Registered,
 					LastSeenTimestamp: now.Unix(),
 					DbData: &active_mode.DatabaseCbsd{
-						IsUpdated: true,
+						ShouldDeregister: true,
 					},
 				}},
 			},
@@ -330,8 +330,8 @@ func TestGenerateMessages(t *testing.T) {
 					State:             active_mode.CbsdState_Unregistered,
 					LastSeenTimestamp: now.Unix(),
 					DbData: &active_mode.DatabaseCbsd{
-						Id:        123,
-						IsUpdated: true,
+						Id:               123,
+						ShouldDeregister: true,
 					},
 				}},
 			},
@@ -422,8 +422,4 @@ type stubRadioControllerClient struct {
 func (s *stubRadioControllerClient) UploadRequests(_ context.Context, in *requests.RequestPayload, _ ...grpc.CallOption) (*requests.RequestDbIds, error) {
 	*s.requests = append(*s.requests, in)
 	return nil, nil
-}
-
-func (s *stubRadioControllerClient) GetResponse(_ context.Context, _ *requests.RequestDbId, _ ...grpc.CallOption) (*requests.ResponsePayload, error) {
-	panic("not implemented")
 }

@@ -14,10 +14,11 @@
  * @format
  */
 
+import AccountSettings from '../AccountSettings';
+import Admin from '../admin/Admin';
+import AppContext from '../../../fbc_js_core/ui/context/AppContext';
 import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
-import React from 'react';
-import Settings from '../Settings';
-
+import React, {useContext} from 'react';
 import useSections from './useSections';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {useRouter} from '../../../fbc_js_core/ui/hooks';
@@ -25,6 +26,7 @@ import {useRouter} from '../../../fbc_js_core/ui/hooks';
 export default function SectionRoutes() {
   const {relativePath, match} = useRouter();
   const [landingPath, sections] = useSections();
+  const {user, ssoEnabled} = useContext(AppContext);
 
   return (
     <Switch>
@@ -35,11 +37,12 @@ export default function SectionRoutes() {
           component={section.component}
         />
       ))}
-      <Route
-        key="settings"
-        path={relativePath(`/settings`)}
-        component={Settings}
-      />
+      {user.isSuperUser && (
+        <Route key="admin" path={relativePath(`/admin`)} component={Admin} />
+      )}
+      {!ssoEnabled && (
+        <Route path={relativePath('/settings')} component={AccountSettings} />
+      )}
       {landingPath && (
         <Route
           path={relativePath('')}

@@ -16,8 +16,8 @@
  */
 #include <iostream>
 
-#include "lte/gateway/c/core/oai/tasks/grpc_service/CSFBGatewayServiceImpl.h"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/proto_msg_to_itti_msg.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/CSFBGatewayServiceImpl.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/proto_msg_to_itti_msg.hpp"
 #include "lte/gateway/c/core/oai/common/common_ies.h"
 #include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 

@@ -78,7 +78,7 @@ message EirpCapabilities {
 
 message DatabaseCbsd {
   int64 id = 1;
-  bool is_updated = 2;
+  bool should_deregister = 2;
   bool is_deleted = 3;
 }
 

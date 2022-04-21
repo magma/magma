@@ -16,11 +16,10 @@
 
 import MagmaV1API from '../../../generated/WebClient';
 
-import {FEG} from '../../../fbc_js_core/types/network';
+import {FEG, coalesceNetworkType} from '../../../fbc_js_core/types/network';
 import {FEGContextProvider} from '../feg/FEGContext';
 import {LteContextProvider} from '../lte/LteContext';
 import {VersionContextProvider} from '../context/VersionContext';
-import {coalesceNetworkType} from '../../../fbc_js_core/types/network';
 import type {NetworkType} from '../../../fbc_js_core/types/network';
 import type {Theme} from '@material-ui/core';
 import type {
@@ -30,19 +29,16 @@ import type {
 
 import * as React from 'react';
 import AppContent from '../layout/AppContent';
-import AppContext from '../../../fbc_js_core/ui/context/AppContext';
 import AppSideBar from '../../../fbc_js_core/ui/components/layout/AppSideBar';
 import NetworkContext from '../context/NetworkContext';
 import NetworkSelector from '../NetworkSelector';
 import SectionLinks from '../layout/SectionLinks';
 import SectionRoutes from '../layout/SectionRoutes';
 import VersionTooltip from '../VersionTooltip';
+import {useEffect, useState} from 'react';
 
 import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
-import {getProjectLinks} from '../../../fbc_js_core/projects/projects';
 import {makeStyles} from '@material-ui/styles';
-import {shouldShowSettings} from '../Settings';
-import {useContext, useEffect, useState} from 'react';
 import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 // These won't be considered networkIds
@@ -70,7 +66,6 @@ type Props = {
 export default function Index() {
   const classes = useStyles();
   const {match} = useRouter();
-  const {user, tabs, ssoEnabled} = useContext(AppContext);
   const [networkType, setNetworkType] = useState<?NetworkType>(null);
   const networkId = ROOT_PATHS.has(match.params.networkId)
     ? null
@@ -99,12 +94,6 @@ export default function Index() {
         <AppSideBar
           mainItems={[<SectionLinks key={1} />, <VersionTooltip key={2} />]}
           secondaryItems={[<NetworkSelector key={1} />]}
-          projects={getProjectLinks(tabs, user)}
-          showSettings={shouldShowSettings({
-            isSuperUser: user.isSuperUser,
-            ssoEnabled,
-          })}
-          user={user}
         />
         <AppContent>
           <SectionRoutes />

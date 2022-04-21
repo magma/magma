@@ -21,12 +21,10 @@ type PaginatedLogs struct {
 
 	// logs
 	// Required: true
-	// Read Only: true
 	Logs []*Log `json:"logs"`
 
 	// Total number of logs
 	// Required: true
-	// Read Only: true
 	TotalCount int64 `json:"total_count"`
 }
 

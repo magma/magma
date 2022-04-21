@@ -26,9 +26,9 @@
 #include <fluid/util/ethaddr.hh>     // for fluid_msg
 #include <fluid/util/ipaddr.hh>      // for IPAddress
 #include <memory>                    // for shared_ptr, __shared_ptr
-#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerEvents.h"  // for AddGTPTunnelEvent, Delet...
-#include "lte/gateway/c/core/oai/lib/openflow/controller/GTPApplication.h"  // for GTPApplication
-#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.h"  // for OpenflowController
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerEvents.hpp"  // for AddGTPTunnelEvent, Delet...
+#include "lte/gateway/c/core/oai/lib/openflow/controller/GTPApplication.hpp"  // for GTPApplication
+#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp"  // for OpenflowController
 #include "gmock/gmock-generated-matchers.h"  // for AllOf, AllOfResult5<>::type
 #include "gmock/gmock-matchers.h"            // for AnythingMatcher, _
 #include "gmock/gmock-spec-builders.h"       // for EXPECT_CALL, TypedExpect...

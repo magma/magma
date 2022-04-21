@@ -15,7 +15,7 @@ Within the context of the NMS, it's important to have consistency within the des
 To help facilitate this better, we leverage [Material-UI's](https://material-ui.com/customization/spacing/#spacing) `theme.spacing()` helper which too uses an 8px scaling factor.
 
 ```js
-const theme = createMuiTheme();
+const theme = createTheme();
 
 theme.spacing(0.5) // = 8 * 0.5 (4px)
 theme.spacing(1) // = 8 * 1 (8px)

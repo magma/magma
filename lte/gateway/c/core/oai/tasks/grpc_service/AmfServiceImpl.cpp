@@ -23,7 +23,7 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/grpc_service/AmfServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/AmfServiceImpl.hpp"
 #include "lte/protos/session_manager.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
 

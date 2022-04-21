@@ -242,7 +242,7 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
         item
         container
         alignItems="flex-start"
-        justify="space-between"
+        justifyContent="space-between"
         spacing={2}>
         <TimeEditor
           onChange={handleInputChange}

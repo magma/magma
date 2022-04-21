@@ -27,7 +27,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

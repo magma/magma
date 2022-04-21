@@ -14,8 +14,7 @@ limitations under the License.
 import logging
 
 from magma.configuration_controller.custom_types.custom_types import RequestsMap
-from magma.db_service.models import DBRequest, DBRequestState, DBRequestType
-from magma.mappings.types import RequestStates
+from magma.db_service.models import DBRequest, DBRequestType
 
 logger = logging.getLogger(__name__)
 
@@ -38,9 +37,8 @@ class RequestDBConsumer(object):
         Returns:
             RequestsMap: Requests map object
         """
-        db_requests_query = session.query(DBRequest).join(DBRequestType, DBRequestState).filter(
+        db_requests_query = session.query(DBRequest).join(DBRequestType).filter(
             DBRequestType.name == self.request_type,
-            DBRequestState.name == RequestStates.PENDING.value,
         ).with_for_update(skip_locked=True, of=DBRequest)
 
         if self.request_processing_limit > 0:

@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "CreditKey.h"
-#include "includes/GRPCReceiver.h"
+#include "includes/GRPCReceiver.hpp"
 #include "lte/protos/apn.pb.h"
 
 namespace magma {

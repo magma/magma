@@ -31,7 +31,7 @@
 #include <linux/ip.h>
 #include <memory>
 
-#include "lte/gateway/c/connection_tracker/src/EventTracker.h"
+#include "lte/gateway/c/connection_tracker/src/EventTracker.hpp"
 
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 

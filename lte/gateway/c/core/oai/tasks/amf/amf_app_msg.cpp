@@ -19,7 +19,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;

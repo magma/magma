@@ -14,10 +14,8 @@
  * @format
  */
 
+import AccountSettings from '../AccountSettings';
 import AppContent from '../layout/AppContent';
-import AppContext, {
-  AppContextProvider,
-} from '../../../fbc_js_core/ui/context/AppContext';
 import AppSideBar from '../../../fbc_js_core/ui/components/layout/AppSideBar';
 import ApplicationMain from '../../components/ApplicationMain';
 import AssignmentIcon from '@material-ui/icons/Assignment';
@@ -27,25 +25,19 @@ import FlagIcon from '@material-ui/icons/Flag';
 import NavListItem from '../../../fbc_js_core/ui/components/NavListItem';
 import OrganizationEdit from '../../../fbc_js_core/ui/host/OrganizationEdit';
 import Organizations from '../../../fbc_js_core/ui/host/Organizations';
-import Paper from '@material-ui/core/Paper';
 import PeopleIcon from '@material-ui/icons/People';
-import React, {useContext} from 'react';
-import SecuritySettings from '../SecuritySettings';
+import React from 'react';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import UsersSettings from '../admin/userManagement/UsersSettings';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import {AppContextProvider} from '../../../fbc_js_core/ui/context/AppContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {getProjectTabs as getAllProjectTabs} from '../../../fbc_js_core/projects/projects';
 import {makeStyles} from '@material-ui/styles';
 import {useRelativeUrl} from '../../../fbc_js_core/ui/hooks/useRouter';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
-  },
-  paper: {
-    margin: theme.spacing(3),
-    padding: theme.spacing(),
   },
 }));
 
@@ -81,16 +73,11 @@ function NavItems() {
 
 function Host() {
   const classes = useStyles();
-  const {user, ssoEnabled} = useContext(AppContext);
   const relativeUrl = useRelativeUrl();
 
   return (
     <div className={classes.root}>
-      <AppSideBar
-        mainItems={<NavItems />}
-        user={nullthrows(user)}
-        showSettings={!ssoEnabled}
-      />
+      <AppSideBar mainItems={<NavItems />} />
       <AppContent>
         <Switch>
           <Route
@@ -112,14 +99,7 @@ function Host() {
           <Route path={relativeUrl('/features')} component={Features} />
           <Route path={relativeUrl('/metrics')} component={CloudMetrics} />
           <Route path={relativeUrl('/users')} component={UsersSettings} />
-          <Route
-            path={relativeUrl('/settings')}
-            render={() => (
-              <Paper className={classes.paper}>
-                <SecuritySettings />
-              </Paper>
-            )}
-          />
+          <Route path={relativeUrl('/settings')} component={AccountSettings} />
           <Redirect to={relativeUrl('/organizations')} />
         </Switch>
       </AppContent>
@@ -130,7 +110,7 @@ function Host() {
 const Index = () => {
   return (
     <ApplicationMain>
-      <AppContextProvider>
+      <AppContextProvider isOrganizations={true}>
         <Host />
       </AppContextProvider>
     </ApplicationMain>

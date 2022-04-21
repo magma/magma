@@ -28,7 +28,6 @@ long_description: |
   This Chart will deploy the following:
 
   - 1 x Configuration controller
-  - 1 x protocol controller with 80/443 TCP port exposed with either ingress/contour ingress resource.
   - 1 x radio controller with GRPC 50053/TCP port.
   - 1 x fluentd
   - All using Kubernetes Deployment

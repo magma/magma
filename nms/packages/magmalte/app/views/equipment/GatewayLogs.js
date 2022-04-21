@@ -241,7 +241,11 @@ export default function GatewayLogs() {
   function LogsFilter() {
     return (
       <>
-        <Grid container justify="flex-end" alignItems="center" spacing={1}>
+        <Grid
+          container
+          justifyContent="flex-end"
+          alignItems="center"
+          spacing={1}>
           <Grid item>
             <Text variant="body3" className={classes.dateTimeText}>
               Filter By Date
@@ -300,7 +304,11 @@ export default function GatewayLogs() {
             </Button>
           </Grid>
         </Grid>
-        <Grid container justify="flex-end" alignItems="center" spacing={1}>
+        <Grid
+          container
+          justifyContent="flex-end"
+          alignItems="center"
+          spacing={1}>
           <Grid item>
             <AutorefreshCheckbox
               autorefreshEnabled={isAutoRefreshing}
