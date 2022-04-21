@@ -18,10 +18,10 @@
 
 #include "UpfMsgManageHandler.h"
 #include "SessionStateEnforcer.h"
-#include "includes/MagmaService.h"
+#include "includes/MagmaService.hpp"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.hpp"
 #include "SessionState.h"
 #include "SessionStore.h"
 #include "SessiondMocks.h"

@@ -30,7 +30,7 @@ import MagmaV1API from '../../../generated/WebClient';
 import NestedRouteLink from '../../../fbc_js_core/ui/components/NestedRouteLink';
 import NoNetworksMessage from '../../../fbc_js_core/ui/components/NoNetworksMessage';
 import Paper from '@material-ui/core/Paper';
-import React from 'react';
+import React, {useCallback, useContext, useState} from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -39,11 +39,11 @@ import TableRow from '@material-ui/core/TableRow';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
+import NetworkContext from '../context/NetworkContext';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 import {Route} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {sortBy} from 'lodash';
-import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
@@ -112,6 +112,7 @@ function Networks() {
   const {relativePath, relativeUrl, history} = useRouter();
   const [networks, setNetworks] = useState(null);
   const [networkToDelete, setNetworkToDelete] = useState(null);
+  const {networkId: selectedNetworkId} = useContext(NetworkContext);
 
   const {error, isLoading} = useMagmaAPI(
     MagmaV1API.getNetworks,
@@ -189,6 +190,12 @@ function Networks() {
                   enqueueSnackbar('Network delete failed', {
                     variant: 'error',
                   });
+                } else {
+                  setNetworks(networks.filter(n => n != networkToDelete));
+                  setNetworkToDelete(null);
+                  if (selectedNetworkId === networkToDelete) {
+                    window.location.replace('/nms');
+                  }
                 }
               })
               .catch(() => {
@@ -196,8 +203,6 @@ function Networks() {
                   variant: 'error',
                 });
               });
-            setNetworks(networks.filter(n => n != networkToDelete));
-            setNetworkToDelete(null);
           }}
         />
       )}
@@ -212,6 +217,9 @@ function Networks() {
                 variant: 'success',
               });
               closeDialog();
+              if (!selectedNetworkId) {
+                window.location.replace(`/nms/${networkID}/admin/networks`);
+              }
             }}
           />
         )}

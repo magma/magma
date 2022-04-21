@@ -11,10 +11,26 @@
 
 """Python toolchain configuration"""
 
-load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+load("@rules_python//python:defs.bzl", "py_runtime", "py_runtime_pair")
 
 def configure_python_toolchain(name = None):
-    python_register_toolchains(
-        name = "python3_8",
-        python_version = "3.8",
+    py_runtime(
+        name = "python3",
+        interpreter_path = "/usr/bin/python3.8",
+        python_version = "PY3",
+        visibility = ["//visibility:public"],
+    )
+
+    py_runtime_pair(
+        name = "py_runtime_pair",
+        py2_runtime = None,
+        py3_runtime = ":python3",
+        visibility = ["//visibility:public"],
+    )
+
+    native.toolchain(
+        name = "py_toolchain",
+        toolchain = ":py_runtime_pair",
+        toolchain_type = "@bazel_tools//tools/python:toolchain_type",
+        visibility = ["//visibility:public"],
     )

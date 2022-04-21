@@ -24,7 +24,7 @@
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_paging.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"

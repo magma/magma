@@ -7,7 +7,6 @@ A Helm chart for magma orchestrator's domain-proxy module.
 This Chart will deploy the following:
 
 - 1 x Configuration controller
-- 1 x protocol controller with 80/443 TCP port exposed with either ingress/contour ingress resource.
 - 1 x radio controller with GRPC 50053/TCP port.
 - All using Kubernetes Deployment
 - 1 x job for Postgres database migration.
@@ -88,45 +87,6 @@ The following table lists the configurable parameters of the Domain-proxy chart 
 | `configuration_controller.nodeSelector` | Kubernetes node selection constraint. | `{}` |
 | `configuration_controller.tolerations` | Allow the pods to schedule onto nodes with matching taints. | `[]` |
 | `configuration_controller.affinity` | Constrain which nodes your pod is eligible to be scheduled on. | `{}` |
-| `protocol_controller.nameOverride` | Replaces service part of the dp component deployment name. | `""` |
-| `protocol_controller.fullnameOverride` | Completely replaces dp component deployment name. | `""` |
-| `protocol_controller.enabled` | Enables deployment of the given dp component. | `true` |
-| `protocol_controller.name` | Domain proxy component name. | `"protocol-controller"` |
-| `protocol_controller.image.repository` | Docker image repository. | `"protocol-controller"` |
-| `protocol_controller.image.tag` | Overrides the image tag whose default is the chart appVersion. | `""` |
-| `protocol_controller.image.pullPolicy` | Default the pull policy of all containers in that pod. | `"IfNotPresent"` |
-| `protocol_controller.replicaCount` | How many replicas of particular component should be created. | `1` |
-| `protocol_controller.imagePullSecrets` | Name of the secret that contains container image registry keys. | `[]` |
-| `protocol_controller.serviceAccount.create` | Specifies whether a service account should be created | `false` |
-| `protocol_controller.serviceAccount.annotations` | Annotations to add to the service account | `{}` |
-| `protocol_controller.serviceAccount.name` | The name of the service account to use,If not set and create is true, a name is generated using the fullname template. | `""` |
-| `protocol_controller.podAnnotations` | Additional pod annotations. | `{}` |
-| `protocol_controller.podSecurityContext` | Holds pod-level security attributes. | `{}` |
-| `protocol_controller.securityContext` | Holds security configuration that will be applied to a container. | `{}` |
-| `protocol_controller.service.enable` | Whether to enable kubernetes service for dp component. | `true` |
-| `protocol_controller.service.port` | Default port of enabled kubernetes service. | `8080` |
-| `protocol_controller.tlsConfig` |  | `{}` |
-| `protocol_controller.apiPrefix` | Protocol controller URL API prefix. | `"/sas/v1"` |
-| `protocol_controller.ingress.enabled` | Enable kubernetes ingress resource. | `false` |
-| `protocol_controller.ingress.annotations` | Annotations to kubernetes ingress resource. | `{}` |
-| `protocol_controller.ingress.hosts` |  | `[]` |
-| `protocol_controller.ingress.tls` | Kubernetes secret name for tls termination on ingress kubernetes resource. | `[]` |
-| `protocol_controller.httpproxy.enabled` | Enables contour httpproxy CRD. | `false` |
-| `protocol_controller.httpproxy.annotations` | Aditional annotations. | `{}` |
-| `protocol_controller.httpproxy.virtualhost` |  | `{}` |
-| `protocol_controller.resources` | Resource requests and limits of Pod. | `{}` |
-| `protocol_controller.readinessProbe` | Readines probe definition. | `{}` |
-| `protocol_controller.livenessProbe` | Livenes probe definition. | `{}` |
-| `protocol_controller.autoscaling.enabled` | Enables horizontal pod autscaler kubernetes resource. | `false` |
-| `protocol_controller.autoscaling.minReplicas` | Minimum number of dp component replicas. | `1` |
-| `protocol_controller.autoscaling.maxReplicas` | Maximum number of dp component replicas. | `100` |
-| `protocol_controller.autoscaling.targetCPUUtilizationPercentage` | Target CPU utilization threshold in perecents when new replica should be created. | `80` |
-| `protocol_controller.podDisruptionBudget.enabled` | Creates kubernetes podDisruptionBudget resource. | `false` |
-| `protocol_controller.podDisruptionBudget.minAvailable` | Minimum available pods for dp component. | `1` |
-| `protocol_controller.podDisruptionBudget.maxUnavailable` | Minimum available pods for dp component. | `""` |
-| `protocol_controller.nodeSelector` | Kubernetes node selection constraint. | `{}` |
-| `protocol_controller.tolerations` | Allow the pods to schedule onto nodes with matching taints. | `[]` |
-| `protocol_controller.affinity` | Constrain which nodes your pod is eligible to be scheduled on. | `{}` |
 | `radio_controller.database` |  | `{}` |
 | `radio_controller.nameOverride` | Replaces service part of the dp component deployment name. | `""` |
 | `radio_controller.fullnameOverride` | Completely replaces dp component deployment name. | `""` |

@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
+ * @flow
  * @format
  */
 import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
@@ -30,7 +30,7 @@ import FilterList from '@material-ui/icons/FilterList';
 import FirstPage from '@material-ui/icons/FirstPage';
 import FormControl from '@material-ui/core/FormControl';
 import LastPage from '@material-ui/icons/LastPage';
-import MaterialTable from 'material-table';
+import MaterialTable from '@material-table/core';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';

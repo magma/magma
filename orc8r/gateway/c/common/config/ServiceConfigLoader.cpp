@@ -11,12 +11,13 @@
  * limitations under the License.
  */
 
-#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.h"
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
 
+#include <glog/logging.h>
 #include <iostream>  // for operator<<, basic_ostream
 #include <string>    // for allocator, operator+, char_traits
 
-#include "orc8r/gateway/c/common/config/YAMLUtils.h"       // for YAMLUtils
+#include "orc8r/gateway/c/common/config/YAMLUtils.hpp"     // for YAMLUtils
 #include "orc8r/gateway/c/common/logging/magma_logging.h"  // for MLOG
 
 namespace magma {

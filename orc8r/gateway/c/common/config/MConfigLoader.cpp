@@ -11,9 +11,10 @@
  * limitations under the License.
  */
 
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
 
 #include <bits/exception.h>
+#include <glog/logging.h>
 #include <google/protobuf/stubs/status.h>    // for Status
 #include <google/protobuf/util/json_util.h>  // for JsonStringToMessage
 #include <nlohmann/json.hpp>

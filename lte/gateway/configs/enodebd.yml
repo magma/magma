@@ -47,9 +47,12 @@ sas:
 # Main config section for TR069 Download request for FW Upgrade
 # `firmwares` is a dictionary of available firmwares with download details
 #   key is the firmware version signature. Value is an object with:
-#     "url": full url to the firmware file
-#     "username": [optional] auth credentials
-#     "password": [optional] auth credentials
+#     "url": string, full url to the firmware file
+#     "username": [optional] string, auth credentials
+#     "password": [optional] string, auth credentials
+#     "md5": [optional, Baicells mandatory] string, 32 character md5 sum
+#     "rawmode": [optional, Baicells mandatory] bool, Raw mode flag
+#    "md5" and "rawmode" params will be added to Download request if present in the config.
 # `enbs` is a dictionary with serial-level eNB specific firmware upgrade configuration.
 #   key is the eNB serial number.
 #   value is a string matching firmware version listed in the `firmwares` section.
@@ -67,6 +70,8 @@ sas:
 #       url: "http://some_url/some_fw_file.ffw"
 #       username: "user"
 #       password: "password"
+#       md5: "12345678901234567890123456789012"
+#       rawmode: false
 #     "some_other_version":
 #       url: "http://some_other_url/some_other_fw_file.ffw"
 #     "some_yet_unused_version":

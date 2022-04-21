@@ -122,6 +122,37 @@ class DomainProxyOrc8rTestCase(DBTestCase):
 
         self.delete_cbsd(cbsd_id)
 
+    def test_creating_cbsd_with_the_same_unique_fields_returns_409(self):
+        builder = CbsdAPIDataBuilder()
+
+        self.when_cbsd_is_created(builder.build_post_data())
+        self.when_cbsd_is_created(builder.build_post_data(), expected_status=HTTPStatus.CONFLICT)
+
+    def test_updating_cbsd_returns_409_when_setting_existing_serial_num(self):
+        builder = CbsdAPIDataBuilder()
+
+        cbsd1_payload = builder.with_serial_number("foo").build_post_data()
+        cbsd2_payload = builder.with_serial_number("bar").build_post_data()
+        self.when_cbsd_is_created(cbsd1_payload)  # cbsd_id = 1
+        self.when_cbsd_is_created(cbsd2_payload)  # cbsd_id = 2
+        self.when_cbsd_is_updated(
+            cbsd_id=2,
+            data=cbsd1_payload,
+            expected_status=HTTPStatus.CONFLICT,
+        )
+
+    def test_fetch_cbsds_filtered_by_serial_number(self):
+        builder = CbsdAPIDataBuilder()
+
+        cbsd1_payload = builder.with_serial_number("foo").build_unregistered_data()
+        cbsd2_payload = builder.with_serial_number("bar").build_unregistered_data()
+        self.when_cbsd_is_created(cbsd1_payload)
+        self.when_cbsd_is_created(cbsd2_payload)
+
+        cbsds = self.when_cbsds_are_fetched(2, 1, {"serial_number": "foo"})
+
+        self.then_cbsd_is(cbsds[0], builder.with_serial_number("foo").build_unregistered_data())
+
     def test_fetching_logs_with_custom_filters(self):
         self.given_cbsd_provisioned(CbsdAPIDataBuilder())
         when_elastic_indexes_data()
@@ -193,18 +224,27 @@ class DomainProxyOrc8rTestCase(DBTestCase):
 
         return cbsd['id']
 
-    def when_cbsd_is_created(self, data: Dict[str, Any]):
+    def when_cbsd_is_created(self, data: Dict[str, Any], expected_status: int = HTTPStatus.CREATED):
         r = send_request_to_backend('post', 'cbsds', json=data)
-        self.assertEqual(r.status_code, HTTPStatus.CREATED)
+        self.assertEqual(r.status_code, expected_status)
 
     def when_cbsd_is_fetched(self) -> Dict[str, Any]:
-        r = send_request_to_backend('get', 'cbsds')
+        cbsds = self.when_cbsds_are_fetched(1, 1)
+        return cbsds[0]
+
+    def when_cbsds_are_fetched(
+            self,
+            expected_total_count: int,
+            expected_cbsds_num: int,
+            params: Optional[Dict[str, Any]] = None,
+    ) -> List[Dict[str, Any]]:
+        r = send_request_to_backend('get', 'cbsds', params=params)
         self.assertEqual(r.status_code, HTTPStatus.OK)
         data = r.json()
-        self.assertEqual(data.get('total_count'), 1)
+        self.assertEqual(data.get('total_count'), expected_total_count)
         cbsds = data.get('cbsds', [])
-        self.assertEqual(len(cbsds), 1)
-        return cbsds[0]
+        self.assertEqual(len(cbsds), expected_cbsds_num)
+        return cbsds
 
     def when_logs_are_fetched(self, params: Dict[str, Any]) -> Dict[str, Any]:
         r = send_request_to_backend('get', 'logs', params=params)
@@ -216,9 +256,9 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         r = send_request_to_backend('delete', f'cbsds/{cbsd_id}')
         self.assertEqual(r.status_code, HTTPStatus.NO_CONTENT)
 
-    def when_cbsd_is_updated(self, cbsd_id: int, data: Dict[str, Any]):
+    def when_cbsd_is_updated(self, cbsd_id: int, data: Dict[str, Any], expected_status: int = HTTPStatus.NO_CONTENT):
         r = send_request_to_backend('put', f'cbsds/{cbsd_id}', json=data)
-        self.assertEqual(r.status_code, HTTPStatus.NO_CONTENT)
+        self.assertEqual(r.status_code, expected_status)
 
     def when_cbsd_asks_for_state(self) -> CBSDStateResult:
         return self.dp_client.GetCBSDState(get_cbsd_request())
@@ -363,6 +403,7 @@ def send_request_to_backend(
 class CbsdAPIDataBuilder:
     def __init__(self):
         self.fcc_id = SOME_FCC_ID
+        self.serial_number = SERIAL_NUMBER
         self.preferred_bandwidth_mhz = 20
         self.preferred_frequencies_mhz = []
         self.frequency_mhz = 3625
@@ -371,6 +412,10 @@ class CbsdAPIDataBuilder:
 
     def with_fcc_id(self, fcc_id: str) -> CbsdAPIDataBuilder:
         self.fcc_id = fcc_id
+        return self
+
+    def with_serial_number(self, serial_number: str) -> CbsdAPIDataBuilder:
+        self.serial_number = serial_number
         return self
 
     def with_frequency_preferences(self, bandwidth_mhz: int, frequencies_mhz: List[int]) -> CbsdAPIDataBuilder:
@@ -397,7 +442,7 @@ class CbsdAPIDataBuilder:
                 'frequencies_mhz': self.preferred_frequencies_mhz,
             },
             'fcc_id': self.fcc_id,
-            'serial_number': SERIAL_NUMBER,
+            'serial_number': self.serial_number,
             'user_id': USER_ID,
         }
 

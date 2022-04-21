@@ -46,7 +46,7 @@ const useStyles = makeStyles(_ => ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: '20px',
+    marginBottom: '2px',
     border: `1px solid ${colors.primary.white}`,
     '&:hover, &$openButton': {
       border: `1px solid ${colors.secondary.dodgerBlue}`,
@@ -90,6 +90,12 @@ const useStyles = makeStyles(_ => ({
     '&:not(:last-child)': {
       marginBottom: '8px',
     },
+  },
+  sidebarEntry: {
+    display: 'flex',
+    padding: '9px',
+    justifyContent: 'center',
+    width: '100%',
   },
 }));
 
@@ -137,6 +143,7 @@ const NetworkSelector = () => {
         }}
       />
       <Popout
+        className={classes.sidebarEntry}
         open={isMenuOpen}
         content={
           <List component="nav" className={classes.networksList}>

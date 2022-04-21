@@ -11,12 +11,20 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/sctpd/src/util.h"
+#include "lte/gateway/c/sctpd/src/util.hpp"
 
+// IWYU pragma: no_include <linux/sctp.h>
+
+#include <arpa/inet.h>
+#include <glog/logging.h>
+#include <lte/protos/sctpd.pb.h>
+#include <netinet/in.h>
 #include <netinet/sctp.h>
+#include <stdlib.h>
+#include <sys/socket.h>
 #include <unistd.h>
 
-#include "lte/gateway/c/sctpd/src/sctpd.h"
+#include "lte/gateway/c/sctpd/src/sctpd.hpp"
 
 namespace magma {
 namespace sctpd {

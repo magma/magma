@@ -23,7 +23,7 @@
 #include <string>
 #include <thread>
 
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 #include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
 
 extern "C" {

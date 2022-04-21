@@ -12,15 +12,15 @@
  */
 
 #include "lte/gateway/c/core/oai/test/ngap/mock_utils.h"
-#include "lte/gateway/c/core/oai/test/ngap/util_ngap_pkt.h"
+#include "lte/gateway/c/core/oai/test/ngap/util_ngap_pkt.hpp"
 #include <gtest/gtest.h>
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
-#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 }
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_manager.hpp"
 
 using ::testing::Test;
 

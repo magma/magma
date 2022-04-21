@@ -22,7 +22,7 @@
 #include "LocalEnforcer.h"
 #include "SessionProxyResponderHandler.h"
 #include "SessionStore.h"
-#include "includes/SentryWrapper.h"
+#include "includes/SentryWrapper.hpp"
 #include "lte/protos/abort_session.pb.h"
 #include "lte/protos/session_manager.pb.h"
 #include "magma_logging.h"

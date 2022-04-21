@@ -307,7 +307,7 @@ func TestGenerateMessages(t *testing.T) {
 					State:             active_mode.CbsdState_Registered,
 					LastSeenTimestamp: now.Unix(),
 					DbData: &active_mode.DatabaseCbsd{
-						IsUpdated: true,
+						ShouldDeregister: true,
 					},
 				}},
 			},
@@ -330,8 +330,8 @@ func TestGenerateMessages(t *testing.T) {
 					State:             active_mode.CbsdState_Unregistered,
 					LastSeenTimestamp: now.Unix(),
 					DbData: &active_mode.DatabaseCbsd{
-						Id:        123,
-						IsUpdated: true,
+						Id:               123,
+						ShouldDeregister: true,
 					},
 				}},
 			},

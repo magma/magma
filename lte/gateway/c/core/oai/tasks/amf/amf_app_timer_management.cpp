@@ -17,7 +17,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 }
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.hpp"
 //--C++ includes ---------------------------------------------------------------
 #include <utility>
 #include <stdexcept>

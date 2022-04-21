@@ -21,11 +21,11 @@ set(SPGW_LIB_DIR $ENV{C_BUILD}/oai/tasks/sgw)
 include_directories("/usr/src/googletest/googlemock/include/")
 
 add_library(SPGW_TASK_TEST_LIB
-    state_creators.h
+    state_creators.hpp
     state_creators.cpp
     spgw_test_util.h
     spgw_test_util.cpp
-    mock_spgw_op.h
+    mock_spgw_op.hpp
     mock_spgw_op.cpp
     spgw_test.cpp
     spgw_procedures_test_fixture.h

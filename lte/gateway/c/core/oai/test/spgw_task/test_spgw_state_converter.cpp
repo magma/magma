@@ -15,13 +15,13 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_manager.h"
-#include "lte/gateway/c/core/oai/test/spgw_task/state_creators.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_manager.hpp"
+#include "lte/gateway/c/core/oai/test/spgw_task/state_creators.hpp"
 #include "lte/protos/oai/mme_nas_state.pb.h"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/include/spgw_state.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 #include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
 }

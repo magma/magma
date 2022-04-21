@@ -37,6 +37,7 @@ export type AppContextType = {
   user: User,
   showExpandButton: () => void,
   hideExpandButton: () => void,
+  isOrganizations: boolean,
   isFeatureEnabled: FeatureID => boolean,
   isTabEnabled: Tab => boolean,
   ssoEnabled: boolean,
@@ -71,6 +72,7 @@ const AppContext = React.createContext<AppContextType>(appContextDefaults);
 
 type Props = {|
   children: React.Node,
+  isOrganizations?: boolean,
   networkIDs?: string[],
 |};
 
@@ -80,6 +82,7 @@ export function AppContextProvider(props: Props) {
   const value = {
     ...appContextDefaults,
     ...appData,
+    isOrganizations: !!props.isOrganizations, // is organizations management aka. the host site
     networkIds: props.networkIDs || [],
     isTabEnabled: (tab: Tab): boolean => {
       return appData.tabs?.indexOf(tab) !== -1;

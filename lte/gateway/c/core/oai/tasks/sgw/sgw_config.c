@@ -388,6 +388,12 @@ void sgw_config_display(sgw_config_t* config_p) {
   OAILOG_INFO(LOG_SPGW_APP, "    S1u_S12_S4 ip ........: %s/%u\n",
               inet_ntoa(config_p->ipv4.S1u_S12_S4_up),
               config_p->ipv4.netmask_S1u_S12_S4_up);
+  if (config_p->ipv6.s1_ipv6_enabled) {
+    char strv6[INET6_ADDRSTRLEN];
+    OAILOG_INFO(LOG_CONFIG, "    S1u_S12_S4 ipv6 ......: %s\n",
+                inet_ntop(AF_INET6, &config_p->ipv6.S1u_S12_S4_up, strv6,
+                          INET6_ADDRSTRLEN));
+  }
   OAILOG_INFO(LOG_SPGW_APP, "- S5-S8:\n");
   OAILOG_INFO(LOG_SPGW_APP, "    S5_S8 iface ..........: %s\n",
               bdata(config_p->ipv4.if_name_S5_S8_up));

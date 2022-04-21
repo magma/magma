@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.hpp"
 
 #include <algorithm>
 #include <vector>
@@ -23,7 +23,6 @@
 #include "prometheus/gauge.h"
 #include "prometheus/histogram.h"
 #include "prometheus/registry.h"
-
 #include "orc8r/gateway/c/common/service303/includes/MetricsRegistry.h"
 
 using magma::service303::MetricsSingleton;

@@ -16,12 +16,9 @@
 
 import * as React from 'react';
 import AppContent from '../layout/AppContent';
-import AppContext from '../../../fbc_js_core/ui/context/AppContext';
 import AppSideBar from '../../../fbc_js_core/ui/components/layout/AppSideBar';
 
-import {getProjectLinks} from '../../../fbc_js_core/projects/projects';
 import {makeStyles} from '@material-ui/styles';
-import {shouldShowSettings} from '../Settings';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -31,20 +28,9 @@ const useStyles = makeStyles(_theme => ({
 
 export default function ErrorLayout({children}: {children: React.Node}) {
   const classes = useStyles();
-  const {user, tabs, ssoEnabled} = React.useContext(AppContext);
-
   return (
     <div className={classes.root}>
-      <AppSideBar
-        mainItems={[]}
-        secondaryItems={[]}
-        projects={getProjectLinks(tabs, user)}
-        showSettings={shouldShowSettings({
-          isSuperUser: user.isSuperUser,
-          ssoEnabled,
-        })}
-        user={user}
-      />
+      <AppSideBar mainItems={[]} secondaryItems={[]} />
       <AppContent>{children}</AppContent>
     </div>
   );

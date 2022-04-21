@@ -11,6 +11,7 @@
 # limitations under the License.
 
 MODE=$1
+RERUN=0    # Set to 1 to skip network configuration and run ansible playbook only
 WHOAMI=$(whoami)
 MAGMA_USER="ubuntu"
 MAGMA_VERSION="${MAGMA_VERSION:-master}"
@@ -36,81 +37,83 @@ if [ ! -f "$ROOTCA" ]; then
   exit 1
 fi
 
-# Update DNS resolvers
-ln -sf /var/run/systemd/resolve/resolv.conf /etc/resolv.conf
-sed -i 's/#DNS=/DNS=8.8.8.8 208.67.222.222/' /etc/systemd/resolved.conf
-service systemd-resolved restart
+if [ $RERUN -eq 0 ]; then
+  # Update DNS resolvers
+  ln -sf /var/run/systemd/resolve/resolv.conf /etc/resolv.conf
+  sed -i 's/#DNS=/DNS=8.8.8.8 208.67.222.222/' /etc/systemd/resolved.conf
+  service systemd-resolved restart
 
-echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+  echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
-cat > /etc/apt/apt.conf.d/20auto-upgrades << EOF
-APT::Periodic::Update-Package-Lists "0";
-APT::Periodic::Download-Upgradeable-Packages "0";
-APT::Periodic::AutocleanInterval "0";
-APT::Periodic::Unattended-Upgrade "0";
+  cat > /etc/apt/apt.conf.d/20auto-upgrades << EOF
+  APT::Periodic::Update-Package-Lists "0";
+  APT::Periodic::Download-Upgradeable-Packages "0";
+  APT::Periodic::AutocleanInterval "0";
+  APT::Periodic::Unattended-Upgrade "0";
 EOF
 
-apt purge --auto-remove unattended-upgrades -y
-apt-mark hold "$(uname -r)" linux-aws linux-headers-aws linux-image-aws
+  apt purge --auto-remove unattended-upgrades -y
+  apt-mark hold "$(uname -r)" linux-aws linux-headers-aws linux-image-aws
 
+  # interface config
+  INTERFACE_DIR="/etc/network/interfaces.d"
+  mkdir -p "$INTERFACE_DIR"
+  echo "source-directory $INTERFACE_DIR" > /etc/network/interfaces
 
-# interface config
-INTERFACE_DIR="/etc/network/interfaces.d"
-mkdir -p "$INTERFACE_DIR"
-echo "source-directory $INTERFACE_DIR" > /etc/network/interfaces
+  # get rid of netplan
+  systemctl unmask networking
+  systemctl enable networking
 
-# get rid of netplan
-systemctl unmask networking
-systemctl enable networking
+  echo "Install Magma"
+  apt-get update -y
+  apt-get upgrade -y
+  apt-get install curl zip python3-pip docker.io net-tools sudo docker-compose -y
 
-echo "Install Magma"
-apt-get update -y
-apt-get upgrade -y
-apt-get install curl zip python3-pip docker.io net-tools sudo -y
+  echo "Making sure $MAGMA_USER user is sudoers"
+  if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
+    adduser --disabled-password --gecos "" $MAGMA_USER
+    adduser $MAGMA_USER sudo
+    echo "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-echo "Making sure $MAGMA_USER user is sudoers"
-if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
-  adduser --disabled-password --gecos "" $MAGMA_USER
-  adduser $MAGMA_USER sudo
-  echo "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    adduser $MAGMA_USER docker
+  fi
+
+  alias python=python3
+  pip3 install ansible
+
+  rm -rf /opt/magma/
+  git clone "${GIT_URL}" /opt/magma
+  cd /opt/magma || exit
+  git checkout "$MAGMA_VERSION"
+
+  # changing intefaces name
+  sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
+  sed -i 's/ens5/eth0/g; s/ens6/eth0/g' /etc/netplan/50-cloud-init.yaml
+  # changing interface name
+  update-grub2
+
+  if ! grep -q "eth1" /etc/netplan/50-cloud-init.yaml; then
+    cat > /etc/netplan/70-secondary-itf.yaml << EOF
+    network:
+        ethernets:
+            eth1:
+                dhcp4: true
+                dhcp6: false
+        version: 2
+EOF
+  fi
+  netplan apply
 fi
-
-adduser $MAGMA_USER docker
-
-alias python=python3
-pip3 install ansible
-
-rm -rf /opt/magma/
-git clone "${GIT_URL}" /opt/magma
-cd /opt/magma || exit
-git checkout "$MAGMA_VERSION"
-
-# changing intefaces name
-sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
-sed -i 's/ens5/eth0/g' /etc/netplan/50-cloud-init.yaml
-# changing interface name
-update-grub2
-
-cat > /etc/netplan/70-secondary-itf.yaml << EOF
-network:
-    ethernets:
-        eth1:
-            dhcp4: true
-            dhcp6: false
-    version: 2
-EOF
-
-netplan apply
 
 echo "Generating localhost hostfile for Ansible"
 echo "[agw_docker]
 127.0.0.1 ansible_connection=local" > $DEPLOY_PATH/agw_hosts
 
 if [ "$MODE" == "base" ]; then
-  su - $MAGMA_USER -c "sudo ansible-playbook -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags base $DEPLOY_PATH/magma_docker.yml"
+  su - $MAGMA_USER -c "sudo ansible-playbook -v -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags base $DEPLOY_PATH/magma_docker.yml"
 else
   # install magma and its dependencies including OVS.
-  su - $MAGMA_USER -c "sudo ansible-playbook -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags agwc $DEPLOY_PATH/magma_docker.yml"
+  su - $MAGMA_USER -c "sudo ansible-playbook -v -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags agwc $DEPLOY_PATH/magma_docker.yml"
 fi
 
-reboot
+[[ $RERUN -eq 1 ]] || echo "Reboot this VM to apply kernel settings"

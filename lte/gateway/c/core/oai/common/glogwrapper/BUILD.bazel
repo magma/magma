@@ -16,6 +16,6 @@ package(default_visibility = ["//lte/gateway/c/core:__subpackages__"])
 cc_library(
     name = "glog_logging",
     srcs = ["glog_logging.cpp"],
-    hdrs = ["glog_logging.h"],
+    hdrs = ["glog_logging.hpp"],
     deps = ["@com_github_google_glog//:glog"],
 )

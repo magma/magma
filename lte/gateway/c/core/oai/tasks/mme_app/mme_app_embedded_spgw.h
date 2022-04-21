@@ -17,7 +17,7 @@
 #ifndef FILE_MME_APP_SPGW_SEEN
 #define FILE_MME_APP_SPGW_SEEN
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
 

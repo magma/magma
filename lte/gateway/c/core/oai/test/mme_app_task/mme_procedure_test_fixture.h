@@ -18,7 +18,7 @@
 #include <cstdint>
 #include <condition_variable>
 
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_app_test_util.h"
 #include "lte/gateway/c/core/oai/include/mme_app_desc.h"
 

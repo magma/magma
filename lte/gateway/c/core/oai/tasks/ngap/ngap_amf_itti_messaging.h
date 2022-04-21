@@ -28,7 +28,7 @@
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.hpp"
 
 task_zmq_ctx_t ngap_task_zmq_ctx;
 

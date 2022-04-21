@@ -59,7 +59,7 @@ func (m *messageGenerator) getPerCbsdMessageGenerator(cbsd *active_mode.Cbsd, no
 				crud: &deleteMessageGenerator{},
 			}
 		}
-		if data.GetIsUpdated() {
+		if data.GetShouldDeregister() {
 			return &perCbsdMessageGenerator{
 				sas:  &noRequestGenerator{},
 				crud: &updateMessageGenerator{},
@@ -101,7 +101,7 @@ func (m *messageGenerator) getPerCbsdSasRequestGenerator(cbsd *active_mode.Cbsd,
 }
 
 func requiresDeregistration(data *active_mode.DatabaseCbsd) bool {
-	return data.GetIsDeleted() || data.GetIsUpdated()
+	return data.GetIsDeleted() || data.GetShouldDeregister()
 }
 
 type perCbsdMessageGenerator struct {

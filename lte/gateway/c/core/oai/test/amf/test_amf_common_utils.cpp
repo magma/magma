@@ -10,7 +10,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.hpp"
 
 using ::testing::Test;
 

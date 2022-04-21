@@ -11,17 +11,17 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/li_agent/src/PDUGenerator.h"
-#include "lte/gateway/c/li_agent/src/Utilities.h"
+#include "lte/gateway/c/li_agent/src/PDUGenerator.hpp"
 
 #include <uuid/uuid.h>
 #include <netinet/ip.h>
 #include <net/ethernet.h>
-
 #include <future>
 #include <string>
 #include <memory>
 #include <utility>
+
+#include "lte/gateway/c/li_agent/src/Utilities.hpp"
 
 namespace magma {
 namespace lte {

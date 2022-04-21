@@ -12,7 +12,7 @@
  */
 
 #include <iostream>
-#include "lte/gateway/c/core/oai/test/ngap/util_ngap_pkt.h"
+#include "lte/gateway/c/core/oai/test/ngap/util_ngap_pkt.hpp"
 
 bool generator_ngap_pdusession_resource_setup_req(bstring& stream) {
   uint8_t* buffer_p = NULL;

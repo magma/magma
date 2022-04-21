@@ -22,7 +22,7 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/blobstore/mocks"
-	"magma/orc8r/cloud/go/services/state/servicers"
+	"magma/orc8r/cloud/go/services/state/servicers/protected"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 )
@@ -58,7 +58,7 @@ func TestStateServicer_GetStates(t *testing.T) {
 	fact := &mocks.StoreFactory{}
 	fact.On("StartTransaction", mock.Anything).Return(mockStore, nil)
 
-	srv, err := servicers.NewCloudStateServicer(fact)
+	srv, err := protected.NewCloudStateServicer(fact)
 	assert.NoError(t, err)
 
 	actual, err := srv.GetStates(ctx, &protos.GetStatesRequest{
