@@ -87,7 +87,7 @@ int PDUSessionModificationCommand::EncodePDUSessionModificationCommand(
     // Encode the IE of Authorized QoS Rules
     buffer[encoded++] = PDU_SESSION_QOS_RULES_IE_TYPE;
 
-    // Encode the length if the IE
+    // Encode the length of the IE
     IES_ENCODE_U16(buffer, encoded,
                    blength(pdu_sess_mod_comd->authorized_qosrules));
 
@@ -97,25 +97,20 @@ int PDUSessionModificationCommand::EncodePDUSessionModificationCommand(
     encoded += blength(pdu_sess_mod_comd->authorized_qosrules);
   }
 
-  for (uint8_t i = 0; i < pdu_sess_mod_comd->authqosflowdescriptors.size();
-       i++) {
-    if ((encoded_result = pdu_sess_mod_comd->authqosflowdescriptors[i]
-                              .EncodeM5GQosFlowDescription(
-                                  &pdu_sess_mod_comd->authqosflowdescriptors[i],
-                                  buffer + encoded + 3, len - encoded)) < 0) {
-      return encoded_result;
-    } else {
-      qos_flow_des_encoded += encoded_result;
-    }
-  }
-
-  if (qos_flow_des_encoded) {
-    // iei
-    *(buffer + encoded) = 0x79;
+  if (blength(pdu_sess_mod_comd->authorized_qosflowdescriptors)) {
+    // Encode the IE of Authorized QOS Flow descriptions
+    *(buffer + encoded) = PDU_SESSION_QOS_FLOW_DESC_IE_TYPE;
     encoded++;
-    IES_ENCODE_U16(buffer, encoded, qos_flow_des_encoded);
-    encoded += qos_flow_des_encoded;
-    pdu_sess_mod_comd->authqosflowdescriptors.clear();
+
+    // Encode the length of the IE
+    IES_ENCODE_U16(buffer, encoded,
+                   blength(pdu_sess_mod_comd->authorized_qosflowdescriptors));
+
+    memcpy(buffer + encoded,
+           pdu_sess_mod_comd->authorized_qosflowdescriptors->data,
+           blength(pdu_sess_mod_comd->authorized_qosflowdescriptors));
+
+    encoded += blength(pdu_sess_mod_comd->authorized_qosflowdescriptors);
   }
 
   return encoded;
@@ -193,21 +188,22 @@ int PDUSessionModificationCommand::DecodePDUSessionModificationCommand(
         IES_DECODE_U16(buffer, decoded, qos_rules_buf_len);
 
         // Store the information in Bstring
-        pdu_sess_mod_comd->authorized_qosrules = blk2bstr(buffer + decoded,
-                                                          qos_rules_buf_len);
+        pdu_sess_mod_comd->authorized_qosrules =
+            blk2bstr(buffer + decoded, qos_rules_buf_len);
         decoded += qos_rules_buf_len;
       } break;
       case PDU_SESSION_QOS_FLOW_DESC_IE_TYPE: {
-        // iei + length
-        decoded += 3;
-        M5GQosFlowDescription flowDes;
-        if ((decoded_result = flowDes.DecodeM5GQosFlowDescription(
-                 &flowDes, buffer + decoded, len - decoded)) < 0) {
-          return decoded_result;
-        } else {
-          pdu_sess_mod_comd->authqosflowdescriptors.push_back(flowDes);
-          decoded += decoded_result;
-        }
+        // on the IE
+        decoded += sizeof(ie_type);
+
+        // Tracking the data length
+        uint16_t qos_flow_desc_buf_len = 0;
+        IES_DECODE_U16(buffer, decoded, qos_flow_desc_buf_len);
+
+        // Store the information in Bstring
+        pdu_sess_mod_comd->authorized_qosflowdescriptors =
+            blk2bstr(buffer + decoded, qos_flow_desc_buf_len);
+        decoded += qos_flow_desc_buf_len;
       } break;
       case REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE: {
         if ((decoded_result =

@@ -218,6 +218,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   //    a failure, then the entire PolicyReAuth will not save to the
   //    SessionStore properly
   auto request = get_policy_reauth_request();
+  request.set_session_id(SESSION_ID_1);
   grpc::ServerContext create_context;
   EXPECT_CALL(*pipelined_client, activate_flows_for_rules(IMSI1, _, _, _, _, _,
                                                           CheckRuleCount(1), _))

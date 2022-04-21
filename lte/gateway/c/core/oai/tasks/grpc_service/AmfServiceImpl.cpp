@@ -130,7 +130,7 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.selected_ssc_mode = (ssc_mode_t) req_m5g.selected_ssc_mode();
   itti_msg.m5gsm_cause       = (m5g_sm_cause_t) req_m5g.m5gsm_cause();
 
-  if (req_m5g.has_subscribed_qos()) {
+  if (!(req_m5g.qos_policy_size()) && req_m5g.has_subscribed_qos()) {
     itti_msg.session_ambr.uplink_unit_type = req_m5g.subscribed_qos().br_unit();
     itti_msg.session_ambr.uplink_units = req_m5g.subscribed_qos().apn_ambr_ul();
 

@@ -1822,6 +1822,9 @@ int amf_app_pdu_session_modification_request(
   uint8_t qos_rules_buffer[4096];
   uint16_t qos_rules_buf_len = 0;
 
+  uint8_t qos_flowdesc_buffer[4096];
+  uint16_t qos_flowdesc_buf_len = 0;
+
   for (int i = 0; i < smf_ctx->qos_flow_list.maxNumOfQosFlows; i++) {
     if (smf_ctx->qos_flow_list.item[i]
             .qos_flow_req_item.ul_tft.tftoperationcode) {
@@ -1887,9 +1890,6 @@ int amf_app_pdu_session_modification_request(
       qos_rules_buf_len += encoded_result;
     }
 
-    msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd.authorized_qosrules =
-       blk2bstr(qos_rules_buffer, qos_rules_buf_len);
-
     // authorized qos flow descriptors
     if (smf_ctx->qos_flow_list.item[i]
             .qos_flow_req_item.ul_tft.tftoperationcode) {
@@ -1947,12 +1947,26 @@ int amf_app_pdu_session_modification_request(
       }
 
       if (flow_des.numOfParams) {
-        flow_des.iei = PDU_SESSION_QOS_FLOW_DESC_IE_TYPE;
-        msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd
-            .authqosflowdescriptors.push_back(flow_des);
+	// Convert Authorized qos into bstring
+        int encoded_result =
+        flow_des.EncodeM5GQosFlowDescription(&flow_des, qos_flowdesc_buffer, 4096);
+
+        if (encoded_result < 0) {
+          OAILOG_ERROR(LOG_AMF_APP,
+                       "qos flow Descripton invalid or un-aligned \n");
+          return M5G_AS_FAILURE;
+        }
+        qos_flowdesc_buf_len += encoded_result;
       }
     }
   }
+
+  msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd.authorized_qosrules =
+  blk2bstr(qos_rules_buffer, qos_rules_buf_len);
+
+  msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd
+  .authorized_qosflowdescriptors =
+  blk2bstr(qos_flowdesc_buffer, qos_flowdesc_buf_len);
 
   // session ambr
   if (pdu_sess_mod_req->session_ambr.downlink_units &&
@@ -2009,6 +2023,9 @@ int amf_app_pdu_session_modification_request(
 
   bdestroy(msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd
            .authorized_qosrules);
+
+  bdestroy(msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd
+           .authorized_qosflowdescriptors);
 
   return rc;
 }
