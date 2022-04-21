@@ -11,12 +11,16 @@
 # limitations under the License.
 ################################################################################
 
+locals {
+  region = "us-west-2"
+}
+
 module "orc8r" {
   # Change this to pull from GitHub with a specified ref, e.g.
   # source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.6"
   source = "../../../orc8r-aws"
 
-  region = "us-west-2"
+  region = local.region
 
   # If you performing a fresh Orc8r install, choose a recent Postgres version
   # orc8r_db_engine_version     = "12.6"
@@ -49,7 +53,7 @@ module "orc8r-app" {
   # source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.6"
   source = "../.."
 
-  region = "us-west-2"
+  region = local.region
 
   orc8r_domain_name     = module.orc8r.orc8r_domain_name
   orc8r_route53_zone_id = module.orc8r.route53_zone_id
