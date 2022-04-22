@@ -13,7 +13,7 @@ require (
 	github.com/go-openapi/strfmt v0.19.4
 	github.com/go-redis/redis v6.14.1+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/golang/protobuf v1.3.3
+	github.com/golang/protobuf v1.5.2
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/moriyoshi/routewrapper v0.0.0-20180228100351-e52d8d14cf39
