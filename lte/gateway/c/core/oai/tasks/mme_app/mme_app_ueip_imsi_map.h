@@ -13,7 +13,6 @@ limitations under the License.
 
 #pragma once
 
-#include <bits/stdc++.h>
 #include <unordered_map>
 #include <iostream>
 #include <string>
