@@ -8,7 +8,7 @@ hide_title: true
 
 ## Overview
 
-The Network Probe solution allows a Magma operator to provide standardized lawful interception X2 and X3 interfaces as described in [ETSI TS 103 221-2] (https://www.etsi.org/deliver/etsi_ts/103200_103299/10322102/01.04.01_60/ts_10322102v010401p.pdf). This feature takes advantage of the rest API (swagger) to provide the X1 interface.
+The Network Probe solution allows a Magma operator to provide standardized lawful interception X2 and X3 interfaces as described in [ETSI TS 103 221-2](https://www.etsi.org/deliver/etsi_ts/103200_103299/10322102/01.04.01_60/ts_10322102v010401p.pdf). This feature takes advantage of the rest API (swagger) to provide the X1 interface.
 
 ## Architecture
 
