@@ -32,12 +32,6 @@
 #include "lte/gateway/c/li_agent/src/test/Consts.h"
 #include "lte/gateway/c/li_agent/src/test/LIAgentdMocks.h"
 
-using grpc::Status;
-
-using ::testing::InvokeArgument;
-using ::testing::Return;
-using ::testing::Test;
-
 namespace magma {
 namespace lte {
 
@@ -88,7 +82,7 @@ TEST_F(PDUGeneratorTest, test_pdu_generator) {
   response.set_id("12345");
   EXPECT_CALL(*mobilityd_client,
               get_subscriber_id_from_ip(testing::_, testing::_))
-      .WillRepeatedly(testing::InvokeArgument<1>(Status::OK, response));
+      .WillRepeatedly(testing::InvokeArgument<1>(grpc::Status::OK, response));
 
   auto succeeded = pkt_generator->process_packet(phdr, pdata);
   EXPECT_TRUE(succeeded);
@@ -113,7 +107,7 @@ TEST_F(PDUGeneratorTest, test_generator_unknown_subscriber) {
   EXPECT_CALL(*mobilityd_client,
               get_subscriber_id_from_ip(testing::_, testing::_))
       .WillRepeatedly(testing::InvokeArgument<1>(
-          Status(grpc::DEADLINE_EXCEEDED, "timeout"), response));
+          grpc::Status(grpc::DEADLINE_EXCEEDED, "timeout"), response));
 
   auto succeeded = pkt_generator->process_packet(phdr, pdata);
   EXPECT_FALSE(succeeded);

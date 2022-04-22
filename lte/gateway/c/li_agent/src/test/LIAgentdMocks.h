@@ -26,10 +26,6 @@
 #include "lte/gateway/c/li_agent/src/ProxyConnector.hpp"
 #include "lte/gateway/c/li_agent/src/Utilities.hpp"
 
-using grpc::Status;
-using ::testing::_;
-using ::testing::Return;
-
 namespace magma {
 namespace lte {
 
@@ -58,10 +54,10 @@ class MockMobilitydClient : public MobilitydClient {
  public:
   ~MockMobilitydClient() {}
 
-  MOCK_METHOD2(
-      get_subscriber_id_from_ip,
-      void(const struct in_addr& addr,
-           std::function<void(Status, magma::lte::SubscriberID)> callback));
+  MOCK_METHOD2(get_subscriber_id_from_ip,
+               void(const struct in_addr& addr,
+                    std::function<void(grpc::Status, magma::lte::SubscriberID)>
+                        callback));
 };
 
 }  // namespace lte

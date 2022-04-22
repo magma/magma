@@ -47,18 +47,18 @@ AsyncMobilitydClient::AsyncMobilitydClient()
 
 void AsyncMobilitydClient::get_subscriber_id_from_ip(
     const struct in_addr& ip,
-    std::function<void(Status, SubscriberID)> callback) {
+    std::function<void(grpc::Status, SubscriberID)> callback) {
   IPAddress req = create_get_subscriber_id_from_ip_req(ip);
   get_subscriber_id_from_ip_rpc(req, callback);
 }
 
 void AsyncMobilitydClient::get_subscriber_id_from_ip_rpc(
     const IPAddress& request,
-    std::function<void(Status, SubscriberID)> callback) {
+    std::function<void(grpc::Status, SubscriberID)> callback) {
   auto local_resp = new AsyncLocalResponse<SubscriberID>(
       std::move(callback), RESPONSE_TIMEOUT_SECONDS);
-  local_resp->set_response_reader(std::move(stub_->AsyncGetSubscriberIDFromIP(
-      local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(stub_->AsyncGetSubscriberIDFromIP(
+      local_resp->get_context(), request, &queue_));
 }
 
 }  // namespace lte

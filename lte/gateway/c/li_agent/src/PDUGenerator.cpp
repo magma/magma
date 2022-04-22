@@ -233,8 +233,7 @@ bool PDUGenerator::get_subscriber_id_from_ip(const char* ip_addr,
   std::promise<std::string> lookup_res;
   std::future<std::string> lookup_future = lookup_res.get_future();
   mobilityd_client_->get_subscriber_id_from_ip(
-      addr,
-      [this, &addr, &lookup_res, ip_addr](Status status, SubscriberID resp) {
+      addr, [&lookup_res, ip_addr](grpc::Status status, SubscriberID resp) {
         if (!status.ok()) {
           MLOG(MDEBUG) << "Could not find subscriber_id for ip " << ip_addr;
           lookup_res.set_value("");
