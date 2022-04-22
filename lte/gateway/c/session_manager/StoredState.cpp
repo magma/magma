@@ -28,7 +28,7 @@
 #include <utility>
 
 #include "lte/gateway/c/session_manager/CreditKey.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace magma {
 using google::protobuf::util::TimeUtil;

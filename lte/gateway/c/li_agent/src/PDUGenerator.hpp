@@ -19,7 +19,7 @@
 #include <string>
 
 #include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 #include "lte/gateway/c/li_agent/src/ProxyConnector.hpp"
 #include "lte/gateway/c/li_agent/src/MobilitydClient.hpp"
 

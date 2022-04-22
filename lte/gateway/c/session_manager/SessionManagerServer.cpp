@@ -20,7 +20,7 @@
 #include <ostream>
 #include <utility>
 
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 using grpc::Status;
 

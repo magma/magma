@@ -20,7 +20,7 @@
 #include <ostream>
 
 #include "lte/gateway/c/sctpd/src/util.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace grpc {
 class Channel;

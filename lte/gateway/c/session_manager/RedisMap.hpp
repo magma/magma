@@ -26,7 +26,7 @@
 #include <vector>
 
 #include "lte/gateway/c/session_manager/ObjectMap.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 using magma::orc8r::RedisState;
 

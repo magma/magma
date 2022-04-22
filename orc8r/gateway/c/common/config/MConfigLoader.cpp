@@ -21,7 +21,7 @@
 #include <cstdlib>  // for getenv
 #include <fstream>  // IWYU pragma: keep
 
-#include "orc8r/gateway/c/common/logging/magma_logging.h"  // for MLOG
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"  // for MLOG
 
 namespace google {
 namespace protobuf {

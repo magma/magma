@@ -34,7 +34,7 @@
 #include "lte/gateway/c/session_manager/DirectorydClient.hpp"
 #include "lte/gateway/c/session_manager/SessionReporter.hpp"
 #include "lte/gateway/c/session_manager/SessionStore.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace magma {
 class LocalEnforcer;

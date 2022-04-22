@@ -22,7 +22,7 @@
 #include <utility>
 
 #include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace folly {
 class EventBase;

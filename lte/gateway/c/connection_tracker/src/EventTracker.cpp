@@ -27,7 +27,7 @@
 #include <memory>
 
 #include "lte/gateway/c/connection_tracker/src/PacketGenerator.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 static int data_cb(const struct nlmsghdr* nlh, void* data);
 

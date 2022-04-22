@@ -22,7 +22,7 @@
 #include "lte/gateway/c/li_agent/src/PDUGenerator.hpp"
 #include "lte/gateway/c/li_agent/src/ProxyConnector.hpp"
 #include "lte/gateway/c/li_agent/src/Utilities.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging_init.h"
+#include "orc8r/gateway/c/common/logging/magma_logging_init.hpp"
 #include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.hpp"
 
 static uint32_t get_log_verbosity(const YAML::Node& config,

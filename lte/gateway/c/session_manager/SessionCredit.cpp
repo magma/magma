@@ -24,8 +24,8 @@
 #include "lte/gateway/c/session_manager/DiameterCodes.hpp"
 #include "lte/gateway/c/session_manager/EnumToString.hpp"
 #include "lte/gateway/c/session_manager/Utilities.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
-#include "orc8r/gateway/c/common/logging/magma_logging_init.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging_init.hpp"
 
 namespace magma {
 
