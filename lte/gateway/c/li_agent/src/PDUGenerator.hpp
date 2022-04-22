@@ -23,8 +23,6 @@
 #include <unordered_map>
 
 #include "lte/gateway/c/li_agent/src/MobilitydClient.hpp"
-#include "lte/gateway/c/li_agent/src/MobilitydClient.hpp"
-#include "lte/gateway/c/li_agent/src/ProxyConnector.hpp"
 #include "lte/gateway/c/li_agent/src/ProxyConnector.hpp"
 #include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"

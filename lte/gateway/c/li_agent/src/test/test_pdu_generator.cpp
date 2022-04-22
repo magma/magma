@@ -29,8 +29,8 @@
 #include <utility>
 
 #include "lte/gateway/c/li_agent/src/PDUGenerator.hpp"
-#include "lte/gateway/c/li_agent/src/test/Consts.h"
-#include "lte/gateway/c/li_agent/src/test/LIAgentdMocks.h"
+#include "lte/gateway/c/li_agent/src/test/Consts.hpp"
+#include "lte/gateway/c/li_agent/src/test/LIAgentdMocks.hpp"
 
 namespace magma {
 namespace lte {
