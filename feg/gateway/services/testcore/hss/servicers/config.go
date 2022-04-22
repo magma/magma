@@ -86,7 +86,7 @@ func GetHSSConfig() (*mconfig.HSSConfig, error) {
 		}, err
 	}
 
-	glog.V(2).Infof("Loaded %s configs: %+v\n", hssServiceName, *configsPtr)
+	glog.V(2).Infof("Loaded %s configs: %+v\n", hssServiceName, configsPtr)
 	return &mconfig.HSSConfig{
 		Server: &mconfig.DiamServerConfig{
 			Address:      diameter.GetValue(diameter.AddrFlag, configsPtr.Server.Address),

@@ -25,6 +25,7 @@ import (
 	"magma/feg/gateway/services/swx_proxy/servicers"
 	"magma/feg/gateway/services/swx_proxy/servicers/test"
 	"magma/feg/gateway/services/swx_proxy/test_init"
+	"magma/orc8r/cloud/go/test_utils"
 	orcprotos "magma/orc8r/lib/go/protos"
 )
 
@@ -71,7 +72,7 @@ func standardSwxProxyTest(t *testing.T) {
 			t.Fatalf("GRPC MAR Error: %v", err)
 			return
 		}
-		t.Logf("GRPC MAA: %#+v", *authRes)
+		t.Logf("GRPC MAA: %+v", authRes)
 		assert.Equal(t, expectedUsername, authRes.GetUserName())
 		assert.Equal(t, 1, len(authRes.GetSipAuthVectors()))
 		v := authRes.SipAuthVectors[0]
@@ -91,8 +92,8 @@ func standardSwxProxyTest(t *testing.T) {
 		t.Fatalf("GRPC SAR Register Error: %v", err)
 		return
 	}
-	assert.Equal(t, &protos.RegistrationAnswer{SessionId: regRes.GetSessionId()}, regRes)
-	t.Logf("GRPC Register SAA: %#+v", *regRes)
+	test_utils.AssertMessagesEqual(t, &protos.RegistrationAnswer{SessionId: regRes.GetSessionId()}, regRes)
+	t.Logf("GRPC Register SAA: %#+v", regRes)
 
 	regReq.SessionId = regRes.GetSessionId()
 	deregRes, err := swx_proxy.Deregister(regReq)
@@ -100,8 +101,8 @@ func standardSwxProxyTest(t *testing.T) {
 		t.Fatalf("GRPC SAR Deregister Error: %v", err)
 		return
 	}
-	assert.Equal(t, &protos.RegistrationAnswer{SessionId: regRes.GetSessionId()}, deregRes)
-	t.Logf("GRPC Deregister SAA: %#+v", *deregRes)
+	test_utils.AssertMessagesEqual(t, &protos.RegistrationAnswer{SessionId: regRes.GetSessionId()}, deregRes)
+	t.Logf("GRPC Deregister SAA: %+v", deregRes)
 
 	// Test client error handling
 	authRes, err := swx_proxy.Authenticate(nil)

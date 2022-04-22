@@ -13,6 +13,8 @@ limitations under the License.
 package radius
 
 import (
+	"google.golang.org/protobuf/proto"
+
 	"magma/feg/cloud/go/protos/mconfig"
 )
 
@@ -37,7 +39,7 @@ var defaultConfigs = &mconfig.RadiusConfig{
 func ValidateConfigs(cfg *mconfig.RadiusConfig) *mconfig.RadiusConfig {
 	res := &mconfig.RadiusConfig{}
 	if cfg != nil {
-		*res = *cfg
+		res = proto.Clone(cfg).(*mconfig.RadiusConfig)
 	}
 	if len(res.Secret) == 0 {
 		res.Secret = []byte(defaultSecret)

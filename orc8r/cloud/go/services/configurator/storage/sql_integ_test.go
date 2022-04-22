@@ -20,10 +20,12 @@ import (
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/proto"
 
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	orc8r_storage "magma/orc8r/cloud/go/storage"
+	"magma/orc8r/cloud/go/test_utils"
 )
 
 const (
@@ -54,11 +56,10 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	store, err := factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
 
-	loadNetworksActual, err := store.LoadNetworks(storage.NetworkLoadFilter{Ids: []string{"n1", "n2"}}, storage.FullNetworkLoadCriteria)
+	loadNetworksActual, err := store.LoadNetworks(&storage.NetworkLoadFilter{Ids: []string{"n1", "n2"}}, &storage.FullNetworkLoadCriteria)
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		storage.NetworkLoadResult{
+	test_utils.AssertMessagesEqual(t,
+		&storage.NetworkLoadResult{
 			Networks:           []*storage.Network{},
 			NetworkIDsNotFound: []string{"n1", "n2"},
 		},
@@ -74,15 +75,15 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
 
-	expectedn1 := storage.Network{ID: "n1", Type: "type1", Name: "Network 1", Description: "foo", Configs: map[string][]byte{"hello": []byte("world"), "goodbye": []byte("alsoworld")}}
+	expectedn1 := &storage.Network{ID: "n1", Type: "type1", Name: "Network 1", Description: "foo", Configs: map[string][]byte{"hello": []byte("world"), "goodbye": []byte("alsoworld")}}
 	actualNetwork, err := store.CreateNetwork(expectedn1)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedn1, actualNetwork)
+	test_utils.AssertMessagesEqual(t, expectedn1, actualNetwork)
 
-	expectedn2 := storage.Network{ID: "n2", Type: "type2"}
+	expectedn2 := &storage.Network{ID: "n2", Type: "type2"}
 	actualNetwork, err = store.CreateNetwork(expectedn2)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedn2, actualNetwork)
+	test_utils.AssertMessagesEqual(t, expectedn2, actualNetwork)
 	expectedn2.Configs = map[string][]byte{}
 
 	err = store.Commit()
@@ -90,12 +91,11 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
-	loadNetworksActual, err = store.LoadNetworks(storage.NetworkLoadFilter{Ids: []string{"n1", "n2", "n3"}}, storage.FullNetworkLoadCriteria)
+	loadNetworksActual, err = store.LoadNetworks(&storage.NetworkLoadFilter{Ids: []string{"n1", "n2", "n3"}}, &storage.FullNetworkLoadCriteria)
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		storage.NetworkLoadResult{
-			Networks:           []*storage.Network{&expectedn1, &expectedn2},
+	test_utils.AssertMessagesEqual(t,
+		&storage.NetworkLoadResult{
+			Networks:           []*storage.Network{expectedn1, expectedn2},
 			NetworkIDsNotFound: []string{"n3"},
 		},
 		loadNetworksActual,
@@ -109,7 +109,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
-	loadedNetworks, err := store.LoadAllNetworks(storage.FullNetworkLoadCriteria)
+	loadedNetworks, err := store.LoadAllNetworks(&storage.FullNetworkLoadCriteria)
 	assert.NoError(t, err)
 	assert.Equal(t, "n1", loadedNetworks[0].ID)
 	assert.Equal(t, "n2", loadedNetworks[1].ID)
@@ -122,10 +122,10 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
-	_, err = store.CreateNetwork(storage.Network{ID: "n3"})
+	_, err = store.CreateNetwork(&storage.Network{ID: "n3"})
 	assert.NoError(t, err)
 
-	updates := []storage.NetworkUpdateCriteria{
+	updates := []*storage.NetworkUpdateCriteria{
 		{ID: "n1", NewName: &wrappers.StringValue{Value: "New Network 1"}, NewDescription: &wrappers.StringValue{Value: "New Network 1 description"}, ConfigsToDelete: []string{"goodbye"}, ConfigsToAddOrUpdate: map[string][]byte{"foo": []byte("bar")}},
 		{ID: "n2", ConfigsToDelete: []string{"dne"}, ConfigsToAddOrUpdate: map[string][]byte{"baz": []byte("quz")}},
 		{ID: "n3", DeleteNetwork: true},
@@ -145,12 +145,11 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 
 	store, err = factory.StartTransaction(context.Background(), &orc8r_storage.TxOptions{ReadOnly: true})
 	assert.NoError(t, err)
-	loadNetworksActual, err = store.LoadNetworks(storage.NetworkLoadFilter{Ids: []string{"n1", "n2", "n3"}}, storage.FullNetworkLoadCriteria)
+	loadNetworksActual, err = store.LoadNetworks(&storage.NetworkLoadFilter{Ids: []string{"n1", "n2", "n3"}}, &storage.FullNetworkLoadCriteria)
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		storage.NetworkLoadResult{
-			Networks:           []*storage.Network{&expectedn1, &expectedn2},
+	test_utils.AssertMessagesEqual(t,
+		&storage.NetworkLoadResult{
+			Networks:           []*storage.Network{expectedn1, expectedn2},
 			NetworkIDsNotFound: []string{"n3"},
 		},
 		loadNetworksActual,
@@ -164,27 +163,26 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
 
-	expectedn3 := storage.Network{ID: "n3", Type: "type1"}
+	expectedn3 := &storage.Network{ID: "n3", Type: "type1"}
 	actualNetwork, err = store.CreateNetwork(expectedn3)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedn3, actualNetwork)
+	test_utils.AssertMessagesEqual(t, expectedn3, actualNetwork)
 
-	expectedn4 := storage.Network{ID: "n4", Type: "type2"}
+	expectedn4 := &storage.Network{ID: "n4", Type: "type2"}
 	actualNetwork, err = store.CreateNetwork(expectedn4)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedn4, actualNetwork)
+	test_utils.AssertMessagesEqual(t, expectedn4, actualNetwork)
 
 	expectedn2.Configs = map[string][]uint8{}
 	expectedn2.Version = 1
 
 	expectedn4.Configs = map[string][]uint8{}
 
-	loadNetworksActual, err = store.LoadNetworks(storage.NetworkLoadFilter{TypeFilter: stringPointer("type2")}, storage.NetworkLoadCriteria{})
+	loadNetworksActual, err = store.LoadNetworks(&storage.NetworkLoadFilter{TypeFilter: stringPointer("type2")}, &storage.NetworkLoadCriteria{})
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		storage.NetworkLoadResult{
-			Networks:           []*storage.Network{&expectedn2, &expectedn4},
+	test_utils.AssertMessagesEqual(t,
+		&storage.NetworkLoadResult{
+			Networks:           []*storage.Network{expectedn2, expectedn4},
 			NetworkIDsNotFound: []string{},
 		},
 		loadNetworksActual,
@@ -198,28 +196,23 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
 
-	actualEntityLoad, err := store.LoadEntities("n1", storage.EntityLoadFilter{}, storage.FullEntityLoadCriteria)
+	actualEntityLoad, err := store.LoadEntities("n1", &storage.EntityLoadFilter{}, &storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		storage.EntityLoadResult{},
-		actualEntityLoad,
-	)
+	test_utils.AssertMessagesEqual(t, &storage.EntityLoadResult{}, actualEntityLoad)
 
 	actualEntityLoad, err = store.LoadEntities(
 		"n1",
-		storage.EntityLoadFilter{
+		&storage.EntityLoadFilter{
 			IDs: []*storage.EntityID{
 				{Type: "foo", Key: "bar"},
 				{Type: "baz", Key: "quz"},
 			},
 		},
-		storage.EntityLoadCriteria{},
+		&storage.EntityLoadCriteria{},
 	)
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		storage.EntityLoadResult{
+	test_utils.AssertMessagesEqual(t,
+		&storage.EntityLoadResult{
 			EntitiesNotFound: []*storage.EntityID{
 				{Type: "baz", Key: "quz"},
 				{Type: "foo", Key: "bar"},
@@ -236,7 +229,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	// Create 3 entities, read them back
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
-	expectedFoobarEnt, err := store.CreateEntity("n1", storage.NetworkEntity{
+	expectedFoobarEnt, err := store.CreateEntity("n1", &storage.NetworkEntity{
 		Type: "foo",
 		Key:  "bar",
 
@@ -255,7 +248,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "2", expectedFoobarEnt.GraphID)
 
-	expectedBarbazEnt, err := store.CreateEntity("n1", storage.NetworkEntity{
+	expectedBarbazEnt, err := store.CreateEntity("n1", &storage.NetworkEntity{
 		Type: "bar",
 		Key:  "baz",
 
@@ -269,7 +262,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 
 	// bazquz should link foobar and barbaz into 1 graph
 	// that graph ID should be 2
-	expectedBazquzEnt, err := store.CreateEntity("n1", storage.NetworkEntity{
+	expectedBazquzEnt, err := store.CreateEntity("n1", &storage.NetworkEntity{
 		Type: "baz",
 		Key:  "quz",
 
@@ -284,7 +277,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Try and fail to create ent with physical ID that already exists
-	_, err = store.CreateEntity("n1", storage.NetworkEntity{
+	_, err = store.CreateEntity("n1", &storage.NetworkEntity{
 		Type:       "apple_type",
 		Key:        "apple_key",
 		PhysicalID: "1",
@@ -311,15 +304,14 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
-	actualEntityLoad, err = store.LoadEntities("n1", storage.EntityLoadFilter{}, storage.FullEntityLoadCriteria)
+	actualEntityLoad, err = store.LoadEntities("n1", &storage.EntityLoadFilter{}, &storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		storage.EntityLoadResult{
+	test_utils.AssertMessagesEqual(t,
+		&storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
-				&expectedBarbazEnt,
-				&expectedBazquzEnt,
-				&expectedFoobarEnt,
+				expectedBarbazEnt,
+				expectedBazquzEnt,
+				expectedFoobarEnt,
 			},
 		},
 		actualEntityLoad,
@@ -331,13 +323,12 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.NoError(t, err)
 	// network ID shouldn't matter in this query, since searching on
 	// physical ID intentionally doesn't scope to a particular network
-	actualEntityLoad, err = store.LoadEntities("placeholder", storage.EntityLoadFilter{PhysicalID: stringPointer("1")}, storage.FullEntityLoadCriteria)
+	actualEntityLoad, err = store.LoadEntities("placeholder", &storage.EntityLoadFilter{PhysicalID: stringPointer("1")}, &storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		storage.EntityLoadResult{
+	test_utils.AssertMessagesEqual(t,
+		&storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
-				&expectedFoobarEnt,
+				expectedFoobarEnt,
 			},
 		},
 		actualEntityLoad,
@@ -359,7 +350,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
-	_, err = store.CreateEntity("n1", storage.NetworkEntity{
+	_, err = store.CreateEntity("n1", &storage.NetworkEntity{
 		Type: "hello",
 		Key:  "world",
 
@@ -376,7 +367,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	newDesc := "helloworld2 ent"
 	newPhysID := "asdf"
 	newConfig := []byte("second config")
-	updateHelloWorldEntResult, err := store.UpdateEntity("n1", storage.EntityUpdateCriteria{
+	updateHelloWorldEntResult, err := store.UpdateEntity("n1", &storage.EntityUpdateCriteria{
 		Type: "hello",
 		Key:  "world",
 
@@ -388,9 +379,8 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	assert.Equal(
-		t,
-		storage.NetworkEntity{
+	test_utils.AssertMessagesEqual(t,
+		&storage.NetworkEntity{
 			NetworkID: "n1",
 			Type:      "hello",
 			Key:       "world",
@@ -423,7 +413,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	//                        |           /      \           |
 	//                        v          /        \          v
 	//                      (foo, bar)  <          >  (bar, baz)
-	updateHelloWorldEntResult, err = store.UpdateEntity("n1", storage.EntityUpdateCriteria{
+	updateHelloWorldEntResult, err = store.UpdateEntity("n1", &storage.EntityUpdateCriteria{
 		Type: "hello",
 		Key:  "world",
 
@@ -434,9 +424,8 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		},
 	})
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		storage.NetworkEntity{
+	test_utils.AssertMessagesEqual(t,
+		&storage.NetworkEntity{
 			NetworkID:  "n1",
 			Type:       "hello",
 			Key:        "world",
@@ -464,18 +453,16 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 
 	actualEntityLoad, err = store.LoadEntities(
 		"n1",
-		storage.EntityLoadFilter{IDs: []*storage.EntityID{{Type: "hello", Key: "world"}}},
-		storage.FullEntityLoadCriteria,
+		&storage.EntityLoadFilter{IDs: []*storage.EntityID{{Type: "hello", Key: "world"}}},
+		&storage.FullEntityLoadCriteria,
 	)
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		storage.EntityLoadResult{
-			Entities: []*storage.NetworkEntity{&expectedHelloWorldEnt},
+	test_utils.AssertMessagesEqual(t,
+		&storage.EntityLoadResult{
+			Entities: []*storage.NetworkEntity{expectedHelloWorldEnt},
 		},
 		actualEntityLoad,
 	)
-
 	assert.NoError(t, store.Commit())
 
 	// ========================================================================
@@ -486,14 +473,14 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Load a graph directly via ID
-	actualGraph2, err := store.LoadGraphForEntity("n1", storage.EntityID{Type: "hello", Key: "world"}, storage.EntityLoadCriteria{})
+	actualGraph2, err := store.LoadGraphForEntity("n1", &storage.EntityID{Type: "hello", Key: "world"}, &storage.EntityLoadCriteria{})
 	assert.NoError(t, err)
 
 	expectedFoobarEnt.ParentAssociations = append(expectedFoobarEnt.ParentAssociations, &storage.EntityID{Type: "hello", Key: "world"})
 	expectedBarbazEnt.ParentAssociations = append(expectedBarbazEnt.ParentAssociations, &storage.EntityID{Type: "hello", Key: "world"})
 	expectedBazquzEnt.ParentAssociations = []*storage.EntityID{{Type: "hello", Key: "world"}}
 
-	expectedFoobarEnt = storage.NetworkEntity{
+	expectedFoobarEnt = &storage.NetworkEntity{
 		NetworkID:  "n1",
 		Type:       "foo",
 		Key:        "bar",
@@ -506,7 +493,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		},
 	}
 
-	expectedBarbazEnt = storage.NetworkEntity{
+	expectedBarbazEnt = &storage.NetworkEntity{
 		NetworkID: "n1",
 		Type:      "bar",
 		Key:       "baz",
@@ -518,7 +505,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		},
 	}
 
-	expectedBazquzEnt = storage.NetworkEntity{
+	expectedBazquzEnt = &storage.NetworkEntity{
 		NetworkID: "n1",
 		Type:      "baz",
 		Key:       "quz",
@@ -533,7 +520,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		},
 	}
 
-	expectedHelloWorldEnt = storage.NetworkEntity{
+	expectedHelloWorldEnt = &storage.NetworkEntity{
 		NetworkID:  "n1",
 		Type:       "hello",
 		Key:        "world",
@@ -548,12 +535,12 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		Version: 2,
 	}
 
-	expectedGraph2 := storage.EntityGraph{
+	expectedGraph2 := &storage.EntityGraph{
 		Entities: []*storage.NetworkEntity{
-			&expectedBarbazEnt,
-			&expectedBazquzEnt,
-			&expectedFoobarEnt,
-			&expectedHelloWorldEnt,
+			expectedBarbazEnt,
+			expectedBazquzEnt,
+			expectedFoobarEnt,
+			expectedHelloWorldEnt,
 		},
 		RootEntities: []*storage.EntityID{{Type: "hello", Key: "world"}},
 		Edges: []*storage.GraphEdge{
@@ -564,15 +551,15 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 			{From: &storage.EntityID{Type: "hello", Key: "world"}, To: &storage.EntityID{Type: "foo", Key: "bar"}},
 		},
 	}
-	assert.Equal(t, expectedGraph2, actualGraph2)
+	test_utils.AssertMessagesEqual(t, expectedGraph2, actualGraph2)
 
 	// Load a graph from the ID of a node in the middle
-	actualGraph2, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "baz", Key: "quz"}, storage.EntityLoadCriteria{})
+	actualGraph2, err = store.LoadGraphForEntity("n1", &storage.EntityID{Type: "baz", Key: "quz"}, &storage.EntityLoadCriteria{})
 	assert.NoError(t, err)
-	assert.Equal(t, expectedGraph2, actualGraph2)
+	test_utils.AssertMessagesEqual(t, expectedGraph2, actualGraph2)
 
 	// Load a graph with full load criteria
-	actualGraph2, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "foo", Key: "bar"}, storage.FullEntityLoadCriteria)
+	actualGraph2, err = store.LoadGraphForEntity("n1", &storage.EntityID{Type: "foo", Key: "bar"}, &storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
 
 	expectedFoobarEnt.Name = "foobar"
@@ -590,12 +577,12 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedHelloWorldEnt.Description = "helloworld2 ent"
 	expectedHelloWorldEnt.Config = []byte("second config")
 
-	expectedGraph2 = storage.EntityGraph{
+	expectedGraph2 = &storage.EntityGraph{
 		Entities: []*storage.NetworkEntity{
-			&expectedBarbazEnt,
-			&expectedBazquzEnt,
-			&expectedFoobarEnt,
-			&expectedHelloWorldEnt,
+			expectedBarbazEnt,
+			expectedBazquzEnt,
+			expectedFoobarEnt,
+			expectedHelloWorldEnt,
 		},
 		RootEntities: []*storage.EntityID{{Type: "hello", Key: "world"}},
 		Edges: []*storage.GraphEdge{
@@ -606,7 +593,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 			{From: &storage.EntityID{Type: "hello", Key: "world"}, To: &storage.EntityID{Type: "foo", Key: "bar"}},
 		},
 	}
-	assert.Equal(t, expectedGraph2, actualGraph2)
+	test_utils.AssertMessagesEqual(t, expectedGraph2, actualGraph2)
 	assert.NoError(t, store.Commit())
 
 	// TODO: orphan some graph nodes (blocked on impl of fixGraph)
@@ -630,7 +617,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	// delete assocs to foobar and barbaz, helloworld's graph ID should still be 2
 	_, err = store.UpdateEntity(
 		"n1",
-		storage.EntityUpdateCriteria{
+		&storage.EntityUpdateCriteria{
 			Type: "hello", Key: "world",
 			AssociationsToDelete: []*storage.EntityID{
 				{Type: "foo", Key: "bar"},
@@ -645,12 +632,12 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedFoobarEnt.ParentAssociations = []*storage.EntityID{{Type: "baz", Key: "quz"}}
 	expectedBarbazEnt.ParentAssociations = []*storage.EntityID{{Type: "baz", Key: "quz"}}
 
-	expectedGraph2 = storage.EntityGraph{
+	expectedGraph2 = &storage.EntityGraph{
 		Entities: []*storage.NetworkEntity{
-			&expectedBarbazEnt,
-			&expectedBazquzEnt,
-			&expectedFoobarEnt,
-			&expectedHelloWorldEnt,
+			expectedBarbazEnt,
+			expectedBazquzEnt,
+			expectedFoobarEnt,
+			expectedHelloWorldEnt,
 		},
 		RootEntities: []*storage.EntityID{{Type: "hello", Key: "world"}},
 		Edges: []*storage.GraphEdge{
@@ -659,14 +646,14 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 			{From: &storage.EntityID{Type: "hello", Key: "world"}, To: &storage.EntityID{Type: "baz", Key: "quz"}},
 		},
 	}
-	actualGraph2, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "hello", Key: "world"}, storage.FullEntityLoadCriteria)
+	actualGraph2, err = store.LoadGraphForEntity("n1", &storage.EntityID{Type: "hello", Key: "world"}, &storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedGraph2, actualGraph2)
+	test_utils.AssertMessagesEqual(t, expectedGraph2, actualGraph2)
 
 	// delete assoc to bazquz, helloworld should have a new graph ID
 	_, err = store.UpdateEntity(
 		"n1",
-		storage.EntityUpdateCriteria{
+		&storage.EntityUpdateCriteria{
 			Type: "hello", Key: "world",
 			AssociationsToDelete: []*storage.EntityID{
 				{Type: "baz", Key: "quz"},
@@ -681,11 +668,11 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedBazquzEnt.ParentAssociations = nil
 
 	// first, check graph of foobar which should be unchanged
-	expectedGraph2 = storage.EntityGraph{
+	expectedGraph2 = &storage.EntityGraph{
 		Entities: []*storage.NetworkEntity{
-			&expectedBarbazEnt,
-			&expectedBazquzEnt,
-			&expectedFoobarEnt,
+			expectedBarbazEnt,
+			expectedBazquzEnt,
+			expectedFoobarEnt,
 		},
 		RootEntities: []*storage.EntityID{{Type: "baz", Key: "quz"}},
 		Edges: []*storage.GraphEdge{
@@ -693,42 +680,41 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 			{From: &storage.EntityID{Type: "baz", Key: "quz"}, To: &storage.EntityID{Type: "foo", Key: "bar"}},
 		},
 	}
-	actualGraph2, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "foo", Key: "bar"}, storage.FullEntityLoadCriteria)
+	actualGraph2, err = store.LoadGraphForEntity("n1", &storage.EntityID{Type: "foo", Key: "bar"}, &storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedGraph2, actualGraph2)
+	test_utils.AssertMessagesEqual(t, expectedGraph2, actualGraph2)
 
 	// helloworld should be in its own graph now. ID generator was at 9.
-	expectedGraph9 := storage.EntityGraph{
+	expectedGraph9 := &storage.EntityGraph{
 		Entities: []*storage.NetworkEntity{
-			&expectedHelloWorldEnt,
+			expectedHelloWorldEnt,
 		},
 		RootEntities: []*storage.EntityID{{Type: "hello", Key: "world"}},
 		Edges:        []*storage.GraphEdge{},
 	}
-	actualGraph9, err := store.LoadGraphForEntity("n1", storage.EntityID{Type: "hello", Key: "world"}, storage.FullEntityLoadCriteria)
+	actualGraph9, err := store.LoadGraphForEntity("n1", &storage.EntityID{Type: "hello", Key: "world"}, &storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedGraph9, actualGraph9)
+	test_utils.AssertMessagesEqual(t, expectedGraph9, actualGraph9)
 
 	// now, delete bazquz. this should partition the network into 3 different
 	// graphs each with a single element
-	_, err = store.UpdateEntity("n1", storage.EntityUpdateCriteria{Type: "baz", Key: "quz", DeleteEntity: true})
+	_, err = store.UpdateEntity("n1", &storage.EntityUpdateCriteria{Type: "baz", Key: "quz", DeleteEntity: true})
 	assert.NoError(t, err)
 
-	allEnts, err := store.LoadEntities("n1", storage.EntityLoadFilter{}, storage.FullEntityLoadCriteria)
+	allEnts, err := store.LoadEntities("n1", &storage.EntityLoadFilter{}, &storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
-	assert.NotNil(t, allEnts)
+	test_utils.AssertMessagesNotEqual(t, &storage.EntityLoadResult{}, allEnts)
 
 	expectedBarbazEnt.ParentAssociations = nil
 	expectedFoobarEnt.GraphID = "10"
 	expectedFoobarEnt.ParentAssociations = nil
 
-	assert.Equal(
-		t,
-		storage.EntityLoadResult{
+	test_utils.AssertMessagesEqual(t,
+		&storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
-				&expectedBarbazEnt,
-				&expectedFoobarEnt,
-				&expectedHelloWorldEnt,
+				expectedBarbazEnt,
+				expectedFoobarEnt,
+				expectedHelloWorldEnt,
 			},
 		},
 		allEnts,
@@ -738,7 +724,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	// just -> barbaz
 	_, err = store.UpdateEntity(
 		"n1",
-		storage.EntityUpdateCriteria{
+		&storage.EntityUpdateCriteria{
 			Type: "hello",
 			Key:  "world",
 			AssociationsToAdd: []*storage.EntityID{
@@ -749,7 +735,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = store.UpdateEntity(
 		"n1",
-		storage.EntityUpdateCriteria{
+		&storage.EntityUpdateCriteria{
 			Type: "hello",
 			Key:  "world",
 			AssociationsToSet: &storage.EntityAssociationsToSet{
@@ -768,17 +754,16 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedFoobarEnt.GraphID = "11"
 	expectedHelloWorldEnt.Version = 6
 
-	allEnts, err = store.LoadEntities("n1", storage.EntityLoadFilter{}, storage.FullEntityLoadCriteria)
+	allEnts, err = store.LoadEntities("n1", &storage.EntityLoadFilter{}, &storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
-	assert.NotNil(t, allEnts)
+	test_utils.AssertMessagesNotEqual(t, &storage.EntityLoadResult{}, allEnts)
 
-	assert.Equal(
-		t,
-		storage.EntityLoadResult{
+	test_utils.AssertMessagesEqual(t,
+		&storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
-				&expectedBarbazEnt,
-				&expectedFoobarEnt,
-				&expectedHelloWorldEnt,
+				expectedBarbazEnt,
+				expectedFoobarEnt,
+				expectedHelloWorldEnt,
 			},
 		},
 		allEnts,
@@ -787,7 +772,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	// Clear associations using AssociationsToSet field
 	_, err = store.UpdateEntity(
 		"n1",
-		storage.EntityUpdateCriteria{
+		&storage.EntityUpdateCriteria{
 			Type: "hello",
 			Key:  "world",
 			AssociationsToSet: &storage.EntityAssociationsToSet{
@@ -804,17 +789,16 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedFoobarEnt.GraphID = "11"
 	expectedHelloWorldEnt.Version = 7
 
-	allEnts, err = store.LoadEntities("n1", storage.EntityLoadFilter{}, storage.FullEntityLoadCriteria)
+	allEnts, err = store.LoadEntities("n1", &storage.EntityLoadFilter{}, &storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
-	assert.NotNil(t, allEnts)
+	test_utils.AssertMessagesNotEqual(t, &storage.EntityLoadResult{}, allEnts)
 
-	assert.Equal(
-		t,
-		storage.EntityLoadResult{
+	test_utils.AssertMessagesEqual(t,
+		&storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
-				&expectedBarbazEnt,
-				&expectedFoobarEnt,
-				&expectedHelloWorldEnt,
+				expectedBarbazEnt,
+				expectedFoobarEnt,
+				expectedHelloWorldEnt,
 			},
 		},
 		allEnts,
@@ -829,7 +813,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Create two more entities of type foo for paginated load
-	expectedFoozedEnt, err := store.CreateEntity("n1", storage.NetworkEntity{
+	expectedFoozedEnt, err := store.CreateEntity("n1", &storage.NetworkEntity{
 		Type: "foo",
 		Key:  "zed",
 
@@ -843,7 +827,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "14", expectedFoozedEnt.GraphID)
 
-	expectedFoohueEnt, err := store.CreateEntity("n1", storage.NetworkEntity{
+	expectedFoohueEnt, err := store.CreateEntity("n1", &storage.NetworkEntity{
 		Type: "foo",
 		Key:  "hue",
 
@@ -862,22 +846,21 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	// Load paginated entities of the same type
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
-	paginatedLoadCriteria := storage.FullEntityLoadCriteria
+	paginatedLoadCriteria := proto.Clone(&storage.FullEntityLoadCriteria).(*storage.EntityLoadCriteria)
 	paginatedLoadCriteria.PageToken = ""
 	paginatedLoadCriteria.PageSize = 2
-	actualEntityLoad, err = store.LoadEntities("n1", storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}}, paginatedLoadCriteria)
+	actualEntityLoad, err = store.LoadEntities("n1", &storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}}, paginatedLoadCriteria)
 	assert.NoError(t, err)
 	nextToken := &storage.EntityPageToken{
 		LastIncludedEntity: "hue",
 	}
 	expectedNextToken := serializeToken(t, nextToken)
 
-	assert.Equal(
-		t,
-		storage.EntityLoadResult{
+	test_utils.AssertMessagesEqual(t,
+		&storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
-				&expectedFoobarEnt, // type: foo, key: bar
-				&expectedFoohueEnt, // type: foo, key: hue
+				expectedFoobarEnt, // type: foo, key: bar
+				expectedFoohueEnt, // type: foo, key: hue
 			},
 			NextPageToken: expectedNextToken,
 		},
@@ -889,13 +872,12 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
 	paginatedLoadCriteria.PageToken = expectedNextToken
-	actualEntityLoad, err = store.LoadEntities("n1", storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}}, paginatedLoadCriteria)
+	actualEntityLoad, err = store.LoadEntities("n1", &storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}}, paginatedLoadCriteria)
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		storage.EntityLoadResult{
+	test_utils.AssertMessagesEqual(t,
+		&storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
-				&expectedFoozedEnt, // type: foo, key: zed
+				expectedFoozedEnt, // type: foo, key: zed
 			},
 			NextPageToken: "",
 		},
@@ -907,7 +889,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	paginatedLoadCriteria.PageToken = ""
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
-	_, err = store.LoadEntities("n1", storage.EntityLoadFilter{}, paginatedLoadCriteria)
+	_, err = store.LoadEntities("n1", &storage.EntityLoadFilter{}, paginatedLoadCriteria)
 	assert.Error(t, err)
 	assert.NoError(t, store.Commit())
 
@@ -915,7 +897,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	paginatedLoadCriteria.PageSize = 0
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
-	_, err = store.LoadEntities("n1", storage.EntityLoadFilter{}, paginatedLoadCriteria)
+	_, err = store.LoadEntities("n1", &storage.EntityLoadFilter{}, paginatedLoadCriteria)
 	assert.Error(t, err)
 	assert.NoError(t, store.Commit())
 }

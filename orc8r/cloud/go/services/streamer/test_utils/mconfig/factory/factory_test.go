@@ -24,6 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/services/streamer/test_utils/mconfig/test_protos"
+	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 )
 
@@ -82,7 +83,7 @@ func TestCreateMconfig(t *testing.T) {
 			CreatedAt: 1551916956,
 		},
 	}
-	assert.Equal(t, *expected, *actual)
+	test_utils.AssertMessagesEqual(t, expected, actual)
 }
 
 func TestCreateMconfig_DuplicateKey(t *testing.T) {
