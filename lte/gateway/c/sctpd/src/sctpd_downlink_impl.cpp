@@ -33,13 +33,13 @@ SctpdDownlinkImpl::SctpdDownlinkImpl(SctpEventHandler& uplink_handler)
       _sctp_4G_connection(nullptr),
       _sctp_5G_connection(nullptr) {}
 
-Status SctpdDownlinkImpl::create_sctp_connection(
+grpc::Status SctpdDownlinkImpl::create_sctp_connection(
     std::unique_ptr<SctpConnection>& sctp_connection, const InitReq* req,
     InitRes* res) {
   if (sctp_connection != nullptr && !req->force_restart()) {
     MLOG(MERROR) << "SctpdDownlinkImpl::Init reusing existing connection";
     res->set_result(InitRes::INIT_OK);
-    return Status::OK;
+    return grpc::Status::OK;
   }
   if (sctp_connection != nullptr) {
     MLOG(MINFO) << "SctpdDownlinkImpl::Init cleaning up sctp_desc and listener";
@@ -51,20 +51,20 @@ Status SctpdDownlinkImpl::create_sctp_connection(
     sctp_connection = std::make_unique<SctpConnection>(*req, _uplink_handler);
   } catch (...) {
     res->set_result(InitRes::INIT_FAIL);
-    return Status::OK;
+    return grpc::Status::OK;
   }
   sctp_connection->Start();
-  return Status::OK;
+  return grpc::Status::OK;
 }
 
-Status SctpdDownlinkImpl::Init(ServerContext* context, const InitReq* req,
-                               InitRes* res) {
+grpc::Status SctpdDownlinkImpl::Init(grpc::ServerContext* context,
+                                     const InitReq* req, InitRes* res) {
   MLOG(MINFO) << "SctpdDownlinkImpl::req->ppid()="
               << std::to_string(req->ppid());
   MLOG(MINFO) << "SctpdDownlinkImpl::req->port()="
               << std::to_string(req->port());
 
-  Status rc;
+  grpc::Status rc;
 
   if (req->ppid() == S1AP) {
     rc = create_sctp_connection(_sctp_4G_connection, req, res);
@@ -73,11 +73,11 @@ Status SctpdDownlinkImpl::Init(ServerContext* context, const InitReq* req,
     rc = create_sctp_connection(_sctp_5G_connection, req, res);
   }
   res->set_result(InitRes::INIT_OK);
-  return Status::OK;
+  return grpc::Status::OK;
 }
 
-Status SctpdDownlinkImpl::SendDl(ServerContext* context, const SendDlReq* req,
-                                 SendDlRes* res) {
+grpc::Status SctpdDownlinkImpl::SendDl(grpc::ServerContext* context,
+                                       const SendDlReq* req, SendDlRes* res) {
   MLOG(MDEBUG) << "SctpdDownlinkImpl::SendDl starting";
 
   try {
@@ -88,11 +88,11 @@ Status SctpdDownlinkImpl::SendDl(ServerContext* context, const SendDlReq* req,
 
   } catch (...) {
     res->set_result(SendDlRes::SEND_DL_FAIL);
-    return Status::OK;
+    return grpc::Status::OK;
   }
 
   res->set_result(SendDlRes::SEND_DL_OK);
-  return Status::OK;
+  return grpc::Status::OK;
 }
 
 void SctpdDownlinkImpl::stop() {

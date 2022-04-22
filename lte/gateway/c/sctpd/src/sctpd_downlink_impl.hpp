@@ -40,9 +40,6 @@ class SendDlRes;
 namespace magma {
 namespace sctpd {
 
-using grpc::ServerContext;
-using grpc::Status;
-
 // Implements the sctpd downlink server
 class SctpdDownlinkImpl final : public SctpdDownlink::Service {
  public:
@@ -50,17 +47,17 @@ class SctpdDownlinkImpl final : public SctpdDownlink::Service {
   SctpdDownlinkImpl(SctpEventHandler& uplink_handler);
 
   // Implementation of SctpdDownlink.Init method (see sctpd.proto for more info)
-  Status Init(ServerContext* context, const InitReq* request,
-              InitRes* response) override;
+  grpc::Status Init(grpc::ServerContext* context, const InitReq* request,
+                    InitRes* response) override;
 
   // Implementation of SctpdDownlink.SendDl method (see sctpd.proto for more
   // info)
-  Status SendDl(ServerContext* context, const SendDlReq* request,
-                SendDlRes* response) override;
+  grpc::Status SendDl(grpc::ServerContext* context, const SendDlReq* request,
+                      SendDlRes* response) override;
 
   // Implementation of SctpdDownlink.create_sctp_connection method
   //(creates 4G/5G sctp connection)
-  Status create_sctp_connection(
+  grpc::Status create_sctp_connection(
       std::unique_ptr<SctpConnection>& sctp_connection, const InitReq* request,
       InitRes* response);
 

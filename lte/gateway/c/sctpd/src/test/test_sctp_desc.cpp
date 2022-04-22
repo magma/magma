@@ -19,8 +19,6 @@
 #include "lte/gateway/c/sctpd/src/sctp_assoc.hpp"
 #include "lte/gateway/c/sctpd/src/sctp_desc.hpp"
 
-using ::testing::Test;
-
 namespace magma {
 namespace sctpd {
 

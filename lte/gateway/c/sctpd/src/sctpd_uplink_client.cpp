@@ -35,16 +35,14 @@ class NewAssocRes;
 class SendUlReq;
 class SendUlRes;
 
-using grpc::ClientContext;
-
-SctpdUplinkClient::SctpdUplinkClient(std::shared_ptr<Channel> channel) {
+SctpdUplinkClient::SctpdUplinkClient(std::shared_ptr<grpc::Channel> channel) {
   _stub = SctpdUplink::NewStub(channel);
 }
 
 int SctpdUplinkClient::sendUl(const SendUlReq& req, SendUlRes* res) {
   assert(res != nullptr);
 
-  ClientContext context;
+  grpc::ClientContext context;
   auto deadline = std::chrono::system_clock::now() +
                   std::chrono::milliseconds(1000 * RESPONSE_TIMEOUT);
   context.set_deadline(deadline);
@@ -62,7 +60,7 @@ int SctpdUplinkClient::sendUl(const SendUlReq& req, SendUlRes* res) {
 int SctpdUplinkClient::newAssoc(const NewAssocReq& req, NewAssocRes* res) {
   assert(res != nullptr);
 
-  ClientContext context;
+  grpc::ClientContext context;
   auto deadline = std::chrono::system_clock::now() +
                   std::chrono::milliseconds(1000 * RESPONSE_TIMEOUT);
   context.set_deadline(deadline);
@@ -81,7 +79,7 @@ int SctpdUplinkClient::closeAssoc(const CloseAssocReq& req,
                                   CloseAssocRes* res) {
   assert(res != nullptr);
 
-  ClientContext context;
+  grpc::ClientContext context;
   // Not putting a timeout event for closeAssoc events
   auto status = _stub->CloseAssoc(&context, req, res);
 

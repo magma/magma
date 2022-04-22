@@ -40,12 +40,6 @@
 #define SCTPD_SERVICE "sctpd"
 #define SHARED_MCONFIG "shared_mconfig"
 
-using grpc::Server;
-using grpc::ServerBuilder;
-using magma::sctpd::SctpdDownlinkImpl;
-using magma::sctpd::SctpdEventHandler;
-using magma::sctpd::SctpdUplinkClient;
-
 int signalMask(void) {
   sigset_t set;
   sigemptyset(&set);
@@ -58,8 +52,8 @@ int signalMask(void) {
   return 0;
 }
 
-int signalHandler(int* end, std::unique_ptr<Server>& server,
-                  SctpdDownlinkImpl& downLink) {
+int signalHandler(int* end, std::unique_ptr<grpc::Server>& server,
+                  magma::sctpd::SctpdDownlinkImpl& downLink) {
   int ret;
   siginfo_t info;
   sigset_t set;
@@ -130,15 +124,15 @@ int main() {
   auto channel =
       grpc::CreateChannel(UPSTREAM_SOCK, grpc::InsecureChannelCredentials());
 
-  SctpdUplinkClient client(channel);
-  SctpdEventHandler handler(client);
-  SctpdDownlinkImpl service(handler);
+  magma::sctpd::SctpdUplinkClient client(channel);
+  magma::sctpd::SctpdEventHandler handler(client);
+  magma::sctpd::SctpdDownlinkImpl service(handler);
 
-  ServerBuilder builder;
+  grpc::ServerBuilder builder;
   builder.AddListeningPort(DOWNSTREAM_SOCK, grpc::InsecureServerCredentials());
   builder.RegisterService(&service);
 
-  std::unique_ptr<Server> sctpd_dl_server = builder.BuildAndStart();
+  std::unique_ptr<grpc::Server> sctpd_dl_server = builder.BuildAndStart();
 
   int end = 0;
   while (end == 0) {

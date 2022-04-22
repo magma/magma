@@ -27,24 +27,19 @@ namespace grpc {
 class Channel;
 }  // namespace grpc
 
-using ::testing::_;
-using ::testing::AllOf;
-using ::testing::Eq;
-using ::testing::NotNull;
-using ::testing::Property;
-using ::testing::Return;
-using ::testing::Test;
-
 namespace magma {
 namespace sctpd {
 
 class MockSctpdUplinkClient final : public SctpdUplinkClient {
  public:
-  MockSctpdUplinkClient(std::shared_ptr<Channel> channel)
+  MockSctpdUplinkClient(std::shared_ptr<grpc::Channel> channel)
       : SctpdUplinkClient(channel) {
-    ON_CALL(*this, sendUl(_, _)).WillByDefault(Return(0));
-    ON_CALL(*this, newAssoc(_, _)).WillByDefault(Return(0));
-    ON_CALL(*this, closeAssoc(_, _)).WillByDefault(Return(0));
+    ON_CALL(*this, sendUl(testing::_, testing::_))
+        .WillByDefault(testing::Return(0));
+    ON_CALL(*this, newAssoc(testing::_, testing::_))
+        .WillByDefault(testing::Return(0));
+    ON_CALL(*this, closeAssoc(testing::_, testing::_))
+        .WillByDefault(testing::Return(0));
   }
 
   MOCK_METHOD2(sendUl, int(const SendUlReq&, SendUlRes*));
@@ -85,20 +80,22 @@ class EventHandlerTest : public ::testing::Test {
 };
 
 TEST_F(EventHandlerTest, test_event_handler_new_assoc) {
-  auto correct_ppid = Property(&NewAssocReq::ppid, Eq(new_assoc_req.ppid()));
-  auto correct_assoc_id =
-      Property(&NewAssocReq::assoc_id, Eq(new_assoc_req.assoc_id()));
-  auto correct_instreams =
-      Property(&NewAssocReq::instreams, Eq(new_assoc_req.instreams()));
-  auto correct_outstreams =
-      Property(&NewAssocReq::outstreams, Eq(new_assoc_req.outstreams()));
-  auto correct_ran_cp_ipaddr =
-      Property(&NewAssocReq::ran_cp_ipaddr, Eq(new_assoc_req.ran_cp_ipaddr()));
+  auto correct_ppid =
+      testing::Property(&NewAssocReq::ppid, testing::Eq(new_assoc_req.ppid()));
+  auto correct_assoc_id = testing::Property(
+      &NewAssocReq::assoc_id, testing::Eq(new_assoc_req.assoc_id()));
+  auto correct_instreams = testing::Property(
+      &NewAssocReq::instreams, testing::Eq(new_assoc_req.instreams()));
+  auto correct_outstreams = testing::Property(
+      &NewAssocReq::outstreams, testing::Eq(new_assoc_req.outstreams()));
+  auto correct_ran_cp_ipaddr = testing::Property(
+      &NewAssocReq::ran_cp_ipaddr, testing::Eq(new_assoc_req.ran_cp_ipaddr()));
   auto correct_new_assoc_req =
       AllOf(correct_ppid, correct_assoc_id, correct_instreams,
             correct_outstreams, correct_ran_cp_ipaddr);
 
-  EXPECT_CALL(*_uplink_client, newAssoc(correct_new_assoc_req, NotNull()))
+  EXPECT_CALL(*_uplink_client,
+              newAssoc(correct_new_assoc_req, testing::NotNull()))
       .Times(1);
 
   auto ran_cp_ipaddr = new_assoc_req.ran_cp_ipaddr();
@@ -108,16 +105,17 @@ TEST_F(EventHandlerTest, test_event_handler_new_assoc) {
 }
 
 TEST_F(EventHandlerTest, test_event_handler_close_assoc) {
-  auto correct_ppid =
-      Property(&CloseAssocReq::ppid, Eq(close_assoc_req.ppid()));
-  auto correct_assoc_id =
-      Property(&CloseAssocReq::assoc_id, Eq(close_assoc_req.assoc_id()));
-  auto correct_reset =
-      Property(&CloseAssocReq::is_reset, Eq(close_assoc_req.is_reset()));
+  auto correct_ppid = testing::Property(&CloseAssocReq::ppid,
+                                        testing::Eq(close_assoc_req.ppid()));
+  auto correct_assoc_id = testing::Property(
+      &CloseAssocReq::assoc_id, testing::Eq(close_assoc_req.assoc_id()));
+  auto correct_reset = testing::Property(
+      &CloseAssocReq::is_reset, testing::Eq(close_assoc_req.is_reset()));
   auto correct_close_assoc_req =
       AllOf(correct_ppid, correct_assoc_id, correct_reset);
 
-  EXPECT_CALL(*_uplink_client, closeAssoc(correct_close_assoc_req, NotNull()))
+  EXPECT_CALL(*_uplink_client,
+              closeAssoc(correct_close_assoc_req, testing::NotNull()))
       .Times(1);
 
   _handler->HandleCloseAssoc(close_assoc_req.ppid(), close_assoc_req.assoc_id(),
@@ -125,16 +123,19 @@ TEST_F(EventHandlerTest, test_event_handler_close_assoc) {
 }
 
 TEST_F(EventHandlerTest, test_event_handler_send_ul) {
-  auto correct_ppid = Property(&SendUlReq::ppid, Eq(send_ul_req.ppid()));
-  auto correct_assoc_id =
-      Property(&SendUlReq::assoc_id, Eq(send_ul_req.assoc_id()));
-  auto correct_stream = Property(&SendUlReq::stream, Eq(send_ul_req.stream()));
-  auto correct_payload =
-      Property(&SendUlReq::payload, Eq(send_ul_req.payload()));
+  auto correct_ppid =
+      testing::Property(&SendUlReq::ppid, testing::Eq(send_ul_req.ppid()));
+  auto correct_assoc_id = testing::Property(
+      &SendUlReq::assoc_id, testing::Eq(send_ul_req.assoc_id()));
+  auto correct_stream =
+      testing::Property(&SendUlReq::stream, testing::Eq(send_ul_req.stream()));
+  auto correct_payload = testing::Property(&SendUlReq::payload,
+                                           testing::Eq(send_ul_req.payload()));
   auto correct_send_ul_req =
       AllOf(correct_ppid, correct_assoc_id, correct_stream, correct_payload);
 
-  EXPECT_CALL(*_uplink_client, sendUl(correct_send_ul_req, NotNull())).Times(1);
+  EXPECT_CALL(*_uplink_client, sendUl(correct_send_ul_req, testing::NotNull()))
+      .Times(1);
 
   _handler->HandleRecv(send_ul_req.ppid(), send_ul_req.assoc_id(),
                        send_ul_req.stream(), send_ul_req.payload());

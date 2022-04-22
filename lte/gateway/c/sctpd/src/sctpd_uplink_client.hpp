@@ -31,13 +31,11 @@ class NewAssocRes;
 class SendUlReq;
 class SendUlRes;
 
-using grpc::Channel;
-
 // Grpc uplink client to allow sctpd to signal MME
 class SctpdUplinkClient {
  public:
   // Construct SctpdUplinkClient with the specified channel
-  explicit SctpdUplinkClient(std::shared_ptr<Channel> channel);
+  explicit SctpdUplinkClient(std::shared_ptr<grpc::Channel> channel);
 
   // Send an uplink packet to MME (see sctpd.proto for more info)
   virtual int sendUl(const SendUlReq& req, SendUlRes* res);
