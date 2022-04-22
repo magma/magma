@@ -42,10 +42,11 @@ var (
 			Id: hardwareID,
 		},
 		ChallengeKey: &protos.ChallengeKey{
-			KeyType: 0,
-			Key:     []byte("key"),
+			KeyType: protos.ChallengeKey_ECHO,
+			Key:     challengeKey,
 		},
 	}
+	challengeKey       = []byte("MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEQrZVdmuZpvciEXdznTErWUelOcgdBwPKQfOZDL7Wkl8ALSBtKvJWDPyhS6rkW9/xJdgPD4QK3Jqc4Eox5NT6SVYYuHWLv7b28493rwFvuC2+YurmfYj+LZh9VBVTvlwk")
 	controlProxy       = "controlProxy"
 	nextTenantID int64 = 0
 	hardwareID         = "foo-bar-hardware-id"

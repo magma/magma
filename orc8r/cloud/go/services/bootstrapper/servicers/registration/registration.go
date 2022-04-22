@@ -2,6 +2,7 @@ package registration
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 
 	"github.com/go-openapi/strfmt"
@@ -67,8 +68,11 @@ func (r *RegistrationService) Register(c context.Context, request *protos.Regist
 }
 
 func RegisterDevice(deviceInfo protos.GatewayDeviceInfo, hwid *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) error {
-	gatewayRecord := createGatewayDevice(hwid, challengeKey)
-	err := device.RegisterDevice(context.Background(), deviceInfo.NetworkId, orc8r.AccessGatewayRecordType, hwid.Id, gatewayRecord, serdes.Device)
+	gatewayRecord, err := createGatewayDevice(hwid, challengeKey)
+	if err != nil {
+		return err
+	}
+	err = device.RegisterDevice(context.Background(), deviceInfo.NetworkId, orc8r.AccessGatewayRecordType, hwid.Id, gatewayRecord, serdes.Device)
 	return err
 }
 
@@ -114,12 +118,17 @@ func makeErr(errString string) *protos.RegisterResponse {
 }
 
 // createGatewayDevice creates the gateway device model
-func createGatewayDevice(hwID *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) *models.GatewayDevice {
-	challengeKeyBase64 := strfmt.Base64(challengeKey.Key)
-	return &models.GatewayDevice{
+func createGatewayDevice(hwID *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) (*models.GatewayDevice, error) {
+	decodedKey, err := base64.StdEncoding.DecodeString(string(challengeKey.Key))
+	if err != nil {
+		return nil, err
+	}
+	challengeKeyBase64 := strfmt.Base64(decodedKey)
+	gatewayDevice := &models.GatewayDevice{
 		HardwareID: hwID.Id,
 		Key:        &models.ChallengeKey{KeyType: challengeKey.KeyType.String(), Key: &challengeKeyBase64},
 	}
+	return gatewayDevice, nil
 }
 
 // updateGatewayDevice writes to the device information to the gateway entity
@@ -137,7 +146,10 @@ func updateGatewayDevice(ctx context.Context, deviceInfo *protos.GatewayDeviceIn
 		return err
 	}
 
-	device := createGatewayDevice(hwID, challengeKey)
+	device, err := createGatewayDevice(hwID, challengeKey)
+	if err != nil {
+		return err
+	}
 
 	gw := (&models.MagmadGateway{}).FromBackendModels(ent, device, nil)
 
