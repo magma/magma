@@ -16,8 +16,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 include_directories("/usr/src/googletest/googlemock/include/")
 
 add_library(LIAGENTD_TEST_LIB
-    Consts.h
-    LIAgentdMocks.h
+    Consts.hpp
+    LIAgentdMocks.hpp
     )
 
 link_directories(/usr/src/googletest/googlemock/lib/)

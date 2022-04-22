@@ -15,7 +15,7 @@ cc_test(
     name = "pdu_generator_test",
     size = "small",
     srcs = [
-        "Consts.h",
+        "Consts.hpp",
         "test_pdu_generator.cpp",
     ],
     deps = [
@@ -31,5 +31,5 @@ cc_test(
 
 cc_library(
     name = "li_agentd_mocks",
-    hdrs = ["LIAgentdMocks.h"],
+    hdrs = ["LIAgentdMocks.hpp"],
 )
