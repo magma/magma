@@ -49,6 +49,7 @@ require (
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 	google.golang.org/grpc v1.31.0
+	google.golang.org/protobuf v1.28.0
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	magma/feg/cloud/go v0.0.0
 	magma/orc8r/cloud/go v0.0.0
