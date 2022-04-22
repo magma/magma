@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/session_manager/DirectorydClient.h"
+#include "lte/gateway/c/session_manager/DirectorydClient.hpp"
 
 #include <grpcpp/channel.h>
 #include <orc8r/protos/common.pb.h>

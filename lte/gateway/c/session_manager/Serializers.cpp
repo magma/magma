@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/session_manager/Serializers.h"
+#include "lte/gateway/c/session_manager/Serializers.hpp"
 
 #include <google/protobuf/message.h>
 #include <orc8r/protos/redis.pb.h>

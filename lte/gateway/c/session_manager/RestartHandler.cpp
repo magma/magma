@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/session_manager/RestartHandler.h"
+#include "lte/gateway/c/session_manager/RestartHandler.hpp"
 
 #include <cxxabi.h>
 #include <glog/logging.h>
@@ -30,10 +30,10 @@
 #include <utility>
 #include <vector>
 
-#include "lte/gateway/c/session_manager/AAAClient.h"
-#include "lte/gateway/c/session_manager/DirectorydClient.h"
-#include "lte/gateway/c/session_manager/SessionReporter.h"
-#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/AAAClient.hpp"
+#include "lte/gateway/c/session_manager/DirectorydClient.hpp"
+#include "lte/gateway/c/session_manager/SessionReporter.hpp"
+#include "lte/gateway/c/session_manager/SessionStore.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {

@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/session_manager/SessionProxyResponderHandler.h"
+#include "lte/gateway/c/session_manager/SessionProxyResponderHandler.hpp"
 
 #include <folly/io/async/EventBase.h>
 #include <glog/logging.h>
@@ -21,10 +21,10 @@
 #include <ostream>
 #include <string>
 
-#include "lte/gateway/c/session_manager/EnumToString.h"
-#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
-#include "lte/gateway/c/session_manager/LocalEnforcer.h"
-#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/EnumToString.hpp"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
+#include "lte/gateway/c/session_manager/LocalEnforcer.hpp"
+#include "lte/gateway/c/session_manager/SessionStore.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace google {

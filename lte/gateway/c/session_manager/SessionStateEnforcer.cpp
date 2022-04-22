@@ -20,7 +20,7 @@
   Description 	Objects run in main thread context invoked by folly event
 *****************************************************************************/
 
-#include "lte/gateway/c/session_manager/SessionStateEnforcer.h"
+#include "lte/gateway/c/session_manager/SessionStateEnforcer.hpp"
 
 #include <folly/io/async/EventBase.h>
 #include <glog/logging.h>
@@ -39,13 +39,13 @@
 #include <utility>
 #include <vector>
 
-#include "lte/gateway/c/session_manager/AmfServiceClient.h"
-#include "lte/gateway/c/session_manager/EnumToString.h"
-#include "lte/gateway/c/session_manager/PipelinedClient.h"
-#include "lte/gateway/c/session_manager/SessionEvents.h"
-#include "lte/gateway/c/session_manager/SessionReporter.h"
-#include "lte/gateway/c/session_manager/SessionState.h"
-#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/AmfServiceClient.hpp"
+#include "lte/gateway/c/session_manager/EnumToString.hpp"
+#include "lte/gateway/c/session_manager/PipelinedClient.hpp"
+#include "lte/gateway/c/session_manager/SessionEvents.hpp"
+#include "lte/gateway/c/session_manager/SessionReporter.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 #define DEFAULT_AMBR_UNITS (1024)

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
 
 #include <folly/Range.h>
 #include <folly/dynamic.h>
@@ -27,7 +27,7 @@
 #include <unordered_map>
 #include <utility>
 
-#include "lte/gateway/c/session_manager/CreditKey.h"
+#include "lte/gateway/c/session_manager/CreditKey.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {

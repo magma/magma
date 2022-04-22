@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/session_manager/MemoryStoreClient.h"
+#include "lte/gateway/c/session_manager/MemoryStoreClient.hpp"
 
 #include <algorithm>
 #include <set>
@@ -19,8 +19,8 @@
 #include <utility>
 #include <vector>
 
-#include "lte/gateway/c/session_manager/SessionState.h"
-#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
 
 namespace magma {
 class StaticRuleStore;

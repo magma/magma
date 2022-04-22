@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/session_manager/AAAClient.h"
+#include "lte/gateway/c/session_manager/AAAClient.hpp"
 
 #include <glog/logging.h>
 #include <grpcpp/channel.h>
@@ -26,8 +26,8 @@
 #include <utility>
 #include <vector>
 
-#include "lte/gateway/c/session_manager/SessionState.h"
-#include "lte/gateway/c/session_manager/Types.h"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
 #include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 

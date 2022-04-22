@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
 
 #include <ext/alloc_traits.h>
 #include <glog/logging.h>
@@ -26,11 +26,11 @@
 #include <utility>
 #include <vector>
 
-#include "lte/gateway/c/session_manager/CreditKey.h"
-#include "lte/gateway/c/session_manager/EnumToString.h"
-#include "lte/gateway/c/session_manager/RuleStore.h"
-#include "lte/gateway/c/session_manager/StoredState.h"
-#include "lte/gateway/c/session_manager/Utilities.h"
+#include "lte/gateway/c/session_manager/CreditKey.hpp"
+#include "lte/gateway/c/session_manager/EnumToString.hpp"
+#include "lte/gateway/c/session_manager/RuleStore.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
+#include "lte/gateway/c/session_manager/Utilities.hpp"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 

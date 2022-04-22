@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/session_manager/Utilities.h"
+#include "lte/gateway/c/session_manager/Utilities.hpp"
 
 #include <google/protobuf/util/time_util.h>
 #include <time.h>

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/session_manager/LocalEnforcer.h"
+#include "lte/gateway/c/session_manager/LocalEnforcer.hpp"
 
 #include <ctype.h>
 #include <cxxabi.h>
@@ -34,20 +34,20 @@
 #include <utility>
 #include <vector>
 
-#include "lte/gateway/c/session_manager/AAAClient.h"
-#include "lte/gateway/c/session_manager/ChargingGrant.h"
-#include "lte/gateway/c/session_manager/DiameterCodes.h"
-#include "lte/gateway/c/session_manager/EnumToString.h"
-#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
-#include "lte/gateway/c/session_manager/PipelinedClient.h"
-#include "lte/gateway/c/session_manager/RuleStore.h"
-#include "lte/gateway/c/session_manager/ServiceAction.h"
-#include "lte/gateway/c/session_manager/SessionEvents.h"
-#include "lte/gateway/c/session_manager/SessionReporter.h"
-#include "lte/gateway/c/session_manager/ShardTracker.h"
-#include "lte/gateway/c/session_manager/SpgwServiceClient.h"
-#include "lte/gateway/c/session_manager/StoredState.h"
-#include "lte/gateway/c/session_manager/Utilities.h"
+#include "lte/gateway/c/session_manager/AAAClient.hpp"
+#include "lte/gateway/c/session_manager/ChargingGrant.hpp"
+#include "lte/gateway/c/session_manager/DiameterCodes.hpp"
+#include "lte/gateway/c/session_manager/EnumToString.hpp"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
+#include "lte/gateway/c/session_manager/PipelinedClient.hpp"
+#include "lte/gateway/c/session_manager/RuleStore.hpp"
+#include "lte/gateway/c/session_manager/ServiceAction.hpp"
+#include "lte/gateway/c/session_manager/SessionEvents.hpp"
+#include "lte/gateway/c/session_manager/SessionReporter.hpp"
+#include "lte/gateway/c/session_manager/ShardTracker.hpp"
+#include "lte/gateway/c/session_manager/SpgwServiceClient.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
+#include "lte/gateway/c/session_manager/Utilities.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace google {

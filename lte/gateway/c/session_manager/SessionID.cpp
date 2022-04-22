@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/session_manager/SessionID.h"
+#include "lte/gateway/c/session_manager/SessionID.hpp"
 
 #include <sstream>
 #include <string>

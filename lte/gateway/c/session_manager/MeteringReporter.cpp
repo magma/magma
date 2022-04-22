@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/session_manager/MeteringReporter.h"
+#include "lte/gateway/c/session_manager/MeteringReporter.hpp"
 
 #include <stddef.h>
 #include <cstdint>
@@ -19,8 +19,8 @@
 #include <unordered_map>
 #include <utility>
 
-#include "lte/gateway/c/session_manager/StoredState.h"
-#include "lte/gateway/c/session_manager/Types.h"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 namespace magma {

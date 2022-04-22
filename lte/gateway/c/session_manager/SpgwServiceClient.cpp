@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/session_manager/SpgwServiceClient.h"
+#include "lte/gateway/c/session_manager/SpgwServiceClient.hpp"
 
 #include <glog/logging.h>
 #include <grpcpp/channel.h>

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
 
 #include <glog/logging.h>
 #include <google/protobuf/descriptor.h>

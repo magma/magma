@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/session_manager/PipelinedClient.h"
+#include "lte/gateway/c/session_manager/PipelinedClient.hpp"
 
 #include <glog/logging.h>
 #include <grpcpp/channel.h>
@@ -31,9 +31,9 @@
 #include <utility>
 #include <vector>
 
-#include "lte/gateway/c/session_manager/EnumToString.h"
-#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
-#include "lte/gateway/c/session_manager/Types.h"
+#include "lte/gateway/c/session_manager/EnumToString.hpp"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
 #include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 

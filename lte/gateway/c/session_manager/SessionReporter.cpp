@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/session_manager/SessionReporter.h"
+#include "lte/gateway/c/session_manager/SessionReporter.hpp"
 
 #include <glog/logging.h>
 #include <grpcpp/channel.h>
@@ -21,7 +21,7 @@
 #include <string>
 #include <utility>
 
-#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace folly {

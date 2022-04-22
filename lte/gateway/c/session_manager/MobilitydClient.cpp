@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/session_manager/MobilitydClient.h"
+#include "lte/gateway/c/session_manager/MobilitydClient.hpp"
 
 #include <grpcpp/channel.h>
 #include <lte/protos/mobilityd.grpc.pb.h>

@@ -19,13 +19,13 @@ include_directories("${PROJECT_SOURCE_DIR}")
 include_directories("/usr/src/googletest/googlemock/include/")
 
 add_library(SESSIOND_TEST_LIB
-    Consts.h
-    Matchers.h
+    Consts.hpp
+    Matchers.hpp
     ProtobufCreators.cpp
-    ProtobufCreators.h
-    SessiondMocks.h
-    SessionStateTester.h
-    SessionStateTester5g.h
+    ProtobufCreators.hpp
+    SessiondMocks.hpp
+    SessionStateTester.hpp
+    SessionStateTester5g.hpp
     )
 
 link_directories(/usr/src/googletest/googlemock/lib/)

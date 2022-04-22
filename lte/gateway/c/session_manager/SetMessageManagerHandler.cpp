@@ -17,7 +17,7 @@
   Author/Editor Sanjay Kumar Ojha
   Description 	Acts as 5G Landing object in SessionD & start 5G related flow
 *****************************************************************************/
-#include "lte/gateway/c/session_manager/SetMessageManagerHandler.h"
+#include "lte/gateway/c/session_manager/SetMessageManagerHandler.hpp"
 
 #include <folly/io/async/EventBase.h>
 #include <glog/logging.h>
@@ -32,12 +32,12 @@
 #include <utility>
 #include <vector>
 
-#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
-#include "lte/gateway/c/session_manager/SessionEvents.h"
-#include "lte/gateway/c/session_manager/SessionReporter.h"
-#include "lte/gateway/c/session_manager/SessionState.h"
-#include "lte/gateway/c/session_manager/SessionStateEnforcer.h"
-#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
+#include "lte/gateway/c/session_manager/SessionEvents.hpp"
+#include "lte/gateway/c/session_manager/SessionReporter.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/SessionStateEnforcer.hpp"
+#include "lte/gateway/c/session_manager/SessionStore.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace google {

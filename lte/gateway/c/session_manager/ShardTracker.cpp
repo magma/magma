@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/session_manager/ShardTracker.h"
+#include "lte/gateway/c/session_manager/ShardTracker.hpp"
 
 #include <stddef.h>
 #include <memory>

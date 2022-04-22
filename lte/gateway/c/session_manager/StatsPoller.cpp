@@ -10,14 +10,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/session_manager/StatsPoller.h"
+#include "lte/gateway/c/session_manager/StatsPoller.hpp"
 
 #include <stdint.h>
 #include <chrono>
 #include <memory>
 #include <thread>
 
-#include "lte/gateway/c/session_manager/LocalEnforcer.h"
+#include "lte/gateway/c/session_manager/LocalEnforcer.hpp"
 
 #define COOKIE 0
 #define COOKIE_MASK 0

@@ -25,15 +25,15 @@
 #include <unordered_map>
 #include <vector>
 
-#include "lte/gateway/c/session_manager/AmfServiceClient.h"
-#include "lte/gateway/c/session_manager/MeteringReporter.h"
-#include "lte/gateway/c/session_manager/PipelinedClient.h"
-#include "lte/gateway/c/session_manager/RuleStore.h"
-#include "lte/gateway/c/session_manager/SessionState.h"
-#include "lte/gateway/c/session_manager/SessionStateEnforcer.h"
-#include "lte/gateway/c/session_manager/SessionStore.h"
-#include "lte/gateway/c/session_manager/Types.h"
-#include "lte/gateway/c/session_manager/test/SessiondMocks.h"
+#include "lte/gateway/c/session_manager/AmfServiceClient.hpp"
+#include "lte/gateway/c/session_manager/MeteringReporter.hpp"
+#include "lte/gateway/c/session_manager/PipelinedClient.hpp"
+#include "lte/gateway/c/session_manager/RuleStore.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/SessionStateEnforcer.hpp"
+#include "lte/gateway/c/session_manager/SessionStore.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.hpp"
 #include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
 #include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
 
