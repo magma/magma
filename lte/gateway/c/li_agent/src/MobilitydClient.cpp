@@ -13,13 +13,18 @@
 
 #include "lte/gateway/c/li_agent/src/MobilitydClient.hpp"
 
+#include <grpcpp/channel.h>
+#include <lte/protos/mobilityd.grpc.pb.h>
+#include <lte/protos/mobilityd.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
 #include <netinet/in.h>
-#include <thread>
+#include <utility>
 
 #include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
-using grpc::Status;
+namespace grpc {
+class Status;
+}  // namespace grpc
 
 namespace magma {
 namespace lte {

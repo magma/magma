@@ -13,8 +13,10 @@
 
 #include "lte/gateway/c/li_agent/src/InterfaceMonitor.hpp"
 
-#include <stdio.h>
+#include <glog/logging.h>
+#include <sys/types.h>
 #include <unistd.h>
+#include <ostream>
 #include <utility>
 
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
