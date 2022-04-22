@@ -8,6 +8,8 @@
     
     { include: ["<grpcpp/impl/codegen/async_unary_call.h>", "private", "<grpcpp/channel.h>", "public"] },
     
+    { include: ["@<pcap/.*>", "private", "<pcap.h>", "public"] },
+
     # yaml-cpp, the list of files are taken from yaml-cpp/yaml.h
     { include: ["<yaml-cpp/parser.h>", "private", "<yaml-cpp/yaml.h>", "public"] },
     { include: ["<yaml-cpp/emitter.h>", "private", "<yaml-cpp/yaml.h>", "public"] },

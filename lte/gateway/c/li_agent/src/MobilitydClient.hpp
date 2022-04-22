@@ -12,14 +12,27 @@
  */
 #pragma once
 
-#include <grpc++/grpc++.h>
 #include <arpa/inet.h>
+#include <grpc++/grpc++.h>
+#include <stdint.h>
+#include <functional>
 #include <memory>
 #include <string>
 
-#include "lte/protos/mobilityd.pb.h"
 #include "lte/protos/mobilityd.grpc.pb.h"
+#include "lte/protos/mobilityd.pb.h"
 #include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
+
+namespace grpc {
+class Channel;
+class Status;
+}  // namespace grpc
+namespace magma {
+namespace lte {
+class IPAddress;
+class SubscriberID;
+}  // namespace lte
+}  // namespace magma
 
 using grpc::Status;
 
