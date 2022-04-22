@@ -24,7 +24,7 @@
 #include <unistd.h>
 #include <ostream>
 
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace magma {
 namespace lte {

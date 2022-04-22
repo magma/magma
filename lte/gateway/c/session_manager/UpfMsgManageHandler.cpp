@@ -31,7 +31,7 @@
 #include "lte/gateway/c/session_manager/SessionStateEnforcer.hpp"
 #include "lte/gateway/c/session_manager/SessionStore.hpp"
 #include "lte/gateway/c/session_manager/Types.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 #include "lte/gateway/c/session_manager/Utilities.hpp"
 
 namespace google {

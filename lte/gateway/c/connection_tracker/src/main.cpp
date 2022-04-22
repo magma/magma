@@ -24,8 +24,8 @@
 #include "lte/gateway/c/connection_tracker/src/PacketGenerator.hpp"
 #include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
 #include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
-#include "orc8r/gateway/c/common/logging/magma_logging_init.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging_init.hpp"
 #include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.hpp"
 #include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
 

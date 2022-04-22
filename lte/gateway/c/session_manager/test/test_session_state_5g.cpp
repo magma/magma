@@ -17,7 +17,7 @@
 #include <utility>
 
 #include "lte/gateway/c/session_manager/test/Consts.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 #include "lte/gateway/c/session_manager/test/ProtobufCreators.hpp"
 #include "lte/gateway/c/session_manager/test/SessiondMocks.hpp"
 #include "lte/gateway/c/session_manager/SessionState.hpp"

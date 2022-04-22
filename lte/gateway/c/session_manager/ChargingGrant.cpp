@@ -24,7 +24,7 @@
 #include "lte/gateway/c/session_manager/CreditKey.hpp"
 #include "lte/gateway/c/session_manager/DiameterCodes.hpp"
 #include "lte/gateway/c/session_manager/EnumToString.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace magma {
 ChargingGrant::ChargingGrant(const StoredChargingGrant& marshaled) {

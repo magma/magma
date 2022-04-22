@@ -32,7 +32,7 @@
 #include "lte/gateway/c/session_manager/SessionState.hpp"
 #include "lte/gateway/c/session_manager/StoredState.hpp"
 #include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace magma {
 class StaticRuleStore;

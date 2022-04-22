@@ -32,7 +32,7 @@
 #include "lte/gateway/c/session_manager/StoredState.hpp"
 #include "lte/gateway/c/session_manager/Utilities.hpp"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace {
 const char* UE_TRAFFIC_COUNTER_NAME = "ue_traffic";
