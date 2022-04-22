@@ -28,7 +28,7 @@ add_library(SPGW_TASK_TEST_LIB
     mock_spgw_op.hpp
     mock_spgw_op.cpp
     spgw_test.cpp
-    spgw_procedures_test_fixture.h
+    spgw_procedures_test_fixture.hpp
     spgw_procedures_test_fixture.cpp
     )
 
