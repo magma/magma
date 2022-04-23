@@ -11,7 +11,9 @@
 
 module magma/orc8r/cloud/go
 
+// TODO remove golang.org/x/net line once Go Upgrade (https://github.com/magma/magma/pull/12151) is merged
 replace (
+	golang.org/x/net => golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	k8s.io/client-go => k8s.io/client-go v0.0.0-20191016111102-bec269661e48
 	magma/gateway => ../../gateway/go
 	magma/orc8r/lib/go => ../../lib/go

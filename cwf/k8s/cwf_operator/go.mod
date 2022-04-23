@@ -52,7 +52,9 @@ require (
 )
 
 // Pinned to kubernetes-1.16.2
+// TODO remove golang.org/x/net line once Go Upgrade (https://github.com/magma/magma/pull/12151) is merged
 replace (
+	golang.org/x/net => golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.2+incompatible // Required by OLM
 
 	k8s.io/api => k8s.io/api v0.18.2

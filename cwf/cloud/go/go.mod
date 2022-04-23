@@ -11,7 +11,9 @@
 //
 module magma/cwf/cloud/go
 
+// TODO remove golang.org/x/net line once Go Upgrade (https://github.com/magma/magma/pull/12151) is merged
 replace (
+	golang.org/x/net => golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	magma/feg/cloud/go => ../../../feg/cloud/go
 	magma/feg/cloud/go/protos => ../../../feg/cloud/go/protos
 	magma/gateway => ../../../orc8r/gateway/go

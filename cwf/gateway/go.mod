@@ -11,7 +11,9 @@
 //
 module magma/cwf/gateway
 
+// TODO remove golang.org/x/net line once Go Upgrade (https://github.com/magma/magma/pull/12151) is merged
 replace (
+	golang.org/x/net => golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	fbc/cwf/radius => ../../feg/radius/src/
 	fbc/lib/go/machine => ../../feg/radius/lib/go/machine
 	fbc/lib/go/radius => ../../feg/radius/lib/go/radius
