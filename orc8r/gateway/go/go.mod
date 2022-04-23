@@ -22,10 +22,10 @@ require (
 	github.com/onsi/gomega v1.19.0 // indirect
 	github.com/prometheus/client_model v0.2.0
 	github.com/shirou/gopsutil/v3 v3.21.5
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
-	google.golang.org/grpc v1.27.1
+	google.golang.org/grpc v1.43.0
 	magma/orc8r/lib/go v0.0.0-00010101000000-000000000000
 	magma/orc8r/lib/go/protos v0.0.0-00010101000000-000000000000
 )

@@ -14,6 +14,7 @@ module magma/dp/cloud/go
 go 1.13
 
 replace (
+	golang.org/x/net => golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	magma/dp/cloud/go => ../../../dp/cloud/go
 	magma/gateway => ../../../orc8r/gateway/go
 	magma/orc8r/cloud/go => ../../../orc8r/cloud/go
@@ -33,7 +34,7 @@ require (
 	github.com/olivere/elastic/v7 v7.0.6
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
-	google.golang.org/grpc v1.42.0
+	google.golang.org/grpc v1.43.0
 	google.golang.org/protobuf v1.28.0
 	magma/orc8r/cloud/go v0.0.0-00010101000000-000000000000
 	magma/orc8r/lib/go v0.0.0-00010101000000-000000000000

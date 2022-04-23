@@ -13,10 +13,10 @@ module magma/cwf/gateway
 
 // TODO remove golang.org/x/net line once Go Upgrade (https://github.com/magma/magma/pull/12151) is merged
 replace (
-	golang.org/x/net => golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	fbc/cwf/radius => ../../feg/radius/src/
 	fbc/lib/go/machine => ../../feg/radius/lib/go/machine
 	fbc/lib/go/radius => ../../feg/radius/lib/go/radius
+	golang.org/x/net => golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 
 	magma/cwf/cloud/go => ../../cwf/cloud/go
 	magma/feg/cloud/go => ../../feg/cloud/go
@@ -49,7 +49,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/vishvananda/netlink v1.1.0
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
-	google.golang.org/grpc v1.36.1
+	google.golang.org/grpc v1.43.0
 	magma/cwf/cloud/go v0.0.0-00010101000000-000000000000
 	magma/feg/cloud/go/protos v0.0.0
 	magma/feg/gateway v0.0.0-00010101000000-000000000000
