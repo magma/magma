@@ -1,4 +1,5 @@
 startup --output_base=/tmp/bazel
+startup --host_jvm_args="-Xmx8g"
 
 # STYLE CONFIGS
 build --announce_rc
@@ -70,6 +71,11 @@ build:asan --per_file_copt=^.*/gateway/c/.*$@-fsanitize=address,-fsanitize=undef
 # LSAN
 build:lsan --linkopt=-fsanitize=leak
 build:lsan --per_file_copt=^.*/gateway/c/.*$@-fsanitize=leak,-fno-omit-frame-pointer
+
+# Config for running Bazel with limited memory
+# see https://bazel.build/docs/memory-saving-mode
+# This is helpful for builds on the VM on github runners where only 14g are available.
+build:limit_mem --discard_analysis_cache --nokeep_state_after_build --notrack_incremental_state
 
 # Config for turning up more GCC warnings
 build:max_gcc_warnings --per_file_copt=^.*/gateway/c/.*$@-Wextra,-Wshadow,-Wimplicit-fallthrough,-Wduplicated-cond,-Wduplicated-branches,-Wlogical-op,-Wnull-dereference,-Wformat=2,-Wstrict-overflow=4,-Wuninitialized,-Wshift-overflow=2

@@ -56,23 +56,25 @@ jobs:
       - name: Bring up the Magma VM
         run: |
           cd lte/gateway
+          export MAGMA_DEV_CPUS=3
+          export MAGMA_DEV_MEMORY_MB=9216
           vagrant up magma
       - name: Build all with production config `bazel build //... --config=production`
         run: |
           cd lte/gateway
-          vagrant ssh -c 'cd ~/magma; bazel build //... --config=production' magma
+          vagrant ssh -c 'cd ~/magma; bazel build --config=limit_mem //... --config=production' magma
       - name: Build all `bazel build //...`
         run: |
           cd lte/gateway
-          vagrant ssh -c 'cd ~/magma; bazel build //...' magma
+          vagrant ssh -c 'cd ~/magma; bazel build --config=limit_mem //...' magma
       - name: Test all `bazel test //...`
         run: |
           cd lte/gateway
-          vagrant ssh -c 'cd ~/magma; bazel test //...' magma
+          vagrant ssh -c 'cd ~/magma; bazel test --config=limit_mem //...' magma
       - name: Test C/C++ with ASAN `bazel test //orc8r/gateway/c/... //lte/gateway/c/... --config=asan`
         run: |
           cd lte/gateway
-          vagrant ssh -c 'cd ~/magma; bazel test //orc8r/gateway/c/... //lte/gateway/c/... --config=asan' magma
+          vagrant ssh -c 'cd ~/magma; bazel test --config=limit_mem //orc8r/gateway/c/... //lte/gateway/c/... --config=asan' magma
       - name: Upload .bazel-cache and .bazel-cache-repo to S3
         run: |
           tar -zcvf ${{ env.BAZEL_CACHE_MAGMA_VM_TAR }} ${{ env.BAZEL_CACHE }}/
