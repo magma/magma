@@ -64,6 +64,7 @@ s1aptests/test_nas_non_delivery_for_auth.py \
 s1aptests/test_outoforder_attach_complete_ICSR.py \
 s1aptests/test_s1setup_failure_incorrect_plmn.py \
 s1aptests/test_s1setup_failure_incorrect_tac.py \
+s1aptests/test_s1setup_success_secondary_plmn.py \
 s1aptests/test_sctp_abort_after_auth_req.py \
 s1aptests/test_sctp_abort_after_identity_req.py \
 s1aptests/test_sctp_abort_after_smc.py \
