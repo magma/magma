@@ -10,19 +10,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Check if role variables are defined
-  fail: msg="distribution is undefined for the pkgrepo role"
-  when: distribution is undefined
+- name: Ensure ca-certificates is up to date
+  become: yes
+  apt:
+    name: "{{ packages }}"
+    state: latest
+    update_cache: yes
+  vars:
+    packages:
+      - ca-certificates
 
-- name: remove fluentbit repo as its broken
-  shell: rm -rf /etc/apt/sources.list.d/packages_fluentbit_io_ubuntu_focal.list
+- name: Remove all old registries
+  shell: rm -rf /etc/apt/sources.list.d/*.list
   become: yes
   ignore_errors: yes
 
-- name: Set up debian style repository
-  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
-  include_tasks: debian.yml
+- name: Copy gpg key from codebase
+  copy:
+    src: jfrog.pub
+    dest: /tmp/jfrog.pub
 
-- name: Set up redhat style repository
-  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
-  include_tasks: redhat.yml
+- name: Adding the key to agent
+  apt_key:
+    file: /tmp/jfrog.pub
+    state: present
+
+- name: Configuring the registry in sources.list.d
+  ansible.builtin.shell:
+    cmd: echo 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main' > /etc/apt/sources.list.d/magma.list
+
+- name: Update apt 
+  apt:
+    update_cache: yes
