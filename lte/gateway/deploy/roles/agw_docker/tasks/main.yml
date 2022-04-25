@@ -135,6 +135,8 @@
   file:
     dest: /var/opt/magma/docker/s1ap/{{ item }}
     mode: +x
+  tags:
+    - agwc
   loop:
     - start-s1ap.sh
     - stop-s1ap.sh

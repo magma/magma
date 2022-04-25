@@ -103,3 +103,4 @@ RUN make && rm -rf /var/lib/apt/lists/* && $MAGMA_ROOT/lte/gateway/deploy/roles/
   touch /usr/include/stropts.h && $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/build_s1_tester.sh
 RUN pip3 install --cache-dir $PIP_CACHE_HOME pyparsing && python3 $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/c_parser.py
 RUN sed -i 's/magtivate_cmd + " && " + //g' $MAGMA_ROOT/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py
+RUN sed -i 's/"vagrant"/"ubuntu"/g' $MAGMA_ROOT/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py

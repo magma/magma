@@ -10,6 +10,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-docker-compose --env-file .env -f docker-compose.yaml -f s1ap/docker-compose.s1ap.yaml up -d
+# Temporarily create password for ubuntu user
+echo "ubuntu:ubuntu" | chpasswd
+sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+systemctl reload ssh
 
+# Create containers and attach to s1aptester container
+docker-compose --env-file .env -f docker-compose.yaml -f s1ap/docker-compose.s1ap.yaml up -d
 docker attach s1aptester
+
+# Remove temporary ubuntu user password
+sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+systemctl reload ssh
+passwd -d ubuntu

@@ -43,15 +43,6 @@ network:
     version: 2
 ```
 
-Add a password to the ubuntu user and enable password authentication for the ssh server on the AGW host.
-
-```
-sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
-systemctl restart ssh
-
-passwd ubuntu
-```
-
 2. Move into AGW docker directory on the host and run start script. Make sure that your `.env` file points to your registry with your AGW and s1aptester images.
 ```
 cd /var/opt/magma/docker
