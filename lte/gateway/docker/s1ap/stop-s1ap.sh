@@ -10,4 +10,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-docker-compose --env-file .env -f s1ap/docker-compose.s1ap.yaml -f docker-compose.yaml down
+docker-compose --env-file .env -f docker-compose.yaml -f s1ap/docker-compose.s1ap.yaml down

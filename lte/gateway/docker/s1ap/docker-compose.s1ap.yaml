@@ -4,6 +4,8 @@ version: "3.7"
 services:
 
   s1aptester:
+    volumes:
+      - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
     image: ${DOCKER_REGISTRY}agw_s1aptester:${IMAGE_VERSION}
     container_name: s1aptester
     command: /bin/bash

@@ -42,6 +42,7 @@ ARG PKG_CONFIG_VERSION=0.29.1-0ubuntu4
 ARG LIBMYSQL_VERSION=8.0.28-0ubuntu0.20.04.3
 ARG RSYNC_VERSION=3.1.3-8ubuntu0.3
 ARG BINUTILS_VERSION=2.34-6ubuntu1.3
+ARG SSH_VERSION=1:8.2p1-4ubuntu0.4
 ARG SSHPASS_VERSION=1.06-1
 
 ENV VIRTUAL_ENV=/build/venv
@@ -80,6 +81,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libmysqlclient-dev=$LIBMYSQL_VERSION \
   rsync=$RSYNC_VERSION \
   binutils=$BINUTILS_VERSION \
+  ssh=$SSH_VERSION \
   sshpass=$SSHPASS_VERSION \
   && apt-get clean \
   && gem install fpm
