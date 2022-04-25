@@ -181,15 +181,6 @@ class DBCbsdState(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, unique=True)
 
-    cbsds = relationship(
-        "DBCbsd", back_populates="state", cascade="all, delete",
-        passive_deletes=True,
-    )
-    active_mode_configs = relationship(
-        "DBActiveModeConfig", back_populates="desired_state",
-        cascade="all, delete", passive_deletes=True,
-    )
-
     def __repr__(self):
         """
         Return string representation of DB object
@@ -206,6 +197,11 @@ class DBCbsd(Base):
     __tablename__ = "cbsds"
     id = Column(Integer, primary_key=True, autoincrement=True)
     state_id = Column(
+        Integer, ForeignKey(
+            "cbsd_states.id", ondelete="CASCADE",
+        ), nullable=False,
+    )
+    desired_state_id = Column(
         Integer, ForeignKey(
             "cbsd_states.id", ondelete="CASCADE",
         ), nullable=False,
@@ -239,8 +235,12 @@ class DBCbsd(Base):
     )
 
     state = relationship(
-        "DBCbsdState", back_populates="cbsds", cascade="all, delete",
-        passive_deletes=True,
+        "DBCbsdState", cascade="all, delete",
+        foreign_keys=[state_id], passive_deletes=True,
+    )
+    desired_state = relationship(
+        "DBCbsdState", cascade="all, delete",
+        foreign_keys=[desired_state_id], passive_deletes=True,
     )
     requests = relationship(
         "DBRequest", back_populates="cbsd", cascade="all, delete",
@@ -253,10 +253,6 @@ class DBCbsd(Base):
     channels = relationship(
         "DBChannel", back_populates="cbsd", cascade="all, delete",
         passive_deletes=True,
-    )
-    active_mode_config = relationship(
-        "DBActiveModeConfig", back_populates="cbsd",
-        cascade="all, delete", passive_deletes=True,
     )
 
     def __repr__(self):
@@ -307,48 +303,3 @@ class DBChannel(Base):
         """
         class_name = self.__class__.__name__
         return f"<{class_name}(id='{self.id}', cbsd_id='{self.cbsd_id}')>"
-
-
-class DBActiveModeConfig(Base):
-    """
-    DB CBSD Active Mode Configuration class
-    """
-    __tablename__ = "active_mode_configs"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    cbsd_id = Column(
-        Integer, ForeignKey("cbsds.id", ondelete="CASCADE"),
-        nullable=False, unique=True,
-    )
-    desired_state_id = Column(
-        Integer, ForeignKey(
-            "cbsd_states.id",
-            ondelete="CASCADE",
-        ), nullable=False,
-    )
-    created_date = Column(
-        DateTime(timezone=True),
-        nullable=False, server_default=now(),
-    )
-    updated_date = Column(
-        DateTime(timezone=True),
-        server_default=now(), onupdate=now(),
-    )
-
-    cbsd = relationship(
-        "DBCbsd", back_populates="active_mode_config", cascade="all, delete",
-        passive_deletes=True,
-    )
-    desired_state = relationship(
-        "DBCbsdState", back_populates="active_mode_configs",
-    )
-
-    def __repr__(self):
-        """
-        Return string representation of DB object
-        """
-        class_name = self.__class__.__name__
-        return f"<{class_name}(id='{self.id}', " \
-               f"cbsd_id='{self.cbsd_id}', " \
-               f"desired_state='{self.desired_state}', " \
-               f"created_date='{self.created_date}', " \
-               f"updated_date='{self.updated_date}')>"

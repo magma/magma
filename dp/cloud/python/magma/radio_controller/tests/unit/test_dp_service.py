@@ -4,13 +4,7 @@ from unittest import mock
 
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
 from magma.db_service.db_initialize import DBInitializer
-from magma.db_service.models import (
-    DBActiveModeConfig,
-    DBCbsd,
-    DBCbsdState,
-    DBGrant,
-    DBGrantState,
-)
+from magma.db_service.models import DBCbsd, DBCbsdState, DBGrant, DBGrantState
 from magma.db_service.session_manager import SessionManager
 from magma.db_service.tests.local_db_test_case import LocalDBTestCase
 from magma.fluentd_client.client import FluentdClient
@@ -69,11 +63,7 @@ class DPTestCase(LocalDBTestCase):
     ):
         mock_log_request.return_value = mock_log_result.return_value = None
         cbsd = self._build_cbsd(SOME_SERIAL_NUMBER)
-        active_mode_config = DBActiveModeConfig(
-            cbsd=cbsd,
-            desired_state_id=self.cbsd_states[CbsdStates.UNREGISTERED.value],
-        )
-        self.session.add_all([cbsd, active_mode_config])
+        self.session.add(cbsd)
         self.session.commit()
 
         request = self._build_request(**test_cbsd_dict)
@@ -197,6 +187,7 @@ class DPTestCase(LocalDBTestCase):
         return DBCbsd(
             cbsd_serial_number=serial_number,
             state_id=self.cbsd_states[CbsdStates.UNREGISTERED.value],
+            desired_state_id=self.cbsd_states[CbsdStates.UNREGISTERED.value],
         )
 
     @staticmethod
@@ -224,17 +215,17 @@ class DPTestCase(LocalDBTestCase):
         return self._query_active_cbsd(request).count()
 
     def _get_last_seen_timestamp(self, request: CBSDRequest) -> int:
-        return self._query_active_cbsd(request).first().cbsd.last_seen.timestamp()
+        return self._query_active_cbsd(request).first().last_seen.timestamp()
 
     def _query_active_cbsd(self, request: CBSDRequest):
-        return self.session.query(DBActiveModeConfig).join(DBCbsd). \
+        return self.session.query(DBCbsd). \
             filter(*self._build_expected_filter_from_request(request))
 
     def _build_expected_filter_from_request(self, request: CBSDRequest) -> List[Any]:
         return [
             DBCbsd.cbsd_serial_number == request.serial_number,
             DBCbsd.state_id == self.cbsd_states[CbsdStates.UNREGISTERED.value],
-            DBActiveModeConfig.desired_state_id == self.cbsd_states[CbsdStates.REGISTERED.value],
+            DBCbsd.desired_state_id == self.cbsd_states[CbsdStates.REGISTERED.value],
         ]
 
     @staticmethod

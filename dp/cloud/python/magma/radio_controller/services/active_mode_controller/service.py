@@ -32,7 +32,6 @@ from dp.protos.active_mode_pb2_grpc import ActiveModeControllerServicer
 from google.protobuf.empty_pb2 import Empty
 from google.protobuf.wrappers_pb2 import FloatValue
 from magma.db_service.models import (
-    DBActiveModeConfig,
     DBCbsd,
     DBChannel,
     DBGrant,
@@ -139,7 +138,6 @@ def _list_cbsds(session: Session) -> State:
     # We want to have CBSD entity "requests" relation only contain PENDING requests.
     return (
         session.query(DBCbsd).
-        join(DBActiveModeConfig).
         outerjoin(
             DBGrant, and_(
                 DBGrant.cbsd_id == DBCbsd.id,
@@ -149,9 +147,8 @@ def _list_cbsds(session: Session) -> State:
         outerjoin(DBRequest).
         options(
             joinedload(DBCbsd.state),
+            joinedload(DBCbsd.desired_state),
             joinedload(DBCbsd.channels),
-            contains_eager(DBCbsd.active_mode_config).
-            joinedload(DBActiveModeConfig.desired_state),
             contains_eager(DBCbsd.grants).
             joinedload(DBGrant.state),
         ).
@@ -168,7 +165,6 @@ def _build_state(db_cbsds: List[DBCbsd]) -> State:
 def _build_cbsd(cbsd: DBCbsd) -> Cbsd:
     # Application may not need those to be sorted.
     # Applying ordering mostly for easier assertions in testing
-    config = cbsd.active_mode_config[0]
     cbsd_db_grants = sorted(cbsd.grants, key=lambda x: x.id)
     cbsd_db_channels = sorted(cbsd.channels, key=lambda x: x.id)
 
@@ -185,7 +181,7 @@ def _build_cbsd(cbsd: DBCbsd) -> Cbsd:
         fcc_id=cbsd.fcc_id,
         serial_number=cbsd.cbsd_serial_number,
         state=cbsd_state_mapping[cbsd.state.name],
-        desired_state=cbsd_state_mapping[config.desired_state.name],
+        desired_state=cbsd_state_mapping[cbsd.desired_state.name],
         grants=grants,
         channels=channels,
         last_seen_timestamp=last_seen,

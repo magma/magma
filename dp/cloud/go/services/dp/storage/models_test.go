@@ -25,7 +25,6 @@ import (
 
 func TestFields(t *testing.T) {
 	dbGrant := &storage.DBGrant{}
-	dbActiveModeConfig := &storage.DBActiveModeConfig{}
 	dbCbsd := &storage.DBCbsd{}
 	dbCbsdState := &storage.DBCbsdState{}
 	dbGrantState := &storage.DBGrantState{}
@@ -74,6 +73,7 @@ func TestFields(t *testing.T) {
 				db.IntType{X: &dbCbsd.Id},
 				db.StringType{X: &dbCbsd.NetworkId},
 				db.IntType{X: &dbCbsd.StateId},
+				db.IntType{X: &dbCbsd.DesiredStateId},
 				db.StringType{X: &dbCbsd.CbsdId},
 				db.StringType{X: &dbCbsd.UserId},
 				db.StringType{X: &dbCbsd.FccId},
@@ -88,15 +88,6 @@ func TestFields(t *testing.T) {
 				db.IntType{X: &dbCbsd.NumberOfPorts},
 				db.BoolType{X: &dbCbsd.IsDeleted},
 				db.BoolType{X: &dbCbsd.ShouldDeregister},
-			},
-		},
-		{
-			name:  "check field names for DBActiveModeConfig",
-			model: dbActiveModeConfig,
-			expected: []db.BaseType{
-				db.IntType{X: &dbActiveModeConfig.Id},
-				db.IntType{X: &dbActiveModeConfig.CbsdId},
-				db.IntType{X: &dbActiveModeConfig.DesiredStateId},
 			},
 		},
 	}
@@ -227,6 +218,11 @@ func TestGetMetadata(t *testing.T) {
 						Relation: storage.CbsdStateTable,
 					},
 					{
+						Name:     "desired_state_id",
+						SqlType:  sqorc.ColumnTypeInt,
+						Relation: storage.CbsdStateTable,
+					},
+					{
 						Name:     "cbsd_id",
 						SqlType:  sqorc.ColumnTypeText,
 						Nullable: true,
@@ -297,29 +293,6 @@ func TestGetMetadata(t *testing.T) {
 						SqlType:      sqorc.ColumnTypeBool,
 						HasDefault:   true,
 						DefaultValue: false,
-					},
-				},
-			},
-		},
-		{
-			name:  "check ModelMetadata structure for DBActiveModeConfig",
-			model: &storage.DBActiveModeConfig{},
-			expected: db.ModelMetadata{
-				Table: storage.ActiveModeConfigTable,
-				Properties: []*db.Field{
-					{
-						Name:    "id",
-						SqlType: sqorc.ColumnTypeInt,
-					},
-					{
-						Name:     "cbsd_id",
-						SqlType:  sqorc.ColumnTypeInt,
-						Relation: storage.CbsdTable,
-					},
-					{
-						Name:     "desired_state_id",
-						SqlType:  sqorc.ColumnTypeInt,
-						Relation: storage.CbsdStateTable,
 					},
 				},
 			},

@@ -74,7 +74,7 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
             with_state(self.unregistered). \
             with_registration('some'). \
             with_eirp_capabilities(0, 10, 20, 1). \
-            with_active_mode_config(self.registered)
+            with_desired_state(self.registered)
 
     @staticmethod
     def _prepare_base_active_mode_config() -> ActiveModeCbsdBuilder:
@@ -296,14 +296,14 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
             with_state(self.unregistered). \
             with_registration('some'). \
             with_eirp_capabilities(0, 10, 20, 1). \
-            with_active_mode_config(self.registered). \
+            with_desired_state(self.registered). \
             build()
         other_cbsd = DBCbsdBuilder(). \
             with_id(OTHER_ID). \
             with_state(self.registered). \
             with_registration('other'). \
             with_eirp_capabilities(5, 15, 25, 3). \
-            with_active_mode_config(self.registered). \
+            with_desired_state(self.registered). \
             build()
         self.session.add_all([some_cbsd, other_cbsd])
         self.session.commit()
@@ -327,25 +327,11 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
 
-    def test_not_get_state_without_active_mode_config(self):
-        cbsd = DBCbsdBuilder(). \
-            with_state(self.unregistered). \
-            with_registration('some'). \
-            with_eirp_capabilities(0, 10, 20, 1). \
-            build()
-        self.session.add(cbsd)
-        self.session.commit()
-
-        expected = State()
-
-        actual = self.amc_service.GetState(GetStateRequest(), None)
-        self.assertEqual(expected, actual)
-
     def test_not_get_state_without_registration_params(self):
         cbsd = DBCbsdBuilder(). \
             with_state(self.unregistered). \
             with_eirp_capabilities(0, 10, 20, 1). \
-            with_active_mode_config(self.registered). \
+            with_desired_state(self.registered). \
             build()
         self.session.add(cbsd)
         self.session.commit()
@@ -359,7 +345,7 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         cbsd = DBCbsdBuilder(). \
             with_state(self.unregistered). \
             with_registration('some'). \
-            with_active_mode_config(self.registered). \
+            with_desired_state(self.registered). \
             build()
         self.session.add(cbsd)
         self.session.commit()
