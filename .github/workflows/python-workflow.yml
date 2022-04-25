@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+      files_changed: ${{ steps.changes.outputs.filesChanged_files }}
     steps:
       # Need to get git on push event
       - uses: actions/checkout@v2
@@ -32,7 +33,8 @@ jobs:
         with:
           filters: |
             filesChanged:
-              - [".github/workflows/python-workflow.yml", "**/*.py"]
+              - ["**/*.py"]
+          list-files: 'shell'
       # Need to save PR number as Github action does not propagate it with workflow_run event
       - name: Save PR number
         if: always()
@@ -56,28 +58,21 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Get changed files
-        id: py-changes
-        # Set outputs.py to be a list of modified python files
-        run: |
-          echo "::set-output name=py::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .py$ | xargs)"
-      - if: ${{ steps.py-changes.outputs.py }}
-        name: Build the python-precommit Docker base image
+      - name: Build the python-precommit Docker base image
         uses: docker/build-push-action@v2
         with:
           context: .
           file: ./lte/gateway/docker/python-precommit/Dockerfile
           push: false
           tags: magma/py-lint:latest
-      - if: ${{ steps.py-changes.outputs.py }}
-        name: Format and check for leftover changes
+      - name: Format and check for leftover changes
         uses: addnab/docker-run-action@v3
         with:
           image: magma/py-lint:latest
           options: -u 0 -v ${{ github.workspace }}:/code
           run: |
             echo "Running formatting tools. This should be equivalent to running './lte/gateway/python/precommit.py --format --diff' locally."
-            for file in ${{ steps.py-changes.outputs.py }};
+            for file in ${{ needs.pre_job.outputs.files_changed }};
             do
               set -e
               echo ""
