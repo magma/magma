@@ -1,21 +1,20 @@
 import testing.postgresql
-from magma.db_service.tests.db_testcase import DBTestCase
+from magma.db_service.models import Base
+from magma.db_service.tests.db_testcase import BaseDBTestCase
 
-Postgresql = testing.postgresql.PostgresqlFactory(cache_initialized_db=True)
 
-
-class LocalDBTestCase(DBTestCase):
+class LocalDBTestCase(BaseDBTestCase):
     postgresql: testing.postgresql.Postgresql
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.postgresql = Postgresql()
+        cls.postgresql = testing.postgresql.PostgresqlFactory(cache_initialized_db=True)()
 
     @classmethod
     def tearDownClass(cls) -> None:
         cls.postgresql.stop()
 
-    def get_config(self):
-        config = super().get_config()
-        config.SQLALCHEMY_DB_URI = self.postgresql.url()
-        return config
+    def setUp(self):
+        self.metadata = Base.metadata
+        self.set_up_db_test_case(SQLALCHEMY_DB_URI=self.postgresql.url())
+        self.create_all()

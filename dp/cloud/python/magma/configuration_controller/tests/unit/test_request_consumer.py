@@ -1,6 +1,7 @@
 from magma.configuration_controller.request_consumer.request_db_consumer import (
     RequestDBConsumer,
 )
+from magma.db_service.config import TestConfig
 from magma.db_service.models import (
     DBCbsd,
     DBCbsdState,
@@ -56,7 +57,7 @@ class RegistrationDBConsumerTestCase(LocalDBTestCase):
         that have no lock on them.
         """
         # Given
-        config = self.get_config()
+        config = TestConfig()
         config.REQUEST_PROCESSING_LIMIT = max_batch_size
         session1 = Session(bind=self.engine)
         session2 = Session(bind=self.engine)

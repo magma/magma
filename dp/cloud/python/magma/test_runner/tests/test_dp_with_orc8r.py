@@ -27,7 +27,7 @@ from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
 from dp.protos.enodebd_dp_pb2_grpc import DPServiceStub
 from magma.db_service.db_initialize import DBInitializer
 from magma.db_service.session_manager import SessionManager
-from magma.db_service.tests.db_testcase import DBTestCase
+from magma.db_service.tests.db_testcase import BaseDBTestCase
 from magma.test_runner.config import TestConfig
 from retrying import retry
 
@@ -45,7 +45,7 @@ DATETIME_WAY_BACK = '2010-03-28T09:13:25.407877399+00:00'
 
 
 @pytest.mark.orc8r
-class DomainProxyOrc8rTestCase(DBTestCase):
+class DomainProxyOrc8rTestCase(BaseDBTestCase):
     @classmethod
     def setUpClass(cls):
         wait_for_elastic_to_start()
