@@ -6,24 +6,22 @@ WORKDIR /usr/src/
 
 # Copy project dependencies
 COPY package.json yarn.lock babel.config.js ./
-COPY packages/magmalte/package.json packages/magmalte/
 
 # Install node dependencies
 ENV PUPPETEER_SKIP_DOWNLOAD "true"
 RUN yarn install --mutex network --frozen-lockfile && yarn cache clean
 
 # Build our static files
-COPY packages packages
-WORKDIR /usr/src/packages/magmalte
+COPY . .
 RUN yarn run build
 
 FROM node:16.14-alpine
 
 # Install required binaries
 RUN apk add ca-certificates curl bash
-COPY packages/magmalte/wait-for-it.sh /usr/local/bin
+COPY wait-for-it.sh /usr/local/bin
 
 COPY --from=builder /usr/src /usr/src
 
-WORKDIR /usr/src/packages/magmalte
+WORKDIR /usr/src/
 CMD ["yarn run start:prod"]

@@ -10,38 +10,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
+ * @flow
  * @format
  */
 
+'use strict';
+
 const paths = require('./paths');
 const webpack = require('webpack');
-
-function entry(value: string[]) {
-  return ['webpack-hot-middleware/client', ...value];
-}
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
+  .BundleAnalyzerPlugin;
+const ManifestPlugin = require('webpack-manifest-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
-  mode: 'development',
+  mode: 'production',
   devtool: 'cheap-module-eval-source-map',
   entry: {
-    main: entry([paths.appIndexJs]),
-    login: entry([paths.loginJs]),
-    host: entry([paths.hostJs]),
+    main: [paths.appIndexJs],
+    login: [paths.loginJs],
+    host: [paths.hostJs],
   },
   externals: [
     {
       xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}',
     },
   ],
-  output: {
-    pathinfo: true,
-    path: paths.distPath,
-    filename: '[name].js',
-    chunkFilename: '[name].js',
-    publicPath: '/nms/static/dist/',
-  },
-  plugins: [new webpack.HotModuleReplacementPlugin()],
   module: {
     rules: [
       {
@@ -53,17 +47,15 @@ module.exports = {
           // assets smaller than specified limit in bytes as data URLs to
           // avoid requests.  A missing `test` is equivalent to a match.
           {
-            test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
             loader: require.resolve('url-loader'),
             options: {
               limit: 10000,
               name: 'static/media/[name].[hash:8].[ext]',
             },
+            test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
           },
           // Process JS with Babel.
           {
-            test: /\.(js|jsx|mjs)$/,
-            include: [paths.appSrc, paths.packagesDir, paths.fbcnmsDir],
             loader: require.resolve('babel-loader'),
             options: {
               rootMode: 'upward',
@@ -73,6 +65,7 @@ module.exports = {
               // rebuilds.
               cacheDirectory: true,
             },
+            test: /\.(js|jsx|mjs)$/,
           },
           // "postcss" loader applies autoprefixer to our CSS.
           // "css" loader resolves paths in CSS and adds assets as
@@ -128,19 +121,35 @@ module.exports = {
   // Some libraries import Node modules but don't use them in the browser.
   // Tell Webpack to provide empty mocks for them so importing them works.
   node: {
+    child_process: 'empty',
     dgram: 'empty',
     fs: 'empty',
     net: 'empty',
     tls: 'empty',
-    child_process: 'empty',
   },
-  // Turn off performance hints during development because we don't do any
-  // splitting or minification in interest of speed. These warnings become
-  // cumbersome.
-  performance: {
-    hints: false,
+  output: {
+    chunkFilename: '[name].[chunkhash].chunk.js',
+    filename: '[name].[chunkhash].js',
+    path: paths.distPath,
+    pathinfo: true,
+    publicPath: '/nms/static/dist/',
   },
+  plugins: [
+    new ManifestPlugin(),
+    new BundleAnalyzerPlugin({
+      analyzerMode: 'static',
+      reportFilename: 'report.html',
+    }),
+    // remove excess locales in moment bloating the bundle
+    new webpack.ContextReplacementPlugin(/moment[/\\]locale$/, /en/),
+  ],
   optimization: {
+    minimizer: [
+      new TerserPlugin({
+        chunkFilter: chunk => chunk.name !== 'vendor',
+        parallel: true,
+      }),
+    ],
     splitChunks: {
       cacheGroups: {
         vendor: {
@@ -152,8 +161,5 @@ module.exports = {
         },
       },
     },
-  },
-  watchOptions: {
-    ignored: /node_modules/,
   },
 };
