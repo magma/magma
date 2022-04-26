@@ -14,34 +14,35 @@
  * @format
  */
 
-import Button from '../../fbc_js_core/ui/components/design-system/Button';
-import FormGroup from '@material-ui/core/FormGroup';
-import Paper from '@material-ui/core/Paper';
-import React, {useContext} from 'react';
-import Text from '../../fbc_js_core/ui/components/design-system/Text';
-import TextField from '@material-ui/core/TextField';
-import axios from 'axios';
-
 import AppContext from '../../fbc_js_core/ui/context/AppContext';
+import Button from '../../fbc_js_core/ui/components/design-system/Button';
+import Paper from '@material-ui/core/Paper';
+import React, {useContext, useState} from 'react';
+import Text from '../theme/design-system/Text';
 import TopBar from './TopBar';
+import axios from 'axios';
+import {AltFormField, PasswordInput} from './FormField';
+import {List} from '@material-ui/core';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
-import {useState} from 'react';
 
 const TITLE = 'Account Settings';
 
 const useStyles = makeStyles(theme => ({
-  input: {},
+  title: {
+    fontSize: '18px',
+  },
+  input: {
+    width: '100%',
+    maxWidth: '400px',
+  },
   formContainer: {
-    margin: theme.spacing(2),
     paddingBottom: theme.spacing(2),
   },
   paper: {
-    margin: theme.spacing(3),
-    padding: theme.spacing(),
-  },
-  formGroup: {
-    marginBottom: theme.spacing(2),
+    margin: theme.spacing(4),
+    padding: theme.spacing(3),
+    paddingBottom: theme.spacing(6),
   },
 }));
 
@@ -53,12 +54,9 @@ export default function AccountSettings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const {isOrganizations} = useContext(AppContext);
 
-  const onSave = async () => {
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      enqueueSnackbar('Please complete all fields', {variant: 'error'});
-      return;
-    }
+  const isSaveEnabled = currentPassword && newPassword && confirmPassword;
 
+  const onSave = async () => {
     if (newPassword !== confirmPassword) {
       enqueueSnackbar('Passwords do not match', {variant: 'error'});
       return;
@@ -83,46 +81,45 @@ export default function AccountSettings() {
     <>
       {!isOrganizations && <TopBar header={TITLE} tabs={[]} />}
       <Paper className={classes.paper}>
-        <div className={classes.formContainer}>
-          <Text data-testid="change-password-title" variant="h5">
-            Change Password
-          </Text>
-          <FormGroup row className={classes.formGroup}>
-            <TextField
+        <Text data-testid="change-password-title" variant="body1">
+          Change Password
+        </Text>
+        <List className={classes.formContainer}>
+          <AltFormField label="Current Password" disableGutters={true}>
+            <PasswordInput
+              className={classes.input}
               required
-              label="Current Password"
-              type="password"
+              placeholder="Enter Current Password"
               value={currentPassword}
-              onChange={({target}) => setCurrentPassword(target.value)}
-              className={classes.input}
+              onChange={setCurrentPassword}
             />
-          </FormGroup>
-          <FormGroup row className={classes.formGroup}>
-            <TextField
+          </AltFormField>
+
+          <AltFormField label="New Password" disableGutters={true}>
+            <PasswordInput
+              className={classes.input}
               required
               autoComplete="off"
-              label="New Password"
-              type="password"
+              placeholder="Enter New Password"
               value={newPassword}
-              onChange={({target}) => setNewPassword(target.value)}
-              className={classes.input}
+              onChange={setNewPassword}
             />
-          </FormGroup>
-          <FormGroup row className={classes.formGroup}>
-            <TextField
+          </AltFormField>
+
+          <AltFormField label="Confirm New Password" disableGutters={true}>
+            <PasswordInput
+              className={classes.input}
               required
               autoComplete="off"
-              label="Confirm Password"
-              type="password"
+              placeholder="Confirm New Password"
               value={confirmPassword}
-              onChange={({target}) => setConfirmPassword(target.value)}
-              className={classes.input}
+              onChange={setConfirmPassword}
             />
-          </FormGroup>
-          <FormGroup row className={classes.formGroup}>
-            <Button onClick={onSave}>Save</Button>
-          </FormGroup>
-        </div>
+          </AltFormField>
+        </List>
+        <Button onClick={onSave} disabled={!isSaveEnabled}>
+          Save
+        </Button>
       </Paper>
     </>
   );

@@ -20,7 +20,8 @@ import {addFegLteNetwork, addFegNetwork} from '../NetworkUtils';
 
 const ADMIN_SELECTOR = `//span[text()='Administration']`;
 const ADMIN_NW_SELECTOR = `//a[starts-with(@href, '/nms/test/admin/networks')]`;
-const NAV_SELECTOR = `//div[@data-testid='profileButton']`;
+const PROFILE_BUTTON_SELECTOR = `//*[@data-testid='profileButton']`;
+const NETWORK_SELECTOR_SELECTOR = `//*[@data-testid='networkSelector']`;
 
 let browser;
 beforeEach(async () => {
@@ -47,11 +48,12 @@ describe('Admin component', () => {
       await page.waitForXPath(`//span[text()='Dashboard']`, {
         timeout: 15000,
       });
-      await page.waitForXPath(NAV_SELECTOR);
-      const navSelector = await page.$x(NAV_SELECTOR);
+      await page.waitForXPath(PROFILE_BUTTON_SELECTOR);
+      const navSelector = await page.$x(PROFILE_BUTTON_SELECTOR);
       await navSelector[0].click();
 
       const adminSelector = await page.$x(ADMIN_SELECTOR);
+      await page.waitForTimeout(500);
       await adminSelector[0].click();
 
       await page.waitForXPath(ADMIN_NW_SELECTOR);
@@ -95,9 +97,9 @@ describe('NMS', () => {
         timeout: 15000,
       });
 
-      const networkSelector = 'div[title="test"]';
-      page.waitForSelector(networkSelector);
-      await page.click(networkSelector);
+      page.waitForXPath(NETWORK_SELECTOR_SELECTOR);
+      const networkSelector = await page.$x(NETWORK_SELECTOR_SELECTOR);
+      networkSelector[0].click();
 
       await page.waitForXPath(`//span[text()='Create Network']`);
       const buttonSelector = await page.$x(`//span[text()='Create Network']`);

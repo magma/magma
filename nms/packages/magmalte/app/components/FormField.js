@@ -173,6 +173,7 @@ export function AltFormFieldSubheading(props: Props) {
 type PasswordProps = {
   value: string,
   onChange: string => void,
+  placeholder?: string,
 };
 
 export function FormDivider() {

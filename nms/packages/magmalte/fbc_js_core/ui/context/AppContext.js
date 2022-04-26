@@ -42,6 +42,7 @@ export type AppContextType = {
   isTabEnabled: Tab => boolean,
   ssoEnabled: boolean,
   ssoSelectedType: SSOSelectedType,
+  hasAccountSettings: boolean,
 };
 
 export type AppContextAppData = {|
@@ -66,6 +67,7 @@ const appContextDefaults = {
   isTabEnabled: () => false,
   ssoEnabled: false,
   ssoSelectedType: 'none',
+  hasAccountSettings: false,
 };
 
 const AppContext = React.createContext<AppContextType>(appContextDefaults);
@@ -82,6 +84,7 @@ export function AppContextProvider(props: Props) {
   const value = {
     ...appContextDefaults,
     ...appData,
+    hasAccountSettings: !appData.ssoEnabled,
     isOrganizations: !!props.isOrganizations, // is organizations management aka. the host site
     networkIds: props.networkIDs || [],
     isTabEnabled: (tab: Tab): boolean => {
