@@ -19,7 +19,6 @@ import ArrowDropDown from '@material-ui/icons/ArrowDropDown';
 import Button from '../../../fbc_js_core/ui/components/design-system/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import Collapse from '@material-ui/core/Collapse';
-import DialogContent from '@material-ui/core/DialogContent';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import FormLabel from '@material-ui/core/FormLabel';
@@ -31,7 +30,7 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 
-import {AltFormField} from '../../../fbc_js_core/ui/components/design-system/FormField/FormField';
+import {AltFormField} from '../../../app/components/FormField';
 import {useState} from 'react';
 
 const ENABLE_ALL_NETWORKS_HELPER =
@@ -41,43 +40,44 @@ const ENABLE_ALL_NETWORKS_HELPER =
  * Create Organization Tab
  * This component displays a form used to create an organization
  */
-export default function OrganizationInfoDialog(props: DialogProps) {
+export default function (props: DialogProps) {
   const {
     organization,
     allNetworks,
     shouldEnableAllNetworks,
     setShouldEnableAllNetworks,
+    hideAdvancedFields,
   } = props;
   const [open, setOpen] = useState(false);
 
   return (
-    <DialogContent>
-      <List>
-        {props.error && (
-          <AltFormField label={''}>
-            <FormLabel error>{props.error}</FormLabel>
-          </AltFormField>
-        )}
-        <AltFormField disableGutters label={'Organization Name'}>
-          <OutlinedInput
-            data-testid="name"
-            placeholder="Organization Name"
-            fullWidth={true}
-            value={organization.name}
-            onChange={({target}) => {
-              props.onOrganizationChange({...organization, name: target.value});
-            }}
-          />
+    <List>
+      {props.error && (
+        <AltFormField label={''}>
+          <FormLabel error>{props.error}</FormLabel>
         </AltFormField>
-        <ListItem disableGutters>
-          <Button variant="text" onClick={() => setOpen(!open)}>
-            Advanced Settings
-          </Button>
-          <ArrowDropDown />
-        </ListItem>
-        <Collapse in={open}>
+      )}
+      <AltFormField label={'Organization Name'}>
+        <OutlinedInput
+          disabled={props.organization.id}
+          data-testid="name"
+          placeholder="Organization Name"
+          fullWidth={true}
+          value={organization.name || ''}
+          onChange={({target}) => {
+            props.onOrganizationChange({...organization, name: target.value});
+          }}
+        />
+      </AltFormField>
+      <ListItem disablegutters="true">
+        <Button variant="text" onClick={() => setOpen(!open)}>
+          Advanced Settings
+        </Button>
+        <ArrowDropDown />
+      </ListItem>
+      <Collapse in={open}>
+        {!shouldEnableAllNetworks && (
           <AltFormField
-            disableGutters
             label={'Accessible Networks'}
             subLabel={'The networks that the organization have access to'}>
             <Select
@@ -100,21 +100,147 @@ export default function OrganizationInfoDialog(props: DialogProps) {
               ))}
             </Select>
           </AltFormField>
-          <FormControlLabel
-            disableGutters
-            label={'Give this organization access to all networks'}
-            control={
-              <Checkbox
-                checked={shouldEnableAllNetworks}
-                onChange={() =>
-                  setShouldEnableAllNetworks(!shouldEnableAllNetworks)
-                }
-              />
-            }
-          />
-          <FormHelperText>{ENABLE_ALL_NETWORKS_HELPER}</FormHelperText>
-        </Collapse>
-      </List>
-    </DialogContent>
+        )}
+        <FormControlLabel
+          disablegutters="true"
+          label={'Give this organization access to all networks'}
+          control={
+            <Checkbox
+              checked={shouldEnableAllNetworks}
+              onChange={() =>
+                setShouldEnableAllNetworks(!shouldEnableAllNetworks)
+              }
+            />
+          }
+        />
+        <FormHelperText>{ENABLE_ALL_NETWORKS_HELPER}</FormHelperText>
+
+        {!hideAdvancedFields && (
+          <>
+            <AltFormField label={'Single Sign-On'}>
+              <Select
+                fullWidth={true}
+                variant={'outlined'}
+                value={organization.ssoSelectedType || 'none'}
+                onChange={({target}) => {
+                  props.onOrganizationChange({
+                    ...organization,
+                    // $FlowIgnore: value guaranteed to match the string literals
+                    ssoSelectedType: target.value,
+                  });
+                }}
+                input={<OutlinedInput id="direction" />}>
+                <MenuItem key={'none'} value={'none'}>
+                  <ListItemText primary={'Disabled'} />
+                </MenuItem>
+                <MenuItem key={'oidc'} value={'oidc'}>
+                  <ListItemText primary={'OpenID Connect'} />
+                </MenuItem>
+                <MenuItem key={'saml'} value={'saml'}>
+                  <ListItemText primary={'SAML'} />
+                </MenuItem>
+              </Select>
+            </AltFormField>
+
+            {organization.ssoSelectedType === 'saml' ? (
+              <>
+                <AltFormField label={'Issuer'}>
+                  <OutlinedInput
+                    data-testid="issuer"
+                    placeholder="Issuer"
+                    fullWidth={true}
+                    value={organization.ssoIssuer || ''}
+                    onChange={({target}) => {
+                      props.onOrganizationChange({
+                        ...organization,
+                        ssoIssuer: target.value,
+                      });
+                    }}
+                  />
+                </AltFormField>
+
+                <AltFormField label={'Entrypoint'}>
+                  <OutlinedInput
+                    data-testid="entrypoint"
+                    placeholder="Entrypoint"
+                    fullWidth={true}
+                    value={organization.ssoEntrypoint || ''}
+                    onChange={({target}) => {
+                      props.onOrganizationChange({
+                        ...organization,
+                        ssoEntrypoint: target.value,
+                      });
+                    }}
+                  />
+                </AltFormField>
+
+                <AltFormField label={'Certificate'}>
+                  <OutlinedInput
+                    data-testid="Certificate"
+                    placeholder="Certificate"
+                    fullWidth={true}
+                    value={organization.ssoCert || ''}
+                    onChange={({target}) => {
+                      props.onOrganizationChange({
+                        ...organization,
+                        ssoCert: target.value,
+                      });
+                    }}
+                  />
+                </AltFormField>
+              </>
+            ) : null}
+            {organization.ssoSelectedType === 'oidc' ? (
+              <>
+                <AltFormField label={'Client ID'}>
+                  <OutlinedInput
+                    data-testid="ClientID"
+                    placeholder="Client ID"
+                    fullWidth={true}
+                    value={organization.ssoOidcClientID || ''}
+                    onChange={({target}) => {
+                      props.onOrganizationChange({
+                        ...organization,
+                        ssoOidcClientID: target.value,
+                      });
+                    }}
+                  />
+                </AltFormField>
+
+                <AltFormField label={'Client Secret'}>
+                  <OutlinedInput
+                    data-testid="ClientSecret"
+                    placeholder="ClientSecret"
+                    fullWidth={true}
+                    value={organization.ssoOidcClientSecret || ''}
+                    onChange={({target}) => {
+                      props.onOrganizationChange({
+                        ...organization,
+                        ssoOidcClientSecret: target.value,
+                      });
+                    }}
+                  />
+                </AltFormField>
+
+                <AltFormField label={'Configuration URL'}>
+                  <OutlinedInput
+                    data-testid="Configuration URL"
+                    placeholder="Configuration URL"
+                    fullWidth={true}
+                    value={organization.ssoOidcConfigurationURL || ''}
+                    onChange={({target}) => {
+                      props.onOrganizationChange({
+                        ...organization,
+                        ssoOidcConfigurationURL: target.value,
+                      });
+                    }}
+                  />
+                </AltFormField>
+              </>
+            ) : null}
+          </>
+        )}
+      </Collapse>
+    </List>
   );
 }

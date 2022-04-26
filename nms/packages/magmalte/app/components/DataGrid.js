@@ -27,6 +27,7 @@ import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import Input from '@material-ui/core/Input';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import React from 'react';
@@ -210,7 +211,9 @@ function DataCollapse(data: Data) {
     </List>
   );
 }
-
+function DataLink(data: string) {
+  return <Link href={data}>{data}</Link>;
+}
 type Data = {
   icon?: SvgIcon,
   category?: string,
@@ -223,6 +226,7 @@ type Data = {
   statusInactive?: boolean,
   status?: boolean,
   tooltip?: string,
+  isLink?: boolean,
 };
 
 export type DataRows = Data[];
@@ -279,6 +283,8 @@ export default function DataGrid(props: Props) {
                         ? DataIcon(data.icon, dataEntryValue)
                         : data.obscure === true
                         ? DataObscure(data.value, data.category)
+                        : data.isLink === true
+                        ? DataLink(dataEntryValue)
                         : dataEntryValue
                     }
                   />
