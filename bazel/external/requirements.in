@@ -34,7 +34,6 @@ pycryptodome>=3.9.9
 spyne
 aiohttp
 lxml==4.7.1
-typing_extensions
 eventlet==0.30.2
 aiodns>=1.1.1
 pymemoize>=1.0.2
