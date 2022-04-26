@@ -16,6 +16,7 @@ package registry
 import (
 	"context"
 	"fmt"
+	"magma/orc8r/lib/go/protos"
 	"sync"
 	"time"
 
@@ -68,7 +69,7 @@ func (r *k8sConnectionRegistry) GetConnection(service string, port int) (*grpc.C
 	ctx, cancel := context.WithTimeout(context.Background(), GrpcMaxTimeoutSec*time.Second)
 	defer cancel()
 
-	return r.GetConnectionImpl(ctx, serviceAddr)
+	return r.GetConnectionImpl(ctx, serviceAddr, protos.ServiceType_SOUTHBOUND)
 }
 
 func doesServiceExist(serviceList []string, service string) bool {

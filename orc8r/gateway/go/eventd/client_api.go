@@ -61,7 +61,7 @@ func (v Verbosity) Log(request *protos.Event) error {
 }
 
 func getEventdClient() (protos.EventServiceClient, error) {
-	conn, err := platformregistry.GetConnection(ServiceName)
+	conn, err := platformregistry.GetConnection(ServiceName, protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

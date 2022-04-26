@@ -19,6 +19,7 @@ import (
 
 	"google.golang.org/grpc"
 
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -26,11 +27,5 @@ import (
 func GetConnectionWithAuthority(service string) (*grpc.ClientConn, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), registry.GrpcMaxTimeoutSec*time.Second)
 	defer cancel()
-	return registry.GetConnectionImpl(
-		ctx,
-		service,
-		grpc.WithBackoffMaxDelay(registry.GrpcMaxDelaySec*time.Second),
-		grpc.WithBlock(),
-		grpc.WithAuthority(service),
-	)
+	return registry.GetConnectionImpl(ctx, service, lib_protos.ServiceType_SOUTHBOUND, grpc.WithBackoffMaxDelay(registry.GrpcMaxDelaySec*time.Second), grpc.WithBlock(), grpc.WithAuthority(service))
 }

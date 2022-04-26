@@ -14,6 +14,7 @@ limitations under the License.
 package registry
 
 import (
+	"magma/orc8r/lib/go/protos"
 	"time"
 
 	platform_registry "magma/orc8r/lib/go/registry"
@@ -39,17 +40,17 @@ func AddService(serviceType, host string, port int) {
 // GetServiceAddress Returns the RPC address of the service.
 // The service needs to be added to the registry before this.
 func GetServiceAddress(service string) (string, error) {
-	return platform_registry.GetServiceAddress(service)
+	return platform_registry.GetServiceAddress(service, protos.ServiceType_SOUTHBOUND)
 }
 
 // GetConnection Provides a gRPC connection to a service in the registry.
 func GetConnection(service string) (*grpc.ClientConn, error) {
-	return platform_registry.GetConnection(service)
+	return platform_registry.GetConnection(service, protos.ServiceType_SOUTHBOUND)
 }
 
 // GetConnectionWithTimeout Provides a gRPC connection with timeout to a service in the registry.
 func GetConnectionWithTimeout(service string, timeout time.Duration) (*grpc.ClientConn, error) {
-	return platform_registry.GetConnectionWithTimeout(service, timeout)
+	return platform_registry.GetConnectionWithTimeout(service, timeout, protos.ServiceType_SOUTHBOUND)
 }
 
 func addLocalService(serviceType string, port int) {

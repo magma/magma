@@ -53,8 +53,14 @@ message FindServicesResponse {
   repeated string services = 1;
 }
 
+enum ServiceType {
+  SOUTHBOUND = 0;
+  PROTECTED = 1;
+}
+
 message GetServiceAddressRequest {
   string service = 1;
+  ServiceType service_type = 2;
 }
 
 message GetServiceAddressResponse {

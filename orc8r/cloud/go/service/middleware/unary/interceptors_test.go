@@ -27,14 +27,15 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/test_utils"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
 func TestInterceptorsHappyPath(t *testing.T) {
 	servicer := newTestService(func(req string) (res string, err error) { return req, nil })
-	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, "test_service")
+	srv, lis, _ := test_utils.NewTestService(t, orc8r.ModuleName, "test_service")
 	protos.RegisterTestServiceServer(srv.GrpcServer, servicer)
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 
 	c := getClient(t)
 	ctx := registerGateway(t)
@@ -51,9 +52,9 @@ func TestInterceptorsHappyPath(t *testing.T) {
 // always permits localhost connections when identity is missing.
 func TestInterceptorsBadIdentity(t *testing.T) {
 	servicer := newTestService(func(req string) (res string, err error) { return req, nil })
-	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, "test_service")
+	srv, lis, _ := test_utils.NewTestService(t, orc8r.ModuleName, "test_service")
 	protos.RegisterTestServiceServer(srv.GrpcServer, servicer)
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 
 	c := getClient(t)
 	ctx := state_test.GetContextWithCertificate(t, "bad_test_hwid")
@@ -65,9 +66,9 @@ func TestInterceptorsBadIdentity(t *testing.T) {
 
 func TestInterceptorsUnregisteredGateway(t *testing.T) {
 	servicer := newTestService(func(req string) (res string, err error) { return req, nil })
-	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, "test_service")
+	srv, lis, _ := test_utils.NewTestService(t, orc8r.ModuleName, "test_service")
 	protos.RegisterTestServiceServer(srv.GrpcServer, servicer)
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 
 	c := getClient(t)
 	ctx := registerGateway(t)
@@ -80,9 +81,9 @@ func TestInterceptorsUnregisteredGateway(t *testing.T) {
 
 func TestInterceptorHandlerPanic(t *testing.T) {
 	servicer := newTestService(func(req string) (res string, err error) { panic("can we panic now!") })
-	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, "test_service")
+	srv, lis, _ := test_utils.NewTestService(t, orc8r.ModuleName, "test_service")
 	protos.RegisterTestServiceServer(srv.GrpcServer, servicer)
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 
 	c := getClient(t)
 	ctx := registerGateway(t)
@@ -93,7 +94,7 @@ func TestInterceptorHandlerPanic(t *testing.T) {
 }
 
 func getClient(t *testing.T) protos.TestServiceClient {
-	conn, err := registry.GetConnection("test_service")
+	conn, err := registry.GetConnection("test_service", lib_protos.ServiceType_SOUTHBOUND)
 	assert.NoError(t, err)
 	return protos.NewTestServiceClient(conn)
 }

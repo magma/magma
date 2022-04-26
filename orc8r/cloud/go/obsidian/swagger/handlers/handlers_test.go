@@ -185,7 +185,7 @@ func registerServicer(
 		orc8r.SwaggerSpecLabel: "true",
 	}
 
-	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, service, labels, nil)
+	srv, lis, _ := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, service, labels, nil)
 	partialSpec := spec.Spec{Tags: []spec.TagDefinition{partialTag}}
 	standaloneSpec := spec.Spec{Tags: []spec.TagDefinition{standaloneTag}}
 
@@ -193,7 +193,7 @@ func registerServicer(
 	standaloneYamlSpec := marshalToYAML(t, standaloneSpec)
 	protos.RegisterSwaggerSpecServer(srv.GrpcServer, servicers.NewSpecServicer(partialYamlSpec, standaloneYamlSpec))
 
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 }
 
 func marshalToYAML(t *testing.T, spec spec.Spec) string {

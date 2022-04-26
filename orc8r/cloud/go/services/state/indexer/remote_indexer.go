@@ -22,6 +22,7 @@ import (
 	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/lib/go/merrors"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -133,7 +134,7 @@ func (r *remoteIndexer) DeIndex(networkID string, states state_types.SerializedS
 }
 
 func (r *remoteIndexer) getIndexerClient() (state_protos.IndexerClient, error) {
-	conn, err := registry.GetConnection(r.service)
+	conn, err := registry.GetConnection(r.service, lib_protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, r.service)
 		glog.Error(initErr)

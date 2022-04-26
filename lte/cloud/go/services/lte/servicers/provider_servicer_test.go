@@ -48,7 +48,7 @@ func TestLTEStreamProviderServicer_GetUpdates(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	lte_test_init.StartTestService(t)
 
-	conn, err := registry.GetConnection(lte_service.ServiceName)
+	conn, err := registry.GetConnection(lte_service.ServiceName, protos.ServiceType_SOUTHBOUND)
 	assert.NoError(t, err)
 	c := streamer_protos.NewStreamProviderClient(conn)
 	ctx := context.Background()

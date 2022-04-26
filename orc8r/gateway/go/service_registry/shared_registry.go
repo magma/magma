@@ -14,6 +14,7 @@ limitations under the License.
 package service_registry
 
 import (
+	lib_protos "magma/orc8r/lib/go/protos"
 	"sync/atomic"
 
 	"github.com/golang/glog"
@@ -51,7 +52,7 @@ func Get() GatewayRegistry {
 // NewDefaultRegistry returns a new service registry populated by default services
 func NewDefaultRegistry() GatewayRegistry {
 	reg := platform_registry.Get()
-	if _, err := reg.GetServiceAddress(platform_registry.ControlProxyServiceName); err != nil {
+	if _, err := reg.GetServiceAddress(platform_registry.ControlProxyServiceName, lib_protos.ServiceType_SOUTHBOUND); err != nil {
 		addLocal(reg, platform_registry.ControlProxyServiceName, 5053)
 	}
 	return reg
@@ -60,7 +61,7 @@ func NewDefaultRegistry() GatewayRegistry {
 // Returns the RPC address of the service.
 // The service needs to be added to the registry before this.
 func GetServiceAddress(service string) (string, error) {
-	return Get().GetServiceAddress(service)
+	return Get().GetServiceAddress(service, lib_protos.ServiceType_SOUTHBOUND)
 }
 
 func addLocal(reg GatewayRegistry, serviceType string, port int) {

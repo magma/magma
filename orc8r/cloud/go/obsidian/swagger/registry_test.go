@@ -41,8 +41,8 @@ func TestRegistry_GetSpecServicers(t *testing.T) {
 	defer registry.RemoveServicesWithLabel(orc8r.SwaggerSpecLabel)
 
 	for _, s := range services {
-		srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, s, labels, nil)
-		go srv.RunTest(lis)
+		srv, lis, _ := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, s, labels, nil)
+		go srv.RunTest(lis, nil)
 	}
 
 	servicers, err = swagger.GetSpecServicers()

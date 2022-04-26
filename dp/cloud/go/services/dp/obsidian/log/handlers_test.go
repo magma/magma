@@ -113,8 +113,8 @@ type HandlersTestSuite struct {
 }
 
 func (s *HandlersTestSuite) SetupTest() {
-	srv, lis := test_utils.NewTestService(s.T(), dp.ModuleName, dp_service.ServiceName)
-	go srv.RunTest(lis)
+	srv, lis, _ := test_utils.NewTestService(s.T(), dp.ModuleName, dp_service.ServiceName)
+	go srv.RunTest(lis, nil)
 }
 
 func (s *HandlersTestSuite) TestBoolQuery() {

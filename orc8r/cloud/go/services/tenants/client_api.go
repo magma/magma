@@ -29,7 +29,7 @@ import (
 // getTenantsClient is a utility function to get a RPC connection to the
 // tenants service
 func getTenantsClient() (tenant_protos.TenantsServiceClient, error) {
-	conn, err := srvRegistry.GetConnection(ServiceName)
+	conn, err := srvRegistry.GetConnection(ServiceName, protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
