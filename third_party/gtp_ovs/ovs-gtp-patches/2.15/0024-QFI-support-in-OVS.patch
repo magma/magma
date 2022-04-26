@@ -1,12 +1,12 @@
-From 44b2a4d8fafe7687f8014cdc2475ee132a01181e Mon Sep 17 00:00:00 2001
+From 719e7040e76cc230c10fd9b4126802dd465cd827 Mon Sep 17 00:00:00 2001
 From: Prabina Pattnaik <prabinak@wavelabs.ai>
-Date: Tue, 19 Apr 2022 11:31:38 +0000
-Subject: [PATCH 392/392] QFI support in OVS
+Date: Mon, 25 Apr 2022 19:15:48 +0000
+Subject: [PATCH 24/24] QFI support in OVS
 
 Signed-off-by: Prabina Pattnaik <prabinak@wavelabs.ai>
 ---
- datapath/linux/compat/gtp.c               | 160 +++++++++++++---------
- datapath/linux/compat/include/linux/gtp.h |   6 +-
+ datapath/linux/compat/gtp.c               | 144 +++++++++++++---------
+ datapath/linux/compat/include/linux/gtp.h |   4 +-
  include/openvswitch/match.h               |   2 +
  include/openvswitch/meta-flow.h           |  17 +++
  include/openvswitch/ofp-actions.h         |  13 ++
@@ -17,27 +17,17 @@ Signed-off-by: Prabina Pattnaik <prabinak@wavelabs.ai>
  lib/meta-flow.xml                         |   9 ++
  lib/nx-match.c                            |   2 +-
  lib/odp-util.c                            |  24 +++-
- lib/ofp-actions.c                         |  73 ++++++++++
- lib/packets.h                             |  16 ++-
- tests/system-layer3-tunnels.at            | 111 +++++++++++++++
- tests/tunnel.at                           |  21 +++
- 16 files changed, 427 insertions(+), 72 deletions(-)
+ lib/ofp-actions.c                         |  73 +++++++++++
+ lib/packets.h                             |  14 ++-
+ tests/system-layer3-tunnels.at            | 108 ++++++++++++++++
+ tests/tunnel.at                           |  21 ++++
+ 16 files changed, 406 insertions(+), 70 deletions(-)
 
 diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
-index a7033031d..667475f57 100644
+index a7033031d..94bc0f7f6 100644
 --- a/datapath/linux/compat/gtp.c
 +++ b/datapath/linux/compat/gtp.c
-@@ -84,6 +84,9 @@ static int check_header(struct sk_buff *skb, int len)
- 	return 0;
- }
- 
-+/*struct gtpu_ext_hdr n_hdr = {
-+        .type = 0x85,
-+};*/
- static int gtp_rx(struct sock *sk, struct gtp_dev *gtp, struct sk_buff *skb,
- 			unsigned int hdrlen, u8 gtp_version,
- 			__be64 tid, u8 flags, u8 type)
-@@ -113,18 +116,41 @@ static int gtp_rx(struct sock *sk, struct gtp_dev *gtp, struct sk_buff *skb,
+@@ -113,18 +113,39 @@ static int gtp_rx(struct sock *sk, struct gtp_dev *gtp, struct sk_buff *skb,
  			udp_tun_rx_dst(skb, sk->sk_family, TUNNEL_KEY, tid, opts_len);
  #endif
  		netdev_dbg(gtp->dev, "attaching metadata_dst to skb, gtp ver %d hdrlen %d\n", gtp_version, hdrlen);
@@ -76,9 +66,7 @@ index a7033031d..667475f57 100644
 +				        opts->flags = gtp1->flags;
 +				        opts->type = gtp1->type;
 +					opts->qfi = pdu_sc_hd->qfi;
-+				        memcpy(opts->data, gtp1 + 1, sizeof(struct gtpu_ext_hdr) + sizeof( struct gtpu_ext_hdr_pdu_sc));
-+				        opts->header_data_len = sizeof(struct gtpu_ext_hdr) + sizeof(struct gtpu_ext_hdr_pdu_sc);
-+				        opts_len = opts_len + opts->header_data_len;
++				        opts_len = opts_len + sizeof(struct gtpu_ext_hdr) + sizeof(struct gtpu_ext_hdr_pdu_sc); //opts->header_data_len;
 +					tun_dst->u.tun_info.key.tun_flags |= TUNNEL_GTPU_OPT;
 +					tun_dst->u.tun_info.options_len = opts_len;
 +				}
@@ -88,7 +76,7 @@ index a7033031d..667475f57 100644
  		/* Get rid of the GTP + UDP headers. */
  		if (iptunnel_pull_header(skb, hdrlen, skb->protocol,
  					!net_eq(sock_net(sk), dev_net(gtp->dev)))) {
-@@ -189,7 +215,7 @@ static int gtp1u_udp_encap_recv(struct sock *sk, struct gtp_dev *gtp, struct sk_
+@@ -189,7 +210,7 @@ static int gtp1u_udp_encap_recv(struct sock *sk, struct gtp_dev *gtp, struct sk_
  
  	gtp1 = (struct gtp1_header *)(skb->data + sizeof(struct udphdr));
  
@@ -97,7 +85,7 @@ index a7033031d..667475f57 100644
  	if ((gtp1->flags >> 5) != GTP_V1)
  		return 1;
  
-@@ -205,7 +231,7 @@ static int gtp1u_udp_encap_recv(struct sock *sk, struct gtp_dev *gtp, struct sk_
+@@ -205,7 +226,7 @@ static int gtp1u_udp_encap_recv(struct sock *sk, struct gtp_dev *gtp, struct sk_
  				u8 next_hdr;
  
  				geh = (struct gtpu_ext_hdr *) (gtp1 + 1);
@@ -106,7 +94,7 @@ index a7033031d..667475f57 100644
  
  				hdrlen += sizeof (struct gtpu_ext_hdr);
  				next_hdr = geh->type;
-@@ -322,17 +348,6 @@ static void gtp_dev_uninit(struct net_device *dev)
+@@ -322,17 +343,6 @@ static void gtp_dev_uninit(struct net_device *dev)
  	free_percpu(dev->tstats);
  }
  
@@ -124,16 +112,7 @@ index a7033031d..667475f57 100644
  static unsigned int skb_gso_transport_seglen(const struct sk_buff *skb)
  {
  		const struct skb_shared_info *shinfo = skb_shinfo(skb);
-@@ -366,7 +381,7 @@ static unsigned int skb_gso_network_seglen(const struct sk_buff *skb)
- 		return hdr_len + skb_gso_transport_seglen(skb);
- }
- 
--static inline void gtp1_push_header(struct net_device *dev, struct sk_buff *skb, __be32 tid, __u8 qfi)
-+static inline void gtp1_push_header(struct net_device *dev, struct sk_buff *skb, struct gtpu_metadata *opts, __be32 tid, __u8 qfi)
- {
- 	struct gtpu_ext_hdr *next_hdr;
- 	struct gtpu_ext_hdr_pdu_sc *pdu_sc;
-@@ -405,11 +420,17 @@ static inline void gtp1_push_header(struct net_device *dev, struct sk_buff *skb,
+@@ -405,11 +415,17 @@ static inline void gtp1_push_header(struct net_device *dev, struct sk_buff *skb,
  				/* TODO: Suppport for extension header, sequence number and N-PDU.
  				 *       Update the length field if any of them is available.
  				 */
@@ -154,21 +133,15 @@ index a7033031d..667475f57 100644
  		}
  
  }
-@@ -569,25 +590,31 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
- 		if (unlikely(err))
- 			goto err_rt;
+@@ -571,23 +587,26 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
  
--		netdev_dbg(dev, "packet with opt len %d", info->options_len);
+ 		netdev_dbg(dev, "packet with opt len %d", info->options_len);
  		if (info->options_len == 0) {
 -			if (info->key.tun_flags & TUNNEL_OAM) {
 -			   set_qfi = 9;
 -			}
 -			gtp1_push_header(dev, skb, tunnel_id_to_key32(info->key.tun_id), set_qfi);
-+		    struct gtpu_metadata *opts = ip_tunnel_info_opts(info);
-+		    if (info->key.tun_flags & TUNNEL_OAM) {
-+		        set_qfi = 9;
-+		    }
-+		    gtp1_push_header(dev, skb, opts, tunnel_id_to_key32(info->key.tun_id), set_qfi);
++		    gtp1_push_header(dev, skb, tunnel_id_to_key32(info->key.tun_id), set_qfi);
  		} else if (info->key.tun_flags & TUNNEL_GTPU_OPT) {
 -				struct gtpu_metadata *opts = ip_tunnel_info_opts(info);
 -				__be32 tid = tunnel_id_to_key32(info->key.tun_id);
@@ -185,7 +158,7 @@ index a7033031d..667475f57 100644
 +		        if (info->key.tun_flags & TUNNEL_OAM) {
 +                            set_qfi = opts->qfi;
 +                        }
-+                        gtp1_push_header(dev, skb, opts, tunnel_id_to_key32(info->key.tun_id), set_qfi);
++                        gtp1_push_header(dev, skb, tunnel_id_to_key32(info->key.tun_id), set_qfi);
 +                    } else {
 +		        int err;
 +			err = gtp1_push_control_header(skb, tid, opts, dev);
@@ -202,7 +175,7 @@ index a7033031d..667475f57 100644
  		}
  		udp_tunnel_xmit_skb(rt, gtp->sk1u, skb,
  					fl4.saddr, fl4.daddr, fl4.flowi4_tos, ttl, df,
-@@ -607,32 +634,39 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+@@ -607,32 +626,35 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
  		csum = !!(info->key.tun_flags & TUNNEL_CSUM);
  		err = udp_tunnel_handle_offloads(skb, csum);
  		if (err)
@@ -234,11 +207,7 @@ index a7033031d..667475f57 100644
 -					goto err_rt;
 -			}
 +	        if (info->options_len == 0) {
-+                    struct gtpu_metadata *opts = ip_tunnel_info_opts(info);
-+                    if (info->key.tun_flags & TUNNEL_OAM) {
-+                        set_qfi = 9;
-+                    }
-+                    gtp1_push_header(dev, skb, opts, tunnel_id_to_key32(info->key.tun_id), set_qfi);
++                    gtp1_push_header(dev, skb, tunnel_id_to_key32(info->key.tun_id), set_qfi);
 +                } else if (info->key.tun_flags & TUNNEL_GTPU_OPT) {
 +                    struct gtpu_metadata *opts = ip_tunnel_info_opts(info);
 +                    __be32 tid = tunnel_id_to_key32(info->key.tun_id);
@@ -246,7 +215,7 @@ index a7033031d..667475f57 100644
 +                        if (info->key.tun_flags & TUNNEL_OAM) {
 +                            set_qfi = opts->qfi;
 +                        }
-+                        gtp1_push_header(dev, skb, opts, tunnel_id_to_key32(info->key.tun_id), set_qfi);
++                        gtp1_push_header(dev, skb, tunnel_id_to_key32(info->key.tun_id), set_qfi);
 +                    } else {
 +                        int err;
 +                        err = gtp1_push_control_header(skb, tid, opts, dev);
@@ -264,10 +233,10 @@ index a7033031d..667475f57 100644
  					&fl6.saddr, &fl6.daddr, RT_TOS(info->key.tos), ttl,
  					info->key.label, gtp->gtph_port, gtp->gtph_port,
 diff --git a/datapath/linux/compat/include/linux/gtp.h b/datapath/linux/compat/include/linux/gtp.h
-index 57d7a128e..15e62b645 100644
+index 57d7a128e..2ebe3c8f3 100644
 --- a/datapath/linux/compat/include/linux/gtp.h
 +++ b/datapath/linux/compat/include/linux/gtp.h
-@@ -8,13 +8,17 @@
+@@ -8,13 +8,15 @@
  #endif
  
  enum {
@@ -281,8 +250,6 @@ index 57d7a128e..15e62b645 100644
  	__u8	flags;
  	__u8	type;
 +	__u8    qfi;
-+	__u8    header_data_len;
-+	__u8    data[];
  };
  
  enum {
@@ -735,7 +702,7 @@ index 8f499c386..f3ef8e298 100644
              error = parse_reg_load(value, pp);
          } else if (!strcasecmp(key, "bundle_load")) {
 diff --git a/lib/packets.h b/lib/packets.h
-index 6edf85f05..02405a60c 100644
+index 6edf85f05..2e328cd70 100644
 --- a/lib/packets.h
 +++ b/lib/packets.h
 @@ -1427,7 +1427,8 @@ static inline ovs_be32 get_erspan_ts(enum erspan_ts_gra gra)
@@ -748,20 +715,18 @@ index 6edf85f05..02405a60c 100644
  };
  
  #define GTP_FLAGS_SEQ   0x02
-@@ -1436,8 +1437,11 @@ struct gtpu_metadata {
+@@ -1436,8 +1437,9 @@ struct gtpu_metadata {
      uint8_t ver;
      uint8_t flags;
      uint8_t msgtype;
 +    uint8_t qfi;
-+    uint8_t header_data_len;
-+    uint8_t data[];
  };
 -BUILD_ASSERT_DECL(sizeof(struct gtpu_metadata) == 3);
-+BUILD_ASSERT_DECL(sizeof(struct gtpu_metadata) == 5);
++BUILD_ASSERT_DECL(sizeof(struct gtpu_metadata) == 4);
  
  /*
   * GTP flags:
-@@ -1463,6 +1467,14 @@ struct gtpuhdr_opt {
+@@ -1463,6 +1465,14 @@ struct gtpuhdr_opt {
  };
  BUILD_ASSERT_DECL(sizeof(struct gtpuhdr_opt) == 4);
  
@@ -777,10 +742,10 @@ index 6edf85f05..02405a60c 100644
  struct vxlanhdr {
      union {
 diff --git a/tests/system-layer3-tunnels.at b/tests/system-layer3-tunnels.at
-index 6e5e8a01a..5a5808dcf 100644
+index 6e5e8a01a..c78175860 100644
 --- a/tests/system-layer3-tunnels.at
 +++ b/tests/system-layer3-tunnels.at
-@@ -1046,3 +1046,114 @@ dnl sleep 1000
+@@ -1046,3 +1046,111 @@ dnl sleep 1000
  OVS_TRAFFIC_VSWITCHD_STOP
  AT_CLEANUP
  
@@ -805,10 +770,7 @@ index 6e5e8a01a..5a5808dcf 100644
 +
 +ADD_OVS_TUNNEL([gtpu], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24])
 +AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
-+NS_CHECK_EXEC([at_ns0], [gtp-link add at_gtp1 --sgsn &], [0], [ignore])
 +dnl kernel 4.9
-+NS_CHECK_EXEC([at_ns0], [gtp-tunnel add at_gtp1 v1 0 0 10.1.1.1 172.31.1.100], [0], [ignore], [ignore])
-+
 +AT_CHECK([ovs-ofctl add-flow br-underlay "actions=normal"])
 +
 +AT_CHECK([ovs-appctl vlog/set dbg], [0], [ignore])
