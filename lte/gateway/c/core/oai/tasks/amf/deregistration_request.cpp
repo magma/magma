@@ -365,8 +365,9 @@ void amf_remove_ue_context(amf_ue_context_t* const amf_ue_context_p,
       (ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit1) ||
       (ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||
       (ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3)) {
-    m_rc = amf_ue_context_p->guti_ue_context_htbl.remove(
-        ue_context_p->amf_context.m5_guti);
+    std::string guti_str =
+        amf_app_convert_guti_m5_to_string(ue_context_p->amf_context.m5_guti);
+    m_rc = amf_ue_context_p->guti_ue_context_htbl.remove(guti_str);
     if (m_rc != magma::MAP_OK)
       OAILOG_ERROR(LOG_AMF_APP,
                    "UE Context not found!\n"

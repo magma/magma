@@ -80,6 +80,7 @@ TEST(TestAMFStateConverter, TestStateToProto) {
   guti1.guamfi.amf_pointer = 0;
   guti1.m_tmsi = 556683301;
 
+  std::string guti_str = amf_app_convert_guti_m5_to_string(guti1);
   amf_app_desc_t amf_app_desc1 = {}, amf_app_desc2 = {};
   magma::lte::oai::MmeNasState state_proto = magma::lte::oai::MmeNasState();
   uint64_t data = 0;
@@ -88,7 +89,7 @@ TEST(TestAMFStateConverter, TestStateToProto) {
   amf_app_desc1.amf_ue_contexts.imsi_amf_ue_id_htbl.insert(1, 10);
   amf_app_desc1.amf_ue_contexts.tun11_ue_context_htbl.insert(2, 20);
   amf_app_desc1.amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.insert(3, 30);
-  amf_app_desc1.amf_ue_contexts.guti_ue_context_htbl.insert(guti1, 40);
+  amf_app_desc1.amf_ue_contexts.guti_ue_context_htbl.insert(guti_str, 40);
 
   AmfNasStateConverter::state_to_proto(&amf_app_desc1, &state_proto);
 
@@ -114,7 +115,7 @@ TEST(TestAMFStateConverter, TestStateToProto) {
   data = 0;
 
   EXPECT_EQ(
-      amf_app_desc2.amf_ue_contexts.guti_ue_context_htbl.get(guti1, &data),
+      amf_app_desc2.amf_ue_contexts.guti_ue_context_htbl.get(guti_str, &data),
       magma::MAP_OK);
   EXPECT_EQ(data, 40);
 }

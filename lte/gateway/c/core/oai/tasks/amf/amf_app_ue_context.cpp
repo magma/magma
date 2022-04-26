@@ -167,8 +167,10 @@ status_code_e amf_insert_ue_context(
                   .mcc_digit1) ||  // MCC 000 does not exist in ITU table
         (0 != ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||
         (0 != ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3)) {
+      std::string guti_str =
+          amf_app_convert_guti_m5_to_string(ue_context_p->amf_context.m5_guti);
       m_rc = amf_ue_context_p->guti_ue_context_htbl.insert(
-          ue_context_p->amf_context.m5_guti, ue_context_p->amf_ue_ngap_id);
+          guti_str, ue_context_p->amf_ue_ngap_id);
 
       if (m_rc != magma::MAP_OK) {
         OAILOG_WARNING(LOG_AMF_APP,
@@ -319,8 +321,9 @@ ue_m5gmm_context_s* amf_ue_context_exists_guti(
     amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p) {
   uint64_t amf_ue_ngap_id64 = 0;
   ue_m5gmm_context_t* ue_context_p = NULL;
+  std::string guti_str = amf_app_convert_guti_m5_to_string(*guti_p);
 
-  if (amf_ue_context_p->guti_ue_context_htbl.get(*guti_p, &amf_ue_ngap_id64) ==
+  if (amf_ue_context_p->guti_ue_context_htbl.get(guti_str, &amf_ue_ngap_id64) ==
       magma::MAP_OK) {
     ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(
         (amf_ue_ngap_id_t)amf_ue_ngap_id64);
@@ -584,9 +587,10 @@ void proc_new_registration_req(amf_ue_context_t* const amf_ue_context_p,
   } else {
     uint64_t amf_ue_ngap_id64 = 0;
     magma::map_rc_t m_rc = magma::MAP_OK;
-
-    m_rc = amf_ue_context_p->guti_ue_context_htbl.get(
-        ue_context_p->amf_context.m5_guti, &amf_ue_ngap_id64);
+    std::string guti_str =
+        amf_app_convert_guti_m5_to_string(ue_context_p->amf_context.m5_guti);
+    m_rc =
+        amf_ue_context_p->guti_ue_context_htbl.get(guti_str, &amf_ue_ngap_id64);
 
     if (m_rc == magma::MAP_OK) {
       // While processing new attach req, remove GUTI from hashtable
@@ -596,8 +600,9 @@ void proc_new_registration_req(amf_ue_context_t* const amf_ue_context_p,
           (ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit1) ||
           (ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||
           (ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3)) {
-        amf_ue_context_p->guti_ue_context_htbl.remove(
+        std::string guti_str = amf_app_convert_guti_m5_to_string(
             ue_context_p->amf_context.m5_guti);
+        amf_ue_context_p->guti_ue_context_htbl.remove(guti_str);
       }
     }
   }
@@ -932,6 +937,21 @@ bool get_amf_ue_id_from_imsi(amf_ue_context_t* amf_ue_context_p,
     return (false);
   }
   return true;
+}
+
+std::string amf_app_convert_guti_m5_to_string(const guti_m5_t& guti) {
+#define GUTI_STRING_LEN 25
+  char* temp_str =
+      reinterpret_cast<char*>(calloc(1, sizeof(char) * GUTI_STRING_LEN));
+  snprintf(temp_str, GUTI_STRING_LEN, "%x%x%x%x%x%x%02x%04x%04x%08x",
+           guti.guamfi.plmn.mcc_digit1, guti.guamfi.plmn.mcc_digit2,
+           guti.guamfi.plmn.mcc_digit3, guti.guamfi.plmn.mnc_digit1,
+           guti.guamfi.plmn.mnc_digit2, guti.guamfi.plmn.mnc_digit3,
+           guti.guamfi.amf_regionid, guti.guamfi.amf_set_id,
+           guti.guamfi.amf_pointer, guti.m_tmsi);
+  std::string guti_str(temp_str);
+  free(temp_str);
+  return guti_str;
 }
 
 }  // namespace magma5g

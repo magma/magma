@@ -103,28 +103,21 @@ void AmfNasStateConverter::amf_app_convert_string_to_guti_m5(
 }
 // Converts Map<guti_m5_t,uint64_t> to proto
 void AmfNasStateConverter::map_guti_uint64_to_proto(
-    const map_guti_m5_uint64_t guti_map,
+    const map_string_uint64_t guti_map,
     google::protobuf::Map<std::string, uint64_t>* proto_map) {
-  std::string guti_str;
   for (const auto& elm : guti_map.umap) {
-    guti_str = amf_app_convert_guti_m5_to_string(elm.first);
-    (*proto_map)[guti_str] = elm.second;
+    (*proto_map)[elm.first] = elm.second;
   }
 }
 
 // Converts Proto to Map<guti_m5_t,uint64_t>
 void AmfNasStateConverter::proto_to_guti_map(
     const google::protobuf::Map<std::string, uint64_t>& proto_map,
-    map_guti_m5_uint64_t* guti_map) {
+    map_string_uint64_t* guti_map) {
   for (auto const& kv : proto_map) {
     amf_ue_ngap_id_t amf_ue_ngap_id = kv.second;
-    std::unique_ptr<guti_m5_t> guti = std::make_unique<guti_m5_t>();
-    memset(guti.get(), 0, sizeof(guti_m5_t));
-    // Converts guti to string.
-    amf_app_convert_string_to_guti_m5(kv.first, guti.get());
 
-    guti_m5_t guti_received = *guti.get();
-    magma::map_rc_t m_rc = guti_map->insert(guti_received, amf_ue_ngap_id);
+    magma::map_rc_t m_rc = guti_map->insert(kv.first, amf_ue_ngap_id);
     if (m_rc != magma::MAP_OK) {
       OAILOG_ERROR(
           LOG_AMF_APP,

@@ -150,9 +150,10 @@ void amf_ue_context_update_coll_keys(amf_ue_context_t* const amf_ue_context_p,
         (guti_p->guamfi.plmn.mcc_digit3 !=
          ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3) ||
         (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID)) {
-      m_rc = amf_ue_context_p->guti_ue_context_htbl.remove(*guti_p);
+      std::string guti_str = amf_app_convert_guti_m5_to_string(*guti_p);
+      m_rc = amf_ue_context_p->guti_ue_context_htbl.remove(guti_str);
       if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
-        m_rc = amf_ue_context_p->guti_ue_context_htbl.insert(*guti_p,
+        m_rc = amf_ue_context_p->guti_ue_context_htbl.insert(guti_str,
                                                              amf_ue_ngap_id);
       } else {
         OAILOG_ERROR(LOG_AMF_APP,

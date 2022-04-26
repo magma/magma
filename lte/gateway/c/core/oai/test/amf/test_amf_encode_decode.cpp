@@ -1086,8 +1086,8 @@ class AmfUeContextTestServiceRequestProc : public ::testing::Test {
     amf_ue_context_on_new_guti(ue_context, &guti);
 
     unsigned long amf_ue_ngap_id64;
-
-    amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.get(guti,
+    std::string guti_str = amf_app_convert_guti_m5_to_string(guti);
+    amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.get(guti_str,
                                                              &amf_ue_ngap_id64);
 
     // tai

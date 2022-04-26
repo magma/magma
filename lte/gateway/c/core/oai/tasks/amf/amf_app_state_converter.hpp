@@ -172,12 +172,12 @@ class AmfNasStateConverter : public magma::lte::StateConverter {
    ***********************************************************/
 
   static void map_guti_uint64_to_proto(
-      const map_guti_m5_uint64_t guti_map,
+      const map_string_uint64_t guti_map,
       google::protobuf::Map<std::string, uint64_t>* proto_map);
 
   static void proto_to_guti_map(
       const google::protobuf::Map<std::string, uint64_t>& proto_map,
-      map_guti_m5_uint64_t* guti_map);
+      map_string_uint64_t* guti_map);
 
   /**
    * Serialize struct amf_context_t to oai::EmmContext proto message, the memory

@@ -112,11 +112,11 @@ uint64_t send_initial_ue_message_with_tmsi(
   guti_search.guamfi.amf_pointer = 0;
   guti_search.guamfi.plmn = plmn;
   guti_search.m_tmsi = m_tmsi;
-
+  std::string guti_str = amf_app_convert_guti_m5_to_string(guti_search);
   uint64_t amf_ue_ngap_id64 = 0;
   magma::map_rc_t m_rc = magma::MAP_KEY_NOT_EXISTS;
   rc = amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.get(
-      guti_search, &amf_ue_ngap_id64);
+      guti_str, &amf_ue_ngap_id64);
 
   return amf_ue_ngap_id64;
 }
