@@ -47,10 +47,9 @@ TEST(TestAMFStateConverter, TestGutiToString) {
   guti1.guamfi.amf_pointer = 0;
   guti1.m_tmsi = 0X212e5025;
 
-  std::string guti1_str =
-      AmfNasStateConverter::amf_app_convert_guti_m5_to_string(guti1);
+  std::string guti1_str = amf_app_convert_guti_m5_to_string(guti1);
 
-  AmfNasStateConverter::amf_app_convert_string_to_guti_m5(guti1_str, &guti2);
+  amf_app_convert_string_to_guti_m5(guti1_str, &guti2);
 
   EXPECT_EQ(guti1.guamfi.plmn.mcc_digit1, guti2.guamfi.plmn.mcc_digit1);
   EXPECT_EQ(guti1.guamfi.plmn.mcc_digit2, guti2.guamfi.plmn.mcc_digit2);

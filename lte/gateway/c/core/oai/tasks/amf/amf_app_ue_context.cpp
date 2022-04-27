@@ -954,4 +954,39 @@ std::string amf_app_convert_guti_m5_to_string(const guti_m5_t& guti) {
   return guti_str;
 }
 
+// HelperFunction: Converts std:: string back to guti_m5_t
+void amf_app_convert_string_to_guti_m5(const std::string& guti_str,
+                                       guti_m5_t* guti_m5_p) {
+  int idx = 0;
+  std::size_t chars_to_read = 1;
+#define HEX_BASE_VAL 16
+  guti_m5_p->guamfi.plmn.mcc_digit1 = std::stoul(
+      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+  guti_m5_p->guamfi.plmn.mcc_digit2 = std::stoul(
+      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+  guti_m5_p->guamfi.plmn.mcc_digit3 = std::stoul(
+      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+  guti_m5_p->guamfi.plmn.mnc_digit1 = std::stoul(
+      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+  guti_m5_p->guamfi.plmn.mnc_digit2 = std::stoul(
+      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+  guti_m5_p->guamfi.plmn.mnc_digit3 = std::stoul(
+      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+  chars_to_read = 2;
+  guti_m5_p->guamfi.amf_regionid = std::stoul(
+      guti_str.substr(idx, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+  idx += chars_to_read;
+  chars_to_read = 4;
+  guti_m5_p->guamfi.amf_set_id = std::stoul(guti_str.substr(idx, chars_to_read),
+                                            &chars_to_read, HEX_BASE_VAL);
+  idx += chars_to_read;
+  chars_to_read = 4;
+  guti_m5_p->guamfi.amf_pointer = std::stoul(
+      guti_str.substr(idx, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+  idx += chars_to_read;
+  chars_to_read = 8;
+  guti_m5_p->m_tmsi = std::stoul(guti_str.substr(idx, chars_to_read),
+                                 &chars_to_read, HEX_BASE_VAL);
+}
+
 }  // namespace magma5g

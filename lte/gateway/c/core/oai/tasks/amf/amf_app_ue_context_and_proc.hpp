@@ -353,8 +353,7 @@ typedef struct amf_context_s {
 } amf_context_t;
 
 // Amf-Map Declarations:
-// Map Key: guti_m5_t Data: uint64_t;
-//typedef magma::map_s<guti_m5_t, uint64_t> map_guti_m5_uint64_t;
+// Map Key: string format of guti_m5_t Data: uint64_t;
 typedef magma::map_s<std::string, uint64_t> map_string_uint64_t;
 
 typedef struct amf_ue_context_s {
@@ -978,6 +977,9 @@ status_code_e amf_get_ue_context_cm_state(amf_ue_ngap_id_t ue_id,
                                           m5gcm_state_t* cm_state);
 
 std::string amf_app_convert_guti_m5_to_string(const guti_m5_t& guti);
+
+void amf_app_convert_string_to_guti_m5(const std::string& guti_str,
+                                       guti_m5_t* guti_m5_p);
 /************************************************************************
  ** Name:    delete_wrapper()                                         **
  **                                                                   **

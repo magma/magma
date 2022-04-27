@@ -50,57 +50,6 @@ void AmfNasStateConverter::chars_to_plmn(const char* plmn_array,
   state_plmn->mnc_digit3 = static_cast<int>(plmn_array[5]) - ASCII_ZERO;
 }
 
-// HelperFunction: Converts guti_m5_t to std::string
-std::string AmfNasStateConverter::amf_app_convert_guti_m5_to_string(
-    const guti_m5_t& guti) {
-#define GUTI_STRING_LEN 25
-  char* temp_str =
-      reinterpret_cast<char*>(calloc(1, sizeof(char) * GUTI_STRING_LEN));
-  snprintf(temp_str, GUTI_STRING_LEN, "%x%x%x%x%x%x%02x%04x%04x%08x",
-           guti.guamfi.plmn.mcc_digit1, guti.guamfi.plmn.mcc_digit2,
-           guti.guamfi.plmn.mcc_digit3, guti.guamfi.plmn.mnc_digit1,
-           guti.guamfi.plmn.mnc_digit2, guti.guamfi.plmn.mnc_digit3,
-           guti.guamfi.amf_regionid, guti.guamfi.amf_set_id,
-           guti.guamfi.amf_pointer, guti.m_tmsi);
-  std::string guti_str(temp_str);
-  free(temp_str);
-  return guti_str;
-}
-
-// HelperFunction: Converts std:: string back to guti_m5_t
-void AmfNasStateConverter::amf_app_convert_string_to_guti_m5(
-    const std::string& guti_str, guti_m5_t* guti_m5_p) {
-  int idx = 0;
-  std::size_t chars_to_read = 1;
-#define HEX_BASE_VAL 16
-  guti_m5_p->guamfi.plmn.mcc_digit1 = std::stoul(
-      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
-  guti_m5_p->guamfi.plmn.mcc_digit2 = std::stoul(
-      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
-  guti_m5_p->guamfi.plmn.mcc_digit3 = std::stoul(
-      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
-  guti_m5_p->guamfi.plmn.mnc_digit1 = std::stoul(
-      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
-  guti_m5_p->guamfi.plmn.mnc_digit2 = std::stoul(
-      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
-  guti_m5_p->guamfi.plmn.mnc_digit3 = std::stoul(
-      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
-  chars_to_read = 2;
-  guti_m5_p->guamfi.amf_regionid = std::stoul(
-      guti_str.substr(idx, chars_to_read), &chars_to_read, HEX_BASE_VAL);
-  idx += chars_to_read;
-  chars_to_read = 4;
-  guti_m5_p->guamfi.amf_set_id = std::stoul(guti_str.substr(idx, chars_to_read),
-                                            &chars_to_read, HEX_BASE_VAL);
-  idx += chars_to_read;
-  chars_to_read = 4;
-  guti_m5_p->guamfi.amf_pointer = std::stoul(
-      guti_str.substr(idx, chars_to_read), &chars_to_read, HEX_BASE_VAL);
-  idx += chars_to_read;
-  chars_to_read = 8;
-  guti_m5_p->m_tmsi = std::stoul(guti_str.substr(idx, chars_to_read),
-                                 &chars_to_read, HEX_BASE_VAL);
-}
 // Converts Map<guti_m5_t,uint64_t> to proto
 void AmfNasStateConverter::map_guti_uint64_to_proto(
     const map_string_uint64_t guti_map,
