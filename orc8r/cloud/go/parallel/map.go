@@ -22,17 +22,23 @@ const (
 	DefaultNumWorkers = 10
 )
 
+// TODO(maxhbr): use generics after go update to 1.18
 type Func func(In) (Out, error)
 type In interface{}
 type Out interface{}
 
-// MapString is same as Map but for strings.
+// MapString is same as Map but for strings to strings.
 func MapString(items []string, nWorkers int, f Func) ([]string, error) {
-	var inps []In
+	var inputs []In
 	for _, s := range items {
-		inps = append(inps, s)
+		inputs = append(inputs, s)
 	}
-	outsI, err := Map(inps, nWorkers, f)
+	return MapInToString(inputs, nWorkers, f)
+}
+
+// MapInToString is same as Map but for []In to strings.
+func MapInToString(inputs []In, nWorkers int, f Func) ([]string, error) {
+	outsI, err := Map(inputs, nWorkers, f)
 	if err != nil {
 		return nil, err
 	}
