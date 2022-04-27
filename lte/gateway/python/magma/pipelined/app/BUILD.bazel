@@ -190,6 +190,7 @@ py_library(
     deps = [
         ":base",
         ":restart_mixin",
+        "//lte/gateway/python/magma/pipelined:gw_mac_address",
         "//lte/gateway/python/magma/pipelined:imsi",
         "//lte/gateway/python/magma/pipelined:mobilityd_client",
         "//lte/gateway/python/magma/pipelined:utils",

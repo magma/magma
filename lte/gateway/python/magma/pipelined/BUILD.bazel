@@ -233,3 +233,8 @@ py_library(
     name = "vlan_utils",
     srcs = ["vlan_utils.py"],
 )
+
+py_library(
+    name = "gw_mac_address",
+    srcs = ["gw_mac_address.py"],
+)
