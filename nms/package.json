@@ -15,8 +15,6 @@
     "@babel/register": "^7.13.16",
     "@babel/runtime": "^7.14.0",
     "@date-io/moment": "1.3.13",
-    "@fbcnms/babel-register": "^0.1.2",
-    "@fbcnms/util": "^0.1.0",
     "@material-table/core": "^4.3.39",
     "@material-ui/core": "^4.12.4",
     "@material-ui/icons": "^4.11.3",
@@ -171,14 +169,14 @@
     "test:ci": "NODE_ENV=test jest -w 1 --testPathIgnorePatterns=e2e",
     "flow": "flow",
     "flow-typed-install": "flow-typed --flowVersion $(flow version --json | jq -r .semver) install --",
-    "build": "rimraf static/dist && NODE_ENV=production node -r '@fbcnms/babel-register' ./node_modules/webpack/bin/webpack --config ./config/webpack.production.config.js",
-    "cmd": "node -r '@fbcnms/babel-register'",
+    "build": "rimraf static/dist && NODE_ENV=production node -r ./fbc_js_core/babel_register/index.js ./node_modules/webpack/bin/webpack --config ./config/webpack.production.config.js",
+    "cmd": "node -r ./fbc_js_core/babel_register/index.js",
     "start": "yarn run start:dev",
     "start:dev": "nodemon scripts/server",
-    "start:prod": "NODE_ENV=production node -r @fbcnms/babel-register scripts/server",
-    "migrate": "node -r @fbcnms/babel-register scripts/migrate.js",
-    "setAdminPassword": "node -r '@fbcnms/babel-register' scripts/setPassword.js",
-    "createOrganization": "node -r '@fbcnms/babel-register' scripts/createOrganization.js",
-    "mockserver": "node -r '@fbcnms/babel-register' scripts/mockServer.js"
+    "start:prod": "NODE_ENV=production node -r ./fbc_js_core/babel_register/index.js scripts/server",
+    "migrate": "node -r ./fbc_js_core/babel_register/index.js scripts/migrate.js",
+    "setAdminPassword": "node -r ./fbc_js_core/babel_register/index.js scripts/setPassword.js",
+    "createOrganization": "node -r ./fbc_js_core/babel_register/index.js scripts/createOrganization.js",
+    "mockserver": "node -r ./fbc_js_core/babel_register/index.js scripts/mockServer.js"
   }
 }

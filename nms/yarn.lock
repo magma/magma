@@ -1587,18 +1587,6 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@fbcnms/babel-register@^0.1.2":
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/@fbcnms/babel-register/-/babel-register-0.1.2.tgz#fcc88f563d188af91238981dba2440a146729393"
-  integrity sha512-5blEua7xwPv9Jp+wip2hUV88Vj48Znz2dsI9qMG4ecM8d6+VOlj31A34VJeTDMpsIVtScq311KkOOS7ZfoIbWQ==
-  dependencies:
-    core-js "^3.2.1"
-
-"@fbcnms/util@^0.1.0":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@fbcnms/util/-/util-0.1.1.tgz#618c779682f8ef76b3a7feb2320a6714c1da15fa"
-  integrity sha512-dLZAOCAJn6Pnd0YQ3ApNEtEA1o/X1NXNrkZAIswqlSP21YZ+3zDhb0Fh5HPGeL3YJZ18X/HDwIuLvFFVldg4qw==
-
 "@humanwhocodes/config-array@^0.5.0":
   version "0.5.0"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/config-array/-/config-array-0.5.0.tgz#1407967d4c6eecd7388f83acf1eaf4d0c6e58ef9"

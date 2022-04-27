@@ -1,10 +1,7 @@
-# fbcnms-sequelize-models
+# sequelize-models
 
-Package `@fbcnms/sequelize-models` uses the [Sequelize ORM](https://sequelize.org/)
+Uses the [Sequelize ORM](https://sequelize.org/)
 and defines various models commonly used in different NMS products.
-
-As of last update, this package is used by various Facebook Connectivity products,
-and also [Magma](https://www.magmacore.org/).
 
 ## Models
 
