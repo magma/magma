@@ -34,37 +34,37 @@ import ShowChartIcon from '@material-ui/icons/ShowChart';
 export function getFEGSections(dashboardV2Enabled: boolean): SectionsConfigs {
   const sections = [
     {
-      path: 'gateways',
+      path: '/gateways',
       label: 'Gateways',
       icon: <CellWifiIcon />,
       component: FEGGateways,
     },
     {
-      path: 'network',
+      path: '/network',
       label: 'Network',
       icon: <NetworkCheckIcon />,
       component: FEGNetworkDashboard,
     },
     {
-      path: 'equipment',
+      path: '/equipment',
       label: 'Equipment',
       icon: <RouterIcon />,
       component: FEGEquipmentDashboard,
     },
     {
-      path: 'configure',
+      path: '/configure',
       label: 'Configure',
       icon: <SettingsCellIcon />,
       component: FEGConfigure,
     },
     {
-      path: 'alerts',
+      path: '/alerts',
       label: 'Alerts',
       icon: <AlarmIcon />,
       component: AlarmsDashboard,
     },
     {
-      path: 'metrics',
+      path: '/metrics',
       label: 'Metrics',
       icon: <ShowChartIcon />,
       component: FEGMetrics,
@@ -74,7 +74,7 @@ export function getFEGSections(dashboardV2Enabled: boolean): SectionsConfigs {
   if (dashboardV2Enabled) {
     // TODO add equipment, policy and subscriber section
     sections.splice(0, 0, {
-      path: 'dashboard',
+      path: '/dashboard',
       label: 'Dashboard',
       icon: <DashboardIcon />,
       component: FEGDashboard,

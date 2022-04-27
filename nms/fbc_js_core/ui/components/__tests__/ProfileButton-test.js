@@ -17,7 +17,7 @@
 import 'jest-dom/extend-expect';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import ProfileButton from '../ProfileButton';
-import React from 'react';
+import React, {useState} from 'react';
 import defaultTheme from '../../theme/default';
 import {AppContextProvider} from '../../context/AppContext';
 import {MemoryRouter} from 'react-router-dom';
@@ -25,23 +25,59 @@ import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 import {cleanup, fireEvent, render, waitFor} from '@testing-library/react';
 
-const Wrapper = props => (
-  <MemoryRouter initialEntries={[props.path]} initialIndex={0}>
-    <MuiThemeProvider theme={defaultTheme}>
-      <MuiStylesThemeProvider theme={defaultTheme}>
-        <SnackbarProvider>
-          <AppContextProvider isOrganizations={props.isOrganizations}>
-            {props.children}
-          </AppContextProvider>
-        </SnackbarProvider>
-      </MuiStylesThemeProvider>
-    </MuiThemeProvider>
-  </MemoryRouter>
-);
+type Props = {
+  expanded: boolean,
+  path: string,
+  isOrganizations: boolean,
+};
+
+const WrappedProfileButton = (props: Props) => {
+  const [isMenuOpen, setMenuOpen] = useState(false);
+  return (
+    <MemoryRouter initialEntries={[props.path]} initialIndex={0}>
+      <MuiThemeProvider theme={defaultTheme}>
+        <MuiStylesThemeProvider theme={defaultTheme}>
+          <SnackbarProvider>
+            <AppContextProvider isOrganizations={props.isOrganizations}>
+              <ProfileButton
+                isMenuOpen={isMenuOpen}
+                setMenuOpen={setMenuOpen}
+                expanded={props.expanded}
+              />
+            </AppContextProvider>
+          </SnackbarProvider>
+        </MuiStylesThemeProvider>
+      </MuiThemeProvider>
+    </MemoryRouter>
+  );
+};
 
 afterEach(cleanup);
 
 describe('<ProfileButton />', () => {
+  it.each([true, false])('respects expanded=%s', expanded => {
+    global.CONFIG = {
+      appData: {
+        user: {},
+        ssoEnabled: false,
+        enabledFeatures: [],
+      },
+    };
+
+    const {queryByText} = render(
+      <WrappedProfileButton
+        path="/admin"
+        isOrganizations={false}
+        expanded={expanded}
+      />,
+    );
+    if (expanded) {
+      expect(queryByText('Account & Settings')).toBeInTheDocument();
+    } else {
+      expect(queryByText('Account & Settings')).not.toBeInTheDocument();
+    }
+  });
+
   async function getRenderedLinks({
     isOrganizations = false,
     isSuperUser = false,
@@ -62,9 +98,11 @@ describe('<ProfileButton />', () => {
     };
 
     const {container, getByRole, getByTestId} = render(
-      <Wrapper path="/admin" isOrganizations={isOrganizations}>
-        <ProfileButton />
-      </Wrapper>,
+      <WrappedProfileButton
+        path="/admin"
+        isOrganizations={isOrganizations}
+        expanded={false}
+      />,
     );
 
     const button = getByTestId('profileButton');

@@ -30,7 +30,7 @@ export default function ErrorLayout({children}: {children: React.Node}) {
   const classes = useStyles();
   return (
     <div className={classes.root}>
-      <AppSideBar mainItems={[]} secondaryItems={[]} />
+      <AppSideBar items={[]} />
       <AppContent>{children}</AppContent>
     </div>
   );

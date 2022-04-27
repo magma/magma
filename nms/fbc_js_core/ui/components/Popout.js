@@ -21,7 +21,7 @@ import {makeStyles} from '@material-ui/styles';
 type Props = {
   className?: string,
   content: React.Element<any> | string,
-  children: React.Element<any> | string,
+  children: React.Node,
   onOpen?: () => void,
   onClose?: () => void,
   open?: boolean,
@@ -91,7 +91,9 @@ export default function Popout(props: Props) {
         }}
         anchorPosition={{
           top: relativeRefPosition ? relativeRefPosition.bottom + 15 : 0,
-          left: relativeRefPosition?.right ?? 0,
+          // Hardcode the sidebar width otherwise the popover is misplaced
+          // if opened during the sidebar animation
+          left: 208,
         }}
         transformOrigin={{
           vertical: 'bottom',
@@ -101,7 +103,8 @@ export default function Popout(props: Props) {
         id="navigation-menu"
         open={props.open !== undefined ? props.open : open}
         onClose={handleClose}
-        onClick={props.contentClickTriggerClose && handleClose}>
+        onClick={props.contentClickTriggerClose && handleClose}
+        onMouseOver={event => event.stopPropagation()}>
         {props.content}
       </Popover>
     </>

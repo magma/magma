@@ -24,8 +24,7 @@ import NetworkContext from './context/NetworkContext';
 import Popout from '../../fbc_js_core/ui/components/Popout';
 import React from 'react';
 import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
-import Text from '../../fbc_js_core/ui/components/design-system/Text';
-import Tooltip from '@material-ui/core/Tooltip';
+import Text from '../theme/design-system/Text';
 import useMagmaAPI from '../../api/useMagmaAPI';
 
 import {LTE, coalesceNetworkType} from '../../fbc_js_core/types/network';
@@ -37,16 +36,26 @@ import {useCallback, useContext, useEffect, useState} from 'react';
 const useStyles = makeStyles(_ => ({
   button: {
     display: 'flex',
-    justifyContent: 'center',
+    alignItems: 'center',
     width: '100%',
-    padding: '15px 0px',
+    padding: '15px 28px',
     cursor: 'pointer',
-    '&:hover $icon': {
+    outline: 'none',
+    '&:hover $icon, &:hover $label': {
       color: colors.primary.white,
     },
   },
   icon: {
     color: colors.primary.gullGray,
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  label: {
+    '&&': {
+      color: colors.primary.gullGray,
+      whiteSpace: 'nowrap',
+      paddingLeft: '16px',
+    },
   },
   itemGutters: {
     '&&': {
@@ -83,9 +92,14 @@ const useStyles = makeStyles(_ => ({
   },
 }));
 
-const NetworkSelector = () => {
+type Props = {
+  isMenuOpen: boolean,
+  setMenuOpen: (isOpen: boolean) => void,
+  expanded: boolean,
+};
+
+const NetworkSelector = (props: Props) => {
   const classes = useStyles();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const appContext = useContext(AppContext);
   const [networkIds, setNetworkIds] = useState([]);
   const [networkType, setNetworkType] = useState<?NetworkType>(null);
@@ -128,7 +142,7 @@ const NetworkSelector = () => {
       />
       <Popout
         className={classes.button}
-        open={isMenuOpen}
+        open={props.isMenuOpen}
         content={
           <List component="nav" className={classes.networksList}>
             {networkIds.map(id => (
@@ -166,14 +180,17 @@ const NetworkSelector = () => {
             )}
           </List>
         }
-        onOpen={() => setIsMenuOpen(true)}
-        onClose={() => setIsMenuOpen(false)}>
-        <Tooltip
-          title={networkId}
-          placement="right"
-          data-testid="networkSelector">
-          <SettingsEthernetIcon className={classes.icon} />
-        </Tooltip>
+        onOpen={() => props.setMenuOpen(true)}
+        onClose={() => props.setMenuOpen(false)}>
+        <SettingsEthernetIcon
+          className={classes.icon}
+          data-testid="networkSelector"
+        />
+        {props.expanded && (
+          <Text className={classes.label} variant="body3">
+            Networks
+          </Text>
+        )}
       </Popout>
     </>
   );

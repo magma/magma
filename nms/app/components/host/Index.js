@@ -22,7 +22,6 @@ import AssignmentIcon from '@material-ui/icons/Assignment';
 import CloudMetrics from '../../views/metrics/CloudMetrics';
 import Features from '../../../fbc_js_core/ui/host/Features';
 import FlagIcon from '@material-ui/icons/Flag';
-import NavListItem from '../../../fbc_js_core/ui/components/NavListItem';
 import OrganizationEdit from '../../../fbc_js_core/ui/host/OrganizationEdit';
 import Organizations from '../../../fbc_js_core/ui/host/Organizations';
 import PeopleIcon from '@material-ui/icons/People';
@@ -43,45 +42,36 @@ const useStyles = makeStyles(() => ({
 
 const accessibleTabs = ['NMS'];
 
-function NavItems() {
-  const relativeUrl = useRelativeUrl();
-  return (
-    <>
-      <NavListItem
-        label="Organizations"
-        path={relativeUrl('/organizations')}
-        icon={<AssignmentIcon />}
-      />
-      <NavListItem
-        label="Features"
-        path={relativeUrl('/features')}
-        icon={<FlagIcon />}
-      />
-      <NavListItem
-        label="Metrics"
-        path={relativeUrl('/metrics')}
-        icon={<ShowChartIcon />}
-      />
-      <NavListItem
-        label="Users"
-        path={relativeUrl('/users')}
-        icon={<PeopleIcon />}
-      />
-    </>
-  );
-}
-
 function Host() {
   const classes = useStyles();
-  const relativeUrl = useRelativeUrl();
+  const relativePath = useRelativeUrl();
+
+  const sidebarItems = [
+    {
+      label: 'Organizations',
+      path: '/organizations',
+      icon: <AssignmentIcon />,
+    },
+    {
+      label: 'Features',
+      path: '/features',
+      icon: <FlagIcon />,
+    },
+    {label: 'Metrics', path: '/metrics', icon: <ShowChartIcon />},
+    {
+      label: 'Users',
+      path: '/users',
+      icon: <PeopleIcon />,
+    },
+  ];
 
   return (
     <div className={classes.root}>
-      <AppSideBar mainItems={<NavItems />} />
+      <AppSideBar items={sidebarItems} />
       <AppContent>
         <Switch>
           <Route
-            path={relativeUrl('/organizations/detail/:name')}
+            path={relativePath('/organizations/detail/:name')}
             render={() => (
               <OrganizationEdit
                 getProjectTabs={() =>
@@ -93,14 +83,14 @@ function Host() {
             )}
           />
           <Route
-            path={relativeUrl('/organizations')}
+            path={relativePath('/organizations')}
             component={Organizations}
           />
-          <Route path={relativeUrl('/features')} component={Features} />
-          <Route path={relativeUrl('/metrics')} component={CloudMetrics} />
-          <Route path={relativeUrl('/users')} component={UsersSettings} />
-          <Route path={relativeUrl('/settings')} component={AccountSettings} />
-          <Redirect to={relativeUrl('/organizations')} />
+          <Route path={relativePath('/features')} component={Features} />
+          <Route path={relativePath('/metrics')} component={CloudMetrics} />
+          <Route path={relativePath('/users')} component={UsersSettings} />
+          <Route path={relativePath('/settings')} component={AccountSettings} />
+          <Redirect to={relativePath('/organizations')} />
         </Switch>
       </AppContent>
     </div>

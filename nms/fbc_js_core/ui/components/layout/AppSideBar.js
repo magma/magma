@@ -14,110 +14,114 @@
  * @format
  */
 
-import ExpandButton from './ExpandButton';
+import classNames from 'classnames';
+import NetworkSelector from '../../../../app/components/NetworkSelector';
 import ProfileButton from '../ProfileButton';
 import React, {useState} from 'react';
 import {makeStyles} from '@material-ui/styles';
 import {colors} from '../../../../app/theme/default';
+import SidebarItem from '../SidebarItem';
+import {useRouter} from '../../hooks';
 
 const useStyles = makeStyles(() => ({
   root: {
-    alignItems: 'center',
+    width: '80px',
+    overflowX: 'visible',
+  },
+  inner: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
     backgroundColor: colors.primary.brightGray,
     boxShadow: '1px 0px 0px 0px rgba(0, 0, 0, 0.1)',
-    display: 'flex',
-    flexDirection: 'column',
     height: '100vh',
-    width: '80px',
-    minWidth: '80px',
-    padding: '20px 0px 36px 0px',
+    padding: '60px 0px 36px 0px',
     position: 'relative',
+    zIndex: 100,
+    overflowX: 'hidden',
+    width: '80px',
+    transition: 'width 500ms',
   },
-  mainItems: {
-    display: 'flex',
-    flexGrow: 1,
-    flexDirection: 'column',
-    alignItems: 'center',
-    width: '100%',
-    flexGrow: 1,
-    paddingTop: '40px',
-  },
-  secondaryItems: {
-    display: 'flex',
-    flexGrow: 1,
-    flexDirection: 'column',
-    alignItems: 'center',
-    width: '100%',
-    justifyContent: 'flex-end',
-  },
-  expandButton: {
-    display: 'flex',
-    alignItems: 'center',
-    width: '100%',
-    justifyContent: 'center',
-    flexGrow: 1,
-  },
-  visibleExpandButton: {
-    visibility: 'visible',
-  },
-  hiddenExpandButton: {
-    visibility: 'hidden',
+  expanded: {
+    width: '208px',
   },
 }));
 
+type ItemConfig = {
+  path: string,
+  label: string,
+  icon: any,
+};
+
 type Props = {
-  mainItems: any,
-  secondaryItems?: any,
-  useExpandButton: boolean,
-  showExpandButton: boolean,
-  expanded: boolean,
-  onExpandClicked?: () => void,
+  items: Array<ItemConfig>,
+  showNetworkSwitch?: boolean,
 };
 
 const AppSideBar = (props: Props) => {
-  const {
-    expanded,
-    showExpandButton,
-    useExpandButton,
-    onExpandClicked,
-    mainItems,
-    secondaryItems,
-  } = props;
+  const {items, showNetworkSwitch} = props;
   const classes = useStyles();
-  const [hovered, setIsHovered] = useState(false);
+  const [expanded, setIsExpanded] = useState(false);
+  const [isProfileMenuOpen, _setProfileMenuOpen] = useState(false);
+  const [isNetworkMenuOpen, _setNetworkMenuOpen] = useState(false);
+  const {relativeUrl} = useRouter();
+
+  const setProfileMenuOpen = (isOpen: boolean) => {
+    if (!isOpen) {
+      setIsExpanded(false);
+    }
+    _setProfileMenuOpen(isOpen);
+  };
+  const setNetworkMenuOpen = (isOpen: boolean) => {
+    if (!isOpen) {
+      setIsExpanded(false);
+    }
+    _setNetworkMenuOpen(isOpen);
+  };
+
   return (
     <div
+      data-testid="app-sidebar"
       className={classes.root}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}>
-      <div className={classes.mainItems}>{mainItems}</div>
-      {useExpandButton && (
-        <div className={classes.expandButton}>
-          <div
-            className={
-              showExpandButton || hovered
-                ? classes.visibleExpandButton
-                : classes.hiddenExpandButton
-            }>
-            <ExpandButton
+      onMouseOver={() => setIsExpanded(true)}
+      onMouseLeave={() => {
+        if (!isProfileMenuOpen && !isNetworkMenuOpen) {
+          setIsExpanded(false);
+        }
+      }}>
+      <div
+        className={classNames({
+          [classes.inner]: true,
+          [classes.expanded]: expanded,
+        })}>
+        <div className={classes.mainItems}>
+          {items.map(({path, label, icon}) => (
+            <SidebarItem
+              key={label}
+              path={relativeUrl(path)}
+              label={label}
+              icon={icon}
               expanded={expanded}
-              onClick={() => onExpandClicked && onExpandClicked()}
             />
-          </div>
+          ))}
         </div>
-      )}
-      <div className={classes.secondaryItems}>
-        {secondaryItems}
-        <ProfileButton />
+        <div className={classes.secondaryItems}>
+          {showNetworkSwitch && (
+            <NetworkSelector
+              expanded={expanded}
+              isMenuOpen={isNetworkMenuOpen}
+              setMenuOpen={setNetworkMenuOpen}
+            />
+          )}
+          <ProfileButton
+            expanded={expanded}
+            isMenuOpen={isProfileMenuOpen}
+            setMenuOpen={setProfileMenuOpen}
+          />
+        </div>
       </div>
     </div>
   );
-};
-
-AppSideBar.defaultProps = {
-  useExpandButton: false,
-  showExpandButton: false,
-  expanded: false,
 };
 
 export default AppSideBar;
