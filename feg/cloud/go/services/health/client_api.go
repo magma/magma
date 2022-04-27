@@ -31,7 +31,7 @@ import (
 // getCloudHealthClient is a utility function to get an RPC connection to the
 // Health service
 func getCloudHealthClient() (protos.CloudHealthClient, error) {
-	conn, err := registry.GetConnection(ServiceName, lib_protos.ServiceType_SOUTHBOUND)
+	conn, err := registry.GetConnection(ServiceName, lib_protos.ServiceType_PROTECTED)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

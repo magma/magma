@@ -32,7 +32,7 @@ func StartTestService(t *testing.T) (*servicers.TestHealthServer, error) {
 	servicer, err := servicers.NewTestHealthServer(factory)
 	assert.NoError(t, err)
 	protos.RegisterHealthServer(srv.GrpcServer, servicer)
-	protos.RegisterCloudHealthServer(srv.ProtectedGrpcServer, &servicer.CloudHealthServer)
+	protos.RegisterCloudHealthServer(srv.ProtectedGrpcServer, servicer)
 
 	go srv.RunTest(lis, plis)
 	return servicer, nil

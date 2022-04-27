@@ -48,6 +48,14 @@ func (srv *TestHealthServer) UpdateHealth(
 	return srv.HealthServer.UpdateHealth(ctx, req)
 }
 
+func (srv *TestHealthServer) GetHealth(ctx context.Context, req *fegprotos.GatewayStatusRequest) (*fegprotos.HealthStats, error) {
+	return srv.CloudHealthServer.GetHealth(ctx, req)
+}
+
+func (srv *TestHealthServer) GetClusterState(ctx context.Context, req *fegprotos.ClusterStateRequest) (*fegprotos.ClusterState, error) {
+	return srv.CloudHealthServer.GetClusterState(ctx, req)
+}
+
 func NewTestHealthServer(mockFactory blobstore.StoreFactory) (*TestHealthServer, error) {
 	store, err := storage.NewHealthBlobstore(mockFactory)
 	if err != nil {

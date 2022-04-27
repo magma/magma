@@ -14,7 +14,6 @@ limitations under the License.
 package main
 
 import (
-	"magma/orc8r/cloud/go/services/metricsd/servicers/southbound"
 	"time"
 
 	"github.com/golang/glog"
@@ -30,6 +29,7 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/servicers/protected"
+	"magma/orc8r/cloud/go/services/metricsd/servicers/southbound"
 	"magma/orc8r/lib/go/protos"
 )
 
