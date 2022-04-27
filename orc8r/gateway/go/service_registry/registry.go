@@ -15,6 +15,7 @@ package service_registry
 
 import (
 	"context"
+	"magma/orc8r/lib/go/protos"
 
 	"google.golang.org/grpc"
 
@@ -27,8 +28,8 @@ type GatewayRegistry interface {
 	// platform's ServiceRegistry methods
 	AddServices(locations ...platform_registry.ServiceLocation)
 	AddService(location platform_registry.ServiceLocation)
-	GetServiceAddress(service string) (string, error)
-	GetServicePort(service string) (int, error)
+	GetServiceAddress(service string, serviceType protos.ServiceType) (string, error)
+	GetServicePort(service string, serviceType protos.ServiceType) (int, error)
 	GetServiceProxyAliases(service string) (map[string]int, error)
 	ListAllServices() ([]string, error)
 
@@ -60,8 +61,8 @@ type GatewayRegistry interface {
 	CleanupSharedCloudConnection(service string) bool
 
 	// GetConnection provides a gRPC connection to a service in the registry.
-	GetConnection(service string) (*grpc.ClientConn, error)
-	GetConnectionImpl(ctx context.Context, service string, opts ...grpc.DialOption) (*grpc.ClientConn, error)
+	GetConnection(service string, serviceType protos.ServiceType) (*grpc.ClientConn, error)
+	GetConnectionImpl(ctx context.Context, service string, serviceType protos.ServiceType, opts ...grpc.DialOption) (*grpc.ClientConn, error)
 }
 
 // ProxiedRegistry a GW service registry which supports direct and proxied cloud connections

@@ -84,7 +84,7 @@ func GetGatewayDeviceInfo(ctx context.Context, token string) (*protos.GatewayDev
 }
 
 func getCloudRegistrationClient() (protos.CloudRegistrationClient, error) {
-	conn, err := registry.GetConnection(ServiceName)
+	conn, err := registry.GetConnection(ServiceName, protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

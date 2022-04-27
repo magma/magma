@@ -168,12 +168,12 @@ func TestControlProxyTenantsServicer(t *testing.T) {
 }
 
 func newTestService(t *testing.T) (tenant_protos.TenantsServiceServer, error) {
-	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, tenants.ServiceName)
+	srv, lis, _ := test_utils.NewTestService(t, orc8r.ModuleName, tenants.ServiceName)
 	factory := test_utils.NewSQLBlobstore(t, "tenants_servicer_test_blobstore")
 	store := storage.NewBlobstoreStore(factory)
 	servicer, err := servicers.NewTenantsServicer(store)
 	assert.NoError(t, err)
 	tenant_protos.RegisterTenantsServiceServer(srv.GrpcServer, servicer)
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 	return servicer, nil
 }

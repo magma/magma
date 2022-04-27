@@ -194,7 +194,7 @@ func testWithECDSA(
 
 // Test with real GW bootstrapper
 func testWithGatewayBootstrapper(t *testing.T, networkId string) {
-	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, bootstrapper.ServiceName)
+	srv, lis, _ := test_utils.NewTestService(t, orc8r.ModuleName, bootstrapper.ServiceName)
 	assert.Equal(t, protos.ServiceInfo_STARTING, srv.State)
 	assert.Equal(t, protos.ServiceInfo_APP_UNHEALTHY, srv.Health)
 
@@ -205,7 +205,7 @@ func testWithGatewayBootstrapper(t *testing.T, networkId string) {
 	assert.NoError(t, err)
 	protos.RegisterBootstrapperServer(srv.GrpcServer, bootstrapperSrv)
 
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 
 	srvIp, srvPort, err := net.SplitHostPort(lis.Addr().String())
 	assert.NoError(t, err)

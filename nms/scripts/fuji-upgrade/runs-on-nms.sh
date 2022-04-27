@@ -47,7 +47,7 @@ cat << EOF
               Upgrading @fbcnms/sequelize-models to ^0.1.9
 --------------------------------------------------------------------------------
 EOF
-pushd /usr/src/packages/magmalte
+pushd /usr/src/packages/magmalte || exit
 yarn upgrade @fbcnms/sequelize-models@^0.1.9
 yarn
 popd
@@ -62,7 +62,7 @@ cat << EOF
               Running yarn script for NMS DB data migration
 --------------------------------------------------------------------------------
 EOF
-pushd /usr/src/node_modules/\@fbcnms/sequelize-models
+pushd /usr/src/node_modules/\@fbcnms/sequelize-models || exit
 yarn dbDataMigrate --host=$arg_host --port=$arg_port --database=$arg_db --dialect=$arg_dialect --username=$arg_username --password=$arg_password --export --confirm
 if [ $? -eq 0 ]
 then

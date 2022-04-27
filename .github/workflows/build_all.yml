@@ -826,15 +826,15 @@ jobs:
       artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
-      NMS_ROOT: "${{ github.workspace }}/nms/packages/magmalte"
+      NMS_ROOT: "${{ github.workspace }}/nms"
     steps:
       - uses: actions/checkout@v2
       - name: Run docker compose
         id: nms-docker-compose
         # yamllint disable rule:line-length
         run: |
-          cd ${MAGMA_ROOT}/nms/packages/magmalte
-          docker-compose build magmalte
+          cd ${MAGMA_ROOT}/nms
+          COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
       - name: Export docker images to deploy them on pull_request
         if: github.event_name == 'pull_request'
         run: |

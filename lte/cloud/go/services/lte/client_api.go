@@ -25,6 +25,7 @@ import (
 	"magma/lte/cloud/go/services/lte/protos"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/lib/go/merrors"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -73,7 +74,7 @@ func SetEnodebState(ctx context.Context, networkID string, gatewayID string, eno
 }
 
 func getClient() (protos.EnodebStateLookupClient, error) {
-	conn, err := registry.GetConnection(ServiceName)
+	conn, err := registry.GetConnection(ServiceName, lib_protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

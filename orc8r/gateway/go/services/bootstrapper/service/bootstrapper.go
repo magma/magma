@@ -277,7 +277,7 @@ func (b *Bootstrapper) bootstrap() (*protos.Certificate, interface{}, error) {
 
 	// Complete challenge based auth & sign CSR
 	if b.useLocalService {
-		conn, err = service_registry.Get().GetConnection("bootstrapper")
+		conn, err = service_registry.Get().GetConnection("bootstrapper", protos.ServiceType_SOUTHBOUND)
 	} else {
 		conn, err = b.GetBootstrapperCloudConnection()
 	}

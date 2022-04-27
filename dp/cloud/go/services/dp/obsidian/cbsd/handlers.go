@@ -31,6 +31,7 @@ import (
 	"magma/dp/cloud/go/services/dp/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/lib/go/merrors"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -268,7 +269,7 @@ func getCbsdManagerClient() (protos.CbsdManagementClient, error) {
 }
 
 func getConn() (*grpc.ClientConn, error) {
-	conn, err := registry.GetConnection(dp_service.ServiceName)
+	conn, err := registry.GetConnection(dp_service.ServiceName, lib_protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, dp_service.ServiceName)
 		glog.Error(initErr)

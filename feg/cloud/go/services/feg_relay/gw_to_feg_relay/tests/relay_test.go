@@ -245,7 +245,7 @@ func TestNHRouting(t *testing.T) {
 	//
 	// Start & register Serving FeG's test S6a Proxy Server
 	s6aProxy := &testS6aProxy{resultChan: make(chan string, 3)}
-	srv, lis := test_utils.NewTestService(t, "feg", s6aProxyService)
+	srv, lis, _ := test_utils.NewTestService(t, "feg", s6aProxyService)
 	s6aAddr := lis.Addr().(*net.TCPAddr)
 	s6aHost := "localhost"
 	t.Logf("Serving FeG S6a Proxy Address: %s", s6aAddr)
@@ -258,7 +258,7 @@ func TestNHRouting(t *testing.T) {
 	// Register FeG's Central Session Controller Server
 	sessionProxy := &testCentralSessionController{resultChan: make(chan string, 2)}
 	lte_protos.RegisterCentralSessionControllerServer(srv.GrpcServer, sessionProxy)
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 
 	// Add Serving FeG Host to directoryd
 	directoryd_test_init.StartTestService(t)
@@ -266,7 +266,7 @@ func TestNHRouting(t *testing.T) {
 	gateway_registry.SetPort(s6aAddr.Port)
 
 	// Start S6a relay Service
-	relaySrv, relayLis := test_utils.NewTestService(t, "", s6aProxyService)
+	relaySrv, relayLis, _ := test_utils.NewTestService(t, "", s6aProxyService)
 
 	t.Logf("Relay S6a Proxy Address: %s", relayLis.Addr())
 
@@ -274,7 +274,7 @@ func TestNHRouting(t *testing.T) {
 	feg_protos.RegisterS6AProxyServer(relaySrv.GrpcServer, relayRouter)
 	feg_protos.RegisterHelloServer(relaySrv.GrpcServer, relayRouter)
 	lte_protos.RegisterCentralSessionControllerServer(relaySrv.GrpcServer, relayRouter)
-	go relaySrv.RunTest(relayLis)
+	go relaySrv.RunTest(relayLis, nil)
 
 	ctx := service_test_utils.GetContextWithCertificate(t, agwHwId)
 	connectCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

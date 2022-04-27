@@ -35,12 +35,10 @@ docker-compose exec -T magmalte yarn setAdminPassword magma-test admin@magma.tes
 docker-compose exec -T magmalte yarn createOrganization magma-test nms test,test_feg_lte_network
 
 # run the end to end test
-cd ../../
 set +e
 yarn test:e2e
 exit_code=$?
 
-cd packages/magmalte
 docker-compose -f docker-compose-e2e.yml logs magmalte &> /tmp/nms_artifacts/magmalte.log
 docker-compose -f docker-compose-e2e.yml logs mock_server &> /tmp/nms_artifacts/mock_server.log
 

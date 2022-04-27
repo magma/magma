@@ -76,8 +76,7 @@ func StartFegRelayTestService(t *testing.T) (*TestS8ProxyResponderServer, string
 	// responder mocks feg relay service
 	testResponderSrv := NewTestS8ProxyResponderServer()
 	testResponderSrv.ListAddr = lis.Addr().String()
-
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 	protos.RegisterS8ProxyResponderServer(srv.GrpcServer, testResponderSrv)
 	fmt.Printf("Starting Mock Feg Relay service at %s", lis.Addr().String())
 	// Remember to delete tempDir with defer os.RemoveAll(dir) once test is done
