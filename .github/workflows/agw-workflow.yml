@@ -454,10 +454,10 @@ jobs:
           clangFormatVersion: 11.1.0
           # taken from .clang-format
           style: file
-      - name: Check clang-format for lte/gateway/c
+      - name: Check clang-format for lte/gateway
         uses: DoozyX/clang-format-lint-action@v0.13
         with:
-          source: 'lte/gateway/c'
+          source: 'lte/gateway/c lte/gateway/python'
           extensions: 'h,hpp,c,cpp'
           clangFormatVersion: 11.1.0
           # taken from .clang-format
