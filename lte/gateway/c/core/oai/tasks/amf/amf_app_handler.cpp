@@ -1250,7 +1250,7 @@ static void amf_app_handle_ngap_ue_context_release(
           " Action -- Handle the "
           "message\n ",
           ue_context_p->amf_ue_ngap_id, ue_context_p->gnb_ue_ngap_id);
-      OAILOG_FUNC_OUT(LOG_MME_APP);
+      OAILOG_FUNC_OUT(LOG_AMF_APP);
     }
     OAILOG_ERROR_UE(LOG_AMF_APP, ue_context_p->amf_context.imsi64,
                     "ERROR: UE Context Release Request: UE state : IDLE. "

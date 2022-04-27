@@ -515,7 +515,7 @@ void copy_served_tai_config_list(amf_config_t* dest, const mme_config_t* src) {
 
 void copy_amf_config_from_mme_config(amf_config_t* dest,
                                      const mme_config_t* src) {
-  OAILOG_DEBUG(LOG_MME_APP, "copy_amf_config_from_mme_config");
+  OAILOG_DEBUG(LOG_AMF_APP, "copy_amf_config_from_mme_config");
   // LOGGING setting
   dest->log_config = src->log_config;
   if (src->log_config.output)

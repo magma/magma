@@ -940,14 +940,14 @@ static int calculate_amf_serving_network_name(amf_context_t* amf_ctx,
       snprintf(snni_buffer, 40, "5G:mnc%03d.mcc%03d.3gppnetwork.org", mnc, mcc);
 
   if (snni_buf_len != 32) {
-    OAILOG_ERROR(LOG_NAS_AMF, "Failed to create proper SNNI String: %s ", snni);
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+    OAILOG_ERROR(LOG_AMF_APP, "Failed to create proper SNNI String: %s ", snni);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   } else {
     memcpy(snni, snni_buffer, snni_buf_len);
-    OAILOG_DEBUG(LOG_NAS_AMF, "Serving network name: %s\n", snni);
+    OAILOG_DEBUG(LOG_AMF_APP, "Serving network name: %s\n", snni);
   }
 
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
 /****************************************************************************
