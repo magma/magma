@@ -92,7 +92,7 @@ status_code_e amf_insert_ue_context(
 
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (amf_ue_context_p == NULL) {
-    OAILOG_ERROR(LOG_MME_APP, "Invalid AMF UE context received\n");
+    OAILOG_ERROR(LOG_AMF_APP, "Invalid AMF UE context received\n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
@@ -110,7 +110,7 @@ status_code_e amf_insert_ue_context(
         "This ue context %p already exists gnb_ue_ngap_id " GNB_UE_NGAP_ID_FMT
         "\n",
         ue_context_p, ue_context_p->gnb_ue_ngap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.insert(
@@ -128,17 +128,17 @@ status_code_e amf_insert_ue_context(
     if (amf_state_ue_id_ht->get(ue_context_p->amf_ue_ngap_id,
                                 &tmp_ue_context_p) == magma::MAP_OK) {
       OAILOG_WARNING(
-          LOG_MME_APP,
+          LOG_AMF_APP,
           "This ue context %p already exists amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT
           "\n",
           tmp_ue_context_p, ue_context_p->amf_ue_ngap_id);
-      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
     }
 
     m_rc =
         amf_state_ue_id_ht->insert(ue_context_p->amf_ue_ngap_id, ue_context_p);
     if (m_rc != magma::MAP_OK) {
-      OAILOG_WARNING(LOG_MME_APP,
+      OAILOG_WARNING(LOG_AMF_APP,
                      "Error could not register this ue context %p "
                      "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT "\n",
                      ue_context_p, ue_context_p->amf_ue_ngap_id);
@@ -740,7 +740,7 @@ static int amf_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
       ue_id);
 
   ue_context_p->ppf = false;
-  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
 void amf_ue_context_update_ue_sig_connection_state(
@@ -798,7 +798,7 @@ void amf_ue_context_update_ue_sig_connection_state(
     ue_context_p->cm_state = M5GCM_IDLE;
 
     // Update Stats
-    OAILOG_INFO_UE(LOG_MME_APP, ue_context_p->amf_context.imsi64,
+    OAILOG_INFO_UE(LOG_AMF_APP, ue_context_p->amf_context.imsi64,
                    "UE STATE - IDLE.\n");
 
   } else if ((ue_context_p->cm_state == M5GCM_IDLE) &&

@@ -136,7 +136,7 @@ bool AMFClientServicerBase::set_smf_notification(
 }
 
 AMFClientServicer& AMFClientServicer::getInstance() {
-  OAILOG_FUNC_IN(LOG_NGAP);
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   static AMFClientServicer instance;
   OAILOG_FUNC_RETURN(LOG_AMF_APP, instance);
 }
