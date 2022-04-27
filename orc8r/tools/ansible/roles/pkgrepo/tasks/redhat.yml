@@ -1,0 +1,41 @@
+---
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+- name: Add GPG key for magma repository
+  rpm_key:
+    key: https://facebookconnectivity.jfrog.io/artifactory/{{ repo }}/{{ distribution }}/7/repodata/repomd.xml.key
+    state: present
+
+- name: Add JFrog key
+  block:
+    - get_url:
+        url: https://facebookconnectivity.jfrog.io/artifactory/api/gpg/key/public
+        dest: /tmp/jfrog.pub
+    - rpm_key:
+        key: /tmp/jfrog.pub
+    - file:
+        path: /tmp/jfrog.pub
+        state: absent
+
+- name: Add JFrog repo
+  copy:
+    dest: /etc/yum.repos.d/magma-jfrog.repo
+    content: |
+      [magma-jfrog]
+      name=Magma JFrog
+      baseurl=https://facebookconnectivity.jfrog.io/artifactory/{{ repo }}/{{ distribution }}/$releasever/
+      gpgcheck=0
+      enabled=1
+      gpgkey=https://facebookconnectivity.jfrog.io/artifactory/{{ repo }}/{{ distribution }}/$releasever/repodata/repomd.xml.key
+      repo_gpgcheck=1
