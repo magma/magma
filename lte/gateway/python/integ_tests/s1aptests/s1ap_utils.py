@@ -1214,16 +1214,16 @@ class MagmadUtil(object):
             mme_ueip_imsi_map_entries,
         )
 
-    def enable_nat(self):
+    def enable_nat(self, ip_version=4):
         """Enable Nat"""
         self._set_agw_nat(True)
-        self._validate_nated_datapath()
+        self._validate_nated_datapath(ip_version)
         self.exec_command("sudo ip route del default via 192.168.129.42")
         self.exec_command("sudo ip route add default via 10.0.2.2 dev eth0")
 
-    def disable_nat(self, ipv6=False):
+    def disable_nat(self, ip_version=4):
         """Disable Nat"""
-        if not ipv6:
+        if ip_version == 4:
           self.exec_command("sudo ip route del default via 10.0.2.2 dev eth0")
           self.exec_command(
               "sudo ip addr replace 192.168.129.1/24 dev uplink_br0",
@@ -1237,7 +1237,7 @@ class MagmadUtil(object):
           self.exec_command("sudo ip route -A inet6 add default via 3001::2 dev uplink_br0")
 
         self._set_agw_nat(False)
-        self._validate_non_nat_datapath()
+        self._validate_non_nat_datapath(ip_version)
 
     def _set_agw_nat(self, enable: bool):
         mconfig_conf = (
@@ -1255,16 +1255,18 @@ class MagmadUtil(object):
         self.restart_sctpd()
         self.restart_all_services()
 
-    def _validate_non_nat_datapath(self):
+    def _validate_non_nat_datapath(self, ip_version=4):
         # validate SGi interface is part of uplink-bridge.
         out1 = self.exec_command_output("sudo ovs-vsctl list-ports uplink_br0")
-        assert "eth2" in str(out1)
+        iface = "eth2" if ip_version == 4 else "eth3"
+        assert iface in str(out1)
         print("NAT is disabled")
 
-    def _validate_nated_datapath(self):
+    def _validate_nated_datapath(self, ip_version=4):
         # validate SGi interface is not part of uplink-bridge.
         out1 = self.exec_command_output("sudo ovs-vsctl list-ports uplink_br0")
-        assert "eth2" not in str(out1)
+        iface = "eth2" if ip_version == 4 else "eth3"
+        assert iface not in str(out1)
         print("NAT is enabled")
 
 

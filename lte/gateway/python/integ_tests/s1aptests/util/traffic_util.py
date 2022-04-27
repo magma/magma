@@ -133,13 +133,13 @@ class TrafficUtil(object):
 
     def update_dl_route(self, ue_ip_block):
         """Update downlink route in TRF server"""
-        #ret_code = self.exec_command(
-        #    "sudo ip route flush via 192.168.129.1 && sudo ip route "
-        #    "replace " + ue_ip_block + " via 192.168.129.1 dev eth2",
-        #)
+        ret_code = self.exec_command(
+            "sudo ip route flush via 192.168.129.1 && sudo ip route "
+            "replace " + ue_ip_block + " via 192.168.129.1 dev eth2",
+        )
         ret_code = self.exec_command(
             "sudo ip -6 route flush via 3001::10 && sudo ip -6 route "
-            "replace " + "fdee:0005:006c::/64" + " via 3001::10 dev eth2",
+            "replace " + "fdee:0005:006c::/64" + " via 3001::10 dev eth3",
         )
         return ret_code == 0
 
@@ -154,11 +154,11 @@ class TrafficUtil(object):
         """ Update MTU size in TRF server """
         # Set MTU size to 1400 for ipv6
         if set_mtu == True:
-          ret_code = self.exec_command("sudo /sbin/ifconfig eth2 mtu 1400")
+          ret_code = self.exec_command("sudo /sbin/ifconfig eth3 mtu 1400")
           if ret_code != 0:
             return False
         else :
-          ret_code = self.exec_command("sudo /sbin/ifconfig eth2 mtu 1500")
+          ret_code = self.exec_command("sudo /sbin/ifconfig eth3 mtu 1500")
           if ret_code != 0:
             return False
         return True
@@ -315,7 +315,8 @@ class TrafficTest(object):
     _alias_counter = 0
     _alias_lock = threading.Lock()
     _iproute = pyroute2.IPRoute()
-    _net_iface = "eth2"
+    _net_iface_ipv4 = "eth2"
+    _net_iface_ipv6 = "eth3"
     _port = 7000
     _port_lock = threading.Lock()
 
@@ -375,15 +376,15 @@ class TrafficTest(object):
         # Generate a unique alias
         with TrafficTest._alias_lock:
             TrafficTest._alias_counter += 1
-            net_iface = TrafficTest._net_iface
+            net_iface = TrafficTest._net_iface_ipv4
             alias = TrafficTest._alias_counter
         net_alias = "%s:UE%d" % (net_iface, alias)
 
         print("ip in _iface_up", ip)
-        print("._net_iface in _iface_up", TrafficTest._net_iface)
+        print("._net_iface in _iface_up", TrafficTest._net_iface_ipv4)
         # Bring up the iface alias
         net_iface_index = TrafficTest._iproute.link_lookup(
-            ifname=TrafficTest._net_iface,
+            ifname=TrafficTest._net_iface_ipv4,
         )[0]
         print("net_iface_index", net_iface_index)
         TrafficTest._iproute.addr(
@@ -404,17 +405,17 @@ class TrafficTest(object):
 
         '''
         print("ip in _iface_up", ip)
-        print("._net_iface in _iface_up", TrafficTest._net_iface)
+        print("._net_iface in _iface_up", TrafficTest._net_iface_ipv6)
         # Bring up the iface alias
         net_iface_index = TrafficTest._iproute.link_lookup(
-            ifname=TrafficTest._net_iface,
+            ifname=TrafficTest._net_iface_ipv6,
         )[0]
         print("net_iface_index", net_iface_index)
         TrafficTest._iproute.addr(
             'add', index=net_iface_index, address=ip.exploded,
         )
         os.system(
-                'sudo route -A inet6 add 3001::10/64 dev eth2'
+                'sudo route -A inet6 add 3001::10/64 dev eth3'
         ),
 
     @staticmethod
@@ -463,8 +464,16 @@ class TrafficTest(object):
             self.sc.settimeout(IPERF_DATA_TIMEOUT_SEC)
 
             # Flush all the addresses left by previous failed tests
+            net_iface = 0
+            for instance in self.instances:
+              if instance.ip.version == 4:
+                 net_iface = TrafficTest._net_iface_ipv4
+              else:
+                net_iface = TrafficTest._net_iface_ipv6
+                print("net_iface", net_iface)
+              break
             net_iface_index = TrafficTest._iproute.link_lookup(
-                ifname=TrafficTest._net_iface,
+                ifname=net_iface,
             )[0]
             for instance in self.instances:
                 TrafficTest._iproute.flush_addr(
@@ -473,7 +482,8 @@ class TrafficTest(object):
                 )
 
             # Set up network ifaces and get UL port assignments for DL
-            if instance.ip.version == 4:
+            #if instance.ip.version == 4:
+            if net_iface == 'eth2':
               aliases = ()
             for instance in self.instances:
                 if instance.ip.version == 4:
@@ -490,6 +500,7 @@ class TrafficTest(object):
                 TrafficRequestType.TEST,
                 payload=self.instances,
             )
+            print("Sending traffic req")
             msg.send(self.sc_out)
 
             # Receive SERVER message and update test instances
@@ -498,18 +509,24 @@ class TrafficTest(object):
             r_id = msg.id  # Remote server test identifier
             server_instances = msg.payload  # (TrafficServerInstance, ...)
 
+            print("Rcvd trf rsp", server_instances)
             # Locally keep references to arguments passed into trfgen
             num_instances = len(self.instances)
             args = [None for _ in range(num_instances)]
 
+            print("Before pre-start logic", num_instances)
             # Post-SERVER, pre-START logic
             for i in range(num_instances):
+                print("i\n",i)
                 instance = self.instances[i]
+                print("instance\n",instance)
                 server_instance = server_instances[i]
 
+                print("server_instance\n",server_instance)
                 # Add ip network route
+                print("Add ip nw route\n")
                 net_iface_index = TrafficTest._iproute.link_lookup(
-                    ifname=TrafficTest._net_iface,
+                    ifname=net_iface,
                 )[0]
                 server_instance_network = TrafficTest._network_from_ip(
                     server_instance.ip,
@@ -536,7 +553,7 @@ class TrafficTest(object):
                   )
                 else:
                   os.system(
-                    'ip -6 neigh add %s lladdr %s dev eth2' % (
+                    'ip -6 neigh add %s lladdr %s dev eth3' % (
                     server_instance.ip.exploded, server_instance.mac,
                     ),
                   )
@@ -715,8 +732,13 @@ class TrafficTest(object):
         msg.send(self.sc_out)
 
         # Close out network ifaces
+        intf =  TrafficTest._net_iface_ipv4
+        for instance in self.instances:
+          if instance.ip.version == 6:
+            intf =  TrafficTest._net_iface_ipv6
+          break
         net_iface = TrafficTest._iproute.link_lookup(
-            ifname=TrafficTest._net_iface,
+            ifname=intf,
         )
         if net_iface:
             net_iface_index = net_iface[0]

@@ -521,11 +521,15 @@ class TrafficTestDriver(object):
 
         self._setup_iperf3()
 
-    def _get_macs(self):
+    def _get_macs(self, version=4):
         ''' Retrieves the MAC addresses of the associated test servers, based
         on the information of the instances '''
         ip = pyroute2.IPRoute()
-        mac = ip.link('get', index=ip.link_lookup(ifname='eth2')[0])[0] \
+        if version == 4:
+          intf = 'eth2'
+        else:
+          intf = 'eth3'
+        mac = ip.link('get', index=ip.link_lookup(ifname=intf)[0])[0] \
             .get_attr('IFLA_ADDRESS')
 
         return (mac,) * len(self._instances)
@@ -599,8 +603,8 @@ class TrafficTestDriver(object):
                 else:
                   print("Running ipv6")
                   iperf.bind_address = '3001::2'
-                  os.system('sudo /sbin/ip -6 route add 3001::10/64 dev eth2')
-                  os.system('sudo /sbin/ip -6 route add %s via 3001::10 dev eth2' %(instance.ip.exploded,))
+                  os.system('sudo /sbin/ip -6 route add 3001::10/64 dev eth3')
+                  os.system('sudo /sbin/ip -6 route add %s via 3001::10 dev eth3' %(instance.ip.exploded,))
                   #os.system(
                   #    'sudo route -A inet6 add fdee:5:6c::1/64 dev eth2'
                   #)
@@ -614,8 +618,8 @@ class TrafficTestDriver(object):
                   iperf.bind_address = '192.168.129.42'
                 else:
                   iperf.bind_address = '3001::2'
-                  os.system('sudo /sbin/ip -6 route add 3001::10/64 dev eth2')
-                  os.system('sudo /sbin/ip -6 route add %s via 3001::10 dev eth2' %(instance.ip.exploded,))
+                  os.system('sudo /sbin/ip -6 route add 3001::10/64 dev eth3')
+                  os.system('sudo /sbin/ip -6 route add %s via 3001::10 dev eth3' %(instance.ip.exploded,))
                 iperf.duration = instance.duration
                 iperf.port = instance.port
                 iperf.protocol = 'udp' if instance.is_udp else 'tcp'
@@ -637,11 +641,14 @@ class TrafficTestDriver(object):
         ips = (
             ipaddress.ip_address(iperf.bind_address) for iperf in self._iperfs
         )
-        print("In run ips", ips)
+
         ports = (
             iperf.port if 's' == iperf.role else 0 for iperf in self._iperfs
         )
-        macs = self._get_macs()
+        for iperf in self._iperfs:
+          ip_version = ipaddress.ip_address(iperf.bind_address).version
+          break
+        macs = self._get_macs(ip_version)
 
         # Reshape into argument tuples
         tuples = zip(ips, ports, macs)
