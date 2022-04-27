@@ -290,9 +290,7 @@ export default function SubscriberStateTable() {
                 return <ExpandMore data-testid="details" />;
               },
               openIcon: ExpandLess,
-              render: rowData => (
-                <SubscriberStateDetailPanel rowData={rowData} />
-              ),
+              render: rowData => <SubscriberStateDetailPanel {...rowData} />,
             },
           ]}
         />
