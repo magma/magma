@@ -15,21 +15,21 @@
  */
 
 import AppContext from '../context/AppContext';
+import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import NetworkContext from '../../../app/components/context/NetworkContext';
-import Popout from './Popout';
 import PersonIcon from '@material-ui/icons/Person';
-import React, {useContext, useEffect, useState} from 'react';
+import Popout from './Popout';
+import React, {useContext} from 'react';
 import Text from '../../../app/theme/design-system/Text';
 import classNames from 'classnames';
 import {Events, GeneralLogger} from '../utils/Logging';
+import {colors} from '../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '../hooks';
-import {colors} from '../../../app/theme/default';
-import Divider from '@material-ui/core/Divider';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   button: {
     display: 'flex',
     alignItems: 'center',

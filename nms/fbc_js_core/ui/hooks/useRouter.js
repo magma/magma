@@ -29,7 +29,7 @@ export const useRelativeUrl = () => {
         return url;
       }
       if (path[0] !== '/') {
-        path = `/${path}`
+        path = `/${path}`;
       }
       return url === '/' ? path : `${url}${path}`;
     },
@@ -45,9 +45,9 @@ export const useRelativePath = () => {
         return match.path;
       }
       if (path[0] !== '/') {
-        path = `/${path}`
+        path = `/${path}`;
       }
-      return match.path === '/' ? path : `${match.path}${path}`
+      return match.path === '/' ? path : `${match.path}${path}`;
     },
     [match.path],
   );

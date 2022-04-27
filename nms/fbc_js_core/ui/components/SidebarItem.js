@@ -14,20 +14,19 @@
  * @format
  */
 
-import React, {useCallback, useState} from 'react';
+import React from 'react';
 import Text from '../../../app/theme/design-system/Text';
 import classNames from 'classnames';
 import {Link} from 'react-router-dom';
+import {colors} from '../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '../../../fbc_js_core/ui/hooks';
-import {colors} from "../../../app/theme/default";
 
 const useStyles = makeStyles(() => ({
   icon: {
     color: colors.primary.gullGray,
     display: 'flex',
     justifyContent: 'center',
-
   },
   root: {
     display: 'flex',
@@ -69,12 +68,13 @@ export default function SidebarItem(props: Props) {
       className={classNames({
         [classes.root]: true,
         [classes.selected]: isSelected,
-      })}
-    >
+      })}>
       <div className={classes.icon}>{props.icon}</div>
-      {props.expanded && <Text className={classes.label} variant="body3">
-        {props.label}
-      </Text>}
+      {props.expanded && (
+        <Text className={classes.label} variant="body3">
+          {props.label}
+        </Text>
+      )}
     </Link>
   );
 }

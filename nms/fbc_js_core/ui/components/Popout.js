@@ -28,7 +28,7 @@ type Props = {
   contentClickTriggerClose?: boolean,
 };
 
-const useClasses = makeStyles(theme => ({
+const useClasses = makeStyles(() => ({
   menuPaper: {
     '&.MuiPopover-paper': {
       borderRadius: 0,
@@ -62,9 +62,10 @@ export default function Popout(props: Props) {
   const classes = useClasses();
   const relativeRef = React.useRef();
   const [open, togglePopout] = React.useState(false);
+  const {onClose} = props;
   const handleClose = React.useCallback(
-    () => (props.onClose ? props.onClose() : togglePopout(false)),
-    [props.onClose, togglePopout],
+    () => (onClose ? onClose() : togglePopout(false)),
+    [onClose, togglePopout],
   );
 
   const relativeRefPosition = relativeRef.current

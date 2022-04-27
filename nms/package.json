@@ -21,7 +21,6 @@
     "@material-ui/lab": "^4.0.0-alpha.61",
     "@material-ui/pickers": "^3.3.10",
     "@material-ui/styles": "^4.11.5",
-    "@storybook/addon-actions": "^6.4.19",
     "add": "^2.0.6",
     "axios": "^0.21.2",
     "babel-plugin-fbt": "^0.20.3",
