@@ -152,6 +152,7 @@ void AmfNasStateManager::create_state() {
 void AmfNasStateManager::free_state() {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (!state_cache_p) {
+    OAILOG_DEBUG(LOG_AMF_APP, "state_cache_p is NULL");
     OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
   state_ue_map.umap.clear();
@@ -200,7 +201,6 @@ void AmfNasStateManager::clear_db_state() {
 
   if (redis_client->clear_keys(keys_to_del) != RETURNok) {
     OAILOG_ERROR(LOG_AMF_APP, "Failed to clear the state in data store");
-    OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
@@ -271,6 +271,8 @@ status_code_e AmfNasStateManager::read_ue_state_from_db() {
   for (const auto& key : keys) {
     magma::lte::oai::UeContext ue_proto = magma::lte::oai::UeContext();
     if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
+      OAILOG_ERROR(log_task, "Failed to read UE state from db for %s",
+                   key.c_str());
       OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
     }
 
@@ -292,6 +294,7 @@ status_code_e AmfNasStateManager::read_ue_state_from_db() {
        AMFClientServicer::getInstance().map_imsi_ue_proto_str.umap) {
     magma::lte::oai::UeContext ue_proto = magma::lte::oai::UeContext();
     if (!ue_proto.ParseFromString(kv.second)) {
+      OAILOG_ERROR(log_task, "Failed to parse proto from string");
       OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
     }
     ue_m5gmm_context_t* ue_context_p = new ue_m5gmm_context_t();
@@ -322,6 +325,7 @@ status_code_e AmfNasStateManager::read_state_from_db() {
     }
     // Deserialization Step
     if (!state_proto.ParseFromString(proto_str)) {
+      OAILOG_ERROR(log_task, "Failed to parse proto from string");
       OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
     }
     AmfNasStateConverter::proto_to_state(state_proto, state_cache_p);

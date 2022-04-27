@@ -107,7 +107,7 @@ int amf_start_registration_proc_authentication(
 ***************************************************************************/
 nas_amf_registration_proc_t* nas_new_registration_procedure(
     ue_m5gmm_context_s* ue_ctxt) {
-  OAILOG_FUNC_IN(LOG_AMF_APP);
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
   amf_context_t* amf_context = &ue_ctxt->amf_context;
 
   if (!(amf_context->amf_procedures)) {
@@ -133,7 +133,7 @@ nas_amf_registration_proc_t* nas_new_registration_procedure(
 
   OAILOG_TRACE(LOG_NAS_AMF,
                "New AMF_SPEC_PROC_TYPE_REGISTRATION initialized\n");
-  OAILOG_FUNC_RETURN(LOG_AMF_APP, proc);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, proc);
 }
 
 /***************************************************************************
@@ -146,14 +146,14 @@ nas_amf_registration_proc_t* nas_new_registration_procedure(
 ***************************************************************************/
 void amf_proc_create_procedure_registration_request(
     ue_m5gmm_context_s* ue_ctx, amf_registration_request_ies_t* ies) {
-  OAILOG_FUNC_IN(LOG_AMF_APP);
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
   nas_amf_registration_proc_t* reg_proc =
       nas_new_registration_procedure(ue_ctx);
   if ((reg_proc)) {
     reg_proc->ies = ies;
     reg_proc->ue_id = ue_ctx->amf_ue_ngap_id;
   }
-  OAILOG_FUNC_OUT(LOG_AMF_APP);
+  OAILOG_FUNC_OUT(LOG_NAS_AMF);
 }
 
 /***************************************************************************
@@ -167,7 +167,7 @@ void amf_proc_create_procedure_registration_request(
 int amf_proc_registration_request(amf_ue_ngap_id_t ue_id,
                                   const bool is_mm_ctx_new,
                                   amf_registration_request_ies_t* ies) {
-  OAILOG_FUNC_IN(LOG_AMF_APP);
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
   ue_m5gmm_context_s ue_ctx;
   amf_ue_ngap_id_t old_ue_id = 0;
@@ -695,7 +695,7 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
 
 static int registration_accept_t3550_handler(zloop_t* loop, int timer_id,
                                              void* arg) {
-  OAILOG_FUNC_IN(LOG_AMF_APP);
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
   amf_context_t* amf_ctx = NULL;
   ue_m5gmm_context_s* ue_amf_context = NULL;
   nas_amf_registration_proc_t* registration_proc = NULL;
@@ -981,7 +981,7 @@ int amf_reg_send(amf_sap_t* const msg) {
 void amf_delete_registration_proc(amf_context_t* amf_ctx) {
   nas_amf_registration_proc_t* proc =
       get_nas_specific_procedure_registration(amf_ctx);
-  OAILOG_FUNC_IN(LOG_AMF_APP);
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
   if (proc) {
     if (proc->ies) {
       amf_delete_registration_ies(&proc->ies);
@@ -994,7 +994,7 @@ void amf_delete_registration_proc(amf_context_t* amf_ctx) {
 
     nas_amf_procedure_gc(amf_ctx);
   }
-  OAILOG_FUNC_OUT(LOG_AMF_APP);
+  OAILOG_FUNC_OUT(LOG_NAS_AMF);
 }  // namespace magma5g
 
 /***********************************************************************
@@ -1011,7 +1011,7 @@ void amf_delete_registration_proc(amf_context_t* amf_ctx) {
  **                                                                   **
  ***********************************************************************/
 void amf_delete_registration_ies(amf_registration_request_ies_t** ies) {
-  OAILOG_FUNC_IN(LOG_AMF_APP);
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
   if ((*ies)->imsi) {
     delete_wrapper(&(*ies)->imsi);
   }
@@ -1033,7 +1033,7 @@ void amf_delete_registration_ies(amf_registration_request_ies_t** ies) {
   }
 
   delete_wrapper(ies);
-  OAILOG_FUNC_OUT(LOG_AMF_APP);
+  OAILOG_FUNC_OUT(LOG_NAS_AMF);
 }
 
 /****************************************************************************
