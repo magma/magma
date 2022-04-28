@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsSingleton.hpp"
 
 #include <prometheus/counter.h>
 #include <prometheus/counter_builder.h>
@@ -24,7 +24,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "orc8r/gateway/c/common/service303/includes/MetricsRegistry.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsRegistry.hpp"
 
 using magma::service303::MetricsSingleton;
 using prometheus::BuildCounter;

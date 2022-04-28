@@ -16,7 +16,7 @@
 #include <memory>
 #include <string>
 
-#include "orc8r/gateway/c/common/service303/includes/MetricsRegistry.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsRegistry.hpp"
 #include "prometheus/counter_builder.h"
 
 namespace io {

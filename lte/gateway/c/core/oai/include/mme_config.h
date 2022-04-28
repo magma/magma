@@ -49,7 +49,7 @@
 #include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
-#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.hpp"
+#include "orc8r/gateway/c/common/sentry/SentryWrapper.hpp"
 
 /* Currently supporting max 5 GUMMEI's in the mme configuration */
 #define MIN_GUMMEI 1

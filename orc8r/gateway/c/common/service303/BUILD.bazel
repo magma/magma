@@ -21,13 +21,12 @@ cc_library(
         "MetricsSingleton.cpp",
         "ProcFileUtils.cpp",
     ],
-    # TODO: Remove includes/ project directories - #8446
     hdrs = [
+        "MagmaService.hpp",
+        "MetricsHelpers.hpp",
+        "MetricsRegistry.hpp",
+        "MetricsSingleton.hpp",
         "ProcFileUtils.hpp",
-        "includes/MagmaService.hpp",
-        "includes/MetricsHelpers.hpp",
-        "includes/MetricsRegistry.hpp",
-        "includes/MetricsSingleton.hpp",
     ],
     deps = [
         "//orc8r/gateway/c/common/service_registry",

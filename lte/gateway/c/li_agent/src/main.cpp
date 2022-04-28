@@ -28,12 +28,12 @@
 #include "lte/gateway/c/li_agent/src/PDUGenerator.hpp"
 #include "lte/gateway/c/li_agent/src/ProxyConnector.hpp"
 #include "lte/gateway/c/li_agent/src/Utilities.hpp"
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
-#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
+#include "orc8r/gateway/c/common/config/MConfigLoader.hpp"
+#include "orc8r/gateway/c/common/config/ServiceConfigLoader.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging_init.hpp"
-#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.hpp"
-#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
+#include "orc8r/gateway/c/common/sentry/SentryWrapper.hpp"
+#include "orc8r/gateway/c/common/service303/MagmaService.hpp"
 
 static uint32_t get_log_verbosity(const YAML::Node& config,
                                   magma::mconfig::LIAgentD mconfig) {

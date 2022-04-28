@@ -18,7 +18,7 @@
 #include <chrono>
 #include <ostream>
 
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
+#include "orc8r/gateway/c/common/config/MConfigLoader.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace magma {

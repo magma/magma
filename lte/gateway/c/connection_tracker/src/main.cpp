@@ -22,12 +22,12 @@
 
 #include "lte/gateway/c/connection_tracker/src/EventTracker.hpp"
 #include "lte/gateway/c/connection_tracker/src/PacketGenerator.hpp"
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
-#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
+#include "orc8r/gateway/c/common/config/MConfigLoader.hpp"
+#include "orc8r/gateway/c/common/config/ServiceConfigLoader.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging_init.hpp"
-#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.hpp"
-#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
+#include "orc8r/gateway/c/common/sentry/SentryWrapper.hpp"
+#include "orc8r/gateway/c/common/service303/MagmaService.hpp"
 
 #define CONNECTION_SERVICE "connectiond"
 #define CONNECTIOND_VERSION "1.0"

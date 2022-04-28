@@ -22,7 +22,7 @@
 #include "lte/gateway/c/session_manager/SessionState.hpp"
 #include "lte/gateway/c/session_manager/SessionStore.hpp"
 #include "lte/gateway/c/session_manager/StoreClient.hpp"
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
+#include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
 
 namespace aaa {
 namespace protos {

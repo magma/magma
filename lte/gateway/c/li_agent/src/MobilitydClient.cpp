@@ -20,7 +20,7 @@
 #include <netinet/in.h>
 #include <utility>
 
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 
 namespace grpc {
 class Status;

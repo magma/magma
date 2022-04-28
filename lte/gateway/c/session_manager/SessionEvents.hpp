@@ -21,7 +21,7 @@
 #include <utility>
 
 #include "lte/gateway/c/session_manager/SessionState.hpp"
-#include "orc8r/gateway/c/common/eventd/includes/EventdClient.hpp"
+#include "orc8r/gateway/c/common/eventd/EventdClient.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace magma {

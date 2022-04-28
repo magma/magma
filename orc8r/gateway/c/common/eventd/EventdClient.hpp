@@ -17,7 +17,7 @@
 #include <functional>                     // for function
 #include <memory>                         // for unique_ptr
 
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"  // for GRPCReceiver
+#include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"  // for GRPCReceiver
 
 namespace grpc {
 class Status;

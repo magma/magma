@@ -21,7 +21,7 @@
 #include <grpc++/grpc++.h>
 #include "lte/protos/subscriberauth.grpc.pb.h"
 #include "lte/protos/subscriberauth.pb.h"
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
+#include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
 
 using grpc::Status;
 using magma::GRPCReceiver;

@@ -95,7 +95,7 @@
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_ta.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 typedef struct arg_s1ap_send_enb_dereg_ind_s {
   uint8_t current_ue_index;

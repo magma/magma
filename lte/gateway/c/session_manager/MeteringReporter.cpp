@@ -21,7 +21,7 @@
 
 #include "lte/gateway/c/session_manager/StoredState.hpp"
 #include "lte/gateway/c/session_manager/Types.hpp"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 namespace magma {
 namespace lte {
