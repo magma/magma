@@ -25,9 +25,13 @@ class TestS1SetupFailureIncorrectPlmn(unittest.TestCase):
 
     def setUp(self):
         """Initialize before test case execution"""
-        if not s1ap_wrapper.TestWrapper.IS_TEST_RUNNING_FIRST_TIME:
+        if s1ap_wrapper.TestWrapper.TEST_CASE_EXECUTION_COUNT != 0:
             print("\n**Running the test case again to identify flaky behavior")
-        s1ap_wrapper.TestWrapper.IS_TEST_RUNNING_FIRST_TIME = False
+        s1ap_wrapper.TestWrapper.TEST_CASE_EXECUTION_COUNT += 1
+        print(
+            "Test Case Execution Count:",
+            s1ap_wrapper.TestWrapper.TEST_CASE_EXECUTION_COUNT,
+        )
         self._s1_util = S1ApUtil()
 
     def tearDown(self):
