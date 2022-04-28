@@ -245,6 +245,7 @@ export function SubscriberContextProvider(props: Props) {
   const [sessionState, setSessionState] = useState({});
   const [subscriberMetrics, setSubscriberMetrics] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
   const enqueueSnackbar = useEnqueueSnackbar();
   useEffect(() => {
     const fetchLteState = async () => {
@@ -257,6 +258,7 @@ export function SubscriberContextProvider(props: Props) {
         setForbiddenNetworkTypes,
         setSubscriberMetrics,
         setSessionState,
+        setTotalCount,
         enqueueSnackbar,
       }),
         setIsLoading(false);
@@ -275,6 +277,7 @@ export function SubscriberContextProvider(props: Props) {
         state: subscriberMap,
         metrics: subscriberMetrics,
         sessionState: sessionState,
+        totalCount: totalCount,
         gwSubscriberMap: getGatewaySubscriberMap(sessionState),
         setState: (
           key: subscriber_id,

@@ -35,6 +35,7 @@ state: paginated subscribers
 sessionState: paginated subscribers session state
 metrics: subscriber metrics
 gwSubscriberMap: gateway subscriber map
+totalCount: total count of subscribers
 setState: POST, PUT, DELETE subscriber
 */
 export type SubscriberContextType = {
@@ -43,6 +44,7 @@ export type SubscriberContextType = {
   forbiddenNetworkTypes: {[string]: core_network_types},
   metrics?: {[string]: Metrics},
   gwSubscriberMap: {[gateway_id]: Array<subscriber_id>},
+  totalCount: number,
   setState?: (
     key: string,
     val?: mutable_subscriber | mutable_subscribers,

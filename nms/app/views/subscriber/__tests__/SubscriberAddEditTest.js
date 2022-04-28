@@ -237,6 +237,7 @@ describe('<AddSubscriberButton />', () => {
       forbiddenNetworkTypes: forbiddenNetworkTypes,
       gwSubscriberMap: {},
       sessionState: sessionState,
+      totalCount: 2,
       setState: async (key, value?) =>
         setSubscriberState({
           networkId: 'test',
@@ -350,6 +351,7 @@ describe('<AddSubscriberButton />', () => {
                       gwSubscriberMap: {},
                       forbiddenNetworkTypes: forbiddenNetworkTypes,
                       sessionState: sessionState,
+                      totalCount: 1,
                       setState: (key, value?) =>
                         setSubscriberState({
                           networkId: 'test',

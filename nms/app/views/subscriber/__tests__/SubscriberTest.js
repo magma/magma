@@ -104,6 +104,7 @@ describe('<SubscriberDashboard />', () => {
       forbiddenNetworkTypes: {},
       gwSubscriberMap: {},
       sessionState: {},
+      totalCount: 2,
     };
 
     return (
