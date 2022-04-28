@@ -132,7 +132,7 @@ func TestGetControlProxy(t *testing.T) {
 		Networks: []string{networkID},
 	}
 	id := addTenant(t, networkIDTenant)
-	err := tenants.CreateOrUpdateControlProxy(context.Background(), tenant_protos.CreateOrUpdateControlProxyRequest{
+	err := tenants.CreateOrUpdateControlProxy(context.Background(), &tenant_protos.CreateOrUpdateControlProxyRequest{
 		Id:           id,
 		ControlProxy: controlProxy,
 	})
@@ -148,7 +148,7 @@ func setupMockRegistrationServicer(t *testing.T) *registration.RegistrationServi
 		GetGatewayDeviceInfo: func(ctx context.Context, token string) (*protos.GatewayDeviceInfo, error) {
 			return gatewayDeviceInfo, nil
 		},
-		RegisterDevice: func(deviceInfo protos.GatewayDeviceInfo, hwid *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) error {
+		RegisterDevice: func(deviceInfo *protos.GatewayDeviceInfo, hwid *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) error {
 			return nil
 		},
 		GetControlProxy: func(networkID string) (string, error) {

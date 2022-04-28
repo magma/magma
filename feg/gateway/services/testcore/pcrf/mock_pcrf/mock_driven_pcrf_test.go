@@ -23,6 +23,7 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/proto"
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
@@ -212,10 +213,12 @@ func assertCCAIsEqualToExpectedAnswer(t *testing.T, actual *gx.CreditControlAnsw
 	ruleNames, ruleBaseNames, ruleDefinitions := getRuleInstallsFromCCA(actual)
 	assert.ElementsMatch(t, expectation.GetRuleInstalls().GetRuleNames(), ruleNames)
 	assert.ElementsMatch(t, expectation.GetRuleInstalls().GetRuleBaseNames(), ruleBaseNames)
-	assert.ElementsMatch(t, expectation.GetRuleInstalls().GetRuleDefinitions(), ruleDefinitions)
+	equal := equalRuleDefinitionSlices(expectation.GetRuleInstalls().GetRuleDefinitions(), ruleDefinitions)
+	assert.True(t, equal)
 	assertRuleInstallTimeStampsMatch(t, expectation.GetRuleInstalls(), actual.RuleInstallAVP)
 	usageMonitors := getUsageMonitorsFromCCA(actual)
-	assert.ElementsMatch(t, expectation.GetUsageMonitoringInfos(), usageMonitors)
+	equal = equalUsageMonitoringInformationSlices(expectation.GetUsageMonitoringInfos(), usageMonitors)
+	assert.True(t, equal)
 }
 
 func getRuleInstallsFromCCA(cca *gx.CreditControlAnswer) ([]string, []string, []*fegprotos.RuleDefinition) {
@@ -296,4 +299,81 @@ func getMockReAuthHandler() gx.PolicyReAuthHandler {
 			ResultCode: diam.Success,
 		}
 	}
+}
+
+// equalRuleDefinitionSlices compares two slices with *fegprotos.RuleDefinition message pointers.
+// Slices can be unsorted. Two rules with the same name must trigger an error.
+// Equality of elements is determined with proto.Equal
+func equalRuleDefinitionSlices(expect []*fegprotos.RuleDefinition, actual []*fegprotos.RuleDefinition) bool {
+	if len(expect) != len(actual) {
+		return false
+	}
+	matched := make(map[string]bool)
+	for _, act := range actual {
+		for _, exp := range expect {
+			if matched[act.RuleName] {
+				return false
+			} else if proto.Equal(exp, act) {
+				matched[exp.RuleName] = true
+				break
+			}
+		}
+	}
+	return len(matched) == len(expect)
+}
+
+// equalUsageMonitoringInformationSlices compares two slices with *fegprotos.UsageMonitoringInformation message pointers. Slices can be unsorted.
+// If duplicates exist, each has to appear the same number of times in both lists.
+// Equality of elements is determined with proto.Equal
+func equalUsageMonitoringInformationSlices(expect []*fegprotos.UsageMonitoringInformation, actual []*fegprotos.UsageMonitoringInformation) bool {
+	if len(expect) != len(actual) {
+		return false
+	}
+	matched := make(map[int]bool)
+	for _, act := range actual {
+		for j, exp := range expect {
+			if matched[j] {
+				continue
+			} else if proto.Equal(exp, act) {
+				matched[j] = true
+				break
+			}
+		}
+	}
+	return len(matched) == len(expect)
+}
+
+func TestEqualSlices(t *testing.T) {
+	msg1 := &fegprotos.RuleDefinition{RuleName: "rule1", RatingGroup: 2, Precedence: 2}
+	msg2 := &fegprotos.RuleDefinition{RuleName: "rule2", RatingGroup: 1, Precedence: 2}
+	msg3 := &fegprotos.RuleDefinition{RuleName: "rule2", RatingGroup: 2, Precedence: 1}
+
+	// empty slices
+	var slice1 []*fegprotos.RuleDefinition
+	var slice2 []*fegprotos.RuleDefinition
+	equal := equalRuleDefinitionSlices(slice1, slice2)
+	assert.True(t, equal)
+
+	// slices of different length
+	slice1 = append(slice1, msg1)
+	equal = equalRuleDefinitionSlices(slice1, slice2)
+	assert.False(t, equal)
+
+	// matching slices of equal length
+	slice1 = append(slice1, msg2)
+	slice2 = append(slice2, msg2, msg1)
+	equal = equalRuleDefinitionSlices(slice1, slice2)
+	assert.True(t, equal)
+
+	// non-matching slices of equal length
+	slice1 = append(slice1, msg1)
+	slice2 = append(slice2, msg2)
+	equal = equalRuleDefinitionSlices(slice1, slice2)
+	assert.False(t, equal)
+
+	// non-matching slices including several rules with the same name
+	slice1 = append(slice1[:len(slice1)-1], msg3)
+	slice2 = append(slice2[:len(slice2)-1], msg3)
+	equal = equalRuleDefinitionSlices(slice1, slice2)
+	assert.False(t, equal)
 }

@@ -69,7 +69,7 @@ func TestTenantsServicer(t *testing.T) {
 	// Get "test" tenant
 	getResp, err := srv.GetTenant(context.Background(), &tenant_protos.GetTenantRequest{Id: 1})
 	assert.NoError(t, err)
-	assert.Equal(t, &sampleTenant, getResp)
+	test_utils.AssertMessagesEqual(t, &sampleTenant, getResp)
 
 	// Get "other" tenant
 	_, err = srv.GetTenant(context.Background(), &tenant_protos.GetTenantRequest{Id: 2})
@@ -86,7 +86,7 @@ func TestTenantsServicer(t *testing.T) {
 	// get updated tenant
 	getResp, err = srv.GetTenant(context.Background(), &tenant_protos.GetTenantRequest{Id: 1})
 	assert.NoError(t, err)
-	assert.Equal(t, sampleTenant2, *getResp)
+	test_utils.AssertMessagesEqual(t, &sampleTenant2, getResp)
 
 	// Update nonexistent tenant
 	_, err = srv.SetTenant(context.Background(), &tenant_protos.IDAndTenant{
@@ -111,7 +111,7 @@ func TestTenantsServicer(t *testing.T) {
 	// Delete "other" tenant
 	delResp, err := srv.DeleteTenant(context.Background(), &tenant_protos.GetTenantRequest{Id: 2})
 	assert.NoError(t, err)
-	assert.Equal(t, protos.Void{}, *delResp)
+	test_utils.AssertMessagesEqual(t, &protos.Void{}, delResp)
 
 	_, err = srv.GetTenant(context.Background(), &tenant_protos.GetTenantRequest{Id: 2})
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
@@ -151,7 +151,7 @@ func TestControlProxyTenantsServicer(t *testing.T) {
 	// get updated control_proxy
 	controlProxy, err := srv.GetControlProxy(context.Background(), &tenant_protos.GetControlProxyRequest{Id: sampleTenantID})
 	assert.NoError(t, err)
-	assert.Equal(t, *controlProxy, sampleGetControlProxyRes)
+	test_utils.AssertMessagesEqual(t, controlProxy, &sampleGetControlProxyRes)
 
 	// Update control_proxy
 	_, err = srv.CreateOrUpdateControlProxy(context.Background(), &sampleCreateControlProxyReq2)
@@ -159,7 +159,7 @@ func TestControlProxyTenantsServicer(t *testing.T) {
 	// get updated control_proxy
 	controlProxy, err = srv.GetControlProxy(context.Background(), &tenant_protos.GetControlProxyRequest{Id: sampleTenantID})
 	assert.NoError(t, err)
-	assert.Equal(t, *controlProxy, sampleGetControlProxyRes2)
+	test_utils.AssertMessagesEqual(t, controlProxy, &sampleGetControlProxyRes2)
 
 	// Get control_proxy not set
 	_, err = srv.GetControlProxy(context.Background(), &tenant_protos.GetControlProxyRequest{Id: sampleTenantID + 1})

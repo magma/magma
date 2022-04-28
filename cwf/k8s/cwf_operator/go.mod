@@ -34,10 +34,12 @@ require (
 	github.com/go-logr/glogr v0.1.0
 	github.com/go-redis/redis v6.15.8+incompatible // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
+	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6 // indirect
 	github.com/operator-framework/operator-sdk v0.19.4
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
-	google.golang.org/grpc v1.31.0
+	google.golang.org/grpc v1.43.0
+	gotest.tools/v3 v3.2.0 // indirect
 	k8s.io/api v0.18.2
 	k8s.io/apimachinery v0.18.2
 	k8s.io/client-go v12.0.0+incompatible
@@ -50,8 +52,10 @@ require (
 )
 
 // Pinned to kubernetes-1.16.2
+// TODO remove golang.org/x/net line once Go Upgrade (https://github.com/magma/magma/pull/12151) is merged
 replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.2+incompatible // Required by OLM
+	golang.org/x/net => golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 
 	k8s.io/api => k8s.io/api v0.18.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.18.2

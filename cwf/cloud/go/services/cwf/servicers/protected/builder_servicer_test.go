@@ -33,6 +33,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 	orc8r_mconfig "magma/orc8r/lib/go/protos/mconfig"
 )
@@ -162,7 +163,7 @@ func TestBuilder_Build(t *testing.T) {
 
 		actual, err := build(&nw, &graph, "gw1")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		test_utils.AssertMapsEqual(t, expected, actual)
 	})
 }
 

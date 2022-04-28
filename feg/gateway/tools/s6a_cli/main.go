@@ -272,7 +272,7 @@ func air(cmd *commands.Command, args []string) int {
 				errChann <- errCli
 				return
 			}
-			fmt.Printf("Sending AIR to %s:\n%s\n%+#v\n\n", peerAddr, json, *req)
+			fmt.Printf("Sending AIR to %s:\n%s\n%+#v\n\n", peerAddr, json, req)
 			r, errCli := cli.AuthenticationInformation(req)
 			if errCli != nil || r == nil {
 				errCli = fmt.Errorf("GRPC AIR Error: %v", errCli)
@@ -282,11 +282,11 @@ func air(cmd *commands.Command, args []string) int {
 			}
 			json, errCli = orcprotos.MarshalIntern(r)
 			if errCli != nil {
-				errCli = fmt.Errorf("Marshal Error %v for result: %+v", errCli, *r)
+				errCli = fmt.Errorf("Marshal Error %v for result: %+v", errCli, r)
 				errChann <- errCli
 				return
 			}
-			fmt.Printf("Received AIA:\n%s\n%+v\n", json, *r)
+			fmt.Printf("Received AIA:\n%s\n%+v\n", json, r)
 		}()
 	}
 
