@@ -276,6 +276,7 @@ describe('<NetworkDashboard />', () => {
     MagmaAPIBindings.putLteByNetworkIdDns.mockImplementation(() =>
       Promise.resolve({data: {success: true}}),
     );
+    MagmaAPIBindings.getNetworks.mockImplementation(() => Promise.resolve([]));
   });
 
   afterEach(() => {

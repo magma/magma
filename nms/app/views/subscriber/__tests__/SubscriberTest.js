@@ -96,6 +96,7 @@ describe('<SubscriberDashboard />', () => {
       subscribers: subscribers,
       next_page_token: '',
     });
+    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
   });
 
   const Wrapper = () => {

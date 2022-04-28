@@ -13,13 +13,8 @@
  * @flow strict-local
  * @format
  */
-import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
-import type {lte_gateway} from '../../../generated/MagmaAPIBindings';
-
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
-import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
-import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardAlertTable from '../../components/DashboardAlertTable';
@@ -28,7 +23,7 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import EventsTable from '../../views/events/EventsTable';
-import GatewayConfig from './GatewayDetailConfig';
+import GatewayConfig, {GatewayJsonConfig} from './GatewayDetailConfig';
 import GatewayConfigYml from './GatewayYMLConfig';
 import GatewayContext from '../../components/context/GatewayContext';
 import GatewayDetailEnodebs from './GatewayDetailEnodebs';
@@ -39,11 +34,11 @@ import GatewaySummary from './GatewaySummary';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import ListAltIcon from '@material-ui/icons/ListAlt';
-import Menu from '@material-ui/core/Menu';
+import MenuButton from '../../components/MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
 import PeopleIcon from '@material-ui/icons/People';
-import React from 'react';
+import React, {useContext, useState} from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import Tab from '@material-ui/core/Tab';
@@ -52,7 +47,6 @@ import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
-import {GatewayJsonConfig} from './GatewayDetailConfig';
 import {
   GenericCommandControls,
   PingCommandControls,
@@ -60,60 +54,22 @@ import {
 } from '../../components/GatewayCommandFields';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
 import {RunGatewayCommands} from '../../state/lte/EquipmentState';
-import {colors, typography} from '../../theme/default';
+import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {withStyles} from '@material-ui/core/styles';
+
+import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import type {lte_gateway} from '../../../generated/MagmaAPIBindings';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
-  },
-  appBarBtn: {
-    color: colors.primary.white,
-    background: colors.primary.comet,
-    fontFamily: typography.button.fontFamily,
-    fontWeight: typography.button.fontWeight,
-    fontSize: typography.button.fontSize,
-    lineHeight: typography.button.lineHeight,
-    letterSpacing: typography.button.letterSpacing,
-
-    '&:hover': {
-      background: colors.primary.mirage,
-    },
-  },
-  paper: {
-    textAlign: 'center',
-    padding: theme.spacing(10),
   },
   tabBar: {
     backgroundColor: colors.primary.brightGray,
     color: colors.primary.white,
   },
 }));
-
-const StyledMenu = withStyles({
-  paper: {
-    border: '1px solid #d3d4d5',
-  },
-})(props => (
-  <Menu
-    data-testid="policy_menu"
-    elevation={0}
-    getContentAnchorEl={null}
-    anchorOrigin={{
-      vertical: 'bottom',
-      horizontal: 'center',
-    }}
-    transformOrigin={{
-      vertical: 'top',
-      horizontal: 'center',
-    }}
-    {...props}
-  />
-));
-
 type CommandProps = {
   gatewayID: string,
   open: boolean,
@@ -161,24 +117,14 @@ function TroubleshootingDialog(props: CommandProps) {
 }
 
 function GatewayMenuInternal(props: WithAlert) {
-  const classes = useStyles();
   const params = useParams();
   const networkId: string = nullthrows(params.networkId);
   const gatewayId: string = nullthrows(params.gatewayId);
-  const [anchorEl, setAnchorEl] = useState(null);
   const [gatewayCommandOpen, setGatewayCommandOpen] = useState(false);
   const [troubleshootingDialogOpen, setTroubleshootingDialogOpen] = useState(
     false,
   );
   const enqueueSnackbar = useEnqueueSnackbar();
-
-  const handleClick = event => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
 
   const handleGatewayMenuClick = (
     command: 'reboot' | 'ping' | 'restartServices' | 'generic',
@@ -217,17 +163,8 @@ function GatewayMenuInternal(props: WithAlert) {
         open={troubleshootingDialogOpen}
         onClose={() => setTroubleshootingDialogOpen(false)}
       />
-      <Button
-        onClick={handleClick}
-        className={classes.appBarBtn}
-        endIcon={<ArrowDropDownIcon />}>
-        Actions
-      </Button>
-      <StyledMenu
-        anchorEl={anchorEl}
-        keepMounted
-        open={Boolean(anchorEl)}
-        onClose={handleClose}>
+
+      <MenuButton label="Actions" size="small">
         <MenuItem
           data-testid="gatewayReboot"
           onClick={() =>
@@ -236,7 +173,7 @@ function GatewayMenuInternal(props: WithAlert) {
               `Are you sure you want to reboot ${gatewayId}?`,
             )
           }>
-          <Text variant="subtitle2">Reboot</Text>
+          <Text variant="body2">Reboot</Text>
         </MenuItem>
         <MenuItem
           data-testid="gatewayRestartServices"
@@ -246,15 +183,15 @@ function GatewayMenuInternal(props: WithAlert) {
               `Are you sure you want to restart all services on ${gatewayId}?`,
             )
           }>
-          <Text variant="subtitle2">Restart Services</Text>
+          <Text variant="body2">Restart Services</Text>
         </MenuItem>
         <MenuItem onClick={() => setGatewayCommandOpen(true)}>
-          <Text variant="subtitle2">Command</Text>
+          <Text variant="body2">Command</Text>
         </MenuItem>
         <MenuItem onClick={() => setTroubleshootingDialogOpen(true)}>
-          <Text variant="subtitle2">Troubleshoot</Text>
+          <Text variant="body2">Troubleshoot</Text>
         </MenuItem>
-      </StyledMenu>
+      </MenuButton>
     </div>
   );
 }

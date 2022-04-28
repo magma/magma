@@ -190,6 +190,7 @@ describe('<TrafficDashboard />', () => {
         redirect_information: {},
       },
     );
+    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
   });
 
   const PolicyWrapper = ({networkType}) => (

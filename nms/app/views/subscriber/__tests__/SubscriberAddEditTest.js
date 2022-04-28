@@ -225,6 +225,7 @@ describe('<AddSubscriberButton />', () => {
     MagmaAPIBindings.getLteByNetworkIdSubscriberConfigBaseNames.mockResolvedValue(
       [],
     );
+    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
   });
 
   const AddWrapper = () => {
