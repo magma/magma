@@ -63,7 +63,7 @@
     "mariadb": "^2.4.2",
     "material-ui-dropzone": "^3.5.0",
     "minimist": "^1.2.5",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "moo": "^0.5.1",
     "morgan": "^1.9.1",
     "mysql2": "^1.5.3",
