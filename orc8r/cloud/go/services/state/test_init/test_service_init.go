@@ -52,7 +52,7 @@ func StartTestServiceInternal(t *testing.T, dbName, dbDriver string) (reindex.Re
 }
 
 func startService(t *testing.T, db *sql.DB) (reindex.Reindexer, reindex.JobQueue) {
-	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, state.ServiceName)
+	srv, lis, _ := test_utils.NewTestService(t, orc8r.ModuleName, state.ServiceName)
 
 	factory := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 	require.NoError(t, factory.InitializeFactory())
@@ -71,7 +71,7 @@ func startService(t *testing.T, db *sql.DB) (reindex.Reindexer, reindex.JobQueue
 	indexerServicer := protected_servicers.NewIndexerManagerServicer(reindexer, false)
 	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
 
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 	return reindexer, queue
 }
 
@@ -85,7 +85,7 @@ func StartTestSingletonServiceInternal(t *testing.T) reindex.Reindexer {
 }
 
 func startSingletonService(t *testing.T, db *sql.DB) reindex.Reindexer {
-	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, state.ServiceName)
+	srv, lis, _ := test_utils.NewTestService(t, orc8r.ModuleName, state.ServiceName)
 
 	factory := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 	require.NoError(t, factory.InitializeFactory())
@@ -104,6 +104,6 @@ func startSingletonService(t *testing.T, db *sql.DB) reindex.Reindexer {
 	indexerServicer := protected_servicers.NewIndexerManagerServicer(reindexer, false)
 	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
 
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 	return reindexer
 }

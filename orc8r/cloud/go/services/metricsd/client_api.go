@@ -36,7 +36,7 @@ func PushMetrics(ctx context.Context, metrics protos.PushedMetricsContainer) err
 // getCloudMetricsdClient is a utility function to get a RPC connection to the
 // metricsd service
 func getCloudMetricsdClient() (protos.CloudMetricsControllerClient, error) {
-	conn, err := service_registry.GetConnection(ServiceName)
+	conn, err := service_registry.GetConnection(ServiceName, protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

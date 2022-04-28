@@ -110,7 +110,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to create certifier server: %s", err)
 	}
-	certprotos.RegisterCertifierServer(srv.GrpcServer, servicer)
+	certprotos.RegisterCertifierServer(srv.ProtectedGrpcServer, servicer)
 
 	// Add handlers that manages users to Swagger
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(certifier.ServiceName))

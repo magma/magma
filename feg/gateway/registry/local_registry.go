@@ -16,6 +16,8 @@ package registry
 import (
 	"log"
 
+	"magma/orc8r/lib/go/protos"
+
 	"google.golang.org/grpc"
 
 	"magma/orc8r/lib/go/registry"
@@ -63,12 +65,12 @@ func AddService(serviceType, host string, port int) {
 // Returns the RPC address of the service.
 // The service needs to be added to the registry before this.
 func GetServiceAddress(service string) (string, error) {
-	return fegRegistry.GetServiceAddress(service)
+	return fegRegistry.GetServiceAddress(service, protos.ServiceType_SOUTHBOUND)
 }
 
 // Provides a gRPC connection to a service in the registry.
 func GetConnection(service string) (*grpc.ClientConn, error) {
-	return fegRegistry.GetConnection(service)
+	return fegRegistry.GetConnection(service, protos.ServiceType_SOUTHBOUND)
 }
 
 func addLocalService(serviceType string, port int) {

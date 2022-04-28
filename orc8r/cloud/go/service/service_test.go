@@ -40,21 +40,21 @@ func TestServiceRun(t *testing.T) {
 	serviceName := state.ServiceName
 
 	// Create the service
-	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, serviceName, nil, nil)
+	srv, lis, _ := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, serviceName, nil, nil)
 	assert.Equal(t, protos.ServiceInfo_STARTING, srv.State)
 	assert.Equal(t, protos.ServiceInfo_APP_UNHEALTHY, srv.Health)
 	assert.NotNil(t, srv.EchoServer)
 
-	// start the service
-	go srv.RunTest(lis)
+	// Start the service
+	go srv.RunTest(lis, nil)
 
-	// wait for the service to be started and check its state and health
+	// Wait for the service to be started and check its state and health
 	time.Sleep(time.Second)
 	assert.Equal(t, protos.ServiceInfo_ALIVE, srv.State)
 	assert.Equal(t, protos.ServiceInfo_APP_HEALTHY, srv.Health)
 
 	// Create a rpc stub and query the Service303 interface
-	conn, err := registry.GetConnection(serviceName)
+	conn, err := registry.GetConnection(serviceName, protos.ServiceType_SOUTHBOUND)
 	assert.NoError(t, err, "err in getting connection to service")
 	client := protos.NewService303Client(conn)
 
@@ -78,4 +78,32 @@ func TestServiceRun(t *testing.T) {
 
 	assert.Equal(t, protos.ServiceInfo_STOPPING, srv.State)
 	assert.Equal(t, protos.ServiceInfo_APP_UNHEALTHY, srv.Health)
+}
+
+func TestRun_WithProtectedGrpcServer(t *testing.T) {
+	//testStartTime := time.Now().Unix()
+	//allowedStartRange := 15.0
+	serviceName := state.ServiceName
+
+	// Create the service
+	srv, lis, plis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, serviceName, nil, nil, protos.ServiceType_PROTECTED)
+	assert.Equal(t, protos.ServiceInfo_STARTING, srv.State)
+	assert.Equal(t, protos.ServiceInfo_APP_UNHEALTHY, srv.Health)
+	assert.NotNil(t, srv.EchoServer)
+
+	// Start the service
+	go srv.RunTest(lis, plis)
+
+	// Wait for the service to be started and check its state and health
+	time.Sleep(time.Second)
+	assert.Equal(t, protos.ServiceInfo_ALIVE, srv.State)
+	assert.Equal(t, protos.ServiceInfo_APP_HEALTHY, srv.Health)
+
+	// Create a rpc stub and query the Service303 interface
+	_, err := registry.GetConnection(serviceName, protos.ServiceType_SOUTHBOUND)
+	assert.NoError(t, err, "err in getting connection to service")
+
+	// Create a protected rpc stub to make sure that our client can connect to service
+	_, err = registry.GetConnection(serviceName, protos.ServiceType_PROTECTED)
+	assert.NoError(t, err, "err in getting protected connection to service")
 }

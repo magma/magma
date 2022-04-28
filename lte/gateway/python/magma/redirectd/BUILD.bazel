@@ -31,7 +31,7 @@ py_binary(
     python_version = "PY3",
     visibility = ["//visibility:private"],
     deps = [
-        ":redirectd_lib",
+        ":redirect_server",
         "//lte/protos:mconfigs_python_proto",
         "//orc8r/gateway/python/magma/common:sentry",
         "//orc8r/gateway/python/magma/common:service",
@@ -40,20 +40,26 @@ py_binary(
 )
 
 py_library(
-    name = "redirectd_lib",
-    srcs = [
-        "redirect_server.py",
-        "redirect_store.py",
-    ],
+    name = "redirect_server",
+    srcs = ["redirect_server.py"],
     data = [
         "templates/404.html",
         "templates/layout.html",
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//lte/protos:policydb_python_proto",
-        "//orc8r/gateway/python/magma/common/redis:client",
+        ":redirect_store",
         requirement("flask"),
         requirement("wsgiserver"),
+    ],
+)
+
+py_library(
+    name = "redirect_store",
+    srcs = ["redirect_store.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//lte/protos:policydb_python_proto",
+        "//orc8r/gateway/python/magma/common/redis:client",
     ],
 )

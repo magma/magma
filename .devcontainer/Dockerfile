@@ -293,7 +293,7 @@ RUN git clone https://github.com/include-what-you-use/include-what-you-use && \
     git checkout 0.15 && \
     cd .. && \
     mkdir build_iwyu && cd build_iwyu && \
-    cmake -G "Unix Makefiles" -DIWHYU_LLVM_ROOT_PATH=/usr/lib/llvm-11 ../include-what-you-use/ && \
+    cmake -G "Unix Makefiles" -DCMAKE_PREFIX_PATH=/usr/lib/llvm-11 ../include-what-you-use/ && \
     make && \
     make install && \
     cd / && \

@@ -26,7 +26,7 @@ pytest_test(
         ORC8R_ROOT,
     ],
     deps = [
-        "//lte/gateway/python/magma/redirectd:redirectd_lib",
+        "//lte/gateway/python/magma/redirectd:redirect_server",
         "//lte/protos:policydb_python_proto",
     ],
 )

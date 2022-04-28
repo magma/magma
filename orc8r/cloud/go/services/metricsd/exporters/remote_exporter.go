@@ -8,6 +8,7 @@ import (
 
 	"magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/lib/go/merrors"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -32,7 +33,7 @@ func (r *remoteExporter) Submit(metrics []MetricAndContext) error {
 }
 
 func (r *remoteExporter) getExporterClient() (protos.MetricsExporterClient, error) {
-	conn, err := registry.GetConnection(r.service)
+	conn, err := registry.GetConnection(r.service, lib_protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, r.service)
 		glog.Error(initErr)

@@ -62,12 +62,12 @@ func (c testEapClient) Handle(in *protos.Eap) (*protos.Eap, error) {
 
 func TestEAPClientApi(t *testing.T) {
 	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
-	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
+	srv, lis, _ := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 
-	eapSrv, eapLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
+	eapSrv, eapLis, _ := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
 	servicer, err := servicers.NewEapAkaService(nil)
 	if err != nil {
 		t.Fatalf("failed to create EAP AKA Service: %v", err)
@@ -76,7 +76,7 @@ func TestEAPClientApi(t *testing.T) {
 	eap_registry.Register(aka_provider.NewService(servicer)) // register aka provider for linked local service
 
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
-	go eapSrv.RunTest(eapLis)
+	go eapSrv.RunTest(eapLis, nil)
 
 	go eap_test.Auth(t, testEapClient{}, eap_test.IMSI2, 10, nil) // start IMSI2 tests in parallel
 
@@ -181,12 +181,12 @@ func TestEAPClientApi(t *testing.T) {
 
 func TestEAPClientApiConcurent(t *testing.T) {
 	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
-	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
+	srv, lis, _ := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 
-	eapSrv, eapLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
+	eapSrv, eapLis, _ := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
 	servicer, err := servicers.NewEapAkaService(&mconfig.EapAkaConfig{
 		Timeout: &mconfig.EapAkaConfig_Timeouts{
 			ChallengeMs:            700,
@@ -199,7 +199,7 @@ func TestEAPClientApiConcurent(t *testing.T) {
 		return
 	}
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
-	go eapSrv.RunTest(eapLis)
+	go eapSrv.RunTest(eapLis, nil)
 
 	done := make(chan error)
 	go eap_test.Auth(t, testEapClient{}, eap_test.IMSI1, 99, done)

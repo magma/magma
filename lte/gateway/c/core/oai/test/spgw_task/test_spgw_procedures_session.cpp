@@ -20,7 +20,7 @@
 
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 #include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
-#include "lte/gateway/c/core/oai/test/spgw_task/spgw_procedures_test_fixture.h"
+#include "lte/gateway/c/core/oai/test/spgw_task/spgw_procedures_test_fixture.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"

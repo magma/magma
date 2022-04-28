@@ -14,6 +14,8 @@ limitations under the License.
 package db
 
 import (
+	"fmt"
+
 	sq "github.com/Masterminds/squirrel"
 
 	"magma/orc8r/cloud/go/sqorc"
@@ -21,10 +23,9 @@ import (
 
 func (q *Query) Insert() (int64, error) {
 	var id int64
-	fields := applyMask(q.arg.model.Fields(), q.arg.mask)
 	err := q.builder.
-		Insert(q.arg.model.GetMetadata().Table).
-		SetMap(toValues(fields)).
+		Insert(buildFrom(q.arg)).
+		SetMap(filterValues(q.arg)).
 		Suffix("RETURNING id").
 		QueryRow().
 		Scan(&id)
@@ -32,10 +33,9 @@ func (q *Query) Insert() (int64, error) {
 }
 
 func (q *Query) Update() error {
-	fields := applyMask(q.arg.model.Fields(), q.arg.mask)
 	_, err := q.builder.
-		Update(q.arg.model.GetMetadata().Table).
-		SetMap(toValues(fields)).
+		Update(buildFrom(q.arg)).
+		SetMap(filterValues(q.arg)).
 		Where(q.arg.filter).
 		Exec()
 	return err
@@ -43,7 +43,7 @@ func (q *Query) Update() error {
 
 func (q *Query) Delete() error {
 	_, err := q.builder.
-		Delete(q.arg.model.GetMetadata().Table).
+		Delete(buildFrom(q.arg)).
 		Where(q.arg.filter).
 		Exec()
 	return err
@@ -53,7 +53,7 @@ func (q *Query) Count() (int64, error) {
 	var count int64
 	err := q.builder.
 		Select("COUNT(*)").
-		From(q.arg.model.GetMetadata().Table).
+		From(buildFrom(q.arg)).
 		Where(q.arg.filter).
 		QueryRow().
 		Scan(&count)
@@ -61,18 +61,18 @@ func (q *Query) Count() (int64, error) {
 }
 
 func (q *Query) Fetch() ([]Model, error) {
-	colsCollector := collectColumns(q)
-	fieldsCollector := collectFields(q, colsCollector.columns)
-	query := buildQuery(q.builder, q, q.arg.filter, colsCollector.getColumnNames())
+	c := collectColumns(q)
+	models, pointers := c.getPointers()
+	query := buildQuery(q.builder, q, q.arg.filter, c.getColumnNames())
 	err := query.
 		QueryRow().
-		Scan(fieldsCollector.pointers...)
-	return fieldsCollector.models, err
+		Scan(pointers...)
+	return models, err
 }
 
 func (q *Query) List() ([][]Model, error) {
-	colsCollector := collectColumns(q)
-	query := buildQuery(q.builder, q, q.arg.filter, colsCollector.getColumnNames())
+	c := collectColumns(q)
+	query := buildQuery(q.builder, q, q.arg.filter, c.getColumnNames())
 	query = addPagination(q.pagination, query)
 	rows, err := query.Query()
 	if err != nil {
@@ -81,47 +81,34 @@ func (q *Query) List() ([][]Model, error) {
 	defer sqorc.CloseRowsLogOnError(rows, "List")
 	var result [][]Model
 	for rows.Next() {
-		fieldsCollector := collectFields(q, colsCollector.columns)
-		if err := rows.Scan(fieldsCollector.pointers...); err != nil {
+		models, pointers := c.getPointers()
+		if err := rows.Scan(pointers...); err != nil {
 			return nil, err
 		}
-		result = append(result, fieldsCollector.models)
+		result = append(result, models)
 	}
 	return result, rows.Err()
 }
 
-func applyMask(fields map[string]BaseType, mask FieldMask) map[string]BaseType {
-	m := make(map[string]BaseType, len(fields))
-	for k, v := range fields {
-		if mask.ShouldInclude(k) {
-			m[k] = v
-		}
-	}
-	return m
+func buildFrom(arg *arg) string {
+	return fmt.Sprintf("%s %s", arg.metadata.Table, arg.alias)
 }
 
-func applyMaskToMetadata(fields map[string]*Field, mask FieldMask) map[string]*Field {
-	m := make(map[string]*Field, len(fields))
-	for k, v := range fields {
-		if mask.ShouldInclude(k) {
-			m[k] = v
+func filterValues(arg *arg) map[string]interface{} {
+	values := map[string]interface{}{}
+	fields := arg.model.Fields()
+	for i, p := range arg.metadata.Properties {
+		if arg.mask.ShouldInclude(p.Name) {
+			values[p.Name] = fields[i].value()
 		}
 	}
-	return m
-}
-
-func toValues(fields map[string]BaseType) map[string]interface{} {
-	m := make(map[string]interface{}, len(fields))
-	for k, v := range fields {
-		m[k] = v.value()
-	}
-	return m
+	return values
 }
 
 func buildQuery(builder sq.StatementBuilderType, q *Query, filter sq.Sqlizer, columns []string) sq.SelectBuilder {
 	return builder.
 		Select(columns...).
-		From(q.arg.model.GetMetadata().Table).
+		From(buildFrom(q.arg)).
 		JoinClause(&joinClause{query: q}).
 		Where(filter)
 }

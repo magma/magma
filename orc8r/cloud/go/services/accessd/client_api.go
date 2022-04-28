@@ -32,7 +32,7 @@ const ServiceName = "accessd"
 // getAccessbClient is a utility function to get a RPC connection to the
 // accessd service
 func getAccessdClient() (accessprotos.AccessControlManagerClient, error) {
-	conn, err := registry.GetConnection(ServiceName)
+	conn, err := registry.GetConnection(ServiceName, protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

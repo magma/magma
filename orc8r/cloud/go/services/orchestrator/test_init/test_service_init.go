@@ -58,7 +58,7 @@ func StartTestServiceInternal(
 		annotations[orc8r.StreamProviderStreamsAnnotation] = definitions.MconfigStreamName
 	}
 
-	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, orchestrator.ServiceName, labels, annotations)
+	srv, lis, _ := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, orchestrator.ServiceName, labels, annotations)
 	protos.RegisterStreamerServer(srv.GrpcServer, &testStreamerServer{})
 
 	if builder != nil {
@@ -71,5 +71,5 @@ func StartTestServiceInternal(
 		streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, provider)
 	}
 
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 }

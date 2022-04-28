@@ -11,18 +11,24 @@
  * limitations under the License.
  */
 
-#include <glog/logging.h>
 #include <gtest/gtest.h>
-
+#include <lte/protos/session_manager.pb.h>
+#include <functional>
 #include <memory>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <utility>
 
-#include "Consts.h"
-#include "magma_logging.h"
-#include "MemoryStoreClient.h"
-#include "ProtobufCreators.h"
-#include "RuleStore.h"
-#include "SessionID.h"
-#include "SessionState.h"
+#include "lte/gateway/c/session_manager/MemoryStoreClient.hpp"
+#include "lte/gateway/c/session_manager/RuleStore.hpp"
+#include "lte/gateway/c/session_manager/SessionID.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/StoreClient.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
+#include "lte/gateway/c/session_manager/test/Consts.hpp"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.hpp"
 
 using ::testing::Test;
 

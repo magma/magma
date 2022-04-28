@@ -49,7 +49,6 @@ func (s *CbsdManagerTestSuite) SetupSuite() {
 	err = s.resourceManager.CreateTables(
 		&storage.DBCbsdState{},
 		&storage.DBCbsd{},
-		&storage.DBActiveModeConfig{},
 		&storage.DBGrantState{},
 		&storage.DBGrant{},
 	)
@@ -77,7 +76,6 @@ func (s *CbsdManagerTestSuite) SetupSuite() {
 func (s *CbsdManagerTestSuite) TearDownTest() {
 	err := s.resourceManager.DropResources(
 		&storage.DBCbsd{},
-		&storage.DBActiveModeConfig{},
 		&storage.DBGrant{},
 	)
 	s.Require().NoError(err)
@@ -96,10 +94,16 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 		actual, err := db.NewQuery().
 			WithBuilder(s.resourceManager.GetBuilder()).
 			From(&storage.DBCbsd{}).
-			Select(db.NewExcludeMask("id", "state_id")).
+			Select(db.NewExcludeMask("id", "state_id", "desired_state_id")).
 			Join(db.NewQuery().
 				From(&storage.DBCbsdState{}).
-				On(db.On(storage.CbsdTable, "state_id", storage.CbsdStateTable, "id")).
+				As("t1").
+				On(db.On(storage.CbsdTable, "state_id", "t1", "id")).
+				Select(db.NewIncludeMask("name"))).
+			Join(db.NewQuery().
+				From(&storage.DBCbsdState{}).
+				As("t2").
+				On(db.On(storage.CbsdTable, "desired_state_id", "t2", "id")).
 				Select(db.NewIncludeMask("name"))).
 			Where(sq.Eq{"cbsd_serial_number": "some_serial_number"}).
 			Fetch()
@@ -113,29 +117,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 		expected := []db.Model{
 			cbsd,
 			&storage.DBCbsdState{Name: db.MakeString("unregistered")},
-		}
-		s.Assert().Equal(expected, actual)
-
-		actual, err = db.NewQuery().
-			WithBuilder(s.resourceManager.GetBuilder()).
-			From(&storage.DBActiveModeConfig{}).
-			Select(db.NewIncludeMask()).
-			Join(db.NewQuery().
-				From(&storage.DBCbsdState{}).
-				On(db.On(storage.CbsdStateTable, "id", storage.ActiveModeConfigTable, "desired_state_id")).
-				Select(db.NewIncludeMask("name"))).
-			Join(db.NewQuery().
-				From(&storage.DBCbsd{}).
-				On(db.On(storage.CbsdTable, "id", storage.ActiveModeConfigTable, "cbsd_id")).
-				Select(db.NewIncludeMask())).
-			Where(sq.Eq{"cbsd_serial_number": "some_serial_number"}).
-			Fetch()
-		s.Require().NoError(err)
-
-		expected = []db.Model{
-			&storage.DBActiveModeConfig{},
 			&storage.DBCbsdState{Name: db.MakeString("registered")},
-			&storage.DBCbsd{},
 		}
 		s.Assert().Equal(expected, actual)
 	})
@@ -189,7 +171,8 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 		actual, err := db.NewQuery().
 			WithBuilder(s.resourceManager.GetBuilder()).
 			From(&storage.DBCbsd{}).
-			Select(db.NewExcludeMask("id", "state_id", "cbsd_id", "grant_attempts", "is_deleted")).
+			Select(db.NewExcludeMask("id", "state_id", "desired_state_id",
+				"cbsd_id", "grant_attempts", "is_deleted")).
 			Where(sq.Eq{"id": cbsdId}).
 			Fetch()
 		s.Require().NoError(err)
@@ -531,6 +514,7 @@ func getCbsd(networkId string, stateId int64) *storage.DBCbsd {
 	base := getBaseCbsd()
 	base.NetworkId = db.MakeString(networkId)
 	base.StateId = db.MakeInt(stateId)
+	base.DesiredStateId = db.MakeInt(stateId)
 	base.CbsdId = db.MakeString("some_cbsd_id")
 	base.ShouldDeregister = db.MakeBool(false)
 	base.IsDeleted = db.MakeBool(false)

@@ -122,6 +122,7 @@ static int s1ap_mme_compare_tac(const S1ap_TAC_t* const tac) {
 int s1ap_mme_compare_ta_lists(S1ap_SupportedTAs_t* ta_list) {
   int i;
   int tac_ret, bplmn_ret;
+  int tac_matches = 0, bplmn_matches = 0;
 
   DevAssert(ta_list != NULL);
 
@@ -137,17 +138,25 @@ int s1ap_mme_compare_ta_lists(S1ap_SupportedTAs_t* ta_list) {
     bplmn_ret = s1ap_mme_compare_plmns(&ta->broadcastPLMNs);
 
     if (tac_ret == TA_LIST_NO_MATCH && bplmn_ret == TA_LIST_NO_MATCH) {
-      return TA_LIST_UNKNOWN_PLMN + TA_LIST_UNKNOWN_TAC;
-    } else {
-      if (tac_ret > TA_LIST_NO_MATCH && bplmn_ret == TA_LIST_NO_MATCH) {
-        return TA_LIST_UNKNOWN_PLMN;
-      } else if (tac_ret == TA_LIST_NO_MATCH && bplmn_ret > TA_LIST_NO_MATCH) {
-        return TA_LIST_UNKNOWN_TAC;
-      }
+      continue;
+    }
+
+    if (tac_ret > TA_LIST_NO_MATCH && bplmn_ret == TA_LIST_NO_MATCH) {
+      tac_matches++;
+    } else if (tac_ret == TA_LIST_NO_MATCH && bplmn_ret > TA_LIST_NO_MATCH) {
+      bplmn_matches++;
+    } else if (tac_ret > TA_LIST_NO_MATCH && bplmn_ret > TA_LIST_NO_MATCH) {
+      return TA_LIST_RET_OK;
     }
   }
 
-  return TA_LIST_RET_OK;
+  if (tac_matches > 0) {
+    return TA_LIST_UNKNOWN_PLMN;
+  } else if (bplmn_matches > 0) {
+    return TA_LIST_UNKNOWN_TAC;
+  }
+
+  return TA_LIST_UNKNOWN_TAC + TA_LIST_UNKNOWN_PLMN;
 }
 
 /* @brief compare PLMNs

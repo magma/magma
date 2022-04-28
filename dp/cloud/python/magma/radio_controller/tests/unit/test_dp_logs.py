@@ -35,6 +35,7 @@ class DPLogsTestCase(LocalDBTestCase):
         cbsd_state = DBCbsdState(name='some_cbsd_state')
         cbsd = DBCbsd(
             state=cbsd_state,
+            desired_state=cbsd_state,
             fcc_id=SOME_FCC_ID,
             cbsd_serial_number=SOME_SERIAL_NUMBER,
             network_id=SOME_NETWORK_ID,

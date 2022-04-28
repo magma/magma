@@ -20,7 +20,7 @@ This chart installs the magma NMS. The NMS is the UI for managing, configuring, 
 
 3. MySql Database created for NMS
 
-4. magmalte image ( build using Docker file https://github.com/magma/magma/blob/master/nms/packages/magmalte/Dockerfile )
+4. magmalte image ( build using Docker file https://github.com/magma/magma/blob/master/nms/Dockerfile )
 
 
 
@@ -101,9 +101,9 @@ kubectl exec -it -n magma $(kubectl get pod -n magma  \
 
 - NMS Dashboard should be reachable via https://<nginx_svc>
 
-Get nginx_svc with following command 
+Get nginx_svc with following command
 
 ```bash
-kubectl get svc -n magma -l app.kubernetes.io/component=nginx,app.kubernetes.io/instance=nms \ 
+kubectl get svc -n magma -l app.kubernetes.io/component=nginx,app.kubernetes.io/instance=nms \
 -o jsonpath="{.items[0].spec.clusterIP}"
 ```

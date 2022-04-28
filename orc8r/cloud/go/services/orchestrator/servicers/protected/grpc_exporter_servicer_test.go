@@ -27,6 +27,7 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/servicers/mocks"
 	servicers "magma/orc8r/cloud/go/services/orchestrator/servicers/protected"
 	"magma/orc8r/cloud/go/test_utils"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -123,11 +124,11 @@ func TestGRPCExporter(t *testing.T) {
 // The returned exporter forwards to the metrics exporter, which in turn
 // forwards to the edge hub.
 func makeExporter(t *testing.T, mockEdge edge_hub.MetricsControllerServer) exporters.Exporter {
-	edgeSrv, lis := test_utils.NewTestService(t, orc8r.ModuleName, edgeControllerServiceName)
+	edgeSrv, lis, _ := test_utils.NewTestService(t, orc8r.ModuleName, edgeControllerServiceName)
 	edge_hub.RegisterMetricsControllerServer(edgeSrv.GrpcServer, mockEdge)
-	go edgeSrv.RunTest(lis)
+	go edgeSrv.RunTest(lis, nil)
 
-	edgeAddr, err := registry.GetServiceAddress(edgeControllerServiceName)
+	edgeAddr, err := registry.GetServiceAddress(edgeControllerServiceName, lib_protos.ServiceType_SOUTHBOUND)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, edgeAddr)
 

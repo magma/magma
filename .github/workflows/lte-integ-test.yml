@@ -43,6 +43,8 @@ jobs:
       - name: Run the integ test
         run: |
           cd lte/gateway
+          export MAGMA_DEV_CPUS=3
+          export MAGMA_DEV_MEMORY_MB=9216
           fab integ_test
       - name: Get test results
         if: always()

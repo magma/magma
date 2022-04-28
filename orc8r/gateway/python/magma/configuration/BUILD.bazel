@@ -43,3 +43,8 @@ py_library(
         requirement("snowflake"),
     ],
 )
+
+py_library(
+    name = "environment",
+    srcs = ["environment.py"],
+)

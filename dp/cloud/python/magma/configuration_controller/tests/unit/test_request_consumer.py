@@ -95,6 +95,7 @@ class RegistrationDBConsumerTestCase(LocalDBTestCase):
                     id=int(i),
                     cbsd_id=f"foo{i}",
                     state=test_state,
+                    desired_state=test_state,
                     user_id="test_user",
                     fcc_id=f"test_fcc_id{i}",
                     cbsd_serial_number=f"test_serial_nr{i}",

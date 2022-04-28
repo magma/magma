@@ -9,17 +9,9 @@ The Magma NMS provides an enterprise grade GUI for provisioning and operating ma
 
 ## Project Layout
 
-There are two main directories, and `package.json` files.
-
-### Main Application Directory
-In `magma/nms/packages/magmalte`, the main NMS application lives.
-Here, `package.json` specifies NMS application dependencies.
-
-### Dev Workflows Directory
-Some dev workflows and commands live directly in `magma/nms`.
-We plan to merge this directory with the main application directory.
-Here, `package.json` specifies dependencies necessary for development workflows and testing.
-Specifically, triggering unit tests, e2e tests, eslint, and flow tests are done from this directory.
+The NMS application lives in [`nms/`](../nms/).
+Here, `package.json` specifies the necessary dependencies and development scripts.
+Triggering unit tests, e2e tests, eslint, and flow tests is done from this directory.
 
 ---
 ## Running Local Dev NMS
@@ -42,13 +34,13 @@ Specifically, triggering unit tests, e2e tests, eslint, and flow tests are done 
 - This is optional during development
 
 ### Build NMS Docker Image
-Run the following command from `magma/nms/packages/magmalte`
+Run the following command from [`nms/`](../nms/)
 ```
-docker-compose build magmalte
+COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
 ```
 
 ### Run NMS Containers
-Run the following command from `magma/nms/packages/magmalte`
+Run the following command from [`nms/`](../nms/)
 ```
 docker-compose up -d
 ```
@@ -100,7 +92,7 @@ magmalte_1     | 2021-09-11T22:16:12.511Z [express-middleware/webpackSmartMiddle
 ```
 
 ### Checking NMS Logs
-Run the following from `magma/nms/packages/magmalte`
+Run the following from [`nms/`](../nms/)
 ```
 docker-compose logs -f magmalte
 ```
@@ -133,38 +125,33 @@ Install yarn if you don't already have it:
 npm install --global yarn
 ```
 
-Run the following command from `magma/nms` to install these dependencies:
-```
-yarn install --frozen-lockfile
-```
-
-And also install additional dependencies from `magma/nms/packages/magmalte`:
+Run the following command from [`nms/`](../nms/) to install all dependencies:
 ```
 yarn install --frozen-lockfile
 ```
 
 ### Eslint
-Run from `magma/nms`.
+Run from [`nms/`](../nms/).
 Version `7.3.2` of `eslint` is used currently.
 ```
 yarn run eslint ./
 ```
 
 ### Flow
-Run from `magma/nms`.
+Run from [`nms/`](../nms/).
 Version `0.132.0` of `flow` is used currently.
 ```
 flow
 ```
 
 ### Unit Tests
-Run from `magma/nms`
+Run from [`nms/`](../nms/)
 ```
 yarn run test
 ```
 
 ### E2E Tests
-Run from `magma/nms/packages/magmalte`
+Run from [`nms/`](../nms/)
 ```
 ./e2e_test_setup.sh
 ```
@@ -172,7 +159,7 @@ This brings up the NMS docker containers, as well as a mock Orc8r API server.
 Tests are run using puppeteer to control a headless Chrome.
 
 These tests can also be triggered without the mocked API.
-Run the following in `magma/nms` in the `magmalte` docker container:
+Run the following in [`nms/`](../nms/) in the `magmalte` docker container:
 ```
 yarn test:e2e
 ```
@@ -190,10 +177,10 @@ Run `./build.py --generate` in `${MAGMA_ROOT}/orc8r/cloud/docker`
 This re-generates various files, including `MagmaAPIBindings.js` for NMS.
 
 ### How to re-generate MagmaAPIBindings.js (old)
-1. Place an up-to-date `swagger.yml` in `magma/nms/packages/magmalte`
+1. Place an up-to-date `swagger.yml` in [`nms/`](../nms/)
    You can get the full `swagger.yml` at `{orc8r domain}/swagger/v1/spec`
    (e.g. `https://localhost:9443/swagger/v1/spec`)
-2. Run `scripts/generateAPIFromSwagger.sh` from `magma/nms/packages/magmalte`
+2. Run `scripts/generateAPIFromSwagger.sh` from [`nms/`](../nms/)
 3. Delete `swagger.yml` afterwards
 
 ---
@@ -212,7 +199,7 @@ Note that any NMS user can only access the organization it was created under.
 ### First-time Setup
 When you deploy the NMS for the first time, you'll need to create a user that has access to the host organization.
 
-Run the following command from `magma/nms/packages/magmalte` and make sure to substitute `ADMIN_USER_EMAIL` and `ADMIN_USER_PASSWORD` with your desired email and password.
+Run the following command from [`nms/`](../nms/) and make sure to substitute `ADMIN_USER_EMAIL` and `ADMIN_USER_PASSWORD` with your desired email and password.
 ```
 docker-compose exec magmalte yarn setAdminPassword host ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
 ```
@@ -224,7 +211,7 @@ For example, if you created an organization called `magma-test`, you can access 
 
 ### First-time Setup (Fast)
 
-Run the following from `magma/nms/packages/magmalte` to create two users, one for `host` organization, and another for `magma-test`.
+Run the following from [`nms/`](../nms/) to create two users, one for `host` organization, and another for `magma-test`.
 The username and password for both will be `admin@magma.test` and `password1234`
 ```
 ./scripts/dev_setup.sh

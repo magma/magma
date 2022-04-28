@@ -12,16 +12,28 @@
  */
 #pragma once
 
-#include <grpc++/grpc++.h>
 #include <arpa/inet.h>
+#include <grpc++/grpc++.h>
+#include <stdint.h>
+#include <functional>
 #include <memory>
 #include <string>
 
-#include "lte/protos/mobilityd.pb.h"
 #include "lte/protos/mobilityd.grpc.pb.h"
+#include "lte/protos/mobilityd.pb.h"
 #include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 
-using grpc::Status;
+namespace grpc {
+class Channel;
+class Status;
+}  // namespace grpc
+
+namespace magma {
+namespace lte {
+class IPAddress;
+class SubscriberID;
+}  // namespace lte
+}  // namespace magma
 
 namespace magma {
 namespace lte {
@@ -40,7 +52,7 @@ class MobilitydClient {
    */
   virtual void get_subscriber_id_from_ip(
       const struct in_addr& ip,
-      std::function<void(Status status, SubscriberID)> callback) = 0;
+      std::function<void(grpc::Status status, SubscriberID)> callback) = 0;
 };
 
 /**
@@ -55,7 +67,7 @@ class AsyncMobilitydClient : public GRPCReceiver, public MobilitydClient {
 
   void get_subscriber_id_from_ip(
       const struct in_addr& ip,
-      std::function<void(Status status, SubscriberID)> callback);
+      std::function<void(grpc::Status status, SubscriberID)> callback);
 
  private:
   static const uint32_t RESPONSE_TIMEOUT_SECONDS = 6;
@@ -64,7 +76,7 @@ class AsyncMobilitydClient : public GRPCReceiver, public MobilitydClient {
  private:
   void get_subscriber_id_from_ip_rpc(
       const IPAddress& request,
-      std::function<void(Status, SubscriberID)> callback);
+      std::function<void(grpc::Status, SubscriberID)> callback);
 };
 
 }  // namespace lte

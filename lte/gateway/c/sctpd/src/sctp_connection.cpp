@@ -35,7 +35,7 @@
 #include "lte/gateway/c/sctpd/src/sctp_assoc.hpp"
 #include "lte/gateway/c/sctpd/src/sctpd.hpp"
 #include "lte/gateway/c/sctpd/src/util.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace magma {
 namespace sctpd {
