@@ -68,7 +68,7 @@ magmalte_1     | [nodemon] to restart at any time, enter `rs`
 magmalte_1     | [nodemon] or send SIGHUP to 48 to restart
 magmalte_1     | [nodemon] watching path(s): config/**/* scripts/**/* server/**/* grafana/**/* alerts/**/*
 magmalte_1     | [nodemon] watching extensions: js,mjs,json
-magmalte_1     | [nodemon] starting `node -r '@fbcnms/babel-register' scripts/server.js`
+magmalte_1     | [nodemon] starting `node -r ./fbc_js_core/babel_register/index.js scripts/server.js`
 magmalte_1     | [nodemon] spawning
 magmalte_1     | [nodemon] child pid: 60
 magmalte_1     | [nodemon] watching 39 files

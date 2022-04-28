@@ -45,9 +45,6 @@
 
 [untyped]
 // TODO - fix flow error in core packages
-.*/node_modules/@fbcnms/ui/insights/Alarms/AlarmApi.js
-.*/node_modules/@fbcnms/platform-server/network/routes.js
-.*/node_modules/@fbcnms/babel-register
 .*/fbc_js_core/ui/insights/Alarms/AlarmApi.js
 .*/fbc_js_core/platform_server/network/routes.js
 .*/fbc_js_core/babel_register
@@ -66,9 +63,6 @@ node_modules/mapbox-gl/dist/mapbox-gl.js.flow
 .*/node_modules/react-beautiful-dnd/.*
 .*/node_modules/mapbox-gl/src/.*
 .*/node_modules/express/.*
-.*/node_modules/@fbcnms/express-middleware/.*
-.*/node_modules/@fbcnms/ui/.*
-.*/node_modules/@fbcnms/util/.*
 .*/fbc_js_core/express-middleware/.*
 .*/fbc_js_core/ui/.*
 .*/fbc_js_core/util/.*
