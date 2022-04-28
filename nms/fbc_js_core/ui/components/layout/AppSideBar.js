@@ -14,13 +14,13 @@
  * @format
  */
 
-import classNames from 'classnames';
 import NetworkSelector from '../../../../app/components/NetworkSelector';
 import ProfileButton from '../ProfileButton';
 import React, {useState} from 'react';
-import {makeStyles} from '@material-ui/styles';
-import {colors} from '../../../../app/theme/default';
 import SidebarItem from '../SidebarItem';
+import classNames from 'classnames';
+import {colors} from '../../../../app/theme/default';
+import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '../../hooks';
 
 const useStyles = makeStyles(() => ({

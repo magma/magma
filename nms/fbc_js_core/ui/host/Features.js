@@ -34,7 +34,10 @@ import renderList from '../../../fbc_js_core/util/renderList';
 import {Route} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
-import {useRelativePath, useRelativeUrl} from '../../../fbc_js_core/ui/hooks/useRouter';
+import {
+  useRelativePath,
+  useRelativeUrl,
+} from '../../../fbc_js_core/ui/hooks/useRouter';
 import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(_ => ({

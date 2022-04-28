@@ -97,7 +97,7 @@ describe('<ProfileButton />', () => {
       },
     };
 
-    const {container, getByRole, getByTestId} = render(
+    const {getByRole, getByTestId} = render(
       <WrappedProfileButton
         path="/admin"
         isOrganizations={isOrganizations}

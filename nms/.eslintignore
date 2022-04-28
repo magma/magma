@@ -7,4 +7,4 @@ dist/**/*.js
 flow-typed/npm/**/*.js
 config/webpack.*.js
 generated/*.js
-fbc_js_core/**
+**/__generated__/**

@@ -15,17 +15,17 @@
  */
 
 import 'jest-dom/extend-expect';
-import React from 'react';
-import {MemoryRouter} from 'react-router-dom';
-import {fireEvent, render} from '@testing-library/react';
 import AppSideBar from '../AppSideBar';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import React from 'react';
 import RouterIcon from '@material-ui/icons/Router';
+import {MemoryRouter} from 'react-router-dom';
+import {fireEvent, render} from '@testing-library/react';
 
 const Wrapper = props => {
   return (
     <MemoryRouter initialEntries={['/nms']} initialIndex={0}>
-          {props.children}
+      {props.children}
     </MemoryRouter>
   );
 };
