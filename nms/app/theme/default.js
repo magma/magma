@@ -50,7 +50,7 @@ export const colors = {
     warningFill: '#FFFCED',
   },
   alerts: {
-    severe: 'E52240',
+    severe: '#E52240',
     major: '#E36730',
     minor: '#F5DD5A',
     other: '#88B3F9',

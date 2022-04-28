@@ -20,8 +20,7 @@ import type {TRefFor} from './types/TRefFor.flow';
 import * as React from 'react';
 import Text from '../../../../app/theme/design-system/Text';
 import classNames from 'classnames';
-import symphony from '../../theme/symphony';
-import {comet} from '../../theme/colors';
+import {colors} from '../../../../app/theme/default';
 import {joinNullableStrings} from '../../../../fbc_js_core/util/strings';
 import {makeStyles} from '@material-ui/styles';
 import {useFormElementContext} from './Form/FormElementContext';
@@ -88,137 +87,104 @@ const useStyles = makeStyles(_theme => ({
       padding: '4px 12px 4px 6px',
     },
     '&$cometSkin': {
-      backgroundColor: comet,
+      backgroundColor: colors.primary.comet,
       '&:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.white,
-          fill: symphony.palette.white,
+          color: colors.primary.white,
+          fill: colors.primary.white,
         },
       },
       '&:hover:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.white,
-          fill: symphony.palette.white,
+          color: colors.primary.white,
+          fill: colors.primary.white,
         },
       },
       '&:active:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.B700,
-          fill: symphony.palette.B700,
+          color: colors.secondary.mariner,
+          fill: colors.secondary.mariner,
         },
       },
     },
     '&$primarySkin': {
-      backgroundColor: symphony.palette.primary,
+      backgroundColor: colors.secondary.dodgerBlue,
       '&:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.white,
-          fill: symphony.palette.white,
+          color: colors.primary.white,
+          fill: colors.primary.white,
         },
       },
       '&:hover:not($disabled)': {
-        backgroundColor: symphony.palette.B700,
+        backgroundColor: colors.secondary.mariner,
       },
       '&:active:not($disabled)': {
-        backgroundColor: symphony.palette.B800,
+        backgroundColor: colors.secondary.mariner,
       },
     },
     '&$redSkin': {
-      backgroundColor: symphony.palette.R600,
+      backgroundColor: colors.state.error,
       '&:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.white,
-          fill: symphony.palette.white,
+          color: colors.primary.white,
+          fill: colors.primary.white,
         },
       },
       '&:hover:not($disabled)': {
-        backgroundColor: symphony.palette.R700,
+        backgroundColor: colors.state.errorAlt,
       },
       '&:active:not($disabled)': {
-        backgroundColor: symphony.palette.R800,
-      },
-    },
-    '&$orangeSkin': {
-      backgroundColor: symphony.palette.Y600,
-      '&:not($disabled) $buttonText': {
-        color: symphony.palette.white,
-      },
-    },
-    '&$greenSkin': {
-      backgroundColor: symphony.palette.G600,
-      '&:not($disabled) $buttonText': {
-        color: symphony.palette.white,
+        backgroundColor: colors.state.errorAlt,
       },
     },
     '&$regularSkin': {
-      backgroundColor: symphony.palette.white,
+      backgroundColor: colors.primary.white,
       '&:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.secondary,
-          fill: symphony.palette.secondary,
+          color: colors.primary.brightGray,
+          fill: colors.primary.brightGray,
         },
       },
       '&:hover:not($disabled)': {
         '& $buttonText, $icon': {
-          color: comet,
-          fill: symphony.palette.primary,
+          color: colors.primary.comet,
+          fill: colors.secondary.dodgerBlue,
         },
       },
       '&:active:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.B700,
-          fill: symphony.palette.B700,
+          color: colors.secondary.mariner,
+          fill: colors.secondary.mariner,
         },
       },
     },
     '&$graySkin': {
-      backgroundColor: symphony.palette.background,
+      backgroundColor: colors.primary.selago,
       '&:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.secondary,
-          fill: symphony.palette.secondary,
+          color: colors.primary.brightGray,
+          fill: colors.primary.brightGray,
         },
       },
       '&:hover:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.primary,
-          fill: symphony.palette.primary,
+          color: colors.secondary.dodgerBlue,
+          fill: colors.secondary.dodgerBlue,
         },
       },
       '&:active:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.B700,
-          fill: symphony.palette.B700,
-        },
-      },
-    },
-    '&$secondaryGraySkin': {
-      backgroundColor: symphony.palette.background,
-      '&:not($disabled)': {
-        '& $buttonText, $icon': {
-          color: symphony.palette.D500,
-          fill: symphony.palette.D500,
-        },
-      },
-      '&:hover:not($disabled)': {
-        '& $buttonText, $icon': {
-          color: symphony.palette.D900,
-          fill: symphony.palette.D900,
-        },
-      },
-      '&:active:not($disabled)': {
-        '& $buttonText, $icon': {
-          color: symphony.palette.B700,
-          fill: symphony.palette.B700,
+          color: colors.secondary.mariner,
+          fill: colors.secondary.mariner,
         },
       },
     },
     '&$disabled': {
       cursor: 'default',
-      backgroundColor: symphony.palette.disabled,
+      backgroundColor: colors.primary.gullGray,
       '& $buttonText, $icon': {
-        color: symphony.palette.white,
-        fill: symphony.palette.white,
+        color: colors.primary.white,
+        fill: colors.primary.white,
       },
     },
   },
@@ -235,28 +201,28 @@ const useStyles = makeStyles(_theme => ({
     '&$primarySkin': {
       '&:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.primary,
-          fill: symphony.palette.primary,
+          color: colors.secondary.dodgerBlue,
+          fill: colors.secondary.dodgerBlue,
         },
       },
       '&:hover:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.B700,
-          fill: symphony.palette.B700,
+          color: colors.secondary.mariner,
+          fill: colors.secondary.mariner,
         },
       },
       '&:active:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.B700,
-          fill: symphony.palette.B700,
+          color: colors.secondary.mariner,
+          fill: colors.secondary.mariner,
         },
       },
     },
     '&$redSkin': {
       '&:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.R600,
-          fill: symphony.palette.R600,
+          color: colors.state.error,
+          fill: colors.state.error,
         },
       },
       '&:hover:not($disabled)': {
@@ -273,8 +239,8 @@ const useStyles = makeStyles(_theme => ({
     '&$regularSkin': {
       '&:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.secondary,
-          fill: symphony.palette.secondary,
+          color: colors.primary.brightGray,
+          fill: colors.primary.brightGray,
         },
       },
       '&:hover:not($disabled)': {
@@ -291,83 +257,35 @@ const useStyles = makeStyles(_theme => ({
     '&$graySkin': {
       '&:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.D500,
-          fill: symphony.palette.D500,
+          color: colors.primary.brightGray,
+          fill: colors.primary.brightGray,
         },
       },
       '&:hover:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.primary,
-          fill: symphony.palette.primary,
+          color: colors.secondary.dodgerBlue,
+          fill: colors.secondary.dodgerBlue,
         },
       },
       '&:active:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.primary,
-          fill: symphony.palette.primary,
-        },
-      },
-    },
-    '&$secondaryGraySkin': {
-      '&:not($disabled)': {
-        '& $buttonText, $icon': {
-          color: symphony.palette.D500,
-          fill: symphony.palette.D500,
-        },
-      },
-      '&:hover:not($disabled)': {
-        '& $buttonText, $icon': {
-          color: symphony.palette.D900,
-          fill: symphony.palette.D900,
-        },
-      },
-      '&:active:not($disabled)': {
-        '& $buttonText, $icon': {
-          color: symphony.palette.primary,
-          fill: symphony.palette.primary,
-        },
-      },
-    },
-    '&$cometSkin': {
-      '&:not($disabled)': {
-        '& $buttonText, $icon': {
-          color: symphony.palette.D500,
-          fill: symphony.palette.D500,
-        },
-      },
-      '&:hover:not($disabled)': {
-        '& $buttonText, $icon': {
-          color: symphony.palette.D900,
-          fill: symphony.palette.D900,
-        },
-      },
-      '&:active:not($disabled)': {
-        '& $buttonText, $icon': {
-          color: symphony.palette.primary,
-          fill: symphony.palette.primary,
+          color: colors.secondary.dodgerBlue,
+          fill: colors.secondary.dodgerBlue,
         },
       },
     },
     '&$disabled': {
       cursor: 'default',
       '& $buttonText, $icon': {
-        color: symphony.palette.disabled,
-        fill: symphony.palette.disabled,
+        color: colors.primary.gullGray,
+        fill: colors.primary.gullGray,
       },
     },
   },
 }));
 
 export type ButtonVariant = 'contained' | 'text';
-export type ButtonSkin =
-  | 'primary'
-  | 'regular'
-  | 'red'
-  | 'gray'
-  | 'secondaryGray'
-  | 'orange'
-  | 'green'
-  | 'comet';
+export type ButtonSkin = 'primary' | 'regular' | 'red' | 'gray' | 'comet';
 
 export type ButtonProps = $ReadOnly<{|
   skin?: ButtonSkin,

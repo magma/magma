@@ -19,7 +19,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
-import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
+import defaultTheme from '../../../theme/default';
 
 import {FEG_LTE, LTE} from '../../../../fbc_js_core/types/network';
 import {

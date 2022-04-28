@@ -16,7 +16,7 @@
 import * as React from 'react';
 import AlarmContext from '../components/AlarmContext';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-import defaultTheme from '../theme/default';
+import defaultTheme from '../../../app/theme/default';
 import getPrometheusRuleInterface from '../components/rules/PrometheusEditor/getRuleInterface';
 
 import {MemoryRouter} from 'react-router-dom';

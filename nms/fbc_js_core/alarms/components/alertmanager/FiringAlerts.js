@@ -25,6 +25,7 @@ import Slide from '@material-ui/core/Slide';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
 import {Link, useResolvedPath} from 'react-router-dom';
+import {colors} from '../../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../AlarmContext';
 import {useEffect, useState} from 'react';
@@ -48,7 +49,7 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(1),
   },
   helperText: {
-    color: theme.palette.text.primary,
+    color: colors.primary.brightGray,
     fontSize: theme.typography.pxToRem(20),
   },
 }));

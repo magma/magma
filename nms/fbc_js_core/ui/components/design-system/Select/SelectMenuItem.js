@@ -25,7 +25,7 @@ import FormAction from '../../../../../fbc_js_core/ui/components/design-system/F
 import FormElementContext from '../../../../../fbc_js_core/ui/components/design-system/Form/FormElementContext';
 import Text from '../../../../../app/theme/design-system/Text';
 import classNames from 'classnames';
-import symphony from '../../../theme/symphony';
+import {colors} from '../../../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -35,7 +35,7 @@ const useStyles = makeStyles(() => ({
     padding: '8px 16px',
     cursor: 'pointer',
     '&:not($disabled)&:hover': {
-      backgroundColor: symphony.palette.background,
+      backgroundColor: colors.primary.selago,
     },
     '&$optionWithLeftAux': {
       paddingLeft: '12px',
@@ -53,7 +53,7 @@ const useStyles = makeStyles(() => ({
   },
   checkIcon: {
     marginLeft: '6px',
-    color: symphony.palette.primary,
+    color: colors.secondary.dodgerBlue,
   },
   leftAux: {
     display: 'inline-flex',

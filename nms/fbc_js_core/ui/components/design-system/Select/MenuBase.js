@@ -16,14 +16,14 @@
 
 import * as React from 'react';
 import classNames from 'classnames';
-import symphony from '../../../theme/symphony';
+import {colors, shadows} from '../../../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
   root: {
     padding: '8px 0px',
-    backgroundColor: symphony.palette.white,
-    boxShadow: symphony.shadows.DP3,
+    backgroundColor: colors.primary.white,
+    boxShadow: shadows.DP3,
     borderRadius: '4px',
     maxHeight: '322px',
     overflowY: 'auto',
