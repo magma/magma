@@ -1,5 +1,5 @@
 """
-Copyright 2020 The Magma Authors.
+Copyright 2022 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
@@ -12,7 +12,6 @@ limitations under the License.
 """
 
 import argparse
-import re
 import subprocess  # noqa: S404
 import sys
 
@@ -55,24 +54,24 @@ def perform_flattening(tag):
     image_prefix = ''
     cmd = 'which podman || true'
     podman_check = subprocess.check_output(cmd, shell=True, universal_newlines=True)  # noqa: S602
-    if re.search('podman', podman_check.strip()):
+    if podman_check.strip():
         cli = 'sudo podman'
         image_prefix = 'localhost/'
-    if cli == '':
+    else:
         cmd = 'which docker || true'
         docker_check = subprocess.check_output(cmd, shell=True, universal_newlines=True)  # noqa: S602
-        if re.search('docker', docker_check.strip()):
+        if docker_check.strip():
             cli = 'docker'
             image_prefix = ''
-    if cli == '':
-        print('No docker / podman installed: quitting')
-        return -1
+        else:
+            print('No docker / podman installed: quitting')
+            return -1
 
     print(f'Flattening {tag}')
     # Creating a container
     cmd = cli + ' run --name test-flatten --entrypoint /bin/true -d ' + tag
     print(cmd)
-    subprocess.check_output(cmd, shell=True, universal_newlines=True)  # noqa: S602
+    subprocess.check_call(cmd, shell=True, universal_newlines=True)  # noqa: S602
 
     # Export / Import trick
     cmd = cli + ' export test-flatten | ' + cli + ' import '
@@ -88,12 +87,12 @@ def perform_flattening(tag):
     cmd += ' --change "CMD [\\"sleep\\", \\"infinity\\"]" '  # noqa: WPS342
     cmd += ' - ' + image_prefix + tag
     print(cmd)
-    subprocess.check_output(cmd, shell=True, universal_newlines=True)  # noqa: S602
+    subprocess.check_call(cmd, shell=True, universal_newlines=True)  # noqa: S602
 
     # Remove container
     cmd = cli + ' rm -f test-flatten'
     print(cmd)
-    subprocess.check_output(cmd, shell=True, universal_newlines=True)  # noqa: S602
+    subprocess.check_call(cmd, shell=True, universal_newlines=True)  # noqa: S602
 
     # At this point the original image is a dangling image.
     # CI pipeline will clean up (`image prune --force`)
