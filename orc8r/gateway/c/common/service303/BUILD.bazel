@@ -21,7 +21,7 @@ cc_library(
         "MetricsSingleton.cpp",
         "ProcFileUtils.cpp",
     ],
-    # TODO(@themarwhal): Remove includes/ project directories - GH8446
+    # TODO: Remove includes/ project directories - #8446
     hdrs = [
         "ProcFileUtils.hpp",
         "includes/MagmaService.hpp",
@@ -29,8 +29,6 @@ cc_library(
         "includes/MetricsRegistry.hpp",
         "includes/MetricsSingleton.hpp",
     ],
-    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
-    strip_include_prefix = "/orc8r/gateway/c/common/service303",
     deps = [
         "//orc8r/gateway/c/common/service_registry",
         "//orc8r/protos:service303_cpp_grpc",
