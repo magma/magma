@@ -33,7 +33,7 @@ jobs:
         with:
           filters: |
             filesChanged:
-              - ["**/*.py"]
+              - added|modified: ["**/*.py"]
           list-files: 'shell'
       # Need to save PR number as Github action does not propagate it with workflow_run event
       - name: Save PR number
