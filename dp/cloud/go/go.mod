@@ -14,7 +14,6 @@ module magma/dp/cloud/go
 go 1.18
 
 replace (
-	golang.org/x/net => golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	magma/dp/cloud/go => ../../../dp/cloud/go
 	magma/gateway => ../../../orc8r/gateway/go
 	magma/orc8r/cloud/go => ../../../orc8r/cloud/go
