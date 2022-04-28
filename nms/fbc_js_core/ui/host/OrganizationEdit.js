@@ -32,7 +32,7 @@ import OrganizationSummary from './OrganizationSummary';
 import OrganizationUsersTable from './OrganizationUsersTable';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
-import Text from '../../../fbc_js_core/ui/components/design-system/Text';
+import Text from '../../../app/theme/design-system/Text';
 import axios from 'axios';
 import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 

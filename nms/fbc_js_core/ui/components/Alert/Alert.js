@@ -23,7 +23,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import React, {useState} from 'react';
-import Text from '../design-system/Text';
+import Text from '../../../../app/theme/design-system/Text';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({

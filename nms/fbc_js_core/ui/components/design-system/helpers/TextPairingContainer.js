@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import Text from '../Text';
+import Text from '../../../../../app/theme/design-system/Text';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 import {useFormElementContext} from '../Form/FormElementContext';

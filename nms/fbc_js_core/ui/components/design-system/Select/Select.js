@@ -22,7 +22,7 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import BasePopoverTrigger from '../ContexualLayer/BasePopoverTrigger';
 import Button from '../Button';
 import SelectMenu from './SelectMenu';
-import Text from '../Text';
+import Text from '../../../../../app/theme/design-system/Text';
 import classNames from 'classnames';
 import symphony from '../../../../../fbc_js_core/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';

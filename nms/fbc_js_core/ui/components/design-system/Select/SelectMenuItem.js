@@ -23,7 +23,7 @@ import type {
 import * as React from 'react';
 import FormAction from '../../../../../fbc_js_core/ui/components/design-system/Form/FormAction';
 import FormElementContext from '../../../../../fbc_js_core/ui/components/design-system/Form/FormElementContext';
-import Text from '../Text';
+import Text from '../../../../../app/theme/design-system/Text';
 import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';

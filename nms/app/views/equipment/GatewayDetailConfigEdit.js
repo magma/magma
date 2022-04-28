@@ -59,7 +59,7 @@ import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import Text from '../../../fbc_js_core/ui/components/design-system/Text';
+import Text from '../../theme/design-system/Text';
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
 
 import {AltFormField} from '../../components/FormField';

@@ -34,7 +34,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableFooter from '@material-ui/core/TableFooter';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Text from '../../fbc_js_core/ui/components/design-system/Text';
+import Text from '../theme/design-system/Text';
 
 import nullthrows from '../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
