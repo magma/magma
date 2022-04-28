@@ -17,7 +17,7 @@
 import CircularProgress from '@material-ui/core/CircularProgress';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
-import Text from '../../../fbc_js_core/ui/components/design-system/Text';
+import Text from '../../theme/design-system/Text';
 import moment from 'moment';
 import {Line} from 'react-chartjs-2';
 

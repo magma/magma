@@ -19,7 +19,7 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import CloseIcon from '@material-ui/icons/Close';
 import ErrorIcon from '@material-ui/icons/Error';
 import InfoIcon from '@material-ui/icons/Info';
-import Text from './design-system/Text';
+import Text from '../../../app/theme/design-system/Text';
 import WarningIcon from '@material-ui/icons/Warning';
 import classNames from 'classnames';
 import {blue60, gray4, green, red, yellow} from '../theme/colors';

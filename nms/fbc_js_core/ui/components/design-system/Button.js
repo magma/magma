@@ -18,7 +18,7 @@ import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 import type {TRefFor} from './types/TRefFor.flow';
 
 import * as React from 'react';
-import Text from './Text';
+import Text from '../../../../app/theme/design-system/Text';
 import classNames from 'classnames';
 import symphony from '../../theme/symphony';
 import {comet} from '../../theme/colors';

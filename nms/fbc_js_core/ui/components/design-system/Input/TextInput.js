@@ -19,7 +19,7 @@ import type {TRefFor} from '../types/TRefFor.flow';
 import * as React from 'react';
 import FormElementContext from '../Form/FormElementContext';
 import InputContext from './InputContext';
-import Text from '../Text';
+import Text from '../../../../../app/theme/design-system/Text';
 import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';

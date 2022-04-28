@@ -17,7 +17,7 @@
 import * as React from 'react';
 import FormAlertsContext from '../Form/FormAlertsContext';
 import FormElementContext from '../Form/FormElementContext';
-import Text from '../Text';
+import Text from '../../../../../app/theme/design-system/Text';
 import classNames from 'classnames';
 import grey from '@material-ui/core/colors/grey';
 import nullthrows from 'nullthrows';

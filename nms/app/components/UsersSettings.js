@@ -31,7 +31,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Text from '../../fbc_js_core/ui/components/design-system/Text';
+import Text from '../theme/design-system/Text';
 import axios from 'axios';
 import {UserRoles} from '../../fbc_js_core/auth/types';
 
