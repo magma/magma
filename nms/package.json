@@ -83,7 +83,7 @@
     "react-json-tree": "^0.11.2",
     "react-json-view": "^1.19.1",
     "react-perfect-scrollbar": "^1.4.4",
-    "react-router-dom": "5.1.2",
+    "react-router-dom": "6.3.0",
     "rimraf": "^3.0.0",
     "sequelize": "^5.22.5",
     "shortid": "^2.2.14",

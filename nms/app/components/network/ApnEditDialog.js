@@ -34,7 +34,7 @@ import {
 
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 
 import {BITRATE_MULTIPLIER, DATA_PLAN_UNLIMITED_RATES} from './ApnConst';
@@ -105,7 +105,7 @@ type Props = {
 };
 
 export default function ApnEditDialog(props: Props) {
-  const {match} = useRouter();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [editedName, setEditedName] = useState(props.apnName || '');
   const [editedMaxDlBitRate, setEditedMaxDlBitRate] = useState(null);
@@ -165,7 +165,7 @@ export default function ApnEditDialog(props: Props) {
 
     if (props.apnName == editedName) {
       MagmaV1API.putLteByNetworkIdApnsByApnName({
-        networkId: nullthrows(match.params.networkId),
+        networkId: nullthrows(params.networkId),
         apnName: editedName,
         apn: newApn,
       })
@@ -177,7 +177,7 @@ export default function ApnEditDialog(props: Props) {
         );
     } else {
       MagmaV1API.postLteByNetworkIdApns({
-        networkId: nullthrows(match.params.networkId),
+        networkId: nullthrows(params.networkId),
         apn: newApn,
       })
         .then(_resp => props.onSave())

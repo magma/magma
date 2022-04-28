@@ -31,8 +31,7 @@ import {makeStyles} from '@material-ui/styles';
 import {triggerAlertSync} from '../../state/SyncAlerts';
 import {useContext} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
-import type {Match} from 'react-router-dom';
+import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -62,17 +61,17 @@ const useStyles = makeStyles(theme => ({
 
 const tabs = [
   {
-    to: '/alerts',
+    to: 'alerts',
     label: 'Alerts',
     icon: AlarmIcon,
   },
   {
-    to: '/rules',
+    to: 'rules',
     label: 'Alert Rules',
     icon: AddAlertIcon,
   },
   {
-    to: '/teams',
+    to: 'teams',
     label: 'Receivers',
     icon: ContactMailIcon,
   },
@@ -81,10 +80,10 @@ const tabs = [
 function EmptyAlerts() {
   const classes = useStyles();
   const isSuperUser = useContext(AppContext).user.isSuperUser;
-  const {match} = useRouter();
+  const params = useParams();
 
   const enqueueSnackbar = useEnqueueSnackbar();
-  const networkId = nullthrows(match.params.networkId);
+  const networkId = nullthrows(params.networkId);
   return (
     <Grid container direction="column" alignItems="center">
       <Text className={classes.emptyAlerts} variant="h5">
@@ -128,7 +127,7 @@ function AlarmsDashboard() {
   );
 }
 
-function makeTabLink(input: {match: Match, keyName: string}): string {
+function makeTabLink(input: {networkId?: string, keyName: string}): string {
   return input.keyName;
 }
 

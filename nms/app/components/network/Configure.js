@@ -23,10 +23,15 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
-import {Redirect, Route, Switch} from 'react-router-dom';
+import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useResolvedPath,
+} from 'react-router-dom';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
@@ -50,18 +55,19 @@ type TabRoute = {
 
 export default function Configure(props: Props) {
   const classes = useStyles();
-  const {match, location, relativeUrl} = useRouter();
+  const location = useLocation();
+  const resolvedPath = useResolvedPath('');
   const {tabRoutes} = props;
 
   const initialTab = findIndex(tabRoutes, route =>
-    location.pathname.startsWith(match.url + '/' + route.path),
+    location.pathname.startsWith(resolvedPath.pathname + '/' + route.path),
   );
   const [currentTab, setCurrentTab] = useState(
     initialTab !== -1 ? initialTab : 0,
   );
 
   if (location.pathname.endsWith('/configure')) {
-    return <Redirect to={relativeUrl(`/${tabRoutes[0].path}`)} />;
+    return <Navigate to={tabRoutes[0].path} replace />;
   }
 
   return (
@@ -83,15 +89,15 @@ export default function Configure(props: Props) {
           ))}
         </Tabs>
       </AppBar>
-      <Switch>
+      <Routes>
         {tabRoutes.map((route, i) => (
           <Route
             key={i}
-            path={`${match.path}/${route.path}`}
-            component={route.component}
+            path={`${route.path}/*`}
+            element={<route.component />}
           />
         ))}
-      </Switch>
+      </Routes>
     </Paper>
   );
 }

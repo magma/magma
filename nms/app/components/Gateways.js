@@ -41,11 +41,10 @@ import nullthrows from '../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import withAlert from '../../fbc_js_core/ui/components/Alert/withAlert';
 import {MAGMAD_DEFAULT_CONFIGS} from './AddGatewayDialog';
-import {Route} from 'react-router-dom';
+import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {find} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
-import {useRouter} from '../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -60,11 +59,12 @@ const useStyles = makeStyles(theme => ({
 
 export default function Gateways() {
   const classes = useStyles();
-  const {match, history, relativePath, relativeUrl} = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
   const [gateways, setGateways] = useState();
   const [lastFetchTime, setLastFetchTime] = useState(Date.now());
 
-  const networkId = nullthrows(match.params.networkId);
+  const networkId = nullthrows(params.networkId);
   const {isLoading} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdGateways,
     {networkId: networkId},
@@ -117,7 +117,7 @@ export default function Gateways() {
       },
     });
 
-    history.push(relativeUrl(''));
+    navigate('');
     setLastFetchTime(Date.now());
   };
 
@@ -133,7 +133,7 @@ export default function Gateways() {
     <div className={classes.paper}>
       <div className={classes.header}>
         <Text variant="h5">Configure Gateways</Text>
-        <NestedRouteLink to="/new">
+        <NestedRouteLink to="new">
           <Button>Add Gateway</Button>
         </NestedRouteLink>
       </div>
@@ -149,15 +149,17 @@ export default function Gateways() {
           <TableBody>{rows}</TableBody>
         </Table>
       </Paper>
-      <Route
-        path={relativePath('/new')}
-        render={() => (
-          <AddGatewayDialog
-            onClose={() => history.push(relativeUrl(''))}
-            onSave={onGatewayAdd}
-          />
-        )}
-      />
+      <Routes>
+        <Route
+          path="/new"
+          element={
+            <AddGatewayDialog
+              onClose={() => navigate('')}
+              onSave={onGatewayAdd}
+            />
+          }
+        />
+      </Routes>
     </div>
   );
 }
@@ -279,7 +281,8 @@ function _buildGatewayFromPayload(gateway: lte_gateway): GatewayV1 {
 
 type Props = WithAlert & {onSave: () => void, gateway: GatewayV1};
 function GatewayRowItem(props: Props) {
-  const {match, history, relativePath, relativeUrl} = useRouter();
+  const params = useParams();
+  const navigate = useNavigate();
   const {gateway} = props;
 
   const deleteGateway = () => {
@@ -290,7 +293,7 @@ function GatewayRowItem(props: Props) {
           return;
         }
         MagmaV1API.deleteLteByNetworkIdGatewaysByGatewayId({
-          networkId: nullthrows(match.params.networkId),
+          networkId: nullthrows(params.networkId),
           gatewayId: gateway.logicalID,
         }).then(props.onSave);
       });
@@ -310,9 +313,7 @@ function GatewayRowItem(props: Props) {
         <IconButton
           data-testid="edit-gateway-icon"
           color="primary"
-          onClick={() =>
-            history.push(relativeUrl(`/edit/${gateway.logicalID}`))
-          }>
+          onClick={() => navigate(`edit/${gateway.logicalID}`)}>
           <EditIcon />
         </IconButton>
         <IconButton
@@ -322,19 +323,21 @@ function GatewayRowItem(props: Props) {
           <DeleteIcon />
         </IconButton>
       </TableCell>
-      <Route
-        path={relativePath(`/edit/${gateway.logicalID}`)}
-        render={() => (
-          <EditGatewayDialog
-            gateway={gateway}
-            onClose={() => history.push(relativeUrl(''))}
-            onSave={() => {
-              props.onSave();
-              history.push(relativeUrl(''));
-            }}
-          />
-        )}
-      />
+      <Routes>
+        <Route
+          path={`/edit/${gateway.logicalID}`}
+          element={
+            <EditGatewayDialog
+              gateway={gateway}
+              onClose={() => navigate('')}
+              onSave={() => {
+                props.onSave();
+                navigate('');
+              }}
+            />
+          }
+        />
+      </Routes>
     </TableRow>
   );
 }

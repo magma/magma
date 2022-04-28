@@ -23,7 +23,7 @@ import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert
 
 import {UserRoles} from '../../../fbc_js_core/auth/types';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 
 type OrganizationUsersTableProps = WithAlert & {
@@ -38,7 +38,7 @@ function OrganizationUsersTable(props: OrganizationUsersTableProps) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [users, setUsers] = React.useState<Array<EditUser>>([]);
   const [currRow, setCurrRow] = useState<EditUser>({});
-  const {match} = useRouter();
+  const params = useParams();
 
   const onDeleteUser = user => {
     props
@@ -115,7 +115,7 @@ function OrganizationUsersTable(props: OrganizationUsersTableProps) {
         data={() =>
           new Promise((resolve, _reject) => {
             axios
-              .get(`/host/organization/async/${match.params.name}/users`)
+              .get(`/host/organization/async/${params.name}/users`)
               .then(result => {
                 const users: Array<EditUser> = result.data.map(user => {
                   return {

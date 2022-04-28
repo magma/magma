@@ -73,7 +73,7 @@ import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 const GATEWAY_TITLE = 'Gateway';
 const RAN_TITLE = 'Ran';
@@ -184,9 +184,9 @@ export default function AddEditGatewayButton(props: ButtonProps) {
 function GatewayEditDialog(props: DialogProps) {
   const {open, editProps} = props;
   const classes = useStyles();
-  const {match} = useRouter();
+  const params = useParams();
   const [gateway, setGateway] = useState<lte_gateway>(DEFAULT_GATEWAY_CONFIG);
-  const gatewayId: string = match.params.gatewayId;
+  const gatewayId: string = params.gatewayId;
   const [tabPos, setTabPos] = useState(
     editProps ? EditTableType[editProps.editTable] : 0,
   );
@@ -501,9 +501,8 @@ export function DynamicServicesEdit(props: Props) {
   const [error, setError] = useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(GatewayContext);
-  const {match} = useRouter();
-  const gatewayId: string =
-    props.gateway.id || nullthrows(match.params.gatewayId);
+  const params = useParams();
+  const gatewayId: string = props.gateway.id || nullthrows(params.gatewayId);
   const [config, setConfig] = useState<magmad_gateway_configs>(
     props.gateway.magmad,
   );

@@ -23,7 +23,7 @@ import React from 'react';
 import SubscriberChart from '../SubscriberChart';
 import defaultTheme from '../../../theme/default.js';
 
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
@@ -123,10 +123,12 @@ describe('<SubscriberChart />', () => {
                 value={{
                   networkId: 'test',
                 }}>
-                <Route
-                  path="/nms/:networkId/subscribers/overview/config/:subscriberId/overview"
-                  component={SubscriberChart}
-                />
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/subscribers/overview/config/:subscriberId/overview"
+                    element={<SubscriberChart />}
+                  />
+                </Routes>
               </NetworkContext.Provider>
             </MuiStylesThemeProvider>
           </MuiThemeProvider>

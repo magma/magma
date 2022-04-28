@@ -27,7 +27,7 @@ import {
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
 import {useState} from 'react';
 
 type EnodebRowType = {
@@ -38,8 +38,10 @@ type EnodebRowType = {
 };
 
 export default function GatewayDetailEnodebs(props: GatewayDetailType) {
-  const {history, match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
+  const resolvedPath = useResolvedPath('');
+  const navigate = useNavigate();
+  const params = useParams();
+  const networkId: string = nullthrows(params.networkId);
   // Auto refresh  every 30 seconds
   const enbState = useRefreshingContext({
     context: EnodebContext,
@@ -92,8 +94,8 @@ export default function GatewayDetailEnodebs(props: GatewayDetailType) {
               variant="body2"
               component="button"
               onClick={() => {
-                history.push(
-                  match.url.replace(
+                navigate(
+                  resolvedPath.pathname.replace(
                     `gateway/${props.gwInfo.id}`,
                     `enodeb/${currRow.id}`,
                   ),
@@ -112,8 +114,8 @@ export default function GatewayDetailEnodebs(props: GatewayDetailType) {
         {
           name: 'View',
           handleFunc: () => {
-            history.push(
-              match.url.replace(
+            navigate(
+              resolvedPath.pathname.replace(
                 `gateway/${props.gwInfo.id}`,
                 `enodeb/${currRow.id}`,
               ),

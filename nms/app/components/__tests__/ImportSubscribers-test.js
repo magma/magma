@@ -18,7 +18,6 @@ import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import axiosMock from 'axios';
 import {parseFileAndSave} from '../ImportSubscribersDialog';
 
-const match = {params: {}, isExact: true, path: '', url: ''};
 jest.mock('axios');
 jest.mock('../../../generated/MagmaAPIBindings');
 
@@ -41,7 +40,7 @@ describe('ImportSubscribers parseFileAndSave', () => {
 
   it('fails on binary inputs', async () => {
     const csvText = new ArrayBuffer(8);
-    await parseFileAndSave(csvText, setErrorMsg, match, props);
+    await parseFileAndSave(csvText, setErrorMsg, 'test', props);
     expect(setErrorMsg.mock.calls.length).toBe(1);
     expect(props.onSave.mock.calls.length).toBe(0);
     expect(props.onSaveError.mock.calls.length).toBe(0);
@@ -49,7 +48,7 @@ describe('ImportSubscribers parseFileAndSave', () => {
 
   it('parses for mac files', async () => {
     const csvText = CSV_HEADER + '\n' + id + ',ACTIVE,1,1,default';
-    await parseFileAndSave(csvText, setErrorMsg, match, props);
+    await parseFileAndSave(csvText, setErrorMsg, 'test', props);
     expect(setErrorMsg.mock.calls.length).toBe(0);
     expect(props.onSave.mock.calls.length).toBe(1);
     // The first argument to the function was [id]
@@ -61,7 +60,7 @@ describe('ImportSubscribers parseFileAndSave', () => {
 
   it('parses for windows files', async () => {
     const csvText = CSV_HEADER + '\r\n' + id + ',ACTIVE,1,1,default';
-    await parseFileAndSave(csvText, setErrorMsg, match, props);
+    await parseFileAndSave(csvText, setErrorMsg, 'test', props);
     expect(setErrorMsg.mock.calls.length).toBe(0);
     expect(props.onSave.mock.calls.length).toBe(1);
     // The first argument to the function was [id]

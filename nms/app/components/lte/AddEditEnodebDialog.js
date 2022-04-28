@@ -36,7 +36,7 @@ import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import {EnodebBandwidthOption, EnodebDeviceClass} from './EnodebUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
   input: {
@@ -59,10 +59,10 @@ type Props = {
 export default function AddEditEnodebDialog(props: Props) {
   const {editingEnodeb} = props;
   const classes = useStyles();
-  const {match} = useRouter();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
 
-  const networkId = nullthrows(match.params.networkId);
+  const networkId = nullthrows(params.networkId);
 
   let defaultEnodebId = '0';
   let defaultCellNumber = '1';

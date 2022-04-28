@@ -31,7 +31,7 @@ import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 const TITLE = 'Metrics Explorer';
 
@@ -70,9 +70,9 @@ export default function MetricsExplorer() {
   const [isLoading, setIsLoading] = useState(true);
   const [LteMetricsTable, setLteMetricsTable] = useState([]);
   const enqueueSnackbar = useEnqueueSnackbar();
-  const {match} = useRouter();
+  const params = useParams();
 
-  const networkId = nullthrows(match.params.networkId);
+  const networkId = nullthrows(params.networkId);
   const startEnd = useMemo(() => {
     return {
       start: moment().subtract(3, 'hours'),

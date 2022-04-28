@@ -26,7 +26,7 @@ import useMagmaAPI from '../../../api/useMagmaAPI';
 import {HEALTHY_STATUS, UNHEALTHY_STATUS} from '../../components/GatewayUtils';
 import {getLatency} from './EquipmentGatewayKPIs';
 import {useContext} from 'react';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 /**
  * Displays the maximum latency, minimum latency, average latency,
@@ -34,10 +34,10 @@ import {useRouter} from '../../../fbc_js_core/ui/hooks';
  * and the percentage of healthy federation gateways.
  */
 export default function FEGEquipmentGatewayKPIs() {
-  const {match} = useRouter();
+  const params = useParams();
   const ctx = useContext(FEGGatewayContext);
   const fegGatewaysHealthStatus = ctx.health;
-  const networkId: string = nullthrows(match.params.networkId);
+  const networkId: string = nullthrows(params.networkId);
   const timeRange = '3h';
   const {response: maxResponse} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdPrometheusQuery,

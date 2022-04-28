@@ -27,7 +27,7 @@ import {
   PolicyProvider,
 } from '../../../components/lte/LteContext';
 
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 // $FlowFixMe Upgrade react-testing-library
 import {cleanup, fireEvent, render, waitFor} from '@testing-library/react';
@@ -207,10 +207,13 @@ describe('<TrafficDashboard />', () => {
               networkId={'test'}
               networkType={networkType}>
               <PolicyProvider networkId={'test'} networkType={networkType}>
-                <Route
-                  path="/nms/:networkId/traffic/policy"
-                  component={TrafficDashboard}
-                />
+                \
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/traffic/policy/*"
+                    element={<TrafficDashboard />}
+                  />
+                </Routes>
               </PolicyProvider>
             </LteNetworkContextProvider>
           </NetworkContext.Provider>

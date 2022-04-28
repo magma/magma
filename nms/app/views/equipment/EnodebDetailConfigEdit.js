@@ -49,7 +49,7 @@ import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 const CONFIG_TITLE = 'Config';
 const RAN_TITLE = 'Ran';
@@ -148,9 +148,9 @@ function EnodeEditDialog(props: DialogProps) {
   const {open, editProps} = props;
   const classes = useStyles();
   const [enb, setEnb] = useState<enodeb>({});
-  const {match} = useRouter();
+  const params = useParams();
   const ctx = useContext(EnodebContext);
-  const enodebSerial: string = match.params.enodebSerial;
+  const enodebSerial: string = params.enodebSerial;
   const enbInfo = ctx.state.enbInfo[enodebSerial];
   const lteRanConfigs = ctx.lteRanConfigs;
 
@@ -237,9 +237,9 @@ type OptConfig = {
 type OptKey = $Keys<OptConfig>;
 
 export function RanEdit(props: Props) {
-  const {match} = useRouter();
+  const params = useParams();
   const ctx = useContext(EnodebContext);
-  const enodebSerial: string = match.params.enodebSerial;
+  const enodebSerial: string = params.enodebSerial;
   const enbInfo = ctx.state.enbInfo[enodebSerial];
 
   const handleEnbChange = (key: string, val) =>
@@ -503,10 +503,10 @@ export function RanEdit(props: Props) {
 
 export function ConfigEdit(props: Props) {
   const [error, setError] = useState('');
-  const {match} = useRouter();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(EnodebContext);
-  const enodebSerial: string = match.params.enodebSerial;
+  const enodebSerial: string = params.enodebSerial;
   const enbInfo = ctx.state.enbInfo[enodebSerial];
   const [enb, setEnb] = useState<enodeb>(props.enb || DEFAULT_ENB_CONFIG);
   const onSave = async () => {

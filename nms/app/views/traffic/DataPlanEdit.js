@@ -33,13 +33,13 @@ import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import type {UpdateNetworkContextProps} from '../../components/context/LteNetworkContext';
 
 import {
   BITRATE_MULTIPLIER,
   DATA_PLAN_UNLIMITED_RATES,
 } from '../../components/network/DataPlanConst';
+import {useParams} from 'react-router-dom';
 
 type CellularNetworkProfile = $Values<
   $NonMaybeType<$PropertyType<network_epc_configs, 'sub_profiles'>>,
@@ -143,8 +143,8 @@ type Props = {
  * @param {DialogProps} props
  */
 export function DataPlanEdit(props: Props) {
-  const {match} = useRouter();
-  const networkID = nullthrows(match.params.networkId);
+  const params = useParams();
+  const networkID = nullthrows(params.networkId);
   const [error, setError] = useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(LteNetworkContext);

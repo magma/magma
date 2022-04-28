@@ -43,7 +43,7 @@ import {colors, typography} from '../theme/default';
 import {intersection} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
-import {useRouter} from '../../fbc_js_core/ui/hooks';
+import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -161,8 +161,8 @@ function checkFilter(
 
 export default function DashboardAlertTable(props: DashboardAlertTableProps) {
   const classes = useStyles();
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
+  const params = useParams();
+  const networkId: string = nullthrows(params.networkId);
   const [lastRefreshTime, setLastRefreshTime] = useState<string>(
     new Date().toLocaleString(),
   );
@@ -222,7 +222,8 @@ type TabPanelProps = {
 
 function TabPanel(props: TabPanelProps) {
   const classes = useStyles();
-  const {history, match} = useRouter();
+  const resolvedPath = useResolvedPath('');
+  const navigate = useNavigate();
 
   if (props.alerts.length === 0) {
     return (
@@ -238,8 +239,11 @@ function TabPanel(props: TabPanelProps) {
               To add alert triggers click
               <Link
                 onClick={() => {
-                  history.push(
-                    match.url.replace(`dashboard/network`, `alerts/alerts`),
+                  navigate(
+                    resolvedPath.pathname.replace(
+                      `dashboard/network`,
+                      `alerts/alerts`,
+                    ),
                   );
                 }}>
                 {' '}

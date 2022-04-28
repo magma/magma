@@ -30,7 +30,7 @@ import type {
 import {FetchGateways} from '../state/lte/EquipmentState';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 /**
  * Returns the list of federated lte networks serviced by the federation
@@ -76,8 +76,8 @@ export async function getServicedAccessNetworks(
  * federation network.
  */
 export default function ServicingAccessGatewayKPIs() {
-  const {match} = useRouter();
-  const networkId = nullthrows(match.params.networkId);
+  const params = useParams();
+  const networkId = nullthrows(params.networkId);
   const [isLoading, setIsLoading] = useState(true);
   const [
     servicedAccessGatewaysCount,

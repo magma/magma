@@ -16,9 +16,9 @@
 
 import * as React from 'react';
 import axios from 'axios';
-import useRouter from '../../../fbc_js_core/ui/hooks/useRouter';
 import {useAlarmContext} from '../../../fbc_js_core/alarms/components/AlarmContext';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useParams} from 'react-router-dom';
 import type {AlertRoutingTree} from './AlarmAPIType';
 import type {ApiUtil} from './AlarmsApi';
 import type {GenericRule, RuleInterfaceMap} from './rules/RuleInterface';
@@ -181,10 +181,10 @@ export function useAlertRuleReceiver({
 }
 
 export function useNetworkId(): string {
-  const {match} = useRouter();
+  const params = useParams();
   const {getNetworkId} = useAlarmContext();
   if (typeof getNetworkId === 'function') {
     return getNetworkId();
   }
-  return match.params.networkId;
+  return params.networkId;
 }

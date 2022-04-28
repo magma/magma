@@ -39,10 +39,9 @@ import Toolbar from '@material-ui/core/Toolbar';
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
-import {Route} from 'react-router-dom';
+import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import {useState} from 'react';
 
 const useStyles = makeStyles(() => ({
@@ -56,11 +55,12 @@ const useStyles = makeStyles(() => ({
 
 function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
   const classes = useStyles();
-  const {match, relativePath, relativeUrl, history} = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
   const [ruleIDs, setRuleIDs] = useState();
   const [baseNames, setBaseNames] = useState();
 
-  const networkID = nullthrows(match.params.networkId);
+  const networkID = nullthrows(params.networkId);
   useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdPoliciesRules,
     {networkId: networkID},
@@ -130,7 +130,7 @@ function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
             <TableCell>ID</TableCell>
             <TableCell>Precedence</TableCell>
             <TableCell className={classes.actionsColumn}>
-              <NestedRouteLink to="/add/">
+              <NestedRouteLink to="add/">
                 <Button>Add Rule</Button>
               </NestedRouteLink>
             </TableCell>
@@ -147,20 +147,22 @@ function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
           ))}
         </TableBody>
       </Table>
-      <Route
-        path={relativePath('/add')}
-        component={() => (
-          <PolicyRuleEditDialog
-            qosProfiles={qosProfiles ?? {}}
-            mirrorNetwork={props.mirrorNetwork}
-            onCancel={() => history.push(relativeUrl(''))}
-            onSave={ruleID => {
-              setRuleIDs([...nullthrows(ruleIDs), ruleID]);
-              history.push(relativeUrl(''));
-            }}
-          />
-        )}
-      />
+      <Routes>
+        <Route
+          path="/add"
+          element={
+            <PolicyRuleEditDialog
+              qosProfiles={qosProfiles ?? {}}
+              mirrorNetwork={props.mirrorNetwork}
+              onCancel={() => navigate('')}
+              onSave={ruleID => {
+                setRuleIDs([...nullthrows(ruleIDs), ruleID]);
+                navigate('');
+              }}
+            />
+          }
+        />
+      </Routes>
       <Toolbar>
         <Text className={classes.header} variant="h5">
           Base Names
@@ -171,7 +173,7 @@ function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
           <TableRow>
             <TableCell>Name</TableCell>
             <TableCell className={classes.actionsColumn}>
-              <NestedRouteLink to="/add_base_name/">
+              <NestedRouteLink to="add_base_name/">
                 <Button>Add Base Name</Button>
               </NestedRouteLink>
             </TableCell>
@@ -182,7 +184,7 @@ function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
             <TableRow key={name}>
               <TableCell>{name}</TableCell>
               <TableCell>
-                <NestedRouteLink to={`/edit_base_name/${name}`}>
+                <NestedRouteLink to={`edit_base_name/${name}`}>
                   <IconButton>
                     <EditIcon />
                   </IconButton>
@@ -195,28 +197,30 @@ function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
           ))}
         </TableBody>
       </Table>
-      <Route
-        path={relativePath('/add_base_name')}
-        component={() => (
-          <PolicyBaseNameDialog
-            mirrorNetwork={props.mirrorNetwork}
-            onCancel={() => history.push(relativeUrl(''))}
-            onSave={baseName => {
-              setBaseNames([...nullthrows(baseNames), baseName]);
-              history.push(relativeUrl(''));
-            }}
-          />
-        )}
-      />
-      <Route
-        path={relativePath('/edit_base_name/:baseName')}
-        component={() => (
-          <PolicyBaseNameDialog
-            onCancel={() => history.push(relativeUrl(''))}
-            onSave={() => history.push(relativeUrl(''))}
-          />
-        )}
-      />
+      <Routes>
+        <Route
+          path="/add_base_name"
+          element={
+            <PolicyBaseNameDialog
+              mirrorNetwork={props.mirrorNetwork}
+              onCancel={() => navigate('')}
+              onSave={baseName => {
+                setBaseNames([...nullthrows(baseNames), baseName]);
+                navigate('');
+              }}
+            />
+          }
+        />
+        <Route
+          path="/edit_base_name/:baseName"
+          element={
+            <PolicyBaseNameDialog
+              onCancel={() => navigate('')}
+              onSave={() => navigate('')}
+            />
+          }
+        />
+      </Routes>
     </>
   );
 }
@@ -229,8 +233,9 @@ type Props = WithAlert & {
 
 const RuleRow = withAlert((props: Props) => {
   const [lastRefreshTime, setLastRefreshTime] = useState(new Date().getTime());
-  const {match, relativePath, relativeUrl, history} = useRouter();
-  const networkID = nullthrows(match.params.networkId);
+  const navigate = useNavigate();
+  const params = useParams();
+  const networkID = nullthrows(params.networkId);
 
   const {response: rule} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdPoliciesRulesByRuleId,
@@ -277,7 +282,7 @@ const RuleRow = withAlert((props: Props) => {
     props.onDelete();
   };
 
-  const editPath = `/edit/${props.ruleID}/`;
+  const editPath = `edit/${props.ruleID}/`;
   return (
     <TableRow>
       <TableCell>{props.ruleID}</TableCell>
@@ -293,25 +298,27 @@ const RuleRow = withAlert((props: Props) => {
         <IconButton onClick={onDeleteRule}>
           <DeleteIcon />
         </IconButton>
-        <Route
-          path={relativePath(editPath)}
-          component={() =>
-            rule ? (
-              <PolicyRuleEditDialog
-                qosProfiles={qosProfiles ?? {}}
-                mirrorNetwork={props.mirrorNetwork}
-                rule={rule}
-                onCancel={() => history.push(relativeUrl(''))}
-                onSave={() => {
-                  setLastRefreshTime(new Date().getTime());
-                  history.push(relativeUrl(''));
-                }}
-              />
-            ) : (
-              <LoadingFillerBackdrop />
-            )
-          }
-        />
+        <Routes>
+          <Route
+            path={editPath}
+            element={
+              rule ? (
+                <PolicyRuleEditDialog
+                  qosProfiles={qosProfiles ?? {}}
+                  mirrorNetwork={props.mirrorNetwork}
+                  rule={rule}
+                  onCancel={() => navigate('')}
+                  onSave={() => {
+                    setLastRefreshTime(new Date().getTime());
+                    navigate('');
+                  }}
+                />
+              ) : (
+                <LoadingFillerBackdrop />
+              )
+            }
+          />
+        </Routes>
       </TableCell>
     </TableRow>
   );

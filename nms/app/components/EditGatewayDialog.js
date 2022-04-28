@@ -31,7 +31,7 @@ import Tabs from '@material-ui/core/Tabs';
 import nullthrows from '../../fbc_js_core/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
   appBar: {
@@ -49,10 +49,10 @@ type Props = {|
 export default function EditGatewayDialog({onClose, onSave, gateway}: Props) {
   const [tab, setTab] = useState(0);
   const classes = useStyles();
-  const {match} = useRouter();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
 
-  const networkID = nullthrows(match.params.networkId);
+  const networkID = nullthrows(params.networkId);
 
   const wrappedOnSave = gatewayID => {
     MagmaV1API.getLteByNetworkIdGatewaysByGatewayId({

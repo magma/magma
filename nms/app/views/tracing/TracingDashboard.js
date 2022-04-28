@@ -45,7 +45,7 @@ function TracingDashboard() {
         tabs={[
           {
             label: 'Call Traces',
-            to: '/overview',
+            to: 'overview',
             icon: LineStyleIcon,
             filters: <div />,
           },

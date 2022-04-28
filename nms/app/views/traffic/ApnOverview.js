@@ -29,7 +29,7 @@ import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useNavigate, useParams} from 'react-router-dom';
 
 const DEFAULT_APN_CONFIG = {
   apn_configuration: {
@@ -120,7 +120,7 @@ const APN_TITLE = 'APNs';
 function ApnOverview(props: WithAlert) {
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const {history, relativeUrl} = useRouter();
+  const navigate = useNavigate();
   const [currRow, setCurrRow] = useState<ApnRowType>({});
   const [open, setOpen] = React.useState(false);
   const ctx = useContext(ApnContext);
@@ -198,7 +198,7 @@ function ApnOverview(props: WithAlert) {
             {
               name: 'Edit JSON',
               handleFunc: () => {
-                history.push(relativeUrl('/' + currRow.apnID + '/json'));
+                navigate(currRow.apnID + '/json');
               },
             },
             {name: 'Deactivate'},
@@ -235,9 +235,10 @@ function ApnOverview(props: WithAlert) {
 }
 
 export function ApnJsonConfig() {
-  const {match, history} = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
   const [error, setError] = useState('');
-  const apnName: string = match.params.apnId;
+  const apnName: string = params.apnId;
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(ApnContext);
   const apns = ctx.state;
@@ -256,7 +257,7 @@ export function ApnJsonConfig() {
             variant: 'success',
           });
           setError('');
-          history.goBack();
+          navigate(-1);
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);
         }

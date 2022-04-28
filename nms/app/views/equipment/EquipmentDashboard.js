@@ -30,36 +30,26 @@ import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import TopBar from '../../components/TopBar';
 import UpgradeButton from './UpgradeTiersDialog';
 
-import {Redirect, Route, Switch} from 'react-router-dom';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {Navigate, Route, Routes} from 'react-router-dom';
 
 function EquipmentDashboard() {
-  const {relativePath, relativeUrl} = useRouter();
-
   return (
-    <>
-      <Switch>
-        <Route
-          path={relativePath('/overview/gateway/:gatewayId')}
-          component={GatewayDetail}
-        />
-        <Route
-          path={relativePath('/overview/enodeb/:enodebSerial')}
-          component={EnodebDetail}
-        />
-        <Route
-          path={relativePath('/overview')}
-          component={EquipmentDashboardInternal}
-        />
-        <Redirect to={relativeUrl('/overview')} />
-      </Switch>
-    </>
+    <Routes>
+      <Route
+        path="/overview/gateway/:gatewayId/*"
+        element={<GatewayDetail />}
+      />
+      <Route
+        path="/overview/enodeb/:enodebSerial/*"
+        element={<EnodebDetail />}
+      />
+      <Route path="/overview/*" element={<EquipmentDashboardInternal />} />
+      <Route index element={<Navigate to="overview" replace />} />
+    </Routes>
   );
 }
 
 function EquipmentDashboardInternal() {
-  const {relativePath, relativeUrl} = useRouter();
-
   return (
     <>
       <TopBar
@@ -67,7 +57,7 @@ function EquipmentDashboardInternal() {
         tabs={[
           {
             label: 'Gateways',
-            to: '/gateway',
+            to: 'gateway',
             icon: CellWifiIcon,
             filters: (
               <Grid
@@ -86,13 +76,13 @@ function EquipmentDashboardInternal() {
           },
           {
             label: 'eNodeB',
-            to: '/enodeb',
+            to: 'enodeb',
             icon: SettingsInputAntennaIcon,
             filters: <AddEditEnodeButton title="Add New" isLink={false} />,
           },
           {
             label: 'Gateway Pools',
-            to: '/pools',
+            to: 'pools',
             icon: GroupWorkIcon,
             filters: (
               <AddEditGatewayPoolButton title="Add New" isLink={false} />
@@ -100,12 +90,12 @@ function EquipmentDashboardInternal() {
           },
         ]}
       />
-      <Switch>
-        <Route path={relativePath('/gateway')} component={Gateway} />
-        <Route path={relativePath('/enodeb')} component={Enodeb} />
-        <Route path={relativePath('/pools')} component={GatewayPools} />
-        <Redirect to={relativeUrl('/gateway')} />
-      </Switch>
+      <Routes>
+        <Route path="/gateway" element={<Gateway />} />
+        <Route path="/enodeb" element={<Enodeb />} />
+        <Route path="/pools/*" element={<GatewayPools />} />
+        <Route index element={<Navigate to="gateway" replace />} />
+      </Routes>
     </>
   );
 }

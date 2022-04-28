@@ -52,43 +52,43 @@ export function getLteSections(
     'map', // landing path
     [
       {
-        path: '/map',
+        path: 'map',
         label: 'Map',
         icon: <PublicIcon />,
         component: Insights,
       },
       {
-        path: '/metrics',
+        path: 'metrics',
         label: 'Metrics',
         icon: <ShowChartIcon />,
         component: LteMetrics,
       },
       {
-        path: '/subscribers',
+        path: 'subscribers',
         label: 'Subscribers',
         icon: <PeopleIcon />,
         component: Subscribers,
       },
       {
-        path: '/gateways',
+        path: 'gateways',
         label: 'Gateways',
         icon: <CellWifiIcon />,
         component: Gateways,
       },
       {
-        path: '/enodebs',
+        path: 'enodebs',
         label: 'eNodeB Devices',
         icon: <SettingsInputAntennaIcon />,
         component: Enodebs,
       },
       {
-        path: '/configure',
+        path: 'configure',
         label: 'Configure',
         icon: <SettingsCellIcon />,
         component: LteConfigure,
       },
       {
-        path: '/alerts',
+        path: 'alerts',
         label: 'Alerts',
         icon: <AlarmIcon />,
         component: AlarmsDashboard,
@@ -97,7 +97,7 @@ export function getLteSections(
   ];
   if (logsEnabled) {
     sections[1].splice(2, 0, {
-      path: '/logs',
+      path: 'logs',
       label: 'Logs',
       icon: <ListIcon />,
       component: Logs,
@@ -111,49 +111,49 @@ export function getLteSectionsV2(alertsEnabled: boolean): SectionsConfigs {
     'dashboard', // landing path
     [
       {
-        path: '/dashboard',
+        path: 'dashboard',
         label: 'Dashboard',
         icon: <DashboardIcon />,
         component: LteDashboard,
       },
       {
-        path: '/equipment',
+        path: 'equipment',
         label: 'Equipment',
         icon: <RouterIcon />,
         component: EquipmentDashboard,
       },
       {
-        path: '/network',
+        path: 'network',
         label: 'Network',
         icon: <NetworkCheckIcon />,
         component: NetworkDashboard,
       },
       {
-        path: '/subscribers',
+        path: 'subscribers',
         label: 'Subscriber',
         icon: <PeopleIcon />,
         component: SubscriberDashboard,
       },
       {
-        path: '/traffic',
+        path: 'traffic',
         label: 'Traffic',
         icon: <WifiTetheringIcon />,
         component: TrafficDashboard,
       },
       {
-        path: '/tracing',
+        path: 'tracing',
         label: 'Call Tracing',
         icon: <LineStyleIcon />,
         component: TracingDashboard,
       },
       {
-        path: '/metrics',
+        path: 'metrics',
         label: 'Metrics',
         icon: <ShowChartIcon />,
         component: LteMetrics,
       },
       {
-        path: '/configure',
+        path: 'configure',
         label: 'Configure',
         icon: <SettingsCellIcon />,
         component: LteConfigure,
@@ -162,7 +162,7 @@ export function getLteSectionsV2(alertsEnabled: boolean): SectionsConfigs {
   ];
   if (alertsEnabled) {
     sections[1].push({
-      path: '/alerts',
+      path: 'alerts',
       label: 'Alerts',
       icon: <AlarmIcon />,
       component: AlarmsDashboard,

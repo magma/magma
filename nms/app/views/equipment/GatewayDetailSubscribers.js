@@ -26,7 +26,7 @@ import {
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
 import {useContext} from 'react';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
 
 type SubscriberRowType = {
   id: string,
@@ -34,8 +34,10 @@ type SubscriberRowType = {
 };
 
 export default function GatewayDetailSubscribers(props: GatewayDetailType) {
-  const {history, match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
+  const resolvedPath = useResolvedPath('');
+  const navigate = useNavigate();
+  const params = useParams();
+  const networkId: string = nullthrows(params.networkId);
   // Auto refresh  every 30 seconds
   const subscriberState = useRefreshingContext({
     context: SubscriberContext,
@@ -76,8 +78,8 @@ export default function GatewayDetailSubscribers(props: GatewayDetailType) {
               variant="body2"
               component="button"
               onClick={() => {
-                history.push(
-                  match.url.replace(
+                navigate(
+                  resolvedPath.pathname.replace(
                     `equipment/overview/gateway/${props.gwInfo.id}`,
                     `subscribers/overview/${currRow.id}`,
                   ),

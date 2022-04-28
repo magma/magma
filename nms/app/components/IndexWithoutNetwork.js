@@ -19,7 +19,7 @@ import AccountSettings from './AccountSettings';
 import Admin from './admin/Admin';
 import AppContent from './layout/AppContent';
 import AppSideBar from '../../fbc_js_core/ui/components/layout/AppSideBar';
-import {Route, Switch} from 'react-router-dom';
+import {Route, Routes} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(_theme => ({
@@ -35,10 +35,10 @@ export default function IndexWithoutNetwork() {
     <div className={classes.root}>
       <AppSideBar items={[]} />
       <AppContent>
-        <Switch>
-          <Route path="/admin" component={Admin} />
-          <Route path="/settings" component={AccountSettings} />
-        </Switch>
+        <Routes>
+          <Route path="/admin/*" element={<Admin />} />
+          <Route path="/settings/*" element={<AccountSettings />} />
+        </Routes>
       </AppContent>
     </div>
   );

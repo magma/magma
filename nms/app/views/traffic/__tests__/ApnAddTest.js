@@ -26,7 +26,7 @@ import {
   ApnProvider,
   LteNetworkContextProvider,
 } from '../../../components/lte/LteContext';
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 
@@ -105,10 +105,12 @@ describe('<TrafficDashboard />', () => {
             }}>
             <LteNetworkContextProvider networkId={'test'} networkType={LTE}>
               <ApnProvider networkId={'test'} networkType={LTE}>
-                <Route
-                  path="/nms/:networkId/traffic"
-                  component={TrafficDashboard}
-                />
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/traffic/*"
+                    element={<TrafficDashboard />}
+                  />
+                </Routes>
               </ApnProvider>
             </LteNetworkContextProvider>
           </NetworkContext.Provider>

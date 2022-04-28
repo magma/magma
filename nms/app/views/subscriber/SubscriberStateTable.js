@@ -32,7 +32,6 @@ import React from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 import {JsonDialog} from './SubscriberOverview';
 import {
@@ -44,6 +43,8 @@ import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useParams} from 'react-router-dom';
+
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
@@ -137,10 +138,10 @@ function SubscriberStateDetailPanel(props: SubscriberStateDetailPanelProps) {
 }
 
 export default function SubscriberStateTable() {
-  const {match} = useRouter();
+  const params = useParams();
   const [currRow, setCurrRow] = useState<SubscriberRowType>({});
   const classes = useStyles();
-  const networkId: string = nullthrows(match.params.networkId);
+  const networkId: string = nullthrows(params.networkId);
   const ctx = useContext(SubscriberContext);
   const subscriberMap: {[string]: subscriber} = ctx.state;
   const sessionState: {[string]: subscriber_state} = ctx.sessionState;

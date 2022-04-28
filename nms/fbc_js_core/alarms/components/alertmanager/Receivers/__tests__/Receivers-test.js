@@ -30,9 +30,6 @@ const enqueueSnackbarMock = jest.fn();
 jest
   .spyOn(require('../../../../../ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
-jest
-  .spyOn(require('../../../../../ui/hooks/useRouter'), 'default')
-  .mockReturnValue({match: {params: {networkId: 'test'}}});
 
 const {AlarmsWrapper} = alarmTestUtil();
 

@@ -27,12 +27,11 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React, {useState} from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-
 import nullthrows from '../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
   input: {
@@ -76,8 +75,8 @@ export default function AddGatewayDialog(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [values, setValues] = useState(EMPTY_GATEWAY_FIELDS);
 
-  const {match} = useRouter();
-  const networkID = nullthrows(match.params.networkId);
+  const params = useParams();
+  const networkID = nullthrows(params.networkId);
   const {response: tiers, isLoading} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdTiers,
     {

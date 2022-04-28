@@ -17,10 +17,9 @@
 import React from 'react';
 import Text from '../../../app/theme/design-system/Text';
 import classNames from 'classnames';
-import {Link} from 'react-router-dom';
+import {Link, useLocation, useResolvedPath} from 'react-router-dom';
 import {colors} from '../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(() => ({
   icon: {
@@ -59,8 +58,9 @@ type Props = {
 
 export default function SidebarItem(props: Props) {
   const classes = useStyles();
-  const router = useRouter();
-  const isSelected = router.location.pathname.includes(props.path);
+  const location = useLocation();
+  const resolvedPath = useResolvedPath(props.path);
+  const isSelected = location.pathname.startsWith(resolvedPath.pathname);
 
   return (
     <Link

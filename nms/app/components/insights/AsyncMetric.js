@@ -24,7 +24,7 @@ import {Line} from 'react-chartjs-2';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 type AxesOptions = {
   gridLines: {
@@ -247,7 +247,7 @@ function getColorForIndex(index: number, customChartColors?: Array<string>) {
 }
 
 function useDatasetsFetcher(props: Props) {
-  const {match} = useRouter();
+  const params = useParams();
   const startEnd = useMemo(() => {
     if (props.startEnd) {
       const [start, end] = props.startEnd;
@@ -279,7 +279,7 @@ function useDatasetsFetcher(props: Props) {
           const response = await MagmaV1API.getNetworksByNetworkIdPrometheusQueryRange(
             {
               // $FlowFixMe[sketchy-null-string] TODO(andreilee): from fbcnms-ui
-              networkId: props.networkId || match.params.networkId,
+              networkId: props.networkId || params.networkId,
               start: startEnd.start,
               end: startEnd.end,
               step: startEnd.step,
@@ -341,7 +341,7 @@ function useDatasetsFetcher(props: Props) {
     } /* eslint-disable react-hooks/exhaustive-deps */,
     [
       stringedQueries,
-      match,
+      params,
       props.networkId,
       props.unit,
       startEnd,

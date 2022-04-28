@@ -39,12 +39,11 @@ import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
 import {HEALTHY_STATUS} from '../GatewayUtils';
-import {Route} from 'react-router-dom';
+import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -83,12 +82,36 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+function EditDialog(props: {
+  setGateways: (gateways: federation_gateway[]) => void,
+  gateways: federation_gateway[],
+}) {
+  const navigate = useNavigate();
+  const params = useParams();
+
+  return (
+    <FEGGatewayDialog
+      editingGateway={nullthrows(
+        props.gateways.find(gw => gw.id === params.gatewayID),
+      )}
+      onClose={() => navigate('..')}
+      onSave={gateway => {
+        const newGateways = [...props.gateways];
+        const i = findIndex(newGateways, g => g.id === gateway.id);
+        newGateways[i] = gateway;
+        props.setGateways(newGateways);
+        navigate('..');
+      }}
+    />
+  );
+}
+
 function CWFGateways(props: WithAlert & {}) {
   const ctx = useContext(FEGGatewayContext);
   const [gateways, setGateways] = useState<federation_gateway[]>(
     Object.keys(ctx.state).map(gatewayId => ctx.state[gatewayId]),
   );
-  const {history, relativePath, relativeUrl} = useRouter();
+  const navigate = useNavigate();
   const classes = useStyles();
   const deleteGateway = (gateway: federation_gateway) => {
     props
@@ -117,7 +140,7 @@ function CWFGateways(props: WithAlert & {}) {
     <div className={classes.paper}>
       <div className={classes.header}>
         <Text variant="h5">Configure Gateways</Text>
-        <NestedRouteLink to="/new">
+        <NestedRouteLink to="new">
           <Button variant="contained" color="primary">
             Add Gateway
           </Button>
@@ -135,36 +158,25 @@ function CWFGateways(props: WithAlert & {}) {
           <TableBody>{rows}</TableBody>
         </Table>
       </Paper>
-      <Route
-        path={relativePath('/new')}
-        render={() => (
-          <FEGGatewayDialog
-            onClose={() => history.push(relativeUrl(''))}
-            onSave={gateway => {
-              setGateways([...gateways, gateway]);
-              history.push(relativeUrl(''));
-            }}
-          />
-        )}
-      />
-      <Route
-        path={relativePath('/edit/:gatewayID')}
-        render={({match}) => (
-          <FEGGatewayDialog
-            editingGateway={nullthrows(
-              gateways.find(gw => gw.id === match.params.gatewayID),
-            )}
-            onClose={() => history.push(relativeUrl(''))}
-            onSave={gateway => {
-              const newGateways = [...gateways];
-              const i = findIndex(newGateways, g => g.id === gateway.id);
-              newGateways[i] = gateway;
-              setGateways(newGateways);
-              history.push(relativeUrl(''));
-            }}
-          />
-        )}
-      />
+      <Routes>
+        <Route
+          path="/new"
+          element={
+            <FEGGatewayDialog
+              onClose={() => navigate('')}
+              onSave={gateway => {
+                setGateways([...gateways, gateway]);
+                navigate('');
+              }}
+            />
+          }
+        />
+        <Route
+          path="edit/:gatewayID"
+          element={<EditDialog gateways={gateways} setGateways={setGateways} />}
+        />
+        )} />
+      </Routes>
     </div>
   );
 }
@@ -176,7 +188,7 @@ function GatewayRow(props: {
 }) {
   const classes = useStyles();
   const {gateway, onDelete, isPrimary} = props;
-  const {history, relativeUrl} = useRouter();
+  const navigate = useNavigate();
   const ctx = useContext(FEGGatewayContext);
 
   return (
@@ -199,7 +211,7 @@ function GatewayRow(props: {
       <TableCell>
         <IconButton
           color="primary"
-          onClick={() => history.push(relativeUrl(`/edit/${gateway.id}`))}>
+          onClick={() => navigate(`edit/${gateway.id}`)}>
           <EditIcon />
         </IconButton>
         <IconButton color="primary" onClick={() => onDelete(gateway)}>

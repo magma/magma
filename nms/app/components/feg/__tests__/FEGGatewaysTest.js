@@ -21,7 +21,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
 import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 import type {
@@ -144,10 +144,12 @@ describe('<FEGGatewaysTest />', () => {
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
           <FEGGatewayContextProvider networkId="mynetwork" networkType="FEG">
-            <Route
-              path="/nms/:networkId/gateways/"
-              render={_props => <FEGGateways />}
-            />
+            <Routes>
+              <Route
+                path="/nms/:networkId/gateways/"
+                element={<FEGGateways />}
+              />
+            </Routes>
           </FEGGatewayContextProvider>
         </MuiStylesThemeProvider>
       </MuiThemeProvider>

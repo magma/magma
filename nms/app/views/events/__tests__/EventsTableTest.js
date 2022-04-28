@@ -22,7 +22,7 @@ import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
 import defaultTheme from '../../../theme/default.js';
 
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
 
@@ -142,16 +142,18 @@ describe('<EventsTable />', () => {
               value={{
                 networkId: 'test',
               }}>
-              <Route
-                path="/nms/:networkId/subscribers/overview/config/:subscriberId/overview"
-                render={() => (
-                  <EventsTable
-                    eventStream={'SUBSCRIBER'}
-                    tags={'IMSI001011234560000'}
-                    sz={'md'}
-                  />
-                )}
-              />
+              <Routes>
+                <Route
+                  path="/nms/:networkId/subscribers/overview/config/:subscriberId/overview"
+                  element={
+                    <EventsTable
+                      eventStream={'SUBSCRIBER'}
+                      tags={'IMSI001011234560000'}
+                      sz={'md'}
+                    />
+                  }
+                />
+              </Routes>
             </NetworkContext.Provider>
           </MuiStylesThemeProvider>
         </MuiThemeProvider>

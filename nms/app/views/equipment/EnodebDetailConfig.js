@@ -34,7 +34,7 @@ import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useNavigate, useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -67,9 +67,9 @@ const useStyles = makeStyles(theme => ({
 
 export function EnodebJsonConfig() {
   const ctx = useContext(EnodebContext);
-  const {match} = useRouter();
+  const params = useParams();
   const [error, setError] = useState('');
-  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const enodebSerial: string = nullthrows(params.enodebSerial);
   const enbInfo = ctx.state.enbInfo[enodebSerial];
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -94,10 +94,10 @@ export function EnodebJsonConfig() {
 
 export default function EnodebConfig() {
   const classes = useStyles();
-  const {history, relativeUrl} = useRouter();
+  const navigate = useNavigate();
   const ctx = useContext(EnodebContext);
-  const {match} = useRouter();
-  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const params = useParams();
+  const enodebSerial: string = nullthrows(params.enodebSerial);
   const enbInfo = ctx.state.enbInfo[enodebSerial];
   const lteRanConfigs = ctx.lteRanConfigs;
   const enbManaged = enbInfo.enb.enodeb_config?.config_type === 'MANAGED';
@@ -107,7 +107,7 @@ export default function EnodebConfig() {
       <Button
         className={classes.appBarBtn}
         onClick={() => {
-          history.push(relativeUrl('/json'));
+          navigate('json');
         }}>
         Edit JSON
       </Button>
@@ -278,8 +278,8 @@ function EnodebUnmanagedRanConfig({enbInfo}: {enbInfo: EnodebInfo}) {
 
 function EnodebInfoConfig() {
   const ctx = useContext(EnodebContext);
-  const {match} = useRouter();
-  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const params = useParams();
+  const enodebSerial: string = nullthrows(params.enodebSerial);
   const enbInfo = ctx.state.enbInfo[enodebSerial];
 
   const data: DataRows[] = [

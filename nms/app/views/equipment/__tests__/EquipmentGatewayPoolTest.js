@@ -25,7 +25,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
 
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {
   SetGatewayPoolsState,
@@ -177,10 +177,9 @@ describe('<GatewayPools />', () => {
                 }),
               updateGatewayPoolRecords: async _ => {},
             }}>
-            <Route
-              path="/nms/:networkId/pools/"
-              render={() => <GatewayPools />}
-            />
+            <Routes>
+              <Route path="/nms/:networkId/pools/" element={<GatewayPools />} />
+            </Routes>
           </GatewayPoolsContext.Provider>
         </MuiStylesThemeProvider>
       </MuiThemeProvider>
@@ -292,15 +291,17 @@ describe('<AddEditGatewayPoolButton />', () => {
                       resources,
                     }),
                 }}>
-                <Route
-                  path="/nms/:networkId/pools"
-                  render={_ => (
-                    <AddEditGatewayPoolButton
-                      title="Add Gateway Pool"
-                      isLink={false}
-                    />
-                  )}
-                />
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/pools"
+                    element={
+                      <AddEditGatewayPoolButton
+                        title="Add Gateway Pool"
+                        isLink={false}
+                      />
+                    }
+                  />
+                </Routes>
               </GatewayPoolsContext.Provider>
             </GatewayContext.Provider>
           </MuiStylesThemeProvider>

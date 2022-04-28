@@ -43,10 +43,10 @@ import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
 import {comet, concrete, gullGray} from '../../../fbc_js_core/ui/theme/colors';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios, useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useAxios} from '../../../fbc_js_core/ui/hooks';
 import {useCallback, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRelativeUrl} from '../../../fbc_js_core/ui/hooks/useRouter';
+import {useNavigate} from 'react-router-dom';
 
 export type Organization = OrganizationPlainAttributes;
 
@@ -98,7 +98,7 @@ const useStyles = makeStyles(_ => ({
   },
 }));
 
-type Props = {...WithAlert, hideAdvancedFields: boolean};
+type Props = {...WithAlert};
 
 function OnboardingDialog() {
   const classes = useStyles();
@@ -186,8 +186,7 @@ async function getUsers(
 
 function Organizations(props: Props) {
   const classes = useStyles();
-  const relativeUrl = useRelativeUrl();
-  const {history} = useRouter();
+  const navigate = useNavigate();
   const [organizations, setOrganizations] = useState<?(Organization[])>(null);
   const [addingUserFor, setAddingUserFor] = useState<?Organization>(null);
   const [currRow, setCurrRow] = useState<OrganizationRowType>({});
@@ -282,7 +281,7 @@ function Organizations(props: Props) {
     {
       name: 'View',
       handleFunc: () => {
-        history.push(relativeUrl(`/detail/${currRow.name}`));
+        navigate(`detail/${currRow.name}`);
       },
     },
   ];
@@ -362,7 +361,7 @@ function Organizations(props: Props) {
         </Grid>
         <OrganizationDialog
           edit={false}
-          hideAdvancedFields={props.hideAdvancedFields}
+          hideAdvancedFields={false}
           organization={null}
           user={null}
           open={showOrganizationDialog}

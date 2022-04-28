@@ -24,7 +24,7 @@ import React from 'react';
 import ServicingAccessGatewaysKPI from '../FEGServicingAccessGatewayKPIs';
 import axiosMock from 'axios';
 import defaultTheme from '../../theme/default';
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
 import type {
@@ -153,7 +153,9 @@ describe('<GatewaysKPIs />', () => {
         <MuiThemeProvider theme={defaultTheme}>
           <MuiStylesThemeProvider theme={defaultTheme}>
             <GatewayContext.Provider value={gatewayCtx}>
-              <Route path="/nms/:networkId" component={GatewayKPIs} />
+              <Routes>
+                <Route path="/nms/:networkId" element={<GatewayKPIs />} />
+              </Routes>
             </GatewayContext.Provider>
           </MuiStylesThemeProvider>
         </MuiThemeProvider>
@@ -221,7 +223,9 @@ describe('<EnodebKPIs />', () => {
         <MuiThemeProvider theme={defaultTheme}>
           <MuiStylesThemeProvider theme={defaultTheme}>
             <EnodebContext.Provider value={enodebCtx}>
-              <Route path="/nms/:networkId" component={EnodebKPIs} />
+              <Routes>
+                <Route path="/nms/:networkId" element={<EnodebKPIs />} />
+              </Routes>
             </EnodebContext.Provider>
           </MuiStylesThemeProvider>
         </MuiThemeProvider>
@@ -264,10 +268,12 @@ describe('<ServicingAccessGatewaysKPI />', () => {
       <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
         <MuiThemeProvider theme={defaultTheme}>
           <MuiStylesThemeProvider theme={defaultTheme}>
-            <Route
-              path="/nms/:networkId"
-              component={ServicingAccessGatewaysKPI}
-            />
+            <Routes>
+              <Route
+                path="/nms/:networkId"
+                element={<ServicingAccessGatewaysKPI />}
+              />
+            </Routes>
           </MuiStylesThemeProvider>
         </MuiThemeProvider>
       </MemoryRouter>

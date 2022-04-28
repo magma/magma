@@ -40,11 +40,10 @@ import nullthrows from '../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import withAlert from '../../fbc_js_core/ui/components/Alert/withAlert';
 import {CoreNetworkTypes} from '../views/subscriber/SubscriberUtils';
-import {Route} from 'react-router-dom';
+import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {map} from 'lodash';
 import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -71,12 +70,14 @@ const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
 
 function Subscribers() {
   const classes = useStyles();
-  const {match, history, relativePath, relativeUrl} = useRouter();
+  const params = useParams();
+  const navigate = useNavigate();
+
   const enqueueSnackbar = useEnqueueSnackbar();
   const [lastRefreshTime, setLastRefreshTime] = useState(new Date().getTime());
   const {error, isLoading, response: subscribers} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdSubscribers,
-    {networkId: nullthrows(match.params.networkId)},
+    {networkId: nullthrows(params.networkId)},
     undefined,
     lastRefreshTime,
   );
@@ -84,14 +85,14 @@ function Subscribers() {
   const {isLoading: subProfilesLoading, response: epcConfigs} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdCellularEpc,
     {
-      networkId: nullthrows(match.params.networkId),
+      networkId: nullthrows(params.networkId),
     },
   );
 
   const {isLoading: apnsLoading, response: networkAPNs} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdApns,
     {
-      networkId: nullthrows(match.params.networkId),
+      networkId: nullthrows(params.networkId),
     },
   );
 
@@ -106,7 +107,7 @@ function Subscribers() {
   const apns = new Set(Object.keys(networkAPNs || {}));
 
   const onSave = () => {
-    history.push(relativeUrl(''));
+    navigate('');
     setLastRefreshTime(new Date().getTime());
   };
 
@@ -129,10 +130,10 @@ function Subscribers() {
       <div className={classes.header}>
         <Text variant="h5">Subscribers</Text>
         <div className={classes.buttons}>
-          <NestedRouteLink to="/import">
+          <NestedRouteLink to="import">
             <Button className={classes.importButton}>Import</Button>
           </NestedRouteLink>
-          <NestedRouteLink to="/add">
+          <NestedRouteLink to="add">
             <Button>Add Subscriber</Button>
           </NestedRouteLink>
         </div>
@@ -166,36 +167,38 @@ function Subscribers() {
           {error ?? ''}
         </Text>
       </div>
-      <Route
-        path={relativePath('/import')}
-        component={() => (
-          <ImportSubscribersDialog
-            open={true}
-            onClose={() => history.push(relativeUrl(''))}
-            onSave={onSave}
-            onSaveError={failureIDs => {
-              enqueueSnackbar(
-                'Error adding the following subscribers: ' +
-                  failureIDs.join(', '),
-                {variant: 'error'},
-              );
-            }}
-          />
-        )}
-      />
-      <Route
-        path={relativePath('/add')}
-        component={() => (
-          <AddEditSubscriberDialog
-            onClose={() => history.push(relativeUrl(''))}
-            onSave={onSave}
-            onSaveError={onError}
-            forbiddenNetworkTypes={forbiddenNetworkTypes}
-            subProfiles={Array.from(subProfiles)}
-            apns={Array.from(apns)}
-          />
-        )}
-      />
+      <Routes>
+        <Route
+          path="/import"
+          element={
+            <ImportSubscribersDialog
+              open={true}
+              onClose={() => navigate('')}
+              onSave={onSave}
+              onSaveError={failureIDs => {
+                enqueueSnackbar(
+                  'Error adding the following subscribers: ' +
+                    failureIDs.join(', '),
+                  {variant: 'error'},
+                );
+              }}
+            />
+          }
+        />
+        <Route
+          path="/add"
+          element={
+            <AddEditSubscriberDialog
+              onClose={() => navigate('')}
+              onSave={onSave}
+              onSaveError={onError}
+              forbiddenNetworkTypes={forbiddenNetworkTypes}
+              subProfiles={Array.from(subProfiles)}
+              apns={Array.from(apns)}
+            />
+          }
+        />
+      </Routes>
     </div>
   );
 }
@@ -208,7 +211,8 @@ type Props = WithAlert & {
 };
 
 function SubscriberTableRowComponent(props: Props) {
-  const {match, history, relativePath, relativeUrl} = useRouter();
+  const params = useParams();
+  const navigate = useNavigate();
   const enqueueSnackbar = useEnqueueSnackbar();
   const {subscriber, subProfiles} = props;
   const displayID = subscriber.id.replace(/^IMSI/, '');
@@ -218,7 +222,7 @@ function SubscriberTableRowComponent(props: Props) {
     );
     if (confirmed) {
       MagmaV1API.deleteLteByNetworkIdSubscribersBySubscriberId({
-        networkId: match.params.networkId || '',
+        networkId: params.networkId || '',
         subscriberId: subscriber.id,
       })
         .then(props.onSave)
@@ -240,7 +244,7 @@ function SubscriberTableRowComponent(props: Props) {
         <TableCell>{subProfile}</TableCell>
         <TableCell>{subscriber.active_apns?.join(', ')}</TableCell>
         <TableCell>
-          <NestedRouteLink to={`/edit/${subscriber.id}`}>
+          <NestedRouteLink to={`edit/${subscriber.id}`}>
             <IconButton>
               <EditIcon />
             </IconButton>
@@ -250,22 +254,24 @@ function SubscriberTableRowComponent(props: Props) {
           </IconButton>
         </TableCell>
       </TableRow>
-      <Route
-        path={relativePath(`/edit/${subscriber.id}`)}
-        component={() => (
-          <AddEditSubscriberDialog
-            editingSubscriber={subscriber}
-            onClose={() => history.push(relativeUrl(''))}
-            onSave={props.onSave}
-            onSaveError={reason => {
-              enqueueSnackbar(reason, {variant: 'error'});
-            }}
-            forbiddenNetworkTypes={forbiddenNetworkTypes}
-            subProfiles={Array.from(props.subProfiles)}
-            apns={Array.from(props.apns)}
-          />
-        )}
-      />
+      <Routes>
+        <Route
+          path={`/edit/${subscriber.id}`}
+          element={
+            <AddEditSubscriberDialog
+              editingSubscriber={subscriber}
+              onClose={() => navigate('')}
+              onSave={props.onSave}
+              onSaveError={reason => {
+                enqueueSnackbar(reason, {variant: 'error'});
+              }}
+              forbiddenNetworkTypes={forbiddenNetworkTypes}
+              subProfiles={Array.from(props.subProfiles)}
+              apns={Array.from(props.apns)}
+            />
+          }
+        />
+      </Routes>
     </>
   );
 }

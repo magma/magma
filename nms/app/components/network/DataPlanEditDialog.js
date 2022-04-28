@@ -31,7 +31,7 @@ import {
 
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 
 import {BITRATE_MULTIPLIER, DATA_PLAN_UNLIMITED_RATES} from './DataPlanConst';
@@ -103,7 +103,7 @@ type Props = {
 };
 
 export default function DataPlanEditDialog(props: Props) {
-  const {match} = useRouter();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [editedName, setEditedName] = useState(props.dataPlanId || '');
   const [editedMaxDlBitRate, setEditedMaxDlBitRate] = useState(null);
@@ -145,7 +145,7 @@ export default function DataPlanEditDialog(props: Props) {
     };
 
     MagmaV1API.putLteByNetworkIdCellularEpc({
-      networkId: nullthrows(match.params.networkId),
+      networkId: nullthrows(params.networkId),
       config: newConfig,
     })
       .then(_resp => props.onSave(editedName, newConfig))

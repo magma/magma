@@ -14,7 +14,6 @@
  * @format
  */
 
-import type {ContextRouter} from 'react-router-dom';
 import type {Theme} from '@material-ui/core';
 import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
@@ -33,13 +32,11 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import {Route, withRouter} from 'react-router-dom';
-
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import {useState} from 'react';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -52,17 +49,18 @@ const styles = (theme: Theme) => ({
   },
 });
 
-type Props = WithStyles<typeof styles> & ContextRouter & WithAlert & {};
+type Props = WithStyles<typeof styles> & WithAlert & {};
 
 function Apn(props: Props) {
-  const {history, relativeUrl} = useRouter();
+  const params = useParams();
+  const navigate = useNavigate();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [lastRefreshTime, setLastRefreshTime] = useState(new Date().getTime());
   const {classes} = props;
 
   const {isLoading: apnsLoading, response: networkAPNs} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdApns,
-    {networkId: nullthrows(props.match.params.networkId)},
+    {networkId: nullthrows(params.networkId)},
     undefined,
     lastRefreshTime,
   );
@@ -72,11 +70,11 @@ function Apn(props: Props) {
   }
 
   const handleApnEditCancel = () => {
-    props.history.push(`${props.match.url}/`);
+    navigate('');
   };
 
   const handleApnEditSave = () => {
-    history.push(relativeUrl(''));
+    navigate('');
     setLastRefreshTime(new Date().getTime());
   };
 
@@ -86,7 +84,7 @@ function Apn(props: Props) {
     );
     if (confirmed) {
       MagmaV1API.deleteLteByNetworkIdApnsByApnName({
-        networkId: nullthrows(props.match.params.networkId),
+        networkId: nullthrows(params.networkId),
         apnName: apnName,
       })
         .then(handleApnEditSave)
@@ -131,7 +129,7 @@ function Apn(props: Props) {
         </TableCell>
         <TableCell>
           <div className={classes.rowIcon}>
-            <NestedRouteLink to={`/edit/${encodeURIComponent(id)}`}>
+            <NestedRouteLink to={`edit/${encodeURIComponent(id)}`}>
               <IconButton color="primary">
                 <EditIcon />
               </IconButton>
@@ -162,7 +160,7 @@ function Apn(props: Props) {
             <TableCell align="center">Preemption Capability</TableCell>
             <TableCell align="center">Preemption Vulnerability</TableCell>
             <TableCell>
-              <NestedRouteLink to="/add">
+              <NestedRouteLink to="add">
                 <Button>Add APN</Button>
               </NestedRouteLink>
             </TableCell>
@@ -170,30 +168,32 @@ function Apn(props: Props) {
         </TableHead>
         {rows && <TableBody>{rows}</TableBody>}
       </Table>
-      <Route
-        path={`${props.match.path}/add`}
-        component={() => (
-          <ApnEditDialog
-            apnName={null}
-            apnConfig={networkAPNs?.['']}
-            onCancel={handleApnEditCancel}
-            onSave={handleApnEditSave}
-          />
-        )}
-      />
-      <Route
-        path={`${props.match.path}/edit/:apnName`}
-        render={props => (
-          <ApnEditDialog
-            apnName={props.match.params.apnName}
-            apnConfig={networkAPNs?.[props.match.params.apnName || '']}
-            onCancel={handleApnEditCancel}
-            onSave={handleApnEditSave}
-          />
-        )}
-      />
+      <Routes>
+        <Route
+          path="/add"
+          element={
+            <ApnEditDialog
+              apnName={null}
+              apnConfig={networkAPNs?.['']}
+              onCancel={handleApnEditCancel}
+              onSave={handleApnEditSave}
+            />
+          }
+        />
+        <Route
+          path="/edit/:apnName"
+          element={
+            <ApnEditDialog
+              apnName={params.apnName}
+              apnConfig={networkAPNs?.[params.apnName || '']}
+              onCancel={handleApnEditCancel}
+              onSave={handleApnEditSave}
+            />
+          }
+        />
+      </Routes>
     </>
   );
 }
 
-export default withStyles(styles)(withRouter(withAlert(Apn)));
+export default withStyles(styles)(withAlert(Apn));

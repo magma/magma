@@ -23,7 +23,7 @@ import TrafficDashboard from '../TrafficOverview';
 import axiosMock from 'axios';
 import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
 
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SetApnState} from '../../../state/lte/ApnState';
 import {
@@ -189,10 +189,12 @@ describe('<TrafficDashboard />', () => {
         <MuiStylesThemeProvider theme={defaultTheme}>
           <PolicyContext.Provider value={policyCtx}>
             <ApnContext.Provider value={apnCtx}>
-              <Route
-                path="/nms/:networkId/traffic"
-                component={TrafficDashboard}
-              />
+              <Routes>
+                <Route
+                  path="/nms/:networkId/traffic/*"
+                  element={<TrafficDashboard />}
+                />
+              </Routes>
             </ApnContext.Provider>
           </PolicyContext.Provider>
         </MuiStylesThemeProvider>
@@ -421,10 +423,12 @@ describe('<TrafficDashboard APNs/>', () => {
         <MuiStylesThemeProvider theme={defaultTheme}>
           <PolicyContext.Provider value={policyCtx}>
             <ApnContext.Provider value={apnCtx}>
-              <Route
-                path="/nms/:networkId/traffic"
-                component={TrafficDashboard}
-              />
+              <Routes>
+                <Route
+                  path="/nms/:networkId/traffic/*"
+                  element={<TrafficDashboard />}
+                />
+              </Routes>
             </ApnContext.Provider>
           </PolicyContext.Provider>
         </MuiStylesThemeProvider>

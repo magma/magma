@@ -58,13 +58,12 @@ import {
   PingCommandControls,
   TroubleshootingControl,
 } from '../../components/GatewayCommandFields';
-import {Redirect, Route, Switch} from 'react-router-dom';
+import {Navigate, Route, Routes, useParams} from 'react-router-dom';
 import {RunGatewayCommands} from '../../state/lte/EquipmentState';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import {withStyles} from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -163,9 +162,9 @@ function TroubleshootingDialog(props: CommandProps) {
 
 function GatewayMenuInternal(props: WithAlert) {
   const classes = useStyles();
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const gatewayId: string = nullthrows(match.params.gatewayId);
+  const params = useParams();
+  const networkId: string = nullthrows(params.networkId);
+  const gatewayId: string = nullthrows(params.gatewayId);
   const [anchorEl, setAnchorEl] = useState(null);
   const [gatewayCommandOpen, setGatewayCommandOpen] = useState(false);
   const [troubleshootingDialogOpen, setTroubleshootingDialogOpen] = useState(
@@ -266,8 +265,8 @@ export type GatewayDetailType = {
   refresh: boolean,
 };
 export function GatewayDetail() {
-  const {relativePath, relativeUrl, match} = useRouter();
-  const gatewayId: string = nullthrows(match.params.gatewayId);
+  const params = useParams();
+  const gatewayId: string = nullthrows(params.gatewayId);
   const gwCtx = useContext(GatewayContext);
 
   return (
@@ -277,79 +276,76 @@ export function GatewayDetail() {
         tabs={[
           {
             label: 'Overview',
-            to: '/overview',
+            to: 'overview',
             icon: DashboardIcon,
             filters: <GatewayMenu />,
           },
           {
             label: 'Event',
-            to: '/event',
+            to: 'event',
             icon: MyLocationIcon,
             filters: <GatewayMenu />,
           },
           {
             label: 'Logs',
-            to: '/logs',
+            to: 'logs',
             icon: ListAltIcon,
             filters: <GatewayMenu />,
           },
           {
             label: 'Alerts',
-            to: '/alert',
+            to: 'alert',
             icon: AccessAlarmIcon,
             filters: <GatewayMenu />,
           },
           {
             label: 'Config',
-            to: '/config',
+            to: 'config',
             icon: SettingsIcon,
             filters: <GatewayMenu />,
           },
           {
             label: 'Services Config',
-            to: '/services',
+            to: 'services',
             icon: SettingsIcon,
             filters: <GatewayMenu />,
           },
         ]}
       />
 
-      <Switch>
+      <Routes>
+        <Route path="/config/json" element={<GatewayJsonConfig />} />
+        <Route path="/config" element={<GatewayConfig />} />
         <Route
-          path={relativePath('/config/json')}
-          component={GatewayJsonConfig}
-        />
-        <Route path={relativePath('/config')} component={GatewayConfig} />
-        <Route
-          path={relativePath('/event')}
-          render={() => (
+          path="/event"
+          element={
             <EventsTable
               eventStream="GATEWAY"
               hardwareId={gwCtx.state[gatewayId].device?.hardware_id}
               sz="lg"
               isAutoRefreshing={true}
             />
-          )}
+          }
         />
         <Route
-          path={relativePath('/alert')}
-          render={() => (
+          path="/alert"
+          element={
             <DashboardAlertTable labelFilters={{gatewayID: gatewayId}} />
-          )}
+          }
         />
-        <Route path={relativePath('/overview')} component={GatewayOverview} />
-        <Route path={relativePath('/logs')} component={GatewayLogs} />
-        <Route path={relativePath('/services')} component={GatewayConfigYml} />
-        <Redirect to={relativeUrl('/overview')} />
-      </Switch>
+        <Route path="overview" element={<GatewayOverview />} />
+        <Route path="/logs" element={<GatewayLogs />} />
+        <Route path="/services" element={<GatewayConfigYml />} />
+        <Route index element={<Navigate to="overview" replace />} />
+      </Routes>
     </>
   );
 }
 
 function GatewayOverview() {
   const classes = useStyles();
-  const {match} = useRouter();
-  const gatewayId: string = nullthrows(match.params.gatewayId);
+  const params = useParams();
+  const gatewayId: string = nullthrows(params.gatewayId);
   const gwCtx = useContext(GatewayContext);
   const gwInfo = gwCtx.state[gatewayId];
   const [refresh, setRefresh] = useState(true);

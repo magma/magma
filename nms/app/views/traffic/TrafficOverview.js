@@ -34,11 +34,10 @@ import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
 
 import {ApnJsonConfig} from './ApnOverview';
+import {Navigate, Route, Routes} from 'react-router-dom';
 import {PolicyJsonConfig} from './PolicyOverview';
-import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import {withStyles} from '@material-ui/core/styles';
 
 const useStyles = makeStyles(_ => ({
@@ -203,8 +202,6 @@ function DataPlanMenu() {
  * button.
  */
 export default function TrafficDashboard() {
-  const {relativePath, relativeUrl} = useRouter();
-
   return (
     <>
       <TopBar
@@ -212,40 +209,34 @@ export default function TrafficDashboard() {
         tabs={[
           {
             label: 'Policies',
-            to: '/policy',
+            to: 'policy',
             icon: LibraryBooksIcon,
             filters: <PolicyMenu />,
           },
           {
             label: 'APNs',
-            to: '/apn',
+            to: 'apn',
             icon: RssFeedIcon,
             filters: <ApnMenu />,
           },
           {
             label: 'Data Plans',
-            to: '/data_plan',
+            to: 'data_plan',
             icon: CellWifiIcon,
             filters: <DataPlanMenu />,
           },
         ]}
       />
 
-      <Switch>
-        <Route
-          path={relativePath('/policy/:policyId/json')}
-          component={PolicyJsonConfig}
-        />
-        <Route
-          path={relativePath('/apn/:apnId/json')}
-          component={ApnJsonConfig}
-        />
-        <Route path={relativePath('/apn/json')} component={ApnJsonConfig} />
-        <Route path={relativePath('/policy')} component={PolicyOverview} />
-        <Route path={relativePath('/apn')} component={ApnOverview} />
-        <Route path={relativePath('/data_plan')} component={DataPlanOverview} />
-        <Redirect to={relativeUrl('/policy')} />
-      </Switch>
+      <Routes>
+        <Route path="/policy/:policyId/json" element={<PolicyJsonConfig />} />
+        <Route path="/apn/:apnId/json" element={<ApnJsonConfig />} />
+        <Route path="/apn/json" element={<ApnJsonConfig />} />
+        <Route path="/policy" element={<PolicyOverview />} />
+        <Route path="/apn" element={<ApnOverview />} />
+        <Route path="/data_plan" element={<DataPlanOverview />} />
+        <Route index element={<Navigate to="policy" replace />} />
+      </Routes>
     </>
   );
 }

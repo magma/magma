@@ -27,16 +27,16 @@ import {
   ServiceTypeEnum,
 } from '../../components/GatewayUtils';
 import {useContext} from 'react';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 /**
  * Displays the Connection status of the Gx/Gy servers, S6a server
  * and SWx server.
  */
 export default function FEGGatewayConnectionStatus() {
-  const {match} = useRouter();
+  const params = useParams();
   const ctx = useContext(FEGGatewayContext);
-  const gatewayId: string = nullthrows(match.params.gatewayId);
+  const gatewayId: string = nullthrows(params.gatewayId);
   const gwHealthStatus = ctx.health[gatewayId] || {};
   const getServiceHealthStatus = serviceStatus => {
     if (serviceStatus) {

@@ -18,7 +18,6 @@ import AppContext from '../context/AppContext';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import NetworkContext from '../../../app/components/context/NetworkContext';
 import PersonIcon from '@material-ui/icons/Person';
 import Popout from './Popout';
 import React, {useContext} from 'react';
@@ -27,7 +26,7 @@ import classNames from 'classnames';
 import {Events, GeneralLogger} from '../utils/Logging';
 import {colors} from '../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '../hooks';
+import {useNavigate, useResolvedPath} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
   button: {
@@ -90,9 +89,9 @@ type Props = {
 };
 
 const ProfileButton = (props: Props) => {
-  const {relativeUrl, history, location} = useRouter();
+  const navigate = useNavigate();
+  const resolvedPath = useResolvedPath('');
   const classes = useStyles();
-  const {networkId: selectedNetworkId} = useContext(NetworkContext);
   const {
     user,
     hasAccountSettings,
@@ -100,17 +99,9 @@ const ProfileButton = (props: Props) => {
     isOrganizations,
   } = useContext(AppContext);
 
-  const getUrl = (path: string) =>
-    selectedNetworkId != undefined || isOrganizations
-      ? relativeUrl(path)
-      : path;
-
-  const adminUrl = getUrl('/admin');
-  const settingsUrl = getUrl('/settings');
-
   const isSelected =
-    location.pathname.includes(adminUrl) ||
-    location.pathname.includes(settingsUrl);
+    location.pathname.startsWith(resolvedPath.pathname + '/admin') ||
+    location.pathname.startsWith(resolvedPath.pathname + '/settings');
 
   const hasAdministration = user.isSuperUser && !isOrganizations;
   const hasDocumentation = isFeatureEnabled('documents_site');
@@ -135,7 +126,7 @@ const ProfileButton = (props: Props) => {
               onClick={() => {
                 GeneralLogger.info(Events.SETTINGS_CLICKED);
                 props.setMenuOpen(false);
-                history.push(settingsUrl);
+                navigate('settings');
               }}
               component="a">
               <Text className={classes.profileItemText}>Account Settings</Text>
@@ -148,7 +139,7 @@ const ProfileButton = (props: Props) => {
               onClick={() => {
                 GeneralLogger.info(Events.ADMINISTRATION_CLICKED);
                 props.setMenuOpen(false);
-                history.push(adminUrl);
+                navigate('admin');
               }}
               component="a">
               <Text className={classes.profileItemText}>Administration</Text>

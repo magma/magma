@@ -21,7 +21,6 @@ import SidebarItem from '../SidebarItem';
 import classNames from 'classnames';
 import {colors} from '../../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '../../hooks';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -64,7 +63,6 @@ const AppSideBar = (props: Props) => {
   const [expanded, setIsExpanded] = useState(false);
   const [isProfileMenuOpen, _setProfileMenuOpen] = useState(false);
   const [isNetworkMenuOpen, _setNetworkMenuOpen] = useState(false);
-  const {relativeUrl} = useRouter();
 
   const setProfileMenuOpen = (isOpen: boolean) => {
     if (!isOpen) {
@@ -98,7 +96,7 @@ const AppSideBar = (props: Props) => {
           {items.map(({path, label, icon}) => (
             <SidebarItem
               key={label}
-              path={relativeUrl(path)}
+              path={path}
               label={label}
               icon={icon}
               expanded={expanded}

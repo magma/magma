@@ -28,7 +28,7 @@ import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 
 import {useContext} from 'react';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 export function getLatency(
   resp: ?promql_return_object,
@@ -43,11 +43,11 @@ export function getLatency(
 }
 
 export default function EquipmentGatewayKPIs() {
-  const {match} = useRouter();
+  const params = useParams();
   const ctx = useContext(GatewayContext);
   const lteGateways = ctx.state;
 
-  const networkId: string = nullthrows(match.params.networkId);
+  const networkId: string = nullthrows(params.networkId);
   const timeRange = '3h';
   const {response: maxResponse} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdPrometheusQuery,

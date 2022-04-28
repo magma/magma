@@ -14,11 +14,12 @@
  * @format
  */
 
+import AsyncMetric from '../insights/AsyncMetric';
+import {resolveQuery} from '../insights/Metrics';
 import type {MetricGraphConfig} from '../insights/Metrics';
 import type {TimeRange} from '../insights/AsyncMetric';
 
 import AppBar from '@material-ui/core/AppBar';
-import AsyncMetric from '../insights/AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import FormControl from '@material-ui/core/FormControl';
@@ -28,18 +29,16 @@ import InputLabel from '@material-ui/core/InputLabel';
 import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
-import React from 'react';
+import React, {useState} from 'react';
 import Select from '@material-ui/core/Select';
 import Text from '../../theme/design-system/Text';
 import TimeRangeSelector from '../insights/TimeRangeSelector';
-import {Route} from 'react-router-dom';
+import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 
 import useMagmaAPI from '../../../api/useMagmaAPI';
 import {find, map} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {resolveQuery} from '../insights/Metrics';
-import {useRouter, useSnackbar} from '../../../fbc_js_core/ui/hooks';
-import {useState} from 'react';
+import {useSnackbar} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   appBar: {
@@ -58,15 +57,15 @@ function MultiMetrics(props: {
   onGatewaySelectorChange: (SyntheticInputEvent<EventTarget>) => void,
   configs: Array<MetricGraphConfig>,
 }) {
-  const {match} = useRouter();
+  const params = useParams();
   const classes = useStyles();
-  const selectedGateway = match.params.selectedGatewayId;
+  const selectedGateway = params.selectedGatewayId;
   const [timeRange, setTimeRange] = useState<TimeRange>('24_hours');
 
   const {error, isLoading, response: paginated_gateways} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdGateways,
     {
-      networkId: match.params.networkId,
+      networkId: params.networkId,
     },
   );
 
@@ -134,18 +133,19 @@ function MultiMetrics(props: {
 }
 
 export default function (props: {configs: Array<MetricGraphConfig>}) {
-  const {history, relativePath, relativeUrl} = useRouter();
-  return (
-    <Route
-      path={relativePath('/:selectedGatewayId?')}
-      render={() => (
-        <MultiMetrics
-          configs={props.configs}
-          onGatewaySelectorChange={({target}) =>
-            history.push(relativeUrl(`/${target.value}`))
-          }
-        />
-      )}
+  const navigate = useNavigate();
+
+  const metrics = (
+    <MultiMetrics
+      configs={props.configs}
+      onGatewaySelectorChange={({target}) => navigate(target.value)}
     />
+  );
+
+  return (
+    <Routes>
+      <Route path=":selectedGatewayId" element={metrics} />
+      <Route index element={metrics} />
+    </Routes>
   );
 }

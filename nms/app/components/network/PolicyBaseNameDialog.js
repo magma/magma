@@ -28,7 +28,7 @@ import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
   input: {
@@ -46,15 +46,15 @@ type Props = {
 
 export default function (props: Props) {
   const classes = useStyles();
-  const {match} = useRouter();
+  const params = useParams();
   const [baseName, setBaseName] = useState();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const editingBaseName = match.params.baseName;
+  const editingBaseName = params.baseName;
 
   useEffect(() => {
     if (editingBaseName) {
       MagmaV1API.getNetworksByNetworkIdPoliciesBaseNamesByBaseName({
-        networkId: nullthrows(match.params.networkId),
+        networkId: nullthrows(params.networkId),
         baseName: editingBaseName,
       }).then(response =>
         setBaseName({
@@ -65,7 +65,7 @@ export default function (props: Props) {
     } else {
       setBaseName({name: '', ruleNames: ''});
     }
-  }, [editingBaseName, match.params.networkId, setBaseName]);
+  }, [editingBaseName, params.networkId, setBaseName]);
 
   if (!baseName) {
     return <LoadingFillerBackdrop />;
@@ -79,7 +79,7 @@ export default function (props: Props) {
 
     const data = [
       {
-        networkId: nullthrows(match.params.networkId),
+        networkId: nullthrows(params.networkId),
         baseNameRecord,
       },
     ];

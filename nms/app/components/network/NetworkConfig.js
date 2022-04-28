@@ -43,7 +43,7 @@ import {
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   formContainer: {
@@ -72,7 +72,7 @@ type FDDConfig = $PropertyType<network_ran_configs, 'fdd_config'>;
 
 export default function NetworkConfig() {
   const classes = useStyles();
-  const {match} = useRouter();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [config, setConfig] = useState();
   const [lteAuthOpHex, setLteAuthOpHex] = useState('');
@@ -81,7 +81,7 @@ export default function NetworkConfig() {
   const [tddConfig, setTddConfig] = useState();
   const [fddConfig, setFddConfig] = useState();
 
-  const networkId = nullthrows(match.params.networkId);
+  const networkId = nullthrows(params.networkId);
   const {isLoading} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdCellular,
     {networkId},

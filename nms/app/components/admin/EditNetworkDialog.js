@@ -24,7 +24,7 @@ import MagmaV1API from '../../../generated/WebClient';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 import {CWF, FEG} from '../../../fbc_js_core/types/network';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 type Props = {
   onClose: () => void,
@@ -32,7 +32,7 @@ type Props = {
 };
 
 export default function NetworkDialog(props: Props) {
-  const editingNetworkID = useRouter().match.params.networkID;
+  const {networkID: editingNetworkID} = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const {response: networkConfig, isLoading} = useMagmaAPI(
