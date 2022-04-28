@@ -17,8 +17,6 @@ cc_library(
     name = "eventd_client",
     srcs = ["EventClientAPI.cpp"],
     hdrs = ["EventClientAPI.hpp"],
-    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
-    strip_include_prefix = "/lte/gateway/c/core/oai/lib/event_client",
     deps = [
         "//orc8r/gateway/c/common/eventd:eventd_client",
         "//orc8r/protos:eventd_cpp_grpc",
