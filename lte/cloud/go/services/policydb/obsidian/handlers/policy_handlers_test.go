@@ -1105,7 +1105,19 @@ func TestPolicyWithQoSProfile(t *testing.T) {
 	tc := tests.Test{
 		Method:         "POST",
 		URL:            "/magma/v1/lte/n1/policy_qos_profiles",
-		Payload:        newTestQoSProfile(),
+		Payload:        newTestQoSProfileNamed("profile0"),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        postProfile,
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Post other profile
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/lte/n1/policy_qos_profiles",
+		Payload:        newTestQoSProfileNamed("profile1"),
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        postProfile,
@@ -1178,6 +1190,32 @@ func TestPolicyWithQoSProfile(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// Put rule, associate with other profile
+	rule.QosProfile = "profile1"
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/networks/n1/policies/rules/profile1",
+		Payload:        rule,
+		ParamNames:     []string{"network_id", "rule_id"},
+		ParamValues:    []string{"n1", "rule0"},
+		Handler:        putRule,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get rule, other profile found
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/networks/n1/policies/rules/rule0",
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "rule_id"},
+		ParamValues:    []string{"n1", "rule0"},
+		Handler:        getRule,
+		ExpectedStatus: 200,
+		ExpectedResult: rule,
+	}
+	tests.RunUnitTest(t, e, tc)
+
 	// Get all rules, profile found
 	tc = tests.Test{
 		Method:         "GET",
@@ -1194,9 +1232,9 @@ func TestPolicyWithQoSProfile(t *testing.T) {
 	// Delete profile
 	tc = tests.Test{
 		Method:         "DELETE",
-		URL:            "/magma/v1/lte/n1/policy_qos_profiles/profile0",
+		URL:            "/magma/v1/lte/n1/policy_qos_profiles/profile1",
 		ParamNames:     []string{"network_id", "profile_id"},
-		ParamValues:    []string{"n1", "profile0"},
+		ParamValues:    []string{"n1", "profile1"},
 		Handler:        deleteProfile,
 		ExpectedStatus: 204,
 	}
@@ -1264,6 +1302,10 @@ func validateBaseName(t *testing.T, e *echo.Echo, getName echo.HandlerFunc, expe
 }
 
 func newTestQoSProfile() *policyModels.PolicyQosProfile {
+	return newTestQoSProfileNamed("profile0")
+}
+
+func newTestQoSProfileNamed(id string) *policyModels.PolicyQosProfile {
 	profile := &policyModels.PolicyQosProfile{
 		Arp: &policyModels.Arp{
 			PreemptionCapability:    swag.Bool(true),
@@ -1275,7 +1317,7 @@ func newTestQoSProfile() *policyModels.PolicyQosProfile {
 			Downlink: swag.Uint32(42),
 			Uplink:   swag.Uint32(420),
 		},
-		ID:         "profile0",
+		ID:         id,
 		MaxReqBwDl: swag.Uint32(42),
 		MaxReqBwUl: swag.Uint32(420),
 	}

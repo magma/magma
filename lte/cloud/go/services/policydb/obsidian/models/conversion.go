@@ -147,12 +147,13 @@ func (m *PolicyRule) FromEntity(ent configurator.NetworkEntity) *PolicyRule {
 	return m
 }
 
-func (m *PolicyRule) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+func (m *PolicyRule) ToEntityUpdateCriteria(associationsToAdd storage.TKs, associationsToDelete storage.TKs) configurator.EntityUpdateCriteria {
 	update := configurator.EntityUpdateCriteria{
-		Type:              lte.PolicyRuleEntityType,
-		Key:               string(m.ID),
-		NewConfig:         m.getConfig(),
-		AssociationsToAdd: m.GetAssocs(),
+		Type:                 lte.PolicyRuleEntityType,
+		Key:                  string(m.ID),
+		NewConfig:            m.getConfig(),
+		AssociationsToAdd:    associationsToAdd,
+		AssociationsToDelete: associationsToDelete,
 	}
 	return update
 }
