@@ -132,7 +132,7 @@ func pushHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	metrics := protos.PushedMetricsContainer{
+	metrics := &protos.PushedMetricsContainer{
 		NetworkId: nID,
 		Metrics:   pushedMetrics,
 	}

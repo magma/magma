@@ -13,7 +13,7 @@
 
 - name: run load test script
   command:
-    cmd: "python3 /magma/lte/gateway/python/load_tests/loadtest_{{ item.0.name }}.py {{ item.1.name }} /magma/"
+    cmd: "python3 /magma/lte/gateway/python/load_tests/loadtest_{{ item.0.name }}.py {{ item.1.name }} --import_path /magma/"
     chdir: "/magma/lte/gateway/python/load_tests"
   environment:
     MAGMA_ROOT: "/magma"

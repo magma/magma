@@ -55,11 +55,6 @@ func main() {
 		glog.Fatalf("Error creating health servicer: %+v", err)
 	}
 	protos.RegisterHealthServer(srv.GrpcServer, healthServer)
-	cloudHealthServer, err := servicers.NewCloudHealthServer(store)
-	if err != nil {
-		glog.Fatalf("Error creating cloud health servicer: %+v", err)
-	}
-	protos.RegisterCloudHealthServer(srv.GrpcServer, cloudHealthServer)
 
 	cloudHealthServer, err := protected_servicers.NewCloudHealthServer(store)
 	if err != nil {

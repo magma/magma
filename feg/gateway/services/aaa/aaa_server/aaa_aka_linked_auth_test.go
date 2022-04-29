@@ -36,14 +36,14 @@ import (
 // TestEapAkaConcurent tests EAP AKA Provider
 func TestLinkedEapAkaConcurent(t *testing.T) {
 	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
-	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
+	srv, lis, _ := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 
-	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA_SERVER)
+	rtrSrv, rtrLis, _ := test_utils.NewTestService(t, registry.ModuleName, registry.AAA_SERVER)
 	protos.RegisterAuthenticatorServer(rtrSrv.GrpcServer, &testAuthenticator{supportedMethods: eap_client.SupportedTypes()})
-	go rtrSrv.RunTest(rtrLis)
+	go rtrSrv.RunTest(rtrLis, nil)
 
 	client := &testEapServiceClient{}
 	done := make(chan error)
@@ -74,9 +74,9 @@ func TestLinkedEAPPeerNak(t *testing.T) {
 	akaPrimeNak := []byte{0x02, 237, 0x00, 0x06, 0x03, 50}
 	akaAkaPrimeNak := []byte{0x02, 236, 0x00, 0x07, 0x03, 50, 23}
 
-	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA_SERVER)
+	rtrSrv, rtrLis, _ := test_utils.NewTestService(t, registry.ModuleName, registry.AAA_SERVER)
 	protos.RegisterAuthenticatorServer(rtrSrv.GrpcServer, &testAuthenticator{supportedMethods: eap_client.SupportedTypes()})
-	go rtrSrv.RunTest(rtrLis)
+	go rtrSrv.RunTest(rtrLis, nil)
 
 	eapCtx := &protos.Context{SessionId: eap.CreateSessionId()}
 

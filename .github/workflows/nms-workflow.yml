@@ -175,7 +175,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
-      NMS_ROOT: "${{ github.workspace }}/nms/packages/magmalte"
+      NMS_ROOT: "${{ github.workspace }}/nms"
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
       PUPPETEER_EXECUTABLE_PATH: "/usr/bin/google-chrome-stable"
     steps:
@@ -207,7 +207,7 @@ jobs:
         run: |
             source $NVM_DIR/nvm.sh
             nvm install stable
-            cd ${MAGMA_ROOT}/nms/packages/magmalte
+            cd ${MAGMA_ROOT}/nms
             ./e2e_test_setup.sh
       - name: Publish Test Results
         if: always()

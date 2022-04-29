@@ -19,7 +19,7 @@ def grpc():
         name = "rules_proto_grpc",
         sha256 = "7954abbb6898830cd10ac9714fbcacf092299fda00ed2baf781172f545120419",
         strip_prefix = "rules_proto_grpc-3.1.1",
-        # TODO(@themarwhal): Ships with https://github.com/protocolbuffers/protobuf v3.15.3
-        # Upgrade to latest release once we resolve GH8457
+        # TODO: Ships with https://github.com/protocolbuffers/protobuf v3.15.3
+        # Upgrade to latest release once we resolve #8457
         urls = ["https://github.com/rules-proto-grpc/rules_proto_grpc/archive/3.1.1.tar.gz"],
     )

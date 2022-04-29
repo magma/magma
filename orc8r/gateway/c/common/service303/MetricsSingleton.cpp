@@ -13,18 +13,18 @@
 
 #include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.hpp"
 
+#include <prometheus/counter.h>
+#include <prometheus/counter_builder.h>
+#include <prometheus/gauge.h>
+#include <prometheus/gauge_builder.h>
+#include <prometheus/histogram.h>
+#include <prometheus/histogram_builder.h>
+#include <prometheus/registry.h>
+#include <stdarg.h>
 #include <algorithm>
 #include <vector>
 
-#include "prometheus/counter_builder.h"
-#include "prometheus/gauge_builder.h"
-#include "prometheus/histogram_builder.h"
-#include "prometheus/counter.h"
-#include "prometheus/gauge.h"
-#include "prometheus/histogram.h"
-#include "prometheus/registry.h"
-
-#include "orc8r/gateway/c/common/service303/includes/MetricsRegistry.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsRegistry.hpp"
 
 using magma::service303::MetricsSingleton;
 using prometheus::BuildCounter;

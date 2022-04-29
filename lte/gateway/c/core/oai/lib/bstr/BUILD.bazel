@@ -17,6 +17,4 @@ cc_library(
     name = "bstrlib",
     srcs = ["bstrlib.c"],
     hdrs = ["bstrlib.h"],
-    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
-    strip_include_prefix = "/lte/gateway/c/core/oai/lib/bstr",
 )

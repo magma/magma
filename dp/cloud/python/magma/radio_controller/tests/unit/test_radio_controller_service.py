@@ -1,5 +1,3 @@
-import json
-
 import testing.postgresql
 from magma.db_service.db_initialize import DBInitializer
 from magma.db_service.models import DBCbsd, DBCbsdState, DBChannel, DBRequest
@@ -123,7 +121,7 @@ class RadioControllerTestCase(LocalDBTestCase):
     ])
     def test_channels_not_deleted_when_new_spectrum_inquiry_request_arrives(self, number_of_channels):
         # Given
-        cbsd = DBCbsd(id=1, cbsd_id="foo1", state=self.unregistered_state)
+        cbsd = DBCbsd(id=1, cbsd_id="foo1", state=self.unregistered_state, desired_state=self.unregistered_state)
 
         self._create_channels_for_cbsd(cbsd, number_of_channels)
 

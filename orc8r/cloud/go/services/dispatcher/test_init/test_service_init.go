@@ -27,13 +27,13 @@ import (
 )
 
 func StartTestService(t *testing.T) *mocks.GatewayRPCBroker {
-	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, dispatcher.ServiceName)
+	srv, lis, _ := test_utils.NewTestService(t, orc8r.ModuleName, dispatcher.ServiceName)
 	mockBroker := new(mocks.GatewayRPCBroker)
 	servicer, err := servicers.NewTestSyncRPCServer("test host name", mockBroker)
 	if err != nil {
 		t.Fatalf("Failed to create syncRPCService servicer: %s", err)
 	}
 	protos.RegisterSyncRPCServiceServer(srv.GrpcServer, servicer)
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 	return mockBroker
 }

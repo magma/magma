@@ -46,6 +46,7 @@ import (
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	stateTypes "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
+	orc_test_utils "magma/orc8r/cloud/go/test_utils"
 )
 
 func TestCreateSubscribers(t *testing.T) {
@@ -1644,7 +1645,7 @@ func TestSubscriberBasename(t *testing.T) {
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `code=500, message=could not find entities matching [type:"base_name" key:"baseXXX" ]`,
+		ExpectedErrorSubstring: "code=500, message=could not find entities matching" + orc_test_utils.Separator + "[type:\"base_name\"" + orc_test_utils.Separator + "key:\"baseXXX\"]",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1690,7 +1691,7 @@ func TestSubscriberBasename(t *testing.T) {
 		ParamValues:            []string{"n0", imsi},
 		Handler:                putSubscriber,
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"base_name" key:"baseXXX" ]`,
+		ExpectedErrorSubstring: "could not find entities matching" + orc_test_utils.Separator + "[type:\"base_name\"" + orc_test_utils.Separator + "key:\"baseXXX\"]",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1762,7 +1763,7 @@ func TestSubscriberPolicy(t *testing.T) {
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `code=500, message=could not find entities matching [type:"policy" key:"ruleXXX" ]`,
+		ExpectedErrorSubstring: "code=500, message=could not find entities matching" + orc_test_utils.Separator + "[type:\"policy\"" + orc_test_utils.Separator + "key:\"ruleXXX\"]",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1808,7 +1809,7 @@ func TestSubscriberPolicy(t *testing.T) {
 		ParamValues:            []string{"n0", imsi},
 		Handler:                putSubscriber,
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"policy" key:"ruleXXX" ]`,
+		ExpectedErrorSubstring: "could not find entities matching" + orc_test_utils.Separator + "[type:\"policy\"" + orc_test_utils.Separator + "key:\"ruleXXX\"]",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1994,7 +1995,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"apn" key:"apnXXX" ]`,
+		ExpectedErrorSubstring: "could not find entities matching" + orc_test_utils.Separator + "[type:\"apn\"" + orc_test_utils.Separator + "key:\"apnXXX\"]",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2008,7 +2009,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"policy" key:"ruleXXX" ]`,
+		ExpectedErrorSubstring: "could not find entities matching" + orc_test_utils.Separator + "[type:\"policy\"" + orc_test_utils.Separator + "key:\"ruleXXX\"]",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2061,7 +2062,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		ParamValues:            []string{"n0", imsi},
 		Handler:                putSubscriber,
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"apn" key:"apnXXX" ]`,
+		ExpectedErrorSubstring: "could not find entities matching" + orc_test_utils.Separator + "[type:\"apn\"" + orc_test_utils.Separator + "key:\"apnXXX\"]",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2075,7 +2076,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		ParamValues:            []string{"n0", imsi},
 		Handler:                putSubscriber,
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"policy" key:"ruleXXX" ]`,
+		ExpectedErrorSubstring: "could not find entities matching" + orc_test_utils.Separator + "[type:\"policy\"" + orc_test_utils.Separator + "key:\"ruleXXX\"]",
 	}
 	tests.RunUnitTest(t, e, tc)
 

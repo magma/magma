@@ -11,14 +11,20 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+#include <lte/protos/session_manager.pb.h>
+#include <algorithm>
+#include <cstdint>
+#include <memory>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
-#include <chrono>
-#include <thread>
-
-#include "ProtobufCreators.h"
-#include "SessiondMocks.h"
-#include "SessionState.h"
-#include "SessionStateTester.h"
+#include "lte/gateway/c/session_manager/ServiceAction.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
+#include "lte/gateway/c/session_manager/test/SessionStateTester.hpp"
 
 using ::testing::Test;
 

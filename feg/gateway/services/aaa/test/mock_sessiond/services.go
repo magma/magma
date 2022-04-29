@@ -31,12 +31,12 @@ type MockSessionManager struct {
 }
 
 func NewRunningSessionManager(t *testing.T) *MockSessionManager {
-	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SESSION_MANAGER)
+	srv, lis, _ := test_utils.NewTestService(t, registry.ModuleName, registry.SESSION_MANAGER)
 	service := &MockSessionManager{
 		returnErrors: false,
 	}
 	protos.RegisterLocalSessionManagerServer(srv.GrpcServer, service)
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 	return service
 }
 

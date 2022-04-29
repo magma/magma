@@ -51,9 +51,9 @@ type HandlersTestSuite struct {
 func (s *HandlersTestSuite) SetupTest() {
 	s.cbsdServer = &stubCbsdServer{}
 	s.cbsdServer.t = s.T()
-	srv, lis := test_utils.NewTestService(s.T(), dp.ModuleName, dp_service.ServiceName)
+	srv, lis, _ := test_utils.NewTestService(s.T(), dp.ModuleName, dp_service.ServiceName)
 	protos.RegisterCbsdManagementServer(srv.GrpcServer, s.cbsdServer)
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 }
 
 type stubCbsdServer struct {

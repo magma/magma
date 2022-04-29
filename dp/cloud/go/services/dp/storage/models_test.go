@@ -24,57 +24,76 @@ import (
 )
 
 func TestFields(t *testing.T) {
+	dbGrant := &storage.DBGrant{}
+	dbCbsd := &storage.DBCbsd{}
+	dbCbsdState := &storage.DBCbsdState{}
+	dbGrantState := &storage.DBGrantState{}
 	testCases := []struct {
 		name     string
 		model    db.Model
-		expected []string
+		expected []db.BaseType
 	}{
 		{
-			name:     "check field names for DBGrantState",
-			model:    &storage.DBGrantState{},
-			expected: []string{"id", "name"},
+			name:  "check field names for DBGrantState",
+			model: dbGrantState,
+			expected: []db.BaseType{
+				db.IntType{X: &dbGrantState.Id},
+				db.StringType{X: &dbGrantState.Name},
+			},
 		},
 		{
 			name:  "check field names for DBGrant",
-			model: &storage.DBGrant{},
-			expected: []string{
-				"id", "state_id", "cbsd_id", "grant_id",
-				"grant_expire_time", "transmit_expire_time",
-				"heartbeat_interval", "channel_type",
-				"low_frequency", "high_frequency", "max_eirp",
+			model: dbGrant,
+			expected: []db.BaseType{
+				db.IntType{X: &dbGrant.Id},
+				db.IntType{X: &dbGrant.StateId},
+				db.IntType{X: &dbGrant.CbsdId},
+				db.StringType{X: &dbGrant.GrantId},
+				db.TimeType{X: &dbGrant.GrantExpireTime},
+				db.TimeType{X: &dbGrant.TransmitExpireTime},
+				db.IntType{X: &dbGrant.HeartbeatInterval},
+				db.StringType{X: &dbGrant.ChannelType},
+				db.IntType{X: &dbGrant.LowFrequency},
+				db.IntType{X: &dbGrant.HighFrequency},
+				db.FloatType{X: &dbGrant.MaxEirp},
 			},
 		},
 		{
-			name:     "check field names for DBCbsdState",
-			model:    &storage.DBCbsdState{},
-			expected: []string{"id", "name"},
+			name:  "check field names for DBCbsdState",
+			model: dbCbsdState,
+			expected: []db.BaseType{
+				db.IntType{X: &dbCbsdState.Id},
+				db.StringType{X: &dbCbsdState.Name},
+			},
 		},
 		{
 			name:  "check field names for DBCbsd",
-			model: &storage.DBCbsd{},
-			expected: []string{
-				"id", "network_id", "state_id", "cbsd_id", "user_id",
-				"fcc_id", "cbsd_serial_number", "last_seen", "grant_attempts",
-				"preferred_bandwidth_mhz", "preferred_frequencies_mhz",
-				"min_power", "max_power", "antenna_gain", "number_of_ports",
-				"is_deleted", "should_deregister",
+			model: dbCbsd,
+			expected: []db.BaseType{
+				db.IntType{X: &dbCbsd.Id},
+				db.StringType{X: &dbCbsd.NetworkId},
+				db.IntType{X: &dbCbsd.StateId},
+				db.IntType{X: &dbCbsd.DesiredStateId},
+				db.StringType{X: &dbCbsd.CbsdId},
+				db.StringType{X: &dbCbsd.UserId},
+				db.StringType{X: &dbCbsd.FccId},
+				db.StringType{X: &dbCbsd.CbsdSerialNumber},
+				db.TimeType{X: &dbCbsd.LastSeen},
+				db.IntType{X: &dbCbsd.GrantAttempts},
+				db.IntType{X: &dbCbsd.PreferredBandwidthMHz},
+				db.StringType{X: &dbCbsd.PreferredFrequenciesMHz},
+				db.FloatType{X: &dbCbsd.MinPower},
+				db.FloatType{X: &dbCbsd.MaxPower},
+				db.FloatType{X: &dbCbsd.AntennaGain},
+				db.IntType{X: &dbCbsd.NumberOfPorts},
+				db.BoolType{X: &dbCbsd.IsDeleted},
+				db.BoolType{X: &dbCbsd.ShouldDeregister},
 			},
-		},
-		{
-			name:     "check field names for DBActiveModeConfig",
-			model:    &storage.DBActiveModeConfig{},
-			expected: []string{"id", "cbsd_id", "desired_state_id"},
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual := tc.model.Fields()
-
-			keys := make([]string, 0, len(actual))
-			for k := range actual {
-				keys = append(keys, k)
-			}
-			assert.ElementsMatch(t, tc.expected, keys)
+			assert.Equal(t, tc.expected, tc.model.Fields())
 		})
 	}
 }
@@ -90,15 +109,16 @@ func TestGetMetadata(t *testing.T) {
 			model: &storage.DBGrantState{},
 			expected: db.ModelMetadata{
 				Table: storage.GrantStateTable,
-				Properties: map[string]*db.Field{
-					"id": {
+				Properties: []*db.Field{
+					{
+						Name:    "id",
 						SqlType: sqorc.ColumnTypeInt,
 					},
-					"name": {
+					{
+						Name:    "name",
 						SqlType: sqorc.ColumnTypeText,
 					},
 				},
-				Relations: map[string]string{},
 			},
 		},
 		{
@@ -106,49 +126,58 @@ func TestGetMetadata(t *testing.T) {
 			model: &storage.DBGrant{},
 			expected: db.ModelMetadata{
 				Table: storage.GrantTable,
-				Properties: map[string]*db.Field{
-					"id": {
+				Properties: []*db.Field{
+					{
+						Name:    "id",
 						SqlType: sqorc.ColumnTypeInt,
 					},
-					"state_id": {
-						SqlType: sqorc.ColumnTypeInt,
+					{
+						Name:     "state_id",
+						SqlType:  sqorc.ColumnTypeInt,
+						Relation: storage.GrantStateTable,
 					},
-					"cbsd_id": {
+					{
+						Name:     "cbsd_id",
 						SqlType:  sqorc.ColumnTypeInt,
 						Nullable: true,
+						Relation: storage.CbsdTable,
 					},
-					"grant_id": {
+					{
+						Name:    "grant_id",
 						SqlType: sqorc.ColumnTypeText,
 					},
-					"grant_expire_time": {
+					{
+						Name:     "grant_expire_time",
 						SqlType:  sqorc.ColumnTypeDatetime,
 						Nullable: true,
 					},
-					"transmit_expire_time": {
+					{
+						Name:     "transmit_expire_time",
 						SqlType:  sqorc.ColumnTypeDatetime,
 						Nullable: true,
 					},
-					"heartbeat_interval": {
+					{
+						Name:     "heartbeat_interval",
 						SqlType:  sqorc.ColumnTypeInt,
 						Nullable: true,
 					},
-					"channel_type": {
+					{
+						Name:     "channel_type",
 						SqlType:  sqorc.ColumnTypeText,
 						Nullable: true,
 					},
-					"low_frequency": {
+					{
+						Name:    "low_frequency",
 						SqlType: sqorc.ColumnTypeInt,
 					},
-					"high_frequency": {
+					{
+						Name:    "high_frequency",
 						SqlType: sqorc.ColumnTypeInt,
 					},
-					"max_eirp": {
+					{
+						Name:    "max_eirp",
 						SqlType: sqorc.ColumnTypeReal,
 					},
-				},
-				Relations: map[string]string{
-					storage.CbsdTable:       "cbsd_id",
-					storage.GrantStateTable: "state_id",
 				},
 			},
 		},
@@ -157,15 +186,16 @@ func TestGetMetadata(t *testing.T) {
 			model: &storage.DBCbsdState{},
 			expected: db.ModelMetadata{
 				Table: storage.CbsdStateTable,
-				Properties: map[string]*db.Field{
-					"id": {
+				Properties: []*db.Field{
+					{
+						Name:    "id",
 						SqlType: sqorc.ColumnTypeInt,
 					},
-					"name": {
+					{
+						Name:    "name",
 						SqlType: sqorc.ColumnTypeText,
 					},
 				},
-				Relations: map[string]string{},
 			},
 		},
 		{
@@ -173,99 +203,97 @@ func TestGetMetadata(t *testing.T) {
 			model: &storage.DBCbsd{},
 			expected: db.ModelMetadata{
 				Table: storage.CbsdTable,
-				Properties: map[string]*db.Field{
-					"id": {
+				Properties: []*db.Field{
+					{
+						Name:    "id",
 						SqlType: sqorc.ColumnTypeInt,
 					},
-					"network_id": {
+					{
+						Name:    "network_id",
 						SqlType: sqorc.ColumnTypeText,
 					},
-					"state_id": {
-						SqlType: sqorc.ColumnTypeInt,
+					{
+						Name:     "state_id",
+						SqlType:  sqorc.ColumnTypeInt,
+						Relation: storage.CbsdStateTable,
 					},
-					"cbsd_id": {
+					{
+						Name:     "desired_state_id",
+						SqlType:  sqorc.ColumnTypeInt,
+						Relation: storage.CbsdStateTable,
+					},
+					{
+						Name:     "cbsd_id",
 						SqlType:  sqorc.ColumnTypeText,
 						Nullable: true,
 					},
-					"user_id": {
+					{
+						Name:     "user_id",
 						SqlType:  sqorc.ColumnTypeText,
 						Nullable: true,
 					},
-					"fcc_id": {
+					{
+						Name:     "fcc_id",
 						SqlType:  sqorc.ColumnTypeText,
 						Nullable: true,
 					},
-					"cbsd_serial_number": {
+					{
+						Name:     "cbsd_serial_number",
 						SqlType:  sqorc.ColumnTypeText,
 						Nullable: true,
 						Unique:   true,
 					},
-					"last_seen": {
+					{
+						Name:     "last_seen",
 						SqlType:  sqorc.ColumnTypeDatetime,
 						Nullable: true,
 					},
-					"grant_attempts": {
+					{
+						Name:         "grant_attempts",
 						SqlType:      sqorc.ColumnTypeInt,
 						HasDefault:   true,
 						DefaultValue: 0,
 					},
-					"preferred_bandwidth_mhz": {
+					{
+						Name:    "preferred_bandwidth_mhz",
 						SqlType: sqorc.ColumnTypeInt,
 					},
-					"preferred_frequencies_mhz": {
+					{
+						Name:    "preferred_frequencies_mhz",
 						SqlType: sqorc.ColumnTypeText,
 					},
-					"min_power": {
+					{
+						Name:     "min_power",
 						SqlType:  sqorc.ColumnTypeReal,
 						Nullable: true,
 					},
-					"max_power": {
+					{
+						Name:     "max_power",
 						SqlType:  sqorc.ColumnTypeReal,
 						Nullable: true,
 					},
-					"antenna_gain": {
+					{
+						Name:     "antenna_gain",
 						SqlType:  sqorc.ColumnTypeReal,
 						Nullable: true,
 					},
-					"number_of_ports": {
+					{
+						Name:     "number_of_ports",
 						SqlType:  sqorc.ColumnTypeInt,
 						Nullable: true,
 					},
-					"is_deleted": {
+					{
+						Name:         "is_deleted",
 						SqlType:      sqorc.ColumnTypeBool,
 						HasDefault:   true,
 						DefaultValue: false,
 					},
-					"should_deregister": {
+					{
+						Name:         "should_deregister",
 						SqlType:      sqorc.ColumnTypeBool,
 						HasDefault:   true,
 						DefaultValue: false,
 					},
-				},
-				Relations: map[string]string{
-					storage.CbsdStateTable: "state_id",
-				},
-			},
-		},
-		{
-			name:  "check ModelMetadata structure for DBActiveModeConfig",
-			model: &storage.DBActiveModeConfig{},
-			expected: db.ModelMetadata{
-				Table: storage.ActiveModeConfigTable,
-				Properties: map[string]*db.Field{
-					"id": {
-						SqlType: sqorc.ColumnTypeInt,
-					},
-					"cbsd_id": {
-						SqlType: sqorc.ColumnTypeInt,
-					},
-					"desired_state_id": {
-						SqlType: sqorc.ColumnTypeInt,
-					},
-				},
-				Relations: map[string]string{
-					storage.CbsdTable:      "cbsd_id",
-					storage.CbsdStateTable: "desired_state_id",
 				},
 			},
 		},
@@ -275,7 +303,6 @@ func TestGetMetadata(t *testing.T) {
 			actual := tc.model.GetMetadata()
 			obj := actual.CreateObject()
 
-			assert.Equal(t, tc.expected.Relations, actual.Relations)
 			assert.Equal(t, tc.expected.Properties, actual.Properties)
 			assert.Equal(t, tc.expected.Table, actual.Table)
 			assert.Equal(t, tc.model, obj)

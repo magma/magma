@@ -11,20 +11,32 @@
  * limitations under the License.
  */
 
-#include <unistd.h>
-#include <pthread.h>
-#include <prometheus/registry.h>
+#include <assert.h>
+#include <grpcpp/create_channel.h>
+#include <grpcpp/impl/codegen/client_context.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <grpcpp/security/credentials.h>
 #include <gtest/gtest.h>
-#include <map>
+#include <metrics.pb.h>
+#include <orc8r/protos/common.pb.h>
 #include <orc8r/protos/metricsd.pb.h>
+#include <orc8r/protos/service303.grpc.pb.h>
+#include <orc8r/protos/service303.pb.h>
+#include <unistd.h>
+#include <iostream>
+#include <limits>
+#include <memory>
 #include <string>
 #include <thread>
 
-#include "orc8r/gateway/c/common/service303/includes/MetricsRegistry.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.hpp"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 #include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.hpp"
 #include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
+
+namespace grpc {
+class Channel;
+}  // namespace grpc
 
 using grpc::Channel;
 using grpc::ChannelCredentials;

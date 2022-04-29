@@ -1,6 +1,6 @@
 ---
 
-- name: install PyYAML via pip3. 
+- name: install PyYAML via pip3.
   command: "{{ dirShim }}/pip3 install PyYAML"
 
 - name: install boto3  pip3.
@@ -16,6 +16,6 @@
 
 
 - name: primary build to generate NMS artifacts
-  command: "chdir={{ magmaNmsDir }} docker-compose build magmalte"
+  command: "chdir={{ magmaNmsDir }} COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte"
 
 

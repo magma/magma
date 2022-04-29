@@ -11,8 +11,10 @@
  * limitations under the License.
  */
 
-#include <glog/logging.h>
 #include <gtest/gtest.h>
+#include <map>
+#include <stdexcept>
+#include <utility>
 
 #include "lte/gateway/c/sctpd/src/sctp_assoc.hpp"
 #include "lte/gateway/c/sctpd/src/sctp_desc.hpp"

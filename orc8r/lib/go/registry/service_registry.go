@@ -119,6 +119,12 @@ func convertToServiceLocations(rawMap rawMapType) ([]ServiceLocation, error) {
 			return nil, err
 		}
 
+		// Get protected port
+		protectedPort, err := configMap.GetInt("protected_port")
+		if err != nil {
+			glog.Infof("service %s does not have a protected port", name)
+		}
+
 		// Get echo port
 		// Echo port is an optional field used for services which run an echo
 		// server
@@ -143,13 +149,14 @@ func convertToServiceLocations(rawMap rawMapType) ([]ServiceLocation, error) {
 		proxyAliases := getProxyAliases(rawMap)
 
 		location := ServiceLocation{
-			Name:         strings.ToUpper(name),
-			Host:         host,
-			Port:         port,
-			EchoPort:     echoPort,
-			Labels:       labels,
-			Annotations:  annotations,
-			ProxyAliases: proxyAliases,
+			Name:          strings.ToUpper(name),
+			Host:          host,
+			Port:          port,
+			ProtectedPort: protectedPort,
+			EchoPort:      echoPort,
+			Labels:        labels,
+			Annotations:   annotations,
+			ProxyAliases:  proxyAliases,
 		}
 		serviceLocations = append(serviceLocations, location)
 	}

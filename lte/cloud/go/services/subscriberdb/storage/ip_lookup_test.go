@@ -21,6 +21,7 @@ import (
 	"magma/lte/cloud/go/services/subscriberdb/protos"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/test_utils"
 )
 
 func TestIPLookup(t *testing.T) {
@@ -54,7 +55,7 @@ func TestIPLookup(t *testing.T) {
 			{Ip: "ipA", Imsi: "IMSI0", Apn: "apn0"},
 			{Ip: "ipA", Imsi: "IMSI1", Apn: "apn0"},
 		}
-		assert.Equal(t, want, got)
+		assertEqualArrays(t, want, got)
 
 		got, err = s.GetIPs("n0", []string{"ipA", "ipB"})
 		assert.NoError(t, err)
@@ -64,7 +65,7 @@ func TestIPLookup(t *testing.T) {
 			{Ip: "ipB", Imsi: "IMSI1", Apn: "apn1"},
 			{Ip: "ipB", Imsi: "IMSI2", Apn: "apn2"},
 		}
-		assert.Equal(t, want, got)
+		assertEqualArrays(t, want, got)
 	})
 
 	t.Run("upsert", func(t *testing.T) {
@@ -83,7 +84,7 @@ func TestIPLookup(t *testing.T) {
 			{Ip: "ipA", Imsi: "IMSI1", Apn: "apn0"},
 			{Ip: "ipA", Imsi: "IMSI1", Apn: "apn1"},
 		}
-		assert.Equal(t, want, got)
+		assertEqualArrays(t, want, got)
 
 		got, err = s.GetIPs("n0", []string{"ipA", "ipB", "ipC"})
 		assert.NoError(t, err)
@@ -94,7 +95,7 @@ func TestIPLookup(t *testing.T) {
 			{Ip: "ipB", Imsi: "IMSI2", Apn: "apn1"},
 			{Ip: "ipC", Imsi: "IMSI2", Apn: "apn2"},
 		}
-		assert.Equal(t, want, got)
+		assertEqualArrays(t, want, got)
 	})
 
 	t.Run("additional network", func(t *testing.T) {
@@ -113,13 +114,22 @@ func TestIPLookup(t *testing.T) {
 			{Ip: "ipB", Imsi: "IMSI2", Apn: "apn1"},
 			{Ip: "ipC", Imsi: "IMSI2", Apn: "apn2"},
 		}
-		assert.Equal(t, want, got)
+		assertEqualArrays(t, want, got)
 
 		got, err = s.GetIPs("n1", []string{"ipA", "ipB", "ipC", "ipZ"})
 		assert.NoError(t, err)
 		want = []*protos.IPMapping{
 			{Ip: "ipZ", Imsi: "IMSI0", Apn: "apn0"},
 		}
-		assert.Equal(t, want, got)
+		assertEqualArrays(t, want, got)
 	})
+}
+
+// assertEqualArrays uses proto.Equal to determine equality of proto messages. This ignores
+// proto internals which would make the comparison fail with assert.Equal.
+func assertEqualArrays(t *testing.T, expected, actual []*protos.IPMapping) {
+	assert.Equal(t, len(expected), len(actual))
+	for i := range actual {
+		test_utils.AssertMessagesEqual(t, expected[i], actual[i])
+	}
 }

@@ -15,7 +15,7 @@
 
 module.exports = {
   collectCoverageFrom: [
-    '**/packages/**/*.js',
+    '**/*.js',
     '!**/__mocks__/**',
     '!**/__tests__/**',
     '!**/node_modules/**',
@@ -29,12 +29,12 @@ module.exports = {
       testEnvironment: 'node',
       testMatch: [
         '<rootDir>/__tests__/*.js',
-        '<rootDir>/packages/**/server/**/__tests__/*.js',
+        '<rootDir>/server/**/__tests__/*.js',
       ],
       transform: {
         '^.+\\.js$': 'babel-jest',
       },
-      transformIgnorePatterns: ['/node_modules/(?!@fbcnms)'],
+      transformIgnorePatterns: ['/node_modules/'],
     },
     {
       moduleNameMapper: {
@@ -43,16 +43,15 @@ module.exports = {
         '\\.(css|less)$': 'identity-obj-proxy',
       },
       name: 'app',
-      setupFiles: [require.resolve('@fbcnms/babel-register/polyfill')],
       testEnvironment: 'jsdom',
       testMatch: [
-        '<rootDir>/packages/**/app/**/__tests__/*.js',
-        '<rootDir>/packages/**/fbc_js_core/**/__tests__/*.js',
+        '<rootDir>/app/**/__tests__/*.js',
+        '<rootDir>/fbc_js_core/**/__tests__/*.js',
       ],
       transform: {
         '^.+\\.js$': 'babel-jest',
       },
-      transformIgnorePatterns: ['/node_modules/(?!@fbcnms)'],
+      transformIgnorePatterns: ['/node_modules/'],
     },
   ],
   testEnvironment: 'jsdom',

@@ -34,6 +34,7 @@ import (
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 )
 
@@ -432,7 +433,7 @@ func TestApnRuleMappingsProvider(t *testing.T) {
 	for i, update := range actual {
 		subPolicySet := &lte_protos.SubscriberPolicySet{}
 		_ = proto.Unmarshal(update.Value, subPolicySet)
-		assert.True(t, proto.Equal(subPolicySet, expectedProtos[i]))
+		test_utils.AssertMessagesEqual(t, subPolicySet, expectedProtos[i])
 	}
 }
 

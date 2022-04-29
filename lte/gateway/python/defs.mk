@@ -15,15 +15,16 @@ SWAGGER_LIST:=lte_swagger_specs orc8r_swagger_specs
 
 # Path to the test files
 TESTS=magma/tests \
-	  magma/policydb/tests \
-	  magma/enodebd/tests \
+      magma/policydb/tests \
+      magma/enodebd/tests \
       magma/mobilityd/tests \
       magma/pipelined/openflow/tests \
       magma/pkt_tester/tests \
       magma/redirectd/tests \
       magma/subscriberdb/tests \
-      magma/monitord/tests
+      magma/monitord/tests \
+      magma/kernsnoopd/tests
 
-SUDO_TESTS= magma/mobilityd/tests/ip_alloc_dhcp_test.py \
-	    magma/mobilityd/tests/test_dhcp_client.py \
-	    magma/pipelined/tests \
+SUDO_TESTS=magma/mobilityd/tests/ip_alloc_dhcp_test.py \
+      magma/mobilityd/tests/test_dhcp_client.py \
+      magma/pipelined/tests

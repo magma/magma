@@ -74,7 +74,6 @@ py_library(
         "//orc8r/gateway/python/magma/common/redis:client",
         requirement("netifaces"),
         requirement("scapy"),
-        requirement("typing_extensions"),
         requirement("prometheus_client"),
     ],
 )

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "EbpfMap.h"
+#include "orc8r/gateway/c/common/ebpf/EbpfMap.h"
 
 #include <bcc/proto.h>
 #include <linux/in.h>

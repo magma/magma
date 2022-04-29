@@ -22,6 +22,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+	"google.golang.org/protobuf/proto"
 
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -69,22 +70,23 @@ func (store *sqlConfiguratorStorage) doesPhysicalIDExist(physicalID string) (boo
 	return count > 0, nil
 }
 
-func (store *sqlConfiguratorStorage) insertIntoEntityTable(networkID string, ent NetworkEntity) (NetworkEntity, error) {
-	ent.Pk = store.idGenerator.New()
-	ent.GraphID = store.idGenerator.New() // potentially-temporary graph ID
+func (store *sqlConfiguratorStorage) insertIntoEntityTable(networkID string, ent *NetworkEntity) (*NetworkEntity, error) {
+	entCopy := proto.Clone(ent).(*NetworkEntity)
+	entCopy.Pk = store.idGenerator.New()
+	entCopy.GraphID = store.idGenerator.New() // potentially-temporary graph ID
 
 	_, err := store.builder.Insert(entityTable).
 		Columns(entPkCol, entNidCol, entTypeCol, entKeyCol, entGidCol, entNameCol, entDescCol, entPidCol, entConfCol).
-		Values(ent.Pk, networkID, ent.Type, ent.Key, ent.GraphID, toNullable(ent.Name), toNullable(ent.Description), toNullable(ent.PhysicalID), toNullable(ent.Config)).
+		Values(entCopy.Pk, networkID, entCopy.Type, entCopy.Key, entCopy.GraphID, toNullable(entCopy.Name), toNullable(entCopy.Description), toNullable(entCopy.PhysicalID), toNullable(entCopy.Config)).
 		RunWith(store.tx).
 		Exec()
 	if err != nil {
-		return NetworkEntity{}, errors.Wrapf(err, "error creating entity %s", ent.GetTK())
+		return &NetworkEntity{}, errors.Wrapf(err, "error creating entity %s", entCopy.GetTK())
 	}
-	return ent, nil
+	return entCopy, nil
 }
 
-func (store *sqlConfiguratorStorage) createEdges(networkID string, entity NetworkEntity) (EntitiesByTK, error) {
+func (store *sqlConfiguratorStorage) createEdges(networkID string, entity *NetworkEntity) (EntitiesByTK, error) {
 	// Load the associated entities first because we need to know PKs
 	// This will also load graph ID on the entity because creating an edge can
 	// involve merging previously disjoint graphs.
@@ -113,17 +115,17 @@ func (store *sqlConfiguratorStorage) createEdges(networkID string, entity Networ
 	return entsByTk, nil
 }
 
-func (store *sqlConfiguratorStorage) loadEntsFromEdges(networkID string, targetEntity NetworkEntity) (EntitiesByTK, error) {
+func (store *sqlConfiguratorStorage) loadEntsFromEdges(networkID string, targetEntity *NetworkEntity) (EntitiesByTK, error) {
 	loadedEntsByTk, err := store.loadEntitiesFromIDs(networkID, targetEntity.Associations)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	loadedEntsByTk[targetEntity.GetTK()] = &targetEntity
+	loadedEntsByTk[targetEntity.GetTK()] = targetEntity
 	return loadedEntsByTk, nil
 }
 
 func (store *sqlConfiguratorStorage) loadEntitiesFromIDs(networkID string, idsToLoad []*EntityID) (EntitiesByTK, error) {
-	loaded, err := store.loadEntities(networkID, EntityLoadFilter{IDs: idsToLoad}, EntityLoadCriteria{})
+	loaded, err := store.loadEntities(networkID, &EntityLoadFilter{IDs: idsToLoad}, &EntityLoadCriteria{})
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +138,7 @@ func (store *sqlConfiguratorStorage) loadEntitiesFromIDs(networkID string, idsTo
 	return loaded, nil
 }
 
-func (store *sqlConfiguratorStorage) mergeGraphs(createdEntity NetworkEntity, allAssociatedEntsByTk EntitiesByTK) (string, error) {
+func (store *sqlConfiguratorStorage) mergeGraphs(createdEntity *NetworkEntity, allAssociatedEntsByTk EntitiesByTK) (string, error) {
 	// If we create a node or edge which bridges 2 previously disjoint graphs,
 	// then we need to change the ID of one of the graphs to the joined one.
 
@@ -180,11 +182,11 @@ func (store *sqlConfiguratorStorage) mergeGraphs(createdEntity NetworkEntity, al
 	return targetGraphID, nil
 }
 
-func (store *sqlConfiguratorStorage) loadEntToUpdate(networkID string, update EntityUpdateCriteria) (*NetworkEntity, error) {
+func (store *sqlConfiguratorStorage) loadEntToUpdate(networkID string, update *EntityUpdateCriteria) (*NetworkEntity, error) {
 	loaded, err := store.loadEntities(
 		networkID,
-		EntityLoadFilter{IDs: []*EntityID{update.GetID()}},
-		EntityLoadCriteria{},
+		&EntityLoadFilter{IDs: []*EntityID{update.GetID()}},
+		&EntityLoadCriteria{},
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load entity to update")
@@ -206,7 +208,7 @@ func (store *sqlConfiguratorStorage) loadEntToUpdate(networkID string, update En
 }
 
 // entOut is an output parameter
-func (store *sqlConfiguratorStorage) processEntityFieldsUpdate(pk string, update EntityUpdateCriteria, entOut *NetworkEntity) error {
+func (store *sqlConfiguratorStorage) processEntityFieldsUpdate(pk string, update *EntityUpdateCriteria, entOut *NetworkEntity) error {
 	_, err := store.getEntityUpdateQueryBuilder(pk, update).
 		RunWith(store.tx).
 		Exec()
@@ -232,7 +234,7 @@ func (store *sqlConfiguratorStorage) processEntityFieldsUpdate(pk string, update
 }
 
 // entToUpdateOut is an output parameter
-func (store *sqlConfiguratorStorage) processEdgeUpdates(networkID string, update EntityUpdateCriteria, entToUpdateOut *NetworkEntity) error {
+func (store *sqlConfiguratorStorage) processEdgeUpdates(networkID string, update *EntityUpdateCriteria, entToUpdateOut *NetworkEntity) error {
 	assocsToSetSpecified := update.AssociationsToSet != nil
 	if !assocsToSetSpecified && funk.IsEmpty(update.AssociationsToAdd) && funk.IsEmpty(update.AssociationsToDelete) {
 		return nil
@@ -254,14 +256,14 @@ func (store *sqlConfiguratorStorage) processEdgeUpdates(networkID string, update
 	// we'll just make the ent's Associations the edges we want to create
 	// If we want to set associations, we'll create those
 	entToUpdateOut.Associations = update.getEdgesToCreate()
-	newlyAssociatedEntsByTk, err := store.createEdges(networkID, *entToUpdateOut)
+	newlyAssociatedEntsByTk, err := store.createEdges(networkID, entToUpdateOut)
 	if err != nil {
 		entToUpdateOut.Associations = nil
 		return errors.WithStack(err)
 	}
 
 	// Just like entity creation, we might need to merge graphs after adding
-	newGraphID, err := store.mergeGraphs(*entToUpdateOut, newlyAssociatedEntsByTk)
+	newGraphID, err := store.mergeGraphs(entToUpdateOut, newlyAssociatedEntsByTk)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -292,7 +294,7 @@ func (store *sqlConfiguratorStorage) processEdgeUpdates(networkID string, update
 	return nil
 }
 
-func (store *sqlConfiguratorStorage) getEntityUpdateQueryBuilder(pk string, update EntityUpdateCriteria) sq.UpdateBuilder {
+func (store *sqlConfiguratorStorage) getEntityUpdateQueryBuilder(pk string, update *EntityUpdateCriteria) sq.UpdateBuilder {
 	// UPDATE cfg_entities SET (name, description, physical_id, config, version) = ($1, $2, $3, $4, cfg_entities.version + 1)
 	// WHERE pk = $5
 	updateBuilder := store.builder.Update(entityTable).Where(sq.Eq{entPkCol: pk})

@@ -16,10 +16,8 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "eventd_client",
     srcs = ["EventdClient.cpp"],
-    # TODO(@themarwhal): Remove includes/ project directories - GH8446
+    # TODO: Remove includes/ project directories - #8446
     hdrs = ["includes/EventdClient.hpp"],
-    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
-    strip_include_prefix = "/orc8r/gateway/c/common/eventd",
     deps = [
         "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
         "//orc8r/gateway/c/common/config:service_config_loader",

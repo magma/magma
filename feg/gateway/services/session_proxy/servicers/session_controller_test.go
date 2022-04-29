@@ -37,6 +37,7 @@ import (
 	"magma/feg/gateway/services/session_proxy/servicers"
 	"magma/gateway/mconfig"
 	"magma/lte/cloud/go/protos"
+	"magma/orc8r/cloud/go/test_utils"
 	orcprotos "magma/orc8r/lib/go/protos"
 )
 
@@ -338,6 +339,7 @@ func standardUsageTest(
 	}
 	assert.ElementsMatch(t, allRuleIDs, []string{"static_rule_1", "static_rule_2", "base_rule_1", "base_rule_2"})
 
+	emptyRedirect := &protos.RedirectInformation{Support: 0, AddressType: 0, ServerAddress: ""}
 	for _, rule := range createResponse.DynamicRules {
 		if rule.PolicyRule.Id == "dyn_rule_20" {
 			assert.Equal(t, protos.RedirectInformation_ENABLED, rule.PolicyRule.Redirect.Support)
@@ -348,7 +350,7 @@ func standardUsageTest(
 			assert.Equal(t, &timestamp.Timestamp{Seconds: 1}, rule.ActivationTime)
 			assert.Equal(t, &timestamp.Timestamp{Seconds: 2}, rule.DeactivationTime)
 		} else if rule.PolicyRule.Id == "dyn_rule_21" {
-			assert.Empty(t, rule.PolicyRule.Redirect)
+			test_utils.AssertMessagesEqual(t, emptyRedirect, rule.PolicyRule.Redirect)
 			assert.Nil(t, rule.PolicyRule.Qos)
 			assert.Equal(t, &timestamp.Timestamp{Seconds: 1}, rule.ActivationTime)
 			assert.Equal(t, &timestamp.Timestamp{Seconds: 2}, rule.DeactivationTime)

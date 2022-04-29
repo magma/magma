@@ -13,6 +13,7 @@
  */
 
 #include "orc8r/gateway/c/common/service303/ProcFileUtils.hpp"
+
 #include <fstream>  // for basic_istream, ifstream
 #include <string>   // for string, operator>>, stod
 

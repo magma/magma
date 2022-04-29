@@ -16,6 +16,8 @@ package test_common
 import (
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
+
+	"magma/orc8r/lib/go/protos"
 )
 
 const (
@@ -24,6 +26,12 @@ const (
 	HistogramMetricName = "testHistogram"
 	SummaryMetricName   = "testSummary"
 	UntypedMetricName   = "testUntyped"
+)
+
+const (
+	MetricName = protos.MetricName_process_virtual_memory_bytes
+	LabelName  = protos.MetricLabelName_result
+	LabelValue = "success"
 )
 
 func MakeTestMetricFamily(metricType dto.MetricType, count int, labels []*dto.LabelPair) *dto.MetricFamily {

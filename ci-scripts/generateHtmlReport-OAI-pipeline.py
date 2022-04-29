@@ -46,6 +46,7 @@ def main() -> None:
 
     if args.mode == 'TestWithDsTest':
         append_build_summary(args, 'test_results_magma_oai_epc.html')
+        append_build_summary(args, 'test_results_magma_epc_u18.html')
 
     if args.mode == 'RHEL8SanityCheck':
         append_build_summary(args, 'test_results_magma_epc_rhel8.html')
@@ -163,6 +164,8 @@ def append_build_summary(args, filename):
         filename: file to append to
     """
     cwd = os.getcwd()
+    if not os.path.isfile(cwd + '/' + filename):
+        return
     report = ''
     org_file = os.path.join(cwd, filename)
     with open(org_file, 'r') as org_f:

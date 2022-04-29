@@ -4,13 +4,7 @@ import json
 from datetime import datetime
 from typing import List
 
-from magma.db_service.models import (
-    DBActiveModeConfig,
-    DBCbsd,
-    DBChannel,
-    DBGrant,
-    DBRequest,
-)
+from magma.db_service.models import DBCbsd, DBChannel, DBGrant, DBRequest
 
 
 class DBCbsdBuilder:
@@ -62,11 +56,8 @@ class DBCbsdBuilder:
         self.cbsd.grant_attempts = grant_attempts
         return self
 
-    def with_active_mode_config(self, desired_state_id: int) -> DBCbsdBuilder:
-        config = DBActiveModeConfig(
-            desired_state_id=desired_state_id,
-        )
-        self.cbsd.active_mode_config.append(config)
+    def with_desired_state(self, desired_state_id: int) -> DBCbsdBuilder:
+        self.cbsd.desired_state_id = desired_state_id
         return self
 
     def with_preferences(self, bandwidth_mhz: int, frequencies_mhz: List[int]) -> DBCbsdBuilder:

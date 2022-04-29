@@ -28,6 +28,7 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	servicers "magma/orc8r/cloud/go/services/orchestrator/servicers/protected"
 	orchestrator_test_init "magma/orc8r/cloud/go/services/orchestrator/test_init"
+	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 	mconfig_protos "magma/orc8r/lib/go/protos/mconfig"
 )
@@ -103,7 +104,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		}
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		test_utils.AssertMapsEqual(t, expected, actual)
 	})
 
 	t.Run("no tier", func(t *testing.T) {
@@ -163,7 +164,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		test_utils.AssertMapsEqual(t, expected, actual)
 	})
 
 	// Put a tier in the graph
@@ -242,7 +243,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		test_utils.AssertMapsEqual(t, expected, actual)
 	})
 
 	t.Run("set list of files for log aggregation", func(t *testing.T) {
@@ -340,7 +341,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		test_utils.AssertMapsEqual(t, expected, actual)
 	})
 
 	t.Run("check default values for log throttling", func(t *testing.T) {
@@ -427,7 +428,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		test_utils.AssertMapsEqual(t, expected, actual)
 	})
 
 	// Test sync interval jitter
@@ -506,7 +507,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw2")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		test_utils.AssertMapsEqual(t, expected, actual)
 	})
 }
 

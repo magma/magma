@@ -39,6 +39,7 @@ func (service *Service) GetServiceInfo(ctx context.Context, void *protos.Void) (
 func (service *Service) StopService(ctx context.Context, void *protos.Void) (*protos.Void, error) {
 	service.State = protos.ServiceInfo_STOPPING
 	go service.GrpcServer.GracefulStop()
+	go service.ProtectedGrpcServer.GracefulStop()
 	service.Health = protos.ServiceInfo_APP_UNHEALTHY
 	return new(protos.Void), nil
 }

@@ -24,12 +24,12 @@ import (
 )
 
 func StartTestService(t *testing.T) (*service.Service, error) {
-	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.MOCK_HSS)
+	srv, lis, _ := test_utils.NewTestService(t, registry.ModuleName, registry.MOCK_HSS)
 
 	service := hss.NewTestHomeSubscriberServer(t)
 
 	protos.RegisterHSSConfiguratorServer(srv.GrpcServer, service)
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 
 	return srv, nil
 }

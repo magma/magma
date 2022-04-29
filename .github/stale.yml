@@ -1,21 +1,45 @@
 ---
-# Number of days of inactivity before an issue becomes stale
-daysUntilStale: 45
-# Number of days of inactivity before a stale issue is closed
-daysUntilClose: 7
-# Issues with these labels will never be considered stale
+#  ISC License
+#
+#  Copyright (c) 2017, Brandon Keepers
+#
+#  Permission to use, copy, modify, and/or distribute this software for any
+#  purpose with or without fee is hereby granted, provided that the above
+#  copyright notice and this permission notice appear in all copies.
+#
+#  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+#  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+#  ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+#  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+#  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+#  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+# Configuration for probot-stale - https://github.com/probot/stale
+
+# Number of days of inactivity before an Issue or Pull Request becomes stale
+daysUntilStale: 90
+# Number of days of inactivity before an Issue or Pull Request with the stale label is closed.
+# Set to false to disable. If disabled, issues still need to be closed manually, but will remain marked as stale.
+daysUntilClose: 14
+# Only issues or pull requests with all of these labels are check if stale. Defaults to `[]` (disabled)
+onlyLabels: []
+# Issues or Pull Requests with these labels will never be considered stale. Set to `[]` to disable
 exemptLabels:
-  - status: willfix
-# Label to use when marking an issue as stale
+  - willfix
+  - bazel-cleanup
+  - "good first issue"
+  - ready2merge
+  - sentry
+  - sentry-clenup-python
+  - "type: proposal"
+# Label to use when marking as stale
 staleLabel: wontfix
-# Comment to post when marking an issue as stale. Set to `false` to disable
+# Comment to post when marking as stale. Set to `false` to disable
 markComment: >
-  This pull request has been automatically marked as stale because it has not
-  had any recent activity by the author or maintainer in the past 45 days.
-  It will be closed if no further activity occurs in the next 7 days.
-  Thank you for your contributions.
+  This issue or pull request has been automatically marked as stale because it has not
+  had any recent activity. It will be closed if no further activity occurs in the next 14 days.
 # Comment to post when closing a stale issue. Set to `false` to disable
 closeComment: >
-  This pull request has exceeded its lifecylce and will be closed.
-  Should you wish to continue working on this, please reopen it or start a new pull request.
-  Thank you again for your contributions.
+  This issue or pull request has exceeded its lifecylce and was automatically closed.
+  Should you wish to continue working on this, please reopen it.

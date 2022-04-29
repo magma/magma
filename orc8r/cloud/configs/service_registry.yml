@@ -80,6 +80,7 @@ services:
   certifier:
     host: "localhost"
     port: 9086
+    protected_port: 9186
     echo_port: 10089
     proxy_type: "internal"
     labels:
@@ -89,6 +90,7 @@ services:
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /magma/v1/user,
+
   bootstrapper:
     host: "localhost"
     port: 9088
@@ -175,4 +177,5 @@ services:
   service_registry:
     host: "localhost"
     port: 9180
+    protected_port: 9190
     proxy_type: "clientcert"

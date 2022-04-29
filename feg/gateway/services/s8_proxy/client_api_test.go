@@ -49,7 +49,7 @@ func TestS8ProxyClient(t *testing.T) {
 	assert.NotEmpty(t, csRes.BearerContext.UserPlaneFteid.Ipv4Address)
 	assert.Empty(t, csRes.BearerContext.UserPlaneFteid.Ipv6Address)
 
-	t.Logf("Create Session: %#+v", *csRes)
+	t.Logf("Create Session: %+v", csRes)
 
 	//------------------------
 	//---- Delete session ----

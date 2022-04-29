@@ -10,26 +10,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
+#include <gmock/gmock.h>
+#include <google/protobuf/timestamp.pb.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <gtest/gtest.h>
-#include <lte/protos/session_manager.grpc.pb.h>
-#include <string.h>
-
-#include <chrono>
-#include <future>
-#include <memory>
+#include <lte/protos/pipelined.pb.h>
+#include <lte/protos/policydb.pb.h>
+#include <lte/protos/session_manager.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <cstdint>
+#include <experimental/optional>
+#include <functional>
+#include <iostream>
+#include <memory>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-#include "Consts.h"
-#include "DiameterCodes.h"
-#include "LocalEnforcer.h"
-#include "magma_logging.h"
-#include "includes/MagmaService.hpp"
-#include "Matchers.h"
-#include "ProtobufCreators.h"
-#include "includes/ServiceRegistrySingleton.hpp"
-#include "SessiondMocks.h"
-#include "SessionStore.h"
+#include "lte/gateway/c/session_manager/CreditKey.hpp"
+#include "lte/gateway/c/session_manager/DiameterCodes.hpp"
+#include "lte/gateway/c/session_manager/LocalEnforcer.hpp"
+#include "lte/gateway/c/session_manager/MeteringReporter.hpp"
+#include "lte/gateway/c/session_manager/RuleStore.hpp"
+#include "lte/gateway/c/session_manager/ServiceAction.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/SessionStore.hpp"
+#include "lte/gateway/c/session_manager/ShardTracker.hpp"
+#include "lte/gateway/c/session_manager/StoreClient.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
+#include "lte/gateway/c/session_manager/test/Consts.hpp"
+#include "lte/gateway/c/session_manager/test/Matchers.hpp"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.hpp"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.hpp"
+
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
 
 #define SECONDS_A_DAY 86400
 

@@ -13,17 +13,26 @@
 ################################################################################
 
 # How to use: 
-# 1. Run `Bzl: Bazel/C++: Generate Compilation Database` in the VSCode command palette (CMD+Shift+P) to generate the compilation database
-# 2. $MAGMA_ROOT/dev_tools/apply-iwyu.sh $PATH_TO_APPLY_IWYU
+# 1. $MAGMA_ROOT/dev_tools/apply-iwyu.sh $PATH_TO_APPLY_IWYU
 #    Ex. $MAGMA_ROOT/dev_tools/apply-iwyu.sh lte/gateway/c/core/common
 SOURCE_CODE_PATH=$1
 
 IWYU_OUTPUT_FILE=/tmp/iwyu-output.txt
 
 echo ""
-echo "[IMPORTANT] Make sure you've run 'Bzl: Bazel/C++: Generate Compilation Database' in VSCode's command palette (CMD+Shift+P) to generate an up-to-date compile_commands.json!"
+echo "Generating /tmp/compile_commands.json ..."
 echo ""
 
-iwyu_tool.py -j "$(nproc --all)" -p "$MAGMA_ROOT"/compile_commands.json "$SOURCE_CODE_PATH" -- -Xiwyu --mapping_file="$MAGMA_ROOT"/dev_tools/iwyu.imp | tee "$IWYU_OUTPUT_FILE"
+dev_tools/gen_compilation_database.py --output_dir=/tmp
+
+echo ""
+echo "Piping IWYU output into /tmp/iwyu-output.txt ..."
+echo ""
+
+iwyu_tool.py -j "$(nproc --all)" -p /tmp/compile_commands.json "$SOURCE_CODE_PATH" -- -Xiwyu --mapping_file="$MAGMA_ROOT"/dev_tools/iwyu.imp | tee "$IWYU_OUTPUT_FILE"
+
+echo ""
+echo "Applying /tmp/iwyu-output.txt ..."
+echo ""
 
 fix_includes.py < "$IWYU_OUTPUT_FILE" -b --reorder

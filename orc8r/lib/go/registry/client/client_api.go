@@ -15,7 +15,6 @@ package client
 
 import (
 	"context"
-
 	"magma/orc8r/lib/go/protos"
 )
 
@@ -47,9 +46,10 @@ func FindServices(client protos.ServiceRegistryClient, label string) ([]string, 
 
 // GetServiceAddress return the address of the gRPC server for the provided
 // service.
-func GetServiceAddress(client protos.ServiceRegistryClient, service string) (string, error) {
+func GetServiceAddress(client protos.ServiceRegistryClient, service string, serviceType protos.ServiceType) (string, error) {
 	req := &protos.GetServiceAddressRequest{
-		Service: service,
+		Service:     service,
+		ServiceType: serviceType,
 	}
 	res, err := client.GetServiceAddress(context.Background(), req)
 	if err != nil {
