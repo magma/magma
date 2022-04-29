@@ -14,8 +14,14 @@
  * @format
  */
 
-import type {ProjectLink} from '../../fbc_js_core/ui/components/layout/AppDrawerProjectNavigation';
 import type {Tab} from '../../fbc_js_core/types/tabs';
+
+type ProjectLink = {
+  id: Tab,
+  name: string,
+  secondary: string,
+  url: string,
+};
 
 const allTabs: $ReadOnlyArray<ProjectLink> = [
   {

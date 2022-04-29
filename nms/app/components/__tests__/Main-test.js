@@ -23,10 +23,6 @@ import {MemoryRouter} from 'react-router-dom';
 import {cleanup, render, wait} from '@testing-library/react';
 
 jest.mock('../../../generated/MagmaAPIBindings');
-jest.mock('mapbox-gl', () => ({
-  Map: () => ({}),
-}));
-jest.mock('../insights/map/MapView', () => () => <div>Im the Map!</div>);
 
 jest.mock('../main/Index', () => ({
   __esModule: true,
@@ -69,7 +65,6 @@ describe.each`
           isSuperUser: false,
         },
       },
-      MAPBOX_ACCESS_TOKEN: '',
     };
 
     const {getByText} = render(

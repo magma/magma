@@ -21,8 +21,6 @@ const DEV_MODE = process.env.NODE_ENV !== 'production';
 const LOG_FORMAT = DEV_MODE ? 'shell' : 'json';
 const LOG_LEVEL = getValidLogLevel(process.env.LOG_LEVEL);
 
-const MAPBOX_ACCESS_TOKEN = process.env.MAPBOX_ACCESS_TOKEN || '';
-
 const LOGGER_HOST = process.env.LOGGER_HOST || 'fluentd:9880';
 
 // NMS specific
@@ -66,5 +64,4 @@ module.exports = {
   LOG_FORMAT,
   LOG_LEVEL,
   LOGGER_HOST,
-  MAPBOX_ACCESS_TOKEN,
 };
