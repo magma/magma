@@ -66,7 +66,7 @@ class AlembicTestCase(DBTestCaseBlueprint):
     def drop_all(self):
         self.metadata.drop_all()
 
-    def assert_tables_equal(self, tables=None):
+    def then_tables_are(self, tables=None):
         if tables is None:
             tables = []
         self.reflect_tables()

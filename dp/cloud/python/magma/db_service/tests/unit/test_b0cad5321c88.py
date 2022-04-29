@@ -25,7 +25,7 @@ class Testb0cad5321c88TestCase(AlembicTestCase):
         self.upgrade()
 
         # then
-        self.assert_tables_equal(self.tables)
+        self.then_tables_are(self.tables)
 
     def test_b0cad5321c88_downgrade(self):
         # given
@@ -35,4 +35,4 @@ class Testb0cad5321c88TestCase(AlembicTestCase):
         self.downgrade()
 
         # then
-        self.assert_tables_equal()
+        self.then_tables_are()

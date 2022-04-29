@@ -34,7 +34,7 @@ target_metadata = Base.metadata
 # can be acquired:
 # ... etc.
 
-db_url = config.get_section("alembic")["sqlalchemy.url"]
+db_url = config.get_section("alembic").get("sqlalchemy.url")
 
 if not db_url:
     db_service_cfg = get_config()
