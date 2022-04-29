@@ -37,7 +37,7 @@ ports:
   - name: grpc
     containerPort: 9091
   - name: grpc-internal
-   targetPort: 9191
+    containerPort: 9191
 livenessProbe:
   tcpSocket:
     port: 9091
