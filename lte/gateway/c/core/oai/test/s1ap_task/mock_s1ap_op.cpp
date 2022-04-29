@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <sstream>
 
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.hpp"
 
 using magma::lte::oai::S1apState;
 using magma::lte::oai::UeDescription;
