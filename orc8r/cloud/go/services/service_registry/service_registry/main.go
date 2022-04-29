@@ -54,7 +54,6 @@ func main() {
 		if err != nil {
 			glog.Fatal(err)
 		}
-		protos.RegisterServiceRegistryServer(srv.GrpcServer, servicer)
 		protos.RegisterServiceRegistryServer(srv.ProtectedGrpcServer, servicer)
 	} else {
 		glog.Infof("Registry Mode set to %s. Not creating service registry servicer", registryModeEnvValue)

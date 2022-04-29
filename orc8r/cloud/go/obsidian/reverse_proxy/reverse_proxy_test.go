@@ -247,7 +247,7 @@ func addPrefixesToExistingService(serviceName string, newPrefixes string) error 
 
 	pport, err := registry.GetServicePort(serviceName, lib_protos.ServiceType_PROTECTED)
 	if err != nil {
-		glog.Infof("service does not have a protected port")
+		glog.V(1).Infof("service %s does not have a protected port", serviceName)
 	}
 
 	echoPort, err := registry.GetEchoServerPort(serviceName)
