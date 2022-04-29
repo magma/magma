@@ -376,7 +376,7 @@ func (s *CbsdManagerTestSuite) TestListWithPagination() {
 }
 
 func (s *CbsdManagerTestSuite) TestListWithFilter() {
-	const count = 2
+	const count = 1
 	models := make([]db.Model, count)
 	stateId := s.enumMaps[storage.CbsdStateTable]["unregistered"]
 	for i := range models {
