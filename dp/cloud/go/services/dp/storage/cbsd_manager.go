@@ -261,7 +261,7 @@ func buildDetailedCbsdQuery(builder sq.StatementBuilderType) *db.Query {
 }
 
 func (c *cbsdManagerInTransaction) listDetailedCbsd(networkId string, pagination *Pagination, filter *CbsdFilter) (*DetailedCbsdList, error) {
-	count, err := countCbsds(networkId, c.builder)
+	count, err := countCbsds(networkId, filter, c.builder)
 	if err != nil {
 		return nil, err
 	}
@@ -283,11 +283,11 @@ func (c *cbsdManagerInTransaction) listDetailedCbsd(networkId string, pagination
 	}, nil
 }
 
-func countCbsds(networkId string, builder sq.StatementBuilderType) (int64, error) {
+func countCbsds(networkId string, filter *CbsdFilter, builder sq.StatementBuilderType) (int64, error) {
 	return db.NewQuery().
 		WithBuilder(builder).
 		From(&DBCbsd{}).
-		Where(getCbsdFilters(networkId, nil)).
+		Where(getCbsdFilters(networkId, filter)).
 		Count()
 }
 

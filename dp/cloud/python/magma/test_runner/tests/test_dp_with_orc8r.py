@@ -149,7 +149,7 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         self.when_cbsd_is_created(cbsd1_payload)
         self.when_cbsd_is_created(cbsd2_payload)
 
-        cbsds = self.when_cbsds_are_fetched(2, 1, {"serial_number": "foo"})
+        cbsds = self.when_cbsds_are_fetched(1, {"serial_number": "foo"})
 
         self.then_cbsd_is(cbsds[0], builder.with_serial_number("foo").build_unregistered_data())
 
@@ -229,20 +229,19 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         self.assertEqual(r.status_code, expected_status)
 
     def when_cbsd_is_fetched(self) -> Dict[str, Any]:
-        cbsds = self.when_cbsds_are_fetched(1, 1)
+        cbsds = self.when_cbsds_are_fetched(1)
         return cbsds[0]
 
     def when_cbsds_are_fetched(
             self,
-            expected_total_count: int,
             expected_cbsds_num: int,
             params: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         r = send_request_to_backend('get', 'cbsds', params=params)
         self.assertEqual(r.status_code, HTTPStatus.OK)
         data = r.json()
-        self.assertEqual(data.get('total_count'), expected_total_count)
         cbsds = data.get('cbsds', [])
+        self.assertEqual(data.get('total_count'), expected_cbsds_num)
         self.assertEqual(len(cbsds), expected_cbsds_num)
         return cbsds
 
