@@ -111,20 +111,25 @@ func dbFilter(filter *protos.CbsdFilter) *storage.CbsdFilter {
 	return p
 }
 
-func cbsdToDatabase(data *protos.CbsdData) *storage.DBCbsd {
+func cbsdToDatabase(data *protos.CbsdData) *storage.MutableCbsd {
 	capabilities := data.Capabilities
 	preferences := data.Preferences
 	b, _ := json.Marshal(preferences.FrequenciesMhz)
-	return &storage.DBCbsd{
-		UserId:                  db.MakeString(data.UserId),
-		FccId:                   db.MakeString(data.FccId),
-		CbsdSerialNumber:        db.MakeString(data.SerialNumber),
-		MinPower:                db.MakeFloat(capabilities.MinPower),
-		MaxPower:                db.MakeFloat(capabilities.MaxPower),
-		AntennaGain:             db.MakeFloat(capabilities.AntennaGain),
-		NumberOfPorts:           db.MakeInt(capabilities.NumberOfAntennas),
-		PreferredBandwidthMHz:   db.MakeInt(preferences.BandwidthMhz),
-		PreferredFrequenciesMHz: db.MakeString(string(b)),
+	return &storage.MutableCbsd{
+		Cbsd: &storage.DBCbsd{
+			UserId:                  db.MakeString(data.UserId),
+			FccId:                   db.MakeString(data.FccId),
+			CbsdSerialNumber:        db.MakeString(data.SerialNumber),
+			MinPower:                db.MakeFloat(capabilities.MinPower),
+			MaxPower:                db.MakeFloat(capabilities.MaxPower),
+			AntennaGain:             db.MakeFloat(capabilities.AntennaGain),
+			NumberOfPorts:           db.MakeInt(capabilities.NumberOfAntennas),
+			PreferredBandwidthMHz:   db.MakeInt(preferences.BandwidthMhz),
+			PreferredFrequenciesMHz: db.MakeString(string(b)),
+		},
+		DesiredState: &storage.DBCbsdState{
+			Name: db.MakeString(data.DesiredState),
+		},
 	}
 }
 
@@ -162,6 +167,7 @@ func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Durati
 				BandwidthMhz:   data.Cbsd.PreferredBandwidthMHz.Int64,
 				FrequenciesMhz: frequencies,
 			},
+			DesiredState: data.DesiredState.Name.String,
 		},
 		CbsdId:   data.Cbsd.CbsdId.String,
 		State:    data.CbsdState.Name.String,

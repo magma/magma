@@ -49,6 +49,13 @@ definitions:
         example: some_cbsd_id
         type: string
         x-nullable: false
+      desired_state:
+        description: desired state of cbsd in SAS
+        enum:
+          - unregistered
+          - registered
+        type: string
+        x-nullable: false
       fcc_id:
         example: some_fcc_id
         minLength: 1
@@ -86,6 +93,7 @@ definitions:
         x-nullable: false
     required:
       - capabilities
+      - desired_state
       - fcc_id
       - frequency_preferences
       - id
@@ -151,12 +159,6 @@ definitions:
       - frequency_mhz
       - max_eirp
       - state
-  components:
-    enum: &components
-      - SAS
-      - DP
-      - CBSD
-    type: string
   log:
     properties:
       body:
@@ -186,12 +188,18 @@ definitions:
       from:
         description: log origin
         x-nullable: false
-        enum: *components
+        enum:
+          - SAS
+          - DP
+          - CBSD
         type: string
       to:
         description: log destination
         x-nullable: false
-        enum: *components
+        enum:
+          - SAS
+          - DP
+          - CBSD
         type: string
     required:
       - body
@@ -207,6 +215,13 @@ definitions:
     properties:
       capabilities:
         $ref: '#/definitions/capabilities'
+      desired_state:
+        description: desired state of cbsd in SAS
+        enum:
+          - unregistered
+          - registered
+        type: string
+        x-nullable: false
       fcc_id:
         example: some_fcc_id
         minLength: 1
@@ -226,6 +241,7 @@ definitions:
         x-nullable: false
     required:
       - capabilities
+      - desired_state
       - fcc_id
       - frequency_preferences
       - serial_number
@@ -396,13 +412,19 @@ paths:
           name: from
           required: false
           type: string
-          enum: *components
+          enum:
+            - SAS
+            - DP
+            - CBSD
         - description: log destination
           in: query
           name: to
           required: false
           type: string
-          enum: *components
+          enum:
+            - SAS
+            - DP
+            - CBSD
       responses:
         '200':
           description: List of messages between ENODEBD and DP and between DP and SAS
