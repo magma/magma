@@ -43,6 +43,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
+    // TODO: adding the message handler for different types of message
     default: {
     } break;
   }
