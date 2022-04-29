@@ -44,6 +44,8 @@ ports:
     containerPort: 8080
   - name: grpc
     containerPort: 9180
+  - name: grpc-internal
+    containerPort: 9190
 env:
   - name: DATABASE_SOURCE
     valueFrom:

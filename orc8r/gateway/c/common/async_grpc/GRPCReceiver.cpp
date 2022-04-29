@@ -12,8 +12,11 @@
  */
 
 #include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
+
+#include <glog/logging.h>
 #include <ostream>  // for operator<<, char_traits
-#include "orc8r/gateway/c/common/logging/magma_logging.h"  // for MLOG
+
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"  // for MLOG
 
 namespace magma {
 

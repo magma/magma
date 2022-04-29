@@ -26,15 +26,14 @@ func CreateTable(tx sq.BaseRunner, builder sqorc.StatementBuilder, metadata *Mod
 		PrimaryKey("id")
 	fields := metadata.Properties
 	tableBuilder = addColumns(tableBuilder, fields)
-	tableBuilder = addRelations(tableBuilder, metadata)
 	_, err := tableBuilder.Exec()
 	return err
 }
 
-func addColumns(builder sqorc.CreateTableBuilder, fields FieldMap) sqorc.CreateTableBuilder {
-	for column, field := range fields {
+func addColumns(builder sqorc.CreateTableBuilder, fields []*Field) sqorc.CreateTableBuilder {
+	for _, field := range fields {
 		colBuilder := builder.
-			Column(column).
+			Column(field.Name).
 			Type(field.SqlType)
 		if !field.Nullable {
 			colBuilder = colBuilder.NotNull()
@@ -45,19 +44,15 @@ func addColumns(builder sqorc.CreateTableBuilder, fields FieldMap) sqorc.CreateT
 		builder = colBuilder.EndColumn()
 
 		if field.Unique {
-			builder = builder.Unique(column)
+			builder = builder.Unique(field.Name)
 		}
-	}
-	return builder
-}
-
-func addRelations(builder sqorc.CreateTableBuilder, metadata *ModelMetadata) sqorc.CreateTableBuilder {
-	for table, column := range metadata.Relations {
-		builder = builder.ForeignKey(
-			table,
-			map[string]string{column: "id"},
-			sqorc.ColumnOnDeleteCascade,
-		)
+		if field.Relation != "" {
+			builder = builder.ForeignKey(
+				field.Relation,
+				map[string]string{field.Name: "id"},
+				sqorc.ColumnOnDeleteCascade,
+			)
+		}
 	}
 	return builder
 }

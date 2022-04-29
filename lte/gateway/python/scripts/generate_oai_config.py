@@ -451,16 +451,23 @@ def _get_context():
         iface_name = get_service_config_value(
             'spgw', 'sgw_s5s8_up_iface_name_non_nat', '',
         )
+    s1ap_ipv6_addr = _get_iface_ipv6("mme", "s1ap_iface_name")
+    if s1ap_ipv6_addr and not s1ap_ipv6_addr.startswith('fe80'):
+        s1ap_ipv6_enabled = get_service_config_value(
+            "mme", "s1ap_ipv6_enabled", default=False,
+        )
+    else:
+        s1ap_ipv6_addr = '::'
+        s1ap_ipv6_enabled = False
+
     context = {
         "mme_s11_ip": _get_iface_ip("mme", "s11_iface_name"),
         "sgw_s11_ip": _get_iface_ip("spgw", "s11_iface_name"),
         'sgw_s5s8_up_iface_name': iface_name,
         "remote_sgw_ip": get_service_config_value("mme", "remote_sgw_ip", ""),
         "s1ap_ip": _get_iface_ip("mme", "s1ap_iface_name"),
-        "s1ap_ipv6": _get_iface_ipv6("mme", "s1ap_iface_name"),
-        "s1ap_ipv6_enabled": get_service_config_value(
-            "mme", "s1ap_ipv6_enabled", default=False,
-        ),
+        "s1ap_ipv6": s1ap_ipv6_addr,
+        "s1ap_ipv6_enabled": s1ap_ipv6_enabled,
         "oai_log_level": _get_oai_log_level(),
         "ipv4_dns": _get_primary_dns_ip(mme_service_config, "dns_iface_name"),
         "ipv4_sec_dns": _get_secondary_dns_ip(mme_service_config),
@@ -507,9 +514,17 @@ def _get_context():
         "spgw", "s1u_iface_name",
     )
 
-    context["s1u_ipv6"] = mme_service_config.ipv6_sgw_s1u_addr or _get_iface_ipv6(
-        "spgw", "s1u_iface_name",
-    )
+    if s1ap_ipv6_enabled:
+        s1_ipv6_addr = _get_iface_ipv6("spgw", "s1u_iface_name")
+        s1_ipv6_enabled = get_service_config_value(
+            "spgw", "s1_ipv6_enabled", default=False,
+        )
+    else:
+        s1_ipv6_addr = '::'
+        s1_ipv6_enabled = False
+
+    context["s1u_ipv6"] = s1_ipv6_addr
+    context["s1_ipv6_enabled"] = s1_ipv6_enabled
 
     try:
         sgw_s5s8_up_ip = get_ip_from_if_cidr(iface_name, IpPreference.IPV4_ONLY)

@@ -200,10 +200,10 @@ Magma provides an UI for configuring and monitoring the networks. To set up
 the NMS to talk to your local Orchestrator:
 
 ```bash
-HOST [magma]$ cd nms/packages/magmalte
-HOST [magma/nms/packages/magmalte] $ docker-compose build magmalte
-HOST [magma/nms/packages/magmalte] $ docker-compose up -d
-HOST [magma/nms/packages/magmalte] $ ./scripts/dev_setup.sh
+HOST [magma]$ cd nms
+HOST [magma/nms] $ COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
+HOST [magma/nms] $ docker-compose up -d
+HOST [magma/nms] $ ./scripts/dev_setup.sh
 ```
 
 After this, you will be able to access the UI by visiting

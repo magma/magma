@@ -26,7 +26,7 @@ import (
 )
 
 func StartTestService(t *testing.T, diamServerNetworkProtocol, diamServerAddress string) error {
-	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.S6A_PROXY)
+	srv, lis, _ := test_utils.NewTestService(t, registry.ModuleName, registry.S6A_PROXY)
 
 	// Create tmp mconfig test file & load configs from it
 	fegConfigFmt := `{
@@ -99,6 +99,6 @@ func StartTestService(t *testing.T, diamServerNetworkProtocol, diamServerAddress
 
 	protos.RegisterS6AProxyServer(srv.GrpcServer, service)
 	protos.RegisterServiceHealthServer(srv.GrpcServer, service)
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 	return nil
 }

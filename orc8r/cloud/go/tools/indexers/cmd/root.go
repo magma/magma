@@ -23,6 +23,7 @@ import (
 
 	"magma/orc8r/cloud/go/services/state"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -61,7 +62,7 @@ func globalPre(cmd *cobra.Command, args []string) {
 }
 
 func getClient() indexer_protos.IndexerManagerClient {
-	conn, err := registry.GetConnection(state.ServiceName)
+	conn, err := registry.GetConnection(state.ServiceName, lib_protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		log.Fatal(err)
 	}

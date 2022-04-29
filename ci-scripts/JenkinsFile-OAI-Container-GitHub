@@ -121,11 +121,9 @@ pipeline {
                     branch = 'master'
                     u18_image_tag = 'master'
                     u18_docker_file = 'lte/gateway/docker/mme/Dockerfile.ubuntu18.04'
-                    u18_options = ' --build-arg GIT_PROXY="http://proxy.eurecom.fr:8080"'
                   } else {
                     branch = sha1
                     u18_docker_file = 'ci-scripts/docker/Dockerfile.mme.ci.ubuntu18'
-                    u18_options = ''
                   }
                   checkout(
                     changelog: false,
@@ -143,7 +141,6 @@ pipeline {
                       // If so, we will run the OAI pipeline
                       // For security reasons, we retrieve from a trusted forked repository
                       sh 'wget --quiet https://raw.githubusercontent.com/' + trustedGHuser + '/magma/' + trustedBranch + '/ci-scripts/check_pr_modified_files_for_oai_pipeline.py -O ci-scripts/ci-check_pr_modified_files_for_oai_pipeline.py || true'
-                      sh 'git fetch --unshallow || true'
                       sh 'python3 ci-scripts/ci-check_pr_modified_files_for_oai_pipeline.py'
                       // If the previous command is OK, no need to run
                       // All the following stages will be bypassed and the CI
@@ -190,7 +187,9 @@ pipeline {
                   // Create the image to use
                   // Once again, we are not using the full dockerfile from scratch: too long --> when it is a pull request
                   // On the daily master build, we are doing from scratch
-                  sh('docker build --no-cache --target magma-mme --tag magma-mme:' + u18_image_tag + ' --file ' + u18_docker_file + u18_options + ' . > archives/build_magma_mme.log 2>&1')
+                  sh('docker build --no-cache --target magma-mme --tag magma-mme:' + u18_image_tag + ' --file ' + u18_docker_file + ' . > archives/build_magma_mme.log 2>&1')
+                  sh('wget --quiet https://raw.githubusercontent.com/' + trustedGHuser + '/magma/' + trustedBranch + '/ci-scripts/flatten_image.py -O ci-scripts/ci-flatten_image.py')
+                  sh('python3 ./ci-scripts/ci-flatten_image.py --tag magma-mme:' + u18_image_tag)
                   sh('docker image prune --force > /dev/null 2>&1')
                   sh('docker image ls >> archives/build_magma_mme.log')
                 }
@@ -240,11 +239,9 @@ pipeline {
                     branch = 'master'
                     rhel8_image_tag = 'master'
                     rhel8_docker_file = 'lte/gateway/docker/mme/Dockerfile.rhel8'
-                    rhel8_options = ' --build-arg GIT_PROXY="http://proxy.eurecom.fr:8080"'
                   } else {
                     branch = sha1
                     rhel8_docker_file = 'ci-scripts/docker/Dockerfile.mme.ci.rhel8'
-                    rhel8_options = ''
                   }
                   checkout(
                     changelog: false,
@@ -259,7 +256,6 @@ pipeline {
                   if (!params.REGRESSION_TEST) {
                     try {
                       sh 'wget --quiet https://raw.githubusercontent.com/' + trustedGHuser + '/magma/' + trustedBranch + '/ci-scripts/check_pr_modified_files_for_oai_pipeline.py -O ci-scripts/ci-check_pr_modified_files_for_oai_pipeline.py || true'
-                      sh 'git fetch --unshallow || true'
                       sh 'python3 ci-scripts/ci-check_pr_modified_files_for_oai_pipeline.py'
                       runAllRHELPipelineStages = false
                     } catch (Exception e) {
@@ -308,7 +304,9 @@ pipeline {
                     // Create the image to use
                     // Once again, we are not using the full dockerfile from scratch: too long --> when it is a pull request
                     // On the daily master build, we are doing from scratch
-                    sh('sudo podman build --no-cache --target magma-mme --tag magma-mme:' + rhel8_image_tag + ' --file ' + rhel8_docker_file + rhel8_options + ' . > archives/build_magma_mme_rhel8.log 2>&1')
+                    sh('sudo podman build --no-cache --target magma-mme --tag magma-mme:' + rhel8_image_tag + ' --file ' + rhel8_docker_file + ' . > archives/build_magma_mme_rhel8.log 2>&1')
+                    sh('wget --quiet https://raw.githubusercontent.com/' + trustedGHuser + '/magma/' + trustedBranch + '/ci-scripts/flatten_image.py -O ci-scripts/ci-flatten_image.py')
+                    sh('python3 ./ci-scripts/ci-flatten_image.py --tag magma-mme:' + rhel8_image_tag)
                     sh('sudo podman image prune --force > /dev/null 2>&1')
                     sh('sudo podman image ls >> archives/build_magma_mme_rhel8.log')
                   }

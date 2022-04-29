@@ -133,28 +133,18 @@ func (c *cbsdManagerInTransaction) createCbsdWithActiveModeConfig(networkId stri
 	if err != nil {
 		return err
 	}
-	data.StateId = db.MakeInt(unregisteredState)
-	data.NetworkId = db.MakeString(networkId)
-	columns := append(getCbsdWriteFields(), "state_id", "network_id")
-	id, err := db.NewQuery().
-		WithBuilder(c.builder).
-		From(data).
-		Select(db.NewIncludeMask(columns...)).
-		Insert()
-	if err != nil {
-		return err
-	}
 	registeredState, err := c.cache.getValue(c.builder, &DBCbsdState{}, "registered")
 	if err != nil {
 		return err
 	}
+	data.StateId = db.MakeInt(unregisteredState)
+	data.DesiredStateId = db.MakeInt(registeredState)
+	data.NetworkId = db.MakeString(networkId)
+	columns := append(getCbsdWriteFields(), "state_id", "desired_state_id", "network_id")
 	_, err = db.NewQuery().
 		WithBuilder(c.builder).
-		From(&DBActiveModeConfig{
-			CbsdId:         db.MakeInt(id),
-			DesiredStateId: db.MakeInt(registeredState),
-		}).
-		Select(db.NewIncludeMask("cbsd_id", "desired_state_id")).
+		From(data).
+		Select(db.NewIncludeMask(columns...)).
 		Insert()
 	return err
 }
@@ -248,7 +238,7 @@ func buildDetailedCbsdQuery(builder sq.StatementBuilderType) *db.Query {
 	return db.NewQuery().
 		WithBuilder(builder).
 		From(&DBCbsd{}).
-		Select(db.NewExcludeMask("network_id", "state_id",
+		Select(db.NewExcludeMask("network_id", "state_id", "desired_state_id",
 			"is_deleted", "should_deregister", "grant_attempts")).
 		Join(db.NewQuery().
 			From(&DBCbsdState{}).
@@ -271,7 +261,7 @@ func buildDetailedCbsdQuery(builder sq.StatementBuilderType) *db.Query {
 }
 
 func (c *cbsdManagerInTransaction) listDetailedCbsd(networkId string, pagination *Pagination, filter *CbsdFilter) (*DetailedCbsdList, error) {
-	count, err := countCbsds(networkId, c.builder)
+	count, err := countCbsds(networkId, filter, c.builder)
 	if err != nil {
 		return nil, err
 	}
@@ -293,11 +283,11 @@ func (c *cbsdManagerInTransaction) listDetailedCbsd(networkId string, pagination
 	}, nil
 }
 
-func countCbsds(networkId string, builder sq.StatementBuilderType) (int64, error) {
+func countCbsds(networkId string, filter *CbsdFilter, builder sq.StatementBuilderType) (int64, error) {
 	return db.NewQuery().
 		WithBuilder(builder).
 		From(&DBCbsd{}).
-		Where(getCbsdFilters(networkId, nil)).
+		Where(getCbsdFilters(networkId, filter)).
 		Count()
 }
 

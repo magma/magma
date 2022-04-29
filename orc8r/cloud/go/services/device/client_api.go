@@ -24,6 +24,7 @@ import (
 	"magma/orc8r/cloud/go/services/device/protos"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/merrors"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -163,7 +164,7 @@ func getDevice(ctx context.Context, networkID, deviceType, deviceKey string) (*p
 }
 
 func getDeviceClient() (protos.DeviceClient, error) {
-	conn, err := registry.GetConnection(ServiceName)
+	conn, err := registry.GetConnection(ServiceName, lib_protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

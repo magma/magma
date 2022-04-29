@@ -39,10 +39,10 @@ var (
 
 func TestAkaChallengeResp(t *testing.T) {
 	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
-	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
+	srv, lis, _ := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service testSwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 
 	akaSrv, _ := servicers.NewEapAkaService(nil)
 	eapCtx := &protos.Context{}

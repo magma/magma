@@ -11,12 +11,18 @@
  * limitations under the License.
  */
 
+#include "lte/gateway/c/session_manager/LocalEnforcer.hpp"
+
 #include <ctype.h>
 #include <cxxabi.h>
 #include <folly/io/async/EventBase.h>
 #include <glog/logging.h>
 #include <grpcpp/impl/codegen/status.h>
+#include <lte/protos/mconfig/mconfigs.pb.h>
+#include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.pb.h>
+#include <lte/protos/spgw_service.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
 #include <algorithm>
 #include <cstdint>
 #include <experimental/optional>
@@ -28,25 +34,21 @@
 #include <utility>
 #include <vector>
 
-#include "AAAClient.h"
-#include "DiameterCodes.h"
-#include "EnumToString.h"
-#include "GrpcMagmaUtils.h"
-#include "LocalEnforcer.h"
-#include "PipelinedClient.h"
-#include "RuleStore.h"
-#include "ServiceAction.h"
-#include "SessionEvents.h"
-#include "SessionReporter.h"
-#include "ShardTracker.h"
-#include "SpgwServiceClient.h"
-#include "StoredState.h"
-#include "Utilities.h"
-#include "lte/protos/mconfig/mconfigs.pb.h"
-#include "lte/protos/policydb.pb.h"
-#include "lte/protos/spgw_service.pb.h"
-#include "lte/protos/subscriberdb.pb.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/session_manager/AAAClient.hpp"
+#include "lte/gateway/c/session_manager/ChargingGrant.hpp"
+#include "lte/gateway/c/session_manager/DiameterCodes.hpp"
+#include "lte/gateway/c/session_manager/EnumToString.hpp"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
+#include "lte/gateway/c/session_manager/PipelinedClient.hpp"
+#include "lte/gateway/c/session_manager/RuleStore.hpp"
+#include "lte/gateway/c/session_manager/ServiceAction.hpp"
+#include "lte/gateway/c/session_manager/SessionEvents.hpp"
+#include "lte/gateway/c/session_manager/SessionReporter.hpp"
+#include "lte/gateway/c/session_manager/ShardTracker.hpp"
+#include "lte/gateway/c/session_manager/SpgwServiceClient.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
+#include "lte/gateway/c/session_manager/Utilities.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace google {
 namespace protobuf {

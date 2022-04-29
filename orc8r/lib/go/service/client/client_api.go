@@ -24,7 +24,7 @@ import (
 )
 
 func getClient(service string) (protos.Service303Client, error) {
-	conn, err := registry.GetConnection(service)
+	conn, err := registry.GetConnection(service, protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, "SERVICE303")
 		glog.Error(initErr)

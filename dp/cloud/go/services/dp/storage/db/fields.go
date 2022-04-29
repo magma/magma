@@ -15,11 +15,12 @@ package db
 
 import "magma/orc8r/cloud/go/sqorc"
 
-type FieldMap map[string]*Field
 type Field struct {
+	Name         string
 	SqlType      sqorc.ColumnType
 	Nullable     bool
 	HasDefault   bool
 	DefaultValue interface{}
 	Unique       bool
+	Relation     string
 }

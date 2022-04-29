@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/models"
+	"magma/orc8r/cloud/go/test_utils"
 )
 
 func TestJSONMapToProtobufStruct(t *testing.T) {
@@ -43,7 +44,7 @@ func TestJSONMapToProtobufStruct(t *testing.T) {
 	actualProtobufStruct, err := models.JSONMapToProtobufStruct(jsonMap)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expectedProtobufStruct, actualProtobufStruct)
+	test_utils.AssertMessagesEqual(t, expectedProtobufStruct, actualProtobufStruct)
 }
 
 func TestProtobufStructToJSONMap(t *testing.T) {

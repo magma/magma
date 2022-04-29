@@ -43,7 +43,7 @@ Magma's usage docs, and developer docs, are available at [https://docs.magmacore
 
 ## Join the Magma community
 
-See the [Community](https://www.magmacore.org/community/) page for entry points.
+See the [Community](https://magmacore.org/join-the-open-source-community/) page for entry points.
 
 Start by joining the community on Slack: [magmacore workspace](https://slack.magmacore.org/).
 

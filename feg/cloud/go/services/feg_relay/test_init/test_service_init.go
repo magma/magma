@@ -37,7 +37,7 @@ func (srv *testFegProxyServer) CancelLocation(
 }
 
 func StartTestService(t *testing.T) {
-	srv, lis := test_utils.NewTestService(t, feg.ModuleName, feg_relay.ServiceName)
+	srv, lis, _ := test_utils.NewTestService(t, feg.ModuleName, feg_relay.ServiceName)
 	protos.RegisterS6AGatewayServiceServer(srv.GrpcServer, &testFegProxyServer{})
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 }

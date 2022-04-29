@@ -21,6 +21,17 @@ proto_library(
     deps = ["//orc8r/protos:common_proto"],
 )
 
+proto_library(
+    name = "envoy_controller_proto",
+    srcs = ["envoy_controller.proto"],
+    deps = ["//lte/protos:mobilityd_proto"],
+)
+
+python_grpc_library(
+    name = "envoy_controller_python_grpc",
+    protos = [":envoy_controller_proto"],
+)
+
 python_proto_library(
     name = "mconfigs_python_proto",
     protos = [":mconfigs_proto"],

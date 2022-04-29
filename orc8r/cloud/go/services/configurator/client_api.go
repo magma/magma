@@ -710,7 +710,7 @@ func CountEntitiesOfType(ctx context.Context, networkID string, entityType strin
 }
 
 func getNBConfiguratorClient() (protos.NorthboundConfiguratorClient, error) {
-	conn, err := registry.GetConnection(ServiceName)
+	conn, err := registry.GetConnection(ServiceName, commonProtos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
@@ -728,7 +728,7 @@ func GetMconfigFor(ctx context.Context, hardwareID string) (*protos.GetMconfigRe
 }
 
 func getSBConfiguratorClient() (protos.SouthboundConfiguratorClient, error) {
-	conn, err := registry.GetConnection(ServiceName)
+	conn, err := registry.GetConnection(ServiceName, commonProtos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

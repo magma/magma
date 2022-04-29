@@ -11,24 +11,31 @@
  * limitations under the License.
  */
 
-#include <glog/logging.h>
+#include <gmock/gmock.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <gtest/gtest.h>
-
+#include <lte/protos/mconfig/mconfigs.pb.h>
+#include <lte/protos/session_manager.pb.h>
+#include <orc8r/protos/common.pb.h>
+#include <stdint.h>
+#include <yaml-cpp/yaml.h>
+#include <experimental/optional>
 #include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
-#include "UpfMsgManageHandler.h"
-#include "SessionStateEnforcer.h"
-#include "includes/MagmaService.hpp"
-#include "ProtobufCreators.h"
-#include "RuleStore.h"
-#include "includes/ServiceRegistrySingleton.hpp"
-#include "SessionState.h"
-#include "SessionStore.h"
-#include "SessiondMocks.h"
-#include "StoredState.h"
-#include "magma_logging.h"
-#include "PipelinedClient.h"
-#include "AmfServiceClient.h"
+#include "lte/gateway/c/session_manager/AmfServiceClient.hpp"
+#include "lte/gateway/c/session_manager/MeteringReporter.hpp"
+#include "lte/gateway/c/session_manager/PipelinedClient.hpp"
+#include "lte/gateway/c/session_manager/RuleStore.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/SessionStateEnforcer.hpp"
+#include "lte/gateway/c/session_manager/SessionStore.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.hpp"
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
 
 #define SESSIOND_SERVICE "sessiond"
 #define SESSIOND_VERSION "1.0"

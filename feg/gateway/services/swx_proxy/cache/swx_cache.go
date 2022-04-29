@@ -17,6 +17,8 @@ import (
 	"sync"
 	"time"
 
+	"google.golang.org/protobuf/proto"
+
 	"magma/feg/cloud/go/protos"
 )
 
@@ -96,12 +98,12 @@ func (swxCache *Impl) Get(imsi string, neededNumber int) *protos.AuthenticationA
 			heap.Remove(&swxCache.data, ent.idx)
 			return ent.ans
 		}
-		res := *ent.ans // copy answer
+		res := proto.Clone(ent.ans).(*protos.AuthenticationAnswer) // copy answer
 		res.SipAuthVectors = res.SipAuthVectors[:neededNumber]
 		ent.ans.SipAuthVectors = ent.ans.SipAuthVectors[neededNumber:]
 		ent.lastUsed = time.Now()
 		heap.Fix(&swxCache.data, ent.idx)
-		return &res
+		return res
 	}
 	return nil
 }
@@ -144,14 +146,14 @@ func (swxCache *Impl) Put(ans *protos.AuthenticationAnswer, neededNumber int) *p
 		return ans // only needed # of vectors, nothing to cache, just return it
 	}
 	// cash & return the first vector in a cloned answer
-	res := *ans // copy answer
+	res := proto.Clone(ans).(*protos.AuthenticationAnswer) // copy answer
 	res.SipAuthVectors = res.SipAuthVectors[:neededNumber]
 	ans.SipAuthVectors = ans.SipAuthVectors[neededNumber:]
 
 	ent = &authEnt{lastUsed: time.Now(), ans: ans}
 	swxCache.data.vectors[ans.UserName] = ent
 	heap.Push(&swxCache.data, ent)
-	return &res
+	return res
 }
 
 // ClearAll removes all cached entities & re-initializes the cache

@@ -20,29 +20,33 @@
   Description 	Objects run in main thread context invoked by folly event
 *****************************************************************************/
 
+#include "lte/gateway/c/session_manager/SessionStateEnforcer.hpp"
+
 #include <folly/io/async/EventBase.h>
 #include <glog/logging.h>
 #include <grpcpp/impl/codegen/status.h>
+#include <lte/protos/apn.pb.h>
+#include <lte/protos/mconfig/mconfigs.pb.h>
+#include <lte/protos/policydb.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
 #include <algorithm>
 #include <cstdint>
 #include <experimental/optional>
 #include <memory>
 #include <ostream>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
-#include "AmfServiceClient.h"
-#include "EnumToString.h"
-#include "PipelinedClient.h"
-#include "SessionState.h"
-#include "SessionStateEnforcer.h"
-#include "StoredState.h"
-#include "lte/protos/apn.pb.h"
-#include "lte/protos/mconfig/mconfigs.pb.h"
-#include "lte/protos/policydb.pb.h"
-#include "lte/protos/subscriberdb.pb.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/session_manager/AmfServiceClient.hpp"
+#include "lte/gateway/c/session_manager/EnumToString.hpp"
+#include "lte/gateway/c/session_manager/PipelinedClient.hpp"
+#include "lte/gateway/c/session_manager/SessionEvents.hpp"
+#include "lte/gateway/c/session_manager/SessionReporter.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 #define DEFAULT_AMBR_UNITS (1024)
 #define DEFAULT_UP_LINK_PDR_ID 1

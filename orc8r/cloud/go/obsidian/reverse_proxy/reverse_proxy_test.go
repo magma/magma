@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 
@@ -29,6 +30,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/test_utils"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -50,7 +52,7 @@ func TestReverseProxy(t *testing.T) {
 	annotations2 := map[string]string{
 		orc8r.ObsidianHandlersPathPrefixesAnnotation: pathPrefix3,
 	}
-	srv1, lis1 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "test_service1", labels, annotations1)
+	srv1, lis1, plis1 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "test_service1", labels, annotations1)
 	srv1.EchoServer.GET(pathPrefix1, func(c echo.Context) error {
 		return c.String(http.StatusOK, "All good!")
 	})
@@ -60,12 +62,12 @@ func TestReverseProxy(t *testing.T) {
 	srv1.EchoServer.GET(pathPrefix2, func(c echo.Context) error {
 		return c.String(http.StatusOK, "All good!")
 	})
-	srv2, lis2 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "test_service2", labels, annotations2)
+	srv2, lis2, plis2 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "test_service2", labels, annotations2)
 	srv2.EchoServer.GET(pathPrefix3, func(c echo.Context) error {
 		return c.String(http.StatusOK, "All good!")
 	})
-	startTestService(t, srv1, lis1)
-	startTestService(t, srv2, lis2)
+	startTestService(t, srv1, lis1, plis1)
+	startTestService(t, srv2, lis2, plis2)
 
 	handler := NewReverseProxyHandler(nil)
 	e, err := startTestServer(handler)
@@ -114,7 +116,7 @@ func TestReverseProxy(t *testing.T) {
 	annotations3 := map[string]string{
 		orc8r.ObsidianHandlersPathPrefixesAnnotation: pathPrefix4,
 	}
-	srv3, lis3 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "test_service3", labels, annotations3)
+	srv3, lis3, plis3 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "test_service3", labels, annotations3)
 	srv3.EchoServer.GET(pathPrefix4, func(c echo.Context) error {
 		return c.String(http.StatusOK, "All good!")
 	})
@@ -124,7 +126,7 @@ func TestReverseProxy(t *testing.T) {
 	_, err = handler.AddReverseProxyPaths(e, pathPrefixesByAddr)
 	assert.NoError(t, err)
 
-	startTestService(t, srv3, lis3)
+	startTestService(t, srv3, lis3, plis3)
 
 	// Ensure added prefix to test_service2 works
 	s, err = sendRequest("GET", urlPrefix+newPrefix)
@@ -169,16 +171,16 @@ func TestReverseProxyPathCollision(t *testing.T) {
 	annotations := map[string]string{
 		orc8r.ObsidianHandlersPathPrefixesAnnotation: pathPrefix,
 	}
-	srv1, lis1 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "mock_server1", labels, annotations)
+	srv1, lis1, plis1 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "mock_server1", labels, annotations)
 	srv1.EchoServer.GET(pathPrefix, func(c echo.Context) error {
 		return c.String(http.StatusOK, "All good!")
 	})
-	srv2, lis2 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "mock_server2", labels, annotations)
+	srv2, lis2, plis2 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "mock_server2", labels, annotations)
 	srv2.EchoServer.GET(pathPrefix, func(c echo.Context) error {
 		return c.String(http.StatusOK, "All good!")
 	})
-	startTestService(t, srv1, lis1)
-	startTestService(t, srv2, lis2)
+	startTestService(t, srv1, lis1, plis1)
+	startTestService(t, srv2, lis2, plis2)
 
 	handler := NewReverseProxyHandler(nil)
 	e, err := startTestServer(handler)
@@ -213,8 +215,8 @@ func startTestServer(handler *ReverseProxyHandler) (*echo.Echo, error) {
 	return e, nil
 }
 
-func startTestService(t *testing.T, srv *service.OrchestratorService, lis net.Listener) {
-	go srv.RunTest(lis)
+func startTestService(t *testing.T, srv *service.OrchestratorService, lis net.Listener, plis net.Listener) {
+	go srv.RunTest(lis, plis)
 	tests.WaitForTestServer(t, srv.EchoServer)
 }
 
@@ -238,10 +240,16 @@ func sendRequest(method string, url string) (int, error) {
 }
 
 func addPrefixesToExistingService(serviceName string, newPrefixes string) error {
-	port, err := registry.GetServicePort(serviceName)
+	port, err := registry.GetServicePort(serviceName, lib_protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		return err
 	}
+
+	pport, err := registry.GetServicePort(serviceName, lib_protos.ServiceType_PROTECTED)
+	if err != nil {
+		glog.Infof("service does not have a protected port")
+	}
+
 	echoPort, err := registry.GetEchoServerPort(serviceName)
 	if err != nil {
 		return err
@@ -258,12 +266,13 @@ func addPrefixesToExistingService(serviceName string, newPrefixes string) error 
 		orc8r.ObsidianHandlersPathPrefixesAnnotation: updatedPrefixes,
 	}
 	registry.AddService(registry.ServiceLocation{
-		Name:        serviceName,
-		Host:        "localhost",
-		Port:        port,
-		EchoPort:    echoPort,
-		Labels:      obsidianLabels,
-		Annotations: newAnnotations,
+		Name:          serviceName,
+		Host:          "localhost",
+		Port:          port,
+		ProtectedPort: pport,
+		EchoPort:      echoPort,
+		Labels:        obsidianLabels,
+		Annotations:   newAnnotations,
 	})
 	return nil
 }

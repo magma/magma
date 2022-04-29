@@ -21,6 +21,7 @@ import (
 
 	"google.golang.org/grpc"
 
+	"magma/orc8r/lib/go/protos"
 	platform_registry "magma/orc8r/lib/go/registry"
 )
 
@@ -44,6 +45,6 @@ func (m *MockCloudRegistry) GetCloudConnection(service string) (*grpc.ClientConn
 	}
 	return conn, nil
 }
-func (m *MockCloudRegistry) GetConnection(service string) (*grpc.ClientConn, error) {
+func (m *MockCloudRegistry) GetConnection(service string, serviceType protos.ServiceType) (*grpc.ClientConn, error) {
 	return m.GetCloudConnection(service)
 }

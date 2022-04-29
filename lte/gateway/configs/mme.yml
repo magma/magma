@@ -35,4 +35,4 @@ mme_app_zmq_smc_th_us: 1000000  # delay threshold used for dropping SMC Complete
 accept_combined_attach_tau_wo_csfb: true
 
 # Enable IPv6 support for S1AP SCTP endpoint
-s1ap_ipv6_enabled: false
+s1ap_ipv6_enabled: true

@@ -17,9 +17,9 @@ const (
 	PolicyType = "policy"
 )
 
-func UserFromBlob(blob blobstore.Blob) (User, error) {
-	user := User{}
-	err := proto.Unmarshal(blob.Value, &user)
+func UserFromBlob(blob blobstore.Blob) (*User, error) {
+	user := &User{}
+	err := proto.Unmarshal(blob.Value, user)
 	if err != nil {
 		return user, err
 	}
@@ -35,9 +35,9 @@ func (u *User) UserToBlob(username string) (blobstore.Blob, error) {
 	return userBlob, nil
 }
 
-func PolicyFromBlob(blob blobstore.Blob) (PolicyList, error) {
-	policy := PolicyList{}
-	err := proto.Unmarshal(blob.Value, &policy)
+func PolicyFromBlob(blob blobstore.Blob) (*PolicyList, error) {
+	policy := &PolicyList{}
+	err := proto.Unmarshal(blob.Value, policy)
 	if err != nil {
 		return policy, err
 	}

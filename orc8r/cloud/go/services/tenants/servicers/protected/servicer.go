@@ -55,7 +55,7 @@ func (s *tenantsServicer) CreateTenant(c context.Context, request *tenant_protos
 		return nil, status.Errorf(codes.Internal, "Error getting existing tenants: %v", err)
 	}
 
-	err = s.store.CreateTenant(request.Id, *request.Tenant)
+	err = s.store.CreateTenant(request.Id, request.Tenant)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Error creating tenant: %v", err)
 	}
@@ -77,7 +77,7 @@ func (s *tenantsServicer) SetTenant(c context.Context, request *tenant_protos.ID
 		return nil, err
 	}
 
-	err = s.store.SetTenant(request.Id, *request.Tenant)
+	err = s.store.SetTenant(request.Id, request.Tenant)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Error setting tenant %d: %v", request.Id, err)
 	}

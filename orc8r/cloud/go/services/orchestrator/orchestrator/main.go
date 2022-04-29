@@ -69,7 +69,6 @@ func main() {
 	} else {
 		exporterServicer = protected_servicers.NewPushExporterServicer(serviceConfig.PrometheusPushAddresses)
 	}
-
 	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, protected_servicers.NewBuilderServicer())
 	exporter_protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
 	indexer_protos.RegisterIndexerServer(srv.GrpcServer, protected_servicers.NewIndexerServicer())

@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
+#include "lte/gateway/c/session_manager/ChargingGrant.hpp"
+
 #include <glog/logging.h>
 #include <algorithm>
 #include <ctime>
@@ -19,11 +21,10 @@
 #include <string>
 #include <vector>
 
-#include "ChargingGrant.h"
-#include "CreditKey.h"
-#include "DiameterCodes.h"
-#include "EnumToString.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/session_manager/CreditKey.hpp"
+#include "lte/gateway/c/session_manager/DiameterCodes.hpp"
+#include "lte/gateway/c/session_manager/EnumToString.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace magma {
 ChargingGrant::ChargingGrant(const StoredChargingGrant& marshaled) {
@@ -88,9 +89,8 @@ CreditValidity ChargingGrant::get_credit_response_validity_type(
       !gsu.total().is_valid() && !gsu.rx().is_valid() && !gsu.tx().is_valid();
   if (gsu_all_invalid) {
     if (update.credit().is_final() || credit_validity == TRANSIENT_ERROR) {
-      // TODO(@themarwhal): look into this case. Before I figure it out, I will
-      // allow empty GSU credits with FUA or to be suspended
-      // to be on the conservative side.
+      // We will allow empty GSU credits with FUA or to be suspended
+      // to be on the conservative side
       MLOG(MWARNING)
           << "GSU for RG: " << key << " " << session_id
           << " is invalid, but accepting it as it has a final unit action or "

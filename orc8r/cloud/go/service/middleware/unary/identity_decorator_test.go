@@ -94,7 +94,7 @@ func TestIdentityInjector(t *testing.T) {
 	assert.NoError(t, err)
 	addr := l.Addr().String()
 	// Run the service
-	go srv.RunTest(l)
+	go srv.RunTest(l, nil)
 
 	conn, err := registry.GetClientConnection(context.Background(), addr)
 	assert.NoError(t, err)

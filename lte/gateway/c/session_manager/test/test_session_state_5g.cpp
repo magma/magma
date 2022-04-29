@@ -12,17 +12,16 @@
  */
 #include <glog/logging.h>
 #include <gtest/gtest.h>
-
 #include <future>
 #include <memory>
 #include <utility>
 
-#include "Consts.h"
-#include "magma_logging.h"
-#include "ProtobufCreators.h"
-#include "SessiondMocks.h"
-#include "SessionState.h"
-#include "SessionStateTester5g.h"
+#include "lte/gateway/c/session_manager/test/Consts.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.hpp"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/test/SessionStateTester5g.hpp"
 
 using ::testing::Test;
 
