@@ -211,7 +211,7 @@ test_oai_runtime: export GTEST_OUTPUT=xml:/tmp/magma_oai/
 test_oai_runtime: ## Run all OAI-specific tests with report about the running time
 	mkdir -p /tmp/magma_oai/report/
 	-$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS), $(OAI_TESTS))
-	find /tmp/magma_oai/ -maxdepth 1 -name "*.xml" -print0 | xargs -r0 python3 python/scripts/runtime_report.py -o /tmp/magma_oai/report/all_unittest.xml -i   
+	python3 python/scripts/runtime_report.py -i /tmp/magma_oai/*.xml
 	rm /tmp/magma_oai/*.xml
 
 test_sctpd: ## Run all tests for sctpd

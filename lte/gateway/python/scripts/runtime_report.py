@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Copyright 2020 The Magma Authors.
+Copyright 2022 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
@@ -15,6 +15,7 @@ limitations under the License.
 
 import argparse
 import glob
+import logging
 import os
 import xml.etree.ElementTree as ET
 from datetime import datetime
@@ -69,20 +70,21 @@ def merge_all_report(list_xml_report_paths, output_path):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+
+    magma_root_path = os.environ.get('MAGMA_ROOT')
+    default_output_path = ((magma_root_path + "/report/") if magma_root_path else "/tmp/magma_oai/report/") + "report_all_tests.xml"
 
     parser = argparse.ArgumentParser(description="Merging all the .xml unittest reports into a single file")
-    parser.add_argument('-i', '--input', nargs='+', help='<Required> List of xml files', required=True)
-    parser.add_argument('-o', '--output', help='Output of xml report', required=False)
+    parser.add_argument('-i', '--input', nargs='+', help='<Required> Path of xml files', required=True)
+    parser.add_argument('-o', '--output', help='Output of xml report', default=default_output_path, required=False)
     args = parser.parse_args()
 
-    print(f"Value of env variable GTEST_OUTPUT = {os.environ['GTEST_OUTPUT']}")
-    print(f"Processing test reports at :")
-    pprint(args.input)
     print("=" * 50)
 
-    output_path = args.output if args.output else "./report_all_tests.xml"
     if len(args.input) < 1:
-        print("No report is generated")
+        logging.info("No report is generated")
     else:
-        merge_all_report(args.input, output_path)
-    print(f"Final report is generated at: {output_path}")
+        Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+        merge_all_report(args.input, args.output)
+    logging.info(f"Final report is generated at: {Path(args.output).resolve()}")
