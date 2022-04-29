@@ -38,12 +38,11 @@ import UpgradeTierEditDialog from './UpgradeTierEditDialog';
 import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
-import {Route} from 'react-router-dom';
+import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {map, sortBy} from 'lodash';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(() => ({
   header: {
@@ -72,7 +71,7 @@ const UpgradeTiersTable = (props: {
             <TableCell>{row.name}</TableCell>
             <TableCell>{row.version}</TableCell>
             <TableCell>
-              <NestedRouteLink to={`/tier/edit/${encodeURIComponent(row.id)}/`}>
+              <NestedRouteLink to={`tier/edit/${encodeURIComponent(row.id)}/`}>
                 <IconButton>
                   <EditIcon />
                 </IconButton>
@@ -154,6 +153,27 @@ const GatewayUpgradeStatusTable = (props: {
   );
 };
 
+function EditDialog(props: {
+  networkUpgradeTiers?: Array<tier>,
+  setLastFetchTime: (time: number) => void,
+}) {
+  const navigate = useNavigate();
+  const params = useParams();
+
+  return (
+    <UpgradeTierEditDialog
+      tier={nullthrows(
+        (props.networkUpgradeTiers || []).find(t => t.id === params.tierId),
+      )}
+      onCancel={() => navigate('..')}
+      onSave={() => {
+        navigate('..');
+        props.setLastFetchTime(Date.now());
+      }}
+    />
+  );
+}
+
 async function fetchAllNetworkUpgradeTiers(
   networkId: string,
 ): Promise<Array<tier>> {
@@ -166,7 +186,8 @@ async function fetchAllNetworkUpgradeTiers(
 
 function UpgradeConfig(props: WithAlert & {}) {
   const classes = useStyles();
-  const {match, history, relativePath, relativeUrl} = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
   const [gateways, setGateways] = useState();
   const [networkUpgradeTiers, setNetworkUpgradeTiers] = useState();
   const [supportedVersions, setSupportedVersions] = useState();
@@ -174,7 +195,7 @@ function UpgradeConfig(props: WithAlert & {}) {
   const [lastFetchTime, setLastFetchTime] = useState(Date.now());
   const enqueueSnackbar = useEnqueueSnackbar();
 
-  const networkId = nullthrows(match.params.networkId);
+  const networkId = nullthrows(params.networkId);
   useEffect(() => {
     async function fetchStableReleases() {
       let supportedVersions;
@@ -287,7 +308,7 @@ function UpgradeConfig(props: WithAlert & {}) {
               Upgrade Tiers
             </Text>
             <div>
-              <NestedRouteLink to={`/tier/new/`}>
+              <NestedRouteLink to={`tier/new/`}>
                 <Button>Add Tier</Button>
               </NestedRouteLink>
             </div>
@@ -298,37 +319,29 @@ function UpgradeConfig(props: WithAlert & {}) {
           />
         </>
       )}
-      <Route
-        exact
-        path={relativePath('/tier/new')}
-        component={() => (
-          <UpgradeTierEditDialog
-            onCancel={() => history.push(relativeUrl(''))}
-            onSave={() => {
-              history.push(relativeUrl(''));
-              setLastFetchTime(Date.now());
-            }}
-          />
-        )}
-      />
-      <Route
-        exact
-        path={relativePath('/tier/edit/:tierId')}
-        component={({match}) => (
-          <UpgradeTierEditDialog
-            tier={nullthrows(
-              (networkUpgradeTiers || []).find(
-                t => t.id === match.params.tierId,
-              ),
-            )}
-            onCancel={() => history.push(relativeUrl(''))}
-            onSave={() => {
-              history.push(relativeUrl(''));
-              setLastFetchTime(Date.now());
-            }}
-          />
-        )}
-      />
+      <Routes>
+        <Route
+          path="tier/new"
+          element={
+            <UpgradeTierEditDialog
+              onCancel={() => navigate('')}
+              onSave={() => {
+                navigate('');
+                setLastFetchTime(Date.now());
+              }}
+            />
+          }
+        />
+        <Route
+          path="tier/edit/:tierId"
+          element={
+            <EditDialog
+              setLastFetchTime={setLastFetchTime}
+              networkUpgradeTiers={networkUpgradeTiers}
+            />
+          }
+        />
+      </Routes>
     </>
   );
 }

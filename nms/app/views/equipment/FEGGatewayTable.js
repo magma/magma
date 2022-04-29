@@ -40,7 +40,7 @@ import {
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useNavigate, useParams} from 'react-router-dom';
 
 type EquipmentFegGatewayRowType = {
   name: string,
@@ -94,9 +94,10 @@ export default function GatewayTable() {
  * @param {boolean} refresh Tells to autorefresh after 30 seconds or not.
  */
 function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
-  const {history, relativeUrl, match} = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const networkId: string = nullthrows(match.params.networkId);
+  const networkId: string = nullthrows(params.networkId);
   const gwCtx = useContext(FEGGatewayContext);
   const [lastRefreshTime, setLastRefreshTime] = useState(
     new Date().toLocaleString(),
@@ -154,7 +155,7 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
               <Link
                 variant="body2"
                 component="button"
-                onClick={() => history.push(relativeUrl('/' + currRow.id))}>
+                onClick={() => navigate(currRow.id)}>
                 {currRow.name}
               </Link>
             ),
@@ -193,13 +194,13 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
           {
             name: 'View',
             handleFunc: () => {
-              history.push(relativeUrl('/' + currRow.id));
+              navigate(currRow.id);
             },
           },
           {
             name: 'Edit',
             handleFunc: () => {
-              history.push(relativeUrl('/' + currRow.id + '/config'));
+              navigate(currRow.id + '/config');
             },
           },
           {

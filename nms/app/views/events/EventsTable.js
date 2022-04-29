@@ -35,8 +35,8 @@ import {colors} from '../../theme/default';
 import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useRef, useState} from 'react';
+import {useParams} from 'react-router-dom';
 import {useRefreshingDateRange} from '../../components/AutorefreshCheckbox';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   eventDetailTable: {
@@ -224,8 +224,8 @@ export default function EventsTable(props: EventTableProps) {
   const classes = useStyles();
   const [eventCount, setEventCount] = useState(0);
   const tableRef = useRef(null);
-  const {match} = useRouter();
-  const networkId = nullthrows(match.params.networkId);
+  const params = useParams();
+  const networkId = nullthrows(params.networkId);
   const streams = '';
   const buildTags = (tags: string) => {
     let allTags = tags;

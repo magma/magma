@@ -33,7 +33,7 @@ import moment from 'moment';
 import nullthrows from '../../fbc_js_core/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 
 type Props = {
@@ -53,7 +53,7 @@ const useStyles = makeStyles(() => ({
 
 export default function GatewaySummaryFields(props: Props) {
   const classes = useStyles();
-  const {match} = useRouter();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
   const {gateway} = props;
   const [name, setName] = useState(gateway.name);
@@ -63,7 +63,7 @@ export default function GatewaySummaryFields(props: Props) {
   const id = gateway.logicalID;
   const onSave = () => {
     MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdName({
-      networkId: nullthrows(match.params.networkId),
+      networkId: nullthrows(params.networkId),
       gatewayId: id,
       name: JSON.stringify(`"${name}"`),
     })
@@ -75,7 +75,7 @@ export default function GatewaySummaryFields(props: Props) {
 
   const handleRebootGateway = () => {
     MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandReboot({
-      networkId: nullthrows(match.params.networkId),
+      networkId: nullthrows(params.networkId),
       gatewayId: id,
     })
       .then(_resp => {
@@ -93,7 +93,7 @@ export default function GatewaySummaryFields(props: Props) {
   const handleRestartServices = () => {
     MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandRestartServices(
       {
-        networkId: nullthrows(match.params.networkId),
+        networkId: nullthrows(params.networkId),
         gatewayId: id,
         services: [],
       },

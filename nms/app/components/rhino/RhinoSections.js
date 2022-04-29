@@ -25,7 +25,7 @@ export function getRhinoSections(): SectionsConfigs {
     'metrics', // landing path
     [
       {
-        path: 'metrics',
+        path: 'metrics/*',
         label: 'Metrics',
         icon: <BarChartIcon />,
         component: RhinoMetrics,

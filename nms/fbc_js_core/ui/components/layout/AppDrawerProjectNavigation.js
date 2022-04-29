@@ -27,7 +27,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React, {useState} from 'react';
 
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '../../hooks';
+import {useNavigate, useResolvedPath} from 'react-router-dom';
 
 export type ProjectLink = {
   id: Tab,
@@ -62,10 +62,13 @@ const useClasses = makeStyles(theme => ({
 export default function AppDrawerProjectNavigation(props: Props) {
   const {projects} = props;
   const classes = useClasses();
-  const {history, match} = useRouter();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
+  const resolvedPath = useResolvedPath('');
 
-  const selected = projects.find(item => match.url.startsWith(item.url));
+  const selected = projects.find(item =>
+    resolvedPath.startsWith('/' + item.url),
+  );
 
   return (
     <div>
@@ -102,9 +105,9 @@ export default function AppDrawerProjectNavigation(props: Props) {
         {projects.map(item => (
           <MenuItem
             key={item.url}
-            disabled={match.url.startsWith(item.url)}
-            selected={match.url.startsWith(item.url)}
-            onClick={_event => history.push(item.url)}>
+            disabled={item.url === selected?.url}
+            selected={item.url === selected?.url}
+            onClick={_event => navigate(item.url)}>
             {item.name} - {item.secondary}
           </MenuItem>
         ))}

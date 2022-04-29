@@ -37,10 +37,9 @@ import Text from '../../theme/design-system/Text';
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
-import {Route} from 'react-router-dom';
+import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -54,13 +53,14 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function Enodebs() {
-  const {match, relativePath, relativeUrl, history} = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
   const classes = useStyles();
   const [enodebs, setEnodebs] = useState([]);
   const [lastFetchTime, setLastFetchTime] = useState(Date.now());
   const {isLoading} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdEnodebs,
-    {networkId: nullthrows(match.params.networkId)},
+    {networkId: nullthrows(params.networkId)},
     useCallback(
       response =>
         setEnodebs(Object.keys(response).map(key => response.enodebs[key])),
@@ -86,7 +86,7 @@ export default function Enodebs() {
       <div className={classes.paper}>
         <div className={classes.header}>
           <Text variant="h5">Configure eNodeB Devices</Text>
-          <NestedRouteLink to="/new">
+          <NestedRouteLink to="new">
             <Button>Add eNodeB</Button>
           </NestedRouteLink>
         </div>
@@ -102,19 +102,21 @@ export default function Enodebs() {
             <TableBody>{rows}</TableBody>
           </Table>
         </Paper>
-        <Route
-          path={relativePath('/new')}
-          render={() => (
-            <AddEditEnodebDialog
-              editingEnodeb={null}
-              onClose={() => history.push(relativeUrl(''))}
-              onSave={() => {
-                history.push(relativeUrl(''));
-                setLastFetchTime(Date.now());
-              }}
-            />
-          )}
-        />
+        <Routes>
+          <Route
+            path="new"
+            element={
+              <AddEditEnodebDialog
+                editingEnodeb={null}
+                onClose={() => navigate('')}
+                onSave={() => {
+                  navigate('');
+                  setLastFetchTime(Date.now());
+                }}
+              />
+            }
+          />
+        </Routes>
       </div>
     </>
   );
@@ -127,7 +129,8 @@ type Props = WithAlert & {
 
 function EnodebRowItem(props: Props) {
   const {enodeb} = props;
-  const {match, relativePath, history, relativeUrl} = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
   const deleteEnodeb = () => {
     props
       .confirm(`Are you sure you want to delete ${enodeb.serial}?`)
@@ -136,7 +139,7 @@ function EnodebRowItem(props: Props) {
           return;
         }
         MagmaV1API.deleteLteByNetworkIdEnodebsByEnodebSerial({
-          networkId: nullthrows(match.params.networkId),
+          networkId: nullthrows(params.networkId),
           enodebSerial: enodeb.serial,
         }).then(props.onSave);
       });
@@ -150,7 +153,7 @@ function EnodebRowItem(props: Props) {
       </TableCell>
       <TableCell>{enodeb.config.device_class}</TableCell>
       <TableCell>
-        <NestedRouteLink to={`/edit/${enodeb.serial}`}>
+        <NestedRouteLink to={`edit/${enodeb.serial}`}>
           <IconButton>
             <EditIcon />
           </IconButton>
@@ -159,19 +162,22 @@ function EnodebRowItem(props: Props) {
           <DeleteIcon />
         </IconButton>
       </TableCell>
-      <Route
-        path={relativePath(`/edit/${enodeb.serial}`)}
-        render={() => (
-          <AddEditEnodebDialog
-            editingEnodeb={enodeb}
-            onClose={() => history.push(relativeUrl(''))}
-            onSave={() => {
-              props.onSave();
-              history.push(relativeUrl(''));
-            }}
-          />
-        )}
-      />
+
+      <Routes>
+        <Route
+          path={`edit/${enodeb.serial}`}
+          element={
+            <AddEditEnodebDialog
+              editingEnodeb={enodeb}
+              onClose={() => navigate('')}
+              onSave={() => {
+                props.onSave();
+                navigate('');
+              }}
+            />
+          }
+        />
+      </Routes>
     </TableRow>
   );
 }

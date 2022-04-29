@@ -22,7 +22,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
 import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
 import type {
@@ -181,10 +181,12 @@ describe('<ServicingAccessGatewaysInfo />', () => {
         <MuiThemeProvider theme={defaultTheme}>
           <MuiStylesThemeProvider theme={defaultTheme}>
             <FEGNetworkContext.Provider value={networkCtx}>
-              <Route
-                path="/nms/:networkId/network/"
-                render={props => <FEGServicingAccessGatewaysTable {...props} />}
-              />
+              <Routes>
+                <Route
+                  path="/nms/:networkId/network/"
+                  element={<FEGServicingAccessGatewaysTable />}
+                />
+              </Routes>
             </FEGNetworkContext.Provider>
           </MuiStylesThemeProvider>
         </MuiThemeProvider>

@@ -31,28 +31,26 @@ import type {
   subscriber,
 } from '../../../generated/MagmaAPIBindings';
 
-import {Redirect, Route, Switch} from 'react-router-dom';
+import {Navigate, Route, Routes, useNavigate} from 'react-router-dom';
 import {useContext} from 'react';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const TITLE = 'Subscribers';
 
 export default function SubscriberDashboard() {
-  const {relativePath, relativeUrl} = useRouter();
   return (
-    <Switch>
+    <Routes>
       <Route
-        path={relativePath('/overview/config/:subscriberId')}
-        component={SubscriberDetail}
+        path="/overview/config/:subscriberId/*"
+        element={<SubscriberDetail />}
       />
       <Route
-        path={relativePath('/overview/sessions/:subscriberId')}
-        component={SubscriberDetail}
+        path="/overview/sessions/:subscriberId/*"
+        element={<SubscriberDetail />}
       />
 
-      <Route path={relativePath('/overview')} component={SubscribersOverview} />
-      <Redirect to={relativeUrl('/overview')} />
-    </Switch>
+      <Route path="/overview/*" element={<SubscribersOverview />} />
+      <Route index element={<Navigate to="overview" replace />} />
+    </Routes>
   );
 }
 
@@ -75,8 +73,6 @@ type Props = {
 };
 
 export function SubscribersOverview() {
-  const {relativePath, relativeUrl} = useRouter();
-
   return (
     <>
       <TopBar
@@ -84,27 +80,21 @@ export function SubscribersOverview() {
         tabs={[
           {
             label: 'Config',
-            to: '/config',
+            to: 'config',
             icon: SettingsIcon,
           },
           {
             label: 'Sessions',
-            to: '/sessions',
+            to: 'sessions',
             icon: PeopleIcon,
           },
         ]}
       />
-      <Switch>
-        <Route
-          path={relativePath('/config')}
-          component={() => <SubscriberTable />}
-        />
-        <Route
-          path={relativePath('/sessions')}
-          component={SubscriberStateTable}
-        />
-        <Redirect to={relativeUrl('/config')} />
-      </Switch>
+      <Routes>
+        <Route path="/config" element={<SubscriberTable />} />
+        <Route path="/sessions" element={<SubscriberStateTable />} />
+        <Route index element={<Navigate to="config" replace />} />
+      </Routes>
     </>
   );
 }
@@ -137,7 +127,7 @@ type RenderLinkType = {
 };
 
 export function RenderLink(props: RenderLinkType) {
-  const {relativeUrl, history} = useRouter();
+  const navigate = useNavigate();
   const {subscriberConfig, currRow} = props;
   const imsi = currRow.imsi;
   return (
@@ -145,11 +135,7 @@ export function RenderLink(props: RenderLinkType) {
       <Link
         variant="body2"
         component="button"
-        onClick={() =>
-          history.push(
-            relativeUrl('/' + imsi + `${!subscriberConfig ? '/event' : ''}`),
-          )
-        }>
+        onClick={() => navigate(imsi + `${!subscriberConfig ? '/event' : ''}`)}>
         {imsi}
       </Link>
     </div>

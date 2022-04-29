@@ -35,7 +35,7 @@ import Tabs from '@material-ui/core/Tabs';
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 
 const useStyles = makeStyles(_ => ({
@@ -62,11 +62,11 @@ export default function (props: Props) {
   );
 
   const classes = useStyles();
-  const {match} = useRouter();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
 
-  const gatewayID = nullthrows(match.params.gatewayID);
-  const networkID = nullthrows(match.params.networkId);
+  const gatewayID = nullthrows(params.gatewayID);
+  const networkID = nullthrows(params.networkId);
   const onSave = async () => {
     try {
       await MagmaV1API.putCwfByNetworkIdGatewaysByGatewayId({

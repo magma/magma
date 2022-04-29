@@ -34,8 +34,8 @@ import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 import {useMemo, useRef, useState} from 'react';
+import {useParams} from 'react-router-dom';
 import {useRefreshingDateRange} from '../../components/AutorefreshCheckbox';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 // elastic search pagination through 'from' mechanism has a 10000 row limit
 // we have to use a different mechanism in case we want to go higher, we should
@@ -211,9 +211,9 @@ function handleLogQuery(networkId, gatewayId, from, size, start, end, q) {
 
 export default function GatewayLogs() {
   const classes = useStyles();
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const gatewayId: string = nullthrows(match.params.gatewayId);
+  const params = useParams();
+  const networkId: string = nullthrows(params.networkId);
+  const gatewayId: string = nullthrows(params.gatewayId);
   const [logCount, setLogCount] = useState(0);
   const [actionQuery, setActionQuery] = useState<ActionQuery>({});
   const enqueueSnackbar = useEnqueueSnackbar();

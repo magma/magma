@@ -36,7 +36,7 @@ import {
 import {colors} from '../theme/default';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 type Props = {
   startEnd: [moment, moment],
@@ -153,8 +153,8 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
 }
 
 export default function EventAlertChart(props: Props) {
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
+  const params = useParams();
+  const networkId: string = nullthrows(params.networkId);
   const [start, end] = props.startEnd;
   const enqueueSnackbar = useEnqueueSnackbar();
   const [isLoading, setIsLoading] = useState(true);

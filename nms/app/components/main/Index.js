@@ -37,7 +37,7 @@ import {useEffect, useState} from 'react';
 import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import useSections from '../layout/useSections';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 // These won't be considered networkIds
 export const ROOT_PATHS = new Set<string>(['network']);
@@ -68,12 +68,9 @@ function Sidebar() {
 
 export default function Index() {
   const classes = useStyles();
-  const {match} = useRouter();
+  const params = useParams();
   const [networkType, setNetworkType] = useState<?NetworkType>(null);
-
-  const networkId = ROOT_PATHS.has(match.params.networkId)
-    ? null
-    : match.params.networkId;
+  const networkId = ROOT_PATHS.has(params.networkId) ? null : params.networkId;
 
   useEffect(() => {
     const fetchNetworkType = async () => {

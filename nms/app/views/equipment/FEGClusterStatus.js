@@ -31,7 +31,7 @@ import useMagmaAPI from '../../../api/useMagmaAPI';
 import {GatewayTypeEnum, HEALTHY_STATUS} from '../../components/GatewayUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(_ => ({
   paperRoot: {
@@ -50,9 +50,9 @@ const useStyles = makeStyles(_ => ({
  */
 export default function FEGClusterStatus() {
   const classes = useStyles();
-  const {match} = useRouter();
+  const params = useParams();
   const ctx = useContext(FEGGatewayContext);
-  const networkId: string = nullthrows(match.params.networkId);
+  const networkId: string = nullthrows(params.networkId);
   const timeRange = '7d';
   const {response: lastFalloverResponse} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdPrometheusQuery,

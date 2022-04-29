@@ -20,17 +20,13 @@ import Index from './components/host/Index';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {BrowserRouter} from 'react-router-dom';
-import {hot} from 'react-hot-loader';
 
 import {} from './common/axiosConfig';
 import nullthrows from '../fbc_js_core/util/nullthrows';
 
-/* eslint-disable-next-line no-undef */
-const HotIndex = hot(module)(Index);
-
 ReactDOM.render(
   <BrowserRouter>
-    <HotIndex />
+    <Index />
   </BrowserRouter>,
   nullthrows(document.getElementById('root')),
 );

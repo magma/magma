@@ -25,12 +25,17 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
-import {Redirect, Route, Switch} from 'react-router-dom';
+import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useResolvedPath,
+} from 'react-router-dom';
 import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(_ => ({
   bar: {
@@ -48,7 +53,8 @@ function GrafanaDashboard() {
 
 export default function () {
   const classes = useStyles();
-  const {match, relativePath, relativeUrl, location} = useRouter();
+  const resolvedPath = useResolvedPath('');
+  const location = useLocation();
 
   const grafanaEnabled =
     useContext(AppContext).isFeatureEnabled('grafana_metrics') &&
@@ -60,7 +66,7 @@ export default function () {
   }
 
   const currentTab = findIndex(tabNames, route =>
-    location.pathname.startsWith(match.url + '/' + route),
+    location.pathname.startsWith(resolvedPath.pathname + '/' + route),
   );
 
   return (
@@ -71,27 +77,27 @@ export default function () {
           indicatorColor="primary"
           textColor="inherit"
           className={classes.tabs}>
-          <Tab component={NestedRouteLink} label="Access Points" to="/ap" />
-          <Tab component={NestedRouteLink} label="Network" to="/network" />
+          <Tab component={NestedRouteLink} label="Access Points" to="ap" />
+          <Tab component={NestedRouteLink} label="Network" to="network" />
           <Tab
             component={NestedRouteLink}
             label="Subscribers"
-            to="/subscribers"
+            to="subscribers"
           />
           {grafanaEnabled && (
-            <Tab component={NestedRouteLink} label="Grafana" to="/grafana" />
+            <Tab component={NestedRouteLink} label="Grafana" to="grafana" />
           )}
         </Tabs>
       </AppBar>
-      <Switch>
-        <Route path={relativePath('/ap')} component={APMetrics} />
-        <Route path={relativePath('/network')} component={CWFNetworkMetrics} />
-        <Route path={relativePath('/subscribers')} component={IMSIMetrics} />
+      <Routes>
+        <Route path="/ap/*" element={<APMetrics />} />
+        <Route path="/network" element={<CWFNetworkMetrics />} />
+        <Route path="/subscribers/*" element={<IMSIMetrics />} />
         {grafanaEnabled && (
-          <Route path={relativePath('/grafana')} component={GrafanaDashboard} />
+          <Route path="/grafana" element={<GrafanaDashboard />} />
         )}
-        <Redirect to={relativeUrl('/ap')} />
-      </Switch>
+        <Route index element={<Navigate to="ap" replace />} />
+      </Routes>
     </>
   );
 }

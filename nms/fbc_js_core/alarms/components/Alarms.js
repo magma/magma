@@ -17,27 +17,33 @@
 import AccountTreeIcon from '@material-ui/icons/AccountTree';
 import AlarmContext from './AlarmContext';
 import AlertRules from './AlertRules';
+import AlertmanagerRoutes from './alertmanager/Routes';
 import FiringAlerts from './alertmanager/FiringAlerts';
 import Grid from '@material-ui/core/Grid';
 import GroupIcon from '@material-ui/icons/Group';
 import NotificationsActiveIcon from '@material-ui/icons/NotificationsActive';
 import React from 'react';
 import Receivers from './alertmanager/Receivers/Receivers';
-import Routes from './alertmanager/Routes';
 import Suppressions from './alertmanager/Suppressions';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import getPrometheusRuleInterface from './rules/PrometheusEditor/getRuleInterface';
-import useRouter from '../../../fbc_js_core/ui/hooks/useRouter';
-import {Link, Redirect, Route, Switch} from 'react-router-dom';
+import {
+  Link,
+  Navigate,
+  Route,
+  Routes,
+  matchPath,
+  useLocation,
+  useParams,
+  useResolvedPath,
+} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
-import {matchPath} from 'react-router';
 
 import type {ApiUtil} from './AlarmsApi';
 import type {Element} from 'react';
 import type {FiringAlarm} from './AlarmAPIType';
 import type {Labels} from './AlarmAPIType';
-import type {Match} from 'react-router-dom';
 import type {RuleInterfaceMap} from './rules/RuleInterface';
 
 const useTabStyles = makeStyles(theme => ({
@@ -90,7 +96,7 @@ const DEFAULT_TAB_NAME = 'alerts';
 
 type Props<TRuleUnion> = {
   //props specific to this component
-  makeTabLink: ({match: Match, keyName: string}) => string,
+  makeTabLink: ({networkId?: string, keyName: string}) => string,
   disabledTabs?: Array<string>,
   // context props
   apiUtil: ApiUtil,
@@ -117,11 +123,13 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
     emptyAlerts,
   } = props;
   const tabStyles = useTabStyles();
-  const {match, location} = useRouter();
+  const location = useLocation();
+  const resolvedPath = useResolvedPath('');
+  const params = useParams();
 
   const currentTabMatch = matchPath(
     location.pathname,
-    `${match.path}/:tabName`,
+    `${resolvedPath.pathname}/:tabName`,
   );
   const mergedRuleMap = useMergedRuleMap<TRuleUnion>({ruleMap, apiUtil});
 
@@ -155,7 +163,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
                 <Tab
                   classes={tabStyles}
                   component={Link}
-                  to={makeTabLink({keyName, match})}
+                  to={makeTabLink({keyName, networkId: params.networkId})}
                   key={keyName}
                   icon={icon}
                   label={name}
@@ -166,33 +174,30 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
           </Tabs>
         </Grid>
       </Grid>
-      <Switch>
+      <Routes>
         <Route
-          path={`${match.path}/alerts`}
-          render={() => (
+          path="/alerts"
+          element={
             <FiringAlerts
               emptyAlerts={emptyAlerts}
               filterLabels={filterLabels}
             />
-          )}
+          }
         />
         <Route
-          path={`${match.path}/rules`}
-          render={() => (
+          path="/rules"
+          element={
             <AlertRules
               ruleMap={ruleMap}
               thresholdEditorEnabled={thresholdEditorEnabled}
             />
-          )}
+          }
         />
-        <Route
-          path={`${match.path}/suppressions`}
-          render={() => <Suppressions />}
-        />
-        <Route path={`${match.path}/routes`} render={() => <Routes />} />
-        <Route path={`${match.path}/teams`} render={() => <Receivers />} />
-        <Redirect to={`${match.path}/${DEFAULT_TAB_NAME}`} />
-      </Switch>
+        <Route path="/suppressions" element={<Suppressions />} />
+        <Route path="/routes" element={<AlertmanagerRoutes />} />
+        <Route path="/teams" element={<Receivers />} />
+        <Route index element={<Navigate to={DEFAULT_TAB_NAME} replace />} />
+      </Routes>
     </AlarmContext.Provider>
   );
 }

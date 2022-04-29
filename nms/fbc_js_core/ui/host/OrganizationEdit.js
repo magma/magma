@@ -38,9 +38,10 @@ import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
 import {AltFormField} from '../../../app/components/FormField';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios, useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useAxios} from '../../../fbc_js_core/ui/hooks';
 import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(_ => ({
   arrowBack: {
@@ -144,7 +145,7 @@ function DialogWithConfirmationPhrase(props: DialogConfirmationProps) {
  * and its users (OrganizationUsersTable)
  */
 function OrganizationEdit(props: WithAlert & Props) {
-  const {match, history} = useRouter();
+  const params = useParams();
   const [addingUserFor, setAddingUserFor] = useState<?Organization>(null);
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -156,7 +157,7 @@ function OrganizationEdit(props: WithAlert & Props) {
   const [organizationToDelete, setOrganizationToDelete] = useState(null);
   const orgRequest = useAxios<null, {organization: Organization}>({
     method: 'get',
-    url: '/host/organization/async/' + match.params.name,
+    url: '/host/organization/async/' + params.name,
     onResponse: useCallback(res => {
       setOrganization(res.data.organization);
     }, []),
@@ -177,7 +178,7 @@ function OrganizationEdit(props: WithAlert & Props) {
 
   const onSave = (org: $Shape<OrganizationPlainAttributes>) => {
     axios
-      .put('/host/organization/async/' + match.params.name, org)
+      .put('/host/organization/async/' + params.name, org)
       .then(_res => {
         setOrganization(org);
         enqueueSnackbar('Updated organization successfully', {
@@ -215,9 +216,7 @@ function OrganizationEdit(props: WithAlert & Props) {
             if (!user?.id) {
               axios
                 .post(
-                  `/host/organization/async/${
-                    match.params.name || ''
-                  }/add_user`,
+                  `/host/organization/async/${params.name || ''}/add_user`,
                   newUser,
                 )
                 .then(() => {

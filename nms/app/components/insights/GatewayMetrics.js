@@ -20,19 +20,19 @@ import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import Metrics from './Metrics';
 import React from 'react';
-import {Route} from 'react-router-dom';
+import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 
 import useMagmaAPI from '../../../api/useMagmaAPI';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import {useSnackbar} from '../../../fbc_js_core/ui/hooks';
 
 export default function (props: {configs: MetricGraphConfig[]}) {
-  const {history, relativePath, relativeUrl, match} = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
 
   const {error, isLoading, response: selectors} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdGateways,
     {
-      networkId: match.params.networkId,
+      networkId: params.networkId,
     },
   );
 
@@ -45,20 +45,22 @@ export default function (props: {configs: MetricGraphConfig[]}) {
   const gatewayNames = Object.keys(selectors);
   const defaultGateway = gatewayNames[0];
 
-  return (
-    <Route
-      path={relativePath('/:selectedID?')}
-      render={() => (
-        <Metrics
-          configs={props.configs}
-          onSelectorChange={(e, value) => {
-            history.push(relativeUrl(`/${value}`));
-          }}
-          selectors={gatewayNames}
-          defaultSelector={defaultGateway}
-          selectorName={'gatewayID'}
-        />
-      )}
+  const metrics = (
+    <Metrics
+      configs={props.configs}
+      onSelectorChange={(e, value) => {
+        navigate(value);
+      }}
+      selectors={gatewayNames}
+      defaultSelector={defaultGateway}
+      selectorName={'gatewayID'}
     />
+  );
+
+  return (
+    <Routes>
+      <Route path=":selectedID" element={metrics} />
+      <Route index element={metrics} />
+    </Routes>
   );
 }

@@ -27,7 +27,7 @@ import React from 'react';
 
 import {map} from 'lodash';
 import {useEffect, useState} from 'react';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 function buildGeoJson(gateways: Array<magmad_gateway>): MagmaFeatureCollection {
   const features = (gateways || [])
@@ -67,8 +67,8 @@ function buildGeoJson(gateways: Array<magmad_gateway>): MagmaFeatureCollection {
 }
 
 export default function Insights() {
-  const {match} = useRouter();
-  const networkId = match.params.networkId || '';
+  const params = useParams();
+  const networkId = params.networkId || '';
 
   const [showDialog, setShowDialog] = useState(false);
   const [gateways, setGateways] = useState<?Array<magmad_gateway>>();

@@ -19,7 +19,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../theme/default';
 
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {TroubleshootingControl} from '../GatewayCommandFields';
 import {cleanup, render, wait} from '@testing-library/react';
@@ -32,10 +32,12 @@ const Wrapper = () => (
   <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
     <MuiThemeProvider theme={defaultTheme}>
       <MuiStylesThemeProvider theme={defaultTheme}>
-        <Route
-          path="/nms/:networkId"
-          render={_ => <TroubleshootingControl gatewayID={'test_gateway'} />}
-        />
+        <Routes>
+          <Route
+            path="/nms/:networkId"
+            element={<TroubleshootingControl gatewayID={'test_gateway'} />}
+          />
+        </Routes>
       </MuiStylesThemeProvider>
     </MuiThemeProvider>
   </MemoryRouter>

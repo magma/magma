@@ -62,7 +62,7 @@ import {
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useRef, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useNavigate, useParams} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
 // number of subscriber in a chunk
@@ -87,8 +87,8 @@ export type SubscriberRowType = {
 };
 
 function ExportSubscribersButton() {
-  const {match} = useRouter();
-  const networkId = nullthrows(match.params.networkId);
+  const params = useParams();
+  const networkId = nullthrows(params.networkId);
   const enqueueSnackbar = useEnqueueSnackbar();
 
   return (
@@ -398,10 +398,11 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
   );
 }
 function SubscribersTable(props: WithAlert) {
-  const {history, match, relativeUrl} = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
   const [currRow, setCurrRow] = useState<SubscriberRowType>({});
   const classes = useStyles();
-  const networkId: string = nullthrows(match.params.networkId);
+  const networkId: string = nullthrows(params.networkId);
   const networkCtx = useContext(NetworkContext);
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(SubscriberContext);
@@ -523,13 +524,13 @@ function SubscribersTable(props: WithAlert) {
             {
               name: 'View',
               handleFunc: () => {
-                history.push(relativeUrl('/' + currRow.imsi));
+                navigate(currRow.imsi);
               },
             },
             {
               name: 'Edit',
               handleFunc: () => {
-                history.push(relativeUrl('/' + currRow.imsi + '/config'));
+                navigate(currRow.imsi + '/config');
               },
             },
             {

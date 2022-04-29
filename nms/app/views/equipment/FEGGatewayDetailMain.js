@@ -39,10 +39,9 @@ import TopBar from '../../components/TopBar';
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
 
 import {EVENT_STREAM} from '../../views/events/EventsTable';
-import {Redirect, Route, Switch} from 'react-router-dom';
+import {Navigate, Route, Routes, useParams} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -57,8 +56,8 @@ const useStyles = makeStyles(theme => ({
  * and a top bar to navigate through different pages.
  */
 export default function FEGGatewayDetail() {
-  const {relativePath, relativeUrl, match} = useRouter();
-  const gatewayId: string = nullthrows(match.params.gatewayId);
+  const params = useParams();
+  const gatewayId: string = nullthrows(params.gatewayId);
 
   return (
     <>
@@ -67,43 +66,37 @@ export default function FEGGatewayDetail() {
         tabs={[
           {
             label: 'Overview',
-            to: '/overview',
+            to: 'overview',
             icon: DashboardIcon,
           },
           {
             label: 'Event',
-            to: '/event',
+            to: 'event',
             icon: MyLocationIcon,
           },
           {
             label: 'Logs',
-            to: '/logs',
+            to: 'logs',
             icon: ListAltIcon,
           },
           {
             label: 'Alerts',
-            to: '/alert',
+            to: 'alert',
             icon: AccessAlarmIcon,
           },
           {
             label: 'Config',
-            to: '/config',
+            to: 'config',
             icon: SettingsIcon,
           },
         ]}
       />
 
-      <Switch>
-        <Route
-          path={relativePath('/overview')}
-          component={FEGGatewayOverview}
-        />
-        <Route
-          path={relativePath('/config')}
-          component={FEGGatewayDetailConfig}
-        />
-        <Redirect to={relativeUrl('/overview')} />
-      </Switch>
+      <Routes>
+        <Route path="overview" element={<FEGGatewayOverview />} />
+        <Route path="config" element={<FEGGatewayDetailConfig />} />
+        <Route index element={<Navigate to="overview" replace />} />
+      </Routes>
     </>
   );
 }
@@ -115,8 +108,8 @@ export default function FEGGatewayDetail() {
  */
 function FEGGatewayOverview() {
   const classes = useStyles();
-  const {match} = useRouter();
-  const gatewayId: string = nullthrows(match.params.gatewayId);
+  const params = useParams();
+  const gatewayId: string = nullthrows(params.gatewayId);
   const gwCtx = useContext(FEGGatewayContext);
   const gwInfo = gwCtx.state[gatewayId];
   const [refresh, setRefresh] = useState(true);

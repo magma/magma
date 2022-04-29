@@ -23,14 +23,13 @@ import NetworkError from './main/NetworkError';
 import NoNetworksMessage from '../../fbc_js_core/ui/components/NoNetworksMessage';
 import React from 'react';
 import {AppContextProvider} from '../../fbc_js_core/ui/context/AppContext';
-import {Redirect, Route, Switch} from 'react-router-dom';
+import {Navigate, Route, Routes, useParams} from 'react-router-dom';
 
 import useMagmaAPI from '../../api/useMagmaAPI';
 import {sortBy} from 'lodash';
-import {useRouter} from '../../fbc_js_core/ui/hooks';
 
 function Main() {
-  const {match} = useRouter();
+  const {networkId} = useParams();
   const {response, error} = useMagmaAPI(MagmaV1API.getNetworks, {});
 
   const networkIds = sortBy(response, [n => n.toLowerCase()]) || ['mpk_test'];
@@ -45,19 +44,17 @@ function Main() {
     );
   }
 
-  if (networkIds.length > 0 && !match.params.networkId) {
-    return <Redirect to={`/nms/${networkIds[0]}/map/`} />;
+  if (networkIds.length > 0 && !networkId) {
+    return <Navigate to={`/nms/${networkIds[0]}`} replace />;
   }
 
   const hasNoNetworks =
-    response &&
-    networkIds.length === 0 &&
-    !ROOT_PATHS.has(match.params.networkId);
+    response && networkIds.length === 0 && !ROOT_PATHS.has(networkId);
 
   // If it's a superuser and there are no networks, prompt them to create a
   // network
   if (hasNoNetworks && window.CONFIG.appData.user.isSuperUser) {
-    return <Redirect to="/admin/networks" />;
+    return <Navigate to="/admin/networks" replace />;
   }
 
   // If it's a regular user and there are no networks, then they likely dont
@@ -92,10 +89,10 @@ function NoNetworkFallback() {
 
 export default () => (
   <ApplicationMain>
-    <Switch>
-      <Route path="/nms/:networkId" component={Main} />
-      <Route path="/nms" component={Main} />
-      <Route component={NoNetworkFallback} />
-    </Switch>
+    <Routes>
+      <Route path="/nms/:networkId/*" element={<Main />} />
+      <Route path="/nms" element={<Main />} />
+      <Route path="/*" element={<NoNetworkFallback />} />
+    </Routes>
   </ApplicationMain>
 );

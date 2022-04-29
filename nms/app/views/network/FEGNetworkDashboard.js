@@ -25,13 +25,18 @@ import React from 'react';
 import TopBar from '../../components/TopBar';
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
 
+import {
+  Navigate,
+  Route,
+  Routes,
+  useNavigate,
+  useParams,
+} from 'react-router-dom';
 import {NetworkCheck} from '@material-ui/icons';
-import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -59,7 +64,7 @@ const useStyles = makeStyles(theme => ({
  */
 export default function NetworkDashboard() {
   const classes = useStyles();
-  const {history, relativePath, relativeUrl} = useRouter();
+  const navigate = useNavigate();
   const ctx = useContext(FEGNetworkContext);
 
   return (
@@ -69,7 +74,7 @@ export default function NetworkDashboard() {
         tabs={[
           {
             label: ctx?.state?.id || 'Network',
-            to: '/network',
+            to: 'network',
             icon: NetworkCheck,
             filters: (
               <Grid
@@ -80,9 +85,7 @@ export default function NetworkDashboard() {
                 <Grid item>
                   <Button
                     className={classes.appBarBtn}
-                    onClick={() => {
-                      history.push(relativeUrl('/json'));
-                    }}>
+                    onClick={() => navigate('json')}>
                     Edit JSON
                   </Button>
                 </Grid>
@@ -91,14 +94,11 @@ export default function NetworkDashboard() {
           },
         ]}
       />
-      <Switch>
-        <Route path={relativePath('/json')} component={NetworkJsonConfig} />
-        <Route
-          path={relativePath('/network')}
-          component={NetworkDashboardInternal}
-        />
-        <Redirect to={relativeUrl('/network')} />
-      </Switch>
+      <Routes>
+        <Route path="/json" element={<NetworkJsonConfig />} />
+        <Route path="/network" element={<NetworkDashboardInternal />} />
+        <Route index element={<Navigate to="network" replace />} />
+      </Routes>
     </>
   );
 }
@@ -108,9 +108,9 @@ export default function NetworkDashboard() {
  * information.
  */
 export function NetworkJsonConfig() {
-  const {match} = useRouter();
+  const params = useParams();
   const [error, setError] = useState('');
-  const networkId: string = nullthrows(match.params.networkId);
+  const networkId: string = nullthrows(params.networkId);
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(FEGNetworkContext);
 

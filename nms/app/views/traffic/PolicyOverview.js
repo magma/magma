@@ -42,7 +42,7 @@ import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useNavigate, useParams} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -191,7 +191,7 @@ export function PolicyTableRaw(props: WithAlert) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [open, setOpen] = React.useState(false);
   const [currRow, setCurrRow] = useState<PolicyRowType>({});
-  const {history, relativeUrl} = useRouter();
+  const navigate = useNavigate();
   const ctx = useContext(PolicyContext);
   const lteNetworkCtx = useContext(LteNetworkContext);
   const lteNetwork = lteNetworkCtx.state;
@@ -276,7 +276,7 @@ export function PolicyTableRaw(props: WithAlert) {
           {
             name: 'Edit JSON',
             handleFunc: () => {
-              history.push(relativeUrl('/' + currRow.policyID + '/json'));
+              navigate(currRow.policyID + '/json');
             },
           },
           {name: 'Deactivate'},
@@ -621,9 +621,10 @@ const DEFAULT_POLICY_CONFIG = {
 };
 
 export function PolicyJsonConfig() {
-  const {match, history} = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
   const [error, setError] = useState('');
-  const policyID: string = match.params.policyId;
+  const policyID: string = params.policyId;
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(PolicyContext);
   const lteNetworkCtx = useContext(LteNetworkContext);
@@ -670,7 +671,7 @@ export function PolicyJsonConfig() {
             variant: 'success',
           });
           setError('');
-          history.goBack();
+          navigate(-1);
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);
         }

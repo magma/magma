@@ -30,7 +30,7 @@ import TextField from '@material-ui/core/TextField';
 import nullthrows from '../../fbc_js_core/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {toString} from './GatewayUtils';
-import {useRouter} from '../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 
 const useStyles = makeStyles(() => ({
@@ -49,7 +49,7 @@ type Props = {
 
 export default function GatewayMagmadFields(props: Props) {
   const classes = useStyles();
-  const {match} = useRouter();
+  const params = useParams();
   const {gateway} = props;
   const [autoupgradeEnabled, setAutoupgradeEnabled] = useState(
     gateway.autoupgradeEnabled,
@@ -74,7 +74,7 @@ export default function GatewayMagmadFields(props: Props) {
     };
 
     MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdMagmad({
-      networkId: nullthrows(match.params.networkId),
+      networkId: nullthrows(params.networkId),
       gatewayId: gateway.logicalID,
       magmad,
     }).then(() => props.onSave(gateway.logicalID));

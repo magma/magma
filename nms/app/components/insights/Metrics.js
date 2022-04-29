@@ -31,7 +31,7 @@ import TextField from '@material-ui/core/TextField';
 import TimeRangeSelector from './TimeRangeSelector';
 
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
@@ -128,11 +128,10 @@ export default function (props: {
   selectorName: string,
   renderOptionOverride?: string => React.Node,
 }) {
-  const {match} = useRouter();
+  const {selectedID} = useParams();
   const classes = useStyles();
   const [timeRange, setTimeRange] = useState<TimeRange>('24_hours');
 
-  const selectedID = match.params.selectedID;
   const selectedOrDefault = selectedID || props.defaultSelector;
 
   return (

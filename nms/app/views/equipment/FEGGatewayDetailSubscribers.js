@@ -33,7 +33,7 @@ import {
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
 import {useEffect, useState} from 'react';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
 
 /**
  * @property {federation_gateway} gwInfo The Federation gateway being looked at
@@ -61,8 +61,10 @@ type SubscriberRowType = {
  * @param {FEGGatewayDetailType} props
  */
 export default function GatewayDetailSubscribers(props: FEGGatewayDetailType) {
-  const {history, match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
+  const resolvedPath = useResolvedPath('');
+  const navigate = useNavigate();
+  const params = useParams();
+  const networkId: string = nullthrows(params.networkId);
   const [subscriberRows, setSubscriberRows] = useState<
     Array<SubscriberRowType>,
   >([]);
@@ -131,8 +133,8 @@ export default function GatewayDetailSubscribers(props: FEGGatewayDetailType) {
               variant="body2"
               component="button"
               onClick={() => {
-                history.push(
-                  match.url.replace(
+                navigate(
+                  resolvedPath.pathname.replace(
                     `equipment/overview/gateway/${props.gwInfo.id}`,
                     `subscribers/overview/${currRow.id}`,
                   ),

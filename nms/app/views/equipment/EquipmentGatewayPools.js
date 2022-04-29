@@ -32,7 +32,7 @@ import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useNavigate, useResolvedPath} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -90,7 +90,8 @@ function GatewayPoolsTableRaw(props: WithAlert) {
   const [open, setOpen] = useState(false);
   const [currRow, setCurrRow] = useState<GatewayPoolRowType>({});
   const [gwPool, setGwPool] = useState(ctx.state[currRow.id] || {});
-  const {history, match} = useRouter();
+  const resolvedPath = useResolvedPath('');
+  const navigate = useNavigate();
   useEffect(() => {
     setGwPool(ctx.state[currRow.id] || {});
   }, [currRow.id, ctx.state]);
@@ -104,8 +105,11 @@ function GatewayPoolsTableRaw(props: WithAlert) {
                 <Link
                   variant="body2"
                   onClick={() => {
-                    history.push(
-                      match.url.replace(`pools`, `gateway/${gw.gateway_id}`),
+                    navigate(
+                      resolvedPath.pathname.replace(
+                        `pools`,
+                        `gateway/${gw.gateway_id}`,
+                      ),
                     );
                   }}>
                   {gw.gateway_id}

@@ -20,38 +20,29 @@ import AppContext from '../../../fbc_js_core/ui/context/AppContext';
 import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import React, {useContext} from 'react';
 import useSections from './useSections';
-import {Redirect, Route, Switch} from 'react-router-dom';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {Navigate, Route, Routes} from 'react-router-dom';
 
 export default function SectionRoutes() {
-  const {relativePath, match} = useRouter();
   const [landingPath, sections] = useSections();
   const {user, ssoEnabled} = useContext(AppContext);
 
   return (
-    <Switch>
+    <Routes>
       {sections.map(section => (
         <Route
           key={section.path}
-          path={relativePath(section.path)}
-          component={section.component}
+          path={`${section.path}/*`}
+          element={<section.component />}
         />
       ))}
       {user.isSuperUser && (
-        <Route key="admin" path={relativePath(`/admin`)} component={Admin} />
+        <Route key="admin" path="admin/*" element={<Admin />} />
       )}
-      {!ssoEnabled && (
-        <Route path={relativePath('/settings')} component={AccountSettings} />
-      )}
+      {!ssoEnabled && <Route path="settings" element={<AccountSettings />} />}
       {landingPath && (
-        <Route
-          path={relativePath('')}
-          render={() => (
-            <Redirect to={`/nms/${match.params.networkId}/${landingPath}`} />
-          )}
-        />
+        <Route index element={<Navigate to={landingPath} replace />} />
       )}
-      <LoadingFiller />
-    </Switch>
+      <Route element={<LoadingFiller />} />
+    </Routes>
   );
 }

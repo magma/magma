@@ -26,7 +26,7 @@ import React from 'react';
 import axiosMock from 'axios';
 import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
 
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
@@ -169,12 +169,12 @@ describe('<Enodeb />', () => {
                   state: {enbInfo: enbInfo},
                   setState: async _ => {},
                 }}>
-                <Route
-                  path="/nms/:networkId/enodeb/:enodebSerial/overview"
-                  render={props => (
-                    <EnodebDetail {...props} enbInfo={enbInfo} />
-                  )}
-                />
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/enodeb/:enodebSerial/overview/*"
+                    element={<EnodebDetail enbInfo={enbInfo} />}
+                  />
+                </Routes>
               </EnodebContext.Provider>
             </MuiStylesThemeProvider>
           </MuiThemeProvider>
@@ -214,12 +214,12 @@ describe('<Enodeb />', () => {
                   state: {enbInfo: enbInfo},
                   setState: async _ => {},
                 }}>
-                <Route
-                  path="/nms/:networkId/enodeb/:enodebSerial/overview"
-                  render={props => (
-                    <EnodebDetail {...props} enbInfo={enbInfo} />
-                  )}
-                />
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/enodeb/:enodebSerial/overview/*"
+                    element={<EnodebDetail enbInfo={enbInfo} />}
+                  />
+                </Routes>
               </EnodebContext.Provider>
             </MuiStylesThemeProvider>
           </MuiThemeProvider>

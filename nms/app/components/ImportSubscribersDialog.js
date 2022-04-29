@@ -13,7 +13,6 @@
  * @flow
  * @format
  */
-import type {Match} from 'react-router-dom';
 import type {WithAlert} from '../../fbc_js_core/ui/components/Alert/withAlert';
 import type {subscriber} from '../../generated/MagmaAPIBindings';
 
@@ -32,7 +31,7 @@ import withAlert from '../../fbc_js_core/ui/components/Alert/withAlert';
 import {hexToBase64, isValidHex} from '../../fbc_js_core/util/strings';
 import {last} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 
 const useStyles = makeStyles(() => ({
@@ -96,7 +95,7 @@ type Props = WithAlert & {
 export async function parseFileAndSave(
   csvText: null | string | ArrayBuffer,
   setErrorMsg: string => void,
-  match: Match,
+  networkId: string,
   props: {
     onSave: (successIDs: Array<string>) => void | Promise<void>,
     onSaveError: (failureIDs: Array<string>) => void,
@@ -143,7 +142,7 @@ export async function parseFileAndSave(
     validSubs.map(subscriber => {
       const {config: _, ...mutableSubscriber} = subscriber;
       return MagmaV1API.postLteByNetworkIdSubscribers({
-        networkId: match.params.networkId || '',
+        networkId,
         subscribers: [mutableSubscriber],
       }).catch(e => {
         failureIDs.push(subscriber.id);
@@ -207,7 +206,7 @@ function ImportSubscribersDialog(props: Props) {
   const [file, setFile] = useState();
 
   const classes = useStyles();
-  const {match} = useRouter();
+  const params = useParams();
 
   async function onFileUpload() {
     const confirmed = await props.confirm('Upload file and add subscribers?');
@@ -217,7 +216,12 @@ function ImportSubscribersDialog(props: Props) {
     if (file) {
       const reader = new FileReader();
       reader.onload = () =>
-        parseFileAndSave(reader.result, setErrorMsg, match, props);
+        parseFileAndSave(
+          reader.result,
+          setErrorMsg,
+          params.networkId || '',
+          props,
+        );
       reader.readAsText(file);
     } else {
       setErrorMsg("Sorry, we couldn't find your file, please try again.");

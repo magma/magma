@@ -36,7 +36,7 @@ import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useNavigate, useParams} from 'react-router-dom';
 
 const CHART_TITLE = 'Total Throughput';
 
@@ -116,9 +116,10 @@ type EnodebRowType = {
 };
 
 function EnodebTableRaw(props: WithAlert) {
-  const {history, relativeUrl, match} = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const networkId: string = nullthrows(match.params.networkId);
+  const networkId: string = nullthrows(params.networkId);
   const ctx = useContext(EnodebContext);
   const [refresh, setRefresh] = useState(true);
   const [lastRefreshTime, setLastRefreshTime] = useState(
@@ -199,7 +200,7 @@ function EnodebTableRaw(props: WithAlert) {
               <Link
                 variant="body2"
                 component="button"
-                onClick={() => history.push(relativeUrl('/' + currRow.id))}>
+                onClick={() => navigate(currRow.id)}>
                 {currRow.id}
               </Link>
             ),
@@ -216,13 +217,13 @@ function EnodebTableRaw(props: WithAlert) {
           {
             name: 'View',
             handleFunc: () => {
-              history.push(relativeUrl('/' + currRow.id));
+              navigate(currRow.id);
             },
           },
           {
             name: 'Edit',
             handleFunc: () => {
-              history.push(relativeUrl('/' + currRow.id + '/config'));
+              navigate(currRow.id + '/config');
             },
           },
           {

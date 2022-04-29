@@ -33,7 +33,7 @@ import useMagmaAPI from '../../../api/useMagmaAPI';
 import {AltFormField} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
   input: {
@@ -48,7 +48,7 @@ export default function EditSubscriberTrafficPolicy(
   props: EditSubscriberProps,
 ) {
   const classes = useStyles();
-  const {match} = useRouter();
+  const params = useParams();
   const apnCtx = useContext(ApnContext);
   const apns = Array.from(Object.keys(apnCtx.state || {}));
   const policyCtx = useContext(PolicyContext);
@@ -56,7 +56,7 @@ export default function EditSubscriberTrafficPolicy(
   const {isLoading: baseNamesLoading, response: baseNames} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdSubscriberConfigBaseNames,
     {
-      networkId: nullthrows(match.params.networkId),
+      networkId: nullthrows(params.networkId),
     },
   );
 

@@ -22,19 +22,17 @@ import ReactDOM from 'react-dom';
 import nullthrows from '../fbc_js_core/util/nullthrows';
 import {AppContextProvider} from '../fbc_js_core/ui/context/AppContext';
 import {BrowserRouter} from 'react-router-dom';
-import {useHistory} from 'react-router-dom';
 
 function LoginWrapper() {
-  const history = useHistory();
   return (
     <LoginForm
       // eslint-disable-next-line no-warning-comments
       // $FlowFixMe - createHref exists
-      action={history.createHref({pathname: '/user/login'})}
+      action="/user/login"
       title="Magma"
       // eslint-disable-next-line no-warning-comments
       // $FlowFixMe - createHref exists
-      ssoAction={history.createHref({pathname: '/user/login/saml'})}
+      ssoAction="/user/login/saml"
       ssoEnabled={window.CONFIG.appData.ssoEnabled}
       csrfToken={window.CONFIG.appData.csrfToken}
     />

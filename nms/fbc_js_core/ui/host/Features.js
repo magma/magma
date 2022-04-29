@@ -31,14 +31,9 @@ import axios from 'axios';
 
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import renderList from '../../../fbc_js_core/util/renderList';
-import {Route} from 'react-router-dom';
+import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
-import {
-  useRelativePath,
-  useRelativeUrl,
-} from '../../../fbc_js_core/ui/hooks/useRouter';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(_ => ({
   header: {
@@ -51,11 +46,36 @@ const useStyles = makeStyles(_ => ({
   },
 }));
 
+function EditFeatureFlagsDialog(props: {
+  featureFlags: FeatureFlag[],
+  setFeatureFlags: (featureFlags: FeatureFlag[]) => void,
+}) {
+  const params = useParams();
+  const navigate = useNavigate();
+
+  return (
+    <FeatureFlagsDialog
+      featureFlag={nullthrows(props.featureFlags.find(f => f.id === params.id))}
+      onClose={() => navigate('..')}
+      onSave={flag => {
+        const newFeatureFlags = [...props.featureFlags];
+        for (let i = 0; i < newFeatureFlags.length; i++) {
+          if (newFeatureFlags[i].id === flag.id) {
+            newFeatureFlags[i] = flag;
+            break;
+          }
+        }
+        props.setFeatureFlags(newFeatureFlags);
+        navigate('..');
+      }}
+    />
+  );
+}
+
 export default function Features() {
   const classes = useStyles();
-  const relativeUrl = useRelativeUrl();
-  const relativePath = useRelativePath();
-  const {history} = useRouter();
+  const navigate = useNavigate();
+
   const [featureFlags, setFeatureFlags] = useState<?(FeatureFlag[])>(null);
   useEffect(() => {
     axios.get('/host/feature/async').then(({data}) => setFeatureFlags(data));
@@ -80,8 +100,7 @@ export default function Features() {
         )}
       </TableCell>
       <TableCell>
-        <IconButton
-          onClick={() => history.push(relativeUrl(`/edit/${row.id}`))}>
+        <IconButton onClick={() => navigate(`edit/${row.id}`)}>
           <EditIcon />
         </IconButton>
       </TableCell>
@@ -104,28 +123,17 @@ export default function Features() {
           <TableBody>{rows}</TableBody>
         </Table>
       </Paper>
-      <Route
-        path={relativePath('/edit/:id')}
-        render={({match}) => (
-          <FeatureFlagsDialog
-            featureFlag={nullthrows(
-              featureFlags.find(f => f.id === match.params.id),
-            )}
-            onClose={() => history.push(relativeUrl(''))}
-            onSave={flag => {
-              const newFeatureFlags = [...featureFlags];
-              for (let i = 0; i < newFeatureFlags.length; i++) {
-                if (newFeatureFlags[i].id === flag.id) {
-                  newFeatureFlags[i] = flag;
-                  break;
-                }
-              }
-              setFeatureFlags(newFeatureFlags);
-              history.push(relativeUrl(''));
-            }}
-          />
-        )}
-      />
+      <Routes>
+        <Route
+          path="/edit/:id"
+          element={
+            <EditFeatureFlagsDialog
+              featureFlags={featureFlags}
+              setFeatureFlags={setFeatureFlags}
+            />
+          }
+        />
+      </Routes>
     </div>
   );
 }

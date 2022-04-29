@@ -19,7 +19,7 @@ import * as React from 'react';
 import AccountSettings from '../AccountSettings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import defaultTheme from '../../../fbc_js_core/ui/theme/default';
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 import {cleanup, fireEvent, render} from '@testing-library/react';
@@ -29,7 +29,12 @@ const Wrapper = (props: {children: React.Node}) => (
     <MuiThemeProvider theme={defaultTheme}>
       <MuiStylesThemeProvider theme={defaultTheme}>
         <SnackbarProvider>
-          <Route path="/nms/:networkId/settings">{props.children}</Route>
+          <Routes>
+            <Route
+              path="/nms/:networkId/settings"
+              element={<>{props.children}</>}
+            />
+          </Routes>
         </SnackbarProvider>
       </MuiStylesThemeProvider>
     </MuiThemeProvider>

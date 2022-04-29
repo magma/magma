@@ -21,7 +21,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
 import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 import type {
@@ -156,10 +156,12 @@ describe('<Gateway />', () => {
               setState: async _ => {},
               updateGateway: async _ => {},
             }}>
-            <Route
-              path="/nms/:networkId/gateway/"
-              render={props => <Gateway {...props} lteGateways={lteGateways} />}
-            />
+            <Routes>
+              <Route
+                path="/nms/:networkId/gateway/"
+                element={<Gateway lteGateways={lteGateways} />}
+              />
+            </Routes>
           </GatewayContext.Provider>
         </MuiStylesThemeProvider>
       </MuiThemeProvider>

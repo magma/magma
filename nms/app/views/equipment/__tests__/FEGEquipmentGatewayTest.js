@@ -23,7 +23,7 @@ import axiosMock from 'axios';
 import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
 import moment from 'moment';
 import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
 import type {
@@ -269,10 +269,12 @@ describe('<FEGEquipmentGateway />', () => {
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
           <FEGGatewayContextProvider networkId="mynetwork" networkType="FEG">
-            <Route
-              path="/nms/:networkId/gateway/"
-              render={props => <FEGEquipmentGateway {...props} />}
-            />
+            <Routes>
+              <Route
+                path="/nms/:networkId/gateway/"
+                element={<FEGEquipmentGateway />}
+              />
+            </Routes>
           </FEGGatewayContextProvider>
         </MuiStylesThemeProvider>
       </MuiThemeProvider>

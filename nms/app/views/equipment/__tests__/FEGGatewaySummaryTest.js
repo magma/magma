@@ -20,7 +20,7 @@ import FEGGatewaySummary from '../FEGGatewaySummary';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
 import type {federation_gateway} from '../../../../generated/MagmaAPIBindings';
@@ -119,12 +119,12 @@ describe('<FEGEquipmentGateway />', () => {
               health: fegGatewaysHealth,
               activeFegGatewayId: mockGw0.id,
             }}>
-            <Route
-              path="/nms/:networkId/equipment/overview/gateway/:gatewayId/overview"
-              render={props => (
-                <FEGGatewaySummary {...props} gwInfo={mockGw0} />
-              )}
-            />
+            <Routes>
+              <Route
+                path="/nms/:networkId/equipment/overview/gateway/:gatewayId/overview"
+                element={<FEGGatewaySummary gwInfo={mockGw0} />}
+              />
+            </Routes>
           </FEGGatewayContext.Provider>
         </MuiStylesThemeProvider>
       </MuiThemeProvider>

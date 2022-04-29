@@ -36,7 +36,7 @@ import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -59,10 +59,10 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export function SubscriberJsonConfig() {
-  const {match} = useRouter();
+  const params = useParams();
   const [error, setError] = useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
-  const subscriberId = nullthrows(match.params.subscriberId);
+  const subscriberId = nullthrows(params.subscriberId);
   const ctx = useContext(SubscriberContext);
   const subscriberInfo = ctx.state?.[subscriberId];
   const {
@@ -100,18 +100,15 @@ export function SubscriberJsonConfig() {
 
 export default function SubscriberDetailConfig() {
   const classes = useStyles();
-  const {match, history, relativeUrl} = useRouter();
-  const subscriberId = nullthrows(match.params.subscriberId);
+  const params = useParams();
+  const navigate = useNavigate();
+  const subscriberId = nullthrows(params.subscriberId);
   const ctx = useContext(SubscriberContext);
   const subscriberInfo = ctx.state?.[subscriberId];
 
   function ConfigFilter() {
     return (
-      <Button
-        className={classes.appBarBtn}
-        onClick={() => {
-          history.push(relativeUrl('/json'));
-        }}>
+      <Button className={classes.appBarBtn} onClick={() => navigate('json')}>
         Edit JSON
       </Button>
     );
@@ -275,7 +272,8 @@ function SubscriberApnStaticIpsTable({
 }: {
   subscriberInfo: subscriber,
 }) {
-  const {history, match} = useRouter();
+  const resolvedPath = useResolvedPath('');
+  const navigate = useNavigate();
   const staticIps = subscriberInfo.config.static_ips || {};
   type SubscriberApnStaticIpsRowType = {
     apnName: string,
@@ -303,8 +301,8 @@ function SubscriberApnStaticIpsTable({
               variant="body2"
               component="button"
               onClick={() => {
-                history.push(
-                  match.url.replace(
+                navigate(
+                  resolvedPath.pathname.replace(
                     `subscribers/overview/${subscriberInfo.id}/config`,
                     `traffic/apn`,
                   ),

@@ -24,11 +24,10 @@ import TopBar from '../../../components/TopBar';
 import moment from 'moment';
 
 import {DateTimePicker} from '@material-ui/pickers';
+import {Navigate, Route, Routes} from 'react-router-dom';
 import {NetworkCheck} from '@material-ui/icons';
-import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors} from '../../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '../../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -41,7 +40,6 @@ const useStyles = makeStyles(theme => ({
 
 function LteDashboard() {
   const classes = useStyles();
-  const {relativePath, relativeUrl} = useRouter();
 
   // datetime picker
   const [startDate, setStartDate] = useState(moment().subtract(3, 'days'));
@@ -55,7 +53,7 @@ function LteDashboard() {
         tabs={[
           {
             label: 'Network',
-            to: '/network',
+            to: 'network',
             icon: NetworkCheck,
             filters: (
               <Grid
@@ -96,15 +94,13 @@ function LteDashboard() {
         ]}
       />
 
-      <Switch>
+      <Routes>
         <Route
-          path={relativePath('/network')}
-          render={props => (
-            <LteNetworkDashboard {...props} startEnd={[startDate, endDate]} />
-          )}
+          path="/network/*"
+          element={<LteNetworkDashboard startEnd={[startDate, endDate]} />}
         />
-        <Redirect to={relativeUrl('/network')} />
-      </Switch>
+        <Route index element={<Navigate to="network" replace />} />
+      </Routes>
     </>
   );
 }

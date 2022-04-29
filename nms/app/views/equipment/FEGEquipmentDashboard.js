@@ -20,8 +20,7 @@ import FEGGatewayDetail from './FEGGatewayDetailMain';
 import React from 'react';
 import TopBar from '../../components/TopBar';
 
-import {Redirect, Route, Switch} from 'react-router-dom';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {Navigate, Route, Routes} from 'react-router-dom';
 
 /**
  * Returns the full equipment dashboard of the federation network.
@@ -29,21 +28,16 @@ import {useRouter} from '../../../fbc_js_core/ui/hooks';
  * the useful information about the federation gateways.
  */
 function FEGEquipmentDashboard() {
-  const {relativePath, relativeUrl} = useRouter();
-
   return (
     <>
-      <Switch>
+      <Routes>
         <Route
-          path={relativePath('/overview/gateway/:gatewayId')}
-          component={FEGGatewayDetail}
+          path="/overview/gateway/:gatewayId/*"
+          element={<FEGGatewayDetail />}
         />
-        <Route
-          path={relativePath('/overview')}
-          component={EquipmentDashboardInternal}
-        />
-        <Redirect to={relativeUrl('/overview')} />
-      </Switch>
+        <Route path="/overview/*" element={<EquipmentDashboardInternal />} />
+        <Route index element={<Navigate to="overview" replace />} />
+      </Routes>
     </>
   );
 }
@@ -52,8 +46,6 @@ function FEGEquipmentDashboard() {
  * to provide information about the federation gateways.
  */
 function EquipmentDashboardInternal() {
-  const {relativePath, relativeUrl} = useRouter();
-
   return (
     <>
       <TopBar
@@ -61,15 +53,15 @@ function EquipmentDashboardInternal() {
         tabs={[
           {
             label: 'Federation Gateways',
-            to: '/gateway',
+            to: 'gateway',
             icon: CellWifiIcon,
           },
         ]}
       />
-      <Switch>
-        <Route path={relativePath('/gateway')} component={FEGGateway} />
-        <Redirect to={relativeUrl('/gateway')} />
-      </Switch>
+      <Routes>
+        <Route path="/gateway" element={<FEGGateway />} />
+        <Route index element={<Navigate to="gateway" replace />} />
+      </Routes>
     </>
   );
 }

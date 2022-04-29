@@ -28,8 +28,8 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import WebhookConfigEditor from './WebhookConfigEditor';
 import useForm from '../../../hooks/useForm';
-import useRouter from '../../../../../fbc_js_core/ui/hooks/useRouter';
 import {useAlarmContext} from '../../AlarmContext';
+import {useParams} from 'react-router-dom';
 import {useSnackbars} from '../../../../../fbc_js_core/ui/hooks/useSnackbar';
 
 import type {
@@ -92,7 +92,7 @@ export default function AddEditReceiver(props: Props) {
   const {apiUtil} = useAlarmContext();
   const snackbars = useSnackbars();
   const {isNew, receiver, onExit} = props;
-  const {match} = useRouter();
+  const params = useParams();
 
   const {
     formState,
@@ -117,7 +117,7 @@ export default function AddEditReceiver(props: Props) {
       try {
         const request = {
           receiver: formState,
-          networkId: match.params.networkId,
+          networkId: params.networkId,
         };
         if (isNew) {
           await apiUtil.createReceiver(request);
@@ -135,7 +135,7 @@ export default function AddEditReceiver(props: Props) {
       }
     }
     makeApiCall();
-  }, [apiUtil, formState, isNew, match.params.networkId, onExit, snackbars]);
+  }, [apiUtil, formState, isNew, params.networkId, onExit, snackbars]);
 
   const configEditorSharedProps = {
     receiver,

@@ -28,7 +28,7 @@ import {GetCurrentTabPos} from './TabUtils';
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
-import {useRouter} from '../../fbc_js_core/ui/hooks';
+import {useResolvedPath} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   topBar: {
@@ -75,10 +75,10 @@ type Props = {header: string, tabs: BarLabel[]};
 
 export default function TopBar(props: Props) {
   const classes = useStyles();
-  const {match} = useRouter();
+  const {pathname} = useResolvedPath('');
   const currentTab = GetCurrentTabPos(
-    match.url,
-    props.tabs.map(tab => tab.to.slice(1)),
+    pathname,
+    props.tabs.map(tab => tab.to),
   );
   const {nmsVersion, orc8rVersion} = useContext(VersionContext);
   function tabLabel(label, icon) {

@@ -28,7 +28,7 @@ import {colors} from '../../theme/default';
 import {getQueryRanges} from '../../components/CustomMetrics';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 type Props = {
   start: moment,
@@ -40,9 +40,9 @@ type Props = {
 };
 
 export default function LogChart(props: Props) {
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const gatewayId: string = nullthrows(match.params.gatewayId);
+  const params = useParams();
+  const networkId: string = nullthrows(params.networkId);
+  const gatewayId: string = nullthrows(params.gatewayId);
   const {start, end, delta, format, unit, setLogCount} = props;
   const enqueueSnackbar = useEnqueueSnackbar();
   const [isLoading, setIsLoading] = useState(true);

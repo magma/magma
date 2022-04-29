@@ -44,7 +44,7 @@ import {getStep, getStepString} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 export type DateTimeMetricChartProps = {
   title: string,
@@ -139,9 +139,9 @@ async function getDatasets(props: DatasetFetchProps) {
 }
 
 function SubscriberDataKPI() {
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const subscriberId: string = nullthrows(match.params.subscriberId);
+  const params = useParams();
+  const networkId: string = nullthrows(params.networkId);
+  const subscriberId: string = nullthrows(params.subscriberId);
   const [kpiRows, setKpiRows] = useState<DataRows[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -202,9 +202,9 @@ function SubscriberDataKPI() {
 
 export default function SubscriberChart() {
   const classes = useStyles();
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const subscriberId: string = nullthrows(match.params.subscriberId);
+  const params = useParams();
+  const networkId: string = nullthrows(params.networkId);
+  const subscriberId: string = nullthrows(params.subscriberId);
   const enqueueSnackbar = useEnqueueSnackbar();
   const [datasets, setDatasets] = useState<Array<Dataset>>([]);
   const [toolTipHint, setToolTipHint] = useState('');
