@@ -18,7 +18,7 @@ import 'jest-dom/extend-expect';
 import * as React from 'react';
 import Alarms from '../Alarms';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-import defaultTheme from '../../../../../fbc_js_core/ui/theme/default';
+import defaultTheme from '../../../../theme/default';
 import {MagmaAlarmsApiUtil} from '../../../../state/AlarmsApiUtil';
 import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';

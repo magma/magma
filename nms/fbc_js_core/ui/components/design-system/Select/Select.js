@@ -24,7 +24,7 @@ import Button from '../Button';
 import SelectMenu from './SelectMenu';
 import Text from '../../../../../app/theme/design-system/Text';
 import classNames from 'classnames';
-import symphony from '../../../../../fbc_js_core/ui/theme/symphony';
+import theme, {colors} from '../../../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useFormElementContext} from '../Form/FormElementContext';
 import {useMemo} from 'react';
@@ -35,28 +35,28 @@ const useStyles = makeStyles(() => ({
     '&&': {
       padding: '4px',
     },
-    border: `1px solid ${symphony.palette.D100}`,
+    border: `1px solid ${colors.primary.mercury}`,
     '&$disabled': {
-      backgroundColor: symphony.palette.background,
-      color: symphony.palette.secondary,
+      backgroundColor: colors.primary.selago,
+      color: colors.primary.brightGray,
     },
   },
   disabled: {
     '&&': {
       '&&': {
-        color: symphony.palette.secondary,
-        fill: symphony.palette.secondary,
+        color: colors.primary.brightGray,
+        fill: colors.primary.brightGray,
       },
     },
   },
   formValue: {
-    ...symphony.typography.body2,
+    ...theme.typography.body2,
   },
   menu: {
     margin: '8px 0px',
   },
   label: {
-    fontWeight: symphony.typography.body2.fontWeight,
+    fontWeight: theme.typography.body2.fontWeight,
   },
 }));
 

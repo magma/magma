@@ -15,9 +15,9 @@
  */
 
 import * as React from 'react';
-import SymphonyTheme from '../../../theme/symphony';
 import Text from '../../../../../app/theme/design-system/Text';
 import classNames from 'classnames';
+import {colors} from '../../../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useFormElementContext} from '../Form/FormElementContext';
 import {useInput} from './InputContext';
@@ -27,7 +27,7 @@ const useStyles = makeStyles(_theme => ({
   root: {
     display: 'flex',
     alignItems: 'center',
-    color: SymphonyTheme.palette.D400,
+    color: colors.primary.comet,
     alignItems: 'center',
     marginRight: '8px',
     marginLeft: '4px',
@@ -35,13 +35,13 @@ const useStyles = makeStyles(_theme => ({
   hasValue: {},
   disabled: {
     '&:not($hasValue) $text': {
-      color: SymphonyTheme.palette.disabled,
+      color: colors.primary.gullGray,
     },
     pointerEvents: 'none',
     opacity: 0.5,
   },
   text: {
-    color: SymphonyTheme.palette.D400,
+    color: colors.primary.comet,
   },
   clickable: {
     cursor: 'pointer',

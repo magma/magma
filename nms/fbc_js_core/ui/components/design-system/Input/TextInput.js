@@ -21,7 +21,7 @@ import FormElementContext from '../Form/FormElementContext';
 import InputContext from './InputContext';
 import Text from '../../../../../app/theme/design-system/Text';
 import classNames from 'classnames';
-import symphony from '../../../theme/symphony';
+import theme, {colors} from '../../../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useMemo, useState} from 'react';
 
@@ -45,23 +45,23 @@ const useStyles = makeStyles(() => ({
     position: 'relative',
     overflow: 'hidden',
     padding: '0px 8px',
-    border: `1px solid ${symphony.palette.D100}`,
+    border: `1px solid ${colors.primary.mercury}`,
     borderRadius: '4px',
     display: 'flex',
     minHeight: '32px',
     boxSizing: 'border-box',
-    backgroundColor: symphony.palette.white,
+    backgroundColor: colors.primary.white,
     '&$hasFocus': {
-      borderColor: symphony.palette.D500,
+      borderColor: colors.primary.gullGray,
     },
     '&:hover:not($disabled)': {
-      borderColor: symphony.palette.D500,
+      borderColor: colors.primary.gullGray,
     },
     '&$disabled': {
-      backgroundColor: symphony.palette.background,
+      backgroundColor: colors.primary.selago,
     },
     '&$hasError': {
-      borderColor: symphony.palette.R600,
+      borderColor: colors.state.error,
     },
   },
   multilineInputContainer: {
@@ -72,14 +72,14 @@ const useStyles = makeStyles(() => ({
   disabled: {
     '& $input': {
       '&::placeholder': {
-        color: symphony.palette.disabled,
+        color: colors.primary.gullGray,
       },
-      color: symphony.palette.secondary,
+      color: colors.primary.brightGray,
     },
   },
   hasError: {},
   input: {
-    color: symphony.palette.D900,
+    color: colors.primary.brightGray,
     margin: 0,
     border: 0,
     outline: 0,
@@ -89,9 +89,9 @@ const useStyles = makeStyles(() => ({
     flexGrow: 1,
     flexShrink: 1,
     padding: '5px 8px',
-    ...symphony.typography.body2,
+    ...theme.typography.body2,
     '&::placeholder': {
-      color: symphony.palette.D400,
+      color: colors.primary.gullGray,
     },
   },
   multilineInput: {
@@ -101,7 +101,7 @@ const useStyles = makeStyles(() => ({
     paddingTop: '4px',
   },
   hintText: {
-    color: symphony.palette.D200,
+    color: colors.primary.nobel,
   },
   suffix: {
     display: 'flex',
@@ -116,7 +116,7 @@ const useStyles = makeStyles(() => ({
     left: '0%',
   },
   showProcessingIndicator: {
-    borderBottomColor: symphony.palette.primary,
+    borderBottomColor: colors.secondary.dodgerBlue,
     animation: '$progress 2s infinite',
   },
   '@keyframes progress': {

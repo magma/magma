@@ -20,7 +20,7 @@ import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings.js';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
-import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
+import defaultTheme from '../../../theme/default';
 import moment from 'moment';
 import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';

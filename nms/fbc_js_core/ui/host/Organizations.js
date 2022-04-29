@@ -41,7 +41,7 @@ import Text from '../../../app/theme/design-system/Text';
 import axios from 'axios';
 import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
-import {comet, concrete, gullGray} from '../../../fbc_js_core/ui/theme/colors';
+import {colors} from '../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios} from '../../../fbc_js_core/ui/hooks';
 import {useCallback, useEffect, useState} from 'react';
@@ -75,8 +75,8 @@ const useStyles = makeStyles(_ => ({
   onBoardingDialogTitle: {
     padding: '0 24px',
     fontSize: '24px',
-    color: comet,
-    backgroundColor: concrete,
+    color: colors.primary.comet,
+    backgroundColor: colors.primary.concrete,
   },
   onBoardingDialogContent: {
     minHeight: '200px',
@@ -84,7 +84,7 @@ const useStyles = makeStyles(_ => ({
   },
   onBoardingDialogActions: {
     padding: '0 24px',
-    backgroundColor: concrete,
+    backgroundColor: colors.primary.concrete,
     boxShadow: 'none',
   },
   onBoardingDialogButton: {
@@ -94,7 +94,7 @@ const useStyles = makeStyles(_ => ({
     margin: '16px 0',
   },
   index: {
-    color: gullGray,
+    color: colors.primary.gullGray,
   },
 }));
 

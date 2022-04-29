@@ -20,9 +20,9 @@ import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
 import IndeterminateCheckBoxIcon from '@material-ui/icons/IndeterminateCheckBox';
 import React from 'react';
-import SymphonyTheme from '../../../theme/symphony';
 import TextPairingContainer from '../helpers/TextPairingContainer';
 import classNames from 'classnames';
+import {colors} from '../../../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useFormElementContext} from '../Form/FormElementContext';
 import {useMemo} from 'react';
@@ -35,20 +35,20 @@ const useStyles = makeStyles(_theme => ({
       cursor: 'pointer',
       '&:hover': {
         '& $selection, & $noSelection': {
-          fill: SymphonyTheme.palette.B700,
+          fill: colors.secondary.mariner,
         },
       },
       '& $noSelection': {
-        fill: SymphonyTheme.palette.D200,
+        fill: colors.primary.nobel,
       },
       '& $selection': {
-        fill: SymphonyTheme.palette.primary,
+        fill: colors.secondary.dodgerBlue,
       },
     },
   },
   disabled: {
     '& $noSelection, & $selection': {
-      fill: SymphonyTheme.palette.disabled,
+      fill: colors.primary.gullGray,
     },
   },
   selection: {},

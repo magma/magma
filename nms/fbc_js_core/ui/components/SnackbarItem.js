@@ -22,16 +22,16 @@ import InfoIcon from '@material-ui/icons/Info';
 import Text from '../../../app/theme/design-system/Text';
 import WarningIcon from '@material-ui/icons/Warning';
 import classNames from 'classnames';
-import {blue60, gray4, green, red, yellow} from '../theme/colors';
+import {colors} from '../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useSnackbar} from 'notistack';
 import {withForwardRef} from '../../../fbc_js_core/ui/components/ForwardRef';
 import type {ForwardRef} from '../../../fbc_js_core/ui/components/ForwardRef';
 import type {Variants} from 'notistack';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   root: {
-    backgroundColor: theme.palette.common.white,
+    backgroundColor: colors.primary.white,
     boxShadow: '0 0 0 1px #ccd0d5, 0 4px 8px 1px rgba(0,0,0,0.15)',
     borderRadius: '2px',
     display: 'flex',
@@ -42,19 +42,19 @@ const useStyles = makeStyles(theme => ({
     borderRadius: '2px 0px 0px 2px',
   },
   errorBar: {
-    borderColor: red,
+    borderColor: colors.state.error,
   },
   successBar: {
-    borderColor: green,
+    borderColor: colors.state.positive,
   },
   warningBar: {
-    borderColor: yellow,
+    borderColor: colors.state.warning,
   },
   defaultBar: {
-    borderColor: gray4,
+    borderColor: colors.primary.comet,
   },
   infoBar: {
-    borderColor: blue60,
+    borderColor: colors.secondary.dodgerBlue,
   },
   content: {
     marginLeft: '6px',
@@ -75,25 +75,25 @@ const useStyles = makeStyles(theme => ({
     marginRight: '12px',
   },
   errorIcon: {
-    '&&': {fill: red},
+    '&&': {fill: colors.state.error},
   },
   successIcon: {
-    '&&': {fill: green},
+    '&&': {fill: colors.state.positive},
   },
   warningIcon: {
-    '&&': {fill: yellow},
+    '&&': {fill: colors.state.warning},
   },
   defaultIcon: {
-    '&&': {fill: gray4},
+    '&&': {fill: colors.primary.comet},
   },
   infoIcon: {
-    '&&': {fill: blue60},
+    '&&': {fill: colors.secondary.dodgerBlue},
   },
   closeButton: {
     marginLeft: '16px',
-    color: theme.palette.grey[400],
+    color: colors.primary.gullGray,
     '&:hover': {
-      color: theme.palette.grey[600],
+      color: colors.primary.comet,
     },
     cursor: 'pointer',
   },

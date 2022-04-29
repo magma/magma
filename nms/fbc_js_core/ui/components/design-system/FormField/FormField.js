@@ -21,8 +21,8 @@ import Text from '../../../../../app/theme/design-system/Text';
 import classNames from 'classnames';
 import grey from '@material-ui/core/colors/grey';
 import nullthrows from 'nullthrows';
-import symphony from '../../../../../fbc_js_core/ui/theme/symphony';
 
+import {colors} from '../../../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useMemo} from 'react';
 
@@ -33,12 +33,12 @@ const useStyles = makeStyles(() => ({
   },
   disabled: {
     '& $bottomText': {
-      color: symphony.palette.disabled,
+      color: colors.primary.gullGray,
     },
   },
   hasError: {
     '& $bottomText': {
-      color: symphony.palette.R600,
+      color: colors.state.error,
     },
   },
   labelContainer: {
