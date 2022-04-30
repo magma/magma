@@ -3,12 +3,12 @@
 set -ex
 
 MAGMA_TAG=1.7
-NEW_MAGMA_TAG=1.7.0
+NEW_MAGMA_TAG=1.7.1
 MAGMA_ARTIFACTORY=artifactory.magmacore.org
 
 declare -A repositories=(
-  [feg]="gateway_go gateway_python"
   [orc8r]="controller magmalte nginx"
+  [feg]="gateway_go gateway_python"
   [agw]="agw_gateway_c agw_gateway_python ghz_gateway_c ghz_gateway_python"
   [cwf]="cwag_go gateway_go gateway_pipelined gateway_python gateway_sessiond operator"
 )
