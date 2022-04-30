@@ -1,11 +1,11 @@
-From 2aa2c32b35797253ad364e1faa8d9b37a028a7d2 Mon Sep 17 00:00:00 2001
+From d9b4879a00e1b11fd3cd014b6f132e95254fe101 Mon Sep 17 00:00:00 2001
 From: Prabina Pattnaik <prabinak@wavelabs.ai>
-Date: Thu, 28 Apr 2022 17:48:27 +0000
+Date: Sat, 30 Apr 2022 11:42:03 +0000
 Subject: [PATCH 24/24] QFI support in OVS
 
 Signed-off-by: Prabina Pattnaik <prabinak@wavelabs.ai>
 ---
- datapath/linux/compat/gtp.c               | 141 ++++++++++++----------
+ datapath/linux/compat/gtp.c               | 145 ++++++++++++----------
  datapath/linux/compat/include/linux/gtp.h |   1 +
  include/openvswitch/match.h               |   2 +
  include/openvswitch/meta-flow.h           |  17 +++
@@ -20,12 +20,12 @@ Signed-off-by: Prabina Pattnaik <prabinak@wavelabs.ai>
  lib/ofp-actions.c                         |  73 +++++++++++
  lib/packets.h                             |  11 +-
  tests/ofproto.at                          |   4 +-
- tests/system-layer3-tunnels.at            | 108 +++++++++++++++++
+ tests/system-layer3-tunnels.at            | 108 ++++++++++++++++
  tests/tunnel.at                           |  21 ++++
- 17 files changed, 392 insertions(+), 68 deletions(-)
+ 17 files changed, 394 insertions(+), 70 deletions(-)
 
 diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
-index a7033031d..eb1611256 100644
+index a7033031d..f2e0ca4bf 100644
 --- a/datapath/linux/compat/gtp.c
 +++ b/datapath/linux/compat/gtp.c
 @@ -113,18 +113,39 @@ static int gtp_rx(struct sock *sk, struct gtp_dev *gtp, struct sk_buff *skb,
@@ -33,22 +33,8 @@ index a7033031d..eb1611256 100644
  #endif
  		netdev_dbg(gtp->dev, "attaching metadata_dst to skb, gtp ver %d hdrlen %d\n", gtp_version, hdrlen);
 -		if (unlikely(opts_len)) {
-+                if (unlikely(opts_len)) {
-+                        struct gtpu_metadata *opts = ip_tunnel_info_opts(&tun_dst->u.tun_info);
-+                        struct gtp1_header *gtp1 = (struct gtp1_header *)(skb->data + sizeof(struct udphdr));
-+
-+                        opts->ver = GTP_METADATA_V1;
-+                        opts->flags = gtp1->flags;
-+                        opts->type = gtp1->type;
-+                        netdev_dbg(gtp->dev, "recved control pkt: flag %x type: %d\n", opts->flags, opts->type);
-+                        tun_dst->u.tun_info.key.tun_flags |= TUNNEL_GTPU_OPT;
-+                        tun_dst->u.tun_info.options_len = opts_len;
-+                        skb->protocol = 0xffff;         // Unknown
-+                }
-+
-+		else {
- 			struct gtpu_metadata *opts = ip_tunnel_info_opts(&tun_dst->u.tun_info);
- 			struct gtp1_header *gtp1 = (struct gtp1_header *)(skb->data + sizeof(struct udphdr));
+-			struct gtpu_metadata *opts = ip_tunnel_info_opts(&tun_dst->u.tun_info);
+-			struct gtp1_header *gtp1 = (struct gtp1_header *)(skb->data + sizeof(struct udphdr));
 -
 -			opts->ver = GTP_METADATA_V1;
 -			opts->flags = gtp1->flags;
@@ -57,21 +43,37 @@ index a7033031d..eb1611256 100644
 -			tun_dst->u.tun_info.key.tun_flags |= TUNNEL_GTPU_OPT;
 -			tun_dst->u.tun_info.options_len = opts_len;
 -			skb->protocol = 0xffff;         // Unknown
-+			struct gtpu_ext_hdr *geh;
-+			geh = (struct gtpu_ext_hdr *) (gtp1 + 1);
-+			if (geh->type == 0x85) {
-+				struct gtpu_ext_hdr_pdu_sc *pdu_sc_hd;
-+			        pdu_sc_hd = (struct gtpu_ext_hdr_pdu_sc *) (geh + 1);
-+			        if (pdu_sc_hd->qfi) {
-+					opts->ver = GTP_METADATA_V1;
-+				        opts->flags = gtp1->flags;
-+				        opts->type = gtp1->type;
-+					opts->qfi = pdu_sc_hd->qfi;
-+				        opts_len = opts_len + sizeof(struct gtpu_ext_hdr) + sizeof(struct gtpu_ext_hdr_pdu_sc); //opts->header_data_len;
-+					tun_dst->u.tun_info.key.tun_flags |= TUNNEL_GTPU_OPT;
-+					tun_dst->u.tun_info.options_len = opts_len;
-+				}
-+			}
++                if (unlikely(opts_len)) {
++                    struct gtpu_metadata *opts = ip_tunnel_info_opts(&tun_dst->u.tun_info);
++                    struct gtp1_header *gtp1 = (struct gtp1_header *)(skb->data + sizeof(struct udphdr));
++
++                    opts->ver = GTP_METADATA_V1;
++                    opts->flags = gtp1->flags;
++                    opts->type = gtp1->type;
++                    netdev_dbg(gtp->dev, "recved control pkt: flag %x type: %d\n", opts->flags, opts->type);
++                    tun_dst->u.tun_info.key.tun_flags |= TUNNEL_GTPU_OPT;
++                    tun_dst->u.tun_info.options_len = opts_len;
++                    skb->protocol = 0xffff;         // Unknown
++                }
++
++		if (likely(type == GTP_TPDU)){
++		    struct gtpu_metadata *opts = ip_tunnel_info_opts(&tun_dst->u.tun_info);
++		    struct gtp1_header *gtp1 = (struct gtp1_header *)(skb->data + sizeof(struct udphdr));
++		    struct gtpu_ext_hdr *geh;
++		    geh = (struct gtpu_ext_hdr *) (gtp1 + 1);
++		    if (geh->type == 0x85) {
++		        struct gtpu_ext_hdr_pdu_sc *pdu_sc_hd;
++		        pdu_sc_hd = (struct gtpu_ext_hdr_pdu_sc *) (geh + 1);
++		        if (pdu_sc_hd->qfi) {
++			    opts->ver = GTP_METADATA_V1;
++			    opts->flags = gtp1->flags;
++			    opts->type = gtp1->type;
++			    opts->qfi = pdu_sc_hd->qfi;
++			    opts_len = opts_len + sizeof(struct gtpu_ext_hdr) + sizeof(struct gtpu_ext_hdr_pdu_sc);
++			    tun_dst->u.tun_info.key.tun_flags |= TUNNEL_GTPU_OPT;
++			    tun_dst->u.tun_info.options_len = opts_len;
++		    	}
++		    }
  		}
 +
  		/* Get rid of the GTP + UDP headers. */
