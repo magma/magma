@@ -1,24 +1,37 @@
 ---
 version: "3.7"
 
-services:
+networks:
+  sgi:
+    external: true
+  s1:
+    external: true
 
+services:
   s1aptester:
     volumes:
       - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
     image: ${DOCKER_REGISTRY}agw_s1aptester:${IMAGE_VERSION}
     container_name: s1aptester
     command: /bin/bash
-    network_mode: "host"
     privileged: true
     stdin_open: true
     tty: true
+    networks:
+      sgi:
+        ipv4_address: 192.168.60.141
+      s1:
+        ipv4_address: 192.168.128.11
 
   trfgen:
     image: ${DOCKER_REGISTRY}agw_trfgen:${IMAGE_VERSION}
     container_name: trfgen
-    network_mode: "host"
     privileged: true
+    networks:
+      sgi:
+        ipv4_address: 192.168.60.144
+      s1:
+        ipv4_address: 192.168.129.42
 
   magmad:
     environment:

@@ -10,6 +10,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Create docker networks
+docker network inspect s1&>/dev/null || {
+docker network create --driver=bridge --subnet=192.168.60.0/24 --gateway=192.168.60.142 sgi && \
+docker network create --driver=bridge --subnet=192.168.128.0/23 --gateway=192.168.129.1 s1 && \
+docker inspect s1aptester&>/dev/null && docker rm s1aptester && \
+DOCKER_BRIDGE_ID=`docker network inspect -f "{{ slice .Id 0 12 }}" s1`
+ip r add 192.168.128.11/32 dev br-$DOCKER_BRIDGE_ID
+ip r add 192.168.129.42/32 dev br-$DOCKER_BRIDGE_ID
+}
+
 # Temporarily create password for ubuntu user
 echo "ubuntu:ubuntu" | chpasswd
 sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config

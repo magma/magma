@@ -11,3 +11,5 @@
 # limitations under the License.
 
 docker-compose --env-file .env -f docker-compose.yaml -f s1ap/docker-compose.s1ap.yaml down
+docker network rm sgi
+docker network rm s1
