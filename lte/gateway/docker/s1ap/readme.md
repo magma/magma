@@ -15,7 +15,7 @@ s1ap/publish.sh yourregistry.com/yourrepo/
 
 # Run s1aptester
 
-1. Create an ubuntu 20.04 host that has 3 interfaces. eth1 which is your SGi interface, eth2 which is your S1 interface, and a third interface which is your ssh management interface to connect to the instance while doing the tests. You could skip the third interface if you have some kind of serial console access. Your host should have at least 20 GB of HD.
+1. Create an ubuntu 20.04 host that has 3 interfaces. eth0 which is your SGi interface, eth1 which is your S1 interface, and a third interface which is your ssh management interface to connect to the instance while doing the tests. You could skip the third interface if you have some kind of serial console access. Your host should have at least 20 GB of HD.
 
 2. [Deploy a containerized AGW](https://github.com/magma/magma/tree/master/lte/gateway/docker), move into AGW docker directory `/var/opt/magma/docker` on the host and run start script. Make sure that your `.env` file points to your registry with your AGW and s1aptester images.
 ```
@@ -77,3 +77,5 @@ bash agw_install_docker.sh
 sed -i 's/DOCKER_REGISTRY=/DOCKER_REGISTRY=public.ecr.aws\/yourrepo\//' /var/opt/magma/docker/.env
 cd /var/opt/magma/docker
 s1ap/start-s1ap.sh
+make integ_test TESTS=s1aptests/test_attach_detach.py
+```

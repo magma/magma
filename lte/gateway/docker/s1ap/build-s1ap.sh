@@ -10,4 +10,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-docker-compose -f docker-compose.yaml -f s1ap/docker-compose.override.yaml build s1aptester trfgen
+docker-compose -f docker-compose.yaml -f s1ap/docker-compose.override.yaml --parallel build s1aptester trfgen
