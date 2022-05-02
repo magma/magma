@@ -2,9 +2,12 @@
 version: "3.7"
 
 networks:
-  sgi:
+  # prefix letters required to set interface order
+  a_bridge:
     external: true
-  s1:
+  b_sgi:
+    external: true
+  c_s1:
     external: true
 
 services:
@@ -18,9 +21,10 @@ services:
     stdin_open: true
     tty: true
     networks:
-      sgi:
+      a_bridge:
+      b_sgi:
         ipv4_address: 192.168.60.141
-      s1:
+      c_s1:
         ipv4_address: 192.168.128.11
 
   trfgen:
@@ -28,9 +32,10 @@ services:
     container_name: trfgen
     privileged: true
     networks:
-      sgi:
+      a_bridge:
+      b_sgi:
         ipv4_address: 192.168.60.144
-      s1:
+      c_s1:
         ipv4_address: 192.168.129.42
 
   magmad:

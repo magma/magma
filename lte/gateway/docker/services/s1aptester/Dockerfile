@@ -44,6 +44,7 @@ ARG RSYNC_VERSION=3.1.3-8ubuntu0.3
 ARG BINUTILS_VERSION=2.34-6ubuntu1.3
 ARG SSH_VERSION=1:8.2p1-4ubuntu0.4
 ARG SSHPASS_VERSION=1.06-1
+ARG LIBIPERF0_VERSION=3.7-3
 
 ENV VIRTUAL_ENV=/build/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
@@ -83,6 +84,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   binutils=$BINUTILS_VERSION \
   ssh=$SSH_VERSION \
   sshpass=$SSHPASS_VERSION \
+  libiperf0=$LIBIPERF0_VERSION \
   && apt-get clean \
   && gem install fpm
 

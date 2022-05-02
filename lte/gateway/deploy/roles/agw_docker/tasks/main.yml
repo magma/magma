@@ -104,6 +104,11 @@
     - agwc
     - base
 
+- name: Making python scripts executable
+  shell: chmod +x /usr/local/bin/*.py
+  tags:
+    - agwc
+
 - name: docker login
   shell: docker login -u {{ docker_user }} -p {{ docker_pass }}  {{ docker_registry }}
   args:
