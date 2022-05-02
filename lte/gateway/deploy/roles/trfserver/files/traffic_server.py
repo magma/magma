@@ -527,6 +527,7 @@ class TrafficTestDriver(object):
         ip = pyroute2.IPRoute()
         if version == 4:
           intf = 'eth2'
+          print("intf in _get_macs", intf)
         else:
           intf = 'eth3'
         mac = ip.link('get', index=ip.link_lookup(ifname=intf)[0])[0] \

@@ -595,3 +595,7 @@ class TestWrapper(object):
             "sudo ip neigh flush all",
         )
         print("magma-dev: ARP flushed")
+
+    def enable_disable_ipv6_iface(self, cmd):
+        """Enable or disable eth3 (ipv6) interface as nat_iface"""
+        self._magmad_util.config_ipv6_iface(cmd)

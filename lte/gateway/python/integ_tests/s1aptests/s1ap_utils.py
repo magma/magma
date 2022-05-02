@@ -779,6 +779,7 @@ class MagmadUtil(object):
     apn_correction_cmds = Enum("apn_correction_cmds", "DISABLE ENABLE")
     health_service_cmds = Enum("health_service_cmds", "DISABLE ENABLE")
     ha_service_cmds = Enum("ha_service_cmds", "DISABLE ENABLE")
+    config_ipv6_iface_cmds = Enum("config_ipv6_iface_cmds", "DISABLE ENABLE")
 
     def __init__(self, magmad_client):
         """
@@ -891,6 +892,7 @@ class MagmadUtil(object):
 
     def restart_all_services(self):
         """Restart all magma services on magma_dev VM"""
+        print("Restarting all services")
         self.exec_command(
             "sudo service magma@* stop ; sudo service magma@magmad start",
         )
@@ -1268,6 +1270,35 @@ class MagmadUtil(object):
         iface = "eth2" if ip_version == 4 else "eth3"
         assert iface not in str(out1)
         print("NAT is enabled")
+
+    def config_ipv6_iface(self, cmd):
+        """
+        Configure eth3 interface for ipv6 data on the access gateway
+
+        Args:
+            cmd: Enable or disable eth3 iface on AGW,
+            should be one of
+              enable: Enable eth3 as nat_iface, do nothing if already configured
+              disable: Disable eth3 as nat_iface, do nothing if already configured
+        """
+        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
+        venvsudo_cmd = "sudo -E PATH=$PATH PYTHONPATH=$PYTHONPATH env"
+        config_ipv6_iface_script = "/usr/local/bin/config_iface_for_ipv6.py"
+
+        ret_code = self.exec_command(
+            magtivate_cmd
+            + " && "
+            + venvsudo_cmd
+            + " python3 "
+            + config_ipv6_iface_script
+            + " "
+            + cmd.name.lower(),
+        )
+
+        if ret_code == 0:
+            print("Configuration successful")
+        else:
+            print("Failed to configure")
 
 
 class MobilityUtil(object):
