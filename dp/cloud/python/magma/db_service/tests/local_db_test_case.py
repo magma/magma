@@ -8,6 +8,7 @@ class LocalDBTestCase(BaseDBTestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
+        super().setUpClass()
         cls.postgresql = testing.postgresql.PostgresqlFactory(cache_initialized_db=True)()
 
     @classmethod
@@ -15,6 +16,5 @@ class LocalDBTestCase(BaseDBTestCase):
         cls.postgresql.stop()
 
     def setUp(self):
-        self.metadata = Base.metadata
         self.set_up_db_test_case(SQLALCHEMY_DB_URI=self.postgresql.url())
         self.create_all()

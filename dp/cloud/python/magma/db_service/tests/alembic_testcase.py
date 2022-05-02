@@ -27,6 +27,7 @@ class AlembicTestCase(DBTestCaseBlueprint):
 
     @classmethod
     def setUpClass(cls) -> None:
+        super().setUpClass()
         cls.postgresql = testing.postgresql.PostgresqlFactory(cache_initialized_db=True)()
 
     @classmethod
@@ -34,7 +35,7 @@ class AlembicTestCase(DBTestCaseBlueprint):
         cls.postgresql.stop()
 
     def setUp(self) -> None:
-        self.metadata = sqlalchemy.MetaData()
+        self.setMetadata(sqlalchemy.MetaData())
         self.set_up_db_test_case(SQLALCHEMY_DB_URI=self.postgresql.url())
         self.up_revision = self.up_revision or "head"
         self.down_revision = self.down_revision or "base"

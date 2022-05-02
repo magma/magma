@@ -35,6 +35,7 @@ USER_ID = "some_user_id"
 class ActiveModeControllerTestCase(BaseDBTestCase):
     @classmethod
     def setUpClass(cls):
+        super().setUpClass()
         wait_for_elastic_to_start()
 
     def setUp(self):
