@@ -18,8 +18,6 @@ import * as React from 'react';
 import Text from '../../../../../app/theme/design-system/Text';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
-import {useFormElementContext} from '../Form/FormElementContext';
-import {useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -59,15 +57,10 @@ const TextPairingContainer = (props: Props) => {
     title,
     variant,
     margin = 'regular',
-    disabled: propDisabled = false,
+    disabled = false,
     className,
   } = props;
   const classes = useStyles();
-  const {disabled: contextDisabled} = useFormElementContext();
-  const disabled = useMemo(
-    () => (propDisabled ? propDisabled : contextDisabled),
-    [contextDisabled, propDisabled],
-  );
 
   return (
     <div className={classNames(classes.root, className)}>

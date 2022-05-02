@@ -21,10 +21,7 @@ import * as React from 'react';
 import Text from '../../../../app/theme/design-system/Text';
 import classNames from 'classnames';
 import {colors} from '../../../../app/theme/default';
-import {joinNullableStrings} from '../../../../fbc_js_core/util/strings';
 import {makeStyles} from '@material-ui/styles';
-import {useFormElementContext} from './Form/FormElementContext';
-import {useMemo} from 'react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -314,7 +311,7 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
     className,
     children,
     skin = 'primary',
-    disabled: disabledProp = false,
+    disabled = false,
     variant = 'contained',
     useEllipsis = true,
     onClick,
@@ -322,24 +319,9 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
     leftIconClass = null,
     rightIcon: RightIcon = null,
     rightIconClass = null,
-    tooltip: tooltipProp,
+    tooltip,
   } = props;
   const classes = useStyles();
-
-  const {
-    disabled: contextDisabled,
-    tooltip: contextTooltip,
-  } = useFormElementContext();
-
-  const disabled = useMemo(() => disabledProp || contextDisabled, [
-    disabledProp,
-    contextDisabled,
-  ]);
-
-  const tooltip = useMemo(
-    () => joinNullableStrings([tooltipProp, contextTooltip]),
-    [contextTooltip, tooltipProp],
-  );
 
   return (
     <button

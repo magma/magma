@@ -24,8 +24,6 @@ import TextPairingContainer from '../helpers/TextPairingContainer';
 import classNames from 'classnames';
 import {colors} from '../../../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useFormElementContext} from '../Form/FormElementContext';
-import {useMemo} from 'react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -72,7 +70,7 @@ const Checkbox = (props: Props) => {
     indeterminate,
     onChange,
     onClick,
-    disabled: propDisabled = false,
+    disabled = false,
     ...TextPairingContainerProps
   } = props;
   const classes = useStyles();
@@ -81,12 +79,6 @@ const Checkbox = (props: Props) => {
     : checked
     ? CheckBoxIcon
     : CheckBoxOutlineBlankIcon;
-
-  const {disabled: contextDisabled} = useFormElementContext();
-  const disabled = useMemo(
-    () => (propDisabled ? propDisabled : contextDisabled),
-    [contextDisabled, propDisabled],
-  );
 
   return (
     <TextPairingContainer {...TextPairingContainerProps} disabled={disabled}>
