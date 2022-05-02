@@ -486,9 +486,7 @@ export function ConfigEdit(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
@@ -604,9 +602,7 @@ export function DynamicServicesEdit(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
@@ -784,9 +780,7 @@ export function EPCEdit(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
@@ -924,9 +918,7 @@ export function RanEdit(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
@@ -1091,9 +1083,7 @@ export function ApnResourcesEdit(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
@@ -1267,9 +1257,7 @@ export function HeaderEnrichmentConfig(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {props.isAdd ? 'Save And Close' : 'Save'}
         </Button>

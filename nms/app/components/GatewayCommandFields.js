@@ -16,7 +16,7 @@
 import type {DataRows} from './DataGrid';
 import type {generic_command_response} from '../../generated/MagmaAPIBindings';
 
-import Button from '../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import Check from '@material-ui/icons/Check';
 import DataGrid from './DataGrid';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -104,7 +104,7 @@ export default function GatewayCommandFields(props: Props) {
       </DialogContent>
       {props.onClose && (
         <DialogActions>
-          <Button variant="text" onClick={props.onClose} skin="primary">
+          <Button variant="outlined" onClick={props.onClose} color="primary">
             Close
           </Button>
         </DialogActions>
@@ -144,7 +144,7 @@ function RebootButton(props: ChildProps) {
       <FormField
         label="Reboot Device"
         tooltip="Reboot the Magma gateway server">
-        <Button variant="text" onClick={onClick} skin="primary">
+        <Button variant="outlined" onClick={onClick} color="primary">
           Reboot
         </Button>
         <Fade in={showCheck} timeout={500}>
@@ -189,7 +189,7 @@ function RestartServicesButton(props: ChildProps) {
       <FormField
         label="Restart Services"
         tooltip="Restart all MagmaD services on this gateway">
-        <Button variant="text" onClick={onClick} skin="primary">
+        <Button variant="outlined" onClick={onClick} color="primary">
           Restart Services
         </Button>
         <Fade in={showCheck} timeout={500}>
@@ -250,7 +250,7 @@ function RebootEnodebControls(props: ChildProps) {
         />
       </FormField>
       <FormField label="">
-        <Button variant="text" onClick={onClick} skin="primary">
+        <Button variant="outlined" onClick={onClick} color="primary">
           Reboot
         </Button>
       </FormField>
@@ -319,7 +319,7 @@ export function PingCommandControls(props: ChildProps) {
         />
       </FormField>
       <FormField label="">
-        <Button variant="text" onClick={onClick} skin="primary">
+        <Button variant="outlined" onClick={onClick} color="primary">
           Ping
         </Button>
       </FormField>
@@ -394,7 +394,7 @@ export function GenericCommandControls(props: ChildProps) {
         />
       </FormField>
       <FormField label="">
-        <Button variant="text" onClick={onClick} skin="primary">
+        <Button variant="outlined" onClick={onClick} color="primary">
           Execute
         </Button>
       </FormField>

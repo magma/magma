@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import Button from '../../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -99,10 +99,13 @@ export default function GenericNetworkDialog(props: Props) {
         {props.children}
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
+        <Button onClick={props.onClose}>Cancel</Button>
+        <Button
+          onClick={() => props.onSave(networkConfig)}
+          variant="contained"
+          color="primary">
+          Save
         </Button>
-        <Button onClick={() => props.onSave(networkConfig)}>Save</Button>
       </DialogActions>
     </Dialog>
   );

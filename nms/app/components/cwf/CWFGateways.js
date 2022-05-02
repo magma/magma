@@ -19,7 +19,7 @@ import type {cwf_gateway} from '../../../generated/MagmaAPIBindings';
 import type {cwf_ha_pair} from '../../../generated/MagmaAPIBindings';
 
 import AddGatewayDialog from '../AddGatewayDialog';
-import Button from '../../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import CWFEditGatewayDialog from './CWFEditGatewayDialog';
 import ChevronRight from '@material-ui/icons/ChevronRight';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -233,7 +233,9 @@ export function CWFGateways(props: WithAlert & {}) {
       <div className={classes.header}>
         <Text variant="h5">Configure Gateways</Text>
         <NestedRouteLink to="new">
-          <Button>Add Gateway</Button>
+          <Button variant="contained" color="primary">
+            Add Gateway
+          </Button>
         </NestedRouteLink>
       </div>
       <Paper elevation={2}>

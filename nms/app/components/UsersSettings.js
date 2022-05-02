@@ -18,7 +18,7 @@ import type {EditUser} from '../../fbc_js_core/ui/components/auth/EditUserDialog
 import type {WithAlert} from '../../fbc_js_core/ui/components/Alert/withAlert';
 
 import AppContext from '../../fbc_js_core/ui/context/AppContext';
-import Button from '../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import EditUserDialog from '../../fbc_js_core/ui/components/auth/EditUserDialog';
@@ -144,7 +144,12 @@ function UsersSettings(props: Props) {
     <div className={classes.paper}>
       <div className={classes.header}>
         <Text variant="h5">Users</Text>
-        <Button onClick={() => setShowDialog(true)}>Add User</Button>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setShowDialog(true)}>
+          Add User
+        </Button>
       </div>
       <Paper elevation={2}>
         <Table>

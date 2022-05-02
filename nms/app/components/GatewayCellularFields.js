@@ -16,7 +16,7 @@
 
 import type {GatewayV1} from './GatewayUtils';
 
-import Button from '../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import Divider from '@material-ui/core/Divider';
@@ -280,10 +280,10 @@ export default function GatewayCellularFields(props: Props) {
         </FormField>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
+        <Button onClick={props.onClose}>Cancel</Button>
+        <Button onClick={onSave} variant="contained" color="primary">
+          Save
         </Button>
-        <Button onClick={onSave}>Save</Button>
       </DialogActions>
     </>
   );

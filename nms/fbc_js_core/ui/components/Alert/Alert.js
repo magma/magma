@@ -16,7 +16,7 @@
 
 import type {Node} from 'react';
 
-import Button from '../design-system/Button';
+import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -31,13 +31,10 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export type AlertSkin = 'primary' | 'red';
-
 type Props = {|
   cancelLabel?: Node,
   confirmLabel?: Node,
   message: Node,
-  skin?: AlertSkin,
   onCancel?: () => void,
   onClose?: () => void,
   onConfirm?: () => void,
@@ -54,7 +51,6 @@ const Alert = ({
   onConfirm,
   title,
   open,
-  skin = 'primary',
 }: Props) => {
   const classes = useStyles();
   const hasActions = cancelLabel != null || confirmLabel != null;
@@ -72,13 +68,9 @@ const Alert = ({
       </DialogContent>
       {hasActions && (
         <DialogActions>
-          {cancelLabel && (
-            <Button skin="regular" onClick={onCancel}>
-              {cancelLabel}
-            </Button>
-          )}
+          {cancelLabel && <Button onClick={onCancel}>{cancelLabel}</Button>}
           {confirmLabel && (
-            <Button onClick={onConfirm} skin={skin}>
+            <Button onClick={onConfirm} variant="contained" color="primary">
               {confirmLabel}
             </Button>
           )}

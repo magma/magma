@@ -19,7 +19,7 @@ import type {Tab} from '../../../fbc_js_core/types/tabs';
 import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
-import Button from '../../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -126,11 +126,10 @@ function DialogWithConfirmationPhrase(props: DialogConfirmationProps) {
         </AltFormField>
       </DialogContent>
       <DialogActions>
-        <Button skin="regular" onClick={onClose}>
-          Cancel
-        </Button>
+        <Button onClick={onClose}>Cancel</Button>
         <Button
-          skin="comet"
+          variant="contained"
+          color="primary"
           onClick={onConfirm}
           disabled={confirmationPhrase !== props.confirmationPhrase}>
           Confirm
@@ -292,7 +291,8 @@ function OrganizationEdit(props: WithAlert & Props) {
             <Grid item>
               <Button
                 disabled={organization?.name === 'host'}
-                skin="comet"
+                variant="contained"
+                color="primary"
                 onClick={() => {
                   setOrganizationToDelete(organization?.name);
                 }}>

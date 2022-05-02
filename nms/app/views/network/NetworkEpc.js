@@ -260,10 +260,7 @@ export function NetworkEpcEdit(props: EditProps) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button
-          data-testid="epcCancelButton"
-          onClick={props.onClose}
-          skin="regular">
+        <Button data-testid="epcCancelButton" onClick={props.onClose}>
           Cancel
         </Button>
         <Button

@@ -16,7 +16,7 @@
 import AppContext from '../../../fbc_js_core/ui/context/AppContext';
 import type {OrganizationPlainAttributes} from '../../../fbc_js_core/sequelize_models/models/organization';
 
-import Button from '../../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -246,11 +246,9 @@ export default function (props: Props) {
         {currentTab === 1 && <OrganizationUserDialog {...createProps} />}
       </DialogContent>
       <DialogActions classes={{root: classes.dialogActions}}>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
-        <Button skin="comet" onClick={onSave}>
-          {'Save'}
+        <Button onClick={props.onClose}>Cancel</Button>
+        <Button onClick={onSave} variant="contained" color="primary">
+          Save
         </Button>
       </DialogActions>
     </Dialog>

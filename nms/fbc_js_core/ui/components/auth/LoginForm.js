@@ -16,7 +16,7 @@
 
 import type {ElementRef} from 'react';
 
-import Button from '../design-system/Button';
+import Button from '@material-ui/core/Button';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
@@ -38,7 +38,7 @@ const styles = {
     margin: '5px 0',
   },
   footer: {
-    marginTop: '10px',
+    padding: '18px 16px 16px',
     float: 'right',
   },
   title: {
@@ -83,6 +83,8 @@ class LoginForm extends React.Component<Props, State> {
           </CardContent>
           <CardActions className={classes.footer}>
             <Button
+              variant="contained"
+              color="primary"
               onClick={() => {
                 window.location = (ssoAction || '') + window.location.search;
               }}>
@@ -121,7 +123,12 @@ class LoginForm extends React.Component<Props, State> {
             />
           </CardContent>
           <CardActions className={classes.footer}>
-            <Button onClick={() => this.form.submit()}>Login</Button>
+            <Button
+              onClick={() => this.form.submit()}
+              variant="contained"
+              color="primary">
+              Login
+            </Button>
           </CardActions>
         </form>
       </Card>

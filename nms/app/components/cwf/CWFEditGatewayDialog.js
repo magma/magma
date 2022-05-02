@@ -20,7 +20,7 @@ import type {
 } from '../../../generated/MagmaAPIBindings';
 
 import AppBar from '@material-ui/core/AppBar';
-import Button from '../../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import CWFGatewayConfigFields from './CWFGatewayConfigFields';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -151,10 +151,10 @@ export default function (props: Props) {
       </AppBar>
       <DialogContent>{content}</DialogContent>
       <DialogActions>
-        <Button onClick={props.onCancel} skin="regular">
-          Cancel
+        <Button onClick={props.onCancel}>Cancel</Button>
+        <Button onClick={onSave} variant="contained" color="primary">
+          Save
         </Button>
-        <Button onClick={onSave}>Save</Button>
       </DialogActions>
     </Dialog>
   );
