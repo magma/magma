@@ -20,9 +20,9 @@ Orchestrator, written in Go, acting as an API backend for the currently develope
 <p>NMS UI page for Domain Proxy management is currently under development.</p>
 <h2><a class="anchor" aria-hidden="true" id="big-picture"></a><a href="#big-picture" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Big Picture</h2>
 <p>The picture below gives a very general look at the Domain Proxy as a proxy service between radios and SAS</p>
-<p><img src="/magma/docs/assets/dp/dp_high_level_overview.png" alt="dp"></p>
+<p><img src="../assets/dp/dp_high_level_overview.png" alt="dp"></p>
 <h3><a class="anchor" aria-hidden="true" id="domain-proxy-in-magmas-context"></a><a href="#domain-proxy-in-magmas-context" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Domain Proxy in Magma's Context</h3>
-<p><img src="/magma/docs/assets/dp/dp_in_context.png" alt="dp"></p>
+<p><img src="../assets/dp/dp_in_context.png" alt="dp"></p>
 <p>If we take a closer look, Domain Proxy as part of Magma is situated next to Orc8r,
 (typically on the same Kubernetes cluster) and uses the same database as the Orc8r.</p>
 <p>In addition there is a <code>DP service</code> within the Orc8r that serves as backend for NMS UI portal (under development)</p>
@@ -42,7 +42,7 @@ radio. This is achieved mainly by
 [Active Mode Controller](/magma/docs/next/dp/architecture_overview title: Overview hide_title: true#active-mode-controller)</p>
 <h3><a class="anchor" aria-hidden="true" id="domain-proxy-components"></a><a href="#domain-proxy-components" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Domain Proxy components</h3>
 <p>In the picture we see three components that comprise Domain Proxy</p>
-<p><img src="/magma/docs/assets/dp/dp_architecture.png" alt="dp"></p>
+<p><img src="../assets/dp/dp_architecture.png" alt="dp"></p>
 <h4><a class="anchor" aria-hidden="true" id="radio-controller"></a><a href="#radio-controller" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Radio Controller</h4>
 <p>Written in Python; it is used to store individual serialized requests coming from eNodeBd in the database. A vital part
 of <code>Radio Controller</code> is the <code>dp_service</code> - a GRPC server used by <code>Enodebd</code>'s <code>dp_client</code> for sending information about
