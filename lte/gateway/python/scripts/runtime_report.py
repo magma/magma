@@ -17,6 +17,7 @@ import argparse
 import glob
 import logging
 import os
+import re
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
@@ -43,6 +44,7 @@ def merge_all_report(list_xml_report_paths, output_path):
 
     # iterate through files
     for xml_file_path in list_xml_report_paths:
+        print(xml_file_path)
         test_result = ET.parse(xml_file_path)
         test_suites_data = test_result.getroot()
 
@@ -73,18 +75,23 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     magma_root_path = os.environ.get('MAGMA_ROOT')
-    default_output_path = ((magma_root_path + "/report/") if magma_root_path else "/tmp/magma_oai/report/") + "report_all_tests.xml"
+    default_output_path = ((magma_root_path + "/report/merged_report/") if magma_root_path else "/tmp/magma_oai/report/") + "report_all_tests.xml"
 
     parser = argparse.ArgumentParser(description="Merging all the .xml unittest reports into a single file")
-    parser.add_argument('-i', '--input', nargs='+', help='<Required> Path of xml files', required=True)
+    parser.add_argument('-w', '--working_dir', default=magma_root_path,  help='Path of folder contains all report files', required=False)
+    parser.add_argument('-i', '--input', help='<Required> regex for paths of xml files', required=True)
     parser.add_argument('-o', '--output', help='Output of xml report', default=default_output_path, required=False)
+
     args = parser.parse_args()
 
     print("=" * 50)
-
-    if len(args.input) < 1:
-        logging.info("No report is generated")
-    else:
-        Path(args.output).parent.mkdir(parents=True, exist_ok=True)
-        merge_all_report(args.input, args.output)
+    paths_all_report_files = filter(re.compile(args.input).match, 
+            [
+                os.path.join(dir_path, file_name)
+                    for dir_path, dir_names, file_names in os.walk(os.path.expanduser(args.working_dir)) 
+                    for file_name in file_names
+            ]
+        )
+    Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+    merge_all_report(paths_all_report_files, args.output)
     logging.info(f"Final report is generated at: {Path(args.output).resolve()}")

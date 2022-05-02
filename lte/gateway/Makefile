@@ -207,12 +207,12 @@ test_c: ## Run all Bazel-ified C/C++ tests
 test_oai: ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS), $(OAI_TESTS))
 
-test_oai_runtime: export GTEST_OUTPUT=xml:/tmp/magma_oai/
+test_oai_runtime: export GTEST_OUTPUT=xml:${MAGMA_ROOT}/unittest_report/
 test_oai_runtime: ## Run all OAI-specific tests with report about the running time
-	mkdir -p /tmp/magma_oai/report/
+	mkdir -p ${MAGMA_ROOT}/unittest_report/merged_report/
 	-$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS), $(OAI_TESTS))
-	python3 python/scripts/runtime_report.py -i /tmp/magma_oai/*.xml
-	rm /tmp/magma_oai/*.xml
+	python3 python/scripts/runtime_report.py -i ${MAGMA_ROOT}/unittest_report/[^//]+\\.xml -w ${MAGMA_ROOT}/unittest_report/
+	rm ${MAGMA_ROOT}/unittest_report/*.xml
 
 test_sctpd: ## Run all tests for sctpd
 	$(call run_ctest, $(C_BUILD)/sctp, $(C_BUILD)/sctp/src, $(GATEWAY_C_DIR)/sctpd, )
