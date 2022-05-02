@@ -1,5 +1,7 @@
 ---
-id: debug_logs title: View Logs hide_title: true
+id: debug_logs
+title: Debugging and logs
+hide_title: true
 ---
 
 # Debugging
@@ -9,10 +11,10 @@ access these logs.
 
 ## eNB <-> AGW/enodebd
 
-To debug eNB side of Domain Proxy functionality, it typically falls down to inspecting the TR069 session data or
+To debug the eNB side of Domain Proxy functionality, it typically comes down to inspecting the TR069 session data or
 looking into eNB specific data model/state machine implementation in `enodebd`.
 
-To view eNB logs from a TR069 session with `AGW`/`enodebd`, login to AGW and look for `enodebd` log file:
+To view eNB logs from a TR069 session with `AGW`/`enodebd`, login to AGW and look for the `enodebd` log file:
 
 ```console
 tail -f /var/log/enodebd.log
@@ -20,9 +22,9 @@ tail -f /var/log/enodebd.log
 
 ### eNB TR069 message flow
 
-[TAR.XZ - example set of logs from AGW/enodebd showing the TR069 message flow with setting of params.](../assets/dp/dp_enb_tr069_flow.tar.xz)
+[TAR.XZ - example set of logs from AGW/enodebd showing the TR069 message flow with setting of params.](assets/dp/dp_enb_tr069_flow.tar.xz)
 
-[TAR.XZ - example pcap of TR069 session flow between eNB and ACS (enodebd)](../assets/dp/dp_enb_tr069.pcap.tar.xz)
+[TAR.XZ - example pcap of TR069 session flow between eNB and ACS (enodebd)](assets/dp/dp_enb_tr069.pcap.tar.xz)
 
 Given the following log snippet (trimmed) from Baicells QRTB, the normal flow should consist of:
 
@@ -63,7 +65,7 @@ Given the following log snippet (trimmed) from Baicells QRTB, the normal flow sh
     2022-04-25 15:41:22,770 DEBUG Received object parameters: {...}
     ```
 
-1. `SetParameterValues` message followed by `GetParameterValues` - conditional, only appears if a configuration change is needed to be done on the eNB side. The actual parameters that are set in order to enable transmission based on Domain Proxy grant may differ depending on the eNB model and eNB current configuration state. Please refer to your eNB device model implementation in `lte/gateway/python/magma/enodebd/devices`.
+1. `SetParameterValues` message followed by `GetParameterValues` - conditional, only appears if a configuration change needs to be done on the eNB side. The actual parameters that are set in order to enable transmission based on Domain Proxy grant may differ depending on the eNB model and eNB current configuration state. Please refer to your eNB device model implementation in `lte/gateway/python/magma/enodebd/devices`.
 
     ```console
     2022-04-25 15:41:22,771 DEBUG State transition from <WaitGetObjectParametersState> to <set_params>`
@@ -80,7 +82,7 @@ Given the following log snippet (trimmed) from Baicells QRTB, the normal flow sh
     2022-04-25 15:41:22,916 DEBUG Handling TR069 message: GetParameterValuesResponse {...}`
     ```
 
-1. Update transmission configuration from Domain Proxy and close TR069 session - `notify_dp` is a `enodebd` transition state that calls Domain Proxy `GetCBSDState` gRPC API. `GetCBSDState` response contains data, which indicate whether eNB radio should be disabled/turned off or enabled together with transmission parameters. `GetCBSDState` response data is translated to eNB specific parameters that will be applied to eNB. Please refer to your eNB device model implementation in `lte/gateway/python/magma/enodebd/devices`.
+1. Update transmission configuration from Domain Proxy and close TR069 session - `notify_dp` is an `enodebd` transition state that calls the Domain Proxy `GetCBSDState` gRPC API. The `GetCBSDState` response contains data, which indicate whether eNB radio should be disabled/turned off or enabled together with transmission parameters. `GetCBSDState` response data is translated to eNB specific parameters that will be applied to eNB. Please refer to your eNB device model implementation in `lte/gateway/python/magma/enodebd/devices`.
 
     ```console
     2022-04-25 15:41:22,917 DEBUG State transition from <WaitGetParametersState> to <end_session>
@@ -111,15 +113,15 @@ Domain Proxy gRPC call details can be viewed in [NMS](#nms).
 
 `enodebd` gRPC calls towards Domain Proxy are visible in NMS: `[Metrics]` menu, `[DP Logs]` tab in a human readable form.
 An `empty` message (blank content in the column) is equivalent to no SAS grant data being sent - which in turn is interpreted by `AGW`/`enodebd` as
-no transmission and the radio transmit must be disabled.
+no transmission and the radio transmission must be disabled.
 
-![DP Logs AGW](../assets/dp/dp_logs_agw_enodebd.png)
+![DP Logs AGW](assets/dp/dp_logs_agw_enodebd.png)
 
 ## Domain Proxy <-> SAS
 
 Domain Proxy logs of communication with Spectrum Access System (SAS) are visible in NMS: `[Metrics]` menu, `[DP Logs]` tab
 
-![DP Logs SAS](../assets/dp/dp_logs_sas.png)
+![DP Logs SAS](assets/dp/dp_logs_sas.png)
 
 ## Gettings logs from Domain Proxy pods
 
@@ -142,12 +144,12 @@ domain-proxy-radio-controller-5c868696d9-s7vgg          1/1     Running     0   
 
 ## Check individual pods' logs
 
-To view logs from individual Domain Proxy pods, execute `kubectl logs` command with one of the pod names listed in [previous chapter].(#listing-domain-proxy-pods-in-kubernetes)
+To view logs from individual Domain Proxy pods, execute `kubectl logs` with one of the pod names listed in the [previous chapter](#listing-domain-proxy-pods-in-kubernetes).
 
 - `Radio Controller` (RC) logs:
     - logs related to AGW/enodebd <-> Domain Proxy communication
     - logs related to requests generated by Active Mode Controller (Domain Proxy logic, which generates appropriate SAS requests)
-    - logs related with Database modifications, which where the result of incoming API calls (either from AGW or AMC)
+    - logs related with Database modifications, which were the result of incoming API calls (either from AGW or AMC)
 - `Configuration Controller` (CC) logs:
     - logs related to Domain Proxy <-> SAS communication
     - logs related with Database modifications, which were the result of processing SAS responses
