@@ -134,7 +134,7 @@ int pdu_session_resource_setup_request(
 
   memcpy(&amf_pdu_ses_setup_transfer_req->qos_flow_setup_request_list
               .qos_flow_req_item,
-         &smf_context->subscribed_qos_profile.qos_flow_req_item,
+         &smf_context->qos_flow_list.item[0].qos_flow_req_item,
          sizeof(qos_flow_setup_request_item));
 
   ngap_pdu_ses_setup_req->nas_pdu = nas_msg;
