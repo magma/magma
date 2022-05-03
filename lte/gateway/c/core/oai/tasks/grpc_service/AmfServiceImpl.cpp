@@ -12,7 +12,6 @@
  */
 
 #include <string>
-#include <folly/IPAddress.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -374,33 +373,73 @@ bool AmfServiceImpl::fillUpPacketFilterContents(
   pf_content->flags = flags;
   return true;
 }
+
+// Extract and validate IP address and subnet mask
+// IPv4 network format ex.: 192.176.128.10/24
+ipv4_networks_t AmfServiceImpl::parseIpv4Network(
+    const std::string& ipv4network_str) {
+  ipv4_networks_t result;
+  const int slash_pos = ipv4network_str.find("/");
+  std::string ipv4addr = (slash_pos != std::string::npos)
+                             ? ipv4network_str.substr(0, slash_pos)
+                             : ipv4network_str;
+  in_addr addr;
+  if (inet_pton(AF_INET, ipv4addr.c_str(), &addr) != 1) {
+    OAILOG_ERROR(LOG_UTIL, "Invalid address string %s \n",
+                 ipv4network_str.c_str());
+    result.success = false;
+    return result;
+  }
+  // Host Byte Order
+  result.addr_hbo = ntohl(addr.s_addr);
+  constexpr char default_mask_len_str[] = "32";
+  std::string mask_len_str = (slash_pos != std::string::npos)
+                                 ? ipv4network_str.substr(slash_pos + 1)
+                                 : default_mask_len_str;
+  int mask_len;
+  try {
+    mask_len = std::stoi(mask_len_str);
+  } catch (...) {
+    OAILOG_ERROR(LOG_UTIL, "Invalid address string %s \n",
+                 ipv4network_str.c_str());
+    result.success = false;
+    return result;
+  }
+  if (mask_len > 32 || mask_len < 0) {
+    OAILOG_ERROR(LOG_UTIL, "Invalid address string %s \n",
+                 ipv4network_str.c_str());
+    result.success = false;
+    return result;
+  }
+  result.mask_len = mask_len;
+  result.success = true;
+  return result;
+}
+
+
 // IPv4 address format ex.: 192.176.128.10/24
 // FEG can provide an empty string which indicates
 // ANY and it is equivalent to 0.0.0.0/0
 // But this function is called only for non-empty ipv4 string
 
 bool AmfServiceImpl::fillIpv4(packet_filter_contents_t* pf_content,
-                              const std::string ipv4addr) {
-  const auto cidrNetworkExpect = folly::IPAddress::tryCreateNetwork(ipv4addr);
-  if (cidrNetworkExpect.hasError()) {
-    OAILOG_ERROR(LOG_UTIL, "Invalid address string %s \n", ipv4addr.c_str());
+                              const std::string& ipv4network_str) {
+  ipv4_networks_t ipv4network = parseIpv4Network(ipv4network_str);
+  if (!ipv4network.success) {
     return false;
   }
-  // Host Byte Order
-  uint32_t ipv4addrHBO = cidrNetworkExpect.value().first.asV4().toLongHBO();
-  for (int i = (TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1); i >= 0; --i) {
-    pf_content->ipv4remoteaddr[i].addr = (unsigned char)ipv4addrHBO & 0xFF;
-    ipv4addrHBO = ipv4addrHBO >> 8;
-  }
 
-  // Get the mask length:
-  // folly takes care of absence of mask_len by defaulting to 32
-  // i.e., 255.255.255.255.
-  int mask_len = cidrNetworkExpect.value().second;
-  uint32_t mask = UINT32_MAX;        // all ones
-  mask = (mask << (32 - mask_len));  // first mask_len bits are 1s, rest 0s
+  uint32_t mask = UINT32_MAX;  // all ones
+  mask =
+      (mask << (32 -
+                ipv4network.mask_len));  // first mask_len bits are 1s, rest 0s
+  uint32_t ipv4addrHBO = ipv4network.addr_hbo;
+
   for (int i = (TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1); i >= 0; --i) {
     pf_content->ipv4remoteaddr[i].mask = (unsigned char)mask & 0xFF;
+    pf_content->ipv4remoteaddr[i].addr =
+        (unsigned char)ipv4addrHBO & pf_content->ipv4remoteaddr[i].mask;
+    ipv4addrHBO = ipv4addrHBO >> 8;
     mask = mask >> 8;
   }
 
