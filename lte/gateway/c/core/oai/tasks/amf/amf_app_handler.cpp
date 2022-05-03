@@ -913,8 +913,8 @@ int amf_app_handle_pdu_session_accept(
   new_qos_rule_pkt_filter.pkt_filter_id = 0x1;
   new_qos_rule_pkt_filter.len = 0x1;
   uint8_t contents = 0x1;
-
-  new_qos_rule_pkt_filter.contents = contents;
+  memcpy(new_qos_rule_pkt_filter.contents, &contents,
+         new_qos_rule_pkt_filter.len);
 
   memcpy(qos_rule.new_qos_rule_pkt_filter, &new_qos_rule_pkt_filter,
          1 * sizeof(NewQOSRulePktFilter));
