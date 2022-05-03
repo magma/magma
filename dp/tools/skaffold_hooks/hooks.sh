@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-MAGMA_ROOT=$(realpath ..)
+MAGMA_ROOT=$(realpath .)
 CERTS_DIR=${MAGMA_ROOT}/orc8r/cloud/helm/orc8r/charts/secrets/certs
 export MAGMA_ROOT
 export CERTS_DIR
