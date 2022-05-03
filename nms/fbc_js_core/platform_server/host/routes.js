@@ -27,6 +27,8 @@ import {FeatureFlag, Organization} from '../../../fbc_js_core/sequelize_models';
 import {User} from '../../../fbc_js_core/sequelize_models';
 import {getPropsToUpdate} from '../../../fbc_js_core/auth/util';
 
+import crypto from 'crypto';
+
 const logger = require('../../../fbc_js_core/logging').getLogger(module);
 
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
@@ -214,7 +216,7 @@ router.post(
           },
         });
         if (organization && organization.ssoEntrypoint) {
-          props.password = Math.random().toString(36);
+          props.password = crypto.randomBytes(16).toString('hex');
         }
       }
 

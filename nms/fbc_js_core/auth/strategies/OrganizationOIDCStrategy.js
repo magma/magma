@@ -26,6 +26,8 @@ import {injectOrganizationParams} from '../organization';
 
 import type {OpenidUserInfoClaims} from 'openid-client';
 
+import crypto from 'crypto';
+
 const logger = require('../../../fbc_js_core/logging').getLogger(module);
 
 type Config = {
@@ -50,7 +52,7 @@ export default function OrganizationOIDCStrategy(config: Config) {
       if (!user) {
         const createArgs = await injectOrganizationParams(req, {
           email: email.toLowerCase(),
-          password: Math.random().toString(36),
+          password: crypto.randomBytes(16).toString('hex'),
           // Hardcoded role for now, should be configurable
           role: AccessRoles.SUPERUSER,
           ssoDefaultNetworkIDs,
