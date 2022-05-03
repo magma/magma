@@ -23,7 +23,7 @@ extern "C" {
 
 #include "lte/gateway/c/core/oai/include/state_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_converter.hpp"
-#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
+#include "orc8r/gateway/c/common/config/ServiceConfigLoader.hpp"
 
 namespace magma {
 namespace lte {

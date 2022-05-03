@@ -24,7 +24,7 @@
 #include <vector>
 
 #include "lte/gateway/c/session_manager/CreditKey.hpp"
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
+#include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
 
 namespace magma {
 namespace lte {

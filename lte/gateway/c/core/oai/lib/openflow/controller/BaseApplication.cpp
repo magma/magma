@@ -18,7 +18,7 @@
 #include <stdio.h>
 
 #include "lte/gateway/c/core/oai/lib/openflow/controller/BaseApplication.hpp"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"

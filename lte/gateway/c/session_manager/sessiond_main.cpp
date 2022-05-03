@@ -59,14 +59,14 @@
 #include "lte/gateway/c/session_manager/SpgwServiceClient.hpp"
 #include "lte/gateway/c/session_manager/StatsPoller.hpp"
 #include "lte/gateway/c/session_manager/UpfMsgManageHandler.hpp"
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
-#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
-#include "orc8r/gateway/c/common/eventd/includes/EventdClient.hpp"
+#include "orc8r/gateway/c/common/config/MConfigLoader.hpp"
+#include "orc8r/gateway/c/common/config/ServiceConfigLoader.hpp"
+#include "orc8r/gateway/c/common/eventd/EventdClient.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging_init.hpp"
-#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.hpp"
-#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
+#include "orc8r/gateway/c/common/sentry/SentryWrapper.hpp"
+#include "orc8r/gateway/c/common/service303/MagmaService.hpp"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 
 namespace grpc {
 class Channel;

@@ -20,7 +20,7 @@
 #include <functional>
 #include <memory>
 
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
+#include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
 
 namespace folly {
 class EventBase;

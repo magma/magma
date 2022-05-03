@@ -36,7 +36,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.hpp"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
 
 namespace magma5g {

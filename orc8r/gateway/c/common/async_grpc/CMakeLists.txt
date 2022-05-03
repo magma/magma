@@ -39,9 +39,9 @@ export(PACKAGE ASYNC_GRPC)
 
 # Copy headers to build directory so they can be shared with session_manager
 # Can be removed when session manager moves to a super build model.
-set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}/common/includes)
+set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}/common)
 add_custom_command(TARGET ASYNC_GRPC POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${MAGMA_INCLUDE_DIR})
 add_custom_command(TARGET ASYNC_GRPC POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-    ${PROJECT_SOURCE_DIR}/includes/*.hpp ${MAGMA_INCLUDE_DIR})
+    ${PROJECT_SOURCE_DIR}/*.hpp ${MAGMA_INCLUDE_DIR})

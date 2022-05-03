@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
+#include "orc8r/gateway/c/common/config/MConfigLoader.hpp"
 
 #include <bits/exception.h>
 #include <glog/logging.h>

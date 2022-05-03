@@ -9,7 +9,7 @@
 #include <ostream>
 #include <utility>
 
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 using grpc::Status;

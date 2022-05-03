@@ -15,7 +15,7 @@
 #define grpc_async_service_TASK_C
 
 #include <thread>
-#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
+#include "orc8r/gateway/c/common/service303/MagmaService.hpp"
 #include "lte/gateway/c/core/oai/tasks/async_grpc_service/grpc_async_service_task.hpp"
 #ifdef __cplusplus
 extern "C" {

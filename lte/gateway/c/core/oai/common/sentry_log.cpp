@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.hpp"
+#include "orc8r/gateway/c/common/sentry/SentryWrapper.hpp"
 
 extern "C" void sentry_error(const char* fmt, ...) {
   va_list args;

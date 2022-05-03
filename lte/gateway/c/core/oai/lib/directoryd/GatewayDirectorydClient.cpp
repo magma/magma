@@ -24,7 +24,7 @@
 #include <google/protobuf/map.h>
 
 #include "orc8r/protos/common.pb.h"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 
 namespace grpc {
 class Channel;

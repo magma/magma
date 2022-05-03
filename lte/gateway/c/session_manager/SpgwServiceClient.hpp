@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
+#include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
 
 namespace grpc {
 class Channel;

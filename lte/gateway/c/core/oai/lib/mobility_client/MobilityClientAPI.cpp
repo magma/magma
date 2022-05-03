@@ -30,7 +30,7 @@
 #include "lte/gateway/c/core/oai/include/spgw_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.hpp"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 using grpc::Channel;
 using grpc::ChannelCredentials;

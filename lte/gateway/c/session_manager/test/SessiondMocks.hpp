@@ -44,7 +44,7 @@
 #include "lte/gateway/c/session_manager/StoreClient.hpp"
 #include "lte/gateway/c/session_manager/Types.hpp"
 #include "lte/gateway/c/session_manager/UpfMsgManageHandler.hpp"
-#include "orc8r/gateway/c/common/eventd/includes/EventdClient.hpp"
+#include "orc8r/gateway/c/common/eventd/EventdClient.hpp"
 
 namespace grpc {
 class ServerContext;
