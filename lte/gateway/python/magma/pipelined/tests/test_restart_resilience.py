@@ -205,7 +205,6 @@ class RestartResilienceTest(unittest.TestCase):
                 version=1,
             ),
         ]
-        enf_stat_name = [imsi + '|ipv6_rule' + '|' + str(sub_ip) + "|" + "1"]
         setup_flows_request = SetupFlowsRequest(
             requests=[
                 ActivateFlowsRequest(
@@ -313,10 +312,6 @@ class RestartResilienceTest(unittest.TestCase):
                 version=1,
             ),
         ]
-        enf_stat_name = [
-            imsi1 + '|sub1_rule_temp' + '|' + sub2_ip,
-            imsi2 + '|sub2_rule_keep' + '|' + sub2_ip,
-        ]
 
         self.service_manager.session_rule_version_mapper.save_version(
             imsi1, convert_ipv4_str_to_ip_proto(sub2_ip), 'sub1_rule_temp', 1,
@@ -391,10 +386,6 @@ class RestartResilienceTest(unittest.TestCase):
                 rule=PolicyRule(id='sub2_rule_keep', priority=3, flow_list=flow_list2),
                 version=1,
             ),
-        ]
-        enf_stat_name = [
-            imsi2 + '|sub2_new_rule' + '|' + sub2_ip + "|" + "1",
-            imsi2 + '|sub2_rule_keep' + '|' + sub2_ip + "|" + "1",
         ]
         setup_flows_request = SetupFlowsRequest(
             requests=[

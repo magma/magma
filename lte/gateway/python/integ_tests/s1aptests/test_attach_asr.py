@@ -37,7 +37,6 @@ class TestAttachASR(unittest.TestCase):
         """ single UE """
         num_ues = 1
         self._s1ap_wrapper.configUEDevice(num_ues)
-        datapath = get_datapath()
 
         req = self._s1ap_wrapper.ue_req
         print(
