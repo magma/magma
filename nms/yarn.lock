@@ -5455,23 +5455,6 @@ escodegen@^1.14.1:
   optionalDependencies:
     source-map "~0.6.1"
 
-eslint-config-fb-strict@^24.3.0:
-  version "24.9.0"
-  resolved "https://registry.yarnpkg.com/eslint-config-fb-strict/-/eslint-config-fb-strict-24.9.0.tgz#5d5ed7c20774fa55b878d75cf8ac1af96dcdb334"
-  integrity sha512-W9fqzHDChDuxivrMgZqd9J7r6kGt3F7lfJtuyMTByT/rnHOJ81BIf1X0rUYA9MvEDrq3fwOr71TjwgAhohlMXA==
-  dependencies:
-    eslint-config-fbjs "^3.1.0"
-
-eslint-config-fbcnms@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/eslint-config-fbcnms/-/eslint-config-fbcnms-0.2.1.tgz#d59eee209d3f69986d6b85e77c066aef5452313f"
-  integrity sha512-q4OFa0xYSd8uv27NR32hNzmICcR0D17fJchyxj9KRk9rffoJo2Cn3sVhZvF/BaaveOZdLH6TLc7GysDByk/Kfw==
-
-eslint-config-fbjs@^3.1.0:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/eslint-config-fbjs/-/eslint-config-fbjs-3.1.1.tgz#f5b4c1df888693672116f000527a8df25d61b888"
-  integrity sha512-Vpyqz+ZcyLyiUGUdUfiQmZnxiQ4Nj/KDRKed/Y5qSm+xHbQJ5zcZUQwLUMWHQicpDHewsdXwlpUAblvy1DtGvg==
-
 eslint-import-resolver-node@^0.3.4:
   version "0.3.4"
   resolved "https://registry.yarnpkg.com/eslint-import-resolver-node/-/eslint-import-resolver-node-0.3.4.tgz#85ffa81942c25012d8231096ddf679c03042c717"
