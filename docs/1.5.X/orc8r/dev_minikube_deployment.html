@@ -27,7 +27,7 @@ to your system. Also make sure you are not connected to a VPN when running this 
     postgresql <span class="hljs-string">\</span>
     --create-namespace <span class="hljs-string">\</span>
     --namespace magma <span class="hljs-string">\</span>
-    --set postgresqlPassword=postgres,postgresqlDatabase=magma,fullnameOverride=postgresql <span class="hljs-string">\</span>
+    --set <span class="hljs-built_in">global</span>.postgresql.auth.postgresPassword=postgres,<span class="hljs-built_in">global</span>.postgresql.auth.database=magma,fullnameOverride=postgresql <span class="hljs-string">\</span>
     bitnami/postgresql
 </code></pre>
 <p>Mysql is a requirement to run the NMS (you can skip this step if you don't want the NMS)</p>
