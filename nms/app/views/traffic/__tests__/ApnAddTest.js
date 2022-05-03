@@ -81,6 +81,7 @@ describe('<TrafficDashboard />', () => {
   });
   beforeEach(() => {
     MagmaAPIBindings.getLteByNetworkIdApns.mockResolvedValue(apns);
+    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
   });
 
   const {location} = window;

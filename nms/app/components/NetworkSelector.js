@@ -13,99 +13,38 @@
  * @flow
  * @format
  */
-import type {NetworkType} from '../../fbc_js_core/types/network';
-
 import AppContext from '../../fbc_js_core/ui/context/AppContext';
 import Divider from '@material-ui/core/Divider';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
 import MagmaV1API from '../../generated/WebClient';
+import MenuButton from './MenuButton';
+import MenuItem from '@material-ui/core/MenuItem';
 import NetworkContext from './context/NetworkContext';
-import Popout from '../../fbc_js_core/ui/components/Popout';
-import React from 'react';
-import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import Text from '../theme/design-system/Text';
 import useMagmaAPI from '../../api/useMagmaAPI';
-
 import {LTE, coalesceNetworkType} from '../../fbc_js_core/types/network';
 import {NetworkEditDialog} from '../views/network/NetworkEdit';
-import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useContext, useEffect, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import type {NetworkType} from '../../fbc_js_core/types/network';
 
 const useStyles = makeStyles(_ => ({
   button: {
-    display: 'flex',
-    alignItems: 'center',
-    width: '100%',
-    padding: '15px 28px',
-    cursor: 'pointer',
-    outline: 'none',
-    '&:hover $icon, &:hover $label': {
-      color: colors.primary.white,
-    },
-  },
-  icon: {
-    color: colors.primary.gullGray,
-    display: 'flex',
-    justifyContent: 'center',
-  },
-  label: {
     '&&': {
-      color: colors.primary.gullGray,
-      whiteSpace: 'nowrap',
-      paddingLeft: '16px',
-    },
-  },
-  itemGutters: {
-    '&&': {
-      minWidth: '200px',
-      padding: '6px 17px',
-      '&:hover': {
-        backgroundColor: colors.primary.concrete,
-      },
-    },
-  },
-  divider: {
-    margin: '6px 17px',
-  },
-  networksList: {
-    '&&': {
-      maxHeight: '400px',
-      overflowY: 'auto',
-      padding: '10px 0',
-    },
-  },
-  networkItemText: {
-    fontSize: '14px',
-    lineHeight: '20px',
-  },
-  selectedListItem: {
-    '& $networkItemText': {
-      color: colors.secondary.dodgerBlue,
-    },
-  },
-  listItemRoot: {
-    '&$selectedListItem': {
-      backgroundColor: colors.primary.concrete,
+      textTransform: 'none',
     },
   },
 }));
 
-type Props = {
-  isMenuOpen: boolean,
-  setMenuOpen: (isOpen: boolean) => void,
-  expanded: boolean,
-};
-
-const NetworkSelector = (props: Props) => {
+const NetworkSelector = () => {
   const classes = useStyles();
+  const navigate = useNavigate();
   const appContext = useContext(AppContext);
   const [networkIds, setNetworkIds] = useState([]);
   const [networkType, setNetworkType] = useState<?NetworkType>(null);
   const [lastRefreshTime, setLastRefreshTime] = useState(new Date().getTime());
   const [isNetworkAddOpen, setNetworkAddOpen] = useState(false);
-  const {networkId} = useContext(NetworkContext);
+  const {networkId: selectedNetworkId} = useContext(NetworkContext);
 
   useMagmaAPI(
     MagmaV1API.getNetworks,
@@ -116,19 +55,24 @@ const NetworkSelector = (props: Props) => {
 
   useEffect(() => {
     const fetchNetworkType = async () => {
-      if (networkId) {
+      if (selectedNetworkId) {
         const networkType = await MagmaV1API.getNetworksByNetworkIdType({
-          networkId,
+          networkId: selectedNetworkId,
         });
-        setNetworkType(coalesceNetworkType(networkId, networkType));
+        setNetworkType(coalesceNetworkType(selectedNetworkId, networkType));
       }
     };
 
     fetchNetworkType();
-  }, [networkId]);
+  }, [selectedNetworkId]);
 
-  if (!networkId) {
+  if (!selectedNetworkId) {
     return null;
+  }
+  const {isSuperUser} = appContext.user;
+
+  if (!isSuperUser && networkIds.length < 2) {
+    return <Text variant="body2">{`Network: ${selectedNetworkId}`}</Text>;
   }
 
   return (
@@ -140,58 +84,31 @@ const NetworkSelector = (props: Props) => {
           setLastRefreshTime(new Date().getTime());
         }}
       />
-      <Popout
+      <MenuButton
+        data-testid="networkSelector"
         className={classes.button}
-        open={props.isMenuOpen}
-        content={
-          <List component="nav" className={classes.networksList}>
-            {networkIds.map(id => (
-              <ListItem
-                key={id}
-                selected={id === networkId}
-                classes={{
-                  root: classes.listItemRoot,
-                  gutters: classes.itemGutters,
-                  selected: classes.selectedListItem,
-                }}
-                button
-                component="a"
-                href={`/nms/${id}`}>
-                <Text className={classes.networkItemText}>{id}</Text>
-              </ListItem>
-            ))}
-            {appContext.user.isSuperUser && networkType === LTE && (
-              <>
-                <Divider className={classes.divider} />
-                <ListItem
-                  key="create_network"
-                  classes={{
-                    root: classes.listItemRoot,
-                    gutters: classes.itemGutters,
-                  }}
-                  button
-                  component="a"
-                  onClick={() => setNetworkAddOpen(true)}>
-                  <Text className={classes.networkItemText}>
-                    Create Network
-                  </Text>
-                </ListItem>
-              </>
-            )}
-          </List>
-        }
-        onOpen={() => props.setMenuOpen(true)}
-        onClose={() => props.setMenuOpen(false)}>
-        <SettingsEthernetIcon
-          className={classes.icon}
-          data-testid="networkSelector"
-        />
-        {props.expanded && (
-          <Text className={classes.label} variant="body3">
-            Networks
-          </Text>
+        label={`Network: ${selectedNetworkId}`}>
+        {isSuperUser && networkType === LTE && (
+          <MenuItem onClick={() => setNetworkAddOpen(true)}>
+            <Text variant="body2">Create Network</Text>
+          </MenuItem>
         )}
-      </Popout>
+        {isSuperUser && (
+          <MenuItem
+            component="a"
+            onClick={() => {
+              navigate(`/nms/${selectedNetworkId}/admin/networks`);
+            }}>
+            <Text variant="body2">Manage Networks</Text>
+          </MenuItem>
+        )}
+        {isSuperUser && networkIds.length > 0 && <Divider variant="middle" />}
+        {networkIds.map(id => (
+          <MenuItem key={id} component="a" href={`/nms/${id}`}>
+            <Text variant="body2">{id}</Text>
+          </MenuItem>
+        ))}
+      </MenuButton>
     </>
   );
 };

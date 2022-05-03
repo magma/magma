@@ -61,6 +61,7 @@ describe('<Enodeb />', () => {
     MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockResolvedValue(
       mockThroughput,
     );
+    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
   });
 
   afterEach(() => {

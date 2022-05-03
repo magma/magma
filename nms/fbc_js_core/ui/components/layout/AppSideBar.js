@@ -14,10 +14,11 @@
  * @format
  */
 
-import NetworkSelector from '../../../../app/components/NetworkSelector';
 import ProfileButton from '../ProfileButton';
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import SidebarItem from '../SidebarItem';
+import Text from '../../../../app/theme/design-system/Text';
+import VersionContext from '../../../../app/components/context/VersionContext';
 import classNames from 'classnames';
 import {colors} from '../../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -34,7 +35,7 @@ const useStyles = makeStyles(() => ({
     backgroundColor: colors.primary.brightGray,
     boxShadow: '1px 0px 0px 0px rgba(0, 0, 0, 0.1)',
     height: '100vh',
-    padding: '60px 0px 36px 0px',
+    padding: '60px 0px 24px 0px',
     position: 'relative',
     zIndex: 100,
     overflowX: 'hidden',
@@ -43,6 +44,14 @@ const useStyles = makeStyles(() => ({
   },
   expanded: {
     width: '208px',
+  },
+  version: {
+    padding: '28px 0 0 28px',
+    color: colors.primary.gullGray,
+    whiteSpace: 'nowrap',
+  },
+  versionHidden: {
+    visibility: 'hidden',
   },
 }));
 
@@ -54,27 +63,20 @@ type ItemConfig = {
 
 type Props = {
   items: Array<ItemConfig>,
-  showNetworkSwitch?: boolean,
 };
 
 const AppSideBar = (props: Props) => {
-  const {items, showNetworkSwitch} = props;
+  const {items} = props;
   const classes = useStyles();
   const [expanded, setIsExpanded] = useState(false);
   const [isProfileMenuOpen, _setProfileMenuOpen] = useState(false);
-  const [isNetworkMenuOpen, _setNetworkMenuOpen] = useState(false);
+  const {nmsVersion} = useContext(VersionContext);
 
   const setProfileMenuOpen = (isOpen: boolean) => {
     if (!isOpen) {
       setIsExpanded(false);
     }
     _setProfileMenuOpen(isOpen);
-  };
-  const setNetworkMenuOpen = (isOpen: boolean) => {
-    if (!isOpen) {
-      setIsExpanded(false);
-    }
-    _setNetworkMenuOpen(isOpen);
   };
 
   return (
@@ -83,7 +85,7 @@ const AppSideBar = (props: Props) => {
       className={classes.root}
       onMouseOver={() => setIsExpanded(true)}
       onMouseLeave={() => {
-        if (!isProfileMenuOpen && !isNetworkMenuOpen) {
+        if (!isProfileMenuOpen) {
           setIsExpanded(false);
         }
       }}>
@@ -104,18 +106,19 @@ const AppSideBar = (props: Props) => {
           ))}
         </div>
         <div className={classes.secondaryItems}>
-          {showNetworkSwitch && (
-            <NetworkSelector
-              expanded={expanded}
-              isMenuOpen={isNetworkMenuOpen}
-              setMenuOpen={setNetworkMenuOpen}
-            />
-          )}
           <ProfileButton
             expanded={expanded}
             isMenuOpen={isProfileMenuOpen}
             setMenuOpen={setProfileMenuOpen}
           />
+          <Text
+            variant="body3"
+            className={classNames({
+              [classes.version]: true,
+              [classes.versionHidden]: !expanded,
+            })}>
+            {'NMS: ' + nmsVersion}
+          </Text>
         </div>
       </div>
     </div>

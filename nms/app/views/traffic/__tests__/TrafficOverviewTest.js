@@ -181,6 +181,11 @@ describe('<TrafficDashboard />', () => {
       });
     },
   };
+
+  beforeEach(() => {
+    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
+  });
+
   const Wrapper = () => (
     <MemoryRouter
       initialEntries={['/nms/test/traffic/policy']}

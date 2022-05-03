@@ -14,17 +14,16 @@
  * @format
  */
 import ApnEditDialog from './ApnEdit';
-import ApnOverview from './ApnOverview';
-import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import ApnOverview, {ApnJsonConfig} from './ApnOverview';
 import BaseNameEditDialog from './BaseNameEdit';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataPlanEditDialog from './DataPlanEdit';
 import DataPlanOverview from './DataPlanOverview';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
-import Menu from '@material-ui/core/Menu';
+import MenuButton from '../../components/MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
-import PolicyOverview from './PolicyOverview';
+import PolicyOverview, {PolicyJsonConfig} from './PolicyOverview';
 import PolicyRuleEditDialog from './PolicyEdit';
 import ProfileEditDialog from './ProfileEdit';
 import RatingGroupEditDialog from './RatingGroupEdit';
@@ -32,69 +31,16 @@ import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
 import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
-
-import {ApnJsonConfig} from './ApnOverview';
 import {Navigate, Route, Routes} from 'react-router-dom';
-import {PolicyJsonConfig} from './PolicyOverview';
-import {colors, typography} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
-import {withStyles} from '@material-ui/core/styles';
-
-const useStyles = makeStyles(_ => ({
-  appBarBtn: {
-    color: colors.primary.white,
-    background: colors.primary.comet,
-    fontFamily: typography.button.fontFamily,
-    fontWeight: typography.button.fontWeight,
-    fontSize: typography.button.fontSize,
-    lineHeight: typography.button.lineHeight,
-    letterSpacing: typography.button.letterSpacing,
-
-    '&:hover': {
-      background: colors.primary.mirage,
-    },
-  },
-}));
-
-const StyledMenu = withStyles({
-  paper: {
-    border: '1px solid #d3d4d5',
-  },
-})(props => (
-  <Menu
-    data-testid="policy_menu"
-    elevation={0}
-    getContentAnchorEl={null}
-    anchorOrigin={{
-      vertical: 'bottom',
-      horizontal: 'center',
-    }}
-    transformOrigin={{
-      vertical: 'top',
-      horizontal: 'center',
-    }}
-    {...props}
-  />
-));
 
 /**
  * Button for creation of policies, rating groups, and profiles
  */
 function PolicyMenu() {
-  const classes = useStyles();
-  const [anchorEl, setAnchorEl] = React.useState(null);
   const [open, setOpen] = React.useState(false);
   const [baseNameDialog, setBaseNameDialog] = React.useState(false);
   const [profileDialog, setProfileDialog] = React.useState(false);
   const [ratingGroupDialog, setRatingGroupDialog] = React.useState(false);
-
-  const handleClick = event => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
 
   return (
     <div>
@@ -111,34 +57,24 @@ function PolicyMenu() {
         open={ratingGroupDialog}
         onClose={() => setRatingGroupDialog(false)}
       />
-      <Button
-        onClick={handleClick}
-        className={classes.appBarBtn}
-        endIcon={<ArrowDropDownIcon />}>
-        Create New{' '}
-      </Button>
-      <StyledMenu
-        anchorEl={anchorEl}
-        keepMounted
-        open={Boolean(anchorEl)}
-        onClose={handleClose}>
+      <MenuButton label="Create New" size="small">
         <MenuItem data-testid="newPolicyMenuItem" onClick={() => setOpen(true)}>
-          <Text variant="subtitle2">Policy</Text>
+          <Text variant="body2">Policy</Text>
         </MenuItem>
         <MenuItem
           data-testid="newBaseNameMenuItem"
           onClick={() => setBaseNameDialog(true)}>
-          <Text variant="subtitle2">Base Name</Text>
+          <Text variant="body2">Base Name</Text>
         </MenuItem>
         <MenuItem onClick={() => setProfileDialog(true)}>
-          <Text variant="subtitle2">Profile</Text>
+          <Text variant="body2">Profile</Text>
         </MenuItem>
         <MenuItem
           data-testid="newRatingGroupMenuItem"
           onClick={() => setRatingGroupDialog(true)}>
-          <Text variant="subtitle2">Rating Group</Text>
+          <Text variant="body2">Rating Group</Text>
         </MenuItem>
-      </StyledMenu>
+      </MenuButton>
     </div>
   );
 }
@@ -147,7 +83,6 @@ function PolicyMenu() {
  * Wrapper for "Create APN" button
  */
 function ApnMenu() {
-  const classes = useStyles();
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -155,8 +90,10 @@ function ApnMenu() {
       <ApnEditDialog open={open} onClose={() => setOpen(false)} />
       <Button
         data-testid="newApnButton"
-        onClick={() => setOpen(true)}
-        className={classes.appBarBtn}>
+        variant="contained"
+        color="primary"
+        size="small"
+        onClick={() => setOpen(true)}>
         Create New APN
       </Button>
     </div>
@@ -167,7 +104,6 @@ function ApnMenu() {
  * Wrapper for "Create Data Plan" button
  */
 function DataPlanMenu() {
-  const classes = useStyles();
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -179,8 +115,10 @@ function DataPlanMenu() {
       />
       <Button
         data-testid="newDataPlanButton"
-        onClick={() => setOpen(true)}
-        className={classes.appBarBtn}>
+        variant="contained"
+        color="primary"
+        size="small"
+        onClick={() => setOpen(true)}>
         Create New Data Plan
       </Button>
     </div>
