@@ -84,6 +84,7 @@ jobs:
             ctraced
             cwg
             deps
+            deps-dev
             directoryd
             dp
             eap
