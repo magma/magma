@@ -127,6 +127,24 @@ To run formatting for each C/C++ service, run
 [VM] make format_all
 ```
 
+#### Apply IWYU
+
+> This tool currently only works inside the devcontainer environment and does not support fixups for `lte/gateway/c/core`.
+
+[include-what-you-use](https://include-what-you-use.org/) is a tool developed by Google to analyze C++ files to help ensure source files include all headers used.
+We have added a utility script that uses Bazel to generate a compilation database, then uses two scripts provided by IWYU, `iwyu_tool.py` and `fix_includes.py`, to apply changes.
+
+To use the script, run
+
+```bash
+# Recommended: Run IWYU for a specific directory, run `apply-iwyu.sh <PATH>`
+[DevContainer] $MAGMA_ROOT/dev_tools/apply-iwyu.sh orc8r/gateway/c
+[DevContainer] $MAGMA_ROOT/dev_tools/apply-iwyu.sh lte/gateway/c/session_manager
+# Run IWYU for all C/C++ files
+# Note: The script currently does not work for lte/gateway/c/core, so you may need to revert changes for that directory
+[DevContainer] $MAGMA_ROOT/dev_tools/apply-iwyu.sh
+```
+
 ### Format Bazel BUILD files
 
 To format all Bazel related files, run
