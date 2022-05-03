@@ -43,7 +43,7 @@ $ helm install \
     postgresql \
     --create-namespace \
     --namespace magma \
-    --set postgresqlPassword=postgres,postgresqlDatabase=magma,fullnameOverride=postgresql \
+    --set global.postgresql.auth.postgresPassword=postgres,global.postgresql.auth.database=magma,fullnameOverride=postgresql \
     bitnami/postgresql
 ```
 
