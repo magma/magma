@@ -39,6 +39,13 @@ using magma::lte::SmfPduSessionSmContext;
 namespace magma {
 using namespace lte;
 
+typedef struct ipv4_networks_s {
+  uint32_t addr_hbo;
+  int mask_len;
+  bool success;
+} ipv4_networks_t;
+
+
 // SessionD to AMF server
 class AmfServiceImpl final : public SmfPduSessionSmContext::Service {
  public:
@@ -56,7 +63,8 @@ class AmfServiceImpl final : public SmfPduSessionSmContext::Service {
   bool fillIpv6(packet_filter_contents_t* pf_content,
                 const std::string ipv6addr);
   bool fillIpv4(packet_filter_contents_t* pf_content,
-                const std::string ipv4addr);
+                const std::string& ipv4addr);
+  ipv4_networks_t parseIpv4Network(const std::string& ipv4network_str);
 };
 
 }  // namespace magma
