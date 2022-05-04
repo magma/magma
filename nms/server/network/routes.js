@@ -180,6 +180,12 @@ router.post(
             },
           },
         });
+      } else {
+        res
+          .status(400)
+          .send(`Unsupported network type ${data.networkType}`)
+          .end();
+        return;
       }
 
       MagmaV1API.postNetworksByNetworkIdTiers({

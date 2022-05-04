@@ -155,7 +155,7 @@ router.use(
   }),
 );
 
-const networkTypeRegex = '(cwf|feg|lte|feg_lte|symphony)';
+const networkTypeRegex = '(cwf|feg|lte|feg_lte)';
 router.use(
   `/magma/v1/:networkType(${networkTypeRegex})/:networkID`,
   proxy(API_HOST, {

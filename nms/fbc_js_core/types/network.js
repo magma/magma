@@ -20,10 +20,6 @@ const Networks = {
   feg: 'feg',
   feg_lte: 'feg_lte',
   lte: 'lte',
-  rhino: 'rhino',
-  symphony: 'symphony',
-  third_party: 'third_party', // TODO: deprecate third_party in lieu of symphony
-  wifi_network: 'wifi_network',
 };
 
 export const CWF = Networks.carrier_wifi_network;
@@ -31,21 +27,8 @@ export const XWFM = Networks.xwfm;
 export const FEG = Networks.feg;
 export const LTE = Networks.lte;
 export const FEG_LTE = Networks.feg_lte;
-export const RHINO = Networks.rhino;
-export const SYMPHONY = Networks.symphony;
-export const THIRD_PARTY = Networks.third_party;
-export const WIFI = Networks.wifi_network;
 
 export const AllNetworkTypes: NetworkType[] = Object.keys(Networks).sort();
-export const V1NetworkTypes: NetworkType[] = [
-  CWF,
-  FEG,
-  LTE,
-  FEG_LTE,
-  SYMPHONY,
-  WIFI,
-  XWFM,
-];
 
 export type NetworkType = $Keys<typeof Networks>;
 
@@ -56,11 +39,5 @@ export function coalesceNetworkType(
   if (networkType && Networks[networkType]) {
     return (networkType: any);
   }
-
-  // backwards compatibility
-  if (networkID.startsWith('mesh_')) {
-    return 'wifi_network';
-  }
-
   return null;
 }
