@@ -39,7 +39,7 @@ ARG RUBY_VERSION=1:2.7+1
 ARG RUBY_DEV_VERSION=1:2.7+1
 ARG WGET_VERSION=1.20.3-1ubuntu2
 ARG PKG_CONFIG_VERSION=0.29.1-0ubuntu4
-ARG LIBMYSQL_VERSION=8.0.28-0ubuntu0.20.04.3
+ARG LIBMYSQL_VERSION=8.0.29-0ubuntu0.20.04.2
 ARG RSYNC_VERSION=3.1.3-8ubuntu0.3
 ARG BINUTILS_VERSION=2.34-6ubuntu1.3
 ARG SSH_VERSION=1:8.2p1-4ubuntu0.4
@@ -56,6 +56,7 @@ ENV PIP_CACHE_HOME="~/.pipcache"
 ENV TZ=Europe/Paris
 ENV SWAGGER_CODEGEN_JAR=/var/tmp/codegen/modules/swagger-codegen-cli/target/swagger-codegen-cli.jar
 ENV S1AP_TESTER_CFG=$MAGMA_ROOT/lte/gateway/python/integ_tests/data/s1ap_tester_cfg
+ENV GRPC_POLL_STRATEGY=poll
 
 # ENV PYTHON_VERSION=3.8
 
@@ -88,21 +89,44 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && apt-get clean \
   && gem install fpm
 
-RUN git clone https://github.com/magma/magma $MAGMA_ROOT && cd $MAGMA_ROOT && git checkout $MAGMA_RELEASE
+RUN git clone https://github.com/magma/magma $MAGMA_ROOT -b $MAGMA_RELEASE
 
 WORKDIR /var/tmp/
-RUN /magma/third_party/build/bin/aioeventlet_build.sh && dpkg -i python3-aioeventlet*
+
+RUN DIRECTORY="/tmp/aioeventlet" && \
+  mkdir -p ${DIRECTORY} && \
+  /magma/third_party/build/bin/aioeventlet_build.sh ${DIRECTORY} && \
+  dpkg -i ${DIRECTORY}/python3-aioeventlet* && \
+  rm -rf ${DIRECTORY}
 
 RUN wget http://mirrors.ibiblio.org/apache/maven/maven-3/$MVN_VERSION/binaries/apache-maven-$MVN_VERSION-bin.tar.gz && \
-  tar -xvf apache-maven-$MVN_VERSION-bin.tar.gz && git clone https://github.com/swagger-api/swagger-codegen /var/tmp/codegen && \
-  cd /var/tmp/codegen && git checkout $CODEGEN_VERSION && ../apache-maven-$MVN_VERSION/bin/mvn clean package -DskipTests
-RUN python3 -m venv $VIRTUAL_ENV && cd /usr/local/bin && ln -s /usr/bin/python3 python
+  tar -xvf apache-maven-$MVN_VERSION-bin.tar.gz && \
+  git clone https://github.com/swagger-api/swagger-codegen /var/tmp/codegen -b $CODEGEN_VERSION
+
+WORKDIR /var/tmp/codegen
+
+RUN ../apache-maven-$MVN_VERSION/bin/mvn clean package -DskipTests
+
+RUN python3 -m venv $VIRTUAL_ENV
+
+WORKDIR /usr/local/bin
+
+RUN ln -s /usr/bin/python3 python
 
 WORKDIR $MAGMA_ROOT/lte/gateway/python
-RUN make && mkdir -p $S1AP_TESTER_ROOT/bin /var/tmp/test_results/
+
+RUN make && \
+  mkdir -p $S1AP_TESTER_ROOT/bin /var/tmp/test_results/
+
 WORKDIR $MAGMA_ROOT/lte/gateway/python/integ_tests
-RUN make && rm -rf /var/lib/apt/lists/* && $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/clone_s1_tester.sh && \
-  touch /usr/include/stropts.h && $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/build_s1_tester.sh
-RUN pip3 install --cache-dir $PIP_CACHE_HOME pyparsing && python3 $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/c_parser.py
-RUN sed -i 's/magtivate_cmd + " && " + //g' $MAGMA_ROOT/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py
-RUN sed -i 's/"vagrant"/"ubuntu"/g' $MAGMA_ROOT/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py
+
+RUN make && \
+  rm -rf /var/lib/apt/lists/* && \
+  $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/clone_s1_tester.sh && \
+  touch /usr/include/stropts.h && \
+  $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/build_s1_tester.sh
+
+RUN pip3 install --cache-dir $PIP_CACHE_HOME pyparsing && \
+  python3 $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/c_parser.py
+RUN sed -i 's/magtivate_cmd + " && " + //g' $MAGMA_ROOT/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py && \
+  sed -i 's/"vagrant"/"ubuntu"/g' $MAGMA_ROOT/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py

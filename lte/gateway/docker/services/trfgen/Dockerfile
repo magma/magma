@@ -43,7 +43,7 @@ RUN pip3 install git+https://github.com/illu89/iperf3-python#egg=iperf3-python \
   pyroute2 \
   scapy-python3
 
-RUN git clone https://github.com/magma/magma $MAGMA_ROOT && cd $MAGMA_ROOT && git checkout $MAGMA_RELEASE
+RUN git clone https://github.com/magma/magma $MAGMA_ROOT -b $MAGMA_RELEASE
 
 RUN mkdir /usr/lib/python3.8/util
 
