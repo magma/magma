@@ -16,9 +16,7 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "yaml_utils",
     srcs = ["YAMLUtils.cpp"],
-    hdrs = ["YAMLUtils.h"],
-    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
-    strip_include_prefix = "/orc8r/gateway/c/common/config",
+    hdrs = ["YAMLUtils.hpp"],
     deps = [
         "@yaml-cpp//:yaml-cpp",
     ],
@@ -27,9 +25,7 @@ cc_library(
 cc_library(
     name = "mconfig_loader",
     srcs = ["MConfigLoader.cpp"],
-    hdrs = ["includes/MConfigLoader.h"],
-    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
-    strip_include_prefix = "/orc8r/gateway/c/common/config",
+    hdrs = ["MConfigLoader.hpp"],
     deps = [
         "//orc8r/gateway/c/common/logging",
         "@com_google_protobuf//:protobuf",
@@ -40,10 +36,7 @@ cc_library(
 cc_library(
     name = "service_config_loader",
     srcs = ["ServiceConfigLoader.cpp"],
-    # TODO(@themarwhal): Remove includes/ project directories - GH8446
-    hdrs = ["includes/ServiceConfigLoader.h"],
-    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
-    strip_include_prefix = "/orc8r/gateway/c/common/config",
+    hdrs = ["ServiceConfigLoader.hpp"],
     deps = [
         ":yaml_utils",
         "//orc8r/gateway/c/common/logging",

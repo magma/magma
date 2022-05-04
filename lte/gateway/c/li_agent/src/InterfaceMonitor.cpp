@@ -11,12 +11,15 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
+#include "lte/gateway/c/li_agent/src/InterfaceMonitor.hpp"
+
+#include <glog/logging.h>
+#include <sys/types.h>
 #include <unistd.h>
+#include <ostream>
 #include <utility>
 
-#include "lte/gateway/c/li_agent/src/InterfaceMonitor.h"
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace magma {
 namespace lte {

@@ -24,19 +24,19 @@ import (
 )
 
 // PushMetrics pushes a set of metrics to the metricsd service.
-func PushMetrics(ctx context.Context, metrics protos.PushedMetricsContainer) error {
+func PushMetrics(ctx context.Context, metrics *protos.PushedMetricsContainer) error {
 	client, err := getCloudMetricsdClient()
 	if err != nil {
 		return err
 	}
-	_, err = client.Push(ctx, &metrics)
+	_, err = client.Push(ctx, metrics)
 	return err
 }
 
 // getCloudMetricsdClient is a utility function to get a RPC connection to the
 // metricsd service
 func getCloudMetricsdClient() (protos.CloudMetricsControllerClient, error) {
-	conn, err := service_registry.GetConnection(ServiceName)
+	conn, err := service_registry.GetConnection(ServiceName, protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

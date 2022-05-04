@@ -39,8 +39,8 @@ const (
 	loadParents
 )
 
-func (store *sqlConfiguratorStorage) countEntities(networkID string, filter EntityLoadFilter) (uint64, error) {
-	selectBuilder, err := store.getBuilder(networkID, filter, EntityLoadCriteria{}, countEntities)
+func (store *sqlConfiguratorStorage) countEntities(networkID string, filter *EntityLoadFilter) (uint64, error) {
+	selectBuilder, err := store.getBuilder(networkID, filter, &EntityLoadCriteria{}, countEntities)
 	if err != nil {
 		return 0, err
 	}
@@ -51,7 +51,7 @@ func (store *sqlConfiguratorStorage) countEntities(networkID string, filter Enti
 	return count, nil
 }
 
-func (store *sqlConfiguratorStorage) loadEntities(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) (EntitiesByTK, error) {
+func (store *sqlConfiguratorStorage) loadEntities(networkID string, filter *EntityLoadFilter, criteria *EntityLoadCriteria) (EntitiesByTK, error) {
 	entsByTK := EntitiesByTK{}
 
 	builder, err := store.getBuilder(networkID, filter, criteria, loadEntities)
@@ -70,7 +70,7 @@ func (store *sqlConfiguratorStorage) loadEntities(networkID string, filter Entit
 		if err != nil {
 			return nil, err
 		}
-		entsByTK[ent.GetTK()] = &ent
+		entsByTK[ent.GetTK()] = ent
 	}
 	err = rows.Err()
 	if err != nil {
@@ -80,7 +80,7 @@ func (store *sqlConfiguratorStorage) loadEntities(networkID string, filter Entit
 	return entsByTK, nil
 }
 
-func (store *sqlConfiguratorStorage) loadAssocs(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria, loadTyp loadType) (loadedAssocs, error) {
+func (store *sqlConfiguratorStorage) loadAssocs(networkID string, filter *EntityLoadFilter, criteria *EntityLoadCriteria, loadTyp loadType) (loadedAssocs, error) {
 	if loadTyp != loadChildren && loadTyp != loadParents {
 		return nil, errors.Errorf("wrong load type received: '%v'", loadTyp)
 	}
@@ -113,7 +113,7 @@ func (store *sqlConfiguratorStorage) loadAssocs(networkID string, filter EntityL
 	return assocs, nil
 }
 
-func (store *sqlConfiguratorStorage) getBuilder(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria, loadTyp loadType) (sq.SelectBuilder, error) {
+func (store *sqlConfiguratorStorage) getBuilder(networkID string, filter *EntityLoadFilter, criteria *EntityLoadCriteria, loadTyp loadType) (sq.SelectBuilder, error) {
 	// Something like:
 	//
 	// SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, ent.graph_id, ent.name, ent.description, ent.config
@@ -226,7 +226,7 @@ func (store *sqlConfiguratorStorage) getBuilder(networkID string, filter EntityL
 	return addSuffix(b), nil
 }
 
-func scanEntityRow(rows *sql.Rows, criteria EntityLoadCriteria) (NetworkEntity, error) {
+func scanEntityRow(rows *sql.Rows, criteria *EntityLoadCriteria) (*NetworkEntity, error) {
 	var nid, key, entType, graphID, pk string
 	var physicalID sql.NullString
 	var name, description sql.NullString
@@ -245,10 +245,10 @@ func scanEntityRow(rows *sql.Rows, criteria EntityLoadCriteria) (NetworkEntity, 
 
 	err := rows.Scan(scanArgs...)
 	if err != nil {
-		return NetworkEntity{}, errors.Wrap(err, "error while scanning entity row")
+		return &NetworkEntity{}, errors.Wrap(err, "error while scanning entity row")
 	}
 
-	ent := NetworkEntity{
+	ent := &NetworkEntity{
 		NetworkID: nid,
 		Key:       key,
 		Type:      entType,
@@ -286,7 +286,7 @@ func scanAssocRow(rows *sql.Rows, loadTyp loadType) (loadedAssoc, error) {
 	return a, nil
 }
 
-func getLoadEntitiesCols(criteria EntityLoadCriteria) []string {
+func getLoadEntitiesCols(criteria *EntityLoadCriteria) []string {
 	cols := []string{
 		fmt.Sprintf("ent.%s", entNidCol),
 		fmt.Sprintf("ent.%s", entPkCol),
@@ -320,7 +320,7 @@ func getLoadAssocCols() []string {
 // getEntityLoadPageSize returns the maximum number of loadEntities to return based
 // on the EntityLoadCriteria specified. A page size of 0 will default to the
 // maximum load size.
-func (store *sqlConfiguratorStorage) getEntityLoadPageSize(loadCriteria EntityLoadCriteria) int {
+func (store *sqlConfiguratorStorage) getEntityLoadPageSize(loadCriteria *EntityLoadCriteria) int {
 	if loadCriteria.PageSize == 0 {
 		return int(store.maxEntityLoadSize)
 	}
@@ -406,7 +406,7 @@ func DeserializePageToken(encodedToken string) (*EntityPageToken, error) {
 	return token, err
 }
 
-func validatePaginatedLoadParameters(filter EntityLoadFilter, criteria EntityLoadCriteria) error {
+func validatePaginatedLoadParameters(filter *EntityLoadFilter, criteria *EntityLoadCriteria) error {
 	err := fmt.Errorf("paginated loads cannot be used on multi-type queries")
 	if criteria.PageSize != 0 && filter.TypeFilter == nil {
 		return err

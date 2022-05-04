@@ -11,7 +11,7 @@
 #include <chrono>
 #include <thread>
 
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
@@ -22,23 +22,23 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 }
 
-#include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.h"
+#include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.h"
 #include <gtest/gtest.h>
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
-#include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.hpp"
+#include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_as.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.h"
@@ -129,6 +129,11 @@ uint8_t NAS5GPktSnapShot::suci_ext_reg_req_buffer[65] = {
     0x92, 0x6c, 0xf0, 0xac, 0x4c, 0x5a, 0x87, 0x3e, 0x5f, 0xc7, 0x62,
     0xa0, 0x4f, 0x95, 0xbc, 0xde, 0xc1, 0x1d, 0x0b, 0xfd, 0x9e, 0xed,
     0x41, 0xe2, 0x02, 0xe6, 0x2e, 0x04, 0x80, 0xe0, 0x80, 0xe0};
+
+uint8_t NAS5GPktSnapShot::reg_req_security_capability_len_zero[30] = {
+    0x7e, 0x00, 0x41, 0x03, 0x00, 0x07, 0xf4, 0x00, 0x40, 0xfa,
+    0xbd, 0xfa, 0x79, 0x10, 0x01, 0x00, 0x2e, 0x00, 0x2f, 0x02,
+    0x01, 0x02, 0x17, 0x02, 0xc0, 0xc0, 0xb0, 0x2b, 0x01, 0x00};
 
 uint8_t empheral_public_key[] = {
     0x18, 0x23, 0x93, 0xb0, 0xcc, 0x25, 0xc5, 0x59, 0x11, 0xea, 0x6e,
@@ -252,6 +257,15 @@ TEST_F(AmfNas5GTest, test_amf_ue_guti_register_req_msg) {
 
   decode_res = decode_registration_request_msg(
       &reg_request, nas5g_pkt_snap.guti_based_registration, len);
+
+  EXPECT_EQ(decode_res, true);
+}
+
+TEST_F(AmfNas5GTest, test_amf_ue_register_req_security_capabilty_len_zero_msg) {
+  uint32_t len = nas5g_pkt_snap.get_reg_req_security_capability_buffer_len();
+
+  decode_res = decode_registration_request_msg(
+      &reg_request, nas5g_pkt_snap.reg_req_security_capability_len_zero, len);
 
   EXPECT_EQ(decode_res, true);
 }

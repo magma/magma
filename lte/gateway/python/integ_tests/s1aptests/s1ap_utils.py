@@ -757,6 +757,7 @@ class SubscriberUtil(object):
             self._subscriber_client.add_subscriber(sid)
             imei = self._generate_imei()
             subscribers.append(self._get_s1ap_sub(sid, imei))
+
         self._subscriber_client.wait_for_changes()
         return subscribers
 

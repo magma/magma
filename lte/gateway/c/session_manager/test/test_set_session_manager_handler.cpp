@@ -11,34 +11,51 @@
  * limitations under the License.
  */
 
-#include <memory>
-
+#include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
-#include <glog/logging.h>
+#include <gmock/gmock.h>
+#include <grpcpp/impl/codegen/server_context.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <gtest/gtest.h>
+#include <lte/protos/mconfig/mconfigs.pb.h>
+#include <lte/protos/pipelined.pb.h>
+#include <lte/protos/session_manager.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
+#include <orc8r/protos/common.pb.h>
+#include <cstdint>
+#include <experimental/optional>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <thread>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
+#include "lte/gateway/c/session_manager/LocalEnforcer.hpp"
+#include "lte/gateway/c/session_manager/MeteringReporter.hpp"
+#include "lte/gateway/c/session_manager/RuleStore.hpp"
+#include "lte/gateway/c/session_manager/SessionID.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/SessionStateEnforcer.hpp"
+#include "lte/gateway/c/session_manager/SessionStore.hpp"
+#include "lte/gateway/c/session_manager/SetMessageManagerHandler.hpp"
+#include "lte/gateway/c/session_manager/ShardTracker.hpp"
+#include "lte/gateway/c/session_manager/StoreClient.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
+#include "lte/gateway/c/session_manager/UpfMsgManageHandler.hpp"
+#include "lte/gateway/c/session_manager/test/Consts.hpp"
 /* session_manager.grpc.pb.h and SessionStateEnforcer.h
- * included in "SetMessageManagerHandler.h"
+ * included in "SetMessageManagerHandler.hpp"
  */
-#include "Matchers.h"
-#include "SetMessageManagerHandler.h"
-#include "SessionStateEnforcer.h"
-#include "UpfMsgManageHandler.h"
-#include "MobilitydClient.h"
-#include "includes/MagmaService.h"
-#include "ProtobufCreators.h"
-#include "RuleStore.h"
-#include "SessionState.h"
-#include "SessionStore.h"
-#include "includes/ServiceRegistrySingleton.h"
-#include "SessiondMocks.h"
-#include "StoredState.h"
-#include "magma_logging.h"
-#include "PipelinedClient.h"
-#include "AmfServiceClient.h"
-#include "DirectorydClient.h"
-#include "Consts.h"
-#include "EnumToString.h"
+#include "lte/gateway/c/session_manager/test/Matchers.hpp"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.hpp"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.hpp"
+
+namespace magma {
+class LocalSessionManagerHandlerImpl;
+}  // namespace magma
 
 using grpc::ServerContext;
 using grpc::Status;

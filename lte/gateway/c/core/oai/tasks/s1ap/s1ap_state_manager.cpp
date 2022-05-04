@@ -17,7 +17,7 @@
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 
 namespace {
 constexpr char S1AP_ENB_COLL[] = "s1ap_eNB_coll";
@@ -146,6 +146,7 @@ void S1apStateManager::free_state() {
 }
 
 status_code_e S1apStateManager::read_ue_state_from_db() {
+#if !MME_UNIT_TEST
   if (!persist_state_enabled) {
     return RETURNok;
   }
@@ -180,6 +181,7 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
                    ue_context->mme_ue_s1ap_id);
     }
   }
+#endif
   return RETURNok;
 }
 

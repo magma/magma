@@ -16,7 +16,7 @@
  */
 
 extern "C" {
-#include "lte/gateway/c/core/oai/tasks/sctp/sctpd_downlink_client.h"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctpd_downlink_client.hpp"
 
 #include <arpa/inet.h>
 

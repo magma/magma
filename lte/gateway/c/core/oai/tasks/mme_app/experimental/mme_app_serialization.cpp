@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 // --C includes ---------------------------------------------------------------
-#include "lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.hpp"
 #include <mcheck.h>
 #include <sys/time.h>      // rusage()
 #include <sys/resource.h>  // rusage()
@@ -25,7 +25,7 @@ extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
@@ -36,7 +36,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
 }
 
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
 extern task_zmq_ctx_t main_zmq_ctx;
 
 using magma::lte::MmeNasStateManager;

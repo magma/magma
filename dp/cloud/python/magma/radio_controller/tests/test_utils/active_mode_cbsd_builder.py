@@ -32,12 +32,12 @@ class ActiveModeCbsdBuilder:
         self.preferences = FrequencyPreferences()
         self.db_id = None
         self.is_deleted = False
-        self.is_updated = False
+        self.should_deregister = False
 
     def build(self) -> Cbsd:
         db_data = DatabaseCbsd(
             id=self.db_id,
-            is_updated=self.is_updated,
+            should_deregister=self.should_deregister,
             is_deleted=self.is_deleted,
         )
         return Cbsd(
@@ -61,7 +61,7 @@ class ActiveModeCbsdBuilder:
         return self
 
     def updated(self) -> ActiveModeCbsdBuilder:
-        self.is_updated = True
+        self.should_deregister = True
         return self
 
     def with_id(self, db_id: int) -> ActiveModeCbsdBuilder:

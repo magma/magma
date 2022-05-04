@@ -10,22 +10,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "lte/gateway/c/session_manager/SessionProxyResponderHandler.hpp"
+
 #include <folly/io/async/EventBase.h>
 #include <glog/logging.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <grpcpp/impl/codegen/status_code_enum.h>
+#include <lte/protos/abort_session.pb.h>
+#include <lte/protos/session_manager.pb.h>
 #include <ostream>
 #include <string>
 
-#include "EnumToString.h"
-#include "GrpcMagmaUtils.h"
-#include "LocalEnforcer.h"
-#include "SessionProxyResponderHandler.h"
-#include "SessionStore.h"
-#include "includes/SentryWrapper.h"
-#include "lte/protos/abort_session.pb.h"
-#include "lte/protos/session_manager.pb.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/session_manager/EnumToString.hpp"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
+#include "lte/gateway/c/session_manager/LocalEnforcer.hpp"
+#include "lte/gateway/c/session_manager/SessionStore.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace google {
 namespace protobuf {

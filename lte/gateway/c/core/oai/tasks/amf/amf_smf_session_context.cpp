@@ -12,13 +12,13 @@
  */
 
 #include <sstream>
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.hpp"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 
 #ifdef __cplusplus
 }

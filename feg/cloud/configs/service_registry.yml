@@ -48,6 +48,8 @@ services:
         port: 9079
       pcrf:
         port: 9079
+      hss:
+        port: 9079
 
   health:
     host: "localhost"

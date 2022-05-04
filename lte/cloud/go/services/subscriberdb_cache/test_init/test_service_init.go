@@ -29,7 +29,7 @@ import (
 
 func StartTestService(t *testing.T) {
 	labels, annotations := map[string]string{}, map[string]string{}
-	srv, lis := test_utils.NewTestOrchestratorService(
+	srv, lis, plis := test_utils.NewTestOrchestratorService(
 		t, lte.ModuleName, subscriberdb_cache.ServiceName, labels, annotations,
 	)
 
@@ -50,5 +50,5 @@ func StartTestService(t *testing.T) {
 	assert.NoError(t, store.Initialize())
 
 	go subscriberdb_cache.MonitorDigests(serviceConfig, store)
-	srv.RunTest(lis)
+	srv.RunTest(lis, plis)
 }

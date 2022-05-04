@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_converter.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_converter.hpp"
 #include <vector>
 #include <memory>
 extern "C" {

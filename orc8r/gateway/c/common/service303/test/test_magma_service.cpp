@@ -10,9 +10,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <google/protobuf/stubs/common.h>
 #include <gtest/gtest.h>
+#include <orc8r/protos/service303.pb.h>
+#include <algorithm>
+#include <string>
 
-#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
+#include "orc8r/gateway/c/common/service303/MagmaService.hpp"
 
 using ::testing::Test;
 

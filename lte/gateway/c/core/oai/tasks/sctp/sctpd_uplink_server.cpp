@@ -16,7 +16,7 @@
  */
 
 extern "C" {
-#include "lte/gateway/c/core/oai/tasks/sctp/sctpd_uplink_server.h"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctpd_uplink_server.hpp"
 
 // #include "assertions.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"

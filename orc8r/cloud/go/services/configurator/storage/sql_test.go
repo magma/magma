@@ -23,15 +23,16 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 	"github.com/thoas/go-funk"
+	"google.golang.org/protobuf/proto"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	orc8r_storage "magma/orc8r/cloud/go/storage"
+	"magma/orc8r/cloud/go/test_utils"
 )
 
 const (
@@ -41,9 +42,10 @@ const (
 var mockResult = sqlmock.NewResult(1, 1)
 
 func TestSqlConfiguratorStorage_LoadNetworks(t *testing.T) {
-	runFactory := func(ids []string, loadCriteria storage.NetworkLoadCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
+	runFactory := func(ids []string, loadCriteria *storage.NetworkLoadCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
+		loadCriteriaCopy := proto.Clone(loadCriteria).(*storage.NetworkLoadCriteria)
 		return func(store storage.ConfiguratorStorage) (interface{}, error) {
-			return store.LoadNetworks(storage.NetworkLoadFilter{Ids: ids}, loadCriteria)
+			return store.LoadNetworks(&storage.NetworkLoadFilter{Ids: ids}, loadCriteriaCopy)
 		}
 	}
 
@@ -56,9 +58,9 @@ func TestSqlConfiguratorStorage_LoadNetworks(t *testing.T) {
 						AddRow("world", "", 2),
 				)
 		},
-		run: runFactory([]string{"hello", "world"}, storage.NetworkLoadCriteria{}),
+		run: runFactory([]string{"hello", "world"}, &storage.NetworkLoadCriteria{}),
 
-		expectedResult: storage.NetworkLoadResult{
+		expectedResult: &storage.NetworkLoadResult{
 			NetworkIDsNotFound: []string{},
 			Networks: []*storage.Network{
 				{ID: "hello", Configs: map[string][]byte{}, Version: 1},
@@ -76,9 +78,9 @@ func TestSqlConfiguratorStorage_LoadNetworks(t *testing.T) {
 						AddRow("world", "", "World", "World network", 2),
 				)
 		},
-		run: runFactory([]string{"hello", "world"}, storage.NetworkLoadCriteria{LoadMetadata: true}),
+		run: runFactory([]string{"hello", "world"}, &storage.NetworkLoadCriteria{LoadMetadata: true}),
 
-		expectedResult: storage.NetworkLoadResult{
+		expectedResult: &storage.NetworkLoadResult{
 			NetworkIDsNotFound: []string{},
 			Networks: []*storage.Network{
 				{
@@ -110,9 +112,9 @@ func TestSqlConfiguratorStorage_LoadNetworks(t *testing.T) {
 						AddRow("world", "", nil, nil, 3),
 				)
 		},
-		run: runFactory([]string{"hello", "world", "foobar"}, storage.NetworkLoadCriteria{LoadConfigs: true}),
+		run: runFactory([]string{"hello", "world", "foobar"}, &storage.NetworkLoadCriteria{LoadConfigs: true}),
 
-		expectedResult: storage.NetworkLoadResult{
+		expectedResult: &storage.NetworkLoadResult{
 			NetworkIDsNotFound: []string{"foobar"},
 			Networks: []*storage.Network{
 				{
@@ -143,9 +145,9 @@ func TestSqlConfiguratorStorage_LoadNetworks(t *testing.T) {
 						AddRow("world", "", "World", "World network", nil, nil, 2),
 				)
 		},
-		run: runFactory([]string{"hello", "world", "foobar"}, storage.NetworkLoadCriteria{LoadMetadata: true, LoadConfigs: true}),
+		run: runFactory([]string{"hello", "world", "foobar"}, &storage.NetworkLoadCriteria{LoadMetadata: true, LoadConfigs: true}),
 
-		expectedResult: storage.NetworkLoadResult{
+		expectedResult: &storage.NetworkLoadResult{
 			NetworkIDsNotFound: []string{"foobar"},
 			Networks: []*storage.Network{
 				{
@@ -174,9 +176,9 @@ func TestSqlConfiguratorStorage_LoadNetworks(t *testing.T) {
 			m.ExpectQuery("SELECT cfg_networks.id, cfg_networks.type, cfg_networks.version FROM cfg_networks").
 				WillReturnRows(sqlmock.NewRows([]string{"id", "", "version"}))
 		},
-		run: runFactory([]string{"hello", "world"}, storage.NetworkLoadCriteria{}),
+		run: runFactory([]string{"hello", "world"}, &storage.NetworkLoadCriteria{}),
 
-		expectedResult: storage.NetworkLoadResult{
+		expectedResult: &storage.NetworkLoadResult{
 			NetworkIDsNotFound: []string{"hello", "world"},
 			Networks:           []*storage.Network{},
 		},
@@ -187,7 +189,7 @@ func TestSqlConfiguratorStorage_LoadNetworks(t *testing.T) {
 			m.ExpectQuery("SELECT cfg_networks.id, cfg_networks.type, cfg_networks.version FROM cfg_networks").
 				WillReturnError(errors.New("mock query error"))
 		},
-		run: runFactory([]string{"hello", "world"}, storage.NetworkLoadCriteria{}),
+		run: runFactory([]string{"hello", "world"}, &storage.NetworkLoadCriteria{}),
 
 		expectedError: errors.New("error querying for networks: mock query error"),
 	}
@@ -201,9 +203,10 @@ func TestSqlConfiguratorStorage_LoadNetworks(t *testing.T) {
 }
 
 func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
-	runFactory := func(network storage.Network) func(store storage.ConfiguratorStorage) (interface{}, error) {
+	runFactory := func(network *storage.Network) func(store storage.ConfiguratorStorage) (interface{}, error) {
+		networkCopy := proto.Clone(network).(*storage.Network)
 		return func(store storage.ConfiguratorStorage) (interface{}, error) {
-			return store.CreateNetwork(network)
+			return store.CreateNetwork(networkCopy)
 		}
 	}
 
@@ -217,9 +220,9 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 				WithArgs("n1", "", "", "").
 				WillReturnResult(mockResult)
 		},
-		run: runFactory(storage.Network{ID: "n1"}),
+		run: runFactory(&storage.Network{ID: "n1"}),
 
-		expectedResult: storage.Network{ID: "n1"},
+		expectedResult: &storage.Network{ID: "n1"},
 	}
 
 	allMetadata := &testCase{
@@ -232,12 +235,12 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 				WithArgs("n2", "", "hello", "world").
 				WillReturnResult(mockResult)
 		},
-		run: runFactory(storage.Network{ID: "n2", Name: "hello", Description: "world"}),
+		run: runFactory(&storage.Network{ID: "n2", Name: "hello", Description: "world"}),
 
-		expectedResult: storage.Network{ID: "n2", Name: "hello", Description: "world"},
+		expectedResult: &storage.Network{ID: "n2", Name: "hello", Description: "world"},
 	}
 
-	everythingNw := storage.Network{
+	everythingNw := &storage.Network{
 		ID:          "n3",
 		Type:        "lte",
 		Name:        "hello",
@@ -279,7 +282,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 				WithArgs("n4", "", "", "").
 				WillReturnError(errors.New("mock exec error"))
 		},
-		run: runFactory(storage.Network{ID: "n4"}),
+		run: runFactory(&storage.Network{ID: "n4"}),
 
 		expectedError: errors.New("error inserting network: mock exec error"),
 	}
@@ -308,7 +311,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 				).
 				WillReturnError(errors.New("mock exec error"))
 		},
-		run: runFactory(configTableErrNw),
+		run: runFactory(&configTableErrNw),
 
 		expectedError: errors.New("error inserting network configs: mock exec error"),
 	}
@@ -319,7 +322,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 				WithArgs("n5").
 				WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 		},
-		run: runFactory(storage.Network{ID: "n5"}),
+		run: runFactory(&storage.Network{ID: "n5"}),
 
 		expectedError: errors.New("a network with ID n5 already exists"),
 	}
@@ -333,7 +336,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 }
 
 func TestSqlConfiguratorStorage_UpdateNetworks(t *testing.T) {
-	runFactory := func(updates []storage.NetworkUpdateCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
+	runFactory := func(updates []*storage.NetworkUpdateCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
 		return func(store storage.ConfiguratorStorage) (interface{}, error) {
 			return nil, store.UpdateNetworks(updates)
 		}
@@ -368,7 +371,7 @@ func TestSqlConfiguratorStorage_UpdateNetworks(t *testing.T) {
 			m.ExpectExec("DELETE FROM cfg_networks").WithArgs("n1").WillReturnResult(mockResult)
 		},
 		run: runFactory(
-			[]storage.NetworkUpdateCriteria{
+			[]*storage.NetworkUpdateCriteria{
 				{ID: "n1", DeleteNetwork: true, NewName: &wrappers.StringValue{Value: names[0]}, NewDescription: &wrappers.StringValue{Value: descs[0]}},
 				{ID: "n2", NewName: &wrappers.StringValue{Value: names[1]}, NewDescription: &wrappers.StringValue{Value: descs[1]}},
 				{
@@ -399,7 +402,7 @@ func TestSqlConfiguratorStorage_UpdateNetworks(t *testing.T) {
 			updateStmt.ExpectExec().WithArgs("name2", "desc2", "n2").WillReturnError(errors.New("mock update error"))
 		},
 		run: runFactory(
-			[]storage.NetworkUpdateCriteria{
+			[]*storage.NetworkUpdateCriteria{
 				{ID: "n1", DeleteNetwork: true},
 				{ID: "n2", NewName: &wrappers.StringValue{Value: names[1]}, NewDescription: &wrappers.StringValue{Value: descs[1]}},
 			},
@@ -412,7 +415,7 @@ func TestSqlConfiguratorStorage_UpdateNetworks(t *testing.T) {
 		setup: func(m sqlmock.Sqlmock) {},
 
 		run: runFactory(
-			[]storage.NetworkUpdateCriteria{
+			[]*storage.NetworkUpdateCriteria{
 				{ID: "n1", DeleteNetwork: true},
 				{ID: "n1", NewName: &wrappers.StringValue{Value: names[1]}},
 			},
@@ -427,9 +430,11 @@ func TestSqlConfiguratorStorage_UpdateNetworks(t *testing.T) {
 }
 
 func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
-	runFactory := func(networkID string, filter storage.EntityLoadFilter, loadCriteria storage.EntityLoadCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
+	runFactory := func(networkID string, filter *storage.EntityLoadFilter, loadCriteria *storage.EntityLoadCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
+		filterCopy := proto.Clone(filter).(*storage.EntityLoadFilter)
+		loadCriteriaCopy := proto.Clone(loadCriteria).(*storage.EntityLoadCriteria)
 		return func(store storage.ConfiguratorStorage) (interface{}, error) {
-			return store.LoadEntities(networkID, filter, loadCriteria)
+			return store.LoadEntities(networkID, filterCopy, loadCriteriaCopy)
 		}
 	}
 
@@ -450,17 +455,17 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 		},
 		run: runFactory(
 			"network",
-			storage.EntityLoadFilter{
+			&storage.EntityLoadFilter{
 				IDs: []*storage.EntityID{
 					{Type: "foo", Key: "bar"},
 					{Type: "baz", Key: "quz"},
 					{Type: "hello", Key: "world"},
 				},
 			},
-			storage.EntityLoadCriteria{},
+			&storage.EntityLoadCriteria{},
 		),
 
-		expectedResult: storage.EntityLoadResult{
+		expectedResult: &storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
 				{NetworkID: "network", Type: "baz", Key: "quz", GraphID: "42", Version: 1, Pk: "def"},
 				{NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 2, Pk: "abc"},
@@ -488,17 +493,17 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 		},
 		run: runFactory(
 			"network",
-			storage.EntityLoadFilter{
+			&storage.EntityLoadFilter{
 				IDs: []*storage.EntityID{
 					{Type: "foo", Key: "bar"},
 					{Type: "baz", Key: "quz"},
 					{Type: "hello", Key: "world"},
 				},
 			},
-			storage.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true},
+			&storage.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true},
 		),
 
-		expectedResult: storage.EntityLoadResult{
+		expectedResult: &storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
 				{
 					NetworkID: "network", Type: "baz", Key: "quz", GraphID: "42", Version: 1, Pk: "def",
@@ -543,11 +548,11 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 		},
 		run: runFactory(
 			"network",
-			storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}},
-			storage.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, PageSize: 2, PageToken: ""},
+			&storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}},
+			&storage.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, PageSize: 2, PageToken: ""},
 		),
 
-		expectedResult: storage.EntityLoadResult{
+		expectedResult: &storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
 				{
 					NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 2, Pk: "abc",
@@ -579,11 +584,11 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 		},
 		run: runFactory(
 			"network",
-			storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}},
-			storage.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, PageSize: 2, PageToken: expectedNextToken},
+			&storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}},
+			&storage.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, PageSize: 2, PageToken: expectedNextToken},
 		),
 
-		expectedResult: storage.EntityLoadResult{
+		expectedResult: &storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
 				{
 					NetworkID: "network", Type: "foo", Key: "zed", GraphID: "42", Version: 2, Pk: "abc",
@@ -617,11 +622,11 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 		},
 		run: runFactory(
 			"network",
-			storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}},
-			storage.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, PageSize: 10, PageToken: ""},
+			&storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}},
+			&storage.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, PageSize: 10, PageToken: ""},
 		),
 
-		expectedResult: storage.EntityLoadResult{
+		expectedResult: &storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
 				{
 					NetworkID: "network", Type: "foo", Key: "aaa", GraphID: "42", Version: 2, Pk: "aaa",
@@ -692,17 +697,17 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 		},
 		run: runFactory(
 			"network",
-			storage.EntityLoadFilter{
+			&storage.EntityLoadFilter{
 				IDs: []*storage.EntityID{
 					{Type: "foo", Key: "bar"},
 					{Type: "baz", Key: "quz"},
 					{Type: "hello", Key: "world"},
 				},
 			},
-			storage.EntityLoadCriteria{LoadAssocsToThis: true},
+			&storage.EntityLoadCriteria{LoadAssocsToThis: true},
 		),
 
-		expectedResult: storage.EntityLoadResult{
+		expectedResult: &storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
 				{
 					NetworkID: "network", Type: "baz", Key: "quz", GraphID: "42", Version: 1, Pk: "def",
@@ -758,17 +763,17 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 		},
 		run: runFactory(
 			"network",
-			storage.EntityLoadFilter{
+			&storage.EntityLoadFilter{
 				IDs: []*storage.EntityID{
 					{Type: "foo", Key: "bar"},
 					{Type: "baz", Key: "quz"},
 					{Type: "hello", Key: "world"},
 				},
 			},
-			storage.EntityLoadCriteria{LoadAssocsFromThis: true},
+			&storage.EntityLoadCriteria{LoadAssocsFromThis: true},
 		),
 
-		expectedResult: storage.EntityLoadResult{
+		expectedResult: &storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
 				{
 					NetworkID: "network", Type: "baz", Key: "quz", GraphID: "42", Version: 1, Pk: "def",
@@ -837,13 +842,13 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 		},
 		run: runFactory(
 			"network",
-			storage.EntityLoadFilter{
+			&storage.EntityLoadFilter{
 				TypeFilter: &wrappers.StringValue{Value: "foo"},
 			},
-			storage.FullEntityLoadCriteria,
+			&storage.FullEntityLoadCriteria,
 		),
 
-		expectedResult: storage.EntityLoadResult{
+		expectedResult: &storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
 				{
 					NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 1, Pk: "foobar",
@@ -886,14 +891,14 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 		},
 		run: runFactory(
 			"network",
-			storage.EntityLoadFilter{
+			&storage.EntityLoadFilter{
 				TypeFilter: stringPointer("foo"),
 				KeyFilter:  stringPointer("bar"),
 			},
-			storage.EntityLoadCriteria{},
+			&storage.EntityLoadCriteria{},
 		),
 
-		expectedResult: storage.EntityLoadResult{
+		expectedResult: &storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
 				{NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 2, Pk: "abc"},
 			},
@@ -912,13 +917,13 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 		},
 		run: runFactory(
 			"network",
-			storage.EntityLoadFilter{
+			&storage.EntityLoadFilter{
 				PhysicalID: stringPointer("p1"),
 			},
-			storage.EntityLoadCriteria{},
+			&storage.EntityLoadCriteria{},
 		),
 
-		expectedResult: storage.EntityLoadResult{
+		expectedResult: &storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
 				{NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", PhysicalID: "p1", Version: 2, Pk: "abc"},
 			},
@@ -938,9 +943,10 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 }
 
 func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
-	runFactory := func(networkID string, entity storage.NetworkEntity) func(store storage.ConfiguratorStorage) (interface{}, error) {
+	runFactory := func(networkID string, entity *storage.NetworkEntity) func(store storage.ConfiguratorStorage) (interface{}, error) {
+		entityCopy := proto.Clone(entity).(*storage.NetworkEntity)
 		return func(store storage.ConfiguratorStorage) (interface{}, error) {
-			return store.CreateEntity(networkID, entity)
+			return store.CreateEntity(networkID, entityCopy)
 		}
 	}
 
@@ -957,7 +963,7 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 		},
 		run: runFactory(
 			"network",
-			storage.NetworkEntity{
+			&storage.NetworkEntity{
 				Type:        "foo",
 				Key:         "bar",
 				Name:        "foobar",
@@ -965,7 +971,7 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 			},
 		),
 
-		expectedResult: storage.NetworkEntity{
+		expectedResult: &storage.NetworkEntity{
 			NetworkID:   "network",
 			Type:        "foo",
 			Key:         "bar",
@@ -999,7 +1005,7 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 		},
 		run: runFactory(
 			"network",
-			storage.NetworkEntity{
+			&storage.NetworkEntity{
 				Type:        "foo",
 				Key:         "bar",
 				Name:        "foobar",
@@ -1014,7 +1020,7 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 		),
 
 		// Merged graphs
-		expectedResult: storage.NetworkEntity{
+		expectedResult: &storage.NetworkEntity{
 			NetworkID:   "network",
 			Type:        "foo",
 			Key:         "bar",
@@ -1038,7 +1044,7 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 		},
 		run: runFactory(
 			"network",
-			storage.NetworkEntity{
+			&storage.NetworkEntity{
 				Type:        "foo",
 				Key:         "bar",
 				Name:        "foobar",
@@ -1046,7 +1052,7 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 			},
 		),
 
-		expectedResult: storage.NetworkEntity{},
+		expectedResult: &storage.NetworkEntity{},
 		expectedError:  errors.New("an entity 'foo-bar' already exists"),
 	}
 
@@ -1056,9 +1062,10 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 }
 
 func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
-	runFactory := func(networkID string, update storage.EntityUpdateCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
+	runFactory := func(networkID string, update *storage.EntityUpdateCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
+		updateCopy := proto.Clone(update).(*storage.EntityUpdateCriteria)
 		return func(store storage.ConfiguratorStorage) (interface{}, error) {
-			return store.UpdateEntity(networkID, update)
+			return store.UpdateEntity(networkID, updateCopy)
 		}
 	}
 
@@ -1070,9 +1077,9 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 			m.ExpectExec("DELETE FROM cfg_entities").WithArgs("network", "foo", "bar").WillReturnResult(mockResult)
 			expectBulkEntityQuery(m, []driver.Value{"g1"})
 		},
-		run: runFactory("network", storage.EntityUpdateCriteria{Type: "foo", Key: "bar", DeleteEntity: true}),
+		run: runFactory("network", &storage.EntityUpdateCriteria{Type: "foo", Key: "bar", DeleteEntity: true}),
 
-		expectedResult: storage.NetworkEntity{Type: "foo", Key: "bar"},
+		expectedResult: &storage.NetworkEntity{Type: "foo", Key: "bar"},
 	}
 	runCase(t, deleteCase)
 
@@ -1112,8 +1119,8 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 			m.ExpectExec("UPDATE cfg_entities").WithArgs("1", "barfoo").WillReturnResult(mockResult)
 			m.ExpectExec("UPDATE cfg_entities").WithArgs("2", "bazbar").WillReturnResult(mockResult)
 		},
-		run:            runFactory("network", storage.EntityUpdateCriteria{Type: "foo", Key: "bar", DeleteEntity: true}),
-		expectedResult: storage.NetworkEntity{Type: "foo", Key: "bar"},
+		run:            runFactory("network", &storage.EntityUpdateCriteria{Type: "foo", Key: "bar", DeleteEntity: true}),
+		expectedResult: &storage.NetworkEntity{Type: "foo", Key: "bar"},
 	}
 	runCase(t, deleteWithPartition)
 
@@ -1121,7 +1128,7 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 	runCase(
 		t,
 		getTestCaseForEntityUpdate(
-			storage.EntityUpdateCriteria{
+			&storage.EntityUpdateCriteria{
 				Type:      "foo",
 				Key:       "bar",
 				NewName:   stringPointer("foobar"),
@@ -1134,7 +1141,7 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 	runCase(
 		t,
 		getTestCaseForEntityUpdate(
-			storage.EntityUpdateCriteria{
+			&storage.EntityUpdateCriteria{
 				Type:           "foo",
 				Key:            "bar",
 				NewDescription: stringPointer("foobar desc"),
@@ -1147,7 +1154,7 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 	runCase(
 		t,
 		getTestCaseForEntityUpdate(
-			storage.EntityUpdateCriteria{
+			&storage.EntityUpdateCriteria{
 				Type:           "foo",
 				Key:            "bar",
 				NewName:        stringPointer("foobar"),
@@ -1166,7 +1173,7 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 	runCase(
 		t,
 		getTestCaseForEntityUpdate(
-			storage.EntityUpdateCriteria{
+			&storage.EntityUpdateCriteria{
 				Type: "foo",
 				Key:  "bar",
 				AssociationsToSet: &storage.EntityAssociationsToSet{
@@ -1190,7 +1197,7 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 	runCase(
 		t,
 		getTestCaseForEntityUpdate(
-			storage.EntityUpdateCriteria{
+			&storage.EntityUpdateCriteria{
 				Type: "foo",
 				Key:  "bar",
 				AssociationsToAdd: []*storage.EntityID{
@@ -1212,7 +1219,7 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 	runCase(
 		t,
 		getTestCaseForEntityUpdate(
-			storage.EntityUpdateCriteria{
+			&storage.EntityUpdateCriteria{
 				Type: "foo",
 				Key:  "bar",
 				AssociationsToAdd: []*storage.EntityID{
@@ -1230,7 +1237,7 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 	runCase(
 		t,
 		getTestCaseForEntityUpdate(
-			storage.EntityUpdateCriteria{
+			&storage.EntityUpdateCriteria{
 				Type: "foo",
 				Key:  "bar",
 				AssociationsToDelete: []*storage.EntityID{
@@ -1294,8 +1301,8 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 			m.ExpectExec("UPDATE cfg_entities").WithArgs("1", "quzbaz").WillReturnResult(mockResult)
 			m.ExpectExec("UPDATE cfg_entities").WithArgs("2", "barfoo", "bazbar").WillReturnResult(mockResult)
 		},
-		run:            runFactory("network", storage.EntityUpdateCriteria{Type: "baz", Key: "quz", AssociationsToDelete: []*storage.EntityID{{Type: "quz", Key: "baz"}, {Type: "baz", Key: "bar"}}}),
-		expectedResult: storage.NetworkEntity{NetworkID: "network", Type: "baz", Key: "quz", GraphID: "g1", Pk: "bazquz", Version: 1},
+		run:            runFactory("network", &storage.EntityUpdateCriteria{Type: "baz", Key: "quz", AssociationsToDelete: []*storage.EntityID{{Type: "quz", Key: "baz"}, {Type: "baz", Key: "bar"}}}),
+		expectedResult: &storage.NetworkEntity{NetworkID: "network", Type: "baz", Key: "quz", GraphID: "g1", Pk: "bazquz", Version: 1},
 	}
 	runCase(t, partitionCase)
 
@@ -1323,17 +1330,19 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 			// Graph partition update
 			m.ExpectExec("UPDATE cfg_entities").WithArgs("1", "barbaz").WillReturnResult(mockResult)
 		},
-		run:            runFactory("network", storage.EntityUpdateCriteria{Type: "foo", Key: "bar", AssociationsToSet: &storage.EntityAssociationsToSet{}}),
-		expectedResult: storage.NetworkEntity{NetworkID: "network", Type: "foo", Key: "bar", GraphID: "g1", Pk: "foobar", Version: 1},
+		run:            runFactory("network", &storage.EntityUpdateCriteria{Type: "foo", Key: "bar", AssociationsToSet: &storage.EntityAssociationsToSet{}}),
+		expectedResult: &storage.NetworkEntity{NetworkID: "network", Type: "foo", Key: "bar", GraphID: "g1", Pk: "foobar", Version: 1},
 	}
 	runCase(t, clearEdgesCase)
 
 }
 
 func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
-	runFactory := func(networkID string, entityID storage.EntityID, loadCriteria storage.EntityLoadCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
+	runFactory := func(networkID string, entityID *storage.EntityID, loadCriteria *storage.EntityLoadCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
+		entityIDCopy := proto.Clone(entityID).(*storage.EntityID)
+		loadCriteriaCopy := proto.Clone(loadCriteria).(*storage.EntityLoadCriteria)
 		return func(store storage.ConfiguratorStorage) (interface{}, error) {
-			return store.LoadGraphForEntity(networkID, entityID, loadCriteria)
+			return store.LoadGraphForEntity(networkID, entityIDCopy, loadCriteriaCopy)
 		}
 	}
 
@@ -1343,7 +1352,7 @@ func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
 
 	// load a linked list of 3 nodes
 	linkedList := &testCase{
-		run: runFactory("network", storage.EntityID{Type: "foo", Key: "bar"}, storage.EntityLoadCriteria{}),
+		run: runFactory("network", &storage.EntityID{Type: "foo", Key: "bar"}, &storage.EntityLoadCriteria{}),
 
 		setup: func(m sqlmock.Sqlmock) {
 			expectBasicEntityQueries(m, expectedFooBar)
@@ -1365,7 +1374,7 @@ func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
 			)
 		},
 
-		expectedResult: storage.EntityGraph{
+		expectedResult: &storage.EntityGraph{
 			Entities: []*storage.NetworkEntity{
 				{
 					NetworkID: "network", Type: "bar", Key: "baz",
@@ -1396,7 +1405,7 @@ func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
 
 	// load a simple tree of 3 nodes
 	tree := &testCase{
-		run: runFactory("network", storage.EntityID{Type: "baz", Key: "quz"}, storage.EntityLoadCriteria{}),
+		run: runFactory("network", &storage.EntityID{Type: "baz", Key: "quz"}, &storage.EntityLoadCriteria{}),
 
 		setup: func(m sqlmock.Sqlmock) {
 			expectBasicEntityQueries(m, expectedBazQuz)
@@ -1418,7 +1427,7 @@ func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
 			)
 		},
 
-		expectedResult: storage.EntityGraph{
+		expectedResult: &storage.EntityGraph{
 			Entities: []*storage.NetworkEntity{
 				{
 					NetworkID: "network", Type: "bar", Key: "baz",
@@ -1448,7 +1457,7 @@ func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
 
 	// load an upside-down tree
 	upsideDownTree := &testCase{
-		run: runFactory("network", storage.EntityID{Type: "foo", Key: "bar"}, storage.EntityLoadCriteria{}),
+		run: runFactory("network", &storage.EntityID{Type: "foo", Key: "bar"}, &storage.EntityLoadCriteria{}),
 
 		setup: func(m sqlmock.Sqlmock) {
 			expectBasicEntityQueries(m, expectedFooBar)
@@ -1470,7 +1479,7 @@ func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
 			)
 		},
 
-		expectedResult: storage.EntityGraph{
+		expectedResult: &storage.EntityGraph{
 			Entities: []*storage.NetworkEntity{
 				{
 					NetworkID: "network", Type: "bar", Key: "baz",
@@ -1500,7 +1509,7 @@ func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
 
 	// load a graph with a cycle
 	withCycle := &testCase{
-		run: runFactory("network", storage.EntityID{Type: "foo", Key: "bar"}, storage.EntityLoadCriteria{}),
+		run: runFactory("network", &storage.EntityID{Type: "foo", Key: "bar"}, &storage.EntityLoadCriteria{}),
 
 		setup: func(m sqlmock.Sqlmock) {
 			expectBasicEntityQueries(m, expectedFooBar)
@@ -1523,7 +1532,7 @@ func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
 			)
 		},
 
-		expectedResult: storage.EntityGraph{
+		expectedResult: &storage.EntityGraph{
 			Entities: []*storage.NetworkEntity{
 				{
 					NetworkID: "network", Type: "bar", Key: "baz",
@@ -1556,7 +1565,7 @@ func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
 
 	// load a ring
 	ring := &testCase{
-		run: runFactory("network", storage.EntityID{Type: "foo", Key: "bar"}, storage.EntityLoadCriteria{}),
+		run: runFactory("network", &storage.EntityID{Type: "foo", Key: "bar"}, &storage.EntityLoadCriteria{}),
 
 		setup: func(m sqlmock.Sqlmock) {
 			expectBasicEntityQueries(m, expectedFooBar)
@@ -1630,7 +1639,7 @@ func runCase(t *testing.T, test *testCase) {
 	}
 
 	if test.expectedResult != nil {
-		assert.Equal(t, test.expectedResult, actual)
+		test_utils.AssertMessagesEqual(t, test.expectedResult.(proto.Message), actual.(proto.Message))
 	}
 
 	assert.NoError(t, mock.ExpectationsWereMet())
@@ -1641,12 +1650,13 @@ func runCase(t *testing.T, test *testCase) {
 // isn't much better, if we want true unit tests for the storage impl.
 // For now, this is just the happy path, with no graph partitioning.
 func getTestCaseForEntityUpdate(
-	update storage.EntityUpdateCriteria,
+	update *storage.EntityUpdateCriteria,
 	entToUpdate expectedEntQueryResult,
 	expectedEdgeLoads []expectedEntQueryResult,
 	expectedGraphMerges ...[2]string,
 ) *testCase {
-	expectedResult := storage.NetworkEntity{
+	updateCopy := proto.Clone(update).(*storage.EntityUpdateCriteria)
+	expectedResult := &storage.NetworkEntity{
 		NetworkID: "network",
 		Type:      entToUpdate.entType,
 		Key:       entToUpdate.key,
@@ -1654,12 +1664,12 @@ func getTestCaseForEntityUpdate(
 		Pk:        entToUpdate.pk,
 		Version:   entToUpdate.version + 1,
 
-		Name:        stringValue(update.NewName),
-		Description: stringValue(update.NewDescription),
-		Config:      bytesVal(update.NewConfig),
+		Name:        stringValue(updateCopy.NewName),
+		Description: stringValue(updateCopy.NewDescription),
+		Config:      bytesVal(updateCopy.NewConfig),
 	}
-	if update.NewPhysicalID != nil {
-		expectedResult.PhysicalID = update.NewPhysicalID.Value
+	if updateCopy.NewPhysicalID != nil {
+		expectedResult.PhysicalID = updateCopy.NewPhysicalID.Value
 	} else {
 		expectedResult.PhysicalID = entToUpdate.physicalID
 	}
@@ -1671,11 +1681,11 @@ func getTestCaseForEntityUpdate(
 		},
 	).(map[orc8r_storage.TK]expectedEntQueryResult)
 
-	if !funk.IsEmpty(update.AssociationsToAdd) {
-		expectedResult.Associations = append(expectedResult.Associations, update.AssociationsToAdd...)
+	if !funk.IsEmpty(updateCopy.AssociationsToAdd) {
+		expectedResult.Associations = append(expectedResult.Associations, updateCopy.AssociationsToAdd...)
 	}
-	if update.AssociationsToSet != nil {
-		expectedResult.Associations = append(expectedResult.Associations, update.AssociationsToSet.AssociationsToSet...)
+	if updateCopy.AssociationsToSet != nil {
+		expectedResult.Associations = append(expectedResult.Associations, updateCopy.AssociationsToSet.AssociationsToSet...)
 	}
 
 	if !funk.IsEmpty(expectedGraphMerges) {
@@ -1687,27 +1697,27 @@ func getTestCaseForEntityUpdate(
 			// Basic fields
 			expectBasicEntityQueries(m, entToUpdate)
 			updateWithArgs := []driver.Value{}
-			if update.NewName != nil {
-				updateWithArgs = append(updateWithArgs, update.NewName.Value)
+			if updateCopy.NewName != nil {
+				updateWithArgs = append(updateWithArgs, updateCopy.NewName.Value)
 			}
-			if update.NewDescription != nil {
-				updateWithArgs = append(updateWithArgs, update.NewDescription.Value)
+			if updateCopy.NewDescription != nil {
+				updateWithArgs = append(updateWithArgs, updateCopy.NewDescription.Value)
 			}
-			if update.NewPhysicalID != nil {
-				updateWithArgs = append(updateWithArgs, update.NewPhysicalID.Value)
+			if updateCopy.NewPhysicalID != nil {
+				updateWithArgs = append(updateWithArgs, updateCopy.NewPhysicalID.Value)
 			}
-			if update.NewConfig != nil {
-				updateWithArgs = append(updateWithArgs, update.NewConfig.Value)
+			if updateCopy.NewConfig != nil {
+				updateWithArgs = append(updateWithArgs, updateCopy.NewConfig.Value)
 			}
 			updateWithArgs = append(updateWithArgs, entToUpdate.pk)
 
 			m.ExpectExec("UPDATE cfg_entities").WithArgs(updateWithArgs...).WillReturnResult(mockResult)
 
 			// Graph
-			if update.AssociationsToSet != nil {
+			if updateCopy.AssociationsToSet != nil {
 				m.ExpectExec("DELETE FROM cfg_assocs").WithArgs(entToUpdate.pk).WillReturnResult(mockResult)
-				expectEdgeQueries(m, update.AssociationsToSet.AssociationsToSet, edgeLoadsByTk)
-				expectEdgeInsertions(m, assocsToEdges(entToUpdate.pk, update.AssociationsToSet.AssociationsToSet, edgeLoadsByTk))
+				expectEdgeQueries(m, updateCopy.AssociationsToSet.AssociationsToSet, edgeLoadsByTk)
+				expectEdgeInsertions(m, assocsToEdges(entToUpdate.pk, updateCopy.AssociationsToSet.AssociationsToSet, edgeLoadsByTk))
 				if !funk.IsEmpty(expectedGraphMerges) {
 					expectMergeGraphs(m, expectedGraphMerges)
 				}
@@ -1722,17 +1732,17 @@ func getTestCaseForEntityUpdate(
 				)
 			}
 
-			if !funk.IsEmpty(update.AssociationsToAdd) {
-				expectEdgeQueries(m, update.AssociationsToAdd, edgeLoadsByTk)
-				expectEdgeInsertions(m, assocsToEdges(entToUpdate.pk, update.AssociationsToAdd, edgeLoadsByTk))
+			if !funk.IsEmpty(updateCopy.AssociationsToAdd) {
+				expectEdgeQueries(m, updateCopy.AssociationsToAdd, edgeLoadsByTk)
+				expectEdgeInsertions(m, assocsToEdges(entToUpdate.pk, updateCopy.AssociationsToAdd, edgeLoadsByTk))
 				if !funk.IsEmpty(expectedGraphMerges) {
 					expectMergeGraphs(m, expectedGraphMerges)
 				}
 			}
 
-			if !funk.IsEmpty(update.AssociationsToDelete) {
-				expectEdgeQueries(m, update.AssociationsToDelete, edgeLoadsByTk)
-				expectEdgeDeletions(m, assocsToEdges(entToUpdate.pk, update.AssociationsToDelete, edgeLoadsByTk))
+			if !funk.IsEmpty(updateCopy.AssociationsToDelete) {
+				expectEdgeQueries(m, updateCopy.AssociationsToDelete, edgeLoadsByTk)
+				expectEdgeDeletions(m, assocsToEdges(entToUpdate.pk, updateCopy.AssociationsToDelete, edgeLoadsByTk))
 
 				// fix graph, but no partition detected
 				expectBulkEntityQuery(m, []driver.Value{entToUpdate.graphID}, entToUpdate)
@@ -1745,7 +1755,7 @@ func getTestCaseForEntityUpdate(
 			}
 		},
 		run: func(store storage.ConfiguratorStorage) (interface{}, error) {
-			return store.UpdateEntity("network", update)
+			return store.UpdateEntity("network", updateCopy)
 		},
 		expectedResult: expectedResult,
 	}

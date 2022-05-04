@@ -11,14 +11,19 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/sctpd/src/sctpd_downlink_impl.h"
+#include "lte/gateway/c/sctpd/src/sctpd_downlink_impl.hpp"
 
-#include <arpa/inet.h>
-#include <assert.h>
-#include <netinet/sctp.h>
-#include <unistd.h>
-#include "lte/gateway/c/sctpd/src/sctpd.h"
-#include "lte/gateway/c/sctpd/src/util.h"
+#include <glog/logging.h>
+#include <lte/protos/sctpd.pb.h>
+#include <ostream>
+#include <string>
+#include <utility>
+
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
+
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
 
 namespace magma {
 namespace sctpd {

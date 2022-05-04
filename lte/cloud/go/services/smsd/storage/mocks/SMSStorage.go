@@ -16,18 +16,18 @@ type SMSStorage struct {
 }
 
 // CreateSMS provides a mock function with given fields: networkID, sms
-func (_m *SMSStorage) CreateSMS(networkID string, sms storage.MutableSMS) (string, error) {
+func (_m *SMSStorage) CreateSMS(networkID string, sms *storage.MutableSMS) (string, error) {
 	ret := _m.Called(networkID, sms)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(string, storage.MutableSMS) string); ok {
+	if rf, ok := ret.Get(0).(func(string, *storage.MutableSMS) string); ok {
 		r0 = rf(networkID, sms)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, storage.MutableSMS) error); ok {
+	if rf, ok := ret.Get(1).(func(string, *storage.MutableSMS) error); ok {
 		r1 = rf(networkID, sms)
 	} else {
 		r1 = ret.Error(1)

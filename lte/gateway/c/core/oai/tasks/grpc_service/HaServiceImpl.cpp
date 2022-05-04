@@ -13,7 +13,7 @@ limitations under the License.
 
 #include <string>
 
-#include "lte/gateway/c/core/oai/tasks/grpc_service/HaServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/HaServiceImpl.hpp"
 #include "lte/protos/ha_service.pb.h"
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"

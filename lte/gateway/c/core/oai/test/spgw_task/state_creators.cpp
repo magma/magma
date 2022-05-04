@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/core/oai/test/spgw_task/state_creators.h"
+#include "lte/gateway/c/core/oai/test/spgw_task/state_creators.hpp"
 
 #include <gtest/gtest.h>
 
@@ -19,7 +19,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 }
 
-#include "lte/gateway/c/core/oai/include/state_converter.h"
+#include "lte/gateway/c/core/oai/include/state_converter.hpp"
 
 namespace magma {
 

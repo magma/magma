@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "DiameterCodes.h"
+#include "lte/gateway/c/session_manager/DiameterCodes.hpp"
 
 uint32_t terminator_codes[] = {
     magma::DIAMETER_END_USER_SERVICE_DENIED,

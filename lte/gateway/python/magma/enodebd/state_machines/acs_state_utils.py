@@ -363,6 +363,11 @@ def should_transition_to_firmware_upgrade_download(acs):
         device_serial_number = acs.device_cfg.get_parameter(
             ParameterName.SERIAL_NUMBER,
         )
+    if not device_sw_version or not device_serial_number:
+        logger.debug(
+            f'Skipping FW Download for eNB, missing device config: {device_sw_version=}, {device_serial_number=}.',
+        )
+        return False
     if acs.is_fw_upgrade_in_progress():
         logger.debug(
             'Skipping FW Download for eNB [%s], firmware upgrade in progress.',
@@ -402,14 +407,14 @@ def get_firmware_upgrade_download_config(acs):
         acs, device_serial_number,
     )
     if fw_upgrade_config:
-        logger.info(f'Found {fw_upgrade_config=} for {device_serial_number=}')
+        logger.debug(f'Found {fw_upgrade_config=} for {device_serial_number=}')
         return fw_upgrade_config
     device_model = acs.device_name
     fw_upgrade_config = _get_firmware_upgrade_download_config_for_model(
         acs, device_model,
     )
     if fw_upgrade_config:
-        logger.info(f'Found {fw_upgrade_config=} for {device_model=}')
+        logger.debug(f'Found {fw_upgrade_config=} for {device_model=}')
     return fw_upgrade_config
 
 

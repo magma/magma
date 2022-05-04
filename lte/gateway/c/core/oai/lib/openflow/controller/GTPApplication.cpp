@@ -19,8 +19,8 @@
 #include <arpa/inet.h>
 #include <string>
 
-#include "lte/gateway/c/core/oai/lib/openflow/controller/GTPApplication.h"
-#include "lte/gateway/c/core/oai/lib/openflow/controller/IMSIEncoder.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/GTPApplication.hpp"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/IMSIEncoder.hpp"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 
 extern "C" {

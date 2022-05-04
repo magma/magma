@@ -22,7 +22,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/s6a_service_handler.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 }
-#include "lte/gateway/c/core/oai/tasks/grpc_service/S6aServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S6aServiceImpl.hpp"
 
 namespace grpc {
 class Channel;

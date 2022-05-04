@@ -49,10 +49,10 @@ func StartTestService(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create certifier server: %s", err)
 	}
-	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, certifier.ServiceName)
+	srv, _, plis := test_utils.NewTestService(t, orc8r.ModuleName, certifier.ServiceName)
 	certprotos.RegisterCertifierServer(
-		srv.GrpcServer,
+		srv.ProtectedGrpcServer,
 		certServer,
 	)
-	go srv.RunTest(lis)
+	go srv.RunTest(nil, plis)
 }

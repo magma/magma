@@ -21,7 +21,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUESecurityCapability.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUESecurityCapability.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
@@ -47,6 +47,8 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
 
   ue_sec_capability->length = *(buffer + decoded);
   decoded++;
+
+  if (ue_sec_capability->length <= 0) return (decoded);
 
   // 5GS encryption algorithms
   ea = *(buffer + decoded);

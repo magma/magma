@@ -15,11 +15,11 @@ package db
 
 type Model interface {
 	GetMetadata() *ModelMetadata
-	Fields() FieldMap
+	Fields() []BaseType // TODO use slice
 }
 
 type ModelMetadata struct {
 	Table        string
-	Relations    map[string]string
+	Properties   []*Field
 	CreateObject func() Model
 }

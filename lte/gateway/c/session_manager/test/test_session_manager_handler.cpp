@@ -11,25 +11,42 @@
  * limitations under the License.
  */
 
+#include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
-#include <glog/logging.h>
+#include <gmock/gmock.h>
+#include <grpcpp/impl/codegen/server_context.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <gtest/gtest.h>
-
+#include <lte/protos/pipelined.pb.h>
+#include <lte/protos/policydb.pb.h>
+#include <lte/protos/session_manager.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
+#include <orc8r/protos/common.pb.h>
+#include <stdint.h>
+#include <functional>
+#include <iostream>
 #include <memory>
+#include <string>
+#include <thread>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include "Consts.h"
-#include "LocalEnforcer.h"
-#include "magma_logging.h"
-#include "includes/MagmaService.h"
-#include "Matchers.h"
-#include "MeteringReporter.h"
-#include "ProtobufCreators.h"
-#include "RuleStore.h"
-#include "includes/ServiceRegistrySingleton.h"
-#include "SessiondMocks.h"
-#include "SessionState.h"
-#include "SessionStore.h"
-#include "StoredState.h"
+#include "lte/gateway/c/session_manager/LocalEnforcer.hpp"
+#include "lte/gateway/c/session_manager/LocalSessionManagerHandler.hpp"
+#include "lte/gateway/c/session_manager/MeteringReporter.hpp"
+#include "lte/gateway/c/session_manager/RuleStore.hpp"
+#include "lte/gateway/c/session_manager/SessionCredit.hpp"
+#include "lte/gateway/c/session_manager/SessionID.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/SessionStore.hpp"
+#include "lte/gateway/c/session_manager/ShardTracker.hpp"
+#include "lte/gateway/c/session_manager/StoreClient.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
+#include "lte/gateway/c/session_manager/test/Consts.hpp"
+#include "lte/gateway/c/session_manager/test/Matchers.hpp"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.hpp"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.hpp"
 
 using ::testing::Test;
 #define DEFAULT_PIPELINED_EPOCH 1

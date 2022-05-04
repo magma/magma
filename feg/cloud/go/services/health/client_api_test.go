@@ -196,7 +196,7 @@ func updateHealth(t *testing.T, req *protos.HealthRequest) (*protos.HealthRespon
 	if req == nil {
 		return nil, fmt.Errorf("Nil HealthRequest")
 	}
-	conn, err := registry.GetConnection(health.ServiceName)
+	conn, err := registry.GetConnection(health.ServiceName, orcprotos.ServiceType_SOUTHBOUND)
 	assert.NoError(t, err)
 
 	client := protos.NewHealthClient(conn)

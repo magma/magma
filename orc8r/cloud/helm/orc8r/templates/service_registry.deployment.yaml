@@ -37,6 +37,8 @@ args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/service_registry", "-logtost
 ports:
   - name: grpc
     containerPort: 9180
+  - name: grpc-internal
+    containerPort: 9190
 livenessProbe:
   tcpSocket:
     port: 9180

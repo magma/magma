@@ -49,7 +49,6 @@ func (s *CbsdManagerTestSuite) SetupSuite() {
 	err = s.resourceManager.CreateTables(
 		&storage.DBCbsdState{},
 		&storage.DBCbsd{},
-		&storage.DBActiveModeConfig{},
 		&storage.DBGrantState{},
 		&storage.DBGrant{},
 	)
@@ -77,7 +76,6 @@ func (s *CbsdManagerTestSuite) SetupSuite() {
 func (s *CbsdManagerTestSuite) TearDownTest() {
 	err := s.resourceManager.DropResources(
 		&storage.DBCbsd{},
-		&storage.DBActiveModeConfig{},
 		&storage.DBGrant{},
 	)
 	s.Require().NoError(err)
@@ -96,9 +94,16 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 		actual, err := db.NewQuery().
 			WithBuilder(s.resourceManager.GetBuilder()).
 			From(&storage.DBCbsd{}).
-			Select(db.NewExcludeMask("id", "state_id")).
+			Select(db.NewExcludeMask("id", "state_id", "desired_state_id")).
 			Join(db.NewQuery().
 				From(&storage.DBCbsdState{}).
+				As("t1").
+				On(db.On(storage.CbsdTable, "state_id", "t1", "id")).
+				Select(db.NewIncludeMask("name"))).
+			Join(db.NewQuery().
+				From(&storage.DBCbsdState{}).
+				As("t2").
+				On(db.On(storage.CbsdTable, "desired_state_id", "t2", "id")).
 				Select(db.NewIncludeMask("name"))).
 			Where(sq.Eq{"cbsd_serial_number": "some_serial_number"}).
 			Fetch()
@@ -108,31 +113,11 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 		cbsd.NetworkId = db.MakeString(someNetwork)
 		cbsd.GrantAttempts = db.MakeInt(0)
 		cbsd.IsDeleted = db.MakeBool(false)
-		cbsd.IsUpdated = db.MakeBool(false)
+		cbsd.ShouldDeregister = db.MakeBool(false)
 		expected := []db.Model{
 			cbsd,
 			&storage.DBCbsdState{Name: db.MakeString("unregistered")},
-		}
-		s.Assert().Equal(expected, actual)
-
-		actual, err = db.NewQuery().
-			WithBuilder(s.resourceManager.GetBuilder()).
-			From(&storage.DBActiveModeConfig{}).
-			Select(db.NewIncludeMask()).
-			Join(db.NewQuery().
-				From(&storage.DBCbsdState{}).
-				Select(db.NewIncludeMask("name"))).
-			Join(db.NewQuery().
-				From(&storage.DBCbsd{}).
-				Select(db.NewIncludeMask())).
-			Where(sq.Eq{"cbsd_serial_number": "some_serial_number"}).
-			Fetch()
-		s.Require().NoError(err)
-
-		expected = []db.Model{
-			&storage.DBActiveModeConfig{},
 			&storage.DBCbsdState{Name: db.MakeString("registered")},
-			&storage.DBCbsd{},
 		}
 		s.Assert().Equal(expected, actual)
 	})
@@ -186,12 +171,13 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 		actual, err := db.NewQuery().
 			WithBuilder(s.resourceManager.GetBuilder()).
 			From(&storage.DBCbsd{}).
-			Select(db.NewExcludeMask("id", "state_id", "cbsd_id", "grant_attempts", "is_deleted")).
+			Select(db.NewExcludeMask("id", "state_id", "desired_state_id",
+				"cbsd_id", "grant_attempts", "is_deleted")).
 			Where(sq.Eq{"id": cbsdId}).
 			Fetch()
 		s.Require().NoError(err)
 		cbsd.NetworkId = db.MakeString(someNetwork)
-		cbsd.IsUpdated = db.MakeBool(true)
+		cbsd.ShouldDeregister = db.MakeBool(true)
 		expected := []db.Model{cbsd}
 		s.Assert().Equal(expected, actual)
 	})
@@ -339,7 +325,7 @@ func (s *CbsdManagerTestSuite) TestListCbsdFromDifferentNetwork() {
 	})
 	s.Require().NoError(err)
 
-	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{})
+	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{}, nil)
 	s.Require().NoError(err)
 
 	expected := &storage.DetailedCbsdList{
@@ -369,7 +355,7 @@ func (s *CbsdManagerTestSuite) TestListWithPagination() {
 		Limit:  db.MakeInt(limit),
 		Offset: db.MakeInt(offset),
 	}
-	actual, err := s.cbsdManager.ListCbsd(someNetwork, pagination)
+	actual, err := s.cbsdManager.ListCbsd(someNetwork, pagination, nil)
 	s.Require().NoError(err)
 
 	expected := &storage.DetailedCbsdList{
@@ -379,6 +365,42 @@ func (s *CbsdManagerTestSuite) TestListWithPagination() {
 	for i := range expected.Cbsds {
 		cbsd := getDetailedCbsd(int64(i + 1 + offset))
 		cbsd.CbsdSerialNumber = db.MakeString(fmt.Sprintf("some_serial_number%d", i+1+offset))
+		expected.Cbsds[i] = &storage.DetailedCbsd{
+			Cbsd:       cbsd,
+			CbsdState:  &storage.DBCbsdState{Name: db.MakeString("unregistered")},
+			Grant:      &storage.DBGrant{},
+			GrantState: &storage.DBGrantState{},
+		}
+	}
+	s.Assert().Equal(expected, actual)
+}
+
+func (s *CbsdManagerTestSuite) TestListWithFilter() {
+	const count = 1
+	models := make([]db.Model, count)
+	stateId := s.enumMaps[storage.CbsdStateTable]["unregistered"]
+	for i := range models {
+		cbsd := getCbsd(someNetwork, stateId)
+		cbsd.Id = db.MakeInt(int64(i + 1))
+
+		cbsd.CbsdSerialNumber = db.MakeString(fmt.Sprintf("some_serial_number%d", i+1))
+		models[i] = cbsd
+	}
+	err := s.resourceManager.InsertResources(db.NewExcludeMask(), models...)
+	s.Require().NoError(err)
+
+	pagination := &storage.Pagination{}
+	filter := &storage.CbsdFilter{SerialNumber: "some_serial_number1"}
+	actual, err := s.cbsdManager.ListCbsd(someNetwork, pagination, filter)
+	s.Require().NoError(err)
+
+	expected := &storage.DetailedCbsdList{
+		Count: count,
+		Cbsds: make([]*storage.DetailedCbsd, 1),
+	}
+	for i := range expected.Cbsds {
+		cbsd := getDetailedCbsd(int64(i + 1))
+		cbsd.CbsdSerialNumber = db.MakeString(fmt.Sprintf("some_serial_number%d", i+1))
 		expected.Cbsds[i] = &storage.DetailedCbsd{
 			Cbsd:       cbsd,
 			CbsdState:  &storage.DBCbsdState{Name: db.MakeString("unregistered")},
@@ -400,7 +422,7 @@ func (s *CbsdManagerTestSuite) TestListNotIncludeIdleGrants() {
 	})
 	s.Require().NoError(err)
 
-	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{})
+	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{}, nil)
 	s.Require().NoError(err)
 
 	expected := &storage.DetailedCbsdList{
@@ -418,7 +440,7 @@ func (s *CbsdManagerTestSuite) TestListNotIncludeIdleGrants() {
 func (s *CbsdManagerTestSuite) TestListDeletedCbsd() {
 	s.givenDeletedCbsd()
 
-	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{})
+	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{}, nil)
 	s.Require().NoError(err)
 
 	expected := &storage.DetailedCbsdList{
@@ -492,8 +514,9 @@ func getCbsd(networkId string, stateId int64) *storage.DBCbsd {
 	base := getBaseCbsd()
 	base.NetworkId = db.MakeString(networkId)
 	base.StateId = db.MakeInt(stateId)
+	base.DesiredStateId = db.MakeInt(stateId)
 	base.CbsdId = db.MakeString("some_cbsd_id")
-	base.IsUpdated = db.MakeBool(false)
+	base.ShouldDeregister = db.MakeBool(false)
 	base.IsDeleted = db.MakeBool(false)
 	base.GrantAttempts = db.MakeInt(0)
 	return base

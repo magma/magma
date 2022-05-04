@@ -11,9 +11,10 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
-#include "yaml-cpp/yaml.h"
+#include <yaml-cpp/yaml.h>
+#include <string>
 
-#include "orc8r/gateway/c/common/config/YAMLUtils.h"
+#include "orc8r/gateway/c/common/config/YAMLUtils.hpp"
 
 using ::testing::Test;
 using YAML::Node;

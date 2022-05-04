@@ -19,8 +19,8 @@
 #include <iostream>
 #include <string>
 
-#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/sms_orc8r_client_api.h"
-#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/SMSOrc8rClient.h"
+#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/sms_orc8r_client_api.hpp"
+#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/SMSOrc8rClient.hpp"
 #include "orc8r/protos/common.pb.h"
 
 extern "C" {

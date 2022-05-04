@@ -13,9 +13,9 @@
 
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/security/server_credentials.h>
-#include "lte/gateway/c/core/oai/include/grpc_service.h"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.h"
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/include/grpc_service.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.hpp"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 
 task_zmq_ctx_t task_zmq_ctx_grpc;
 grpc_service_data_t grpc_service_config = {0};

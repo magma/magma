@@ -11,11 +11,13 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/sctpd/src/sctp_assoc.h"
+#include "lte/gateway/c/sctpd/src/sctp_assoc.hpp"
 
+#include <glog/logging.h>
 #include <iostream>
+#include <string>
 
-#include "lte/gateway/c/sctpd/src/util.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace magma {
 namespace sctpd {

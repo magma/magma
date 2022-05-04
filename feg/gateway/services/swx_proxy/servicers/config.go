@@ -83,7 +83,7 @@ func GetSwxProxyConfig() []*SwxProxyConfig {
 		}
 	}
 
-	glog.V(2).Infof("Loaded %s configs: %+v", SwxProxyServiceName, *configsPtr)
+	glog.V(2).Infof("Loaded %s configs: %+v", SwxProxyServiceName, configsPtr)
 
 	hlrPlmnIds := plmn_filter.GetPlmnVals(configsPtr.HlrPlmnIds, "HLR")
 

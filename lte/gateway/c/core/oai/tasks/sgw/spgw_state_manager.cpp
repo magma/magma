@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_manager.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"

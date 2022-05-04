@@ -30,7 +30,7 @@ cc_library(
         "spgw_mock.cpp",
     ],
     hdrs = [
-        "mock_tasks.h",
+        "mock_tasks.hpp",
     ],
     deps = [
         "//lte/gateway/c/core",

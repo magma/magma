@@ -510,8 +510,8 @@
       "proposals/p025_magma_cdr_availability": {
         "title": "proposals/p025_magma_cdr_availability"
       },
-      "proposals/p026_magma_inbound_roaming_extentions": {
-        "title": "proposals/p026_magma_inbound_roaming_extentions"
+      "proposals/p026_magma_inbound_roaming_extensions": {
+        "title": "proposals/p026_magma_inbound_roaming_extensions"
       },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"

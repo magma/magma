@@ -13,16 +13,14 @@ limitations under the License.
 
 package db
 
-type FieldMap map[string]*Field
+import "magma/orc8r/cloud/go/sqorc"
 
 type Field struct {
-	BaseType     BaseType
+	Name         string
+	SqlType      sqorc.ColumnType
 	Nullable     bool
 	HasDefault   bool
 	DefaultValue interface{}
 	Unique       bool
-}
-
-func (f *Field) GetValue() interface{} {
-	return f.BaseType.baseValue()
+	Relation     string
 }

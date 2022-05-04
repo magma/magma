@@ -20,7 +20,7 @@ limitations under the License.
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/ha_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/tasks/ha/ha_defs.h"
+#include "lte/gateway/c/core/oai/tasks/ha/ha_defs.hpp"
 
 static void ha_exit(void);
 

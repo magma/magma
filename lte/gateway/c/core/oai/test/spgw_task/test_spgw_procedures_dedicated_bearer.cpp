@@ -18,7 +18,7 @@
 #include <thread>
 
 #include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
-#include "lte/gateway/c/core/oai/test/spgw_task/spgw_procedures_test_fixture.h"
+#include "lte/gateway/c/core/oai/test/spgw_task/spgw_procedures_test_fixture.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
@@ -27,7 +27,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
-#include "lte/gateway/c/core/oai/include/spgw_state.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"

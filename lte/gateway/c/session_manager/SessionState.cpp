@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+
 #include <ext/alloc_traits.h>
 #include <glog/logging.h>
 #include <google/protobuf/stubs/port.h>
@@ -24,14 +26,13 @@
 #include <utility>
 #include <vector>
 
-#include "CreditKey.h"
-#include "EnumToString.h"
-#include "RuleStore.h"
-#include "SessionState.h"
-#include "StoredState.h"
-#include "Utilities.h"
-#include "includes/MetricsHelpers.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/session_manager/CreditKey.hpp"
+#include "lte/gateway/c/session_manager/EnumToString.hpp"
+#include "lte/gateway/c/session_manager/RuleStore.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
+#include "lte/gateway/c/session_manager/Utilities.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace {
 const char* UE_TRAFFIC_COUNTER_NAME = "ue_traffic";
@@ -43,8 +44,6 @@ const char* LABEL_SESSION_ID = "session_id";
 const char* LABEL_DIRECTION = "direction";
 const char* DIRECTION_UP = "up";
 const char* DIRECTION_DOWN = "down";
-// TODO(@themarwhal): SessionD should own the naming of the drop all rule so
-// that we never regress here
 const char* DROP_ALL_RULE = "internal_default_drop_flow_rule";
 }  // namespace
 

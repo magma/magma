@@ -22,7 +22,6 @@
 #include <uapi/linux/ptrace.h>
 #include <net/sock.h>
 
-
 struct key_t {
   // binary name (task->comm in the kernel)
   char comm[TASK_COMM_LEN];
