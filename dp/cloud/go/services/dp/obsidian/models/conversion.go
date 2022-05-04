@@ -35,6 +35,7 @@ func CbsdToBackend(m *MutableCbsd) *protos.CbsdData {
 			BandwidthMhz:   m.FrequencyPreferences.BandwidthMhz,
 			FrequenciesMhz: m.FrequencyPreferences.FrequenciesMhz,
 		},
+		DesiredState: m.DesiredState,
 	}
 }
 
@@ -51,6 +52,7 @@ func CbsdFromBackend(details *protos.CbsdDetails) *Cbsd {
 			FrequenciesMhz: makeSliceNotNil(details.Data.Preferences.FrequenciesMhz),
 		},
 		CbsdID:       details.CbsdId,
+		DesiredState: details.Data.DesiredState,
 		FccID:        details.Data.FccId,
 		Grant:        getGrant(details.Grant),
 		ID:           details.Id,

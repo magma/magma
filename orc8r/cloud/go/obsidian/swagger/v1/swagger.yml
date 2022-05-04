@@ -6899,6 +6899,13 @@ definitions:
         example: some_cbsd_id
         type: string
         x-nullable: false
+      desired_state:
+        description: desired state of cbsd in SAS
+        enum:
+        - unregistered
+        - registered
+        type: string
+        x-nullable: false
       fcc_id:
         example: some_fcc_id
         minLength: 1
@@ -6936,6 +6943,7 @@ definitions:
         x-nullable: false
     required:
     - capabilities
+    - desired_state
     - fcc_id
     - frequency_preferences
     - id
@@ -7033,12 +7041,6 @@ definitions:
     pattern: ^[a-z][\da-z_]+$
     type: string
     x-nullable: false
-  components:
-    enum:
-    - SAS
-    - DP
-    - CBSD
-    type: string
   config_info:
     properties:
       mconfig_created_at:
@@ -9125,6 +9127,13 @@ definitions:
     properties:
       capabilities:
         $ref: '#/definitions/capabilities'
+      desired_state:
+        description: desired state of cbsd in SAS
+        enum:
+        - unregistered
+        - registered
+        type: string
+        x-nullable: false
       fcc_id:
         example: some_fcc_id
         minLength: 1
@@ -9144,6 +9153,7 @@ definitions:
         x-nullable: false
     required:
     - capabilities
+    - desired_state
     - fcc_id
     - frequency_preferences
     - serial_number

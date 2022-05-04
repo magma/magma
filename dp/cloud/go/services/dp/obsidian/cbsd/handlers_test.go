@@ -229,21 +229,7 @@ func (s *HandlersTestSuite) TestCreateCbsd() {
 	s.cbsdServer.createResponse = &protos.CreateCbsdResponse{}
 	s.cbsdServer.expectedCreateRequest = &protos.CreateCbsdRequest{
 		NetworkId: "n1",
-		Data: &protos.CbsdData{
-			UserId:       payload.UserID,
-			FccId:        payload.FccID,
-			SerialNumber: payload.SerialNumber,
-			Capabilities: &protos.Capabilities{
-				MinPower:         *payload.Capabilities.MinPower,
-				MaxPower:         *payload.Capabilities.MaxPower,
-				NumberOfAntennas: payload.Capabilities.NumberOfAntennas,
-				AntennaGain:      *payload.Capabilities.AntennaGain,
-			},
-			Preferences: &protos.FrequencyPreferences{
-				BandwidthMhz:   10,
-				FrequenciesMhz: []int64{3600},
-			},
-		},
+		Data:      getCbsdData(),
 	}
 	createCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdsPath, obsidian.POST).HandlerFunc
 	tc := tests.Test{
@@ -359,21 +345,7 @@ func (s *HandlersTestSuite) TestUpdateCbsd() {
 	payload := createOrUpdateCbsdPayload()
 	s.cbsdServer.expectedUpdateRequest = &protos.UpdateCbsdRequest{
 		NetworkId: "n1",
-		Data: &protos.CbsdData{
-			UserId:       payload.UserID,
-			FccId:        payload.FccID,
-			SerialNumber: payload.SerialNumber,
-			Capabilities: &protos.Capabilities{
-				MinPower:         *payload.Capabilities.MinPower,
-				MaxPower:         *payload.Capabilities.MaxPower,
-				NumberOfAntennas: payload.Capabilities.NumberOfAntennas,
-				AntennaGain:      *payload.Capabilities.AntennaGain,
-			},
-			Preferences: &protos.FrequencyPreferences{
-				BandwidthMhz:   payload.FrequencyPreferences.BandwidthMhz,
-				FrequenciesMhz: payload.FrequencyPreferences.FrequenciesMhz,
-			},
-		},
+		Data:      getCbsdData(),
 	}
 	tc := tests.Test{
 		Method:         http.MethodPut,
@@ -420,21 +392,7 @@ func (s *HandlersTestSuite) TestUpdateNonexistentCbsd() {
 	payload := createOrUpdateCbsdPayload()
 	s.cbsdServer.expectedUpdateRequest = &protos.UpdateCbsdRequest{
 		NetworkId: "n1",
-		Data: &protos.CbsdData{
-			UserId:       payload.UserID,
-			FccId:        payload.FccID,
-			SerialNumber: payload.SerialNumber,
-			Capabilities: &protos.Capabilities{
-				MinPower:         *payload.Capabilities.MinPower,
-				MaxPower:         *payload.Capabilities.MaxPower,
-				NumberOfAntennas: payload.Capabilities.NumberOfAntennas,
-				AntennaGain:      *payload.Capabilities.AntennaGain,
-			},
-			Preferences: &protos.FrequencyPreferences{
-				BandwidthMhz:   10,
-				FrequenciesMhz: []int64{3600},
-			},
-		},
+		Data:      getCbsdData(),
 	}
 	updateCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdPath, obsidian.PUT).HandlerFunc
 	tc := tests.Test{
@@ -638,8 +596,9 @@ func getCbsd() *models.Cbsd {
 			MinPower:         to_pointer.Float(0),
 			NumberOfAntennas: 1,
 		},
-		CbsdID: "someCbsdId",
-		FccID:  "someFCCId",
+		CbsdID:       "someCbsdId",
+		DesiredState: "registered",
+		FccID:        "someFCCId",
 		FrequencyPreferences: models.FrequencyPreferences{
 			BandwidthMhz:   10,
 			FrequenciesMhz: []int64{3600},
@@ -668,6 +627,7 @@ func createOrUpdateCbsdPayload() *models.MutableCbsd {
 			MinPower:         to_pointer.Float(0),
 			NumberOfAntennas: 1,
 		},
+		DesiredState: "registered",
 		FrequencyPreferences: models.FrequencyPreferences{
 			BandwidthMhz:   10,
 			FrequenciesMhz: []int64{3600},
@@ -678,24 +638,29 @@ func createOrUpdateCbsdPayload() *models.MutableCbsd {
 	}
 }
 
+func getCbsdData() *protos.CbsdData {
+	return &protos.CbsdData{
+		UserId:       "someUserId",
+		FccId:        "someFCCId",
+		SerialNumber: "someSerialNumber",
+		Capabilities: &protos.Capabilities{
+			MinPower:         0,
+			MaxPower:         24,
+			NumberOfAntennas: 1,
+			AntennaGain:      1,
+		},
+		Preferences: &protos.FrequencyPreferences{
+			BandwidthMhz:   10,
+			FrequenciesMhz: []int64{3600},
+		},
+		DesiredState: "registered",
+	}
+}
+
 func getCbsdDetails() *protos.CbsdDetails {
 	return &protos.CbsdDetails{
-		Id: 0,
-		Data: &protos.CbsdData{
-			UserId:       "someUserId",
-			FccId:        "someFCCId",
-			SerialNumber: "someSerialNumber",
-			Capabilities: &protos.Capabilities{
-				MinPower:         0,
-				MaxPower:         24,
-				NumberOfAntennas: 1,
-				AntennaGain:      1,
-			},
-			Preferences: &protos.FrequencyPreferences{
-				BandwidthMhz:   10,
-				FrequenciesMhz: []int64{3600},
-			},
-		},
+		Id:       0,
+		Data:     getCbsdData(),
 		CbsdId:   "someCbsdId",
 		State:    "unregistered",
 		IsActive: false,

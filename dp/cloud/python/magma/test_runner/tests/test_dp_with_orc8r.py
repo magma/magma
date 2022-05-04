@@ -90,6 +90,19 @@ class DomainProxyOrc8rTestCase(BaseDBTestCase):
 
         self.delete_cbsd(cbsd_id)
 
+    def test_cbsd_unregistered_when_requested_by_desired_state(self):
+        builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
+        cbsd_id = self.given_cbsd_provisioned(builder)
+
+        with self.while_cbsd_is_active():
+            filters = get_filters_for_request_type('deregistration', self.serial_number)
+
+            builder = builder.with_desired_state('unregistered')
+            self.when_cbsd_is_updated(cbsd_id, builder.build_post_data())
+
+            # TODO maybe asking for state (cbsd api instead of log api) would be better
+            self.then_message_is_eventually_sent(filters)
+
     def test_sas_flow_restarted_for_updated_cbsd(self):
         builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
         cbsd_id = self.given_cbsd_provisioned(builder)
@@ -153,20 +166,20 @@ class DomainProxyOrc8rTestCase(BaseDBTestCase):
         )
 
     def test_fetch_cbsds_filtered_by_serial_number(self):
-        builder = CbsdAPIDataBuilder()
-
         cbsd1_serial = self.serial_number + "_foo"
         cbsd2_serial = self.serial_number + "_bar"
-        cbsd1_payload = builder.with_serial_number(cbsd1_serial).build_unregistered_data()
-        cbsd2_payload = builder.with_serial_number(cbsd2_serial).build_unregistered_data()
-        self.when_cbsd_is_created(cbsd1_payload)
-        self.when_cbsd_is_created(cbsd2_payload)
+
+        builder1 = CbsdAPIDataBuilder().with_serial_number(cbsd1_serial)
+        builder2 = CbsdAPIDataBuilder().with_serial_number(cbsd2_serial)
+
+        self.when_cbsd_is_created(builder1.build_post_data())
+        self.when_cbsd_is_created(builder2.build_post_data())
 
         cbsd1 = self.when_cbsd_is_fetched(serial_number=cbsd1_serial)
         cbsd2 = self.when_cbsd_is_fetched(serial_number=cbsd2_serial)
 
-        self.then_cbsd_is(cbsd1, builder.with_serial_number(cbsd1_serial).build_unregistered_data())
-        self.then_cbsd_is(cbsd2, builder.with_serial_number(cbsd2_serial).build_unregistered_data())
+        self.then_cbsd_is(cbsd1, builder1.build_unregistered_data())
+        self.then_cbsd_is(cbsd2, builder2.build_unregistered_data())
 
     def test_fetching_logs_with_custom_filters(self):
         builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
@@ -422,6 +435,7 @@ class CbsdAPIDataBuilder:
         self.frequency_mhz = 3625
         self.bandwidth_mhz = 10
         self.max_eirp = 28
+        self.desired_state = 'registered'
 
     def with_serial_number(self, serial_number: str) -> CbsdAPIDataBuilder:
         self.serial_number = serial_number
@@ -431,13 +445,13 @@ class CbsdAPIDataBuilder:
         self.fcc_id = fcc_id
         return self
 
-    def with_serial_number(self, serial_number: str) -> CbsdAPIDataBuilder:
-        self.serial_number = serial_number
-        return self
-
     def with_frequency_preferences(self, bandwidth_mhz: int, frequencies_mhz: List[int]) -> CbsdAPIDataBuilder:
         self.preferred_bandwidth_mhz = bandwidth_mhz
         self.preferred_frequencies_mhz = frequencies_mhz
+        return self
+
+    def with_desired_state(self, desired_state: str) -> CbsdAPIDataBuilder:
+        self.desired_state = desired_state
         return self
 
     def with_expected_grant(self, bandwidth_mhz: int, frequency_mhz: int, max_eirp: int) -> CbsdAPIDataBuilder:
@@ -461,6 +475,7 @@ class CbsdAPIDataBuilder:
             'fcc_id': self.fcc_id,
             'serial_number': self.serial_number,
             'user_id': USER_ID,
+            'desired_state': self.desired_state,
         }
 
     def build_unregistered_data(self) -> Dict[str, Any]:

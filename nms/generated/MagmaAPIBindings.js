@@ -161,6 +161,7 @@ export type carrier_wifi_ha_pair_status = {
 export type cbsd = {
     capabilities: capabilities,
     cbsd_id ? : string,
+    desired_state: "unregistered" | "registered",
     fcc_id: string,
     frequency_preferences: frequency_preferences,
     grant ? : grant,
@@ -192,7 +193,6 @@ export type challenge_key = {
     key_type: "ECHO" | "SOFTWARE_ECDSA_SHA256",
 };
 export type channel_id = string;
-export type components = "SAS" | "DP" | "CBSD";
 export type config_info = {
     mconfig_created_at ? : number,
 };
@@ -806,6 +806,7 @@ export type mutable_call_trace = {
 };
 export type mutable_cbsd = {
     capabilities: capabilities,
+    desired_state: "unregistered" | "registered",
     fcc_id: string,
     frequency_preferences: frequency_preferences,
     serial_number: string,
