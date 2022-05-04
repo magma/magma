@@ -18,7 +18,6 @@ import time
 import unittest
 import warnings
 from concurrent.futures import Future
-from os import pipe
 from typing import List
 
 from lte.protos.mobilityd_pb2 import GWInfo, IPAddress, IPBlock
