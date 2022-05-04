@@ -1,5 +1,7 @@
 ---
-id: deploy_build title: Build DP hide_title: true
+id: deploy_build
+title: Build and deployment
+hide_title: true
 ---
 
 # Domain Proxy Installation
