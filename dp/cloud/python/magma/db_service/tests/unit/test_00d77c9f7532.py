@@ -3,26 +3,26 @@ from magma.db_service.tests.alembic_testcase import AlembicTestCase
 CBSDS = 'cbsds'
 TEST_STATE_ID = 1
 NEW_COLUMNS = [
-    'single_step_registration',
+    'single_step_enabled',
     'cbsd_category',
-    'latitude',
-    'longitude',
-    'height',
+    'latitude_deg',
+    'longitude_deg',
+    'height_m',
     'height_type',
-    'horizontal_accuracy',
-    'antenna_azimuth',
-    'antenna_downtilt',
-    'antenna_beamwidth',
+    'horizontal_accuracy_m',
+    'antenna_azimuth_deg',
+    'antenna_downtilt_deg',
+    'antenna_beamwidth_deg',
     'antenna_model',
-    'eirp_capability',
+    'eirp_capability_dbm_mhz',
     'cpi_digital_signature',
     'indoor_deployment',
 ]
 
 
-class Test85c497865cceTestCase(AlembicTestCase):
+class Test00d77c9f7532TestCase(AlembicTestCase):
     down_revision = 'e793671a19a6'
-    up_revision = '85c497865cce'
+    up_revision = '00d77c9f7532'
 
     def setUp(self) -> None:
         super().setUp()
@@ -60,7 +60,7 @@ class Test85c497865cceTestCase(AlembicTestCase):
         cbsd = self.engine.execute(cbsds.select()).fetchall()[0]
 
         # then
-        self.assertFalse(cbsd.single_step_registration)
+        self.assertFalse(cbsd.single_step_enabled)
         self.assertFalse(cbsd.indoor_deployment)
         self.assertEqual('B', cbsd.cbsd_category)
 
