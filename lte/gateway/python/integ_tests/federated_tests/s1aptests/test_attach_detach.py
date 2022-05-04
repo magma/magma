@@ -23,7 +23,7 @@ from integ_tests.s1aptests import s1ap_wrapper
 class TestAttachDetach(unittest.TestCase):
 
     def setUp(self):
-        self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
+        self._s1ap_wrapper = s1ap_wrapper.TestWrapper(federated_mode=True)
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
@@ -41,8 +41,8 @@ class TestAttachDetach(unittest.TestCase):
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
             print(
-                "************************* Running End to End attach for ",
-                "UE id ", req.ue_id,
+                "************************* Running Federated End to End attach "
+                "for UE id ", req.ue_id,
             )
             # Now actually complete the attach
             self._s1ap_wrapper._s1_util.attach(

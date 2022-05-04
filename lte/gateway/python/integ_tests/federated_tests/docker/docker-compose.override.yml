@@ -11,8 +11,9 @@ services:
       - gwconfigs:/var/opt/magma/configs
     restart: always
     environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 2
       USE_REMOTE_SWX_PROXY: 0
-    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/hss -logtostderr=true -v=0
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/hss -logtostderr=true -v=9
 
   control_proxy:
     extra_hosts:

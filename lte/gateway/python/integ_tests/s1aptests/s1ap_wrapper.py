@@ -22,6 +22,7 @@ from integ_tests.common.magmad_client import MagmadServiceGrpc
 from integ_tests.common.mobility_service_client import MobilityServiceGrpc
 from integ_tests.common.service303_utils import GatewayServicesUtil
 from integ_tests.common.subscriber_db_client import (
+    HSSGrpc,
     SubscriberDbCassandra,
     SubscriberDbGrpc,
 )
@@ -60,6 +61,7 @@ class TestWrapper(object):
         stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         apn_correction=MagmadUtil.apn_correction_cmds.DISABLE,
         health_service=MagmadUtil.health_service_cmds.DISABLE,
+        federated_mode=False,
     ):
         """
         Initialize the various classes required by the tests and setup.
@@ -77,6 +79,9 @@ class TestWrapper(object):
         if self._test_oai_upstream:
             subscriber_client = SubscriberDbCassandra()
             self.wait_gateway_healthy = False
+        elif federated_mode:
+            subscriber_client = HSSGrpc()
+            self.wait_gateway_healthy = True
         else:
             subscriber_client = SubscriberDbGrpc()
             self.wait_gateway_healthy = True
