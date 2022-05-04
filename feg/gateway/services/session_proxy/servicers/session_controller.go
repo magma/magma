@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/hashicorp/go-multierror"
 	"github.com/thoas/go-funk"
 
 	fegprotos "magma/feg/cloud/go/protos"
@@ -30,7 +31,6 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/feg/gateway/services/session_proxy/metrics"
 	"magma/lte/cloud/go/protos"
-	"magma/orc8r/lib/go/merrors"
 	orcprotos "magma/orc8r/lib/go/protos"
 )
 
@@ -340,20 +340,20 @@ func (srv *CentralSessionController) Enable(
 	ctx context.Context,
 	void *orcprotos.Void,
 ) (*orcprotos.Void, error) {
-	multiError := merrors.NewMulti()
+	errs := &multierror.Error{}
 	if !srv.cfg.DisableGx {
 		err := srv.policyClient.EnableConnections()
 		if err != nil {
-			multiError.Add(fmt.Errorf("An error occurred while enabling connections; policyClient err: %s", err))
+			errs = multierror.Append(errs, fmt.Errorf("An error occurred while enabling connections; policyClient err: %s", err))
 		}
 	}
 	if !srv.cfg.DisableGy {
 		err := srv.creditClient.EnableConnections()
 		if err != nil {
-			multiError.Add(fmt.Errorf("An error occurred while enabling connections; creditClient err: %s", err))
+			errs = multierror.Append(errs, fmt.Errorf("An error occurred while enabling connections; creditClient err: %s", err))
 		}
 	}
-	return &orcprotos.Void{}, multiError.AsError()
+	return &orcprotos.Void{}, errs.ErrorOrNil()
 }
 
 // GetHealthStatus retrieves a health status object which contains the current
