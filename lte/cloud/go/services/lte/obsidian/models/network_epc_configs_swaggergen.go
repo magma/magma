@@ -66,10 +66,6 @@ type NetworkEpcConfigs struct {
 	// Configuration for network services. Services will be instantiated in the listed order.
 	NetworkServices []string `json:"network_services,omitempty"`
 
-	// Node Identifier for 5G Standalone (SA) at a network level
-	// Format: ipv4
-	NodeIdentifier strfmt.IPv4 `json:"node_identifier,omitempty"`
-
 	// List of IMEIs restricted in the network
 	RestrictedImeis []*Imei `json:"restricted_imeis,omitempty"`
 
@@ -125,10 +121,6 @@ func (m *NetworkEpcConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateNetworkServices(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateNodeIdentifier(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -278,19 +270,6 @@ func (m *NetworkEpcConfigs) validateNetworkServices(formats strfmt.Registry) err
 			return err
 		}
 
-	}
-
-	return nil
-}
-
-func (m *NetworkEpcConfigs) validateNodeIdentifier(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.NodeIdentifier) { // not required
-		return nil
-	}
-
-	if err := validate.FormatOf("node_identifier", "body", "ipv4", m.NodeIdentifier.String(), formats); err != nil {
-		return err
 	}
 
 	return nil

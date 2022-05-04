@@ -155,8 +155,9 @@ func newDefaultGatewayConfig() *lteModels.GatewayCellularConfigs {
 			TransmitEnabled: swag.Bool(true),
 		},
 		Epc: &lteModels.GatewayEpcConfigs{
-			NatEnabled: swag.Bool(true),
-			IPBlock:    "192.168.128.0/24",
+			NatEnabled:     swag.Bool(true),
+			IPBlock:        "192.168.128.0/24",
+			NodeIdentifier: "192.168.200.1",
 		},
 		Ngc: &lteModels.GatewayNgcConfigs{
 			AmfDefaultSd:  "AFAFAF",
