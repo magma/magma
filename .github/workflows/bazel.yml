@@ -17,7 +17,6 @@ on:  # yamllint disable-line rule:truthy
     - cron: '0 0,6,12,18 * * *'
 env:
   BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
-  # In case of poisoned caches the CACHE_KEY can be changed.
   CACHE_KEY: bazel-workflow
 
 concurrency:
@@ -72,6 +71,11 @@ jobs:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
         uses: actions/checkout@v2
+      - name: Set Invalidation Cache Key
+        # In case of poisoned caches the INVALIDATION_CACHE_KEY can be changed in the bazel/bazel_invalidation_cache_key file.
+        shell: bash
+        run: |
+          echo "INVALIDATION_CACHE_KEY=$(cat bazel/bazel_invalidation_cache_key)" >> $GITHUB_ENV
       - name: Setup Bazel Base Image
         uses: addnab/docker-run-action@v3
         with:
@@ -88,6 +92,7 @@ jobs:
           options: -v ${{ github.workspace }}:/magma/
           run: |
             cd /magma
+            echo "The cache key is: ${{ env.INVALIDATION_CACHE_KEY }}"
             bazel build //... \
               --remote_cache="https://${{ secrets.MAGMA_REMOTE_USER }}:${{ secrets.MAGMA_REMOTE }}@bazel-remote-cache.magmacore-ci.org:9090/${{ env.CACHE_KEY }}/${{ env.INVALIDATION_CACHE_KEY }}" \
               --remote_download_toplevel
@@ -121,6 +126,11 @@ jobs:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
         uses: actions/checkout@v2
+      - name: Set Invalidation Cache Key
+        # In case of poisoned caches the INVALIDATION_CACHE_KEY can be changed in the bazel/bazel_invalidation_cache_key file.
+        shell: bash
+        run: |
+          echo "INVALIDATION_CACHE_KEY=$(cat bazel/bazel_invalidation_cache_key)" >> $GITHUB_ENV
       - name: Setup Bazel Base Image
         uses: addnab/docker-run-action@v3
         with:
@@ -137,6 +147,7 @@ jobs:
           options: -v ${{ github.workspace }}:/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
             cd /magma
+            echo "The cache key is: ${{ env.INVALIDATION_CACHE_KEY }}"
             bazel test //... \
               --remote_cache="https://${{ secrets.MAGMA_REMOTE_USER }}:${{ secrets.MAGMA_REMOTE }}@bazel-remote-cache.magmacore-ci.org:9090/${{ env.CACHE_KEY }}/${{ env.INVALIDATION_CACHE_KEY }}" \
               --remote_download_toplevel \
