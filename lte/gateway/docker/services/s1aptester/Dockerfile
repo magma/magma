@@ -60,7 +60,8 @@ ENV GRPC_POLL_STRATEGY=poll
 
 # ENV PYTHON_VERSION=3.8
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && \
+  apt-get install -y --no-install-recommends \
   git=$GIT_VERSION \
   build-essential=$BUILD_ESSENTIAL_VERSION \
   python3-pip=$PIP_VERSION \
@@ -85,9 +86,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   binutils=$BINUTILS_VERSION \
   ssh=$SSH_VERSION \
   sshpass=$SSHPASS_VERSION \
-  libiperf0=$LIBIPERF0_VERSION \
-  && apt-get clean \
-  && gem install fpm
+  libiperf0=$LIBIPERF0_VERSION && \
+  apt-get clean && \
+  gem install fpm
 
 RUN git clone https://github.com/magma/magma $MAGMA_ROOT -b $MAGMA_RELEASE
 
@@ -99,7 +100,7 @@ RUN DIRECTORY="/tmp/aioeventlet" && \
   dpkg -i ${DIRECTORY}/python3-aioeventlet* && \
   rm -rf ${DIRECTORY}
 
-RUN wget http://mirrors.ibiblio.org/apache/maven/maven-3/$MVN_VERSION/binaries/apache-maven-$MVN_VERSION-bin.tar.gz && \
+RUN wget -q http://mirrors.ibiblio.org/apache/maven/maven-3/$MVN_VERSION/binaries/apache-maven-$MVN_VERSION-bin.tar.gz && \
   tar -xvf apache-maven-$MVN_VERSION-bin.tar.gz && \
   git clone https://github.com/swagger-api/swagger-codegen /var/tmp/codegen -b $CODEGEN_VERSION
 

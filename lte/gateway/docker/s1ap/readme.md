@@ -1,6 +1,15 @@
+# Prequisites
+
+Your host must have the following to build and run all the images necessary for running the containerized AGW s1ap tests.
+
+- Ubuntu 20.04 Focal
+- x64 (ARM support to come later)
+- 20 GB of space for building/storing images, 64 GB recommended for running
+- At least 2 interfaces, eth0 (SGi), eth1 (S1)
+
 # Build and publish s1aptester images
 
-1. Clone the magma repository on an ubuntu 20.04 host and move into AGW docker directory in the repo and run build script.
+1. Clone the magma repository on an Ubuntu 20.04 host and move into AGW docker directory in the repo and run build script.
 
 ```
 cd lte/gateway/docker
@@ -15,15 +24,16 @@ s1ap/publish.sh yourregistry.com/yourrepo/
 
 # Run s1aptester
 
-1. Create an ubuntu 20.04 host that has 3 interfaces. eth0 which is your SGi interface, eth1 which is your S1 interface, and a third interface which is your ssh management interface to connect to the instance while doing the tests. You could skip the third interface if you have some kind of serial console access. Your host should have at least 20 GB of HD.
-
-2. [Deploy a containerized AGW](https://github.com/magma/magma/tree/master/lte/gateway/docker), move into AGW docker directory `/var/opt/magma/docker` on the host and run start script. Make sure that your `.env` file points to your registry with your AGW and s1aptester images.
+1. [Deploy a containerized AGW](https://github.com/magma/magma/tree/master/lte/gateway/docker), move into AGW docker directory `/var/opt/magma/docker` on the host and run the s1aptester start script `s1ap/start-s1ap.sh`. Make sure that your `.env` file points to your registry with your AGW and s1aptester images.
 ```
 cd /var/opt/magma/docker
+
+grep DOCKER_REGISTRY .env
+DOCKER_REGISTRY=public.ecr.aws/yourrepo/
 s1ap/start-s1ap.sh
 ```
 
-2. This will drop you into a shell that you can start to run tests from, or run the full suite of tests.
+2. This will drop you into a shell that you can start to run an individual test from, or run the full suite of tests.
 ```
 root@472f8708ec12:/magma/lte/gateway/python/integ_tests#
 # Run individual test(s)

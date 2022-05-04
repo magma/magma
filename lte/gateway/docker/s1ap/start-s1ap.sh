@@ -15,7 +15,7 @@ docker network inspect c_s1&>/dev/null || {
 docker network create --driver=bridge a_bridge && \
 docker network create --driver=bridge --subnet=192.168.60.0/24 --gateway=192.168.60.142 b_sgi && \
 docker network create --driver=bridge --subnet=192.168.128.0/23 --gateway=192.168.129.1 c_s1 && \
-DOCKER_BRIDGE_ID=`docker network inspect -f "{{ slice .Id 0 12 }}" c_s1` && \
+DOCKER_BRIDGE_ID=$(docker network inspect -f "{{ slice .Id 0 12 }}" c_s1) && \
 ip r add 192.168.128.11/32 dev br-$DOCKER_BRIDGE_ID && \
 ip r add 192.168.129.42/32 dev br-$DOCKER_BRIDGE_ID
 }

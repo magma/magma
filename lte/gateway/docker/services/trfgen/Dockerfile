@@ -39,7 +39,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install git+https://github.com/illu89/iperf3-python#egg=iperf3-python \
+RUN pip3 install --no-cache-dir git+https://github.com/illu89/iperf3-python#egg=iperf3-python \
   pyroute2 \
   scapy-python3
 
