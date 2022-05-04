@@ -48,6 +48,8 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
   ue_sec_capability->length = *(buffer + decoded);
   decoded++;
 
+  if (ue_sec_capability->length <= 0) return (decoded);
+
   // 5GS encryption algorithms
   ea = *(buffer + decoded);
   ue_sec_capability->ea0 = (ea >> 7) & 0x1;
