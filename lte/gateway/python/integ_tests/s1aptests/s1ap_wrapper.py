@@ -54,7 +54,7 @@ class TestWrapper(object):
     # IP address pool
     TEST_IP_BLOCK = "192.168.128.0/24"
     MSX_S1_RETRY = 2
-    IS_TEST_RUNNING_FIRST_TIME = True
+    TEST_CASE_EXECUTION_COUNT = 0
 
     def __init__(
         self,
@@ -66,10 +66,14 @@ class TestWrapper(object):
         """
         Initialize the various classes required by the tests and setup.
         """
-        if not TestWrapper.IS_TEST_RUNNING_FIRST_TIME:
+        if TestWrapper.TEST_CASE_EXECUTION_COUNT != 0:
             print("\n**Running the test case again to identify flaky behavior")
+        TestWrapper.TEST_CASE_EXECUTION_COUNT += 1
+        print(
+            "Test Case Execution Count:",
+            TestWrapper.TEST_CASE_EXECUTION_COUNT,
+        )
 
-        TestWrapper.IS_TEST_RUNNING_FIRST_TIME = False
         t = time.localtime()
         current_time = time.strftime("%H:%M:%S", t)
         print("Start time", current_time)
