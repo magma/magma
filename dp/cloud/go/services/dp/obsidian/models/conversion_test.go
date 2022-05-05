@@ -38,6 +38,7 @@ func TestCbsdToBackend(t *testing.T) {
 		FccID:        "barID",
 		SerialNumber: "12345",
 		UserID:       "fooUser",
+		DesiredState: "registered",
 	}
 	data := models.CbsdToBackend(&cbsd)
 	assert.Equal(t, data.UserId, cbsd.UserID)
@@ -49,6 +50,7 @@ func TestCbsdToBackend(t *testing.T) {
 	assert.Equal(t, data.Capabilities.NumberOfAntennas, cbsd.Capabilities.NumberOfAntennas)
 	assert.Equal(t, data.Preferences.BandwidthMhz, cbsd.FrequencyPreferences.BandwidthMhz)
 	assert.Equal(t, data.Preferences.FrequenciesMhz, cbsd.FrequencyPreferences.FrequenciesMhz)
+	assert.Equal(t, data.DesiredState, cbsd.DesiredState)
 }
 
 func TestCbsdFromBackendWithoutGrant(t *testing.T) {
@@ -67,6 +69,7 @@ func TestCbsdFromBackendWithoutGrant(t *testing.T) {
 	assert.Equal(t, *data.Capabilities.AntennaGain, details.Data.Capabilities.AntennaGain)
 	assert.Equal(t, data.FrequencyPreferences.BandwidthMhz, details.Data.Preferences.BandwidthMhz)
 	assert.Equal(t, data.FrequencyPreferences.FrequenciesMhz, details.Data.Preferences.FrequenciesMhz)
+	assert.Equal(t, data.DesiredState, details.Data.DesiredState)
 }
 
 func TestCbsdFromBackendWithGrant(t *testing.T) {
@@ -96,6 +99,7 @@ func getCbsdDetails() *protos.CbsdDetails {
 			UserId:       "barId",
 			FccId:        "bazId",
 			SerialNumber: "12345",
+			DesiredState: "registered",
 			Capabilities: &protos.Capabilities{
 				MinPower:         0,
 				MaxPower:         24,

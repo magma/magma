@@ -74,6 +74,7 @@ message CbsdData {
   string serial_number = 3;
   Capabilities capabilities = 4;
   FrequencyPreferences preferences = 5;
+  string desired_state = 6;
 }
 
 message Capabilities {

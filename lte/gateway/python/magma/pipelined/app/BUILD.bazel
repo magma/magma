@@ -30,7 +30,7 @@ py_library(
     srcs = ["classifier.py"],
     deps = [
         ":base",
-        ":inout",
+        ":mandatory_apps",
         "//orc8r/gateway/python/magma/common:rpc_utils",
         "//orc8r/gateway/python/magma/common:sentry",
         requirement("grpcio"),
@@ -88,7 +88,7 @@ py_library(
     deps = [
         ":base",
         ":enforcement_stats",
-        ":inout",
+        ":mandatory_apps",
         "//lte/gateway/python/magma/pipelined:redirect",
         "//lte/gateway/python/magma/pipelined/qos:qos_meter_impl",
     ],
@@ -158,8 +158,8 @@ py_library(
     name = "ue_mac",
     srcs = ["ue_mac.py"],
     deps = [
-        ":inout",
         ":ipfix",
+        ":mandatory_apps",
         "//lte/gateway/python/magma/pipelined:directoryd_client",
     ],
 )
@@ -180,10 +180,12 @@ py_library(
 )
 
 py_library(
-    name = "inout",
+    name = "mandatory_apps",
     srcs = [
-        "inout.py",
+        "egress.py",
+        "ingress.py",
         "li_mirror.py",
+        "middle.py",
     ],
     deps = [
         ":base",
@@ -191,6 +193,7 @@ py_library(
         "//lte/gateway/python/magma/pipelined:imsi",
         "//lte/gateway/python/magma/pipelined:mobilityd_client",
         "//lte/gateway/python/magma/pipelined:utils",
+        "//lte/gateway/python/magma/pipelined:vlan_utils",
         "//lte/gateway/python/magma/pipelined/openflow:flows",
         "//orc8r/gateway/python/magma/configuration:mconfig_managers",
         requirement("scapy"),

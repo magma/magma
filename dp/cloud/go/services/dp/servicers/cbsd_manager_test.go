@@ -70,7 +70,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 	s.Require().NoError(err)
 
 	s.Assert().Equal(networkId, s.store.networkId)
-	s.Assert().Equal(getDBCbsd(), s.store.data)
+	s.Assert().Equal(getMutableCbsd(), s.store.data)
 }
 
 func (s *CbsdManagerTestSuite) TestCreateWithDuplicateData() {
@@ -98,7 +98,7 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 
 	s.Assert().Equal(networkId, s.store.networkId)
 	s.Assert().Equal(cbsdId, s.store.id)
-	s.Assert().Equal(getDBCbsd(), s.store.data)
+	s.Assert().Equal(getMutableCbsd(), s.store.data)
 }
 
 func (s *CbsdManagerTestSuite) TestUpdateNonexistentCbsd() {
@@ -193,8 +193,11 @@ func (s *CbsdManagerTestSuite) TestFetchNonActiveCbsd() {
 
 func (s *CbsdManagerTestSuite) TestFetchCbsdWithoutGrant() {
 	s.store.details = &storage.DetailedCbsd{
-		Cbsd:       getDBCbsd(),
-		CbsdState:  &storage.DBCbsdState{},
+		Cbsd:      getDBCbsd(),
+		CbsdState: &storage.DBCbsdState{},
+		DesiredState: &storage.DBCbsdState{
+			Name: db.MakeString("registered"),
+		},
 		Grant:      &storage.DBGrant{},
 		GrantState: &storage.DBGrantState{},
 	}
@@ -302,6 +305,7 @@ func getProtoCbsd() *protos.CbsdData {
 			BandwidthMhz:   20,
 			FrequenciesMhz: []int64{3600},
 		},
+		DesiredState: "registered",
 	}
 }
 
@@ -344,6 +348,15 @@ func getDBCbsd() *storage.DBCbsd {
 	}
 }
 
+func getMutableCbsd() *storage.MutableCbsd {
+	return &storage.MutableCbsd{
+		Cbsd: getDBCbsd(),
+		DesiredState: &storage.DBCbsdState{
+			Name: db.MakeString("registered"),
+		},
+	}
+}
+
 func getDetailedCbsd() *storage.DetailedCbsd {
 	cbsd := getDBCbsd()
 	cbsd.Id = db.MakeInt(cbsdId)
@@ -352,6 +365,9 @@ func getDetailedCbsd() *storage.DetailedCbsd {
 	return &storage.DetailedCbsd{
 		Cbsd: cbsd,
 		CbsdState: &storage.DBCbsdState{
+			Name: db.MakeString("registered"),
+		},
+		DesiredState: &storage.DBCbsdState{
 			Name: db.MakeString("registered"),
 		},
 		Grant: &storage.DBGrant{
@@ -377,7 +393,7 @@ func getDetailedCbsdList() *storage.DetailedCbsdList {
 type stubCbsdManager struct {
 	networkId  string
 	id         int64
-	data       *storage.DBCbsd
+	data       *storage.MutableCbsd
 	details    *storage.DetailedCbsd
 	list       *storage.DetailedCbsdList
 	pagination *storage.Pagination
@@ -385,13 +401,13 @@ type stubCbsdManager struct {
 	err        error
 }
 
-func (s *stubCbsdManager) CreateCbsd(networkId string, data *storage.DBCbsd) error {
+func (s *stubCbsdManager) CreateCbsd(networkId string, data *storage.MutableCbsd) error {
 	s.networkId = networkId
 	s.data = data
 	return s.err
 }
 
-func (s *stubCbsdManager) UpdateCbsd(networkId string, id int64, data *storage.DBCbsd) error {
+func (s *stubCbsdManager) UpdateCbsd(networkId string, id int64, data *storage.MutableCbsd) error {
 	s.networkId = networkId
 	s.id = id
 	s.data = data

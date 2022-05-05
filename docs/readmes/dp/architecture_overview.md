@@ -1,5 +1,7 @@
 ---
-id: architecture_overview title: Overview hide_title: true
+id: architecture_overview
+title: Overview
+hide_title: true
 ---
 
 # Overview
@@ -37,11 +39,11 @@ NMS UI page for Domain Proxy management is currently under development.
 
 The picture below gives a very general look at the Domain Proxy as a proxy service between radios and SAS
 
-![dp](../assets/dp/dp_high_level_overview.png)
+![dp](assets/dp/dp_high_level_overview.png)
 
 ### Domain Proxy in Magma's Context
 
-![dp](../assets/dp/dp_in_context.png)
+![dp](assets/dp/dp_in_context.png)
 
 If we take a closer look, Domain Proxy as part of Magma is situated next to Orc8r,
 (typically on the same Kubernetes cluster) and uses the same database as the Orc8r.
@@ -73,7 +75,7 @@ radio. This is achieved mainly by
 
 In the picture we see three components that comprise Domain Proxy
 
-![dp](../assets/dp/dp_architecture.png)
+![dp](assets/dp/dp_architecture.png)
 
 #### Radio Controller
 
@@ -108,15 +110,15 @@ The related request is also marked as processed.
 
 #### *Protocol Controller
 
-**NOTE**: This is a historical name for a component that is no longer an independent part of Domain Proxy, but still
-needs to be mentioned. It was removed by that [GitHub PR](https://github.com/magma/magma/pull/12420)
+**NOTE**: `Protocol Controller` is a historical name for a component that is no longer an independent part of Domain Proxy, but still
+needs to be mentioned. CBSD-SAS `Protocol Controller` was removed by [GitHub PR 12420](https://github.com/magma/magma/pull/12420).
 
 `Protocol Controller` is used to handle incoming requests from an eNB or another domain proxy. It is meant to handle
 messages sent using a specific protocol. Currently, the only eNBs connected to DP speak `TR069` protocol (Sercomm
 Englewood and Baicells 430 Nova).
 
 Instead, the component treated by Domain Proxy as the only `Protocol Controller` is currently
-AGW's [Enodebd](lte/README_AGW.md#enodebd)
+AGW's [Enodebd](lte/architecture_overview.md#enodebd)
 being the configuration component for `TR069` based radios.
 
 `Enodebd` communicates with Domain Proxy's `Radio Controller` as if it were just another DP component, over gRPC, using

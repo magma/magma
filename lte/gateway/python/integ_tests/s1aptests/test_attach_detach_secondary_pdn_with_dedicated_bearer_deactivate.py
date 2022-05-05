@@ -41,7 +41,7 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
 
         self._s1ap_wrapper.configUEDevice(num_ues)
 
-        for i in range(num_ues):
+        for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
             ue_id = req.ue_id
             # APN of the secondary PDN

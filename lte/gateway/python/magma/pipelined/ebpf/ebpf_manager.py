@@ -110,7 +110,7 @@ class EbpfManager:
         ipr = IPRoute()
         try:
             ipr.tc("add", "clsact", s1_if_index)
-        except NetlinkError as ex:
+        except NetlinkError:
             LOG.error("error adding ingress ")
 
         try:
@@ -118,7 +118,7 @@ class EbpfManager:
                 "add-filter", "bpf", s1_if_index, ":1", fd=self.s1_fn.fd, name=self.s1_fn.name,
                 parent="ffff:fff2", classid=1, direct_action=True,
             )
-        except NetlinkError as ex:
+        except NetlinkError:
             LOG.error("error adding ingress ")
 
         LOG.debug("Attach done")
@@ -164,7 +164,7 @@ class EbpfManager:
             pass
         try:
             ipr.tc("del", "ingress", s1_if_index, "ffff:")
-        except NetlinkError as ex:
+        except NetlinkError:
             pass
         sys_file = BASE_MAP_FS + UL_MAP_NAME
         out1 = subprocess.run(["unlink", sys_file], capture_output=True)
@@ -194,7 +194,6 @@ class EbpfManager:
     def add_ul_entry(self, mark: int, ue_ip: str):
         if not self.enabled:
             return
-        sz = len(self.ul_map)
         ip_addr = self._pack_ip(ue_ip)
         LOG.debug(
             "Add entry: ip: %x mac src %s mac dst: %s" %

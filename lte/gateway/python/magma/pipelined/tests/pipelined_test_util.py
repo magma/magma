@@ -251,10 +251,10 @@ def setup_controller(
     return res.result
 
 
-def fake_inout_setup(inout_controller):
+def fake_mandatory_controller_setup(controller):
     TestCase().assertEqual(
         setup_controller(
-            inout_controller, SetupPolicyRequest(requests=[], epoch=global_epoch),
+            controller, SetupPolicyRequest(requests=[], epoch=global_epoch),
         ),
         SetupFlowsResult.SUCCESS,
     )
@@ -602,7 +602,7 @@ def wait_for_snapshots(
             include_stats=include_stats,
         )
         if try_snapshot:
-            snapshot_file, expected_ = expected_snapshot(
+            _, expected_ = expected_snapshot(
                 test_case,
                 bridge_name,
                 snapshot_name,

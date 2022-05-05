@@ -26,6 +26,11 @@ type Cbsd struct {
 	// id of cbsd in SAS
 	CbsdID string `json:"cbsd_id,omitempty"`
 
+	// desired state of cbsd in SAS
+	// Required: true
+	// Enum: [unregistered registered]
+	DesiredState string `json:"desired_state"`
+
 	// fcc id
 	// Required: true
 	// Min Length: 1
@@ -67,6 +72,10 @@ func (m *Cbsd) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateCapabilities(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateDesiredState(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -114,6 +123,49 @@ func (m *Cbsd) validateCapabilities(formats strfmt.Registry) error {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("capabilities")
 		}
+		return err
+	}
+
+	return nil
+}
+
+var cbsdTypeDesiredStatePropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["unregistered","registered"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		cbsdTypeDesiredStatePropEnum = append(cbsdTypeDesiredStatePropEnum, v)
+	}
+}
+
+const (
+
+	// CbsdDesiredStateUnregistered captures enum value "unregistered"
+	CbsdDesiredStateUnregistered string = "unregistered"
+
+	// CbsdDesiredStateRegistered captures enum value "registered"
+	CbsdDesiredStateRegistered string = "registered"
+)
+
+// prop value enum
+func (m *Cbsd) validateDesiredStateEnum(path, location string, value string) error {
+	if err := validate.Enum(path, location, value, cbsdTypeDesiredStatePropEnum); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Cbsd) validateDesiredState(formats strfmt.Registry) error {
+
+	if err := validate.RequiredString("desired_state", "body", string(m.DesiredState)); err != nil {
+		return err
+	}
+
+	// value enum
+	if err := m.validateDesiredStateEnum("desired_state", "body", m.DesiredState); err != nil {
 		return err
 	}
 

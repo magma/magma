@@ -53,7 +53,6 @@ class TestAttachDetachWithHE(unittest.TestCase):
         ]
         wait_for_s1 = [True, False]
         self._s1ap_wrapper.configUEDevice(num_ues)
-        datapath = get_datapath()
         MAX_NUM_RETRIES = 5
         gtp_br_util = GTPBridgeUtils()
         PROXY_PORT = gtp_br_util.get_proxy_port_no()

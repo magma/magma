@@ -117,7 +117,6 @@ class TestQosManager(unittest.TestCase):
         self, mock_get_action_inst, mock_traffic_cls, d, qid, qos_info,
         parent_qid=0, skip_filter=False,
     ):
-        intf = self.ul_intf if d == FlowMatch.UPLINK else self.dl_intf
         mock_get_action_inst.assert_any_call(qid)
         mock_traffic_cls.init_qdisc.assert_any_call(self.ul_intf, enable_pyroute2=False, default_gbr='80Kbit')
         mock_traffic_cls.init_qdisc.assert_any_call(self.dl_intf, enable_pyroute2=False, default_gbr='80Kbit')
