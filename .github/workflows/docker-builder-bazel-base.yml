@@ -5,7 +5,7 @@ on:  # yamllint disable-line rule:truthy
     branches:
       - master
     paths:
-      - experimental/bazel-base/Dockerfile
+      - .devcontainer/bazel-base/Dockerfile
       - .github/workflows/docker-builder-bazel-base.yml
       - .github/workflows/composite/**
   pull_request:
@@ -14,7 +14,7 @@ on:  # yamllint disable-line rule:truthy
       - reopened
       - synchronize
     paths:
-      - experimental/bazel-base/Dockerfile
+      - .devcontainer/bazel-base/Dockerfile
       - .github/workflows/docker-builder-bazel-base.yml
       - .github/workflows/composite/**
   schedule:
@@ -24,7 +24,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_STREAM: ${{ github.repository }}/bazel-base
   IMAGE_TAGS: type=sha
-  DOCKERFILE: experimental/bazel-base/Dockerfile
+  DOCKERFILE: .devcontainer/bazel-base/Dockerfile
 
 jobs:
   build_dockerfile:

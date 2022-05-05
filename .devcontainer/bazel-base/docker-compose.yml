@@ -3,7 +3,7 @@ services:
     magma-builder:
         build:
             context: ${MAGMA_ROOT}
-            dockerfile: experimental/bazel-base/Dockerfile
+            dockerfile: .devcontainer/bazel-base/Dockerfile
         volumes:
             - ${MAGMA_ROOT}:/magma
             - ${MAGMA_ROOT}/lte/gateway/configs:/etc/magma
