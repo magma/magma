@@ -37,7 +37,7 @@ import Text from '../../theme/design-system/Text';
 import Toolbar from '@material-ui/core/Toolbar';
 
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 import withAlert from '../Alert/withAlert';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {findIndex} from 'lodash';

@@ -26,7 +26,7 @@ import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 
 import {GatewayTypeEnum, HEALTHY_STATUS} from '../../components/GatewayUtils';
 import {makeStyles} from '@material-ui/styles';

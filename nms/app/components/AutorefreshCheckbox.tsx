@@ -18,21 +18,21 @@ import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import React from 'react';
 import Text from '../theme/design-system/Text';
+import makeStyles from '@material-ui/styles/makeStyles';
 import moment from 'moment';
 import {colors} from '../theme/default';
-import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useState} from 'react';
 
 export type UseRefreshingDateRangeHook = (
   isAutoRefreshing: boolean,
   updateInterval: number,
   onDateRangeChange: () => void,
-) => {|
-  startDate: moment,
-  endDate: moment,
-  setStartDate: (date: moment) => void,
-  setEndDate: (date: moment) => void,
-|};
+) => {
+  startDate: moment.Moment;
+  endDate: moment.Moment;
+  setStartDate: (date: moment.Moment) => void;
+  setEndDate: (date: moment.Moment) => void;
+};
 
 export const useRefreshingDateRange: UseRefreshingDateRangeHook = (
   isAutoRefreshing,
@@ -54,7 +54,7 @@ export const useRefreshingDateRange: UseRefreshingDateRangeHook = (
   }, [endDate, startDate, onDateRangeChange, isAutoRefreshing, updateInterval]);
 
   const modifiedSetStartDate = useCallback(
-    (date: moment) => {
+    (date: moment.Moment) => {
       setStartDate(date);
       onDateRangeChange();
     },
@@ -62,7 +62,7 @@ export const useRefreshingDateRange: UseRefreshingDateRangeHook = (
   );
 
   const modifiedSetEndDate = useCallback(
-    (date: moment) => {
+    (date: moment.Moment) => {
       setEndDate(date);
       onDateRangeChange();
     },
@@ -84,8 +84,8 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  autorefreshEnabled: boolean,
-  onToggle: (boolean | (boolean => boolean)) => void,
+  autorefreshEnabled: boolean;
+  onToggle: () => undefined;
 };
 
 export default function AutorefreshCheckbox(props: Props) {

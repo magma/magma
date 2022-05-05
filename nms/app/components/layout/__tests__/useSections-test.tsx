@@ -22,9 +22,9 @@ import useSections from '../useSections';
 import {AppContextProvider} from '../../context/AppContext';
 import {act, renderHook} from '@testing-library/react-hooks';
 
-jest.mock('../../../../generated/MagmaAPIBindings.js');
-
 import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../../../shared/types/network';
+
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 
 global.CONFIG = {
   appData: {
@@ -32,7 +32,7 @@ global.CONFIG = {
   },
 };
 
-const wrapper = ({children}) => (
+const wrapper = ({children}: {children: React.ReactNode}) => (
   <AppContextProvider networkIDs={['network1']}>
     <NetworkContext.Provider value={{networkId: 'network1'}}>
       {children}
@@ -40,12 +40,12 @@ const wrapper = ({children}) => (
   </AppContextProvider>
 );
 
-type TestCase = {
-  default: string,
-  sections: string[],
-};
+interface TestCase {
+  default: string;
+  sections: Array<string>;
+}
 
-const testCases: {[string]: TestCase} = {
+const testCases = {
   lte: {
     default: 'dashboard',
     sections: [
@@ -98,7 +98,7 @@ describe.each([CWF, FEG, LTE, FEG_LTE, XWFM])('Should render', networkType => {
   // different config defaults
   const apiNetworkType = networkType === XWFM ? CWF : networkType;
   it(networkType, async () => {
-    MagmaAPIBindings.getNetworksByNetworkIdType.mockResolvedValue(
+    (MagmaAPIBindings.getNetworksByNetworkIdType as jest.Mock).mockResolvedValue(
       apiNetworkType,
     );
 

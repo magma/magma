@@ -15,6 +15,7 @@
  */
 import type {WithAlert} from '../../components/Alert/withAlert';
 
+// $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';

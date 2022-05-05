@@ -17,6 +17,7 @@
 export {default as organizationMiddleware} from './organizationMiddleware';
 export {default as appMiddleware} from './appMiddleware';
 export {default as csrfMiddleware} from './csrfMiddleware';
+// $FlowFixMe migrated to typescript
 export {default as sessionMiddleware} from './sessionMiddleware';
 export {default as webpackSmartMiddleware} from './webpackSmartMiddleware';
 

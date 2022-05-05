@@ -18,14 +18,14 @@ import * as React from 'react';
 import Alarms from '../Alarms';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import defaultTheme from '../../../../theme/default';
-import useMagmaAPI from '../../../../../api/useMagmaAPI';
+import useMagmaAPI from '../../../../../api/useMagmaAPIFlow';
 import {MagmaAlarmsApiUtil} from '../../../../state/AlarmsApiUtil';
 import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 import {render} from '@testing-library/react';
 
-jest.mock('../../../../../api/useMagmaAPI');
+jest.mock('../../../../../api/useMagmaAPIFlow');
 
 const Wrapper = (props: {route: string, children: React.Node}) => (
   <MemoryRouter initialEntries={[props.route || '/alarms']} initialIndex={0}>

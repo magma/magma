@@ -28,7 +28,7 @@ import Select from '@material-ui/core/Select';
 import Text from '../../theme/design-system/Text';
 import TextareaAutosize from 'react-textarea-autosize';
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 import withAlert from '../../components/Alert/withAlert';
 
 import {AltFormField} from '../../components/FormField';

@@ -16,7 +16,7 @@
 
 import MagmaV1API from '../../generated/WebClient';
 import nullthrows from '../../shared/util/nullthrows';
-import useMagmaAPI from '../../api/useMagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPIFlow';
 
 import type {ApiUtil} from '../views/alarms/components/AlarmsApi';
 

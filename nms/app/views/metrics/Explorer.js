@@ -24,7 +24,7 @@ import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 import type {prometheus_labelset} from '../../../generated/MagmaAPIBindings';
 
 import {colors, typography} from '../../theme/default';

@@ -21,6 +21,7 @@ import type {
 
 import * as React from 'react';
 import ActionTable from '../../components/ActionTable';
+// $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
