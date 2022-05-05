@@ -602,7 +602,7 @@ def wait_for_snapshots(
             include_stats=include_stats,
         )
         if try_snapshot:
-            snapshot_file, expected_ = expected_snapshot(
+            _, expected_ = expected_snapshot(
                 test_case,
                 bridge_name,
                 snapshot_name,
