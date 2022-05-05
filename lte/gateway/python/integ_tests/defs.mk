@@ -256,7 +256,7 @@ s1aptests/test_restore_config_after_non_sanity.py
 #---------------
 
 # TODO flaky tests we should look at
-# s1aptests/test_enb_complete_reset.py \
+# s1aptests/test_enb_complete_reset.py \ GitHubIssue 12583
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \
 cloud_tests/metrics_export_test.py \
