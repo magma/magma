@@ -1,11 +1,11 @@
-From 2974313938722e37084bc824d7afbedbf516b71c Mon Sep 17 00:00:00 2001
+From 62df00660e72faaaef504709d198e8d2f9824202 Mon Sep 17 00:00:00 2001
 From: Prabina Pattnaik <prabinak@wavelabs.ai>
-Date: Mon, 2 May 2022 08:16:49 +0000
+Date: Thu, 5 May 2022 12:08:27 +0000
 Subject: [PATCH 24/24] QFI support in OVS
 
 Signed-off-by: Prabina Pattnaik <prabinak@wavelabs.ai>
 ---
- datapath/linux/compat/gtp.c               | 146 ++++++++++++----------
+ datapath/linux/compat/gtp.c               | 149 ++++++++++++----------
  datapath/linux/compat/include/linux/gtp.h |   1 +
  include/openvswitch/match.h               |   2 +
  include/openvswitch/meta-flow.h           |  17 +++
@@ -21,14 +21,27 @@ Signed-off-by: Prabina Pattnaik <prabinak@wavelabs.ai>
  lib/packets.h                             |  11 +-
  tests/ofproto.at                          |   4 +-
  tests/system-layer3-tunnels.at            | 108 ++++++++++++++++
- tests/tunnel.at                           |  21 ++++
- 17 files changed, 395 insertions(+), 70 deletions(-)
+ tests/tunnel.at                           |  21 +++
+ 17 files changed, 394 insertions(+), 74 deletions(-)
 
 diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
-index a7033031d..cffbc9e1e 100644
+index a7033031d..d4d49920d 100644
 --- a/datapath/linux/compat/gtp.c
 +++ b/datapath/linux/compat/gtp.c
-@@ -113,18 +113,40 @@ static int gtp_rx(struct sock *sk, struct gtp_dev *gtp, struct sk_buff *skb,
+@@ -101,10 +101,8 @@ static int gtp_rx(struct sock *sk, struct gtp_dev *gtp, struct sk_buff *skb,
+ 		struct metadata_dst *tun_dst = &buf.dst;
+ #endif
+ 
+-		int opts_len = 0;
+-		if (unlikely(type != GTP_TPDU)) {
+-			opts_len = sizeof (struct gtpu_metadata);
+-		}
++		int opts_len;
++	 	opts_len = sizeof (struct gtpu_metadata);
+ #ifndef USE_UPSTREAM_TUNNEL
+ 		//udp_tun_rx_dst
+ 		ovs_udp_tun_rx_dst(tun_dst, skb, sk->sk_family, TUNNEL_KEY, tid, opts_len);
+@@ -113,18 +111,37 @@ static int gtp_rx(struct sock *sk, struct gtp_dev *gtp, struct sk_buff *skb,
  			udp_tun_rx_dst(skb, sk->sk_family, TUNNEL_KEY, tid, opts_len);
  #endif
  		netdev_dbg(gtp->dev, "attaching metadata_dst to skb, gtp ver %d hdrlen %d\n", gtp_version, hdrlen);
@@ -46,41 +59,38 @@ index a7033031d..cffbc9e1e 100644
 +                if (unlikely(opts_len)) {
 +                    struct gtpu_metadata *opts = ip_tunnel_info_opts(&tun_dst->u.tun_info);
 +                    struct gtp1_header *gtp1 = (struct gtp1_header *)(skb->data + sizeof(struct udphdr));
-+
-+                    opts->ver = GTP_METADATA_V1;
-+                    opts->flags = gtp1->flags;
-+                    opts->type = gtp1->type;
-+                    netdev_dbg(gtp->dev, "recved control pkt: flag %x type: %d\n", opts->flags, opts->type);
-+                    tun_dst->u.tun_info.key.tun_flags |= TUNNEL_GTPU_OPT;
-+                    tun_dst->u.tun_info.options_len = opts_len;
-+                    skb->protocol = 0xffff;         // Unknown
-+                }
-+
-+		if (likely(type == GTP_TPDU)){
-+		    struct gtpu_metadata *opts = ip_tunnel_info_opts(&tun_dst->u.tun_info);
-+		    struct gtp1_header *gtp1 = (struct gtp1_header *)(skb->data + sizeof(struct udphdr));
-+		    struct gtpu_ext_hdr *geh;
-+		    geh = (struct gtpu_ext_hdr *) (gtp1 + 1);
-+		    if (geh->type == 0x85) {
-+		        struct gtpu_ext_hdr_pdu_sc *pdu_sc_hd;
-+		        pdu_sc_hd = (struct gtpu_ext_hdr_pdu_sc *) (geh + 1);
-+		        if (pdu_sc_hd->qfi) {
-+			    opts_len = sizeof (struct gtpu_metadata);
-+			    opts->ver = GTP_METADATA_V1;
-+			    opts->flags = gtp1->flags;
-+			    opts->type = gtp1->type;
-+			    opts->qfi = pdu_sc_hd->qfi;
-+			    opts_len = opts_len + sizeof(struct gtpu_ext_hdr) + sizeof(struct gtpu_ext_hdr_pdu_sc);
-+			    tun_dst->u.tun_info.key.tun_flags |= TUNNEL_GTPU_OPT;
-+			    tun_dst->u.tun_info.options_len = opts_len;
++		    if (likely(type == GTP_TPDU)){
++	                struct gtpu_ext_hdr *geh;
++			geh = (struct gtpu_ext_hdr *) (gtp1 + 1);
++			if (geh->type == 0x85) {
++			    struct gtpu_ext_hdr_pdu_sc *pdu_sc_hd;
++			    pdu_sc_hd = (struct gtpu_ext_hdr_pdu_sc *) (geh + 1);
++			    if (pdu_sc_hd->qfi) {
++                                opts_len = sizeof (struct gtpu_metadata);
++                                opts->ver = GTP_METADATA_V1;
++                                opts->flags = gtp1->flags;
++                                opts->type = gtp1->type;
++                                opts->qfi = pdu_sc_hd->qfi;
++                                opts_len = opts_len + sizeof(struct gtpu_ext_hdr) + sizeof(struct gtpu_ext_hdr_pdu_sc);
++                                tun_dst->u.tun_info.key.tun_flags |= TUNNEL_GTPU_OPT;
++                                tun_dst->u.tun_info.options_len = opts_len;
++                            }
 +                        }
-+		    }
++		    } else {
++		        opts->ver = GTP_METADATA_V1;
++                        opts->flags = gtp1->flags;
++                        opts->type = gtp1->type;
++                        netdev_dbg(gtp->dev, "recved control pkt: flag %x type: %d\n", opts->flags, opts->type);
++                        tun_dst->u.tun_info.key.tun_flags |= TUNNEL_GTPU_OPT;
++                        tun_dst->u.tun_info.options_len = opts_len;
++                        skb->protocol = 0xffff;         // Unknown
++                    }
  		}
 +
  		/* Get rid of the GTP + UDP headers. */
  		if (iptunnel_pull_header(skb, hdrlen, skb->protocol,
  					!net_eq(sock_net(sk), dev_net(gtp->dev)))) {
-@@ -189,7 +211,7 @@ static int gtp1u_udp_encap_recv(struct sock *sk, struct gtp_dev *gtp, struct sk_
+@@ -189,7 +206,7 @@ static int gtp1u_udp_encap_recv(struct sock *sk, struct gtp_dev *gtp, struct sk_
  
  	gtp1 = (struct gtp1_header *)(skb->data + sizeof(struct udphdr));
  
@@ -89,7 +99,7 @@ index a7033031d..cffbc9e1e 100644
  	if ((gtp1->flags >> 5) != GTP_V1)
  		return 1;
  
-@@ -205,7 +227,7 @@ static int gtp1u_udp_encap_recv(struct sock *sk, struct gtp_dev *gtp, struct sk_
+@@ -205,7 +222,7 @@ static int gtp1u_udp_encap_recv(struct sock *sk, struct gtp_dev *gtp, struct sk_
  				u8 next_hdr;
  
  				geh = (struct gtpu_ext_hdr *) (gtp1 + 1);
@@ -98,7 +108,7 @@ index a7033031d..cffbc9e1e 100644
  
  				hdrlen += sizeof (struct gtpu_ext_hdr);
  				next_hdr = geh->type;
-@@ -322,17 +344,6 @@ static void gtp_dev_uninit(struct net_device *dev)
+@@ -322,17 +339,6 @@ static void gtp_dev_uninit(struct net_device *dev)
  	free_percpu(dev->tstats);
  }
  
@@ -116,7 +126,7 @@ index a7033031d..cffbc9e1e 100644
  static unsigned int skb_gso_transport_seglen(const struct sk_buff *skb)
  {
  		const struct skb_shared_info *shinfo = skb_shinfo(skb);
-@@ -405,11 +416,17 @@ static inline void gtp1_push_header(struct net_device *dev, struct sk_buff *skb,
+@@ -405,11 +411,17 @@ static inline void gtp1_push_header(struct net_device *dev, struct sk_buff *skb,
  				/* TODO: Suppport for extension header, sequence number and N-PDU.
  				 *       Update the length field if any of them is available.
  				 */
@@ -137,7 +147,7 @@ index a7033031d..cffbc9e1e 100644
  		}
  
  }
-@@ -571,23 +588,25 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+@@ -571,23 +583,25 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
  
  		netdev_dbg(dev, "packet with opt len %d", info->options_len);
  		if (info->options_len == 0) {
@@ -178,7 +188,7 @@ index a7033031d..cffbc9e1e 100644
  		}
  		udp_tunnel_xmit_skb(rt, gtp->sk1u, skb,
  					fl4.saddr, fl4.daddr, fl4.flowi4_tos, ttl, df,
-@@ -607,32 +626,33 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+@@ -607,32 +621,33 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
  		csum = !!(info->key.tun_flags & TUNNEL_CSUM);
  		err = udp_tunnel_handle_offloads(skb, csum);
  		if (err)
