@@ -62,7 +62,7 @@ func globalPre(cmd *cobra.Command, args []string) {
 }
 
 func getClient() indexer_protos.IndexerManagerClient {
-	conn, err := registry.GetConnection(state.ServiceName, lib_protos.ServiceType_SOUTHBOUND)
+	conn, err := registry.GetConnection(state.ServiceName, lib_protos.ServiceType_PROTECTED)
 	if err != nil {
 		log.Fatal(err)
 	}

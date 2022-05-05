@@ -36,6 +36,8 @@ args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/configurator", "-logtostderr
 ports:
   - name: grpc
     containerPort: 9108
+  - name: grpc-internal
+    containerPort: 9208
 livenessProbe:
   tcpSocket:
     port: 9108

@@ -69,12 +69,12 @@ func main() {
 	} else {
 		exporterServicer = protected_servicers.NewPushExporterServicer(serviceConfig.PrometheusPushAddresses)
 	}
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, protected_servicers.NewBuilderServicer())
-	exporter_protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
-	indexer_protos.RegisterIndexerServer(srv.GrpcServer, protected_servicers.NewIndexerServicer())
-	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
+	builder_protos.RegisterMconfigBuilderServer(srv.ProtectedGrpcServer, protected_servicers.NewBuilderServicer())
+	exporter_protos.RegisterMetricsExporterServer(srv.ProtectedGrpcServer, exporterServicer)
+	indexer_protos.RegisterIndexerServer(srv.ProtectedGrpcServer, protected_servicers.NewIndexerServicer())
+	streamer_protos.RegisterStreamProviderServer(srv.ProtectedGrpcServer, servicers.NewProviderServicer())
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(orchestrator.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger.NewSpecServicerFromFile(orchestrator.ServiceName))
 
 	collectorServicer := analytics_servicers.NewCollectorServicer(
 		&serviceConfig.Analytics,
@@ -82,7 +82,7 @@ func main() {
 		analytics_service.GetAnalyticsCalculations(&serviceConfig.Analytics),
 		nil,
 	)
-	analytics_protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
+	analytics_protos.RegisterAnalyticsCollectorServer(srv.ProtectedGrpcServer, collectorServicer)
 
 	err = srv.Run()
 	if err != nil {

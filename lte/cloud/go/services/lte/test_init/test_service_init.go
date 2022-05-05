@@ -54,9 +54,9 @@ func StartTestServiceWithConfig(t *testing.T, serviceConfig lte_service.Config) 
 		orc8r.StreamProviderStreamsAnnotation: strings.Join(streams, orc8r.AnnotationFieldSeparator),
 	}
 
-	srv, lis, _ := test_utils.NewTestOrchestratorService(t, lte.ModuleName, lte_service.ServiceName, labels, annotations)
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, protected_servicers.NewBuilderServicer(serviceConfig))
-	provider_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
+	srv, lis, plis := test_utils.NewTestOrchestratorService(t, lte.ModuleName, lte_service.ServiceName, labels, annotations)
+	builder_protos.RegisterMconfigBuilderServer(srv.ProtectedGrpcServer, protected_servicers.NewBuilderServicer(serviceConfig))
+	provider_protos.RegisterStreamProviderServer(srv.ProtectedGrpcServer, servicers.NewProviderServicer())
 
 	// Init storage
 	db, err := sqorc.Open("sqlite3", ":memory:")
@@ -65,8 +65,8 @@ func StartTestServiceWithConfig(t *testing.T, serviceConfig lte_service.Config) 
 	assert.NoError(t, enbStateStore.Initialize())
 
 	// Add servicers
-	lte_protos.RegisterEnodebStateLookupServer(srv.GrpcServer, protected_servicers.NewLookupServicer(enbStateStore))
-	state_protos.RegisterIndexerServer(srv.GrpcServer, protected_servicers.NewIndexerServicer())
+	lte_protos.RegisterEnodebStateLookupServer(srv.ProtectedGrpcServer, protected_servicers.NewLookupServicer(enbStateStore))
+	state_protos.RegisterIndexerServer(srv.ProtectedGrpcServer, protected_servicers.NewIndexerServicer())
 
-	go srv.RunTest(lis, nil)
+	go srv.RunTest(lis, plis)
 }

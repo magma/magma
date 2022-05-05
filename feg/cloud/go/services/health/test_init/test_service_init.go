@@ -26,14 +26,14 @@ import (
 )
 
 func StartTestService(t *testing.T) (*servicers.TestHealthServer, error) {
-	srv, lis, _ := test_utils.NewTestService(t, feg.ModuleName, health.ServiceName)
+	srv, lis, plis := test_utils.NewTestService(t, feg.ModuleName, health.ServiceName)
 	factory := test_utils.NewSQLBlobstore(t, health.DBTableName)
 
 	servicer, err := servicers.NewTestHealthServer(factory)
 	assert.NoError(t, err)
 	protos.RegisterHealthServer(srv.GrpcServer, servicer)
-	protos.RegisterCloudHealthServer(srv.GrpcServer, &servicer.CloudHealthServer)
+	protos.RegisterCloudHealthServer(srv.ProtectedGrpcServer, servicer)
 
-	go srv.RunTest(lis, nil)
+	go srv.RunTest(lis, plis)
 	return servicer, nil
 }

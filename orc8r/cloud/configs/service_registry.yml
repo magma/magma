@@ -35,6 +35,7 @@ services:
   orchestrator:
     host: "localhost"
     port: 9112
+    protected_port: 9212
     echo_port: 10112
     proxy_type: "clientcert"
     labels:
@@ -64,6 +65,7 @@ services:
   metricsd:
     host: "localhost"
     port: 9084
+    protected_port: 9184
     echo_port: 10084
     proxy_type: "clientcert"
     labels:
@@ -99,11 +101,13 @@ services:
   accessd:
     host: "localhost"
     port: 9091
+    protected_port: 9191
     proxy_type: "clientcert"
 
   eventd:
     host: "localhost"
     port: 9121
+    protected_port: 9221
     echo_port: 10121
     proxy_type: "clientcert"
     labels:
@@ -127,11 +131,13 @@ services:
   directoryd:
     host: "localhost"
     port: 9100
+    protected_port: 9102
     proxy_type: "clientcert"
 
   state:
     host: "localhost"
     port: 9105
+    protected_port: 9305
     proxy_type: "clientcert"
 
   orc8r_worker:
@@ -142,16 +148,19 @@ services:
   device:
     host: "localhost"
     port: 9106
+    protected_port: 9306
     proxy_type: "clientcert"
 
   configurator:
     host: "localhost"
     port: 9108
+    protected_port: 9208
     proxy_type: "clientcert"
 
   ctraced:
     host: "localhost"
     port: 9118
+    protected_port: 9218
     echo_port: 10118
     proxy_type: "clientcert"
     labels:
@@ -164,6 +173,7 @@ services:
   tenants:
     host: "localhost"
     port: 9110
+    protected_port: 9210
     echo_port: 10110
     proxy_type: "clientcert"
     labels:

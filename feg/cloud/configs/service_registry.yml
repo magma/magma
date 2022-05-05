@@ -14,6 +14,7 @@ services:
   feg:
     host: "localhost"
     port: 9114
+    protected_port: 9214
     echo_port: 10114
     proxy_type: "clientcert"
     labels:
@@ -54,6 +55,7 @@ services:
   health:
     host: "localhost"
     port: 9107
+    protected_port: 9207
     proxy_type: "clientcert"
 
   base_acct:

@@ -710,7 +710,7 @@ func CountEntitiesOfType(ctx context.Context, networkID string, entityType strin
 }
 
 func getNBConfiguratorClient() (protos.NorthboundConfiguratorClient, error) {
-	conn, err := registry.GetConnection(ServiceName, commonProtos.ServiceType_SOUTHBOUND)
+	conn, err := registry.GetConnection(ServiceName, commonProtos.ServiceType_PROTECTED)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

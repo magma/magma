@@ -35,11 +35,11 @@ func StartTestServiceInternal(t *testing.T, builder builder_protos.MconfigBuilde
 		labels[orc8r.MconfigBuilderLabel] = "true"
 	}
 
-	srv, lis, _ := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, cwf.ServiceName, labels, annotations)
+	srv, lis, plis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, cwf.ServiceName, labels, annotations)
 
 	if builder != nil {
-		builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, builder)
+		builder_protos.RegisterMconfigBuilderServer(srv.ProtectedGrpcServer, builder)
 	}
 
-	go srv.RunTest(lis, nil)
+	go srv.RunTest(lis, plis)
 }

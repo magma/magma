@@ -42,7 +42,7 @@ func StartTestService(t *testing.T) {
 		orc8r.StateIndexerVersionAnnotation: "1",
 		orc8r.StateIndexerTypesAnnotation:   lte.MobilitydStateType,
 	}
-	srv, lis, _ := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, subscriberdb.ServiceName, labels, annotations)
+	srv, lis, plis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, subscriberdb.ServiceName, labels, annotations)
 
 	// Init storage
 	db, err := sqorc.Open("sqlite3", ":memory:")
@@ -66,10 +66,10 @@ func StartTestService(t *testing.T) {
 	}
 
 	// Add servicers
-	protos.RegisterSubscriberLookupServer(srv.GrpcServer, lookup_servicers.NewLookupServicer(fact, ipStore))
-	state_protos.RegisterIndexerServer(srv.GrpcServer, lookup_servicers.NewIndexerServicer())
+	protos.RegisterSubscriberLookupServer(srv.ProtectedGrpcServer, lookup_servicers.NewLookupServicer(fact, ipStore))
+	state_protos.RegisterIndexerServer(srv.ProtectedGrpcServer, lookup_servicers.NewIndexerServicer())
 	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, subscriberdbcloud_servicer.NewSubscriberdbServicer(serviceConfig, subscriberStore))
 
 	// Run service
-	go srv.RunTest(lis, nil)
+	go srv.RunTest(lis, plis)
 }

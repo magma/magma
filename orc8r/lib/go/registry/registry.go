@@ -463,7 +463,7 @@ func (r *ServiceRegistry) GetConnectionImpl(ctx context.Context, service string,
 }
 
 func (r *ServiceRegistry) getServiceRegistryServiceClient() (protos.ServiceRegistryClient, error) {
-	conn, err := r.GetConnection(ServiceRegistryServiceName, protos.ServiceType_SOUTHBOUND)
+	conn, err := r.GetConnection(ServiceRegistryServiceName, protos.ServiceType_PROTECTED)
 	if err != nil {
 		return nil, err
 	}
@@ -487,13 +487,7 @@ func (r *ServiceRegistry) getGRPCDialOptions() []grpc.DialOption {
 func (r *ServiceRegistry) getServiceRegistryServiceAddress() string {
 	// Use hardcoded address for service_registry service as we can't
 	// dynamically discover the service registry service itself
-	return fmt.Sprintf("orc8r-service-registry:%d", GrpcServicePort)
-}
-
-func (r *ServiceRegistry) getServiceRegistryProtectedServiceAddress() string {
-	// Use hardcoded address for service_registry service as we can't
-	// dynamically discover the service registry service itself
-	return fmt.Sprintf("orc8r-protected-service-registry:%d", ProtectedGrpcServicePort)
+	return fmt.Sprintf("orc8r-service-registry:%d", ProtectedGrpcServicePort)
 }
 
 func (r *ServiceRegistry) addUnsafe(location ServiceLocation) {

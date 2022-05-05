@@ -134,7 +134,7 @@ func (r *remoteIndexer) DeIndex(networkID string, states state_types.SerializedS
 }
 
 func (r *remoteIndexer) getIndexerClient() (state_protos.IndexerClient, error) {
-	conn, err := registry.GetConnection(r.service, lib_protos.ServiceType_SOUTHBOUND)
+	conn, err := registry.GetConnection(r.service, lib_protos.ServiceType_PROTECTED)
 	if err != nil {
 		initErr := merrors.NewInitError(err, r.service)
 		glog.Error(initErr)

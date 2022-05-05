@@ -122,7 +122,7 @@ func convertToServiceLocations(rawMap rawMapType) ([]ServiceLocation, error) {
 		// Get protected port
 		protectedPort, err := configMap.GetInt("protected_port")
 		if err != nil {
-			glog.Infof("service %s does not have a protected port", name)
+			glog.V(1).Infof("service %s does not have a protected port", name)
 		}
 
 		// Get echo port

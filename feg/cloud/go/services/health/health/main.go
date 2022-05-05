@@ -60,7 +60,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating cloud health servicer: %+v", err)
 	}
-	protos.RegisterCloudHealthServer(srv.GrpcServer, cloudHealthServer)
+	protos.RegisterCloudHealthServer(srv.ProtectedGrpcServer, cloudHealthServer)
 
 	// create a networkHealthStatusReporter to monitor and periodically log metrics
 	// on if all gateways in a network are unhealthy

@@ -33,7 +33,7 @@ func (r *remoteExporter) Submit(metrics []MetricAndContext) error {
 }
 
 func (r *remoteExporter) getExporterClient() (protos.MetricsExporterClient, error) {
-	conn, err := registry.GetConnection(r.service, lib_protos.ServiceType_SOUTHBOUND)
+	conn, err := registry.GetConnection(r.service, lib_protos.ServiceType_PROTECTED)
 	if err != nil {
 		initErr := merrors.NewInitError(err, r.service)
 		glog.Error(initErr)
