@@ -114,6 +114,9 @@ s1aptests/test_ipv4v6_paging_with_dedicated_bearer.py \
 s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_tcp_data.py \
 s1aptests/test_attach_detach_attach_ul_tcp_data.py \
+s1aptests/test_attach_dl_udp_data.py \
+s1aptests/test_attach_dl_tcp_data.py \
+s1aptests/test_attach_detach_attach_dl_tcp_data.py \
 s1aptests/test_attach_detach_multiple_rar_tcp_data.py \
 s1aptests/test_attach_service_with_multi_pdns_and_bearers_mt_data.py \
 s1aptests/test_attach_asr.py \
@@ -129,6 +132,10 @@ s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
 s1aptests/test_attach_detach_setsessionrules_tcp_data.py
 
 EXTENDED_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
+s1aptests/test_attach_detach_multi_ue_looped.py \
+s1aptests/test_attach_detach_ps_service_not_available.py \
+s1aptests/test_attach_detach_with_he_policy.py \
+s1aptests/test_attach_detach_rar_tcp_he.py \
 s1aptests/test_attach_restricted_plmn.py \
 s1aptests/test_imei_restriction_smc.py \
 s1aptests/test_imei_restriction_no_imeisv_in_smc.py \
@@ -248,18 +255,8 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_data_flow_after_service_request.py \ Fails randomly with connection refused
 #---------------
 
-# s1aptests/test_attach_dl_udp_data.py \
-# s1aptests/test_attach_dl_tcp_data.py \
-# s1aptests/test_attach_detach_attach_dl_tcp_data.py
-
-# Test cases passing in local setup, but failing in CI
-# s1aptests/test_attach_detach_with_he_policy.py \ GitHubIssue 6439 & PR 6411
-
 # TODO flaky tests we should look at
-# s1aptests/test_attach_detach_ps_service_not_available.py \
-# s1aptests/test_enb_complete_reset.py \
-# s1aptests/test_attach_detach_multi_ue_looped.py \
-# s1aptests/test_attach_detach_rar_tcp_he.py \ GitHubIssue 6254
+# s1aptests/test_enb_complete_reset.py \ GitHubIssue 12583
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \
 cloud_tests/metrics_export_test.py \
