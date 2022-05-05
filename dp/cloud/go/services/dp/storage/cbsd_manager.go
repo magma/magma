@@ -29,6 +29,7 @@ type CbsdManager interface {
 	DeleteCbsd(networkId string, id int64) error
 	FetchCbsd(networkId string, id int64) (*DetailedCbsd, error)
 	ListCbsd(networkId string, pagination *Pagination, filter *CbsdFilter) (*DetailedCbsdList, error)
+	DeregisterCbsd(networkId string, id int64) error
 }
 
 type CbsdFilter struct {
@@ -120,6 +121,15 @@ func (c *cbsdManager) ListCbsd(networkId string, pagination *Pagination, filter 
 		return nil, makeError(err, c.errorChecker)
 	}
 	return cbsds.(*DetailedCbsdList), nil
+}
+
+func (c *cbsdManager) DeregisterCbsd(networkId string, id int64) error {
+	_, err := sqorc.ExecInTx(c.db, nil, nil, func(tx *sql.Tx) (interface{}, error) {
+		runner := c.getInTransactionManager(tx)
+		err := runner.markCbsdAsUpdated(networkId, id)
+		return nil, err
+	})
+	return makeError(err, c.errorChecker)
 }
 
 func (c *cbsdManager) getInTransactionManager(tx sq.BaseRunner) *cbsdManagerInTransaction {
@@ -222,6 +232,18 @@ func (c *cbsdManagerInTransaction) markCbsdAsDeleted(networkId string, id int64)
 		WithBuilder(c.builder).
 		From(&DBCbsd{IsDeleted: db.MakeBool(true)}).
 		Select(db.NewIncludeMask("is_deleted")).
+		Where(sq.Eq{"id": id}).
+		Update()
+}
+
+func (c *cbsdManagerInTransaction) markCbsdAsUpdated(networkId string, id int64) error {
+	if err := c.checkIfCbsdExists(networkId, id); err != nil {
+		return err
+	}
+	return db.NewQuery().
+		WithBuilder(c.builder).
+		From(&DBCbsd{ShouldDeregister: db.MakeBool(true)}).
+		Select(db.NewIncludeMask("should_deregister")).
 		Where(sq.Eq{"id": id}).
 		Update()
 }

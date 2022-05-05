@@ -2920,6 +2920,29 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async postDpByNetworkIdCbsdsByCbsdIdDeregister(
+        parameters: {
+            'networkId': string,
+            'cbsdId': number,
+        }
+    ): Promise < "Success" > {
+        let path = '/dp/{network_id}/cbsds/{cbsd_id}/deregister';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['cbsdId'] === undefined) {
+            throw new Error('Missing required  parameter: cbsdId');
+        }
+
+        path = path.replace('{cbsd_id}', `${parameters['cbsdId']}`);
+
+        return await this.request(path, 'POST', query, body);
+    }
     static async getDpByNetworkIdLogs(
             parameters: {
                 'networkId': string,

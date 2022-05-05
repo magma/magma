@@ -290,6 +290,18 @@ func (s *CbsdManagerTestSuite) TestListCbsdWithFilter() {
 	s.Assert().Equal(expected, actual)
 }
 
+func (s *CbsdManagerTestSuite) TestDeregisterCbsd() {
+	request := &protos.DeregisterCbsdRequest{
+		NetworkId: networkId,
+		Id:        cbsdId,
+	}
+	_, err := s.manager.DeregisterCbsd(context.Background(), request)
+	s.Require().NoError(err)
+
+	s.Assert().Equal(networkId, s.store.networkId)
+	s.Assert().Equal(cbsdId, s.store.id)
+}
+
 func getProtoCbsd() *protos.CbsdData {
 	return &protos.CbsdData{
 		UserId:       "some_user_id",
@@ -431,4 +443,10 @@ func (s *stubCbsdManager) ListCbsd(networkId string, pagination *storage.Paginat
 	s.pagination = pagination
 	s.filter = filter
 	return s.list, s.err
+}
+
+func (s *stubCbsdManager) DeregisterCbsd(networkId string, id int64) error {
+	s.networkId = networkId
+	s.id = id
+	return s.err
 }

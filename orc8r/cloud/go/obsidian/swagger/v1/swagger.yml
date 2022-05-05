@@ -993,6 +993,19 @@ paths:
       summary: Update CBSD in LTE network
       tags:
       - cbsds
+  /dp/{network_id}/cbsds/{cbsd_id}/deregister:
+    post:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/cbsd_id'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Force deregistration in SAS of given CBSD
+      tags:
+      - cbsds
   /dp/{network_id}/logs:
     get:
       parameters:

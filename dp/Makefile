@@ -53,7 +53,7 @@ start_minikube:
 
 .PHONY: start_minikube_orc8r
 start_minikube_orc8r:
-	minikube start --addons=metrics-server --memory='8g' --kubernetes-version=$(KUBERNETES_VERSION)
+	minikube start --addons=metrics-server --memory='8g' --cpus=6 --kubernetes-version=$(KUBERNETES_VERSION)
 	minikube ssh sudo ip link set docker0 promisc on
 
 .PHONY: clean

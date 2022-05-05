@@ -150,11 +150,6 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsdWithSerialNumberOfExistingCbsd() {
 	s.Assert().ErrorIs(err, merrors.ErrAlreadyExists)
 }
 
-func (s *CbsdManagerTestSuite) givenResourcesInserted(models ...db.Model) {
-	err := s.resourceManager.InsertResources(db.NewExcludeMask(), models...)
-	s.Require().NoError(err)
-}
-
 func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 	state := s.enumMaps[storage.CbsdStateTable]["registered"]
 	s.givenResourcesInserted(getCbsd(someCbsdId, someNetwork, state))
@@ -433,6 +428,38 @@ func (s *CbsdManagerTestSuite) TestListDeletedCbsd() {
 		Count: 0,
 	}
 	s.Assert().Equal(expected, actual)
+}
+
+func (s *CbsdManagerTestSuite) TestDeregisterCbsd() {
+	state := s.enumMaps[storage.CbsdStateTable]["registered"]
+	s.givenResourcesInserted(getCbsd(someCbsdId, someNetwork, state))
+
+	err := s.cbsdManager.DeregisterCbsd(someNetwork, someCbsdId)
+	s.Require().NoError(err)
+
+	err = s.resourceManager.InTransaction(func() {
+		actual, err := db.NewQuery().
+			WithBuilder(s.resourceManager.GetBuilder()).
+			From(&storage.DBCbsd{}).
+			Select(db.NewIncludeMask("should_deregister")).
+			Where(sq.Eq{"id": someCbsdId}).
+			Fetch()
+		s.Require().NoError(err)
+		cbsd := &storage.DBCbsd{ShouldDeregister: db.MakeBool(true)}
+		expected := []db.Model{cbsd}
+		s.Assert().Equal(expected, actual)
+	})
+	s.Require().NoError(err)
+}
+
+func (s *CbsdManagerTestSuite) TestDeregisterNonExistentCbsd() {
+	err := s.cbsdManager.DeregisterCbsd(someNetwork, 0)
+	s.Assert().ErrorIs(err, merrors.ErrNotFound)
+}
+
+func (s *CbsdManagerTestSuite) givenResourcesInserted(models ...db.Model) {
+	err := s.resourceManager.InsertResources(db.NewExcludeMask(), models...)
+	s.Require().NoError(err)
 }
 
 func (s *CbsdManagerTestSuite) givenDeletedCbsd() {

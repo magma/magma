@@ -103,6 +103,19 @@ class DomainProxyOrc8rTestCase(BaseDBTestCase):
             # TODO maybe asking for state (cbsd api instead of log api) would be better
             self.then_message_is_eventually_sent(filters)
 
+    def test_sas_flow_restarted_when_user_requested_deregistration(self):
+        builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
+        cbsd_id = self.given_cbsd_provisioned(builder)
+
+        with self.while_cbsd_is_active():
+            filters = get_filters_for_request_type('deregistration', self.serial_number)
+
+            self.when_cbsd_is_deregistered(cbsd_id)
+
+            self.then_message_is_eventually_sent(filters)
+
+            self.then_state_is_eventually(builder.build_grant_state_data())
+
     def test_sas_flow_restarted_for_updated_cbsd(self):
         builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
         cbsd_id = self.given_cbsd_provisioned(builder)
@@ -275,6 +288,10 @@ class DomainProxyOrc8rTestCase(BaseDBTestCase):
     def when_cbsd_is_updated(self, cbsd_id: int, data: Dict[str, Any], expected_status: int = HTTPStatus.NO_CONTENT):
         r = send_request_to_backend('put', f'cbsds/{cbsd_id}', json=data)
         self.assertEqual(r.status_code, expected_status)
+
+    def when_cbsd_is_deregistered(self, cbsd_id: int):
+        r = send_request_to_backend('post', f'cbsds/{cbsd_id}/deregister')
+        self.assertEqual(r.status_code, HTTPStatus.NO_CONTENT)
 
     def when_cbsd_asks_for_state(self) -> CBSDStateResult:
         return self.dp_client.GetCBSDState(get_cbsd_request(self.serial_number))

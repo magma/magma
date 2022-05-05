@@ -92,6 +92,14 @@ func (c *cbsdManager) ListCbsds(_ context.Context, request *protos.ListCbsdReque
 	return resp, nil
 }
 
+func (c *cbsdManager) DeregisterCbsd(_ context.Context, request *protos.DeregisterCbsdRequest) (*protos.DeregisterCbsdResponse, error) {
+	err := c.store.DeregisterCbsd(request.NetworkId, request.Id)
+	if err != nil {
+		return nil, makeErr(err, "deregister cbsd")
+	}
+	return &protos.DeregisterCbsdResponse{}, nil
+}
+
 func dbPagination(pagination *protos.Pagination) *storage.Pagination {
 	p := &storage.Pagination{}
 	if pagination.Limit != nil {
