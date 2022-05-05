@@ -5,9 +5,9 @@ services:
             context: ${MAGMA_ROOT}
             dockerfile: .devcontainer/bazel-base/Dockerfile
         volumes:
-            - ${MAGMA_ROOT}:/magma
+            - ${MAGMA_ROOT}:/workspaces/magma
             - ${MAGMA_ROOT}/lte/gateway/configs:/etc/magma
             - bazel-output:/tmp/bazel
-        working_dir: /magma
+        working_dir: /workspaces/magma
 volumes:
     bazel-output:
