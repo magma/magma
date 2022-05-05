@@ -105,6 +105,7 @@ bool amf_pop_pdu_timer_arg(int timer_id, ue_pdu_id_t* arg) {
 int AmfUeContext::StartPduTimer(size_t msec, timer_repeat_t repeat,
                                 zloop_timer_fn handler, ue_pdu_id_t arg) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
+#if !MME_UNIT_TEST
   int timer_id = -1;
   if ((timer_id = start_timer(&amf_app_task_zmq_ctx, msec, repeat, handler,
                               nullptr)) != -1) {
@@ -119,6 +120,18 @@ void AmfUeContext::StopPduTimer(int timer_id) {
   std::map<int, ue_pdu_id_t>::iterator it = amf_pdu_timers.find(timer_id);
   amf_pdu_timers.erase(it);
   OAILOG_FUNC_OUT(LOG_AMF_APP);
+  return timer_id;
+#else
+  return 0;
+#endif /* !MME_UNIT_TEST */
+}
+//------------------------------------------------------------------------------
+void AmfUeContext::StopPduTimer(int timer_id) {
+#if !MME_UNIT_TEST
+  stop_timer(&amf_app_task_zmq_ctx, timer_id);
+  std::map<int, ue_pdu_id_t>::iterator it = amf_pdu_timers.find(timer_id);
+  amf_pdu_timers.erase(it);
+#endif /* !MME_UNIT_TEST */
 }
 //------------------------------------------------------------------------------
 bool AmfUeContext::PopPduTimerArgById(const int timer_id, ue_pdu_id_t* arg) {

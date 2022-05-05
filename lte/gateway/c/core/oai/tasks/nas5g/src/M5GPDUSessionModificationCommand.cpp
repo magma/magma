@@ -29,7 +29,6 @@ int PDUSessionModificationCommand::EncodePDUSessionModificationCommand(
     uint32_t len) {
   uint32_t encoded = 0;
   uint32_t encoded_result = 0;
-  uint16_t qos_flow_des_encoded = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, PDU_SESSION_MODIFICATION_COMMAND_MIN_LEN, len);
 
@@ -99,7 +98,7 @@ int PDUSessionModificationCommand::EncodePDUSessionModificationCommand(
 
   if (blength(pdu_sess_mod_comd->authorized_qosflowdescriptors)) {
     // Encode the IE of Authorized QOS Flow descriptions
-    *(buffer + encoded) = 0x79;
+    *(buffer + encoded) = PDU_SESSION_QOS_FLOW_DESC_IE_TYPE;
     encoded++;
 
     // Encode the length of the IE
