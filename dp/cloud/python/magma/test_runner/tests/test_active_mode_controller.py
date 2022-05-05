@@ -10,21 +10,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import json
 from collections import defaultdict
 from time import sleep
+from uuid import uuid4
 
-import grpc
 import pytest
 import requests
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
 from dp.protos.enodebd_dp_pb2_grpc import DPServiceStub
-from magma.db_service.db_initialize import DBInitializer
-from magma.db_service.session_manager import SessionManager
-from magma.db_service.tests.db_testcase import BaseDBTestCase
 from magma.test_runner.config import TestConfig
+from magma.test_runner.tests.integration_testcase import (
+    DomainProxyIntegrationTestCase,
+)
 from retrying import retry
-from uuid import uuid4
-import json
 
 config = TestConfig()
 
@@ -33,34 +32,10 @@ USER_ID = "some_user_id"
 
 
 @pytest.mark.local
-class ActiveModeControllerTestCase(BaseDBTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-        _delete_dp_elasticsearch_indices()
-
+class ActiveModeControllerTestCase(DomainProxyIntegrationTestCase):
 
     def setUp(self):
-        super().setUp()
-        grpc_channel = grpc.insecure_channel(
-            f"{config.GRPC_SERVICE}:{config.GRPC_PORT}",
-        )
-        self.dp_client = DPServiceStub(grpc_channel)
-        DBInitializer(SessionManager(self.engine)).initialize()
         self.serial_number = self._testMethodName + '_' + str(uuid4())
-
-    # retrying is needed because of a possible deadlock
-    # with cc locking request table
-    @retry(stop_max_attempt_number=5, wait_fixed=100)
-    def drop_all(self):
-        super().drop_all()
-
-    def tearDown(self):
-        super().tearDown()
 
     def test_provision_cbsd_in_sas_requested_by_dp_client(self):
         self.given_cbsd_provisioned()
@@ -92,18 +67,18 @@ class ActiveModeControllerTestCase(BaseDBTestCase):
             "query": {
                 "term": {
                     "cbsd_serial_number.keyword": {
-                        "value": self.serial_number
-                    }
-                }
-            }
+                        "value": self.serial_number,
+                    },
+                },
+            },
         }
 
         actual = requests.post(
             f"{config.ELASTICSEARCH_URL}/dp*/_search?size=100",
-            data = json.dumps(query),
-            headers= {
-                "Content-type": "application/json"
-            }
+            data=json.dumps(query),
+            headers={
+                "Content-type": "application/json",
+            },
         ).json()
 
         log_field_names = [
@@ -141,7 +116,6 @@ class ActiveModeControllerTestCase(BaseDBTestCase):
         state = self.dp_client.CBSDRegister(
             self._build_cbsd_request(), wait_for_ready=True,
         )
-        self.session.commit()
         self.assertEqual(self._build_empty_state_result(), state)
 
     @staticmethod
@@ -186,6 +160,7 @@ class ActiveModeControllerTestCase(BaseDBTestCase):
     @staticmethod
     def _build_empty_state_result() -> CBSDStateResult:
         return CBSDStateResult(radio_enabled=False)
+
 
 def _delete_dp_elasticsearch_indices():
     requests.delete(f"{config.ELASTICSEARCH_URL}/{config.ELASTICSEARCH_INDEX}*")
