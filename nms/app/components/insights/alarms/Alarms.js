@@ -39,8 +39,8 @@ export default function Alarms(props: Props) {
   return (
     <FBCAlarms
       apiUtil={apiUtil}
-      makeTabLink={({match, keyName}) =>
-        `/nms/${match.params.networkId || ''}/alerts/${keyName}`
+      makeTabLink={({networkId, keyName}) =>
+        `/nms/${networkId || ''}/alerts/${keyName}`
       }
       disabledTabs={disabledTabs}
       thresholdEditorEnabled={true}

@@ -20,11 +20,10 @@ import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import Metrics from '../insights/Metrics';
 import React from 'react';
-import {Route} from 'react-router-dom';
+import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const IMSI_CONFIGS: Array<MetricGraphConfig> = [
   {
@@ -78,12 +77,13 @@ const IMSI_CONFIGS: Array<MetricGraphConfig> = [
 ];
 
 export default function () {
-  const {history, relativePath, relativeUrl, match} = useRouter();
+  const params = useParams();
+  const navigate = useNavigate();
 
   const {response, error, isLoading} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdPrometheusSeries,
     {
-      networkId: nullthrows(match.params.networkId),
+      networkId: nullthrows(params.networkId),
     },
   );
   if (!response || error || isLoading) {
@@ -97,28 +97,27 @@ export default function () {
     }
   });
   const allIMSIs = [...imsiSet];
+  const metrics = (
+    <Metrics
+      configs={IMSI_CONFIGS}
+      onSelectorChange={(_, value) => navigate(value)}
+      selectors={allIMSIs}
+      defaultSelector={allIMSIs[0]}
+      selectorName={'imsi'}
+      renderOptionOverride={option => <ImsiAndIPMenuItem imsi={option} />}
+    />
+  );
 
   return (
-    <Route
-      path={relativePath('/:selectedID?')}
-      render={() => (
-        <Metrics
-          configs={IMSI_CONFIGS}
-          onSelectorChange={(_, value) =>
-            history.push(relativeUrl(`/${value}`))
-          }
-          selectors={allIMSIs}
-          defaultSelector={allIMSIs[0]}
-          selectorName={'imsi'}
-          renderOptionOverride={option => <ImsiAndIPMenuItem imsi={option} />}
-        />
-      )}
-    />
+    <Routes>
+      <Route path=":selectedID" element={metrics} />
+      <Route index element={metrics} />
+    </Routes>
   );
 }
 
 function ImsiAndIPMenuItem(props: {imsi: string}) {
-  const {match} = useRouter();
+  const params = useParams();
   // The directory record endpoint requires that "IMSI" be prepended
   // to imsi number. Some metric series might have that on their label.
   const queryIMSI = props.imsi.startsWith('IMSI')
@@ -128,7 +127,7 @@ function ImsiAndIPMenuItem(props: {imsi: string}) {
     response,
   } = useMagmaAPI(
     MagmaV1API.getCwfByNetworkIdSubscribersBySubscriberIdDirectoryRecord,
-    {networkId: match.params.networkId, subscriberId: queryIMSI},
+    {networkId: params.networkId, subscriberId: queryIMSI},
   );
 
   const ipv4 = response?.ipv4_addr;

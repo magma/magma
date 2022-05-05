@@ -24,8 +24,8 @@ import SimpleTable from '../table/SimpleTable';
 import Slide from '@material-ui/core/Slide';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
-import useRouter from '../../../../fbc_js_core/ui/hooks/useRouter';
-import {Link} from 'react-router-dom';
+import {Link, useResolvedPath} from 'react-router-dom';
+import {colors} from '../../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../AlarmContext';
 import {useEffect, useState} from 'react';
@@ -49,7 +49,7 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(1),
   },
   helperText: {
-    color: theme.palette.text.primary,
+    color: colors.primary.brightGray,
     fontSize: theme.typography.pxToRem(20),
   },
 }));
@@ -59,7 +59,7 @@ type Props = {
 };
 
 export default function FiringAlerts(props: Props) {
-  const {match} = useRouter();
+  const resolvedPath = useResolvedPath('');
   const {apiUtil, filterLabels} = useAlarmContext();
   const [selectedRow, setSelectedRow] = useState<?FiringAlarm>(null);
   const [lastRefreshTime, _setLastRefreshTime] = useState<string>(
@@ -145,7 +145,10 @@ export default function FiringAlerts(props: Props) {
                 size="small"
                 variant="contained"
                 component={Link}
-                to={`${match.url.slice(0, match.url.lastIndexOf('/'))}/rules`}>
+                to={`${resolvedPath.pathname.slice(
+                  0,
+                  resolvedPath.pathname.lastIndexOf('/'),
+                )}/rules`}>
                 Add Alert Rule
               </Button>
             </Grid>

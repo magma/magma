@@ -27,9 +27,9 @@ import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
-import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
+import defaultTheme from '../../../theme/default';
 
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
 
@@ -167,16 +167,17 @@ describe('<FEGGatewayDetailSubscribers />', () => {
               },
               setSessionState: _ => {},
             }}>
-            <Route
-              path="/nms/:networkId/equipment/overview/gateway/:gatewayId/overview"
-              render={props => (
-                <FEGGatewayDetailSubscribers
-                  {...props}
-                  refresh={false}
-                  gwInfo={mockGw0}
-                />
-              )}
-            />
+            <Routes>
+              <Route
+                path="/nms/:networkId/equipment/overview/gateway/:gatewayId/overview"
+                element={
+                  <FEGGatewayDetailSubscribers
+                    refresh={false}
+                    gwInfo={mockGw0}
+                  />
+                }
+              />
+            </Routes>
           </FEGSubscriberContext.Provider>
         </MuiStylesThemeProvider>
       </MuiThemeProvider>

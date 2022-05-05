@@ -18,7 +18,7 @@ import 'jest-dom/extend-expect';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import ProfileButton from '../ProfileButton';
 import React, {useState} from 'react';
-import defaultTheme from '../../theme/default';
+import defaultTheme from '../../../../app/theme/default';
 import {AppContextProvider} from '../../context/AppContext';
 import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
@@ -97,7 +97,7 @@ describe('<ProfileButton />', () => {
       },
     };
 
-    const {container, getByRole, getByTestId} = render(
+    const {getByRole, getByTestId} = render(
       <WrappedProfileButton
         path="/admin"
         isOrganizations={isOrganizations}

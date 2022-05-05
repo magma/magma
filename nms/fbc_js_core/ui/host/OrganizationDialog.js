@@ -29,26 +29,21 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
 import {UserRoles} from '../../../fbc_js_core/auth/types';
-import {
-  brightGray,
-  concrete,
-  mirage,
-  white,
-} from '../../../fbc_js_core/ui/theme/colors';
+import {colors} from '../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios} from '../../../fbc_js_core/ui/hooks';
 import {useContext, useEffect, useState} from 'react';
 
 const useStyles = makeStyles(_ => ({
   tabBar: {
-    backgroundColor: brightGray,
-    color: white,
+    backgroundColor: colors.primary.brightGray,
+    color: colors.primary.white,
   },
   dialog: {
-    backgroundColor: concrete,
+    backgroundColor: colors.primary.concrete,
   },
   dialogActions: {
-    backgroundColor: white,
+    backgroundColor: colors.primary.white,
     padding: '20px',
     zIndex: '1',
   },
@@ -57,9 +52,9 @@ const useStyles = makeStyles(_ => ({
     minHeight: '480px',
   },
   dialogTitle: {
-    backgroundColor: mirage,
+    backgroundColor: colors.primary.mirage,
     padding: '16px 24px',
-    color: white,
+    color: colors.primary.white,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',

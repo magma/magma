@@ -29,10 +29,10 @@
 #include <string>
 #include <thread>
 
-#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
-#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.hpp"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
+#include "orc8r/gateway/c/common/service303/MagmaService.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsSingleton.hpp"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 
 namespace grpc {
 class Channel;

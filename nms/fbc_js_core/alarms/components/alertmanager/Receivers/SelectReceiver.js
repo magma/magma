@@ -19,8 +19,8 @@ import Chip from '@material-ui/core/Chip';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
-import useRouter from '../../../../../fbc_js_core/ui/hooks/useRouter';
 import {useAlarmContext} from '../../AlarmContext';
+import {useParams} from 'react-router-dom';
 
 type Props = {
   onChange: (receiverName: string) => void,
@@ -33,11 +33,11 @@ export default function SelectReceiver({
   ...fieldProps
 }: Props) {
   const {apiUtil} = useAlarmContext();
-  const {match} = useRouter();
+  const params = useParams();
   const {isLoading, error, response} = apiUtil.useAlarmsApi(
     apiUtil.getReceivers,
     {
-      networkId: match.params.networkId,
+      networkId: params.networkId,
     },
   );
   const handleChange = React.useCallback(

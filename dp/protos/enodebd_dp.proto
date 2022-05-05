@@ -12,6 +12,8 @@ limitations under the License.
 */
 syntax = "proto3";
 
+option go_package = "magma/dp/cloud/go/protos";
+
 message CBSDRequest {
   string user_id = 1;
   string fcc_id = 2;

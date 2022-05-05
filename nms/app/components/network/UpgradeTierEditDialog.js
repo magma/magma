@@ -28,7 +28,7 @@ import TextField from '@material-ui/core/TextField';
 
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 
 type Props = {
@@ -38,7 +38,7 @@ type Props = {
 };
 
 export default function UpgradeTierEditDialog(props: Props) {
-  const {match} = useRouter();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [tier, setTier] = useState(
     props.tier || {
@@ -53,7 +53,7 @@ export default function UpgradeTierEditDialog(props: Props) {
   const onSave = () => {
     if (!props.tier) {
       MagmaV1API.postNetworksByNetworkIdTiers({
-        networkId: nullthrows(match.params.networkId),
+        networkId: nullthrows(params.networkId),
         tier,
       })
         .then(() => props.onSave(tier))
@@ -62,7 +62,7 @@ export default function UpgradeTierEditDialog(props: Props) {
         );
     } else {
       MagmaV1API.putNetworksByNetworkIdTiersByTierId({
-        networkId: nullthrows(match.params.networkId),
+        networkId: nullthrows(params.networkId),
         tierId: tier.id,
         tier,
       })

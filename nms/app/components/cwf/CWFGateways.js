@@ -45,13 +45,13 @@ import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 import {MAGMAD_DEFAULT_CONFIGS} from '../AddGatewayDialog';
-import {Route} from 'react-router-dom';
+import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {map} from 'lodash';
 import {useCallback, useState} from 'react';
-import {useInterval, useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useInterval} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -113,12 +113,37 @@ function gatewayStatus(gateway: cwf_gateway): string {
   return status;
 }
 
+function EditDialog(props: {
+  setGateways: (gateways: cwf_gateway[]) => void,
+  gateways: cwf_gateway[],
+}) {
+  const navigate = useNavigate();
+  const params = useParams();
+
+  return (
+    <CWFEditGatewayDialog
+      gateway={nullthrows(
+        props.gateways.find(gw => gw.id === params.gatewayID),
+      )}
+      onCancel={() => navigate('..')}
+      onSave={gateway => {
+        const newGateways = [...props.gateways];
+        const i = findIndex(newGateways, g => g.id === gateway.id);
+        newGateways[i] = gateway;
+        props.setGateways(newGateways);
+        navigate('..');
+      }}
+    />
+  );
+}
+
 export function CWFGateways(props: WithAlert & {}) {
   const [gateways, setGateways] = useState<?(cwf_gateway[])>(null);
   const [haPairs, setHaPairs] = useState<?(cwf_ha_pair[])>(null);
-  const {match, history, relativePath, relativeUrl} = useRouter();
+  const params = useParams();
+  const navigate = useNavigate();
   const [lastFetchTime, setLastFetchTime] = useState(Date.now());
-  const networkId = nullthrows(match.params.networkId);
+  const networkId = nullthrows(params.networkId);
   const classes = useStyles();
 
   useMagmaAPI(
@@ -191,7 +216,7 @@ export function CWFGateways(props: WithAlert & {}) {
     });
 
     setGateways([...gateways, gateway]);
-    history.push(relativeUrl(''));
+    navigate('');
   };
 
   const rows = gateways.map(gateway => (
@@ -207,7 +232,7 @@ export function CWFGateways(props: WithAlert & {}) {
     <div className={classes.paper}>
       <div className={classes.header}>
         <Text variant="h5">Configure Gateways</Text>
-        <NestedRouteLink to="/new">
+        <NestedRouteLink to="new">
           <Button>Add Gateway</Button>
         </NestedRouteLink>
       </div>
@@ -223,33 +248,21 @@ export function CWFGateways(props: WithAlert & {}) {
           <TableBody>{rows}</TableBody>
         </Table>
       </Paper>
-      <Route
-        path={relativePath('/new')}
-        render={() => (
-          <AddGatewayDialog
-            onClose={() => history.push(relativeUrl(''))}
-            onSave={addGateway}
-          />
-        )}
-      />
-      <Route
-        path={relativePath('/edit/:gatewayID')}
-        render={({match}) => (
-          <CWFEditGatewayDialog
-            gateway={nullthrows(
-              gateways.find(gw => gw.id === match.params.gatewayID),
-            )}
-            onCancel={() => history.push(relativeUrl(''))}
-            onSave={gateway => {
-              const newGateways = [...gateways];
-              const i = findIndex(newGateways, g => g.id === gateway.id);
-              newGateways[i] = gateway;
-              setGateways(newGateways);
-              history.push(relativeUrl(''));
-            }}
-          />
-        )}
-      />
+      <Routes>
+        <Route
+          path="/new"
+          element={
+            <AddGatewayDialog
+              onClose={() => navigate('')}
+              onSave={addGateway}
+            />
+          }
+        />
+        <Route
+          path="/edit/:gatewayID"
+          element={<EditDialog gateways={gateways} setGateways={setGateways} />}
+        />
+      </Routes>
     </div>
   );
 }
@@ -262,7 +275,7 @@ function GatewayRow(props: {
   const {gateway, haPairs, onDelete} = props;
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const classes = useStyles();
-  const {history, relativeUrl} = useRouter();
+  const navigate = useNavigate();
 
   const gatewayHaPair = haPairs.filter(haPair => {
     return (
@@ -319,7 +332,7 @@ function GatewayRow(props: {
         <TableCell>
           <IconButton
             color="primary"
-            onClick={() => history.push(relativeUrl(`/edit/${gateway.id}`))}>
+            onClick={() => navigate(`edit/${gateway.id}`)}>
             <EditIcon />
           </IconButton>
           <IconButton color="primary" onClick={() => onDelete(gateway)}>

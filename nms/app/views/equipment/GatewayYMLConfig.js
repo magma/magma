@@ -36,7 +36,8 @@ import {RUNNING_SERVICES} from '../../components/GatewayUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter, useSnackbar} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
+import {useSnackbar} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -55,10 +56,10 @@ const useStyles = makeStyles(theme => ({
 type Props = {...WithAlert};
 function GatewayConfigYml(props: Props) {
   const classes = useStyles();
-  const {match} = useRouter();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const networkId = nullthrows(match.params.networkId);
-  const gatewayId: string = nullthrows(match.params.gatewayId);
+  const networkId = nullthrows(params.networkId);
+  const gatewayId: string = nullthrows(params.gatewayId);
   const [selectedService, setSelectedService] = useState(RUNNING_SERVICES[0]);
   const [serviceConfig, setServiceConfig] = useState<string>('');
   const SERVICE_CONTENT = `cat /etc/magma/${selectedService}.yml`;

@@ -18,7 +18,7 @@ import 'jest-dom/extend-expect';
 import * as React from 'react';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import SimpleTable, {LabelsCell} from '../SimpleTable';
-import defaultTheme from '../../../theme/default';
+import defaultTheme from '../../../../../app/theme/default';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {render} from '@testing-library/react';
 

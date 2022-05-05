@@ -13,7 +13,7 @@ limitations under the License.
 import os
 from typing import Any, Dict, List
 
-from magma.common.service_registry import create_grpc_channel
+from magma.common.service_registry import create_grpc_channel, get_ssl_creds
 from magma.configuration.mconfigs import unpack_mconfig_any
 from orc8r.protos.common_pb2 import Void
 from orc8r.protos.magmad_pb2_grpc import MagmadStub
@@ -24,9 +24,30 @@ def get_rpc_channel(service):
     """
     Returns a RPC channel to the service in the gateway.
     """
-    return create_grpc_channel(
+
+    res = create_grpc_channel(
         os.environ.get('GATEWAY_IP', '192.168.60.142'),
         os.environ.get('GATEWAY_PORT', '8443'),
+        '%s.local' % service,
+    )
+
+    return res
+
+
+def get_hss_rpc_channel():
+    """
+    Returns RPC channel to hss
+    """
+    return get_feg_rpc_channel('9204', 'hss')
+
+
+def get_feg_rpc_channel(port, service):
+    """
+    Returns RPC channel to the service in the gateway.
+    """
+    return create_grpc_channel(
+        '192.168.60.142',
+        port,
         '%s.local' % service,
     )
 

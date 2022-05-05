@@ -25,7 +25,6 @@ import type {AlertConfig} from '../../../AlarmAPIType';
 import type {GenericRule} from '../../RuleInterface';
 
 jest.mock('../../../../../ui/hooks/useSnackbar');
-jest.mock('../../../../../ui/hooks/useRouter');
 
 const {AlarmsWrapper, apiUtil} = alarmTestUtil();
 
@@ -33,9 +32,6 @@ const enqueueSnackbarMock = jest.fn();
 jest
   .spyOn(require('../../../../../ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
-jest
-  .spyOn(require('../../../../../ui/hooks/useRouter'), 'default')
-  .mockReturnValue({match: {params: {networkId: 'test'}}});
 
 // TextField select is difficult to test so replace it with an Input
 jest.mock('@material-ui/core/TextField', () => {

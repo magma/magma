@@ -23,11 +23,16 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
-import {Redirect, Route, Switch} from 'react-router-dom';
+import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useResolvedPath,
+} from 'react-router-dom';
 import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(_ => ({
   bar: {
@@ -280,10 +285,11 @@ function RhinoMetrics() {
 
 export default function () {
   const classes = useStyles();
-  const {match, relativePath, relativeUrl, location} = useRouter();
+  const location = useLocation();
+  const resolvedPath = useResolvedPath('');
 
   const currentTab = findIndex(['gateways', 'network'], route =>
-    location.pathname.startsWith(match.url + '/' + route),
+    location.pathname.startsWith(resolvedPath.pathname + '/' + route),
   );
 
   return (
@@ -294,13 +300,13 @@ export default function () {
           indicatorColor="primary"
           textColor="inherit"
           className={classes.tabs}>
-          <Tab component={NestedRouteLink} label="Gateways" to="/gateways" />
+          <Tab component={NestedRouteLink} label="Gateways" to="gateways" />
         </Tabs>
       </AppBar>
-      <Switch>
-        <Route path={relativePath('/gateways')} component={RhinoMetrics} />
-        <Redirect to={relativeUrl('/gateways')} />
-      </Switch>
+      <Routes>
+        <Route path="gateways/*" element={<RhinoMetrics />} />
+        <Route index element={<Navigate to="gateways" replace />} />
+      </Routes>
     </>
   );
 }

@@ -13,6 +13,24 @@
  * @flow strict-local
  * @format
  */
+import ActionTable from '../../components/ActionTable';
+import Button from '@material-ui/core/Button';
+import CardTitleRow from '../../components/layout/CardTitleRow';
+import Grid from '@material-ui/core/Grid';
+import LaunchIcon from '@material-ui/icons/Launch';
+import MenuItem from '@material-ui/core/MenuItem';
+import NetworkContext from '../../components/context/NetworkContext';
+import React, {useContext, useEffect, useRef, useState} from 'react';
+import SettingsIcon from '@material-ui/icons/Settings';
+import SubscriberContext from '../../components/context/SubscriberContext';
+import Text from '../../theme/design-system/Text';
+import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import {
+  DEFAULT_PAGE_SIZE,
+  REFRESH_TIMEOUT,
+  SUBSCRIBER_EXPORT_COLUMNS,
+} from './SubscriberUtils';
 import type {ActionQuery} from '../../components/ActionTable';
 import type {EnqueueSnackbarOptions} from 'notistack';
 import type {SubscriberActionType, SubscriberInfo} from './SubscriberUtils';
@@ -25,45 +43,22 @@ import type {
   subscriber,
 } from '../../../generated/MagmaAPIBindings';
 
-import ActionTable from '../../components/ActionTable';
-import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
-import Button from '@material-ui/core/Button';
-import CardTitleRow from '../../components/layout/CardTitleRow';
-import Grid from '@material-ui/core/Grid';
-import LaunchIcon from '@material-ui/icons/Launch';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import NetworkContext from '../../components/context/NetworkContext';
-import React from 'react';
-import SettingsIcon from '@material-ui/icons/Settings';
-import SubscriberContext from '../../components/context/SubscriberContext';
-import Text from '../../theme/design-system/Text';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
-import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
-
+import MenuButton from '../../components/MenuButton';
 import {AddSubscriberDialog} from './SubscriberAddDialog';
 import {CsvBuilder} from 'filefy';
-import {
-  DEFAULT_PAGE_SIZE,
-  REFRESH_TIMEOUT,
-  SUBSCRIBER_EXPORT_COLUMNS,
-} from './SubscriberUtils';
 import {
   FetchSubscribers,
   handleSubscriberQuery,
 } from '../../state/lte/SubscriberState';
-import {JsonDialog} from './SubscriberOverview';
-import {RenderLink} from './SubscriberOverview';
+import {JsonDialog, RenderLink} from './SubscriberOverview';
 import {
   base64ToHex,
   hexToBase64,
   isValidHex,
 } from '../../../fbc_js_core/util/strings';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useEffect, useRef, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
-import {withStyles} from '@material-ui/core/styles';
+import {useNavigate, useParams} from 'react-router-dom';
 
 // number of subscriber in a chunk
 const SUBSCRIBERS_CHUNK_SIZE = 1000;
@@ -87,8 +82,8 @@ export type SubscriberRowType = {
 };
 
 function ExportSubscribersButton() {
-  const {match} = useRouter();
-  const networkId = nullthrows(match.params.networkId);
+  const params = useParams();
+  const networkId = nullthrows(params.networkId);
   const enqueueSnackbar = useEnqueueSnackbar();
 
   return (
@@ -184,28 +179,7 @@ async function exportSubscribers(props: ExportProps) {
   }
 }
 
-const StyledMenu = withStyles({
-  paper: {
-    border: '1px solid #d3d4d5',
-  },
-})(props => (
-  <Menu
-    elevation={0}
-    getContentAnchorEl={null}
-    anchorOrigin={{
-      vertical: 'bottom',
-      horizontal: 'center',
-    }}
-    transformOrigin={{
-      vertical: 'top',
-      horizontal: 'center',
-    }}
-    {...props}
-  />
-));
-
 function SubscriberActionsMenu(props: {onClose: () => void}) {
-  const [anchorEl, setAnchorEl] = React.useState(null);
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -215,13 +189,6 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
     subscriberAction,
     setSubscriberAction,
   ] = useState<SubscriberActionType>('add');
-  const handleClick = event => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
 
   /**
    * Delete array of subscriber IMSIs.
@@ -355,30 +322,18 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
           props.onClose();
         }}
       />
-
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleClick}
-        endIcon={<ArrowDropDownIcon />}>
-        {'Manage Subscribers'}
-      </Button>
-      <StyledMenu
-        anchorEl={anchorEl}
-        keepMounted
-        open={Boolean(anchorEl)}
-        onClose={handleClose}>
+      <MenuButton label="Manage Subscribers">
         <MenuItem
           data-testid=""
           onClick={() => {
             setSubscriberAction('add');
             setOpen(true);
           }}>
-          <Text variant="subtitle2">Add Subscribers</Text>
+          <Text variant="body2">Add Subscribers</Text>
         </MenuItem>
         <MenuItem>
           <Text
-            variant="subtitle2"
+            variant="body2"
             onClick={() => {
               setSubscriberAction('edit');
               setOpen(true);
@@ -391,17 +346,18 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
             setSubscriberAction('delete');
             setOpen(true);
           }}>
-          <Text variant="subtitle2">Delete Subscribers</Text>
+          <Text variant="body2">Delete Subscribers</Text>
         </MenuItem>
-      </StyledMenu>
+      </MenuButton>
     </div>
   );
 }
 function SubscribersTable(props: WithAlert) {
-  const {history, match, relativeUrl} = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
   const [currRow, setCurrRow] = useState<SubscriberRowType>({});
   const classes = useStyles();
-  const networkId: string = nullthrows(match.params.networkId);
+  const networkId: string = nullthrows(params.networkId);
   const networkCtx = useContext(NetworkContext);
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(SubscriberContext);
@@ -523,13 +479,13 @@ function SubscribersTable(props: WithAlert) {
             {
               name: 'View',
               handleFunc: () => {
-                history.push(relativeUrl('/' + currRow.imsi));
+                navigate(currRow.imsi);
               },
             },
             {
               name: 'Edit',
               handleFunc: () => {
-                history.push(relativeUrl('/' + currRow.imsi + '/config'));
+                navigate(currRow.imsi + '/config');
               },
             },
             {

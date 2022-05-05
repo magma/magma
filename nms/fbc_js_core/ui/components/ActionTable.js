@@ -39,7 +39,7 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
-import Text from './design-system/Text';
+import Text from '../../../app/theme/design-system/Text';
 
 import {forwardRef} from 'react';
 import {makeStyles} from '@material-ui/styles';

@@ -677,7 +677,8 @@ jobs:
             echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
           fi
       - name: Tag and push to Jfrog Registry
-        if: github.ref == 'refs/heads/master'
+        id: publish_artifacts
+        if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "cwf-test.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"

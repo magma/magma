@@ -23,10 +23,10 @@ import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
-import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
+import defaultTheme from '../../../theme/default';
 
 import * as hooks from '../../../components/context/RefreshContext';
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
@@ -146,7 +146,9 @@ describe('<Enodeb />', () => {
         <MuiThemeProvider theme={defaultTheme}>
           <MuiStylesThemeProvider theme={defaultTheme}>
             <EnodebContext.Provider value={enbCtx}>
-              <Route path="/nms/:networkId/enodeb/" render={_ => <Enodeb />} />
+              <Routes>
+                <Route path="/nms/:networkId/enodeb/" element={<Enodeb />} />
+              </Routes>
             </EnodebContext.Provider>
           </MuiStylesThemeProvider>
         </MuiThemeProvider>

@@ -22,13 +22,13 @@ import SimpleTable from './table/SimpleTable';
 import TableActionDialog from './table/TableActionDialog';
 import TableAddButton from './table/TableAddButton';
 import axios from 'axios';
-import useRouter from '../../../fbc_js_core/ui/hooks/useRouter';
 import {Parse} from './prometheus/PromQLParser';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from './AlarmContext';
 import {useLoadRules} from './hooks';
 import {useSnackbars} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 
+import {useParams} from 'react-router-dom';
 import type {GenericRule} from './rules/RuleInterface';
 
 const useStyles = makeStyles(theme => ({
@@ -58,7 +58,7 @@ export default function AlertRules<TRuleUnion>() {
   const {apiUtil, ruleMap} = useAlarmContext();
   const snackbars = useSnackbars();
   const classes = useStyles();
-  const {match} = useRouter();
+  const params = useParams();
   const [lastRefreshTime, setLastRefreshTime] = React.useState(
     new Date().getTime().toString(),
   );
@@ -82,7 +82,7 @@ export default function AlertRules<TRuleUnion>() {
       // only show matching alerts for prometheus rules for now
       if (selectedRow && selectedRow.ruleType === PROMETHEUS_RULE_TYPE) {
         const response = await apiUtil.viewMatchingAlerts({
-          networkId: match.params.networkId,
+          networkId: params.networkId,
           expression: selectedRow.expression,
         });
         setMatchingAlertsCount(response.length);
@@ -90,7 +90,7 @@ export default function AlertRules<TRuleUnion>() {
     } catch (error) {
       snackbars.error('Could not load matching alerts for rule');
     }
-  }, [selectedRow, apiUtil, match.params.networkId, snackbars]);
+  }, [selectedRow, apiUtil, params.networkId, snackbars]);
   const handleEdit = React.useCallback(() => {
     setIsAddEditAlert(true);
     setIsNewAlert(false);
@@ -105,7 +105,7 @@ export default function AlertRules<TRuleUnion>() {
         const cancelSource = axios.CancelToken.source();
         const {deleteRule} = ruleMap[selectedRow.ruleType];
         await deleteRule({
-          networkId: match.params.networkId,
+          networkId: params.networkId,
           ruleName: selectedRow.name,
           cancelToken: cancelSource.token,
         });
@@ -120,7 +120,7 @@ export default function AlertRules<TRuleUnion>() {
     } finally {
       setLastRefreshTime(new Date().toLocaleString());
     }
-  }, [match.params.networkId, ruleMap, selectedRow, snackbars]);
+  }, [params.networkId, ruleMap, selectedRow, snackbars]);
 
   const handleViewAlertModalClose = React.useCallback(() => {
     setIsViewAlertModalOpen(false);

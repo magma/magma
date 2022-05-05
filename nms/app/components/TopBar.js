@@ -22,13 +22,12 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../theme/design-system/Text';
-import VersionContext from './context/VersionContext';
 
+import NetworkSelector from './NetworkSelector';
 import {GetCurrentTabPos} from './TabUtils';
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext} from 'react';
-import {useRouter} from '../../fbc_js_core/ui/hooks';
+import {useResolvedPath} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   topBar: {
@@ -75,12 +74,11 @@ type Props = {header: string, tabs: BarLabel[]};
 
 export default function TopBar(props: Props) {
   const classes = useStyles();
-  const {match} = useRouter();
+  const {pathname} = useResolvedPath('');
   const currentTab = GetCurrentTabPos(
-    match.url,
-    props.tabs.map(tab => tab.to.slice(1)),
+    pathname,
+    props.tabs.map(tab => tab.to),
   );
-  const {nmsVersion, orc8rVersion} = useContext(VersionContext);
   function tabLabel(label, icon) {
     const Icon = icon;
 
@@ -102,18 +100,7 @@ export default function TopBar(props: Props) {
           <Grid item xs>
             <Text variant="body2">{props.header}</Text>
           </Grid>
-          <Grid item xs>
-            <div className={classes.versionText}>
-              <Text variant="overline" weight="light">
-                {'NMS: ' + nmsVersion}
-              </Text>
-            </div>
-            <div className={classes.versionText}>
-              <Text variant="overline" weight="light">
-                {'Orc8r: ' + orc8rVersion}
-              </Text>
-            </div>
-          </Grid>
+          <NetworkSelector />
         </Grid>
       </div>
       {props.tabs.length > 0 && (

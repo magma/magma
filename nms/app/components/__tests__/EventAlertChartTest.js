@@ -22,7 +22,7 @@ import axiosMock from 'axios';
 import defaultTheme from '../../theme/default';
 import moment from 'moment';
 
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
 import type {promql_return_object} from '../../../generated/MagmaAPIBindings';
@@ -93,15 +93,14 @@ describe('<EventAlertChart/>', () => {
         <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
           <MuiThemeProvider theme={defaultTheme}>
             <MuiStylesThemeProvider theme={defaultTheme}>
-              <Route
-                path="/nms/:networkId"
-                render={props => (
-                  <EventAlertChart
-                    {...props}
-                    startEnd={[tc.startDate, tc.endDate]}
-                  />
-                )}
-              />
+              <Routes>
+                <Route
+                  path="/nms/:networkId"
+                  element={
+                    <EventAlertChart startEnd={[tc.startDate, tc.endDate]} />
+                  }
+                />
+              </Routes>
             </MuiStylesThemeProvider>
           </MuiThemeProvider>
         </MemoryRouter>

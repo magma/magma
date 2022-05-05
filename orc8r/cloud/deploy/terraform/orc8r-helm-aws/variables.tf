@@ -176,7 +176,7 @@ variable "orc8r_deployment_type" {
 variable "orc8r_chart_version" {
   description = "Version of the core orchestrator Helm chart to install."
   type        = string
-  default     = "1.5.27"
+  default     = "1.5.28"
 }
 
 variable "cwf_orc8r_chart_version" {
@@ -212,7 +212,7 @@ variable "dp_orc8r_chart_version" {
 variable "orc8r_tag" {
   description = "Image tag for Orchestrator components."
   type        = string
-  default     = "1.6.1"
+  default     = "1.7.0"
 }
 
 variable "magma_uuid" {

@@ -26,11 +26,10 @@ import moment from 'moment';
 import {EVENT_STREAM} from '../../events/EventsTable';
 
 import {DateTimePicker} from '@material-ui/pickers';
+import {Navigate, Route, Routes} from 'react-router-dom';
 import {NetworkCheck} from '@material-ui/icons';
-import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors} from '../../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '../../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -47,8 +46,6 @@ const useStyles = makeStyles(theme => ({
  * and a network dashboard which provides information about the network.
  */
 function FEGDashboard() {
-  const {relativePath, relativeUrl} = useRouter();
-
   // datetime picker
   const [startDate, setStartDate] = useState(moment().subtract(3, 'days'));
   const [endDate, setEndDate] = useState(moment());
@@ -61,7 +58,7 @@ function FEGDashboard() {
         tabs={[
           {
             label: 'Network',
-            to: '/network',
+            to: 'network',
             icon: NetworkCheck,
             filters: (
               <FEGNetworkTab
@@ -75,15 +72,13 @@ function FEGDashboard() {
         ]}
       />
 
-      <Switch>
+      <Routes>
         <Route
-          path={relativePath('/network')}
-          render={props => (
-            <FEGNetworkDashboard {...props} startEnd={[startDate, endDate]} />
-          )}
+          path="/network/*"
+          element={<FEGNetworkDashboard startEnd={[startDate, endDate]} />}
         />
-        <Redirect to={relativeUrl('/network')} />
-      </Switch>
+        <Route index element={<Navigate to="network" replace />} />
+      </Routes>
     </>
   );
 }

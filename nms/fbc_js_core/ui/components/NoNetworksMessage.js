@@ -17,12 +17,12 @@
 import * as React from 'react';
 import Typography from '@material-ui/core/Typography';
 import WifiTethering from '@material-ui/icons/WifiTethering';
-
+import {colors} from '../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   noAccess: {
-    color: theme.palette.gray13,
+    color: colors.primary.brightGray,
     top: '50%',
     width: '520px',
     position: 'relative',

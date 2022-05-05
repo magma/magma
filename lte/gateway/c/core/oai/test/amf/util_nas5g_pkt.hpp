@@ -41,6 +41,11 @@ class NAS5GPktSnapShot {
   static uint8_t security_mode_reject[4];
   static uint8_t service_req_signaling[13];
   static uint8_t suci_ext_reg_req_buffer[65];
+  static uint8_t reg_req_security_capability_len_zero[30];
+
+  uint32_t get_reg_req_security_capability_buffer_len() {
+    return sizeof(reg_req_security_capability_len_zero) / sizeof(unsigned char);
+  }
 
   uint32_t get_reg_req_buffer_len() {
     return sizeof(reg_req_buffer) / sizeof(unsigned char);

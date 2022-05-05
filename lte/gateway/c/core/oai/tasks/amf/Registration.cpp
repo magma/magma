@@ -33,7 +33,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 #define M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH 1
 #define INVALID_IMSI64 (imsi64_t)0

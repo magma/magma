@@ -26,8 +26,9 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import React, {useState} from 'react';
 
+import {colors} from '../../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '../../hooks';
+import {useNavigate, useResolvedPath} from 'react-router-dom';
 
 export type ProjectLink = {
   id: Tab,
@@ -40,19 +41,19 @@ type Props = {
   projects: ProjectLink[],
 };
 
-const useClasses = makeStyles(theme => ({
+const useClasses = makeStyles(() => ({
   menu: {
     minWidth: 300,
   },
   primary: {
-    color: theme.palette.common.white,
+    color: colors.primary.white,
   },
   secondary: {
-    color: theme.palette.common.white,
+    color: colors.primary.white,
   },
   selectedRow: {
-    borderBottom: '1px solid ' + theme.palette.grey[400],
-    borderTop: '1px solid ' + theme.palette.grey[400],
+    borderBottom: '1px solid ' + colors.primary.gullGrey,
+    borderTop: '1px solid ' + colors.primary.gullGrey,
     '&:hover': {
       backgroundColor: '#2e3c42',
     },
@@ -62,10 +63,13 @@ const useClasses = makeStyles(theme => ({
 export default function AppDrawerProjectNavigation(props: Props) {
   const {projects} = props;
   const classes = useClasses();
-  const {history, match} = useRouter();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
+  const resolvedPath = useResolvedPath('');
 
-  const selected = projects.find(item => match.url.startsWith(item.url));
+  const selected = projects.find(item =>
+    resolvedPath.startsWith('/' + item.url),
+  );
 
   return (
     <div>
@@ -102,9 +106,9 @@ export default function AppDrawerProjectNavigation(props: Props) {
         {projects.map(item => (
           <MenuItem
             key={item.url}
-            disabled={match.url.startsWith(item.url)}
-            selected={match.url.startsWith(item.url)}
-            onClick={_event => history.push(item.url)}>
+            disabled={item.url === selected?.url}
+            selected={item.url === selected?.url}
+            onClick={_event => navigate(item.url)}>
             {item.name} - {item.secondary}
           </MenuItem>
         ))}

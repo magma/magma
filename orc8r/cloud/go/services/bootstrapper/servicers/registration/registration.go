@@ -22,7 +22,7 @@ import (
 // RegistrationService is public for ease of testing and mocking out functions
 type RegistrationService struct {
 	GetGatewayDeviceInfo func(ctx context.Context, token string) (*protos.GatewayDeviceInfo, error)
-	RegisterDevice       func(deviceInfo protos.GatewayDeviceInfo, hwid *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) error
+	RegisterDevice       func(deviceInfo *protos.GatewayDeviceInfo, hwid *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) error
 	GetControlProxy      func(networkID string) (string, error)
 }
 
@@ -47,7 +47,7 @@ func (r *RegistrationService) Register(c context.Context, request *protos.Regist
 		return clientErr, nil
 	}
 
-	err = r.RegisterDevice(*deviceInfo, request.Hwid, request.ChallengeKey)
+	err = r.RegisterDevice(deviceInfo, request.Hwid, request.ChallengeKey)
 	if err != nil {
 		clientErr := makeErr(fmt.Sprintf("error registering device: %v", err))
 		return clientErr, nil
@@ -67,12 +67,12 @@ func (r *RegistrationService) Register(c context.Context, request *protos.Regist
 	return res, nil
 }
 
-func RegisterDevice(deviceInfo protos.GatewayDeviceInfo, hwid *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) error {
+func RegisterDevice(deviceInfo *protos.GatewayDeviceInfo, hwid *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) error {
 	gatewayRecord, err := createGatewayDevice(hwid, challengeKey)
 	if err != nil {
 		return err
 	}
-	err = device.RegisterDevice(context.Background(), deviceInfo.NetworkId, orc8r.AccessGatewayRecordType, hwid.Id, gatewayRecord, serdes.Device)
+	err = device.RegisterDevice(context.Background(), deviceInfo.GetNetworkId(), orc8r.AccessGatewayRecordType, hwid.Id, gatewayRecord, serdes.Device)
 	return err
 }
 

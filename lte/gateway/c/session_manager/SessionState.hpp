@@ -558,7 +558,7 @@ class SessionState {
   bool add_to_monitor(const std::string& key, uint64_t used_tx,
                       uint64_t used_rx, SessionStateUpdateCriteria* session_uc);
 
-  // TODO(@themarwhal) clean up this function as it is used for testing only
+  // TODO #12593 clean up this function as it is used for testing only
   void set_monitor(const std::string& key, Monitor monitor,
                    SessionStateUpdateCriteria* session_uc);
 

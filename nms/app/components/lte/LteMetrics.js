@@ -26,9 +26,7 @@ import NestedRouteLink from '../../../fbc_js_core/ui/components/NestedRouteLink'
 import NetworkKPIs from './NetworkKPIs';
 import React, {useContext} from 'react';
 import TopBar from '../../components/TopBar';
-
-import {Redirect, Route, Switch} from 'react-router-dom';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {Navigate, Route, Routes} from 'react-router-dom';
 
 const CONFIGS: Array<MetricGraphConfig> = [
   {
@@ -238,8 +236,6 @@ export default function () {
     return <GatewayMetricsGraphs />;
   }
 
-  const {relativePath, relativeUrl} = useRouter();
-
   const grafanaEnabled =
     useContext(AppContext).isFeatureEnabled('grafana_metrics') &&
     useContext(AppContext).user.isSuperUser;
@@ -255,12 +251,12 @@ export default function () {
       {
         component: {NestedRouteLink},
         label: 'Gateways',
-        to: '/gateways',
+        to: 'gateways',
       },
       {
         component: {NestedRouteLink},
         label: 'Internal',
-        to: '/internal',
+        to: 'internal',
       },
     ];
   } else {
@@ -269,13 +265,13 @@ export default function () {
         icon: AssessmentIcon,
         component: {NestedRouteLink},
         label: 'Grafana',
-        to: '/grafana',
+        to: 'grafana',
       },
       {
         icon: ExploreIcon,
         component: {NestedRouteLink},
         label: 'Explorer',
-        to: '/explorer',
+        to: 'explorer',
       },
     ];
   }
@@ -283,31 +279,20 @@ export default function () {
   return (
     <>
       <TopBar header={'Metrics'} tabs={tabList} />
-      <Switch>
-        {!grafanaEnabled ? (
-          <>
-            <Route
-              path={relativePath('/gateways')}
-              component={GatewayMetricsGraphs}
-            />
-            <Route path={relativePath('/network')} component={NetworkKPIs} />
-            <Route
-              path={relativePath('/internal')}
-              component={InternalMetrics}
-            />
-            <Redirect to={relativeUrl('/gateways')} />
-          </>
-        ) : (
-          <>
-            <Route
-              path={relativePath('/grafana')}
-              component={GrafanaDashboard}
-            />
-            <Route path={relativePath('/explorer')} component={Explorer} />
-            <Redirect to={relativeUrl('/grafana')} />
-          </>
-        )}
-      </Switch>
+      {!grafanaEnabled ? (
+        <Routes>
+          <Route path="/gateways/*" element={<GatewayMetricsGraphs />} />
+          <Route path="/network" element={<NetworkKPIs />} />
+          <Route path="/internal/*" element={<InternalMetrics />} />
+          <Route index element={<Navigate to="gateways" replace />} />
+        </Routes>
+      ) : (
+        <Routes>
+          <Route path="grafana" element={<GrafanaDashboard />} />
+          <Route path="/explorer" element={<Explorer />} />
+          <Route index element={<Navigate to="grafana" replace />} />
+        </Routes>
+      )}
     </>
   );
 }

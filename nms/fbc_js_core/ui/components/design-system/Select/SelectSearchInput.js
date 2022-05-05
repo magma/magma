@@ -19,7 +19,7 @@ import InputAffix from '../Input/InputAffix';
 import React, {useEffect, useRef} from 'react';
 import TextInput from '../Input/TextInput';
 import fbt from 'fbt';
-import symphony from '../../../theme/symphony';
+import {colors} from '../../../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useMenuContext} from './MenuContext';
 
@@ -28,7 +28,7 @@ const useStyles = makeStyles(() => ({
     padding: '16px',
   },
   clearIconContainer: {
-    backgroundColor: symphony.palette.background,
+    backgroundColor: colors.primary.selago,
     padding: '6px',
     borderRadius: '100%',
     width: '20px',
@@ -39,7 +39,7 @@ const useStyles = makeStyles(() => ({
     alignItems: 'center',
   },
   clearIcon: {
-    color: symphony.palette.D800,
+    color: colors.primary.brightGray,
     fontSize: '13.66px',
   },
 }));

@@ -103,6 +103,7 @@ describe('NMS', () => {
 
       await page.waitForXPath(`//span[text()='Create Network']`);
       const buttonSelector = await page.$x(`//span[text()='Create Network']`);
+      await page.waitForTimeout(500);
       buttonSelector[0].click();
 
       const networkIDSelector = '[data-testid="networkID"]';

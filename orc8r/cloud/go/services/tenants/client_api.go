@@ -19,6 +19,7 @@ import (
 	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 
 	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
 	"magma/orc8r/lib/go/merrors"
@@ -85,17 +86,18 @@ func GetTenant(ctx context.Context, tenantID int64) (*tenant_protos.Tenant, erro
 	return tenant, nil
 }
 
-func SetTenant(ctx context.Context, tenantID int64, tenant tenant_protos.Tenant) error {
+func SetTenant(ctx context.Context, tenantID int64, tenant *tenant_protos.Tenant) error {
 	oc, err := getTenantsClient()
 	if err != nil {
 		return err
 	}
 
+	tenantCopy := proto.Clone(tenant).(*tenant_protos.Tenant)
 	_, err = oc.SetTenant(
 		ctx,
 		&tenant_protos.IDAndTenant{
 			Id:     tenantID,
-			Tenant: &tenant,
+			Tenant: tenantCopy,
 		},
 	)
 	if err != nil {
@@ -133,13 +135,14 @@ func GetControlProxy(ctx context.Context, tenantID int64) (*tenant_protos.GetCon
 	return controlProxy, nil
 }
 
-func CreateOrUpdateControlProxy(ctx context.Context, controlProxy tenant_protos.CreateOrUpdateControlProxyRequest) error {
+func CreateOrUpdateControlProxy(ctx context.Context, controlProxy *tenant_protos.CreateOrUpdateControlProxyRequest) error {
 	oc, err := getTenantsClient()
 	if err != nil {
 		return err
 	}
 
-	_, err = oc.CreateOrUpdateControlProxy(ctx, &controlProxy)
+	controlProxyCopy := proto.Clone(controlProxy).(*tenant_protos.CreateOrUpdateControlProxyRequest)
+	_, err = oc.CreateOrUpdateControlProxy(ctx, controlProxyCopy)
 	if err != nil {
 		return mapErr(err)
 	}

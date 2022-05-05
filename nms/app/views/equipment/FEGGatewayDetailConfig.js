@@ -33,7 +33,7 @@ import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import {TAB_OPTIONS} from '../../components/feg/FEGGatewayDialog';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -49,8 +49,8 @@ const useStyles = makeStyles(theme => ({
  */
 export default function FEGGatewayConfig() {
   const classes = useStyles();
-  const {match} = useRouter();
-  const gatewayId: string = nullthrows(match.params.gatewayId);
+  const params = useParams();
+  const gatewayId: string = nullthrows(params.gatewayId);
   const ctx = useContext(FEGGatewayContext);
   const gwInfo: federation_gateway = ctx.state[gatewayId];
 

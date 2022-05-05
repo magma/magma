@@ -37,13 +37,12 @@ import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 import {DateTimePicker} from '@material-ui/pickers';
 import {EnodebJsonConfig} from './EnodebDetailConfig';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
-import {Redirect, Route, Switch} from 'react-router-dom';
+import {Navigate, Route, Routes, useParams} from 'react-router-dom';
 import {RunGatewayCommands} from '../../state/lte/EquipmentState';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -69,8 +68,8 @@ const useStyles = makeStyles(theme => ({
 const CHART_TITLE = 'Bandwidth Usage';
 
 export function EnodebDetail() {
-  const {relativePath, relativeUrl, match} = useRouter();
-  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const params = useParams();
+  const enodebSerial: string = nullthrows(params.enodebSerial);
 
   return (
     <>
@@ -79,29 +78,26 @@ export function EnodebDetail() {
         tabs={[
           {
             label: 'Overview',
-            to: '/overview',
+            to: 'overview',
             icon: DashboardIcon,
             filters: <EnodebRebootButton />,
           },
           {
             label: 'Config',
-            to: '/config',
+            to: 'config',
             icon: SettingsIcon,
             filters: <EnodebRebootButton />,
           },
         ]}
       />
 
-      <Switch>
-        <Route path={relativePath('/overview')} component={Overview} />
-        <Route
-          path={relativePath('/config/json')}
-          component={EnodebJsonConfig}
-        />
-        <Route path={relativePath('/config')} component={EnodebConfig} />
-        <Route path={relativePath('/logs')} component={GatewayLogs} />
-        <Redirect to={relativeUrl('/overview')} />
-      </Switch>
+      <Routes>
+        <Route path="/overview" element={<Overview />} />
+        <Route path="/config/json" element={<EnodebJsonConfig />} />
+        <Route path="/config" element={<EnodebConfig />} />
+        <Route path="/logs" element={<GatewayLogs />} />
+        <Route index element={<Navigate to="overview" replace />} />
+      </Routes>
     </>
   );
 }
@@ -109,9 +105,9 @@ export function EnodebDetail() {
 function EnodebRebootButtonInternal(props: WithAlert) {
   const classes = useStyles();
   const ctx = useContext(EnodebContext);
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const params = useParams();
+  const networkId: string = nullthrows(params.networkId);
+  const enodebSerial: string = nullthrows(params.enodebSerial);
   const enbInfo = ctx.state.enbInfo[enodebSerial];
   const gatewayId = enbInfo?.enb_state?.reporting_gateway_id;
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -255,8 +251,8 @@ type Props = {
 
 function EnodebMetricChart(props: Props) {
   const ctx = useContext(EnodebContext);
-  const {match} = useRouter();
-  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const params = useParams();
+  const enodebSerial: string = nullthrows(params.enodebSerial);
   const enbInfo = ctx.state.enbInfo[enodebSerial];
   const enbIpAddress = enbInfo?.enb_state?.ip_address ?? '';
 

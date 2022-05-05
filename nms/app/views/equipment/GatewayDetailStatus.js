@@ -28,12 +28,12 @@ import {
   REFRESH_INTERVAL,
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 export default function GatewayDetailStatus({refresh}: {refresh: boolean}) {
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const gatewayId: string = nullthrows(match.params.gatewayId);
+  const params = useParams();
+  const networkId: string = nullthrows(params.networkId);
+  const gatewayId: string = nullthrows(params.gatewayId);
   // Auto refresh gateways every 30 seconds
   const state = useRefreshingContext({
     context: GatewayContext,

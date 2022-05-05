@@ -21,6 +21,8 @@ import {User} from '../../../fbc_js_core/sequelize_models';
 import {getUserFromRequest} from '../util';
 import {injectOrganizationParams} from '../organization';
 
+import crypto from 'crypto';
+
 const logger = require('../../../fbc_js_core/logging').getLogger(module);
 
 type Config = {
@@ -62,7 +64,7 @@ export default function OrganizationSamlStrategy(config: Config) {
         if (!user) {
           const createArgs = await injectOrganizationParams(req, {
             email: email.toLowerCase(),
-            password: Math.random().toString(36),
+            password: crypto.randomBytes(16).toString('hex'),
             // Hardcoded role for now, should be configurable
             role: AccessRoles.SUPERUSER,
             ssoDefaultNetworkIDs,

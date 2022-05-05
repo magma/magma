@@ -41,11 +41,10 @@ import axios from 'axios';
 
 import NetworkContext from '../context/NetworkContext';
 import useMagmaAPI from '../../../api/useMagmaAPI';
-import {Route} from 'react-router-dom';
+import {Route, Routes, useNavigate} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {sortBy} from 'lodash';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(() => ({
   header: {
@@ -109,7 +108,7 @@ function DialogWithConfirmationPhrase(props: DialogConfirmationProps) {
 function Networks() {
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const {relativePath, relativeUrl, history} = useRouter();
+  const navigate = useNavigate();
   const [networks, setNetworks] = useState(null);
   const [networkToDelete, setNetworkToDelete] = useState(null);
   const {networkId: selectedNetworkId} = useContext(NetworkContext);
@@ -128,8 +127,7 @@ function Networks() {
     <TableRow key={network}>
       <TableCell>{network}</TableCell>
       <TableCell>
-        <IconButton
-          onClick={() => history.push(relativeUrl(`/edit/${network}`))}>
+        <IconButton onClick={() => navigate(`edit/${network}`)}>
           <EditIcon />
         </IconButton>
         <IconButton color="primary" onClick={() => setNetworkToDelete(network)}>
@@ -139,12 +137,12 @@ function Networks() {
     </TableRow>
   ));
 
-  const closeDialog = () => history.push(relativeUrl(''));
+  const closeDialog = () => navigate('');
   return (
     <div className={classes.paper}>
       <div className={classes.header}>
         <div />
-        <NestedRouteLink to="/new">
+        <NestedRouteLink to="new">
           <Button>Add Network</Button>
         </NestedRouteLink>
       </div>
@@ -206,38 +204,40 @@ function Networks() {
           }}
         />
       )}
-      <Route
-        path={relativePath('/new')}
-        render={() => (
-          <AddNetworkDialog
-            onClose={closeDialog}
-            onSave={networkID => {
-              setNetworks([...networks, networkID]);
-              enqueueSnackbar('Network created successfully', {
-                variant: 'success',
-              });
-              closeDialog();
-              if (!selectedNetworkId) {
-                window.location.replace(`/nms/${networkID}/admin/networks`);
-              }
-            }}
-          />
-        )}
-      />
-      <Route
-        path={relativePath('/edit/:networkID')}
-        render={() => (
-          <EditNetworkDialog
-            onClose={closeDialog}
-            onSave={_ => {
-              enqueueSnackbar('Network updated successfully', {
-                variant: 'success',
-              });
-              closeDialog();
-            }}
-          />
-        )}
-      />
+      <Routes>
+        <Route
+          path="/new"
+          element={
+            <AddNetworkDialog
+              onClose={closeDialog}
+              onSave={networkID => {
+                setNetworks([...networks, networkID]);
+                enqueueSnackbar('Network created successfully', {
+                  variant: 'success',
+                });
+                closeDialog();
+                if (!selectedNetworkId) {
+                  window.location.replace(`/nms/${networkID}/admin/networks`);
+                }
+              }}
+            />
+          }
+        />
+        <Route
+          path="/edit/:networkID"
+          element={
+            <EditNetworkDialog
+              onClose={closeDialog}
+              onSave={_ => {
+                enqueueSnackbar('Network updated successfully', {
+                  variant: 'success',
+                });
+                closeDialog();
+              }}
+            />
+          }
+        />
+      </Routes>
     </div>
   );
 }

@@ -42,7 +42,7 @@ import {
 } from '../../../fbc_js_core/util/strings';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 
 const useStyles = makeStyles(() => ({
@@ -110,7 +110,7 @@ function buildEditingSubscriber(
 
 export default function AddEditSubscriberDialog(props: Props) {
   const classes = useStyles();
-  const {match} = useRouter();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [editingSubscriber, setEditingSubscriber] = useState(
     buildEditingSubscriber(props.editingSubscriber),
@@ -147,7 +147,7 @@ export default function AddEditSubscriberDialog(props: Props) {
     }
     if (props.editingSubscriber) {
       MagmaV1API.putLteByNetworkIdSubscribersBySubscriberId({
-        networkId: nullthrows(match.params.networkId),
+        networkId: nullthrows(params.networkId),
         subscriberId: data.id,
         subscriber: data,
       })
@@ -155,7 +155,7 @@ export default function AddEditSubscriberDialog(props: Props) {
         .catch(e => props.onSaveError(e.response.data.message));
     } else {
       MagmaV1API.postLteByNetworkIdSubscribers({
-        networkId: match.params.networkId || '',
+        networkId: params.networkId || '',
         subscribers: [data],
       })
         .then(() => props.onSave(data.id))

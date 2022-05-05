@@ -16,7 +16,7 @@
 #include <algorithm>
 #include <string>
 
-#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
+#include "orc8r/gateway/c/common/service303/MagmaService.hpp"
 
 using ::testing::Test;
 

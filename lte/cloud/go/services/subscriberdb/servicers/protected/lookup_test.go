@@ -25,6 +25,7 @@ import (
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/test_utils"
 )
 
 func TestLookupServicer_MSISDNs(t *testing.T) {
@@ -230,7 +231,9 @@ func TestLookupServicer_IPs(t *testing.T) {
 			Ips:       []string{"ipA", "ipB", "ipC"},
 		})
 		assert.NoError(t, err)
-		assert.Equal(t, want, got.IpMappings)
+		for i := range want {
+			test_utils.AssertMessagesEqual(t, want[i], got.IpMappings[i])
+		}
 	})
 
 	t.Run("validate requests", func(t *testing.T) {
@@ -280,6 +283,8 @@ func TestLookupServicer_IPs(t *testing.T) {
 			{Ip: "ipB", Imsi: "IMSI0", Apn: "apn1"},
 			{Ip: "ipC", Imsi: "IMSI1", Apn: "apn0"},
 		}
-		assert.Equal(t, want, got.IpMappings)
+		for i := range want {
+			test_utils.AssertMessagesEqual(t, want[i], got.IpMappings[i])
+		}
 	})
 }

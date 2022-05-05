@@ -19,9 +19,8 @@
 
 // The map is pinned so that it can be accessed by pipelined or debugging tool
 // to examine datapath state.
-BPF_TABLE_PINNED(
-    "hash", struct ul_map_key, struct ul_map_info, ul_map, 1024 * 512,
-    "/sys/fs/bpf/ul_map");
+BPF_TABLE_PINNED("hash", struct ul_map_key, struct ul_map_info, ul_map,
+                 1024 * 512, "/sys/fs/bpf/ul_map");
 
 // Ingress handler for Uplink traffic.
 int gtpu_ingress_handler(struct __sk_buff* skb) {
@@ -36,17 +35,17 @@ int gtpu_ingress_handler(struct __sk_buff* skb) {
                      sizeof(struct udphdr) + gtp_hdr_size +
                      sizeof(struct iphdr);
   // 1. a. check GTP HDR
-  data     = (void*) (long) skb->data;
-  data_end = (void*) (long) skb->data_end;
-  int len  = data_end - data;
+  data = (void*)(long)skb->data;
+  data_end = (void*)(long)skb->data_end;
+  int len = data_end - data;
 
   if ((data + inner_ip_hdr) > data_end) {
-    bpf_trace_printk(
-        "ERR: truncated packet: len: %d, data sz %d\n", skb->len, len);
+    bpf_trace_printk("ERR: truncated packet: len: %d, data sz %d\n", skb->len,
+                     len);
     return TC_ACT_OK;
   }
-  struct gtp1_header* gtp1 = (struct gtp1_header*) (data + gtp_offset);
-  int tid                  = ntohl(gtp1->tid);
+  struct gtp1_header* gtp1 = (struct gtp1_header*)(data + gtp_offset);
+  int tid = ntohl(gtp1->tid);
 
   struct udphdr* uh = data + sizeof(struct ethhdr) + sizeof(struct iphdr);
   if (uh->dest != htons(GTP_PORT_NO)) {
@@ -55,8 +54,8 @@ int gtpu_ingress_handler(struct __sk_buff* skb) {
     return TC_ACT_OK;
   }
   // 1. b. check UE map
-  iph                     = data + gtp_offset + gtp_hdr_size;
-  struct ul_map_key key   = {iph->saddr};
+  iph = data + gtp_offset + gtp_hdr_size;
+  struct ul_map_key key = {iph->saddr};
   struct ul_map_info* fwd = ul_map.lookup(&key);
   if (!fwd) {
     bpf_trace_printk("ERR: UE for IP %x not found\n", iph->saddr);
@@ -65,22 +64,21 @@ int gtpu_ingress_handler(struct __sk_buff* skb) {
   }
 
   // 2. process inner packet.
-  iph          = NULL;
+  iph = NULL;
   int rem_hdrs = sizeof(struct iphdr) + sizeof(struct udphdr) + gtp_hdr_size;
-  ret          = bpf_skb_adjust_room(skb, -rem_hdrs, BPF_ADJ_ROOM_MAC, 0);
+  ret = bpf_skb_adjust_room(skb, -rem_hdrs, BPF_ADJ_ROOM_MAC, 0);
   if (ret) {
-    bpf_trace_printk(
-        "ERR: get: error adjust %d proto: %x, offset %d\n", ret, skb->protocol,
-        skb->len);
+    bpf_trace_printk("ERR: get: error adjust %d proto: %x, offset %d\n", ret,
+                     skb->protocol, skb->len);
     return TC_ACT_OK;
   }
-  data     = (void*) (long) skb->data;
-  data_end = (void*) (long) skb->data_end;
-  len      = data_end - data;
+  data = (void*)(long)skb->data;
+  data_end = (void*)(long)skb->data_end;
+  len = data_end - data;
 
   if ((data + sizeof(struct ethhdr)) > data_end) {
-    bpf_trace_printk(
-        "ERR: truncated inner packet: len: %d, data sz %d\n", skb->len, len);
+    bpf_trace_printk("ERR: truncated inner packet: len: %d, data sz %d\n",
+                     skb->len, len);
     return TC_ACT_OK;
   }
 
@@ -98,8 +96,7 @@ int gtpu_ingress_handler(struct __sk_buff* skb) {
   // TODO: Add lock for accessing bytes
   fwd->bytes += len;
 
-  bpf_trace_printk(
-      "INFO: UL-fwd: tid %d egress: %d mark: %d\n", tid, fwd->e_if_index,
-      fwd->mark);
+  bpf_trace_printk("INFO: UL-fwd: tid %d egress: %d mark: %d\n", tid,
+                   fwd->e_if_index, fwd->mark);
   return bpf_redirect(fwd->e_if_index, 0);
 }

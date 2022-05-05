@@ -47,7 +47,7 @@ import {SelectEditComponent} from '../../components/ActionTable';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useNavigate, useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -200,7 +200,7 @@ function UpgradeTable() {
   const ctx = useContext(GatewayTierContext);
   const gwCtx = useContext(GatewayContext);
   const lteGateways = gwCtx.state;
-  const {history, relativeUrl} = useRouter();
+  const navigate = useNavigate();
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const lteGatewayRows: Array<EquipmentGatewayUpgradeType> = [];
@@ -234,7 +234,7 @@ function UpgradeTable() {
             <Link
               variant="body2"
               component="button"
-              onClick={() => history.push(relativeUrl('/' + currRow.id))}>
+              onClick={() => navigate(currRow.id)}>
               {currRow.id}
             </Link>
           ),
@@ -295,9 +295,10 @@ function UpgradeTable() {
 }
 
 function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
-  const {history, relativeUrl, match} = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
+  const networkId: string = nullthrows(params.networkId);
   const enqueueSnackbar = useEnqueueSnackbar();
-  const networkId: string = nullthrows(match.params.networkId);
   const gwCtx = useContext(GatewayContext);
   const [lastRefreshTime, setLastRefreshTime] = useState(
     new Date().toLocaleString(),
@@ -366,7 +367,7 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
               <Link
                 variant="body2"
                 component="button"
-                onClick={() => history.push(relativeUrl('/' + currRow.id))}>
+                onClick={() => navigate(currRow.id)}>
                 {currRow.id}
               </Link>
             ),
@@ -385,13 +386,13 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
           {
             name: 'View',
             handleFunc: () => {
-              history.push(relativeUrl('/' + currRow.id));
+              navigate(currRow.id);
             },
           },
           {
             name: 'Edit',
             handleFunc: () => {
-              history.push(relativeUrl('/' + currRow.id + '/config'));
+              navigate(currRow.id + '/config');
             },
           },
           {

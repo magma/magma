@@ -32,6 +32,7 @@ import (
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	streamer_protos "magma/orc8r/cloud/go/services/streamer/protos"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
@@ -63,7 +64,7 @@ func TestLTEStreamProviderServicer_GetUpdates(t *testing.T) {
 		assert.NoError(t, err)
 		want, err := subscriberStreamer.GetUpdates(context.Background(), hwID, nil)
 		assert.NoError(t, err)
-		assert.Equal(t, &protos.DataUpdateBatch{Updates: want}, got)
+		test_utils.AssertMessagesEqual(t, &protos.DataUpdateBatch{Updates: want}, got)
 	})
 }
 

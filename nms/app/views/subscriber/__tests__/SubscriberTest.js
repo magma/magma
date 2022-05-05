@@ -23,7 +23,7 @@ import SubscriberDashboard from '../SubscriberOverview';
 import defaultTheme from '../../../theme/default.js';
 
 import {CoreNetworkTypes} from '../SubscriberUtils';
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 
@@ -96,6 +96,7 @@ describe('<SubscriberDashboard />', () => {
       subscribers: subscribers,
       next_page_token: '',
     });
+    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
   });
 
   const Wrapper = () => {
@@ -104,6 +105,7 @@ describe('<SubscriberDashboard />', () => {
       forbiddenNetworkTypes: {},
       gwSubscriberMap: {},
       sessionState: {},
+      totalCount: 2,
     };
 
     return (
@@ -117,10 +119,12 @@ describe('<SubscriberDashboard />', () => {
                 networkId: 'test',
               }}>
               <SubscriberContext.Provider value={subscriberCtx}>
-                <Route
-                  path="/nms/:networkId/subscribers/overview"
-                  component={SubscriberDashboard}
-                />
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/subscribers/overview/*"
+                    element={<SubscriberDashboard />}
+                  />
+                </Routes>
               </SubscriberContext.Provider>
             </NetworkContext.Provider>
           </MuiStylesThemeProvider>

@@ -36,6 +36,8 @@ import type {ExpressRequest, ExpressResponse} from 'express';
 import type {FBCNMSRequest} from './access';
 import type {UserType} from '../../fbc_js_core/sequelize_models/models/user';
 
+import crypto from 'crypto';
+
 const logger = logging.getLogger(module);
 const PASSWORD_FOR_LOGGING = '<SECRET>';
 
@@ -285,7 +287,7 @@ function userMiddleware(options: Options): express.Router<FBCNMSRequest, *> {
         if (req.organization && userProperties.password === undefined) {
           const organization = await req.organization();
           if (organization.ssoEntrypoint) {
-            userProperties.password = Math.random().toString(36);
+            userProperties.password = crypto.randomBytes(16).toString('hex');
           }
         }
         const user = await User.create(userProperties);

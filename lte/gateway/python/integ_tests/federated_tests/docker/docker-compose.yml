@@ -116,7 +116,7 @@ services:
     <<: *goservice
     container_name: s6a_proxy
     environment:
-      MAGMA_PRINT_GRPC_PAYLOAD: 1
+      MAGMA_PRINT_GRPC_PAYLOAD: 2
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/s6a_proxy -logtostderr=true -v=9
 
 

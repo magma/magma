@@ -128,7 +128,8 @@ setup(
         'pyroute2==0.5.14',
         'aiohttp',
         'jsonpointer>=1.14',
-        'ovs>=2.13',
+        # TODO: (GH #12601) make magma compatible with ovs>=2.17.0
+        'ovs>=2.13,<2.17.0',
         'prometheus-client>=0.3.1',
         'aioeventlet==0.5.1',  # aioeventlet-build.sh
     ],

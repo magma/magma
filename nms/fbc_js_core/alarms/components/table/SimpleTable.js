@@ -35,14 +35,15 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
+import {colors} from '../../../../app/theme/default';
 import {forwardRef} from 'react';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   labelChip: {
-    backgroundColor: theme.palette.grey[50],
-    color: theme.palette.secondary.main,
+    backgroundColor: colors.primary.mercury,
+    color: colors.primary.brightGray,
     margin: '5px',
   },
   ellipsisChip: {

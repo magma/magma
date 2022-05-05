@@ -45,7 +45,7 @@ import {base64ToHex, decodeBase64} from '../../../fbc_js_core/util/strings';
 import {coalesceNetworkType} from '../../../fbc_js_core/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
   input: {width: '100%'},
@@ -61,8 +61,7 @@ type Props = {
 
 export default function PolicyRuleEditDialog(props: Props) {
   const classes = useStyles();
-  const {match} = useRouter();
-  const {networkId} = match.params;
+  const {networkId} = useParams();
   const {qosProfiles, mirrorNetwork} = props;
   const [networkType, setNetworkType] = useState<?NetworkType>(null);
   const [mirrorNetworkType, setMirrorNetworkType] = useState<?NetworkType>(

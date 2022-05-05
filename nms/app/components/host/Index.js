@@ -29,10 +29,9 @@ import React from 'react';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import UsersSettings from '../admin/userManagement/UsersSettings';
 import {AppContextProvider} from '../../../fbc_js_core/ui/context/AppContext';
-import {Redirect, Route, Switch} from 'react-router-dom';
+import {Navigate, Outlet, Route, Routes} from 'react-router-dom';
 import {getProjectTabs as getAllProjectTabs} from '../../../fbc_js_core/projects/projects';
 import {makeStyles} from '@material-ui/styles';
-import {useRelativeUrl} from '../../../fbc_js_core/ui/hooks/useRouter';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -42,25 +41,24 @@ const useStyles = makeStyles(() => ({
 
 const accessibleTabs = ['NMS'];
 
-function Host() {
+function Frame() {
   const classes = useStyles();
-  const relativePath = useRelativeUrl();
 
   const sidebarItems = [
     {
       label: 'Organizations',
-      path: '/organizations',
+      path: '/host/organizations',
       icon: <AssignmentIcon />,
     },
     {
       label: 'Features',
-      path: '/features',
+      path: '/host/features',
       icon: <FlagIcon />,
     },
-    {label: 'Metrics', path: '/metrics', icon: <ShowChartIcon />},
+    {label: 'Metrics', path: '/host/metrics', icon: <ShowChartIcon />},
     {
       label: 'Users',
-      path: '/users',
+      path: '/host/users',
       icon: <PeopleIcon />,
     },
   ];
@@ -69,29 +67,7 @@ function Host() {
     <div className={classes.root}>
       <AppSideBar items={sidebarItems} />
       <AppContent>
-        <Switch>
-          <Route
-            path={relativePath('/organizations/detail/:name')}
-            render={() => (
-              <OrganizationEdit
-                getProjectTabs={() =>
-                  getAllProjectTabs().filter(tab =>
-                    accessibleTabs.includes(tab.name),
-                  )
-                }
-              />
-            )}
-          />
-          <Route
-            path={relativePath('/organizations')}
-            component={Organizations}
-          />
-          <Route path={relativePath('/features')} component={Features} />
-          <Route path={relativePath('/metrics')} component={CloudMetrics} />
-          <Route path={relativePath('/users')} component={UsersSettings} />
-          <Route path={relativePath('/settings')} component={AccountSettings} />
-          <Redirect to={relativePath('/organizations')} />
-        </Switch>
+        <Outlet />
       </AppContent>
     </div>
   );
@@ -101,10 +77,31 @@ const Index = () => {
   return (
     <ApplicationMain>
       <AppContextProvider isOrganizations={true}>
-        <Host />
+        <Routes>
+          <Route path="/host" element={<Frame />}>
+            <Route
+              path="organizations/detail/:name"
+              element={
+                <OrganizationEdit
+                  getProjectTabs={() =>
+                    getAllProjectTabs().filter(tab =>
+                      accessibleTabs.includes(tab.name),
+                    )
+                  }
+                />
+              }
+            />
+            <Route path="organizations/*" element={<Organizations />} />
+            <Route path="features/*" element={<Features />} />
+            <Route path="metrics" element={<CloudMetrics />} />
+            <Route path="users" element={<UsersSettings />} />
+            <Route path="settings" element={<AccountSettings />} />
+            <Route index element={<Navigate to="organizations" replace />} />
+          </Route>
+        </Routes>
       </AppContextProvider>
     </ApplicationMain>
   );
 };
 
-export default () => <Route path="/host" component={Index} />;
+export default Index;

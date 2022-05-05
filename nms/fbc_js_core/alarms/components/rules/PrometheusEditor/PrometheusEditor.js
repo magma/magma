@@ -30,12 +30,12 @@ import ToggleableExpressionEditor, {
   thresholdToPromQL,
 } from './ToggleableExpressionEditor';
 import useForm from '../../../hooks/useForm';
-import useRouter from '../../../../../fbc_js_core/ui/hooks/useRouter';
 import {Labels} from '../../prometheus/PromQL';
 import {Parse} from '../../prometheus/PromQLParser';
 import {SEVERITY} from '../../severity/Severity';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
+import {useParams} from 'react-router-dom';
 import {useSnackbars} from '../../../../../fbc_js_core/ui/hooks/useSnackbar';
 
 import type {AlertConfig, Labels as LabelsMap} from '../../AlarmAPIType';
@@ -100,7 +100,7 @@ type PrometheusEditorProps = {
 export default function PrometheusEditor(props: PrometheusEditorProps) {
   const {apiUtil, thresholdEditorEnabled} = useAlarmContext();
   const {isNew, onRuleUpdated, onExit, rule} = props;
-  const {match} = useRouter();
+  const params = useParams();
   const classes = useStyles();
   const snackbars = useSnackbars();
 
@@ -159,7 +159,7 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
         throw new Error('Alert config empty');
       }
       const request = {
-        networkId: match.params.networkId,
+        networkId: params.networkId,
         rule: toAlertConfig(formState),
       };
       if (isNew) {

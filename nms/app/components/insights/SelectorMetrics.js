@@ -20,26 +20,26 @@ import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import Metrics from '../insights/Metrics';
 import React from 'react';
-import {Route} from 'react-router-dom';
+import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 import {useCallback, useState} from 'react';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 import {useSnackbar} from '../../../fbc_js_core/ui/hooks';
 
 export default function (props: {
   configs: MetricGraphConfig[],
   selectorKey: string,
 }) {
-  const {history, relativePath, relativeUrl, match} = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
 
   const [allMetrics, setAllMetrics] = useState();
   const [selectedItem, setSelectedItem] = useState('');
 
   const {error, isLoading} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdPrometheusSeries,
-    {networkId: nullthrows(match.params.networkId)},
+    {networkId: nullthrows(params.networkId)},
     useCallback(
       response => {
         const metricsByDeviceID = {};
@@ -63,20 +63,20 @@ export default function (props: {
     return <LoadingFiller />;
   }
 
-  return (
-    <Route
-      path={relativePath('/:selectedID?')}
-      render={() => (
-        <Metrics
-          configs={props.configs}
-          onSelectorChange={(e, value) =>
-            history.push(relativeUrl(`/${value}`))
-          }
-          selectors={Object.keys(allMetrics)}
-          defaultSelector={selectedItem}
-          selectorName={props.selectorKey}
-        />
-      )}
+  const metrics = (
+    <Metrics
+      configs={props.configs}
+      onSelectorChange={(e, value) => navigate(value)}
+      selectors={Object.keys(allMetrics)}
+      defaultSelector={selectedItem}
+      selectorName={props.selectorKey}
     />
+  );
+
+  return (
+    <Routes>
+      <Route path=":selectedID" element={metrics} />
+      <Route index element={metrics} />
+    </Routes>
   );
 }

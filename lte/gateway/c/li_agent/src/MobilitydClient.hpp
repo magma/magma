@@ -21,7 +21,7 @@
 
 #include "lte/protos/mobilityd.grpc.pb.h"
 #include "lte/protos/mobilityd.pb.h"
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
+#include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
 
 namespace grpc {
 class Channel;

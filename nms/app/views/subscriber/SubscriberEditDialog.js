@@ -50,7 +50,7 @@ import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
   tabBar: {
@@ -124,8 +124,8 @@ export function SubscriberEditDialog(props: DialogProps) {
   const ctx = useContext(SubscriberContext);
   const lteCtx = useContext(LteNetworkContext);
   const classes = useStyles();
-  const {match} = useRouter();
-  const subscriberId = nullthrows(match.params.subscriberId);
+  const params = useParams();
+  const subscriberId = nullthrows(params.subscriberId);
   const [subscriberState, setSubscriberState] = useState<subscriber>(
     ctx.state[subscriberId],
   );

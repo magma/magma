@@ -34,6 +34,7 @@ import (
 	"magma/orc8r/cloud/go/services/streamer"
 	streamer_test_init "magma/orc8r/cloud/go/services/streamer/test_init"
 	"magma/orc8r/cloud/go/services/streamer/test_utils/mconfig/test_protos"
+	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
@@ -83,6 +84,9 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 		actual := &protos.GatewayConfigs{}
 		err = protos.Unmarshal(actualMarshaled.Updates[0].Value, actual)
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual.ConfigsByKey)
+		assert.Equal(t, len(expected), len(actual.ConfigsByKey))
+		for key := range actual.ConfigsByKey {
+			test_utils.AssertMessagesEqual(t, expected[key], actual.ConfigsByKey[key])
+		}
 	})
 }

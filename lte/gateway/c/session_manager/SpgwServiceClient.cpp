@@ -26,7 +26,7 @@
 #include <utility>
 
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 
 using grpc::Status;
 

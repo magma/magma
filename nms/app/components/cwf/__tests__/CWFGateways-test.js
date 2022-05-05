@@ -14,10 +14,10 @@
  * @format
  */
 
+import CWFGateways from '../CWFGateways';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-import {CWFGateways} from '../CWFGateways';
-import {MemoryRouter, Route, Switch} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 import type {cwf_gateway} from '../../../../generated/MagmaAPIBindings';
@@ -26,7 +26,7 @@ import type {cwf_ha_pair} from '../../../../generated/MagmaAPIBindings';
 import 'jest-dom/extend-expect';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import axiosMock from 'axios';
-import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
+import defaultTheme from '../../../theme/default';
 
 import {cleanup, render, wait} from '@testing-library/react';
 
@@ -116,9 +116,9 @@ const Wrapper = () => (
     <MuiThemeProvider theme={defaultTheme}>
       <MuiStylesThemeProvider theme={defaultTheme}>
         <SnackbarProvider>
-          <Switch>
-            <Route path="/nms/:networkId" component={CWFGateways} />
-          </Switch>
+          <Routes>
+            <Route path="/nms/:networkId/*" element={<CWFGateways />} />
+          </Routes>
         </SnackbarProvider>
       </MuiStylesThemeProvider>
     </MuiThemeProvider>

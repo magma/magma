@@ -28,7 +28,7 @@ import SubscriberDetailConfig from '../SubscriberDetailConfig';
 import defaultTheme from '../../../theme/default.js';
 
 import {CoreNetworkTypes} from '../SubscriberUtils';
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 import {setSubscriberState} from '../../../state/lte/SubscriberState';
@@ -225,6 +225,7 @@ describe('<AddSubscriberButton />', () => {
     MagmaAPIBindings.getLteByNetworkIdSubscriberConfigBaseNames.mockResolvedValue(
       [],
     );
+    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
   });
 
   const AddWrapper = () => {
@@ -237,6 +238,7 @@ describe('<AddSubscriberButton />', () => {
       forbiddenNetworkTypes: forbiddenNetworkTypes,
       gwSubscriberMap: {},
       sessionState: sessionState,
+      totalCount: 2,
       setState: async (key, value?) =>
         setSubscriberState({
           networkId: 'test',
@@ -287,10 +289,12 @@ describe('<AddSubscriberButton />', () => {
               <PolicyContext.Provider value={policyCtx}>
                 <ApnContext.Provider value={apnCtx}>
                   <SubscriberContext.Provider value={subscriberCtx}>
-                    <Route
-                      path="/nms/:networkId/subscribers"
-                      render={() => <SubscriberDashboard />}
-                    />
+                    <Routes>
+                      <Route
+                        path="/nms/:networkId/subscribers/*"
+                        element={<SubscriberDashboard />}
+                      />
+                    </Routes>
                   </SubscriberContext.Provider>
                 </ApnContext.Provider>
               </PolicyContext.Provider>
@@ -350,6 +354,7 @@ describe('<AddSubscriberButton />', () => {
                       gwSubscriberMap: {},
                       forbiddenNetworkTypes: forbiddenNetworkTypes,
                       sessionState: sessionState,
+                      totalCount: 1,
                       setState: (key, value?) =>
                         setSubscriberState({
                           networkId: 'test',
@@ -361,10 +366,12 @@ describe('<AddSubscriberButton />', () => {
                           value: value,
                         }),
                     }}>
-                    <Route
-                      path="/nms/:networkId/subscribers/overview/:subscriberId/config"
-                      render={props => <SubscriberDetailConfig {...props} />}
-                    />
+                    <Routes>
+                      <Route
+                        path="/nms/:networkId/subscribers/overview/:subscriberId/config"
+                        element={<SubscriberDetailConfig />}
+                      />
+                    </Routes>
                   </SubscriberContext.Provider>
                 </ApnContext.Provider>
               </PolicyContext.Provider>

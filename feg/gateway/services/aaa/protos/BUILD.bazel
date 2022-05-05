@@ -22,7 +22,7 @@ cpp_proto_library(
 proto_library(
     name = "context_proto",
     srcs = ["context.proto"],
-    # TODO(@themarwhal): Clean up proto directory structures to be consistent across the project - GH8625
+    # TODO: Clean up proto directory structures to be consistent across the project - #8625
     strip_import_prefix = "/feg/gateway/services/aaa/protos",
 )
 

@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"encoding/json"
+
 	strfmt "github.com/go-openapi/strfmt"
 
 	"github.com/go-openapi/errors"
@@ -20,6 +22,11 @@ type MutableCbsd struct {
 	// capabilities
 	// Required: true
 	Capabilities Capabilities `json:"capabilities"`
+
+	// desired state of cbsd in SAS
+	// Required: true
+	// Enum: [unregistered registered]
+	DesiredState string `json:"desired_state"`
 
 	// fcc id
 	// Required: true
@@ -46,6 +53,10 @@ func (m *MutableCbsd) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateCapabilities(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateDesiredState(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -77,6 +88,49 @@ func (m *MutableCbsd) validateCapabilities(formats strfmt.Registry) error {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("capabilities")
 		}
+		return err
+	}
+
+	return nil
+}
+
+var mutableCbsdTypeDesiredStatePropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["unregistered","registered"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		mutableCbsdTypeDesiredStatePropEnum = append(mutableCbsdTypeDesiredStatePropEnum, v)
+	}
+}
+
+const (
+
+	// MutableCbsdDesiredStateUnregistered captures enum value "unregistered"
+	MutableCbsdDesiredStateUnregistered string = "unregistered"
+
+	// MutableCbsdDesiredStateRegistered captures enum value "registered"
+	MutableCbsdDesiredStateRegistered string = "registered"
+)
+
+// prop value enum
+func (m *MutableCbsd) validateDesiredStateEnum(path, location string, value string) error {
+	if err := validate.Enum(path, location, value, mutableCbsdTypeDesiredStatePropEnum); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *MutableCbsd) validateDesiredState(formats strfmt.Registry) error {
+
+	if err := validate.RequiredString("desired_state", "body", string(m.DesiredState)); err != nil {
+		return err
+	}
+
+	// value enum
+	if err := m.validateDesiredStateEnum("desired_state", "body", m.DesiredState); err != nil {
 		return err
 	}
 

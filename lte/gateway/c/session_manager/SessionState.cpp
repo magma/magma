@@ -31,7 +31,7 @@
 #include "lte/gateway/c/session_manager/RuleStore.hpp"
 #include "lte/gateway/c/session_manager/StoredState.hpp"
 #include "lte/gateway/c/session_manager/Utilities.hpp"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace {
@@ -44,8 +44,6 @@ const char* LABEL_SESSION_ID = "session_id";
 const char* LABEL_DIRECTION = "direction";
 const char* DIRECTION_UP = "up";
 const char* DIRECTION_DOWN = "down";
-// TODO(@themarwhal): SessionD should own the naming of the drop all rule so
-// that we never regress here
 const char* DROP_ALL_RULE = "internal_default_drop_flow_rule";
 }  // namespace
 

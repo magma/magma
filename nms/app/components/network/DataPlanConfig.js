@@ -14,6 +14,7 @@
  * @format
  */
 
+import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 import type {Theme} from '@material-ui/core';
 import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
@@ -25,26 +26,24 @@ import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import NestedRouteLink from '../../../fbc_js_core/ui/components/NestedRouteLink';
-import React from 'react';
+import React, {useState} from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import {Route} from 'react-router-dom';
+import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
-import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
-import {useState} from 'react';
 
 import {
   BITRATE_MULTIPLIER,
   DATA_PLAN_UNLIMITED_RATES,
   DEFAULT_DATA_PLAN_ID,
 } from './DataPlanConst';
+import type {network_epc_configs} from '../../../generated/MagmaAPIBindings';
 
 const useStyles = makeStyles((theme: Theme) => ({
   rowIcon: {
@@ -55,14 +54,32 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 type Props = WithAlert & {};
 
+function EditDialog(props: {
+  config: network_epc_configs,
+  onSave: (editName: string, newConfig: network_epc_configs) => void,
+}) {
+  const navigate = useNavigate();
+  const params = useParams();
+
+  return (
+    <DataPlanEditDialog
+      dataPlanId={params.dataPlanId}
+      epcConfig={props.config}
+      onCancel={() => navigate('..')}
+      onSave={props.onSave}
+    />
+  );
+}
+
 function DataPlanConfig(props: Props) {
   const classes = useStyles();
-  const {match, history, relativePath, relativeUrl} = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
   const [config, setConfig] = useState();
 
   const {isLoading} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdCellularEpc,
-    {networkId: nullthrows(match.params.networkId)},
+    {networkId: nullthrows(params.networkId)},
     setConfig,
   );
 
@@ -86,7 +103,7 @@ function DataPlanConfig(props: Props) {
           sub_profiles: newSubProfiles,
         };
         return MagmaV1API.putLteByNetworkIdCellularEpc({
-          networkId: nullthrows(match.params.networkId),
+          networkId: nullthrows(params.networkId),
           config: newConfig,
         }).then(() => setConfig(newConfig));
       });
@@ -109,7 +126,7 @@ function DataPlanConfig(props: Props) {
         </TableCell>
         <TableCell>
           <div className={classes.rowIcon}>
-            <NestedRouteLink to={`/edit/${encodeURIComponent(id)}`}>
+            <NestedRouteLink to={`edit/${encodeURIComponent(id)}`}>
               <IconButton color="primary">
                 <EditIcon />
               </IconButton>
@@ -128,7 +145,7 @@ function DataPlanConfig(props: Props) {
   });
 
   const onSave = (_, newConfig) => {
-    history.push(relativeUrl(''));
+    navigate('');
     setConfig(newConfig);
   };
   return (
@@ -140,7 +157,7 @@ function DataPlanConfig(props: Props) {
             <TableCell>Download Speed</TableCell>
             <TableCell>Upload Speed</TableCell>
             <TableCell>
-              <NestedRouteLink to="/add">
+              <NestedRouteLink to="add">
                 <Button>Add Data Plan</Button>
               </NestedRouteLink>
             </TableCell>
@@ -148,28 +165,23 @@ function DataPlanConfig(props: Props) {
         </TableHead>
         {rows && <TableBody>{rows}</TableBody>}
       </Table>
-      <Route
-        path={relativePath('/add')}
-        component={() => (
-          <DataPlanEditDialog
-            dataPlanId={null}
-            epcConfig={config}
-            onCancel={() => history.push(relativeUrl(''))}
-            onSave={onSave}
-          />
-        )}
-      />
-      <Route
-        path={relativePath('/edit/:dataPlanId')}
-        component={({match}) => (
-          <DataPlanEditDialog
-            dataPlanId={match.params.dataPlanId}
-            epcConfig={config}
-            onCancel={() => history.push(relativeUrl(''))}
-            onSave={onSave}
-          />
-        )}
-      />
+      <Routes>
+        <Route
+          path="add"
+          element={
+            <DataPlanEditDialog
+              dataPlanId={null}
+              epcConfig={config}
+              onCancel={() => navigate('')}
+              onSave={onSave}
+            />
+          }
+        />
+        <Route
+          path="edit/:dataPlanId"
+          element={<EditDialog config={config} onSave={onSave} />}
+        />
+      </Routes>
     </>
   );
 }

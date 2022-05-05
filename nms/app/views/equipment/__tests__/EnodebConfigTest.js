@@ -23,7 +23,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default.js';
 
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SetEnodebState} from '../../../state/lte/EquipmentState';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
@@ -124,16 +124,14 @@ describe('<AddEditEnodeButton />', () => {
                     value: value,
                   }),
               }}>
-              <Route
-                path="/nms/:networkId/enode"
-                render={props => (
-                  <AddEditEnodeButton
-                    {...props}
-                    title="Add Enodeb"
-                    isLink={false}
-                  />
-                )}
-              />
+              <Routes>
+                <Route
+                  path="/nms/:networkId/enode"
+                  element={
+                    <AddEditEnodeButton title="Add Enodeb" isLink={false} />
+                  }
+                />
+              </Routes>
             </EnodebContext.Provider>
           </MuiStylesThemeProvider>
         </MuiThemeProvider>
@@ -162,10 +160,12 @@ describe('<AddEditEnodeButton />', () => {
                     value: value,
                   }),
               }}>
-              <Route
-                path="/nms/:networkId/enodeb/:enodebSerial/overview"
-                render={props => <EnodebConfig {...props} />}
-              />
+              <Routes>
+                <Route
+                  path="/nms/:networkId/enodeb/:enodebSerial/overview"
+                  element={<EnodebConfig />}
+                />
+              </Routes>
             </EnodebContext.Provider>
           </MuiStylesThemeProvider>
         </MuiThemeProvider>
@@ -242,16 +242,19 @@ describe('<AddEditEnodeButton />', () => {
                   state: {enbInfo: enbInf},
                   setState: async () => {},
                 }}>
-                <Route
-                  path="/nms/:networkId/enodeb/:enodebSerial/overview"
-                  render={props => <EnodebConfig {...props} />}
-                />
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/enodeb/:enodebSerial/overview"
+                    element={<EnodebConfig />}
+                  />
+                </Routes>
               </EnodebContext.Provider>
             </MuiStylesThemeProvider>
           </MuiThemeProvider>
         </MemoryRouter>
       );
     };
+
     const {getByTestId} = render(<UnmanagedEnodeWrapper />);
     await wait();
     const config = getByTestId('config');

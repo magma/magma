@@ -58,7 +58,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

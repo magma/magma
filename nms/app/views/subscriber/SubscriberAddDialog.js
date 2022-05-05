@@ -51,7 +51,7 @@ import {forwardRef} from 'react';
 import {handleSubscriberQuery} from '../../state/lte/SubscriberState';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
   dialogTitle: {
@@ -243,10 +243,10 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
   const [selectedSubscribers, setSelectedSubscribers] = useState<Array<string>>(
     [],
   );
-  const {match} = useRouter();
+  const params = useParams();
   const [maxPageRowCount, setMaxPageRowCount] = useState(0);
   const [tokenList, setTokenList] = useState(['']);
-  const networkId: string = nullthrows(match.params.networkId);
+  const networkId: string = nullthrows(params.networkId);
   const subscriberMetrics = ctx.metrics;
   const getSubscribers = (query: ActionQuery) =>
     handleSubscriberQuery({

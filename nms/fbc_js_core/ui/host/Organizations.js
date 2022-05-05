@@ -37,16 +37,16 @@ import OrganizationDialog from './OrganizationDialog';
 import PersonAdd from '@material-ui/icons/PersonAdd';
 import PersonIcon from '@material-ui/icons/Person';
 import React from 'react';
-import Text from '../components/design-system/Text';
+import Text from '../../../app/theme/design-system/Text';
 import axios from 'axios';
 import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
-import {comet, concrete, gullGray} from '../../../fbc_js_core/ui/theme/colors';
+import {colors} from '../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios, useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useAxios} from '../../../fbc_js_core/ui/hooks';
 import {useCallback, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRelativeUrl} from '../../../fbc_js_core/ui/hooks/useRouter';
+import {useNavigate} from 'react-router-dom';
 
 export type Organization = OrganizationPlainAttributes;
 
@@ -75,8 +75,8 @@ const useStyles = makeStyles(_ => ({
   onBoardingDialogTitle: {
     padding: '0 24px',
     fontSize: '24px',
-    color: comet,
-    backgroundColor: concrete,
+    color: colors.primary.comet,
+    backgroundColor: colors.primary.concrete,
   },
   onBoardingDialogContent: {
     minHeight: '200px',
@@ -84,7 +84,7 @@ const useStyles = makeStyles(_ => ({
   },
   onBoardingDialogActions: {
     padding: '0 24px',
-    backgroundColor: concrete,
+    backgroundColor: colors.primary.concrete,
     boxShadow: 'none',
   },
   onBoardingDialogButton: {
@@ -94,11 +94,11 @@ const useStyles = makeStyles(_ => ({
     margin: '16px 0',
   },
   index: {
-    color: gullGray,
+    color: colors.primary.gullGray,
   },
 }));
 
-type Props = {...WithAlert, hideAdvancedFields: boolean};
+type Props = {...WithAlert};
 
 function OnboardingDialog() {
   const classes = useStyles();
@@ -186,8 +186,7 @@ async function getUsers(
 
 function Organizations(props: Props) {
   const classes = useStyles();
-  const relativeUrl = useRelativeUrl();
-  const {history} = useRouter();
+  const navigate = useNavigate();
   const [organizations, setOrganizations] = useState<?(Organization[])>(null);
   const [addingUserFor, setAddingUserFor] = useState<?Organization>(null);
   const [currRow, setCurrRow] = useState<OrganizationRowType>({});
@@ -282,7 +281,7 @@ function Organizations(props: Props) {
     {
       name: 'View',
       handleFunc: () => {
-        history.push(relativeUrl(`/detail/${currRow.name}`));
+        navigate(`detail/${currRow.name}`);
       },
     },
   ];
@@ -362,7 +361,7 @@ function Organizations(props: Props) {
         </Grid>
         <OrganizationDialog
           edit={false}
-          hideAdvancedFields={props.hideAdvancedFields}
+          hideAdvancedFields={false}
           organization={null}
           user={null}
           open={showOrganizationDialog}

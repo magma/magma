@@ -36,7 +36,7 @@ import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useNavigate, useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -59,9 +59,10 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export function GatewayJsonConfig() {
-  const {match, history} = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
   const [error, setError] = useState('');
-  const gatewayId: string = nullthrows(match.params.gatewayId);
+  const gatewayId: string = nullthrows(params.gatewayId);
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(GatewayContext);
   const gwInfo = ctx.state[gatewayId];
@@ -80,7 +81,7 @@ export function GatewayJsonConfig() {
             variant: 'success',
           });
           setError('');
-          history.goBack();
+          navigate(-1);
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);
         }
@@ -91,17 +92,14 @@ export function GatewayJsonConfig() {
 
 export default function GatewayConfig() {
   const classes = useStyles();
-  const {history, match, relativeUrl} = useRouter();
-  const gatewayId: string = nullthrows(match.params.gatewayId);
+  const navigate = useNavigate();
+  const params = useParams();
+  const gatewayId: string = nullthrows(params.gatewayId);
   const ctx = useContext(GatewayContext);
   const gwInfo = ctx.state[gatewayId];
   function ConfigFilter() {
     return (
-      <Button
-        className={classes.appBarBtn}
-        onClick={() => {
-          history.push(relativeUrl('/json'));
-        }}>
+      <Button className={classes.appBarBtn} onClick={() => navigate('json')}>
         Edit JSON
       </Button>
     );

@@ -19,7 +19,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
-import defaultTheme from '../../../../fbc_js_core/ui/theme/default';
+import defaultTheme from '../../../theme/default';
 
 import {FEG_LTE, LTE} from '../../../../fbc_js_core/types/network';
 import {
@@ -27,7 +27,7 @@ import {
   PolicyProvider,
 } from '../../../components/lte/LteContext';
 
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 // $FlowFixMe Upgrade react-testing-library
 import {cleanup, fireEvent, render, waitFor} from '@testing-library/react';
@@ -190,6 +190,7 @@ describe('<TrafficDashboard />', () => {
         redirect_information: {},
       },
     );
+    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
   });
 
   const PolicyWrapper = ({networkType}) => (
@@ -207,10 +208,13 @@ describe('<TrafficDashboard />', () => {
               networkId={'test'}
               networkType={networkType}>
               <PolicyProvider networkId={'test'} networkType={networkType}>
-                <Route
-                  path="/nms/:networkId/traffic/policy"
-                  component={TrafficDashboard}
-                />
+                \
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/traffic/policy/*"
+                    element={<TrafficDashboard />}
+                  />
+                </Routes>
               </PolicyProvider>
             </LteNetworkContextProvider>
           </NetworkContext.Provider>

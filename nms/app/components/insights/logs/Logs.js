@@ -17,11 +17,12 @@
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 
+import {colors} from '../../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   header: {
-    backgroundColor: theme.palette.common.white,
+    backgroundColor: colors.primary.white,
     borderBottom: `1px solid ${theme.palette.divider}`,
   },
   paper: {

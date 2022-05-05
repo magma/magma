@@ -42,7 +42,7 @@ import {AltFormField} from './FormField';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   input: {
@@ -116,14 +116,14 @@ export default function GatewayCommandFields(props: Props) {
 type ChildProps = {gatewayID: string};
 
 function RebootButton(props: ChildProps) {
-  const {match} = useRouter();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [showCheck, setShowCheck] = useState(false);
 
   const onClick = () => {
     const {gatewayID} = props;
     MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandReboot({
-      networkId: nullthrows(match.params.networkId),
+      networkId: nullthrows(params.networkId),
       gatewayId: gatewayID,
     })
       .then(_resp => {
@@ -156,7 +156,7 @@ function RebootButton(props: ChildProps) {
 }
 
 function RestartServicesButton(props: ChildProps) {
-  const {match} = useRouter();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [showCheck, setShowCheck] = useState(false);
 
@@ -164,7 +164,7 @@ function RestartServicesButton(props: ChildProps) {
     const {gatewayID} = props;
     MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandRestartServices(
       {
-        networkId: nullthrows(match.params.networkId),
+        networkId: nullthrows(params.networkId),
         gatewayId: gatewayID,
         services: [],
       },
@@ -202,7 +202,7 @@ function RestartServicesButton(props: ChildProps) {
 
 function RebootEnodebControls(props: ChildProps) {
   const classes = useStyles();
-  const {match} = useRouter();
+  const {networkId} = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [showProgress, setShowProgress] = useState(false);
   const [rebootResponse, setRebootResponse] = useState();
@@ -223,7 +223,7 @@ function RebootEnodebControls(props: ChildProps) {
 
     setShowProgress(true);
     MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric({
-      networkId: nullthrows(match.params.networkId),
+      networkId: nullthrows(networkId),
       gatewayId: gatewayID,
       parameters: params,
     })
@@ -266,7 +266,7 @@ function RebootEnodebControls(props: ChildProps) {
 
 export function PingCommandControls(props: ChildProps) {
   const classes = useStyles();
-  const {match} = useRouter();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [pingHosts, setPingHosts] = useState('');
   const [pingPackets, setPingPackets] = useState('');
@@ -277,16 +277,15 @@ export function PingCommandControls(props: ChildProps) {
     const {gatewayID} = props;
     const hosts = pingHosts.split('\n').filter(host => host);
     const packets = parseInt(pingPackets);
-    const params = {
-      hosts,
-      packets,
-    };
 
     setShowProgress(true);
     MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandPing({
-      networkId: nullthrows(match.params.networkId),
+      networkId: nullthrows(params.networkId),
       gatewayId: gatewayID,
-      pingRequest: params,
+      pingRequest: {
+        hosts,
+        packets,
+      },
     })
       .then(resp => setPingResponse(JSON.stringify(resp, null, 2)))
       .catch(error =>
@@ -336,7 +335,7 @@ export function PingCommandControls(props: ChildProps) {
 
 export function GenericCommandControls(props: ChildProps) {
   const classes = useStyles();
-  const {match} = useRouter();
+  const {networkId} = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [commandName, setCommandName] = useState('');
   const [commandParams, setCommandParams] = useState('{\n}');
@@ -359,7 +358,7 @@ export function GenericCommandControls(props: ChildProps) {
 
     setShowProgress(true);
     MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric({
-      networkId: nullthrows(match.params.networkId),
+      networkId: nullthrows(networkId),
       gatewayId: gatewayID,
       parameters,
     })
@@ -465,7 +464,7 @@ responses',
 const CONTROL_PROXY_CONTENT = 'cat /var/opt/magma/configs/control_proxy.yml';
 const FLUENT_BIT_LOGS = 'journalctl -u magma@td-agent-bit  -n 10';
 export function TroubleshootingControl(props: ChildProps) {
-  const {match} = useRouter();
+  const params = useParams();
   const [
     controlProxyContent,
     setControlProxyContent,
@@ -474,7 +473,7 @@ export function TroubleshootingControl(props: ChildProps) {
     tdAgentLogsContent,
     setTdAgentLogsContent,
   ] = useState<generic_command_response>({});
-  const networkId = nullthrows(match.params.networkId);
+  const networkId = nullthrows(params.networkId);
   const controlProxyParams = {
     command: 'bash',
     params: {

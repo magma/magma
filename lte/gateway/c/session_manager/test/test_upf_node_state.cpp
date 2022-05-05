@@ -34,8 +34,8 @@
 #include "lte/gateway/c/session_manager/SessionStore.hpp"
 #include "lte/gateway/c/session_manager/Types.hpp"
 #include "lte/gateway/c/session_manager/test/SessiondMocks.hpp"
-#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
-#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
+#include "orc8r/gateway/c/common/config/ServiceConfigLoader.hpp"
+#include "orc8r/gateway/c/common/service303/MagmaService.hpp"
 
 #define SESSIOND_SERVICE "sessiond"
 #define SESSIOND_VERSION "1.0"

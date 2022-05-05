@@ -276,7 +276,7 @@ func (s *sqlSMSStorage) GetSMSsToDeliver(networkID string, imsis []string, timeo
 	return retCasted, nil
 }
 
-func (s *sqlSMSStorage) CreateSMS(networkID string, sms MutableSMS) (string, error) {
+func (s *sqlSMSStorage) CreateSMS(networkID string, sms *MutableSMS) (string, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		pk := s.idGenerator.New()
 		timeCreated := clock.Now().Unix()

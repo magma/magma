@@ -39,17 +39,16 @@ import TopBar from '../../components/TopBar';
 import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 
+import {Navigate, Route, Routes, useParams} from 'react-router-dom';
 import {
   REFRESH_INTERVAL,
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
-import {Redirect, Route, Switch} from 'react-router-dom';
 import {SubscriberJsonConfig} from './SubscriberDetailConfig';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -105,9 +104,9 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function SubscriberDetail() {
-  const {relativePath, relativeUrl, match} = useRouter();
-  const subscriberId: string = nullthrows(match.params.subscriberId);
-  const networkId: string = nullthrows(match.params.networkId);
+  const params = useParams();
+  const subscriberId: string = nullthrows(params.subscriberId);
+  const networkId: string = nullthrows(params.networkId);
   const ctx = useContext(SubscriberContext);
   const [subscriberConfig, setSubscriberConfig] = useState<subscriber>({});
   const {isLoading, response: _subscriberResponse} = useMagmaAPI(
@@ -143,65 +142,59 @@ export default function SubscriberDetail() {
             ? [
                 {
                   label: 'Event',
-                  to: '/event',
+                  to: 'event',
                   icon: MyLocationIcon,
                 },
               ]
             : [
                 {
                   label: 'Overview',
-                  to: '/overview',
+                  to: 'overview',
                   icon: DashboardIcon,
                 },
                 {
                   label: 'Event',
-                  to: '/event',
+                  to: 'event',
                   icon: MyLocationIcon,
                 },
                 {
                   label: 'Config',
-                  to: '/config',
+                  to: 'config',
                   icon: SettingsIcon,
                 },
               ]
         }
       />
 
-      <Switch>
+      <Routes>
+        <Route path="/config/json" element={<SubscriberJsonConfig />} />
+        <Route path="/config" element={<SubscriberDetailConfig />} />
+        <Route path="/overview" element={<Overview />} />
         <Route
-          path={relativePath('/config/json')}
-          render={() => <SubscriberJsonConfig />}
-        />
-        <Route
-          path={relativePath('/config')}
-          render={() => <SubscriberDetailConfig />}
-        />
-        <Route path={relativePath('/overview')} render={() => <Overview />} />
-        <Route
-          path={relativePath('/event')}
-          render={() => (
+          path="/event"
+          element={
             <EventsTable
               sz="lg"
               eventStream="SUBSCRIBER"
               isAutoRefreshing={true}
               tags={subscriberId}
             />
-          )}
+          }
         />
-        <Redirect to={relativeUrl('/overview')} />
-      </Switch>
+        <Route index element={<Navigate to="overview" replace />} />
+      </Routes>
     </>
   );
 }
 function StatusInfo() {
-  const {match} = useRouter();
-  const subscriberId: string = nullthrows(match.params.subscriberId);
+  const params = useParams();
+  const subscriberId: string = nullthrows(params.subscriberId);
   const enqueueSnackbar = useEnqueueSnackbar();
   const [refresh, setRefresh] = useState(false);
   const ctx = useContext(SubscriberContext);
   // $FlowIgnore
   const subscriberInfo: subscriber = ctx.state?.[subscriberId];
-  const networkId: string = nullthrows(match.params.networkId);
+  const networkId: string = nullthrows(params.networkId);
   const refreshingSessionState = useRefreshingContext({
     context: SubscriberContext,
     networkId,
@@ -242,8 +235,8 @@ function StatusInfo() {
 
 function Overview() {
   const classes = useStyles();
-  const {match} = useRouter();
-  const subscriberId: string = nullthrows(match.params.subscriberId);
+  const params = useParams();
+  const subscriberId: string = nullthrows(params.subscriberId);
   const ctx = useContext(SubscriberContext);
   const subscriberInfo = ctx.state?.[subscriberId];
 

@@ -22,6 +22,7 @@ jobs:
       changed_cpp: ${{ steps.changes.outputs.cpp }}
       changed_go: ${{ steps.changes.outputs.go }}
       changed_python: ${{ steps.changes.outputs.python }}
+      changed_terraform: ${{ steps.changes.outputs.terraform }}
     steps:
       # Need to get git on push event
       - uses: actions/checkout@v2
@@ -36,6 +37,8 @@ jobs:
               - ["src/go/**"]
             python:
               - ["lte/gateway/python/**", "orc8r/gateway/python/**"]
+            terraform:
+              - ["**/*.tf"]
 
   cpplint:
     needs: files_changed
@@ -163,6 +166,26 @@ jobs:
           filter_mode: added
           reporter: github-pr-review
           pattern: "*.sh" # Optional.
+
+  tflint:
+    needs: files_changed
+    if: ${{ needs.files_changed.outputs.changed_terraform == 'true' }}
+    name: tflint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      - name: Run tflint with reviewdog
+        uses: reviewdog/action-tflint@v1.16.2
+        with:
+          github_token: ${{ secrets.github_token }}
+          filter_mode: added
+          reporter: github-pr-review
+          fail_on_error: true
+          level: info
 
   wemake-python-styleguide:
     needs: files_changed

@@ -34,7 +34,7 @@
 #include "lte/gateway/c/core/oai/common/shared_ts_log.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.hpp"
+#include "orc8r/gateway/c/common/sentry/SentryWrapper.hpp"
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
 #include "lte/gateway/c/core/oai/tasks/sctp/sctp_primitives_server.h"

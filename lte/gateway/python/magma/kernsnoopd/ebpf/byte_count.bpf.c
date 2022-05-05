@@ -22,7 +22,8 @@
 BPF_HASH(dest_counters, struct key_t);
 
 // Attach kprobe for the `tcp_sendmsg` syscall
-int kprobe__tcp_sendmsg(struct pt_regs *ctx, struct sock *sk, struct msghdr *msg, size_t size) {
+int kprobe__tcp_sendmsg(struct pt_regs *ctx, struct sock *sk,
+                        struct msghdr *msg, size_t size) {
   u16 family = sk->sk_family;
 
   // both IPv4 and IPv6
@@ -32,8 +33,7 @@ int kprobe__tcp_sendmsg(struct pt_regs *ctx, struct sock *sk, struct msghdr *msg
     // read destination IP address and port
     if (family == AF_INET) {
       key.daddr = sk->sk_daddr;
-    }
-    else if (family == AF_INET6) {
+    } else if (family == AF_INET6) {
       bpf_probe_read(&key.daddr, sizeof(key.daddr), &sk->sk_v6_daddr.s6_addr32);
     }
     u16 dport = sk->sk_dport;
@@ -67,4 +67,3 @@ int kprobe__tcp_sendmsg(struct pt_regs *ctx, struct sock *sk, struct msghdr *msg
   }
   return 0;
 }
-

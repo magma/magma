@@ -20,7 +20,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
 import defaultTheme from '../../theme/default';
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 import type {
@@ -143,7 +143,9 @@ describe('<DashboardAlertTable />', () => {
     <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
-          <Route path="/nms/:networkId" component={DashboardAlertTable} />
+          <Routes>
+            <Route path="/nms/:networkId/*" element={<DashboardAlertTable />} />
+          </Routes>
         </MuiStylesThemeProvider>
       </MuiThemeProvider>
     </MemoryRouter>

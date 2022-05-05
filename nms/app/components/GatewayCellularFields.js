@@ -26,13 +26,13 @@ import MagmaV1API from '../../generated/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React, {useState} from 'react';
 import Select from '@material-ui/core/Select';
-import Text from '../../fbc_js_core/ui/components/design-system/Text';
+import Text from '../theme/design-system/Text';
 
 import nullthrows from '../../fbc_js_core/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {toString} from './GatewayUtils';
 import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
   input: {
@@ -55,7 +55,7 @@ type Props = {
 
 export default function GatewayCellularFields(props: Props) {
   const classes = useStyles();
-  const {match} = useRouter();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const {id, cellular, connected_enodeb_serials} = props.gateway.rawGateway;
@@ -134,12 +134,12 @@ export default function GatewayCellularFields(props: Props) {
 
     Promise.all([
       MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdCellular({
-        networkId: nullthrows(match.params.networkId),
+        networkId: nullthrows(params.networkId),
         gatewayId: id,
         config,
       }),
       MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdConnectedEnodebSerials({
-        networkId: nullthrows(match.params.networkId),
+        networkId: nullthrows(params.networkId),
         gatewayId: id,
         serials: attachedEnodebSerials.filter(i => i.length > 0),
       }),

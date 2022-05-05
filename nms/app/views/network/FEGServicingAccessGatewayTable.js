@@ -35,7 +35,7 @@ import {FetchGateways} from '../../state/lte/EquipmentState';
 import {GatewayTypeEnum} from '../../components/GatewayUtils';
 import {getServicedAccessNetworks} from '../../components/FEGServicingAccessGatewayKPIs';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 type ServicingAccessGatewayRowType = {
   networkId: network_id,
@@ -96,9 +96,9 @@ async function getServicedAccessGatewaysInfo(
  * the serviced network in which they are under.
  */
 export default function ServicingAccessGatewayInfo() {
-  const {match} = useRouter();
+  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const networkId: string = nullthrows(match.params.networkId);
+  const networkId: string = nullthrows(params.networkId);
   const [servicedAccessGatewaysInfo, setServicedAccessGatewaysInfo] = useState<
     Array<ServicingAccessGatewayRowType>,
   >([]);

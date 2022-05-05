@@ -22,7 +22,7 @@ import React from 'react';
 import UpgradeConfig from '../network/UpgradeConfig';
 
 import useMagmaAPI from '../../../api/useMagmaAPI';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 export default function CWFConfigure() {
   const tabs = [
@@ -41,10 +41,10 @@ export default function CWFConfigure() {
 }
 
 function CWFPolicies() {
-  const {match} = useRouter();
+  const {networkId} = useParams();
 
   const {response, isLoading} = useMagmaAPI(MagmaV1API.getCwfByNetworkId, {
-    networkId: match.params.networkId,
+    networkId,
   });
 
   if (isLoading) {

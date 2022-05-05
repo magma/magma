@@ -28,7 +28,7 @@ import nullthrows from '../../../fbc_js_core/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 import type {UpdateNetworkContextProps} from '../../components/context/LteNetworkContext';
 
 import {
@@ -67,8 +67,8 @@ type DataPlanRowType = {
  * @param {WithAlert} props
  */
 function DataPlanOverview(props: WithAlert) {
-  const {match} = useRouter();
-  const networkID = nullthrows(match.params.networkId);
+  const params = useParams();
+  const networkID = nullthrows(params.networkId);
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [currRow, setCurrRow] = useState<DataPlanRowType>({});

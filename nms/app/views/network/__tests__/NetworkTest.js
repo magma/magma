@@ -31,7 +31,7 @@ import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default.js';
 
 import {CoreNetworkTypes} from '../../subscriber/SubscriberUtils';
-import {MemoryRouter, Route} from 'react-router-dom';
+import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {UpdateNetworkState} from '../../../state/lte/NetworkState';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
@@ -276,6 +276,7 @@ describe('<NetworkDashboard />', () => {
     MagmaAPIBindings.putLteByNetworkIdDns.mockImplementation(() =>
       Promise.resolve({data: {success: true}}),
     );
+    MagmaAPIBindings.getNetworks.mockImplementation(() => Promise.resolve([]));
   });
 
   afterEach(() => {
@@ -317,6 +318,7 @@ describe('<NetworkDashboard />', () => {
     const subscriberCtx = {
       state: subscribers,
       forbidden_network_types: subscribers,
+      totalCount: 1,
       forbiddenNetworkTypes: {},
       gwSubscriberMap: {},
       sessionState: {},
@@ -349,10 +351,12 @@ describe('<NetworkDashboard />', () => {
                   <GatewayContext.Provider value={gatewayCtx}>
                     <EnodebContext.Provider value={enodebCtx}>
                       <SubscriberContext.Provider value={subscriberCtx}>
-                        <Route
-                          path="/nms/:networkId/network"
-                          component={NetworkDashboard}
-                        />
+                        <Routes>
+                          <Route
+                            path="/nms/:networkId/network/*"
+                            element={<NetworkDashboard />}
+                          />
+                        </Routes>
                       </SubscriberContext.Provider>
                     </EnodebContext.Provider>
                   </GatewayContext.Provider>
@@ -736,10 +740,12 @@ describe('<FEGNetworkDashboard />', () => {
         <MuiThemeProvider theme={defaultTheme}>
           <MuiStylesThemeProvider theme={defaultTheme}>
             <FEGNetworkContext.Provider value={networkCtx}>
-              <Route
-                path="/nms/:networkId/network"
-                component={FEGNetworkDashboard}
-              />
+              <Routes>
+                <Route
+                  path="/nms/:networkId/network/*"
+                  element={<FEGNetworkDashboard />}
+                />
+              </Routes>
             </FEGNetworkContext.Provider>
           </MuiStylesThemeProvider>
         </MuiThemeProvider>

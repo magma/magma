@@ -13,7 +13,7 @@
 
 #include <gtest/gtest.h>
 
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 
 using magma::ServiceRegistrySingleton;
 using ::testing::Test;

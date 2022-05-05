@@ -23,6 +23,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import RootRef from '@material-ui/core/RootRef';
 import Typography from '@material-ui/core/Typography';
+import {colors} from '../../../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 
 export type Props = {
@@ -61,7 +62,7 @@ const useStyles = makeStyles(theme => ({
   },
   configEditor: {
     '&:not(:last-of-type)': {
-      borderBottom: `1px solid ${theme.palette.grey[200]}`,
+      borderBottom: `1px solid ${colors.primary.mercury}`,
       paddingBottom: theme.spacing(4),
     },
   },

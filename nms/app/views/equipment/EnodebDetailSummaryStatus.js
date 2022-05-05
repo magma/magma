@@ -29,12 +29,12 @@ import {
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {useContext} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useRouter} from '../../../fbc_js_core/ui/hooks';
+import {useParams} from 'react-router-dom';
 
 export function EnodebSummary() {
   const ctx = useContext(EnodebContext);
-  const {match} = useRouter();
-  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const params = useParams();
+  const enodebSerial: string = nullthrows(params.enodebSerial);
   const enbInfo = ctx.state.enbInfo[enodebSerial];
   const kpiData: DataRows[] = [
     [
@@ -53,9 +53,9 @@ export function EnodebSummary() {
 }
 
 export function EnodebStatus({refresh}: {refresh: boolean}) {
-  const {match} = useRouter();
-  const enodebSerial: string = nullthrows(match.params.enodebSerial);
-  const networkId: string = nullthrows(match.params.networkId);
+  const params = useParams();
+  const enodebSerial: string = nullthrows(params.enodebSerial);
+  const networkId: string = nullthrows(params.networkId);
   const enqueueSnackbar = useEnqueueSnackbar();
 
   // Auto refresh enodeb every 30 seconds

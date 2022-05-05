@@ -58,7 +58,11 @@ This script will
 - Run a basic attach/detach test
 
 ```bash
-cd magma/lte/gatewat
+cd magma/lte/gateway
+fab federated_integ_test:build_all=True
+
+# to run it again you can just skip the build_all
+# Note that if you changed code on Magma you will need to build_all again
 fab federated_integ_test
 ```
 

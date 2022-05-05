@@ -32,7 +32,7 @@
 #include "lte/gateway/c/session_manager/SessionState.hpp"
 #include "lte/gateway/c/session_manager/Types.hpp"
 #include "lte/gateway/c/session_manager/Utilities.hpp"
-#include "orc8r/gateway/c/common/eventd/includes/EventdClient.hpp"
+#include "orc8r/gateway/c/common/eventd/EventdClient.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 using magma::orc8r::Event;

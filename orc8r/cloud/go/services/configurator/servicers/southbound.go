@@ -60,7 +60,7 @@ func (srv *sbConfiguratorServicer) GetMconfigInternal(ctx context.Context, req *
 	}
 
 	// Network ID isn't used in a physical ID query
-	loadResult, err := store.LoadEntities("", storage.EntityLoadFilter{PhysicalID: &wrappers.StringValue{Value: req.HardwareID}}, storage.EntityLoadCriteria{})
+	loadResult, err := store.LoadEntities("", &storage.EntityLoadFilter{PhysicalID: &wrappers.StringValue{Value: req.HardwareID}}, &storage.EntityLoadCriteria{})
 	if err != nil {
 		storage.RollbackLogOnError(store)
 		return nil, status.Errorf(codes.Internal, "failed to load entity for gateway %s: %s", req.HardwareID, err)
@@ -89,15 +89,15 @@ func (srv *sbConfiguratorServicer) getMconfigImpl(networkID string, gatewayID st
 
 	graph, err := store.LoadGraphForEntity(
 		networkID,
-		storage.EntityID{Type: orc8r.MagmadGatewayType, Key: gatewayID},
-		storage.FullEntityLoadCriteria,
+		&storage.EntityID{Type: orc8r.MagmadGatewayType, Key: gatewayID},
+		&storage.FullEntityLoadCriteria,
 	)
 	if err != nil {
 		storage.RollbackLogOnError(store)
 		return nil, status.Errorf(codes.Internal, "failed to load entity graph: %s", err)
 	}
 
-	nwLoad, err := store.LoadNetworks(storage.NetworkLoadFilter{Ids: []string{networkID}}, storage.FullNetworkLoadCriteria)
+	nwLoad, err := store.LoadNetworks(&storage.NetworkLoadFilter{Ids: []string{networkID}}, &storage.FullNetworkLoadCriteria)
 	if err != nil {
 		storage.RollbackLogOnError(store)
 		return nil, status.Errorf(codes.Internal, "failed to load network: %s", err)
@@ -110,7 +110,7 @@ func (srv *sbConfiguratorServicer) getMconfigImpl(networkID string, gatewayID st
 	// Error on commit is fine for a readonly tx
 	storage.CommitLogOnError(store)
 
-	ret, err := mconfig.CreateMconfigJSON(nwLoad.Networks[0], &graph, gatewayID)
+	ret, err := mconfig.CreateMconfigJSON(nwLoad.Networks[0], graph, gatewayID)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to build mconfig: %s", err)
 	}
