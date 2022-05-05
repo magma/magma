@@ -17,8 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:latest"
-  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:latestv2"
+  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latestv2"
   BAZEL_CACHE: bazel-cache
   BAZEL_CACHE_REPO: bazel-cache-repo
 
@@ -183,32 +183,33 @@ jobs:
         run: |
           ./.github/workflows/check-bazel-cache-dir-size.sh "$BAZEL_CACHE_DIR" "$BAZEL_CACHE_CUTOFF_MB"
       - name: Setup Bazel Base Image
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
+          options: --pull always
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
             echo "Pulled the devontainer image!"
       - name: Create a directory to store XML test results
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           shell: bash
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
-            cd /magma
+            cd /workspaces/magma
             mkdir -p c-cpp-test-results/
             echo "created c-cpp-test-results/ directory"
       - name: Run `bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* --config=asan`
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           shell: bash
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
-            cd /magma
+            cd /workspaces/magma
             bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* --config=asan --test_output=errors --cache_test_results=no
             TEST_RESULT=$?
             # copy out test results
@@ -242,7 +243,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Run li agent tests
         timeout-minutes: 5
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -279,7 +280,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Run sctpd tests with Debug build type
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -288,7 +289,7 @@ jobs:
             cd /workspaces/magma/lte/gateway
             make test_sctpd BUILD_TYPE=Debug
       - name: Run sctpd tests with RelWithDebInfo build type
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -297,7 +298,7 @@ jobs:
             cd /workspaces/magma/lte/gateway
             make test_sctpd BUILD_TYPE=RelWithDebInfo
       - name: Run mme tests with Debug build type
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -306,7 +307,7 @@ jobs:
             cd /workspaces/magma/lte/gateway
             make test_oai BUILD_TYPE=Debug;
       - name: Run mme tests with RelWithDebInfo build type
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -370,23 +371,24 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
       - name: Setup Devcontainer Image
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
             echo "Pulled the devontainer image!"
       - name: Setup Bazel Base Image
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
+          options: --pull always
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
             echo "Pulled the bazel base image!"
             bazel # pull down bazel, if bazel download fails we can fail before we do all the lengthy work below
       - name: Run codecov with CMake (MME)
         if: always()
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -397,11 +399,11 @@ jobs:
             cp $C_BUILD/coverage.info $MAGMA_ROOT
       - name: Run coverage with Bazel (COMMON / SESSIOND / SCTPD / LIAGENT / CONNECTIOND)
         if: always()
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
             cd $MAGMA_ROOT
             # Collecting coverage with Bazel can be slow. We can follow this thread to see if this can be improved: https://github.com/bazelbuild/bazel/issues/8178
@@ -474,7 +476,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Run session_manager tests
         timeout-minutes: 20
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
