@@ -414,7 +414,7 @@ pytest_test(
     tags = TAG_SUDO_TEST,
     deps = [
         ":pipelined_test_util",
-        "//lte/gateway/python/magma/pipelined/app:inout",
+        "//lte/gateway/python/magma/pipelined/app:mandatory_apps",
         "//lte/gateway/python/magma/pipelined/app:testing",
         "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
     ],
@@ -431,7 +431,7 @@ pytest_test(
     tags = TAG_SUDO_TEST,
     deps = [
         ":pipelined_test_util",
-        "//lte/gateway/python/magma/pipelined/app:inout",
+        "//lte/gateway/python/magma/pipelined/app:mandatory_apps",
         "//lte/gateway/python/magma/pipelined/app:testing",
         "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
         "//lte/protos:mobilityd_python_proto",
@@ -785,7 +785,7 @@ pytest_test(
     tags = TAG_SUDO_TEST,
     deps = [
         ":pipelined_test_util",
-        "//lte/gateway/python/magma/pipelined/app:inout",
+        "//lte/gateway/python/magma/pipelined/app:mandatory_apps",
         "//lte/gateway/python/magma/pipelined/app:testing",
         "//lte/gateway/python/magma/pipelined/app:ue_mac",
         "//lte/gateway/python/magma/pipelined/tests/app:flow_query",

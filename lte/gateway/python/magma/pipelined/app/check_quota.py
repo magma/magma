@@ -16,7 +16,8 @@ from typing import Dict, List, NamedTuple
 import netifaces
 from lte.protos.pipelined_pb2 import SetupFlowsResult, SubscriberQuotaUpdate
 from magma.pipelined.app.base import ControllerType, MagmaController
-from magma.pipelined.app.inout import EGRESS, INGRESS
+from magma.pipelined.app.egress import EGRESS
+from magma.pipelined.app.ingress import INGRESS
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows

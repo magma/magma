@@ -86,8 +86,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def __init__(
         self, loop, gy_app, enforcer_app, enforcement_stats, dpi_app,
         ue_mac_app, check_quota_app, ipfix_app, vlan_learn_app,
-        tunnel_learn_app, classifier_app, inout_app, ng_servicer_app,
-        service_config, service_manager,
+        tunnel_learn_app, classifier_app, ingress_app, middle_app, egress_app,
+        ng_servicer_app, service_config, service_manager,
     ):
         self._loop = loop
         self._gy_app = gy_app
@@ -101,7 +101,9 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._tunnel_learn_app = tunnel_learn_app
         self._service_config = service_config
         self._classifier_app = classifier_app
-        self._inout_app = inout_app
+        self._ingress_app = ingress_app
+        self._middle_app = middle_app
+        self._egress_app = egress_app
         self._ng_servicer_app = ng_servicer_app
         self._service_manager = service_manager
 
@@ -129,22 +131,34 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         Setup default controllers, used on pipelined restarts
         """
         self._log_grpc_payload(request)
-        ret = self._inout_app.check_setup_request_epoch(request.epoch)
-        if ret is not None:
-            return SetupFlowsResult(result=ret)
 
+        apps = [self._ingress_app, self._middle_app, self._egress_app]
+
+        for app in apps:
+            epoch_res = app.check_setup_request_epoch(request.epoch)
+            if epoch_res is not None:
+                return SetupFlowsResult(result=epoch_res)
+
+        for app in apps:
+            setup_res = self._get_setup_result(app, context)
+            if setup_res is None or setup_res.result != SetupFlowsResult.SUCCESS:
+                return setup_res
+
+        return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
+
+    def _get_setup_result(self, controller, context):
         fut = Future()
-        self._loop.call_soon_threadsafe(self._setup_default_controllers, fut)
+        self._loop.call_soon_threadsafe(self._setup_default_controller, controller, fut)
         try:
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
-            logging.error("SetupDefaultControllers processing timed out")
+            logging.error("SetupDefaultController processing timed out")
             context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
-            context.set_details('SetupDefaultControllers processing timed out')
+            context.set_details('SetupDefaultController processing timed out')
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
-    def _setup_default_controllers(self, fut: 'Future(SetupFlowsResult)'):
-        res = self._inout_app.handle_restart(None)
+    def _setup_default_controller(self, controller, fut: 'Future(SetupFlowsResult)'):
+        res = controller.handle_restart(None)
         fut.set_result(res)
 
     # --------------------------

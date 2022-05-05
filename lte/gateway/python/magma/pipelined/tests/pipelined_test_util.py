@@ -251,10 +251,10 @@ def setup_controller(
     return res.result
 
 
-def fake_inout_setup(inout_controller):
+def fake_mandatory_controller_setup(controller):
     TestCase().assertEqual(
         setup_controller(
-            inout_controller, SetupPolicyRequest(requests=[], epoch=global_epoch),
+            controller, SetupPolicyRequest(requests=[], epoch=global_epoch),
         ),
         SetupFlowsResult.SUCCESS,
     )

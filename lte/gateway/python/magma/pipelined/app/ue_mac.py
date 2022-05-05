@@ -19,7 +19,7 @@ from lte.protos.pipelined_pb2 import (
     UEMacFlowRequest,
 )
 from magma.pipelined.app.base import ControllerType, MagmaController
-from magma.pipelined.app.inout import INGRESS
+from magma.pipelined.app.ingress import INGRESS
 from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.directoryd_client import update_record
