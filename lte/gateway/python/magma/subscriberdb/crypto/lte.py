@@ -14,14 +14,12 @@ limitations under the License.
 import abc
 from typing import NamedTuple
 
-FiveGRanAuthVector = NamedTuple(
-    'FiveGRanAuthVector', [
-        ('rand', bytes),
-        ('xres_star', bytes),
-        ('autn', bytes),
-        ('kseaf', bytes),
-    ],
-)
+
+class FiveGRanAuthVector(NamedTuple):
+    rand: bytes
+    xres_star: bytes
+    autn: bytes
+    kseaf: bytes
 
 
 class BaseLTEAuthAlgo(metaclass=abc.ABCMeta):

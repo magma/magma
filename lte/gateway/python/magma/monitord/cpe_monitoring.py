@@ -38,13 +38,10 @@ subscriber_icmp_latency_ms = Histogram(
     buckets=[50, 100, 200, 500, 1000, 2000],
 )
 
-PingedTargets = NamedTuple(
-    'PingedTargets',
-    [
-        ('ping_targets', Dict['str', IPAddress]),
-        ('ping_addresses', List[IPAddress]),
-    ],
-)
+
+class PingedTargets(NamedTuple):
+    ping_targets: Dict[str, IPAddress]
+    ping_addresses: List[IPAddress]
 
 
 def _get_addr_from_subscribers(sub_ip) -> str:
