@@ -503,6 +503,7 @@ export type gateway_epc_configs = {
     ipv6_p_cscf_addr ? : string,
     ipv6_prefix_allocation_mode ? : "RANDOM" | "HASH",
     nat_enabled: boolean,
+    node_identifier ? : string,
     sgi_management_iface_gw ? : string,
     sgi_management_iface_ipv6_addr ? : string,
     sgi_management_iface_ipv6_gw ? : string,
@@ -938,7 +939,6 @@ export type network_epc_configs = {
     },
     network_services ? : Array < "dpi" | "policy_enforcement" >
         ,
-    node_identifier ? : string,
     restricted_imeis ? : Array < imei >
         ,
     restricted_plmns ? : Array < plmn_config >

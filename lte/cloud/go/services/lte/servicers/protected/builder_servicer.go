@@ -205,7 +205,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			HeConfig:                   heConfig,
 			LiUes:                      liUes,
 			Enable5GFeatures:           swag.BoolValue(nwEpc.Enable5gFeatures),
-			UpfNodeIdentifier:          string(nwEpc.NodeIdentifier),
+			UpfNodeIdentifier:          string(gwEpc.NodeIdentifier),
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:         protos.LogLevel_INFO,

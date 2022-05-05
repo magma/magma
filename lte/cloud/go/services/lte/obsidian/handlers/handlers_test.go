@@ -1340,7 +1340,7 @@ func TestListAndGetGateways(t *testing.T) {
 			{
 				Type: lte.CellularGatewayEntityType, Key: "g1",
 				Config: &lteModels.GatewayCellularConfigs{
-					Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+					Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24", NodeIdentifier: "192.168.200.1"},
 					Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 					Ngc: &lteModels.GatewayNgcConfigs{
 						AmfDefaultSd:  "AFAFAF",
@@ -1355,7 +1355,7 @@ func TestListAndGetGateways(t *testing.T) {
 			{
 				Type: lte.CellularGatewayEntityType, Key: "g2",
 				Config: &lteModels.GatewayCellularConfigs{
-					Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+					Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24", NodeIdentifier: "192.168.200.1"},
 					Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 					Ngc: &lteModels.GatewayNgcConfigs{
 						AmfDefaultSd:  "AFAFAF",
@@ -1427,7 +1427,7 @@ func TestListAndGetGateways(t *testing.T) {
 				CheckinTimeout:          5,
 			},
 			Cellular: &lteModels.GatewayCellularConfigs{
-				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24", NodeIdentifier: "192.168.200.1"},
 				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 				Ngc: &lteModels.GatewayNgcConfigs{
 					AmfDefaultSd:  "AFAFAF",
@@ -1453,7 +1453,7 @@ func TestListAndGetGateways(t *testing.T) {
 				CheckinTimeout:          5,
 			},
 			Cellular: &lteModels.GatewayCellularConfigs{
-				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24", NodeIdentifier: "192.168.200.1"},
 				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 				Ngc: &lteModels.GatewayNgcConfigs{
 					AmfDefaultSd:  "AFAFAF",
@@ -1496,7 +1496,7 @@ func TestListAndGetGateways(t *testing.T) {
 			CheckinTimeout:          5,
 		},
 		Cellular: &lteModels.GatewayCellularConfigs{
-			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24", NodeIdentifier: "192.168.200.1"},
 			Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 			Ngc: &lteModels.GatewayNgcConfigs{
 				AmfDefaultSd:  "AFAFAF",
@@ -1534,7 +1534,7 @@ func TestListAndGetGateways(t *testing.T) {
 			CheckinTimeout:          5,
 		},
 		Cellular: &lteModels.GatewayCellularConfigs{
-			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24", NodeIdentifier: "192.168.200.1"},
 			Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 			Ngc: &lteModels.GatewayNgcConfigs{
 				AmfDefaultSd:  "AFAFAF",
@@ -1581,7 +1581,7 @@ func TestUpdateGateway(t *testing.T) {
 		{
 			Type: lte.CellularGatewayEntityType, Key: "g1",
 			Config: &lteModels.GatewayCellularConfigs{
-				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24", NodeIdentifier: "192.168.200.1"},
 				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 				Ngc: &lteModels.GatewayNgcConfigs{
 					AmfDefaultSd:  "AFAFAF",
@@ -1644,7 +1644,7 @@ func TestUpdateGateway(t *testing.T) {
 		},
 		Tier: "t1",
 		Cellular: &lteModels.GatewayCellularConfigs{
-			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(false), IPBlock: "172.10.10.0/24"},
+			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(false), IPBlock: "172.10.10.0/24", NodeIdentifier: "192.168.200.1"},
 			Ran: &lteModels.GatewayRanConfigs{Pci: 123, TransmitEnabled: swag.Bool(false)},
 			Ngc: &lteModels.GatewayNgcConfigs{
 				AmfDefaultSd:  "AFAFAF",
@@ -1732,7 +1732,7 @@ func TestDeleteGateway(t *testing.T) {
 		{
 			Type: lte.CellularGatewayEntityType, Key: "g1",
 			Config: &lteModels.GatewayCellularConfigs{
-				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24", NodeIdentifier: "192.168.200.1"},
 				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 				Ngc: &lteModels.GatewayNgcConfigs{
 					AmfDefaultSd:  "AFAFAF",
@@ -4352,8 +4352,9 @@ func newDefaultGatewayConfig() *lteModels.GatewayCellularConfigs {
 			TransmitEnabled: swag.Bool(true),
 		},
 		Epc: &lteModels.GatewayEpcConfigs{
-			NatEnabled: swag.Bool(true),
-			IPBlock:    "192.168.128.0/24",
+			NatEnabled:     swag.Bool(true),
+			IPBlock:        "192.168.128.0/24",
+			NodeIdentifier: "192.168.200.1",
 		},
 		Ngc: &lteModels.GatewayNgcConfigs{
 			AmfDefaultSd:  "AFAFAF",

@@ -72,15 +72,13 @@ func TestListSuciProfiles(t *testing.T) {
 					Mnc: "01",
 					Tac: 1,
 					// 16 bytes of \x11
-					LteAuthOp:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					LteAuthAmf: []byte("\x80\x00"),
-
+					LteAuthOp:                []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					LteAuthAmf:               []byte("\x80\x00"),
 					HssRelayEnabled:          swag.Bool(false),
 					GxGyRelayEnabled:         swag.Bool(false),
 					CloudSubscriberdbEnabled: false,
 					CongestionControlEnabled: swag.Bool(true),
 					Enable5gFeatures:         swag.Bool(false),
-					NodeIdentifier:           "",
 					DefaultRuleID:            "",
 					SubscriberdbSyncInterval: lte_models.SubscriberdbSyncInterval(300),
 				},

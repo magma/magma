@@ -166,7 +166,7 @@ func TestBuilder_Build(t *testing.T) {
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
 			Enable5GFeatures:       false,
-			UpfNodeIdentifier:      "",
+			UpfNodeIdentifier:      "192.168.200.1",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:         protos.LogLevel_INFO,
@@ -230,7 +230,7 @@ func TestBuilder_Build(t *testing.T) {
 		HeConfig:          &lte_mconfig.PipelineD_HEConfig{},
 		LiUes:             &lte_mconfig.PipelineD_LiUes{},
 		Enable5GFeatures:  false,
-		UpfNodeIdentifier: "",
+		UpfNodeIdentifier: "192.168.200.1",
 	}
 	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
@@ -390,7 +390,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
 			Enable5GFeatures:       false,
-			UpfNodeIdentifier:      "",
+			UpfNodeIdentifier:      "192.168.200.1",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:         protos.LogLevel_INFO,
@@ -508,7 +508,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 		LiUes:                  &lte_mconfig.PipelineD_LiUes{},
 		Enable5GFeatures:       false,
-		UpfNodeIdentifier:      "",
+		UpfNodeIdentifier:      "192.168.200.1",
 	}
 
 	actual, err = buildNonFederated(&nw, &graph, "gw1")
@@ -541,7 +541,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		HeConfig:                 &lte_mconfig.PipelineD_HEConfig{},
 		LiUes:                    &lte_mconfig.PipelineD_LiUes{},
 		Enable5GFeatures:         false,
-		UpfNodeIdentifier:        "",
+		UpfNodeIdentifier:        "192.168.200.1",
 	}
 
 	actual, err = buildNonFederated(&nw, &graph, "gw1")
@@ -574,7 +574,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		SgiManagementIfaceGw:     "1.2.3.1",
 		HeConfig:                 &lte_mconfig.PipelineD_HEConfig{},
 		LiUes:                    &lte_mconfig.PipelineD_LiUes{},
-		UpfNodeIdentifier:        "",
+		UpfNodeIdentifier:        "192.168.200.1",
 		Enable5GFeatures:         false,
 	}
 
@@ -608,7 +608,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		SgiManagementIfaceIpv6Gw:   "2a12:577:9941:f99c:0002:0001:c731:f114",
 		HeConfig:                   &lte_mconfig.PipelineD_HEConfig{},
 		LiUes:                      &lte_mconfig.PipelineD_LiUes{},
-		UpfNodeIdentifier:          "",
+		UpfNodeIdentifier:          "192.168.200.1",
 		Enable5GFeatures:           false,
 	}
 
@@ -644,7 +644,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		SgiManagementIfaceIpv6Gw:   "2a12:577:9941:f99c:0002:0001:c731:f114",
 		HeConfig:                   &lte_mconfig.PipelineD_HEConfig{},
 		LiUes:                      &lte_mconfig.PipelineD_LiUes{},
-		UpfNodeIdentifier:          "",
+		UpfNodeIdentifier:          "192.168.200.1",
 		Enable5GFeatures:           false,
 	}
 
@@ -739,7 +739,7 @@ func TestBuilder_Build_NgcConfig(t *testing.T) {
 			HeConfig:          &lte_mconfig.PipelineD_HEConfig{},
 			LiUes:             &lte_mconfig.PipelineD_LiUes{},
 			Enable5GFeatures:  false,
-			UpfNodeIdentifier: "",
+			UpfNodeIdentifier: "192.168.200.1",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:         protos.LogLevel_INFO,
@@ -877,7 +877,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			},
 			LiUes:             &lte_mconfig.PipelineD_LiUes{},
 			Enable5GFeatures:  false,
-			UpfNodeIdentifier: "",
+			UpfNodeIdentifier: "192.168.200.1",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:         protos.LogLevel_INFO,
@@ -1112,7 +1112,7 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 			},
 			LiUes:             &lte_mconfig.PipelineD_LiUes{},
 			Enable5GFeatures:  false,
-			UpfNodeIdentifier: "",
+			UpfNodeIdentifier: "192.168.200.1",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:         protos.LogLevel_INFO,
@@ -1264,7 +1264,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
 			Enable5GFeatures:       false,
-			UpfNodeIdentifier:      "",
+			UpfNodeIdentifier:      "192.168.200.1",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:         protos.LogLevel_INFO,
@@ -1401,7 +1401,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
 			Enable5GFeatures:       false,
-			UpfNodeIdentifier:      "",
+			UpfNodeIdentifier:      "192.168.200.1",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:         protos.LogLevel_INFO,
@@ -1544,7 +1544,7 @@ func TestBuilder_BuildCongestionControlConfig(t *testing.T) {
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
 			Enable5GFeatures:       false,
-			UpfNodeIdentifier:      "",
+			UpfNodeIdentifier:      "192.168.200.1",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:         protos.LogLevel_INFO,
@@ -1682,7 +1682,7 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 			HeConfig:          &lte_mconfig.PipelineD_HEConfig{},
 			LiUes:             &lte_mconfig.PipelineD_LiUes{},
 			Enable5GFeatures:  false,
-			UpfNodeIdentifier: "",
+			UpfNodeIdentifier: "192.168.200.1",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:         protos.LogLevel_INFO,
@@ -1770,6 +1770,7 @@ func newDefaultGatewayConfig() *lte_models.GatewayCellularConfigs {
 			NatEnabled:               swag.Bool(true),
 			IPBlock:                  "192.168.128.0/24",
 			CongestionControlEnabled: swag.Bool(true),
+			NodeIdentifier:           "192.168.200.1",
 		},
 		NonEpsService: &lte_models.GatewayNonEpsConfigs{
 			CsfbMcc:              "001",
@@ -1799,6 +1800,7 @@ func newGatewayConfigNonNat(vlan string, sgi_ip string, sgi_gw string, sgi_ipv6 
 		Epc: &lte_models.GatewayEpcConfigs{
 			NatEnabled:                 swag.Bool(false),
 			IPBlock:                    "192.168.128.0/24",
+			NodeIdentifier:             "192.168.200.1",
 			SgiManagementIfaceVlan:     vlan,
 			SgiManagementIfaceStaticIP: sgi_ip,
 			SgiManagementIfaceGw:       sgi_gw,
@@ -1832,6 +1834,7 @@ func newGatewayConfigWithNGC() *lte_models.GatewayCellularConfigs {
 			NatEnabled:               swag.Bool(true),
 			IPBlock:                  "192.168.128.0/24",
 			CongestionControlEnabled: swag.Bool(true),
+			NodeIdentifier:           "192.168.200.1",
 		},
 		Ngc: &lte_models.GatewayNgcConfigs{
 			AmfDefaultSd:  "AFAFAF",

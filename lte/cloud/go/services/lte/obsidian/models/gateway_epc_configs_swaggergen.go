@@ -66,6 +66,10 @@ type GatewayEpcConfigs struct {
 	// Required: true
 	NatEnabled *bool `json:"nat_enabled"`
 
+	// UPF Node Identifier
+	// Format: ipv4
+	NodeIdentifier strfmt.IPv4 `json:"node_identifier,omitempty"`
+
 	// IP address of gateway for management interface on the AGW
 	// Max Length: 49
 	// Min Length: 5
@@ -129,6 +133,10 @@ func (m *GatewayEpcConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateNatEnabled(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateNodeIdentifier(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -311,6 +319,19 @@ func (m *GatewayEpcConfigs) validateIPV6PrefixAllocationMode(formats strfmt.Regi
 func (m *GatewayEpcConfigs) validateNatEnabled(formats strfmt.Registry) error {
 
 	if err := validate.Required("nat_enabled", "body", m.NatEnabled); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *GatewayEpcConfigs) validateNodeIdentifier(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.NodeIdentifier) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("node_identifier", "body", "ipv4", m.NodeIdentifier.String(), formats); err != nil {
 		return err
 	}
 
