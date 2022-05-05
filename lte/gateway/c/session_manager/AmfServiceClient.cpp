@@ -10,7 +10,6 @@
 #include <utility>
 
 #include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
-#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 #include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
 
