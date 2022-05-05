@@ -21,6 +21,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    Text,
 )
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.declarative import declarative_base
@@ -222,7 +223,21 @@ class DBCbsd(Base):
     preferred_frequencies_mhz = Column(
         JSON, nullable=False, server_default=sa_text("'[]'::json"),
     )
+    single_step_enabled = Column(Boolean, nullable=False, server_default='false')
+    cbsd_category = Column(String, nullable=False, server_default='B')
     network_id = Column(String)
+    latitude_deg = Column(Float)
+    longitude_deg = Column(Float)
+    height_m = Column(Float)
+    height_type = Column(String)
+    horizontal_accuracy_m = Column(Float)
+    antenna_azimuth_deg = Column(Integer)
+    antenna_downtilt_deg = Column(Integer)
+    antenna_beamwidth_deg = Column(Integer)
+    antenna_model = Column(String)
+    eirp_capability_dbm_mhz = Column(Integer)
+    cpi_digital_signature = Column(Text)
+    indoor_deployment = Column(Boolean, nullable=False, server_default='false')
     is_deleted = Column(Boolean, nullable=False, server_default='false')
     should_deregister = Column(Boolean, nullable=False, server_default='false')
     created_date = Column(

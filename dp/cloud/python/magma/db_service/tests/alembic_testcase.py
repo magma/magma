@@ -2,7 +2,7 @@ import os
 from typing import List, Optional
 
 import alembic.config
-import sqlalchemy
+import sqlalchemy as sa
 import testing.postgresql
 from alembic.command import downgrade, stamp, upgrade
 from alembic.script import ScriptDirectory
@@ -16,7 +16,6 @@ class AlembicTestCase(DBTestCaseBlueprint):
     postgresql: testing.postgresql.Postgresql
     up_revision: Optional[str] = None
     down_revision: Optional[str] = None
-    tables: Optional[List[str]] = None
 
     def tearDown(self) -> None:
         super().tearDown()
@@ -35,7 +34,7 @@ class AlembicTestCase(DBTestCaseBlueprint):
         cls.postgresql.stop()
 
     def setUp(self) -> None:
-        self.setMetadata(sqlalchemy.MetaData())
+        self.setMetadata(sa.MetaData())
         self.set_up_db_test_case(SQLALCHEMY_DB_URI=self.postgresql.url())
         self.up_revision = self.up_revision or "head"
         self.down_revision = self.down_revision or "base"
@@ -46,8 +45,14 @@ class AlembicTestCase(DBTestCaseBlueprint):
         # Making sure there are no tables in metadata
         self.assertListEqual(self.metadata.sorted_tables, [])
 
-    def get_table(self, table_name):
-        return sqlalchemy.Table(table_name, sqlalchemy.MetaData(), autoload_with=self.engine)
+    def get_table(self, table_name: str) -> sa.Table:
+        return sa.Table(table_name, sa.MetaData(), autoload_with=self.engine)
+
+    def has_column(self, table: sa.Table, column_name: str) -> bool:
+        for c in table.columns:
+            if c.name == column_name:
+                return True
+        return False
 
     def upgrade(self, revision=None):
         revision = revision or self.up_revision
@@ -74,3 +79,11 @@ class AlembicTestCase(DBTestCaseBlueprint):
         metadata_tables = dict(self.metadata.tables)
         del metadata_tables["alembic_version"]
         self.assertListEqual(sorted(tables), sorted(metadata_tables.keys()))
+
+    def verify_downgrade_to_base(self):
+        self.upgrade(self.up_revision)
+        try:
+            self.downgrade("base")
+        except Exception as e:
+            self.fail(f"Downgrade to base failed: {e}")
+        self.then_tables_are()
