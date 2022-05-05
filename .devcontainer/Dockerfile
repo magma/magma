@@ -382,17 +382,12 @@ RUN ${PYTHON_VENV_EXECUTABLE} -m pip install --no-cache-dir "mypy-protobuf==2.4"
     echo "${PYTHON_VENV}/${GEN_DIR}" > ${PYTHON_VENV}/lib/python${PYTHON_VERSION}/site-packages/magma_gen.pth
 
 ### swagger
-ENV SWAGGER_CODEGEN_JAR=/var/tmp/codegen/modules/swagger-codegen-cli/target/swagger-codegen-cli.jar
-ARG MVN_VERSION=3.5.4
-ARG CODEGEN_VERSION=v2.2.3
+ENV SWAGGER_CODEGEN_DIR=/var/tmp/codegen
+ENV SWAGGER_CODEGEN_JAR=${SWAGGER_CODEGEN_DIR}/swagger-codegen-cli.jar
+ARG CODEGEN_VERSION=2.2.3
 
-WORKDIR /var/tmp/
-RUN wget --progress=dot:giga http://mirrors.ibiblio.org/apache/maven/maven-3/${MVN_VERSION}/binaries/apache-maven-${MVN_VERSION}-bin.tar.gz && \
-    tar --extract --verbose --file apache-maven-${MVN_VERSION}-bin.tar.gz
-
-WORKDIR /var/tmp/codegen
-RUN git clone --branch ${CODEGEN_VERSION} https://github.com/swagger-api/swagger-codegen /var/tmp/codegen
-RUN /var/tmp/apache-maven-${MVN_VERSION}/bin/mvn clean package -D skipTests
+RUN mkdir -p ${SWAGGER_CODEGEN_DIR}; \
+    wget --no-verbose https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/${CODEGEN_VERSION}/swagger-codegen-cli-${CODEGEN_VERSION}.jar -O ${SWAGGER_CODEGEN_JAR}
 
 # Copy swagger specs over to the build directory,
 # so that eventd can access them at runtime
