@@ -10,12 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow
- * @format
  */
 
-require('@babel/register')({
-  rootMode: 'upward',
-  ignore: [],
-  extensions: ['.ts', '.js'],
-});
+export default function nullthrows<TVal>(
+  data?: TVal | null,
+  message?: string,
+): TVal;

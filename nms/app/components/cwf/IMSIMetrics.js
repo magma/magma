@@ -23,7 +23,7 @@ import React from 'react';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 
 const IMSI_CONFIGS: Array<MetricGraphConfig> = [
   {

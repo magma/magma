@@ -10,12 +10,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow
  * @format
  */
+import React from 'react';
 
-require('@babel/register')({
-  rootMode: 'upward',
-  ignore: [],
-  extensions: ['.ts', '.js'],
-});
+export type NetworkContextType = {
+  networkId: string | null | undefined;
+  networkType?: string;
+};
+
+declare const Context: React.Context<NetworkContextType>;
+
+export default Context;

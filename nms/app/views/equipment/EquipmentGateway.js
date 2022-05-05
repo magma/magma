@@ -20,6 +20,7 @@ import type {
 } from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
+// $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';

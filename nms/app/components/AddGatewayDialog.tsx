@@ -22,7 +22,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import LoadingFillerBackdrop from './LoadingFillerBackdrop';
-import MagmaV1API from '../../generated/WebClient';
+import MagmaAPI from '../../api/MagmaAPI';
 import MenuItem from '@material-ui/core/MenuItem';
 import React, {useState} from 'react';
 import Select from '@material-ui/core/Select';
@@ -30,7 +30,7 @@ import TextField from '@material-ui/core/TextField';
 import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
@@ -42,12 +42,12 @@ const useStyles = makeStyles(() => ({
 }));
 
 type GatewayData = {
-  gatewayID: string,
-  name: string,
-  description: string,
-  hardwareID: string,
-  challengeKey: string,
-  tier: string,
+  gatewayID: string;
+  name: string;
+  description: string;
+  hardwareID: string;
+  challengeKey: string;
+  tier: string;
 };
 
 export const MAGMAD_DEFAULT_CONFIGS = {
@@ -66,10 +66,10 @@ export const EMPTY_GATEWAY_FIELDS = {
   tier: '',
 };
 
-type Props = {|
-  onClose: () => void,
-  onSave: GatewayData => Promise<void>,
-|};
+type Props = {
+  onClose: () => void;
+  onSave: (data: GatewayData) => Promise<void>;
+};
 
 export default function AddGatewayDialog(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -78,7 +78,8 @@ export default function AddGatewayDialog(props: Props) {
   const params = useParams();
   const networkID = nullthrows(params.networkId);
   const {response: tiers, isLoading} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdTiers,
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    MagmaAPI.upgrades.networksNetworkIdTiersGet,
     {
       networkId: networkID,
     },
@@ -88,7 +89,7 @@ export default function AddGatewayDialog(props: Props) {
     return <LoadingFillerBackdrop />;
   }
 
-  const onSave = async () => {
+  const onSave = () => {
     if (
       !values.name ||
       !values.description ||
@@ -101,8 +102,10 @@ export default function AddGatewayDialog(props: Props) {
     }
 
     try {
-      await props.onSave(values);
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      props.onSave(values);
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access
       enqueueSnackbar(e?.response?.data?.message || e?.message || e, {
         variant: 'error',
       });
@@ -126,9 +129,9 @@ export default function AddGatewayDialog(props: Props) {
 }
 
 export const AddGatewayFields = (props: {
-  values: GatewayData,
-  onChange: GatewayData => void,
-  tiers: string[],
+  values: GatewayData;
+  onChange: (data: GatewayData) => void;
+  tiers: Array<string>;
 }) => {
   const classes = useStyles();
 
@@ -185,7 +188,7 @@ export const AddGatewayFields = (props: {
           className={classes.input}
           value={props.values.tier}
           onChange={({target}) =>
-            props.onChange({...props.values, tier: target.value})
+            props.onChange({...props.values, tier: target.value as string})
           }>
           {props.tiers.map(tier => (
             <MenuItem key={tier} value={tier}>

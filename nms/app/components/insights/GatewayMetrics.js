@@ -22,7 +22,7 @@ import Metrics from './Metrics';
 import React from 'react';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 import {useSnackbar} from '../../../app/hooks';
 
 export default function (props: {configs: MetricGraphConfig[]}) {

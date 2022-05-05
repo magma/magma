@@ -21,7 +21,7 @@ import PoliciesConfig from '../network/PoliciesConfig';
 import React from 'react';
 import UpgradeConfig from '../network/UpgradeConfig';
 
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 import {useParams} from 'react-router-dom';
 
 export default function CWFConfigure() {

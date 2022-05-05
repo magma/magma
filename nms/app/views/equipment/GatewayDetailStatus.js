@@ -22,7 +22,7 @@ import LoadingFiller from '../../components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 import {DynamicServices} from '../../components/GatewayUtils';
 
 import {

@@ -15,19 +15,20 @@
  */
 
 import session from 'express-session';
+import {RequestHandler} from 'express';
+import {SequelizeStore} from '../../shared/types';
 
-type SessionMiddlewareOptions = {|
-  devMode: boolean,
-  // $FlowIgnore[value-as-type]
-  sessionStore: session.Session,
-  sessionToken: string,
-|};
+type SessionMiddlewareOptions = {
+  devMode: boolean;
+  sessionStore: SequelizeStore;
+  sessionToken: string;
+};
 
 export default function sessionMiddleware(
   options: SessionMiddlewareOptions,
-  // $FlowIgnore[value-as-type]
-): Middleware {
+): RequestHandler {
   options.sessionStore.sync();
+
   return session({
     cookie: {
       secure: !options.devMode,

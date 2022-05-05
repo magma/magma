@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 The Magma Authors.
+ * Copyright 2022 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
@@ -9,13 +9,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
+import React from 'react';
 
-require('@babel/register')({
-  rootMode: 'upward',
-  ignore: [],
-  extensions: ['.ts', '.js'],
-});
+type Props = {
+  children: React.ReactNode;
+  isOrganizations?: boolean;
+  networkIDs?: Array<string>;
+};
+
+export function AppContextProvider(props: Props): JSX.Element;
+
+declare const Context: React.Context<any>;
+
+export default Context;

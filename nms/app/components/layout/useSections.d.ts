@@ -10,12 +10,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow
  * @format
  */
+import type {ComponentType} from 'react';
 
-require('@babel/register')({
-  rootMode: 'upward',
-  ignore: [],
-  extensions: ['.ts', '.js'],
-});
+interface Section {
+  path: string;
+  label: string;
+  icon: any;
+  component: ComponentType<any>;
+}
+
+export type SectionsConfigs = [string, Array<Section>];
+
+export default function useSections(): SectionsConfigs;

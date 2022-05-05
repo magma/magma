@@ -18,6 +18,7 @@ import type {WithAlert} from '../Alert/withAlert';
 import type {cwf_gateway} from '../../../generated/MagmaAPIBindings';
 import type {cwf_ha_pair} from '../../../generated/MagmaAPIBindings';
 
+// $FlowFixMe migrated to typescript
 import AddGatewayDialog from '../AddGatewayDialog';
 import Button from '@material-ui/core/Button';
 import CWFEditGatewayDialog from './CWFEditGatewayDialog';
@@ -42,8 +43,9 @@ import Tooltip from '@material-ui/core/Tooltip';
 import LoadingFiller from '../LoadingFiller';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 import withAlert from '../Alert/withAlert';
+// $FlowFixMe migrated to typescript
 import {MAGMAD_DEFAULT_CONFIGS} from '../AddGatewayDialog';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {colors} from '../../theme/default';

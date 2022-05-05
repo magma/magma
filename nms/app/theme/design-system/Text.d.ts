@@ -10,12 +10,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow
  * @format
  */
 
-require('@babel/register')({
-  rootMode: 'upward',
-  ignore: [],
-  extensions: ['.ts', '.js'],
-});
+import React from 'react';
+
+interface Props {
+  children: React.ReactNode;
+  variant?:
+    | 'h1'
+    | 'h2'
+    | 'h3'
+    | 'h4'
+    | 'h5'
+    | 'h6'
+    | 'subtitle1'
+    | 'subtitle2'
+    | 'subtitle3'
+    | 'body1'
+    | 'body2'
+    | 'body3'
+    | 'caption'
+    | 'overline';
+  className?: string;
+  useEllipsis?: boolean;
+  weight?: 'inherit' | 'light' | 'regular' | 'medium' | 'bold';
+}
+
+export default function Text(props: Props): JSX.Element;

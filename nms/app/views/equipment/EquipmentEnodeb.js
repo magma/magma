@@ -16,6 +16,7 @@
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 import ActionTable from '../../components/ActionTable';
+// $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';

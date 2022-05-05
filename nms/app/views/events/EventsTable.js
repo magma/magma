@@ -17,6 +17,7 @@ import type {ActionQuery} from '../../components/ActionTable';
 import type {event as MagmaEvent} from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
+// $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import EventChart from './EventChart';
@@ -36,6 +37,7 @@ import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {useParams} from 'react-router-dom';
+// $FlowFixMe migrated to typescript
 import {useRefreshingDateRange} from '../../components/AutorefreshCheckbox';
 
 const useStyles = makeStyles(theme => ({

@@ -16,6 +16,7 @@
 import type {ActionQuery} from '../../components/ActionTable';
 
 import ActionTable from '../../components/ActionTable';
+// $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
@@ -35,6 +36,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useMemo, useRef, useState} from 'react';
 import {useParams} from 'react-router-dom';
+// $FlowFixMe migrated to typescript
 import {useRefreshingDateRange} from '../../components/AutorefreshCheckbox';
 
 // elastic search pagination through 'from' mechanism has a 10000 row limit

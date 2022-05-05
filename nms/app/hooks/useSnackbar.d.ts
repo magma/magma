@@ -10,12 +10,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow
- * @format
  */
 
-require('@babel/register')({
-  rootMode: 'upward',
-  ignore: [],
-  extensions: ['.ts', '.js'],
-});
+import {OptionsObject} from 'notistack';
+
+export default function useSnackbar(
+  message: string,
+  config: OptionsObject,
+  show: boolean,
+  dismissPrevious?: boolean,
+): void;
+
+export function useSnackbars(): {
+  success: (message: string) => void;
+  error: (message: string) => void;
+  warning: (message: string) => void;
+};
+
+export function useEnqueueSnackbar(): (
+  message: string,
+  config: OptionsObject,
+) => void;

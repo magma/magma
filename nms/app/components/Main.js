@@ -31,7 +31,7 @@ import {
 } from 'react-router-dom';
 
 import LoadingFiller from './LoadingFiller';
-import useMagmaAPI from '../../api/useMagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPIFlow';
 import {sortBy} from 'lodash';
 
 export const NO_NETWORK_MESSAGE =

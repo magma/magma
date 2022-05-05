@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -10,12 +10,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow
  * @format
  */
 
-require('@babel/register')({
-  rootMode: 'upward',
-  ignore: [],
-  extensions: ['.ts', '.js'],
-});
+declare let global: {
+  CONFIG: {
+    appData: {
+      enabledFeatures: Array<string>;
+    };
+  };
+};

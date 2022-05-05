@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 The Magma Authors.
+ * Copyright 2022 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
@@ -10,12 +10,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow
- * @format
  */
 
-require('@babel/register')({
-  rootMode: 'upward',
-  ignore: [],
-  extensions: ['.ts', '.js'],
-});
+import React from 'react';
+
+export default function LoadingFillerBackdrop(): React.ReactElement;
