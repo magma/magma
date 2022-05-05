@@ -22,90 +22,256 @@ const combinedOpenSourcePattern = new RegExp(
   '(' + newOpenSourcePattern.source + ')|(' + openSourcePattern.source + ')',
 );
 
-module.exports.extends = ['eslint-config-fbcnms'];
-module.exports.overrides = [
+const restrictedImportsRule = [
+  'error',
   {
-    files: ['*'],
-    rules: {
-      'react-hooks/exhaustive-deps': 'error',
-      'prettier/prettier': [
-        2,
-        {
-          singleQuote: true,
-          trailingComma: 'all',
-          bracketSpacing: false,
-          jsxBracketSameLine: true,
-          parser: 'flow',
-        },
-      ],
-    },
-  },
-  {
-    files: ['*.mdx'],
-    extends: ['plugin:mdx/overrides'],
-    rules: {
-      'flowtype/require-valid-file-annotation': 'off',
-      'prettier/prettier': [
-        2,
-        {
-          parser: 'mdx',
-        },
-      ],
-    },
-  },
-  {
-    files: ['.eslintrc.js'],
-    rules: {
-      quotes: ['warn', 'single'],
-    },
-  },
-  {
-    env: {
-      jest: true,
-      node: true,
-    },
-    files: [
-      '**/__mocks__/**/*.js',
-      '**/__tests__/**/*.js',
-      '**/tests/*.js',
-      'testHelpers.js',
-      'testData.js',
+    paths: [
+      {
+        name: 'lodash-es',
+        message: 'Please use lodash directly.',
+      },
     ],
-  },
-  {
-    files: ['packages/**/*.js'],
-    rules: {
-      'header/header': [2, 'block', {pattern: combinedOpenSourcePattern}],
-    },
-  },
-  {
-    env: {
-      node: true,
-    },
-    files: [
-      '.eslintrc.js',
-      'babel.config.js',
-      'jest.config.js',
-      'jest.*.config.js',
-      'fbc_js_core/auth/**/*.js',
-      'fbc_js_core/babel_register/*.js',
-      'fbc_js_core/express_middleware/**/*.js',
-      'fbc_js_core/platform_server/**/*.js',
-      'fbc_js_core/sequelize_models/**/*.js',
-      'fbc_js_core/util/yarn.js',
-      'fbc_js_core/webpack_config/**/*.js',
-      'config/*.js',
-      'scripts/**/*.js',
-      'server/**/*.js',
-      'grafana/**/*.js',
-    ],
-    rules: {
-      'no-console': 'off',
-    },
   },
 ];
-module.exports.settings = {
-  react: {
-    version: 'detect',
+
+module.exports = {
+  env: {
+    browser: true,
+    es6: true,
   },
+  globals: {
+    ArrayBufferView: false,
+    Buffer: false,
+    Class: false,
+    FormData: true,
+    Iterable: false,
+    Iterator: false,
+    IteratorResult: false,
+    Promise: false,
+    __BUNDLE_START_TIME__: false,
+    __filename: false,
+  },
+  parser: 'babel-eslint',
+  parserOptions: {
+    ecmaFeatures: {
+      jsx: true,
+    },
+    ecmaVersion: 6,
+    sourceType: 'module',
+  },
+  plugins: [
+    'flowtype',
+    'header',
+    'import',
+    'jest',
+    'lint',
+    'node',
+    'prettier',
+    'react',
+    'react-hooks',
+    'sort-imports-es6-autofix',
+  ],
+  settings: {
+    react: {
+      version: 'detect',
+    },
+  },
+  rules: {
+    'no-alert': 'off',
+    'no-console': ['warn', {allow: ['error', 'warn']}],
+    'no-restricted-modules': restrictedImportsRule,
+    'no-restricted-imports': restrictedImportsRule,
+    'no-undef': 'error',
+    'no-unused-vars': [
+      'error',
+      {
+        vars: 'all',
+        args: 'after-used',
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+      },
+    ],
+    'no-var': 'error',
+    'prefer-const': ['warn', {destructuring: 'all'}],
+    'sort-keys': 'off',
+    'no-warning-comments': [1, {terms: ['$FlowFixMe'], location: 'anywhere'}],
+    strict: 'off',
+
+    // Import Plugin
+    // https://github.com/benmosher/eslint-plugin-import
+    'import/default': 2,
+    'import/export': 2,
+    'import/named': 2,
+    'import/namespace': 2,
+    'import/no-unresolved': [2, {ignore: ['@material-ui/core/@@SvgIcon$']}],
+
+    'lint/cs-intent-use-injected-props': 'off',
+    'lint/duplicate-class-function': 'off',
+    'lint/flow-exact-props': 'off',
+    'lint/flow-exact-state': 'off',
+    'lint/flow-readonly-props': 'off',
+    'lint/only-plain-ascii': 'off',
+    'lint/react-avoid-set-state-with-potentially-stale-state': 'off',
+    'lint/sort-keys-fixable': 'off',
+    'lint/strictly-null': 'off',
+    'lint/test-only-props': 'off',
+
+    // Flow Plugin
+    // The following rules are made available via `eslint-plugin-flowtype`
+    'flowtype/define-flow-type': 1,
+    'flowtype/no-weak-types': [1],
+    'flowtype/use-flow-type': 1,
+    // The following is disabled for many file types in overrides
+    'flowtype/require-valid-file-annotation': [2, 'always'],
+
+    // Node Plugin
+    // https://github.com/mysticatea/eslint-plugin-node
+    'node/no-missing-require': 2,
+
+    // Prettier Plugin
+    // https://github.com/prettier/eslint-plugin-prettier
+    'prettier/prettier': [
+      2,
+      {
+        singleQuote: true,
+        trailingComma: 'all',
+        bracketSpacing: false,
+        jsxBracketSameLine: true,
+        parser: 'flow',
+      },
+    ],
+
+    // React Plugin
+    // https://github.com/yannickcr/eslint-plugin-react
+    'react/display-name': 0,
+    'react/jsx-boolean-value': 0,
+    'react/jsx-no-comment-textnodes': 1,
+    'react/jsx-no-duplicate-props': 2,
+    'react/jsx-no-undef': 2,
+    'react/jsx-sort-props': 0,
+    'react/jsx-uses-react': 1,
+    'react/jsx-uses-vars': 1,
+    'react/no-did-mount-set-state': 1,
+    'react/no-did-update-set-state': 1,
+    'react/no-is-mounted': 'warn',
+    'react/no-multi-comp': 0,
+    'react/no-string-refs': 1,
+    'react/no-unknown-property': 0,
+    'react/prop-types': 0,
+    'react/react-in-jsx-scope': 1,
+    'react/self-closing-comp': 1,
+    'react/wrap-multilines': 0,
+
+    // React Hooks Plugin
+    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/exhaustive-deps': 'error',
+
+    // sort-imports autofix plugin (sort-imports doesnt autofix)
+    'sort-imports-es6-autofix/sort-imports-es6': [
+      2,
+      {
+        ignoreCase: false,
+        ignoreMemberSort: false,
+        memberSyntaxSortOrder: ['none', 'all', 'single', 'multiple'],
+      },
+    ],
+
+    // Jest Plugin
+    // The following rules are made available via `eslint-plugin-jest`.
+    // 'jest/no-disabled-tests': 1,
+    // 'jest/no-focused-tests': 1,
+    // 'jest/no-identical-title': 1,
+    // 'jest/valid-expect': 1,
+  },
+  overrides: [
+    {
+      files: [
+        '**/*eslint*/*.js',
+        '.eslintrc.js',
+        'babel.config.js',
+        'jest.config.js',
+        '**/flow-typed/**/*.js',
+        './babel.config.js',
+      ],
+      rules: {
+        'flowtype/require-valid-file-annotation': 'off',
+      },
+    },
+    {
+      files: ['**/__tests__/*.js'],
+      rules: {
+        'no-warning-comments': [0],
+      },
+    },
+    {
+      files: ['flow-typed/**/*.js'],
+      rules: {
+        'flowtype/no-weak-types': [0],
+      },
+    },
+    {
+      files: ['*.mdx'],
+      extends: ['plugin:mdx/overrides'],
+      rules: {
+        'flowtype/require-valid-file-annotation': 'off',
+        'prettier/prettier': [
+          2,
+          {
+            parser: 'mdx',
+          },
+        ],
+      },
+    },
+    {
+      files: ['.eslintrc.js'],
+      rules: {
+        quotes: ['warn', 'single'],
+      },
+    },
+    {
+      env: {
+        jest: true,
+        node: true,
+        'jest/globals': true,
+      },
+      files: [
+        '**/__mocks__/**/*.js',
+        '**/__tests__/**/*.js',
+        '**/tests/*.js',
+        'testHelpers.js',
+        'testData.js',
+      ],
+    },
+    {
+      files: ['**/*.js'],
+      rules: {
+        'header/header': [2, 'block', {pattern: combinedOpenSourcePattern}],
+      },
+    },
+    {
+      env: {
+        node: true,
+      },
+      files: [
+        '.eslintrc.js',
+        'babel.config.js',
+        'jest.config.js',
+        'jest.*.config.js',
+        'fbc_js_core/auth/**/*.js',
+        'fbc_js_core/babel_register/*.js',
+        'fbc_js_core/express_middleware/**/*.js',
+        'fbc_js_core/platform_server/**/*.js',
+        'fbc_js_core/sequelize_models/**/*.js',
+        'fbc_js_core/util/yarn.js',
+        'fbc_js_core/webpack_config/**/*.js',
+        'config/*.js',
+        'scripts/**/*.js',
+        'server/**/*.js',
+        'grafana/**/*.js',
+      ],
+      rules: {
+        'no-console': 'off',
+      },
+    },
+  ],
 };
