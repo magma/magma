@@ -299,9 +299,9 @@ imsi64_t amf_app_handle_initial_ue_message(
   bool is_mm_ctx_new = false;
   gnb_ngap_id_key_t gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
   imsi64_t imsi64 = INVALID_IMSI64;
-  guti_m5_t guti = {0};
-  plmn_t plmn = {0};
-  s_tmsi_m5_t s_tmsi = {0};
+  guti_m5_t guti = {};
+  plmn_t plmn = {};
+  s_tmsi_m5_t s_tmsi = {};
   amf_ue_ngap_id_t amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
 
   if (initial_pP->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
@@ -959,7 +959,7 @@ int amf_app_handle_pdu_session_accept(
     smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH;
     smf_msg->msg.pdu_session_estab_accept.nssai.sst = slice_information.sst;
   }
-  buf_len = smf_msg->msg.pdu_session_estab_accept.nssai.len + 2;
+  buf_len += smf_msg->msg.pdu_session_estab_accept.nssai.len + 2;
 
   /* DNN
   -------------------------------------
