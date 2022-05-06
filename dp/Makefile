@@ -66,13 +66,13 @@ dev_orc8r:
 
 
 .PHONY: dev_orc8r_integration_test
-dev_orc8r_integration_test: cleanup_test_db
+dev_orc8r_integration_test: cleanup_test_db _ci_init
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner-orc8r --ignore-not-found=true
 	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only --trigger=manual
 
 .PHONY: dev_integration_test
-dev_integration_test: cleanup_test_db
+dev_integration_test: cleanup_test_db _ci_init
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner --ignore-not-found=true
 	skaffold dev -p integration-tests-no-orc8 --trigger=manual
@@ -117,6 +117,7 @@ _ci_init: _generate_certificates _generate_harness_config
 		deployment.apps/orc8r-fluentd-forward \
 		configmap/orc8r-fluentd-forward-configs \
 		--ignore-not-found
+	helm uninstall domain-proxy orc8r orc8r-lte || true
 	#kubectl apply -f ./tools/deployment/vendor/postgresql.yml
 	#kubectl rollout status --watch --timeout=600s statefulset/postgres-database
 
@@ -143,24 +144,26 @@ _generate_harness_config:
 	--from-file=tools/deployment/vendor/sas.cfg;
 
 .PHONY: _ci_integration_tests_no_orc8r
-_ci_integration_tests_no_orc8r: _install_skaffold_ci cleanup_test_db
+_ci_integration_tests_no_orc8r: _install_skaffold_ci cleanup_test_db _ci_init
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner --ignore-not-found=true
 	skaffold run -p integration-tests-no-orc8
 	kubectl logs test-runner -f | tee /tmp/$@.txt
 	@set -e;\
+	sleep 2;\
 	SUCCESS=$$(kubectl get pods test-runner -o jsonpath='{.status.phase}');\
-	if [[ $$SUCCESS != 'Succeeded' ]]; then exit 1; fi
+	if [[ $$SUCCESS != 'Succeeded' ]]; then kubectl get pods test-runner -o yaml && exit 1; fi
 
 .PHONY: _ci_integration_tests_orc8r
-_ci_integration_tests_orc8r: _install_skaffold_ci cleanup_test_db
+_ci_integration_tests_orc8r: _install_skaffold_ci cleanup_test_db _ci_init
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner-orc8r --ignore-not-found=true
 	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only
 	kubectl logs test-runner-orc8r -f | tee /tmp/$@.txt
 	@set -e;\
+	sleep 2;\
 	SUCCESS=$$(kubectl get pods test-runner-orc8r -o jsonpath='{.status.phase}');\
-	if [[ $$SUCCESS != 'Succeeded' ]]; then exit 1; fi
+	if [[ $$SUCCESS != 'Succeeded' ]]; then kubectl get pods test-runner-orc8r -o yaml && exit 1; fi
 
 .PHONY: _setup_db
 _setup_db: _postgres_db_setup

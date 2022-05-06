@@ -9,7 +9,7 @@ metadata:
 spec:
   restartPolicy: Never
   initContainers:
-    - name:  wait-for-elasticsearch
+    - name: wait-for-elasticsearch
       image: curlimages/curl
       command: ['sh', '-c', "until curl -sf http://elasticsearch:9200/_cluster/health; do echo \"waiting for elasticsearch...\"; sleep 0.2; done"]
   containers:
