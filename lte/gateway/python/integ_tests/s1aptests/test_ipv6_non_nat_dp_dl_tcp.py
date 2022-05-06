@@ -123,6 +123,7 @@ class TestIpv6NonNatDpDlTcp(unittest.TestCase):
             ) as test:
                 test.verify()
             self._s1ap_wrapper.configMtuSize(False)
+
             print(
                 "************************* Running UE detach for UE id ",
                 req.ue_id,
