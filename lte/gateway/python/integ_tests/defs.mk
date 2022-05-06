@@ -126,12 +126,7 @@ s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
 s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
 s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
 s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
-s1aptests/test_attach_detach_setsessionrules_tcp_data.py \
-s1aptests/test_enable_ipv6_iface.py \
-s1aptests/test_ipv6_non_nat_dp_ul_tcp.py \
-s1aptests/test_ipv6_non_nat_dp_dl_tcp.py \
-s1aptests/test_ipv6_non_nat_dp_dl_udp.py \
-s1aptests/test_disable_ipv6_iface.py
+s1aptests/test_attach_detach_setsessionrules_tcp_data.py
 
 EXTENDED_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
 s1aptests/test_attach_restricted_plmn.py \
