@@ -24,6 +24,7 @@ service CbsdManagement {
   rpc DeleteCbsd (DeleteCbsdRequest) returns (DeleteCbsdResponse) {}
   rpc FetchCbsd(FetchCbsdRequest) returns (FetchCbsdResponse) {}
   rpc ListCbsds(ListCbsdRequest) returns (ListCbsdResponse) {}
+  rpc DeregisterCbsd(DeregisterCbsdRequest) returns (DeregisterCbsdResponse) {}
 }
 
 message CreateCbsdRequest {
@@ -67,6 +68,13 @@ message ListCbsdResponse {
   repeated CbsdDetails details = 1;
   int64 total_count = 2;
 }
+
+message DeregisterCbsdRequest {
+  string network_id = 1;
+  int64 id = 2;
+}
+
+message DeregisterCbsdResponse {}
 
 message CbsdData {
   string user_id = 1;
