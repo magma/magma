@@ -14,15 +14,12 @@ limitations under the License.
 """
 
 import argparse
-import datetime
-import glob
 import logging
 import os
 import re
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
-from pprint import pprint
 
 
 def merge_all_report(working_dir, list_xml_report_paths, output_path):
@@ -86,8 +83,6 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--output', help='Output of xml report', default=default_output_path, required=False)
 
     args = parser.parse_args()
-
-    print("=" * 50)
     path_working_dir = Path(args.working_dir)
     paths_all_report_files = filter(
         re.compile(args.input).match,
