@@ -207,12 +207,16 @@ test_c: ## Run all Bazel-ified C/C++ tests
 test_oai: ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS), $(OAI_TESTS))
 
-test_oai_runtime: export GTEST_OUTPUT=xml:${MAGMA_ROOT}/unittest_report/
+test_oai_runtime: export REPORT_FOLDER=${MAGMA_ROOT}/report/
+test_oai_runtime: export UNITTEST_REPORT_FOLDER=${REPORT_FOLDER}/unittest_report/
+test_oai_runtime: export MERGED_REPORT_FOLDER=${REPORT_FOLDER}/merged_report/
+test_oai_runtime: export GTEST_OUTPUT=xml:${UNITTEST_REPORT_FOLDER}
 test_oai_runtime: ## Run all OAI-specific tests with report about the running time
-	mkdir -p ${MAGMA_ROOT}/unittest_report/merged_report/
+	mkdir -p ${UNITTEST_REPORT_FOLDER}
+	mkdir -p ${MERGED_REPORT_FOLDER}
 	-$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS), $(OAI_TESTS))
-	python3 python/scripts/runtime_report.py -i ${MAGMA_ROOT}/unittest_report/[^//]+\\.xml -w ${MAGMA_ROOT}/unittest_report/
-	rm ${MAGMA_ROOT}/unittest_report/*.xml
+	python3 python/scripts/runtime_report.py -i .+\\.xml$$ -w ${UNITTEST_REPORT_FOLDER}
+	rm ${UNITTEST_REPORT_FOLDER}/*.xml
 
 test_sctpd: ## Run all tests for sctpd
 	$(call run_ctest, $(C_BUILD)/sctp, $(C_BUILD)/sctp/src, $(GATEWAY_C_DIR)/sctpd, )

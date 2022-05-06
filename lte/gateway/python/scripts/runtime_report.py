@@ -14,6 +14,7 @@ limitations under the License.
 """
 
 import argparse
+import datetime
 import glob
 import logging
 import os
@@ -24,12 +25,13 @@ from pathlib import Path
 from pprint import pprint
 
 
-def merge_all_report(list_xml_report_paths, output_path):
+def merge_all_report(working_dir, list_xml_report_paths, output_path):
     """ 
     Given the paths of all xml report files, merge them all into a single report files
     Args:
+        working_dir          : path of folder contains all the report files
         list_xml_report_paths: list of all the report xml files
-        output_path : path of output report file in xml format 
+        output_path          : path of output report file in xml format 
     """
     testsuites_node = ET.Element("testsuites")
 
@@ -44,7 +46,7 @@ def merge_all_report(list_xml_report_paths, output_path):
 
     # iterate through files
     for xml_file_path in list_xml_report_paths:
-        print(xml_file_path)
+        xml_file_path = working_dir + "/" + xml_file_path
         test_result = ET.parse(xml_file_path)
         test_suites_data = test_result.getroot()
 
@@ -75,23 +77,26 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     magma_root_path = os.environ.get('MAGMA_ROOT')
-    default_output_path = ((magma_root_path + "/report/merged_report/") if magma_root_path else "/tmp/magma_oai/report/") + "report_all_tests.xml"
+    default_output_path = ((magma_root_path + "/report/merged_report/") if magma_root_path else "/tmp/magma_oai/report/") +\
+        f"report_all_tests.xml"
 
     parser = argparse.ArgumentParser(description="Merging all the .xml unittest reports into a single file")
-    parser.add_argument('-w', '--working_dir', default=magma_root_path,  help='Path of folder contains all report files', required=False)
-    parser.add_argument('-i', '--input', help='<Required> regex for paths of xml files', required=True)
+    parser.add_argument('-w', '--working_dir', default=magma_root_path, help='Path of folder contains all report files', required=False)
+    parser.add_argument('-i', '--input', help='<Required> regex for relative paths of xml files', required=True)
     parser.add_argument('-o', '--output', help='Output of xml report', default=default_output_path, required=False)
 
     args = parser.parse_args()
 
     print("=" * 50)
-    paths_all_report_files = filter(re.compile(args.input).match, 
-            [
-                os.path.join(dir_path, file_name)
-                    for dir_path, dir_names, file_names in os.walk(os.path.expanduser(args.working_dir)) 
-                    for file_name in file_names
-            ]
-        )
+    path_working_dir = Path(args.working_dir)
+    paths_all_report_files = filter(
+        re.compile(args.input).match,
+        [
+            str(file_or_dir.relative_to(path_working_dir))
+            for file_or_dir in path_working_dir.rglob("*")
+            if file_or_dir.is_file()
+        ],
+    )
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
-    merge_all_report(paths_all_report_files, args.output)
+    merge_all_report(args.working_dir, paths_all_report_files, args.output)
     logging.info(f"Final report is generated at: {Path(args.output).resolve()}")
