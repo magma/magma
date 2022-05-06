@@ -365,7 +365,7 @@ class TrafficTest(object):
 
     @staticmethod
     def _iface_up_ipv4(ip):
-        """"Brings up an iface for the given IPv4
+        """Brings up an iface for the given IPv4
 
         Args:
             ip (ipaddress.ip_address): the IPv4 address to use for bringing up
@@ -381,13 +381,10 @@ class TrafficTest(object):
             alias = TrafficTest._alias_counter
         net_alias = "%s:UE%d" % (net_iface, alias)
 
-        print("ip in _iface_up", ip)
-        print("._net_iface in _iface_up", TrafficTest._net_iface_ipv4)
         # Bring up the iface alias
         net_iface_index = TrafficTest._iproute.link_lookup(
             ifname=TrafficTest._net_iface_ipv4,
         )[0]
-        print("net_iface_index", net_iface_index)
         TrafficTest._iproute.addr(
             "add",
             index=net_iface_index,
@@ -405,13 +402,10 @@ class TrafficTest(object):
                 the iface
 
         '''
-        print("ip in _iface_up", ip)
-        print("._net_iface in _iface_up", TrafficTest._net_iface_ipv6)
         # Bring up the iface alias
         net_iface_index = TrafficTest._iproute.link_lookup(
             ifname=TrafficTest._net_iface_ipv6,
         )[0]
-        print("net_iface_index", net_iface_index)
         TrafficTest._iproute.addr(
             'add', index=net_iface_index, address=ip.exploded,
         )
@@ -466,12 +460,16 @@ class TrafficTest(object):
 
             # Flush all the addresses left by previous failed tests
             net_iface = 0
+
+            # For now multiple UEs with mixed ip addresses is not supported
+            # so check the version of the first ip address
+            # TODO: Add support for handling multiple UE with mixed ipv4 and ipv6
+            # addresses
             for instance in self.instances:
               if instance.ip.version == 4:
                  net_iface = TrafficTest._net_iface_ipv4
               else:
                 net_iface = TrafficTest._net_iface_ipv6
-                print("net_iface", net_iface)
               break
             net_iface_index = TrafficTest._iproute.link_lookup(
                 ifname=net_iface,
@@ -483,7 +481,6 @@ class TrafficTest(object):
                 )
 
             # Set up network ifaces and get UL port assignments for DL
-            #if instance.ip.version == 4:
             if net_iface == 'eth2':
               aliases = ()
             for instance in self.instances:
@@ -491,7 +488,6 @@ class TrafficTest(object):
                   aliases += (TrafficTest._iface_up_ipv4(instance.ip),)
                 else :
                   (TrafficTest._iface_up_ipv6(instance.ip),)
-                print("instance.ip",instance.ip)
                 if not instance.is_uplink:
                     # Assign a local port for the downlink UE server
                     instance.port = TrafficTest._get_port()
@@ -501,7 +497,6 @@ class TrafficTest(object):
                 TrafficRequestType.TEST,
                 payload=self.instances,
             )
-            print("Sending traffic req")
             msg.send(self.sc_out)
 
             # Receive SERVER message and update test instances
@@ -510,22 +505,16 @@ class TrafficTest(object):
             r_id = msg.id  # Remote server test identifier
             server_instances = msg.payload  # (TrafficServerInstance, ...)
 
-            print("Rcvd trf rsp", server_instances)
             # Locally keep references to arguments passed into trfgen
             num_instances = len(self.instances)
             args = [None for _ in range(num_instances)]
 
-            print("Before pre-start logic", num_instances)
             # Post-SERVER, pre-START logic
             for i in range(num_instances):
-                print("i\n",i)
                 instance = self.instances[i]
-                print("instance\n",instance)
                 server_instance = server_instances[i]
 
-                print("server_instance\n",server_instance)
                 # Add ip network route
-                print("Add ip nw route\n")
                 net_iface_index = TrafficTest._iproute.link_lookup(
                     ifname=net_iface,
                 )[0]
@@ -533,7 +522,6 @@ class TrafficTest(object):
                     server_instance.ip,
                     8,
                 )
-                print("server_instance_network\n", server_instance_network)
                 TrafficTest._iproute.route(
                     "replace",
                     dst=server_instance_network.exploded,
@@ -541,7 +529,6 @@ class TrafficTest(object):
                     oif=net_iface_index,
                     scope="link",
                 )
-                print("After _iproute.route\n")
 
                 # Add arp table entry
                 if server_instance.ip.version == 4:
@@ -559,7 +546,6 @@ class TrafficTest(object):
                     ),
                   )
 
-                print("After Add arp table entry server_instance=%s, mac=%s\n"%(server_instance.ip.exploded, server_instance.mac))
                 if instance.is_uplink:
                     # Port should be the port of the remote for uplink
                     instance.port = server_instance.port
@@ -576,7 +562,6 @@ class TrafficTest(object):
                 TrafficRequestType.START,
                 identifier=r_id,
             )
-            print("Sent TrafficRequest\n")
             msg.send(self.sc_out)
 
             # Wait for STARTED response
@@ -588,8 +573,6 @@ class TrafficTest(object):
             for i in range(num_instances):
                 instance = self.instances[i]
                 if instance.is_uplink:
-                    #print("Sleeping for 60 secs")
-                    #time.sleep(60)
                     args[i] = self._run_test(
                         test_ids[i],
                         server_instances[i].ip,
@@ -649,7 +632,6 @@ class TrafficTest(object):
             str(port).encode(),
         )
         self._runner(*args)
-        print("args in _run_test", args)
         return args
 
     @staticmethod
@@ -739,6 +721,10 @@ class TrafficTest(object):
         msg.send(self.sc_out)
 
         # Close out network ifaces
+        # For now multiple UEs with mixed ip addresses is not supported
+        # so check the version of the first ip address
+        # TODO: Add support for handling multiple UE with mixed ipv4 and ipv6
+        # addresses
         intf =  TrafficTest._net_iface_ipv4
         for instance in self.instances:
           if instance.ip.version == 6:

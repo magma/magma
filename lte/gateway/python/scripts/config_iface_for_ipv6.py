@@ -16,13 +16,9 @@ Script to trigger pre and post start commands for the Sctpd systemd unit
 """
 
 import argparse
-import os
-import subprocess
 import sys
-import time
 from enum import Enum
 
-from magma.configuration.mconfig_managers import get_mconfig_manager
 from magma.configuration.service_configs import (
     load_override_config,
     load_service_config,
@@ -37,19 +33,23 @@ IPV6_IFACE_CONFIGS = [
     ("pipelined", "uplink_eth_port_name"),
 ]
 
+
 def check_ipv6_iface_config(service, config_name, config_value):
+    """Check if eth3 interface is configured"""
     service_config = load_service_config(service)
     if service_config.get(config_name) == config_value:
         print("IPV6_ENABLED\t%s -> %s" % (service, config_name))
         return return_codes.IPV6_ENABLED
     return return_codes.IPV4_ENABLED
 
+
 def check_ipv6_iface():
+    """Check the interface configured"""
     ipv6_enabled = 0
     for service, config in IPV6_IFACE_CONFIGS:
         if (
-                check_ipv6_iface_config(service, config, "eth3")
-                == return_codes.IPV6_ENABLED
+            check_ipv6_iface_config(service, config, "eth3")
+            == return_codes.IPV6_ENABLED
         ):
             ipv6_enabled += 1
 
@@ -63,7 +63,9 @@ def check_ipv6_iface():
     print("Check returning", res)
     return res
 
+
 def enable_eth3_iface():
+    """Enable eth3 interface as nat_iface"""
     if check_ipv6_iface() == return_codes.IPV6_ENABLED:
         print("eth3 interface is already enabled")
         sys.exit(return_codes.IPV6_ENABLED.value)
@@ -72,7 +74,9 @@ def enable_eth3_iface():
         cfg[config] = "eth3"
         save_override_config(service, cfg)
 
+
 def disable_eth3_iface():
+    """Disable eth3 interface as nat_iface"""
     if check_ipv6_iface() == return_codes.IPV4_ENABLED:
         print("IPv4 is already enabled")
         sys.exit(return_codes.IPV4_ENABLED.value)
@@ -81,12 +85,15 @@ def disable_eth3_iface():
         cfg[config] = "eth2"
         save_override_config(service, cfg)
 
+
 ETH3_IFACE_FUNC_DICT = {
     "enable": enable_eth3_iface,
     "disable": disable_eth3_iface,
 }
 
+
 def main():
+    """Script to add eth3 iface as nat_iface in pipelined.yml"""
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=ETH3_IFACE_FUNC_DICT.keys())
 

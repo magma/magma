@@ -893,7 +893,6 @@ class MagmadUtil(object):
 
     def restart_all_services(self):
         """Restart all magma services on magma_dev VM"""
-        print("Restarting all services")
         self.exec_command(
             "sudo service magma@* stop ; sudo service magma@magmad start",
         )

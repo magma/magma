@@ -383,7 +383,6 @@ class TrafficTestServer(socketserver.StreamRequestHandler):
 
             elif msg is TrafficRequestType.START:
                 self.log.debug('Waiting to store START message')
-                self.log.debug(msg)
                 with self._start_msgs_cond:
                     self._start_msgs |= {identifier}
                     self.log.debug('Stored START message, notifying drivers')
@@ -527,7 +526,6 @@ class TrafficTestDriver(object):
         ip = pyroute2.IPRoute()
         if version == 4:
           intf = 'eth2'
-          print("intf in _get_macs", intf)
         else:
           intf = 'eth3'
         mac = ip.link('get', index=ip.link_lookup(ifname=intf)[0])[0] \
@@ -571,7 +569,7 @@ class TrafficTestDriver(object):
         if 'c' == iperf.role:
             params = ('-c', iperf.server_hostname) + params
             params += ('-b', str(iperf.bandwidth), '-t', str(iperf.duration))
-            # For ipv6 there is delay in configuring ipv6 address on eth2
+            # For ipv6 there is delay in configuring ipv6 address on eth3
             # interface of test vm, so sleep for 5 secs
             if ipaddress.ip_address(iperf.bind_address).version == 6:
                 time.sleep(5)
@@ -586,7 +584,6 @@ class TrafficTestDriver(object):
         self._server.log.debug('Running iperf3 command: %s', ' '.join(params))
         with subprocess.Popen(params, stdout=subprocess.PIPE) as proc:
             result_str = proc.stdout.read().decode('utf-8')
-            print("result_str", result_str)
             results_buffer += [iperf3.TestResult(result_str)]
         self._barrier.wait()
 
@@ -606,11 +603,7 @@ class TrafficTestDriver(object):
                   iperf.bind_address = '3001::2'
                   os.system('sudo /sbin/ip -6 route add 3001::10/64 dev eth3')
                   os.system('sudo /sbin/ip -6 route add %s via 3001::10 dev eth3' %(instance.ip.exploded,))
-                  #os.system(
-                  #    'sudo route -A inet6 add fdee:5:6c::1/64 dev eth2'
-                  #)
                 iperf.port = TrafficTestDriver._get_port()
-                print("instance", instance.ip.exploded)
             else:
                 iperf = iperf3.Client()
                 iperf.bandwidth = 10 ** 7  # 10 Mbps
@@ -625,7 +618,6 @@ class TrafficTestDriver(object):
                 iperf.port = instance.port
                 iperf.protocol = 'udp' if instance.is_udp else 'tcp'
                 iperf.server_hostname = instance.ip.exploded
-                print("iperf.server_hostname", iperf.server_hostname)
             self._iperfs += (iperf,)
 
     @property
@@ -646,6 +638,10 @@ class TrafficTestDriver(object):
         ports = (
             iperf.port if 's' == iperf.role else 0 for iperf in self._iperfs
         )
+        # For now multiple UEs with mixed ip addresses is not supported
+        # so check the version of the first ip address
+        # TODO: Add support for handling multiple UE with mixed ipv4 and ipv6
+        # addresses
         for iperf in self._iperfs:
           ip_version = ipaddress.ip_address(iperf.bind_address).version
           break
@@ -725,7 +721,7 @@ def main():
 
     # The IP address to bind to
     parser.add_argument(
-        'host', default=ipaddress.ip_address('::1'),
+        'host', default=ipaddress.ip_address('127.0.0.1'),
         nargs='?', type=ipaddress.ip_address,
         help='Specify IPv4/6 bind address. Default: 127.0.0.1',
     )
