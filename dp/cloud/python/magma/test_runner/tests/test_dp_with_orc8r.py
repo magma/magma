@@ -117,8 +117,6 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase):
         cbsd = self.when_cbsd_is_fetched(builder.serial_number)
         self.then_cbsd_is(cbsd, builder.build_registered_inactive_data())
 
-        self.delete_cbsd(cbsd_id)
-
     def test_frequency_preferences(self):
         builder = CbsdAPIDataBuilder(). \
             with_serial_number(self.serial_number). \
