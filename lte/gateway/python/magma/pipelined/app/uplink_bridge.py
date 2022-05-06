@@ -256,6 +256,7 @@ class UplinkBridgeController(MagmaController):
             actions = "output:LOCAL"
             self._install_flow(flows.MEDIUM_PRIORITY + 1, match, actions)
 
+        # Commenting the below code as UE running as iperf client does not start
         # forward the node solicite msg to host and UE
         #addr = SOLICITED_NODE_MULTICAST
         #match = "in_port=%s,ipv6,ipv6_dst=%s" % (

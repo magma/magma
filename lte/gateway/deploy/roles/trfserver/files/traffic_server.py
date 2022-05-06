@@ -634,7 +634,6 @@ class TrafficTestDriver(object):
         ips = (
             ipaddress.ip_address(iperf.bind_address) for iperf in self._iperfs
         )
-
         ports = (
             iperf.port if 's' == iperf.role else 0 for iperf in self._iperfs
         )
