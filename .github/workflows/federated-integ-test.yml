@@ -12,22 +12,67 @@ on:  # yamllint disable-line rule:truthy
       - 'v1.*'
     types:
       - completed
-  push:
-    branches:
-      - master
-      - 'v1.*'
-  pull_request:
-    branches:
-      - master
-      - 'v1.*'
-    types: [opened, reopened, synchronize]
 
 jobs:
+  # Build images on ubuntu which is faster than MacOs.
+  docker-build-orc8r:
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build Orc8r docker images
+        run: |
+          cd orc8r/cloud/docker
+          ./build.py --deployment all
+          docker images
+      - name: Export docker images to deploy them
+        run: |
+          mkdir images
+          cd images
+          docker images
+          docker save orc8r_nginx:latest | gzip > fed_orc8r_nginx.tar.gz
+          docker save orc8r_controller:latest  | gzip > fed_orc8r_controller.tar.gz
+          docker save orc8r_fluentd:latest  | gzip > fed_orc8r_fluentd.tar.gz
+          docker save orc8r_test:latest  | gzip > fed_orc8r_test.tar.gz
+      - uses: actions/upload-artifact@v2
+        with:
+          name: docker-build-orc8r-images
+          path: images
+
+  docker-build-feg:
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: pre requisites to build feg
+        run: |
+          cd ${{ env.MAGMA_ROOT }} && mkdir -p .cache/test_certs/ && mkdir -p .cache/feg/
+          cd ${{ env.MAGMA_ROOT }}/.cache/feg/ && touch snowflake
+      - name: Build FEG docker images
+        run: |
+          cd feg/gateway/docker
+          docker-compose build --force-rm --parallel
+          docker images
+      - name: Export docker images to deploy them
+        run: |
+          mkdir images
+          cd images
+          docker save feg_gateway_go:latest  | gzip > fed_feg_gateway_go.tar.gz
+          docker save feg_gateway_python:latest  | gzip > fed_feg_gateway_python.tar.gz
+      - uses: actions/upload-artifact@v2
+        with:
+          name: docker-build-feg-images
+          path: images
+
   federated-integ-test:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
     runs-on: macos-10.15
     env:
       SHA: ${{ github.event.workflow_run.head_commit.id || github.sha }}
+      MAGMA_ROOT: "${{ github.workspace }}"
+      AGW_ROOT: "${{ github.workspace }}/lte/gateway"
     steps:
       - uses: actions/checkout@v2
         with:
@@ -43,33 +88,59 @@ jobs:
         run: |
           pip3 install --upgrade pip
           pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
-          vagrant plugin install vagrant-vbguest vagrant-disksize
-
-      # Docker install
-      - uses: docker-practice/actions-setup-docker@master
-      - name: Check Docker install
+          vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-scp
+      - name: Vagrant Host prerequisites for federated integ test
         run: |
-          set -x
-          docker version
-      - name: Install Docker Compose
-        shell: bash
-        run: |
-          sudo curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-`uname -s`-`uname -m` -o /usr/l→
-          sudo chmod +x /usr/local/bin/docker-compose
-          docker-compose version
-
-
+          cd ${{ env.AGW_ROOT }} && fab open_orc8r_port_in_vagrant
+          cd ${{ env.MAGMA_ROOT }} && mkdir -p .cache/test_certs/ && mkdir -p .cache/feg/ && touch snowflake
+          cd ${{ env.MAGMA_ROOT }}/.cache/feg/ && touch snowflake
       - name: Open up network interfaces for VM
         run: |
           sudo mkdir -p /etc/vbox/
           sudo touch /etc/vbox/networks.conf
           sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
-      - name: Run the integ test
+      - name: Build test vms
+        run: |
+          cd ${{ env.AGW_ROOT }} && fab build_test_vms
+          cd ${{ env.AGW_ROOT }} && vagrant halt magma_test && vagrant halt magma_trfserver
+      - name: build_agw
+        run: |
+          cd lte/gateway/python/integ_tests/federated_tests
+          export MAGMA_DEV_CPUS=3
+          export MAGMA_DEV_MEMORY_MB=9216
+          fab build_agw
+      # Download to local and delete artifacts from remote
+      - uses: actions/download-artifact@v2
+        with:
+          name: docker-build-orc8r-images
+          path: ${{ env.AGW_ROOT }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: docker-build-feg-images
+          path: ${{ env.AGW_ROOT }}
+      - uses: geekyeggo/delete-artifact@v1
+        with:
+          name: |
+            docker-build-orc8r-images |
+            docker-build-feg-images
+      - name: Load Docker images from tar files
+        run: |
+          set -x
+          cd ${{ env.AGW_ROOT }}
+          for IMAGE in `ls -a1 *.gz`
+          do
+            echo Image being loaded $IMAGE
+            gzip -cd $IMAGE > image.tar
+            vagrant ssh magma -c 'cat magma/lte/gateway/image.tar | docker load'
+            rm image.tar
+          done
+          mkdir -p /tmp/fed_integ_test-images
+      - name: Run the federated integ test
         run: |
           cd lte/gateway
           export MAGMA_DEV_CPUS=3
           export MAGMA_DEV_MEMORY_MB=9216
-          fab federated_integ_test:build_all=True
+          fab federated_integ_test:build_all=False,orc8r_on_vagrant=True
       - name: Get test results
         if: always()
         run: |
