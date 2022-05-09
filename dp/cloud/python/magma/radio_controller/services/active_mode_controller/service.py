@@ -13,7 +13,7 @@ limitations under the License.
 
 import logging
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import grpc
 from dp.protos.active_mode_pb2 import (
@@ -26,6 +26,8 @@ from dp.protos.active_mode_pb2 import (
     FrequencyPreferences,
     GetStateRequest,
     Grant,
+    InstallationParams,
+    SasSettings,
     State,
 )
 from dp.protos.active_mode_pb2_grpc import ActiveModeControllerServicer
@@ -41,7 +43,7 @@ from magma.db_service.models import (
 from magma.db_service.session_manager import Session, SessionManager
 from magma.mappings.cbsd_states import cbsd_state_mapping, grant_state_mapping
 from magma.mappings.types import GrantStates
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import contains_eager, joinedload
 
 logger = logging.getLogger(__name__)
@@ -127,12 +129,6 @@ def _list_cbsds(session: Session) -> State:
         DBGrantState.name == GrantStates.IDLE.value,
     ).scalar_subquery()
 
-    not_null = [
-        DBCbsd.fcc_id, DBCbsd.user_id, DBCbsd.number_of_ports,
-        DBCbsd.antenna_gain, DBCbsd.min_power, DBCbsd.max_power,
-    ]
-    query_filter = [field != None for field in not_null] + [DBRequest.id == None]  # noqa: E711
-
     # Selectively load sqlalchemy object relations using a single query to avoid commit races.
     # We want to have CBSD entity "grants" relation only contain grants in a Non-IDLE state.
     # We want to have CBSD entity "requests" relation only contain PENDING requests.
@@ -152,9 +148,43 @@ def _list_cbsds(session: Session) -> State:
             contains_eager(DBCbsd.grants).
             joinedload(DBGrant.state),
         ).
-        filter(*query_filter).
+        filter(_build_filter()).
         populate_existing()
     )
+
+
+def _build_filter():
+    multi_step = [
+        DBCbsd.fcc_id, DBCbsd.user_id, DBCbsd.number_of_ports,
+        DBCbsd.min_power, DBCbsd.max_power, DBCbsd.antenna_gain,
+    ]
+    single_step = [
+        DBCbsd.latitude_deg, DBCbsd.longitude_deg, DBCbsd.height_m,
+        DBCbsd.height_type, DBCbsd.indoor_deployment,
+    ]
+    return and_(
+        DBRequest.id == None,  # noqa: E711
+        or_(
+            or_(
+                DBCbsd.should_deregister == True,
+                DBCbsd.is_deleted == True,
+            ),
+            and_(
+                DBCbsd.single_step_enabled == False,
+                not_null(multi_step),
+            ),
+            and_(
+                DBCbsd.single_step_enabled == True,
+                DBCbsd.cbsd_category == 'a',
+                DBCbsd.indoor_deployment == True,
+                not_null(multi_step + single_step),
+            ),
+        ),
+    )
+
+
+def not_null(fields: List[Any]):
+    return and_(*[field != None for field in fields])  # noqa: E711
 
 
 def _build_state(db_cbsds: List[DBCbsd]) -> State:
@@ -174,12 +204,11 @@ def _build_cbsd(cbsd: DBCbsd) -> Cbsd:
     last_seen = _to_timestamp(cbsd.last_seen)
     eirp_capabilities = _build_eirp_capabilities(cbsd)
     preferences = _build_preferences(cbsd)
+    sas_settings = _build_sas_settings(cbsd)
+    installation_params = _build_installation_params(cbsd)
     db_data = _build_db_data(cbsd)
     return Cbsd(
-        id=cbsd.cbsd_id,
-        user_id=cbsd.user_id,
-        fcc_id=cbsd.fcc_id,
-        serial_number=cbsd.cbsd_serial_number,
+        cbsd_id=cbsd.cbsd_id,
         state=cbsd_state_mapping[cbsd.state.name],
         desired_state=cbsd_state_mapping[cbsd.desired_state.name],
         grants=grants,
@@ -189,6 +218,8 @@ def _build_cbsd(cbsd: DBCbsd) -> Cbsd:
         grant_attempts=cbsd.grant_attempts,
         db_data=db_data,
         preferences=preferences,
+        sas_settings=sas_settings,
+        installation_params=installation_params,
     )
 
 
@@ -214,7 +245,6 @@ def _build_eirp_capabilities(cbsd: DBCbsd) -> EirpCapabilities:
     return EirpCapabilities(
         min_power=cbsd.min_power,
         max_power=cbsd.max_power,
-        antenna_gain=cbsd.antenna_gain,
         number_of_ports=cbsd.number_of_ports,
     )
 
@@ -231,6 +261,28 @@ def _build_db_data(cbsd: DBCbsd) -> DatabaseCbsd:
         id=cbsd.id,
         should_deregister=cbsd.should_deregister,
         is_deleted=cbsd.is_deleted,
+    )
+
+
+def _build_sas_settings(cbsd: DBCbsd) -> SasSettings:
+    return SasSettings(
+        single_step_enabled=cbsd.single_step_enabled,
+        cbsd_category=cbsd.cbsd_category,
+        serial_number=cbsd.cbsd_serial_number,
+        fcc_id=cbsd.fcc_id,
+        user_id=cbsd.user_id,
+    )
+
+
+def _build_installation_params(cbsd: DBCbsd) -> InstallationParams:
+    # TODO do not send installation params to registered cbsd
+    return InstallationParams(
+        latitude_deg=cbsd.latitude_deg,
+        longitude_deg=cbsd.longitude_deg,
+        height_m=cbsd.height_m,
+        height_type=cbsd.height_type,
+        indoor_deployment=cbsd.indoor_deployment,
+        antenna_gain_dbi=cbsd.antenna_gain,
     )
 
 
