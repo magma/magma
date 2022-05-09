@@ -54,6 +54,7 @@ int ngap_amf_encode_pdu(Ngap_NGAP_PDU_t* pdu, uint8_t** buffer,
   DevAssert(buffer != NULL);
   DevAssert(length != NULL);
 
+  OAILOG_FUNC_IN(LOG_NGAP);
   switch (pdu->present) {
     case Ngap_NGAP_PDU_PR_initiatingMessage:
       ret = ngap_amf_encode_initiating(pdu, buffer, length);
@@ -74,7 +75,7 @@ int ngap_amf_encode_pdu(Ngap_NGAP_PDU_t* pdu, uint8_t** buffer,
   }
 
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, pdu);
-  return ret;
+  OAILOG_FUNC_RETURN(LOG_NGAP, ret);
 }
 
 //------------------------------------------------------------------------------
@@ -84,6 +85,7 @@ static inline int ngap_amf_encode_initiating(Ngap_NGAP_PDU_t* pdu,
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
   DevAssert(pdu != NULL);
 
+  OAILOG_FUNC_IN(LOG_NGAP);
   switch (pdu->choice.initiatingMessage.procedureCode) {
     case Ngap_ProcedureCode_id_DownlinkNASTransport:
     case Ngap_ProcedureCode_id_InitialContextSetup:
@@ -99,7 +101,7 @@ static inline int ngap_amf_encode_initiating(Ngap_NGAP_PDU_t* pdu,
                     (int)pdu->choice.initiatingMessage.procedureCode);
       *buffer = NULL;
       *length = 0;
-      return -1;
+      OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
 
   memset(&res, 0, sizeof(res));
@@ -107,7 +109,7 @@ static inline int ngap_amf_encode_initiating(Ngap_NGAP_PDU_t* pdu,
                                  &asn_DEF_Ngap_NGAP_PDU, pdu);
   *buffer = (uint8_t*)res.buffer;
   *length = res.result.encoded;
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
 }
 
 //------------------------------------------------------------------------------
@@ -117,6 +119,7 @@ static inline int ngap_amf_encode_successful_outcome(Ngap_NGAP_PDU_t* pdu,
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
   DevAssert(pdu != NULL);
 
+  OAILOG_FUNC_IN(LOG_NGAP);
   switch (pdu->choice.successfulOutcome.procedureCode) {
     case Ngap_ProcedureCode_id_NGSetup:
       break;
@@ -127,7 +130,7 @@ static inline int ngap_amf_encode_successful_outcome(Ngap_NGAP_PDU_t* pdu,
                    (int)pdu->choice.successfulOutcome.procedureCode);
       *buffer = NULL;
       *length = 0;
-      return -1;
+      OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
 
   memset(&res, 0, sizeof(res));
@@ -136,7 +139,7 @@ static inline int ngap_amf_encode_successful_outcome(Ngap_NGAP_PDU_t* pdu,
 
   *buffer = res.buffer;
   *length = res.result.encoded;
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
 }
 
 //------------------------------------------------------------------------------
@@ -146,6 +149,7 @@ static inline int ngap_amf_encode_unsuccessful_outcome(Ngap_NGAP_PDU_t* pdu,
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
   DevAssert(pdu != NULL);
 
+  OAILOG_FUNC_IN(LOG_NGAP);
   switch (pdu->choice.unsuccessfulOutcome.procedureCode) {
     case Ngap_ProcedureCode_id_NGSetup:
       break;
@@ -157,7 +161,7 @@ static inline int ngap_amf_encode_unsuccessful_outcome(Ngap_NGAP_PDU_t* pdu,
           (int)pdu->choice.unsuccessfulOutcome.procedureCode);
       *buffer = NULL;
       *length = 0;
-      return -1;
+      OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
 
   memset(&res, 0, sizeof(res));
@@ -166,5 +170,5 @@ static inline int ngap_amf_encode_unsuccessful_outcome(Ngap_NGAP_PDU_t* pdu,
 
   *buffer = res.buffer;
   *length = res.result.encoded;
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
 }
