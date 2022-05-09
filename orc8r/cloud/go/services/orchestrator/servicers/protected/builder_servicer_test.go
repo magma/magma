@@ -39,6 +39,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 	expectedDefaultJitteredSyncIntervalGW1 := uint32(71)
 	expectedJitteredSyncIntervalGW1 := uint32(592)
 	expectedJitteredSyncIntervalGW2 := uint32(568)
+	version := models.TierVersion("1.0.0-0")
 
 	t.Run("test shared config", func(t *testing.T) {
 		nw := configurator.Network{ID: "n1", Configs: map[string]interface{}{
@@ -186,12 +187,13 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				FeatureFlags:            map[string]bool{},
 			},
 		}
+
 		tier := configurator.NetworkEntity{
 			Type: orc8r.UpgradeTierEntityType,
 			Key:  "default",
 			Config: &models.Tier{
 				Name:    "default",
-				Version: "1.0.0-0",
+				Version: &version,
 				Images: []*models.TierImage{
 					{Name: swag.String("Image1"), Order: swag.Int64(42)},
 					{Name: swag.String("Image2"), Order: swag.Int64(1)},
@@ -285,7 +287,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			Key:  "default",
 			Config: &models.Tier{
 				Name:    "default",
-				Version: "1.0.0-0",
+				Version: &version,
 				Images: []*models.TierImage{
 					{Name: swag.String("Image1"), Order: swag.Int64(42)},
 					{Name: swag.String("Image2"), Order: swag.Int64(1)},
@@ -372,7 +374,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			Key:  "default",
 			Config: &models.Tier{
 				Name:    "default",
-				Version: "1.0.0-0",
+				Version: &version,
 				Images: []*models.TierImage{
 					{Name: swag.String("Image1"), Order: swag.Int64(42)},
 					{Name: swag.String("Image2"), Order: swag.Int64(1)},
@@ -455,7 +457,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			Key:  "default",
 			Config: &models.Tier{
 				Name:    "default",
-				Version: "1.0.0-0",
+				Version: &version,
 				Images: []*models.TierImage{
 					{Name: swag.String("Image1"), Order: swag.Int64(42)},
 					{Name: swag.String("Image2"), Order: swag.Int64(1)},

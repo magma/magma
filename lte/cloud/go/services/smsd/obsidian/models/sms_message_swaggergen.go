@@ -6,17 +6,18 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 	models1 "magma/lte/cloud/go/services/policydb/obsidian/models"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // SmsMessage sms message
+//
 // swagger:model sms_message
 type SmsMessage struct {
 
@@ -33,6 +34,7 @@ type SmsMessage struct {
 	Imsi models1.SubscriberID `json:"imsi"`
 
 	// message
+	// Example: Hello world!
 	// Required: true
 	// Min Length: 1
 	Message string `json:"message"`
@@ -43,6 +45,7 @@ type SmsMessage struct {
 	Pk string `json:"pk"`
 
 	// source msisdn
+	// Example: 123456
 	// Required: true
 	// Min Length: 1
 	SourceMsisdn string `json:"source_msisdn"`
@@ -110,7 +113,7 @@ func (m *SmsMessage) validateAttemptCount(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinimumInt("attempt_count", "body", int64(m.AttemptCount), 0, false); err != nil {
+	if err := validate.MinimumInt("attempt_count", "body", m.AttemptCount, 0, false); err != nil {
 		return err
 	}
 
@@ -119,9 +122,15 @@ func (m *SmsMessage) validateAttemptCount(formats strfmt.Registry) error {
 
 func (m *SmsMessage) validateImsi(formats strfmt.Registry) error {
 
+	if err := validate.Required("imsi", "body", models1.SubscriberID(m.Imsi)); err != nil {
+		return err
+	}
+
 	if err := m.Imsi.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("imsi")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("imsi")
 		}
 		return err
 	}
@@ -131,11 +140,11 @@ func (m *SmsMessage) validateImsi(formats strfmt.Registry) error {
 
 func (m *SmsMessage) validateMessage(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("message", "body", string(m.Message)); err != nil {
+	if err := validate.RequiredString("message", "body", m.Message); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("message", "body", string(m.Message), 1); err != nil {
+	if err := validate.MinLength("message", "body", m.Message, 1); err != nil {
 		return err
 	}
 
@@ -144,11 +153,11 @@ func (m *SmsMessage) validateMessage(formats strfmt.Registry) error {
 
 func (m *SmsMessage) validatePk(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("pk", "body", string(m.Pk)); err != nil {
+	if err := validate.RequiredString("pk", "body", m.Pk); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("pk", "body", string(m.Pk), 1); err != nil {
+	if err := validate.MinLength("pk", "body", m.Pk, 1); err != nil {
 		return err
 	}
 
@@ -157,11 +166,11 @@ func (m *SmsMessage) validatePk(formats strfmt.Registry) error {
 
 func (m *SmsMessage) validateSourceMsisdn(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("source_msisdn", "body", string(m.SourceMsisdn)); err != nil {
+	if err := validate.RequiredString("source_msisdn", "body", m.SourceMsisdn); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("source_msisdn", "body", string(m.SourceMsisdn), 1); err != nil {
+	if err := validate.MinLength("source_msisdn", "body", m.SourceMsisdn, 1); err != nil {
 		return err
 	}
 
@@ -194,7 +203,7 @@ const (
 
 // prop value enum
 func (m *SmsMessage) validateStatusEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, smsMessageTypeStatusPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, smsMessageTypeStatusPropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -228,12 +237,39 @@ func (m *SmsMessage) validateTimeCreated(formats strfmt.Registry) error {
 }
 
 func (m *SmsMessage) validateTimeLastAttempted(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.TimeLastAttempted) { // not required
 		return nil
 	}
 
 	if err := validate.FormatOf("time_last_attempted", "body", "date-time", m.TimeLastAttempted.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this sms message based on the context it is used
+func (m *SmsMessage) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateImsi(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *SmsMessage) contextValidateImsi(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Imsi.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("imsi")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("imsi")
+		}
 		return err
 	}
 

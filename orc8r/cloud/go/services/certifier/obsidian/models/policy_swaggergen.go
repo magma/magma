@@ -6,11 +6,11 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
@@ -18,6 +18,8 @@ import (
 // Policy The policy specifies whether a user is  either denied or allowed access to read/write a resource.
 // If the resource is of type URI, the path field should be filled in. If the resource is of
 // type NETWORK_ID or TENANT_ID, the resourceIDs field should be filled in.
+//
+// Example: {"action":"WRITE","effect":"ALLOW","path":"**","resourceType":"URI"}
 //
 // swagger:model policy
 type Policy struct {
@@ -86,14 +88,13 @@ const (
 
 // prop value enum
 func (m *Policy) validateActionEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, policyTypeActionPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, policyTypeActionPropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *Policy) validateAction(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Action) { // not required
 		return nil
 	}
@@ -129,14 +130,13 @@ const (
 
 // prop value enum
 func (m *Policy) validateEffectEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, policyTypeEffectPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, policyTypeEffectPropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *Policy) validateEffect(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Effect) { // not required
 		return nil
 	}
@@ -175,14 +175,13 @@ const (
 
 // prop value enum
 func (m *Policy) validateResourceTypeEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, policyTypeResourceTypePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, policyTypeResourceTypePropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *Policy) validateResourceType(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ResourceType) { // not required
 		return nil
 	}
@@ -192,6 +191,11 @@ func (m *Policy) validateResourceType(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this policy based on context it is used
+func (m *Policy) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

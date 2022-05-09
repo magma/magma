@@ -6,16 +6,18 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 	models4 "magma/orc8r/cloud/go/models"
 	models5 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // MutableFederationGateway Federation gateway object with read-only fields omitted
+//
 // swagger:model mutable_federation_gateway
 type MutableFederationGateway struct {
 
@@ -86,9 +88,15 @@ func (m *MutableFederationGateway) Validate(formats strfmt.Registry) error {
 
 func (m *MutableFederationGateway) validateDescription(formats strfmt.Registry) error {
 
+	if err := validate.Required("description", "body", models4.GatewayDescription(m.Description)); err != nil {
+		return err
+	}
+
 	if err := m.Description.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("description")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("description")
 		}
 		return err
 	}
@@ -97,7 +105,6 @@ func (m *MutableFederationGateway) validateDescription(formats strfmt.Registry) 
 }
 
 func (m *MutableFederationGateway) validateDevice(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Device) { // not required
 		return nil
 	}
@@ -106,6 +113,8 @@ func (m *MutableFederationGateway) validateDevice(formats strfmt.Registry) error
 		if err := m.Device.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("device")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("device")
 			}
 			return err
 		}
@@ -115,7 +124,6 @@ func (m *MutableFederationGateway) validateDevice(formats strfmt.Registry) error
 }
 
 func (m *MutableFederationGateway) validateFederation(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Federation) { // not required
 		return nil
 	}
@@ -124,6 +132,8 @@ func (m *MutableFederationGateway) validateFederation(formats strfmt.Registry) e
 		if err := m.Federation.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("federation")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("federation")
 			}
 			return err
 		}
@@ -134,9 +144,15 @@ func (m *MutableFederationGateway) validateFederation(formats strfmt.Registry) e
 
 func (m *MutableFederationGateway) validateID(formats strfmt.Registry) error {
 
+	if err := validate.Required("id", "body", models4.GatewayID(m.ID)); err != nil {
+		return err
+	}
+
 	if err := m.ID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
 		}
 		return err
 	}
@@ -154,6 +170,8 @@ func (m *MutableFederationGateway) validateMagmad(formats strfmt.Registry) error
 		if err := m.Magmad.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("magmad")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("magmad")
 			}
 			return err
 		}
@@ -164,9 +182,15 @@ func (m *MutableFederationGateway) validateMagmad(formats strfmt.Registry) error
 
 func (m *MutableFederationGateway) validateName(formats strfmt.Registry) error {
 
+	if err := validate.Required("name", "body", models4.GatewayName(m.Name)); err != nil {
+		return err
+	}
+
 	if err := m.Name.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("name")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("name")
 		}
 		return err
 	}
@@ -176,9 +200,157 @@ func (m *MutableFederationGateway) validateName(formats strfmt.Registry) error {
 
 func (m *MutableFederationGateway) validateTier(formats strfmt.Registry) error {
 
+	if err := validate.Required("tier", "body", models5.TierID(m.Tier)); err != nil {
+		return err
+	}
+
 	if err := m.Tier.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("tier")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("tier")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this mutable federation gateway based on the context it is used
+func (m *MutableFederationGateway) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateDescription(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateDevice(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateFederation(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateMagmad(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateName(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateTier(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *MutableFederationGateway) contextValidateDescription(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Description.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("description")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("description")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableFederationGateway) contextValidateDevice(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Device != nil {
+		if err := m.Device.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("device")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("device")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *MutableFederationGateway) contextValidateFederation(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Federation != nil {
+		if err := m.Federation.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("federation")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("federation")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *MutableFederationGateway) contextValidateID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ID.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableFederationGateway) contextValidateMagmad(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Magmad != nil {
+		if err := m.Magmad.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("magmad")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("magmad")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *MutableFederationGateway) contextValidateName(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Name.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("name")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("name")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableFederationGateway) contextValidateTier(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Tier.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("tier")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("tier")
 		}
 		return err
 	}

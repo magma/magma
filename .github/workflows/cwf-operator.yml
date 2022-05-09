@@ -41,9 +41,9 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         with:
-          go-version: '1.15.7'
+          go-version: '1.18'
       - name: Run golang_before_install.sh script
         run: ./.github/workflows/scripts/golang_before_install.sh
       - name: Run go mod download with retry

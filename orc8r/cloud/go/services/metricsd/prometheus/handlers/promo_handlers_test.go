@@ -209,7 +209,7 @@ func TestGetPrometheusQueryRangeHandler(t *testing.T) {
 		{
 			Name:          "invalid step",
 			RequestURL:    "http://url.com?query=up&start=0&step=abc",
-			ExpectedError: `code=400, message=unable to parse step parameter: time: invalid duration abc`,
+			ExpectedError: `code=400, message=unable to parse step parameter: time: invalid duration "abc"`,
 		},
 		{
 			Name:              "prometheus error",

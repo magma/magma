@@ -6,33 +6,40 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // RadiusConfig built-in radius server configuration
+//
 // swagger:model radiusConfig
 type RadiusConfig struct {
 
 	// d a e addr
+	// Example: 127.0.0.1:3799
 	// Pattern: [0-9a-f\:\.]*(:[0-9]{1,5})?
 	DAEAddr string `json:"DAE_addr,omitempty"`
 
 	// acct addr
+	// Example: 127.0.0.1:1813
 	// Pattern: [0-9a-f\:\.]*(:[0-9]{1,5})?
 	AcctAddr string `json:"acct_addr,omitempty"`
 
 	// auth addr
+	// Example: 127.0.0.1:1812
 	// Pattern: [0-9a-f\:\.]*(:[0-9]{1,5})?
 	AuthAddr string `json:"auth_addr,omitempty"`
 
 	// network
+	// Example: udp
 	Network string `json:"network,omitempty"`
 
 	// secret
+	// Example: MTIzNDU2
 	// Format: byte
 	Secret strfmt.Base64 `json:"secret,omitempty"`
 }
@@ -53,10 +60,6 @@ func (m *RadiusConfig) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateSecret(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
@@ -64,12 +67,11 @@ func (m *RadiusConfig) Validate(formats strfmt.Registry) error {
 }
 
 func (m *RadiusConfig) validateDAEAddr(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.DAEAddr) { // not required
 		return nil
 	}
 
-	if err := validate.Pattern("DAE_addr", "body", string(m.DAEAddr), `[0-9a-f\:\.]*(:[0-9]{1,5})?`); err != nil {
+	if err := validate.Pattern("DAE_addr", "body", m.DAEAddr, `[0-9a-f\:\.]*(:[0-9]{1,5})?`); err != nil {
 		return err
 	}
 
@@ -77,12 +79,11 @@ func (m *RadiusConfig) validateDAEAddr(formats strfmt.Registry) error {
 }
 
 func (m *RadiusConfig) validateAcctAddr(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.AcctAddr) { // not required
 		return nil
 	}
 
-	if err := validate.Pattern("acct_addr", "body", string(m.AcctAddr), `[0-9a-f\:\.]*(:[0-9]{1,5})?`); err != nil {
+	if err := validate.Pattern("acct_addr", "body", m.AcctAddr, `[0-9a-f\:\.]*(:[0-9]{1,5})?`); err != nil {
 		return err
 	}
 
@@ -90,26 +91,19 @@ func (m *RadiusConfig) validateAcctAddr(formats strfmt.Registry) error {
 }
 
 func (m *RadiusConfig) validateAuthAddr(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.AuthAddr) { // not required
 		return nil
 	}
 
-	if err := validate.Pattern("auth_addr", "body", string(m.AuthAddr), `[0-9a-f\:\.]*(:[0-9]{1,5})?`); err != nil {
+	if err := validate.Pattern("auth_addr", "body", m.AuthAddr, `[0-9a-f\:\.]*(:[0-9]{1,5})?`); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (m *RadiusConfig) validateSecret(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Secret) { // not required
-		return nil
-	}
-
-	// Format "byte" (base64 string) is already validated when unmarshalled
-
+// ContextValidate validates this radius config based on context it is used
+func (m *RadiusConfig) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

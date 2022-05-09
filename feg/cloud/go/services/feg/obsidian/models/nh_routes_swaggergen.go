@@ -6,14 +6,22 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
+
+	"github.com/go-openapi/strfmt"
 )
 
 // NhRoutes neutral host PLMN ID to serving FeG network routes
+//
 // swagger:model nh_routes
 type NhRoutes map[string]string
 
 // Validate validates this nh routes
 func (m NhRoutes) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this nh routes based on context it is used
+func (m NhRoutes) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

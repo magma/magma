@@ -6,55 +6,65 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // EnodebConfiguration Configuration for an enodeB. Unfilled fields will be inherited from LTE network and gateway configuration.
+//
 // swagger:model enodeb_configuration
 type EnodebConfiguration struct {
 
 	// bandwidth mhz
+	// Example: 20
 	// Enum: [3 5 10 15 20]
 	BandwidthMhz uint32 `json:"bandwidth_mhz,omitempty"`
 
 	// cell id
+	// Example: 138777000
 	// Required: true
 	// Maximum: 2.68435455e+08
 	CellID *uint32 `json:"cell_id"`
 
 	// device class
+	// Example: Baicells ID TDD/FDD
 	// Required: true
 	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells Neutrino 224 ID FDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE FreedomFi One]
 	DeviceClass string `json:"device_class"`
 
 	// earfcndl
+	// Example: 44590
 	Earfcndl uint32 `json:"earfcndl,omitempty"`
 
 	// pci
+	// Example: 260
 	// Maximum: 503
 	// Minimum: > 0
 	Pci uint32 `json:"pci,omitempty"`
 
 	// special subframe pattern
+	// Example: 7
 	// Maximum: 9
 	SpecialSubframePattern uint32 `json:"special_subframe_pattern,omitempty"`
 
 	// subframe assignment
+	// Example: 2
 	// Maximum: 6
 	SubframeAssignment uint32 `json:"subframe_assignment,omitempty"`
 
 	// tac
+	// Example: 1
 	// Maximum: 65535
 	// Minimum: 1
 	Tac uint32 `json:"tac,omitempty"`
 
 	// transmit enabled
+	// Example: true
 	// Required: true
 	TransmitEnabled *bool `json:"transmit_enabled"`
 }
@@ -115,14 +125,13 @@ func init() {
 
 // prop value enum
 func (m *EnodebConfiguration) validateBandwidthMhzEnum(path, location string, value uint32) error {
-	if err := validate.Enum(path, location, value, enodebConfigurationTypeBandwidthMhzPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, enodebConfigurationTypeBandwidthMhzPropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *EnodebConfiguration) validateBandwidthMhz(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.BandwidthMhz) { // not required
 		return nil
 	}
@@ -141,7 +150,7 @@ func (m *EnodebConfiguration) validateCellID(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MaximumInt("cell_id", "body", int64(*m.CellID), 2.68435455e+08, false); err != nil {
+	if err := validate.MaximumUint("cell_id", "body", uint64(*m.CellID), 2.68435455e+08, false); err != nil {
 		return err
 	}
 
@@ -162,11 +171,11 @@ func init() {
 
 const (
 
-	// EnodebConfigurationDeviceClassBaicellsNova233G2ODFDD captures enum value "Baicells Nova-233 G2 OD FDD"
-	EnodebConfigurationDeviceClassBaicellsNova233G2ODFDD string = "Baicells Nova-233 G2 OD FDD"
+	// EnodebConfigurationDeviceClassBaicellsNovaDash233G2ODFDD captures enum value "Baicells Nova-233 G2 OD FDD"
+	EnodebConfigurationDeviceClassBaicellsNovaDash233G2ODFDD string = "Baicells Nova-233 G2 OD FDD"
 
-	// EnodebConfigurationDeviceClassBaicellsNova243ODTDD captures enum value "Baicells Nova-243 OD TDD"
-	EnodebConfigurationDeviceClassBaicellsNova243ODTDD string = "Baicells Nova-243 OD TDD"
+	// EnodebConfigurationDeviceClassBaicellsNovaDash243ODTDD captures enum value "Baicells Nova-243 OD TDD"
+	EnodebConfigurationDeviceClassBaicellsNovaDash243ODTDD string = "Baicells Nova-243 OD TDD"
 
 	// EnodebConfigurationDeviceClassBaicellsNeutrino224IDFDD captures enum value "Baicells Neutrino 224 ID FDD"
 	EnodebConfigurationDeviceClassBaicellsNeutrino224IDFDD string = "Baicells Neutrino 224 ID FDD"
@@ -174,8 +183,8 @@ const (
 	// EnodebConfigurationDeviceClassBaicellsIDTDDFDD captures enum value "Baicells ID TDD/FDD"
 	EnodebConfigurationDeviceClassBaicellsIDTDDFDD string = "Baicells ID TDD/FDD"
 
-	// EnodebConfigurationDeviceClassNuRANCaviumOCLTE captures enum value "NuRAN Cavium OC-LTE"
-	EnodebConfigurationDeviceClassNuRANCaviumOCLTE string = "NuRAN Cavium OC-LTE"
+	// EnodebConfigurationDeviceClassNuRANCaviumOCDashLTE captures enum value "NuRAN Cavium OC-LTE"
+	EnodebConfigurationDeviceClassNuRANCaviumOCDashLTE string = "NuRAN Cavium OC-LTE"
 
 	// EnodebConfigurationDeviceClassFreedomFiOne captures enum value "FreedomFi One"
 	EnodebConfigurationDeviceClassFreedomFiOne string = "FreedomFi One"
@@ -183,7 +192,7 @@ const (
 
 // prop value enum
 func (m *EnodebConfiguration) validateDeviceClassEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, enodebConfigurationTypeDeviceClassPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, enodebConfigurationTypeDeviceClassPropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -191,7 +200,7 @@ func (m *EnodebConfiguration) validateDeviceClassEnum(path, location string, val
 
 func (m *EnodebConfiguration) validateDeviceClass(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("device_class", "body", string(m.DeviceClass)); err != nil {
+	if err := validate.RequiredString("device_class", "body", m.DeviceClass); err != nil {
 		return err
 	}
 
@@ -204,16 +213,15 @@ func (m *EnodebConfiguration) validateDeviceClass(formats strfmt.Registry) error
 }
 
 func (m *EnodebConfiguration) validatePci(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Pci) { // not required
 		return nil
 	}
 
-	if err := validate.MinimumInt("pci", "body", int64(m.Pci), 0, true); err != nil {
+	if err := validate.MinimumUint("pci", "body", uint64(m.Pci), 0, true); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("pci", "body", int64(m.Pci), 503, false); err != nil {
+	if err := validate.MaximumUint("pci", "body", uint64(m.Pci), 503, false); err != nil {
 		return err
 	}
 
@@ -221,12 +229,11 @@ func (m *EnodebConfiguration) validatePci(formats strfmt.Registry) error {
 }
 
 func (m *EnodebConfiguration) validateSpecialSubframePattern(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.SpecialSubframePattern) { // not required
 		return nil
 	}
 
-	if err := validate.MaximumInt("special_subframe_pattern", "body", int64(m.SpecialSubframePattern), 9, false); err != nil {
+	if err := validate.MaximumUint("special_subframe_pattern", "body", uint64(m.SpecialSubframePattern), 9, false); err != nil {
 		return err
 	}
 
@@ -234,12 +241,11 @@ func (m *EnodebConfiguration) validateSpecialSubframePattern(formats strfmt.Regi
 }
 
 func (m *EnodebConfiguration) validateSubframeAssignment(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.SubframeAssignment) { // not required
 		return nil
 	}
 
-	if err := validate.MaximumInt("subframe_assignment", "body", int64(m.SubframeAssignment), 6, false); err != nil {
+	if err := validate.MaximumUint("subframe_assignment", "body", uint64(m.SubframeAssignment), 6, false); err != nil {
 		return err
 	}
 
@@ -247,16 +253,15 @@ func (m *EnodebConfiguration) validateSubframeAssignment(formats strfmt.Registry
 }
 
 func (m *EnodebConfiguration) validateTac(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Tac) { // not required
 		return nil
 	}
 
-	if err := validate.MinimumInt("tac", "body", int64(m.Tac), 1, false); err != nil {
+	if err := validate.MinimumUint("tac", "body", uint64(m.Tac), 1, false); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("tac", "body", int64(m.Tac), 65535, false); err != nil {
+	if err := validate.MaximumUint("tac", "body", uint64(m.Tac), 65535, false); err != nil {
 		return err
 	}
 
@@ -269,6 +274,11 @@ func (m *EnodebConfiguration) validateTransmitEnabled(formats strfmt.Registry) e
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this enodeb configuration based on context it is used
+func (m *EnodebConfiguration) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
