@@ -167,6 +167,7 @@ export default function (props: Props) {
         return;
       }
       const newOrg = {
+        id: organization.id,
         name: organization.name,
         networkIDs: shouldEnableAllNetworks
           ? allNetworks

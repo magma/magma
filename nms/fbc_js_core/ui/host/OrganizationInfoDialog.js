@@ -59,7 +59,7 @@ export default function (props: DialogProps) {
       )}
       <AltFormField label={'Organization Name'}>
         <OutlinedInput
-          disabled={props.organization.id}
+          disabled={!!props.organization.id}
           data-testid="name"
           placeholder="Organization Name"
           fullWidth={true}
