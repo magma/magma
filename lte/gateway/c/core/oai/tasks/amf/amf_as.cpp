@@ -1009,7 +1009,7 @@ static int amf_as_security_req(const amf_as_security_t* msg,
         } else {
           OAILOG_ERROR(LOG_AMF_APP, "UE not found : " AMF_UE_NGAP_ID_FMT "\n",
                        as_msg->ue_id);
-          OAILOG_FUNC_RETURN(LOG_AMF_APP, -2);
+          OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
         }
         nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
             .nas_key_set_identifier.tsc = 0;

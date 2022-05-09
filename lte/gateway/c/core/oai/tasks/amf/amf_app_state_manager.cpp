@@ -71,7 +71,7 @@ map_uint64_ue_context_t* get_amf_ue_state() {
 
 void delete_amf_ue_state(imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  OAILOG_DEBUG(LOG_MME_APP, "Delete AMF ue state, %lu", imsi64);
+  OAILOG_DEBUG(LOG_AMF_APP, "Delete AMF ue state, %lu", imsi64);
 #if !MME_UNIT_TEST
   /* Data store is Redis db. In this case entry is removed from Redis db */
   auto imsi_str = AmfNasStateManager::getInstance().get_imsi_str(imsi64);
@@ -152,7 +152,7 @@ void AmfNasStateManager::create_state() {
 void AmfNasStateManager::free_state() {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (!state_cache_p) {
-    OAILOG_DEBUG(LOG_AMF_APP, "state_cache_p is NULL");
+    OAILOG_ERROR(LOG_AMF_APP, "state_cache_p is NULL");
     OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
   state_ue_map.umap.clear();
@@ -320,7 +320,7 @@ status_code_e AmfNasStateManager::read_state_from_db() {
     // Reads from the AmfClientServicer DataStore Map(map_table_key_proto_str)
     if (AMFClientServicer::getInstance().map_table_key_proto_str.get(
             table_key, &proto_str) != magma::MAP_OK) {
-      OAILOG_DEBUG(LOG_MME_APP, "Failed to read proto from db \n");
+      OAILOG_DEBUG(LOG_AMF_APP, "Failed to read proto from db \n");
       OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
     }
     // Deserialization Step

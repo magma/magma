@@ -313,7 +313,7 @@ void AmfNasStateConverter::proto_to_ue_m5gmm_context(
 void AmfNasStateConverter::tai_to_proto(const tai_t* state_tai,
                                         magma::lte::oai::Tai* tai_proto) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  OAILOG_DEBUG(LOG_MME_APP, "State PLMN " PLMN_FMT "to proto",
+  OAILOG_DEBUG(LOG_AMF_APP, "State PLMN " PLMN_FMT "to proto",
                PLMN_ARG(&state_tai->plmn));
   char plmn_array[PLMN_BYTES] = {0};
   plmn_array[0] = static_cast<char>(state_tai->plmn.mcc_digit1 + ASCII_ZERO);
@@ -343,7 +343,7 @@ void AmfNasStateConverter::proto_to_tai(const magma::lte::oai::Tai& tai_proto,
   state_tai->plmn.mnc_digit3 =
       static_cast<int>(tai_proto.mcc_mnc()[5]) - ASCII_ZERO;
   state_tai->tac = tai_proto.tac();
-  OAILOG_DEBUG(LOG_MME_APP, "State PLMN " PLMN_FMT "from proto",
+  OAILOG_DEBUG(LOG_AMF_APP, "State PLMN " PLMN_FMT "from proto",
                PLMN_ARG(&state_tai->plmn));
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
