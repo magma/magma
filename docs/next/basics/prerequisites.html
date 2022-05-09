@@ -73,10 +73,10 @@ To develop on a <strong>Linux OS</strong>, the package manager (brew for macOS) 
 <li><a href="https://www.virtualbox.org/">VirtualBox</a></li>
 <li><a href="https://vagrantup.com">Vagrant</a></li>
 </ol>
-<pre><code class="hljs css language-bash">brew install go@1.13 pyenv
+<pre><code class="hljs css language-bash">brew install go@1.18 pyenv
 <span class="hljs-comment"># <span class="hljs-doctag">NOTE:</span> this assumes you're using zsh.</span>
 <span class="hljs-comment"># See the above pyenv install instructions if using alternative shells.</span>
-<span class="hljs-built_in">echo</span> <span class="hljs-string">'export PATH="/usr/local/opt/go@1.13/bin:$PATH"'</span> &gt;&gt; ~/.zshrc
+<span class="hljs-built_in">echo</span> <span class="hljs-string">'export PATH="/usr/local/opt/go@1.18/bin:$PATH"'</span> &gt;&gt; ~/.zshrc
 <span class="hljs-built_in">echo</span> <span class="hljs-string">'eval "$(pyenv init --path)"'</span> &gt;&gt; ~/.zprofile
 <span class="hljs-built_in">echo</span> <span class="hljs-string">'eval "$(pyenv init -)"'</span> &gt;&gt; ~/.zshrc
 <span class="hljs-built_in">exec</span> <span class="hljs-variable">$SHELL</span>
@@ -102,13 +102,13 @@ Advanced). If you are running into build/test failures with Go that report
 <li><a href="https://www.virtualbox.org/wiki/Linux_Downloads">VirtualBox</a></li>
 <li><a href="https://www.vagrantup.com/downloads">Vagrant</a></li>
 </ol></li>
-<li><p>Install golang version 13.</p>
+<li><p>Install golang version 18.</p>
 <ol>
 <li><p>Download the tar file.</p>
-<pre><code class="hljs css language-bash">wget https://golang.org/dl/go1.13.15.linux-amd64.tar.gz
+<pre><code class="hljs css language-bash">wget https://golang.org/dl/go1.18.linux-amd64.tar.gz
 </code></pre></li>
 <li><p>Extract the archive you downloaded into <code>/usr/local</code>, creating a Go tree in <code>/usr/local/go</code>.</p>
-<pre><code class="hljs css language-bash">sudo rm -rf /usr/<span class="hljs-built_in">local</span>/go &amp;&amp; sudo tar -C /usr/<span class="hljs-built_in">local</span> -xzf go1.13.15.linux-amd64.tar.gz
+<pre><code class="hljs css language-bash">sudo rm -rf /usr/<span class="hljs-built_in">local</span>/go &amp;&amp; sudo tar -C /usr/<span class="hljs-built_in">local</span> -xzf go1.18.linux-amd64.tar.gz
 </code></pre></li>
 <li><p>Add <code>/usr/local/go/bin</code> to the PATH environment variable.</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">export</span> PATH=<span class="hljs-variable">$PATH</span>:/usr/<span class="hljs-built_in">local</span>/go/bin
@@ -117,7 +117,7 @@ Advanced). If you are running into build/test failures with Go that report
 <pre><code class="hljs css language-bash">go version
 </code></pre>
 <p>You should expect something like this</p>
-<pre><code class="hljs css language-bash">go version go1.13.15 linux/amd64
+<pre><code class="hljs css language-bash">go version go1.18 linux/amd64
 </code></pre></li>
 </ol></li>
 <li><p>Install <code>pyenv</code>.</p>
