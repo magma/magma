@@ -35,6 +35,7 @@ name: td-agent-bit
 args:
   - /bin/bash
   - -c
-  - /usr/local/bin/generate_fluent_bit_config.py && /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf
+  - mkdir -p /var/opt/magma/fluent-bit &&
+    /usr/local/bin/generate_fluent_bit_config.py && /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf
 image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
 {{- end -}}
