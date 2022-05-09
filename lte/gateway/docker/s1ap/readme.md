@@ -24,12 +24,17 @@ s1ap/publish.sh yourregistry.com/yourrepo/
 
 # Run s1aptester
 
-1. [Deploy a containerized AGW](https://github.com/magma/magma/tree/master/lte/gateway/docker), move into AGW docker directory `/var/opt/magma/docker` on the host and run the s1aptester start script `s1ap/start-s1ap.sh`. Make sure that your `.env` file points to your registry with your AGW and s1aptester images.
+1. [Deploy a containerized AGW](https://github.com/magma/magma/tree/master/lte/gateway/docker), move into AGW docker directory `/var/opt/magma/docker` on the host and run the s1aptester start script `s1ap/start-s1ap.sh`. Make sure that your `DOCKER_REGISTRY` variable in the `.env` file points to your registry with your AGW and s1aptester images. Leave blank if your images exist in the local docker registry.
+
+If you're not using the standard eth0 and eth1 interface names, change the values of the `SGI_INTERFACE` and `S1_INTERFACE` variables in `start-s1ap.sh` and `stop-s1ap.sh`.
+
 ```
 cd /var/opt/magma/docker
 
+# Remote registry
 grep DOCKER_REGISTRY .env
 DOCKER_REGISTRY=public.ecr.aws/yourrepo/
+
 s1ap/start-s1ap.sh
 ```
 

@@ -9,17 +9,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+SGI_INTERFACE=eth1
+S1_INTERFACE=eth0
 # Create docker networks
 docker network inspect c_s1&>/dev/null || {
 docker network create --driver=bridge a_bridge && \
-docker network create --driver=bridge --subnet=192.168.60.0/24 --gateway=192.168.60.142 b_sgi && \
-docker network create --driver=bridge --subnet=192.168.128.0/23 --gateway=192.168.129.1 c_s1 && \
-DOCKER_BRIDGE_ID=$(docker network inspect -f "{{ slice .Id 0 12 }}" c_s1) && \
-ip r add 192.168.128.11/32 dev br-$DOCKER_BRIDGE_ID && \
-ip r add 192.168.129.42/32 dev br-$DOCKER_BRIDGE_ID
+docker network create --driver=bridge --subnet=192.168.60.0/24 --gateway=192.168.60.142 --opt com.docker.network.bridge.name=br-sgi b_sgi && \
+docker network create --driver=bridge --subnet=192.168.128.0/23 --gateway=192.168.129.1 --opt com.docker.network.bridge.name=br-s1 c_s1 && \
+#S1_DOCKER_BRIDGE_ID=`docker network inspect -f "{{ slice .Id 0 12 }}" c_s1` && \
+ip r add 192.168.128.11/32 dev br-s1 && \
+ip r add 192.168.129.42/32 dev br-s1
 }
-docker inspect s1aptester&>/dev/null && docker rm s1aptester
+docker inspect s1aptester&>/dev/null && \
+docker rm s1aptester
+
+for i in $(grep $SGI_INTERFACE -rl /etc/magma); do sed -i s/$SGI_INTERFACE/br-sgi/ $i; done && \
+for i in $(grep $S1_INTERFACE -rl /etc/magma); do sed -i s/$S1_INTERFACE/br-s1/ $i; done
 
 # Temporarily create password for ubuntu user
 echo "ubuntu:ubuntu" | chpasswd
@@ -34,3 +39,6 @@ docker attach s1aptester
 sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 systemctl reload ssh
 passwd -d ubuntu
+
+for i in $(grep br-sgi -rl /etc/magma); do sed -i s/br-sgi/$SGI_INTERFACE/ $i; done && \
+for i in $(grep br-s1 -rl /etc/magma); do sed -i s/br-s1/$S1_INTERFACE/ $i; done

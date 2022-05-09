@@ -79,7 +79,7 @@ EOF
   fi
 
   alias python=python3
-  pip3 install ansible fire jsonpickle protobuf
+  pip3 install ansible fire jsonpickle protobuf redis
 
   rm -rf /opt/magma/
   git clone "${GIT_URL}" /opt/magma
