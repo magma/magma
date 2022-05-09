@@ -101,7 +101,7 @@ document.
   Follow the Magma Github contribution process from the
   [Magma Contributing Conventions](https://github.com/magma/magma/wiki/Contributing-Code-Conventions).
 
-- The design doc should follow [the template](https://github.com/magma/magma/issues/new?assignees=&labels=type%3A+proposal&template=proposal.md).
+- The design doc should follow [the template](https://github.com/magma/magma/issues/new?assignees=&labels=type%3A+proposal&template=proposal.md). 
 
 - The design doc should address any specific concerns raised during the
   initial issue discussion.
