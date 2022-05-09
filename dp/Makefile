@@ -144,7 +144,7 @@ _generate_harness_config:
 	--from-file=tools/deployment/vendor/sas.cfg;
 
 .PHONY: _ci_integration_tests_no_orc8r
-_ci_integration_tests_no_orc8r: _install_skaffold_ci cleanup_test_db _ci_init
+_ci_integration_tests_no_orc8r: _install_skaffold_ci
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner --ignore-not-found=true
 	skaffold run -p integration-tests-no-orc8
@@ -155,7 +155,7 @@ _ci_integration_tests_no_orc8r: _install_skaffold_ci cleanup_test_db _ci_init
 	if [[ $$SUCCESS != 'Succeeded' ]]; then kubectl get pods test-runner -o yaml && exit 1; fi
 
 .PHONY: _ci_integration_tests_orc8r
-_ci_integration_tests_orc8r: _install_skaffold_ci cleanup_test_db _ci_init
+_ci_integration_tests_orc8r: _install_skaffold_ci
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner-orc8r --ignore-not-found=true
 	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only
