@@ -37,7 +37,7 @@ import SubscriberContext from '../../components/context/SubscriberContext';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import TypedSelect from '../../../fbc_js_core/ui/components/TypedSelect';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {AltFormField, PasswordInput} from '../../components/FormField';
 import {CoreNetworkTypes} from './SubscriberUtils';

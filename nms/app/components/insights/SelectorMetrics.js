@@ -22,7 +22,7 @@ import Metrics from '../insights/Metrics';
 import React from 'react';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 import {useCallback, useState} from 'react';
 import {useSnackbar} from '../../../fbc_js_core/ui/hooks';

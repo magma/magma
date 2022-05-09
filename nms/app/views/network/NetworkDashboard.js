@@ -26,7 +26,7 @@ import NetworkKPI from './NetworkKPIs';
 import NetworkRanConfig from './NetworkRanConfig';
 import React from 'react';
 import TopBar from '../../components/TopBar';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {
   Navigate,

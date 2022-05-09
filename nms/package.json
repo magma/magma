@@ -56,7 +56,6 @@
     "mysql2": "^1.5.3",
     "nearley": "^2.19.0",
     "notistack": "^1.0.3",
-    "nullthrows": "^1.1.1",
     "openid-client": "2.4.5",
     "passport": "^0.4.0",
     "passport-http": "^0.3.0",

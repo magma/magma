@@ -24,7 +24,7 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 import {
   DEFAULT_PAGE_SIZE,

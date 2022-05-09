@@ -26,7 +26,7 @@ import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {EnodeConfigFdd} from './EnodebDetailConfigFdd';
 import {EnodeConfigTdd} from './EnodebDetailConfigTdd';
