@@ -49,7 +49,6 @@ services:
       MYSQL_DB: nms
       MYSQL_USER: nms
       MYSQL_PASS: password
-      MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN:-}
       MYSQL_DIALECT: postgres
       # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
       PUPPETEER_SKIP_DOWNLOAD: "true"

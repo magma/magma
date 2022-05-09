@@ -28,7 +28,6 @@ import path from 'path';
 import staticDist from '../../fbc_js_core/webpack_config/staticDist';
 import userMiddleware from '../../fbc_js_core/auth/express';
 import {AccessRoles} from '../../fbc_js_core/auth/roles';
-import {MAPBOX_ACCESS_TOKEN} from '../../fbc_js_core/platform_server/config';
 
 import {TABS} from '../../fbc_js_core/types/tabs';
 import {access} from '../../fbc_js_core/auth/access';
@@ -67,7 +66,6 @@ const handleReact = tab =>
       staticDist,
       configJson: JSON.stringify({
         appData,
-        MAPBOX_ACCESS_TOKEN: req.user && MAPBOX_ACCESS_TOKEN,
       }),
     });
   };

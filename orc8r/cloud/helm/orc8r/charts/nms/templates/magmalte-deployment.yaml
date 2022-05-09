@@ -89,8 +89,6 @@ spec:
               value: {{ .Values.magmalte.env.host | quote }}
             - name: PORT
               value: {{ .Values.magmalte.env.port | quote }}
-            - name: MAPBOX_ACCESS_TOKEN
-              value: {{ .Values.magmalte.env.mapbox_access_token | quote }}
             - name: MYSQL_DB
               value: {{ .Values.magmalte.env.mysql_db | quote }}
             - name: MYSQL_HOST

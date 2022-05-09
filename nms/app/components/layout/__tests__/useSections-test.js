@@ -24,8 +24,6 @@ import {act, renderHook} from '@testing-library/react-hooks';
 
 const enqueueSnackbarMock = jest.fn();
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('mapbox-gl', () => {});
-jest.mock('../../insights/map/MapView', () => {});
 jest
   .spyOn(
     require('../../../../fbc_js_core/ui/hooks/useSnackbar'),
@@ -62,36 +60,35 @@ type TestCase = {
 
 const testCases: {[string]: TestCase} = {
   lte: {
-    default: 'map',
+    default: 'dashboard',
     sections: [
-      'map',
-      'metrics',
+      'dashboard',
+      'equipment',
+      'network',
       'subscribers',
-      'gateways',
-      'enodebs',
+      'traffic',
+      'tracing',
+      'metrics',
       'configure',
-      'alerts',
     ],
   },
   feg_lte: {
-    default: 'map',
+    default: 'dashboard',
     sections: [
-      'map',
-      'metrics',
+      'dashboard',
+      'equipment',
+      'network',
       'subscribers',
-      'gateways',
-      'enodebs',
+      'traffic',
+      'tracing',
+      'metrics',
       'configure',
-      'alerts',
     ],
   },
-  mesh: {
-    default: 'map',
-    sections: [],
-  },
   feg: {
-    default: 'gateways',
+    default: 'dashboard',
     sections: [
+      'dashboard',
       'gateways',
       'network',
       'equipment',

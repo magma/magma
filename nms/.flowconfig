@@ -21,25 +21,6 @@
 .*/node_modules/rxjs/.*
 .*/node_modules/vis/.*
 
-; Mapbox disables these because of flow errors
-; See https://github.com/mapbox/mapbox-gl-js/blob/master/.flowconfig
-.*/node_modules/jsonlint-lines/.*
-.*/node_modules/@mapbox/jsonlint-lines-primitives/.*
-.*/node_modules/stylelint/.*
-.*/node_modules/unflowify/.*
-.*/node_modules/flow-coverage-report/.*
-.*/node_modules/babel-plugin-transform-react-remove-prop-types/.*
-.*/node_modules/conventional-changelog-core/.*
-.*/node_modules/htmltojsx/.*
-.*/node_modules/documentation/.*
-.*/node_modules/module-deps/.*
-.*/node_modules/bcryptjs/.*
-.*/node_modules/@mapbox/geojson-types/fixtures/.*
-.*/test/unit/style-spec/fixture/invalidjson.input.json
-.*/test/integration/render-tests/.*
-.*/test/build/downstream-flow-fixture/.*
-.*/_batfish_site/.*
-
 ; fbc-js-core
 ;.*/fbc_js_core/.*
 
@@ -52,16 +33,11 @@
 [options]
 esproposal.optional_chaining=enable
 
-[libs]
-node_modules/mapbox-gl/flow-typed
-node_modules/mapbox-gl/dist/mapbox-gl.js.flow
-
 [declarations]
 <PROJECT_ROOT>/node_modules/relay-runtime/.*
 .*/flow-typed/npm/@material-ui/.*
 .*/flow-typed/npm/@testing-library/.*
 .*/node_modules/react-beautiful-dnd/.*
-.*/node_modules/mapbox-gl/src/.*
 .*/node_modules/express/.*
 .*/fbc_js_core/express-middleware/.*
 .*/fbc_js_core/ui/.*
