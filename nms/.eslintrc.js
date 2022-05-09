@@ -257,7 +257,6 @@ module.exports = {
         'babel.config.js',
         'jest.config.js',
         'jest.*.config.js',
-        'fbc_js_core/auth/**/*.js',
         'fbc_js_core/babel_register/*.js',
         'fbc_js_core/express_middleware/**/*.js',
         'fbc_js_core/platform_server/**/*.js',
@@ -267,6 +266,7 @@ module.exports = {
         'config/*.js',
         'scripts/**/*.js',
         'server/**/*.js',
+        'shared/**/*.js',
         'grafana/**/*.js',
       ],
       rules: {

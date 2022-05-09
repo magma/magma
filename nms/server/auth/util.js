@@ -21,7 +21,7 @@ import type {UserType} from '../../fbc_js_core/sequelize_models/models/user.js';
 import EmailValidator from 'email-validator';
 import bcrypt from 'bcryptjs';
 import querystring from 'querystring';
-import {AccessRoles} from './roles';
+import {AccessRoles} from '../../shared/roles';
 import {User} from '../../fbc_js_core/sequelize_models';
 import {format, parse} from 'url';
 import {injectOrganizationParams} from './organization';

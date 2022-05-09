@@ -15,7 +15,7 @@
  */
 
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '../../fbc_js_core/auth/access';
+import type {FBCNMSRequest} from '../auth/access';
 
 const url = require('url');
 import pathToRegexp from 'path-to-regexp';

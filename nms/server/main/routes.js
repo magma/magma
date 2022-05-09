@@ -16,7 +16,7 @@
 
 import type {AppContextAppData} from '../../fbc_js_core/ui/context/AppContext';
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '../../fbc_js_core/auth/access';
+import type {FBCNMSRequest} from '../auth/access';
 
 import MagmaV1API from '../magma/index';
 import adminRoutes from '../admin/routes';
@@ -26,11 +26,11 @@ import express from 'express';
 import networkRoutes from '../network/routes';
 import path from 'path';
 import staticDist from '../../fbc_js_core/webpack_config/staticDist';
-import userMiddleware from '../../fbc_js_core/auth/express';
-import {AccessRoles} from '../../fbc_js_core/auth/roles';
+import userMiddleware from '../auth/express';
+import {AccessRoles} from '../../shared/roles';
 
 import {TABS} from '../../fbc_js_core/types/tabs';
-import {access} from '../../fbc_js_core/auth/access';
+import {access} from '../auth/access';
 import {getEnabledFeatures} from '../../fbc_js_core/platform_server/features';
 import {hostOrgMiddleware} from '../../fbc_js_core/platform_server/host/middleware';
 

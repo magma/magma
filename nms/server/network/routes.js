@@ -15,7 +15,7 @@
  */
 
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '../../fbc_js_core/auth/access';
+import type {FBCNMSRequest} from '../auth/access';
 import type {
   network_cellular_configs,
   network_dns_config,
@@ -26,9 +26,9 @@ import asyncHandler from '../../fbc_js_core/util/asyncHandler';
 import express from 'express';
 
 import MagmaV1API from '../magma';
-import {AccessRoles} from '../../fbc_js_core/auth/roles';
+import {AccessRoles} from '../../shared/roles';
 import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../fbc_js_core/types/network';
-import {access} from '../../fbc_js_core/auth/access';
+import {access} from '../auth/access';
 import {difference} from 'lodash';
 
 const logger = require('../../fbc_js_core/logging').getLogger(module);

@@ -15,7 +15,7 @@
  */
 
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '../../../fbc_js_core/auth/access';
+import type {FBCNMSRequest} from '../../../server/auth/access';
 import type {FeatureID} from '../../../fbc_js_core/types/features';
 
 import Sequelize from 'sequelize';
@@ -25,7 +25,7 @@ import featureConfigs from '../features';
 
 import {FeatureFlag, Organization} from '../../../fbc_js_core/sequelize_models';
 import {User} from '../../../fbc_js_core/sequelize_models';
-import {getPropsToUpdate} from '../../../fbc_js_core/auth/util';
+import {getPropsToUpdate} from '../../../server/auth/util';
 
 import crypto from 'crypto';
 

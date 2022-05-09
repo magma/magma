@@ -18,7 +18,7 @@ import {TokenSet} from 'openid-client';
 import {clientFromRequest} from './client';
 
 import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
-import type {FBCNMSRequest} from '../../../fbc_js_core/auth/access';
+import type {FBCNMSRequest} from '../access';
 
 type OIDCTokenSet = {
   access_token: string,

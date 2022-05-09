@@ -21,7 +21,7 @@ import getLteAlerts from './lteAlerts';
 
 import {CWF, FEG, FEG_LTE, LTE} from '../fbc_js_core/types/network';
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '../fbc_js_core/auth/access';
+import type {FBCNMSRequest} from '../server/auth/access';
 import type {
   network_type,
   prom_alert_config,

@@ -15,12 +15,12 @@
  */
 'use strict';
 
-import type {AccessRoleLevel} from './roles';
+import type {AccessRoleLevel} from '../../shared/roles';
 
 const path = require('path');
 
-const {AccessRoles} = require('./roles');
-const {ErrorCodes} = require('./errorCodes');
+const {AccessRoles} = require('../../shared/roles');
+const {ErrorCodes} = require('../../shared/errorCodes');
 const addQueryParamsToUrl = require('./util').addQueryParamsToUrl;
 const logger = require('../../fbc_js_core/logging').getLogger(module);
 const openRoutes = require('./openRoutes').default;

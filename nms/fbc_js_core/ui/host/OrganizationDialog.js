@@ -28,7 +28,7 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
-import {UserRoles} from '../../../fbc_js_core/auth/types';
+import {UserRoles} from '../../../shared/types';
 import {colors} from '../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios} from '../../../fbc_js_core/ui/hooks';

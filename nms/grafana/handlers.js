@@ -44,7 +44,7 @@ import type {
   Datasource,
   PostDatasource,
 } from './GrafanaAPIType';
-import type {FBCNMSRequest} from '../fbc_js_core/auth/access';
+import type {FBCNMSRequest} from '../server/auth/access';
 import type {GrafanaClient, GrafanaResponse} from './GrafanaAPI';
 import type {OrganizationType} from '../fbc_js_core/sequelize_models/models/organization';
 import type {UserType} from '../fbc_js_core/sequelize_models/models/user';

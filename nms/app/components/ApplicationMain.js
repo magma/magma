@@ -21,7 +21,7 @@ import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import axios from 'axios';
 // import defaultTheme from '../../fbc_js_core/ui/theme/default';
 import defaultTheme from '../theme/default';
-import {ErrorCodes} from '../../fbc_js_core/auth/errorCodes';
+import {ErrorCodes} from '../../shared/errorCodes';
 import {SnackbarProvider} from 'notistack';
 import {TopBarContextProvider} from '../../fbc_js_core/ui/components/layout/TopBarContext';
 import {useEffect, useState} from 'react';
