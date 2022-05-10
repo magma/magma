@@ -23,7 +23,7 @@ import Sequelize from 'sequelize';
 import {Organization} from '../fbc_js_core/sequelize_models';
 import {coerceToTab} from '../fbc_js_core/types/tabs';
 import {difference} from 'lodash';
-import {getProjectTabs} from '../fbc_js_core/projects/projects';
+import {getProjectTabs} from '../shared/projects/projects';
 import {union} from 'lodash';
 
 type OrganizationObject = {
