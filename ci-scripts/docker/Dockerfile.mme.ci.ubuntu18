@@ -14,15 +14,63 @@ RUN rm -Rf $MAGMA_ROOT $C_BUILD && mkdir -p $C_BUILD
 # Copy Code to Test
 COPY ./ $MAGMA_ROOT
 
+RUN echo "BEFORE INSTALL CURL"
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+    curl \
+    libcurl4-openssl-dev
+#     net-tools \
+#     telnet
+RUN echo "AFTER INSTALL CURL"
+
+WORKDIR /usr/sbin
+# RUN wget https://github.com/liblfds/liblfds.git && \
+#     echo "LIBLFDS" && \
+#     ifconfig && \
+#     ping -c 5 www.google.com && \
+#     ping -c 5 www.github.com && \
+#     cat /etc/services && \
+#     echo "AFTER LIBLFDS"
+
+# RUN ping -c 5 proxy.eurecom.fr
+# RUN timeout 10 telnet proxy.eurecom.fr 8080
+
+RUN git config --global --unset http.proxy || :
+
+RUN echo "THIS IS BEFORE INSTALLING BAZEL"
+
+# Install bazel
+WORKDIR /usr/sbin
+RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && echo $? && echo "AFTER WGET" \
+    chmod +x bazelisk-linux-amd64 && \
+    ln -sf /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
+
+RUN echo "THIS IS AFTER INSTALLING BAZEL"
+
+RUN ln -s /usr/local/lib/libfdproto.so.6 /usr/lib/libfdproto.so && \
+    ln -s /usr/local/lib/libfdcore.so.6 /usr/lib/libfdcore.so && \
+    ln -s /usr/local/lib/libgrpc++.so /usr/lib/libgrpc++.so && \
+    ln -s /usr/local/lib/libprotobuf.so.17 /usr/lib/libprotobuf.so && \
+    ln -s /usr/local/lib/libgrpc.so /usr/lib/libgrpc.so && \
+    ln -s /usr/local/lib/libgpr.so /usr/lib/libgpr.so && \
+    ln -s /usr/local/lib/libgflags.so.2.2 /usr/lib/libgflags.so && \
+    ln -s /usr/local/lib/libcares.so.2 /usr/lib/libcares.so && \
+    ln -s /usr/local/lib/libaddress_sorting.so /usr/lib/libaddress_sorting.so && \
+    ln -s /usr/local/lib/libnettle.so.4 /usr/lib/libnettle.so && \
+    ln -s /usr/local/lib/libgnutls.so.28 /usr/lib/libgnutls.so
+
+RUN echo "THIS IS BEFORE BUILD"
 # Build MME executables
 RUN cd $MAGMA_ROOT/lte/gateway && \
     echo $FEATURES && \
-    make build_oai && \
-    make build_sctpd && \
-    cp $C_BUILD/core/oai/oai_mme/mme $C_BUILD/core/oai/oai_mme/oai_mme && \
-    ldd $C_BUILD/core/oai/oai_mme/oai_mme && \
-    ldd $C_BUILD/sctpd/src/sctpd
+    bazel build //lte/gateway/c/core:oai_mme --config=$FEATURES && \
+    bazel build //lte/gateway/c/sctpd/src:sctpd && \
+    echo "SUCCESS"
+# cp $C_BUILD/core/oai/oai_mme/mme $C_BUILD/core/oai/oai_mme/oai_mme && \
+# ldd $C_BUILD/core/oai/oai_mme/oai_mme && \
+# ldd $C_BUILD/sctpd/src/sctpd
 
+RUN echo "THIS IS AFTER BUILD"
 # Prepare config file
 RUN cd $MAGMA_ROOT/lte/gateway/docker/mme/configs/ && \
     echo '{ \n' \
@@ -65,12 +113,12 @@ ENV TZ=Europe/Paris
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
     DEBIAN_FRONTEND=noninteractive apt-get install --yes \
-      psmisc \
-      openssl \
-      net-tools \
-      tshark \
-      tzdata \
-  && rm -rf /var/lib/apt/lists/*
+    psmisc \
+    openssl \
+    net-tools \
+    tshark \
+    tzdata \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy pre-built shared object files
 COPY --from=magma-mme-builder \
@@ -115,8 +163,8 @@ RUN ldconfig
 # Copy pre-built binaries for MME and SCTPD
 WORKDIR /magma-mme/bin
 COPY --from=magma-mme-builder \
-    $C_BUILD/core/oai/oai_mme/oai_mme \
-    $C_BUILD/sctpd/src/sctpd \
+    $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/oai_mme \
+    $MAGMA_ROOT/bazel-bin/lte/gateway/c/sctpd/src/sctpd \
     ./
 
 # For the moment, we are not putting any etc/*.conf files
@@ -126,9 +174,9 @@ COPY --from=magma-mme-builder \
 WORKDIR /var/opt/magma/configs
 # Adding mme configuration for stateful run
 RUN echo "use_stateless: false" > mme.yml && \
-    openssl rand -out /root/.rnd 128 && \
-    ldd /magma-mme/bin/oai_mme && \
-    ldd /magma-mme/bin/sctpd
+    openssl rand -out /root/.rnd 128
+# ldd /magma-mme/bin/oai_mme && \
+# ldd /magma-mme/bin/sctpd
 
 WORKDIR /etc/magma
 COPY --from=magma-mme-builder \
@@ -142,10 +190,10 @@ COPY --from=magma-mme-builder \
 WORKDIR /magma-mme/scripts
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/c/core/oai/test/check_mme_s6a_certificate .
 RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" \
-           -e "s@\$SUDO@@" \
-           -e "s@echo_error@echo@" \
-           -e "s@echo_success@echo@" \
-           -e "s@echo_warning@echo@" check_mme_s6a_certificate
+    -e "s@\$SUDO@@" \
+    -e "s@echo_error@echo@" \
+    -e "s@echo_success@echo@" \
+    -e "s@echo_warning@echo@" check_mme_s6a_certificate
 
 WORKDIR /magma-mme
 
