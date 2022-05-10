@@ -35,7 +35,7 @@ from magma.pipelined.tests.pipelined_test_util import (
     stop_ryu_app_thread,
     wait_after_send,
 )
-from scapy.all import *
+from scapy.all import IP, TCP, UDP, Ether
 from scapy.contrib.gtp import GTP_U_Header
 
 

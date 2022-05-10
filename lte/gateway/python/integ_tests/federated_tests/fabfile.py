@@ -15,7 +15,7 @@ import subprocess
 import sys
 from distutils.util import strtobool
 
-from fabric.api import cd, execute, run
+from fabric.api import cd, run
 
 sys.path.append('../../../../../orc8r')
 from tools.fab.hosts import vagrant_setup

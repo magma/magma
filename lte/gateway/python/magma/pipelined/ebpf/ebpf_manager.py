@@ -16,7 +16,6 @@ import logging
 import socket
 import struct
 import subprocess
-from socket import AF_INET
 
 import netifaces
 from bcc import BPF
