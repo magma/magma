@@ -28,7 +28,7 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
-import {UserRoles} from '../../../shared/types';
+import {UserRoles} from '../../../shared/roles';
 import {colors} from '../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios} from '../../../app/hooks';

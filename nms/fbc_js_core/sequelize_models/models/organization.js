@@ -18,8 +18,8 @@ import Sequelize from 'sequelize';
 
 import type {AssociateProp} from './AssociateTypes.flow';
 import type {DataTypes, Model} from 'sequelize';
-import type {SSOSelectedType} from '../../../fbc_js_core/types/auth';
-import type {Tab} from '../../../fbc_js_core/types/tabs';
+import type {SSOSelectedType} from '../../../shared/types/auth';
+import type {Tab} from '../../../shared/types/tabs';
 
 type OrganizationInitAttributes = {
   id?: number,

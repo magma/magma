@@ -33,7 +33,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Text from '../../../theme/design-system/Text';
 import axios from 'axios';
-import {UserRoles} from '../../../../shared/types';
+import {UserRoles} from '../../../../shared/roles';
 
 import renderList from '../../../util/renderList';
 import withAlert from '../../Alert/withAlert';

@@ -15,7 +15,7 @@
  */
 
 import type {Organization} from './Organizations';
-import type {Tab} from '../../../fbc_js_core/types/tabs';
+import type {Tab} from '../../../shared/types/tabs';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';

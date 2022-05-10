@@ -27,7 +27,7 @@ import express from 'express';
 
 import MagmaV1API from '../magma';
 import {AccessRoles} from '../../shared/roles';
-import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../fbc_js_core/types/network';
+import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../shared/types/network';
 import {access} from '../auth/access';
 import {difference} from 'lodash';
 

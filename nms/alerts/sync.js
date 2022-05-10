@@ -19,7 +19,7 @@ import getCwfAlerts from './cwfAlerts';
 import getFegAlerts from './fegAlerts';
 import getLteAlerts from './lteAlerts';
 
-import {CWF, FEG, FEG_LTE, LTE} from '../fbc_js_core/types/network';
+import {CWF, FEG, FEG_LTE, LTE} from '../shared/types/network';
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '../server/auth/access';
 import type {

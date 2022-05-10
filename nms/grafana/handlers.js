@@ -19,7 +19,7 @@ import {isEqual, sortBy} from 'lodash';
 import MagmaV1API from '../server/magma/index';
 import Sequelize from 'sequelize';
 import {AnalyticsDBData} from './dashboards/AnalyticsDashboards';
-import {CWF} from '../fbc_js_core/types/network';
+import {CWF} from '../shared/types/network';
 import {
   CWFAccessPointDBData,
   CWFGatewayDBData,

@@ -31,7 +31,7 @@ import staticDist from '../../config/staticDist';
 import testRoutes from '../test/routes';
 import userMiddleware from '../auth/express';
 import {AccessRoles} from '../../shared/roles';
-import {TABS} from '../../fbc_js_core/types/tabs';
+import {TABS} from '../../shared/types/tabs';
 import {access} from '../auth/access';
 import {getEnabledFeatures} from '../features';
 import {hostOrgMiddleware} from '../host/middleware';

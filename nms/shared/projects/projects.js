@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {Tab} from '../../fbc_js_core/types/tabs';
+import type {Tab} from '../../shared/types/tabs';
 
 type ProjectLink = {
   id: Tab,

@@ -28,13 +28,7 @@ jest
   .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 
-import {
-  CWF,
-  FEG,
-  FEG_LTE,
-  LTE,
-  XWFM,
-} from '../../../../fbc_js_core/types/network';
+import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../../../shared/types/network';
 
 global.CONFIG = {
   appData: {

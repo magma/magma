@@ -14,9 +14,9 @@
  * @format
  */
 
-import type {FeatureID} from '../../fbc_js_core/types/features';
-import type {SSOSelectedType} from '../../fbc_js_core/types/auth';
-import type {Tab} from '../../fbc_js_core/types/tabs';
+import type {FeatureID} from './features';
+import type {SSOSelectedType} from './auth';
+import type {Tab} from './tabs';
 
 export type User = {
   tenant: string,
