@@ -21,15 +21,13 @@ from time import sleep
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-import grpc
 import pytest
 import requests
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
-from dp.protos.enodebd_dp_pb2_grpc import DPServiceStub
-from magma.db_service.db_initialize import DBInitializer
-from magma.db_service.session_manager import SessionManager
-from magma.db_service.tests.db_testcase import BaseDBTestCase
 from magma.test_runner.config import TestConfig
+from magma.test_runner.tests.integration_testcase import (
+    DomainProxyIntegrationTestCase,
+)
 from retrying import retry
 
 config = TestConfig()
@@ -45,35 +43,9 @@ DATETIME_WAY_BACK = '2010-03-28T09:13:25.407877399+00:00'
 
 
 @pytest.mark.orc8r
-class DomainProxyOrc8rTestCase(BaseDBTestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        super().setUpClass()
-        cls.set_up_db_test_case()
-        cls.create_all()
-        DBInitializer(SessionManager(cls.engine)).initialize()
-        grpc_channel = grpc.insecure_channel(
-            f"{config.GRPC_SERVICE}:{config.GRPC_PORT}",
-        )
-        cls.dp_client = DPServiceStub(grpc_channel)
-        wait_for_elastic_to_start()
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        # retrying is needed because of a possible deadlock
-        # with cc locking request table
-        @retry(stop_max_attempt_number=5, wait_fixed=100)
-        def drop_database_with_retries():
-            cls.drop_all()
-
-        drop_database_with_retries()
-        _delete_dp_elasticsearch_indices()
-
+class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase):
     def setUp(self) -> None:
         self.serial_number = self._testMethodName + '_' + str(uuid4())
-
-    def tearDown(self) -> None:
-        pass
 
     def test_cbsd_sas_flow(self):
         builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
@@ -144,8 +116,6 @@ class DomainProxyOrc8rTestCase(BaseDBTestCase):
         self.when_cbsd_is_inactive()
         cbsd = self.when_cbsd_is_fetched(builder.serial_number)
         self.then_cbsd_is(cbsd, builder.build_registered_inactive_data())
-
-        self.delete_cbsd(cbsd_id)
 
     def test_frequency_preferences(self):
         builder = CbsdAPIDataBuilder(). \
