@@ -17,12 +17,11 @@
 import type {Node} from 'react';
 
 import Button from '../design-system/Button';
-import Checkbox from '../design-system/Checkbox/Checkbox';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import React, {useState} from 'react';
+import React from 'react';
 import Text from '../../../../app/theme/design-system/Text';
 import {makeStyles} from '@material-ui/styles';
 
@@ -38,7 +37,6 @@ type Props = {|
   cancelLabel?: Node,
   confirmLabel?: Node,
   message: Node,
-  checkboxLabel?: Node,
   skin?: AlertSkin,
   onCancel?: () => void,
   onClose?: () => void,
@@ -51,7 +49,6 @@ const Alert = ({
   cancelLabel,
   confirmLabel,
   message,
-  checkboxLabel,
   onCancel,
   onClose,
   onConfirm,
@@ -60,7 +57,6 @@ const Alert = ({
   skin = 'primary',
 }: Props) => {
   const classes = useStyles();
-  const [checkboxChecked, setCheckboxChecked] = useState(false);
   const hasActions = cancelLabel != null || confirmLabel != null;
 
   return (
@@ -73,15 +69,6 @@ const Alert = ({
       {title && <DialogTitle>{title}</DialogTitle>}
       <DialogContent>
         <Text>{message}</Text>
-        {checkboxLabel && (
-          <Checkbox
-            checked={checkboxChecked}
-            title={checkboxLabel}
-            onChange={selection =>
-              setCheckboxChecked(selection === 'checked' ? true : false)
-            }
-          />
-        )}
       </DialogContent>
       {hasActions && (
         <DialogActions>
@@ -91,10 +78,7 @@ const Alert = ({
             </Button>
           )}
           {confirmLabel && (
-            <Button
-              onClick={onConfirm}
-              skin={skin}
-              disabled={checkboxLabel != null && !checkboxChecked}>
+            <Button onClick={onConfirm} skin={skin}>
               {confirmLabel}
             </Button>
           )}

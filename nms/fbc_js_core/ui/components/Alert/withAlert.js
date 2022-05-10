@@ -29,7 +29,6 @@ type State = {|
 export type DialogProps = {|
   cancelLabel?: Node,
   confirmLabel?: Node,
-  checkboxLabel?: Node,
   skin?: AlertSkin,
   message: Node,
   title?: ?Node,
