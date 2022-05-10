@@ -21,7 +21,7 @@ const {
 
 // This must be done before any module imports to configure
 // logging correctly
-const logging = require('../fbc_js_core/logging');
+const logging = require('../shared/logging');
 logging.configure({
   LOG_FORMAT,
   LOG_LEVEL,

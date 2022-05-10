@@ -50,7 +50,7 @@ import type {OrganizationType} from '../fbc_js_core/sequelize_models/models/orga
 import type {UserType} from '../fbc_js_core/sequelize_models/models/user';
 import type {network_type, tenant} from '../generated/MagmaAPIBindings';
 
-const logger = require('../fbc_js_core/logging').getLogger(module);
+const logger = require('../shared/logging').getLogger(module);
 
 export type Task = {name: string, status: number, message: string};
 

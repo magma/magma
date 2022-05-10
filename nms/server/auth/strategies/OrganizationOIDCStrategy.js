@@ -28,7 +28,7 @@ import type {OpenidUserInfoClaims} from 'openid-client';
 
 import crypto from 'crypto';
 
-const logger = require('../../../fbc_js_core/logging').getLogger(module);
+const logger = require('../../../shared/logging').getLogger(module);
 
 type Config = {
   urlPrefix: string,

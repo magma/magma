@@ -15,7 +15,7 @@
  */
 
 const fs = require('fs');
-const {getValidLogLevel} = require('../../fbc_js_core/logging');
+const {getValidLogLevel} = require('../../shared/logging');
 
 const DEV_MODE = process.env.NODE_ENV !== 'production';
 const LOG_FORMAT = DEV_MODE ? 'shell' : 'json';

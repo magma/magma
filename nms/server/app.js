@@ -16,7 +16,7 @@
 
 // This must be done before any module imports to configure
 // logging correctly
-import logging from '../fbc_js_core/logging';
+import logging from '../shared/logging';
 logging.configure({
   LOG_FORMAT,
   LOG_LEVEL,

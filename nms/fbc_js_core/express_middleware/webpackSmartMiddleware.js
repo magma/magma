@@ -15,7 +15,7 @@
  */
 
 import express from 'express';
-import logging from '../../fbc_js_core/logging';
+import logging from '../../shared/logging';
 
 import type {Middleware} from 'express';
 const logger = logging.getLogger(module);
