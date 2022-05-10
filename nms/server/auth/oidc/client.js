@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {OrganizationMiddlewareRequest} from '../../../fbc_js_core/express_middleware/organizationMiddleware';
+import type {OrganizationMiddlewareRequest} from '../../../server/middleware/organizationMiddleware';
 
 import {Issuer} from 'openid-client';
 

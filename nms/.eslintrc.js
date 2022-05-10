@@ -258,7 +258,6 @@ module.exports = {
         'babelRegister.js',
         'jest.config.js',
         'jest.*.config.js',
-        'fbc_js_core/express_middleware/**/*.js',
         'fbc_js_core/platform_server/**/*.js',
         'fbc_js_core/sequelize_models/**/*.js',
         'fbc_js_core/util/yarn.js',
