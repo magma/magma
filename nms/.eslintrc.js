@@ -255,9 +255,9 @@ module.exports = {
       files: [
         '.eslintrc.js',
         'babel.config.js',
+        'babelRegister.js',
         'jest.config.js',
         'jest.*.config.js',
-        'fbc_js_core/babel_register/*.js',
         'fbc_js_core/express_middleware/**/*.js',
         'fbc_js_core/platform_server/**/*.js',
         'fbc_js_core/sequelize_models/**/*.js',

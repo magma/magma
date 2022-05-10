@@ -15,6 +15,8 @@
  */
 'use strict';
 
+import './common/polyfill';
+
 import {} from './common/axiosConfig';
 import LoginForm from '../fbc_js_core/ui/components/auth/LoginForm.js';
 import React from 'react';

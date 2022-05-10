@@ -15,7 +15,7 @@
  */
 
 // $FlowIgnore[untyped-import]
-require('../../fbc_js_core/babel_register');
+require('../../babelRegister');
 
 const path = require('path');
 

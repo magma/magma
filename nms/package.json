@@ -148,14 +148,14 @@
     "test:ci": "NODE_ENV=test jest -w 1 --testPathIgnorePatterns=e2e",
     "flow": "flow",
     "flow-typed-install": "flow-typed --flowVersion $(flow version --json | jq -r .semver) install --",
-    "build": "rimraf static/dist && NODE_ENV=production node -r ./fbc_js_core/babel_register/index.js ./node_modules/webpack/bin/webpack --config ./config/webpack.production.config.js",
-    "cmd": "node -r ./fbc_js_core/babel_register/index.js",
+    "build": "rimraf static/dist && NODE_ENV=production node -r ./babelRegister.js ./node_modules/webpack/bin/webpack --config ./config/webpack.production.config.js",
+    "cmd": "node -r ./babelRegister.js",
     "start": "yarn run start:dev",
     "start:dev": "nodemon scripts/server",
-    "start:prod": "NODE_ENV=production node -r ./fbc_js_core/babel_register/index.js scripts/server",
-    "migrate": "node -r ./fbc_js_core/babel_register/index.js scripts/migrate.js",
-    "setAdminPassword": "node -r ./fbc_js_core/babel_register/index.js scripts/setPassword.js",
-    "createOrganization": "node -r ./fbc_js_core/babel_register/index.js scripts/createOrganization.js",
-    "mockserver": "node -r ./fbc_js_core/babel_register/index.js scripts/mockServer.js"
+    "start:prod": "NODE_ENV=production node -r ./babelRegister.js scripts/server",
+    "migrate": "node -r ./babelRegister.js scripts/migrate.js",
+    "setAdminPassword": "node -r ./babelRegister.js scripts/setPassword.js",
+    "createOrganization": "node -r ./babelRegister.js scripts/createOrganization.js",
+    "mockserver": "node -r ./babelRegister.js scripts/mockServer.js"
   }
 }
