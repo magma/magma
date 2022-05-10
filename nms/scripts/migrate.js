@@ -14,10 +14,7 @@
  * @format
  */
 
-const {
-  LOG_FORMAT,
-  LOG_LEVEL,
-} = require('../fbc_js_core/platform_server/config');
+import {LOG_FORMAT, LOG_LEVEL} from '../config/config';
 
 // This must be done before any module imports to configure
 // logging correctly

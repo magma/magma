@@ -15,21 +15,20 @@
  */
 
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '../../../server/auth/access';
-import type {FeatureID} from '../../../fbc_js_core/types/features';
+import type {FBCNMSRequest} from '../auth/access';
+import type {FeatureID} from '../../fbc_js_core/types/features';
 
 import Sequelize from 'sequelize';
-import asyncHandler from '../../../fbc_js_core/util/asyncHandler';
+import asyncHandler from '../../fbc_js_core/util/asyncHandler';
+import crypto from 'crypto';
 import express from 'express';
 import featureConfigs from '../features';
+import logging from '../../shared/logging';
+import {FeatureFlag, Organization} from '../../fbc_js_core/sequelize_models';
+import {User} from '../../fbc_js_core/sequelize_models';
+import {getPropsToUpdate} from '../auth/util';
 
-import {FeatureFlag, Organization} from '../../../fbc_js_core/sequelize_models';
-import {User} from '../../../fbc_js_core/sequelize_models';
-import {getPropsToUpdate} from '../../../server/auth/util';
-
-import crypto from 'crypto';
-
-const logger = require('../../../shared/logging').getLogger(module);
+const logger = logging.getLogger(module);
 
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 

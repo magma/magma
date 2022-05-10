@@ -14,18 +14,17 @@
  * @format
  */
 
-import type {ExpressRequest, ExpressResponse} from 'express';
-
 const express = require('express');
-const proxy = require('express-http-proxy');
 
-const {LOGGER_HOST} = require('../config');
+import type {ExpressRequest, ExpressResponse} from 'express';
 
 const router: express.Router<
   ExpressRequest,
   ExpressResponse,
 > = express.Router();
 
-router.use('/', proxy(LOGGER_HOST));
+router.get('/', (req: ExpressRequest, res: ExpressResponse) => {
+  res.status(200).end('Success');
+});
 
-module.exports = router;
+export default router;

@@ -36,11 +36,7 @@ import passport from 'passport';
 import path from 'path';
 import session from 'express-session';
 import {AccessRoles} from '../shared/roles';
-import {
-  DEV_MODE,
-  LOG_FORMAT,
-  LOG_LEVEL,
-} from '../fbc_js_core/platform_server/config';
+import {DEV_MODE, LOG_FORMAT, LOG_LEVEL} from '../config/config';
 import {access, configureAccess} from './auth/access';
 import {
   appMiddleware,
