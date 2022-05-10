@@ -39,18 +39,3 @@ export function decodeBase64(base64String: string): string {
 export function isValidHex(hexString: string): boolean {
   return hexString.match(/^[a-fA-F0-9]*$/) !== null;
 }
-
-export function capitalize(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-export function joinNullableStrings(
-  strings: Array<?string>,
-  separator?: ?string,
-): ?string {
-  const tooltipStrings = strings.filter(str => str != null);
-  if (tooltipStrings.length === 0) {
-    return undefined;
-  }
-  return tooltipStrings.filter(str => str != '').join(separator ?? undefined);
-}

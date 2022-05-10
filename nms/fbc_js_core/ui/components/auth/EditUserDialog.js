@@ -29,7 +29,6 @@ import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import Select from '@material-ui/core/Select';
-import SymphonySelect from '../../../../fbc_js_core/ui/components/design-system/Select/Select';
 import TextField from '@material-ui/core/TextField';
 import renderList from '../../../../fbc_js_core/util/renderList';
 import {UserRoles} from '../../../../fbc_js_core/auth/types';
@@ -164,30 +163,18 @@ export default function EditUserDialog(props: Props) {
             />
           </>
         )}
-        <SymphonySelect
-          className={classes.select}
-          skin="gray"
-          label="Role"
-          options={[
-            {
-              key: 'user',
-              label: 'User',
-              value: UserRoles.USER,
-            },
-            {
-              key: 'read_only_user',
-              label: 'Read Only User',
-              value: UserRoles.READ_ONLY_USER,
-            },
-            {
-              key: 'super_user',
-              label: 'Super User',
-              value: UserRoles.SUPERUSER,
-            },
-          ]}
-          selectedValue={role}
-          onChange={value => setRole(value)}
-        />
+        <FormControl className={classes.input}>
+          <InputLabel id="role-select-label">Role</InputLabel>
+          <Select
+            labelId="role-select-label"
+            id="role-select"
+            value={role}
+            onChange={({target}) => setRole(target.value)}>
+            <MenuItem value={UserRoles.USER}>User</MenuItem>
+            <MenuItem value={UserRoles.READ_ONLY_USER}>Read Only User</MenuItem>
+            <MenuItem value={UserRoles.SUPERUSER}>Super User</MenuItem>
+          </Select>
+        </FormControl>
         {isTabEnabled('nms') && allNetworkIDs && (
           <FormControl className={classes.input}>
             <InputLabel htmlFor="network_ids">Accessible Networks</InputLabel>
