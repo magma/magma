@@ -18,10 +18,7 @@ import MagmaAPIBindings from '../../generated/MagmaAPIBindings';
 import axios from 'axios';
 import https from 'https';
 import nullthrows from '../../fbc_js_core/util/nullthrows';
-import {
-  API_HOST,
-  apiCredentials,
-} from '../../fbc_js_core/platform_server/config';
+import {API_HOST, apiCredentials} from '../../config/config';
 
 const httpsAgent = new https.Agent({
   cert: apiCredentials().cert,

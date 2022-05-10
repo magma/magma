@@ -14,21 +14,17 @@
  * @format
  */
 
-const fs = require('fs');
-const {getValidLogLevel} = require('../../shared/logging');
+import fs from 'fs';
+import {getValidLogLevel} from '../shared/logging';
 
-const DEV_MODE = process.env.NODE_ENV !== 'production';
-const LOG_FORMAT = DEV_MODE ? 'shell' : 'json';
-const LOG_LEVEL = getValidLogLevel(process.env.LOG_LEVEL);
-
-const LOGGER_HOST = process.env.LOGGER_HOST || 'fluentd:9880';
-
-// NMS specific
-
-const API_HOST = process.env.API_HOST || 'magma_test.local';
+export const DEV_MODE = process.env.NODE_ENV !== 'production';
+export const LOG_FORMAT = DEV_MODE ? 'shell' : 'json';
+export const LOG_LEVEL = getValidLogLevel(process.env.LOG_LEVEL);
+export const LOGGER_HOST = process.env.LOGGER_HOST || 'fluentd:9880';
+export const API_HOST = process.env.API_HOST || 'magma_test.local';
 
 let _cachedApiCredentials = null;
-function apiCredentials() {
+export function apiCredentials() {
   if (_cachedApiCredentials) {
     return _cachedApiCredentials;
   }
@@ -56,12 +52,3 @@ function apiCredentials() {
     key,
   });
 }
-
-module.exports = {
-  apiCredentials,
-  API_HOST,
-  DEV_MODE,
-  LOG_FORMAT,
-  LOG_LEVEL,
-  LOGGER_HOST,
-};

@@ -37,7 +37,7 @@ import {
 
 import {Organization} from '../fbc_js_core/sequelize_models';
 import {XWFMDBData} from './dashboards/XWFMDashboards';
-import {apiCredentials} from '../fbc_js_core/platform_server/config';
+import {apiCredentials} from '../config/config';
 
 import type {
   CreateDashboardResponse,

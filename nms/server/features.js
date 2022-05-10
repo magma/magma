@@ -15,8 +15,10 @@
  */
 
 import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
-import type {FBCNMSRequest} from '../../server/auth/access';
-import type {FeatureID} from '../../fbc_js_core/types/features';
+import type {FBCNMSRequest} from './auth/access';
+import type {FeatureID} from '../fbc_js_core/types/features';
+
+import {FeatureFlag} from '../fbc_js_core/sequelize_models';
 
 export type RequestInfo = {
   isDev: boolean,
@@ -57,8 +59,6 @@ export type FeatureConfig = {
   rules?: FeatureFlagRule[],
   publicAccess?: boolean,
 };
-
-const {FeatureFlag} = require('../../fbc_js_core/sequelize_models');
 
 export const arrayConfigs = [
   {
