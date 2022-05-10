@@ -21,7 +21,7 @@ import type {SSOSelectedType} from '../../../fbc_js_core/types/auth';
 import type {Tab} from '../../../fbc_js_core/types/tabs';
 
 import * as React from 'react';
-import emptyFunction from '../../../fbc_js_core/util/emptyFunction';
+import {noop} from 'lodash';
 
 export type AppContextType = {
   csrfToken: ?string,
@@ -45,8 +45,8 @@ const appContextDefaults = {
   networkIds: [],
   tabs: [],
   user: {tenant: '', email: '', isSuperUser: false, isReadOnlyUser: false},
-  showExpandButton: emptyFunction,
-  hideExpandButton: emptyFunction,
+  showExpandButton: noop,
+  hideExpandButton: noop,
   isFeatureEnabled: () => false,
   isTabEnabled: () => false,
   ssoEnabled: false,

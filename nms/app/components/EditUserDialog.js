@@ -30,7 +30,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-import renderList from '../../fbc_js_core/util/renderList';
+import renderList from '../util/renderList';
 import {UserRoles} from '../../shared/types';
 import {makeStyles} from '@material-ui/styles';
 

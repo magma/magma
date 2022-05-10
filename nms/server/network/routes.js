@@ -22,7 +22,7 @@ import type {
   tier,
 } from '../../generated/MagmaAPIBindings';
 
-import asyncHandler from '../../fbc_js_core/util/asyncHandler';
+import asyncHandler from '../util/asyncHandler';
 import express from 'express';
 
 import MagmaV1API from '../magma';

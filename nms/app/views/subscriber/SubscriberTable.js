@@ -51,11 +51,7 @@ import {
   handleSubscriberQuery,
 } from '../../state/lte/SubscriberState';
 import {JsonDialog, RenderLink} from './SubscriberOverview';
-import {
-  base64ToHex,
-  hexToBase64,
-  isValidHex,
-} from '../../../fbc_js_core/util/strings';
+import {base64ToHex, hexToBase64, isValidHex} from '../../util/strings';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';

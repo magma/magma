@@ -17,7 +17,7 @@
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '../auth/access';
 
-import asyncHandler from '../../fbc_js_core/util/asyncHandler';
+import asyncHandler from '../util/asyncHandler';
 import express from 'express';
 
 import {AuditLogEntry, User} from '../../fbc_js_core/sequelize_models';
