@@ -16,10 +16,10 @@
 
 import type {network_epc_configs} from '../../../generated/MagmaAPIBindings';
 
-import Button from '../../../fbc_js_core/ui/components/design-system/Button';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import {
+  Button,
   Dialog,
   DialogActions,
   DialogContent,
@@ -190,10 +190,10 @@ export default function DataPlanEditDialog(props: Props) {
         </FormGroup>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onCancel} skin="regular">
-          Cancel
+        <Button onClick={props.onCancel}>Cancel</Button>
+        <Button onClick={onSave} variant="contained" color="primary">
+          Save
         </Button>
-        <Button onClick={onSave}>Save</Button>
       </DialogActions>
     </Dialog>
   );

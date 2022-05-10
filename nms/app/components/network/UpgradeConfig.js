@@ -17,7 +17,7 @@
 import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
 import type {magmad_gateway, tier} from '../../../generated/MagmaAPIBindings';
 
-import Button from '../../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
@@ -309,7 +309,9 @@ function UpgradeConfig(props: WithAlert & {}) {
             </Text>
             <div>
               <NestedRouteLink to={`tier/new/`}>
-                <Button>Add Tier</Button>
+                <Button variant="contained" color="primary">
+                  Add Tier
+                </Button>
               </NestedRouteLink>
             </div>
           </Toolbar>

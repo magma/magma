@@ -20,7 +20,7 @@ import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert
 
 import ActionTable from '../components/ActionTable';
 import BusinessIcon from '@material-ui/icons/Business';
-import Button from '../../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -149,7 +149,8 @@ function OnboardingDialog() {
       <DialogActions classes={{root: classes.onBoardingDialogActions}}>
         <Button
           className={classes.onBoardingDialogButton}
-          skin="comet"
+          variant="contained"
+          color="primary"
           onClick={() => setOpen(false)}>
           Get Started
         </Button>
@@ -291,8 +292,8 @@ function Organizations(props: Props) {
         <Grid container justifyContent="space-between">
           <Text variant="h3">Organizations</Text>
           <Button
-            skin="comet"
             className={classes.addButton}
+            color="primary"
             variant="contained"
             onClick={() => setShowOrganizationDialog(true)}>
             Add Organization

@@ -248,9 +248,7 @@ export default function GatewayEdit(props: GatewayPoolEditProps) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {props.isPrimary ?? false ? 'Save And Continue' : 'Save'}
         </Button>

@@ -18,7 +18,7 @@ import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 import type {Theme} from '@material-ui/core';
 import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
-import Button from '../../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import DataPlanEditDialog from './DataPlanEditDialog';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
@@ -158,7 +158,9 @@ function DataPlanConfig(props: Props) {
             <TableCell>Upload Speed</TableCell>
             <TableCell>
               <NestedRouteLink to="add">
-                <Button>Add Data Plan</Button>
+                <Button variant="contained" color="primary">
+                  Add Data Plan
+                </Button>
               </NestedRouteLink>
             </TableCell>
           </TableRow>

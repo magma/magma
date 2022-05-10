@@ -15,7 +15,7 @@
  */
 
 import AddNetworkDialog from './AddNetworkDialog';
-import Button from '../../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -91,11 +91,10 @@ function DialogWithConfirmationPhrase(props: DialogConfirmationProps) {
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button skin="regular" onClick={onClose}>
-          Cancel
-        </Button>
+        <Button onClick={onClose}>Cancel</Button>
         <Button
-          skin="red"
+          variant="contained"
+          color="primary"
           onClick={onConfirm}
           disabled={confirmationPhrase !== props.confirmationPhrase}>
           Confirm

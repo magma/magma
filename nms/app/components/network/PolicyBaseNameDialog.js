@@ -14,7 +14,7 @@
  * @format
  */
 
-import Button from '../../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -140,10 +140,10 @@ export default function (props: Props) {
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onCancel} skin="regular">
-          Cancel
+        <Button onClick={props.onCancel}>Cancel</Button>
+        <Button onClick={onSave} variant="contained" color="primary">
+          Save
         </Button>
-        <Button onClick={onSave}>Save</Button>
       </DialogActions>
     </Dialog>
   );

@@ -170,9 +170,7 @@ export default function RatingGroupEditDialog(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          {'Close'}
-        </Button>
+        <Button onClick={props.onClose}>Close</Button>
         <Button variant="contained" color="primary" onClick={onSave}>
           Save
         </Button>

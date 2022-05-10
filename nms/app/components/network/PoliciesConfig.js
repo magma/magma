@@ -16,7 +16,7 @@
 
 import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
-import Button from '../../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
@@ -131,7 +131,9 @@ function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
             <TableCell>Precedence</TableCell>
             <TableCell className={classes.actionsColumn}>
               <NestedRouteLink to="add/">
-                <Button>Add Rule</Button>
+                <Button variant="contained" color="primary">
+                  Add Rule
+                </Button>
               </NestedRouteLink>
             </TableCell>
           </TableRow>
@@ -174,7 +176,9 @@ function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
             <TableCell>Name</TableCell>
             <TableCell className={classes.actionsColumn}>
               <NestedRouteLink to="add_base_name/">
-                <Button>Add Base Name</Button>
+                <Button variant="contained" color="primary">
+                  Add Base Name
+                </Button>
               </NestedRouteLink>
             </TableCell>
           </TableRow>

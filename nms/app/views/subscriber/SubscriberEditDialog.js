@@ -310,15 +310,13 @@ export function SubscriberEditDialog(props: DialogProps) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          {'Close'}
-        </Button>
+        <Button onClick={props.onClose}>Close</Button>
         <Button
           data-testid={`${props.editProps?.editTable || ''}-saveButton`}
           variant="contained"
           color="primary"
           onClick={onSave}>
-          {'Save'}
+          Save
         </Button>
       </DialogActions>
     </Dialog>

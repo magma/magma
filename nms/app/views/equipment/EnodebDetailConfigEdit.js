@@ -490,9 +490,7 @@ export function RanEdit(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {props.isAdd ? 'Save And Add eNodeB' : 'Save'}
         </Button>
@@ -593,9 +591,7 @@ export function ConfigEdit(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>

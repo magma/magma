@@ -16,7 +16,7 @@
 
 import type {network_ran_configs} from '../../../generated/MagmaAPIBindings';
 
-import Button from '../../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormHelperText from '@material-ui/core/FormHelperText';
@@ -331,7 +331,9 @@ export default function NetworkConfig() {
         <Button
           disabled={!isValidHex(lteAuthOpHex)}
           className={classes.saveButton}
-          onClick={handleSave}>
+          onClick={handleSave}
+          variant="contained"
+          color="primary">
           Save
         </Button>
       </FormGroup>

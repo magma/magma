@@ -16,7 +16,7 @@
 import type {DialogProps} from './OrganizationDialog';
 
 import ArrowDropDown from '@material-ui/icons/ArrowDropDown';
-import Button from '../../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import Collapse from '@material-ui/core/Collapse';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -70,7 +70,7 @@ export default function (props: DialogProps) {
         />
       </AltFormField>
       <ListItem disablegutters="true">
-        <Button variant="text" onClick={() => setOpen(!open)}>
+        <Button variant="text" color="primary" onClick={() => setOpen(!open)}>
           Advanced Settings
         </Button>
         <ArrowDropDown />

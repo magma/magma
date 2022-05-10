@@ -121,9 +121,7 @@ export default function ConfigEdit(props: GatewayPoolEditProps) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {'Save And Continue'}
         </Button>
