@@ -15,7 +15,7 @@
  */
 
 import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
-import type {FBCNMSRequest} from '../../fbc_js_core/auth/access';
+import type {FBCNMSRequest} from '../../server/auth/access';
 import type {FeatureID} from '../../fbc_js_core/types/features';
 
 export type RequestInfo = {

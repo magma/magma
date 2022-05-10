@@ -21,10 +21,3 @@ export const AccessRoles = {
   READ_ONLY_USER: 1,
   SUPERUSER: 3,
 };
-
-export function accessRoleToString(role: number): string {
-  if (role === AccessRoles.SUPERUSER) {
-    return 'OWNER';
-  }
-  return 'USER';
-}

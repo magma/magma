@@ -16,7 +16,7 @@
 'use strict';
 
 import Sequelize from 'sequelize';
-import {AccessRoles} from '../../../fbc_js_core/auth/roles';
+import {AccessRoles} from '../../../shared/roles';
 import {omit} from 'lodash';
 
 import type {AssociateProp} from './AssociateTypes.flow';

@@ -15,7 +15,7 @@
  */
 
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '../../fbc_js_core/auth/access';
+import type {FBCNMSRequest} from '../auth/access';
 
 const express = require('express');
 const proxy = require('express-http-proxy');

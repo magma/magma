@@ -33,7 +33,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Text from '../../../theme/design-system/Text';
 import axios from 'axios';
-import {UserRoles} from '../../../../fbc_js_core/auth/types';
+import {UserRoles} from '../../../../shared/types';
 
 import renderList from '../../../../fbc_js_core/util/renderList';
 import withAlert from '../../../../fbc_js_core/ui/components/Alert/withAlert';

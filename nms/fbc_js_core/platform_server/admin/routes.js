@@ -15,7 +15,7 @@
  */
 
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '../../../fbc_js_core/auth/access';
+import type {FBCNMSRequest} from '../../../server/auth/access';
 
 import asyncHandler from '../../../fbc_js_core/util/asyncHandler';
 import express from 'express';

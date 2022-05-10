@@ -14,7 +14,7 @@
  * @format
  */
 
-import {AccessRoles} from '../roles';
+import {AccessRoles} from '../../../shared/roles';
 import {MultiSamlStrategy} from 'passport-saml'; // compatibility with breaking change in 3.1.0
 import {User} from '../../../fbc_js_core/sequelize_models';
 

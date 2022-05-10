@@ -21,7 +21,7 @@ import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 import type {EditUser} from './OrganizationEdit';
 import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
-import {UserRoles} from '../../../fbc_js_core/auth/types';
+import {UserRoles} from '../../../shared/types';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 import {useState} from 'react';

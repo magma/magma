@@ -20,7 +20,7 @@ import type {OrganizationType} from '../fbc_js_core/sequelize_models/models/orga
 import Sequelize from 'sequelize';
 import bcrypt from 'bcryptjs';
 
-import {AccessRoles} from '../fbc_js_core/auth/roles';
+import {AccessRoles} from '../shared/roles';
 import {Organization, User} from '../fbc_js_core/sequelize_models';
 
 const SALT_GEN_ROUNDS = 10;

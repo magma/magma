@@ -20,7 +20,7 @@ import expressOnboarding from './expressOnboarding';
 import logging from '../../fbc_js_core/logging';
 import passport from 'passport';
 import staticDist from '../../fbc_js_core/webpack_config/staticDist';
-import {AccessRoles, accessRoleToString} from './roles';
+import {AccessRoles} from '../../shared/roles';
 import {AuditLogEntry, User} from '../../fbc_js_core/sequelize_models';
 import {access} from './access';
 import {
@@ -47,6 +47,13 @@ type Options = {|
   loginView?: string,
   onboardingUrl?: string,
 |};
+
+function accessRoleToString(role: number): string {
+  if (role === AccessRoles.SUPERUSER) {
+    return 'OWNER';
+  }
+  return 'USER';
+}
 
 export function unprotectedUserRoutes() {
   const router: express.Router<
