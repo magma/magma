@@ -382,6 +382,25 @@ jobs:
         run: |
           make ${{ matrix.test_type }}
 
+      - name: Collect Pods logs
+        if: always()
+        run: >-
+          mkdir /tmp/k8s-pods-logs;
+          for pod in $(kubectl get pods -o custom-columns=NAME:.metadata.name --no-headers);
+          do
+            if [[ "$pod" == "postgres-database-0" ]]; then
+              kubectl logs $pod --container postgres-test > /tmp/k8s-pods-logs/${pod}.log;
+            else
+              kubectl logs $pod > /tmp/k8s-pods-logs/${pod}.log;
+            fi;
+          done
+      - name: Collect Elasticsearch data
+        if: always()
+        run: >
+          kubectl exec
+          $(kubectl get pods -o custom-columns=NAME:.metadata.name | grep elasticsearch)
+          -- curl localhost:9200/dp-*/_search?size=200 > /tmp/elasticsearch-data.json
+
       - name: Upload integration test results
         if: always()
         uses: actions/upload-artifact@v2
@@ -390,6 +409,8 @@ jobs:
           path: |
             ${{ env.TEST_DIR }}
             /tmp/${{ matrix.test_type }}.txt
+            /tmp/k8s-pods-logs
+            /tmp/elasticsearch-data.json
 
   integration-test-results:
     needs: integration_tests

@@ -22,8 +22,17 @@ endif
 .PHONY: local
 local: init dev
 
+.PHONY: integration_tests
+integration_tests: init _ci_init cleanup_test_db
+	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
+	kubectl delete pods test-runner --ignore-not-found=true
+	skaffold dev -p integration-tests-no-orc8 --trigger=manual
+
 .PHONY: orc8r_integration_tests
-orc8r_integration_tests: init_orc8r dev_orc8r_integration_test
+orc8r_integration_tests: init_orc8r _ci_init cleanup_test_db
+	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
+	kubectl delete pods test-runner-orc8r --ignore-not-found=true
+	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only --trigger=manual
 
 .PHONY: orc8r
 orc8r: init_orc8r dev_orc8r
@@ -56,6 +65,10 @@ start_minikube_orc8r:
 	minikube start --addons=metrics-server --memory='8g' --cpus=6 --kubernetes-version=$(KUBERNETES_VERSION)
 	minikube ssh sudo ip link set docker0 promisc on
 
+.PHONY: _switch_k8s_context
+_switch_k8s_context:
+	kubectx minikube
+
 .PHONY: clean
 clean:
 	minikube delete
@@ -63,19 +76,6 @@ clean:
 .PHONY: dev_orc8r
 dev_orc8r:
 	skaffold dev -p orc8r-deployment --trigger=manual
-
-
-.PHONY: dev_orc8r_integration_test
-dev_orc8r_integration_test: cleanup_test_db _ci_init
-	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
-	kubectl delete pods test-runner-orc8r --ignore-not-found=true
-	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only --trigger=manual
-
-.PHONY: dev_integration_test
-dev_integration_test: cleanup_test_db _ci_init
-	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
-	kubectl delete pods test-runner --ignore-not-found=true
-	skaffold dev -p integration-tests-no-orc8 --trigger=manual
 
 .PHONY: dev
 dev:
@@ -145,8 +145,6 @@ _generate_harness_config:
 
 .PHONY: _ci_integration_tests_no_orc8r
 _ci_integration_tests_no_orc8r: _install_skaffold_ci
-	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
-	kubectl delete pods test-runner --ignore-not-found=true
 	skaffold run -p integration-tests-no-orc8
 	kubectl logs test-runner -f | tee /tmp/$@.txt
 	@set -e;\
@@ -156,8 +154,6 @@ _ci_integration_tests_no_orc8r: _install_skaffold_ci
 
 .PHONY: _ci_integration_tests_orc8r
 _ci_integration_tests_orc8r: _install_skaffold_ci
-	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
-	kubectl delete pods test-runner-orc8r --ignore-not-found=true
 	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only
 	kubectl logs test-runner-orc8r -f | tee /tmp/$@.txt
 	@set -e;\
@@ -169,14 +165,14 @@ _ci_integration_tests_orc8r: _install_skaffold_ci
 _setup_db: _postgres_db_setup
 
 .PHONY: _postgres_db_setup
-_postgres_db_setup:
+_postgres_db_setup: _switch_k8s_context
 	kubectl apply -f ./tools/deployment/vendor/postgresql.yml
 
 .PHONY: _delete_db
 _delete_db: _postgres_db_delete
 
 .PHONY: _postgres_db_delete
-_postgres_db_delete:
+_postgres_db_delete: _switch_k8s_context
 	kubectl delete -f ./tools/deployment/vendor/postgresql.yml
 	kubectl delete pvc -l app=postgres-database
 
@@ -212,7 +208,7 @@ build_db:
 	python3 db_initialize.py; \
 
 .PHONY: cleanup_test_db
-cleanup_test_db:
+cleanup_test_db: _switch_k8s_context
 	kubectl exec -it postgres-database-0 \
 		--container postgres-test -- \
 		psql -p 5433 -U postgres -c \
