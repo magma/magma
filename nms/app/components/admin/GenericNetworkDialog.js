@@ -28,10 +28,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 
-import {
-  AllNetworkTypes,
-  V1NetworkTypes,
-} from '../../../fbc_js_core/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
@@ -57,9 +53,6 @@ type Props = {
   children?: React.Node,
 };
 
-const v1NetworkTypesSet = new Set<string>(V1NetworkTypes);
-const v0NetworkTypes = AllNetworkTypes.filter(x => !v1NetworkTypesSet.has(x));
-
 export default function GenericNetworkDialog(props: Props) {
   const classes = useStyles();
   const [networkConfig, setNetworkConfig] = useState(props.networkConfig);
@@ -72,12 +65,6 @@ export default function GenericNetworkDialog(props: Props) {
       ...networkConfig,
       [(field: string)]: value,
     });
-
-  const validNetworkTypes = v1NetworkTypesSet.has(networkConfig.type || '????')
-    ? // cannot change network types if v1
-      [networkConfig.type]
-    : // cannot change to a v1 network type
-      v0NetworkTypes;
 
   return (
     <Dialog open={true} onClose={props.onClose}>
@@ -102,12 +89,11 @@ export default function GenericNetworkDialog(props: Props) {
           <Select
             value={networkConfig.type}
             onChange={({target}) => updateNetwork('type', target.value)}
-            input={<Input id="types" />}>
-            {validNetworkTypes.map(type => (
-              <MenuItem key={type} value={type}>
-                <ListItemText primary={type} />
-              </MenuItem>
-            ))}
+            input={<Input id="types" />}
+            disabled={true}>
+            <MenuItem key={networkConfig.type} value={networkConfig.type}>
+              <ListItemText primary={networkConfig.type} />
+            </MenuItem>
           </Select>
         </FormControl>
         {props.children}
