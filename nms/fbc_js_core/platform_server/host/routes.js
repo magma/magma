@@ -29,7 +29,7 @@ import {getPropsToUpdate} from '../../../server/auth/util';
 
 import crypto from 'crypto';
 
-const logger = require('../../../fbc_js_core/logging').getLogger(module);
+const logger = require('../../../shared/logging').getLogger(module);
 
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 

@@ -19,7 +19,7 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import helmet from 'helmet';
-import logging from '../../fbc_js_core/logging';
+import logging from '../../shared/logging';
 
 /**
  * General middleware that every application should use, and it should be the

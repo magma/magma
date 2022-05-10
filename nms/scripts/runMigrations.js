@@ -14,7 +14,7 @@
  * @format
  */
 
-const logger = require('../fbc_js_core/logging').getLogger(module);
+const logger = require('../shared/logging').getLogger(module);
 const {sequelize} = require('../fbc_js_core/sequelize_models');
 const sequelizerc = require('../fbc_js_core/sequelize_models/sequelizerc');
 
