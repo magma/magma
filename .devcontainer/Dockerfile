@@ -62,7 +62,6 @@ RUN echo "Install general purpose packages" && \
         gdb \
         git \
         gnupg \
-        golang \
         libclang-11-dev \
         libgmp3-dev \
         libpcap-dev \
@@ -97,6 +96,13 @@ RUN echo "Install general purpose packages" && \
         update-alternatives --install /usr/bin/clang-apply-replacements clang-apply-replacements /usr/lib/llvm-11/bin/clang-apply-replacements 10
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y clangd-12
+
+# Install golang 1.18
+WORKDIR /usr/local
+RUN curl https://artifactory.magmacore.org/artifactory/generic/go1.18.linux-amd64.tar.gz --remote-name --location && \
+    tar -xzf go1.18.linux-amd64.tar.gz && \
+    rm go1.18.linux-amd64.tar.gz
+ENV PATH=$PATH:/usr/local/go/bin
 
 # Install bazel
 WORKDIR /usr/sbin
@@ -161,7 +167,7 @@ RUN wget --progress=dot:giga https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz &&
     rm -rf gnutls*
 
 ##### Useful for logfile modification e.g. pruning all /magma/... prefix from GCC warning logs
-RUN GOBIN="/usr/bin/" go get github.com/ezekg/xo
+RUN GOBIN="/usr/bin/" go install github.com/ezekg/xo@0f7f076932dd
 
 ##### GRPC and it's dependencies
 RUN git clone --recurse-submodules -b v1.35.0 https://github.com/grpc/grpc && \
@@ -319,7 +325,7 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     rm -rf /freediameter /tmp/*
 
 ##### Go language server support for vscode
-RUN go get -v golang.org/x/tools/gopls
+RUN GOBIN="/usr/bin/" go install -v golang.org/x/tools/gopls@v0.8.3
 
 #### Update shared library configuration
 RUN ldconfig -v
