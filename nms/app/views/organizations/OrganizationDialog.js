@@ -14,7 +14,7 @@
  * @format
  */
 import AppContext from '../../../app/components/context/AppContext';
-import type {OrganizationPlainAttributes} from '../../../fbc_js_core/sequelize_models/models/organization';
+import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';

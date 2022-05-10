@@ -20,7 +20,7 @@ import type {FBCNMSRequest} from './access';
 import express from 'express';
 import staticDist from '../../config/staticDist';
 import {AccessRoles} from '../../shared/roles';
-import {Organization, User} from '../../fbc_js_core/sequelize_models';
+import {Organization, User} from '../../shared/sequelize_models';
 import {getPropsToUpdate} from './util';
 
 export default function () {

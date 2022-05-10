@@ -21,7 +21,7 @@ import logging from '../../shared/logging';
 import passport from 'passport';
 import staticDist from '../../config/staticDist';
 import {AccessRoles} from '../../shared/roles';
-import {AuditLogEntry, User} from '../../fbc_js_core/sequelize_models';
+import {AuditLogEntry, User} from '../../shared/sequelize_models';
 import {access} from './access';
 import {
   addQueryParamsToUrl,
@@ -34,7 +34,7 @@ import {isEmpty} from 'lodash';
 import type {EmbeddedData} from '../../shared/types/embeddedData';
 import type {ExpressRequest, ExpressResponse} from 'express';
 import type {FBCNMSRequest} from './access';
-import type {UserType} from '../../fbc_js_core/sequelize_models/models/user';
+import type {UserType} from '../../shared/sequelize_models/models/user';
 
 import crypto from 'crypto';
 

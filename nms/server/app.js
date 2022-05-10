@@ -46,7 +46,7 @@ import {
   webpackSmartMiddleware,
 } from './middleware';
 import {distPath} from '../config/paths';
-import {sequelize} from '../fbc_js_core/sequelize_models';
+import {sequelize} from '../shared/sequelize_models';
 import {unprotectedUserRoutes} from '../server/auth/express';
 
 import type {ExpressResponse} from 'express';

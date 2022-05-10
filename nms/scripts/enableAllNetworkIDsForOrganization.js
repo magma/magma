@@ -18,7 +18,7 @@
 import Sequelize from 'sequelize';
 import https from 'https';
 import {API_HOST, apiCredentials} from '../config/config';
-import {Organization} from '../fbc_js_core/sequelize_models';
+import {Organization} from '../shared/sequelize_models';
 
 async function enableNetworks(
   organizationName: string,
