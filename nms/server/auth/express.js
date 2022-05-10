@@ -19,7 +19,7 @@ import express from 'express';
 import expressOnboarding from './expressOnboarding';
 import logging from '../../shared/logging';
 import passport from 'passport';
-import staticDist from '../../fbc_js_core/webpack_config/staticDist';
+import staticDist from '../../config/staticDist';
 import {AccessRoles} from '../../shared/roles';
 import {AuditLogEntry, User} from '../../fbc_js_core/sequelize_models';
 import {access} from './access';

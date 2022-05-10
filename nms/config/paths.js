@@ -23,6 +23,7 @@ const resolveApp = (relativePath: string) =>
   path.resolve(appDirectory, relativePath);
 
 module.exports = {
+  appSrc: resolveApp('app'),
   appIndexJs: resolveApp('app/main.js'),
   loginJs: resolveApp('app/login.js'),
   hostJs: resolveApp('app/host.js'),
