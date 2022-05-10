@@ -31,7 +31,7 @@ class TcOpsBase(ABC):
     @abstractmethod
     def create_htb(
         self, iface: str, qid: str, max_bw: str, rate: str,
-        parent_qid: str = None,
+        units: str, parent_qid: str = None,
     ) -> int:
         """
         Create HTB scheduler

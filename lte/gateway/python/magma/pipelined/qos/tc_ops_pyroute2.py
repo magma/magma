@@ -38,7 +38,7 @@ class TcOpsPyRoute2(TcOpsBase):
 
     def create_htb(
         self, iface: str, qid: str, max_bw: int, rate: str,
-        parent_qid: str = None,
+        units: str, parent_qid: str = None,
     ) -> int:
         """
         Create HTB class for a UE session.
@@ -54,16 +54,15 @@ class TcOpsPyRoute2(TcOpsBase):
             zero on success.
         """
 
-        LOG.debug("Create HTB iface %s qid %s max_bw %s rate %s", iface, qid, max_bw, rate)
+        LOG.debug("Create HTB iface %s qid %s max_bw %s%s rate %s", iface, qid, max_bw, units, rate)
         try:
             # API needs ceiling in bytes per sec.
-            max_bw = max_bw / 8
             if_index = self._get_if_index(iface)
             htb_queue = QUEUE_PREFIX + qid
             ret = self._ipr.tc(
                 "add-class", "htb", if_index,
                 htb_queue, parent=parent_qid,
-                rate=str(rate).lower(), ceil=max_bw, prio=1,
+                rate=str(rate).lower(), ceil=str(max_bw) + units, prio=1,
             )
             LOG.debug("Return: %s", ret)
         except (ValueError, NetlinkError) as ex:
