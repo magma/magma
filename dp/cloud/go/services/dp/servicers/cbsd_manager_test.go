@@ -70,7 +70,20 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 	s.Require().NoError(err)
 
 	s.Assert().Equal(networkId, s.store.networkId)
-	s.Assert().Equal(getMutableCbsd(), s.store.data)
+	s.Assert().Equal(getMutableCbsd(getDBCbsd()), s.store.data)
+}
+
+func (s *CbsdManagerTestSuite) TestCreateSingleStepCbsd() {
+	request := &protos.CreateCbsdRequest{
+		NetworkId: networkId,
+		Data:      getSingleStepProtoCbsd(),
+	}
+	_, err := s.manager.CreateCbsd(context.Background(), request)
+	dbCbsd := getSingleStepDBCbsd()
+	s.Require().NoError(err)
+
+	s.Assert().Equal(networkId, s.store.networkId)
+	s.Assert().Equal(getMutableCbsd(dbCbsd), s.store.data)
 }
 
 func (s *CbsdManagerTestSuite) TestCreateWithDuplicateData() {
@@ -98,7 +111,7 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 
 	s.Assert().Equal(networkId, s.store.networkId)
 	s.Assert().Equal(cbsdId, s.store.id)
-	s.Assert().Equal(getMutableCbsd(), s.store.data)
+	s.Assert().Equal(getMutableCbsd(getDBCbsd()), s.store.data)
 }
 
 func (s *CbsdManagerTestSuite) TestUpdateNonexistentCbsd() {
@@ -307,6 +320,7 @@ func getProtoCbsd() *protos.CbsdData {
 		UserId:       "some_user_id",
 		FccId:        "some_fcc_id",
 		SerialNumber: someSerialNumber,
+		CbsdCategory: "b",
 		Capabilities: &protos.Capabilities{
 			MinPower:         10,
 			MaxPower:         20,
@@ -319,6 +333,13 @@ func getProtoCbsd() *protos.CbsdData {
 		},
 		DesiredState: "registered",
 	}
+}
+
+func getSingleStepProtoCbsd() *protos.CbsdData {
+	cbsd := getProtoCbsd()
+	cbsd.SingleStepEnabled = true
+	cbsd.CbsdCategory = "a"
+	return cbsd
 }
 
 func getProtoDetailedCbsd() *protos.CbsdDetails {
@@ -357,12 +378,21 @@ func getDBCbsd() *storage.DBCbsd {
 		MaxPower:                db.MakeFloat(20),
 		AntennaGain:             db.MakeFloat(15),
 		NumberOfPorts:           db.MakeInt(2),
+		CbsdCategory:            db.MakeString("b"),
+		SingleStepEnabled:       db.MakeBool(false),
 	}
 }
 
-func getMutableCbsd() *storage.MutableCbsd {
+func getSingleStepDBCbsd() *storage.DBCbsd {
+	cbsd := getDBCbsd()
+	cbsd.SingleStepEnabled = db.MakeBool(true)
+	cbsd.CbsdCategory = db.MakeString("a")
+	return cbsd
+}
+
+func getMutableCbsd(cbsd *storage.DBCbsd) *storage.MutableCbsd {
 	return &storage.MutableCbsd{
-		Cbsd: getDBCbsd(),
+		Cbsd: cbsd,
 		DesiredState: &storage.DBCbsdState{
 			Name: db.MakeString("registered"),
 		},

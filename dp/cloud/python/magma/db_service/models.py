@@ -224,7 +224,7 @@ class DBCbsd(Base):
         JSON, nullable=False, server_default=sa_text("'[]'::json"),
     )
     single_step_enabled = Column(Boolean, nullable=False, server_default='false')
-    cbsd_category = Column(String, nullable=False, server_default='B')
+    cbsd_category = Column(String, nullable=False, server_default='b')
     network_id = Column(String)
     latitude_deg = Column(Float)
     longitude_deg = Column(Float)
@@ -237,7 +237,7 @@ class DBCbsd(Base):
     antenna_model = Column(String)
     eirp_capability_dbm_mhz = Column(Integer)
     cpi_digital_signature = Column(Text)
-    indoor_deployment = Column(Boolean, nullable=False, server_default='false')
+    indoor_deployment = Column(Boolean)
     is_deleted = Column(Boolean, nullable=False, server_default='false')
     should_deregister = Column(Boolean, nullable=False, server_default='false')
     created_date = Column(

@@ -28,6 +28,8 @@ import (
 	"magma/orc8r/lib/go/merrors"
 )
 
+type cbsdGetter func() *storage.DBCbsd
+
 func TestCbsdManager(t *testing.T) {
 	suite.Run(t, &CbsdManagerTestSuite{})
 }
@@ -89,7 +91,7 @@ const (
 )
 
 func (s *CbsdManagerTestSuite) TestCreateCbsd() {
-	err := s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd())
+	err := s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd(getBaseCbsd()))
 	s.Require().NoError(err)
 
 	err = s.resourceManager.InTransaction(func() {
@@ -112,6 +114,8 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 		s.Require().NoError(err)
 
 		cbsd := getBaseCbsd()
+		cbsd.CbsdCategory = db.MakeString("b")
+		cbsd.SingleStepEnabled = db.MakeBool(false)
 		cbsd.NetworkId = db.MakeString(someNetwork)
 		cbsd.GrantAttempts = db.MakeInt(0)
 		cbsd.IsDeleted = db.MakeBool(false)
@@ -127,9 +131,10 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 }
 
 func (s *CbsdManagerTestSuite) TestCreateCbsdWithExistingSerialNumber() {
-	err := s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd())
+	cbsd := getBaseCbsd()
+	err := s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd(cbsd))
 	s.Require().NoError(err)
-	err = s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd())
+	err = s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd(cbsd))
 	s.Assert().ErrorIs(err, merrors.ErrAlreadyExists)
 }
 
@@ -154,7 +159,7 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 	state := s.enumMaps[storage.CbsdStateTable]["registered"]
 	s.givenResourcesInserted(getCbsd(someCbsdId, someNetwork, state))
 
-	m := getMutableCbsd()
+	m := getMutableCbsd(getBaseCbsd())
 	m.Cbsd.UserId.String += "new1"
 	m.Cbsd.FccId.String += "new2"
 	m.Cbsd.CbsdSerialNumber.String += "new3"
@@ -187,12 +192,12 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 func (s *CbsdManagerTestSuite) TestUpdateDeletedCbsd() {
 	s.givenDeletedCbsd()
 
-	err := s.cbsdManager.UpdateCbsd(someNetwork, someCbsdId, getMutableCbsd())
+	err := s.cbsdManager.UpdateCbsd(someNetwork, someCbsdId, getMutableCbsd(getBaseCbsd()))
 	s.Assert().ErrorIs(err, merrors.ErrNotFound)
 }
 
 func (s *CbsdManagerTestSuite) TestUpdateNonExistentCbsd() {
-	err := s.cbsdManager.UpdateCbsd(someNetwork, 0, getMutableCbsd())
+	err := s.cbsdManager.UpdateCbsd(someNetwork, 0, getMutableCbsd(getBaseCbsd()))
 	s.Assert().ErrorIs(err, merrors.ErrNotFound)
 }
 
@@ -541,9 +546,9 @@ func getBaseCbsd() *storage.DBCbsd {
 	return base
 }
 
-func getMutableCbsd() *storage.MutableCbsd {
+func getMutableCbsd(cbsd *storage.DBCbsd) *storage.MutableCbsd {
 	return &storage.MutableCbsd{
-		Cbsd:         getBaseCbsd(),
+		Cbsd:         cbsd,
 		DesiredState: &storage.DBCbsdState{Name: db.MakeString("registered")},
 	}
 }

@@ -35,10 +35,12 @@ func TestCbsdToBackend(t *testing.T) {
 			BandwidthMhz:   10,
 			FrequenciesMhz: []int64{3600},
 		},
-		FccID:        "barID",
-		SerialNumber: "12345",
-		UserID:       "fooUser",
-		DesiredState: "registered",
+		FccID:             "barID",
+		SerialNumber:      "12345",
+		UserID:            "fooUser",
+		DesiredState:      "registered",
+		CbsdCategory:      "a",
+		SingleStepEnabled: true,
 	}
 	data := models.CbsdToBackend(&cbsd)
 	assert.Equal(t, data.UserId, cbsd.UserID)
@@ -51,6 +53,7 @@ func TestCbsdToBackend(t *testing.T) {
 	assert.Equal(t, data.Preferences.BandwidthMhz, cbsd.FrequencyPreferences.BandwidthMhz)
 	assert.Equal(t, data.Preferences.FrequenciesMhz, cbsd.FrequencyPreferences.FrequenciesMhz)
 	assert.Equal(t, data.DesiredState, cbsd.DesiredState)
+	assert.Equal(t, data.SingleStepEnabled, cbsd.SingleStepEnabled)
 }
 
 func TestCbsdFromBackendWithoutGrant(t *testing.T) {

@@ -24,6 +24,10 @@ type MutableCbsd struct {
 	// Required: true
 	Capabilities Capabilities `json:"capabilities"`
 
+	// is the radio type A (only) or B (also applies to A/B type radios)
+	// Enum: [a b]
+	CbsdCategory string `json:"cbsd_category,omitempty"`
+
 	// desired state of cbsd in SAS
 	// Required: true
 	// Enum: [unregistered registered]
@@ -45,6 +49,9 @@ type MutableCbsd struct {
 	// Min Length: 1
 	SerialNumber string `json:"serial_number"`
 
+	// should the CBSD be registered in a single-step mode
+	SingleStepEnabled bool `json:"single_step_enabled,omitempty"`
+
 	// user id
 	// Example: some_user_id
 	// Required: true
@@ -57,6 +64,10 @@ func (m *MutableCbsd) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateCapabilities(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateCbsdCategory(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -94,6 +105,48 @@ func (m *MutableCbsd) validateCapabilities(formats strfmt.Registry) error {
 		} else if ce, ok := err.(*errors.CompositeError); ok {
 			return ce.ValidateName("capabilities")
 		}
+		return err
+	}
+
+	return nil
+}
+
+var mutableCbsdTypeCbsdCategoryPropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["a","b"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		mutableCbsdTypeCbsdCategoryPropEnum = append(mutableCbsdTypeCbsdCategoryPropEnum, v)
+	}
+}
+
+const (
+
+	// MutableCbsdCbsdCategoryA captures enum value "a"
+	MutableCbsdCbsdCategoryA string = "a"
+
+	// MutableCbsdCbsdCategoryB captures enum value "b"
+	MutableCbsdCbsdCategoryB string = "b"
+)
+
+// prop value enum
+func (m *MutableCbsd) validateCbsdCategoryEnum(path, location string, value string) error {
+	if err := validate.EnumCase(path, location, value, mutableCbsdTypeCbsdCategoryPropEnum, true); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *MutableCbsd) validateCbsdCategory(formats strfmt.Registry) error {
+	if swag.IsZero(m.CbsdCategory) { // not required
+		return nil
+	}
+
+	// value enum
+	if err := m.validateCbsdCategoryEnum("cbsd_category", "body", m.CbsdCategory); err != nil {
 		return err
 	}
 

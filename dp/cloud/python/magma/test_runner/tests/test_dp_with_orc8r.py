@@ -463,6 +463,8 @@ class CbsdAPIDataBuilder:
             'serial_number': self.serial_number,
             'user_id': USER_ID,
             'desired_state': self.desired_state,
+            'single_step_enabled': False,
+            'cbsd_category': 'b',
         }
 
     def build_unregistered_data(self) -> Dict[str, Any]:
