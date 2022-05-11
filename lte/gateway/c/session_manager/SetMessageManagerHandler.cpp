@@ -149,6 +149,20 @@ void SetMessageManagerHandler::SetAmfSessionContext(
       auto session_map = session_store_.read_sessions({imsi});
       initiate_release_session(session_map, pdu_id, imsi);
       response_callback(Status::OK, SmContextVoid());
+    } else if ((cfg.rat_specific_context.m5gsm_session_context()
+                    .request_type() == EXISTING_PDU_SESSION) &&
+               (cfg.common_context.sm_session_state() == ACTIVE_2)) {
+      if (cfg.common_context.sm_session_version() == 0) {
+        MLOG(MERROR) << "Wrong version received from AMF for IMSI " << imsi
+                     << " but continuing release request";
+        Status status(grpc::OUT_OF_RANGE, "Version number Out of Range");
+        response_callback(status, SmContextVoid());
+        return;
+      }
+      auto session_map = session_store_.read_sessions({imsi});
+      request_modification_session(session_map, imsi, cfg, pdu_id,
+                                   response_callback);
+      return;
     } else {
       // The Event Based main_thread invocation and runs to handle session state
       MLOG(MDEBUG) << "Requested session from UE with IMSI: " << imsi
@@ -558,4 +572,44 @@ void SetMessageManagerHandler::service_handle_request_on_paging(
   response_callback(Status::OK, SmContextVoid());
   return;
 }
+
+void SetMessageManagerHandler::request_modification_session(
+    SessionMap& session_map, const std::string& imsi, SessionConfig& new_cfg,
+    uint32_t& pdu_id,
+    std::function<void(Status, SmContextVoid)> response_callback) {
+  SessionSearchCriteria criteria(imsi, IMSI_AND_PDUID, pdu_id);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    MLOG(MINFO) << " No session found for IMSI: " << imsi << " pdu id "
+                << pdu_id;
+    Status status(grpc::NOT_FOUND, "Sesion Not found");
+    response_callback(status, SmContextVoid());
+    return;
+  }
+  auto& session = **session_it;
+  SessionConfig cfg = session->get_config();
+  cfg.rat_specific_context.mutable_m5gsm_session_context()
+      ->mutable_gnode_endpoint()
+      ->set_end_ipv4_addr(new_cfg.rat_specific_context.m5gsm_session_context()
+                              .gnode_endpoint()
+                              .end_ipv4_addr());
+  cfg.rat_specific_context.mutable_m5gsm_session_context()
+      ->mutable_gnode_endpoint()
+      ->set_teid(new_cfg.rat_specific_context.m5gsm_session_context()
+                     .gnode_endpoint()
+                     .teid());
+
+  session->set_config(cfg, nullptr);
+  SessionUpdate update = SessionStore::get_default_session_update(session_map);
+  bool update_success = m5g_enforcer_->m5g_modification_session(
+      session_map, imsi, session, new_cfg, update);
+  if (!update_success) {
+    Status status(grpc::ABORTED, "Modification operation aborted in  middle");
+    response_callback(status, SmContextVoid());
+    return;
+  }
+  response_callback(Status::OK, SmContextVoid());
+  return;
+}
+
 }  // end namespace magma

@@ -1056,7 +1056,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 self._ng_inactivate_qer_flows(ipv6, qos_enforce_rule)
 
         # Install PDR rules
-        elif pdr_entry.pdr_state == PdrState.Value('INSTALL'):
+        elif pdr_entry.pdr_state == PdrState.Value('INSTALL') or \
+                pdr_entry.pdr_state == PdrState.Value('MODI'):
             qos_enforce_rule = pdr_entry.add_qos_enforce_rule
             if qos_enforce_rule.ip_addr:
                 ipv4 = convert_ip_str_to_ip_proto(qos_enforce_rule.ip_addr)
@@ -1078,6 +1079,21 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                     )
                 failed_policy_rules_results = \
                     _retrieve_failed_results(enforcement_res)
+
+            if pdr_entry.pdr_state == PdrState.Value('MODI'):
+                qos_enforce_deactivate_rule = pdr_entry.del_qos_enforce_rule
+                if qos_enforce_deactivate_rule.policies:
+                    logging.info("qos_enforce_deactivate_rule.policies")
+                    if qos_enforce_deactivate_rule.ip_addr:
+                        ipv4 = convert_ip_str_to_ip_proto(qos_enforce_deactivate_rule.ip_addr)
+                        self._ng_mod_qer_flow(
+                            ipv4, qos_enforce_deactivate_rule,
+                        )
+                    if qos_enforce_deactivate_rule.ipv6_addr:
+                        ipv6 = convert_ipv6_bytes_to_ip_proto(qos_enforce_deactivate_rule.ipv6_addr)
+                        self._ng_mod_qer_flow(
+                            ipv6, qos_enforce_deactivate_rule,
+                        )
 
         return failed_policy_rules_results
 
@@ -1124,6 +1140,23 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._enforcement_stats.deactivate_default_flow(
             qos_enforce_rule.sid.id, ip,
             local_f_teid_ng,
+        )
+
+        if rule_ids:
+            self._enforcer_app.deactivate_rules(
+                qos_enforce_rule.sid.id, ip,
+                rule_ids,
+            )
+
+    def _ng_mod_qer_flow(
+        self, ip: IPAddress,
+        qos_enforce_rule: DeactivateFlowsRequest,
+    ):
+        rule_ids = []
+        rule_ids = [policy.rule_id for policy in qos_enforce_rule.policies]
+
+        self._remove_version(
+            qos_enforce_rule, ip,
         )
 
         if rule_ids:
