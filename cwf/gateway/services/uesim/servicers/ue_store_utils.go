@@ -19,6 +19,8 @@ import (
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/lib/go/protos"
+
+	"github.com/hashicorp/go-multierror"
 )
 
 func addUeToStore(srvstore blobstore.StoreFactory, ue *cwfprotos.UEConfig) {
@@ -30,16 +32,15 @@ func addUeToStore(srvstore blobstore.StoreFactory, ue *cwfprotos.UEConfig) {
 		return
 	}
 	defer func() {
-		switch err {
-		case nil:
+		if err == nil {
 			if commitErr := store.Commit(); commitErr != nil {
-				err = fmt.Errorf("Error while committing transaction: %w", err)
+				err = fmt.Errorf("Error while committing transaction: %w", commitErr)
 				err = ConvertStorageErrorToGrpcStatus(err)
 			}
-		default:
+		} else {
 			if rollbackErr := store.Rollback(); rollbackErr != nil {
-				err = fmt.Errorf("Error while rolling back transaction: %w", err)
-				err = ConvertStorageErrorToGrpcStatus(err)
+				errs := multierror.Append(err, fmt.Errorf("Error while rolling back transaction: %w", rollbackErr))
+				err = ConvertStorageErrorToGrpcStatus(errs.ErrorOrNil())
 			}
 		}
 	}()

@@ -22,7 +22,6 @@ import (
 	"contrib.go.opencensus.io/exporter/prometheus"
 	"fbc/lib/go/http/server"
 	"fbc/lib/go/oc/helpers"
-	"github.com/pkg/errors"
 	prom_client "github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/stats/view"
