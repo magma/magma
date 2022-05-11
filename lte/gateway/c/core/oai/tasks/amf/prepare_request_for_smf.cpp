@@ -92,6 +92,7 @@ int create_session_grpc_req_on_gnb_setup_rsp(
   inet_ntop(AF_INET, message->gnb_gtp_teid_ip_addr, ipv4_str, INET_ADDRSTRLEN);
   req_rat_specific->mutable_gnode_endpoint()->set_end_ipv4_addr(ipv4_str);
 
+#if 0 
   for (int i = 0; i < smf_ctx->qos_flow_list.maxNumOfQosFlows; i++) {
     QosPolicy* qosPolicy = req_rat_specific->add_qos_policy();
     qosPolicy->set_version(
@@ -101,8 +102,9 @@ int create_session_grpc_req_on_gnb_setup_rsp(
     rule->set_id(
         (const char*)smf_ctx->qos_flow_list.item[i].qos_flow_req_item.rule_id);
   }
+#endif
 
-  OAILOG_DEBUG(LOG_AMF_APP, "Sending PDU session Setup Response to SMF");
+  OAILOG_DEBUG(LOG_AMF_APP, "Sending PDU session Setup Request to SMF");
 
   OAILOG_INFO(LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s]\n",
               imsi);
@@ -153,18 +155,19 @@ int amf_send_grpc_req_on_gnb_pdu_sess_mod_rsp(
   inet_ntop(AF_INET, message->gnb_gtp_teid_ip_addr, ipv4_str, INET_ADDRSTRLEN);
   req_rat_specific->mutable_gnode_endpoint()->set_end_ipv4_addr(ipv4_str);
 
-  for (int i = 0; i < smf_ctx->qos_flow_list.maxNumOfQosFlows; i++) {
+  qos_flow_list_t* pti_flow_list = smf_ctx->get_proc_flow_list();
+
+  for (int i = 0; i < pti_flow_list->maxNumOfQosFlows; i++) {
     QosPolicy* qosPolicy = req_rat_specific->add_qos_policy();
     qosPolicy->set_version(
-        smf_ctx->qos_flow_list.item[i].qos_flow_req_item.qos_flow_version);
+        pti_flow_list->item[i].qos_flow_req_item.qos_flow_version);
     if (SMF_CAUSE_FAILURE == message->cause_value) {
       qosPolicy->set_policy_state(QosPolicy::REJECT);
     } else {
       qosPolicy->set_policy_state(QosPolicy::INSTALL);
     }
     magma::lte::PolicyRule* rule = qosPolicy->mutable_qos();
-    rule->set_id(
-        (const char*)smf_ctx->qos_flow_list.item[i].qos_flow_req_item.rule_id);
+    rule->set_id((const char*)pti_flow_list->item[i].qos_flow_req_item.rule_id);
   }
 
   OAILOG_DEBUG(LOG_AMF_APP, "Sending PDU Session Modification Response to SMF");
@@ -300,8 +303,7 @@ int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
   auto* req_rat_specific =
       req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
   req_rat_specific->set_pdu_session_id(message->pdu_session_id);
-  req_rat_specific->set_procedure_trans_identity(
-      (const char*)(&(message->pti)));
+  req_rat_specific->set_procedure_trans_identity(message->pti);
   req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
 
   OAILOG_INFO(

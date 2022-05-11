@@ -26,7 +26,7 @@ extern "C" {
 }
 
 #include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.hpp"
 #include <gtest/gtest.h>
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
@@ -41,7 +41,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQosFlowParam.hpp"
@@ -1570,7 +1570,12 @@ TEST(test_optional_pdu, test_pdu_session_accept_optional) {
   sm_free_protocol_configuration_options(&decode_msg_accept_pco);
   // Clean up the PCO contents
   sm_free_protocol_configuration_options(&msg_accept_pco);
+
+  bdestroy(smf_msg->msg.pdu_session_estab_accept.authorized_qosrules);
+  bdestroy(pdu_sess_accept.payload_container.smf_msg.msg
+               .pdu_session_estab_accept.authorized_qosrules);
 }
+
 TEST(test_PDUAddressMsg, test_pdu_session_accept_optional_addressinfo) {
   paa_t pa = {};
   pa.pdn_type = IPv4;
@@ -1617,11 +1622,12 @@ TEST(test_pdu_session_modification, test_pdu_session_modification_command_msg) {
   qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].pkt_filter_dir = 3;
   qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].pkt_filter_id = 1;
 
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[0] =
+      TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR;
   inet_pton(AF_INET, "192.168.200.1",
-            qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents);
-
+            qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents + 1);
   inet_pton(AF_INET, "255.255.255.255",
-            qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents + 4);
+            qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents + 5);
 
   // Packet filter header + sizeof ipv4 address + sizeof of ipv4 mask
   qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].len = 1 + 4 + 4;
@@ -1630,11 +1636,13 @@ TEST(test_pdu_session_modification, test_pdu_session_modification_command_msg) {
   // Preparing qos rule precedence
   qosrules.qos_rule[0].qos_rule_precedence = 254;
   qosrules.qos_rule[0].qfi = 3;
+
   int rule_precedence = 1 + 1;  // precedence + identifier
   // Preparing qos rule
   qosrules.qos_rule[0].len = 1 + filter_len + rule_precedence;
   qosrules.qos_rule[0].qos_rule_id = 2;
-  qosrules.qos_rule[0].rule_oper_code = 2;
+  qosrules.qos_rule[0].rule_oper_code =
+      TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT;
   qosrules.qos_rule[0].dqr_bit = 0;
 
   qosrules.length = 1 + 2 + qosrules.qos_rule[0].len;
@@ -1818,6 +1826,76 @@ TEST(test_pdu_session_modification, test_pdu_session_modification_command_rej) {
             pdu_sess_mod_com_rej_decoded.cause.iei);
   EXPECT_EQ(pdu_sess_mod_com_rej_encoded.cause.cause_value,
             pdu_sess_mod_com_rej_decoded.cause.cause_value);
+}
+
+TEST(test_qos_rules, test_qos_rules) {
+  QOSRulesMsg qosrules;
+  QOSRulesMsg decoded_qosrules;
+  qosrules.iei = PDU_SESSION_QOS_RULES_IE_TYPE;
+  uint8_t iei = qosrules.iei;
+
+  // Preparing packet filter
+  qosrules.qos_rule[0].no_of_pkt_filters = 1;
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].pkt_filter_dir = 3;
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].pkt_filter_id = 1;
+
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[0] =
+      TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR;
+  inet_pton(AF_INET, "192.168.200.1",
+            qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents + 1);
+  inet_pton(AF_INET, "255.255.255.255",
+            qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents + 5);
+
+  // Packet filter header + sizeof ipv4 address + sizeof of ipv4 mask
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].len = 1 + 4 + 4;
+  int filter_len = 1 + 1 + qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].len;
+
+  // Preparing qos rule precedence
+  qosrules.qos_rule[0].qos_rule_precedence = 254;
+  qosrules.qos_rule[0].qfi = 3;
+
+  int rule_precedence = 1 + 1;  // precedence + identifier
+  // Preparing qos rule
+  qosrules.qos_rule[0].len = 1 + filter_len + rule_precedence;
+  qosrules.qos_rule[0].qos_rule_id = 2;
+  qosrules.qos_rule[0].rule_oper_code =
+      TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT;
+  qosrules.qos_rule[0].dqr_bit = 0;
+
+  qosrules.length = 1 + 2 + qosrules.qos_rule[0].len;
+
+  uint8_t qos_rules_buffer[4096];
+
+  int encoded_qos_rules =
+      qosrules.EncodeQOSRulesMsg(&qosrules, iei, qos_rules_buffer, 4096);
+  EXPECT_EQ(encoded_qos_rules, 20);
+
+  int decoded_qos_rules = decoded_qosrules.DecodeQOSRulesMsg(
+      &decoded_qosrules, iei, qos_rules_buffer, 4096);
+  EXPECT_EQ(decoded_qos_rules, 20);
+
+  EXPECT_EQ(qosrules.iei, decoded_qosrules.iei);
+  EXPECT_EQ(qosrules.length, decoded_qosrules.length);
+  EXPECT_EQ(qosrules.qos_rule[0].qos_rule_id,
+            decoded_qosrules.qos_rule[0].qos_rule_id);
+  EXPECT_EQ(qosrules.qos_rule[0].len, decoded_qosrules.qos_rule[0].len);
+  EXPECT_EQ(qosrules.qos_rule[0].rule_oper_code,
+            decoded_qosrules.qos_rule[0].rule_oper_code);
+  EXPECT_EQ(qosrules.qos_rule[0].dqr_bit, decoded_qosrules.qos_rule[0].dqr_bit);
+  EXPECT_EQ(qosrules.qos_rule[0].qos_rule_precedence,
+            decoded_qosrules.qos_rule[0].qos_rule_precedence);
+  EXPECT_EQ(qosrules.qos_rule[0].qfi, decoded_qosrules.qos_rule[0].qfi);
+  EXPECT_EQ(qosrules.qos_rule[0].no_of_pkt_filters,
+            decoded_qosrules.qos_rule[0].no_of_pkt_filters);
+  EXPECT_EQ(
+      qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].pkt_filter_dir,
+      decoded_qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].pkt_filter_dir);
+  EXPECT_EQ(
+      qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].pkt_filter_id,
+      decoded_qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].pkt_filter_id);
+  EXPECT_EQ(
+      qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[0],
+      decoded_qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[0]);
 }
 
 }  // namespace magma5g

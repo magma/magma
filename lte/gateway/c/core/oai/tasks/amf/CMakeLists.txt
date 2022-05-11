@@ -55,6 +55,7 @@ add_library(TASK_AMF_APP
     amf_app_timer_management.cpp
     amf_session_manager_pco.cpp
     amf_smf_session_context.cpp
+    amf_smf_session_qos.cpp
     amf_client_servicer.cpp
     amf_app_state_converter.cpp
     ${PROTO_SRCS}
