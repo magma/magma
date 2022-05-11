@@ -25,7 +25,6 @@ import (
 
 	"contrib.go.opencensus.io/exporter/jaeger"
 	"github.com/jessevdk/go-flags"
-	"github.com/pkg/errors"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
 	"go.uber.org/zap"
@@ -178,7 +177,7 @@ func (cfg *Config) buildStats(opt options) (handler http.Handler, closers []func
 		}
 		views := viewer.Views()
 		if err = view.Register(views...); err != nil {
-			err = errors.WithMessagef(err, "registering %s views", name)
+			err = fmt.Errorf("registering %s views: %w", name, err)
 			return
 		}
 		closers = append(closers, func() {
@@ -188,7 +187,7 @@ func (cfg *Config) buildStats(opt options) (handler http.Handler, closers []func
 
 	var closer func()
 	if handler, closer, err = ocstats.NewHandler(opts...); err != nil {
-		err = errors.WithMessage(err, "creating stats handler")
+		err = fmt.Errorf("creating stats handler: %w", err)
 		return
 	}
 	closers = append(closers, closer)

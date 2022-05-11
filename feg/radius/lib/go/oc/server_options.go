@@ -121,7 +121,7 @@ func xrayOption(options xrayOptions) server.Option {
 		trace.RegisterExporter(exporter)
 		err = srv.Apply(server.Closer(closerFunc(func() error { exporter.Flush(); return nil })))
 		if err != nil {
-			return errors.WithMessage(err, "registering xray flusher")
+			return fmt.Errorf("registering xray flusher: %w", err)
 		}
 		return nil
 	})
@@ -139,7 +139,7 @@ func jaegerOption(options jaeger.Options) server.Option {
 		trace.RegisterExporter(exporter)
 		err = srv.Apply(server.Closer(closerFunc(func() error { exporter.Flush(); return nil })))
 		if err != nil {
-			return errors.WithMessage(err, "registering jaeger flusher")
+			return fmt.Errorf("registering jaeger flusher: %w", err)
 		}
 		return nil
 	})

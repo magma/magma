@@ -18,7 +18,6 @@ import (
 	"net/http"
 
 	ocprom "contrib.go.opencensus.io/exporter/prometheus"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
@@ -72,7 +71,7 @@ func NewHandler(opt ...Option) (http.Handler, func(), error) {
 	opts := ocprom.Options{Registry: prometheus.NewRegistry()}
 	for i := range opt {
 		if err := opt[i](&opts); err != nil {
-			return nil, nil, errors.WithMessage(err, "applying option")
+			return nil, nil, fmt.Errorf("applying option: %w", err)
 		}
 	}
 	exporter, err := ocprom.NewExporter(opts)
