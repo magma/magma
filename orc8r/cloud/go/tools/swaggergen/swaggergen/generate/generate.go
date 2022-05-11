@@ -21,7 +21,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 
 	"magma/orc8r/cloud/go/swagger"
@@ -125,7 +124,7 @@ func GenerateModels(targetFilepath string, configFilepath string, rootDir string
 	// the filename specified by `dependent-filename`
 	err = StripAndWriteSwaggerSpecs(specs, tmpGenDir)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
 	// Shell out to go-swagger
@@ -167,7 +166,7 @@ func ParseSwaggerDependencyTree(rootFilepath string, rootDir string) (map[string
 
 	targetSpec, err := readSwaggerSpec(absRootFilepath)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 
 	type mscAndPath struct {

@@ -21,7 +21,6 @@ import (
 	"sort"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 	"google.golang.org/protobuf/proto"
 
@@ -380,7 +379,7 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []*NetworkUpdateCrit
 	for _, update := range networksToUpdate {
 		err := store.updateNetwork(update, stmtCache)
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 	}
 
@@ -571,13 +570,13 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update *Enti
 	entToUpdate.NetworkID = networkID
 	err = store.processEntityFieldsUpdate(entToUpdate.Pk, updateCopy, entToUpdate)
 	if err != nil {
-		return entToUpdate, errors.WithStack(err)
+		return entToUpdate, err
 	}
 
 	// Finally, process edge updates for the graph
 	err = store.processEdgeUpdates(networkID, updateCopy, entToUpdate)
 	if err != nil {
-		return entToUpdate, errors.WithStack(err)
+		return entToUpdate, err
 	}
 
 	return entToUpdate, nil
@@ -603,7 +602,7 @@ func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entity
 
 	internalGraph, err := store.loadGraphInternal(networkID, ent.GraphID, loadCriteriaCopy)
 	if err != nil {
-		return &EntityGraph{}, errors.WithStack(err)
+		return &EntityGraph{}, err
 	}
 
 	rootPKs := findRootNodes(internalGraph)

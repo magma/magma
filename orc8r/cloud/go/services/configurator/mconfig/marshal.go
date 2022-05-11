@@ -19,7 +19,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/lib/go/protos"
 )
@@ -29,7 +28,7 @@ func MarshalConfigs(configs map[string]proto.Message) (ConfigsByKey, error) {
 	for k, v := range configs {
 		anyVal, err := ptypes.MarshalAny(v)
 		if err != nil {
-			return nil, errors.WithStack(err)
+			return nil, err
 		}
 		bytesVal, err := protos.MarshalJSON(anyVal)
 		if err != nil {

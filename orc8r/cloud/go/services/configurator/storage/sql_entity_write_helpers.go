@@ -20,7 +20,6 @@ import (
 	"sort"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 	"google.golang.org/protobuf/proto"
 
@@ -118,7 +117,7 @@ func (store *sqlConfiguratorStorage) createEdges(networkID string, entity *Netwo
 func (store *sqlConfiguratorStorage) loadEntsFromEdges(networkID string, targetEntity *NetworkEntity) (EntitiesByTK, error) {
 	loadedEntsByTk, err := store.loadEntitiesFromIDs(networkID, targetEntity.Associations)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 	loadedEntsByTk[targetEntity.GetTK()] = targetEntity
 	return loadedEntsByTk, nil
@@ -259,20 +258,20 @@ func (store *sqlConfiguratorStorage) processEdgeUpdates(networkID string, update
 	newlyAssociatedEntsByTk, err := store.createEdges(networkID, entToUpdateOut)
 	if err != nil {
 		entToUpdateOut.Associations = nil
-		return errors.WithStack(err)
+		return err
 	}
 
 	// Just like entity creation, we might need to merge graphs after adding
 	newGraphID, err := store.mergeGraphs(entToUpdateOut, newlyAssociatedEntsByTk)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	entToUpdateOut.GraphID = newGraphID
 
 	// Now delete edges
 	err = store.deleteEdges(networkID, update.AssociationsToDelete, entToUpdateOut)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
 	// Finally, we need to load the entire graph corresponding to this node's
@@ -288,7 +287,7 @@ func (store *sqlConfiguratorStorage) processEdgeUpdates(networkID string, update
 
 	err = store.fixGraph(networkID, newGraphID, entToUpdateOut)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
 	return nil
