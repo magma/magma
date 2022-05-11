@@ -15,12 +15,12 @@ package storage
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"sort"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/sqorc"

@@ -15,11 +15,11 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/models"

@@ -19,6 +19,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"hash"
 	"io"
@@ -29,8 +30,6 @@ import (
 	"time"
 
 	"fbc/lib/go/http/httputil"
-
-	"github.com/pkg/errors"
 )
 
 const (

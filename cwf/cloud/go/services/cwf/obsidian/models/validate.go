@@ -15,12 +15,12 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/pkg/errors"
 )
 
 func (m *CwfNetwork) ValidateModel(context.Context) error {

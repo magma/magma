@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -27,7 +28,6 @@ import (
 	"fbc/lib/go/radius/rfc2865"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 

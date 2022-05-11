@@ -15,13 +15,13 @@ package sqorc
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/lann/builder"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 

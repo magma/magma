@@ -57,6 +57,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"flag"
 	"fmt"
 	"sort"
@@ -66,7 +67,6 @@ import (
 	"github.com/golang/glog"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/lte/cloud/go/tools/migrations/m010_default_apns/types"

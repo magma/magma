@@ -15,12 +15,12 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/services/configurator"
 )

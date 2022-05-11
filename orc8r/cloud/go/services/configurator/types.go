@@ -14,10 +14,10 @@
 package configurator
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/serde"

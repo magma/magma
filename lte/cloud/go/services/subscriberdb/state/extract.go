@@ -15,11 +15,10 @@ package state
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net"
 	"regexp"
-
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/services/state"
 )

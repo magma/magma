@@ -15,6 +15,7 @@ package mock_pcrf
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"time"
@@ -25,7 +26,6 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/sm"
 	"github.com/fiorix/go-diameter/v4/diam/sm/smpeer"
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"

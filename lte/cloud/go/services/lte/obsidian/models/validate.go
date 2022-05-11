@@ -15,6 +15,7 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 
@@ -22,7 +23,6 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
-	"github.com/pkg/errors"
 
 	"magma/lte/cloud/go/lte"
 	"magma/orc8r/cloud/go/services/configurator"

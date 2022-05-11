@@ -15,6 +15,7 @@ package servicers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 
@@ -22,7 +23,6 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/feg/cloud/go/feg"

@@ -15,11 +15,11 @@ package reindex
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"

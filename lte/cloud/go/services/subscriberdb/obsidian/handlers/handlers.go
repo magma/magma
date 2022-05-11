@@ -15,6 +15,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -24,7 +25,6 @@ import (
 	"github.com/golang/glog"
 	"github.com/hashicorp/go-multierror"
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/lte/cloud/go/lte"

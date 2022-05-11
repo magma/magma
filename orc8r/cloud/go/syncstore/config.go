@@ -14,10 +14,10 @@
 package syncstore
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 )
 
 type Config struct {

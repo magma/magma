@@ -14,13 +14,13 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"sort"
 	"strings"
 
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"

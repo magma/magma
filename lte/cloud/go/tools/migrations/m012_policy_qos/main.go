@@ -36,6 +36,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 
@@ -43,7 +44,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	_ "github.com/lib/pq"
-	"github.com/pkg/errors"
 
 	"magma/lte/cloud/go/tools/migrations/m012_policy_qos/types"
 	"magma/orc8r/cloud/go/sqorc"

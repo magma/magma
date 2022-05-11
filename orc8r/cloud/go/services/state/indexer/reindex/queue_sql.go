@@ -15,13 +15,13 @@ package reindex
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"sort"
 	"time"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/state/indexer"

@@ -15,10 +15,10 @@ package testcontroller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 
 	"magma/fbinternal/cloud/go/services/testcontroller/protos"
 	"magma/fbinternal/cloud/go/services/testcontroller/statemachines"

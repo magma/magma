@@ -14,9 +14,8 @@
 package protos
 
 import (
+	"errors"
 	"fmt"
-
-	"github.com/pkg/errors"
 )
 
 func (m *GetMSISDNsRequest) Validate() error {

@@ -15,11 +15,11 @@ package coafixedip
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/pkg/errors"
 
 	"fbc/cwf/radius/modules"
 	"fbc/lib/go/radius"
