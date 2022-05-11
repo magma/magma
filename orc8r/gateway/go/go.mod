@@ -13,6 +13,7 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.5.2
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
+	github.com/hashicorp/go-multierror v1.1.1
 	github.com/moriyoshi/routewrapper v0.0.0-20180228100351-e52d8d14cf39
 	github.com/prometheus/client_model v0.2.0
 	github.com/shirou/gopsutil/v3 v3.21.5
@@ -30,6 +31,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
+	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect
