@@ -1,32 +1,32 @@
 ---
-id: s1ap_federated_tests
-title: S1AP Federated Integration Tests
+id: s1ap_federated_test
+title: S1AP Federated Integration Test
 hide_title: true
 ---
 
-# S1AP Federated Integration Tests
+# S1AP Federated Integration Test
 
-S1AP Integration Test only run test on AGW. The objective of **S1AP
+The S1AP Integration Test only tests the AGW. The objective of the **S1AP
 Federated Integration Test** is to provide a test platform
-to run Magma with all its components. That means  an end-to-end test with all
-components of magma: AGW, Orc8r and FEG.
+to run Magma with all of its components. That is, an end-to-end test with all
+components of Magma: AGW, Orc8r and FeG.
 
-Currently, this test is on experimental phase, so we only test connectivity of
-AGW - Or8c - FEG, and we are able to run an attach/detach test using S1AP tester
+Currently, this test is in an experimental phase, so we are only testing the connectivity of
+AGW - Orc8r - FeG, and we are able to run an attach/detach test using the S1AP tester
 and our mock HSS.
 
 ## Architecture
 
 As the diagram indicates, this test spins up **AGW**, **FeG**, and **Orc8r**
-and uses `S1aP` and `magma_trfserver` as an eNb and SGi emulator to run tests.
+and uses `S1AP` and `magma_trfserver` as an eNb and SGi emulator to run tests.
 
 ```mermaid
 graph LR;
-    A[[S1AP]] --- AGW ---|control| orc8r --- FEG --- HSS[(HSS)];
+    A[[S1AP]] --- AGW ---|control| Orc8r --- FeG --- HSS[(HSS)];
     AGW ---|data| Z[[magma_trfserver]];
 ```
 
-The services will run either on Vagrant VM or on Docker:
+The services will run either on Vagrant VMs or on Docker:
 
 | Services          |   Vagrant VM    |  Docker   |
 |-------------------|:---------------:|:---------:|
@@ -37,32 +37,35 @@ The services will run either on Vagrant VM or on Docker:
 | S1AP tester       |   magma_test    |           |
 | HSS               |                 |  &check;  |
 
-Note FEG runs on docker inside Magma Vagrant VM. The reason is to guarantee
-docker host mode is supported by the host (not supported by MAC)
+*Note that FeG runs on Docker inside the Magma VM. The reason is to guarantee
+Docker host mode is supported by the host (not supported on Mac).*
 
 ## Running the tests
 
-Below you have three different ways to run the tests. That will help you
-in case you need to debug any intermediate step in case automation fails.
+Below there are three different ways to run the tests. These will help you
+debug any intermediate step should the automation fail.
 
 ### Automated test run
 
-The below fab script will do all for you. In case that fails try the other
+The fab script mentioned below will do everything for you. In case it fails, try one of the other two methods:
+[semiautomatic](#semiautomatic-test-run) or [manual](#manual-build).
 
 This script will
 
-- Build AGW, Orc8r and FEG,
-- Start AGW, Orc8r and FEG
-- Configure Orc8r with AGW and FEG
-- Run connectivity tests between all 3 components
+- Build AGW, Orc8r and FeG
+- Start AGW, Orc8r and FeG
+- Configure Orc8r with AGW and FeG
+- Run connectivity tests between all three components
 - Run a basic attach/detach test
+
+To execute the script, run:
 
 ```bash
 cd magma/lte/gateway
 fab federated_integ_test:build_all=True
 
-# to run it again you can just skip the build_all
-# Note that if you changed code on Magma you will need to build_all again
+# to run it again, you can skip the build_all
+# however, if you change code in Magma, you will need to build_all again
 fab federated_integ_test
 ```
 
@@ -79,33 +82,28 @@ insight about this process.
 
 #### Build environment
 
-Using this way you will build the environment step by step but still using
-certain automation. If you want to build this manually go to
-[Manual build](#Manual-build)
+Using this method, you will build the environment step by step but still using
+certain automation. If you want to build the environment manually instead, go to
+[Manual build](#manual-build).
 
-*Note commands for AGW will have to be run inside the vagrant VM. That is
-why all the actions include the `vagrant ssh magma` command first. To leave
-from vagrant just type `exit`. FeG and Orc8r will need to be run in the
-host itself (no vagrant involved)*
-
-On your host machine execute this command to build, start and conigure AGW,
-FEG and Orc8r and start them.
+On your host machine, execute these commands to build, start and configure the AGW,
+FeG and Orc8r:
 
 ```bash
 cd magma/lte/gateway/python/integ_tests/federated_tests
 fab build_all_and_configure
 ```
 
-After this is run you can check
-if your gateways have been bootstrapped using magmad logs at AGW and FEG. The
-command below will try to reach Orc8r From AGW And FeG and FeG from AGW
+After this has run, you can check
+whether your gateways have been bootstrapped using the magmad logs on the AGW and FeG. The
+command below will try to reach Orc8r from AGW and FeG, and FeG from AGW:
 
 ```bash
 cd magma/lte/gateway/python/integ_tests/federated_tests
 fab test_connectivity
 ```
 
-Once it is built, start the magma_trfserver and magma_test VMs
+Once it has been built, start the `magma_trfserver` and `magma_test` VMs:
 
 ```bash
 cd magma/lte/gateway
@@ -113,27 +111,16 @@ vagrant up magma_test
 vagrant up magma_trfserver
 ```
 
-#### Run test manually
-
-Once you have built all the VMs, you can try to run a test from
-`magma_test` VM
-
-```bash
-cd magma/lte/gateway
-vagrant ssh magma_test
-# inside vagrant vm
-cd magma/lte/gateway/python/integ_test
-make integ_test TESTS=federated_tests/s1aptests/test_attach_detach.py
-
-# Once the test is done you can exit Vagrant VM
-exit
-```
-
-This will run a simple attach-detach test.
+You can then [run the test manually](#run-test-manually).
 
 ### Manual build
 
-If you want to build the environment manually:
+If you want to build the environment manually, you can carry out the following steps.
+
+*Note that commands for the AGW have to be run inside the Vagrant VM. For this reason,
+all such commands include the `vagrant ssh magma` command first. To leave
+Vagrant, just type `exit`. FeG and Orc8r will need to be run on the
+host itself (no Vagrant involved).*
 
 - AGW:
 
@@ -146,11 +133,11 @@ vagrant ssh magma
 cd magma/lte/gateway
 make run
 
-# exit from Vagrant VM
+# exit from vagrant vm
 exit
 ```
 
-- FEG:
+- FeG:
 
 ```bash
 cd magma/lte/gateway
@@ -167,8 +154,9 @@ docker-compose up -d
 
 ```bash
 cd magma/orc8r/cloud/docker
-./build -a
-./run
+./build.py -a
+./run.py
+
 # return to agw folder
 cd magma/lte/gateway
 # register gateways
@@ -176,12 +164,13 @@ fab --fabfile=dev_tools.py register_federated_vm
 fab --fabfile=dev_tools.py register_feg_gw
 ```
 
-- Test vm:
+- Test VM:
 
 ```bash
 cd magma/lte/gateway
 vagrant up magma_test
 vagrant ssh magma_test
+
 # inside vagrant vm
 cd magma/lte/gateway/python
 make
@@ -190,14 +179,26 @@ make
 exit
 ```
 
-- Traffic vm:
+- Traffic VM:
 
 ```bash
 cd magma/lte/gateway
 vagrant up magma_trfserver
-
-# exit from vagrant vm
-exit
 ```
 
-You can then [Run test manually](#Run-test-manually)
+#### Run test manually
+
+Once you have built all of the VMs, you can try to run the test from the
+`magma_test` VM. It is a simple attach-detach test:
+
+```bash
+cd magma/lte/gateway
+vagrant ssh magma_test
+
+# inside vagrant vm
+cd magma/lte/gateway/python/integ_tests
+make integ_test TESTS=federated_tests/s1aptests/test_attach_detach.py
+
+# once the test is done, you can exit the vagrant vm
+exit
+```
