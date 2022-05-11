@@ -46,7 +46,8 @@ const useStyles = makeStyles(() => ({
     width: '208px',
   },
   version: {
-    padding: '28px 0 0 28px',
+    display: 'block',
+    padding: '13px 0 0 28px',
     color: colors.primary.gullGray,
     whiteSpace: 'nowrap',
   },
