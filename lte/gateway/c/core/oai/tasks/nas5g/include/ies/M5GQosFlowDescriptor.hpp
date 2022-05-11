@@ -18,7 +18,10 @@ class M5GQosFlowDescription {
  public:
   uint8_t iei;
   uint16_t length;
+
 #define MAX_QOS_FLOW_PARAMS_LIST 7
+#define QOS_FLOW_DESC_BUF_LEN_MAX 4096
+
   uint8_t qfi;
   uint8_t operationCode;
   uint8_t numOfParams : 6;

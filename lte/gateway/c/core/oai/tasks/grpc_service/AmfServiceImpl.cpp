@@ -141,6 +141,17 @@ Status AmfServiceImpl::SetSmfSessionContext(
     itti_msg.qos_flow_list.item[i].qos_flow_req_item.qos_flow_identifier =
         req_m5g.subscribed_qos().qos_class_id();
 
+    // default flow descriptors
+    if (req_m5g.subscribed_qos().qos_class_id()) {
+      itti_msg.qos_flow_list.item[i]
+          .qos_flow_req_item.qos_flow_descriptor.qos_flow_identifier =
+          req_m5g.subscribed_qos().qos_class_id();
+
+      itti_msg.qos_flow_list.item[i]
+          .qos_flow_req_item.qos_flow_descriptor.fiveQi =
+          req_m5g.subscribed_qos().qos_class_id();
+    }
+
     itti_msg.qos_flow_list.item[i]
         .qos_flow_req_item.qos_flow_level_qos_param.qos_characteristic
         .non_dynamic_5QI_desc.fiveQI =
@@ -243,6 +254,8 @@ Status AmfServiceImpl::SetSmfSessionContext(
           ul_tft->numberofpacketfilters++;
         }
       } else if (qos_rule.policy_action() == QosPolicy::DEL) {
+        ul_tft->tftoperationcode =
+            TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_EXISTING_TFT;
       }
     }
   }
@@ -260,9 +273,7 @@ Status AmfServiceImpl::SetSmfSessionContext(
               itti_msg.upf_endpoint.end_ipv4_addr);
   }
 
-  strncpy(reinterpret_cast<char*>(itti_msg.procedure_trans_identity),
-          req_m5g.procedure_trans_identity().c_str(),
-          strlen(req_m5g.procedure_trans_identity().c_str()));  // pdu_change
+  itti_msg.procedure_trans_identity = req_m5g.procedure_trans_identity();
   itti_msg.always_on_pdu_session_indication =
       req_m5g.always_on_pdu_session_indication();
   itti_msg.allowed_ssc_mode = (ssc_mode_t)req_m5g.allowed_ssc_mode();
@@ -415,7 +426,6 @@ ipv4_networks_t AmfServiceImpl::parseIpv4Network(
   result.success = true;
   return result;
 }
-
 
 // IPv4 address format ex.: 192.176.128.10/24
 // FEG can provide an empty string which indicates

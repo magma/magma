@@ -88,7 +88,7 @@ struct amf_procedures_t;
 #define PAGING_TIMER_EXPIRY_MSECS 4000
 #define PDUE_SESSION_RELEASE_TIMER_MSECS 16000
 #define PDU_SESSION_MODIFICATION_TIMER_MSECS 16000
-#define PDU_SESSION_DEFAULT_QFI 0X05
+#define PDU_SESSION_DEFAULT_QFI 0X09
 
 #define MAX_PAGING_RETRY_COUNT 4
 // Header length boundaries of 5GS Mobility Management messages
@@ -240,7 +240,12 @@ typedef struct teid_upf_gnb_s {
 // Data get communicated with SMF and stored for reference
 typedef struct smf_proc_data_s {
   uint8_t pdu_session_id;
+  // Store PTI related information
   uint8_t pti;
+
+  // Store ongoing qos for current pti
+  qos_flow_list_t qos_flow_list;
+
   M5GMessageType message_type;
   uint8_t max_uplink;
   uint8_t max_downlink;
@@ -278,10 +283,23 @@ typedef struct smf_context_s {
   protocol_configuration_options_t pco;
   uint32_t duplicate_pdu_session_est_req_count;
   std::string dnn;
-  qos_flow_list_t qos_flow_list;
+
 #define PDU_SESS_MODFICATION_COUNTER_MAX 5
   bstring session_message;
   s_nssai_t requested_nssai;
+
+  // get current pti
+  uint8_t get_pti() { return smf_proc_data.pti; }
+
+  // set current pti from sessiond
+  void set_pti(uint8_t procedure_trans_identity) {
+    smf_proc_data.pti = procedure_trans_identity;
+  }
+
+  // get proc flow list
+  qos_flow_list_t* get_proc_flow_list() {
+    return &(smf_proc_data.qos_flow_list);
+  }
 
 } smf_context_t;
 
@@ -1021,7 +1039,4 @@ bool get_amf_ue_id_from_imsi(amf_ue_context_t* amf_ue_context_p,
                              imsi64_t imsi64, amf_ue_ngap_id_t* ue_id);
 
 void nas_amf_procedure_gc(amf_context_t* amf_ctx);
-void amf_app_fill_create_new_tft(create_new_tft_t* new_tft, QOSRule* qos_rule);
-void amf_app_fill_delete_packet_filter(
-    delete_packet_filter_t* delete_pkt_filter, QOSRule* qos_rule);
 }  // namespace magma5g

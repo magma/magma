@@ -15,9 +15,9 @@
 
 #define MAX_QOS_FLOW 64
 #define MAX_NO_OF_MULTI_CONN 4
+#define RULE_ID_LEN 256
 
 #include "lte/gateway/c/core/oai/common/common_types.h"
-// #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 //-----------------------------------------------------------------------------
 /** @struct itti_n11_create_pdu_session_response_t
@@ -89,7 +89,6 @@ typedef struct qos_flow_setup_request_item_s {
   qos_flow_descriptor_t qos_flow_descriptor;
   traffic_flow_template_t ul_tft;
   uint32_t qos_flow_version;
-#define RULE_ID_LEN 256
   uint8_t rule_id[RULE_ID_LEN];
   // E-RAB ID is optional spec-38413 - 9.3.4.1
 } qos_flow_setup_request_item;
@@ -263,7 +262,7 @@ typedef struct itti_n11_create_pdu_session_response_s {
 
   qos_flow_list_t qos_flow_list;
   TeidSet_response upf_endpoint;
-  uint8_t procedure_trans_identity[2];
+  uint8_t procedure_trans_identity;
 } itti_n11_create_pdu_session_response_t;
 
 #define N11_CREATE_PDU_SESSION_RESPONSE(mSGpTR) \
@@ -474,7 +473,7 @@ typedef struct pdu_session_resource_setup_request_transfer_s {
   amf_ue_aggregate_maximum_bit_rate_t pdu_aggregate_max_bit_rate;
   up_transport_layer_information_t up_transport_layer_info;
   amf_pdn_type_value_t pdu_ip_type;
-  qos_flow_request_list_t qos_flow_setup_request_list;
+  qos_flow_add_or_modify_request_list_t qos_flow_add_or_mod_request_list;
 } pdu_session_resource_setup_request_transfer_t;
 
 typedef struct pdu_session_resource_modify_request_transfer_s {

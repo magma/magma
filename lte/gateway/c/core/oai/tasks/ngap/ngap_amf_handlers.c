@@ -2189,10 +2189,11 @@ status_code_e ngap_amf_handle_pduSession_modify_response(
                  ->qosFlowAddOrModifyResponseList->list.array[index]);
       }
 
-      free(pDUSessionResourceModifyResponseTransfer
-               ->qosFlowAddOrModifyResponseList->list.array);
+      /* In case if Gnb sends  qosFlowFailedToAddOrModifyList  */ 
+      if (pDUSessionResourceModifyResponseTransfer->qosFlowAddOrModifyResponseList)
       free(pDUSessionResourceModifyResponseTransfer
                ->qosFlowAddOrModifyResponseList);
+      if (pDUSessionResourceModifyResponseTransfer)
       free(pDUSessionResourceModifyResponseTransfer);
     }
   }

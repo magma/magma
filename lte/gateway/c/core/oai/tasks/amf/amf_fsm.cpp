@@ -170,10 +170,8 @@ void create_state_matrix() {
   Update_ue_state_matrix(REGISTERED_CONNECTED,
                          STATE_PDU_SESSION_RELEASE_COMPLETE, INACTIVE,
                          REGISTERED_CONNECTED, RELEASED, "PDU_Release");
-<<<<<<< HEAD
   Update_ue_state_matrix(REGISTERED_IDLE, STATE_PDU_SESSION_RELEASE_COMPLETE,
                          INACTIVE, REGISTERED_IDLE, RELEASED, "PDU_Release");
-=======
 
   Update_ue_state_matrix(REGISTERED_CONNECTED,
                          STATE_PDU_SESSION_MODIFICATION_REQUEST, ACTIVE,
@@ -189,7 +187,6 @@ void create_state_matrix() {
                          STATE_PDU_SESSION_MODIFICATION_COMMAND_REJECT,
                          SESSION_MODIFICATION, REGISTERED_CONNECTED, ACTIVE,
                          "PDU_Session_Modification_Reject");
->>>>>>> feat(amf): AMF Changes for session modification
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
@@ -321,21 +318,6 @@ int pdu_state_handle_message(
       case STATE_PDU_SESSION_ESTABLISHMENT_REQUEST:
         smf_ctx->pdu_session_state =
             ue_state_matrix[cur_state][event][session_state].next_sess_state;
-<<<<<<< HEAD
-        OAILOG_FUNC_RETURN(
-            LOG_AMF_APP,
-            reinterpret_cast<int (*)(amf_smf_establish_t*, char*)>(
-                ue_state_matrix[cur_state][event][session_state].handler.func)(
-                &amf_smf_msg.u.establish, imsi));
-      case STATE_PDU_SESSION_RELEASE_COMPLETE:
-        smf_ctx->pdu_session_state =
-            ue_state_matrix[cur_state][event][session_state].next_sess_state;
-        OAILOG_FUNC_RETURN(
-            LOG_AMF_APP,
-            reinterpret_cast<int (*)(amf_smf_release_t*, char*)>(
-                ue_state_matrix[cur_state][event][session_state].handler.func)(
-                &amf_smf_msg.u.release, imsi));
-=======
         return reinterpret_cast<int (*)(amf_smf_establish_t*, char*)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             &amf_smf_msg.u.establish, imsi);
@@ -347,20 +329,10 @@ int pdu_state_handle_message(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             &amf_smf_msg.u.release, imsi);
         break;
->>>>>>> feat(amf): AMF Changes for session modification
       case STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT:
         smf_ctx->pdu_session_state =
             ue_state_matrix[cur_state][event][session_state].next_sess_state;
 
-<<<<<<< HEAD
-        OAILOG_FUNC_RETURN(
-            LOG_AMF_APP,
-            reinterpret_cast<int (*)(itti_n11_create_pdu_session_response_t*,
-                                     uint32_t)>(
-                ue_state_matrix[cur_state][event][session_state].handler.func)(
-                pdu_session_resp, ue_id));
-
-=======
         return reinterpret_cast<int (*)(itti_n11_create_pdu_session_response_t*,
                                         uint32_t)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
@@ -388,7 +360,6 @@ int pdu_state_handle_message(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             &amf_smf_msg.u.establish, imsi);
         break;
->>>>>>> feat(amf): AMF Changes for session modification
       default:
         OAILOG_ERROR(LOG_NAS_AMF, "FSM %s: No Proper Handler Found\n",
                      __func__);

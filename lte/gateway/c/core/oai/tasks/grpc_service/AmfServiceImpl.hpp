@@ -45,7 +45,6 @@ typedef struct ipv4_networks_s {
   bool success;
 } ipv4_networks_t;
 
-
 // SessionD to AMF server
 class AmfServiceImpl final : public SmfPduSessionSmContext::Service {
  public:
