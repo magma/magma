@@ -14,6 +14,8 @@
 package servicers
 
 import (
+	"fmt"
+
 	cwfprotos "magma/cwf/cloud/go/protos"
 	fegprotos "magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
@@ -30,7 +32,7 @@ const (
 func (srv *UESimServer) HandleEap(ue *cwfprotos.UEConfig, req eap.Packet) (eap.Packet, error) {
 	err := req.Validate()
 	if err != nil {
-		return nil, errors.Wrap(err, "Error validating EAP packet")
+		return nil, fmt.Errorf("Error validating EAP packet: %w", err)
 	}
 
 	switch fegprotos.EapType(req.Type()) {

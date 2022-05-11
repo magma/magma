@@ -330,7 +330,7 @@ func (d createTableData) ToSql() (string, []interface{}, error) {
 	for i, col := range d.Columns {
 		colSql, err := col.ToSql()
 		if err != nil {
-			return "", nil, errors.Wrapf(err, "could not sqlize column at position %d", i)
+			return "", nil, fmt.Errorf("could not sqlize column at position %d: %w", i, err)
 		}
 		colSqls = append(colSqls, colSql)
 	}

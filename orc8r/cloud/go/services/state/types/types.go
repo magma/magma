@@ -177,7 +177,7 @@ func MakeProtoStates(states SerializedStatesByID) ([]*protos.State, error) {
 func MakeProtoState(id ID, st SerializedState) (*protos.State, error) {
 	bytes, err := json.Marshal(st)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal to json-encoded state proto value")
+		return nil, fmt.Errorf("failed to marshal to json-encoded state proto value: %w", err)
 	}
 	p := &protos.State{Type: id.Type, DeviceID: id.DeviceID, Value: bytes, Version: st.Version}
 	return p, nil
@@ -203,7 +203,7 @@ func MakeSerializedState(p *protos.State) (SerializedState, error) {
 	serialized := SerializedState{}
 	err := json.Unmarshal(p.Value, &serialized)
 	if err != nil {
-		return SerializedState{}, errors.Wrap(err, "error unmarshaling json-encoded state proto value")
+		return SerializedState{}, fmt.Errorf("error unmarshaling json-encoded state proto value: %w", err)
 	}
 	return serialized, nil
 }

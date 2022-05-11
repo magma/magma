@@ -15,6 +15,7 @@ package handlers
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
 	"net/http"
 	"sort"
@@ -160,7 +161,7 @@ func registerSpecHandlers(e *echo.Echo, trailSlashMiddleware echo.MiddlewareFunc
 func registerUIHandlers(e *echo.Echo, trailSlashMiddleware echo.MiddlewareFunc) error {
 	tmpl, err := template.ParseFiles(obsidian.StaticFolder + "/swagger/v1/ui/index.html")
 	if err != nil {
-		return errors.Wrap(err, "retrieve Swagger template")
+		return fmt.Errorf("retrieve Swagger template: %w", err)
 	}
 
 	e.GET(obsidian.StaticURLPrefix+"/v1/ui/", GetUIHandler(tmpl))

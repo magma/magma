@@ -72,7 +72,7 @@ func (l *cacheWriter) InsertMany(objects map[string][]byte) error {
 
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		_, err := insertQuery.RunWith(tx).Exec()
-		return nil, errors.Wrapf(err, "insert objs into store for network %+v", l.network)
+		return nil, fmt.Errorf("insert objs into store for network %+v: %w", l.network, err)
 	}
 	_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 	return err
@@ -104,7 +104,7 @@ func (l *cacheWriter) Apply() error {
 			RunWith(tx).
 			Exec()
 		if err != nil {
-			return nil, errors.Wrap(err, "clean up previous cached objs store table")
+			return nil, fmt.Errorf("clean up previous cached objs store table: %w", err)
 		}
 
 		// The upsert query should look something like
@@ -132,7 +132,7 @@ func (l *cacheWriter) Apply() error {
 			RunWith(tx).
 			Exec()
 		if err != nil {
-			return nil, errors.Wrap(err, "populate cached objs store table")
+			return nil, fmt.Errorf("populate cached objs store table: %w", err)
 		}
 
 		_, err = l.builder.
@@ -140,7 +140,7 @@ func (l *cacheWriter) Apply() error {
 			RunWith(tx).
 			Exec()
 		if err != nil {
-			return nil, errors.Wrap(err, "clean up tmp cached objs store table")
+			return nil, fmt.Errorf("clean up tmp cached objs store table: %w", err)
 		}
 		return nil, nil
 	}

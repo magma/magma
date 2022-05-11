@@ -108,7 +108,7 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		err = errors.Wrap(err, "failed to create networks table")
+		err = fmt.Errorf("failed to create networks table: %w", err)
 		return
 	}
 
@@ -119,7 +119,7 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	// special case sqlite3 because ADD COLUMN IF NOT EXISTS is not supported
 	// and we only run sqlite3 for unit tests
 	if err != nil && os.Getenv("SQL_DRIVER") != "sqlite3" {
-		err = errors.Wrap(err, "failed to add 'type' field to networks table")
+		err = fmt.Errorf("failed to add 'type' field to networks table: %w", err)
 	}
 
 	_, err = fact.builder.CreateIndex("type_idx").
@@ -129,7 +129,7 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		err = errors.Wrap(err, "failed to create network type index")
+		err = fmt.Errorf("failed to create network type index: %w", err)
 		return
 	}
 
@@ -143,7 +143,7 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		err = errors.Wrap(err, "failed to create network configs table")
+		err = fmt.Errorf("failed to create network configs table: %w", err)
 		return
 	}
 
@@ -167,7 +167,7 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		err = errors.Wrap(err, "failed to create entities table")
+		err = fmt.Errorf("failed to create entities table: %w", err)
 		return
 	}
 
@@ -181,7 +181,7 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		err = errors.Wrap(err, "failed to create entity assoc table")
+		err = fmt.Errorf("failed to create entity assoc table: %w", err)
 		return
 	}
 
@@ -193,7 +193,7 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		err = errors.Wrap(err, "failed to create graph ID index")
+		err = fmt.Errorf("failed to create graph ID index: %w", err)
 		return
 	}
 
@@ -205,7 +205,7 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		err = errors.Wrap(err, "error creating internal networks")
+		err = fmt.Errorf("error creating internal networks: %w", err)
 		return
 	}
 
@@ -352,7 +352,7 @@ func (store *sqlConfiguratorStorage) CreateNetwork(network *Network) (*Network, 
 	}
 	_, err = insertBuilder.RunWith(store.tx).Exec()
 	if err != nil {
-		return &Network{}, errors.Wrap(err, "error inserting network configs")
+		return &Network{}, fmt.Errorf("error inserting network configs: %w", err)
 	}
 
 	return networkCopy, nil
@@ -388,13 +388,13 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []*NetworkUpdateCrit
 		RunWith(store.tx).
 		Exec()
 	if err != nil {
-		return errors.Wrap(err, "failed to delete configs associated with networks")
+		return fmt.Errorf("failed to delete configs associated with networks: %w", err)
 	}
 	_, err = store.builder.Delete(networksTable).Where(sq.Eq{nwIDCol: networksToDelete}).
 		RunWith(store.tx).
 		Exec()
 	if err != nil {
-		return errors.Wrap(err, "failed to delete networks")
+		return fmt.Errorf("failed to delete networks: %w", err)
 	}
 	return nil
 }
@@ -538,7 +538,7 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update *Enti
 	emptyRet := &NetworkEntity{Type: update.Type, Key: update.Key}
 	entToUpdate, err := store.loadEntToUpdate(networkID, updateCopy)
 	if err != nil && !updateCopy.DeleteEntity {
-		return emptyRet, errors.Wrap(err, "failed to load entity being updated")
+		return emptyRet, fmt.Errorf("failed to load entity being updated: %w", err)
 	}
 	if entToUpdate == nil {
 		return emptyRet, nil
@@ -555,13 +555,13 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update *Enti
 			RunWith(store.tx).
 			Exec()
 		if err != nil {
-			return emptyRet, errors.Wrapf(err, "failed to delete entity (%s, %s)", updateCopy.Type, updateCopy.Key)
+			return emptyRet, fmt.Errorf("failed to delete entity (%s, %s): %w", updateCopy.Type, updateCopy.Key, err)
 		}
 
 		// Deleting a node could partition its graph
 		err = store.fixGraph(networkID, entToUpdate.GraphID, entToUpdate)
 		if err != nil {
-			return emptyRet, errors.Wrap(err, "failed to fix entity graph after deletion")
+			return emptyRet, fmt.Errorf("failed to fix entity graph after deletion: %w", err)
 		}
 
 		return emptyRet, nil
@@ -590,7 +590,7 @@ func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entity
 	// load criteria
 	singleEnt, err := store.loadEntities(networkID, &EntityLoadFilter{IDs: []*EntityID{entityIDCopy}}, &EntityLoadCriteria{})
 	if err != nil {
-		return &EntityGraph{}, errors.Wrap(err, "failed to load entity for graph query")
+		return &EntityGraph{}, fmt.Errorf("failed to load entity for graph query: %w", err)
 	}
 
 	var ent *NetworkEntity
@@ -613,7 +613,7 @@ func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entity
 
 	edges, err := updateEntitiesWithAssocs(internalGraph.entsByTK, internalGraph.edges)
 	if err != nil {
-		return &EntityGraph{}, errors.Wrap(err, "failed to construct graph after loading")
+		return &EntityGraph{}, fmt.Errorf("failed to construct graph after loading: %w", err)
 	}
 
 	// To make testing easier, we'll order the returned entities by TK

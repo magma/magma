@@ -16,6 +16,7 @@ package servicers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/golang/glog"
@@ -232,7 +233,7 @@ func wrapStateWithAdditionalInfo(st *protos.State, hwID string, time uint64, cer
 	}
 	ret, err := json.Marshal(wrap)
 	if err != nil {
-		return nil, errors.Wrap(err, "json marshal state with meta")
+		return nil, fmt.Errorf("json marshal state with meta: %w", err)
 	}
 	return ret, nil
 }

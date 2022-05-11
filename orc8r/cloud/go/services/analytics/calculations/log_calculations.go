@@ -2,6 +2,7 @@ package calculations
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/golang/glog"
@@ -39,7 +40,7 @@ func (x *LogsMetricCalculation) Calculate(prometheusClient query_api.PrometheusA
 	q := elasticQuery(x.Hours, x.LogConfig)
 	logCount, err := x.ElasticClient.Count().Index("").Query(q).Do(context.Background())
 	if err != nil {
-		err = errors.Wrapf(err, "Error %v querying elastic search for query %v", err, q)
+		err = fmt.Errorf("Error %v querying elastic search for query %v: %w", err, q, err)
 		return nil, err
 	}
 

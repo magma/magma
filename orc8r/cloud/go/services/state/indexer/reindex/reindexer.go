@@ -106,7 +106,7 @@ func executeJob(ctx context.Context, job *Job, batches []reindexBatch) error {
 		// Convert IDs to states -- silently ignore not-found (stale) state IDs
 		statesByID, err := state.GetSerializedStates(ctx, b.networkID, ids)
 		if err != nil {
-			err = errors.Wrap(err, "get states")
+			err = fmt.Errorf("get states: %w", err)
 			return wrap(err, ErrDefault, id)
 		}
 
@@ -180,5 +180,5 @@ func wrap(err error, sentinel Error, indexerID string) error {
 	default:
 		wrap = fmt.Sprintf("%s for idx %s", sentinel, indexerID)
 	}
-	return errors.Wrap(err, wrap)
+	return fmt.Errorf(wrap+": %w", err)
 }

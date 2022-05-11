@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -59,7 +58,7 @@ func (s *HAServicer) GetEnodebOffloadState(ctx context.Context, req *lte_protos.
 	}
 	cfg, err := configurator.LoadEntityConfig(ctx, secondaryGw.GetNetworkId(), lte.CellularGatewayEntityType, secondaryGw.LogicalId, lte_models.EntitySerdes)
 	if err != nil {
-		errors.Wrap(err, "unable to load cellular gateway configs to find primary gateway's in its pool")
+		fmt.Errorf("unable to load cellular gateway configs to find primary gateway's in its pool: %w", err)
 		return ret, err
 	}
 	cellularCfg, ok := cfg.(*lte_models.GatewayCellularConfigs)

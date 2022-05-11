@@ -16,6 +16,7 @@ package oc
 import (
 	"encoding/json"
 	"fbc/lib/go/oc/ocstats"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -238,7 +239,7 @@ func (cfg *Config) buildJaeger(opt options) (func(), error) {
 	}
 	exporter, err := jaeger.NewExporter(cfg.Jaeger.Options)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating jaeger exporter")
+		return nil, fmt.Errorf("creating jaeger exporter: %w", err)
 	}
 	trace.RegisterExporter(exporter)
 	return func() {

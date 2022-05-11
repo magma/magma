@@ -14,6 +14,8 @@ limitations under the License.
 package registration
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/blobstore"
@@ -150,7 +152,7 @@ func (b *blobstoreStore) isNonceUnique(store blobstore.Store, nonce string) (boo
 func tokenInfoToBlob(blobType bootstrapper.BlobType, key string, tokenInfo *protos.TokenInfo) (blobstore.Blob, error) {
 	marshaledTokenInfo, err := protos.Marshal(tokenInfo)
 	if err != nil {
-		return blobstore.Blob{}, errors.Wrap(err, "Error marshaling protobuf")
+		return blobstore.Blob{}, fmt.Errorf("Error marshaling protobuf: %w", err)
 	}
 	blob := blobstore.Blob{
 		Type:  string(blobType),
@@ -164,7 +166,7 @@ func tokenInfoFromBlob(blob blobstore.Blob) (*protos.TokenInfo, error) {
 	tokenInfo := protos.TokenInfo{}
 	err := protos.Unmarshal(blob.Value, &tokenInfo)
 	if err != nil {
-		return &protos.TokenInfo{}, errors.Wrap(err, "Error unmarshaling protobuf")
+		return &protos.TokenInfo{}, fmt.Errorf("Error unmarshaling protobuf: %w", err)
 	}
 	return &tokenInfo, nil
 }

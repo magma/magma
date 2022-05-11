@@ -14,6 +14,8 @@ limitations under the License.
 package log
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -45,13 +47,13 @@ func (cfg Config) Build() (Factory, error) {
 
 	var level zapcore.Level
 	if err := level.Set(cfg.Level); err != nil {
-		return nil, errors.Wrap(err, "setting log level")
+		return nil, fmt.Errorf("setting log level: %w", err)
 	}
 	c.Level = zap.NewAtomicLevelAt(level)
 
 	logger, err := c.Build(zap.AddStacktrace(zap.DPanicLevel))
 	if err != nil {
-		return nil, errors.Wrap(err, "creating logger")
+		return nil, fmt.Errorf("creating logger: %w", err)
 	}
 	return NewFactory(logger), nil
 }

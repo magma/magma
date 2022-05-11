@@ -15,9 +15,9 @@ package device
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/serde"
@@ -127,7 +127,7 @@ func GetDevices(networkID string, deviceType string, deviceIDs []string, serdes 
 	for k, val := range res.DeviceMap {
 		iVal, err := serde.Deserialize(val.Info, deviceType, serdes)
 		if err != nil {
-			return map[string]interface{}{}, errors.Wrapf(err, "failed to deserialize device %s", k)
+			return map[string]interface{}{}, fmt.Errorf("failed to deserialize device %s: %w", k, err)
 		}
 		ret[k] = iVal
 	}

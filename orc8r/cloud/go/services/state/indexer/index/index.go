@@ -200,5 +200,5 @@ func wrap(err error, sentinel Error, indexerID string) error {
 	default:
 		wrap = fmt.Sprintf("%s for idx %s", sentinel, indexerID)
 	}
-	return errors.Wrap(err, wrap)
+	return fmt.Errorf(wrap+": %w", err)
 }

@@ -14,6 +14,7 @@ limitations under the License.
 package ocstats
 
 import (
+	"fmt"
 	"net/http"
 
 	ocprom "contrib.go.opencensus.io/exporter/prometheus"
@@ -50,7 +51,7 @@ func WithProcessCollector() Option {
 		if err := opts.Registry.Register(prometheus.NewProcessCollector(
 			prometheus.ProcessCollectorOpts{Namespace: opts.Namespace},
 		)); err != nil {
-			return errors.Wrap(err, "registering process collector")
+			return fmt.Errorf("registering process collector: %w", err)
 		}
 		return nil
 	}
@@ -60,7 +61,7 @@ func WithProcessCollector() Option {
 func WithGoCollector() Option {
 	return func(opts *ocprom.Options) error {
 		if err := opts.Registry.Register(prometheus.NewGoCollector()); err != nil {
-			return errors.Wrap(err, "registering go collector")
+			return fmt.Errorf("registering go collector: %w", err)
 		}
 		return nil
 	}
@@ -76,7 +77,7 @@ func NewHandler(opt ...Option) (http.Handler, func(), error) {
 	}
 	exporter, err := ocprom.NewExporter(opts)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "creating prometheus exporter")
+		return nil, nil, fmt.Errorf("creating prometheus exporter: %w", err)
 	}
 	view.RegisterExporter(exporter)
 	closer := func() { view.UnregisterExporter(exporter) }

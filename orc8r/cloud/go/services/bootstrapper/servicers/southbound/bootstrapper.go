@@ -231,7 +231,7 @@ func generateRandomText(length int) ([]byte, error) {
 
 // verify response with echo "encryption" method
 func verifyEcho(resp *protos.Response) error {
-	response := resp.GetEchoResponse() //.Response
+	response := resp.GetEchoResponse() // .Response
 	if response == nil {
 		return fmt.Errorf("Wrong type of response, expected Echo")
 	}
@@ -256,7 +256,7 @@ func verifySoftwareRSASHA256(resp *protos.Response, key []byte) error {
 	hashed := sha256.Sum256(resp.Challenge)
 	err = rsa.VerifyPKCS1v15(publicKey.(*rsa.PublicKey), crypto.SHA256, hashed[:], response.Signature)
 	if err != nil {
-		return errors.Wrap(err, signedChallengeMismatch)
+		return fmt.Errorf(signedChallengeMismatch+": %w", err)
 	}
 
 	return nil

@@ -14,6 +14,8 @@
 package mconfig
 
 import (
+	"fmt"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
@@ -44,15 +46,15 @@ func UnmarshalConfigs(configs ConfigsByKey) (map[string]proto.Message, error) {
 		anyVal := &any.Any{}
 		err := protos.Unmarshal(v, anyVal)
 		if err != nil {
-			return nil, errors.Wrapf(err, "unmarshal mconfig from bytes to proto for key %s and bytes %v", k, v)
+			return nil, fmt.Errorf("unmarshal mconfig from bytes to proto for key %s and bytes %v: %w", k, v, err)
 		}
 		msgVal, err := ptypes.Empty(anyVal)
 		if err != nil {
-			return nil, errors.Wrapf(err, "create concrete proto.Message, for proto.Any %+v", anyVal)
+			return nil, fmt.Errorf("create concrete proto.Message, for proto.Any %+v: %w", anyVal, err)
 		}
 		err = ptypes.UnmarshalAny(anyVal, msgVal)
 		if err != nil {
-			return nil, errors.Wrapf(err, "unmarshal proto.Any into proto.Message, for proto.Any %+v", anyVal)
+			return nil, fmt.Errorf("unmarshal proto.Any into proto.Message, for proto.Any %+v: %w", anyVal, err)
 		}
 		ret[k] = msgVal
 	}

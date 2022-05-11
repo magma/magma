@@ -14,9 +14,9 @@ limitations under the License.
 package server
 
 import (
+	"fmt"
 	"io"
 	"net/http"
-
 	// register pprof with default http mux
 	_ "net/http/pprof"
 
@@ -82,7 +82,7 @@ func (config *Config) createLogger() (*zap.Logger, error) {
 	}
 
 	if err != nil {
-		return nil, errors.Wrap(err, "creating logger")
+		return nil, fmt.Errorf("creating logger: %w", err)
 	}
 
 	return logger.WithOptions(zap.AddStacktrace(zap.DPanicLevel)), nil

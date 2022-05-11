@@ -15,12 +15,12 @@ package servicers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -128,7 +128,7 @@ func (s *subscriberdbServicer) Sync(
 	for _, subProto := range renewed {
 		anyVal, err := ptypes.MarshalAny(subProto)
 		if err != nil {
-			return nil, errors.Wrapf(err, "marshal subscriber protos for network %+v", networkID)
+			return nil, fmt.Errorf("marshal subscriber protos for network %+v: %w", networkID, err)
 		}
 		renewedMarshaled = append(renewedMarshaled, anyVal)
 	}
@@ -220,7 +220,7 @@ func (s *subscriberdbServicer) ListSuciProfiles(ctx context.Context, req *protos
 	var suciProtos []*lte_protos.SuciProfile
 	suciProtos, err := subscriberdb.LoadSuciProtos(ctx, networkID)
 	if err != nil {
-		return nil, errors.Wrapf(err, "loading suciProfiles in network failed %s", networkID)
+		return nil, fmt.Errorf("loading suciProfiles in network failed %s: %w", networkID, err)
 	}
 
 	res := &lte_protos.SuciProfileList{
@@ -319,7 +319,7 @@ func loadAPNs(ctx context.Context, gateway *protos.Identity_Gateway) (map[string
 		serdes.Entity,
 	)
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "load cellular gateway for gateway %s", gatewayID)
+		return nil, nil, fmt.Errorf("load cellular gateway for gateway %s: %w", gatewayID, err)
 	}
 
 	apnsByName, err := subscriberdb.LoadApnsByName(networkID)

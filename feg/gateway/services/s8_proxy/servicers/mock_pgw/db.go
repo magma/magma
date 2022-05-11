@@ -41,7 +41,7 @@ func (mPgw *MockPgw) DeleteBearerRequest(req DeleteBearerRequest) (chan DBReq, e
 
 	sgwTeidC, err := session.GetTEID(gtpv2.IFTypeS5S8SGWGTPC)
 	if err != nil {
-		err = errors.Wrap(err, "Error, couldnt find teid on Dedicated Bearer Request")
+		err = fmt.Errorf("Error, couldnt find teid on Dedicated Bearer Request: %w", err)
 		return nil, err
 	}
 

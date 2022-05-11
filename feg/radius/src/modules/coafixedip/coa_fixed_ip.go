@@ -15,6 +15,7 @@ package coafixedip
 
 import (
 	"context"
+	"fmt"
 	"net"
 
 	"github.com/mitchellh/mapstructure"
@@ -56,7 +57,7 @@ func Init(logger *zap.Logger, config modules.ModuleConfig) (modules.Context, err
 	}
 
 	if nil == net.ParseIP(host) {
-		return nil, errors.Wrap(err, "Invalid ip address specified")
+		return nil, fmt.Errorf("Invalid ip address specified: %w", err)
 	}
 
 	return ModuleCtx{target: coaConfig.Target}, nil

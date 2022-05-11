@@ -328,7 +328,7 @@ func GetPaginationParams(c echo.Context) (uint64, string, error) {
 	}
 	pageSize, err := strconv.ParseUint(pageSizeStr, 10, 32)
 	if err != nil {
-		err := errors.Wrap(err, "invalid page size parameter")
+		err := fmt.Errorf("invalid page size parameter: %w", err)
 		return 0, pageToken, echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	return pageSize, pageToken, nil

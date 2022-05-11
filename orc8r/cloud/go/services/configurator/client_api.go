@@ -15,6 +15,7 @@ package configurator
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -525,7 +526,7 @@ func LoadEntities(ctx context.Context, networkID string, typeFilter *string, key
 	}
 	ret, err := (NetworkEntities{}).fromProtos(protoEnts, serdes)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "request succeeded but deserialization failed")
+		return nil, nil, fmt.Errorf("request succeeded but deserialization failed: %w", err)
 	}
 	return ret, entIDsToTKs(notFound), nil
 }
@@ -682,7 +683,7 @@ func LoadAllEntitiesOfType(ctx context.Context, networkID string, entityType str
 
 	ret, err := (NetworkEntities{}).fromProtos(res.Entities, serdes)
 	if err != nil {
-		return nil, "", errors.Wrap(err, "request succeeded but deserialization failed")
+		return nil, "", fmt.Errorf("request succeeded but deserialization failed: %w", err)
 	}
 
 	return ret, res.NextPageToken, nil

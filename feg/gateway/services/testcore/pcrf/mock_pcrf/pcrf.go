@@ -292,7 +292,7 @@ func (srv *PCRFServer) AbortSession(
 	srv.mux.Handle(diam.ASA, asaHandler)
 	err := sendASR(account.CurrentState, srv.mux.Settings())
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to send Gx ASR")
+		return nil, fmt.Errorf("Failed to send Gx ASR: %w", err)
 	}
 	select {
 	case asa := <-resp:

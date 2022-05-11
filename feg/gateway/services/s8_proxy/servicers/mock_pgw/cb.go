@@ -52,7 +52,7 @@ func (mPgw *MockPgw) CreateBearerRequest(req CreateBearerRequest) (chan CBReq, e
 
 	sgwTeidC, err := session.GetTEID(gtpv2.IFTypeS5S8SGWGTPC)
 	if err != nil {
-		err = errors.Wrap(err, "Error, couldnt find teid con Create Bearer Request")
+		err = fmt.Errorf("Error, couldnt find teid con Create Bearer Request: %w", err)
 		return nil, err
 	}
 

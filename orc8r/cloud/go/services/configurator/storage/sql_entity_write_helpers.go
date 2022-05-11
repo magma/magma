@@ -64,7 +64,7 @@ func (store *sqlConfiguratorStorage) doesPhysicalIDExist(physicalID string) (boo
 		return false, nil
 	}
 	if err != nil {
-		return false, errors.Wrapf(err, "check for existence of physical ID %s", physicalID)
+		return false, fmt.Errorf("check for existence of physical ID %s: %w", physicalID, err)
 	}
 
 	return count > 0, nil
@@ -81,7 +81,7 @@ func (store *sqlConfiguratorStorage) insertIntoEntityTable(networkID string, ent
 		RunWith(store.tx).
 		Exec()
 	if err != nil {
-		return &NetworkEntity{}, errors.Wrapf(err, "error creating entity %s", entCopy.GetTK())
+		return &NetworkEntity{}, fmt.Errorf("error creating entity %s: %w", entCopy.GetTK(), err)
 	}
 	return entCopy, nil
 }
@@ -110,7 +110,7 @@ func (store *sqlConfiguratorStorage) createEdges(networkID string, entity *Netwo
 	}
 	_, err = insertBuilder.RunWith(store.tx).Exec()
 	if err != nil {
-		return entsByTk, errors.Wrap(err, "error creating assocs")
+		return entsByTk, fmt.Errorf("error creating assocs: %w", err)
 	}
 	return entsByTk, nil
 }
@@ -175,7 +175,7 @@ func (store *sqlConfiguratorStorage) mergeGraphs(createdEntity *NetworkEntity, a
 			RunWith(sc).
 			Exec()
 		if err != nil {
-			return "", errors.Wrap(err, "error updating entity graphs")
+			return "", fmt.Errorf("error updating entity graphs: %w", err)
 		}
 	}
 
@@ -189,7 +189,7 @@ func (store *sqlConfiguratorStorage) loadEntToUpdate(networkID string, update *E
 		&EntityLoadCriteria{},
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to load entity to update")
+		return nil, fmt.Errorf("failed to load entity to update: %w", err)
 	}
 	// don't error on deleting an entity which doesn't exist
 	if len(loaded) != 1 && !update.DeleteEntity {
@@ -213,7 +213,7 @@ func (store *sqlConfiguratorStorage) processEntityFieldsUpdate(pk string, update
 		RunWith(store.tx).
 		Exec()
 	if err != nil {
-		return errors.Wrap(err, "failed to update entity fields")
+		return fmt.Errorf("failed to update entity fields: %w", err)
 	}
 
 	if update.NewName != nil {
@@ -248,7 +248,7 @@ func (store *sqlConfiguratorStorage) processEdgeUpdates(networkID string, update
 			RunWith(store.tx).
 			Exec()
 		if err != nil {
-			return errors.Wrap(err, "failed to delete existing edges")
+			return fmt.Errorf("failed to delete existing edges: %w", err)
 		}
 	}
 
@@ -323,7 +323,7 @@ func (store *sqlConfiguratorStorage) deleteEdges(networkID string, edgesToDelete
 	// Get PKs to delete
 	loaded, err := store.loadEntitiesFromIDs(networkID, edgesToDelete)
 	if err != nil {
-		return errors.Wrap(err, "could not load entities matching associations to delete")
+		return fmt.Errorf("could not load entities matching associations to delete: %w", err)
 	}
 
 	orClause := make(sq.Or, 0, len(edgesToDelete))
@@ -339,7 +339,7 @@ func (store *sqlConfiguratorStorage) deleteEdges(networkID string, edgesToDelete
 		RunWith(store.tx).
 		Exec()
 	if err != nil {
-		return errors.Wrap(err, "failed to delete assocs")
+		return fmt.Errorf("failed to delete assocs: %w", err)
 	}
 
 	if funk.IsEmpty(entToUpdateOut.Associations) {

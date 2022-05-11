@@ -15,6 +15,7 @@ package testcontroller
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
@@ -59,7 +60,7 @@ func ExecuteNextTestCase(testMachines map[string]statemachines.TestMachine, stor
 	}
 	unmarshalledConfig, err := serde.Deserialize(tc.TestConfig, tc.TestCaseType, serdes)
 	if err != nil {
-		return errors.Wrapf(err, "could not deserialize test %s config", tc.TestCaseType)
+		return fmt.Errorf("could not deserialize test %s config: %w", tc.TestCaseType, err)
 	}
 	var prevErr error
 	if tc.Error != "" {
@@ -96,7 +97,7 @@ func GetTestCases(ctx context.Context, pks []int64, serdes serde.Registry) (map[
 	for pk, tc := range res.Tests {
 		unmarshalledConfig, err := serde.Deserialize(tc.TestConfig, tc.TestCaseType, serdes)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to deserialize test case of type %s", tc.TestCaseType)
+			return nil, fmt.Errorf("failed to deserialize test case of type %s: %w", tc.TestCaseType, err)
 		}
 		ret[pk] = &UnmarshalledTestCase{
 			TestCase:          tc,
@@ -109,7 +110,7 @@ func GetTestCases(ctx context.Context, pks []int64, serdes serde.Registry) (map[
 func CreateOrUpdateTestCase(ctx context.Context, pk int64, testCaseType string, testCaseConfig interface{}, serdes serde.Registry) error {
 	marshaledConfig, err := serde.Serialize(testCaseConfig, testCaseType, serdes)
 	if err != nil {
-		return errors.Wrap(err, "failed to serialize config")
+		return fmt.Errorf("failed to serialize config: %w", err)
 	}
 
 	client, err := getE2EClient()

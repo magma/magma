@@ -467,7 +467,7 @@ func updateSubscriberProfile(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to update profile"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to update profile: %w", err))
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -618,7 +618,7 @@ func loadSubscribers(ctx context.Context, networkID string, includeSub subscribe
 	for _, key := range keys {
 		sub, err := loadSubscriber(ctx, networkID, key)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error loading subscriber %s", key)
+			return nil, fmt.Errorf("error loading subscriber %s: %w", key, err)
 		}
 		if includeSub(sub) {
 			subs[string(sub.ID)] = sub
