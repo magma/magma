@@ -29,18 +29,18 @@ jobs:
     steps:
       - run: echo "::set-output name=date::$(date +'%m-%d-%Y--%H-%M-%S')"
         id: date
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e  # pin@v2
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@05b148adc31e091bafbaf404f745055d4d3bc9d2  # pin@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
           aws-region: us-east-1
       - name: setup pyenv
-        uses: "gabrielfalcao/pyenv-action@v8"
+        uses: "gabrielfalcao/pyenv-action@5327db2939908b2ef8f62d284403d678c4b611d0"  # pin@v8
         with:
           default: 3.8.5
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a  # pin@v2
         with:
           python-version: '3.8.5'
       - name: Install pre requisites
@@ -71,7 +71,8 @@ jobs:
         run: |
           cd lte/gateway
           vagrant ssh -c 'cd ~/magma; bazel test --config=limit_mem //...' magma
-      - name: Test C/C++ with ASAN `bazel test //orc8r/gateway/c/... //lte/gateway/c/... --config=asan`
+      - name: Test C/C++ with ASAN `bazel test //orc8r/gateway/c/... //lte/gateway/c/...
+          --config=asan`
         run: |
           cd lte/gateway
           vagrant ssh -c 'cd ~/magma; bazel test --config=limit_mem //orc8r/gateway/c/... //lte/gateway/c/... --config=asan' magma
@@ -97,28 +98,30 @@ jobs:
           sudo rm -rf /opt/ghc
           echo "Available storage after:"
           df -h
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e  # pin@v2
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@05b148adc31e091bafbaf404f745055d4d3bc9d2  # pin@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
           aws-region: us-east-1
       - name: Build all `bazel build //...`
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5  # pin@v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace
+            }}/lte/gateway/configs:/etc/magma
           run: |
             cd /workspaces/magma
             bazel build //...
       - name: Test all  `bazel test //...`
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5  # pin@v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace
+            }}/lte/gateway/configs:/etc/magma
           run: |
             cd /workspaces/magma
             bazel test //...

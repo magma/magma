@@ -39,9 +39,9 @@ jobs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e  # pin@v2
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721  # pin@v2
         id: changes
         with:
           filters: |
@@ -71,16 +71,17 @@ jobs:
           df -h
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e  # pin@v2
       - name: Bazel Cache
-        uses: actions/cache@v2
+        uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed  # pin@v2
         with:
           path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
-          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ env.CACHE_SUB_KEY }}-${{ github.sha }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ env.CACHE_SUB_KEY }}-${{
+            github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ env.CACHE_SUB_KEY }}-
       - name: Bazel Cache Repo
-        uses: actions/cache@v2
+        uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed  # pin@v2
         with:
           path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
           key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
@@ -94,7 +95,7 @@ jobs:
         run: |
           ./.github/workflows/check-bazel-cache-dir-size.sh "$BAZEL_CACHE_DIR" "$BAZEL_CACHE_CUTOFF_MB"
       - name: Setup Bazel Base Image
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5  # pin@v2
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
@@ -105,11 +106,11 @@ jobs:
         #   Rationale: our workflow (merge branch into upstream master) is incompatible
         #   See long list of GH Issues on https://github.com/jitterbit/get-changed-files w.r.t. head ahead of base
         id: changed_files
-        uses: mmagician/get-changed-files@v2
+        uses: mmagician/get-changed-files@1028587c8596c55a9d03d813a48aa1377f60b087  # pin@v2
         with:
           format: 'csv'
       - name: Build and Apply GCC Problem Matcher
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5  # pin@v2
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -126,21 +127,21 @@ jobs:
         #
         # Paths emitted on warnings must be relative to the repository (e.g. lte/gateway/...),
         # Therefore below I use `xo` to fixup our path emissions on gcc warnings.
-        uses: electronjoe/gcc-problem-matcher@v1
+        uses: electronjoe/gcc-problem-matcher@654cb8a3a64f6e3c9a24a96eae3baab3c00a5f66  # pin@v1
       - name: Cat compilation log (filtered by file names)
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@4d955dc997bf4062071220322058ad954f3e95c5  # pin@v2
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: -v ${{ github.workspace }}:/magma
           run: cat /magma/filtered-compile.log
       - name: Store build_logs_c_full_log Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2  # pin@v2
         with:
           name: build_logs_c_full_log
           path: ${{ github.workspace }}/compile.log
       - name: Store build_logs_c_filtered_log Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2  # pin@v2
         with:
           name: build_logs_c_filtered_log
           path: ${{ github.workspace }}/filtered-compile.log
