@@ -19,29 +19,22 @@ import type {UserType} from '../../../fbc_js_core/sequelize_models/models/user.j
 import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
 import ActionTable from '../components/ActionTable';
-import BusinessIcon from '@material-ui/icons/Business';
 import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
 import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import OrganizationDialog from './OrganizationDialog';
 import PersonAdd from '@material-ui/icons/PersonAdd';
-import PersonIcon from '@material-ui/icons/Person';
 import React from 'react';
 import Text from '../../../app/theme/design-system/Text';
 import axios from 'axios';
 import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
-import {colors} from '../../../app/theme/default';
+import {
+  OnboardingAddButtonHelper,
+  OnboardingDialog,
+  OnboardingLinkHelper,
+} from './OrganizationOnboarding';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios} from '../../../fbc_js_core/ui/hooks';
 import {useCallback, useEffect, useState} from 'react';
@@ -66,98 +59,12 @@ const useStyles = makeStyles(_ => ({
     display: 'flex',
     justifyContent: 'space-between',
   },
-  paper: {
+  container: {
     margin: '40px 32px',
-  },
-  onBoardingDialog: {
-    padding: '24px 0',
-  },
-  onBoardingDialogTitle: {
-    padding: '0 24px',
-    fontSize: '24px',
-    color: colors.primary.comet,
-    backgroundColor: colors.primary.concrete,
-  },
-  onBoardingDialogContent: {
-    minHeight: '200px',
-    padding: '16px 24px',
-  },
-  onBoardingDialogActions: {
-    padding: '0 24px',
-    backgroundColor: colors.primary.concrete,
-    boxShadow: 'none',
-  },
-  onBoardingDialogButton: {
-    minWidth: '120px',
-  },
-  subtitle: {
-    margin: '16px 0',
-  },
-  index: {
-    color: colors.primary.gullGray,
   },
 }));
 
 type Props = {...WithAlert};
-
-function OnboardingDialog() {
-  const classes = useStyles();
-  const [open, setOpen] = useState(true);
-  return (
-    <Dialog
-      classes={{paper: classes.onBoardingDialog}}
-      maxWidth={'sm'}
-      fullWidth={true}
-      open={open}
-      keepMounted
-      onClose={() => setOpen(false)}
-      aria-describedby="alert-dialog-slide-description">
-      <DialogTitle classes={{root: classes.onBoardingDialogTitle}}>
-        {'Welcome to Magma Host Portal'}
-      </DialogTitle>
-      <DialogContent classes={{root: classes.onBoardingDialogContent}}>
-        <DialogContentText id="alert-dialog-slide-description">
-          <Text variant="subtitle1">
-            In this portal, you can add and edit organizations and its user.
-            Follow these steps to get started:
-          </Text>
-          <List dense={true}>
-            <ListItem disablegutters="true">
-              <ListItemIcon>
-                <BusinessIcon />
-              </ListItemIcon>
-              <Text variant="subtitle1">Add an organization</Text>
-            </ListItem>
-            <ListItem disablegutters="true">
-              <ListItemIcon>
-                <PersonIcon />
-              </ListItemIcon>
-              <Text variant="subtitle1">Add a user for the organization</Text>
-            </ListItem>
-            <ListItem disablegutters="true">
-              <ListItemIcon>
-                <ExitToAppIcon />
-              </ListItemIcon>
-              <Text variant="subtitle1">
-                Log in to the organization portal with the user account you
-                created
-              </Text>
-            </ListItem>
-          </List>
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions classes={{root: classes.onBoardingDialogActions}}>
-        <Button
-          className={classes.onBoardingDialogButton}
-          variant="contained"
-          color="primary"
-          onClick={() => setOpen(false)}>
-          Get Started
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-}
 
 async function getUsers(
   organizations: Organization[],
@@ -195,12 +102,20 @@ function Organizations(props: Props) {
   const [showOnboardingDialog, setShowOnboardingDialog] = useState(false);
   const [showOrganizationDialog, setShowOrganizationDialog] = useState(false);
   const enqueueSnackbar = useEnqueueSnackbar();
+  const addButtonRef = React.useRef(null);
+  const linkHelperRef = React.useRef(null);
+  const [showPopperButtonHelper, setShowPopperButtonHelper] = useState(false);
+  const [showPopperLinkHelper, setShowPopperLinkHelper] = useState(false);
+
   const {error, isLoading} = useAxios({
     url: '/host/organization/async',
     onResponse: useCallback(res => {
       setOrganizations(res.data.organizations);
+      // Show onboarding popper if less than 3 organizations
       if (res.data.organizations.length < 3) {
         setShowOnboardingDialog(true);
+        setShowPopperButtonHelper(true);
+        setShowPopperLinkHelper(true);
       }
     }, []),
   });
@@ -231,13 +146,28 @@ function Organizations(props: Props) {
     [classes.index],
   );
 
-  const renderLinkColumn = useCallback(rowData => {
-    return (
-      <Link href={rowData.portalLink}>
-        {`Visit ${rowData.name} Organization Portal`}
-      </Link>
-    );
-  }, []);
+  const renderLinkColumn = useCallback(
+    rowData => {
+      return (
+        <Link
+          href={rowData.portalLink}
+          variant="body2"
+          ref={
+            organizations?.length === rowData.tableData?.index + 1 &&
+            organizations?.length < 3 &&
+            //hide onboarding helper for host organization
+            !(rowData.name === 'host')
+              ? linkHelperRef
+              : null
+          }>
+          {`Visit ${
+            rowData.name + (rowData.name === 'host' ? '' : ' Organization')
+          } Portal`}
+        </Link>
+      );
+    },
+    [organizations?.length],
+  );
 
   if (error || isLoading || !organizations) {
     return <LoadingFiller />;
@@ -287,22 +217,40 @@ function Organizations(props: Props) {
     },
   ];
   return (
-    <div className={classes.paper}>
+    <div className={classes.container}>
       <Grid container>
         <Grid container justifyContent="space-between">
           <Text variant="h3">Organizations</Text>
           <Button
+            ref={addButtonRef}
             className={classes.addButton}
             color="primary"
             variant="contained"
-            onClick={() => setShowOrganizationDialog(true)}>
-            Add Organization
+            onClick={() => {
+              setShowOrganizationDialog(true);
+              if (showPopperButtonHelper) {
+                setShowPopperButtonHelper(false);
+              }
+            }}>
+            Add Organizations
           </Button>
         </Grid>
+        <OnboardingAddButtonHelper
+          open={
+            !showOnboardingDialog &&
+            !showOrganizationDialog &&
+            showPopperButtonHelper
+          }
+          buttonRef={addButtonRef.current}
+          onClose={() => setShowPopperButtonHelper(false)}
+        />
         <Grid item xs={12} className={classes.description}>
           <Text variant="body2">{ORGANIZATION_DESCRIPTION}</Text>
         </Grid>
-        <>{showOnboardingDialog && <OnboardingDialog />}</>
+        <OnboardingDialog
+          open={showOnboardingDialog}
+          setOpen={open => setShowOnboardingDialog(open)}
+        />
         <Grid item xs={12}>
           <ActionTable
             data={organizationRows}
@@ -358,6 +306,15 @@ function Organizations(props: Props) {
               pageSizeOptions: [5, 10],
               toolbar: false,
             }}
+          />
+          <OnboardingLinkHelper
+            open={
+              !showPopperButtonHelper &&
+              !showOnboardingDialog &&
+              showPopperLinkHelper
+            }
+            linkRef={linkHelperRef.current}
+            onClose={() => setShowPopperLinkHelper(false)}
           />
         </Grid>
         <OrganizationDialog

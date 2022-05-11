@@ -41,7 +41,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useAxios} from '../../../fbc_js_core/ui/hooks';
 import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
-import {useParams} from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(_ => ({
   arrowBack: {
@@ -145,6 +145,7 @@ function DialogWithConfirmationPhrase(props: DialogConfirmationProps) {
  */
 function OrganizationEdit(props: WithAlert & Props) {
   const params = useParams();
+  const navigate = useNavigate();
   const [addingUserFor, setAddingUserFor] = useState<?Organization>(null);
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -264,8 +265,8 @@ function OrganizationEdit(props: WithAlert & Props) {
               await axios.delete(
                 `/host/organization/async/${organization?.id || ''}`,
               );
-              history.push('/host/organizations');
               setOrganizationToDelete(null);
+              navigate('host/organizations');
             }}
           />
         )}
@@ -275,7 +276,7 @@ function OrganizationEdit(props: WithAlert & Props) {
               <Grid container alignItems="center">
                 <Grid>
                   <IconButton
-                    onClick={() => history.goBack()}
+                    onClick={() => navigate('host/organizations')}
                     className={classes.arrowBack}
                     color="primary">
                     <ArrowBackIcon />
