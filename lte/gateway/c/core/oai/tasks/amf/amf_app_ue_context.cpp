@@ -265,7 +265,7 @@ amf_context_t* amf_context_get(const amf_ue_ngap_id_t ue_id) {
     if (ue_mm_context) {
       amf_context_p = &ue_mm_context->amf_context;
     }
-    OAILOG_DEBUG(LOG_NAS_AMF, "Stored UE id " AMF_UE_NGAP_ID_FMT " \n", ue_id);
+    OAILOG_DEBUG(LOG_AMF_APP, "Stored UE id " AMF_UE_NGAP_ID_FMT " \n", ue_id);
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, amf_context_p);
 }
@@ -559,7 +559,7 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   magma::map_rc_t m_rc = magma::MAP_OK;
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
   amf_ue_context_t* amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
-  OAILOG_DEBUG(LOG_NAS_AMF, "amf_free_ue_context \n");
+  OAILOG_DEBUG(LOG_AMF_APP, "amf_free_ue_context \n");
   map_uint64_ue_context_t* amf_state_ue_id_ht = get_amf_ue_state();
   if (!ue_context_p || !amf_ue_context_p) {
     return;
@@ -580,9 +580,9 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
  ***************************************************************************/
 void proc_new_registration_req(amf_ue_context_t* const amf_ue_context_p,
                                struct ue_m5gmm_context_s* ue_context_p) {
-  OAILOG_FUNC_IN(LOG_NAS_AMF);
+  OAILOG_FUNC_IN(LOG_AMF_APP);
 
-  OAILOG_INFO(LOG_NAS_AMF,
+  OAILOG_INFO(LOG_AMF_APP,
               "Process new Registration Request for ue_id " AMF_UE_NGAP_ID_FMT
               "\n",
               ue_context_p->amf_ue_ngap_id);
@@ -628,10 +628,10 @@ void proc_new_registration_req(amf_ue_context_t* const amf_ue_context_p,
       amf_ue_context_exists_amf_ue_ngap_id(registration_info.amf_ue_ngap_id);
 
   if (ue_m5gmm_context == NULL) {
-    OAILOG_ERROR(LOG_NAS_AMF, "Failed to re-register " AMF_UE_NGAP_ID_FMT "\n",
+    OAILOG_ERROR(LOG_AMF_APP, "Failed to re-register " AMF_UE_NGAP_ID_FMT "\n",
                  registration_info.amf_ue_ngap_id);
 
-    OAILOG_FUNC_OUT(LOG_NAS_AMF);
+    OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
 
   amf_context_t* new_amf_ctx = &ue_m5gmm_context->amf_context;
@@ -645,14 +645,14 @@ void proc_new_registration_req(amf_ue_context_t* const amf_ue_context_p,
   }
   amf_registration_run_procedure(&ue_m5gmm_context->amf_context);
 
-  OAILOG_FUNC_OUT(LOG_NAS_AMF);
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 //------------------------------------------------------------------------------
 int amf_app_handle_implicit_deregistration_timer_expiry(zloop_t* loop,
                                                         int timer_id,
                                                         void* args) {
-  OAILOG_FUNC_IN(LOG_NAS_AMF);
+  OAILOG_FUNC_IN(LOG_AMF_APP);
 
   amf_context_t* amf_ctx = NULL;
   amf_ue_ngap_id_t ue_id = 0;
@@ -662,18 +662,18 @@ int amf_app_handle_implicit_deregistration_timer_expiry(zloop_t* loop,
         LOG_AMF_APP,
         "Implicit Deregistration: Invalid Timer Id expiration, Timer Id: %u\n",
         timer_id);
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
   }
 
   ue_m5gmm_context_s* ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context_p == NULL) {
-    OAILOG_DEBUG(LOG_NAS_AMF,
+    OAILOG_DEBUG(LOG_AMF_APP,
                  "Implicit Deregistration: ue_amf_context is NULL for "
                  "ue id: " AMF_UE_NGAP_ID_FMT "\n",
                  ue_id);
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
   }
 
   amf_ctx = &ue_context_p->amf_context;
@@ -683,7 +683,7 @@ int amf_app_handle_implicit_deregistration_timer_expiry(zloop_t* loop,
                  "Implicit Deregistration: Timer expired no amf context for "
                  "ue id: " AMF_UE_NGAP_ID_FMT "\n",
                  ue_id);
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
   }
 
   ue_context_p->m5_implicit_deregistration_timer.id = AMF_APP_TIMER_INACTIVE_ID;
@@ -707,18 +707,18 @@ static int amf_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
         LOG_AMF_APP,
         "Mobile Rechability timer: Invalid Timer Id expiration, Timer Id: %u\n",
         timer_id);
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
   }
 
   ue_m5gmm_context_s* ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context_p == NULL) {
-    OAILOG_DEBUG(LOG_NAS_AMF,
+    OAILOG_DEBUG(LOG_AMF_APP,
                  "Mobile Reachability Timer: ue_amf_context is NULL for "
                  "ue id: " AMF_UE_NGAP_ID_FMT "\n",
                  ue_id);
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
   }
 
   amf_ctx = &ue_context_p->amf_context;
@@ -728,7 +728,7 @@ static int amf_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
                  "Mobile Reachability Timer: Timer expired no amf context for "
                  "ue id: " AMF_UE_NGAP_ID_FMT "\n",
                  ue_id);
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
   }
 
   ue_context_p->m5_mobile_reachability_timer.id = AMF_APP_TIMER_INACTIVE_ID;
