@@ -31,9 +31,9 @@ import (
 
 const ServiceName = "directoryd"
 
-//-------------------------------
+// -------------------------------
 // Directoryd service client APIs
-//-------------------------------
+// -------------------------------
 
 // getDirectorydClient returns an RPC connection to the directoryd service.
 func getDirectorydClient() (protos.DirectoryLookupClient, error) {
@@ -301,9 +301,9 @@ func GetNewSgwUTeid(ctx context.Context, networkID string) (string, error) {
 	return res.Teid, nil
 }
 
-//--------------------------
+// --------------------------
 // State service client APIs
-//--------------------------
+// --------------------------
 
 // GetHWIDForIMSI returns the HWID mapped to by the IMSI.
 // Primary state, stored in state service.

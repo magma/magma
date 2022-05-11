@@ -14,10 +14,9 @@ limitations under the License.
 package testlib
 
 import (
-	"io/ioutil"
-
 	"flag"
 	"fmt"
+	"io/ioutil"
 
 	"golang.org/x/crypto/ssh"
 )
