@@ -18,8 +18,9 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"magma/feg/gateway/services/testcore/hss/servicers"
 	"reflect"
+
+	"magma/feg/gateway/services/testcore/hss/servicers"
 
 	"magma/cwf/cloud/go/protos"
 	"magma/feg/gateway/services/eap"
@@ -27,7 +28,6 @@ import (
 	"magma/lte/cloud/go/crypto"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 )
 
 // todo Replace constants with configurable fields
@@ -54,7 +54,7 @@ func (srv *UESimServer) handleEapAka(ue *protos.UEConfig, req eap.Packet) (eap.P
 	case aka.SubtypeChallenge:
 		return srv.eapAkaChallengeRequest(ue, req)
 	default:
-		return nil, errors.Errorf("Unsupported Subtype: %d", req[eap.EapSubtype])
+		return nil, fmt.Errorf("Unsupported Subtype: %d", req[eap.EapSubtype])
 	}
 }
 
@@ -113,7 +113,7 @@ func (srv *UESimServer) eapAkaChallengeRequest(ue *protos.UEConfig, req eap.Pack
 		return nil, fmt.Errorf("Error while parsing attributes of request packet: %w", err)
 	}
 	if attrs.rand == nil || attrs.autn == nil || attrs.mac == nil {
-		return nil, errors.Errorf("Missing one or more expected attributes\nRAND: %s\nAUTN: %s\nMAC: %s\n", attrs.rand, attrs.autn, attrs.mac)
+		return nil, fmt.Errorf("Missing one or more expected attributes\nRAND: %s\nAUTN: %s\nMAC: %s\n", attrs.rand, attrs.autn, attrs.mac)
 	}
 
 	// Parse out RAND, expected AUTN, and expected MAC values.

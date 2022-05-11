@@ -19,7 +19,6 @@ import (
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/orc8r/math"
@@ -81,7 +80,7 @@ func (b *baseOrchestratorBuilder) Build(network *storage.Network, graph *storage
 	// Gateway must be present in the graph
 	gateway, err := nativeGraph.GetEntity(orc8r.MagmadGatewayType, gatewayID)
 	if err == merrors.ErrNotFound {
-		return nil, errors.Errorf("could not find magmad gateway %s in graph", gatewayID)
+		return nil, fmt.Errorf("could not find magmad gateway %s in graph", gatewayID)
 	}
 	if err != nil {
 		return nil, err

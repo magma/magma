@@ -563,7 +563,7 @@ func validateSubscriberProfiles(ctx context.Context, networkID string, profiles 
 	errs := &multierror.Error{}
 	for _, p := range nonDefaultProfiles {
 		if _, ok := networkProfiles[p]; !ok {
-			errs = multierror.Append(errs, errors.Errorf("subscriber profile '%s' does not exist for the network", p))
+			errs = multierror.Append(errs, fmt.Errorf("subscriber profile '%s' does not exist for the network", p))
 		}
 	}
 	err = errs.ErrorOrNil()
@@ -694,7 +694,7 @@ func createSubscribers(ctx context.Context, networkID string, subs ...*subscribe
 
 	if len(uniqueIDs) != len(ids) {
 		duplicates := funk.FilterString(ids, func(s string) bool { return uniqueIDs[s] > 1 })
-		return echo.NewHTTPError(http.StatusBadRequest, errors.Errorf("found multiple subscriber models for IDs: %+v", duplicates))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("found multiple subscriber models for IDs: %+v", duplicates))
 	}
 
 	// TODO(hcgatewood) iterate over this to remove "too many placeholders" error
@@ -704,7 +704,7 @@ func createSubscribers(ctx context.Context, networkID string, subs ...*subscribe
 		return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 	}
 	if len(found) != 0 {
-		return echo.NewHTTPError(http.StatusBadRequest, errors.Errorf("found %v existing subscribers which would have been overwritten: %+v", len(found), found.TKs()))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("found %v existing subscribers which would have been overwritten: %+v", len(found), found.TKs()))
 	}
 
 	_, err = configurator.CreateEntities(ctx, networkID, ents, serdes.Entity)

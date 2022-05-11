@@ -145,7 +145,7 @@ func (m *MACMiddleware) verify(r *http.Request) error {
 		return fmt.Errorf("parse timestamp: %v: %w", ts, err)
 	}
 	if ts := time.Unix(n, 0); abs(time.Since(ts)) > m.TimeSkew {
-		return errors.Errorf("stable timestamp: %v", ts)
+		return fmt.Errorf("stable timestamp: %v", ts)
 	}
 	h := m.Hash.New()
 	if err := hashRequest(h, r, ts); err != nil {

@@ -482,7 +482,7 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity *Netw
 		return &NetworkEntity{}, err
 	}
 	if exists {
-		return &NetworkEntity{}, errors.Errorf("an entity '%s' already exists", entityCopy.GetTK())
+		return &NetworkEntity{}, fmt.Errorf("an entity '%s' already exists", entityCopy.GetTK())
 	}
 
 	// Physical ID must be unique across all networks, since we use a gateway's
@@ -492,7 +492,7 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity *Netw
 		return &NetworkEntity{}, err
 	}
 	if physicalIDExists {
-		return &NetworkEntity{}, errors.Errorf("an entity with physical ID '%s' already exists", entityCopy.GetPhysicalID())
+		return &NetworkEntity{}, fmt.Errorf("an entity with physical ID '%s' already exists", entityCopy.GetPhysicalID())
 	}
 
 	// First insert the associations as graph edges. This step involves a
@@ -598,7 +598,7 @@ func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entity
 		ent = e
 	}
 	if ent == nil {
-		return &EntityGraph{}, errors.Errorf("could not find requested entity (%s) for graph query", entityIDCopy.String())
+		return &EntityGraph{}, fmt.Errorf("could not find requested entity (%s) for graph query", entityIDCopy.String())
 	}
 
 	internalGraph, err := store.loadGraphInternal(networkID, ent.GraphID, loadCriteriaCopy)
@@ -608,7 +608,7 @@ func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entity
 
 	rootPKs := findRootNodes(internalGraph)
 	if funk.IsEmpty(rootPKs) {
-		return &EntityGraph{}, errors.Errorf("graph does not have root nodes")
+		return &EntityGraph{}, fmt.Errorf("graph does not have root nodes")
 	}
 
 	edges, err := updateEntitiesWithAssocs(internalGraph.entsByTK, internalGraph.edges)

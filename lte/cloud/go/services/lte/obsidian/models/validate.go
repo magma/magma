@@ -151,14 +151,14 @@ func (m *NetworkRanConfigs) ValidateModel(context.Context) error {
 	}
 
 	if tddConfigSet && band.Mode != lte.TDDMode {
-		return errors.Errorf("band %d not a TDD band", band.ID)
+		return fmt.Errorf("band %d not a TDD band", band.ID)
 	}
 	if fddConfigSet {
 		if band.Mode != lte.FDDMode {
-			return errors.Errorf("band %d not a FDD band", band.ID)
+			return fmt.Errorf("band %d not a FDD band", band.ID)
 		}
 		if !band.EarfcnULInRange(m.FddConfig.Earfcnul) {
-			return errors.Errorf("EARFCNUL=%d invalid for band %d (%d, %d)", m.FddConfig.Earfcnul, band.ID, band.StartEarfcnUl, band.StartEarfcnDl)
+			return fmt.Errorf("EARFCNUL=%d invalid for band %d (%d, %d)", m.FddConfig.Earfcnul, band.ID, band.StartEarfcnUl, band.StartEarfcnDl)
 		}
 	}
 

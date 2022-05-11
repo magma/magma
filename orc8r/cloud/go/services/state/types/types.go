@@ -29,7 +29,6 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/serde"
@@ -254,13 +253,13 @@ func MakeState(p *protos.State, serdes serde.Registry) (State, *protos.IDAndErro
 	}
 
 	if st.ReportedState == nil {
-		err = errors.Errorf("state {type: %s, key: %s} should not have nil SerializedReportedState value", p.Type, p.DeviceID)
+		err = fmt.Errorf("state {type: %s, key: %s} should not have nil SerializedReportedState value", p.Type, p.DeviceID)
 		sErr := &protos.IDAndError{Type: p.Type, DeviceID: p.DeviceID, Error: err.Error()}
 		return State{}, sErr, nil
 	}
 	model, ok := st.ReportedState.(serde.ValidateableBinaryConvertible)
 	if !ok {
-		err = errors.Errorf("could not convert state {type: %s, key: %s} to validateable model", p.Type, p.DeviceID)
+		err = fmt.Errorf("could not convert state {type: %s, key: %s} to validateable model", p.Type, p.DeviceID)
 		sErr := &protos.IDAndError{Type: p.Type, DeviceID: p.DeviceID, Error: err.Error()}
 		return State{}, sErr, nil
 	}

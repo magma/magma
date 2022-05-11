@@ -202,7 +202,7 @@ func CheckNetworkAccess(c echo.Context, networkId string) *echo.HTTPError {
 
 	cert := getCert(c)
 	if cert == nil {
-		err := errors.Errorf("Client certificate with valid SANs is required for network: %s", networkId)
+		err := fmt.Errorf("Client certificate with valid SANs is required for network: %s", networkId)
 		return echo.NewHTTPError(http.StatusForbidden, err)
 	}
 

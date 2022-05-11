@@ -14,6 +14,8 @@
 package protos
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 )
 
@@ -60,13 +62,13 @@ func (m *SetIPsRequest) Validate() error {
 	}
 	for _, mapping := range m.IpMappings {
 		if mapping.Ip == "" {
-			return errors.Errorf("ip cannot be empty in mapping %v", mapping)
+			return fmt.Errorf("ip cannot be empty in mapping %v", mapping)
 		}
 		if mapping.Imsi == "" {
-			return errors.Errorf("imsi cannot be empty in mapping %v", mapping)
+			return fmt.Errorf("imsi cannot be empty in mapping %v", mapping)
 		}
 		if mapping.Apn == "" {
-			return errors.Errorf("apn cannot be empty in mapping %v", mapping)
+			return fmt.Errorf("apn cannot be empty in mapping %v", mapping)
 		}
 	}
 	return nil

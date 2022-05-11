@@ -132,7 +132,7 @@ func (store *sqlConfiguratorStorage) loadEntitiesFromIDs(networkID string, idsTo
 
 	entsNotFound := calculateIDsNotFound(loaded, idsToLoad)
 	if funk.NotEmpty(entsNotFound) {
-		return nil, errors.Errorf("could not find entities matching %v", entsNotFound)
+		return nil, fmt.Errorf("could not find entities matching %v", entsNotFound)
 	}
 
 	return loaded, nil
@@ -193,7 +193,7 @@ func (store *sqlConfiguratorStorage) loadEntToUpdate(networkID string, update *E
 	}
 	// don't error on deleting an entity which doesn't exist
 	if len(loaded) != 1 && !update.DeleteEntity {
-		return nil, errors.Errorf("expected to load 1 ent for update, got %d", len(loaded))
+		return nil, fmt.Errorf("expected to load 1 ent for update, got %d", len(loaded))
 	}
 
 	if funk.IsEmpty(loaded) {

@@ -56,7 +56,7 @@ func ExecuteNextTestCase(testMachines map[string]statemachines.TestMachine, stor
 
 	machine, ok := testMachines[tc.TestCaseType]
 	if !ok {
-		return errors.Errorf("no test state machine found matching %s", tc.TestCaseType)
+		return fmt.Errorf("no test state machine found matching %s", tc.TestCaseType)
 	}
 	unmarshalledConfig, err := serde.Deserialize(tc.TestConfig, tc.TestCaseType, serdes)
 	if err != nil {

@@ -24,7 +24,6 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
@@ -242,7 +241,7 @@ func registerDevice(ctx context.Context, networkID string, gateway *models.Magma
 		assignedEnt, err := configurator.LoadEntityForPhysicalID(ctx, deviceID, configurator.EntityLoadCriteria{}, entitySerdes)
 		switch {
 		case err == nil:
-			return obsidian.MakeHTTPError(errors.Errorf("device %s is already mapped to gateway %s", deviceID, assignedEnt.Key), http.StatusBadRequest)
+			return obsidian.MakeHTTPError(fmt.Errorf("device %s is already mapped to gateway %s", deviceID, assignedEnt.Key), http.StatusBadRequest)
 		case err != merrors.ErrNotFound:
 			return obsidian.MakeHTTPError(fmt.Errorf("failed to check for existing device assignment: %w", err), http.StatusInternalServerError)
 		}

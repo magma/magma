@@ -16,7 +16,6 @@ package log
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -42,7 +41,7 @@ func (cfg Config) Build() (Factory, error) {
 	case "json":
 		c = zap.NewProductionConfig()
 	default:
-		return nil, errors.Errorf("unsupported logging format: %q", cfg.Format)
+		return nil, fmt.Errorf("unsupported logging format: %q", cfg.Format)
 	}
 
 	var level zapcore.Level

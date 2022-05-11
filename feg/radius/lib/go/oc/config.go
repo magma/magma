@@ -15,12 +15,13 @@ package oc
 
 import (
 	"encoding/json"
-	"fbc/lib/go/oc/ocstats"
 	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"fbc/lib/go/oc/ocstats"
 
 	"contrib.go.opencensus.io/exporter/jaeger"
 	"github.com/jessevdk/go-flags"
@@ -172,7 +173,7 @@ func (cfg *Config) buildStats(opt options) (handler http.Handler, closers []func
 		}
 		viewer := GetViewer(name)
 		if viewer == nil {
-			err = errors.Errorf("unknown view name %q", name)
+			err = fmt.Errorf("unknown view name %q", name)
 			return
 		}
 		views := viewer.Views()

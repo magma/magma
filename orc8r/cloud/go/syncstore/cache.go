@@ -19,7 +19,6 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/sqorc"
 )
@@ -53,7 +52,7 @@ func (l *syncStore) NewCacheWriter(network string, id string) CacheWriter {
 // CacheWriter object.
 func (l *cacheWriter) InsertMany(objects map[string][]byte) error {
 	if l.invalid {
-		return errors.Errorf("attempt to insert into network %+v with invalid cache writer", l.network)
+		return fmt.Errorf("attempt to insert into network %+v with invalid cache writer", l.network)
 	}
 	if len(objects) == 0 {
 		return nil
@@ -80,7 +79,7 @@ func (l *cacheWriter) InsertMany(objects map[string][]byte) error {
 
 func (l *cacheWriter) Apply() error {
 	if l.invalid {
-		return errors.Errorf("attempt to apply updates to network %+v with invalid cache writer", l.network)
+		return fmt.Errorf("attempt to apply updates to network %+v with invalid cache writer", l.network)
 	}
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		// HACK: hard coding part of this sql query because there currently doesn't exist good support

@@ -19,7 +19,6 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/serde"
@@ -281,7 +280,7 @@ func WriteEntities(ctx context.Context, networkID string, writes []EntityWriteOp
 			}
 			req.Writes = append(req.Writes, &protos.WriteEntityRequest{Request: &protos.WriteEntityRequest_Update{Update: protoEuc}})
 		default:
-			return errors.Errorf("unrecognized entity write operation %T", op)
+			return fmt.Errorf("unrecognized entity write operation %T", op)
 		}
 	}
 
@@ -510,7 +509,7 @@ func LoadEntityForPhysicalID(ctx context.Context, physicalID string, criteria En
 		return ret, merrors.ErrNotFound
 	}
 	if len(loaded) > 1 {
-		return ret, errors.Errorf("expected one entity from query, found %d", len(loaded))
+		return ret, fmt.Errorf("expected one entity from query, found %d", len(loaded))
 	}
 	return loaded[0], nil
 }

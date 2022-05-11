@@ -16,8 +16,6 @@ package registration
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/bootstrapper"
 	"magma/orc8r/cloud/go/storage"
@@ -56,7 +54,7 @@ func (b *blobstoreStore) SetTokenInfo(tokenInfo *protos.TokenInfo) error {
 		return err
 	}
 	if !isUnique {
-		return errors.Errorf("token is not unique")
+		return fmt.Errorf("token is not unique")
 	}
 
 	// Write to 2 blobstores so that we can key for tokenInfo with both the logicalID and the nonce

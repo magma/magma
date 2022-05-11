@@ -22,7 +22,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/sqorc"
@@ -82,7 +81,7 @@ func (store *sqlConfiguratorStorage) loadEntities(networkID string, filter *Enti
 
 func (store *sqlConfiguratorStorage) loadAssocs(networkID string, filter *EntityLoadFilter, criteria *EntityLoadCriteria, loadTyp loadType) (loadedAssocs, error) {
 	if loadTyp != loadChildren && loadTyp != loadParents {
-		return nil, errors.Errorf("wrong load type received: '%v'", loadTyp)
+		return nil, fmt.Errorf("wrong load type received: '%v'", loadTyp)
 	}
 
 	assocs := loadedAssocs{}
