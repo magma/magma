@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Development image for test, precommit, etc.
 # -----------------------------------------------------------------------------
-ARG baseImage="ubuntu:bionic"
+ARG baseImage="ubuntu:focal"
 FROM ${baseImage} as base
 
 # Add the magma apt repo
@@ -9,7 +9,7 @@ RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ xenial main"
+    apt-add-repository "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main"
 
 # Install the runtime deps.
 RUN apt-get update && apt-get install -y \
@@ -113,13 +113,13 @@ RUN ./run.sh build
 # -----------------------------------------------------------------------------
 # Go-cache base image
 # -----------------------------------------------------------------------------
-FROM ubuntu:bionic as gocache
+FROM ubuntu:focal as gocache
 COPY --from=builder /root/.cache /root/.cache
 
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:bionic AS gateway_go
+FROM ubuntu:focal AS gateway_go
 ARG MAGMA_BUILD_BRANCH=unknown
 ARG MAGMA_BUILD_TAG=unknown
 ARG MAGMA_BUILD_COMMIT_HASH=unknonw

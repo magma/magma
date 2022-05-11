@@ -1,4 +1,4 @@
-ARG baseImage="ubuntu:bionic"
+ARG baseImage="ubuntu:focal"
 FROM ${baseImage} as base
 
 # Add the magma apt repo
@@ -6,7 +6,7 @@ RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ bionic main"
+    apt-add-repository "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main"
 
 # Install the runtime deps.
 RUN apt-get update && apt-get install -y \
@@ -106,7 +106,7 @@ RUN make -C $MAGMA_ROOT/cwf/gateway build
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:bionic AS cwag_go
+FROM ubuntu:focal AS cwag_go
 
 # Install envdir.
 RUN apt-get -y update && apt-get -y install daemontools curl arping
