@@ -36,7 +36,6 @@ require (
 	github.com/go-redis/redis v6.15.5+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.5.2
-	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
 	github.com/shirou/gopsutil/v3 v3.21.5
 	github.com/sparrc/go-ping v0.0.0-20190613174326-4e5b6552494c
@@ -108,6 +107,7 @@ require (
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/olivere/elastic/v7 v7.0.6 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.26.0 // indirect
