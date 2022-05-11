@@ -676,19 +676,23 @@ TEST_F(NgapFlowTest, pdu_sess_resource_setup_req_sunny_day) {
   amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl
       .endpoint_ip_address = blk2bstr(ip_buff, 4);
   amf_pdu_ses_setup_transfer_req.pdu_ip_type.pdn_type = IPv4;
-  amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list.qos_flow_req_item
-      .qos_flow_identifier = 5;
-  amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list.qos_flow_req_item
-      .qos_flow_level_qos_param.qos_characteristic.non_dynamic_5QI_desc.fiveQI =
-      9;
-  amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list.qos_flow_req_item
-      .qos_flow_level_qos_param.alloc_reten_priority.priority_level = 1;
-  amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list.qos_flow_req_item
-      .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_cap =
-      SHALL_NOT_TRIGGER_PRE_EMPTION;
-  amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list.qos_flow_req_item
-      .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_vul =
-      NOT_PREEMPTABLE;
+
+  amf_pdu_ses_setup_transfer_req.qos_flow_add_or_mod_request_list
+      .maxNumOfQosFlows = 1;
+  amf_pdu_ses_setup_transfer_req.qos_flow_add_or_mod_request_list.item[0]
+      .qos_flow_req_item.qos_flow_identifier = 5;
+  amf_pdu_ses_setup_transfer_req.qos_flow_add_or_mod_request_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.qos_characteristic
+      .non_dynamic_5QI_desc.fiveQI = 9;
+  amf_pdu_ses_setup_transfer_req.qos_flow_add_or_mod_request_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+      .priority_level = 1;
+  amf_pdu_ses_setup_transfer_req.qos_flow_add_or_mod_request_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+      .pre_emption_cap = SHALL_NOT_TRIGGER_PRE_EMPTION;
+  amf_pdu_ses_setup_transfer_req.qos_flow_add_or_mod_request_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+      .pre_emption_vul = NOT_PREEMPTABLE;
   ngap_pdu_ses_setup_req->pduSessionResource_setup_list.item[0]
       .PDU_Session_Resource_Setup_Request_Transfer =
       amf_pdu_ses_setup_transfer_req;

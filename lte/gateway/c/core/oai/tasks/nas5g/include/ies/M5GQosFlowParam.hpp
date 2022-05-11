@@ -28,12 +28,16 @@ class M5GQosFlowParam {
   } qos_flow_param_id_type_t;
 
   uint8_t iei;
+
+#define M5G_QOS_FLOW_PARAM_BIT_RATE_LEN          3
+#define M5G_QOS_FLOW_PARAM_BIT_RATE_UNITS_KBPS   1
   uint8_t length;
   uint8_t units;
   uint16_t element;
 
   M5GQosFlowParam();
   ~M5GQosFlowParam();
+
   int EncodeM5GQosFlowParam(M5GQosFlowParam* param, uint8_t* buffer,
                             uint32_t len);
   int DecodeM5GQosFlowParam(M5GQosFlowParam* param, uint8_t* buffer,

@@ -119,6 +119,9 @@ void create_pdu_resource_setup_response_itti(
 void create_pdu_session_modify_request_itti(
     itti_n11_create_pdu_session_response_t* response);
 
+void create_pdu_session_modify_deletion_request_itti(
+    itti_n11_create_pdu_session_response_t* response);
+
 int send_pdu_resource_setup_response(amf_ue_ngap_id_t ue_id);
 
 void create_pdu_notification_response_itti(
@@ -167,4 +170,6 @@ int send_uplink_nas_pdu_session_modification_complete(
 int send_pdu_resource_modify_response(amf_ue_ngap_id_t ue_id);
 
 int send_pdu_session_modification_itti();
+
+int send_pdu_session_modification_deletion_itti();
 }  // namespace magma5g

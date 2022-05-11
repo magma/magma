@@ -132,12 +132,17 @@ uint16_t QOSRulesMsg::EncodeQOSRulesMsgData(QOSRulesMsg* qos_rules,
       encoded = encoded + qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len;
     }
 
-    *(buffer + encoded) = qos_rules->qos_rule[i].qos_rule_precedence;
-    encoded++;
-    *(buffer + encoded) = 0x00 | ((qos_rules->qos_rule[i].spare & 0x01) << 7) |
-                          ((qos_rules->qos_rule[i].segregation & 0x01) << 6) |
-                          (qos_rules->qos_rule[i].qfi & 0x3f);
-    encoded++;
+    //Needed only for add operation
+    if (qos_rules->qos_rule[i].rule_oper_code ==
+       TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT) {
+       *(buffer + encoded) = qos_rules->qos_rule[i].qos_rule_precedence;
+       encoded++;
+       *(buffer + encoded) = 0x00 | ((qos_rules->qos_rule[i].spare & 0x01) << 7) |
+                           ((qos_rules->qos_rule[i].segregation & 0x01) << 6) |
+                           (qos_rules->qos_rule[i].qfi & 0x3f);
+        encoded++;
+    }
+
     i++;
   }
 
@@ -150,7 +155,7 @@ int QOSRulesMsg::EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
   uint16_t encoded = 0;
 
   // Checking IEI and pointer
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, QOSRULE_MIN_LEN, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, QOS_RULES_MSG_MIN_LEN, len);
 
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char)iei, qos_rules->iei);

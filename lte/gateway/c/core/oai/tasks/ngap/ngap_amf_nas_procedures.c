@@ -855,86 +855,6 @@ void ngap_handle_conn_est_cnf(
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   if (conn_est_cnf_pP->PDU_Session_Resource_Setup_Transfer_List.no_of_items) {
-    for (int i = 0;
-         i <
-         conn_est_cnf_pP->PDU_Session_Resource_Setup_Transfer_List.no_of_items;
-         i++) {
-      ie = (Ngap_InitialContextSetupRequestIEs_t*)calloc(
-          2, sizeof(Ngap_InitialContextSetupRequestIEs_t));
-      ie->id = Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListCxtReq;
-      ie->criticality = Ngap_Criticality_reject;
-      ie->value.present =
-          Ngap_InitialContextSetupRequestIEs__value_PR_PDUSessionResourceSetupListCxtReq;
-
-      ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-
-      pdusession_setup_item_t* pdu_session_item =
-          &conn_est_cnf_pP->PDU_Session_Resource_Setup_Transfer_List.item[i];
-
-      Ngap_PDUSessionResourceSetupItemCxtReq_t* session_context =
-          (Ngap_PDUSessionResourceSetupItemCxtReq_t*)calloc(
-              1, sizeof(Ngap_PDUSessionResourceSetupItemCxtReq_t));
-      // session Id
-      session_context->pDUSessionID = pdu_session_item->Pdu_Session_ID;
-
-      /*NSSAI*/
-      session_context->s_NSSAI.sST.size = 1;
-      session_context->s_NSSAI.sST.buf = (uint8_t*)calloc(1, sizeof(uint8_t));
-      session_context->s_NSSAI.sST.buf[0] = 0x11;
-
-      Ngap_PDUSessionResourceSetupRequestTransfer_t*
-          pduSessionResourceSetupRequestTransferIEs =
-              (Ngap_PDUSessionResourceSetupRequestTransfer_t*)calloc(
-                  1, sizeof(Ngap_PDUSessionResourceSetupRequestTransfer_t));
-
-      // filling PDU TX Structure
-      pdu_session_resource_setup_request_transfer_t*
-          amf_pdu_ses_setup_transfer_req =
-              &(pdu_session_item->PDU_Session_Resource_Setup_Request_Transfer);
-
-      ngap_fill_pdu_session_resource_setup_request_transfer(
-          amf_pdu_ses_setup_transfer_req,
-          pduSessionResourceSetupRequestTransferIEs);
-
-      uint32_t buffer_size = 1024;
-      char* buffer = (char*)calloc(1, buffer_size);
-
-      asn_enc_rval_t er = aper_encode_to_buffer(
-          &asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer, NULL,
-          pduSessionResourceSetupRequestTransferIEs, buffer, buffer_size);
-
-      if (er.encoded <= 0) {
-        OAILOG_ERROR(LOG_NGAP,
-                     "PDU Session Resource Request IE encode error \n");
-        OAILOG_FUNC_OUT(LOG_NGAP);
-      }
-
-      asn_fprint(stderr, &asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer,
-                 pduSessionResourceSetupRequestTransferIEs);
-
-      bstring transfer = blk2bstr(buffer, er.encoded);
-      session_context->pDUSessionResourceSetupRequestTransfer.buf =
-          (uint8_t*)calloc(er.encoded, sizeof(uint8_t));
-
-      memcpy((void*)session_context->pDUSessionResourceSetupRequestTransfer.buf,
-             (void*)transfer->data, er.encoded);
-
-      session_context->pDUSessionResourceSetupRequestTransfer.size =
-          blength(transfer);
-
-      ASN_SEQUENCE_ADD(&ie->value.choice.PDUSessionResourceSetupListCxtReq.list,
-                       session_context);
-
-      free(buffer);
-      bdestroy(transfer);
-
-      ASN_STRUCT_FREE_CONTENTS_ONLY(
-          asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer,
-          pduSessionResourceSetupRequestTransferIEs);
-      free(pduSessionResourceSetupRequestTransferIEs);
-
-    } /*for loop*/
-
     ie = CALLOC(1, sizeof(Ngap_InitialContextSetupRequestIEs_t));
 
     ie->id = Ngap_ProtocolIE_ID_id_UEAggregateMaximumBitRate;
@@ -1159,6 +1079,9 @@ int ngap_fill_pdu_session_resource_setup_request_transfer(
 
   ASN_SEQUENCE_ADD(&transfer_request->protocolIEs.list, transfer_request_ie);
 
+  qos_flow_add_or_modify_request_list_t* qos_list =
+      &session_transfer->qos_flow_add_or_mod_request_list;
+
   /*Qos*/
   transfer_request_ie =
       (Ngap_PDUSessionResourceSetupRequestTransferIEs_t*)calloc(
@@ -1168,14 +1091,14 @@ int ngap_fill_pdu_session_resource_setup_request_transfer(
   transfer_request_ie->value.present =
       Ngap_PDUSessionResourceSetupRequestTransferIEs__value_PR_QosFlowSetupRequestList;
 
-  for (int i = 0; i < /*no_of_qos_items*/ 1; i++) {
+  for (int i = 0; i < qos_list->maxNumOfQosFlows; i++) {
     Ngap_QosFlowSetupRequestItem_t* qos_item =
         (Ngap_QosFlowSetupRequestItem_t*)calloc(
             1, sizeof(Ngap_QosFlowSetupRequestItem_t));
 
-    qos_item->qosFlowIdentifier = session_transfer->qos_flow_setup_request_list
-                                      .qos_flow_req_item.qos_flow_identifier;
-
+    qos_item->qosFlowIdentifier =
+        qos_list->item[i].qos_flow_req_item.qos_flow_identifier;
+    
     /* Ngap_QosCharacteristics */
     Ngap_QosFlowLevelQosParameters_t* qos_flow_params =
         &(qos_item->qosFlowLevelQosParameters);
@@ -1183,22 +1106,68 @@ int ngap_fill_pdu_session_resource_setup_request_transfer(
         Ngap_QosCharacteristics_PR_nonDynamic5QI;
 
     qos_flow_params->qosCharacteristics.choice.nonDynamic5QI.fiveQI =
-        session_transfer->qos_flow_setup_request_list.qos_flow_req_item
+        qos_list->item[i]
+            .qos_flow_req_item
             .qos_flow_level_qos_param.qos_characteristic.non_dynamic_5QI_desc
             .fiveQI;
 
     /* Ngap_AllocationAndRetentionPriority */
     qos_flow_params->allocationAndRetentionPriority.priorityLevelARP =
-        session_transfer->qos_flow_setup_request_list.qos_flow_req_item
+        qos_list->item[i]
+	    .qos_flow_req_item
             .qos_flow_level_qos_param.alloc_reten_priority.priority_level;
 
     qos_flow_params->allocationAndRetentionPriority.pre_emptionCapability =
-        session_transfer->qos_flow_setup_request_list.qos_flow_req_item
+        qos_list->item[i]
+	    .qos_flow_req_item
             .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_cap;
 
     qos_flow_params->allocationAndRetentionPriority.pre_emptionVulnerability =
-        session_transfer->qos_flow_setup_request_list.qos_flow_req_item
+        qos_list->item[i]
+	    .qos_flow_req_item
             .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_vul;
+
+    if (qos_list->item[i].qos_flow_req_item.qos_flow_descriptor.mbr_dl) {
+      qos_flow_params->gBR_QosInformation =
+          (struct Ngap_GBR_QosInformation*)calloc(
+              1, sizeof(struct Ngap_GBR_QosInformation));
+      // MFBR DL
+      qos_flow_params->gBR_QosInformation->maximumFlowBitRateDL.buf =
+          (uint8_t*)calloc(
+              1, sizeof(qos_list->item[i]
+                            .qos_flow_req_item.qos_flow_descriptor.mbr_dl));
+      ENCODE_U32(
+          qos_flow_params->gBR_QosInformation->maximumFlowBitRateDL.buf,
+          qos_list->item[i].qos_flow_req_item.qos_flow_descriptor.mbr_dl,
+          qos_flow_params->gBR_QosInformation->maximumFlowBitRateDL.size);
+      // MFBR UL
+      qos_flow_params->gBR_QosInformation->maximumFlowBitRateUL.buf =
+          (uint8_t*)calloc(
+              1, sizeof(qos_list->item[i]
+                            .qos_flow_req_item.qos_flow_descriptor.mbr_ul));
+      ENCODE_U32(
+          qos_flow_params->gBR_QosInformation->maximumFlowBitRateUL.buf,
+          qos_list->item[i].qos_flow_req_item.qos_flow_descriptor.mbr_ul,
+          qos_flow_params->gBR_QosInformation->maximumFlowBitRateUL.size);
+      // GFBR DL
+      qos_flow_params->gBR_QosInformation->guaranteedFlowBitRateDL.buf =
+          (uint8_t*)calloc(
+              1, sizeof(qos_list->item[i]
+                            .qos_flow_req_item.qos_flow_descriptor.gbr_dl));
+      ENCODE_U32(
+          qos_flow_params->gBR_QosInformation->guaranteedFlowBitRateDL.buf,
+          qos_list->item[i].qos_flow_req_item.qos_flow_descriptor.gbr_dl,
+          qos_flow_params->gBR_QosInformation->guaranteedFlowBitRateDL.size);
+      // GFBR UL
+      qos_flow_params->gBR_QosInformation->guaranteedFlowBitRateUL.buf =
+          (uint8_t*)calloc(
+              1, sizeof(qos_list->item[i]
+                            .qos_flow_req_item.qos_flow_descriptor.gbr_ul));
+      ENCODE_U32(
+          qos_flow_params->gBR_QosInformation->guaranteedFlowBitRateUL.buf,
+          qos_list->item[i].qos_flow_req_item.qos_flow_descriptor.gbr_ul,
+          qos_flow_params->gBR_QosInformation->guaranteedFlowBitRateUL.size);
+    }
 
     asn_set_empty(
         &transfer_request_ie->value.choice.QosFlowSetupRequestList.list);

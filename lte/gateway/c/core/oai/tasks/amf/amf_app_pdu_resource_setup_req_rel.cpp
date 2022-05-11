@@ -110,7 +110,6 @@ int pdu_session_resource_setup_request(
   ngap_pdu_ses_setup_req->pduSessionResource_setup_list.item[0].Pdu_Session_ID =
       (Ngap_PDUSessionID_t)smf_context->smf_proc_data.pdu_session_id;
 
-  ngap_pdu_ses_setup_req->pduSessionResource_setup_list.no_of_items = 1;
   // Adding respective header to amf_pdu_ses_setup_transfer_request
   amf_pdu_ses_setup_transfer_req =
       &ngap_pdu_ses_setup_req->pduSessionResource_setup_list.item[0]
@@ -132,10 +131,10 @@ int pdu_session_resource_setup_request(
   amf_pdu_ses_setup_transfer_req->pdu_ip_type.pdn_type =
       smf_context->pdu_address.pdn_type;
 
-  memcpy(&amf_pdu_ses_setup_transfer_req->qos_flow_setup_request_list
-              .qos_flow_req_item,
-         &smf_context->qos_flow_list.item[0].qos_flow_req_item,
-         sizeof(qos_flow_setup_request_item));
+  qos_flow_list_t *pti_flow_list = smf_context->get_proc_flow_list();
+
+  memcpy(&amf_pdu_ses_setup_transfer_req->qos_flow_add_or_mod_request_list,
+         pti_flow_list, sizeof(qos_flow_list_t));
 
   ngap_pdu_ses_setup_req->nas_pdu = nas_msg;
 
@@ -191,21 +190,23 @@ int pdu_session_resource_modify_request(
       &amf_pdu_ses_mod_transfer_req->qos_flow_to_release_list;
   qos_Flow_Add_Or_Modify_List->maxNumOfQosFlows = 0;
   qos_flow_list_to_release->numOfItems = 0;
-  for (int i = 0; i < smf_context->qos_flow_list.maxNumOfQosFlows; i++) {
-    if (smf_context->qos_flow_list.item[i].qos_flow_req_item.qos_flow_action ==
+
+  qos_flow_list_t *pti_flow_list = smf_context->get_proc_flow_list();
+  for (int i = 0; i < pti_flow_list->maxNumOfQosFlows; i++) {
+    if (pti_flow_list->item[i].qos_flow_req_item.qos_flow_action ==
             policy_action_add ||
-        smf_context->qos_flow_list.item[i].qos_flow_req_item.qos_flow_action ==
+        pti_flow_list->item[i].qos_flow_req_item.qos_flow_action ==
             policy_action_mod) {
       memcpy(&qos_Flow_Add_Or_Modify_List
                   ->item[qos_Flow_Add_Or_Modify_List->maxNumOfQosFlows]
                   .qos_flow_req_item,
-             (const void*)&smf_context->qos_flow_list.item[i].qos_flow_req_item,
+             (const void*)&pti_flow_list->item[i].qos_flow_req_item,
              sizeof(qos_flow_setup_request_item));
       qos_Flow_Add_Or_Modify_List->maxNumOfQosFlows++;
-    } else if (smf_context->qos_flow_list.item[i]
+    } else if (pti_flow_list->item[i]
                    .qos_flow_req_item.qos_flow_action == policy_action_del) {
       qos_flow_list_to_release->item[qos_flow_list_to_release->numOfItems]
-          .qos_flow_identifier = smf_context->qos_flow_list.item[i]
+          .qos_flow_identifier = pti_flow_list->item[i]
                                      .qos_flow_req_item.qos_flow_identifier;
       qos_flow_list_to_release->item[qos_flow_list_to_release->numOfItems]
           .cause.cause_group.u_group.nas.cause = NORMAL_RELEASE;

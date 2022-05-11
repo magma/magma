@@ -36,8 +36,9 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_qos.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 #include "lte/gateway/c/core/oai/include/n11_messages_types.h"
@@ -520,6 +521,27 @@ int amf_app_handle_uplink_nas_message(amf_app_desc_t* amf_app_desc_p,
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
+// Update the pti and related paremeters from sessiond
+static int amf_smf_session_update_pti_proc(
+    std::shared_ptr<smf_context_t> smf_ctx,
+    itti_n11_create_pdu_session_response_t* pdu_session_resp) {
+
+  qos_flow_list_t *current_pti_flow_list = smf_ctx->get_proc_flow_list();
+
+  //Check if its the same procedure received from sessiond
+  if (pdu_session_resp->procedure_trans_identity == smf_ctx->get_pti()) {
+    // Should not happen but a safety check
+    OAILOG_WARNING(LOG_AMF_APP, "Warning PTI from sessiond \n");
+  }
+
+  //Update the PTI and flow list received form sessiond
+  smf_ctx->set_pti(pdu_session_resp->procedure_trans_identity);
+
+  *current_pti_flow_list = pdu_session_resp->qos_flow_list;
+
+  return RETURNok;
+}
+
 /* Received the session created response message from SMF. Populate and Send
  * PDU Session Resource Setup Request message to gNB and  PDU Session
  * Establishment Accept Message to UE*/
@@ -565,7 +587,7 @@ int amf_app_handle_pdu_session_response(
                &smf_ctx->selected_ambr.ul_ambr_unit,
                &smf_ctx->selected_ambr.ul_session_ambr);
 
-  smf_ctx->qos_flow_list = pdu_session_resp->qos_flow_list;
+  amf_smf_session_update_pti_proc(smf_ctx, pdu_session_resp);
 
   memcpy(smf_ctx->gtp_tunnel_id.upf_gtp_teid_ip_addr,
          pdu_session_resp->upf_endpoint.end_ipv4_addr,
@@ -850,7 +872,7 @@ int amf_app_handle_pdu_session_accept(
       (pdu_session_resp->selected_ssc_mode + 1);
 
   memset(&(smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info), 0,
-         12);
+         PDU_ADDRESS_CONTENT_MAX_LENGTH);
 
   // For tracking the length of payload container
   uint32_t buf_len = 0;
@@ -894,34 +916,23 @@ int amf_app_handle_pdu_session_accept(
 
   buf_len += sizeof(class PDUAddressMsg);
 
-  /* QOSrules are hardcoded as it is not exchanged in AMF-SMF
-   * gRPC calls as of now, handled in upcoming PR
-   * TODO: get the rules for the session from SMF and use it here
-   */
-  smf_msg->msg.pdu_session_estab_accept.qos_rules.length = 0x9;
-  QOSRule qos_rule;
-  qos_rule.qos_rule_id = 0x1;
-  qos_rule.len = 0x6;
-  qos_rule.rule_oper_code = 0x1;
-  qos_rule.dqr_bit = 0x1;
-  qos_rule.no_of_pkt_filters = 0x1;
-  qos_rule.qos_rule_precedence = 0xff;
-  qos_rule.spare = 0x0;
-  qos_rule.segregation = 0x0;
-  qos_rule.qfi =
-      smf_ctx->qos_flow_list.item[0].qos_flow_req_item.qos_flow_identifier;
-  NewQOSRulePktFilter new_qos_rule_pkt_filter;
-  new_qos_rule_pkt_filter.spare = 0x0;
-  new_qos_rule_pkt_filter.pkt_filter_dir = 0x3;
-  new_qos_rule_pkt_filter.pkt_filter_id = 0x1;
-  new_qos_rule_pkt_filter.len = 0x1;
-  uint8_t contents = 0x1;
-  memcpy(new_qos_rule_pkt_filter.contents, &contents,
-         new_qos_rule_pkt_filter.len);
-  memcpy(qos_rule.new_qos_rule_pkt_filter, &new_qos_rule_pkt_filter,
-         1 * sizeof(NewQOSRulePktFilter));
-  memcpy(smf_msg->msg.pdu_session_estab_accept.qos_rules.qos_rule, &qos_rule,
-         1 * sizeof(QOSRule));
+  //Check if a default qos rule is received
+  amf_smf_session_set_default_qos_info(smf_ctx);
+
+  amf_smf_session_api_fill_qos_ie_info(smf_ctx,
+     &(smf_msg->msg.pdu_session_estab_accept.authorized_qosrules),
+     &(smf_msg->msg.pdu_session_estab_accept.authorized_qosflowdescriptors));
+
+  //Add length of qos rule
+  buf_len += blength(smf_msg->msg.pdu_session_estab_accept
+                     .authorized_qosrules);
+
+  //Add length of qos flow descriptor
+  if(blength(smf_msg->msg.pdu_session_estab_accept
+     .authorized_qosflowdescriptors)) {
+    buf_len += blength(smf_msg->msg.pdu_session_estab_accept
+                       .authorized_qosflowdescriptors) + sizeof(uint8_t);
+  }
 
   // Set session ambr
   smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_unit =
@@ -969,7 +980,8 @@ int amf_app_handle_pdu_session_accept(
     smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH;
     smf_msg->msg.pdu_session_estab_accept.nssai.sst = slice_information.sst;
   }
-  buf_len = smf_msg->msg.pdu_session_estab_accept.nssai.len + 2;
+  buf_len += smf_msg->msg.pdu_session_estab_accept.nssai.len +
+             NSSAI_MSG_IE_MIN_LEN;
 
   /* DNN
   -------------------------------------
@@ -1028,6 +1040,9 @@ int amf_app_handle_pdu_session_accept(
 
   /* Clean up the pco of pdu session establishment accept message */
   sm_free_protocol_configuration_options(&msg_accept_pco);
+
+  bdestroy(smf_msg->msg.pdu_session_estab_accept.authorized_qosrules);
+  bdestroy(smf_msg->msg.pdu_session_estab_accept.authorized_qosflowdescriptors);
 
   return rc;
 }  // namespace magma5g
@@ -1815,154 +1830,10 @@ int amf_app_pdu_session_modification_request(
   msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd.message_type.msg_type =
       static_cast<uint8_t>(M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND);
 
-  uint8_t qos_rules_buffer[4096];
-  uint16_t qos_rules_buf_len = 0;
-
-  uint8_t qos_flowdesc_buffer[4096];
-  uint16_t qos_flowdesc_buf_len = 0;
-
-  for (int i = 0; i < smf_ctx->qos_flow_list.maxNumOfQosFlows; i++) {
-    if (smf_ctx->qos_flow_list.item[i]
-            .qos_flow_req_item.ul_tft.tftoperationcode) {
-      QOSRulesMsg qosRuleMsg;
-      qosRuleMsg.length = 0;
-
-      QOSRule qos_rule;
-      qosRuleMsg.iei = PDU_SESSION_QOS_RULES_IE_TYPE;
-      qos_rule.len = 3;
-      qos_rule.rule_oper_code = smf_ctx->qos_flow_list.item[i]
-                                    .qos_flow_req_item.ul_tft.tftoperationcode;
-      if (PDU_SESSION_DEFAULT_QFI ==
-          smf_ctx->qos_flow_list.item[i]
-              .qos_flow_req_item.qos_flow_identifier) {
-        qos_rule.dqr_bit = 0x1;
-        qos_rule.qos_rule_id = 1;
-      } else {
-        qos_rule.dqr_bit = 0x0;
-        qos_rule.qos_rule_id = 2;
-      }
-      qos_rule.no_of_pkt_filters =
-          (0x0F & smf_ctx->qos_flow_list.item[i]
-                      .qos_flow_req_item.ul_tft.numberofpacketfilters);
-      qos_rule.qos_rule_precedence = 0xff;
-      qos_rule.spare = 0x0;
-      qos_rule.segregation = 0x0;
-      qos_rule.qfi =
-          smf_ctx->qos_flow_list.item[i].qos_flow_req_item.qos_flow_identifier;
-
-      // Add or Modify QOS Flow
-      if (smf_ctx->qos_flow_list.item[i].qos_flow_req_item.qos_flow_action ==
-              policy_action_add ||
-          smf_ctx->qos_flow_list.item[i].qos_flow_req_item.qos_flow_action ==
-              policy_action_del) {
-        if (smf_ctx->qos_flow_list.item[i]
-                .qos_flow_req_item.ul_tft.tftoperationcode ==
-            TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT) {
-          amf_app_fill_create_new_tft(
-              smf_ctx->qos_flow_list.item[i]
-                  .qos_flow_req_item.ul_tft.packetfilterlist.createnewtft,
-              &qos_rule);
-        } else if (smf_ctx->qos_flow_list.item[i]
-                       .qos_flow_req_item.ul_tft.tftoperationcode ==
-                   TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_EXISTING_TFT) {
-          amf_app_fill_delete_packet_filter(
-              smf_ctx->qos_flow_list.item[i]
-                  .qos_flow_req_item.ul_tft.packetfilterlist.deletepacketfilter,
-              &qos_rule);
-        }
-        qosRuleMsg.qos_rule[i] = qos_rule;
-      }
-      qosRuleMsg.length += qos_rule.len + 3;
-
-      // Convert Authorized qos into bstring
-      int encoded_result =
-          qosRuleMsg.EncodeQOSRulesMsgData(&qosRuleMsg, qos_rules_buffer, 4096);
-
-      if (encoded_result < 0) {
-        OAILOG_ERROR(LOG_AMF_APP,
-                     "Qos Rule parameters invalid or un-aligned \n");
-        return M5G_AS_FAILURE;
-      }
-      qos_rules_buf_len += encoded_result;
-    }
-
-    // authorized qos flow descriptors
-    if (smf_ctx->qos_flow_list.item[i]
-            .qos_flow_req_item.ul_tft.tftoperationcode) {
-      M5GQosFlowDescription flow_des;
-      flow_des.numOfParams = 0;
-      qos_flow_descriptor_t* qos_flow_desc =
-          &smf_ctx->qos_flow_list.item[i].qos_flow_req_item.qos_flow_descriptor;
-      flow_des.operationCode = smf_ctx->qos_flow_list.item[i]
-                                   .qos_flow_req_item.ul_tft.tftoperationcode
-                               << 5;
-      flow_des.qfi = qos_flow_desc->qos_flow_identifier;
-      if (qos_flow_desc->fiveQi) {
-        flow_des.paramList[flow_des.numOfParams].iei =
-            magma5g::M5GQosFlowParam::param_id_5qi;
-        flow_des.paramList[flow_des.numOfParams].length = sizeof(uint8_t);
-        flow_des.paramList[flow_des.numOfParams].element =
-            qos_flow_desc->fiveQi;
-        flow_des.numOfParams++;
-      }
-      if (qos_flow_desc->mbr_dl) {
-        flow_des.paramList[flow_des.numOfParams].iei =
-            magma5g::M5GQosFlowParam::param_id_mfbr_downlink;
-        flow_des.paramList[flow_des.numOfParams].length = 3;
-        flow_des.paramList[flow_des.numOfParams].element =
-            (uint16_t)(qos_flow_desc->mbr_dl / 1000);
-        flow_des.paramList[flow_des.numOfParams].units = 1;
-        flow_des.numOfParams++;
-      }
-      if (qos_flow_desc->mbr_ul) {
-        flow_des.paramList[flow_des.numOfParams].iei =
-            magma5g::M5GQosFlowParam::param_id_mfbr_uplink;
-        flow_des.paramList[flow_des.numOfParams].length = 3;
-        flow_des.paramList[flow_des.numOfParams].element =
-            (uint16_t)(qos_flow_desc->mbr_ul / 1000);
-        flow_des.paramList[flow_des.numOfParams].units = 1;
-        flow_des.numOfParams++;
-      }
-      if (qos_flow_desc->gbr_dl) {
-        flow_des.paramList[flow_des.numOfParams].iei =
-            magma5g::M5GQosFlowParam::param_id_gfbr_downlink;
-        flow_des.paramList[flow_des.numOfParams].length = 3;
-        flow_des.paramList[flow_des.numOfParams].element =
-            (uint16_t)(qos_flow_desc->gbr_dl / 1000);
-        flow_des.paramList[flow_des.numOfParams].units = 1;
-        flow_des.numOfParams++;
-      }
-      if (qos_flow_desc->gbr_ul) {
-        flow_des.paramList[flow_des.numOfParams].iei =
-            magma5g::M5GQosFlowParam::param_id_gfbr_uplink;
-        flow_des.paramList[flow_des.numOfParams].length = 3;
-        flow_des.paramList[flow_des.numOfParams].element =
-            (uint16_t)(qos_flow_desc->gbr_ul / 1000);
-        flow_des.paramList[flow_des.numOfParams].units = 1;
-        flow_des.numOfParams++;
-      }
-
-      if (flow_des.numOfParams) {
-        // Convert Authorized qos into bstring
-        int encoded_result = flow_des.EncodeM5GQosFlowDescription(
-            &flow_des, qos_flowdesc_buffer, 4096);
-
-        if (encoded_result < 0) {
-          OAILOG_ERROR(LOG_AMF_APP,
-                       "qos flow Description invalid or un-aligned \n");
-          return M5G_AS_FAILURE;
-        }
-        qos_flowdesc_buf_len += encoded_result;
-      }
-    }
-  }
-
-  msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd.authorized_qosrules =
-      blk2bstr(qos_rules_buffer, qos_rules_buf_len);
-
-  msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd
-      .authorized_qosflowdescriptors =
-      blk2bstr(qos_flowdesc_buffer, qos_flowdesc_buf_len);
+  amf_smf_session_api_fill_qos_ie_info(smf_ctx,
+     &(msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd.authorized_qosrules),
+     &(msg.security_protected.plain.amf.msg.pdu_sess_mod_cmd.
+       authorized_qosflowdescriptors));
 
   // session ambr
   if (pdu_sess_mod_req->session_ambr.downlink_units &&
@@ -2024,77 +1895,6 @@ int amf_app_pdu_session_modification_request(
                .authorized_qosflowdescriptors);
 
   return rc;
-}
-void amf_app_fill_create_new_tft(create_new_tft_t* new_tft, QOSRule* qos_rule) {
-  for (int i = 0; i < qos_rule->no_of_pkt_filters; i++) {
-    NewQOSRulePktFilter new_qos_rule_pkt_filter = {};
-    packet_filter_t* pkt_filter = NULL;
-    uint16_t pkt_filter_len = 0;
-    pkt_filter = &new_tft[i];
-    memset(&new_qos_rule_pkt_filter, 0, sizeof(NewQOSRulePktFilter));
-    new_qos_rule_pkt_filter.spare = 0x0;
-    new_qos_rule_pkt_filter.pkt_filter_dir = pkt_filter->direction;
-    new_qos_rule_pkt_filter.pkt_filter_id = pkt_filter->identifier;
-    uint16_t flag = TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
-    while (flag <= TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG) {
-      switch (pkt_filter->packetfiltercontents.flags & flag) {
-        case TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG: {
-          /*
-           * IPv4 remote address type
-           */
-          new_qos_rule_pkt_filter.contents[pkt_filter_len] =
-              TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR;
-          pkt_filter_len++;
-
-          for (int j = 0; j < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; j++) {
-            new_qos_rule_pkt_filter.contents[pkt_filter_len] =
-                pkt_filter->packetfiltercontents.ipv4remoteaddr[j].addr;
-            new_qos_rule_pkt_filter
-                .contents[pkt_filter_len +
-                          TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE] =
-                pkt_filter->packetfiltercontents.ipv4remoteaddr[j].mask;
-            pkt_filter_len++;
-          }
-
-          pkt_filter_len += TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE;
-        } break;
-        case TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG: {
-          /*
-           * Remote port type
-           */
-          new_qos_rule_pkt_filter.contents[pkt_filter_len] =
-              TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT;
-          pkt_filter_len++;
-
-          new_qos_rule_pkt_filter.contents[pkt_filter_len] =
-              (0xFF00 & pkt_filter->packetfiltercontents.singleremoteport) >> 8;
-          pkt_filter_len++;
-          new_qos_rule_pkt_filter.contents[pkt_filter_len] =
-              (0x00FF & pkt_filter->packetfiltercontents.singleremoteport);
-          pkt_filter_len++;
-        } break;
-        default: {
-        }
-      }
-      flag = flag << 1;
-    }
-    new_qos_rule_pkt_filter.len = pkt_filter_len;
-    memcpy(&qos_rule->new_qos_rule_pkt_filter[0], &new_qos_rule_pkt_filter,
-           sizeof(NewQOSRulePktFilter));
-    qos_rule->len += new_qos_rule_pkt_filter.len + 2;
-  }
-}
-
-void amf_app_fill_delete_packet_filter(
-    delete_packet_filter_t* delete_pkt_filter, QOSRule* qos_rule) {
-  NewQOSRulePktFilter new_qos_rule_pkt_filter = {};
-  delete_packet_filter_t* pkt_filter = NULL;
-  for (int i = 0; i < qos_rule->no_of_pkt_filters; i++) {
-    pkt_filter = &delete_pkt_filter[i];
-    new_qos_rule_pkt_filter.pkt_filter_id = pkt_filter->identifier;
-    memcpy(qos_rule->new_qos_rule_pkt_filter, &new_qos_rule_pkt_filter,
-           1 * sizeof(NewQOSRulePktFilter));
-  }
 }
 
 static int pdu_session_resource_modification_t3591_handler(zloop_t* loop,

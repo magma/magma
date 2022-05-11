@@ -207,6 +207,7 @@ bool generator_ngap_pdusession_resource_setup_req(bstring& stream) {
   return true;
 }
 
+#if 0 /* TODO : CLEAN UP NOT NEEDED */
 static int _pdusession_resource_setup_stream(
     itti_ngap_pdusession_resource_setup_req_t* const
         pdusession_resource_setup_req,
@@ -364,7 +365,7 @@ static int _pdusession_resource_setup_stream(
     tx_ie->value.present =
         Ngap_PDUSessionResourceSetupRequestTransferIEs__value_PR_QosFlowSetupRequestList;
 
-    for (int i = 0; i < /*no_of_qos_items*/ 1; i++) {
+    for (int i = 0; i < 1; i++) {
       Ngap_QosFlowSetupRequestItem_t* qos_item =
           (Ngap_QosFlowSetupRequestItem_t*)calloc(
               1, sizeof(Ngap_QosFlowSetupRequestItem_t));
@@ -461,6 +462,7 @@ static int _pdusession_resource_setup_stream(
 
   return (RETURNok);
 }
+#endif
 
 bool generator_itti_ngap_pdusession_resource_setup_req(bstring& stream) {
   itti_ngap_pdusession_resource_setup_req_t resource_setup_req;
@@ -504,8 +506,9 @@ bool generator_itti_ngap_pdusession_resource_setup_req(bstring& stream) {
   transfer_req->pdu_ip_type.pdn_type = IPv4;
 
   /* QoS */
+  transfer_req->qos_flow_add_or_mod_request_list.maxNumOfQosFlows = 1;
   qos_flow_setup_request_item* qos_flow =
-      &(transfer_req->qos_flow_setup_request_list.qos_flow_req_item);
+     &(transfer_req->qos_flow_add_or_mod_request_list.item[0].qos_flow_req_item);
   qos_flow->qos_flow_identifier = 1;
   qos_flow->qos_flow_level_qos_param.qos_characteristic.non_dynamic_5QI_desc
       .fiveQI = 9;
@@ -518,8 +521,8 @@ bool generator_itti_ngap_pdusession_resource_setup_req(bstring& stream) {
   ue_ref.gnb_ue_ngap_id = 1001;
   ue_ref.amf_ue_ngap_id = 2001;
 
-  ret =
-      _pdusession_resource_setup_stream(&resource_setup_req, &ue_ref, &stream);
+  ret = ngap_amf_nas_pdusession_resource_setup_stream(
+           &resource_setup_req, &ue_ref, &stream);
 
   if (ret != 0) {
     return false;

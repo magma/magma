@@ -10,9 +10,9 @@
  */
 
 #pragma once
-#define ONE_K 1024
 #include <sstream>
 #include <cstdint>
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
 namespace magma5g {
 // New QOSRule Class
@@ -22,8 +22,11 @@ class NewQOSRulePktFilter {
   uint8_t pkt_filter_dir : 2;
   uint8_t pkt_filter_id : 4;
   uint8_t len;
-  int8_t contents[1 * ONE_K];  // need to revisit if the QOS rules occupy more
-                               // space than 4k.
+
+  //Size of the content can be max of packet_filter_contents_t
+  uint8_t contents[2*TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE +
+                  sizeof(uint8_t)];
+
   NewQOSRulePktFilter();
   ~NewQOSRulePktFilter();
 };
@@ -31,12 +34,17 @@ class NewQOSRulePktFilter {
 // QOSRule Class
 class QOSRule {
  public:
+#define QOS_ADD_RULE_MIN_LEN          3
+#define QOS_DEL_RULE_MIN_LEN          1
   uint8_t qos_rule_id;
   uint16_t len;
   uint8_t rule_oper_code : 3;
+#define QOS_RULE_DQR_BIT_SET        0x1
   uint8_t dqr_bit : 1;
   uint8_t no_of_pkt_filters : 4;
-  NewQOSRulePktFilter new_qos_rule_pkt_filter[1];
+
+  //Max packet filter supported is 4
+  NewQOSRulePktFilter new_qos_rule_pkt_filter[4];
   uint8_t qos_rule_precedence;
   uint8_t spare : 1;
   uint8_t segregation : 1;
@@ -49,12 +57,12 @@ class QOSRule {
 // QOSRules IE Class
 class QOSRulesMsg {
  public:
-#define QOSRULE_MIN_LEN 3
+#define QOS_RULES_MSG_MIN_LEN        3
+#define QOS_RULE_ENTRY_MAX           4
+#define QOS_RULES_MSG_BUF_LEN_MAX 4096
   uint8_t iei;
   uint16_t length;
-  //  QOSRule qos_rule[32];  // need to revisit based on max num of QOS rules
-  // exchanged btw UE and core.
-  QOSRule qos_rule[4];
+  QOSRule qos_rule[QOS_RULE_ENTRY_MAX];
   QOSRulesMsg();
   ~QOSRulesMsg();
 

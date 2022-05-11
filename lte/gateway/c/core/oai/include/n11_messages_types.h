@@ -263,7 +263,7 @@ typedef struct itti_n11_create_pdu_session_response_s {
 
   qos_flow_list_t qos_flow_list;
   TeidSet_response upf_endpoint;
-  uint8_t procedure_trans_identity[2];
+  uint8_t procedure_trans_identity;
 } itti_n11_create_pdu_session_response_t;
 
 #define N11_CREATE_PDU_SESSION_RESPONSE(mSGpTR) \
@@ -474,7 +474,7 @@ typedef struct pdu_session_resource_setup_request_transfer_s {
   amf_ue_aggregate_maximum_bit_rate_t pdu_aggregate_max_bit_rate;
   up_transport_layer_information_t up_transport_layer_info;
   amf_pdn_type_value_t pdu_ip_type;
-  qos_flow_request_list_t qos_flow_setup_request_list;
+  qos_flow_add_or_modify_request_list_t qos_flow_add_or_mod_request_list;
 } pdu_session_resource_setup_request_transfer_t;
 
 typedef struct pdu_session_resource_modify_request_transfer_s {
