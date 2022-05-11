@@ -9,6 +9,7 @@ go_library(
 
 go_test(
     name = "crash_test",
+    size = "small",
     srcs = ["crash_test.go"],
     deps = [
         ":crash",

@@ -15,6 +15,7 @@ package(default_visibility = ["//lte/gateway/c/core/oai/test:__subpackages__"])
 
 cc_test(
     name = "nas_converter_test",
+    size = "small",
     srcs = [
         "test_nas_converter.cpp",
     ],
