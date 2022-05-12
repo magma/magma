@@ -112,7 +112,7 @@ on UE or the server (on SGi side of the network) while debugging the issue.
    - Generating uplink traffic in UE
    - Capturing packets on gtpu_sys_2152 device: `tcpdump -eni gtpu_sys_2152 host $UE_IP`. If you do not see any packet, it means that packets are not reaching GTP tunnel. Check S1 connectivity to debug further.
    - *NATed datapath*: Capture packets on gtp_br0 `tcpdump -eni gtp_br0 host $UE_IP`. If you don't see any packets, try debugging with the `dp_probe_cli.py` utility. This utility would show which OVS table is dropping the packet.
-   - *NATed datapath*: you also need to check if packet are egressing on
+   - *NATed datapath*: you also need to check if the packet is egressing on
      the SGi port. You can do so by running tcpdump on SGi port
      `tcpdump -eni $SGi_dev dst $SERVER_IP`. In case the packet is missing on the SGi port, you have an issue with the routing. Check the routing table and iptables rules on the AGW.
    - *Non-NAT datapath*: You also need to check if the packet is egressing on
