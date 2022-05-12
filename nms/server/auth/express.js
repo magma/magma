@@ -136,7 +136,6 @@ function userMiddleware(options: Options): express.Router<FBCNMSRequest, *> {
         ssoSelectedType,
         csvCharset: null,
         enabledFeatures: [],
-        tabs: [],
         user: {
           tenant: '',
           email: '',
@@ -275,13 +274,7 @@ function userMiddleware(options: Options): express.Router<FBCNMSRequest, *> {
           throw new Error('Email not included!');
         }
 
-        const allowedProps = [
-          'email',
-          'networkIDs',
-          'password',
-          'role',
-          'tabs',
-        ];
+        const allowedProps = ['email', 'networkIDs', 'password', 'role'];
         let userProperties = await getPropsToUpdate(
           allowedProps,
           body,
@@ -329,7 +322,7 @@ function userMiddleware(options: Options): express.Router<FBCNMSRequest, *> {
         }
 
         // Create object to pass into update()
-        const allowedProps = ['networkIDs', 'password', 'role', 'tabs'];
+        const allowedProps = ['networkIDs', 'password', 'role'];
 
         const userProperties = await getPropsToUpdate(
           allowedProps,

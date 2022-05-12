@@ -15,7 +15,6 @@
  */
 
 import type {Organization} from './Organizations';
-import type {Tab} from '../../../shared/types/tabs';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
@@ -68,7 +67,6 @@ export type EditUser = {
   role: string,
   networkIDs?: string[],
   organization?: string,
-  tabs?: Array<string>,
   password?: string,
   passwordConfirmation?: string,
 };
@@ -96,8 +94,6 @@ function TitleRow(props: TitleRowProps) {
   );
 }
 type Props = {
-  // TODO: remove tabs concept, it should always be NMS
-  getProjectTabs?: () => Array<{id: Tab, name: string}>,
   // flag to display advanced config fields in organization add/edit dialog
   hideAdvancedFields?: boolean,
 };

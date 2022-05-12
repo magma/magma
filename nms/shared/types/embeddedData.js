@@ -16,7 +16,6 @@
 
 import type {FeatureID} from './features';
 import type {SSOSelectedType} from './auth';
-import type {Tab} from './tabs';
 
 export type User = {
   tenant: string,
@@ -27,7 +26,6 @@ export type User = {
 
 export type EmbeddedData = {|
   csrfToken: string,
-  tabs: $ReadOnlyArray<Tab>,
   user: User,
   enabledFeatures: FeatureID[],
   ssoEnabled: boolean,

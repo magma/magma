@@ -31,26 +31,17 @@ import staticDist from '../../config/staticDist';
 import testRoutes from '../test/routes';
 import userMiddleware from '../auth/express';
 import {AccessRoles} from '../../shared/roles';
-import {TABS} from '../../shared/types/tabs';
 import {access} from '../auth/access';
 import {getEnabledFeatures} from '../features';
 import {hostOrgMiddleware} from '../host/middleware';
 
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 
-const handleReact = tab =>
+const handleReact = () =>
   async function (req: FBCNMSRequest, res) {
     const organization = req.organization ? await req.organization() : null;
-    const orgTabs = organization?.tabs || [];
-    if (TABS[tab] && orgTabs.indexOf(tab) === -1) {
-      res.redirect(
-        organization?.tabs.length ? `/${organization.tabs[0]}` : '/',
-      );
-      return;
-    }
     const appData: EmbeddedData = {
       csrfToken: req.csrfToken(),
-      tabs: organization?.tabs || [],
       user: req.user
         ? {
             tenant: organization?.name || '',
@@ -77,7 +68,8 @@ router.use('/version', (req: FBCNMSRequest, res) =>
   res.send(process.env.VERSION_TAG),
 );
 router.use('/admin', access(AccessRoles.SUPERUSER), adminRoutes);
-router.get('/admin*', access(AccessRoles.SUPERUSER), handleReact('admin'));
+router.get('/admin*', access(AccessRoles.SUPERUSER), handleReact());
+router.get('/settings', access(AccessRoles.USER), handleReact());
 router.use('/nms/apicontroller', apiControllerRoutes);
 router.use('/nms/network', networkRoutes);
 router.use('/nms/static', express.static(path.join(__dirname, '../static')));
@@ -91,7 +83,7 @@ router.use(
     loginFailureUrl: '/user/login?invalid=true',
   }),
 );
-router.get('/nms*', access(AccessRoles.USER), handleReact('nms'));
+router.get('/nms*', access(AccessRoles.USER), handleReact());
 
 router.get(
   '/host/networks/async',
@@ -113,7 +105,6 @@ async function handleHost(req: FBCNMSRequest, res) {
       isReadOnlyUser: req.user.isReadOnlyUser,
     },
     enabledFeatures: await getEnabledFeatures(req, 'host'),
-    tabs: [],
     ssoEnabled: false,
     ssoSelectedType: 'none',
     csvCharset: null,
@@ -131,16 +122,12 @@ router.get(
   access(AccessRoles.USER),
   asyncHandler(async (req: FBCNMSRequest, res) => {
     const organization = await req.organization();
+
     if (organization.isHostOrg) {
       res.redirect('/host');
-    } else if (req.user.tabs && req.user.tabs.length > 0) {
-      res.redirect(req.user.tabs[0]);
-    } else if (organization.tabs && organization.tabs.length > 0) {
-      res.redirect(organization.tabs[0]);
+    } else if (organization.networkIDs.length === 0) {
+      res.redirect(req.user.isSuperUser ? '/admin' : '/nms');
     } else {
-      console.warn(
-        `no tabs for user ${req.user.email}, organization ${organization.name}`,
-      );
       res.redirect('/nms');
     }
   }),

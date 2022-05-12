@@ -61,13 +61,6 @@ const useStyles = makeStyles(_ => ({
     width: '100%',
   },
 }));
-type TabType =
-  | 'automation'
-  | 'admin'
-  | 'inventory'
-  | 'nms'
-  | 'workorders'
-  | 'hub';
 
 export type DialogProps = {
   error: string,
@@ -80,7 +73,6 @@ export type DialogProps = {
   // If true, enable all networks for an organization
   shouldEnableAllNetworks: boolean,
   setShouldEnableAllNetworks: boolean => void,
-  getProjectTabs?: () => Array<{id: TabType, name: string}>,
   // flag to display advanced config fields in organization add/edit dialog
   hideAdvancedFields: boolean,
 };
@@ -104,7 +96,6 @@ type CreateUserType = {
   networkIDs: Array<string>,
   organization?: string,
   role: ?string,
-  tabs?: Array<string>,
   password: ?string,
   passwordConfirmation?: string,
 };
@@ -173,8 +164,6 @@ export default function (props: Props) {
           ? allNetworks
           : Array.from(organization.networkIDs || []).sort(),
         customDomains: [], // TODO
-        // default tab is nms - TODO: remove tabs concept, it should always be NMS
-        tabs: Array.from(organization.tabs || ['nms']),
         csvCharset: organization.csvCharset,
         ssoSelectedType: organization.ssoSelectedType,
         ssoCert: organization.ssoCert,
