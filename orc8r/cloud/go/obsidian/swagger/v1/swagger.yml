@@ -9165,7 +9165,6 @@ definitions:
         - a
         - b
         type: string
-        x-nullable: false
       desired_state:
         description: desired state of cbsd in SAS
         enum:
@@ -9186,10 +9185,8 @@ definitions:
         type: string
         x-nullable: false
       single_step_enabled:
-        default: false
         description: should the CBSD be registered in a single-step mode
         type: boolean
-        x-nullable: false
       user_id:
         example: some_user_id
         minLength: 1
@@ -9202,6 +9199,8 @@ definitions:
     - frequency_preferences
     - serial_number
     - user_id
+    - single_step_enabled
+    - cbsd_category
     type: object
   mutable_cellular_gateway_pool:
     description: Mutable version of the cellular gateway pool

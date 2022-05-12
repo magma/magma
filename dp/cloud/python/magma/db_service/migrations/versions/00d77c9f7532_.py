@@ -30,7 +30,7 @@ def upgrade():
     op.add_column('cbsds', sa.Column('antenna_model', sa.String(), nullable=True))
     op.add_column('cbsds', sa.Column('eirp_capability_dbm_mhz', sa.Integer(), nullable=True))
     op.add_column('cbsds', sa.Column('cpi_digital_signature', sa.Text(), nullable=True))
-    op.add_column('cbsds', sa.Column('indoor_deployment', sa.Boolean()))
+    op.add_column('cbsds', sa.Column('indoor_deployment', sa.Boolean(), nullable=False, server_default='false'))
     # ### end Alembic commands ###
 
 

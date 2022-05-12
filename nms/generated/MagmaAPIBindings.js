@@ -809,12 +809,12 @@ export type mutable_call_trace = {
 };
 export type mutable_cbsd = {
     capabilities: capabilities,
-    cbsd_category ? : "a" | "b",
+    cbsd_category: "a" | "b",
     desired_state: "unregistered" | "registered",
     fcc_id: string,
     frequency_preferences: frequency_preferences,
     serial_number: string,
-    single_step_enabled ? : boolean,
+    single_step_enabled: boolean,
     user_id: string,
 };
 export type mutable_cellular_gateway_pool = {

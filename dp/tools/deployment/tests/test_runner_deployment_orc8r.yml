@@ -16,8 +16,8 @@ spec:
     - image: test_runner_image
       name: test-runner-orc8
       imagePullPolicy: IfNotPresent
-      command: ["sleep"]
-      args: ["100000"]
+      command: ["python"]
+      args: ["-m", "pytest", "-vvv", "-s", "-m", "orc8r", "--junit-xml=/backend/test_runner/test-results/test_report.xml", "tests"]
       volumeMounts:
         - name: test-results
           mountPath: /backend/test_runner/test-results

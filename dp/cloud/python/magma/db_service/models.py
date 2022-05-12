@@ -237,7 +237,7 @@ class DBCbsd(Base):
     antenna_model = Column(String)
     eirp_capability_dbm_mhz = Column(Integer)
     cpi_digital_signature = Column(Text)
-    indoor_deployment = Column(Boolean)
+    indoor_deployment = Column(Boolean, nullable=False, server_default='false')
     is_deleted = Column(Boolean, nullable=False, server_default='false')
     should_deregister = Column(Boolean, nullable=False, server_default='false')
     created_date = Column(

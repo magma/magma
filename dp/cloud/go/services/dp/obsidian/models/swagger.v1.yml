@@ -255,8 +255,6 @@ definitions:
       single_step_enabled:
         description: should the CBSD be registered in a single-step mode
         type: boolean
-        default: false
-        x-nullable: false
       cbsd_category:
         description: is the radio type A (only) or B (also applies to A/B type radios)
         enum:
@@ -264,7 +262,6 @@ definitions:
           - b
         type: string
         default: b
-        x-nullable: false
     required:
       - capabilities
       - desired_state
@@ -272,6 +269,8 @@ definitions:
       - frequency_preferences
       - serial_number
       - user_id
+      - single_step_enabled
+      - cbsd_category
   paginated_cbsds:
     description: Page of cbsds
     properties:

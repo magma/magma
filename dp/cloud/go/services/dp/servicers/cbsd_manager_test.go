@@ -62,28 +62,32 @@ func (s *CbsdManagerTestSuite) TearDownTest() {
 }
 
 func (s *CbsdManagerTestSuite) TestCreateCbsd() {
-	request := &protos.CreateCbsdRequest{
-		NetworkId: networkId,
-		Data:      getProtoCbsd(),
+	testCases := []struct {
+		name     string
+		input    *protos.CbsdData
+		expected *storage.DBCbsd
+	}{{
+		name:     "test create cbsd",
+		input:    getProtoCbsd(),
+		expected: getDBCbsd(),
+	}, {
+		name:     "test create single step cbsd",
+		input:    getSingleStepProtoCbsd(),
+		expected: getSingleStepDBCbsd(),
+	}}
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			request := &protos.CreateCbsdRequest{
+				NetworkId: networkId,
+				Data:      tc.input,
+			}
+			_, err := s.manager.CreateCbsd(context.Background(), request)
+			s.Require().NoError(err)
+
+			s.Assert().Equal(networkId, s.store.networkId)
+			s.Assert().Equal(getMutableCbsd(tc.expected), s.store.data)
+		})
 	}
-	_, err := s.manager.CreateCbsd(context.Background(), request)
-	s.Require().NoError(err)
-
-	s.Assert().Equal(networkId, s.store.networkId)
-	s.Assert().Equal(getMutableCbsd(getDBCbsd()), s.store.data)
-}
-
-func (s *CbsdManagerTestSuite) TestCreateSingleStepCbsd() {
-	request := &protos.CreateCbsdRequest{
-		NetworkId: networkId,
-		Data:      getSingleStepProtoCbsd(),
-	}
-	_, err := s.manager.CreateCbsd(context.Background(), request)
-	dbCbsd := getSingleStepDBCbsd()
-	s.Require().NoError(err)
-
-	s.Assert().Equal(networkId, s.store.networkId)
-	s.Assert().Equal(getMutableCbsd(dbCbsd), s.store.data)
 }
 
 func (s *CbsdManagerTestSuite) TestCreateWithDuplicateData() {

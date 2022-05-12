@@ -226,6 +226,7 @@ func (s *HandlersTestSuite) TestFetchNonexistentCbsd() {
 
 func (s *HandlersTestSuite) TestCreateCbsd() {
 	e := echo.New()
+
 	obsidianHandlers := cbsd.GetHandlers()
 	payload := createOrUpdateCbsdPayload()
 	s.cbsdServer.createResponse = &protos.CreateCbsdResponse{}
@@ -679,8 +680,8 @@ func createOrUpdateCbsdPayload() *models.MutableCbsd {
 			NumberOfAntennas: 1,
 		},
 		DesiredState:      "registered",
-		SingleStepEnabled: false,
-		CbsdCategory:      "b",
+		SingleStepEnabled: to_pointer.Bool(false),
+		CbsdCategory:      to_pointer.String("b"),
 		FrequencyPreferences: models.FrequencyPreferences{
 			BandwidthMhz:   10,
 			FrequenciesMhz: []int64{3600},

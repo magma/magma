@@ -25,8 +25,9 @@ type MutableCbsd struct {
 	Capabilities Capabilities `json:"capabilities"`
 
 	// is the radio type A (only) or B (also applies to A/B type radios)
+	// Required: true
 	// Enum: [a b]
-	CbsdCategory string `json:"cbsd_category,omitempty"`
+	CbsdCategory *string `json:"cbsd_category"`
 
 	// desired state of cbsd in SAS
 	// Required: true
@@ -50,7 +51,8 @@ type MutableCbsd struct {
 	SerialNumber string `json:"serial_number"`
 
 	// should the CBSD be registered in a single-step mode
-	SingleStepEnabled bool `json:"single_step_enabled,omitempty"`
+	// Required: true
+	SingleStepEnabled *bool `json:"single_step_enabled"`
 
 	// user id
 	// Example: some_user_id
@@ -84,6 +86,10 @@ func (m *MutableCbsd) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateSerialNumber(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSingleStepEnabled(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -141,12 +147,13 @@ func (m *MutableCbsd) validateCbsdCategoryEnum(path, location string, value stri
 }
 
 func (m *MutableCbsd) validateCbsdCategory(formats strfmt.Registry) error {
-	if swag.IsZero(m.CbsdCategory) { // not required
-		return nil
+
+	if err := validate.Required("cbsd_category", "body", m.CbsdCategory); err != nil {
+		return err
 	}
 
 	// value enum
-	if err := m.validateCbsdCategoryEnum("cbsd_category", "body", m.CbsdCategory); err != nil {
+	if err := m.validateCbsdCategoryEnum("cbsd_category", "body", *m.CbsdCategory); err != nil {
 		return err
 	}
 
@@ -230,6 +237,15 @@ func (m *MutableCbsd) validateSerialNumber(formats strfmt.Registry) error {
 	}
 
 	if err := validate.MinLength("serial_number", "body", m.SerialNumber, 1); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableCbsd) validateSingleStepEnabled(formats strfmt.Registry) error {
+
+	if err := validate.Required("single_step_enabled", "body", m.SingleStepEnabled); err != nil {
 		return err
 	}
 

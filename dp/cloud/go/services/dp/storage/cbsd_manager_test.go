@@ -28,8 +28,6 @@ import (
 	"magma/orc8r/lib/go/merrors"
 )
 
-type cbsdGetter func() *storage.DBCbsd
-
 func TestCbsdManager(t *testing.T) {
 	suite.Run(t, &CbsdManagerTestSuite{})
 }
@@ -90,11 +88,22 @@ const (
 	someCbsdId = 123
 )
 
-func (s *CbsdManagerTestSuite) TestCreateCbsd() {
+func (s *CbsdManagerTestSuite) TestCreateCbsdWithDefaultValues() {
 	err := s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd(getBaseCbsd()))
 	s.Require().NoError(err)
+	err = verifyCbsdCreation(s, getBaseCbsdWithDefaultValues())
+	s.Require().NoError(err)
+}
 
-	err = s.resourceManager.InTransaction(func() {
+func (s *CbsdManagerTestSuite) TestCreateSingleStepCbsd() {
+	err := s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd(getSingleStepCbsd()))
+	s.Require().NoError(err)
+	err = verifyCbsdCreation(s, getSingleStepCbsd())
+	s.Require().NoError(err)
+}
+
+func verifyCbsdCreation(s *CbsdManagerTestSuite, expected *storage.DBCbsd) error {
+	err := s.resourceManager.InTransaction(func() {
 		actual, err := db.NewQuery().
 			WithBuilder(s.resourceManager.GetBuilder()).
 			From(&storage.DBCbsd{}).
@@ -113,9 +122,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 			Fetch()
 		s.Require().NoError(err)
 
-		cbsd := getBaseCbsd()
-		cbsd.CbsdCategory = db.MakeString("b")
-		cbsd.SingleStepEnabled = db.MakeBool(false)
+		cbsd := expected
 		cbsd.NetworkId = db.MakeString(someNetwork)
 		cbsd.GrantAttempts = db.MakeInt(0)
 		cbsd.IsDeleted = db.MakeBool(false)
@@ -127,7 +134,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 		}
 		s.Assert().Equal(expected, actual)
 	})
-	s.Require().NoError(err)
+	return err
 }
 
 func (s *CbsdManagerTestSuite) TestCreateCbsdWithExistingSerialNumber() {
@@ -167,6 +174,9 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 	m.Cbsd.MaxPower.Float64 += 2
 	m.Cbsd.MinPower.Float64 += 3
 	m.Cbsd.NumberOfPorts.Int64 += 4
+	m.Cbsd.SingleStepEnabled = db.MakeBool(true)
+	m.Cbsd.IndoorDeployment = db.MakeBool(true)
+	m.Cbsd.CbsdCategory = db.MakeString("a")
 	m.DesiredState.Name = db.MakeString("unregistered")
 	err := s.cbsdManager.UpdateCbsd(someNetwork, someCbsdId, m)
 	s.Require().NoError(err)
@@ -183,6 +193,9 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 		m.Cbsd.NetworkId = db.MakeString(someNetwork)
 		m.Cbsd.ShouldDeregister = db.MakeBool(true)
 		m.Cbsd.DesiredStateId = db.MakeInt(s.enumMaps[storage.CbsdStateTable]["unregistered"])
+		m.Cbsd.SingleStepEnabled = db.MakeBool(true)
+		m.Cbsd.IndoorDeployment = db.MakeBool(true)
+		m.Cbsd.CbsdCategory = db.MakeString("a")
 		expected := []db.Model{m.Cbsd}
 		s.Assert().Equal(expected, actual)
 	})
@@ -526,7 +539,7 @@ func getCbsd(id int64, networkId string, stateId int64) *storage.DBCbsd {
 }
 
 func getDetailedCbsd(id int64) *storage.DBCbsd {
-	base := getBaseCbsd()
+	base := getBaseCbsdWithDefaultValues()
 	base.Id = db.MakeInt(id)
 	base.CbsdId = db.MakeString("some_cbsd_id")
 	return base
@@ -543,6 +556,22 @@ func getBaseCbsd() *storage.DBCbsd {
 	base.MaxPower = db.MakeFloat(20)
 	base.AntennaGain = db.MakeFloat(15)
 	base.NumberOfPorts = db.MakeInt(2)
+	return base
+}
+
+func getSingleStepCbsd() *storage.DBCbsd {
+	base := getBaseCbsd()
+	base.SingleStepEnabled = db.MakeBool(true)
+	base.IndoorDeployment = db.MakeBool(true)
+	base.CbsdCategory = db.MakeString("a")
+	return base
+}
+
+func getBaseCbsdWithDefaultValues() *storage.DBCbsd {
+	base := getBaseCbsd()
+	base.SingleStepEnabled = db.MakeBool(false)
+	base.CbsdCategory = db.MakeString("b")
+	base.IndoorDeployment = db.MakeBool(false)
 	return base
 }
 

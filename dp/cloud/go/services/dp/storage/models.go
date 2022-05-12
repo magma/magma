@@ -432,9 +432,10 @@ func (c *DBCbsd) GetMetadata() *db.ModelMetadata {
 				Nullable: true,
 			},
 			{
-				Name:     "indoor_deployment",
-				SqlType:  sqorc.ColumnTypeBool,
-				Nullable: true,
+				Name:         "indoor_deployment",
+				SqlType:      sqorc.ColumnTypeBool,
+				HasDefault:   true,
+				DefaultValue: false,
 			},
 			{
 				Name:     "cpi_digital_signature",

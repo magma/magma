@@ -31,6 +31,14 @@ func Int(x int) *int {
 	return &x
 }
 
+func String(x string) *string {
+	return &x
+}
+
+func Bool(x bool) *bool {
+	return &x
+}
+
 func TimeToDateTime(t int64) strfmt.DateTime {
 	tm := time.Unix(t, 0)
 	return strfmt.DateTime(tm)

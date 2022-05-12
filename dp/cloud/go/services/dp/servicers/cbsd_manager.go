@@ -170,10 +170,11 @@ func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Durati
 	return &protos.CbsdDetails{
 		Id: data.Cbsd.Id.Int64,
 		Data: &protos.CbsdData{
-			UserId:       data.Cbsd.UserId.String,
-			FccId:        data.Cbsd.FccId.String,
-			SerialNumber: data.Cbsd.CbsdSerialNumber.String,
-			CbsdCategory: data.Cbsd.CbsdCategory.String,
+			UserId:            data.Cbsd.UserId.String,
+			FccId:             data.Cbsd.FccId.String,
+			SerialNumber:      data.Cbsd.CbsdSerialNumber.String,
+			CbsdCategory:      data.Cbsd.CbsdCategory.String,
+			SingleStepEnabled: data.Cbsd.SingleStepEnabled.Bool,
 			Capabilities: &protos.Capabilities{
 				MinPower:         data.Cbsd.MinPower.Float64,
 				MaxPower:         data.Cbsd.MaxPower.Float64,
