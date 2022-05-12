@@ -75,12 +75,6 @@ export default (
     'Organization',
     {
       name: types.STRING,
-      // Unused should be removed together with a migration as a breaking change
-      tabs: {
-        type: types.JSON,
-        allowNull: false,
-        defaultValue: ['nms'],
-      },
       csvCharset: types.STRING,
       customDomains: {
         type: types.JSON,
