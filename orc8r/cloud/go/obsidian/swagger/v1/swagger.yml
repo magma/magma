@@ -8041,6 +8041,11 @@ definitions:
     - epc
     - ran
     type: object
+  gateway_checked_in_recently:
+    description: |
+      Describes whether the last check-in happened recently, taking the magmad check-in interval into account.
+    example: true
+    type: boolean
   gateway_cwf_configs:
     description: CWF configuration for a gateway
     properties:
@@ -8898,6 +8903,8 @@ definitions:
         $ref: '#/definitions/apn_resources'
       cellular:
         $ref: '#/definitions/gateway_cellular_configs'
+      checked_in_recently:
+        $ref: '#/definitions/gateway_checked_in_recently'
       connected_enodeb_serials:
         $ref: '#/definitions/enodeb_serials'
       description:
@@ -8920,6 +8927,7 @@ definitions:
     - id
     - name
     - description
+    - checked_in_recently
     - magmad
     - tier
     - cellular

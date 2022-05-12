@@ -87,6 +87,7 @@ const mockGw0: lte_gateway = {
       mme_connected: '0',
     },
   },
+  checked_in_recently: false,
 };
 
 const mockGw1: lte_gateway = {
@@ -129,6 +130,7 @@ const mockGw1: lte_gateway = {
       mme_connected: '0',
     },
   },
+  checked_in_recently: false,
 };
 
 const mockNw: lte_network = {
@@ -359,6 +361,7 @@ describe('<AddEditGatewayButton />', () => {
             transmit_enabled: true,
           },
         },
+        checked_in_recently: false,
         connected_enodeb_serials: [],
         description: 'Test Gateway Description',
         device: {
@@ -609,6 +612,7 @@ describe('<AddEditGatewayButton />', () => {
           },
           ran: {pci: 260, transmit_enabled: true},
         },
+        checked_in_recently: false,
         connected_enodeb_serials: [],
         description: 'Test Gateway Description',
         device: {

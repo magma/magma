@@ -143,6 +143,7 @@ const mockGw0: lte_gateway = {
       mme_connected: '0',
     },
   },
+  checked_in_recently: false,
 };
 
 const mockGw1 = Object.assign({}, mockGw0);

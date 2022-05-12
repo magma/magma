@@ -100,6 +100,7 @@ const mockGw1: lte_gateway = {
       mme_connected: '0',
     },
   },
+  checked_in_recently: false,
 };
 
 jest.mock('axios');
