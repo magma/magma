@@ -31,7 +31,6 @@ pytest_test(
     deps = [
         "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
         "//lte/gateway/python/magma/pipelined:bridge_util",
-        "//orc8r/gateway/python/magma/common/redis:client",
         requirement("fakeredis"),
     ],
 )

@@ -20,15 +20,11 @@ import grpc
 from google.protobuf import text_format
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.policydb_pb2 import (
-    ChargingRuleNameSet,
     DisableStaticRuleRequest,
     EnableStaticRuleRequest,
     FlowDescription,
     FlowMatch,
-    InstalledPolicies,
     PolicyRule,
-    RatingGroup,
-    SubscriberPolicySet,
 )
 from lte.protos.policydb_pb2_grpc import PolicyDBStub
 from magma.common.rpc_utils import grpc_wrapper

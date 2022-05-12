@@ -14,12 +14,6 @@ limitations under the License.
 import abc
 import copy
 
-from integ_tests.s1aptests.ovs import LOCALHOST
-from integ_tests.s1aptests.ovs.rest_api import (
-    add_flowentry,
-    delete_flowentry,
-    get_datapath,
-)
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow.magma_match import MagmaMatch

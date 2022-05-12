@@ -12,18 +12,13 @@ limitations under the License.
 """
 
 import abc
-import base64
 import logging
 import subprocess
 import time
 
 import grpc
 from feg.protos.hss_service_pb2_grpc import HSSConfiguratorStub
-from integ_tests.gateway.rpc import (
-    get_gateway_hw_id,
-    get_hss_rpc_channel,
-    get_rpc_channel,
-)
+from integ_tests.gateway.rpc import get_hss_rpc_channel, get_rpc_channel
 from lte.protos.subscriberdb_pb2 import (
     LTESubscription,
     SubscriberData,

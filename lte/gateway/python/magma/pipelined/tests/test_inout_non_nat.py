@@ -18,11 +18,10 @@ import time
 import unittest
 import warnings
 from concurrent.futures import Future
-from os import pipe
 from typing import List
 
 from lte.protos.mobilityd_pb2 import GWInfo, IPAddress, IPBlock
-from magma.pipelined.app import egress, ingress, middle
+from magma.pipelined.app import egress
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.app.start_pipelined import (
     PipelinedController,
