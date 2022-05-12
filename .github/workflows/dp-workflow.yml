@@ -1,4 +1,5 @@
-name: Domain proxy workflow
+---
+name: dp-workflow
 
 on:  # yamllint disable-line rule:truthy
   push:
@@ -11,6 +12,10 @@ on:  # yamllint disable-line rule:truthy
       - 'v1.*'
     types: [opened, reopened, synchronize]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   path_filter:
     runs-on: ubuntu-latest
@@ -20,7 +25,7 @@ jobs:
       rc: ${{ steps.filter.outputs.rc }}
       db: ${{ steps.filter.outputs.db }}
       helm: ${{ steps.filter.outputs.helm }}
-      integration_tests_no_orc8r: ${{ steps.filter.outputs.integration_tests_no_orc8r }}
+      integration_tests: ${{ steps.filter.outputs.integration_tests }}
     steps:
       - uses: actions/checkout@v2
         if: github.event_name == 'push'
@@ -55,12 +60,26 @@ jobs:
             helm:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/cloud/helm/**'
-            integration_tests_no_orc8r:
+            integration_tests:
+              - '.github/workflows/**'
+              - 'orc8r/**'
+              - 'lte/**'
               - 'dp/**'
+              - 'src/**'
+              - 'protos/**'
             db:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/cloud/python/magma/db_service/**'
-
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.filter.outputs.integration_tests  == 'false' }} > ./pr/skipped
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: pr
+          path: pr/
 
   configuration_controller_unit_tests:
     needs: path_filter
@@ -341,6 +360,8 @@ jobs:
   integration_tests:
     name: "Domain proxy integration tests"
     runs-on: ubuntu-latest
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.integration_tests == 'true' }}
     continue-on-error: false
     defaults:
       run:
@@ -385,13 +406,13 @@ jobs:
       - name: Collect Pods logs
         if: always()
         run: >-
-          mkdir /tmp/k8s-pods-logs;
+          mkdir ${TEST_DIR}/k8s-pods-logs;
           for pod in $(kubectl get pods -o custom-columns=NAME:.metadata.name --no-headers);
           do
             if [[ "$pod" == "postgres-database-0" ]]; then
-              kubectl logs $pod --container postgres-test > /tmp/k8s-pods-logs/${pod}.log;
+              kubectl logs $pod --container postgres-test > ${TEST_DIR}/k8s-pods-logs/${pod}.log;
             else
-              kubectl logs $pod > /tmp/k8s-pods-logs/${pod}.log;
+              kubectl logs $pod > ${TEST_DIR}/k8s-pods-logs/${pod}.log;
             fi;
           done
       - name: Collect Elasticsearch data
@@ -399,42 +420,19 @@ jobs:
         run: >
           kubectl exec
           $(kubectl get pods -o custom-columns=NAME:.metadata.name | grep elasticsearch)
-          -- curl localhost:9200/dp-*/_search?size=200 > /tmp/elasticsearch-data.json
+          -- curl localhost:9200/dp-*/_search?size=200 > ${TEST_DIR}/elasticsearch-data.json
 
       - name: Upload integration test results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.test_type }}-results
-          path: |
-            ${{ env.TEST_DIR }}
-            /tmp/${{ matrix.test_type }}.txt
-            /tmp/k8s-pods-logs
-            /tmp/elasticsearch-data.json
-
-  integration-test-results:
-    needs: integration_tests
-    name: Integration test results
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Download artifact
-        uses: dawidd6/action-download-artifact@v2
-        with:
-          github_token: ${{secrets.GITHUB_TOKEN}}
-          workflow: dp-workflow.yml
-          path: test-results
-
-      - name: Publish integration test results
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        with:
-          commit: ${{ github.event.workflow_run.head_sha }}
-          files: test-results/**/*.xml
-          comment_title: "Domain Proxy integration tests results"
-
+          path: ${{ env.TEST_DIR }}
 
   helm_chart_tests:
     name: "Helm chart smoke tests"
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.helm == 'true' }}
     runs-on: ubuntu-latest
     defaults:
       run:
