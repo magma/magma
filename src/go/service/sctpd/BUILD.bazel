@@ -18,6 +18,7 @@ go_library(
 
 go_test(
     name = "sctpd_test",
+    size = "small",
     srcs = [
         "proxy_downlink_server_integ_test.go",
         "proxy_uplink_server_integ_test.go",
