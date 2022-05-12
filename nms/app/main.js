@@ -15,7 +15,7 @@
  */
 'use strict';
 
-import '../fbc_js_core/babel_register/polyfill';
+import './common/polyfill';
 
 import Main from './components/Main';
 import MomentUtils from '@date-io/moment';

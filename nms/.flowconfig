@@ -28,7 +28,7 @@
 // TODO - fix flow error in core packages
 .*/fbc_js_core/ui/insights/Alarms/AlarmApi.js
 .*/fbc_js_core/platform_server/network/routes.js
-.*/fbc_js_core/babel_register
+.*/babelRegister.js
 
 [options]
 esproposal.optional_chaining=enable

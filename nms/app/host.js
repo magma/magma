@@ -14,7 +14,7 @@
  * @format
  */
 
-import '../fbc_js_core/babel_register/polyfill';
+import './common/polyfill';
 
 import Index from './components/host/Index';
 import React from 'react';
