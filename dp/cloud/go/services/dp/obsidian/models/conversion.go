@@ -26,7 +26,7 @@ func CbsdToBackend(m *MutableCbsd) *protos.CbsdData {
 		FccId:             m.FccID,
 		SerialNumber:      m.SerialNumber,
 		SingleStepEnabled: *m.SingleStepEnabled,
-		CbsdCategory:      *m.CbsdCategory,
+		CbsdCategory:      m.CbsdCategory,
 		Capabilities: &protos.Capabilities{
 			AntennaGain:      *m.Capabilities.AntennaGain,
 			MaxPower:         *m.Capabilities.MaxPower,

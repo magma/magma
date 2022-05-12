@@ -681,7 +681,7 @@ func createOrUpdateCbsdPayload() *models.MutableCbsd {
 		},
 		DesiredState:      "registered",
 		SingleStepEnabled: to_pointer.Bool(false),
-		CbsdCategory:      to_pointer.String("b"),
+		CbsdCategory:      "b",
 		FrequencyPreferences: models.FrequencyPreferences{
 			BandwidthMhz:   10,
 			FrequenciesMhz: []int64{3600},

@@ -27,7 +27,7 @@ type MutableCbsd struct {
 	// is the radio type A (only) or B (also applies to A/B type radios)
 	// Required: true
 	// Enum: [a b]
-	CbsdCategory *string `json:"cbsd_category"`
+	CbsdCategory string `json:"cbsd_category"`
 
 	// desired state of cbsd in SAS
 	// Required: true
@@ -148,12 +148,12 @@ func (m *MutableCbsd) validateCbsdCategoryEnum(path, location string, value stri
 
 func (m *MutableCbsd) validateCbsdCategory(formats strfmt.Registry) error {
 
-	if err := validate.Required("cbsd_category", "body", m.CbsdCategory); err != nil {
+	if err := validate.RequiredString("cbsd_category", "body", m.CbsdCategory); err != nil {
 		return err
 	}
 
 	// value enum
-	if err := m.validateCbsdCategoryEnum("cbsd_category", "body", *m.CbsdCategory); err != nil {
+	if err := m.validateCbsdCategoryEnum("cbsd_category", "body", m.CbsdCategory); err != nil {
 		return err
 	}
 

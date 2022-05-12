@@ -262,6 +262,7 @@ definitions:
           - b
         type: string
         default: b
+        x-nullable: false
     required:
       - capabilities
       - desired_state

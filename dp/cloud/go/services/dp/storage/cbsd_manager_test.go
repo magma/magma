@@ -91,18 +91,16 @@ const (
 func (s *CbsdManagerTestSuite) TestCreateCbsdWithDefaultValues() {
 	err := s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd(getBaseCbsd()))
 	s.Require().NoError(err)
-	err = verifyCbsdCreation(s, getBaseCbsdWithDefaultValues())
-	s.Require().NoError(err)
+	s.verifyCbsdCreation(getBaseCbsdWithDefaultValues())
 }
 
 func (s *CbsdManagerTestSuite) TestCreateSingleStepCbsd() {
 	err := s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd(getSingleStepCbsd()))
 	s.Require().NoError(err)
-	err = verifyCbsdCreation(s, getSingleStepCbsd())
-	s.Require().NoError(err)
+	s.verifyCbsdCreation(getSingleStepCbsd())
 }
 
-func verifyCbsdCreation(s *CbsdManagerTestSuite, expected *storage.DBCbsd) error {
+func (s *CbsdManagerTestSuite) verifyCbsdCreation(expected *storage.DBCbsd) {
 	err := s.resourceManager.InTransaction(func() {
 		actual, err := db.NewQuery().
 			WithBuilder(s.resourceManager.GetBuilder()).
@@ -134,7 +132,7 @@ func verifyCbsdCreation(s *CbsdManagerTestSuite, expected *storage.DBCbsd) error
 		}
 		s.Assert().Equal(expected, actual)
 	})
-	return err
+	s.Require().NoError(err)
 }
 
 func (s *CbsdManagerTestSuite) TestCreateCbsdWithExistingSerialNumber() {
@@ -560,6 +558,7 @@ func getBaseCbsd() *storage.DBCbsd {
 }
 
 func getSingleStepCbsd() *storage.DBCbsd {
+	// TODO make a builder to handle different types of cbsd data
 	base := getBaseCbsd()
 	base.SingleStepEnabled = db.MakeBool(true)
 	base.IndoorDeployment = db.MakeBool(true)

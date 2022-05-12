@@ -9165,6 +9165,7 @@ definitions:
         - a
         - b
         type: string
+        x-nullable: false
       desired_state:
         description: desired state of cbsd in SAS
         enum:

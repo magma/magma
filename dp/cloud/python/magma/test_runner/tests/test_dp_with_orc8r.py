@@ -133,6 +133,7 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase):
         self.when_cbsd_is_created(builder.build_post_data(), expected_status=HTTPStatus.CONFLICT)
 
     def test_create_cbsd_with_single_step_fields(self):
+        # TODO extend the test to check if the registration actually works
         builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
 
         self.when_cbsd_is_created(builder.build_unregistered_single_step_data())

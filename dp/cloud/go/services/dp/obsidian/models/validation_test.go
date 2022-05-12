@@ -69,11 +69,11 @@ func TestMutableCbsd_Validate(t *testing.T) {
 		expectedError: "single_step_enabled in body is required",
 	}, {
 		name:          "Should validate cbsd category",
-		data:          newMutableCbsd(withCbsdCategory(nil)),
+		data:          newMutableCbsd(withCbsdCategory("")),
 		expectedError: "cbsd_category in body is required",
 	}, {
 		name:          "Should validate cbsd category value",
-		data:          newMutableCbsd(withCbsdCategory(to_pointer.String("c"))),
+		data:          newMutableCbsd(withCbsdCategory("c")),
 		expectedError: "cbsd_category in body should be one of [a b]",
 	}}
 	for _, tt := range testData {
@@ -120,7 +120,7 @@ func withFrequencies(frequencies []int64) mutableCbsdOption {
 	}
 }
 
-func withCbsdCategory(category *string) mutableCbsdOption {
+func withCbsdCategory(category string) mutableCbsdOption {
 	return func(m *models.MutableCbsd) {
 		m.CbsdCategory = category
 	}
