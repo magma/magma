@@ -78,7 +78,7 @@ jobs:
         run: |
               cd ${MAGMA_ROOT}/feg/gateway
               make -C ${MAGMA_ROOT}/feg/gateway cover
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v2
         if: always()
         id: feg-lint-codecov
         with:

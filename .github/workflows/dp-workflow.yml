@@ -105,7 +105,7 @@ jobs:
           coverage report
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
         with:
           flags: unittests,configuration-controller
           name: codecov-configuration-controller
@@ -148,7 +148,7 @@ jobs:
           go test ./... -v -race -coverprofile=coverage.txt -covermode=atomic
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
         with:
           flags: unittests,active-mode-controller
           name: codecov-active-mode-controller
@@ -230,7 +230,7 @@ jobs:
           coverage report
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
         with:
           flags: unittests,radio-controller
           name: codecov-radio-controller
@@ -331,7 +331,7 @@ jobs:
           coverage report
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
         with:
           flags: unittests,db-service
           name: codecov-db-service
