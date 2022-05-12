@@ -18,12 +18,12 @@ import * as React from 'react';
 import CWFNetworkDialog from './CWFNetworkDialog';
 import FEGNetworkDialog from './FEGNetworkDialog';
 import GenericNetworkDialog from './GenericNetworkDialog';
-import LoadingFillerBackdrop from '../../../fbc_js_core/ui/components/LoadingFillerBackdrop';
+import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
 import MagmaV1API from '../../../generated/WebClient';
 
 import useMagmaAPI from '../../../api/useMagmaAPI';
 import {CWF, FEG} from '../../../fbc_js_core/types/network';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 type Props = {

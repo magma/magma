@@ -25,8 +25,8 @@ import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 import {cleanup, render} from '@testing-library/react';
 
-jest.mock('../../../../../fbc_js_core/ui/hooks/useSnackbar');
-const useSnackbar = require('../../../../../fbc_js_core/ui/hooks/useSnackbar');
+jest.mock('../../../../../app/hooks/useSnackbar');
+const useSnackbar = require('../../../../../app/hooks/useSnackbar');
 const snackbarsMock = {error: jest.fn(), success: jest.fn()};
 jest
   .spyOn(useSnackbar, 'useSnackbars')
@@ -34,10 +34,7 @@ jest
 
 const useSnackbarsMock = jest.fn();
 jest
-  .spyOn(
-    require('../../../../../fbc_js_core/ui/hooks/useSnackbar'),
-    'useSnackbars',
-  )
+  .spyOn(require('../../../../../app/hooks/useSnackbar'), 'useSnackbars')
   .mockReturnValue(useSnackbarsMock);
 const useMagmaAPIMock = jest
   .spyOn(require('../../../../../api/useMagmaAPI'), 'default')

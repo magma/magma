@@ -14,17 +14,17 @@
  * @format
  */
 
-import AppContext from '../context/AppContext';
+import AppContext from './context/AppContext';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import PersonIcon from '@material-ui/icons/Person';
 import Popout from './Popout';
 import React, {useContext} from 'react';
-import Text from '../../../app/theme/design-system/Text';
+import Text from '../theme/design-system/Text';
 import classNames from 'classnames';
-import {Events, GeneralLogger} from '../utils/Logging';
-import {colors} from '../../../app/theme/default';
+import {Events, GeneralLogger} from '../util/Logging';
+import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useNavigate, useResolvedPath} from 'react-router-dom';
 

@@ -36,7 +36,7 @@ import {SEVERITY} from '../../severity/Severity';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useParams} from 'react-router-dom';
-import {useSnackbars} from '../../../../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
 import type {AlertConfig, Labels as LabelsMap} from '../../AlarmAPIType';
 import type {GenericRule, RuleEditorProps} from '../RuleInterface';

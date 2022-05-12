@@ -34,10 +34,7 @@ jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
 const enqueueSnackbarMock = jest.fn();
 jest
-  .spyOn(
-    require('../../../../fbc_js_core/ui/hooks/useSnackbar'),
-    'useEnqueueSnackbar',
-  )
+  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 afterEach(cleanup);
 

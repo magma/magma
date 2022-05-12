@@ -15,10 +15,10 @@
  */
 
 import React from 'react';
-import Text from '../../../app/theme/design-system/Text';
+import Text from '../theme/design-system/Text';
 import classNames from 'classnames';
 import {Link, useLocation, useResolvedPath} from 'react-router-dom';
-import {colors} from '../../../app/theme/default';
+import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -54,6 +54,7 @@ type Props = {
   path: string,
   label: string,
   icon: any,
+  expanded: boolean,
 };
 
 export default function SidebarItem(props: Props) {

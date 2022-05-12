@@ -35,7 +35,7 @@ import {EditSubscriberButton} from './SubscriberEditDialog';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({

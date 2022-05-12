@@ -14,7 +14,7 @@
  * @format
  */
 
-import AppContext from '../../../../fbc_js_core/ui/context/AppContext';
+import AppContext from './context/AppContext';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import Dialog from '@material-ui/core/Dialog';
@@ -30,8 +30,8 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-import renderList from '../../../../fbc_js_core/util/renderList';
-import {UserRoles} from '../../../../shared/types';
+import renderList from '../../fbc_js_core/util/renderList';
+import {UserRoles} from '../../shared/types';
 import {makeStyles} from '@material-ui/styles';
 
 export type EditUser = {
@@ -169,7 +169,7 @@ export default function EditUserDialog(props: Props) {
             labelId="role-select-label"
             id="role-select"
             value={role}
-            onChange={({target}) => setRole(target.value)}>
+            onChange={({target}) => setRole(parseInt(target.value))}>
             <MenuItem value={UserRoles.USER}>User</MenuItem>
             <MenuItem value={UserRoles.READ_ONLY_USER}>Read Only User</MenuItem>
             <MenuItem value={UserRoles.SUPERUSER}>Super User</MenuItem>

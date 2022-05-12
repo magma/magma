@@ -14,7 +14,7 @@
  * @format
  */
 
-import AppContext from '../../fbc_js_core/ui/context/AppContext';
+import AppContext from './context/AppContext';
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
 import React, {useContext, useState} from 'react';
@@ -24,7 +24,7 @@ import axios from 'axios';
 import {AltFormField, PasswordInput} from './FormField';
 import {List} from '@material-ui/core';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../app/hooks/useSnackbar';
 
 const TITLE = 'Account Settings';
 

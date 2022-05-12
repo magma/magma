@@ -26,7 +26,7 @@ import {Parse} from './prometheus/PromQLParser';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from './AlarmContext';
 import {useLoadRules} from './hooks';
-import {useSnackbars} from '../../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useSnackbars} from '../../../hooks/useSnackbar';
 
 import {useParams} from 'react-router-dom';
 import type {GenericRule} from './rules/RuleInterface';

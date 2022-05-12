@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../components/Alert/withAlert';
 import type {
   federation_gateway,
   gateway_id,
@@ -25,13 +25,13 @@ import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import CheckIcon from '@material-ui/icons/Check';
-import DeviceStatusCircle from '../../../fbc_js_core/ui/components/icons/DeviceStatusCircle';
+import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import React, {useContext, useEffect, useState} from 'react';
 import nullthrows from '../../../shared/util/nullthrows';
-import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import withAlert from '../../components/Alert/withAlert';
 
 import {GatewayTypeEnum, HEALTHY_STATUS} from '../../components/GatewayUtils';
 import {
@@ -39,7 +39,7 @@ import {
   RefreshTypeEnum,
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
 
 type EquipmentFegGatewayRowType = {

@@ -16,7 +16,7 @@
 
 import type {Organization} from './Organizations';
 import type {Tab} from '../../../fbc_js_core/types/tabs';
-import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../components/Alert/withAlert';
 
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import Button from '@material-ui/core/Button';
@@ -26,7 +26,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
-import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from '../../components/LoadingFiller';
 import OrganizationDialog from './OrganizationDialog';
 import OrganizationSummary from './OrganizationSummary';
 import OrganizationUsersTable from './OrganizationUsersTable';
@@ -34,13 +34,13 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Text from '../../../app/theme/design-system/Text';
 import axios from 'axios';
-import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import withAlert from '../../components/Alert/withAlert';
 
 import {AltFormField} from '../../../app/components/FormField';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios} from '../../../fbc_js_core/ui/hooks';
+import {useAxios} from '../../../app/hooks';
 import {useCallback, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(_ => ({

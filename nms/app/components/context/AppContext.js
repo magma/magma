@@ -15,19 +15,13 @@
  */
 'use strict';
 
+import type {EmbeddedData, User} from '../../../shared/types/embeddedData';
 import type {FeatureID} from '../../../fbc_js_core/types/features';
 import type {SSOSelectedType} from '../../../fbc_js_core/types/auth';
 import type {Tab} from '../../../fbc_js_core/types/tabs';
 
 import * as React from 'react';
 import emptyFunction from '../../../fbc_js_core/util/emptyFunction';
-
-export type User = {
-  tenant: string,
-  email: string,
-  isSuperUser: boolean,
-  isReadOnlyUser: boolean,
-};
 
 export type AppContextType = {
   csrfToken: ?string,
@@ -45,16 +39,6 @@ export type AppContextType = {
   hasAccountSettings: boolean,
 };
 
-export type AppContextAppData = {|
-  csrfToken: string,
-  tabs: $ReadOnlyArray<Tab>,
-  user: User,
-  enabledFeatures: FeatureID[],
-  ssoEnabled: boolean,
-  ssoSelectedType: SSOSelectedType,
-  csvCharset: ?string,
-|};
-
 const appContextDefaults = {
   csrfToken: null,
   version: null,
@@ -70,6 +54,7 @@ const appContextDefaults = {
   hasAccountSettings: false,
 };
 
+// $FlowFixMe[prop-missing]
 const AppContext = React.createContext<AppContextType>(appContextDefaults);
 
 type Props = {|
@@ -79,7 +64,7 @@ type Props = {|
 |};
 
 export function AppContextProvider(props: Props) {
-  const config: {appData: AppContextAppData} = window.CONFIG;
+  const config: {appData: EmbeddedData} = window.CONFIG;
   const {appData} = config;
   const value = {
     ...appContextDefaults,

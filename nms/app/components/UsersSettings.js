@@ -14,16 +14,16 @@
  * @format
  */
 
-import type {EditUser} from '../../fbc_js_core/ui/components/auth/EditUserDialog';
-import type {WithAlert} from '../../fbc_js_core/ui/components/Alert/withAlert';
+import type {EditUser} from './EditUserDialog';
+import type {WithAlert} from './Alert/withAlert';
 
-import AppContext from '../../fbc_js_core/ui/context/AppContext';
+import AppContext from './context/AppContext';
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
-import EditUserDialog from '../../fbc_js_core/ui/components/auth/EditUserDialog';
+import EditUserDialog from './EditUserDialog';
 import IconButton from '@material-ui/core/IconButton';
-import LoadingFiller from '../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from './LoadingFiller';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -36,11 +36,11 @@ import axios from 'axios';
 import {UserRoles} from '../../shared/types';
 
 import renderList from '../../fbc_js_core/util/renderList';
-import withAlert from '../../fbc_js_core/ui/components/Alert/withAlert';
+import withAlert from './Alert/withAlert';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios} from '../../fbc_js_core/ui/hooks';
+import {useAxios} from '../../app/hooks';
 import {useCallback, useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../app/hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({
   header: {

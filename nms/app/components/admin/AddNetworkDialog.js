@@ -35,7 +35,7 @@ import {AllNetworkTypes, XWFM} from '../../../fbc_js_core/types/network';
 import {CWF, FEG, FEG_LTE} from '../../../fbc_js_core/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {triggerAlertSync} from '../../state/SyncAlerts';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useState} from 'react';
 
 const useStyles = makeStyles(() => ({

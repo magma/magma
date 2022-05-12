@@ -29,7 +29,7 @@ import {LABEL_OPERATORS} from '../../prometheus/PromQLTypes';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useNetworkId} from '../../../components/hooks';
-import {useSnackbars} from '../../../../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
 import type {BinaryComparator} from '../../prometheus/PromQLTypes';
 import type {InputChangeFunc} from './PrometheusEditor';

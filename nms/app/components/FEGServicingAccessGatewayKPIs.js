@@ -16,7 +16,7 @@
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataGrid from './DataGrid';
-import LoadingFiller from '../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from './LoadingFiller';
 import MagmaV1API from '../../generated/WebClient';
 import React from 'react';
 import nullthrows from '../../shared/util/nullthrows';
@@ -29,7 +29,7 @@ import type {
 
 import {FetchGateways} from '../state/lte/EquipmentState';
 import {useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 /**

@@ -35,7 +35,7 @@ import PolicyFlowFields from './PolicyFlowFields';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-import TypedSelect from '../../../fbc_js_core/ui/components/TypedSelect';
+import TypedSelect from '../TypedSelect';
 import Typography from '@material-ui/core/Typography';
 
 import nullthrows from '../../../shared/util/nullthrows';

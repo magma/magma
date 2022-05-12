@@ -32,7 +32,7 @@ import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
 import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useMemo, useRef, useState} from 'react';
 import {useParams} from 'react-router-dom';
 import {useRefreshingDateRange} from '../../components/AutorefreshCheckbox';

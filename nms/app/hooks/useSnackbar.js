@@ -43,6 +43,7 @@ export default function useSnackbar(
             variant={config.variant ?? 'success'}
           />
         ),
+        // $FlowFixMe[incompatible-use]
         ...config,
       });
       if (dismissPrevious) {
@@ -68,6 +69,7 @@ export function useEnqueueSnackbar() {
   const {enqueueSnackbar} = useNotistackSnackbar();
   return useCallback(
     (message: string, config: EnqueueSnackbarOptions) =>
+      // $FlowFixMe[prop-missing]
       enqueueSnackbar(message, {
         content: key => (
           <SnackbarItem

@@ -19,14 +19,14 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import CloseIcon from '@material-ui/icons/Close';
 import ErrorIcon from '@material-ui/icons/Error';
 import InfoIcon from '@material-ui/icons/Info';
-import Text from '../../../app/theme/design-system/Text';
+import Text from '../theme/design-system/Text';
 import WarningIcon from '@material-ui/icons/Warning';
 import classNames from 'classnames';
-import {colors} from '../../../app/theme/default';
+import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useSnackbar} from 'notistack';
-import {withForwardRef} from '../../../fbc_js_core/ui/components/ForwardRef';
-import type {ForwardRef} from '../../../fbc_js_core/ui/components/ForwardRef';
+import {withForwardRef} from './ForwardRef';
+import type {ForwardRef} from './ForwardRef';
 import type {Variants} from 'notistack';
 
 const useStyles = makeStyles(() => ({

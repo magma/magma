@@ -30,7 +30,7 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import LoadingFiller from '../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from './LoadingFiller';
 import MagmaV1API from '../../generated/WebClient';
 import React from 'react';
 import Text from '../theme/design-system/Text';
@@ -41,7 +41,7 @@ import useMagmaAPI from '../../api/useMagmaAPI';
 import {AltFormField} from './FormField';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
-import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({

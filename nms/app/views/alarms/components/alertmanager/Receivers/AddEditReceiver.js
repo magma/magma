@@ -30,7 +30,7 @@ import WebhookConfigEditor from './WebhookConfigEditor';
 import useForm from '../../../hooks/useForm';
 import {useAlarmContext} from '../../AlarmContext';
 import {useParams} from 'react-router-dom';
-import {useSnackbars} from '../../../../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
 import type {
   AlertReceiver,

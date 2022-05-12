@@ -14,17 +14,17 @@
  * @format
  */
 
-import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import type {WithAlert} from '../Alert/withAlert';
 import type {federation_gateway} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
-import DeviceStatusCircle from '../../../fbc_js_core/ui/components/icons/DeviceStatusCircle';
+import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';
 import FEGGatewayContext from '../context/FEGGatewayContext';
 import FEGGatewayDialog from './FEGGatewayDialog';
 import IconButton from '@material-ui/core/IconButton';
-import NestedRouteLink from '../../../fbc_js_core/ui/components/NestedRouteLink';
+import NestedRouteLink from '../NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import StarIcon from '@material-ui/icons/Star';
@@ -36,7 +36,7 @@ import TableRow from '@material-ui/core/TableRow';
 import Text from '../../theme/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import nullthrows from '../../../shared/util/nullthrows';
-import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import withAlert from '../Alert/withAlert';
 
 import {HEALTHY_STATUS} from '../GatewayUtils';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';

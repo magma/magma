@@ -18,11 +18,12 @@ import 'jest-dom/extend-expect';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import ProfileButton from '../ProfileButton';
 import React, {useState} from 'react';
-import defaultTheme from '../../../../app/theme/default';
-import {AppContextProvider} from '../../context/AppContext';
+import defaultTheme from '../../theme/default';
+import {AppContextProvider} from '../context/AppContext';
 import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
+// $FlowFixMe[missing-export]
 import {cleanup, fireEvent, render, waitFor} from '@testing-library/react';
 
 type Props = {
@@ -84,10 +85,10 @@ describe('<ProfileButton />', () => {
     ssoEnabled = false,
     enabledFeatures = [],
   }: {
-    isSuperUser: boolean,
-    isOrganizations: boolean,
-    ssoEnabled: boolean,
-    enabledFeatures: Array<string>,
+    isSuperUser?: boolean,
+    isOrganizations?: boolean,
+    ssoEnabled?: boolean,
+    enabledFeatures?: Array<string>,
   }) {
     global.CONFIG = {
       appData: {

@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import AppContext from '../../../fbc_js_core/ui/context/AppContext';
+import AppContext from '../../../app/components/context/AppContext';
 import type {OrganizationPlainAttributes} from '../../../fbc_js_core/sequelize_models/models/organization';
 
 import Button from '@material-ui/core/Button';
@@ -21,7 +21,7 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import LoadingFillerBackdrop from '../../../fbc_js_core/ui/components/LoadingFillerBackdrop';
+import LoadingFillerBackdrop from '../../components/LoadingFillerBackdrop';
 import OrganizationInfoDialog from './OrganizationInfoDialog';
 import OrganizationUserDialog from './OrganizationUserDialog';
 import React from 'react';
@@ -31,7 +31,7 @@ import Tabs from '@material-ui/core/Tabs';
 import {UserRoles} from '../../../shared/types';
 import {colors} from '../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios} from '../../../fbc_js_core/ui/hooks';
+import {useAxios} from '../../../app/hooks';
 import {useContext, useEffect, useState} from 'react';
 
 const useStyles = makeStyles(_ => ({

@@ -29,12 +29,12 @@ import type {
 
 import * as React from 'react';
 import AppContent from '../layout/AppContent';
-import AppSideBar from '../../../fbc_js_core/ui/components/layout/AppSideBar';
+import AppSideBar from '../AppSideBar';
 import NetworkContext from '../context/NetworkContext';
 import SectionRoutes from '../layout/SectionRoutes';
 import {useEffect, useState} from 'react';
 
-import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from '../LoadingFiller';
 import useSections from '../layout/useSections';
 import {makeStyles} from '@material-ui/styles';
 import {useParams} from 'react-router-dom';

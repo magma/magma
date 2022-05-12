@@ -126,7 +126,7 @@ const mockAlertSt: Array<prom_firing_alert> = [
 
 jest.mock('axios');
 jest.mock('../../../generated/MagmaAPIBindings');
-jest.mock('../../../fbc_js_core/ui/hooks/useSnackbar');
+jest.mock('../../../app/hooks/useSnackbar');
 
 describe('<DashboardAlertTable />', () => {
   beforeEach(() => {

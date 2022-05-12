@@ -26,7 +26,7 @@ import type {
 
 import ActionTable from '../../components/ActionTable';
 import Link from '@material-ui/core/Link';
-import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from '../../components/LoadingFiller';
 import React, {useEffect, useState} from 'react';
 import isGatewayHealthy from '../../components/GatewayUtils';
 import nullthrows from '../../../shared/util/nullthrows';
@@ -34,7 +34,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 import {FetchGateways} from '../../state/lte/EquipmentState';
 import {GatewayTypeEnum} from '../../components/GatewayUtils';
 import {getServicedAccessNetworks} from '../../components/FEGServicingAccessGatewayKPIs';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 type ServicingAccessGatewayRowType = {

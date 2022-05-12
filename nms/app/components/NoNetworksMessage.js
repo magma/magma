@@ -17,7 +17,7 @@
 import * as React from 'react';
 import Typography from '@material-ui/core/Typography';
 import WifiTethering from '@material-ui/icons/WifiTethering';
-import {colors} from '../../../app/theme/default';
+import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({

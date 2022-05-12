@@ -13,13 +13,13 @@
  * @flow
  * @format
  */
-import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../components/Alert/withAlert';
 
 import Button from '@material-ui/core/Button';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import ListItemText from '@material-ui/core/ListItemText';
-import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from '../../components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
@@ -29,15 +29,15 @@ import Text from '../../theme/design-system/Text';
 import TextareaAutosize from 'react-textarea-autosize';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
-import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import withAlert from '../../components/Alert/withAlert';
 
 import {AltFormField} from '../../components/FormField';
 import {RUNNING_SERVICES} from '../../components/GatewayUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
-import {useSnackbar} from '../../../fbc_js_core/ui/hooks';
+import {useSnackbar} from '../../../app/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {

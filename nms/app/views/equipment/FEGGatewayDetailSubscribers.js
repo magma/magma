@@ -22,7 +22,7 @@ import type {
 import ActionTable from '../../components/ActionTable';
 import FEGSubscriberContext from '../../components/context/FEGSubscriberContext';
 import Link from '@material-ui/core/Link';
-import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from '../../components/LoadingFiller';
 import React from 'react';
 import nullthrows from '../../../shared/util/nullthrows';
 

@@ -24,16 +24,13 @@ import {render} from '@testing-library/react';
 import type {AlertConfig} from '../../../AlarmAPIType';
 import type {GenericRule} from '../../RuleInterface';
 
-jest.mock('../../../../../../../fbc_js_core/ui/hooks/useSnackbar');
+jest.mock('../../../../../../hooks/useSnackbar');
 
 const {AlarmsWrapper, apiUtil} = alarmTestUtil();
 
 const enqueueSnackbarMock = jest.fn();
 jest
-  .spyOn(
-    require('../../../../../../../fbc_js_core/ui/hooks/useSnackbar'),
-    'useEnqueueSnackbar',
-  )
+  .spyOn(require('../../../../../../hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 
 // TextField select is difficult to test so replace it with an Input

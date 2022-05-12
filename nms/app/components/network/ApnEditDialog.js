@@ -33,7 +33,7 @@ import {
 } from '@material-ui/core';
 
 import nullthrows from '../../../shared/util/nullthrows';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 

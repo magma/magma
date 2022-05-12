@@ -20,9 +20,9 @@ import Index, {ROOT_PATHS} from './main/Index';
 import IndexWithoutNetwork from './IndexWithoutNetwork';
 import MagmaV1API from '../../generated/WebClient';
 import NetworkError from './main/NetworkError';
-import NoNetworksMessage from '../../fbc_js_core/ui/components/NoNetworksMessage';
+import NoNetworksMessage from './NoNetworksMessage';
 import React from 'react';
-import {AppContextProvider} from '../../fbc_js_core/ui/context/AppContext';
+import {AppContextProvider} from './context/AppContext';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
 
 import useMagmaAPI from '../../api/useMagmaAPI';
