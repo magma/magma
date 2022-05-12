@@ -116,7 +116,7 @@ on UE or the server (on SGi side of the network) while debugging the issue.
      the SGi port. You can do so by running tcpdump on SGi port
      `tcpdump -eni $SGi_dev dst $SERVER_IP`. In case the packet is missing on the SGi port, you have an issue with the routing. Check the routing table and iptables rules on the AGW.
    - *Non-NAT datapath*: You also need to check if the packet is egressing on
-     the SGi port. You can do so by running tcpdump on SGi port
+     the SGi port. You can do so by running tcpdump on the SGi port
      `tcpdump -eni $SGi_dev dst $SERVER_IP`. If you don't see any packets, try debugging with the `dp_probe_cli.py` utility. This utility would show which OVS table is dropping the packet.
    - In case uplink packets are reaching SGi port, you need to debug issues in
      downlink direction.
