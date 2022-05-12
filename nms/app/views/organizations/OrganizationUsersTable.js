@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import ActionTableLegacy from '../../components/ActionTableLegacy';
+import ActionTable from '../../components/ActionTable';
 import React from 'react';
 import Text from '../../../app/theme/design-system/Text';
 import axios from 'axios';
@@ -110,7 +110,7 @@ function OrganizationUsersTable(props: OrganizationUsersTableProps) {
 
   return (
     <>
-      <ActionTableLegacy
+      <ActionTable
         tableRef={props.tableRef}
         data={() =>
           new Promise((resolve, _reject) => {
