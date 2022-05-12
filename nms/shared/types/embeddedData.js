@@ -13,15 +13,24 @@
  * @flow strict-local
  * @format
  */
-'use strict';
 
-export type TRefCallbackFor<T> = (T | null) => mixed;
-export type TRefObjectFor<T> = {current: T, ...};
+import type {FeatureID} from '../../fbc_js_core/types/features';
+import type {SSOSelectedType} from '../../fbc_js_core/types/auth';
+import type {Tab} from '../../fbc_js_core/types/tabs';
 
-// NOTE:
-// A simple utility type for declaring ref types.
-// Please note, remember to use a nullable version of this in functions that are
-// wrapped by React.forwardRef.
-export type TRefFor<TElement> =
-  | TRefObjectFor<TElement | null>
-  | TRefCallbackFor<TElement>;
+export type User = {
+  tenant: string,
+  email: string,
+  isSuperUser: boolean,
+  isReadOnlyUser: boolean,
+};
+
+export type EmbeddedData = {|
+  csrfToken: string,
+  tabs: $ReadOnlyArray<Tab>,
+  user: User,
+  enabledFeatures: FeatureID[],
+  ssoEnabled: boolean,
+  ssoSelectedType: SSOSelectedType,
+  csvCharset: ?string,
+|};

@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import AppContext from '../../../../fbc_js_core/ui/context/AppContext';
+import AppContext from '../../../components/context/AppContext';
 import FBCAlarms from '../components/Alarms';
 import type {ApiUtil} from '../components/AlarmsApi';
 import type {Labels} from '../components/AlarmAPIType';

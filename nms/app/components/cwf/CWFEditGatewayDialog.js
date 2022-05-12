@@ -34,7 +34,7 @@ import Tabs from '@material-ui/core/Tabs';
 
 import nullthrows from '../../../shared/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 

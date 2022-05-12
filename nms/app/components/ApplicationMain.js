@@ -15,15 +15,13 @@
  */
 
 import * as React from 'react';
-import Alert from '../../fbc_js_core/ui/components/Alert/Alert';
+import Alert from './Alert/Alert';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import axios from 'axios';
-// import defaultTheme from '../../fbc_js_core/ui/theme/default';
 import defaultTheme from '../theme/default';
 import {ErrorCodes} from '../../shared/errorCodes';
 import {SnackbarProvider} from 'notistack';
-import {TopBarContextProvider} from '../../fbc_js_core/ui/components/layout/TopBarContext';
 import {useEffect, useState} from 'react';
 
 const DIALOG_MESSAGE =
@@ -78,10 +76,8 @@ const ApplicationMain = (props: Props) => {
           vertical: 'bottom',
           horizontal: 'right',
         }}>
-        <TopBarContextProvider>
-          <CssBaseline />
-          {props.children}
-        </TopBarContextProvider>
+        <CssBaseline />
+        {props.children}
       </SnackbarProvider>
       <Alert
         confirmLabel="Reload Page"

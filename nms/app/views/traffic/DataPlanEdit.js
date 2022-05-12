@@ -32,7 +32,7 @@ import Text from '../../theme/design-system/Text';
 import nullthrows from '../../../shared/util/nullthrows';
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import type {UpdateNetworkContextProps} from '../../components/context/LteNetworkContext';
 
 import {

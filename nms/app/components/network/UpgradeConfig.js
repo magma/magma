@@ -14,17 +14,17 @@
  * @format
  */
 
-import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import type {WithAlert} from '../Alert/withAlert';
 import type {magmad_gateway, tier} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
-import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
-import LoadingFillerBackdrop from '../../../fbc_js_core/ui/components/LoadingFillerBackdrop';
+import LoadingFiller from '../LoadingFiller';
+import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
 import MagmaV1API from '../../../generated/WebClient';
-import NestedRouteLink from '../../../fbc_js_core/ui/components/NestedRouteLink';
+import NestedRouteLink from '../NestedRouteLink';
 import React from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -35,14 +35,14 @@ import Text from '../../theme/design-system/Text';
 import Toolbar from '@material-ui/core/Toolbar';
 import UpgradeStatusTierID from './UpgradeStatusTierID';
 import UpgradeTierEditDialog from './UpgradeTierEditDialog';
-import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import withAlert from '../Alert/withAlert';
 
 import nullthrows from '../../../shared/util/nullthrows';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {map, sortBy} from 'lodash';
 import {useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 const useStyles = makeStyles(() => ({
   header: {

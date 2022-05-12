@@ -123,7 +123,7 @@ const mockEnbSt: enodeb_state = {
 
 jest.mock('axios');
 jest.mock('../../../generated/MagmaAPIBindings');
-jest.mock('../../../fbc_js_core/ui/hooks/useSnackbar');
+jest.mock('../../../app/hooks/useSnackbar');
 
 describe('<GatewaysKPIs />', () => {
   const Wrapper = () => {

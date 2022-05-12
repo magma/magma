@@ -27,7 +27,6 @@
 [untyped]
 // TODO - fix flow error in core packages
 .*/view/alarms/legacy/Alarms/AlarmApi.js
-.*/fbc_js_core/platform_server/network/routes.js
 .*/babelRegister.js
 
 [options]
@@ -40,8 +39,8 @@ esproposal.optional_chaining=enable
 .*/node_modules/react-beautiful-dnd/.*
 .*/node_modules/express/.*
 .*/fbc_js_core/express-middleware/.*
-.*/fbc_js_core/ui/.*
 .*/fbc_js_core/util/.*
+.*/app/views/organizations/.*
 
 [lints]
 all=warn

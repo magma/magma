@@ -27,7 +27,7 @@ import type {federation_gateway} from '../../../../generated/MagmaAPIBindings';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
+jest.mock('../../../../app/hooks/useSnackbar');
 afterEach(cleanup);
 
 const mockHardwareId = 'c9439d30-61ef-46c7-93f2-e01fc131244d';

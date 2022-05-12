@@ -19,7 +19,7 @@ import ListItem from '@material-ui/core/ListItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
-import TypedSelect from '../../../fbc_js_core/ui/components/TypedSelect';
+import TypedSelect from '../../components/TypedSelect';
 
 import {AltFormField} from '../../components/FormField';
 import {base64ToHex, decodeBase64} from '../../../fbc_js_core/util/strings';

@@ -29,7 +29,7 @@ import TableAddButton from '../../table/TableAddButton';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useNetworkId} from '../../hooks';
-import {useSnackbars} from '../../../../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
 import type {AlertReceiver} from '../../AlarmAPIType';
 

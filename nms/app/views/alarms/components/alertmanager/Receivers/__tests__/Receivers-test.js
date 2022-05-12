@@ -28,10 +28,7 @@ import {alarmTestUtil, useMagmaAPIMock} from '../../../../test/testHelpers';
 
 const enqueueSnackbarMock = jest.fn();
 jest
-  .spyOn(
-    require('../../../../../../../fbc_js_core/ui/hooks/useSnackbar'),
-    'useEnqueueSnackbar',
-  )
+  .spyOn(require('../../../../../../hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 
 const {AlarmsWrapper} = alarmTestUtil();

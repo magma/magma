@@ -34,7 +34,7 @@ import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import InputLabel from '@material-ui/core/InputLabel';
 import KeyValueFields from '../KeyValueFields';
-import LoadingFillerBackdrop from '../../../fbc_js_core/ui/components/LoadingFillerBackdrop';
+import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
 import MagmaV1API from '../../../generated/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React, {useContext, useState} from 'react';
@@ -51,7 +51,7 @@ import {
   MAGMAD_DEFAULT_CONFIGS,
 } from '../AddGatewayDialog';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({

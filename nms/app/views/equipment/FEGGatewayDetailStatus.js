@@ -17,7 +17,7 @@ import type {DataRows} from '../../components/DataGrid';
 
 import DataGrid from '../../components/DataGrid';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
-import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from '../../components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import nullthrows from '../../../shared/util/nullthrows';

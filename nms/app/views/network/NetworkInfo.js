@@ -35,7 +35,7 @@ import {AltFormField} from '../../components/FormField';
 import {FEG_LTE} from '../../../fbc_js_core/types/network';
 import {LTE} from '../../../fbc_js_core/types/network';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 type Props = {
   lteNetwork: $Shape<lte_network & feg_lte_network>,

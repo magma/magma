@@ -16,9 +16,9 @@
 
 import type {OrganizationPlainAttributes} from '../../../fbc_js_core/sequelize_models/models/organization';
 import type {UserType} from '../../../fbc_js_core/sequelize_models/models/user.js';
-import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../components/Alert/withAlert';
 
-import ActionTable from '../components/ActionTable';
+import ActionTableLegacy from '../../components/ActionTableLegacy';
 import BusinessIcon from '@material-ui/icons/Business';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -32,20 +32,20 @@ import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
-import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from '../../components/LoadingFiller';
 import OrganizationDialog from './OrganizationDialog';
 import PersonAdd from '@material-ui/icons/PersonAdd';
 import PersonIcon from '@material-ui/icons/Person';
 import React from 'react';
 import Text from '../../../app/theme/design-system/Text';
 import axios from 'axios';
-import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import withAlert from '../../components/Alert/withAlert';
 
 import {colors} from '../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios} from '../../../fbc_js_core/ui/hooks';
+import {useAxios} from '../../../app/hooks';
 import {useCallback, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useNavigate} from 'react-router-dom';
 
 export type Organization = OrganizationPlainAttributes;
@@ -304,7 +304,7 @@ function Organizations(props: Props) {
         </Grid>
         <>{showOnboardingDialog && <OnboardingDialog />}</>
         <Grid item xs={12}>
-          <ActionTable
+          <ActionTableLegacy
             data={organizationRows}
             columns={[
               {

@@ -39,7 +39,7 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
-import Text from '../../../app/theme/design-system/Text';
+import Text from '../theme/design-system/Text';
 
 import {forwardRef} from 'react';
 import {makeStyles} from '@material-ui/styles';
@@ -167,7 +167,7 @@ function PaperComponent(props: {}) {
   return <Paper {...props} elevation={0} />;
 }
 
-export default function ActionTable<T>(props: ActionTableProps<T>) {
+export default function ActionTableLegacy<T>(props: ActionTableProps<T>) {
   const actionTableJSX = [];
   const [anchorEl, setAnchorEl] = useState(null);
   const classes = useStyles();

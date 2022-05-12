@@ -23,7 +23,7 @@ import {Line} from 'react-chartjs-2';
 
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 type AxesOptions = {

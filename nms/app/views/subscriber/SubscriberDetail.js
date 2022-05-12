@@ -26,7 +26,7 @@ import DataGrid from '../../components/DataGrid';
 import EventsTable from '../../views/events/EventsTable';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
-import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from '../../components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
 import PersonIcon from '@material-ui/icons/Person';
@@ -48,7 +48,7 @@ import {SubscriberJsonConfig} from './SubscriberDetailConfig';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {

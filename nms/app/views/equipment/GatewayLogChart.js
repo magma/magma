@@ -18,7 +18,7 @@ import type {Dataset, DatasetType} from '../../components/CustomMetrics';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CustomHistogram from '../../components/CustomMetrics';
-import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from '../../components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import moment from 'moment';
@@ -27,7 +27,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 import {colors} from '../../theme/default';
 import {getQueryRanges} from '../../components/CustomMetrics';
 import {useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 type Props = {

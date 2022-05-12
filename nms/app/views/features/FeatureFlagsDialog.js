@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {Organization} from './Organizations';
+import type {Organization} from '../organizations/Organizations';
 
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -24,12 +24,12 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
-import LoadingFillerBackdrop from '../../../fbc_js_core/ui/components/LoadingFillerBackdrop';
+import LoadingFillerBackdrop from '../../components/LoadingFillerBackdrop';
 import React from 'react';
 import axios from 'axios';
 
 import {makeStyles} from '@material-ui/styles';
-import {useAxios} from '../../../fbc_js_core/ui/hooks';
+import {useAxios} from '../../../app/hooks';
 import {useEffect, useState} from 'react';
 
 const useStyles = makeStyles(_ => ({

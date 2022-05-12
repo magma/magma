@@ -113,7 +113,7 @@ function StatusIndicator(disabled: boolean, up: boolean, val: string) {
   return (
     <Grid container alignItems="center">
       <Grid item>
-        <DeviceStatusCircle isGrey={disabled} isActive={up} isFilled={true} />
+        <DeviceStatusCircle isGrey={disabled} isActive={up} />
       </Grid>
       <Grid item className={classes.dataValue}>
         {val}

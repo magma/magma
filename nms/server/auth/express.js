@@ -31,7 +31,7 @@ import {
 import {injectOrganizationParams} from './organization';
 import {isEmpty} from 'lodash';
 
-import type {AppContextAppData} from '../../fbc_js_core/ui/context/AppContext';
+import type {EmbeddedData} from '../../shared/types/embeddedData';
 import type {ExpressRequest, ExpressResponse} from 'express';
 import type {FBCNMSRequest} from './access';
 import type {UserType} from '../../fbc_js_core/sequelize_models/models/user';
@@ -130,7 +130,7 @@ function userMiddleware(options: Options): express.Router<FBCNMSRequest, *> {
         logger.error('Error getting organization', e);
       }
 
-      const appData: AppContextAppData = {
+      const appData: EmbeddedData = {
         csrfToken: req.csrfToken(),
         ssoEnabled: ssoSelectedType !== 'none',
         ssoSelectedType,

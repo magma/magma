@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../components/Alert/withAlert';
 
 import ActionTable from '../../components/ActionTable';
 import ApnContext from '../../components/context/ApnContext';
@@ -23,12 +23,12 @@ import JsonEditor from '../../components/JsonEditor';
 import Link from '@material-ui/core/Link';
 import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
-import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import withAlert from '../../components/Alert/withAlert';
 
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
 
 const DEFAULT_APN_CONFIG = {

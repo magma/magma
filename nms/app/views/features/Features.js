@@ -19,7 +19,7 @@ import type {FeatureFlag} from './FeatureFlagsDialog';
 import EditIcon from '@material-ui/icons/Edit';
 import FeatureFlagsDialog from './FeatureFlagsDialog';
 import IconButton from '@material-ui/core/IconButton';
-import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from '../../components/LoadingFiller';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';

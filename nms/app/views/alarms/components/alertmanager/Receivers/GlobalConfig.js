@@ -30,7 +30,7 @@ import useForm from '../../../hooks/useForm';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useNetworkId} from '../../hooks';
-import {useSnackbars} from '../../../../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
 import type {AlertManagerGlobalConfig, HTTPConfig} from '../../AlarmAPIType';
 import type {Props as EditorProps} from '../../common/Editor';

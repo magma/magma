@@ -14,13 +14,13 @@
  * @format
  */
 
-import ProfileButton from '../ProfileButton';
+import ProfileButton from './ProfileButton';
 import React, {useContext, useState} from 'react';
-import SidebarItem from '../SidebarItem';
-import Text from '../../../../app/theme/design-system/Text';
-import VersionContext from '../../../../app/components/context/VersionContext';
+import SidebarItem from './SidebarItem';
+import Text from '../theme/design-system/Text';
+import VersionContext from './context/VersionContext';
 import classNames from 'classnames';
-import {colors} from '../../../../app/theme/default';
+import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -94,7 +94,7 @@ const AppSideBar = (props: Props) => {
           [classes.inner]: true,
           [classes.expanded]: expanded,
         })}>
-        <div className={classes.mainItems}>
+        <div>
           {items.map(({path, label, icon}) => (
             <SidebarItem
               key={label}
@@ -105,7 +105,7 @@ const AppSideBar = (props: Props) => {
             />
           ))}
         </div>
-        <div className={classes.secondaryItems}>
+        <div>
           <ProfileButton
             expanded={expanded}
             isMenuOpen={isProfileMenuOpen}

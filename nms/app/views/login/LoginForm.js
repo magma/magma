@@ -22,7 +22,7 @@ import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import FormLabel from '@material-ui/core/FormLabel';
 import React from 'react';
-import Text from '../../../../app/theme/design-system/Text';
+import Text from '../../theme/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import {withStyles} from '@material-ui/core/styles';
 

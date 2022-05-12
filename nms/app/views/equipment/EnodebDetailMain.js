@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../components/Alert/withAlert';
 
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import Button from '@material-ui/core/Button';
@@ -32,7 +32,7 @@ import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
-import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import withAlert from '../../components/Alert/withAlert';
 
 import {DateTimePicker} from '@material-ui/pickers';
 import {EnodebJsonConfig} from './EnodebDetailConfig';
@@ -42,7 +42,7 @@ import {RunGatewayCommands} from '../../state/lte/EquipmentState';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
