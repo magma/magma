@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {FBCNMSMiddleWareRequest} from '../../../fbc_js_core/express_middleware';
+import type {FBCNMSMiddleWareRequest} from '../../../server/middleware';
 
 import {Strategy} from 'passport-strategy';
 

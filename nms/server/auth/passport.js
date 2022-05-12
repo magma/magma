@@ -17,7 +17,7 @@
 import passport from 'passport';
 import {User} from '../../fbc_js_core/sequelize_models';
 
-import type {FBCNMSMiddleWareRequest} from '../../fbc_js_core/express_middleware';
+import type {FBCNMSMiddleWareRequest} from '../../server/middleware';
 import type {UserType} from '../../fbc_js_core/sequelize_models/models/user';
 
 type OutputRequest<T> = {
