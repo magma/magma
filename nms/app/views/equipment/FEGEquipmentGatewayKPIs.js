@@ -20,7 +20,7 @@ import DataGrid from '../../components/DataGrid';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 
 import {HEALTHY_STATUS, UNHEALTHY_STATUS} from '../../components/GatewayUtils';

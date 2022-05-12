@@ -34,7 +34,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 import {makeStyles} from '@material-ui/styles';
 

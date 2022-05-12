@@ -23,7 +23,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import defaultTheme from './theme/default';
-import nullthrows from '../fbc_js_core/util/nullthrows';
+import nullthrows from '../shared/util/nullthrows';
 import {AppContextProvider} from '../fbc_js_core/ui/context/AppContext';
 import {BrowserRouter} from 'react-router-dom';
 

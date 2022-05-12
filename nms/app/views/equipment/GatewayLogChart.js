@@ -22,7 +22,7 @@ import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import moment from 'moment';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {colors} from '../../theme/default';
 import {getQueryRanges} from '../../components/CustomMetrics';

@@ -30,7 +30,7 @@ import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 import {AllNetworkTypes, XWFM} from '../../../fbc_js_core/types/network';
 import {CWF, FEG, FEG_LTE} from '../../../fbc_js_core/types/network';
 import {makeStyles} from '@material-ui/styles';

@@ -27,7 +27,7 @@ import React from 'react';
 import Select from '@material-ui/core/Select';
 import Text from '../../theme/design-system/Text';
 import TextareaAutosize from 'react-textarea-autosize';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 

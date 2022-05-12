@@ -22,7 +22,7 @@ import ReactDOM from 'react-dom';
 import {BrowserRouter} from 'react-router-dom';
 
 import {} from './common/axiosConfig';
-import nullthrows from '../fbc_js_core/util/nullthrows';
+import nullthrows from '../shared/util/nullthrows';
 
 ReactDOM.render(
   <BrowserRouter>

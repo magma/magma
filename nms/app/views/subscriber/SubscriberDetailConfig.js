@@ -29,7 +29,7 @@ import Link from '@material-ui/core/Link';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberContext from '../../components/context/SubscriberContext';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {EditSubscriberButton} from './SubscriberEditDialog';
 import {colors, typography} from '../../theme/default';

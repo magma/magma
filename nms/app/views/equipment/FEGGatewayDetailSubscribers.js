@@ -24,7 +24,7 @@ import FEGSubscriberContext from '../../components/context/FEGSubscriberContext'
 import Link from '@material-ui/core/Link';
 import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import React from 'react';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {FetchSubscribers} from '../../state/lte/SubscriberState';
 import {

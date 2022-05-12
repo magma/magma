@@ -34,7 +34,7 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../theme/design-system/Text';
 import WarningIcon from '@material-ui/icons/Warning';
-import nullthrows from '../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 
 import {Alarm} from '@material-ui/icons';

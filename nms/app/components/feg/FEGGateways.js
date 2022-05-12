@@ -35,7 +35,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Text from '../../theme/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
 import {HEALTHY_STATUS} from '../GatewayUtils';

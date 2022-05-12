@@ -30,7 +30,7 @@ import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import React, {useContext, useEffect, useState} from 'react';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
 import {GatewayTypeEnum, HEALTHY_STATUS} from '../../components/GatewayUtils';

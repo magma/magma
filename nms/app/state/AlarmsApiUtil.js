@@ -15,10 +15,10 @@
  */
 
 import MagmaV1API from '../../generated/WebClient';
-import nullthrows from '../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 
-import type {ApiUtil} from '../../fbc_js_core/alarms/components/AlarmsApi';
+import type {ApiUtil} from '../views/alarms/components/AlarmsApi';
 
 export const MagmaAlarmsApiUtil: ApiUtil = {
   useAlarmsApi: <TParams: {...}, TResponse>(

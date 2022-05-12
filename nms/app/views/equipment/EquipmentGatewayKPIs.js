@@ -24,7 +24,7 @@ import GatewayContext from '../../components/context/GatewayContext';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import isGatewayHealthy from '../../components/GatewayUtils';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 
 import {useContext} from 'react';

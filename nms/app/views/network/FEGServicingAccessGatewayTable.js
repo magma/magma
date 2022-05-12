@@ -29,7 +29,7 @@ import Link from '@material-ui/core/Link';
 import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
 import React, {useEffect, useState} from 'react';
 import isGatewayHealthy from '../../components/GatewayUtils';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {FetchGateways} from '../../state/lte/EquipmentState';
 import {GatewayTypeEnum} from '../../components/GatewayUtils';

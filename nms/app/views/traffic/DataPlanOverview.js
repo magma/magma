@@ -24,7 +24,7 @@ import LteNetworkContext from '../../components/context/LteNetworkContext';
 import React from 'react';
 import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
 
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';

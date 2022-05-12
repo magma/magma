@@ -36,7 +36,7 @@ import SubscriberChart from './SubscriberChart';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetailConfig from './SubscriberDetailConfig';
 import TopBar from '../../components/TopBar';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';

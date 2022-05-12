@@ -26,7 +26,7 @@
 
 [untyped]
 // TODO - fix flow error in core packages
-.*/fbc_js_core/ui/insights/Alarms/AlarmApi.js
+.*/view/alarms/legacy/Alarms/AlarmApi.js
 .*/fbc_js_core/platform_server/network/routes.js
 .*/babelRegister.js
 

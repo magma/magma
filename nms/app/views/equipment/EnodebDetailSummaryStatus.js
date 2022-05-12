@@ -20,7 +20,7 @@ import DataGrid from '../../components/DataGrid';
 import EnodebContext from '../../components/context/EnodebContext';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {
   REFRESH_INTERVAL,

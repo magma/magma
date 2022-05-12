@@ -16,7 +16,7 @@
 
 import AddAlertIcon from '@material-ui/icons/AddAlert';
 import AlarmIcon from '@material-ui/icons/Alarm';
-import Alarms from '../../../fbc_js_core/alarms/components/Alarms';
+import Alarms from './components/Alarms';
 import AppContext from '../../../fbc_js_core/ui/context/AppContext';
 import Button from '@material-ui/core/Button';
 import ContactMailIcon from '@material-ui/icons/ContactMail';
@@ -24,7 +24,7 @@ import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 import {MagmaAlarmsApiUtil} from '../../state/AlarmsApiUtil';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';

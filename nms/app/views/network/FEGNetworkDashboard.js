@@ -23,7 +23,7 @@ import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
 import React from 'react';
 import TopBar from '../../components/TopBar';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {
   Navigate,
