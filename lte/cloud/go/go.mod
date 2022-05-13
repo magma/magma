@@ -35,7 +35,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.6
 	github.com/google/uuid v1.1.2
-	github.com/hashicorp/go-multierror v1.1.0
+	github.com/hashicorp/go-multierror v1.1.1
 	github.com/influxdata/tdigest v0.0.1
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/lib/pq v1.2.0
