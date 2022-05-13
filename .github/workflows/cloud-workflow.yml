@@ -74,7 +74,7 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
           python3 build.py --coverage
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v2
         if: always() && steps.cloud-lint-cov.outcome=='success'
         id: cloud-lint-codecov
         with:
