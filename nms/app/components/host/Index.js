@@ -30,7 +30,7 @@ import ShowChartIcon from '@material-ui/icons/ShowChart';
 import UsersSettings from '../admin/userManagement/UsersSettings';
 import {AppContextProvider} from '../../../app/components/context/AppContext';
 import {Navigate, Outlet, Route, Routes} from 'react-router-dom';
-import {getProjectTabs as getAllProjectTabs} from '../../../fbc_js_core/projects/projects';
+import {getProjectTabs as getAllProjectTabs} from '../../../shared/projects/projects';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
