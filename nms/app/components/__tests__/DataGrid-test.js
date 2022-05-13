@@ -20,10 +20,8 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../theme/default';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, render} from '@testing-library/react';
+import {render} from '@testing-library/react';
 import type {DataRows} from '../DataGrid';
-
-afterEach(cleanup);
 
 const data: DataRows[] = [
   [

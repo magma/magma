@@ -23,7 +23,7 @@ import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, wait} from '@testing-library/react';
 import type {
   lte_gateway,
   promql_return_object,
@@ -35,8 +35,6 @@ jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest
   .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
-afterEach(cleanup);
-
 const mockCheckinMetric: promql_return_object = {
   status: 'success',
   data: {

@@ -23,13 +23,11 @@ import React from 'react';
 import defaultTheme from '../../../theme/default.js';
 
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, render} from '@testing-library/react';
+import {render} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../../app/hooks/useSnackbar');
-
-afterEach(cleanup);
 
 const mockGatewaySt: lte_gateway = {
   cellular: {

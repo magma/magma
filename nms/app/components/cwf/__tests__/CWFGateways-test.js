@@ -28,7 +28,7 @@ import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 
 const CWF_HA_GATEWAY_1: cwf_gateway = {
   magmad: {
@@ -124,8 +124,6 @@ const Wrapper = () => (
     </MuiThemeProvider>
   </MemoryRouter>
 );
-
-afterEach(cleanup);
 
 describe('<CWFGateways />', () => {
   beforeEach(() => {

@@ -22,9 +22,8 @@ import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {TroubleshootingControl} from '../GatewayCommandFields';
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 
-afterEach(cleanup);
 jest.mock('../../../generated/MagmaAPIBindings');
 jest.mock('../../../app/hooks/useSnackbar');
 

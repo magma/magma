@@ -25,7 +25,7 @@ import moment from 'moment';
 import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 import type {
   csfb,
   federation_gateway,
@@ -45,8 +45,6 @@ jest
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings');
 jest.mock('../../../../app/hooks/useSnackbar');
-afterEach(cleanup);
-
 const mockGx: gx = {
   server: {
     address: '174.16.1.14:3868',

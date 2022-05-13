@@ -31,13 +31,11 @@ import defaultTheme from '../../../theme/default';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../../app/hooks/useSnackbar');
-afterEach(cleanup);
-
 const mockSubscriberIds: Array<subscriber_id> = [
   'IMSI001011234565000',
   'IMSI001011234565001',

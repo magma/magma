@@ -26,14 +26,12 @@ import axiosMock from 'axios';
 import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 import type {
   enodeb_state,
   feg_lte_network,
   lte_gateway,
 } from '../../../generated/MagmaAPIBindings';
-
-afterEach(cleanup);
 
 const mockFegLteNetworks: Array<string> = [
   'test_network1',

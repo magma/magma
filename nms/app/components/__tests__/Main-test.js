@@ -20,7 +20,7 @@ import Main from '../Main';
 import React from 'react';
 import {AppContextProvider} from '../../../app/components/context/AppContext';
 import {MemoryRouter} from 'react-router-dom';
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 
 jest.mock('../../../generated/MagmaAPIBindings');
 
@@ -39,8 +39,6 @@ const Wrapper = props => (
     <AppContextProvider>{props.children}</AppContextProvider>
   </MemoryRouter>
 );
-
-afterEach(cleanup);
 
 describe.each`
   path                | text                     | networks

@@ -24,7 +24,7 @@ import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SetGatewayState} from '../../../state/feg/EquipmentState';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, wait} from '@testing-library/react';
 import {useEnqueueSnackbar} from '../../../../app/hooks/useSnackbar';
 import {useState} from 'react';
 import type {
@@ -39,8 +39,6 @@ import type {
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../../app/hooks/useSnackbar');
-afterEach(cleanup);
-
 const mockGx: gx = {
   server: {
     address: '174.16.1.14:3868',

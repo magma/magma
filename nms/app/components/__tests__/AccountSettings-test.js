@@ -22,7 +22,7 @@ import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {fireEvent, render} from '@testing-library/react';
 
 const Wrapper = (props: {children: React.Node}) => (
   <MemoryRouter initialEntries={['/nms/mynetwork/settings']} initialIndex={0}>
@@ -40,8 +40,6 @@ const Wrapper = (props: {children: React.Node}) => (
     </MuiThemeProvider>
   </MemoryRouter>
 );
-
-afterEach(cleanup);
 
 describe('<AccountSettings />', () => {
   it('Save button is disabled if form is not filled-out', () => {
