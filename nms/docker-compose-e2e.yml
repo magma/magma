@@ -42,10 +42,13 @@ services:
       dockerfile: Dockerfile
     command: "/usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 -- yarn run start:dev"
     volumes:
+      - ./api:/usr/src/api
       - ./app:/usr/src/app
-      - ./fbc_js_core:/usr/src/fbc_js_core
+      - ./generated:/usr/src/generated
       - ./scripts:/usr/src/scripts
       - ./server:/usr/src/server
+      - ./shared:/usr/src/shared
+      - ./views:/usr/src/views
     depends_on:
       - postgres
     networks:
