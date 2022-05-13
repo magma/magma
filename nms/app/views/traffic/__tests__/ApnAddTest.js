@@ -20,7 +20,7 @@ import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
-import {LTE} from '../../../../fbc_js_core/types/network';
+import {LTE} from '../../../../shared/types/network';
 
 import {
   ApnProvider,

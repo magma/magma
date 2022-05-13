@@ -53,7 +53,7 @@ import type {
 } from '../../../generated/MagmaAPIBindings';
 import type {gatewayPoolsStateType} from '../context/GatewayPoolsContext';
 
-import {FEG_LTE, LTE} from '../../../fbc_js_core/types/network';
+import {FEG_LTE, LTE} from '../../../shared/types/network';
 import {
   InitEnodeState,
   InitGatewayPoolState,

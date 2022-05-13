@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {NetworkType} from '../../../fbc_js_core/types/network';
+import type {NetworkType} from '../../../shared/types/network';
 import type {
   policy_qos_profile,
   policy_rule,
@@ -40,9 +40,9 @@ import Typography from '@material-ui/core/Typography';
 
 import nullthrows from '../../../shared/util/nullthrows';
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
-import {CWF, FEG, LTE} from '../../../fbc_js_core/types/network';
+import {CWF, FEG, LTE} from '../../../shared/types/network';
 import {base64ToHex, decodeBase64} from '../../util/strings';
-import {coalesceNetworkType} from '../../../fbc_js_core/types/network';
+import {coalesceNetworkType} from '../../../shared/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';

@@ -32,8 +32,8 @@ import React from 'react';
 import axios from 'axios';
 
 import {AltFormField} from '../../components/FormField';
-import {FEG_LTE} from '../../../fbc_js_core/types/network';
-import {LTE} from '../../../fbc_js_core/types/network';
+import {FEG_LTE} from '../../../shared/types/network';
+import {LTE} from '../../../shared/types/network';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 

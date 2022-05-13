@@ -22,11 +22,11 @@ import NetworkContext from './context/NetworkContext';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
 import Text from '../theme/design-system/Text';
 import useMagmaAPI from '../../api/useMagmaAPI';
-import {LTE, coalesceNetworkType} from '../../fbc_js_core/types/network';
+import {LTE, coalesceNetworkType} from '../../shared/types/network';
 import {NetworkEditDialog} from '../views/network/NetworkEdit';
 import {makeStyles} from '@material-ui/styles';
 import {useNavigate} from 'react-router-dom';
-import type {NetworkType} from '../../fbc_js_core/types/network';
+import type {NetworkType} from '../../shared/types/network';
 
 const useStyles = makeStyles(_ => ({
   button: {

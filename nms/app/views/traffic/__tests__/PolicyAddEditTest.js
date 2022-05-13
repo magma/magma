@@ -21,7 +21,7 @@ import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
 
-import {FEG_LTE, LTE} from '../../../../fbc_js_core/types/network';
+import {FEG_LTE, LTE} from '../../../../shared/types/network';
 import {
   LteNetworkContextProvider,
   PolicyProvider,

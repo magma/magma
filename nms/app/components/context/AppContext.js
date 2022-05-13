@@ -16,9 +16,9 @@
 'use strict';
 
 import type {EmbeddedData, User} from '../../../shared/types/embeddedData';
-import type {FeatureID} from '../../../fbc_js_core/types/features';
-import type {SSOSelectedType} from '../../../fbc_js_core/types/auth';
-import type {Tab} from '../../../fbc_js_core/types/tabs';
+import type {FeatureID} from '../../../shared/types/features';
+import type {SSOSelectedType} from '../../../shared/types/auth';
+import type {Tab} from '../../../shared/types/tabs';
 
 import * as React from 'react';
 import {noop} from 'lodash';
