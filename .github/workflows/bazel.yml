@@ -80,6 +80,34 @@ jobs:
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
             echo "Pulled the bazel base image!"
+      - name: Setup bazel config of read and write
+        uses: addnab/docker-run-action@v3
+        if: |
+          (github.repository == 'lkreutzer/magma' && github.ref == 'refs/heads/bazel_workflow_remote_caching')
+        with:
+          image: ${{ env.BAZEL_BASE_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/magma/
+          run: |
+            cd /magma
+            sed --in-place -e s@~~MAGMA_REMOTE_USER~~@${{ secrets.MAGMA_REMOTE_USER }}@ .bazelrc
+            sed --in-place -e s@~~MAGMA_REMOTE~~@${{ secrets.MAGMA_REMOTE }}@ .bazelrc
+            sed --in-place -e s@~~CACHE_KEY~~@${{ env.CACHE_KEY }}@ .bazelrc
+            cat .bazelrc
+            ln -fs bazel/bazelrcs/remote_caching_rw.bazelrc /etc/bazelrc
+      - name: Setup bazel config for read-only
+        uses: addnab/docker-run-action@v3
+        if: |
+          (github.repository != 'lkreutzer/magma' || github.ref != 'refs/heads/bazel_workflow_remote_caching')
+        with:
+          image: ${{ env.BAZEL_BASE_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/magma/
+          run: |
+            cd /magma
+            sed --in-place -e s@~~CACHE_KEY~~@${{ env.CACHE_KEY }}@ .bazelrc
+            cat .bazelrc
+            ln -fs bazel/bazelrcs/remote_caching_ro.bazelrc /etc/bazelrc
       - name: Run `bazel build //...`
         uses: addnab/docker-run-action@v3
         with:
@@ -88,9 +116,7 @@ jobs:
           options: -v ${{ github.workspace }}:/magma/
           run: |
             cd /magma
-            bazel build //... \
-              --remote_cache="https://${{ secrets.MAGMA_REMOTE_USER }}:${{ secrets.MAGMA_REMOTE }}@bazel-remote-cache.magmacore-ci.org:9090/${{ env.CACHE_KEY }}" \
-              --remote_download_toplevel
+            bazel build //...
       - name: Build space left after run
         shell: bash
         run: |
@@ -129,6 +155,34 @@ jobs:
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
             echo "Pulled the bazel base image!"
+      - name: Setup bazel config of read and write
+        uses: addnab/docker-run-action@v3
+        if: |
+          (github.repository == 'lkreutzer/magma' && github.ref == 'refs/heads/bazel_workflow_remote_caching')
+        with:
+          image: ${{ env.BAZEL_BASE_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/magma/
+          run: |
+            cd /magma
+            sed --in-place -e s@~~MAGMA_REMOTE_USER~~@${{ secrets.MAGMA_REMOTE_USER }}@ .bazelrc
+            sed --in-place -e s@~~MAGMA_REMOTE~~@${{ secrets.MAGMA_REMOTE }}@ .bazelrc
+            sed --in-place -e s@~~CACHE_KEY~~@${{ env.CACHE_KEY }}@ .bazelrc
+            cat .bazelrc
+            ln -fs bazel/bazelrcs/remote_caching_rw.bazelrc /etc/bazelrc
+      - name: Setup bazel config for read-only
+        uses: addnab/docker-run-action@v3
+        if: |
+          (github.repository != 'lkreutzer/magma' || github.ref != 'refs/heads/bazel_workflow_remote_caching')
+        with:
+          image: ${{ env.BAZEL_BASE_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/magma/
+          run: |
+            cd /magma
+            sed --in-place -e s@~~CACHE_KEY~~@${{ env.CACHE_KEY }}@ .bazelrc
+            cat .bazelrc
+            ln -fs bazel/bazelrcs/remote_caching_ro.bazelrc /etc/bazelrc
       - name: Run `bazel test //...`
         uses: addnab/docker-run-action@v3
         with:
@@ -138,8 +192,6 @@ jobs:
           run: |
             cd /magma
             bazel test //... \
-              --remote_cache="https://${{ secrets.MAGMA_REMOTE_USER }}:${{ secrets.MAGMA_REMOTE }}@bazel-remote-cache.magmacore-ci.org:9090/${{ env.CACHE_KEY }}" \
-              --remote_download_toplevel \
               --cache_test_results=no \
               --test_output=errors
       - name: Run `bazel run //:check_starlark_format`

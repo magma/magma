@@ -32,6 +32,15 @@ build:devcontainer --disk_cache=/workspaces/magma/.bazel-cache
 common:devcontainer --repository_cache=/workspaces/magma/.bazel-cache-repo
 build:devcontainer --define=folly_so=1
 
+# REMOTE CACHING READ AND WRITE CONFIGS
+common:remote_caching_rw --remote_cache="https://~~MAGMA_REMOTE_USER~~:~~MAGMA_REMOTE~~@bazel-remote-cache.magmacore-ci.org:9090/~~CACHE_KEY~~"
+common:remote_caching_rw --remote_download_toplevel
+
+# REMOTE CACHING READ-ONLY CONFIGS
+common:remote_caching_ro --remote_cache="https://bazel-remote-cache.magmacore-ci.org:9090/~~CACHE_KEY~~"
+common:remote_caching_ro --remote_download_toplevel
+common:remote_caching_ro --remote_upload_local_results=false 
+
 # TEST CONFIGS
 # Bazel test runtime default: PATH=/bin:/usr/bin:/usr/local/bin
 # Some python tests require access to /usr/sbin binaries (e.g. route, ifconfig)
