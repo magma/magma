@@ -6,11 +6,12 @@ on:  # yamllint disable-line rule:truthy
   pull_request_target:
     types: [opened, reopened, synchronize]
     paths:
-      - 'ci-scripts/**'
       - '.github/**'
+      - 'ci-scripts/**'
       - 'cn/**'
       - 'cwf/**'
       - 'docs/**'
+      - 'dp/**'
       - 'example/**'
       - 'experimental/**'
       - 'feg/**'
@@ -103,6 +104,10 @@ jobs:
               case /^docs\/.*/.test(f.filename):
                 console.log("file changed under DOCS: " + f['filename']);
                 newCompLbls.add("component: docs");
+                break;
+              case /^dp\/.*/.test(f.filename):
+                console.log("file changed under DP component: " + f['filename']);
+                newCompLbls.add("component: dp");
                 break;
              } // end of switch case
             } // end of for loop
