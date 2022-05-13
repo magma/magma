@@ -21,7 +21,7 @@ import type {FBCNMSRequest} from '../auth/access';
 import MagmaV1API from '../magma/index';
 import adminRoutes from '../admin/routes';
 import apiControllerRoutes from '../apicontroller/routes';
-import asyncHandler from '../../fbc_js_core/util/asyncHandler';
+import asyncHandler from '../util/asyncHandler';
 import express from 'express';
 import hostRoutes from '../host/routes';
 import loggerRoutes from '../logger/routes';

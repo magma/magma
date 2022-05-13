@@ -19,7 +19,7 @@ import type {FBCNMSRequest} from '../auth/access';
 import type {FeatureID} from '../../fbc_js_core/types/features';
 
 import Sequelize from 'sequelize';
-import asyncHandler from '../../fbc_js_core/util/asyncHandler';
+import asyncHandler from '../util/asyncHandler';
 import crypto from 'crypto';
 import express from 'express';
 import featureConfigs from '../features';

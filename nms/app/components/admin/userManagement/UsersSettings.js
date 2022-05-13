@@ -35,7 +35,7 @@ import Text from '../../../theme/design-system/Text';
 import axios from 'axios';
 import {UserRoles} from '../../../../shared/types';
 
-import renderList from '../../../../fbc_js_core/util/renderList';
+import renderList from '../../../util/renderList';
 import withAlert from '../../Alert/withAlert';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios} from '../../../../app/hooks';

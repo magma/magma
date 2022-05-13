@@ -16,6 +16,7 @@
 
 import type {Middleware} from 'express';
 
+// $FlowIgnore[value-as-type]
 export default function asyncHandler(fn: Middleware): Middleware {
   return (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 }

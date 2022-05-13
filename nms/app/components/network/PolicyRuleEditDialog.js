@@ -41,7 +41,7 @@ import Typography from '@material-ui/core/Typography';
 import nullthrows from '../../../shared/util/nullthrows';
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
 import {CWF, FEG, LTE} from '../../../fbc_js_core/types/network';
-import {base64ToHex, decodeBase64} from '../../../fbc_js_core/util/strings';
+import {base64ToHex, decodeBase64} from '../../util/strings';
 import {coalesceNetworkType} from '../../../fbc_js_core/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
