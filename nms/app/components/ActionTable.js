@@ -106,11 +106,18 @@ type ActionTableColumn = {
 };
 
 type ActionTableOptions = {
+  // Order of actions column
   actionsColumnIndex: number,
+  // Number of rows that would be rendered on every page
   pageSize?: number,
+  // Page size options that could be selected by user
   pageSizeOptions: Array<number>,
+  // Css style to be applied rows
   rowStyle?: {},
+  // Header cell style for all headers
   headerStyle?: {},
+  // Flag for showing toolbar
+  toolbar?: boolean,
 };
 
 type ActionOrderType = {
@@ -139,6 +146,7 @@ export type ActionTableProps<T> = {
   tableRef?: {},
   toolbar?: {},
   editable?: {},
+  // Change/translate default texts of datatable (Eg: toolbar placeholder)
   localization?: {},
   title?: string,
   handleCurrRow?: T => void,
