@@ -24,8 +24,8 @@ import crypto from 'crypto';
 import express from 'express';
 import featureConfigs from '../features';
 import logging from '../../shared/logging';
-import {FeatureFlag, Organization} from '../../fbc_js_core/sequelize_models';
-import {User} from '../../fbc_js_core/sequelize_models';
+import {FeatureFlag, Organization} from '../../shared/sequelize_models';
+import {User} from '../../shared/sequelize_models';
 import {getPropsToUpdate} from '../auth/util';
 
 const logger = logging.getLogger(module);

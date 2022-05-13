@@ -20,7 +20,7 @@ import type {FBCNMSRequest} from '../auth/access';
 import asyncHandler from '../util/asyncHandler';
 import express from 'express';
 
-import {AuditLogEntry, User} from '../../fbc_js_core/sequelize_models';
+import {AuditLogEntry, User} from '../../shared/sequelize_models';
 
 const MAX_AUDITLOG_ROWS = 5000;
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();

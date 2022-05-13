@@ -16,12 +16,9 @@
 
 import Sequelize from 'sequelize';
 
-import {
-  Organization,
-  jsonArrayContains,
-} from '../../fbc_js_core/sequelize_models';
+import {Organization, jsonArrayContains} from '../../shared/sequelize_models';
 import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
-import type {OrganizationType} from '../../fbc_js_core/sequelize_models/models/organization';
+import type {OrganizationType} from '../../shared/sequelize_models/models/organization';
 
 async function getOrganizationFromHost(
   host: string,

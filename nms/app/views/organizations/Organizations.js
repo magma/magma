@@ -14,8 +14,8 @@
  * @format
  */
 
-import type {OrganizationPlainAttributes} from '../../../fbc_js_core/sequelize_models/models/organization';
-import type {UserType} from '../../../fbc_js_core/sequelize_models/models/user.js';
+import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
+import type {UserType} from '../../../shared/sequelize_models/models/user.js';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 import ActionTable from '../../components/ActionTable';
