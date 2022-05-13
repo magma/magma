@@ -21,6 +21,7 @@ jobs:
     outputs:
       changed_cpp: ${{ steps.changes.outputs.cpp }}
       changed_go: ${{ steps.changes.outputs.go }}
+      changed_javascript: ${{ steps.changes.outputs.javascript }}
       changed_python: ${{ steps.changes.outputs.python }}
       changed_terraform: ${{ steps.changes.outputs.terraform }}
     steps:
@@ -35,6 +36,8 @@ jobs:
               - ["lte/gateway/c/**", "orc8r/gateway/c/**"]
             go:
               - ["src/go/**"]
+            javascript:
+              - ["nms/**", "**/*.js"]
             python:
               - ["lte/gateway/python/**", "orc8r/gateway/python/**"]
             terraform:
@@ -112,6 +115,26 @@ jobs:
           reporter: github-pr-review
           # Ignore DL3005-"Do not use apt-get upgrade or dist-upgrade"
           hadolint_ignore: DL3005
+
+  eslint:
+    needs: files_changed
+    if: ${{ needs.files_changed.outputs.changed_javascript == 'true' }}
+    name: eslint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code.
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      - name: eslint
+        uses: reviewdog/action-eslint@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          filter_mode: added
+          reporter: github-pr-review
+          workdir: 'nms/'
 
   misspell:
     name: misspell
