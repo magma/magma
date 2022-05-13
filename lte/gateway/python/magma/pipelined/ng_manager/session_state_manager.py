@@ -29,14 +29,11 @@ from magma.pipelined.ng_manager.session_state_manager_util import (
 )
 from magma.pipelined.set_interface_client import send_periodic_session_update
 
+
 # Help to build failure report
-MsgParseOutput = NamedTuple(
-    'MsgParseOutput',
-    [
-        ('offending_ie', OffendingIE),
-        ('cause_info', int),
-    ],
-)
+class MsgParseOutput(NamedTuple):
+    offending_ie: OffendingIE
+    cause_info: int
 
 
 class SessionMessageType(Enum):

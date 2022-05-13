@@ -41,33 +41,26 @@ from magma.subscriberdb.metrics import (
 from magma.subscriberdb.store.sqlite import SqliteStore
 from orc8r.protos.digest_pb2 import Changeset, Digest, LeafDigest
 
-CloudSubscribersInfo = NamedTuple(
-    'CloudSubscribersInfo', [
-        ('subscribers', List[SubscriberData]),
-        ('root_digest', Optional[Digest]),
-        ('leaf_digests', Optional[List[LeafDigest]]),
-    ],
-)
-ProcessedChangeset = NamedTuple(
-    'ProcessedChangeset', [
-        ('to_renew', List[SubscriberData]),
-        ('deleted', List[str]),
-    ],
-)
 
-CloudSuciProfilesInfo = NamedTuple(
-    'CloudSuciProfilesInfo', [
-        ('suci_profiles', List[SuciProfile]),
-    ],
-)
+class CloudSubscribersInfo(NamedTuple):
+    subscribers: List[SubscriberData]
+    root_digest: Optional[Digest]
+    leaf_digests: Optional[List[LeafDigest]]
 
-suci_profile_data = NamedTuple(
-    'suci_profile_data', [
-        ('protection_scheme', int),
-        ('home_network_public_key', bytes),
-        ('home_network_private_key', bytes),
-    ],
-)
+
+class ProcessedChangeset(NamedTuple):
+    to_renew: List[SubscriberData]
+    deleted: List[str]
+
+
+class CloudSuciProfilesInfo(NamedTuple):
+    suci_profiles: List[SuciProfile]
+
+
+class suci_profile_data(NamedTuple):
+    protection_scheme: int
+    home_network_public_key: bytes
+    home_network_private_key: bytes
 
 
 class SubscriberDBCloudClient(SDWatchdogTask):

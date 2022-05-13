@@ -37,81 +37,78 @@ from magma.magmad.check.machine_check.cpu_info import get_cpu_info
 from magma.magmad.check.network_check.routing_table import get_routing_table
 from magma.magmad.service_poller import ServicePoller
 
-GatewayStatus = NamedTuple(
-    'GatewayStatus',
-    [
-        ('machine_info', Dict[str, Any]), ('meta', Dict[str, str]),
-        ('platform_info', Dict[str, Any]), ('system_status', Dict[str, Any]),
-    ],
-)
 
-SystemStatus = NamedTuple(
-    'SystemStatus',
-    [
-        ('time', int), ('uptime_secs', int), ('cpu_user', int),
-        ('cpu_system', int), ('cpu_idle', int), ('mem_total', int),
-        ('mem_available', int), ('mem_used', int), ('mem_free', int),
-        ('swap_total', int), ('swap_used', int), ('swap_free', int),
-        ('disk_partitions', List[Dict[str, Any]]),
-    ],
-)
+class GatewayStatus(NamedTuple):
+    machine_info: Dict[str, Any]
+    meta: Dict[str, str]
+    platform_info: Dict[str, Any]
+    system_status: Dict[str, Any]
 
-PlatformInfo = NamedTuple(
-    'PlatformInfo',
-    [
-        ('vpn_ip', str), ('packages', List[Dict[str, Any]]),
-        ('kernel_version', str), ('kernel_versions_installed', List[str]),
-        ('config_info', Dict[str, Any]),
-    ],
-)
 
-MachineInfo = NamedTuple(
-    'MachineInfo',
-    [('cpu_info', Dict[str, Any]), ('network_info', Dict[str, Any])],
-)
+class SystemStatus(NamedTuple):
+    time: int
+    uptime_secs: int
+    cpu_user: int
+    cpu_system: int
+    cpu_idle: int
+    mem_total: int
+    mem_available: int
+    mem_used: int
+    mem_free: int
+    swap_total: int
+    swap_used: int
+    swap_free: int
+    disk_partitions: List[Dict[str, Any]]
 
-NetworkInfo = NamedTuple(
-    'NetworkInfo',
-    [
-        ('network_interfaces', List[Dict[str, Any]]),
-        ('routing_table', List[Dict[str, Any]]),
-    ],
-)
 
-DiskPartition = NamedTuple(
-    'DiskPartition',
-    [
-        ('device', str), ('mount_point', str), ('total', int), ('used', int),
-        ('free', int),
-    ],
-)
+class PlatformInfo(NamedTuple):
+    vpn_ip: str
+    packages: List[Dict[str, Any]]
+    kernel_version: str
+    kernel_versions_installed: List[str]
+    config_info: Dict[str, Any]
 
-ConfigInfo = NamedTuple(
-    'ConfigInfo',
-    [('mconfig_created_at', int)],
-)
 
-Package = NamedTuple(
-    'Package',
-    [('name', str), ('version', str)],
-)
+class MachineInfo(NamedTuple):
+    cpu_info: Dict[str, Any]
+    network_info: Dict[str, Any]
 
-CPUInfo = NamedTuple(
-    'CPUInfo',
-    [
-        ('core_count', int), ('threads_per_core', int), ('architecture', str),
-        ('model_name', str),
-    ],
-)
 
-NetworkInterface = NamedTuple(
-    'NetworkInterface',
-    [
-        ('network_interface_id', str), ('mac_address', str),
-        ('ip_addresses', List[str]), ('status', str),
-        ('ipv6_addresses', List[str]),
-    ],
-)
+class NetworkInfo(NamedTuple):
+    network_interfaces: List[Dict[str, Any]]
+    routing_table: List[Dict[str, Any]]
+
+
+class DiskPartition(NamedTuple):
+    device: str
+    mount_point: str
+    total: int
+    used: int
+    free: int
+
+
+class ConfigInfo(NamedTuple):
+    mconfig_created_at: int
+
+
+class Package(NamedTuple):
+    name: str
+    version: str
+
+
+class CPUInfo(NamedTuple):
+    core_count: int
+    threads_per_core: int
+    architecture: str
+    model_name: str
+
+
+class NetworkInterface(NamedTuple):
+    network_interface_id: str
+    mac_address: str
+    ip_addresses: List[str]
+    status: str
+    ipv6_addresses: List[str]
 
 
 class KernelVersionsPoller(Job):
