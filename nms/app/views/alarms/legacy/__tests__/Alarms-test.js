@@ -14,7 +14,6 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import Alarms from '../Alarms';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';

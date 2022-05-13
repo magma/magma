@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
 import ApnContext from '../../../components/context/ApnContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';

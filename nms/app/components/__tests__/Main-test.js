@@ -14,7 +14,6 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import Main from '../Main';
 import React from 'react';

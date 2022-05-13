@@ -19,8 +19,6 @@ import type {
   lte_network,
 } from '../../../../generated/MagmaAPIBindings';
 
-import 'jest-dom/extend-expect';
-
 import AddEditGatewayButton from '../GatewayDetailConfigEdit';
 import ApnContext from '../../../components/context/ApnContext';
 import GatewayConfig from '../GatewayDetailConfig';

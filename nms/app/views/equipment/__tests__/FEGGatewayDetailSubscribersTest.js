@@ -20,7 +20,6 @@ import type {
   subscriber_state,
 } from '../../../../generated/MagmaAPIBindings';
 
-import 'jest-dom/extend-expect';
 import FEGGatewayDetailSubscribers from '../FEGGatewayDetailSubscribers';
 import FEGSubscriberContext from '../../../components/context/FEGSubscriberContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';

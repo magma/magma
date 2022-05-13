@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
 import * as hooks from '../../../components/context/RefreshContext';
 
 import ApnContext from '../../../components/context/ApnContext';

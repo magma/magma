@@ -14,7 +14,6 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import FEGGatewayConnectionStatus from '../FEGGatewayConnectionStatus';
 import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';

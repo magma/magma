@@ -15,7 +15,6 @@
  */
 import type {promql_return_object} from '../../../../generated/MagmaAPIBindings';
 
-import 'jest-dom/extend-expect';
 import Enodeb from '../EquipmentEnodeb';
 import EnodebContext from '../../../components/context/EnodebContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';

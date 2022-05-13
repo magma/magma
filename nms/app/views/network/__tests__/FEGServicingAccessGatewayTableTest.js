@@ -14,7 +14,6 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import FEGNetworkContext from '../../../components/context/FEGNetworkContext';
 import FEGServicingAccessGatewaysTable from '../FEGServicingAccessGatewayTable';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';

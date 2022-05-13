@@ -23,7 +23,6 @@ import {SnackbarProvider} from 'notistack';
 import type {cwf_gateway} from '../../../../generated/MagmaAPIBindings';
 import type {cwf_ha_pair} from '../../../../generated/MagmaAPIBindings';
 
-import 'jest-dom/extend-expect';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';

@@ -15,7 +15,6 @@
  */
 import type {lte_gateway} from '../../../../generated/MagmaAPIBindings';
 
-import 'jest-dom/extend-expect';
 import AddEditGatewayPoolButton from '../GatewayPoolEdit';
 import GatewayContext from '../../../components/context/GatewayContext';
 import GatewayPools from '../EquipmentGatewayPools';

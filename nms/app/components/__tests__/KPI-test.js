@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
 import EnodebContext from '../context/EnodebContext';
 import EnodebKPIs from '../EnodebKPIs';
 import GatewayContext from '../context/GatewayContext';
