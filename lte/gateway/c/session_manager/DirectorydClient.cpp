@@ -12,6 +12,7 @@
  */
 
 #include "lte/gateway/c/session_manager/DirectorydClient.hpp"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
 
 #include <grpcpp/channel.h>
 #include <orc8r/protos/common.pb.h>
@@ -44,6 +45,7 @@ void AsyncDirectorydClient::update_directoryd_record(
     std::function<void(Status status, Void)> callback) {
   auto local_response =
       new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_response->set_response_reader(stub_->AsyncUpdateRecord(
       local_response->get_context(), request, &queue_));
 }
@@ -53,6 +55,7 @@ void AsyncDirectorydClient::delete_directoryd_record(
     std::function<void(Status status, Void)> callback) {
   auto local_response =
       new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_response->set_response_reader(stub_->AsyncDeleteRecord(
       local_response->get_context(), request, &queue_));
 }
