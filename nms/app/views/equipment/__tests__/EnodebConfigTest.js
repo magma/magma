@@ -26,13 +26,13 @@ import defaultTheme from '../../../theme/default.js';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SetEnodebState} from '../../../state/lte/EquipmentState';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, wait} from '@testing-library/react';
 import {useState} from 'react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../../app/hooks/useSnackbar');
-afterEach(cleanup);
+
 const enqueueSnackbarMock = jest.fn();
 jest
   .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')

@@ -31,13 +31,11 @@ import {
   SetQosProfileState,
   SetRatingGroupState,
 } from '../../../state/PolicyState';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../../app/hooks/useSnackbar');
-afterEach(cleanup);
-
 const apns = {
   apn_0: {
     apn_configuration: {

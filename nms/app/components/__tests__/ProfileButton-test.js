@@ -24,7 +24,7 @@ import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 // $FlowFixMe[missing-export]
-import {cleanup, fireEvent, render, waitFor} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 
 type Props = {
   expanded: boolean,
@@ -52,8 +52,6 @@ const WrappedProfileButton = (props: Props) => {
     </MemoryRouter>
   );
 };
-
-afterEach(cleanup);
 
 describe('<ProfileButton />', () => {
   it.each([true, false])('respects expanded=%s', expanded => {

@@ -25,7 +25,7 @@ import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 import type {
   federation_gateway,
   promql_return_object,
@@ -34,7 +34,6 @@ import type {
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../../app/hooks/useSnackbar');
-afterEach(cleanup);
 
 const mockCheckinTime = new Date();
 

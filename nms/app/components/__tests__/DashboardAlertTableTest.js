@@ -22,13 +22,11 @@ import axiosMock from 'axios';
 import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, wait} from '@testing-library/react';
 import type {
   gettable_alert,
   prom_firing_alert,
 } from '../../../generated/MagmaAPIBindings';
-
-afterEach(cleanup);
 
 const tbl_alert: gettable_alert = {
   name: 'null_receiver',

@@ -31,7 +31,7 @@ import {
   SetGatewayPoolsState,
   UpdateGatewayPoolRecords,
 } from '../../../state/lte/EquipmentState';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, wait} from '@testing-library/react';
 import {useState} from 'react';
 
 jest.mock('axios');
@@ -41,8 +41,6 @@ const enqueueSnackbarMock = jest.fn();
 jest
   .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
-
-afterEach(cleanup);
 
 const gwPoolStateMock = {
   pool1: {

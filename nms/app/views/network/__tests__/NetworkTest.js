@@ -34,14 +34,13 @@ import {CoreNetworkTypes} from '../../subscriber/SubscriberUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {UpdateNetworkState} from '../../../state/lte/NetworkState';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, wait} from '@testing-library/react';
 
 import type {feg_network} from '../../../../generated/MagmaAPIBindings';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../../app/hooks/useSnackbar');
-afterEach(cleanup);
 const enqueueSnackbarMock = jest.fn();
 const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
   key => CoreNetworkTypes[key],

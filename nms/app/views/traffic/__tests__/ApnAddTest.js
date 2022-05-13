@@ -28,7 +28,7 @@ import {
 } from '../../../components/lte/LteContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
@@ -36,8 +36,6 @@ const enqueueSnackbarMock = jest.fn();
 jest
   .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
-afterEach(cleanup);
-
 const apns = {
   apn_0: {
     apn_configuration: {
