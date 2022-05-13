@@ -16,6 +16,8 @@ on:  # yamllint disable-line rule:truthy
     # Run four times a day to build bazel cache
     - cron: '0 0,6,12,18 * * *'
 env:
+  IS_MAGMA_MASTER: ( ${{ github.repository }} == 'lkreutzer/magma' && ${{ github.ref }} == 'refs/heads/bazel_workflow_remote_caching')
+
   BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
   # In case of poisoned caches the CACHE_KEY can be changed.
   CACHE_KEY: bazel-workflow
@@ -90,11 +92,13 @@ jobs:
           options: -v ${{ github.workspace }}:/magma/
           run: |
             cd /magma
-            sed --in-place -e s@~~MAGMA_REMOTE_USER~~@${{ secrets.MAGMA_REMOTE_USER }}@ .bazelrc
-            sed --in-place -e s@~~MAGMA_REMOTE~~@${{ secrets.MAGMA_REMOTE }}@ .bazelrc
-            sed --in-place -e s@~~CACHE_KEY~~@${{ env.CACHE_KEY }}@ .bazelrc
-            cat .bazelrc
-            ln -fs bazel/bazelrcs/remote_caching_rw.bazelrc /etc/bazelrc
+            echo "This is boolean? ${{ IS_MAGMA_MASTER }}"
+            if [[ ${{ IS_MAGMA_MASTER }} ]]
+            then
+              echo "this works!"
+            else
+              echo "it doesn't work!"
+            fi
       - name: Setup bazel config for read-only
         uses: addnab/docker-run-action@v3
         if: |
