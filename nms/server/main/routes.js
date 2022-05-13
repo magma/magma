@@ -27,7 +27,7 @@ import hostRoutes from '../host/routes';
 import loggerRoutes from '../logger/routes';
 import networkRoutes from '../network/routes';
 import path from 'path';
-import staticDist from '../../fbc_js_core/webpack_config/staticDist';
+import staticDist from '../../config/staticDist';
 import testRoutes from '../test/routes';
 import userMiddleware from '../auth/express';
 import {AccessRoles} from '../../shared/roles';
