@@ -89,7 +89,7 @@ jobs:
           run: |
             cd /magma
             bazel build //... \
-              --remote_cache="https://${{ secrets.MAGMA_REMOTE_USER }}:${{ secrets.MAGMA_REMOTE }}@bazel-remote-cache.magmacore-ci.org:9090/${{ env.CACHE_KEY }}/${{ env.INVALIDATION_CACHE_KEY }}" \
+              --remote_cache="https://${{ secrets.MAGMA_REMOTE_USER }}:${{ secrets.MAGMA_REMOTE }}@bazel-remote-cache.magmacore-ci.org:9090/${{ env.CACHE_KEY }}" \
               --remote_download_toplevel
       - name: Build space left after run
         shell: bash
@@ -138,7 +138,7 @@ jobs:
           run: |
             cd /magma
             bazel test //... \
-              --remote_cache="https://${{ secrets.MAGMA_REMOTE_USER }}:${{ secrets.MAGMA_REMOTE }}@bazel-remote-cache.magmacore-ci.org:9090/${{ env.CACHE_KEY }}/${{ env.INVALIDATION_CACHE_KEY }}" \
+              --remote_cache="https://${{ secrets.MAGMA_REMOTE_USER }}:${{ secrets.MAGMA_REMOTE }}@bazel-remote-cache.magmacore-ci.org:9090/${{ env.CACHE_KEY }}" \
               --remote_download_toplevel \
               --cache_test_results=no \
               --test_output=errors
