@@ -34,19 +34,17 @@ import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {UpdateNetworkState} from '../../../state/lte/NetworkState';
 import {fireEvent, render, wait} from '@testing-library/react';
+import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
 import type {feg_network} from '../../../../generated/MagmaAPIBindings';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../app/hooks/useSnackbar');
-const enqueueSnackbarMock = jest.fn();
+jest.mock('../../../hooks/useSnackbar');
+
 const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
   key => CoreNetworkTypes[key],
 );
-jest
-  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
-  .mockReturnValue(enqueueSnackbarMock);
 
 describe('<NetworkDashboard />', () => {
   const testNetwork = {
@@ -257,6 +255,11 @@ describe('<NetworkDashboard />', () => {
   };
 
   beforeEach(() => {
+    (useEnqueueSnackbar: JestMockFn<
+      Array<empty>,
+      $Call<typeof useEnqueueSnackbar>,
+    >).mockReturnValue(jest.fn());
+
     axiosMock.post.mockImplementation(() =>
       Promise.resolve({data: {success: true}}),
     );
@@ -273,16 +276,6 @@ describe('<NetworkDashboard />', () => {
       Promise.resolve({data: {success: true}}),
     );
     MagmaAPIBindings.getNetworks.mockImplementation(() => Promise.resolve([]));
-  });
-
-  afterEach(() => {
-    axiosMock.get.mockClear();
-    MagmaAPIBindings.getLteByNetworkId.mockClear();
-    MagmaAPIBindings.getNetworksByNetworkId.mockClear();
-    MagmaAPIBindings.putLteByNetworkId.mockClear();
-    MagmaAPIBindings.putLteByNetworkIdCellularEpc.mockClear();
-    MagmaAPIBindings.putLteByNetworkIdCellularRan.mockClear();
-    MagmaAPIBindings.putLteByNetworkIdDns.mockClear();
   });
 
   const Wrapper = () => {
@@ -722,6 +715,11 @@ describe('<FEGNetworkDashboard />', () => {
       records: [],
     },
   };
+
+  beforeEach(() => {
+    MagmaAPIBindings.getNetworks.mockImplementation(() => Promise.resolve([]));
+  });
+
   const Wrapper = () => {
     const networkCtx = {
       state: {
