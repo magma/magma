@@ -153,4 +153,7 @@ int check_ue_context_state(amf_ue_ngap_id_t ue_id,
                            m5gmm_state_t expected_mm_state,
                            m5gcm_state_t expected_cm_state);
 
+// mimicing registration_accept_t3550_handler
+int unit_test_registration_accept_t3550(amf_ue_ngap_id_t ue_id);
+
 }  // namespace magma5g
