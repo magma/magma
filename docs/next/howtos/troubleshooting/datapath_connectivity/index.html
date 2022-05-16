@@ -150,13 +150,14 @@ If UE is connection continue to next step.</p></li>
 a UE and identify which traffic direction is broken. You can do so by</p>
 <ul>
 <li>Generating uplink traffic in UE</li>
-<li>Capturing packets on gtp_br0 in NATed datapath case and SGi_dev interface for
-NonNAT datapath: <code>tcpdump -eni gtp_br0 host $UE_IP</code>.</li>
-<li>For NATed datapath you also need to check if packet are egressing on
+<li>Capturing packets on gtpu_sys_2152 device: <code>tcpdump -eni gtpu_sys_2152 host $UE_IP</code>. If you do not see any packet, it means that packets are not reaching the GTP tunnel. Check S1 connectivity to debug further.</li>
+<li><em>NATed datapath</em>: Capture packets on gtp_br0 <code>tcpdump -eni gtp_br0 host $UE_IP</code>. If you don't see any packets, try debugging with the <code>dp_probe_cli.py</code> utility. This utility would show which OVS table is dropping the packet.</li>
+<li><em>NATed datapath</em>: You also need to check if the packet is egressing on
 the SGi port. You can do so by running tcpdump on SGi port
-<code>tcpdump -eni $SGi_dev dst $SERVER_IP</code></li>
-<li>In case the packet is missing on SGi port, you have issue with the routing.
-check routing table on the AGW.</li>
+<code>tcpdump -eni $SGi_dev dst $SERVER_IP</code>. In case the packet is missing on the SGi port, you have an issue with the routing. Check the routing table and iptables rules on the AGW.</li>
+<li><em>Non-NAT datapath</em>: You also need to check if the packet is egressing on
+the SGi port. You can do so by running tcpdump on the SGi port
+<code>tcpdump -eni $SGi_dev dst $SERVER_IP</code>. If you don't see any packets, try debugging with the <code>dp_probe_cli.py</code> utility. This utility would show which OVS table is dropping the packet.</li>
 <li>In case uplink packets are reaching SGi port, you need to debug issues in
 downlink direction.</li>
 </ul></li>
