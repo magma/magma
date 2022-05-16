@@ -28,7 +28,7 @@ import MyLocationIcon from '@material-ui/icons/MyLocation';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import moment from 'moment';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';

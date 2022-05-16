@@ -124,9 +124,7 @@ func (r *reindexerSingleton) reindexJobs(ctx context.Context, jobs []*Job, batch
 	errs := &multierror.Error{}
 	for _, j := range jobs {
 		err := r.reindexJob(j, ctx, batches, sendUpdate)
-		if err != nil {
-			errs = multierror.Append(errs, err)
-		}
+		errs = multierror.Append(errs, err)
 	}
 	return errs.ErrorOrNil()
 }

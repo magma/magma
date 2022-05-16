@@ -19,6 +19,7 @@ import (
 	"sync"
 
 	"github.com/golang/glog"
+	"github.com/hashicorp/go-multierror"
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/multiplex"
@@ -26,7 +27,6 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/lte/cloud/go/protos"
-	"magma/orc8r/lib/go/merrors"
 	orcprotos "magma/orc8r/lib/go/protos"
 )
 
@@ -219,12 +219,14 @@ func (srv *CentralSessionControllers) Enable(
 	ctx context.Context,
 	void *orcprotos.Void,
 ) (*orcprotos.Void, error) {
-	multiError := merrors.NewMulti()
+	errs := &multierror.Error{}
 	for i, controller := range srv.centralControllers {
 		_, err := controller.Enable(ctx, void)
-		multiError = multiError.AddFmt(err, "error(%d):", i+1)
+		if err != nil {
+			errs = multierror.Append(errs, fmt.Errorf("error(%d): %v", i+1, err))
+		}
 	}
-	return &orcprotos.Void{}, multiError.AsError()
+	return &orcprotos.Void{}, errs.ErrorOrNil()
 }
 
 // GetHealthStatus retrieves a health status object which contains the current

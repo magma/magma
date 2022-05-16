@@ -77,6 +77,7 @@ func initSubscriber(t *testing.T, hwID string) {
 	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
 
+	subProfile := models.SubProfile("foo")
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{
 			Type: lte.APNEntityType, Key: "apn1",
@@ -120,7 +121,7 @@ func initSubscriber(t *testing.T, hwID string) {
 			},
 			Associations: storage.TKs{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
 		},
-		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: &subProfile}}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 }

@@ -6,33 +6,45 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // DiskPartition disk partition
+//
 // swagger:model disk_partition
 type DiskPartition struct {
 
 	// Name of the device
+	// Example: /dev/sda1
 	Device string `json:"device,omitempty"`
 
 	// Free disk space of the device in bytes
+	// Example: 15482871808
 	Free uint64 `json:"free,omitempty"`
 
 	// Mount point of the device
+	// Example: /
 	MountPoint string `json:"mount_point,omitempty"`
 
 	// Total disk space of the device in bytes
+	// Example: 21378641920
 	Total uint64 `json:"total,omitempty"`
 
 	// Used disk space of the device in bytes
+	// Example: 4809781248
 	Used uint64 `json:"used,omitempty"`
 }
 
 // Validate validates this disk partition
 func (m *DiskPartition) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this disk partition based on context it is used
+func (m *DiskPartition) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

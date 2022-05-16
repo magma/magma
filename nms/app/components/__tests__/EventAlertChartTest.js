@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
 import EventAlertChart from '../EventAlertChart';
 import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
@@ -24,10 +23,8 @@ import moment from 'moment';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 import type {promql_return_object} from '../../../generated/MagmaAPIBindings';
-
-afterEach(cleanup);
 
 const mockMetricSt: promql_return_object = {
   status: 'success',
@@ -44,7 +41,7 @@ const mockMetricSt: promql_return_object = {
 
 jest.mock('axios');
 jest.mock('../../../generated/MagmaAPIBindings');
-jest.mock('../../../fbc_js_core/ui/hooks/useSnackbar');
+jest.mock('../../../app/hooks/useSnackbar');
 
 // chart component was failing here so mocking this out
 // this shouldn't affect the prop verification part in the react

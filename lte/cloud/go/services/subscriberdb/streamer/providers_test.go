@@ -54,6 +54,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 	// other inactive with a sub profile
 	// 2 APNs active for the active sub, 1 with an assigned static IP and the
 	// other without
+	subProfile := models.SubProfile("foo")
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{
 			Type: lte.APNEntityType, Key: "apn1",
@@ -97,7 +98,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 			},
 			Associations: storage.TKs{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
 		},
-		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: &subProfile}}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 

@@ -16,7 +16,7 @@
 import type {SectionsConfigs} from '../layout/Section';
 
 import AlarmIcon from '@material-ui/icons/Alarm';
-import Alarms from '../insights/alarms/Alarms';
+import Alarms from '../../views/alarms/legacy/Alarms';
 import CWFConfigure from './CWFConfigure';
 import CWFGateways from './CWFGateways';
 import CWFMetrics from './CWFMetrics';

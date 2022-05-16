@@ -6,14 +6,23 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
+
+	"github.com/go-openapi/strfmt"
 )
 
 // TierName tier name
+// Example: Default Tier
+//
 // swagger:model tier_name
 type TierName string
 
 // Validate validates this tier name
 func (m TierName) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this tier name based on context it is used
+func (m TierName) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

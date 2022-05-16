@@ -83,7 +83,7 @@ func runTestGenerateCase(t *testing.T, ymlFile string, outputDir string) {
 		assert.NoError(t, err)
 		actualFileContents, err := ioutil.ReadFile(strings.TrimSuffix(baseFilename, ".go") + ".actual")
 		assert.NoError(t, err)
-		assert.Equal(t, goldenFileContents, actualFileContents)
+		assert.Equal(t, string(goldenFileContents), string(actualFileContents))
 	}
 }
 

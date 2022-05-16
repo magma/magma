@@ -30,7 +30,7 @@ import {AltFormField} from '../../components/FormField';
 import {DEFAULT_GW_POOL_CONFIG} from '../../components/GatewayUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 const useStyles = makeStyles(_ => ({
   input: {
@@ -121,9 +121,7 @@ export default function ConfigEdit(props: GatewayPoolEditProps) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {'Save And Continue'}
         </Button>

@@ -14,8 +14,8 @@
  * @format
  */
 
-import AppContext from '../../fbc_js_core/ui/context/AppContext';
-import Button from '../../fbc_js_core/ui/components/design-system/Button';
+import AppContext from './context/AppContext';
+import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
 import React, {useContext, useState} from 'react';
 import Text from '../theme/design-system/Text';
@@ -24,7 +24,7 @@ import axios from 'axios';
 import {AltFormField, PasswordInput} from './FormField';
 import {List} from '@material-ui/core';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../app/hooks/useSnackbar';
 
 const TITLE = 'Account Settings';
 
@@ -117,7 +117,11 @@ export default function AccountSettings() {
             />
           </AltFormField>
         </List>
-        <Button onClick={onSave} disabled={!isSaveEnabled}>
+        <Button
+          onClick={onSave}
+          disabled={!isSaveEnabled}
+          variant="contained"
+          color="primary">
           Save
         </Button>
       </Paper>

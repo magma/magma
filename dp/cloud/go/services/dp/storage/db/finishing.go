@@ -99,7 +99,11 @@ func filterValues(arg *arg) map[string]interface{} {
 	fields := arg.model.Fields()
 	for i, p := range arg.metadata.Properties {
 		if arg.mask.ShouldInclude(p.Name) {
-			values[p.Name] = fields[i].value()
+			if p.HasDefault && fields[i].isNull() {
+				values[p.Name] = p.DefaultValue
+			} else {
+				values[p.Name] = fields[i].value()
+			}
 		}
 	}
 	return values

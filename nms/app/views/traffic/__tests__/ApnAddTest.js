@@ -13,14 +13,13 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
-import {LTE} from '../../../../fbc_js_core/types/network';
+import {LTE} from '../../../../shared/types/network';
 
 import {
   ApnProvider,
@@ -28,19 +27,14 @@ import {
 } from '../../../components/lte/LteContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
 const enqueueSnackbarMock = jest.fn();
 jest
-  .spyOn(
-    require('../../../../fbc_js_core/ui/hooks/useSnackbar'),
-    'useEnqueueSnackbar',
-  )
+  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
-afterEach(cleanup);
-
 const apns = {
   apn_0: {
     apn_configuration: {

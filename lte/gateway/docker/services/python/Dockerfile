@@ -28,10 +28,9 @@ ENV TZ=Europe/Paris
 ENV MAGMA_ROOT=/magma
 ENV PYTHON_BUILD=/build
 ENV PIP_CACHE_HOME="~/.pipcache"
-ENV SWAGGER_CODEGEN_JAR=/var/tmp/codegen/modules/swagger-codegen-cli/target/swagger-codegen-cli.jar
-
-ARG MVN_VERSION=3.5.4
-ARG CODEGEN_VERSION=v2.2.3
+ENV SWAGGER_CODEGEN_DIR /var/tmp/codegen/modules/swagger-codegen-cli/target
+ENV SWAGGER_CODEGEN_JAR ${SWAGGER_CODEGEN_DIR}/swagger-codegen-cli.jar
+ARG CODEGEN_VERSION=2.2.3
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
@@ -54,24 +53,17 @@ RUN apt-get update && apt-get install -y \
   libsystemd-dev \
   libprotobuf-dev
 
+
 RUN cd /usr/local/bin && ln -s /usr/bin/python3 python
 RUN gem install fpm
 
 COPY . $MAGMA_ROOT/
-
 WORKDIR /var/tmp/
 RUN /magma/third_party/build/bin/aioeventlet_build.sh && \
     dpkg -i python3-aioeventlet*
 
-RUN wget http://mirrors.ibiblio.org/apache/maven/maven-3/$MVN_VERSION/binaries/apache-maven-$MVN_VERSION-bin.tar.gz && \
-    tar -xvf apache-maven-$MVN_VERSION-bin.tar.gz
-
-RUN git clone https://github.com/swagger-api/swagger-codegen /var/tmp/codegen && \
-    cd /var/tmp/codegen && \
-    git checkout $CODEGEN_VERSION
-
-WORKDIR /var/tmp/codegen
-RUN ../apache-maven-$MVN_VERSION/bin/mvn clean package -DskipTests
+RUN mkdir -p ${SWAGGER_CODEGEN_DIR}; \
+    wget --no-verbose https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/${CODEGEN_VERSION}/swagger-codegen-cli-${CODEGEN_VERSION}.jar -O ${SWAGGER_CODEGEN_JAR}
 
 WORKDIR /magma/lte/gateway/python
 RUN make buildenv

@@ -196,9 +196,7 @@ func (l *syncStore) collectGarbageSQL(tracked []string) error {
 			return nil, err
 		}
 		_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
-		if err != nil {
-			errs = multierror.Append(errs, errors.Wrapf(err, "collect garbage for table %+v", tableName))
-		}
+		errs = multierror.Append(errs, errors.Wrapf(err, "collect garbage for table %+v", tableName))
 	}
 	return errs.ErrorOrNil()
 }
@@ -255,14 +253,10 @@ func (l *syncStore) collectGarbageLastResync(tracked []string) error {
 			continue
 		}
 		err = store.Delete(network, storage.MakeTKs(lastResyncBlobstoreType, keys))
-		if err != nil {
-			errs = multierror.Append(errs, err)
-		}
-	}
-	err = store.Commit()
-	if err != nil {
 		errs = multierror.Append(errs, err)
 	}
+	err = store.Commit()
+	errs = multierror.Append(errs, err)
 	return errs.ErrorOrNil()
 }
 
@@ -338,9 +332,7 @@ func (l *syncStore) getInvalidCacheWriter(tracked []string, cacheWriterValidInte
 		invalidByNetwork[network] = invalid
 	}
 	err = store.Commit()
-	if err != nil {
-		errs = multierror.Append(errs, err)
-	}
+	errs = multierror.Append(errs, err)
 	return invalidByNetwork, errs.ErrorOrNil()
 }
 
@@ -386,9 +378,7 @@ func (l *syncStore) deleteCacheWriterBlobstoreRecords(deletedByNetwork map[strin
 		}
 	}
 	err = store.Commit()
-	if err != nil {
-		errs = multierror.Append(errs, err)
-	}
+	errs = multierror.Append(errs, err)
 
 	return errs.ErrorOrNil()
 }

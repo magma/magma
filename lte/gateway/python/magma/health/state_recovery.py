@@ -25,7 +25,9 @@ from magma.magmad.check import subprocess_workflow
 from orc8r.protos.service_status_pb2 import ServiceExitStatus
 from redis.exceptions import ConnectionError
 
-SystemdServiceParams = NamedTuple('SystemdServiceParams', [('service', str)])
+
+class SystemdServiceParams(NamedTuple):
+    service: str
 
 
 class StateRecoveryJob(Job):

@@ -329,8 +329,8 @@ func TestUpdateNetwork(t *testing.T) {
 		ExpectedError: "validation failure list:\n" +
 			"validation failure list:\n" +
 			"validation failure list:\n" +
-			"a_record.0 in body must be of type ipv4: \"asdf\"\n" +
-			"aaaa_record.0 in body must be of type ipv6: \"abcd\"",
+			"dns.records.0.a_record.0 in body must be of type ipv4: \"asdf\"\n" +
+			"dns.records.0.aaaa_record.0 in body must be of type ipv6: \"abcd\"",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2396,9 +2396,10 @@ func TestListAndGetEnodebs(t *testing.T) {
 			Serial:      "vwxyz",
 		},
 	}
+	emptyPageToken := lteModels.PageToken("")
 	expected := &lteModels.PaginatedEnodebs{
 		Enodebs:    enodebs,
-		PageToken:  "",
+		PageToken:  &emptyPageToken,
 		TotalCount: 2,
 	}
 
@@ -2413,10 +2414,10 @@ func TestListAndGetEnodebs(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	expectedPageToken := "CgdhYmNkZWZn"
+	expectedPageToken := lteModels.PageToken("CgdhYmNkZWZn")
 	paginatedExpectation := &lteModels.PaginatedEnodebs{
 		Enodebs:    map[string]*lteModels.Enodeb{"abcdefg": expected.Enodebs["abcdefg"]},
-		PageToken:  lteModels.PageToken(expectedPageToken),
+		PageToken:  &expectedPageToken,
 		TotalCount: 2,
 	}
 	tc = tests.Test{
@@ -2430,11 +2431,11 @@ func TestListAndGetEnodebs(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 	paginatedExpectation.Enodebs = map[string]*lteModels.Enodeb{"vwxyz": expected.Enodebs["vwxyz"]}
-	paginatedExpectation.PageToken = ""
+	paginatedExpectation.PageToken = &emptyPageToken
 
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            testURLRoot + "?page_size=10&page_token=" + expectedPageToken,
+		URL:            testURLRoot + "?page_size=10&page_token=" + string(expectedPageToken),
 		Handler:        listEnodebs,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},

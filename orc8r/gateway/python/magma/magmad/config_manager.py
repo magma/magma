@@ -30,7 +30,11 @@ from orc8r.protos.mconfig_pb2 import GatewayConfigsDigest
 CONFIG_STREAM_NAME = 'configs'
 SHARED_MCONFIG = 'shared_mconfig'
 MAGMAD = 'magmad'
-VersionInfo = NamedTuple('VersionInfo', [('agw_version', Optional[re.Match]), ('orc8r_version', Optional[re.Match])])
+
+
+class VersionInfo(NamedTuple):
+    agw_version: Optional[re.Match]
+    orc8r_version: Optional[re.Match]
 
 
 class ConfigManager(StreamerClient.Callback):

@@ -23,7 +23,6 @@ import time
 import unittest
 
 import fakeredis
-from magma.common.redis.client import get_default_client
 from magma.mobilityd.ip_address_man import (
     IPAddressManager,
     IPNotInUseError,

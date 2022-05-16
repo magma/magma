@@ -13,17 +13,13 @@ limitations under the License.
 import logging
 import socket
 import subprocess
-import threading
-import time
 import unittest
-import warnings
-from concurrent.futures import Future
 
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.ebpf.ebpf_manager import EbpfManager
 from scapy.all import AsyncSniffer
-from scapy.layers.inet import IP, UDP
+from scapy.layers.inet import IP
 
 GTP_SCRIPT = "/home/vagrant/magma/lte/gateway/python/magma/pipelined/tests/script/gtp-packet.py"
 PY_PATH = "/home/vagrant/build/python/bin/python"

@@ -50,6 +50,10 @@ deploy:
         - host:
             command: ["kubectl", "rollout", "status", "--watch", "--timeout=600s", "statefulset/postgres-database"]
         - host:
+            command: ["kubectl", "apply", "-f", "./tools/deployment/vendor/elasticsearch.yml"]
+        - host:
+            command: ["kubectl", "rollout", "status", "--watch", "--timeout=600s", "deployment/elasticsearch-deployment"]
+        - host:
             command: ["dp/tools/skaffold_hooks/hooks.sh", "create_secrets"]
             dir: ..
         - host:
@@ -80,7 +84,6 @@ deploy:
     defaultNamespace: default
     manifests:
       - "./tools/deployment/vendor/fake_sas.yml"
-      - "./tools/deployment/vendor/elasticsearch.yml"
 profiles:
   - name: integration-tests-no-orc8
     patches:
@@ -108,7 +111,9 @@ profiles:
               extraEnv:
                 APP_CONFIG: "TestConfig"
             db_service:
-              enabled: false
+              enabled: true
+              extraEnv:
+                APP_CONFIG: "TestConfig"
       - op: add
         path: /deploy/kubectl/flags
         value:
@@ -251,7 +256,7 @@ profiles:
                 - "-c"
                 - "/var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator || exit 0"
       - op: remove
-        path: /deploy/helm/hooks/before/3
+        path: /deploy/helm/hooks/before/5
   - name: remote-push
     patches:
       - op: remove

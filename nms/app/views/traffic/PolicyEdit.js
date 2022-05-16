@@ -39,7 +39,7 @@ import {AltFormField} from '../../components/FormField';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 const DEFAULT_POLICY_RULE = {
   qos_profile: undefined,
   id: '',
@@ -200,9 +200,7 @@ export default function PolicyRuleEditDialog(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          {'Close'}
-        </Button>
+        <Button onClick={props.onClose}>Close</Button>
         <Button variant="contained" color="primary" onClick={onSave}>
           {props.rule ? 'Save' : 'Save And Continue'}
         </Button>

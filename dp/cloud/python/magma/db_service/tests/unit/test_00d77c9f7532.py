@@ -62,7 +62,7 @@ class Test00d77c9f7532TestCase(AlembicTestCase):
         # then
         self.assertFalse(cbsd.single_step_enabled)
         self.assertFalse(cbsd.indoor_deployment)
-        self.assertEqual('B', cbsd.cbsd_category)
+        self.assertEqual('b', cbsd.cbsd_category)
 
     def test_downgrade(self):
         # given

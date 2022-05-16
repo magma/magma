@@ -58,7 +58,7 @@ magma-gen-meta:
       filename: prometheus_targets_metadata_swaggergen.go
 
 info:
-  title:
+  title: Metrics Management
   description: Orchestrator REST APIs
   version: 1.0.2
 

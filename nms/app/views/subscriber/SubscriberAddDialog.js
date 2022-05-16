@@ -40,7 +40,7 @@ import Select from '@material-ui/core/Select';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {CoreNetworkTypes, validateSubscribers} from './SubscriberUtils';
 import {PasswordInput} from '../../components/FormField';

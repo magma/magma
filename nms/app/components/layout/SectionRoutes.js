@@ -16,8 +16,8 @@
 
 import AccountSettings from '../AccountSettings';
 import Admin from '../admin/Admin';
-import AppContext from '../../../fbc_js_core/ui/context/AppContext';
-import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import AppContext from '../../../app/components/context/AppContext';
+import LoadingFiller from '../LoadingFiller';
 import React, {useContext} from 'react';
 import useSections from './useSections';
 import {Navigate, Route, Routes} from 'react-router-dom';

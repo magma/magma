@@ -14,14 +14,14 @@
  * @format
  */
 
-import type {NetworkType} from '../../../fbc_js_core/types/network';
+import type {NetworkType} from '../../../shared/types/network';
 import type {
   policy_qos_profile,
   policy_rule,
 } from '../../../generated/MagmaAPIBindings';
 
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
-import Button from '../../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -35,14 +35,14 @@ import PolicyFlowFields from './PolicyFlowFields';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-import TypedSelect from '../../../fbc_js_core/ui/components/TypedSelect';
+import TypedSelect from '../TypedSelect';
 import Typography from '@material-ui/core/Typography';
 
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
-import {CWF, FEG, LTE} from '../../../fbc_js_core/types/network';
-import {base64ToHex, decodeBase64} from '../../../fbc_js_core/util/strings';
-import {coalesceNetworkType} from '../../../fbc_js_core/types/network';
+import {CWF, FEG, LTE} from '../../../shared/types/network';
+import {base64ToHex, decodeBase64} from '../../util/strings';
+import {coalesceNetworkType} from '../../../shared/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
@@ -370,10 +370,10 @@ export default function PolicyRuleEditDialog(props: Props) {
         ))}
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onCancel} skin="regular">
-          Cancel
+        <Button onClick={props.onCancel}>Cancel</Button>
+        <Button onClick={onSave} variant="contained" color="primary">
+          Save
         </Button>
-        <Button onClick={onSave}>Save</Button>
       </DialogActions>
     </Dialog>
   );

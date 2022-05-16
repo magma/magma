@@ -22,7 +22,7 @@ on:
       - reopened
       - synchronize
 env:
-  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
+  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latestv2"
   BAZEL_CACHE: bazel-cache
   BAZEL_CACHE_REPO: bazel-cache-repo
   CACHE_SUB_KEY: build-warnings
@@ -94,9 +94,10 @@ jobs:
         run: |
           ./.github/workflows/check-bazel-cache-dir-size.sh "$BAZEL_CACHE_DIR" "$BAZEL_CACHE_CUTOFF_MB"
       - name: Setup Bazel Base Image
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
+          options: --pull always
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
             echo "Pulled the bazel base image!"
@@ -109,13 +110,13 @@ jobs:
         with:
           format: 'csv'
       - name: Build and Apply GCC Problem Matcher
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/magma
+          options: -v ${{ github.workspace }}:/workspaces/magma
           run: |
-            cd /magma
+            cd /workspaces/magma
             ./.github/workflows/generate-gcc-warnings.sh "${{ steps.changed_files.outputs.all }}"
       - name: Load problem matcher
         # If needed https://github.com/microsoft/vscode-cpptools/issues/2266 for path fixups
@@ -128,12 +129,12 @@ jobs:
         # Therefore below I use `xo` to fixup our path emissions on gcc warnings.
         uses: electronjoe/gcc-problem-matcher@v1
       - name: Cat compilation log (filtered by file names)
-        uses: addnab/docker-run-action@v2
+        uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/magma
-          run: cat /magma/filtered-compile.log
+          options: -v ${{ github.workspace }}:/workspaces/magma
+          run: cat /workspaces/magma/filtered-compile.log
       - name: Store build_logs_c_full_log Artifact
         uses: actions/upload-artifact@v2
         with:

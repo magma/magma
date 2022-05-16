@@ -16,7 +16,7 @@
 
 import * as React from 'react';
 import AppContent from '../layout/AppContent';
-import AppSideBar from '../../../fbc_js_core/ui/components/layout/AppSideBar';
+import AppSideBar from '../AppSideBar';
 
 import {makeStyles} from '@material-ui/styles';
 

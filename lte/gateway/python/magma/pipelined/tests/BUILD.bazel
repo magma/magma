@@ -675,12 +675,9 @@ pytest_test(
         ORC8R_ROOT,
     ],
     deps = [
-        "//lte/gateway/python/magma/pipelined:policy_converters",
         "//lte/gateway/python/magma/pipelined:rpc_servicer",
-        "//lte/gateway/python/magma/pipelined:rule_mappers",
         "//lte/protos:mobilityd_python_proto",
         "//lte/protos:pipelined_python_proto",
-        requirement("fakeredis"),
     ],
 )
 

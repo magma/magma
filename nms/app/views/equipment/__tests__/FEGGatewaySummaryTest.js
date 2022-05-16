@@ -14,7 +14,6 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
 import FEGGatewaySummary from '../FEGGatewaySummary';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
@@ -22,13 +21,12 @@ import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 import type {federation_gateway} from '../../../../generated/MagmaAPIBindings';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
-afterEach(cleanup);
+jest.mock('../../../../app/hooks/useSnackbar');
 
 const mockHardwareId = 'c9439d30-61ef-46c7-93f2-e01fc131244d';
 

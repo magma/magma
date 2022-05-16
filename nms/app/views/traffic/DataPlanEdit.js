@@ -29,10 +29,10 @@ import LteNetworkContext from '../../components/context/LteNetworkContext';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import type {UpdateNetworkContextProps} from '../../components/context/LteNetworkContext';
 
 import {
@@ -261,11 +261,9 @@ export function DataPlanEdit(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {'Save'}
+          Save
         </Button>
       </DialogActions>
     </>

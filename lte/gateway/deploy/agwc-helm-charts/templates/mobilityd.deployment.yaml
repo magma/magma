@@ -33,9 +33,8 @@ spec:
 {{- define "mobilityd.container" -}}
 name: mobilityd
 args:
-  - /usr/bin/env
-  - python3
-  - -m
-  - magma.mobilityd.main
+  - /bin/bash
+  - -c
+  - sleep 1 && /usr/bin/env python3 -m magma.mobilityd.main
 image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
 {{- end -}}

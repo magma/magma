@@ -22,9 +22,11 @@ import (
 
 func CbsdToBackend(m *MutableCbsd) *protos.CbsdData {
 	return &protos.CbsdData{
-		UserId:       m.UserID,
-		FccId:        m.FccID,
-		SerialNumber: m.SerialNumber,
+		UserId:            m.UserID,
+		FccId:             m.FccID,
+		SerialNumber:      m.SerialNumber,
+		SingleStepEnabled: *m.SingleStepEnabled,
+		CbsdCategory:      m.CbsdCategory,
 		Capabilities: &protos.Capabilities{
 			AntennaGain:      *m.Capabilities.AntennaGain,
 			MaxPower:         *m.Capabilities.MaxPower,
@@ -51,15 +53,17 @@ func CbsdFromBackend(details *protos.CbsdDetails) *Cbsd {
 			BandwidthMhz:   details.Data.Preferences.BandwidthMhz,
 			FrequenciesMhz: makeSliceNotNil(details.Data.Preferences.FrequenciesMhz),
 		},
-		CbsdID:       details.CbsdId,
-		DesiredState: details.Data.DesiredState,
-		FccID:        details.Data.FccId,
-		Grant:        getGrant(details.Grant),
-		ID:           details.Id,
-		IsActive:     details.IsActive,
-		SerialNumber: details.Data.SerialNumber,
-		State:        details.State,
-		UserID:       details.Data.UserId,
+		CbsdID:            details.CbsdId,
+		DesiredState:      details.Data.DesiredState,
+		FccID:             details.Data.FccId,
+		Grant:             getGrant(details.Grant),
+		ID:                details.Id,
+		IsActive:          details.IsActive,
+		SerialNumber:      details.Data.SerialNumber,
+		State:             details.State,
+		UserID:            details.Data.UserId,
+		SingleStepEnabled: details.Data.SingleStepEnabled,
+		CbsdCategory:      details.Data.CbsdCategory,
 	}
 }
 

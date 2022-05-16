@@ -14,7 +14,6 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import * as hooks from '../../../components/context/RefreshContext';
 import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
 import FEGGatewayDetailStatus from '../FEGGatewayDetailStatus';
@@ -25,7 +24,7 @@ import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 import type {
   federation_gateway,
   promql_return_object,
@@ -33,8 +32,7 @@ import type {
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
-afterEach(cleanup);
+jest.mock('../../../../app/hooks/useSnackbar');
 
 const mockCheckinTime = new Date();
 

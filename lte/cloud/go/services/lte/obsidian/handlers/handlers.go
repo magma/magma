@@ -339,9 +339,10 @@ func listEnodebs(c echo.Context) error {
 	for _, ent := range ents {
 		enodebs[ent.Key] = (&lte_models.Enodeb{}).FromBackendModels(ent)
 	}
+	token := lte_models.PageToken(nextPageToken)
 	paginatedEnodebs := &lte_models.PaginatedEnodebs{
 		Enodebs:    enodebs,
-		PageToken:  lte_models.PageToken(nextPageToken),
+		PageToken:  &token,
 		TotalCount: count,
 	}
 	return c.JSON(http.StatusOK, paginatedEnodebs)

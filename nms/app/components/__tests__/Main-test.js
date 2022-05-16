@@ -14,13 +14,12 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import Main from '../Main';
 import React from 'react';
-import {AppContextProvider} from '../../../fbc_js_core/ui/context/AppContext';
+import {AppContextProvider} from '../../../app/components/context/AppContext';
 import {MemoryRouter} from 'react-router-dom';
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 
 jest.mock('../../../generated/MagmaAPIBindings');
 
@@ -39,8 +38,6 @@ const Wrapper = props => (
     <AppContextProvider>{props.children}</AppContextProvider>
   </MemoryRouter>
 );
-
-afterEach(cleanup);
 
 describe.each`
   path                | text                     | networks

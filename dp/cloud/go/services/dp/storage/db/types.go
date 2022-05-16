@@ -20,29 +20,35 @@ import (
 type BaseType interface {
 	value() interface{}
 	ptr() interface{}
+	isNull() bool
 }
 
 type IntType struct{ X *sql.NullInt64 }
 
 func (x IntType) value() interface{} { return *x.X }
 func (x IntType) ptr() interface{}   { return x.X }
+func (x IntType) isNull() bool       { return !x.X.Valid }
 
 type FloatType struct{ X *sql.NullFloat64 }
 
 func (x FloatType) value() interface{} { return *x.X }
 func (x FloatType) ptr() interface{}   { return x.X }
+func (x FloatType) isNull() bool       { return !x.X.Valid }
 
 type StringType struct{ X *sql.NullString }
 
 func (x StringType) value() interface{} { return *x.X }
 func (x StringType) ptr() interface{}   { return x.X }
+func (x StringType) isNull() bool       { return !x.X.Valid }
 
 type BoolType struct{ X *sql.NullBool }
 
 func (x BoolType) value() interface{} { return *x.X }
 func (x BoolType) ptr() interface{}   { return x.X }
+func (x BoolType) isNull() bool       { return !x.X.Valid }
 
 type TimeType struct{ X *sql.NullTime }
 
 func (x TimeType) value() interface{} { return *x.X }
 func (x TimeType) ptr() interface{}   { return x.X }
+func (x TimeType) isNull() bool       { return !x.X.Valid }

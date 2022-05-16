@@ -33,7 +33,7 @@ import TddConfig from './NetworkRanTddConfig';
 
 import {AltFormField, FormDivider} from '../../components/FormField';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 type Props = {
   lteRanConfigs: network_ran_configs,
@@ -243,10 +243,7 @@ export function NetworkRanEdit(props: EditProps) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button
-          data-testid="ranCancelButton"
-          onClick={props.onClose}
-          skin="regular">
+        <Button data-testid="ranCancelButton" onClick={props.onClose}>
           Cancel
         </Button>
         <Button

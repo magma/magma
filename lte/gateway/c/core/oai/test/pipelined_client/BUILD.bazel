@@ -15,6 +15,7 @@ package(default_visibility = ["//visibility:private"])
 
 cc_test(
     name = "pipelined_client_test",
+    size = "small",
     srcs = [
         "test_pipelined_client.cpp",
     ],

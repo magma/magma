@@ -17,22 +17,21 @@ from typing import Any, Dict, List, NamedTuple, Optional
 
 from magma.magmad.check import subprocess_workflow
 
-RouteCommandParams = NamedTuple('RouteCommandParams', [])
-Route = NamedTuple(
-    'Route',
-    [
-        ('destination_ip', str), ('gateway_ip', str),
-        ('genmask', str), ('network_interface_id', str),
-    ],
-)
 
-RouteCommandResult = NamedTuple(
-    'RouteCommandResult',
-    [
-        ('error', Optional[str]),
-        ('routing_table', List[Dict[str, Any]]),
-    ],
-)
+class RouteCommandParams(NamedTuple):
+    pass
+
+
+class Route(NamedTuple):
+    destination_ip: str
+    gateway_ip: str
+    genmask: str
+    network_interface_id: str
+
+
+class RouteCommandResult(NamedTuple):
+    error: Optional[str]
+    routing_table: List[Dict[str, Any]]
 
 # TODO: This relies on the SO language being English. Maybe there is a way to
 #  get the info another way.

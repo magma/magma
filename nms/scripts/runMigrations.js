@@ -14,9 +14,9 @@
  * @format
  */
 
-const logger = require('../fbc_js_core/logging').getLogger(module);
-const {sequelize} = require('../fbc_js_core/sequelize_models');
-const sequelizerc = require('../fbc_js_core/sequelize_models/sequelizerc');
+const logger = require('../shared/logging').getLogger(module);
+const {sequelize} = require('../shared/sequelize_models');
+const sequelizerc = require('../shared/sequelize_models/sequelizerc');
 
 // $FlowFixMe sequelize does a weird thing where the types are objects/funcs
 const {DataTypes} = require('sequelize');

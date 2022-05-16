@@ -14,7 +14,7 @@
  * @format
  */
 
-import '../fbc_js_core/babel_register/polyfill';
+import './common/polyfill';
 
 import Index from './components/host/Index';
 import React from 'react';
@@ -22,7 +22,7 @@ import ReactDOM from 'react-dom';
 import {BrowserRouter} from 'react-router-dom';
 
 import {} from './common/axiosConfig';
-import nullthrows from '../fbc_js_core/util/nullthrows';
+import nullthrows from '../shared/util/nullthrows';
 
 ReactDOM.render(
   <BrowserRouter>

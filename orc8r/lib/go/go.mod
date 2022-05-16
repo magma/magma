@@ -1,6 +1,6 @@
 module magma/orc8r/lib/go
 
-go 1.12
+go 1.18
 
 replace magma/orc8r/lib/go/protos => ./protos
 
@@ -14,4 +14,19 @@ require (
 	google.golang.org/grpc v1.43.0
 	gopkg.in/yaml.v2 v2.2.8
 	magma/orc8r/lib/go/protos v0.0.0-00010101000000-000000000000
+)
+
+require (
+	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/prometheus/common v0.2.0 // indirect
+	github.com/prometheus/procfs v0.0.0-20190117184657-bf6a532e95b1 // indirect
+	golang.org/x/net v0.0.0-20200822124328-c89045814202 // indirect
+	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd // indirect
+	golang.org/x/text v0.3.0 // indirect
+	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
+	google.golang.org/protobuf v1.26.0 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )

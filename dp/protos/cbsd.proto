@@ -80,9 +80,11 @@ message CbsdData {
   string user_id = 1;
   string fcc_id = 2;
   string serial_number = 3;
-  Capabilities capabilities = 4;
-  FrequencyPreferences preferences = 5;
+  string cbsd_category = 4;
+  bool single_step_enabled = 5;
   string desired_state = 6;
+  Capabilities capabilities = 7;
+  FrequencyPreferences preferences = 8;
 }
 
 message Capabilities {

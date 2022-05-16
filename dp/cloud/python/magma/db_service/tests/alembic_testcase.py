@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional
+from typing import Any, Optional
 
 import alembic.config
 import sqlalchemy as sa
@@ -71,6 +71,9 @@ class AlembicTestCase(DBTestCaseBlueprint):
 
     def drop_all(self):
         self.metadata.drop_all()
+
+    def given_resource_inserted(self, table: sa.Table, **data: Any):
+        self.engine.execute(table.insert().values(**data))
 
     def then_tables_are(self, tables=None):
         if tables is None:

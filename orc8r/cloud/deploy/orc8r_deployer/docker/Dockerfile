@@ -1,6 +1,5 @@
 FROM python:3.9-slim-buster
 ARG ENV=prod
-ARG HELM_VERSION="3.5.1"
 ARG TERRAFORM_VERSION="0.15.5"
 ARG KUBECTL_VERSION="1.20.2"
 ARG ANSIBLE_VERSION="3.0.0"
@@ -11,7 +10,6 @@ RUN apt-get update && \
             git \
             wget \
             unzip \
-            curl \
             vim \
             jq \
             gcc \
@@ -48,9 +46,11 @@ RUN wget https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.9/2020-11-02/bin/lin
     chmod +x /usr/local/bin/aws-iam-authenticator
 
 # Install helm
-RUN mkdir helm3 && \
-    curl -SsL --retry 5 "https://get.helm.sh/helm-v$HELM_VERSION-linux-amd64.tar.gz" | tar xz -C ./helm3 && \
-    cp /root/download/helm3/linux-amd64/helm /usr/local/bin/helm
+ARG HELM_VERSION="3.5.1"
+RUN HELM_TARBALL="helm-v${HELM_VERSION}-linux-amd64.tar.gz" \
+ && wget --no-verbose https://get.helm.sh/${HELM_TARBALL} \
+ && tar --strip-components=1 -C /usr/local/bin -xzf ${HELM_TARBALL} linux-amd64/helm \
+ && rm ${HELM_TARBALL}
 
 # Install terraform
 RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform\_${TERRAFORM_VERSION}\_linux_amd64.zip && \
@@ -60,12 +60,15 @@ RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform
     chmod +x /usr/local/bin/kubectl && \
     rm -rf /root/download/*
 
-
 # Install go if we are building testframework image
-WORKDIR /usr/local
-RUN if [ "$ENV" = "testframework" ] ; then curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.13.4.linux-amd64.tar.gz -O && \
-    tar xf go1.13.4.linux-amd64.tar.gz && \
-    cp -r go/bin/* /usr/local/bin/ ; fi
+ARG GOLANG_VERSION="1.18"
+RUN if [ "$ENV" = "testframework" ]; \
+    then \
+        GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
+     && wget --no-verbose https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} \
+     && tar --strip-components=2 -C /usr/local/bin -xzf ${GO_TARBALL} go/bin/go go/bin/gofmt \
+     && rm ${GO_TARBALL}; \
+    fi
 
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
