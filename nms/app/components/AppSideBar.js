@@ -14,6 +14,7 @@
  * @format
  */
 
+import OnBoardingChecklist from './OnboardingCheckList';
 import ProfileButton from './ProfileButton';
 import React, {useContext, useState} from 'react';
 import SidebarItem from './SidebarItem';
@@ -71,6 +72,7 @@ const AppSideBar = (props: Props) => {
   const classes = useStyles();
   const [expanded, setIsExpanded] = useState(false);
   const [isProfileMenuOpen, _setProfileMenuOpen] = useState(false);
+  const [isCheckListMenuOpen, setCheckListMenuOpen] = useState(false);
   const {nmsVersion} = useContext(VersionContext);
 
   const setProfileMenuOpen = (isOpen: boolean) => {
@@ -111,6 +113,18 @@ const AppSideBar = (props: Props) => {
             expanded={expanded}
             isMenuOpen={isProfileMenuOpen}
             setMenuOpen={setProfileMenuOpen}
+          />
+          <OnBoardingChecklist
+            expanded={expanded}
+            isMenuOpen={isCheckListMenuOpen}
+            setMenuOpen={open =>
+              setCheckListMenuOpen(() => {
+                if (!open) {
+                  setIsExpanded(false);
+                }
+                return open;
+              })
+            }
           />
           <Text
             variant="body3"
