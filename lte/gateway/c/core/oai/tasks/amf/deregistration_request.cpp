@@ -303,9 +303,6 @@ void clear_amf_ctxt(amf_context_t* amf_context) {
   if (!amf_context) {
     return;
   }
-  amf_ue_ngap_id_t ue_id =
-      PARENT_STRUCT(amf_context, struct ue_m5gmm_context_s, amf_context)
-          ->amf_ue_ngap_id;
 
   nas_delete_all_amf_procedures(amf_context);
 

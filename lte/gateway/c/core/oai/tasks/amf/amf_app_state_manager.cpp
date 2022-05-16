@@ -302,8 +302,8 @@ status_code_e AmfNasStateManager::read_ue_state_from_db() {
     state_ue_map.insert(ue_context_p->amf_ue_ngap_id, ue_context_p);
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", kv.first.c_str());
   }
-#endif
   OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
+#endif
 }
 
 status_code_e AmfNasStateManager::read_state_from_db() {
