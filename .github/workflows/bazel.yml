@@ -15,7 +15,7 @@ on:  # yamllint disable-line rule:truthy
     # Run four times a day to build bazel cache
     - cron: '0 0,6,12,18 * * *'
 env:
-  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
+  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latestv2"
   BAZEL_CACHE: bazel-cache
   BAZEL_CACHE_REPO: bazel-cache-repo
   CACHE_SUB_KEY_BUILD_ALL: build-all
@@ -128,9 +128,9 @@ jobs:
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/magma/
+          options: -v ${{ github.workspace }}:/workspaces/magma/
           run: |
-            cd /magma
+            cd /workspaces/magma
             bazel build //...
       - name: Build space left after run
         shell: bash
@@ -208,27 +208,27 @@ jobs:
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
-            cd /magma
+            cd /workspaces/magma
             bazel test //... --test_output=errors --cache_test_results=no
       - name: Run `bazel run //:check_starlark_format`
         uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/magma/
+          options: -v ${{ github.workspace }}:/workspaces/magma/
           run: |
-            cd /magma
+            cd /workspaces/magma
             bazel run //:check_starlark_format
       - name: Test python services for missing modules
         uses: addnab/docker-run-action@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/magma/
+          options: -v ${{ github.workspace }}:/workspaces/magma/
           run: |
-            cd /magma
+            cd /workspaces/magma
             bazel/scripts/test_python_service_imports.sh
       - name: Build space left after run
         shell: bash
