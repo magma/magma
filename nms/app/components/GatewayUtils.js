@@ -188,8 +188,6 @@ export type FederationGatewayHealthStatus = {
   },
 };
 
-const GATEWAY_KEEPALIVE_TIMEOUT_MS = 1000 * 5 * 60;
-
 export const GatewayTypeEnum = Object.freeze({
   HEALTHY_GATEWAY: 'Good',
   UNHEALTHY_GATEWAY: 'Bad',
@@ -198,7 +196,6 @@ export const GatewayTypeEnum = Object.freeze({
 
 // health status used for federation gateways
 export const HEALTHY_STATUS = 'HEALTHY';
-
 export const UNHEALTHY_STATUS = 'UNHEALTHY';
 
 // availability status of federation gateway health service
@@ -210,16 +207,6 @@ export const ServiceTypeEnum = Object.freeze({
   UNENABLED_SERVICE: 'Not Enabled',
   UNAVAILABLE_SERVICE: 'N/A',
 });
-
-export default function isGatewayHealthy({status}: lte_gateway): boolean {
-  if (status != null) {
-    const checkin = status.checkin_time;
-    if (checkin != null) {
-      return Date.now() - checkin < GATEWAY_KEEPALIVE_TIMEOUT_MS;
-    }
-  }
-  return false;
-}
 
 /**
  * Returns health status of the federation gateway.
