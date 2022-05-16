@@ -96,6 +96,10 @@ class AMFAppProcedureTest : public ::testing::Test {
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x2e,
       0x08, 0x80, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
+  const uint8_t initial_ue_plmn_mismatch_message_hexbuf[23] = {
+      0x7e, 0x00, 0x41, 0x79, 0x00, 0x0d, 0x01, 0x00, 0x91, 0x10, 0xf0, 0xff,
+      0x00, 0x00, 0x79, 0x56, 0x54, 0x66, 0xf4, 0x2e, 0x02, 0xf0, 0xf0};
+
   /* Guti based initial registration message */
   const uint8_t guti_initial_ue_message_hexbuf[98] = {
       0x7e, 0x01, 0x67, 0xb7, 0x6f, 0xc6, 0x03, 0x7e, 0x00, 0x41, 0x09,
@@ -391,6 +395,24 @@ TEST_F(AMFAppProcedureTest, TestRegistrationAuthSecurityCapabilityMismatch) {
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   // ue context should not exist
   EXPECT_TRUE(ue_context_p == nullptr);
+}
+
+TEST_F(AMFAppProcedureTest, TestRegistrationPlmnMismatch) {
+  amf_ue_ngap_id_t ue_id = 0;
+  std::vector<MessagesIds> expected_Ids{
+      AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
+                                            // indication to ngap
+      NGAP_NAS_DL_DATA_REQ,                 // Registration Reject
+      NGAP_UE_CONTEXT_RELEASE_COMMAND       // UEContextReleaseCommand
+  };
+  /* Send the initial UE message */
+  imsi64_t imsi64 = 0;
+  imsi64 = send_initial_ue_message_no_tmsi(
+      amf_app_desc_p, 36, 1, 1, 0, plmn,
+      initial_ue_plmn_mismatch_message_hexbuf,
+      sizeof(initial_ue_plmn_mismatch_message_hexbuf));
+  EXPECT_EQ(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id), 0);
+  EXPECT_TRUE(expected_Ids == AMFClientServicer::getInstance().msgtype_stack);
 }
 
 TEST_F(AMFAppProcedureTest, TestRegistrationProcNoTMSI) {
