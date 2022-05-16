@@ -144,7 +144,7 @@ export default function AddEditEnodeButton(props: ButtonProps) {
   );
 }
 
-function EnodeEditDialog(props: DialogProps) {
+export function EnodeEditDialog(props: DialogProps) {
   const {open, editProps} = props;
   const classes = useStyles();
   const [enb, setEnb] = useState<enodeb>({});
