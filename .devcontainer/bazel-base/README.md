@@ -14,7 +14,7 @@ export MAGMA_ROOT=PATH_TO_YOUR_MAGMA_CLONE
 
 ## Build magma-builder Docker image
 
-All docker-compose commands below are to be run from `$MAGMA_ROOT/experimental/bazel-base`.
+All docker-compose commands below are to be run from `$MAGMA_ROOT/.devcontainer/bazel-base`.
 
 To build magma-builder base image, run the following.
 
