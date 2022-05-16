@@ -14,7 +14,6 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import NetworkContext from '../context/NetworkContext';
 import NetworkSelector from '../NetworkSelector';

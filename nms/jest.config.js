@@ -40,6 +40,7 @@ module.exports = {
       transform: {
         '^.+\\.js$': 'babel-jest',
       },
+      setupFilesAfterEnv: ['./jest.setup.app.js'],
     },
   ],
   testEnvironment: 'jsdom',

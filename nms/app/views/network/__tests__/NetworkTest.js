@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
 
 import ApnContext from '../../../components/context/ApnContext';
 import EnodebContext from '../../../components/context/EnodebContext';

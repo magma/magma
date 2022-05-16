@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
 import Gateway from '../EquipmentGateway';
 import GatewayContext from '../../../components/context/GatewayContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';

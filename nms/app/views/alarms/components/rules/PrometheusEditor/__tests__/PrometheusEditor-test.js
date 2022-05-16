@@ -14,7 +14,6 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import PrometheusEditor from '../PrometheusEditor';
 import {alarmTestUtil} from '../../../../test/testHelpers';

@@ -14,7 +14,6 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import AppSideBar from '../AppSideBar';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import React from 'react';
