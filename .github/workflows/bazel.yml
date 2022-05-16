@@ -235,3 +235,14 @@ jobs:
         run: |
           echo "Available storage:"
           df -h
+
+  python_file_check:
+    name: Check if there are not bazelified python files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Repo
+        uses: actions/checkout@v2
+      - name: Execute check
+        shell: bash
+        run: |
+          ./bazel/scripts/check_py_bazel.sh
