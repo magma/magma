@@ -300,6 +300,8 @@ And you will get the combined report at `${MAGMA_ROOT}/report/merged_report/repo
 
 ### Option 2: Manual method
 
+The script `runtime_report.py` is intended to use as in option 1. This section is only served as a guideline in case, in the future, a developer would like to make some changes to this script or how to use it. 
+
 #### Enabling generating the unit test report
 
 Setting the value for the `$GTEST_OUTPUT` as below:
