@@ -15,6 +15,7 @@ package state
 
 import (
 	"encoding/base64"
+	"fmt"
 	"net"
 	"regexp"
 
@@ -76,7 +77,7 @@ func GetIMSIAndAPNFromMobilitydStateKey(key string) (string, string, error) {
 func base64DecodeIPAddress(encodedIP string) (string, error) {
 	ipBytes, err := base64.StdEncoding.DecodeString(encodedIP)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to decode mobilityd IP address")
+		return "", fmt.Errorf("failed to decode mobilityd IP address: %w", err)
 	}
 	if len(ipBytes) != 4 {
 		return "", errors.Errorf("expected IP address to decode to 4 bytes, got %d", len(ipBytes))

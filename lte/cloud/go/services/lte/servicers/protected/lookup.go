@@ -15,8 +15,8 @@ package servicers
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -62,7 +62,7 @@ func (l *lookupServicer) SetEnodebState(ctx context.Context, req *protos.SetEnod
 }
 
 func makeErr(err error, wrap string) error {
-	e := errors.Wrap(err, wrap)
+	e := fmt.Errorf(wrap+": %w", err)
 	code := codes.Internal
 	if err == merrors.ErrNotFound {
 		code = codes.NotFound
