@@ -147,7 +147,7 @@ static status_code_e mme_app_send_sgsap_alert_reject(
     itti_sgsap_alert_request_t* const sgsap_alert_req_pP, SgsCause_t sgs_cause,
     uint64_t imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   MessageDef* message_p = NULL;
   itti_sgsap_alert_reject_t* sgsap_alert_reject_pP = NULL;
 
@@ -190,7 +190,7 @@ static status_code_e mme_app_send_sgsap_alert_reject(
  ***********************************************************************************/
 static status_code_e mme_app_send_sgsap_alert_ack(
     itti_sgsap_alert_request_t* const sgsap_alert_req_pP, uint64_t imsi64) {
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   MessageDef* message_p = NULL;
   itti_sgsap_alert_ack_t* sgsap_alert_ack_pP = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);

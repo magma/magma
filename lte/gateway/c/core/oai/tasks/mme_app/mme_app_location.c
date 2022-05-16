@@ -62,7 +62,7 @@ status_code_e mme_app_send_s6a_update_location_req(
   OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef* message_p = NULL;
   s6a_update_location_req_t* s6a_ulr_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_INFO(
       TASK_MME_APP,
@@ -167,7 +167,7 @@ status_code_e mme_app_send_s6a_update_location_req(
 }
 
 status_code_e handle_ula_failure(struct ue_mm_context_s* ue_context_p) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -197,7 +197,7 @@ status_code_e mme_app_handle_s6a_update_location_ans(
   OAILOG_FUNC_IN(LOG_MME_APP);
   uint64_t imsi64 = 0;
   struct ue_mm_context_s* ue_mm_context = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   if (ula_pP == NULL) {
     OAILOG_ERROR(LOG_MME_APP,
@@ -487,7 +487,7 @@ status_code_e mme_app_send_s6a_cancel_location_ans(int cla_result,
                                                    void* msg_cla_p) {
   MessageDef* message_p = NULL;
   s6a_cancel_location_ans_t* s6a_cla_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
