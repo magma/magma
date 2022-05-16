@@ -25,8 +25,6 @@ import (
 	"fbc/lib/go/radius/rfc2866"
 	"fbc/lib/go/radius/rfc2869"
 	"magma/feg/gateway/services/eap"
-
-	"github.com/pkg/errors"
 )
 
 // todo Replace constants with configurable fields
@@ -41,12 +39,12 @@ func (srv *UESimServer) HandleRadius(imsi string, calledStationID string, p *rad
 	// Extract EAP packet.
 	eapMessage, err := packet.NewPacketFromRadius(p)
 	if err != nil {
-		err = errors.Wrap(err, "Error extracting EAP message from Radius packet")
+		err = fmt.Errorf("Error extracting EAP message from Radius packet: %w", err)
 		return nil, err
 	}
 	eapBytes, err := eapMessage.Bytes()
 	if err != nil {
-		err = errors.Wrap(err, "Error converting EAP packet to bytes")
+		err = fmt.Errorf("Error converting EAP packet to bytes: %w", err)
 		return nil, err
 	}
 
@@ -97,7 +95,7 @@ func (srv *UESimServer) EapToRadius(eapP eap.Packet, imsi string, calledStationI
 
 	encoded, err := radiusP.Encode()
 	if err != nil {
-		return nil, errors.Wrap(err, "Error encoding Radius packet")
+		return nil, fmt.Errorf("Error encoding Radius packet: %w", err)
 	}
 
 	// Add Message-Authenticator Attribute.

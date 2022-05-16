@@ -62,7 +62,7 @@ func (srv *UESimServer) handleEapAka(ue *protos.UEConfig, req eap.Packet) (eap.P
 func (srv *UESimServer) eapAkaIdentityRequest(ue *protos.UEConfig, req eap.Packet) (eap.Packet, error) {
 	scanner, err := eap.NewAttributeScanner(req)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error creating new attribute scanner")
+		return nil, fmt.Errorf("Error creating new attribute scanner: %w", err)
 	}
 
 	var a eap.Attribute
@@ -90,14 +90,14 @@ func (srv *UESimServer) eapAkaIdentityRequest(ue *protos.UEConfig, req eap.Packe
 				),
 			)
 			if err != nil {
-				return nil, errors.Wrap(err, "Error appending attribute to packet")
+				return nil, fmt.Errorf("Error appending attribute to packet: %w", err)
 			}
 			return p, nil
 		default:
 			glog.Info(fmt.Sprintf("Unexpected EAP-AKA Identity Request Attribute type %d", a.Type()))
 		}
 	}
-	return nil, errors.Wrap(err, "Error while processing EAP-AKA Identity Request")
+	return nil, fmt.Errorf("Error while processing EAP-AKA Identity Request: %w", err)
 }
 
 type challengeAttributes struct {
@@ -110,7 +110,7 @@ type challengeAttributes struct {
 func (srv *UESimServer) eapAkaChallengeRequest(ue *protos.UEConfig, req eap.Packet) (eap.Packet, error) {
 	attrs, err := parseChallengeAttributes(req)
 	if err != io.EOF {
-		return nil, errors.Wrap(err, "Error while parsing attributes of request packet")
+		return nil, fmt.Errorf("Error while parsing attributes of request packet: %w", err)
 	}
 	if attrs.rand == nil || attrs.autn == nil || attrs.mac == nil {
 		return nil, errors.Errorf("Missing one or more expected attributes\nRAND: %s\nAUTN: %s\nMAC: %s\n", attrs.rand, attrs.autn, attrs.mac)
@@ -139,18 +139,18 @@ func (srv *UESimServer) eapAkaChallengeRequest(ue *protos.UEConfig, req eap.Pack
 	// Calculate RES and other keys.
 	milenage, err := milenage.NewCipher(srv.cfg.amf)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error creating milenage cipher")
+		return nil, fmt.Errorf("Error creating milenage cipher: %w", err)
 	}
 	intermediateVec, err := milenage.GenerateSIPAuthVectorWithRand(rand, key, opc[:], sqn)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error calculating authentication vector")
+		return nil, fmt.Errorf("Error calculating authentication vector: %w", err)
 	}
 	// Make copy of packet and zero out MAC value.
 	copyReq := make([]byte, len(req))
 	copy(copyReq, req)
 	copyAttrs, err := parseChallengeAttributes(eap.Packet(copyReq))
 	if err != io.EOF {
-		return nil, errors.Wrap(err, "Error while parsing attributes of copied request packet")
+		return nil, fmt.Errorf("Error while parsing attributes of copied request packet: %w", err)
 	}
 	copyMacBytes := copyAttrs.mac.Marshaled()
 	for i := aka.ATT_HDR_LEN; i < len(copyMacBytes); i++ {
@@ -168,7 +168,7 @@ func (srv *UESimServer) eapAkaChallengeRequest(ue *protos.UEConfig, req eap.Pack
 	receivedSqn := extractSqnFromAutn(expectedAutn, intermediateVec.AnonymityKey[:])
 	resultVec, err := milenage.GenerateSIPAuthVectorWithRand(rand, key, opc[:], receivedSqn)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error calculating authentication vector")
+		return nil, fmt.Errorf("Error calculating authentication vector: %w", err)
 	}
 	if !reflect.DeepEqual(expectedAutn[MacAStart:], resultVec.Autn[MacAStart:]) {
 		return nil, fmt.Errorf("Invalid MacA in AUTN: Received MacA %x; Calculated MacA: %x",
@@ -205,7 +205,7 @@ func (srv *UESimServer) eapAkaChallengeRequest(ue *protos.UEConfig, req eap.Pack
 		),
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error appending attribute to packet")
+		return nil, fmt.Errorf("Error appending attribute to packet: %w", err)
 	}
 
 	// Add the CHECKCODE attribute.
@@ -226,7 +226,7 @@ func (srv *UESimServer) eapAkaChallengeRequest(ue *protos.UEConfig, req eap.Pack
 		),
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error appending attribute to packet")
+		return nil, fmt.Errorf("Error appending attribute to packet: %w", err)
 	}
 
 	// Calculate and Copy MAC into packet.
@@ -242,7 +242,7 @@ func parseChallengeAttributes(req eap.Packet) (challengeAttributes, error) {
 
 	scanner, err := eap.NewAttributeScanner(req)
 	if err != nil {
-		return attrs, errors.Wrap(err, "Error creating new attribute scanner")
+		return attrs, fmt.Errorf("Error creating new attribute scanner: %w", err)
 	}
 	var a eap.Attribute
 	for a, err = scanner.Next(); err == nil; a, err = scanner.Next() {
