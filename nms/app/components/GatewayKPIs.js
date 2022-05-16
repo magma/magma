@@ -54,12 +54,12 @@ export default function GatewayKPIs() {
       {
         category: 'Connected',
         value: upCount || 0,
-        tooltip: 'Number of gateways checked in within last 5 minutes',
+        tooltip: 'Number of gateways checked in recently',
       },
       {
         category: 'Disconnected',
         value: downCount || 0,
-        tooltip: 'Number of gateways not checked in within last 5 minutes',
+        tooltip: 'Number of gateways not checked in recently',
       },
     ],
   ];

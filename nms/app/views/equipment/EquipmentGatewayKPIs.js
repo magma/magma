@@ -129,7 +129,7 @@ export default function EquipmentGatewayKPIs() {
       {
         category: '% Healthy Gateways',
         value: pctHealthyGw,
-        tooltip: '% of gateways which have checked in within last 5 minutes',
+        tooltip: '% of gateways which have checked in recently',
       },
     ],
   ];

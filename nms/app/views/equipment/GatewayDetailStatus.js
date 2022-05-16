@@ -89,7 +89,7 @@ export default function GatewayDetailStatus({refresh}: {refresh: boolean}) {
         status: gwInfo.checked_in_recently,
         tooltip: gwInfo.checked_in_recently
           ? 'Gateway checked in recently'
-          : "Gateway hasn't checked in within last 5 minutes",
+          : 'Gateway has not checked in recently',
       },
       {
         category: 'Last Check in',
