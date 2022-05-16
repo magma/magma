@@ -23,7 +23,6 @@ import (
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/magma/milenage"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
 	"fbc/lib/go/radius"
@@ -162,7 +161,7 @@ func (tr *TestRunner) ConfigUEsPerInstance(IMSIs []string, pcrfInstance, ocsInst
 	for _, imsi := range IMSIs {
 		// If IMSIs were generated properly they should never give an error here
 		if _, present := tr.imsis[imsi]; present {
-			return nil, errors.Errorf("IMSI %s already exist in database, use generateRandomIMSIS(num, tr.imsis) to create unique list", imsi)
+			return nil, fmt.Errorf("IMSI %s already exist in database, use generateRandomIMSIS(num, tr.imsis) to create unique list", imsi)
 		}
 		key, opc, err := getRandKeyOpcFromOp([]byte(Op))
 		if err != nil {

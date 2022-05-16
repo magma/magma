@@ -31,6 +31,7 @@ import (
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
+	"github.com/hashicorp/go-multierror"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -266,14 +267,15 @@ func getUE(blobStoreFactory blobstore.StoreFactory, imsi string) (ue *cwfprotos.
 		return
 	}
 	defer func() {
-		switch err {
-		case nil:
+		if err == nil {
 			if commitErr := store.Commit(); commitErr != nil {
-				err = fmt.Errorf("Error while committing transaction: %w", err)
+				err = fmt.Errorf("Error while committing transaction: %w", commitErr)
 			}
-		default:
+		} else {
 			if rollbackErr := store.Rollback(); rollbackErr != nil {
-				glog.Errorf("Error while rolling back transaction: %s", err)
+				glog.Errorf("Error while rolling back transaction: %s", rollbackErr)
+				errs := multierror.Append(err, fmt.Errorf("Error while rolling back transaction: %w", rollbackErr))
+				err = errs.ErrorOrNil()
 			}
 		}
 	}()

@@ -19,8 +19,6 @@ import (
 	cwfprotos "magma/cwf/cloud/go/protos"
 	fegprotos "magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
-
-	"github.com/pkg/errors"
 )
 
 // todo Replace constants with configurable fields
@@ -41,7 +39,7 @@ func (srv *UESimServer) HandleEap(ue *cwfprotos.UEConfig, req eap.Packet) (eap.P
 	case fegprotos.EapType_AKA:
 		return srv.handleEapAka(ue, req)
 	}
-	return nil, errors.Errorf("Unsupported Eap Type: %d", req[eap.EapMsgMethodType])
+	return nil, fmt.Errorf("Unsupported Eap Type: %d", req[eap.EapMsgMethodType])
 }
 
 func (srv *UESimServer) eapIdentityRequest(ue *cwfprotos.UEConfig, req eap.Packet) (res eap.Packet, err error) {
