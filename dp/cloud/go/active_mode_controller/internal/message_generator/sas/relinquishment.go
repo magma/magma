@@ -10,7 +10,7 @@ func NewRelinquishmentRequestGenerator() *relinquishmentRequestGenerator {
 
 func (*relinquishmentRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Request {
 	grants := cbsd.GetGrants()
-	cbsdId := cbsd.GetId()
+	cbsdId := cbsd.GetCbsdId()
 	reqs := make([]*Request, 0, len(grants))
 	for _, grant := range grants {
 		req := &relinquishmentRequest{
