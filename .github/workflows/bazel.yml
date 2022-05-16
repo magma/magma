@@ -17,7 +17,7 @@ on:  # yamllint disable-line rule:truthy
     - cron: '0 0,6,12,18 * * *'
 env:
   # Name (MAGMA_REPO) and branch (MAGMA_MASTER) of the repository that has the secrets to the bazel remote cache configured
-  MAGMA_REPO: "lkreutzer/magma"
+  MAGMA_REPO: "LKreutzer/magma"
   MAGMA_MASTER: "refs/heads/bazel_workflow_remote_caching"
   BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
   # In case of poisoned caches the CACHE_KEY can be changed.
@@ -92,7 +92,7 @@ jobs:
           run: |
             cd /magma
             sed --in-place -e s@~~CACHE_KEY~~@${{ env.CACHE_KEY }}@ .bazelrc
-            if [ ${GITHUB_REPOSITORY} = ${{ env.MAGMA_REPO }} -a ${GITHUB_REF} = ${{ env.MAGMA_MASTER }} ]
+            if [ ${{ github.repository }} = ${{ env.MAGMA_REPO }} -a ${{ github.ref }} = ${{ env.MAGMA_MASTER }} ]
             then
               sed --in-place -e s@~~MAGMA_REMOTE_USER~~@${{ secrets.MAGMA_REMOTE_USER }}@ .bazelrc
               sed --in-place -e s@~~MAGMA_REMOTE~~@${{ secrets.MAGMA_REMOTE }}@ .bazelrc
@@ -100,7 +100,6 @@ jobs:
             else
               ln -fs bazel/bazelrcs/remote_caching_ro.bazelrc /etc/bazelrc
             fi
-            cat .bazelrc
             bazel build //...
       - name: Build space left after run
         shell: bash
@@ -149,7 +148,7 @@ jobs:
           run: |
             cd /magma
             sed --in-place -e s@~~CACHE_KEY~~@${{ env.CACHE_KEY }}@ .bazelrc
-            if [ ${GITHUB_REPOSITORY} = ${{ env.MAGMA_REPO }} -a ${GITHUB_REF} = ${{ env.MAGMA_MASTER }} ]
+            if [ ${{ github.repository }} = ${{ env.MAGMA_REPO }} -a ${{ github.ref }} = ${{ env.MAGMA_MASTER }} ]
             then
               sed --in-place -e s@~~MAGMA_REMOTE_USER~~@${{ secrets.MAGMA_REMOTE_USER }}@ .bazelrc
               sed --in-place -e s@~~MAGMA_REMOTE~~@${{ secrets.MAGMA_REMOTE }}@ .bazelrc
@@ -157,7 +156,6 @@ jobs:
             else
               ln -fs bazel/bazelrcs/remote_caching_ro.bazelrc /etc/bazelrc
             fi
-            cat .bazelrc
             bazel test //... \
               --cache_test_results=no \
               --test_output=errors
@@ -179,7 +177,7 @@ jobs:
           run: |
             cd /magma
             sed --in-place -e s@~~CACHE_KEY~~@${{ env.CACHE_KEY }}@ .bazelrc
-            if [ ${GITHUB_REPOSITORY} = ${{ env.MAGMA_REPO }} -a ${GITHUB_REF} = ${{ env.MAGMA_MASTER }} ]
+            if [ ${{ github.repository }} = ${{ env.MAGMA_REPO }} -a ${{ github.ref }} = ${{ env.MAGMA_MASTER }} ]
             then
               sed --in-place -e s@~~MAGMA_REMOTE_USER~~@${{ secrets.MAGMA_REMOTE_USER }}@ .bazelrc
               sed --in-place -e s@~~MAGMA_REMOTE~~@${{ secrets.MAGMA_REMOTE }}@ .bazelrc
@@ -187,7 +185,6 @@ jobs:
             else
               ln -fs bazel/bazelrcs/remote_caching_ro.bazelrc /etc/bazelrc
             fi
-            cat .bazelrc
             bazel/scripts/test_python_service_imports.sh
       - name: Build space left after run
         shell: bash
