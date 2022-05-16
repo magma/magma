@@ -146,7 +146,7 @@ _generate_harness_config:
 .PHONY: _ci_integration_tests_no_orc8r
 _ci_integration_tests_no_orc8r: _install_skaffold_ci
 	skaffold run -p integration-tests-no-orc8
-	kubectl logs test-runner -f | tee /tmp/$@.txt
+	kubectl logs test-runner -f | tee /tmp/integration-tests-results/$@.txt
 	@set -e;\
 	sleep 2;\
 	SUCCESS=$$(kubectl get pods test-runner -o jsonpath='{.status.phase}');\
@@ -155,7 +155,7 @@ _ci_integration_tests_no_orc8r: _install_skaffold_ci
 .PHONY: _ci_integration_tests_orc8r
 _ci_integration_tests_orc8r: _install_skaffold_ci
 	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only
-	kubectl logs test-runner-orc8r -f | tee /tmp/$@.txt
+	kubectl logs test-runner-orc8r -f | tee /tmp/integration-tests-results/$@.txt
 	@set -e;\
 	sleep 2;\
 	SUCCESS=$$(kubectl get pods test-runner-orc8r -o jsonpath='{.status.phase}');\
