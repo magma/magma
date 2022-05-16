@@ -12,11 +12,11 @@
 package sentry
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/magma/magma/src/go/crash"
-	"github.com/pkg/errors"
 )
 
 //go:generate go run github.com/golang/mock/mockgen -source=sentry.go -package mock_sentry -destination mock_sentry/mock_sentry_hub.go sentryHub
@@ -37,7 +37,7 @@ type Crash struct {
 func NewCrash(options sentry.ClientOptions) crash.Crash {
 	client, err := sentry.NewClient(options)
 	if err != nil {
-		panic(errors.Wrapf(err, "sentry.ClientOptions=%+v", options))
+		panic(fmt.Errorf("sentry.ClientOptions=%+v: %w", options, err))
 	}
 	newHub := sentry.NewHub(client, sentry.NewScope())
 	return &Crash{
