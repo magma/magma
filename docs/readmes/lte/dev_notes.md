@@ -283,9 +283,9 @@ enbs {
 num_enbs: 1
 ```
 
-## Unit test report 
+## Combining XML Unit test reports 
 
-At the moment of writing, running the unit test targets does not generate the report file by default. To get the report of all unit tests, you have two options.  
+At the moment of writing, running the unit test targets does not generate the aggregated XML report file by default. To get the report of all unit tests, you have two options.  
 
 ### Option 1: Running unit test target
 
