@@ -96,9 +96,9 @@ jobs:
             then
               sed --in-place -e s@~~MAGMA_REMOTE_USER~~@${{ secrets.MAGMA_REMOTE_USER }}@ .bazelrc
               sed --in-place -e s@~~MAGMA_REMOTE~~@${{ secrets.MAGMA_REMOTE }}@ .bazelrc
-              ln -fs bazel/bazelrcs/remote_caching_rw.bazelrc /etc/bazelrc
+              ln -fs /magma/bazel/bazelrcs/remote_caching_rw.bazelrc /etc/bazelrc
             else
-              ln -fs bazel/bazelrcs/remote_caching_ro.bazelrc /etc/bazelrc
+              ln -fs /magma/bazel/bazelrcs/remote_caching_ro.bazelrc /etc/bazelrc
             fi
             bazel build //...
       - name: Build space left after run
@@ -152,9 +152,9 @@ jobs:
             then
               sed --in-place -e s@~~MAGMA_REMOTE_USER~~@${{ secrets.MAGMA_REMOTE_USER }}@ .bazelrc
               sed --in-place -e s@~~MAGMA_REMOTE~~@${{ secrets.MAGMA_REMOTE }}@ .bazelrc
-              ln -fs bazel/bazelrcs/remote_caching_rw.bazelrc /etc/bazelrc
+              ln -fs /magma/bazel/bazelrcs/remote_caching_rw.bazelrc /etc/bazelrc
             else
-              ln -fs bazel/bazelrcs/remote_caching_ro.bazelrc /etc/bazelrc
+              ln -fs /magma/bazel/bazelrcs/remote_caching_ro.bazelrc /etc/bazelrc
             fi
             bazel test //... \
               --cache_test_results=no \
@@ -181,9 +181,9 @@ jobs:
             then
               sed --in-place -e s@~~MAGMA_REMOTE_USER~~@${{ secrets.MAGMA_REMOTE_USER }}@ .bazelrc
               sed --in-place -e s@~~MAGMA_REMOTE~~@${{ secrets.MAGMA_REMOTE }}@ .bazelrc
-              ln -fs bazel/bazelrcs/remote_caching_rw.bazelrc /etc/bazelrc
+              ln -fs /magma/bazel/bazelrcs/remote_caching_rw.bazelrc /etc/bazelrc
             else
-              ln -fs bazel/bazelrcs/remote_caching_ro.bazelrc /etc/bazelrc
+              ln -fs /magma/bazel/bazelrcs/remote_caching_ro.bazelrc /etc/bazelrc
             fi
             bazel/scripts/test_python_service_imports.sh
       - name: Build space left after run
