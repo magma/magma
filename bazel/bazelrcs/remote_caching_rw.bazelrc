@@ -1,1 +1,2 @@
 common --config=remote_caching_rw
+build:remote_caching_rw --remote_cache="https://bazelbuild:~~BAZEL_REMOTE_PASSWORD~~@bazel-remote-cache.magmacore-ci.org:9090/~~CACHE_KEY~~"

@@ -33,13 +33,18 @@ common:devcontainer --repository_cache=/workspaces/magma/.bazel-cache-repo
 build:devcontainer --define=folly_so=1
 
 # REMOTE CACHING READ AND WRITE CONFIGS
-common:remote_caching_rw --remote_cache="https://~~MAGMA_REMOTE_USER~~:~~MAGMA_REMOTE~~@bazel-remote-cache.magmacore-ci.org:9090/~~CACHE_KEY~~"
-common:remote_caching_rw --remote_download_toplevel
+# The file bazel/bazelrcs/remote_caching_rw.bazelrc is templated in CI
+# The full config is then written to remote-cache.bazelrc
+build:remote_caching_rw --remote_download_toplevel
 
 # REMOTE CACHING READ-ONLY CONFIGS
-common:remote_caching_ro --remote_cache="https://bazel-remote-cache.magmacore-ci.org:9090/~~CACHE_KEY~~"
-common:remote_caching_ro --remote_download_toplevel
-common:remote_caching_ro --remote_upload_local_results=false 
+# The file bazel/bazelrcs/remote_caching_ro.bazelrc is templated in CI
+# The full config is then written to remote-cache.bazelrc
+build:remote_caching_ro --remote_download_toplevel
+build:remote_caching_ro --remote_upload_local_results=false 
+
+# Try importing the bazel remote caching config (relevant in CI)
+try-import remote-cache.bazelrc
 
 # TEST CONFIGS
 # Bazel test runtime default: PATH=/bin:/usr/bin:/usr/local/bin
