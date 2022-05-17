@@ -52,12 +52,12 @@ func TimeoutInterceptor(ctx context.Context, method string, req, resp interface{
 func CloudClientTimeoutInterceptor(ctx context.Context, method string, req, resp interface{},
 	cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 
-	return TimeoutInterceptor(OutgoingCloudClientCtx(ctx), method, req, resp, cc, invoker, opts...)
+	return TimeoutInterceptor(outgoingCloudClientCtx(ctx), method, req, resp, cc, invoker, opts...)
 }
 
-// OutgoingCloudClientCtx amends outgoing cloud client context with magic client CSN metadata
+// outgoingCloudClientCtx amends outgoing cloud client context with magic client CSN metadata
 // if the original context doesn't already have client certificate serial number metadata
-func OutgoingCloudClientCtx(ctx context.Context) context.Context {
+func outgoingCloudClientCtx(ctx context.Context) context.Context {
 	md, exists := metadata.FromOutgoingContext(ctx)
 	if exists {
 		if sns := md.Get(CLIENT_CERT_SN_KEY); len(sns) == 1 && len(sns[0]) > 0 {
