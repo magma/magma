@@ -209,4 +209,4 @@ nms_prereqs_osx:
 nms_gen:
 	# generate Swagger API bindings for NMS
 	$(MAGMA_ROOT)/nms/scripts/generateAPIFromSwagger.sh $(SWAGGER_V1_YML) $(SWAGGER_NMS_OUT)
-	$(MAGMA_ROOT)/nms/scripts/generateAPIFromSwaggerForTypeScript.sh $(SWAGGER_V1_YML) $(SWAGGER_NMS_OUT_TS)
+	$(MAGMA_ROOT)/nms/scripts/generateAPIFromSwaggerForTypeScript.sh -f -i $(SWAGGER_V1_YML) -o $(SWAGGER_NMS_OUT_TS)

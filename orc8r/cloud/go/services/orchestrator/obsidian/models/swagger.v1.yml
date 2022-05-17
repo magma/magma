@@ -38,7 +38,7 @@ magma-gen-meta:
       filename: machine_info_swaggergen.go
     - go-struct-name: NetworkInterface
       filename: network_interface_swaggergen.go
-    - go-struct-name: Package
+    - go-struct-name: DistributionPackage
       filename: distribution_package_swaggergen.go
     - go-struct-name: PlatformInfo
       filename: platform_info_swaggergen.go
