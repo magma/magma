@@ -39,7 +39,7 @@ magma-gen-meta:
     - go-struct-name: NetworkInterface
       filename: network_interface_swaggergen.go
     - go-struct-name: Package
-      filename: package_swaggergen.go
+      filename: distribution_package_swaggergen.go
     - go-struct-name: PlatformInfo
       filename: platform_info_swaggergen.go
     - go-struct-name: Route
@@ -1868,7 +1868,7 @@ definitions:
         x-omitempty: true
         items:
           $ref: '#/definitions/disk_partition'
-  package:
+  distribution_package:
     type: object
     properties:
       name:
@@ -1897,7 +1897,7 @@ definitions:
         type: array
         x-omitempty: true
         items:
-          $ref: '#/definitions/package'
+          $ref: '#/definitions/distribution_package'
       kernel_version:
         type: string
         example: 4.9.0-6-amd64
