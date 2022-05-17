@@ -7351,6 +7351,15 @@ definitions:
         format: uint64
         type: integer
     type: object
+  distribution_package:
+    properties:
+      name:
+        example: magma
+        type: string
+      version:
+        example: 0.0.0
+        type: string
+    type: object
   dns_config_record:
     description: Mapping used for DNS resolving from a domain
     properties:
@@ -10019,15 +10028,6 @@ definitions:
       type: string
     description: neutral host PLMN ID to serving FeG network routes
     type: object
-  package:
-    properties:
-      name:
-        example: magma
-        type: string
-      version:
-        example: 0.0.0
-        type: string
-    type: object
   page_token:
     description: Base64-encoded page token for subsequent paginated API requests
     type: string
@@ -10216,7 +10216,7 @@ definitions:
         x-omitempty: true
       packages:
         items:
-          $ref: '#/definitions/package'
+          $ref: '#/definitions/distribution_package'
         type: array
         x-omitempty: true
       vpn_ip:
