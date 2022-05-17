@@ -381,7 +381,7 @@ func executeCommandWithRetries(command string, argList []string) (*IperfResponse
 		if !isIperfErrorDueToControlMessage(err) {
 			break
 		}
-		glog.Warning( "Retried IPERF command due to an specific error")
+		glog.Warning("Retried IPERF command due to an specific error")
 		time.Sleep(300 * time.Millisecond)
 	}
 	if err != nil {
