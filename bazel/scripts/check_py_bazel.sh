@@ -24,16 +24,23 @@ DENY_LIST_NOT_RELEVANT=(
   "./ci-scripts"
   "./cn/deploy/scripts"
   "./cwf/gateway/deploy"
+  "./dp/cloud/python/magma"
   "./dp/tools"
   "./dev_tools"
   "./example"
   "./feg/gateway/docker"
   "./lte/gateway/dev_tools.py"
   "./lte/gateway/deploy"
+  # manually executed script
+  "./lte/gateway/c/core/oai/tasks/s1ap/messages/asn1/asn1tostruct.py"
+  # used for manual testing
+  "./lte/gateway/python/magma/pipelined/tests/envoy-tests/http-serve.py"
   "./lte/gateway/python/magma/tests/pylint_wrapper.py"
   "./lte/gateway/python/precommit.py"
   "./orc8r/cloud/deploy"
   "./orc8r/cloud/docker"
+  # is not relevant for AGW
+  "./orc8r/gateway/python/magma/magmad/upgrade/docker_upgrader.py"
   "./orc8r/tools"
   "./protos"
   "./show-tech"
@@ -44,30 +51,31 @@ DENY_LIST_NOT_RELEVANT=(
 # Folders and files that are relevant for building with bazel.
 # This list needs to be updated if respected structures are bazelified.
 DENY_LIST_NOT_YET_BAZELIFIED=(
-  "./dp/cloud/python/magma"
-  "./lte/gateway/c/core/oai/tasks/s1ap/messages/asn1"
+  # TODO: GH12752 tests should be bazelified
   "./lte/gateway/python/integ_tests"
-  "./lte/gateway/python/load_tests"
-  "./lte/gateway/python/scripts"
-  "./orc8r/gateway/python/scripts"
+  # TODO: GH12738 unused test logic
   "./orc8r/gateway/python/magma/magmad/tests/dummy_service.py"
-  "./orc8r/gateway/python/magma/magmad/upgrade/docker_upgrader.py"
+  # TODO: GH12754 move to (lte|orc8r)/gateway/python/scripts/
   "./orc8r/gateway/python/magma/common/health/docker_health_service.py"
   "./orc8r/gateway/python/magma/common/health/health_service.py"
   "./orc8r/gateway/python/magma/common/health/entities.py"
   "./lte/gateway/python/magma/health/health_service.py"
   "./lte/gateway/python/magma/health/entities.py"
-  "./lte/gateway/python/magma/mobilityd/tests/rpc_servicer_tests.py"
-  "./lte/gateway/python/magma/pkt_tester/tests/test_topology_builder.py"
-  "./lte/gateway/python/magma/pkt_tester/tests/test_ovs_gtp.py"
-  "./lte/gateway/python/magma/pkt_tester/topology_builder.py"
+  "./lte/gateway/python/magma/pipelined/pg_set_session_msg.py"
+  # TODO: GH12755 access via absolut path on the VM,
+  # this needs to be refactored when make is not used anymore
   "./lte/gateway/python/magma/pipelined/tests/script/gtp-packet.py"
   "./lte/gateway/python/magma/pipelined/tests/script/ip-packet.py"
-  "./lte/gateway/python/magma/pipelined/tests/envoy-tests/http-serve.py"
-  "./lte/gateway/python/magma/pipelined/openflow/events.py"
-  "./lte/gateway/python/magma/pipelined/pg_set_session_msg.py"
+  # TODO: GH12759 needs to be bazelified
+  "./lte/gateway/python/magma/mobilityd/tests/rpc_servicer_tests.py"
   "./lte/gateway/python/magma/enodebd/tr069/tests/models_tests.py"
+  # TODO: GH12765 dead code
+  "./lte/gateway/python/magma/pipelined/openflow/events.py"
   "./lte/gateway/python/magma/enodebd/state_machines/enb_acs_pointer.py"
+  # TODO: GH9878 needs to be further analyzed
+  "./lte/gateway/python/load_tests"
+  "./lte/gateway/python/scripts"
+  "./orc8r/gateway/python/scripts"
 )
 
 DENY_LIST=( "${DENY_LIST_NOT_RELEVANT[@]}" "${DENY_LIST_NOT_YET_BAZELIFIED[@]}" )
