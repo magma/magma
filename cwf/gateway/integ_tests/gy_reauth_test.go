@@ -99,7 +99,6 @@ func TestGyReAuth(t *testing.T) {
 		Bitrate: &wrappers.StringValue{Value: "1M"}}
 	_, err = tr.GenULTrafficBasedOnPolicyUsage(req,
 		"static-pass-all-ocs2", uint64(math.Round(800 * KiloBytes)), 40*time.Second)
-	//_, err = tr.GenULTraffic(req)
 	require.NoError(t, err)
 
 	require.Eventually(t,
@@ -131,7 +130,6 @@ func TestGyReAuth(t *testing.T) {
 	req = &cwfprotos.GenTrafficRequest{Imsi: imsi}
 	_, err = tr.GenULTrafficBasedOnPolicyUsage(req,
 		"static-pass-all-ocs2", uint64(math.Round(1.5 * MegaBytes)), 40*time.Second)
-	//_, err = tr.GenULTraffic(req)
 	require.NoError(t, err)
 
 	require.Eventually(t,
