@@ -31,7 +31,6 @@ RUN apt-get update \
 ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 CMD [ "sleep", "infinity" ]
 
-ARG FEATURES=mme_oai
 ARG PYTHON_VERSION=3.8
 # PYTHON_VERSION must be in sync with "python.defaultInterpreterPath" and "python.analysis.extraPaths" in .devcontainer/devcontainer.json
 ENV MAGMA_ROOT=/workspaces/magma
