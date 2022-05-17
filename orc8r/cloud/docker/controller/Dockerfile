@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y \
   gcc \
   git \
   make \
+  openjdk-8-jre-headless \
   unzip \
   vim
 
