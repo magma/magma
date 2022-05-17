@@ -18,7 +18,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -29,6 +28,7 @@ import (
 	"time"
 
 	"fbc/lib/go/oc"
+
 	"github.com/kelseyhightower/envconfig"
 	"go.opencensus.io/stats/view"
 )
@@ -114,13 +114,13 @@ func PostToODS(metricsData map[string]string, cfg Config) error {
 	}
 	req, err := http.NewRequest(http.MethodPost, cfg.GraphURL, strings.NewReader(urlValues.Encode()))
 	if err != nil {
-		return errors.WithMessage(err, "failed to create http post request")
+		return fmt.Errorf("failed to create http post request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := oc.DefaultClient.Do(req)
 
 	if err != nil {
-		return errors.WithMessage(err, "failed to post form")
+		return fmt.Errorf("failed to post form: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -139,7 +139,7 @@ func getURLValues(datapoints []Datapoint, cfg Config) (url.Values, error) {
 	urlValues := url.Values{}
 	datapointsJSON, err := json.Marshal(datapoints)
 	if err != nil {
-		return urlValues, errors.WithMessage(err, "error marshaling datapoints")
+		return urlValues, fmt.Errorf("error marshaling datapoints: %w", err)
 	}
 
 	urlValues.Add("access_token", cfg.Token)

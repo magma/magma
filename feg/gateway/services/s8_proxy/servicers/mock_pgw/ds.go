@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/pkg/errors"
 	"github.com/wmnsk/go-gtp/gtpv2"
 	"github.com/wmnsk/go-gtp/gtpv2/ie"
 	"github.com/wmnsk/go-gtp/gtpv2/message"
@@ -42,7 +41,7 @@ func (mPgw *MockPgw) getHandleDeleteSessionRequest() gtpv2.HandlerFunc {
 		// get TEUD
 		sgwTeidC, err := session.GetTEID(gtpv2.IFTypeS5S8SGWGTPC)
 		if err != nil {
-			err = errors.Wrap(err, "Error")
+			err = fmt.Errorf("Error: %w", err)
 			return err
 		}
 
