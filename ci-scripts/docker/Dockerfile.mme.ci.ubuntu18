@@ -23,17 +23,9 @@ RUN apt-get update && \
 #     telnet
 RUN echo "AFTER INSTALL CURL"
 
-WORKDIR /usr/sbin
-# RUN wget https://github.com/liblfds/liblfds.git && \
-#     echo "LIBLFDS" && \
-#     ifconfig && \
-#     ping -c 5 www.google.com && \
-#     ping -c 5 www.github.com && \
-#     cat /etc/services && \
-#     echo "AFTER LIBLFDS"
+RUN echo "SMALL CHANGE IN NEW COMMIT"
 
-# RUN ping -c 5 proxy.eurecom.fr
-# RUN timeout 10 telnet proxy.eurecom.fr 8080
+WORKDIR /usr/sbin
 
 RUN git config --global --unset http.proxy || :
 
