@@ -38,7 +38,6 @@ type ueSimClient struct {
 // getUESimClient is a utility function to get a RPC connection to the
 // UESim service
 func getUESimClient() (*ueSimClient, error) {
-	//conn, err := registry.GetConnectionWithTimeout(registry.UeSim, 60*time.Second)
 	conn, err := registry.GetConnection(registry.UeSim)
 	if err != nil {
 		errMsg := fmt.Sprintf("UESim client initialization error: %s", err)

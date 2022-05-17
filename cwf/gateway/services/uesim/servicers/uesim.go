@@ -412,8 +412,6 @@ func isIperfErrorDueToControlMessage(iperf_err error) bool {
 		return false
 	}
 	return strings.Contains(iperf_err.Error(), "unable to receive control message")
-	//|
-	//	strings.Contains(iperf_err.Error(), "the server is busy")
 }
 
 // TODO: create a new file and structs to to parse and dump iperf message
